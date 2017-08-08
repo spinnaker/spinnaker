@@ -28,6 +28,9 @@ class KatoService {
   @Autowired
   private KatoRestService katoRestService
 
+  @Autowired
+  private CloudDriverTaskStatusService cloudDriverTaskStatusService
+
   Observable<TaskId> requestOperations(Collection<? extends Map<String, Map>> operations) {
     String clientRequestId = UUID.randomUUID().toString()
     katoRestService.requestOperations(clientRequestId, operations)
@@ -39,10 +42,10 @@ class KatoService {
   }
 
   Observable<List<Task>> listTasks() {
-    katoRestService.listTasks()
+    cloudDriverTaskStatusService.listTasks()
   }
 
   Observable<Task> lookupTask(String id) {
-    katoRestService.lookupTask(id)
+    cloudDriverTaskStatusService.lookupTask(id)
   }
 }

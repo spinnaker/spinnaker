@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks
 
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
@@ -27,10 +28,34 @@ import groovy.transform.CompileStatic
 import groovy.transform.TypeCheckingMode
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+import retrofit.RetrofitError
+
+import java.time.Clock
+import java.util.concurrent.TimeUnit
 
 @Component
 @CompileStatic
 class MonitorKatoTask implements RetryableTask {
+
+  /**
+   * How long to continue trying to look up a task that reports a 404 Not Found.
+   *
+   * Allows for replication lag if reading tasks from a read-replica of the clouddriver main redis.
+   */
+  static final long TASK_NOT_FOUND_TIMEOUT = TimeUnit.MINUTES.toMillis(2)
+
+  private final Clock clock
+  private final Registry registry
+
+  @Autowired
+  public MonitorKatoTask(Registry registry) {
+    this(registry, Clock.systemUTC())
+  }
+
+  MonitorKatoTask(Registry registry, Clock clock) {
+    this.registry = registry
+    this.clock = clock
+  }
 
   long getBackoffPeriod() { 10000L }
 
@@ -46,7 +71,32 @@ class MonitorKatoTask implements RetryableTask {
       return new TaskResult(ExecutionStatus.SUCCEEDED)
     }
 
-    Task katoTask = kato.lookupTask(taskId.id).toBlocking().first()
+    Task katoTask
+    try {
+      katoTask = kato.lookupTask(taskId.id).toBlocking().first()
+    } catch (RetrofitError re) {
+      //handle a 404 if a task update has not successfully replicated to a read replica
+      if (re.kind == RetrofitError.Kind.HTTP && re.response.status == HttpURLConnection.HTTP_NOT_FOUND) {
+        def firstNotFoundRetry = stage.context."kato.task.firstNotFoundRetry" as Long
+        def now = clock.millis()
+        def ctx = [:]
+        if (firstNotFoundRetry == null) {
+          ctx['kato.task.firstNotFoundRetry'] = now
+          firstNotFoundRetry = now
+        }
+        if (now - firstNotFoundRetry > TASK_NOT_FOUND_TIMEOUT) {
+          registry.counter("monitorKatoTask.taskNotFound.timeout").increment()
+          throw re
+        }
+
+        registry.counter("monitorKatoTask.taskNotFound.retry").increment()
+        ctx['kato.task.notFoundRetryCount'] = ((stage.context."kato.task.notFoundRetryCount" as Integer) ?: 0) + 1
+        return new TaskResult(ExecutionStatus.RUNNING, ctx)
+      } else {
+        throw re
+      }
+    }
+
     def katoResultExpected = (stage.context["kato.result.expected"] as Boolean) ?: false
     ExecutionStatus status = katoStatusToTaskStatus(katoTask, katoResultExpected)
 

@@ -16,20 +16,30 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks
 
+import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.clouddriver.model.Task
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import retrofit.RetrofitError
+import retrofit.client.Response
+import retrofit.mime.TypedByteArray
 import rx.Observable
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
 
+import java.time.Clock
+import java.time.Instant
+import java.time.ZoneId
+
 class MonitorKatoTaskSpec extends Specification {
 
-  @Subject task = new MonitorKatoTask()
+  def now = Instant.now()
+  @Subject task = new MonitorKatoTask(new NoopRegistry(), Clock.fixed(now, ZoneId.of("UTC")))
 
   @Unroll("result is #expectedResult if kato task is #katoStatus")
   def "result depends on Kato task status"() {
@@ -104,4 +114,58 @@ class MonitorKatoTaskSpec extends Specification {
     [:]                         | _
   }
 
+  @Unroll
+  def "should retry if the task is not found in clouddriver until timeout #desc"() {
+    given:
+    def ctx = [
+      "kato.last.task.id": new TaskId(taskId)
+    ]
+    if (previousRetry) {
+      ctx.put('kato.task.firstNotFoundRetry', now.minusMillis(elapsed).toEpochMilli())
+    }
+    def stage = new Stage<>(new Pipeline(), "whatever", ctx)
+    task.kato = Stub(KatoService) {
+      lookupTask(taskId) >> { retrofit404() }
+    }
+
+    when:
+    def result = task.execute(stage)
+
+    then:
+    result.status == ExecutionStatus.RUNNING
+    result.stageOutputs['kato.task.notFoundRetryCount'] == 1
+
+    where:
+    taskId = "katoTaskId"
+    desc            | elapsed                                    | previousRetry
+    "first failure" | 0                                          |  false
+    "first retry"   | 1                                          |  true
+    "about to fail" | MonitorKatoTask.TASK_NOT_FOUND_TIMEOUT     |  true
+  }
+
+  def "should timeout if task not not found after timeout period"() {
+    given:
+    def ctx = [
+      "kato.last.task.id": new TaskId(taskId)
+    ]
+    ctx.put('kato.task.firstNotFoundRetry', now.minusMillis(elapsed).toEpochMilli())
+    def stage = new Stage<>(new Pipeline(), "whatever", ctx)
+    task.kato = Stub(KatoService) {
+      lookupTask(taskId) >> { retrofit404() }
+    }
+
+    when:
+    task.execute(stage)
+
+    then:
+    thrown(RetrofitError)
+
+    where:
+    taskId = "katoTaskId"
+    elapsed = MonitorKatoTask.TASK_NOT_FOUND_TIMEOUT + 1
+  }
+
+  def retrofit404() {
+    throw RetrofitError.httpError("http://localhost", new Response("http://localhost", 404, "Not Found", [], new TypedByteArray("application/json", new byte[0])), null, Task)
+  }
 }

@@ -37,6 +37,9 @@ class KatoRestServiceSpec extends Specification {
   @Subject
   KatoRestService service
 
+  @Subject
+  CloudDriverTaskStatusService taskStatusService
+
   RequestInterceptor noopInterceptor = new RequestInterceptor() {
     @Override
     void intercept(RequestInterceptor.RequestFacade request) {
@@ -55,6 +58,7 @@ class KatoRestServiceSpec extends Specification {
         noopInterceptor,
         new CloudDriverConfigurationProperties(clouddriver: new CloudDriverConfigurationProperties.CloudDriver(baseUrl: httpServer.baseURI)))
     service = cfg.katoDeployService(builder)
+    taskStatusService = cfg.cloudDriverTaskStatusService(builder)
   }
 
   def "can interpret the response from an operation request"() {
@@ -84,7 +88,7 @@ class KatoRestServiceSpec extends Specification {
     }
 
     expect:
-    with(service.lookupTask(taskId).toBlocking().first()) {
+    with(taskStatusService.lookupTask(taskId).toBlocking().first()) {
       id == taskId
       status.completed
       status.failed

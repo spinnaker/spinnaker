@@ -154,6 +154,11 @@ class CloudDriverConfiguration {
   }
 
   @Bean
+  CloudDriverTaskStatusService cloudDriverTaskStatusService(ClouddriverRetrofitBuilder builder) {
+    return new DelegatingCloudDriverTaskStatusService(builder.buildReadOnlyService(CloudDriverTaskStatusService))
+  }
+
+  @Bean
   FeaturesRestService featuresRestService(ClouddriverRetrofitBuilder builder) {
     return builder.buildWriteableService(FeaturesRestService)
   }
