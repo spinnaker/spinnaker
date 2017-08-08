@@ -101,5 +101,5 @@ buildRpm {
 }
 
 buildDeb {
-  requires('apache2', '2.4.26', Flags.GREATER | Flags.EQUAL)
+  requires('apache2', '2.4.7', Flags.GREATER | Flags.EQUAL)
 }
