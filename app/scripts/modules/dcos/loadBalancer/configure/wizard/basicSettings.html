@@ -1,0 +1,62 @@
+<form class="container-fluid form-horizontal" name="form" novalidate>
+  <div ng-if="!state.accountsLoaded" style="height: 200px">
+    <h3 us-spinner="{radius:30, width:8, length: 16}"></h3>
+  </div>
+  <div class="modal-body" ng-if="state.accountsLoaded">
+    <div class="form-group">
+      <div class="col-md-12 well" ng-class="{'alert-danger': form.loadBalancerName.$error.validateUnique, 'alert-info': !form.loadBalancerName.$error.validateUnique}">
+        <strong>Your load balancer will be named:</strong>
+        <span>{{ctrl.getName()}}</span>
+          <!-- Angular does not seem to run length validation on hidden inputs, hence the text + display:none -->
+        <input type="text"
+               style="display: none"
+               class="form-control input-sm"
+               ng-model="loadBalancer.name"
+               validate-unique="existingLoadBalancerNames"
+               validate-ignore-case="true"
+               name="loadBalancerName"/>
+        <validation-error ng-if="form.loadBalancerName.$error.validateUnique" message="There is already a load balancer in {{loadBalancer.account}} with that name."></validation-error>
+      </div>
+    </div>
+    <div ng-show="isNew">
+      <div class="form-group">
+        <div class="col-md-3 sm-label-right">Account</div>
+        <div class="col-md-7">
+          <account-select-field component="loadBalancer" field="account" accounts="accounts" provider="'dcos'" on-change="ctrl.accountUpdated()"></account-select-field>
+        </div>
+      </div>
+
+      <cluster-select-field required label-columns="3" component="loadBalancer" field="region"
+            account="loadBalancer.account" provider="'dcos'" clusters="dcosClusters" on-change="ctrl.dcosClusterUpdated()">
+      </cluster-select-field>
+
+      <div class="form-group">
+        <div class="col-md-3 sm-label-right">Stack <help-field key="dcos.loadBalancer.stack"></help-field></div>
+        <div class="col-md-7">
+          <input type="text"
+                 class="form-control input-sm"
+                 ng-model="loadBalancer.stack"
+                 name="stackName"
+                 ng-change="ctrl.updateName()"
+                 ng-pattern="/^[a-zA-Z0-9]*$/"/>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="col-md-3 sm-label-right">Detail <help-field key="dcos.loadBalancer.detail"></help-field></div>
+        <div class="col-md-7">
+          <input type="text"
+                 class="form-control input-sm"
+                 ng-model="loadBalancer.detail"
+                 name="detailName"
+                 ng-change="ctrl.updateName()"
+                 ng-pattern="/^[a-zA-Z0-9-]*$/"/>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="col-md-9 col-md-offset-3" ng-if="form.loadBalancerName.$error.maxlength">
+          <validation-error message="Load Balancer name can only be 24 characters."></validation-error>
+        </div>
+      </div>
+    </div>
+  </div>
+</form>

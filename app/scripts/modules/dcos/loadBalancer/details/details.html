@@ -1,0 +1,67 @@
+<div class="details-panel">
+  <div ng-if="state.loading" class="header">
+    <div class="close-button">
+      <a class="btn btn-link"
+         ui-sref="^">
+        <span class="glyphicon glyphicon-remove"></span>
+      </a>
+    </div>
+    <h4 class="text-center">
+      <span us-spinner="{radius:20, width:6, length: 12}"></span>
+    </h4>
+  </div>
+
+  <div ng-if="!state.loading" class="header">
+    <div class="close-button">
+      <a class="btn btn-link"
+         ui-sref="^">
+        <span class="glyphicon glyphicon-remove"></span>
+      </a>
+    </div>
+    <div class="header-text">
+      <span class="icon icon-elb"></span>
+      <h3 select-on-dbl-click>
+        {{loadBalancer.name}}
+      </h3>
+    </div>
+    <div>
+      <div class="actions">
+        <div class="dropdown" uib-dropdown dropdown-append-to-body>
+          <button type="button" class="btn btn-sm btn-primary dropdown-toggle" uib-dropdown-toggle>
+            Load Balancer Actions <span class="caret"></span>
+          </button>
+          <ul class="dropdown-menu" uib-dropdown-menu role="menu">
+            <li><a href ng-click="ctrl.editLoadBalancer()">Edit Load Balancer</a></li>
+            <li ng-if="!loadBalancer.instances.length"><a href ng-click="ctrl.deleteLoadBalancer()">Delete Load Balancer</a></li>
+            <li ng-if="loadBalancer.instances.length" class="disabled" uib-tooltip="You must detach all instances before you can delete this load balancer.">
+              <a href ng-click="ctrl.deleteLoadBalancer()">Delete Load Balancer</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div ng-if="!state.loading" class="content">
+    <collapsible-section heading="Load Balancer Details" expanded="true">
+      <dl class="dl-horizontal dl-flex">
+        <dt>Created</dt>
+        <dd>{{loadBalancer.createdTime | timestamp}}</dd>
+        <dt>In</dt>
+        <dd><account-tag account="loadBalancer.account" pad="right"></account-tag></dd>
+        <dt>Region<dt>
+        <dd>{{loadBalancer.region}}</dd>
+        <dt>JSON</dt>
+        <dd><a href ng-click="ctrl.showJson()">Show JSON</a></dd>
+        <dt>DC/OS UI</dt>
+        <dd><a href={{ctrl.uiLink()}} target="_blank">{{loadBalancer.name}}</a></dd>
+      </dl>
+      <dl class="horizontal-when-filters-collapsed">
+        <dt ng-if="loadBalancer.serverGroups">Server Groups</dt>
+        <dd ng-if="loadBalancer.serverGroups">
+          <ul class="collapse-margin-on-filter-collapse">
+            <li ng-repeat="serverGroup in loadBalancer.serverGroups">{{serverGroup.name}}</li>
+          </ul>
+        </dd>
+      </dl>
+  </div>
+</div>

@@ -1,0 +1,47 @@
+<form ng-controller="dcosLoadBalancerPortsController as portsController" class="container-fluid form-horizontal" name="ports">
+  <div class="col-md-12">
+    <div class="form-group">
+      <div class="col-md-3 sm-label-right">
+        Bind http/https
+        <help-field key="dcos.loadBalancer.bindHttpHttps"></help-field>
+      </div>
+      <div class="col-md-2">
+        <input type="checkbox" name="bindHttpHttps" ng-model="loadBalancer.bindHttpHttps"/>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <div class="col-md-3 sm-label-right">
+        Min Port
+        <help-field key="dcos.loadBalancer.portRange.minPort"></help-field>
+      </div>
+      <div class="col-md-2">
+          <input type="number" class="form-control input-sm" name="minPort" ng-model="loadBalancer.portRange.minPort"
+                min="{{portsController.minPort}}" max="{{portsController.maxPort}}"/>
+      </div>
+
+      <div class="col-md-3 sm-label-right">
+        Max Port
+        <help-field key="dcos.loadBalancer.portRange.maxPort"></help-field>
+      </div>
+      <div class="col-md-2">
+          <input type="number" class="form-control input-sm" name="maxPort" ng-model="loadBalancer.portRange.maxPort"
+                min="{{portsController.minPort}}" max="{{portsController.maxPort}}" />
+      </div>
+    </div>
+
+  <div class="form-group">
+    <div class="col-md-3 sm-label-right">
+        Protocol
+        <help-field key="dcos.loadBalancer.portRange.protocol"></help-field>
+      </div>
+      <div class="col-md-2">
+        <select class="form-control input-sm"
+                ng-model="loadBalancer.portRange.protocol">
+          <option ng-repeat="protocol in portsController.protocols"
+                  value="{{protocol}}"
+                  ng-selected="loadBalancer.portRange.protocol === protocol">{{protocol}}</option>
+        </select>
+      </div>
+   </div>
+</form>

@@ -1,0 +1,18 @@
+<v2-modal-wizard heading="Edit Load Balancer" task-monitor="taskMonitor" dismiss="$dismiss()">
+  <v2-wizard-page key="basic-settings" label="Basic Settings">
+    <ng-include src="pages.basicSettings"></ng-include>
+  </v2-wizard-page>
+  <v2-wizard-page key="resources" label="Resources" done="true">
+    <ng-include src="pages.resources"></ng-include>
+  </v2-wizard-page>
+  <v2-wizard-page key="ports" label="Ports" done="true">
+    <ng-include src="pages.ports"></ng-include>
+  </v2-wizard-page>
+</v2-modal-wizard>
+<div class="modal-footer">
+  <button ng-disabled="taskMonitor.submitting" class="btn btn-default"
+          ng-click="ctrl.cancel()">Cancel
+  </button>
+  <submit-button is-disabled="form.$invalid || taskMonitor.submitting"
+                 submitting="taskMonitor.submitting" on-click="ctrl.submit()" is-new="isNew"></submit-button>
+</div>

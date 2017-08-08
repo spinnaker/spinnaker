@@ -20,9 +20,9 @@ module.exports = angular.module('spinnaker.dcos', [
   DCOS_HELP,
   // TODO: add these back in future pull requests
   // require('./instance/details/details.dcos.module.js'),
-  // require('./loadBalancer/configure/configure.dcos.module.js'),
-  // require('./loadBalancer/details/details.dcos.module.js'),
-  // require('./loadBalancer/transformer.js'),
+  require('./loadBalancer/configure/configure.dcos.module.js'),
+  require('./loadBalancer/details/details.dcos.module.js'),
+  require('./loadBalancer/transformer.js'),
   require('./pipeline/stages/destroyAsg/dcosDestroyAsgStage.js'),
   require('./pipeline/stages/disableAsg/dcosDisableAsgStage.js'),
   require('./pipeline/stages/disableCluster/dcosDisableClusterStage.js'),
@@ -51,9 +51,9 @@ module.exports = angular.module('spinnaker.dcos', [
       },
       loadBalancer: {
         transformer: 'dcosLoadBalancerTransformer',
-        // detailsTemplateUrl: require('./loadBalancer/details/details.html'),
+        detailsTemplateUrl: require('./loadBalancer/details/details.html'),
         detailsController: 'dcosLoadBalancerDetailsController',
-        // createLoadBalancerTemplateUrl: require('./loadBalancer/configure/wizard/createWizard.html'),
+        createLoadBalancerTemplateUrl: require('./loadBalancer/configure/wizard/createWizard.html'),
         createLoadBalancerController: 'dcosUpsertLoadBalancerController',
       },
       image: {
