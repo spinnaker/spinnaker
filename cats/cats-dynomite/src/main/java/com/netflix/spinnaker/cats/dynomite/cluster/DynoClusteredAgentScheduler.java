@@ -123,6 +123,25 @@ public class DynoClusteredAgentScheduler extends CatsModuleAware implements Agen
     return redisClientDelegate.withCommandsClient(client -> {
       String response = client.get(agentType);
       if (response == null) {
+        // Purges potentially deadlocked agents, which can happen if the conn is interrupted between setnx & pexpireAt.
+        boolean purge = true;
+        for (int i = 0; i <= 3; i++) {
+          if (client.ttl(agentType) > 0) {
+            purge = false;
+            break;
+          }
+          try {
+            Thread.sleep(25);
+          } catch (InterruptedException e) {
+            purge = false;
+            break;
+          }
+        }
+        if (purge) {
+          log.warn("Detected deadlocked agent, removing lock key: " + agentType);
+          client.del(agentType);
+        }
+
         if (client.setnx(agentType, nodeIdentity.getNodeIdentity()) == 1) {
           client.pexpireAt(agentType, System.currentTimeMillis() + timeout);
         }
