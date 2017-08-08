@@ -118,7 +118,7 @@ export class ClusterFilterService {
     this.clusterFilterModel.asFilterModel.addTags();
     this.lastApplication = application;
     this.addHealthFlags();
-    this.groupsUpdatedStream.next(groups);
+    this.groupsUpdatedStream.next(this.clusterFilterModel.asFilterModel.groups);
   }
 
   public clearFilters(): void {
