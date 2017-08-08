@@ -27,6 +27,8 @@ import com.netflix.titus.grpc.protogen.*;
 import groovy.util.logging.Log;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
+import io.grpc.netty.NegotiationType;
+import io.grpc.netty.NettyChannelBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -76,7 +78,13 @@ public class RegionScopedV3TitusClient implements TitusClient {
     this.titusRegion = titusRegion;
     this.registry = registry;
     this.titusJobCustomizers = titusJobCustomizers;
-    ManagedChannel channel = ManagedChannelBuilder.forAddress("titusapi.devvpc3.us-east-1.dyntest.netflix.net", 7104).usePlaintext(true).build();
+
+    NettyChannelBuilder nettyChannelBuilder = (NettyChannelBuilder) ManagedChannelBuilder.forAddress("titusapi.devvpc3.us-east-1.dyntest.netflix.net", 7104);
+    ManagedChannel channel = nettyChannelBuilder
+      .sslContext(ClientAuthenticationUtils.newSslContext("titusapi"))
+      .negotiationType(NegotiationType.TLS)
+      .build();
+
     this.grpc = JobManagementServiceGrpc.newStub(channel);
     this.grpcBlockingStub = JobManagementServiceGrpc.newBlockingStub(channel);
   }
@@ -130,7 +138,8 @@ public class RegionScopedV3TitusClient implements TitusClient {
 
   @Override
   public Task getTask(String taskId) {
-    return new Task(grpcBlockingStub.findTask(com.netflix.titus.grpc.protogen.TaskId.newBuilder().setId(taskId).build()));
+    // return new Task(grpcBlockingStub.findTask(com.netflix.titus.grpc.protogen.TaskId.newBuilder().setId(taskId).build()));
+    return null;
   }
 
   @Override
@@ -196,6 +205,7 @@ public class RegionScopedV3TitusClient implements TitusClient {
     } while (allPages > currentPage);
     return jobs;
   }
+
 
 
 }
