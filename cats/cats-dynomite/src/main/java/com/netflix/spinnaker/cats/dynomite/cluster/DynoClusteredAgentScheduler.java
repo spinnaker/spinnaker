@@ -123,11 +123,20 @@ public class DynoClusteredAgentScheduler extends CatsModuleAware implements Agen
     return redisClientDelegate.withCommandsClient(client -> {
       String response = client.get(agentType);
       if (response == null) {
+        if (client.setnx(agentType, nodeIdentity.getNodeIdentity()) == 1) {
+          client.pexpireAt(agentType, System.currentTimeMillis() + timeout);
+        }
+        return true;
+      } else {
         // Purges potentially deadlocked agents, which can happen if the conn is interrupted between setnx & pexpireAt.
         boolean purge = true;
         for (int i = 0; i <= 3; i++) {
-          if (client.ttl(agentType) > 0) {
+          Long ttl = client.ttl(agentType);
+          if (ttl == -2) {
             purge = false;
+            break;
+          }
+          if (ttl == -1) {
             break;
           }
           try {
@@ -141,11 +150,6 @@ public class DynoClusteredAgentScheduler extends CatsModuleAware implements Agen
           log.warn("Detected deadlocked agent, removing lock key: " + agentType);
           client.del(agentType);
         }
-
-        if (client.setnx(agentType, nodeIdentity.getNodeIdentity()) == 1) {
-          client.pexpireAt(agentType, System.currentTimeMillis() + timeout);
-        }
-        return true;
       }
       return false;
     });
