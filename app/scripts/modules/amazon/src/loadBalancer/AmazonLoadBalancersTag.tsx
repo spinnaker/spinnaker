@@ -6,16 +6,12 @@ import * as ReactGA from 'react-ga';
 import autoBindMethods from 'class-autobind-decorator';
 import { sortBy } from 'lodash';
 
-import { HealthCounts, ILoadBalancer, ILoadBalancersTagProps, LoadBalancerDataUtils, ReactInjector, Tooltip } from '@spinnaker/core';
+import {
+  HealthCounts, ILoadBalancer, ILoadBalancersTagProps, LoadBalancerDataUtils, ReactInjector, Tooltip, HoverablePopover
+} from '@spinnaker/core';
 
 import { AmazonLoadBalancerDataUtils } from 'amazon/loadBalancer/amazonLoadBalancerDataUtils';
 import { IAmazonServerGroup, ITargetGroup } from 'amazon/domain';
-
-export interface IAmazonLoadBalancersTagState {
-  loadBalancers: ILoadBalancer[];
-  targetGroups: ITargetGroup[];
-  showPopover: boolean;
-};
 
 interface ILoadBalancerListItemProps {
   loadBalancer: ILoadBalancer | ITargetGroup;
@@ -65,6 +61,11 @@ class LoadBalancerButton extends React.Component<ILoadBalancerSingleItemProps> {
   }
 }
 
+export interface IAmazonLoadBalancersTagState {
+  loadBalancers: ILoadBalancer[];
+  targetGroups: ITargetGroup[];
+}
+
 @autoBindMethods
 export class AmazonLoadBalancersTag extends React.Component<ILoadBalancersTagProps, IAmazonLoadBalancersTagState> {
   private loadBalancersRefreshUnsubscribe: () => void;
@@ -74,7 +75,6 @@ export class AmazonLoadBalancersTag extends React.Component<ILoadBalancersTagPro
     this.state = {
       loadBalancers: [],
       targetGroups: [],
-      showPopover: false
     };
 
     LoadBalancerDataUtils.populateLoadBalancers(props.application, props.serverGroup).then((loadBalancers) => this.setState({loadBalancers}))
@@ -99,66 +99,78 @@ export class AmazonLoadBalancersTag extends React.Component<ILoadBalancersTagPro
     $state.go(nextState, {region: serverGroup.region, accountId: serverGroup.account, name: targetGroup.name, provider: serverGroup.type, loadBalancerName: targetGroup.loadBalancerNames[0]});
   }
 
-  private toggleShowPopover(e: React.MouseEvent<HTMLElement>): void {
-    ReactGA.event({category: 'Cluster Pod', action: `Toggle Load Balancers Menu (${this.state.showPopover})`});
-    this.setState({showPopover: !this.state.showPopover});
+  private handleShowPopover() {
+    ReactGA.event({category: 'Cluster Pod', action: `Show Load Balancers Menu`});
+  }
+
+  private handleClick(e: React.MouseEvent<HTMLElement>): void {
     e.preventDefault();
     e.stopPropagation();
   }
 
   public componentWillUnmount(): void {
-    if (this.loadBalancersRefreshUnsubscribe) {
-      this.loadBalancersRefreshUnsubscribe();
-    }
+    this.loadBalancersRefreshUnsubscribe();
   }
 
   public render(): React.ReactElement<AmazonLoadBalancersTag> {
-    const { loadBalancers, showPopover, targetGroups } = this.state;
+    const { loadBalancers, targetGroups } = this.state;
 
     const targetGroupCount = targetGroups && targetGroups.length || 0,
           loadBalancerCount = loadBalancers && loadBalancers.length || 0,
           totalCount = targetGroupCount + loadBalancerCount;
 
-    if (totalCount) {
-      const showValue = targetGroupCount ? loadBalancerCount ? 'target groups and load balancers' : 'target groups' : 'load balancers';
-      const className = `load-balancers-tag ${totalCount > 1 ? 'overflowing' : ''}`;
-
-      return (
-        <span className={className}>
-          { totalCount > 1 && (
-            <Tooltip value={`${showPopover ? 'Hide' : 'Show'} all ${totalCount} ${showValue}`}>
-              <button
-                className="btn btn-link btn-multiple-load-balancers clearfix no-padding"
-                onClick={this.toggleShowPopover}
-              >
-                <span className="badge badge-counter">
-                  <span className="icon"><span className="icon-elb"/></span> {totalCount}
-                </span>
-              </button>
-            </Tooltip>
-          )}
-          { showPopover && (
-            <div className="menu-load-balancers">
-              {loadBalancerCount > 0 && <div className="menu-load-balancers-header">Load Balancers</div>}
-              {sortBy(loadBalancers, 'name').map((loadBalancer) => <LoadBalancerListItem key={loadBalancer.name} loadBalancer={loadBalancer} onItemClick={this.showLoadBalancerDetails}/>)}
-              {targetGroupCount > 0 && <div className="menu-load-balancers-header">Target Groups</div>}
-              {sortBy(targetGroups, 'name').map((targetGroup) => <LoadBalancerListItem key={targetGroup.name} loadBalancer={targetGroup} onItemClick={this.showTargetGroupDetails}/>)}
-            </div>
-          )}
-          { (loadBalancers.length === 1 && targetGroups.length === 0) && (
-            <span className="btn-load-balancer">
-              <LoadBalancerButton key={loadBalancers[0].name} label="Load Balancer" loadBalancer={loadBalancers[0]} onItemClick={this.showLoadBalancerDetails}/>
-            </span>
-          )}
-          { (targetGroups.length === 1 && loadBalancers.length === 0) && (
-            <span className="btn-load-balancer">
-              <LoadBalancerButton key={targetGroups[0].name} label="Target Group" loadBalancer={targetGroups[0]} onItemClick={this.showTargetGroupDetails}/>
-            </span>
-          )}
-        </span>
-      )
-    } else {
+    if (!totalCount) {
       return null;
     }
+
+    const className = `load-balancers-tag ${totalCount > 1 ? 'overflowing' : ''}`;
+    const popover = (
+      <div className="menu-load-balancers">
+        {loadBalancerCount > 0 && <div className="menu-load-balancers-header">Load Balancers</div>}
+        {sortBy(loadBalancers, 'name').map((loadBalancer) => (
+          <LoadBalancerListItem key={loadBalancer.name} loadBalancer={loadBalancer} onItemClick={this.showLoadBalancerDetails}/>
+        ))}
+
+        {targetGroupCount > 0 && <div className="menu-load-balancers-header">Target Groups</div>}
+        {sortBy(targetGroups, 'name').map((targetGroup) => (
+          <LoadBalancerListItem key={targetGroup.name} loadBalancer={targetGroup} onItemClick={this.showTargetGroupDetails}/>
+        ))}
+      </div>
+    );
+
+    return (
+      <span className={className}>
+        { totalCount > 1 && (
+          <HoverablePopover
+            delayShow={100}
+            delayHide={150}
+            onShow={this.handleShowPopover}
+            placement="bottom"
+            template={popover}
+            hOffsetPercent="80%"
+            container={this.props.container}
+            className="no-padding menu-load-balancers"
+          >
+            <button onClick={this.handleClick} className="btn btn-link btn-multiple-load-balancers clearfix no-padding" >
+              <span className="badge badge-counter">
+                <span className="icon"><span className="icon-elb"/></span> {totalCount}
+              </span>
+            </button>
+          </HoverablePopover>
+        )}
+
+        { (loadBalancers.length === 1 && targetGroups.length === 0) && (
+          <span className="btn-load-balancer">
+            <LoadBalancerButton key={loadBalancers[0].name} label="Load Balancer" loadBalancer={loadBalancers[0]} onItemClick={this.showLoadBalancerDetails}/>
+          </span>
+        )}
+
+        { (targetGroups.length === 1 && loadBalancers.length === 0) && (
+          <span className="btn-load-balancer">
+            <LoadBalancerButton key={targetGroups[0].name} label="Target Group" loadBalancer={targetGroups[0]} onItemClick={this.showTargetGroupDetails}/>
+          </span>
+        )}
+      </span>
+    )
   }
 }

@@ -7,6 +7,7 @@ import { APPLICATION_MODEL_BUILDER, ApplicationModelBuilder } from 'core/applica
 import { ILoadBalancersTagProps } from './LoadBalancersTagWrapper';
 import { LoadBalancersTag } from './LoadBalancersTag';
 import { IServerGroup } from 'core/domain';
+import { HoverablePopover } from 'core/presentation';
 
 describe('<LoadBalancersTag />', () => {
   const lb1 = { name: 'lb1', account: 'prod', region: 'us-east-1', vpcId: 'vpc-1' },
@@ -48,10 +49,11 @@ describe('<LoadBalancersTag />', () => {
     const props: ILoadBalancersTagProps = { application, serverGroup };
     component = mount(<LoadBalancersTag {...props}/>);
 
+    $scope.$digest();
     expect(component.find('span.btn-load-balancer').length).toBe(1);
   });
 
-  it('extracts two load balancers from data', () => {
+  it('extracts two load balancers from data', (done) => {
     const serverGroup = {
       account: 'prod',
       region: 'us-east-1',
@@ -63,17 +65,27 @@ describe('<LoadBalancersTag />', () => {
     application.getDataSource('loadBalancers').data = [ lb1, lb2 ];
 
     const props: ILoadBalancersTagProps = { application, serverGroup };
-    component = mount(<LoadBalancersTag {...props}/>);
+    const popoverContainerEl = document.createElement('div');
+    component = mount(<LoadBalancersTag {...props} container={popoverContainerEl} />);
 
     // Make sure the application dataSource promises resolve
     $scope.$digest();
 
-    expect(component.find('.btn-multiple-load-balancers').length).toBe(1);
-    component.find('.btn-multiple-load-balancers').simulate('click');
-    const menuChildren: ReactWrapper<any, any> = component.find('div.menu-load-balancers').children();
-    expect(menuChildren.length).toBe(3);
-    expect(menuChildren.at(0).text().trim()).toBe('Load Balancers');
-    expect(menuChildren.at(1).find('.name').text().trim()).toBe('lb1');
-    expect(menuChildren.at(2).find('.name').text().trim()).toBe('lb2');
+    const popover = component.find(HoverablePopover);
+    expect(popover.length).toBe(1);
+
+    // Wait for the popover to show
+    (popover.getNode() as any).showHide$.take(1).toPromise().then(() => {
+      const menuChildren = popoverContainerEl.querySelector('.popover-content div.menu-load-balancers').children;
+
+      expect(menuChildren.length).toBe(3);
+      expect(menuChildren[0].textContent.trim()).toBe('Load Balancers');
+      expect(menuChildren[1].textContent.trim()).toBe('lb1');
+      expect(menuChildren[2].textContent.trim()).toBe('lb2');
+
+      done();
+    });
+
+    popover.simulate('mouseEnter');
   });
 });

@@ -252,17 +252,17 @@ running-tasks-tag {
 }
 
 .menu-load-balancers {
-  opacity: 1;
-  text-align: left;
-  position: absolute;
-  z-index: 99999;
-  right: 0;
-  background-color: #ffffff;
-  margin-top: 8px;
-  border: 1px solid #777777;
-  padding: 0;
-  box-shadow: 0 0 2px 0 #dddddd;
+  &.popover.bottom div.arrow:after {
+    border-bottom-color: @mid_grey;
+  }
+
+  .popover-title {
+    background-color: @mid_grey;
+    color: white;
+  }
+
   min-width: 150px;
+
   .menu-load-balancers-header {
     font-weight: 600;
     color: #eeeeee;
@@ -275,6 +275,7 @@ running-tasks-tag {
     display: block;
   }
   a {
+    cursor: pointer;
     display: flex;
     justify-content: space-between;
     border-bottom: 1px solid #d1d1d1;
@@ -298,26 +299,6 @@ running-tasks-tag {
       padding-left: 15px;
       padding-right: 5px;
     }
-  }
-  &::before, &::after {
-    width: 0;
-    height: 0;
-    content: ' ';
-    right: 15px;
-    position: absolute;
-    border: 8px solid transparent;
-    border-top-width: 0;
-    margin-left: -11px;
-  }
-  &::after {
-    margin-left: -10px;
-    border-width: 8px;
-    top: -14px;
-    border-bottom-color: @mid_grey;
-  }
-  &::before {
-    top: -8px;
-    border-bottom-color: @mid_grey;
   }
 }
 

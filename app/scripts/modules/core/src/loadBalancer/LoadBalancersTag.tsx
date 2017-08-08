@@ -9,21 +9,17 @@ import { HealthCounts } from 'core/healthCounts/HealthCounts';
 import { LoadBalancerDataUtils } from 'core/loadBalancer/loadBalancerDataUtils';
 import { Tooltip } from 'core/presentation/Tooltip';
 import { ReactInjector } from 'core/reactShims';
-
-export interface ILoadBalancersTagState {
-  loadBalancers: ILoadBalancer[];
-  showPopover: boolean;
-};
+import { HoverablePopover } from 'core/presentation';
 
 interface ILoadBalancerListItemProps {
   loadBalancer: ILoadBalancer;
-  onItemClick: (name: string) => void;
+  onItemClick: (loadBalancer: ILoadBalancer) => void;
 }
 
 @autoBindMethods
 class LoadBalancerListItem extends React.Component<ILoadBalancerListItemProps> {
   private onClick(e: React.MouseEvent<HTMLElement>): void {
-    this.props.onItemClick(this.props.loadBalancer.name);
+    this.props.onItemClick(this.props.loadBalancer);
     e.nativeEvent.preventDefault(); // yay angular JQueryEvent still listening to the click event...
   }
 
@@ -40,7 +36,7 @@ class LoadBalancerListItem extends React.Component<ILoadBalancerListItemProps> {
 @autoBindMethods
 class LoadBalancerButton extends React.Component<ILoadBalancerListItemProps> {
   private onClick(e: React.MouseEvent<HTMLElement>): void {
-    this.props.onItemClick(this.props.loadBalancer.name);
+    this.props.onItemClick(this.props.loadBalancer);
     e.nativeEvent.preventDefault(); // yay angular JQueryEvent still listening to the click event...
   }
 
@@ -59,6 +55,10 @@ class LoadBalancerButton extends React.Component<ILoadBalancerListItemProps> {
   }
 }
 
+export interface ILoadBalancersTagState {
+  loadBalancers: ILoadBalancer[];
+}
+
 @autoBindMethods
 export class LoadBalancersTag extends React.Component<ILoadBalancersTagProps, ILoadBalancersTagState> {
   private loadBalancersRefreshUnsubscribe: () => void;
@@ -67,7 +67,6 @@ export class LoadBalancersTag extends React.Component<ILoadBalancersTagProps, IL
     super(props);
     this.state = {
       loadBalancers: [],
-      showPopover: false
     };
 
     LoadBalancerDataUtils.populateLoadBalancers(props.application, props.serverGroup).then(loadBalancers => this.setState({loadBalancers}))
@@ -75,63 +74,76 @@ export class LoadBalancersTag extends React.Component<ILoadBalancersTagProps, IL
     this.loadBalancersRefreshUnsubscribe = props.application.getDataSource('loadBalancers').onRefresh(null, () => { this.forceUpdate(); });
   }
 
-  private showLoadBalancerDetails(name: string): void {
+  private showLoadBalancerDetails(loadBalancer: ILoadBalancer): void {
     const { $state } = ReactInjector;
     const serverGroup = this.props.serverGroup;
     ReactGA.event({category: 'Cluster Pod', action: `Load Load Balancer Details (multiple menu)`});
     const nextState = $state.current.name.endsWith('.clusters') ? '.loadBalancerDetails' : '^.loadBalancerDetails';
-    $state.go(nextState, {region: serverGroup.region, accountId: serverGroup.account, name: name, provider: serverGroup.type});
+    $state.go(nextState, {region: serverGroup.region, accountId: serverGroup.account, name: loadBalancer.name, provider: serverGroup.type});
   }
 
-  private toggleShowPopover(e: React.MouseEvent<HTMLElement>): void {
-    ReactGA.event({category: 'Cluster Pod', action: `Toggle Load Balancers Menu (${this.state.showPopover})`});
-    this.setState({showPopover: !this.state.showPopover});
+  private handleShowPopover() {
+    ReactGA.event({category: 'Cluster Pod', action: `Show Load Balancers Menu`});
+  }
+
+  private handleClick(e: React.MouseEvent<HTMLElement>): void {
     e.preventDefault();
     e.stopPropagation();
   }
 
   public componentWillUnmount(): void {
-    if (this.loadBalancersRefreshUnsubscribe) {
-      this.loadBalancersRefreshUnsubscribe();
-      this.loadBalancersRefreshUnsubscribe = undefined;
-    }
+    this.loadBalancersRefreshUnsubscribe();
   }
 
   public render(): React.ReactElement<LoadBalancersTag> {
-    const serverGroup = this.props.serverGroup;
-    if (serverGroup.loadBalancers.length) {
-      const className = `load-balancers-tag ${serverGroup.loadBalancers.length > 1 ? 'overflowing' : ''}`;
-      return (
-        <span className={className}>
-          { serverGroup.loadBalancers.length > 1 && (
-            <Tooltip value={`${this.state.showPopover ? 'Hide' : 'Show'} all ${serverGroup.loadBalancers.length} load balancers`}>
-              <button
-                className="btn btn-link btn-multiple-load-balancers clearfix no-padding"
-                onClick={this.toggleShowPopover}
-              >
-                <span className="badge badge-counter">
-                  <span className="icon"><span className="icon-elb"/></span> {serverGroup.loadBalancers.length}
-                </span>
-              </button>
-            </Tooltip>
-          )}
-          { this.state.showPopover && (
-            <div className="menu-load-balancers">
-              <div className="menu-load-balancers-header">
-                Load Balancers
-              </div>
-              {sortBy(this.state.loadBalancers, 'name').map((loadBalancer) => <LoadBalancerListItem key={loadBalancer.name} loadBalancer={loadBalancer} onItemClick={this.showLoadBalancerDetails}/>)}
-            </div>
-          )}
-          { serverGroup.loadBalancers.length === 1 && (
-            <span className="btn-load-balancer">
-              {sortBy(this.state.loadBalancers, (lb) => lb.toString()).map((loadBalancer) => <LoadBalancerButton key={loadBalancer.name} loadBalancer={loadBalancer} onItemClick={this.showLoadBalancerDetails}/>)}
-            </span>
-          )}
-        </span>
-      )
-    } else {
+    const { loadBalancers } = this.state;
+
+    const totalCount = loadBalancers.length;
+
+    if (!totalCount) {
       return null;
     }
+
+    const className = `load-balancers-tag ${totalCount > 1 ? 'overflowing' : ''}`;
+
+    const popover = (
+      <div className="menu-load-balancers">
+        <div className="menu-load-balancers-header"> Load Balancers </div>
+        {sortBy(loadBalancers, 'name').map((loadBalancer) => (
+          <LoadBalancerListItem key={loadBalancer.name} loadBalancer={loadBalancer} onItemClick={this.showLoadBalancerDetails}/>
+        ))}
+      </div>
+    );
+
+    return (
+      <span className={className}>
+        {totalCount > 1 && (
+          <HoverablePopover
+            delayShow={100}
+            delayHide={150}
+            onShow={this.handleShowPopover}
+            placement="bottom"
+            template={popover}
+            hOffsetPercent="80%"
+            container={this.props.container}
+            className="no-padding menu-load-balancers"
+          >
+            <button onClick={this.handleClick} className="btn btn-link btn-multiple-load-balancers clearfix no-padding">
+              <span className="badge badge-counter">
+                <span className="icon"><span className="icon-elb"/></span> {totalCount}
+              </span>
+            </button>
+          </HoverablePopover>
+        )}
+
+        {totalCount === 1 && (
+          <span className="btn-load-balancer">
+            {sortBy(loadBalancers, 'name').map((loadBalancer) => (
+              <LoadBalancerButton key={loadBalancer.name} loadBalancer={loadBalancer} onItemClick={this.showLoadBalancerDetails}/>
+            ))}
+          </span>
+        )}
+      </span>
+    )
   }
 }

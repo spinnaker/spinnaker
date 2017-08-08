@@ -23,6 +23,9 @@ export interface IHoverablePopoverProps {
   title?: string;
   id?: string;
 
+  /** Render popover contents into this container, or body if null */
+  container?: JSX.Element | HTMLElement;
+
   delayShow?: number;
   delayHide?: number;
 
@@ -47,6 +50,7 @@ export class HoverablePopover extends React.Component<IHoverablePopoverProps, IH
   };
 
   private mouseEvents$: Subject<React.SyntheticEvent<any>>;
+  private showHide$: Observable<boolean>;
   private showHideSubscription: Subscription;
 
   /**
@@ -114,8 +118,7 @@ export class HoverablePopover extends React.Component<IHoverablePopoverProps, IH
 
   public componentDidMount() {
     this.mouseEvents$ = new Subject();
-
-    this.showHideSubscription = this.mouseEvents$
+    this.showHide$ = this.mouseEvents$
       .map((event: React.MouseEvent<any>) => {
         const shouldOpen = ['mouseenter', 'mouseover'].includes(event.type);
         const isChanging = (shouldOpen !== this.state.popoverIsOpen);
@@ -123,8 +126,9 @@ export class HoverablePopover extends React.Component<IHoverablePopoverProps, IH
         return Observable.of(shouldOpen).delay(isChanging ? eventDelay : 0);
       })
       .switchMap(result => result)
-      .distinctUntilChanged()
-      .subscribe(shouldOpen => this.setPopoverOpen(shouldOpen));
+      .distinctUntilChanged();
+
+    this.showHideSubscription = this.showHide$.subscribe(shouldOpen => this.setPopoverOpen(shouldOpen));
   }
 
   private setPopoverOpen(popoverIsOpen: boolean): void {
@@ -148,7 +152,7 @@ export class HoverablePopover extends React.Component<IHoverablePopoverProps, IH
     return (
       <span onMouseEnter={this.handleMouseEvent} onMouseLeave={this.handleMouseEvent} ref={this.refCallback}>
         {this.props.children}
-        <Overlay show={this.state.popoverIsOpen} placement={this.props.placement} target={this.state.target}>
+        <Overlay show={this.state.popoverIsOpen} placement={this.props.placement} target={this.state.target} container={this.props.container}>
           <PopoverRenderer
             onMouseOver={this.handleMouseEvent}
             onMouseLeave={this.handleMouseEvent}

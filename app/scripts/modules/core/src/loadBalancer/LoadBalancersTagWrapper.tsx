@@ -9,6 +9,8 @@ import { LoadBalancersTag } from './LoadBalancersTag';
 export interface ILoadBalancersTagProps {
   application: Application;
   serverGroup: IServerGroup;
+  // Render popover contents into this container
+  container?: JSX.Element | HTMLElement;
 };
 
 @autoBindMethods
