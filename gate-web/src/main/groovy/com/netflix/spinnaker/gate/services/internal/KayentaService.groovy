@@ -34,4 +34,7 @@ interface KayentaService {
 
   @DELETE("/canaryConfig/{id}")
   Response deleteCanaryConfig(@Path("id") String id)
+
+  @GET("/judges")
+  List listJudges()
 }
