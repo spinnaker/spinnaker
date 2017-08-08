@@ -73,6 +73,9 @@ class EchoNotifyingStageListener implements StageListener {
                                            Stage<T> stage) {
     if (stage.execution instanceof Pipeline) {
       if (stage.endTime) {
+        if (stage.context.stageDetails == null) {
+          stage.context.stageDetails = [:]
+        }
         stage.context.stageDetails.endTime = stage.endTime
       }
       repository.updateStageContext(stage)
