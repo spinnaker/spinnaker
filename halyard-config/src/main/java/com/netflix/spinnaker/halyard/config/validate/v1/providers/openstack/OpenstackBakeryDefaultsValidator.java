@@ -43,6 +43,7 @@ public class OpenstackBakeryDefaultsValidator extends Validator<OpenstackBakeryD
         DaemonTaskHandler.message("Validating " + n.getNodeName() + " with " + OpenstackBakeryDefaultsValidator.class.getSimpleName());
 
         String authUrl = n.getAuthUrl();
+        String domainName = n.getDomainName();
         String networkId = n.getNetworkId();
         String floatingIpPool = n.getFloatingIpPool();
         String securityGroups = n.getSecurityGroups();
@@ -53,6 +54,7 @@ public class OpenstackBakeryDefaultsValidator extends Validator<OpenstackBakeryD
         List<OpenstackBaseImage> baseImages = n.getBaseImages();
 
         if (StringUtils.isEmpty(authUrl) &&
+                StringUtils.isEmpty(domainName) &&
                 StringUtils.isEmpty(networkId) &&
                 StringUtils.isEmpty(floatingIpPool) &&
                 StringUtils.isEmpty(securityGroups) &&
@@ -66,6 +68,10 @@ public class OpenstackBakeryDefaultsValidator extends Validator<OpenstackBakeryD
 
         if (StringUtils.isEmpty(authUrl)) {
             p.addProblem(Problem.Severity.ERROR, "No auth url supplied for openstack bakery defaults.");
+        }
+
+        if (StringUtils.isEmpty(domainName)) {
+            p.addProblem(Problem.Severity.ERROR, "No domain name supplied for openstack bakery defaults");
         }
 
         if (StringUtils.isEmpty(networkId)) {
