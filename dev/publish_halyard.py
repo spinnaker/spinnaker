@@ -164,7 +164,11 @@ class HalyardPublisher(object):
   def __generate_halyard_docs(self):
     """Builds Halyard's CLI, which writes the new documentation locally to halyard/docs/commands.md
     """
-    run_shell_and_log(['make'], 'halyard-generate-docs.log', cwd='halyard/halyard-cli')
+    cmds = [
+      'git rev-parse HEAD | xargs git checkout ;',
+      'make'
+    ]
+    run_shell_and_log(cmds, 'halyard-generate-docs.log', cwd='halyard/halyard-cli')
 
   def __publish_halyard_docs(self):
     """ Formats Halyard's documentation, then pushes to Spinnaker's documentation repository.
