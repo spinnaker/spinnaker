@@ -37,7 +37,7 @@ import sys
 import yaml
 
 from annotate_source import Annotator
-from build_release import BackgroundProcess
+from build_release import run_shell_and_log
 from publish_bom import format_stable_branch
 from spinnaker.run import check_run_quick
 
@@ -132,11 +132,10 @@ class HalyardPublisher(object):
       '-PbintrayPackageDebDistribution=trusty-stable'
     ]
 
-    BackgroundProcess.spawn(
-      'Building and publishing Debians for stable Halyard...',
-      'cd "halyard"; ./gradlew {extra} candidate; cd ".."'.format(
-        extra=' '.join(extra_args))
-    ).check_wait()
+    cmds = [
+      './gradlew {extra} candidate'.format(extra=' '.join(extra_args))
+    ]
+    run_shell_and_log(cmds, 'halyard-debian-build.log', cwd='halyard')
 
   def __push_halyard_tag_and_branch(self):
     """Pushes a stable branch and git version tag to --github_publisher's Halyard repository.
@@ -165,10 +164,7 @@ class HalyardPublisher(object):
   def __generate_halyard_docs(self):
     """Builds Halyard's CLI, which writes the new documentation locally to halyard/docs/commands.md
     """
-    BackgroundProcess.spawn(
-      'Building Halyard\'s CLI to generate documentation...',
-      'cd halyard/halyard-cli; make; cd ../..'  # The Makefile looks up a directory to find `gradlew`.
-    ).check_wait()
+    run_shell_and_log(['make'], 'halyard-generate-docs.log', cwd='halyard/halyard-cli')
 
   def __publish_halyard_docs(self):
     """ Formats Halyard's documentation, then pushes to Spinnaker's documentation repository.
