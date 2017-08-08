@@ -1,0 +1,92 @@
+<div class="details-panel">
+  <div class="header" ng-if="state.loading">
+    <div class="close-button" ng-if="!state.standalone">
+      <a class="btn btn-link"
+         ui-sref="^">
+        <span class="glyphicon glyphicon-remove"></span>
+      </a>
+    </div>
+    <h4 class="text-center">
+      <span us-spinner="{radius:20, width:6, length: 12}"></span>
+    </h4>
+  </div>
+
+  <div class="header" ng-if="!state.loading">
+    <div class="close-button" ng-if="!state.standalone">
+      <a class="btn btn-link"
+         ui-sref="^">
+        <span class="glyphicon glyphicon-remove"></span>
+      </a>
+    </div>
+    <div class="header-text">
+      <span class="glyphicon glyphicon-hdd {{instance.healthState}}"></span>
+      <h3 select-on-dbl-click>
+        {{instance.taskId}}
+      </h3>
+    </div>
+    <div>
+      <div class="actions" ng-class="{ insights: instance.insightActions.length > 0 }">
+        <div class="dropdown" uib-dropdown dropdown-append-to-body>
+          <button type="button" class="btn btn-sm btn-primary dropdown-toggle" ng-disabled="disabled" uib-dropdown-toggle>
+            Instance Actions <span class="caret"></span>
+          </button>
+          <ul class="dropdown-menu" uib-dropdown-menu role="menu">
+            <li><a href ng-click="ctrl.registerInstanceWithLoadBalancer()" ng-if="ctrl.canRegisterWithLoadBalancer()">Register with Load Balancer</a></li>
+            <li><a href ng-click="ctrl.deregisterInstanceFromLoadBalancer()" ng-if="ctrl.canDeregisterFromLoadBalancer()">Deregister from Load Balancer</a></li>
+            <li role="presentation" class="divider" ng-if="instance.health.length > 0"></li>
+            <li><a href ng-click="ctrl.terminateInstance()">Terminate</a></li>
+          </ul>
+        </div>
+        <div class="dropdown" ng-if="instance.insightActions.length > 0" uib-dropdown dropdown-append-to-body>
+          <button type="button" class="btn btn-sm btn-default dropdown-toggle" uib-dropdown-toggle>
+            Insight <span class="caret"></span>
+          </button>
+          <ul class="dropdown-menu" uib-dropdown-menu role="menu">
+            <li ng-repeat="action in instance.insightActions"><a target=_blank href="{{action.url}}">{{action.label}}</a></li>
+          </ul>
+        </div>
+        <div class="clearfix"></div>
+      </div>
+    </div>
+  </div>
+  <div class="content" ng-if="!state.loading">
+    <collapsible-section heading="Instance Information" expanded="true">
+      <dl class="dl-horizontal dl-flex">
+        <dt>Launched</dt>
+        <dd ng-if="instance.launchTime">{{instance.launchTime | timestamp}}</dd>
+        <dd ng-if="!instance.launchTime">(Unknown)</dd>
+        <dt>In</dt>
+        <dd>
+          <account-tag account="instance.account" pad="right"></account-tag>
+        </dd>
+        <dt ng-if="instance.serverGroup">Server Group</dt>
+        <dd ng-if="instance.serverGroup">
+          <a ui-sref="^.serverGroup({region: instance.region,
+              accountId: instance.account,
+              serverGroup: instance.serverGroup,
+              provider: instance.provider})">{{instance.serverGroup}}</a>
+        </dd>
+        <dt>JSON</dt>
+        <dd><a href ng-click="ctrl.showJson()">Show JSON</a></dd>
+        <dt>DC/OS UI</dt>
+        <dd><a href={{ctrl.uiLink()}} target="_blank">{{instance.taskId}}</a></dd>
+      </dl>
+    </collapsible-section>
+    <collapsible-section heading="Status" expanded="true">
+      <dl class="horizontal-when-filters-collapsed">
+        <dt ng-repeat-start="metric in instance.health | orderBy: 'type'">{{metric.source | robotToHuman}}</dt>
+        <dd ng-repeat-end>
+          <span uib-tooltip="{{metric.state.toLowerCase() === 'down' ? metric.description : ''}}" tooltip-placement="left">
+            <span class="glyphicon glyphicon-{{metric.state}}-triangle"></span>
+            {{metric.state | robotToHuman}}
+          </span>
+        </dd>
+      </dl>
+    </collapsible-section>
+    <div class="content-section" ng-if="instance.notFound">
+      <div class="content-body">
+        <p>Could not find the instance. No other details provided.</p>
+      </div>
+    </div>
+  </div>
+</div>

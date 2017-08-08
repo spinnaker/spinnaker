@@ -18,8 +18,7 @@ module.exports = angular.module('spinnaker.dcos', [
   CLOUD_PROVIDER_REGISTRY,
   DCOS_KEY_VALUE_DETAILS,
   DCOS_HELP,
-  // TODO: add these back in future pull requests
-  // require('./instance/details/details.dcos.module.js'),
+  require('./instance/details/details.dcos.module.js'),
   require('./loadBalancer/configure/configure.dcos.module.js'),
   require('./loadBalancer/details/details.dcos.module.js'),
   require('./loadBalancer/transformer.js'),
@@ -34,8 +33,8 @@ module.exports = angular.module('spinnaker.dcos', [
   require('./proxy/ui.service.js'),
   require('./serverGroup/configure/CommandBuilder.js'),
   require('./serverGroup/configure/configure.dcos.module.js'),
-  // require('./serverGroup/details/details.dcos.module.js'),
-  // require('./serverGroup/transformer.js'),
+  require('./serverGroup/details/details.dcos.module.js'),
+  require('./serverGroup/transformer.js'),
   require('./validation/applicationName.validator.js'),
   require('./common/selectField.directive.js')
 ])
@@ -46,7 +45,7 @@ module.exports = angular.module('spinnaker.dcos', [
         path: require('./logo/dcos.logo.png')
       },
       instance: {
-        // detailsTemplateUrl: require('./instance/details/details.html'),
+        detailsTemplateUrl: require('./instance/details/details.html'),
         detailsController: 'dcosInstanceDetailsController',
       },
       loadBalancer: {
@@ -62,7 +61,7 @@ module.exports = angular.module('spinnaker.dcos', [
       serverGroup: {
         skipUpstreamStageCheck: true,
         transformer: 'dcosServerGroupTransformer',
-        // detailsTemplateUrl: require('./serverGroup/details/details.html'),
+        detailsTemplateUrl: require('./serverGroup/details/details.html'),
         detailsController: 'dcosServerGroupDetailsController',
         cloneServerGroupController: 'dcosCloneServerGroupController',
         cloneServerGroupTemplateUrl: require('./serverGroup/configure/wizard/wizard.html'),

@@ -1,0 +1,85 @@
+<div modal-page class="confirmation-modal">
+  <task-monitor monitor="taskMonitor"></task-monitor>
+  <form role="form">
+    <modal-close dismiss="$dismiss()"></modal-close>
+    <div class="modal-header">
+      <h3>Resize {{serverGroup.name}}</h3>
+    </div>
+    <div class="modal-body container-fluid form-horizontal">
+      <div class="form-group">
+        <div class="col-md-12">
+          <p>Sets up the number of instances for this group.</p>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="col-md-12">
+          <h4>Current size:</h4>
+        </div>
+      </div>
+      <div class="form-group form-inline">
+        <div class="col-md-11 col-md-offset-1">
+          <label>
+            <input type="number"
+                   class="form-control input-sm"
+                   ng-model="currentSize.oldSize"
+                   style="width: 60px"
+                   readonly/>
+            instances<span ng-if="currentSize.oldSize > 0">s</span>
+          </label>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="col-md-12">
+          <h4>Resize to:</h4>
+        </div>
+      </div>
+      <div class="form-group form-inline">
+        <div class="col-md-11 col-md-offset-1">
+          <label>
+            <input type="number"
+                   class="form-control input-sm highlight-pristine"
+                   ng-model="command.newSize"
+                   min="0"
+                   required
+                   style="width: 60px"/>
+            instances
+          </label>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="col-md-12">
+          <h4>Force Resize?<help-field key="dcos.serverGroup.forceDeployment"></help-field></h4>
+        </div>
+      </div>
+      <div class="form-group form-inline">
+        <div class="col-md-11 col-md-offset-1">
+          <input type="checkbox"
+                 class="form-control input-sm highlight-pristine"
+                 ng-model="command.forceDeployment"
+                 style="width: 60px"/>
+        </div>
+      </div>
+    </div>
+
+    <div class="row" ng-if="command.platformHealthOnlyShowOverride">
+      <div class="col-sm-10 col-sm-offset-1">
+        <platform-health-override command="command"
+                                  platform-health-type="'Dcos'"
+                                  show-help-details="true">
+        </platform-health-override>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <user-verification account="serverGroup.account" verification="verification"></user-verification>
+      <button type="submit" ng-click="ctrl.resize()" style="display:none"></button> <!-- Allows form submission via enter keypress-->
+      <button class="btn btn-default" ng-click="ctrl.cancel()">Cancel</button>
+      <button type="submit"
+              class="btn btn-primary"
+              ng-click="ctrl.resize()"
+              ng-disabled="!ctrl.isValid()">
+        Submit
+      </button>
+    </div>
+  </form>
+</div>
