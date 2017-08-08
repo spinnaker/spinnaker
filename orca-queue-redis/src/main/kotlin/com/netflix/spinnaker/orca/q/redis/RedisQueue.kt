@@ -21,7 +21,10 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.google.common.hash.Hashing
-import com.netflix.spinnaker.orca.q.*
+import com.netflix.spinnaker.orca.q.AttemptsAttribute
+import com.netflix.spinnaker.orca.q.MaxAttemptsAttribute
+import com.netflix.spinnaker.orca.q.Message
+import com.netflix.spinnaker.orca.q.Queue
 import com.netflix.spinnaker.orca.q.metrics.*
 import org.funktionale.partials.partially1
 import org.slf4j.Logger
@@ -104,8 +107,13 @@ class RedisQueue(
   override fun push(message: Message, delay: TemporalAmount) {
     pool.resource.use { redis ->
       val messageHash = message.hash()
-      if (redis.sismember(hashesKey, messageHash)) {
-        log.warn("Ignoring message as an identical one is already on the queue: $message")
+      val deprecatedHash = message.deprecatedHash()
+      if (redis.sismember(hashesKey, deprecatedHash)) {
+        // TODO rz - remove soon
+        log.warn("Ignoring message as an identical one is already on the queue (murmur3_32): $deprecatedHash, message: $message")
+        fire<MessageDuplicate>(message)
+      } else if (redis.sismember(hashesKey, messageHash)) {
+        log.warn("Ignoring message as an identical one is already on the queue: $messageHash, message: $message")
         fire<MessageDuplicate>(message)
       } else {
         redis.queueMessage(message, delay)
@@ -294,6 +302,12 @@ class RedisQueue(
     hget(key, field)?.toInt() ?: default
 
   private fun Message.hash() =
+    Hashing
+      .murmur3_128()
+      .hashString(toString(), Charset.defaultCharset())
+      .toString()
+
+  private fun Message.deprecatedHash() =
     Hashing
       .murmur3_32()
       .hashString(toString(), Charset.defaultCharset())
