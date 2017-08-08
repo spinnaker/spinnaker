@@ -164,8 +164,8 @@ class HalyardPublisher(object):
   def __generate_halyard_docs(self):
     """Builds Halyard's CLI, which writes the new documentation locally to halyard/docs/commands.md
     """
+    check_run_quick('git -C halyard rev-parse HEAD | xargs git -C halyard checkout ;')
     cmds = [
-      'git rev-parse HEAD | xargs git checkout ;',
       'make'
     ]
     run_shell_and_log(cmds, 'halyard-generate-docs.log', cwd='halyard/halyard-cli')
