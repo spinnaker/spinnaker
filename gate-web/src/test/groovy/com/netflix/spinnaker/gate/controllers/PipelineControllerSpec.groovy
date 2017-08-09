@@ -74,7 +74,8 @@ class PipelineControllerSpec extends Specification {
             parallel: true,
             index: 4,
             application: 'application'
-          ]).bytes)
+          ]).bytes),
+          user: 'anonymous'
         ]
       ]
     ]) >> { [id: 'task-id', application: 'application', status: 'SUCCEEDED'] }

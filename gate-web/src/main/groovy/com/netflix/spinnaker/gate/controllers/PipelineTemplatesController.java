@@ -20,6 +20,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.gate.services.PipelineTemplateService;
 import com.netflix.spinnaker.gate.services.TaskService;
+import com.netflix.spinnaker.security.AuthenticatedRequest;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -77,6 +78,7 @@ public class PipelineTemplatesController {
     Map<String, Object> job = new HashMap<>();
     job.put("type", "createPipelineTemplate");
     job.put("pipelineTemplate", pipelineTemplate);
+    job.put("user", AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"));
     jobs.add(job);
 
     Map<String, Object> operation = new HashMap<>();
@@ -113,6 +115,7 @@ public class PipelineTemplatesController {
     job.put("type", "updatePipelineTemplate");
     job.put("id", id);
     job.put("pipelineTemplate", pipelineTemplate);
+    job.put("user", AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"));
     jobs.add(job);
 
     Map<String, Object> operation = new HashMap<>();
@@ -131,6 +134,7 @@ public class PipelineTemplatesController {
     Map<String, Object> job = new HashMap<>();
     job.put("type", "deletePipelineTemplate");
     job.put("pipelineTemplateId", id);
+    job.put("user", AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"));
     jobs.add(job);
 
     Map<String, Object> operation = new HashMap<>();

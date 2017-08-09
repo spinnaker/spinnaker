@@ -62,7 +62,8 @@ class PipelineTemplateControllerSpec extends Specification {
             id: 'foo',
             metadata: metadata,
             configuration: [:]
-          ]
+          ],
+          user: 'anonymous'
         ]
       ]
     ]) >> { [ref: 'taskref'] }
@@ -94,7 +95,8 @@ class PipelineTemplateControllerSpec extends Specification {
       job: [
         [
           type: 'deletePipelineTemplate',
-          pipelineTemplateId: 'my-template-id'
+          pipelineTemplateId: 'my-template-id',
+          user: 'anonymous'
         ]
       ]
     ]) >> { [ref: 'taskref'] }
