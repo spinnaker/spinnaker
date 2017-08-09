@@ -26,6 +26,7 @@ import { ANALYTICS_MODULE } from './analytics/analytics.module';
 import { APPLICATION_BOOTSTRAP_MODULE } from './bootstrap';
 import { APPLICATION_MODULE } from './application/application.module';
 import { AUTHENTICATION_MODULE } from './authentication/authentication.module';
+import { CANARY_MODULE } from './canary/canary.module';
 import { CANCEL_MODAL_MODULE } from './cancelModal/cancelModal.module';
 import { CLOUD_PROVIDER_MODULE } from './cloudProvider/cloudProvider.module';
 import { CLUSTER_MODULE } from './cluster/cluster.module';
@@ -73,6 +74,7 @@ module(CORE_MODULE, [
   AUTHENTICATION_MODULE,
 
   require('./cache/caches.module'),
+  CANARY_MODULE,
   CANCEL_MODAL_MODULE,
   CLOUD_PROVIDER_MODULE,
   CONFIG_MODULE,

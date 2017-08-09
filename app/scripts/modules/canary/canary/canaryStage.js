@@ -12,14 +12,12 @@ import {
 } from '@spinnaker/core';
 
 import { CanaryExecutionLabel } from './CanaryExecutionLabel';
-import { CANARY_SCORES_CONFIG_COMPONENT } from './canaryScores.component';
 import { CANARY_ANALYSIS_NAME_SELECTOR_COMPONENT } from './canaryAnalysisNameSelector.component';
 
 module.exports = angular.module('spinnaker.canary.canaryStage', [
   LIST_EXTRACTOR_SERVICE,
   CLOUD_PROVIDER_REGISTRY,
   SERVER_GROUP_COMMAND_BUILDER_SERVICE,
-  CANARY_SCORES_CONFIG_COMPONENT,
   CANARY_ANALYSIS_NAME_SELECTOR_COMPONENT,
   PIPELINE_CONFIG_PROVIDER
 ])
@@ -456,8 +454,11 @@ module.exports = angular.module('spinnaker.canary.canaryStage', [
       $scope.stage.clusterPairs.splice(index, 1);
     };
 
-    this.updateScores = (successfulScore, unhealthyScore) => {
-      $scope.stage.canary.canaryConfig.canarySuccessCriteria.canaryResultScore = successfulScore;
-      $scope.stage.canary.canaryConfig.canaryHealthCheckHandler.minimumCanaryResultScore = unhealthyScore;
+    this.updateScores = ({ successfulScore, unhealthyScore }) => {
+      // Called from a React component.
+      $scope.$apply(() => {
+        $scope.stage.canary.canaryConfig.canarySuccessCriteria.canaryResultScore = successfulScore;
+        $scope.stage.canary.canaryConfig.canaryHealthCheckHandler.minimumCanaryResultScore = unhealthyScore;
+      });
     };
   });

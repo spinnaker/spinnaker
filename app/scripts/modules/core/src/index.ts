@@ -4,6 +4,7 @@ export * from './application';
 export * from './authentication';
 
 export * from './cache';
+export * from './canary';
 export * from './cancelModal';
 export * from './certificates';
 export * from './ci';
