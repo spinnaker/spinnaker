@@ -217,6 +217,8 @@ class BomPublisher(BomGenerator):
                         help="The name for the new Spinnaker release.")
     parser.add_argument('--release_version', default='', required=True,
                         help="The version for the new Spinnaker release. This needs to be of the form 'X.Y.Z'.")
+    parser.add_argument('--changelog_gist_only', default=False, action='store_true',
+                        help="Publish the changelog as a gist, but don't publish the actual release.")
     super(BomPublisher, cls).init_argument_parser(parser)
 
 if __name__ == '__main__':
