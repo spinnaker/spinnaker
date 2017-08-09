@@ -1,13 +1,16 @@
+import { cloneDeep, set } from 'lodash';
 import { ReactInjector } from '@spinnaker/core';
 
 import { CanarySettings } from 'kayenta/canary.settings';
-import { ICanaryConfigSummary, ICanaryConfig } from 'kayenta/domain/index';
 import { ICanaryState } from '../reducers/index';
 import { localConfigCache } from './localConfigCache.service';
 import {
   ICanaryMetricConfig,
-  ICanaryServiceConfig
-} from '../domain/ICanaryConfig';
+  ICanaryServiceConfig,
+  IJudge,
+  ICanaryConfigSummary,
+  ICanaryConfig
+} from '../domain/index';
 
 export function getCanaryConfigById(id: string): Promise<ICanaryConfig> {
   if (CanarySettings.liveCalls) {
@@ -49,12 +52,27 @@ export function deleteCanaryConfig(id: string): Promise<void> {
   }
 }
 
+export function listJudges(): Promise<IJudge[]> {
+  if (CanarySettings.liveCalls) {
+    return ReactInjector.API.one('v2/canaries/judges').get();
+  } else {
+    return localConfigCache.listJudges();
+  }
+}
+
 // Not sure if this is the right way to go about this. We have pieces of the config
 // living on different parts of the store. Before, e.g., updating the config, we should
 // reconstitute it into a single object that reflects the user's changes.
 export function mapStateToConfig(state: ICanaryState): ICanaryConfig {
   if (state.selectedConfig) {
-    return Object.assign({}, state.selectedConfig, { metrics: state.metricList });
+    const firstMetric = cloneDeep(state.metricList[0]);
+    if (firstMetric && state.selectedJudge) {
+      set(firstMetric, 'analysisConfigurations.canary.judge', state.selectedJudge.name);
+    }
+
+    return Object.assign({}, state.selectedConfig,
+      { metrics: state.metricList.map((metric, i) => i === 0 ? firstMetric : metric) }
+    );
   } else {
     return null;
   }

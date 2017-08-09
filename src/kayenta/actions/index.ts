@@ -27,3 +27,5 @@ export const EDIT_CONFIG_JSON_MODAL_CLOSE = 'edit_config_json_modal_close';
 export const SET_CONFIG_JSON = 'set_config_json';
 export const CONFIG_JSON_DESERIALIZATION_ERROR = 'config_json_deserialization_error';
 export const UPDATE_STACKDRIVER_METRIC_TYPE = 'update_stackdriver_metric_query';
+export const UPDATE_JUDGES = 'update_judges';
+export const SELECT_JUDGE = 'select_judge';

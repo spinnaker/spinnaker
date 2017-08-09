@@ -3,6 +3,7 @@ import { Action } from 'redux';
 import { connect } from 'react-redux';
 
 import FormRow from '../layout/formRow';
+import JudgeSelect from './judgeSelect';
 import { ICanaryState } from '../reducers/index';
 import {
   UPDATE_CONFIG_DESCRIPTION,
@@ -39,6 +40,10 @@ function NameAndDescription({ name, description, changeName, changeDescription }
           value={description}
           onChange={changeDescription}
         />
+      </FormRow>
+      {/* TODO: either rename the NameAndDescription component (and label), or find a different place for the judge selector. */}
+      <FormRow label="Judge">
+        <JudgeSelect/>
       </FormRow>
     </form>
   );

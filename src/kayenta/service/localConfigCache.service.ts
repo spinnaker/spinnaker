@@ -1,5 +1,6 @@
 import { ICanaryConfig } from '../domain/ICanaryConfig';
 import { ICanaryConfigSummary } from '../domain/ICanaryConfigSummary';
+import { IJudge } from '../domain/IJudge';
 
 const atlasCanaryConfig = require('kayenta/scratch/atlas_canary_config.json');
 const stackdriverCanaryConfig = require('kayenta/scratch/stackdriver_canary_config.json');
@@ -44,6 +45,10 @@ class LocalConfigCache {
     const config = Array.from(this.configs).find(c => c.name === id);
     this.configs.delete(config);
     return Promise.resolve(null);
+  }
+
+  public listJudges(): Promise<IJudge[]> {
+    return Promise.resolve([{name: 'dredd-v1.0'}, {name: 'netflixJudge-v1.0'}]);
   }
 }
 

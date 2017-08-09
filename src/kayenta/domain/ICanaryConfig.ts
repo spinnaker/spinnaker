@@ -18,7 +18,12 @@ export interface ICanaryMetricConfig {
   serviceName: string;
   query: ICanaryMetricSetQueryConfig;
   groups: string[];
-  analysisConfigs: {[key: string]: any};
+  analysisConfigurations: {
+    [key: string]: any;
+    canary?: {
+      judge?: string;
+    }
+  };
 }
 
 export interface ICanaryMetricSetQueryConfig {
