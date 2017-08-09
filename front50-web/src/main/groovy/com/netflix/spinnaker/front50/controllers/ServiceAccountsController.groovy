@@ -62,6 +62,11 @@ public class ServiceAccountsController {
   void deleteServiceAccount(@PathVariable String serviceAccountId) {
     def acct = serviceAccountDAO.findById(serviceAccountId)
     serviceAccountDAO.delete(serviceAccountId)
+    try {
+      fiatService.logoutUser(serviceAccountId)
+    } catch (RetrofitError re) {
+      log.warn("Could not delete service account user $serviceAccountId", re)
+    }
     syncUsers(acct)
   }
 
