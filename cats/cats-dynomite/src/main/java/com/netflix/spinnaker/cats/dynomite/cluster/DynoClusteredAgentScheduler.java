@@ -132,11 +132,8 @@ public class DynoClusteredAgentScheduler extends CatsModuleAware implements Agen
         boolean purge = true;
         for (int i = 0; i <= 3; i++) {
           Long ttl = client.ttl(agentType);
-          if (ttl == -2) {
+          if (ttl > 0 || ttl == -2) {
             purge = false;
-            break;
-          }
-          if (ttl == -1) {
             break;
           }
           try {
