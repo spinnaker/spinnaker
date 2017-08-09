@@ -36,7 +36,7 @@ open class CompleteExecutionHandler
   override val queue: Queue,
   override val repository: ExecutionRepository,
   private val publisher: ApplicationEventPublisher,
-  @Value("\${queue.retry.delay.ms:5000}") retryDelayMs: Long
+  @Value("\${queue.retry.delay.ms:30000}") retryDelayMs: Long
 ) : MessageHandler<CompleteExecution> {
 
   private val log = LoggerFactory.getLogger(javaClass)

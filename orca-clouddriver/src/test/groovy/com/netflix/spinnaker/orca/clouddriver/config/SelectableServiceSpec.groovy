@@ -44,7 +44,7 @@ class SelectableServiceSpec extends Specification {
       [
         new ByApplicationServiceSelector(mortService, 10, ["applicationPattern": ".*spindemo.*"]),
         new ByExecutionTypeServiceSelector(oortService, 5, ["executionTypes": [0: "orchestration"]]),
-        new ByOriginServiceSelector(instanceService, 20, ["origin": "deck"]),
+        new ByOriginServiceSelector(instanceService, 20, ["origin": "deck", "executionTypes": [0: "orchestration"]]),
         new DefaultServiceSelector(katoService, 1, [:])
       ]
     )
@@ -60,8 +60,14 @@ class SelectableServiceSpec extends Specification {
     new SelectableService.Criteria(null, null, null)                       || katoService      // the default service selector
     new SelectableService.Criteria("spindemo", "orchestration", "api")     || mortService
     new SelectableService.Criteria("1-spindemo-1", "orchestration", "api") || mortService
-    new SelectableService.Criteria("spindemo", "orchestration", "deck")    || instanceService  // by origin selector is higher priority
+    new SelectableService.Criteria("spindemo", "orchestration", "deck")    || instanceService  // origin selector is higher priority
+    new SelectableService.Criteria("spindemo", "pipeline", "deck")         || mortService      // fall back to application selector as origin selector does not support pipeline
     new SelectableService.Criteria("spintest", "orchestration", "api")     || oortService
     new SelectableService.Criteria("spintest", "pipeline", "api")          || katoService
+  }
+
+  def "should default to all execution types if none configured (by origin selector)"() {
+    expect:
+    new ByOriginServiceSelector(instanceService, 20, [:]).executionTypes.sort() == ["orchestration", "pipeline"]
   }
 }

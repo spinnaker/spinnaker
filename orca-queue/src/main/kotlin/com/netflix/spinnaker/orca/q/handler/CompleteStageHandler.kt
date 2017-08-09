@@ -23,6 +23,7 @@ import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_AFTER
 import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_BEFORE
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.q.*
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
@@ -37,6 +38,8 @@ open class CompleteStageHandler
   private val clock: Clock
 ) : MessageHandler<CompleteStage> {
 
+  private val log = LoggerFactory.getLogger(javaClass)
+
   override fun handle(message: CompleteStage) {
     message.withStage { stage ->
       if (stage.getStatus() in setOf(RUNNING, NOT_STARTED)) {
@@ -49,6 +52,7 @@ open class CompleteStageHandler
         } else {
           queue.push(CancelStage(message))
           if (stage.getSyntheticStageOwner() == null) {
+            log.debug("Stage has no synthetic owner, completing execution (original message: $message)")
             queue.push(CompleteExecution(message))
           } else {
             queue.push(message.copy(stageId = stage.getParentStageId()))
@@ -76,6 +80,7 @@ open class CompleteStageHandler
           queue.push(CompleteStage(parent, SUCCEEDED))
         }
       } else {
+        log.debug("No stages waiting to start, completing execution (executionId: ${getExecution().getId()}, stageId: ${getId()})")
         queue.push(CompleteExecution(execution))
       }
     }

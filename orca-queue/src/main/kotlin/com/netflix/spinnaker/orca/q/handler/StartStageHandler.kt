@@ -59,7 +59,7 @@ open class StartStageHandler
     message.withStage { stage ->
       if (stage.anyUpstreamStagesFailed()) {
         // this only happens in restart scenarios
-        log.warn("Tried to start stage ${stage.getId()} but something upstream had failed")
+        log.warn("Tried to start stage ${stage.getId()} but something upstream had failed (executionId: ${message.executionId})")
         queue.push(CompleteExecution(message))
       } else if (stage.allUpstreamStagesComplete()) {
         if (stage.getStatus() != NOT_STARTED) {
