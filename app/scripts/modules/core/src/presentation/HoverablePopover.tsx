@@ -156,7 +156,6 @@ export class HoverablePopover extends React.Component<IHoverablePopoverProps, IH
           <PopoverRenderer
             onMouseOver={this.handleMouseEvent}
             onMouseLeave={this.handleMouseEvent}
-            onBlur={this.handleMouseEvent}
             id={this.props.id}
             title={this.props.title}
             className={this.props.className}
