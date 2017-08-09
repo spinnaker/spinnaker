@@ -125,6 +125,7 @@
  * [**hal config provider google bakery base-image list**](#hal-config-provider-google-bakery-base-image-list)
  * [**hal config provider google bakery edit**](#hal-config-provider-google-bakery-edit)
  * [**hal config provider google disable**](#hal-config-provider-google-disable)
+ * [**hal config provider google edit**](#hal-config-provider-google-edit)
  * [**hal config provider google enable**](#hal-config-provider-google-enable)
  * [**hal config provider kubernetes**](#hal-config-provider-kubernetes)
  * [**hal config provider kubernetes account**](#hal-config-provider-kubernetes-account)
@@ -2163,6 +2164,7 @@ hal config provider google [parameters] [subcommands]
  * `account`: Manage and view Spinnaker configuration for the google provider's account
  * `bakery`: Manage and view Spinnaker configuration for the google provider's image bakery configuration.
  * `disable`: Set the google provider as disabled
+ * `edit`: Set provider-wide properties for the Google provider
  * `enable`: Set the google provider as enabled
 
 ---
@@ -2205,6 +2207,7 @@ hal config provider google account add ACCOUNT [parameters]
  * `--json-path`: The path to a JSON service account that Spinnaker will use as credentials. This is only needed if Spinnaker is not deployed on a Google Compute Engine VM, or needs permissions not afforded to the VM it is running on. See https://cloud.google.com/compute/docs/access/service-accounts for more information.
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--project`: (*Required*) The Google Cloud Platform project this Spinnaker account will manage.
+ * `--regions`: A list of regions for caching and mutating calls. This overwrites any default-regions set on the provider.
  * `--required-group-membership`: (*Default*: `[]`) A user must be a member of at least one specified group in order to make changes to this account's cloud resources.
  * `--user-data`: The path to user data template file. Spinnaker has the ability to inject userdata into generated instance templates. The mechanism is via a template file that is token replaced to provide some specifics about the deployment. See https://github.com/spinnaker/clouddriver/blob/master/clouddriver-aws/UserData.md for more information.
 
@@ -2238,13 +2241,16 @@ hal config provider google account edit ACCOUNT [parameters]
 #### Parameters
 `ACCOUNT`: The name of the account to operate on.
  * `--add-image-project`: Add this image project to the list of image projects to cache and deploy images from.
+ * `--add-region`: Add this region to the list of regions for caching and mutating calls.
  * `--add-required-group-membership`: Add this group to the list of required group memberships.
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--image-projects`: A list of Google Cloud Platform projects Spinnaker will be able to cache and deploy images from. When this is omitted, it defaults to the current project. Each project must have granted the IAM role `compute.imageUser` to the service account associated with the json key used by this account, as well as to the 'Google APIs service account' automatically created for the project being managed (should look similar to `12345678912@cloudservices.gserviceaccount.com`). See https://cloud.google.com/compute/docs/images/sharing-images-across-projects for more information about sharing images across GCP projects.
  * `--json-path`: The path to a JSON service account that Spinnaker will use as credentials. This is only needed if Spinnaker is not deployed on a Google Compute Engine VM, or needs permissions not afforded to the VM it is running on. See https://cloud.google.com/compute/docs/access/service-accounts for more information.
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--project`: The Google Cloud Platform project this Spinnaker account will manage.
+ * `--regions`: A list of regions for caching and mutating calls. This overwrites any default-regions set on the provider.
  * `--remove-image-project`: Remove this image project from the list of image projects to cache and deploy images from.
+ * `--remove-region`: Remove this region from the list of regions for caching and mutating calls.
  * `--remove-required-group-membership`: Remove this group from the list of required group memberships.
  * `--required-group-membership`: A user must be a member of at least one specified group in order to make changes to this account's cloud resources.
  * `--set-alpha-listed`: Enable this flag if your project has access to alpha features and you want Spinnaker to take advantage of them.
@@ -2447,6 +2453,24 @@ hal config provider google disable [parameters]
 #### Parameters
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config provider google edit
+
+You can edit the list of default regions used in caching and mutating calls here. This list will become the default for all accounts, unlessspecifically overridden on a per-account basis.
+
+#### Usage
+```
+hal config provider google edit [parameters]
+```
+
+#### Parameters
+ * `--add-default-region`: Add this region to the list of regions for caching and mutating calls.
+ * `--default-regions`: A list of regions for caching and mutating calls, applied to all accounts unless overridden.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+ * `--remove-default-region`: Remove this region from the list of regions for caching and mutating calls.
 
 
 ---

@@ -31,4 +31,8 @@ class GoogleCommandProperties {
   static final String SOURCE_IMAGE_FAMILY_DESCRIPTION = "The source image family to create the image from. The newest, non-deprecated image is used.";
 
   static final String IS_IMAGE_FAMILY_DESCRIPTION = "todo(duftler) I couldn't find a description on the packer website of what this is.";
+
+  static final String ADD_REGION_DESCRIPTION = "Add this region to the list of regions for caching and mutating calls.";
+
+  static final String REMOVE_REGION_DESCRIPTION = "Remove this region from the list of regions for caching and mutating calls.";
 }

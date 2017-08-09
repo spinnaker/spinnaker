@@ -65,6 +65,13 @@ public class GoogleAddAccountCommand extends AbstractAddAccountCommand {
   )
   private String userDataFile;
 
+  @Parameter(
+      names = "--regions",
+      variableArity = true,
+      description = "A list of regions for caching and mutating calls. This overwrites any default-regions set on the provider."
+  )
+  private List<String> regions;
+
 
   @Override
   protected Account buildAccount(String accountName) {
@@ -74,8 +81,8 @@ public class GoogleAddAccountCommand extends AbstractAddAccountCommand {
 
     account.setAlphaListed(alphaListed)
         .setImageProjects(imageProjects)
-        .setUserDataFile(userDataFile);
-
+        .setUserDataFile(userDataFile)
+        .setRegions(regions);
 
     return account;
   }

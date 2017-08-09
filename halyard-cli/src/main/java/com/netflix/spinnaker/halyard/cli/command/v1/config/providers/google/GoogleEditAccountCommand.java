@@ -78,6 +78,25 @@ public class GoogleEditAccountCommand extends AbstractEditAccountCommand<GoogleA
   )
   private String userDataFile;
 
+  @Parameter(
+      names = "--regions",
+      variableArity = true,
+      description = "A list of regions for caching and mutating calls. This overwrites any default-regions set on the provider."
+  )
+  private List<String> regions;
+
+  @Parameter(
+      names = "--add-region",
+      description = GoogleCommandProperties.ADD_REGION_DESCRIPTION
+  )
+  private String addRegion;
+
+  @Parameter(
+      names = "--remove-region",
+      description = GoogleCommandProperties.REMOVE_REGION_DESCRIPTION
+  )
+  private String removeRegion;
+
   @Override
   protected Account editAccount(GoogleAccount account) {
     account.setJsonPath(isSet(jsonPath) ? jsonPath : account.getJsonPath());
@@ -90,6 +109,13 @@ public class GoogleEditAccountCommand extends AbstractEditAccountCommand<GoogleA
               removeImageProject));
     } catch (IllegalArgumentException e) {
       throw new IllegalArgumentException("Set either --image-projects or --[add/remove]-image-project");
+    }
+
+    try {
+      account.setRegions(
+          updateStringList(account.getRegions(), regions, addRegion, removeRegion));
+    } catch (IllegalArgumentException e) {
+      throw new IllegalArgumentException("Set either --regions or --[add/remove]-region");
     }
 
     return account;

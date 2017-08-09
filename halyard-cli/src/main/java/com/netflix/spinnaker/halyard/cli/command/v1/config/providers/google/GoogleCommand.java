@@ -30,6 +30,7 @@ public class GoogleCommand extends AbstractNamedProviderCommand {
 
   public GoogleCommand() {
     super();
+    registerSubcommand(new GoogleEditProviderCommand());
     registerSubcommand(new GoogleAccountCommand());
     registerSubcommand(new GoogleBakeryCommand());
   }

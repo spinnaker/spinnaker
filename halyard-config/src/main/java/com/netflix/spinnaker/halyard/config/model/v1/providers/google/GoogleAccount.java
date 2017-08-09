@@ -43,6 +43,7 @@ public class GoogleAccount extends CommonGoogleAccount implements Cloneable, Sup
   private List<String> imageProjects = new ArrayList<>();
   private ConsulConfig consul = new ConsulConfig();
   @LocalFile String userDataFile;
+  private List<String> regions;
 
   @Override
   public void accept(ConfigProblemSetBuilder psBuilder, Validator v) {
