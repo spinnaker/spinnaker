@@ -39,7 +39,7 @@ export class LoadBalancerDataUtils {
         return this.buildLoadBalancer(match, serverGroup);
       });
 
-      return loadBalancers;
+      return loadBalancers.filter(x => !!x);
     });
   }
 }
