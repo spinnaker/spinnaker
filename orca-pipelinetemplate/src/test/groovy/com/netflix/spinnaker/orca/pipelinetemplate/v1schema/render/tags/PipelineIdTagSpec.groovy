@@ -24,6 +24,7 @@ import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.JinjaRenderer
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.Renderer
 import spock.lang.Specification
 import spock.lang.Subject
+import spock.lang.Unroll
 
 class PipelineIdTagSpec extends Specification {
   ObjectMapper objectMapper = new ObjectMapper()
@@ -33,6 +34,7 @@ class PipelineIdTagSpec extends Specification {
   @Subject
   PipelineIdTag subject = new PipelineIdTag(front50Service)
 
+  @Unroll
   def 'should render pipeline id'() {
     given:
     front50Service.getPipelines('myApp') >>  [
@@ -53,14 +55,26 @@ class PipelineIdTagSpec extends Specification {
         application: 'testApp',
         id: '1685429e-beb1-4d35-963c-02b9a01977e1',
         stages: []
+      ],
+      [
+        name: "Rob's great pipeline",
+        application: 'myApp',
+        id: '1685429e-beb1-4d35-963c-123456789012',
+        stages: []
       ]
     ]
 
     expect:
     renderer.render(
-      '{% pipelineId application=myApp name="Bake and Tag" %}',
+      tag,
       new DefaultRenderContext('myApp',null, [:])
-    ) == '9595429f-afa0-4c34-852b-01a9a01967f9'
+    ) == expectedId
+
+    where:
+    tag                                                      || expectedId
+    '{% pipelineId application=myApp name="Bake and Tag" %}' || '9595429f-afa0-4c34-852b-01a9a01967f9'
+    "{% pipelineId name='Bake and Tag' %}"                   || '9595429f-afa0-4c34-852b-01a9a01967f9'
+    '{% pipelineId name="Rob\'s great pipeline" %}'          || '1685429e-beb1-4d35-963c-123456789012'
   }
 
   def 'should handle missing input params'() {

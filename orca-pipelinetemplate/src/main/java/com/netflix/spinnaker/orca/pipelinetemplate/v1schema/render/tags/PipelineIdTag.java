@@ -15,18 +15,21 @@
  */
 
 package com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.tags;
-import com.hubspot.jinjava.interpret.*;
+import com.hubspot.jinjava.interpret.Context;
+import com.hubspot.jinjava.interpret.JinjavaInterpreter;
+import com.hubspot.jinjava.interpret.TemplateSyntaxException;
 import com.hubspot.jinjava.lib.tag.Tag;
 import com.hubspot.jinjava.tree.TagNode;
 import com.hubspot.jinjava.util.HelperStringTokenizer;
 import com.netflix.spinnaker.orca.front50.Front50Service;
 import com.netflix.spinnaker.orca.pipelinetemplate.exceptions.TemplateRenderException;
-import org.apache.commons.lang.StringUtils;
+import com.netflix.spinnaker.orca.pipelinetemplate.validator.Errors.Error;
+
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.HashMap;
 import java.util.Optional;
-import java.util.Collections;
 
 public class PipelineIdTag implements Tag {
   private static final String APPLICATION = "application";
@@ -56,11 +59,11 @@ public class PipelineIdTag implements Tag {
     });
 
     Context context = interpreter.getContext();
-    String application = paramPairs.getOrDefault(APPLICATION, (String) context.get(APPLICATION));
-    String name = StringUtils.strip(paramPairs.get(NAME), "\"\"");
+    String application = paramPairs.getOrDefault(APPLICATION, (String) context.get(APPLICATION)).replaceAll("^[\"\']|[\"\']$", "");
+    String name = paramPairs.get(NAME).replaceAll("^[\"\']|[\"\']$", "");
 
     if (name == null || application == null) {
-      throw new TemplateSyntaxException(tagNode.getMaster().getImage(), "Tag 'pipelineId'is missing required fields: " + helper, tagNode.getLineNumber());
+      throw new TemplateSyntaxException(tagNode.getMaster().getImage(), "Tag 'pipelineId' is missing required fields: " + helper, tagNode.getLineNumber());
     }
 
     List<Map<String, Object>> pipelines = Optional.ofNullable(front50Service.getPipelines(application)).orElse(Collections.emptyList());
@@ -70,7 +73,10 @@ public class PipelineIdTag implements Tag {
       .filter(p -> p.get(NAME).equals(name))
       .findFirst()
       .orElseThrow(
-        () -> new TemplateRenderException(String.format("Failed to resolve Tag 'pipelineId' with name %s and application %s", name, application))
+        () -> TemplateRenderException.fromError(
+          new Error()
+            .withMessage(String.format("Failed to find pipeline ID with name '%s' in application '%s'", name, application)
+        ))
       );
 
     return (String) result.get("id");

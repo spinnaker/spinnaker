@@ -247,8 +247,12 @@ public class ConfigStageInjectionTransform implements PipelineTemplateVisitor {
   }
 
   private static void injectFirst(StageDefinition stage, List<StageDefinition> allStages) {
-    allStages.get(0).getRequisiteStageRefIds().add(stage.getId());
-    allStages.add(0, stage);
+    if (!allStages.isEmpty()) {
+      allStages.get(0).getRequisiteStageRefIds().add(stage.getId());
+      allStages.add(0, stage);
+    } else {
+      allStages.add(stage);
+    }
   }
 
   private static void injectLast(StageDefinition stage, List<StageDefinition> allStages) {
