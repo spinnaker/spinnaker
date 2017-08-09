@@ -4,6 +4,7 @@ import { ICanaryState } from '../reducers';
 import { ICanaryConfigSummary } from '../domain/ICanaryConfigSummary';
 import { UISref, UISrefActive } from '@uirouter/react';
 import CreateConfigButton from './createConfigButton';
+import FormattedDate from '../layout/formattedDate';
 
 interface IConfigListStateProps {
   configs: ICanaryConfigSummary[];
@@ -21,9 +22,12 @@ function ConfigList({ configs }: IConfigListStateProps) {
           <li key={config.name} className="list-group-item">
             <UISrefActive class="active">
               <UISref to=".configDetail" params={{configName: config.name, isNew: null}}>
-                <a>{config.name}</a>
+                <a><strong>{config.name}</strong></a>
               </UISref>
             </UISrefActive>
+            <p>
+              Edited: <FormattedDate dateIso={config.updatedTimestampIso}/>
+            </p>
           </li>
         ))}
       </ul>
