@@ -19,7 +19,12 @@ class LocalConfigCache {
   }
 
   public getCanaryConfigById(id: string): Promise<ICanaryConfig> {
-    return Promise.resolve(Array.from(this.configs).find(c => c.name === id));
+    const config = Array.from(this.configs).find(c => c.name === id);
+    if (config) {
+      return Promise.resolve(config);
+    } else {
+      return Promise.reject({ data: { message: 'Config not found.' }});
+    }
   }
 
   public getCanaryConfigSummaries(): Promise<ICanaryConfigSummary[]> {
