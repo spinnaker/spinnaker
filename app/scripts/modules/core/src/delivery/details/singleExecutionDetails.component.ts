@@ -113,9 +113,13 @@ class SingleExecutionDetailsController {
       this.execution = this.execution || execution;
       executionService.transformExecution(this.app, execution);
       executionService.synchronizeExecution(this.execution, execution);
-      if (execution.isActive) {
+      if (execution.isActive && !this.executionScheduler) {
         this.executionScheduler = this.schedulerFactory.createScheduler(5000);
         this.executionLoader = this.executionScheduler.subscribe(() => this.getExecution());
+      }
+      if (!execution.isActive && this.executionScheduler) {
+        this.executionScheduler.unsubscribe();
+        this.executionLoader.unsubscribe();
       }
     }, () => {
       this.execution = null;
