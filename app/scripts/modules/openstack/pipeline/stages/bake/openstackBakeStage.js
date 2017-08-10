@@ -3,7 +3,13 @@
 const angular = require('angular');
 import _ from 'lodash';
 
-import { BakeExecutionLabel, BAKERY_SERVICE, PIPELINE_CONFIG_PROVIDER, SETTINGS } from '@spinnaker/core';
+import {
+  BakeExecutionLabel,
+  BAKERY_SERVICE,
+  PIPELINE_CONFIG_PROVIDER,
+  PipelineTemplates,
+  SETTINGS
+} from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.openstack.pipeline.stage.bakeStage', [
   PIPELINE_CONFIG_PROVIDER,
@@ -35,7 +41,7 @@ module.exports = angular.module('spinnaker.openstack.pipeline.stage.bakeStage', 
       restartable: true,
     });
   })
-  .controller('openstackBakeStageCtrl', function($scope, bakeryService, $q, authenticationService) {
+  .controller('openstackBakeStageCtrl', function($scope, bakeryService, $q, authenticationService, $uibModal) {
 
     $scope.stage.extendedAttributes = $scope.stage.extendedAttributes || {};
     $scope.stage.regions = $scope.stage.regions || [];
@@ -73,8 +79,14 @@ module.exports = angular.module('spinnaker.openstack.pipeline.stage.bakeStage', 
           $scope.stage.baseOs = $scope.baseOsOptions[0].id;
         }
         $scope.viewState.roscoMode = SETTINGS.feature.roscoMode;
+        $scope.showAdvancedOptions = showAdvanced();
         $scope.viewState.loading = false;
       });
+    }
+
+    function showAdvanced() {
+      let stage = $scope.stage;
+      return !!(stage.templateFileName || (stage.extendedAttributes && _.size(stage.extendedAttributes) > 0));
     }
 
     function deleteEmptyProperties() {
@@ -84,6 +96,35 @@ module.exports = angular.module('spinnaker.openstack.pipeline.stage.bakeStage', 
         }
       });
     }
+
+    this.addExtendedAttribute = function() {
+      if (!$scope.stage.extendedAttributes) {
+        $scope.stage.extendedAttributes = {};
+      }
+      $uibModal.open({
+        templateUrl: PipelineTemplates.addExtendedAttributes,
+        controller: 'bakeStageAddExtendedAttributeController',
+        controllerAs: 'addExtendedAttribute',
+        resolve: {
+          extendedAttribute: function () {
+            return {
+              key: '',
+              value: '',
+            };
+          }
+        }
+      }).result.then(function(extendedAttribute) {
+          $scope.stage.extendedAttributes[extendedAttribute.key] = extendedAttribute.value;
+      });
+    };
+
+    this.removeExtendedAttribute = function(key) {
+      delete $scope.stage.extendedAttributes[key];
+    };
+
+    this.showExtendedAttributes = function() {
+      return $scope.viewState.roscoMode || ($scope.stage.extendedAttributes && _.size($scope.stage.extendedAttributes) > 0);
+    };
 
     this.showTemplateFileName = function() {
       return $scope.viewState.roscoMode || $scope.stage.templateFileName;
