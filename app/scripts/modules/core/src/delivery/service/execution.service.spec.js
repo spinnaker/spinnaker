@@ -278,10 +278,51 @@ describe('Service: executionService', function () {
     });
   });
 
+  describe('merging executions and running executions', () => {
+    let application;
+    let dataUpdated = false;
+    beforeEach(function() {
+      dataUpdated = false;
+      application = {
+        executions: { data: [], dataUpdated: () => dataUpdated = true },
+        runningExecutions: { data: [], dataUpdated: () => dataUpdated = true }
+      };
+    });
+
+    describe('removeCompletedExecutionsFromRunningData', () => {
+      it('should remove executions that have completed', () => {
+        application.executions.data = [ {id: 0, isActive: false}, {id: 1, isActive: false}, {id: 2, isActive: true} ];
+        application.runningExecutions.data = [ {id: 1, isActive: true}, {id: 2, isActive: true} ];
+        executionService.removeCompletedExecutionsFromRunningData(application);
+        expect(application.runningExecutions.data.map(d => d.id)).toEqual([2]);
+        expect(dataUpdated).toBe(true);
+      });
+    });
+
+    describe('mergeRunningExecutionsIntoExecutions', () => {
+      it('should add running executions to executions, and update if stringVal changed', () => {
+        application.executions.data = [ {id: 0, isActive: false, stringVal: 'a'}, {id: 2, isActive: true, stringVal: 'b'} ];
+        application.runningExecutions.data = [ {id: 1, isActive: true, stringVal: 'c'}, {id: 2, isActive: true, stringVal: 'd'} ];
+        executionService.mergeRunningExecutionsIntoExecutions(application);
+        expect(application.executions.data.map(d => `${d.id}:${d.stringVal}`)).toEqual(['0:a', '2:d', '1:c']);
+        expect(dataUpdated).toBe(true);
+      });
+
+      it('should only call dataUpdated if actual updates occurred', () => {
+        application.executions.data = [ {id: 0, isActive: false, stringVal: 'a'}, {id: 2, isActive: true, stringVal: 'b'} ];
+        application.runningExecutions.data = [ {id: 2, isActive: true, stringVal: 'b'} ];
+        executionService.mergeRunningExecutionsIntoExecutions(application);
+        expect(application.executions.data.map(d => `${d.id}:${d.stringVal}`)).toEqual(['0:a', '2:b']);
+        expect(dataUpdated).toBe(false);
+      });
+
+    });
+  });
+
   describe('adding executions to applications', function () {
     var application;
     beforeEach(function() {
-      application = { executions: { data: [] }};
+      application = { executions: { data: [] }, runningExecutions: { data: [] }};
     });
     it('should add all executions if there are none on application', function () {
       let execs = [{a:1}];
@@ -364,6 +405,15 @@ describe('Service: executionService', function () {
       executionService.addExecutionsToApplication(application, execs);
 
       expect(application.executions.data).toEqual([persistent]);
+    });
+
+    it('should retain running executions, even if they are not in the new set', function () {
+      let running = {id:3};
+      application.executions.data = [running];
+      application.runningExecutions.data = [running];
+
+      executionService.addExecutionsToApplication(application, []);
+      expect(application.executions.data).toEqual([running]);
     });
 
     it('should remove multiple executions if not in the new set', function () {

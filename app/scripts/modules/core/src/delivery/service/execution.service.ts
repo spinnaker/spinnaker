@@ -56,14 +56,14 @@ export class ExecutionService {
       this.executionsTransformer.transformExecution(application, execution);
     }
 
-    public transformExecutions(application: Application, executions: IExecution[]): void {
+    public transformExecutions(application: Application, executions: IExecution[], currentData: IExecution[] = []): void {
       if (!executions || !executions.length) {
         return;
       }
       executions.forEach((execution) => {
         const stringVal = this.stringifyExecution(execution);
         // do not transform if it hasn't changed
-        const match = (application.executions.data || []).find((test: IExecution) => test.id === execution.id);
+        const match = currentData.find((test: IExecution) => test.id === execution.id);
         if (!match || !match.stringVal || match.stringVal !== stringVal) {
           execution.stringVal = stringVal;
           this.executionsTransformer.transformExecution(application, execution);
@@ -243,13 +243,13 @@ export class ExecutionService {
       // resulting in an empty list of executions coming back
       if (application.executions.data && application.executions.data.length && executions.length) {
         const existingData = application.executions.data;
+        const runningData = application.runningExecutions.data;
         // remove any that have dropped off, update any that have changed
         const toRemove: number[] = [];
         existingData.forEach((execution: IExecution, idx: number) => {
           const match = executions.find((test) => test.id === execution.id);
-          if (!match) {
-            toRemove.push(idx);
-          } else {
+          const runningMatch = runningData.find((t: IExecution) => t.id === execution.id);
+          if (match) {
             if (execution.stringVal && match.stringVal && execution.stringVal !== match.stringVal) {
               if (execution.status !== match.status) {
                 application.executions.data[idx] = match;
@@ -257,6 +257,10 @@ export class ExecutionService {
                 this.synchronizeExecution(execution, match);
               }
             }
+          }
+          // if it's from the running executions, leave it alone
+          if (!match && !runningMatch) {
+            toRemove.push(idx);
           }
         });
 
@@ -272,6 +276,40 @@ export class ExecutionService {
       } else {
         return executions;
       }
+    }
+
+    // adds running execution data to the execution data source
+    public mergeRunningExecutionsIntoExecutions(application: Application): void {
+      let updated = false;
+      application.runningExecutions.data.forEach((re: IExecution) => {
+        const match = application.executions.data.findIndex((e: IExecution) => e.id === re.id);
+        if (match !== -1) {
+          const oldKey = application.executions.data[match].stringVal;
+          if (re.stringVal !== oldKey) {
+            updated = true;
+            application.executions.data[match] = re;
+          }
+        } else {
+          updated = true;
+          application.executions.data.push(re);
+        }
+      });
+      if (updated) {
+        application.executions.dataUpdated();
+      }
+    }
+
+    // remove any running execution data if the execution is completed
+    public removeCompletedExecutionsFromRunningData(application: Application): void {
+      const data = application.executions.data;
+      const runningData = application.runningExecutions.data;
+      data.forEach((e: IExecution) => {
+        const match = runningData.findIndex((re: IExecution) => e.id === re.id);
+        if (match !== -1 && !e.isActive) {
+          runningData.splice(match, 1);
+        }
+      });
+      application.runningExecutions.dataUpdated();
     }
 
     public synchronizeExecution(current: IExecution, updated: IExecution): void {

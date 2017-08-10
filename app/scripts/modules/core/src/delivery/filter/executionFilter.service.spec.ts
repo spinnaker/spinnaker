@@ -1,13 +1,10 @@
 import {mock} from 'angular';
 
-import {Application} from 'core/application/application.model';
 import {APPLICATION_MODEL_BUILDER, ApplicationModelBuilder} from 'core/application/applicationModel.builder';
 import {EXECUTION_FILTER_MODEL, ExecutionFilterModel} from 'core/delivery/filter/executionFilter.model';
 import {EXECUTION_FILTER_SERVICE, ExecutionFilterService} from './executionFilter.service';
-import {IExecution} from 'core/domain/IExecution';
 
 describe('Service: executionFilterService', function () {
-  const debounceTimeout = 30;
 
   let modelBuilder: ApplicationModelBuilder;
   let service: ExecutionFilterService;
@@ -44,43 +41,4 @@ describe('Service: executionFilterService', function () {
     });
   });
 
-  describe('Updating execution groups', function () {
-
-    it('limits executions per pipeline', function (done) {
-      const application: Application = modelBuilder.createApplication('app', {key: 'executions', lazy: true}, {key: 'pipelineConfigs', lazy: true});
-      application.getDataSource('executions').data = [
-        { pipelineConfigId: '1', name: 'pipeline 1', endTime: 1, stages: [] },
-        { pipelineConfigId: '1', name: 'pipeline 1', endTime: 2, stages: [] },
-        { pipelineConfigId: '1', name: 'pipeline 1', endTime: 3, stages: [] },
-        { pipelineConfigId: '2', name: 'pipeline 2', endTime: 1, stages: [] },
-      ];
-      application.getDataSource('pipelineConfigs').data = [
-        { name: 'pipeline 1', pipelineConfigId: '1' },
-        { name: 'pipeline 2', pipelineConfigId: '2' },
-      ];
-
-      model.asFilterModel.sortFilter.count = 2;
-      model.asFilterModel.sortFilter.groupBy = 'none';
-
-      service.updateExecutionGroups(application);
-
-      setTimeout(() => {
-        expect(model.asFilterModel.groups.length).toBe(1);
-        expect(model.asFilterModel.groups[0].executions.length).toBe(3);
-        expect(model.asFilterModel.groups[0].executions.filter((ex: IExecution) => ex.pipelineConfigId === '1').length).toBe(2);
-        expect(model.asFilterModel.groups[0].executions.filter((ex: IExecution) => ex.pipelineConfigId === '2').length).toBe(1);
-
-        model.asFilterModel.sortFilter.groupBy = 'name';
-        service.updateExecutionGroups(application);
-
-        setTimeout(() => {
-          expect(model.asFilterModel.groups.length).toBe(2);
-          expect(model.asFilterModel.groups[0].executions.length).toBe(2);
-          expect(model.asFilterModel.groups[1].executions.length).toBe(1);
-          done();
-        }, debounceTimeout);
-      }, debounceTimeout)
-    });
-
-  });
 });

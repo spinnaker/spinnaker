@@ -17,7 +17,7 @@ module.exports = angular
   .run(function($q, applicationDataSourceRegistry, executionService, pipelineConfigService, clusterService) {
 
     let addExecutions = (application, executions) => {
-      executionService.transformExecutions(application, executions);
+      executionService.transformExecutions(application, executions, application.executions.data);
       return $q.when(executionService.addExecutionsToApplication(application, executions));
     };
 
@@ -47,7 +47,12 @@ module.exports = angular
 
     let runningExecutionsLoaded = (application) => {
       clusterService.addExecutionsToServerGroups(application);
+      executionService.mergeRunningExecutionsIntoExecutions(application);
       application.getDataSource('serverGroups').dataUpdated();
+    };
+
+    let executionsLoaded = (application) => {
+      executionService.removeCompletedExecutionsFromRunningData(application);
     };
 
     if (SETTINGS.feature.pipelines !== false) {
@@ -61,6 +66,7 @@ module.exports = angular
         activeState: '**.pipelines.**',
         loader: loadExecutions,
         onLoad: addExecutions,
+        afterLoad: executionsLoaded,
         lazy: true,
         badge: 'runningExecutions',
         description: 'Orchestrated deployment management'

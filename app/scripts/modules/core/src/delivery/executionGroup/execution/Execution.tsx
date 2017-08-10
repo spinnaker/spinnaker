@@ -90,6 +90,7 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
           if (this.mounted) {
             const dataSource = application.getDataSource(this.props.dataSourceKey);
             executionService.updateExecution(application, updated, dataSource);
+            executionService.removeCompletedExecutionsFromRunningData(application);
           }
           refreshing = false;
         });

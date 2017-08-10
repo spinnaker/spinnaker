@@ -149,10 +149,9 @@ export class ExecutionFilterService {
 
   private groupExecutions(filteredExecutions: IExecution[], application: Application): IExecutionGroup[] {
     const groups: IExecutionGroup[] = [];
-    // limit based on sortFilter.count
     let executions: IExecution[] = [];
     forOwn(groupBy(filteredExecutions, 'name'), (groupedExecutions) => {
-      executions = executions.concat(groupedExecutions.sort((a, b) => this.executionSorter(a, b)).slice(0, this.executionFilterModel.asFilterModel.sortFilter.count));
+      executions = executions.concat(groupedExecutions.sort((a, b) => this.executionSorter(a, b)));
     });
 
     if (this.executionFilterModel.asFilterModel.sortFilter.groupBy === 'name') {
