@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.orca.loadtest.scenarios
+package com.netflix.spinnaker.clouddriver.loadtest.scenarios
 
-import com.netflix.spinnaker.orca.loadtest.actions.ClouddriverActions
+import com.netflix.spinnaker.clouddriver.loadtest.actions.ClouddriverActions
 import io.gatling.core.Predef._
 import io.gatling.core.feeder.FeederBuilder
 import io.gatling.core.structure.ScenarioBuilder

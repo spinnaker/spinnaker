@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.orca.loadtest
+package com.netflix.spinnaker.clouddriver.loadtest
 
 import io.gatling.app.Gatling
 import io.gatling.core.config.GatlingPropertiesBuilder
@@ -23,9 +23,6 @@ object ClouddriverSimulationEngine extends App {
   props.simulationClass(classOf[ClouddriverSimulation].getName)
   props.resultsDirectory("build/reports/gatling")
   props.binariesDirectory("build/classes/main")
-
-//  props.bodiesDirectory(getClass.getClassLoader.getResource("request-bodies").getPath)
-//  props.dataDirectory(getClass.getClassLoader.getResource("data").getPath)
 
   Gatling.fromMap(props.build)
   sys.exit()

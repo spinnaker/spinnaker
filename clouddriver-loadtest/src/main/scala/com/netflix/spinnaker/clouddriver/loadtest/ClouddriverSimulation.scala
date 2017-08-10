@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.orca.loadtest
+package com.netflix.spinnaker.clouddriver.loadtest
 
 import java.io.File
 
-import com.netflix.spinnaker.orca.loadtest.scenarios.ClouddriverScenarios
+import com.netflix.spinnaker.clouddriver.loadtest.scenarios.ClouddriverScenarios
 import io.gatling.core.Predef._
 import io.gatling.core.feeder.RecordSeqFeederBuilder
 import io.gatling.core.structure.PopulationBuilder
