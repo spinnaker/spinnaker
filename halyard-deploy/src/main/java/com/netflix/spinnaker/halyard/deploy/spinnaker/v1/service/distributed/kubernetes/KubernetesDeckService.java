@@ -33,6 +33,7 @@ import org.springframework.stereotype.Component;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @EqualsAndHashCode(callSuper = true)
 @Component
@@ -44,6 +45,8 @@ public class KubernetesDeckService extends DeckService implements KubernetesDist
 
   @Autowired
   DeckDockerProfileFactory deckDockerProfileFactory;
+
+  private final String settingsPath = "/opt/spinnaker/config";
 
   @Delegate(excludes = HasServiceSettings.class)
   public DistributedLogCollector getLogCollector() {
@@ -65,9 +68,17 @@ public class KubernetesDeckService extends DeckService implements KubernetesDist
   }
 
   @Override
+  protected Optional<String> customProfileOutputPath(String profileName) {
+    if (profileName.equals("settings.js")) {
+      return Optional.of(Paths.get(settingsPath, profileName).toString());
+    } else {
+      return Optional.empty();
+    }
+  }
+
+  @Override
   public List<Profile> getProfiles(DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
     List<Profile> result = new ArrayList<>();
-    String settingsPath = "/opt/spinnaker/config";
     String filename = "settings.js";
     String path = Paths.get(settingsPath, filename).toString();
     result.add(deckDockerProfileFactory.getProfile(filename, path, deploymentConfiguration, endpoints));
