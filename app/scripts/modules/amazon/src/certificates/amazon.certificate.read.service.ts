@@ -1,4 +1,4 @@
-import { module, IQService, IPromise } from 'angular';
+import { module, IPromise } from 'angular';
 import { groupBy, sortBy } from 'lodash';
 
 import { ACCOUNT_SERVICE, AccountService, ICertificate, CERTIFICATE_READ_SERVICE, CertificateReader } from '@spinnaker/core';
@@ -10,18 +10,12 @@ export interface IAmazonCertificate extends ICertificate {
 
 export class AmazonCertificateReader {
 
-  private cachedAmazonCertificates: { [accountId: number]: IAmazonCertificate[] };
-
-  constructor(private $q: IQService,
-              private certificateReader: CertificateReader,
+  constructor(private certificateReader: CertificateReader,
               private accountService: AccountService) {
     'ngInject';
   }
 
   public listCertificates(): IPromise<{ [accountId: number]: IAmazonCertificate[] }> {
-    if (this.cachedAmazonCertificates) {
-      return this.$q.when(this.cachedAmazonCertificates);
-    }
     return this.certificateReader.listCertificatesByProvider('aws').then((certificates: IAmazonCertificate[]) => {
       // This account grouping should really go into clouddriver but since it's not, put it here for now.
       return this.accountService.getAllAccountDetailsForProvider('aws').then((allAccountDetails) => {
@@ -31,17 +25,12 @@ export class AmazonCertificateReader {
         }, {} as {[id: string]: string});
 
         const sortedCertificates = sortBy(certificates, 'serverCertificateName');
-        this.cachedAmazonCertificates = groupBy(sortedCertificates, (cert) => {
+        return groupBy(sortedCertificates, (cert) => {
           const [, , , , accountId] = cert.arn.split(':');
           return accountIdToName[accountId] || 'unknown';
         });
-        return this.cachedAmazonCertificates;
       });
     });
-  }
-
-  public resetCache(): void {
-    this.cachedAmazonCertificates = null;
   }
 }
 
