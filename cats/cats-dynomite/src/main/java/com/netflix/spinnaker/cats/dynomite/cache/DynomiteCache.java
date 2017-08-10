@@ -88,8 +88,7 @@ public class DynomiteCache extends AbstractRedisCache {
           saddOperations.incrementAndGet();
         }
 
-        int kn = keysToSet.size() / 2;
-        for (int i = 0; i < kn; i = i + 2) {
+        for (int i = 0; i < keysToSet.size(); i = i + 2) {
           client.set(keysToSet.get(i), keysToSet.get(i+1));
           setOperations.incrementAndGet();
         }
