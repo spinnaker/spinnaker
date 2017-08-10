@@ -79,6 +79,12 @@ public class EditDeploymentEnvironmentCommand extends AbstractConfigCommand {
   )
   private String vaultAddress;
 
+  @Parameter(
+      names = "--location",
+      description = "This is the location spinnaker will be deployed to."
+  )
+  private String location;
+
   @Override
   protected void executeThis() {
     String currentDeployment = getCurrentDeployment();
@@ -110,6 +116,8 @@ public class EditDeploymentEnvironmentCommand extends AbstractConfigCommand {
     vault.setAddress(isSet(vaultAddress) ? vaultAddress : vault.getAddress());
     vault.setEnabled(isSet(vaultEnabled) ? vaultEnabled : vault.isEnabled());
     deploymentEnvironment.setVault(vault);
+
+    deploymentEnvironment.setLocation(isSet(location) ? location : deploymentEnvironment.getLocation());
 
     if (originalHash == deploymentEnvironment.hashCode()) {
       AnsiUi.failure("No changes supplied.");
