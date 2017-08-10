@@ -127,13 +127,7 @@ function replace_startup_script() {
   clear_instance_metadata "startup-script"
 }
 
-# The following scopes must be enabled for the GCE VM that is running this script:
-# All providers:
-# - https://www.googleapis.com/auth/compute
-# - https://www.googleapis.com/auth/devstorage.full_control
-# - https://www.googleapis.com/auth/logging.write
-# - https://www.googleapis.com/auth/monitoring.write
-# Kubernetes or App Engine:
+# The GCE VM that is running this script must have the following scope:
 # - https://www.googleapis.com/auth/cloud-platform
 function enable_apis() {
   gcloud service-management enable storage-api.googleapis.com
@@ -143,6 +137,7 @@ function enable_apis() {
   if [ -n "$gcr_enabled" ]; then
     gcloud service-management enable containerregistry.googleapis.com
     gcloud service-management enable iam.googleapis.com
+    gcloud service-management enable cloudresourcemanager.googleapis.com
   fi
 
   local appengine_enabled=$(get_instance_metadata_attribute "appengine_enabled")
