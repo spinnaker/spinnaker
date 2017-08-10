@@ -63,9 +63,18 @@ data class QueueState(
    */
   val unacked: Int,
   /**
-   * Number of messages neither queued or in-process. Some implementations
-   * may not have any way to implement this metric. It is only intended for
-   * alerting leaks.
+   * Number of messages neither queued or in-process.
+   *
+   * Some implementations may not have any way to implement this metric. It is
+   * only intended for alerting leaks.
    */
-  val orphaned: Int = 0
+  val orphaned: Int = 0,
+  /**
+   * Difference between number of known message hashes and number of de-dupe
+   * hashes plus in-process messages.
+   *
+   * Some implementations may not have any way to implement this metric. It is
+   * only intended for alerting leaks.
+   */
+  val hashDrift: Int = 0
 )

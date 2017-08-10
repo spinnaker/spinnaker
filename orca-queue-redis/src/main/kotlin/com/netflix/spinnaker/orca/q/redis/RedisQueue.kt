@@ -172,17 +172,22 @@ class RedisQueue(
         zcount(queueKey, 0.0, score())
         zcard(unackedKey)
         hlen(messagesKey)
+        hlen(hashKey)
+        scard(hashesKey)
       }
         .map { (it as Long).toInt() }
-        .let { (queued, ready, processing, messages) ->
+        .let { (queued, ready, processing, messages, hashCount, dedupeHashes) ->
           return QueueState(
             depth = queued,
             ready = ready,
             unacked = processing,
-            orphaned = messages - (queued + processing)
+            orphaned = messages - (queued + processing),
+            hashDrift = hashCount - (processing + dedupeHashes)
           )
         }
     }
+
+  private operator fun <E> List<E>.component6(): E = get(5)
 
   override fun toString() = "RedisQueue[$queueName]"
 

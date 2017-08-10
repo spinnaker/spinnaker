@@ -79,6 +79,9 @@ open class AtlasQueueMonitor
     registry.gauge("queue.orphaned.messages", this, {
       it.lastState.orphaned.toDouble()
     })
+    registry.gauge("queue.hash.drift", this, {
+      it.lastState.hashDrift.toDouble()
+    })
     registry.gauge("queue.last.poll.age", this, {
       Duration
         .between(it.lastQueuePoll, clock.instant())
