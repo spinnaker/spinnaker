@@ -63,6 +63,7 @@ METADATA_URL="http://metadata.google.internal/computeMetadata/v1"
 INSTANCE_METADATA_URL="$METADATA_URL/instance"
 HALYARD_USER=$(cat /opt/spinnaker/config/halyard-user)
 HALYARD_GROUP=$(cat /opt/spinnaker/config/halyard-user)
+STARTUP_SCRIPT_DIR=/var/spinnaker/startup
 
 HAL="hal -q --log=info "
 
@@ -123,7 +124,8 @@ function replace_startup_script() {
   # Keep the original around for reference.
   # From now on, all we need to do is start_spinnaker
   local original=$(get_instance_metadata_attribute "startup-script")
-  echo "$original" > "$SPINNAKER_INSTALL_DIR/scripts/original_startup_script.sh"
+  mkdir -p "$STARTUP_SCRIPT_DIR"
+  echo "$original" > "$STARTUP_SCRIPT_DIR/original_startup_script.sh"
   clear_instance_metadata "startup-script"
 }
 
