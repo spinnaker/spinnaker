@@ -107,12 +107,7 @@ class RedisQueue(
   override fun push(message: Message, delay: TemporalAmount) {
     pool.resource.use { redis ->
       val messageHash = message.hash()
-      val deprecatedHash = message.deprecatedHash()
-      if (redis.sismember(hashesKey, deprecatedHash)) {
-        // TODO rz - remove soon
-        log.warn("Ignoring message as an identical one is already on the queue (murmur3_32): $deprecatedHash, message: $message")
-        fire<MessageDuplicate>(message)
-      } else if (redis.sismember(hashesKey, messageHash)) {
+      if (redis.sismember(hashesKey, messageHash)) {
         log.warn("Ignoring message as an identical one is already on the queue: $messageHash, message: $message")
         fire<MessageDuplicate>(message)
       } else {
@@ -309,12 +304,6 @@ class RedisQueue(
   private fun Message.hash() =
     Hashing
       .murmur3_128()
-      .hashString(toString(), Charset.defaultCharset())
-      .toString()
-
-  private fun Message.deprecatedHash() =
-    Hashing
-      .murmur3_32()
       .hashString(toString(), Charset.defaultCharset())
       .toString()
 }
