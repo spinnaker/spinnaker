@@ -76,7 +76,11 @@ open class CompleteExecutionHandler
       } else if (stages.any { it.getStatus() == STOPPED } && !stages.otherBranchesIncomplete()) {
         block.invoke(if (execution.shouldOverrideSuccess()) TERMINAL else SUCCEEDED)
       } else {
-        log.warn("Re-queuing $this as the execution is not yet complete")
+        val attempts = getAttribute<AttemptsAttribute>()?.attempts ?: 0
+        log.warn("Re-queuing $this as the execution is not yet complete (attempts: $attempts)")
+
+        // no need to re-queue continuously as the RUNNING stages will also emit a `CompleteExecution` message
+        setAttribute(MaxAttemptsAttribute(10))
         queue.push(this, retryDelay)
       }
     }
