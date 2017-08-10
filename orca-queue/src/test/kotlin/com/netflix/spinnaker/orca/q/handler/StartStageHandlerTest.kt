@@ -608,7 +608,7 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
       }
       val message = StartStage(pipeline.stageByRef("1"))
 
-      context("that is not recoverable") {
+      and("it is not recoverable") {
         val exceptionDetails = ExceptionHandler.Response(
           RuntimeException::class.qualifiedName,
           "o noes",
@@ -616,32 +616,94 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
           false
         )
 
-        beforeGroup {
-          whenever(repository.retrievePipeline(message.executionId)) doReturn pipeline
-          whenever(exceptionHandler.handles(any())) doReturn true
-          whenever(exceptionHandler.handle(anyOrNull(), any())) doReturn exceptionDetails
+        and("the pipeline should fail") {
+          beforeGroup {
+            whenever(repository.retrievePipeline(message.executionId)) doReturn pipeline
+            whenever(exceptionHandler.handles(any())) doReturn true
+            whenever(exceptionHandler.handle(anyOrNull(), any())) doReturn exceptionDetails
+          }
+
+          afterGroup(::resetMocks)
+
+          on("receiving $message") {
+            subject.handle(message)
+          }
+
+          it("marks the stage as terminal") {
+            verify(queue).push(check<CompleteStage> {
+              it.status shouldEqual TERMINAL
+            })
+          }
+
+          it("attaches the exception to the stage context") {
+            verify(repository).storeStage(check {
+              it.getContext()["exception"] shouldEqual exceptionDetails
+            })
+          }
         }
+        and("only the branch should fail") {
+          beforeGroup {
+            pipeline.stageByRef("1").apply {
+              context["failPipeline"] = false
+              context["continuePipeline"] = false
+            }
 
-        afterGroup(::resetMocks)
+            whenever(repository.retrievePipeline(message.executionId)) doReturn pipeline
+            whenever(exceptionHandler.handles(any())) doReturn true
+            whenever(exceptionHandler.handle(anyOrNull(), any())) doReturn exceptionDetails
+          }
 
-        on("receiving $message") {
-          subject.handle(message)
+          afterGroup(::resetMocks)
+
+          on("receiving $message") {
+            subject.handle(message)
+          }
+
+          it("marks the stage as stopped") {
+            verify(queue).push(check<CompleteStage> {
+              it.status shouldEqual STOPPED
+            })
+          }
+
+          it("attaches the exception to the stage context") {
+            verify(repository).storeStage(check {
+              it.getContext()["exception"] shouldEqual exceptionDetails
+            })
+          }
         }
+        and("the branch should be allowed to continue") {
+          beforeGroup {
+            pipeline.stageByRef("1").apply {
+              context["failPipeline"] = false
+              context["continuePipeline"] = true
+            }
 
-        it("marks the stage as terminal") {
-          verify(queue).push(check<CompleteStage> {
-            it.status shouldEqual TERMINAL
-          })
-        }
+            whenever(repository.retrievePipeline(message.executionId)) doReturn pipeline
+            whenever(exceptionHandler.handles(any())) doReturn true
+            whenever(exceptionHandler.handle(anyOrNull(), any())) doReturn exceptionDetails
+          }
 
-        it("attaches the exception to the stage context") {
-          verify(repository).storeStage(check {
-            it.getContext()["exception"] shouldEqual exceptionDetails
-          })
+          afterGroup(::resetMocks)
+
+          on("receiving $message") {
+            subject.handle(message)
+          }
+
+          it("marks the stage as FAILED_CONTINUE") {
+            verify(queue).push(check<CompleteStage> {
+              it.status shouldEqual FAILED_CONTINUE
+            })
+          }
+
+          it("attaches the exception to the stage context") {
+            verify(repository).storeStage(check {
+              it.getContext()["exception"] shouldEqual exceptionDetails
+            })
+          }
         }
       }
 
-      context("that is recoverable") {
+      and("it is recoverable") {
         val exceptionDetails = ExceptionHandler.Response(
           RuntimeException::class.qualifiedName,
           "o noes",

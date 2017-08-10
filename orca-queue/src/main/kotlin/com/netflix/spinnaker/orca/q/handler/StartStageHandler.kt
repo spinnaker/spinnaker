@@ -89,7 +89,7 @@ open class StartStageHandler
               log.error("Error running ${stage.getType()} stage for ${message.executionType.simpleName}[${message.executionId}]", e)
               stage.getContext()["exception"] = exceptionDetails
               repository.storeStage(stage)
-              queue.push(CompleteStage(message, TERMINAL))
+              queue.push(CompleteStage(message, stage.failureStatus()))
             }
           }
         }

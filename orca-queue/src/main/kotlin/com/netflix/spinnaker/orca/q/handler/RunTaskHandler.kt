@@ -218,19 +218,4 @@ open class RunTaskHandler
       )
     }
   }
-
-  private fun Stage<*>.failureStatus(default: ExecutionStatus = TERMINAL) =
-    if (shouldContinueOnFailure()) {
-      FAILED_CONTINUE
-    } else if (shouldFailPipeline()) {
-      default
-    } else {
-      STOPPED
-    }
-
-  private fun Stage<*>.shouldFailPipeline() =
-    getContext()["failPipeline"] in listOf(null, true)
-
-  private fun Stage<*>.shouldContinueOnFailure() =
-    getContext()["continuePipeline"] == true
 }
