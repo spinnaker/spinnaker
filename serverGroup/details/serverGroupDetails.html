@@ -95,6 +95,8 @@
         <dd>{{serverGroup.capacity.desired}}</dd>
         <dt>Current</dt>
         <dd>{{serverGroup.instances.length}}</dd>
+        <dt ng-if="serverGroup.capacityGroup">Cap. Group</dt>
+        <dd ng-if="serverGroup.capacityGroup">{{serverGroup.capacityGroup}}</dd>
       </dl>
       <dl class="dl-horizontal dl-flex"
           ng-if="serverGroup.capacity.min !== serverGroup.capacity.max">
