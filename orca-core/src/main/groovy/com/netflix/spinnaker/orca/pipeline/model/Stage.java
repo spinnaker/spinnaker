@@ -1,9 +1,5 @@
 package com.netflix.spinnaker.orca.pipeline.model;
 
-import java.io.IOException;
-import java.io.Serializable;
-import java.util.*;
-import javax.annotation.Nonnull;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -16,10 +12,30 @@ import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper;
 import com.netflix.spinnaker.orca.listeners.StageTaskPropagationListener;
 import lombok.Data;
 import org.codehaus.groovy.runtime.ReverseListIterator;
+
+import javax.annotation.Nonnull;
+import java.io.IOException;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Stack;
+import java.util.UUID;
+
 import static com.netflix.spinnaker.orca.ExecutionStatus.NOT_STARTED;
 import static java.lang.String.format;
 import static java.util.Arrays.asList;
-import static java.util.Collections.*;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.emptyMap;
+import static java.util.Collections.emptySet;
+import static java.util.Collections.reverse;
+import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.StreamSupport.stream;
 
@@ -326,6 +342,31 @@ public class Stage<T extends Execution<T>> implements Serializable {
         }
       }
     }
+  }
+
+  /**
+   * Returns the top-most stage timeout value if present.
+   */
+  @JsonIgnore public Optional<Long> getTopLevelTimeout() {
+    Stage<T> topLevelStage = this;
+    while (topLevelStage.parentStageId != null) {
+      String sid = topLevelStage.parentStageId;
+      Optional<Stage<T>> stage = execution.getStages().stream().filter(s -> s.id.equals(sid)).findFirst();
+      if (stage.isPresent()) {
+        topLevelStage = stage.get();
+      } else {
+        throw new IllegalStateException("Could not find stage by parentStageId (stage: " + topLevelStage.getId() + ", parentStageId:" + sid + ")");
+      }
+    }
+    Object timeout = topLevelStage.getContext().get("stageTimeoutMs");
+    if (timeout instanceof Integer) {
+      return Optional.of((Integer) timeout).map(Long::new);
+    } else if (timeout instanceof Long) {
+      return Optional.of((Long) timeout);
+    } else if (timeout instanceof Double) {
+      return Optional.of((Double) timeout).map(Double::longValue);
+    }
+    return Optional.empty();
   }
 
   @Data

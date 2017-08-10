@@ -193,10 +193,8 @@ open class RunTaskHandler
     }
   }
 
-  private fun RetryableTask.timeoutDuration(stage: Stage<*>): Duration {
-    val durationOverride = (stage.getContext()["stageTimeoutMs"] as Number?)?.toInt()
-    return durationOverride?.toLong()?.toDuration() ?: timeout.toDuration()
-  }
+  private fun RetryableTask.timeoutDuration(stage: Stage<*>): Duration
+    = stage.getTopLevelTimeout().orElse(timeout).toDuration()
 
 
   private fun Execution<*>.pausedDurationRelativeTo(instant: Instant?): Duration {
