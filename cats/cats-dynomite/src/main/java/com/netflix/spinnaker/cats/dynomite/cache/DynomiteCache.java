@@ -18,11 +18,16 @@ package com.netflix.spinnaker.cats.dynomite.cache;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import com.netflix.dyno.connectionpool.exception.DynoException;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.cats.dynomite.DynomiteClientDelegate;
 import com.netflix.spinnaker.cats.redis.cache.AbstractRedisCache;
 import com.netflix.spinnaker.cats.redis.cache.RedisCacheOptions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import redis.clients.jedis.exceptions.JedisException;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -30,12 +35,20 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.NavigableMap;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 public class DynomiteCache extends AbstractRedisCache {
+
+  // Arbitrary selection of hash expiration TTL. While the try/catches in a mergeItems call should catch cache drift
+  // caused by exceptions, this will ensure that any missed stale caches are no older than a few hours.
+  private final static int HASH_EXPIRY_SECONDS = (int) Duration.ofHours(3).getSeconds();
+
+  private final Logger log = LoggerFactory.getLogger(getClass());
 
   public DynomiteCache(String prefix, DynomiteClientDelegate dynomiteClientDelegate, ObjectMapper objectMapper, RedisCacheOptions options, CacheMetrics cacheMetrics) {
     super(prefix, dynomiteClientDelegate, objectMapper, options, cacheMetrics);
@@ -79,6 +92,7 @@ public class DynomiteCache extends AbstractRedisCache {
     AtomicInteger hmsetOperations = new AtomicInteger();
     AtomicInteger expireOperations = new AtomicInteger();
     if (!keysToSet.isEmpty()) {
+      final Set<String> failedKeys = new HashSet<>();
       redisClientDelegate.withCommandsClient(client -> {
         for (List<String> idPart : Iterables.partition(idSet, options.getMaxSaddSize())) {
           final String[] ids = idPart.toArray(new String[idPart.size()]);
@@ -89,21 +103,45 @@ public class DynomiteCache extends AbstractRedisCache {
         }
 
         for (int i = 0; i < keysToSet.size(); i = i + 2) {
-          client.set(keysToSet.get(i), keysToSet.get(i+1));
-          setOperations.incrementAndGet();
+          try {
+            client.set(keysToSet.get(i), keysToSet.get(i+1));
+            setOperations.incrementAndGet();
+          } catch (JedisException|DynoException e) {
+            log.error(type + " encountered Redis exception while setting cache data, marking item as failed", e);
+            failedKeys.add(keysToSet.get(i));
+          }
         }
 
         if (!relationshipNames.isEmpty()) {
           for (List<String> relNamesPart : Iterables.partition(relationshipNames, options.getMaxSaddSize())) {
-            client.sadd(allRelationshipsId(type), relNamesPart.toArray(new String[relNamesPart.size()]));
-            saddOperations.incrementAndGet();
+            try {
+              client.sadd(allRelationshipsId(type), relNamesPart.toArray(new String[relNamesPart.size()]));
+              saddOperations.incrementAndGet();
+            } catch (JedisException|DynoException e) {
+              log.error(type + " encountered Redis exception while adding a relationship, marking " + relNamesPart.size() + " relationships as failed", e);
+              failedKeys.add(allRelationshipsId(type));
+            }
           }
         }
 
         if (!updatedHashes.isEmpty()) {
-          for (List<String> hashPart : Iterables.partition(updatedHashes.keySet(), options.getMaxHmsetSize())) {
-            client.hmset(hashesId(type), updatedHashes.subMap(hashPart.get(0), true, hashPart.get(hashPart.size() - 1), true));
-            hmsetOperations.incrementAndGet();
+          // Prune all hashes that might be associated with failed cache writes
+          if (!failedKeys.isEmpty()) {
+            log.info(type + " failed writing caches for ~" + failedKeys.size() + " items, pruning their associated hashes");
+            Set<String> invalidHashIds = updatedHashes.entrySet().stream()
+              .filter(it -> failedKeys.contains(it.getKey()))
+              .map(Entry::getKey)
+              .collect(Collectors.toSet());
+
+            invalidHashIds.forEach(it -> {
+              updatedHashes.remove(it);
+              client.del(hashKey(hashesId(type), it));
+            });
+          }
+
+          for (Entry<String, String> hashEntry : updatedHashes.entrySet()) {
+            client.setex(hashKey(hashesId(type), hashEntry.getKey()), HASH_EXPIRY_SECONDS, hashEntry.getValue());
+            setOperations.incrementAndGet();
           }
         }
 
@@ -111,7 +149,6 @@ public class DynomiteCache extends AbstractRedisCache {
           client.expire(ttlEntry.getKey(), ttlEntry.getValue());
         }
         expireOperations.addAndGet(ttlSecondsByKey.size());
-
       });
     }
 
@@ -173,5 +210,21 @@ public class DynomiteCache extends AbstractRedisCache {
       hdelOperations.get(),
       sremOperations.get()
     );
+  }
+
+  @Override
+  protected List<String> getHashValues(List<String> hashKeys, String hashesId) {
+    final List<String> hashValues = new ArrayList<>(hashKeys.size());
+    redisClientDelegate.withCommandsClient(c -> {
+      // TODO rz - Dynomite mget perf is O(n^2), once fixed we can go to mget.
+      for (String hashKey : hashKeys) {
+        hashValues.add(c.get(hashKey(hashesId, hashKey)));
+      }
+    });
+    return hashValues;
+  }
+
+  private String hashKey(String hashesId, String key) {
+    return hashesId + ":" + key;
   }
 }

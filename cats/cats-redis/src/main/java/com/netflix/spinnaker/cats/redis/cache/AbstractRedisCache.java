@@ -324,7 +324,7 @@ public abstract class AbstractRedisCache implements WriteableCache {
     return new ArrayList<>(keys);
   }
 
-  private List<String> getHashValues(List<String> hashKeys, String hashesId) {
+  protected List<String> getHashValues(List<String> hashKeys, String hashesId) {
     final List<String> hashValues = new ArrayList<>(hashKeys.size());
     redisClientDelegate.withCommandsClient(c -> {
       for (List<String> hashPart : Lists.partition(hashKeys, options.getMaxHmgetSize())) {
