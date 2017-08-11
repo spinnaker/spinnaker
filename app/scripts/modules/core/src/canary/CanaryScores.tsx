@@ -11,8 +11,10 @@ export interface IScoreConfig {
 
 export interface ICanaryScoresProps {
   onChange: (scoreConfig: IScoreConfig) => void;
+  successfulHelpFieldId?: string;
   successfulLabel?: string;
   successfulScore: string;
+  unhealthyHelpFieldId?: string;
   unhealthyLabel?: string;
   unhealthyScore: string;
 }
@@ -48,7 +50,7 @@ export class CanaryScores extends React.Component<ICanaryScoresProps> {
             <div className="form-group">
               <div className="col-md-2 col-md-offset-1 sm-label-right">
                 <label>{this.props.unhealthyLabel || 'Unhealthy Score'}</label>
-                <HelpField id="pipeline.config.canary.unhealthyScore"/>
+                <HelpField id={this.props.unhealthyHelpFieldId || 'pipeline.config.canary.unhealthyScore'}/>
               </div>
               <div className="col-md-2">
                 <input
@@ -61,7 +63,7 @@ export class CanaryScores extends React.Component<ICanaryScoresProps> {
               </div>
               <div className="col-md-2 col-md-offset-1 sm-label-right">
                 <label>{this.props.successfulLabel || 'Successful Score'}</label>
-                <HelpField id="pipeline.config.canary.successfulScore"/>
+                <HelpField id={this.props.successfulHelpFieldId || 'pipeline.config.canary.successfulScore'}/>
               </div>
               <div className="col-md-2">
                 <input
