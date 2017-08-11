@@ -16,10 +16,10 @@
 package com.netflix.spinnaker.orca.q.redis
 
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.q.CompleteExecution
 import com.netflix.spinnaker.orca.q.Queue
 import com.netflix.spinnaker.orca.q.StartExecution
-import com.netflix.spinnaker.spek.and
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.reset
 import com.nhaarman.mockito_kotlin.verify
@@ -36,6 +36,7 @@ import java.time.ZoneId
 
 object RedisDeadMessageHandlerTest : SubjectSpek<RedisDeadMessageHandler>({
 
+  val repository: ExecutionRepository = mock()
   val queue: Queue = mock()
   val redis: Jedis = mock()
   val redisPool: Pool<Jedis> = mock()
@@ -43,7 +44,7 @@ object RedisDeadMessageHandlerTest : SubjectSpek<RedisDeadMessageHandler>({
 
   subject(CachingMode.GROUP) {
     whenever(redisPool.resource).thenReturn(redis)
-    RedisDeadMessageHandler("dlq", redisPool, clock)
+    RedisDeadMessageHandler(repository, "dlq", redisPool, clock)
   }
 
   fun resetMocks() = reset(queue, redis)

@@ -18,31 +18,53 @@ package com.netflix.spinnaker.orca.q.handler
 
 import com.netflix.spinnaker.orca.ExecutionStatus.TERMINAL
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.q.*
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.reset
 import com.nhaarman.mockito_kotlin.verify
+import com.nhaarman.mockito_kotlin.verifyZeroInteractions
 import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.it
+import org.jetbrains.spek.api.dsl.on
 import org.jetbrains.spek.api.lifecycle.CachingMode.GROUP
 import org.jetbrains.spek.subject.SubjectSpek
 
 object DeadMessageHandlerTest : SubjectSpek<DeadMessageHandler>({
 
+  val repository: ExecutionRepository = mock()
   val queue: Queue = mock()
 
   subject(GROUP) {
-    DeadMessageHandler()
+    DeadMessageHandler(repository)
   }
 
   fun resetMocks() = reset(queue)
+
+  describe("handling a CompleteExecution message") {
+    val message = CompleteExecution(Pipeline::class.java, "1", "spinnaker")
+
+    afterGroup(::resetMocks)
+
+    on("receiving a message") {
+      subject.handle(queue, message)
+    }
+
+    it("immediately terminates the execution") {
+      verify(repository).updateStatus(message.executionId, TERMINAL)
+    }
+
+    it("does not queue any messages") {
+      verifyZeroInteractions(queue)
+    }
+  }
 
   describe("handling an execution level message") {
     val message = StartExecution(Pipeline::class.java, "1", "spinnaker")
 
     afterGroup(::resetMocks)
 
-    action("the handler receives a message") {
+    on("receiving a message") {
       subject.handle(queue, message)
     }
 
@@ -56,7 +78,7 @@ object DeadMessageHandlerTest : SubjectSpek<DeadMessageHandler>({
 
     afterGroup(::resetMocks)
 
-    action("the handler receives a message") {
+    on("receiving a message") {
       subject.handle(queue, message)
     }
 
@@ -70,7 +92,7 @@ object DeadMessageHandlerTest : SubjectSpek<DeadMessageHandler>({
 
     afterGroup(::resetMocks)
 
-    action("the handler receives a message") {
+    on("receiving a message") {
       subject.handle(queue, message)
     }
 

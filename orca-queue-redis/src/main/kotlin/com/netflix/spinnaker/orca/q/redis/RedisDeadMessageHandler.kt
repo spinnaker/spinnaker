@@ -17,6 +17,7 @@ package com.netflix.spinnaker.orca.q.redis
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
+import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.q.Message
 import com.netflix.spinnaker.orca.q.Queue
 import com.netflix.spinnaker.orca.q.handler.DeadMessageHandler
@@ -25,10 +26,11 @@ import redis.clients.util.Pool
 import java.time.Clock
 
 class RedisDeadMessageHandler(
+  executionRepository: ExecutionRepository,
   val deadLetterQueueName: String,
   private val pool: Pool<Jedis>,
   private val clock: Clock
-) : DeadMessageHandler() {
+) : DeadMessageHandler(executionRepository) {
 
   private val dlqKey = "$deadLetterQueueName.messages"
 
