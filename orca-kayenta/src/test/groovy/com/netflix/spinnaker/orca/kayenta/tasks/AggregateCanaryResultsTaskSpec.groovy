@@ -29,13 +29,13 @@ class AggregateCanaryResultsTaskSpec extends Specification {
   def task = new AggregateCanaryResultsTask()
 
   @Unroll
-  def "All canary scores should be collected and aggregated as requested"() {
+  def "All canary scores should be collected and overall execution status determined with consideration given to configured score thresholds"() {
     given:
     def pipelineBuilder = Pipeline.builder()
     contextCanaryScores.each { pipelineBuilder.withStage("runCanary", "runCanary", [canaryScore: it]) }
     def stage = new Stage<>(pipelineBuilder.build(), "kayentaCanary", "kayentaCanary", [
       canaryConfig: [
-        combinedCanaryResultStrategy: resultStrategy
+        scoreThresholds: scoreThresholds
       ]
     ])
 
@@ -43,21 +43,37 @@ class AggregateCanaryResultsTaskSpec extends Specification {
     def taskResult = task.execute(stage)
 
     then:
-    taskResult.status == ExecutionStatus.SUCCEEDED
     taskResult.stageOutputs.canaryScores == outputCanaryScores
-    taskResult.stageOutputs.overallScore == outputOverallScore
+    taskResult.status == overallExecutionStatus
 
     where:
-    contextCanaryScores | resultStrategy || outputCanaryScores | outputOverallScore
-    [10.5, 40, 60.5]    | "AVERAGE"      || [10.5, 40, 60.5]   | 37.0
-    [10.5, 40, 60.5]    | "LOWEST"       || [10.5, 40, 60.5]   | 10.5
-    [10.5, 40, 60.5]    | ""             || [10.5, 40, 60.5]   | 10.5
-    [10.5, 40, 60.5]    | null           || [10.5, 40, 60.5]   | 10.5
-    [78]                | "AVERAGE"      || [78]               | 78.0
-    [78]                | "LOWEST"       || [78]               | 78.0
-    [78]                | ""             || [78]               | 78.0
-    [78]                | null           || [78]               | 78.0
-    []                  | null           || []                 | -99.0
-    null                | null           || []                 | -99.0
+    contextCanaryScores | scoreThresholds           || outputCanaryScores | overallExecutionStatus
+    [10.5, 40, 60.5]    | [:]                       || [10.5, 40, 60.5]   | ExecutionStatus.SUCCEEDED
+    [10.5, 40, 60.5]    | [pass: 60.5]              || [10.5, 40, 60.5]   | ExecutionStatus.SUCCEEDED
+    [10.5, 40, 60.5]    | [pass: 55]                || [10.5, 40, 60.5]   | ExecutionStatus.SUCCEEDED
+    [10.5, 40, 60.5]    | [marginal: 5, pass: 60.5] || [10.5, 40, 60.5]   | ExecutionStatus.SUCCEEDED
+    [10.5, 40, 60.5]    | [marginal: 5, pass: 55]   || [10.5, 40, 60.5]   | ExecutionStatus.SUCCEEDED
+    [10.5, 40, 60.5]    | [marginal: 5]             || [10.5, 40, 60.5]   | ExecutionStatus.SUCCEEDED
+    [10.5, 40, 60.5]    | [marginal: 5]             || [10.5, 40, 60.5]   | ExecutionStatus.SUCCEEDED
+    [65]                | [:]                       || [65]               | ExecutionStatus.SUCCEEDED
+    [65]                | [pass: 60.5]              || [65]               | ExecutionStatus.SUCCEEDED
+    [65]                | [pass: 55]                || [65]               | ExecutionStatus.SUCCEEDED
+    [65]                | [marginal: 5, pass: 60.5] || [65]               | ExecutionStatus.SUCCEEDED
+    [65]                | [marginal: 5, pass: 55]   || [65]               | ExecutionStatus.SUCCEEDED
+    [65]                | [marginal: 5]             || [65]               | ExecutionStatus.SUCCEEDED
+    [65]                | [marginal: 5]             || [65]               | ExecutionStatus.SUCCEEDED
+    [10.5, 40, 60.5]    | [pass: 70]                || [10.5, 40, 60.5]   | ExecutionStatus.TERMINAL
+    [10.5, 40, 60.5]    | [pass: 70]                || [10.5, 40, 60.5]   | ExecutionStatus.TERMINAL
+    [10.5, 40, 60.5]    | [marginal: 5, pass: 70]   || [10.5, 40, 60.5]   | ExecutionStatus.TERMINAL
+    [10.5, 40, 60.5]    | [marginal: 5, pass: 70]   || [10.5, 40, 60.5]   | ExecutionStatus.TERMINAL
+    [65]                | [:]                       || [65]               | ExecutionStatus.SUCCEEDED
+    [65]                | [pass: 70]                || [65]               | ExecutionStatus.TERMINAL
+    [65]                | [pass: 70]                || [65]               | ExecutionStatus.TERMINAL
+    [65]                | [marginal: 5, pass: 70]   || [65]               | ExecutionStatus.TERMINAL
+    [65]                | [marginal: 5, pass: 70]   || [65]               | ExecutionStatus.TERMINAL
+    [65]                | [marginal: 68, pass: 70]  || [65]               | ExecutionStatus.TERMINAL
+    [65]                | [marginal: 68, pass: 70]  || [65]               | ExecutionStatus.TERMINAL
+    [65]                | [marginal: 68]            || [65]               | ExecutionStatus.TERMINAL
+    [65]                | [marginal: 68]            || [65]               | ExecutionStatus.TERMINAL
   }
 }

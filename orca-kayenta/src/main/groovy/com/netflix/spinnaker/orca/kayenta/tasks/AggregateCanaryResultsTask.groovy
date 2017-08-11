@@ -32,24 +32,26 @@ class AggregateCanaryResultsTask implements Task {
 
   @Override
   TaskResult execute(@Nonnull Stage stage) {
-    String combinedCanaryResultStrategy = stage.context.canaryConfig.combinedCanaryResultStrategy
+    Map<String, String> scoreThresholds = stage.context.canaryConfig.get("scoreThresholds")
     List<Stage> runCanaryStages = stage.execution.stages.findAll { it.type == RunCanaryPipelineStage.STAGE_TYPE }
     List<Double> runCanaryScores = runCanaryStages.collect { (Double)it.context.canaryScore }
-    // Took this value from mine.
-    Double overallScore = -99
+    double finalCanaryScore = runCanaryScores.last()
 
-    // TODO(duftler): This is wrong. The combinedCanaryResultStrategy is not supposed to be used to combine overall
-    // canary run scores. Remove this logic once we decide how we should actually combine them. Will probably end up
-    // taking the latest score.
-    if (runCanaryScores) {
-      if (combinedCanaryResultStrategy == "AVERAGE") {
-        overallScore = runCanaryScores.sum() / runCanaryScores.size()
-      } else /* LOWEST */ {
-        overallScore = runCanaryScores.min()
-      }
+    if (scoreThresholds?.marginal == null && scoreThresholds?.pass == null) {
+      return new TaskResult(ExecutionStatus.SUCCEEDED, [canaryScores      : runCanaryScores,
+                                                        canaryScoreMessage: "No score thresholds were specified."])
+    } else if (scoreThresholds?.marginal != null && finalCanaryScore <= scoreThresholds.marginal.toDouble()) {
+      return new TaskResult(ExecutionStatus.TERMINAL,  [canaryScores      : runCanaryScores,
+                                                        canaryScoreMessage: "Final canary score $finalCanaryScore is not above the marginal score threshold.".toString()])
+    } else if (scoreThresholds?.pass == null) {
+      return new TaskResult(ExecutionStatus.SUCCEEDED, [canaryScores      : runCanaryScores,
+                                                        canaryScoreMessage: "No pass score threshold was specified."])
+    } else if (finalCanaryScore < scoreThresholds.pass.toDouble()) {
+      return new TaskResult(ExecutionStatus.TERMINAL,  [canaryScores      : runCanaryScores,
+                                                        canaryScoreMessage: "Final canary score $finalCanaryScore is below the pass score threshold.".toString()])
+    } else {
+      return new TaskResult(ExecutionStatus.SUCCEEDED, [canaryScores      : runCanaryScores,
+                                                        canaryScoreMessage: "Final canary score $finalCanaryScore met or exceeded the pass score threshold.".toString()])
     }
-
-    // TODO(duftler): Consider score in context of specified thresholds.
-    return new TaskResult(ExecutionStatus.SUCCEEDED, [canaryScores: runCanaryScores, overallScore: overallScore])
   }
 }

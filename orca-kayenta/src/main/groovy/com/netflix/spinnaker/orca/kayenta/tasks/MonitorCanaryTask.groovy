@@ -51,21 +51,19 @@ class MonitorCanaryTask implements RetryableTask {
 
       if (scoreThresholds?.marginal == null && scoreThresholds?.pass == null) {
         return new TaskResult(ExecutionStatus.SUCCEEDED, [canaryPipelineStatus: ExecutionStatus.SUCCEEDED,
-                                                          canaryScore: canaryScore,
-                                                          canaryScoreMessage: "No score thresholds were specified."])
+                                                          canaryScore         : canaryScore,
+                                                          canaryScoreMessage  : "No score thresholds were specified."])
       } else if (scoreThresholds?.marginal == null) {
         return new TaskResult(ExecutionStatus.SUCCEEDED, [canaryPipelineStatus: ExecutionStatus.SUCCEEDED,
-                                                          canaryScore: canaryScore,
-                                                          canaryScoreMessage: "No marginal score threshold was specified."])
+                                                          canaryScore         : canaryScore,
+                                                          canaryScoreMessage  : "No marginal score threshold was specified."])
       } else if (canaryScore <= scoreThresholds.marginal.toDouble()) {
-        return new TaskResult(ExecutionStatus.TERMINAL, [canaryPipelineStatus: ExecutionStatus.SUCCEEDED,
-                                                         canaryScore         : canaryScore,
-                                                         canaryScoreMessage  : "Canary score is not above the marginal score threshold."])
+        return new TaskResult(ExecutionStatus.TERMINAL,  [canaryPipelineStatus: ExecutionStatus.SUCCEEDED,
+                                                          canaryScore         : canaryScore,
+                                                          canaryScoreMessage  : "Canary score is not above the marginal score threshold."])
       } else {
-        // TODO(duftler): Not sure yet what the behavior is supposed to be if the score is at or above the pass threshold.
-        // Do we still continue with all the remaining canary runs, or just declare success now and short-circuit the parent stage?
         return new TaskResult(ExecutionStatus.SUCCEEDED, [canaryPipelineStatus: ExecutionStatus.SUCCEEDED,
-                                                          canaryScore: canaryScore])
+                                                          canaryScore:          canaryScore])
       }
     }
 
