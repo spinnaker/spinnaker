@@ -156,7 +156,10 @@ export class PipelineGraphController implements IController {
           (node: IPipelineNode) => 1 - sumBy(node.children, (child: IPipelineNode) => child.children.length),
           // great, same number of grandchildren, how about by nearest children, alphabetically by name, why not
           (node: IPipelineNode) => sortBy(node.children, 'phase').map((child: IPipelineNode) => [(child.phase - node.phase), child.name].join('-')).join(':'),
-          (node: IPipelineNode) => Number(node.id)
+          // if `id` is a number (or a string that maps to a number), sort above ids that are strings.
+          (node: IPipelineNode) => Number.isNaN(Number(node.id)) ? Number.MAX_SAFE_INTEGER : Number(node.id),
+          // if `id` is a string.
+          ['id'],
         );
         sortedPhase.forEach((node: IPipelineNode, index: number) => { node.row = index; });
         this.$scope.nodes[phase] = sortedPhase;
