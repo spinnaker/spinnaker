@@ -39,6 +39,9 @@ import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.tags.Pipeline
 import com.netflix.spinnaker.orca.pipelinetemplate.validator.Errors;
 import com.netflix.spinnaker.orca.pipelinetemplate.validator.Errors.Error;
 import com.netflix.spinnaker.orca.pipelinetemplate.validator.Errors.Severity;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.yaml.snakeyaml.parser.ParserException;
@@ -64,9 +67,7 @@ public class JinjaRenderer implements Renderer {
   public JinjaRenderer(RenderedValueConverter renderedValueConverter, ObjectMapper pipelineTemplateObjectMapper, Front50Service front50Service, List<Tag> jinjaTags) {
     this.renderedValueConverter = renderedValueConverter;
 
-    JinjavaConfig config = new JinjavaConfig();
-    config.getDisabled().put(Library.TAG, new HashSet<>(Arrays.asList("from", "import", "include")));
-    jinja = new Jinjava(config);
+    jinja = new Jinjava(buildJinjavaConfig());
     jinja.setResourceLocator(new NoopResourceLocator());
     jinja.getGlobalContext().registerTag(new ModuleTag(this, pipelineTemplateObjectMapper));
     jinja.getGlobalContext().registerTag(new PipelineIdTag(front50Service));
@@ -175,4 +176,15 @@ public class JinjaRenderer implements Renderer {
     return errors;
   }
 
+  private static JinjavaConfig buildJinjavaConfig() {
+    JinjavaConfig.Builder configBuilder = JinjavaConfig.newBuilder();
+
+    configBuilder.withFailOnUnknownTokens(true);
+
+    Map<Library, Set<String>> disabled = new HashMap<>();
+    disabled.put(Library.TAG, new HashSet<>(Arrays.asList("from", "import", "include")));
+    configBuilder.withDisabled(disabled);
+
+    return configBuilder.build();
+  }
 }
