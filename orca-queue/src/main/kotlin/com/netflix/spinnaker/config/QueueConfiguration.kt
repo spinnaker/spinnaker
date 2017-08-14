@@ -20,7 +20,6 @@ import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.orca.config.OrcaConfiguration.applyThreadPoolMetrics
 import com.netflix.spinnaker.orca.log.BlackholeExecutionLogRepository
 import com.netflix.spinnaker.orca.log.ExecutionLogRepository
-import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.q.Queue
 import com.netflix.spinnaker.orca.q.handler.DeadMessageHandler
 import com.netflix.spinnaker.orca.q.memory.InMemoryQueue
@@ -35,6 +34,7 @@ import org.springframework.context.event.SimpleApplicationEventMulticaster
 import org.springframework.scheduling.annotation.EnableScheduling
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor
 import java.time.Clock
+import java.util.concurrent.ThreadPoolExecutor
 
 @Configuration
 @ComponentScan(basePackages = arrayOf("com.netflix.spinnaker.orca.q", "com.netflix.spinnaker.orca.log", "com.netflix.spinnaker.orca.q.trafficshaping"))
@@ -42,10 +42,6 @@ import java.time.Clock
 open class QueueConfiguration {
   @Bean @ConditionalOnMissingBean(Clock::class)
   open fun systemClock(): Clock = Clock.systemDefaultZone()
-
-  @Bean @ConditionalOnMissingBean(DeadMessageHandler::class)
-  open fun deadMessageHandler(executionRepository: ExecutionRepository) =
-    DeadMessageHandler(executionRepository)
 
   @Bean(name = arrayOf("queueImpl")) @ConditionalOnMissingBean(Queue::class)
   open fun inMemoryQueue(clock: Clock, deadMessageHandler: DeadMessageHandler, publisher: ApplicationEventPublisher) =

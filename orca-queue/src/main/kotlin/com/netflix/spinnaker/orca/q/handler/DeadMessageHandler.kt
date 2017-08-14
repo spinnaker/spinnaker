@@ -17,19 +17,16 @@
 package com.netflix.spinnaker.orca.q.handler
 
 import com.netflix.spinnaker.orca.ExecutionStatus.TERMINAL
-import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.q.*
 import org.slf4j.LoggerFactory
+import org.springframework.stereotype.Component
 
-open class DeadMessageHandler(
-  private val executionRepository: ExecutionRepository
-) {
+@Component open class DeadMessageHandler {
   private val log = LoggerFactory.getLogger(javaClass)
 
   open fun handle(queue: Queue, message: Message) {
     log.error("Dead message: $message")
     when (message) {
-      is CompleteExecution -> executionRepository.updateStatus(message.executionId, TERMINAL)
       is TaskLevel -> queue.push(CompleteTask(message, TERMINAL))
       is StageLevel -> queue.push(CompleteStage(message, TERMINAL))
       is ExecutionLevel -> queue.push(CompleteExecution(message))
