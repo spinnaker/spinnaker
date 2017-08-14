@@ -1,4 +1,5 @@
 import * as React from 'react';
+import * as Select from 'react-select';
 import { Action } from 'redux';
 import { connect } from 'react-redux';
 import { get } from 'lodash';
@@ -6,6 +7,7 @@ import FormRow from '../../layout/formRow';
 import { ICanaryState } from '../../reducers/index';
 import { ICanaryMetricConfig } from '../../domain/ICanaryConfig';
 import { UPDATE_STACKDRIVER_METRIC_TYPE } from '../../actions/index';
+import { getMetricTypes } from './metricType.service';
 
 interface IStackdriverMetricConfigurerStateProps {
   editingMetric: ICanaryMetricConfig;
@@ -20,12 +22,20 @@ interface IStackdriverMetricConfigurerDispatchProps {
 * */
 function StackdriverMetricConfigurer({ editingMetric, updateMetricType }: IStackdriverMetricConfigurerStateProps & IStackdriverMetricConfigurerDispatchProps) {
   // TODO(dpeach): finish this.
+  // Will probably have to load these asynchronously somewhere else.
+  const metricTypeOptions: Select.Option[] = getMetricTypes().map(type =>
+    ({
+      label: type.split('/').slice(1).join('/'), // Omit API prefix.
+      value: type
+    })
+  );
+
   return (
     <FormRow label="Metric Type">
-      <input
-        type="text"
-        className="form-control"
+      <Select
         value={get(editingMetric, 'query.metricType', '')}
+        options={metricTypeOptions}
+        clearable={false}
         onChange={updateMetricType}
       />
     </FormRow>
@@ -40,10 +50,10 @@ function mapStateToProps(state: ICanaryState): IStackdriverMetricConfigurerState
 
 function mapDispatchToProps(dispatch: (action: Action & any) => void): IStackdriverMetricConfigurerDispatchProps {
   return {
-    updateMetricType: (event: any): void => {
+    updateMetricType: (option: Select.Option): void => {
       dispatch({
         type: UPDATE_STACKDRIVER_METRIC_TYPE,
-        metricType: event.target.value,
+        metricType: option.value,
       });
     },
   };
