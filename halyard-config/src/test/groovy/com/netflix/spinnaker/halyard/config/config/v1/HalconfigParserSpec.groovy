@@ -19,6 +19,7 @@ package com.netflix.spinnaker.halyard.config.config.v1
 import com.netflix.spinnaker.halyard.config.model.v1.node.Halconfig
 import org.yaml.snakeyaml.Yaml
 import spock.lang.Specification
+import spock.lang.Unroll
 
 import java.nio.charset.StandardCharsets
 
@@ -87,5 +88,33 @@ deploymentConfigurations:
 
     then:
     out.deploymentConfigurations[0].deploymentEnvironment.location == 'myLocation'
+  }
+
+  @Unroll("parses authn: #authnProvider:#propertyName value should be #propertyValue")
+  void "parses all authn properties"() {
+    setup:
+    String config = """
+deploymentConfigurations:
+- security:
+    authn:
+      ${authnProvider}:
+        ${propertyName}: ${propertyValue}
+"""
+    InputStream stream = new ByteArrayInputStream(config.getBytes(StandardCharsets.UTF_8))
+    Halconfig out = null
+
+    when:
+    out = parser.parseHalconfig(stream)
+
+    then:
+    out.deploymentConfigurations[0].security.authn[authnProvider][propertyName] == propertyValue
+
+    where:
+    authnProvider | propertyName | propertyValue
+    "saml"        | "enabled"    | true
+    "saml"        | "issuerId"   | "myIssuer"
+    "saml"        | "keyStore"   | "/my/key/store"
+    // Uncomment the below to implement LDAP. Then fill in the rest of the LDAP properties, one per line.
+//    "ldap"        | "enabled"    | true
   }
 }
