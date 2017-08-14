@@ -22,6 +22,7 @@ repositories {
 
 dependencies {
   compile project(':clouddriver-aws')
+  compile project(':clouddriver-ecs')
   compile project(':clouddriver-azure')
   compile project(':clouddriver-cf')
   compile project(':clouddriver-appengine')
