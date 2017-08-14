@@ -41,7 +41,7 @@ const saveConfigEpic = (action$: Observable<Action & any>, store: MiddlewareAPI<
 
       return saveAction
         .then(() => Promise.all([
-          ReactInjector.$state.go('^.configDetail', {configName: config.name, isNew: null}),
+          ReactInjector.$state.go('^.configDetail', {configName: config.name}),
           store.getState().application.getDataSource('canaryConfigs').refresh(true),
         ]))
         .then(() => ({type: SAVE_CONFIG_SAVED, configName: config.name}))

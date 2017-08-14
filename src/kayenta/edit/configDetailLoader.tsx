@@ -5,8 +5,7 @@ import { Observable } from 'rxjs/Observable';
 import { Subscription } from 'rxjs/Subscription';
 
 import ConfigDetailLoadStates from './configDetailLoadStates';
-import { LOAD_CONFIG, SELECT_CONFIG } from '../actions/index';
-import { buildNewConfig } from '../service/canaryConfig.service';
+import { LOAD_CONFIG } from '../actions/index';
 
 interface IConfigLoaderStateParamsProps {
   configNameStream: Observable<IConfigDetailStateParams>;
@@ -18,7 +17,6 @@ interface IConfigLoaderDispatchProps {
 
 interface IConfigDetailStateParams {
   configName: string;
-  isNew: string;
 }
 
 export enum ConfigDetailLoadState {
@@ -51,12 +49,7 @@ class ConfigDetailLoader extends React.Component<IConfigLoaderDispatchProps & IC
 function mapDispatchToProps(dispatch: (action: Action & any) => void): IConfigLoaderDispatchProps {
   return {
     loadConfig: (stateParams: IConfigDetailStateParams) => {
-      if (stateParams.isNew) {
-        dispatch({
-          type: SELECT_CONFIG,
-          config: buildNewConfig(),
-        });
-      } else {
+      if (stateParams.configName) {
         dispatch({
           type: LOAD_CONFIG,
           id: stateParams.configName,

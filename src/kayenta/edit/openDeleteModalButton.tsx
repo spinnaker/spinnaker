@@ -3,6 +3,11 @@ import { connect } from 'react-redux';
 
 import { DELETE_CONFIG_MODAL_OPEN } from '../actions/index';
 import DeleteConfigModal from './deleteModal';
+import { ICanaryState } from '../reducers/index';
+
+interface IDeleteButtonStateProps {
+  disabled: boolean;
+}
 
 interface IDeleteButtonDispatchProps {
   openDeleteConfigModal: () => void;
@@ -11,13 +16,19 @@ interface IDeleteButtonDispatchProps {
 /*
  * Button for opening the delete canary config confirmation modal.
  */
-function DeleteConfigButton({ openDeleteConfigModal }: IDeleteButtonDispatchProps) {
+function DeleteConfigButton({ openDeleteConfigModal, disabled }: IDeleteButtonDispatchProps & IDeleteButtonStateProps) {
   return (
     <div>
-      <button onClick={openDeleteConfigModal}>Delete</button>
+      <button disabled={disabled} onClick={openDeleteConfigModal}>Delete</button>
       <DeleteConfigModal/>
     </div>
   );
+}
+
+function mapStateToProps(state: ICanaryState) {
+  return {
+    disabled: state.selectedConfig && state.selectedConfig.isNew,
+  };
 }
 
 function mapDispatchToProps(dispatch: any): IDeleteButtonDispatchProps {
@@ -28,4 +39,4 @@ function mapDispatchToProps(dispatch: any): IDeleteButtonDispatchProps {
   };
 }
 
-export default connect(null, mapDispatchToProps)(DeleteConfigButton);
+export default connect(mapStateToProps, mapDispatchToProps)(DeleteConfigButton);

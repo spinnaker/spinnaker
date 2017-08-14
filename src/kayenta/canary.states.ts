@@ -17,7 +17,7 @@ module(CANARY_STATES, [APPLICATION_STATE_PROVIDER])
   .config((applicationStateProvider: ApplicationStateProvider) => {
   const configDetail: INestedState = {
     name: 'configDetail',
-    url: '/canary/:configName?isNew',
+    url: '/canary/:configName',
     views: {
       detail: {
         component: ConfigDetailLoader, $type: 'react'

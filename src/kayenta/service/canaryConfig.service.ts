@@ -78,9 +78,15 @@ export function mapStateToConfig(state: ICanaryState): ICanaryConfig {
   }
 }
 
-export function buildNewConfig(): ICanaryConfig {
+export function buildNewConfig(state: ICanaryState): ICanaryConfig {
+  let configName = 'new-config', i = 1;
+  while ((state.configSummaries || []).find(summary => summary.name === configName)) {
+    configName = `new-config-${i}`;
+    i++;
+  }
+
   return {
-    name: '(New config)',
+    name: configName,
     description: '',
     isNew: true,
     metrics: [] as ICanaryMetricConfig[],
