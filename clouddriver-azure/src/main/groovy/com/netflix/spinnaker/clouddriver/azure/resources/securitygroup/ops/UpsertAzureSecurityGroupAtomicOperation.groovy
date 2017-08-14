@@ -77,9 +77,7 @@ class UpsertAzureSecurityGroupAtomicOperation implements AtomicOperation<Map> {
       task.updateStatus(BASE_PHASE, "Deployment for security group ${description.securityGroupName} in ${description.region} has succeeded.")
     }
     else {
-      throw new AtomicOperationException(
-        error: "${description.securityGroupName} deployment failed",
-        errors: errList)
+      throw new AtomicOperationException("${description.securityGroupName} deployment failed", errList)
     }
 
     [securityGroups: [(description.region): [name: description.securityGroupName]]]

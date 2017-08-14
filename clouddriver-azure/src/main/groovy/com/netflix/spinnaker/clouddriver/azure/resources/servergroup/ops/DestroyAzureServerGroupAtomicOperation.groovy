@@ -146,9 +146,7 @@ class DestroyAzureServerGroupAtomicOperation implements AtomicOperation<Void> {
     }
     else {
       errList.add(" Go to Azure Portal for more info")
-      throw new AtomicOperationException(
-        error: "Failed to destroy ${description.name}",
-        errors: errList)
+      throw new AtomicOperationException("Failed to destroy ${description.name}", errList)
     }
 
     null

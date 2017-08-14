@@ -257,9 +257,7 @@ class CreateAzureServerGroupAtomicOperation implements AtomicOperation<Map> {
         errList.add(errMessage)
       }
 
-      throw new AtomicOperationException(
-        error: "${description.name} deployment failed",
-        errors: errList)
+      throw new AtomicOperationException("${description.name} deployment failed", errList)
     }
 
     [serverGroups: [(description.region): [name: description.name]],

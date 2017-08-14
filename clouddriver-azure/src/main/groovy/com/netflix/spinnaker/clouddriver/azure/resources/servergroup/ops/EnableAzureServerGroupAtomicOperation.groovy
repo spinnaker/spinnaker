@@ -89,9 +89,7 @@ class EnableAzureServerGroupAtomicOperation implements AtomicOperation<Void> {
     }
     else {
       errList.add(" Go to Azure Portal for more info")
-      throw new AtomicOperationException(
-        error: "Failed to enable ${description.name}",
-        errors: errList)
+      throw new AtomicOperationException("Failed to enable ${description.name}", errList)
     }
 
     null

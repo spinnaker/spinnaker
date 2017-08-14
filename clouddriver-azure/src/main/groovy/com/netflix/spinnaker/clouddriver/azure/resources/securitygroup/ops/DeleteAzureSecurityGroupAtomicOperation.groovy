@@ -61,9 +61,7 @@ class DeleteAzureSecurityGroupAtomicOperation implements AtomicOperation<Void> {
         task.updateStatus BASE_PHASE, "Done deleting Azure network security group ${description.securityGroupName} in ${region}."
       } catch (Exception e) {
         task.updateStatus BASE_PHASE, String.format("Deletion of Azure network security group ${description.securityGroupName} failed: %s", e.message)
-        throw new AtomicOperationException(
-          error: "Failed to delete ${description.name}",
-          errors: [e.message])
+        throw new AtomicOperationException("Failed to delete ${description.name}", [e.message])
       }
     }
 

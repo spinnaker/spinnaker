@@ -78,9 +78,7 @@ class UpsertAzureLoadBalancerAtomicOperation implements AtomicOperation<Map> {
       task.updateStatus(BASE_PHASE, "Deployment for load balancer ${description.loadBalancerName} in ${description.region} has succeeded.")
     }
     else {
-      throw new AtomicOperationException(
-        error: "${description.loadBalancerName} deployment failed",
-        errors: errList)
+      throw new AtomicOperationException("${description.loadBalancerName} deployment failed", errList)
     }
 
     [loadBalancers: [(description.region): [name: description.loadBalancerName]]]

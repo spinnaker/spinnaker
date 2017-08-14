@@ -66,9 +66,7 @@ class DeleteAzureAppGatewayAtomicOperation implements AtomicOperation<Void> {
       task.updateStatus(BASE_PHASE, "Deletion of load balancer ${description.loadBalancerName} in ${description.region} has succeeded.")
     } catch (Exception e) {
       task.updateStatus(BASE_PHASE, "Deletion of load balancer ${description.loadBalancerName} failed: e.message")
-      throw new AtomicOperationException(
-        error: "Failed to delete ${description.name}",
-        errors: [e.message])
+      throw new AtomicOperationException("Failed to delete ${description.name}", [e.message])
     }
 
     null

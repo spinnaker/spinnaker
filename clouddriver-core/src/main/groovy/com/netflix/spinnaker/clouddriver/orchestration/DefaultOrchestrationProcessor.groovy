@@ -101,7 +101,7 @@ class DefaultOrchestrationProcessor implements OrchestrationProcessor {
               task.updateStatus(TASK_PHASE, "Orchestration completed.")
             }.call()
           } catch (AtomicOperationException e) {
-            task.updateStatus TASK_PHASE, "Orchestration failed: ${atomicOperation.class.simpleName} | ${e.class.simpleName}: [${e.error}]"
+            task.updateStatus TASK_PHASE, "Orchestration failed: ${atomicOperation.class.simpleName} | ${e.class.simpleName}: [${e.errors.join(', ')}]"
             task.addResultObjects([[type: "EXCEPTION", operation: atomicOperation.class.simpleName, cause: e.class.simpleName, message: e.errors.join(", ")]])
             task.fail()
           } catch (e) {

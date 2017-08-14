@@ -196,9 +196,7 @@ class UpsertAzureAppGatewayAtomicOperation implements AtomicOperation<Map> {
         errList.add(errMessage)
       }
 
-      throw new AtomicOperationException(
-        error: "${description.loadBalancerName} deployment failed",
-        errors: errList)
+      throw new AtomicOperationException("${description.loadBalancerName} deployment failed", errList)
     }
 
     [loadBalancers: [(description.region): [name: description.loadBalancerName]]]
