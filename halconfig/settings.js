@@ -54,6 +54,11 @@ var oraclebmcs = {
     region: '{%oraclebmcs.default.region%}'
   }
 };
+var dcos = {
+  defaults: {
+    account: '{%dcos.default.account%}'
+  }
+};
 var entityTagsEnabled = false;
 var netflixMode = false;
 
@@ -97,6 +102,7 @@ window.spinnakerSettings = {
     kubernetes: kubernetes,
     appengine: appengine,
     oraclebmcs: oraclebmcs,
+    dcos: dcos
   },
   changelog: {
     gistId: changelogGistId,
