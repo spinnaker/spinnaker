@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { Action } from 'redux';
 import { connect } from 'react-redux';
+import { get } from 'lodash';
 import FormRow from '../../layout/formRow';
 import { ICanaryState } from '../../reducers/index';
 import { ICanaryMetricConfig } from '../../domain/ICanaryConfig';
@@ -24,7 +25,7 @@ function StackdriverMetricConfigurer({ editingMetric, updateMetricType }: IStack
       <input
         type="text"
         className="form-control"
-        value={editingMetric.query.metricType}
+        value={get(editingMetric, 'query.metricType', '')}
         onChange={updateMetricType}
       />
     </FormRow>

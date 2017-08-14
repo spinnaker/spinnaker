@@ -31,7 +31,7 @@ function EditMetricModal({ metric, rename, confirm, cancel }: IEditMetricModalDi
     return null;
   }
   return (
-    <Modal show={true} onHide={null}>
+    <Modal show={true} onHide={noop}>
       <Modal.Header>
         <Modal.Title>Configure Metric</Modal.Title>
       </Modal.Header>
@@ -76,5 +76,8 @@ function mapStateToProps(state: ICanaryState): IEditMetricModalStateProps {
     metric: state.editingMetric
   };
 }
+
+// For onHide, above. Not sure how to avoid this.
+const noop = (): void => null;
 
 export default connect(mapStateToProps, mapDispatchToProps)(EditMetricModal);

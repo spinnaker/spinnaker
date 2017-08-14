@@ -6,6 +6,7 @@ import { ICanaryState } from '../reducers';
 import { UNGROUPED } from './groupTabs';
 import MetricDetail from './metricDetail';
 import { ADD_METRIC, EDIT_METRIC_BEGIN, REMOVE_METRIC } from '../actions/index';
+import { CanarySettings } from 'kayenta/canary.settings';
 
 interface IMetricListStateProps {
   selectedGroup: string;
@@ -68,8 +69,7 @@ function mapDispatchToProps(dispatch: (action: Action & any) => void): IMetricLi
           // TODO: need to block saving an invalid name
           // TODO: for Atlas metrics, attempt to gather name when query changes
           name: '',
-          // TODO: we should have a default service setting somewhere
-          serviceName: 'atlas',
+          serviceName: CanarySettings.metricStore,
           groups: (group && group !== UNGROUPED) ? [group] : []
         }
       })

@@ -131,6 +131,7 @@ function configure(IS_TEST) {
         INFRA_STAGES: false,
         TIMEZONE: 'America/Los_Angeles',
         LIVE_CALLS: false,
+        METRIC_STORE: 'atlas',
       }),
     ]);
   }

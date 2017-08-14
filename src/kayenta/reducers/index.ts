@@ -137,7 +137,10 @@ function editingMetric(state: ICanaryMetricConfig = null, action: Action & any):
       return Object.assign({}, state, { name: action.name });
 
     case UPDATE_STACKDRIVER_METRIC_TYPE:
-      return Object.assign({}, state, { query: Object.assign({}, state.query, { metricType: action.metricType })});
+      return Object.assign({}, state, { query: Object.assign({}, state.query || {}, {
+        metricType: action.metricType,
+        type: 'stackdriver',
+      })});
 
     default:
       return state;

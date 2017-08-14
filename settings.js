@@ -7,6 +7,7 @@ var authEndpoint = process.env.AUTH_ENDPOINT || (gateHost + '/auth/user');
 var fiatEnabled = process.env.FIAT_ENABLED === 'true' ? true : false;
 var entityTagsEnabled = process.env.ENTITY_TAGS_ENABLED === 'true' ? true : false;
 var liveCallsEnabled = process.env.LIVE_CALLS === 'true';
+var defaultMetricStore = process.env.METRIC_STORE || 'atlas';
 
 window.spinnakerSettings = {
   checkForUpdates: true,
@@ -68,6 +69,7 @@ window.spinnakerSettings = {
     metricsAccountName: 'my-google-account',
     storageAccountName: 'my-google-account',
     judge: 'dredd-v1.0',
+    metricStore: defaultMetricStore,
   },
   feature: {
     entityTags: entityTagsEnabled,
