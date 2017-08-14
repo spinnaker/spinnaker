@@ -71,4 +71,21 @@ balyardVersion: $HALYARD_VERSION
     IllegalArgumentException ex = thrown()
     ex.message.contains("balyardVersion")
   }
+
+  void "parses deployment location"() {
+    setup:
+    String config = """
+deploymentConfigurations:
+- deploymentEnvironment:
+    location: myLocation
+"""
+    InputStream stream = new ByteArrayInputStream(config.getBytes(StandardCharsets.UTF_8))
+    Halconfig out = null
+
+    when:
+    out = parser.parseHalconfig(stream)
+
+    then:
+    out.deploymentConfigurations[0].deploymentEnvironment.location == 'myLocation'
+  }
 }
