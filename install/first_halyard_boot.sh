@@ -49,12 +49,17 @@
 #
 # Instance metadata is supplied to gcloud with
 #
-#   gcloud compute instances create <params> \
-#     --metadata key1=value1,key2,value2...
+#   gcloud compute instances create $MACHINE_NAME \
+#     --metadata key1=value1,key2,value2... \
+#     --scopes cloud-platform \
+#     --machine-type n1-highmem-4
 #
 #   NOTE! This script is typically mounted in
 #         /var/spinnaker/startup/first_halyard_boot.sh, and that will need to be
-#         supplied as instance metadata as well to the startup-script key.
+#         supplied as instance metadata as well to the startup-script key, e.g:
+#
+#            startup-script=/var/spinnaker/startup/first_halyard_boot.sh
+#
 ### FLAGS ####################################################################
 set -e
 set -u
