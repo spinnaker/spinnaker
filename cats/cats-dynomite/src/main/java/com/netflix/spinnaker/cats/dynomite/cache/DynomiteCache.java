@@ -64,6 +64,10 @@ public class DynomiteCache extends AbstractRedisCache {
         MergeOp op = buildMergeOp(type, item, hashes);
         skippedWrites.addAndGet(op.skippedWrites);
 
+        if (op.keysToSet.isEmpty()) {
+          continue;
+        }
+
         try {
           client.sadd(allOfTypeReindex(type), item.getId());
           saddOperations.incrementAndGet();
