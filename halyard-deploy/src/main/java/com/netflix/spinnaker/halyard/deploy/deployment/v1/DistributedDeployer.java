@@ -229,7 +229,7 @@ public class DistributedDeployer<T extends Account> implements Deployer<Distribu
     Supplier<String> idSupplier;
     if (!runningServiceDetails.getLoadBalancer().isExists()) {
       Map<String, Object> task = distributedService.buildUpsertLoadBalancerTask(details, runtimeSettings);
-      idSupplier = () -> orca.submitTask(task).get("ref");
+      idSupplier = () -> (String) orca.submitTask(task).get("ref");
       orcaRunner.monitorTask(idSupplier, orca);
     }
 
@@ -242,7 +242,7 @@ public class DistributedDeployer<T extends Account> implements Deployer<Distribu
     }
 
     Map<String, Object> pipeline = distributedService.buildDeployServerGroupPipeline(details, runtimeSettings, configs, maxRemaining, scaleDown);
-    idSupplier = () -> orca.orchestrate(pipeline).get("ref");
+    idSupplier = () -> (String) orca.orchestrate(pipeline).get("ref");
     orcaRunner.monitorPipeline(idSupplier, orca);
   }
 
@@ -252,7 +252,7 @@ public class DistributedDeployer<T extends Account> implements Deployer<Distribu
       SpinnakerRuntimeSettings runtimeSettings) {
     DaemonTaskHandler.newStage("Rolling back " + distributedService.getServiceName());
     Map<String, Object> pipeline = distributedService.buildRollbackPipeline(details, runtimeSettings);
-    Supplier<String> idSupplier = () -> orca.orchestrate(pipeline).get("ref");
+    Supplier<String> idSupplier = () -> (String) orca.orchestrate(pipeline).get("ref");
     orcaRunner.monitorPipeline(idSupplier, orca);
   }
 

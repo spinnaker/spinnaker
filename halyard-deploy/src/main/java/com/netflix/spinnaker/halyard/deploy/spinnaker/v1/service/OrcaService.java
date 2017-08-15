@@ -72,10 +72,10 @@ abstract public class OrcaService extends SpringService<OrcaService.Orca> {
   public interface Orca {
     @Headers("Content-type: application/context+json")
     @POST("/ops")
-    Map<String, String> submitTask(@Body Map task);
+    Map<String, Object> submitTask(@Body Map task);
 
     @POST("/orchestrate")
-    Map<String, String> orchestrate(@Body Map pipeline);
+    Map<String, Object> orchestrate(@Body Map pipeline);
 
     @GET("/{id}")
     Map<String, Object> getRef(@Path(encode = false, value = "id") String id);
