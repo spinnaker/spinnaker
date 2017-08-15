@@ -14,10 +14,10 @@ export function duration(input: any) {
     return '-';
   }
   const thisMoment = moment.utc(parseInt(input, 10));
-  const format = thisMoment.hours() ? 'HH:mm:ss' : 'mm:ss';
+  const days = Math.floor(moment.duration(input, 'milliseconds').asDays());
+  const format = (days || thisMoment.hours()) ? 'HH:mm:ss' : 'mm:ss';
   let dayLabel = '';
   if (thisMoment.isValid()) {
-    const days = moment.duration(input, 'milliseconds').days();
     if (days > 0) {
       dayLabel = days + 'd';
     }

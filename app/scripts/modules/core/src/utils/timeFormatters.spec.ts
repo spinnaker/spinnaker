@@ -1,6 +1,7 @@
-import {IFilterService, mock} from 'angular';
+import { IFilterService, mock } from 'angular';
 
-import {SETTINGS} from 'core/config/settings';
+import { SETTINGS } from 'core/config/settings';
+import { duration } from './timeFormatters';
 
 describe('Filter: timeFormatters', function() {
   beforeEach(function () {
@@ -77,11 +78,35 @@ describe('Filter: timeFormatters', function() {
           }
         )
       );
+
       it('returns nothing when invalid values are provided', function () {
         expect(filter()).toBe('-');
         expect(filter(null)).toBe('-');
         expect(filter(-1)).toBe('-');
         expect(filter('a')).toBe('-');
+      });
+
+      it('formats durations in ms (less than an hour) as MM:SS', function () {
+        expect(duration(1000)).toBe('00:01');
+        expect(duration(10000)).toBe('00:10');
+        expect(duration(60000)).toBe('01:00');
+        expect(duration(60000 * 59)).toBe('59:00');
+      });
+
+      it('formats durations in ms (more than an hour) as HH:MM:SS', function () {
+        expect(duration(60000 * 60)).toBe('01:00:00');
+        expect(duration(60000 * 60 * 10)).toBe('10:00:00');
+        expect(duration(60000 * 60 * 23)).toBe('23:00:00');
+      });
+
+      it('formats durations in ms (more than an day) as D"d"HH:MM:SS', function () {
+        expect(duration(60000 * 60 * 24)).toBe('1d00:00:00');
+        expect(duration((60000 * 60 * 24 * 20))).toBe('20d00:00:00');
+      });
+
+      it('accurately formats number of days 31 days or higher', function () {
+        expect(duration((60000 * 60 * 24 * 65))).toBe('65d00:00:00');
+        expect(duration((60000 * 60 * 24 * 9999))).toBe('9999d00:00:00');
       });
     });
   });
