@@ -34,6 +34,7 @@ public class OrcaBootstrapProfileFactory extends SpringProfileFactory {
   protected void setProfile(Profile profile, DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
     super.setProfile(profile, deploymentConfiguration, endpoints);
     profile.appendContents("services.fiat.enabled: false")
-        .appendContents(profile.getBaseContents());
+        .appendContents(profile.getBaseContents())
+        .appendContents("pipelineTemplate.enabled: false");
   }
 }
