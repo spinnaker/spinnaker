@@ -34,11 +34,14 @@ import groovy.util.logging.Slf4j
 import org.joda.time.DateTime
 
 import java.util.concurrent.TimeUnit
+import java.util.regex.Pattern
 
 @Slf4j
 class CleanupAlarmsAgent implements RunnableAgent, CustomScheduledAgent {
   public static final long POLL_INTERVAL_MILLIS = TimeUnit.HOURS.toMillis(24)
   public static final long DEFAULT_TIMEOUT_MILLIS = TimeUnit.MINUTES.toMillis(20)
+
+  public static final Pattern ALARM_NAME_PATTERN = Pattern.compile(".+-v[0-9]{3}-alarm-.+")
 
   final AmazonClientProvider amazonClientProvider
   final AccountCredentialsRepository accountCredentialsRepository
@@ -90,7 +93,8 @@ class CleanupAlarmsAgent implements RunnableAgent, CustomScheduledAgent {
 
           List<MetricAlarm> alarmsToDelete = result.metricAlarms.findAll {
             it.stateUpdatedTimestamp.before(DateTime.now().minusDays(daysToLeave).toDate()) &&
-              !attachedAlarms.contains(it.alarmName)
+              !attachedAlarms.contains(it.alarmName) &&
+              ALARM_NAME_PATTERN.matcher(it.alarmName).matches()
           }
 
           if (alarmsToDelete) {
