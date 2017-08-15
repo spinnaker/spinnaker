@@ -153,14 +153,14 @@ public class BulkUpsertEntityTagsAtomicOperation implements AtomicOperation<Bulk
 
     if (entityRefAccount != null && entityRefAccountId == null) {
       // add `accountId` if not explicitly provided
-      AccountCredentials accountCredentials = accountCredentialsProvider.getCredentials(entityRefAccount);
+      AccountCredentials accountCredentials = lookupAccountCredentialsByAccountIdOrName(accountCredentialsProvider, entityRefAccount, "accountName");
       entityRefAccountId = accountCredentials.getAccountId();
       entityRef.setAccountId(entityRefAccountId);
     }
 
     if (entityRefAccount == null && entityRefAccountId != null) {
       // add `account` if not explicitly provided
-      AccountCredentials accountCredentials = lookupAccountCredentials(accountCredentialsProvider, entityRefAccountId);
+      AccountCredentials accountCredentials = lookupAccountCredentialsByAccountIdOrName(accountCredentialsProvider, entityRefAccountId, "accountId");
       if (accountCredentials != null) {
         entityRefAccount = accountCredentials.getName();
         entityRef.setAccount(entityRefAccount);
@@ -246,12 +246,13 @@ public class BulkUpsertEntityTagsAtomicOperation implements AtomicOperation<Bulk
     entityTags.getTags().forEach(tag -> entityTags.putEntityTagMetadata(tagMetadata(tag.getName(), now)));
   }
 
-  private static AccountCredentials lookupAccountCredentials(AccountCredentialsProvider accountCredentialsProvider,
-                                                             String entityRefAccountId) {
+  private static AccountCredentials lookupAccountCredentialsByAccountIdOrName(AccountCredentialsProvider accountCredentialsProvider,
+                                                                              String entityRefAccountIdOrName,
+                                                                              String type) {
     return accountCredentialsProvider.getAll().stream()
-      .filter(c -> entityRefAccountId.equals(c.getAccountId()))
+      .filter(c -> entityRefAccountIdOrName.equals(c.getAccountId()) || entityRefAccountIdOrName.equals(c.getName()))
       .findFirst()
-      .orElseThrow(() -> new IllegalArgumentException("No credentials found for accountId '" + entityRefAccountId + "'"));
+      .orElseThrow(() -> new IllegalArgumentException(String.format("No credentials found for %s: %s", type, entityRefAccountIdOrName)));
   }
 
   private static Task getTask() {

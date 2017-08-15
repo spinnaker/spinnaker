@@ -84,7 +84,7 @@ class BulkUpsertEntityTagsAtomicOperationSpec extends Specification {
     then:
     entityRefId.id == "aws:servergroup:orca-v001:100:us-east-1"
     entityRefId.idPattern == "{{cloudProvider}}:{{entityType}}:{{entityId}}:{{account}}:{{region}}"
-    1 * accountCredentialsProvider.getCredentials('test') >> { return testCredentials }
+    1 * accountCredentialsProvider.getAll() >> { return [testCredentials] }
   }
 
   void 'should merge tags with duplicate entityRefIds'() {
@@ -219,6 +219,36 @@ class BulkUpsertEntityTagsAtomicOperationSpec extends Specification {
       description.entityTags.findResults { new EntityTags(id: it.id, lastModified: 123, lastModifiedBy: "unknown")}
     }
     entityTagsProvider.index()
+  }
+
+  void 'should throw an exception if the account name cannot be found'() {
+    given:
+    def tag = new UpsertEntityTagsDescription()
+    tag.entityRef = new EntityRef(
+      cloudProvider: "aws", entityType: "servergroup", entityId: "orca-v001", account: "fake", region: "us-east-1"
+    )
+
+    when:
+    operation.entityRefId(accountCredentialsProvider, tag)
+
+    then:
+    1 * accountCredentialsProvider.getAll() >> { return [testCredentials] }
+    thrown IllegalArgumentException
+  }
+
+  void 'should throw an exception if the account id cannot be found'() {
+    given:
+    def tag = new UpsertEntityTagsDescription()
+    tag.entityRef = new EntityRef(
+      cloudProvider: "aws", entityType: "servergroup", entityId: "orca-v001", accountId: "fake", region: "us-east-1"
+    )
+
+    when:
+    operation.entityRefId(accountCredentialsProvider, tag)
+
+    then:
+    1 * accountCredentialsProvider.getAll() >> { return [testCredentials] }
+    thrown IllegalArgumentException
   }
 
   private void addTag(Integer index) {
