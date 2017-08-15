@@ -30,14 +30,14 @@ import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.RenderedValue
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.Renderer;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.YamlRenderedValueConverter;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.yaml.snakeyaml.Yaml;
 
 import java.util.List;
 
-@ConditionalOnProperty("pipelineTemplate.enabled")
+@ConditionalOnExpression("${pipelineTemplates.enabled:true}")
 @ComponentScan(
   basePackageClasses = PipelineTemplateModule.class,
   basePackages = {"com.netflix.spinnaker.orca.pipelinetemplate.tasks", "com.netflix.spinnaker.orca.pipelinetemplate.pipeline"}
