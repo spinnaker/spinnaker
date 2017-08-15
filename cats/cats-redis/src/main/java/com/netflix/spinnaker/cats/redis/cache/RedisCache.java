@@ -132,7 +132,8 @@ public class RedisCache extends AbstractRedisCache {
       msetOperations.get(),
       hmsetOperations.get(),
       pipelineOperations.get(),
-      expireOperations.get()
+      expireOperations.get(),
+      0
     );
   }
 

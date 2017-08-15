@@ -33,7 +33,7 @@ class SpectatorRedisCacheMetrics implements AbstractRedisCache.CacheMetrics {
   void merge(String prefix, String type,
              int itemCount, int keysWritten, int relationshipCount, int hashMatches,
              int hashUpdates, int saddOperations, int setOperations, int msetOperations, int hmsetOperations,
-             int pipelineOperations, int expireOperations) {
+             int pipelineOperations, int expireOperations, int delOperations) {
     final Iterable<Tag> tags = tags(prefix, type)
     registry.counter(id("cats.redisCache.merge", "itemCount", tags)).increment(itemCount)
     registry.counter(id("cats.redisCache.merge", "keysWritten", tags)).increment(keysWritten)
@@ -46,6 +46,7 @@ class SpectatorRedisCacheMetrics implements AbstractRedisCache.CacheMetrics {
     registry.counter(id("cats.redisCache.merge", "hmsetOperations", tags)).increment(hmsetOperations)
     registry.counter(id("cats.redisCache.merge", "pipelineOperations", tags)).increment(pipelineOperations)
     registry.counter(id("cats.redisCache.merge", "expireOperations", tags)).increment(expireOperations)
+    registry.counter(id("cats.redisCache.merge", "delOperations", tags)).increment(delOperations)
   }
 
   @Override

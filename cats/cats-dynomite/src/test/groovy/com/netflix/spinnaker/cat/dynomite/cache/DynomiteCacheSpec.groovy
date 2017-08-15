@@ -152,13 +152,13 @@ class DynomiteCacheSpec extends WriteableCacheSpec {
     ((WriteableCache) cache).merge('foo', data)
 
     then:
-    1 * cacheMetrics.merge('test', 'foo', 1, 1, 0, 0, 1, 2, 1, 0, 1, 0, 0)
+    1 * cacheMetrics.merge('test', 'foo', 1, 1, 0, 0, 1, 2, 2, 0, 0, 0, 0, 0)
 
     when:
     ((WriteableCache) cache).merge('foo', data)
 
     then:
-    1 * cacheMetrics.merge('test', 'foo', 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0)
+    1 * cacheMetrics.merge('test', 'foo', 1, 0, 0, 1, 0, 2, 0, 0, 0, 0, 0, 0)
   }
 
   private static class Bean {

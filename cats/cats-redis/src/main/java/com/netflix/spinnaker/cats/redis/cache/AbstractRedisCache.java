@@ -61,7 +61,8 @@ public abstract class AbstractRedisCache implements WriteableCache {
                        int msetOperations,
                        int hmsetOperations,
                        int pipelineOperations,
-                       int expireOperations) {
+                       int expireOperations,
+                       int delOperations) {
       //noop
     }
 
