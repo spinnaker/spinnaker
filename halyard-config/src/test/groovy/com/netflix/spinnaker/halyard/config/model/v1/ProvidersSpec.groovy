@@ -17,48 +17,47 @@
 package com.netflix.spinnaker.halyard.config.model.v1
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.Providers
+import com.netflix.spinnaker.halyard.config.model.v1.providers.appengine.AppengineProvider
+import com.netflix.spinnaker.halyard.config.model.v1.providers.aws.AwsProvider
 import com.netflix.spinnaker.halyard.config.model.v1.providers.azure.AzureProvider
+import com.netflix.spinnaker.halyard.config.model.v1.providers.dcos.DCOSProvider
 import com.netflix.spinnaker.halyard.config.model.v1.providers.dockerRegistry.DockerRegistryProvider
 import com.netflix.spinnaker.halyard.config.model.v1.providers.google.GoogleProvider
 import com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes.KubernetesProvider
+import com.netflix.spinnaker.halyard.config.model.v1.providers.openstack.OpenstackProvider
+import com.netflix.spinnaker.halyard.config.model.v1.providers.oraclebmcs.OracleBMCSProvider
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class ProvidersSpec extends Specification {
-  void "providers correctly reports configurable providers"() {
+
+  @Unroll()
+  void "children includes #provider.simpleName"() {
+
     setup:
-    def providers = new Providers()
-    def iterator = providers.getChildren()
-    def kubernetes = false
-    def dockerRegistry = false
-    def google = false
-    def azure = false
+    def iterator = new Providers().getChildren()
 
     when:
-    def child = iterator.getNext()
-    while (child != null) {
-      if (child instanceof KubernetesProvider) {
-        kubernetes = true
-      }
-
-      if (child instanceof DockerRegistryProvider) {
-        dockerRegistry = true
-      }
-
-      if (child instanceof GoogleProvider) {
-        google = true
-      }
-
-      if (child instanceof AzureProvider) {
-        azure = true
-      }
-
-      child = iterator.getNext()
+    List actualProviders = []
+    def child
+    while (child = iterator.next) {
+      actualProviders << child.class
     }
 
     then:
-    kubernetes
-    dockerRegistry
-    google
-    azure
+    actualProviders.contains(provider)
+
+    where:
+    provider << [
+        AppengineProvider,
+        AwsProvider,
+        AzureProvider,
+        DCOSProvider,
+        DockerRegistryProvider,
+        GoogleProvider,
+        KubernetesProvider,
+        OracleBMCSProvider,
+        OpenstackProvider
+    ]
   }
 }
