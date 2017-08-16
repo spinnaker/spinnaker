@@ -1,6 +1,8 @@
 import * as React from 'react';
+
 import { NgReact } from 'core/reactShims/ngReact';
 import { IPipelineTemplate } from 'core/pipeline/config/templates/pipelineTemplate.service';
+import { SETTINGS } from 'core/config/settings';
 
 import './TemplateDescription.less';
 
@@ -23,6 +25,13 @@ export class TemplateDescription extends React.Component<ITemplateDescriptionPro
         {this.props.template && (
           <div className="alert alert-info">
             <strong>{this.props.template.metadata.name}</strong>
+            {this.props.template.selfLink && (
+              <p className="small">
+                <a href={this.buildTemplateResolutionLink(this.props.template.selfLink)} target="_blank">
+                  {this.props.template.selfLink}
+                </a>
+              </p>
+            )}
             {this.props.template.metadata.owner && (<p className="small">{this.props.template.metadata.owner}</p>)}
             <p className="small">{this.props.template.metadata.description || 'No template description provided.'}</p>
           </div>
@@ -34,5 +43,9 @@ export class TemplateDescription extends React.Component<ITemplateDescriptionPro
         )}
       </div>
     );
+  }
+
+  private buildTemplateResolutionLink(templateLink: string): string {
+    return `${SETTINGS.gateUrl}/pipelineTemplates/resolve?source=${templateLink}`;
   }
 }

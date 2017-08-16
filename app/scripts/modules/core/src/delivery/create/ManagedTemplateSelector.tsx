@@ -46,8 +46,9 @@ export class ManagedTemplateSelector extends React.Component<IManagedTemplateSel
     return (
       <div>
         <h5 style={{marginBottom: '0'}}>{template.metadata.name}</h5>
-        {template.metadata.owner && (<div><span className="small">{template.metadata.owner}</span><br/></div>)}
-        {template.metadata.description && (<span className="small">{template.metadata.description}</span>)}
+        {template.selfLink && (<p className="small">{template.selfLink}</p>)}
+        {template.metadata.owner && (<p className="small">{template.metadata.owner}</p>)}
+        {template.metadata.description && (<p className="small">{template.metadata.description}</p>)}
       </div>
     );
   }
