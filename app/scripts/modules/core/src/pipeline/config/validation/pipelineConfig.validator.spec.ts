@@ -54,7 +54,6 @@ describe('pipelineConfigValidator', () => {
       limitConcurrent: true,
       keepWaitingPipelines: true,
       parallel: true,
-      executionEngine: 'v2',
       stages: stages,
       triggers: triggers,
     };

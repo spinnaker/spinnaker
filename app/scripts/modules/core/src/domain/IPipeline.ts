@@ -4,7 +4,6 @@ import {ITrigger} from './ITrigger';
 export interface IPipeline {
   application: string;
   description?: string;
-  executionEngine: string;
   id: string;
   index: number;
   isNew?: boolean;

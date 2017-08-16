@@ -38,7 +38,6 @@ describe('pipelineConfigService', () => {
       keepWaitingPipelines: false,
       strategy: false,
       parallel: true,
-      executionEngine: 'v2',
       triggers: [],
       stages: [],
       parameterConfig: null,

@@ -6,7 +6,6 @@ export interface ICancelModalParams {
   body?: string;
   buttonText: string;
   cancelButtonText?: string;
-  forceable?: boolean;
   header: string;
   submitMethod: (reason: string, force?: boolean) => ng.IPromise<any>;
 }
@@ -14,8 +13,7 @@ export interface ICancelModalParams {
 export class CancelModalService {
 
   private defaults: Partial<ICancelModalParams> = {
-    cancelButtonText: 'Cancel',
-    forceable: false
+    cancelButtonText: 'Cancel'
   };
 
   public constructor(private $uibModal: IModalService, private $sce: ng.ISCEService) {}

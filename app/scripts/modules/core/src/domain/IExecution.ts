@@ -13,7 +13,6 @@ export interface IExecution extends IOrchestratedItem {
   stageSummaries?: IExecutionStageSummary[];
   isStrategy?: boolean;
   name?: string;
-  executionEngine?: string;
   stringVal?: string;
   isComplete?: boolean;
   graphStatusHash?: string;

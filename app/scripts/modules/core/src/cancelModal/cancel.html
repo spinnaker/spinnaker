@@ -15,23 +15,6 @@
         </div>
       </div>
       <task-reason command="params"></task-reason>
-      <div class="force-cancel" ng-if="params.forceable">
-        <div class="row">
-          <div class="col-md-3 sm-label-right">
-            <label for="force">Force</label>
-          </div>
-          <div class="col-md-7">
-            <input id="force" type="checkbox" ng-model="params.force">
-          </div>
-        </div>
-        <div class="row" ng-if="params.forceable && params.force">
-          <div class="col-md-push-3 col-md-7">
-            <div class="alert alert-info" role="alert">
-              <strong>Note:</strong> This option will force the pipeline to cancel. It should only be used if the task or pipeline hangs.
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-default"
