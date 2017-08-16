@@ -53,11 +53,6 @@ class PipelineSpec extends Specification {
     pipeline.status == RUNNING
   }
 
-  def "can get a previous stage from a stage by type"() {
-    expect:
-    pipeline.namedStage("stage2").preceding("stage1") is pipeline.stages[0]
-  }
-
   def "trigger is properly build into the pipeline"() {
     expect:
     pipeline.trigger.name == "SPINNAKER-build-job" && pipeline.trigger.lastBuildLabel == 1

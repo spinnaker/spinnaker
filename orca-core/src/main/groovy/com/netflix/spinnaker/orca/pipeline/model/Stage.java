@@ -1,5 +1,9 @@
 package com.netflix.spinnaker.orca.pipeline.model;
 
+import java.io.IOException;
+import java.io.Serializable;
+import java.util.*;
+import javax.annotation.Nonnull;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -11,33 +15,10 @@ import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper;
 import com.netflix.spinnaker.orca.listeners.StageTaskPropagationListener;
 import lombok.Data;
-import org.codehaus.groovy.runtime.ReverseListIterator;
-
-import javax.annotation.Nonnull;
-import java.io.IOException;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Stack;
-import java.util.UUID;
-
 import static com.netflix.spinnaker.orca.ExecutionStatus.NOT_STARTED;
 import static java.lang.String.format;
-import static java.util.Arrays.asList;
-import static java.util.Collections.emptyList;
-import static java.util.Collections.emptyMap;
-import static java.util.Collections.emptySet;
-import static java.util.Collections.reverse;
-import static java.util.Collections.singletonList;
+import static java.util.Collections.*;
 import static java.util.stream.Collectors.toList;
-import static java.util.stream.StreamSupport.stream;
 
 @Data
 public class Stage<T extends Execution<T>> implements Serializable {
@@ -167,31 +148,6 @@ public class Stage<T extends Execution<T>> implements Serializable {
   }
 
   /**
-   * Gets the last stage preceding this stage that has the specified type.
-   */
-  public Stage<T> preceding(String type) {
-    int i = getExecution()
-      .getStages()
-      .indexOf(this);
-    Iterable<Stage<T>> precedingStages = () ->
-      new ReverseListIterator<>(getExecution()
-        .getStages()
-        .subList(0, i + 1));
-    return stream(precedingStages.spliterator(), false)
-      .filter(it -> it.getType().equals(type))
-      .findFirst()
-      .orElse(null);
-  }
-
-  public Collection<Stage<T>> children() {
-    return getExecution()
-      .getStages()
-      .stream()
-      .filter(it -> getId().equals(it.getParentStageId()))
-      .collect(toList());
-  }
-
-  /**
    * Gets all ancestor stages, including the current stage.
    */
   public List<Stage<T>> ancestors() {
@@ -259,67 +215,6 @@ public class Stage<T extends Execution<T>> implements Serializable {
   }
 
   /**
-   * Commits a typed object back to the stage's context. The context is recreated during this operation, so callers
-   * will need to re-reference the context object to have the new values reflected
-   */
-  public void commit(Object obj) {
-    commit("", obj);
-  }
-
-  /**
-   * Commits a typed object back to the stage's context at a provided pointer. Uses <a href="https://tools.ietf.org/html/rfc6901">JSON Pointer</a>
-   * notation for detremining the pointer's position
-   */
-  @SuppressWarnings("unchecked")
-  public void commit(String pointer, Object obj) {
-    ObjectNode rootNode = contextToNode();
-    JsonNode ptr = getPointer(pointer, rootNode);
-    if (ptr == null || ptr.isMissingNode()) {
-      ptr = rootNode.setAll(createAndMap(pointer, obj));
-    }
-    mergeCommit(ptr, obj);
-    context = (Map<String, Object>) objectMapper.convertValue(rootNode, LinkedHashMap.class);
-  }
-
-  private ObjectNode createAndMap(String pointer, Object obj) {
-    if (!pointer.startsWith("/")) {
-      throw new IllegalArgumentException("Not allowed to create a root node");
-    }
-    Stack<String> pathParts = new Stack<>();
-    pathParts.addAll(asList(pointer.substring(1).split("/")));
-    reverse(pathParts);
-    ObjectNode node = objectMapper.createObjectNode();
-    ObjectNode last = expand(pathParts, node);
-    mergeCommit(last, obj);
-    return node;
-  }
-
-  private void mergeCommit(JsonNode node, Object obj) {
-    merge(objectMapper.valueToTree(obj), node);
-  }
-
-  private void merge(JsonNode sourceNode, JsonNode destNode) {
-    Iterator<String> fieldNames = sourceNode.fieldNames();
-    while (fieldNames.hasNext()) {
-      String fieldName = fieldNames.next();
-      JsonNode sourceFieldValue = sourceNode.get(fieldName);
-      JsonNode destFieldValue = destNode.get(fieldName);
-      if (destFieldValue != null && destFieldValue.isObject()) {
-        merge(sourceFieldValue, destFieldValue);
-      } else if (destNode instanceof ObjectNode) {
-        ((ObjectNode) destNode).replace(fieldName, sourceFieldValue);
-      }
-    }
-  }
-
-  private ObjectNode expand(Stack<String> path, ObjectNode node) {
-    String ptr = path.pop();
-    ObjectNode next = objectMapper.createObjectNode();
-    node.set(ptr, next);
-    return path.empty() ? next : expand(path, next);
-  }
-
-  /**
    * Enriches stage context if it supports strategies
    */
   @SuppressWarnings("unchecked")
@@ -374,13 +269,6 @@ public class Stage<T extends Execution<T>> implements Serializable {
     String user;
     Collection<String> allowedAccounts;
     Long lastModifiedTime;
-  }
-
-  /**
-   * @return `true` if this stage does not depend on any others to execute, i.e. it has no #requisiteStageRefIds or #parentStageId.
-   */
-  @JsonIgnore public boolean isInitialStage() {
-    return getRequisiteStageRefIds().isEmpty() && getParentStageId() == null;
   }
 
   @JsonIgnore public boolean isJoin() {
