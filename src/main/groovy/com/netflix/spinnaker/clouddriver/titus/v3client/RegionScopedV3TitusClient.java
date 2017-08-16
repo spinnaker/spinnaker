@@ -60,8 +60,6 @@ public class RegionScopedV3TitusClient implements TitusClient {
 
   private final List<TitusJobCustomizer> titusJobCustomizers;
 
-  private final JobManagementServiceGrpc.JobManagementServiceStub grpc;
-
   private final JobManagementServiceGrpc.JobManagementServiceBlockingStub grpcBlockingStub;
 
 
@@ -85,7 +83,6 @@ public class RegionScopedV3TitusClient implements TitusClient {
       .negotiationType(NegotiationType.TLS)
       .build();
 
-    this.grpc = JobManagementServiceGrpc.newStub(channel);
     this.grpcBlockingStub = JobManagementServiceGrpc.newBlockingStub(channel);
   }
 
@@ -94,19 +91,21 @@ public class RegionScopedV3TitusClient implements TitusClient {
 
   @Override
   public Job getJob(String jobId) {
-    return new Job(grpcBlockingStub.findJob(JobId.newBuilder().setId(jobId).build()));
+    return new Job(grpcBlockingStub.findJob(JobId.newBuilder().setId(jobId).build()), getTasks(jobId));
   }
 
   @Override
   public Job findJobByName(String jobName) {
     JobQuery.Builder jobQuery = JobQuery.newBuilder()
-      .putFiterlingCriteria("labels", "name=" + jobName + ",source=spinnaker");
+      .putFilteringCriteria("jobType", "SERVICE")
+      .putFilteringCriteria("labels", "source:spinnaker,name:"+jobName)
+      .putFilteringCriteria("labels.op", "and");
     return getJobs(jobQuery).get(0);
   }
 
   @Override
   public List<Job> findJobsByApplication(String application) {
-    JobQuery.Builder jobQuery = JobQuery.newBuilder().putFiterlingCriteria("appName", application);
+    JobQuery.Builder jobQuery = JobQuery.newBuilder().putFilteringCriteria("appName", application);
     return getJobs(jobQuery);
   }
 
@@ -117,7 +116,7 @@ public class RegionScopedV3TitusClient implements TitusClient {
       jobDescription.setType("service");
     }
     if (jobDescription.getUser() == null) {
-      jobDescription.setUser("spinnaker");
+      jobDescription.setUser("spinnaker@netflix.com");
     }
     if (jobDescription.getJobGroupSequence() == null && jobDescription.getType().equals("service")) {
       try {
@@ -133,6 +132,9 @@ public class RegionScopedV3TitusClient implements TitusClient {
     for (TitusJobCustomizer customizer : titusJobCustomizers) {
       customizer.customize(jobDescription);
     }
+
+    Object c =  jobDescription.getGrpcJobDescriptor();
+
     return grpcBlockingStub.createJob(jobDescription.getGrpcJobDescriptor()).getId();
   }
 
@@ -144,9 +146,9 @@ public class RegionScopedV3TitusClient implements TitusClient {
 
   @Override
   public void resizeJob(ResizeJobRequest resizeJobRequest) {
-    grpcBlockingStub.updateJobInstances(JobInstancesUpdate.newBuilder()
+    grpcBlockingStub.updateJobCapacity(JobCapacityUpdate.newBuilder()
       .setJobId(resizeJobRequest.getJobId())
-      .setTaskInstances(TaskInstances.newBuilder()
+      .setCapacity(Capacity.newBuilder()
         .setDesired(resizeJobRequest.getInstancesDesired())
         .setMax(resizeJobRequest.getInstancesMax())
         .setMin(resizeJobRequest.getInstancesMin())
@@ -167,7 +169,11 @@ public class RegionScopedV3TitusClient implements TitusClient {
 
   @Override
   public void terminateTasksAndShrink(TerminateTasksAndShrinkJobRequest terminateTasksAndShrinkJob) {
-    grpcBlockingStub.killTasks(TaskIds.newBuilder().addAllId(terminateTasksAndShrinkJob.getTaskIds()).build());
+/*
+    terminateTasksAndShrinkJob.getTaskIds().forEach( id ->
+      grpcBlockingStub.killTask(TaskId.newBuilder().setId(id).build());
+    );
+*/
   }
 
   @Override
@@ -184,28 +190,41 @@ public class RegionScopedV3TitusClient implements TitusClient {
   @Override
   public List<Job> getAllJobs() {
     JobQuery.Builder jobQuery = JobQuery.newBuilder()
-      .putFiterlingCriteria("jobType", "SERVICE")
-      .putFiterlingCriteria("labels", "source=spinnaker");
+      .putFilteringCriteria("jobType", "SERVICE")
+      .putFilteringCriteria("attributes", "source:spinnaker");
     return getJobs(jobQuery);
   }
 
   private List<Job> getJobs(JobQuery.Builder jobQuery) {
     int currentPage = 0;
-    int allPages;
+    int totalPages;
     List<Job> jobs = new ArrayList<>();
     do {
       jobQuery.setPage(Page.newBuilder().setPageNumber(currentPage).setPageSize(100));
       JobQuery criteria = jobQuery.build();
       JobQueryResult resultPage = grpcBlockingStub.findJobs(criteria);
-      jobs.addAll(resultPage.getItemsList().stream().map(grpcJob -> {
-        return new Job(grpcJob);
-      }).collect(Collectors.toList()));
-      allPages = resultPage.getPagination().getAllPages();
+      jobs.addAll(resultPage.getItemsList().stream().map(grpcJob -> new Job(grpcJob, getTasks(grpcJob.getId()))).collect(Collectors.toList()));
+      totalPages = resultPage.getPagination().getTotalPages();
       currentPage++;
-    } while (allPages > currentPage);
+    } while (totalPages > currentPage);
     return jobs;
   }
 
-
+  private List<com.netflix.titus.grpc.protogen.Task> getTasks(String jobId){
+    List<com.netflix.titus.grpc.protogen.Task> tasks = new ArrayList<>();
+    TaskQueryResult taskResults;
+    int currentTaskPage = 0;
+    do {
+      taskResults = grpcBlockingStub.findTasks(
+        TaskQuery.newBuilder()
+          .putFilteringCriteria("jobIds", jobId)
+          .setPage(Page.newBuilder().setPageNumber(currentTaskPage).setPageSize(100)
+          ).build()
+      );
+      tasks.addAll(taskResults.getItemsList());
+      currentTaskPage++;
+    } while (taskResults.getPagination().getHasMore());
+    return tasks;
+  }
 
 }

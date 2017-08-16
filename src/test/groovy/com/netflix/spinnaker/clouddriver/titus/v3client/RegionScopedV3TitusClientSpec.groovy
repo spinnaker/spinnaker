@@ -28,7 +28,6 @@ import spock.lang.Specification
 class RegionScopedV3TitusClientSpec extends Specification {
 
   // this isn't really a unit test..
-  @Ignore
   void 'job creation lifecycle'() {
     setup:
     Logger logger = LoggerFactory.getLogger(TitusClient)
@@ -52,7 +51,7 @@ class RegionScopedV3TitusClientSpec extends Specification {
       .withApplication("helix_hello_world_server")
       .withStack("main")
       .withDetail("test")
-      .withUser("spinnaker")
+      .withUser("spinnaker@netflix.com")
       .withConstraint(SubmitJobRequest.Constraint.soft(SubmitJobRequest.Constraint.ZONE_BALANCE))
       .withDockerImageVersion("master-h3.192cce6")
       .withInstancesMin(1)
@@ -76,6 +75,11 @@ class RegionScopedV3TitusClientSpec extends Specification {
       .withCredentials('titusdevvpc');
 
     when:
+
+    titusClient.findJobsByApplication("helix_hello_world_server").each{ job ->
+        titusClient.terminateJob(new TerminateJobRequest().withJobId(job.getId()));
+    }
+
     String jobId = titusClient.submitJob(submitJobRequest);
 
     then:
@@ -175,7 +179,6 @@ class RegionScopedV3TitusClientSpec extends Specification {
 
     then:
     terminated
-
 
     when:
     logger.info("Successfully terminated job {}" + terminatedJob);

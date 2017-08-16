@@ -20,11 +20,12 @@ public enum TaskState {
     ALL,
     RUNNING, DISPATCHED, FAILED, STOPPED, CRASHED, FINISHED,
     STARTING, QUEUED,
-    TERMINATING, DEAD, PENDING;   // Deprecated
+    TERMINATING, DEAD, PENDING, // Deprecated
+    ACCEPTED, LAUNCHED, STARTINITIATED, KILLINITIATED, DISCONNECTED;// v3
 
     public static TaskState from(String taskStateStr) {
         for (TaskState taskState : TaskState.values()) {
-            if (taskState.name().equals(taskStateStr)) return taskState;
+            if (taskState.name().equalsIgnoreCase(taskStateStr)) return taskState;
         }
         return null;
     }

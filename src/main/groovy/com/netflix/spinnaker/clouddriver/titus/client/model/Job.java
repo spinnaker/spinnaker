@@ -32,7 +32,7 @@ public class Job {
 
       public TaskSummary(com.netflix.titus.grpc.protogen.Task grpcTask){
           id = grpcTask.getId();
-          state = TaskState.from( grpcTask.getState().getState().name() );
+          state = TaskState.from(grpcTask.getStatus().getState().name());
         }
 
         private String id;
@@ -213,29 +213,29 @@ public class Job {
 
     public Job() {}
 
-    public Job(com.netflix.titus.grpc.protogen.Job grpcJob){
+    public Job(com.netflix.titus.grpc.protogen.Job grpcJob, List<com.netflix.titus.grpc.protogen.Task> grpcTasks){
       id = grpcJob.getId();
 
       if(grpcJob.getJobDescriptor().getJobSpecCase().getNumber() == JobDescriptor.BATCH_FIELD_NUMBER){
         type = "batch";
         BatchJobSpec batchJobSpec = grpcJob.getJobDescriptor().getBatch();
-        instancesMin = batchJobSpec.getInstances().getMin();
-        instancesMax = batchJobSpec.getInstances().getMax();
-        instancesDesired = batchJobSpec.getInstances().getDesired();
+        instancesMin = batchJobSpec.getSize();
+        instancesMax = batchJobSpec.getSize();
+        instancesDesired = batchJobSpec.getSize();
       }
 
       if(grpcJob.getJobDescriptor().getJobSpecCase().getNumber() == JobDescriptor.SERVICE_FIELD_NUMBER){
         type = "service";
         ServiceJobSpec serviceSpec = grpcJob.getJobDescriptor().getService();
         inService = serviceSpec.getEnabled();
-        instancesMin = serviceSpec.getInstances().getMin();
-        instancesMax = serviceSpec.getInstances().getMax();
-        instancesDesired = serviceSpec.getInstances().getDesired();
+        instancesMin = serviceSpec.getCapacity().getMin();
+        instancesMax = serviceSpec.getCapacity().getMax();
+        instancesDesired = serviceSpec.getCapacity().getDesired();
       }
 
-      labels = grpcJob.getJobDescriptor().getLabelsMap();
+      labels = grpcJob.getJobDescriptor().getAttributesMap();
       user = grpcJob.getJobDescriptor().getOwner().getTeamEmail();
-      tasks = grpcJob.getTasksList().stream().map( grpcTask -> new TaskSummary(grpcTask)).collect(Collectors.toList());
+      tasks = grpcTasks.stream().map( grpcTask -> new TaskSummary(grpcTask)).collect(Collectors.toList());
 
       /*
       private String name;
@@ -268,6 +268,7 @@ public class Job {
       private List<String> hardConstraints;
       private List<String> softConstraints;
       private Efs efs;
+
       */
     }
 

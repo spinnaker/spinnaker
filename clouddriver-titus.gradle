@@ -7,13 +7,12 @@ buildscript {
 }
 
 ext {
-  protobufVersion = '3.2.0'
-  grpcVersion = '1.2.+'
-  netflixGrpcVersion = '1.0.+'
+  protobufVersion = '3.2.+'
+  grpcVersion = '1.4.+'
 }
 
 dependencies {
-  protobuf group: 'netflix', name: 'titus-api-definitions', version: "1.14"
+  protobuf group: 'netflix', name: 'titus-api-definitions', version: "1.31"
 
   compile "com.google.protobuf:protobuf-java:$protobufVersion"
   compile "io.grpc:grpc-protobuf:$grpcVersion"
