@@ -6,9 +6,9 @@ module.exports = {
     'postcss-scopeit': {scopeName: 'styleguide'},
     'postcss-style-guide': {
       project: 'Spinnaker',
-      dest: './app/scripts/modules/core/styleguide/public/styleguide.html',
+      dest: './src/styleguide/public/styleguide.html',
       showCode: false,
-      themePath: './app/scripts/modules/core/styleguide/src/styleguide-template/'
+      themePath: './src/styleguide/src/styleguide-template/'
     },
     'cssnano': {}
   }

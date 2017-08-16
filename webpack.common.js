@@ -61,7 +61,7 @@ function configure(IS_TEST) {
         },
         {
           test: /\.css$/,
-          use: [
+          use: IS_TEST ? ['style-loader', 'css-loader'] : [
             'style-loader',
             'css-loader',
             'postcss-loader'

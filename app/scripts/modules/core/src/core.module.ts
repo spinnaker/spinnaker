@@ -10,7 +10,7 @@ import 'react-select/dist/react-select.css';
 import 'react-virtualized/styles.css'
 import 'react-virtualized-select/styles.css'
 import 'ui-select/dist/select.css';
-import '../styleguide/src/styles/app.css';
+import './styleguide/src/styles/app.css';
 
 import UI_ROUTER from '@uirouter/angularjs';
 const UI_ROUTER_STATE_EVENTS_SHIM = 'ui.router.state.events';
@@ -48,7 +48,7 @@ import { REGION_MODULE } from './region/region.module';
 import { SUBNET_MODULE } from './subnet/subnet.module';
 import { WHATS_NEW_MODULE } from './whatsNew/whatsNew.module';
 import { WIDGETS_MODULE } from './widgets/widgets.module';
-import { STYLEGUIDE_MODULE } from '../styleguide/styleguide.module';
+import { STYLEGUIDE_MODULE } from './styleguide/styleguide.module';
 
 
 // load all templates into the $templateCache
