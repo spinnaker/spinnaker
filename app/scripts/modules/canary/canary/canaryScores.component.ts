@@ -5,4 +5,4 @@ import { CanaryScores } from './CanaryScores';
 
 export const CANARY_SCORES_CONFIG_COMPONENT = 'spinnaker.core.canaryScores.component';
 module(CANARY_SCORES_CONFIG_COMPONENT, [])
-  .component('kayentaCanaryScores', react2angular(CanaryScores, ['onChange', 'successfulHelpFieldId', 'successfulLabel', 'successfulScore', 'unhealthyHelpFieldId', 'unhealthyLabel', 'unhealthyScore']));
+  .component('canaryScores', react2angular(CanaryScores, ['onChange', 'successfulHelpFieldId', 'successfulLabel', 'successfulScore', 'unhealthyHelpFieldId', 'unhealthyLabel', 'unhealthyScore']));
