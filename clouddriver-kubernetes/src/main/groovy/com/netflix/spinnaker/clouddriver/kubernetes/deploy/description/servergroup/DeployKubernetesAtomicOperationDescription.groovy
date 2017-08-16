@@ -48,6 +48,7 @@ class DeployKubernetesAtomicOperationDescription extends KubernetesAtomicOperati
   String serviceAccountName
   Integer sequence
   KubernetesPodSpecDescription podSpec
+  KubernetesDnsPolicy dnsPolicy
 
   @JsonIgnore
   Set<String> imagePullSecrets
@@ -240,6 +241,17 @@ enum KubernetesVolumeSourceType {
 
   @JsonProperty("UNSUPPORTED")
   Unsupported,
+}
+
+enum KubernetesDnsPolicy {
+  @JsonProperty("ClusterFirst")
+  ClusterFirst,
+
+  @JsonProperty("Default")
+  Default,
+
+  @JsonProperty("ClusterFirstWithHostNet")
+  ClusterFirstWithHostNet,
 }
 
 enum KubernetesStorageMediumType {

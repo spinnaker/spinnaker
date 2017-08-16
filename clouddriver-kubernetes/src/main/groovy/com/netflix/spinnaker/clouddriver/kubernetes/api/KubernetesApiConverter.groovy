@@ -658,6 +658,7 @@ class KubernetesApiConverter {
     deployDescription.serviceAccountName = replicaSet?.spec?.template?.spec?.serviceAccountName
 
     deployDescription.nodeSelector = replicaSet?.spec?.template?.spec?.nodeSelector
+    deployDescription.dnsPolicy = replicaSet?.spec?.template?.spec?.dnsPolicy
 
     return deployDescription
   }
@@ -713,6 +714,7 @@ class KubernetesApiConverter {
     deployDescription.serviceAccountName = replicationController.spec?.template?.spec?.serviceAccountName
 
     deployDescription.nodeSelector = replicationController?.spec?.template?.spec?.nodeSelector
+    deployDescription.dnsPolicy = replicationController?.spec?.template?.spec?.dnsPolicy
 
     return deployDescription
   }
@@ -928,6 +930,10 @@ class KubernetesApiConverter {
 
     if (description.restartPolicy) {
       podTemplateSpecBuilder.withRestartPolicy(description.restartPolicy)
+    }
+
+    if (description.dnsPolicy) {
+      podTemplateSpecBuilder.withDnsPolicy(description.dnsPolicy.name())
     }
 
     if (description.terminationGracePeriodSeconds) {

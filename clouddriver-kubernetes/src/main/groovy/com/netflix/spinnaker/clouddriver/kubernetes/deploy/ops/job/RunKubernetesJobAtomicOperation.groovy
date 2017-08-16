@@ -84,12 +84,16 @@ class RunKubernetesJobAtomicOperation implements AtomicOperation<DeploymentResul
       podBuilder = podBuilder.withServiceAccountName(description.serviceAccountName)
     }
 
+    if (description.dnsPolicy) {
+      podBuilder = podBuilder.withDnsPolicy(description.dnsPolicy.name())
+    }
+
     if (description.hostNetwork) {
-        podBuilder = podBuilder.withHostNetwork(description.hostNetwork)
+      podBuilder = podBuilder.withHostNetwork(description.hostNetwork)
     }
 
     if (description.nodeSelector){
-     podBuilder = podBuilder.withNodeSelector(description.nodeSelector)
+      podBuilder = podBuilder.withNodeSelector(description.nodeSelector)
     }
 
     description.container.name = description.container.name ?: "job"
