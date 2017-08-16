@@ -40,8 +40,10 @@ public class OrcaProfileFactory extends SpringProfileFactory {
       profile.appendContents("default.securityGroups: ");
       profile.appendContents("default.vpc.securityGroups: ");
     }
-    
-    profile.appendContents("pipelineTemplates.enabled: "
-      + Boolean.toString(deploymentConfiguration.getFeatures().getPipelineTemplates() != null ? deploymentConfiguration.getFeatures().getPipelineTemplates() : false));
+
+    String pipelineTemplates = Boolean.toString(deploymentConfiguration.getFeatures().getPipelineTemplates() != null ? deploymentConfiguration.getFeatures().getPipelineTemplates() : false);
+    profile.appendContents("pipelineTemplates.enabled: " + pipelineTemplates);
+    // For backward compatibility
+    profile.appendContents("pipelineTemplate.enabled: " + pipelineTemplates);
   }
 }
