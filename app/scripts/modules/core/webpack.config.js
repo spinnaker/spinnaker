@@ -40,11 +40,13 @@ module.exports = {
     'angular2react': 'angular2react',
     'angulartics': 'angulartics',
     'angulartics-google-analytics': 'angulartics-google-analytics',
+    'autoprefixer': 'autoprefixer',
     'bootstrap': 'bootstrap',
     'bootstrap/dist/js/bootstrap.js': 'bootstrap/dist/js/bootstrap.js',
     'bootstrap/dist/css/bootstrap.css': 'bootstrap/dist/css/bootstrap.css',
     'class-autobind-decorator': 'class-autobind-decorator',
     'clipboard': 'clipboard',
+    'cssnano': 'cssnano',
     'd3-scale': 'd3-scale',
     'd3-shape': 'd3-shape',
     'expose-loader?diff_match_patch!diff-match-patch': 'expose-loader?diff_match_patch!diff-match-patch',
@@ -63,6 +65,11 @@ module.exports = {
     'moment': 'moment',
     'moment-timezone': 'moment-timezone',
     'ngimport': 'ngimport',
+    'postcss-loader': 'postcss-loader',
+    'postcss-import': 'postcss-import',
+    'postcss-extend': 'postcss-extend',
+    'postcss-style-guide': 'postcss-style-guide',
+    'postcss-scopeit': 'postcss-scopeit',
     'prop-types': 'prop-types',
     'react': 'react',
     'react-bootstrap': 'react-bootstrap',
@@ -122,7 +129,8 @@ module.exports = {
         test: /\.css$/,
         use: [
           'style-loader',
-          'css-loader'
+          'css-loader',
+          'postcss-loader'
         ]
       },
       {

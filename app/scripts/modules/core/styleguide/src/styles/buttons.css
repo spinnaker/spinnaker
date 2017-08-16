@@ -1,0 +1,222 @@
+/*
+@styleguide
+
+@title Buttons
+
+Buttons can be categorized based on form and function.
+These are three categories for buttons based on function:
+    1. primary -
+       Ones that call for action and are bold and bright. A page can have just one of these.
+    2. link -
+      Button that looks like a link
+    3. passive(default) -
+       Buttons that are used in the page which do not immediately call for action.
+       They are not the primary action for the page.
+    4. danger -
+       Buttons that are used to indicate operations that can have consequences.
+    5. nostyle -
+       No styles attached to the button. Relies on the user to set the styles based on parent element.
+    6. buttons with icons -
+       Buttons with icons to the left and right of the buttons
+    7. zombie -
+       Buttons that have a dashed border and is typically used with configurations.
+
+All buttons have a minimum width set.
+
+<button class="primary">Primary Action</button>
+
+    <button class="primary">Primary Action</button>
+
+<button class="passive">Passive</button>
+
+    <button class="passive">Passive</button>
+
+<button class="passive"><i class="fa fa-trash"></i>Passive</button>
+
+    <button class="passive"><i class="fa fa-trash"></i>Passive</button>
+
+<button class="danger">Danger</button>
+
+    <button class="danger">Danger</button>
+
+<button class="link">Link</button>
+
+    <button class="link">Link</button>
+
+<button class="nostyle">No styles attached Button</button>
+
+    <button class="nostyle">No styles attached Button</button>
+
+<button class="zombie">Zombie Action</button>
+
+    <button class="zombie">Zombie Action</button>
+
+<button class="zombie">
+  <i class="fa fa-trash"></i>
+  <span>Zombie Action</span>
+</button>
+
+    <button class="zombie">
+      <i >class="fa fa-trash"></i>
+      <span>Zombie Action</span>
+    </button>
+*/
+
+/*
+@styleguide
+
+@title Links
+
+Here are the variations:
+1. a - Default link style.
+2. a.button(.primary/.passive/.danger) - Links can also look like buttons.
+3. a.nostyle - There is also a variation of link with no styles attached.
+
+<a>Link</a>
+
+    <a>Link</a>
+
+<a class="button primary">Link looking like Primary</a>
+
+    <a class="button primary">Link looking like Primary</a>
+
+<a class="button passive">Link looking like Passive</a>
+
+    <a class="button passive">Link looking like Passive</a>
+
+<a class="button passive"><i class="fa fa-chevron-down"></i>Link looking like Passive</a>
+
+    <a class="button passive"><i class="fa fa-chevron-down"></i>Link looking like Passive</a>
+
+<a class="button danger">Link looking like Danger</a>
+
+    <a class="button danger">Link looking like Danger</a>
+
+<a class="button zombie"><i class="fa fa-search"></i>Link looking like Zombie</a>
+
+    <a class="button zombie"><i class="fa fa-search"></i>Link looking like Zombie</a>
+
+<a class="button zombie">Link looking like Zombie</a>
+
+    <a class="button zombie">Link looking like Zombie</a>
+*/
+
+:root {
+  --button-background-color: white;
+  --button-font-size: 12px;
+  --button-solid-padding: 5px 14px;
+  --button-hollow-padding: 6px 14px;
+}
+
+button, a.button {
+  font-family: 'Source Sans Pro', sans-serif;
+  letter-spacing: 0.04em;
+  font-size: var(--button-font-size);
+  box-shadow: none;
+  border: none;
+  cursor: pointer;
+}
+
+button i, a.button i {
+  margin-right: 6px;
+  vertical-align: middle;
+  margin-top: -2px;
+  font-size: inherit;
+}
+
+button *:not(i), a.button *:not(i) {
+  font-size: var(--button-font-size);
+}
+
+button.primary, a.button.primary,
+button.passive, a.button.passive,
+button.danger, a.button.danger,
+button.zombie, a.button.zombie {
+  border-radius: 3px;
+}
+
+button.primary, a.button.primary {
+  background-color: var(--color-accent);
+  border: 1px solid var(--color-accent);
+  color: white;
+  padding: var(--button-solid-padding);
+}
+
+button.passive, a.button.passive,
+button.danger, a.button.danger,
+button.zombie, a.button.zombie {
+  padding: var(--button-hollow-padding);
+  font-weight: 600;
+}
+
+button.primary:hover, a.button.primary:hover {
+  background-color: #1d8499;
+}
+
+button.passive, a.button.passive, button.danger, a.button.danger {
+  background-color: var(--button-background-color);
+  border: 1px solid var(--color-divider);
+}
+
+button.passive, a.button.passive {
+  color: var(--color-text-caption);
+}
+
+button.passive i, a.button.passive i {
+  color: var(--color-text-primary);
+}
+
+button.passive:hover, a.button.passive:hover {
+  background-color: #e6e6e6;
+}
+
+button.danger, a.button.danger {
+  color: var(--color-rose);
+}
+
+button.danger:hover, a.button.danger:hover {
+  background-color: var(--color-rose);
+  color: var(--color-text-on-dark);
+}
+
+button.zombie, a.button.zombie {
+  background-color: transparent;
+  border: 2px dashed var(--color-accessory-light);
+}
+
+button.zombie, a.button.zombie, button.zombie i, a.button.zombie i {
+  color: var(--color-text-secondary);
+}
+
+button.zombie:hover, a.button.zombie:hover,
+button.zombie:focus, a.button.zombie:focus,
+button.zombie:active, a.button.zombie:active {
+  color: var(--color-accent);
+}
+
+a.button, a.button:hover, a.button:focus, a.button:active, a, button.link {
+  text-decoration: none;
+}
+
+button.link, a {
+  background-color: transparent;
+  padding: 0;
+  font-weight: normal;
+  color: var(--color-accent);
+}
+
+button.link:hover, button.link:active, button.link:focus,
+a:hover, a:active, a:focus {
+  text-decoration: underline;
+  color: var(--color-text-link);
+}
+
+button.nostyle {
+  background-color: transparent;
+  border: none;
+}
+
+a.nostyle, a.nostyle:hover, a.nostyle:active, a.nostyle:focus {
+  text-decoration: none;
+  color: inherit;
+}

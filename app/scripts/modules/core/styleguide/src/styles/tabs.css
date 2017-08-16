@@ -1,0 +1,116 @@
+/*
+@styleguide
+
+@title Tabs
+
+Tabs/Navigation Bar
+
+Basic tabs
+<ul class="tabs-basic">
+  <li>Item 1</li>
+  <li class="selected">Item 2</li>
+  <li>Item 3</li>
+</ul>
+
+    <ul class="tabs-basic">
+      <li>Item 1</li>
+      <li class="selected">Item 2</li>
+      <li>Item 3</li>
+    </ul>
+
+<ul class="tabs-basic">
+  <li><a>Item 1</a></li>
+  <li class="selected"><a>Item 2</a></li>
+  <li><a>Item 3</a></li>
+</ul>
+
+    <ul class="tabs-basic">
+      <li><a>Item 1</a></li>
+      <li class="selected"><a>Item 2</a></li>
+      <li><a>Item 3</a></li>
+    </ul>
+
+
+Vertical Tabs
+<ul class="tabs-vertical">
+  <li><a>Item 1</a></li>
+  <li class="selected"><a>Item 2</a></li>
+  <li><a>Item 3</a></li>
+  <li><a>Item 4</a></li>
+  <li><a>Item 5</a></li>
+</ul>
+
+    <ul class="tabs-vertical">
+      <li><a>Item 1</a></li>
+      <li class="selected"><a>Item 2</a></li>
+      <li><a>Item 3</a></li>
+      <li><a>Item 4</a></li>
+      <li><a>Item 5</a></li>
+    </ul>
+*/
+
+ul.tabs-basic {
+  display: flex;
+  background-color: inherit;
+  width: 100%;
+  border-bottom: 1px solid var(--color-accent-g3);
+}
+
+ul.tabs-basic > li, ul.tabs-basic > li * {
+  font-size: 14px;
+  font-weight: bold;
+  text-transform: uppercase;
+  color: var(--color-accent);
+}
+
+ul.tabs-basic > li {
+  padding: 8px 0;
+  margin-right: 36px;
+  margin-bottom: -1px;
+  cursor: pointer;
+  border-bottom: 6px solid transparent;
+}
+
+ul.tabs-basic > li.selected, ul.tabs-basic > li.selected *,
+ul.tabs-basic > li:hover, ul.tabs-basic > li:hover * {
+  color: var(--color-primary);
+}
+
+ul.tabs-basic > li.selected,
+ul.tabs-basic > li.selected:hover {
+  border-bottom: 2px solid var(--color-primary);
+}
+
+ul[class*="tabs-"] a, ul[class*="tabs-"] a:hover,
+ul[class*="tabs-"] a:focus, ul[class*="tabs-"] a:active {
+  text-decoration: none;
+}
+
+ul.tabs-vertical {
+  display: flex;
+  flex-direction: column;
+}
+
+ul.tabs-vertical li {
+  border-bottom: 1px solid var(--color-accessory-light);
+  border-top: 1px solid transparent;
+  cursor: pointer;
+  padding: 18px 12px;
+  margin-top: -1px;
+}
+
+ul.tabs-vertical li:hover, ul.tabs-vertical li.selected {
+  border-top: 1px solid var(--color-accent);
+  border-bottom: 1px solid var(--color-accent);
+}
+
+ul.tabs-vertical li.selected {
+  background-color: var(--color-accent-g2);
+}
+
+@media only screen and (max-device-width: 480px) {
+  ul.tabs-basic {
+    flex-direction: column;
+    width: 120px;
+  }
+}

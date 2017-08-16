@@ -1,0 +1,19 @@
+nav ul li {
+  color: var(--color-text-on-dark);
+}
+
+ul.bulleted {
+  list-style: square outside none;
+}
+
+ul.bulleted li {
+  margin-bottom: 12px;
+  font-family: 'Lora', serif;
+  font-size: 16px;
+}
+
+ul.nostyle, ul.nostyle li {
+  padding: 0;
+  margin: 0;
+  list-style-type: none;
+}

@@ -1,0 +1,116 @@
+/*
+@styleguide
+
+@title Pills
+
+Pills are static representation UI elements usually associated with other UI elements.
+There are three variants:
+  1. info
+  2. categories
+  3. success
+  4. danger
+  5. warn
+
+
+<div class="pill info">Information</div>
+
+    <div class="pill info">Information</div>
+
+<div class="pill info">Information<i class="fa fa-times-circle"></i></div>
+
+    <div class="pill info">Information<i class="fa fa-times-circle"></i></div>
+
+<div class="pill category">
+  <div>Server</div>
+  <span>Information<i class="fa fa-times-circle"></i></span>
+</div>
+
+    <div class="pill category">
+      <div>Server</div>
+      <span>Information<i class="fa fa-times-circle"></i></span>
+    </div>
+
+<div class="pill category">
+  <div>Category</div>
+  <span>Name</span>
+</div>
+
+    <div class="pill category">
+      <div>Category</div>
+      <span>Name</span>
+    </div>
+
+<div class="pill success">Success</div>
+
+    <div class="pill success">Success</div>
+
+<div class="pill danger">Danger</div>
+
+    <div class="pill danger">Danger</div>
+
+<div class="pill warn">Warn</div>
+
+    <div class="pill warn">Warn</div>
+*/
+.pill:not(.category), .pill.category > * {
+  padding: 3px 8px;
+}
+
+.pill, .pill.category *:first-child {
+  border-radius: 20px;
+}
+
+.pill, .pill * {
+  font-size: 12px;
+  display: inline-block;
+}
+
+.pill i {
+  font-size: inherit;
+  margin-left: 8px;
+}
+
+.pill.success, .pill.danger, .pill.warn {
+  color: var(--color-text-on-dark);
+}
+
+.pill.info, .pill.info *, .pill.category {
+  background-color: var(--color-accent-g2);
+  color: var(--color-primary);
+  font-weight : bold;
+}
+
+.pill.category > *:first-child {
+  background-color: var(--color-primary);
+  color: var(--color-text-on-dark);
+  text-transform: uppercase;
+  font-weight: 400;
+  position: relative;
+  padding-right: 16px;
+}
+
+.pill.category > *:nth-child(2) {
+  margin-left: -10px;
+}
+
+.pill.category > *:first-child::after {
+  content: '';
+  position: absolute;
+  right: -1px;
+  background-color: var(--color-accent-g2);
+  width: 10px;
+  top: 0;
+  bottom: 0;
+}
+
+.pill.success {
+  background-color: var(--color-asparagus);
+}
+
+.pill.danger {
+  background-color: var(--color-rose);
+}
+
+.pill.warn {
+  background-color: var(--color-mango);
+}
