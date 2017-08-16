@@ -77,11 +77,15 @@ open class CompleteExecutionHandler
         block.invoke(if (execution.shouldOverrideSuccess()) TERMINAL else SUCCEEDED)
       } else {
         val attempts = getAttribute<AttemptsAttribute>()?.attempts ?: 0
-        log.warn("Re-queuing $this as the execution is not yet complete (attempts: $attempts)")
+        if (attempts <= 10) {
+          log.warn("Re-queuing $this as the execution is not yet complete (attempts: $attempts)")
 
-        // no need to re-queue continuously as the RUNNING stages will also emit a `CompleteExecution` message
-        setAttribute(MaxAttemptsAttribute(10))
-        queue.push(this, retryDelay)
+          // no need to re-queue continuously as the RUNNING stages will also emit a `CompleteExecution` message
+          setAttribute(MaxAttemptsAttribute(11))
+          queue.push(this, retryDelay)
+        } else {
+          log.warn("Max attempts reached (10), $this will not be re-queued")
+        }
       }
     }
   }
