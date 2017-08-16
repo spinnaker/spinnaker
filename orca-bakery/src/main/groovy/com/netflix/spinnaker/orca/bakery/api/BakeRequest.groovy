@@ -56,6 +56,7 @@ class BakeRequest {
   Boolean enhancedNetworking
   String amiName
   String amiSuffix
+  int rootVolumeSize
 
   private Map<String, Object> other = new HashMap<String, Object>()
 
