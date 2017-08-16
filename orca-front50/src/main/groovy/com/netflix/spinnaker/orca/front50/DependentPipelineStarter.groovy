@@ -48,10 +48,6 @@ class DependentPipelineStarter implements ApplicationContextAware {
   List<PipelinePreprocessor> pipelinePreprocessors
 
   Pipeline trigger(Map pipelineConfig, String user, Execution parentPipeline, Map suppliedParameters, String parentPipelineStageId) {
-    for (PipelinePreprocessor preprocessor : (pipelinePreprocessors ?: [])) {
-      pipelineConfig = preprocessor.process(pipelineConfig)
-    }
-
     def json = objectMapper.writeValueAsString(pipelineConfig)
     log.info('triggering dependent pipeline {}:{}', pipelineConfig.id, json)
 
@@ -88,6 +84,12 @@ class DependentPipelineStarter implements ApplicationContextAware {
         pipelineConfig.trigger.parameters[k] = pipelineConfig.trigger.parameters[k] ?: suppliedParameters[k]
       }
     }
+    def trigger = pipelineConfig.trigger //keep the trigger as the preprocessor removes it.
+
+    for (PipelinePreprocessor preprocessor : (pipelinePreprocessors ?: [])) {
+      pipelineConfig = preprocessor.process(pipelineConfig)
+    }
+    pipelineConfig.trigger = trigger
 
     def augmentedContext = [trigger: pipelineConfig.trigger]
     def processedPipeline = contextParameterProcessor.process(pipelineConfig, augmentedContext, false)
