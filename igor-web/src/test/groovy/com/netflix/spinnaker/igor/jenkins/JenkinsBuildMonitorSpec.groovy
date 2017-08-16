@@ -67,38 +67,23 @@ class JenkinsBuildMonitorSpec extends Specification {
         0 * cache.setLastPollCycleTimestamp(_,_,_)
     }
 
-    def 'should set a timestamp cursor the first time a job is seen'() {
-        given:
-        def build = new Build(number: 40, timestamp: '1494624092610')
-        jenkinsService.getProjects() >> new ProjectsList(
-            list: [new Project(name: 'job', lastBuild: build)]
-        )
+    def 'should process on first build'() {
+        given: 'the first time a build is seen'
+        Long previousCursor = null //indicating a first build
+        def lastBuild = new Build(number: 1, timestamp: '1494624092610', building: false, result: 'SUCCESS')
 
         and:
-        1 * cache.getLastPollCycleTimestamp(MASTER, 'job') >> null
-
-        when:
-        monitor.changedBuilds(MASTER)
-
-        then: 'cursor is set to last build timestamp'
-        1 * cache.setLastPollCycleTimestamp(MASTER, 'job', 1494624092610)
-    }
-
-    def 'should exit early if all builds have been processed'() {
-        given:
-        def lastBuild = new Build(number: 40, timestamp: '1494624092610')
-        jenkinsService.getProjects() >> new ProjectsList(
-            list: [ new Project(name: 'job', lastBuild: lastBuild) ]
-        )
-
-        and:
-        1 * cache.getLastPollCycleTimestamp(MASTER, 'job') >> (lastBuild.timestamp as Long)
+        monitor.echoService = Mock(EchoService)
+        cache.getLastPollCycleTimestamp(MASTER, 'job') >> previousCursor
+        jenkinsService.getProjects() >> new ProjectsList(list: [ new Project(name: 'job', lastBuild: lastBuild) ])
+        cache.getEventPosted(_,_,_,_) >> false
+        jenkinsService.getBuilds('job') >> new BuildsList(list: [ lastBuild ])
 
         when:
         monitor.changedBuilds(MASTER)
 
         then:
-        0 * jenkinsService.getBuilds('job')
+        1 * monitor.echoService.postEvent({ it.content.project.lastBuild.number == 1 && it.content.project.lastBuild.result == 'SUCCESS'} as Event)
     }
 
     def 'should only post an event for completed builds between last poll and last build'() {

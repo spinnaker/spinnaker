@@ -166,19 +166,20 @@ class JenkinsBuildMonitor implements PollingMonitor {
 
                 log.debug("[${master}:${job.name}] last cursor was ${cursor}, last build on this job was at ${upperBound}")
 
-                if (!cursor) {
-                    log.debug("[${master}:${job.name}] setting new cursor to ${lastBuildStamp}")
-                    cache.setLastPollCycleTimestamp(master, job.name, lastBuildStamp);
+                if (cursor == lastBuildStamp) {
+                    log.debug("[${master}:${job.name}] is up to date. skipping")
                 } else {
-                    if (cursor == lastBuildStamp) {
-                        log.debug("[${master}:${job.name}] is up to date. skipping")
-                        continue
-                    }
-
-                    // 1. get all builds between last poll and jenkins last build included
-                    List<Build> allBuilds = (jenkinsService.getBuilds(job.name).getList() ?: []).findAll { build ->
-                        Long buildStamp = build.timestamp as Long
-                        return buildStamp <= lastBuildStamp && buildStamp > cursor
+                    // 1. get builds
+                    List<Build> allBuilds = (jenkinsService.getBuilds(job.name).getList() ?: [])
+                    if (!cursor) {
+                        log.debug("[${master}:${job.name}] setting new cursor to ${lastBuildStamp}")
+                        cursor = lastBuildStamp
+                    } else {
+                        // filter between last poll and jenkins last build included
+                        allBuilds = (jenkinsService.getBuilds(job.name).getList() ?: []).findAll { build ->
+                            Long buildStamp = build.timestamp as Long
+                            return buildStamp <= lastBuildStamp && buildStamp > cursor
+                        }
                     }
 
                     List<Build> currentlyBuilding = allBuilds.findAll { it.building }
