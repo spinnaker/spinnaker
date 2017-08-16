@@ -8,6 +8,8 @@ DeploymentStrategyRegistry.registerStrategy({
   additionalFields: ['targetPercentages'],
   additionalFieldsTemplateUrl: require('./additionalFields.html'),
   initializationMethod: (command) => {
-    command.targetPercentages = [50, 100];
+    if (!command.targetPercentages) {
+      command.targetPercentages = [50, 100];
+    }
   }
 });
