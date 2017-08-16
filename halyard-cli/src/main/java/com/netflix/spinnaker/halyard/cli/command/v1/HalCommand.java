@@ -31,9 +31,6 @@ import java.util.Optional;
  */
 @Parameters(separators = "=")
 public class HalCommand extends NestableCommand {
-  @Getter(AccessLevel.PROTECTED)
-  private Map<String, NestableCommand> subcommands = new HashMap<>();
-
   @Getter(AccessLevel.PUBLIC)
   private String commandName = "hal";
 
