@@ -30,6 +30,15 @@
     </div>
   </stage-config-field>
 
+  <stage-config-field label="DNS Policy">
+    <div>
+        <select class="form-control input-sm"
+                ng-model="ctrl.stage.dnsPolicy"
+                ng-options="option for option in ctrl.policies">
+        </select>
+    </div>
+  </stage-config-field>
+
   <stage-config-field label="Image">
     <div class="form-group" ng-if="ctrl.hasDockerPipelineTriggers()">
       <div>

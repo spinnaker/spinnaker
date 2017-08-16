@@ -1,5 +1,19 @@
-<ng-form name="advancedSettings">
+<ng-form name="advancedSettings" ng-controller="kubernetesServerGroupAdvancedSettingsController as advancedController">
   <div class="form-group form-horizontal">
+
+
+     <div class="form-group">
+      <div class="col-md-4 sm-label-right">
+        DNS Policy
+        <help-field key="kubernetes.pod.dnsPolicy"></help-field>
+      </div>
+      <div class="col-md-7">
+        <select class="form-control input-sm"
+                ng-model="command.dnsPolicy"
+                ng-options="option for option in advancedController.policies">
+        </select>
+      </div>
+    </div>
 
     <div class="form-group">
       <div class="col-md-4 sm-label-right">

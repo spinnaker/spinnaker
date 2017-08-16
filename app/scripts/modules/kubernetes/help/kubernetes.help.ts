@@ -100,6 +100,10 @@ const helpContents: {[key: string]: string} = {
   'kubernetes.service.externalIps': `
       IP addresses for which nodes in the cluster also accept traffic. This is not managed by Kubernetes and the
       responsibility of the user to configure.`,
+  'kubernetes.pod.dnsPolicy':`
+      <p>Set DNS policy for containers within the pod.</p>
+      <p>Defaults to <b>ClusterFirst</b>.</p>
+      <p>To have DNS options set along with hostNetwork, you have to specify DNS policy explicitly to <b>ClusterFirstWithHostNet</b>.</p>`,
   'kubernetes.pod.volume': `
       <p>A storage volume to be mounted and shared by containers in this pod. The lifecycle depends on the volume type selected.</p>
       <p><b>CONFIGMAP</b>: Intended to act as a reference to multiple properties files. Similar to the /etc directory, and the files within, on a Linux computer.</p>

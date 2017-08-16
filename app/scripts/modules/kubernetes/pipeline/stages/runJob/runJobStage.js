@@ -39,6 +39,8 @@ module.exports = angular.module('spinnaker.kubernetes.pipeline.stage.runJobStage
     this.pipeline = $scope.pipeline;
     this.container = null;
 
+    this.policies = ['ClusterFirst', 'Default', 'ClusterFirstWithHostNet'];
+
     const buildImageDescriptor = (image) => {
       let descriptor = `${image.account}/${image.repository}`;
       if (image.tag) {
@@ -55,6 +57,9 @@ module.exports = angular.module('spinnaker.kubernetes.pipeline.stage.runJobStage
       _.set(this.stage, 'container.imageDescription.fromTrigger', false);
     }
 
+    if (!this.stage.dnsPolicy) {
+      this.stage.dnsPolicy = 'ClusterFirst';
+    }
 
     if (this.stage.container.imageDescription.fromTrigger === true) {
       this.container = buildImageDescriptor(this.stage.container.imageDescription);
