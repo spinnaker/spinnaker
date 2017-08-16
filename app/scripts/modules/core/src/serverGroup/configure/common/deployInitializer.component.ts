@@ -68,6 +68,7 @@ export class DeployInitializerController implements IController {
     });
 
     if (this.templates.length === 1) {
+      this.selectedTemplate = this.templates[0];
       this.useTemplate();
     }
   }
