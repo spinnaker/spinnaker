@@ -25,6 +25,7 @@ import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperationConverter
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperationDescriptionPreProcessor
 import com.netflix.spinnaker.clouddriver.orchestration.OrchestrationProcessor
+import com.netflix.spinnaker.clouddriver.security.config.SecurityConfig
 import org.springframework.context.annotation.AnnotationConfigApplicationContext
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -52,7 +53,8 @@ class OperationsControllerSpec extends Specification {
         atomicOperationsRegistry: new AnnotationsBasedAtomicOperationsRegistry(
           applicationContext: new AnnotationConfigApplicationContext(TestConfig),
           cloudProviders: []
-        )
+        ),
+        opsSecurityConfigProps: new SecurityConfig.OperationsSecurityConfigurationProperties()
       )).build()
 
     when:

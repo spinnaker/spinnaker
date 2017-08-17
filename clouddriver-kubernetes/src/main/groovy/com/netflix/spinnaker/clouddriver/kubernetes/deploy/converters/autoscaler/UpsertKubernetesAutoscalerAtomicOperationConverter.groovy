@@ -34,7 +34,7 @@ class UpsertKubernetesAutoscalerAtomicOperationConverter extends AbstractAtomicO
   }
 
   @Override
-  Object convertDescription(Map input) {
+  KubernetesAutoscalerDescription convertDescription(Map input) {
     KubernetesAtomicOperationConverterHelper.convertDescription(input, this, KubernetesAutoscalerDescription)
   }
 }

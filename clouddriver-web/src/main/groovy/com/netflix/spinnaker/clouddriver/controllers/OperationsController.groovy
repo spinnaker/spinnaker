@@ -29,9 +29,11 @@ import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperationsRegistry
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperationDescriptionPreProcessor
 import com.netflix.spinnaker.clouddriver.orchestration.OrchestrationProcessor
 import com.netflix.spinnaker.clouddriver.security.AllowedAccountsValidator
+import com.netflix.spinnaker.clouddriver.security.config.SecurityConfig
 import com.netflix.spinnaker.kork.web.exceptions.ValidationException
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import groovy.transform.Canonical
+import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.MessageSource
 import org.springframework.context.i18n.LocaleContextHolder
@@ -49,6 +51,7 @@ import org.springframework.web.bind.annotation.RestController
 
 import javax.servlet.http.HttpServletRequest
 
+@Slf4j
 @RestController
 class OperationsController {
 
@@ -58,6 +61,7 @@ class OperationsController {
   @Autowired (required = false) Collection<AllowedAccountsValidator> allowedAccountValidators = []
   @Autowired (required = false) List<AtomicOperationDescriptionPreProcessor> atomicOperationDescriptionPreProcessors = []
   @Autowired AtomicOperationsRegistry atomicOperationsRegistry
+  @Autowired SecurityConfig.OperationsSecurityConfigurationProperties opsSecurityConfigProps
 
   /*
    * APIs
@@ -146,6 +150,17 @@ class OperationsController {
         if (validator) {
           validator.validate(descriptions, description, errors)
           validator.authorize(description, errors)
+        } else {
+          def msg = "No validator found for operation `${description?.class?.simpleName}` and cloud provider $cloudProvider"
+
+          switch(opsSecurityConfigProps.onMissingValidator) {
+            case SecurityConfig.SecurityAction.WARN:
+              log.warn(msg)
+              break
+            case SecurityConfig.SecurityAction.FAIL:
+              errors.reject(msg)
+              break
+          }
         }
 
         allowedAccountValidators.each {

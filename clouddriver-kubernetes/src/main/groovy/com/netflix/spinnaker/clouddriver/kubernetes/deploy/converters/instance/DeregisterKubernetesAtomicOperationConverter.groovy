@@ -34,7 +34,7 @@ class DeregisterKubernetesAtomicOperationConverter extends AbstractAtomicOperati
   }
 
   @Override
-  Object convertDescription(Map input) {
+  AbstractRegistrationKubernetesAtomicOperationDescription convertDescription(Map input) {
     KubernetesAtomicOperationConverterHelper.convertDescription(input, this, AbstractRegistrationKubernetesAtomicOperationDescription)
   }
 }

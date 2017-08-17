@@ -33,7 +33,7 @@ class DeleteGoogleAutoscalingPolicyAtomicOperationConverter extends AbstractAtom
   }
 
   @Override
-  convertDescription(Map input) {
+  DeleteGoogleAutoscalingPolicyDescription convertDescription(Map input) {
     GoogleAtomicOperationConverterHelper.convertDescription(input, this, DeleteGoogleAutoscalingPolicyDescription)
   }
 }

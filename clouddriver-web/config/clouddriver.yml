@@ -277,6 +277,13 @@ spring:
     serialization:
       ORDER_MAP_ENTRIES_BY_KEYS: true
 
+operations.security:
+  onMissingSecuredCheck: WARN
+  onMissingValidator: WARN
+
+# Turn on when confirming Fiat authorization checks
+# logging.level.com.netflix.spinnaker.clouddriver.listeners: DEBUG
+
 ---
 
 spring:
