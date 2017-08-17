@@ -183,6 +183,8 @@
  * [**hal config security authz disable**](#hal-config-security-authz-disable)
  * [**hal config security authz edit**](#hal-config-security-authz-edit)
  * [**hal config security authz enable**](#hal-config-security-authz-enable)
+ * [**hal config security authz file**](#hal-config-security-authz-file)
+ * [**hal config security authz file edit**](#hal-config-security-authz-file-edit)
  * [**hal config security authz github**](#hal-config-security-authz-github)
  * [**hal config security authz github edit**](#hal-config-security-authz-github-edit)
  * [**hal config security authz google**](#hal-config-security-authz-google)
@@ -663,6 +665,7 @@ hal config deploy edit [parameters]
 This is only required when Spinnaker is being deployed in non-Kubernetes clustered configuration.
  * `--consul-enabled`: Whether or not to use Consul as a service discovery mechanism to deploy Spinnaker.
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--location`: This is the location spinnaker will be deployed to.
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--type`: Flotilla: Deploy Spinnaker with one server group per microservice, and a single shared Redis.
 LocalhostDebian: Download and run the Spinnaker debians on the machine running the Daemon.
@@ -3498,6 +3501,7 @@ hal config security authz [parameters] [subcommands]
  * `disable`: Set Spinnaker's role-based authorization to disabled
  * `edit`: Edit your roles provider settings.
  * `enable`: Set Spinnaker's role-based authorization to enabled
+ * `file`: Configure the file role provider.
  * `github`: Configure the github role provider.
  * `google`: Configure the google role provider.
 
@@ -3544,6 +3548,39 @@ hal config security authz enable [parameters]
 
 #### Parameters
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config security authz file
+
+Configure the file role provider.
+
+#### Usage
+```
+hal config security authz file [parameters] [subcommands]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+#### Subcommands
+ * `edit`: Edit the file role provider.
+
+---
+## hal config security authz file edit
+
+Edit the file role provider.
+
+#### Usage
+```
+hal config security authz file edit [parameters]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--file-path`: A path to a file describing the roles of each user.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 

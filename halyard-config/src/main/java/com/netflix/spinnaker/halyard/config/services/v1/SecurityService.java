@@ -227,6 +227,9 @@ public class SecurityService {
       case GITHUB:
         groupMembership.setGithub((GithubRoleProvider) roleProvider);
         break;
+      case FILE:
+        groupMembership.setFile((FileRoleProvider) roleProvider);
+        break;
       default:
         throw new RuntimeException("Unknown Role Provider " + roleProvider.getRoleProviderType());
     }

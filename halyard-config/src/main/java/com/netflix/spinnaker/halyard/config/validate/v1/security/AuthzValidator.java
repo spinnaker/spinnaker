@@ -32,6 +32,8 @@ public class AuthzValidator extends Validator<Authz> {
 
   GithubRoleProviderValidator githubValidator = new GithubRoleProviderValidator();
 
+  FileRoleProviderValidator fileValidator = new FileRoleProviderValidator();
+
   @Override
   public void validate(ConfigProblemSetBuilder p, Authz z) {
     if (!z.isEnabled()) {
@@ -45,6 +47,8 @@ public class AuthzValidator extends Validator<Authz> {
       case GOOGLE:
         googleValidator.validate(p, z.getGroupMembership().getGoogle());
         break;
+      case FILE:
+        fileValidator.validate(p, z.getGroupMembership().getFile());
       case EXTERNAL: // fallthrough
       default:
         break;

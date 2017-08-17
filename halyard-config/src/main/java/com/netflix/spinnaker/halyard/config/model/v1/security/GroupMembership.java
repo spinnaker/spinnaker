@@ -39,6 +39,7 @@ public class GroupMembership extends Node {
   private RoleProviderType service = RoleProviderType.EXTERNAL;
   private GoogleRoleProvider google = new GoogleRoleProvider();
   private GithubRoleProvider github = new GithubRoleProvider();
+  private FileRoleProvider file = new FileRoleProvider();
 
   @Override
   public void accept(ConfigProblemSetBuilder psBuilder, Validator v) {
@@ -65,6 +66,7 @@ public class GroupMembership extends Node {
 
   public enum RoleProviderType {
     EXTERNAL(""),
+    FILE("file"),
     GOOGLE("google"),
     GITHUB("github"),
     LDAP("ldap");
