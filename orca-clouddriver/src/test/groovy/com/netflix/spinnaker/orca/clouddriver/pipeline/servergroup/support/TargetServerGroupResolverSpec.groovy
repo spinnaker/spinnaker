@@ -20,10 +20,12 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import retrofit.RetrofitError
 import retrofit.client.Response
 import retrofit.mime.TypedString
 import spock.lang.Specification
 import spock.lang.Subject
+import spock.lang.Unroll
 
 class TargetServerGroupResolverSpec extends Specification {
 
@@ -133,5 +135,42 @@ class TargetServerGroupResolverSpec extends Specification {
 
     then:
       thrown(TargetServerGroup.NotFoundException)
+  }
+
+  @Unroll
+  def "should retry on network + 429 errors"() {
+    given:
+    def invocationCount = 0
+    def capturedResult
+
+    when:
+    try {
+      capturedResult = subject.fetchWithRetries(Map, 10, 1) {
+        invocationCount++
+        throw exception
+      }
+    } catch (e) {
+      capturedResult = e
+    }
+
+    then:
+    capturedResult == expectNull ? null : exception
+    invocationCount == expectedInvocationCount
+
+    where:
+    exception                                         || expectNull || expectedInvocationCount
+    new IllegalStateException("should not retry")     || false      || 1
+    retrofitError(RetrofitError.Kind.UNEXPECTED, 400) || false      || 1
+    retrofitError(RetrofitError.Kind.HTTP, 500)       || false      || 1
+    retrofitError(RetrofitError.Kind.HTTP, 404)       || true       || 1      // a 404 should short-circuit and return null
+    retrofitError(RetrofitError.Kind.NETWORK, 0)      || false      || 10
+    retrofitError(RetrofitError.Kind.HTTP, 429)       || false      || 10
+  }
+
+  RetrofitError retrofitError(RetrofitError.Kind kind, int status) {
+    return new RetrofitError(
+      null, null,
+      kind != RetrofitError.Kind.NETWORK ? new Response("http://blah.com", status, "", [], null) : null,
+      null, null, kind, null)
   }
 }

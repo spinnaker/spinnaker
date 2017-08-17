@@ -58,18 +58,23 @@ class TargetServerGroupResolver {
   }
 
   private TargetServerGroup resolveByTarget(TargetServerGroup.Params params, Location location) {
-    Map tsgMap = fetchWithRetries(Map) {
-      oortService.getTargetServerGroup(params.app,
-        params.credentials,
-        params.cluster,
-        params.cloudProvider,
-        location.value,
-        params.target.name())
+    try {
+      Map tsgMap = fetchWithRetries(Map) {
+        oortService.getTargetServerGroup(params.app,
+          params.credentials,
+          params.cluster,
+          params.cloudProvider,
+          location.value,
+          params.target.name())
+      }
+      if (!tsgMap) {
+        throw new TargetServerGroup.NotFoundException("Unable to locate ${params.target.name()} in $params.credentials/$location.value/$params.cluster")
+      }
+      return new TargetServerGroup(tsgMap)
+    } catch (Exception e) {
+      log.error("Unable to locate ${params.target.name()} in $params.credentials/$location.value/$params.cluster", e)
+      throw e
     }
-    if (!tsgMap) {
-      throw new TargetServerGroup.NotFoundException("Unable to locate ${params.target.name()} in $params.credentials/$location.value/$params.cluster")
-    }
-    return new TargetServerGroup(tsgMap)
   }
 
   private TargetServerGroup resolveByServerGroupName(TargetServerGroup.Params params, Location location) {
@@ -148,9 +153,13 @@ class TargetServerGroupResolver {
   }
 
   private <T> T fetchWithRetries(Class<T> responseType, Closure<Response> fetchClosure) {
+    return fetchWithRetries(responseType, 15, 1000, fetchClosure)
+  }
+
+  private <T> T fetchWithRetries(Class<T> responseType, int maxRetries, long retryBackoff, Closure<Response> fetchClosure) {
     def converter = new JacksonConverter(mapper)
-    final int maxRetries = 5
-    final long retryBackoff = 150
+
+    def lastException = null
     for (int i = 1; i <= maxRetries; i++) {
       try {
         Response response
@@ -168,13 +177,18 @@ class TargetServerGroupResolver {
           throw RetrofitError.conversionError(response.url, response, converter, responseType, ce)
         }
       } catch (RetrofitError re) {
-        if (re.kind == RetrofitError.Kind.NETWORK && i < maxRetries) {
+        lastException = re
+
+        if (re.kind == RetrofitError.Kind.NETWORK) {
+          Thread.sleep(retryBackoff)
+        } else if (re.kind == RetrofitError.Kind.HTTP && re.response.status == 429) {
           Thread.sleep(retryBackoff)
         } else {
           throw re
         }
       }
     }
-  }
 
+    throw lastException
+  }
 }

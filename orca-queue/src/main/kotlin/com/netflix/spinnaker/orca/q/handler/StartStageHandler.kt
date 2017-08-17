@@ -49,7 +49,7 @@ open class StartStageHandler
   private val exceptionHandlers: List<ExceptionHandler>,
   private val objectMapper: ObjectMapper,
   private val clock: Clock,
-  @Value("\${queue.retry.delay.ms:60000}") retryDelayMs: Long
+  @Value("\${queue.retry.delay.ms:15000}") retryDelayMs: Long
 ) : MessageHandler<StartStage>, StageBuilderAware, ExpressionAware, AuthenticationAware {
 
   private val log = LoggerFactory.getLogger(javaClass)
@@ -82,8 +82,10 @@ open class StartStageHandler
           } catch(e: Exception) {
             val exceptionDetails = exceptionHandlers.shouldRetry(e, stage.getName())
             if (exceptionDetails?.shouldRetry ?: false) {
-              log.warn("Error planning ${stage.getType()} stage for ${message.executionType.simpleName}[${message.executionId}]")
-              message.setAttribute(MaxAttemptsAttribute(5))
+              val attempts = message.getAttribute<AttemptsAttribute>()?.attempts ?: 0
+              log.warn("Error planning ${stage.getType()} stage for ${message.executionType.simpleName}[${message.executionId}] (attempts: $attempts)")
+
+              message.setAttribute(MaxAttemptsAttribute(40))
               queue.push(message, retryDelay)
             } else {
               log.error("Error running ${stage.getType()} stage for ${message.executionType.simpleName}[${message.executionId}]", e)
