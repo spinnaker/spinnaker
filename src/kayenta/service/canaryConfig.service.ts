@@ -95,8 +95,8 @@ export function buildNewConfig(state: ICanaryState): ICanaryConfig {
     classifier: {
       groupWeights: {} as {[key: string]: number},
       scoreThresholds: {
-        pass: 75,
-        marginal: 50,
+        pass: '75',
+        marginal: '50',
       }
     }
   };

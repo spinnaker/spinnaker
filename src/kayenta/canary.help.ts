@@ -23,6 +23,11 @@ const helpContents: {[key: string]: string} = {
   'pipeline.config.canary.owner': '<p>The recipient email to which the canary report(s) will be sent.</p>',
   'pipeline.config.canary.watchers': '<p>Comma separated list of additional emails to receive canary reports.  Owners are automatically subscribed to notification emails.</p>',
   'pipeline.config.canary.useGlobalDataset': '<p>Uses the global atlas dataset instead of the region specific dataset for ACA</p>',
+  'pipeline.config.canary.marginalScore': `
+        <p>A canary stage can include multiple canary runs.</p>
+        <p>If a given canary run score is less than or equal to the marginal threshold, the canary stage will fail immediately.</p>
+        <p>If the canary run score is greater than the marginal threshold, the canary stage will not fail and will execute the remaining downstream canary runs.</p>`,
+  'pipeline.config.canary.passingScore': '<p>When all canary runs in a stage have executed, a canary stage is considered a success if the final (that is, the latest) canary run score is greater than or equal to the pass threshold. Otherwise, it is a failure.</p>',
 };
 
 export const CANARY_HELP = 'spinnaker.kayenta.help.contents';

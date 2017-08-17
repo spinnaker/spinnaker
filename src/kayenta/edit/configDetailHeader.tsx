@@ -21,7 +21,7 @@ function ConfigDetailHeader({ selectedConfig }: IConfigDetailStateProps) {
         <h2>{selectedConfig ? selectedConfig.name : ''}</h2>
       </div>
       <div className="col-sm-3">
-        <strong>Edited</strong> <FormattedDate dateIso={selectedConfig.updatedTimestampIso}/>
+        <strong>Edited:</strong> <FormattedDate dateIso={selectedConfig ? selectedConfig.updatedTimestampIso : ''}/>
       </div>
       <div className="col-sm-3">
         <ConfigDetailActionButtons/>

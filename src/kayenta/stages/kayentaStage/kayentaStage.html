@@ -17,36 +17,6 @@
     </select>
   </stage-config-field>
 
-  <div class="form-group">
-    <div ng-if="kayentaCanaryStageCtrl.state.detailsLoading" class="col-md-3 col-md-offset-3">
-      <h3><span us-spinner="{radius:3, width:1, length: 4}"></span></h3>
-    </div>
-    <div ng-if="!kayentaCanaryStageCtrl.state.detailsLoading">
-      <div class="col-md-2 col-md-offset-1 sm-label-right">
-        <label>Passing Score</label>
-      </div>
-      <div class="col-md-1">
-        <input type="number"
-               max="100"
-               min="{{kayentaCanaryStageCtrl.stage.canaryConfig.scoreThresholds.marginal}}"
-               style="width: 60px;"
-               ng-model="kayentaCanaryStageCtrl.stage.canaryConfig.scoreThresholds.pass"
-               class="form-control input-sm"/>
-      </div>
-      <div class="col-md-2 col-md-offset-1 sm-label-right">
-        <label>Marginal Score</label>
-      </div>
-      <div class="col-md-2">
-        <input type="number"
-               max="{{kayentaCanaryStageCtrl.stage.canaryConfig.scoreThresholds.pass}}"
-               min="0"
-               style="width: 60px;"
-               ng-model="kayentaCanaryStageCtrl.stage.canaryConfig.scoreThresholds.marginal"
-               class="form-control input-sm"/>
-      </div>
-    </div>
-  </div>
-
   <h5>Analysis Config</h5>
   <div class="horizontal-rule"></div>
 
@@ -137,4 +107,22 @@
       required
       type="text"/>
   </stage-config-field>
+
+  <h5>Scoring Thresholds</h5>
+  <div class="horizontal-rule"></div>
+
+  <div class="form-group">
+    <div ng-if="kayentaCanaryStageCtrl.state.detailsLoading" class="col-md-3 col-md-offset-4">
+      <h3><span us-spinner="{radius:3, width:1, length: 4}"></span></h3>
+    </div>
+
+    <kayenta-canary-scores ng-if="!kayentaCanaryStageCtrl.state.detailsLoading"
+                           on-change="kayentaCanaryStageCtrl.handleScoreThresholdChange"
+                           successful-help-field-id="'pipeline.config.canary.passingScore'"
+                           successful-label="'Pass'"
+                           successful-score="kayentaCanaryStageCtrl.stage.canaryConfig.scoreThresholds.pass"
+                           unhealthy-help-field-id="'pipeline.config.canary.marginalScore'"
+                           unhealthy-label="'Marginal'"
+                           unhealthy-score="kayentaCanaryStageCtrl.stage.canaryConfig.scoreThresholds.marginal"></kayenta-canary-scores>
+  </div>
 </div>

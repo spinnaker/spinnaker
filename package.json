@@ -27,10 +27,10 @@
   },
   "dependencies": {
     "@spinnaker/amazon": "0.0.5",
-    "@spinnaker/core": "0.0.46",
+    "@spinnaker/core": "0.0.52",
     "@spinnaker/google": "^0.0.1",
     "@uirouter/angularjs": "^1.0.4",
-    "@uirouter/react-hybrid": "0.0.12",
+    "@uirouter/react-hybrid": "^0.0.12",
     "@uirouter/visualizer": "^4.0.0",
     "Select2": "git://github.com/select2/select2.git#3.4.8",
     "angular": "~1.6.3",

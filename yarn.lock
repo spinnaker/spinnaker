@@ -6,9 +6,9 @@
   version "0.0.5"
   resolved "https://registry.yarnpkg.com/@spinnaker/amazon/-/amazon-0.0.5.tgz#0121bf83ef28e68ee938ccae5e66c996420a675d"
 
-"@spinnaker/core@0.0.46":
-  version "0.0.46"
-  resolved "https://registry.yarnpkg.com/@spinnaker/core/-/core-0.0.46.tgz#401977eb7816ead05ffabadc717dce34af941f56"
+"@spinnaker/core@0.0.52":
+  version "0.0.52"
+  resolved "https://registry.yarnpkg.com/@spinnaker/core/-/core-0.0.52.tgz#4f6c134b746d20c9190008bb7ad2571170413c59"
 
 "@spinnaker/google@^0.0.1":
   version "0.0.1"
@@ -368,7 +368,7 @@
   version "5.0.5"
   resolved "https://registry.yarnpkg.com/@uirouter/core/-/core-5.0.5.tgz#4fafae8b89e1bee321b0ed32e69ab66547c055c6"
 
-"@uirouter/react-hybrid@0.0.12":
+"@uirouter/react-hybrid@^0.0.12":
   version "0.0.12"
   resolved "https://registry.yarnpkg.com/@uirouter/react-hybrid/-/react-hybrid-0.0.12.tgz#c090c3415a551b28a17dbc4b44d6ef38f9f038bf"
   dependencies:

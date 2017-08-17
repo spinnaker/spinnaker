@@ -33,6 +33,9 @@ function mapStateToProps(state: ICanaryState) {
 
 function buildConfigCopy(state: ICanaryState): ICanaryConfig {
   const config = mapStateToConfig(state);
+  if (!config) {
+    return null;
+  }
 
   // Probably a rare case, but someone could be lazy about naming their configs.
   let configName = `${config.name}-copy`, i = 1;

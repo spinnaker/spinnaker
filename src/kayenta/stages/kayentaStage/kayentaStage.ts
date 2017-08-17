@@ -1,8 +1,10 @@
-import { IComponentController, module } from 'angular';
+import { module, IComponentController, IScope } from 'angular';
 import { isString, get } from 'lodash';
+import autoBindMethods from 'class-autobind-decorator';
 
 import {
-  ACCOUNT_SERVICE, CLOUD_PROVIDER_REGISTRY,
+  ACCOUNT_SERVICE,
+  CLOUD_PROVIDER_REGISTRY,
   PipelineConfigProvider
 } from '@spinnaker/core';
 
@@ -12,6 +14,7 @@ import {
   getCanaryConfigSummaries
 } from 'kayenta/service/canaryConfig.service';
 import { ICanaryConfig } from 'kayenta/domain/ICanaryConfig';
+import { CANARY_SCORES_CONFIG_COMPONENT } from 'kayenta/components/canaryScores.component';
 
 interface IKayentaStage {
   canaryConfig: IKayentaStageCanaryConfig;
@@ -28,12 +31,13 @@ interface IKayentaStageCanaryConfig {
   lookbackMins?: string;
   metricsAccountName: string;
   scoreThresholds: {
-    pass: number;
-    marginal: number;
+    pass: string;
+    marginal: string;
   };
   storageAccountName: string;
 }
 
+@autoBindMethods
 class CanaryStage implements IComponentController {
 
   public state = {
@@ -44,7 +48,7 @@ class CanaryStage implements IComponentController {
   public canaryConfigNames: string[] = [];
   public selectedCanaryConfigDetails: ICanaryConfig;
 
-  constructor(public stage: IKayentaStage) {
+  constructor(private $scope: IScope, public stage: IKayentaStage) {
     'ngInject';
     this.initialize();
   }
@@ -61,6 +65,14 @@ class CanaryStage implements IComponentController {
 
   public isExpression(val: number | string): boolean {
     return isString(val) && val.includes('${');
+  }
+
+  public handleScoreThresholdChange(scoreThresholds: { successfulScore: string, unhealthyScore: string }): void {
+    // Called from a React component.
+    this.$scope.$apply(() => {
+      this.stage.canaryConfig.scoreThresholds.pass = scoreThresholds.successfulScore;
+      this.stage.canaryConfig.scoreThresholds.marginal = scoreThresholds.unhealthyScore;
+    });
   }
 
   private initialize(): void {
@@ -105,12 +117,12 @@ class CanaryStage implements IComponentController {
 
     this.stage.canaryConfig.scoreThresholds.marginal = get(
       this.selectedCanaryConfigDetails, 'classifier.scoreThresholds.marginal',
-      this.stage.canaryConfig.scoreThresholds.marginal
-    );
+      this.stage.canaryConfig.scoreThresholds.marginal || ''
+    ).toString();
     this.stage.canaryConfig.scoreThresholds.pass = get(
       this.selectedCanaryConfigDetails, 'classifier.scoreThresholds.pass',
-      this.stage.canaryConfig.scoreThresholds.pass
-    );
+      this.stage.canaryConfig.scoreThresholds.pass || ''
+    ).toString();
   }
 
   private loadCanaryConfigNames(): void {
@@ -126,8 +138,9 @@ class CanaryStage implements IComponentController {
 
 export const KAYENTA_CANARY_STAGE = 'spinnaker.kayenta.canaryStage';
 module(KAYENTA_CANARY_STAGE, [
-    CLOUD_PROVIDER_REGISTRY,
     ACCOUNT_SERVICE,
+    CANARY_SCORES_CONFIG_COMPONENT,
+    CLOUD_PROVIDER_REGISTRY,
   ])
   .config((pipelineConfigProvider: PipelineConfigProvider) => {
     pipelineConfigProvider.registerStage({
