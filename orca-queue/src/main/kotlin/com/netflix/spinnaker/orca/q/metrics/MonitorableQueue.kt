@@ -34,7 +34,7 @@ interface MonitorableQueue : Queue {
 /**
  * Convenience method to allow implementations to fire events.
  */
-inline fun <reified E : QueueEvent> MonitorableQueue.fire(message: Message? = null): Unit {
+inline fun <reified E : QueueEvent> MonitorableQueue.fire(message: Message? = null) {
   val event = when (E::class) {
     QueuePolled::class -> QueuePolled(this)
     RetryPolled::class -> RetryPolled(this)
@@ -42,8 +42,14 @@ inline fun <reified E : QueueEvent> MonitorableQueue.fire(message: Message? = nu
     MessageRetried::class -> MessageRetried(this)
     MessageDead::class -> MessageDead(this)
     LockFailed::class -> LockFailed(this)
-    MessagePushed::class -> MessagePushed(this, message!!)
-    MessageDuplicate::class -> MessageDuplicate(this, message!!)
+    MessagePushed::class -> {
+      val payload = message!!
+      MessagePushed(this, payload)
+    }
+    MessageDuplicate::class -> {
+      val payload = message!!
+      MessageDuplicate(this, payload)
+    }
     else -> throw IllegalArgumentException("Unknown event type ${E::class}")
   }
   publisher.publishEvent(event)
