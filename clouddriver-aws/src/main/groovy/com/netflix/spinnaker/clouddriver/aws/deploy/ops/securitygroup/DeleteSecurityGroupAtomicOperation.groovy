@@ -19,6 +19,8 @@ package com.netflix.spinnaker.clouddriver.aws.deploy.ops.securitygroup
 import com.amazonaws.AmazonServiceException
 import com.amazonaws.services.ec2.model.DeleteSecurityGroupRequest
 import com.amazonaws.services.ec2.model.IpPermission
+import com.amazonaws.services.ec2.model.IpRange
+import com.amazonaws.services.ec2.model.Ipv6Range
 import com.amazonaws.services.ec2.model.RevokeSecurityGroupIngressRequest
 import com.amazonaws.services.ec2.model.SecurityGroup
 import com.amazonaws.services.ec2.model.UserIdGroupPair
@@ -95,7 +97,13 @@ class DeleteSecurityGroupAtomicOperation implements AtomicOperation<Void> {
                       securityGroupToRevokeIngressPermissions.put(sg, ipPermissions)
                     }
                     IpPermission permission = ipPerm.clone()
+
+                    // Make sure we only delete the security group rules and not the IP range rules
+                    permission.setIpRanges(new ArrayList<String>())
+                    permission.setIpv4Ranges(new ArrayList<IpRange>())
+                    permission.setIpv6Ranges(new ArrayList<Ipv6Range>())
                     permission.userIdGroupPairs = [pair]
+
                     ipPermissions.push(permission)
                   }
                 }
