@@ -5,6 +5,7 @@ dependencies {
     exclude group: 'org.apache.httpcomponents'
     exclude group: 'org.slf4j'
   })
+  compile('net.jodah:failsafe:1.0.4')
 
   testCompile project(':cats:cats-test')
   testCompile spinnaker.dependency('korkJedisTest')

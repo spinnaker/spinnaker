@@ -22,22 +22,31 @@ import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.cats.dynomite.DynomiteClientDelegate;
 import com.netflix.spinnaker.cats.redis.cache.AbstractRedisCache;
 import com.netflix.spinnaker.cats.redis.cache.RedisCacheOptions;
+import net.jodah.failsafe.Failsafe;
+import net.jodah.failsafe.RetryPolicy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import redis.clients.jedis.exceptions.JedisException;
 
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class DynomiteCache extends AbstractRedisCache {
 
   private final Logger log = LoggerFactory.getLogger(getClass());
+
+  private static final RetryPolicy redisRetryPolicy = new RetryPolicy()
+    .retryOn(Arrays.asList(JedisException.class, DynoException.class))
+    .withDelay(500, TimeUnit.MILLISECONDS)
+    .withMaxRetries(3);
 
   public DynomiteCache(String prefix, DynomiteClientDelegate dynomiteClientDelegate, ObjectMapper objectMapper, RedisCacheOptions options, CacheMetrics cacheMetrics) {
     super(prefix, dynomiteClientDelegate, objectMapper, options, cacheMetrics);
@@ -68,50 +77,50 @@ public class DynomiteCache extends AbstractRedisCache {
           continue;
         }
 
-        try {
-          client.sadd(allOfTypeReindex(type), item.getId());
-          saddOperations.incrementAndGet();
-          client.sadd(allOfTypeId(type), item.getId());
-          saddOperations.incrementAndGet();
-
-          for (int i = 0; i < op.keysToSet.size(); i = i + 2) {
-            client.set(op.keysToSet.get(i), op.keysToSet.get(i + 1));
-            setOperations.incrementAndGet();
-            keysWritten.incrementAndGet();
-          }
-
-          if (!op.relNames.isEmpty()) {
-            client.sadd(allRelationshipsId(type), op.relNames.toArray(new String[op.relNames.size()]));
-            saddOperations.incrementAndGet();
-            relationships.addAndGet(op.relNames.size());
-          }
-
-          if (!op.hashesToSet.isEmpty()) {
-            for (Entry<String, String> hashEntry : op.hashesToSet.entrySet()) {
-              client.setex(hashKey(hashesId(type), hashEntry.getKey()), getHashExpiry(), hashEntry.getValue());
-              setOperations.incrementAndGet();
-              hashesUpdated.incrementAndGet();
-            }
-          }
-
-          if (item.getTtlSeconds() > 0) {
-            for (String key : op.keysToSet) {
-              client.expire(key, item.getTtlSeconds());
-              expireOperations.incrementAndGet();
-            }
-          }
-        } catch (JedisException|DynoException e) {
-          log.error(type + " encountered Redis exception while setting cache data for " + item.getId() + ", clearing all its related hashes");
-          op.hashesToSet.keySet().forEach(it -> {
-            String hashKey = hashKey(hashesId(type), it);
-            try {
+        Failsafe
+          .with(redisRetryPolicy)
+          .onFailure(failure -> {
+            log.error("Encountered repeated failures while setting " + type + " cache data for " + item.getId(), failure);
+            op.hashesToSet.keySet().forEach(it -> {
+              String hashKey = hashKey(hashesId(type), it);
               client.del(hashKey);
               delOperations.incrementAndGet();
-            } catch (JedisException|DynoException ne) {
-              log.error(type + " failed to cleanup hash " + hashKey, e);
+            });
+            throw new RuntimeException("Failed running caching agent", failure);
+          })
+          .run(() -> {
+            for (int i = 0; i < op.keysToSet.size(); i = i + 2) {
+              client.set(op.keysToSet.get(i), op.keysToSet.get(i + 1));
+              setOperations.incrementAndGet();
+              keysWritten.incrementAndGet();
+            }
+
+            if (!op.relNames.isEmpty()) {
+              client.sadd(allRelationshipsId(type), op.relNames.toArray(new String[op.relNames.size()]));
+              saddOperations.incrementAndGet();
+              relationships.addAndGet(op.relNames.size());
+            }
+
+            if (item.getTtlSeconds() > 0) {
+              for (String key : op.keysToSet) {
+                client.expire(key, item.getTtlSeconds());
+                expireOperations.incrementAndGet();
+              }
+            }
+
+            client.sadd(allOfTypeReindex(type), item.getId());
+            saddOperations.incrementAndGet();
+            client.sadd(allOfTypeId(type), item.getId());
+            saddOperations.incrementAndGet();
+
+            if (!op.hashesToSet.isEmpty()) {
+              for (Entry<String, String> hashEntry : op.hashesToSet.entrySet()) {
+                client.setex(hashKey(hashesId(type), hashEntry.getKey()), getHashExpiry(), hashEntry.getValue());
+                setOperations.incrementAndGet();
+                hashesUpdated.incrementAndGet();
+              }
             }
           });
-        }
       }
     });
 
@@ -146,22 +155,24 @@ public class DynomiteCache extends AbstractRedisCache {
     AtomicInteger delOperations = new AtomicInteger();
     AtomicInteger sremOperations = new AtomicInteger();
 
-    redisClientDelegate.withCommandsClient(client -> {
-      for (String key : delKeys) {
-        client.del(key);
-        delOperations.incrementAndGet();
-        client.del(hashKey(hashesId(type), key));
-        delOperations.incrementAndGet();
-      }
+    Failsafe
+      .with(redisRetryPolicy)
+      .run(() -> redisClientDelegate.withCommandsClient(client -> {
+        for (List<String> idPartition : Lists.partition(identifiers, options.getMaxDelSize())) {
+          String[] ids = idPartition.toArray(new String[idPartition.size()]);
+          client.srem(allOfTypeId(type), ids);
+          sremOperations.incrementAndGet();
+          client.srem(allOfTypeReindex(type), ids);
+          sremOperations.incrementAndGet();
+        }
 
-      for (List<String> idPartition : Lists.partition(identifiers, options.getMaxDelSize())) {
-        String[] ids = idPartition.toArray(new String[idPartition.size()]);
-        client.srem(allOfTypeId(type), ids);
-        sremOperations.incrementAndGet();
-        client.srem(allOfTypeReindex(type), ids);
-        sremOperations.incrementAndGet();
-      }
-    });
+        for (String key : delKeys) {
+          client.del(key);
+          delOperations.incrementAndGet();
+          client.del(hashKey(hashesId(type), key));
+          delOperations.incrementAndGet();
+        }
+      }));
 
     cacheMetrics.evict(
       prefix,
