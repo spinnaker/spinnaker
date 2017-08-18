@@ -25,7 +25,7 @@ module.exports = angular
           let url = link.path;
           // handle interpolated variables
           if (url.includes('{{')) {
-            url = $interpolate(url)(this.instance);
+            url = $interpolate(url)(Object.assign({}, this.instance, {ipAddress: this.address}));
           }
           // handle relative paths
           if (!url.includes('//')) {
