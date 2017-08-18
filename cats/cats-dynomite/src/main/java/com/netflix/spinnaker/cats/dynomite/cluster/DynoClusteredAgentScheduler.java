@@ -15,6 +15,7 @@
  */
 package com.netflix.spinnaker.cats.dynomite.cluster;
 
+import com.netflix.dyno.connectionpool.exception.DynoException;
 import com.netflix.spinnaker.cats.agent.Agent;
 import com.netflix.spinnaker.cats.agent.AgentExecution;
 import com.netflix.spinnaker.cats.agent.AgentLock;
@@ -28,10 +29,14 @@ import com.netflix.spinnaker.cats.redis.cluster.ClusteredAgentScheduler;
 import com.netflix.spinnaker.cats.redis.cluster.NodeIdentity;
 import com.netflix.spinnaker.cats.redis.cluster.NodeStatusProvider;
 import com.netflix.spinnaker.cats.thread.NamedThreadFactory;
+import net.jodah.failsafe.Failsafe;
+import net.jodah.failsafe.RetryPolicy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import redis.clients.jedis.JedisCommands;
+import redis.clients.jedis.exceptions.JedisException;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -51,6 +56,11 @@ import java.util.concurrent.TimeUnit;
 public class DynoClusteredAgentScheduler extends CatsModuleAware implements AgentScheduler<AgentLock>, Runnable {
 
   private final static Logger log = LoggerFactory.getLogger(DynoClusteredAgentScheduler.class);
+
+  private final static RetryPolicy ACQUIRE_LOCK_RETRY_POLICY = new RetryPolicy()
+    .retryOn(Arrays.asList(DynoException.class, JedisException.class))
+    .withMaxRetries(3)
+    .withDelay(25, TimeUnit.MILLISECONDS);
 
   private final DynomiteClientDelegate redisClientDelegate;
   private final NodeIdentity nodeIdentity;
@@ -120,35 +130,23 @@ public class DynoClusteredAgentScheduler extends CatsModuleAware implements Agen
     // This isn't as safe as the vanilla Redis impl because the call isn't atomic, but it's the best we can do until
     // dynomite adds support for `String set(String key, String value, String nxxx, String expx, long time)` (which
     // they are working on).
+    String identity = nodeIdentity.getNodeIdentity();
     return redisClientDelegate.withCommandsClient(client -> {
-      String response = client.get(agentType);
-      if (response == null) {
-        if (client.setnx(agentType, nodeIdentity.getNodeIdentity()) == 1) {
-          client.pexpireAt(agentType, System.currentTimeMillis() + timeout);
-        }
-        return true;
-      } else {
-        // Purges potentially deadlocked agents, which can happen if the conn is interrupted between setnx & pexpireAt.
-        boolean purge = true;
-        for (int i = 0; i <= 3; i++) {
-          Long ttl = client.ttl(agentType);
-          if (ttl > 0 || ttl == -2) {
-            purge = false;
-            break;
+      return Failsafe
+        .with(ACQUIRE_LOCK_RETRY_POLICY)
+        .get(() -> {
+          String response = client.get(agentType);
+          if (response == null && client.setnx(agentType, identity) == 1) {
+            client.pexpireAt(agentType, System.currentTimeMillis() + timeout);
+            return true;
           }
-          try {
-            Thread.sleep(25);
-          } catch (InterruptedException e) {
-            purge = false;
-            break;
+
+          if (client.ttl(agentType) == -1) {
+            log.warn("Detected potential deadlocked agent, removing lock key: " + agentType);
+            client.del(agentType);
           }
-        }
-        if (purge) {
-          log.warn("Detected deadlocked agent, removing lock key: " + agentType);
-          client.del(agentType);
-        }
-      }
-      return false;
+          return false;
+        });
     });
   }
 
