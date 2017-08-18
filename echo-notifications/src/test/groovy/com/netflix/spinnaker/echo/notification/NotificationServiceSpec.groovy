@@ -22,7 +22,8 @@ import com.netflix.spinnaker.echo.hipchat.HipchatNotificationService
 import com.netflix.spinnaker.echo.hipchat.HipchatService
 import com.netflix.spinnaker.echo.twilio.TwilioNotificationService
 import com.netflix.spinnaker.echo.twilio.TwilioService
-import org.springframework.ui.velocity.VelocityEngineFactory
+import org.springframework.boot.autoconfigure.freemarker.FreeMarkerAutoConfiguration
+import org.springframework.boot.autoconfigure.freemarker.FreeMarkerProperties
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -31,11 +32,12 @@ class NotificationServiceSpec extends Specification {
   def notificationTemplateEngine
 
   void setup() {
-    def velocityEngineFactory = new VelocityEngineFactory()
-    velocityEngineFactory.setResourceLoaderPath("classpath:/templates/")
-
+    def autoconfig = new FreeMarkerAutoConfiguration.FreeMarkerNonWebConfiguration()
+    autoconfig.properties = new FreeMarkerProperties()
+    def config = autoconfig.freeMarkerConfiguration()
+    config.afterPropertiesSet()
     notificationTemplateEngine = new NotificationTemplateEngine(
-        engine: velocityEngineFactory.createVelocityEngine(),
+        configuration: config.object,
         spinnakerUrl: "SPINNAKER_URL"
     )
   }

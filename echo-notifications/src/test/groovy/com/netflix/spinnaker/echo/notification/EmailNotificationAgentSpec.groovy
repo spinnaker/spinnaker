@@ -18,8 +18,8 @@ package com.netflix.spinnaker.echo.notification
 
 import com.netflix.spinnaker.echo.email.EmailNotificationService
 import com.netflix.spinnaker.echo.model.Event
-import org.apache.velocity.VelocityContext
-import org.apache.velocity.app.VelocityEngine
+import freemarker.template.Configuration
+import freemarker.template.Template
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -29,9 +29,10 @@ import spock.util.concurrent.BlockingVariables
 class EmailNotificationAgentSpec extends Specification {
 
   def mailService = Stub(EmailNotificationService)
-  def engine = Mock(VelocityEngine)
+  def configuration = Mock(Configuration)
+  def template = Mock(Template)
   @Subject
-  def agent = new EmailNotificationAgent(mailService: mailService, engine: engine)
+  def agent = new EmailNotificationAgent(mailService: mailService, configuration: configuration)
 
   @Unroll
   def "subject is correct for a #type #status notification"() {
@@ -57,7 +58,8 @@ class EmailNotificationAgentSpec extends Specification {
     email.subject == expectedSubject
 
     and:
-    1 * engine.mergeTemplate("${type}.vm", _, _, _)
+    1 * configuration.getTemplate("${type}.ftl", "UTF-8") >> template
+    1 * template.process(_, _)
 
     where:
     type       || expectedSubject
@@ -82,10 +84,11 @@ class EmailNotificationAgentSpec extends Specification {
       email.subject = subject
       email.text = text
     }
+    configuration.getTemplate(_, "UTF-8") >> template
 
     and:
-    def context = new BlockingVariable<VelocityContext>()
-    engine.mergeTemplate(*_) >> { template, encoding, ctx, writer ->
+    def context = new BlockingVariable<Map>()
+    template.process(*_) >> { ctx, writer ->
       context.set(ctx)
     }
 

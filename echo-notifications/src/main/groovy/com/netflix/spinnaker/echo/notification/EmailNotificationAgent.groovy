@@ -19,11 +19,13 @@ package com.netflix.spinnaker.echo.notification
 import groovy.util.logging.Slf4j
 import com.netflix.spinnaker.echo.email.EmailNotificationService
 import com.netflix.spinnaker.echo.model.Event
-import org.apache.velocity.app.VelocityEngine
+import freemarker.template.Configuration
+import freemarker.template.Template
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Service
-import org.springframework.ui.velocity.VelocityEngineUtils
+import org.springframework.ui.freemarker.FreeMarkerTemplateUtils
+
 import static groovy.json.JsonOutput.prettyPrint
 import static groovy.json.JsonOutput.toJson
 import static net.logstash.logback.argument.StructuredArguments.*
@@ -37,7 +39,7 @@ class EmailNotificationAgent extends AbstractEventNotificationAgent {
   EmailNotificationService mailService
 
   @Autowired
-  VelocityEngine engine
+  Configuration configuration
 
   @Override
   void sendNotifications(Map preference, String application, Event event, Map config, String status) {
@@ -91,10 +93,9 @@ class EmailNotificationAgent extends AbstractEventNotificationAgent {
   }
 
   private void sendMessage(String[] email, String[] cc, Event event, String title, String type, String status, String link, String customMessage) {
-    def body = VelocityEngineUtils.mergeTemplateIntoString(
-      engine,
-      type == 'stage' ? 'stage.vm' : 'pipeline.vm',
-      "UTF-8",
+    Template template = configuration.getTemplate(type == 'stage' ? 'stage.ftl' : 'pipeline.ftl', "UTF-8")
+    def body = FreeMarkerTemplateUtils.processTemplateIntoString(
+      template,
       [
         event      : prettyPrint(toJson(event.content)),
         url        : spinnakerUrl,

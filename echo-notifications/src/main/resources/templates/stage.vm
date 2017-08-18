@@ -1,7 +1,0 @@
-#if($message && !$message.empty)
-$message
-
-#end
-To see more details, please visit:
-
-$url/#/applications/$application/executions/details/$executionId

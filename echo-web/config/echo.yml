@@ -17,3 +17,5 @@ search:
   index: 'event_history'
 
 management.health.mail.enabled: false
+
+spring.freemarker.enabled: false

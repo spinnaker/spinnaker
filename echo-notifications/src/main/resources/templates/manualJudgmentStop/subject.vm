@@ -1,9 +1,0 @@
-#if( $notification.additionalContext.execution.name && !$notification.additionalContext.execution.name.empty )
-#if( $notification.additionalContext.execution.trigger.buildInfo.number && !$notification.additionalContext.execution.trigger.buildInfo.number.empty )
-Stage $notification.additionalContext.stageName for $notification.source.application's $notification.additionalContext.execution.name pipeline build #$notification.additionalContext.execution.trigger.buildInfo.number was judged to stop
-#else
-Stage $notification.additionalContext.stageName for $notification.source.application's $notification.additionalContext.execution.name pipeline was judged to stop
-#end
-#else
-Stage $notification.additionalContext.stageName for $notification.source.application was judged to stop
-#end

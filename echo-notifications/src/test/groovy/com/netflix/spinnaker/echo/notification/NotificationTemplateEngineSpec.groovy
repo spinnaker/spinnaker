@@ -17,7 +17,9 @@
 package com.netflix.spinnaker.echo.notification
 
 import com.netflix.spinnaker.echo.api.Notification
-import org.apache.velocity.app.VelocityEngine
+import freemarker.template.Configuration
+import freemarker.template.Template
+import freemarker.template.TemplateNotFoundException
 import spock.lang.Specification
 
 import static NotificationTemplateEngine.*
@@ -25,19 +27,29 @@ import static NotificationTemplateEngine.*
 class NotificationTemplateEngineSpec extends Specification {
   void "should favor type-specific template when available"() {
     given:
-    def engine = Mock(VelocityEngine) {
-      1 * resourceExists(_) >> { specificTemplateExists }
+    def engine = Mock(Configuration) {
+      1 * getTemplate(specificTemplate(templateGroup, type, notificationType), "UTF-8") >> { name, enc ->
+        if (specificTemplateExists) {
+          return specificTemplate
+        }
+        throw new TemplateNotFoundException(name, "bacon", "nay")
+      }
+
+      (specificTemplateExists ? 0 : 1) * getTemplate(genericTemplate(templateGroup, type), "UTF-8") >> genericTemplate
     }
 
     when:
-    def determinedTemplate = determinateTemplate(engine, templateGroup, type, notificationType)
+    def determinedTemplate = determineTemplate(engine, templateGroup, type, notificationType)
 
     then:
-    determinedTemplate == expectedTemplate
+    specificTemplateExists ? determinedTemplate == specificTemplate : determinedTemplate == genericTemplate
 
     where:
-    templateGroup | type      | notificationType        | specificTemplateExists || expectedTemplate
-    "group"       | Type.BODY | Notification.Type.EMAIL | true                   || "group/body-email.vm"
-    "group"       | Type.BODY | Notification.Type.EMAIL | false                  || "group/body.vm"
+    specificTemplate = Stub(Template)
+    genericTemplate = Stub(Template)
+    templateGroup | type      | notificationType        | specificTemplateExists
+    "group"       | Type.BODY | Notification.Type.EMAIL | true
+    "group"       | Type.BODY | Notification.Type.EMAIL | false
   }
+
 }

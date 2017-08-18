@@ -18,30 +18,31 @@ package com.netflix.spinnaker.echo.notification
 
 import com.google.common.annotations.VisibleForTesting
 import com.netflix.spinnaker.echo.api.Notification
+import freemarker.template.Configuration
+import freemarker.template.Template
+import freemarker.template.TemplateNotFoundException
 import groovy.transform.PackageScope
 import groovy.util.logging.Slf4j
-import org.apache.velocity.app.VelocityEngine
 import org.jsoup.Jsoup
 import org.jsoup.examples.HtmlToPlainText
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
-import org.springframework.ui.velocity.VelocityEngineUtils
+import org.springframework.ui.freemarker.FreeMarkerTemplateUtils
 
 @Slf4j
 @Component
 class NotificationTemplateEngine {
     @Autowired
-    VelocityEngine engine
+    Configuration configuration
 
     @Value('${spinnaker.baseUrl}')
     String spinnakerUrl
 
     String build(Notification notification, Type type) {
-        VelocityEngineUtils.mergeTemplateIntoString(
-            engine,
-            determinateTemplate(engine, notification.templateGroup, type, notification.notificationType),
-            "UTF-8",
+        Template template = determineTemplate(configuration, notification.templateGroup, type, notification.notificationType)
+        FreeMarkerTemplateUtils.processTemplateIntoString(
+            template,
             [
                 baseUrl     : spinnakerUrl,
                 notification: notification,
@@ -52,14 +53,27 @@ class NotificationTemplateEngine {
 
     @PackageScope
     @VisibleForTesting
-    static String determinateTemplate(VelocityEngine engine, String templateGroup, Type type, Notification.Type notificationType) {
-        def specificTemplate = "${templateGroup}/${type.toString().toLowerCase()}-${notificationType.toString().toLowerCase()}.vm"
-        def genericTemplate = "${templateGroup}/${type.toString().toLowerCase()}.vm"
+    static Template determineTemplate(Configuration configuration, String templateGroup, Type type, Notification.Type notificationType) {
+        def specificTemplate = specificTemplate(templateGroup, type, notificationType)
+        def genericTemplate = genericTemplate(templateGroup, type)
 
-        if (engine.resourceExists(specificTemplate)) {
-            return specificTemplate
+        try {
+            return configuration.getTemplate(specificTemplate, "UTF-8")
+        } catch (TemplateNotFoundException) {
+            return configuration.getTemplate(genericTemplate, "UTF-8")
         }
-        return genericTemplate
+    }
+
+    @PackageScope
+    @VisibleForTesting
+    static String specificTemplate(String templateGroup, Type type, Notification.Type notificationType) {
+        return "${templateGroup}/${type.toString().toLowerCase()}-${notificationType.toString().toLowerCase()}.ftl"
+    }
+
+    @PackageScope
+    @VisibleForTesting
+    static String genericTemplate(String templateGroup, Type type) {
+        return "${templateGroup}/${type.toString().toLowerCase()}.ftl"
     }
 
     static enum Type {

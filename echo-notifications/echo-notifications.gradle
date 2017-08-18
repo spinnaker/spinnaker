@@ -24,7 +24,7 @@ dependencies {
     compile spinnaker.dependency("rxJava")
     compile "javax.mail:mail:1.4.1"
     compile "org.springframework.boot:spring-boot-starter-mail:${spinnaker.version('springBoot')}"
-    compile "org.apache.velocity:velocity:1.7"
+    compile "org.springframework.boot:spring-boot-starter-freemarker:${spinnaker.version('springBoot')}"
     compile "org.jsoup:jsoup:1.8.2"
     testCompile "com.icegreen:greenmail:1.4.0"
 }

@@ -1,0 +1,1 @@
+specific ${baseUrl} ${notification.source.application}
