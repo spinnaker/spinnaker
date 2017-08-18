@@ -95,6 +95,11 @@ public class DockerRegistryAccountValidator extends Validator<DockerRegistryAcco
               .setRemediation("Manually specify some repositories for this docker registry to index.");
         }
       } catch (Exception e) {
+        if (n.getAddress().endsWith("gcr.io")) {
+          p.addProblem(Severity.ERROR, "The GCR service requires the Resource Manager API to be enabled for the catalog endpoint to work.")
+              .setRemediation("Visit https://console.developers.google.com/apis/api/cloudresourcemanager.googleapis.com/overview to enable the API.");
+        }
+
         authFailureProblem = p.addProblem(Severity.ERROR, "Unable to connect the registries catalog endpoint: " + e.getMessage() + ".");
       }
     } else {
