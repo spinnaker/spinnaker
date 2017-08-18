@@ -43,6 +43,7 @@ module.exports = angular
           let accountFilter = (cluster) => cluster ? cluster.account === vm.component.credentials : true;
           let regionList = appListExtractorService.getRegions([vm.application], accountFilter);
           vm.regions = showAllRegions ? regions : regionList.length ? regionList : regions;
+          (vm.regions || []).sort();
         };
 
 
@@ -99,7 +100,7 @@ module.exports = angular
                 .union(oldStyleRegions)
                 .value();
             }
-            return regions;
+            return regions.sort();
           })
           .then((allRegions) => {
             setRegionList();
