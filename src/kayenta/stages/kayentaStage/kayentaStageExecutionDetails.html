@@ -1,0 +1,116 @@
+<div class="canary-details" ng-controller="kayentaStageExecutionDetailsCtrl as kayentaStageDetailsCtrl">
+  <execution-details-section-nav sections="configSections"></execution-details-section-nav>
+  <div class="step-section-details" ng-if="detailsSection === 'canarySummary'">
+    <div class="row">
+      <div class="col-md-2 canary-summary">
+        <div class="score score-large">
+          <kayenta-canary-score score="stage.overallScore"
+                                health="stage.overallHealth"
+                                result="stage.overallResult"></kayenta-canary-score>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <table class="table">
+          <tbody>
+          <tr>
+            <td style="border-top: none"><strong>Canary Result</strong></td>
+            <td style="border-top: none"><strong>Duration</strong></td>
+            <td style="border-top: none"><strong>Last Updated</strong></td>
+          </tr>
+          <tr ng-repeat="canaryRun in kayentaStageDetailsCtrl.canaryRuns">
+            <td>
+              <kayenta-canary-score score="canaryRun.context.canaryScore"
+                                    health="canaryRun.health"
+                                    result="canaryRun.result"></kayenta-canary-score>
+            </td>
+            <td>
+              <!--TODO(dpeach): Orca doesn't calculate this yet.-->
+              <span ng-if="canaryRun.context.durationString">
+                {{ canaryRun.context.durationString }}
+              </span>
+              <span ng-if="!canaryRun.context.durationString">
+                -
+              </span>
+            </td>
+            <td>
+              <span ng-if="canaryRun.endTime">
+                <!--TODO(dpeach): this might not be the right interpretation of what's called 'lastUpdated' in the original ACA task execution details-->
+                {{ canaryRun.endTime | timestamp}}
+              </span>
+              <span ng-if="!canaryRun.endTime">
+                -
+              </span>
+            </td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <stage-failure-message stage="stage"
+                           is-failed="stage.exceptions.length > 0"
+                           messages="stage.exceptions"></stage-failure-message>
+  </div>
+
+  <div class="step-section-details" ng-if="detailsSection === 'canaryConfig'">
+    <div class="row">
+      <div class="col-md-12 canary-config-section">
+        <h5>Scope</h5>
+        <div class="horizontal-rule"></div>
+        <div class="row">
+          <div class="col-md-4 sm-label-right compact">Baseline</div>
+          <div class="col-md-8" style="word-wrap: break-word">{{stage.context.canaryConfig.controlScope}}</div>
+        </div>
+        <div class="row">
+          <div class="col-md-4 sm-label-right compact">Canary</div>
+          <div class="col-md-8" style="word-wrap: break-word">{{stage.context.canaryConfig.experimentScope}}</div>
+        </div>
+      </div>
+      <div class="col-md-12 canary-config-section">
+        <h5>Analysis Config</h5>
+        <div class="horizontal-rule"></div>
+        <div class="row">
+          <div class="col-md-4 sm-label-right compact">Config Name</div>
+          <div class="col-md-8" style="word-wrap: break-word">
+            <a href ui-sref="home.applications.application.canary.configDetail({configName: stage.context.canaryConfig.canaryConfigId})">
+              {{stage.context.canaryConfig.canaryConfigId}}
+            </a>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-4 sm-label-right compact">Duration</div>
+          <div class="col-md-6">{{stage.context.canaryConfig.lifetimeHours}} hours</div>
+        </div>
+        <div class="row">
+          <div class="col-md-4 sm-label-right compact">Result Strategy</div>
+          <div class="col-md-6">{{stage.context.canaryConfig.combinedCanaryResultStrategy | lowercase}}</div>
+        </div>
+        <div class="row">
+          <div class="col-md-4 sm-label-right compact">Pass</div>
+          <div class="col-md-6">{{stage.context.canaryConfig.scoreThresholds.pass}}</div>
+        </div>
+        <div class="row">
+          <div class="col-md-4 sm-label-right compact">Marginal</div>
+          <div class="col-md-6">{{stage.context.canaryConfig.scoreThresholds.marginal}}</div>
+        </div>
+        <div class="row" ng-if="stage.context.canaryConfig.beginCanaryAnalysisAfterMins">
+          <div class="col-md-4 sm-label-right compact">Warmup Period</div>
+          <div class="col-md-6">{{stage.context.canaryConfig.beginCanaryAnalysisAfterMins}} minutes</div>
+        </div>
+        <div class="row" ng-if="stage.context.canaryConfig.canaryAnalysisIntervalMins">
+          <div class="col-md-4 sm-label-right compact">Interval</div>
+          <div class="col-md-6">{{stage.context.canaryConfig.canaryAnalysisIntervalMins}} minutes</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step-section-details" ng-if="detailsSection === 'taskStatus'">
+    <div class="row">
+      <execution-step-details item="stage"></execution-step-details>
+    </div>
+  </div>
+</div>

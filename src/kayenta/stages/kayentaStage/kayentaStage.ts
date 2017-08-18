@@ -15,6 +15,8 @@ import {
 } from 'kayenta/service/canaryConfig.service';
 import { ICanaryConfig } from 'kayenta/domain/ICanaryConfig';
 import { CANARY_SCORES_CONFIG_COMPONENT } from 'kayenta/components/canaryScores.component';
+import { KayentaStageTransformer, KAYENTA_STAGE_TRANSFORMER } from './kayentaStage.transformer';
+import { KAYENTA_STAGE_EXECUTION_DETAILS_CONTROLLER } from './kayentaStageExecutionDetails.controller';
 
 interface IKayentaStage {
   canaryConfig: IKayentaStageCanaryConfig;
@@ -141,6 +143,8 @@ module(KAYENTA_CANARY_STAGE, [
     ACCOUNT_SERVICE,
     CANARY_SCORES_CONFIG_COMPONENT,
     CLOUD_PROVIDER_REGISTRY,
+    KAYENTA_STAGE_TRANSFORMER,
+    KAYENTA_STAGE_EXECUTION_DETAILS_CONTROLLER,
   ])
   .config((pipelineConfigProvider: PipelineConfigProvider) => {
     pipelineConfigProvider.registerStage({
@@ -150,6 +154,7 @@ module(KAYENTA_CANARY_STAGE, [
       templateUrl: require('./kayentaStage.html'),
       controller: 'KayentaCanaryStageCtrl',
       controllerAs: 'kayentaCanaryStageCtrl',
+      executionDetailsUrl: require('./kayentaStageExecutionDetails.html'),
       validators: [
         { type: 'requiredField', fieldName: 'canaryConfig.lifetimeHours', fieldLabel: 'Lifetime' },
         { type: 'requiredField', fieldName: 'canaryConfig.canaryConfigId', fieldLabel: 'Config Name' },
@@ -158,4 +163,7 @@ module(KAYENTA_CANARY_STAGE, [
       ]
     });
   })
-  .controller('KayentaCanaryStageCtrl', CanaryStage);
+  .controller('KayentaCanaryStageCtrl', CanaryStage)
+  .run((pipelineConfig: PipelineConfigProvider, kayentaStageTransformer: KayentaStageTransformer) => {
+    pipelineConfig.registerTransformer(kayentaStageTransformer);
+  });
