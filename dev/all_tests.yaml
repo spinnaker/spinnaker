@@ -21,6 +21,10 @@ aliases:
     spinnaker_azure_account: $azure_account_name
     aws_profile: citest
 
+  standard_dcos_provider_params:
+    spinnaker_dcos_account: $dcos_account_name
+    spinnaker_dcos_cluster: $dcos_cluster_name
+
 tests:
   bake_and_deploy_test:
     requires:
@@ -214,6 +218,16 @@ tests:
       test_gcs_bucket: $storage_gcs_bucket
       branch: master
 
-  
+
+  dcos_smoke_test:
+    requires:
+      configuration:
+        dcos_account_enabled: true
+      services: [clouddriver, front50, gate, orca]
+    path: citest/tests/dcos_smoke_test.py
+    api: gate
+    args:
+      alias: [standard_dcos_provider_params]
+
 # Add openstack_smoke_test
 #    need to add config support first
