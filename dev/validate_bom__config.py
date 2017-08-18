@@ -45,7 +45,27 @@ import os
 from validate_bom__deploy import write_data_to_secure_path
 
 
-class AzsStorageConfiguratorHelper(object):
+class Configurator(object):
+  """Interface used to control hal configuration of a particular feature set."""
+
+  def init_argument_parser(self, parser):
+    """Adds command-line arguments to control configuration."""
+    pass
+
+  def validate_options(self, options):
+    """Validates command-line arguments configuring feature set."""
+    pass
+
+  def add_config(self, options, script):
+    """Writes bash commands (e.g. hal) to configure feature set."""
+    pass
+
+  def add_files_to_upload(self, options, file_set):
+    """Adds paths to local config files that should be uploaded."""
+    pass
+
+
+class AzsStorageConfiguratorHelper(Configurator):
   """Helper class for StorageConfigurator to handle AZS."""
 
   @classmethod
@@ -86,7 +106,7 @@ class AzsStorageConfiguratorHelper(object):
     script.append(hal)
 
 
-class S3StorageConfiguratorHelper(object):
+class S3StorageConfiguratorHelper(Configurator):
   """Helper class for StorageConfigurator to handle S3."""
 
   REGIONS = ['us-east-2', 'us-east-1', 'us-west-1', 'us-west-2',
@@ -160,7 +180,7 @@ class S3StorageConfiguratorHelper(object):
     script.append(' '.join(command))
 
 
-class GcsStorageConfiguratorHelper(object):
+class GcsStorageConfiguratorHelper(Configurator):
   """Helper class for StorageConfigurator to handle GCS."""
 
   LOCATIONS = [
@@ -226,7 +246,7 @@ class GcsStorageConfiguratorHelper(object):
     script.append(hal)
 
 
-class StorageConfigurator(object):
+class StorageConfigurator(Configurator):
   """Controls hal config storage for Spinnaker Storage ."""
 
   HELPERS = {
@@ -270,7 +290,7 @@ class StorageConfigurator(object):
                   .format(type=options.spinnaker_storage))
 
 
-class AwsConfigurator(object):
+class AwsConfigurator(Configurator):
   """Controls hal config provider aws."""
 
   def init_argument_parser(self, parser):
@@ -353,7 +373,7 @@ class AwsConfigurator(object):
       file_set.add(options.aws_account_pem_path)
 
 
-class AppengineConfigurator(object):
+class AppengineConfigurator(Configurator):
   """Controls hal config provider for appengine"""
 
   def init_argument_parser(self, parser):
@@ -464,7 +484,7 @@ class AppengineConfigurator(object):
       file_set.add(options.appengine_account_ssh_private_key_passphrase)
 
 
-class AzureConfigurator(object):
+class AzureConfigurator(Configurator):
   """Controls hal config provider azure."""
 
   def init_argument_parser(self, parser):
@@ -564,7 +584,75 @@ class AzureConfigurator(object):
       file_set.add(options.azure_account_credentials)
 
 
-class GoogleConfigurator(object):
+class DcosConfigurator(Configurator):
+  """Controls hal config provider DC/OS."""
+
+  def init_argument_parser(self, parser):
+    """Implements interface."""
+    # pylint: disable=line-too-long
+    parser.add_argument(
+        '--dcos_cluster_name', default='my-dcos-cluster',
+        help='The name for the primary DC/OS cluster.')
+    parser.add_argument(
+        '--dcos_cluster_url', default=None,
+        help='The URL to the primary DC/OS cluster.'
+             ' This is required to enable DC/OS')
+    parser.add_argument(
+        '--dcos_account_name', default='my-dcos-account',
+        help='The name of the primary DC/OS account to configure.')
+    parser.add_argument(
+        '--dcos_account_docker_account',
+        help='The registered docker account name to use.')
+    parser.add_argument(
+        '--dcos_account_uid', default=None,
+        help='The DC/OS account user name the service principal.'
+             'This is required if DC/OS is enabled.')
+    parser.add_argument(
+        '--dcos_account_credentials', default=None,
+        help='Path to DC/oS credentials file containing the password'
+             ' for the uid. This is required if DC/OS is enabled.')
+
+  def validate_options(self, options):
+    """Implements interface."""
+    options.dcos_account_enabled = (options.dcos_cluster_url is not None)
+    if not options.dcos_account_enabled:
+      return
+
+    if options.dcos_account_uid is None:
+      raise ValueError('--dcos_account_uid is not set')
+    if options.dcos_account_credentials is None:
+      raise ValueError('--dcos_account_uid provided without credentials')
+    if options.dcos_account_docker_account is None:
+      raise ValueError('--dcos_account_docker_account is not set')
+
+  def add_config(self, options, script):
+    """Implements interface."""
+    if not options.dcos_account_enabled:
+      return
+
+    script.append(
+        'hal -q --log=info config provider dcos cluster add'
+        ' {name} --dcos-url {url} --skip-tls-verify'
+        .format(name=options.dcos_cluster_name,
+                url=options.dcos_cluster_url))
+
+    script.append('hal -q --log=info config provider dcos enable')
+    with open(options.dcos_account_credentials) as creds:
+      script.append(
+          'hal -q --log=info config provider dcos account add'
+          ' {name}'
+          ' --cluster {cluster}'
+          ' --docker-registries {docker}'
+          ' --uid {uid}'
+          ' --password {creds}'
+          .format(name=options.dcos_account_name,
+                  cluster=options.dcos_cluster_name,
+                  docker=options.dcos_account_docker_account,
+                  uid=options.dcos_account_uid,
+                  creds=creds.read()))
+
+
+class GoogleConfigurator(Configurator):
   """Controls hal config provider google."""
 
   def init_argument_parser(self, parser):
@@ -580,7 +668,6 @@ class GoogleConfigurator(object):
     parser.add_argument(
         '--google_account_name', default='my-google-account',
         help='The name of the primary google account to configure.')
-
 
   def validate_options(self, options):
     """Implements interface."""
@@ -618,7 +705,7 @@ class GoogleConfigurator(object):
       file_set.add(options.google_account_credentials)
 
 
-class KubernetesConfigurator(object):
+class KubernetesConfigurator(Configurator):
   """Controls hal config provider kubernetes."""
 
   def init_argument_parser(self, parser):
@@ -675,7 +762,7 @@ class KubernetesConfigurator(object):
       file_set.add(options.k8s_account_credentials)
 
 
-class DockerConfigurator(object):
+class DockerConfigurator(Configurator):
   """Controls hal config provider docker."""
 
   def init_argument_parser(self, parser):
@@ -729,7 +816,7 @@ class DockerConfigurator(object):
       file_set.add(options.docker_account_credentials)
 
 
-class JenkinsConfigurator(object):
+class JenkinsConfigurator(Configurator):
   """Controls hal config ci."""
 
   def init_argument_parser(self, parser):
@@ -823,7 +910,7 @@ class JenkinsConfigurator(object):
       file_set.add(path)
 
 
-class MonitoringConfigurator(object):
+class MonitoringConfigurator(Configurator):
   """Controls hal config monitoring."""
 
   def init_argument_parser(self, parser):
@@ -905,49 +992,15 @@ class MonitoringConfigurator(object):
                     ' --push-gateway {gateway}'
                     .format(gateway=options.monitoring_prometheus_gateway))
 
-  def add_files_to_upload(self, options, file_set):
-    """Implements interface."""
-    pass
 
-
-class NotificationConfigurator(object):
+class NotificationConfigurator(Configurator):
   """Controls hal config notification."""
-
-  def init_argument_parser(self, parser):
-    """Implements interface."""
-    pass
-
-  def validate_options(self, options):
-    """Implements interface."""
-    pass
-
-  def add_config(self, options, script):
-    """Implements interface."""
-    pass
-
-  def add_files_to_upload(self, options, file_set):
-    """Implements interface."""
-    pass
+  pass
 
 
-class SecurityConfigurator(object):
+class SecurityConfigurator(Configurator):
   """Controls hal config security."""
-
-  def init_argument_parser(self, parser):
-    """Implements interface."""
-    pass
-
-  def validate_options(self, options):
-    """Implements interface."""
-    pass
-
-  def add_config(self, options, script):
-    """Implements interface."""
-    pass
-
-  def add_files_to_upload(self, options, file_set):
-    """Implements interface."""
-    pass
+  pass
 
 
 CONFIGURATOR_LIST = [
@@ -957,6 +1010,7 @@ CONFIGURATOR_LIST = [
     AppengineConfigurator(),
     AzureConfigurator(),
     DockerConfigurator(),
+    DcosConfigurator(),  # Hal requires docker config first.
     GoogleConfigurator(),
     KubernetesConfigurator(),
     JenkinsConfigurator(),
