@@ -71,6 +71,16 @@ public class S3StorageService implements StorageService {
           log.info("Creating bucket " + bucket + " in region " + region + "...");
           amazonS3.createBucket(bucket, region);
         }
+
+        log.info("Enabling versioning of the S3 bucket " + bucket);
+        BucketVersioningConfiguration configuration =
+            new BucketVersioningConfiguration().withStatus("Enabled");
+
+        SetBucketVersioningConfigurationRequest setBucketVersioningConfigurationRequest =
+            new SetBucketVersioningConfigurationRequest(bucket, configuration);
+
+        amazonS3.setBucketVersioningConfiguration(setBucketVersioningConfigurationRequest);
+
       } else {
         throw e;
       }
