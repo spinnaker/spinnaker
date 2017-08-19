@@ -88,28 +88,24 @@ abstract class AbstractInstancesCheckTask extends AbstractCloudProviderAwareTask
   @Override
   TaskResult execute(Stage stage) {
     String account = getCredentials(stage)
-    Map<String, List<String>> serverGroups = getServerGroups(stage)
+    Map<String, List<String>> serverGroupsByRegion = getServerGroups(stage)
 
-    if (!serverGroups || !serverGroups?.values()?.flatten()) {
+    if (!serverGroupsByRegion || !serverGroupsByRegion?.values()?.flatten()) {
       return new TaskResult(ExecutionStatus.TERMINAL)
     }
-    Names names = Names.parseName(serverGroups.values().flatten()[0])
-    try {
-      def response = oortService.getCluster(names.app, account, names.cluster, getCloudProvider(stage))
 
-      if (response.status != 200) {
+    try {
+      def serverGroups = fetchServerGroups(account, getCloudProvider(stage), serverGroupsByRegion)
+      if (!serverGroups) {
         return new TaskResult(ExecutionStatus.RUNNING)
       }
-      def cluster = objectMapper.readValue(response.body.in().text, Map)
-      if (!cluster || !cluster.serverGroups) {
-        return new TaskResult(ExecutionStatus.RUNNING)
-      }
-      Map<String, Boolean> seenServerGroup = serverGroups.values().flatten().collectEntries { [(it): false] }
-      for (Map serverGroup in cluster.serverGroups) {
+
+      Map<String, Boolean> seenServerGroup = serverGroupsByRegion.values().flatten().collectEntries { [(it): false] }
+      for (Map serverGroup in serverGroups) {
         String region = serverGroup.region
         String name = serverGroup.name
 
-        def matches = serverGroups.find { String sgRegion, List<String> sgName ->
+        def matches = serverGroupsByRegion.find { String sgRegion, List<String> sgName ->
           return region == sgRegion && sgName.contains(name)
         }
         if (!matches) {
@@ -196,6 +192,21 @@ abstract class AbstractInstancesCheckTask extends AbstractCloudProviderAwareTask
           throw new MissingServerGroupException("Server group '${region}:${it}' does not exist")
         }
       }
+    }
+  }
+
+  private List<Map> fetchServerGroups(String account, String cloudProvider, Map<String, List<String>> serverGroupsByRegion) {
+    Names names = Names.parseName(serverGroupsByRegion.values().flatten()[0])
+
+    if (serverGroupsByRegion.values().flatten().size() > 1) {
+      def response = oortService.getCluster(names.app, account, names.cluster, cloudProvider)
+      def cluster = objectMapper.readValue(response.body.in().text, Map)
+      return cluster.serverGroups ?: []
+    } else {
+      def region = serverGroupsByRegion.keySet()[0]
+      def response = oortService.getServerGroup(names.app, account, region, names.group)
+      def serverGroup = objectMapper.readValue(response.body.in().text, Map)
+      return [serverGroup]
     }
   }
 

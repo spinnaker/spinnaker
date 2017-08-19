@@ -45,31 +45,26 @@ class WaitForAllNetflixAWSInstancesDownTaskSpec extends Specification {
 
   def mapper = OrcaObjectMapper.newInstance()
 
-  void "should check cluster to get server groups"() {
+  void "should fetch server group"() {
     given:
     def pipeline = new Pipeline()
     task.objectMapper = mapper
     def response = mapper.writeValueAsString([
-      name        : "front50",
-      serverGroups: [
+      region   : "us-west-1",
+      name     : "front50-v000",
+      asg      : [
+        minSize: 1
+      ],
+      instances: [
         [
-          region   : "us-west-1",
-          name     : "front50-v000",
-          asg      : [
-            minSize: 1
-          ],
-          instances: [
-            [
-              health: [ [ state : "Down"] ]
-            ]
-          ]
+          health: [[state: "Down"]]
         ]
       ]
     ])
 
 
     task.oortService = Stub(OortService) {
-      getCluster(*_) >> new Response('oort', 200, 'ok', [], new TypedString(response))
+      getServerGroup(*_) >> new Response('oort', 200, 'ok', [], new TypedString(response))
     }
 
     and:

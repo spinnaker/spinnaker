@@ -42,7 +42,7 @@ class WaitForNewUpInstancesLaunchTask implements RetryableTask {
   @Override
   TaskResult execute(Stage stage) {
     StageData stageData = stage.mapTo(StageData)
-    def response = oortService.getServerGroup(stageData.application, stageData.account, stageData.cluster, stage.context.asgName as String, stage.context.region as String, stageData.cloudProvider ?: 'aws' )
+    def response = oortService.getServerGroupFromCluster(stageData.application, stageData.account, stageData.cluster, stage.context.asgName as String, stage.context.region as String, stageData.cloudProvider ?: 'aws' )
 
     Map serverGroup = objectMapper.readValue(response.body.in(), Map)
 

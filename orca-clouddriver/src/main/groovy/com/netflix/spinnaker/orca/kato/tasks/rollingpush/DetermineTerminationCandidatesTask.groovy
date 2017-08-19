@@ -37,7 +37,7 @@ class DetermineTerminationCandidatesTask implements Task {
   @Override
   TaskResult execute(Stage stage) {
     def stageData = stage.mapTo(StageData)
-    def response = oortService.getServerGroup(stageData.application, stageData.account, stageData.cluster, stage.context.asgName, stage.context.region, stage.context.cloudProvider ?: 'aws')
+    def response = oortService.getServerGroupFromCluster(stageData.application, stageData.account, stageData.cluster, stage.context.asgName, stage.context.region, stage.context.cloudProvider ?: 'aws')
     def serverGroup = objectMapper.readValue(response.body.in(), Map)
     boolean ascending = stage.context.termination?.order != 'newest'
     def serverGroupInstances = serverGroup.instances.sort { ascending ? it.launchTime : -it.launchTime }

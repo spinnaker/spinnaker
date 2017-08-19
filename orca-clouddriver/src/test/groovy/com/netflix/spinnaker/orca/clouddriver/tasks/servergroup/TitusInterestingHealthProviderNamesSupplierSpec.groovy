@@ -64,7 +64,7 @@ class TitusInterestingHealthProviderNamesSupplierSpec extends Specification {
     ])
 
     and:
-    1 * oortService.getServerGroup(*_) >> new Response('oort', 200, 'ok', [], new TypedString(response))
+    1 * oortService.getServerGroupFromCluster(*_) >> new Response('oort', 200, 'ok', [], new TypedString(response))
 
     when:
     def interestingHealthProviderNames = titusInterestingHealthProviderNamesSupplier.process("titus", stage)

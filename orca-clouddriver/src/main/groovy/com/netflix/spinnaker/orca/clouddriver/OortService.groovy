@@ -31,12 +31,18 @@ interface OortService {
                       @Path("cloudProvider") String cloudProvider)
 
   @GET("/applications/{app}/clusters/{account}/{cluster}/{cloudProvider}/serverGroups/{serverGroup}")
+  Response getServerGroupFromCluster(@Path("app") String app,
+                                     @Path("account") String account,
+                                     @Path("cluster") String cluster,
+                                     @Path("serverGroup") String serverGroup,
+                                     @Query("region") String region,
+                                     @Path("cloudProvider") String cloudProvider)
+
+  @GET("/applications/{app}/serverGroups/{account}/{region}/{serverGroup}")
   Response getServerGroup(@Path("app") String app,
-                          @Path("account") String account,
-                          @Path("cluster") String cluster,
-                          @Path("serverGroup") String serverGroup,
-                          @Query("region") String region,
-                          @Path("cloudProvider") String cloudProvider)
+                     @Path("account") String account,
+                     @Path("region") String region,
+                     @Path("serverGroup") String serverGroup)
 
   @GET("/applications/{app}/clusters/{account}/{cluster}/{cloudProvider}/{scope}/serverGroups/target/{target}")
   Response getTargetServerGroup(@Path("app") String app,

@@ -61,7 +61,7 @@ public class CleanUpTagsTask extends AbstractCloudProviderAwareTask implements R
       Names name = Names.parseName(serverGroupName);
       String cloudProvider = getCloudProvider(stage);
 
-      Response serverGroupResponse = oortService.getServerGroup(
+      Response serverGroupResponse = oortService.getServerGroupFromCluster(
         name.getApp(),
         source.getAccount(),
         name.getCluster(),

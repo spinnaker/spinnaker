@@ -47,7 +47,7 @@ class WaitForUpInstancesTaskSpec extends Specification {
           serverGroups: [
             [
               region   : "us-east-1",
-              name     : "front50-v000",
+              name     : "front50-v001",
               asg      : [
                 desiredCapacity: 1
               ],
@@ -105,7 +105,7 @@ class WaitForUpInstancesTaskSpec extends Specification {
     def stage = new Stage<>(pipeline, "whatever", [
       "account.name"                  : "test",
       "targetop.asg.enableAsg.name"   : "front50-v000",
-      "targetop.asg.enableAsg.regions": ["us-west-1"]
+      "targetop.asg.enableAsg.regions": ["us-west-1", "us-east-1"]
     ])
 
     expect:

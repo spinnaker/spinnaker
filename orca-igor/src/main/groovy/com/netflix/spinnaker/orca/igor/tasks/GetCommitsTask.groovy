@@ -192,7 +192,7 @@ class GetCommitsTask implements DiffTask {
       }
 
       TypeReference<Map> jsonMapType = new TypeReference<Map>() {}
-      Map sourceServerGroup = objectMapper.readValue(oortService.getServerGroup(context.application,
+      Map sourceServerGroup = objectMapper.readValue(oortService.getServerGroupFromCluster(context.application,
         account, sourceCluster,
         ancestorAsg, region, "aws").body.in(), jsonMapType)
       return sourceServerGroup.launchConfig.imageId

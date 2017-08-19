@@ -60,7 +60,7 @@ class OortHelper {
                                                    String location,
                                                    String cloudProvider) {
     def name = Names.parseName(serverGroupName)
-    return convertedResponse(List) { oortService.getServerGroup(name.app, account, name.cluster, serverGroupName, null, cloudProvider) }
+    return convertedResponse(List) { oortService.getServerGroupFromCluster(name.app, account, name.cluster, serverGroupName, null, cloudProvider) }
     .map({ List<Map> serverGroups ->
       serverGroups.find {
         it.region == location || it.zones?.contains(location) || it.namespace == location

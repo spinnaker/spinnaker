@@ -221,7 +221,7 @@ class GetCommitsTaskSpec extends Specification {
     def oortResponse = "{\"launchConfig\" : {\"imageId\" : \"${sourceImage}\"}}".stripIndent()
     Response response = new Response('http://oort', 200, 'OK', [], new TypedString(oortResponse))
     task.oortService = oortService
-    serverGroupCalls * oortService.getServerGroup(app, account, cluster, serverGroup, region, "aws") >> response
+    serverGroupCalls * oortService.getServerGroupFromCluster(app, account, cluster, serverGroup, region, "aws") >> response
     List<Map> sourceResponse = [[ "tags": [ "appversion" : "myapp-1.143-h216.186605b/MYAPP-package-myapp/216" ]]]
     List<Map> targetResponse = [[ "tags": [ "appversion" : "myapp-1.144-h217.a86305d/MYAPP-package-myapp/217" ]]]
     oortCalls * oortService.getByAmiId("aws", account, region, sourceImage) >> sourceResponse
@@ -269,7 +269,7 @@ class GetCommitsTaskSpec extends Specification {
     List<Map> targetResponse = [[ "tags" : [ "appversion" : "myapp-1.144-h217.a86305d/MYAPP-package-myapp/217" ]]]
 
     task.oortService = oortService
-    1 * oortService.getServerGroup(app, account, cluster, serverGroup, region, "aws") >> response
+    1 * oortService.getServerGroupFromCluster(app, account, cluster, serverGroup, region, "aws") >> response
     1 * oortService.getByAmiId("aws", account, region, sourceImage) >> sourceResponse
     1 * oortService.getByAmiId("aws", account, region, targetImage) >> targetResponse
 
@@ -373,7 +373,7 @@ class GetCommitsTaskSpec extends Specification {
     def oortResponse = "{\"launchConfig\" : {\"imageId\" : \"${sourceImage}\"}}".stripIndent()
     Response response = new Response('http://oort', 200, 'OK', [], new TypedString(oortResponse))
     task.oortService = oortService
-    1 * oortService.getServerGroup(app, account, cluster, serverGroup, region, "aws") >> response
+    1 * oortService.getServerGroupFromCluster(app, account, cluster, serverGroup, region, "aws") >> response
     oortService.getByAmiId("aws", account, region, sourceImage) >> sourceTags
     oortService.getByAmiId("aws", account, region, targetImage) >> targetTags
 
@@ -425,7 +425,7 @@ class GetCommitsTaskSpec extends Specification {
     List<Map> sourceResponse = [[ "tags" : [ "appversion" : "myapp-1.143-h216.186605b/MYAPP-package-myapp/216" ]]]
     List<Map> targetResponse = [[ "tags" : [ "appversion" : "myapp-1.144-h217.a86305d/MYAPP-package-myapp/217" ]]]
     task.oortService = oortService
-    1 * oortService.getServerGroup(app, account, cluster, serverGroup, region, "aws") >>> response
+    1 * oortService.getServerGroupFromCluster(app, account, cluster, serverGroup, region, "aws") >>> response
 
     if(sourceThrowRetrofitError) {
       1 * oortService.getByAmiId("aws", account, region, sourceImage) >> {
@@ -494,7 +494,7 @@ class GetCommitsTaskSpec extends Specification {
     List<Map> sourceResponse = [[ "tags" : [ "appversion" : "myapp-1.143-h216.186605b/MYAPP-package-myapp/216" ]]]
     List<Map> targetResponse = [[ "tags" : [ "appversion" : "myapp-1.144-h217.a86305d/MYAPP-package-myapp/217" ]]]
     task.oortService = oortService
-    1 * oortService.getServerGroup(app, account, cluster, serverGroup, region, "aws") >> response
+    1 * oortService.getServerGroupFromCluster(app, account, cluster, serverGroup, region, "aws") >> response
     1 * oortService.getByAmiId("aws", account, region, sourceImage) >> sourceResponse
     1 * oortService.getByAmiId("aws", account, region, targetImage) >> targetResponse
 

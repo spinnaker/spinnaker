@@ -72,13 +72,15 @@ class CleanUpTagsTaskSpec extends Specification {
     List<Map> operations = []
     task.objectMapper = new ObjectMapper();
     task.oortService = Mock(OortService) {
-      1* getServerGroup("app","test", "app", "app-v00", "us-east-1", "aws") >> {
+      1* getServerGroupFromCluster("app","test", "app", "app-v00", "us-east-1", "aws") >> {
         oortResponse
       }
 
       1* getEntityTags("aws", "servergroup", "app-v00", "test", "us-east-1") >> {
         tags
       }
+
+      0 * _
     }
 
     task.katoService = Mock(KatoService) {

@@ -69,7 +69,7 @@ public class TitusInterestingHealthProviderNamesSupplier implements InterestingH
         StageData.Source source = sourceData.get();
         String serverGroupName =  source.getServerGroupName() != null ? source.getServerGroupName() : source.getAsgName();
 
-        Response response = oortService.getServerGroup(
+        Response response = oortService.getServerGroupFromCluster(
           stageData.getApplication(),
           source.getAccount(),
           stageData.getCluster(),

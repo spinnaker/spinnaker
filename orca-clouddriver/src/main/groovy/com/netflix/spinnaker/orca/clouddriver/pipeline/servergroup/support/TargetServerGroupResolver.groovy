@@ -79,12 +79,14 @@ class TargetServerGroupResolver {
 
   private TargetServerGroup resolveByServerGroupName(TargetServerGroup.Params params, Location location) {
     List<Map> tsgList = fetchWithRetries(List) {
-      oortService.getServerGroup(params.app,
+      oortService.getServerGroupFromCluster(
+        params.app,
         params.credentials,
         params.cluster,
         params.serverGroupName,
         null /* region */, // TODO(ttomsu): Add zonal support to this op.
-        params.cloudProvider)
+        params.cloudProvider
+      )
     }
     // Without zonal support in the getServerGroup call above, we have to do the filtering here.
     def tsg = tsgList?.find { Map tsg -> tsg.region == location.value || tsg.zones?.contains(location.value) || tsg.namespace == location.value }

@@ -87,23 +87,19 @@ class AbstractInstancesCheckTaskSpec extends Specification {
     task.execute(stage)
 
     then:
-    1 * task.oortService.getCluster("front50", "test", "front50", "aws") >> constructResponse(200, '''
+    1 * task.oortService.getServerGroup("front50", "test", "us-west-1", "front50-v000") >> constructResponse(200, '''
 {
-    "serverGroups": [
+    "name": "front50-v000",
+    "region": "us-west-1",
+    "asg": {
+        "minSize": 1
+    },
+    "capacity": {
+        "min": 1
+    },
+    "instances": [
         {
-            "name": "front50-v000",
-            "region": "us-west-1",
-            "asg": {
-                "minSize": 1
-            },
-            "capacity": {
-                "min": 1
-            },
-            "instances": [
-                {
-                    "name": "i-12345678"
-                }
-            ]
+            "name": "i-12345678"
         }
     ]
 }
@@ -137,25 +133,21 @@ class AbstractInstancesCheckTaskSpec extends Specification {
 
     then:
     result.stageOutputs.zeroDesiredCapacityCount == expected
-    1 * task.oortService.getCluster("front50", "test", "front50", "aws") >> constructResponse(200, '''
+    1 * task.oortService.getServerGroup("front50", "test", "us-west-1", "front50-v000") >> constructResponse(200, '''
 {
-    "serverGroups": [
+    "name": "front50-v000",
+    "region": "us-west-1",
+    "asg": {
+        "minSize": 1,
+        "desiredCapacity": ''' + desiredCapacity + '''
+    },
+    "capacity": {
+        "min": 1,
+        "desired": ''' + desiredCapacity + '''
+    },
+    "instances": [
         {
-            "name": "front50-v000",
-            "region": "us-west-1",
-            "asg": {
-                "minSize": 1,
-                "desiredCapacity": ''' + desiredCapacity + '''
-            },
-            "capacity": {
-                "min": 1,
-                "desired": ''' + desiredCapacity + '''
-            },
-            "instances": [
-                {
-                    "name": "i-12345678"
-                }
-            ]
+            "name": "i-12345678"
         }
     ]
 }
@@ -187,25 +179,21 @@ class AbstractInstancesCheckTaskSpec extends Specification {
 
     then:
     result.stageOutputs.zeroDesiredCapacityCount == 1
-    1 * task.oortService.getCluster("front50", "test", "front50", "aws") >> constructResponse(200, '''
+    1 * task.oortService.getServerGroup("front50", "test", "us-west-1", "front50-v000") >> constructResponse(200, '''
 {
-    "serverGroups": [
+    "name": "front50-v000",
+    "region": "us-west-1",
+    "asg": {
+        "minSize": 1,
+        "desiredCapacity": 0
+    },
+    "capacity": {
+        "min": 1,
+        "desired": 0
+    },
+    "instances": [
         {
-            "name": "front50-v000",
-            "region": "us-west-1",
-            "asg": {
-                "minSize": 1,
-                "desiredCapacity": 0
-            },
-            "capacity": {
-                "min": 1,
-                "desired": 0
-            },
-            "instances": [
-                {
-                    "name": "i-12345678"
-                }
-            ]
+            "name": "i-12345678"
         }
     ]
 }

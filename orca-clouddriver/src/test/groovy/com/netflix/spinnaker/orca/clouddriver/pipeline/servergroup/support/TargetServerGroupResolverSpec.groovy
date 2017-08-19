@@ -67,7 +67,7 @@ class TargetServerGroupResolverSpec extends Specification {
       ))
 
     then:
-      1 * oort.getServerGroup("test", "testCreds", "test-app", "test-app-v010", null, "gce") >>
+      1 * oort.getServerGroupFromCluster("test", "testCreds", "test-app", "test-app-v010", null, "gce") >>
         new Response("clouddriver", 200, 'ok', [], new TypedString(mapper.writeValueAsString([[
                                                                                                 name  : "test-app-v010",
                                                                                                 region: "north-pole",

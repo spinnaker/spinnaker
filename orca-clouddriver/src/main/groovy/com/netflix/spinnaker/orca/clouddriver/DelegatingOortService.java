@@ -36,8 +36,13 @@ public class DelegatingOortService
   }
 
   @Override
-  public Response getServerGroup(String app, String account, String cluster, String serverGroup, String region, String cloudProvider) {
-    return getService().getServerGroup(app, account, cluster, serverGroup, region, cloudProvider);
+  public Response getServerGroupFromCluster(String app, String account, String cluster, String serverGroup, String region, String cloudProvider) {
+    return getService().getServerGroupFromCluster(app, account, cluster, serverGroup, region, cloudProvider);
+  }
+
+  @Override
+  public Response getServerGroup(String app, String account, String region, String serverGroup) {
+    return getService().getServerGroup(app, account, region, serverGroup);
   }
 
   @Override

@@ -36,14 +36,11 @@ class WaitForRequiredInstancesDownTaskSpec extends Specification {
 
   def mapper = OrcaObjectMapper.newInstance()
 
-  void "should check cluster to get server groups"() {
+  void "should fetch server groups"() {
     given:
     def pipeline = new Pipeline()
     task.objectMapper = mapper
     def response = mapper.writeValueAsString([
-      name        : 'front50',
-      serverGroups: [
-        [
           region   : 'us-east-1',
           name     : 'front50-v000',
           asg      : [
@@ -54,12 +51,10 @@ class WaitForRequiredInstancesDownTaskSpec extends Specification {
               health: [[state: 'Down']]
             ]
           ]
-        ]
-      ]
-    ])
+      ])
 
     task.oortService = Stub(OortService) {
-      getCluster(*_) >> new Response('oort', 200, 'ok', [], new TypedString(response))
+      getServerGroup(*_) >> new Response('oort', 200, 'ok', [], new TypedString(response))
     }
     task.serverGroupCacheForceRefreshTask = Mock(ServerGroupCacheForceRefreshTask) {
       2 * execute(_) >> new TaskResult(ExecutionStatus.SUCCEEDED)
