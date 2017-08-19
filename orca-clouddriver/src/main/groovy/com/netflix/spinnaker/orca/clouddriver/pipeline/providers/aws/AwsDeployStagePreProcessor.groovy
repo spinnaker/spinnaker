@@ -52,6 +52,6 @@ class AwsDeployStagePreProcessor implements DeployStagePreProcessor {
   @Override
   boolean supports(Stage stage) {
     def stageData = stage.mapTo(StageData)
-    return stageData.useSourceCapacity && stageData.cloudProvider == "aws"
+    return stageData.useSourceCapacity && stageData.cloudProvider == "aws" && stageData.strategy != "rollingredblack"
   }
 }

@@ -4,6 +4,7 @@ import com.netflix.spinnaker.orca.clouddriver.pipeline.cluster.DisableClusterSta
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.ResizeServerGroupStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.DetermineTargetServerGroupStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup
+import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroupResolver
 import com.netflix.spinnaker.orca.kato.pipeline.support.SourceResolver
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
@@ -30,7 +31,7 @@ class RollingRedBlackStrategy implements Strategy, ApplicationContextAware {
   DetermineTargetServerGroupStage determineTargetServerGroupStage
 
   @Autowired
-  SourceResolver sourceResolver
+  TargetServerGroupResolver targetServerGroupResolver
 
   @Override
   <T extends Execution<T>> List<Stage<T>> composeFlow(Stage<T> stage) {
@@ -58,13 +59,19 @@ class RollingRedBlackStrategy implements Strategy, ApplicationContextAware {
       stage.context.targetSize = 0
     }
 
-    stage.context.originalCapacity = originalCapacity
+    if (stage.context.useSourceCapacity) {
+      List<TargetServerGroup> target = targetServerGroupResolver.resolve(new Stage(null, null, null, baseContext + [target: TargetServerGroup.Params.Target.current_asg_dynamic]))
+      if (target.size() > 0) {
+        originalCapacity = target.get(0).capacity
+      }
+      stage.context.useSourceCapacity = false
+    }
+
     stage.context.capacity = [
-        min: 0,
-        max: 0,
-        desired: 0
+      min    : 0,
+      max    : 0,
+      desired: 0
     ]
-    stage.context.useSourceCapacity = false
 
     def targetPercentages = stageData.getTargetPercentages()
     if (targetPercentages.size() == 0 || targetPercentages[-1] != 100) {
@@ -124,6 +131,11 @@ class RollingRedBlackStrategy implements Strategy, ApplicationContextAware {
   }
 
   private Map makeIncrementalCapacity(Map originalCapacity, Integer p) {
+
+    if (p == 100) {
+      return originalCapacity
+    }
+
     def desired = (Integer) originalCapacity.desired * (p / 100d)
     return [
         min: desired,
