@@ -26,6 +26,8 @@ import com.amazonaws.services.cloudwatch.AmazonCloudWatch;
 import com.amazonaws.services.cloudwatch.AmazonCloudWatchClientBuilder;
 import com.amazonaws.services.ec2.AmazonEC2;
 import com.amazonaws.services.ec2.AmazonEC2ClientBuilder;
+import com.amazonaws.services.ecs.AmazonECS;
+import com.amazonaws.services.ecs.AmazonECSClientBuilder;
 import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancing;
 import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancingClientBuilder;
 import com.amazonaws.services.identitymanagement.AmazonIdentityManagement;
@@ -275,6 +277,10 @@ public class AmazonClientProvider {
 
   public AmazonEC2 getAmazonEC2(String accountName, AWSCredentialsProvider awsCredentialsProvider, String region) {
     return awsSdkClientSupplier.getClient(AmazonEC2ClientBuilder.class, AmazonEC2.class, accountName, awsCredentialsProvider, region);
+  }
+
+  public AmazonECS getAmazonEcs(String accountName, AWSCredentialsProvider awsCredentialsProvider, String region) {
+    return awsSdkClientSupplier.getClient(AmazonECSClientBuilder.class, AmazonECS.class, accountName, awsCredentialsProvider, region);
   }
 
   public AWSLambda getAmazonLambda(NetflixAmazonCredentials amazonCredentials, String region) {
