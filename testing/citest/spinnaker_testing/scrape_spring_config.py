@@ -17,6 +17,7 @@
 import logging
 import re
 import time
+import socket
 import urllib2
 from json import JSONDecoder
 
@@ -75,11 +76,13 @@ def infer(json):
   return expr_dict
 
 
-def scrape_spring_config(url, timeout=60):
+def scrape_spring_config(url, timeout=60, empty_if_404=True):
   """Construct a config binding dictionary from a running instance's baseUrl.
 
   Args:
     url: The url to construct from.
+    empty_if_404: With spring boot 1.5.4 resovledEnv is not visible by default.
+                  If True then tolerate this treating a 404 as being empty.
 
   Raises:
     urlib2.URLError if url is bad.
@@ -91,19 +94,28 @@ def scrape_spring_config(url, timeout=60):
     try:
       response = urllib2.urlopen(request, timeout=min(10, timeout))
       break
-    except Exception as ex:
-      timeout = final_time - time.time()
-      if timeout <= 1:
-        logging.exception('Could not scrape config from url=%s: %s', url, ex)
-        raise
+    except socket.timeout as ex:
+      logging.info('Failed to scrape %s -- try again in 1s: %s', url, ex)
+      time.sleep(1)
+    except urllib2.HTTPError as ex:
+      if ex.code == 404:
+        logging.warning('Could not scrape config from url=%s: %s'
+                        '\n  Suppressing this error and returning empty results.',
+                        url, ex)
+        return {}
       else:
-        logging.info('Failed to scrape %s -- try again in 1s: %s', url, ex)
-        time.sleep(1)
+        logging.exception('Could not scrape config from url=%s: %s'
+                          '\n  Consider reconfiguring the server with: '
+                          ' management.security.enabled: false',
+                          url, ex)
+        raise
+    except urllib2.URLError as ex:
+      logging.exception('Could not scrape config from url=%s: %s', url, ex)
+      raise
 
   http_code = response.getcode()
   content = response.read()
   if http_code < 200 or http_code >= 300:
     raise ValueError('Invalid HTTP={code} from {url}:\n{msg}'.format(
         code=http_code, url=url, msg=content))
-  json = JSONDecoder().decode(content)
-  return json
+  return JSONDecoder().decode(content)

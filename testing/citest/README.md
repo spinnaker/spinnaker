@@ -144,10 +144,34 @@ it using `chmod 200`.
 
 # Running the tests
 
-The following parameters can be passed on the command-line using a flag
-`--`*<parameter_name>*`=`*<parameter_value>*.
+## Optional configuration for exposing deployment configuration
+
+Some configuration parameters in tests can be discovered from the runtime services
+rather than relying on manual flag passing. However doing so requires that the
+server security configuration be loosened up with the following configuration
+parameters which will expose the /resolvedEnv endpoint of microservices as well
+as prevent Spring from redacting the values of some sensitive values. While the
+tests do not rely on getting the senstive values from the server, they wind up
+getting exposed (and possibly logged) as collateral damage.
+
+Again, this particular configuration change is entirely optional.
+
+In spinnaker-local.yml, add the following:
+```
+management:
+  security:
+    enabled: false
+
+endpoints:
+  resolvedEnv:
+    keys-to-sanitize: password,secret,key,token
+```
+
 
 ## Standard Parameters For Talking To Spinnaker
+
+The following parameters can be passed on the command-line using a flag
+`--`*<parameter_name>*`=`*<parameter_value>*.
 
 ### Platform Independent Parameters
 Flag | Description

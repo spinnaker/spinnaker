@@ -64,7 +64,8 @@ class GoogleFront50TestScenario(sk.SpinnakerTestScenario):
     """Hook to initialize custom test bindings so journaling is scoped."""
     context = ExecutionContext()
     config = self.agent.deployed_config
-    enabled = config.get('spinnaker.gcs.enabled', None)
+    # If we're running this test and dont have a config, assume it is favorable.
+    enabled = config.get('spinnaker.gcs.enabled', True)
     if enabled == False:
       raise ValueError('spinnaker.gcs.enabled is not True')
     if not self.bindings['GCS_BUCKET'] and not config['spinnaker.gcs.bucket']:
