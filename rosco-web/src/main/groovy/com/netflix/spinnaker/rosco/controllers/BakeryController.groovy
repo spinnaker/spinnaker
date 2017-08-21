@@ -16,16 +16,17 @@
 
 package com.netflix.spinnaker.rosco.controllers
 
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.rosco.api.Bake
 import com.netflix.spinnaker.rosco.api.BakeOptions
 import com.netflix.spinnaker.rosco.api.BakeRequest
 import com.netflix.spinnaker.rosco.api.BakeStatus
 import com.netflix.spinnaker.rosco.jobs.BakeRecipe
+import com.netflix.spinnaker.rosco.jobs.JobExecutor
+import com.netflix.spinnaker.rosco.jobs.JobRequest
 import com.netflix.spinnaker.rosco.persistence.BakeStore
 import com.netflix.spinnaker.rosco.providers.CloudProviderBakeHandler
 import com.netflix.spinnaker.rosco.providers.registry.CloudProviderBakeHandlerRegistry
-import com.netflix.spinnaker.rosco.jobs.JobExecutor
-import com.netflix.spinnaker.rosco.jobs.JobRequest
 import groovy.transform.InheritConstructors
 import groovy.util.logging.Slf4j
 import io.swagger.annotations.ApiOperation
@@ -33,15 +34,7 @@ import io.swagger.annotations.ApiParam
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
-import org.springframework.web.bind.annotation.ExceptionHandler
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestMethod
-import org.springframework.web.bind.annotation.RequestParam
-import org.springframework.web.bind.annotation.ResponseStatus
-import org.springframework.web.bind.annotation.RestController
-import com.netflix.spectator.api.Registry
+import org.springframework.web.bind.annotation.*
 
 import java.util.concurrent.TimeUnit
 
@@ -244,29 +237,14 @@ class BakeryController {
     throw new IllegalArgumentException("Unable to retrieve bake details for '$bakeId'.")
   }
 
-  // TODO(duftler): Synchronize this with existing bakery api.
-  @RequestMapping(value = "/api/v1/{region}/logs/{statusId}", method = RequestMethod.GET)
-  String lookupLogs(@PathVariable("region") String region,
-                    @PathVariable("statusId") String statusId,
-                    @RequestParam(value = "html", defaultValue = "false") Boolean html) {
-    Map logsContentMap = bakeStore.retrieveBakeLogsById(statusId)
-
-    if (logsContentMap?.logsContent) {
-      return html ? "<pre>$logsContentMap.logsContent</pre>" : logsContentMap.logsContent
-    }
-
-    throw new IllegalArgumentException("Unable to retrieve logs for '$statusId'.")
-  }
-
   @RequestMapping(value = "/api/v1/{region}/logs/{statusId}", produces = ["application/json"], method = RequestMethod.GET)
-  Map lookupLogsJson(@PathVariable("region") String region,
-                     @PathVariable("statusId") String statusId) {
+  Map lookupLogs(@PathVariable("region") String region, @PathVariable("statusId") String statusId) {
     Map logsContentMap = bakeStore.retrieveBakeLogsById(statusId)
 
     if (logsContentMap?.logsContent) {
       return logsContentMap
     } else {
-      throw new LogsNotFoundException()
+      throw new LogsNotFoundException("Unable to retrieve logs for '$statusId'.")
     }
   }
 

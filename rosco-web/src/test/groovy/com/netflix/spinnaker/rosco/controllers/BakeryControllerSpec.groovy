@@ -122,7 +122,7 @@ class BakeryControllerSpec extends Specification {
       1 * jobExecutorMock.updateJob(JOB_ID) >> failedBakeStatus
       IllegalArgumentException e = thrown()
       e.message == "Some kind of failure..."
-      registry.counter(registry.createId("bakesRequested", [flavor: "plain"])).count() == 1     
+      registry.counter(registry.createId("bakesRequested", [flavor: "plain"])).count() == 1
       registry.counters().toArray().length == 1
   }
 
@@ -531,11 +531,11 @@ class BakeryControllerSpec extends Specification {
       def bakeryController = new BakeryController(bakeStore: bakeStoreMock)
 
     when:
-      def response = bakeryController.lookupLogs(REGION, JOB_ID, false)
+      def response = bakeryController.lookupLogs(REGION, JOB_ID)
 
     then:
       1 * bakeStoreMock.retrieveBakeLogsById(JOB_ID) >> [logsContent: LOGS_CONTENT]
-      response == LOGS_CONTENT
+      response == [logsContent: LOGS_CONTENT]
   }
 
   void 'lookup logs throws exception when job logs are empty or malformed'() {
@@ -546,15 +546,15 @@ class BakeryControllerSpec extends Specification {
       def bakeryController = new BakeryController(bakeStore: bakeStoreMock)
 
     when:
-      bakeryController.lookupLogs(REGION, JOB_ID, false)
+      bakeryController.lookupLogs(REGION, JOB_ID)
 
     then:
       1 * bakeStoreMock.retrieveBakeLogsById(JOB_ID) >> null
-      IllegalArgumentException e = thrown()
+      BakeryController.LogsNotFoundException e = thrown()
       e.message == "Unable to retrieve logs for '123'."
 
     when:
-      bakeryController.lookupLogs(REGION, JOB_ID, false)
+      bakeryController.lookupLogs(REGION, JOB_ID)
 
     then:
       1 * bakeStoreMock.retrieveBakeLogsById(JOB_ID) >> [:]
@@ -562,7 +562,7 @@ class BakeryControllerSpec extends Specification {
       e.message == "Unable to retrieve logs for '123'."
 
     when:
-      bakeryController.lookupLogs(REGION, JOB_ID, false)
+      bakeryController.lookupLogs(REGION, JOB_ID)
 
     then:
       1 * bakeStoreMock.retrieveBakeLogsById(JOB_ID) >> [logsContent: null]
@@ -570,7 +570,7 @@ class BakeryControllerSpec extends Specification {
       e.message == "Unable to retrieve logs for '123'."
 
     when:
-      bakeryController.lookupLogs(REGION, JOB_ID, false)
+      bakeryController.lookupLogs(REGION, JOB_ID)
 
     then:
       1 * bakeStoreMock.retrieveBakeLogsById(JOB_ID) >> [logsContent: '']
