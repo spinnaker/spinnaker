@@ -27,6 +27,7 @@ build/
 dist/
 lib/
 transpiled/
+app/scripts/modules/core/src/styleguide/src/public/
 
 # Test Results
 test-results.xml

@@ -29,6 +29,7 @@ export interface IExecutionProps {
   standalone?: boolean;
   title?: string;
   dataSourceKey?: string;
+  showAccountLabels?: boolean;
 }
 
 export interface IExecutionState {
@@ -296,7 +297,8 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
         <div className={`execution-overview group-by-${this.state.sortFilter.groupBy}`}>
           { this.props.title && (
             <h4 className="execution-name">
-             {this.props.title}
+              {this.props.showAccountLabels && accountLabels}
+              {this.props.title}
             </h4>
           )}
           { showExecutionName && (

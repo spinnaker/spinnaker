@@ -117,7 +117,7 @@ export class ManualJudgmentApproval extends React.Component<IManualJudgmentAppro
                 { this.isSubmitting('continue') && (
                   <ButtonBusyIndicator/>
                 )}
-                Continue
+                {stage.context.continueButtonLabel || 'Continue'}
               </button>
               <button
                 className="btn btn-danger"
@@ -127,7 +127,7 @@ export class ManualJudgmentApproval extends React.Component<IManualJudgmentAppro
                 { this.isSubmitting('stop') && (
                   <ButtonBusyIndicator/>
                 )}
-                Stop
+                {stage.context.stopButtonLabel || 'Stop'}
               </button>
             </div>
           </div>
