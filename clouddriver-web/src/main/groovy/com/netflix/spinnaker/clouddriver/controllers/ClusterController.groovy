@@ -50,6 +50,9 @@ class ClusterController {
   @Autowired
   RequestQueue requestQueue
 
+  @Autowired
+  ServerGroupController serverGroupController
+
   @PreAuthorize("@fiatPermissionEvaluator.storeWholePermission() and hasPermission(#application, 'APPLICATION', 'READ')")
   @PostAuthorize("@authorizationSupport.filterForAccounts(returnObject)")
   @RequestMapping(method = RequestMethod.GET)
@@ -139,13 +142,28 @@ class ClusterController {
                      @PathVariable String clusterName,
                      @PathVariable String type,
                      @PathVariable String serverGroupName,
-                     @RequestParam(value = "region", required = false) String region,
-                     @RequestParam(value = "health", required = false) Boolean health) {
+                     @RequestParam(value = "region", required = false) String region) {
+    def notFound = new NotFoundException("Server group not found (account: ${account}, name: ${serverGroupName}, type: ${type})")
+
+    if (!serverGroupName.toLowerCase().startsWith(clusterName.toLowerCase())) {
+      throw notFound
+    }
+
+    if (region) {
+      // if region is supplied,
+      def serverGroup = serverGroupController.getServerGroup(application, account, region, serverGroupName)
+      if (serverGroup.getCloudProvider() != type) {
+        throw notFound
+      }
+
+      return serverGroup
+    }
+
     def serverGroups = getServerGroups(application, account, clusterName, type, region).findAll {
       region ? it.name == serverGroupName && it.region == region : it.name == serverGroupName
     }
     if (!serverGroups) {
-      throw new NotFoundException("Server group not found (account: ${account}, name: ${serverGroupName}, type: ${type})")
+      throw notFound
     }
     region ? serverGroups?.getAt(0) : serverGroups
   }

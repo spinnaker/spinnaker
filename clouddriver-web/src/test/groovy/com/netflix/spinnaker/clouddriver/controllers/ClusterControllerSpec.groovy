@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.controllers
 
+import com.netflix.spinnaker.clouddriver.aws.model.AmazonServerGroup
 import com.netflix.spinnaker.clouddriver.model.Application
 import com.netflix.spinnaker.clouddriver.model.ApplicationProvider
 import com.netflix.spinnaker.clouddriver.model.Cluster
@@ -81,10 +82,10 @@ class ClusterControllerSpec extends Specification {
       def clusterProvider1 = Mock(ClusterProvider)
       clusterController.clusterProviders = [clusterProvider1]
       def serverGroup = Mock(ServerGroup)
-      serverGroup.getName() >> "serverGroupName"
+      serverGroup.getName() >> "clusterName-v001"
 
     when:
-      def result = clusterController.getServerGroup("app", "account", "clusterName", "type", "serverGroupName", null, null)
+      def result = clusterController.getServerGroup("app", "account", "clusterName", "type", "clusterName-v001", null)
 
     then:
       1 * clusterProvider1.getCluster(_, _, _) >> {
@@ -94,6 +95,29 @@ class ClusterControllerSpec extends Specification {
         cluster
       }
       result == [serverGroup] as Set
+  }
+
+  void "should delegate to ServerGroupController when region is provided"() {
+    given:
+    def serverGroupController = Mock(ServerGroupController)
+    clusterController.serverGroupController = serverGroupController
+
+    and:
+    def serverGroup = new AmazonServerGroup(type: "aws")
+
+    when:
+    def result = clusterController.getServerGroup("app", "test", "mycluster", "aws", "mycluster-v001", "us-west-2")
+
+    then:
+    1 * serverGroupController.getServerGroup("app", "test", "us-west-2", "mycluster-v001") >> { return serverGroup }
+    result == serverGroup
+
+    when:
+    clusterController.getServerGroup("app", "test", "mycluster", "google", "mycluster-v001", "us-west-2")
+
+    then:
+    1 * serverGroupController.getServerGroup("app", "test", "us-west-2", "mycluster-v001") >> { return serverGroup }
+    thrown(NotFoundException)
   }
 
   void "should throw exception when no clusters are found for an account"() {
