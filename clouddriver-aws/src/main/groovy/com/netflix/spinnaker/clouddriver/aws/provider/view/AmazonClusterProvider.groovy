@@ -146,7 +146,7 @@ class AmazonClusterProvider implements ClusterProvider<AmazonCluster> {
       targetGroups = translateTargetGroups(allTargetGroups)
       serverGroups = translateServerGroups(allServerGroups)
     } else {
-      Collection<CacheData> allServerGroups = resolveRelationshipDataForCollection(clusterData, SERVER_GROUPS.ns, RelationshipCacheFilter.include(LAUNCH_CONFIGS.ns))
+      Collection<CacheData> allServerGroups = resolveRelationshipDataForCollection(clusterData, SERVER_GROUPS.ns, RelationshipCacheFilter.none())
       serverGroups = translateServerGroups(allServerGroups)
     }
 
