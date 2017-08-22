@@ -45,10 +45,6 @@ public class PrometheusCanaryScopeFactory implements CanaryScopeFactory {
     prometheusCanaryScope.setIntervalEndTimeIso(endTimeInstant + "");
     prometheusCanaryScope.setStep(step);
 
-    if (extendedScopeParams != null && extendedScopeParams.containsKey("type")) {
-      prometheusCanaryScope.setType(extendedScopeParams.get("type"));
-    }
-
     return prometheusCanaryScope;
   }
 }

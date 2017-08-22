@@ -29,9 +29,6 @@ import javax.validation.constraints.NotNull;
 public class PrometheusCanaryScope extends CanaryScope {
 
   @NotNull
-  private String type;
-
-  @NotNull
   private String intervalStartTimeIso;
 
   @NotNull
