@@ -19,7 +19,6 @@ package com.netflix.spinnaker.clouddriver.kubernetes.deploy.validators.servergro
 import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesOperation
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.EnableDisableKubernetesAtomicOperationDescription
-import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesServerGroupDescription
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.validators.StandardKubernetesAttributeValidator
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider

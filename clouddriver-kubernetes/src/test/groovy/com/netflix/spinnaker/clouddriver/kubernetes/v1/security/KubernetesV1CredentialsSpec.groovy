@@ -1,28 +1,30 @@
 /*
- * Copyright 2016 Netflix, Inc.
+ * Copyright 2017 Google, Inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License")
+ * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 
-package com.netflix.spinnaker.clouddriver.kubernetes.security
+package com.netflix.spinnaker.clouddriver.kubernetes.v1.security
 
 import com.netflix.spinnaker.clouddriver.docker.registry.security.DockerRegistryNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.kubernetes.api.KubernetesApiAdaptor
 import com.netflix.spinnaker.clouddriver.kubernetes.config.LinkedDockerRegistryConfiguration
+import com.netflix.spinnaker.clouddriver.kubernetes.v1.security.KubernetesV1Credentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import spock.lang.Specification
 
-class KubernetesCredentialsSpec extends Specification {
+class KubernetesV1CredentialsSpec extends Specification {
   List<String> NAMESPACES1 = ['default', 'kube-system']
   List<String> NAMESPACES2 = ['default', 'spacename']
 
@@ -60,7 +62,7 @@ class KubernetesCredentialsSpec extends Specification {
     repositoryMock.getOne(ACCOUNT1) >> registryAccountMock
 
     when:
-    def result = new KubernetesCredentials(adaptorMock, NAMESPACES1, [], REGISTRIES1, repositoryMock)
+    def result = new KubernetesV1Credentials(adaptorMock, NAMESPACES1, [], REGISTRIES1, repositoryMock)
 
     then:
     result.getNamespaces() == NAMESPACES1
@@ -77,7 +79,7 @@ class KubernetesCredentialsSpec extends Specification {
     repositoryMock.getOne(ACCOUNT1) >> registryAccountMock
 
     when:
-    def result = new KubernetesCredentials(adaptorMock, null, [], REGISTRIES2, repositoryMock)
+    def result = new KubernetesV1Credentials(adaptorMock, null, [], REGISTRIES2, repositoryMock)
 
     then:
     result.getNamespaces() == NAMESPACES2
@@ -94,7 +96,7 @@ class KubernetesCredentialsSpec extends Specification {
     repositoryMock.getOne(ACCOUNT1) >> registryAccountMock
 
     when:
-    def result = new KubernetesCredentials(adaptorMock, null, NAMESPACES2, REGISTRIES2, repositoryMock)
+    def result = new KubernetesV1Credentials(adaptorMock, null, NAMESPACES2, REGISTRIES2, repositoryMock)
 
     then:
     result.getNamespaces() == []
@@ -111,7 +113,7 @@ class KubernetesCredentialsSpec extends Specification {
     repositoryMock.getOne(ACCOUNT1) >> registryAccountMock
 
     when:
-    def result = new KubernetesCredentials(adaptorMock, null, [], REGISTRIES1, repositoryMock)
+    def result = new KubernetesV1Credentials(adaptorMock, null, [], REGISTRIES1, repositoryMock)
 
     then:
     result.getNamespaces() == NAMESPACES2
@@ -129,7 +131,7 @@ class KubernetesCredentialsSpec extends Specification {
     repositoryMock.getOne(ACCOUNT1) >> registryAccountMock
 
     when:
-    def namespaces = new KubernetesCredentials(adaptorMock, null, [], REGISTRIES1, repositoryMock).getNamespaces()
+    def namespaces = new KubernetesV1Credentials(adaptorMock, null, [], REGISTRIES1, repositoryMock).getNamespaces()
 
     then:
     namespaces == []

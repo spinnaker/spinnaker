@@ -18,14 +18,11 @@ package com.netflix.spinnaker.clouddriver.kubernetes.provider.agent
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.Registry
-import com.netflix.spinnaker.cats.agent.CacheResult
 import com.netflix.spinnaker.cats.provider.ProviderCache
-import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider
 import com.netflix.spinnaker.clouddriver.kubernetes.api.KubernetesApiAdaptor
 import com.netflix.spinnaker.clouddriver.kubernetes.cache.Keys
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.KubernetesUtil
-import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials
-import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentialsInitializer
+import com.netflix.spinnaker.clouddriver.kubernetes.v1.security.KubernetesV1Credentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import io.fabric8.kubernetes.api.model.ObjectMeta
 import io.fabric8.kubernetes.api.model.PodList
@@ -47,7 +44,7 @@ class KubernetesServerGroupCachingAgentSpec extends Specification {
   PodList podList
   KubernetesApiAdaptor apiMock
   Registry registryMock
-  KubernetesCredentials kubernetesCredentials
+  KubernetesV1Credentials kubernetesCredentials
 
   String applicationKey
   String clusterKey
@@ -67,7 +64,7 @@ class KubernetesServerGroupCachingAgentSpec extends Specification {
 
     def accountCredentialsRepositoryMock = Mock(AccountCredentialsRepository)
 
-    kubernetesCredentials = new KubernetesCredentials(apiMock, [], [], [], accountCredentialsRepositoryMock)
+    kubernetesCredentials = new KubernetesV1Credentials(apiMock, [], [], [], accountCredentialsRepositoryMock)
 
     applicationKey = Keys.getApplicationKey(APP)
     clusterKey = Keys.getClusterKey(ACCOUNT_NAME, APP, 'serverGroup', CLUSTER)

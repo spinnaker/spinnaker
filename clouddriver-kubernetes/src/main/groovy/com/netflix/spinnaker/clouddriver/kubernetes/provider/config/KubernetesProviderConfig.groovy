@@ -22,6 +22,7 @@ import com.netflix.spinnaker.cats.agent.Agent
 import com.netflix.spinnaker.cats.provider.ProviderSynchronizerTypeWrapper
 import com.netflix.spinnaker.cats.thread.NamedThreadFactory
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider
+import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesProviderVersion
 import com.netflix.spinnaker.clouddriver.kubernetes.provider.KubernetesProvider
 import com.netflix.spinnaker.clouddriver.kubernetes.provider.agent.*
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials
@@ -72,7 +73,7 @@ class KubernetesProviderConfig implements Runnable {
 
   @Override
   void run() {
-    synchronizeKubernetesProvider(kubernetesProvider, kubernetesCloudProvider, accountCredentialsRepository, objectMapper, registry)
+    synchronizeKubernetesProvider(kubernetesProvider, accountCredentialsRepository, objectMapper, registry)
   }
 
   class KubernetesProviderSynchronizerTypeWrapper implements ProviderSynchronizerTypeWrapper {
@@ -87,7 +88,6 @@ class KubernetesProviderConfig implements Runnable {
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
   @Bean
   KubernetesProviderSynchronizer synchronizeKubernetesProvider(KubernetesProvider kubernetesProvider,
-                                                               KubernetesCloudProvider kubernetesCloudProvider,
                                                                AccountCredentialsRepository accountCredentialsRepository,
                                                                ObjectMapper objectMapper,
                                                                Registry registry) {
@@ -96,8 +96,11 @@ class KubernetesProviderConfig implements Runnable {
     kubernetesProvider.agents.clear()
 
     allAccounts.each { KubernetesNamedAccountCredentials credentials ->
-      def newlyAddedAgents = []
+      if (credentials.providerVersion == KubernetesProviderVersion.v2) {
+        return
+      }
 
+      def newlyAddedAgents = []
       (0..<credentials.cacheThreads).each { int index ->
         newlyAddedAgents << new KubernetesLoadBalancerCachingAgent(credentials.name, credentials.credentials, objectMapper, index, credentials.cacheThreads, registry)
         newlyAddedAgents << new KubernetesSecurityGroupCachingAgent(credentials.name, credentials.credentials, objectMapper, index, credentials.cacheThreads, registry)

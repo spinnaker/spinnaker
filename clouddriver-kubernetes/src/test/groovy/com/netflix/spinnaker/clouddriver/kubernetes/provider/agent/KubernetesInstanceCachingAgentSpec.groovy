@@ -20,7 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.kubernetes.api.KubernetesApiAdaptor
 import com.netflix.spinnaker.clouddriver.kubernetes.cache.Keys
-import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials
+import com.netflix.spinnaker.clouddriver.kubernetes.v1.security.KubernetesV1Credentials
 import io.fabric8.kubernetes.api.model.ObjectMeta
 import io.fabric8.kubernetes.api.model.Pod
 import io.fabric8.kubernetes.api.model.PodSpec
@@ -32,14 +32,14 @@ class KubernetesInstanceCachingAgentSpec extends Specification {
   static final String namespace = "namespace"
   static final ObjectMapper mapper = new ObjectMapper()
 
-  KubernetesCredentials credentials
+  KubernetesV1Credentials credentials
   KubernetesApiAdaptor apiAdaptor
   ProviderCache providerCache
   KubernetesInstanceCachingAgent agent
 
   def setup() {
     apiAdaptor = Mock(KubernetesApiAdaptor)
-    credentials = Mock(KubernetesCredentials) {
+    credentials = Mock(KubernetesV1Credentials) {
       getApiAdaptor() >> apiAdaptor
     }
     providerCache = Mock(ProviderCache)

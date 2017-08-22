@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.deploy.validators
 
-import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials
+import com.netflix.spinnaker.clouddriver.kubernetes.v1.security.KubernetesV1Credentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import org.apache.http.conn.util.InetAddressUtils
 import org.springframework.validation.Errors
@@ -174,7 +174,7 @@ class StandardKubernetesAttributeValidator {
     }
   }
 
-  def validateImagePullSecret(KubernetesCredentials credentials, String value, String namespace, String attribute) {
+  def validateImagePullSecret(KubernetesV1Credentials credentials, String value, String namespace, String attribute) {
     if (!credentials.isRegisteredImagePullSecret(value, namespace)) {
       errors.rejectValue("${context}.${attribute}", "${context}.${attribute}.notRegistered")
       return false
@@ -182,7 +182,7 @@ class StandardKubernetesAttributeValidator {
     return validateByRegex(value, attribute, namePattern)
   }
 
-  def validateNamespace(KubernetesCredentials credentials, String value, String attribute) {
+  def validateNamespace(KubernetesV1Credentials credentials, String value, String attribute) {
     // Namespace is optional, empty taken to mean 'default'.
     if (!value) {
       return true
@@ -210,7 +210,7 @@ class StandardKubernetesAttributeValidator {
     def result = validateNotEmpty(credentials, "account")
     if (result) {
       def kubernetesCredentials = accountCredentialsProvider.getCredentials(credentials)
-      if (!(kubernetesCredentials?.credentials instanceof KubernetesCredentials)) {
+      if (!(kubernetesCredentials?.credentials instanceof KubernetesV1Credentials)) {
         errors.rejectValue("${context}.account",  "${context}.account.notFound")
         result = false
       }

@@ -18,13 +18,11 @@ package com.netflix.spinnaker.clouddriver.kubernetes.deploy.validators.servergro
 
 import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesOperation
-import com.netflix.spinnaker.clouddriver.kubernetes.deploy.KubernetesUtil
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.DeployKubernetesAtomicOperationDescription
-import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesVolumeSourceType
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.validators.KubernetesContainerValidator
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.validators.KubernetesVolumeSourceValidator
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.validators.StandardKubernetesAttributeValidator
-import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials
+import com.netflix.spinnaker.clouddriver.kubernetes.v1.security.KubernetesV1Credentials
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import org.springframework.beans.factory.annotation.Autowired
@@ -45,7 +43,7 @@ class DeployKubernetesAtomicOperationValidator extends DescriptionValidator<Depl
       return
     }
 
-    KubernetesCredentials credentials = (KubernetesCredentials) accountCredentialsProvider.getCredentials(description.account).credentials
+    KubernetesV1Credentials credentials = (KubernetesV1Credentials) accountCredentialsProvider.getCredentials(description.account).credentials
 
     helper.validateApplication(description.application, "application")
     helper.validateStack(description.stack, "stack")

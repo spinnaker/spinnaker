@@ -25,8 +25,6 @@ import com.netflix.spinnaker.clouddriver.kubernetes.deploy.KubernetesUtil
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.CloneKubernetesAtomicOperationDescription
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.exception.KubernetesResourceNotFoundException
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
-import io.fabric8.kubernetes.api.model.ReplicationController
-import io.fabric8.kubernetes.api.model.extensions.ReplicaSet
 
 class CloneKubernetesAtomicOperation implements AtomicOperation<DeploymentResult> {
   private static final String BASE_PHASE = "CLONE_SERVER_GROUP"

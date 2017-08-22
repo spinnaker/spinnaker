@@ -19,7 +19,6 @@ package com.netflix.spinnaker.clouddriver.kubernetes.deploy.validators
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesContainerDescription
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesHandlerType
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesProbe
-import com.netflix.spinnaker.clouddriver.kubernetes.deploy.validators.StandardKubernetesAttributeValidator
 
 class KubernetesContainerValidator {
   static void validate(KubernetesContainerDescription description, StandardKubernetesAttributeValidator helper, String prefix) {

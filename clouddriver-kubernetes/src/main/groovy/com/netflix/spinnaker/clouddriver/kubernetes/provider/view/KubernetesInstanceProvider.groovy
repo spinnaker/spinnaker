@@ -23,8 +23,6 @@ import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider
 import com.netflix.spinnaker.clouddriver.kubernetes.cache.Keys
 import com.netflix.spinnaker.clouddriver.kubernetes.model.KubernetesInstance
 import com.netflix.spinnaker.clouddriver.model.InstanceProvider
-import io.fabric8.kubernetes.api.model.Event
-import io.fabric8.kubernetes.api.model.Pod
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 

@@ -19,7 +19,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.deploy
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.helpers.AbstractServerGroupNameResolver
 import com.netflix.spinnaker.clouddriver.kubernetes.model.KubernetesModelUtil
-import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials
+import com.netflix.spinnaker.clouddriver.kubernetes.v1.security.KubernetesV1Credentials
 import io.fabric8.kubernetes.api.model.ReplicationController
 import io.fabric8.kubernetes.api.model.extensions.ReplicaSet
 
@@ -28,9 +28,9 @@ class KubernetesServerGroupNameResolver extends AbstractServerGroupNameResolver 
   private static final String PHASE = "DEPLOY"
 
   private final String namespace
-  private final KubernetesCredentials credentials
+  private final KubernetesV1Credentials credentials
 
-  KubernetesServerGroupNameResolver(String namespace, KubernetesCredentials credentials) {
+  KubernetesServerGroupNameResolver(String namespace, KubernetesV1Credentials credentials) {
     this.namespace = namespace
     this.credentials = credentials
   }

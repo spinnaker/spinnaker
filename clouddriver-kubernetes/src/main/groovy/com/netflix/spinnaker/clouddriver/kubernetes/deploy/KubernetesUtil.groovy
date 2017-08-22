@@ -20,10 +20,10 @@ import com.netflix.frigga.NameValidation
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesImageDescription
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.exception.KubernetesIllegalArgumentException
-import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials
+import com.netflix.spinnaker.clouddriver.kubernetes.v1.security.KubernetesV1Credentials
+import io.fabric8.kubernetes.api.model.Job
 import io.fabric8.kubernetes.api.model.Pod
 import io.fabric8.kubernetes.api.model.ReplicationController
-import io.fabric8.kubernetes.api.model.Job
 import io.fabric8.kubernetes.api.model.extensions.ReplicaSet
 import org.springframework.beans.factory.annotation.Value
 
@@ -40,7 +40,7 @@ class KubernetesUtil {
   private static int SECURITY_GROUP_LABEL_PREFIX_LENGTH = SECURITY_GROUP_LABEL_PREFIX.length()
   private static int LOAD_BALANCER_LABEL_PREFIX_LENGTH = LOAD_BALANCER_LABEL_PREFIX.length()
 
-  static String getNextSequence(String clusterName, String namespace, KubernetesCredentials credentials) {
+  static String getNextSequence(String clusterName, String namespace, KubernetesV1Credentials credentials) {
     def maxSeqNumber = -1
     def replicationControllers = credentials.apiAdaptor.getReplicationControllers(namespace)
 
@@ -120,7 +120,7 @@ class KubernetesUtil {
     "$image.repository:$image.tag".toString()
   }
 
-  static String validateNamespace(KubernetesCredentials credentials, String namespace) {
+  static String validateNamespace(KubernetesV1Credentials credentials, String namespace) {
     def resolvedNamespace = namespace ?: "default"
     if (!credentials.isRegisteredNamespace(resolvedNamespace)) {
       def error = "Registered namespaces are ${credentials.getNamespaces()}."

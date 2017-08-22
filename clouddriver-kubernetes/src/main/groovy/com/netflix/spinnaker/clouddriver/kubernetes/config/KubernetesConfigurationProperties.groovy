@@ -24,6 +24,7 @@ class KubernetesConfigurationProperties {
   @ToString(includeNames = true)
   static class ManagedAccount {
     String name
+    KubernetesProviderVersion providerVersion
     String environment
     String accountType
     String context
@@ -46,4 +47,8 @@ class KubernetesConfigurationProperties {
 class LinkedDockerRegistryConfiguration {
   String accountName
   List<String> namespaces
+}
+
+enum KubernetesProviderVersion {
+  v1, v2
 }

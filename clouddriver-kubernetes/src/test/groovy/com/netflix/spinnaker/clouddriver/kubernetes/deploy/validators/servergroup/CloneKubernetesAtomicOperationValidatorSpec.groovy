@@ -25,7 +25,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergro
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesContainerDescription
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesResourceDescription
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.validators.StandardKubernetesAttributeValidator
-import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials
+import com.netflix.spinnaker.clouddriver.kubernetes.v1.security.KubernetesV1Credentials
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.clouddriver.security.DefaultAccountCredentialsProvider
@@ -93,7 +93,7 @@ class CloneKubernetesAtomicOperationValidatorSpec extends Specification {
 
     def dockerRegistry = Mock(LinkedDockerRegistryConfiguration)
     def dockerRegistries = [dockerRegistry]
-    def credentials = new KubernetesCredentials(apiMock, NAMESPACES, [], DOCKER_REGISTRY_ACCOUNTS, accountCredentialsRepositoryMock)
+    def credentials = new KubernetesV1Credentials(apiMock, NAMESPACES, [], DOCKER_REGISTRY_ACCOUNTS, accountCredentialsRepositoryMock)
     def namedAccountCredentials = new KubernetesNamedAccountCredentials.Builder()
         .name(VALID_ACCOUNT)
         .dockerRegistries(dockerRegistries)

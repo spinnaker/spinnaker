@@ -21,7 +21,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.securityg
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.securitygroup.KubernetesIngressRule
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.securitygroup.KubernetesSecurityGroupDescription
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.validators.StandardKubernetesAttributeValidator
-import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials
+import com.netflix.spinnaker.clouddriver.kubernetes.v1.security.KubernetesV1Credentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.validation.Errors
@@ -39,7 +39,7 @@ class UpsertKubernetesSecurityGroupValidator {
         return
       }
 
-      KubernetesCredentials credentials = (KubernetesCredentials) accountCredentialsProvider.getCredentials(description.account).credentials
+      KubernetesV1Credentials credentials = (KubernetesV1Credentials) accountCredentialsProvider.getCredentials(description.account).credentials
 
       helper.validateName(description.securityGroupName, "securityGroupName")
       helper.validateNamespace(credentials, description.namespace, "namespace")

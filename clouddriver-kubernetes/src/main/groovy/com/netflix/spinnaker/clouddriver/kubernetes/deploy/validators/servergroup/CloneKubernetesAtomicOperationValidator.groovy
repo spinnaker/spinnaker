@@ -21,7 +21,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesOperation
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.CloneKubernetesAtomicOperationDescription
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.validators.KubernetesContainerValidator
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.validators.StandardKubernetesAttributeValidator
-import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials
+import com.netflix.spinnaker.clouddriver.kubernetes.v1.security.KubernetesV1Credentials
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import org.springframework.beans.factory.annotation.Autowired
@@ -41,7 +41,7 @@ class CloneKubernetesAtomicOperationValidator extends DescriptionValidator<Clone
       return
     }
 
-    KubernetesCredentials credentials = (KubernetesCredentials) accountCredentialsProvider.getCredentials(description.account).credentials
+    KubernetesV1Credentials credentials = (KubernetesV1Credentials) accountCredentialsProvider.getCredentials(description.account).credentials
 
     helper.validateServerGroupCloneSource(description.source, "source")
     if (description.application) {

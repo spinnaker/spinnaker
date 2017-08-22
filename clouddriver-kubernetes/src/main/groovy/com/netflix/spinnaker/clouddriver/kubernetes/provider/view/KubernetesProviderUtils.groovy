@@ -21,17 +21,12 @@ import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.CacheFilter
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
-import com.netflix.spinnaker.clouddriver.kubernetes.api.KubernetesApiAdaptor
 import com.netflix.spinnaker.clouddriver.kubernetes.api.KubernetesApiConverter
 import com.netflix.spinnaker.clouddriver.kubernetes.cache.Keys
 import com.netflix.spinnaker.clouddriver.kubernetes.model.KubernetesDeploymentStatus
 import com.netflix.spinnaker.clouddriver.kubernetes.model.KubernetesInstance
 import com.netflix.spinnaker.clouddriver.kubernetes.model.KubernetesServerGroup
-import io.fabric8.kubernetes.api.model.Event
-import io.fabric8.kubernetes.api.model.Pod
-import io.fabric8.kubernetes.api.model.ReplicationController
 import io.fabric8.kubernetes.api.model.extensions.Deployment
-import io.fabric8.kubernetes.api.model.extensions.ReplicaSet
 
 class KubernetesProviderUtils {
   static Set<CacheData> getAllMatchingKeyPattern(Cache cacheView, String namespace, String pattern) {

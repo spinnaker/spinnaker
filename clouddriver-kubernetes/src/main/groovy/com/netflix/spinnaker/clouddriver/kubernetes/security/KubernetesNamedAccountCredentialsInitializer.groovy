@@ -34,7 +34,7 @@ import org.springframework.context.annotation.Scope
 
 @Slf4j
 @Configuration
-class KubernetesCredentialsInitializer implements CredentialsInitializerSynchronizable {
+class KubernetesNamedAccountCredentialsInitializer implements CredentialsInitializerSynchronizable {
   private static final Integer DEFAULT_CACHE_THREADS = 1
 
   @Autowired Registry spectatorRegistry
@@ -77,6 +77,7 @@ class KubernetesCredentialsInitializer implements CredentialsInitializerSynchron
           .accountCredentialsRepository(accountCredentialsRepository)
           .userAgent(clouddriverUserAgentApplicationName)
           .name(managedAccount.name)
+          .providerVersion(managedAccount.providerVersion)
           .environment(managedAccount.environment ?: managedAccount.name)
           .accountType(managedAccount.accountType ?: managedAccount.name)
           .context(managedAccount.context)

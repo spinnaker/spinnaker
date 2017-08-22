@@ -21,21 +21,21 @@ import com.netflix.spinnaker.cats.agent.AccountAware
 import com.netflix.spinnaker.cats.agent.CachingAgent
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider
 import com.netflix.spinnaker.clouddriver.kubernetes.provider.KubernetesProvider
-import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials
+import com.netflix.spinnaker.clouddriver.kubernetes.v1.security.KubernetesV1Credentials
 
 abstract class KubernetesCachingAgent implements CachingAgent, AccountAware {
   final String accountName
   final String providerName = KubernetesProvider.PROVIDER_NAME
   final KubernetesCloudProvider kubernetesCloudProvider = new KubernetesCloudProvider()
   final ObjectMapper objectMapper
-  final KubernetesCredentials credentials
+  final KubernetesV1Credentials credentials
   final int agentIndex
   final int agentCount
   List<String> namespaces
 
   KubernetesCachingAgent(String accountName,
                          ObjectMapper objectMapper,
-                         KubernetesCredentials credentials,
+                         KubernetesV1Credentials credentials,
                          int agentIndex,
                          int agentCount) {
     this.accountName = accountName

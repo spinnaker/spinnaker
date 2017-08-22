@@ -5,4 +5,7 @@ dependencies {
   compile spinnaker.dependency('frigga')
   compile spinnaker.dependency('bootActuator')
   compile spinnaker.dependency('bootWeb')
+
+  // TODO(lwander) move to spinnaker-dependencies when library stabilizes
+  compile 'io.kubernetes:client-java-util:0.1'
 }

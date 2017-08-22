@@ -20,8 +20,6 @@ import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentia
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import groovy.transform.InheritConstructors
-import io.fabric8.kubernetes.api.model.Namespace
-import io.fabric8.kubernetes.api.model.NamespaceBuilder
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -64,18 +62,7 @@ class KubernetesHealthIndicator implements HealthIndicator {
 
       for (KubernetesNamedAccountCredentials accountCredentials in kubernetesCredentialsSet) {
         KubernetesCredentials kubernetesCredentials = accountCredentials.credentials
-
-        // This verifies that the specified credentials are sufficient to
-        // access the referenced Kubernetes master endpoint.
-        kubernetesCredentials.getNamespaces().each { namespace ->
-          Namespace res = kubernetesCredentials.apiAdaptor.getNamespace(namespace)
-          if (res == null) {
-            NamespaceBuilder namespaceBuilder = new NamespaceBuilder();
-            Namespace newNamespace = namespaceBuilder.withNewMetadata().withName(namespace).endMetadata().build()
-            kubernetesCredentials.apiAdaptor.createNamespace(newNamespace)
-            LOG.info "Created missing namespace $namespace"
-          }
-        }
+        kubernetesCredentials.getNamespaces()
       }
 
       lastException.set(null)

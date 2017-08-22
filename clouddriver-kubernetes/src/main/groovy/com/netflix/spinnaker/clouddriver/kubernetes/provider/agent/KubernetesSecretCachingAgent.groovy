@@ -17,14 +17,13 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.provider.agent
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spectator.api.Registry
-import com.netflix.spinnaker.cats.agent.*
+import com.netflix.spinnaker.cats.agent.AgentDataType
+import com.netflix.spinnaker.cats.agent.CacheResult
+import com.netflix.spinnaker.cats.agent.DefaultCacheResult
 import com.netflix.spinnaker.cats.provider.ProviderCache
-import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider
 import com.netflix.spinnaker.clouddriver.kubernetes.cache.Keys
-import com.netflix.spinnaker.clouddriver.kubernetes.provider.KubernetesProvider
 import com.netflix.spinnaker.clouddriver.kubernetes.provider.view.MutableCacheData
-import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials
+import com.netflix.spinnaker.clouddriver.kubernetes.v1.security.KubernetesV1Credentials
 import groovy.util.logging.Slf4j
 import io.fabric8.kubernetes.api.model.Secret
 
@@ -37,10 +36,10 @@ class KubernetesSecretCachingAgent extends KubernetesCachingAgent {
   ] as Set)
 
   KubernetesSecretCachingAgent(String accountName,
-                                 KubernetesCredentials credentials,
-                                 ObjectMapper objectMapper,
-                                 int agentIndex,
-                                 int agentCount) {
+                               KubernetesV1Credentials credentials,
+                               ObjectMapper objectMapper,
+                               int agentIndex,
+                               int agentCount) {
     super(accountName, objectMapper, credentials, agentIndex, agentCount)
   }
 

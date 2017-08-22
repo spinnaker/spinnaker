@@ -25,7 +25,6 @@ import com.netflix.spinnaker.clouddriver.kubernetes.deploy.KubernetesUtil
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.autoscaler.KubernetesAutoscalerDescription
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.DeployKubernetesAtomicOperationDescription
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
-import io.fabric8.kubernetes.api.builder.BaseFluent
 import io.fabric8.kubernetes.api.model.HasMetadata
 import io.fabric8.kubernetes.api.model.extensions.DeploymentBuilder
 import io.fabric8.kubernetes.api.model.extensions.DeploymentFluentImpl

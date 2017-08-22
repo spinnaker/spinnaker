@@ -28,8 +28,8 @@ import com.netflix.spinnaker.clouddriver.model.ServerGroup
 import groovy.transform.CompileStatic
 import groovy.transform.EqualsAndHashCode
 import io.fabric8.kubernetes.api.model.Event
-import io.fabric8.kubernetes.api.model.ReplicationController
 import io.fabric8.kubernetes.api.model.HorizontalPodAutoscaler
+import io.fabric8.kubernetes.api.model.ReplicationController
 import io.fabric8.kubernetes.api.model.extensions.ReplicaSet
 import io.fabric8.kubernetes.client.internal.SerializationUtils
 
