@@ -80,7 +80,7 @@ class MonitorKatoTask implements RetryableTask {
         def firstNotFoundRetry = stage.context."kato.task.firstNotFoundRetry" as Long
         def now = clock.millis()
         def ctx = [:]
-        if (firstNotFoundRetry == null) {
+        if (firstNotFoundRetry == null || firstNotFoundRetry == -1) {
           ctx['kato.task.firstNotFoundRetry'] = now
           firstNotFoundRetry = now
         }
@@ -97,6 +97,7 @@ class MonitorKatoTask implements RetryableTask {
       }
     }
 
+
     def katoResultExpected = (stage.context["kato.result.expected"] as Boolean) ?: false
     ExecutionStatus status = katoStatusToTaskStatus(katoTask, katoResultExpected)
 
@@ -104,7 +105,11 @@ class MonitorKatoTask implements RetryableTask {
       status = ExecutionStatus.RUNNING
     }
 
-    Map<String, ? extends Object> outputs = [:]
+    def outputs = [
+      'kato.task.firstNotFoundRetry': -1L,
+      'kato.task.notFoundRetryCount': 0
+    ] as Map<String, ?>
+
     if (status == ExecutionStatus.SUCCEEDED) {
       def deployed = getDeployedNames(katoTask)
       // The below two checks aren't mutually exclusive since both `deploy.server.groups` and `deploy.jobs` can initially

@@ -122,6 +122,10 @@ class MonitorKatoTaskSpec extends Specification {
     ]
     if (previousRetry) {
       ctx.put('kato.task.firstNotFoundRetry', now.minusMillis(elapsed).toEpochMilli())
+    } else {
+      if (previousRetryFlag != null) {
+        ctx.put('kato.task.firstNotFoundRetry', previousRetryFlag)
+      }
     }
     def stage = new Stage<>(new Pipeline(), "whatever", ctx)
     task.kato = Stub(KatoService) {
@@ -137,10 +141,11 @@ class MonitorKatoTaskSpec extends Specification {
 
     where:
     taskId = "katoTaskId"
-    desc            | elapsed                                    | previousRetry
-    "first failure" | 0                                          |  false
-    "first retry"   | 1                                          |  true
-    "about to fail" | MonitorKatoTask.TASK_NOT_FOUND_TIMEOUT     |  true
+    desc                 | elapsed                                    | previousRetry | previousRetryFlag
+    "first failure"      | 0                                          |  false        | null
+    "first failure w -1" | 0                                          |  false        | -1
+    "first retry"        | 1                                          |  true         | 'N/A'
+    "about to fail"      | MonitorKatoTask.TASK_NOT_FOUND_TIMEOUT     |  true         | 'N/A'
   }
 
   def "should timeout if task not not found after timeout period"() {
