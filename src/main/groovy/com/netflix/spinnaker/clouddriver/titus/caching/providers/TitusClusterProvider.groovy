@@ -126,10 +126,15 @@ class TitusClusterProvider implements ClusterProvider<TitusCluster> {
    * @return
    */
   @Override
-  TitusCluster getCluster(String application, String account, String name) {
+  TitusCluster getCluster(String application, String account, String name, boolean includeDetails) {
     CacheData cluster = cacheView.get(CLUSTERS.ns, Keys.getClusterKey(name, application, account))
-    TitusCluster titusCluster = cluster ? translateClusters([cluster], true)[0] : null
+    TitusCluster titusCluster = cluster ? translateClusters([cluster], includeDetails)[0] : null
     titusCluster
+  }
+
+  @Override
+  TitusCluster getCluster(String application, String account, String name) {
+    return getCluster(application, account, name, true)
   }
 
   /**
