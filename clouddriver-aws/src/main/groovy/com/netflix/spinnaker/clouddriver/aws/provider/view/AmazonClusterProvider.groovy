@@ -86,15 +86,12 @@ class AmazonClusterProvider implements ClusterProvider<AmazonCluster> {
     String imageId = launchConfigs?.attributes?.get('imageId')
     CacheData imageConfigs = imageId ? cacheView.get(IMAGES.ns, Keys.getImageKey(imageId, account, region)) : null
 
-    def serverGroup = new AmazonServerGroup(name: name, region: region)
+    def serverGroup = new AmazonServerGroup(serverGroupData.attributes)
     serverGroup.accountName = account
-    serverGroup.zones = serverGroupData.attributes["zones"]
     serverGroup.launchConfig = launchConfigs ? launchConfigs.attributes : null
     serverGroup.image = imageConfigs ? imageConfigs.attributes : null
     serverGroup.buildInfo = imageConfigs ? getBuildInfoFromImage(imageConfigs) : null
-    serverGroup.asg = asg
-    serverGroup.scalingPolicies = serverGroupData.attributes["scalingPolicies"]
-    serverGroup.scheduledActions = serverGroupData.attributes["scheduledActions"]
+
     Set<String> asgInstances = getAsgInstanceKeys(asg, account, region)
     Closure<Boolean> instanceFilter = { rel ->
       return (asgInstances == null || asgInstances.contains(rel))
@@ -148,6 +145,9 @@ class AmazonClusterProvider implements ClusterProvider<AmazonCluster> {
       loadBalancers = translateLoadBalancers(allLoadBalancers)
       targetGroups = translateTargetGroups(allTargetGroups)
       serverGroups = translateServerGroups(allServerGroups)
+    } else {
+      Collection<CacheData> allServerGroups = resolveRelationshipDataForCollection(clusterData, SERVER_GROUPS.ns, RelationshipCacheFilter.include(LAUNCH_CONFIGS.ns))
+      serverGroups = translateServerGroups(allServerGroups)
     }
 
     Collection<AmazonCluster> clusters = clusterData.collect { CacheData clusterDataEntry ->
@@ -156,10 +156,11 @@ class AmazonClusterProvider implements ClusterProvider<AmazonCluster> {
       AmazonCluster cluster = new AmazonCluster()
       cluster.accountName = clusterKey.account
       cluster.name = clusterKey.cluster
+      cluster.serverGroups = clusterDataEntry.relationships[SERVER_GROUPS.ns]?.findResults { serverGroups.get(it) }
+
       if (includeDetails) {
         cluster.loadBalancers = clusterDataEntry.relationships[LOAD_BALANCERS.ns]?.findResults { loadBalancers.get(it) }
         cluster.targetGroups = clusterDataEntry.relationships[TARGET_GROUPS.ns]?.findResults { targetGroups.get(it) }
-        cluster.serverGroups = clusterDataEntry.relationships[SERVER_GROUPS.ns]?.findResults { serverGroups.get(it) }
       } else {
         cluster.loadBalancers = clusterDataEntry.relationships[LOAD_BALANCERS.ns]?.collect { loadBalancerKey ->
           Map parts = Keys.parse(loadBalancerKey)
@@ -168,10 +169,6 @@ class AmazonClusterProvider implements ClusterProvider<AmazonCluster> {
         cluster.targetGroups = clusterDataEntry.relationships[TARGET_GROUPS.ns]?.collect { targetGroupKey ->
           Map parts = Keys.parse(targetGroupKey)
           new AmazonTargetGroup(name: parts.loadBalancer, account: parts.account, region: parts.region)
-        }
-        cluster.serverGroups = clusterDataEntry.relationships[SERVER_GROUPS.ns]?.collect { serverGroupKey ->
-          Map parts = Keys.parse(serverGroupKey)
-          new AmazonServerGroup(name: parts.serverGroup, region: parts.region)
         }
       }
       cluster
