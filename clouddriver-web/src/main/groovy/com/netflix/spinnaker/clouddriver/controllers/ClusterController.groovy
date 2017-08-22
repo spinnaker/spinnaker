@@ -98,10 +98,12 @@ class ClusterController {
   @RequestMapping(value = "/{account:.+}/{name:.+}", method = RequestMethod.GET)
   Set<Cluster> getForAccountAndName(@PathVariable String application,
                                     @PathVariable String account,
-                                    @PathVariable String name) {
+                                    @PathVariable String name,
+                                    @RequestParam(required = false, value = 'expand', defaultValue = 'true') boolean expand) {
     def clusters = clusterProviders.collect { provider ->
-      requestQueue.execute(application, { provider.getCluster(application, account, name) })
+      requestQueue.execute(application, { provider.getCluster(application, account, name, expand) })
     }
+
     clusters.removeAll([null])
     if (!clusters) {
       throw new NotFoundException("Cluster not found (application: ${application}, account: ${account}, name: ${name})")
@@ -114,8 +116,9 @@ class ClusterController {
   Cluster getForAccountAndNameAndType(@PathVariable String application,
                                       @PathVariable String account,
                                       @PathVariable String name,
-                                      @PathVariable String type) {
-    Set<Cluster> allClusters = getForAccountAndName(application, account, name)
+                                      @PathVariable String type,
+                                      @RequestParam(required = false, value = 'expand', defaultValue = 'true') boolean expand) {
+    Set<Cluster> allClusters = getForAccountAndName(application, account, name, expand)
     def cluster = allClusters.find { it.type == type }
     if (!cluster) {
       throw new NotFoundException("No clusters found (application: ${application}, account: ${account}, type: ${type})")
@@ -129,8 +132,9 @@ class ClusterController {
                                    @PathVariable String account,
                                    @PathVariable String clusterName,
                                    @PathVariable String type,
-                                   @RequestParam(value = "region", required = false) String region) {
-    Cluster cluster = getForAccountAndNameAndType(application, account, clusterName, type)
+                                   @RequestParam(value = "region", required = false) String region,
+                                   @RequestParam(required = false, value = 'expand', defaultValue = 'true') boolean expand) {
+    Cluster cluster = getForAccountAndNameAndType(application, account, clusterName, type, expand)
     def results = region ? cluster.serverGroups.findAll { it.region == region } : cluster.serverGroups
     results ?: []
   }
@@ -159,13 +163,19 @@ class ClusterController {
       return serverGroup
     }
 
-    def serverGroups = getServerGroups(application, account, clusterName, type, region).findAll {
-      region ? it.name == serverGroupName && it.region == region : it.name == serverGroupName
+    // load all server groups w/o instance details (this is reasonably efficient)
+    def serverGroups = getServerGroups(application, account, clusterName, type, region, false).findAll {
+      it.name == serverGroupName
     }
+
     if (!serverGroups) {
       throw notFound
     }
-    region ? serverGroups?.getAt(0) : serverGroups
+
+    // load matched server groups w/ instance details
+    return serverGroups.collect {
+      serverGroupController.getServerGroup(application, account, it.region, it.name)
+    }
   }
 
   /**
@@ -190,7 +200,8 @@ class ClusterController {
       throw new NotFoundException("Target not found (target: ${target})")
     }
 
-    def sortedServerGroups = getServerGroups(application, account, clusterName, cloudProvider, null /* region */).findAll {
+    // load all server groups w/o instance details (this is reasonably efficient)
+    def sortedServerGroups = getServerGroups(application, account, clusterName, cloudProvider, null /* region */, false).findAll {
       def scopeMatch = it.region == scope || it.zones.contains(scope)
 
       def enableMatch
@@ -205,6 +216,11 @@ class ClusterController {
 
     if (!sortedServerGroups) {
       throw new NotFoundException("No server groups found (account: ${account}, cluster: ${clusterName}, type: ${cloudProvider})")
+    }
+
+    // load matched server groups w/ instance details
+    sortedServerGroups = sortedServerGroups.collect {
+      serverGroupController.getServerGroup(application, account, it.region, it.name)
     }
 
     switch (tsg) {

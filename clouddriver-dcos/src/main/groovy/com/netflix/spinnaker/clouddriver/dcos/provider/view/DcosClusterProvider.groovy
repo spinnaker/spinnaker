@@ -91,16 +91,21 @@ class DcosClusterProvider implements ClusterProvider<DcosCluster> {
   }
 
   @Override
-  DcosCluster getCluster(final String application, final String account, final String name) {
+  DcosCluster getCluster(String application, String account, String name, boolean includeDetails) {
     CacheData serverGroupCluster = cacheView.get(Keys.Namespace.CLUSTERS.ns, Keys.getClusterKey(account, application, name))
     List<CacheData> clusters = [serverGroupCluster] - null
-    return clusters ? translateClusters(clusters, true).inject(new DcosCluster()) { DcosCluster acc, DcosCluster val ->
+    return clusters ? translateClusters(clusters, includeDetails).inject(new DcosCluster()) { DcosCluster acc, DcosCluster val ->
       acc.name = acc.name ?: val.name
       acc.accountName = acc.accountName ?: val.accountName
       acc.loadBalancers.addAll(val.loadBalancers)
       acc.serverGroups.addAll(val.serverGroups)
       return acc
     } : null
+  }
+
+  @Override
+  DcosCluster getCluster(final String application, final String account, final String name) {
+    return getCluster(application, account, name, true)
   }
 
   @Override

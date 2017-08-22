@@ -329,12 +329,17 @@ class AmazonClusterProvider implements ClusterProvider<AmazonCluster> {
   }
 
   @Override
-  AmazonCluster getCluster(String application, String account, String name) {
+  AmazonCluster getCluster(String application, String account, String name, boolean includeDetails) {
     CacheData cluster = cacheView.get(CLUSTERS.ns, Keys.getClusterKey(name, application, account))
     if (cluster == null) {
       null
     } else {
-      translateClusters([cluster], true)[0]
+      translateClusters([cluster], includeDetails)[0]
     }
+  }
+
+  @Override
+  AmazonCluster getCluster(String application, String account, String name) {
+    return getCluster(application, account, name, true)
   }
 }

@@ -78,6 +78,9 @@ interface ClusterProvider<T extends Cluster> {
   @Nullable
   T getCluster(String application, String account, String name)
 
+  @Nullable
+  T getCluster(String application, String account, String name, boolean includeDetails)
+
   /**
    * Looks up a server group known to this provider, within a specified {@link com.netflix.spinnaker.clouddriver.security.AccountCredentials} and region, and with the specified name.
    * @param account name

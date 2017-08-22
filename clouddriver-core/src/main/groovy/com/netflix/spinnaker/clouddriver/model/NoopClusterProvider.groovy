@@ -44,6 +44,11 @@ class NoopClusterProvider implements ClusterProvider<Cluster> {
   }
 
   @Override
+  Cluster getCluster(String application, String account, String name, boolean includeDetails) {
+    null
+  }
+
+  @Override
   Cluster getCluster(String application, String account, String name) {
     null
   }

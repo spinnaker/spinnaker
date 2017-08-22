@@ -89,8 +89,13 @@ class OpenstackClusterProvider implements ClusterProvider<OpenstackCluster.View>
   }
 
   @Override
-  OpenstackCluster.View getCluster(final String application, final String account, final String name) {
+  OpenstackCluster.View getCluster(String application, String account, String name, boolean includeDetails) {
     getClusters(application, account)?.find { it.name == name }
+  }
+
+  @Override
+  OpenstackCluster.View getCluster(String application, String account, String name) {
+    return getCluster(application, account, name, true)
   }
 
   @Override

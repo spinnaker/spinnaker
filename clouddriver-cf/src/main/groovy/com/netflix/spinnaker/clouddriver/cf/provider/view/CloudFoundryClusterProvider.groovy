@@ -81,13 +81,18 @@ class CloudFoundryClusterProvider implements ClusterProvider<CloudFoundryCluster
   }
 
   @Override
-  CloudFoundryCluster getCluster(String applicationName, String account, String name) {
-    CacheData cluster = cacheView.get(CLUSTERS.ns, Keys.getClusterKey(name, applicationName, account))
+  CloudFoundryCluster getCluster(String application, String account, String name, boolean includeDetails) {
+    CacheData cluster = cacheView.get(CLUSTERS.ns, Keys.getClusterKey(name, application, account))
     if (cluster == null) {
       null
     } else {
-      CacheUtils.translateClusters(cacheView, [cluster], true)[0]
+      CacheUtils.translateClusters(cacheView, [cluster], includeDetails)[0]
     }
+  }
+
+  @Override
+  CloudFoundryCluster getCluster(String applicationName, String account, String name) {
+    return getCluster(applicationName, account, name, true)
   }
 
   @Override

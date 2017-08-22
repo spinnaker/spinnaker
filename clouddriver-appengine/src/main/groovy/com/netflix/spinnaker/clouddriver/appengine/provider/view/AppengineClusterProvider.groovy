@@ -64,11 +64,16 @@ class AppengineClusterProvider implements ClusterProvider<AppengineCluster> {
   }
 
   @Override
-  AppengineCluster getCluster(String applicationName, String account, String clusterName) {
+  AppengineCluster getCluster(String application, String account, String name, boolean includeDetails) {
     List<CacheData> clusterData =
-      [cacheView.get(CLUSTERS.ns, Keys.getClusterKey(account, applicationName, clusterName))] - null
+      [cacheView.get(CLUSTERS.ns, Keys.getClusterKey(account, application, name))] - null
 
-    clusterData ? translateClusters(clusterData, true).head() : null
+    clusterData ? translateClusters(clusterData, includeDetails).head() : null
+  }
+
+  @Override
+  AppengineCluster getCluster(String applicationName, String account, String clusterName) {
+    return getCluster(applicationName, account, clusterName, true)
   }
 
   @Override
