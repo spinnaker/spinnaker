@@ -17,14 +17,16 @@
 
 package com.netflix.spinnaker.orca.webhook.config
 
-import com.netflix.spinnaker.orca.webhook.service.WebhookService
+import ch.qos.logback.classic.pattern.MessageConverter
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
-import org.springframework.web.client.RestTemplate;
+import org.springframework.http.converter.HttpMessageConverter
+import org.springframework.http.converter.StringHttpMessageConverter
+import org.springframework.web.client.RestTemplate
 
 @Configuration
 @ConditionalOnProperty(prefix = "webhook.stage", value = "enabled", matchIfMissing = true)
@@ -35,7 +37,17 @@ class WebhookConfiguration {
   @Bean
   @ConditionalOnMissingBean(RestTemplate)
   RestTemplate restTemplate() {
-    new RestTemplate()
+    RestTemplate restTemplate = new RestTemplate()
+    List<MessageConverter> converters = restTemplate.getMessageConverters()
+    converters.add(new ObjectStringHttpMessageConverter())
+    restTemplate.setMessageConverters(converters)
+    return restTemplate
   }
 
+  class ObjectStringHttpMessageConverter extends StringHttpMessageConverter implements HttpMessageConverter<Object> {
+    @Override
+    boolean supports(Class<?> clazz) {
+      return Object.class.equals(clazz)
+    }
+  }
 }

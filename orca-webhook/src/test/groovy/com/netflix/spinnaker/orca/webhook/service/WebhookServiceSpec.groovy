@@ -19,13 +19,13 @@ package com.netflix.spinnaker.orca.webhook.service
 
 import com.netflix.spinnaker.orca.config.UserConfiguredUrlRestrictions
 import com.netflix.spinnaker.orca.webhook.config.PreconfiguredWebhookProperties
+import com.netflix.spinnaker.orca.webhook.config.WebhookConfiguration
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpMethod
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.test.web.client.MockRestServiceServer
 import org.springframework.test.web.client.ResponseActions
-import org.springframework.web.client.RestTemplate
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
@@ -40,7 +40,7 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 class WebhookServiceSpec extends Specification {
 
   @Shared
-  def restTemplate = new RestTemplate()
+  def restTemplate = new WebhookConfiguration().restTemplate();
 
   @Shared
   def userConfiguredUrlRestrictions = new UserConfiguredUrlRestrictions.Builder().withRejectLocalhost(false).build()
@@ -133,4 +133,26 @@ class WebhookServiceSpec extends Specification {
     then:
     preconfiguredWebhooks == [webhook1, webhook3]
   }
+
+  def "Content-Type text/plain is turned into a string"() {
+    expect:
+    def responseActions = server.expect(requestTo("https://localhost/v1/text/test"))
+      .andExpect(method(HttpMethod.GET))
+    responseActions.andRespond(withSuccess('This is text/plain', MediaType.TEXT_PLAIN))
+
+    when:
+    webhookService
+    def responseEntity = webhookService.exchange(
+      HttpMethod.GET,
+      "https://localhost/v1/text/test",
+      null,
+      null
+    )
+
+    then:
+    server.verify()
+    responseEntity.statusCode == HttpStatus.OK
+    responseEntity.body == 'This is text/plain'
+  }
+
 }
