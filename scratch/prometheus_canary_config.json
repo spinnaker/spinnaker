@@ -9,8 +9,9 @@
       "query": {
         "type": "prometheus",
         "metricName": "node_cpu",
-        "metricAggregationPeriod": "60s",
-        "metricLabelBindings": ["mode=~\"user|system\"", "job=\"node\""]
+        "aggregationPeriod": "60s",
+        "labelBindings": ["mode=~\"user|system\"", "job=\"node\""]
+        "sumByFields": ["mode"]
       },
       "analysisConfigurations": {
         "canary": {
