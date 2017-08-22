@@ -49,7 +49,7 @@ class ErrorConfiguration {
   }
 
   @Bean
-  ErrorController genericErrorController(ErrorAttributes errorAttributes) {
+  GenericErrorController genericErrorController(ErrorAttributes errorAttributes) {
     return new GenericErrorController(errorAttributes)
   }
 
