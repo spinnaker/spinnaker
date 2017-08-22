@@ -26,13 +26,15 @@ import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import com.netflix.spinnaker.orca.pipeline.model.Orchestration;
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import static java.lang.Boolean.parseBoolean;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 
-@Slf4j
 public abstract class ExecutionLauncher<T extends Execution<T>> {
+
+  private final Logger log = LoggerFactory.getLogger(getClass());
 
   protected final ObjectMapper objectMapper;
   protected final ExecutionRepository executionRepository;

@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.cluster
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
+import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import retrofit.client.Response
 import retrofit.mime.TypedByteArray
@@ -38,7 +39,7 @@ class WaitForClusterShrinkTaskSpec extends Specification {
 
   def "does not complete if previous ASG is still there"() {
     given:
-    def stage = new Stage<>(context: [
+    def stage = new Stage<>(new Pipeline(), "test", [
       cluster               : clusterName,
       credentials           : account,
       "deploy.server.groups": [
@@ -89,7 +90,7 @@ class WaitForClusterShrinkTaskSpec extends Specification {
 
   def "completes if previous ASG is gone"() {
     given:
-    def stage = new Stage<>(context: [
+    def stage = new Stage<>(new Pipeline(), "test", [
       cluster               : clusterName,
       credentials           : account,
       "deploy.server.groups": [

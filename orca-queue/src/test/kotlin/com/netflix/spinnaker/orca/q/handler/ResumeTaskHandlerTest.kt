@@ -49,7 +49,6 @@ object ResumeTaskHandlerTest : SubjectSpek<ResumeTaskHandler>({
         task {
           id = "1"
           status = PAUSED
-          implementingClass = DummyTask::class.java.name
         }
       }
     }

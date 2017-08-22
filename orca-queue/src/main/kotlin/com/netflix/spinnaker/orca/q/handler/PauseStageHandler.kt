@@ -37,8 +37,8 @@ open class PauseStageHandler
     message.withStage { stage ->
       stage.setStatus(PAUSED)
       repository.storeStage(stage)
-      if (stage.getParentStageId() != null) {
-        queue.push(PauseStage(message, stage.getParentStageId()))
+      stage.getParentStageId()?.let { parentStageId ->
+        queue.push(PauseStage(message, parentStageId))
       }
     }
   }

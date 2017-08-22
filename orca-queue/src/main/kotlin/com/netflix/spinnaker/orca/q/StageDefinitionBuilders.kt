@@ -106,7 +106,7 @@ private fun StageDefinitionBuilder.syntheticStages(stage: Stage<out Execution<*>
     is Orchestration -> aroundStages(stage as Stage<Orchestration>)
     else -> throw IllegalStateException()
   }
-    .groupBy { it.getSyntheticStageOwner() }
+    .groupBy { it.getSyntheticStageOwner()!! }
 
 private fun SyntheticStages.buildBeforeStages(stage: Stage<out Execution<*>>, executionWindow: Stage<out Execution<*>>?, callback: (Stage<*>) -> Unit) {
   val beforeStages = if (executionWindow == null) {

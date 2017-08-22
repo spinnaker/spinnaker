@@ -16,11 +16,18 @@
 
 package com.netflix.spinnaker.orca.pipeline.model;
 
-import lombok.Data;
+import javax.annotation.Nullable;
 
-@Data
 public class Orchestration extends Execution<Orchestration> {
-  String description;
+  private String description;
+
+  public @Nullable String getDescription() {
+    return description;
+  }
+
+  public void setDescription(@Nullable String description) {
+    this.description = description;
+  }
 
   @Override public final boolean equals(Object o) {
     return super.equals(o);

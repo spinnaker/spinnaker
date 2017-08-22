@@ -4,12 +4,15 @@ import java.util.Optional;
 import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import com.netflix.spinnaker.orca.pipeline.model.Task;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import static com.netflix.spinnaker.orca.ExecutionStatus.RUNNING;
 import static java.lang.System.currentTimeMillis;
 
-@Slf4j
 public class StageTaskPropagationListener implements StageListener {
+
+  private final Logger log = LoggerFactory.getLogger(getClass());
+
   @Override
   public void beforeTask(Persister persister, final Stage stage, final Task task) {
     if (task.getStartTime() == null) {

@@ -23,10 +23,12 @@ import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.model.Task
 import java.lang.System.currentTimeMillis
 import java.util.*
+import kotlin.reflect.jvm.jvmName
 
 fun pipeline(init: Pipeline.() -> Unit = {}): Pipeline {
   val pipeline = Pipeline()
   pipeline.id = UUID.randomUUID().toString()
+  pipeline.application = "covfefe"
   pipeline.executionEngine = v3
   pipeline.buildTime = currentTimeMillis()
   pipeline.init()
@@ -36,6 +38,8 @@ fun pipeline(init: Pipeline.() -> Unit = {}): Pipeline {
 fun <T : Execution<T>> T.stage(init: Stage<T>.() -> Unit): Stage<T> {
   val stage = Stage<T>()
   stage.execution = this
+  stage.type = "test"
+  stage.refId = "1"
   stages.add(stage)
   stage.init()
   return stage
@@ -43,6 +47,8 @@ fun <T : Execution<T>> T.stage(init: Stage<T>.() -> Unit): Stage<T> {
 
 fun <T : Execution<T>> Stage<T>.task(init: Task.() -> Unit): Task {
   val task = Task()
+  task.implementingClass = DummyTask::class.jvmName
+  task.name = "dummy"
   tasks.add(task)
   task.init()
   return task

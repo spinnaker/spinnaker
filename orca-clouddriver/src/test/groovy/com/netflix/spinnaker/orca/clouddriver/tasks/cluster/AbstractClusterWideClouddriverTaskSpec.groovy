@@ -38,7 +38,7 @@ class AbstractClusterWideClouddriverTaskSpec extends Specification {
   def "should extract server groups from parent stages"() {
     given:
     def pipeline = new Pipeline()
-    pipeline.stages << new Stage<>(pipeline, null)
+    pipeline.stages << new Stage<>(pipeline, "test")
     pipeline.stages << new Stage<>(pipeline, CreateServerGroupStage.PIPELINE_CONFIG_TYPE, [
       "deploy.account.name" : account,
       "deploy.server.groups": [

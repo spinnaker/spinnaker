@@ -136,7 +136,7 @@ class CloneServerGroupTaskSpec extends Specification {
     bakeEast.refId = "1"
     stage.refId = "3"
     stage.requisiteStageRefIds = [ "1" ]
-    cloneServerGroupConfig.amiName = null
+    stage.context.amiName = null
     stage.execution.stages.removeAll()
     stage.execution.stages.addAll([bakeEast, stage])
 
@@ -171,7 +171,7 @@ class CloneServerGroupTaskSpec extends Specification {
     bakeEast.refId = "1"
     stage.refId = "3"
     stage.requisiteStageRefIds = [ "1" ]
-    cloneServerGroupConfig.amiName = null
+    stage.context.amiName = null
     stage.execution.stages.removeAll()
     stage.execution.stages.addAll([bakeEast, stage])
 

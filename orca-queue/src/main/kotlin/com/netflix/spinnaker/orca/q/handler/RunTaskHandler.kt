@@ -130,7 +130,7 @@ open class RunTaskHandler
     val distributionId = registry.createId("task.invocations.duration").withTags(id.tags())
     BucketCounter
       .get(registry, distributionId, { v -> bucketDuration(v) })
-      .record(System.currentTimeMillis() - taskModel.startTime)
+      .record(System.currentTimeMillis() - (taskModel.startTime ?: 0))
   }
 
   fun bucketDuration(duration: Long): String {
@@ -165,7 +165,7 @@ open class RunTaskHandler
   private fun Task.backoffPeriod(taskModel: com.netflix.spinnaker.orca.pipeline.model.Task): TemporalAmount =
     when (this) {
       is RetryableTask -> Duration.ofMillis(
-        getDynamicBackoffPeriod(Duration.ofMillis(System.currentTimeMillis() - taskModel.startTime))
+        getDynamicBackoffPeriod(Duration.ofMillis(System.currentTimeMillis() - (taskModel.startTime ?: 0)))
       )
       else -> Duration.ofSeconds(1)
     }

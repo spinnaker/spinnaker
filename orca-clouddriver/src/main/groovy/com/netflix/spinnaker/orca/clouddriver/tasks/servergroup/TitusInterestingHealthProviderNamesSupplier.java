@@ -16,24 +16,26 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.orca.clouddriver.OortService;
 import com.netflix.spinnaker.orca.kato.pipeline.support.SourceResolver;
 import com.netflix.spinnaker.orca.kato.pipeline.support.StageData;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import retrofit.client.Response;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Arrays;
-import java.util.Optional;
-
-@Slf4j
 @Component
 public class TitusInterestingHealthProviderNamesSupplier implements InterestingHealthProviderNamesSupplier {
+
+  private final Logger log = LoggerFactory.getLogger(getClass());
+
   private static final String TITUS = "titus";
   private static final String INTERESTING_HEALTH_PROVIDER_NAMES = "interestingHealthProviderNames";
   private static final List<String> SUPPORTED_STAGES = Arrays.asList("cloneservergroup", "enableservergroup");

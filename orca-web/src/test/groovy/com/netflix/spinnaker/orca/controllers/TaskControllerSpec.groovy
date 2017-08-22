@@ -87,21 +87,22 @@ class TaskControllerSpec extends Specification {
   }
 
   void 'step names are properly translated'() {
+    given:
+    executionRepository.retrieveOrchestrations() >> rx.Observable.from([new Orchestration(
+      id: "1", application: "covfefe", stages: [new Stage<>(type: "test", tasks: [new Task(name: 'jobOne'), new Task(name: 'jobTwo')])])])
+
     when:
     def response = mockMvc.perform(get('/tasks')).andReturn().response
 
     then:
-    executionRepository.retrieveOrchestrations() >> rx.Observable.from([new Orchestration(
-      stages: [new Stage<>(tasks: [new Task(name: 'jobOne'), new Task(name: 'jobTwo')])])])
     with(new JsonSlurper().parseText(response.contentAsString).first()) {
       steps.name == ['jobOne', 'jobTwo']
     }
-
   }
 
   void 'stage contexts are included for orchestrated tasks'() {
     setup:
-    def orchestration = new Orchestration(id: "1")
+    def orchestration = new Orchestration(id: "1", application: "covfefe")
     orchestration.stages = [
       new Stage<>(orchestration, "OrchestratedType", ["customOutput": "variable"])
     ]
@@ -141,18 +142,18 @@ class TaskControllerSpec extends Specification {
   void '/applications/{application}/tasks only returns un-started and tasks from the past two weeks, sorted newest first'() {
     given:
     def tasks = [
-      [startTime: clock.instant().minus(daysOfExecutionHistory, DAYS).minus(1, HOURS).toEpochMilli(), id: 'too-old'] as Orchestration,
-      [startTime: clock.instant().minus(daysOfExecutionHistory, DAYS).plus(1, HOURS).toEpochMilli(), id: 'not-too-old'] as Orchestration,
-      [startTime: clock.instant().minus(1, DAYS).toEpochMilli(), id: 'pretty-new'] as Orchestration,
-      [id: 'not-started-1'] as Orchestration,
-      [id: 'not-started-2'] as Orchestration
+      [id: "started-1", application: "covfefe", startTime: clock.instant().minus(daysOfExecutionHistory, DAYS).minus(1, HOURS).toEpochMilli(), id: 'too-old'] as Orchestration,
+      [id: "started-2", application: "covfefe", startTime: clock.instant().minus(daysOfExecutionHistory, DAYS).plus(1, HOURS).toEpochMilli(), id: 'not-too-old'] as Orchestration,
+      [id: "started-3", application: "covfefe", startTime: clock.instant().minus(1, DAYS).toEpochMilli(), id: 'pretty-new'] as Orchestration,
+      [id: 'not-started-1', application: "covfefe"] as Orchestration,
+      [id: 'not-started-2', application: "covfefe"] as Orchestration
     ]
     def app = 'test'
     executionRepository.retrieveOrchestrationsForApplication(app, _) >> rx.Observable.from(tasks)
 
     when:
     def response = new ObjectMapper().readValue(
-    mockMvc.perform(get("/applications/$app/tasks")).andReturn().response.contentAsString, ArrayList)
+      mockMvc.perform(get("/applications/$app/tasks")).andReturn().response.contentAsString, ArrayList)
 
     then:
     response.id == ['not-started-2', 'not-started-1', 'not-too-old', 'pretty-new']
@@ -160,30 +161,30 @@ class TaskControllerSpec extends Specification {
 
   void '/applications/{application}/pipelines should only return pipelines from the past two weeks, newest first'() {
     given:
+    def app = 'test'
     def pipelines = [
-      [pipelineConfigId: "1", startTime: clock.instant().minus(daysOfExecutionHistory, DAYS).minus(2, HOURS).toEpochMilli(), id: 'old'],
-      [pipelineConfigId: "1", startTime: clock.instant().minus(daysOfExecutionHistory, DAYS).plus(2, HOURS).toEpochMilli(), id: 'newer'],
-      [pipelineConfigId: "1", id: 'not-started'],
-      [pipelineConfigId: "1", id: 'also-not-started'],
+      [pipelineConfigId: "1", id: "started-1", application: app, startTime: clock.instant().minus(daysOfExecutionHistory, DAYS).minus(2, HOURS).toEpochMilli(), id: 'old'],
+      [pipelineConfigId: "1", id: "started-2", application: app, startTime: clock.instant().minus(daysOfExecutionHistory, DAYS).plus(2, HOURS).toEpochMilli(), id: 'newer'],
+      [pipelineConfigId: "1", id: 'not-started', application: app],
+      [pipelineConfigId: "1", id: 'also-not-started', application: app],
 
       /*
        * If a pipeline has no recent executions, the most recent N executions should be included
        */
-      [pipelineConfigId: "2", id: 'older1', startTime: clock.instant().minus(daysOfExecutionHistory + 1, DAYS).minus(2, HOURS).toEpochMilli()],
-      [pipelineConfigId: "2", id: 'older2', startTime: clock.instant().minus(daysOfExecutionHistory + 1, DAYS).minus(3, HOURS).toEpochMilli()],
-      [pipelineConfigId: "2", id: 'older3', startTime: clock.instant().minus(daysOfExecutionHistory + 1, DAYS).minus(4, HOURS).toEpochMilli()]
+      [pipelineConfigId: "2", id: 'older1', application: app, startTime: clock.instant().minus(daysOfExecutionHistory + 1, DAYS).minus(2, HOURS).toEpochMilli()],
+      [pipelineConfigId: "2", id: 'older2', application: app, startTime: clock.instant().minus(daysOfExecutionHistory + 1, DAYS).minus(3, HOURS).toEpochMilli()],
+      [pipelineConfigId: "2", id: 'older3', application: app, startTime: clock.instant().minus(daysOfExecutionHistory + 1, DAYS).minus(4, HOURS).toEpochMilli()]
     ]
-    def app = 'test'
 
     executionRepository.retrievePipelinesForPipelineConfigId("1", _) >> rx.Observable.from(pipelines.findAll {
       it.pipelineConfigId == "1"
     }.collect {
-      new Pipeline(id: it.id, startTime: it.startTime, pipelineConfigId: it.pipelineConfigId)
+      new Pipeline(id: it.id, application: app, startTime: it.startTime, pipelineConfigId: it.pipelineConfigId)
     })
     executionRepository.retrievePipelinesForPipelineConfigId("2", _) >> rx.Observable.from(pipelines.findAll {
       it.pipelineConfigId == "2"
     }.collect {
-      new Pipeline(id: it.id, startTime: it.startTime, pipelineConfigId: it.pipelineConfigId)
+      new Pipeline(id: it.id, application: app, startTime: it.startTime, pipelineConfigId: it.pipelineConfigId)
     })
     front50Service.getPipelines(app) >> [[id: "1"], [id: "2"]]
     front50Service.getStrategies(app) >> []
@@ -199,29 +200,29 @@ class TaskControllerSpec extends Specification {
   void '/pipelines should only return the latest pipelines for the provided config ids, newest first'() {
     given:
     def pipelines = [
-      [pipelineConfigId: "1", startTime: clock.instant().minus(daysOfExecutionHistory, DAYS).minus(2, HOURS).toEpochMilli(), id: 'old-1'],
-      [pipelineConfigId: "1", startTime: clock.instant().minus(daysOfExecutionHistory, DAYS).plus(2, HOURS).toEpochMilli(), id: 'newer-1'],
-      [pipelineConfigId: "1", id: 'not-started-1'],
-      [pipelineConfigId: "2", startTime: clock.instant().minus(daysOfExecutionHistory, DAYS).minus(2, HOURS).toEpochMilli(), id: 'old-2'],
-      [pipelineConfigId: "2", startTime: clock.instant().minus(daysOfExecutionHistory, DAYS).plus(2, HOURS).toEpochMilli(), id: 'newer-2'],
-      [pipelineConfigId: "2", id: 'not-started-2'],
-      [pipelineConfigId: "3", startTime: clock.instant().minus(daysOfExecutionHistory, DAYS).minus(2, HOURS).toEpochMilli(), id: 'old-3']
+      [pipelineConfigId: "1", id: "started-1", application: "covfefe", startTime: clock.instant().minus(daysOfExecutionHistory, DAYS).minus(2, HOURS).toEpochMilli(), id: 'old-1'],
+      [pipelineConfigId: "1", id: "started-2", application: "covfefe", startTime: clock.instant().minus(daysOfExecutionHistory, DAYS).plus(2, HOURS).toEpochMilli(), id: 'newer-1'],
+      [pipelineConfigId: "1", id: 'not-started-1', application: "covfefe"],
+      [pipelineConfigId: "2", id: "started-3", application: "covfefe", startTime: clock.instant().minus(daysOfExecutionHistory, DAYS).minus(2, HOURS).toEpochMilli(), id: 'old-2'],
+      [pipelineConfigId: "2", id: "started-4", application: "covfefe", startTime: clock.instant().minus(daysOfExecutionHistory, DAYS).plus(2, HOURS).toEpochMilli(), id: 'newer-2'],
+      [pipelineConfigId: "2", id: 'not-started-2', application: "covfefe"],
+      [pipelineConfigId: "3", id: "started-5", application: "covfefe", startTime: clock.instant().minus(daysOfExecutionHistory, DAYS).minus(2, HOURS).toEpochMilli(), id: 'old-3']
     ]
 
     executionRepository.retrievePipelinesForPipelineConfigId("1", _) >> rx.Observable.from(pipelines.findAll {
       it.pipelineConfigId == "1"
     }.collect {
-      new Pipeline(id: it.id, startTime: it.startTime, pipelineConfigId: it.pipelineConfigId)
+      new Pipeline(id: it.id, application: "covfefe", startTime: it.startTime, pipelineConfigId: it.pipelineConfigId)
     })
     executionRepository.retrievePipelinesForPipelineConfigId("2", _) >> rx.Observable.from(pipelines.findAll {
       it.pipelineConfigId == "2"
     }.collect {
-      new Pipeline(id: it.id, startTime: it.startTime, pipelineConfigId: it.pipelineConfigId)
+      new Pipeline(id: it.id, application: "covfefe", startTime: it.startTime, pipelineConfigId: it.pipelineConfigId)
     })
     executionRepository.retrievePipelinesForPipelineConfigId("3", _) >> rx.Observable.from(pipelines.findAll {
       it.pipelineConfigId == "3"
     }.collect {
-      new Pipeline(id: it.id, startTime: it.startTime, pipelineConfigId: it.pipelineConfigId)
+      new Pipeline(id: it.id, application: "covfefe", startTime: it.startTime, pipelineConfigId: it.pipelineConfigId)
     })
 
     when:
@@ -234,31 +235,31 @@ class TaskControllerSpec extends Specification {
 
   void 'should update existing stage context'() {
     given:
-    def pipelineStage = new Stage<>(new Pipeline(), "", [value: "1"])
+    def pipeline = new Pipeline(id: "1", application: "covfefe")
+    def pipelineStage = new Stage<>(pipeline, "test", [value: "1"])
     pipelineStage.id = "s1"
+    pipeline.stages.add(pipelineStage)
 
     when:
-    def response = mockMvc.perform(patch("/pipelines/p1/stages/s1").content(
+    def response = mockMvc.perform(patch("/pipelines/$pipeline.id/stages/s1").content(
       objectMapper.writeValueAsString([judgmentStatus: "stop"])
     ).contentType(MediaType.APPLICATION_JSON)).andReturn().response
 
     then:
-    1 * executionRepository.retrievePipeline("p1") >> {
-      [
-        stages: [pipelineStage]
-      ]
-    }
+    1 * executionRepository.retrievePipeline(pipeline.id) >> pipeline
     1 * executionRepository.storeStage({ stage ->
       stage.id == "s1" &&
-        stage.lastModified.allowedAccounts == [] &&
+        stage.lastModified.allowedAccounts.isEmpty() &&
         stage.lastModified.user == "anonymous" &&
         stage.context == [
         judgmentStatus: "stop", value: "1", lastModifiedBy: "anonymous"
       ]
     } as Stage)
+    0 * _
+
+    and:
     objectMapper.readValue(response.contentAsString, Map).stages*.context == [
       [value: "1", judgmentStatus: "stop", lastModifiedBy: "anonymous"]
     ]
-    0 * _
   }
 }

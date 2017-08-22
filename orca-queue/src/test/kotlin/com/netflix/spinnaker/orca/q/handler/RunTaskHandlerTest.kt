@@ -42,6 +42,7 @@ import org.threeten.extra.Minutes
 import java.lang.RuntimeException
 import java.time.Duration
 import java.util.concurrent.TimeUnit
+import kotlin.reflect.jvm.jvmName
 
 object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
 
@@ -76,7 +77,6 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
           type = "whatever"
           task {
             id = "1"
-            implementingClass = DummyTask::class.qualifiedName
             startTime = clock.instant().toEpochMilli()
           }
         }
@@ -112,7 +112,6 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
           type = "whatever"
           task {
             id = "1"
-            implementingClass = DummyTask::class.qualifiedName
             startTime = clock.instant().toEpochMilli()
           }
         }
@@ -146,7 +145,6 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
             type = "whatever"
             task {
               id = "1"
-              implementingClass = DummyTask::class.qualifiedName
               startTime = clock.instant().toEpochMilli()
             }
           }
@@ -232,7 +230,6 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
           type = "whatever"
           task {
             id = "1"
-            implementingClass = DummyTask::class.qualifiedName
             startTime = clock.instant().toEpochMilli()
           }
         }
@@ -365,7 +362,6 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
           type = "whatever"
           task {
             id = "1"
-            implementingClass = DummyTask::class.qualifiedName
             startTime = clock.instant().toEpochMilli()
           }
         }
@@ -406,7 +402,6 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
           type = "whatever"
           task {
             id = "1"
-            implementingClass = DummyTask::class.qualifiedName
             startTime = clock.instant().toEpochMilli()
           }
         }
@@ -447,7 +442,6 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
           status = RUNNING
           task {
             id = "1"
-            implementingClass = DummyTask::class.qualifiedName
             startTime = clock.instant().toEpochMilli()
           }
         }
@@ -481,7 +475,6 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
             type = "whatever"
             task {
               id = "1"
-              implementingClass = DummyTask::class.qualifiedName
               status = RUNNING
               startTime = clock.instant().minusMillis(timeout.toMillis() + 1).toEpochMilli()
             }
@@ -516,7 +509,6 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
             type = "whatever"
             task {
               id = "1"
-              implementingClass = DummyTask::class.qualifiedName
               status = RUNNING
               startTime = clock.instant().minusMillis(timeout.toMillis() + 1).toEpochMilli()
             }
@@ -548,10 +540,9 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
         val pipeline = pipeline {
           stage {
             type = "whatever"
-            context = hashMapOf("markSuccessfulOnTimeout" to true) as Map<String, Any>?
+            context = hashMapOf("markSuccessfulOnTimeout" to true) as Map<String, Any>
             task {
               id = "1"
-              implementingClass = DummyTask::class.qualifiedName
               status = RUNNING
               startTime = clock.instant().minusMillis(timeout.toMillis() + 1).toEpochMilli()
             }
@@ -590,7 +581,6 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
             type = "whatever"
             task {
               id = "1"
-              implementingClass = DummyTask::class.qualifiedName
               status = RUNNING
               startTime = clock.instant().minusMillis(timeout.toMillis() + 1).toEpochMilli()
             }
@@ -625,7 +615,6 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
             type = "whatever"
             task {
               id = "1"
-              implementingClass = DummyTask::class.qualifiedName
               status = RUNNING
               startTime = clock.instant().minusMillis(timeout.plusMinutes(1).toMillis() + 1).toEpochMilli()
             }
@@ -664,7 +653,6 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
             type = "whatever"
             task {
               id = "1"
-              implementingClass = DummyTask::class.qualifiedName
               status = RUNNING
               startTime = clock.instant().minusMillis(timeout.toMillis() + 1).toEpochMilli()
             }
@@ -698,21 +686,20 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
       val timeoutOverride = Duration.ofMinutes(10)
 
       timeoutOverride.toMillis().let { listOf(it.toInt(), it, it.toDouble()) }.forEach { stageTimeoutMs ->
-        and("the override is a ${stageTimeoutMs.javaClass.simpleName}") {
-          and("the task is between the default and overridden duration") {
-            val pipeline = pipeline {
-              stage {
-                type = "whatever"
-                context["stageTimeoutMs"] = stageTimeoutMs
-                task {
-                  id = "1"
-                  implementingClass = DummyTask::class.qualifiedName
-                  status = RUNNING
-                  startTime = clock.instant().minusMillis(timeout.toMillis() + 1).toEpochMilli()
-                }
-              }
+        and("the override is a ${stageTimeoutMs.javaClass.simpleName}") {and("the task is between the default and overridden duration") {
+        val pipeline = pipeline {
+          stage {
+            type = "whatever"
+            context["stageTimeoutMs"] = stageTimeoutMs
+            task {
+              id = "1"
+
+              status = RUNNING
+              startTime = clock.instant().minusMillis(timeout.toMillis() + 1).toEpochMilli()
             }
-            val message = RunTask(Pipeline::class.java, pipeline.id, "foo", pipeline.stages.first().id, "1", DummyTask::class.java)
+          }
+        }
+        val message = RunTask(Pipeline::class.java, pipeline.id, "foo", pipeline.stages.first().id, "1", DummyTask::class.java)
 
             beforeGroup {
               whenever(repository.retrievePipeline(message.executionId)) doReturn pipeline
@@ -730,20 +717,20 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
             }
           }
 
-          and("the timeout override has been exceeded") {
-            val pipeline = pipeline {
-              stage {
-                type = "whatever"
-                context["stageTimeoutMs"] = stageTimeoutMs
-                task {
-                  id = "1"
-                  implementingClass = DummyTask::class.qualifiedName
-                  status = RUNNING
-                  startTime = clock.instant().minusMillis(timeoutOverride.toMillis() + 1).toEpochMilli()
-                }
-              }
+      and("the timeout override has been exceeded") {
+        val pipeline = pipeline {
+          stage {
+            type = "whatever"
+            context["stageTimeoutMs"] = stageTimeoutMs
+            task {
+              id = "1"
+
+              status = RUNNING
+              startTime = clock.instant().minusMillis(timeoutOverride.toMillis() + 1).toEpochMilli()
             }
-            val message = RunTask(Pipeline::class.java, pipeline.id, "foo", pipeline.stages.first().id, "1", DummyTask::class.java)
+          }
+        }
+        val message = RunTask(Pipeline::class.java, pipeline.id, "foo", pipeline.stages.first().id, "1", DummyTask::class.java)
 
             beforeGroup {
               whenever(repository.retrievePipeline(message.executionId)) doReturn pipeline
@@ -786,7 +773,6 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
             context["expr"] = expression
             task {
               id = "1"
-              implementingClass = DummyTask::class.qualifiedName
               startTime = clock.instant().toEpochMilli()
             }
           }
@@ -835,7 +821,6 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
           context["command"] = "serverGroupDetails.groovy \${ deployedServerGroups[0].account } \${ deployedServerGroups[0].region } \${ deployedServerGroups[0].serverGroup }"
           task {
             id = "1"
-            implementingClass = DummyTask::class.qualifiedName
             startTime = clock.instant().toEpochMilli()
           }
         }
@@ -873,7 +858,6 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
           )
           task {
             id = "1"
-            implementingClass = DummyTask::class.qualifiedName
             startTime = clock.instant().toEpochMilli()
           }
         }
@@ -907,7 +891,6 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
           type = "whatever"
           task {
             id = "1"
-            implementingClass = DummyTask::class.qualifiedName
             startTime = clock.instant().toEpochMilli()
           }
         }
@@ -939,7 +922,7 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
         type = "whatever"
         task {
           id = "1"
-          implementingClass = InvalidTask::class.qualifiedName
+          implementingClass = InvalidTask::class.jvmName
         }
       }
     }
@@ -972,7 +955,6 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
         type = "somethingFun"
         task {
           id = "1"
-          implementingClass = DummyTask::class.qualifiedName
           startTime = clock.instant().minusMillis(timeout.toMillis() + 1).toEpochMilli()
           status = RUNNING
         }

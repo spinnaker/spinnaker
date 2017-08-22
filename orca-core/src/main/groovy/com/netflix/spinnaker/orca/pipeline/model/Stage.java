@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.util.*;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -11,16 +12,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TreeTraversingParser;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper;
 import com.netflix.spinnaker.orca.listeners.StageTaskPropagationListener;
-import lombok.Data;
 import static com.netflix.spinnaker.orca.ExecutionStatus.NOT_STARTED;
 import static java.lang.String.format;
 import static java.util.Collections.*;
 import static java.util.stream.Collectors.toList;
 
-@Data
 public class Stage<T extends Execution<T>> implements Serializable {
 
   public Stage() {}
@@ -51,47 +51,117 @@ public class Stage<T extends Execution<T>> implements Serializable {
    */
   private String id = UUID.randomUUID().toString();
 
+  public @Nonnull String getId() {
+    return id;
+  }
+
+  // TODO: this shouldn't be public or used after initial construction
+  public void setId(@Nonnull String id) {
+    this.id = id;
+  }
+
   private String refId;
+
+  public @Nullable String getRefId() {
+    return refId;
+  }
+
+  // TODO: this shouldn't be public or used after initial construction
+  public void setRefId(@Nullable String refId) {
+    this.refId = refId;
+  }
 
   /**
    * The type as it corresponds to the Mayo configuration
    */
   private String type;
 
+  public @Nonnull String getType() {
+    return type;
+  }
+
+  public void setType(@Nonnull String type) {
+    this.type = type;
+  }
+
   /**
    * The name of the stage. Can be different from type, but often will be the same.
    */
   private String name;
 
-  @Nonnull
-  public String getName() {
+  public @Nonnull String getName() {
     return name != null ? name : type;
+  }
+
+  public void setName(@Nonnull String name) {
+    this.name = name;
   }
 
   /**
    * Gets the execution object for this stage
    */
-  @JsonBackReference private T execution;
+  private T execution;
+
+  @JsonBackReference
+  public @Nonnull T getExecution() {
+    return execution;
+  }
+
+  public void setExecution(@Nonnull T execution) {
+    this.execution = execution;
+  }
 
   /**
    * Gets the start time for this stage. May return null if the stage has not been started.
    */
   private Long startTime;
 
+  public @Nullable Long getStartTime() {
+    return startTime;
+  }
+
+  public void setStartTime(@Nullable Long startTime) {
+    this.startTime = startTime;
+  }
+
   /**
    * Gets the end time for this stage. May return null if the stage has not yet finished.
    */
   private Long endTime;
+
+  public @Nullable Long getEndTime() {
+    return endTime;
+  }
+
+  public void setEndTime(@Nullable Long endTime) {
+    this.endTime = endTime;
+  }
 
   /**
    * The execution status for this stage
    */
   private ExecutionStatus status = NOT_STARTED;
 
+  public @Nonnull ExecutionStatus getStatus() {
+    return status;
+  }
+
+  public void setStatus(@Nonnull ExecutionStatus status) {
+    this.status = status;
+  }
+
   /**
    * The context driving this stage. Provides inputs necessary to component steps
    */
   private Map<String, Object> context = new HashMap<>();
+
+  public @Nonnull Map<String, Object> getContext() {
+    return context;
+  }
+
+  public void setContext(@Nonnull Map<String, Object> context) {
+    this.context = new HashMap<>(context);
+  }
 
   /**
    * Returns the tasks that are associated with this stage. Tasks are the most granular unit of work in a stage.
@@ -101,6 +171,14 @@ public class Stage<T extends Execution<T>> implements Serializable {
    */
   private List<Task> tasks = new ArrayList<>();
 
+  public @Nonnull List<Task> getTasks() {
+    return tasks;
+  }
+
+  public void setTasks(@Nonnull List<Task> tasks) {
+    this.tasks = new ArrayList<>(tasks);
+  }
+
   /**
    * Stages can be synthetically injected into the pipeline by a StageDefinitionBuilder. This flag indicates the relationship
    * of a synthetic stage to its position in the graph. To derive the owning stage, callers should directionally
@@ -109,19 +187,61 @@ public class Stage<T extends Execution<T>> implements Serializable {
    */
   private SyntheticStageOwner syntheticStageOwner;
 
+  public @Nullable SyntheticStageOwner getSyntheticStageOwner() {
+    return syntheticStageOwner;
+  }
+
+  public void setSyntheticStageOwner(
+    @Nullable SyntheticStageOwner syntheticStageOwner) {
+    this.syntheticStageOwner = syntheticStageOwner;
+  }
+
   /**
    * This stage's parent stage.
    */
   private String parentStageId;
 
-  private Collection<String> requisiteStageRefIds = new HashSet<>();
+  public @Nullable String getParentStageId() {
+    return parentStageId;
+  }
+
+  public void setParentStageId(@Nullable String parentStageId) {
+    this.parentStageId = parentStageId;
+  }
+
+  private Collection<String> requisiteStageRefIds = emptySet();
+
+  public @Nonnull Collection<String> getRequisiteStageRefIds() {
+    return ImmutableSet.copyOf(requisiteStageRefIds);
+  }
+
+  public void setRequisiteStageRefIds(
+    @Nonnull Collection<String> requisiteStageRefIds) {
+    this.requisiteStageRefIds = ImmutableSet.copyOf(requisiteStageRefIds);
+  }
 
   /**
    * A date when this stage is scheduled to execute.
    */
-  private long scheduledTime;
+  private Long scheduledTime;
+
+  public @Nullable Long getScheduledTime() {
+    return scheduledTime;
+  }
+
+  public void setScheduledTime(@Nullable Long scheduledTime) {
+    this.scheduledTime = scheduledTime;
+  }
 
   private LastModifiedDetails lastModified;
+
+  public @Nullable LastModifiedDetails getLastModified() {
+    return lastModified;
+  }
+
+  public void setLastModified(@Nullable LastModifiedDetails lastModified) {
+    this.lastModified = lastModified;
+  }
 
   @Override public final boolean equals(Object o) {
     if (this == o) return true;
@@ -160,10 +280,10 @@ public class Stage<T extends Execution<T>> implements Serializable {
 
   private List<Stage<T>> ancestorsOnly() {
     if (!requisiteStageRefIds.isEmpty()) {
-      List<Stage<T>> previousStages = execution.stages.stream().filter(it ->
+      List<Stage<T>> previousStages = execution.getStages().stream().filter(it ->
         requisiteStageRefIds.contains(it.refId)
       ).collect(toList());
-      List<Stage<T>> syntheticStages = execution.stages.stream().filter(s ->
+      List<Stage<T>> syntheticStages = execution.getStages().stream().filter(s ->
         previousStages.stream().map(Stage::getId).anyMatch(id -> id.equals(s.parentStageId))
       ).collect(toList());
       return ImmutableList
@@ -173,7 +293,7 @@ public class Stage<T extends Execution<T>> implements Serializable {
         .addAll(previousStages.stream().flatMap(it -> it.ancestorsOnly().stream()).collect(toList()))
         .build();
     } else if (parentStageId != null) {
-      Stage<T> parent = execution.stages.stream().filter(it -> it.id.equals(parentStageId)).findFirst().orElseThrow(IllegalStateException::new);
+      Stage<T> parent = execution.getStages().stream().filter(it -> it.id.equals(parentStageId)).findFirst().orElseThrow(IllegalStateException::new);
       return ImmutableList
         .<Stage<T>>builder()
         .add(parent)
@@ -264,11 +384,37 @@ public class Stage<T extends Execution<T>> implements Serializable {
     return Optional.empty();
   }
 
-  @Data
   public static class LastModifiedDetails implements Serializable {
-    String user;
-    Collection<String> allowedAccounts;
-    Long lastModifiedTime;
+    private String user;
+
+    public @Nonnull String getUser() {
+      return user;
+    }
+
+    public void setUser(@Nonnull String user) {
+      this.user = user;
+    }
+
+    private Collection<String> allowedAccounts = emptySet();
+
+    public @Nonnull Collection<String> getAllowedAccounts() {
+      return ImmutableSet.copyOf(allowedAccounts);
+    }
+
+    public void setAllowedAccounts(
+      @Nonnull Collection<String> allowedAccounts) {
+      this.allowedAccounts = ImmutableSet.copyOf(allowedAccounts);
+    }
+
+    private Long lastModifiedTime;
+
+    public @Nonnull Long getLastModifiedTime() {
+      return lastModifiedTime;
+    }
+
+    public void setLastModifiedTime(@Nonnull Long lastModifiedTime) {
+      this.lastModifiedTime = lastModifiedTime;
+    }
   }
 
   @JsonIgnore public boolean isJoin() {
@@ -279,7 +425,7 @@ public class Stage<T extends Execution<T>> implements Serializable {
     return getExecution()
       .getStages()
       .stream()
-      .filter(it -> it.getRequisiteStageRefIds() != null && it.getRequisiteStageRefIds().contains(getRefId()))
+      .filter(it -> it.getRequisiteStageRefIds().contains(getRefId()))
       .collect(toList());
   }
 

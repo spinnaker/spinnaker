@@ -73,7 +73,7 @@ class AmazonServerGroupCreatorSpec extends Specification {
 
   def "requests an allowLaunch operation for each region"() {
     given:
-      deployConfig.availabilityZones["us-west-1"] = []
+    stage.context.availabilityZones["us-west-1"] = []
 
     when:
       def operations = creator.getOperations(stage)
@@ -92,7 +92,7 @@ class AmazonServerGroupCreatorSpec extends Specification {
   def "don't create allowLaunch tasks when in same account"() {
     given:
       creator.defaultBakeAccount = 'fzlem'
-      deployConfig.availabilityZones["us-west-1"] = []
+    stage.context.availabilityZones["us-west-1"] = []
 
     when:
       def operations = creator.getOperations(stage)
@@ -154,7 +154,7 @@ class AmazonServerGroupCreatorSpec extends Specification {
 
   def "create deploy task adds imageId if present in deployment details"() {
     given:
-      deployConfig.credentials = creator.defaultBakeAccount
+    stage.context.credentials = creator.defaultBakeAccount
       stage.context.amiName = null
       stage.context.deploymentDetails = [
           ["imageId": "docker-image-is-not-region-specific", "region": "us-west-1"],

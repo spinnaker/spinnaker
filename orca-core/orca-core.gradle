@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-apply plugin: "io.franzbecker.gradle-lombok"
-
 dependencies {
   compile project(":orca-extensionpoint")
   compile spinnaker.dependency('groovy')
@@ -43,8 +41,4 @@ dependencies {
   compile "org.springframework.security:spring-security-web:3.2.9.RELEASE"
 
   testCompile project(":orca-test")
-}
-
-lombok {
-  version = "1.16.8"
 }

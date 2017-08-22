@@ -40,6 +40,6 @@ class ExecutionSpec extends Specification {
 
     then:
     authenticationDetails.user == "SpinnakerUser"
-    authenticationDetails.allowedAccounts == ["Account1", "Account2"]
+    authenticationDetails.allowedAccounts == ["Account1", "Account2"] as Set
   }
 }

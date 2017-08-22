@@ -21,16 +21,57 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import lombok.Data;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
-@Data
 public class Pipeline extends Execution<Pipeline> {
-  String application;
-  String name;
-  String pipelineConfigId;
-  final Map<String, Object> trigger = new HashMap<>();
-  final List<Map<String, Object>> notifications = new ArrayList<>();
-  final Map<String, Serializable> initialConfig = new HashMap<>();
+  private String application;
+
+  public @Nonnull String getApplication() {
+    return application;
+  }
+
+  public void setApplication(@Nonnull String application) {
+    this.application = application;
+  }
+
+  private String name;
+
+  public @Nullable String getName() {
+    return name;
+  }
+
+  public void setName(@Nullable String name) {
+    this.name = name;
+  }
+
+  private String pipelineConfigId;
+
+  public @Nullable String getPipelineConfigId() {
+    return pipelineConfigId;
+  }
+
+  public void setPipelineConfigId(@Nullable String pipelineConfigId) {
+    this.pipelineConfigId = pipelineConfigId;
+  }
+
+  private final Map<String, Object> trigger = new HashMap<>();
+
+  public @Nonnull Map<String, Object> getTrigger() {
+    return trigger;
+  }
+
+  private final List<Map<String, Object>> notifications = new ArrayList<>();
+
+  public @Nonnull List<Map<String, Object>> getNotifications() {
+    return notifications;
+  }
+
+  private final Map<String, Serializable> initialConfig = new HashMap<>();
+
+  public @Nonnull Map<String, Serializable> getInitialConfig() {
+    return initialConfig;
+  }
 
   @Override public final boolean equals(Object o) {
     return super.equals(o);

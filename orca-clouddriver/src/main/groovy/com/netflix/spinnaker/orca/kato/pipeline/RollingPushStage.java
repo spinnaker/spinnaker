@@ -7,9 +7,8 @@ import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.instance.TerminateInstancesTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.instance.WaitForDownInstanceHealthTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.instance.WaitForTerminatedInstancesTask;
-import com.netflix.spinnaker.orca.clouddriver.tasks.instance.WaitForUpInstanceHealthTask;
-import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCacheForceRefreshTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.CaptureParentInterestingHealthProviderNamesTask;
+import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCacheForceRefreshTask;
 import com.netflix.spinnaker.orca.kato.tasks.DisableInstancesTask;
 import com.netflix.spinnaker.orca.kato.tasks.rollingpush.*;
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder;
@@ -17,14 +16,15 @@ import com.netflix.spinnaker.orca.pipeline.TaskNode;
 import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import com.netflix.spinnaker.orca.pipeline.tasks.WaitTask;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import static java.lang.String.format;
 
 @Component
-@Slf4j
 public class RollingPushStage implements StageDefinitionBuilder {
+
   public static final String PIPELINE_CONFIG_TYPE = "rollingPush";
 
   @Autowired
@@ -71,8 +71,10 @@ public class RollingPushStage implements StageDefinitionBuilder {
   }
 
   @Component
-  @Slf4j
   public static class PushCompleteTask implements com.netflix.spinnaker.orca.Task {
+
+    private final Logger log = LoggerFactory.getLogger(getClass());
+
     @Override public TaskResult execute(Stage stage) {
       log.info(format(
         "Rolling Push completed for %s in %s / %s",

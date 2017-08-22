@@ -1,20 +1,20 @@
 package com.netflix.spinnaker.orca;
 
 import java.util.Map;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import com.google.common.collect.ImmutableMap;
-import lombok.Value;
 import static java.util.Collections.emptyMap;
 
-@Value
 public final class TaskResult {
   /**
    * A useful constant for a success result with no outputs.
    */
   public static final TaskResult SUCCEEDED = new TaskResult(ExecutionStatus.SUCCEEDED);
 
-  ExecutionStatus status;
-  ImmutableMap<String, ?> stageOutputs;
-  ImmutableMap<String, ?> globalOutputs;
+  private final ExecutionStatus status;
+  private final Map<String, ?> stageOutputs;
+  private final Map<String, ?> globalOutputs;
 
   public TaskResult(ExecutionStatus status) {
     this(status, emptyMap(), emptyMap());
@@ -31,7 +31,19 @@ public final class TaskResult {
   }
 
   @Deprecated
-  public ImmutableMap<String, ?> getOutputs() {
+  public @Nonnull Map<String, ?> getOutputs() {
     return stageOutputs;
+  }
+
+  public @Nonnull ExecutionStatus getStatus() {
+    return status;
+  }
+
+  public @Nonnull Map<String, ?> getStageOutputs() {
+    return stageOutputs;
+  }
+
+  public @Nonnull Map<String, ?> getGlobalOutputs() {
+    return globalOutputs;
   }
 }

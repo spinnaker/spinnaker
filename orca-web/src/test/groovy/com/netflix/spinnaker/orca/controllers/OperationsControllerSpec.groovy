@@ -16,30 +16,29 @@
 
 package com.netflix.spinnaker.orca.controllers
 
-import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException
-import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
-import com.netflix.spinnaker.orca.webhook.config.PreconfiguredWebhookProperties
-import com.netflix.spinnaker.orca.webhook.service.WebhookService
-import org.springframework.http.HttpHeaders
-import org.springframework.http.HttpMethod
-
 import javax.servlet.http.HttpServletResponse
-import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException
 import com.netflix.spinnaker.orca.igor.BuildArtifactFilter
 import com.netflix.spinnaker.orca.igor.BuildService
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.PipelineLauncher
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
+import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
+import com.netflix.spinnaker.orca.webhook.config.PreconfiguredWebhookProperties
+import com.netflix.spinnaker.orca.webhook.service.WebhookService
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import groovy.json.JsonSlurper
 import org.apache.log4j.MDC
+import org.springframework.http.HttpHeaders
+import org.springframework.http.HttpMethod
 import org.springframework.http.MediaType
 import org.springframework.mock.env.MockEnvironment
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
+import static com.netflix.spinnaker.orca.ExecutionStatus.CANCELED
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 
 class OperationsControllerSpec extends Specification {
@@ -100,6 +99,8 @@ class OperationsControllerSpec extends Specification {
     Pipeline startedPipeline = null
     pipelineLauncher.start(_) >> { String json ->
       startedPipeline = mapper.readValue(json, Pipeline)
+      startedPipeline.id = UUID.randomUUID().toString()
+      startedPipeline
     }
     buildService.getBuild(buildNumber, master, job) >> buildInfo
 
@@ -120,7 +121,8 @@ class OperationsControllerSpec extends Specification {
     job = "job"
     buildNumber = 1337
     requestedPipeline = [
-      trigger: [
+      application: "covfefe",
+      trigger    : [
         type       : "jenkins",
         master     : master,
         job        : job,
@@ -135,6 +137,8 @@ class OperationsControllerSpec extends Specification {
     Pipeline startedPipeline = null
     pipelineLauncher.start(_) >> { String json ->
       startedPipeline = mapper.readValue(json, Pipeline)
+      startedPipeline.id = UUID.randomUUID().toString()
+      startedPipeline
     }
 
     when:
@@ -158,10 +162,15 @@ class OperationsControllerSpec extends Specification {
     Pipeline startedPipeline = null
     pipelineLauncher.start(_) >> { String json ->
       startedPipeline = mapper.readValue(json, Pipeline)
+      startedPipeline.id = UUID.randomUUID().toString()
+      startedPipeline
     }
-    Pipeline parentPipeline = new Pipeline(name:"pipeline from orca")
-    parentPipeline.status = ExecutionStatus.CANCELED
-    parentPipeline.id = "12345"
+    Pipeline parentPipeline = new Pipeline(
+      name: "pipeline from orca",
+      status: CANCELED,
+      id: "12345",
+      application: "covfefe"
+    )
 
     when:
     controller.orchestrate(requestedPipeline, Mock(HttpServletResponse))
@@ -179,7 +188,8 @@ class OperationsControllerSpec extends Specification {
 
     where:
     requestedPipeline = [
-      trigger: [
+      application: "covfefe",
+      trigger    : [
         type             : "manual",
         parentPipelineId : "12345"
       ]
@@ -191,6 +201,8 @@ class OperationsControllerSpec extends Specification {
     Pipeline startedPipeline = null
     pipelineLauncher.start(_) >> { String json ->
       startedPipeline = mapper.readValue(json, Pipeline)
+      startedPipeline.id = UUID.randomUUID().toString()
+      startedPipeline
     }
     buildService.getBuild(buildNumber, master, job) >> buildInfo
 
@@ -237,6 +249,8 @@ class OperationsControllerSpec extends Specification {
     Pipeline startedPipeline = null
     pipelineLauncher.start(_) >> { String json ->
       startedPipeline = mapper.readValue(json, Pipeline)
+      startedPipeline.id = UUID.randomUUID().toString()
+      startedPipeline
     }
     buildService.getBuild(buildNumber, master, job) >> [result: "SUCCESS"]
     buildService.getPropertyFile(buildNumber, propertyFile, master, job) >> propertyFileContent
@@ -373,6 +387,8 @@ class OperationsControllerSpec extends Specification {
     Pipeline startedPipeline = null
     pipelineLauncher.start(_) >> { String json ->
       startedPipeline = mapper.readValue(json, Pipeline)
+      startedPipeline.id = UUID.randomUUID().toString()
+      startedPipeline
     }
 
     Map requestedPipeline = [
@@ -406,6 +422,8 @@ class OperationsControllerSpec extends Specification {
     Pipeline startedPipeline = null
     pipelineLauncher.start(_) >> { String json ->
       startedPipeline = mapper.readValue(json, Pipeline)
+      startedPipeline.id = UUID.randomUUID().toString()
+      startedPipeline
     }
     buildService.getBuild(buildNumber, master, job) >> buildInfo
 
@@ -452,40 +470,6 @@ class OperationsControllerSpec extends Specification {
       [fileName: 'foo7.txt'],
       [fileName: 'foo8.nupkg'],
     ]]
-  }
-
-  @Unroll
-  def "should only convert to parallel if pipeline is not already parallel"() {
-    given:
-    def pipelineConfig = [
-      parallel   : isParallel,
-      stages     : [
-        [id: "stage1"],
-        [id: "stage2"]
-      ]
-    ]
-
-    when:
-    controller.orchestrate(pipelineConfig, Mock(HttpServletResponse))
-
-    then:
-    1 * pipelineLauncher.start(_) >> { String json ->
-      if (shouldConvert) {
-        def cfg = mapper.readValue(json, Map)
-        assert cfg.parallel == true
-        assert cfg.stages == [
-          [id: "stage1", refId: "0", requisiteStageRefIds: []],
-          [id: "stage2", refId: "1", requisiteStageRefIds: ["0"]]
-        ]
-      }
-      return new Pipeline()
-    }
-
-    where:
-    isParallel || shouldConvert
-    false      || true
-    null       || true
-    true       || false
   }
 
   def "should not start pipeline when truthy plan pipeline attribute is present"() {

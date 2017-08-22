@@ -813,7 +813,7 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
 
       it("does not build more synthetic stages") {
         val stage = pipeline.stageById(message.stageId)
-        pipeline.stages.map(Stage<Pipeline>::getParentStageId) shouldMatch !hasElement(stage.id)
+        pipeline.stages.mapNotNull(Stage<Pipeline>::getParentStageId) shouldMatch !hasElement(stage.id)
       }
     }
   }

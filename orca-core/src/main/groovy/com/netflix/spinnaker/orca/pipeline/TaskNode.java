@@ -21,9 +21,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.function.Consumer;
+import javax.annotation.Nonnull;
 import com.google.common.annotations.VisibleForTesting;
 import com.netflix.spinnaker.orca.ExecutionStatus;
-import lombok.Value;
+import com.netflix.spinnaker.orca.Task;
 import static com.netflix.spinnaker.orca.pipeline.TaskNode.GraphType.LOOP;
 
 /**
@@ -152,9 +153,22 @@ public interface TaskNode {
   /**
    * An individual task.
    */
-  @Value
   class TaskDefinition implements TaskNode {
-    String name;
-    Class<? extends com.netflix.spinnaker.orca.Task> implementingClass;
+    private final String name;
+    private final Class<? extends com.netflix.spinnaker.orca.Task> implementingClass;
+
+    public TaskDefinition(
+      @Nonnull String name, @Nonnull Class<? extends Task> implementingClass) {
+      this.name = name;
+      this.implementingClass = implementingClass;
+    }
+
+    public @Nonnull String getName() {
+      return name;
+    }
+
+    public @Nonnull Class<? extends Task> getImplementingClass() {
+      return implementingClass;
+    }
   }
 }

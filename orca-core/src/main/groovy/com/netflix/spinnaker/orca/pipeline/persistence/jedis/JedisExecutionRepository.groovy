@@ -582,7 +582,7 @@ class JedisExecutionRepository implements ExecutionRepository {
     map["stage.${stage.id}.syntheticStageOwner".toString()] = stage.syntheticStageOwner?.name()
     map["stage.${stage.id}.parentStageId".toString()] = stage.parentStageId
     map["stage.${stage.id}.requisiteStageRefIds".toString()] = stage.requisiteStageRefIds?.join(",")
-    map["stage.${stage.id}.scheduledTime".toString()] = String.valueOf(stage.scheduledTime)
+    map["stage.${stage.id}.scheduledTime".toString()] = stage.scheduledTime?.toString()
     map["stage.${stage.id}.context".toString()] = mapper.writeValueAsString(stage.context)
     map["stage.${stage.id}.tasks".toString()] = mapper.writeValueAsString(stage.tasks)
     map["stage.${stage.id}.lastModified".toString()] = stage.lastModified ? mapper.writeValueAsString(stage.lastModified) : null

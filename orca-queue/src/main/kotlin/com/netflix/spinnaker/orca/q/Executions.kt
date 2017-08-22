@@ -90,7 +90,7 @@ fun <T : Execution<T>> Execution<T>.stageByRef(refId: String) =
  * @return all upstream stages of this stage.
  */
 fun Stage<*>.upstreamStages(): List<Stage<*>> =
-  getExecution().getStages().filter { it.getRefId() in getRequisiteStageRefIds().orEmpty() }
+  getExecution().getStages().filter { it.getRefId() in getRequisiteStageRefIds() }
 
 /**
  * @return `true` if all upstream stages of this stage were run successfully.
