@@ -23,6 +23,7 @@ include 'kayenta-google'
 include 'kayenta-judge-netflix'
 include 'kayenta-objectstore-memory'
 include 'kayenta-orca'
+include 'kayenta-prometheus'
 include 'kayenta-stackdriver'
 include 'kayenta-web'
 

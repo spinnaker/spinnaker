@@ -22,6 +22,7 @@ import com.netflix.kayenta.config.WebConfiguration;
 import com.netflix.kayenta.gcs.config.GcsConfiguration;
 import com.netflix.kayenta.google.config.GoogleConfiguration;
 import com.netflix.kayenta.memory.config.MemoryConfiguration;
+import com.netflix.kayenta.prometheus.config.PrometheusConfiguration;
 import com.netflix.kayenta.stackdriver.config.StackdriverConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
@@ -42,6 +43,7 @@ import java.util.Map;
   KayentaConfiguration.class,
   MemoryConfiguration.class,
   StackdriverConfiguration.class,
+  PrometheusConfiguration.class,
   WebConfiguration.class
 })
 @ComponentScan({

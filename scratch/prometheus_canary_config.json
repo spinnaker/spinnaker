@@ -1,0 +1,40 @@
+{
+  "name": "MySamplePrometheusCanaryConfig",
+  "description": "Example Automated Canary Analysis (ACA) Configuration using Prometheus",
+  "configVersion": 1.0,
+  "metrics": [
+    {
+      "serviceName": "prometheus",
+      "name": "cpu",
+      "query": {
+        "type": "prometheus",
+        "metricName": "node_cpu",
+        "metricAggregationPeriod": "60s",
+        "metricLabelBindings": ["mode=~\"user|system\"", "job=\"node\""]
+      },
+      "analysisConfigurations": {
+        "canary": {
+          "judge": "dredd-v1.0"
+        }
+      },
+      "groups": [
+        "system"
+      ]
+    }
+  ],
+  "services": {
+    "prometheus": {
+      "type": "prometheus",
+      "name": "prometheus"
+    }
+  },
+  "classifier": {
+    "groupWeights": {
+      "system": 100.0
+    },
+    "scoreThresholds": {
+      "pass": 95.0,
+      "marginal": 75.0
+    }
+  }
+}

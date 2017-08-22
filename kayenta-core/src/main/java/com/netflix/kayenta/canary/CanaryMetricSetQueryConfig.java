@@ -20,10 +20,12 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.netflix.kayenta.canary.providers.AtlasCanaryMetricSetQueryConfig;
+import com.netflix.kayenta.canary.providers.PrometheusCanaryMetricSetQueryConfig;
 import com.netflix.kayenta.canary.providers.StackdriverCanaryMetricSetQueryConfig;
 
 @JsonTypeInfo(use= JsonTypeInfo.Id.NAME, include= JsonTypeInfo.As.PROPERTY, property = "type")
 @JsonSubTypes({@JsonSubTypes.Type(value = AtlasCanaryMetricSetQueryConfig.class, name = "atlas"),
+               @JsonSubTypes.Type(value = PrometheusCanaryMetricSetQueryConfig.class, name = "prometheus"),
                @JsonSubTypes.Type(value = StackdriverCanaryMetricSetQueryConfig.class, name = "stackdriver")})
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public interface CanaryMetricSetQueryConfig {}
