@@ -1,11 +1,11 @@
 /*
- * Copyright 2015 Netflix, Inc.
+ * Copyright 2017 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,17 +14,7 @@
  * limitations under the License.
  */
 
-include 'echo-core', 'echo-model', 'echo-web', 'echo-notifications', 'echo-pipelinetriggers', 'echo-scheduler', 'echo-rest', 'echo-webhooks', 'echo-pubsub'
+package com.netflix.spinnaker.echo.config.kafka;
 
-rootProject.name = 'echo'
-
-def setBuildFile(project) {
-    project.buildFileName = "${project.name}.gradle"
-    project.children.each {
-        setBuildFile(it)
-    }
-}
-
-rootProject.children.each {
-    setBuildFile it
+public class KafkaProperties {
 }

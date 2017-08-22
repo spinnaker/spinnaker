@@ -16,6 +16,7 @@
 
 ext {
   springConfigLocation = System.getProperty('spring.config.location', "${System.getProperty('user.home')}/.spinnaker/")
+  springProfiles = System.getProperty('spring.profiles.active', "test,local")
   repackage = System.getProperty('springBoot.repackage', "false")
 }
 
@@ -30,6 +31,7 @@ dependencies {
     compile project(':echo-scheduler')
     compile project(':echo-rest')
     compile project(':echo-webhooks')
+    compile project(':echo-pubsub')
     compile spinnaker.dependency('kork')
     compile spinnaker.dependency('korkStackdriver')
     compile spinnaker.dependency('korkWeb')
@@ -46,6 +48,7 @@ tasks.withType(org.springframework.boot.gradle.run.BootRunTask) {
         jvmArgs applicationDefaultJvmArgs.join(" ") + " -javaagent:${jamm}"
     }
     systemProperty('spring.config.location', project.springConfigLocation)
+    systemProperty('spring.profiles.active', project.springProfiles)
 }
 
 test {
