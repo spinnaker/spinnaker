@@ -1003,7 +1003,31 @@ class SecurityConfigurator(Configurator):
   pass
 
 
+class SpinnakerConfigurator(object):
+  """Controls spinnaker-local overrides."""
+
+  def init_argument_parser(self, parser):
+    """Implements interface."""
+    pass
+
+  def validate_options(self, options):
+    """Implements interface."""
+    pass
+
+  def add_config(self, options, script):
+    """Implements interface."""
+    script.append('mkdir -p  ~/.hal/default/profiles')
+    script.append('echo "management.security.enabled: false"'
+                  ' > ~/.hal/default/profiles/spinnaker-local.yml')
+
+  def add_files_to_upload(self, options, file_set):
+    """Implements interface."""
+    pass
+
+
+
 CONFIGURATOR_LIST = [
+    SpinnakerConfigurator(),
     MonitoringConfigurator(),
     StorageConfigurator(),
     AwsConfigurator(),
