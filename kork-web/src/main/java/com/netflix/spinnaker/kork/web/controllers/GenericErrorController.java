@@ -52,6 +52,6 @@ public class GenericErrorController implements ErrorController {
 
   @Override
   public String getErrorPath() {
-    return "/errors";
+    return "/error";
   }
 }
