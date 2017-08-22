@@ -42,14 +42,8 @@ inline fun <reified E : QueueEvent> MonitorableQueue.fire(message: Message? = nu
     MessageRetried::class -> MessageRetried(this)
     MessageDead::class -> MessageDead(this)
     LockFailed::class -> LockFailed(this)
-    MessagePushed::class -> {
-      val payload = message!!
-      MessagePushed(this, payload)
-    }
-    MessageDuplicate::class -> {
-      val payload = message!!
-      MessageDuplicate(this, payload)
-    }
+    MessagePushed::class -> MessagePushed(this, message!!)
+    MessageDuplicate::class -> MessageDuplicate(this, message!!)
     else -> throw IllegalArgumentException("Unknown event type ${E::class}")
   }
   publisher.publishEvent(event)
