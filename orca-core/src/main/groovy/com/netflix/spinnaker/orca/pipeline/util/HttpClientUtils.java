@@ -101,7 +101,7 @@ public class HttpClientUtils {
     return httpClientBuilder.build();
   }
 
-  static String httpGetAsString(String url) throws IOException {
+  public static String httpGetAsString(String url) throws IOException {
     try(CloseableHttpResponse response = httpClient.execute(new HttpGet(url))) {
       try (final Reader reader = new InputStreamReader(response.getEntity().getContent())) {
         return CharStreams.toString(reader);

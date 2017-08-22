@@ -21,6 +21,7 @@ import com.netflix.spinnaker.orca.ExecutionStatus.*
 import com.netflix.spinnaker.orca.events.StageStarted
 import com.netflix.spinnaker.orca.exceptions.ExceptionHandler
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
+import com.netflix.spinnaker.orca.pipeline.expressions.PipelineExpressionEvaluator
 import com.netflix.spinnaker.orca.pipeline.model.OptionalStageSupport
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
@@ -143,6 +144,10 @@ open class StartStageHandler
 
     val clonedContext = objectMapper.convertValue(this.getContext(), Map::class.java) as Map<String, Any>
     val clonedStage = Stage<Pipeline>(this.getExecution() as Pipeline, this.getType(), clonedContext)
+    if (clonedStage.context.containsKey(PipelineExpressionEvaluator.SUMMARY)) {
+      this.getContext().put(PipelineExpressionEvaluator.SUMMARY, clonedStage.context[PipelineExpressionEvaluator.SUMMARY])
+    }
+
     return OptionalStageSupport.isOptional(clonedStage.withMergedContext(), contextParameterProcessor)
   }
 }

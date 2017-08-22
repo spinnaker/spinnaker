@@ -38,10 +38,12 @@ class ExpressionPreconditionTask implements PreconditionTask {
   @Override
   TaskResult execute(Stage stage) {
     def stageData = stage.mapTo("/context", StageData)
-    String expression = contextParameterProcessor.process([
-        "expression": '${' + stageData.expression + '}'
-    ], contextParameterProcessor.buildExecutionContext(stage, true), true).expression
 
+    Map<String, Object> result = contextParameterProcessor.process([
+        "expression": '${' + stageData.expression + '}'
+    ], contextParameterProcessor.buildExecutionContext(stage, true), true)
+
+    String expression = result.expression
     def matcher = expression =~ /\$\{(.*)\}/
     if (matcher.matches()) {
       expression = matcher.group(1)

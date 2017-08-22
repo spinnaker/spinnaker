@@ -16,6 +16,9 @@
 
 package com.netflix.spinnaker.orca.pipeline.util
 
+import com.netflix.spinnaker.orca.pipeline.expressions.ExpressionEvaluationSummary
+import com.netflix.spinnaker.orca.pipeline.expressions.ExpressionEvaluator
+import com.netflix.spinnaker.orca.pipeline.expressions.PipelineExpressionEvaluator
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Orchestration
 import groovy.transform.CompileStatic
@@ -45,6 +48,8 @@ import org.springframework.expression.spel.support.StandardTypeLocator
 /**
  * Common methods for dealing with passing context parameters used by both Script and Jenkins stages
  */
+
+@Slf4j
 class ContextParameterProcessor {
 
   // uses $ instead of  #
@@ -57,17 +62,49 @@ class ContextParameterProcessor {
 
   private final ContextFunctionConfiguration contextFunctionConfiguration
 
+  private ExpressionEvaluator expressionEvaluator
+
   ContextParameterProcessor() {
     this(new ContextFunctionConfiguration(new UserConfiguredUrlRestrictions.Builder().build()))
   }
 
   ContextParameterProcessor(ContextFunctionConfiguration contextFunctionConfiguration) {
     this.contextFunctionConfiguration = contextFunctionConfiguration
+    expressionEvaluator = new PipelineExpressionEvaluator(contextFunctionConfiguration)
     //this sucks so much:
     ContextUtilities.contextFunctionConfiguration.set(contextFunctionConfiguration)
   }
 
+  Map<String, Object> processV2(Map<String, Object> source, Map<String, Object> context, boolean allowUnknownKeys) {
+    if (!source) {
+      return [:]
+    }
+
+    def summary = new ExpressionEvaluationSummary()
+    Map<String, Object> result = expressionEvaluator.evaluate(
+      source,
+      precomputeValues(context),
+      summary,
+      allowUnknownKeys,
+    )
+
+    if (summary.totalEvaluated > 0) {
+      log.debug(summary.toString())
+    }
+
+    if (summary.failureCount > 0) {
+      result.expressionEvaluationSummary = summary.expressionResult
+    }
+
+    return result
+  }
+
   Map<String, Object> process(Map<String, Object> parameters, Map<String, Object> context, boolean allowUnknownKeys) {
+    if (PipelineExpressionEvaluator.shouldUseV2Evaluator(parameters) || PipelineExpressionEvaluator.shouldUseV2Evaluator(context)) {
+      log.debug("Using V2 expression evaluation")
+      return processV2(parameters, context, allowUnknownKeys)
+    }
+
     if (!parameters) {
       return [:]
     }
