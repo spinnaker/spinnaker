@@ -39,28 +39,35 @@ class UpsertScalingPolicyAtomicOperation implements AtomicOperation<UpsertScalin
 
   @Override
   UpsertScalingPolicyResult operate(List priorOutputs) {
-    final policyName = description.name ?: "${description.serverGroupName ?: description.asgName}-policy-${idGenerator.nextId()}"
+    final policyName = description.name ?: "${description.serverGroupName}-policy-${idGenerator.nextId()}"
     final request = new PutScalingPolicyRequest(
       policyName: policyName,
-      autoScalingGroupName: description.serverGroupName ?: description.asgName,
-      adjustmentType: description.adjustmentType.toString(),
-      minAdjustmentMagnitude: description.minAdjustmentMagnitude
+      autoScalingGroupName: description.serverGroupName,
     )
-    if (description.step) {
-      request.withPolicyType(PolicyType.StepScaling.toString()).
-        withEstimatedInstanceWarmup(description.step.estimatedInstanceWarmup).
-        withStepAdjustments(description.step.stepAdjustments).
-        withMetricAggregationType(description.step.metricAggregationType.toString())
+    if (description.targetTrackingConfiguration) {
+      request.withTargetTrackingConfiguration(description.targetTrackingConfiguration)
+        .withEstimatedInstanceWarmup(description.estimatedInstanceWarmup)
+        .withPolicyType(PolicyType.TargetTrackingScaling.toString())
     } else {
-      request.withPolicyType(PolicyType.SimpleScaling.toString()).
-        withCooldown(description.simple.cooldown).
-        withScalingAdjustment(description.simple.scalingAdjustment)
+      request.withAdjustmentType(description.adjustmentType.toString())
+        .withMinAdjustmentMagnitude(description.minAdjustmentMagnitude)
+
+      if (description.step) {
+        request.withPolicyType(PolicyType.StepScaling.toString()).
+          withEstimatedInstanceWarmup(description.step.estimatedInstanceWarmup).
+          withStepAdjustments(description.step.stepAdjustments).
+          withMetricAggregationType(description.step.metricAggregationType.toString())
+      } else {
+        request.withPolicyType(PolicyType.SimpleScaling.toString()).
+          withCooldown(description.simple.cooldown).
+          withScalingAdjustment(description.simple.scalingAdjustment)
+      }
     }
 
     final autoScaling = amazonClientProvider.getAutoScaling(description.credentials, description.region, true)
     PutScalingPolicyResult scalingPolicyResult = autoScaling.putScalingPolicy(request)
 
-    if (description.alarm) {
+    if (description.alarm && !description.targetTrackingConfiguration) {
       addAlarm(scalingPolicyResult)
       new UpsertScalingPolicyResult(
           policyName: policyName.toString(),
@@ -77,7 +84,7 @@ class UpsertScalingPolicyAtomicOperation implements AtomicOperation<UpsertScalin
 
   private void addAlarm(PutScalingPolicyResult scalingPolicyResult) {
     def alarm = description.alarm
-    alarm.name = alarm.name ?: "${description.serverGroupName ?: description.asgName}-alarm-${description.alarm.metricName}-${idGenerator.nextId()}"
+    alarm.name = alarm.name ?: "${description.serverGroupName}-alarm-${description.alarm.metricName}-${idGenerator.nextId()}"
     alarm.alarmActionArns = alarm.alarmActionArns ?: []
     if (!alarm.alarmActionArns.contains(scalingPolicyResult.policyARN)) {
       alarm.alarmActionArns.add(scalingPolicyResult.policyARN)
@@ -88,7 +95,7 @@ class UpsertScalingPolicyAtomicOperation implements AtomicOperation<UpsertScalin
   }
 
   enum PolicyType {
-    SimpleScaling, StepScaling
+    SimpleScaling, StepScaling, TargetTrackingScaling
   }
 
 }

@@ -203,31 +203,4 @@ class UpsertScalingPolicyAtomicOperationUnitSpec extends Specification {
 
   }
 
-  void "falls back to asgName when creating alarms and policies if serverGroupName not present"() {
-    given:
-    def alarm = new UpsertAlarmDescription(namespace: "amazon/ec2", metricName: "CPUUtilization")
-    description.alarm = alarm
-    description.serverGroupName = null
-    description.asgName = "theAsgName"
-
-    when:
-    final result = op.operate([])
-
-    then:
-    1 * autoScaling.putScalingPolicy(new PutScalingPolicyRequest(
-        policyName: "theAsgName-policy-1",
-        autoScalingGroupName: "theAsgName",
-        adjustmentType: "PercentChangeInCapacity",
-        cooldown: 1,
-        minAdjustmentMagnitude: 3,
-        scalingAdjustment: 5,
-        policyType: "SimpleScaling",
-    )) >> {
-      new PutScalingPolicyResult(policyARN: "arn")
-    }
-
-    result == new UpsertScalingPolicyResult(
-        policyArn: "arn", policyName: "theAsgName-policy-1", alarmName: "theAsgName-alarm-CPUUtilization-2")
-  }
-
 }

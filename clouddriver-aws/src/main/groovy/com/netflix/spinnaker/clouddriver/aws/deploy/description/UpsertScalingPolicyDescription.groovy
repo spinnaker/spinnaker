@@ -17,26 +17,25 @@
 package com.netflix.spinnaker.clouddriver.aws.deploy.description
 
 import com.amazonaws.services.autoscaling.model.StepAdjustment
+import com.amazonaws.services.autoscaling.model.TargetTrackingConfiguration
 
 class UpsertScalingPolicyDescription extends AbstractAmazonCredentialsDescription {
 
-  @Deprecated
-  /**
-   * Use serverGroupName instead
-   */
-  String asgName
-
   // required
   String region
+  String serverGroupName
   AdjustmentType adjustmentType = AdjustmentType.ChangeInCapacity
 
   // optional
-  String serverGroupName
   String name
   Integer minAdjustmentMagnitude
 
   Simple simple
   Step step
+  TargetTrackingConfiguration targetTrackingConfiguration
+
+  // required for target tracking
+  Integer estimatedInstanceWarmup
 
   UpsertAlarmDescription alarm
 

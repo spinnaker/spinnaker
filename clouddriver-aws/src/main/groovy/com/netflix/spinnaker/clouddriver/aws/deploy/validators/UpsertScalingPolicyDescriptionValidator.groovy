@@ -35,14 +35,17 @@ class UpsertScalingPolicyDescriptionValidator extends AmazonDescriptionValidatio
       errors.rejectValue("minAdjustmentMagnitude", "upsertScalingPolicyDescription.minAdjustmentMagnitude.requires.adjustmentType.percentChangeInCapacity")
     }
 
-    if (description.simple && description.step) {
-      errors.rejectValue("step", "upsertScalingPolicyDescription.stepPolicy.cannot.have.simplePolicy.attributes")
+    if ((description.simple && description.step) || (description.simple && description.targetTrackingConfiguration) || (description.step && description.targetTrackingConfiguration)) {
+      errors.rejectValue("step", "upsertScalingPolicyDescription.must.only.specify.simple.step.targetTrackingConfiguration")
     }
 
-    if (!description.simple && !description.step) {
-      errors.rejectValue("step", "upsertScalingPolicyDescription.must.be.simplePolicy.or.stepPolicy")
+    if (!description.simple && !description.step && !description.targetTrackingConfiguration) {
+      errors.rejectValue("step", "upsertScalingPolicyDescription.must.be.simplePolicy.or.stepPolicy.or.targetTrackingPolicy")
     }
 
+    if (description.targetTrackingConfiguration && !description.estimatedInstanceWarmup) {
+      errors.rejectValue('estimatedInstanceWarmup', 'upsertScalingPolicyDescription.targetTracking.requires.estimatedInstanceWarmup')
+    }
   }
 
   static void rejectNull(String field, Errors errors) {
