@@ -20,11 +20,25 @@ import com.netflix.spinnaker.clouddriver.search.SearchProvider
 import com.netflix.spinnaker.clouddriver.search.SearchResultSet
 import spock.lang.Specification
 
+import javax.servlet.http.HttpServletRequest
+
 class SearchControllerSpec extends Specification {
 
   SearchController searchController
   SearchProvider searchProviderA
   SearchProvider searchProviderB
+  HttpServletRequest request = Mock(HttpServletRequest)
+  Enumeration enumeration = Mock(Enumeration)
+
+  List getSearchResults(Map filters) {
+    return searchController.search(
+      filters.get("q") as String,
+      filters.get("type") as List<String>,
+      filters.get("platform") as String,
+      filters.get("pageSize") as int,
+      filters.get("page") as int,
+      request)
+  }
 
   def setup() {
     searchProviderA = Mock(SearchProvider)
@@ -39,13 +53,17 @@ class SearchControllerSpec extends Specification {
     SearchResultSet expected = new SearchResultSet(platform: 'aws', totalMatches: 2, pageSize: 10, pageNumber: 1, query: 'aBC', results: [[item1: 'foo'],[item2: 'bar']])
 
     when:
-    SearchController.SearchQueryCommand q = new SearchController.SearchQueryCommand(q:'aBC', page: 1, pageSize: 10)
-    List searchResultSets = searchController.search(q)
+    def filters = [
+      q : 'aBC',
+      page : 1,
+      pageSize: 10
+    ]
+    List searchResultSets = getSearchResults(filters)
 
     then:
-    1 * searchProviderA.search('aBC', 1, 10, null) >> rsA
-    1 * searchProviderB.search('aBC', 1, 10, null) >> rsB
-    0 * _
+    1 * searchProviderA.search('aBC', 1, 10, [:]) >> rsA
+    1 * searchProviderB.search('aBC', 1, 10, [:]) >> rsB
+    1 * request.getParameterNames() >> enumeration
 
     searchResultSets == [expected]
   }
@@ -56,17 +74,21 @@ class SearchControllerSpec extends Specification {
     SearchResultSet expected = new SearchResultSet(platform: 'aws', totalMatches: 1, pageSize: 10, pageNumber: 1, query: 'aBC', results: [[item2: 'bar']])
 
     and:
-    SearchController.SearchQueryCommand queryCommand = new SearchController.SearchQueryCommand(q:'aBC', page: 1, pageSize: 10)
+    def filters = [
+      q: 'aBC',
+      page: 1,
+      pageSize: 10
+    ]
 
     when:
-    List searchResultSets = searchController.search(queryCommand)
+    List searchResultSets = getSearchResults(filters)
 
     then:
-    1 * searchProviderA.search(queryCommand.q, queryCommand.page, queryCommand.pageSize, null) >> {
+    1 * searchProviderA.search(filters.q, filters.page, filters.pageSize, [:]) >> {
       throw new Exception("An exception message")
     }
 
-    1 * searchProviderB.search(queryCommand.q, queryCommand.page, queryCommand.pageSize, null) >> rsB
+    1 * searchProviderB.search(filters.q, filters.page, filters.pageSize, [:]) >> rsB
     searchResultSets == [expected]
     notThrown(Exception)
   }
@@ -74,16 +96,21 @@ class SearchControllerSpec extends Specification {
   def 'filter search providers by platform'() {
     given:
     SearchResultSet resultSetA = Stub(SearchResultSet)
+    def filters = [
+      q: "a",
+      platform: "aws",
+      page: 1,
+      pageSize: 10
+    ]
 
     when:
-    SearchController.SearchQueryCommand q = new SearchController.SearchQueryCommand(q:'a', platform: 'aws', page: 1, pageSize: 10)
-    List searchResultSets = searchController.search(q)
+    List searchResultSets = getSearchResults(filters)
 
     then:
     1 * searchProviderA.platform >> 'aws'
     1 * searchProviderB.platform >> 'gce'
-    1 * searchProviderA.search('a', 1, 10, null) >> resultSetA
-    0 * _
+    1 * searchProviderA.search('a', 1, 10, [:]) >> resultSetA
+    1 * request.getParameterNames() >> enumeration
 
     searchResultSets == [resultSetA]
   }
@@ -92,14 +119,19 @@ class SearchControllerSpec extends Specification {
     setup:
     SearchResultSet resultSetA = Stub(SearchResultSet)
     searchController = new SearchController(searchProviders: [searchProviderA])
+    def filters = [
+      q: "aBC",
+      type: ['applications'],
+      page: 1,
+      pageSize: 10
+    ]
 
     when:
-    SearchController.SearchQueryCommand q = new SearchController.SearchQueryCommand(q:'aBC', type: ['applications'], page: 1, pageSize: 10)
-    List searchResultSets = searchController.search(q)
+    List searchResultSets = getSearchResults(filters)
 
     then:
-    1 * searchProviderA.search('aBC', ['applications'], 1, 10, null) >> resultSetA
-    0 * _
+    1 * searchProviderA.search('aBC', ['applications'], 1, 10, [:]) >> resultSetA
+    1 * request.getParameterNames() >> enumeration
 
     searchResultSets == [resultSetA]
   }
@@ -107,17 +139,20 @@ class SearchControllerSpec extends Specification {
   def "if only one search provider, don't aggregate into an aws result"() {
     SearchResultSet rsA = Stub(SearchResultSet)
     searchController = new SearchController(searchProviders: [searchProviderA])
+    def filters = [
+      q: "aBC",
+      page: 1,
+      pageSize: 10
+    ]
 
     when:
-    SearchController.SearchQueryCommand q = new SearchController.SearchQueryCommand(q:'aBC', page: 1, pageSize: 10)
-    List searchResultSets = searchController.search(q)
+    List searchResultSets = getSearchResults(filters)
 
     then:
-    1 * searchProviderA.search('aBC', 1, 10, null) >> rsA
-    0 * _
+    1 * searchProviderA.search('aBC', 1, 10, [:]) >> rsA
+    1 * request.getParameterNames() >> enumeration
 
     searchResultSets == [rsA]
   }
-
 }
 

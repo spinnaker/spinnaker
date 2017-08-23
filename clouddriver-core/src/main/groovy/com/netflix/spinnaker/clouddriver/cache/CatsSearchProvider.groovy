@@ -46,6 +46,9 @@ class CatsSearchProvider implements SearchProvider {
   @Autowired(required = false)
   FiatPermissionEvaluator permissionEvaluator
 
+  @Autowired(required = false)
+  List<KeyParser> keyParsers;
+
   @Autowired
   public CatsSearchProvider(Cache cacheView, List<SearchableProvider> providers) {
     this.cacheView = cacheView
@@ -161,12 +164,17 @@ class CatsSearchProvider implements SearchProvider {
           if (!filters) {
             return true
           }
-          def item = cacheView.get(cache, key)
-          filters.entrySet().every { filter ->
-            if (item.relationships[filter.key]) {
-              item.relationships[filter.key].find { it.indexOf(filter.value) != -1 }
+          if (keyParsers) {
+            KeyParser parser = keyParsers.find { it.cloudProvider == filters.cloudProvider && it.canParse(cache) }
+            if (parser) {
+              Map<String, String> parsed = parser.parseKey(key)
+              return filters.entrySet().every { filter ->
+                String[] vals = filter.value.split(',')
+                filter.key == 'cloudProvider' || vals.contains(parsed[filter.key]) ||
+                  vals.contains(parsed[parser.getNameMapping(cache)])
+              }
             } else {
-              item.attributes[filter.key] == filter.value
+              log.warn("No parser found for $cache:$key")
             }
           }
         } catch (Exception e) {

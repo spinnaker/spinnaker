@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.core.provider.agent
 
+import com.google.common.base.CaseFormat
 import groovy.transform.CompileStatic
 
 @CompileStatic
@@ -39,9 +40,7 @@ public enum Namespace {
   final String ns
 
   private Namespace() {
-    def parts = name().split('_')
-
-    ns = parts.tail().inject(new StringBuilder(parts.head().toLowerCase())) { val, next -> val.append(next.charAt(0)).append(next.substring(1).toLowerCase()) }
+    ns = CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, name()) // FOO_BAR -> fooBar
   }
 
   String toString() {

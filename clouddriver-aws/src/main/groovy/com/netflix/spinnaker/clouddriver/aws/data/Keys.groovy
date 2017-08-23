@@ -16,13 +16,51 @@
 
 package com.netflix.spinnaker.clouddriver.aws.data
 
+import com.google.common.collect.ImmutableMap
 import com.netflix.frigga.Names
+import com.netflix.spinnaker.clouddriver.cache.KeyParser
 import com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace
 import groovy.transform.CompileStatic
+import groovy.transform.TypeChecked
+import groovy.transform.TypeCheckingMode
+import org.springframework.stereotype.Component
+
 import static com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider.ID
 
 @CompileStatic
-class Keys {
+@Component("AmazonKeys")
+class Keys implements KeyParser {
+
+  private static final Map<String, String> NAMESPACE_MAPPING =
+    ImmutableMap.builder()
+      .put(Namespace.SERVER_GROUPS.ns, "serverGroup")
+      .put(Namespace.INSTANCES.ns, "instanceId")
+      .put(Namespace.LOAD_BALANCERS.ns, "loadBalancer")
+      .put(Namespace.TARGET_GROUPS.ns, "targetGroup")
+      .put(Namespace.CLUSTERS.ns, "cluster")
+      .put(Namespace.APPLICATIONS.ns, "application")
+      .build()
+
+  @Override
+  String getNameMapping(String cache) {
+    return NAMESPACE_MAPPING.get(cache)
+  }
+
+  @Override
+  String getCloudProvider() {
+    return ID
+  }
+
+  @Override
+  Map<String, String> parseKey(String key) {
+    return parse(key)
+  }
+
+  @Override
+  @TypeChecked(value = TypeCheckingMode.SKIP)
+  Boolean canParse(String type) {
+    return Namespace.values().any { it.ns == type }
+  }
 
   static Map<String, String> parse(String key) {
     def parts = key.split(':')

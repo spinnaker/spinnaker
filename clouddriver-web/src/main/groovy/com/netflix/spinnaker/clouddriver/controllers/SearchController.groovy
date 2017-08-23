@@ -23,7 +23,10 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
+
+import javax.servlet.http.HttpServletRequest
 
 @RestController
 class SearchController {
@@ -45,15 +48,28 @@ class SearchController {
    */
   @PreAuthorize("@fiatPermissionEvaluator.storeWholePermission()")
   @RequestMapping(value = '/search', method = RequestMethod.GET)
-  List<SearchResultSet> search(SearchQueryCommand q) {
+  List<SearchResultSet> search(@RequestParam(value = "q", defaultValue = "", required = false) String query,
+                               @RequestParam(value = "type") List<String> type,
+                               @RequestParam(value = "platform", required = false) String platform,
+                               @RequestParam(value = "pageSize", defaultValue = "10000", required = false) int pageSize,
+                               @RequestParam(value = "page", defaultValue = "1", required = false) int page,
+                               HttpServletRequest httpServletRequest) {
 
-    log.info("Fetching search results for ${q.q}, platform: ${q.platform}, type: ${q.type}, pageSize: ${q.pageSize}, pageNumber: ${q.page}, filter: ${q.filter}")
+    Map<String, String> filters = httpServletRequest.getParameterNames().findAll { String parameterName ->
+      !["q", "type", "platform", "pageSize", "page"].contains(parameterName)
+    }.collectEntries { String parameterName ->
+      [parameterName, httpServletRequest.getParameter(parameterName)]
+    }
 
-    def providers = q.platform ?
-      searchProviders.findAll { it.platform == q.platform } :
+    SearchQueryCommand searchQuery =
+      new SearchQueryCommand(q: query, type: type, platform: platform, pageSize: pageSize, page: page, filters: filters)
+    log.info("Fetching search results for ${query}, platform: ${platform}, type: ${type}, pageSize: ${pageSize}, pageNumber: ${page}, filters: ${filters}")
+
+    List<SearchProvider> providers = searchQuery.platform ?
+      searchProviders.findAll { it.platform == searchQuery.platform } :
       searchProviders
 
-    List<SearchResultSet> results = searchAllProviders(providers, q)
+    List<SearchResultSet> results = searchAllProviders(providers, searchQuery)
 
     if (results.size() == 1) {
       results
@@ -65,24 +81,25 @@ class SearchController {
       //TODO-cfieber: this is a temporary workaround to https://github.com/spinnaker/deck/issues/128
       [new SearchResultSet(
         totalMatches: total,
-        pageNumber: q.page,
-        pageSize: q.pageSize,
+        pageNumber: searchQuery.page,
+        pageSize: searchQuery.pageSize,
         platform: 'aws', //TODO-cfieber: hardcoding this for now...
-        query: q.q,
+        query: searchQuery.q,
         results: allResults)]
     }
   }
 
-  List<SearchResultSet> searchAllProviders(List<SearchProvider> providers, SearchQueryCommand searchQueryCommand) {
+  List<SearchResultSet> searchAllProviders(List<SearchProvider> providers,
+                                           SearchQueryCommand searchQuery) {
     List<SearchResultSet> results = providers.collect {
       try {
-        if (searchQueryCommand.type && !searchQueryCommand.type.isEmpty()) {
-          it.search(searchQueryCommand.q, searchQueryCommand.type, searchQueryCommand.page, searchQueryCommand.pageSize, searchQueryCommand.filter)
+        if (searchQuery.type && !searchQuery.type.isEmpty()) {
+          it.search(searchQuery.q, searchQuery.type, searchQuery.page, searchQuery.pageSize, searchQuery.filters)
         } else {
-          it.search(searchQueryCommand.q, searchQueryCommand.page, searchQueryCommand.pageSize, searchQueryCommand.filter)
+          it.search(searchQuery.q, searchQuery.page, searchQuery.pageSize, searchQuery.filters)
         }
       } catch (Exception e) {
-        log.debug("Search for '${searchQueryCommand.q}' in '${it.platform}' failed", e)
+        log.debug("Search for '${searchQuery.q}' in '${it.platform}' failed", e)
         new SearchResultSet(totalMatches: 0, results: [])
       }
     }
@@ -121,7 +138,6 @@ class SearchController {
      * based on the map provided by {@link com.netflix.spinnaker.oort.aws.data.Keys#parse(java.lang.String)}
      * potential matches must fully intersect the filter map entries
      */
-    Map<String, String> filter
+    Map<String, String> filters
   }
-
 }

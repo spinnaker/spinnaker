@@ -16,10 +16,15 @@
 
 package com.netflix.spinnaker.clouddriver.aws.cache
 
+import com.google.common.base.CaseFormat
 import com.netflix.frigga.Names
+import com.netflix.spinnaker.clouddriver.cache.KeyParser
+import org.springframework.stereotype.Component
+
 import static com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider.ID
 
-class Keys {
+@Component("AmazonInfraKeys")
+class Keys implements KeyParser {
   static enum Namespace {
     CERTIFICATES,
     SECURITY_GROUPS,
@@ -33,14 +38,27 @@ class Keys {
     final String ns
 
     private Namespace() {
-      def parts = name().split('_')
-
-      ns = parts.tail().inject(new StringBuilder(parts.head().toLowerCase())) { val, next -> val.append(next.charAt(0)).append(next.substring(1).toLowerCase()) }
+      ns = CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, name())
     }
 
     String toString() {
       ns
     }
+  }
+
+  @Override
+  String getCloudProvider() {
+    return ID
+  }
+
+  @Override
+  Map<String, String> parseKey(String key) {
+    return parse(key)
+  }
+
+  @Override
+  Boolean canParse(String type) {
+    return Namespace.values().any { it.ns == type }
   }
 
   static Map<String, String> parse(String key) {
