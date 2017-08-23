@@ -525,11 +525,8 @@ class JedisExecutionRepository implements ExecutionRepository {
   private void storeExecutionInternal(Transaction tx, Execution execution) {
     def prefix = execution.getClass().simpleName.toLowerCase()
 
-    if (!execution.id) {
-      execution.id = UUID.randomUUID().toString()
-      tx.sadd(alljobsKey(execution.getClass()), execution.id)
-      tx.sadd(appKey(execution.getClass(), execution.application), execution.id)
-    }
+    tx.sadd(alljobsKey(execution.getClass()), execution.id)
+    tx.sadd(appKey(execution.getClass(), execution.application), execution.id)
 
     String key = "${prefix}:$execution.id"
 

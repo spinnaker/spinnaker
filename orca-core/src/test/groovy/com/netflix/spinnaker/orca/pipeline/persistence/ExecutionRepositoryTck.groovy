@@ -48,35 +48,6 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
 
   abstract T createExecutionRepository()
 
-  def "if an execution does not have an id it is assigned one when stored"() {
-    expect:
-    execution.id == null
-
-    when:
-    repository.store(execution)
-
-    then:
-    execution.id != null
-
-    where:
-    execution << [new Pipeline(buildTime: 0), new Orchestration()]
-
-  }
-
-  def "if an execution already has an id it is not re-assigned when stored"() {
-    given:
-    repository.store(execution)
-
-    when:
-    repository.store(execution)
-
-    then:
-    execution.id == old(execution.id)
-
-    where:
-    execution << [new Pipeline(buildTime: 0), new Orchestration(id: "a-preassigned-id")]
-  }
-
   def "can update an execution's context"() {
     given:
     repository.store(execution)

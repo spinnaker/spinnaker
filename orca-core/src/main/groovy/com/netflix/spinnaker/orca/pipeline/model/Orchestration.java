@@ -28,12 +28,4 @@ public class Orchestration extends Execution<Orchestration> {
   public void setDescription(@Nullable String description) {
     this.description = description;
   }
-
-  @Override public final boolean equals(Object o) {
-    return super.equals(o);
-  }
-
-  @Override public final int hashCode() {
-    return super.hashCode();
-  }
 }

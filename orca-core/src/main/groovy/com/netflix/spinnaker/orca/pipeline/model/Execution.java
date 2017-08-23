@@ -32,7 +32,7 @@ import static java.util.Collections.emptySet;
 
 public abstract class Execution<T extends Execution<T>> implements Serializable {
 
-  private String id;
+  private String id = UUID.randomUUID().toString();
 
   public @Nonnull String getId() {
     return id;
@@ -253,7 +253,7 @@ public abstract class Execution<T extends Execution<T>> implements Serializable 
       .orElseThrow(() -> new IllegalArgumentException(String.format("No stage with refId %s exists", refId)));
   }
 
-  @Override public boolean equals(Object o) {
+  @Override public final boolean equals(Object o) {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
     if (!super.equals(o)) return false;
@@ -263,7 +263,7 @@ public abstract class Execution<T extends Execution<T>> implements Serializable 
     return id.equals(execution.id);
   }
 
-  @Override public int hashCode() {
+  @Override public final int hashCode() {
     int result = super.hashCode();
     result = 31 * result + id.hashCode();
     return result;

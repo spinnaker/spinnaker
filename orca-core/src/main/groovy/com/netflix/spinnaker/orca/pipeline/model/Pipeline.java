@@ -26,25 +26,6 @@ import javax.annotation.Nullable;
 import com.netflix.spectator.api.Registry;
 
 public class Pipeline extends Execution<Pipeline> {
-  private String application;
-
-  public @Nonnull String getApplication() {
-    return application;
-  }
-
-  public void setApplication(@Nonnull String application) {
-    this.application = application;
-  }
-
-  private String name;
-
-  public @Nullable String getName() {
-    return name;
-  }
-
-  public void setName(@Nullable String name) {
-    this.name = name;
-  }
 
   private String pipelineConfigId;
 
@@ -72,14 +53,6 @@ public class Pipeline extends Execution<Pipeline> {
 
   public @Nonnull Map<String, Serializable> getInitialConfig() {
     return initialConfig;
-  }
-
-  @Override public final boolean equals(Object o) {
-    return super.equals(o);
-  }
-
-  @Override public final int hashCode() {
-    return super.hashCode();
   }
 
   public static PipelineBuilder builder(Registry registry) {
