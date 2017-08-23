@@ -78,7 +78,7 @@ class KubernetesClusterProvider implements ClusterProvider<KubernetesCluster> {
 
   @Override
   KubernetesCluster getCluster(String application, String account, String name, boolean includeDetails) {
-    CacheData serverGroupCluster = cacheView.get(Keys.Namespace.CLUSTERS.ns, Keys.getClusterKey(account, applicationName, "serverGroup", name))
+    CacheData serverGroupCluster = cacheView.get(Keys.Namespace.CLUSTERS.ns, Keys.getClusterKey(account, application, "serverGroup", name))
     List<CacheData> clusters = [serverGroupCluster] - null
     return clusters ? translateClusters(clusters, includeDetails).inject(new KubernetesCluster()) { KubernetesCluster acc, KubernetesCluster val ->
       acc.name = acc.name ?: val.name
