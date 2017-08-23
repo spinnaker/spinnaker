@@ -30,8 +30,8 @@ public interface KeyParser {
    *
    * Given the AWS key <code>serverGroups:mycluster-stack-detail:some-account:some-region:myservergroup-stack-detail-v000</code>,
    * we might store the server group name (the last part of the key) under a different property than <code>name</code>,
-   * e.g., <code>serverGroup</code>, in which case the mapping of {@link Namespace#SERVER_GROUPS#ns} ->
-   * "serverGroup" would be needed.
+   * e.g., <code>serverGroup</code>, in which case the mapping of Namespace.SERVER_GROUPS.ns to "serverGroup"
+   * would be needed.
    *
    * @param cache the name of the cache (key type) being parsed
    *
