@@ -18,7 +18,7 @@ package com.netflix.spinnaker.clouddriver.cache
 
 import com.netflix.discovery.DiscoveryClient
 import com.netflix.spectator.api.Registry
-import com.netflix.spinnaker.cats.redis.cache.AbstractRedisCache
+import com.netflix.spinnaker.cats.redis.cache.RedisCache.CacheMetrics
 import com.netflix.spinnaker.cats.redis.cache.RedisCacheOptions
 import com.netflix.spinnaker.cats.redis.cluster.AgentIntervalProvider
 import com.netflix.spinnaker.cats.redis.cluster.DefaultNodeStatusProvider
@@ -51,7 +51,7 @@ class RedisCacheConfig {
   }
 
   @Bean
-  AbstractRedisCache.CacheMetrics cacheMetrics(Registry registry) {
+  CacheMetrics cacheMetrics(Registry registry) {
     new SpectatorRedisCacheMetrics(registry)
   }
 

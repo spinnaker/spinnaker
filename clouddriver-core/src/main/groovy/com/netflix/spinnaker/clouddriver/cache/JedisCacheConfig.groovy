@@ -20,7 +20,7 @@ import com.netflix.spinnaker.cats.agent.AgentScheduler
 import com.netflix.spinnaker.cats.cache.NamedCacheFactory
 import com.netflix.spinnaker.cats.redis.JedisClientDelegate
 import com.netflix.spinnaker.cats.redis.RedisClientDelegate
-import com.netflix.spinnaker.cats.redis.cache.AbstractRedisCache
+import com.netflix.spinnaker.cats.redis.cache.RedisCache.CacheMetrics
 import com.netflix.spinnaker.cats.redis.cache.RedisCacheOptions
 import com.netflix.spinnaker.cats.redis.cache.RedisNamedCacheFactory
 import com.netflix.spinnaker.cats.redis.cluster.AgentIntervalProvider
@@ -51,7 +51,7 @@ class JedisCacheConfig {
     RedisClientDelegate redisClientDelegate,
     ObjectMapper objectMapper,
     RedisCacheOptions redisCacheOptions,
-    AbstractRedisCache.CacheMetrics cacheMetrics) {
+    CacheMetrics cacheMetrics) {
     new RedisNamedCacheFactory(redisClientDelegate, objectMapper, redisCacheOptions, cacheMetrics)
   }
 

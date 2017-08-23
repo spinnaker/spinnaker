@@ -19,7 +19,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.cats.cache.NamedCacheFactory;
 import com.netflix.spinnaker.cats.cache.WriteableCache;
 import com.netflix.spinnaker.cats.dynomite.DynomiteClientDelegate;
-import com.netflix.spinnaker.cats.redis.cache.AbstractRedisCache.CacheMetrics;
+import com.netflix.spinnaker.cats.dynomite.cache.DynomiteCache.CacheMetrics;
 import com.netflix.spinnaker.cats.redis.cache.RedisCacheOptions;
 
 public class DynomiteNamedCacheFactory implements NamedCacheFactory {

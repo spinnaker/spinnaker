@@ -20,9 +20,9 @@ import com.netflix.spectator.api.BasicTag
 import com.netflix.spectator.api.Id
 import com.netflix.spectator.api.Registry
 import com.netflix.spectator.api.Tag
-import com.netflix.spinnaker.cats.redis.cache.AbstractRedisCache
+import com.netflix.spinnaker.cats.redis.cache.RedisCache.CacheMetrics
 
-class SpectatorRedisCacheMetrics implements AbstractRedisCache.CacheMetrics {
+class SpectatorRedisCacheMetrics implements CacheMetrics {
   private final Registry registry
 
   SpectatorRedisCacheMetrics(Registry registry) {
@@ -32,8 +32,8 @@ class SpectatorRedisCacheMetrics implements AbstractRedisCache.CacheMetrics {
   @Override
   void merge(String prefix, String type,
              int itemCount, int keysWritten, int relationshipCount, int hashMatches,
-             int hashUpdates, int saddOperations, int setOperations, int msetOperations, int hmsetOperations,
-             int pipelineOperations, int expireOperations, int delOperations) {
+             int hashUpdates, int saddOperations, int msetOperations, int hmsetOperations,
+             int pipelineOperations, int expireOperations) {
     final Iterable<Tag> tags = tags(prefix, type)
     registry.counter(id("cats.redisCache.merge", "itemCount", tags)).increment(itemCount)
     registry.counter(id("cats.redisCache.merge", "keysWritten", tags)).increment(keysWritten)
@@ -41,12 +41,10 @@ class SpectatorRedisCacheMetrics implements AbstractRedisCache.CacheMetrics {
     registry.counter(id("cats.redisCache.merge", "hashMatches", tags)).increment(hashMatches)
     registry.counter(id("cats.redisCache.merge", "hashUpdates", tags)).increment(hashUpdates)
     registry.counter(id("cats.redisCache.merge", "saddOperations", tags)).increment(saddOperations)
-    registry.counter(id("cats.redisCache.merge", "setOperations", tags)).increment(setOperations)
     registry.counter(id("cats.redisCache.merge", "msetOperations", tags)).increment(msetOperations)
     registry.counter(id("cats.redisCache.merge", "hmsetOperations", tags)).increment(hmsetOperations)
     registry.counter(id("cats.redisCache.merge", "pipelineOperations", tags)).increment(pipelineOperations)
     registry.counter(id("cats.redisCache.merge", "expireOperations", tags)).increment(expireOperations)
-    registry.counter(id("cats.redisCache.merge", "delOperations", tags)).increment(delOperations)
   }
 
   @Override

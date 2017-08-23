@@ -30,7 +30,7 @@ import com.netflix.spinnaker.cats.cache.WriteableCache
 import com.netflix.spinnaker.cats.cache.WriteableCacheSpec
 import com.netflix.spinnaker.cats.dynomite.DynomiteClientDelegate
 import com.netflix.spinnaker.cats.dynomite.cache.DynomiteCache
-import com.netflix.spinnaker.cats.redis.cache.AbstractRedisCache.CacheMetrics
+import com.netflix.spinnaker.cats.dynomite.cache.DynomiteCache.CacheMetrics
 import com.netflix.spinnaker.cats.redis.cache.RedisCacheOptions
 import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
 import redis.clients.jedis.Jedis
@@ -58,11 +58,7 @@ class DynomiteCacheSpec extends WriteableCacheSpec {
 
   @Override
   Cache getSubject() {
-//    if (System.getProperty('dyno.hostname') == null) {
-//      initEmbeddedRedisClient()
-//    } else {
-      initLocalDynoClusterClient()
-//    }
+    initLocalDynoClusterClient()
 
     def delegate = new DynomiteClientDelegate(client)
 
@@ -152,13 +148,13 @@ class DynomiteCacheSpec extends WriteableCacheSpec {
     ((WriteableCache) cache).merge('foo', data)
 
     then:
-    1 * cacheMetrics.merge('test', 'foo', 1, 1, 0, 0, 1, 2, 2, 0, 0, 0, 0, 0)
+    1 * cacheMetrics.merge('test', 'foo', 1, 0, 0, 1, 2, 2, 1, 0)
 
     when:
     ((WriteableCache) cache).merge('foo', data)
 
     then:
-    1 * cacheMetrics.merge('test', 'foo', 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0)
+    1 * cacheMetrics.merge('test', 'foo', 1, 0, 1, 0, 0, 0, 0, 0)
   }
 
   private static class Bean {
