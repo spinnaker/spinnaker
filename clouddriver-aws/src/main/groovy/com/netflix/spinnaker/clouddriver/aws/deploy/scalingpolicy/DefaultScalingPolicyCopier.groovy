@@ -141,6 +141,7 @@ class DefaultScalingPolicyCopier implements ScalingPolicyCopier {
         metricName: alarm.metricName,
         namespace: alarm.namespace,
         statistic: alarm.statistic,
+        extendedStatistic: alarm.extendedStatistic,
         dimensions: newDimensions,
         period: alarm.period,
         unit: alarm.unit,
