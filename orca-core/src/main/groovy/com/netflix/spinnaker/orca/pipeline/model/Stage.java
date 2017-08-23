@@ -160,7 +160,7 @@ public class Stage<T extends Execution<T>> implements Serializable {
   }
 
   public void setContext(@Nonnull Map<String, Object> context) {
-    this.context = new HashMap<>(context);
+    this.context = context;
   }
 
   /**
