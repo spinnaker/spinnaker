@@ -51,7 +51,7 @@ class SecurityGroupService {
    */
   Map getById(String id, String selectorKey) {
     HystrixFactory.newMapCommand(GROUP, "getSecurityGroupById".toString()) {
-      def result = clouddriverServiceSelector.select(selectorKey).search(id, "securityGroups", null, 10000, 1)[0]
+      def result = clouddriverServiceSelector.select(selectorKey).search(id, "securityGroups", null, 10000, 1, [:])[0]
       if (result.results) {
         Map firstResult = ((List<Map>)result.results)[0]
         String uriString = firstResult.url

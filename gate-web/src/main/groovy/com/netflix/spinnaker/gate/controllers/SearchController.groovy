@@ -26,19 +26,26 @@ import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
-@CompileStatic
+import javax.servlet.http.HttpServletRequest
+
 @RestController
 class SearchController {
   @Autowired
   SearchService searchService
 
   @RequestMapping(value = "/search", method = RequestMethod.GET)
-  List<Map> search(@RequestParam(value = "q") String query,
+  List<Map> search(@RequestParam(value = "q", defaultValue = "", required = false) String query,
                    @RequestParam(value = "type") String type,
                    @RequestParam(value = "platform", required = false) String platform,
                    @RequestParam(value = "pageSize", defaultValue = "10000", required = false) int pageSize,
                    @RequestParam(value = "page", defaultValue = "1", required = false) int page,
-                   @RequestHeader(value = "X-RateLimit-App", required = false) String sourceApp) {
-    searchService.search(query, type, platform, sourceApp, pageSize, page)
+                   @RequestHeader(value = "X-RateLimit-App", required = false) String sourceApp,
+                   HttpServletRequest httpServletRequest) {
+    def filters = httpServletRequest.getParameterNames().findAll { String parameterName ->
+      !["q", "type", "platform", "pageSize", "page"].contains(parameterName)
+    }.collectEntries { String parameterName ->
+      [parameterName, httpServletRequest.getParameter(parameterName)]
+    }
+    searchService.search(query, type, platform, sourceApp, pageSize, page, filters)
   }
 }

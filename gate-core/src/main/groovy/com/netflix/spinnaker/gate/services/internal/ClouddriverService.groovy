@@ -211,7 +211,8 @@ interface ClouddriverService {
                    @Query("type") String type,
                    @Query("platform") String platform,
                    @Query("pageSize") Integer size,
-                   @Query("page") Integer offset)
+                   @Query("page") Integer offset,
+                   @QueryMap Map filters)
 
   @GET('/securityGroups')
   Map getSecurityGroups()
