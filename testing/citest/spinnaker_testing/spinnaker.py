@@ -492,7 +492,7 @@ class SpinnakerAgent(service_testing.HttpAgent):
       return None
 
     # gcloud prints an info message about upgrades to the output stream.
-    # There seems to be no way to supress this!
+    # There seems to be no way to suppress this!
     # Look for it and truncate the stream there if we see it.
     got = response.output
     update_msg_offset = got.find('Updates are available')
