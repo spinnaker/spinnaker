@@ -80,6 +80,13 @@ fun Stage<out Execution<*>>.nextTask(task: Task) =
   }
 
 /**
+ * @return the stage with the specified [refId].
+ * @throws IllegalArgumentException if there is no such stage.
+ */
+fun <T : Execution<T>> Execution<T>.stageByRef(refId: String) =
+  stages.find { it.refId == refId } ?: throw IllegalArgumentException("No such stage")
+
+/**
  * @return all upstream stages of this stage.
  */
 fun Stage<*>.upstreamStages(): List<Stage<*>> =

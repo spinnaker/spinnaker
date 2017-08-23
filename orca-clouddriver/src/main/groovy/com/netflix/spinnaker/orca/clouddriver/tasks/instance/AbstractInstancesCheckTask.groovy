@@ -188,7 +188,7 @@ abstract class AbstractInstancesCheckTask extends AbstractCloudProviderAwareTask
     serverGroups.each { String region, List<String> serverGroupNames ->
       serverGroupNames.each {
         if (!oortHelper.getTargetServerGroup(account, it, region, getCloudProvider(stage)).isPresent()) {
-          log.error("Server group '${region}:${it}' does not exist (forceCacheRefreshResult: ${forceCacheRefreshResult.context}")
+          log.error("Server group '${region}:${it}' does not exist (forceCacheRefreshResult: ${forceCacheRefreshResult.stageOutputs}")
           throw new MissingServerGroupException("Server group '${region}:${it}' does not exist")
         }
       }

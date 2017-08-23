@@ -106,7 +106,7 @@ class ServerGroupCacheForceRefreshTaskSpec extends Specification {
     optionalTaskResult.present == !forceCacheUpdatedServerGroups.isEmpty()
     forceCacheUpdatedServerGroups.every {
       optionalTaskResult.get().status == executionStatus
-      (optionalTaskResult.get().context."refreshed.server.groups" as Set<Map>)*.serverGroupName == expectedRefreshedServerGroups
+      (optionalTaskResult.get().stageOutputs."refreshed.server.groups" as Set<Map>)*.serverGroupName == expectedRefreshedServerGroups
     }
     stageData.refreshedServerGroups*.serverGroupName == expectedRefreshedServerGroups
 

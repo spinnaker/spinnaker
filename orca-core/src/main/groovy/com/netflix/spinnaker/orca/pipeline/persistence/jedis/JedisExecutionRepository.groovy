@@ -584,7 +584,6 @@ class JedisExecutionRepository implements ExecutionRepository {
     map["stage.${stage.id}.requisiteStageRefIds".toString()] = stage.requisiteStageRefIds?.join(",")
     map["stage.${stage.id}.scheduledTime".toString()] = stage.scheduledTime?.toString()
     map["stage.${stage.id}.context".toString()] = mapper.writeValueAsString(stage.context)
-    map["stage.${stage.id}.outputs".toString()] = mapper.writeValueAsString(stage.outputs)
     map["stage.${stage.id}.tasks".toString()] = mapper.writeValueAsString(stage.tasks)
     map["stage.${stage.id}.lastModified".toString()] = stage.lastModified ? mapper.writeValueAsString(stage.lastModified) : null
     return map
@@ -660,7 +659,6 @@ class JedisExecutionRepository implements ExecutionRepository {
         stage.requisiteStageRefIds = map["stage.${stageId}.requisiteStageRefIds".toString()]?.tokenize(",")
         stage.scheduledTime = map["stage.${stageId}.scheduledTime".toString()]?.toLong()
         stage.context = map["stage.${stageId}.context".toString()] ? mapper.readValue(map["stage.${stageId}.context".toString()], MAP_STRING_TO_OBJECT) : emptyMap()
-        stage.outputs = map["stage.${stageId}.outputs".toString()] ? mapper.readValue(map["stage.${stageId}.outputs".toString()], MAP_STRING_TO_OBJECT) : emptyMap()
         stage.tasks = map["stage.${stageId}.tasks".toString()] ? mapper.readValue(map["stage.${stageId}.tasks".toString()], LIST_OF_TASKS) : emptyList()
         if (map["stage.${stageId}.lastModified".toString()]) {
           stage.lastModified = map["stage.${stageId}.lastModified".toString()] ? mapper.readValue(map["stage.${stageId}.lastModified".toString()], MAP_STRING_TO_OBJECT) : emptyMap()

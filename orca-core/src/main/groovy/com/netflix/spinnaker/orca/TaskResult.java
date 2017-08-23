@@ -2,7 +2,6 @@ package com.netflix.spinnaker.orca;
 
 import java.util.Map;
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import com.google.common.collect.ImmutableMap;
 import static java.util.Collections.emptyMap;
 
@@ -13,39 +12,37 @@ public final class TaskResult {
   public static final TaskResult SUCCEEDED = new TaskResult(ExecutionStatus.SUCCEEDED);
 
   private final ExecutionStatus status;
-  private final ImmutableMap<String, ?> context;
-  private final ImmutableMap<String, ?> outputs;
+  private final Map<String, ?> stageOutputs;
+  private final Map<String, ?> globalOutputs;
 
   public TaskResult(ExecutionStatus status) {
     this(status, emptyMap(), emptyMap());
   }
 
-  public TaskResult(ExecutionStatus status, Map<String, ?> context, Map<String, ?> outputs) {
+  public TaskResult(ExecutionStatus status, Map<String, ?> stageOutputs, Map<String, ?> globalOutputs) {
     this.status = status;
-    this.context = ImmutableMap.copyOf(context);
-    this.outputs = ImmutableMap.copyOf(outputs);
+    this.stageOutputs = ImmutableMap.copyOf(stageOutputs);
+    this.globalOutputs = ImmutableMap.copyOf(globalOutputs);
   }
 
-  public TaskResult(ExecutionStatus status, Map<String, ?> context) {
-    this(status, context, emptyMap());
+  public TaskResult(ExecutionStatus status, Map<String, ?> stageOutputs) {
+    this(status, stageOutputs, emptyMap());
+  }
+
+  @Deprecated
+  public @Nonnull Map<String, ?> getOutputs() {
+    return stageOutputs;
   }
 
   public @Nonnull ExecutionStatus getStatus() {
     return status;
   }
 
-  /**
-   * Updates to the current stage context.
-   */
-  public @Nonnull Map<String, ?> getContext() {
-    return context;
+  public @Nonnull Map<String, ?> getStageOutputs() {
+    return stageOutputs;
   }
 
-  /**
-   * Values to be output from the stage and potentially accessed by downstream
-   * stages.
-   */
-  public @Nonnull Map<String, ?> getOutputs() {
-    return outputs;
+  public @Nonnull Map<String, ?> getGlobalOutputs() {
+    return globalOutputs;
   }
 }

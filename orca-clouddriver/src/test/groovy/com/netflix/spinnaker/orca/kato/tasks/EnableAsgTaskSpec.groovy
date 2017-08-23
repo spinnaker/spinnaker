@@ -87,8 +87,8 @@ class EnableAsgTaskSpec extends Specification {
 
     then:
     result.status == ExecutionStatus.SUCCEEDED
-    result.context."kato.last.task.id" == taskId
-    result.context."deploy.account.name" == disableASGConfig.credentials
+    result.stageOutputs."kato.last.task.id" == taskId
+    result.stageOutputs."deploy.account.name" == disableASGConfig.credentials
   }
 
   void "should get target dynamically when configured"() {
@@ -107,8 +107,8 @@ class EnableAsgTaskSpec extends Specification {
       asg: [name: "foo-v001"],
       region: "us-east-1"
     ]
-    result.context.asgName == "foo-v001"
-    result.context."deploy.server.groups" == ["us-west-1": ["foo-v001"], "us-east-1": ["foo-v001"]]
+    result.stageOutputs.asgName == "foo-v001"
+    result.stageOutputs."deploy.server.groups" == ["us-west-1": ["foo-v001"], "us-east-1": ["foo-v001"]]
   }
 
 }

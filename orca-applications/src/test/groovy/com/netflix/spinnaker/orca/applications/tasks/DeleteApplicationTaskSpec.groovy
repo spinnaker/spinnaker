@@ -67,6 +67,6 @@ class DeleteApplicationTaskSpec extends Specification {
     def taskResult = task.execute(new Stage<>(new Pipeline(), "DeleteApplication", config))
 
     then:
-    taskResult.context.previousState == application
+    taskResult.stageOutputs.previousState == application
   }
 }

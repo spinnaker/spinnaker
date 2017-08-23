@@ -82,8 +82,8 @@ class DestroyAwsServerGroupTaskSpec extends Specification {
 
     then:
     result.status == ExecutionStatus.SUCCEEDED
-    result.context."kato.last.task.id" == taskId
-    result.context."deploy.account.name" == destroyASGConfig.credentials
+    result.stageOutputs."kato.last.task.id" == taskId
+    result.stageOutputs."deploy.account.name" == destroyASGConfig.credentials
   }
 
   void "should pop inputs off destroyAsgDescriptions context field when present"() {
@@ -101,7 +101,7 @@ class DestroyAwsServerGroupTaskSpec extends Specification {
 
     then:
     1 == stage.context.destroyAsgDescriptions.size()
-    result.context."deploy.account.name" == account
+    result.stageOutputs."deploy.account.name" == account
 
     where:
     account = "account"
@@ -123,8 +123,8 @@ class DestroyAwsServerGroupTaskSpec extends Specification {
       asg: [name: "foo-v001"],
       region: "us-west-1"
     ]
-    result.context.asgName == "foo-v001"
-    result.context."deploy.server.groups" == ["us-west-1": ["foo-v001"]]
+    result.stageOutputs.asgName == "foo-v001"
+    result.stageOutputs."deploy.server.groups" == ["us-west-1": ["foo-v001"]]
   }
 
   def "task uses serverGroupName if present"() {
@@ -145,9 +145,9 @@ class DestroyAwsServerGroupTaskSpec extends Specification {
 
     then:
     result.status == ExecutionStatus.SUCCEEDED
-    result.context."kato.last.task.id" == taskId
-    result.context."deploy.account.name" == 'test'
-    result.context."asgName" == 'test-server-group'
-    result.context."serverGroupName" == 'test-server-group'
+    result.stageOutputs."kato.last.task.id" == taskId
+    result.stageOutputs."deploy.account.name" == 'test'
+    result.stageOutputs."asgName" == 'test-server-group'
+    result.stageOutputs."serverGroupName" == 'test-server-group'
   }
 }

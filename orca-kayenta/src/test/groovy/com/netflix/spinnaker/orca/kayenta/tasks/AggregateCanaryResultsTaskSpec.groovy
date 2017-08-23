@@ -43,7 +43,7 @@ class AggregateCanaryResultsTaskSpec extends Specification {
     def taskResult = task.execute(stage)
 
     then:
-    taskResult.context.canaryScores == outputCanaryScores
+    taskResult.stageOutputs.canaryScores == outputCanaryScores
     taskResult.status == overallExecutionStatus
 
     where:

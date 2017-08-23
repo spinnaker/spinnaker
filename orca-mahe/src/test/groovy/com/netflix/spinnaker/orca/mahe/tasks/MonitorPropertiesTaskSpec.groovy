@@ -69,9 +69,9 @@ class MonitorPropertiesTaskSpec extends Specification {
 
     then:
     result.status == SUCCEEDED
-    result.context.persistedProperties.size() == 1
+    result.stageOutputs.persistedProperties.size() == 1
 
-    with(result.context.persistedProperties.first()) {
+    with(result.stageOutputs.persistedProperties.first()) {
       propertyId == propId
       key == "foo"
       value == "bar"

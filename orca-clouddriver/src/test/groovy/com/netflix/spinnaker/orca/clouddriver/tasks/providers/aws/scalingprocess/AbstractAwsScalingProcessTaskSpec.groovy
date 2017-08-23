@@ -48,8 +48,8 @@ class AbstractAwsScalingProcessTaskSpec extends Specification {
 
     when:
       def result = task.execute(stage)
-    def outputs = result.context
-    def globalOutputs = result.outputs
+    def outputs = result.stageOutputs
+    def globalOutputs = result.globalOutputs
 
     then:
       outputs.processes == expectedScalingProcesses

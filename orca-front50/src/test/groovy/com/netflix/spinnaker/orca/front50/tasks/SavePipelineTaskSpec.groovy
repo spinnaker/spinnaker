@@ -58,7 +58,7 @@ class SavePipelineTaskSpec extends Specification {
       new Response('http://front50', 200, 'OK', [], null)
     }
     result.status == ExecutionStatus.SUCCEEDED
-    result.context == ImmutableMap.copyOf([
+    result.stageOutputs == ImmutableMap.copyOf([
       'notification.type': 'savepipeline',
       'application': 'orca',
       'pipeline.name': 'my pipeline'

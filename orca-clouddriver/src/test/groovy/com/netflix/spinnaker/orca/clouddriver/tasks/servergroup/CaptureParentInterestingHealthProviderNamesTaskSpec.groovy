@@ -43,7 +43,7 @@ class CaptureParentInterestingHealthProviderNamesTaskSpec extends Specification 
 
     then:
     taskResult.status == ExecutionStatus.SUCCEEDED
-    (taskResult.getContext() as Map) == expectedStageOutputs
+    (taskResult.getStageOutputs() as Map) == expectedStageOutputs
 
     where:
     context                                       || expectedStageOutputs

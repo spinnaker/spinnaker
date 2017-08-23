@@ -132,7 +132,7 @@ class AbstractInstancesCheckTaskSpec extends Specification {
     def result = task.execute(stage)
 
     then:
-    result.context.zeroDesiredCapacityCount == expected
+    result.stageOutputs.zeroDesiredCapacityCount == expected
     1 * task.oortService.getServerGroup("front50", "test", "us-west-1", "front50-v000") >> constructResponse(200, '''
 {
     "name": "front50-v000",
@@ -178,7 +178,7 @@ class AbstractInstancesCheckTaskSpec extends Specification {
     def result = task.execute(stage)
 
     then:
-    result.context.zeroDesiredCapacityCount == 1
+    result.stageOutputs.zeroDesiredCapacityCount == 1
     1 * task.oortService.getServerGroup("front50", "test", "us-west-1", "front50-v000") >> constructResponse(200, '''
 {
     "name": "front50-v000",

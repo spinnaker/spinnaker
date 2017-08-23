@@ -76,7 +76,7 @@ class DeregisterInstancesFromLoadBalancerTaskSpec extends Specification {
 
     then:
       result.status == ExecutionStatus.SUCCEEDED
-    result.context."kato.last.task.id" == taskId
-    result.context.interestingHealthProviderNames == ["LoadBalancer", "TargetGroup"]
+    result.outputs."kato.last.task.id" == taskId
+    result.outputs.interestingHealthProviderNames == ["LoadBalancer", "TargetGroup"]
   }
 }

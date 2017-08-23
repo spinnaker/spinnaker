@@ -247,7 +247,7 @@ class VerifyQuipTaskSpec extends Specification {
     //1 * oortService.getCluster(app, account, cluster, 'aws') >> oortResponse
     1 * instanceService.listTasks() >> instanceResponse
     1 * instanceService.listTasks() >> {throw new RetrofitError(null, null, null, null, null, null, null)}
-    !result?.context
+    !result?.stageOutputs
     thrown(RuntimeException)
 
     where:
@@ -283,7 +283,7 @@ class VerifyQuipTaskSpec extends Specification {
     2 * task.createInstanceService(_) >> instanceService
     //1 * oortService.getCluster(app, account, cluster, 'aws') >> oortResponse
     2 * instanceService.listTasks() >> instanceResponse
-    //result.context?.instances?.size() == 2
+    //result.stageOutputs?.instances?.size() == 2
     result.status == ExecutionStatus.SUCCEEDED
 
     where:

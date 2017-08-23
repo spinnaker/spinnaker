@@ -83,7 +83,7 @@ class DeletePropertiesTaskSpec extends Specification {
     }
 
     then:
-    with(results.context) {
+    with(results.stageOutputs) {
       deletedPropertyIdList.size() == 1
       deletedPropertyIdList.contains(propertyIdList.first())
     }

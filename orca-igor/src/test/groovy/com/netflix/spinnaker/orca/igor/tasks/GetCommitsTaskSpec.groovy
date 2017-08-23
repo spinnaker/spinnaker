@@ -18,7 +18,6 @@ package com.netflix.spinnaker.orca.igor.tasks
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.front50.model.Application
@@ -230,22 +229,22 @@ class GetCommitsTaskSpec extends Specification {
     return stage
   }
 
-  boolean assertResults(TaskResult result, ExecutionStatus taskStatus) {
+  boolean assertResults(def result, def taskStatus) {
     assert result.status == taskStatus
-    assert result.context.commits.size == 2
-    assert result.context.commits[0].displayId == "abcdab"
-    assert result.context.commits[0].id == "abcdabcdabcdabcd"
-    assert result.context.commits[0].authorDisplayName == "Joe Coder"
-    assert result.context.commits[0].timestamp == 1432081865000
-    assert result.context.commits[0].commitUrl == "http://stash.com/abcdabcdabcdabcd"
-    assert result.context.commits[0].message == "my commit"
+    assert result.outputs.commits.size == 2
+    assert result.outputs.commits[0].displayId == "abcdab"
+    assert result.outputs.commits[0].id == "abcdabcdabcdabcd"
+    assert result.outputs.commits[0].authorDisplayName == "Joe Coder"
+    assert result.outputs.commits[0].timestamp == 1432081865000
+    assert result.outputs.commits[0].commitUrl == "http://stash.com/abcdabcdabcdabcd"
+    assert result.outputs.commits[0].message == "my commit"
 
-    assert result.context.commits[1].displayId == "efghefgh"
-    assert result.context.commits[1].id == "efghefghefghefghefgh"
-    assert result.context.commits[1].authorDisplayName == "Jane Coder"
-    assert result.context.commits[1].timestamp == 1432081256000
-    assert result.context.commits[1].commitUrl == "http://stash.com/efghefghefghefghefgh"
-    assert result.context.commits[1].message == "bug fix"
+    assert result.outputs.commits[1].displayId == "efghefgh"
+    assert result.outputs.commits[1].id == "efghefghefghefghefgh"
+    assert result.outputs.commits[1].authorDisplayName == "Jane Coder"
+    assert result.outputs.commits[1].timestamp == 1432081256000
+    assert result.outputs.commits[1].commitUrl == "http://stash.com/efghefghefghefghefgh"
+    assert result.outputs.commits[1].message == "bug fix"
     return true
   }
 
@@ -451,7 +450,7 @@ class GetCommitsTaskSpec extends Specification {
 
     then:
     result.status == taskStatus
-    result.context.commits.size == 0
+    result.outputs.commits.size == 0
 
     where:
     app = "myapp"
@@ -504,7 +503,7 @@ class GetCommitsTaskSpec extends Specification {
 
     then:
     result.status == taskStatus
-    result.context.commits.size == 0
+    result.outputs.commits.size == 0
 
     where:
     app = "myapp"
@@ -545,7 +544,7 @@ class GetCommitsTaskSpec extends Specification {
 
     then:
     result.status == ExecutionStatus.SUCCEEDED
-    result.context.commits.size == 0
+    result.outputs.commits.size == 0
 
     where:
     app = "myapp"
@@ -612,8 +611,8 @@ class GetCommitsTaskSpec extends Specification {
     def result = task.execute(stage)
 
     then:
-    result?.context?.buildInfo?.ancestor == ancestorBuild
-    result?.context?.buildInfo?.target == targetBuild
+    result?.outputs?.buildInfo?.ancestor == ancestorBuild
+    result?.outputs?.buildInfo?.target == targetBuild
 
     where:
     app = "myapp"

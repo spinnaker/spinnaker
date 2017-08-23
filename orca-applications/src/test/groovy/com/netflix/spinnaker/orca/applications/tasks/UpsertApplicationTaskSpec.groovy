@@ -102,8 +102,8 @@ class UpsertApplicationTaskSpec extends Specification {
     def result = task.execute(new Stage<>(new Pipeline(), "UpsertApplication", config))
 
     then:
-    result.context.previousState == (initialState ?: [:])
-    result.context.newState == application
+    result.stageOutputs.previousState == (initialState ?: [:])
+    result.stageOutputs.newState == application
 
     where:
     initialState      | operation

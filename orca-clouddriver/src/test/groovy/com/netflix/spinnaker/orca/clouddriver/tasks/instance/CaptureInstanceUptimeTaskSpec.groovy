@@ -34,7 +34,7 @@ class CaptureInstanceUptimeTaskSpec extends Specification {
 
     then:
     result.status == ExecutionStatus.SUCCEEDED
-    (result.context as Map) == [instanceUptimes: [:]]
+    (result.stageOutputs as Map) == [instanceUptimes: [:]]
   }
 
   def "should capture instance uptime for every instanceId"() {
@@ -55,7 +55,7 @@ class CaptureInstanceUptimeTaskSpec extends Specification {
 
     then:
     result.status == ExecutionStatus.SUCCEEDED
-    (result.context as Map) == [instanceUptimes: ["1": 1, "2": 2]]
+    (result.stageOutputs as Map) == [instanceUptimes: ["1": 1, "2": 2]]
 
     1 * task.instanceUptimeCommand.uptime("aws", [instanceId: "1"]) >> {
       return new InstanceUptimeCommand.InstanceUptimeResult(1)

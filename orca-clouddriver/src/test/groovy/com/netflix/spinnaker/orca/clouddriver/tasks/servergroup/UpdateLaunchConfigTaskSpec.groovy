@@ -45,7 +45,7 @@ class UpdateLaunchConfigTaskSpec extends Specification {
 
     then:
       1 * katoService.requestOperations("aws", _) >> rx.Observable.just(new TaskId("blerg"))
-    result.context."deploy.server.groups" == [(region): [asgName]]
+    result.stageOutputs."deploy.server.groups" == [(region): [asgName]]
 
     where:
       region = "us-east-1"

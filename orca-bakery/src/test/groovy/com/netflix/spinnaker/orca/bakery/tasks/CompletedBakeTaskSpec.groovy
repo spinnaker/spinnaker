@@ -57,7 +57,7 @@ class CompletedBakeTaskSpec extends Specification {
 
     then:
     result.status == ExecutionStatus.SUCCEEDED
-    result.context.ami == ami
+    result.outputs.ami == ami
 
     where:
     region = "us-west-1"

@@ -181,7 +181,7 @@ class JarDiffsTaskSpec extends Specification {
     TaskResult result = task.execute(stage)
 
     then:
-    result.context.jarDiffs.downgraded.size() == 1
+    result.stageOutputs.jarDiffs.downgraded.size() == 1
 
     where:
     sourceExpectedInstances = ["i-1234" : [hostName : "foo.com", healthCheckUrl : "http://foo.com:7001/healthCheck"]]
@@ -219,7 +219,7 @@ class JarDiffsTaskSpec extends Specification {
     TaskResult result = task.execute(stage)
 
     then:
-    with(result.context.jarDiffs) {
+    with(result.stageOutputs.jarDiffs) {
       downgraded == []
       duplicates == []
       removed    == []

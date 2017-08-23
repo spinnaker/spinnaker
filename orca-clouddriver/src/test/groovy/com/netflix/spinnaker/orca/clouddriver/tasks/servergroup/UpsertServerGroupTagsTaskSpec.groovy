@@ -78,9 +78,9 @@ class UpsertServerGroupTagsTaskSpec extends Specification {
 
     then:
       result.status == ExecutionStatus.SUCCEEDED
-    result.context."kato.last.task.id" == taskId
-    result.context."deploy.account.name" == upsertServerGroupTagsConfig.credentials
-    result.context."deploy.server.groups" == [
+    result.outputs."kato.last.task.id" == taskId
+    result.outputs."deploy.account.name" == upsertServerGroupTagsConfig.credentials
+    result.outputs."deploy.server.groups" == [
           (upsertServerGroupTagsConfig.regions[0]): [upsertServerGroupTagsConfig.serverGroupName]
       ]
   }

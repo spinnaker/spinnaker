@@ -153,7 +153,7 @@ public class Stage<T extends Execution<T>> implements Serializable {
   /**
    * The context driving this stage. Provides inputs necessary to component steps
    */
-  private Map<String, Object> context = new StageContext(this);
+  private Map<String, Object> context = new HashMap<>();
 
   public @Nonnull Map<String, Object> getContext() {
     return context;
@@ -161,19 +161,6 @@ public class Stage<T extends Execution<T>> implements Serializable {
 
   public void setContext(@Nonnull Map<String, Object> context) {
     this.context = new HashMap<>(context);
-  }
-
-  /**
-   * Outputs from this stage which may be accessed by downstream stages.
-   */
-  private Map<String, Object> outputs = new HashMap<>();
-
-  public @Nonnull Map<String, Object> getOutputs() {
-    return outputs;
-  }
-
-  public void setOutputs(@Nonnull Map<String, Object> outputs) {
-    this.outputs = outputs;
   }
 
   /**
@@ -306,13 +293,12 @@ public class Stage<T extends Execution<T>> implements Serializable {
         .addAll(previousStages.stream().flatMap(it -> it.ancestorsOnly().stream()).collect(toList()))
         .build();
     } else if (parentStageId != null) {
-      return execution.getStages().stream().filter(it -> it.id.equals(parentStageId)).findFirst()
-      .<List<Stage<T>>>map(parent -> ImmutableList
+      Stage<T> parent = execution.getStages().stream().filter(it -> it.id.equals(parentStageId)).findFirst().orElseThrow(IllegalStateException::new);
+      return ImmutableList
         .<Stage<T>>builder()
         .add(parent)
         .addAll(parent.ancestorsOnly())
-        .build())
-        .orElse(emptyList());
+        .build();
     } else {
       return emptyList();
     }

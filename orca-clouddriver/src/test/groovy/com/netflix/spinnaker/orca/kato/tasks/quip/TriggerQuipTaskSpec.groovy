@@ -92,10 +92,10 @@ class TriggerQuipTaskSpec extends Specification {
 
     then:
     instances.size() * instanceService.patchInstance(app, "1.2", "") >>> response
-    result.context.taskIds == dnsTaskMap
-    result.context.instanceIds.sort() == instances.keySet().sort()
-    result.context.skippedInstances == [:]
-    result.context.remainingInstances == [:]
+    result.stageOutputs.taskIds == dnsTaskMap
+    result.stageOutputs.instanceIds.sort() == instances.keySet().sort()
+    result.stageOutputs.skippedInstances == [:]
+    result.stageOutputs.remainingInstances == [:]
     result.status == ExecutionStatus.SUCCEEDED
 
     where:
@@ -133,10 +133,10 @@ class TriggerQuipTaskSpec extends Specification {
     2 * instanceService.getCurrentVersion(app) >>> currentVersions
     1 * instanceService.patchInstance(app, "1.2", "") >> patchResponse
 
-    result.context.instances == patchInstances
-    result.context.skippedInstances == skipInstances
-    result.context.instanceIds.sort() == ['i-1', 'i-2'].sort()
-    result.context.remainingInstances == [:]
+    result.stageOutputs.instances == patchInstances
+    result.stageOutputs.skippedInstances == skipInstances
+    result.stageOutputs.instanceIds.sort() == ['i-1', 'i-2'].sort()
+    result.stageOutputs.remainingInstances == [:]
 
     where:
     cluster = 'foo-test'
@@ -252,7 +252,7 @@ class TriggerQuipTaskSpec extends Specification {
       throw RetrofitError.networkError('http://foo', new IOException('failed'))
     } >> mkResponse([version: patchVersion])
 
-    result.context.skippedInstances.keySet() == ["i-1234"] as Set
+    result.stageOutputs.skippedInstances.keySet() == ["i-1234"] as Set
 
     where:
     cluster = 'foo-test'

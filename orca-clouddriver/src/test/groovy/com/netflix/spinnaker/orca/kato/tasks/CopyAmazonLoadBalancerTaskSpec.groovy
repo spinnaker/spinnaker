@@ -87,9 +87,9 @@ class CopyAmazonLoadBalancerTaskSpec extends Specification {
     ]))
 
     then:
-    result.context."notification.type" == "upsertamazonloadbalancer"
-    result.context."kato.last.task.id" == taskId
-    (result.context.targets as List<Map>) == targets.collect {
+    result.stageOutputs."notification.type" == "upsertamazonloadbalancer"
+    result.stageOutputs."kato.last.task.id" == taskId
+    (result.stageOutputs.targets as List<Map>) == targets.collect {
       return [
         credentials      : it.credentials,
         availabilityZones: it.availabilityZones,
