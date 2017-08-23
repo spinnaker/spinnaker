@@ -42,8 +42,8 @@ class CaptureSourceServerGroupCapacityTaskSpec extends Specification {
     def result = task.execute(stage)
 
     then:
-    result.globalOutputs.isEmpty()
-    result.stageOutputs.isEmpty()
+    result.outputs.isEmpty()
+    result.context.isEmpty()
     stage.context == stageContext
 
     where:
@@ -90,19 +90,19 @@ class CaptureSourceServerGroupCapacityTaskSpec extends Specification {
       stage.context.cloudProvider as String
     ) >> Optional.of(targetServerGroup)
 
-    result.stageOutputs.useSourceCapacity == false
-    result.stageOutputs.source.useSourceCapacity == false
-    result.stageOutputs.capacity == [
+    result.context.useSourceCapacity == false
+    result.context.source.useSourceCapacity == false
+    result.context.capacity == [
       min    : 5,
       desired: 5,
       max    : 10
     ]
-    result.stageOutputs.sourceServerGroupCapacitySnapshot == [
+    result.context.sourceServerGroupCapacitySnapshot == [
       min    : 0,
       desired: 5,
       max    : 10
 
     ]
-    result.globalOutputs.isEmpty()
+    result.outputs.isEmpty()
   }
 }

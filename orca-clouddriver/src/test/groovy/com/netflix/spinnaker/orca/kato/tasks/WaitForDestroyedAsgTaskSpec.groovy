@@ -109,7 +109,7 @@ class WaitForDestroyedAsgTaskSpec extends Specification {
     def result = task.execute(stage)
 
     expect:
-    result.stageOutputs.remainingInstances == []
+    result.context.remainingInstances == []
   }
 
   @Unroll
@@ -136,7 +136,7 @@ class WaitForDestroyedAsgTaskSpec extends Specification {
     def result = task.execute(stage)
 
     expect:
-    result.stageOutputs.remainingInstances == remainingInstances
+    result.context.remainingInstances == remainingInstances
 
     where:
     instances                         || remainingInstances

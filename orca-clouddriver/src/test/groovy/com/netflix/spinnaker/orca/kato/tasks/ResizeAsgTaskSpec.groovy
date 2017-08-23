@@ -86,8 +86,8 @@ class ResizeAsgTaskSpec extends Specification {
 
     then:
     result.status == ExecutionStatus.SUCCEEDED
-    result.stageOutputs."kato.last.task.id" == taskId
-    result.stageOutputs."deploy.account.name" == resizeASGConfig.credentials
+    result.context."kato.last.task.id" == taskId
+    result.context."deploy.account.name" == resizeASGConfig.credentials
   }
 
   def "gets target dynamically when configured"() {
@@ -117,9 +117,9 @@ class ResizeAsgTaskSpec extends Specification {
     1 * targetReferenceSupport.getDynamicallyBoundTargetAsgReference(stage) >> []
     1 * resizeSupport.createResizeStageDescriptors(stage, _) >> [resizeDescriptor]
     result.status == ExecutionStatus.SUCCEEDED
-    result.stageOutputs."kato.last.task.id" == taskId
-    result.stageOutputs."deploy.account.name" == "prod"
-    result.stageOutputs.capacity == calculatedCapacity
-    result.stageOutputs."deploy.server.groups" == [ "us-east-1" : ["asg-v003"]]
+    result.context."kato.last.task.id" == taskId
+    result.context."deploy.account.name" == "prod"
+    result.context.capacity == calculatedCapacity
+    result.context."deploy.server.groups" == ["us-east-1": ["asg-v003"]]
   }
 }

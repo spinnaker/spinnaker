@@ -33,8 +33,8 @@ class DetermineTerminationPhaseInstancesTaskSpec extends Specification {
     def result = task.execute(stage)
 
     then:
-    result.stageOutputs.instanceIds == expectedInstanceIds
-    result.stageOutputs.terminationInstanceIds == expectedTerminationIds
+    result.context.instanceIds == expectedInstanceIds
+    result.context.terminationInstanceIds == expectedTerminationIds
 
     where:
     concurrentRelaunches | terminationInstanceIds | expectedInstanceIds | expectedTerminationIds

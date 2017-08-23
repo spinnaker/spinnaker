@@ -95,7 +95,7 @@ class DeleteSecurityGroupTaskSpec extends Specification {
 
     then:
     result.status == ExecutionStatus.SUCCEEDED
-    result.outputs."kato.last.task.id" == taskId
-    result.outputs."delete.account.name" == config.credentials
+    result.context."kato.last.task.id" == taskId
+    result.context."delete.account.name" == config.credentials
   }
 }

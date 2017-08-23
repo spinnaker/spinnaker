@@ -61,7 +61,7 @@ class UpsertSecurityGroupTaskSpec extends Specification {
     then:
       1 * katoService.requestOperations(cloudProvider, ops) >> { Observable.from(taskId) }
       result
-      result.stageOutputs == outputs
+    result.context == outputs
 
     where:
       cloudProvider | ops              || outputs

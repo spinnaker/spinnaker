@@ -57,8 +57,8 @@ class DetermineTerminationCandidatesTaskSpec extends Specification {
 
     then:
     1 * oortService.getServerGroupFromCluster(application, account, cluster, serverGroup, region, cloudProvider) >> oortResponse
-    response.stageOutputs.terminationInstanceIds == expectedTerminations
-    response.stageOutputs.knownInstanceIds.toSet() == knownInstanceIds.toSet()
+    response.context.terminationInstanceIds == expectedTerminations
+    response.context.knownInstanceIds.toSet() == knownInstanceIds.toSet()
 
     where:
     order    | relaunchAllInstances | totalRelaunches | instances             || expectedTerminations

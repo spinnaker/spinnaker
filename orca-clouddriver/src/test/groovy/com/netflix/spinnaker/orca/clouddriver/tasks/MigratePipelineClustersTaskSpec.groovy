@@ -49,7 +49,7 @@ class MigratePipelineClustersTaskSpec extends Specification {
     then:
     1 * front50Service.getPipelines('theapp') >> [[id: 'def']]
     result.status == ExecutionStatus.TERMINAL
-    result.stageOutputs.exception == "Could not find pipeline with ID abc"
+    result.context.exception == "Could not find pipeline with ID abc"
   }
 
   void 'extracts clusters, sends them to clouddriver, and puts pipeline into context for later retrieval'() {
@@ -78,7 +78,7 @@ class MigratePipelineClustersTaskSpec extends Specification {
       it[0].migrateClusterConfigurations.sources.cluster.id == [1,2,3,4]
       it[0].migrateClusterConfigurations.regionMapping == ['us-east-1': 'us-west-1']
     }) >> rx.Observable.from([new TaskId(id: "1")])
-    result.stageOutputs['source.pipeline'] == pipeline
+    result.context['source.pipeline'] == pipeline
   }
 
 }

@@ -16,43 +16,46 @@
 
 package com.netflix.spinnaker.orca.pipeline;
 
+import java.io.IOException;
+import java.io.Serializable;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionEngine;
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
-import java.io.Serializable;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-
 @Component
 public class PipelineLauncher extends ExecutionLauncher<Pipeline> {
 
   private final Optional<PipelineStartTracker> startTracker;
-
   private final Optional<PipelineValidator> pipelineValidator;
+  private final Optional<Registry> registry;
 
   @Autowired
   public PipelineLauncher(ObjectMapper objectMapper,
                           ExecutionRepository executionRepository,
                           ExecutionRunner executionRunner,
                           Optional<PipelineStartTracker> startTracker,
-                          Optional<PipelineValidator> pipelineValidator) {
+                          Optional<PipelineValidator> pipelineValidator,
+                          Optional<Registry> registry) {
     super(objectMapper, executionRepository, executionRunner);
     this.startTracker = startTracker;
     this.pipelineValidator = pipelineValidator;
+    this.registry = registry;
   }
 
   @SuppressWarnings("unchecked")
   @Override protected Pipeline parse(String configJson) throws IOException {
     // TODO: can we not just annotate the class properly to avoid all this?
     Map<String, Serializable> config = objectMapper.readValue(configJson, Map.class);
-    return Pipeline
-      .builder()
+    return registry
+      .map(Pipeline::builder)
+      .orElseGet(Pipeline::builder)
       .withApplication(getString(config, "application"))
       .withName(getString(config, "name"))
       .withPipelineConfigId(getString(config, "id"))

@@ -155,8 +155,8 @@ class MonitorJenkinsJobTaskSpec extends Specification {
     TaskResult result = task.execute(stage)
 
     then:
-    result.outputs.val1 == 'one'
-    result.outputs.val2 == 'two'
+    result.context.val1 == 'one'
+    result.context.val2 == 'two'
 
   }
 
@@ -217,8 +217,8 @@ class MonitorJenkinsJobTaskSpec extends Specification {
     def taskResult = task.execute(stage)
 
     then:
-    taskResult.globalOutputs.buildInfo.artifacts*.fileName == expectedArtifacts
-    taskResult.stageOutputs.buildInfo.artifacts*.fileName == expectedArtifacts
+    taskResult.outputs.buildInfo.artifacts*.fileName == expectedArtifacts
+    taskResult.context.buildInfo.artifacts*.fileName == expectedArtifacts
 
     where:
     maxArtifacts | preferredArtifacts | expectedArtifacts

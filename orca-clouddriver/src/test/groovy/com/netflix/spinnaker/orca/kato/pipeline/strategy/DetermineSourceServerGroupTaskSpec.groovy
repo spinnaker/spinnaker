@@ -45,11 +45,11 @@ class DetermineSourceServerGroupTaskSpec extends Specification {
     1 * resolver.getSource(_) >> new StageData.Source(account: account, region: region, asgName: asgName, serverGroupName: asgName)
 
     and:
-    result.stageOutputs.source.account == account
-    result.stageOutputs.source.region == region
-    result.stageOutputs.source.asgName == asgName
-    result.stageOutputs.source.serverGroupName == asgName
-    result.stageOutputs.source.useSourceCapacity == null
+    result.context.source.account == account
+    result.context.source.region == region
+    result.context.source.asgName == asgName
+    result.context.source.serverGroupName == asgName
+    result.context.source.useSourceCapacity == null
 
     where:
     account = 'test'
@@ -70,7 +70,7 @@ class DetermineSourceServerGroupTaskSpec extends Specification {
     1 * resolver.getSource(stage) >> new StageData.Source(account: account, region: region, asgName: "$application-v001", useSourceCapacity: sourceUseSourceCapacity)
 
     and:
-    result.stageOutputs.source.useSourceCapacity == expectedUseSourceCapacity
+    result.context.source.useSourceCapacity == expectedUseSourceCapacity
 
     where:
     account = 'test'
@@ -151,9 +151,9 @@ class DetermineSourceServerGroupTaskSpec extends Specification {
     1 * resolver.getSource(_) >> { throw expected }
 
     result.status == ExecutionStatus.RUNNING
-    result.stageOutputs.lastException.contains(expected.message)
-    result.stageOutputs.attempt == 2
-    result.stageOutputs.consecutiveNotFound == 0
+    result.context.lastException.contains(expected.message)
+    result.context.attempt == 2
+    result.context.consecutiveNotFound == 0
   }
 
   void 'should reset consecutiveNotFound on non 404 exception'() {
@@ -174,9 +174,9 @@ class DetermineSourceServerGroupTaskSpec extends Specification {
     1 * resolver.getSource(_) >> { throw expected }
 
     result.status == ExecutionStatus.RUNNING
-    result.stageOutputs.lastException.contains(expected.message)
-    result.stageOutputs.attempt == 2
-    result.stageOutputs.consecutiveNotFound == 0
+    result.context.lastException.contains(expected.message)
+    result.context.attempt == 2
+    result.context.consecutiveNotFound == 0
   }
 
   void 'should fail after MAX_ATTEMPTS'() {
@@ -244,6 +244,6 @@ class DetermineSourceServerGroupTaskSpec extends Specification {
     1 * resolver.getSource(_) >> null
 
     result.status == ExecutionStatus.RUNNING
-    result.stageOutputs.lastException.contains("Cluster is configured to copy capacity from the current server group")
+    result.context.lastException.contains("Cluster is configured to copy capacity from the current server group")
   }
 }

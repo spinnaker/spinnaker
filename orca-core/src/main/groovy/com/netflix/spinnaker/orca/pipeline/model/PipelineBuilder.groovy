@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.pipeline.model
 
 import java.util.concurrent.atomic.AtomicInteger
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.orca.ExecutionStatus
 import groovy.transform.CompileStatic
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.DEFAULT_EXECUTION_ENGINE
@@ -26,6 +27,12 @@ class PipelineBuilder {
 
   private final Pipeline pipeline = new Pipeline()
   private final AtomicInteger nextRefid = new AtomicInteger(1)
+
+  PipelineBuilder(Registry registry) {
+    pipeline.context = new AlertOnAccessMap<Pipeline>(pipeline, registry)
+  }
+
+  PipelineBuilder() {}
 
   PipelineBuilder withTrigger(Map<String, Object> trigger = [:]) {
     pipeline.trigger.clear()

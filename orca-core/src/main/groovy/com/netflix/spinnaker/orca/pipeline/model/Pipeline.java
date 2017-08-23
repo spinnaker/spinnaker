@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import com.netflix.spectator.api.Registry;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
@@ -79,6 +80,10 @@ public class Pipeline extends Execution<Pipeline> {
 
   @Override public final int hashCode() {
     return super.hashCode();
+  }
+
+  public static PipelineBuilder builder(Registry registry) {
+    return new PipelineBuilder(registry);
   }
 
   public static PipelineBuilder builder() {

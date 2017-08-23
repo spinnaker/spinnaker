@@ -60,15 +60,13 @@ interface MessageHandler<M : Message> : (Message) -> Unit {
 
   fun StageLevel.withStage(block: (Stage<*>) -> Unit) =
     withExecution { execution ->
-      execution
-        .stageById(stageId)
-        .let { stage ->
-          if (stage == null) {
-            queue.push(InvalidStageId(this))
-          } else {
-            block.invoke(stage)
-          }
-        }
+      try {
+        execution
+          .stageById(stageId)
+          .let(block)
+      } catch (e: IllegalArgumentException) {
+        queue.push(InvalidStageId(this))
+      }
     }
 
   fun ExecutionLevel.withExecution(block: (Execution<*>) -> Unit) =

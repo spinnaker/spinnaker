@@ -90,7 +90,7 @@ class MonitorWebhookTaskSpec extends Specification {
 
     then:
     result.status == ExecutionStatus.RUNNING
-    result.stageOutputs == [buildInfo: [status:"RUNNING"]]
+    result.context == [buildInfo: [status: "RUNNING"]]
   }
 
   def "should find correct element using statusJsonPath parameter"() {
@@ -112,7 +112,7 @@ class MonitorWebhookTaskSpec extends Specification {
 
     then:
     result.status == ExecutionStatus.TERMINAL
-    result.stageOutputs == [buildInfo: [status: "TERMINAL"]]
+    result.context == [buildInfo: [status: "TERMINAL"]]
   }
 
   def "should return percentComplete if supported by endpoint"() {
@@ -135,7 +135,7 @@ class MonitorWebhookTaskSpec extends Specification {
 
     then:
     result.status == ExecutionStatus.RUNNING
-    result.stageOutputs == [percentComplete: 42, buildInfo: [status: 42]]
+    result.context == [percentComplete: 42, buildInfo: [status: 42]]
   }
 
   def "100 percent complete should result in SUCCEEDED status"() {
@@ -157,7 +157,7 @@ class MonitorWebhookTaskSpec extends Specification {
 
     then:
     result.status == ExecutionStatus.SUCCEEDED
-    result.stageOutputs == [percentComplete: 100, buildInfo: [status: 100]]
+    result.context == [percentComplete: 100, buildInfo: [status: 100]]
   }
 
   def "should return TERMINAL status if jsonPath can not be found"() {
@@ -176,7 +176,7 @@ class MonitorWebhookTaskSpec extends Specification {
 
     then:
     result.status == ExecutionStatus.TERMINAL
-    result.stageOutputs == [error: [reason: 'Missing property in path $[\'doesnt\']', response: [status: "SUCCESS"]]]
+    result.context == [error: [reason: 'Missing property in path $[\'doesnt\']', response: [status: "SUCCESS"]]]
   }
 
   def "should return TERMINAL status if jsonPath isn't evaluated to single value"() {
@@ -195,6 +195,6 @@ class MonitorWebhookTaskSpec extends Specification {
 
     then:
     result.status == ExecutionStatus.TERMINAL
-    result.stageOutputs == [error: [reason: "The json path '\$.status' did not resolve to a single value", value: ["some", "complex", "list"]]]
+    result.context == [error: [reason: "The json path '\$.status' did not resolve to a single value", value: ["some", "complex", "list"]]]
   }
 }

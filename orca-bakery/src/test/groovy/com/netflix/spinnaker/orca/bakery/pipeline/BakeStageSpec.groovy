@@ -92,7 +92,7 @@ class BakeStageSpec extends Specification {
     def taskResult = new BakeStage.CompleteParallelBakeTask().execute(pipelineStage)
 
     then:
-    taskResult.globalOutputs == [
+    taskResult.outputs == [
       deploymentDetails: [
         ["ami": 1], ["ami": 2], ["ami": 3]
       ]
