@@ -63,6 +63,7 @@ Amazon Web Services | awscli | ```sudo apt-get install -y awscli```
 Microsoft Azure | az | [See instructions](https://docs.microsoft.com/cli/azure/install-azure-cli)
 Google Cloud Platform | gcloud | ```curl https://sdk.cloud.google.com | bash```
 Kubernetes | kubectl | [See instructions](http://kubernetes.io/docs/user-guide/prereqs/)
+DC/OS | dcos | [See instructions](https://dcos.io/docs/1.9/cli/install/)
 OpenStack | openstack | [See instructions](https://docs.openstack.org/user-guide/common/cli-install-openstack-command-line-clients.html)
 
 
@@ -209,7 +210,8 @@ spinnaker_kubernetes_credentials |  The name of the Spinnaker [clouddriver] acco
 spinnaker_aws_credentials |  The name of the Spinnaker [clouddriver] account that you wish to use for Amazon Web Services operations. If not specified, this will use the configured primary account.
 spinnaker_os_account | The name of the Spinnaker [clouddriver] account that you wish to use for OpenStack operations. If not specified, this will use the configured primary account.
 spinnaker_azure_account | The name of the Spinnaker [clouddriver] account that you wish to use for the Azure operations. If not specified, this will use the configured primary account.
-
+spinnaker_dcos_account | The name of the Spinnaker [clouddriver] account that you wish to use for DC/OS operations. If not specified, this will use the configured primary account.
+spinnaker_dcos_cluster | The name of the DC/OS cluster associated to spinnaker_dcos_account to use for DC/OS operations.
 
 ## Standard Parameters For Configuring Observers
 Flag | Description
