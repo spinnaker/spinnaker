@@ -96,7 +96,7 @@ export class UpsertTargetTrackingController implements IComponentController {
 
   private buildCommand(): ITargetTrackingPolicyCommand {
     return {
-      type: 'upsertTargetTrackingPolicy',
+      type: 'upsertScalingPolicy',
       cloudProvider: 'aws',
       credentials: this.serverGroup.account,
       region: this.serverGroup.region,
