@@ -25,18 +25,14 @@ import com.netflix.spectator.api.Registry;
 
 class AlertOnAccessMap<E extends Execution<E>> extends ForwardingMap<String, Object> {
 
+  private final Execution<E> execution;
   private final Map<String, Object> delegate;
   private final Registry registry;
-  private final Id counterId;
 
-  AlertOnAccessMap(Execution<E> execution, Registry registry, Map<String, Object> delegate) {
+  private AlertOnAccessMap(Execution<E> execution, Registry registry, Map<String, Object> delegate) {
+    this.execution = execution;
     this.registry = registry;
     this.delegate = delegate;
-    counterId = registry
-      .createId("global.context.access")
-      .withTag("execution", execution.getId())
-      .withTag("application", execution.getApplication())
-      .withTag("name", execution.getName());
   }
 
   AlertOnAccessMap(Execution<E> execution, Registry registry) {
@@ -46,8 +42,14 @@ class AlertOnAccessMap<E extends Execution<E>> extends ForwardingMap<String, Obj
   @Override protected Map<String, Object> delegate() { return delegate; }
 
   @Override public Object get(@Nullable Object key) {
+    Id counterId = registry
+      .createId("global.context.access")
+      .withTag("execution", execution.getId())
+      .withTag("application", execution.getApplication())
+      .withTag("name", execution.getName())
+      .withTag("key", String.valueOf(key));
     registry
-      .counter(counterId.withTag("key", String.valueOf(key)))
+      .counter(counterId)
       .increment();
     return super.get(key);
   }
