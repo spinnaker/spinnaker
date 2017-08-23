@@ -35,7 +35,7 @@ class ManualJudgmentStageSpec extends Specification {
 
     then:
     result.status == expectedStatus
-    result.stageOutputs.isEmpty()
+    result.context.isEmpty()
 
     where:
     context                      || expectedStatus
@@ -61,7 +61,7 @@ class ManualJudgmentStageSpec extends Specification {
 
     then:
     result.status == ExecutionStatus.RUNNING
-    result.stageOutputs.notifications.findAll {
+    result.context.notifications.findAll {
       it.lastNotifiedByNotificationState[NotificationState.manualJudgment]
     }*.type == ["email", "hipchat", "sms"]
   }
@@ -82,7 +82,7 @@ class ManualJudgmentStageSpec extends Specification {
 
     then:
     result.status == executionStatus
-    if (sent) result.stageOutputs.notifications?.getAt(0)?.lastNotifiedByNotificationState?.containsKey(notificationState)
+    if (sent) result.context.notifications?.getAt(0)?.lastNotifiedByNotificationState?.containsKey(notificationState)
 
     where:
     sendNotifications | notificationState                        | judgmentStatus | executionStatus           || sent

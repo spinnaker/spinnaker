@@ -52,7 +52,7 @@ class MonitorBakeTask implements RetryableTask {
       if (isCanceled(newStatus.state) && previousStatus.state == BakeStatus.State.PENDING) {
         log.info("Original bake was 'canceled', re-baking (executionId: ${stage.execution.id}, previousStatus: ${previousStatus.state})")
         def rebakeResult = createBakeTask.execute(stage)
-        return new TaskResult(ExecutionStatus.RUNNING, rebakeResult.stageOutputs, rebakeResult.globalOutputs)
+        return new TaskResult(ExecutionStatus.RUNNING, rebakeResult.context, rebakeResult.outputs)
       }
 
       new TaskResult(mapStatus(newStatus), [status: newStatus])

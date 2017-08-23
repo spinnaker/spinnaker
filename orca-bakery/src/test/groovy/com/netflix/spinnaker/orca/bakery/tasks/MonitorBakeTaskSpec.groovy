@@ -85,8 +85,8 @@ class MonitorBakeTaskSpec extends Specification {
 
     then:
     result.status == ExecutionStatus.RUNNING
-    (result.stageOutputs as Map) == [stage: 1]
-    (result.globalOutputs as Map) == [global: 2]
+    (result.context as Map) == [stage: 1]
+    (result.outputs as Map) == [global: 2]
 
     where:
     state << [BakeStatus.State.CANCELED, BakeStatus.State.CANCELLED]
@@ -106,7 +106,7 @@ class MonitorBakeTaskSpec extends Specification {
     def result = task.execute(stage)
 
     then:
-    with(result.outputs.status) {
+    with(result.context.status) {
       id == previousStatus.id
       state == BakeStatus.State.COMPLETED
     }

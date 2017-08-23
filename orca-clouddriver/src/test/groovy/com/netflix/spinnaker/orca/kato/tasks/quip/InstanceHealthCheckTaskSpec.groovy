@@ -121,7 +121,7 @@ class InstanceHealthCheckTaskSpec extends Specification {
     1 * task.createInstanceService(_) >> instanceService
 
     def result = task.execute(stage)
-    stage.context << result.stageOutputs
+    stage.context << result.context
     result = task.execute(stage)
 
     then:

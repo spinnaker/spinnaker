@@ -55,7 +55,7 @@ class DetermineHealthProvidersTaskSpec extends Specification {
 
     then:
     taskResult.status == ExecutionStatus.SUCCEEDED
-    (taskResult.getStageOutputs() as Map) == expectedStageOutputs
+    (taskResult.getContext() as Map) == expectedStageOutputs
 
     where:
     stageContext                                  | application            || expectedStageOutputs

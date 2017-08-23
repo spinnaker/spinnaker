@@ -134,10 +134,15 @@ public abstract class Execution<T extends Execution<T>> implements Serializable 
     this.keepWaitingPipelines = keepWaitingPipelines;
   }
 
-  private final Map<String, Object> context = new HashMap<>();
+  private Map<String, Object> context = new HashMap<>();
 
-  public Map<String, Object> getContext() {
+  @Deprecated
+  public @Nonnull Map<String, Object> getContext() {
     return context;
+  }
+
+  public void setContext(@Nonnull Map<String, Object> context) {
+    this.context = context;
   }
 
   private List<Stage<T>> stages = new ArrayList<>();
@@ -221,6 +226,7 @@ public abstract class Execution<T extends Execution<T>> implements Serializable 
     this.origin = origin;
   }
 
+  @Nullable
   public Stage<T> namedStage(String type) {
     return stages
       .stream()
@@ -229,12 +235,22 @@ public abstract class Execution<T extends Execution<T>> implements Serializable 
       .orElse(null);
   }
 
+  @Nonnull
   public Stage<T> stageById(String stageId) {
     return stages
       .stream()
       .filter(it -> it.getId().equals(stageId))
       .findFirst()
-      .orElse(null);
+      .orElseThrow(() -> new IllegalArgumentException(String.format("No stage with id %s exists", stageId)));
+  }
+
+  @Nonnull
+  public Stage<T> stageByRef(String refId) {
+    return stages
+      .stream()
+      .filter(it -> it.getRefId().equals(refId))
+      .findFirst()
+      .orElseThrow(() -> new IllegalArgumentException(String.format("No stage with refId %s exists", refId)));
   }
 
   @Override public boolean equals(Object o) {

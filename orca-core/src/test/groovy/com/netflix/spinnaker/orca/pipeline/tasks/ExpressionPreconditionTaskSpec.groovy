@@ -42,7 +42,7 @@ class ExpressionPreconditionTaskSpec extends Specification {
 
     then:
     taskResult.status == taskResultStatus
-    taskResult.stageOutputs.context == [
+    taskResult.context.context == [
       expression      : expression,
       expressionResult: expressionResult
     ]

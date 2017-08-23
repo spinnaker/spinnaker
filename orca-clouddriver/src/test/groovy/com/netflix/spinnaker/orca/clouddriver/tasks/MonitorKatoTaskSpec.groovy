@@ -103,8 +103,8 @@ class MonitorKatoTaskSpec extends Specification {
 
     then:
     result.status
-    result.stageOutputs.isEmpty()
-    result.globalOutputs.isEmpty()
+    result.context.isEmpty()
+    result.outputs.isEmpty()
 
     where:
     context                     | _
@@ -135,7 +135,7 @@ class MonitorKatoTaskSpec extends Specification {
 
     then:
     result.status == ExecutionStatus.RUNNING
-    result.stageOutputs['kato.task.notFoundRetryCount'] == 1
+    result.context['kato.task.notFoundRetryCount'] == 1
 
     where:
     taskId = "katoTaskId"

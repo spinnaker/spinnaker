@@ -112,7 +112,7 @@ class DeployCanaryStage extends ParallelDeployStage implements CloudProviderAwar
     Stage s = new Stage<>(new Orchestration(), "findImage", findImageCtx)
     TaskResult result = findImage.execute(s)
     try {
-      return result.stageOutputs.amiDetails
+      return result.context.amiDetails
     } catch (Exception e) {
       throw new IllegalStateException("Could not determine image for baseline deployment (account: ${findImageCtx.account}, " +
         "cluster: ${findImageCtx.cluster}, regions: ${findImageCtx.regions}, " +

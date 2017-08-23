@@ -530,7 +530,6 @@ open class QueueIntegrationTest {
           )
         )
       }
-      status = TERMINAL
     }
     repository.store(pipeline)
     repository.storeExecutionContext(pipeline.id, mapOf("foo" to false))

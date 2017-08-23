@@ -63,10 +63,10 @@ class FindImageFromClusterTaskSpec extends Specification {
           "LARGEST", FindImageFromClusterTask.SUMMARY_TYPE, false.toString()) >> oortResponse1
       1 * oortService.getServerGroupSummary("foo", "test", "foo-test", "cloudProvider", location2.value,
           "LARGEST", FindImageFromClusterTask.SUMMARY_TYPE, false.toString()) >> oortResponse2
-    assertNorth result.globalOutputs?.deploymentDetails?.find {
+    assertNorth result.outputs?.deploymentDetails?.find {
       it.region == "north"
     } as Map
-    assertSouth result.globalOutputs?.deploymentDetails?.find {
+    assertSouth result.outputs?.deploymentDetails?.find {
       it.region == "south"
     } as Map
 
@@ -199,10 +199,10 @@ class FindImageFromClusterTaskSpec extends Specification {
       throw RetrofitError.httpError("http://clouddriver", new Response("http://clouddriver", 404, 'Not Found', [], new TypedString("{}")), null, Map)
     }
     1 * oortService.findImage("cloudProvider", "ami-012-name-ebs*", "test", null, null) >> imageSearchResult
-    assertNorth(result.globalOutputs?.deploymentDetails?.find {
+    assertNorth(result.outputs?.deploymentDetails?.find {
       it.region == "north"
     } as Map, [imageName: "ami-012-name-ebs"])
-    assertSouth(result.globalOutputs?.deploymentDetails?.find {
+    assertSouth(result.outputs?.deploymentDetails?.find {
       it.region == "south"
     } as Map, [sourceServerGroup: "foo-test", imageName: "ami-012-name-ebs1", foo: "bar"])
 
@@ -262,10 +262,10 @@ class FindImageFromClusterTaskSpec extends Specification {
       throw RetrofitError.httpError("http://clouddriver", new Response("http://clouddriver", 404, 'Not Found', [], new TypedString("{}")), null, Map)
     }
     1 * oortService.findImage("cloudProvider", "ami-012-name-ebs*", "test", null, null) >> imageSearchResult
-    assertNorth(result.globalOutputs?.deploymentDetails?.find {
+    assertNorth(result.outputs?.deploymentDetails?.find {
       it.region == "north"
     } as Map, [imageName: "ami-012-name-ebs"])
-    assertSouth(result.globalOutputs?.deploymentDetails?.find {
+    assertSouth(result.outputs?.deploymentDetails?.find {
       it.region == "south"
     } as Map, [sourceServerGroup: "foo-test", imageName: "ami-012-name-ebs1", foo: "bar"])
 
@@ -326,10 +326,10 @@ class FindImageFromClusterTaskSpec extends Specification {
     }
     1 * oortService.findImage("aws", "ami-012-name-ebs*", "test", null, null) >> null
     1 * oortService.findImage("aws", "ami-012-name-ebs*", "bakery", null, null) >> imageSearchResult
-    assertNorth(result.globalOutputs?.deploymentDetails?.find {
+    assertNorth(result.outputs?.deploymentDetails?.find {
       it.region == "north"
     } as Map, [imageName: "ami-012-name-ebs"])
-    assertSouth(result.globalOutputs?.deploymentDetails?.find {
+    assertSouth(result.outputs?.deploymentDetails?.find {
       it.region == "south"
     } as Map, [sourceServerGroup: "foo-test", imageName: "ami-012-name-ebs1", foo: "bar"])
 

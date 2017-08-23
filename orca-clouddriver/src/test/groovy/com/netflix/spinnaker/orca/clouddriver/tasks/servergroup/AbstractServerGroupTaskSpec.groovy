@@ -85,8 +85,8 @@ class AbstractServerGroupTaskSpec extends Specification {
 
     then:
       result.status == ExecutionStatus.SUCCEEDED
-    result.stageOutputs."kato.last.task.id" == taskId
-    result.stageOutputs."deploy.account.name" == stageContext.credentials
+    result.context."kato.last.task.id" == taskId
+    result.context."deploy.account.name" == stageContext.credentials
   }
 
   void "should get target dynamically when configured"() {
@@ -104,9 +104,9 @@ class AbstractServerGroupTaskSpec extends Specification {
       1 * TargetServerGroupResolver.fromPreviousStage(stage) >> new TargetServerGroup(
         name: "foo-v001", region: "us-east-1"
       )
-    result.stageOutputs.asgName == "foo-v001"
-    result.stageOutputs.serverGroupName == "foo-v001"
-    result.stageOutputs."deploy.server.groups" == ["us-east-1": ["foo-v001"]]
+    result.context.asgName == "foo-v001"
+    result.context.serverGroupName == "foo-v001"
+    result.context."deploy.server.groups" == ["us-east-1": ["foo-v001"]]
   }
 
 }

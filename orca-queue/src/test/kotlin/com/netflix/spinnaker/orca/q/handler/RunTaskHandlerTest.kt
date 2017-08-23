@@ -81,27 +81,84 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
         }
       }
       val message = RunTask(Pipeline::class.java, pipeline.id, "foo", pipeline.stages.first().id, "1", DummyTask::class.java)
-      val taskResult = TaskResult(SUCCEEDED)
 
-      beforeGroup {
-        whenever(task.execute(any<Stage<*>>())) doReturn taskResult
-        whenever(repository.retrievePipeline(message.executionId)) doReturn pipeline
+      and("has no context updates outputs") {
+        val taskResult = TaskResult(SUCCEEDED)
+
+        beforeGroup {
+          whenever(task.execute(any<Stage<*>>())) doReturn taskResult
+          whenever(repository.retrievePipeline(message.executionId)) doReturn pipeline
+        }
+
+        afterGroup(::resetMocks)
+
+        action("the handler receives a message") {
+          subject.handle(message)
+        }
+
+        it("executes the task") {
+          verify(task).execute(pipeline.stages.first())
+        }
+
+        it("completes the task") {
+          verify(queue).push(check<CompleteTask> {
+            it.status shouldEqual SUCCEEDED
+          })
+        }
+
+        it("does not update the stage or global context") {
+          verify(repository, never()).storeStage(any())
+          verify(repository, never()).storeExecutionContext(any(), any())
+        }
       }
 
-      afterGroup(::resetMocks)
+      and("has context updates") {
+        val stageOutputs = mapOf("foo" to "covfefe")
+        val taskResult = TaskResult(SUCCEEDED, stageOutputs, emptyMap<String, Any>())
 
-      action("the handler receives a message") {
-        subject.handle(message)
+        beforeGroup {
+          whenever(task.execute(any<Stage<*>>())) doReturn taskResult
+          whenever(repository.retrievePipeline(message.executionId)) doReturn pipeline
+        }
+
+        afterGroup(::resetMocks)
+
+        action("the handler receives a message") {
+          subject.handle(message)
+        }
+
+        it("updates the stage context") {
+          verify(repository).storeStage(check {
+            stageOutputs shouldEqual it.getContext()
+          })
+        }
+
+        it("does not update stage outputs or global context") {
+          verify(repository, never()).storeExecutionContext(any(), any())
+        }
       }
 
-      it("executes the task") {
-        verify(task).execute(pipeline.stages.first())
-      }
+      and("has outputs") {
+        val globalOutputs = mapOf("foo" to "covfefe")
+        val taskResult = TaskResult(SUCCEEDED, emptyMap<String, Any>(), globalOutputs)
 
-      it("completes the task") {
-        verify(queue).push(check<CompleteTask> {
-          it.status shouldEqual SUCCEEDED
-        })
+        beforeGroup {
+          whenever(task.execute(any<Stage<*>>())) doReturn taskResult
+          whenever(repository.retrievePipeline(message.executionId)) doReturn pipeline
+        }
+
+        afterGroup(::resetMocks)
+
+        action("the handler receives a message") {
+          subject.handle(message)
+        }
+
+        it("updates the stage outputs and global context") {
+          verify(repository).storeStage(check {
+            it.getOutputs() shouldEqual globalOutputs
+          })
+          verify(repository).storeExecutionContext(pipeline.id, globalOutputs)
+        }
       }
     }
 

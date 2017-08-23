@@ -89,7 +89,7 @@ class MonitorPipelineTaskSpec extends Specification {
     def result = task.execute(stage)
 
     then:
-    result.stageOutputs.exception == [details: [errors: [
+    result.context.exception == [details: [errors: [
       "Exception in child pipeline stage (some child: a pipeline): Some error",
       "Exception in child pipeline stage (some child: pipeline): Some other error",
       "Exception in child pipeline stage (some child: deploy): task failed, no exception",

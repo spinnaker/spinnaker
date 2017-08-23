@@ -116,8 +116,8 @@ class RegisterCanaryTaskSpec extends Specification {
     1 * mineService.getCanary("canaryId") >> {
       captured
     }
-    result.stageOutputs.canary
-    with(result.stageOutputs.canary) {
+    result.context.canary
+    with(result.context.canary) {
       canaryDeployments.size() == 1
 //      canaryDeployments[0]["@class"] == ".ClusterCanaryDeployment"
       canaryDeployments[0].canaryCluster.name == 'foo--cfieber-canary'
@@ -148,7 +148,7 @@ class RegisterCanaryTaskSpec extends Specification {
     }
     1 * mineService.getCanary("canaryId") >> canary
 
-    result.stageOutputs.stageTimeoutMs == expectedTimeoutHours * 60 * 60 * 1000
+    result.context.stageTimeoutMs == expectedTimeoutHours * 60 * 60 * 1000
 
     where:
     lifetimeHours | warmupMinutes || expectedTimeoutHours

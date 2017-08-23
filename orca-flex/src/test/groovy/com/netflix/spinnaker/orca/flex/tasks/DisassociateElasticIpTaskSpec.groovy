@@ -46,8 +46,8 @@ class DisassociateElasticIpTaskSpec extends Specification {
 
     then:
     result.status == ExecutionStatus.SUCCEEDED
-    result.outputs."notification.type" == task.getNotificationType()
-    result.outputs."elastic.ip.assignment" == elasticIpResult
+    result.context."notification.type" == task.getNotificationType()
+    result.context."elastic.ip.assignment" == elasticIpResult
 
     where:
     account | region      | cluster      | elasticIpAddress || application || elasticIpResult

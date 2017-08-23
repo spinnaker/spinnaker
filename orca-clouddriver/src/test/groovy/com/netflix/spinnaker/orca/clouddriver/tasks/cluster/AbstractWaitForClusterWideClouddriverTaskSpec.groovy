@@ -52,7 +52,7 @@ class AbstractWaitForClusterWideClouddriverTaskSpec extends Specification {
     1 * oortHelper.getCluster(application, credentials, cluster, cloudProvider) >> Optional.of([serverGroups: serverGroups])
 
     result.status == ExecutionStatus.RUNNING
-    result.stageOutputs.remainingDeployServerGroups == expected
+    result.context.remainingDeployServerGroups == expected
 
     where:
     serverGroups = [sg('s1', 'r1'), sg('s2', 'r1'), sg('s3', 'r2'), sg('s4', 'r2')]
@@ -95,7 +95,7 @@ class AbstractWaitForClusterWideClouddriverTaskSpec extends Specification {
     1 * oortHelper.getCluster(application, credentials, cluster, cloudProvider) >> Optional.of([serverGroups: [sg('c1')]])
 
     result.status == ExecutionStatus.RUNNING
-    result.stageOutputs.remainingDeployServerGroups == [dsg('c1')]
+    result.context.remainingDeployServerGroups == [dsg('c1')]
   }
 
   def 'finishes when last serverGroups disappear'() {

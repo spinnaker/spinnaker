@@ -12,37 +12,39 @@ public final class TaskResult {
   public static final TaskResult SUCCEEDED = new TaskResult(ExecutionStatus.SUCCEEDED);
 
   private final ExecutionStatus status;
-  private final Map<String, ?> stageOutputs;
-  private final Map<String, ?> globalOutputs;
+  private final ImmutableMap<String, ?> context;
+  private final ImmutableMap<String, ?> outputs;
 
   public TaskResult(ExecutionStatus status) {
     this(status, emptyMap(), emptyMap());
   }
 
-  public TaskResult(ExecutionStatus status, Map<String, ?> stageOutputs, Map<String, ?> globalOutputs) {
+  public TaskResult(ExecutionStatus status, Map<String, ?> context, Map<String, ?> outputs) {
     this.status = status;
-    this.stageOutputs = ImmutableMap.copyOf(stageOutputs);
-    this.globalOutputs = ImmutableMap.copyOf(globalOutputs);
+    this.context = ImmutableMap.copyOf(context);
+    this.outputs = ImmutableMap.copyOf(outputs);
   }
 
-  public TaskResult(ExecutionStatus status, Map<String, ?> stageOutputs) {
-    this(status, stageOutputs, emptyMap());
-  }
-
-  @Deprecated
-  public @Nonnull Map<String, ?> getOutputs() {
-    return stageOutputs;
+  public TaskResult(ExecutionStatus status, Map<String, ?> context) {
+    this(status, context, emptyMap());
   }
 
   public @Nonnull ExecutionStatus getStatus() {
     return status;
   }
 
-  public @Nonnull Map<String, ?> getStageOutputs() {
-    return stageOutputs;
+  /**
+   * Updates to the current stage context.
+   */
+  public @Nonnull Map<String, ?> getContext() {
+    return context;
   }
 
-  public @Nonnull Map<String, ?> getGlobalOutputs() {
-    return globalOutputs;
+  /**
+   * Values to be output from the stage and potentially accessed by downstream
+   * stages.
+   */
+  public @Nonnull Map<String, ?> getOutputs() {
+    return outputs;
   }
 }
