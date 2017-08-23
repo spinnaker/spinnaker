@@ -49,6 +49,7 @@ class DeployKubernetesAtomicOperationDescription extends KubernetesAtomicOperati
   Integer sequence
   KubernetesPodSpecDescription podSpec
   KubernetesDnsPolicy dnsPolicy
+  Source source
 
   @JsonIgnore
   Set<String> imagePullSecrets
@@ -433,4 +434,14 @@ class KubernetesPodSpecDescription {
   String subdomain
   Long terminationGracePeriodSeconds
   List<KubernetesVolumeSource> volumeSources
+}
+
+@AutoClone
+@Canonical
+class Source {
+  String serverGroupName
+  String region
+  String namespace
+  String account
+  Boolean useSourceCapacity
 }

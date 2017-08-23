@@ -25,6 +25,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.config.LinkedDockerRegistryC
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.KubernetesServerGroupNameResolver
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.KubernetesUtil
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.*
+import com.netflix.spinnaker.clouddriver.kubernetes.deploy.exception.KubernetesResourceNotFoundException
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.security.KubernetesV1Credentials
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
@@ -38,6 +39,7 @@ import spock.lang.Subject
 class DeployKubernetesAtomicOperationSpec extends Specification {
   private static final NAMESPACE = "default"
   private static final APPLICATION = "app"
+  private static final SERVER_GROUP_NAME = "serverGroup"
   private static final STACK = "stack"
   private static final DETAILS = "details"
   private static final SEQUENCE = "v000"
@@ -54,6 +56,8 @@ class DeployKubernetesAtomicOperationSpec extends Specification {
   private static final DOCKER_REGISTRY_ACCOUNTS = [new LinkedDockerRegistryConfiguration(accountName: "my-docker-account")]
   private static final PORT = 80
   private static final PERIOD_SECONDS = 20
+  private static final SOURCE_CAPACITY = 10
+  private static final SOURCE = new Source(account: "account", region: "region", namespace: NAMESPACE, serverGroupName: SERVER_GROUP_NAME, useSourceCapacity: true)
 
   def spectatorRegistry
   def apiMock
@@ -65,6 +69,8 @@ class DeployKubernetesAtomicOperationSpec extends Specification {
   def description
   def replicationControllerOperationsMock
   def replicationControllerListMock
+  def replicationControllerMock
+  def replicationControllerSpecMock
   def replicaSetMock
 
   def serviceOperationsMock
@@ -100,6 +106,8 @@ class DeployKubernetesAtomicOperationSpec extends Specification {
     metadataMock = Mock(ObjectMeta)
     intOrStringMock = Mock(IntOrString)
     accountCredentialsRepositoryMock = Mock(AccountCredentialsRepository)
+    replicationControllerMock = Mock(ReplicationController)
+    replicationControllerSpecMock = Mock(ReplicationControllerSpec)
 
     def livenessProbe = new KubernetesProbe([
       periodSeconds: PERIOD_SECONDS,
@@ -133,6 +141,10 @@ class DeployKubernetesAtomicOperationSpec extends Specification {
         .build()
     clusterName = KubernetesUtil.combineAppStackDetail(APPLICATION, STACK, DETAILS)
     replicationControllerName = String.format("%s-v%s", clusterName, SEQUENCE)
+
+    replicationControllerSpecMock.replicas >> SOURCE_CAPACITY
+    replicationControllerMock.spec >> replicationControllerSpecMock
+    apiMock.getReplicationController(NAMESPACE, SERVER_GROUP_NAME) >> replicationControllerMock
 
     containers = []
     CONTAINER_NAMES.eachWithIndex { name, idx ->
@@ -188,6 +200,60 @@ class DeployKubernetesAtomicOperationSpec extends Specification {
           assert(rs.spec.template.spec.containers[idx].livenessProbe.tcpSocket.port.intVal == PORT)
         }
       }) >> replicaSetMock
+  }
+
+  void "should error when source capacity specified but no source exists"() {
+    setup:
+    description = new DeployKubernetesAtomicOperationDescription(
+      application: APPLICATION,
+      stack: STACK,
+      freeFormDetails: DETAILS,
+      targetSize: TARGET_SIZE,
+      loadBalancers: LOAD_BALANCER_NAMES,
+      containers: containers,
+      credentials: namedAccountCredentials,
+      source: SOURCE
+    )
+
+    @Subject def operation = new DeployKubernetesAtomicOperation(description)
+
+    when:
+    operation.operate([])
+
+    then:
+    1 * apiMock.getReplicationController(NAMESPACE, SERVER_GROUP_NAME) >> null
+    1 * apiMock.getReplicaSet(NAMESPACE, SERVER_GROUP_NAME) >> null
+    thrown(KubernetesResourceNotFoundException)
+  }
+
+  void "should copy source capacity when specified"() {
+    setup:
+    description = new DeployKubernetesAtomicOperationDescription(
+      application: APPLICATION,
+      stack: STACK,
+      freeFormDetails: DETAILS,
+      targetSize: TARGET_SIZE,
+      loadBalancers: LOAD_BALANCER_NAMES,
+      containers: containers,
+      credentials: namedAccountCredentials,
+      source: SOURCE
+    )
+
+    @Subject def operation = new DeployKubernetesAtomicOperation(description)
+
+    when:
+    operation.operate([])
+
+    then:
+
+    1 * apiMock.getReplicationControllers(NAMESPACE) >> []
+    1 * apiMock.getReplicaSets(NAMESPACE) >> []
+    5 * replicaSetMock.getMetadata() >> metadataMock
+    3 * metadataMock.getName() >> replicationControllerName
+    1 * apiMock.createReplicaSet(NAMESPACE, { ReplicaSet rs ->
+      assert(rs.spec.replicas == SOURCE_CAPACITY)
+      true
+    }) >> replicaSetMock
   }
 
   void "should favor sequence when specified"() {

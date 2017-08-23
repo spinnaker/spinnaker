@@ -20,14 +20,6 @@ import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAcco
 import groovy.transform.Canonical
 
 class CloneKubernetesAtomicOperationDescription extends DeployKubernetesAtomicOperationDescription {
-  KubernetesCloneServerGroupSource source
   KubernetesNamedAccountCredentials sourceCredentials
 }
 
-@Canonical
-class KubernetesCloneServerGroupSource {
-  String serverGroupName
-  String region
-  String namespace
-  String account
-}
