@@ -131,7 +131,7 @@ class AutoScalingWorker {
       classicLinkVpcSecurityGroups: classicLinkVpcSecurityGroups,
       instanceType: instanceType,
       keyPair: keyPair,
-      base64UserData: base64UserData,
+      base64UserData: base64UserData?.trim(),
       associatePublicIpAddress: associatePublicIpAddress,
       kernelId: kernelId,
       ramdiskId: ramdiskId,
