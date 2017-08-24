@@ -202,7 +202,7 @@ class ClusterController {
 
     // load all server groups w/o instance details (this is reasonably efficient)
     def sortedServerGroups = getServerGroups(application, account, clusterName, cloudProvider, null /* region */, false).findAll {
-      def scopeMatch = it.region == scope || it.zones.contains(scope)
+      def scopeMatch = it.region == scope || it.zones?.contains(scope)
 
       def enableMatch
       if (Boolean.valueOf(onlyEnabled)) {
