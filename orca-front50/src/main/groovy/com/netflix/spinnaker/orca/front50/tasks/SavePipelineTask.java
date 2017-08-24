@@ -29,7 +29,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import retrofit.client.Response;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.HashMap;
@@ -72,15 +71,9 @@ public class SavePipelineTask implements RetryableTask {
     } catch (IllegalArgumentException e) {
       throw new IllegalArgumentException("pipeline must be encoded as base64", e);
     }
-
-    Map<String, Object> pipeline;
-    try {
-      pipeline = objectMapper.readValue(pipelineData, Map.class);
-    } catch (IOException e) {
-      throw new RuntimeException("Could not convert pipeline to map", e);
-    }
-
     log.info("Expanded encoded pipeline:" + new String(pipelineData));
+
+    Map<String, Object> pipeline = (Map<String, Object>) stage.decodeBase64("/pipeline", Map.class);
 
     pipelineModelMutators.stream().filter(m -> m.supports(pipeline)).forEach(m -> m.mutate(pipeline));
 

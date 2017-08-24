@@ -50,6 +50,10 @@ public class UpdatePipelineTemplateTask implements RetryableTask, SavePipelineTe
       throw new UnsupportedOperationException("Front50 is not enabled, no way to fetch pager duty. Fix this by setting front50.enabled: true");
     }
 
+    if (!(stage.getContext().get("pipelineTemplate") instanceof String)) {
+      throw new IllegalArgumentException("'pipelineTemplate' context key must be a base64-encoded string: Ensure you're on the most recent version of gate");
+    }
+
     List<String> missingParams = new ArrayList<>();
     if (!stage.getContext().containsKey("id")) {
       missingParams.add("id");
@@ -65,18 +69,17 @@ public class UpdatePipelineTemplateTask implements RetryableTask, SavePipelineTe
         ")");
     }
 
-    PipelineTemplate pipelineTemplate;
-    try {
-      pipelineTemplate = pipelineTemplateObjectMapper.convertValue(stage.getContext().get("pipelineTemplate"), PipelineTemplate.class);
-    } catch (IllegalArgumentException e) {
-      throw new IllegalArgumentException("Pipeline template task parameter is not valid", e);
-    }
+    PipelineTemplate pipelineTemplate = (PipelineTemplate) stage.decodeBase64(
+      "/pipelineTemplate",
+      PipelineTemplate.class,
+      pipelineTemplateObjectMapper
+    );
 
     validate(pipelineTemplate);
 
     Response response = front50Service.updatePipelineTemplate(
       (String) stage.getContext().get("id"),
-      (Map<String, Object>) stage.getContext().get("pipelineTemplate")
+      (Map<String, Object>) stage.decodeBase64("/pipelineTemplate", Map.class)
     );
 
     // TODO rz - app & account context?

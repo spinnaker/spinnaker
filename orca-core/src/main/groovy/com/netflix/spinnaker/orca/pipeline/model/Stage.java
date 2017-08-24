@@ -340,6 +340,27 @@ public class Stage<T extends Execution<T>> implements Serializable {
     }
   }
 
+  public <O> O decodeBase64(String pointer, Class<O> type) {
+    return decodeBase64(pointer, type, objectMapper);
+  }
+
+  public <O> O decodeBase64(String pointer, Class<O> type, ObjectMapper objectMapper) {
+    byte[] data;
+    try {
+      TreeTraversingParser parser = new TreeTraversingParser(getPointer(pointer != null ? pointer : "", contextToNode()), objectMapper);
+      parser.nextToken();
+      data = Base64.getDecoder().decode(parser.getText());
+    } catch (IOException e) {
+      throw new IllegalArgumentException("Value in stage context at pointer " + pointer + " is not base 64 encoded", e);
+    }
+
+    try {
+      return objectMapper.readValue(data, type);
+    } catch (IOException e) {
+      throw new RuntimeException("Could not convert " + new String(data) + " to " + type.getSimpleName());
+    }
+  }
+
   private JsonNode getPointer(String pointer, ObjectNode rootNode) {
     return pointer != null ? rootNode.at(pointer) : rootNode;
   }

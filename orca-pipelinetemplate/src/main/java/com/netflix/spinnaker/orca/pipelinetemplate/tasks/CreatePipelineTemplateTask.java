@@ -51,16 +51,23 @@ public class CreatePipelineTemplateTask implements RetryableTask, SavePipelineTe
       throw new IllegalArgumentException("Missing required task parameter (pipelineTemplate)");
     }
 
-    PipelineTemplate pipelineTemplate;
-    try {
-      pipelineTemplate = pipelineTemplateObjectMapper.convertValue(stage.getContext().get("pipelineTemplate"), PipelineTemplate.class);
-    } catch (IllegalArgumentException e) {
-      throw new IllegalArgumentException("Pipeline template task parameter is not valid", e);
+    if (!(stage.getContext().get("pipelineTemplate") instanceof String)) {
+      throw new IllegalArgumentException("'pipelineTemplate' context key must be a base64-encoded string: Ensure you're on the most recent version of gate");
     }
+
+    PipelineTemplate pipelineTemplate = (PipelineTemplate) stage.decodeBase64(
+      "/pipelineTemplate",
+      PipelineTemplate.class,
+      pipelineTemplateObjectMapper
+    );
 
     validate(pipelineTemplate);
 
-    Response response = front50Service.savePipelineTemplate((Map<String, Object>) stage.getContext().get("pipelineTemplate"));
+    Response response = front50Service.savePipelineTemplate((Map<String, Object>) stage.decodeBase64(
+      "/pipelineTemplate",
+      Map.class,
+      pipelineTemplateObjectMapper
+    ));
 
     // TODO rz - app & account context?
     Map<String, Object> outputs = new HashMap<>();
