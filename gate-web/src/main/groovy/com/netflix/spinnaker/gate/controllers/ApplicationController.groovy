@@ -20,16 +20,20 @@ import com.netflix.spinnaker.gate.services.ApplicationService
 import com.netflix.spinnaker.gate.services.ExecutionHistoryService
 import com.netflix.spinnaker.gate.services.TaskService
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
-import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import io.swagger.annotations.ApiOperation
 import io.swagger.annotations.ApiParam
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.env.Environment
 import org.springframework.http.HttpEntity
-import org.springframework.web.bind.annotation.*
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestHeader
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestMethod
+import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.web.bind.annotation.RestController
 
-@CompileStatic
 @RequestMapping("/applications")
 @RestController
 @Slf4j
@@ -56,16 +60,22 @@ class ApplicationController {
   @RequestMapping(method = RequestMethod.GET)
   List<Map> getAllApplications(
     @ApiParam(name = "account", required = false, value = "filters results to only include applications deployed in the specified account")
-    @RequestParam(value = "account", required = false) String account) {
-    List<Map> allApplications = applicationService.getAllApplications()
-    if (account) {
-      String lcAccount = account.toLowerCase()
-      return allApplications.findAll { app ->
-        String[] appAccounts = ((String) app.accounts ?: "").toLowerCase().split(",")
-        appAccounts.contains(lcAccount)
+    @RequestParam(value = "account", required = false) String account,
+    @ApiParam(name = "owner", required = false, value = "filteres results to only include applications owned by the specified email")
+    @RequestParam(value = "owner", required = false) String owner) {
+    return applicationService.getAllApplications()
+      .findAll {
+        if (!account) {
+          return true
+        }
+        ((String) it.accounts ?: "").toLowerCase().split(",").contains(account.toLowerCase())
       }
-    }
-    return allApplications
+      .findAll {
+        if (!owner) {
+          return true
+        }
+        ((String) it.email ?: "").toLowerCase() == owner.toLowerCase()
+      }
   }
 
   @ApiOperation(value = "Retrieve an application's details")
