@@ -140,7 +140,7 @@ public abstract class NestableCommand {
         if (this instanceof ProtectedCommand && !GlobalOptions.getGlobalOptions().isQuiet()) {
           String prompt = ((ProtectedCommand) this).getPrompt();
           Console console = System.console();
-          String input = console.readLine(prompt + " Do you want to continue? (Y/n) ");
+          String input = console.readLine(prompt + " Do you want to continue? (y/N) ");
           if (!input.equalsIgnoreCase("y")) {
             AnsiUi.raw("Aborted.");
             return;
