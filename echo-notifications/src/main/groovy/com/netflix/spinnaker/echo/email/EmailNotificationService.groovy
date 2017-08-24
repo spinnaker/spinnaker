@@ -64,7 +64,7 @@ class EmailNotificationService implements NotificationService {
 
   void send(String[] to, String[] cc, String subject, String text) {
     MimeMessage message = javaMailSender.createMimeMessage()
-    MimeMessageHelper helper = new MimeMessageHelper(message)
+    MimeMessageHelper helper = new MimeMessageHelper(message, false, "utf-8")
 
     if (to) {
       helper.setTo(to)
@@ -76,7 +76,7 @@ class EmailNotificationService implements NotificationService {
 
     if (to || cc) {
       helper.setFrom(from)
-      helper.setText(text)
+      message.setContent(text, "text/html")
       helper.setSubject(subject)
 
       javaMailSender.send(message)

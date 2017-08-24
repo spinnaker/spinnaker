@@ -20,9 +20,11 @@ import com.google.common.annotations.VisibleForTesting
 import com.netflix.spinnaker.echo.api.Notification
 import freemarker.template.Configuration
 import freemarker.template.Template
-import freemarker.template.TemplateNotFoundException
 import groovy.transform.PackageScope
 import groovy.util.logging.Slf4j
+import org.commonmark.node.Node
+import org.commonmark.parser.Parser
+import org.commonmark.renderer.html.HtmlRenderer
 import org.jsoup.Jsoup
 import org.jsoup.examples.HtmlToPlainText
 import org.springframework.beans.factory.annotation.Autowired
@@ -44,9 +46,10 @@ class NotificationTemplateEngine {
         FreeMarkerTemplateUtils.processTemplateIntoString(
             template,
             [
-                baseUrl     : spinnakerUrl,
-                notification: notification,
-                htmlToText  : new HtmlToPlainTextFormatter()
+                baseUrl         : spinnakerUrl,
+                notification    : notification,
+                htmlToText      : new HtmlToPlainTextFormatter(),
+                markdownToHtml  : new MarkdownToHtmlFormatter()
             ]
         )
     }
@@ -87,5 +90,15 @@ class NotificationTemplateEngine {
         String convert(String content) {
             return htmlToPlainText.getPlainText(Jsoup.parse(content))
         }
+    }
+
+    static class MarkdownToHtmlFormatter {
+      private final Parser parser = Parser.builder().build()
+      private final HtmlRenderer renderer = HtmlRenderer.builder().build()
+
+      String convert(String content) {
+        Node document = parser.parse(content)
+        return renderer.render(document)
+      }
     }
 }

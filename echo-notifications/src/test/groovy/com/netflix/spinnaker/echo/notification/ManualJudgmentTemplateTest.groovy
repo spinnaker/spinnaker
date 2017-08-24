@@ -52,7 +52,7 @@ class ManualJudgmentTemplateTest extends Specification {
         expected = '''\
         Stage stage-name for testapp's exe-name pipeline build 12345 is awaiting manual judgment.
 
-        Instructions:
+        *Instructions:*
         Do the thing <http://foo>
 
         For more details, please visit:
@@ -76,7 +76,7 @@ class ManualJudgmentTemplateTest extends Specification {
         expected = '''\
         Stage stage-name for testapp's exe-name pipeline is awaiting manual judgment.
 
-        Instructions:
+        *Instructions:*
         Do the thing <http://foo>
 
         For more details, please visit:

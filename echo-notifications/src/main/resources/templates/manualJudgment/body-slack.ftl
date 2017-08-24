@@ -9,7 +9,7 @@ Stage ${notification.additionalContext.stageName} for ${notification.source.appl
 </#if>
 
 <#if (notification.additionalContext.instructions)??>
-Instructions:
+*Instructions:*
 ${htmlToText.convert(notification.additionalContext.instructions)}
 
 </#if>

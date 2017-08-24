@@ -1,6 +1,7 @@
+<html>
 <#if (notification.additionalContext.instructions)??>
-Instructions:
-${htmlToText.convert(notification.additionalContext.instructions)}
+<b>Instructions:</b>
+${markdownToHtml.convert(notification.additionalContext.instructions)}
 
 </#if>
 For more details, please visit:
@@ -13,3 +14,4 @@ ${baseUrl}/#/applications/${notification.source.application}/executions/details/
 <#else>
 ${baseUrl}/#/applications/${notification.source.application}/executions/details/${notification.source.executionId}
 </#if>
+</html>

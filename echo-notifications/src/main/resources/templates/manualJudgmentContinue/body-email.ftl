@@ -1,5 +1,5 @@
 <#if (notification.additionalContext.message)??>
-${htmlToText.convert(notification.additionalContext.message)}
+${markdownToHtml.convert(notification.additionalContext.message)}
 </#if>
 <#if (notification.additionalContext.judgmentInput)??>
 Judgment '${htmlToText.convert(notification.additionalContext.judgmentInput)}' was selected.

@@ -37,7 +37,8 @@ class SlackMessage {
         [
           fallback: body,
           text: body,
-          color: color
+          color: color,
+          mrkdwn_in: ["text"]
         ]
       ]).toString()
   }
