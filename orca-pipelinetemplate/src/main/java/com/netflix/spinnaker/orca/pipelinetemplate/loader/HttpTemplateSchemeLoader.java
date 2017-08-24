@@ -20,6 +20,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.netflix.spinnaker.orca.pipelinetemplate.exceptions.TemplateLoaderException;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -32,6 +34,8 @@ import java.util.stream.Stream;
 
 @Component
 public class HttpTemplateSchemeLoader implements TemplateSchemeLoader {
+  private final Logger log = LoggerFactory.getLogger(getClass());
+
   private final ObjectMapper jsonObjectMapper;
   private final ObjectMapper yamlObjectMapper;
 
@@ -56,7 +60,11 @@ public class HttpTemplateSchemeLoader implements TemplateSchemeLoader {
          BufferedReader reader = new BufferedReader(new InputStreamReader(is));
          Stream<String> stream = reader.lines()) {
       ObjectMapper objectMapper = isJson(uri) ? jsonObjectMapper : yamlObjectMapper;
-      return objectMapper.readValue(stream.collect(Collectors.joining("\n")), PipelineTemplate.class);
+
+      String template = stream.collect(Collectors.joining("\n"));
+      log.debug("Loaded Template ({}):\n{}", uri, template);
+
+      return objectMapper.readValue(template, PipelineTemplate.class);
     } catch (Exception e) {
       throw new TemplateLoaderException(e);
     }

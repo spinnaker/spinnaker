@@ -19,13 +19,16 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.Clock
 import com.netflix.spectator.api.Registry
 import com.netflix.spectator.api.Timer
-import com.netflix.spinnaker.orca.extensionpoint.pipeline.PipelinePreprocessor
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.pipelinetemplate.loader.FileTemplateSchemeLoader
 import com.netflix.spinnaker.orca.pipelinetemplate.loader.TemplateLoader
+import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate
+import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.DefaultRenderContext
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.JinjaRenderer
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.Renderer
+import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.YamlRenderedValueConverter
 import org.unitils.reflectionassert.ReflectionComparatorMode
+import org.yaml.snakeyaml.Yaml
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -38,7 +41,9 @@ class PipelineTemplatePipelinePreprocessorSpec extends Specification {
 
   TemplateLoader templateLoader = new TemplateLoader([new FileTemplateSchemeLoader(objectMapper)])
 
-  Renderer renderer = new JinjaRenderer(objectMapper, Mock(Front50Service), [])
+  Renderer renderer = new JinjaRenderer(
+    new YamlRenderedValueConverter(new Yaml()), objectMapper, Mock(Front50Service), []
+  )
 
   Registry registry = Mock() {
     clock() >> Mock(Clock) {
@@ -48,7 +53,7 @@ class PipelineTemplatePipelinePreprocessorSpec extends Specification {
   }
 
   @Subject
-  PipelinePreprocessor subject = new PipelineTemplatePipelinePreprocessor(
+  PipelineTemplatePipelinePreprocessor subject = new PipelineTemplatePipelinePreprocessor(
     objectMapper,
     templateLoader,
     renderer,
@@ -222,6 +227,33 @@ class PipelineTemplatePipelinePreprocessorSpec extends Specification {
     result.errors != null
   }
 
+  @Unroll
+  def 'should render jinja expressions contained within template variables'() {
+    given:
+    def pipelineTemplate = new PipelineTemplate(variables: variables.collect {
+      new PipelineTemplate.Variable(defaultValue: it)
+    })
+
+    def renderContext = new DefaultRenderContext("spinnaker", pipelineTemplate, [
+      parameters: [
+        "list"   : "us-west-2,us-east-1",
+        "boolean": "true",
+        "string" : "this is a string"
+      ]
+    ])
+
+    when:
+    subject.renderTemplateVariables(renderContext, pipelineTemplate)
+
+    then:
+    pipelineTemplate.variables*.defaultValue == expectedDefaultValues
+
+    where:
+    variables                                                 || expectedDefaultValues
+    ["string1", "string2"]                                    || ["string1", "string2"]
+    ["{{ trigger.parameters.string }}", "string2"]            || ["this is a string", "string2"]
+    ["{{ trigger.parameters.list | split(',') }}", "string2"] || [["us-west-2", "us-east-1"], "string2"]
+  }
 
   Map<String, Object> createTemplateRequest(String templatePath, Map<String, Object> variables = [:], List<Map<String, Object>> stages = [], boolean plan = false) {
     return [

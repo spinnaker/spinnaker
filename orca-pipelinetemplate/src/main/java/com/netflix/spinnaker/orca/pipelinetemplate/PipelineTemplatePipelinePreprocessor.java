@@ -134,7 +134,28 @@ public class PipelineTemplatePipelinePreprocessor implements PipelinePreprocesso
     setTemplateSourceWithJinja(request);
     List<PipelineTemplate> templates = templateLoader.load(templateConfiguration.getPipeline().getTemplate());
 
-    return TemplateMerge.merge(templates);
+    PipelineTemplate pipelineTemplate = TemplateMerge.merge(templates);
+
+    // ensure that any expressions contained with template variables are rendered
+    RenderContext context = new DefaultRenderContext(
+      templateConfiguration.getPipeline().getApplication(), pipelineTemplate, request.getTrigger()
+    );
+    renderTemplateVariables(context, pipelineTemplate);
+
+    return pipelineTemplate;
+  }
+
+  private void renderTemplateVariables(RenderContext renderContext, PipelineTemplate pipelineTemplate) {
+    if (pipelineTemplate.getVariables() == null) {
+      return;
+    }
+
+    pipelineTemplate.getVariables().forEach(v -> {
+      Object value = v.getDefaultValue();
+      if (value != null && value instanceof String) {
+        v.setDefaultValue(renderer.renderGraph(value.toString(), renderContext));
+      }
+    });
   }
 
   private void setTemplateSourceWithJinja(TemplatedPipelineRequest request) {
