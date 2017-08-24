@@ -58,11 +58,11 @@ class PipelineTemplateControllerSpec extends Specification {
       job: [
         [
           type: 'createPipelineTemplate',
-          pipelineTemplate: [
+          pipelineTemplate: Base64.encoder.encodeToString(new ObjectMapper().writeValueAsString([
             id: 'foo',
             metadata: metadata,
             configuration: [:]
-          ],
+          ]).bytes),
           user: 'anonymous'
         ]
       ]

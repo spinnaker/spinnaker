@@ -22,6 +22,7 @@ import com.netflix.spinnaker.gate.services.PipelineTemplateService;
 import com.netflix.spinnaker.gate.services.TaskService;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import io.swagger.annotations.ApiOperation;
+import java.util.Base64;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -77,7 +78,7 @@ public class PipelineTemplatesController {
     List<Map<String, Object>> jobs = new ArrayList<>();
     Map<String, Object> job = new HashMap<>();
     job.put("type", "createPipelineTemplate");
-    job.put("pipelineTemplate", pipelineTemplate);
+    job.put("pipelineTemplate", encodeAsBase64(pipelineTemplate));
     job.put("user", AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"));
     jobs.add(job);
 
@@ -114,7 +115,7 @@ public class PipelineTemplatesController {
     Map<String, Object> job = new HashMap<>();
     job.put("type", "updatePipelineTemplate");
     job.put("id", id);
-    job.put("pipelineTemplate", pipelineTemplate);
+    job.put("pipelineTemplate", encodeAsBase64(pipelineTemplate));
     job.put("user", AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"));
     jobs.add(job);
 
@@ -152,6 +153,14 @@ public class PipelineTemplatesController {
   private String getApplicationFromTemplate(PipelineTemplate template) {
     List<String> scopes = template.metadata.scopes;
     return (scopes.isEmpty() || scopes.size() > 1) ? DEFAULT_APPLICATION : scopes.get(0);
+  }
+
+  private String encodeAsBase64(Object value) {
+    try {
+      return Base64.getEncoder().encodeToString(objectMapper.writeValueAsString(value).getBytes());
+    } catch (Exception e) {
+      throw new RuntimeException("Could not encode pipeline template", e);
+    }
   }
 
   @JsonIgnoreProperties(ignoreUnknown = true)
