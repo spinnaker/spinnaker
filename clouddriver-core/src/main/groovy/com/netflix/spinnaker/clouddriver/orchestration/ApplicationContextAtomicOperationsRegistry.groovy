@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.orchestration
 
 import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator
+import com.netflix.spinnaker.clouddriver.security.ProviderVersion
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
 
@@ -31,12 +32,22 @@ class ApplicationContextAtomicOperationsRegistry implements AtomicOperationsRegi
   ApplicationContext applicationContext
 
   @Override
-  AtomicOperationConverter getAtomicOperationConverter(String description, String cloudProvider) {
-    (AtomicOperationConverter) applicationContext.getBean(description)
+  AtomicOperationConverter getAtomicOperationConverter(String description, String cloudProvider, ProviderVersion version) {
+    def result = (AtomicOperationConverter) applicationContext.getBean(description)
+    if (!result.acceptsVersion(version)) {
+      throw new AtomicOperationConverterNotFoundException("Converter version mismatch. Converter '$description' not applicable for '$version'")
+    }
+
+    return result
   }
 
   @Override
-  DescriptionValidator getAtomicOperationDescriptionValidator(String validator, String cloudProvider) {
-    (DescriptionValidator) applicationContext.getBean(validator)
+  DescriptionValidator getAtomicOperationDescriptionValidator(String validator, String cloudProvider, ProviderVersion version) {
+    def result = (DescriptionValidator) applicationContext.getBean(validator)
+    if (!result.acceptsVersion(version)) {
+      throw new AtomicOperationConverterNotFoundException("Validator version mismatch. Validator '$validator' not applicable for '$version'")
+    }
+
+    return result
   }
 }

@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.config
 
+import com.netflix.spinnaker.clouddriver.security.ProviderVersion
 import com.netflix.spinnaker.fiat.model.resources.Permissions
 import groovy.transform.ToString
 
@@ -24,7 +25,7 @@ class KubernetesConfigurationProperties {
   @ToString(includeNames = true)
   static class ManagedAccount {
     String name
-    KubernetesProviderVersion providerVersion
+    ProviderVersion version
     String environment
     String accountType
     String context
@@ -47,8 +48,4 @@ class KubernetesConfigurationProperties {
 class LinkedDockerRegistryConfiguration {
   String accountName
   List<String> namespaces
-}
-
-enum KubernetesProviderVersion {
-  v1, v2
 }

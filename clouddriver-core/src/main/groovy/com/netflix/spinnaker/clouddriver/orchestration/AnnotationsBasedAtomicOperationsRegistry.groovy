@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.orchestration
 import com.netflix.spinnaker.clouddriver.core.CloudProvider
 import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator
 import com.netflix.spinnaker.clouddriver.exceptions.CloudProviderNotFoundException
+import com.netflix.spinnaker.clouddriver.security.ProviderVersion
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.NoSuchBeanDefinitionException
 import org.springframework.beans.factory.annotation.Autowired
@@ -32,10 +33,10 @@ class AnnotationsBasedAtomicOperationsRegistry extends ApplicationContextAtomicO
   List<CloudProvider> cloudProviders
 
   @Override
-  AtomicOperationConverter getAtomicOperationConverter(String description, String cloudProvider) {
+  AtomicOperationConverter getAtomicOperationConverter(String description, String cloudProvider, ProviderVersion version) {
     // Legacy naming convention which is not generic and description name is specific to cloud provider
     try {
-      AtomicOperationConverter converter = super.getAtomicOperationConverter(description, cloudProvider)
+      AtomicOperationConverter converter = super.getAtomicOperationConverter(description, cloudProvider, version)
       if (converter) return converter
     } catch (NoSuchBeanDefinitionException e) {
       /**
@@ -57,16 +58,18 @@ class AnnotationsBasedAtomicOperationsRegistry extends ApplicationContextAtomicO
       value instanceof AtomicOperationConverter
     }.values().toList()
 
+    converters = VersionedOperationHelper.findVersionMatches(version, converters)
+
     if (!converters) {
       throw new AtomicOperationConverterNotFoundException(
-        "No atomic operation converter found for description '${description}' and cloud provider '${cloudProvider}'"
+          "No atomic operation converter found for description '${description}' and cloud provider '${cloudProvider}' at version '${version}'"
       )
     }
 
     if (converters.size() > 1) {
       throw new RuntimeException(
         "More than one (${converters.size()}) atomic operation converters found for description '${description}' and cloud provider " +
-          "'${cloudProvider}'"
+          "'${cloudProvider}' at version '${version}'"
       )
     }
 
@@ -74,10 +77,10 @@ class AnnotationsBasedAtomicOperationsRegistry extends ApplicationContextAtomicO
   }
 
   @Override
-  DescriptionValidator getAtomicOperationDescriptionValidator(String validator, String cloudProvider) {
+  DescriptionValidator getAtomicOperationDescriptionValidator(String validator, String cloudProvider, ProviderVersion version) {
     // Legacy naming convention which is not generic and validator name is specific to cloud provider
     try {
-      DescriptionValidator descriptionValidator = super.getAtomicOperationDescriptionValidator(validator, cloudProvider)
+      DescriptionValidator descriptionValidator = super.getAtomicOperationDescriptionValidator(validator, cloudProvider, version)
       if (descriptionValidator) {
         return descriptionValidator
       }
@@ -91,6 +94,8 @@ class AnnotationsBasedAtomicOperationsRegistry extends ApplicationContextAtomicO
       DescriptionValidator.getValidatorName(value.getClass().getAnnotation(providerAnnotationType).value()) == validator &&
       value instanceof DescriptionValidator
     }.values().toList()
+
+    validators = VersionedOperationHelper.findVersionMatches(version, validators)
 
     return validators ? (DescriptionValidator) validators[0] : null
   }

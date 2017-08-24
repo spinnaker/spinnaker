@@ -22,12 +22,19 @@ import com.netflix.spinnaker.cats.agent.Agent
 import com.netflix.spinnaker.cats.provider.ProviderSynchronizerTypeWrapper
 import com.netflix.spinnaker.cats.thread.NamedThreadFactory
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider
-import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesProviderVersion
 import com.netflix.spinnaker.clouddriver.kubernetes.provider.KubernetesProvider
-import com.netflix.spinnaker.clouddriver.kubernetes.provider.agent.*
+import com.netflix.spinnaker.clouddriver.kubernetes.provider.agent.KubernetesConfigMapCachingAgent
+import com.netflix.spinnaker.clouddriver.kubernetes.provider.agent.KubernetesDeploymentCachingAgent
+import com.netflix.spinnaker.clouddriver.kubernetes.provider.agent.KubernetesInstanceCachingAgent
+import com.netflix.spinnaker.clouddriver.kubernetes.provider.agent.KubernetesLoadBalancerCachingAgent
+import com.netflix.spinnaker.clouddriver.kubernetes.provider.agent.KubernetesSecretCachingAgent
+import com.netflix.spinnaker.clouddriver.kubernetes.provider.agent.KubernetesSecurityGroupCachingAgent
+import com.netflix.spinnaker.clouddriver.kubernetes.provider.agent.KubernetesServerGroupCachingAgent
+import com.netflix.spinnaker.clouddriver.kubernetes.provider.agent.KubernetesServiceAccountCachingAgent
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.clouddriver.security.ProviderUtils
+import com.netflix.spinnaker.clouddriver.security.ProviderVersion
 import org.springframework.beans.factory.config.ConfigurableBeanFactory
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -96,7 +103,7 @@ class KubernetesProviderConfig implements Runnable {
     kubernetesProvider.agents.clear()
 
     allAccounts.each { KubernetesNamedAccountCredentials credentials ->
-      if (credentials.providerVersion == KubernetesProviderVersion.v2) {
+      if (credentials.version == ProviderVersion.v2) {
         return
       }
 

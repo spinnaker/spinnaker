@@ -17,12 +17,12 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.security;
 
 import com.netflix.spectator.api.Registry;
-import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesProviderVersion;
 import com.netflix.spinnaker.clouddriver.kubernetes.config.LinkedDockerRegistryConfiguration;
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.security.KubernetesV1Credentials;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository;
+import com.netflix.spinnaker.clouddriver.security.ProviderVersion;
 import com.netflix.spinnaker.fiat.model.resources.Permissions;
 import groovy.util.logging.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -30,13 +30,13 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.Collections;
 import java.util.List;
 
-import static com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesProviderVersion.v1;
+import static com.netflix.spinnaker.clouddriver.security.ProviderVersion.v1;
 
 @Slf4j
 public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials> implements AccountCredentials<C> {
   final private String cloudProvider = "kubernetes";
   final private String name;
-  final private KubernetesProviderVersion providerVersion;
+  final private ProviderVersion version;
   final private String environment;
   final private String accountType;
   final private String context;
@@ -56,7 +56,7 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials> 
   private final AccountCredentialsRepository accountCredentialsRepository;
 
   KubernetesNamedAccountCredentials(String name,
-                                    KubernetesProviderVersion providerVersion,
+                                    ProviderVersion version,
                                     AccountCredentialsRepository accountCredentialsRepository,
                                     String userAgent,
                                     String environment,
@@ -75,7 +75,7 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials> 
                                     Registry spectatorRegistry,
                                     C credentials) {
     this.name = name;
-    this.providerVersion = providerVersion;
+    this.version = version;
     this.environment = environment;
     this.accountType = accountType;
     this.context = context;
@@ -104,8 +104,9 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials> 
     return name;
   }
 
-  public KubernetesProviderVersion getProviderVersion() {
-    return providerVersion;
+  @Override
+  public ProviderVersion getVersion() {
+    return version;
   }
 
   @Override
@@ -135,7 +136,7 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials> 
 
   static class Builder<C extends KubernetesCredentials> {
     String name;
-    KubernetesProviderVersion providerVersion;
+    ProviderVersion version;
     String environment;
     String accountType;
     String context;
@@ -159,8 +160,8 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials> 
       return this;
     }
 
-    Builder providerVersion(KubernetesProviderVersion providerVersion) {
-      this.providerVersion = providerVersion;
+    Builder version(ProviderVersion version) {
+      this.version = version;
       return this;
     }
 
@@ -253,7 +254,7 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials> 
     }
 
     private C buildCredentials() {
-      switch (providerVersion) {
+      switch (version) {
         case v1:
           return (C) new KubernetesV1Credentials(
               name,
@@ -272,7 +273,7 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials> 
         case v2:
           return (C) new KubernetesV2Credentials();
         default:
-          throw new IllegalArgumentException("Unknown provider type: " + providerVersion);
+          throw new IllegalArgumentException("Unknown provider type: " + version);
       }
     }
 
@@ -285,8 +286,8 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials> 
         throw new IllegalArgumentException("At most one of 'namespaces' and 'omitNamespaces' can be specified");
       }
 
-      if (providerVersion == null) {
-        providerVersion = v1;
+      if (version == null) {
+        version = v1;
       }
 
       if (StringUtils.isEmpty(kubeconfigFile)) {
@@ -306,7 +307,7 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials> 
 
       return new KubernetesNamedAccountCredentials(
           name,
-          providerVersion,
+          version,
           accountCredentialsRepository,
           userAgent,
           environment,

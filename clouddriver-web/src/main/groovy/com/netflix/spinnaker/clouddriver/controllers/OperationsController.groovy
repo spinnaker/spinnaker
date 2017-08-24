@@ -23,33 +23,26 @@ import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidationException
 import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperationConverter
-import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperationException
+import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperationDescriptionPreProcessor
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperationNotFoundException
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperationsRegistry
-import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperationDescriptionPreProcessor
 import com.netflix.spinnaker.clouddriver.orchestration.OrchestrationProcessor
+import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.clouddriver.security.AllowedAccountsValidator
+import com.netflix.spinnaker.clouddriver.security.ProviderVersion
 import com.netflix.spinnaker.clouddriver.security.config.SecurityConfig
-import com.netflix.spinnaker.kork.web.exceptions.ValidationException
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import groovy.transform.Canonical
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.MessageSource
-import org.springframework.context.i18n.LocaleContextHolder
-import org.springframework.http.HttpStatus
 import org.springframework.validation.Errors
-import org.springframework.validation.ObjectError
-import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RequestParam
-import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
-
-import javax.servlet.http.HttpServletRequest
 
 @Slf4j
 @RestController
@@ -62,6 +55,7 @@ class OperationsController {
   @Autowired (required = false) List<AtomicOperationDescriptionPreProcessor> atomicOperationDescriptionPreProcessors = []
   @Autowired AtomicOperationsRegistry atomicOperationsRegistry
   @Autowired SecurityConfig.OperationsSecurityConfigurationProperties opsSecurityConfigProps
+  @Autowired AccountCredentialsRepository accountCredentialsRepository
 
   /*
    * APIs
@@ -129,6 +123,23 @@ class OperationsController {
     atomicOperations
   }
 
+  private ProviderVersion getOperationVersion(Map operation) {
+    def providerVersion = ProviderVersion.v1
+    try {
+      String accountName = operation.credentials ?: operation.accountName ?: operation.account
+      if (accountName) {
+        def credentials = accountCredentialsRepository.getOne(accountName)
+        providerVersion = credentials.getVersion()
+      } else {
+        log.warn "Unable to get account name from operation: $inputs"
+      }
+    } catch (Exception e) {
+      log.warn "Unable to determine account version", e
+    }
+
+    return providerVersion
+  }
+
   private List<AtomicOperationBindingResult> convert(String cloudProvider, List<Map<String, Map>> inputs) {
     def username = AuthenticatedRequest.getSpinnakerUser().orElse("unknown")
     def allowedAccounts = AuthenticatedRequest.getSpinnakerAccounts().orElse("").split(",") as List<String>
@@ -136,7 +147,8 @@ class OperationsController {
     def descriptions = []
     inputs.collectMany { Map<String, Map> input ->
       input.collect { String k, Map v ->
-        def converter = atomicOperationsRegistry.getAtomicOperationConverter(k, cloudProvider ?: v.cloudProvider)
+        def providerVersion = getOperationVersion(v)
+        def converter = atomicOperationsRegistry.getAtomicOperationConverter(k, cloudProvider ?: v.cloudProvider, providerVersion)
 
         v = processDescriptionInput(atomicOperationDescriptionPreProcessors, converter, v)
         def description = converter.convertDescription(v)
@@ -145,7 +157,7 @@ class OperationsController {
         def errors = new DescriptionValidationErrors(description)
 
         def validator = atomicOperationsRegistry.getAtomicOperationDescriptionValidator(
-          DescriptionValidator.getValidatorName(k), cloudProvider ?: v.cloudProvider
+          DescriptionValidator.getValidatorName(k), cloudProvider ?: v.cloudProvider, providerVersion
         )
         if (validator) {
           validator.validate(descriptions, description, errors)

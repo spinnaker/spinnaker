@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.deploy
 
+import com.netflix.spinnaker.clouddriver.orchestration.VersionedCloudProviderOperation
 import com.netflix.spinnaker.clouddriver.security.resources.AccountNameable
 import com.netflix.spinnaker.clouddriver.security.resources.ApplicationNameable
 import com.netflix.spinnaker.clouddriver.security.resources.ResourcesNameable
@@ -25,7 +26,7 @@ import org.springframework.security.core.Authentication
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.validation.Errors
 
-public abstract class DescriptionValidator<T> {
+public abstract class DescriptionValidator<T> implements VersionedCloudProviderOperation {
 
   static String getValidatorName(String description) {
     description + "Validator"

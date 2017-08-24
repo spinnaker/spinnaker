@@ -16,20 +16,20 @@
 
 package com.netflix.spinnaker.clouddriver.orchestration
 
+import com.netflix.spinnaker.clouddriver.security.ProviderVersion
+
 /**
- * Implementations of this interface will provide an object capable of converting a Map of input parameters to an
+ * Implementations of this trait will provide an object capable of converting a Map of input parameters to an
  * operation's description object and an {@link AtomicOperation} instance.
- *
- *
  */
-interface AtomicOperationConverter {
+trait AtomicOperationConverter implements VersionedCloudProviderOperation {
   /**
    * This method takes a Map input and converts it to an {@link AtomicOperation} instance.
    *
    * @param input
    * @return atomic operation
    */
-  AtomicOperation convertOperation(Map input)
+  abstract AtomicOperation convertOperation(Map input)
 
   /**
    * This method takes a Map input and creates a description object, that will often be used by an {@link AtomicOperation}.
@@ -37,5 +37,5 @@ interface AtomicOperationConverter {
    * @param input
    * @return instance of an operation description object
    */
-  Object convertDescription(Map input)
+  abstract Object convertDescription(Map input)
 }

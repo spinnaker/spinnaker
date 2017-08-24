@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.clouddriver.security;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.netflix.spinnaker.fiat.model.resources.Permissions;
 
 import java.util.List;
 
@@ -29,39 +28,49 @@ import java.util.List;
  * @param <T> - type of credential object to be returned
  */
 public interface AccountCredentials<T> {
-    /**
-     * Provides the name of the account to be returned.
-     *
-     * Uniquely identifies the account.
-     *
-     * @return the name of the account
-     */
-    String getName();
+  /**
+   * Provides the name of the account to be returned.
+   *
+   * Uniquely identifies the account.
+   *
+   * @return the name of the account
+   */
+  String getName();
 
-    /**
-     * Provides the environment name for the account.
-     *
-     * Many accounts can share the same environment (e.g. dev, test, prod)
-     *
-     * @return the Environment name
-     */
-    String getEnvironment();
+  /**
+   * Provides the environment name for the account.
+   *
+   * Many accounts can share the same environment (e.g. dev, test, prod)
+   *
+   * @return the Environment name
+   */
+  String getEnvironment();
 
-    /**
-     * Provides the type for the account.
-     *
-     * Account type is typically consistent among the set of credentials that represent a related set of environments.
-     *
-     * e.g.:
-     * <ul>
-     *     <li>account name: maindev, environment: dev, accountType: main</li>
-     *     <li>account name: maintest, environment: test, accountType: main</li>
-     *     <li>account name: mainprod, environment: prod, accountType: main</li>
-     * </ul>
-     *
-     * @return the type for the account.
-     */
-    String getAccountType();
+  /**
+   * Provides the type for the account.
+   *
+   * Account type is typically consistent among the set of credentials that represent a related set of environments.
+   *
+   * e.g.:
+   * <ul>
+   *     <li>account name: maindev, environment: dev, accountType: main</li>
+   *     <li>account name: maintest, environment: test, accountType: main</li>
+   *     <li>account name: mainprod, environment: prod, accountType: main</li>
+   * </ul>
+   *
+   * @return the type for the account.
+   */
+  String getAccountType();
+
+  /**
+   * Provides the "version" of the account's provider. If an account has been configured at a particular version, it can
+   * be supported by different caching agents and operation converters. By default every account is at version v1.
+   *
+   * @return the account's version.
+   */
+  default ProviderVersion getVersion() {
+    return ProviderVersion.v1;
+  }
 
   /**
    * @return the id for the account (may be null if not supported by underlying cloud provider)

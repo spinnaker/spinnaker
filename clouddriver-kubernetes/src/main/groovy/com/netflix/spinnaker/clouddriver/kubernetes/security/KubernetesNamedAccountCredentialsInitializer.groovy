@@ -77,7 +77,7 @@ class KubernetesNamedAccountCredentialsInitializer implements CredentialsInitial
           .accountCredentialsRepository(accountCredentialsRepository)
           .userAgent(clouddriverUserAgentApplicationName)
           .name(managedAccount.name)
-          .providerVersion(managedAccount.providerVersion)
+          .version(managedAccount.version)
           .environment(managedAccount.environment ?: managedAccount.name)
           .accountType(managedAccount.accountType ?: managedAccount.name)
           .context(managedAccount.context)
