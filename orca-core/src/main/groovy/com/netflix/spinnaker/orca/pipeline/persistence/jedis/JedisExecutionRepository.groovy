@@ -620,9 +620,7 @@ class JedisExecutionRepository implements ExecutionRepository {
         stageIds = results[1] ?: (map.stageIndex ?: "").tokenize(",")
       }
 
-      def execution = type.newInstance()
-      execution.id = id
-      execution.application = map.application
+      def execution = type.newInstance(id, map.application)
       execution.context.putAll(map.context ? mapper.readValue(map.context, Map) : [:])
       execution.canceled = Boolean.parseBoolean(map.canceled)
       execution.canceledBy = map.canceledBy

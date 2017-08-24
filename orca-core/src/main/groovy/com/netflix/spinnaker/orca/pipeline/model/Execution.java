@@ -32,7 +32,16 @@ import static java.util.Collections.emptySet;
 
 public abstract class Execution<T extends Execution<T>> implements Serializable {
 
-  private String id = UUID.randomUUID().toString();
+  protected Execution(String application) {
+    this(UUID.randomUUID().toString(), application);
+  }
+
+  protected Execution(String id, String application) {
+    this.id = id;
+    this.application = application;
+  }
+
+  private String id;
 
   public @Nonnull String getId() {
     return id;
@@ -58,7 +67,7 @@ public abstract class Execution<T extends Execution<T>> implements Serializable 
     return name;
   }
 
-  public void setName(@Nonnull String name) {
+  public void setName(@Nullable String name) {
     this.name = name;
   }
 
@@ -145,14 +154,10 @@ public abstract class Execution<T extends Execution<T>> implements Serializable 
     this.context = context;
   }
 
-  private List<Stage<T>> stages = new ArrayList<>();
+  private final List<Stage<T>> stages = new ArrayList<>();
 
   public @Nonnull List<Stage<T>> getStages() {
     return stages;
-  }
-
-  public void setStages(@Nonnull List<Stage<T>> stages) {
-    this.stages = stages;
   }
 
   private Long startTime;

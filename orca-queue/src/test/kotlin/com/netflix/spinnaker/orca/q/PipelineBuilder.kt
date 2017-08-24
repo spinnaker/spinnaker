@@ -17,19 +17,14 @@
 package com.netflix.spinnaker.orca.q
 
 import com.netflix.spinnaker.orca.pipeline.model.Execution
-import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionEngine.v3
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.model.Task
 import java.lang.System.currentTimeMillis
-import java.util.*
 import kotlin.reflect.jvm.jvmName
 
 fun pipeline(init: Pipeline.() -> Unit = {}): Pipeline {
-  val pipeline = Pipeline()
-  pipeline.id = UUID.randomUUID().toString()
-  pipeline.application = "covfefe"
-  pipeline.executionEngine = v3
+  val pipeline = Pipeline("covfefe")
   pipeline.buildTime = currentTimeMillis()
   pipeline.init()
   return pipeline

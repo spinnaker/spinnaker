@@ -27,6 +27,14 @@ import com.netflix.spectator.api.Registry;
 
 public class Pipeline extends Execution<Pipeline> {
 
+  public Pipeline(String application) {
+    super(application);
+  }
+
+  public Pipeline(String id, String application) {
+    super(id, application);
+  }
+
   private String pipelineConfigId;
 
   public @Nullable String getPipelineConfigId() {
@@ -55,11 +63,11 @@ public class Pipeline extends Execution<Pipeline> {
     return initialConfig;
   }
 
-  public static PipelineBuilder builder(Registry registry) {
-    return new PipelineBuilder(registry);
+  public static PipelineBuilder builder(String application, Registry registry) {
+    return new PipelineBuilder(application, registry);
   }
 
-  public static PipelineBuilder builder() {
-    return new PipelineBuilder();
+  public static PipelineBuilder builder(String application) {
+    return new PipelineBuilder(application);
   }
 }

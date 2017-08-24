@@ -25,14 +25,17 @@ import static com.netflix.spinnaker.orca.pipeline.model.Execution.DEFAULT_EXECUT
 @CompileStatic
 class PipelineBuilder {
 
-  private final Pipeline pipeline = new Pipeline()
+  private final Pipeline pipeline
   private final AtomicInteger nextRefid = new AtomicInteger(1)
 
-  PipelineBuilder(Registry registry) {
+  PipelineBuilder(String application, Registry registry) {
+    this(application)
     pipeline.context = new AlertOnAccessMap<Pipeline>(pipeline, registry)
   }
 
-  PipelineBuilder() {}
+  PipelineBuilder(String application) {
+    pipeline = new Pipeline(application)
+  }
 
   PipelineBuilder withTrigger(Map<String, Object> trigger = [:]) {
     pipeline.trigger.clear()

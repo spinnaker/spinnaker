@@ -54,9 +54,8 @@ public class PipelineLauncher extends ExecutionLauncher<Pipeline> {
     // TODO: can we not just annotate the class properly to avoid all this?
     Map<String, Serializable> config = objectMapper.readValue(configJson, Map.class);
     return registry
-      .map(Pipeline::builder)
-      .orElseGet(Pipeline::builder)
-      .withApplication(getString(config, "application"))
+      .map(it -> Pipeline.builder(getString(config, "application"), it))
+      .orElseGet(() -> Pipeline.builder(getString(config, "application")))
       .withName(getString(config, "name"))
       .withPipelineConfigId(getString(config, "id"))
       .withTrigger((Map<String, Object>) config.get("trigger"))

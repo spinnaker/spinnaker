@@ -33,6 +33,7 @@ import static com.netflix.spinnaker.orca.ExecutionStatus.*
 import static com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder.newStage
 import static com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_AFTER
 import static com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_BEFORE
+import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.*
 import static java.util.concurrent.TimeUnit.SECONDS
 
 @Subject(ExecutionRepository)
@@ -61,13 +62,19 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
     storedExecution.context == ["value": storedExecution.class.simpleName]
 
     where:
-    execution << [new Pipeline(buildTime: 0), new Orchestration(id: "a-preassigned-id")]
+    execution << [pipeline(), orchestration()]
   }
 
   def "can retrieve pipelines by status"() {
     given:
-    def runningExecution = new Pipeline(status: RUNNING, pipelineConfigId: "pipeline-1", buildTime: 0)
-    def succeededExecution = new Pipeline(status: SUCCEEDED, pipelineConfigId: "pipeline-1", buildTime: 0)
+    def runningExecution = pipeline {
+      status = RUNNING
+      pipelineConfigId = "pipeline-1"
+    }
+    def succeededExecution = pipeline {
+      status = SUCCEEDED
+      pipelineConfigId = "pipeline-1"
+    }
 
     when:
     repository.store(runningExecution)
@@ -98,14 +105,20 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
 
   def "can retrieve orchestrations by status"() {
     given:
-    def runningExecution = new Orchestration(status: RUNNING, buildTime: 0, application: "application")
-    def succeededExecution = new Orchestration(status: SUCCEEDED, buildTime: 0, application: "application")
+    def runningExecution = orchestration {
+      status = RUNNING
+      buildTime = 0
+    }
+    def succeededExecution = orchestration {
+      status = SUCCEEDED
+      buildTime = 0
+    }
 
     when:
     repository.store(runningExecution)
     repository.store(succeededExecution)
     def orchestrations = repository.retrieveOrchestrationsForApplication(
-      "application", new ExecutionCriteria(limit: 5, statuses: ["RUNNING", "SUCCEEDED", "TERMINAL"])
+      runningExecution.application, new ExecutionCriteria(limit: 5, statuses: ["RUNNING", "SUCCEEDED", "TERMINAL"])
     ).subscribeOn(Schedulers.io()).toList().toBlocking().single()
 
     then:
@@ -113,7 +126,7 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
 
     when:
     orchestrations = repository.retrieveOrchestrationsForApplication(
-      "application", new ExecutionCriteria(limit: 5, statuses: ["RUNNING"])
+      runningExecution.application, new ExecutionCriteria(limit: 5, statuses: ["RUNNING"])
     ).subscribeOn(Schedulers.io()).toList().toBlocking().single()
 
     then:
@@ -121,7 +134,7 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
 
     when:
     orchestrations = repository.retrieveOrchestrationsForApplication(
-      "application", new ExecutionCriteria(limit: 5, statuses: ["TERMINAL"])
+      runningExecution.application, new ExecutionCriteria(limit: 5, statuses: ["TERMINAL"])
     ).subscribeOn(Schedulers.io()).toList().toBlocking().single()
 
     then:
@@ -130,6 +143,24 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
 
   def "a pipeline can be retrieved after being stored"() {
     given:
+    def pipeline = pipeline {
+      application = "orca"
+      name = "dummy-pipeline"
+      trigger.putAll(name: "some-jenkins-job", lastBuildLabel: 1)
+      stage {
+        type = "one"
+        context = [foo: "foo"]
+      }
+      stage {
+        type = "two"
+        context = [bar: "bar"]
+      }
+      stage {
+        type = "three"
+        context = [baz: "baz"]
+      }
+    }
+    def application = pipeline.application
     repository.store(pipeline)
 
     expect:
@@ -148,18 +179,6 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
         it.context == pipeline.namedStage(it.type).context
       }
     }
-
-    where:
-    application = "orca"
-    pipeline = Pipeline
-      .builder()
-      .withApplication(application)
-      .withName("dummy-pipeline")
-      .withTrigger(name: "some-jenkins-job", lastBuildLabel: 1)
-      .withStage("one", "one", [foo: "foo"])
-      .withStage("two", "two", [bar: "bar"])
-      .withStage("three", "three", [baz: "baz"])
-      .build()
   }
 
   def "trying to retrieve an invalid #type.simpleName id throws an exception"() {
@@ -186,16 +205,22 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
 
   def "deleting a pipeline removes pipeline and stages"() {
     given:
-    def application = "someApp"
-    def pipeline = Pipeline
-      .builder()
-      .withStage("one", "one", [:])
-      .withStage("two", "two", [:])
-      .withStage("one-a", "one-1", [:])
-      .withStage("one-b", "one-1", [:])
-      .withStage("one-a-a", "three", [:])
-      .withApplication(application)
-      .build()
+    def pipeline = pipeline {
+      stage { type = "one" }
+      stage { type = "two" }
+      stage {
+        type = "one-a"
+        name = "one-1"
+      }
+      stage {
+        type = "one-b"
+        name = "one-1"
+      }
+      stage {
+        type = "one-a-a"
+        name = "three"
+      }
+    }
 
     and:
     repository.store(pipeline)
@@ -230,7 +255,7 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
     }
 
     where:
-    execution << [new Pipeline(buildTime: 0), new Orchestration()]
+    execution << [pipeline(), orchestration()]
     type = execution.getClass().simpleName
   }
 
@@ -253,17 +278,17 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
     }
 
     where:
-    execution                  | status
-    new Pipeline(buildTime: 0) | CANCELED
-    new Orchestration()        | SUCCEEDED
-    new Orchestration()        | TERMINAL
+    execution       | status
+    pipeline()      | CANCELED
+    orchestration() | SUCCEEDED
+    orchestration() | TERMINAL
 
     type = execution.getClass().simpleName
   }
 
   def "cancelling a not-yet-started execution updates the status immediately"() {
     given:
-    def execution = new Pipeline(buildTime: 0)
+    def execution = pipeline()
     repository.store(execution)
 
     expect:
@@ -284,7 +309,7 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
 
   def "cancelling a running execution does not update the status immediately"() {
     given:
-    def execution = new Pipeline(buildTime: 0)
+    def execution = pipeline()
     repository.store(execution)
     repository.updateStatus(execution.id, RUNNING)
 
@@ -307,7 +332,7 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
   @Unroll
   def "cancelling a running execution with a user adds a 'canceledBy' field, and an optional 'cancellationReason' field"() {
     given:
-    def execution = new Pipeline(buildTime: 0)
+    def execution = pipeline()
     def user = "user@netflix.com"
     repository.store(execution)
     repository.updateStatus(execution.id, RUNNING)
@@ -338,7 +363,7 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
 
   def "pausing/resuming a running execution will set appropriate 'paused' details"() {
     given:
-    def execution = new Pipeline(buildTime: 0)
+    def execution = pipeline()
     repository.store(execution)
     repository.updateStatus(execution.id, RUNNING)
 
@@ -373,7 +398,7 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
   @Unroll
   def "should only #method a #expectedStatus execution"() {
     given:
-    def execution = new Pipeline(buildTime: 0)
+    def execution = pipeline()
     repository.store(execution)
     repository.updateStatus(execution.id, status)
 
@@ -395,7 +420,7 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
   @Unroll
   def "should force resume an execution regardless of status"() {
     given:
-    def execution = new Pipeline(buildTime: 0)
+    def execution = pipeline()
     repository.store(execution)
     repository.updateStatus(execution.id, RUNNING)
 
@@ -470,11 +495,12 @@ class JedisExecutionRepositorySpec extends ExecutionRepositoryTck<JedisExecution
 
   def "storing/deleting a pipeline updates the executionsByPipeline set"() {
     given:
-    def pipeline = Pipeline
-      .builder()
-      .withStage("one", "one", [:])
-      .withApplication("someApp")
-      .build()
+    def pipeline = pipeline {
+      stage {
+        type = "one"
+      }
+      application = "someApp"
+    }
 
     when:
     repository.store(pipeline)
@@ -499,10 +525,9 @@ class JedisExecutionRepositorySpec extends ExecutionRepositoryTck<JedisExecution
   @Unroll
   def "retrieving orchestrations limits the number of returned results"() {
     given:
-    repository.store(new Orchestration(application: "orca", buildTime: 0))
-    repository.store(new Orchestration(application: "orca", buildTime: 0))
-    repository.store(new Orchestration(application: "orca", buildTime: 0))
-    repository.store(new Orchestration(application: "orca", buildTime: 0))
+    4.times {
+      repository.store(orchestration { application = "orca" })
+    }
 
     when:
     def retrieved = repository.retrieveOrchestrationsForApplication("orca", new ExecutionCriteria(limit: limit))
@@ -522,15 +547,15 @@ class JedisExecutionRepositorySpec extends ExecutionRepositoryTck<JedisExecution
 
   def "can retrieve orchestrations from multiple redis stores"() {
     given:
-    repository.store(new Orchestration(application: "orca"))
-    repository.store(new Orchestration(application: "orca"))
-    repository.store(new Orchestration(application: "orca"))
+    3.times {
+      repository.store(orchestration { application = "orca" })
+    }
 
     and:
     def previousRepository = new JedisExecutionRepository(new NoopRegistry(), jedisPoolPrevious, Optional.empty(), 1, 50)
-    previousRepository.store(new Orchestration(application: "orca"))
-    previousRepository.store(new Orchestration(application: "orca"))
-    previousRepository.store(new Orchestration(application: "orca"))
+    3.times {
+      previousRepository.store(orchestration { application = "orca" })
+    }
 
     when:
     // TODO-AJ limits are current applied to each backing redis
@@ -544,12 +569,12 @@ class JedisExecutionRepositorySpec extends ExecutionRepositoryTck<JedisExecution
 
   def "can delete orchestrations from multiple redis stores"() {
     given:
-    def orchestration1 = new Orchestration(application: "orca")
+    def orchestration1 = orchestration { application = "orca" }
     repository.store(orchestration1)
 
     and:
     def previousRepository = new JedisExecutionRepository(new NoopRegistry(), jedisPoolPrevious, Optional.empty(), 1, 50)
-    def orchestration2 = new Orchestration(application: "orca")
+    def orchestration2 = orchestration { application = "orca" }
     previousRepository.store(orchestration2)
 
     when:
@@ -571,15 +596,39 @@ class JedisExecutionRepositorySpec extends ExecutionRepositoryTck<JedisExecution
 
   def "can retrieve pipelines from multiple redis stores"() {
     given:
-    repository.store(new Pipeline(application: "orca", pipelineConfigId: "pipeline-1", buildTime: 10))
-    repository.store(new Pipeline(application: "orca", pipelineConfigId: "pipeline-1", buildTime: 11))
-    repository.store(new Pipeline(application: "orca", pipelineConfigId: "pipeline-1", buildTime: 12))
+    repository.store(pipeline {
+      application = "orca"
+      pipelineConfigId = "pipeline-1"
+      buildTime = 10
+    })
+    repository.store(pipeline {
+      application = "orca"
+      pipelineConfigId = "pipeline-1"
+      buildTime = 11
+    })
+    repository.store(pipeline {
+      application = "orca"
+      pipelineConfigId = "pipeline-1"
+      buildTime = 12
+    })
 
     and:
     def previousRepository = new JedisExecutionRepository(new NoopRegistry(), jedisPoolPrevious, Optional.empty(), 1, 50)
-    previousRepository.store(new Pipeline(application: "orca", pipelineConfigId: "pipeline-1", buildTime: 7))
-    previousRepository.store(new Pipeline(application: "orca", pipelineConfigId: "pipeline-1", buildTime: 8))
-    previousRepository.store(new Pipeline(application: "orca", pipelineConfigId: "pipeline-1", buildTime: 9))
+    previousRepository.store(pipeline {
+      application = "orca"
+      pipelineConfigId = "pipeline-1"
+      buildTime = 7
+    })
+    previousRepository.store(pipeline {
+      application = "orca"
+      pipelineConfigId = "pipeline-1"
+      buildTime = 8
+    })
+    previousRepository.store(pipeline {
+      application = "orca"
+      pipelineConfigId = "pipeline-1"
+      buildTime = 9
+    })
 
     when:
     // TODO-AJ limits are current applied to each backing redis
@@ -593,12 +642,20 @@ class JedisExecutionRepositorySpec extends ExecutionRepositoryTck<JedisExecution
 
   def "can delete pipelines from multiple redis stores"() {
     given:
-    def pipeline1 = new Pipeline(application: "orca", pipelineConfigId: "pipeline-1", buildTime: 11)
+    def pipeline1 = pipeline {
+      application = "orca"
+      pipelineConfigId = "pipeline-1"
+      buildTime = 11
+    }
     repository.store(pipeline1)
 
     and:
     def previousRepository = new JedisExecutionRepository(new NoopRegistry(), jedisPoolPrevious, Optional.empty(), 1, 50)
-    def pipeline2 = new Pipeline(application: "orca", pipelineConfigId: "pipeline-1", buildTime: 10)
+    def pipeline2 = pipeline {
+      application = "orca"
+      pipelineConfigId = "pipeline-1"
+      buildTime = 10
+    }
     previousRepository.store(pipeline2)
 
     when:
@@ -620,16 +677,16 @@ class JedisExecutionRepositorySpec extends ExecutionRepositoryTck<JedisExecution
 
   def "should remove null 'stage' keys"() {
     given:
-    def pipeline = Pipeline
-      .builder()
-      .withApplication("orca")
-      .withName("dummy-pipeline")
-      .withStage("one", "one", [foo: "foo"])
-      .build()
-
-    pipeline.stages[0].startTime = 100
-    pipeline.stages[0].endTime = 200
-
+    def pipeline = pipeline {
+      application = "orca"
+      name = "dummy-pipeline"
+      stage {
+        type = "one"
+        context = [foo: "foo"]
+        startTime = 100
+        endTime = 200
+      }
+    }
     repository.store(pipeline)
 
     when:
@@ -653,14 +710,13 @@ class JedisExecutionRepositorySpec extends ExecutionRepositoryTck<JedisExecution
 
   def "can remove a stage leaving other stages unaffected"() {
     given:
-    def pipeline = Pipeline
-      .builder()
-      .withApplication("orca")
-      .withName("dummy-pipeline")
-      .withStage("one")
-      .withStage("two")
-      .withStage("three")
-      .build()
+    def pipeline = pipeline {
+      application = "orca"
+      name = "dummy-pipeline"
+      stage { type = "one" }
+      stage { type = "two" }
+      stage { type = "three" }
+    }
 
     repository.store(pipeline)
 
@@ -680,14 +736,13 @@ class JedisExecutionRepositorySpec extends ExecutionRepositoryTck<JedisExecution
   @Unroll
   def "can add a synthetic stage #position"() {
     given:
-    def pipeline = Pipeline
-      .builder()
-      .withApplication("orca")
-      .withName("dummy-pipeline")
-      .withStage("one")
-      .withStage("two")
-      .withStage("three")
-      .build()
+    def pipeline = pipeline {
+      application = "orca"
+      name = "dummy-pipeline"
+      stage { type = "one" }
+      stage { type = "two" }
+      stage { type = "three" }
+    }
 
     repository.store(pipeline)
 
@@ -712,14 +767,13 @@ class JedisExecutionRepositorySpec extends ExecutionRepositoryTck<JedisExecution
 
   def "can concurrently add stages without overwriting"() {
     given:
-    def pipeline = Pipeline
-      .builder()
-      .withApplication("orca")
-      .withName("dummy-pipeline")
-      .withStage("one")
-      .withStage("two")
-      .withStage("three")
-      .build()
+    def pipeline = pipeline {
+      application = "orca"
+      name = "dummy-pipeline"
+      stage { type = "one" }
+      stage { type = "two" }
+      stage { type = "three" }
+    }
 
     repository.store(pipeline)
 
@@ -753,12 +807,11 @@ class JedisExecutionRepositorySpec extends ExecutionRepositoryTck<JedisExecution
 
   def "can save a stage with all data"() {
     given:
-    def pipeline = Pipeline
-      .builder()
-      .withApplication("orca")
-      .withName("dummy-pipeline")
-      .withStage("one")
-      .build()
+    def pipeline = pipeline {
+      application = "orca"
+      name = "dummy-pipeline"
+      stage { type = "one" }
+    }
 
     repository.store(pipeline)
 
