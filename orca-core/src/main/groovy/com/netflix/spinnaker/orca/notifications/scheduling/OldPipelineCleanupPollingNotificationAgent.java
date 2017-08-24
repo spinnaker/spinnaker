@@ -44,7 +44,6 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -84,10 +83,10 @@ public class OldPipelineCleanupPollingNotificationAgent implements ApplicationLi
   );
 
   private Comparator<PipelineExecutionDetails> sorter = (o1, o2) -> {
-    if (o1.startTime > o2.startTime) {
+    if (o1.getRealStartTime() > o2.getRealStartTime()) {
       return 1;
     }
-    if (o1.startTime < o2.startTime) {
+    if (o1.getRealStartTime() < o2.getRealStartTime()) {
       return -1;
     }
     return 0;
@@ -187,7 +186,7 @@ public class OldPipelineCleanupPollingNotificationAgent implements ApplicationLi
       long startTime = p.startTime == null ? p.buildTime : p.startTime;
       long days = ChronoUnit.DAYS.between(Instant.ofEpochMilli(startTime), Instant.ofEpochMilli(clock.millis()));
       if (days > thresholdDays && !hasEntityTags(p.id)) {
-        log.info("Deleting pipeline execution " + p.id + " (startTime: " + new Date(startTime) + ", application: " + p.application + ", pipelineConfigId: " + p.pipelineConfigId + ", status: " + p.status + ")");
+        log.info("Deleting pipeline execution " + p.id + ": " + p.toString());
         executionRepository.deletePipeline(p.id);
       }
     });
@@ -219,6 +218,22 @@ public class OldPipelineCleanupPollingNotificationAgent implements ApplicationLi
       this.status = status;
       this.startTime = startTime;
       this.buildTime = buildTime;
+    }
+
+    Long getRealStartTime() {
+      return startTime == null ? buildTime : startTime;
+    }
+
+    @Override
+    public String toString() {
+      return "PipelineExecutionDetails{" +
+        "id='" + id + '\'' +
+        ", application='" + application + '\'' +
+        ", pipelineConfigId='" + pipelineConfigId + '\'' +
+        ", status=" + status +
+        ", startTime=" + startTime +
+        ", buildTime=" + buildTime +
+        '}';
     }
   }
 }
