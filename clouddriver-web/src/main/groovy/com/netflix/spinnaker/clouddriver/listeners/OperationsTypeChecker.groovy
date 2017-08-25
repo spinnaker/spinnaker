@@ -63,7 +63,7 @@ class OperationsTypeChecker implements ApplicationListener<ContextRefreshedEvent
   @Override
   void onApplicationEvent(ContextRefreshedEvent event) {
     // Docker's annotation is just the Annotation class, which is unhelpful and thus removed.
-    def annotationTypes = (cloudProviders).collect { it.getOperationAnnotationType() } - Annotation
+    def annotationTypes = (cloudProviders).findResults { it.getOperationAnnotationType() } - Annotation
     log.info("Found ${annotationTypes.size()} cloud provider annotations: ${annotationTypes*.simpleName}")
 
     annotationTypes.each { annotationType ->
