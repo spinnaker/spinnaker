@@ -8,6 +8,19 @@ module(CAPACITY_SELECTOR, [])
     },
     templateUrl: require('./capacitySelector.component.html'),
     controller: function () {
+      this.minMaxDesiredTemplate = require('./minMaxDesiredFields.template.html');
+
+      this.preferSourceCapacityOptions = [
+        { label: 'fail the stage', value: undefined },
+        { label: 'use fallback values', value: true },
+      ];
+
+      this.useSourceCapacityUpdated = () => {
+        if (!this.command.useSourceCapacity) {
+          delete this.command.preferSourceCapacity;
+        }
+      };
+
       this.setSimpleCapacity = (simpleCapacity: boolean) => {
         this.command.viewState.useSimpleCapacity = simpleCapacity;
         this.command.useSourceCapacity = false;

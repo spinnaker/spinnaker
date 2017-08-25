@@ -2,7 +2,7 @@
   <execution-details-section-nav sections="configSections"></execution-details-section-nav>
   <div class="step-section-details" ng-if="detailsSection === 'deploymentConfig'">
     <div class="row">
-      <div class="col-md-6">
+      <div class="col-md-12">
         <dl class="dl-narrow dl-horizontal">
           <dt>Account</dt>
           <dd>
@@ -20,10 +20,6 @@
           </div>
           <dt>Cluster</dt>
           <dd>{{stage.context | clusterName }}</dd>
-        </dl>
-      </div>
-      <div class="col-md-6">
-        <dl class="dl-narrow dl-horizontal">
           <dt ng-if="provider === 'aws'">VPC</dt>
           <dd ng-if="provider === 'aws'">{{stage.context.subnetType || '[none]'}}</dd>
           <dt>Strategy</dt>
@@ -34,7 +30,7 @@
           </dd>
           <dd ng-if="stage.context.useSourceCapacity">Current Server Group</dd>
           <dd ng-if="!stage.context.useSourceCapacity && stage.context.capacity.min === stage.context.capacity.max">{{stage.context.capacity.max}}</dd>
-          <dd ng-if="stage.context.useSourceCapacity && stage.context.capacity.min !== stage.context.capacity.max">
+          <dd ng-if="!stage.context.useSourceCapacity && stage.context.capacity.min !== stage.context.capacity.max">
             Min: {{stage.context.capacity.min}},
             Max: {{stage.context.capacity.max}},
             Desired: {{stage.context.capacity.desired}}
