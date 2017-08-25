@@ -1,16 +1,14 @@
 import { IDeferred } from 'angular';
 import { $q } from 'ngimport';
 import * as Formsy from 'formsy-react';
-import * as marked from 'marked';
 import * as React from 'react';
 import { Modal } from 'react-bootstrap';
 import { IModalServiceInstance } from 'angular-ui-bootstrap';
 import autoBindMethods from 'class-autobind-decorator';
-import * as DOMPurify from 'dompurify';
 
 import {
   UUIDGenerator, Application, EntityTagWriter, HelpField, IEntityRef, IEntityTag,
-  ReactInjector, TaskMonitor, TaskMonitorBuilder, SubmitButton
+  ReactInjector, TaskMonitor, TaskMonitorBuilder, SubmitButton, Markdown
 } from 'core';
 
 import { BasicFieldLayout, TextArea, ReactModal } from 'core/presentation';
@@ -267,7 +265,7 @@ class EntityTagMessage extends React.Component<IEntityTagMessageProps, {}> {
                 <strong>Preview</strong>
               </div>
               <div className="col-md-9">
-                <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(marked(message)) }}/>
+                <Markdown message={message}/>
               </div>
             </div>
           ) }
@@ -310,7 +308,9 @@ class OwnerOptions extends React.Component<IOwnerOptionsProps> {
                       selectedOwner={selectedOwner}
                       onOwnerOptionChanged={this.handleOwnerOptionChanged}
                     />
-                    <span className="marked" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(marked(option.label)) }}/>
+                    <span className="marked">
+                      <Markdown message={option.label}/>
+                    </span>
                   </label>
                 </div>
               )) }

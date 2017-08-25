@@ -1,5 +1,5 @@
 import * as React from 'react';
-import * as marked from 'marked';
+import { HtmlRenderer, Parser } from 'commonmark';
 import * as DOMPurify from 'dompurify';
 
 export interface IMarkdownProps {
@@ -16,9 +16,13 @@ export interface IMarkdownProps {
  * Extra props are passed through to the rendered tag
  */
 export class Markdown extends React.Component<IMarkdownProps> {
+
   public static defaultProps: Partial<IMarkdownProps> = {
     tag: 'div'
   };
+
+  private parser: Parser = new Parser();
+  private renderer: HtmlRenderer = new HtmlRenderer();
 
   public render() {
     const { message, tag, ...rest } = this.props;
@@ -28,7 +32,9 @@ export class Markdown extends React.Component<IMarkdownProps> {
     }
 
     const restProps = rest as React.DOMAttributes<any>;
-    restProps.dangerouslySetInnerHTML = { __html: DOMPurify.sanitize(marked(message)) };
+    const parsed = this.parser.parse(message);
+    const rendered = this.renderer.render(parsed);
+    restProps.dangerouslySetInnerHTML = { __html: DOMPurify.sanitize(rendered) };
 
     return React.createElement(tag, restProps);
   }

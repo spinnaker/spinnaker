@@ -1,13 +1,13 @@
-import {IPromise} from 'angular';
+import { IPromise } from 'angular';
 import * as React from 'react';
 import * as Select from 'react-select';
-import * as DOMPurify from 'dompurify';
 import 'react-select/dist/react-select.css';
 import autoBindMethods from 'class-autobind-decorator';
 
-import {IExecution, IExecutionStage} from 'core/domain';
-import {Application} from 'core/application/application.model';
-import {NgReact, ReactInjector} from 'core/reactShims';
+import { IExecution, IExecutionStage } from 'core/domain';
+import { Application } from 'core/application/application.model';
+import { Markdown } from 'core/presentation/Markdown';
+import { NgReact, ReactInjector } from 'core/reactShims';
 
 export interface IManualJudgmentApprovalProps {
   execution: IExecution;
@@ -24,6 +24,7 @@ export interface IManualJudgmentApprovalState {
 
 @autoBindMethods
 export class ManualJudgmentApproval extends React.Component<IManualJudgmentApprovalProps, IManualJudgmentApprovalState> {
+
   constructor(props: IManualJudgmentApprovalProps) {
     super(props);
     this.state = {
@@ -69,12 +70,6 @@ export class ManualJudgmentApproval extends React.Component<IManualJudgmentAppro
     this.provideJudgment('stop');
   }
 
-  private getInstructions(): any {
-    return {
-      __html: DOMPurify.sanitize(this.props.stage.context.instructions)
-    };
-  }
-
   public render(): React.ReactElement<ManualJudgmentApproval> {
     const stage: IExecutionStage = this.props.stage,
           status: string = stage.status;
@@ -92,7 +87,7 @@ export class ManualJudgmentApproval extends React.Component<IManualJudgmentAppro
         { hasInstructions && (
           <div>
             <div><b>Instructions</b></div>
-            <p dangerouslySetInnerHTML={this.getInstructions()}/>
+            <Markdown message="this.props.stage.context.instructions"/>
           </div>
         )}
         { showOptions && (

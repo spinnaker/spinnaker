@@ -20,7 +20,6 @@ module.exports = angular.module('spinnaker.core.presentation', [
   PAGE_NAVIGATOR_COMPONENT,
   PAGE_SECTION_COMPONENT,
   require('./collapsibleSection/collapsibleSection.directive.js'),
-  require('./gist/gist.directive.js'),
   require('./isVisible/isVisible.directive.js'),
   ROBOT_TO_HUMAN_FILTER,
   require('./sortToggle/sorttoggle.directive.js'),

@@ -3,6 +3,7 @@ import { IController, module } from 'angular';
 import { ICreationMetadataTag } from 'core/domain/IEntityTags';
 import { IExecution } from '../domain/IExecution';
 import { EXECUTION_SERVICE, ExecutionService } from 'core/delivery/service/execution.service';
+import { HtmlRenderer, Parser } from 'commonmark';
 
 class EntitySourceCtrl implements IController {
   public relativePath = '^.^.^';
@@ -11,6 +12,7 @@ class EntitySourceCtrl implements IController {
   public popoverTemplate: string = require('./entitySource.popover.html');
   public execution: IExecution;
   public executionNotFound: boolean;
+  public comments: string;
   private loadingExecution = false;
 
   constructor(private executionService: ExecutionService) { 'ngInject'; }
@@ -19,6 +21,11 @@ class EntitySourceCtrl implements IController {
     this.executionType = 'Task';
     if (this.execution || this.loadingExecution) {
       return;
+    }
+    if (this.metadata && this.metadata.value.comments) {
+      const parser: Parser = new Parser();
+      const renderer: HtmlRenderer = new HtmlRenderer();
+      this.comments = renderer.render(parser.parse(this.metadata.value.comments));
     }
     if (this.metadata && this.metadata.value.executionType === 'pipeline') {
       this.executionType = 'Pipeline';

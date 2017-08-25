@@ -12,6 +12,6 @@
   </div>
   <div ng-if="$ctrl.metadata.value.comments">
     <dt>Comments</dt>
-    <dd marked="$ctrl.metadata.value.comments"></dd>
+    <dd ng-bind-html="$ctrl.comments"></dd>
   </div>
 </dl>
