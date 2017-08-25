@@ -80,7 +80,9 @@ class KubernetesClusterProvider implements ClusterProvider<KubernetesCluster> {
   KubernetesCluster getCluster(String application, String account, String name, boolean includeDetails) {
     CacheData serverGroupCluster = cacheView.get(Keys.Namespace.CLUSTERS.ns, Keys.getClusterKey(account, application, "serverGroup", name))
     List<CacheData> clusters = [serverGroupCluster] - null
-    return clusters ? translateClusters(clusters, includeDetails).inject(new KubernetesCluster()) { KubernetesCluster acc, KubernetesCluster val ->
+    // Opting to always include details due to some bugs trying to optimize server group performance
+    // Proper fix should include an audit of what server group details are needed when.
+    return clusters ? translateClusters(clusters, true /*includeDetails*/).inject(new KubernetesCluster()) { KubernetesCluster acc, KubernetesCluster val ->
       acc.name = acc.name ?: val.name
       acc.accountName = acc.accountName ?: val.accountName
       acc.loadBalancers.addAll(val.loadBalancers)
