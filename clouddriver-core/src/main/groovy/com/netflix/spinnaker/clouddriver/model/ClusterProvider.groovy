@@ -95,4 +95,11 @@ interface ClusterProvider<T extends Cluster> {
    * @return the identifier of the backing cloud provider
    */
   String getCloudProviderId()
+
+  /**
+   * Determines whether or not optimizations can be made by retrieving minimal or unexpanded clusters.
+   *
+   * This primarily affects how server groups are loaded for a cluster (@see com.netflix.spinnaker.clouddriver.controllers.ClusterController}.
+   */
+  boolean supportsMinimalClusters()
 }

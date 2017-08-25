@@ -127,6 +127,11 @@ class AzureClusterProvider implements ClusterProvider<AzureCluster> {
     return azureCloudProvider.id
   }
 
+  @Override
+  boolean supportsMinimalClusters() {
+    return false
+  }
+
   private Collection<AzureCluster> translateClusters(Collection<CacheData> clusterData, boolean includeDetails) {
     Map<String, AzureLoadBalancer> loadBalancers
     Map<String, AzureServerGroupDescription> serverGroups

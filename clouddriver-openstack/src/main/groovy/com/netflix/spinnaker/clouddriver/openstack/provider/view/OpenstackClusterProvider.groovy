@@ -116,6 +116,11 @@ class OpenstackClusterProvider implements ClusterProvider<OpenstackCluster.View>
     return openstackCloudProvider.id
   }
 
+  @Override
+  boolean supportsMinimalClusters() {
+    return false
+  }
+
   protected Map<String, Set<OpenstackCluster.View>> getClustersInternal(
     final String applicationName, final boolean includeInstanceDetails) {
     Map<String, Set<OpenstackCluster.View>> result = null

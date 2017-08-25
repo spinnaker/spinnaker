@@ -57,4 +57,9 @@ class NoopClusterProvider implements ClusterProvider<Cluster> {
   String getCloudProviderId() {
     return "noop"
   }
+
+  @Override
+  boolean supportsMinimalClusters() {
+    return false
+  }
 }

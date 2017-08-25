@@ -93,6 +93,11 @@ class OracleBMCSClusterProvider implements ClusterProvider<OracleBMCSCluster.Vie
     return serverGroups.iterator().next().getView()
   }
 
+  @Override
+  boolean supportsMinimalClusters() {
+    return false
+  }
+
   private OracleBMCSServerGroup restoreCreds(OracleBMCSServerGroup partial, String identifier) {
     def account = Keys.parse(identifier)?.get("account")
     partial.credentials = accountCredentialsProvider.getCredentials(account)

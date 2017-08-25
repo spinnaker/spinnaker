@@ -91,6 +91,8 @@ class ClusterControllerSpec extends Specification {
       def result = clusterController.getServerGroup("app", "account", "clusterName", "type", "clusterName-v001", null)
 
     then:
+      1 * clusterProvider1.getCloudProviderId() >> { return "type" }
+      1 * clusterProvider1.supportsMinimalClusters() >> { return true }
       1 * clusterProvider1.getCluster("app", "account", "clusterName", false) >> {
         def cluster = Mock(Cluster)
         cluster.getType() >> "type"
@@ -100,29 +102,6 @@ class ClusterControllerSpec extends Specification {
       1 * serverGroupController.getServerGroup("app", "account", "us-west-2", "clusterName-v001") >> serverGroup
       0 * _
       result == [serverGroup]
-  }
-
-  void "should delegate to ServerGroupController when region is provided"() {
-    given:
-    def serverGroupController = Mock(ServerGroupController)
-    clusterController.serverGroupController = serverGroupController
-
-    and:
-    def serverGroup = new AmazonServerGroup(type: "aws")
-
-    when:
-    def result = clusterController.getServerGroup("app", "test", "mycluster", "aws", "mycluster-v001", "us-west-2")
-
-    then:
-    1 * serverGroupController.getServerGroup("app", "test", "us-west-2", "mycluster-v001") >> { return serverGroup }
-    result == serverGroup
-
-    when:
-    clusterController.getServerGroup("app", "test", "mycluster", "google", "mycluster-v001", "us-west-2")
-
-    then:
-    1 * serverGroupController.getServerGroup("app", "test", "us-west-2", "mycluster-v001") >> { return serverGroup }
-    thrown(NotFoundException)
   }
 
   void "should throw exception when no clusters are found for an account"() {
@@ -197,6 +176,8 @@ class ClusterControllerSpec extends Specification {
         getInstances() >> [Mock(Instance), Mock(Instance)]
       }
 
+      clusterProvider1.getCloudProviderId() >> { return "cloudProvider" }
+      clusterProvider1.supportsMinimalClusters() >> { return false }
       clusterProvider1.getCluster(*_) >> {
         def cluster = Mock(Cluster)
         with(cluster) {
@@ -278,6 +259,8 @@ class ClusterControllerSpec extends Specification {
         getImageSummary() >> mockImageSummary
       }
 
+      clusterProvider1.getCloudProviderId() >> { return "cloudProvider" }
+      clusterProvider1.supportsMinimalClusters() >> { return true }
       clusterProvider1.getCluster(*_) >> {
         def cluster = Mock(Cluster)
         with(cluster) {

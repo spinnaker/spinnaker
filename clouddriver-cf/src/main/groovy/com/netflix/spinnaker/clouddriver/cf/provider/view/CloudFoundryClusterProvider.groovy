@@ -113,6 +113,11 @@ class CloudFoundryClusterProvider implements ClusterProvider<CloudFoundryCluster
     return cloudFoundryCloudProvider.id
   }
 
+  @Override
+  boolean supportsMinimalClusters() {
+    return false
+  }
+
   private Map<String, Set<CloudFoundryCluster>> getClusters0(String applicationName, boolean includeDetails) {
     CacheData application = cacheView.get(APPLICATIONS.ns, Keys.getApplicationKey(applicationName))
     if (application == null) {

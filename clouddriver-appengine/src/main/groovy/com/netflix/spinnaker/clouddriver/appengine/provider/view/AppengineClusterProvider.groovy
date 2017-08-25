@@ -121,6 +121,11 @@ class AppengineClusterProvider implements ClusterProvider<AppengineCluster> {
     AppengineCloudProvider.ID
   }
 
+  @Override
+  boolean supportsMinimalClusters() {
+    return false
+  }
+
   Collection<AppengineCluster> translateClusters(Collection<CacheData> clusterData, boolean includeDetails) {
     if (!clusterData) {
       return []

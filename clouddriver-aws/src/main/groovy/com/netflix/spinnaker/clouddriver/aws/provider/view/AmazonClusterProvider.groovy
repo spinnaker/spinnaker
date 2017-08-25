@@ -106,6 +106,11 @@ class AmazonClusterProvider implements ClusterProvider<AmazonCluster> {
     return amazonCloudProvider.id
   }
 
+  @Override
+  boolean supportsMinimalClusters() {
+    return true
+  }
+
   private static Map<String, Set<AmazonCluster>> mapResponse(Collection<AmazonCluster> clusters) {
     clusters.groupBy { it.accountName }.collectEntries { k, v -> [k, new HashSet(v)] }
   }

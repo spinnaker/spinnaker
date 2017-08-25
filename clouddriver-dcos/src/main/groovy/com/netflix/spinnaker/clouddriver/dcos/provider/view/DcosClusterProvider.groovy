@@ -126,6 +126,11 @@ class DcosClusterProvider implements ClusterProvider<DcosCluster> {
     return dcosCloudProvider.id
   }
 
+  @Override
+  boolean supportsMinimalClusters() {
+    return false
+  }
+
   private static Map<String, Set<DcosCluster>> mapResponse(Collection<DcosCluster> clusters) {
     clusters.groupBy { it.accountName }.collectEntries { k, v -> [k, new HashSet(v)] }
   }

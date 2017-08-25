@@ -153,18 +153,10 @@ class ClusterController {
       throw notFound
     }
 
-    if (region) {
-      // if region is supplied,
-      def serverGroup = serverGroupController.getServerGroup(application, account, region, serverGroupName)
-      if (serverGroup.getCloudProvider() != type) {
-        throw notFound
-      }
+    // we can optimize loads iff the cloud provider supports loading minimal clusters (ie. w/o instances)
+    def shouldExpand = !clusterProviders.find { it.cloudProviderId == type }.supportsMinimalClusters()
 
-      return serverGroup
-    }
-
-    // load all server groups w/o instance details (this is reasonably efficient)
-    def serverGroups = getServerGroups(application, account, clusterName, type, region, false).findAll {
+    def serverGroups = getServerGroups(application, account, clusterName, type, region, shouldExpand).findAll {
       it.name == serverGroupName
     }
 
@@ -172,8 +164,8 @@ class ClusterController {
       throw notFound
     }
 
-    // load matched server groups w/ instance details
-    return serverGroups.collect {
+    return shouldExpand ? serverGroups : serverGroups.collect {
+      // server groups were minimally loaded initially and require expansion
       serverGroupController.getServerGroup(application, account, it.region, it.name)
     }
   }
@@ -200,8 +192,11 @@ class ClusterController {
       throw new NotFoundException("Target not found (target: ${target})")
     }
 
+    // we can optimize loads iff the cloud provider supports loading minimal clusters (ie. w/o instances)
+    def shouldExpand = !clusterProviders.find { it.cloudProviderId == cloudProvider }.supportsMinimalClusters()
+
     // load all server groups w/o instance details (this is reasonably efficient)
-    def sortedServerGroups = getServerGroups(application, account, clusterName, cloudProvider, null /* region */, false).findAll {
+    def sortedServerGroups = getServerGroups(application, account, clusterName, cloudProvider, null /* region */, shouldExpand).findAll {
       def scopeMatch = it.region == scope || it.zones?.contains(scope)
 
       def enableMatch
@@ -218,9 +213,10 @@ class ClusterController {
       throw new NotFoundException("No server groups found (account: ${account}, cluster: ${clusterName}, type: ${cloudProvider})")
     }
 
-    // load matched server groups w/ instance details
-    sortedServerGroups = sortedServerGroups.collect {
-      serverGroupController.getServerGroup(application, account, it.region, it.name)
+    if (!shouldExpand) {
+      sortedServerGroups = sortedServerGroups.collect {
+        serverGroupController.getServerGroup(application, account, it.region, it.name)
+      }
     }
 
     switch (tsg) {

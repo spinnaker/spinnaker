@@ -146,6 +146,11 @@ class GoogleClusterProvider implements ClusterProvider<GoogleCluster.View> {
     return googleCloudProvider.id
   }
 
+  @Override
+  boolean supportsMinimalClusters() {
+    return false
+  }
+
   GoogleCluster.View clusterFromCacheData(CacheData cacheData, boolean includeInstanceDetails) {
     GoogleCluster.View clusterView = objectMapper.convertValue(cacheData.attributes, GoogleCluster)?.view
 
