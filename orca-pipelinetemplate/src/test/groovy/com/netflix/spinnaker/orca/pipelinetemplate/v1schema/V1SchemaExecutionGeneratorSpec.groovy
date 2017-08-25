@@ -84,6 +84,36 @@ class V1SchemaExecutionGeneratorSpec extends Specification {
     "124"  | [application: 'orca']                  || "124"
   }
 
+  @Unroll
+  def "should set notifications in execution json"() {
+    given:
+    PipelineTemplate template = getPipelineTemplate()
+    TemplateConfiguration configuration = new TemplateConfiguration(
+      pipeline: new PipelineDefinition([application: 'orca', pipelineConfigId: 'pipelineConfigId']),
+      configuration: new TemplateConfiguration.PipelineConfiguration(
+        inherit: inherit,
+        notifications: [
+          new NamedHashMap().with {
+            put('name', 'configuration-notification')
+            put('address', 'email-from-configuration@spinnaker.io')
+            it
+          }
+        ]
+      )
+    )
+
+    when:
+    def result = subject.generate(template, configuration, "pipelineConfigId")
+
+    then:
+    result.notifications*.address == addresses
+
+    where:
+    inherit           || addresses
+    ['notifications'] || ['email-from-template@spinnaker.io', 'email-from-configuration@spinnaker.io']
+    []                || ['email-from-configuration@spinnaker.io']
+  }
+
   private PipelineTemplate getPipelineTemplate() {
     new PipelineTemplate(
       id: 'simpleTemplate',
@@ -97,6 +127,13 @@ class V1SchemaExecutionGeneratorSpec extends Specification {
             put('master', 'spinnaker')
             put('job', 'SPINNAKER-package-orca')
             put('enabled', true)
+            it
+          }
+        ],
+        notifications: [
+          new NamedHashMap().with {
+            put('name', 'template-notification')
+            put('address', 'email-from-template@spinnaker.io')
             it
           }
         ]

@@ -46,13 +46,13 @@ public class V1SchemaExecutionGenerator implements ExecutionGenerator {
       pipeline.put("parallel", true);
       pipeline.put("limitConcurrent", true);
       pipeline.put("keepWaitingPipelines", false);
-      pipeline.put("notifications", Collections.emptyList());
     } else {
       pipeline.put("parallel", c.getConcurrentExecutions().getOrDefault("parallel", true));
       pipeline.put("limitConcurrent", c.getConcurrentExecutions().getOrDefault("limitConcurrent", true));
       pipeline.put("keepWaitingPipelines", c.getConcurrentExecutions().getOrDefault("keepWaitingPipelines", false));
-      pipeline.put("notifications", c.getNotifications());
     }
+
+    addNotifications(pipeline, template, configuration);
 
     pipeline.put("stages", template.getStages()
       .stream()
@@ -69,5 +69,22 @@ public class V1SchemaExecutionGenerator implements ExecutionGenerator {
       .collect(Collectors.toList()));
 
     return pipeline;
+  }
+
+  private void addNotifications(Map<String, Object> pipeline, PipelineTemplate template, TemplateConfiguration configuration) {
+    if (configuration.getConfiguration().getInherit().contains("notifications")) {
+      pipeline.put(
+        "notifications",
+        TemplateMerge.mergeNamedContent(
+          template.getConfiguration().getNotifications(),
+          configuration.getConfiguration().getNotifications()
+        )
+      );
+    } else {
+      pipeline.put(
+        "notifications",
+        Optional.ofNullable(configuration.getConfiguration().getNotifications()).orElse(Collections.emptyList())
+      );
+    }
   }
 }
