@@ -147,27 +147,22 @@ class ClusterController {
                      @PathVariable String type,
                      @PathVariable String serverGroupName,
                      @RequestParam(value = "region", required = false) String region) {
-    def notFound = new NotFoundException("Server group not found (account: ${account}, name: ${serverGroupName}, type: ${type})")
-
-    if (!serverGroupName.toLowerCase().startsWith(clusterName.toLowerCase())) {
-      throw notFound
-    }
-
     // we can optimize loads iff the cloud provider supports loading minimal clusters (ie. w/o instances)
     def shouldExpand = !clusterProviders.find { it.cloudProviderId == type }.supportsMinimalClusters()
 
     def serverGroups = getServerGroups(application, account, clusterName, type, region, shouldExpand).findAll {
-      it.name == serverGroupName
+      region ? it.name == serverGroupName && it.region == region : it.name == serverGroupName
     }
-
     if (!serverGroups) {
-      throw notFound
+      throw new NotFoundException("Server group not found (account: ${account}, name: ${serverGroupName}, type: ${type})")
     }
 
-    return shouldExpand ? serverGroups : serverGroups.collect {
+    serverGroups = shouldExpand ? serverGroups : serverGroups.collect {
       // server groups were minimally loaded initially and require expansion
       serverGroupController.getServerGroup(application, account, it.region, it.name)
     }
+
+    region ? serverGroups?.getAt(0) : serverGroups
   }
 
   /**
