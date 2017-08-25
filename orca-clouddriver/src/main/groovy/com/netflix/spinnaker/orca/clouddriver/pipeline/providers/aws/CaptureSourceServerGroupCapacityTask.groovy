@@ -40,28 +40,35 @@ class CaptureSourceServerGroupCapacityTask implements Task {
     def stageOutputs = [:]
     StageData stageData = stage.mapTo(StageData)
     if (stageData.useSourceCapacity) {
-      def sourceServerGroup = oortHelper.getTargetServerGroup(
-        stageData.source.account,
-        stageData.source.asgName,
-        stageData.source.region,
-        stageData.cloudProvider ?: stageData.providerType
-      ).orElse(null)
-
-      if (sourceServerGroup) {
-        // capture the source server group's capacity AND specify an explicit capacity to use when deploying the next
-        // server group (ie. no longer use source capacity)
+      if (!stageData.source && stageData.preferSourceCapacity) {
         stageData.setUseSourceCapacity(false)
-        stageData.source.useSourceCapacity = false
         stageOutputs = [
-          useSourceCapacity                : false,
-          source                           : stageData.source,
-          sourceServerGroupCapacitySnapshot: sourceServerGroup.capacity,
-          capacity                         : [
-            min    : sourceServerGroup.capacity.desired,
-            desired: sourceServerGroup.capacity.desired,
-            max    : sourceServerGroup.capacity.max
-          ]
+          useSourceCapacity: false
         ]
+      } else {
+        def sourceServerGroup = oortHelper.getTargetServerGroup(
+          stageData.source.account,
+          stageData.source.asgName,
+          stageData.source.region,
+          stageData.cloudProvider ?: stageData.providerType
+        ).orElse(null)
+
+        if (sourceServerGroup) {
+          // capture the source server group's capacity AND specify an explicit capacity to use when deploying the next
+          // server group (ie. no longer use source capacity)
+          stageData.setUseSourceCapacity(false)
+          stageData.source.useSourceCapacity = false
+          stageOutputs = [
+            useSourceCapacity                : false,
+            source                           : stageData.source,
+            sourceServerGroupCapacitySnapshot: sourceServerGroup.capacity,
+            capacity                         : [
+              min    : sourceServerGroup.capacity.desired,
+              desired: sourceServerGroup.capacity.desired,
+              max    : sourceServerGroup.capacity.max
+            ]
+          ]
+        }
       }
     }
 

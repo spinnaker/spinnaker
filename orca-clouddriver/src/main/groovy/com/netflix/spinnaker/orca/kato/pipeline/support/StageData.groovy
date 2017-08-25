@@ -33,6 +33,7 @@ class StageData {
   Map<String, List<String>> availabilityZones
   int maxRemainingAsgs
   Boolean useSourceCapacity
+  Boolean preferSourceCapacity
   Source source
 
   String getCluster() {
@@ -67,12 +68,21 @@ class StageData {
     return useSourceCapacity ?: false
   }
 
+  Boolean getPreferSourceCapacity() {
+    if (source?.preferSourceCapacity != null) {
+      return source.preferSourceCapacity
+    }
+
+    return preferSourceCapacity ?: false
+  }
+
   static class Source {
     String account
     String region
     String asgName
     String serverGroupName
     Boolean useSourceCapacity
+    Boolean preferSourceCapacity
   }
 
 }
