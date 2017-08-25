@@ -3,6 +3,8 @@
 const angular = require('angular');
 import _ from 'lodash';
 
+import { AWSProviderSettings } from 'amazon/aws.settings';
+
 import {
   PipelineTemplates,
   BakeExecutionLabel,
@@ -52,6 +54,8 @@ module.exports = angular.module('spinnaker.amazon.pipeline.stage.bakeStage', [
 
     $scope.viewState = {
       loading: true,
+      roscoMode: SETTINGS.feature.roscoMode,
+      minRootVolumeSize: AWSProviderSettings.minRootVolumeSize,
     };
 
     function initialize() {
@@ -91,7 +95,6 @@ module.exports = angular.module('spinnaker.amazon.pipeline.stage.bakeStage', [
         if (!$scope.stage.baseLabel && $scope.baseLabelOptions && $scope.baseLabelOptions.length) {
           $scope.stage.baseLabel = $scope.baseLabelOptions[0];
         }
-        $scope.viewState.roscoMode = SETTINGS.feature.roscoMode;
         $scope.showAdvancedOptions = showAdvanced();
         $scope.viewState.loading = false;
       });
@@ -108,7 +111,7 @@ module.exports = angular.module('spinnaker.amazon.pipeline.stage.bakeStage', [
     function showAdvanced() {
       const stg = $scope.stage;
       return !!(stg.templateFileName || (stg.extendedAttributes && _.size(stg.extendedAttributes) > 0) ||
-        stg.varFileName || stg.baseName || stg.baseAmi || stg.amiName || stg.amiSuffix);
+        stg.varFileName || stg.baseName || stg.baseAmi || stg.amiName || stg.amiSuffix || stg.rootVolumeSize);
     }
 
     this.addExtendedAttribute = function() {

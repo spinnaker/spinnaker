@@ -106,6 +106,14 @@
         <input type="text" class="form-control input-sm"
                ng-model="stage.varFileName"/>
       </stage-config-field>
+      <stage-config-field label="Root Volume Size"
+                          ng-if="viewState.minRootVolumeSize">
+        <input type="number"
+               class="form-control input-sm"
+               style="width: 80px; display: inline-block"
+               ng-min="viewState.minRootVolumeSize"
+               ng-model="stage.rootVolumeSize"/> GB <span class="small">(minimum: {{viewState.minRootVolumeSize}})</span>
+      </stage-config-field>
       <stage-config-field label="Base Name">
         <input type="text" class="form-control input-sm"
                ng-model="stage.baseName"/>
