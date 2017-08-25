@@ -87,6 +87,7 @@ module.exports = {
     'select2-bootstrap-css/select2-bootstrap.css': 'select2-bootstrap-css/select2-bootstrap.css',
     'source-sans-pro': 'source-sans-pro',
     'spin.js': 'spin.js',
+    'svg-react-loader': 'svg-react-loader',
     'ui-select': 'ui-select',
   },
   resolve: {
@@ -112,8 +113,18 @@ module.exports = {
         { loader: 'awesome-typescript-loader', options: { babelCore: path.join(NODE_MODULE_PATH, 'babel-core') } }
       ],
         exclude: exclusionPattern},
-      {test: /\.(woff|otf|ttf|eot|svg|png|gif|ico)(.*)?$/, use: 'file-loader'},
+      {test: /\.(woff|otf|ttf|eot|png|gif|ico)(.*)?$/, use: 'file-loader'},
       {test: /\.js$/, use: ['happypack/loader?id=js'], exclude: exclusionPattern},
+      {
+        test: /\.svg(.*)?$/,
+        exclude: /\/src\/widgets\/spinners/,
+        use: 'file-loader'
+      },
+      {
+        test: /\.svg(.*)?$/,
+        include: /\/src\/widgets\/spinners/,
+        use: ['svg-react-loader']
+      },
       {
         test: require.resolve('jquery'),
         use: [

@@ -60,6 +60,23 @@
   </style>
 </head>
 <body>
+  <!-- The defs are expected at the root level for svgs. These are the defs for the main loader svg -->
+  <div style="width:0;height:0;">
+    <svg>
+      <defs>
+        <linearGradient x1="82.1790632%" y1="-0.473917274%" x2="34.6134572%" y2="114.440607%" id="linearGradient-1">
+          <stop stop-color="#39546A" offset="0%"></stop>
+          <stop stop-color="#26D5F6" offset="50.8270886%"></stop>
+          <stop stop-color="#149CB5" offset="100%"></stop>
+        </linearGradient>
+        <linearGradient x1="50%" y1="0%" x2="50%" y2="100%" id="linearGradient-2">
+          <stop stop-color="#39546A" offset="0%"></stop>
+          <stop stop-color="#149CB5" offset="52.5031888%"></stop>
+          <stop stop-color="#149CB5" offset="100%"></stop>
+        </linearGradient>
+    </defs>
+    </svg>
+  </div>
   <!-- Sample loading styles -->
   <div ng-style="{display: authenticating ? '' : 'none'}" class="loading-placeholder">
     <svg version="1.1" x="0px" y="0px" width="252px" height="262.8px" viewBox="0 0 252 262.8" enable-background="new 0 0 252 262.8">

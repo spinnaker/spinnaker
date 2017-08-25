@@ -46,7 +46,7 @@ function configure(IS_TEST) {
       rules: [
         {test: /\.json$/, loader: 'json-loader'},
         {test: /\.tsx?$/, use: ['ng-annotate-loader', 'awesome-typescript-loader', 'tslint-loader'], exclude: /node_modules/},
-        {test: /\.(woff|otf|ttf|eot|svg|png|gif|ico)(.*)?$/, use: 'file-loader'},
+        {test: /\.(woff|otf|ttf|eot|png|gif|ico)(.*)?$/, use: 'file-loader'},
         {test: /\.js$/, use: ['happypack/loader?id=js'], exclude: /node_modules(?!\/clipboard)/},
         {
           test: require.resolve('jquery'),
@@ -54,6 +54,16 @@ function configure(IS_TEST) {
             'expose-loader?$',
             'expose-loader?jQuery'
           ]
+        },
+        {
+          test: /\.svg(.*)?$/,
+          exclude: /\/app\/scripts\/modules\/core\/src\/widgets\/spinners/,
+          use: 'file-loader'
+        },
+        {
+          test: /\.svg(.*)?$/,
+          include: /\/app\/scripts\/modules\/core\/src\/widgets\/spinners/,
+          use: ['svg-react-loader']
         },
         {
           test: /\.less$/,
