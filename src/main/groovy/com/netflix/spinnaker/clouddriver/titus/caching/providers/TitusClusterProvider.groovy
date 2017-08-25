@@ -165,6 +165,11 @@ class TitusClusterProvider implements ClusterProvider<TitusCluster> {
     return titusCloudProvider.id
   }
 
+  @Override
+  boolean supportsMinimalClusters() {
+    return false
+  }
+
   // Private methods
   private Map<String, Set<TitusCluster>> getClustersInternal(String applicationName, boolean includeDetails) {
     CacheData application = cacheView.get(APPLICATIONS.ns, Keys.getApplicationKey(applicationName))
