@@ -155,7 +155,7 @@ class AppengineClusterProvider implements ClusterProvider<AppengineCluster> {
         }
         cluster.serverGroups = clusterDataEntry.relationships[SERVER_GROUPS.ns].collect { serverGroupKey ->
           def parts = Keys.parse(serverGroupKey)
-          new AppengineServerGroup(name: parts.name, account: parts.account)
+          new AppengineServerGroup(name: parts.name, account: parts.account, region: parts.region)
         }
       }
       cluster
