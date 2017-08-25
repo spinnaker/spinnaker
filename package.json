@@ -27,7 +27,7 @@
   },
   "dependencies": {
     "@spinnaker/amazon": "0.0.5",
-    "@spinnaker/core": "0.0.52",
+    "@spinnaker/core": "^0.0.57",
     "@spinnaker/google": "^0.0.1",
     "@uirouter/angularjs": "^1.0.4",
     "@uirouter/react-hybrid": "^0.0.12",
@@ -48,6 +48,7 @@
     "class-autobind-decorator": "^2.2.1",
     "classnames": "^2.2.5",
     "clipboard": "^1.5.12",
+    "commonmark": "^0.28.1",
     "d3-scale": "^1.0.4",
     "d3-shape": "^1.0.4",
     "diff-match-patch": "^1.0.0",

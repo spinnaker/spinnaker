@@ -8,18 +8,19 @@ import FormattedDate from '../layout/formattedDate';
 
 interface IConfigListStateProps {
   configs: ICanaryConfigSummary[];
+  selectedConfigName: string;
 }
 
 /*
  * Shows a list of available configurations the user can select for editing.
  */
-function ConfigList({ configs }: IConfigListStateProps) {
+function ConfigList({ configs, selectedConfigName }: IConfigListStateProps) {
   return (
     <section>
       <h2>Configs</h2>
-      <ul className="list-group">
+      <ul className="tabs-vertical list-unstyled">
         {configs.map(config => (
-          <li key={config.name} className="list-group-item">
+          <li key={config.name} className={config.name === selectedConfigName ? 'selected' : ''}>
             <UISrefActive class="active">
               <UISref to=".configDetail" params={{configName: config.name}}>
                 <a><strong>{config.name}</strong></a>
@@ -37,8 +38,10 @@ function ConfigList({ configs }: IConfigListStateProps) {
 }
 
 function mapStateToProps(state: ICanaryState): IConfigListStateProps {
+  const selectedConfigName = state.selectedConfig ? state.selectedConfig.name : null;
   return {
-    configs: state.configSummaries
+    configs: state.configSummaries,
+    selectedConfigName,
   };
 }
 
