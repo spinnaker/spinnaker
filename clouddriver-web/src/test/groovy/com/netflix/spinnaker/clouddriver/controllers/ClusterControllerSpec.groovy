@@ -87,10 +87,10 @@ class ClusterControllerSpec extends Specification {
 
       def serverGroup = new AmazonServerGroup(name: "clusterName-v001", region: "us-west-2")
 
-    when:
+    when: "region is not supplied"
       def result = clusterController.getServerGroup("app", "account", "clusterName", "type", "clusterName-v001", null)
 
-    then:
+    then: "expect a collection of server groups to be returned"
       1 * clusterProvider1.getCloudProviderId() >> { return "type" }
       1 * clusterProvider1.supportsMinimalClusters() >> { return true }
       1 * clusterProvider1.getCluster("app", "account", "clusterName", false) >> {
@@ -101,7 +101,26 @@ class ClusterControllerSpec extends Specification {
       }
       1 * serverGroupController.getServerGroup("app", "account", "us-west-2", "clusterName-v001") >> serverGroup
       0 * _
+
+      // all similarly named server groups are returned (ie. one per region) when region not provided
       result == [serverGroup]
+
+    when: "region is supplied"
+      result = clusterController.getServerGroup("app", "account", "clusterName", "type", "clusterName-v001", "us-west-2")
+
+    then: "expect a single server group to be returned"
+      1 * clusterProvider1.getCloudProviderId() >> { return "type" }
+      1 * clusterProvider1.supportsMinimalClusters() >> { return false }
+      1 * clusterProvider1.getCluster("app", "account", "clusterName", true) >> {
+        def cluster = Mock(Cluster)
+        cluster.getType() >> "type"
+        cluster.getServerGroups() >> [serverGroup]
+        cluster
+      }
+      0 * _
+
+      // only a single server group is returned when region is explicitly provided
+      result == serverGroup
   }
 
   void "should throw exception when no clusters are found for an account"() {
