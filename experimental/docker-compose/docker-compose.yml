@@ -2,8 +2,6 @@ clouddriver:
   container_name: clouddriver
   env_file: ./compose.env
   environment:
-    - AWS_ACCESS_KEY_ID
-    - AWS_SECRET_ACCESS_KEY
     - "SERVICES_FRONT50_BASEURL=http://$DOCKER_IP:8080"
   image: quay.io/spinnaker/clouddriver:master
   links:
