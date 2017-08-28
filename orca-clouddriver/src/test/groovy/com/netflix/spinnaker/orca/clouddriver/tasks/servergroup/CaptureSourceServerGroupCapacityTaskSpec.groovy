@@ -54,7 +54,7 @@ class CaptureSourceServerGroupCapacityTaskSpec extends Specification {
 
   void "should set useSourceCapacity to false if no source found and preferSourceCapacity is true"() {
     given:
-    def stage = new Stage<>(new Pipeline(), "", [useSourceCapacity: true, preferSourceCapacity: true])
+    def stage = new Stage<>(new Pipeline("orca"), "", [useSourceCapacity: true, preferSourceCapacity: true])
 
     when:
     def result = task.execute(stage)

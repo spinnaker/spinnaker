@@ -21,10 +21,6 @@ import com.netflix.spinnaker.orca.kato.pipeline.support.SourceResolver
 import com.netflix.spinnaker.orca.kato.pipeline.support.StageData
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
-import retrofit.RetrofitError
-import retrofit.client.Response
-import retrofit.converter.Converter
-import retrofit.mime.TypedString
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -227,7 +223,7 @@ class DetermineSourceServerGroupTaskSpec extends Specification {
   }
 
   def 'should throw exception if no source resolved and useSourceCapacity requested after attempts limit is reached'() {
-    Stage stage = new Stage<>(new Pipeline(), 'deploy', 'deploy', [
+    Stage stage = new Stage<>(new Pipeline("orca"), 'deploy', 'deploy', [
       account            : 'test',
       application        : 'foo',
       useSourceCapacity  : true,
@@ -247,7 +243,7 @@ class DetermineSourceServerGroupTaskSpec extends Specification {
 
   @Unroll
   def 'should be #status after #attempt consecutive missing source with useSourceCapacity and preferSourceCapacity and capacity context #capacity'() {
-    Stage stage = new Stage<>(new Pipeline(), 'deploy', 'deploy', [
+    Stage stage = new Stage<>(new Pipeline("orca"), 'deploy', 'deploy', [
       account             : 'test',
       application         : 'foo',
       useSourceCapacity   : true,
@@ -274,7 +270,7 @@ class DetermineSourceServerGroupTaskSpec extends Specification {
   }
 
   def 'should throw exception if useSourceCapacity and preferSourceCapacity set, but source not found and no capacity specified'() {
-    Stage stage = new Stage<>(new Pipeline(), 'deploy', 'deploy', [
+    Stage stage = new Stage<>(new Pipeline("orca"), 'deploy', 'deploy', [
       account             : 'test',
       application         : 'foo',
       useSourceCapacity   : true,
