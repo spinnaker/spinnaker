@@ -14,18 +14,28 @@
  * limitations under the License.
  */
 
-dependencies {
-  compile project(':echo-core')
-  compile project(':echo-model')
-  compile project(':echo-pipelinetriggers')
+package com.netflix.spinnaker.echo.pubsub.redis
 
-  spinnaker.group("bootWeb")
-  spinnaker.group("spockBase")
+import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
+import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Configuration
+import redis.clients.jedis.Jedis
+import redis.clients.util.Pool
 
-  compile spinnaker.dependency("groovy")
-  compile spinnaker.dependency("guava")
-  compile spinnaker.dependency("jedis")
-  compile spinnaker.dependency("korkJedisTest")
+@Configuration
+class EmbeddedRedisConfiguration {
 
-  compile 'com.google.cloud:google-cloud-pubsub:0.21.1-beta'
+  @Bean(destroyMethod = "destroy")
+  EmbeddedRedis redisServer() {
+    def redis = EmbeddedRedis.embed()
+    redis.jedis.withCloseable { Jedis jedis ->
+      jedis.flushAll()
+    }
+    return redis
+  }
+
+  @Bean
+  Pool<Jedis> jedisPool() {
+    redisServer().pool
+  }
 }

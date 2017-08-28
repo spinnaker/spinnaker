@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.echo.pubsub;
 
+import com.netflix.spinnaker.echo.model.pubsub.PubsubType;
 import com.netflix.spinnaker.echo.pubsub.model.PubsubSubscriber;
-import com.netflix.spinnaker.echo.pubsub.model.PubsubType;
 
 import java.util.ArrayList;
 import java.util.List;

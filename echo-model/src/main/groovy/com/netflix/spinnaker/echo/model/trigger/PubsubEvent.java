@@ -14,11 +14,23 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.echo.pubsub.model;
+package com.netflix.spinnaker.echo.model.trigger;
 
-import com.netflix.spinnaker.echo.model.pubsub.PubsubType;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.netflix.spinnaker.echo.model.pubsub.MessageDescription;
+import lombok.Data;
 
-public interface PubsubSubscriber {
-  PubsubType pubsubType();
-  String subscriptionName();
+@Data
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class PubsubEvent extends TriggerEvent {
+
+  public static final String TYPE = "pubsub";
+
+  private Content content;
+
+  @Data
+  @JsonIgnoreProperties(ignoreUnknown = true)
+  public static class Content {
+    private MessageDescription messageDescription;
+  }
 }

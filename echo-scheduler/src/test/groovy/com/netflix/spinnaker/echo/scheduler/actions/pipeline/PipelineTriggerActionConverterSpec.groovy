@@ -15,6 +15,7 @@
  */
 
 package com.netflix.spinnaker.echo.scheduler.actions.pipeline
+
 import com.netflix.scheduledactions.ActionInstance
 import com.netflix.scheduledactions.Context
 import com.netflix.scheduledactions.triggers.CronTrigger
@@ -41,7 +42,12 @@ class PipelineTriggerActionConverterSpec extends Specification {
 
     void 'toParameters() should return an equivalent map of parameters'() {
         setup:
-        Trigger trigger = new Trigger(true, '123-456', 'cron', null, null, null, null, '* 0/30 * * * ? *', null, null, null, null, null, null, null, null, null, null, null, null)
+        Trigger trigger = Trigger.builder()
+            .enabled(true)
+            .id('123-456')
+            .type('cron')
+            .cronExpression('* 0/30 * * * ? *')
+            .build()
 
         when:
         Map parameters = PipelineTriggerConverter.toParameters(pipeline, trigger, 'America/New_York')
@@ -84,7 +90,12 @@ class PipelineTriggerActionConverterSpec extends Specification {
 
     void 'toScheduledAction() should return an equivalent valid ActionInstance'() {
         setup:
-        Trigger trigger = new Trigger(true, '123-456', 'cron', null, null, null, null, null, '* 0/30 * * * ? *', null, null, null, null, null, null, null, null, null, null, null)
+        Trigger trigger = Trigger.builder()
+            .enabled(true)
+            .id('123-456')
+            .type('cron')
+            .cronExpression('* 0/30 * * * ? *')
+            .build()
 
         when:
         ActionInstance actionInstance = PipelineTriggerConverter.toScheduledAction(pipeline, trigger, 'America/Los_Angeles')

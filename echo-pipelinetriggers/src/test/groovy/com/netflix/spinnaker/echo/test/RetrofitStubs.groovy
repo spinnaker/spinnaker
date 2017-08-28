@@ -1,17 +1,15 @@
 package com.netflix.spinnaker.echo.test
 
 import com.netflix.spinnaker.echo.model.Metadata
-import com.netflix.spinnaker.echo.model.trigger.BuildEvent
-import com.netflix.spinnaker.echo.model.trigger.DockerEvent
-import com.netflix.spinnaker.echo.model.trigger.GitEvent
-import com.netflix.spinnaker.echo.model.trigger.WebhookEvent
-import com.netflix.spinnaker.echo.model.Trigger
-
-import java.util.concurrent.atomic.AtomicInteger
-
 import com.netflix.spinnaker.echo.model.Pipeline
+import com.netflix.spinnaker.echo.model.Trigger
+import com.netflix.spinnaker.echo.model.pubsub.MessageDescription
+import com.netflix.spinnaker.echo.model.pubsub.PubsubType
+import com.netflix.spinnaker.echo.model.trigger.*
 import retrofit.RetrofitError
 import retrofit.client.Response
+
+import java.util.concurrent.atomic.AtomicInteger
 
 import static com.netflix.spinnaker.echo.model.trigger.BuildEvent.Result.BUILDING
 import static java.net.HttpURLConnection.HTTP_UNAVAILABLE
@@ -20,27 +18,32 @@ import static retrofit.RetrofitError.httpError
 trait RetrofitStubs {
 
   final String url = "http://echo"
-  final Trigger enabledJenkinsTrigger = new Trigger(true, null, 'jenkins', 'master', 'job', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null)
-  final Trigger disabledJenkinsTrigger = new Trigger(false, null, 'jenkins', 'master', 'job', null, null, null, null, null, null, null, null, null, null, null, null,null, null, null)
-  final Trigger enabledTravisTrigger = new Trigger(true, null, 'travis', 'master', 'job', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null)
-  final Trigger disabledTravisTrigger = new Trigger(false, null, 'travis', 'master', 'job', null, null, null, null, null, null, null, null, null, null, null, null,null, null, null)
-  final Trigger nonJenkinsTrigger = new Trigger(true, null, 'not jenkins', 'master', 'job', null, null, null, null, null, null, null, null, null, null, null, null,null, null, null)
-  final Trigger enabledStashTrigger = new Trigger(true, null, 'git', null, null, null, null, null, 'stash', 'project', 'slug', null, null, null, null, null, null,null, null, null)
-  final Trigger disabledStashTrigger = new Trigger(false, null, 'git', 'master', 'job', null, null, null, 'stash', 'project', 'slug', null, null, null, null, null, null,null, null, null)
-  final Trigger enabledBitBucketTrigger = new Trigger(true, null, 'git', null, null, null, null, null, 'bitbucket', 'project', 'slug', null, null, null, null, null, null,null, null, null)
-  final Trigger disabledBitBucketTrigger = new Trigger(false, null, 'git', 'master', 'job', null, null, null, 'bitbucket', 'project', 'slug', null, null, null, null, null, null,null, null, null)
+  final Trigger enabledJenkinsTrigger = Trigger.builder().enabled(true).type('jenkins').master('master').job('job').build()
+  final Trigger disabledJenkinsTrigger = Trigger.builder().enabled(false).type('jenkins').master('master').job('job').build()
+  final Trigger enabledTravisTrigger = Trigger.builder().enabled(true).type('travis').master('master').job('job').build()
+  final Trigger disabledTravisTrigger = Trigger.builder().enabled(false).type('travis').master('master').job('job').build()
+  final Trigger nonJenkinsTrigger = Trigger.builder().enabled(true).type('not jenkins').master('master').job('job').build()
+  final Trigger enabledStashTrigger = Trigger.builder().enabled(true).type('git').source('stash').project('project').slug('slug').build()
+  final Trigger disabledStashTrigger = Trigger.builder().enabled(false).type('git').source('stash').project('project').slug('slug').build()
+  final Trigger enabledBitBucketTrigger = Trigger.builder().enabled(true).type('git').source('bitbucket').project('project').slug('slug').build()
+  final Trigger disabledBitBucketTrigger = Trigger.builder().enabled(false).type('git').source('bitbucket').project('project').slug('slug').build()
 
-  final Trigger enabledGithubTrigger = new Trigger(true, null, 'git', null, null, null, null, null, 'github', 'project', 'slug', null, null, null, null, null, null,null, null, null)
+  final Trigger enabledGithubTrigger = Trigger.builder().enabled(true).type('git').source('github').project('project').slug('slug').build()
 
-  final Trigger enabledDockerTrigger = new Trigger(true, null, 'docker', null, null, null, null, null, null, null, null, null, 'registry', 'repository', 'tag', null, null,null, null, null)
-  final Trigger disabledDockerTrigger = new Trigger(false, null, 'git', null, null, null, null, null, null, null, null, null, 'registry', 'repository', 'tag', null, null,null, null, null)
-  final Trigger enabledWebhookTrigger = new Trigger(true, null, 'webhook', null, null, null, null, null, null, null, null, null, null, null, null, null, null,null, null, null)
-  final Trigger disabledWebhookTrigger = new Trigger(false, null, 'webhook', null, null, null, null, null, null, null, null, null, null, null, null, null, null,null, null, null)
+  final Trigger enabledDockerTrigger = Trigger.builder().enabled(true).type('docker').account('registry').repository('repository').tag('tag').build()
+  final Trigger disabledDockerTrigger = Trigger.builder().enabled(false).type('docker').account('registry').repository('repository').tag('tag').build()
+  final Trigger enabledWebhookTrigger = Trigger.builder().enabled(true).type('webhook').build()
+  final Trigger disabledWebhookTrigger = Trigger.builder().enabled(true).type('webhook').build()
   final Trigger nonWebhookTrigger = Trigger.builder().enabled(true).type('not webhook').build()
   final Trigger webhookTriggerWithConstraints = Trigger.builder().enabled(true).type('webhook').constraints([ "application": "myApplicationName", "pipeline": "myPipeLineName" ]).build()
   final Trigger webhookTriggerWithoutConstraints = Trigger.builder().enabled(true).type('webhook').constraints().build()
   final Trigger teamcityTriggerWithConstraints = Trigger.builder().enabled(true).type('teamcity').constraints([ "application": "myApplicationName", "pipeline": "myPipeLineName" ]).build()
   final Trigger teamcityTriggerWithoutConstraints = Trigger.builder().enabled(true).type('teamcity').constraints().build()
+
+  final Trigger enabledGooglePubsubTrigger = Trigger.builder()
+      .enabled(true).type('pubsub').pubsubType('google').subscriptionName('projects/project/subscriptions/subscription').build()
+  final Trigger disabledGooglePubsubTrigger = Trigger.builder()
+      .enabled(false).type('pubsub').pubsubType('google').subscriptionName('projects/project/subscriptions/subscription').build()
 
   private nextId = new AtomicInteger(1)
 
@@ -77,7 +80,24 @@ trait RetrofitStubs {
   WebhookEvent createWebhookEvent(String type) {
     def res = new WebhookEvent()
     res.details = new Metadata([type: type, source: "myCIServer"])
-    res.payload = [ application : "myApplicationName" ];
+    res.payload = [ application : "myApplicationName" ]
+    return res
+  }
+
+  PubsubEvent createPubsubEvent(PubsubType pubsubType, String subscriptionName) {
+    def res = new PubsubEvent()
+
+    def description = MessageDescription.builder()
+        .pubsubType(pubsubType)
+        .ackDeadlineMillis(10000)
+        .subscriptionName(subscriptionName)
+        .build()
+
+    def content = new PubsubEvent.Content()
+    content.setMessageDescription(description)
+
+    res.details = new Metadata([type: "pubsub"])
+    res.content = content
     return res
   }
 

@@ -22,12 +22,13 @@ import lombok.Builder;
 import lombok.ToString;
 import lombok.Value;
 import lombok.experimental.Wither;
+
 import java.util.Map;
 
 @JsonDeserialize(builder = Trigger.TriggerBuilder.class)
-@Builder
+@Builder(toBuilder = true)
 @Wither
-@ToString(of = {"type", "master", "job", "cronExpression", "source", "project", "slug", "account", "repository", "tag", "constraints", "branch", "runAsUser"}, includeFieldNames = false)
+@ToString(of = {"type", "master", "job", "cronExpression", "source", "project", "slug", "account", "repository", "tag", "constraints", "branch", "runAsUser", "subscriptionName", "pubsubType"}, includeFieldNames = false)
 @Value
 public class Trigger {
   public enum Type {
@@ -35,7 +36,8 @@ public class Trigger {
     GIT("git"),
     JENKINS("jenkins"),
     DOCKER("docker"),
-    WEBHOOK("webhook");
+    WEBHOOK("webhook"),
+    PUBSUB("pubsub");
 
     private final String type;
 
@@ -69,29 +71,80 @@ public class Trigger {
   String branch;
   String runAsUser;
   String secret;
+  String subscriptionName;
+  String pubsubType;
 
   public Trigger atBuildNumber(final int buildNumber) {
-    return new Trigger(enabled, id, type, master, job, buildNumber, propertyFile, cronExpression, source, project, slug, null, account, repository, null, digest, null, branch, runAsUser, secret);
+    return this.toBuilder()
+        .buildNumber(buildNumber)
+        .hash(null)
+        .tag(null)
+        .constraints(null)
+        .subscriptionName(null)
+        .pubsubType(null)
+        .build();
   }
 
   public Trigger atHash(final String hash) {
-    return new Trigger(enabled, id, type, master, job, null, propertyFile, cronExpression, source, project, slug, hash, account, repository, null, digest, null, branch, runAsUser, secret);
+    return this.toBuilder()
+        .buildNumber(null)
+        .hash(hash)
+        .tag(null)
+        .constraints(null)
+        .subscriptionName(null)
+        .pubsubType(null)
+        .build();
   }
 
   public Trigger atBranch(final String branch) {
-    return new Trigger(enabled, id, type, master, job, null, propertyFile, cronExpression, source, project, slug, hash, account, repository, null, digest, null, branch, runAsUser, secret);
+    return this.toBuilder()
+        .buildNumber(null)
+        .tag(null)
+        .constraints(null)
+        .branch(branch)
+        .subscriptionName(null)
+        .pubsubType(null)
+        .build();
   }
 
   public Trigger atTag(final String tag) {
-    return new Trigger(enabled, id, type, master, job, null, propertyFile, cronExpression, source, project, slug, null, account, repository, tag, digest, null, branch, runAsUser, secret);
+    return this.toBuilder()
+        .buildNumber(null)
+        .hash(null)
+        .tag(tag)
+        .constraints(null)
+        .subscriptionName(null)
+        .pubsubType(null)
+        .build();
   }
 
   public Trigger atConstraints(final Map constraints) {
-    return new Trigger(enabled, id, type, master, job, null, propertyFile, cronExpression, source, project, slug, null, account, repository, tag, null, constraints, branch, runAsUser, secret);
+    return this.toBuilder()
+        .buildNumber(null)
+        .hash(null)
+        .digest(null)
+        .constraints(constraints)
+        .subscriptionName(null)
+        .pubsubType(null)
+        .build();
   }
 
   public Trigger atSecret(final String secret) {
-    return new Trigger(enabled, id, type, master, job, null, propertyFile, cronExpression, source, project, slug, null, account, repository, tag, null, constraints, branch, runAsUser, secret);
+    return this.toBuilder()
+        .buildNumber(null)
+        .hash(null)
+        .digest(null)
+        .secret(secret)
+        .subscriptionName(null)
+        .pubsubType(null)
+        .build();
+  }
+
+  public Trigger atMessageDescription(final String subscriptionName, final String pubsubType) {
+    return this.toBuilder()
+        .subscriptionName(subscriptionName)
+        .pubsubType(pubsubType)
+        .build();
   }
 
   @JsonPOJOBuilder(withPrefix = "")

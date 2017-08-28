@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.echo.pubsub.model;
+package com.netflix.spinnaker.echo.model.pubsub;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Builder
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class MessageInstanceDescription {
+public class MessageDescription {
   private String subscriptionName;
 
   private String messagePayload;

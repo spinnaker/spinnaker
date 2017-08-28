@@ -16,10 +16,10 @@
 
 package com.netflix.spinnaker.echo.pubsub.google;
 
+import com.netflix.spinnaker.echo.model.pubsub.PubsubType;
 import com.netflix.spinnaker.echo.pubsub.PollingMonitor;
 import com.netflix.spinnaker.echo.pubsub.PubsubSubscribers;
 import com.netflix.spinnaker.echo.pubsub.model.PubsubSubscriber;
-import com.netflix.spinnaker.echo.pubsub.model.PubsubType;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -67,7 +67,7 @@ public class GooglePubsubMonitor implements PollingMonitor {
   }
 
   private void openConnection(PubsubSubscriber subscriber) {
-    log.info("Opening async connection to {}", subscriber.topic());
+    log.info("Opening async connection to {}", subscriber.subscriptionName());
     lastPoll = System.currentTimeMillis();
 
     GooglePubsubSubscriber googleSubscriber = (GooglePubsubSubscriber) subscriber;
@@ -75,7 +75,7 @@ public class GooglePubsubMonitor implements PollingMonitor {
   }
 
   private void closeConnection(PubsubSubscriber subscriber) {
-    log.info("Closing async connection to {}", subscriber.topic());
+    log.info("Closing async connection to {}", subscriber.subscriptionName());
     GooglePubsubSubscriber googleSubscriber = (GooglePubsubSubscriber) subscriber;
     googleSubscriber.getSubscriber().stopAsync();
   }

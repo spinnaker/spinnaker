@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.echo.pubsub.model;
+package com.netflix.spinnaker.echo.model.pubsub;
 
 public enum PubsubType {
-  GOOGLE("googlePubsub"),
+  GOOGLE("google"),
   KAFKA("kafka");
 
   private String type;

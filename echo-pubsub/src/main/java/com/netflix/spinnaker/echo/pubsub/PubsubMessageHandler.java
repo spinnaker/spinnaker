@@ -16,9 +16,13 @@
 
 package com.netflix.spinnaker.echo.pubsub;
 
+import com.netflix.spinnaker.echo.model.Event;
+import com.netflix.spinnaker.echo.model.Metadata;
+import com.netflix.spinnaker.echo.model.pubsub.MessageDescription;
+import com.netflix.spinnaker.echo.model.pubsub.PubsubType;
+import com.netflix.spinnaker.echo.pipelinetriggers.monitor.PubsubEventMonitor;
 import com.netflix.spinnaker.echo.pubsub.model.MessageAcknowledger;
-import com.netflix.spinnaker.echo.pubsub.model.MessageInstanceDescription;
-import com.netflix.spinnaker.echo.pubsub.model.PubsubType;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -29,16 +33,22 @@ import javax.annotation.PostConstruct;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Shared cache of received and handled pubsub messages to synchronize clients.
  */
+@Data
 @Service
 @Slf4j
 public class PubsubMessageHandler {
 
   @Autowired
   private JedisPool jedisPool;
+
+  @Autowired
+  private PubsubEventMonitor pubsubEventMonitor;
 
   private MessageDigest digest;
 
@@ -55,7 +65,7 @@ public class PubsubMessageHandler {
     }
   }
 
-  public void handleMessage(MessageInstanceDescription description,
+  public void handleMessage(MessageDescription description,
                             MessageAcknowledger acknowledger,
                             String identifier) {
     String messageKey = makeKey(description.getMessagePayload(), description.getPubsubType(), description.getSubscriptionName());
@@ -66,7 +76,7 @@ public class PubsubMessageHandler {
     }
 
     acknowledger.ack();
-    postEvent(description);
+    processEvent(description);
     setMessageHandled(messageKey, identifier, description.getRetentionDeadlineMillis());
   }
 
@@ -91,8 +101,18 @@ public class PubsubMessageHandler {
   }
 
 
-  private void postEvent(MessageInstanceDescription description) {
-    // TODO(jacobkiefer): Process this event.
-    log.info("Processed Google pubsub event with payload {}", description.getMessagePayload());
+  private void processEvent(MessageDescription description) {
+    log.debug("Processed Pubsub event with payload {}", description.getMessagePayload());
+
+    Event event = new Event();
+    Map<String, Object> content = new HashMap<>();
+    Metadata details = new Metadata();
+
+    content.put("messageDescription", description);
+    details.setType(PubsubEventMonitor.PUBSUB_TRIGGER_TYPE);
+
+    event.setContent(content);
+    event.setDetails(details);
+    pubsubEventMonitor.processEvent(event);
   }
 }

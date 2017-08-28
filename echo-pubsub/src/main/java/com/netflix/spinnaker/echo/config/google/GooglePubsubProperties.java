@@ -45,7 +45,7 @@ public class GooglePubsubProperties {
     @NotNull
     private Integer ackDeadlineSeconds = 10;
 
-    // Not required since topics can be public.
+    // Not required since subscriptions can be public.
     private String jsonPath;
   }
 }

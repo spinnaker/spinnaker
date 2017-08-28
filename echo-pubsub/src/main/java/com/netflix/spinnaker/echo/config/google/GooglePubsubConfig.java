@@ -56,7 +56,7 @@ public class GooglePubsubConfig {
       String project = subscription.getProject();
       String jsonPath = subscription.getJsonPath();
 
-      log.info("Bootstrapping Google Pubsub Subscriber listening to topic: {subscription.name} in project: {subscription.project}",
+      log.info("Bootstrapping Google Pubsub Subscriber listening to subscription: {} in project: {}",
           subscription.getName(),
           subscription.getProject());
       GooglePubsubSubscriber subscriber = GooglePubsubSubscriber
