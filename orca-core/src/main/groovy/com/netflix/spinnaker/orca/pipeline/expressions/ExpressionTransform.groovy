@@ -86,7 +86,7 @@ class ExpressionTransform {
           )
 
           result = source
-        } else if (result == null || result.toString().contains(parserContext.getExpressionPrefix())) {
+        } else if (result == null) {
           summary.add(
             escapedExpressionString,
             ExpressionEvaluationSummary.Result.Level.INFO,
