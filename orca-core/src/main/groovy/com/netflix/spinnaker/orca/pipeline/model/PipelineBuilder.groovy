@@ -105,11 +105,6 @@ class PipelineBuilder {
     return this
   }
 
-  PipelineBuilder withParallel(boolean parallel) {
-    pipeline.parallel = parallel
-    return this
-  }
-
   PipelineBuilder withLimitConcurrent(boolean concurrent) {
     pipeline.limitConcurrent = concurrent
     return this

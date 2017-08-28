@@ -533,7 +533,6 @@ class JedisExecutionRepository implements ExecutionRepository {
     Map<String, String> map = [
       application         : execution.application,
       canceled            : String.valueOf(execution.canceled),
-      parallel            : String.valueOf(execution.parallel),
       limitConcurrent     : String.valueOf(execution.limitConcurrent),
       buildTime           : Long.toString(execution.buildTime ?: 0L),
       startTime           : execution.startTime?.toString(),
@@ -625,7 +624,6 @@ class JedisExecutionRepository implements ExecutionRepository {
       execution.canceled = Boolean.parseBoolean(map.canceled)
       execution.canceledBy = map.canceledBy
       execution.cancellationReason = map.cancellationReason
-      execution.parallel = Boolean.parseBoolean(map.parallel)
       execution.limitConcurrent = Boolean.parseBoolean(map.limitConcurrent)
       execution.buildTime = map.buildTime?.toLong()
       execution.startTime = map.startTime?.toLong()

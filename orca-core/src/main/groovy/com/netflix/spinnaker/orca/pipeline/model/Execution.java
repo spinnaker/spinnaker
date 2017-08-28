@@ -111,18 +111,6 @@ public abstract class Execution<T extends Execution<T>> implements Serializable 
     this.cancellationReason = cancellationReason;
   }
 
-  private boolean parallel = true;
-
-  @Deprecated
-  public boolean isParallel() {
-    return parallel;
-  }
-
-  @Deprecated
-  public void setParallel(boolean parallel) {
-    this.parallel = parallel;
-  }
-
   private boolean limitConcurrent = false;
 
   public boolean isLimitConcurrent() {
