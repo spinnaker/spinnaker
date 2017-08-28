@@ -45,9 +45,11 @@ export default class Canary extends React.Component<ICanaryProps, {}> {
 
   public render() {
     return (
-      <Provider store={this.store}>
-        <CanaryConfigEdit/>
-      </Provider>
+      <div className="styleguide">
+        <Provider store={this.store}>
+          <CanaryConfigEdit/>
+        </Provider>
+      </div>
     );
   }
 }
