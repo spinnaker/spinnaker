@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.clouddriver.google.provider.view
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.google.api.services.compute.model.Firewall
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
@@ -98,17 +97,13 @@ class GoogleSecurityGroupProvider implements SecurityGroupProvider<GoogleSecurit
   }
 
   GoogleSecurityGroup fromCacheData(boolean includeRules, CacheData cacheData) {
-    if (!(cacheData.attributes.firewall.id instanceof BigInteger)) {
-      cacheData.attributes.firewall.id = new BigInteger(cacheData.attributes.firewall.id)
-    }
-
-    Firewall firewall = objectMapper.convertValue(cacheData.attributes.firewall, Firewall)
+    Map firewall = cacheData.attributes.firewall
     Map<String, String> parts = Keys.parse(cacheData.id)
 
     return convertToGoogleSecurityGroup(includeRules, firewall, parts.account, parts.region)
   }
 
-  private GoogleSecurityGroup convertToGoogleSecurityGroup(boolean includeRules, Firewall firewall, String account, String region) {
+  private GoogleSecurityGroup convertToGoogleSecurityGroup(boolean includeRules, Map firewall, String account, String region) {
     List<Rule> inboundRules = includeRules ? buildInboundIpRangeRules(firewall) : []
 
     new GoogleSecurityGroup(
@@ -125,7 +120,7 @@ class GoogleSecurityGroupProvider implements SecurityGroupProvider<GoogleSecurit
     )
   }
 
-  private List<Rule> buildInboundIpRangeRules(Firewall firewall) {
+  private List<Rule> buildInboundIpRangeRules(Map firewall) {
     List<IpRangeRule> rangeRules = []
     List<AddressableRange> sourceRanges = firewall.sourceRanges?.collect { sourceRange ->
       def rangeParts = sourceRange.split("/") as List
@@ -139,13 +134,13 @@ class GoogleSecurityGroupProvider implements SecurityGroupProvider<GoogleSecurit
     }
 
     // Build a map from protocol to Allowed's so we can group all the ranges for a particular protocol.
-    def protocolToAllowedsMap = [:].withDefault { new HashSet<Firewall.Allowed>() }
+    def protocolToAllowedsMap = [:].withDefault { new HashSet<Map>() }
 
     firewall.allowed?.each { def allowed ->
       protocolToAllowedsMap[allowed.IPProtocol] << allowed
     }
 
-    protocolToAllowedsMap.each { String ipProtocol, Set<Firewall.Allowed> allowedSet ->
+    protocolToAllowedsMap.each { String ipProtocol, Set<Map> allowedSet ->
       SortedSet<Rule.PortRange> portRanges = [] as SortedSet
 
       allowedSet.each { allowed ->

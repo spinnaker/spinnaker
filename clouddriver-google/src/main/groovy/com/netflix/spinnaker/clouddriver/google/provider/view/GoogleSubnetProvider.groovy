@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.clouddriver.google.provider.view
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.google.api.services.compute.model.Subnetwork
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
@@ -66,11 +65,7 @@ class GoogleSubnetProvider implements SubnetProvider<GoogleSubnet> {
   }
 
   GoogleSubnet fromCacheData(CacheData cacheData) {
-    if (!(cacheData.attributes.subnet.id instanceof BigInteger)) {
-      cacheData.attributes.subnet.id = new BigInteger(cacheData.attributes.subnet.id)
-    }
-
-    Subnetwork subnet = objectMapper.convertValue(cacheData.attributes.subnet, Subnetwork)
+    Map subnet = cacheData.attributes.subnet
     Map<String, String> parts = Keys.parse(cacheData.id)
 
     new GoogleSubnet(
@@ -86,7 +81,7 @@ class GoogleSubnetProvider implements SubnetProvider<GoogleSubnet> {
     )
   }
 
-  private String deriveNetworkId(String account, Subnetwork subnet) {
+  private String deriveNetworkId(String account, Map subnet) {
     def accountCredentials = accountCredentialsProvider.getCredentials(account)
 
     if (!(accountCredentials instanceof GoogleNamedAccountCredentials)) {
