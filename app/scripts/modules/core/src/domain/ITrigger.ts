@@ -27,3 +27,8 @@ export interface IPipelineTrigger extends ITrigger {
 export interface ICronTrigger extends ITrigger {
   cronExpression: string;
 }
+
+export interface IPubsubTrigger extends ITrigger {
+  pubsubSystem: string;
+  subscriptionName: string;
+}
