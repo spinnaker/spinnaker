@@ -37,7 +37,7 @@
 // var openstackPrimaryAccount = ${providers.openstack.primaryCredentials.name};
 // var openstackDefaultRegion = ${providers.openstack.defaultRegion};
 // var appenginePrimaryAccount = ${providers.appengine.primaryCredentials.name};
-// var dcosPrimaryAccount = ${providers.docs.primaryCredentials.name};
+// var dcosPrimaryAccount = ${providers.dcos.primaryCredentials.name};
 
 // END reconfigure_spinnaker
 /**

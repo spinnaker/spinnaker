@@ -381,4 +381,10 @@ providers:
       gitHttpsPassword: ${SPINNAKER_APPENGINE_GIT_HTTPS_PASSWORD:}
       githubOAuthAccessToken: ${SPINNAKER_APPENGINE_GITHUB_OAUTH_ACCESS_TOKEN:}
 
+  dcos:
+    enabled: ${SPINNAKER_DCOS_ENABLED:false}
+
+    primaryCredentials:
+      name: my-dcos-account
+
 management.security.enabled: false
