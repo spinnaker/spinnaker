@@ -46,8 +46,8 @@ class StartPipelineTask implements Task {
     String pipelineId = stage.context.pipelineId ?: stage.context.pipeline
     Boolean isStrategy = stage.context.pipelineParameters?.strategy ?: false
 
-    List pipelines = isStrategy ? front50Service.getStrategies(application) : front50Service.getPipelines(application)
-    Map pipelineConfig = pipelines.find { it.id == pipelineId }
+    List<Map<String, Object>> pipelines = isStrategy ? front50Service.getStrategies(application) : front50Service.getPipelines(application)
+    Map<String, Object> pipelineConfig = pipelines.find { it.id == pipelineId }
 
     if (!pipelineConfig) {
       throw new IllegalArgumentException("Unable to locate referenced pipeline $pipelineId.")

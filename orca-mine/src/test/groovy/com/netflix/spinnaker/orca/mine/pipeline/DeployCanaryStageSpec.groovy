@@ -19,31 +19,35 @@ package com.netflix.spinnaker.orca.mine.pipeline
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.mine.pipeline.DeployCanaryStage.CompleteDeployCanaryTask
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
-import com.netflix.spinnaker.orca.pipeline.model.Stage
 import spock.lang.Specification
+import static com.netflix.spinnaker.orca.ExecutionStatus.FAILED_CONTINUE
+import static com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED
+import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
+import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
 
 class DeployCanaryStageSpec extends Specification {
 
   def "should short-circuit and return in a TERMINAL status if any deploy stages are not successful"() {
     setup:
-    Pipeline pipeline = new Pipeline()
-    String parentStageId = "a"
-
-    Stage successfulDeploymentStage = new Stage<Pipeline>(pipeline, "deploy", [:])
-    successfulDeploymentStage.parentStageId = parentStageId
-    successfulDeploymentStage.status = ExecutionStatus.SUCCEEDED
-
-    Stage failedDeploymentStage = new Stage<Pipeline>(pipeline, "deploy", [:])
-    failedDeploymentStage.parentStageId = parentStageId
-    failedDeploymentStage.status = ExecutionStatus.FAILED_CONTINUE
-
-    Stage stage = new Stage<Pipeline>(pipeline, "the stage", [:])
-    stage.id = parentStageId
-
-    pipeline.stages = [stage, failedDeploymentStage, successfulDeploymentStage]
+    Pipeline pipeline = pipeline {
+      stage {
+        id = "a"
+        type = "the stage"
+      }
+      stage {
+        type = "deploy"
+        parentStageId = "a"
+        status = SUCCEEDED
+      }
+      stage {
+        type = "deploy"
+        parentStageId = "a"
+        status = FAILED_CONTINUE
+      }
+    }
     CompleteDeployCanaryTask task = new CompleteDeployCanaryTask(Optional.empty(), null)
 
     expect:
-    task.execute(stage).status == ExecutionStatus.TERMINAL
+    task.execute(pipeline.stageById("a")).status == ExecutionStatus.TERMINAL
   }
 }

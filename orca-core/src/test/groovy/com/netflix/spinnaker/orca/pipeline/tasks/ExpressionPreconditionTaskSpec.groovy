@@ -29,7 +29,7 @@ class ExpressionPreconditionTaskSpec extends Specification {
   def "should evaluate expression precondition against stage context at execution time"() {
     given:
     def task = new ExpressionPreconditionTask(new ContextParameterProcessor())
-    def stage = new Stage<>(new Pipeline(), "Expression", [
+    def stage = new Stage<>(new Pipeline("orca"), "Expression", [
       param1 : param1,
       context: [
         expression: expression

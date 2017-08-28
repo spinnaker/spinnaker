@@ -34,7 +34,7 @@ import spock.lang.Subject
 class EnableAsgTaskSpec extends Specification {
 
   @Subject task = new EnableAsgTask()
-  def stage = new Stage<>(new Pipeline(), "whatever")
+  def stage = new Stage<>(new Pipeline("orca"), "whatever")
   def mapper = OrcaObjectMapper.newInstance()
   def taskId = new TaskId(UUID.randomUUID().toString())
 

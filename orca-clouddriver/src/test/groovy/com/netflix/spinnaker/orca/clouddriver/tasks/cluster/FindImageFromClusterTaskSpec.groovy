@@ -28,6 +28,7 @@ import retrofit.mime.TypedString
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
+import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
 
 class FindImageFromClusterTaskSpec extends Specification {
 
@@ -43,9 +44,9 @@ class FindImageFromClusterTaskSpec extends Specification {
   @Unroll
   def "should output deployment details based on ImageSummary"() {
     given:
-      def pipe = Pipeline.builder()
-          .withApplication("contextAppName") // Should be ignored.
-          .build()
+    def pipe = pipeline {
+      application = "contextAppName" // Should be ignored.
+    }
       def stage = new Stage<>(pipe, "findImage", [
           cloudProvider    : "cloudProvider",
           cluster          : "foo-test",
@@ -97,7 +98,7 @@ class FindImageFromClusterTaskSpec extends Specification {
 
   def "should be RUNNING if summary does not include imageId"() {
     given:
-    def stage = new Stage<>(new Pipeline(), "findImage", [
+    def stage = new Stage<>(new Pipeline("orca"), "findImage", [
       cloudProvider    : "cloudProvider",
       cluster          : "foo-test",
       account          : "test",
@@ -175,9 +176,9 @@ class FindImageFromClusterTaskSpec extends Specification {
 
   def "should resolve images via find if not all regions exist in source server group"() {
     given:
-    def pipe = Pipeline.builder()
-      .withApplication("contextAppName") // Should be ignored.
-      .build()
+    def pipe = pipeline {
+      application = "contextAppName" // Should be ignored.
+    }
     def stage = new Stage<>(pipe, "findImage", [
       resolveMissingLocations: true,
       cloudProvider    : "cloudProvider",
@@ -238,9 +239,9 @@ class FindImageFromClusterTaskSpec extends Specification {
 
   def "should resolve images via find if not all regions exist in source server group without build info"() {
     given:
-    def pipe = Pipeline.builder()
-      .withApplication("contextAppName") // Should be ignored.
-      .build()
+    def pipe = pipeline {
+      application = "contextAppName" // Should be ignored.
+    }
     def stage = new Stage<>(pipe, "findImage", [
       resolveMissingLocations: true,
       cloudProvider    : "cloudProvider",
@@ -301,9 +302,9 @@ class FindImageFromClusterTaskSpec extends Specification {
   def "should fallback to look up image from default bake account for AWS if not found in target account"() {
     given:
     task.defaultBakeAccount = 'bakery'
-    def pipe = Pipeline.builder()
-      .withApplication("contextAppName") // Should be ignored.
-      .build()
+    def pipe = pipeline {
+      application = "contextAppName" // Should be ignored.
+    }
     def stage = new Stage<>(pipe, "findImage", [
       resolveMissingLocations: true,
       cloudProvider    : "aws",
@@ -365,7 +366,7 @@ class FindImageFromClusterTaskSpec extends Specification {
 
   def "should parse fail strategy error message"() {
     given:
-      def stage = new Stage<>(new Pipeline(), "whatever", [
+    def stage = new Stage<>(new Pipeline("orca"), "whatever", [
           cloudProvider    : "cloudProvider",
           cluster          : "foo-test",
           account          : "test",

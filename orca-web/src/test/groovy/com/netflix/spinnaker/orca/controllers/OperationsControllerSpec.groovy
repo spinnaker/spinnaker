@@ -39,6 +39,7 @@ import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
 import static com.netflix.spinnaker.orca.ExecutionStatus.CANCELED
+import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 
 class OperationsControllerSpec extends Specification {
@@ -87,7 +88,7 @@ class OperationsControllerSpec extends Specification {
     where:
     contentType << [MediaType.APPLICATION_JSON, MediaType.valueOf('application/context+json')]
     endpoint = "/orchestrate"
-    pipeline = new Pipeline(id: "1")
+    pipeline = new Pipeline("1")
   }
 
   private Map slurp(String json) {
@@ -150,9 +151,9 @@ class OperationsControllerSpec extends Specification {
     where:
     requestedPipeline = [
       trigger: [
-        type             : "manual",
-        parentPipelineId : "12345",
-        parentExecution  : ['name':'abc']
+        type            : "manual",
+        parentPipelineId: "12345",
+        parentExecution : ['name': 'abc']
       ]
     ]
   }
@@ -165,12 +166,12 @@ class OperationsControllerSpec extends Specification {
       startedPipeline.id = UUID.randomUUID().toString()
       startedPipeline
     }
-    Pipeline parentPipeline = new Pipeline(
-      name: "pipeline from orca",
-      status: CANCELED,
-      id: "12345",
-      application: "covfefe"
-    )
+    Pipeline parentPipeline = pipeline {
+      name = "pipeline from orca"
+      status = CANCELED
+      id = "12345"
+      application = "covfefe"
+    }
 
     when:
     controller.orchestrate(requestedPipeline, Mock(HttpServletResponse))
@@ -190,8 +191,8 @@ class OperationsControllerSpec extends Specification {
     requestedPipeline = [
       application: "covfefe",
       trigger    : [
-        type             : "manual",
-        parentPipelineId : "12345"
+        type            : "manual",
+        parentPipelineId: "12345"
       ]
     ]
   }
@@ -436,7 +437,9 @@ class OperationsControllerSpec extends Specification {
       trigger.master == master
       trigger.job == job
       trigger.buildNumber == buildNumber
-      trigger.buildInfo.artifacts == expectedArtifacts.collect { [fileName: it] }
+      trigger.buildInfo.artifacts == expectedArtifacts.collect {
+        [fileName: it]
+      }
     }
 
     where:
@@ -488,7 +491,7 @@ class OperationsControllerSpec extends Specification {
   def "should throw validation exception when templated pipeline contains errors"() {
     given:
     def pipelineConfig = [
-      plan: true,
+      plan  : true,
       errors: [
         'things broke': 'because of the way it is'
       ]
@@ -518,7 +521,7 @@ class OperationsControllerSpec extends Specification {
   def "should call webhookService and return correct information"() {
     given:
     def preconfiguredProperties = ["url", "customHeaders", "method", "payload", "waitForCompletion", "statusUrlResolution",
-      "statusUrlJsonPath", "statusJsonPath", "progressJsonPath", "successStatuses", "canceledStatuses", "terminalStatuses"]
+                                   "statusUrlJsonPath", "statusJsonPath", "progressJsonPath", "successStatuses", "canceledStatuses", "terminalStatuses"]
 
     when:
     def preconfiguredWebhooks = controller.preconfiguredWebhooks()
@@ -534,7 +537,8 @@ class OperationsControllerSpec extends Specification {
     ]
   }
 
-  static PreconfiguredWebhookProperties.PreconfiguredWebhook createPreconfiguredWebhook(def label, def description, def type) {
+  static PreconfiguredWebhookProperties.PreconfiguredWebhook createPreconfiguredWebhook(
+    def label, def description, def type) {
     def customHeaders = new HttpHeaders()
     customHeaders.put("header", ["value1"])
     return new PreconfiguredWebhookProperties.PreconfiguredWebhook(

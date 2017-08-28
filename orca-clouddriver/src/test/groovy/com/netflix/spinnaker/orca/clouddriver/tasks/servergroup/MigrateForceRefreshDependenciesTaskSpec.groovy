@@ -27,7 +27,7 @@ class MigrateForceRefreshDependenciesTaskSpec extends Specification {
 
   @Subject
   def task = new MigrateForceRefreshDependenciesTask()
-  def stage = new Stage<>(new Pipeline(), "refreshTask")
+  def stage = new Stage<>(new Pipeline("orca"), "refreshTask")
   def taskId = new TaskId(UUID.randomUUID().toString())
 
   CloudDriverCacheService cacheService = Mock(CloudDriverCacheService)

@@ -14,21 +14,26 @@
  * limitations under the License.
  */
 
-
 package com.netflix.spinnaker.orca.applications.tasks
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
-import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.model.Task
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
+import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
+import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
 
 class VerifyApplicationHasNoDependenciesTaskSpec extends Specification {
   @Shared
   def config = [application: ["name": "application"]]
+  def pipeline = pipeline {
+    stage {
+      type = "VerifyApplication"
+      context = config
+    }
+  }
 
   @Unroll
   void "should be TERMINAL when application has clusters or security groups"() {
@@ -49,7 +54,7 @@ class VerifyApplicationHasNoDependenciesTaskSpec extends Specification {
     task.objectMapper = new ObjectMapper()
 
     and:
-    def stage = new Stage<>(new Pipeline(), "VerifyApplication", config)
+    def stage = pipeline.stages.first()
     stage.tasks = [new Task(name: "T1"), new Task(name: "T2")]
 
     when:
@@ -59,10 +64,10 @@ class VerifyApplicationHasNoDependenciesTaskSpec extends Specification {
     taskResult.status == executionStatus
 
     where:
-    clusters          | securityGroups                             || executionStatus
-    []                | []                                         || ExecutionStatus.SUCCEEDED
-    [['a cluster']]   | []                                         || ExecutionStatus.TERMINAL
-    []                | [["application": config.application.name]] || ExecutionStatus.TERMINAL
-    [['a cluster']]   | [["application": config.application.name]] || ExecutionStatus.TERMINAL
+    clusters        | securityGroups                             || executionStatus
+    []              | []                                         || ExecutionStatus.SUCCEEDED
+    [['a cluster']] | []                                         || ExecutionStatus.TERMINAL
+    []              | [["application": config.application.name]] || ExecutionStatus.TERMINAL
+    [['a cluster']] | [["application": config.application.name]] || ExecutionStatus.TERMINAL
   }
 }

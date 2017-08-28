@@ -31,6 +31,7 @@ import retrofit.mime.TypedString
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
+import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
 
 class JarDiffsTaskSpec extends Specification {
   @Subject task = Spy(JarDiffsTask)
@@ -40,7 +41,7 @@ class JarDiffsTaskSpec extends Specification {
   InstanceService instanceService = Mock(InstanceService)
 
   @Shared
-  Pipeline pipeline = new Pipeline()
+  Pipeline pipeline = new Pipeline("orca")
 
   def setup() {
     GroovyMock(OortHelper, global: true)
@@ -164,9 +165,9 @@ class JarDiffsTaskSpec extends Specification {
       "application": "app"
     ]
 
-    def pipe = Pipeline.builder()
-      .withApplication("app")
-      .build()
+    def pipe = pipeline {
+      application = "app"
+    }
     def stage = new Stage<>(pipe, 'jarDiff', config)
 
     stage.context << deployContext
@@ -202,9 +203,9 @@ class JarDiffsTaskSpec extends Specification {
       "application": "app"
     ]
 
-    def pipe = Pipeline.builder()
-      .withApplication("app")
-      .build()
+    def pipe = pipeline {
+      application = "app"
+    }
     def stage = new Stage<>(pipe, 'jarDiff', config)
 
     stage.context << deployContext

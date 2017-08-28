@@ -47,7 +47,7 @@ class WaitForAllNetflixAWSInstancesDownTaskSpec extends Specification {
 
   void "should fetch server group"() {
     given:
-    def pipeline = new Pipeline()
+    def pipeline = new Pipeline("orca")
     task.objectMapper = mapper
     def response = mapper.writeValueAsString([
       region   : "us-west-1",
@@ -82,7 +82,7 @@ class WaitForAllNetflixAWSInstancesDownTaskSpec extends Specification {
   @Unroll
   void 'should succeed as #hasSucceeded based on instance providers #healthProviderNames for instances #instances'() {
     given:
-    def stage = new Stage<>(new Pipeline(), "")
+    def stage = new Stage<>(new Pipeline("orca"), "")
 
     expect:
     hasSucceeded == task.hasSucceeded(stage, [minSize: 0], instances, healthProviderNames)

@@ -19,12 +19,14 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId
-import com.netflix.spinnaker.orca.pipeline.model.Orchestration
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
+import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.orchestration
+import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
 
 class ServerGroupMetadataTagTaskSpec extends Specification {
 
@@ -37,7 +39,7 @@ class ServerGroupMetadataTagTaskSpec extends Specification {
 
   void "should return with failed/continue status if tagging operation fails"() {
     when:
-    def stage = new Stage<>(new Pipeline(), "whatever", [:])
+    def stage = new Stage<>(new Pipeline("orca"), "whatever", [:])
     def result = task.execute(stage)
 
     then:
@@ -79,13 +81,13 @@ class ServerGroupMetadataTagTaskSpec extends Specification {
     ]
 
     when:
-    def pipeline = new Pipeline(
-      pipelineConfigId: "config-id",
-      name: "Deploy to us-east-1",
-      application: "foo",
-      id: "ex-id",
-      authentication: [ user: "chris" ]
-    )
+    def pipeline = pipeline {
+      pipelineConfigId = "config-id"
+      name = "Deploy to us-east-1"
+      application = "foo"
+      id = "ex-id"
+      authentication = new Execution.AuthenticationDetails("chris")
+    }
     def stage = new Stage<>(pipeline, "whatever", [
       "deploy.server.groups": [
         "us-east-1": ["foo-v001"],
@@ -105,7 +107,7 @@ class ServerGroupMetadataTagTaskSpec extends Specification {
     mockTaggingOperation()
 
     when:
-    def stage = new Stage<>(new Pipeline(), "whatever", [
+    def stage = new Stage<>(new Pipeline("orca"), "whatever", [
       "deploy.server.groups": [
         "us-east-1": ["foo-v001"],
       ]
@@ -122,7 +124,9 @@ class ServerGroupMetadataTagTaskSpec extends Specification {
     mockTaggingOperation()
 
     when:
-    def orchestration = new Orchestration(description: "some description")
+    def orchestration = orchestration {
+      description = "some description"
+    }
     def stage = new Stage<>(orchestration, "zzz", [
       "deploy.server.groups": [
         "us-east-1": ["foo-v001"],
@@ -140,7 +144,7 @@ class ServerGroupMetadataTagTaskSpec extends Specification {
     mockTaggingOperation()
 
     when:
-    def stage = new Stage<>(new Pipeline(), "whatever", [
+    def stage = new Stage<>(new Pipeline("orca"), "whatever", [
       "deploy.server.groups": [
         "us-east-1": ["foo-v001"],
       ],

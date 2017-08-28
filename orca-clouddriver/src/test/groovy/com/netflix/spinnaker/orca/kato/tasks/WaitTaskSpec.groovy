@@ -30,7 +30,7 @@ class WaitTaskSpec extends Specification {
   void "should wait for a configured period"() {
     setup:
       def wait = 5
-      def pipeline = new Pipeline()
+    def pipeline = new Pipeline("orca")
       def stage = new Stage<>(pipeline, "wait", [waitTime: wait])
 
     when:
@@ -53,7 +53,7 @@ class WaitTaskSpec extends Specification {
 
   void "should skip waiting when marked in context"() {
     setup:
-    def pipeline = new Pipeline()
+    def pipeline = new Pipeline("orca")
     def stage = new Stage<>(pipeline, "wait", [waitTime: 1000000])
 
     when:

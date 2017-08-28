@@ -52,7 +52,7 @@ class MonitorPropertiesTaskSpec extends Specification {
 
   def "monitor newly created persisted property still running"() {
     given:
-    def pipeline = new Pipeline(application: 'foo')
+    def pipeline = new Pipeline('foo')
     List propertyIds = [[propertyId: propId]]
     List persistedProperty = [[key: 'foo', value:'bar']]
     Map context = [propertyIdList: propertyIds, persistedProperties: persistedProperty, scope: scope]

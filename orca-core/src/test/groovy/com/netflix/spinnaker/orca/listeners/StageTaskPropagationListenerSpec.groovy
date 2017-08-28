@@ -33,7 +33,7 @@ class StageTaskPropagationListenerSpec extends Specification {
     given:
     def listener = new StageTaskPropagationListener()
     def task = new Task(startTime: startTime)
-    def stage = new Stage<>(new Pipeline(), "test")
+    def stage = new Stage<>(new Pipeline("orca"), "test")
     stage.tasks = [task]
 
     when:
@@ -57,7 +57,7 @@ class StageTaskPropagationListenerSpec extends Specification {
     given:
     def listener = new StageTaskPropagationListener()
     def task = new Task()
-    def stage = new Stage<>(new Pipeline(), "test")
+    def stage = new Stage<>(new Pipeline("orca"), "test")
     stage.tasks = [task]
 
     when:

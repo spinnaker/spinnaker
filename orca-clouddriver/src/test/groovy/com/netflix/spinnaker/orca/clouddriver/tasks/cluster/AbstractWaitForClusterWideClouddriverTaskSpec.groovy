@@ -124,6 +124,6 @@ class AbstractWaitForClusterWideClouddriverTaskSpec extends Specification {
       cloudProvider: cloudProvider,
       regions: [region]
     ]
-    new Stage<>(new Pipeline(), 'shrinkCluster', base + context)
+    new Stage<>(new Pipeline("orca"), 'shrinkCluster', base + context)
   }
 }

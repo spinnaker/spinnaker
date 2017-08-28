@@ -35,7 +35,7 @@ class AbstractAwsScalingProcessTaskSpec extends Specification {
   @Unroll
   def "should only resume/suspend scaling processes that are not already in the target state"() {
     given:
-      def stage = new Stage<>(new Pipeline(), null, context)
+    def stage = new Stage<>(new Pipeline("orca"), null, context)
       def targetServerGroupResolver = Mock(TargetServerGroupResolver) {
         1 * resolve(_) >> {
           return targetServerGroups
@@ -94,7 +94,7 @@ class AbstractAwsScalingProcessTaskSpec extends Specification {
       def resolver = GroovySpy(TargetServerGroupResolver, global: true)
       GroovySpy(TargetServerGroup, global: true, constructorArgs: [tsg])
 
-      def stage = new Stage<>(new Pipeline(), null, sD("targetAsg", ["Launch"]))
+    def stage = new Stage<>(new Pipeline("orca"), null, sD("targetAsg", ["Launch"]))
       def task = new ResumeAwsScalingProcessTask(resolver: resolver, katoService: katoService)
 
     when:
@@ -114,7 +114,7 @@ class AbstractAwsScalingProcessTaskSpec extends Specification {
 
       def ctx = sD("targetAsg", ["Launch"])
       ctx.cloudProvider = "abc"
-      def stage = new Stage<>(new Pipeline(), null, ctx)
+    def stage = new Stage<>(new Pipeline("orca"), null, ctx)
       def task = new ResumeAwsScalingProcessTask(resolver: resolver, katoService: katoService)
 
     when:

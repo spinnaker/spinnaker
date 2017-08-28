@@ -33,7 +33,7 @@ class CleanupCanaryTaskSpec extends Specification {
 
   def "should only attempt to cleanup canary clusters if TERMINATE is enabled"() {
     given:
-    def stage = new Stage<>(new Pipeline(), "Canary", "Canary", [
+    def stage = new Stage<>(new Pipeline("orca"), "Canary", "Canary", [
       canary: [
         health      : UNHEALTHY,
         canaryConfig: [

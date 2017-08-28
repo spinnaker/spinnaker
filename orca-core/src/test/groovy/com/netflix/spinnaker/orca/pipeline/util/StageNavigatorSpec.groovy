@@ -37,7 +37,7 @@ class StageNavigatorSpec extends Specification {
   @Subject
   def stageNavigator = new StageNavigator(stageBuilders)
 
-  def execution = new Pipeline()
+  def execution = new Pipeline("orca")
 
   def "traverses up the synthetic stage hierarchy"() {
     given:

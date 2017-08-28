@@ -23,6 +23,8 @@ import java.util.List;
 import java.util.Map;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.netflix.spectator.api.Registry;
 
 public class Pipeline extends Execution<Pipeline> {
@@ -31,7 +33,10 @@ public class Pipeline extends Execution<Pipeline> {
     super(application);
   }
 
-  public Pipeline(String id, String application) {
+  @JsonCreator
+  public Pipeline(
+    @JsonProperty("id") String id,
+    @JsonProperty("application") String application) {
     super(id, application);
   }
 

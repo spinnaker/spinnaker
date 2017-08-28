@@ -37,7 +37,7 @@ class AbstractClusterWideClouddriverTaskSpec extends Specification {
 
   def "should extract server groups from parent stages"() {
     given:
-    def pipeline = new Pipeline()
+    def pipeline = new Pipeline("orca")
     pipeline.stages << new Stage<>(pipeline, "test")
     pipeline.stages << new Stage<>(pipeline, CreateServerGroupStage.PIPELINE_CONFIG_TYPE, [
       "deploy.account.name" : account,
@@ -96,7 +96,7 @@ class AbstractClusterWideClouddriverTaskSpec extends Specification {
 
   def "should succeed immediately if cluster not found and continueIfClusterNotFound flag set in context"() {
     given:
-    def pipeline = new Pipeline()
+    def pipeline = new Pipeline("orca")
     def stage = new Stage<>(pipeline, DisableServerGroupStage.PIPELINE_CONFIG_TYPE, [
         continueIfClusterNotFound: true
     ])
@@ -120,7 +120,7 @@ class AbstractClusterWideClouddriverTaskSpec extends Specification {
 
   def "should succeed immediately if cluster is empty and continueIfClusterNotFound flag set in context"() {
     given:
-    def pipeline = new Pipeline()
+    def pipeline = new Pipeline("orca")
     def stage = new Stage<>(pipeline, DisableServerGroupStage.PIPELINE_CONFIG_TYPE, [
         continueIfClusterNotFound: true
     ])

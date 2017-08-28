@@ -31,7 +31,7 @@ class DestroyServerGroupTaskSpec extends Specification {
   def trafficGuard = Stub(TrafficGuard)
   @Subject
     task = new DestroyServerGroupTask(trafficGuard: trafficGuard)
-  def stage = new Stage<>(new Pipeline(), "whatever")
+  def stage = new Stage<>(new Pipeline("orca"), "whatever")
   def taskId = new TaskId(UUID.randomUUID().toString())
 
   def destroyASGConfig = [
@@ -104,7 +104,7 @@ class DestroyServerGroupTaskSpec extends Specification {
 
   def "task uses serverGroupName if present"() {
     given:
-      def stage = new Stage<>(new Pipeline(), "whatever2")
+    def stage = new Stage<>(new Pipeline("orca"), "whatever2")
       stage.context = [
         cloudProvider  : "aws",
         serverGroupName: "test-server-group",

@@ -29,7 +29,7 @@ class OpenstackServerGroupCreatorSpec extends Specification {
       region           : "north-pole",
       deploymentDetails: [[imageId: "testImageId", region: "north-pole"]]
     ]
-    def stage = new Stage<>(new Pipeline(), "whatever", ctx)
+    def stage = new Stage<>(new Pipeline("orca"), "whatever", ctx)
 
     when:
     def ops = new OpenstackServerGroupCreator().getOperations(stage)
@@ -50,7 +50,7 @@ class OpenstackServerGroupCreatorSpec extends Specification {
 
     when: "fallback to non-region matching image"
     ctx.region = "south-pole"
-    stage = new Stage<>(new Pipeline(), "whatever", ctx)
+    stage = new Stage<>(new Pipeline("orca"), "whatever", ctx)
     ops = new OpenstackServerGroupCreator().getOperations(stage)
 
     then:
@@ -69,7 +69,7 @@ class OpenstackServerGroupCreatorSpec extends Specification {
 
     when: "throw error if no image found"
     ctx.deploymentDetails = []
-    stage = new Stage<>(new Pipeline(), "whatever", ctx)
+    stage = new Stage<>(new Pipeline("orca"), "whatever", ctx)
     new OpenstackServerGroupCreator().getOperations(stage)
 
     then:
@@ -86,7 +86,7 @@ class OpenstackServerGroupCreatorSpec extends Specification {
       deploymentDetails: [[cloudProviderType: "openstack",
                            imageId: imageId]]
     ]
-    def stage = new Stage<>(new Pipeline(), "whatever", ctx)
+    def stage = new Stage<>(new Pipeline("orca"), "whatever", ctx)
 
     when:
     def ops = new OpenstackServerGroupCreator().getOperations(stage)

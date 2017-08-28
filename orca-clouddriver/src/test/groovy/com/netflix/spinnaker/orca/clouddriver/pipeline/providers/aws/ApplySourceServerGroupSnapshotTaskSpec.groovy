@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-
 package com.netflix.spinnaker.orca.clouddriver.pipeline.providers.aws
 
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -27,6 +26,8 @@ import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
+import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
+import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
 
 class ApplySourceServerGroupSnapshotTaskSpec extends Specification {
   def oortHelper = Mock(OortHelper)
@@ -41,35 +42,41 @@ class ApplySourceServerGroupSnapshotTaskSpec extends Specification {
 
   void "should support ancestor deploy stages w/ a custom strategy"() {
     given:
-    def parentPipeline = new Pipeline()
-    parentPipeline.stages << new Stage<>(parentPipeline, "", [
-      strategy                         : "custom",
-      sourceServerGroupCapacitySnapshot: [
-        min    : 0,
-        desired: 5,
-        max    : 10
-      ]
-    ])
-    parentPipeline.stages << new Stage<>(parentPipeline, "", [
-      executionId: "execution-id"
-    ])
-    parentPipeline.stages[0].id = "stage-1"
-    parentPipeline.stages[1].parentStageId = "stage-1"
-    parentPipeline.stages[1].type = "pipeline"
+    def parentPipeline = pipeline {
+      stage {
+        id = "stage-1"
+        context = [
+          strategy                         : "custom",
+          sourceServerGroupCapacitySnapshot: [
+            min    : 0,
+            desired: 5,
+            max    : 10
+          ]
+        ]
+      }
+      stage {
+        type = "pipeline"
+        parentStageId = "stage-1"
+        context = [executionId: "execution-id"]
+      }
+    }
 
-    def childPipeline = new Pipeline()
-    childPipeline.stages << new Stage<>(childPipeline, "", [
-      type: "doSomething"
-    ])
-    childPipeline.stages << new Stage<>(childPipeline, "", [
-      type: "createServerGroup"
-    ])
-    childPipeline.stages << new Stage<>(childPipeline, "", [
-      type                  : "createServerGroup",
-      "deploy.server.groups": [
-        "us-west-1": ["asg-v001"]
-      ]
-    ])
+    def childPipeline = pipeline {
+      stage {
+        context = [type: "doSomething"]
+      }
+      stage {
+        context = [type: "createServerGroup"]
+      }
+      stage {
+        context = [
+          type                  : "createServerGroup",
+          "deploy.server.groups": [
+            "us-west-1": ["asg-v001"]
+          ]
+        ]
+      }
+    }
 
     when:
     def ancestorDeployStage = ApplySourceServerGroupCapacityTask.getAncestorDeployStage(
@@ -86,7 +93,7 @@ class ApplySourceServerGroupSnapshotTaskSpec extends Specification {
   @Unroll
   void "should support ancestor deploy stages w/ a #strategy strategy"() {
     given:
-    def stage = new Stage<>(new Pipeline(), "", [
+    def stage = new Stage<>(new Pipeline("orca"), "", [
       strategy                         : strategy,
       sourceServerGroupCapacitySnapshot: [
         min    : 0,
@@ -172,39 +179,38 @@ class ApplySourceServerGroupSnapshotTaskSpec extends Specification {
 
   void "should get TargetServerGroupContext with explicitly provided coordinates"() {
     given:
-    def pipeline = new Pipeline()
-    def stage = new Stage(pipeline, "", [
-      target: [
-        region         : "us-west-2",
-        serverGroupName: "asg-v001",
-        account        : "test",
-        cloudProvider  : "aws"
-      ]
-    ])
-
-    def siblingStage = new Stage(pipeline, "", [
-      sourceServerGroupCapacitySnapshot: [
-        min    : 10,
-        max    : 20,
-        desired: 15
-      ]
-    ])
-
-    def parentStage = new Stage(pipeline, "", [:])
-
-    stage.parentStageId = "parentStageId"
-
-    siblingStage.parentStageId = stage.parentStageId
-    siblingStage.syntheticStageOwner = SyntheticStageOwner.STAGE_AFTER
-
-    parentStage.id = stage.parentStageId
-
-    pipeline.stages << stage
-    pipeline.stages << siblingStage
-    pipeline.stages << parentStage
+    Stage currentStage
+    Stage siblingStage
+    def pipeline = pipeline {
+      stage {
+        id = "parentStageId"
+      }
+      currentStage = stage {
+        parentStageId = "parentStageId"
+        context = [
+          target: [
+            region         : "us-west-2",
+            serverGroupName: "asg-v001",
+            account        : "test",
+            cloudProvider  : "aws"
+          ]
+        ]
+      }
+      siblingStage = stage {
+        parentStageId = "parentStageId"
+        syntheticStageOwner = SyntheticStageOwner.STAGE_AFTER
+        context = [
+          sourceServerGroupCapacitySnapshot: [
+            min    : 10,
+            max    : 20,
+            desired: 15
+          ]
+        ]
+      }
+    }
 
     when:
-    def targetServerGroupContext = task.getTargetServerGroupContext(stage)
+    def targetServerGroupContext = task.getTargetServerGroupContext(currentStage)
 
     then:
     targetServerGroupContext.sourceServerGroupCapacitySnapshot == siblingStage.context.sourceServerGroupCapacitySnapshot
@@ -219,7 +225,7 @@ class ApplySourceServerGroupSnapshotTaskSpec extends Specification {
 
   void "should get TargetServerGroupContext from coordinates from upstream deploy stage"() {
     given:
-    def pipeline = new Pipeline()
+    def pipeline = new Pipeline("orca")
     def deployStage = new Stage(pipeline, "", [
       refId                            : "1",
       "deploy.server.groups"           : ["us-west-2a": ["asg-v001"]],

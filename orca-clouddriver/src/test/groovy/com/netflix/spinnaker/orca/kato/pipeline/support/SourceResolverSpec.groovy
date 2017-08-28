@@ -66,7 +66,7 @@ class SourceResolverSpec extends Specification {
 
     and:
     def context = exampleContexts[exampleContextName]
-    def stage = new Stage<>(new Pipeline(), "test", context + [
+    def stage = new Stage<>(new Pipeline("orca"), "test", context + [
       application: "app", stack: "test", account: "test", availabilityZones: ["us-west-1": []]
     ])
 
@@ -102,7 +102,7 @@ class SourceResolverSpec extends Specification {
 
     when:
     def stage = new Stage<>(
-      new Pipeline(),
+      new Pipeline("orca"),
       "test",
       [
         application: "app",
@@ -140,7 +140,7 @@ class SourceResolverSpec extends Specification {
 
     when:
     def stage = new Stage<>(
-      new Pipeline(),
+      new Pipeline("orca"),
       "test",
       [
         application: "app",

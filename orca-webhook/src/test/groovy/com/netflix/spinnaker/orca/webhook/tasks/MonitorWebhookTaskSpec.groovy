@@ -29,7 +29,7 @@ import spock.lang.Unroll
 
 class MonitorWebhookTaskSpec extends Specification {
 
-  def pipeline = new Pipeline()
+  def pipeline = new Pipeline("orca")
 
   @Subject
   MonitorWebhookTask monitorWebhookTask = new MonitorWebhookTask()

@@ -35,7 +35,7 @@ class AbstractScalingProcessTaskSpec extends Specification {
   @Unroll
   def "should only resume/suspend scaling processes that are not already in the target state"() {
     given:
-    def stage = new Stage<>(new Pipeline(), null, context)
+    def stage = new Stage<>(new Pipeline("orca"), null, context)
     def targetReferenceSupport = Mock(TargetReferenceSupport) {
       1 * getTargetAsgReferences(stage) >> {
         return targetReferences
@@ -91,7 +91,7 @@ class AbstractScalingProcessTaskSpec extends Specification {
     given:
     TargetReferenceSupport targetReferenceSupport = Mock()
 
-    def stage = new Stage<>(new Pipeline(), null, sD("targetAsg", ["Launch"]))
+    def stage = new Stage<>(new Pipeline("orca"), null, sD("targetAsg", ["Launch"]))
     def task = new ResumeScalingProcessTask(targetReferenceSupport: targetReferenceSupport, katoService: katoService)
 
     when:
@@ -107,7 +107,7 @@ class AbstractScalingProcessTaskSpec extends Specification {
     TargetReferenceSupport targetReferenceSupport = Mock()
     KatoService katoService = Mock(KatoService)
 
-    def stage = new Stage<>(new Pipeline(), null, sD("targetAsg", ["Launch"]))
+    def stage = new Stage<>(new Pipeline("orca"), null, sD("targetAsg", ["Launch"]))
     def task = new ResumeScalingProcessTask(targetReferenceSupport: targetReferenceSupport, katoService: katoService)
 
     when:

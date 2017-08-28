@@ -45,7 +45,7 @@ class HighlanderStrategySpec extends Specification {
         ctx.interestingHealthProviderNames = interestingHealthProviderNames
       }
 
-      def stage = new Stage<>(new Pipeline(), "whatever", ctx)
+    def stage = new Stage<>(new Pipeline("orca"), "whatever", ctx)
       def strat = new HighlanderStrategy(shrinkClusterStage: shrinkClusterStage)
 
     when:

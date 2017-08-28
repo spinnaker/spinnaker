@@ -34,7 +34,7 @@ class TargetReferenceSupportSpec extends Specification {
   OortService oort
   TargetReferenceSupport subject
 
-  def pipeline = new Pipeline()
+  def pipeline = new Pipeline("orca")
 
   def cluster = [serverGroups: [
                                 [
@@ -246,7 +246,7 @@ class TargetReferenceSupportSpec extends Specification {
     def determineTargetStage = new Stage<>(pipeline, DetermineTargetReferenceStage.PIPELINE_CONFIG_TYPE, upstreamTargets)
     determineTargetStage.parentStageId = rootStage.id
 
-    pipeline.stages = [rootStage, stage, determineTargetStage]
+    pipeline.stages << rootStage << stage << determineTargetStage
 
     when:
     def targets = subject.getTargetAsgReferences(stage)

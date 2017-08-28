@@ -16,13 +16,13 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.securitygroup
 
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverCacheService
-import com.netflix.spinnaker.orca.pipeline.model.Stage
 import spock.lang.Specification
 import spock.lang.Subject
+import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
 
 class DeleteSecurityGroupForceRefreshTaskSpec extends Specification {
   @Subject task = new DeleteSecurityGroupForceRefreshTask()
-  def stage = new Stage<>(type: "whatever")
+  def stage = stage()
 
   def config = [
     cloudProvider     : 'gce',

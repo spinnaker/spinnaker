@@ -19,13 +19,13 @@ package com.netflix.spinnaker.orca.front50
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.pipeline.PipelineLauncher
 import com.netflix.spinnaker.orca.pipeline.model.Execution
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import org.slf4j.MDC
 import org.springframework.context.support.StaticApplicationContext
 import spock.lang.Specification
 import spock.lang.Subject
+import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
 
 class DependentPipelineStarterSpec extends Specification {
 
@@ -37,19 +37,20 @@ class DependentPipelineStarterSpec extends Specification {
   def "should propagate credentials from explicit pipeline invocation ('run pipeline' stage)"() {
     setup:
     def triggeredPipelineConfig = [name: "triggered", id: "triggered"]
-    def parentPipeline = new Pipeline(
-      name: "parent",
-      authentication: new Execution.AuthenticationDetails(
-        user: "parentUser",
-        allowedAccounts: ["acct1,acct2"]
-      )
-    )
+    def parentPipeline = pipeline {
+      name = "parent"
+      authentication = new Execution.AuthenticationDetails("parentUser", "acct1", "acct2")
+    }
     def gotMDC = [:]
     def executionLauncher = Stub(PipelineLauncher) {
       start(*_) >> {
         gotMDC.putAll(MDC.copyOfContextMap)
         def p = mapper.readValue(it[0], Map)
-        return Pipeline.builder().withName(p.name).withId(p.name).withTrigger(p.trigger).build()
+        return pipeline {
+          name = p.name
+          id = p.name
+          trigger.putAll(p.trigger)
+        }
       }
     }
     def applicationContext = new StaticApplicationContext()
@@ -83,19 +84,20 @@ class DependentPipelineStarterSpec extends Specification {
   def "should propagate credentials from implicit pipeline invocation (listener for pipeline completion)"() {
     setup:
     def triggeredPipelineConfig = [name: "triggered", id: "triggered"]
-    def parentPipeline = new Pipeline(
-      name: "parent",
-      authentication: new Execution.AuthenticationDetails(
-        user: "parentUser",
-        allowedAccounts: ["acct1,acct2"]
-      )
-    )
+    def parentPipeline = pipeline {
+      name = "parent"
+      authentication = new Execution.AuthenticationDetails("parentUser", "acct1", "acct2")
+    }
     def gotMDC = [:]
     def executionLauncher = Stub(PipelineLauncher) {
       start(*_) >> {
         gotMDC.putAll(MDC.copyOfContextMap)
         def p = mapper.readValue(it[0], Map)
-        return Pipeline.builder().withName(p.name).withId(p.name).withTrigger(p.trigger).build()
+        return pipeline {
+          name = p.name
+          id = p.name
+          trigger.putAll(p.trigger)
+        }
       }
     }
     def applicationContext = new StaticApplicationContext()

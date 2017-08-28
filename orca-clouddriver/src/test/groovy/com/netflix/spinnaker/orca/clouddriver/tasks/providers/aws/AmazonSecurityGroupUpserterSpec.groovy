@@ -41,7 +41,7 @@ class AmazonSecurityGroupUpserterSpec extends Specification {
 
   def "should throw exception on missing region"() {
     given:
-    def stage = new Stage<>(new Pipeline(), "upsertSecurityGroup", [:])
+    def stage = new Stage<>(new Pipeline("orca"), "upsertSecurityGroup", [:])
 
     when:
       upserter.getOperationContext(stage)
@@ -53,7 +53,7 @@ class AmazonSecurityGroupUpserterSpec extends Specification {
   @Unroll
   def "should return ops and extra outputs"() {
     given:
-    def stage = new Stage<>(new Pipeline(), "upsertSecurityGroup", context)
+    def stage = new Stage<>(new Pipeline("orca"), "upsertSecurityGroup", context)
       upserter.mortService = Mock(MortService) {
         1 * getVPCs() >> allVPCs
       }
@@ -98,7 +98,7 @@ class AmazonSecurityGroupUpserterSpec extends Specification {
           currentSecurityGroupProvider.call()
         }
       }
-      def stage = new Stage<>(new Pipeline(), "whatever", [
+    def stage = new Stage<>(new Pipeline("orca"), "whatever", [
           targets : [bT(account, region, null, groupName)],
           securityGroupIngress: filterForSecurityGroupIngress(upserter.mortService, expectedSecurityGroup)
       ])

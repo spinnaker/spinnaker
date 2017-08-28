@@ -61,7 +61,7 @@ class ResizeSupportSpec extends Specification {
     setup:
     context[method] = value
     context.action = direction
-    def stage = new Stage<>(new Pipeline(), "resizeAsg", context)
+    def stage = new Stage<>(new Pipeline("orca"), "resizeAsg", context)
 
     when:
     def descriptors = resizeSupport.createResizeStageDescriptors(stage, targetRefs)
@@ -88,7 +88,7 @@ class ResizeSupportSpec extends Specification {
 
     setup:
       context.capacity = specifiedCap
-      def stage = new Stage<>(new Pipeline(), "resizeAsg", context)
+    def stage = new Stage<>(new Pipeline("orca"), "resizeAsg", context)
       targetRefs[0].asg.asg = current
 
     when:

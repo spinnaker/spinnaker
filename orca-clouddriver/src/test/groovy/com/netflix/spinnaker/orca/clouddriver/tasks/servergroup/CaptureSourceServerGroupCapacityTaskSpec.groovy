@@ -36,7 +36,7 @@ class CaptureSourceServerGroupCapacityTaskSpec extends Specification {
   @Unroll
   void "should no-op if useSourceCapacity is false"() {
     given:
-    def stage = new Stage<>(new Pipeline(), "", stageContext)
+    def stage = new Stage<>(new Pipeline("orca"), "", stageContext)
 
     when:
     def result = task.execute(stage)
@@ -65,7 +65,7 @@ class CaptureSourceServerGroupCapacityTaskSpec extends Specification {
 
   void "should capture source server group capacity and update target capacity"() {
     given:
-    def stage = new Stage<>(new Pipeline(), "", [
+    def stage = new Stage<>(new Pipeline("orca"), "", [
       useSourceCapacity: true,
       capacity         : [
         min    : 0,

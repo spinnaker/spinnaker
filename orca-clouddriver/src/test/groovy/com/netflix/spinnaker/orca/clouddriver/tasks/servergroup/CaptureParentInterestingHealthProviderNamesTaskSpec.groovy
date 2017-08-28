@@ -17,11 +17,12 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup
 
 import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
+import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
+import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
 
 class CaptureParentInterestingHealthProviderNamesTaskSpec extends Specification {
   @Subject
@@ -30,26 +31,30 @@ class CaptureParentInterestingHealthProviderNamesTaskSpec extends Specification 
   @Unroll
   def "should verify interesting health provider names from parent stage"() {
     given:
-    def stage = new Stage<>(new Pipeline(), "", [:])
-    def parentStage = new Stage(new Pipeline(), "", context as Map)
-
-    and:
-    stage.execution = new Pipeline(stages: [ parentStage ])
-    stage.parentStageId = parentStage.id
-
+    Stage currentStage
+    Stage parentStage
+    pipeline {
+      parentStage = stage {
+        id = "parent"
+        context = parentContext
+      }
+      currentStage = stage {
+        parentStageId = "parent"
+      }
+    }
 
     when:
-    def taskResult = task.execute(stage)
+    def taskResult = task.execute(currentStage)
 
     then:
     taskResult.status == ExecutionStatus.SUCCEEDED
-    (taskResult.getContext() as Map) == expectedStageOutputs
+    taskResult.context == expectedStageOutputs
 
     where:
-    context                                       || expectedStageOutputs
-    [:]                                           || [:]
-    [interestingHealthProviderNames: ["Titus"]]   || [interestingHealthProviderNames: ["Titus"]]
-    [interestingHealthProviderNames: []]          || [interestingHealthProviderNames: []]
+    parentContext                               || expectedStageOutputs
+    [:]                                         || [:]
+    [interestingHealthProviderNames: ["Titus"]] || [interestingHealthProviderNames: ["Titus"]]
+    [interestingHealthProviderNames: []]        || [interestingHealthProviderNames: []]
   }
 
 }

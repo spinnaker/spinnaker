@@ -20,10 +20,11 @@ import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.front50.DependentPipelineStarter
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.front50.pipeline.PipelineStage
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Task
 import spock.lang.Specification
 import spock.lang.Subject
+import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
+import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
 
 class DependentPipelineExecutionListenerSpec extends Specification {
 
@@ -43,9 +44,13 @@ class DependentPipelineExecutionListenerSpec extends Specification {
     ]
   ]
 
-  def pipeline = new Pipeline().builder().withStage(
-    PipelineStage.PIPELINE_CONFIG_TYPE, "pipeline", [:]
-  ).build()
+  def pipeline = pipeline {
+    application = "orca"
+    stage {
+      type = PipelineStage.PIPELINE_CONFIG_TYPE
+      name = "pipeline"
+    }
+  }
 
   @Subject
   DependentPipelineExecutionListener listener = new DependentPipelineExecutionListener(

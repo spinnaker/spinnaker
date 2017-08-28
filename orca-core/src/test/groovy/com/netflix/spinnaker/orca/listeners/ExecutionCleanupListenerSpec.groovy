@@ -34,7 +34,7 @@ class ExecutionCleanupListenerSpec extends Specification {
   @Unroll
   def "should only cleanup successfully completed pipelines"() {
     given:
-    def pipeline = new Pipeline()
+    def pipeline = new Pipeline("orca")
     pipeline.status = executionStatus
     pipeline.stages << new Stage<>(pipeline, "", [
       targetReferences: "my-target-reference"

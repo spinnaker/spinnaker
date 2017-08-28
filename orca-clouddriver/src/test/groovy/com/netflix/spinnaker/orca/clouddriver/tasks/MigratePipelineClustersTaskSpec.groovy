@@ -22,6 +22,7 @@ import com.netflix.spinnaker.orca.clouddriver.model.TaskId
 import com.netflix.spinnaker.orca.clouddriver.tasks.pipeline.MigratePipelineClustersTask
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.kato.pipeline.ParallelDeployClusterExtractor
+import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import spock.lang.Specification
 import spock.lang.Subject
@@ -67,7 +68,7 @@ class MigratePipelineClustersTaskSpec extends Specification {
       application     : 'theapp',
       regionMapping   : ['us-east-1': 'us-west-1']
     ]
-    def stage = new Stage<>(null, "mpc", "m", context)
+    def stage = new Stage<>(new Pipeline("orca"), "mpc", "m", context)
 
     when:
     def result = task.execute(stage)

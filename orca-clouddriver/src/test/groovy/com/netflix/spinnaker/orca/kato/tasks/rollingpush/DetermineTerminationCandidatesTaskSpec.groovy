@@ -46,7 +46,7 @@ class DetermineTerminationCandidatesTaskSpec extends Specification {
       context.termination = termination
     }
 
-    def stage = new Stage<>(new Orchestration(), 'test', context)
+    def stage = new Stage<>(new Orchestration("orca"), 'test', context)
 
     def oortResponse = oortResponse([
       instances: knownInstanceIds.inject([]) { List l, id -> l << [instanceId: id, launchTime: l.size()] }

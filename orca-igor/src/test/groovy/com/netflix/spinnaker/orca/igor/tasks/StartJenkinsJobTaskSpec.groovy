@@ -38,7 +38,7 @@ class StartJenkinsJobTaskSpec extends Specification {
   }
 
   @Shared
-  Pipeline pipeline = new Pipeline()
+  Pipeline pipeline = new Pipeline("orca")
 
     def "should trigger build without parameters"() {
         given:

@@ -23,10 +23,10 @@ class EchoNotifyingStageListenerSpec extends Specification {
   def echoListener = new EchoNotifyingStageListener(echoService, repository)
 
   @Shared
-  def pipelineStage = new Stage<>(new Pipeline(), "test", "test", [:])
+  def pipelineStage = new Stage<>(new Pipeline("orca"), "test", "test", [:])
 
   @Shared
-  def orchestrationStage = new Stage<>(new Orchestration(), "test")
+  def orchestrationStage = new Stage<>(new Orchestration("orca"), "test")
 
   def "triggers an event when a task step starts"() {
     given:

@@ -17,4 +17,5 @@
 dependencies {
   compile project(':orca-retrofit')
   compile project(':orca-clouddriver')
+  testCompile project(":orca-test")
 }

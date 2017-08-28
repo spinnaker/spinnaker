@@ -59,7 +59,7 @@ class WaitForDestroyedAsgTaskSpec extends Specification {
     task.objectMapper = objectMapper
 
     and:
-    def stage = new Stage<>(new Pipeline(), "", [
+    def stage = new Stage<>(new Pipeline("orca"), "", [
       "regions": [region],
       "asgName": asgName,
     ])
@@ -100,7 +100,7 @@ class WaitForDestroyedAsgTaskSpec extends Specification {
     task.objectMapper = objectMapper
 
     and:
-    def stage = new Stage<>(new Pipeline(), "", [
+    def stage = new Stage<>(new Pipeline("orca"), "", [
         "regions": ["us-east-1"],
         "asgName": "app-test-v000",
         "remainingInstances": ["i-123"]
@@ -127,7 +127,7 @@ class WaitForDestroyedAsgTaskSpec extends Specification {
     task.objectMapper = objectMapper
 
     and:
-    def stage = new Stage<>(new Pipeline(), "", [
+    def stage = new Stage<>(new Pipeline("orca"), "", [
         "regions": ["us-east-1"],
         "asgName": "app-test-v000",
         "remainingInstances": ['i-123', 'i-234', 'i-345']

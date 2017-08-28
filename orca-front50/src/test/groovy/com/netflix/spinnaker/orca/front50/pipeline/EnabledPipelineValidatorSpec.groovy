@@ -18,133 +18,128 @@ package com.netflix.spinnaker.orca.front50.pipeline
 
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.pipeline.PipelineValidator.PipelineValidationFailed
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import spock.lang.Specification
 import spock.lang.Subject
+import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
 
 class EnabledPipelineValidatorSpec extends Specification {
 
   def front50Service = Stub(Front50Service)
-  @Subject def validator = new EnabledPipelineValidator(new Optional<>(front50Service))
-  
+  @Subject
+  def validator = new EnabledPipelineValidator(new Optional<>(front50Service))
+
   def "allows one-off pipeline to run"() {
     given:
-    front50Service.getPipelines(pipeline.application) >> []
+    front50Service.getPipelines(execution.application) >> []
 
     when:
-    validator.checkRunnable(pipeline)
+    validator.checkRunnable(execution)
 
     then:
     notThrown(PipelineValidationFailed)
 
     where:
-    pipeline = Pipeline
-      .builder()
-      .withApplication("whatever")
-      .withPipelineConfigId("1337")
-      .build()
+    execution = pipeline {
+      application = "whatever"
+      pipelineConfigId = "1337"
+    }
   }
 
   def "allows enabled pipeline to run"() {
     given:
-    front50Service.getPipelines(pipeline.application) >> [
-      [id: pipeline.pipelineConfigId, application: pipeline.application, name: "whatever", disabled: false]
+    front50Service.getPipelines(execution.application) >> [
+      [id: execution.pipelineConfigId, application: execution.application, name: "whatever", disabled: false]
     ]
 
     when:
-    validator.checkRunnable(pipeline)
+    validator.checkRunnable(execution)
 
     then:
     notThrown(PipelineValidationFailed)
 
     where:
-    pipeline = Pipeline
-      .builder()
-      .withApplication("whatever")
-      .withPipelineConfigId("1337")
-      .build()
+    execution = pipeline {
+      application = "whatever"
+      pipelineConfigId = "1337"
+    }
   }
 
   def "prevents disabled pipeline from running"() {
     given:
-    front50Service.getPipelines(pipeline.application) >> [
-      [id: pipeline.pipelineConfigId, application: pipeline.application, name: "whatever", disabled: true]
+    front50Service.getPipelines(execution.application) >> [
+      [id: execution.pipelineConfigId, application: execution.application, name: "whatever", disabled: true]
     ]
 
     when:
-    validator.checkRunnable(pipeline)
+    validator.checkRunnable(execution)
 
     then:
     thrown(EnabledPipelineValidator.PipelineIsDisabled)
 
     where:
-    pipeline = Pipeline
-      .builder()
-      .withApplication("whatever")
-      .withPipelineConfigId("1337")
-      .build()
+    execution = pipeline {
+      application = "whatever"
+      pipelineConfigId = "1337"
+    }
   }
 
   def "allows enabled strategy to run"() {
     given:
-    front50Service.getStrategies(pipeline.application) >> [
-      [id: pipeline.pipelineConfigId, application: pipeline.application, name: "whatever", disabled: false]
+    front50Service.getStrategies(execution.application) >> [
+      [id: execution.pipelineConfigId, application: execution.application, name: "whatever", disabled: false]
     ]
 
     when:
-    validator.checkRunnable(pipeline)
+    validator.checkRunnable(execution)
 
     then:
     notThrown(PipelineValidationFailed)
 
     where:
-    pipeline = Pipeline
-      .builder()
-      .withApplication("whatever")
-      .withPipelineConfigId("1337")
-      .withTrigger(type: "pipeline", parameters: [strategy: true])
-      .build()
+    execution = pipeline {
+      application = "whatever"
+      pipelineConfigId = "1337"
+      trigger.putAll(type: "pipeline", parameters: [strategy: true])
+    }
   }
 
   def "prevents disabled strategy from running"() {
     given:
-    front50Service.getStrategies(pipeline.application) >> [
-      [id: pipeline.pipelineConfigId, application: pipeline.application, name: "whatever", disabled: true]
+    front50Service.getStrategies(execution.application) >> [
+      [id: execution.pipelineConfigId, application: execution.application, name: "whatever", disabled: true]
     ]
 
     when:
-    validator.checkRunnable(pipeline)
+    validator.checkRunnable(execution)
 
     then:
     thrown(EnabledPipelineValidator.PipelineIsDisabled)
 
     where:
-    pipeline = Pipeline
-      .builder()
-      .withApplication("whatever")
-      .withPipelineConfigId("1337")
-      .withTrigger(type: "pipeline", parameters: [strategy: true])
-      .build()
+    execution = pipeline {
+      application = "whatever"
+      pipelineConfigId = "1337"
+      trigger.putAll(type: "pipeline", parameters: [strategy: true])
+    }
   }
 
   def "doesn't choke on non-boolean strategy value"() {
     given:
-    front50Service.getPipelines(pipeline.application) >> [
-      [id: pipeline.pipelineConfigId, application: pipeline.application, name: "whatever", disabled: false]
+    front50Service.getPipelines(execution.application) >> [
+      [id: execution.pipelineConfigId, application: execution.application, name: "whatever", disabled: false]
     ]
 
     when:
-    validator.checkRunnable(pipeline)
+    validator.checkRunnable(execution)
 
     then:
     notThrown(PipelineValidationFailed)
 
     where:
-    pipeline = Pipeline
-      .builder()
-      .withApplication("whatever")
-      .withPipelineConfigId("1337")
-      .withTrigger(type: "manual", parameters: [strategy: "kthxbye"])
-      .build()
+    execution = pipeline {
+      application = "whatever"
+      pipelineConfigId = "1337"
+      trigger.putAll(type: "manual", parameters: [strategy: "kthxbye"])
+    }
   }
 }

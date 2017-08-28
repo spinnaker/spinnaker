@@ -16,4 +16,5 @@
 
 dependencies {
   compile project(':orca-retrofit')
+  testCompile project(":orca-test")
 }

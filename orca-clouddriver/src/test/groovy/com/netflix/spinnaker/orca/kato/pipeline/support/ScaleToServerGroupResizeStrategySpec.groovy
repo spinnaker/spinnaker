@@ -26,7 +26,7 @@ import spock.lang.Subject
 import spock.lang.Unroll
 
 class ScaleToServerGroupResizeStrategySpec extends Specification {
-  Stage stage = new Stage<>(new Pipeline(), "Scale", [:])
+  Stage stage = new Stage<>(new Pipeline("orca"), "Scale", [:])
   OortHelper oortHelper = Mock(OortHelper)
 
   @Subject

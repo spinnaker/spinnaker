@@ -14,7 +14,7 @@ class BulkDestroyServerGroupTaskSpec extends Specification {
   def "should create multiple destroy operations on bulk destroy server group task"() {
     given:
     def task = new BulkDestroyServerGroupTask(trafficGuard: Mock(TrafficGuard))
-    def stage = new Stage<>(new Pipeline(), "")
+    def stage = new Stage<>(new Pipeline("orca"), "")
     stage.context = [
       cloudProvider:  "titus",
       credentials:  "test",

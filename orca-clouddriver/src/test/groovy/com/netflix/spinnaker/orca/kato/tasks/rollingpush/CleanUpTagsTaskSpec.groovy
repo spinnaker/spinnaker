@@ -9,14 +9,13 @@ import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import retrofit.client.Response
 import retrofit.mime.TypedByteArray
-import retrofit.mime.TypedString
 import spock.lang.Specification
 
 class CleanUpTagsTaskSpec extends Specification {
   def "should create deleteEntityTags operations "() {
     given:
     def task = new CleanUpTagsTask()
-    def stage = new Stage<>(new Pipeline(), "")
+    def stage = new Stage<>(new Pipeline("orca"), "")
     stage.context = [
       application: "app",
       cloudProvider: "aws",

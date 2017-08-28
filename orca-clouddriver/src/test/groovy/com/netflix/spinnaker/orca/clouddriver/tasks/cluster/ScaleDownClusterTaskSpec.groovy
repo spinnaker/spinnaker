@@ -45,7 +45,7 @@ class ScaleDownClusterTaskSpec extends Specification {
     if (allowScaleDownActive != null) {
       ctx.allowScaleDownActive = allowScaleDownActive
     }
-    def stage = new Stage<>(new Pipeline(), "scaleDownCluster", ctx)
+    def stage = new Stage<>(new Pipeline("orca"), "scaleDownCluster", ctx)
 
     when:
     def filtered = task.filterServerGroups(stage, account, location, serverGroups)

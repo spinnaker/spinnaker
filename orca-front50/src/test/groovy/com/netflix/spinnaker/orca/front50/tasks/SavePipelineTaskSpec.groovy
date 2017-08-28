@@ -44,7 +44,7 @@ class SavePipelineTaskSpec extends Specification {
       name: 'my pipeline',
       stages: []
     ]
-    def stage = new Stage<>(new Pipeline(), "whatever", [
+    def stage = new Stage<>(new Pipeline("orca"), "whatever", [
       pipeline: Base64.encoder.encodeToString(objectMapper.writeValueAsString(pipeline).bytes)
     ])
 

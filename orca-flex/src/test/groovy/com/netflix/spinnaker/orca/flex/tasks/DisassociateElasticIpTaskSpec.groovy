@@ -35,7 +35,7 @@ class DisassociateElasticIpTaskSpec extends Specification {
     def task = new DisassociateElasticIpTask(flexService: flexService)
 
     when:
-    def result = task.execute(new Stage<>(new Pipeline(), "associateElasticIp", [
+    def result = task.execute(new Stage<>(new Pipeline("orca"), "associateElasticIp", [
       account  : account,
       region   : region,
       cluster  : cluster,

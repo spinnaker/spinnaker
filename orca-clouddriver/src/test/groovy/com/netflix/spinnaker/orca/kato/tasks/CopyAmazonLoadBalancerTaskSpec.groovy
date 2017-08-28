@@ -36,7 +36,7 @@ class CopyAmazonLoadBalancerTaskSpec extends Specification {
     }
 
     when:
-    task.execute(new Stage<>(new Pipeline(), "", [
+    task.execute(new Stage<>(new Pipeline("orca"), "", [
       credentials: "test", region: "us-west-1", name: "example-frontend"
     ]))
 
@@ -53,7 +53,7 @@ class CopyAmazonLoadBalancerTaskSpec extends Specification {
     }
 
     when:
-    task.execute(new Stage<>(new Pipeline(), "", [
+    task.execute(new Stage<>(new Pipeline("orca"), "", [
       credentials: "test", region: "us-west-1", name: "example-frontend",
       targets    : [
         [
@@ -82,7 +82,7 @@ class CopyAmazonLoadBalancerTaskSpec extends Specification {
     }
 
     when:
-    def result = task.execute(new Stage<>(new Pipeline(), "", [
+    def result = task.execute(new Stage<>(new Pipeline("orca"), "", [
       credentials: "test", region: "us-west-1", name: currentLoadBalancer.loadBalancerName, targets: targets
     ]))
 

@@ -53,7 +53,7 @@ class WaitForAppEngineServerGroupStartTaskSpec extends Specification {
         cloudProvider: "appengine"
       ]
 
-      def stage = new Stage<>(new Orchestration(), "waitForServerGroupStart", context)
+    def stage = new Stage<>(new Orchestration("orca"), "waitForServerGroupStart", context)
 
     when:
       def result = task.execute(stage)

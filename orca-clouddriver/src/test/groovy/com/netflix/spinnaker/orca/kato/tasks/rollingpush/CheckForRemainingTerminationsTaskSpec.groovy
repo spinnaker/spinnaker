@@ -29,7 +29,7 @@ class CheckForRemainingTerminationsTaskSpec extends Specification {
     def context = [
       terminationInstanceIds: terminationInstanceIds
     ]
-    def stage = new Stage<>(new Orchestration(), 'check', context)
+    def stage = new Stage<>(new Orchestration("orca"), 'check', context)
 
 
     when:

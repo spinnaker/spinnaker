@@ -44,7 +44,7 @@ class WaitForNewUpInstancesLaunchTaskSpec extends Specification {
       instanceIds     : terminatedInstanceIds
     ]
 
-    def stage = new Stage<>(new Orchestration(), 'test', context)
+    def stage = new Stage<>(new Orchestration("orca"), 'test', context)
 
     def oortResponse = oortResponse([
       instances: currentInstances.collect { [instanceId: it, health: [ [type: 'Discovery', state: healthState] ] ] }

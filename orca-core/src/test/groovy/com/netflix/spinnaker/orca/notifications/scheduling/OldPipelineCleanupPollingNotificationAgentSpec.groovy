@@ -15,9 +15,11 @@
  */
 package com.netflix.spinnaker.orca.notifications.scheduling
 
+import java.time.Clock
+import java.time.Duration
+import java.util.concurrent.atomic.AtomicInteger
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
-import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.model.Task
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import redis.clients.jedis.Jedis
@@ -25,10 +27,8 @@ import redis.clients.jedis.ScanParams
 import redis.clients.jedis.ScanResult
 import redis.clients.util.Pool
 import spock.lang.Specification
-
-import java.time.Clock
-import java.time.Duration
-import java.util.concurrent.atomic.AtomicInteger
+import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
+import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
 
 class OldPipelineCleanupPollingNotificationAgentSpec extends Specification {
 
@@ -40,14 +40,30 @@ class OldPipelineCleanupPollingNotificationAgentSpec extends Specification {
     def filter = new OldPipelineCleanupPollingNotificationAgent(clock: clock, thresholdDays: 1).filter
 
     expect:
-    filter.call(new Pipeline(status: ExecutionStatus.SUCCEEDED, startTime: Duration.ofDays(1).toMillis())) == true
-    filter.call(new Pipeline(status: ExecutionStatus.RUNNING, startTime: Duration.ofDays(1).toMillis())) == false
-    filter.call(new Pipeline(status: ExecutionStatus.SUCCEEDED, startTime: Duration.ofDays(3).toMillis())) == false
+    filter.call(pipeline {
+      status = ExecutionStatus.SUCCEEDED
+      startTime = Duration.ofDays(1).toMillis()
+    }) == true
+    filter.call(pipeline {
+      status = ExecutionStatus.RUNNING
+      startTime = Duration.ofDays(1).toMillis()
+    }) == false
+    filter.call(pipeline {
+      status = ExecutionStatus.SUCCEEDED
+      startTime = Duration.ofDays(3).toMillis()
+    }) == false
   }
 
   void 'mapper should extract id, app, pipelineConfigId, status, startTime and buildTime'() {
     given:
-    def pipeline = new Pipeline(id: 'ID1', application: "orca", pipelineConfigId: 'P1', startTime: 1000, buildTime: 1001, status: ExecutionStatus.SUCCEEDED)
+    def pipeline = pipeline {
+      id = 'ID1'
+      application = "orca"
+      pipelineConfigId = 'P1'
+      startTime = 1000
+      buildTime = 1001
+      status = ExecutionStatus.SUCCEEDED
+    }
 
     and:
     def mapper = new OldPipelineCleanupPollingNotificationAgent().mapper
@@ -99,22 +115,24 @@ class OldPipelineCleanupPollingNotificationAgentSpec extends Specification {
     1 * executionRepository.deletePipeline('2')
   }
 
-  private static Collection<Pipeline> buildPipelines(AtomicInteger startTime, int count, String pipelineConfigId) {
+  private
+  static Collection<Pipeline> buildPipelines(AtomicInteger stageStartTime, int count, String configId) {
     (1..count).collect {
-      def stage = new Stage<>(new Pipeline(), "whatever")
-      stage.startTime = startTime.incrementAndGet()
-      stage.status = ExecutionStatus.SUCCEEDED
-      stage.tasks = [new Task()]
-
-      def pipeline = new Pipeline(stages: [stage])
-      pipeline.id = stage.startTime as String
-      pipeline.application = "orca"
-      pipeline.pipelineConfigId = pipelineConfigId
-      pipeline.startTime = Duration.ofDays(stage.startTime).toMillis()
-      pipeline.buildTime = pipeline.startTime
-      pipeline.status = ExecutionStatus.SUCCEEDED
-
-      pipeline
+      def time = stageStartTime.incrementAndGet()
+      pipeline {
+        id = time as String
+        application = "orca"
+        pipelineConfigId = configId
+        startTime = Duration.ofDays(time).toMillis()
+        buildTime = time
+        status = ExecutionStatus.SUCCEEDED
+        stage {
+          type = "whatever"
+          startTime = time
+          status = ExecutionStatus.SUCCEEDED
+          tasks = [new Task()]
+        }
+      }
     }
   }
 }

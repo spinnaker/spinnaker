@@ -27,7 +27,7 @@ class StageDataSpec extends Specification {
   void "should include freeFormDetails when building cluster name"() {
     given:
       def stage = new Stage<>(
-          new Pipeline(),
+        new Pipeline("orca"),
           "whatever",
           [
               application    : application,
@@ -51,7 +51,7 @@ class StageDataSpec extends Specification {
   void "stage data should favor account over credentials"() {
     given:
       def stage = new Stage<>(
-          new Pipeline(),
+        new Pipeline("orca"),
           "whatever",
           [
               account    : account,

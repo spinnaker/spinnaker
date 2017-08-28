@@ -22,12 +22,13 @@ import com.netflix.spinnaker.orca.pipeline.expressions.ExpressionTransform
 import com.netflix.spinnaker.orca.pipeline.expressions.ExpressionsSupport
 import com.netflix.spinnaker.orca.pipeline.expressions.SpelHelperFunctionException
 import com.netflix.spinnaker.orca.pipeline.model.Execution
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import org.springframework.expression.spel.SpelEvaluationException
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
+import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
+import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
 
 /**
  * TODO: Used to ensure feature parity between expression evaluation in v1 and v2
@@ -588,10 +589,22 @@ class ContextParameterProcessorSpec extends Specification {
 
   def "can find a stage in an execution"() {
     given:
-    def pipe = Pipeline.builder()
-        .withStage("wait", "Wait1", [waitTime: 1, refId: "1", requisiteStageRefIds:[]])
-        .withStage("wait", "Wait2", [waitTime: 1, refId: "2", requisiteStageRefIds: ["1"], comments: '${#stage("Wait1")["status"].toString()}'])
-        .build()
+    def pipe = pipeline {
+      stage {
+        type = "wait"
+        name = "Wait1"
+        refId = "1"
+        context.waitTime = 1
+      }
+      stage {
+        type = "wait"
+        name = "Wait2"
+        refId = "2"
+        requisiteStageRefIds = ["1"]
+        context.waitTime = 1
+        context.comments = '${#stage("Wait1")["status"].toString()}'
+      }
+    }
 
     def stage = pipe.stages.find { it.name == "Wait2" }
     def ctx = contextParameterProcessor.buildExecutionContext(stage, true)
@@ -605,9 +618,14 @@ class ContextParameterProcessorSpec extends Specification {
 
   def "can not toJson an execution with expressions in the context"() {
     given:
-    def pipe = Pipeline.builder()
-        .withStage("wait", "Wait1", [comments: '${#toJson(execution)}', waitTime: 1, refId: "1", requisiteStageRefIds:[]])
-        .build()
+    def pipe = pipeline {
+      stage {
+        type = "wait"
+        name = "Wait1"
+        refId = "1"
+        context = [comments: '${#toJson(execution)}', waitTime: 1]
+      }
+    }
 
     def stage = pipe.stages.find { it.name == "Wait1" }
     def ctx = contextParameterProcessor.buildExecutionContext(stage, true)
@@ -621,9 +639,14 @@ class ContextParameterProcessorSpec extends Specification {
 
   def "can read authenticated user in an execution"() {
     given:
-    def pipe = Pipeline.builder()
-        .withStage("wait", "Wait1", [comments: '${execution["authentication"]["user"].split("@")[0]}', waitTime: 1, refId: "1", requisiteStageRefIds:[]])
-        .build()
+    def pipe = pipeline {
+      stage {
+        type = "wait"
+        name = "Wait1"
+        refId = "1"
+        context = [comments: '${execution["authentication"]["user"].split("@")[0]}', waitTime: 1]
+      }
+    }
 
     pipe.setAuthentication(new Execution.AuthenticationDetails('joeyjoejoejuniorshabadoo@host.net'))
 
@@ -640,10 +663,18 @@ class ContextParameterProcessorSpec extends Specification {
   def "can find a judgment result from execution"() {
     given:
     def expectedJudmentInput = "Real Judgment input"
-    def pipe = Pipeline.builder()
-      .withStage("bake", "my stage", [ judgmentInput: "input2", judgment: '${#judgment("my stage")}'])
-      .withStage("manualJudgment", "my stage", [ judgmentInput: expectedJudmentInput])
-      .build()
+    def pipe = pipeline {
+      stage {
+        type = "bake"
+        name = "my stage"
+        context = [judgmentInput: "input2", judgment: '${#judgment("my stage")}']
+      }
+      stage {
+        type = "manualJudgment"
+        name = "my stage"
+        context = [judgmentInput: expectedJudmentInput]
+      }
+    }
 
     and:
     def stage = pipe.stages.find { it.type == "bake" }

@@ -18,14 +18,16 @@ package com.netflix.spinnaker.orca.pipeline.util
 
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.pipeline.model.Execution
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
+import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
+import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
 
 class ContextParameterProcessorSpec extends Specification {
 
-  @Subject ContextParameterProcessor contextParameterProcessor = new ContextParameterProcessor()
+  @Subject
+  ContextParameterProcessor contextParameterProcessor = new ContextParameterProcessor()
 
   @Unroll
   def "should #processAttributes"() {
@@ -101,7 +103,6 @@ class ContextParameterProcessorSpec extends Specification {
     '${T(java.lang.System).exit(1)}'          | 'System.exit'
     '${T(java.lang.Runtime).runtime.exit(1)}' | 'Runtime.getRuntime.exit'
 
-
   }
 
   @Unroll
@@ -135,9 +136,9 @@ class ContextParameterProcessorSpec extends Specification {
     result.test == source.test
 
     where:
-    testCase                                                            | desc
-    '${ new java.lang.Integer(1).wait(100000) }'                        | 'wait'
-    '${ new java.lang.Integer(1).getClass().getSimpleName() }'          | 'getClass'
+    testCase                                                   | desc
+    '${ new java.lang.Integer(1).wait(100000) }'               | 'wait'
+    '${ new java.lang.Integer(1).getClass().getSimpleName() }' | 'getClass'
   }
 
   def "should deny access to groovy metaclass methods via #desc"() {
@@ -151,13 +152,12 @@ class ContextParameterProcessorSpec extends Specification {
     result.test == source.test
 
     where:
-    testCase  | desc
+    testCase                          | desc
     '${status.getMetaClass()}'        | 'method'
     '${status.metaClass}'             | 'propertyAccessor'
     '${nested.status.metaClass}'      | 'nested accessor'
     '${nested.status.getMetaClass()}' | 'nested method'
   }
-
 
   @Unroll
   def "when allowUnknownKeys is #allowUnknownKeys it #desc"() {
@@ -458,7 +458,7 @@ class ContextParameterProcessorSpec extends Specification {
   def 'can operate on List from json'() {
     given:
     def source = [
-        'expression': '${#toJson(parameters["regions"].split(",")).contains("us-west-2")}',
+      'expression': '${#toJson(parameters["regions"].split(",")).contains("us-west-2")}',
     ]
     def context = [parameters: [regions: regions]]
 
@@ -513,7 +513,6 @@ class ContextParameterProcessorSpec extends Specification {
     '7'   | 7f
     '7.5' | 7.5f
   }
-
 
   @Unroll
   def 'helper method to convert Strings into Booleans'() {
@@ -571,12 +570,24 @@ class ContextParameterProcessorSpec extends Specification {
 
   def "can find a stage in an execution"() {
     given:
-    def pipe = Pipeline.builder()
-        .withStage("wait", "Wait1", [waitTime: 1, refId: "1", requisiteStageRefIds:[]])
-        .withStage("wait", "Wait2", [waitTime: 1, refId: "2", requisiteStageRefIds: ["1"], comments: '${#stage("Wait1")["status"].toString()}'])
-        .build()
+    def pipe = pipeline {
+      stage {
+        type = "wait"
+        name = "Wait1"
+        refId = "1"
+        context.waitTime = 1
+      }
+      stage {
+        type = "wait"
+        name = "Wait2"
+        refId = "2"
+        requisiteStageRefIds = ["1"]
+        context.waitTime = 1
+        context.comments = '${#stage("Wait1")["status"].toString()}'
+      }
+    }
 
-    def stage = pipe.stages.find { it.name == "Wait2" }
+    def stage = pipe.stageByRef("2")
     def ctx = contextParameterProcessor.buildExecutionContext(stage, true)
 
     when:
@@ -588,11 +599,17 @@ class ContextParameterProcessorSpec extends Specification {
 
   def "can not toJson an execution with expressions in the context"() {
     given:
-    def pipe = Pipeline.builder()
-        .withStage("wait", "Wait1", [comments: '${#toJson(execution)}', waitTime: 1, refId: "1", requisiteStageRefIds:[]])
-        .build()
+    def pipe = pipeline {
+      stage {
+        type = "wait"
+        name = "Wait1"
+        refId = "1"
+        context.comments = '${#toJson(execution)}'
+        context.waitTime = 1
+      }
+    }
 
-    def stage = pipe.stages.find { it.name == "Wait1" }
+    def stage = pipe.stageByRef("1")
     def ctx = contextParameterProcessor.buildExecutionContext(stage, true)
 
     when:
@@ -604,9 +621,15 @@ class ContextParameterProcessorSpec extends Specification {
 
   def "can read authenticated user in an execution"() {
     given:
-    def pipe = Pipeline.builder()
-        .withStage("wait", "Wait1", [comments: '${execution["authentication"]["user"].split("@")[0]}', waitTime: 1, refId: "1", requisiteStageRefIds:[]])
-        .build()
+    def pipe = pipeline {
+      stage {
+        type = "wait"
+        name = "Wait1"
+        refId = "1"
+        context.comments = '${execution["authentication"]["user"].split("@")[0]}'
+        context.waitTime = 1
+      }
+    }
 
     pipe.setAuthentication(new Execution.AuthenticationDetails('joeyjoejoejuniorshabadoo@host.net'))
 

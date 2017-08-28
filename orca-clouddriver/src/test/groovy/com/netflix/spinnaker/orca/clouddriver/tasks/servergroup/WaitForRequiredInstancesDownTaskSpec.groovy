@@ -38,7 +38,7 @@ class WaitForRequiredInstancesDownTaskSpec extends Specification {
 
   void "should fetch server groups"() {
     given:
-    def pipeline = new Pipeline()
+    def pipeline = new Pipeline("orca")
     task.objectMapper = mapper
     def response = mapper.writeValueAsString([
           region   : 'us-east-1',
@@ -87,7 +87,7 @@ class WaitForRequiredInstancesDownTaskSpec extends Specification {
   @Unroll
   void "should succeed as #hasSucceeded based on instance providers #healthProviderNames for instances #instances"() {
     given:
-    def stage = new Stage<>(new Pipeline(), "", [desiredPercentage: desiredPercentage])
+    def stage = new Stage<>(new Pipeline("orca"), "", [desiredPercentage: desiredPercentage])
 
     expect:
     hasSucceeded == task.hasSucceeded(stage, [capacity: [min: min, max: max, desired: desired], minSize: 0], instances, healthProviderNames)

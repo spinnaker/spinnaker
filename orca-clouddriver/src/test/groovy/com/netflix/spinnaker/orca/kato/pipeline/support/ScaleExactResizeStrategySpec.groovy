@@ -39,7 +39,7 @@ class ScaleExactResizeStrategySpec extends Specification {
     def context = [
       capacity: specifiedCap
     ]
-    def stage = new Stage<>(new Pipeline(), "resizeServerGroup", context)
+    def stage = new Stage<>(new Pipeline("orca"), "resizeServerGroup", context)
 
     when:
     def cap = strategy.capacityForOperation(stage, account, serverGroupName, cloudProvider, location, resizeConfig)

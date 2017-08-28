@@ -30,7 +30,7 @@ import spock.lang.Subject
 
 class DestroyAwsServerGroupTaskSpec extends Specification {
   @Subject task = new DestroyAwsServerGroupTask()
-  def stage = new Stage<>(new Pipeline(), "whatever")
+  def stage = new Stage<>(new Pipeline("orca"), "whatever")
   def mapper = OrcaObjectMapper.newInstance()
   def taskId = new TaskId(UUID.randomUUID().toString())
 
@@ -129,7 +129,7 @@ class DestroyAwsServerGroupTaskSpec extends Specification {
 
   def "task uses serverGroupName if present"() {
     given:
-    def stage = new Stage<>(new Pipeline(), "whatever2")
+    def stage = new Stage<>(new Pipeline("orca"), "whatever2")
     stage.context = [
       cloudProvider   : "aws",
       serverGroupName : "test-server-group",

@@ -44,7 +44,7 @@ class DetermineHealthProvidersTaskSpec extends Specification {
   @Unroll
   def "should set interestingHealthProviderNames based on application config"() {
     given:
-    def stage = new Stage<>(new Pipeline(), "", stageContext)
+    def stage = new Stage<>(new Pipeline("orca"), "", stageContext)
 
     if (application) {
       1 * front50Service.get(application.name) >> application

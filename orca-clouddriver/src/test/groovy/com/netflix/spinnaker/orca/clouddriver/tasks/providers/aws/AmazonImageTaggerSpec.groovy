@@ -39,7 +39,7 @@ class AmazonImageTaggerSpec extends ImageTaggerSpec<AmazonImageTagger> {
   @Unroll
   def "should throw exception if image does not exist"() {
     given:
-    def pipeline = new Pipeline()
+    def pipeline = new Pipeline("orca")
     def stage1 = new Stage<>(pipeline, "", [
       imageId      : imageId,
       cloudProvider: "aws"
@@ -52,7 +52,7 @@ class AmazonImageTaggerSpec extends ImageTaggerSpec<AmazonImageTagger> {
     stage1.refId = stage1.id
     stage2.requisiteStageRefIds = [stage1.refId]
 
-    pipeline.stages = [stage1, stage2]
+    pipeline.stages << stage1 << stage2
 
     and:
     oortService.findImage("aws", "my-ami", null, null, null) >> { [] }
@@ -72,7 +72,7 @@ class AmazonImageTaggerSpec extends ImageTaggerSpec<AmazonImageTagger> {
 
   def "should build upsertMachineImageTags and allowLaunchDescription operations"() {
     given:
-    def stage = new Stage<>(new Orchestration(), "", [
+    def stage = new Stage<>(new Orchestration("orca"), "", [
       imageNames: ["my-ami"],
       tags      : [
         "tag1"      : "value1",

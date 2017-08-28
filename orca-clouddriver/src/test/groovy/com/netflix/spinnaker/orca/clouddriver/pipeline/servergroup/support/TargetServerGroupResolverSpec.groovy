@@ -18,7 +18,6 @@ package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.clouddriver.OortService
-import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import retrofit.RetrofitError
 import retrofit.client.Response
@@ -26,6 +25,8 @@ import retrofit.mime.TypedString
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
+import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
+import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
 
 class TargetServerGroupResolverSpec extends Specification {
 
@@ -34,107 +35,99 @@ class TargetServerGroupResolverSpec extends Specification {
   @Subject
   TargetServerGroupResolver subject = new TargetServerGroupResolver(oortService: oort, mapper: mapper)
 
-
   def "should resolve to target server groups"() {
     when:
-      def tsgs = subject.resolveByParams(new TargetServerGroup.Params(
-        cloudProvider: "abc",
-        cluster: "test-app",
-        credentials: "testCreds",
-        locations: [new Location(type: Location.Type.REGION, value: "north-pole")],
-        target: TargetServerGroup.Params.Target.current_asg,
-      ))
+    def tsgs = subject.resolveByParams(new TargetServerGroup.Params(
+      cloudProvider: "abc",
+      cluster: "test-app",
+      credentials: "testCreds",
+      locations: [new Location(type: Location.Type.REGION, value: "north-pole")],
+      target: TargetServerGroup.Params.Target.current_asg,
+    ))
 
     then:
-      1 * oort.getTargetServerGroup("test", "testCreds", "test-app", "abc", "north-pole", "current_asg") >>
-        new Response("clouddriver", 200, 'ok', [], new TypedString(mapper.writeValueAsString([
-          name  : "test-app-v010",
-          region: "north-pole",
-          data  : 123,
-        ])))
-      tsgs.size() == 1
-      tsgs[0].data == 123
-      tsgs[0].getLocation()
-      tsgs[0].getLocation().type == Location.Type.REGION
-      tsgs[0].getLocation().value == "north-pole"
+    1 * oort.getTargetServerGroup("test", "testCreds", "test-app", "abc", "north-pole", "current_asg") >>
+      new Response("clouddriver", 200, 'ok', [], new TypedString(mapper.writeValueAsString([
+        name  : "test-app-v010",
+        region: "north-pole",
+        data  : 123,
+      ])))
+    tsgs.size() == 1
+    tsgs[0].data == 123
+    tsgs[0].getLocation()
+    tsgs[0].getLocation().type == Location.Type.REGION
+    tsgs[0].getLocation().value == "north-pole"
 
     when:
-      tsgs = subject.resolveByParams(new TargetServerGroup.Params(
-        cloudProvider: "gce",
-        serverGroupName: "test-app-v010",
-        credentials: "testCreds",
-        locations: [new Location(type: Location.Type.REGION, value: "north-pole")]
-      ))
+    tsgs = subject.resolveByParams(new TargetServerGroup.Params(
+      cloudProvider: "gce",
+      serverGroupName: "test-app-v010",
+      credentials: "testCreds",
+      locations: [new Location(type: Location.Type.REGION, value: "north-pole")]
+    ))
 
     then:
-      1 * oort.getServerGroupFromCluster("test", "testCreds", "test-app", "test-app-v010", null, "gce") >>
-        new Response("clouddriver", 200, 'ok', [], new TypedString(mapper.writeValueAsString([[
-                                                                                                name  : "test-app-v010",
-                                                                                                region: "north-pole",
-                                                                                                data  : 123,
-                                                                                                type  : "gce",
-                                                                                              ]])))
-      tsgs.size() == 1
-      tsgs[0].data == 123
-      tsgs[0].getLocation()
-      tsgs[0].getLocation().type == Location.Type.REGION
-      tsgs[0].getLocation().value == "north-pole"
+    1 * oort.getServerGroupFromCluster("test", "testCreds", "test-app", "test-app-v010", null, "gce") >>
+      new Response("clouddriver", 200, 'ok', [], new TypedString(mapper.writeValueAsString([[
+                                                                                              name  : "test-app-v010",
+                                                                                              region: "north-pole",
+                                                                                              data  : 123,
+                                                                                              type  : "gce",
+                                                                                            ]])))
+    tsgs.size() == 1
+    tsgs[0].data == 123
+    tsgs[0].getLocation()
+    tsgs[0].getLocation().type == Location.Type.REGION
+    tsgs[0].getLocation().value == "north-pole"
 
     when: "null params returns empty list"
-      tsgs = subject.resolveByParams(null)
+    tsgs = subject.resolveByParams(null)
     then:
-      tsgs == []
+    tsgs == []
 
     when: "non-null, empty params returns empty list"
-      tsgs = subject.resolveByParams(new TargetServerGroup.Params())
+    tsgs = subject.resolveByParams(new TargetServerGroup.Params())
     then:
-      tsgs == []
+    tsgs == []
   }
 
   def "should resolve target refs from previous DTSG stage"() {
     setup:
-      TargetServerGroup want = new TargetServerGroup(name: "testTSG", region: "north-pole")
-      TargetServerGroup decoy = new TargetServerGroup(name: "testTSG", region: "south-pole")
+    TargetServerGroup want = new TargetServerGroup(name: "testTSG", region: "north-pole")
+    TargetServerGroup decoy = new TargetServerGroup(name: "testTSG", region: "south-pole")
 
-      Stage commonParent = Mock(Stage) {
-        getId() >> "1"
+    Stage commonParent
+    Stage dtsgStage
+    Stage stageLookingForRefs
+    pipeline {
+      commonParent = stage {
+        id = "1"
       }
-
-      Stage dtsgStage = Mock(Stage) {
-        getType() >> DetermineTargetServerGroupStage.PIPELINE_CONFIG_TYPE
-        getId() >> "2"
-        getParentStageId() >> "1"
-        getContext() >> [targetReferences: [decoy, want]]
+      dtsgStage = stage {
+        type = DetermineTargetServerGroupStage.PIPELINE_CONFIG_TYPE
+        id = "2"
+        parentStageId = "1"
+        context = [targetReferences: [decoy, want]]
       }
-
-      Stage stageLookingForRefs = Mock(Stage) {
-        getId() >> "3"
-        getParentStageId() >> "1"
-        getContext() >> [region: "north-pole"]
-        Execution e = Spy(Execution)
-        getExecution() >> e
-        e.stages >> [commonParent, dtsgStage, it]
+      stageLookingForRefs = stage {
+        id = "3"
+        parentStageId = "1"
+        context = [region: "north-pole"]
       }
+    }
 
     when:
-      def got = TargetServerGroupResolver.fromPreviousStage(stageLookingForRefs)
+    def got = TargetServerGroupResolver.fromPreviousStage(stageLookingForRefs)
 
     then:
-      got == want
+    got == want
 
     when:
-      stageLookingForRefs = Mock(Stage) {
-        getId() >> "3"
-        getParentStageId() >> "1"
-        getContext() >> [region: "east-1"] // doesn't exist.
-        Execution e = Spy(Execution)
-        getExecution() >> e
-        e.stages >> [commonParent, dtsgStage, it]
-      }
-      TargetServerGroupResolver.fromPreviousStage(stageLookingForRefs)
+    stageLookingForRefs.context = [region: "east-1"] // doesn't exist.
+    TargetServerGroupResolver.fromPreviousStage(stageLookingForRefs)
 
     then:
-      thrown(TargetServerGroup.NotFoundException)
+    thrown(TargetServerGroup.NotFoundException)
   }
 
   @Unroll

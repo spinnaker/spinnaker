@@ -24,12 +24,11 @@ import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.EnableServerG
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.ResizeServerGroupStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.RollbackServerGroupStage
 import com.netflix.spinnaker.orca.kato.pipeline.support.ResizeStrategy
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
-import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory
 import spock.lang.Shared
 import spock.lang.Specification
+import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
 
 class RollbackServerGroupStageSpec extends Specification {
   @Shared
@@ -62,16 +61,19 @@ class RollbackServerGroupStageSpec extends Specification {
     def rollbackServerGroupStage = new RollbackServerGroupStage()
     rollbackServerGroupStage.autowireCapableBeanFactory = autowireCapableBeanFactory
 
-    def stage = new Stage<>(new Pipeline(), "rollbackServerGroup", [
-      rollbackType   : "EXPLICIT",
-      rollbackContext: [
-        restoreServerGroupName : "servergroup-v001",
-        rollbackServerGroupName: "servergroup-v002"
-      ],
-      credentials    : "test",
-      cloudProvider  : "aws",
-      "region"       : "us-west-1"
-    ])
+    def stage = stage {
+      type = "rollbackServerGroup"
+      context = [
+        rollbackType   : "EXPLICIT",
+        rollbackContext: [
+          restoreServerGroupName : "servergroup-v001",
+          rollbackServerGroupName: "servergroup-v002"
+        ],
+        credentials    : "test",
+        cloudProvider  : "aws",
+        "region"       : "us-west-1"
+      ]
+    }
 
     when:
     def tasks = rollbackServerGroupStage.buildTaskGraph(stage)

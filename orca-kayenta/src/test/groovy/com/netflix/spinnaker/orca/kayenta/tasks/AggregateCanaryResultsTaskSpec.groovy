@@ -17,11 +17,12 @@
 package com.netflix.spinnaker.orca.kayenta.tasks
 
 import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
+import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
+import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
 
 class AggregateCanaryResultsTaskSpec extends Specification {
 
@@ -31,16 +32,26 @@ class AggregateCanaryResultsTaskSpec extends Specification {
   @Unroll
   def "All canary scores should be collected and overall execution status determined with consideration given to configured score thresholds"() {
     given:
-    def pipelineBuilder = Pipeline.builder()
-    contextCanaryScores.each { pipelineBuilder.withStage("runCanary", "runCanary", [canaryScore: it]) }
-    def stage = new Stage<>(pipelineBuilder.build(), "kayentaCanary", "kayentaCanary", [
-      canaryConfig: [
-        scoreThresholds: scoreThresholds
-      ]
-    ])
+    Stage canaryStage
+    pipeline {
+      contextCanaryScores.each { score ->
+        stage {
+          type = "runCanary"
+          name = "runCanary"
+          context = [canaryScore: score]
+        }
+      }
+      canaryStage = stage {
+        type = "kayentaCanary"
+        name = "kayentaCanary"
+        context = [
+          canaryConfig: [scoreThresholds: scoreThresholds]
+        ]
+      }
+    }
 
     when:
-    def taskResult = task.execute(stage)
+    def taskResult = task.execute(canaryStage)
 
     then:
     taskResult.context.canaryScores == outputCanaryScores

@@ -27,7 +27,7 @@ class AmazonServerGroupCreatorSpec extends Specification {
 
   @Subject
   def creator = new AmazonServerGroupCreator()
-  def stage = new Stage<>(new Pipeline(), "whatever")
+  def stage = new Stage<>(new Pipeline("orca"), "whatever")
 
   def deployConfig = [
       application      : "hodor",

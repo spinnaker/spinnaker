@@ -32,7 +32,7 @@ class DetermineSourceServerGroupTaskSpec extends Specification {
 
   void 'should include source in context'() {
     given:
-    Stage stage = new Stage<>(new Pipeline(), 'deploy', 'deploy', [
+    Stage stage = new Stage<>(new Pipeline("orca"), 'deploy', 'deploy', [
       account          : account,
       application      : 'foo',
       availabilityZones: [(region): []]])
@@ -60,7 +60,7 @@ class DetermineSourceServerGroupTaskSpec extends Specification {
 
   void 'should useSourceCapacity from context if not provided in Source'() {
     given:
-    Stage stage = new Stage<>(new Pipeline(), 'deploy', 'deploy', [useSourceCapacity: contextUseSourceCapacity, account: account, application: application, availabilityZones: [(region): []]])
+    Stage stage = new Stage<>(new Pipeline("orca"), 'deploy', 'deploy', [useSourceCapacity: contextUseSourceCapacity, account: account, application: application, availabilityZones: [(region): []]])
 
     def resolver = Mock(SourceResolver)
 
@@ -89,7 +89,7 @@ class DetermineSourceServerGroupTaskSpec extends Specification {
 
   void 'should NOT fail if there is region and no availabilityZones in context'() {
     given:
-    Stage stage = new Stage<>(new Pipeline(), 'deploy', 'deploy', [
+    Stage stage = new Stage<>(new Pipeline("orca"), 'deploy', 'deploy', [
       account    : 'test',
       region     : 'us-east-1',
       application: 'foo'])
@@ -105,7 +105,7 @@ class DetermineSourceServerGroupTaskSpec extends Specification {
 
   void 'should NOT fail if there is source and no region and no availabilityZones in context'() {
     given:
-    Stage stage = new Stage<>(new Pipeline(), 'deploy', 'deploy', [
+    Stage stage = new Stage<>(new Pipeline("orca"), 'deploy', 'deploy', [
       account    : 'test',
       source     : [region: 'us-east-1', account: 'test', asgName: 'foo-test-v000'],
       application: 'foo'])
@@ -121,7 +121,7 @@ class DetermineSourceServerGroupTaskSpec extends Specification {
 
   void 'should fail if there is no availabilityZones and no region in context'() {
     given:
-    Stage stage = new Stage<>(new Pipeline(), 'deploy', 'deploy', [
+    Stage stage = new Stage<>(new Pipeline("orca"), 'deploy', 'deploy', [
       account    : 'test',
       application: 'foo'])
 
@@ -138,7 +138,7 @@ class DetermineSourceServerGroupTaskSpec extends Specification {
   void 'should retry on exception from source resolver'() {
     given:
     Exception expected = new Exception('kablamo')
-    Stage stage = new Stage<>(new Pipeline(), 'deploy', 'deploy', [
+    Stage stage = new Stage<>(new Pipeline("orca"), 'deploy', 'deploy', [
       account          : 'test',
       application      : 'foo',
       availabilityZones: ['us-east-1': []]])
@@ -160,7 +160,7 @@ class DetermineSourceServerGroupTaskSpec extends Specification {
   void 'should reset consecutiveNotFound on non 404 exception'() {
     given:
     Exception expected = new Exception('kablamo')
-    Stage stage = new Stage<>(new Pipeline(), 'deploy', 'deploy', [
+    Stage stage = new Stage<>(new Pipeline("orca"), 'deploy', 'deploy', [
       account            : 'test',
       application        : 'foo',
       consecutiveNotFound: 3,
@@ -182,7 +182,7 @@ class DetermineSourceServerGroupTaskSpec extends Specification {
 
   void 'should fail after MAX_ATTEMPTS'() {
     Exception expected = new Exception('kablamo')
-    Stage stage = new Stage<>(new Pipeline(), 'deploy', 'deploy', [
+    Stage stage = new Stage<>(new Pipeline("orca"), 'deploy', 'deploy', [
       account          : 'test',
       application      : 'foo',
       attempt          : DetermineSourceServerGroupTask.MAX_ATTEMPTS,
@@ -202,7 +202,7 @@ class DetermineSourceServerGroupTaskSpec extends Specification {
 
   @Unroll
   void "should be #status after #attempt consecutive missing source with useSourceCapacity #useSourceCapacity"() {
-    Stage stage = new Stage<>(new Pipeline(), 'deploy', 'deploy', [
+    Stage stage = new Stage<>(new Pipeline("orca"), 'deploy', 'deploy', [
       account            : 'test',
       application        : 'foo',
       useSourceCapacity  : useSourceCapacity,
@@ -294,7 +294,7 @@ class DetermineSourceServerGroupTaskSpec extends Specification {
   }
 
   def 'should fail if no source resolved and useSourceCapacity requested'() {
-    Stage stage = new Stage<>(new Pipeline(), 'deploy', 'deploy', [
+    Stage stage = new Stage<>(new Pipeline("orca"), 'deploy', 'deploy', [
       account          : 'test',
       application      : 'foo',
       useSourceCapacity: true,

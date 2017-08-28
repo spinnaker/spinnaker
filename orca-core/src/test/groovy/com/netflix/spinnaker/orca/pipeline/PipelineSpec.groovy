@@ -16,24 +16,25 @@
 
 package com.netflix.spinnaker.orca.pipeline
 
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Task
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
 import static com.netflix.spinnaker.orca.ExecutionStatus.RUNNING
 import static com.netflix.spinnaker.orca.ExecutionStatus.TERMINAL
+import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
+import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
 
 @Unroll
 class PipelineSpec extends Specification {
 
   @Subject
-    pipeline = Pipeline.builder()
-      .withTrigger(name: "SPINNAKER-build-job", lastBuildLabel: 1)
-      .withStage("stage1")
-      .withStage("stage2")
-      .withStage("stage3")
-      .build()
+    pipeline = pipeline {
+      trigger.putAll(name: "SPINNAKER-build-job", lastBuildLabel: 1)
+      stage { type = "stage1" }
+      stage { type = "stage2" }
+      stage { type = "stage3" }
+    }
 
   void setup() {
     pipeline.stages.findAll { it.tasks.isEmpty() }.each {

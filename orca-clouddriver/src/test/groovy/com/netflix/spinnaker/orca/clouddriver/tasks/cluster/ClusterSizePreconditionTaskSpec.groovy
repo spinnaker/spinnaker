@@ -62,7 +62,7 @@ class ClusterSizePreconditionTaskSpec extends Specification {
       serverGroups: serverGroups
     ]))
     def response = new Response('http://foo', 200, 'OK', [], body)
-    def stage = new Stage<>(new Pipeline(), 'checkCluster', [
+    def stage = new Stage<>(new Pipeline("orca"), 'checkCluster', [
       context: [
         credentials: credentials,
         cluster    : cluster,
@@ -95,7 +95,7 @@ class ClusterSizePreconditionTaskSpec extends Specification {
       serverGroups: serverGroups
     ]))
     def response = new Response('http://foo', 200, 'OK', [], body)
-    def stage = new Stage<>(new Pipeline(), 'checkCluster', [
+    def stage = new Stage<>(new Pipeline("orca"), 'checkCluster', [
       context: [
         credentials: credentials,
         cluster    : cluster,

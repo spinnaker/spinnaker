@@ -39,7 +39,7 @@ class WaitForClusterShrinkTaskSpec extends Specification {
 
   def "does not complete if previous ASG is still there"() {
     given:
-    def stage = new Stage<>(new Pipeline(), "test", [
+    def stage = new Stage<>(new Pipeline("orca"), "test", [
       cluster               : clusterName,
       credentials           : account,
       "deploy.server.groups": [
@@ -90,7 +90,7 @@ class WaitForClusterShrinkTaskSpec extends Specification {
 
   def "completes if previous ASG is gone"() {
     given:
-    def stage = new Stage<>(new Pipeline(), "test", [
+    def stage = new Stage<>(new Pipeline("orca"), "test", [
       cluster               : clusterName,
       credentials           : account,
       "deploy.server.groups": [

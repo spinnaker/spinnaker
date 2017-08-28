@@ -35,7 +35,7 @@ class QuickPatchStageSpec extends Specification {
 
   def "no-ops if there are no instances"() {
     given:
-    def stage = new Stage<>(new Pipeline(), "quickPatch", context)
+    def stage = new Stage<>(new Pipeline("orca"), "quickPatch", context)
 
     and:
     oortHelper.getInstancesForCluster(_, null, true, false) >> [:]
@@ -61,7 +61,7 @@ class QuickPatchStageSpec extends Specification {
     ]
 
     and:
-    def stage = new Stage<>(new Pipeline(), "quickPatch", config)
+    def stage = new Stage<>(new Pipeline("orca"), "quickPatch", config)
 
     and:
     oortHelper.getInstancesForCluster(config, null, true, false) >> {
@@ -91,7 +91,7 @@ class QuickPatchStageSpec extends Specification {
     and:
     oortHelper.getInstancesForCluster(config, null, true, false) >> expectedInstances
 
-    def stage = new Stage<>(new Pipeline(), "quickPatch", config)
+    def stage = new Stage<>(new Pipeline("orca"), "quickPatch", config)
 
     when:
     def syntheticStages = quickPatchStage.aroundStages(stage)
@@ -123,7 +123,7 @@ class QuickPatchStageSpec extends Specification {
 
   def "configures rolling quickpatch"() {
     given:
-    def stage = new Stage<>(new Pipeline(), "quickPatch", config)
+    def stage = new Stage<>(new Pipeline("orca"), "quickPatch", config)
 
     when:
     def syntheticStages = quickPatchStage.aroundStages(stage)

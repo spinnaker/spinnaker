@@ -197,7 +197,7 @@ class RestrictExecutionDuringTimeWindowSpec extends Specification {
   private Stage stage(List<Map> windows) {
     Map restrictedExecutionWindow = [whitelist: windows]
     Map context = [restrictedExecutionWindow: restrictedExecutionWindow]
-    Pipeline pipeline = new Pipeline()
+    Pipeline pipeline = new Pipeline("orca")
     return new Stage<>(pipeline, "testRestrictExecution", context)
   }
 }

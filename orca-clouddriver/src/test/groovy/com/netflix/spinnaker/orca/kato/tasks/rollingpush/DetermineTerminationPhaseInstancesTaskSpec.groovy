@@ -27,7 +27,7 @@ class DetermineTerminationPhaseInstancesTaskSpec extends Specification {
   def 'should get next instanceIds'() {
     given:
     def context = [termination: [concurrentRelaunches: concurrentRelaunches], terminationInstanceIds: terminationInstanceIds]
-    def stage = new Stage<>(new Orchestration(), 'test', context)
+    def stage = new Stage<>(new Orchestration("orca"), 'test', context)
 
     when:
     def result = task.execute(stage)

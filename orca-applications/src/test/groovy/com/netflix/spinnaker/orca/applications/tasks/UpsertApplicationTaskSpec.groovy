@@ -21,29 +21,32 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.front50.model.Application
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
-import com.netflix.spinnaker.orca.pipeline.model.Stage
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
+import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
+import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
 
 class UpsertApplicationTaskSpec extends Specification {
   @Subject
   def task = new UpsertApplicationTask(mapper: new ObjectMapper())
 
-  def config
+  def config = [
+    application: [
+      "name"          : "application",
+      "owner"         : "owner",
+      "repoProjectKey": "project-key",
+      "repoSlug"      : "repo-slug",
+      "repoType"      : "github"
+    ],
+    user       : "testUser"
+  ]
 
-  void setup() {
-    config = [
-      application: [
-        "name" : "application",
-        "owner": "owner",
-        "repoProjectKey" : "project-key",
-        "repoSlug" : "repo-slug",
-        "repoType" : "github"
-      ],
-      user: "testUser"
-    ]
+  def pipeline = pipeline {
+    stage {
+      type = "UpsertApplication"
+      context = config
+    }
   }
 
   void "should create an application in global registries"() {
@@ -57,7 +60,7 @@ class UpsertApplicationTaskSpec extends Specification {
     }
 
     when:
-    def result = task.execute(new Stage<>(new Pipeline(), "UpsertApplication", config))
+    def result = task.execute(pipeline.stages.first())
 
     then:
     result.status == ExecutionStatus.SUCCEEDED
@@ -79,7 +82,7 @@ class UpsertApplicationTaskSpec extends Specification {
     }
 
     when:
-    def result = task.execute(new Stage<>(new Pipeline(), "UpsertApplication", config))
+    def result = task.execute(pipeline.stages.first())
 
     then:
     result.status == ExecutionStatus.SUCCEEDED
@@ -99,7 +102,7 @@ class UpsertApplicationTaskSpec extends Specification {
     }
 
     when:
-    def result = task.execute(new Stage<>(new Pipeline(), "UpsertApplication", config))
+    def result = task.execute(pipeline.stages.first())
 
     then:
     result.context.previousState == (initialState ?: [:])

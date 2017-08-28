@@ -18,12 +18,13 @@ package com.netflix.spinnaker.orca.front50.tasks
 
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.front50.pipeline.PipelineStage
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
+import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
+import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
 
 class MonitorPipelineTaskSpec extends Specification {
 
@@ -41,10 +42,14 @@ class MonitorPipelineTaskSpec extends Specification {
   @Unroll
   def "returns the correct task result based on child pipeline execution"() {
     given:
-    def pipeline = new Pipeline().builder().withStage(
-      PipelineStage.PIPELINE_CONFIG_TYPE, "pipeline", [:]
-    ).build()
-    pipeline.status = providedStatus
+    def pipeline = pipeline {
+      application = "orca"
+      stage {
+        type = PipelineStage.PIPELINE_CONFIG_TYPE
+        name = "pipeline"
+      }
+      status = providedStatus
+    }
 
     repo.retrievePipeline(_) >> pipeline
 
@@ -71,17 +76,33 @@ class MonitorPipelineTaskSpec extends Specification {
       [status: [failed: true], history: ["task failed, no exception"]],
       [status: [failed: true], history: ["should not appear"], exception: [message: "task had exception"]],
     ]
-    def pipeline = new Pipeline().builder()
-      .withName("some child")
-      .withStage(PipelineStage.PIPELINE_CONFIG_TYPE, "other", [:])
-      .withStage(PipelineStage.PIPELINE_CONFIG_TYPE, "a pipeline", [exception: [details: [errors: "Some error"]]])
-      .withStage(PipelineStage.PIPELINE_CONFIG_TYPE, null, [exception: [details: [errors: "Some other error"]]])
-      .withStage(PipelineStage.PIPELINE_CONFIG_TYPE, "deploy", ["kato.tasks": katoTasks])
-      .build()
-    pipeline.status = ExecutionStatus.TERMINAL
-    pipeline.stages[1].status = ExecutionStatus.TERMINAL
-    pipeline.stages[2].status = ExecutionStatus.TERMINAL
-    pipeline.stages[3].status = ExecutionStatus.TERMINAL
+    def pipeline = pipeline {
+      application = "orca"
+      name = "some child"
+      stage {
+        type = PipelineStage.PIPELINE_CONFIG_TYPE
+        name = "other"
+      }
+      stage {
+        type = PipelineStage.PIPELINE_CONFIG_TYPE
+        name = "a pipeline"
+        status = ExecutionStatus.TERMINAL
+        context = [exception: [details: [errors: "Some error"]]]
+      }
+      stage {
+        type = PipelineStage.PIPELINE_CONFIG_TYPE
+        name = null
+        status = ExecutionStatus.TERMINAL
+        context = [exception: [details: [errors: "Some other error"]]]
+      }
+      stage {
+        type = PipelineStage.PIPELINE_CONFIG_TYPE
+        name = "deploy"
+        status = ExecutionStatus.TERMINAL
+        context = ["kato.tasks": katoTasks]
+      }
+      status = ExecutionStatus.TERMINAL
+    }
 
     repo.retrievePipeline(_) >> pipeline
 

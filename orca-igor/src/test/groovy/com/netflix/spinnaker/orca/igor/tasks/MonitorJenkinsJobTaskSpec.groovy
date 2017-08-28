@@ -38,7 +38,7 @@ class MonitorJenkinsJobTaskSpec extends Specification {
   MonitorJenkinsJobTask task = new MonitorJenkinsJobTask(buildArtifactFilter: buildArtifactFilter)
 
   @Shared
-  Pipeline pipeline = new Pipeline()
+  Pipeline pipeline = new Pipeline("orca")
 
   @Unroll
   def "should return #taskStatus if job is #jobState"() {

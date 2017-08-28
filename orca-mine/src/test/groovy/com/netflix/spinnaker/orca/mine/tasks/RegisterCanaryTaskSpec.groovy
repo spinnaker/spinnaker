@@ -34,7 +34,7 @@ class RegisterCanaryTaskSpec extends Specification {
 
   def 'canary registration'() {
     setup:
-    def pipeline = new Pipeline(application: 'foo')
+    def pipeline = new Pipeline('foo')
 
     def canaryStageId = UUID.randomUUID().toString()
     def parentStageId = UUID.randomUUID().toString()
@@ -131,7 +131,7 @@ class RegisterCanaryTaskSpec extends Specification {
   void "should set stage timeout to #expectedTimeoutHours hours based on a lifetime of #lifetimeHours hours and warmup of #warmupMinutes minutes"() {
 
     given:
-    def pipeline = new Pipeline(application: 'foo')
+    def pipeline = new Pipeline('foo')
     def deployCanaryStage = new Stage<>(pipeline, DeployCanaryStage.PIPELINE_CONFIG_TYPE, [canary: canary, deployedClusterPairs: [:]])
     def parentStageId = UUID.randomUUID().toString()
     deployCanaryStage.parentStageId = parentStageId

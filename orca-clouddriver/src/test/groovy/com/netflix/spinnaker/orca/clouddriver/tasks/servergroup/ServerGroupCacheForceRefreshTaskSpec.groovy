@@ -21,7 +21,6 @@ import java.util.concurrent.TimeUnit
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverCacheService
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverCacheStatusService
-import com.netflix.spinnaker.orca.pipeline.model.Stage
 import retrofit.client.Response
 import retrofit.mime.TypedString
 import spock.lang.Specification
@@ -29,12 +28,13 @@ import spock.lang.Subject
 import spock.lang.Unroll
 import static com.netflix.spinnaker.orca.ExecutionStatus.RUNNING
 import static com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED
+import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
 
 class ServerGroupCacheForceRefreshTaskSpec extends Specification {
 
   @Subject
   def task = new ServerGroupCacheForceRefreshTask(objectMapper: new ObjectMapper())
-  def stage = new Stage<>(type: "whatever")
+  def stage = stage()
 
   def deployConfig = [
     "cloudProvider"       : "aws",

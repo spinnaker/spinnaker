@@ -25,7 +25,7 @@ import spock.lang.Unroll
 
 class AbstractWaitForInstanceHealthChangeTaskSpec extends Specification {
   @Shared
-  Pipeline pipeline = new Pipeline()
+  Pipeline pipeline = new Pipeline("orca")
 
   @Unroll
   void 'should be #expectedResult for #instanceDetails with #interestingHealthProviderNames relevant health providers (WaitForDownInstances)'() {

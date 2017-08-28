@@ -18,10 +18,10 @@ package com.netflix.spinnaker.orca.front50.tasks
 
 import com.netflix.spinnaker.orca.front50.DependentPipelineStarter
 import com.netflix.spinnaker.orca.front50.Front50Service
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
-import com.netflix.spinnaker.orca.pipeline.model.Stage
 import spock.lang.Specification
 import spock.lang.Subject
+import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
+import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
 
 class StartPipelineTaskSpec extends Specification {
 
@@ -29,54 +29,60 @@ class StartPipelineTaskSpec extends Specification {
   DependentPipelineStarter dependentPipelineStarter = Stub(DependentPipelineStarter)
   @Subject
   StartPipelineTask task = new StartPipelineTask(front50Service: front50Service,
-                                                 dependentPipelineStarter: dependentPipelineStarter)
+    dependentPipelineStarter: dependentPipelineStarter)
 
   def "should trigger the dependent pipeline with the correct context and parentPipelineStageId"() {
     given:
-      def pipelineConfig = [id: "testStrategyId", name: "testStrategy"]
-      1 * front50Service.getStrategies(_) >> [pipelineConfig]
-      def stage = new Stage<>(new Pipeline(), "whatever", [
-          pipelineId        : "testStrategyId",
-          pipelineParameters: [
-              strategy: true,
-              zone    : "north-pole-1",
-          ],
-          deploymentDetails : [
-              [
-                  ami      : "testAMI",
-                  imageName: "testImageName",
-                  imageId  : "testImageId",
-                  zone     : "north-pole-1",
-              ]
-          ],
-          user              : "testUser"
-      ])
-      def gotContext
-      def parentPipelineStageId
+    def pipelineConfig = [id: "testStrategyId", application: "orca", name: "testStrategy"]
+    1 * front50Service.getStrategies(_) >> [pipelineConfig]
+    def stage = stage {
+      type = "whatever"
+      context = [
+        pipelineId        : "testStrategyId",
+        pipelineParameters: [
+          strategy: true,
+          zone    : "north-pole-1",
+        ],
+        deploymentDetails : [
+          [
+            ami      : "testAMI",
+            imageName: "testImageName",
+            imageId  : "testImageId",
+            zone     : "north-pole-1",
+          ]
+        ],
+        user              : "testUser"
+      ]
+    }
+    def gotContext
+    def parentPipelineStageId
 
     when:
-      def result = task.execute(stage)
+    def result = task.execute(stage)
 
     then:
-      dependentPipelineStarter.trigger(*_) >> {
-        gotContext = it[3] // 3rd arg is context.
-        parentPipelineStageId = it[4]
-        return [id: "testPipelineId"]
+    dependentPipelineStarter.trigger(*_) >> {
+      gotContext = it[3] // 3rd arg is context.
+      parentPipelineStageId = it[4]
+      return pipeline {
+        id = "testPipelineId"
+        application = "orca"
       }
-      gotContext == [
-          strategy         : true,
-          zone             : "north-pole-1",
-          amiName          : "testAMI",
-          imageId          : "testImageId",
-          deploymentDetails: [
-              [
-                  ami      : "testAMI",
-                  imageName: "testImageName",
-                  imageId  : "testImageId",
-                  zone     : "north-pole-1",
-              ]
-          ]
+    }
+    gotContext == [
+      strategy         : true,
+      zone             : "north-pole-1",
+      amiName          : "testAMI",
+      imageId          : "testImageId",
+      deploymentDetails: [
+        [
+          ami      : "testAMI",
+          imageName: "testImageName",
+          imageId  : "testImageId",
+          zone     : "north-pole-1",
+        ]
       ]
-      parentPipelineStageId == stage.id
+    ]
+    parentPipelineStageId == stage.id
   }
 }

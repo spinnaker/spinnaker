@@ -37,7 +37,7 @@ class OpenstackSecurityGroupUpserterSpec extends Specification {
       region     : 'west',
       credentials: 'cred'
     ]
-    def stage = new Stage<>(new Pipeline(), 'whatever', context)
+    def stage = new Stage<>(new Pipeline("orca"), 'whatever', context)
 
     when:
     def results = upserter.getOperationContext(stage)

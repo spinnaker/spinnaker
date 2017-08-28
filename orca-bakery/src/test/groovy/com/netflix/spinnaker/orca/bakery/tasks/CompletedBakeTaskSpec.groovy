@@ -28,13 +28,14 @@ import rx.Observable
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
+import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
 import static java.net.HttpURLConnection.HTTP_NOT_FOUND
 
 class CompletedBakeTaskSpec extends Specification {
 
   @Subject task = new CompletedBakeTask()
 
-  @Shared Pipeline pipeline = new Pipeline()
+  @Shared Pipeline pipeline = pipeline()
 
   @Shared notFoundError = RetrofitError.httpError(
     null,

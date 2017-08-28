@@ -20,7 +20,6 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.InstanceService
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import retrofit.RetrofitError
 import retrofit.client.Client
@@ -29,6 +28,7 @@ import retrofit.mime.TypedString
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
+import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
 
 class MonitorQuipTaskSpec extends Specification {
 
@@ -43,9 +43,9 @@ class MonitorQuipTaskSpec extends Specification {
   @Unroll
   def "check different success statuses, servers return #status expect #executionStatus"() {
     given:
-    def pipe = Pipeline.builder()
-      .withApplication("foo")
-      .build()
+    def pipe = pipeline {
+      application = "foo"
+    }
     def stage = new Stage<>(pipe, 'monitorQuip', [:])
     stage.context.instances = instances
     stage.context.taskIds = taskIds
@@ -80,9 +80,9 @@ class MonitorQuipTaskSpec extends Specification {
   @Unroll
   def "check different failure statuses, servers return #status, expect exception"() {
     given:
-    def pipe = Pipeline.builder()
-      .withApplication("foo")
-      .build()
+    def pipe = pipeline {
+      application = "foo"
+    }
     def stage = new Stage<>(pipe, 'monitorQuip', [:])
     stage.context.instances = instances
     stage.context.taskIds = taskIds
@@ -112,9 +112,9 @@ class MonitorQuipTaskSpec extends Specification {
   @Unroll
   def "servers return non-200 responses"() {
     given:
-    def pipe = Pipeline.builder()
-      .withApplication("foo")
-      .build()
+    def pipe = pipeline {
+      application = "foo"
+    }
     def stage = new Stage<>(pipe, 'monitorQuip', [:])
     stage.context.instances = instances
     stage.context.taskIds = taskIds
@@ -138,9 +138,9 @@ class MonitorQuipTaskSpec extends Specification {
 
   def "servers return bad data"() {
     given:
-    def pipe = Pipeline.builder()
-      .withApplication("foo")
-      .build()
+    def pipe = pipeline {
+      application = "foo"
+    }
     def stage = new Stage<>(pipe, 'monitorQuip', [:])
     stage.context.instances = instances
     stage.context.taskIds = taskIds
@@ -165,9 +165,9 @@ class MonitorQuipTaskSpec extends Specification {
   @Unroll
   def "missing configuration"() {
     given:
-    def pipe = Pipeline.builder()
-      .withApplication("foo")
-      .build()
+    def pipe = pipeline {
+      application = "foo"
+    }
     def stage = new Stage<>(pipe, 'monitorQuip', [:])
     stage.context.instances = instances
     stage.context.taskIds = taskIds

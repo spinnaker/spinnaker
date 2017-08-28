@@ -14,17 +14,16 @@
  * limitations under the License.
  */
 
-
 package com.netflix.spinnaker.orca.applications.tasks
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.front50.model.Application
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
-import com.netflix.spinnaker.orca.pipeline.model.Stage
 import spock.lang.Specification
 import spock.lang.Subject
+import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
+import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
 
 class DeleteApplicationTaskSpec extends Specification {
   @Subject
@@ -33,9 +32,15 @@ class DeleteApplicationTaskSpec extends Specification {
   def config = [
     account    : "test",
     application: [
-      "name" : "application"
+      "name": "application"
     ]
   ]
+  def pipeline = pipeline {
+    stage {
+      type = "DeleteApplication"
+      context = config
+    }
+  }
 
   void "should delete global application if it was only associated with a single account"() {
     given:
@@ -47,7 +52,7 @@ class DeleteApplicationTaskSpec extends Specification {
     }
 
     when:
-    def taskResult = task.execute(new Stage<>(new Pipeline(), "DeleteApplication", config))
+    def taskResult = task.execute(pipeline.stages.first())
 
     then:
     taskResult.status == ExecutionStatus.SUCCEEDED
@@ -64,7 +69,7 @@ class DeleteApplicationTaskSpec extends Specification {
     }
 
     when:
-    def taskResult = task.execute(new Stage<>(new Pipeline(), "DeleteApplication", config))
+    def taskResult = task.execute(pipeline.stages.first())
 
     then:
     taskResult.context.previousState == application

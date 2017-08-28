@@ -28,7 +28,7 @@ import spock.lang.Subject
 
 class CloneServerGroupTaskSpec extends Specification {
   @Subject task = new CloneServerGroupTask()
-  def stage = new Stage<>(new Pipeline(), "cloneServerGroup")
+  def stage = new Stage<>(new Pipeline("orca"), "cloneServerGroup")
   def mapper = OrcaObjectMapper.newInstance()
   def taskId = new TaskId(UUID.randomUUID().toString())
 

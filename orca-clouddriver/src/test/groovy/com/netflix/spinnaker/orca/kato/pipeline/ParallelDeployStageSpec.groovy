@@ -25,7 +25,7 @@ class ParallelDeployStageSpec extends Specification {
   @Unroll
   def "should build contexts corresponding to cluster configuration(s)"() {
     given:
-    def bakeStage = new Stage<>(new Pipeline(), "deploy", "Deploy!", stageContext)
+    def bakeStage = new Stage<>(new Pipeline("orca"), "deploy", "Deploy!", stageContext)
     def builder = new ParallelDeployStage()
 
     when:
@@ -48,7 +48,7 @@ class ParallelDeployStageSpec extends Specification {
   @Unroll
   def "should return stage name regardless of whether parallel flows are present"() {
     given:
-    def stage = new Stage<>(new Pipeline(), "type", stageName, [:])
+    def stage = new Stage<>(new Pipeline("orca"), "type", stageName, [:])
 
     expect:
     new ParallelDeployStage().parallelStageName(stage, hasParallelFlows) == expectedStageName

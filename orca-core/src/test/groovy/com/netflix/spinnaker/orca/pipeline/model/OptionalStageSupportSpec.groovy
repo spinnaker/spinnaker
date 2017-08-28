@@ -31,7 +31,7 @@ class OptionalStageSupportSpec extends Specification {
   @Unroll
   def "should support expression-based optionality #desc"() {
     given:
-    def pipeline = new Pipeline()
+    def pipeline = new Pipeline("orca")
     pipeline.trigger.parameters = [
         "p1": "v1"
     ]
@@ -66,7 +66,7 @@ class OptionalStageSupportSpec extends Specification {
   @Unroll
   def "should check optionality of parent stages"() {
     given:
-    def pipeline = new Pipeline()
+    def pipeline = new Pipeline("orca")
     pipeline.trigger.parameters = [
         "p1": "v1"
     ]

@@ -54,7 +54,7 @@ class MonitorCanaryTaskSpec extends Specification {
       ],
       status: resultStatus
     ]
-    def stage = new Stage<>(new Pipeline(application: "foo"), "canary", [canary: canaryConf])
+    def stage = new Stage<>(new Pipeline("foo"), "canary", [canary: canaryConf])
 
     when:
     TaskResult result = task.execute(stage)
@@ -96,7 +96,7 @@ class MonitorCanaryTaskSpec extends Specification {
       ]
     ]
     def canaryStageId = UUID.randomUUID().toString()
-    def stage = new Stage<>(new Pipeline(application: "foo"), "canary", [
+    def stage = new Stage<>(new Pipeline("foo"), "canary", [
       canaryStageId: canaryStageId,
       canary: canaryConf,
       scaleUp: [
@@ -166,7 +166,7 @@ class MonitorCanaryTaskSpec extends Specification {
       ]
     ]
     def canaryStageId = UUID.randomUUID().toString()
-    def stage = new Stage<>(new Pipeline(application: "foo"), "canary", [
+    def stage = new Stage<>(new Pipeline("foo"), "canary", [
       canaryStageId: canaryStageId,
       canary: canaryConf,
       deployedClusterPairs: [[

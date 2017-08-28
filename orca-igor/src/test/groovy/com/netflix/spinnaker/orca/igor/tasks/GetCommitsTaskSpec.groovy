@@ -44,7 +44,7 @@ class GetCommitsTaskSpec extends Specification {
   Front50Service front50Service = Mock(Front50Service)
 
   @Shared
-  Pipeline pipeline = new Pipeline()
+  Pipeline pipeline = new Pipeline("orca")
 
   ObjectMapper getObjectMapper() {
     return new ObjectMapper()
@@ -55,7 +55,7 @@ class GetCommitsTaskSpec extends Specification {
     task.buildService = null
 
     when:
-    def result = task.execute(new Stage<>(new Pipeline(), ""))
+    def result = task.execute(new Stage<>(new Pipeline("orca"), ""))
 
     then:
     0 * _

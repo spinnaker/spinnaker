@@ -32,7 +32,7 @@ class PipelineStageSpec extends Specification {
   @Unroll
   def "should cancel child pipeline (if started)"() {
     given:
-    def stage = new Stage<>(new Pipeline(), "pipeline", stageContext)
+    def stage = new Stage<>(new Pipeline("orca"), "pipeline", stageContext)
 
     when:
     pipelineStage.cancel(stage)

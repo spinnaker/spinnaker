@@ -27,6 +27,7 @@ import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
+import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
 import static java.util.UUID.randomUUID
 
 class MonitorBakeTaskSpec extends Specification {
@@ -35,7 +36,7 @@ class MonitorBakeTaskSpec extends Specification {
   MonitorBakeTask task = new MonitorBakeTask()
 
   @Shared
-  Pipeline pipeline = new Pipeline()
+  Pipeline pipeline = pipeline()
 
   @Unroll
   def "should return #taskStatus if bake is #bakeState"() {

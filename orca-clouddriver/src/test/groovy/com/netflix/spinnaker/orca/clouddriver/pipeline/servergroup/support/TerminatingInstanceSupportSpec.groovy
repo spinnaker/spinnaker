@@ -33,7 +33,7 @@ class TerminatingInstanceSupportSpec extends Specification {
   @Unroll
   def "should lookup instances by server group name"() {
     given:
-      def stage = new Stage<>(new Pipeline(), "whatever", [
+    def stage = new Stage<>(new Pipeline("orca"), "whatever", [
           credentials    : "creds",
           region         : "north-pole",
           serverGroupName: "santa-claus"
@@ -62,7 +62,7 @@ class TerminatingInstanceSupportSpec extends Specification {
   @Unroll
   def "should lookup instances by searching"() {
     given:
-    def stage = new Stage<>(new Pipeline(), "whatever", stageMods)
+    def stage = new Stage<>(new Pipeline("orca"), "whatever", stageMods)
 
 
     when:

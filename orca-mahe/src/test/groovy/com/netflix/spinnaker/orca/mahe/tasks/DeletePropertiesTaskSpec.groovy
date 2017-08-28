@@ -50,7 +50,7 @@ class DeletePropertiesTaskSpec extends Specification {
   @IgnoreRest
   def "delete a single new persistent property"() {
     given:
-    def pipeline = new Pipeline(application: 'foo')
+    def pipeline = new Pipeline('foo')
     def scope = [
       env: "test",
       appIdList: ["foo"],

@@ -67,7 +67,7 @@ class ResizeAsgStageSpec extends Specification {
     setup:
     def config = [asgName    : "testapp-asg-v000", regions: ["us-west-1", "us-east-1"], capacity: [min: 0, max: 0, desired: 0],
                   credentials: "test"]
-    def stage = new Stage<>(new Pipeline(), "resizeAsg", config)
+    def stage = new Stage<>(new Pipeline("orca"), "resizeAsg", config)
 
     when:
     stageBuilder.buildTaskGraph(stage)
@@ -126,7 +126,7 @@ class ResizeAsgStageSpec extends Specification {
     setup:
     def config = [cluster : "testapp-asg", target: target, regions: ["us-west-1", "us-east-1"],
                   capacity: [min: 0, max: 0, desired: 0], credentials: "test"]
-    def stage = new Stage<>(new Pipeline(), "resizeAsg", config)
+    def stage = new Stage<>(new Pipeline("orca"), "resizeAsg", config)
 
     when:
     def syntheticStages = stageBuilder.aroundStages(stage)
@@ -168,7 +168,7 @@ class ResizeAsgStageSpec extends Specification {
     setup:
     def config = [cluster : "testapp-asg", target: target, regions: ["us-east-1"],
                   capacity: [min: 0, max: 0, desired: 0], credentials: "test"]
-    def stage = new Stage<>(new Pipeline(), "resizeAsg", config)
+    def stage = new Stage<>(new Pipeline("orca"), "resizeAsg", config)
 
     when:
     def syntheticStages = stageBuilder.aroundStages(stage)

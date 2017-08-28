@@ -34,7 +34,7 @@ class ModifyAwsScalingProcessStageSpec extends Specification {
     def task = new ModifyAwsScalingProcessStage.WaitForScalingProcess(oortHelper: oortHelper)
 
     when:
-    def taskResult = task.execute(new Stage<>(new Pipeline(), "", "", [
+    def taskResult = task.execute(new Stage<>(new Pipeline("orca"), "", "", [
       credentials: "test",
       region     : "us-east-1",
       asgName    : "test-asg",
@@ -94,7 +94,7 @@ class ModifyAwsScalingProcessStageSpec extends Specification {
     ]
 
     when:
-    def stageData = new Stage<>(new Pipeline(), "", "", context).mapTo(
+    def stageData = new Stage<>(new Pipeline("orca"), "", "", context).mapTo(
       ModifyAwsScalingProcessStage.WaitForScalingProcess.StageData
     )
 

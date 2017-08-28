@@ -49,7 +49,7 @@ class AbstractDeployStrategyStageSpec extends Specification {
       noStrategy = noStrat
     }
 
-    Stage stage = new Stage<>(new Pipeline(), "whatever", [strategy: specifiedStrategy])
+    Stage stage = new Stage<>(new Pipeline("orca"), "whatever", [strategy: specifiedStrategy])
 
     when:
     def tasks = testStage.buildTaskGraph(stage)

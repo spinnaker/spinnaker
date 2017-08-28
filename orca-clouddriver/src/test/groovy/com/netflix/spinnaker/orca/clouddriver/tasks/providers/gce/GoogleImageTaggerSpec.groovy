@@ -37,7 +37,7 @@ class GoogleImageTaggerSpec extends ImageTaggerSpec {
   @Unroll
   def "should throw exception if image does not exist"() {
     given:
-    def pipeline = new Pipeline()
+    def pipeline = new Pipeline("orca")
 
     def stage1 = new Stage<>(pipeline, "", [
       imageId      : imageId,
@@ -51,7 +51,7 @@ class GoogleImageTaggerSpec extends ImageTaggerSpec {
     stage1.refId = stage1.id
     stage2.requisiteStageRefIds = [stage1.refId]
 
-    pipeline.stages = [stage1, stage2]
+    pipeline.stages << stage1 << stage2
 
     and:
     oortService.findImage("gce", "my-gce-image", null, null, null) >> { [] }
@@ -71,7 +71,7 @@ class GoogleImageTaggerSpec extends ImageTaggerSpec {
 
   def "should build upsertImageTags operation"() {
     given:
-    def stage = new Stage<>(new Orchestration(), "", [
+    def stage = new Stage<>(new Orchestration("orca"), "", [
       account   : "my-google-account",
       imageNames: ["my-gce-image"],
       tags      : [

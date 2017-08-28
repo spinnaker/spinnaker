@@ -37,7 +37,7 @@ class PreconfiguredWebhookStageSpec extends Specification {
 
   def "Context should be taken from PreconfiguredWebhookProperties"() {
     given:
-    def stage = new Stage<Pipeline>(new Pipeline(), "webhook_1", [:])
+    def stage = new Stage<Pipeline>(new Pipeline("orca"), "webhook_1", [:])
 
     when:
     preconfiguredWebhookStage.taskGraph(stage, builder)
@@ -62,7 +62,7 @@ class PreconfiguredWebhookStageSpec extends Specification {
 
   def "Existing context should be preserved"() {
     given:
-    def stage = new Stage<Pipeline>(new Pipeline(), "webhook_1", [
+    def stage = new Stage<Pipeline>(new Pipeline("orca"), "webhook_1", [
       url: "a",
       customHeaders: ["header": ["value1"]],
       method: HttpMethod.POST,

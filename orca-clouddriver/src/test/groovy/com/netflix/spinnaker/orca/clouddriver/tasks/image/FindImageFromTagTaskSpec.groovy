@@ -9,7 +9,7 @@ import spock.lang.Subject
 class FindImageFromTagTaskSpec extends Specification {
 
   def imageFinder = Mock(ImageFinder)
-  Stage stage = new Stage<>(new Pipeline(), "", [packageName: 'myPackage', tags: ['foo':'bar']])
+  Stage stage = new Stage<>(new Pipeline("orca"), "", [packageName: 'myPackage', tags: ['foo': 'bar']])
 
   @Subject
   def task = new FindImageFromTagsTask(imageFinders: [imageFinder])

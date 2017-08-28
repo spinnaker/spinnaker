@@ -48,7 +48,7 @@ class CaptureInstanceUptimeTaskSpec extends Specification {
       }
     }
     task.instanceUptimeCommand = Mock(InstanceUptimeCommand)
-    def stage = new Stage<>(new Pipeline(), "", [instanceIds: ["1", "2", "3"]])
+    def stage = new Stage<>(new Pipeline("orca"), "", [instanceIds: ["1", "2", "3"]])
 
     when:
     def result = task.execute(stage)

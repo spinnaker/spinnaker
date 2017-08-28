@@ -16,40 +16,46 @@
 
 package com.netflix.spinnaker.orca.notifications.scheduling
 
-import redis.clients.jedis.ScanParams
-import redis.clients.jedis.ScanResult
-
 import java.util.concurrent.atomic.AtomicInteger
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.pipeline.model.Execution
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
-import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.model.Task
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import redis.clients.jedis.Jedis
+import redis.clients.jedis.ScanParams
+import redis.clients.jedis.ScanResult
 import redis.clients.util.Pool
 import spock.lang.Specification
+import spock.lang.Unroll
+import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
+import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
 
 class TopApplicationExecutionCleanupPollingNotificationAgentSpec extends Specification {
+  @Unroll
   void "filter should only consider SUCCEEDED executions"() {
     given:
     def filter = new TopApplicationExecutionCleanupPollingNotificationAgent().filter
 
     expect:
-    ExecutionStatus.values().each {
-      def stage = new Stage<>(new Pipeline(), "")
-      stage.status = it
+    ExecutionStatus.values().each { s ->
+      def pipeline = pipeline {
+        stage {
+          status = s
+        }
+        status = s
+      }
 
-      filter.call(new Pipeline(stages: [stage])) == (it == ExecutionStatus.SUCCEEDED)
+      filter.call(pipeline) == (s == ExecutionStatus.SUCCEEDED)
     }
   }
 
   void "mapper should extract id, startTime, status, and pipelineConfigId"() {
     given:
-    def pipeline = new Pipeline()
-    pipeline.id = "ID1"
-    pipeline.pipelineConfigId = "P1"
-    pipeline.startTime = 1000
+    def pipeline = pipeline {
+      id = "ID1"
+      pipelineConfigId = "P1"
+      startTime = 1000
+    }
 
     and:
     def mapper = new TopApplicationExecutionCleanupPollingNotificationAgent().mapper
@@ -79,8 +85,7 @@ class TopApplicationExecutionCleanupPollingNotificationAgentSpec extends Specifi
       }
     }
     agent.executionRepository = Mock(ExecutionRepository) {
-      1 * retrieveOrchestrationsForApplication("app1", _) >> { return rx.Observable.from(orchestrations) }
-      0 * _
+      retrieveOrchestrationsForApplication("app1", _) >> rx.Observable.from(orchestrations)
     }
 
     when:
@@ -91,18 +96,19 @@ class TopApplicationExecutionCleanupPollingNotificationAgentSpec extends Specifi
   }
 
   private
-  static Collection<Execution> buildExecutions(AtomicInteger startTime, int count, String pipelineConfigId = null) {
+  static Collection<Execution> buildExecutions(AtomicInteger stageStartTime, int count, String configId = null) {
     (1..count).collect {
-      def stage = new Stage<>(new Pipeline(), "")
-      stage.startTime = startTime.incrementAndGet()
-      stage.status = ExecutionStatus.SUCCEEDED
-      stage.tasks = [new Task()]
-
-      def execution = new Pipeline(stages: [stage])
-      execution.id = stage.startTime as String
-      execution.pipelineConfigId = pipelineConfigId
-
-      execution
+      def time = stageStartTime.incrementAndGet()
+      pipeline {
+        id = time as String
+        stage {
+          startTime = time
+          status = ExecutionStatus.SUCCEEDED
+          tasks = [new Task()]
+        }
+        pipelineConfigId = configId
+        status = ExecutionStatus.SUCCEEDED
+      }
     }
   }
 }

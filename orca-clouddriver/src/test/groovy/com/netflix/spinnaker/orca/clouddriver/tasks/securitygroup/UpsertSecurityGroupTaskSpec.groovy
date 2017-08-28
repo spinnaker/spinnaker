@@ -53,7 +53,7 @@ class UpsertSecurityGroupTaskSpec extends Specification {
     given:
       KatoService katoService = Mock(KatoService)
       def task = new UpsertSecurityGroupTask(kato: katoService, securityGroupUpserters: [aUpserter, bUpserter])
-      def stage = new Stage<>(new Pipeline(), "whatever", [credentials: "abc", cloudProvider: cloudProvider])
+    def stage = new Stage<>(new Pipeline("orca"), "whatever", [credentials: "abc", cloudProvider: cloudProvider])
 
     when:
       def result = task.execute(stage)

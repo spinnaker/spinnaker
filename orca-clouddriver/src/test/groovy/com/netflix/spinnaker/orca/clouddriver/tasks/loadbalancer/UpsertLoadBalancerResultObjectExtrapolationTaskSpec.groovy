@@ -46,7 +46,7 @@ class UpsertLoadBalancerResultObjectExtrapolationTaskSpec extends Specification 
 
   void "should put extrapolate resulting DNS name from resultObjects"() {
     setup:
-    def pipeline = new Pipeline()
+    def pipeline = new Pipeline("orca")
     def stage = new Stage<>(pipeline, "whatever", ["kato.tasks": katoTasks, "kato.last.task.id": new TaskId("1")])
 
     when:

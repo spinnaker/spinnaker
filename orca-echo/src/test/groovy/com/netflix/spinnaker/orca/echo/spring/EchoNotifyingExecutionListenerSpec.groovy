@@ -73,7 +73,7 @@ class EchoNotifyingExecutionListenerSpec extends Specification {
 
   void "adds notifications to pipeline on beforeExecution"() {
     given:
-    Pipeline pipeline = new Pipeline(application: "myapp")
+    Pipeline pipeline = new Pipeline("myapp")
 
     when:
     echoListener.beforeExecution(null, pipeline)
@@ -87,7 +87,7 @@ class EchoNotifyingExecutionListenerSpec extends Specification {
 
   void "adds notifications to pipeline on afterExecution"() {
     given:
-    Pipeline pipeline = new Pipeline(application: "myapp")
+    Pipeline pipeline = new Pipeline("myapp")
 
     when:
     echoListener.afterExecution(null, pipeline, ExecutionStatus.TERMINAL, false)
@@ -101,7 +101,7 @@ class EchoNotifyingExecutionListenerSpec extends Specification {
 
   void "dedupes notifications"() {
     given:
-    Pipeline pipeline = new Pipeline(application: "myapp")
+    Pipeline pipeline = new Pipeline("myapp")
     def pipelineConfiguredNotification = [
       when   : ["pipeline.started", "pipeline.completed"],
       type   : "slack",
@@ -124,7 +124,7 @@ class EchoNotifyingExecutionListenerSpec extends Specification {
 
   void "handles case where no notifications are present"() {
     given:
-    Pipeline pipeline = new Pipeline(application: "myapp")
+    Pipeline pipeline = new Pipeline("myapp")
 
     when:
     echoListener.beforeExecution(null, pipeline)
@@ -138,7 +138,7 @@ class EchoNotifyingExecutionListenerSpec extends Specification {
 
   void "handles case where no application notifications are present"() {
     given:
-    Pipeline pipeline = new Pipeline(application: "myapp")
+    Pipeline pipeline = new Pipeline("myapp")
     def pipelineConfiguredNotification = [
       when   : ["pipeline.started", "pipeline.completed"],
       type   : "slack",

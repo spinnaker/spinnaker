@@ -34,7 +34,7 @@ class MonitorCanaryStageSpec extends Specification {
 
   def "should short-circuit if canary registered but execution not explicitly canceled"() {
     given:
-    def stage = new Stage<>(new Pipeline(), "pipelineStage", [
+    def stage = new Stage<>(new Pipeline("orca"), "pipelineStage", [
       canary: [id: "canaryId"]
     ])
 
@@ -51,7 +51,7 @@ class MonitorCanaryStageSpec extends Specification {
     given:
     def canaryStage = new Stage<Pipeline>()
     def canaryStageBuilder = Mock(CanaryStage)
-    def stage = new Stage<Pipeline>(new Pipeline(), "pipelineStage", [
+    def stage = new Stage<Pipeline>(new Pipeline("orca"), "pipelineStage", [
       canary: [id: "canaryId"]
     ])
 
@@ -71,7 +71,7 @@ class MonitorCanaryStageSpec extends Specification {
   }
 
   def "should raise exception if no upstream canary stage found"() {
-    def stage = new Stage<>(new Pipeline(), "pipelineStage", [
+    def stage = new Stage<>(new Pipeline("orca"), "pipelineStage", [
       canary: [id: "canaryId"]
     ])
 

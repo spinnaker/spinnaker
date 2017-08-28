@@ -39,7 +39,7 @@ class GoogleSecurityGroupUpserterSpec extends Specification {
           region     : "global",
           credentials: "abc",
       ]
-      def stage = new Stage<>(new Pipeline(), "whatever", ctx)
+    def stage = new Stage<>(new Pipeline("orca"), "whatever", ctx)
 
     when:
       def results = upserter.getOperationContext(stage)
@@ -74,7 +74,7 @@ class GoogleSecurityGroupUpserterSpec extends Specification {
         sourceRanges: [],
         ipIngress   : []
       ]
-      def stage = new Stage<>(new Pipeline(), "whatever", ctx)
+    def stage = new Stage<>(new Pipeline("orca"), "whatever", ctx)
       upserter = new GoogleSecurityGroupUpserter(mortService: mortService)
 
     when:
@@ -144,7 +144,7 @@ class GoogleSecurityGroupUpserterSpec extends Specification {
           ]
         ]
       ]
-      def stage = new Stage<>(new Pipeline(), "whatever", ctx)
+    def stage = new Stage<>(new Pipeline("orca"), "whatever", ctx)
       upserter = new GoogleSecurityGroupUpserter(mortService: mortService, objectMapper: OrcaObjectMapper.newInstance())
 
     when:

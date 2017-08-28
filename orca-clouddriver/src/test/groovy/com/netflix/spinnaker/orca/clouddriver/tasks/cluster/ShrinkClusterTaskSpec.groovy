@@ -51,7 +51,7 @@ class ShrinkClusterTaskSpec extends Specification {
   @Unroll
   def "stage context #desc"() {
     setup:
-    Stage orchestration = new Stage<>(new Orchestration(), 'test', context)
+    Stage orchestration = new Stage<>(new Orchestration("orca"), 'test', context)
     Map cluster = [serverGroups: serverGroups]
 
     when:
@@ -91,7 +91,7 @@ class ShrinkClusterTaskSpec extends Specification {
       shrinkToSize: shrinkToSize,
       retainLargerOverNewer: retainLargerOverNewer
     ]
-    def stage = new Stage<>(new Pipeline(), 'shrinkCluster', context)
+    def stage = new Stage<>(new Pipeline("orca"), 'shrinkCluster', context)
 
     when:
     def toDelete = task.filterServerGroups(stage, account, location, serverGroups)

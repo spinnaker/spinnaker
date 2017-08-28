@@ -30,7 +30,7 @@ import spock.lang.Subject
 
 class CreateWebhookTaskSpec extends Specification {
 
-  def pipeline = new Pipeline()
+  def pipeline = new Pipeline("orca")
 
   @Subject
   def createWebhookTask = new CreateWebhookTask()

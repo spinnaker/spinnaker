@@ -31,7 +31,7 @@ class StageStatusPropagationListenerSpec extends Specification {
   void "beforeTask #action as RUNNING when stage status is #stageStatus"() {
     given:
     def listener = new StageStatusPropagationListener()
-    def stage = new Stage<>(new Pipeline(), "test")
+    def stage = new Stage<>(new Pipeline("orca"), "test")
     def task = new Task()
 
     and:
@@ -66,7 +66,7 @@ class StageStatusPropagationListenerSpec extends Specification {
 
     and:
     def listener = new StageStatusPropagationListener()
-    def stage = new Stage<>(new Pipeline(), "test")
+    def stage = new Stage<>(new Pipeline("orca"), "test")
     stage.tasks = tasks
 
     when:

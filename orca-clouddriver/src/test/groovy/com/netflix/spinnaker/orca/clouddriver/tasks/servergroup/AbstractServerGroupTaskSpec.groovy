@@ -36,7 +36,7 @@ class AbstractServerGroupTaskSpec extends Specification {
 
   @Subject
     task = new TestServerGroupTask()
-  def stage = new Stage<>(new Pipeline(), "whatever")
+  def stage = new Stage<>(new Pipeline("orca"), "whatever")
   def taskId = new TaskId(UUID.randomUUID().toString())
 
   def stageContext = [

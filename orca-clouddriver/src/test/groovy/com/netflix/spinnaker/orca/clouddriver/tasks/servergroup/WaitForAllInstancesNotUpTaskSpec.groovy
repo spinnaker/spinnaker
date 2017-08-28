@@ -29,7 +29,7 @@ class WaitForAllInstancesNotUpTaskSpec extends Specification {
   @Unroll
   void "should succeed as #hasSucceeded based on instance providers #healthProviderNames for instances #instances"() {
     given:
-    def stage = new Stage<>(new Pipeline(), "")
+    def stage = new Stage<>(new Pipeline("orca"), "")
 
     expect:
     hasSucceeded == task.hasSucceeded(stage, [minSize: 0], instances, healthProviderNames)

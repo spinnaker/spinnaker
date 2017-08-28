@@ -38,7 +38,7 @@ class UpdateLaunchConfigTaskSpec extends Specification {
           region     : region,
           asgName    : asgName
       ]
-      def stage = new Stage<>(new Pipeline(), "whatever", taskConfig)
+    def stage = new Stage<>(new Pipeline("orca"), "whatever", taskConfig)
 
     when:
       def result = task.execute(stage)
@@ -63,7 +63,7 @@ class UpdateLaunchConfigTaskSpec extends Specification {
           ],
           amiName          : contextAmi
       ]
-      def stage = new Stage<>(new Pipeline(), "whatever", taskConfig)
+    def stage = new Stage<>(new Pipeline("orca"), "whatever", taskConfig)
 
     when:
       def result = task.execute(stage)
@@ -95,7 +95,7 @@ class UpdateLaunchConfigTaskSpec extends Specification {
               ["ami": "also-not-my-ami", "region": region, cloudProvider: "aws"]
           ]
       ]
-      def stage = new Stage<>(new Pipeline(), "whatever", taskConfig)
+    def stage = new Stage<>(new Pipeline("orca"), "whatever", taskConfig)
       stage.context.amiName = null
       stage.context.deploymentDetails = [
           ["ami": "not-my-ami", "region": region, cloudProvider: "aws"],
@@ -167,7 +167,7 @@ class UpdateLaunchConfigTaskSpec extends Specification {
           asgName    : asgName,
           amiName    : "ami-abcdef"
       ]
-      def stage = new Stage<>(new Pipeline(), "whatever", taskConfig)
+    def stage = new Stage<>(new Pipeline("orca"), "whatever", taskConfig)
 
     when:
       task.execute(stage)
@@ -201,7 +201,7 @@ class UpdateLaunchConfigTaskSpec extends Specification {
           foo          : "bar",
           cloudProvider: "abc"
       ]
-      def stage = new Stage<>(new Pipeline(), "whatever", taskConfig)
+    def stage = new Stage<>(new Pipeline("orca"), "whatever", taskConfig)
 
     when:
       task.execute(stage)

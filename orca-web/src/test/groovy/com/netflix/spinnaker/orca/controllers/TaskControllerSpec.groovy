@@ -21,7 +21,6 @@ import java.time.Instant
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.pipeline.PipelineStartTracker
-import com.netflix.spinnaker.orca.pipeline.model.Orchestration
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.model.Task
@@ -32,6 +31,8 @@ import org.springframework.mock.web.MockHttpServletResponse
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import spock.lang.Specification
+import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.orchestration
+import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
 import static java.time.ZoneOffset.UTC
 import static java.time.temporal.ChronoUnit.DAYS
 import static java.time.temporal.ChronoUnit.HOURS
@@ -88,8 +89,12 @@ class TaskControllerSpec extends Specification {
 
   void 'step names are properly translated'() {
     given:
-    executionRepository.retrieveOrchestrations() >> rx.Observable.from([new Orchestration(
-      id: "1", application: "covfefe", stages: [new Stage<>(type: "test", tasks: [new Task(name: 'jobOne'), new Task(name: 'jobTwo')])])])
+    executionRepository.retrieveOrchestrations() >> rx.Observable.from([orchestration {
+      id = "1"
+      application = "covfefe"
+      stages << new Stage<>(delegate, "test")
+      stages.first().tasks = [new Task(name: 'jobOne'), new Task(name: 'jobTwo')]
+    }])
 
     when:
     def response = mockMvc.perform(get('/tasks')).andReturn().response
@@ -102,10 +107,12 @@ class TaskControllerSpec extends Specification {
 
   void 'stage contexts are included for orchestrated tasks'() {
     setup:
-    def orchestration = new Orchestration(id: "1", application: "covfefe")
-    orchestration.stages = [
-      new Stage<>(orchestration, "OrchestratedType", ["customOutput": "variable"])
-    ]
+    def orchestration = orchestration {
+      id = "1"
+      application = "covfefe"
+      stages << new Stage<>(delegate, "OrchestratedType")
+      stages.first().context = [customOutput: "variable"]
+    }
 
     when:
     def response = mockMvc.perform(get('/tasks/1')).andReturn().response
@@ -142,12 +149,18 @@ class TaskControllerSpec extends Specification {
   void '/applications/{application}/tasks only returns un-started and tasks from the past two weeks, sorted newest first'() {
     given:
     def tasks = [
-      [id: "started-1", application: "covfefe", startTime: clock.instant().minus(daysOfExecutionHistory, DAYS).minus(1, HOURS).toEpochMilli(), id: 'too-old'] as Orchestration,
-      [id: "started-2", application: "covfefe", startTime: clock.instant().minus(daysOfExecutionHistory, DAYS).plus(1, HOURS).toEpochMilli(), id: 'not-too-old'] as Orchestration,
-      [id: "started-3", application: "covfefe", startTime: clock.instant().minus(1, DAYS).toEpochMilli(), id: 'pretty-new'] as Orchestration,
-      [id: 'not-started-1', application: "covfefe"] as Orchestration,
-      [id: 'not-started-2', application: "covfefe"] as Orchestration
-    ]
+      [id: "too-old", application: "covfefe", startTime: clock.instant().minus(daysOfExecutionHistory, DAYS).minus(1, HOURS).toEpochMilli()],
+      [id: "not-too-old", application: "covfefe", startTime: clock.instant().minus(daysOfExecutionHistory, DAYS).plus(1, HOURS).toEpochMilli()],
+      [id: "pretty-new", application: "covfefe", startTime: clock.instant().minus(1, DAYS).toEpochMilli()],
+      [id: 'not-started-1', application: "covfefe"],
+      [id: 'not-started-2', application: "covfefe"]
+    ].collect { config ->
+      orchestration {
+        id = config.id
+        application = config.application
+        startTime = config.startTime
+      }
+    }
     def app = 'test'
     executionRepository.retrieveOrchestrationsForApplication(app, _) >> rx.Observable.from(tasks)
 
@@ -163,8 +176,8 @@ class TaskControllerSpec extends Specification {
     given:
     def app = 'test'
     def pipelines = [
-      [pipelineConfigId: "1", id: "started-1", application: app, startTime: clock.instant().minus(daysOfExecutionHistory, DAYS).minus(2, HOURS).toEpochMilli(), id: 'old'],
-      [pipelineConfigId: "1", id: "started-2", application: app, startTime: clock.instant().minus(daysOfExecutionHistory, DAYS).plus(2, HOURS).toEpochMilli(), id: 'newer'],
+      [pipelineConfigId: "1", id: "old", application: app, startTime: clock.instant().minus(daysOfExecutionHistory, DAYS).minus(2, HOURS).toEpochMilli()],
+      [pipelineConfigId: "1", id: "newer", application: app, startTime: clock.instant().minus(daysOfExecutionHistory, DAYS).plus(2, HOURS).toEpochMilli()],
       [pipelineConfigId: "1", id: 'not-started', application: app],
       [pipelineConfigId: "1", id: 'also-not-started', application: app],
 
@@ -178,13 +191,23 @@ class TaskControllerSpec extends Specification {
 
     executionRepository.retrievePipelinesForPipelineConfigId("1", _) >> rx.Observable.from(pipelines.findAll {
       it.pipelineConfigId == "1"
-    }.collect {
-      new Pipeline(id: it.id, application: app, startTime: it.startTime, pipelineConfigId: it.pipelineConfigId)
+    }.collect { config ->
+      pipeline {
+        id = config.id
+        application = app
+        startTime = config.startTime
+        pipelineConfigId = config.pipelineConfigId
+      }
     })
     executionRepository.retrievePipelinesForPipelineConfigId("2", _) >> rx.Observable.from(pipelines.findAll {
       it.pipelineConfigId == "2"
-    }.collect {
-      new Pipeline(id: it.id, application: app, startTime: it.startTime, pipelineConfigId: it.pipelineConfigId)
+    }.collect { config ->
+      pipeline {
+        id = config.id
+        application = app
+        startTime = config.startTime
+        pipelineConfigId = config.pipelineConfigId
+      }
     })
     front50Service.getPipelines(app) >> [[id: "1"], [id: "2"]]
     front50Service.getStrategies(app) >> []
@@ -211,18 +234,33 @@ class TaskControllerSpec extends Specification {
 
     executionRepository.retrievePipelinesForPipelineConfigId("1", _) >> rx.Observable.from(pipelines.findAll {
       it.pipelineConfigId == "1"
-    }.collect {
-      new Pipeline(id: it.id, application: "covfefe", startTime: it.startTime, pipelineConfigId: it.pipelineConfigId)
+    }.collect { config ->
+      pipeline {
+        id = config.id
+        application = "covfefe"
+        startTime = config.startTime
+        pipelineConfigId = config.pipelineConfigId
+      }
     })
     executionRepository.retrievePipelinesForPipelineConfigId("2", _) >> rx.Observable.from(pipelines.findAll {
       it.pipelineConfigId == "2"
-    }.collect {
-      new Pipeline(id: it.id, application: "covfefe", startTime: it.startTime, pipelineConfigId: it.pipelineConfigId)
+    }.collect { config ->
+      pipeline {
+        id = config.id
+        application = "covfefe"
+        startTime = config.startTime
+        pipelineConfigId = config.pipelineConfigId
+      }
     })
     executionRepository.retrievePipelinesForPipelineConfigId("3", _) >> rx.Observable.from(pipelines.findAll {
       it.pipelineConfigId == "3"
-    }.collect {
-      new Pipeline(id: it.id, application: "covfefe", startTime: it.startTime, pipelineConfigId: it.pipelineConfigId)
+    }.collect { config ->
+      pipeline {
+        id = config.id
+        application = "covfefe"
+        startTime = config.startTime
+        pipelineConfigId = config.pipelineConfigId
+      }
     })
 
     when:
@@ -235,7 +273,7 @@ class TaskControllerSpec extends Specification {
 
   void 'should update existing stage context'() {
     given:
-    def pipeline = new Pipeline(id: "1", application: "covfefe")
+    def pipeline = new Pipeline("1", "covfefe")
     def pipelineStage = new Stage<>(pipeline, "test", [value: "1"])
     pipelineStage.id = "s1"
     pipeline.stages.add(pipelineStage)

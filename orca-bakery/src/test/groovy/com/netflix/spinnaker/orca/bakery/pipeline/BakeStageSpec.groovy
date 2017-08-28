@@ -17,21 +17,26 @@
 package com.netflix.spinnaker.orca.bakery.pipeline
 
 import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.time.TimeCategory
 import spock.lang.Specification
 import spock.lang.Unroll
+import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
+import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
 
 class BakeStageSpec extends Specification {
   @Unroll
   def "should build contexts corresponding to locally specified bake region and all target deploy regions"() {
     given:
-    def pipelineBuilder = new Pipeline().builder()
-    deployAvailabilityZones?.each {
-      pipelineBuilder = pipelineBuilder.withStage("deploy", "Deploy!", it)
+    def pipeline = pipeline {
+      deployAvailabilityZones?.each { zones ->
+        stage {
+          type = "deploy"
+          name = "Deploy!"
+          context = zones
+        }
+      }
     }
-    def pipeline = pipelineBuilder.build()
 
     def bakeStage = new Stage<>(pipeline, "bake", "Bake!", bakeStageContext)
     def builder = Spy(BakeStage, {
@@ -75,21 +80,37 @@ class BakeStageSpec extends Specification {
 
   def "should include per-region stage contexts as global deployment details"() {
     given:
-    def pipeline = Pipeline.builder()
-      .withStage(BakeStage.PIPELINE_CONFIG_TYPE, "Bake", ["ami": 1])
-      .withStage(BakeStage.PIPELINE_CONFIG_TYPE, "Bake", ["ami": 2])
-      .withStage(BakeStage.PIPELINE_CONFIG_TYPE, "Bake", ["ami": 3])
-      .build()
-
-    def pipelineStage = new Stage<>(pipeline, "bake")
-    pipeline.stages.each {
-      it.status = ExecutionStatus.RUNNING
-      it.parentStageId = pipelineStage.parentStageId
-      it.id = pipelineStage.parentStageId
+    def pipeline = pipeline {
+      stage {
+        id = "1"
+        type = "bake"
+        status = ExecutionStatus.RUNNING
+      }
+      stage {
+        parentStageId = "1"
+        type = "bake"
+        name = "Bake"
+        context = ["ami": 1]
+        status = ExecutionStatus.RUNNING
+      }
+      stage {
+        parentStageId = "1"
+        type = "bake"
+        name = "Bake"
+        context = ["ami": 2]
+        status = ExecutionStatus.RUNNING
+      }
+      stage {
+        parentStageId = "1"
+        type = "bake"
+        name = "Bake"
+        context = ["ami": 3]
+        status = ExecutionStatus.RUNNING
+      }
     }
 
     when:
-    def taskResult = new BakeStage.CompleteParallelBakeTask().execute(pipelineStage)
+    def taskResult = new BakeStage.CompleteParallelBakeTask().execute(pipeline.stageById("1"))
 
     then:
     taskResult.outputs == [
@@ -102,7 +123,10 @@ class BakeStageSpec extends Specification {
   @Unroll
   def "should return a different stage name when parallel flows are present"() {
     given:
-    def stage = new Stage<>(new Pipeline(), "type", stageName, [:])
+    def stage = stage {
+      type = "type"
+      name = stageName
+    }
 
     expect:
     new BakeStage().parallelStageName(stage, hasParallelFlows) == expectedStageName
@@ -113,9 +137,12 @@ class BakeStageSpec extends Specification {
     "Default" | true             || "Multi-region Bake"
   }
 
-  private static List<Map> deployAz(String cloudProvider, String prefix, String... regions) {
+  private
+  static List<Map> deployAz(String cloudProvider, String prefix, String... regions) {
     if (prefix == "clusters") {
-      return [[clusters: regions.collect { [cloudProvider: cloudProvider, availabilityZones: [(it): []]] }]]
+      return [[clusters: regions.collect {
+        [cloudProvider: cloudProvider, availabilityZones: [(it): []]]
+      }]]
     }
 
     return regions.collect {

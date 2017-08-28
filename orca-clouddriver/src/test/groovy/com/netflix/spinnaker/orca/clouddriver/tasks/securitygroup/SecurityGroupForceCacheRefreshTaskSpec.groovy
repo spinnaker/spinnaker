@@ -17,13 +17,13 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.securitygroup
 
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverCacheService
-import com.netflix.spinnaker.orca.pipeline.model.Stage
 import spock.lang.Specification
 import spock.lang.Subject
+import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
 
 class SecurityGroupForceCacheRefreshTaskSpec extends Specification {
   @Subject task = new SecurityGroupForceCacheRefreshTask()
-  def stage = new Stage<>(type: "whatever")
+  def stage = stage()
 
   def config = [
     name       : "sg-12345a",

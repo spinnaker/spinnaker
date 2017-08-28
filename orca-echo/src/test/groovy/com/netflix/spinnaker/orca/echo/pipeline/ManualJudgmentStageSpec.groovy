@@ -31,7 +31,7 @@ class ManualJudgmentStageSpec extends Specification {
     def task = new WaitForManualJudgmentTask()
 
     when:
-    def result = task.execute(new Stage<>(new Pipeline(), "", context))
+    def result = task.execute(new Stage<>(new Pipeline("orca"), "", context))
 
     then:
     result.status == expectedStatus
@@ -52,7 +52,7 @@ class ManualJudgmentStageSpec extends Specification {
     def task = new WaitForManualJudgmentTask(echoService: Mock(EchoService))
 
     when:
-    def result = task.execute(new Stage<>(new Pipeline(), "", [notifications: [
+    def result = task.execute(new Stage<>(new Pipeline("orca"), "", [notifications: [
       new Notification(type: "email", address: "test@netflix.com"),
       new Notification(type: "hipchat", address: "Hipchat Channel"),
       new Notification(type: "sms", address: "11122223333"),
@@ -72,7 +72,7 @@ class ManualJudgmentStageSpec extends Specification {
     def task = new WaitForManualJudgmentTask(echoService: Mock(EchoService))
 
     when:
-    def result = task.execute(new Stage<>(new Pipeline(), "", [
+    def result = task.execute(new Stage<>(new Pipeline("orca"), "", [
       sendNotifications: sendNotifications,
       notifications: [
         new Notification(type: "email", address: "test@netflix.com", when: [ notificationState ])
@@ -120,7 +120,7 @@ class ManualJudgmentStageSpec extends Specification {
     def echoService = Mock(EchoService)
     def notification = new Notification(type: "sms", address: "111-222-3333")
 
-    def stage = new Stage<>(new Pipeline(), "")
+    def stage = new Stage<>(new Pipeline("orca"), "")
     stage.execution.id = "ID"
     stage.execution.application = "APPLICATION"
 
@@ -154,7 +154,7 @@ class ManualJudgmentStageSpec extends Specification {
   @Unroll
   void "should return modified authentication context"() {
     given:
-    def stage = new Stage<>(new Pipeline(), "", [
+    def stage = new Stage<>(new Pipeline("orca"), "", [
       judgmentStatus                : judgmentStatus,
       propagateAuthenticationContext: propagateAuthenticationContext
     ])

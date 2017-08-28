@@ -20,10 +20,10 @@ import com.netflix.spinnaker.orca.pipeline.model.Orchestration
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.CompileStatic
-import org.codehaus.groovy.runtime.typehandling.GroovyCastException
 import static groovy.lang.Closure.DELEGATE_FIRST
 import static java.lang.System.currentTimeMillis
 
+@CompileStatic
 class ExecutionBuilder {
 
   /**
@@ -32,7 +32,6 @@ class ExecutionBuilder {
    * @param builder used for customizing the pipeline.
    * @return a pipeline.
    */
-  @CompileStatic
   static Pipeline pipeline(
     @DelegatesTo(value = Pipeline, strategy = DELEGATE_FIRST)
       Closure builder = {}) {
@@ -52,7 +51,6 @@ class ExecutionBuilder {
    * @param builder used for customizing the orchestration.
    * @return an orchestration.
    */
-  @CompileStatic
   static Orchestration orchestration(
     @DelegatesTo(value = Orchestration, strategy = DELEGATE_FIRST)
       Closure builder = {}) {
@@ -67,30 +65,38 @@ class ExecutionBuilder {
   }
 
   /**
-   * Constructs and returns a {@link Stage} instance. This method is only valid
-   * in the context of a closure passed to {@link #pipeline}.
+   * Constructs and returns a {@link Stage} instance.
    *
    * @param builder used for customizing the stage.
    * @return a stage.
    */
-  @CompileStatic
   static Stage<Pipeline> stage(
     @DelegatesTo(value = Stage, strategy = DELEGATE_FIRST)
-      Closure builder) {
-    def stage = new Stage<Pipeline>()
+      Closure builder = {}) {
+    def stage = new Stage<>()
+    stage.type = "test"
 
-    try {
-      def pipeline = (builder.owner as Closure).delegate as Pipeline
-      stage.execution = pipeline
-      pipeline.stages << stage
+    def execution = findExecution(builder) ?: pipeline()
+    stage.execution = execution
+    execution.stages << stage
 
-      builder.delegate = stage
-      builder.resolveStrategy = DELEGATE_FIRST
-      builder()
+    builder.delegate = stage
+    builder.resolveStrategy = DELEGATE_FIRST
+    builder()
 
-      return stage
-    } catch (GroovyCastException _) {
-      throw new IllegalStateException("stage method must be used inside a pipeline / orchestration closure")
+    return stage
+  }
+
+  private static Pipeline findExecution(Closure closure) {
+    if (closure.owner instanceof Closure) {
+      def enclosingClosure = (closure.owner as Closure)
+      if (enclosingClosure.delegate instanceof Pipeline) {
+        return enclosingClosure.delegate as Pipeline
+      } else {
+        return findExecution(enclosingClosure)
+      }
+    } else {
+      return null
     }
   }
 

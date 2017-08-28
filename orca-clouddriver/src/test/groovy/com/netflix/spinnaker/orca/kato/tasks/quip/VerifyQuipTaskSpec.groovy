@@ -21,7 +21,6 @@ import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.InstanceService
 import com.netflix.spinnaker.orca.clouddriver.OortService
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import retrofit.RetrofitError
 import retrofit.client.Client
@@ -30,6 +29,7 @@ import retrofit.mime.TypedString
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
+import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
 
 class VerifyQuipTaskSpec extends Specification {
 
@@ -79,15 +79,15 @@ class VerifyQuipTaskSpec extends Specification {
 
   @Unroll
   def "missing configuration #app, #cluster, #account, #region,#healthProviders"() {
-    def pipe = Pipeline.builder()
-      .withApplication(app)
-      .build()
+    def pipe = pipeline {
+      application = app
+    }
     def stage = new Stage<>(pipe, 'verifyQuip', [
-      "clusterName" : cluster,
-      "account" : account,
-      "region" : region,
-      "application" : app,
-      "healthProviders" : healthProviders
+      "clusterName"    : cluster,
+      "account"        : account,
+      "region"         : region,
+      "application"    : app,
+      "healthProviders": healthProviders
     ])
 
     when:
@@ -97,24 +97,24 @@ class VerifyQuipTaskSpec extends Specification {
     thrown(RuntimeException)
 
     where:
-    app | cluster | account | region | healthProviders
-    null | "foo-test" | "test" | "us-west-2" | ['Discovery']
-    "foo" | null | "test" | "us-west-2" | ['Discovery']
-    "foo" | "foo-test" | null | "us-west-2" | ['Discovery']
-    "foo" | "foo-test" | "test" | null | ['Discovery']
-    "foo" | "foo-test" | "test" | "us-west-2" | null
+    app   | cluster    | account | region      | healthProviders
+    null  | "foo-test" | "test"  | "us-west-2" | ['Discovery']
+    "foo" | null       | "test"  | "us-west-2" | ['Discovery']
+    "foo" | "foo-test" | null    | "us-west-2" | ['Discovery']
+    "foo" | "foo-test" | "test"  | null        | ['Discovery']
+    "foo" | "foo-test" | "test"  | "us-west-2" | null
   }
 
   def "more than one asg"() {
-    def pipe = Pipeline.builder()
-      .withApplication(app)
-      .build()
+    def pipe = pipeline {
+      application = app
+    }
     def stage = new Stage<>(pipe, 'verifyQuip', [
-      "clusterName" : cluster,
-      "account" : account,
-      "region" : region,
-      "application" : app,
-      "healthProviders" : ['Discovery']
+      "clusterName"    : cluster,
+      "account"        : account,
+      "region"         : region,
+      "application"    : app,
+      "healthProviders": ['Discovery']
     ])
     Response oortResponse = new Response('http://oort', 500, 'WTF', [], new TypedString(oort))
 
@@ -134,15 +134,15 @@ class VerifyQuipTaskSpec extends Specification {
   }
 
   def "bad oort response"() {
-    def pipe = Pipeline.builder()
-      .withApplication(app)
-      .build()
+    def pipe = pipeline {
+      application = app
+    }
     def stage = new Stage<>(pipe, 'verifyQuip', [
-      "clusterName" : cluster,
-      "account" : account,
-      "region" : region,
-      "application" : app,
-      "healthProviders" : ['Discovery']
+      "clusterName"    : cluster,
+      "account"        : account,
+      "region"         : region,
+      "application"    : app,
+      "healthProviders": ['Discovery']
     ])
 
     when:
@@ -162,15 +162,15 @@ class VerifyQuipTaskSpec extends Specification {
 
   def "no server groups in cluster"() {
     given:
-    def pipe = Pipeline.builder()
-      .withApplication(app)
-      .build()
+    def pipe = pipeline {
+      application = app
+    }
     def stage = new Stage<>(pipe, 'verifyQuip', [
-      "clusterName" : cluster,
-      "account" : account,
-      "region" : region,
-      "application" : app,
-      "healthProviders" : ['Discovery']
+      "clusterName"    : cluster,
+      "account"        : account,
+      "region"         : region,
+      "application"    : app,
+      "healthProviders": ['Discovery']
     ])
 
     Response oortResponse = new Response('http://oort', 200, 'OK', [], new TypedString("{}"))
@@ -191,17 +191,17 @@ class VerifyQuipTaskSpec extends Specification {
     region = "eu-west-1"
   }
 
-    def "no instances in cluster"() {
+  def "no instances in cluster"() {
     given:
-    def pipe = Pipeline.builder()
-      .withApplication(app)
-      .build()
+    def pipe = pipeline {
+      application = app
+    }
     def stage = new Stage<>(pipe, 'verifyQuip', [
-      "clusterName" : cluster,
-      "account" : account,
-      "region" : region,
-      "application" : app,
-      "healthProviders" : ['Discovery']
+      "clusterName"    : cluster,
+      "account"        : account,
+      "region"         : region,
+      "application"    : app,
+      "healthProviders": ['Discovery']
     ])
 
     Response oortResponse = new Response('http://oort', 200, 'OK', [], new TypedString(oort))
@@ -215,7 +215,7 @@ class VerifyQuipTaskSpec extends Specification {
     !stage.context?.instances
     thrown(RuntimeException)
 
-     where:
+    where:
     app = 'foo'
     cluster = 'foo-test'
     account = 'test'
@@ -224,16 +224,16 @@ class VerifyQuipTaskSpec extends Specification {
 
   def "verifies at least one instance without quip"() {
     given:
-    def pipe = Pipeline.builder()
-      .withApplication(app)
-      .build()
+    def pipe = pipeline {
+      application = app
+    }
     def stage = new Stage<>(pipe, 'verifyQuip', [
-      "clusterName" : cluster,
-      "account" : account,
-      "region" : region,
-      "application" : app,
-      "healthProviders" : ['Discovery'],
-      "instances" : ["i-123" : ["hostName" : "http://foo.com"], "i-234" : ["hostName" : "http://foo2.com"] ]
+      "clusterName"    : cluster,
+      "account"        : account,
+      "region"         : region,
+      "application"    : app,
+      "healthProviders": ['Discovery'],
+      "instances"      : ["i-123": ["hostName": "http://foo.com"], "i-234": ["hostName": "http://foo2.com"]]
     ])
 
     Response oortResponse = new Response('http://oort', 200, 'OK', [], new TypedString(oort))
@@ -246,7 +246,9 @@ class VerifyQuipTaskSpec extends Specification {
     2 * task.createInstanceService(_) >> instanceService
     //1 * oortService.getCluster(app, account, cluster, 'aws') >> oortResponse
     1 * instanceService.listTasks() >> instanceResponse
-    1 * instanceService.listTasks() >> {throw new RetrofitError(null, null, null, null, null, null, null)}
+    1 * instanceService.listTasks() >> {
+      throw new RetrofitError(null, null, null, null, null, null, null)
+    }
     !result?.context
     thrown(RuntimeException)
 
@@ -261,16 +263,16 @@ class VerifyQuipTaskSpec extends Specification {
 
   def "verifies quip is running"() {
     given:
-    def pipe = Pipeline.builder()
-      .withApplication(app)
-      .build()
+    def pipe = pipeline {
+      application = app
+    }
     def stage = new Stage<>(pipe, 'verifyQuip', [
-      "clusterName" : cluster,
-      "account" : account,
-      "region" : region,
-      "application" : app,
-      "healthProviders" : ['Discovery'],
-      "instances" : ["i-123" : ["hostName" : "http://foo.com" ], "i-234" : ["hostName" : "http://foo2.com"] ]
+      "clusterName"    : cluster,
+      "account"        : account,
+      "region"         : region,
+      "application"    : app,
+      "healthProviders": ['Discovery'],
+      "instances"      : ["i-123": ["hostName": "http://foo.com"], "i-234": ["hostName": "http://foo2.com"]]
     ])
 
     //Response oortResponse = new Response('http://oort', 200, 'OK', [], new TypedString(oort))

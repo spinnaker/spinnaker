@@ -31,6 +31,7 @@ import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
+import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
 
 class TriggerQuipTaskSpec extends Specification {
 
@@ -49,9 +50,9 @@ class TriggerQuipTaskSpec extends Specification {
   String app = 'foo'
 
   @Shared
-  Pipeline pipe = Pipeline.builder()
-    .withApplication(app)
-    .build()
+  Pipeline pipe = pipeline {
+    application = app
+  }
 
   @Shared
   def versionStage = new Stage<>(pipe, "quickPatch", ["version": "1.2"]).with {

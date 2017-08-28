@@ -39,7 +39,7 @@ class AmazonImageFinderSpec extends Specification {
 
   def "should match most recently created image per region"() {
     given:
-    def stage = new Stage<>(new Pipeline(), "", [
+    def stage = new Stage<>(new Pipeline("orca"), "", [
       regions: ["us-west-1", "us-west-2"]
     ])
     def tags = [
@@ -98,7 +98,7 @@ class AmazonImageFinderSpec extends Specification {
 
   def "should skip images with incomplete information"() {
     given:
-    def stage = new Stage<>(new Pipeline(), "", [
+    def stage = new Stage<>(new Pipeline("orca"), "", [
       regions: ["us-west-2"]
     ])
     def tags = [

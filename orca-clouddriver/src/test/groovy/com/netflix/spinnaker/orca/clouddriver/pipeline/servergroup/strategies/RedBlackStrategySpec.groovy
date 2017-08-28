@@ -42,7 +42,7 @@ class RedBlackStrategySpec extends Specification {
               north: ["pole-1a"]
           ]
       ]
-      def stage = new Stage<>(new Pipeline(), "whatever", ctx)
+    def stage = new Stage<>(new Pipeline("orca"), "whatever", ctx)
       def strat = new RedBlackStrategy(shrinkClusterStage: shrinkClusterStage,
                                        scaleDownClusterStage: scaleDownClusterStage,
                                        disableClusterStage: disableClusterStage)
@@ -67,7 +67,7 @@ class RedBlackStrategySpec extends Specification {
 
     when:
       ctx.maxRemainingAsgs = 10
-      stage = new Stage<>(new Pipeline(), "whatever", ctx)
+    stage = new Stage<>(new Pipeline("orca"), "whatever", ctx)
       syntheticStages = strat.composeFlow(stage)
       beforeStages = syntheticStages.findAll { it.syntheticStageOwner == SyntheticStageOwner.STAGE_BEFORE }
       afterStages = syntheticStages.findAll { it.syntheticStageOwner == SyntheticStageOwner.STAGE_AFTER }
@@ -81,7 +81,7 @@ class RedBlackStrategySpec extends Specification {
 
     when:
       ctx.scaleDown = true
-      stage = new Stage<>(new Pipeline(), "whatever", ctx)
+    stage = new Stage<>(new Pipeline("orca"), "whatever", ctx)
       syntheticStages = strat.composeFlow(stage)
       beforeStages = syntheticStages.findAll { it.syntheticStageOwner == SyntheticStageOwner.STAGE_BEFORE }
       afterStages = syntheticStages.findAll { it.syntheticStageOwner == SyntheticStageOwner.STAGE_AFTER }
@@ -96,7 +96,7 @@ class RedBlackStrategySpec extends Specification {
 
     when:
       ctx.interestingHealthProviderNames = ["Google"]
-      stage = new Stage<>(new Pipeline(), "whatever", ctx)
+    stage = new Stage<>(new Pipeline("orca"), "whatever", ctx)
       syntheticStages = strat.composeFlow(stage)
       beforeStages = syntheticStages.findAll { it.syntheticStageOwner == SyntheticStageOwner.STAGE_BEFORE }
       afterStages = syntheticStages.findAll { it.syntheticStageOwner == SyntheticStageOwner.STAGE_AFTER }
