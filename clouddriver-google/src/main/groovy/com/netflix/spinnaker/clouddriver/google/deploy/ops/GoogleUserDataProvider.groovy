@@ -23,7 +23,6 @@ import groovy.transform.PackageScope
 import groovy.util.logging.Slf4j
 import org.springframework.stereotype.Component
 
-
 /**
  * Provides the common user data from a local file to be applied to all Google deployments.
  *
@@ -41,10 +40,11 @@ public class GoogleUserDataProvider {
                   BasicGoogleDeployDescription description,
                   GoogleNamedAccountCredentials credentials, String customUserData) {
     String userDataFile = credentials.getUserDataFile()
-    String rawUserData = getFileContents(userDataFile)
-    String commonUserData = replaceTokens(rawUserData, description, serverGroupName, instanceTemplateName)
+    List<String> rawUserData = getFileContents(userDataFile)
+    List<String> cleanedUserData = cleanUpUserData(rawUserData)
+    List<String> commonUserData = replaceTokens(cleanedUserData, description, serverGroupName, instanceTemplateName)
 
-    Map userDataMap = stringToUserDataMap(commonUserData)
+    Map<String, String> userDataMap = convertToMap(commonUserData)
 
     if (customUserData) {
       def customUserDataMap = ["customUserData": customUserData] << stringToUserDataMap(customUserData)
@@ -54,28 +54,37 @@ public class GoogleUserDataProvider {
   }
 
   /**
-   * Returns the contents of a file or an empty string if the file doesn't exist.
+   * Returns the contents of a file or an empty list if the file doesn't exist.
    */
   @PackageScope
-  String getFileContents(String filename) {
+  List<String> getFileContents(String filename) {
     if (!filename) {
-      return ''
+      return []
     }
     try {
       File file = new File(filename)
-      def rawContentsList = file.readLines()
-      def contentsList = []
-      for (line in rawContentsList) {
-        if (!line.startsWith('#')) {
-          contentsList = contentsList << line
-        }
-      }
-      return contentsList.join(',')
+      return file.readLines()
     } catch (IOException e) {
       log.warn("Failed to read user data file ${filename}; ${e.message}")
-      return ''
+      return []
     }
   }
+
+  private Map<String, String> stringToUserDataMap(String userData) {
+    List<String> lines = userData.split("\n|,")
+    return convertToMap(lines)
+  }
+
+  /**
+   * Filters out comments and blank lines.
+   * @return new list without comments and blank lines
+   */
+  private List<String> cleanUpUserData(List<String> userData) {
+      return userData.findAll {
+        !it.startsWith('#') && !it.isAllWhitespace()
+      }
+  }
+
   /**
    * Returns the user data with the tokens replaced.
    *
@@ -92,40 +101,46 @@ public class GoogleUserDataProvider {
    * %%detail%% 	    the detail component of the cluster name
    * %%launchconfig%% the name of the instance template
    */
-  private String replaceTokens(String rawUserData, BasicGoogleDeployDescription description,
+  private List<String> replaceTokens(List<String> rawUserData, BasicGoogleDeployDescription description,
                                String serverGroupName, String instanceTemplateName) {
     if (!rawUserData) {
-      return ''
+      return []
     }
     Names names = Names.parseName(serverGroupName)
     // Replace the tokens & return the result.
-    String result = rawUserData
-      .replace('%%account%%', description.accountName)
-      .replace('%%accounttype%%', description.credentials.accountType ?: '')
-      .replace('%%app%%', names.app ?: '')
-      .replace('%%env%%', description.credentials.environment ?: '')
-      .replace('%%region%%', description.region ?: '')
-      .replace('%%stack%%', description.stack ?: '')
-      .replace('%%group%%', names.group ?: '')
-      .replace('%%cluster%%', names.cluster ?: '')
-      .replace('%%detail%%', names.detail ?: '')
-      .replace('%%launchconfig%%', instanceTemplateName ?: '')
-
-    return result
+    return rawUserData.collect{userData ->
+      return userData
+        .replace('%%account%%', description.accountName)
+        .replace('%%accounttype%%', description.credentials.accountType ?: '')
+        .replace('%%app%%', names.app ?: '')
+        .replace('%%env%%', description.credentials.environment ?: '')
+        .replace('%%region%%', description.region ?: '')
+        .replace('%%stack%%', description.stack ?: '')
+        .replace('%%group%%', names.group ?: '')
+        .replace('%%cluster%%', names.cluster ?: '')
+        .replace('%%detail%%', names.detail ?: '')
+        .replace('%%launchconfig%%', instanceTemplateName ?: '')
+    }
   }
 
   /**
    * Takes the user data as a String and returns it as a Map<String, String>.
    */
-  private Map<String, String> stringToUserDataMap(String rawUserData){
-    if (rawUserData) {
-      def userDataMap = rawUserData.split('\n|,').collectEntries {
-        def pair = it.split('=')
-        [(pair.first()):pair.last()]
-      }
-      return userDataMap
-    } else {
+  private Map<String, String> convertToMap(List<String> userData) {
+    if (!userData) {
       return [:]
+    }
+
+    // Convert the user data from a list to a map
+    return userData.collectEntries {
+      def parts = it.split('=', 2)
+      if (parts.length == 0) {
+        return [:]
+      } else if (parts.length == 1) {
+        return [(parts.first()): '']
+      } else {
+        return [(parts.first()): parts.last()]
+      }
     }
   }
 }

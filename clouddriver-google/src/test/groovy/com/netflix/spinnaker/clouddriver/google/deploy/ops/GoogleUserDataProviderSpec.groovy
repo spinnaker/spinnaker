@@ -46,16 +46,16 @@ class GoogleUserDataProviderSpec extends Specification {
     noExceptionThrown()
 
     where:
-    customUserData            | commonUserData           || expectedUserData
-    null                      | null                     || [:]
-    ''                        | null                     || [:]
-    null                      | ''                       || [:]
-    null                      | 'user_data=common'       || ['user_data':'common']
-    ''                        | 'user_data=common'       || ['user_data':'common']
-    'user_data=common'        | null                     || ['customUserData' : customUserData, 'user_data':'common']
-    'user_data=common'        | ''                       || ['customUserData' : customUserData, 'user_data':'common']
-    'user_data=common'        | 'user_data=common'       || ['customUserData' : customUserData, 'user_data':'common']
-    '%%account%%'             | '%%region%%'             || ['customUserData': customUserData, '%%account%%':'%%account%%', 'region':'region']
+    customUserData     | commonUserData                               || expectedUserData
+    null               | null                                         || [:]
+    ''                 | null                                         || [:]
+    null               | []                                           || [:]
+    null               | ['user_data=common']                         || ['user_data': 'common']
+    ''                 | ['user_data=common']                         || ['user_data': 'common']
+    'user_data=custom' | null                                         || ['customUserData': customUserData, 'user_data': 'custom']
+    null               | ['#comment', '\n', '\n', 'user_data=common'] || ['user_data': 'common']
+    'user_data=custom' | ['']                                         || ['customUserData': customUserData, 'user_data': 'custom']
+    'user_data=custom' | ['user_data=common']                         || ['customUserData': customUserData, 'user_data': 'custom']
   }
 
   @Unroll
@@ -63,17 +63,17 @@ class GoogleUserDataProviderSpec extends Specification {
     given:
     def computeMock = Mock(Compute)
 
-    def credentials = new GoogleNamedAccountCredentials.Builder().accountType('test').environment('env').userDataFile("file").compute(computeMock).build()
+    def credentials = new GoogleNamedAccountCredentials.Builder().accountType('test').environment('env').userDataFile(userDataFile).compute(computeMock).build()
     def provider = new GoogleUserDataProvider()
     def serverGroupName = 'app-stack-detail-v001'
     def instanceTemplateName = 'app-stack-detail-v001-123'
     def description = new BasicGoogleDeployDescription(region: 'region', accountName: 'account', credentials: credentials)
 
     when:
-    def userData = provider.getUserData(serverGroupName, instanceTemplateName, description, credentials, 'custom user data')
+    def userData = provider.getUserData(serverGroupName, instanceTemplateName, description, credentials, 'key=value')
 
     then:
-    userData == ['customUserData': 'custom user data', 'custom user data':'custom user data']
+    userData == ['customUserData': 'key=value', 'key': 'value']
     noExceptionThrown()
 
     where:
@@ -100,20 +100,21 @@ class GoogleUserDataProviderSpec extends Specification {
     userData == expectedUserData
 
     where:
-    rawUserData           || expectedUserData
-    ''                    || [:]
-    null                  || [:]
-    '%%account%%'         || ['account':'account']
-    '%account%'           || ['%account%':'%account%']
-    '%%accounttype%%'     || ['test':'test']
-    '%%env%%'             || ['env':'env']
-    '%%region%%'          || ['region':'region']
-    '%%env%%\n%%region%%' || ['env':'env', 'region':'region']
-    '%%app%%'             || ['app':'app']
-    '%%stack%%'           || [:]
-    '%%detail%%'          || ['detail':'detail']
-    '%%cluster%%'         || ['app-stack-detail':'app-stack-detail']
-    '%%group%%'           || ['app-stack-detail-v001':'app-stack-detail-v001']
-    '%%launchconfig%%'    || ['app-stack-detail-v001-123':'app-stack-detail-v001-123']
+    rawUserData                 || expectedUserData
+    ['']                        || [:]
+    null                        || [:]
+    ['key']                     || ['key': '']
+    ['key=%%account%%']         || ['key': 'account']
+    ['key=%account%']           || ['key': '%account%']
+    ['key=%%accounttype%%']     || ['key': 'test']
+    ['key=%%env%%']             || ['key': 'env']
+    ['key=%%region%%']          || ['key': 'region']
+    ['key=%%app%%']             || ['key': 'app']
+    ['key=%%stack%%']           || ['key': '']
+    ['key=%%detail%%']          || ['key': 'detail']
+    ['key=%%cluster%%']         || ['key': 'app-stack-detail']
+    ['key=%%group%%']           || ['key': 'app-stack-detail-v001']
+    ['key=%%launchconfig%%']    || ['key': 'app-stack-detail-v001-123']
+    ['key=%%account%%=thing']   || ['key': 'account=thing']
   }
 }
