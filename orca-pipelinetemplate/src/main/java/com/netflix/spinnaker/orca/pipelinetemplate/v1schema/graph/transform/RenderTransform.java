@@ -23,6 +23,7 @@ import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.PipelineTemplateVisi
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PartialDefinition;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.StageDefinition;
+import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.StageDefinition.PartialDefinitionContext;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.TemplateConfiguration;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.RenderContext;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.RenderUtil;
@@ -180,6 +181,7 @@ public class RenderTransform implements PipelineTemplateVisitor {
           throw new TemplateRenderException("StageDefinition clone unsupported", e);
         }
 
+        renderedStage.setPartialDefinitionContext(new PartialDefinitionContext(partial, stage));
         renderedStage.setId(String.format("%s.%s", stage.getId(), renderedStage.getId()));
         renderedStage.setDependsOn(
           renderedStage.getDependsOn().stream()

@@ -63,6 +63,12 @@ public class V1SchemaExecutionGenerator implements ExecutionGenerator {
         stage.put("type", s.getType());
         stage.put("name", s.getName());
         stage.put("requisiteStageRefIds", s.getRequisiteStageRefIds());
+        if (s.getPartialDefinitionContext() != null) {
+          stage.put("group", String.format("%s: %s",
+            s.getPartialDefinitionContext().getPartialDefinition().getName(),
+            s.getPartialDefinitionContext().getMarkerStage().getName()
+          ));
+        }
         stage.putAll(s.getConfig());
         return stage;
       })

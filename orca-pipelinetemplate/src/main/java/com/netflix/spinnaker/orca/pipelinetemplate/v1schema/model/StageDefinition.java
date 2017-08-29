@@ -15,6 +15,8 @@
  */
 package com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -37,9 +39,13 @@ public class StageDefinition implements Identifiable, Conditional, Cloneable {
   private String comments;
   private List<String> when = new ArrayList<>();
   private InheritanceControl inheritanceControl;
+  private Set<String> requisiteStageRefIds = new LinkedHashSet<>();
+
+  @JsonIgnore
   private Boolean removed = false;
 
-  private Set<String> requisiteStageRefIds = new LinkedHashSet<>();
+  @JsonIgnore
+  private PartialDefinitionContext partialDefinitionContext;
 
   public static class InjectionRule implements Cloneable {
 
@@ -164,6 +170,25 @@ public class StageDefinition implements Identifiable, Conditional, Cloneable {
     }
   }
 
+  public static class PartialDefinitionContext {
+
+    private final PartialDefinition partialDefinition;
+    private final StageDefinition markerStage;
+
+    public PartialDefinitionContext(PartialDefinition partialDefinition, StageDefinition markerStage) {
+      this.partialDefinition = partialDefinition;
+      this.markerStage = markerStage;
+    }
+
+    public PartialDefinition getPartialDefinition() {
+      return partialDefinition;
+    }
+
+    public StageDefinition getMarkerStage() {
+      return markerStage;
+    }
+  }
+
   @Override
   public String getId() {
     return id;
@@ -263,16 +288,26 @@ public class StageDefinition implements Identifiable, Conditional, Cloneable {
     this.requisiteStageRefIds = requisiteStageRefIds;
   }
 
+  @JsonIgnore
   public boolean isPartialType() {
     return type != null && type.startsWith("partial.");
   }
 
+  @JsonIgnore
   public String getPartialId() {
     if (type == null) {
       return null;
     }
     String[] bits = type.split("\\.");
     return bits[bits.length - 1];
+  }
+
+  public PartialDefinitionContext getPartialDefinitionContext() {
+    return partialDefinitionContext;
+  }
+
+  public void setPartialDefinitionContext(PartialDefinitionContext partialDefinitionContext) {
+    this.partialDefinitionContext = partialDefinitionContext;
   }
 
   @Override

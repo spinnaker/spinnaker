@@ -23,6 +23,7 @@ import java.util.Map;
 public class PartialDefinition implements Identifiable {
 
   private String id;
+  private String name;
   private String usage;
   private List<NamedHashMap> variables = new ArrayList<>();
   private List<StageDefinition> stages = new ArrayList<>();
@@ -36,6 +37,14 @@ public class PartialDefinition implements Identifiable {
 
   public void setId(String id) {
     this.id = id;
+  }
+
+  public String getName() {
+    return name == null ? id : name;
+  }
+
+  public void setName(String name) {
+    this.name = name;
   }
 
   public String getUsage() {

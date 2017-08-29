@@ -23,6 +23,7 @@ import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.pipelinetemplate.loader.FileTemplateSchemeLoader
 import com.netflix.spinnaker.orca.pipelinetemplate.loader.TemplateLoader
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate
+import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.StageDefinition
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.DefaultRenderContext
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.JinjaRenderer
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.Renderer
@@ -253,6 +254,62 @@ class PipelineTemplatePipelinePreprocessorSpec extends Specification {
     ["string1", "string2"]                                    || ["string1", "string2"]
     ["{{ trigger.parameters.string }}", "string2"]            || ["this is a string", "string2"]
     ["{{ trigger.parameters.list | split(',') }}", "string2"] || [["us-west-2", "us-east-1"], "string2"]
+  }
+
+  def "should include group for partials-generated stages"() {
+    def pipeline = [
+      type: 'templatedPipeline',
+      config: [
+        schema: '1',
+        pipeline: [
+          application: 'myapp'
+        ]
+      ],
+      template: [
+        schema: '1',
+        id: 'myTemplate',
+        configuration: [:],
+        partials: [
+          [
+            id: 'mypartial',
+            name: 'my group of stages',
+            stages: [
+              new StageDefinition(
+                id: 'wait',
+                type: 'wait',
+                requisiteStageRefIds: [] as Set,
+                config: [
+                  waitTime: 5
+                ]
+              ),
+              new StageDefinition(
+                id: 'wait2',
+                type: 'wait',
+                requisiteStageRefIds: [] as Set,
+                config: [
+                  waitTime: 5
+                ]
+              )
+            ]
+          ]
+        ],
+        stages: [
+          [
+            id: 'waiting',
+            name: 'wowow waiting',
+            type: 'partial.mypartial',
+            config: [:]
+          ]
+        ]
+      ],
+      plan: true
+    ]
+
+    when:
+    def result = subject.process(pipeline)
+
+    then:
+    result.stages*.group == ['my group of stages: wowow waiting', 'my group of stages: wowow waiting']
   }
 
   Map<String, Object> createTemplateRequest(String templatePath, Map<String, Object> variables = [:], List<Map<String, Object>> stages = [], boolean plan = false) {
