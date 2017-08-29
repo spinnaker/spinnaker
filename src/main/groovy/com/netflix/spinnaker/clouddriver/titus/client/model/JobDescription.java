@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.titus.client.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.netflix.titus.grpc.protogen.*;
 
 import java.util.HashMap;
@@ -353,6 +354,7 @@ public class JobDescription {
     this.securityGroups = securityGroups;
   }
 
+  @JsonIgnore
   public JobDescriptor getGrpcJobDescriptor() {
 
     // trying to keep the same order as in the proto definition https://stash.corp.netflix.com/projects/TN/repos/titus-api-definitions/browse/src/main/proto/netflix/titus/titus_job_api.proto
