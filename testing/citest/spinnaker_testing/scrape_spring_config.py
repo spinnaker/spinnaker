@@ -81,7 +81,7 @@ def scrape_spring_config(url, timeout=60, empty_if_404=True):
 
   Args:
     url: The url to construct from.
-    empty_if_404: With spring boot 1.5.4 resovledEnv is not visible by default.
+    empty_if_404: With spring boot 1.5.4 resolvedEnv is not visible by default.
                   If True then tolerate this treating a 404 as being empty.
 
   Raises:
@@ -98,7 +98,7 @@ def scrape_spring_config(url, timeout=60, empty_if_404=True):
       logging.info('Failed to scrape %s -- try again in 1s: %s', url, ex)
       time.sleep(1)
     except urllib2.HTTPError as ex:
-      if ex.code == 404:
+      if ex.code == 404 and empty_if_404:
         logging.warning('Could not scrape config from url=%s: %s'
                         '\n  Suppressing this error and returning empty results.',
                         url, ex)
@@ -110,8 +110,17 @@ def scrape_spring_config(url, timeout=60, empty_if_404=True):
                           url, ex)
         raise
     except urllib2.URLError as ex:
-      logging.exception('Could not scrape config from url=%s: %s', url, ex)
-      raise
+      if empty_if_404:
+        logging.warning('Could not scrape config from url=%s: %s'
+                        '\n  Suppressing this error and returning empty results.',
+                        url, ex)
+        return {}
+      else:
+        logging.exception('Could not scrape config from url=%s: %s'
+                          '\n  Consider reconfiguring the server with: '
+                          ' management.security.enabled: false',
+                          url, ex)
+        raise
 
   http_code = response.getcode()
   content = response.read()
