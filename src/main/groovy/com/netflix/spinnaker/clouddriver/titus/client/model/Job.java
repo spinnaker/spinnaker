@@ -17,9 +17,7 @@
 package com.netflix.spinnaker.clouddriver.titus.client.model;
 
 import com.netflix.spinnaker.clouddriver.titus.model.TitusSecurityGroup;
-import com.netflix.titus.grpc.protogen.BatchJobSpec;
-import com.netflix.titus.grpc.protogen.JobDescriptor;
-import com.netflix.titus.grpc.protogen.ServiceJobSpec;
+import com.netflix.titus.grpc.protogen.*;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -33,6 +31,18 @@ public class Job {
       public TaskSummary(com.netflix.titus.grpc.protogen.Task grpcTask){
           id = grpcTask.getId();
           state = TaskState.from(grpcTask.getStatus().getState().name());
+          instanceId = grpcTask.getTaskContextOrDefault("v2.taskInstanceId", null);
+          host = grpcTask.getTaskContextOrDefault("agent.host", null);
+          region = grpcTask.getTaskContextOrDefault("agent.region", null);
+          submittedAt = getTimestampFromStatus(grpcTask, TaskStatus.TaskState.Accepted);
+          launchedAt = getTimestampFromStatus(grpcTask, TaskStatus.TaskState.Launched);
+          startedAt = getTimestampFromStatus(grpcTask, TaskStatus.TaskState.StartInitiated);
+          finishedAt = getTimestampFromStatus(grpcTask, TaskStatus.TaskState.Finished);
+          containerIp = grpcTask.getTaskContextOrDefault("task.containerIp", null);
+        }
+
+        private Date getTimestampFromStatus( com.netflix.titus.grpc.protogen.Task grpcTask, TaskStatus.TaskState state ){
+          return grpcTask.getStatusHistoryList().stream().filter(status -> status.getState().equals(state)).findFirst().map(status -> new Date(status.getTimestamp())).orElse(null);
         }
 
         private String id;
@@ -50,6 +60,7 @@ public class Job {
         private String stdoutLive;
         private String logs;
         private String snapshots;
+        private String containerIp;
 
         public String getId() {
             return id;
@@ -171,6 +182,15 @@ public class Job {
             this.snapshots = snapshots;
         }
 
+        public String getContainerIp() {
+          return containerIp;
+        }
+
+        public void setContainerIp(String containerIp) {
+          this.containerIp = containerIp;
+        }
+
+
     }
 
     private String id;
@@ -222,6 +242,8 @@ public class Job {
         instancesMin = batchJobSpec.getSize();
         instancesMax = batchJobSpec.getSize();
         instancesDesired = batchJobSpec.getSize();
+        runtimeLimitSecs = (int)batchJobSpec.getRuntimeLimitSec();
+        retries = batchJobSpec.getRetryPolicy().getImmediate().getRetries();
       }
 
       if(grpcJob.getJobDescriptor().getJobSpecCase().getNumber() == JobDescriptor.SERVICE_FIELD_NUMBER){
@@ -237,38 +259,30 @@ public class Job {
       user = grpcJob.getJobDescriptor().getOwner().getTeamEmail();
       tasks = grpcTasks.stream().map( grpcTask -> new TaskSummary(grpcTask)).collect(Collectors.toList());
 
-      /*
-      private String name;
-      private String applicationName;
-      private String version;
-      private String entryPoint;
-      private String iamProfile;
-      private String capacityGroup;
-      private Boolean inService;
-      private int instances;
-      private int instancesMin;
-      private int instancesMax;
-      private int instancesDesired;
-      private int cpu;
-      private int memory;
-      private int disk;
-      private int gpu;
-      private int networkMbps;
-      private int[] ports;
-      private Map<String, String> environment;
-      private int retries;
-      private int runtimeLimitSecs;
-      private boolean allocateIpAddress;
-      private Date submittedAt;
-      private List<TaskSummary> tasks;
-      private List<String> securityGroups;
-      private String jobGroupStack;
-      private String jobGroupDetail;
-      private String jobGroupSequence;
-      private List<String> hardConstraints;
-      private List<String> softConstraints;
-      private Efs efs;
+      appName = grpcJob.getJobDescriptor().getApplicationName();
+      name = grpcJob.getJobDescriptor().getAttributesOrDefault("name", appName);
+      applicationName = grpcJob.getJobDescriptor().getContainer().getImage().getName();
+      version = grpcJob.getJobDescriptor().getContainer().getImage().getTag();
+      entryPoint = grpcJob.getJobDescriptor().getContainer().getEntryPointList().stream().collect(Collectors.joining(" "));
+      capacityGroup = grpcJob.getJobDescriptor().getCapacityGroup();
+      cpu = (int) grpcJob.getJobDescriptor().getContainer().getResources().getCpu();
+      memory = grpcJob.getJobDescriptor().getContainer().getResources().getMemoryMB();
+      gpu = grpcJob.getJobDescriptor().getContainer().getResources().getGpu();
+      networkMbps = grpcJob.getJobDescriptor().getContainer().getResources().getNetworkMbps();
+      disk = grpcJob.getJobDescriptor().getContainer().getResources().getDiskMB();
+      jobGroupSequence = grpcJob.getJobDescriptor().getJobGroupInfo().getSequence();
+      jobGroupStack = grpcJob.getJobDescriptor().getJobGroupInfo().getStack();
+      jobGroupDetail = grpcJob.getJobDescriptor().getJobGroupInfo().getDetail();
+      environment = grpcJob.getJobDescriptor().getContainer().getEnvMap();
+      securityGroups = grpcJob.getJobDescriptor().getContainer().getSecurityProfile().getSecurityGroupsList().stream().collect(Collectors.toList());
+      iamProfile = grpcJob.getJobDescriptor().getContainer().getSecurityProfile().getIamRole();
+      allocateIpAddress = true;
+      submittedAt = new Date(grpcJob.getStatus().getTimestamp());
 
+      /*
+        private List<String> hardConstraints;
+        private List<String> softConstraints;
+        private Efs efs;
       */
     }
 

@@ -21,7 +21,7 @@ public enum TaskState {
     RUNNING, DISPATCHED, FAILED, STOPPED, CRASHED, FINISHED,
     STARTING, QUEUED,
     TERMINATING, DEAD, PENDING, // Deprecated
-    ACCEPTED, LAUNCHED, STARTINITIATED, KILLINITIATED, DISCONNECTED;// v3
+    ACCEPTED, LAUNCHED, STARTINITIATED, STARTED, KILLINITIATED, DISCONNECTED;// v3
 
     public static TaskState from(String taskStateStr) {
         for (TaskState taskState : TaskState.values()) {

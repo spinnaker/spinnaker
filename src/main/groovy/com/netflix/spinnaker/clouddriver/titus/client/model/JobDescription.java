@@ -379,7 +379,7 @@ public class JobDescription {
     }
 
     Container.Builder containerBuilder = Container.newBuilder();
-    ContainerResources.Builder containerResources = ContainerResources.newBuilder();
+    ContainerResources.Builder containerResources = ContainerResources.newBuilder().setAllocateIP(true);
 
     if (cpu != 0) {
       containerResources.setCpu(cpu);
@@ -417,6 +417,7 @@ public class JobDescription {
       securityProfile.setIamRole(iamProfile);
     }
 
+    containerBuilder.setSecurityProfile(securityProfile);
     containerBuilder.setImage(Image.newBuilder().setName(applicationName).setTag(version));
 
     if (entryPoint != null) {
@@ -441,9 +442,8 @@ public class JobDescription {
     jobCapacity.setMin(instancesMin).setMax(instancesMax).setDesired(instancesDesired);
 
     if (type == "service") {
-      jobDescriptorBuilder
-        .setService(ServiceJobSpec.newBuilder()
-        .setEnabled(inService)
+      jobDescriptorBuilder.setService(
+        ServiceJobSpec.newBuilder().setEnabled(inService)
         .setCapacity(jobCapacity)
         .setRetryPolicy(RetryPolicy.newBuilder().setExponentialBackOff(RetryPolicy.ExponentialBackOff.newBuilder().setInitialDelayMs(5000).setMaxDelayIntervalMs(300000))));
     }

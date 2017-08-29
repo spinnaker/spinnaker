@@ -21,6 +21,7 @@ import com.netflix.frigga.Names;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.titus.client.*;
 import com.netflix.spinnaker.clouddriver.titus.client.model.*;
+import com.netflix.spinnaker.clouddriver.titus.client.model.HealthStatus;
 import com.netflix.spinnaker.clouddriver.titus.client.model.Job;
 import com.netflix.spinnaker.clouddriver.titus.client.model.Task;
 import com.netflix.titus.grpc.protogen.*;
@@ -98,7 +99,7 @@ public class RegionScopedV3TitusClient implements TitusClient {
   public Job findJobByName(String jobName) {
     JobQuery.Builder jobQuery = JobQuery.newBuilder()
       .putFilteringCriteria("jobType", "SERVICE")
-      .putFilteringCriteria("labels", "source:spinnaker,name:"+jobName)
+      .putFilteringCriteria("labels", "source:spinnaker,name:" + jobName)
       .putFilteringCriteria("labels.op", "and");
     return getJobs(jobQuery).get(0);
   }
@@ -117,6 +118,8 @@ public class RegionScopedV3TitusClient implements TitusClient {
     }
     if (jobDescription.getUser() == null) {
       jobDescription.setUser("spinnaker@netflix.com");
+    } else if (!jobDescription.getUser().contains("@")) {
+      jobDescription.setUser(jobDescription.getUser() + "@netflix.com");
     }
     if (jobDescription.getJobGroupSequence() == null && jobDescription.getType().equals("service")) {
       try {
@@ -132,14 +135,12 @@ public class RegionScopedV3TitusClient implements TitusClient {
     for (TitusJobCustomizer customizer : titusJobCustomizers) {
       customizer.customize(jobDescription);
     }
-
-    Object c =  jobDescription.getGrpcJobDescriptor();
-
     return grpcBlockingStub.createJob(jobDescription.getGrpcJobDescriptor()).getId();
   }
 
   @Override
   public Task getTask(String taskId) {
+    // new Task(grpcBlockingStub.findTask(taskId));
     // return new Task(grpcBlockingStub.findTask(com.netflix.titus.grpc.protogen.TaskId.newBuilder().setId(taskId).build()));
     return null;
   }
@@ -159,7 +160,7 @@ public class RegionScopedV3TitusClient implements TitusClient {
 
   @Override
   public void activateJob(ActivateJobRequest activateJobRequest) {
-    grpcBlockingStub.updateJobStatus(JobStatusUpdate.newBuilder().setEnableStatus(activateJobRequest.getInService()).build());
+    grpcBlockingStub.updateJobStatus(JobStatusUpdate.newBuilder().setId(activateJobRequest.getJobId()).setEnableStatus(activateJobRequest.getInService()).build());
   }
 
   @Override
@@ -169,11 +170,9 @@ public class RegionScopedV3TitusClient implements TitusClient {
 
   @Override
   public void terminateTasksAndShrink(TerminateTasksAndShrinkJobRequest terminateTasksAndShrinkJob) {
-/*
-    terminateTasksAndShrinkJob.getTaskIds().forEach( id ->
-      grpcBlockingStub.killTask(TaskId.newBuilder().setId(id).build());
+    terminateTasksAndShrinkJob.getTaskIds().forEach(id ->
+      grpcBlockingStub.killTask(TaskKillRequest.newBuilder().setTaskId(id).setShrink(terminateTasksAndShrinkJob.isShrink()).build())
     );
-*/
   }
 
   @Override
@@ -210,7 +209,7 @@ public class RegionScopedV3TitusClient implements TitusClient {
     return jobs;
   }
 
-  private List<com.netflix.titus.grpc.protogen.Task> getTasks(String jobId){
+  private List<com.netflix.titus.grpc.protogen.Task> getTasks(String jobId) {
     List<com.netflix.titus.grpc.protogen.Task> tasks = new ArrayList<>();
     TaskQueryResult taskResults;
     int currentTaskPage = 0;
