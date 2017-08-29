@@ -18,13 +18,11 @@ package com.netflix.spinnaker.orca.q.metrics
 
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.orca.events.TaskComplete
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationListener
 import org.springframework.stereotype.Component
 
 @Component
-open class TaskResultMonitor
-@Autowired constructor(private val registry: Registry)
+class TaskResultMonitor(private val registry: Registry)
   : ApplicationListener<TaskComplete> {
 
   private val id = registry.createId("orca.task.result")

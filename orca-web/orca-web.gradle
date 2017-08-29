@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-apply plugin: 'spring-boot'
+apply plugin: 'org.springframework.boot'
 apply plugin: 'spinnaker.package'
 
 ext {

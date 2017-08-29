@@ -47,23 +47,24 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.boot.autoconfigure.PropertyPlaceholderAutoConfiguration
+import org.springframework.boot.autoconfigure.context.PropertyPlaceholderAutoConfiguration
+import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.ConfigurableApplicationContext
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
-import org.springframework.test.context.ContextConfiguration
-import org.springframework.test.context.TestPropertySource
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner
+import org.springframework.test.context.junit4.SpringRunner
 import java.time.Duration
 import java.time.Instant.now
 import java.time.ZoneId
 
-@RunWith(SpringJUnit4ClassRunner::class)
-@ContextConfiguration(classes = arrayOf(TestConfig::class))
-@TestPropertySource(properties = arrayOf(
-  "queue.retry.delay.ms=10"
+@SpringBootTest(classes = arrayOf(TestConfig::class), properties = arrayOf(
+  "queue.retry.delay.ms=10",
+  "logging.level.root=ERROR",
+  "logging.level.org.springframework.test=ERROR",
+  "logging.level.com.netflix.spinnaker=FATAL"
 ))
+@RunWith(SpringRunner::class)
 open class QueueIntegrationTest {
 
   @Autowired lateinit var queue: Queue

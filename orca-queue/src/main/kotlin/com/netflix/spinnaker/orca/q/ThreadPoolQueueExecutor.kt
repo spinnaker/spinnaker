@@ -16,14 +16,12 @@
 
 package com.netflix.spinnaker.orca.q
 
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor
 import org.springframework.stereotype.Component
 
 @Component
-open class ThreadPoolQueueExecutor
-@Autowired constructor(
+class ThreadPoolQueueExecutor(
   @Qualifier("messageHandlerPool") override val executor: ThreadPoolTaskExecutor) : QueueExecutor {
   override fun hasCapacity(): Boolean = executor.threadPoolExecutor.activeCount < executor.threadPoolExecutor.maximumPoolSize
 }

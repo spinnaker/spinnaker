@@ -36,7 +36,6 @@ import com.netflix.spinnaker.orca.time.toInstant
 import org.apache.commons.lang.time.DurationFormatUtils
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory.getLogger
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import java.time.Clock
 import java.time.Duration
@@ -46,8 +45,7 @@ import java.time.temporal.TemporalAmount
 import java.util.concurrent.TimeUnit
 
 @Component
-open class RunTaskHandler
-@Autowired constructor(
+class RunTaskHandler(
   override val queue: Queue,
   override val repository: ExecutionRepository,
   override val stageNavigator: StageNavigator,

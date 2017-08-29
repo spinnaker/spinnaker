@@ -25,7 +25,7 @@ import redis.clients.util.Pool
 import java.time.Clock
 
 class RedisDeadMessageHandler(
-  val deadLetterQueueName: String,
+  deadLetterQueueName: String,
   private val pool: Pool<Jedis>,
   private val clock: Clock
 ) : DeadMessageHandler() {

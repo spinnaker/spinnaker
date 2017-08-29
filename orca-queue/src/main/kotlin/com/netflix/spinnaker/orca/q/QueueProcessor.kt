@@ -20,7 +20,6 @@ import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.orca.discovery.DiscoveryActivated
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory.getLogger
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import java.util.concurrent.RejectedExecutionException
@@ -28,8 +27,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 import javax.annotation.PostConstruct
 
 @Component
-open class QueueProcessor
-@Autowired constructor(
+class QueueProcessor(
   private val queue: Queue,
   private val queueExecutor: QueueExecutor,
   private val registry: Registry,

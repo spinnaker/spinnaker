@@ -22,7 +22,6 @@ import com.netflix.spinnaker.orca.q.Queue
 import com.netflix.spinnaker.orca.q.QueueCallback
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Primary
 import org.springframework.stereotype.Component
@@ -33,10 +32,11 @@ import java.time.temporal.TemporalAmount
  * TrafficShapingQueue provides a pluggable interface for manipulating queue polling behavior.
  */
 @ConditionalOnProperty("queue.trafficShaping.enabled")
-@Primary @Component open class TrafficShapingQueue
-@Autowired constructor(
-  val queueImpl: Queue,
-  val registry: Registry,
+@Primary
+@Component
+class TrafficShapingQueue(
+  private val queueImpl: Queue,
+  private val registry: Registry,
   interceptors: Collection<TrafficShapingInterceptor>
 ) : Queue, Closeable {
 
@@ -45,14 +45,14 @@ import java.time.temporal.TemporalAmount
   override val ackTimeout = queueImpl.ackTimeout
   override val deadMessageHandler: (Queue, Message) -> Unit = queueImpl.deadMessageHandler
 
-  val pollInterceptors = interceptors.filter { it.supports(InterceptorType.POLL) }.sortedBy { it.getPriority() }
-  val messageInterceptors = interceptors.filter { it.supports(InterceptorType.MESSAGE) }.sortedBy { it.getPriority() }
+  private val pollInterceptors = interceptors.filter { it.supports(InterceptorType.POLL) }.sortedBy { it.getPriority() }
+  private val messageInterceptors = interceptors.filter { it.supports(InterceptorType.MESSAGE) }.sortedBy { it.getPriority() }
 
-  val queueInterceptionsId: Id = registry.createId("queue.trafficShaping.queueInterceptions")
-  val messageInterceptionsId: Id = registry.createId("queue.trafficShaping.messageInterceptions")
+  private val queueInterceptionsId: Id = registry.createId("queue.trafficShaping.queueInterceptions")
+  private val messageInterceptionsId: Id = registry.createId("queue.trafficShaping.messageInterceptions")
 
   init {
-    log.info("Starting with interceptors: ${interceptors.sortedBy { it.getPriority() }.map { it.getName() }.joinToString()}")
+    log.info("Starting with interceptors: ${interceptors.sortedBy { it.getPriority() }.joinToString { it.getName() }}")
   }
 
   override fun poll(callback: QueueCallback) {

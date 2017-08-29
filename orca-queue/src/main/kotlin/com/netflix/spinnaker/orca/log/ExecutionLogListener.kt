@@ -16,13 +16,11 @@
 package com.netflix.spinnaker.orca.log
 
 import com.netflix.spinnaker.orca.events.*
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationListener
 import org.springframework.stereotype.Component
 
 @Component
-open class ExecutionLogListener
-@Autowired constructor(
+class ExecutionLogListener(
   private val executionLogRepository: ExecutionLogRepository,
   private val currentInstanceId: String
 ) : ApplicationListener<ExecutionEvent> {

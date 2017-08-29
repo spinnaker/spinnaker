@@ -24,14 +24,12 @@ import com.netflix.spinnaker.orca.q.MessageHandler
 import com.netflix.spinnaker.orca.q.Queue
 import com.netflix.spinnaker.orca.q.RunTask
 import com.netflix.spinnaker.orca.q.StartTask
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
 import java.time.Clock
 
 @Component
-open class StartTaskHandler
-@Autowired constructor(
+class StartTaskHandler(
   override val queue: Queue,
   override val repository: ExecutionRepository,
   private val publisher: ApplicationEventPublisher,

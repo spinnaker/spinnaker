@@ -24,12 +24,10 @@ import com.netflix.spinnaker.orca.q.MessageHandler
 import com.netflix.spinnaker.orca.q.Queue
 import com.netflix.spinnaker.orca.q.ResumeTask
 import com.netflix.spinnaker.orca.q.RunTask
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component
-open class ResumeTaskHandler
-@Autowired constructor(
+class ResumeTaskHandler(
   override val queue: Queue,
   override val repository: ExecutionRepository
 ) : MessageHandler<ResumeTask> {

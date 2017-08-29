@@ -18,14 +18,14 @@ package com.netflix.spinnaker.orca.q.redis
 
 import com.netflix.spinnaker.config.RedisQueueConfiguration
 import com.netflix.spinnaker.orca.q.QueueIntegrationTest
+import com.netflix.spinnaker.orca.q.TestConfig
 import com.netflix.spinnaker.orca.q.memory.InMemoryQueue
 import com.netflix.spinnaker.orca.test.redis.EmbeddedRedisConfiguration
 import org.junit.runner.RunWith
+import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.test.context.ContextConfiguration
-import org.springframework.test.context.TestPropertySource
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner
+import org.springframework.test.context.junit4.SpringRunner
 import redis.clients.jedis.Jedis
 import redis.clients.util.Pool
 
@@ -33,14 +33,21 @@ import redis.clients.util.Pool
  * This just runs [QueueIntegrationTest] with a [RedisQueue] instead of an
  * [InMemoryQueue].
  */
-@RunWith(SpringJUnit4ClassRunner::class)
-@ContextConfiguration(classes = arrayOf(
-  EmbeddedRedisConfiguration::class,
-  RedisQueueConfiguration::class,
-  RedisQueuePoolFixery::class
-))
+@RunWith(SpringRunner::class)
+@SpringBootTest(
+  classes = arrayOf(
+    EmbeddedRedisConfiguration::class,
+    RedisQueueConfiguration::class,
+    RedisQueuePoolFixery::class,
+    TestConfig::class
+  ),
+  properties = arrayOf(
+    "queue.retry.delay.ms=10",
+    "logging.level.root=ERROR",
+    "logging.level.org.springframework.test=ERROR",
+    "logging.level.com.netflix.spinnaker=FATAL"
+  ))
 class RedisQueueIntegrationTest : QueueIntegrationTest()
-
 
 
 @Configuration

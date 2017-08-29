@@ -19,10 +19,10 @@ package com.netflix.spinnaker.orca.q
 import com.netflix.spinnaker.orca.pipeline.ExecutionRunner
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.security.AuthenticatedRequest
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
-@Component open class QueueExecutionRunner @Autowired constructor(
+@Component
+class QueueExecutionRunner(
   private val queue: Queue
 ) : ExecutionRunner {
 

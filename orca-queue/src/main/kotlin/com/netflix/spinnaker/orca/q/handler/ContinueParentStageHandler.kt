@@ -23,14 +23,12 @@ import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.q.*
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import java.time.Duration
 
 @Component
-open class ContinueParentStageHandler
-@Autowired constructor(
+class ContinueParentStageHandler(
   override val queue: Queue,
   override val repository: ExecutionRepository,
   @Value("\${queue.retry.delay.ms:5000}") retryDelayMs: Long

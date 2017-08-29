@@ -31,7 +31,6 @@ import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
 import com.netflix.spinnaker.orca.q.*
 import com.netflix.spinnaker.orca.q.StartStage
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
@@ -39,8 +38,7 @@ import java.time.Clock
 import java.time.Duration
 
 @Component
-open class StartStageHandler
-@Autowired constructor(
+class StartStageHandler(
   override val queue: Queue,
   override val repository: ExecutionRepository,
   override val stageNavigator: StageNavigator,

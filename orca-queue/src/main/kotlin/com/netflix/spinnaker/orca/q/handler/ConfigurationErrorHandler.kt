@@ -23,12 +23,10 @@ import com.netflix.spinnaker.orca.q.InvalidExecutionId
 import com.netflix.spinnaker.orca.q.MessageHandler
 import com.netflix.spinnaker.orca.q.Queue
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component
-open class ConfigurationErrorHandler
-@Autowired constructor(
+class ConfigurationErrorHandler(
   override val queue: Queue,
   override val repository: ExecutionRepository
 ) : MessageHandler<ConfigurationError> {
