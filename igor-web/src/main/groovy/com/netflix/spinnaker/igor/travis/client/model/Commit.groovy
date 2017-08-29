@@ -41,7 +41,14 @@ class Commit {
     String compareUrl
 
     GenericGitRevision genericGitRevision() {
-        return new GenericGitRevision(branch, branch, sha)
+        GenericGitRevision genericGitRevision = new GenericGitRevision(branch, branch, sha)
+        if (authorName) {
+            genericGitRevision.setCommitter(authorName)
+        }
+        if (compareUrl) {
+            genericGitRevision.setCompareUrl(compareUrl)
+        }
+        return genericGitRevision
     }
 
     boolean isTag(){

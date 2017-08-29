@@ -16,12 +16,19 @@
 
 package com.netflix.spinnaker.igor.build.model
 
+import com.fasterxml.jackson.annotation.JsonInclude
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
 class GenericGitRevision {
     String branch
 
     String name
 
     String sha1
+
+    String committer
+
+    String compareUrl
 
     GenericGitRevision(String name, String branch, String sha1) {
         this.name = name
