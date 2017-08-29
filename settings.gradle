@@ -17,6 +17,7 @@
 rootProject.name="kayenta"
 
 include 'kayenta-atlas'
+include 'kayenta-aws'
 include 'kayenta-core'
 include 'kayenta-gcs'
 include 'kayenta-google'
@@ -24,6 +25,7 @@ include 'kayenta-judge-netflix'
 include 'kayenta-objectstore-memory'
 include 'kayenta-orca'
 include 'kayenta-prometheus'
+include 'kayenta-s3'
 include 'kayenta-stackdriver'
 include 'kayenta-web'
 

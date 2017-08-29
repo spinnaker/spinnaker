@@ -63,6 +63,49 @@ public class GcsStorageService implements StorageService {
     return accountNames.contains(accountName);
   }
 
+  /**
+   * Check to see if the bucket exists, creating it if it is not there.
+   */
+  public void ensureBucketExists(String accountName) {
+    GoogleNamedAccountCredentials credentials = (GoogleNamedAccountCredentials)accountCredentialsRepository
+      .getOne(accountName)
+      .orElseThrow(() -> new IllegalArgumentException("Unable to resolve account " + accountName + "."));
+    Storage storage = credentials.getStorage();
+    String projectName = credentials.getProject();
+    String bucketName = credentials.getBucket();
+    String bucketLocation = credentials.getBucketLocation();
+
+    try {
+      storage.buckets().get(bucketName).execute();
+    } catch (HttpResponseException e) {
+      if (e.getStatusCode() == 404) {
+        log.warn("Bucket {} does not exist. Creating it in project {}.", bucketName, projectName);
+
+        Bucket.Versioning versioning = new Bucket.Versioning().setEnabled(true);
+        Bucket bucket = new Bucket().setName(bucketName).setVersioning(versioning);
+
+        if (!StringUtils.isEmpty(bucketLocation)) {
+          log.warn("Using location {} for bucket {}.", bucket, projectName);
+
+          bucket.setLocation(bucketLocation);
+        }
+
+        try {
+          storage.buckets().insert(projectName, bucket).execute();
+        } catch (IOException e2) {
+          log.error("Could not create bucket {} in project {}: {}", bucketName, projectName, e2);
+          throw new IllegalStateException(e2);
+        }
+      } else {
+        log.error("Could not get bucket {}: {}", bucketName, e);
+        throw new IllegalStateException(e);
+      }
+    } catch (IOException e) {
+      log.error("Could not get bucket {}: {}", bucketName, e);
+      throw new IllegalStateException(e);
+    }
+  }
+
   @Override
   public <T> T loadObject(String accountName, ObjectType objectType, String objectKey) throws IllegalArgumentException {
     GoogleNamedAccountCredentials credentials = (GoogleNamedAccountCredentials)accountCredentialsRepository
@@ -116,47 +159,6 @@ public class GcsStorageService implements StorageService {
       storage.objects().insert(bucketName, object, content).execute();
     } catch (IOException e) {
       log.error("Update failed on path {}: {}", path, e);
-      throw new IllegalStateException(e);
-    }
-  }
-
-  /**
-   * Check to see if the bucket exists, creating it if it is not there.
-   */
-  public void ensureBucketExists(String accountName) {
-    GoogleNamedAccountCredentials credentials = (GoogleNamedAccountCredentials)accountCredentialsRepository
-      .getOne(accountName)
-      .orElseThrow(() -> new IllegalArgumentException("Unable to resolve account " + accountName + "."));
-    Storage storage = credentials.getStorage();
-    String projectName = credentials.getProject();
-    String bucketName = credentials.getBucket();
-    String bucketLocation = credentials.getBucketLocation();
-
-    try {
-      storage.buckets().get(bucketName).execute();
-    } catch (HttpResponseException e) {
-      if (e.getStatusCode() == 404) {
-        log.warn("Bucket {} does not exist. Creating it in project {}.", bucketName, projectName);
-
-        Bucket.Versioning versioning = new Bucket.Versioning().setEnabled(true);
-        Bucket bucket = new Bucket().setName(bucketName).setVersioning(versioning);
-
-        if (!StringUtils.isEmpty(bucketLocation)) {
-          bucket.setLocation(bucketLocation);
-        }
-
-        try {
-          storage.buckets().insert(projectName, bucket).execute();
-        } catch (IOException e2) {
-          log.error("Could not create bucket {} in project {}: {}", bucketName, projectName, e2);
-          throw new IllegalStateException(e2);
-        }
-      } else {
-        log.error("Could not get bucket {}: {}", bucketName, e);
-        throw new IllegalStateException(e);
-      }
-    } catch (IOException e) {
-      log.error("Could not get bucket {}: {}", bucketName, e);
       throw new IllegalStateException(e);
     }
   }

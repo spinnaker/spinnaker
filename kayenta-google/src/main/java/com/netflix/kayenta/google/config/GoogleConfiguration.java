@@ -77,9 +77,20 @@ public class GoogleConfiguration {
           }
 
           if (supportedTypes.contains(AccountCredentials.Type.OBJECT_STORE)) {
-            googleNamedAccountCredentialsBuilder.bucket(googleManagedAccount.getBucket());
+            String bucket = googleManagedAccount.getBucket();
+            String rootFolder = googleManagedAccount.getRootFolder();
+
+            if (StringUtils.isEmpty(bucket)) {
+              throw new IllegalArgumentException("Google/GCS account " + name + " is required to specify a bucket.");
+            }
+
+            if (StringUtils.isEmpty(rootFolder)) {
+              throw new IllegalArgumentException("Google/GCS account " + name + " is required to specify a rootFolder.");
+            }
+
+            googleNamedAccountCredentialsBuilder.bucket(bucket);
             googleNamedAccountCredentialsBuilder.bucketLocation(googleManagedAccount.getBucketLocation());
-            googleNamedAccountCredentialsBuilder.rootFolder(googleManagedAccount.getRootFolder());
+            googleNamedAccountCredentialsBuilder.rootFolder(rootFolder);
             googleNamedAccountCredentialsBuilder.storage(googleCredentials.getStorage());
           }
 

@@ -19,12 +19,24 @@ kayenta:
 #        project:
 #        jsonPath:
 #        bucket:
-#        rootFolder:
+#        rootFolder: kayenta
 #        supportedTypes:
 #          - METRICS_STORE
 #          - OBJECT_STORE
 
+  aws:
+    enabled: false
+#    accounts:
+#      - name:
+#        bucket:
+#        rootFolder: kayenta
+#        supportedTypes:
+#          - OBJECT_STORE
+
   gcs:
+    enabled: false
+
+  s3:
     enabled: false
 
   stackdriver:

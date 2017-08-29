@@ -17,12 +17,14 @@
 package com.netflix.kayenta;
 
 import com.netflix.kayenta.atlas.config.AtlasConfiguration;
+import com.netflix.kayenta.aws.config.AwsConfiguration;
 import com.netflix.kayenta.config.KayentaConfiguration;
 import com.netflix.kayenta.config.WebConfiguration;
 import com.netflix.kayenta.gcs.config.GcsConfiguration;
 import com.netflix.kayenta.google.config.GoogleConfiguration;
 import com.netflix.kayenta.memory.config.MemoryConfiguration;
 import com.netflix.kayenta.prometheus.config.PrometheusConfiguration;
+import com.netflix.kayenta.s3.config.S3Configuration;
 import com.netflix.kayenta.stackdriver.config.StackdriverConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
@@ -38,12 +40,14 @@ import java.util.Map;
 @Configuration
 @Import({
   AtlasConfiguration.class,
+  AwsConfiguration.class,
   GcsConfiguration.class,
   GoogleConfiguration.class,
   KayentaConfiguration.class,
   MemoryConfiguration.class,
-  StackdriverConfiguration.class,
   PrometheusConfiguration.class,
+  S3Configuration.class,
+  StackdriverConfiguration.class,
   WebConfiguration.class
 })
 @ComponentScan({

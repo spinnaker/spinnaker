@@ -14,48 +14,27 @@
  * limitations under the License.
  */
 
-package com.netflix.kayenta.google.security;
+package com.netflix.kayenta.aws.config;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.google.api.services.monitoring.v3.Monitoring;
-import com.google.api.services.storage.Storage;
 import com.netflix.kayenta.security.AccountCredentials;
-import lombok.Builder;
 import lombok.Data;
-import lombok.Singular;
 
 import javax.validation.constraints.NotNull;
 import java.util.List;
 
-@Builder
 @Data
-public class GoogleNamedAccountCredentials implements AccountCredentials<GoogleCredentials> {
+public class AwsManagedAccount {
 
   @NotNull
   private String name;
 
-  @NotNull
-  @Singular
-  private List<Type> supportedTypes;
-
-  @NotNull
-  private GoogleCredentials credentials;
-
-  @NotNull
-  private String project;
-
   private String bucket;
-  private String bucketLocation;
+  private String region;
   private String rootFolder;
+  private String endpoint;
+  private String proxyHost;
+  private String proxyPort;
+  private String proxyProtocol;
 
-  @Override
-  public String getType() {
-    return "google";
-  }
-
-  @JsonIgnore
-  private Monitoring monitoring;
-
-  @JsonIgnore
-  private Storage storage;
+  private List<AccountCredentials.Type> supportedTypes;
 }

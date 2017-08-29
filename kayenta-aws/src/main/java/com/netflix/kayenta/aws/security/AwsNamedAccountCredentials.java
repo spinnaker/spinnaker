@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-package com.netflix.kayenta.google.security;
+package com.netflix.kayenta.aws.security;
 
+import com.amazonaws.services.s3.AmazonS3;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.google.api.services.monitoring.v3.Monitoring;
-import com.google.api.services.storage.Storage;
 import com.netflix.kayenta.security.AccountCredentials;
 import lombok.Builder;
 import lombok.Data;
@@ -29,7 +28,7 @@ import java.util.List;
 
 @Builder
 @Data
-public class GoogleNamedAccountCredentials implements AccountCredentials<GoogleCredentials> {
+public class AwsNamedAccountCredentials implements AccountCredentials<AwsCredentials> {
 
   @NotNull
   private String name;
@@ -39,23 +38,17 @@ public class GoogleNamedAccountCredentials implements AccountCredentials<GoogleC
   private List<Type> supportedTypes;
 
   @NotNull
-  private GoogleCredentials credentials;
-
-  @NotNull
-  private String project;
+  private AwsCredentials credentials;
 
   private String bucket;
-  private String bucketLocation;
+  private String region;
   private String rootFolder;
 
   @Override
   public String getType() {
-    return "google";
+    return "aws";
   }
 
   @JsonIgnore
-  private Monitoring monitoring;
-
-  @JsonIgnore
-  private Storage storage;
+  private AmazonS3 amazonS3;
 }

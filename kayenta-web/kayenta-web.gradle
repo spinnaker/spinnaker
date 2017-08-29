@@ -16,12 +16,14 @@ configurations.all {
 
 dependencies {
   compile project(':kayenta-atlas')
+  compile project(':kayenta-aws')
   compile project(':kayenta-core')
   compile project(':kayenta-gcs')
   compile project(':kayenta-google')
   compile project(':kayenta-objectstore-memory')
   compile project(':kayenta-orca')
   compile project(':kayenta-prometheus')
+  compile project(':kayenta-s3')
   compile project(':kayenta-stackdriver')
 
   // compile spinnaker.dependency('bootActuator')

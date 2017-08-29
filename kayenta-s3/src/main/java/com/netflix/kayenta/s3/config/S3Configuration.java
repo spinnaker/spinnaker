@@ -14,45 +14,46 @@
  * limitations under the License.
  */
 
-package com.netflix.kayenta.gcs.config;
+package com.netflix.kayenta.s3.config;
 
-import com.netflix.kayenta.gcs.storage.GcsStorageService;
-import com.netflix.kayenta.google.security.GoogleNamedAccountCredentials;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.awsobjectmapper.AmazonObjectMapperConfigurer;
+import com.netflix.kayenta.aws.security.AwsNamedAccountCredentials;
+import com.netflix.kayenta.s3.storage.S3StorageService;
 import com.netflix.kayenta.security.AccountCredentials;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
-import com.netflix.kayenta.storage.StorageService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
 
 @Configuration
-@EnableConfigurationProperties
-@ConditionalOnProperty("kayenta.gcs.enabled")
-@ComponentScan({"com.netflix.kayenta.gcs"})
+@ConditionalOnProperty("kayenta.s3.enabled")
+@ComponentScan({"com.netflix.kayenta.s3"})
 @Slf4j
-public class GcsConfiguration {
+public class S3Configuration {
 
   @Bean
-  @DependsOn({"registerGoogleCredentials"})
-  public GcsStorageService gcsStorageService(AccountCredentialsRepository accountCredentialsRepository) {
-    GcsStorageService.GcsStorageServiceBuilder gcsStorageServiceBuilder = GcsStorageService.builder();
+  @DependsOn({"registerAwsCredentials"})
+  public S3StorageService s3StorageService(AccountCredentialsRepository accountCredentialsRepository) {
+    ObjectMapper awsObjectMapper = new ObjectMapper();
+    AmazonObjectMapperConfigurer.configure(awsObjectMapper);
+    S3StorageService.S3StorageServiceBuilder s3StorageServiceBuilder = S3StorageService.builder();
 
     accountCredentialsRepository
       .getAll()
       .stream()
-      .filter(c -> c instanceof GoogleNamedAccountCredentials)
+      .filter(c -> c instanceof AwsNamedAccountCredentials)
       .filter(c -> c.getSupportedTypes().contains(AccountCredentials.Type.OBJECT_STORE))
       .map(c -> c.getName())
-      .forEach(gcsStorageServiceBuilder::accountName);
+      .forEach(s3StorageServiceBuilder::accountName);
 
-    GcsStorageService gcsStorageService = gcsStorageServiceBuilder.build();
+    S3StorageService s3StorageService = s3StorageServiceBuilder.objectMapper(awsObjectMapper).build();
 
-    log.info("Populated GcsStorageService with {} Google accounts.", gcsStorageService.getAccountNames().size());
+    log.info("Populated S3StorageService with {} AWS accounts.", s3StorageService.getAccountNames().size());
 
-    return gcsStorageService;
+    return s3StorageService;
   }
 }
