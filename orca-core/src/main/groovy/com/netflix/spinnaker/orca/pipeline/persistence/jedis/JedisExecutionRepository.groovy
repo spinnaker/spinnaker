@@ -47,8 +47,7 @@ import static com.google.common.collect.Maps.filterValues
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.DEFAULT_EXECUTION_ENGINE
 import static com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_BEFORE
 import static java.lang.System.currentTimeMillis
-import static java.util.Collections.emptyList
-import static java.util.Collections.emptyMap
+import static java.util.Collections.*
 import static redis.clients.jedis.BinaryClient.LIST_POSITION.AFTER
 import static redis.clients.jedis.BinaryClient.LIST_POSITION.BEFORE
 
@@ -650,7 +649,7 @@ class JedisExecutionRepository implements ExecutionRepository {
         stage.status = ExecutionStatus.valueOf(map["stage.${stageId}.status".toString()])
         stage.syntheticStageOwner = map["stage.${stageId}.syntheticStageOwner".toString()] ? SyntheticStageOwner.valueOf(map["stage.${stageId}.syntheticStageOwner".toString()]) : null
         stage.parentStageId = map["stage.${stageId}.parentStageId".toString()]
-        stage.requisiteStageRefIds = map["stage.${stageId}.requisiteStageRefIds".toString()]?.tokenize(",")
+        stage.requisiteStageRefIds = map["stage.${stageId}.requisiteStageRefIds".toString()]?.tokenize(",") ?: emptySet()
         stage.scheduledTime = map["stage.${stageId}.scheduledTime".toString()]?.toLong()
         stage.context = map["stage.${stageId}.context".toString()] ? mapper.readValue(map["stage.${stageId}.context".toString()], MAP_STRING_TO_OBJECT) : emptyMap()
         stage.outputs = map["stage.${stageId}.outputs".toString()] ? mapper.readValue(map["stage.${stageId}.outputs".toString()], MAP_STRING_TO_OBJECT) : emptyMap()
