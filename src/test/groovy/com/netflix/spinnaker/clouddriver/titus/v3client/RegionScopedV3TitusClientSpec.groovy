@@ -25,6 +25,7 @@ import org.slf4j.LoggerFactory
 import spock.lang.Ignore
 import spock.lang.Specification
 
+@Ignore
 class RegionScopedV3TitusClientSpec extends Specification {
 
   // this isn't really a unit test..

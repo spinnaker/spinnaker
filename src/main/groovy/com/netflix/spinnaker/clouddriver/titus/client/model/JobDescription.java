@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.clouddriver.titus.client.model;
 
 import com.netflix.titus.grpc.protogen.*;
-import com.sun.net.httpserver.Authenticator;
 
 import java.util.HashMap;
 import java.util.List;
