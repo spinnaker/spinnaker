@@ -41,4 +41,8 @@ class DockerRegistryCommandProperties {
   static final String EMAIL_DESCRIPTION =
       "Your docker registry email "
           + "(often this only needs to be well-formed, rather than be a real address)";
+
+  static final String CACHE_INTERVAL_SECONDS_DESCRIPTION =
+      "How many seconds elapse between polling your docker registry. Certain registries are sensitive to over-polling, and "
+          + "larger intervals (e.g. 10 minutes = 600 seconds) are desirable if you're seeing rate limiting.";
 }

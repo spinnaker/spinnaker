@@ -33,6 +33,7 @@ public class DockerRegistryAccount extends Account {
   private String username;
   private String password;
   private String email;
+  private Long cacheIntervalSeconds = 30L;
   private List<String> repositories = new ArrayList<>();
   @LocalFile private String passwordFile;
   @LocalFile private String dockerconfigFile;

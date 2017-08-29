@@ -82,6 +82,12 @@ public class DockerRegistryEditAccountCommand extends AbstractEditAccountCommand
   )
   private String email;
 
+  @Parameter(
+      names = "--cache-interval-seconds",
+      description = DockerRegistryCommandProperties.CACHE_INTERVAL_SECONDS_DESCRIPTION
+  )
+  private Long cacheIntervalSeconds;
+
   @Override
   protected Account editAccount(DockerRegistryAccount account) {
     account.setAddress(isSet(address) ? address : account.getAddress());
@@ -107,8 +113,8 @@ public class DockerRegistryEditAccountCommand extends AbstractEditAccountCommand
     }
 
     account.setUsername(isSet(username) ? username : account.getUsername());
-
     account.setEmail(isSet(email) ? email : account.getEmail());
+    account.setCacheIntervalSeconds(isSet(cacheIntervalSeconds) ? cacheIntervalSeconds : account.getCacheIntervalSeconds());
 
     return account;
   }

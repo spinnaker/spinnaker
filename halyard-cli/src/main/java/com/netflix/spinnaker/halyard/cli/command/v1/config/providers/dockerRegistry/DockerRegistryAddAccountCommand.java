@@ -69,7 +69,13 @@ class DockerRegistryAddAccountCommand extends AbstractAddAccountCommand {
       names = "--email",
       description = DockerRegistryCommandProperties.EMAIL_DESCRIPTION
   )
-  private String email="fake.email@spinnaker.io";
+  private String email = "fake.email@spinnaker.io";
+
+  @Parameter(
+      names = "--cache-interval-seconds",
+      description = DockerRegistryCommandProperties.CACHE_INTERVAL_SECONDS_DESCRIPTION
+  )
+  private Long cacheIntervalSeconds = 30L;
 
   @Override
   protected Account buildAccount(String accountName) {
@@ -80,7 +86,8 @@ class DockerRegistryAddAccountCommand extends AbstractAddAccountCommand {
         .setPassword(password)
         .setPasswordFile(passwordFile)
         .setUsername(username)
-        .setEmail(email);
+        .setEmail(email)
+        .setCacheIntervalSeconds(cacheIntervalSeconds);
 
     return account;
   }
