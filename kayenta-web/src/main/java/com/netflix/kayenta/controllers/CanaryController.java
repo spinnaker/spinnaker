@@ -194,6 +194,7 @@ public class CanaryController {
           .put("refId", "4")
           .put("requisiteStageRefIds", Collections.singletonList("3"))
           .put("user", "[anonymous]")
+          .put("storageAccountName", resolvedStorageAccountName)
           .put("canaryConfigId", canaryConfigId)
           .put("metricSetPairListId", "${ #stage('Mix Control and Experiment Results')['context']['metricSetPairListId']}")
           .put("combinedCanaryResultStrategy", combinedCanaryResultStrategy)
