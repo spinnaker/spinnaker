@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.cats.redis.cluster;
 
 import com.netflix.spinnaker.cats.agent.Agent;
+import com.netflix.spinnaker.cats.agent.AgentIntervalAware;
 
 public class DefaultAgentIntervalProvider implements AgentIntervalProvider {
     private final long interval;
@@ -33,6 +34,16 @@ public class DefaultAgentIntervalProvider implements AgentIntervalProvider {
 
     @Override
     public Interval getInterval(Agent agent) {
+        if (agent instanceof AgentIntervalAware) {
+            Long agentInterval = ((AgentIntervalAware) agent).getAgentInterval();
+            if (agentInterval != null && agentInterval > 0) {
+                // Specify the caching agent timeout as twice the interval. This gives a high upper bound
+                // on the time it should take the agent to complete its work. The agent's lock is revoked
+                // after the timeout.
+                return new Interval(agentInterval, 2 * agentInterval);
+            }
+        }
+
         return new Interval(interval, timeout);
     }
 

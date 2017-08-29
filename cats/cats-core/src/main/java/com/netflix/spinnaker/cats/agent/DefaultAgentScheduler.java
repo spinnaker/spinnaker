@@ -63,8 +63,15 @@ public class DefaultAgentScheduler extends CatsModuleAware implements AgentSched
 
     @Override
     public void schedule(Agent agent, AgentExecution agentExecution, ExecutionInstrumentation executionInstrumentation) {
+        Long agentInterval = interval;
+        TimeUnit agentTimeUnit = timeUnit;
+        if (agent instanceof AgentIntervalAware) {
+          agentInterval = ((AgentIntervalAware) agent).getAgentInterval();
+          agentTimeUnit = TimeUnit.MILLISECONDS;
+        }
+
         Future agentFuture =
-          scheduledExecutorService.scheduleAtFixedRate(new AgentExecutionRunnable(agent, agentExecution, executionInstrumentation), 0, interval, timeUnit);
+          scheduledExecutorService.scheduleAtFixedRate(new AgentExecutionRunnable(agent, agentExecution, executionInstrumentation), 0, agentInterval, agentTimeUnit);
 
         agentFutures.put(agent, agentFuture);
     }

@@ -28,10 +28,12 @@ import com.netflix.spinnaker.clouddriver.docker.registry.security.DockerRegistry
 import groovy.util.logging.Slf4j
 import retrofit.RetrofitError
 
+import java.util.concurrent.TimeUnit
+
 import static java.util.Collections.unmodifiableSet
 
 @Slf4j
-class DockerRegistryImageCachingAgent implements CachingAgent, AccountAware {
+class DockerRegistryImageCachingAgent implements CachingAgent, AccountAware, AgentIntervalAware {
   static final Set<AgentDataType> types = unmodifiableSet([
     AgentDataType.Authority.INFORMATIVE.forType(Keys.Namespace.TAGGED_IMAGE.ns),
     AgentDataType.Authority.INFORMATIVE.forType(Keys.Namespace.IMAGE_ID.ns)
@@ -42,6 +44,7 @@ class DockerRegistryImageCachingAgent implements CachingAgent, AccountAware {
   private String accountName
   private final int index
   private final int threadCount
+  private final long interval
   private String registry
 
   DockerRegistryImageCachingAgent(DockerRegistryCloudProvider dockerRegistryCloudProvider,
@@ -49,12 +52,14 @@ class DockerRegistryImageCachingAgent implements CachingAgent, AccountAware {
                                   DockerRegistryCredentials credentials,
                                   int index,
                                   int threadCount,
+                                  Long intervalSecs,
                                   String registry) {
     this.dockerRegistryCloudProvider = dockerRegistryCloudProvider
     this.accountName = accountName
     this.credentials = credentials
     this.index = index
     this.threadCount = threadCount
+    this.interval = TimeUnit.SECONDS.toMillis(intervalSecs)
     this.registry = registry
   }
 
@@ -168,5 +173,10 @@ class DockerRegistryImageCachingAgent implements CachingAgent, AccountAware {
       (Keys.Namespace.TAGGED_IMAGE.ns): cachedTags.values().collect({ builder -> builder.build() }),
       (Keys.Namespace.IMAGE_ID.ns): cachedIds.values().collect({ builder -> builder.build() }),
     ])
+  }
+
+  @Override
+  Long getAgentInterval() {
+    return interval
   }
 }

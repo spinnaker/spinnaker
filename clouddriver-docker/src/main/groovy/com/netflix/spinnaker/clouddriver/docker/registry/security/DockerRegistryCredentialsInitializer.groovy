@@ -72,6 +72,7 @@ class DockerRegistryCredentialsInitializer implements CredentialsInitializerSync
           .passwordFile(managedAccount.passwordFile)
           .dockerconfigFile(managedAccount.dockerconfigFile)
           .cacheThreads(managedAccount.cacheThreads)
+          .cacheIntervalSeconds(managedAccount.cacheIntervalSeconds)
           .clientTimeoutMillis(managedAccount.clientTimeoutMillis)
           .paginateSize(managedAccount.paginateSize)
           .trackDigests(managedAccount.trackDigests)

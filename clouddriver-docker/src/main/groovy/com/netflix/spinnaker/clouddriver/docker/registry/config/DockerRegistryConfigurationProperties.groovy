@@ -39,6 +39,8 @@ class DockerRegistryConfigurationProperties {
     String address
     // How many threads to cache all provided repos on. Really only useful if you have a ton of repos.
     int cacheThreads
+    // Interval at which the caching agent should poll the registry. Default is 30 seconds.
+    long cacheIntervalSeconds
     // Timeout time in milliseconds for this repository. Default is 60,000 (1 minute).
     long clientTimeoutMillis
     // Paginate size for the docker repository /_catalog endpoint. Default is 100.

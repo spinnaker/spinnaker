@@ -36,6 +36,7 @@ class DockerRegistryNamedAccountCredentials implements AccountCredentials<Docker
     File dockerconfigFile
     String email
     int cacheThreads
+    long cacheIntervalSeconds
     long clientTimeoutMillis
     int paginateSize
     boolean trackDigests
@@ -105,6 +106,11 @@ class DockerRegistryNamedAccountCredentials implements AccountCredentials<Docker
       return this
     }
 
+    Builder cacheIntervalSeconds(long cacheIntervalSeconds) {
+      this.cacheIntervalSeconds = cacheIntervalSeconds
+      return this
+    }
+
     Builder clientTimeoutMillis(long clientTimeoutMillis) {
       this.clientTimeoutMillis = clientTimeoutMillis
       return this
@@ -148,6 +154,7 @@ class DockerRegistryNamedAccountCredentials implements AccountCredentials<Docker
                                                        repositories,
                                                        skip,
                                                        cacheThreads,
+                                                       cacheIntervalSeconds,
                                                        clientTimeoutMillis,
                                                        paginateSize,
                                                        trackDigests,
@@ -167,6 +174,7 @@ class DockerRegistryNamedAccountCredentials implements AccountCredentials<Docker
                                         List<String> repositories,
                                         List<String> skip,
                                         int cacheThreads,
+                                        long cacheIntervalSeconds,
                                         long clientTimeoutMillis,
                                         int paginateSize,
                                         boolean trackDigests,
@@ -183,6 +191,7 @@ class DockerRegistryNamedAccountCredentials implements AccountCredentials<Docker
          repositories,
          skip,
          cacheThreads,
+         cacheIntervalSeconds,
          clientTimeoutMillis,
          paginateSize,
          trackDigests,
@@ -202,6 +211,7 @@ class DockerRegistryNamedAccountCredentials implements AccountCredentials<Docker
                                         List<String> repositories,
                                         List<String> skip,
                                         int cacheThreads,
+                                        long cacheIntervalSeconds,
                                         long clientTimeoutMillis,
                                         int paginateSize,
                                         boolean trackDigests,
@@ -215,6 +225,7 @@ class DockerRegistryNamedAccountCredentials implements AccountCredentials<Docker
     this.accountType = accountType
     this.passwordFile = passwordFile
     this.cacheThreads = cacheThreads ?: 1
+    this.cacheIntervalSeconds = cacheIntervalSeconds ?: 30
     this.paginateSize = paginateSize ?: 100
     this.clientTimeoutMillis = clientTimeoutMillis ?: TimeUnit.MINUTES.toMillis(1)
 
@@ -324,6 +335,7 @@ class DockerRegistryNamedAccountCredentials implements AccountCredentials<Docker
   final boolean trackDigests
   final boolean sortTagsByDate
   final int cacheThreads
+  final long cacheIntervalSeconds
   final long clientTimeoutMillis
   final int paginateSize
   @JsonIgnore
