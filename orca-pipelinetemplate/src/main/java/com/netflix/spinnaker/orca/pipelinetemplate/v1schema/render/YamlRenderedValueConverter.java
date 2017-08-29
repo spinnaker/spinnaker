@@ -16,13 +16,14 @@
 package com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render;
 
 import com.netflix.spinnaker.orca.pipelinetemplate.exceptions.TemplateRenderException;
-import java.util.Arrays;
-import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.composer.ComposerException;
 import org.yaml.snakeyaml.parser.ParserException;
+
+import java.util.Arrays;
+import java.util.List;
 
 public class YamlRenderedValueConverter implements RenderedValueConverter {
 
@@ -44,7 +45,10 @@ public class YamlRenderedValueConverter implements RenderedValueConverter {
 
     try {
       Object converted = yaml.load(renderedValue);
-      return (converted == null || converted instanceof String) ? renderedValue : converted;
+      if (converted == null || converted instanceof String) {
+        return "".equals(converted) || "".equals(renderedValue) ? null : renderedValue;
+      }
+      return converted;
     } catch (ComposerException ce) {
       throw new TemplateRenderException("template produced invalid yaml", ce);
     } catch (ParserException pe) {

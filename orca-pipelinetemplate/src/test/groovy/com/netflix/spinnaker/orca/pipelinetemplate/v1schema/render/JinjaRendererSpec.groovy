@@ -47,7 +47,9 @@ class JinjaRendererSpec extends Specification {
     def result = subject.renderGraph(template, context)
 
     then:
-    expectedType.isAssignableFrom(result.getClass())
+    if (result != null) {
+      expectedType.isAssignableFrom(result.getClass())
+    }
     result == expectedResult
 
     where:
@@ -84,6 +86,7 @@ class JinjaRendererSpec extends Specification {
     '#stage("First Wait")["status"].toString() == "SUCCESS"' || String | '#stage("First Wait")["status"].toString() == "SUCCESS"'
     '${ #stage("First Wait")["status"].toString() == "SUCCESS" }' || String | '${ #stage("First Wait")["status"].toString() == "SUCCESS" }'
     '${ parameters.CONFIG_FOLDER ?: \'\' }' || String | '${ parameters.CONFIG_FOLDER ?: \'\' }'
+    ''                || String       | null
   }
 
 

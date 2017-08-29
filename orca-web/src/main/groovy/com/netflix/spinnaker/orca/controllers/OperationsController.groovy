@@ -69,7 +69,7 @@ class OperationsController {
   WebhookService webhookService
 
   @RequestMapping(value = "/orchestrate", method = RequestMethod.POST)
-  Map<String, String> orchestrate(@RequestBody Map pipeline, HttpServletResponse response) {
+  Map<String, Object> orchestrate(@RequestBody Map pipeline, HttpServletResponse response) {
     parsePipelineTrigger(executionRepository, buildService, pipeline)
     Map trigger = pipeline.trigger
 
