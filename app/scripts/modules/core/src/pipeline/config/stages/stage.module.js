@@ -72,9 +72,6 @@ module.exports = angular.module('spinnaker.core.pipeline.config.stage', [
     };
 
     $scope.updateAvailableDependencyStages = function() {
-      if (!$scope.pipeline.parallel) {
-        return;
-      }
       var availableDependencyStages = pipelineConfigService.getDependencyCandidateStages($scope.pipeline, $scope.stage);
       $scope.options.dependencies = availableDependencyStages.map(function(stage) {
         return {

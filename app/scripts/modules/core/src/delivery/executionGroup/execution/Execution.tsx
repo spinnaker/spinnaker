@@ -369,13 +369,11 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
         </div>
         { this.state.showingDetails && (
           <div className="execution-graph">
-            { this.props.execution.parallel && (
-              <PipelineGraph
-                execution={this.props.execution}
-                onNodeClick={this.handleNodeClick}
-                viewState={this.state.viewState}
-              />
-            )}
+            <PipelineGraph
+              execution={this.props.execution}
+              onNodeClick={this.handleNodeClick}
+              viewState={this.state.viewState}
+            />
           </div>
         )}
         { this.state.showingDetails && (

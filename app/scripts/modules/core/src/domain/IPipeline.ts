@@ -12,7 +12,6 @@ export interface IPipeline {
   locked?: boolean;
   limitConcurrent: boolean;
   name: string;
-  parallel: boolean;
   stages: IStage[];
   strategy: boolean;
   triggers: ITrigger[];

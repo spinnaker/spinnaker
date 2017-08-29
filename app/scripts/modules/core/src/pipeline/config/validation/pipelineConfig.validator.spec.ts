@@ -53,7 +53,6 @@ describe('pipelineConfigValidator', () => {
       application: 'app',
       limitConcurrent: true,
       keepWaitingPipelines: true,
-      parallel: true,
       stages: stages,
       triggers: triggers,
     };

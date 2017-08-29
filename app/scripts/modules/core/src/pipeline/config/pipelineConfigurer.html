@@ -36,45 +36,7 @@
       <span class="glyphicon glyphicon small glyphicon-lock"></span> Manual edits are not allowed on templated pipelines
     </div>
 
-    <div class="row pipeline-config config-heading-body" ng-if="!pipeline.parallel">
-      <div class="col-md-12">
-        <ul class="nav-pipeline-config">
-          <li class="config-section">
-            <a href class="btn btn-default"
-               analytics-on="click"
-               analytics-category="Pipeline Config"
-               analytics-event="Configuration button clicked"
-               ng-class="{active: pipelineConfigurerCtrl.isActive('triggers') }"
-               ng-click="pipelineConfigurerCtrl.navigateTo({section: 'triggers'})">
-              <span class="glyphicon glyphicon-certificate"></span> Configuration
-            </a>
-          </li>
-          <li class="config-section nav-stages">
-            <h4>Stages</h4>
-            <div class="sortable-stages" ui-sortable="stageSortOptions" ng-model="pipeline.stages">
-              <a href ng-repeat="stage in pipeline.stages" class="btn btn-default"
-                 analytics-on="click"
-                 analytics-category="Pipeline Config"
-                 analytics-event="Stage button clicked"
-                 ng-click="pipelineConfigurerCtrl.navigateToStage($index, $event)"
-                 ng-class="{'active': pipelineConfigurerCtrl.stageIsActive($index)}">
-                {{$index+1}}: {{stage.name || '[Unnamed Stage]'}}
-                <span ng-if="stage.restrictExecutionDuringTimeWindow"
-                      class="glyphicon glyphicon-time small" uib-tooltip="This stage is configured to only run during specified windows"></span>
-              </a>
-            </div>
-            <button class="btn btn-sm add-new"
-                    analytics-on="click"
-                    analytics-category="Pipeline Config"
-                    analytics-event="Add stage button clicked (non-parallel)"
-                    ng-click="pipelineConfigurerCtrl.addStage()">
-              <span class="glyphicon glyphicon-plus-sign"></span> Add stage
-            </button>
-          </li>
-        </ul>
-      </div>
-    </div>
-    <div class="config-heading-body" ng-if="pipeline.parallel">
+    <div class="config-heading-body">
       <div class="pipeline-graph-container">
         <pipeline-graph view-state="viewState"
                         pipeline="renderablePipeline"

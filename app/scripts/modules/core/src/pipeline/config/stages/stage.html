@@ -32,7 +32,7 @@
       <stage-config-field label="Stage Name">
         <input type="text" class="form-control input-sm" required ng-model="stage.name"/>
       </stage-config-field>
-      <stage-config-field label="Depends On" help-key="pipeline.config.dependsOn" ng-if="pipeline.parallel" style="margin-bottom: 10px">
+      <stage-config-field label="Depends On" help-key="pipeline.config.dependsOn" style="margin-bottom: 10px">
         <ui-select ng-model="stage.requisiteStageRefIds" multiple class="form-control input-sm"
                    on-select="updateAvailableDependencyStages()"
                    on-remove="updateAvailableDependencyStages()">

@@ -39,7 +39,6 @@ export interface ICreatePipelineModalState {
 }
 
 export interface ICreatePipelineCommand {
-  parallel: boolean;
   strategy: boolean;
   name: string;
   config: Partial<IPipeline>;
@@ -75,7 +74,6 @@ export class CreatePipelineModal extends React.Component<ICreatePipelineModalPro
       application: this.props.application.name,
       limitConcurrent: true,
       keepWaitingPipelines: false,
-      parallel: true,
     };
   }
 
@@ -99,7 +97,7 @@ export class CreatePipelineModal extends React.Component<ICreatePipelineModalPro
       configOptions: configOptions,
       templates: [],
       existingNames: existingNames,
-      command: {parallel: true, strategy: false, name: '', config: defaultConfig, template: null},
+      command: {strategy: false, name: '', config: defaultConfig, template: null},
       useTemplate: false,
       useManagedTemplate: true,
       loadingTemplateFromSource: false,
@@ -137,7 +135,6 @@ export class CreatePipelineModal extends React.Component<ICreatePipelineModalPro
       type: 'templatedPipeline',
       limitConcurrent: true,
       keepWaitingPipelines: false,
-      parallel: true,
       triggers: [],
       config: {
         schema: '1',

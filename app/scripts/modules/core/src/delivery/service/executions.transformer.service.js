@@ -228,9 +228,6 @@ module.exports = angular.module('spinnaker.core.delivery.executionTransformer.se
     }
 
     function applyPhasesAndLink(execution) {
-      if (!execution.parallel) {
-        return;
-      }
       var stages = execution.stages;
       var allPhasesResolved = true;
       // remove any invalid requisiteStageRefIds, set requisiteStageRefIds to empty for synthetic stages

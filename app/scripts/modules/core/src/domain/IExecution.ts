@@ -21,7 +21,6 @@ export interface IExecution extends IOrchestratedItem {
   appConfig?: any;
   cancellationReason?: string;
   canceledBy?: string;
-  parallel?: boolean;
   buildInfo?: any;
 }
 

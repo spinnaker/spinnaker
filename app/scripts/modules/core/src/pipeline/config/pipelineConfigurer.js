@@ -94,12 +94,10 @@ module.exports = angular.module('spinnaker.core.pipeline.config.pipelineConfigur
 
     this.addStage = function(newStage = { isNew: true }) {
       $scope.renderablePipeline.stages = $scope.renderablePipeline.stages || [];
-      if ($scope.renderablePipeline.parallel) {
-        newStage.refId = Math.max(0, ...$scope.renderablePipeline.stages.map(s => Number(s.refId) || 0)) + 1 + '';
-        newStage.requisiteStageRefIds = [];
-        if ($scope.renderablePipeline.stages.length && $scope.viewState.section === 'stage') {
-          newStage.requisiteStageRefIds.push($scope.renderablePipeline.stages[$scope.viewState.stageIndex].refId);
-        }
+      newStage.refId = Math.max(0, ...$scope.renderablePipeline.stages.map(s => Number(s.refId) || 0)) + 1 + '';
+      newStage.requisiteStageRefIds = [];
+      if ($scope.renderablePipeline.stages.length && $scope.viewState.section === 'stage') {
+        newStage.requisiteStageRefIds.push($scope.renderablePipeline.stages[$scope.viewState.stageIndex].refId);
       }
       $scope.renderablePipeline.stages.push(newStage);
       this.navigateToStage($scope.renderablePipeline.stages.length - 1);

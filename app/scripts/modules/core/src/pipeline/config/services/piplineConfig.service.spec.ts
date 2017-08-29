@@ -37,7 +37,6 @@ describe('pipelineConfigService', () => {
       limitConcurrent: true,
       keepWaitingPipelines: false,
       strategy: false,
-      parallel: true,
       triggers: [],
       stages: [],
       parameterConfig: null,
