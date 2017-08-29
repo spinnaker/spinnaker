@@ -38,7 +38,9 @@ class PipelineTemplateControllerSpec extends Specification {
 
   def "should reject delete request if template has dependent configs"() {
     given:
-    def templateId = "myTemplate"
+    def template = new PipelineTemplate(
+      id: "myTemplate"
+    )
     def pipeline = new Pipeline(
       type: "templatedPipeline",
       config: [
@@ -51,8 +53,9 @@ class PipelineTemplateControllerSpec extends Specification {
     )
 
     when:
+    pipelineTemplateDAO.all() >> { [template] }
     pipelineDAO.all() >> { [pipeline] }
-    controller.checkForDependentConfigs(templateId)
+    controller.checkForDependentConfigs(template.getId())
 
     then:
     thrown(InvalidRequestException)
@@ -72,5 +75,30 @@ class PipelineTemplateControllerSpec extends Specification {
 
     then:
     thrown(InvalidRequestException)
+  }
+
+  def "should recursively find dependent templates"() {
+    given:
+    def rootTemplate = new PipelineTemplate(
+      id: 'rootTemplate'
+    )
+    def childTemplate = new PipelineTemplate(
+      id: 'childTemplate',
+      source: 'spinnaker://rootTemplate'
+    )
+    def grandchildTemplate = new PipelineTemplate(
+      id: 'grandchildTemplate',
+      source: 'spinnaker://childTemplate'
+    )
+    def unrelatedTemplate = new PipelineTemplate(
+      id: 'unrelatedTemplate'
+    )
+
+    when:
+    pipelineTemplateDAO.all() >> { [rootTemplate, childTemplate, grandchildTemplate, unrelatedTemplate] }
+    def result = controller.getDependentTemplates('rootTemplate', Optional.empty())
+
+    then:
+    result == ['childTemplate', 'grandchildTemplate']
   }
 }

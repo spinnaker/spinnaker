@@ -21,11 +21,11 @@ import com.netflix.spinnaker.front50.exception.BadRequestException;
 import com.netflix.spinnaker.front50.exception.NotFoundException;
 import com.netflix.spinnaker.front50.exceptions.DuplicateEntityException;
 import com.netflix.spinnaker.front50.exceptions.InvalidRequestException;
+import com.netflix.spinnaker.front50.model.pipeline.Pipeline;
 import com.netflix.spinnaker.front50.model.pipeline.PipelineDAO;
 import com.netflix.spinnaker.front50.model.pipeline.PipelineTemplate;
 import com.netflix.spinnaker.front50.model.pipeline.PipelineTemplateDAO;
 import com.netflix.spinnaker.front50.model.pipeline.TemplateConfiguration;
-import java.util.ArrayList;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -34,7 +34,11 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("pipelineTemplates")
@@ -87,9 +91,21 @@ public class PipelineTemplateController {
     getPipelineTemplateDAO().delete(id);
   }
 
+  @RequestMapping(value = "{id}/dependentPipelines", method = RequestMethod.GET)
+  List<Pipeline> listDependentPipelines(@PathVariable String id) {
+    List<String> dependentConfigsIds = getDependentConfigs(id);
+
+    return pipelineDAO.all()
+      .stream()
+      .filter(pipeline -> dependentConfigsIds.contains(pipeline.getId()))
+      .collect(Collectors.toList());
+  }
+
   @VisibleForTesting
-  void checkForDependentConfigs(String templateId) {
+  List<String> getDependentConfigs(String templateId) {
     List<String> dependentConfigIds = new ArrayList<>();
+
+    List<String> templateIds = convertAllTemplateIdsToSources(templateId);
 
     pipelineDAO.all()
       .stream()
@@ -105,11 +121,34 @@ public class PipelineTemplateController {
           return;
         }
 
-        if (source != null && source.equalsIgnoreCase("spinnaker://" + templateId)) {
+        if (source != null && containsAnyIgnoreCase(source, templateIds)) {
           dependentConfigIds.add(templatedPipeline.getId());
         }
       });
+    return dependentConfigIds;
+  }
 
+  private List<String> convertAllTemplateIdsToSources(String rootTemplateId) {
+    List<String> templateIds = new ArrayList<>();
+    templateIds.add("spinnaker://" + rootTemplateId);
+    for (String id : getDependentTemplates(rootTemplateId, Optional.empty())) {
+      templateIds.add("spinnaker://" + id);
+    }
+    return templateIds;
+  }
+
+  private static boolean containsAnyIgnoreCase(String source, List<String> templateIds) {
+    for (String templateId : templateIds) {
+      if (source.equalsIgnoreCase(templateId)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @VisibleForTesting
+  void checkForDependentConfigs(String templateId) {
+    List<String> dependentConfigIds = getDependentConfigs(templateId);
     if (dependentConfigIds.size() != 0) {
       throw new InvalidRequestException("The following pipeline configs"
         + " depend on this template: " + String.join(", ", dependentConfigIds));
@@ -117,17 +156,23 @@ public class PipelineTemplateController {
   }
 
   @VisibleForTesting
-  void checkForDependentTemplates(String templateId) {
+  List<String> getDependentTemplates(String templateId, Optional<Collection<PipelineTemplate>> templates) {
     List<String> dependentTemplateIds = new ArrayList<>();
 
-    getPipelineTemplateDAO().all()
-      .forEach(template -> {
+    final Collection<PipelineTemplate> pipelineTemplates = templates.orElse(getPipelineTemplateDAO().all());
+    pipelineTemplates.forEach(template -> {
         if (template.getSource() != null
-            && template.getSource().equalsIgnoreCase("spinnaker://" + templateId)) {
+          && template.getSource().equalsIgnoreCase("spinnaker://" + templateId)) {
           dependentTemplateIds.add(template.getId());
+          dependentTemplateIds.addAll(getDependentTemplates(template.getId(), Optional.of(pipelineTemplates)));
         }
       });
+    return dependentTemplateIds;
+  }
 
+  @VisibleForTesting
+  void checkForDependentTemplates(String templateId) {
+    List<String> dependentTemplateIds = getDependentTemplates(templateId, Optional.empty());
     if (dependentTemplateIds.size() != 0) {
       throw new InvalidRequestException("The following pipeline templates"
         + " depend on this template: " + String.join(", ", dependentTemplateIds));
