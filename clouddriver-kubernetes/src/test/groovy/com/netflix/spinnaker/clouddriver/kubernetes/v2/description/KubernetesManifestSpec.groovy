@@ -20,6 +20,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.description
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.yaml.snakeyaml.Yaml
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class KubernetesManifestSpec extends Specification {
   def objectMapper = new ObjectMapper()
@@ -27,7 +28,7 @@ class KubernetesManifestSpec extends Specification {
 
   def NAME = "my-name"
   def NAMESPACE = "my-namespace"
-  def KIND = "ReplicaSet"
+  def KIND = KubernetesKind.REPLICA_SET
   def API_VERSION = KubernetesApiVersion.EXTENSIONS_V1BETA1
 
   def BASIC_REPLICA_SET = """
@@ -51,5 +52,20 @@ metadata:
     manifest.getNamespace() == NAMESPACE
     manifest.getKind() == KIND
     manifest.getApiVersion() == API_VERSION
+  }
+
+  @Unroll
+  void "correctly parses a fully qualified resource name #kind/#name"() {
+    expect:
+    def pair = KubernetesManifest.fromFullResourceName(fullResourceName)
+    pair.getLeft() == kind
+    pair.getRight() == name
+
+    where:
+    fullResourceName || kind                       | name
+    "replicaSet/abc" || KubernetesKind.REPLICA_SET | "abc"
+    "service/abc"    || KubernetesKind.SERVICE     | "abc"
+    "SERVICE/abc"    || KubernetesKind.SERVICE     | "abc"
+    "ingress/abc"    || KubernetesKind.INGRESS     | "abc"
   }
 }

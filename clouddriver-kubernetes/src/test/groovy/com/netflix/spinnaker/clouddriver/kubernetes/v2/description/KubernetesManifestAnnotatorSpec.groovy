@@ -34,12 +34,11 @@ class KubernetesManifestAnnotatorSpec extends Specification {
   void "manifests are annotated and deannotated symmetrically"() {
     expect:
     def manifest = freshManifest()
-    def input = KubernetesManifestSpinnakerRelationships.builder()
-      .loadBalancers(loadBalancers)
-      .securityGroups(securityGroups)
-      .cluster(cluster)
-      .application(application)
-      .build()
+    def input = new KubernetesManifestSpinnakerRelationships()
+      .setLoadBalancers(loadBalancers)
+      .setSecurityGroups(securityGroups)
+      .setCluster(cluster)
+      .setApplication(application)
 
     KubernetesManifestAnnotater.annotateManifestWithRelationships(manifest, input)
     input == KubernetesManifestAnnotater.getManifestRelationships(manifest)
@@ -61,10 +60,9 @@ class KubernetesManifestAnnotatorSpec extends Specification {
   void "manifests are annotated with the expected prefix"() {
     expect:
     def manifest = freshManifest()
-    def relationships = KubernetesManifestSpinnakerRelationships.builder()
-      .cluster(cluster)
-      .application(application)
-      .build()
+    def relationships = new KubernetesManifestSpinnakerRelationships()
+      .setCluster(cluster)
+      .setApplication(application)
 
     KubernetesManifestAnnotater.annotateManifestWithRelationships(manifest, relationships)
     manifest.getAnnotations().get(clusterKey) == '"' + cluster + '"'

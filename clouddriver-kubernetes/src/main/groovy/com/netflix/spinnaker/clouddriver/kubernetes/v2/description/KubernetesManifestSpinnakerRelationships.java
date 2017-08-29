@@ -17,13 +17,11 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.description;
 
-import lombok.Builder;
 import lombok.Data;
 
 import java.util.List;
 
 @Data
-@Builder
 public class KubernetesManifestSpinnakerRelationships {
   String application;
   String cluster;

@@ -271,7 +271,7 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials> 
               accountCredentialsRepository
           );
         case v2:
-          return (C) new KubernetesV2Credentials();
+          return (C) new KubernetesV2Credentials(spectatorRegistry);
         default:
           throw new IllegalArgumentException("Unknown provider type: " + version);
       }

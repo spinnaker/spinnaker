@@ -17,21 +17,31 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.converter;
 
+import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesOperation;
+import com.netflix.spinnaker.clouddriver.kubernetes.deploy.converters.KubernetesAtomicOperationConverterHelper;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesManifestOperationDescription;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.KubernetesManifestDeployer;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport;
 import com.netflix.spinnaker.clouddriver.security.ProviderVersion;
+import org.springframework.stereotype.Component;
 
 import java.util.Map;
 
+import static com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations.DEPLOY_MANIFEST;
+
+@KubernetesOperation(DEPLOY_MANIFEST)
+@Component
 public class KubernetesDeployManifestConverter extends AbstractAtomicOperationsCredentialsSupport {
   @Override
   public AtomicOperation convertOperation(Map input) {
-    throw new UnsupportedOperationException();
+    return new KubernetesManifestDeployer(convertDescription(input));
   }
 
   @Override
-  public Object convertDescription(Map input) {
-    throw new UnsupportedOperationException();
+  public KubernetesManifestOperationDescription convertDescription(Map input) {
+    return (KubernetesManifestOperationDescription) KubernetesAtomicOperationConverterHelper
+        .convertDescription(input, this, KubernetesManifestOperationDescription.class);
   }
 
   @Override

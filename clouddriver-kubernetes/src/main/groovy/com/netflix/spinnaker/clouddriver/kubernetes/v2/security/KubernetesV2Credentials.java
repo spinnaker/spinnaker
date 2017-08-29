@@ -17,11 +17,16 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.security;
 
+import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials;
 import io.kubernetes.client.ApiClient;
 import io.kubernetes.client.ApiException;
 import io.kubernetes.client.apis.CoreV1Api;
+import io.kubernetes.client.apis.ExtensionsV1beta1Api;
+import io.kubernetes.client.models.V1beta1ReplicaSet;
 import io.kubernetes.client.util.Config;
+import lombok.Getter;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
 import java.util.List;
@@ -30,12 +35,21 @@ import java.util.stream.Collectors;
 public class KubernetesV2Credentials implements KubernetesCredentials {
   private final ApiClient client;
   private final CoreV1Api coreV1Api;
+  private final ExtensionsV1beta1Api extensionsV1beta1Api;
+  private final Registry registry;
 
-  public KubernetesV2Credentials() {
+  @Getter
+  private final String defaultNamespace = "default";
+
+  public KubernetesV2Credentials(Registry registry) {
+    // TODO(lwander) wire this in
+    this.registry = registry;
     try {
       // TODO(lwander) initialize client based on provided config
       client = Config.defaultClient();
+      client.setDebugging(true);
       coreV1Api = new CoreV1Api(client);
+      extensionsV1beta1Api = new ExtensionsV1beta1Api(client);
     } catch (IOException e) {
       throw new RuntimeException("Failed to instantiate Kubernetes credentials", e);
     }
@@ -51,6 +65,15 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
           .collect(Collectors.toList());
     } catch (ApiException e) {
       throw new RuntimeException(e);
+    }
+  }
+
+  public void deployReplicaSet(V1beta1ReplicaSet replicaSet) {
+    final String operation = "replicaSets.create";
+    try {
+      extensionsV1beta1Api.createNamespacedReplicaSet(replicaSet.getMetadata().getNamespace(), replicaSet, null);
+    } catch (ApiException e) {
+      throw new KubernetesApiException(operation, e);
     }
   }
 }

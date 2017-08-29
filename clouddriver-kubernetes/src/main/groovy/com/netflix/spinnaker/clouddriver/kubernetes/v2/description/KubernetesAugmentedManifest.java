@@ -15,7 +15,12 @@
  *
  */
 
-package com.netflix.spinnaker.clouddriver.kubernetes.v2.ops;
+package com.netflix.spinnaker.clouddriver.kubernetes.v2.description;
 
-public class KubernetesManifestDeployer {
+import lombok.Data;
+
+@Data
+public class KubernetesAugmentedManifest {
+  KubernetesManifest manifest;
+  KubernetesManifestSpinnakerRelationships relationships;
 }

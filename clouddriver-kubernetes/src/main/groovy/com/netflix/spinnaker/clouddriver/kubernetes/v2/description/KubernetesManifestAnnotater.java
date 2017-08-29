@@ -72,11 +72,10 @@ public class KubernetesManifestAnnotater {
   public static KubernetesManifestSpinnakerRelationships getManifestRelationships(KubernetesManifest manifest) {
     Map<String, String> annotations = manifest.getAnnotations();
 
-    return KubernetesManifestSpinnakerRelationships.builder()
-        .loadBalancers(getAnnotation(annotations, LOAD_BALANCERS, new TypeReference<List<String>>() {}))
-        .securityGroups(getAnnotation(annotations, SECURITY_GROUPS, new TypeReference<List<String>>() {}))
-        .cluster(getAnnotation(annotations, CLUSTER, new TypeReference<String>() {}))
-        .application(getAnnotation(annotations, APPLICATION, new TypeReference<String>() {}))
-        .build();
+    return new KubernetesManifestSpinnakerRelationships()
+        .setLoadBalancers(getAnnotation(annotations, LOAD_BALANCERS, new TypeReference<List<String>>() {}))
+        .setSecurityGroups(getAnnotation(annotations, SECURITY_GROUPS, new TypeReference<List<String>>() {}))
+        .setCluster(getAnnotation(annotations, CLUSTER, new TypeReference<String>() {}))
+        .setApplication(getAnnotation(annotations, APPLICATION, new TypeReference<String>() {}));
   }
 }

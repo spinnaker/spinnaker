@@ -17,13 +17,29 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.description;
 
-import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.KubernetesAtomicOperationDescription;
-import lombok.Data;
+import java.util.Arrays;
 
-import java.util.ArrayList;
-import java.util.List;
+public enum KubernetesKind {
+  DEPLOYMENT("deployment"),
+  INGRESS("ingress"),
+  REPLICA_SET("replicaSet"),
+  NETWORK_POLICY("networkPolicy"),
+  SERVICE("service");
 
-@Data
-public class KubernetesManifestOperationDescription extends KubernetesAtomicOperationDescription {
-  List<KubernetesAugmentedManifest> manifests = new ArrayList<>();
+  public final String name;
+  KubernetesKind(String name) {
+    this.name = name;
+  }
+
+  @Override
+  public String toString() {
+    return name;
+  }
+
+  public static KubernetesKind fromString(String name) {
+    return Arrays.stream(values())
+        .filter(v -> v.name.equalsIgnoreCase(name))
+        .findAny()
+        .orElseThrow(() -> new IllegalArgumentException("Kubernetes kind '" + name + "' is not supported."));
+  }
 }

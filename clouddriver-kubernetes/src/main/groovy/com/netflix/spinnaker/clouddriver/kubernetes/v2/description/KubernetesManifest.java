@@ -18,6 +18,8 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.description;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -33,8 +35,8 @@ public class KubernetesManifest extends HashMap<String, Object> {
   }
 
   @JsonIgnore
-  public String getKind() {
-    return getRequiredField(this, "kind");
+  public KubernetesKind getKind() {
+    return KubernetesKind.fromString(getRequiredField(this, "kind"));
   }
 
   @JsonIgnore
@@ -58,7 +60,35 @@ public class KubernetesManifest extends HashMap<String, Object> {
   }
 
   @JsonIgnore
+  public void setNamespace(String namespace) {
+    getMetatdata().put("namespace", namespace);
+  }
+
+  @JsonIgnore
   public Map<String, String> getAnnotations() {
-    return (Map<String, String>) getMetatdata().get("annotations");
+    Map<String, String> result = (Map<String, String>) getMetatdata().get("annotations");
+    if (result == null) {
+      result = new HashMap<>();
+      getMetatdata().put("annotations", result);
+    }
+
+    return result;
+  }
+
+  @JsonIgnore
+  public String getFullResourceName() {
+    return getKind() + "/" + getName();
+  }
+
+  public static Pair<KubernetesKind, String> fromFullResourceName(String fullResourceName) {
+    String[] split = fullResourceName.split("/");
+    if (split.length != 2) {
+      throw new IllegalArgumentException("Expected a full resource name of the form <kind>/<name>");
+    }
+
+    KubernetesKind kind = KubernetesKind.fromString(split[0]);
+    String name = split[1];
+
+    return new ImmutablePair<>(kind, name);
   }
 }

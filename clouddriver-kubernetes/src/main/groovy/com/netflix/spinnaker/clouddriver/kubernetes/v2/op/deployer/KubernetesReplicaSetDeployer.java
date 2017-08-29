@@ -15,15 +15,21 @@
  *
  */
 
-package com.netflix.spinnaker.clouddriver.kubernetes.v2.description;
+package com.netflix.spinnaker.clouddriver.kubernetes.v2.op.deployer;
 
-import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.KubernetesAtomicOperationDescription;
-import lombok.Data;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
+import io.kubernetes.client.models.V1beta1ReplicaSet;
+import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.List;
+@Component
+public class KubernetesReplicaSetDeployer extends KubernetesDeployer<V1beta1ReplicaSet> {
+  @Override
+  Class<V1beta1ReplicaSet> getDeployedClass() {
+    return V1beta1ReplicaSet.class;
+  }
 
-@Data
-public class KubernetesManifestOperationDescription extends KubernetesAtomicOperationDescription {
-  List<KubernetesAugmentedManifest> manifests = new ArrayList<>();
+  @Override
+  void deploy(KubernetesV2Credentials credentials, V1beta1ReplicaSet resource) {
+    credentials.deployReplicaSet(resource);
+  }
 }

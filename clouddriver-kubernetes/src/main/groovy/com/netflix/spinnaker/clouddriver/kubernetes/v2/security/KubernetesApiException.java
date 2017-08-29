@@ -15,12 +15,12 @@
  *
  */
 
-package com.netflix.spinnaker.clouddriver.kubernetes.v2.description;
+package com.netflix.spinnaker.clouddriver.kubernetes.v2.security;
 
-import lombok.Data;
+import io.kubernetes.client.ApiException;
 
-@Data
-public class KubernetesManifestMetadataPair {
-  KubernetesManifest manifest;
-  KubernetesManifestSpinnakerRelationships spinnakerRelationships;
+public class KubernetesApiException extends RuntimeException {
+  public KubernetesApiException(String operation, ApiException e) {
+    super(operation + " failed: " + e.getMessage(), e);
+  }
 }
