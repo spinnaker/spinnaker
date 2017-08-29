@@ -21,6 +21,8 @@ import com.amazonaws.services.autoscaling.model.AutoScalingGroup
 import com.amazonaws.services.autoscaling.model.Instance
 import com.amazonaws.services.ec2.AmazonEC2
 import com.amazonaws.services.ec2.model.DescribeInstancesResult
+import com.amazonaws.services.ec2.model.InstanceState
+import com.amazonaws.services.ec2.model.InstanceStateName
 import com.amazonaws.services.ec2.model.Reservation
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.data.task.DefaultTaskStatus
@@ -391,7 +393,9 @@ class DiscoverySupportUnitSpec extends Specification {
       _ * describeInstances(_) >> {
         return new DescribeInstancesResult().withReservations(
           new Reservation().withInstances(instanceIds.collect {
-            new com.amazonaws.services.ec2.model.Instance().withInstanceId(it)
+            new com.amazonaws.services.ec2.model.Instance()
+              .withInstanceId(it.name)
+              .withState(new InstanceState().withName(it.state))
           })
         )
       }
@@ -414,20 +418,22 @@ class DiscoverySupportUnitSpec extends Specification {
       }
     }
 
-
     expect:
     discoverySupport.verifyInstanceAndAsgExist(TestCredential.named('test'), 'us-west-1' , "i-12345", "asgName") == isVerified
 
     where:
-    autoScalingGroup         | instanceIds || isVerified
-    bASG()                   | []          || false
-    bASG("Deleting")         | []          || false
-    bASG(null, "---")        | []          || false
-    null                     | []          || false
-    bASG(null, "i-12345")    | ["---"]     || false
-    bASG(null, "---")        | ["i-12345"] || false
-    bASG(null, "i-12345", 0) | ["i-12345"] || false
-    bASG(null, "i-12345")    | ["i-12345"] || true
+    autoScalingGroup         | instanceIds                                              || isVerified
+    bASG()                   | []                                                       || false
+    bASG("Deleting")         | []                                                       || false
+    bASG(null, "---")        | []                                                       || false
+    null                     | []                                                       || false
+    bASG(null, "i-12345")    | [[name: "---", state: InstanceStateName.Terminated]]     || false
+    bASG(null, "---")        | ["i-12345"]                                              || false
+    bASG(null, "i-12345", 0) | ["i-12345"]                                              || false
+    bASG(null, "i-12345")    | [[name: "i-12345", state: InstanceStateName.Running]]    || true
+    bASG(null, "i-12345")    | [[name: "i-12345", state: InstanceStateName.Pending]]    || true
+    bASG(null, "i-12345")    | [[name: "i-12345", state: InstanceStateName.Terminated]] || false
+
   }
 
   @Unroll
@@ -446,7 +452,7 @@ class DiscoverySupportUnitSpec extends Specification {
   }
 
   @Unroll
-  void "should return true iff server group has at least one instance with desired discovery status"() {
+  void "should return true if server group has at least one instance with desired discovery status"() {
     expect:
     AwsEurekaSupport.doesCachedClusterContainDiscoveryStatus(
       clusterProviders, account, region, asgName, "UP"

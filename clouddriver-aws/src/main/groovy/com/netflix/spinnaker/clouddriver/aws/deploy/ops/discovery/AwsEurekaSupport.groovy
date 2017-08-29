@@ -17,6 +17,8 @@
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops.discovery
 
 import com.amazonaws.services.ec2.model.DescribeInstancesRequest
+import com.amazonaws.services.ec2.model.Instance
+import com.amazonaws.services.ec2.model.InstanceStateName
 import com.google.common.annotations.VisibleForTesting
 import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactory
 import com.netflix.spinnaker.clouddriver.eureka.api.Eureka
@@ -75,14 +77,25 @@ class AwsEurekaSupport extends AbstractEurekaSupport {
       def instances = amazonEC2.describeInstances(
         new DescribeInstancesRequest().withInstanceIds(instanceId)
       ).reservations*.instances.flatten()
-      if (!instances.find { it.instanceId == instanceId }) {
+
+      Instance instance = instances.find { it.instanceId == instanceId }
+      if (!instance) {
         return false
       }
-      log.info("Instance (${instanceId}) exists")
+
+      def isRunning = [
+        InstanceStateName.Running.toString(),
+        InstanceStateName.Pending.toString()
+      ].contains(instance.getState().getName())
+
+      if (!isRunning) {
+        log.info("Instance exists but is not running (instanceId: ${instanceId}) state: ${instance.getState().getName()})")
+        return false
+      }
+
+      log.info("Instance exists (instanceId: ${instanceId})")
     }
 
     return true
   }
-
-
 }
