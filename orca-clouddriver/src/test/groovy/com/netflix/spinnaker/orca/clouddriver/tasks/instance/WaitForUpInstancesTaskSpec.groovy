@@ -252,6 +252,34 @@ class WaitForUpInstancesTaskSpec extends Specification {
     )
   }
 
+  void 'should succeed when spotPrice is set and the deployment strategy is None, even if no instances are up'() {
+    when:
+    def serverGroup = [
+      asg: [
+        desiredCapacity: 2
+      ],
+      capacity : [
+        desired: 2
+      ],
+      launchConfig: [
+        spotPrice: 0.87
+      ]
+    ]
+    def context = [
+      capacity: [ desired: 5 ],
+      strategy: ''
+    ]
+
+    def instances = [
+    ]
+
+    then:
+    task.hasSucceeded(
+      new Stage<>(new Pipeline("orca"), "", "", context),
+      serverGroup, instances, null
+    )
+  }
+
   @Unroll
   void 'should return #result for #healthy instances when #description'() {
     when:

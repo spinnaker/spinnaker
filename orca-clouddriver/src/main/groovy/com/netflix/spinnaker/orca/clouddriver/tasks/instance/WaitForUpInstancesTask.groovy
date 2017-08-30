@@ -80,6 +80,13 @@ class WaitForUpInstancesTask extends AbstractWaitingForInstancesTask {
     Map capacity = (Map) serverGroup.capacity
     Integer targetDesiredSize = capacity.desired as Integer
 
+    // Don't wait for spot instances to come up if the deployment strategy is None. All other deployment strategies rely on
+    // confirming the new serverGroup is up and working correctly, so doing this is only safe with the None strategy
+    // This should probably be moved to an AWS-specific part of the codebase
+    if (serverGroup?.launchConfig?.spotPrice != null && stage.context.strategy == '') {
+      return 0
+    }
+
     if (stage.context.capacitySnapshot) {
       Integer snapshotCapacity = ((Map) stage.context.capacitySnapshot).desiredCapacity as Integer
       // if the server group is being actively scaled down, this operation might never complete,
