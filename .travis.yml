@@ -3,10 +3,12 @@ jdk:
 - oraclejdk8
 dist: trusty
 sudo: false
+addons:
+  apt:
+    packages:
+      - r-base
+      - r-cran-rserve
 before_install:
-  - sudo apt-get -qq update
-  - sudo apt-get install r-base
-  - sudo apt-get install r-cran-rserve
   - /usr/bin/R CMD Rserve --RS-conf $HOME/gradle/Rserve.conf
   - ps ax
 install: true
