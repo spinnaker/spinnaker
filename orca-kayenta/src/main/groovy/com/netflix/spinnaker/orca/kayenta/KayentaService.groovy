@@ -32,7 +32,6 @@ interface KayentaService {
                   @Query("endTimeIso") String endTimeIso,
                   @Query("step") String step,
                   @Body Map<String, String> extendedScopeParams,
-                  @Query("combinedCanaryResultStrategy") String combinedCanaryResultStrategy,
                   @Query("scoreThresholdPass") String scoreThresholdPass,
                   @Query("scoreThresholdMarginal") String scoreThresholdMarginal)
 
