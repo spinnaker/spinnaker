@@ -326,7 +326,7 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
                                                     BasicAmazonDeployDescription description) {
 
     //skip a couple of AWS calls if we won't use any of the data
-    if (!(useSourceCapacity || description.copySourceCustomBlockDeviceMappings || description.copySourceSpotPrice)) {
+    if (!(useSourceCapacity || description.copySourceCustomBlockDeviceMappings)) {
       return description
     }
 
@@ -359,7 +359,7 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
     }
 
     //skip a describeLaunchConfiguration if we won't use it for anything
-    if (!(description.copySourceSpotPrice || description.copySourceCustomBlockDeviceMappings)) {
+    if (!description.copySourceCustomBlockDeviceMappings) {
       return description
     }
 
@@ -369,10 +369,6 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
 
     if (description.copySourceCustomBlockDeviceMappings) {
       description.blockDevices = buildBlockDeviceMappings(description, sourceLaunchConfiguration)
-    }
-
-    if (description.copySourceSpotPrice) {
-      description.spotPrice = description.spotPrice ?: sourceLaunchConfiguration.spotPrice
     }
 
     return description

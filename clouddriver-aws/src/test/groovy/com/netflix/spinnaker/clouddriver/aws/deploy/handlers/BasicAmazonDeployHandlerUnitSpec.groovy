@@ -374,12 +374,11 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
   }
 
   @Unroll
-  void "should copy spot price and block devices from source provider if not specified explicitly"() {
+  void "should copy block devices from source provider if not specified explicitly"() {
     given:
     def asgService = Mock(AsgService) {
       (launchConfig ? 1 : 0) * getLaunchConfiguration(_) >> {
         return new LaunchConfiguration()
-          .withSpotPrice("OLD_SPOT")
           .withBlockDeviceMappings(new BlockDeviceMapping().withDeviceName("OLD_DEVICE")
         )
       }
@@ -402,32 +401,25 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
     )
 
     then:
-    targetDescription.spotPrice == expectedSpotPrice
     targetDescription.blockDevices*.deviceName == expectedBlockDevices
 
     where:
-    description                                                                                   | launchConfig   || expectedSpotPrice || expectedBlockDevices
-    new BasicAmazonDeployDescription()                                                            | "launchConfig" || "OLD_SPOT"        || ["OLD_DEVICE"]
-    new BasicAmazonDeployDescription(spotPrice: "SPOT")                                           | "launchConfig" || "SPOT"            || ["OLD_DEVICE"]
-    new BasicAmazonDeployDescription(blockDevices: [])                                            | "launchConfig" || "OLD_SPOT"        || []
-    new BasicAmazonDeployDescription(blockDevices: [new AmazonBlockDevice(deviceName: "DEVICE")]) | "launchConfig" || "OLD_SPOT"        || ["DEVICE"]
-    new BasicAmazonDeployDescription(spotPrice: "SPOT", blockDevices: [])                         | null           || "SPOT"            || []
+    description                                                                                   | launchConfig   || expectedBlockDevices
+    new BasicAmazonDeployDescription()                                                            | "launchConfig" || ["OLD_DEVICE"]
+    new BasicAmazonDeployDescription(blockDevices: [])                                            | "launchConfig" || []
+    new BasicAmazonDeployDescription(blockDevices: [new AmazonBlockDevice(deviceName: "DEVICE")]) | "launchConfig" || ["DEVICE"]
   }
 
   @Unroll
-  void "copy spot price #copySourceSpotPrice and copy source block devices #copySourceBlockDevices feature flags"() {
+  void "copy source block devices #copySourceBlockDevices feature flags"() {
     given:
-    if (copySourceSpotPrice != null) {
-      description.copySourceSpotPrice = copySourceSpotPrice
-    }
     if (copySourceBlockDevices != null) {
       description.copySourceCustomBlockDeviceMappings = copySourceBlockDevices
     }
-    int expectedCalls = (description.copySourceSpotPrice || description.copySourceCustomBlockDeviceMappings) ? 1 : 0
+    int expectedCalls = description.copySourceCustomBlockDeviceMappings ? 1 : 0
     def asgService = Mock(AsgService) {
       (expectedCalls) * getLaunchConfiguration(_) >> {
         return new LaunchConfiguration()
-          .withSpotPrice("OLD_SPOT")
           .withBlockDeviceMappings(new BlockDeviceMapping().withDeviceName("OLD_DEVICE")
         )
       }
@@ -450,19 +442,13 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
     )
 
     then:
-    targetDescription.spotPrice == expectedSpotPrice
     targetDescription.blockDevices?.deviceName == expectedBlockDevices
 
     where:
-    description                        | copySourceBlockDevices | copySourceSpotPrice || expectedSpotPrice || expectedBlockDevices
-    new BasicAmazonDeployDescription() | null                   | null                || "OLD_SPOT"        || ["OLD_DEVICE"]
-    new BasicAmazonDeployDescription() | true                   | true                || "OLD_SPOT"        || ["OLD_DEVICE"]
-    new BasicAmazonDeployDescription() | true                   | null                || "OLD_SPOT"        || ["OLD_DEVICE"]
-    new BasicAmazonDeployDescription() | false                  | null                || "OLD_SPOT"        || null
-    new BasicAmazonDeployDescription() | null                   | true                || "OLD_SPOT"        || ["OLD_DEVICE"]
-    new BasicAmazonDeployDescription() | null                   | false               || null              || ["OLD_DEVICE"]
-    new BasicAmazonDeployDescription() | false                  | true                || "OLD_SPOT"        || null
-    new BasicAmazonDeployDescription() | false                  | false               || null              || null
+    description                        | copySourceBlockDevices || expectedBlockDevices
+    new BasicAmazonDeployDescription() | null                   || ["OLD_DEVICE"]
+    new BasicAmazonDeployDescription() | true                   || ["OLD_DEVICE"]
+    new BasicAmazonDeployDescription() | false                  || null
   }
 
 

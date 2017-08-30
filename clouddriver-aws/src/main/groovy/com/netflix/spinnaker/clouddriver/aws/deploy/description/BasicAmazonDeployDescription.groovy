@@ -65,11 +65,6 @@ class BasicAmazonDeployDescription extends AbstractAmazonCredentialsDescription 
    */
   boolean copySourceCustomBlockDeviceMappings = true
 
-  /**
-   * If false, the newly created server group will not pick up a spot price from an ancestor group
-   */
-  boolean copySourceSpotPrice = true
-
   String classicLinkVpcId
   List<String> classicLinkVpcSecurityGroups
 
