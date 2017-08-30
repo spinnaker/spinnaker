@@ -39,7 +39,7 @@ import com.netflix.spinnaker.clouddriver.appengine.provider.callbacks.AppengineC
 import com.netflix.spinnaker.clouddriver.appengine.security.AppengineNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.cache.OnDemandAgent
 import com.netflix.spinnaker.clouddriver.cache.OnDemandMetricsSupport
-import com.netflix.spinnaker.clouddriver.kubernetes.provider.view.MutableCacheData
+import com.netflix.spinnaker.clouddriver.kubernetes.v1.provider.view.MutableCacheData
 import groovy.util.logging.Slf4j
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE

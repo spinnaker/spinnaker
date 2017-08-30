@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.kubernetes.provider.agent
+package com.netflix.spinnaker.clouddriver.kubernetes.v1.provider.agent
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.agent.AgentDataType
@@ -22,24 +22,24 @@ import com.netflix.spinnaker.cats.agent.CacheResult
 import com.netflix.spinnaker.cats.agent.DefaultCacheResult
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.kubernetes.cache.Keys
-import com.netflix.spinnaker.clouddriver.kubernetes.provider.view.MutableCacheData
+import com.netflix.spinnaker.clouddriver.kubernetes.v1.provider.view.MutableCacheData
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.security.KubernetesV1Credentials
 import groovy.util.logging.Slf4j
-import io.fabric8.kubernetes.api.model.Secret
+import io.fabric8.kubernetes.api.model.ConfigMap
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
 
 @Slf4j
-class KubernetesSecretCachingAgent extends KubernetesCachingAgent {
+class KubernetesConfigMapCachingAgent extends KubernetesCachingAgent {
   static final Set<AgentDataType> types = Collections.unmodifiableSet([
-      AUTHORITATIVE.forType(Keys.Namespace.SECRETS.ns),
+      AUTHORITATIVE.forType(Keys.Namespace.CONFIG_MAPS.ns),
   ] as Set)
 
-  KubernetesSecretCachingAgent(String accountName,
-                               KubernetesV1Credentials credentials,
-                               ObjectMapper objectMapper,
-                               int agentIndex,
-                               int agentCount) {
+  KubernetesConfigMapCachingAgent(String accountName,
+                                  KubernetesV1Credentials credentials,
+                                  ObjectMapper objectMapper,
+                                  int agentIndex,
+                                  int agentCount) {
     super(accountName, objectMapper, credentials, agentIndex, agentCount)
   }
 
@@ -50,44 +50,44 @@ class KubernetesSecretCachingAgent extends KubernetesCachingAgent {
 
   @Override
   CacheResult loadData(ProviderCache providerCache) {
-    log.info("Loading secrets in $agentType")
+    log.info("Loading config maps in $agentType")
     reloadNamespaces()
 
-    def secrets = namespaces.collect { String namespace ->
-      credentials.apiAdaptor.getSecrets(namespace)
+    def configMaps = namespaces.collect { String namespace ->
+      credentials.apiAdaptor.getConfigMaps(namespace)
     }.flatten()
 
-    buildCacheResult(secrets)
+    buildCacheResult(configMaps)
   }
 
-  private CacheResult buildCacheResult(List<Secret> secrets) {
+  private CacheResult buildCacheResult(List<ConfigMap> configMaps) {
     log.info("Describing items in ${agentType}")
 
-    Map<String, MutableCacheData> cachedSecrets = MutableCacheData.mutableCacheMap()
+    Map<String, MutableCacheData> cachedConfigMaps = MutableCacheData.mutableCacheMap()
 
-    for (Secret secret : secrets) {
-      if (!secret) {
+    for (ConfigMap cm : configMaps) {
+      if (!cm) {
         continue
       }
 
-      def key = Keys.getSecretKey(accountName, secret.metadata.namespace, secret.metadata.name)
+      def key = Keys.getConfigMapKey(accountName, cm.metadata.namespace, cm.metadata.name)
 
-      cachedSecrets[key].with {
-        attributes.name = secret.metadata.name
-        attributes.namespace = secret.metadata.namespace
+      cachedConfigMaps[key].with {
+        attributes.name = cm.metadata.name
+        attributes.namespace = cm.metadata.namespace
       }
 
     }
 
-    log.info("Caching ${cachedSecrets.size()} secrets in ${agentType}")
+    log.info("Caching ${cachedConfigMaps.size()} configmaps in ${agentType}")
 
     new DefaultCacheResult([
-        (Keys.Namespace.SECRETS.ns): cachedSecrets.values(),
+        (Keys.Namespace.CONFIG_MAPS.ns): cachedConfigMaps.values(),
     ], [:])
   }
 
   @Override
   String getSimpleName() {
-    KubernetesSecretCachingAgent.simpleName
+    KubernetesConfigMapCachingAgent.simpleName
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Google, Inc.
+ * Copyright 2017 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,9 +12,10 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 
-package com.netflix.spinnaker.clouddriver.kubernetes.provider.config
+package com.netflix.spinnaker.clouddriver.kubernetes.provider
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.Registry
@@ -22,15 +23,14 @@ import com.netflix.spinnaker.cats.agent.Agent
 import com.netflix.spinnaker.cats.provider.ProviderSynchronizerTypeWrapper
 import com.netflix.spinnaker.cats.thread.NamedThreadFactory
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider
-import com.netflix.spinnaker.clouddriver.kubernetes.provider.KubernetesProvider
-import com.netflix.spinnaker.clouddriver.kubernetes.provider.agent.KubernetesConfigMapCachingAgent
-import com.netflix.spinnaker.clouddriver.kubernetes.provider.agent.KubernetesDeploymentCachingAgent
-import com.netflix.spinnaker.clouddriver.kubernetes.provider.agent.KubernetesInstanceCachingAgent
-import com.netflix.spinnaker.clouddriver.kubernetes.provider.agent.KubernetesLoadBalancerCachingAgent
-import com.netflix.spinnaker.clouddriver.kubernetes.provider.agent.KubernetesSecretCachingAgent
-import com.netflix.spinnaker.clouddriver.kubernetes.provider.agent.KubernetesSecurityGroupCachingAgent
-import com.netflix.spinnaker.clouddriver.kubernetes.provider.agent.KubernetesServerGroupCachingAgent
-import com.netflix.spinnaker.clouddriver.kubernetes.provider.agent.KubernetesServiceAccountCachingAgent
+import com.netflix.spinnaker.clouddriver.kubernetes.v1.provider.agent.KubernetesConfigMapCachingAgent
+import com.netflix.spinnaker.clouddriver.kubernetes.v1.provider.agent.KubernetesDeploymentCachingAgent
+import com.netflix.spinnaker.clouddriver.kubernetes.v1.provider.agent.KubernetesInstanceCachingAgent
+import com.netflix.spinnaker.clouddriver.kubernetes.v1.provider.agent.KubernetesLoadBalancerCachingAgent
+import com.netflix.spinnaker.clouddriver.kubernetes.v1.provider.agent.KubernetesSecretCachingAgent
+import com.netflix.spinnaker.clouddriver.kubernetes.v1.provider.agent.KubernetesSecurityGroupCachingAgent
+import com.netflix.spinnaker.clouddriver.kubernetes.v1.provider.agent.KubernetesServerGroupCachingAgent
+import com.netflix.spinnaker.clouddriver.kubernetes.v1.provider.agent.KubernetesServiceAccountCachingAgent
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.clouddriver.security.ProviderUtils

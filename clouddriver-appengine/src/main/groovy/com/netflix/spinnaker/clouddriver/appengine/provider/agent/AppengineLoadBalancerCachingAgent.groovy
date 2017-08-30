@@ -33,7 +33,7 @@ import com.netflix.spinnaker.clouddriver.appengine.security.AppengineNamedAccoun
 import com.netflix.spinnaker.clouddriver.cache.OnDemandAgent
 import com.netflix.spinnaker.clouddriver.cache.OnDemandAgent.OnDemandResult
 import com.netflix.spinnaker.clouddriver.cache.OnDemandMetricsSupport
-import com.netflix.spinnaker.clouddriver.kubernetes.provider.view.MutableCacheData
+import com.netflix.spinnaker.clouddriver.kubernetes.v1.provider.view.MutableCacheData
 
 import groovy.util.logging.Slf4j
 

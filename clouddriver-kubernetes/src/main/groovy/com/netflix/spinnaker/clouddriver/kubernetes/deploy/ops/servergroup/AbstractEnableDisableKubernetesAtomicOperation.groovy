@@ -24,7 +24,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergro
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesServerGroupDescription
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.exception.KubernetesOperationException
 import com.netflix.spinnaker.clouddriver.kubernetes.model.KubernetesServerGroup
-import com.netflix.spinnaker.clouddriver.kubernetes.provider.view.KubernetesClusterProvider
+import com.netflix.spinnaker.clouddriver.kubernetes.v1.provider.view.KubernetesClusterProvider
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import io.fabric8.kubernetes.api.model.Pod
 import io.fabric8.kubernetes.api.model.ReplicationController
