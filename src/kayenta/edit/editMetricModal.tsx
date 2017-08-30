@@ -73,7 +73,7 @@ function mapDispatchToProps(dispatch: any): IEditMetricModalDispatchProps {
 
 function mapStateToProps(state: ICanaryState): IEditMetricModalStateProps {
   return {
-    metric: state.editingMetric
+    metric: state.selectedConfig.editingMetric,
   };
 }
 

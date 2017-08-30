@@ -25,7 +25,7 @@ function CreateConfigButton({ createNewConfig, disabled, config }: ICreateConfig
 
 function mapStateToProps(state: ICanaryState): ICreateConfigButtonStateProps {
   return {
-    disabled: state.selectedConfig && state.selectedConfig.isNew,
+    disabled: state.selectedConfig.config && state.selectedConfig.config.isNew,
     config: JSON.stringify(buildNewConfig(state)),
   };
 }

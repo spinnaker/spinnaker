@@ -7,7 +7,7 @@ import { SubmitButton } from '@spinnaker/core';
 
 import {
   DELETE_CONFIG_MODAL_CLOSE,
-  DELETE_CONFIG_DELETING
+  DELETE_CONFIG_REQUEST
 } from '../actions/index';
 import { ICanaryState } from '../reducers/index';
 
@@ -71,17 +71,17 @@ function mapDispatchToProps(dispatch: any): IDeleteModalDispatchProps {
       dispatch({type: DELETE_CONFIG_MODAL_CLOSE});
     },
     deleteConfig: () => {
-      dispatch({type: DELETE_CONFIG_DELETING})
+      dispatch({type: DELETE_CONFIG_REQUEST})
     },
   };
 }
 
 function mapStateToProps(state: ICanaryState): IDeleteModalStateProps {
   return {
-    show: state.deleteConfigModalOpen,
-    selectedConfigName: state.selectedConfig ? state.selectedConfig.name : null,
-    deleteConfigState: state.deleteConfigState,
-    deleteConfigErrorMessage: state.deleteConfigErrorMessage,
+    show: state.app.deleteConfigModalOpen,
+    selectedConfigName: state.selectedConfig.config ? state.selectedConfig.config.name : null,
+    deleteConfigState: state.selectedConfig.destroy.state,
+    deleteConfigErrorMessage: state.selectedConfig.destroy.error,
   };
 }
 

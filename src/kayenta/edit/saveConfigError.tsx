@@ -40,8 +40,8 @@ function buildErrorMessage(saveConfigErrorMessage: string): string {
 
 function mapStateToProps(state: ICanaryState): ISaveErrorStateProps {
   return {
-    saveConfigState: state.saveConfigState,
-    saveConfigErrorMessage: state.saveConfigErrorMessage,
+    saveConfigState: state.selectedConfig.save.state,
+    saveConfigErrorMessage: state.selectedConfig.save.error,
   };
 }
 

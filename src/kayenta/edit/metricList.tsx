@@ -44,7 +44,9 @@ function MetricList({ metrics, selectedGroup, addMetric, editMetric, removeMetri
 }
 
 function mapStateToProps(state: ICanaryState): IMetricListStateProps {
-  const { selectedGroup, metricList } = state;
+  const selectedGroup = state.selectedConfig.group.selected;
+  const metricList = state.selectedConfig.metricList;
+
   let filter;
   if (!selectedGroup) {
     filter = () => true;

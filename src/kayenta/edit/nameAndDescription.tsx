@@ -4,6 +4,7 @@ import { connect } from 'react-redux';
 
 import FormRow from '../layout/formRow';
 import JudgeSelect from './judgeSelect';
+import ScoreThresholds from './scoreThresholds';
 import { ICanaryState } from '../reducers/index';
 import {
   UPDATE_CONFIG_DESCRIPTION,
@@ -45,15 +46,16 @@ function NameAndDescription({ name, description, changeName, changeDescription }
       <FormRow label="Judge">
         <JudgeSelect/>
       </FormRow>
+      <ScoreThresholds/>
     </form>
   );
 }
 
 function mapStateToProps(state: ICanaryState) {
-  if (state.selectedConfig) {
+  if (state.selectedConfig.config) {
     return {
-      name: state.selectedConfig.name,
-      description: state.selectedConfig.description,
+      name: state.selectedConfig.config.name,
+      description: state.selectedConfig.config.description,
     };
   } else {
     return {

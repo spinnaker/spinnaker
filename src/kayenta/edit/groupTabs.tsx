@@ -40,8 +40,8 @@ function GroupTabs({ groupList, selectedGroup, selectGroup, addGroup }: IGroupTa
 
 function mapStateToProps(state: ICanaryState): IGroupTabsStateProps {
   return {
-    groupList: state.groupList,
-    selectedGroup: state.selectedGroup
+    groupList: state.selectedConfig.group.list,
+    selectedGroup: state.selectedConfig.group.selected,
   };
 }
 

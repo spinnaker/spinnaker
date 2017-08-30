@@ -27,7 +27,7 @@ function DeleteConfigButton({ openDeleteConfigModal, disabled }: IDeleteButtonDi
 
 function mapStateToProps(state: ICanaryState) {
   return {
-    disabled: state.selectedConfig && state.selectedConfig.isNew,
+    disabled: state.selectedConfig.config && state.selectedConfig.config.isNew,
   };
 }
 

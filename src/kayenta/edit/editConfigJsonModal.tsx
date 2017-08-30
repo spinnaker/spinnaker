@@ -94,10 +94,10 @@ function mapDispatchToProps(dispatch: (action: Action & any) => void): IEditConf
 
 function mapStateToProps(state: ICanaryState): IEditConfigJsonStateProps {
   return {
-    show: state.editConfigJsonModalOpen,
+    show: state.app.editConfigJsonModalOpen,
     selectedConfig: mapStateToConfig(state),
-    configJson: state.configJson,
-    deserializationError: state.configJsonDeserializationError,
+    configJson: state.selectedConfig.json.state,
+    deserializationError: state.selectedConfig.json.error,
   };
 }
 

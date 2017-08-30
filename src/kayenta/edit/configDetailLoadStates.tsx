@@ -42,7 +42,7 @@ function ConfigDetailLoadStates({ configLoadState }: IConfigLoadStatesProps) {
 
 function mapStateToProps(state: ICanaryState): IConfigLoadStatesProps {
   return {
-    configLoadState: state.configLoadState,
+    configLoadState: state.selectedConfig.load.state,
   };
 }
 

@@ -38,10 +38,10 @@ function ConfigList({ configs, selectedConfigName }: IConfigListStateProps) {
 }
 
 function mapStateToProps(state: ICanaryState): IConfigListStateProps {
-  const selectedConfigName = state.selectedConfig ? state.selectedConfig.name : null;
+  const selectedConfigName = state.selectedConfig.config ? state.selectedConfig.config.name : null;
   return {
-    configs: state.configSummaries,
     selectedConfigName,
+    configs: state.data.configSummaries
   };
 }
 

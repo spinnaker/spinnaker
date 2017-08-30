@@ -1,3 +1,5 @@
+import { omit } from 'lodash';
+
 import { ICanaryConfig } from '../domain/ICanaryConfig';
 import { ICanaryConfigSummary } from '../domain/ICanaryConfigSummary';
 import { IJudge } from '../domain/IJudge';
@@ -37,6 +39,9 @@ class LocalConfigCache {
   }
 
   public createCanaryConfig(config: ICanaryConfig): Promise<{id: string}> {
+    // Kayenta does not persist these ids.
+    config.metrics = config.metrics.map(metric => omit(metric, 'id'));
+
     this.configs.add(config);
     return Promise.resolve({id: config.name});
   }

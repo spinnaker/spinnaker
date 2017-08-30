@@ -31,8 +31,8 @@ function JudgeSelect({ judgeOptions, selectedJudge, handleJudgeSelect }: IJudgeS
 
 function mapStateToProps(state: ICanaryState): IJudgeSelectStateProps {
   return {
-    judgeOptions: (state.judges || []).map(judge => ({value: judge.name, label: judge.name})),
-    selectedJudge: state.selectedJudge.name,
+    judgeOptions: (state.data.judges || []).map(judge => ({value: judge.name, label: judge.name})),
+    selectedJudge: state.selectedConfig.judge.name,
   };
 }
 

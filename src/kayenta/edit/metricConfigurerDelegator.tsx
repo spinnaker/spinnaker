@@ -27,7 +27,7 @@ function MetricConfigurerDelegator({ editingMetric }: IMetricConfigurerDelegator
 
 function mapStateToProps(state: ICanaryState): IMetricConfigurerDelegatorStateProps {
   return {
-    editingMetric: state.editingMetric,
+    editingMetric: state.selectedConfig.editingMetric,
   };
 }
 

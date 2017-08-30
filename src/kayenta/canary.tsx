@@ -8,10 +8,8 @@ import { ICanaryState, rootReducer } from './reducers';
 import { epicMiddleware } from './epics';
 import CanaryConfigEdit from './edit/edit';
 import { ICanaryConfig, ICanaryConfigSummary, ICanaryMetricConfig } from './domain/index';
-import { ConfigDetailLoadState } from './edit/configDetailLoader';
 import { INITIALIZE } from './actions/index';
-import { SaveConfigState } from './edit/save';
-import { DeleteConfigState } from './edit/deleteModal';
+import { IJudge } from './domain/IJudge';
 
 export interface ICanaryProps {
   app: Application;
@@ -32,13 +30,44 @@ export default class Canary extends React.Component<ICanaryProps, {}> {
     this.store.dispatch({
       type: INITIALIZE,
       state: {
-        application: props.app,
-        configSummaries: props.app.getDataSource('canaryConfigs').data as ICanaryConfigSummary[],
-        selectedConfig: null as ICanaryConfig,
-        configLoadState: ConfigDetailLoadState.Loading,
-        metricList: [] as ICanaryMetricConfig[],
-        saveConfigState: SaveConfigState.Saved,
-        deleteConfigState: DeleteConfigState.Completed,
+        data: {
+          application: props.app,
+          configSummaries: props.app.getDataSource('canaryConfigs').data as ICanaryConfigSummary[],
+          judges: props.app.getDataSource('canaryJudges').data as IJudge[],
+        },
+        selectedConfig: {
+          config: null as ICanaryConfig,
+          metricList: [] as ICanaryMetricConfig[],
+          editingMetric: null as ICanaryMetricConfig,
+          judge: { name: null } as IJudge,
+          thresholds: {
+            marginal: null,
+            pass: null,
+          },
+          group: {
+            selected: null,
+            list: [] as string[],
+          },
+          load: {
+            state: null,
+          },
+          save: {
+            state: null,
+            error: null,
+          },
+          destroy: {
+            state: null,
+            error: null,
+          },
+          json: {
+            state: null,
+            error: null,
+          },
+        },
+        app: {
+          deleteConfigModalOpen: false,
+          editConfigJsonModalOpen: false,
+        },
       }
     });
   }

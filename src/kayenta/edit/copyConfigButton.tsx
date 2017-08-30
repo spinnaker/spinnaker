@@ -27,7 +27,7 @@ function CopyConfigButton({ copyConfig, config, disabled }: ICopyConfigButtonDis
 function mapStateToProps(state: ICanaryState) {
   return {
     config: JSON.stringify(buildConfigCopy(state)),
-    disabled: state.selectedConfig && state.selectedConfig.isNew,
+    disabled: state.selectedConfig.config && state.selectedConfig.config.isNew,
   }
 }
 
@@ -39,7 +39,7 @@ function buildConfigCopy(state: ICanaryState): ICanaryConfig {
 
   // Probably a rare case, but someone could be lazy about naming their configs.
   let configName = `${config.name}-copy`, i = 1;
-  while ((state.configSummaries || []).find(summary => summary.name === configName)) {
+  while ((state.data.configSummaries || []).find(summary => summary.name === configName)) {
     configName = `${config.name}-copy-${i}`;
     i++;
   }

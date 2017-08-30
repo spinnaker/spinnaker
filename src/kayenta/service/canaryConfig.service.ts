@@ -64,14 +64,21 @@ export function listJudges(): Promise<IJudge[]> {
 // living on different parts of the store. Before, e.g., updating the config, we should
 // reconstitute it into a single object that reflects the user's changes.
 export function mapStateToConfig(state: ICanaryState): ICanaryConfig {
-  if (state.selectedConfig) {
-    const firstMetric = cloneDeep(state.metricList[0]);
-    if (firstMetric && state.selectedJudge) {
-      set(firstMetric, 'analysisConfigurations.canary.judge', state.selectedJudge.name);
+  if (state.selectedConfig.config) {
+    const configState = state.selectedConfig;
+
+    const firstMetric = cloneDeep(configState.metricList[0]);
+    if (firstMetric && configState.judge) {
+      set(firstMetric, 'analysisConfigurations.canary.judge', configState.judge.name);
     }
 
-    return Object.assign({}, state.selectedConfig,
-      { metrics: state.metricList.map((metric, i) => i === 0 ? firstMetric : metric) }
+    return Object.assign({}, configState.config,
+      {
+        metrics: configState.metricList.map((metric, i) => i === 0 ? firstMetric : metric),
+        classifier: Object.assign({}, configState.config.classifier || {}, {
+          scoreThresholds: configState.thresholds,
+        }),
+      }
     );
   } else {
     return null;
@@ -80,7 +87,7 @@ export function mapStateToConfig(state: ICanaryState): ICanaryConfig {
 
 export function buildNewConfig(state: ICanaryState): ICanaryConfig {
   let configName = 'new-config', i = 1;
-  while ((state.configSummaries || []).find(summary => summary.name === configName)) {
+  while ((state.data.configSummaries || []).find(summary => summary.name === configName)) {
     configName = `new-config-${i}`;
     i++;
   }
@@ -95,8 +102,8 @@ export function buildNewConfig(state: ICanaryState): ICanaryConfig {
     classifier: {
       groupWeights: {} as {[key: string]: number},
       scoreThresholds: {
-        pass: '75',
-        marginal: '50',
+        pass: 75,
+        marginal: 50,
       }
     }
   };

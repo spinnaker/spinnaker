@@ -8,27 +8,27 @@ import {
   getCanaryConfigById, mapStateToConfig,
   updateCanaryConfig
 } from '../service/canaryConfig.service';
-import {
-  CONFIG_LOAD_ERROR,
-  LOAD_CONFIG, SAVE_CONFIG_ERROR, SAVE_CONFIG_SAVING, SAVE_CONFIG_SAVED,
-  SELECT_CONFIG, DELETE_CONFIG_DELETING, DELETE_CONFIG_COMPLETED,
-  DELETE_CONFIG_ERROR, DELETE_CONFIG_MODAL_CLOSE
-} from '../actions/index';
+import * as Actions from '../actions/index';
 import { ICanaryState } from '../reducers/index';
 import { ReactInjector } from '@spinnaker/core';
 
-const selectConfigEpic = (action$: Observable<Action & any>) =>
+const loadConfigEpic = (action$: Observable<Action & any>) =>
   action$
-    .filter(action => action.type === LOAD_CONFIG)
+    .filter(action => [Actions.LOAD_CONFIG_REQUEST, Actions.SAVE_CONFIG_SUCCESS].includes(action.type))
     .concatMap(action =>
       getCanaryConfigById(action.id)
-        .then(config => ({type: SELECT_CONFIG, config}))
-        .catch(error => ({type: CONFIG_LOAD_ERROR, error}))
+        .then(config => ({type: Actions.LOAD_CONFIG_SUCCESS, config}))
+        .catch(error => ({type: Actions.LOAD_CONFIG_FAILURE, error}))
     );
+
+const selectConfigEpic = (action$: Observable<Action & any>) =>
+  action$
+    .filter(action => action.type === Actions.LOAD_CONFIG_SUCCESS)
+    .map(action => ({type: Actions.SELECT_CONFIG, config: action.config}));
 
 const saveConfigEpic = (action$: Observable<Action & any>, store: MiddlewareAPI<ICanaryState>) =>
   action$
-    .filter(action => action.type === SAVE_CONFIG_SAVING)
+    .filter(action => action.type === Actions.SAVE_CONFIG_REQUEST)
     .concatMap(() => {
       const config = mapStateToConfig(store.getState());
       let saveAction: Promise<{id: string}>;
@@ -42,33 +42,34 @@ const saveConfigEpic = (action$: Observable<Action & any>, store: MiddlewareAPI<
       return saveAction
         .then(() => Promise.all([
           ReactInjector.$state.go('^.configDetail', {configName: config.name}),
-          store.getState().application.getDataSource('canaryConfigs').refresh(true),
+          store.getState().data.application.getDataSource('canaryConfigs').refresh(true),
         ]))
-        .then(() => ({type: SAVE_CONFIG_SAVED, configName: config.name}))
-        .catch((error: Error) => ({type: SAVE_CONFIG_ERROR, error}));
+        .then(() => ({type: Actions.SAVE_CONFIG_SUCCESS, id: config.name}))
+        .catch((error: Error) => ({type: Actions.SAVE_CONFIG_FAILURE, error}));
     });
 
 const deleteConfigEpic = (action$: Observable<Action & any>, store: MiddlewareAPI<ICanaryState>) =>
   action$
-    .filter(action => action.type === DELETE_CONFIG_DELETING)
+    .filter(action => action.type === Actions.DELETE_CONFIG_REQUEST)
     .concatMap(() =>
-      deleteCanaryConfig(store.getState().selectedConfig.name)
-        .then(() => ({type: DELETE_CONFIG_COMPLETED}))
-        .catch(error => ({type: DELETE_CONFIG_ERROR, error}))
+      deleteCanaryConfig(store.getState().selectedConfig.config.name)
+        .then(() => ({type: Actions.DELETE_CONFIG_SUCCESS}))
+        .catch(error => ({type: Actions.DELETE_CONFIG_FAILURE, error}))
     );
 
 const deleteConfigCompletedEpic = (action$: Observable<Action & any>, store: MiddlewareAPI<ICanaryState>) =>
   action$
-    .filter(action => action.type === DELETE_CONFIG_COMPLETED)
+    .filter(action => action.type === Actions.DELETE_CONFIG_SUCCESS)
     .concatMap(() =>
       Promise.all([
         ReactInjector.$state.go('^.default'),
         // TODO: handle config summary load failure (in general, not just here).
-        store.getState().application.getDataSource('canaryConfigs').refresh(true),
-      ]).then(() => ({type: DELETE_CONFIG_MODAL_CLOSE}))
+        store.getState().data.application.getDataSource('canaryConfigs').refresh(true),
+      ]).then(() => ({type: Actions.DELETE_CONFIG_MODAL_CLOSE}))
     );
 
 const rootEpic = combineEpics(
+  loadConfigEpic,
   selectConfigEpic,
   saveConfigEpic,
   deleteConfigEpic,

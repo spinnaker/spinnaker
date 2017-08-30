@@ -44,6 +44,6 @@ export interface ICanaryClassifierConfig {
 }
 
 export interface ICanaryClassifierThresholdsConfig {
-  pass: string;
-  marginal: string;
+  pass: number;
+  marginal: number;
 }

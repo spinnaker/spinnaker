@@ -44,7 +44,7 @@ function StackdriverMetricConfigurer({ editingMetric, updateMetricType }: IStack
 
 function mapStateToProps(state: ICanaryState): IStackdriverMetricConfigurerStateProps {
   return {
-    editingMetric: state.editingMetric,
+    editingMetric: state.selectedConfig.editingMetric,
   }
 }
 
