@@ -196,7 +196,7 @@ class Application implements Timestamped {
   }
 
   private void deletePipelines(String application) {
-    pipelineDao.getPipelinesByApplication(application).each { Pipeline p -> pipelineDao.delete(p.id) }
+    pipelineDao.getPipelinesByApplication(application, true).each { Pipeline p -> pipelineDao.delete(p.id) }
     pipelineStrategyDao.getPipelinesByApplication(application).each { Pipeline p -> pipelineStrategyDao.delete(p.id) }
   }
 

@@ -159,7 +159,7 @@ class PipelineRepository implements PipelineDAO {
         return true
     }
 
-    List<Pipeline> getPipelinesByApplication(String application) {
+    List<Pipeline> getPipelinesByApplication(String application, boolean refresh = false) {
         def result = runQuery(
             """SELECT id, name, definition FROM pipeline where application = '${sanitize(application)}';""",
             true

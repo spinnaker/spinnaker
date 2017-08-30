@@ -36,8 +36,8 @@ class RedisPipelineDAO implements PipelineDAO {
   }
 
   @Override
-  Collection<Pipeline> getPipelinesByApplication(String application) {
-    all().findAll {
+  Collection<Pipeline> getPipelinesByApplication(String application, boolean refresh = false) {
+    all(refresh).findAll {
       it.application == application
     }
   }

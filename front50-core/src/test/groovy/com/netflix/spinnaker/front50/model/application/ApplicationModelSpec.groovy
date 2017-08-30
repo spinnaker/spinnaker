@@ -21,7 +21,6 @@ package com.netflix.spinnaker.front50.model.application
 import com.netflix.spinnaker.front50.events.ApplicationEventListener
 import com.netflix.spinnaker.front50.exception.NotFoundException
 import com.netflix.spinnaker.front50.model.notification.HierarchicalLevel
-import com.netflix.spinnaker.front50.model.notification.Notification
 import com.netflix.spinnaker.front50.model.notification.NotificationDAO
 import com.netflix.spinnaker.front50.model.pipeline.Pipeline
 import com.netflix.spinnaker.front50.model.pipeline.PipelineDAO
@@ -167,7 +166,7 @@ class ApplicationModelSpec extends Specification {
     }
     def notificationDao = Mock(NotificationDAO)
     def pipelineDao = Stub(PipelineDAO) {
-      getPipelinesByApplication(_) >> []
+      getPipelinesByApplication(_, _) >> []
     }
     def pipelineStrategyDao = Stub(PipelineStrategyDAO) {
       getPipelinesByApplication(_) >> []
@@ -309,7 +308,7 @@ class ApplicationModelSpec extends Specification {
       delete(_) >> []
     }
     PipelineDAO pipelineDao = Stub(PipelineDAO) {
-      getPipelinesByApplication(_) >> []
+      getPipelinesByApplication(_, _) >> []
     }
     PipelineStrategyDAO pipelineStrategyDao = Stub(PipelineStrategyDAO) {
       getPipelinesByApplication(_) >> []
@@ -359,7 +358,7 @@ class ApplicationModelSpec extends Specification {
     then:
     1 * dao.findByName('APP1') >> application
     1 * dao.delete('APP1')
-    1 * pipelineDao.getPipelinesByApplication(_) >> [new Pipeline(id: 'a'), new Pipeline(id: 'b')]
+    1 * pipelineDao.getPipelinesByApplication(_, _) >> [new Pipeline(id: 'a'), new Pipeline(id: 'b')]
     1 * pipelineDao.delete('a')
     1 * pipelineDao.delete('b')
     1 * pipelineStrategyDao.getPipelinesByApplication(_) >> [ new Pipeline(id: 'a') ]

@@ -39,7 +39,7 @@ public class DefaultPipelineDAO extends StorageServiceSupport<Pipeline> implemen
 
   @Override
   public String getPipelineId(String application, String pipelineName) {
-    Pipeline matched = getPipelinesByApplication(application)
+    Pipeline matched = getPipelinesByApplication(application, false)
       .stream()
       .filter(pipeline -> pipeline.getName().equalsIgnoreCase(pipelineName))
       .findFirst()
@@ -51,8 +51,8 @@ public class DefaultPipelineDAO extends StorageServiceSupport<Pipeline> implemen
   }
 
   @Override
-  public Collection<Pipeline> getPipelinesByApplication(String application) {
-    return all()
+  public Collection<Pipeline> getPipelinesByApplication(String application, boolean refresh) {
+    return all(refresh)
       .stream()
       .filter(pipeline -> pipeline.getApplication() != null && pipeline.getApplication().equalsIgnoreCase(application))
       .collect(Collectors.toList());

@@ -46,14 +46,15 @@ class PipelineController {
   @PostFilter("#restricted ? hasPermission(filterObject.name, 'APPLICATION', 'READ') : true")
   @RequestMapping(value = '', method = RequestMethod.GET)
   List<Pipeline> list(@RequestParam(required = false, value = 'restricted', defaultValue = 'true') boolean restricted,
-                      @RequestParam(required = false, value ='refresh', defaultValue = 'false') boolean refresh) {
+                      @RequestParam(required = false, value = 'refresh', defaultValue = 'false') boolean refresh) {
     pipelineDAO.all(refresh)
   }
 
   @PreAuthorize("hasPermission(#application, 'APPLICATION', 'READ')")
   @RequestMapping(value = '{application:.+}', method = RequestMethod.GET)
-  List<Pipeline> listByApplication(@PathVariable(value = 'application') String application) {
-    pipelineDAO.getPipelinesByApplication(application)
+  List<Pipeline> listByApplication(@PathVariable(value = 'application') String application,
+                                   @RequestParam(required = false, value = 'refresh', defaultValue = 'false') boolean refresh) {
+    pipelineDAO.getPipelinesByApplication(application, refresh)
   }
 
   @PreAuthorize("@fiatPermissionEvaluator.storeWholePermission()")
