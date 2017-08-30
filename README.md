@@ -19,7 +19,7 @@ The app will start up on [localhost:9000](localhost:9000).
 * `API_HOST` overrides the default Spinnaker API host.
 * `LIVE_CALLS` allows the UI to interact with the API host for canary config-related calls.
 
-For example, `API_HOST=https://localhost:8084 LIVE_CALLS=true yarn start` will run Deck 
+For example, `API_HOST=http://localhost:8084 LIVE_CALLS=true yarn start` will run Deck 
 with `https://localhost:8084` as the API host.
 
 ## Testing
