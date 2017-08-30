@@ -37,7 +37,6 @@ public class CanaryJudgeDummy implements CanaryJudge {
 
   @Override
   public CanaryJudgeResult judge(CanaryConfig canaryConfig,
-                                 CombinedCanaryResultStrategy combinedCanaryResultStrategy,
                                  CanaryClassifierThresholdsConfig orchestratorScoreThresholds,
                                  List<MetricSetPair> metricSetPairList) {
     // TODO: "You're the judge; so judge!"

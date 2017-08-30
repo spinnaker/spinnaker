@@ -21,7 +21,6 @@ import com.netflix.kayenta.canary.CanaryClassifierThresholdsConfig;
 import com.netflix.kayenta.canary.CanaryConfig;
 import com.netflix.kayenta.canary.CanaryJudge;
 import com.netflix.kayenta.canary.CanaryMetricConfig;
-import com.netflix.kayenta.canary.CombinedCanaryResultStrategy;
 import com.netflix.kayenta.canary.results.CanaryJudgeResult;
 import com.netflix.kayenta.metrics.MetricSetPair;
 import com.netflix.kayenta.security.AccountCredentials;
@@ -79,7 +78,6 @@ public class CanaryJudgeTask implements RetryableTask {
     String canaryConfigId = (String)context.get("canaryConfigId");
     String metricSetPairListId = (String)context.get("metricSetPairListId");
     Map<String, String> orchestratorScoreThresholdsMap = (Map<String, String>)context.get("orchestratorScoreThresholds");
-    CombinedCanaryResultStrategy combinedCanaryResultStrategy = CombinedCanaryResultStrategy.valueOf((String)context.get("combinedCanaryResultStrategy"));
     CanaryClassifierThresholdsConfig orchestratorScoreThresholds = objectMapper.convertValue(orchestratorScoreThresholdsMap,
                                                                                              CanaryClassifierThresholdsConfig.class);
     StorageService storageService =
@@ -116,10 +114,7 @@ public class CanaryJudgeTask implements RetryableTask {
       canaryJudge = canaryJudges.get(0);
     }
 
-    CanaryJudgeResult result = canaryJudge.judge(canaryConfig,
-                                                 combinedCanaryResultStrategy,
-                                                 orchestratorScoreThresholds,
-                                                 metricSetPairList);
+    CanaryJudgeResult result = canaryJudge.judge(canaryConfig, orchestratorScoreThresholds, metricSetPairList);
     Map<String, CanaryJudgeResult> outputs = Collections.singletonMap("result", result);
 
     return new TaskResult(ExecutionStatus.SUCCEEDED, outputs);

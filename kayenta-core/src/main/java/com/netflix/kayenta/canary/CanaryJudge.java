@@ -24,7 +24,6 @@ import java.util.List;
 public interface CanaryJudge {
   String getName();
   CanaryJudgeResult judge(CanaryConfig canaryConfig,
-                          CombinedCanaryResultStrategy combinedCanaryResultStrategy,
                           CanaryClassifierThresholdsConfig orchestratorScoreThresholds,
                           List<MetricSetPair> metricSetPairList);
 }
