@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.controllers
 
+import javax.servlet.http.HttpServletResponse
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException
 import com.netflix.spinnaker.kork.web.exceptions.ValidationException
@@ -35,8 +36,6 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RestController
-
-import javax.servlet.http.HttpServletResponse
 
 @RestController
 @Slf4j
@@ -87,8 +86,8 @@ class OperationsController {
       throw new InvalidRequestException("Pipeline is disabled and cannot be started.")
     }
 
-    def parallel = pipeline.parallel as Boolean
-    if (!parallel) {
+    def linear = pipeline.stages.every { it.refId == null }
+    if (linear) {
       convertLinearToParallel(pipeline)
     }
 
@@ -212,8 +211,6 @@ class OperationsController {
         stage.put("requisiteStageRefIds", Collections.emptyList())
       }
     }
-
-    pipelineConfig.parallel = Boolean.TRUE
   }
 
   private Map<String, String> startPipeline(Map config) {

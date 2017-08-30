@@ -33,7 +33,6 @@ import org.yaml.snakeyaml.Yaml
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
-
 import static org.unitils.reflectionassert.ReflectionAssert.assertReflectionEquals
 
 class PipelineTemplatePipelinePreprocessorSpec extends Specification {
@@ -110,7 +109,6 @@ class PipelineTemplatePipelinePreprocessorSpec extends Specification {
       name: 'Unnamed Execution',
       keepWaitingPipelines: false,
       limitConcurrent: true,
-      parallel: true,
       notifications: [],
       stages: [
         [

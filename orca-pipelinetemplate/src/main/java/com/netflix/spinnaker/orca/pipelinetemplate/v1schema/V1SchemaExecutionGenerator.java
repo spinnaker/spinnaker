@@ -15,17 +15,12 @@
  */
 package com.netflix.spinnaker.orca.pipelinetemplate.v1schema;
 
+import java.util.*;
+import java.util.stream.Collectors;
 import com.netflix.spinnaker.orca.pipelinetemplate.generator.ExecutionGenerator;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate.Configuration;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.TemplateConfiguration;
-
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
-import java.util.stream.Collectors;
 
 public class V1SchemaExecutionGenerator implements ExecutionGenerator {
 
@@ -43,11 +38,9 @@ public class V1SchemaExecutionGenerator implements ExecutionGenerator {
     // TODO rz - Ehhhh
     Configuration c = template.getConfiguration();
     if (template.getConfiguration() == null) {
-      pipeline.put("parallel", true);
       pipeline.put("limitConcurrent", true);
       pipeline.put("keepWaitingPipelines", false);
     } else {
-      pipeline.put("parallel", c.getConcurrentExecutions().getOrDefault("parallel", true));
       pipeline.put("limitConcurrent", c.getConcurrentExecutions().getOrDefault("limitConcurrent", true));
       pipeline.put("keepWaitingPipelines", c.getConcurrentExecutions().getOrDefault("keepWaitingPipelines", false));
     }

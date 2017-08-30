@@ -111,7 +111,6 @@ class TemplatedPipelineModelMutatorSpec extends Specification {
       )
     )]}
     pipeline.triggers.size() == 1
-    pipeline.parallel == null
     pipeline.parameters == null
   }
 

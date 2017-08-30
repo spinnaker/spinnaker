@@ -51,7 +51,6 @@ class V1SchemaExecutionGeneratorSpec extends Specification {
     result.id != null
     result.application == 'orca'
     result.name == 'My Template'
-    result.parallel == true
     result.limitConcurrent == true
     result.keepWaitingPipelines == false
     result.stages*.type == ['bake', 'tagImage']
