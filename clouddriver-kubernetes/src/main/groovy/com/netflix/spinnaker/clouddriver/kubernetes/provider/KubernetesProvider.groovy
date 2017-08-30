@@ -22,7 +22,7 @@ import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.clouddriver.cache.SearchableProvider
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider
-import com.netflix.spinnaker.clouddriver.kubernetes.cache.Keys
+import com.netflix.spinnaker.clouddriver.kubernetes.v1.caching.Keys
 import groovy.util.logging.Slf4j
 
 import static com.netflix.spinnaker.clouddriver.cache.SearchableProvider.SearchableResource

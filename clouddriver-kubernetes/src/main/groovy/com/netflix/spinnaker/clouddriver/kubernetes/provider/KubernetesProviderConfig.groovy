@@ -17,24 +17,16 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.provider
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.agent.Agent
 import com.netflix.spinnaker.cats.provider.ProviderSynchronizerTypeWrapper
 import com.netflix.spinnaker.cats.thread.NamedThreadFactory
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider
-import com.netflix.spinnaker.clouddriver.kubernetes.v1.provider.agent.KubernetesConfigMapCachingAgent
-import com.netflix.spinnaker.clouddriver.kubernetes.v1.provider.agent.KubernetesDeploymentCachingAgent
-import com.netflix.spinnaker.clouddriver.kubernetes.v1.provider.agent.KubernetesInstanceCachingAgent
-import com.netflix.spinnaker.clouddriver.kubernetes.v1.provider.agent.KubernetesLoadBalancerCachingAgent
-import com.netflix.spinnaker.clouddriver.kubernetes.v1.provider.agent.KubernetesSecretCachingAgent
-import com.netflix.spinnaker.clouddriver.kubernetes.v1.provider.agent.KubernetesSecurityGroupCachingAgent
-import com.netflix.spinnaker.clouddriver.kubernetes.v1.provider.agent.KubernetesServerGroupCachingAgent
-import com.netflix.spinnaker.clouddriver.kubernetes.v1.provider.agent.KubernetesServiceAccountCachingAgent
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials
+import com.netflix.spinnaker.clouddriver.kubernetes.v1.provider.agent.KubernetesV1CachingAgentDispatcher
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.clouddriver.security.ProviderUtils
 import com.netflix.spinnaker.clouddriver.security.ProviderVersion
+import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.config.ConfigurableBeanFactory
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -47,18 +39,17 @@ import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
 
 @Configuration
+@Slf4j
 class KubernetesProviderConfig implements Runnable {
   @Bean
   @DependsOn('kubernetesNamedAccountCredentials')
   KubernetesProvider kubernetesProvider(KubernetesCloudProvider kubernetesCloudProvider,
                                         AccountCredentialsRepository accountCredentialsRepository,
-                                        ObjectMapper objectMapper,
-                                        Registry registry) {
+                                        KubernetesV1CachingAgentDispatcher kubernetesV1CachingAgentDispatcher) {
     this.kubernetesProvider = new KubernetesProvider(kubernetesCloudProvider, Collections.newSetFromMap(new ConcurrentHashMap<Agent, Boolean>()))
     this.kubernetesCloudProvider = kubernetesCloudProvider
     this.accountCredentialsRepository = accountCredentialsRepository
-    this.objectMapper = objectMapper
-    this.registry = registry
+    this.kubernetesV1CachingAgentDispatcher = kubernetesV1CachingAgentDispatcher
 
     ScheduledExecutorService poller = Executors.newSingleThreadScheduledExecutor(new NamedThreadFactory(KubernetesProviderConfig.class.getSimpleName()))
 
@@ -70,8 +61,7 @@ class KubernetesProviderConfig implements Runnable {
   private KubernetesProvider kubernetesProvider
   private KubernetesCloudProvider kubernetesCloudProvider
   private AccountCredentialsRepository accountCredentialsRepository
-  private ObjectMapper objectMapper
-  private Registry registry
+  private KubernetesV1CachingAgentDispatcher kubernetesV1CachingAgentDispatcher
 
   @Bean
   KubernetesProviderSynchronizerTypeWrapper kubernetesProviderSynchronizerTypeWrapper() {
@@ -80,7 +70,7 @@ class KubernetesProviderConfig implements Runnable {
 
   @Override
   void run() {
-    synchronizeKubernetesProvider(kubernetesProvider, accountCredentialsRepository, objectMapper, registry)
+    synchronizeKubernetesProvider(kubernetesProvider, accountCredentialsRepository)
   }
 
   class KubernetesProviderSynchronizerTypeWrapper implements ProviderSynchronizerTypeWrapper {
@@ -95,29 +85,24 @@ class KubernetesProviderConfig implements Runnable {
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
   @Bean
   KubernetesProviderSynchronizer synchronizeKubernetesProvider(KubernetesProvider kubernetesProvider,
-                                                               AccountCredentialsRepository accountCredentialsRepository,
-                                                               ObjectMapper objectMapper,
-                                                               Registry registry) {
+                                                               AccountCredentialsRepository accountCredentialsRepository) {
     def allAccounts = ProviderUtils.buildThreadSafeSetOfAccounts(accountCredentialsRepository, KubernetesNamedAccountCredentials)
 
     kubernetesProvider.agents.clear()
 
-    allAccounts.each { KubernetesNamedAccountCredentials credentials ->
-      if (credentials.version == ProviderVersion.v2) {
-        return
+    for (KubernetesNamedAccountCredentials credentials : allAccounts) {
+      def newlyAddedAgents
+
+      switch (credentials.version) {
+        case ProviderVersion.v1:
+          newlyAddedAgents = kubernetesV1CachingAgentDispatcher.buildAllCachingAgents(credentials)
+          break
+        default:
+          log.warn "No support for caching accounts of $credentials.version"
+          continue
       }
 
-      def newlyAddedAgents = []
-      (0..<credentials.cacheThreads).each { int index ->
-        newlyAddedAgents << new KubernetesLoadBalancerCachingAgent(credentials.name, credentials.credentials, objectMapper, index, credentials.cacheThreads, registry)
-        newlyAddedAgents << new KubernetesSecurityGroupCachingAgent(credentials.name, credentials.credentials, objectMapper, index, credentials.cacheThreads, registry)
-        newlyAddedAgents << new KubernetesServerGroupCachingAgent(credentials.name, credentials.credentials, objectMapper, index, credentials.cacheThreads, registry)
-        newlyAddedAgents << new KubernetesInstanceCachingAgent(credentials.name, credentials.credentials, objectMapper, index, credentials.cacheThreads)
-        newlyAddedAgents << new KubernetesDeploymentCachingAgent(credentials.name, credentials.credentials, objectMapper, index, credentials.cacheThreads)
-        newlyAddedAgents << new KubernetesServiceAccountCachingAgent(credentials.name, credentials.credentials, objectMapper, index, credentials.cacheThreads)
-        newlyAddedAgents << new KubernetesConfigMapCachingAgent(credentials.name, credentials.credentials, objectMapper, index, credentials.cacheThreads)
-        newlyAddedAgents << new KubernetesSecretCachingAgent(credentials.name, credentials.credentials, objectMapper, index, credentials.cacheThreads)
-      }
+      log.info "Adding ${newlyAddedAgents.size()} agents for account ${credentials.name} at version ${credentials.version}"
 
       // If there is an agent scheduler, then this provider has been through the AgentController in the past.
       // In that case, we need to do the scheduling here (because accounts have been added to a running system).

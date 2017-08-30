@@ -22,10 +22,10 @@ import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.CacheFilter
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
 import com.netflix.spinnaker.clouddriver.kubernetes.api.KubernetesApiConverter
-import com.netflix.spinnaker.clouddriver.kubernetes.cache.Keys
 import com.netflix.spinnaker.clouddriver.kubernetes.model.KubernetesDeploymentStatus
 import com.netflix.spinnaker.clouddriver.kubernetes.model.KubernetesInstance
 import com.netflix.spinnaker.clouddriver.kubernetes.model.KubernetesServerGroup
+import com.netflix.spinnaker.clouddriver.kubernetes.v1.caching.Keys
 import io.fabric8.kubernetes.api.model.extensions.Deployment
 
 class KubernetesProviderUtils {

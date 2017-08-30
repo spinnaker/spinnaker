@@ -129,6 +129,10 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials> 
     return cloudProvider;
   }
 
+  public int getCacheThreads() {
+    return cacheThreads;
+  }
+
   @Override
   public List<String> getRequiredGroupMembership() {
     return requiredGroupMembership;
@@ -286,6 +290,10 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials> 
         throw new IllegalArgumentException("At most one of 'namespaces' and 'omitNamespaces' can be specified");
       }
 
+      if (cacheThreads == 0) {
+        cacheThreads = 1;
+      }
+
       if (version == null) {
         version = v1;
       }
@@ -301,7 +309,6 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials> 
       }
 
       if (credentials == null) {
-
         credentials = buildCredentials();
       }
 
