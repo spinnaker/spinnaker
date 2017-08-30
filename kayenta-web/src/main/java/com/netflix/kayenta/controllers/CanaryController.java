@@ -45,6 +45,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
@@ -185,6 +186,7 @@ public class CanaryController {
       orchestratorScoreThresholds = canaryConfig.getClassifier().getScoreThresholds();
     }
 
+    Duration duration = Duration.between(startTimeInstant, endTimeInstant);
     Map<String, Object> canaryJudgeContext =
       Maps.newHashMap(
         new ImmutableMap.Builder<String, Object>()
@@ -194,6 +196,7 @@ public class CanaryController {
           .put("storageAccountName", resolvedStorageAccountName)
           .put("canaryConfigId", canaryConfigId)
           .put("metricSetPairListId", "${ #stage('Mix Control and Experiment Results')['context']['metricSetPairListId']}")
+          .put("durationString", duration.toString())
           .put("orchestratorScoreThresholds", orchestratorScoreThresholds)
           .build());
 
