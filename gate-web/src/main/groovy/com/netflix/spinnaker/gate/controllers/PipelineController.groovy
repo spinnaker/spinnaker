@@ -130,7 +130,7 @@ class PipelineController {
       throw new PipelineException("Pipeline save operation did not succeed: ${result.get("id", "unknown task id")} (status: ${resultStatus})")
     }
 
-    return front50Service.getPipelineConfigsForApplication((String) pipeline.get("application"))?.find { id == (String) it.get("id") }
+    return front50Service.getPipelineConfigsForApplication((String) pipeline.get("application"), false)?.find { id == (String) it.get("id") }
   }
 
   @ApiOperation(value = "Retrieve pipeline execution logs")

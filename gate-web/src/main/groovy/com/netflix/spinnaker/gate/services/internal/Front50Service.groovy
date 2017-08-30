@@ -43,7 +43,7 @@ interface Front50Service {
   List<Map> getAllPipelineConfigs()
 
   @GET('/pipelines/{app}')
-  List<Map> getPipelineConfigsForApplication(@Path("app") String app)
+  List<Map> getPipelineConfigsForApplication(@Path("app") String app, @Query("refresh") boolean refresh)
 
   @DELETE('/pipelines/{app}/{name}')
   Response deletePipelineConfig(@Path("app") String app, @Path("name") String name)

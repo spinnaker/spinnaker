@@ -79,7 +79,7 @@ class PipelineControllerSpec extends Specification {
         ]
       ]
     ]) >> { [id: 'task-id', application: 'application', status: 'SUCCEEDED'] }
-    1 * front50Service.getPipelineConfigsForApplication('application') >> []
+    1 * front50Service.getPipelineConfigsForApplication('application', false) >> []
   }
 
   def "should propagate pipeline template errors"() {
