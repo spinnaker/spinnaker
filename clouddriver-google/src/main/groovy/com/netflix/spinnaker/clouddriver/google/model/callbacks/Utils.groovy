@@ -50,7 +50,7 @@ class Utils {
     }
     def tokens = portRange.split('-')
     if (tokens.length != 2) {
-      throw new IllegalFormatException("Port range ${portRange} formatted improperly.")
+      throw new IllegalArgumentException("Port range ${portRange} formatted improperly.")
     }
 
     tokens[0] != tokens[1] ? portRange : tokens[0]
@@ -68,12 +68,12 @@ class Utils {
 
   static GoogleTargetProxyType getTargetProxyType(String fullUrl) {
     if (!fullUrl) {
-      throw new IllegalFormatException("Target proxy url ${fullUrl} malformed.")
+      throw new IllegalArgumentException("Target proxy url ${fullUrl} malformed.")
     }
 
     int lastIndex = fullUrl.lastIndexOf('/')
     if (lastIndex == -1) {
-      throw new IllegalFormatException("Target proxy url ${fullUrl} malformed.")
+      throw new IllegalArgumentException("Target proxy url ${fullUrl} malformed.")
     }
     String withoutName = fullUrl.substring(0, lastIndex)
     switch (getLocalName(withoutName)) {
@@ -90,7 +90,7 @@ class Utils {
         return GoogleTargetProxyType.TCP
         break
       default:
-        throw new IllegalFormatException("Target proxy url ${fullUrl} has unknown type.")
+        throw new IllegalArgumentException("Target proxy url ${fullUrl} has unknown type.")
         break
     }
   }
@@ -103,12 +103,12 @@ class Utils {
 
   static String getHealthCheckType(String fullUrl) {
     if (!fullUrl) {
-      throw new IllegalFormatException("Health check url ${fullUrl} malformed.")
+      throw new IllegalArgumentException("Health check url ${fullUrl} malformed.")
     }
 
     int lastIndex = fullUrl.lastIndexOf('/')
     if (lastIndex == -1) {
-      throw new IllegalFormatException("Health check url ${fullUrl} malformed.")
+      throw new IllegalArgumentException("Health check url ${fullUrl} malformed.")
     }
     String withoutName = fullUrl.substring(0, lastIndex)
     return getLocalName(withoutName)
@@ -136,7 +136,7 @@ class Utils {
     def urlParts = fullUrl.split("/")
 
     if (urlParts.length < 4) {
-      throw new IllegalFormatException("Server group Url ${fullUrl} malformed.")
+      throw new IllegalArgumentException("Server group Url ${fullUrl} malformed.")
     }
 
     String regionsOrZones = urlParts[urlParts.length - 4]
@@ -150,7 +150,7 @@ class Utils {
         return zone.substring(0, lastDash)
         break
       default:
-        throw new IllegalFormatException("Server group Url ${fullUrl} malformed.")
+        throw new IllegalArgumentException("Server group Url ${fullUrl} malformed.")
         break
     }
   }
@@ -163,19 +163,19 @@ class Utils {
     def urlParts = fullUrl.split("/")
 
     if (urlParts.length < 4) {
-      throw new IllegalFormatException("Server group url ${fullUrl} malformed.")
+      throw new IllegalArgumentException("Server group url ${fullUrl} malformed.")
     }
 
     String regionsOrZones = urlParts[urlParts.length - 4]
     switch (regionsOrZones) {
       case "regions":
-        throw new IllegalFormatException("Can't parse a zone from regional group url ${fullUrl}.")
+        throw new IllegalArgumentException("Can't parse a zone from regional group url ${fullUrl}.")
         break
       case "zones":
         return urlParts[urlParts.length - 3]
         break
       default:
-        throw new IllegalFormatException("Server group url ${fullUrl} malformed.")
+        throw new IllegalArgumentException("Server group url ${fullUrl} malformed.")
         break
     }
   }
@@ -193,7 +193,7 @@ class Utils {
     def urlParts = fullUrl.split("/")
 
     if (urlParts.length < 4) {
-      throw new IllegalFormatException("Server group Url ${fullUrl} malformed.")
+      throw new IllegalArgumentException("Server group Url ${fullUrl} malformed.")
     }
 
     String regionsOrZones = urlParts[urlParts.length - 4]
@@ -205,7 +205,7 @@ class Utils {
         return GoogleServerGroup.ServerGroupType.ZONAL
         break
       default:
-        throw new IllegalFormatException("Server group Url ${fullUrl} malformed.")
+        throw new IllegalArgumentException("Server group Url ${fullUrl} malformed.")
         break
     }
     return regionsOrZones
