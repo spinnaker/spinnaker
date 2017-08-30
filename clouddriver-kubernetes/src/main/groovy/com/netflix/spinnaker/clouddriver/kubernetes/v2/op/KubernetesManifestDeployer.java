@@ -24,7 +24,9 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesAug
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesManifestOperationDescription;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.deployer.KubernetesDeployer;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.deployer.KubernetesIngressDeployer;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.deployer.KubernetesReplicaSetDeployer;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.deployer.KubernetesServiceDeployer;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,6 +40,12 @@ public class KubernetesManifestDeployer implements AtomicOperation<DeploymentRes
 
   @Autowired
   private KubernetesReplicaSetDeployer replicaSetDeployer;
+
+  @Autowired
+  private KubernetesServiceDeployer serviceDeployer;
+
+  @Autowired
+  private KubernetesIngressDeployer ingressDeployer;
 
   public KubernetesManifestDeployer(KubernetesManifestOperationDescription description) {
     this.description = description;
@@ -66,6 +74,10 @@ public class KubernetesManifestDeployer implements AtomicOperation<DeploymentRes
     switch (kind) {
       case REPLICA_SET:
         return replicaSetDeployer;
+      case SERVICE:
+        return serviceDeployer;
+      case INGRESS:
+        return ingressDeployer;
       default:
         throw new IllegalArgumentException("Kind " + kind + " is not supported yet");
     }

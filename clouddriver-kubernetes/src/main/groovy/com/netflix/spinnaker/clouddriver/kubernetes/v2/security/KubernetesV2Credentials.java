@@ -23,10 +23,11 @@ import io.kubernetes.client.ApiClient;
 import io.kubernetes.client.ApiException;
 import io.kubernetes.client.apis.CoreV1Api;
 import io.kubernetes.client.apis.ExtensionsV1beta1Api;
+import io.kubernetes.client.models.V1Service;
+import io.kubernetes.client.models.V1beta1Ingress;
 import io.kubernetes.client.models.V1beta1ReplicaSet;
 import io.kubernetes.client.util.Config;
 import lombok.Getter;
-import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
 import java.util.List;
@@ -72,6 +73,24 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
     final String operation = "replicaSets.create";
     try {
       extensionsV1beta1Api.createNamespacedReplicaSet(replicaSet.getMetadata().getNamespace(), replicaSet, null);
+    } catch (ApiException e) {
+      throw new KubernetesApiException(operation, e);
+    }
+  }
+
+  public void deployService(V1Service service) {
+    final String operation = "services.create";
+    try {
+      coreV1Api.createNamespacedService(service.getMetadata().getNamespace(), service, null);
+    } catch (ApiException e) {
+      throw new KubernetesApiException(operation, e);
+    }
+  }
+
+  public void deployIngress(V1beta1Ingress ingress) {
+    final String operation = "ingresses.create";
+    try {
+      extensionsV1beta1Api.createNamespacedIngress(ingress.getMetadata().getNamespace(), ingress, null);
     } catch (ApiException e) {
       throw new KubernetesApiException(operation, e);
     }
