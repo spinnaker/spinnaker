@@ -25,6 +25,9 @@ import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import spock.lang.Specification
 import spock.lang.Subject
+import spock.lang.Unroll
+
+import java.util.concurrent.TimeUnit
 
 class MonitorCanaryTaskSpec extends Specification {
   MineService mineService = Mock(MineService)
@@ -64,10 +67,50 @@ class MonitorCanaryTaskSpec extends Specification {
     result.status == executionStatus
 
     where:
-    resultStatus                                   | executionStatus
-    [status: 'RUNNING', complete: false] | ExecutionStatus.RUNNING
-    [status: 'COMPLETE', complete: true] | ExecutionStatus.SUCCEEDED
-    [status: 'FAILED', complete: true]   | ExecutionStatus.SUCCEEDED
+    resultStatus                         || executionStatus
+    [status: 'RUNNING', complete: false] || ExecutionStatus.RUNNING
+    [status: 'COMPLETE', complete: true] || ExecutionStatus.SUCCEEDED
+    [status: 'FAILED', complete: true]   || ExecutionStatus.SUCCEEDED
+  }
+
+  @Unroll
+  def 'should override timeout if canary duration is greater than 48 hours'() {
+    setup:
+    def canaryConf = [
+      id: UUID.randomUUID().toString(),
+      owner: [name: 'cfieber', email: 'cfieber@netflix.com'],
+      canaryDeployments: [[canaryCluster: [:], baselineCluster: [:]]],
+      health: [health: 'HEALTHY'],
+      launchedDate: System.currentTimeMillis(),
+      canaryConfig: [
+        lifetimeHours: canaryLifetime,
+        combinedCanaryResultStrategy: 'LOWEST',
+        canarySuccessCriteria: [canaryResultScore: 95],
+        canaryHealthCheckHandler: [minimumCanaryResultScore: 75],
+        canaryAnalysisConfig: [
+          name: 'beans',
+          beginCanaryAnalysisAfterMins: 5,
+          notificationHours: [1, 2],
+          canaryAnalysisIntervalMins: 15
+        ]
+      ],
+      status: [status: 'RUNNING', complete: false]
+    ]
+    def stage = new Stage<>(new Pipeline("foo"), "canary", [canary: canaryConf])
+
+    when:
+    TaskResult result = task.execute(stage)
+
+    then:
+    1 * mineService.getCanary(stage.context.canary.id) >> canaryConf
+    result.context.stageTimeoutMs == expected
+
+    where:
+    canaryLifetime || expected
+    1              || TimeUnit.DAYS.toMillis(2)
+    47             || TimeUnit.DAYS.toMillis(2)
+    48             || TimeUnit.HOURS.toMillis(48) + TimeUnit.MINUTES.toMillis(15)
+    50             || TimeUnit.HOURS.toMillis(50) + TimeUnit.MINUTES.toMillis(15)
   }
 
   def 'should perform a scaleup'() {

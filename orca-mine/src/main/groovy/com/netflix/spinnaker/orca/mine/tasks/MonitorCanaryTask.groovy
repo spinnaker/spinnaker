@@ -35,6 +35,8 @@ class MonitorCanaryTask extends AbstractCloudProviderAwareTask implements Retrya
   long backoffPeriod = TimeUnit.MINUTES.toMillis(1)
   long timeout = TimeUnit.DAYS.toMillis(2)
 
+  private long timeoutBuffer = TimeUnit.MINUTES.toMillis(15)
+
   @Autowired
   MineService mineService
   @Autowired
@@ -43,8 +45,12 @@ class MonitorCanaryTask extends AbstractCloudProviderAwareTask implements Retrya
   @Override
   TaskResult execute(Stage stage) {
     Map context = stage.context
+    // add a 15-minute buffer to accommodate backoffs, etc.
+    Integer canaryDuration = Integer.parseInt((stage.context.canary.canaryConfig?.lifetimeHours ?: "2").toString())
+    Long canaryDurationMillis = TimeUnit.HOURS.toMillis(canaryDuration) + timeoutBuffer
     Map outputs = [
-      canary : context.canary
+      canary : context.canary,
+      stageTimeoutMs: Math.max(canaryDurationMillis, timeout)
     ]
 
     try {
