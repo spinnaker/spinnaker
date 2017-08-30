@@ -27,6 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 import javax.annotation.Nonnull
+import java.time.Instant
 import java.util.concurrent.TimeUnit
 
 @Slf4j
@@ -47,23 +48,40 @@ class MonitorCanaryTask implements RetryableTask {
 
     if (canaryPipelineExecution.status == ExecutionStatus.SUCCEEDED) {
       Map<String, String> scoreThresholds = context.get("scoreThresholds")
-      double canaryScore = canaryPipelineExecution.namedStage("canaryJudge").context.result.score.score
+      Stage canaryJudgeStage = canaryPipelineExecution.namedStage("canaryJudge")
+      Map<String, Object> canaryJudgeContext = canaryJudgeStage.context
+      double canaryScore = canaryJudgeContext.result.score.score
+      long lastUpdatedMs = canaryJudgeStage.endTime.toLong()
+      String lastUpdatedIso = Instant.ofEpochMilli(lastUpdatedMs).toString()
+      String durationString = canaryJudgeContext.durationString
 
       if (scoreThresholds?.marginal == null && scoreThresholds?.pass == null) {
         return new TaskResult(ExecutionStatus.SUCCEEDED, [canaryPipelineStatus: ExecutionStatus.SUCCEEDED,
+                                                          lastUpdated         : lastUpdatedMs,
+                                                          lastUpdatedIso      : lastUpdatedIso,
+                                                          durationString      : durationString,
                                                           canaryScore         : canaryScore,
                                                           canaryScoreMessage  : "No score thresholds were specified."])
       } else if (scoreThresholds?.marginal == null) {
         return new TaskResult(ExecutionStatus.SUCCEEDED, [canaryPipelineStatus: ExecutionStatus.SUCCEEDED,
+                                                          lastUpdated         : lastUpdatedMs,
+                                                          lastUpdatedIso      : lastUpdatedIso,
+                                                          durationString      : durationString,
                                                           canaryScore         : canaryScore,
                                                           canaryScoreMessage  : "No marginal score threshold was specified."])
       } else if (canaryScore <= scoreThresholds.marginal.toDouble()) {
         return new TaskResult(ExecutionStatus.TERMINAL,  [canaryPipelineStatus: ExecutionStatus.SUCCEEDED,
+                                                          lastUpdated         : lastUpdatedMs,
+                                                          lastUpdatedIso      : lastUpdatedIso,
+                                                          durationString      : durationString,
                                                           canaryScore         : canaryScore,
                                                           canaryScoreMessage  : "Canary score is not above the marginal score threshold."])
       } else {
         return new TaskResult(ExecutionStatus.SUCCEEDED, [canaryPipelineStatus: ExecutionStatus.SUCCEEDED,
-                                                          canaryScore:          canaryScore])
+                                                          lastUpdated         : lastUpdatedMs,
+                                                          lastUpdatedIso      : lastUpdatedIso,
+                                                          durationString      : durationString,
+                                                          canaryScore         : canaryScore])
       }
     }
 
