@@ -9,7 +9,7 @@ addons:
       - r-base
       - r-cran-rserve
 before_install:
-  - /usr/bin/R CMD Rserve --RS-conf $HOME/gradle/Rserve.conf
+  #- /usr/bin/R CMD Rserve --RS-conf $HOME/gradle/Rserve.conf
   - ps ax
 install: true
 script: gradle/buildViaTravis.sh
