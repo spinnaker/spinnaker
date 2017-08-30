@@ -109,7 +109,7 @@ class DeployCanaryStage extends ParallelDeployStage implements CloudProviderAwar
     }.flatten()
 
     def findImageCtx = [application: stage.execution.application, account: stage.context.baseline.account, cluster: stage.context.baseline.cluster, regions: regions, cloudProvider: stage.context.baseline.cloudProvider ?: 'aws']
-    Stage s = new Stage<>(new Orchestration(), "findImage", findImageCtx)
+    Stage s = new Stage<>(new Orchestration(stage.execution.application), "findImage", findImageCtx)
     TaskResult result = findImage.execute(s)
     try {
       return result.context.amiDetails
