@@ -1,14 +1,16 @@
 'use strict';
 
-import {PIPELINE_CONFIG_PROVIDER} from 'core/pipeline/config/pipelineConfigProvider';
+import { EXECUTION_FILTER_SERVICE } from 'core/delivery/filter/executionFilter.service';
+import { PIPELINE_CONFIG_PROVIDER } from 'core/pipeline/config/pipelineConfigProvider';
 
 const angular = require('angular');
 
 module.exports = angular.module('spinnaker.executionDetails.controller', [
   require('@uirouter/angularjs').default,
-  PIPELINE_CONFIG_PROVIDER
+  PIPELINE_CONFIG_PROVIDER,
+  EXECUTION_FILTER_SERVICE
 ])
-  .controller('executionDetails', function($scope, $stateParams, $state, pipelineConfig) {
+  .controller('executionDetails', function($scope, $stateParams, $state, pipelineConfig, executionFilterService) {
     var controller = this;
 
     function getStageParams(stageId) {
@@ -83,15 +85,18 @@ module.exports = angular.module('spinnaker.executionDetails.controller', [
       $state.go('.', { step: null });
     };
 
+    this.getStageSummary = () => {
+      const currentStage = getCurrentStage();
+      const stages = controller.execution.stageSummaries || [];
+      return stages.length > currentStage ? stages[currentStage] : null;
+    };
+
     const getDetailsSourceUrl = () => {
       if ($stateParams.step !== undefined) {
-        let stages = controller.execution.stageSummaries || [];
-        var stageSummary = stages[getCurrentStage()];
+        const stageSummary = this.getStageSummary();
         if (stageSummary) {
-          var step = stageSummary.stages[getCurrentStep()] || stageSummary.masterStage;
-          $scope.stageSummary = stageSummary;
-          $scope.stage = step;
-          var stageConfig = pipelineConfig.getStageConfig(step);
+          const step = stageSummary.stages[getCurrentStep()] || stageSummary.masterStage;
+          const stageConfig = pipelineConfig.getStageConfig(step);
           if (stageConfig && stageConfig.executionDetailsUrl) {
             if (stageConfig.executionConfigSections) {
               $scope.configSections = stageConfig.executionConfigSections;
@@ -108,16 +113,10 @@ module.exports = angular.module('spinnaker.executionDetails.controller', [
       return null;
     };
 
-    const getSummarySourceUrl = function() {
+    const getSummarySourceUrl = () => {
       if ($stateParams.stage !== undefined) {
-        let currentStage = getCurrentStage();
-        let stages = controller.execution.stageSummaries || [];
-        let stageSummary = stages.length > currentStage ?
-          stages[currentStage] :
-          null;
+        const stageSummary = this.getStageSummary();
         if (stageSummary) {
-          $scope.stageSummary = stageSummary;
-          $scope.stage = stageSummary.stages[0];
           var stageConfig = pipelineConfig.getStageConfig(stageSummary);
           if (stageConfig && stageConfig.executionSummaryUrl) {
             return stageConfig.executionSummaryUrl;
@@ -127,9 +126,15 @@ module.exports = angular.module('spinnaker.executionDetails.controller', [
       return require('../../pipeline/config/stages/core/executionSummary.html');
     };
 
+    this.updateStage = (stageSummary) => {
+      $scope.stageSummary = stageSummary;
+      $scope.stage = stageSummary.stages[getCurrentStep()] || stageSummary.masterStage;
+    };
+
     this.setSourceUrls = () => {
       this.summarySourceUrl = getSummarySourceUrl();
       this.detailsSourceUrl = getDetailsSourceUrl();
+      this.updateStage(this.getStageSummary());
     };
 
     this.$onInit = () => {
@@ -143,6 +148,20 @@ module.exports = angular.module('spinnaker.executionDetails.controller', [
       $scope.standalone = this.standalone;
       $scope.application = this.application;
       $scope.execution = this.execution;
+
+      // Since stages and tasks can get updated without the reference to the execution changing, subscribe to the execution updated stream here too
+      this.groupsUpdatedSubscription = executionFilterService.groupsUpdatedStream.subscribe(() => $scope.$evalAsync(() => this.updateStage(this.getStageSummary())));
+    };
+
+    this.$onChanges = () => {
+      $scope.standalone = this.standalone;
+      $scope.application = this.application;
+      $scope.execution = this.execution;
+      this.updateStage(this.getStageSummary());
+    };
+
+    this.$onDestroy = () => {
+      this.groupsUpdatedSubscription.unsubscribe();
     };
 
     $scope.$on('$stateChangeSuccess', () => this.setSourceUrls());

@@ -41,8 +41,8 @@ export class ExecutionMarker extends React.Component<IExecutionMarkerProps, IExe
     this.runningTime = new OrchestratedItemRunningTime(this.props.stage, (time: number) => this.setState({ duration: duration(time) }));
   }
 
-  public componentWillReceiveProps() {
-    this.runningTime.checkStatus();
+  public componentWillReceiveProps(nextProps: IExecutionMarkerProps) {
+    this.runningTime.checkStatus(nextProps.stage);
   }
 
   public componentWillUnmount() {

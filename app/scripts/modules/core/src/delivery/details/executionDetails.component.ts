@@ -1,4 +1,4 @@
-import {IComponentOptions, module} from 'angular';
+import { IComponentOptions, module } from 'angular';
 
 import './executionDetails.less';
 

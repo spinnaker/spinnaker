@@ -1,5 +1,5 @@
-import {IOrchestratedItem} from './IOrchestratedItem';
-import {IExecutionTrigger} from './IExecutionTrigger';
+import { IOrchestratedItem } from './IOrchestratedItem';
+import { IExecutionTrigger } from './IExecutionTrigger';
 import { IExecutionStage, IExecutionStageSummary } from './IExecutionStage';
 
 export interface IExecution extends IOrchestratedItem {

@@ -170,8 +170,7 @@ export class ExecutionGroup extends React.Component<IExecutionGroupProps, IExecu
 
     const deploymentAccountLabels = without(this.state.deploymentAccounts || [], ...(group.targetAccounts || [])).map((account: string) => <AccountTag key={account} account={account}/>);
     const groupTargetAccountLabels = (group.targetAccounts || []).map((account: string) => <AccountTag key={account} account={account}/>);
-    // Adding running time to the key is a hack until we can figure out the redux story for executions
-    const executions = (group.executions || []).map((execution: IExecution) => <Execution key={execution.stringVal} execution={execution} application={this.props.application}/>);
+    const executions = (group.executions || []).map((execution: IExecution) => <Execution key={execution.id} execution={execution} application={this.props.application}/>);
 
     return (
       <div className={`execution-group ${this.isShowingDetails() ? 'showing-details' : 'details-hidden'}`}>

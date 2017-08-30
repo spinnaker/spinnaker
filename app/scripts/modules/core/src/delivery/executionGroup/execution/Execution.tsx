@@ -58,8 +58,8 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
 
   constructor(props: IExecutionProps) {
     super(props);
-    const { execution, application } = this.props;
-    const { executionFilterModel, executionService, schedulerFactory } = ReactInjector;
+    const { execution } = this.props;
+    const { executionFilterModel } = ReactInjector;
 
     const initialViewState = {
       activeStageId: Number(ReactInjector.$stateParams.stage),
@@ -78,25 +78,6 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
       restartDetails: restartedStage ? restartedStage.context.restartDetails : null,
       runningTimeInMs: props.execution.runningTimeInMs
     };
-
-    if (execution.isRunning && !this.props.standalone) {
-      this.activeRefresher = schedulerFactory.createScheduler(1000 * Math.ceil(execution.stages.length / 10));
-      let refreshing = false;
-      this.activeRefresher.subscribe(() => {
-        if (refreshing || !execution.isRunning) {
-          return;
-        }
-        refreshing = true;
-        executionService.getExecution(execution.id).then((updated: IExecution) => {
-          if (this.mounted) {
-            const dataSource = application.getDataSource(this.props.dataSourceKey);
-            executionService.updateExecution(application, updated, dataSource);
-            executionService.removeCompletedExecutionsFromRunningData(application);
-          }
-          refreshing = false;
-        });
-      });
-    }
   }
 
   private updateViewStateDetails(): void {
@@ -203,10 +184,33 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
     this.mounted = true;
     this.runningTime = new OrchestratedItemRunningTime(this.props.execution, (time: number) => this.setState({ runningTimeInMs: time }));
     this.stateChangeSuccessSubscription = ReactInjector.stateEvents.stateChangeSuccess.subscribe(() => this.updateViewStateDetails());
+
+    const { execution, application } = this.props;
+    const { executionService, schedulerFactory } = ReactInjector;
+    if (execution.isRunning && !this.props.standalone) {
+      // TODO: This component should not be handling the refreshing itself; it should just be listening.
+      this.activeRefresher = schedulerFactory.createScheduler(1000 * Math.ceil(execution.stages.length / 10));
+      let refreshing = false;
+      this.activeRefresher.subscribe(() => {
+        if (refreshing || !execution.isRunning) {
+          return;
+        }
+        refreshing = true;
+        executionService.getExecution(execution.id).then((updated: IExecution) => {
+          if (this.mounted) {
+            const dataSource = application.getDataSource(this.props.dataSourceKey);
+            executionService.updateExecution(application, updated, dataSource);
+            executionService.removeCompletedExecutionsFromRunningData(application);
+          }
+          refreshing = false;
+        });
+      });
+    }
   }
 
   public componentWillReceiveProps(nextProps: IExecutionProps): void {
     if (nextProps.execution !== this.props.execution) {
+      this.runningTime.checkStatus(nextProps.execution);
       this.setState({
         showingDetails: this.invalidateShowingDetails()
       });
@@ -216,12 +220,8 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
   public componentWillUnmount(): void {
     this.mounted = false;
     this.runningTime.reset();
-    if (this.activeRefresher) {
-      this.activeRefresher.unsubscribe();
-    }
-    if (this.stateChangeSuccessSubscription) {
-      this.stateChangeSuccessSubscription.unsubscribe();
-    }
+    if (this.activeRefresher) { this.activeRefresher.unsubscribe(); }
+    this.stateChangeSuccessSubscription.unsubscribe();
   }
 
   private handleNodeClick(node: IPipelineNode): void {

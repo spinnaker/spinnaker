@@ -7,7 +7,11 @@ export class OrchestratedItemRunningTime {
     this.checkStatus();
   }
 
-  public checkStatus(): void {
+  public checkStatus(item = this.item): void {
+    if (item && item !== this.item) {
+      this.item = item;
+    }
+
     if (this.item.status !== 'RUNNING') {
       this.reset();
       this.updateCallback(this.item.runningTimeInMs);
