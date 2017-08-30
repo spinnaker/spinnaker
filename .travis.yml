@@ -10,6 +10,7 @@ addons:
       - r-cran-rserve
 before_install:
   - /usr/bin/R CMD Rserve --RS-conf $HOME/gradle/Rserve.conf --no-save > /tmp/rserve.log 2>&1 || true
+  - cat /tmp/rserve.log
   - ps ax
 install: true
 script: gradle/buildViaTravis.sh
