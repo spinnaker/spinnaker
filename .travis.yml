@@ -4,9 +4,9 @@ jdk:
 dist: trusty
 sudo: false
 before_install:
-  - apt-get -qq update
-  - apt-get install r-base
-  - apt-get install r-cran-rserve
+  - sudo apt-get -qq update
+  - sudo apt-get install r-base
+  - sudo apt-get install r-cran-rserve
   - /usr/bin/R CMD Rserve --RS-conf $HOME/gradle/Rserve.conf
   - ps ax
 install: true
