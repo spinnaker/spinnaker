@@ -25,7 +25,7 @@ import com.netflix.spectator.api.Registry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-class AlertOnAccessMap<E extends Execution<E>> extends ForwardingMap<String, Object> {
+public class AlertOnAccessMap<E extends Execution<E>> extends ForwardingMap<String, Object> {
 
   private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -33,13 +33,13 @@ class AlertOnAccessMap<E extends Execution<E>> extends ForwardingMap<String, Obj
   private final Map<String, Object> delegate;
   private final Registry registry;
 
-  private AlertOnAccessMap(Execution<E> execution, Registry registry, Map<String, Object> delegate) {
+  public AlertOnAccessMap(Execution<E> execution, Registry registry, Map<String, Object> delegate) {
     this.execution = execution;
     this.registry = registry;
     this.delegate = delegate;
   }
 
-  AlertOnAccessMap(Execution<E> execution, Registry registry) {
+  public AlertOnAccessMap(Execution<E> execution, Registry registry) {
     this(execution, registry, new HashMap<>());
   }
 

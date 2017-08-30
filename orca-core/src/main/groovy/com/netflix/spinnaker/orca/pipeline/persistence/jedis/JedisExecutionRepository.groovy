@@ -66,6 +66,7 @@ class JedisExecutionRepository implements ExecutionRepository {
   private final int chunkSize
   private final Scheduler queryAllScheduler
   private final Scheduler queryByAppScheduler
+  private final Registry registry
 
   @Autowired
   JedisExecutionRepository(
@@ -82,6 +83,7 @@ class JedisExecutionRepository implements ExecutionRepository {
       Schedulers.from(newFixedThreadPool(registry, threadPoolSize, "QueryByApp")),
       threadPoolChunkSize
     )
+    this.registry = registry
   }
 
   JedisExecutionRepository(
@@ -619,7 +621,7 @@ class JedisExecutionRepository implements ExecutionRepository {
       }
 
       def execution = type.newInstance(id, map.application)
-      execution.context.putAll(map.context ? mapper.readValue(map.context, Map) : [:])
+      execution.context = new AlertOnAccessMap<>(execution, registry, map.context ? mapper.readValue(map.context, Map) : [:])
       execution.canceled = Boolean.parseBoolean(map.canceled)
       execution.canceledBy = map.canceledBy
       execution.cancellationReason = map.cancellationReason
