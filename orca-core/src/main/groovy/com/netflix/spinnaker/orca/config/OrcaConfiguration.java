@@ -26,6 +26,7 @@ import com.netflix.spinnaker.orca.pipeline.persistence.PipelineStack;
 import com.netflix.spinnaker.orca.pipeline.persistence.memory.InMemoryPipelineStack;
 import com.netflix.spinnaker.orca.pipeline.util.ContextFunctionConfiguration;
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -122,8 +123,9 @@ public class OrcaConfiguration {
   }
 
   @Bean
-  public ContextFunctionConfiguration contextFunctionConfiguration(UserConfiguredUrlRestrictions userConfiguredUrlRestrictions) {
-    return new ContextFunctionConfiguration(userConfiguredUrlRestrictions);
+  public ContextFunctionConfiguration contextFunctionConfiguration(UserConfiguredUrlRestrictions userConfiguredUrlRestrictions,
+                                                                   @Value("${spelEvaluator:v1}") String spelEvaluator) {
+    return new ContextFunctionConfiguration(userConfiguredUrlRestrictions, spelEvaluator);
   }
 
   @Bean

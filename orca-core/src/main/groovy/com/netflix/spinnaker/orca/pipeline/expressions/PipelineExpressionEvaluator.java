@@ -31,19 +31,23 @@ import java.util.Map;
 import java.util.Optional;
 
 import static com.netflix.spinnaker.orca.pipeline.expressions.PipelineExpressionEvaluator.ExpressionEvaluationVersion.V2;
+import static com.netflix.spinnaker.orca.pipeline.expressions.PipelineExpressionEvaluator.ExpressionEvaluationVersion.V1;
 
 public class PipelineExpressionEvaluator extends ExpressionsSupport implements ExpressionEvaluator {
   private static final Logger LOGGER = LoggerFactory.getLogger(PipelineExpressionEvaluator.class);
   public static final String SUMMARY = "expressionEvaluationSummary";
-  private static final String SPEL_EVALUATOR = "spel-evaluator";
+  private static final String SPEL_EVALUATOR = "spelEvaluator";
   private final ExpressionParser parser = new SpelExpressionParser();
+  private static String spelEvaluator = V1;
 
-  interface ExpressionEvaluationVersion {
+  public interface ExpressionEvaluationVersion {
     String V2 = "v2";
+    String V1 = "v1";
   }
 
   public PipelineExpressionEvaluator(final ContextFunctionConfiguration contextFunctionConfiguration) {
     super(contextFunctionConfiguration);
+    spelEvaluator = contextFunctionConfiguration.getSpelEvaluator();
   }
 
   @Override
@@ -53,6 +57,10 @@ public class PipelineExpressionEvaluator extends ExpressionsSupport implements E
   }
 
   public static boolean shouldUseV2Evaluator(Object obj) {
+    if (V2.equals(spelEvaluator)) {
+      return true;
+    }
+
     try {
       if (obj instanceof Map) {
         Map pipelineConfig = (Map) obj;

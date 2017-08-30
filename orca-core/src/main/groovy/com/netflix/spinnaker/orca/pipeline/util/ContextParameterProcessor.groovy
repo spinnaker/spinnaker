@@ -45,6 +45,8 @@ import org.springframework.expression.spel.support.ReflectivePropertyAccessor
 import org.springframework.expression.spel.support.StandardEvaluationContext
 import org.springframework.expression.spel.support.StandardTypeLocator
 
+import static com.netflix.spinnaker.orca.pipeline.expressions.PipelineExpressionEvaluator.ExpressionEvaluationVersion.V1
+
 /**
  * Common methods for dealing with passing context parameters used by both Script and Jenkins stages
  */
@@ -357,9 +359,15 @@ class ContextParameterProcessor {
 
 class ContextFunctionConfiguration {
   final UserConfiguredUrlRestrictions urlRestrictions
+  final String spelEvaluator
 
-  ContextFunctionConfiguration(UserConfiguredUrlRestrictions urlRestrictions) {
+  ContextFunctionConfiguration(UserConfiguredUrlRestrictions urlRestrictions, String spelEvaluator = V1) {
     this.urlRestrictions = urlRestrictions
+    this.spelEvaluator = spelEvaluator
+  }
+
+  ContextFunctionConfiguration(String spelEvaluator = V1) {
+    this.spelEvaluator = spelEvaluator
   }
 }
 
