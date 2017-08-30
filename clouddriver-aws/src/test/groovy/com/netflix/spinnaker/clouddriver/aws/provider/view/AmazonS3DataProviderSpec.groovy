@@ -37,8 +37,8 @@ class AmazonS3DataProviderSpec extends Specification {
   def amazonClientProvider = Mock(AmazonClientProvider)
   def accountCredentialsRepository = Mock(AccountCredentialsRepository)
   def configuration = new AmazonS3StaticDataProviderConfiguration([
-    new AmazonS3StaticDataProviderConfiguration.StaticRecord("staticId", string, "accountName", "bucket", "key"),
-    new AmazonS3StaticDataProviderConfiguration.StaticRecord("staticListId", list, "accountName", "bucket", "key")
+    new AmazonS3StaticDataProviderConfiguration.StaticRecord("staticId", string, "accountName", "us-east-1", "bucket", "key"),
+    new AmazonS3StaticDataProviderConfiguration.StaticRecord("staticListId", list, "accountName", "us-east-1", "bucket", "listKey")
   ], [
     new AmazonS3StaticDataProviderConfiguration.AdhocRecord(
       id: "adhocId",
@@ -50,17 +50,12 @@ class AmazonS3DataProviderSpec extends Specification {
   def s3Object = Mock(S3Object)
 
   @Subject
-  def dataProvider = new AmazonS3DataProvider(
+  def dataProvider = Spy(AmazonS3DataProvider, constructorArgs: [
     objectMapper,
     amazonClientProvider,
     accountCredentialsRepository,
     configuration
-  ) {
-    @Override
-    protected S3Object fetchObject(String bucketAccount, String bucketRegion, String bucketName, String objectId) {
-      return s3Object
-    }
-  }
+  ])
 
   void setup() {
     accountCredentialsRepository.getAll() >> {
@@ -119,6 +114,9 @@ class AmazonS3DataProviderSpec extends Specification {
     dataProvider.getAdhocData("adhocId", "accountName:us-east-1:my_restricted_bucket", "magic/my_object", outputStream)
 
     then:
+    1 * dataProvider.fetchObject("accountName", "us-east-1", "my_restricted_bucket", "magic/my_object") >> {
+      return s3Object
+    }
     1 * s3Object.getObjectContent() >> {
       return new S3ObjectInputStream(new ByteArrayInputStream("my example output!".bytes), null)
     }
@@ -144,6 +142,9 @@ class AmazonS3DataProviderSpec extends Specification {
     def result = dataProvider.getStaticData("staticId", [:])
 
     then:
+    1 * dataProvider.fetchObject("accountName", "us-east-1", "bucket", "key") >> {
+      return s3Object
+    }
     1 * s3Object.getObjectContent() >> {
       return new S3ObjectInputStream(new ByteArrayInputStream("my example output!".bytes), null)
     }
@@ -154,7 +155,6 @@ class AmazonS3DataProviderSpec extends Specification {
     result = dataProvider.getStaticData("staticId", [:])
 
     then:
-    0 * _
     dataProvider.getStaticCacheStats().hitCount() == 1
     result == "my example output!"
   }
@@ -171,6 +171,9 @@ class AmazonS3DataProviderSpec extends Specification {
     def result = dataProvider.getStaticData("staticListId", [name: "bar"])
 
     then:
+    1 * dataProvider.fetchObject("accountName", "us-east-1", "bucket", "listKey") >> {
+      return s3Object
+    }
     1 * s3Object.getObjectContent() >> {
       return new S3ObjectInputStream(
         new ByteArrayInputStream(resultsJson.bytes), null
@@ -184,6 +187,9 @@ class AmazonS3DataProviderSpec extends Specification {
     result = dataProvider.getStaticData("staticId", [name: "bar"])
 
     then:
+    1 * dataProvider.fetchObject("accountName", "us-east-1", "bucket", "key") >> {
+      return s3Object
+    }
     1 * s3Object.getObjectContent() >> {
       return new S3ObjectInputStream(
         new ByteArrayInputStream(resultsJson.bytes), null

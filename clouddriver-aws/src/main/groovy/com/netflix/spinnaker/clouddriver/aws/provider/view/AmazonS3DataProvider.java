@@ -41,7 +41,6 @@ import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static com.netflix.spinnaker.clouddriver.aws.provider.view.AmazonS3StaticDataProviderConfiguration.*;
@@ -63,7 +62,7 @@ public class AmazonS3DataProvider implements DataProvider {
         public Object load(String id) throws IOException {
           StaticRecord record = configuration.getStaticRecord(id);
           S3Object s3Object = fetchObject(
-            record.getBucketAccount(), record.getBucketRegion(), record.getBucketName(), record.getId()
+            record.getBucketAccount(), record.getBucketRegion(), record.getBucketName(), record.getBucketKey()
           );
 
           switch (record.getType()) {
@@ -182,7 +181,7 @@ public class AmazonS3DataProvider implements DataProvider {
   private String getAccountName(String accountIdOrName) {
     return accountCredentialsRepository.getAll()
       .stream()
-      .filter(c -> c.getAccountId().equalsIgnoreCase(accountIdOrName) || c.getName().equalsIgnoreCase(accountIdOrName))
+      .filter(c -> accountIdOrName.equalsIgnoreCase(c.getAccountId()) || accountIdOrName.equalsIgnoreCase(c.getName()))
       .map(AccountCredentials::getName)
       .findFirst()
       .orElseThrow(() -> new IllegalArgumentException("Unsupported account identifier (accountId: " + accountIdOrName + ")"));
