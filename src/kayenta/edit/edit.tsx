@@ -6,7 +6,7 @@ import ConfigList from './configList';
 import Footer from './footer';
 
 /*
- * Component for editing all available settings in a single canary configuration.
+ * Component for editing canary configurations for an application.
  */
 export default function CanaryConfigEdit() {
   const List = <ConfigList/>;

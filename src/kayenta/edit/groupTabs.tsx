@@ -21,21 +21,18 @@ interface IGroupTabsDispatchProps {
  * Configures an entire list of metrics.
  */
 function GroupTabs({ groupList, selectedGroup, selectGroup, addGroup }: IGroupTabsStateProps & IGroupTabsDispatchProps) {
+  const Tab = ({ group }: { group: string }) => (
+    <li className={selectedGroup === group ? 'selected' : ''}>
+      <a data-group={group} onClick={selectGroup}>{group || '(all)'}</a>
+    </li>
+  );
   return (
     <section>
       <ul className="tabs-basic list-unstyled">
-        <li className={selectedGroup ? '' : 'selected'}>
-          <a data-group="" onClick={selectGroup}>(all)</a>
-        </li>
-        {groupList.map(group => (
-          <li className={group === selectedGroup ? 'selected' : ''} key={group}>
-            <a data-group={group} onClick={selectGroup}>{group}</a>
-          </li>
-        ))}
-        <li className={selectedGroup === UNGROUPED ? 'selected' : ''}>
-          <a data-group={UNGROUPED} onClick={selectGroup}>(ungrouped)</a>
-        </li>
-        <button className="float-right" onClick={addGroup}>Add Group</button>
+        <Tab group=""/>
+        {groupList.map(group => <Tab key={group} group={group}/>)}
+        <Tab group={UNGROUPED}/>
+        <button className="passive float-right" onClick={addGroup}>Add Group</button>
       </ul>
     </section>
   );

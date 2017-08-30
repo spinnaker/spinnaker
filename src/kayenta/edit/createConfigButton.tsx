@@ -19,7 +19,7 @@ interface ICreateConfigButtonDispatchProps {
 */
 function CreateConfigButton({ createNewConfig, disabled, config }: ICreateConfigButtonDispatchProps & ICreateConfigButtonStateProps) {
   return (
-    <button data-config={config} disabled={disabled} onClick={createNewConfig}>Add configuration</button>
+    <button className="passive" data-config={config} disabled={disabled} onClick={createNewConfig}>Add configuration</button>
   );
 }
 

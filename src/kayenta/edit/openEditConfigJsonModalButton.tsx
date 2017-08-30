@@ -15,7 +15,7 @@ interface IOpenEditConfigJsonModalDispatchProps {
 function OpenEditConfigJsonModalButton({ openEditConfigJsonModal }: IOpenEditConfigJsonModalDispatchProps) {
   return (
     <div>
-      <button onClick={openEditConfigJsonModal}>JSON</button>
+      <button className="passive" onClick={openEditConfigJsonModal}>JSON</button>
       <EditConfigJsonModal/>
     </div>
   );

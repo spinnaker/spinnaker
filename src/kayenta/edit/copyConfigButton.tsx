@@ -20,7 +20,7 @@ interface ICopyConfigButtonDispatchProps {
  */
 function CopyConfigButton({ copyConfig, config, disabled }: ICopyConfigButtonDispatchProps & ICopyConfigButtonStateProps) {
   return (
-    <button data-config={config} disabled={disabled} onClick={copyConfig}>Copy</button>
+    <button className="passive" data-config={config} disabled={disabled} onClick={copyConfig}>Copy</button>
   );
 }
 

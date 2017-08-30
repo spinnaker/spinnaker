@@ -38,7 +38,7 @@ function MetricList({ metrics, selectedGroup, addMetric, editMetric, removeMetri
           it is saved with at least one metric in it.
         </p>
       ) : null}
-      <button data-group={selectedGroup} onClick={addMetric}>Add Metric</button>
+      <button className="passive" data-group={selectedGroup} onClick={addMetric}>Add Metric</button>
     </section>
   );
 }

@@ -19,7 +19,7 @@ interface IDeleteButtonDispatchProps {
 function DeleteConfigButton({ openDeleteConfigModal, disabled }: IDeleteButtonDispatchProps & IDeleteButtonStateProps) {
   return (
     <div>
-      <button disabled={disabled} onClick={openDeleteConfigModal}>Delete</button>
+      <button className="passive" disabled={disabled} onClick={openDeleteConfigModal}>Delete</button>
       <DeleteConfigModal/>
     </div>
   );

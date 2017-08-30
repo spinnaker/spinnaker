@@ -263,7 +263,7 @@ function groupList(state: string[] = [], action: Action & any): string[] {
   }
 }
 
-function selectedGroup(state: string = null, action: Action & any): string {
+function selectedGroup(state = '', action: Action & any): string {
   switch (action.type) {
     case SELECT_GROUP:
       return action.name;
