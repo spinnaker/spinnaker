@@ -18,6 +18,7 @@ package com.netflix.spinnaker.front50.model;
 
 import com.netflix.spinnaker.front50.exception.NotFoundException;
 
+import java.time.Duration;
 import java.util.Collection;
 import java.util.Map;
 
@@ -47,5 +48,9 @@ public interface StorageService {
                                                            String objectKey,
                                                            int maxResults) throws NotFoundException;
 
-  public long getLastModified(ObjectType objectType);
+  long getLastModified(ObjectType objectType);
+
+  default long getHealthIntervalMillis() {
+    return Duration.ofSeconds(30).toMillis();
+  }
 }

@@ -190,6 +190,10 @@ public abstract class StorageServiceSupport<T extends Timestamped> {
     return (System.currentTimeMillis() - lastRefreshedTime.get()) < getHealthMillis() && allItemsCache.get() != null;
   }
 
+  public long getHealthIntervalMillis() {
+    return service.getHealthIntervalMillis();
+  }
+
   public T findById(String id) throws NotFoundException {
     try {
       return new SimpleHystrixCommand<T>(

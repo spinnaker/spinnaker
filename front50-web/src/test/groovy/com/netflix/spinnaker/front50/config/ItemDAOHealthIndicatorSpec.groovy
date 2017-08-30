@@ -19,24 +19,20 @@ package com.netflix.spinnaker.front50.config
 
 import com.netflix.spinnaker.front50.model.application.ApplicationDAO
 import org.springframework.boot.actuate.health.Status
-import spock.lang.Shared
+import org.springframework.scheduling.TaskScheduler
+import org.springframework.scheduling.config.ScheduledTaskRegistrar
 import spock.lang.Specification
+import spock.lang.Subject
 
 class ItemDAOHealthIndicatorSpec extends Specification {
-  @Shared
-  ItemDAOHealthIndicator healthCheck
+  ApplicationDAO dao = Mock(ApplicationDAO)
 
-  @Shared
-  ApplicationDAO dao
-
-  void setup() {
-    dao = Mock(ApplicationDAO)
-    healthCheck = new ItemDAOHealthIndicator(itemDAO: dao)
-  }
+  @Subject
+  ItemDAOHealthIndicator healthCheck = new ItemDAOHealthIndicator(dao, Stub(TaskScheduler))
 
   void 'health check should return 5xx error if dao is not working'() {
     when:
-    healthCheck.pollForHealth()
+    healthCheck.run()
     def result = healthCheck.health()
 
     then:
@@ -44,9 +40,19 @@ class ItemDAOHealthIndicatorSpec extends Specification {
     result.status == Status.DOWN
   }
 
+  void 'health check should return 5xx error if dao throws an error'() {
+    when:
+    healthCheck.run()
+    def result = healthCheck.health()
+
+    then:
+    1 * dao.isHealthy() >> { throw new RuntimeException("Boom goes the dynamite") }
+    result.status == Status.DOWN
+  }
+
   void 'health check should return Ok'() {
     when:
-    healthCheck.pollForHealth()
+    healthCheck.run()
     def result = healthCheck.health()
 
     then:

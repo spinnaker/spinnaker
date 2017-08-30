@@ -18,37 +18,45 @@
 package com.netflix.spinnaker.front50.config
 
 import com.netflix.spinnaker.front50.model.ItemDAO
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.boot.actuate.health.Health
 import org.springframework.boot.actuate.health.HealthIndicator
-import org.springframework.scheduling.annotation.Scheduled
+import org.springframework.scheduling.TaskScheduler
 
 import java.util.concurrent.atomic.AtomicReference
 
-public class ItemDAOHealthIndicator implements HealthIndicator {
+class ItemDAOHealthIndicator implements HealthIndicator, Runnable {
 
-  ItemDAO itemDAO
-
+  private final Logger log = LoggerFactory.getLogger(getClass())
+  private final ItemDAO itemDAO
   private final AtomicReference<Health> lastHealth = new AtomicReference<>(null)
 
+  ItemDAOHealthIndicator(ItemDAO itemDAO, TaskScheduler taskScheduler) {
+    this.itemDAO = itemDAO
+    taskScheduler.scheduleWithFixedDelay(this, itemDAO.getHealthIntervalMillis())
+  }
+
   @Override
-  public Health health() {
+  Health health() {
     if (!lastHealth.get()) {
       return new Health.Builder().down().build()
     }
     return lastHealth.get()
   }
 
-  @Scheduled(fixedDelay = 30000L)
-  void pollForHealth() {
+  void run() {
     def healthBuilder = new Health.Builder().up()
 
     try {
       if (itemDAO.healthy) {
         healthBuilder.withDetail(itemDAO.class.simpleName, "Healthy")
       } else {
+        log.warn("ItemDAO {} was unhealthy", itemDAO.getClass())
         healthBuilder.down().withDetail(itemDAO.class.simpleName, "Unhealthy")
       }
     } catch (RuntimeException e) {
+      log.error("ItemDAO {} health check failed", itemDAO.class.simpleName, e)
       healthBuilder.down().withDetail(itemDAO.class.simpleName, "Unhealthy: `${e.message}`" as String)
     }
 

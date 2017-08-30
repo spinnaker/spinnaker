@@ -30,6 +30,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.time.Duration;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -235,6 +236,11 @@ public class S3StorageService implements StorageService {
     } catch (Exception e) {
       return 0L;
     }
+  }
+
+  @Override
+  public long getHealthIntervalMillis() {
+    return Duration.ofSeconds(2).toMillis();
   }
 
   private void writeLastModified(String group) {
