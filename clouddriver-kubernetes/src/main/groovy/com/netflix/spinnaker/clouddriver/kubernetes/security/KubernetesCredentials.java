@@ -20,5 +20,5 @@ package com.netflix.spinnaker.clouddriver.kubernetes.security;
 import java.util.List;
 
 public interface KubernetesCredentials {
-  List<String> getNamespaces();
+  List<String> getDeclaredNamespaces();
 }

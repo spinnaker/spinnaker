@@ -27,6 +27,9 @@ import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.cache.OnDemandAgent
 import com.netflix.spinnaker.clouddriver.cache.OnDemandMetricsSupport
+import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider
+import com.netflix.spinnaker.clouddriver.kubernetes.caching.KubernetesCachingAgent
+import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.caching.Keys
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.provider.view.MutableCacheData
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.security.KubernetesV1Credentials
@@ -37,7 +40,7 @@ import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITA
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.INFORMATIVE
 
 @Slf4j
-class KubernetesLoadBalancerCachingAgent extends KubernetesCachingAgent implements OnDemandAgent {
+class KubernetesLoadBalancerCachingAgent extends KubernetesCachingAgent<KubernetesV1Credentials> implements OnDemandAgent {
 
   final OnDemandMetricsSupport metricsSupport
 
@@ -46,14 +49,13 @@ class KubernetesLoadBalancerCachingAgent extends KubernetesCachingAgent implemen
     INFORMATIVE.forType(Keys.Namespace.INSTANCES.ns),
   ] as Set)
 
-  KubernetesLoadBalancerCachingAgent(String accountName,
-                                     KubernetesV1Credentials credentials,
+  KubernetesLoadBalancerCachingAgent(KubernetesNamedAccountCredentials<KubernetesV1Credentials> namedAccountCredentials,
                                      ObjectMapper objectMapper,
+                                     Registry registry,
                                      int agentIndex,
-                                     int agentCount,
-                                     Registry registry) {
-    super(accountName, objectMapper, credentials, agentIndex, agentCount)
-    this.metricsSupport = new OnDemandMetricsSupport(registry, this, "$kubernetesCloudProvider.id:$OnDemandAgent.OnDemandType.LoadBalancer")
+                                     int agentCount) {
+    super(namedAccountCredentials, objectMapper, registry, agentIndex, agentCount)
+    this.metricsSupport = new OnDemandMetricsSupport(registry, this, "$KubernetesCloudProvider.ID:$OnDemandAgent.OnDemandType.LoadBalancer")
   }
 
 
@@ -249,12 +251,6 @@ class KubernetesLoadBalancerCachingAgent extends KubernetesCachingAgent implemen
     ],[
       (Keys.Namespace.ON_DEMAND.ns): onDemandEvict,
     ])
-
-  }
-
-  @Override
-  String getSimpleName() {
-    KubernetesLoadBalancerCachingAgent.simpleName
   }
 }
 

@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v1.provider.agent
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.kubernetes.api.KubernetesApiAdaptor
+import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.caching.Keys
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.security.KubernetesV1Credentials
 import io.fabric8.kubernetes.api.model.ObjectMeta
@@ -42,8 +43,11 @@ class KubernetesInstanceCachingAgentSpec extends Specification {
     credentials = Mock(KubernetesV1Credentials) {
       getApiAdaptor() >> apiAdaptor
     }
+    def namedCrededentialsMock = Mock(KubernetesNamedAccountCredentials)
+    namedCrededentialsMock.getCredentials() >> credentials
+    namedCrededentialsMock.getName() >> accountName
     providerCache = Mock(ProviderCache)
-    agent = new KubernetesInstanceCachingAgent(accountName, credentials, mapper, 1, 1)
+    agent = new KubernetesInstanceCachingAgent(namedCrededentialsMock, mapper, null, 0, 1)
   }
 
   void "should apply cache-ttl annotation to pod"() {
@@ -57,7 +61,7 @@ class KubernetesInstanceCachingAgentSpec extends Specification {
     def data = agent.loadData(providerCache)
 
     then:
-    1 * credentials.getNamespaces() >> [namespace]
+    1 * credentials.getDeclaredNamespaces() >> [namespace]
     1 * apiAdaptor.getPods(namespace) >> [pod]
     data.cacheResults[Keys.Namespace.INSTANCES.ns].size() == 1
     data.cacheResults[Keys.Namespace.INSTANCES.ns][0].attributes.containsKey("cacheExpiry")

@@ -21,8 +21,10 @@ import com.netflix.spinnaker.cats.agent.Agent
 import com.netflix.spinnaker.cats.provider.ProviderSynchronizerTypeWrapper
 import com.netflix.spinnaker.cats.thread.NamedThreadFactory
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider
+import com.netflix.spinnaker.clouddriver.kubernetes.caching.KubernetesCachingAgentDispatcher
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.provider.agent.KubernetesV1CachingAgentDispatcher
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesV2CachingAgentDispatcher
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.clouddriver.security.ProviderUtils
 import com.netflix.spinnaker.clouddriver.security.ProviderVersion
@@ -45,11 +47,13 @@ class KubernetesProviderConfig implements Runnable {
   @DependsOn('kubernetesNamedAccountCredentials')
   KubernetesProvider kubernetesProvider(KubernetesCloudProvider kubernetesCloudProvider,
                                         AccountCredentialsRepository accountCredentialsRepository,
-                                        KubernetesV1CachingAgentDispatcher kubernetesV1CachingAgentDispatcher) {
+                                        KubernetesV1CachingAgentDispatcher kubernetesV1CachingAgentDispatcher,
+                                        KubernetesV2CachingAgentDispatcher kubernetesV2CachingAgentDispatcher) {
     this.kubernetesProvider = new KubernetesProvider(kubernetesCloudProvider, Collections.newSetFromMap(new ConcurrentHashMap<Agent, Boolean>()))
     this.kubernetesCloudProvider = kubernetesCloudProvider
     this.accountCredentialsRepository = accountCredentialsRepository
     this.kubernetesV1CachingAgentDispatcher = kubernetesV1CachingAgentDispatcher
+    this.kubernetesV2CachingAgentDispatcher = kubernetesV2CachingAgentDispatcher
 
     ScheduledExecutorService poller = Executors.newSingleThreadScheduledExecutor(new NamedThreadFactory(KubernetesProviderConfig.class.getSimpleName()))
 
@@ -62,6 +66,7 @@ class KubernetesProviderConfig implements Runnable {
   private KubernetesCloudProvider kubernetesCloudProvider
   private AccountCredentialsRepository accountCredentialsRepository
   private KubernetesV1CachingAgentDispatcher kubernetesV1CachingAgentDispatcher
+  private KubernetesV2CachingAgentDispatcher kubernetesV2CachingAgentDispatcher
 
   @Bean
   KubernetesProviderSynchronizerTypeWrapper kubernetesProviderSynchronizerTypeWrapper() {
@@ -91,16 +96,20 @@ class KubernetesProviderConfig implements Runnable {
     kubernetesProvider.agents.clear()
 
     for (KubernetesNamedAccountCredentials credentials : allAccounts) {
-      def newlyAddedAgents
-
+      KubernetesCachingAgentDispatcher dispatcher
       switch (credentials.version) {
         case ProviderVersion.v1:
-          newlyAddedAgents = kubernetesV1CachingAgentDispatcher.buildAllCachingAgents(credentials)
+          dispatcher = kubernetesV1CachingAgentDispatcher
+          break
+        case ProviderVersion.v2:
+          dispatcher = kubernetesV2CachingAgentDispatcher
           break
         default:
           log.warn "No support for caching accounts of $credentials.version"
           continue
       }
+
+      def newlyAddedAgents = dispatcher.buildAllCachingAgents(credentials)
 
       log.info "Adding ${newlyAddedAgents.size()} agents for account ${credentials.name} at version ${credentials.version}"
 

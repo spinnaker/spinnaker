@@ -17,10 +17,13 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.v1.provider.agent
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.agent.AgentDataType
 import com.netflix.spinnaker.cats.agent.CacheResult
 import com.netflix.spinnaker.cats.agent.DefaultCacheResult
 import com.netflix.spinnaker.cats.provider.ProviderCache
+import com.netflix.spinnaker.clouddriver.kubernetes.caching.KubernetesCachingAgent
+import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.caching.Keys
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.provider.view.MutableCacheData
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.security.KubernetesV1Credentials
@@ -30,17 +33,17 @@ import io.fabric8.kubernetes.api.model.ConfigMap
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
 
 @Slf4j
-class KubernetesConfigMapCachingAgent extends KubernetesCachingAgent {
+class KubernetesConfigMapCachingAgent extends KubernetesCachingAgent<KubernetesV1Credentials> {
   static final Set<AgentDataType> types = Collections.unmodifiableSet([
       AUTHORITATIVE.forType(Keys.Namespace.CONFIG_MAPS.ns),
   ] as Set)
 
-  KubernetesConfigMapCachingAgent(String accountName,
-                                  KubernetesV1Credentials credentials,
+  KubernetesConfigMapCachingAgent(KubernetesNamedAccountCredentials<KubernetesV1Credentials> namedAccountCredentials,
                                   ObjectMapper objectMapper,
+                                  Registry registry,
                                   int agentIndex,
                                   int agentCount) {
-    super(accountName, objectMapper, credentials, agentIndex, agentCount)
+    super(namedAccountCredentials, objectMapper, registry, agentIndex, agentCount)
   }
 
   @Override
@@ -84,10 +87,5 @@ class KubernetesConfigMapCachingAgent extends KubernetesCachingAgent {
     new DefaultCacheResult([
         (Keys.Namespace.CONFIG_MAPS.ns): cachedConfigMaps.values(),
     ], [:])
-  }
-
-  @Override
-  String getSimpleName() {
-    KubernetesConfigMapCachingAgent.simpleName
   }
 }

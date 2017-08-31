@@ -17,10 +17,13 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.v1.provider.agent
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.agent.AgentDataType
 import com.netflix.spinnaker.cats.agent.CacheResult
 import com.netflix.spinnaker.cats.agent.DefaultCacheResult
 import com.netflix.spinnaker.cats.provider.ProviderCache
+import com.netflix.spinnaker.clouddriver.kubernetes.caching.KubernetesCachingAgent
+import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.caching.Keys
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.provider.view.MutableCacheData
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.security.KubernetesV1Credentials
@@ -32,18 +35,18 @@ import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITA
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.INFORMATIVE
 
 @Slf4j
-class KubernetesDeploymentCachingAgent extends KubernetesCachingAgent {
+class KubernetesDeploymentCachingAgent extends KubernetesCachingAgent<KubernetesV1Credentials> {
   static final Set<AgentDataType> types = Collections.unmodifiableSet([
       AUTHORITATIVE.forType(Keys.Namespace.DEPLOYMENTS.ns),
       INFORMATIVE.forType(Keys.Namespace.SERVER_GROUPS.ns),
   ] as Set)
 
-  KubernetesDeploymentCachingAgent(String accountName,
-                                   KubernetesV1Credentials credentials,
+  KubernetesDeploymentCachingAgent(KubernetesNamedAccountCredentials<KubernetesV1Credentials> namedAccountCredentials,
                                    ObjectMapper objectMapper,
+                                   Registry registry,
                                    int agentIndex,
                                    int agentCount) {
-    super(accountName, objectMapper, credentials, agentIndex, agentCount)
+    super(namedAccountCredentials, objectMapper, registry, agentIndex, agentCount)
   }
 
   @Override
@@ -103,10 +106,5 @@ class KubernetesDeploymentCachingAgent extends KubernetesCachingAgent {
         (Keys.Namespace.DEPLOYMENTS.ns): cachedDeployments.values(),
         (Keys.Namespace.SERVER_GROUPS.ns): cachedReplicaSets.values(),
     ], [:])
-  }
-
-  @Override
-  String getSimpleName() {
-    KubernetesDeploymentCachingAgent.simpleName
   }
 }

@@ -96,7 +96,7 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials> 
   }
 
   public List<String> getNamespaces() {
-    return credentials.getNamespaces();
+    return credentials.getDeclaredNamespaces();
   }
 
   @Override

@@ -66,7 +66,7 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
   }
 
   @Override
-  public List<String> getNamespaces() {
+  public List<String> getDeclaredNamespaces() {
     try {
       return coreV1Api.listNamespace(null, null, null, null, 10, null)
           .getItems()

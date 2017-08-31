@@ -20,8 +20,9 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.kubernetes.api.KubernetesApiAdaptor
-import com.netflix.spinnaker.clouddriver.kubernetes.v1.caching.Keys
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.KubernetesUtil
+import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials
+import com.netflix.spinnaker.clouddriver.kubernetes.v1.caching.Keys
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.security.KubernetesV1Credentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import io.fabric8.kubernetes.api.model.ObjectMeta
@@ -66,12 +67,16 @@ class KubernetesServerGroupCachingAgentSpec extends Specification {
 
     kubernetesCredentials = new KubernetesV1Credentials(apiMock, [], [], [], accountCredentialsRepositoryMock)
 
+    def namedCrededentialsMock = Mock(KubernetesNamedAccountCredentials)
+    namedCrededentialsMock.getCredentials() >> kubernetesCredentials
+    namedCrededentialsMock.getName() >> ACCOUNT_NAME
+
     applicationKey = Keys.getApplicationKey(APP)
     clusterKey = Keys.getClusterKey(ACCOUNT_NAME, APP, 'serverGroup', CLUSTER)
     serverGroupKey = Keys.getServerGroupKey(ACCOUNT_NAME, NAMESPACE, REPLICATION_CONTROLLER)
     instanceKey = Keys.getInstanceKey(ACCOUNT_NAME, NAMESPACE, POD)
 
-    cachingAgent = new KubernetesServerGroupCachingAgent(ACCOUNT_NAME, kubernetesCredentials, new ObjectMapper(), 0, 1, registryMock)
+    cachingAgent = new KubernetesServerGroupCachingAgent(namedCrededentialsMock, new ObjectMapper(), registryMock, 0, 1)
   }
 
   void "Should store a single replication controller object and relationships"() {

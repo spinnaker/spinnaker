@@ -119,7 +119,7 @@ public class KubernetesV1Credentials implements KubernetesCredentials {
 
   }
 
-  public List<String> getNamespaces() {
+  public List<String> getDeclaredNamespaces() {
     if (namespaces != null && !namespaces.isEmpty()) {
       // If namespaces are provided, used them
       return namespaces;
@@ -232,7 +232,7 @@ public class KubernetesV1Credentials implements KubernetesCredentials {
   }
 
   public Boolean isRegisteredNamespace(String namespace) {
-    return getNamespaces().contains(namespace);
+    return getDeclaredNamespaces().contains(namespace);
   }
 
   public Boolean isRegisteredImagePullSecret(String secret, String namespace) {

@@ -62,7 +62,7 @@ class KubernetesHealthIndicator implements HealthIndicator {
 
       for (KubernetesNamedAccountCredentials accountCredentials in kubernetesCredentialsSet) {
         KubernetesCredentials kubernetesCredentials = accountCredentials.credentials
-        kubernetesCredentials.getNamespaces()
+        kubernetesCredentials.getDeclaredNamespaces()
       }
 
       lastException.set(null)

@@ -20,7 +20,6 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v1.security
 import com.netflix.spinnaker.clouddriver.docker.registry.security.DockerRegistryNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.kubernetes.api.KubernetesApiAdaptor
 import com.netflix.spinnaker.clouddriver.kubernetes.config.LinkedDockerRegistryConfiguration
-import com.netflix.spinnaker.clouddriver.kubernetes.v1.security.KubernetesV1Credentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import spock.lang.Specification
 
@@ -65,7 +64,7 @@ class KubernetesV1CredentialsSpec extends Specification {
     def result = new KubernetesV1Credentials(adaptorMock, NAMESPACES1, [], REGISTRIES1, repositoryMock)
 
     then:
-    result.getNamespaces() == NAMESPACES1
+    result.getDeclaredNamespaces() == NAMESPACES1
     result.dockerRegistries.get(0).namespaces == NAMESPACES1
   }
 
@@ -82,7 +81,7 @@ class KubernetesV1CredentialsSpec extends Specification {
     def result = new KubernetesV1Credentials(adaptorMock, null, [], REGISTRIES2, repositoryMock)
 
     then:
-    result.getNamespaces() == NAMESPACES2
+    result.getDeclaredNamespaces() == NAMESPACES2
     result.dockerRegistries.get(0).namespaces == NAMESPACES2
   }
 
@@ -99,7 +98,7 @@ class KubernetesV1CredentialsSpec extends Specification {
     def result = new KubernetesV1Credentials(adaptorMock, null, NAMESPACES2, REGISTRIES2, repositoryMock)
 
     then:
-    result.getNamespaces() == []
+    result.getDeclaredNamespaces() == []
     result.dockerRegistries.get(0).namespaces == NAMESPACES2
   }
 
@@ -116,7 +115,7 @@ class KubernetesV1CredentialsSpec extends Specification {
     def result = new KubernetesV1Credentials(adaptorMock, null, [], REGISTRIES1, repositoryMock)
 
     then:
-    result.getNamespaces() == NAMESPACES2
+    result.getDeclaredNamespaces() == NAMESPACES2
     result.dockerRegistries.get(0).namespaces == NAMESPACES1
   }
 
@@ -131,7 +130,7 @@ class KubernetesV1CredentialsSpec extends Specification {
     repositoryMock.getOne(ACCOUNT1) >> registryAccountMock
 
     when:
-    def namespaces = new KubernetesV1Credentials(adaptorMock, null, [], REGISTRIES1, repositoryMock).getNamespaces()
+    def namespaces = new KubernetesV1Credentials(adaptorMock, null, [], REGISTRIES1, repositoryMock).getDeclaredNamespaces()
 
     then:
     namespaces == []

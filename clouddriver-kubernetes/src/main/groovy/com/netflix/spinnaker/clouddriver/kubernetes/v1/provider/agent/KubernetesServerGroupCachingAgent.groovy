@@ -28,8 +28,11 @@ import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.cache.OnDemandAgent
 import com.netflix.spinnaker.clouddriver.cache.OnDemandMetricsSupport
+import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider
+import com.netflix.spinnaker.clouddriver.kubernetes.caching.KubernetesCachingAgent
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.KubernetesUtil
 import com.netflix.spinnaker.clouddriver.kubernetes.model.KubernetesServerGroup
+import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.caching.Keys
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.provider.view.MutableCacheData
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.security.KubernetesV1Credentials
@@ -44,7 +47,7 @@ import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITA
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.INFORMATIVE
 
 @Slf4j
-class KubernetesServerGroupCachingAgent extends KubernetesCachingAgent implements OnDemandAgent {
+class KubernetesServerGroupCachingAgent extends KubernetesCachingAgent<KubernetesV1Credentials> implements OnDemandAgent {
   final String category = 'serverGroup'
 
   final OnDemandMetricsSupport metricsSupport
@@ -57,21 +60,13 @@ class KubernetesServerGroupCachingAgent extends KubernetesCachingAgent implement
     INFORMATIVE.forType(Keys.Namespace.INSTANCES.ns),
   ] as Set)
 
-  KubernetesServerGroupCachingAgent(String accountName,
-                                    KubernetesV1Credentials credentials,
+  KubernetesServerGroupCachingAgent(KubernetesNamedAccountCredentials<KubernetesV1Credentials> namedAccountCredentials,
                                     ObjectMapper objectMapper,
+                                    Registry registry,
                                     int agentIndex,
-                                    int agentCount,
-                                    Registry registry) {
-    super(accountName, objectMapper, credentials, agentIndex, agentCount)
-    this.metricsSupport = new OnDemandMetricsSupport(registry,
-                                                     this,
-                                                     "$kubernetesCloudProvider.id:$OnDemandAgent.OnDemandType.ServerGroup")
-  }
-
-  @Override
-  String getSimpleName() {
-    return KubernetesServerGroupCachingAgent.simpleName
+                                    int agentCount) {
+    super(namedAccountCredentials, objectMapper, registry, agentIndex, agentCount)
+    this.metricsSupport = new OnDemandMetricsSupport(registry, this, "$KubernetesCloudProvider.ID:$OnDemandAgent.OnDemandType.ServerGroup")
   }
 
   @Override

@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v1.provider.agent
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.Registry
+import com.netflix.spinnaker.clouddriver.kubernetes.caching.KubernetesCachingAgent
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.KubernetesCachingAgentDispatcher
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials
 import org.springframework.beans.factory.annotation.Autowired
@@ -30,20 +31,20 @@ class KubernetesV1CachingAgentDispatcher implements KubernetesCachingAgentDispat
   ObjectMapper objectMapper
 
   @Autowired
-  final Registry registry
+  Registry registry
 
   @Override
   List<KubernetesCachingAgent> buildAllCachingAgents(KubernetesNamedAccountCredentials credentials) {
     def agents = []
     for (def index = 0; index < credentials.cacheThreads; index++) {
-      agents << new KubernetesLoadBalancerCachingAgent(credentials.name, credentials.credentials, objectMapper, index, credentials.cacheThreads, registry)
-      agents << new KubernetesSecurityGroupCachingAgent(credentials.name, credentials.credentials, objectMapper, index, credentials.cacheThreads, registry)
-      agents << new KubernetesServerGroupCachingAgent(credentials.name, credentials.credentials, objectMapper, index, credentials.cacheThreads, registry)
-      agents << new KubernetesInstanceCachingAgent(credentials.name, credentials.credentials, objectMapper, index, credentials.cacheThreads)
-      agents << new KubernetesDeploymentCachingAgent(credentials.name, credentials.credentials, objectMapper, index, credentials.cacheThreads)
-      agents << new KubernetesServiceAccountCachingAgent(credentials.name, credentials.credentials, objectMapper, index, credentials.cacheThreads)
-      agents << new KubernetesConfigMapCachingAgent(credentials.name, credentials.credentials, objectMapper, index, credentials.cacheThreads)
-      agents << new KubernetesSecretCachingAgent(credentials.name, credentials.credentials, objectMapper, index, credentials.cacheThreads)
+      agents << new KubernetesInstanceCachingAgent(credentials, objectMapper, registry, index, credentials.cacheThreads)
+      agents << new KubernetesLoadBalancerCachingAgent(credentials, objectMapper, registry, index, credentials.cacheThreads)
+      agents << new KubernetesSecurityGroupCachingAgent(credentials, objectMapper, registry, index, credentials.cacheThreads)
+      agents << new KubernetesServerGroupCachingAgent(credentials, objectMapper, registry, index, credentials.cacheThreads)
+      agents << new KubernetesDeploymentCachingAgent(credentials, objectMapper, registry, index, credentials.cacheThreads)
+      agents << new KubernetesServiceAccountCachingAgent(credentials, objectMapper, registry, index, credentials.cacheThreads)
+      agents << new KubernetesConfigMapCachingAgent(credentials, objectMapper, registry, index, credentials.cacheThreads)
+      agents << new KubernetesSecretCachingAgent(credentials, objectMapper, registry, index, credentials.cacheThreads)
     }
 
     return agents

@@ -123,7 +123,7 @@ class KubernetesUtil {
   static String validateNamespace(KubernetesV1Credentials credentials, String namespace) {
     def resolvedNamespace = namespace ?: "default"
     if (!credentials.isRegisteredNamespace(resolvedNamespace)) {
-      def error = "Registered namespaces are ${credentials.getNamespaces()}."
+      def error = "Registered namespaces are ${credentials.getDeclaredNamespaces()}."
       if (namespace) {
         error = "Namespace '$namespace' was not registered with provided credentials. $error"
       } else {
