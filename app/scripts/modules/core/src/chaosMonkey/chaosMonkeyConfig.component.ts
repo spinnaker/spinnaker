@@ -13,10 +13,15 @@ import { CHAOS_MONKEY_HELP } from './chaosMonkey.help';
 import { CHAOS_MONKEY_EXCEPTIONS_COMPONENT } from './chaosMonkeyExceptions.component';
 
 import './chaosMonkeyConfig.component.less';
+import { IClusterMatchRule } from 'core/cluster/ClusterRuleMatcher';
 
 export class ChaosMonkeyGroupingOption {
   public key: string;
   public label: string;
+}
+
+export interface IChaosMonkeyExceptionRule extends IClusterMatchRule {
+  region: string;
 }
 
 export class ChaosMonkeyConfig {
@@ -26,7 +31,7 @@ export class ChaosMonkeyConfig {
   public minTimeBetweenKillsInWorkDays = 1;
   public grouping = 'cluster';
   public regionsAreIndependent = true;
-  public exceptions: any[] = [];
+  public exceptions: IChaosMonkeyExceptionRule[] = [];
 
   public constructor(config: any) {
     Object.assign(this, config);

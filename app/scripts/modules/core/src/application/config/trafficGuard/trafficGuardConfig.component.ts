@@ -9,23 +9,16 @@ import {
   IRegion
 } from 'core/account/account.service';
 import { Application, IConfigSectionFooterViewState } from 'core/application';
-import { NAMING_SERVICE, NamingService } from 'core/naming/naming.service';
 import { CLUSTER_MATCHES_COMPONENT, IClusterMatch } from 'core/widgets/cluster/clusterMatches.component';
 import { TRAFFIC_GUARD_CONFIG_HELP } from './trafficGuardConfig.help';
-
-export interface ITrafficGuard {
-  account: string;
-  location: string;
-  stack: string;
-  detail: string;
-}
+import { ClusterMatcher, IClusterMatchRule } from 'core/cluster/ClusterRuleMatcher';
 
 export class TrafficGuardConfigController {
 
   public application: Application;
   public locationsByAccount: { [account: string]: string[] };
   public accounts: IAccountDetails[] = [];
-  public config: ITrafficGuard[];
+  public config: IClusterMatchRule[];
   public initializing = true;
   public clusterMatches: IClusterMatch[][] = [];
 
@@ -38,8 +31,7 @@ export class TrafficGuardConfigController {
   };
 
   public constructor(private $log: ILogService,
-                     private accountService: AccountService,
-                     private namingService: NamingService) { 'ngInject'; }
+                     private accountService: AccountService) { 'ngInject'; }
 
   public $onInit(): void {
     if (this.application.notFound) {
@@ -96,19 +88,16 @@ export class TrafficGuardConfigController {
     this.clusterMatches.length = 0;
     this.config.forEach(guard => {
       this.clusterMatches.push(
-      this.application.clusters.filter(c => {
-        const clusterNames = this.namingService.parseClusterName(c.name);
-        return (guard.account === '*' || guard.account === c.account) &&
-          (guard.location === '*' || c.serverGroups.map(s => s.region).includes(guard.location)) &&
-          (guard.stack === '*' || clusterNames.stack === (guard.stack || '')) &&
-          (guard.detail === '*' || clusterNames.freeFormDetails === (guard.detail || ''));
-        }).map(c => {
+      this.application.clusters
+        .filter(c => c.serverGroups
+          .some(s => ClusterMatcher.getMatchingRule(c.account, s.region, c.name, [guard]) !== null)
+        ).map(c => {
           return {
             name: c.name,
             account: guard.account,
             regions: guard.location === '*' ? uniq(c.serverGroups.map(g => g.region)).sort() : [guard.location]
           };
-      })
+        })
       );
     });
     this.clusterMatches.forEach(m => m.sort((a: IClusterMatch, b: IClusterMatch) => a.name.localeCompare(b.name)));
@@ -126,7 +115,6 @@ class TrafficGuardConfigComponent implements ng.IComponentOptions {
 export const TRAFFIC_GUARD_CONFIG_COMPONENT = 'spinnaker.core.application.config.trafficGuard.component';
 module(TRAFFIC_GUARD_CONFIG_COMPONENT, [
   ACCOUNT_SERVICE,
-  NAMING_SERVICE,
   CLUSTER_MATCHES_COMPONENT,
   TRAFFIC_GUARD_CONFIG_HELP,
 ])

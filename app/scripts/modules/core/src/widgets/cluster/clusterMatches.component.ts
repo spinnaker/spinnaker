@@ -15,7 +15,7 @@ class ClusterMatchesComponent implements IComponentOptions {
   public template = `
     <div ng-repeat="match in $ctrl.matches[$ctrl.index]">
       <account-tag account="match.account"></account-tag>
-      {{match.name}}
+      <span class="break-word">{{match.name}}</span>
       <i ng-if="match.regions">in {{match.regions.join(', ')}}</i>
     </div>
     <div ng-if="$ctrl.matches[$ctrl.index].length === 0">(no matches)</div>

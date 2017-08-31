@@ -5,11 +5,12 @@ import {
   ACCOUNT_SERVICE, AccountService, IAccountDetails, IRegion,
   IAggregatedAccounts
 } from 'core/account/account.service';
-import {NAMING_SERVICE, NamingService} from 'core/naming/naming.service';
-import {Application} from 'core/application/application.model';
+import { Application } from 'core/application/application.model';
+import { ChaosMonkeyConfig, IChaosMonkeyExceptionRule } from './chaosMonkeyConfig.component';
+import { IClusterMatch } from 'core/widgets/cluster/clusterMatches.component';
+import { ClusterMatcher, IClusterMatchRule } from 'core/cluster/ClusterRuleMatcher';
+
 import './chaosMonkeyExceptions.component.less';
-import {ChaosMonkeyConfig} from './chaosMonkeyConfig.component';
-import {IClusterMatch} from 'core/widgets/cluster/clusterMatches.component';
 
 export class ChaosMonkeyExceptionsController {
 
@@ -20,11 +21,11 @@ export class ChaosMonkeyExceptionsController {
   public configChanged: () => void;
   public clusterMatches: IClusterMatch[][] = [];
 
-  public constructor(private accountService: AccountService, private namingService: NamingService) { 'ngInject'; }
+  public constructor(private accountService: AccountService) { 'ngInject'; }
 
   public addException(): void {
     this.config.exceptions = this.config.exceptions || [];
-    this.config.exceptions.push({});
+    this.config.exceptions.push({ account: null, location: null, stack: null, detail: null, region: null });
     this.updateConfig();
   };
 
@@ -48,21 +49,20 @@ export class ChaosMonkeyExceptionsController {
 
   public configureMatches(): void {
     this.clusterMatches.length = 0;
-    this.config.exceptions.forEach((exception: any) => {
+    this.config.exceptions.forEach((exception: IChaosMonkeyExceptionRule) => {
+      // the "location" field in chaos monkey exceptions is mapped as "region", so we have to massage it a bit...
+      const rule: IClusterMatchRule = Object.assign({}, exception, { location: exception.region });
       this.clusterMatches.push(
-        this.application.clusters.filter(c => {
-          const clusterNames = this.namingService.parseClusterName(c.name);
-          return (exception.account === '*' || exception.account === c.account) &&
-            (exception.region === '*' || c.serverGroups.map(s => s.region).includes(exception.region)) &&
-            (exception.stack === '*' || clusterNames.stack === (exception.stack || '')) &&
-            (exception.detail === '*' || clusterNames.freeFormDetails === (exception.detail || ''));
-        }).map(c => {
-          return {
-            name: c.name,
-            account: exception.account,
-            regions: exception.region === '*' ? uniq(c.serverGroups.map(g => g.region)).sort() : [exception.region]
-          };
-        })
+        this.application.clusters
+          .filter(c => c.serverGroups
+            .some(s => ClusterMatcher.getMatchingRule(c.account, s.region, c.name, [rule]) !== null)
+          ).map(c => {
+            return {
+              name: c.name,
+              account: exception.account,
+              regions: exception.region === '*' ? uniq(c.serverGroups.map(g => g.region)).sort() : [exception.region]
+            };
+          })
       );
     });
     this.clusterMatches.forEach(m => m.sort((a: IClusterMatch, b: IClusterMatch) => a.name.localeCompare(b.name)));
@@ -85,5 +85,5 @@ class ChaosMonkeyExceptionsComponent implements ng.IComponentOptions {
 }
 
 export const CHAOS_MONKEY_EXCEPTIONS_COMPONENT = 'spinnaker.core.chaosMonkey.exceptions.directive';
-module(CHAOS_MONKEY_EXCEPTIONS_COMPONENT, [ACCOUNT_SERVICE, NAMING_SERVICE])
+module(CHAOS_MONKEY_EXCEPTIONS_COMPONENT, [ACCOUNT_SERVICE])
 .component('chaosMonkeyExceptions', new ChaosMonkeyExceptionsComponent());
