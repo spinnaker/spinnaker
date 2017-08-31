@@ -4,7 +4,7 @@ import * as Select from 'react-select';
 import autoBindMethods from 'class-autobind-decorator';
 import { $log } from 'ngimport';
 import { IHttpPromiseCallbackArg } from 'angular';
-import { cloneDeep, uniqBy } from 'lodash';
+import { cloneDeep, get, uniqBy } from 'lodash';
 import { Debounce } from 'lodash-decorators';
 
 import { Application } from 'core/application/application.model';
@@ -79,11 +79,12 @@ export class CreatePipelineModal extends React.Component<ICreatePipelineModalPro
 
   private getDefaultState(): ICreatePipelineModalState {
     const defaultConfig = this.getDefaultConfig();
-    const configs: Partial<IPipeline>[] = [defaultConfig].concat(this.props.application.getDataSource('pipelineConfigs').data);
+    const { application } = this.props;
+    const configs: Partial<IPipeline>[] = [defaultConfig].concat(get(application, 'pipelineConfigs.data', []));
     const configOptions: Select.Option[] = configs.map(config => ({value: config.name, label: config.name}));
     const existingNames: string[] = [defaultConfig]
-      .concat(this.props.application.getDataSource('pipelineConfigs').data)
-      .concat(this.props.application.strategyConfigs.data)
+      .concat(get(application, 'pipelineConfigs.data', []))
+      .concat(get(application, 'strategyConfigs.data', []))
       .map(config => config.name);
 
     return {
