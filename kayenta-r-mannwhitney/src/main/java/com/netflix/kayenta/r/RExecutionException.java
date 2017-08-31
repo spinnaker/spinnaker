@@ -14,26 +14,14 @@
  * limitations under the License.
  */
 
-package com.netflix.kayenta.canary.results;
+package com.netflix.kayenta.r;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import lombok.*;
+public class RExecutionException extends Exception {
+  public RExecutionException(String message) {
+    super(message);
+  }
 
-import javax.validation.constraints.NotNull;
-
-@Builder
-@ToString
-@NoArgsConstructor
-@AllArgsConstructor
-@JsonInclude(JsonInclude.Include.NON_NULL)
-public class CanaryJudgeMetricsScore {
-
-  @NotNull
-  @Getter
-  private String classification;
-
-  @NotNull
-  @Getter
-  private String classificationReason;
+  public RExecutionException(String message, Throwable t) {
+    super(message, t);
+  }
 }
-

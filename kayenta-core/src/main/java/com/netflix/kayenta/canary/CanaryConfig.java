@@ -80,6 +80,12 @@ public class CanaryConfig {
   private Map<String, CanaryServiceConfig> services;
 
   @NotNull
+  @Singular
+  @Getter
+  private Map<String, Double> groupWeights;
+
+  @NotNull
   @Getter
   private CanaryClassifierConfig classifier;
+
 }

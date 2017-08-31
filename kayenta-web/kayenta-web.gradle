@@ -25,6 +25,7 @@ dependencies {
   compile project(':kayenta-prometheus')
   compile project(':kayenta-s3')
   compile project(':kayenta-stackdriver')
+  compile project(':kayenta-judge')
 
   // compile spinnaker.dependency('bootActuator')
   compile "org.springframework.boot:spring-boot-starter-actuator:$springBootVersion"

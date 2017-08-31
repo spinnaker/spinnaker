@@ -1,0 +1,25 @@
+apply plugin: 'scala'
+
+dependencies {
+  compile project(':kayenta-core')
+  compile project(':kayenta-r-mannwhitney')
+
+  // compile spinnaker.dependency('lombok')
+  compile "org.projectlombok:lombok:1.16.10"
+
+  compile "org.apache.commons:commons-math3:3.6.1"
+
+  // scala support
+  compile 'org.scala-lang:scala-library-all:2.12.2'
+  compile 'org.scala-lang:scala-reflect:2.12.2'
+  compile 'com.typesafe.scala-logging:scala-logging_2.12:3.5.0'
+  testCompile 'org.scalatest:scalatest_2.12:3.0.1'
+}
+
+task scalaTest(dependsOn: ['testClasses'], type: JavaExec) {
+  main = 'org.scalatest.tools.Runner'
+  args = ['-R', 'build/classes/test', '-o']
+  classpath = sourceSets.test.runtimeClasspath
+}
+
+test.dependsOn scalaTest // so that running "test" would run this first, then the JUnit tests

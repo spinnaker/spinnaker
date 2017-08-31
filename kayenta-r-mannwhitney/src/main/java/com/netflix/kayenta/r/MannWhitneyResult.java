@@ -14,31 +14,19 @@
  * limitations under the License.
  */
 
-package com.netflix.kayenta.canary.results;
+package com.netflix.kayenta.r;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import lombok.*;
-
-import javax.validation.constraints.NotNull;
+import lombok.Builder;
+import lombok.Getter;
 
 @Builder
-@ToString
-@NoArgsConstructor
-@AllArgsConstructor
-@JsonInclude(JsonInclude.Include.NON_NULL)
-public class CanaryJudgeGroupScore {
-  @NotNull
+public class MannWhitneyResult {
   @Getter
-  private String name;
-
-  @NotNull
-  @Getter
-  private Double score;
-
-  @NotNull
-  @Getter
-  private String classification;
+  private double[] confidenceInterval;
 
   @Getter
-  private String classificationReason;
+  private double pValue;
+
+  @Getter
+  private double estimate;
 }
