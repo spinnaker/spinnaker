@@ -26,6 +26,7 @@ import com.netflix.spinnaker.echo.model.trigger.TriggerEvent;
 import com.netflix.spinnaker.echo.pipelinetriggers.PipelineCache;
 import lombok.NonNull;
 import lombok.val;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import rx.Observable;
@@ -100,15 +101,22 @@ public class DockerEventMonitor extends TriggerMonitor {
 
   @Override
   protected Predicate<Trigger> matchTriggerFor(final TriggerEvent event) {
-    DockerEvent dockerEvent = (DockerEvent) event;
+    return trigger -> isMatchingTrigger((DockerEvent)event, trigger);
+  }
+
+  private boolean isMatchingTrigger(DockerEvent dockerEvent, Trigger trigger) {
     String account = dockerEvent.getContent().getAccount();
     String repository = dockerEvent.getContent().getRepository();
-    String tag = dockerEvent.getContent().getTag();
-    return trigger -> trigger.getType().equals(TRIGGER_TYPE) &&
-      trigger.getRepository().equals(repository) &&
-      trigger.getAccount().equals(account) &&
-      ((trigger.getTag() == null && !tag.equals("latest"))
-        || trigger.getTag() != null && matchTags(trigger.getTag(), tag));
+    String eventTag = dockerEvent.getContent().getTag();
+    String triggerTagPattern = null;
+    if (StringUtils.isNotBlank(trigger.getTag())) {
+      triggerTagPattern = trigger.getTag().trim();
+    }
+    return trigger.getType().equals(TRIGGER_TYPE) &&
+            trigger.getRepository().equals(repository) &&
+            trigger.getAccount().equals(account) &&
+            ((triggerTagPattern == null && !eventTag.equals("latest"))
+              || triggerTagPattern != null && matchTags(triggerTagPattern, eventTag));
   }
 
   protected void onMatchingPipeline(Pipeline pipeline) {

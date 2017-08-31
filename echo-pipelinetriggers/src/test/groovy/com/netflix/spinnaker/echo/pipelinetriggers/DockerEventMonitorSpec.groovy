@@ -187,6 +187,44 @@ class DockerEventMonitorSpec extends Specification implements RetrofitStubs {
   }
 
   @Unroll
+  def "triggers a pipeline that has an enabled docker trigger with empty string for regex"() {
+    given:
+    def pipeline = createPipelineWith(trigger)
+    pipelineCache.getPipelines() >> [pipeline]
+
+    when:
+    monitor.processEvent(objectMapper.convertValue(event, Event))
+
+    then:
+    1 * subscriber.call({ it.id == pipeline.id })
+
+    where:
+    trigger                               | field
+    enabledDockerTrigger.withTag("")  | "regex tag"
+
+    event = createDockerEvent("2")
+  }
+
+  @Unroll
+  def "triggers a pipeline that has an enabled docker trigger with only whitespace for regex"() {
+    given:
+    def pipeline = createPipelineWith(trigger)
+    pipelineCache.getPipelines() >> [pipeline]
+
+    when:
+    monitor.processEvent(objectMapper.convertValue(event, Event))
+
+    then:
+    1 * subscriber.call({ it.id == pipeline.id })
+
+    where:
+    trigger                               | field
+    enabledDockerTrigger.withTag(" \t")  | "regex tag"
+
+    event = createDockerEvent("2")
+  }
+
+  @Unroll
   def "does not trigger a pipeline that has an enabled docker trigger with regex"() {
     given:
     def pipeline = createPipelineWith(trigger)
