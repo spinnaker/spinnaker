@@ -265,7 +265,8 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware, 
   private AutoScalingGroupsResults loadAutoScalingGroups(AmazonClients clients) {
     log.debug("Describing auto scaling groups in ${agentType}")
 
-    def request = new DescribeAutoScalingGroupsRequest()
+    def request = new DescribeAutoScalingGroupsRequest().withMaxRecords(100)
+
     Long start = account.eddaEnabled ? null : System.currentTimeMillis()
 
     List<AutoScalingGroup> asgs = []
@@ -364,7 +365,7 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware, 
   private Map<String, Map> loadAlarms(AmazonClients clients, List alarmNames) {
     log.debug("Describing alarms in ${agentType}")
 
-    def request = new DescribeAlarmsRequest()
+    def request = new DescribeAlarmsRequest().withMaxRecords(100)
     if (alarmNames.size()) {
       request.withAlarmNames(alarmNames)
     }
