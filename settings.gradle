@@ -28,5 +28,4 @@ def setBuildFile(project) {
 rootProject.children.each {
     setBuildFile it
 }
-include 'kork-artifacts'
 
