@@ -115,7 +115,7 @@ export class HelpFieldComponent implements IComponentOptions {
               popover-placement="{{$ctrl.contents.placement}}"
               popover-is-open="$ctrl.displayPopover"
               popover-trigger="'none'">
-        <span class="small glyphicon glyphicon-question-sign"></span>
+        <i class="small glyphicon glyphicon-question-sign"></i>
       </a>
     </div>
   `;

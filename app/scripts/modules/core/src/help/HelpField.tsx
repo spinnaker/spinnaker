@@ -68,7 +68,7 @@ export class HelpField extends React.Component<IHelpFieldProps, IState> {
     const { placement, label, expand } = this.props;
     const { contents } = this.state;
 
-    const icon = <span className="small glyphicon glyphicon-question-sign"/>;
+    const icon = <i className="small glyphicon glyphicon-question-sign"/>;
 
     const popover = (
       <HoverablePopover placement={placement} template={contents} onShow={this.onShow} onHide={this.onHide}>
