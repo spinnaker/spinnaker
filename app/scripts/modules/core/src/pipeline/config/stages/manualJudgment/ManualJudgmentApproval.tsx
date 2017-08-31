@@ -87,7 +87,7 @@ export class ManualJudgmentApproval extends React.Component<IManualJudgmentAppro
         { hasInstructions && (
           <div>
             <div><b>Instructions</b></div>
-            <Markdown message="this.props.stage.context.instructions"/>
+            <Markdown message={stage.context.instructions}/>
           </div>
         )}
         { showOptions && (
