@@ -3,31 +3,33 @@ import { IExecutionTrigger } from './IExecutionTrigger';
 import { IExecutionStage, IExecutionStageSummary } from './IExecutionStage';
 
 export interface IExecution extends IOrchestratedItem {
-  id: string;
-  trigger: IExecutionTrigger;
-  stages: IExecutionStage[];
-  context?: { [key: string]: any };
-  user: string;
+  appConfig?: any;
   application: string;
+  buildInfo?: any;
+  canceledBy?: string;
+  cancellationReason?: string;
+  context?: { [key: string]: any };
+  currentStages?: IExecutionStageSummary[];
   deploymentTargets: string[];
-  stageSummaries?: IExecutionStageSummary[];
+  graphStatusHash?: string;
+  id: string;
+  isComplete?: boolean;
   isStrategy?: boolean;
   name?: string;
-  stringVal?: string;
-  isComplete?: boolean;
-  graphStatusHash?: string;
   pipelineConfigId?: string;
   searchField?: string;
-  appConfig?: any;
-  cancellationReason?: string;
-  canceledBy?: string;
-  buildInfo?: any;
+  stageSummaries?: IExecutionStageSummary[];
+  stageWidth?: string;
+  stages: IExecutionStage[];
+  stringVal?: string;
+  trigger: IExecutionTrigger;
+  user: string;
 }
 
 export interface IExecutionGroup {
-  heading: string;
-  executions: IExecution[];
   config?: any;
+  executions: IExecution[];
+  heading: string;
   runningExecutions?: IExecution[];
   targetAccounts?: string[];
 }

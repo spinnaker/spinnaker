@@ -1,22 +1,24 @@
-'use strict';
+import { mock } from 'angular';
+import { map } from 'lodash';
+
+import { Application } from '../../application';
+import { EXECUTIONS_TRANSFORMER_SERVICE, ExecutionsTransformerService } from './executions.transformer.service';
+import { IExecution } from '../../domain';
 
 describe('executionTransformerService', function() {
 
-  beforeEach(
-    window.module(
-      require('./executions.transformer.service')
-    )
-  );
+  let transformer: ExecutionsTransformerService;
+  beforeEach(mock.module(EXECUTIONS_TRANSFORMER_SERVICE));
 
-  beforeEach(window.inject(function(executionsTransformer) {
-    this.transformer = executionsTransformer;
+  beforeEach(mock.inject((executionsTransformer: ExecutionsTransformerService) => {
+    transformer = executionsTransformer;
   }));
 
-  describe('transformExecution', function() {
-    it('should flatten stages into summaries', function() {
-      var execution = {
+  describe('transformExecution', () => {
+    it('should flatten stages into summaries', () => {
+      const execution = {
         stages: [
-          { id: 'a', name: 'a' },
+          { id: 'a', name: 'a'},
           { id: 'b', name: 'b', parentStageId: 'a', syntheticStageOwner: 'STAGE_BEFORE' },
           { id: 'c', name: 'c', parentStageId: 'a', syntheticStageOwner: 'STAGE_BEFORE' },
           { id: 'd', name: 'd', parentStageId: 'a', syntheticStageOwner: 'STAGE_AFTER' },
@@ -25,14 +27,14 @@ describe('executionTransformerService', function() {
           { id: 'g', name: 'g', parentStageId: 'd', syntheticStageOwner: 'STAGE_BEFORE' },
           { id: 'h', name: 'h', parentStageId: 'd', syntheticStageOwner: 'STAGE_AFTER' },
         ]
-      };
+      } as IExecution;
 
-      this.transformer.transformExecution({}, execution);
-      expect(_.map(execution.stageSummaries[0].stages, 'id')).toEqual(['e', 'f', 'b', 'c', 'a', 'g', 'd', 'h']);
+      transformer.transformExecution({} as Application, execution);
+      expect(map(execution.stageSummaries[0].stages, 'id')).toEqual(['e', 'f', 'b', 'c', 'a', 'g', 'd', 'h']);
     });
 
-    it('should sort sibling before stages by start time if available', function() {
-      var execution = {
+    it('should sort sibling before stages by start time if available', () => {
+      const execution = {
         stages: [
           { id: 'a', name: 'a' },
           { id: 'b', name: 'b', parentStageId: 'a', syntheticStageOwner: 'STAGE_BEFORE', startTime: 2 },
@@ -43,28 +45,28 @@ describe('executionTransformerService', function() {
           { id: 'g', name: 'g', parentStageId: 'd', syntheticStageOwner: 'STAGE_BEFORE' },
           { id: 'h', name: 'h', parentStageId: 'd', syntheticStageOwner: 'STAGE_AFTER' },
         ]
-      };
+      } as IExecution;
 
-      this.transformer.transformExecution({}, execution);
-      expect(_.map(execution.stageSummaries[0].stages, 'id')).toEqual(['c', 'f', 'e', 'b', 'a', 'g', 'd', 'h']);
+      transformer.transformExecution({} as Application, execution);
+      expect(map(execution.stageSummaries[0].stages, 'id')).toEqual(['c', 'f', 'e', 'b', 'a', 'g', 'd', 'h']);
     });
 
-    it('should group stages into summaries when no synthetic stages added', function() {
-      var execution = {
+    it('should group stages into summaries when no synthetic stages added', () => {
+      const execution = {
         stages: [
           { id: '1', name: 'bake' },
           { id: '2', name: 'deploy' },
           { id: '3', name: 'wait' },
         ]
-      };
-      this.transformer.transformExecution({}, execution);
+      } as IExecution;
+      transformer.transformExecution({} as Application, execution);
 
       expect(execution.stageSummaries.length).toBe(3);
-      expect(_.map(execution.stageSummaries, 'name')).toEqual(['bake', 'deploy', 'wait']);
+      expect(map(execution.stageSummaries, 'name')).toEqual(['bake', 'deploy', 'wait']);
     });
 
-    it('should group synthetic stages based on parent id and order of entry in execution', function() {
-      var execution = {
+    it('should group synthetic stages based on parent id and order of entry in execution', () => {
+      const execution = {
         stages: [
           { id: '1', name: 'bake', status: 'RUNNING' },
           { id: '4', parentStageId: '2', syntheticStageOwner: 'STAGE_BEFORE'},
@@ -75,17 +77,17 @@ describe('executionTransformerService', function() {
           { id: '7', parentStageId: '3', syntheticStageOwner: 'STAGE_BEFORE'},
           { id: '8', parentStageId: '3', syntheticStageOwner: 'STAGE_AFTER'},
         ]
-      };
-      this.transformer.transformExecution({}, execution);
+      } as IExecution;
+      transformer.transformExecution({} as Application, execution);
 
       expect(execution.stageSummaries.length).toBe(3);
-      expect(_.map(execution.stageSummaries[0].stages, 'id')).toEqual(['5', '1']);
-      expect(_.map(execution.stageSummaries[1].stages, 'id')).toEqual(['4', '6', '2']);
-      expect(_.map(execution.stageSummaries[2].stages, 'id')).toEqual(['7', '3', '8']);
+      expect(map(execution.stageSummaries[0].stages, 'id')).toEqual(['5', '1']);
+      expect(map(execution.stageSummaries[1].stages, 'id')).toEqual(['4', '6', '2']);
+      expect(map(execution.stageSummaries[2].stages, 'id')).toEqual(['7', '3', '8']);
     });
 
-    it('should set summary status and start/end times based on child stages', function() {
-      var execution = {
+    it('should set summary status and start/end times based on child stages', () => {
+      const execution = {
         stages: [
           { id: '1', name: 'bake', status: 'SUCCEEDED', startTime: 7, endTime: 8 },
           { id: '2', name: 'deploy', status: 'RUNNING', startTime: 7 },
@@ -96,8 +98,8 @@ describe('executionTransformerService', function() {
           { id: '7', parentStageId: '3', syntheticStageOwner: 'STAGE_BEFORE', status: 'NOT_STARTED' },
           { id: '8', parentStageId: '3', syntheticStageOwner: 'STAGE_AFTER', status: 'NOT_STARTED' },
         ]
-      };
-      this.transformer.transformExecution({}, execution);
+      } as IExecution;
+      transformer.transformExecution({} as Application, execution);
 
       expect(execution.stageSummaries[0].status).toBe('SUCCEEDED');
       expect(execution.stageSummaries[0].startTime).toBe(5);
@@ -112,57 +114,57 @@ describe('executionTransformerService', function() {
       expect(execution.stageSummaries[2].endTime).toBeUndefined();
     });
 
-    it('should set summary status to canceled', function () {
-      var execution = {
+    it('should set summary status to canceled', () => {
+      const execution = {
         stages: [
           { id: '2', name: 'deploy', status: 'SUCCEEDED', startTime: 7, endTime: 8 },
           { id: '4', parentStageId: '2', syntheticStageOwner: 'STAGE_BEFORE', status: 'CANCELED', startTime: 4, endTime: 6},
           { id: '6', parentStageId: '2', syntheticStageOwner: 'STAGE_BEFORE', status: 'NOT_STARTED', startTime: 6 },
         ]
-      };
-      this.transformer.transformExecution({}, execution);
+      } as IExecution;
+      transformer.transformExecution({} as Application, execution);
       expect(execution.stageSummaries[0].status).toBe('CANCELED');
     });
 
-    it('should set summary status to not started', function () {
-      var execution = {
+    it('should set summary status to not started', () => {
+      const execution = {
         stages: [
           { id: '2', name: 'deploy', status: 'SUCCEEDED', startTime: 7, endTime: 8 },
           { id: '4', parentStageId: '2', syntheticStageOwner: 'STAGE_BEFORE', status: 'COMPLETED', startTime: 4, endTime: 6},
           { id: '6', parentStageId: '2', syntheticStageOwner: 'STAGE_BEFORE', status: 'NOT_STARTED', startTime: 6 },
         ]
-      };
-      this.transformer.transformExecution({}, execution);
+      } as IExecution;
+      transformer.transformExecution({} as Application, execution);
       expect(execution.stageSummaries[0].status).toBe('NOT_STARTED');
     });
 
-    it('should remove stage summary end time if current stage is still running', function () {
-      var execution = {
+    it('should remove stage summary end time if current stage is still running', () => {
+      const execution = {
         stages: [
           { id: '2', name: 'deploy', status: 'SUCCEEDED', startTime: 7, endTime: 8 },
           { id: '4', parentStageId: '2', syntheticStageOwner: 'STAGE_BEFORE', status: 'SUCCEEDED', startTime: 4, endTime: 6},
           { id: '6', parentStageId: '2', syntheticStageOwner: 'STAGE_BEFORE', status: 'RUNNING', startTime: 6 },
         ]
-      };
-      this.transformer.transformExecution({}, execution);
+      } as IExecution;
+      transformer.transformExecution({} as Application, execution);
       expect(execution.stageSummaries[0].endTime).toBeUndefined();
     });
 
-    it('should set stage summary end time to the maximum value of all stage end times', function () {
-      var execution = {
+    it('should set stage summary end time to the maximum value of all stage end times', () => {
+      const execution = {
         stages: [
           { id: '2', name: 'deploy', status: 'SUCCEEDED', startTime: 7, endTime: 8 },
           { id: '4', parentStageId: '2', syntheticStageOwner: 'STAGE_BEFORE', status: 'SUCCEEDED', startTime: 4, endTime: 6},
           { id: '5', parentStageId: '2', syntheticStageOwner: 'STAGE_BEFORE', status: 'SUCCEEDED', startTime: 4, endTime: 9},
           { id: '6', parentStageId: '2', syntheticStageOwner: 'STAGE_AFTER', status: 'SUCCEEDED', startTime: 6, endTime: 11 },
         ]
-      };
-      this.transformer.transformExecution({}, execution);
+      } as IExecution;
+      transformer.transformExecution({} as Application, execution);
       expect(execution.stageSummaries[0].endTime).toBe(11);
     });
 
-    it('should not set stage status, start/end times based on child stages on non-summary stages', function() {
-      var execution = {
+    it('should not set stage status, start/end times based on child stages on non-summary stages', () => {
+      const execution = {
         stages: [
           { id: '1', name: 'bake', status: 'SUCCEEDED', startTime: 7, endTime: 8 },
           { id: '2', parentStageId: '1', syntheticStageOwner: 'STAGE_AFTER', status: 'SUCCEEDED', startTime: 8, endTime: 9},
@@ -170,10 +172,10 @@ describe('executionTransformerService', function() {
           { id: '4', parentStageId: '2', syntheticStageOwner: 'STAGE_AFTER', status: 'RUNNING', startTime: 11 },
           { id: '5', parentStageId: '2', syntheticStageOwner: 'STAGE_AFTER', status: 'NOT_STARTED' },
         ]
-      };
-      this.transformer.transformExecution({}, execution);
+      } as IExecution;
+      transformer.transformExecution({} as Application, execution);
 
-      var summary = execution.stageSummaries[0];
+      const summary = execution.stageSummaries[0];
 
       expect(execution.stageSummaries.length).toBe(1);
 
@@ -183,74 +185,74 @@ describe('executionTransformerService', function() {
 
       expect(summary.stages.length).toBe(5);
 
-      var nested = summary.stages[2];
+      const nested = summary.stages[2];
 
-      expect(_.map(summary.stages, 'id')).toEqual(['1', '3', '2', '4', '5']);
+      expect(map(summary.stages, 'id')).toEqual(['1', '3', '2', '4', '5']);
       expect(nested.id).toBe('2');
       expect(nested.status).toBe('SUCCEEDED');
       expect(nested.startTime).toBe(8);
       expect(nested.endTime).toBe(9);
     });
 
-    it('should add startTime to stage summary based on min of child stage start times if first stage has no start time', function () {
-      var execution = {
+    it('should add startTime to stage summary based on min of child stage start times if first stage has no start time', () => {
+      const execution = {
         stages: [
           { id: '2', name: 'deploy', status: 'SUCCEEDED', startTime: null, endTime: 8 },
           { id: '4', parentStageId: '2', syntheticStageOwner: 'STAGE_BEFORE', status: 'SUCCEEDED', startTime: null, endTime: 6},
           { id: '5', parentStageId: '2', syntheticStageOwner: 'STAGE_BEFORE', status: 'SUCCEEDED', startTime: 11, endTime: 9},
           { id: '6', parentStageId: '2', syntheticStageOwner: 'STAGE_AFTER', status: 'SUCCEEDED', startTime: 4, endTime: 11 },
         ]
-      };
-      this.transformer.transformExecution({}, execution);
+      } as IExecution;
+      transformer.transformExecution({} as Application, execution);
       expect(execution.stageSummaries[0].startTime).toBe(4);
     });
   });
 
-  describe('firstActiveStage', function () {
-    it('should set the active stage to the first running stage', function () {
-      var execution = {
+  describe('firstActiveStage', () => {
+    it('should set the active stage to the first running stage', () => {
+      const execution = {
         stages: [
           { id: '2', name: 'deploy', status: 'RUNNING', startTime: null, endTime: 8 },
           { id: '4', parentStageId: '2', syntheticStageOwner: 'STAGE_BEFORE', status: 'SUCCEEDED'},
           { id: '5', parentStageId: '2', syntheticStageOwner: 'STAGE_BEFORE', status: 'RUNNING'},
           { id: '6', parentStageId: '2', syntheticStageOwner: 'STAGE_AFTER', status: 'RUNNING'},
         ]
-      };
-      this.transformer.transformExecution({}, execution);
+      } as IExecution;
+      transformer.transformExecution({} as Application, execution);
       expect(execution.stageSummaries[0].firstActiveStage).toBe(1);
     });
 
-    it('should set the active stage to zero if none found', function () {
-      var execution = {
+    it('should set the active stage to zero if none found', () => {
+      const execution = {
         stages: [
           { id: '2', name: 'deploy', status: 'SUCCEEDED', startTime: null, endTime: 8 },
           { id: '4', parentStageId: '2', syntheticStageOwner: 'STAGE_BEFORE', status: 'SUCCEEDED'},
           { id: '5', parentStageId: '2', syntheticStageOwner: 'STAGE_BEFORE', status: 'SUCCEEDED'},
           { id: '6', parentStageId: '2', syntheticStageOwner: 'STAGE_AFTER', status: 'SUCCEEDED'},
         ]
-      };
-      this.transformer.transformExecution({}, execution);
+      } as IExecution;
+      transformer.transformExecution({} as Application, execution);
       expect(execution.stageSummaries[0].firstActiveStage).toBe(0);
     });
 
-    it('should set the active stage to the first failed stage if one found', function () {
-      var execution = {
+    it('should set the active stage to the first failed stage if one found', () => {
+      const execution = {
         stages: [
           { id: '2', name: 'deploy', status: 'TERMINAL', startTime: null, endTime: 8 },
           { id: '4', parentStageId: '2', syntheticStageOwner: 'STAGE_BEFORE', status: 'SUCCEEDED'},
           { id: '5', parentStageId: '2', syntheticStageOwner: 'STAGE_BEFORE', status: 'SUCCEEDED'},
           { id: '6', parentStageId: '2', syntheticStageOwner: 'STAGE_AFTER', status: 'TERMINAL'},
         ]
-      };
-      this.transformer.transformExecution({}, execution);
+      } as IExecution;
+      transformer.transformExecution({} as Application, execution);
       expect(execution.stageSummaries[0].firstActiveStage).toBe(2);
     });
   });
 
-  describe('buildInfo', function () {
-    let deployStage, lastBuild, parentBuild, triggerBuild;
+  describe('buildInfo', () => {
+    let deployStage: any, lastBuild: any, parentBuild: any, triggerBuild: any;
 
-    beforeEach(function () {
+    beforeEach(() => {
       lastBuild = { number: 4 };
       parentBuild = { number: 5 };
       triggerBuild = { number: 6 };
@@ -261,62 +263,62 @@ describe('executionTransformerService', function() {
       }};
     });
 
-    it('adds buildInfo from deployment details', function () {
-      let execution = { stages: [ deployStage ] };
-      this.transformer.transformExecution({}, execution);
+    it('adds buildInfo from deployment details', () => {
+      const execution = { stages: [ deployStage ] } as IExecution;
+      transformer.transformExecution({} as Application, execution);
       expect(execution.buildInfo).toEqual({ number: 3, url: 'http://jenkinshost/job/jobName/3'});
     });
 
-    it('adds buildInfo from lastBuild if present', function () {
-      let execution = { stages: [], trigger: { buildInfo: {lastBuild: lastBuild }}};
-      this.transformer.transformExecution({}, execution);
+    it('adds buildInfo from lastBuild if present', () => {
+      const execution = { stages: [], trigger: { buildInfo: {lastBuild: lastBuild }}} as IExecution;
+      transformer.transformExecution({} as Application, execution);
       expect(execution.buildInfo.number).toBe(4);
     });
 
-    it('adds buildInfo from trigger', function () {
-      let execution = { stages: [], trigger: { buildInfo: triggerBuild }};
-      this.transformer.transformExecution({}, execution);
+    it('adds buildInfo from trigger', () => {
+      const execution = { stages: [], trigger: { buildInfo: triggerBuild }} as IExecution;
+      transformer.transformExecution({} as Application, execution);
       expect(execution.buildInfo.number).toBe(6);
     });
 
-    it('adds buildInfo from parent pipeline', function () {
-      let execution = { stages: [], trigger: { parentExecution: {trigger: {buildInfo: parentBuild }}}};
-      this.transformer.transformExecution({}, execution);
+    it('adds buildInfo from parent pipeline', () => {
+      const execution = { stages: [], trigger: { parentExecution: {trigger: {buildInfo: parentBuild }}}} as IExecution;
+      transformer.transformExecution({} as Application, execution);
       expect(execution.buildInfo.number).toBe(5);
     });
 
-    it('prefers deployment buildInfo to all others', function () {
-      let execution = { stages: [ deployStage ], trigger: { buildInfo: triggerBuild } };
+    it('prefers deployment buildInfo to all others', () => {
+      const execution = { stages: [ deployStage ], trigger: { buildInfo: triggerBuild } } as IExecution;
       execution.trigger.buildInfo.lastBuild = lastBuild;
-      execution.trigger.parentExecution = { trigger: { buildInfo: parentBuild } };
-      this.transformer.transformExecution({}, execution);
+      execution.trigger.parentExecution = { trigger: { buildInfo: parentBuild } } as IExecution;
+      transformer.transformExecution({} as Application, execution);
       expect(execution.buildInfo).toEqual({ number: 3, url: 'http://jenkinshost/job/jobName/3'});
     });
 
-    it('prefers last build info to parent execution or trigger details', function () {
-      let execution = { stages: [ ], trigger: { buildInfo: triggerBuild } };
+    it('prefers last build info to parent execution or trigger details', () => {
+      const execution = { stages: [ ], trigger: { buildInfo: triggerBuild } } as IExecution;
       execution.trigger.buildInfo.lastBuild = lastBuild;
-      execution.trigger.parentExecution = { trigger: { buildInfo: parentBuild } };
-      this.transformer.transformExecution({}, execution);
+      execution.trigger.parentExecution = { trigger: { buildInfo: parentBuild } } as IExecution;
+      transformer.transformExecution({} as Application, execution);
       expect(execution.buildInfo.number).toBe(4);
     });
 
-    it('prefers trigger details to parent execution', function () {
-      let execution = { stages: [ ], trigger: { buildInfo: triggerBuild } };
-      execution.trigger.parentExecution = { trigger: { buildInfo: parentBuild } };
-      this.transformer.transformExecution({}, execution);
+    it('prefers trigger details to parent execution', () => {
+      const execution = { stages: [ ], trigger: { buildInfo: triggerBuild } } as IExecution;
+      execution.trigger.parentExecution = { trigger: { buildInfo: parentBuild } } as IExecution;
+      transformer.transformExecution({} as Application, execution);
       expect(execution.buildInfo.number).toBe(6);
     });
 
-    it('prefers buildInfoUrl to jenkins details', function () {
+    it('prefers buildInfoUrl to jenkins details', () => {
       deployStage = { type: 'deploy', context: {
         deploymentDetails: [
           { jenkins: { number: 3, host: 'http://jenkinshost/', name: 'jobName' },
             buildInfoUrl: 'http://custom/url' }
         ]
       }};
-      let execution = { stages: [ deployStage ] };
-      this.transformer.transformExecution({}, execution);
+      const execution = { stages: [ deployStage ] } as IExecution;
+      transformer.transformExecution({} as Application, execution);
       expect(execution.buildInfo).toEqual({ number: 3, url: 'http://custom/url'});
     });
   });

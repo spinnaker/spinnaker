@@ -1,17 +1,12 @@
 import * as React from 'react';
 import { OverlayTrigger, Tooltip } from 'react-bootstrap';
 
-import { IExecutionStageSummary, IExecution } from 'core/domain';
+import { IExecutionStageLabelComponentProps } from 'core/domain';
 import { ExecutionWindowActions } from 'core/pipeline/config/stages/executionWindows/ExecutionWindowActions';
-import { Application } from 'core/application/application.model';
 import { HoverablePopover } from 'core/presentation/HoverablePopover';
 
-export interface IExecutionBarLabelProps {
-  application: Application;
-  execution: IExecution;
-  stage: IExecutionStageSummary;
+export interface IExecutionBarLabelProps extends IExecutionStageLabelComponentProps {
   tooltip?: JSX.Element;
-  executionMarker: boolean;
 }
 
 export class ExecutionBarLabel extends React.Component<IExecutionBarLabelProps> {

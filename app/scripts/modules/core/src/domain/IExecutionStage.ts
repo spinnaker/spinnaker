@@ -1,8 +1,9 @@
-import {IOrchestratedItem} from './IOrchestratedItem';
-import {IStage} from './IStage';
-import {IStageStep} from './IStageStep';
-import {Application} from 'core/application/application.model';
-import {IExecution} from './IExecution';
+import { Application } from 'core/application/application.model';
+
+import { IExecution } from './IExecution';
+import { IOrchestratedItem } from './IOrchestratedItem';
+import { IStage } from './IStage';
+import { IStageStep } from './IStageStep';
 
 export interface IRestartDetails {
   restartedBy: string;
@@ -11,28 +12,50 @@ export interface IRestartDetails {
 
 export interface IExecutionContext {
   [key: string]: any;
+  asg?: string;
+  deploymentDetails?: any;
+  instances?: any;
   restartDetails?: IRestartDetails;
   targetReferences?: any;
-  instances?: any;
-  asg?: string;
 }
 
 export interface IExecutionStage extends IOrchestratedItem, IStage {
+  after?: IExecutionStage[];
+  before?: IExecutionStage[];
+  context: IExecutionContext;
   id: string;
   tasks: IStageStep[];
-  context: IExecutionContext;
 }
 
-export interface IExecutionStageSummary extends IExecutionStage {
-  masterStage: IExecutionStage;
-  stages: IExecutionStage[];
-  labelComponent: React.ComponentClass<{ stage: IExecutionStageSummary, application?: Application, execution?: IExecution, executionMarker?: boolean }>;
-  markerIcon: React.ComponentClass<{ stage: IExecutionStageSummary }>;
+export interface IExecutionStageLabelComponentProps {
+  application?: Application;
+  execution?: IExecution;
+  executionMarker?: boolean;
+  stage: IExecutionStageSummary;
+}
+
+export interface IExecutionStageSummary extends IOrchestratedItem {
+  after: IExecutionStage[];
+  before: IExecutionStage[];
+  cloudProvider: string;
+  color?: string;
+  comments: string;
+  endTime: number;
   extraLabelLines?: (stage: IExecutionStageSummary) => number;
-  useCustomTooltip?: boolean;
+  firstActiveStage?: number;
+  id: string;
   inSuspendedExecutionWindow?: boolean;
   index: number;
+  labelComponent?: React.ComponentClass<IExecutionStageLabelComponentProps>;
+  markerIcon?: React.ComponentClass<{ stage: IExecutionStageSummary }>;
+  masterStage: IExecutionStage;
+  masterStageIndex: number;
+  name: string;
+  refId: number | string;
+  requisiteStageRefIds: (number | string)[];
+  stages: IExecutionStage[];
+  startTime: number;
   status: string;
-  hasNotStarted: boolean;
-  firstActiveStage?: number;
+  type: string;
+  useCustomTooltip?: boolean;
 }

@@ -1,24 +1,27 @@
 import { IStage } from './IStage';
-import { IExecutionStageSummary } from './IExecutionStage';
+import { IExecutionStageLabelComponentProps, IExecutionStageSummary } from './IExecutionStage';
 import { IStageOrTriggerTypeConfig } from './IStageOrTriggerTypeConfig';
 
 export interface IStageTypeConfig extends IStageOrTriggerTypeConfig {
-  executionDetailsUrl: string;
-  executionStepLabelUrl?: string;
-  executionConfigSections?: string[];
-  defaultTimeoutMs?: number;
-  provides?: string;
-  providesFor?: string[];
+  accountExtractor?: (stage: IStage) => string;
+  addAliasToConfig?: boolean;
+  alias?: string;
   cloudProvider?: string;
   cloudProviders?: string[];
-  alias?: string;
-  addAliasToConfig?: boolean;
-  useBaseProvider?: boolean;
-  executionLabelComponent?: React.Component<{ stage: IExecutionStageSummary }, any>;
-  accountExtractor?: (stage: IStage) => string;
-  extraLabelLines?: (stage: IStage) => number;
-  restartable?: boolean;
-  synthetic?: boolean;
-  nameToCheckInTest?: string;
   configuration?: any;
+  defaultTimeoutMs?: number;
+  executionConfigSections?: string[];
+  executionDetailsUrl: string;
+  executionLabelComponent?: React.ComponentClass<IExecutionStageLabelComponentProps>;
+  executionStepLabelUrl?: string;
+  extraLabelLines?: (stage: IStage) => number;
+  markerIcon?: React.ComponentClass<{ stage: IExecutionStageSummary }>;
+  nameToCheckInTest?: string;
+  provides?: string;
+  providesFor?: string[];
+  restartable?: boolean;
+  stageFilter?: (stage: IStage) => boolean;
+  synthetic?: boolean;
+  useBaseProvider?: boolean;
+  useCustomTooltip?: boolean;
 }

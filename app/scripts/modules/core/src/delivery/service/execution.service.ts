@@ -1,12 +1,13 @@
-import {IHttpService, IPromise, IQService, ITimeoutService, module} from 'angular';
-import {identity, pickBy} from 'lodash';
+import { IHttpService, IPromise, IQService, ITimeoutService, module } from 'angular';
+import { identity, pickBy } from 'lodash';
 
-import {API_SERVICE, Api} from 'core/api/api.service';
-import {Application} from 'core/application/application.model';
-import {EXECUTION_FILTER_MODEL, ExecutionFilterModel} from 'core/delivery/filter/executionFilter.model';
-import {IExecution, IExecutionStage} from 'core/domain';
-import {PIPELINE_CONFIG_PROVIDER} from 'core/pipeline/config/pipelineConfigProvider';
-import {SETTINGS} from 'core/config/settings';
+import { API_SERVICE, Api } from 'core/api/api.service';
+import { Application } from 'core/application/application.model';
+import { EXECUTION_FILTER_MODEL, ExecutionFilterModel } from 'core/delivery/filter/executionFilter.model';
+import { EXECUTIONS_TRANSFORMER_SERVICE } from 'core/delivery/service/executions.transformer.service';
+import { IExecution, IExecutionStage } from 'core/domain';
+import { PIPELINE_CONFIG_PROVIDER } from 'core/pipeline/config/pipelineConfigProvider';
+import { SETTINGS } from 'core/config/settings';
 import { ApplicationDataSource } from 'core/application/service/applicationDataSource';
 import { DebugWindow } from 'core/utils/consoleDebug';
 
@@ -320,7 +321,7 @@ export class ExecutionService {
         } else {
           // if the stage was not already completed, update it in place if it has changed to save Angular
           // from removing, then re-rendering every DOM node
-          if ((!updatedSummary.isComplete || !currentSummary.isComplete) && (!updatedSummary.hasNotStarted || !currentSummary.hasNotStarted)) {
+          if ((!updatedSummary.isCompleted || !currentSummary.isCompleted) && (!updatedSummary.hasNotStarted || !currentSummary.hasNotStarted)) {
             if (JSON.stringify(currentSummary, this.jsonReplacer) !== JSON.stringify(updatedSummary, this.jsonReplacer)) {
               Object.assign(currentSummary, updatedSummary);
             }
@@ -407,7 +408,7 @@ export class ExecutionService {
 export const EXECUTION_SERVICE = 'spinnaker.core.delivery.executions.service';
 module(EXECUTION_SERVICE, [
   EXECUTION_FILTER_MODEL,
-  require('./executions.transformer.service.js'),
+  EXECUTIONS_TRANSFORMER_SERVICE,
   PIPELINE_CONFIG_PROVIDER,
   API_SERVICE
 ]).factory('executionService', ($http: IHttpService, $q: IQService, $timeout: ITimeoutService, API: Api, executionFilterModel: any, executionsTransformer: any, pipelineConfig: any) =>
