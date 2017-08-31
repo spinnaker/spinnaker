@@ -175,6 +175,9 @@
         <dt>Instance Monitoring</dt>
         <dd>{{ctrl.serverGroup.launchConfig.instanceMonitoring.enabled ? 'enabled' : 'disabled'}}</dd>
 
+        <dt ng-if="ctrl.serverGroup.launchConfig.spotPrice">Spot Price</dt>
+        <dd ng-if="ctrl.serverGroup.launchConfig.spotPrice">{{ctrl.serverGroup.launchConfig.spotPrice}}</dd>
+
         <dt ng-if="ctrl.serverGroup.launchConfig.keyName">Key Name</dt>
         <dd ng-if="ctrl.serverGroup.launchConfig.keyName">{{ctrl.serverGroup.launchConfig.keyName}}</dd>
 

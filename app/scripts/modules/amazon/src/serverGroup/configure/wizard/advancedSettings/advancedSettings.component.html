@@ -104,6 +104,16 @@
     </div>
   </div>
   <div class="form-group">
+    <div class="col-md-5 sm-label-right">
+      <b>Spot Instances Price (optional)</b>
+      <help-field key="aws.serverGroup.spotPrice"></help-field>
+    </div>
+    <div class="col-md-2"><input type="text"
+                                 class="form-control input-sm"
+                                 ng-model="$ctrl.command.spotPrice"
+                                 ng-change="$ctrl.spotPriceChanged()"/></div>
+  </div>
+  <div class="form-group">
     <div class="col-md-5 sm-label-right"><b>AMI Block Device Mappings</b></div>
     <div class="col-md-6 radio">
       <div>

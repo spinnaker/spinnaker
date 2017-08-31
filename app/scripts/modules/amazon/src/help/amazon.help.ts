@@ -69,6 +69,7 @@ const helpContents: {[key: string]: string} = {
   'aws.serverGroup.tags': '(Optional) <b>Tags</b> are propagated to the instances in this cluster.',
   'aws.serverGroup.allImages': 'Search for an image that does not match the name of your application.',
   'aws.serverGroup.filterImages': 'Select from a pre-filtered list of images matching the name of your application.',
+  'aws.serverGroup.spotPrice': 'The maximum price to pay per hour per instance',
   'aws.serverGroup.traffic':
     `<p>Enables the "AddToLoadBalancer" scaling process, which is used by Spinnaker and discovery services to determine if the server group is enabled.</p>
      <p>Will be automatically enabled when any non "custom" deployment strategy is selected.</p>`,

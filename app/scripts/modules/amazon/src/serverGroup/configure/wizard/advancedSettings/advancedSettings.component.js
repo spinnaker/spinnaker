@@ -20,5 +20,13 @@ module.exports = angular
           v2modalWizardService.markComplete('advanced');
         }
       };
+
+      this.spotPriceChanged = () => {
+        // AWS returns an error if spot price is empty string
+        // so let's turn it into null
+        if (this.command.spotPrice === '') {
+          this.command.spotPrice = null;
+        }
+      };
     }
   });

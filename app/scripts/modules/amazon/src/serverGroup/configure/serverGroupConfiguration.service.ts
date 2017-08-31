@@ -58,6 +58,7 @@ export interface IAmazonServerGroupCommand extends IServerGroupCommand {
   healthCheckGracePeriod: number;
   instanceMonitoring: boolean;
   keyPair: string;
+  spotPrice: string;
   targetHealthyDeployPercentage: number;
   useAmiBlockDeviceMappings: boolean;
   targetGroups: string[];
