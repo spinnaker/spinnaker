@@ -11,6 +11,7 @@ module('netflix.spinnaker', [
   CORE_MODULE,
   AMAZON_MODULE,
   GOOGLE_MODULE,
+  require('./modules/ecs/ecs.module.js'),
   require('./modules/cloudfoundry/cf.module.js'),
   require('./modules/azure/azure.module.js'),
   require('./modules/kubernetes/kubernetes.module.js'),

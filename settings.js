@@ -18,7 +18,7 @@ var infSearchEnabled = process.env.INF_SEARCH_ENABLED === 'true' ? true : false;
 window.spinnakerSettings = {
   checkForUpdates: true,
   debugEnabled: debugEnabled,
-  defaultProviders: ['aws', 'gce', 'azure', 'cf', 'kubernetes', 'dcos', 'openstack', 'oraclebmcs'],
+  defaultProviders: ['aws', 'gce', 'azure', 'cf', 'kubernetes', 'dcos', 'openstack', 'oraclebmcs', 'ecs'],
   feedbackUrl: feedbackUrl,
   gateUrl: gateHost,
   bakeryDetailUrl: bakeryDetailUrl,
