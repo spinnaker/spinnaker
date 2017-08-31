@@ -74,7 +74,9 @@ module.exports = angular.module('spinnaker.core.delivery.filter.executionFilter.
     });
 
     $scope.$on('$destroy', () => {
-      this.groupsUpdatedSubscription.unsubscribe();
+      if (this.groupsUpdatedSubscription) {
+        this.groupsUpdatedSubscription.unsubscribe();
+      }
       this.locationChangeUnsubscribe();
     });
 
