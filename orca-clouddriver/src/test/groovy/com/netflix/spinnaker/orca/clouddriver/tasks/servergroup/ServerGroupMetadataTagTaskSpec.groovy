@@ -32,14 +32,20 @@ class ServerGroupMetadataTagTaskSpec extends Specification {
 
   KatoService katoService = Mock(KatoService)
 
+  ServerGroupEntityTagGenerator tagGenerator = new SpinnakerMetadataServerGroupTagGenerator()
+
   @Subject
-  ServerGroupMetadataTagTask task = new ServerGroupMetadataTagTask(kato: katoService)
+  ServerGroupMetadataTagTask task = new ServerGroupMetadataTagTask(kato: katoService, tagGenerators: [tagGenerator])
 
   List<Map> taggingOps = null
 
   void "should return with failed/continue status if tagging operation fails"() {
     when:
-    def stage = new Stage<>(new Pipeline("orca"), "whatever", [:])
+    def stage = new Stage<>(new Pipeline("orca"), "whatever", [
+      "deploy.server.groups": [
+        "us-east-1": ["foo-v001"]
+      ]
+    ])
     def result = task.execute(stage)
 
     then:
@@ -136,6 +142,23 @@ class ServerGroupMetadataTagTaskSpec extends Specification {
 
     then:
     taggingOps[0].description == "some description"
+  }
+
+  void "skips tagging when no tag generators or generators do not produce any tags"() {
+    given:
+    ServerGroupMetadataTagTask emptyTask = new ServerGroupMetadataTagTask(kato: katoService, tagGenerators: [])
+
+    when:
+    def stage = new Stage<>(new Pipeline("orca"), "whatever", [
+      "deploy.server.groups": [
+        "us-east-1": ["foo-v001"],
+      ]
+    ])
+    def result = emptyTask.execute(stage)
+
+    then:
+    result.status == ExecutionStatus.SKIPPED
+    0 * _
   }
 
   @Unroll

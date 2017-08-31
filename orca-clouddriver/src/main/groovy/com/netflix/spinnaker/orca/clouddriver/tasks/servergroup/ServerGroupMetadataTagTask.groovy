@@ -24,8 +24,6 @@ import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId
 import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask
-import com.netflix.spinnaker.orca.pipeline.model.Orchestration
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
@@ -40,10 +38,17 @@ class ServerGroupMetadataTagTask extends AbstractCloudProviderAwareTask implemen
   @Autowired
   KatoService kato
 
+  @Autowired
+  Collection<ServerGroupEntityTagGenerator> tagGenerators
+
   @Override
   TaskResult execute(Stage stage) {
     try {
-      TaskId taskId = kato.requestOperations(buildTagOperations(stage)).toBlocking().first()
+      List<Map> tagOperations = buildTagOperations(stage)
+      if (!tagOperations) {
+        return new TaskResult(ExecutionStatus.SKIPPED)
+      }
+      TaskId taskId = kato.requestOperations(tagOperations).toBlocking().first()
       return new TaskResult(ExecutionStatus.SUCCEEDED, new HashMap<String, Object>() {
         {
           put("notification.type", "upsertentitytags")
@@ -57,38 +62,17 @@ class ServerGroupMetadataTagTask extends AbstractCloudProviderAwareTask implemen
   }
 
   private List<Map> buildTagOperations(Stage stage) {
-    def tag = [
-      name : "spinnaker:metadata",
-      value: [
-        "stageId"      : stage.id,
-        "executionId"  : stage.execution.id,
-        "executionType": stage.execution.class.simpleName.toLowerCase(),
-        "application"  : stage.execution.application,
-        "user"         : stage.execution.authentication?.user
-      ]
-    ]
-
-    if (stage.execution instanceof Orchestration) {
-      tag.value.description = ((Orchestration) stage.execution).description
-    } else if (stage.execution instanceof Pipeline) {
-      Pipeline pipeline = (Pipeline) stage.execution
-      if (pipeline.name) {
-        tag.value.description = pipeline.name
-      }
-      tag.value.pipelineConfigId = pipeline.pipelineConfigId
-    }
-
-    if (stage.context.reason || stage.context.comments) {
-      tag.value.comments = stage.context.comments ?: stage.context.reason
-    }
-
     def operations = []
     ((StageData) stage.mapTo(StageData)).deployServerGroups.each { String region, Set<String> serverGroups ->
       serverGroups.each { String serverGroup ->
+        Collection<Map<String, Object>> tags = tagGenerators ? tagGenerators.findResults { it.generateTag(stage) } : []
+        if (!tags) {
+          return []
+        }
         operations <<
           [
             "upsertEntityTags": [
-              tags     : [tag],
+              tags     : tags,
               entityRef: [
                 entityType   : "servergroup",
                 entityId     : serverGroup,
