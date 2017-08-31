@@ -103,7 +103,7 @@
       <label><input type="checkbox" ng-model="$ctrl.command.ebsOptimized"/> Optimize Instances for EBS</label>
     </div>
   </div>
-  <div class="form-group">
+  <div class="form-group" ng-if="!$ctrl.disableSpotPricing">
     <div class="col-md-5 sm-label-right">
       <b>Spot Instances Price (optional)</b>
       <help-field key="aws.serverGroup.spotPrice"></help-field>

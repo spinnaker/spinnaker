@@ -4,6 +4,8 @@ const angular = require('angular');
 
 import { V2_MODAL_WIZARD_SERVICE } from '@spinnaker/core';
 
+import { AWSProviderSettings } from 'amazon/aws.settings';
+
 module.exports = angular
   .module('spinnaker.amazon.serverGroup.configure.wizard.advancedSettings.component', [
     V2_MODAL_WIZARD_SERVICE,
@@ -20,6 +22,8 @@ module.exports = angular
           v2modalWizardService.markComplete('advanced');
         }
       };
+
+      this.disableSpotPricing = AWSProviderSettings.disableSpotPricing;
 
       this.spotPriceChanged = () => {
         // AWS returns an error if spot price is empty string

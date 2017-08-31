@@ -25,6 +25,7 @@ export interface IAWSProviderSettings extends IProviderSettings {
     customNamespaces?: string[];
   };
   minRootVolumeSize?: number;
+  disableSpotPricing?: boolean;
 }
 
 export const AWSProviderSettings: IAWSProviderSettings = <IAWSProviderSettings>SETTINGS.providers.aws || { defaults: {} };
