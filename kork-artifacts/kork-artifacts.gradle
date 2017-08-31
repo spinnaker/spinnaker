@@ -1,0 +1,5 @@
+dependencies {
+  compile project(":kork-core")
+
+  spinnaker.group("lombok")
+}
