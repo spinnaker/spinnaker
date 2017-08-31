@@ -1,13 +1,10 @@
-import { module } from 'angular';
 import { duration } from 'moment';
+import { $log } from 'ngimport';
 
 import { IOrchestratedItem, IOrchestratedItemVariable, ITask, ITaskStep } from 'core/domain';
 
 export class OrchestratedItemTransformer {
-
-  public constructor(private $log: ng.ILogService) { 'ngInject'; }
-
-  public addRunningTime(item: any): void {
+  public static addRunningTime(item: any): void {
     // Don't try to add running time more than once - but also don't blow up if something tries to do so
     const testDescriptor: PropertyDescriptor = Object.getOwnPropertyDescriptor(item, 'runningTime');
     if (testDescriptor && !testDescriptor.enumerable) {
@@ -20,7 +17,7 @@ export class OrchestratedItemTransformer {
     });
   }
 
-  public defineProperties(item: any): void {
+  public static defineProperties(item: any): void {
     // Don't try to add properties more than once - but also don't blow up if something tries to do so
     const testDescriptor: PropertyDescriptor = Object.getOwnPropertyDescriptor(item, 'runningTime');
     if (testDescriptor && !testDescriptor.enumerable) {
@@ -89,7 +86,7 @@ export class OrchestratedItemTransformer {
     });
   }
 
-  private getOrchestrationException(task: ITask): string {
+  private static getOrchestrationException(task: ITask): string {
     const katoTasks: any[] = task.getValueFor('kato.tasks');
     if (katoTasks && katoTasks.length) {
       const failedTask: any = katoTasks.find(t => t.status && t.status.failed);
@@ -108,7 +105,7 @@ export class OrchestratedItemTransformer {
     return null;
   }
 
-  private getGeneralException(task: ITask): string {
+  private static getGeneralException(task: ITask): string {
     const generalException: any = task.getValueFor('exception');
     if (generalException) {
       if (generalException.details && generalException.details.errors && generalException.details.errors.length) {
@@ -121,7 +118,7 @@ export class OrchestratedItemTransformer {
     return null;
   }
 
-  private calculateRunningTime(item: IOrchestratedItem): () => number {
+  private static calculateRunningTime(item: IOrchestratedItem): () => number {
     return () => {
       if (!item.startTime) {
         return null;
@@ -131,7 +128,7 @@ export class OrchestratedItemTransformer {
     };
   }
 
-  private normalizeStatus(item: IOrchestratedItem): string {
+  private static normalizeStatus(item: IOrchestratedItem): string {
     switch (item.originalStatus) {
       case 'SKIPPED':
         return 'SKIPPED';
@@ -164,12 +161,9 @@ export class OrchestratedItemTransformer {
         return 'FAILED_CONTINUE';
       default:
         if (item.originalStatus) {
-          this.$log.warn('Unrecognized status:', item.originalStatus);
+          $log.warn('Unrecognized status:', item.originalStatus);
         }
         return item.originalStatus;
     }
   }
 }
-
-export const ORCHESTRATED_ITEM_TRANSFORMER = 'spinnaker.core.orchestratedItem.transformer';
-module(ORCHESTRATED_ITEM_TRANSFORMER, []).service('orchestratedItemTransformer', OrchestratedItemTransformer);

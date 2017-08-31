@@ -6,14 +6,13 @@ import { Application } from 'core/application';
 import { ExecutionBarLabel } from 'core/pipeline/config/stages/core/ExecutionBarLabel';
 import { ExecutionMarkerIcon } from 'core/pipeline/config/stages/core/ExecutionMarkerIcon';
 import { IExecution, IExecutionStage, IExecutionStageSummary, IOrchestratedItem } from 'core/domain';
-import { ORCHESTRATED_ITEM_TRANSFORMER, OrchestratedItemTransformer } from 'core/orchestratedItem/orchestratedItem.transformer';
+import { OrchestratedItemTransformer } from 'core/orchestratedItem/orchestratedItem.transformer';
 import { PIPELINE_CONFIG_PROVIDER, PipelineConfigProvider } from 'core/pipeline/config/pipelineConfigProvider';
 
 export class ExecutionsTransformerService {
   private hiddenStageTypes = ['initialization', 'pipelineInitialization', 'waitForRequisiteCompletion', 'determineTargetServerGroup'];
 
-  constructor(private orchestratedItemTransformer: OrchestratedItemTransformer,
-              private pipelineConfig: PipelineConfigProvider) {
+  constructor(private pipelineConfig: PipelineConfigProvider) {
     'ngInject';
   }
 
@@ -212,7 +211,7 @@ export class ExecutionsTransformerService {
     this.setExecutionWindow(summary);
     this.transformStage(summary);
     this.styleStage(summary);
-    this.orchestratedItemTransformer.defineProperties(summary);
+    OrchestratedItemTransformer.defineProperties(summary);
   }
 
   private filterStages(summary: IExecutionStageSummary): void {
@@ -254,9 +253,9 @@ export class ExecutionsTransformerService {
       stage.before = stage.before || [];
       stage.after = stage.after || [];
       stage.index = index;
-      this.orchestratedItemTransformer.defineProperties(stage);
+      OrchestratedItemTransformer.defineProperties(stage);
       if (stage.tasks && stage.tasks.length) {
-        stage.tasks.forEach(t => this.orchestratedItemTransformer.addRunningTime(t));
+        stage.tasks.forEach(t => OrchestratedItemTransformer.addRunningTime(t));
       }
     });
 
@@ -303,7 +302,7 @@ export class ExecutionsTransformerService {
       }
     });
 
-    this.orchestratedItemTransformer.defineProperties(execution);
+    OrchestratedItemTransformer.defineProperties(execution);
 
     stageSummaries.forEach((summary, index) => this.transformStageSummary(summary, index));
     execution.stageSummaries = stageSummaries;
@@ -316,7 +315,6 @@ export class ExecutionsTransformerService {
 
 export const EXECUTIONS_TRANSFORMER_SERVICE = 'spinnaker.core.delivery.executionTransformer.service';
 module(EXECUTIONS_TRANSFORMER_SERVICE, [
-  ORCHESTRATED_ITEM_TRANSFORMER,
   PIPELINE_CONFIG_PROVIDER,
-]).service('executionsTransformer', (orchestratedItemTransformer: OrchestratedItemTransformer, pipelineConfig: PipelineConfigProvider) =>
-                                      new ExecutionsTransformerService(orchestratedItemTransformer, pipelineConfig));
+]).service('executionsTransformer', (pipelineConfig: PipelineConfigProvider) =>
+                                      new ExecutionsTransformerService(pipelineConfig));

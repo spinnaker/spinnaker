@@ -2,13 +2,12 @@
 
 const angular = require('angular');
 import _ from 'lodash';
+import { $log } from 'ngimport';
 
-import { ORCHESTRATED_ITEM_TRANSFORMER } from '@spinnaker/core';
+import { OrchestratedItemTransformer } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.canary.transformer', [
-  ORCHESTRATED_ITEM_TRANSFORMER,
-])
-  .service('canaryStageTransformer', function($log, orchestratedItemTransformer) {
+module.exports = angular.module('spinnaker.canary.transformer', [])
+  .service('canaryStageTransformer', function() {
 
     // adds "canary" or "baseline" to the deploy stage name when converting it to a task
     function getDeployTaskName(stage) {
@@ -25,7 +24,7 @@ module.exports = angular.module('spinnaker.canary.transformer', [
     }
 
     function getException (stage) {
-      orchestratedItemTransformer.defineProperties(stage);
+      OrchestratedItemTransformer.defineProperties(stage);
       if (stage.isFailed && _.has(stage, 'context.canary.canaryResult')) {
         let result = stage.context.canary.canaryResult;
         if (result.overallResult === 'FAILURE' && result.message) {
@@ -121,7 +120,7 @@ module.exports = angular.module('spinnaker.canary.transformer', [
       var syntheticStagesToAdd = [];
       execution.stages.forEach(function(stage) {
         if (stage.type === 'canary') {
-          orchestratedItemTransformer.defineProperties(stage);
+          OrchestratedItemTransformer.defineProperties(stage);
           stage.exceptions = [];
 
           var deployParent = _.find(execution.stages, {

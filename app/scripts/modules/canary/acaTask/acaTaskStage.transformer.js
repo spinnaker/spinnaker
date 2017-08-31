@@ -3,22 +3,18 @@
 const angular = require('angular');
 import _ from 'lodash';
 
-import { ORCHESTRATED_ITEM_TRANSFORMER } from '@spinnaker/core';
+import { OrchestratedItemTransformer } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.canary.acaTask.transformer', [
-  ORCHESTRATED_ITEM_TRANSFORMER,
-])
-  .service('acaTaskTransformer', function($log, orchestratedItemTransformer) {
-
+module.exports = angular.module('spinnaker.canary.acaTask.transformer', [])
+  .service('acaTaskTransformer', function() {
     function getException (stage) {
       return stage && stage.isFailed ? stage.failureMessage : null;
     }
 
-
     this.transform = function(application, execution) {
       execution.stages.forEach(function(stage) {
         if (stage.type === 'acaTask') {
-          orchestratedItemTransformer.defineProperties(stage);
+          OrchestratedItemTransformer.defineProperties(stage);
           stage.exceptions = [];
 
 

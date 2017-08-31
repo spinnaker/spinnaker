@@ -1,14 +1,15 @@
 import { module } from 'angular';
+import { $log, $q, $timeout } from 'ngimport';
+
 import { API_SERVICE, Api } from 'core/api/api.service';
-import { ORCHESTRATED_ITEM_TRANSFORMER, OrchestratedItemTransformer } from 'core/orchestratedItem/orchestratedItem.transformer';
+import { OrchestratedItemTransformer } from 'core/orchestratedItem/orchestratedItem.transformer';
 import { ITask } from 'core/domain';
 
 export class TaskReader {
 
   private activeStatuses: string[] = ['RUNNING', 'SUSPENDED', 'NOT_STARTED'];
 
-  public constructor(private API: Api, private $log: ng.ILogService, private $q: ng.IQService,
-                     private $timeout: ng.ITimeoutService, private orchestratedItemTransformer: OrchestratedItemTransformer) {
+  public constructor(private API: Api) {
     'ngInject';
   }
 
@@ -28,25 +29,25 @@ export class TaskReader {
   public getTask(taskId: string): ng.IPromise<ITask> {
     return this.API.one('tasks', taskId).get()
       .then((task: ITask) => {
-        this.orchestratedItemTransformer.defineProperties(task);
+        OrchestratedItemTransformer.defineProperties(task);
         if (task.steps && task.steps.length) {
-          task.steps.forEach(step => this.orchestratedItemTransformer.defineProperties(step));
+          task.steps.forEach(step => OrchestratedItemTransformer.defineProperties(step));
         }
         if (task.execution) {
-          this.orchestratedItemTransformer.defineProperties(task.execution);
+          OrchestratedItemTransformer.defineProperties(task.execution);
           if (task.execution.stages) {
-            task.execution.stages.forEach((stage: any) => this.orchestratedItemTransformer.defineProperties(stage));
+            task.execution.stages.forEach((stage: any) => OrchestratedItemTransformer.defineProperties(stage));
           }
         }
         this.setTaskProperties(task);
         return task;
       })
-      .catch((error: any) => this.$log.warn('There was an issue retrieving taskId: ', taskId, error));
+      .catch((error: any) => $log.warn('There was an issue retrieving taskId: ', taskId, error));
   }
 
   public waitUntilTaskMatches(task: ITask, closure: (task: ITask) => boolean, failureClosure?: (task: ITask) => boolean,
                               interval = 1000): ng.IPromise<ITask> {
-    const deferred = this.$q.defer<ITask>();
+    const deferred = $q.defer<ITask>();
     if (!task) {
       deferred.reject(null);
     } else if (closure(task)) {
@@ -54,7 +55,7 @@ export class TaskReader {
     } else if (failureClosure && failureClosure(task)) {
       deferred.reject(task);
     } else {
-      task.poller = this.$timeout(() => {
+      task.poller = $timeout(() => {
         this.getTask(task.id).then((updated) => {
           this.updateTask(task, updated);
           this.waitUntilTaskMatches(task, closure, failureClosure, interval)
@@ -86,9 +87,9 @@ export class TaskReader {
   }
 
   private setTaskProperties(task: ITask): void {
-    this.orchestratedItemTransformer.defineProperties(task);
+    OrchestratedItemTransformer.defineProperties(task);
     if (task.steps && task.steps.length) {
-      task.steps.forEach(step => this.orchestratedItemTransformer.defineProperties(step));
+      task.steps.forEach(step => OrchestratedItemTransformer.defineProperties(step));
     }
   }
 }
@@ -97,5 +98,4 @@ export const TASK_READ_SERVICE = 'spinnaker.core.task.read.service';
 
 module(TASK_READ_SERVICE, [
   API_SERVICE,
-  ORCHESTRATED_ITEM_TRANSFORMER,
 ]).service('taskReader', TaskReader);

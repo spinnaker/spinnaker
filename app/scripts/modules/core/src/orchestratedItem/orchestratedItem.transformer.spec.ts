@@ -1,20 +1,10 @@
-import {mock} from 'angular';
-
-import {ORCHESTRATED_ITEM_TRANSFORMER, OrchestratedItemTransformer} from './orchestratedItem.transformer';
+import { OrchestratedItemTransformer } from './orchestratedItem.transformer';
 
 describe('orchestratedItem transformer', () => {
-  let transformer: OrchestratedItemTransformer;
-
-  beforeEach(mock.module(ORCHESTRATED_ITEM_TRANSFORMER));
-
-  beforeEach(mock.inject((orchestratedItemTransformer: OrchestratedItemTransformer) => {
-    transformer = orchestratedItemTransformer;
-  }));
-
   describe('failure message extraction', () => {
 
     const getMessage = (obj: any) => {
-      transformer.defineProperties(obj);
+      OrchestratedItemTransformer.defineProperties(obj);
       return obj.failureMessage;
     };
 

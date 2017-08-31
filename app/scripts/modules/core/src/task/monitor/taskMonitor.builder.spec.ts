@@ -1,4 +1,6 @@
 import { mock } from 'angular';
+import { IModalServiceInstance } from 'angular-ui-bootstrap';
+import { $q, $timeout } from 'ngimport';
 import Spy = jasmine.Spy;
 
 import { API_SERVICE, Api } from 'core/api/api.service';
@@ -6,16 +8,12 @@ import { ITask } from 'core/domain';
 import { TASK_MONITOR_BUILDER, TaskMonitorBuilder } from 'core/task/monitor/taskMonitor.builder';
 import { OrchestratedItemTransformer } from 'core/orchestratedItem/orchestratedItem.transformer';
 import { APPLICATION_MODEL_BUILDER, ApplicationModelBuilder } from 'core/application/applicationModel.builder';
-import { IModalServiceInstance } from 'angular-ui-bootstrap';
 
 describe('Service: taskMonitorBuilder', () => {
 
   let taskMonitorBuilder: TaskMonitorBuilder,
-      $q: ng.IQService,
       $scope: ng.IScope,
-      $timeout: ng.ITimeoutService,
       $http: ng.IHttpBackendService,
-      orchestratedItemTransformer: OrchestratedItemTransformer,
       API: Api,
       applicationModelBuilder: ApplicationModelBuilder;
 
@@ -29,19 +27,13 @@ describe('Service: taskMonitorBuilder', () => {
 
   beforeEach(
     mock.inject((_taskMonitorBuilder_: TaskMonitorBuilder,
-                 _$q_: ng.IQService,
                  $rootScope: ng.IRootScopeService,
-                 _$timeout_: ng.ITimeoutService,
                  $httpBackend: ng.IHttpBackendService,
-                 _orchestratedItemTransformer_: OrchestratedItemTransformer,
                  _applicationModelBuilder_: ApplicationModelBuilder,
                  _API_: Api) => {
       taskMonitorBuilder = _taskMonitorBuilder_;
-      $q = _$q_;
       $scope = $rootScope.$new();
-      $timeout = _$timeout_;
       $http = $httpBackend;
-      orchestratedItemTransformer = _orchestratedItemTransformer_;
       applicationModelBuilder = _applicationModelBuilder_;
       API = _API_;
     })
@@ -51,7 +43,7 @@ describe('Service: taskMonitorBuilder', () => {
     it('waits for task to complete, then calls onComplete', () => {
       let completeCalled = false;
       const task: any = { id: 'a', status: 'RUNNING' };
-      orchestratedItemTransformer.defineProperties(task);
+      OrchestratedItemTransformer.defineProperties(task);
 
       const operation = () => $q.when(task);
       const monitor = taskMonitorBuilder.buildTaskMonitor({
@@ -108,7 +100,7 @@ describe('Service: taskMonitorBuilder', () => {
     it('sets error when task fails while polling', () => {
       let completeCalled = false;
       const task = { id: 'a', status: 'RUNNING' } as ITask;
-      orchestratedItemTransformer.defineProperties(task);
+      OrchestratedItemTransformer.defineProperties(task);
 
       const operation = () => $q.when(task);
       const monitor = taskMonitorBuilder.buildTaskMonitor({
