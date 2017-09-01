@@ -45,7 +45,7 @@ class AppOwnerTemplateTest extends Specification {
         not.additionalContext.events = events
 
         when:
-        def rendered = notificationTemplateEngine.build(not, NotificationTemplateEngine.Type.BODY)
+        def rendered = notificationTemplateEngine.build(not, NotificationTemplateEngine.Type.BODY).stripIndent()
 
         then:
         rendered == expected
@@ -63,15 +63,17 @@ class AppOwnerTemplateTest extends Specification {
 
         ]
         expected = '''\
-        The owner email for the following applications matches multiple users:
-        
+        <p>The owner email for the following applications matches multiple users:</p>
         user1@host.net owns...
-        - oneapp
-        
+        <ul>
+          <li>oneapp</li>
+        </ul>
+        <br/>
         user2@host.net owns...
-        - oneapp
-        - twoapp
-        
+        <ul>
+          <li>oneapp</li><li>twoapp</li>
+        </ul>
+        <br/>
         '''.stripIndent()
     }
 
@@ -100,15 +102,17 @@ class AppOwnerTemplateTest extends Specification {
 
         ]
         expected = '''\
-        The following users are ex-employees but still own applications. We could not identify managers or team members to reassign to.
-        
-        User 1<user1@host.net> owns...
-        - oneapp
-        
-        User 2<user2@host.net> owns...
-        - oneapp
-        - twoapp
-        
+        <p>The following users are ex-employees but still own applications. We could not identify managers or team members to reassign to.</p>
+        User 1 (user1@host.net) owns...
+        <ul>
+          <li>oneapp</li>
+        </ul>
+        <br/>
+        User 2 (user2@host.net) owns...
+        <ul>
+          <li>oneapp</li><li>twoapp</li>
+        </ul>
+        <br/>
         '''.stripIndent()
     }
 
@@ -139,17 +143,19 @@ class AppOwnerTemplateTest extends Specification {
 
         ]
         expected = '''\
-        The following users are ex-employees but still own applications. We have identified possible managers or team members to reassign to.
-        
-        User 1<user1@host.net> owns...
-        - oneapp
-        Suggest reassigning to Mgr 1<manager1@host.net>
-        
-        User 2<user2@host.net> owns...
-        - oneapp
-        - twoapp
-        Suggest reassigning to Mgr 2<manager2@host.net>
-        
+        <p>The following users are ex-employees but still own applications. We have identified possible managers or team members to reassign to.</p>
+        User 1 (user1@host.net) owns...
+        <ul>
+          <li>oneapp</li>
+        </ul>
+        <p>Suggest reassigning to Mgr 1 (manager1@host.net)</p>
+        <br/>
+        User 2 (user2@host.net) owns...
+        <ul>
+          <li>oneapp</li><li>twoapp</li>
+        </ul>
+        <p>Suggest reassigning to Mgr 2 (manager2@host.net)</p>
+        <br/>
         '''.stripIndent()
     }
 
@@ -178,15 +184,17 @@ class AppOwnerTemplateTest extends Specification {
 
         ]
         expected = '''\
-        The following email addresses are not recognized employee or group addresses but own applications.
-        
+        <p>The following email addresses are not recognized employee or group addresses but own applications.</p>
         user1@host.net owns...
-        - oneapp
-        
+        <ul>
+          <li>oneapp</li>
+        </ul>
+        <br/>
         user2@host.net owns...
-        - oneapp
-        - twoapp
-        
+        <ul>
+          <li>oneapp</li><li>twoapp</li>
+        </ul>
+        <br/>
         '''.stripIndent()
     }
 
@@ -215,15 +223,17 @@ class AppOwnerTemplateTest extends Specification {
 
         ]
         expected = '''\
-        The following applications have been reassigned to you as their owner is no longer a Netflix employee and you are the current manager of their team.
-        
-        User 1<user1@host.net> owned...
-        - oneapp
-        
-        User 2<user2@host.net> owned...
-        - oneapp
-        - twoapp
-        
+        <p>The following applications have been reassigned to you as their owner is no longer a Netflix employee and you are the current manager of their team.</p>
+        User 1 (user1@host.net) owned...
+        <ul>
+          <li>oneapp</li>
+        </ul>
+        <br/>
+        User 2 (user2@host.net) owned...
+        <ul>
+          <li>oneapp</li><li>twoapp</li>
+        </ul>
+        <br/>
         '''.stripIndent()
     }
     Notification buildFullNotification() {
