@@ -28,4 +28,6 @@ dependencies {
   compile spinnaker.dependency("korkJedisTest")
 
   compile 'com.google.cloud:google-cloud-pubsub:0.21.1-beta'
+  // TODO(jacobkiefer): Add jinjava to spinnaker-dependencies.
+  compile 'com.hubspot.jinjava:jinjava:2.2.3'
 }

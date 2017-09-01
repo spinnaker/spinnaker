@@ -18,4 +18,5 @@ dependencies {
   spinnaker.group("lombok")
 
   compile spinnaker.dependency("kork")
+  compile spinnaker.dependency("korkArtifacts")
 }

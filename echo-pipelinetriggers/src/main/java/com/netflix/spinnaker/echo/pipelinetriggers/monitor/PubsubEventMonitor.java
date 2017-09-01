@@ -44,7 +44,6 @@ public class PubsubEventMonitor extends TriggerMonitor {
 
   public static final String PUBSUB_TRIGGER_TYPE = "pubsub";
 
-  // This seems like a bad idea -- why does this class need its own mapper?
   private final ObjectMapper objectMapper = new ObjectMapper();
 
   private final PipelineCache pipelineCache;
@@ -64,7 +63,6 @@ public class PubsubEventMonitor extends TriggerMonitor {
       return;
     }
 
-    // TODO(jacobkiefer): Translate pubsub message into artifacts via Jinja here.
     PubsubEvent pubsubEvent = objectMapper.convertValue(event, PubsubEvent.class);
 
     Observable.just(pubsubEvent)
@@ -83,6 +81,7 @@ public class PubsubEventMonitor extends TriggerMonitor {
     PubsubEvent pubsubEvent = (PubsubEvent) event;
     MessageDescription description = pubsubEvent.getContent().getMessageDescription();
     return trigger -> pipeline
+        .withArtifacts(description.getArtifacts())
         .withTrigger(trigger.atMessageDescription(description.getSubscriptionName(), description.getPubsubType().toString()));
   }
 

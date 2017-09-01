@@ -30,7 +30,9 @@ import com.netflix.spinnaker.echo.model.pubsub.MessageDescription;
 import com.netflix.spinnaker.echo.model.pubsub.PubsubType;
 import com.netflix.spinnaker.echo.pubsub.PubsubMessageHandler;
 import com.netflix.spinnaker.echo.pubsub.model.PubsubSubscriber;
+import com.netflix.spinnaker.echo.pubsub.utils.MessageArtifactTranslator;
 import com.netflix.spinnaker.echo.pubsub.utils.NodeIdentity;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.threeten.bp.Duration;
@@ -73,9 +75,10 @@ public class GooglePubsubSubscriber implements PubsubSubscriber {
                                                        String project,
                                                        String jsonPath,
                                                        Integer ackDeadlineSeconds,
-                                                       PubsubMessageHandler pubsubMessageHandler) {
+                                                       PubsubMessageHandler pubsubMessageHandler,
+                                                       String templatePath) {
     Subscriber subscriber;
-    GooglePubsubMessageReceiver messageReceiver = new GooglePubsubMessageReceiver(ackDeadlineSeconds, formatSubscriptionName(project, name), pubsubMessageHandler);
+    GooglePubsubMessageReceiver messageReceiver = new GooglePubsubMessageReceiver(ackDeadlineSeconds, formatSubscriptionName(project, name), pubsubMessageHandler, templatePath);
 
     if (jsonPath != null && !jsonPath.isEmpty()) {
       Credentials credentials = null;
@@ -93,10 +96,11 @@ public class GooglePubsubSubscriber implements PubsubSubscriber {
       subscriber = Subscriber.defaultBuilder(SubscriptionName.create(project, name), messageReceiver).build();
     }
 
-    subscriber.addListener(new GooglePubsubFailureHandler(), MoreExecutors.directExecutor());
+    subscriber.addListener(new GooglePubsubFailureHandler(formatSubscriptionName(project, name)), MoreExecutors.directExecutor());
 
     return new GooglePubsubSubscriber(name, project, subscriber);
   }
+
 
   private static class GooglePubsubMessageReceiver implements MessageReceiver {
 
@@ -108,12 +112,16 @@ public class GooglePubsubSubscriber implements PubsubSubscriber {
 
     private NodeIdentity identity = new NodeIdentity();
 
+    private MessageArtifactTranslator messageArtifactTranslator;
+
     public GooglePubsubMessageReceiver(Integer ackDeadlineSeconds,
                                        String subscriptionName,
-                                       PubsubMessageHandler pubsubMessageHandler) {
+                                       PubsubMessageHandler pubsubMessageHandler,
+                                       String templatePath) {
       this.ackDeadlineSeconds = ackDeadlineSeconds;
       this.subscriptionName = subscriptionName;
       this.pubsubMessageHandler = pubsubMessageHandler;
+      this.messageArtifactTranslator = new MessageArtifactTranslator(templatePath);
     }
 
     @Override
@@ -127,16 +135,21 @@ public class GooglePubsubSubscriber implements PubsubSubscriber {
           .pubsubType(pubsubType)
           .ackDeadlineMillis(5 * TimeUnit.SECONDS.toMillis(ackDeadlineSeconds)) // Set a high upper bound on message processing time.
           .retentionDeadlineMillis(TimeUnit.DAYS.toMillis(7)) // Expire key after max retention time, which is 7 days.
+          .artifacts(messageArtifactTranslator.parseArtifacts(messagePayload))
           .build();
       GoogleMessageAcknowledger acknowledger = new GoogleMessageAcknowledger(consumer);
       pubsubMessageHandler.handleMessage(description, acknowledger, identity.getIdentity());
     }
   }
 
+  @AllArgsConstructor
   private static class GooglePubsubFailureHandler extends ApiService.Listener {
+
+    private String subscriptionName;
+
     @Override
     public void failed(ApiService.State from, Throwable failure) {
-      log.error("Google Pubsub listener failure caused by {}", failure.getMessage());
+      log.error("Google Pubsub listener for subscription name {} failure caused by {}", subscriptionName, failure.getMessage());
     }
   }
 }

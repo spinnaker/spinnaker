@@ -55,12 +55,13 @@ public class GooglePubsubConfig {
       String name = subscription.getName();
       String project = subscription.getProject();
       String jsonPath = subscription.getJsonPath();
+      String templatePath = subscription.getTemplatePath();
 
       log.info("Bootstrapping Google Pubsub Subscriber listening to subscription: {} in project: {}",
           subscription.getName(),
           subscription.getProject());
       GooglePubsubSubscriber subscriber = GooglePubsubSubscriber
-          .buildSubscriber(name, project, jsonPath, subscription.getAckDeadlineSeconds(), pubsubMessageHandler);
+          .buildSubscriber(name, project, jsonPath, subscription.getAckDeadlineSeconds(), pubsubMessageHandler, templatePath);
 
       newSubscribers.add(subscriber);
     });

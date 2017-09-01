@@ -47,5 +47,7 @@ public class GooglePubsubProperties {
 
     // Not required since subscriptions can be public.
     private String jsonPath;
+
+    private String templatePath;
   }
 }
