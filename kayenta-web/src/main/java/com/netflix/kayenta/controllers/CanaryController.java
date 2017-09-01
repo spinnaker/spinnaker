@@ -86,6 +86,7 @@ public class CanaryController {
     }
   }
 
+  // TODO(duftler): Allow for user to be passed in.
   @ApiOperation(value = "Initiate a canary pipeline")
   @RequestMapping(consumes = "application/json", method = RequestMethod.POST)
   public String initiateCanary(@RequestParam(required = false) final String metricsAccountName,
