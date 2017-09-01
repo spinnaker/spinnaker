@@ -99,8 +99,8 @@ public class RegionScopedV3TitusClient implements TitusClient {
   public Job findJobByName(String jobName) {
     JobQuery.Builder jobQuery = JobQuery.newBuilder()
       .putFilteringCriteria("jobType", "SERVICE")
-      .putFilteringCriteria("labels", "source:spinnaker,name:" + jobName)
-      .putFilteringCriteria("labels.op", "and");
+      .putFilteringCriteria("attributes", "source:spinnaker,name:" + jobName)
+      .putFilteringCriteria("attributes.op", "and");
     return getJobs(jobQuery).get(0);
   }
 

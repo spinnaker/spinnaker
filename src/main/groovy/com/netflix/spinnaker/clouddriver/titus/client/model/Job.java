@@ -242,6 +242,7 @@ public class Job {
         instancesMin = batchJobSpec.getSize();
         instancesMax = batchJobSpec.getSize();
         instancesDesired = batchJobSpec.getSize();
+        instances = batchJobSpec.getSize();
         runtimeLimitSecs = (int)batchJobSpec.getRuntimeLimitSec();
         retries = batchJobSpec.getRetryPolicy().getImmediate().getRetries();
       }
@@ -250,6 +251,7 @@ public class Job {
         type = "service";
         ServiceJobSpec serviceSpec = grpcJob.getJobDescriptor().getService();
         inService = serviceSpec.getEnabled();
+        instances = serviceSpec.getCapacity().getDesired();
         instancesMin = serviceSpec.getCapacity().getMin();
         instancesMax = serviceSpec.getCapacity().getMax();
         instancesDesired = serviceSpec.getCapacity().getDesired();
