@@ -160,6 +160,43 @@ module.exports = angular.module('spinnaker.instance.detail.titus.controller', [
       });
     };
 
+    this.terminateInstanceAndShrinkServerGroup = function terminateInstanceAndShrinkServerGroup() {
+      var instance = $scope.instance;
+
+      var taskMonitor = {
+        application: app,
+        title: 'Terminating ' + instance.instanceId + ' and shrinking server group',
+        onTaskComplete: function() {
+          if ($state.includes('**.instanceDetails', {instanceId: instance.instanceId})) {
+            $state.go('^');
+          }
+        }
+      };
+
+      var submitMethod = function () {
+        return instanceWriter.terminateInstancesAndShrinkServerGroups(
+          [{
+            cloudProvider: instance.cloudProvider,
+            instanceIds: [instance.id],
+            account: instance.account,
+            region: instance.region,
+            serverGroup: instance.serverGroup,
+            instances: [instance]
+          }],
+          app
+        );
+      };
+
+      confirmationModalService.confirm({
+        header: 'Really terminate ' + instance.id + ' and shrink ' + instance.serverGroup + '?',
+        buttonText: 'Terminate ' + instance.id + ' and shrink ' + instance.serverGroup,
+        account: instance.account,
+        provider: 'titus',
+        taskMonitorConfig: taskMonitor,
+        submitMethod: submitMethod
+      });
+    };
+
     this.registerInstanceWithLoadBalancer = function registerInstanceWithLoadBalancer() {
       // Do nothing
     };
