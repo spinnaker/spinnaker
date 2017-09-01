@@ -17,3 +17,9 @@ The following assumes you are in the root of the Kayenta repo:
 ```
 R CMD Rserve --RS-conf gradle/Rserve.conf --no-save
 ```
+
+or alternatively (especially when running on trusty):
+
+```
+./gradle/start-rserve.sh
+```
