@@ -16,18 +16,26 @@
 
 package com.netflix.spinnaker.orca.kayenta.pipeline
 
+import com.netflix.spinnaker.orca.CancellableStage
+import com.netflix.spinnaker.orca.kayenta.KayentaService
 import com.netflix.spinnaker.orca.kayenta.tasks.MonitorCanaryTask
 import com.netflix.spinnaker.orca.kayenta.tasks.RunCanaryTask
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.TaskNode
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import groovy.util.logging.Slf4j
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component
-class RunCanaryPipelineStage implements StageDefinitionBuilder {
+@Slf4j
+class RunCanaryPipelineStage implements StageDefinitionBuilder, CancellableStage {
 
   public static final STAGE_TYPE = "runCanary"
+
+  @Autowired
+  KayentaService kayentaService
 
   @Override
   <T extends Execution<T>> void taskGraph(Stage<T> stage, TaskNode.Builder builder) {
@@ -39,5 +47,21 @@ class RunCanaryPipelineStage implements StageDefinitionBuilder {
   @Override
   String getType() {
     STAGE_TYPE
+  }
+
+  @Override
+  CancellableStage.Result cancel(Stage stage) {
+    Map<String, Object> context = stage.getContext()
+    String canaryPipelineExecutionId = (String)context.get("canaryPipelineExecutionId")
+
+    log.info("Cancelling stage (stageId: $stage.id: executionId: $stage.execution.id, canaryPipelineExecutionId: $canaryPipelineExecutionId, context: $stage.context)")
+
+    try {
+      kayentaService.cancelPipelineExecution(canaryPipelineExecutionId, "")
+    } catch (Exception e) {
+      log.error("Failed to cancel stage (stageId: $stage.id, executionId: $stage.execution.id), e: $e.message", e)
+    }
+
+    return new CancellableStage.Result(stage, [:])
   }
 }

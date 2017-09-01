@@ -37,4 +37,7 @@ interface KayentaService {
 
   @GET("/pipelines/{executionId}")
   Pipeline getPipelineExecution(@Path("executionId") String executionId)
+
+  @PUT("/pipelines/{executionId}/cancel")
+  Map cancelPipelineExecution(@Path("executionId") String executionId, @Body String ignored)
 }

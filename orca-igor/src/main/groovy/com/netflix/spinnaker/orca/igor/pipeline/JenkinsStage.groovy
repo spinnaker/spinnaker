@@ -76,7 +76,7 @@ class JenkinsStage implements StageDefinitionBuilder, RestartableStage, Cancella
     try {
       stopJenkinsJobTask.execute(stage)
     } catch (Exception e) {
-      log.info("Failed to cancel stage (stageId: ${stage.id}, executionId: ${stage.execution.id}), e: ${e.message}")
+      log.error("Failed to cancel stage (stageId: ${stage.id}, executionId: ${stage.execution.id}), e: ${e.message}", e)
     }
 
     return new CancellableStage.Result(stage, [:])
