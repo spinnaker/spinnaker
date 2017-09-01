@@ -35,6 +35,7 @@ class StageData {
   Boolean useSourceCapacity
   Boolean preferSourceCapacity
   Source source
+  long delayBeforeDisableSec
 
   String getCluster() {
     def builder = new AutoScalingGroupNameBuilder()

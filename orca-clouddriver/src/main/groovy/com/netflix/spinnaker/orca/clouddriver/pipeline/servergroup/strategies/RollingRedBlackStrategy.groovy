@@ -6,6 +6,7 @@ import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Deter
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroupResolver
 import com.netflix.spinnaker.orca.kato.pipeline.support.SourceResolver
+import com.netflix.spinnaker.orca.pipeline.WaitStage
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner
@@ -26,6 +27,9 @@ class RollingRedBlackStrategy implements Strategy, ApplicationContextAware {
 
   @Autowired
   ResizeServerGroupStage resizeServerGroupStage
+
+  @Autowired
+  WaitStage waitStage
 
   @Autowired
   DetermineTargetServerGroupStage determineTargetServerGroupStage
@@ -115,6 +119,18 @@ class RollingRedBlackStrategy implements Strategy, ApplicationContextAware {
           remainingEnabledServerGroups: 1,
           preferLargerOverNewer       : false
       ]
+
+      if(stageData?.delayBeforeDisableSec) {
+        def waitContext = [waitTime: stageData?.delayBeforeDisableSec]
+        stages << newStage(
+          stage.execution,
+          waitStage.type,
+          "wait",
+          waitContext,
+          stage,
+          SyntheticStageOwner.STAGE_AFTER
+        )
+      }
 
       stages << newStage(
           stage.execution,

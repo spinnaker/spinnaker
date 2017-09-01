@@ -20,6 +20,7 @@ import com.netflix.spinnaker.orca.clouddriver.pipeline.cluster.DisableClusterSta
 import com.netflix.spinnaker.orca.clouddriver.pipeline.cluster.ScaleDownClusterStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.cluster.ShrinkClusterStage
 import com.netflix.spinnaker.orca.kato.pipeline.support.StageData
+import com.netflix.spinnaker.orca.pipeline.WaitStage
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner
@@ -42,6 +43,9 @@ class RedBlackStrategy implements Strategy, ApplicationContextAware {
 
   @Autowired
   DisableClusterStage disableClusterStage
+
+  @Autowired
+  WaitStage waitStage
 
   ApplicationContext applicationContext
 
@@ -75,6 +79,18 @@ class RedBlackStrategy implements Strategy, ApplicationContextAware {
         shrinkClusterStage.type,
         "shrinkCluster",
         shrinkContext,
+        stage,
+        SyntheticStageOwner.STAGE_AFTER
+      )
+    }
+
+    if(stageData?.delayBeforeDisableSec) {
+      def waitContext = [waitTime: stageData?.delayBeforeDisableSec]
+      stages << newStage(
+        stage.execution,
+        waitStage.type,
+        "wait",
+        waitContext,
         stage,
         SyntheticStageOwner.STAGE_AFTER
       )
