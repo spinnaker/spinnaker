@@ -177,7 +177,7 @@ class KubernetesServerGroupCachingAgent extends KubernetesCachingAgent<Kubernete
 
   @Override
   boolean handles(OnDemandAgent.OnDemandType type, String cloudProvider) {
-    OnDemandAgent.OnDemandType.ServerGroup == type && cloudProvider == kubernetesCloudProvider.id
+    OnDemandAgent.OnDemandType.ServerGroup == type && cloudProvider == KubernetesCloudProvider.ID
   }
 
   List<ReplicationController> loadReplicationControllers() {

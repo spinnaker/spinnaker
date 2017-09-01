@@ -159,7 +159,7 @@ class KubernetesSecurityGroupCachingAgent extends KubernetesCachingAgent<Kuberne
 
   @Override
   boolean handles(OnDemandAgent.OnDemandType type, String cloudProvider) {
-    ON_DEMAND_TYPE == type && cloudProvider == kubernetesCloudProvider.id
+    ON_DEMAND_TYPE == type && cloudProvider == KubernetesCloudProvider.ID
   }
 
   List<Ingress> loadIngresses() {

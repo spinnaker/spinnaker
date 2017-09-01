@@ -47,6 +47,7 @@ class KubernetesInstanceCachingAgentSpec extends Specification {
     namedCrededentialsMock.getCredentials() >> credentials
     namedCrededentialsMock.getName() >> accountName
     providerCache = Mock(ProviderCache)
+    credentials.getDeclaredNamespaces() >> [namespace]
     agent = new KubernetesInstanceCachingAgent(namedCrededentialsMock, mapper, null, 0, 1)
   }
 
@@ -61,7 +62,6 @@ class KubernetesInstanceCachingAgentSpec extends Specification {
     def data = agent.loadData(providerCache)
 
     then:
-    1 * credentials.getDeclaredNamespaces() >> [namespace]
     1 * apiAdaptor.getPods(namespace) >> [pod]
     data.cacheResults[Keys.Namespace.INSTANCES.ns].size() == 1
     data.cacheResults[Keys.Namespace.INSTANCES.ns][0].attributes.containsKey("cacheExpiry")

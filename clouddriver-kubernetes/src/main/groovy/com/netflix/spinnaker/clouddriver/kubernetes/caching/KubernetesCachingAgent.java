@@ -53,6 +53,8 @@ public abstract class KubernetesCachingAgent<C extends KubernetesCredentials> im
 
     this.agentIndex = agentIndex;
     this.agentCount = agentCount;
+
+    reloadNamespaces();
   }
 
   @Override

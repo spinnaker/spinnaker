@@ -158,7 +158,7 @@ class KubernetesLoadBalancerCachingAgent extends KubernetesCachingAgent<Kubernet
 
   @Override
   boolean handles(OnDemandAgent.OnDemandType type, String cloudProvider) {
-    OnDemandAgent.OnDemandType.LoadBalancer == type && cloudProvider == kubernetesCloudProvider.id
+    OnDemandAgent.OnDemandType.LoadBalancer == type && cloudProvider == KubernetesCloudProvider.ID
   }
 
   List<Service> loadServices() {
