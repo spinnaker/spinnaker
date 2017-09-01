@@ -67,6 +67,9 @@ class X509AuthenticationUserDetailsService implements AuthenticationUserDetailsS
     }
 
     def roles = []
+    if (email) {
+      roles.add(email)
+    }
     if (rolesExtractor) {
       roles += rolesExtractor.fromCertificate(x509)
     }
