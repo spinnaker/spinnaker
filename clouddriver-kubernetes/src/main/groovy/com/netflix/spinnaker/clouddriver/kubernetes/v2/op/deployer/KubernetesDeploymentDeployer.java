@@ -18,18 +18,25 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.op.deployer;
 
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
-import io.kubernetes.client.models.V1beta1ReplicaSet;
+import io.kubernetes.client.models.AppsV1beta1Deployment;
 import org.springframework.stereotype.Component;
 
 @Component
-public class KubernetesReplicaSetDeployer extends KubernetesDeployer<V1beta1ReplicaSet> {
+public class KubernetesDeploymentDeployer extends KubernetesDeployer<AppsV1beta1Deployment> {
   @Override
-  Class<V1beta1ReplicaSet> getDeployedClass() {
-    return V1beta1ReplicaSet.class;
+  Class<AppsV1beta1Deployment> getDeployedClass() {
+    return AppsV1beta1Deployment.class;
   }
 
   @Override
-  void deploy(KubernetesV2Credentials credentials, V1beta1ReplicaSet resource) {
-    credentials.createReplicaSet(resource);
+  void deploy(KubernetesV2Credentials credentials, AppsV1beta1Deployment resource) {
+    String namespace = resource.getMetadata().getNamespace();
+    String name = resource.getMetadata().getName();
+    AppsV1beta1Deployment current = credentials.readDeployment(namespace, name);
+    if (current != null) {
+      credentials.patchDeployment(current, resource);
+    } else {
+      credentials.createDeployment(resource);
+    }
   }
 }

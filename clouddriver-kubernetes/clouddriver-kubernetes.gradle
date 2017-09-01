@@ -9,4 +9,5 @@ dependencies {
 
   // TODO(lwander) move to spinnaker-dependencies when library stabilizes
   compile 'io.kubernetes:client-java-util:0.1'
+  compile 'com.github.fge:json-patch:1.9'
 }

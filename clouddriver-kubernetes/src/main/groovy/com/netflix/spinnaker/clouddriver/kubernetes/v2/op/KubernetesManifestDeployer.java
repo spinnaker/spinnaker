@@ -24,6 +24,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesAug
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesManifestOperationDescription;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.deployer.KubernetesDeployer;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.deployer.KubernetesDeploymentDeployer;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.deployer.KubernetesIngressDeployer;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.deployer.KubernetesReplicaSetDeployer;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.deployer.KubernetesServiceDeployer;
@@ -46,6 +47,9 @@ public class KubernetesManifestDeployer implements AtomicOperation<DeploymentRes
 
   @Autowired
   private KubernetesIngressDeployer ingressDeployer;
+
+  @Autowired
+  private KubernetesDeploymentDeployer deploymentDeployer;
 
   public KubernetesManifestDeployer(KubernetesManifestOperationDescription description) {
     this.description = description;
@@ -78,6 +82,8 @@ public class KubernetesManifestDeployer implements AtomicOperation<DeploymentRes
         return serviceDeployer;
       case INGRESS:
         return ingressDeployer;
+      case DEPLOYMENT:
+        return deploymentDeployer;
       default:
         throw new IllegalArgumentException("Kind " + kind + " is not supported yet");
     }

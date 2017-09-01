@@ -30,6 +30,6 @@ public class KubernetesServiceDeployer extends KubernetesDeployer<V1Service> {
 
   @Override
   void deploy(KubernetesV2Credentials credentials, V1Service resource) {
-    credentials.deployService(resource);
+    credentials.createService(resource);
   }
 }

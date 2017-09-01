@@ -96,7 +96,7 @@ metadata:
     def result = deployOp.operate([])
 
     then:
-    1 * credentialsMock.deployReplicaSet(_) >> null
+    1 * credentialsMock.createReplicaSet(_) >> null
     result.serverGroupNames == ["$NAMESPACE:$KIND/$NAME"]
   }
 
@@ -110,7 +110,7 @@ metadata:
     def result = deployOp.operate([])
 
     then:
-    1 * credentialsMock.deployReplicaSet(_) >> null
+    1 * credentialsMock.createReplicaSet(_) >> null
     result.serverGroupNames == ["$BACKUP_NAMESPACE:$KIND/$NAME"]
   }
 }

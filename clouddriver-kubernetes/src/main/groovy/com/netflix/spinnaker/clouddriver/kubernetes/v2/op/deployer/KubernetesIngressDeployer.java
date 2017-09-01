@@ -19,7 +19,6 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.op.deployer;
 
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
 import io.kubernetes.client.models.V1beta1Ingress;
-import io.kubernetes.client.models.V1beta1ReplicaSet;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -31,6 +30,6 @@ public class KubernetesIngressDeployer extends KubernetesDeployer<V1beta1Ingress
 
   @Override
   void deploy(KubernetesV2Credentials credentials, V1beta1Ingress resource) {
-    credentials.deployIngress(resource);
+    credentials.createIngress(resource);
   }
 }
