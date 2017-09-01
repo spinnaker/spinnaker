@@ -48,6 +48,14 @@ window.spinnakerSettings = {
       },
       useAmiBlockDeviceMappings: false,
     },
+    ecs: {
+      defaults: {
+        account: 'test',
+        region: 'us-east-1',
+        iamRole: 'BaseIAMRole',
+      },
+      defaultSecurityGroups: [],
+    },
     gce: {
       defaults: {
         account: 'my-google-account',
