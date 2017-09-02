@@ -35,7 +35,7 @@ export class AmazonLoadBalancerDataUtils {
         const allTargetGroups = flatten(loadBalancers.map((lb) => lb.targetGroups || []));
         const targetGroup = allTargetGroups.find((tg) => tg.name === targetGroupName);
         return this.buildTargetGroup(targetGroup, serverGroup);
-      });
+      }).filter((tg) => tg);
       return targetGroups;
     });
   }
