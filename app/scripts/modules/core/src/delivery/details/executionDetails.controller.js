@@ -127,8 +127,10 @@ module.exports = angular.module('spinnaker.executionDetails.controller', [
     };
 
     this.updateStage = (stageSummary) => {
-      $scope.stageSummary = stageSummary;
-      $scope.stage = stageSummary.stages[getCurrentStep()] || stageSummary.masterStage;
+      if (stageSummary) {
+        $scope.stageSummary = stageSummary;
+        $scope.stage = stageSummary.stages[getCurrentStep()] || stageSummary.masterStage;
+      }
     };
 
     this.setSourceUrls = () => {
