@@ -23,6 +23,7 @@ public class S3BucketProperties {
   private String proxyHost;
   private String proxyPort;
   private String proxyProtocol;
+  private Boolean versioning = true; // enabled by default
 
   public String getBucket() {
     return bucket;
@@ -71,4 +72,8 @@ public class S3BucketProperties {
   public void setProxyProtocol(String proxyProtocol) {
     this.proxyProtocol = proxyProtocol;
   }
+
+  public Boolean getVersioning() { return versioning; }
+
+  public void setVersioning(Boolean versioning) { this.versioning = versioning; }
 }

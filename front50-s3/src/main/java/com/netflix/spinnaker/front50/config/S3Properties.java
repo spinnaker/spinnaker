@@ -93,4 +93,13 @@ public class S3Properties extends S3BucketProperties {
     }
     return super.getProxyProtocol();
   }
+
+  @Override
+  public Boolean getVersioning() {
+    if (isFailoverEnabled()) {
+      return failover.getVersioning();
+    }
+
+    return super.getVersioning();
+  }
 }

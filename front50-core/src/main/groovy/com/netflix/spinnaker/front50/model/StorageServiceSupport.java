@@ -18,6 +18,7 @@ package com.netflix.spinnaker.front50.model;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.google.common.collect.Lists;
 import com.netflix.hystrix.exception.HystrixRuntimeException;
 import com.netflix.spectator.api.Counter;
 import com.netflix.spectator.api.Registry;
@@ -163,7 +164,11 @@ public abstract class StorageServiceSupport<T extends Timestamped> {
   }
 
   public Collection<T> history(String id, int maxResults) {
-    return service.listObjectVersions(objectType, id, maxResults);
+    if (service.supportsVersioning()) {
+      return service.listObjectVersions(objectType, id, maxResults);
+    } else {
+      return Lists.newArrayList(findById(id));
+    }
   }
 
   /**

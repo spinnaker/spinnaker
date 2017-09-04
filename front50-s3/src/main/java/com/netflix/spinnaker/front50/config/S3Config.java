@@ -75,7 +75,9 @@ public class S3Config extends CommonStorageServiceDAOConfig {
     ObjectMapper awsObjectMapper = new ObjectMapper();
     AmazonObjectMapperConfigurer.configure(awsObjectMapper);
 
-    S3StorageService service = new S3StorageService(awsObjectMapper, amazonS3, s3Properties.getBucket(), s3Properties.getRootFolder(), s3Properties.isFailoverEnabled(), s3Properties.getRegion());
+    S3StorageService service = new S3StorageService(awsObjectMapper, amazonS3, s3Properties.getBucket(),
+                                                    s3Properties.getRootFolder(), s3Properties.isFailoverEnabled(),
+                                                    s3Properties.getRegion(), s3Properties.getVersioning());
     service.ensureBucketExists();
     return service;
   }

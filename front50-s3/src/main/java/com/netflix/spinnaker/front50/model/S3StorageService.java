@@ -43,19 +43,22 @@ public class S3StorageService implements StorageService {
   private final String rootFolder;
   private final Boolean readOnlyMode;
   private final String region;
+  private final Boolean versioning;
 
   public S3StorageService(ObjectMapper objectMapper,
                           AmazonS3 amazonS3,
                           String bucket,
                           String rootFolder,
                           Boolean readOnlyMode,
-                          String region) {
+                          String region,
+                          Boolean versioning) {
     this.objectMapper = objectMapper;
     this.amazonS3 = amazonS3;
     this.bucket = bucket;
     this.rootFolder = rootFolder;
     this.readOnlyMode = readOnlyMode;
     this.region = region;
+    this.versioning = versioning;
   }
 
   @Override
@@ -73,14 +76,16 @@ public class S3StorageService implements StorageService {
           amazonS3.createBucket(bucket, region);
         }
 
-        log.info("Enabling versioning of the S3 bucket " + bucket);
-        BucketVersioningConfiguration configuration =
+        if (versioning) {
+          log.info("Enabling versioning of the S3 bucket " + bucket);
+          BucketVersioningConfiguration configuration =
             new BucketVersioningConfiguration().withStatus("Enabled");
 
-        SetBucketVersioningConfigurationRequest setBucketVersioningConfigurationRequest =
+          SetBucketVersioningConfigurationRequest setBucketVersioningConfigurationRequest =
             new SetBucketVersioningConfigurationRequest(bucket, configuration);
 
-        amazonS3.setBucketVersioningConfiguration(setBucketVersioningConfigurationRequest);
+          amazonS3.setBucketVersioningConfiguration(setBucketVersioningConfigurationRequest);
+        }
 
       } else {
         throw e;
@@ -90,7 +95,7 @@ public class S3StorageService implements StorageService {
 
   @Override
   public boolean supportsVersioning() {
-    return true;
+    return versioning;
   }
 
   @Override
