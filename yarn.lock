@@ -6,9 +6,9 @@
   version "0.0.5"
   resolved "https://registry.yarnpkg.com/@spinnaker/amazon/-/amazon-0.0.5.tgz#0121bf83ef28e68ee938ccae5e66c996420a675d"
 
-"@spinnaker/core@^0.0.57":
-  version "0.0.57"
-  resolved "https://registry.yarnpkg.com/@spinnaker/core/-/core-0.0.57.tgz#6516fdb7a19bf30a8968c717498ba21f8a7b8bbc"
+"@spinnaker/core@^0.0.59":
+  version "0.0.59"
+  resolved "https://registry.yarnpkg.com/@spinnaker/core/-/core-0.0.59.tgz#81786329ebf176f62a89ceacfb3014e3b3168b4d"
 
 "@spinnaker/google@^0.0.1":
   version "0.0.1"
