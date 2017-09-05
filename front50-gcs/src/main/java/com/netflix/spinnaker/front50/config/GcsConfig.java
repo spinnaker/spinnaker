@@ -110,11 +110,13 @@ public class GcsConfig extends CommonStorageServiceDAOConfig {
   @Override
   public ApplicationPermissionDAO applicationPermissionDAO(StorageService storageService,
                                                            StorageServiceConfigurationProperties storageServiceConfigurationProperties,
+                                                           ObjectKeyLoader objectKeyLoader,
                                                            Registry registry) {
     GcsStorageService service = googleCloudStorageService(ApplicationPermissionDAO.DEFAULT_DATA_FILENAME, gcsProperties);
     return new DefaultApplicationPermissionDAO(
       service,
       Schedulers.from(Executors.newFixedThreadPool(storageServiceConfigurationProperties.getApplicationPermission().getThreadPool())),
+      objectKeyLoader,
       storageServiceConfigurationProperties.getApplicationPermission().getRefreshMs(),
       storageServiceConfigurationProperties.getApplicationPermission().getShouldWarmCache(),
       registry
