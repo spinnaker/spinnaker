@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
  * INFO unresolved value returned that doesn't throw
  */
 public class ExpressionEvaluationSummary {
-  private Map<String, List<Result>> expressionResult;
+  private Map<String, Set<Result>> expressionResult;
   private Set<String> attempts;
   private AtomicInteger failureCount;
   private AtomicInteger totalEvaluated;
@@ -47,12 +47,12 @@ public class ExpressionEvaluationSummary {
     return failureCount.get();
   }
 
-  public Map<String, List<Result>> getExpressionResult() {
+  public Map<String, Set<Result>> getExpressionResult() {
     return expressionResult;
   }
 
   public void add(String escapedExpression, Result.Level level, String description, Class<?> exceptionType) {
-    List<Result> messages = expressionResult.getOrDefault(escapedExpression, new ArrayList<>());
+    Set<Result> messages = expressionResult.getOrDefault(escapedExpression, new HashSet<>());
     messages.add(new Result(level, System.currentTimeMillis(), description, exceptionType));
     expressionResult.put(escapedExpression, messages);
     failureCount.incrementAndGet();
@@ -135,6 +135,26 @@ public class ExpressionEvaluationSummary {
         ", timestamp=" + timestamp +
         ", level=" + level +
         '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) return true;
+      if (o == null || getClass() != o.getClass()) return false;
+
+      Result result = (Result) o;
+
+      return (description != null ? description.equals(result.description) : result.description == null)
+        && (exceptionType != null ? exceptionType.equals(result.exceptionType) : result.exceptionType == null)
+        && level == result.level;
+    }
+
+    @Override
+    public int hashCode() {
+      int result = description != null ? description.hashCode() : 0;
+      result = 31 * result + (exceptionType != null ? exceptionType.hashCode() : 0);
+      result = 31 * result + (level != null ? level.hashCode() : 0);
+      return result;
     }
   }
 }

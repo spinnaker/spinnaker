@@ -34,8 +34,6 @@ import com.netflix.spinnaker.orca.q.*
 import com.netflix.spinnaker.orca.time.toDuration
 import com.netflix.spinnaker.orca.time.toInstant
 import org.apache.commons.lang.time.DurationFormatUtils
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory.getLogger
 import org.springframework.stereotype.Component
 import java.time.Clock
 import java.time.Duration
@@ -55,8 +53,6 @@ class RunTaskHandler(
   private val exceptionHandlers: List<ExceptionHandler>,
   private val registry: Registry
 ) : MessageHandler<RunTask>, ExpressionAware, AuthenticationAware {
-
-  private val log: Logger = getLogger(javaClass)
 
   override fun handle(message: RunTask) {
     message.withTask { stage, taskModel, task ->

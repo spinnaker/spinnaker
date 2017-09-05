@@ -173,7 +173,7 @@ public class ExpressionsSupport {
     try {
       String converted = mapper.writeValueAsString(o);
       if (converted!= null && converted.contains(parserContext.getExpressionPrefix())) {
-        throw new SpelHelperFunctionException(String.format("Json string cannot be contained in result %s", o));
+        throw new SpelHelperFunctionException("result for toJson cannot contain an expression");
       }
 
       return converted;

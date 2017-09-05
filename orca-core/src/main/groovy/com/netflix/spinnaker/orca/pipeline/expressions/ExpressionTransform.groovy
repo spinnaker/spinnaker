@@ -23,6 +23,9 @@ import org.springframework.expression.ExpressionParser
 import org.springframework.expression.ParserContext
 import org.springframework.expression.common.CompositeStringExpression
 
+import java.util.stream.Collectors
+import java.util.stream.Stream
+
 @Slf4j
 class ExpressionTransform {
   private static final List<String> EXECUTION_AWARE_FUNCTIONS = ["judgment", "judgement", "stage"]
@@ -42,14 +45,15 @@ class ExpressionTransform {
    * @param summary
    * @return the transformed source object
    */
-  def <T> T transform(T source, EvaluationContext evaluationContext, ExpressionEvaluationSummary summary) {
+  def <T> T transform(T source, EvaluationContext evaluationContext, ExpressionEvaluationSummary summary, Map<String, ?> additionalContext = [:]) {
     if (source == null) {
       return null
     }
 
     if (source instanceof Map) {
+      Map<String, ?> copy = Collections.unmodifiableMap(source)
       source.collectEntries { k, v ->
-        [ transform(k, evaluationContext, summary), transform(v, evaluationContext, summary) ]
+        [ transform(k, evaluationContext, summary, copy), transform(v, evaluationContext, summary, copy) ]
       } as T
     } else if (source instanceof List) {
       source.collect {
@@ -69,13 +73,15 @@ class ExpressionTransform {
         escapedExpressionString = escapeExpression(exp)
         result = exp.getValue(evaluationContext) as T
       } catch (Exception e) {
-        log.info("Failed to resolve $source, returning raw value {}", e.getMessage())
+        log.info("Failed to evaluate $source, returning raw value {}", e.getMessage())
         exception = e
       } finally {
         escapedExpressionString = escapedExpressionString?: escapeSimpleExpression(source as String)
         if (exception) {
+          def fields = getKeys(literalExpression, additionalContext)?: literalExpression
+          String errorDescription = String.format("Failed to evaluate %s ", fields)
           Throwable originalException = unwrapOriginalException(exception)
-          String errorDescription = exception.getMessage() == originalException?.getMessage()?
+          errorDescription += exception.getMessage() in originalException?.getMessage()?
             exception.getMessage() :originalException?.getMessage() + " - " + exception.getMessage()
 
           summary.add(
@@ -87,10 +93,12 @@ class ExpressionTransform {
 
           result = source
         } else if (result == null) {
+          def fields = getKeys(literalExpression, additionalContext)?: literalExpression
+          String errorDescription = String.format("Failed to evaluate %s ", fields)
           summary.add(
             escapedExpressionString,
             ExpressionEvaluationSummary.Result.Level.INFO,
-            "$escapedExpressionString did not resolve, returning raw value. Value not found",
+            "$errorDescription: $escapedExpressionString not found",
             null
           )
 
@@ -105,6 +113,31 @@ class ExpressionTransform {
     } else {
       return source
     }
+  }
+
+  /**
+   * finds parent keys by value in a nested map
+   */
+  private static Set<String> getKeys(Object value, final Map<String, ?> map) {
+    if (!map) {
+      return [] as Set
+    }
+
+    return map.entrySet()
+      .findAll { value in flatten(it.value).collect(Collectors.toSet()).flatten() }*.key as Set
+  }
+
+  private static Stream<?> flatten(Object o) {
+    if (o instanceof Map) {
+      Map<?, ?> map = o as Map
+      return (map.keySet() + map.values())
+        .stream()
+        .flatMap {
+          flatten(it)
+        }
+    }
+
+    return Stream.of(o)
   }
 
   /**

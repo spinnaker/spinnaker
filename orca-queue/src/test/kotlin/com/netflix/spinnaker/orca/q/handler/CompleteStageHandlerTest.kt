@@ -18,7 +18,10 @@ package com.netflix.spinnaker.orca.q.handler
 
 import com.netflix.spinnaker.orca.ExecutionStatus.*
 import com.netflix.spinnaker.orca.events.StageComplete
+import com.netflix.spinnaker.orca.pipeline.expressions.PipelineExpressionEvaluator
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
+import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import com.netflix.spinnaker.orca.q.*
 import com.netflix.spinnaker.orca.time.fixedClock
 import com.netflix.spinnaker.spek.and
@@ -38,9 +41,10 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
   val repository: ExecutionRepository = mock()
   val publisher: ApplicationEventPublisher = mock()
   val clock = fixedClock()
+  val contextParameterProcessor: ContextParameterProcessor = mock()
 
   subject(GROUP) {
-    CompleteStageHandler(queue, repository, publisher, clock)
+    CompleteStageHandler(queue, repository, publisher, clock, contextParameterProcessor)
   }
 
   fun resetMocks() = reset(queue, repository, publisher)
@@ -548,6 +552,82 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
 
       it("signals the parent stage to try to run") {
         verify(queue).push(ContinueParentStage(pipeline.stageByRef("1")))
+      }
+    }
+  }
+
+  describe("surfacing expression evaluation errors") {
+    fun exceptionErrors(stages: List<Stage<*>>): List<*> =
+      stages.flatMap {
+        ((it.getContext()["exception"] as Map<*, *>)["details"] as Map<*, *>)["errors"] as List<*>
+      }
+
+    context("exception in stage context") {
+      val expressionError = "Expression foo failed for field bar"
+      val existingException = "Existing error"
+      val pipeline = pipeline {
+        application = "foo"
+        stage {
+          refId = "1"
+          name = "wait"
+          context = mapOf(
+            "exception" to mapOf("details" to mapOf("errors" to mutableListOf(existingException))),
+            PipelineExpressionEvaluator.SUMMARY to mapOf("failedExpression" to listOf(mapOf("description" to expressionError, "level" to "ERROR")))
+          )
+        }
+      }
+
+      val message = CompleteStage(pipeline.stageByRef("1"), SUCCEEDED)
+
+      beforeGroup {
+        pipeline.stageById(message.stageId).status = RUNNING
+        whenever(repository.retrievePipeline(pipeline.id)) doReturn pipeline
+      }
+
+      afterGroup(::resetMocks)
+
+      action("the handler receives a message") {
+        subject.handle(message)
+      }
+
+      it("should contain evaluation summary as well as the existing error") {
+        val errors = exceptionErrors(pipeline.stages)
+        errors.size shouldEqual 2
+        expressionError in errors
+        existingException in errors
+      }
+    }
+
+    context("no other exception errors in stage context") {
+      val expressionError = "Expression foo failed for field bar"
+      val pipeline = pipeline {
+        application = "foo"
+        stage {
+          refId = "1"
+          name = "wait"
+          context = mutableMapOf(
+            PipelineExpressionEvaluator.SUMMARY to mapOf("failedExpression" to listOf(mapOf("description" to expressionError, "level" to "ERROR")))
+          ) as Map<String, Any>
+        }
+      }
+
+      val message = CompleteStage(pipeline.stageByRef("1"), SUCCEEDED)
+
+      beforeGroup {
+        pipeline.stageById(message.stageId).status = RUNNING
+        whenever(repository.retrievePipeline(pipeline.id)) doReturn pipeline
+      }
+
+      afterGroup(::resetMocks)
+
+      action("the handler receives a message") {
+        subject.handle(message)
+      }
+
+      it("should only contain evaluation error message") {
+        val errors = exceptionErrors(pipeline.stages)
+        errors.size shouldEqual 1
+        expressionError in errors
       }
     }
   }

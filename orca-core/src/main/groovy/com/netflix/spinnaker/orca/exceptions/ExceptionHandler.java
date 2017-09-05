@@ -83,7 +83,7 @@ public interface ExceptionHandler {
   static Map<String, Object> responseDetails(String error, List<String> errors) {
     Map<String, Object> details = new HashMap<>();
     details.put("error", error);
-    details.put("errors", errors == null ? Collections.emptyList() : Collections.unmodifiableList(errors));
+    details.put("errors", errors == null ? Collections.emptyList() : errors);
     return details;
   }
 

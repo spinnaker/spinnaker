@@ -39,6 +39,7 @@ public class PipelineExpressionEvaluator extends ExpressionsSupport implements E
   private static final String SPEL_EVALUATOR = "spelEvaluator";
   private final ExpressionParser parser = new SpelExpressionParser();
   private static String spelEvaluator = V1;
+  public static final String ERROR = "Failed Expression Evaluation";
 
   public interface ExpressionEvaluationVersion {
     String V2 = "v2";

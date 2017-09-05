@@ -22,8 +22,8 @@ import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_AFTER
 import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_BEFORE
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
+import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import com.netflix.spinnaker.orca.q.*
-import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
 import java.time.Clock
@@ -33,16 +33,16 @@ class CompleteStageHandler(
   override val queue: Queue,
   override val repository: ExecutionRepository,
   private val publisher: ApplicationEventPublisher,
-  private val clock: Clock
-) : MessageHandler<CompleteStage> {
-
-  private val log = LoggerFactory.getLogger(javaClass)
+  private val clock: Clock,
+  override val contextParameterProcessor: ContextParameterProcessor
+) : MessageHandler<CompleteStage>, ExpressionAware {
 
   override fun handle(message: CompleteStage) {
     message.withStage { stage ->
       if (stage.getStatus() in setOf(RUNNING, NOT_STARTED)) {
         stage.setStatus(message.status)
         stage.setEndTime(clock.millis())
+        stage.includeExpressionEvaluationSummary()
         repository.storeStage(stage)
 
         if (message.status in listOf(SUCCEEDED, FAILED_CONTINUE, SKIPPED)) {

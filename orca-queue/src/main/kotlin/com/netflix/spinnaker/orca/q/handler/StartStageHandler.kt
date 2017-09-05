@@ -30,7 +30,6 @@ import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
 import com.netflix.spinnaker.orca.q.*
 import com.netflix.spinnaker.orca.q.StartStage
-import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
@@ -51,7 +50,6 @@ class StartStageHandler(
   @Value("\${queue.retry.delay.ms:15000}") retryDelayMs: Long
 ) : MessageHandler<StartStage>, StageBuilderAware, ExpressionAware, AuthenticationAware {
 
-  private val log = LoggerFactory.getLogger(javaClass)
   private val retryDelay = Duration.ofMillis(retryDelayMs)
 
   override fun handle(message: StartStage) {

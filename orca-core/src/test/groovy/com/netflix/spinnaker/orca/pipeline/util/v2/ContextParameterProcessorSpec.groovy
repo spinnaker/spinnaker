@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.orca.pipeline.util.v2
 
 import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.pipeline.expressions.ExpressionEvaluationSummary
 import com.netflix.spinnaker.orca.pipeline.expressions.ExpressionTransform
 import com.netflix.spinnaker.orca.pipeline.expressions.ExpressionsSupport
 import com.netflix.spinnaker.orca.pipeline.expressions.SpelHelperFunctionException
@@ -27,6 +26,8 @@ import org.springframework.expression.spel.SpelEvaluationException
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
+
+import static com.netflix.spinnaker.orca.pipeline.expressions.ExpressionEvaluationSummary.Result.*
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
 
@@ -84,7 +85,7 @@ class ContextParameterProcessorSpec extends Specification {
     then:
     result.test == source.test
     summary[escapedExpression].size() == 1
-    summary[escapedExpression][0].level as String == ExpressionEvaluationSummary.Result.Level.ERROR.name()
+    summary[escapedExpression][0].level as String == Level.ERROR.name()
     summary[escapedExpression][0].timestamp != null
 
     where:
@@ -112,7 +113,7 @@ class ContextParameterProcessorSpec extends Specification {
     then:
     //the failure scenario for this test case is the VM halting...
     summary[escapedExpression].size() == 1
-    summary[escapedExpression][0].level as String == ExpressionEvaluationSummary.Result.Level.ERROR.name()
+    summary[escapedExpression][0].level as String == Level.ERROR.name()
 
     where:
     testCase                                  | desc
@@ -134,7 +135,7 @@ class ContextParameterProcessorSpec extends Specification {
     //ensure we failed to interpret the expression and left it as is
     result.test == source.test
     summary[escapedExpression].size() == 1
-    summary[escapedExpression][0].level as String == ExpressionEvaluationSummary.Result.Level.ERROR.name()
+    summary[escapedExpression][0].level as String == Level.ERROR.name()
     summary[escapedExpression][0].exceptionType == SpelEvaluationException
 
     where:
@@ -157,7 +158,7 @@ class ContextParameterProcessorSpec extends Specification {
     //ensure we failed to interpret the expression and left it as is
     result.test == source.test
     summary[escapedExpression].size() == 1
-    summary[escapedExpression][0].level as String == ExpressionEvaluationSummary.Result.Level.ERROR.name()
+    summary[escapedExpression][0].level as String == Level.ERROR.name()
     summary[escapedExpression][0].exceptionType == SpelEvaluationException
 
     where:
@@ -178,7 +179,7 @@ class ContextParameterProcessorSpec extends Specification {
     then:
     result.test == source.test
     summary[escapedExpression].size() == 1
-    summary[escapedExpression][0].level as String == ExpressionEvaluationSummary.Result.Level.ERROR.name()
+    summary[escapedExpression][0].level as String == Level.ERROR.name()
 
     where:
     testCase  | desc
@@ -227,7 +228,7 @@ class ContextParameterProcessorSpec extends Specification {
     then:
     result.test == sourceValue
     summary[escapedExpression].size() == 1
-    summary[escapedExpression][0].level as String == ExpressionEvaluationSummary.Result.Level.ERROR.name()
+    summary[escapedExpression][0].level as String == Level.ERROR.name()
 
     where:
     sourceValue = '${new rx.internal.util.RxThreadFactory("").newThread(null).getContextClassLoader().toString()}'
@@ -311,9 +312,8 @@ class ContextParameterProcessorSpec extends Specification {
     then:
     result.deployed == '${deployedServerGroups}'
     summary[escapedExpression].size() == 1
-    summary[escapedExpression][0].level as String == ExpressionEvaluationSummary.Result.Level.INFO.name()
-    summary[escapedExpression][0].description == "deployedServerGroups did not resolve, returning raw value. Value not found"
-
+    summary[escapedExpression][0].level as String == Level.INFO.name()
+    summary[escapedExpression][0].description == "Failed to evaluate [deployed] : deployedServerGroups not found"
 
     where:
     execution = [
@@ -632,9 +632,14 @@ class ContextParameterProcessorSpec extends Specification {
 
     when:
     def result = contextParameterProcessor.processV2(stage.context, ctx, true)
+    def summary = result.expressionEvaluationSummary as Map<String, List>
+    def escapedExpression = escapeExpression('${#toJson(execution)}')
 
     then:
     result.comments == '${#toJson(execution)}'
+    summary.size() == 1
+    summary[escapedExpression][0].level as String == Level.ERROR.name()
+    summary[escapedExpression][0].description.contains("Failed to evaluate [comments] result for toJson cannot contain an expression")
   }
 
   def "can read authenticated user in an execution"() {
