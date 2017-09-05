@@ -12,16 +12,16 @@ interface DefaultParams {
 
 export interface IRequestBuilder {
   config?: IRequestConfig;
-  one?: IRequestBuilder;
-  all?: IRequestBuilder;
-  useCache?: IRequestBuilder;
-  withParams?: IRequestBuilder;
-  data?: IRequestBuilder;
-  get?: IRequestBuilder;
-  getList?: IRequestBuilder;
-  post?: IRequestBuilder;
-  remove?: IRequestBuilder;
-  put?: IRequestBuilder;
+  one?: (...urls: string[]) => IRequestBuilder;
+  all?: (...urls: string[]) => IRequestBuilder;
+  useCache?: (useCache: boolean) => IRequestBuilder;
+  withParams?: (data: any) => IRequestBuilder;
+  data?: (data: any) => IRequestBuilder;
+  get?: (data: any) => IPromise<any>;
+  getList?: (data: any) => IPromise<any>;
+  post?: (data: any) => IPromise<any>;
+  remove?: (data: any) => IPromise<any>;
+  put?: (data: any) => IPromise<any>;
 }
 
 export class Api {
@@ -59,7 +59,7 @@ export class Api {
     });
   }
 
-  private internalOne(config: IRequestConfig): IRequestBuilder {
+  private internalOne(config: IRequestConfig): (...urls: string[]) => IRequestBuilder {
     return (...urls: string[]) => {
       urls.forEach((url: string) => {
         if (url) {
@@ -71,14 +71,14 @@ export class Api {
     };
   }
 
-  private useCacheFn(config: IRequestConfig): IRequestBuilder {
+  private useCacheFn(config: IRequestConfig): (useCache: boolean) => IRequestBuilder {
     return (useCache = true) => {
       config.cache = useCache;
       return this.baseReturn(config);
     };
   }
 
-  private withParamsFn(config: IRequestConfig): IRequestBuilder {
+  private withParamsFn(config: IRequestConfig): (params: any) => IRequestBuilder {
     return (params: any) => {
       if (params) {
         config.params = params;
@@ -89,7 +89,7 @@ export class Api {
   }
 
   // sets the data for PUT and POST operations
-  private dataFn(config: IRequestConfig): IRequestBuilder {
+  private dataFn(config: IRequestConfig): (data: any) => IRequestBuilder {
     return (data: any) => {
       if (data) {
         config.data = data;
@@ -100,7 +100,7 @@ export class Api {
   }
 
   // HTTP GET operation
-  private getFn(config: IRequestConfig): IRequestBuilder {
+  private getFn(config: IRequestConfig): (data: any) => IPromise<any> {
     return (params: any) => {
       config.method = 'get';
       Object.assign(config, this.defaultParams);
@@ -113,7 +113,7 @@ export class Api {
   }
 
   // HTTP POST operation
-  private postFn(config: IRequestConfig): IRequestBuilder {
+  private postFn(config: IRequestConfig): (data: any) => IPromise<any> {
     return (data: any) => {
       config.method = 'post';
       if (data) {
@@ -126,7 +126,7 @@ export class Api {
   }
 
   // HTTP DELETE operation
-  private removeFn(config: IRequestConfig): IRequestBuilder {
+  private removeFn(config: IRequestConfig): (data: any) => IPromise<any> {
     return (params: any) => {
       config.method = 'delete';
       if (params) {
@@ -139,7 +139,7 @@ export class Api {
   }
 
   // HTTP PUT operation
-  private putFn(config: IRequestConfig): IRequestBuilder {
+  private putFn(config: IRequestConfig): (data: any) => IPromise<any> {
     return (data: any) => {
       config.method = 'put';
       if (data) {

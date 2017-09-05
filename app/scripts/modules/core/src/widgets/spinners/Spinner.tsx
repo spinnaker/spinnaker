@@ -33,17 +33,18 @@ export class Spinner extends React.Component<ISpinnerProps> {
   public render(): React.ReactElement<Spinner> {
     const { size, message, postnote } = this.props;
     const mainClassNames = `load ${size || 'small'} ${size === 'page' && 'large vertical center'}`;
-    const messageClassNames = `message color-text-accent ${size === 'medium' ? 'heading-4':'heading-2'}`;
+    const messageClassNames = `message color-text-accent ${size === 'medium' ? 'heading-4' : 'heading-2'}`;
 
     const logo = (size === 'page' && <Logo />);
 
     const messageNode = ['medium', 'large', 'page'].includes(size) &&
       <div className={messageClassNames}>{message || 'Loading ...'}</div>;
 
-    const bars = ['medium', 'large', 'page'].includes(size) ?
-      (<div className="bars">
+    const bars = ['medium', 'large', 'page'].includes(size) ? (
+      <div className="bars">
         {this.getBarRows()}
-      </div>) :
+      </div>
+      ) :
       this.getBarRows();
 
     const postnoteNode = (size === 'page' &&

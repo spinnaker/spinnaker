@@ -1,11 +1,11 @@
-import { IController, IDeferred, IDirective, INgModelController, IQService, IScope, module } from 'angular';
+import { IAttributes, IController, IDeferred, IDirective, INgModelController, IQService, IScope, module } from 'angular';
 import { DirectiveFactory } from 'core/utils/tsDecorators/directiveFactoryDecorator';
 import {
   APPLICATION_NAME_VALIDATOR,
   ApplicationNameValidator, IApplicationNameValidationResult
 } from 'core/application/modal/validation/applicationName.validator';
 
-interface IValidateNameAttrs  {
+interface IValidateNameAttrs extends IAttributes {
   cloudProviders: string;
 }
 

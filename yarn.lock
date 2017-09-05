@@ -301,19 +301,29 @@
   dependencies:
     "@types/react" "*"
 
+"@types/react-dom@^15.5.4":
+  version "15.5.4"
+  resolved "https://registry.yarnpkg.com/@types/react-dom/-/react-dom-15.5.4.tgz#3f75ba86a2ce9a7d1d9e7d1ee3f186f3a9652d8f"
+  dependencies:
+    "@types/react" "*"
+
 "@types/react-ga@^2.1.1":
   version "2.1.1"
   resolved "https://registry.yarnpkg.com/@types/react-ga/-/react-ga-2.1.1.tgz#22e77af18ea0e4be4e33e0863ff2e1c97dc6f8dc"
 
-"@types/react-select@^1.0.45":
-  version "1.0.46"
-  resolved "https://registry.yarnpkg.com/@types/react-select/-/react-select-1.0.46.tgz#d606f67a239b82a47c595a14b0c1d87c0b4dd833"
+"@types/react-select@^1.0.54":
+  version "1.0.54"
+  resolved "https://registry.yarnpkg.com/@types/react-select/-/react-select-1.0.54.tgz#cd138bd0142b67a515a565746e66fac6e20bf4f6"
   dependencies:
     "@types/react" "*"
 
-"@types/react@*", "@types/react@15.0.35", "@types/react@^15.0.22", "@types/react@^15.0.23":
+"@types/react@*", "@types/react@^15.0.22", "@types/react@^15.0.23":
   version "15.0.35"
   resolved "https://registry.yarnpkg.com/@types/react/-/react-15.0.35.tgz#4672923cd502d03e1480d03816ebc5a719fb86da"
+
+"@types/react@^16.0.5":
+  version "16.0.5"
+  resolved "https://registry.yarnpkg.com/@types/react/-/react-16.0.5.tgz#d713cf67cc211dea20463d2a0b66005c22070c4b"
 
 "@types/source-map@*":
   version "0.5.0"
@@ -1807,6 +1817,14 @@ create-react-class@^15.5.2:
     loose-envify "^1.3.1"
     object-assign "^4.1.1"
 
+create-react-class@^15.6.0:
+  version "15.6.0"
+  resolved "https://registry.yarnpkg.com/create-react-class/-/create-react-class-15.6.0.tgz#ab448497c26566e1e29413e883207d57cfe7bed4"
+  dependencies:
+    fbjs "^0.8.9"
+    loose-envify "^1.3.1"
+    object-assign "^4.1.1"
+
 cryptiles@2.x.x:
   version "2.0.5"
   resolved "https://registry.yarnpkg.com/cryptiles/-/cryptiles-2.0.5.tgz#3bdfecdc608147c1c67202fa291e7dca59eaa3b8"
@@ -2878,9 +2896,9 @@ form-data@~2.1.1:
     combined-stream "^1.0.5"
     mime-types "^2.1.12"
 
-formsy-react@^0.19.2:
-  version "0.19.2"
-  resolved "https://registry.yarnpkg.com/formsy-react/-/formsy-react-0.19.2.tgz#7fa818ff93c8c07195486c4d2e42b6da0c0ee4a3"
+formsy-react@^0.19.5:
+  version "0.19.5"
+  resolved "https://registry.yarnpkg.com/formsy-react/-/formsy-react-0.19.5.tgz#760a57ac0113442e3df4c309c3638dd92957e78e"
   dependencies:
     form-data-to-object "^0.2.0"
 
@@ -5124,12 +5142,9 @@ rc@^1.1.7:
     minimist "^1.2.0"
     strip-json-comments "~2.0.1"
 
-react-addons-test-utils@^15.5.1:
-  version "15.5.1"
-  resolved "https://registry.yarnpkg.com/react-addons-test-utils/-/react-addons-test-utils-15.5.1.tgz#e0d258cda2a122ad0dff69f838260d0c3958f5f7"
-  dependencies:
-    fbjs "^0.8.4"
-    object-assign "^4.1.0"
+react-addons-test-utils@^15.6.0:
+  version "15.6.0"
+  resolved "https://registry.yarnpkg.com/react-addons-test-utils/-/react-addons-test-utils-15.6.0.tgz#062d36117fe8d18f3ba5e06eb33383b0b85ea5b9"
 
 react-bootstrap@^0.31.0:
   version "0.31.0"
@@ -5150,7 +5165,7 @@ react-dom@^0.14.8:
   version "0.14.9"
   resolved "https://registry.yarnpkg.com/react-dom/-/react-dom-0.14.9.tgz#05064a3dcf0fb1880a3b2bfc9d58c55d8d9f6293"
 
-react-dom@^15.4.2, react-dom@~15.4.2:
+react-dom@^15.4.2:
   version "15.4.2"
   resolved "https://registry.yarnpkg.com/react-dom/-/react-dom-15.4.2.tgz#015363f05b0a1fd52ae9efdd3a0060d90695208f"
   dependencies:
@@ -5166,6 +5181,15 @@ react-dom@^15.5.4:
     loose-envify "^1.1.0"
     object-assign "^4.1.0"
     prop-types "~15.5.7"
+
+react-dom@^15.6.1:
+  version "15.6.1"
+  resolved "https://registry.yarnpkg.com/react-dom/-/react-dom-15.6.1.tgz#2cb0ed4191038e53c209eb3a79a23e2a4cf99470"
+  dependencies:
+    fbjs "^0.8.9"
+    loose-envify "^1.1.0"
+    object-assign "^4.1.0"
+    prop-types "^15.5.10"
 
 react-ga@^2.1.2:
   version "2.2.0"
@@ -5198,7 +5222,7 @@ react-prop-types@^0.4.0:
   dependencies:
     warning "^3.0.0"
 
-react-select@^1.0.0-rc.2, react-select@^1.0.0-rc.4:
+react-select@^1.0.0-rc.2:
   version "1.0.0-rc.4"
   resolved "https://registry.yarnpkg.com/react-select/-/react-select-1.0.0-rc.4.tgz#f28f3bab18196ff8f32337bb52ed015773c90663"
   dependencies:
@@ -5207,9 +5231,18 @@ react-select@^1.0.0-rc.2, react-select@^1.0.0-rc.4:
     prop-types "^15.5.8"
     react-input-autosize "^1.1.3"
 
-react-test-renderer@^15.5.4:
-  version "15.5.4"
-  resolved "https://registry.yarnpkg.com/react-test-renderer/-/react-test-renderer-15.5.4.tgz#d4ebb23f613d685ea8f5390109c2d20fbf7c83bc"
+react-select@^1.0.0-rc.5:
+  version "1.0.0-rc.5"
+  resolved "https://registry.yarnpkg.com/react-select/-/react-select-1.0.0-rc.5.tgz#9d316f252b1adc372ddb5cdf1f119c6b7cfdb5d6"
+  dependencies:
+    classnames "^2.2.4"
+    create-react-class "^15.5.2"
+    prop-types "^15.5.8"
+    react-input-autosize "^1.1.3"
+
+react-test-renderer@^15.6.1:
+  version "15.6.1"
+  resolved "https://registry.yarnpkg.com/react-test-renderer/-/react-test-renderer-15.6.1.tgz#026f4a5bb5552661fd2cc4bbcd0d4bc8a35ebf7e"
   dependencies:
     fbjs "^0.8.9"
     object-assign "^4.1.0"
@@ -5254,7 +5287,7 @@ react@^0.14.8:
     envify "^3.0.0"
     fbjs "^0.6.1"
 
-react@^15.4.2, react@~15.4.2:
+react@^15.4.2:
   version "15.4.2"
   resolved "https://registry.yarnpkg.com/react/-/react-15.4.2.tgz#41f7991b26185392ba9bae96c8889e7e018397ef"
   dependencies:
@@ -5270,6 +5303,16 @@ react@^15.5.4:
     loose-envify "^1.1.0"
     object-assign "^4.1.0"
     prop-types "^15.5.7"
+
+react@^15.6.1:
+  version "15.6.1"
+  resolved "https://registry.yarnpkg.com/react/-/react-15.6.1.tgz#baa8434ec6780bde997cdc380b79cd33b96393df"
+  dependencies:
+    create-react-class "^15.6.0"
+    fbjs "^0.8.9"
+    loose-envify "^1.1.0"
+    object-assign "^4.1.0"
+    prop-types "^15.5.10"
 
 read-cache@^1.0.0:
   version "1.0.0"
@@ -6221,13 +6264,15 @@ tslint-loader@^3.4.3:
     rimraf "^2.4.4"
     semver "^5.3.0"
 
-tslint-react@^3.0.0:
-  version "3.0.0"
-  resolved "https://registry.yarnpkg.com/tslint-react/-/tslint-react-3.0.0.tgz#00c48ab7f22e91533b62bdef2c162b49447af00a"
+tslint-react@^3.2.0:
+  version "3.2.0"
+  resolved "https://registry.yarnpkg.com/tslint-react/-/tslint-react-3.2.0.tgz#851fb505201c63d0343c51726e6364f7e9ad2e99"
+  dependencies:
+    tsutils "^2.8.0"
 
-tslint@^5.5.0:
-  version "5.5.0"
-  resolved "https://registry.yarnpkg.com/tslint/-/tslint-5.5.0.tgz#10e8dab3e3061fa61e9442e8cee3982acf20a6aa"
+tslint@^5.7.0:
+  version "5.7.0"
+  resolved "https://registry.yarnpkg.com/tslint/-/tslint-5.7.0.tgz#c25e0d0c92fa1201c2bc30e844e08e682b4f3552"
   dependencies:
     babel-code-frame "^6.22.0"
     colors "^1.1.2"
@@ -6238,11 +6283,11 @@ tslint@^5.5.0:
     resolve "^1.3.2"
     semver "^5.3.0"
     tslib "^1.7.1"
-    tsutils "^2.5.1"
+    tsutils "^2.8.1"
 
-tsutils@^2.5.1:
-  version "2.7.1"
-  resolved "https://registry.yarnpkg.com/tsutils/-/tsutils-2.7.1.tgz#411a0e9466525a2b2869260a55620d7292155e24"
+tsutils@^2.8.0, tsutils@^2.8.1:
+  version "2.8.2"
+  resolved "https://registry.yarnpkg.com/tsutils/-/tsutils-2.8.2.tgz#2c1486ba431260845b0ac6f902afd9d708a8ea6a"
   dependencies:
     tslib "^1.7.1"
 
@@ -6277,9 +6322,9 @@ typedarray@^0.0.6:
   version "0.0.6"
   resolved "https://registry.yarnpkg.com/typedarray/-/typedarray-0.0.6.tgz#867ac74e3864187b1d3d47d996a78ec5c8830777"
 
-typescript@~2.4.1:
-  version "2.4.2"
-  resolved "https://registry.yarnpkg.com/typescript/-/typescript-2.4.2.tgz#f8395f85d459276067c988aa41837a8f82870844"
+typescript@^2.5.2:
+  version "2.5.2"
+  resolved "https://registry.yarnpkg.com/typescript/-/typescript-2.5.2.tgz#038a95f7d9bbb420b1bf35ba31d4c5c1dd3ffe34"
 
 ua-parser-js@^0.7.9:
   version "0.7.12"

@@ -1,9 +1,9 @@
-import { IController, IDirective, IScope, ITimeoutService, module } from 'angular';
+import { IAttributes, IController, IDirective, IScope, ITimeoutService, module } from 'angular';
 import { Subject } from 'rxjs';
 
 import { DirectiveFactory } from 'core/utils/tsDecorators/directiveFactoryDecorator';
 
-export interface AutoScrollAttrs {
+export interface AutoScrollAttrs extends IAttributes {
   autoScrollEnabled: string;
   autoScroll: string;
 }

@@ -16,6 +16,8 @@ export interface ITextAreaProps extends IFormComponentProps, React.HTMLAttribute
   Help?: React.ReactElement<any>;
   /** The class string to place on the textarea */
   className?: string;
+  /* tslint confused about rows, so add it here */
+  rows?: number;
   /** A callback for when the textarea value changes */
   onChange?(event: ChangeEvent<HTMLTextAreaElement>): void;
 }
