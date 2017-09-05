@@ -40,8 +40,18 @@ public class KubernetesManifest extends HashMap<String, Object> {
   }
 
   @JsonIgnore
+  public void setKind(KubernetesKind kind) {
+    put("kind", kind.name);
+  }
+
+  @JsonIgnore
   public KubernetesApiVersion getApiVersion() {
     return KubernetesApiVersion.fromString(getRequiredField(this, "apiVersion"));
+  }
+
+  @JsonIgnore
+  public void setApiVersion(KubernetesApiVersion apiVersion) {
+    put("apiVersion", apiVersion.name);
   }
 
   @JsonIgnore

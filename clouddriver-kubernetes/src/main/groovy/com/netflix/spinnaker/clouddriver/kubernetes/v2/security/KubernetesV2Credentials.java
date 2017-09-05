@@ -24,6 +24,8 @@ import com.google.gson.Gson;
 import com.netflix.spectator.api.Clock;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesApiVersion;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesKind;
 import io.kubernetes.client.ApiClient;
 import io.kubernetes.client.ApiException;
 import io.kubernetes.client.apis.AppsV1beta1Api;
@@ -33,11 +35,14 @@ import io.kubernetes.client.models.AppsV1beta1Deployment;
 import io.kubernetes.client.models.V1Service;
 import io.kubernetes.client.models.V1beta1Ingress;
 import io.kubernetes.client.models.V1beta1ReplicaSet;
+import io.kubernetes.client.models.V1beta1ReplicaSetList;
 import io.kubernetes.client.util.Config;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -57,7 +62,10 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
   private final Gson gson = new Gson();
   private final String PRETTY = "";
   private final boolean EXACT = true;
-  private final boolean EXPORT = true;
+  private final boolean EXPORT = false;
+  private final boolean WATCH = false;
+  private final String DEFAULT_VERSION = "0";
+  private final int TIMEOUT_SECONDS = 10; // TODO(lwander) make configurable
 
   @Getter
   private final String defaultNamespace = "default";
@@ -69,6 +77,7 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
     try {
       // TODO(lwander) initialize client based on provided config
       client = Config.defaultClient();
+      // TODO(lwander) make debug mode configurable
       client.setDebugging(true);
       coreV1Api = new CoreV1Api(client);
       extensionsV1beta1Api = new ExtensionsV1beta1Api(client);
@@ -130,9 +139,12 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
 
   public AppsV1beta1Deployment readDeployment(String namespace, String name) {
     final String methodName = "deployments.read";
+    final KubernetesApiVersion apiVersion = KubernetesApiVersion.APPS_V1BETA1;
+    final KubernetesKind kind = KubernetesKind.DEPLOYMENT;
     return runAndRecordMetrics(methodName, namespace, () -> {
       try {
-        return appsV1beta1Api.readNamespacedDeployment(name, namespace, PRETTY, EXACT, EXPORT);
+        AppsV1beta1Deployment result = appsV1beta1Api.readNamespacedDeployment(name, namespace, PRETTY, EXACT, EXPORT);
+        return annotateMissingFields(result, AppsV1beta1Deployment.class, apiVersion, kind);
       } catch (ApiException e) {
         if (notFound(e)) {
           return null;
@@ -161,6 +173,29 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
     runAndRecordMetrics(methodName, namespace, () -> {
       try {
         return extensionsV1beta1Api.createNamespacedReplicaSet(namespace, replicaSet, null);
+      } catch (ApiException e) {
+        throw new KubernetesApiException(methodName, e);
+      }
+    });
+  }
+
+  public List<V1beta1ReplicaSet> listAllReplicaSets(String namespace) {
+    return listReplicaSets(namespace, new KubernetesSelectorList(), new KubernetesSelectorList());
+  }
+
+  public List<V1beta1ReplicaSet> listReplicaSets(String namespace, KubernetesSelectorList fieldSelectors, KubernetesSelectorList labelSelectors) {
+    final String methodName = "replicaSets.list";
+    final String fieldSelectorString = fieldSelectors.toString();
+    final String labelSelectorString = labelSelectors.toString();
+    final KubernetesApiVersion apiVersion = KubernetesApiVersion.EXTENSIONS_V1BETA1;
+    final KubernetesKind kind = KubernetesKind.REPLICA_SET;
+    return runAndRecordMetrics(methodName, namespace, () -> {
+      try {
+        V1beta1ReplicaSetList list = extensionsV1beta1Api.listNamespacedReplicaSet(namespace, PRETTY, fieldSelectorString, labelSelectorString, DEFAULT_VERSION, TIMEOUT_SECONDS, WATCH);
+        return annotateMissingFields(list == null ? new ArrayList<>() : list.getItems(),
+            V1beta1ReplicaSet.class,
+            apiVersion,
+            kind);
       } catch (ApiException e) {
         throw new KubernetesApiException(methodName, e);
       }
@@ -210,5 +245,21 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
         return result;
       }
     }
+  }
+
+  private static <T> List<T> annotateMissingFields(List<T> objs, Class<T> clazz, KubernetesApiVersion apiVersion, KubernetesKind kind) {
+    return objs.stream()
+        .map(obj -> annotateMissingFields(obj, clazz, apiVersion, kind))
+        .collect(Collectors.toList());
+  }
+
+  private static <T> T annotateMissingFields(T obj, Class<T> clazz, KubernetesApiVersion apiVersion, KubernetesKind kind) {
+    try {
+      clazz.getMethod("setApiVersion", String.class).invoke(obj, apiVersion == null ? null : apiVersion.name);
+      clazz.getMethod("setKind", String.class).invoke(obj, kind == null ? null : kind.name);
+    } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+      throw new RuntimeException("Unable to set missing fields on " + clazz.getSimpleName(), e);
+    }
+    return obj;
   }
 }

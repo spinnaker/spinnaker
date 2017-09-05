@@ -22,10 +22,13 @@ import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.agent.AgentDataType;
 import com.netflix.spinnaker.cats.agent.CacheResult;
 import com.netflix.spinnaker.cats.agent.DefaultCacheResult;
+import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.cats.provider.ProviderCache;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.KubernetesCachingAgent;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesKind;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
+import io.kubernetes.client.models.V1beta1ReplicaSet;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -34,11 +37,15 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE;
 
 @Slf4j
-public class KubernetesReplicaSetCachingAgent extends KubernetesCachingAgent {
+public class KubernetesReplicaSetCachingAgent extends KubernetesCachingAgent<KubernetesV2Credentials> {
   KubernetesReplicaSetCachingAgent(KubernetesNamedAccountCredentials namedAccountCredentials,
       ObjectMapper objectMapper,
       Registry registry,
@@ -56,7 +63,25 @@ public class KubernetesReplicaSetCachingAgent extends KubernetesCachingAgent {
 
   @Override
   public CacheResult loadData(ProviderCache providerCache) {
-    log.info("TODO");
-    return new DefaultCacheResult(new HashMap<>());
+    reloadNamespaces();
+
+    List<CacheData> replicaSetData = loadReplicaSets().stream()
+        .map(rs -> KubernetesCacheDataConverter.fromResource(accountName, objectMapper, rs))
+        .filter(Objects::nonNull)
+        .collect(Collectors.toList());
+
+    log.info(getAgentType() + ": caching " + replicaSetData.size() + " replica sets");
+
+    Map<String, Collection<CacheData>> entries = new HashMap<>();
+    entries.put(KubernetesKind.REPLICA_SET.name, replicaSetData);
+
+    return new DefaultCacheResult(entries);
+  }
+
+  private List<V1beta1ReplicaSet> loadReplicaSets() {
+    return namespaces.stream()
+        .map(credentials::listAllReplicaSets)
+        .flatMap(Collection::stream)
+        .collect(Collectors.toList());
   }
 }
