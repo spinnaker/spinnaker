@@ -33,6 +33,7 @@ import io.grpc.netty.NettyChannelBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -78,7 +79,15 @@ public class RegionScopedV3TitusClient implements TitusClient {
     this.registry = registry;
     this.titusJobCustomizers = titusJobCustomizers;
 
-    NettyChannelBuilder nettyChannelBuilder = (NettyChannelBuilder) ManagedChannelBuilder.forAddress("titusapi.devvpc3.us-east-1.dyntest.netflix.net", 7104);
+    String titusHost = "";
+    try {
+      URL titusUrl = new URL(titusRegion.getEndpoint());
+      titusHost = titusUrl.getHost();
+    } catch (Exception e) {
+
+    }
+
+    NettyChannelBuilder nettyChannelBuilder = (NettyChannelBuilder) ManagedChannelBuilder.forAddress(titusHost, 7104);
     ManagedChannel channel = nettyChannelBuilder
       .sslContext(ClientAuthenticationUtils.newSslContext("titusapi"))
       .negotiationType(NegotiationType.TLS)
