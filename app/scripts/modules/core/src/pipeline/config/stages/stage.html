@@ -46,8 +46,11 @@
       </stage-config-field>
     </div>
     <div class="col-md-2 text-right">
-      <button type="button" class="btn btn-sm btn-default" ng-click="pipelineConfigurerCtrl.removeStage(stage)">
+      <button type="button" class="btn btn-sm btn-default" ng-click="pipelineConfigurerCtrl.removeStage(stage)" style="margin-bottom: 5px">
         <span class="glyphicon glyphicon-trash" uib-tooltip="Remove stage"></span> Remove stage
+      </button>
+      <button type="button" class="btn btn-sm btn-default" ng-click="stageConfigCtrl.editStageJson(stage)">
+        <i class="fa fa-cog"></i> Edit stage as JSON
       </button>
     </div>
   </div>
