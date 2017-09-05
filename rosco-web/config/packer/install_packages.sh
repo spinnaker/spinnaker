@@ -57,9 +57,10 @@ function provision_rpm() {
   if [[ "$repository" != "" ]]; then
     IFS=';' read -ra repo <<< "$repository"
     for i in "${!repo[@]}"; do
+      ts=$(date +%s)
       cat > /tmp/spinnaker-$i.repo <<EOF
-[spinnaker-$i]
-name=spinnaker-$i
+[spinnaker-$ts-$i]
+name=spinnaker-$ts-$i
 baseurl=${repo[$i]}
 gpgcheck=0
 enabled=1
