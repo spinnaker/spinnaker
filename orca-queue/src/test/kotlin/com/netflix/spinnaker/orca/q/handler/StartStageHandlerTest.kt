@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.orca.q.handler
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.natpryce.hamkrest.allElements
 import com.natpryce.hamkrest.assertion.assertThat
 import com.natpryce.hamkrest.equalTo
 import com.natpryce.hamkrest.hasElement
@@ -761,13 +760,16 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
         pipeline.stages.size shouldEqual 4
         assertThat(
           pipeline.stages.map { it.type },
-          allElements(equalTo(stageWithParallelBranches.type))
+          equalTo(listOf(singleTaskStage.type, singleTaskStage.type, singleTaskStage.type, stageWithParallelBranches.type))
         )
-        // TODO: contexts, etc.
       }
 
-      it("renames the primary branch") {
-        pipeline.stageByRef("1").name shouldEqual "is parallel"
+      it("builds stages that will run in parallel") {
+        assertThat(
+          pipeline.stages.flatMap { it.requisiteStageRefIds },
+          isEmpty
+        )
+        // TODO: contexts, etc.
       }
 
       it("renames each parallel branch") {
@@ -808,7 +810,7 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
       it("builds tasks for the branch") {
         val stage = pipeline.stageById(message.stageId)
         assertThat(stage.tasks, !isEmpty)
-        stage.tasks.map(Task::getName) shouldEqual listOf("in-branch")
+        stage.tasks.map(Task::getName) shouldEqual listOf("dummy")
       }
 
       it("does not build more synthetic stages") {

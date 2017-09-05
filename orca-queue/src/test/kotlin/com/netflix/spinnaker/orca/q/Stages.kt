@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.q
 
-import com.netflix.spinnaker.orca.pipeline.BranchingStageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder.newStage
 import com.netflix.spinnaker.orca.pipeline.TaskNode.Builder
@@ -104,26 +103,15 @@ val stageWithNestedSynthetics = object : StageDefinitionBuilder {
   )
 }
 
-val stageWithParallelBranches = object : BranchingStageDefinitionBuilder {
-  override fun <T : Execution<T>> parallelContexts(stage: Stage<T>): Collection<Map<String, Any>> =
+val stageWithParallelBranches = object : StageDefinitionBuilder {
+  override fun <T : Execution<T>> parallelStages(stage: Stage<T>) =
     listOf(
-      mapOf("region" to "us-east-1", "name" to "run in us-east-1"),
-      mapOf("region" to "us-west-2", "name" to "run in us-west-2"),
-      mapOf("region" to "eu-west-1", "name" to "run in eu-west-1")
+      newStage(stage.execution, "singleTaskStage", "run in us-east-1", mapOf("region" to "us-east-1"), stage, STAGE_BEFORE),
+      newStage(stage.execution, "singleTaskStage", "run in us-west-2", mapOf("region" to "us-west-2"), stage, STAGE_BEFORE),
+      newStage(stage.execution, "singleTaskStage", "run in eu-west-1", mapOf("region" to "eu-west-1"), stage, STAGE_BEFORE)
     )
 
-  override fun parallelStageName(stage: Stage<*>, hasParallelFlows: Boolean) =
-    if (hasParallelFlows) "is parallel" else "is not parallel"
-
-  override fun preBranchGraph(stage: Stage<*>, builder: Builder) {
-    builder.withTask("pre-branch", DummyTask::class.java)
-  }
-
   override fun <T : Execution<T>> taskGraph(stage: Stage<T>, builder: Builder) {
-    builder.withTask("in-branch", DummyTask::class.java)
-  }
-
-  override fun postBranchGraph(stage: Stage<*>, builder: Builder) {
     builder.withTask("post-branch", DummyTask::class.java)
   }
 }

@@ -16,12 +16,13 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline
 
+import javax.annotation.Nonnull
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.CloneServerGroupStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.CreateServerGroupStage
-import com.netflix.spinnaker.orca.pipeline.BranchingStageDefinitionBuilder
+import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.TaskNode
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
@@ -30,11 +31,12 @@ import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import org.springframework.stereotype.Component
+import static com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_BEFORE
 
 @Component
 @Slf4j
 @CompileStatic
-class ParallelDeployStage implements BranchingStageDefinitionBuilder {
+class ParallelDeployStage implements StageDefinitionBuilder {
 
   @Deprecated
   public static final String PIPELINE_CONFIG_TYPE = "deploy"
@@ -46,16 +48,15 @@ class ParallelDeployStage implements BranchingStageDefinitionBuilder {
 
   @Override
   <T extends Execution<T>> void taskGraph(Stage<T> stage, TaskNode.Builder builder) {
-  }
-
-  @Override
-  void postBranchGraph(Stage<?> stage, TaskNode.Builder builder) {
     builder.withTask("completeParallelDeploy", CompleteParallelDeployTask)
   }
 
-  @Override
-  String getChildStageType(Stage childStage) {
-    return isClone(childStage) ? CloneServerGroupStage.PIPELINE_CONFIG_TYPE : PIPELINE_CONFIG_TYPE
+  @Nonnull <T extends Execution<T>> List<Stage<T>> parallelStages(
+    @Nonnull Stage<T> stage) {
+    parallelContexts(stage).collect { context ->
+      def type = isClone(stage) ? CloneServerGroupStage.PIPELINE_CONFIG_TYPE : CreateServerGroupStage.PIPELINE_CONFIG_TYPE
+      newStage(stage.execution, type, context.name as String, context, stage, STAGE_BEFORE)
+    }
   }
 
   @CompileDynamic
@@ -77,9 +78,8 @@ class ParallelDeployStage implements BranchingStageDefinitionBuilder {
     ]
   }
 
-  @Override
   @CompileDynamic
-  <T extends Execution<T>> Collection<Map<String, Object>> parallelContexts(Stage<T> stage) {
+  protected <T extends Execution<T>> Collection<Map<String, Object>> parallelContexts(Stage<T> stage) {
     if (stage.execution instanceof Pipeline) {
       Map trigger = ((Pipeline) stage.execution).trigger
       if (trigger.parameters?.strategy == true) {
@@ -145,11 +145,6 @@ class ParallelDeployStage implements BranchingStageDefinitionBuilder {
     }
   }
 
-  @Override
-  String parallelStageName(Stage<?> stage, boolean hasParallelFlows) {
-    return isClone(stage) ? "Clone" : stage.name
-  }
-
   @CompileDynamic
   private <T extends Execution<T>> boolean isClone(Stage<T> stage) {
     if (stage.execution instanceof Pipeline) {
@@ -166,7 +161,7 @@ class ParallelDeployStage implements BranchingStageDefinitionBuilder {
   @Component
   @Slf4j
   @CompileStatic
-  public static class CompleteParallelDeployTask implements Task {
+  static class CompleteParallelDeployTask implements Task {
     TaskResult execute(Stage stage) {
       log.info("Completed Parallel Deploy")
       new TaskResult(ExecutionStatus.SUCCEEDED, [:], [:])

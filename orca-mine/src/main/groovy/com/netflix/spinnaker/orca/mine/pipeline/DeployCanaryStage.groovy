@@ -65,13 +65,13 @@ class DeployCanaryStage extends ParallelDeployStage implements CloudProviderAwar
   }
 
   @Override
-  void postBranchGraph(Stage<?> stage, TaskNode.Builder builder) {
+  <T extends Execution<T>> void taskGraph(Stage<T> stage, TaskNode.Builder builder) {
     builder.withTask("completeDeployCanary", CompleteDeployCanaryTask)
   }
 
   @Override
   @CompileDynamic
-  <T extends Execution<T>> Collection<Map<String, Object>> parallelContexts(Stage<T> stage) {
+  protected <T extends Execution<T>> Collection<Map<String, Object>> parallelContexts(Stage<T> stage) {
     List<Map> baselineAmis = findBaselineAmis(stage)
     Map defaultStageContext = stage.context
     List<Map> canaryDeployments = defaultStageContext.clusterPairs

@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import com.netflix.spinnaker.orca.pipeline.TaskNode.TaskGraph;
 import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner;
@@ -29,7 +30,7 @@ import static java.util.Collections.emptyList;
 
 public interface StageDefinitionBuilder {
 
-  default @Nonnull TaskNode.TaskGraph buildTaskGraph(@Nonnull Stage<?> stage) {
+  default @Nonnull TaskGraph buildTaskGraph(@Nonnull Stage<?> stage) {
     Builder graphBuilder = Builder(FULL);
     taskGraph(stage, graphBuilder);
     return graphBuilder.build();
@@ -40,6 +41,11 @@ public interface StageDefinitionBuilder {
   }
 
   default @Nonnull <T extends Execution<T>> List<Stage<T>> aroundStages(
+    @Nonnull Stage<T> stage) {
+    return emptyList();
+  }
+
+  default @Nonnull <T extends Execution<T>> List<Stage<T>> parallelStages(
     @Nonnull Stage<T> stage) {
     return emptyList();
   }

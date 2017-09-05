@@ -120,23 +120,6 @@ class BakeStageSpec extends Specification {
     ]
   }
 
-  @Unroll
-  def "should return a different stage name when parallel flows are present"() {
-    given:
-    def stage = stage {
-      type = "type"
-      name = stageName
-    }
-
-    expect:
-    new BakeStage().parallelStageName(stage, hasParallelFlows) == expectedStageName
-
-    where:
-    stageName | hasParallelFlows || expectedStageName
-    "Default" | false            || "Default"
-    "Default" | true             || "Multi-region Bake"
-  }
-
   private
   static List<Map> deployAz(String cloudProvider, String prefix, String... regions) {
     if (prefix == "clusters") {

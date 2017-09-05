@@ -45,20 +45,6 @@ class ParallelDeployStageSpec extends Specification {
                                                                              [account: "prod", restrictedExecutionWindow: [:], cluster: [availabilityZones: ["europe-west1-b": []], cloudProvider: "gce"], type: "createServerGroup", name: "Deploy in europe-west1-b"]]
   }
 
-  @Unroll
-  def "should return stage name regardless of whether parallel flows are present"() {
-    given:
-    def stage = new Stage<>(new Pipeline("orca"), "type", stageName, [:])
-
-    expect:
-    new ParallelDeployStage().parallelStageName(stage, hasParallelFlows) == expectedStageName
-
-    where:
-    stageName | hasParallelFlows || expectedStageName
-    "Default" | false            || "Default"
-    "Default" | true             || "Default"
-  }
-
   Map deployStageContext(String account, String cloudProvider, String... availabilityZones) {
     def context = ["account": account, restrictedExecutionWindow: [:]]
     if (availabilityZones.size() == 1) {
