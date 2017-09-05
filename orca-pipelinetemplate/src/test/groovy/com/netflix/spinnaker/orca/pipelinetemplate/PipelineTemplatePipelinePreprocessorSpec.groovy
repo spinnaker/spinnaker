@@ -24,8 +24,10 @@ import com.netflix.spinnaker.orca.pipelinetemplate.loader.FileTemplateSchemeLoad
 import com.netflix.spinnaker.orca.pipelinetemplate.loader.TemplateLoader
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.StageDefinition
+import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.TemplateConfiguration
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.DefaultRenderContext
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.JinjaRenderer
+import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.RenderUtil
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.Renderer
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.YamlRenderedValueConverter
 import org.unitils.reflectionassert.ReflectionComparatorMode
@@ -229,11 +231,16 @@ class PipelineTemplatePipelinePreprocessorSpec extends Specification {
   @Unroll
   def 'should render jinja expressions contained within template variables'() {
     given:
-    def pipelineTemplate = new PipelineTemplate(variables: variables.collect {
-      new PipelineTemplate.Variable(defaultValue: it)
+    def pipelineTemplate = new PipelineTemplate(variables: templateVariables.collect {
+      new PipelineTemplate.Variable(name: it.key, defaultValue: it.value)
     })
 
-    def renderContext = new DefaultRenderContext("spinnaker", pipelineTemplate, [
+    def templateConfig = new TemplateConfiguration(
+      pipeline: new TemplateConfiguration.PipelineDefinition(variables: configVariables)
+    )
+
+    def renderContext = RenderUtil.createDefaultRenderContext(
+      pipelineTemplate, templateConfig, [
       parameters: [
         "list"   : "us-west-2,us-east-1",
         "boolean": "true",
@@ -248,10 +255,12 @@ class PipelineTemplatePipelinePreprocessorSpec extends Specification {
     pipelineTemplate.variables*.defaultValue == expectedDefaultValues
 
     where:
-    variables                                                 || expectedDefaultValues
-    ["string1", "string2"]                                    || ["string1", "string2"]
-    ["{{ trigger.parameters.string }}", "string2"]            || ["this is a string", "string2"]
-    ["{{ trigger.parameters.list | split(',') }}", "string2"] || [["us-west-2", "us-east-1"], "string2"]
+    templateVariables                                                     | configVariables       || expectedDefaultValues
+    [key1: "string1", key2: "string2"]                                    | [:]                   || ["string1", "string2"]
+    [key1: "{{ trigger.parameters.string }}", key2: "string2"]            | [:]                   || ["this is a string", "string2"]
+    [key1: "{{ trigger.parameters.list | split(',') }}", key2: "string2"] | [:]                   || [["us-west-2", "us-east-1"], "string2"]
+    [key1: "string1", key2: "{{ key1 }}"]                                 | [:]                   || ["string1", "string1"]
+    [key2: "{{ key1 }}"]                                                  | [key1: "string1"]     || ["string1"]
   }
 
   def "should include group for partials-generated stages"() {

@@ -31,6 +31,7 @@ import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTempla
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.TemplateConfiguration;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.DefaultRenderContext;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.RenderContext;
+import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.RenderUtil;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.Renderer;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.validator.V1TemplateConfigurationSchemaValidator;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.validator.V1TemplateSchemaValidator;
@@ -137,8 +138,8 @@ public class PipelineTemplatePipelinePreprocessor implements PipelinePreprocesso
     PipelineTemplate pipelineTemplate = TemplateMerge.merge(templates);
 
     // ensure that any expressions contained with template variables are rendered
-    RenderContext context = new DefaultRenderContext(
-      templateConfiguration.getPipeline().getApplication(), pipelineTemplate, request.getTrigger()
+    RenderContext context = RenderUtil.createDefaultRenderContext(
+      pipelineTemplate, templateConfiguration, request.getTrigger()
     );
     renderTemplateVariables(context, pipelineTemplate);
 
