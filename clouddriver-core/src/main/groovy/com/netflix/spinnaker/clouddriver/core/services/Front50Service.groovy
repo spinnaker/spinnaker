@@ -26,7 +26,9 @@ interface Front50Service {
   List<Map> getCredentials()
 
   @GET('/v2/applications')
-  List<Map> searchByName(@Query("name") String applicationName, @Query("pageSize") Integer pageSize)
+  List<Map> searchByName(@Query("name") String applicationName,
+                         @Query("pageSize") Integer pageSize,
+                         @QueryMap Map<String, String> filters)
 
   @GET('/v2/applications/{applicationName}')
   Map getApplication(@Path('applicationName') String applicationName)
