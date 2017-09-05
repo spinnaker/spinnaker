@@ -12,6 +12,7 @@ import { ICanaryState } from '../reducers/index';
 import { ICanaryConfig } from '../domain/ICanaryConfig';
 import { jsonUtilityService } from '@spinnaker/core';
 import { mapStateToConfig } from '../service/canaryConfig.service';
+import Styleguide from '../layout/styleguide';
 
 interface IEditConfigJsonDispatchProps {
   closeModal: () => void;
@@ -36,29 +37,33 @@ function EditConfigJsonModal({ show, selectedConfig, configJson, deserialization
 
   return (
     <Modal show={show} onHide={null}>
-      <Modal.Header>
-        <Modal.Title>Edit Config</Modal.Title>
-      </Modal.Header>
-        <Modal.Body>
-          <textarea
-            rows={configJson.split('\n').length}
-            className="form-control code flex-fill"
-            spellCheck={false}
-            value={configJson}
-            onChange={setConfigJson}
-          />
-          {!!deserializationError && (
-            <div className="form-group row slide-in">
-              <div className="col-sm-9 col-sm-offset-3 error-message">
-                Error: {deserializationError}
+      <Styleguide>
+        <Modal.Header>
+          <Modal.Title>Edit Config</Modal.Title>
+        </Modal.Header>
+          <Modal.Body>
+            <textarea
+              rows={configJson.split('\n').length}
+              className="form-control code flex-fill"
+              spellCheck={false}
+              value={configJson}
+              onChange={setConfigJson}
+            />
+            {!!deserializationError && (
+              <div className="form-group row slide-in">
+                <div className="col-sm-9 col-sm-offset-3 error-message">
+                  Error: {deserializationError}
+                </div>
               </div>
-            </div>
-          )}
-        </Modal.Body>
-      <Modal.Footer>
-        <button onClick={closeModal}>Cancel</button>
-        <button data-serialized={configJson} onClick={tryToUpdateConfig}>Update</button>
-      </Modal.Footer>
+            )}
+          </Modal.Body>
+        <Modal.Footer>
+          <ul className="list-inline pull-right">
+            <li><button className="passive" onClick={closeModal}>Cancel</button></li>
+            <li><button className="primary" data-serialized={configJson} onClick={tryToUpdateConfig}>Update</button></li>
+          </ul>
+        </Modal.Footer>
+      </Styleguide>
     </Modal>
   );
 }

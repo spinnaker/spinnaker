@@ -2,8 +2,6 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 import { Modal } from 'react-bootstrap';
 
-import { SubmitButton } from '@spinnaker/core';
-
 import {
   EDIT_METRIC_CONFIRM,
   EDIT_METRIC_CANCEL,
@@ -12,6 +10,7 @@ import {
 import {ICanaryState} from '../reducers/index';
 import {ICanaryMetricConfig} from 'kayenta/domain';
 import MetricConfigurerDelegator from './metricConfigurerDelegator';
+import Styleguide from '../layout/styleguide';
 
 interface IEditMetricModalDispatchProps {
   rename: (event: any) => void;
@@ -32,27 +31,27 @@ function EditMetricModal({ metric, rename, confirm, cancel }: IEditMetricModalDi
   }
   return (
     <Modal show={true} onHide={noop}>
-      <Modal.Header>
-        <Modal.Title>Configure Metric</Modal.Title>
-      </Modal.Header>
-      <Modal.Body>
-        <label>Name:</label>
-        <input
-          type="text"
-          value={metric.name}
-          data-id={metric.id}
-          onChange={rename}
-        />
-        <MetricConfigurerDelegator/>
-      </Modal.Body>
-      <Modal.Footer>
-        <button onClick={cancel}>Cancel</button>
-        <SubmitButton
-          label="OK"
-          submitting={false}
-          onClick={confirm}
-        />
-      </Modal.Footer>
+      <Styleguide>
+        <Modal.Header>
+          <Modal.Title>Configure Metric</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <label>Name:</label>
+          <input
+            type="text"
+            value={metric.name}
+            data-id={metric.id}
+            onChange={rename}
+          />
+          <MetricConfigurerDelegator/>
+        </Modal.Body>
+        <Modal.Footer>
+          <ul className="list-inline pull-right">
+            <li><button className="passive" onClick={cancel}>Cancel</button></li>
+            <li><button className="primary" onClick={confirm}>OK</button></li>
+          </ul>
+        </Modal.Footer>
+      </Styleguide>
     </Modal>
   );
 }

@@ -3,13 +3,12 @@ import { connect } from 'react-redux';
 import { Modal } from 'react-bootstrap';
 import * as classNames from 'classnames';
 
-import { SubmitButton } from '@spinnaker/core';
-
 import {
   DELETE_CONFIG_MODAL_CLOSE,
   DELETE_CONFIG_REQUEST
 } from '../actions/index';
 import { ICanaryState } from '../reducers/index';
+import Styleguide from '../layout/styleguide';
 
 interface IDeleteModalDispatchProps {
   closeDeleteConfigModal: () => void;
@@ -35,25 +34,25 @@ export enum DeleteConfigState {
 function DeleteConfigModal({ show, selectedConfigName, deleteConfigState, deleteConfigErrorMessage, closeDeleteConfigModal, deleteConfig }: IDeleteModalDispatchProps & IDeleteModalStateProps) {
   return (
     <Modal show={show} onHide={null}>
-      <Modal.Header>
-        <Modal.Title>Really delete {selectedConfigName}?</Modal.Title>
-      </Modal.Header>
-      { deleteConfigState === DeleteConfigState.Error && (
-        <Modal.Body>
-          {/*TODO: create generic error message component */}
-          <span className={classNames('alert', 'alert-danger')}>
-            {buildErrorMessage(deleteConfigErrorMessage)}
-          </span>
-        </Modal.Body>
-      )}
-      <Modal.Footer>
-        <button onClick={closeDeleteConfigModal}>Cancel</button>
-        <SubmitButton
-          label="Delete"
-          submitting={deleteConfigState === DeleteConfigState.Deleting}
-          onClick={deleteConfig}
-        />
-      </Modal.Footer>
+      <Styleguide>
+        <Modal.Header>
+          <Modal.Title>Really delete {selectedConfigName}?</Modal.Title>
+        </Modal.Header>
+        { deleteConfigState === DeleteConfigState.Error && (
+          <Modal.Body>
+            {/*TODO: create generic error message component */}
+            <span className={classNames('alert', 'alert-danger')}>
+              {buildErrorMessage(deleteConfigErrorMessage)}
+            </span>
+          </Modal.Body>
+        )}
+        <Modal.Footer>
+          <ul className="list-inline pull-right">
+            <li><button className="passive" onClick={closeDeleteConfigModal}>Cancel</button></li>
+            <li><button className="primary" onClick={deleteConfig}>Delete</button></li>
+          </ul>
+        </Modal.Footer>
+      </Styleguide>
     </Modal>
   );
 }

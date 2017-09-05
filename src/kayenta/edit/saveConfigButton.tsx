@@ -25,7 +25,7 @@ function SaveConfigButton({ saveConfigState, inSyncWithServer, saveConfig }: ISa
   if (inSyncWithServer) {
     return (
       <span className="btn btn-link disabled">
-        In sync with server
+        <i className="fa fa-check-circle-o"/> In sync with server
       </span>
     );
   } else {

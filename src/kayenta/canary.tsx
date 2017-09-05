@@ -10,6 +10,7 @@ import CanaryConfigEdit from './edit/edit';
 import { ICanaryConfig, ICanaryConfigSummary, ICanaryMetricConfig } from './domain/index';
 import { INITIALIZE } from './actions/index';
 import { IJudge } from './domain/IJudge';
+import Styleguide from './layout/styleguide';
 
 export interface ICanaryProps {
   app: Application;
@@ -74,11 +75,11 @@ export default class Canary extends React.Component<ICanaryProps, {}> {
 
   public render() {
     return (
-      <div className="styleguide">
+      <Styleguide>
         <Provider store={this.store}>
           <CanaryConfigEdit/>
         </Provider>
-      </div>
+      </Styleguide>
     );
   }
 }
