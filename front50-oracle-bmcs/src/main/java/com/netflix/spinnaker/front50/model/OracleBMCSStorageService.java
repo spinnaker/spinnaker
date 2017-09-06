@@ -115,23 +115,6 @@ public class OracleBMCSStorageService implements StorageService {
   }
 
   @Override
-  public <T extends Timestamped> Collection<T> loadObjectsWithPrefix(ObjectType objectType, String prefix, int maxResults) {
-    WebResource wr = client.resource(UriBuilder.fromPath(endpoint + "/n/{arg1}/b/{arg2}/o")
-            .queryParam("prefix", prefix)
-            .build(region, namespace, bucketName));
-    wr.accept(MediaType.APPLICATION_JSON_TYPE);
-    ListObjects listObjects = wr.get(ListObjects.class);
-
-    Collection<T> objects = new ArrayList<>(listObjects.getObjects().size());
-    for (ObjectSummary summary : listObjects.getObjects()) {
-      if (summary.getName().endsWith(objectType.defaultMetadataFilename)) {
-        objects.add(loadObject(objectType, summary.getName()));
-      }
-    }
-    return objects;
-  }
-
-  @Override
   public <T extends Timestamped> T loadObject(ObjectType objectType, String objectKey) throws NotFoundException {
     WebResource wr = client.resource(UriBuilder.fromPath(endpoint + "/n/{arg1}/b/{arg2}/o/{arg3}")
             .build(region, namespace, bucketName, buildOSSKey(objectType.group, objectKey, objectType.defaultMetadataFilename)));

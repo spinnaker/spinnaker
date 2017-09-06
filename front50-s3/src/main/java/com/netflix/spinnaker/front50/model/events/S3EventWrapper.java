@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Netflix, Inc.
+ * Copyright 2017 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,16 @@
  * limitations under the License.
  */
 
+package com.netflix.spinnaker.front50.model.events;
 
-package com.netflix.spinnaker.front50.model.tag
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-import com.netflix.spinnaker.front50.model.ItemDAO
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class S3EventWrapper {
+  @JsonProperty("Subject")
+  public String subject;
 
-interface EntityTagsDAO extends ItemDAO<EntityTags> {
+  @JsonProperty("Message")
+  public String message;
 }

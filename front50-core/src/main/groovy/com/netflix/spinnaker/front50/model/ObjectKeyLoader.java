@@ -24,4 +24,8 @@ public interface ObjectKeyLoader {
    * @return Key: Last Modified Timestamp for all keys of type {@code ObjectType}
    */
   Map<String, Long> listObjectKeys(ObjectType objectType);
+
+  default void shutdown() {
+    // do nothing
+  }
 }

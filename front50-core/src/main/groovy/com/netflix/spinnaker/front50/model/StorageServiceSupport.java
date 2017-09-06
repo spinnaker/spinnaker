@@ -15,9 +15,6 @@
  */
 package com.netflix.spinnaker.front50.model;
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
 import com.google.common.collect.Lists;
 import com.netflix.hystrix.exception.HystrixRuntimeException;
 import com.netflix.spectator.api.Counter;
@@ -33,7 +30,6 @@ import rx.Scheduler;
 
 import javax.annotation.PostConstruct;
 import java.util.*;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
@@ -159,10 +155,6 @@ public abstract class StorageServiceSupport<T extends Timestamped> {
     return new ArrayList<>(allItemsCache.get());
   }
 
-  public Collection<T> all(String prefix, int maxResults) {
-    return service.loadObjectsWithPrefix(objectType, prefix, maxResults);
-  }
-
   public Collection<T> history(String id, int maxResults) {
     if (service.supportsVersioning()) {
       return service.listObjectVersions(objectType, id, maxResults);
@@ -274,7 +266,7 @@ public abstract class StorageServiceSupport<T extends Timestamped> {
     }
 
     Long refreshTime = System.currentTimeMillis();
-    Map<String, Long> keyUpdateTime = service.listObjectKeys(objectType);
+    Map<String, Long> keyUpdateTime = objectKeyLoader.listObjectKeys(objectType);
 
     // Expanded from a stream collector to avoid DuplicateKeyExceptions
     Map<String, T> resultMap = new HashMap<>();
@@ -305,7 +297,7 @@ public abstract class StorageServiceSupport<T extends Timestamped> {
          })
         .collect(Collectors.toList());
 
-    if (!existingItems.isEmpty()) {
+    if (!existingItems.isEmpty() && !modifiedKeys.isEmpty()) {
       // only log keys that have been modified after initial cache load
       log.debug("Modified object keys: {}", modifiedKeys);
     }

@@ -34,8 +34,6 @@ public interface StorageService {
    */
   boolean supportsVersioning();
 
-  <T extends Timestamped> Collection<T> loadObjectsWithPrefix(ObjectType objectType, String prefix, int maxResults);
-
   <T extends Timestamped> T loadObject(ObjectType objectType, String objectKey) throws NotFoundException;
 
   void deleteObject(ObjectType objectType, String objectKey);

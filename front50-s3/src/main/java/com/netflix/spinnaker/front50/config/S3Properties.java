@@ -26,6 +26,9 @@ public class S3Properties extends S3BucketProperties {
   @NestedConfigurationProperty
   S3FailoverProperties failover = new S3FailoverProperties();
 
+  @NestedConfigurationProperty
+  S3EventingProperties eventing = new S3EventingProperties();
+
   public String getRootFolder() {
     return rootFolder;
   }
@@ -44,6 +47,14 @@ public class S3Properties extends S3BucketProperties {
 
   public boolean isFailoverEnabled() {
     return failover != null && failover.enabled;
+  }
+
+  public S3EventingProperties getEventing() {
+    return eventing;
+  }
+
+  public void setEventing(S3EventingProperties eventing) {
+    this.eventing = eventing;
   }
 
   @Override

@@ -281,11 +281,6 @@ public class GcsStorageService implements StorageService {
   }
 
   @Override
-  public <T extends Timestamped> Collection<T> loadObjectsWithPrefix(ObjectType objectType, String prefix, int maxResults) {
-    throw new UnsupportedOperationException("loadObjectsWithPrefix is not yet supported!");
-  }
-
-  @Override
   public <T extends Timestamped> T loadObject(ObjectType objectType, String objectKey) throws NotFoundException {
     String path = keyToPath(objectKey, objectType.group);
     try {

@@ -99,29 +99,6 @@ public class S3StorageService implements StorageService {
   }
 
   @Override
-  public <T extends Timestamped> Collection<T> loadObjectsWithPrefix(ObjectType objectType, String prefix, int maxResults) {
-    ObjectListing bucketListing = amazonS3.listObjects(
-      new ListObjectsRequest(bucket, (buildTypedFolder(rootFolder, objectType.group) + "/" + prefix).toLowerCase(), null, null, maxResults)
-    );
-    List<S3ObjectSummary> summaries = bucketListing.getObjectSummaries();
-
-    // TODO-AJ this is naive and inefficient
-    return summaries.stream()
-      .map(s3ObjectSummary -> amazonS3.getObject(s3ObjectSummary.getBucketName(), s3ObjectSummary.getKey()))
-      .map(s3Object -> {
-        T item = null;
-        try {
-          item = deserialize(s3Object, (Class<T>) objectType.clazz);
-          item.setLastModified(s3Object.getObjectMetadata().getLastModified().getTime());
-        } catch (IOException e) {
-          // do nothing
-        }
-        return item;
-      })
-      .collect(Collectors.toSet());
-  }
-
-  @Override
   public <T extends Timestamped> T loadObject(ObjectType objectType, String objectKey) throws NotFoundException {
     try {
       S3Object s3Object = amazonS3.getObject(bucket, buildS3Key(objectType.group, objectKey, objectType.defaultMetadataFilename));
@@ -292,7 +269,7 @@ public class S3StorageService implements StorageService {
       .replaceAll("/" + objectType.defaultMetadataFilename, "");
   }
 
-  private String buildTypedFolder(String rootFolder, String type) {
+  private static String buildTypedFolder(String rootFolder, String type) {
     return (rootFolder + "/" + type).replaceAll("//", "/");
   }
 }

@@ -104,31 +104,6 @@ public class AzureStorageService implements StorageService {
   }
 
   @Override
-  public <T extends Timestamped> Collection<T> loadObjectsWithPrefix(ObjectType objectType, String prefix, int maxResults) {
-    Set<T> blobs = new HashSet<>();
-    String key = buildKeyPath(objectType.group, prefix, "");
-    try {
-      ResultContinuation token = null;
-      EnumSet<BlobListingDetails> listDetails = EnumSet.of(BlobListingDetails.METADATA);
-      do {
-        ResultSegment<ListBlobItem> result = blobContainer.listBlobsSegmented(key, true, listDetails, maxResults, token, null, null);
-        token = result.getContinuationToken();
-
-        for (ListBlobItem item : result.getResults()) {
-          blobs.add(deserialize((CloudBlockBlob)item, (Class<T>) objectType.clazz));
-        }
-      } while (token != null);
-    } catch (IOException e) {
-      throw new IllegalStateException("Unable to deserialize object(s) (key: " + key + ")", e);
-    } catch (StorageException se) {
-      logStorageException(se, key);
-    } catch (Exception e) {
-      log.error("Failed to retrieve objects with prefix {}: {}", key, e.getMessage());
-    }
-    return blobs;
-  }
-
-  @Override
   public void deleteObject(ObjectType objectType, String objectKey) {
     String key = buildKeyPath(objectType.group, objectKey, objectType.defaultMetadataFilename);
     try {

@@ -124,17 +124,6 @@ public class SwiftStorageService implements StorageService {
   }
 
   @Override
-  public <T extends Timestamped> Collection<T> loadObjectsWithPrefix(ObjectType objectType, String prefix, int maxResults) {
-    List<? extends SwiftObject> objects = getSwift().objects().list(containerName, ObjectListOptions.create().path(objectType.group).startsWith(prefix).limit(maxResults));
-    return objects.stream()
-      .map(obj -> {
-        T item = deserialize(obj, (Class<T>) objectType.clazz);
-        item.setLastModified(obj.getLastModified().getTime());
-        return item;
-      }).collect(Collectors.toSet());
-  }
-
-  @Override
   public <T extends Timestamped> T loadObject(ObjectType objectType, String objectKey) throws NotFoundException {
     SwiftObject o = getSwift().objects().get(containerName, objectKey);
     return deserialize(o, (Class<T>) objectType.clazz);
