@@ -24,6 +24,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public class KubernetesManifestAnnotater {
   private static final String SPINNAKER_ANNOTATION = "spinnaker.io";
@@ -62,7 +63,15 @@ public class KubernetesManifestAnnotater {
 
   public static void annotateManifestWithRelationships(KubernetesManifest manifest, KubernetesManifestSpinnakerRelationships relationships) {
     Map<String, String> annotations = manifest.getAnnotations();
+    annotateManifestWithRelationships(annotations, relationships);
 
+    manifest.getSpecTemplateAnnotations().flatMap(a -> {
+      annotateManifestWithRelationships(a, relationships);
+      return Optional.empty();
+    });
+  }
+
+  private static void annotateManifestWithRelationships(Map<String, String> annotations, KubernetesManifestSpinnakerRelationships relationships) {
     storeAnnotation(annotations, LOAD_BALANCERS, relationships.getLoadBalancers());
     storeAnnotation(annotations, SECURITY_GROUPS, relationships.getSecurityGroups());
     storeAnnotation(annotations, CLUSTER, relationships.getCluster());

@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public class KubernetesManifest extends HashMap<String, Object> {
   private static <T> T getRequiredField(KubernetesManifest manifest, String field) {
@@ -99,6 +100,32 @@ public class KubernetesManifest extends HashMap<String, Object> {
     }
 
     return result;
+  }
+
+  @JsonIgnore
+  public Optional<Map<String, String>> getSpecTemplateAnnotations() {
+    if (!containsKey("spec")) {
+      return Optional.empty();
+    }
+
+    Map<String, Object> spec = (Map<String, Object>) get("spec");
+    if (!spec.containsKey("template")) {
+      return Optional.empty();
+    }
+
+    Map<String, Object> template = (Map<String, Object>) spec.get("template");
+    if (!template.containsKey("metadata")) {
+      return Optional.empty();
+    }
+
+    Map<String, Object> metadata = (Map<String, Object>) template.get("metadata");
+    Map<String, String> result = (Map<String, String>) metadata.get("annotations");
+    if (result == null) {
+      result = new HashMap<>();
+      metadata.put("annotations", result);
+    }
+
+    return Optional.of(result);
   }
 
   @JsonIgnore

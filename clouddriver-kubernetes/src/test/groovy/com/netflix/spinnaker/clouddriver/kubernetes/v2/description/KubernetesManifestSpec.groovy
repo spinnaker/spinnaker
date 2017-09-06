@@ -30,6 +30,8 @@ class KubernetesManifestSpec extends Specification {
   def NAMESPACE = "my-namespace"
   def KIND = KubernetesKind.REPLICA_SET
   def API_VERSION = KubernetesApiVersion.EXTENSIONS_V1BETA1
+  def KEY = "hi"
+  def VALUE = "there"
 
   def BASIC_REPLICA_SET = """
 apiVersion: $API_VERSION
@@ -37,6 +39,11 @@ kind: $KIND
 metadata:
   name: $NAME
   namespace: $NAMESPACE
+spec:
+  template:
+    metadata:
+      annotations:
+        $KEY: $VALUE 
 """
 
   KubernetesManifest stringToManifest(String input) {
@@ -52,6 +59,7 @@ metadata:
     manifest.getNamespace() == NAMESPACE
     manifest.getKind() == KIND
     manifest.getApiVersion() == API_VERSION
+    manifest.getSpecTemplateAnnotations().get().get(KEY) == VALUE
   }
 
   @Unroll
