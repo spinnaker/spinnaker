@@ -27,11 +27,8 @@ import org.simpleframework.xml.Root
 @Root(name = 'commits')
 class Commit {
     int id
-
     String sha
-
     String branch
-
     String message
 
     @SerializedName("author_name")
@@ -41,14 +38,7 @@ class Commit {
     String compareUrl
 
     GenericGitRevision genericGitRevision() {
-        GenericGitRevision genericGitRevision = new GenericGitRevision(branch, branch, sha)
-        if (authorName) {
-            genericGitRevision.setCommitter(authorName)
-        }
-        if (compareUrl) {
-            genericGitRevision.setCompareUrl(compareUrl)
-        }
-        return genericGitRevision
+        return new GenericGitRevision(branch, branch, sha, authorName, compareUrl, message)
     }
 
     boolean isTag(){

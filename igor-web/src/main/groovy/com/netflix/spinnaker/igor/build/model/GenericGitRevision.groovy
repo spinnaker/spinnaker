@@ -20,19 +20,23 @@ import com.fasterxml.jackson.annotation.JsonInclude
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 class GenericGitRevision {
-    String branch
-
     String name
-
+    String branch
     String sha1
-
     String committer
-
     String compareUrl
+    String message
 
     GenericGitRevision(String name, String branch, String sha1) {
         this.name = name
         this.branch = branch
         this.sha1 = sha1
+    }
+
+    GenericGitRevision(String name, String branch, String sha1, String committer, String compareUrl, String message) {
+        this(name, branch, sha1)
+        this.committer = committer
+        this.compareUrl = compareUrl
+        this.message = message
     }
 }
