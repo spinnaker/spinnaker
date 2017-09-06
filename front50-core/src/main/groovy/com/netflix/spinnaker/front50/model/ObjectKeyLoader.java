@@ -21,7 +21,7 @@ import java.util.Map;
 public interface ObjectKeyLoader {
   /**
    * @param objectType ObjectType
-   * @return Key -> Last Modified Timestamp for all keys of type {@code ObjectType}
+   * @return Key: Last Modified Timestamp for all keys of type {@code ObjectType}
    */
   Map<String, Long> listObjectKeys(ObjectType objectType);
 }
