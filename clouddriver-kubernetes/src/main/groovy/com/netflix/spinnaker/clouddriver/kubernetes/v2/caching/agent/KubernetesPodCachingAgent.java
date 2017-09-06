@@ -24,7 +24,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAcco
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
-import io.kubernetes.client.models.V1beta1ReplicaSet;
+import io.kubernetes.client.models.V1Pod;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -39,8 +39,8 @@ import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITA
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.INFORMATIVE;
 
 @Slf4j
-public class KubernetesReplicaSetCachingAgent extends KubernetesV2CachingAgent<V1beta1ReplicaSet> {
-  KubernetesReplicaSetCachingAgent(KubernetesNamedAccountCredentials<KubernetesV2Credentials> namedAccountCredentials,
+public class KubernetesPodCachingAgent extends KubernetesV2CachingAgent<V1Pod> {
+  KubernetesPodCachingAgent(KubernetesNamedAccountCredentials<KubernetesV2Credentials> namedAccountCredentials,
       ObjectMapper objectMapper,
       Registry registry,
       int agentIndex,
@@ -54,14 +54,15 @@ public class KubernetesReplicaSetCachingAgent extends KubernetesV2CachingAgent<V
           INFORMATIVE.forType(Keys.LogicalKind.APPLICATION.toString()),
           INFORMATIVE.forType(Keys.LogicalKind.CLUSTER.toString()),
           INFORMATIVE.forType(KubernetesKind.DEPLOYMENT.toString()),
-          AUTHORITATIVE.forType(KubernetesKind.REPLICA_SET.toString())
+          INFORMATIVE.forType(KubernetesKind.REPLICA_SET.toString()),
+          AUTHORITATIVE.forType(KubernetesKind.POD.toString())
       ))
   );
 
   @Override
-  protected List<V1beta1ReplicaSet> loadPrimaryResource() {
+  protected List<V1Pod> loadPrimaryResource() {
     return namespaces.stream()
-        .map(credentials::listAllReplicaSets)
+        .map(credentials::listAllPods)
         .flatMap(Collection::stream)
         .collect(Collectors.toList());
   }

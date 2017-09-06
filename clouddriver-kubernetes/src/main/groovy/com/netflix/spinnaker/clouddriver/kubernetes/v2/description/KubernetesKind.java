@@ -25,6 +25,7 @@ import java.util.Arrays;
 public enum KubernetesKind {
   DEPLOYMENT("deployment"),
   INGRESS("ingress"),
+  POD("pod"),
   REPLICA_SET("replicaSet"),
   NETWORK_POLICY("networkPolicy"),
   SERVICE("service");

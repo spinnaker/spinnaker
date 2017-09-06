@@ -32,6 +32,8 @@ import io.kubernetes.client.apis.AppsV1beta1Api;
 import io.kubernetes.client.apis.CoreV1Api;
 import io.kubernetes.client.apis.ExtensionsV1beta1Api;
 import io.kubernetes.client.models.AppsV1beta1Deployment;
+import io.kubernetes.client.models.V1Pod;
+import io.kubernetes.client.models.V1PodList;
 import io.kubernetes.client.models.V1Service;
 import io.kubernetes.client.models.V1beta1Ingress;
 import io.kubernetes.client.models.V1beta1ReplicaSet;
@@ -161,6 +163,29 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
     runAndRecordMetrics(methodName, namespace, () -> {
       try {
         return extensionsV1beta1Api.createNamespacedIngress(namespace, ingress, null);
+      } catch (ApiException e) {
+        throw new KubernetesApiException(methodName, e);
+      }
+    });
+  }
+
+  public List<V1Pod> listAllPods(String namespace) {
+    return listPods(namespace, new KubernetesSelectorList(), new KubernetesSelectorList());
+  }
+
+  public List<V1Pod> listPods(String namespace, KubernetesSelectorList fieldSelectors, KubernetesSelectorList labelSelectors) {
+    final String methodName = "pods.list";
+    final String fieldSelectorString = fieldSelectors.toString();
+    final String labelSelectorString = labelSelectors.toString();
+    final KubernetesApiVersion apiVersion = KubernetesApiVersion.V1;
+    final KubernetesKind kind = KubernetesKind.POD;
+    return runAndRecordMetrics(methodName, namespace, () -> {
+      try {
+        V1PodList list = coreV1Api.listNamespacedPod(namespace, PRETTY, fieldSelectorString, labelSelectorString, DEFAULT_VERSION, TIMEOUT_SECONDS, WATCH);
+        return annotateMissingFields(list == null ? new ArrayList<>() : list.getItems(),
+            V1Pod.class,
+            apiVersion,
+            kind);
       } catch (ApiException e) {
         throw new KubernetesApiException(methodName, e);
       }
