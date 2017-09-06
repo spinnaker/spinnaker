@@ -66,7 +66,7 @@ public class PipelineIdTag implements Tag {
       throw new TemplateSyntaxException(tagNode.getMaster().getImage(), "Tag 'pipelineId' is missing required fields: " + helper, tagNode.getLineNumber());
     }
 
-    List<Map<String, Object>> pipelines = Optional.ofNullable(front50Service.getPipelines(application)).orElse(Collections.emptyList());
+    List<Map<String, Object>> pipelines = Optional.ofNullable(front50Service.getPipelines(application, false)).orElse(Collections.emptyList());
 
     Map<String, Object> result = pipelines
       .stream()

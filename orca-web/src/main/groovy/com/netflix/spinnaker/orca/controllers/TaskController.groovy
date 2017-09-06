@@ -314,7 +314,7 @@ class TaskController {
       statuses: (statuses.split(",") as Collection)
     )
 
-    def pipelineConfigIds = front50Service.getPipelines(application)*.id as List<String>
+    def pipelineConfigIds = front50Service.getPipelines(application, false)*.id as List<String>
     def strategyConfigIds = front50Service.getStrategies(application)*.id as List<String>
     def allIds = pipelineConfigIds + strategyConfigIds
 

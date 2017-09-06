@@ -49,6 +49,9 @@ interface Front50Service {
   @GET("/pipelines/{applicationName}")
   List<Map<String, Object>> getPipelines(@Path("applicationName") String applicationName)
 
+  @GET("/pipelines/{applicationName}")
+  List<Map<String, Object>> getPipelines(@Path("applicationName") String applicationName, @Query("refresh") boolean refresh)
+
   @POST("/pipelines")
   Response savePipeline(@Body Map pipeline)
 

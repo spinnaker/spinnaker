@@ -30,7 +30,7 @@ class EnabledPipelineValidatorSpec extends Specification {
 
   def "allows one-off pipeline to run"() {
     given:
-    front50Service.getPipelines(execution.application) >> []
+    front50Service.getPipelines(execution.application, false) >> []
 
     when:
     validator.checkRunnable(execution)
@@ -47,7 +47,7 @@ class EnabledPipelineValidatorSpec extends Specification {
 
   def "allows enabled pipeline to run"() {
     given:
-    front50Service.getPipelines(execution.application) >> [
+    front50Service.getPipelines(execution.application, false) >> [
       [id: execution.pipelineConfigId, application: execution.application, name: "whatever", disabled: false]
     ]
 
@@ -66,7 +66,7 @@ class EnabledPipelineValidatorSpec extends Specification {
 
   def "prevents disabled pipeline from running"() {
     given:
-    front50Service.getPipelines(execution.application) >> [
+    front50Service.getPipelines(execution.application, false) >> [
       [id: execution.pipelineConfigId, application: execution.application, name: "whatever", disabled: true]
     ]
 
@@ -125,7 +125,7 @@ class EnabledPipelineValidatorSpec extends Specification {
 
   def "doesn't choke on non-boolean strategy value"() {
     given:
-    front50Service.getPipelines(execution.application) >> [
+    front50Service.getPipelines(execution.application, false) >> [
       [id: execution.pipelineConfigId, application: execution.application, name: "whatever", disabled: false]
     ]
 

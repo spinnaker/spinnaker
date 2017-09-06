@@ -37,7 +37,7 @@ class PipelineIdTagSpec extends Specification {
   @Unroll
   def 'should render pipeline id'() {
     given:
-    front50Service.getPipelines('myApp') >>  [
+    front50Service.getPipelines('myApp', false) >>  [
       [
         name: 'Bake and Tag',
         application: 'myApp',
@@ -86,7 +86,7 @@ class PipelineIdTagSpec extends Specification {
     renderer.render('{% pipelineId name="Bake and Tag" %}', context)
 
     then: 'application should be inferred from context'
-    1 * front50Service.getPipelines(applicationInContext) >>  [
+    1 * front50Service.getPipelines(applicationInContext, false) >>  [
       [
         name: 'Bake and Tag',
         application: 'myApp',
@@ -111,7 +111,7 @@ class PipelineIdTagSpec extends Specification {
     renderer.render('{% pipelineId name="Bake and Tag" %}', context)
 
     then:
-    1 * front50Service.getPipelines(applicationInContext) >>  []
+    1 * front50Service.getPipelines(applicationInContext, false) >>  []
     thrown(TemplateRenderException)
   }
 }
