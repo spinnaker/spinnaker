@@ -19,13 +19,8 @@ package com.netflix.spinnaker.front50.controllers
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.front50.model.S3StorageService
 import com.netflix.spinnaker.front50.model.pipeline.DefaultPipelineDAO
-import com.netflix.spinnaker.kork.web.exceptions.GenericExceptionHandlers
-import org.springframework.web.method.HandlerMethod
-import org.springframework.web.method.annotation.ExceptionHandlerMethodResolver
 import org.springframework.web.servlet.mvc.method.annotation.ExceptionHandlerExceptionResolver
-import org.springframework.web.servlet.mvc.method.annotation.ServletInvocableHandlerMethod
 
-import java.lang.reflect.Method
 import java.util.concurrent.Executors
 import com.amazonaws.ClientConfiguration
 import com.amazonaws.services.s3.AmazonS3Client
@@ -41,8 +36,11 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import rx.schedulers.Schedulers
 import spock.lang.*
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
+
 
 abstract class PipelineControllerTck extends Specification {
 
@@ -89,6 +87,33 @@ abstract class PipelineControllerTck extends Specification {
 
     then:
     response.status == UNPROCESSABLE_ENTITY
+  }
+
+  void "should provide a valid, unique index when listing all for an application"() {
+    given:
+    pipelineDAO.create(null, new Pipeline([
+      name: "c", application: "test"
+    ]))
+    pipelineDAO.create(null, new Pipeline([
+      name: "b", application: "test"
+    ]))
+    pipelineDAO.create(null, new Pipeline([
+      name: "a1", application: "test", index: 1
+    ]))
+    pipelineDAO.create(null, new Pipeline([
+      name: "b1", application: "test", index: 1
+    ]))
+    pipelineDAO.create(null, new Pipeline([
+      name: "a3", application: "test", index: 3
+    ]))
+
+    when:
+    def response = mockMvc.perform(get("/pipelines/test"))
+
+    then:
+    response
+      .andExpect(jsonPath('$.[*].name').value(["a1", "b1", "a3", "b", "c"]))
+      .andExpect(jsonPath('$.[*].index').value([0, 1, 2, 3, 4]))
   }
 
   void 'should update a pipeline'() {
