@@ -61,23 +61,22 @@ class AllowLaunchAtomicOperation implements AtomicOperation<ResolvedAmiResult> {
     def sourceAmazonEC2 = amazonClientProvider.getAmazonEC2(description.credentials, description.region, true)
     def targetAmazonEC2 = amazonClientProvider.getAmazonEC2(targetCredentials, description.region, true)
 
-    task.updateStatus BASE_PHASE, "Looking up AMI imageId '$description.amiName' in source accountId='$description.credentials.accountId'"
-    ResolvedAmiResult resolvedAmi = AmiIdResolver.resolveAmiIdFromAllSources(sourceAmazonEC2, description.region, description.amiName, description.credentials.accountId)
+
+    task.updateStatus BASE_PHASE, "Looking up AMI imageId '$description.amiName' in target accountId='$targetCredentials.accountId'"
+    ResolvedAmiResult resolvedAmi = AmiIdResolver.resolveAmiIdFromAllSources(targetAmazonEC2, description.region, description.amiName, targetCredentials.accountId)
+
+    if (!resolvedAmi) {
+      task.updateStatus BASE_PHASE, "Looking up AMI imageId '$description.amiName' in source accountId='$description.credentials.accountId'"
+      resolvedAmi = AmiIdResolver.resolveAmiIdFromAllSources(sourceAmazonEC2, description.region, description.amiName, description.credentials.accountId)
+    } else {
+      task.updateStatus BASE_PHASE, "AMI found in target account: skipping allow launch"
+      return resolvedAmi
+    }
 
     if (!resolvedAmi && targetCredentials.allowPrivateThirdPartyImages) {
       resolvedAmi = AmiIdResolver.resolveAmiId(targetAmazonEC2, description.region, description.amiName)
       if (resolvedAmi) {
         task.updateStatus BASE_PHASE, "AMI appears to be from a private third-party, which is permitted on this target account: skipping allow launch"
-        return resolvedAmi
-      }
-    }
-
-    if (!resolvedAmi) {
-      // Let's try looking for the AMI using target account
-      task.updateStatus BASE_PHASE, "Looking up AMI imageId '$description.amiName' in target accountId='$targetCredentials.accountId'"
-      resolvedAmi = AmiIdResolver.resolveAmiIdFromAllSources(targetAmazonEC2, description.region, description.amiName, targetCredentials.accountId)
-      if (resolvedAmi) {
-        task.updateStatus BASE_PHASE, "AMI found in target account: skipping allow launch"
         return resolvedAmi
       }
     }
