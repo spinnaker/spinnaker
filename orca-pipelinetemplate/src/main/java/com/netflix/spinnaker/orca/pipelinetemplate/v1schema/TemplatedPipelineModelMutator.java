@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.pipelinetemplate.v1schema;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.orca.front50.PipelineModelMutator;
+import com.netflix.spinnaker.orca.pipelinetemplate.exceptions.TemplateLoaderException;
 import com.netflix.spinnaker.orca.pipelinetemplate.loader.TemplateLoader;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.NamedHashMap;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate;
@@ -27,6 +28,8 @@ import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.TemplateConfig
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.RenderContext;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.RenderUtil;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.Renderer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Map;
@@ -38,6 +41,8 @@ import java.util.stream.Collectors;
  * non-templated pipeline schema.
  */
 public class TemplatedPipelineModelMutator implements PipelineModelMutator {
+
+  private final static Logger log = LoggerFactory.getLogger(TemplatedPipelineModelMutator.class);
 
   private final ObjectMapper pipelineTemplateObjectMapper;
   private final TemplateLoader templateLoader;
@@ -65,7 +70,9 @@ public class TemplatedPipelineModelMutator implements PipelineModelMutator {
     // Dynamically sourced templates don't support configuration inheritance.
     if (!sourceContainsExpressions(configuration)) {
       template = getPipelineTemplate(configuration);
-      applyConfigurationsFromTemplate(configuration.getConfiguration(), template.getConfiguration(), pipeline);
+      if (template != null) {
+        applyConfigurationsFromTemplate(configuration.getConfiguration(), template.getConfiguration(), pipeline);
+      }
     }
 
     mapPipelineConfigId(pipeline, configuration);
@@ -173,7 +180,11 @@ public class TemplatedPipelineModelMutator implements PipelineModelMutator {
   }
 
   private PipelineTemplate getPipelineTemplate(TemplateConfiguration configuration) {
-    List<PipelineTemplate> templates = templateLoader.load(configuration.getPipeline().getTemplate());
-    return TemplateMerge.merge(templates);
+    try {
+      return TemplateMerge.merge(templateLoader.load(configuration.getPipeline().getTemplate()));
+    } catch (TemplateLoaderException e) {
+      log.error("Could not load template: {}", configuration.getPipeline().getTemplate(), e);
+      return null;
+    }
   }
 }
