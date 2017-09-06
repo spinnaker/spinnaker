@@ -6,7 +6,7 @@ import com.netflix.spinnaker.clouddriver.core.CloudProvider;
 import java.lang.annotation.Annotation;
 
 @Component
-class EcsCloudProvider implements CloudProvider {
+public class EcsCloudProvider implements CloudProvider {
 
   public static final String ID = "ecs";
 
