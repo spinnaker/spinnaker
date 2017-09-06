@@ -50,7 +50,8 @@ class NetflixTitusCredentials implements AccountCredentials<TitusCredentials> {
                           boolean discoveryEnabled,
                           String discovery,
                           String stack,
-                          String apiVersion
+                          String apiVersion,
+                          List<String> requiredGroupMembership
   ) {
     this.name = name
     this.environment = environment
@@ -64,6 +65,7 @@ class NetflixTitusCredentials implements AccountCredentials<TitusCredentials> {
     this.discovery = discovery
     this.stack = stack
     this.apiVersion = apiVersion
+    this.requiredGroupMembership = requiredGroupMembership
   }
 
   @Override
@@ -106,6 +108,10 @@ class NetflixTitusCredentials implements AccountCredentials<TitusCredentials> {
 
   String getStack() {
     return stack
+  }
+
+  List<String> getRequiredGroupMembership() {
+    return requiredGroupMembership
   }
 
 }
