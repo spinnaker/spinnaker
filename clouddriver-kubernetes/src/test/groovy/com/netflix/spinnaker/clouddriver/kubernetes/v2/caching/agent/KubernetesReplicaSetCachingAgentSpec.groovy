@@ -66,7 +66,7 @@ class KubernetesReplicaSetCachingAgentSpec extends Specification {
     then:
     result.cacheResults[KubernetesKind.REPLICA_SET.name].size() == 1
     def cacheData = result.cacheResults[KubernetesKind.REPLICA_SET.name].iterator().next()
-    cacheData.relationships.get(Keys.LogicalKind.CLUSTER.toString()) == [Keys.cluster(ACCOUNT, APPLICATION, CLUSTER)]
+    cacheData.relationships.get(Keys.LogicalKind.CLUSTER.toString()) == [Keys.cluster(ACCOUNT, CLUSTER)]
     cacheData.relationships.get(Keys.LogicalKind.APPLICATION.toString()) == [Keys.application(APPLICATION)]
     cacheData.attributes.get("name") == NAME
     cacheData.attributes.get("namespace") == NAMESPACE

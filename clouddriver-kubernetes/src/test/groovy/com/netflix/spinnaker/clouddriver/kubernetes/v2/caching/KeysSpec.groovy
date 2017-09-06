@@ -42,23 +42,83 @@ class KeysSpec extends Specification {
   @Unroll
   def "produces correct cluster keys #key"() {
     expect:
-    Keys.cluster(account, application, cluster) == key
+    Keys.cluster(account, cluster) == key
 
     where:
     account | application | cluster   || key
-    "ac"    | "app"       | "cluster" || "kubernetes.v2:logical:cluster:ac:app:cluster"
-    ""      | ""          | ""        || "kubernetes.v2:logical:cluster:::"
+    "ac"    | "app"       | "cluster" || "kubernetes.v2:logical:cluster:ac:cluster"
+    ""      | ""          | ""        || "kubernetes.v2:logical:cluster::"
   }
 
   @Unroll
   def "produces correct infra keys #key"() {
     expect:
-    Keys.infrastructure(kind, apiVersion, account, application, namespace, name) == key
+    Keys.infrastructure(kind, apiVersion, account, namespace, name) == key
 
     where:
-    kind                       | apiVersion                              | account | application | namespace   | name      || key
-    KubernetesKind.REPLICA_SET | KubernetesApiVersion.EXTENSIONS_V1BETA1 | "ac"    | "app"       | "namespace" | "v1-v000" || "kubernetes.v2:infrastructure:replicaSet:extensions/v1beta1:ac:app:namespace:v1-v000"
-    KubernetesKind.SERVICE     | KubernetesApiVersion.V1                 | "ac"    | "app"       | "namespace" | "v1"      || "kubernetes.v2:infrastructure:service:v1:ac:app:namespace:v1"
-    KubernetesKind.DEPLOYMENT  | KubernetesApiVersion.APPS_V1BETA1       | "ac"    | "app"       | "namespace" | "v1"      || "kubernetes.v2:infrastructure:deployment:apps/v1beta1:ac:app:namespace:v1"
+    kind                       | apiVersion                              | account | namespace   | name      || key
+    KubernetesKind.REPLICA_SET | KubernetesApiVersion.EXTENSIONS_V1BETA1 | "ac"    | "namespace" | "v1-v000" || "kubernetes.v2:infrastructure:replicaSet:extensions/v1beta1:ac:namespace:v1-v000"
+    KubernetesKind.SERVICE     | KubernetesApiVersion.V1                 | "ac"    | "namespace" | "v1"      || "kubernetes.v2:infrastructure:service:v1:ac:namespace:v1"
+    KubernetesKind.DEPLOYMENT  | KubernetesApiVersion.APPS_V1BETA1       | "ac"    | "namespace" | "v1"      || "kubernetes.v2:infrastructure:deployment:apps/v1beta1:ac:namespace:v1"
+  }
+
+  @Unroll
+  def "unpacks application key for #name"() {
+    when:
+    def key = "kubernetes.v2:logical:application:$name"
+    def parsed = Keys.parseKey(key).get()
+
+    then:
+    parsed instanceof Keys.ApplicationCacheKey
+    def parsedApplicationKey = (Keys.ApplicationCacheKey) parsed
+    parsedApplicationKey.name == name
+
+    where:
+    name  | unused
+    "app" | ""
+    ""    | ""
+  }
+
+  @Unroll
+  def "unpacks cluster key for '#name' and '#account'"() {
+    when:
+    def key = "kubernetes.v2:logical:cluster:$account:$name"
+    def parsed = Keys.parseKey(key).get()
+
+    then:
+    parsed instanceof Keys.ClusterCacheKey
+    def parsedClusterKey = (Keys.ClusterCacheKey) parsed
+    parsedClusterKey.account == account
+    parsedClusterKey.name == name
+
+    where:
+    account | name
+    "ac"    | "name"
+    ""      | "sdf"
+    "ac"    | ""
+    ""      | ""
+  }
+
+  @Unroll
+  def "unpacks infrastructure key for '#kind' and '#version'"() {
+    when:
+    def key = "kubernetes.v2:infrastructure:$kind:$version:$account:$namespace:$name"
+    def parsed = Keys.parseKey(key).get()
+
+    then:
+    parsed instanceof Keys.InfrastructureCacheKey
+    def parsedInfrastructureKey = (Keys.InfrastructureCacheKey) parsed
+    parsedInfrastructureKey.kubernetesKind == kind
+    parsedInfrastructureKey.kubernetesApiVersion == version
+    parsedInfrastructureKey.account == account
+    parsedInfrastructureKey.namespace == namespace
+    parsedInfrastructureKey.name == name
+
+    where:
+    kind                       | version                                 | account   | namespace   | name
+    KubernetesKind.DEPLOYMENT  | KubernetesApiVersion.APPS_V1BETA1       | "ac"      | "name"      | "nameer"
+    KubernetesKind.REPLICA_SET | KubernetesApiVersion.EXTENSIONS_V1BETA1 | ""        | ""          | ""
+    KubernetesKind.SERVICE     | KubernetesApiVersion.V1                 | "account" | "namespace" | ""
+    KubernetesKind.INGRESS     | KubernetesApiVersion.EXTENSIONS_V1BETA1 | "ac"      | ""          | "nameer"
   }
 }

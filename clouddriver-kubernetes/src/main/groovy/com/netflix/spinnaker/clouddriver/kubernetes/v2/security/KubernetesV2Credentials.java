@@ -255,8 +255,8 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
 
   private static <T> T annotateMissingFields(T obj, Class<T> clazz, KubernetesApiVersion apiVersion, KubernetesKind kind) {
     try {
-      clazz.getMethod("setApiVersion", String.class).invoke(obj, apiVersion == null ? null : apiVersion.name);
-      clazz.getMethod("setKind", String.class).invoke(obj, kind == null ? null : kind.name);
+      clazz.getMethod("setApiVersion", String.class).invoke(obj, apiVersion == null ? null : apiVersion.toString());
+      clazz.getMethod("setKind", String.class).invoke(obj, kind == null ? null : kind.toString());
     } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
       throw new RuntimeException("Unable to set missing fields on " + clazz.getSimpleName(), e);
     }

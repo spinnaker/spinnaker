@@ -19,11 +19,16 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.caching;
 
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesApiVersion;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesKind;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
+@Slf4j
 public class Keys {
   /**
    * Keys are split into "logical" and "infrastructure" kinds. "logical" keys
@@ -78,11 +83,127 @@ public class Keys {
     return createKey(Kind.LOGICAL, LogicalKind.APPLICATION, name);
   }
 
-  public static String cluster(String account, String application, String name) {
-    return createKey(Kind.LOGICAL, LogicalKind.CLUSTER, account, application, name);
+  public static String cluster(String account, String name) {
+    return createKey(Kind.LOGICAL, LogicalKind.CLUSTER, account, name);
   }
 
-  public static String infrastructure(KubernetesKind kind, KubernetesApiVersion version, String account, String application, String namespace, String name) {
-    return createKey(Kind.INFRASTRUCTURE, kind, version, account, application, namespace, name);
+  public static String infrastructure(KubernetesKind kind, KubernetesApiVersion version, String account, String namespace, String name) {
+    return createKey(Kind.INFRASTRUCTURE, kind, version, account, namespace, name);
+  }
+
+  public static Optional<CacheKey> parseKey(String key) {
+    String[] parts = key.split(":", -1);
+
+    if (parts.length < 3 || !parts[0].equals(provider)) {
+      return Optional.empty();
+    }
+
+    try {
+      Kind kind = Kind.fromString(parts[1]);
+      switch (kind) {
+        case LOGICAL:
+          return Optional.of(parseLogicalKey(parts));
+        case INFRASTRUCTURE:
+          return Optional.of(new InfrastructureCacheKey(parts));
+        default:
+          throw new IllegalArgumentException("Unknown kind " + kind);
+      }
+    } catch (IllegalArgumentException e) {
+      log.warn("Kubernetes owned kind with unknown key structure '{}' (perhaps try flushing all clouddriver:* redis keys)", key, e);
+      return Optional.empty();
+    }
+  }
+
+  private static CacheKey parseLogicalKey(String[] parts) {
+    assert(parts.length >= 3);
+
+    LogicalKind logicalKind = LogicalKind.fromString(parts[2]);
+
+    switch (logicalKind) {
+      case APPLICATION:
+        return new ApplicationCacheKey(parts);
+      case CLUSTER:
+        return new ClusterCacheKey(parts);
+      default:
+        throw new IllegalArgumentException("Unknown kind " + logicalKind);
+    }
+  }
+
+  @Data
+  public static abstract class CacheKey {
+    private Kind kind;
+    public abstract String getGroup();
+  }
+
+  @EqualsAndHashCode(callSuper = true)
+  @Data
+  public static class ApplicationCacheKey extends CacheKey {
+    private Kind kind = Kind.LOGICAL;
+    private LogicalKind logicalKind = LogicalKind.APPLICATION;
+    private String name;
+
+    public ApplicationCacheKey(String[] parts) {
+      if (parts.length != 4) {
+        throw new IllegalArgumentException("Malformed application key" + Arrays.toString(parts));
+      }
+
+      name = parts[3];
+    }
+
+    @Override
+    public String getGroup() {
+      return logicalKind.toString();
+    }
+  }
+
+  @EqualsAndHashCode(callSuper = true)
+  @Data
+  public static class ClusterCacheKey extends CacheKey {
+    private Kind kind = Kind.LOGICAL;
+    private LogicalKind logicalKind = LogicalKind.CLUSTER;
+    private String account;
+    private String name;
+
+    public ClusterCacheKey(String[] parts) {
+      if (parts.length != 5) {
+        throw new IllegalArgumentException("Malformed cluster key " + Arrays.toString(parts));
+      }
+
+      account = parts[3];
+      name = parts[4];
+    }
+
+    @Override
+    public String getGroup() {
+      return logicalKind.toString();
+    }
+  }
+
+  @EqualsAndHashCode(callSuper = true)
+  @Data
+  public static class InfrastructureCacheKey extends CacheKey {
+    private Kind kind = Kind.INFRASTRUCTURE;
+    private KubernetesKind kubernetesKind;
+    private KubernetesApiVersion kubernetesApiVersion;
+    private String account;
+    private String namespace;
+    private String name;
+
+    public InfrastructureCacheKey(String[] parts) {
+      if (parts.length != 7) {
+        throw new IllegalArgumentException("Malformed infrastructure key " + Arrays.toString(parts));
+      }
+
+      kubernetesKind = KubernetesKind.fromString(parts[2]);
+      kubernetesApiVersion = KubernetesApiVersion.fromString(parts[3]);
+      account = parts[4];
+      namespace = parts[5];
+      name = parts[6];
+    }
+
+    @Override
+    public String getGroup() {
+      return kubernetesKind.toString();
+    }
   }
 }

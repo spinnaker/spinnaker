@@ -17,6 +17,9 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.description;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonValue;
+
 import java.util.Arrays;
 
 public enum KubernetesApiVersion {
@@ -24,19 +27,22 @@ public enum KubernetesApiVersion {
   EXTENSIONS_V1BETA1("extensions/v1beta1"),
   APPS_V1BETA1("apps/v1beta1");
 
-  public final String name;
+  private final String name;
+
   KubernetesApiVersion(String name) {
     this.name = name;
   }
 
   @Override
+  @JsonValue
   public String toString() {
     return name;
   }
 
+  @JsonCreator
   public static KubernetesApiVersion fromString(String name) {
     return Arrays.stream(values())
-        .filter(v -> v.name.equalsIgnoreCase(name))
+        .filter(v -> v.toString().equalsIgnoreCase(name))
         .findAny()
         .orElseThrow(() -> new IllegalArgumentException("API version " + name + " is not yet supported."));
   }

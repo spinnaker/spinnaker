@@ -30,9 +30,11 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesMan
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys.LogicalKind.APPLICATION;
@@ -69,10 +71,81 @@ public class KubernetesCacheDataConverter {
 
     String cluster = spinnakerRelationships.getCluster();
     if (!StringUtils.isEmpty(cluster)) {
-      relationships.put(CLUSTER.toString(), Collections.singletonList(Keys.cluster(account, application, cluster)));
+      relationships.put(CLUSTER.toString(), Collections.singletonList(Keys.cluster(account, cluster)));
     }
 
-    String key = Keys.infrastructure(kind, apiVersion, account, application, namespace, name);
+    relationships.putAll(ownerReferenceRelationships(account, namespace, manifest.getOwnerReferences(mapper)));
+
+    String key = Keys.infrastructure(kind, apiVersion, account, namespace, name);
     return new DefaultCacheData(key, attributes, relationships);
+  }
+
+  static Map<String, Collection<String>> ownerReferenceRelationships(String account, String namespace, List<KubernetesManifest.OwnerReference> references) {
+    Map<String, Collection<String>> relationships = new HashMap<>();
+    for (KubernetesManifest.OwnerReference reference : references) {
+      KubernetesKind kind = reference.getKind();
+      KubernetesApiVersion apiVersion = reference.getApiVersion();
+      String name = reference.getName();
+      Collection<String> keys = relationships.get(kind.toString());
+      if (keys == null) {
+        keys = new ArrayList<>();
+      }
+
+      keys.add(Keys.infrastructure(kind, apiVersion, account, namespace, name));
+      relationships.put(kind.toString(), keys);
+    }
+
+    return relationships;
+  }
+
+  /**
+   * To ensure the entire relationship graph is bidirectional, invert any relationship entries here to point back at the
+   * resource being cached (key).
+   */
+  static List<CacheData> invertRelationships(CacheData cacheData) {
+    String key = cacheData.getId();
+    Keys.CacheKey parsedKey = Keys.parseKey(key).orElseThrow(() -> new IllegalStateException("Cache data produced with illegal key format " + key));
+    String group = parsedKey.getGroup();
+    Map<String, Collection<String>> relationshipGroupings = cacheData.getRelationships();
+    List<CacheData> result = new ArrayList<>();
+
+    for (Collection<String> relationships : relationshipGroupings.values()) {
+      for (String relationship : relationships) {
+        result.add(invertSingleRelationship(group, key, relationship));
+      }
+    }
+
+    return result;
+  }
+
+  static void logStratifiedCacheData(String agentType, Map<String, Collection<CacheData>> stratifiedCacheData) {
+    for (Map.Entry<String, Collection<CacheData>> entry : stratifiedCacheData.entrySet()) {
+      log.info(agentType + ": grouping " + entry.getKey() + " has " + entry.getValue().size() + " entries");
+    }
+  }
+
+  static Map<String, Collection<CacheData>> stratifyCacheDataByGroup(List<CacheData> ungroupedCacheData) {
+    Map<String, Collection<CacheData>> result = new HashMap<>();
+    for (CacheData cacheData : ungroupedCacheData) {
+      String key = cacheData.getId();
+      Keys.CacheKey parsedKey = Keys.parseKey(key).orElseThrow(() -> new IllegalStateException("Cache data produced with illegal key format " + key));
+      String group = parsedKey.getGroup();
+
+      Collection<CacheData> groupedCacheData = result.get(group);
+      if (groupedCacheData == null) {
+        groupedCacheData = new ArrayList<>();
+      }
+
+      groupedCacheData.add(cacheData);
+      result.put(group, groupedCacheData);
+    }
+
+    return result;
+  }
+
+  private static CacheData invertSingleRelationship(String group, String key, String relationship) {
+    Map<String, Collection<String>> relationships = new HashMap<>();
+    relationships.put(group, Collections.singletonList(key));
+    return new DefaultCacheData(relationship, null, relationships);
   }
 }

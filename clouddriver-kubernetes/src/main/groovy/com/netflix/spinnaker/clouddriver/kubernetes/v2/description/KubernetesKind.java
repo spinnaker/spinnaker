@@ -17,6 +17,9 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.description;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonValue;
+
 import java.util.Arrays;
 
 public enum KubernetesKind {
@@ -26,19 +29,22 @@ public enum KubernetesKind {
   NETWORK_POLICY("networkPolicy"),
   SERVICE("service");
 
-  public final String name;
+  private final String name;
+
   KubernetesKind(String name) {
     this.name = name;
   }
 
   @Override
+  @JsonValue
   public String toString() {
     return name;
   }
 
+  @JsonCreator
   public static KubernetesKind fromString(String name) {
     return Arrays.stream(values())
-        .filter(v -> v.name.equalsIgnoreCase(name))
+        .filter(v -> v.toString().equalsIgnoreCase(name))
         .findAny()
         .orElseThrow(() -> new IllegalArgumentException("Kubernetes kind '" + name + "' is not supported."));
   }
