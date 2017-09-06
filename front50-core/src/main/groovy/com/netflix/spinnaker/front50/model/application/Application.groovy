@@ -56,17 +56,17 @@ class Application implements Timestamped {
 
   String getName() {
     // there is an expectation that application names are uppercased (historical)
-    return name?.toUpperCase()
+    return name?.toUpperCase()?.trim()
   }
 
   @JsonAnyGetter
   public Map<String,Object> details() {
-    return details;
+    return details
   }
 
   @JsonAnySetter
   public void set(String name, Object value) {
-    details.put(name, value);
+    details.put(name, value)
   }
 
   @JsonIgnore

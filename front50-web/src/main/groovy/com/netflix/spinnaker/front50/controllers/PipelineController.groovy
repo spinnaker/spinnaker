@@ -85,6 +85,7 @@ class PipelineController {
     if (!pipeline.application || !pipeline.name) {
       throw new InvalidEntityException("A pipeline requires name and application fields")
     }
+    pipeline.name = pipeline.getName().trim()
 
     if (!pipeline.id) {
       checkForDuplicatePipeline(pipeline.getApplication(), pipeline.getName())
@@ -123,6 +124,7 @@ class PipelineController {
     if (pipeline.id != existingPipeline.id) {
       throw new InvalidRequestException("The provided id ${id} doesn't match the pipeline id ${pipeline.id}")
     }
+    pipeline.name = pipeline.getName().trim()
 
     if (pipelineDAO.getPipelinesByApplication(pipeline.getApplication()).any {
       it.getName().equalsIgnoreCase(pipeline.getName()) && it.getId() != id }) {
