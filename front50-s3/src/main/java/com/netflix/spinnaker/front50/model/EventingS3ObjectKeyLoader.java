@@ -54,7 +54,7 @@ import java.util.concurrent.TimeUnit;
  * It is significantly faster than delegating to `s3StorageService.listObjectKeys()` with some slight latency attributed
  * to the time taken for an event to be received and processed.
  *
- * Expected latency is < 1s (Amazon
+ * Expected latency is less than 1s (Amazon
  */
 public class EventingS3ObjectKeyLoader implements ObjectKeyLoader, Runnable {
   private static final Logger log = LoggerFactory.getLogger(EventingS3ObjectKeyLoader.class);
