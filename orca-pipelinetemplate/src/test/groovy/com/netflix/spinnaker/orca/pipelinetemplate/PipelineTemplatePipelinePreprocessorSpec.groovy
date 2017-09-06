@@ -25,7 +25,6 @@ import com.netflix.spinnaker.orca.pipelinetemplate.loader.TemplateLoader
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.StageDefinition
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.TemplateConfiguration
-import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.DefaultRenderContext
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.JinjaRenderer
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.RenderUtil
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.Renderer
@@ -35,6 +34,7 @@ import org.yaml.snakeyaml.Yaml
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
+
 import static org.unitils.reflectionassert.ReflectionAssert.assertReflectionEquals
 
 class PipelineTemplatePipelinePreprocessorSpec extends Specification {
@@ -317,6 +317,33 @@ class PipelineTemplatePipelinePreprocessorSpec extends Specification {
 
     then:
     result.stages*.group == ['my group of stages: wowow waiting', 'my group of stages: wowow waiting']
+  }
+
+  def "should respect request-defined concurrency options if configuration does not define them"() {
+    given:
+    def pipeline = [
+      type: 'templatedPipeline',
+      config: [
+        schema: '1',
+        pipeline: [
+          application: 'myapp'
+        ]
+      ],
+      template: [
+        schema: '1',
+        id: 'myTemplate',
+        configuration: [:],
+        stages: []
+      ],
+      plan: true,
+      limitConcurrent: false
+    ]
+
+    when:
+    def result = subject.process(pipeline)
+
+    then:
+    result.limitConcurrent == false
   }
 
   Map<String, Object> createTemplateRequest(String templatePath, Map<String, Object> variables = [:], List<Map<String, Object>> stages = [], boolean plan = false) {

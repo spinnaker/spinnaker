@@ -117,7 +117,7 @@ public class PipelineTemplatePipelinePreprocessor implements PipelinePreprocesso
     graphMutator.mutate(template);
 
     ExecutionGenerator executionGenerator = new V1SchemaExecutionGenerator();
-    Map<String, Object> generatedPipeline = executionGenerator.generate(template, templateConfiguration, (String) pipeline.get("id"));
+    Map<String, Object> generatedPipeline = executionGenerator.generate(template, templateConfiguration, request);
 
     return generatedPipeline;
   }
@@ -162,57 +162,5 @@ public class PipelineTemplatePipelinePreprocessor implements PipelinePreprocesso
   private void setTemplateSourceWithJinja(TemplatedPipelineRequest request) {
     RenderContext context = new DefaultRenderContext(request.getConfig().getPipeline().getApplication(), null, request.getTrigger());
     request.getConfig().getPipeline().getTemplate().setSource(renderer.render(request.getConfig().getPipeline().getTemplate().getSource(), context ));
-  }
-
-  private static class TemplatedPipelineRequest {
-    String type;
-    Map<String, Object> trigger;
-    TemplateConfiguration config;
-    PipelineTemplate template;
-    Boolean plan = false;
-
-    public boolean isTemplatedPipelineRequest() {
-      return "templatedPipeline".equals(type);
-    }
-
-    public String getType() {
-      return type;
-    }
-
-    public void setType(String type) {
-      this.type = type;
-    }
-
-    public TemplateConfiguration getConfig() {
-      return config;
-    }
-
-    public void setConfig(TemplateConfiguration config) {
-      this.config = config;
-    }
-
-    public Map<String, Object> getTrigger() {
-      return trigger;
-    }
-
-    public void setTrigger(Map<String, Object> trigger) {
-      this.trigger = trigger;
-    }
-
-    public PipelineTemplate getTemplate() {
-      return template;
-    }
-
-    public void setTemplate(PipelineTemplate template) {
-      this.template = template;
-    }
-
-    public Boolean getPlan() {
-      return plan;
-    }
-
-    public void setPlan(Boolean plan) {
-      this.plan = plan;
-    }
   }
 }

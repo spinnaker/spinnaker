@@ -15,6 +15,7 @@
  */
 package com.netflix.spinnaker.orca.pipelinetemplate.v1schema
 
+import com.netflix.spinnaker.orca.pipelinetemplate.TemplatedPipelineRequest
 import com.netflix.spinnaker.orca.pipelinetemplate.generator.ExecutionGenerator
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.NamedHashMap
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate
@@ -44,7 +45,7 @@ class V1SchemaExecutionGeneratorSpec extends Specification {
     )
 
     when:
-    def result = subject.generate(template, configuration, "124")
+    def result = subject.generate(template, configuration, new TemplatedPipelineRequest(id: "124"))
 
     then:
     noExceptionThrown()
@@ -69,7 +70,7 @@ class V1SchemaExecutionGeneratorSpec extends Specification {
     )
 
     when:
-    def result = subject.generate(template, configuration, pipelineId)
+    def result = subject.generate(template, configuration, new TemplatedPipelineRequest(id: pipelineId))
 
     then:
     result.id == expectedId
@@ -102,7 +103,7 @@ class V1SchemaExecutionGeneratorSpec extends Specification {
     )
 
     when:
-    def result = subject.generate(template, configuration, "pipelineConfigId")
+    def result = subject.generate(template, configuration, new TemplatedPipelineRequest(id: "pipelineConfigId"))
 
     then:
     result.notifications*.address == addresses

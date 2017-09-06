@@ -15,19 +15,25 @@
  */
 package com.netflix.spinnaker.orca.pipelinetemplate.v1schema;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import com.netflix.spinnaker.orca.pipelinetemplate.TemplatedPipelineRequest;
 import com.netflix.spinnaker.orca.pipelinetemplate.generator.ExecutionGenerator;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate.Configuration;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.TemplateConfiguration;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
 public class V1SchemaExecutionGenerator implements ExecutionGenerator {
 
   @Override
-  public Map<String, Object> generate(PipelineTemplate template, TemplateConfiguration configuration, String id) {
+  public Map<String, Object> generate(PipelineTemplate template, TemplateConfiguration configuration, TemplatedPipelineRequest request) {
     Map<String, Object> pipeline = new HashMap<>();
-    pipeline.put("id", Optional.ofNullable(id).orElse(Optional.ofNullable(configuration.getPipeline().getPipelineConfigId()).orElse("unknown")));
+    pipeline.put("id", Optional.ofNullable(request.getId()).orElse(Optional.ofNullable(configuration.getPipeline().getPipelineConfigId()).orElse("unknown")));
     pipeline.put("application", configuration.getPipeline().getApplication());
     pipeline.put("name", Optional.ofNullable(configuration.getPipeline().getName()).orElse("Unnamed Execution"));
 
@@ -35,14 +41,13 @@ public class V1SchemaExecutionGenerator implements ExecutionGenerator {
       pipeline.put("executionEngine", configuration.getPipeline().getExecutionEngine());
     }
 
-    // TODO rz - Ehhhh
     Configuration c = template.getConfiguration();
-    if (template.getConfiguration() == null) {
-      pipeline.put("limitConcurrent", true);
-      pipeline.put("keepWaitingPipelines", false);
+    if (c.getConcurrentExecutions().isEmpty()) {
+      pipeline.put("limitConcurrent", request.isLimitConcurrent());
+      pipeline.put("keepWaitingPipelines", request.isKeepWaitingPipelines());
     } else {
-      pipeline.put("limitConcurrent", c.getConcurrentExecutions().getOrDefault("limitConcurrent", true));
-      pipeline.put("keepWaitingPipelines", c.getConcurrentExecutions().getOrDefault("keepWaitingPipelines", false));
+      pipeline.put("limitConcurrent", c.getConcurrentExecutions().getOrDefault("limitConcurrent", request.isLimitConcurrent()));
+      pipeline.put("keepWaitingPipelines", c.getConcurrentExecutions().getOrDefault("keepWaitingPipelines", request.isKeepWaitingPipelines()));
     }
 
     addNotifications(pipeline, template, configuration);

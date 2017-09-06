@@ -15,6 +15,7 @@
  */
 package com.netflix.spinnaker.orca.pipelinetemplate.generator;
 
+import com.netflix.spinnaker.orca.pipelinetemplate.TemplatedPipelineRequest;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.TemplateConfiguration;
 
@@ -22,5 +23,5 @@ import java.util.Map;
 
 public interface ExecutionGenerator {
 
-  Map<String, Object> generate(PipelineTemplate template, TemplateConfiguration configuration, String id);
+  Map<String, Object> generate(PipelineTemplate template, TemplateConfiguration configuration, TemplatedPipelineRequest request);
 }
