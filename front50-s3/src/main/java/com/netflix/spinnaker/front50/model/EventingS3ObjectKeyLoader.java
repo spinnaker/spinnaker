@@ -42,6 +42,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
@@ -71,7 +72,7 @@ public class EventingS3ObjectKeyLoader implements ObjectKeyLoader, Runnable {
 
   private boolean pollForMessages = true;
 
-  public EventingS3ObjectKeyLoader(TaskScheduler taskScheduler,
+  public EventingS3ObjectKeyLoader(ExecutorService executionService,
                                    ObjectMapper objectMapper,
                                    S3Properties s3Properties,
                                    TemporarySQSQueue temporarySQSQueue,
@@ -118,7 +119,7 @@ public class EventingS3ObjectKeyLoader implements ObjectKeyLoader, Runnable {
     this.rootFolder = s3Properties.getRootFolder();
 
     if (scheduleImmediately) {
-      taskScheduler.schedule(this, new Date());
+      executionService.submit(this);
     }
   }
 

@@ -27,12 +27,12 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import org.springframework.scheduling.TaskScheduler;
 import org.springframework.web.client.RestTemplate;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Optional;
+import java.util.concurrent.Executors;
 
 @Configuration
 @ConditionalOnExpression("${spinnaker.s3.enabled:false}")
@@ -117,13 +117,12 @@ public class S3Config extends CommonStorageServiceDAOConfig {
 
   @Bean
   @ConditionalOnExpression("${spinnaker.s3.eventing.enabled:false}")
-  public ObjectKeyLoader eventingS3ObjectKeyLoader(TaskScheduler taskScheduler,
-                                                   ObjectMapper objectMapper,
+  public ObjectKeyLoader eventingS3ObjectKeyLoader(ObjectMapper objectMapper,
                                                    S3Properties s3Properties,
                                                    S3StorageService s3StorageService,
                                                    TemporarySQSQueue temporaryQueueSupport) {
     return new EventingS3ObjectKeyLoader(
-      taskScheduler,
+      Executors.newFixedThreadPool(1),
       objectMapper,
       s3Properties,
       temporaryQueueSupport,

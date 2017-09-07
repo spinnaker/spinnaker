@@ -24,8 +24,10 @@ import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
 
+import java.util.concurrent.ExecutorService
+
 class EventingS3ObjectKeyLoaderSpec extends Specification {
-  def taskScheduler = Mock(TaskScheduler)
+  def taskScheduler = Mock(ExecutorService)
   def objectMapper = new ObjectMapper()
   def s3Properties = new S3Properties(
     rootFolder: "root"
