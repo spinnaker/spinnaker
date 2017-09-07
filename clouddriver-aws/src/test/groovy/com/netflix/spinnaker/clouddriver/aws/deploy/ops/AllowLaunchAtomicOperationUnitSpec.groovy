@@ -306,8 +306,8 @@ class AllowLaunchAtomicOperationUnitSpec extends Specification {
   Closure<DescribeTagsResult> constructDescribeTagsResult = { Map tags ->
     new DescribeTagsResult(tags: tags.collect {new TagDescription(key: it.key, value: it.value) })
   }
-  
-  void "should return resolved target AMI without performing additional operations"() {  
+
+  void "should skip allow launch on resolved target AMI if found but still perform tag syncing"() {
     setup:
     def ownerCredentials = TestCredential.named('owner')
     def targetCredentials = TestCredential.named('target')
@@ -335,10 +335,19 @@ class AllowLaunchAtomicOperationUnitSpec extends Specification {
       1 * describeImages(_) >> new DescribeImagesResult().withImages(
         new Image()
           .withImageId("ami-123456")
-          .withOwnerId(targetCredentials.accountId))	  
+          .withOwnerId(ownerCredentials.accountId))
+      1 * describeTags(_) >> new DescribeTagsResult().withTags(new TagDescription().withKey("existingTag").withValue("existingValue"))
+      1 * createTags(_) >> { CreateTagsRequest ctr ->
+        assert ctr.getTags().size() == 1
+        assert ctr.getTags().get(0).getKey() == "missingTag"
+        assert ctr.getTags().get(0).getValue() == "missingValue"
+      }
+    }
+    with (ownerAmazonEc2) {
+      1 * describeTags(_) >> new DescribeTagsResult().withTags(new TagDescription().withKey("existingTag").withValue("existingValue"), new TagDescription().withKey("missingTag").withValue("missingValue"))
     }
     0 * _
-    
+
   }
-  
+
 }

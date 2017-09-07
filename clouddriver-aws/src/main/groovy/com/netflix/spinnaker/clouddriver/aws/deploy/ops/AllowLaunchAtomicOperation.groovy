@@ -65,12 +65,12 @@ class AllowLaunchAtomicOperation implements AtomicOperation<ResolvedAmiResult> {
     task.updateStatus BASE_PHASE, "Looking up AMI imageId '$description.amiName' in target accountId='$targetCredentials.accountId'"
     ResolvedAmiResult resolvedAmi = AmiIdResolver.resolveAmiIdFromAllSources(targetAmazonEC2, description.region, description.amiName, targetCredentials.accountId)
 
+    boolean existsInTarget = false
     if (!resolvedAmi) {
       task.updateStatus BASE_PHASE, "Looking up AMI imageId '$description.amiName' in source accountId='$description.credentials.accountId'"
       resolvedAmi = AmiIdResolver.resolveAmiIdFromAllSources(sourceAmazonEC2, description.region, description.amiName, description.credentials.accountId)
     } else {
-      task.updateStatus BASE_PHASE, "AMI found in target account: skipping allow launch"
-      return resolvedAmi
+      existsInTarget = true
     }
 
     if (!resolvedAmi && targetCredentials.allowPrivateThirdPartyImages) {
@@ -104,12 +104,16 @@ class AllowLaunchAtomicOperation implements AtomicOperation<ResolvedAmiResult> {
       sourceAmazonEC2 = amazonClientProvider.getAmazonEC2(sourceCredentials, description.region, true)
     }
 
-    task.updateStatus BASE_PHASE, "Allowing launch of $description.amiName from $description.account"
+    if (existsInTarget) {
+      task.updateStatus BASE_PHASE, "AMI found in target account: skipping allow launch"
+    } else {
+      task.updateStatus BASE_PHASE, "Allowing launch of $description.amiName from $description.account"
 
-    OperationPoller.retryWithBackoff({o ->
-      sourceAmazonEC2.modifyImageAttribute(new ModifyImageAttributeRequest().withImageId(resolvedAmi.amiId).withLaunchPermission(
-        new LaunchPermissionModifications().withAdd(new LaunchPermission().withUserId(targetCredentials.accountId))))
-    }, 500, 3)
+      OperationPoller.retryWithBackoff({ o ->
+        sourceAmazonEC2.modifyImageAttribute(new ModifyImageAttributeRequest().withImageId(resolvedAmi.amiId).withLaunchPermission(
+          new LaunchPermissionModifications().withAdd(new LaunchPermission().withUserId(targetCredentials.accountId))))
+      }, 500, 3)
+    }
 
     if (sourceCredentials == targetCredentials) {
       task.updateStatus BASE_PHASE, "Tag replication not required"
