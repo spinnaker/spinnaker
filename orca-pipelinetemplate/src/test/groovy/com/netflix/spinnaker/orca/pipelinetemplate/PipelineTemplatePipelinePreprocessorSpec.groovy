@@ -319,6 +319,21 @@ class PipelineTemplatePipelinePreprocessorSpec extends Specification {
     result.stages*.group == ['my group of stages: wowow waiting', 'my group of stages: wowow waiting']
   }
 
+  @Unroll
+  def 'should not render falsy conditional stages inside partials'() {
+    when:
+    def template =  createTemplateRequest('conditional-partials.yml', [includeWait: includeWait])
+    def result = subject.process(template)
+
+    then:
+    result.stages*.name == expectedStageNames
+
+    where:
+    includeWait || expectedStageNames
+    true        || ['stageWithPartialsAndConditional.wait', 'stageWithPartialsAndConditional.conditionalWaitOnPartial']
+    false       || ['stageWithPartialsAndConditional.wait']
+  }
+
   def "should respect request-defined concurrency options if configuration does not define them"() {
     given:
     def pipeline = [

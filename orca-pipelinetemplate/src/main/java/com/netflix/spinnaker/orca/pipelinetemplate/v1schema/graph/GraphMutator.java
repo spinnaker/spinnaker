@@ -25,6 +25,7 @@ import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.graph.transform.Defa
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.graph.transform.PipelineConfigInheritanceTransform;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.graph.transform.RenderTransform;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.graph.transform.StageInheritanceControlTransform;
+import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.graph.transform.TrimConditionalsTransform;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.TemplateConfiguration;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.Renderer;
@@ -39,13 +40,14 @@ public class GraphMutator {
 
   public GraphMutator(TemplateConfiguration configuration, Renderer renderer, Registry registry, Map<String, Object> trigger) {
     visitors.add(new DefaultVariableAssignmentTransform(configuration));
-    visitors.add(new ConditionalStanzaTransform(configuration, renderer, trigger));
     visitors.add(new ConfigModuleReplacementTransform(configuration));
     visitors.add(new ConfigPartialReplacementTransform(configuration));
     visitors.add(new PipelineConfigInheritanceTransform(configuration));
     visitors.add(new RenderTransform(configuration, renderer, registry, trigger));
     visitors.add(new ConfigStageInjectionTransform(configuration));
     visitors.add(new StageInheritanceControlTransform());
+    visitors.add(new ConditionalStanzaTransform(configuration, renderer, trigger));
+    visitors.add(new TrimConditionalsTransform());
   }
 
   public void mutate(PipelineTemplate template) {

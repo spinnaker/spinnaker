@@ -59,7 +59,6 @@ public class ConfigStageInjectionTransform implements PipelineTemplateVisitor {
     expandStagePartials(pipelineTemplate);
     replaceStages(pipelineTemplate);
     injectStages(pipelineTemplate);
-    trimConditionals(pipelineTemplate);
   }
 
   private void replaceStages(PipelineTemplate pipelineTemplate) {
@@ -137,24 +136,6 @@ public class ConfigStageInjectionTransform implements PipelineTemplateVisitor {
     // Handle stage injections.
     injectStages(pipelineTemplate.getStages(), pipelineTemplate.getStages());
     injectStages(templateConfiguration.getStages(), pipelineTemplate.getStages());
-  }
-
-  private void trimConditionals(PipelineTemplate pipelineTemplate) {
-    // if stage is conditional, ensure children get linked to parents of conditional stage accordingly
-    pipelineTemplate.getStages()
-      .stream()
-      .filter(StageDefinition::getRemoved)
-      .forEach(conditionalStage -> pipelineTemplate.getStages()
-        .stream()
-        .filter(childStage -> childStage.getDependsOn().removeIf(conditionalStage.getId()::equals))
-        .forEach(childStage -> childStage.getDependsOn().addAll(conditionalStage.getDependsOn())));
-
-    pipelineTemplate.setStages(
-      pipelineTemplate.getStages()
-        .stream()
-        .filter(stage -> !stage.getRemoved())
-        .collect(Collectors.toList())
-    );
   }
 
   private enum Status {
