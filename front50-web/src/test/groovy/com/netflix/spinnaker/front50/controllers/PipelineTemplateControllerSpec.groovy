@@ -55,7 +55,7 @@ class PipelineTemplateControllerSpec extends Specification {
     when:
     pipelineTemplateDAO.all() >> { [template] }
     pipelineDAO.all() >> { [pipeline] }
-    controller.checkForDependentConfigs(template.getId())
+    controller.checkForDependentConfigs(template.getId(), true)
 
     then:
     thrown(InvalidRequestException)
