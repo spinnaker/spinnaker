@@ -14,17 +14,7 @@ export interface IManualJudgmentExecutionLabelProps {
   executionMarker: boolean;
 }
 
-export interface IManualJudgmentExecutionLabelState {
-  target?: any;
-}
-
-export class ManualJudgmentExecutionLabel extends React.Component<IManualJudgmentExecutionLabelProps, IManualJudgmentExecutionLabelState> {
-
-  constructor(props: IManualJudgmentExecutionLabelProps) {
-    super(props);
-    this.state = {};
-  }
-
+export class ManualJudgmentExecutionLabel extends React.Component<IManualJudgmentExecutionLabelProps> {
   public render() {
     if (!this.props.executionMarker) {
       return (<ExecutionBarLabel {...this.props}/>);
