@@ -1,0 +1,14 @@
+schema: "1"
+id: inheritanceRoot
+metadata:
+  name: Inheritance test
+  description: The root template of the inheritance test
+variables:
+- name: waitTime
+  description: The time a wait stage should pause
+  type: int
+stages:
+- id: wait
+  type: wait
+  config:
+    waitTime: "{{ waitTime }}"

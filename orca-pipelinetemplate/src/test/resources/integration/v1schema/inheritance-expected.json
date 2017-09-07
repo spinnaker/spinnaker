@@ -1,0 +1,34 @@
+{
+  "keepWaitingPipelines": false,
+  "limitConcurrent": true,
+  "application": "orca",
+  "name": "MPT Inheritance Test",
+  "stages": [
+    {
+      "requisiteStageRefIds": [],
+      "name": "configWait",
+      "id": null,
+      "refId": "configWait",
+      "type": "wait",
+      "waitTime": 5
+    },
+    {
+      "requisiteStageRefIds": ["configWait"],
+      "name": "wait",
+      "id": null,
+      "refId": "wait",
+      "type": "wait",
+      "waitTime": 5
+    },
+    {
+      "requisiteStageRefIds": ["wait"],
+      "name": "waitChild",
+      "id": null,
+      "refId": "waitChild",
+      "type": "wait",
+      "waitTime": 5
+    }
+  ],
+  "id": "unknown",
+  "notifications": []
+}

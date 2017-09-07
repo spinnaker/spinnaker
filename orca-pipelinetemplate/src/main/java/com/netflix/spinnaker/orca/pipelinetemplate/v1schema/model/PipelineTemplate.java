@@ -15,6 +15,7 @@
  */
 package com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.PipelineTemplateVisitor;
 import com.netflix.spinnaker.orca.pipelinetemplate.validator.VersionedSchema;
 
@@ -179,6 +180,7 @@ public class PipelineTemplate implements VersionedSchema {
   }
 
   @Override
+  @JsonIgnore
   public String getSchemaVersion() {
     return schema;
   }
