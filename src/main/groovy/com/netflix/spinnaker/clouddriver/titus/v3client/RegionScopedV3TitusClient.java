@@ -35,6 +35,7 @@ import org.slf4j.LoggerFactory;
 
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -101,7 +102,7 @@ public class RegionScopedV3TitusClient implements TitusClient {
 
   @Override
   public Job getJob(String jobId) {
-    return new Job(grpcBlockingStub.findJob(JobId.newBuilder().setId(jobId).build()), getTasks(jobId));
+    return new Job(grpcBlockingStub.findJob(JobId.newBuilder().setId(jobId).build()), getTasks(Arrays.asList(jobId)).get(jobId));
   }
 
   @Override
@@ -207,32 +208,36 @@ public class RegionScopedV3TitusClient implements TitusClient {
     int currentPage = 0;
     int totalPages;
     List<Job> jobs = new ArrayList<>();
+    List<com.netflix.titus.grpc.protogen.Job> grpcJobs = new ArrayList<>();
     do {
       jobQuery.setPage(Page.newBuilder().setPageNumber(currentPage).setPageSize(100));
       JobQuery criteria = jobQuery.build();
       JobQueryResult resultPage = grpcBlockingStub.findJobs(criteria);
-      jobs.addAll(resultPage.getItemsList().stream().map(grpcJob -> new Job(grpcJob, getTasks(grpcJob.getId()))).collect(Collectors.toList()));
+      grpcJobs.addAll(resultPage.getItemsList());
       totalPages = resultPage.getPagination().getTotalPages();
       currentPage++;
     } while (totalPages > currentPage);
-    return jobs;
+    List<String> jobIds = grpcJobs.stream().map(grpcJob -> grpcJob.getId()).collect(
+      Collectors.toList()
+    );
+    Map<String, List<com.netflix.titus.grpc.protogen.Task>> tasks = getTasks(jobIds);
+    return grpcJobs.stream().map(grpcJob -> new Job(grpcJob, tasks.get(grpcJob.getId()))).collect(Collectors.toList());
   }
 
-  private List<com.netflix.titus.grpc.protogen.Task> getTasks(String jobId) {
+  private Map<String, List<com.netflix.titus.grpc.protogen.Task>> getTasks(List<String> jobIds) {
     List<com.netflix.titus.grpc.protogen.Task> tasks = new ArrayList<>();
     TaskQueryResult taskResults;
     int currentTaskPage = 0;
     do {
       taskResults = grpcBlockingStub.findTasks(
         TaskQuery.newBuilder()
-          .putFilteringCriteria("jobIds", jobId)
+          .putFilteringCriteria("jobIds", jobIds.stream().collect(Collectors.joining(",")))
           .setPage(Page.newBuilder().setPageNumber(currentTaskPage).setPageSize(100)
           ).build()
       );
       tasks.addAll(taskResults.getItemsList());
       currentTaskPage++;
     } while (taskResults.getPagination().getHasMore());
-    return tasks;
+    return tasks.stream().collect(Collectors.groupingBy(task -> task.getJobId()));
   }
-
 }

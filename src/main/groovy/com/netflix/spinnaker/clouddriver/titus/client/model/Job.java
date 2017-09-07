@@ -259,7 +259,12 @@ public class Job {
 
       labels = grpcJob.getJobDescriptor().getAttributesMap();
       user = grpcJob.getJobDescriptor().getOwner().getTeamEmail();
-      tasks = grpcTasks.stream().map( grpcTask -> new TaskSummary(grpcTask)).collect(Collectors.toList());
+
+      if(grpcTasks != null) {
+        tasks = grpcTasks.stream().map(grpcTask -> new TaskSummary(grpcTask)).collect(Collectors.toList());
+      } else {
+        tasks = new ArrayList<>();
+      }
 
       appName = grpcJob.getJobDescriptor().getApplicationName();
       name = grpcJob.getJobDescriptor().getAttributesOrDefault("name", appName);

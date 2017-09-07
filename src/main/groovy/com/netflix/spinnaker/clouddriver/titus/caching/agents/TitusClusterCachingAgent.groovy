@@ -280,9 +280,9 @@ class TitusClusterCachingAgent implements CachingAgent, CustomScheduledAgent {
   private Map<String, String> getTitusHealth(Job.TaskSummary task) {
     TaskState taskState = task.state
     HealthState healthState = HealthState.Unknown
-    if (taskState in [TaskState.STOPPED, TaskState.FAILED, TaskState.CRASHED, TaskState.FINISHED, TaskState.DEAD, TaskState.TERMINATING, TaskState.KILLINITIATED, TaskState.DISCONNECTED]) {
+    if (taskState in [TaskState.STOPPED, TaskState.FAILED, TaskState.CRASHED, TaskState.FINISHED, TaskState.DEAD, TaskState.TERMINATING]) {
       healthState = HealthState.Down
-    } else if (taskState in [TaskState.STARTING, TaskState.DISPATCHED, TaskState.PENDING, TaskState.QUEUED, TaskState.ACCEPTED, TaskState.LAUNCHED, TaskState.STARTINITIATED]) {
+    } else if (taskState in [TaskState.STARTING, TaskState.DISPATCHED, TaskState.PENDING, TaskState.QUEUED]) {
       healthState = HealthState.Starting
     } else {
       healthState = HealthState.Unknown
