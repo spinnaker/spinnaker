@@ -27,8 +27,7 @@ import java.util.Map;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class GenericArtifact {
-
+public class Artifact {
   private String type;
   private String name;
   private String version;
