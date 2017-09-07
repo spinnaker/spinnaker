@@ -96,12 +96,12 @@ class EchoNotifyingStageListenerSpec extends Specification {
     echoListener.afterStage(persister, stage)
 
     then:
-    invocations * echoService.recordEvent(_)
+    1 * echoService.recordEvent(_)
 
     where:
-    invocations | stage
-    1           | pipelineStage
-    0           | orchestrationStage
+    stage              | _
+    pipelineStage      | _
+    orchestrationStage | _
   }
 
   @Unroll

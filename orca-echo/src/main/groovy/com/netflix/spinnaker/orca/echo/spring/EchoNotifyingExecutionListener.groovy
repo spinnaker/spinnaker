@@ -35,25 +35,25 @@ class EchoNotifyingExecutionListener implements ExecutionListener {
 
   @Override
   void beforeExecution(Persister persister, Execution execution) {
-    if (execution instanceof Pipeline) {
-      try {
-        if (execution.status != ExecutionStatus.SUSPENDED) {
-          addApplicationNotifications(execution)
-          echoService.recordEvent(
-            details: [
-              source     : "orca",
-              type       : "orca:pipeline:starting",
-              application: execution.application,
-            ],
-            content: [
-              execution  : execution,
-              executionId: execution.id
-            ]
-          )
+    try {
+      if (execution.status != ExecutionStatus.SUSPENDED) {
+        if (execution instanceof Pipeline) {
+          addApplicationNotifications(execution as Pipeline)
         }
-      } catch (Exception e) {
-        log.error("Failed to send pipeline start event: ${execution?.id}")
+        echoService.recordEvent(
+          details: [
+            source     : "orca",
+            type       : "orca:${execution.getClass().simpleName.toLowerCase()}:starting",
+            application: execution.application,
+          ],
+          content: [
+            execution  : execution,
+            executionId: execution.id
+          ]
+        )
       }
+    } catch (Exception e) {
+      log.error("Failed to send pipeline start event: ${execution?.id}")
     }
   }
 
@@ -62,25 +62,25 @@ class EchoNotifyingExecutionListener implements ExecutionListener {
                       Execution execution,
                       ExecutionStatus executionStatus,
                       boolean wasSuccessful) {
-    if (execution instanceof Pipeline) {
-      try {
-        if (execution.status != ExecutionStatus.SUSPENDED) {
-          addApplicationNotifications(execution)
-          echoService.recordEvent(
-            details: [
-              source     : "orca",
-              type       : "orca:pipeline:${wasSuccessful ? "complete" : "failed"}".toString(),
-              application: execution.application,
-            ],
-            content: [
-              execution  : execution,
-              executionId: execution.id
-            ]
-          )
+    try {
+      if (execution.status != ExecutionStatus.SUSPENDED) {
+        if (execution instanceof Pipeline) {
+          addApplicationNotifications(execution as Pipeline)
         }
-      } catch (Exception e) {
-        log.error("Failed to send pipeline end event: ${execution?.id}")
+        echoService.recordEvent(
+          details: [
+            source     : "orca",
+            type       : "orca:${execution.getClass().simpleName.toLowerCase()}:${wasSuccessful ? "complete" : "failed"}".toString(),
+            application: execution.application,
+          ],
+          content: [
+            execution  : execution,
+            executionId: execution.id
+          ]
+        )
       }
+    } catch (Exception e) {
+      log.error("Failed to send pipeline end event: ${execution?.id}")
     }
   }
 

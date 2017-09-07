@@ -33,25 +33,25 @@ class EchoNotifyingStageListener implements StageListener {
   <T extends Execution<T>> void beforeTask(Persister persister,
                                            Stage<T> stage,
                                            Task task) {
-      recordEvent('task', 'starting', stage, task)
+    recordEvent('task', 'starting', stage, task)
   }
 
   @Override
   @CompileDynamic
   <T extends Execution<T>> void beforeStage(Persister persister,
                                             Stage<T> stage) {
-      def details = [
-        name       : stage.name,
-        type       : stage.type,
-        // because this listener runs before the one setting the startTime
-        // TODO: handle better when we remove v1 path
-        startTime  : stage.startTime ?: currentTimeMillis(),
-        isSynthetic: stage.syntheticStageOwner != null
-      ]
-      stage.context.stageDetails = details
-      repository.updateStageContext(stage)
+    def details = [
+      name       : stage.name,
+      type       : stage.type,
+      // because this listener runs before the one setting the startTime
+      // TODO: handle better when we remove v1 path
+      startTime  : stage.startTime ?: currentTimeMillis(),
+      isSynthetic: stage.syntheticStageOwner != null
+    ]
+    stage.context.stageDetails = details
+    repository.updateStageContext(stage)
 
-      recordEvent("stage", "starting", stage)
+    recordEvent("stage", "starting", stage)
   }
 
   @Override
@@ -71,25 +71,23 @@ class EchoNotifyingStageListener implements StageListener {
   @CompileDynamic
   <T extends Execution<T>> void afterStage(Persister persister,
                                            Stage<T> stage) {
-    if (stage.execution instanceof Pipeline) {
-      if (stage.endTime) {
-        if (stage.context.stageDetails == null) {
-          stage.context.stageDetails = [:]
-        }
-        stage.context.stageDetails.endTime = stage.endTime
+    if (stage.endTime) {
+      if (stage.context.stageDetails == null) {
+        stage.context.stageDetails = [:]
       }
-      repository.updateStageContext(stage)
+      stage.context.stageDetails.endTime = stage.endTime
+    }
+    repository.updateStageContext(stage)
 
-      // STOPPED stages are "successful" because they allow the pipeline to
-      // proceed but they are still failures in terms of the stage and should
-      // send failure notifications
-      if (stage.status in [SUCCEEDED, SKIPPED]) {
-        log.debug("***** $stage.execution.id Echo stage $stage.name complete v2")
-        recordEvent('stage', 'complete', stage)
-      } else {
-        log.debug("***** $stage.execution.id Echo stage $stage.name failed v2")
-        recordEvent('stage', 'failed', stage)
-      }
+    // STOPPED stages are "successful" because they allow the pipeline to
+    // proceed but they are still failures in terms of the stage and should
+    // send failure notifications
+    if (stage.status in [SUCCEEDED, SKIPPED]) {
+      log.debug("***** $stage.execution.id Echo stage $stage.name complete v2")
+      recordEvent('stage', 'complete', stage)
+    } else {
+      log.debug("***** $stage.execution.id Echo stage $stage.name failed v2")
+      recordEvent('stage', 'failed', stage)
     }
   }
 
