@@ -1,10 +1,8 @@
 import { IPromise } from 'angular';
-
 import { $q } from 'ngimport';
 
-import { ISearchResultFormatter } from '../search/searchResult/searchResultFormatter.registry';
-import { ISearchResult } from '../search/search.service';
-import { searchResultFormatterRegistry } from '../search/searchResult/searchResultFormatter.registry';
+import { IResultRenderer, ISearchResult, ISearchResultFormatter, searchResultFormatterRegistry } from '../search';
+import { ServerGroupDisplayRenderer } from './ServerGroupDisplayRenderer';
 
 export interface IServerGroupSearchResult extends ISearchResult {
   serverGroup: string;
@@ -18,6 +16,9 @@ export class ServerGroupSearchResultFormatter implements ISearchResultFormatter 
   public get icon() { return 'th-large'; }
   public displayFormatter(searchResult: IServerGroupSearchResult): IPromise<string> {
     return $q.when(searchResult.serverGroup + ' (' + searchResult.region + ')');
+  }
+  public get displayRenderer(): IResultRenderer {
+    return ServerGroupDisplayRenderer.renderer()
   }
 }
 

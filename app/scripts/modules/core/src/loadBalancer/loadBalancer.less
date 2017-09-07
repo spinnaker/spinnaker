@@ -1,0 +1,12 @@
+@import (reference) "~core/search/searchResult/baseTable.less";
+
+@table-name: load-balancer;
+.generate-table(@table-name);
+
+.@{table-name}-table {
+  .table-header, .@{table-name}-row {
+    .@{table-name}-loadBalancer {
+      width: 250px;
+    }
+  }
+}

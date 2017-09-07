@@ -2,9 +2,8 @@ import { IPromise } from 'angular';
 
 import { $q } from 'ngimport';
 
-import { ISearchResultFormatter } from '../search/searchResult/searchResultFormatter.registry';
-import { ISearchResult } from '../search/search.service';
-import { searchResultFormatterRegistry } from '../search/searchResult/searchResultFormatter.registry';
+import { IResultRenderer, ISearchResult, ISearchResultFormatter, searchResultFormatterRegistry } from '../search';
+import { ClusterDisplayRenderer } from 'core/cluster/ClusterDisplayRenderer';
 
 export interface IClusterSearchResult extends ISearchResult {
   cluster: string;
@@ -17,6 +16,9 @@ export class ClusterSearchResultFormatter implements ISearchResultFormatter {
   public get icon() { return 'th'; }
   public displayFormatter(searchResult: IClusterSearchResult): IPromise<string> {
     return $q.when(searchResult.cluster);
+  }
+  public get displayRenderer(): IResultRenderer {
+    return ClusterDisplayRenderer.renderer()
   }
 }
 

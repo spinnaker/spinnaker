@@ -1,10 +1,8 @@
 import { IPromise } from 'angular';
-
 import { $q } from 'ngimport';
 
-import { ISearchResultFormatter } from '../search/searchResult/searchResultFormatter.registry';
-import { ISearchResult } from '../search/search.service';
-import { searchResultFormatterRegistry } from '../search/searchResult/searchResultFormatter.registry';
+import { IResultRenderer, ISearchResult, ISearchResultFormatter, searchResultFormatterRegistry } from '../search';
+import { ProjectDisplayRenderer } from './ProjectDisplayRenderer';
 
 export interface IProjectSearchResult extends ISearchResult {
   name?: string;
@@ -16,12 +14,17 @@ export class ProjectSearchResultFormatter implements ISearchResultFormatter {
 
   public get displayName() { return 'Projects'; }
   public get order() { return 0; }
+  public get icon() { return 'hand-spock-o'; }
   public displayFormatter(searchResult: IProjectSearchResult): IPromise<string> {
     const applications = searchResult.config && searchResult.config.applications ?
       ' (' + searchResult.config.applications.join(', ') + ')' :
       '';
     const project = searchResult.name || searchResult.project;
     return $q.when(project + applications);
+  }
+
+  public get displayRenderer(): IResultRenderer {
+    return ProjectDisplayRenderer.renderer()
   }
 }
 

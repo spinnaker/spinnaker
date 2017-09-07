@@ -1,3 +1,5 @@
+export * from '../search/searchResult/model/IApplicationSearchResult';
+
 export * from './IBuild';
 export * from './IBuildDiffInfo';
 export * from './IBuildInfo';

@@ -1,4 +1,4 @@
-@import (reference) "~core/presentation/less/imports/commonImports.less";
+@import (reference) "~core/search/searchResult/baseTable.less";
 
 .spinnaker-container .spinnaker-content {
   .project-header.page-header {
@@ -64,6 +64,17 @@
     }
     .page-header {
       height: 40px; //application header override
+    }
+  }
+}
+
+@table-name: project;
+.generate-table(@table-name);
+
+.@{table-name}-table {
+  .table-header, .@{table-name}-row {
+    .@{table-name}-name {
+      width: 250px;
     }
   }
 }

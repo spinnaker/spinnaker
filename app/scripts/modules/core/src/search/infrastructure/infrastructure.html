@@ -1,6 +1,6 @@
 <div class="infrastructure">
   <div class="infrastructure-section search-header">
-    <div class="container" ng-if="!ctrl.showNewSearch">
+    <div class="container">
       <h2 class="header-section">
         <i class="fa fa-search"></i>
         <span class="search-label">Search</span>
@@ -9,33 +9,11 @@
                placeholder="projects, applications, clusters, load balancers, server groups, security groups"
                autofocus
                ng-model-options="{ updateOn: 'default blur', debounce: { 'default': 300, 'blur': 0 } }"
-               ng-model="ctrl.query"/>
-        <div ng-if="ctrl.query && ctrl.query.length && ctrl.query.length < viewState.minCharactersToSearch">
+               ng-model="query"/>
+        <div ng-if="query && query.length && query.length < viewState.minCharactersToSearch">
           <p style="margin: 10px 20px 0">Please enter at least {{viewState.minCharactersToSearch}} characters to begin
             searching.</p>
         </div>
-      </h2>
-      <div class="header-actions">
-        <div class="dropdown" uib-dropdown dropdown-append-to-body>
-          <button type="button" class="btn btn-default dropdown-toggle" uib-dropdown-toggle>
-            Actions <span class="caret"></span>
-          </button>
-          <ul uib-dropdown-menu class="uib-dropdown-menu">
-            <li ng-repeat="action in ctrl.menuActions">
-              <a href ng-if="action.disableAutoClose"
-                 ng-click="action.action(status)"
-                 ng-bind-html="action.displayName"></a>
-              <a href ng-if="!action.disableAutoClose"
-                 ng-click="action.action(); status.isOpen = false"
-                 ng-bind-html="action.displayName"></a>
-            </li>
-          </ul>
-        </div>
-      </div>
-    </div>
-    <div class="container" ng-if="ctrl.showNewSearch">
-      <h2 class="header-section">
-        <tag-search class="flex-grow"></tag-search>
       </h2>
       <div class="header-actions">
         <div class="dropdown" uib-dropdown dropdown-append-to-body>
@@ -72,7 +50,7 @@
         <div class="row">
           <div class="col-md-12">
             <div class="no-results" ng-if="!projects.length">
-              No projects found matching "{{ctrl.query}}".<br/>
+              No projects found matching "{{query}}".<br/>
               <a href ng-click="ctrl.createProject()">Create a new project</a>
             </div>
             <infrastructure-project ng-repeat="project in projects[0].results"
@@ -85,7 +63,7 @@
       <div class="col-md-{{projects.length ? 9 : 12}}">
         <div class="row">
           <div class="col-md-12">
-            <h3>Results matching "{{ctrl.query}}"</h3>
+            <h3>Results matching "{{query}}"</h3>
           </div>
         </div>
         <div class="row" ng-if="!categories.length">
@@ -105,7 +83,7 @@
               </div>
               <div class="details-container list-group">
                 <a class="list-group-item"
-                   ng-repeat="result in ::category.results | searchRank: ctrl.query"
+                   ng-repeat="result in ::category.results | searchRank: query"
                    ng-click="ctrl.clearFilters(result)"
                    href="{{ ::result.href }}">
                   <search-result item="::result"></search-result>
@@ -123,7 +101,7 @@
   <div ng-if="ctrl.noMatches() && !viewState.searching" class="container">
     <div class="row">
       <div class="col-md-12">
-        <h4 class="no-results">No results matching "{{ ctrl.query }}".</h4>
+        <h4 class="no-results">No results matching "{{ query }}".</h4>
       </div>
     </div>
   </div>

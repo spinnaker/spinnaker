@@ -16,9 +16,9 @@ export interface IProjectConfig {
 }
 
 export interface IProject {
+  config: IProjectConfig;
+  email: string;
   id: string;
   name: string;
-  email: string;
-  config: IProjectConfig;
   notFound: boolean;
 }

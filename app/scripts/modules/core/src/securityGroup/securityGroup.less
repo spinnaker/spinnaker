@@ -1,0 +1,12 @@
+@import (reference) "~core/search/searchResult/baseTable.less";
+
+@table-name: security-group;
+.generate-table(@table-name);
+
+.@{table-name}-table {
+  .table-header, .@{table-name}-row {
+    .@{table-name}-name {
+      width: 300px;
+    }
+  }
+}

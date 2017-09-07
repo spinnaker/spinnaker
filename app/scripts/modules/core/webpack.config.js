@@ -99,6 +99,7 @@ module.exports = {
       '@spinnaker/core': path.join(__dirname, 'src'),
       'core': path.join(__dirname, 'src'),
       'root': basePath,
+      'coreImports': path.resolve(__dirname, 'src', 'presentation', 'less', 'imports', 'commonImports.less'),
     }
   },
   watch:  process.env.WATCH === 'true',

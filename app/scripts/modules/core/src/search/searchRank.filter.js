@@ -5,7 +5,7 @@ const angular = require('angular');
 module.exports = angular
   .module('spinnaker.core.search.searchResult.searchRank.filter', [])
   .filter('searchRank', function() {
-    return (input, query) => {
+    return (input, query = '') => {
       query = query.toLowerCase();
       if (input && input.length) {
         var result = input.slice();

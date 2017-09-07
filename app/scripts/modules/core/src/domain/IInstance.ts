@@ -1,18 +1,18 @@
 import { IHealth } from './IHealth';
 
 export interface IInstance {
-  id: string;
-  availabilityZone?: string;
   account?: string;
-  region?: string;
+  availabilityZone?: string;
   cloudProvider?: string;
-  provider?: string;
-  vpcId?: string;
-  healthState?: string;
+  hasHealthStatus?: boolean;
   health: IHealth[];
+  healthState?: string;
+  id: string;
   launchTime: number;
   loadBalancers?: string[];
+  provider?: string;
+  region?: string;
   serverGroup?: string;
+  vpcId?: string;
   zone: string;
-  hasHealthStatus?: boolean;
 }

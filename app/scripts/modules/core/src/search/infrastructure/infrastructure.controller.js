@@ -4,13 +4,13 @@ import _ from 'lodash';
 
 const angular = require('angular');
 
-import {SETTINGS} from 'core/config/settings';
-import {CLUSTER_FILTER_SERVICE} from 'core/cluster/filter/clusterFilter.service';
-import {CACHE_INITIALIZER_SERVICE} from 'core/cache/cacheInitializer.service';
-import {OVERRIDE_REGISTRY} from 'core/overrideRegistry/override.registry';
-import {RECENT_HISTORY_SERVICE} from 'core/history/recentHistory.service';
-import {PAGE_TITLE_SERVICE} from 'core/pageTitle/pageTitle.service';
-import {INFRASTRUCTURE_SEARCH_SERVICE} from 'core/search/infrastructure/infrastructureSearch.service';
+import { CLUSTER_FILTER_SERVICE } from 'core/cluster/filter/clusterFilter.service';
+import { CACHE_INITIALIZER_SERVICE } from 'core/cache/cacheInitializer.service';
+import { OVERRIDE_REGISTRY } from 'core/overrideRegistry/override.registry';
+import { RECENT_HISTORY_SERVICE } from 'core/history/recentHistory.service';
+import { PAGE_TITLE_SERVICE } from 'core/pageTitle/pageTitle.service';
+import { INFRASTRUCTURE_SEARCH_SERVICE } from 'core/search/infrastructure/infrastructureSearch.service';
+import { SearchService } from '../search.service';
 
 module.exports = angular.module('spinnaker.search.infrastructure.controller', [
   INFRASTRUCTURE_SEARCH_SERVICE,
@@ -28,8 +28,6 @@ module.exports = angular.module('spinnaker.search.infrastructure.controller', [
                                              pageTitleService, recentHistoryService, $uibModal, $state, clusterFilterService) {
 
     var search = infrastructureSearchService.getSearcher();
-
-    this.showNewSearch = SETTINGS.feature.infSearchEnabled;
 
     $scope.categories = [];
     $scope.projects = [];
@@ -71,17 +69,17 @@ module.exports = angular.module('spinnaker.search.infrastructure.controller', [
       $location.replace();
     }
 
-    $scope.pageSize = searchService.defaultPageSize;
+    $scope.pageSize = SearchService.DEFAULT_PAGE_SIZE;
     var autoNavigate = false;
 
     if (angular.isDefined($location.search().q)) {
-      this.query = $location.search().q;
+      $scope.query = $location.search().q;
       autoNavigate = !!$location.search().route;
       // clear the parameter - it only comes from shortcut links, and if there are more than one result,
       // we don't want to automatically route the user or have them copy this as a link
       $location.search('route', null);
     }
-    $scope.$watch('ctrl.query', function(query) {
+    $scope.$watch('query', function(query) {
       $scope.categories = [];
       $scope.projects = [];
       if (query && query.length < $scope.viewState.minCharactersToSearch) {
@@ -184,7 +182,7 @@ module.exports = angular.module('spinnaker.search.infrastructure.controller', [
       return $scope.categories.length || $scope.projects.length;
     };
 
-    this.noMatches = () => !this.hasResults() && this.query && this.query.length > 0;
+    this.noMatches = () => !this.hasResults() && $scope.query && $scope.query.length > 0;
 
     this.showRecentResults = () => this.hasRecentItems && !$scope.viewState.searching && !$scope.projects.length && $scope.categories.every((category) => !category.results.length);
 

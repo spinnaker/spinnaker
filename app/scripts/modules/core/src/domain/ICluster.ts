@@ -7,8 +7,8 @@ export interface IClusterSummary {
 }
 
 export interface ICluster extends IClusterSummary {
-  cloudProvider: string;
   category: string;
-  serverGroups: IServerGroup[];
+  cloudProvider: string;
   instanceCounts?: IInstanceCounts;
+  serverGroups: IServerGroup[];
 }

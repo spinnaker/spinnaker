@@ -1,4 +1,4 @@
-@import (reference) "~core/presentation/less/imports/commonImports.less";
+@import (reference) "~core/search/searchResult/baseTable.less";
 
 .application {
   display: flex;
@@ -164,3 +164,19 @@ input[type="checkbox"], input[type="radio"] {
   cursor: pointer;
 }
 
+@table-name: application;
+.generate-table(@table-name);
+
+.@{table-name}-table {
+  .table-header, .@{table-name}-row {
+    .@{table-name}-application {
+      width: 200px;
+    }
+    .@{table-name}-account, .@{table-name}-accounts {
+      width: 250px;
+    }
+    .@{table-name}-email {
+      width: 250px;
+    }
+  }
+}

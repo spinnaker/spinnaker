@@ -1,9 +1,20 @@
+import { isEmpty, isObject, isString } from 'lodash';
 import { module, IDeferred, IPromise, IQService } from 'angular';
 import { Observable, Subject } from 'rxjs';
 
+import { SETTINGS } from 'core/config/settings';
+import { IQueryParams } from 'core/navigation';
+import { SearchFilterTypeRegistry } from 'core/search/widgets/SearchFilterTypeRegistry';
 import { UrlBuilderService, URL_BUILDER_SERVICE } from 'core/navigation/urlBuilder.service';
 import { ProviderServiceDelegate, PROVIDER_SERVICE_DELEGATE } from 'core/cloudProvider/providerService.delegate';
-import { getFallbackResults, ISearchResult, ISearchResults, SearchService, SEARCH_SERVICE } from '../search.service';
+import {
+  getFallbackResults,
+  ISearchParams,
+  ISearchResult,
+  ISearchResults,
+  SearchService,
+  SEARCH_SERVICE
+} from '../search.service';
 import {
   IResultDisplayFormatter,
   ISearchResultFormatter,
@@ -27,16 +38,33 @@ export interface IProviderResultFormatter {
 export class InfrastructureSearcher {
 
   private deferred: IDeferred<ISearchResultSet[]>;
-  public querySubject: Subject<string> = new Subject<string>();
+  public querySubject: Subject<string | IQueryParams> = new Subject<string | IQueryParams>();
 
   constructor(private $q: IQService, private providerServiceDelegate: ProviderServiceDelegate, searchService: SearchService, urlBuilderService: UrlBuilderService) {
     this.querySubject.switchMap(
-      (query: string) => {
-        if (!query || query.trim() === '') {
+      (query: string | IQueryParams) => {
+
+        if (!query || (isString(query) && (query.trim() === '') || (isObject(query) && isEmpty(query)))) {
           return Observable.of(getFallbackResults());
         }
+
+        const searchParams: ISearchParams = {
+          type: searchResultFormatterRegistry.getSearchCategories()
+        };
+        if (isString(query)) {
+          searchParams.q = query;
+        } else {
+          const copy = Object.assign({}, query);
+          copy.cloudProvider = SETTINGS.defaultProviders[0];
+          if (copy[SearchFilterTypeRegistry.KEYWORD_FILTER.key]) {
+            searchParams.q = <string>copy[SearchFilterTypeRegistry.KEYWORD_FILTER.key];
+            delete copy[SearchFilterTypeRegistry.KEYWORD_FILTER.key];
+          }
+          Object.assign(searchParams, copy);
+        }
+
         return Observable.zip(
-          searchService.search({q: query, type: searchResultFormatterRegistry.getSearchCategories()}),
+          searchService.search(searchParams),
           externalSearchRegistry.search(query),
           (s1, s2) => {
             s1.results = s1.results.concat(s2);
@@ -45,7 +73,7 @@ export class InfrastructureSearcher {
         )
       })
       .subscribe((result: ISearchResults<ISearchResult>) => {
-        const tmp: {[type: string]: ISearchResult[]} = result.results.reduce((categories: { [type: string]: ISearchResult[] }, entry: ISearchResult) => {
+        const tmp: { [type: string]: ISearchResult[] } = result.results.reduce((categories: { [type: string]: ISearchResult[] }, entry: ISearchResult) => {
           this.formatResult(entry.type, entry).then((name) => entry.displayName = name);
           entry.href = urlBuilderService.buildFromMetadata(entry);
           if (!categories[entry.type]) {
@@ -72,7 +100,7 @@ export class InfrastructureSearcher {
       });
   }
 
-  public query(q: string): IPromise<ISearchResultSet[]> {
+  public query(q: string | IQueryParams): IPromise<ISearchResultSet[]> {
     this.deferred = this.$q.defer();
     this.querySubject.next(q);
     return this.deferred.promise;
@@ -104,7 +132,10 @@ export class InfrastructureSearcher {
 }
 
 export class InfrastructureSearchService {
-  constructor(private $q: IQService, private providerServiceDelegate: any, private searchService: SearchService, private urlBuilderService: UrlBuilderService) {}
+  constructor(private $q: IQService,
+              private providerServiceDelegate: any,
+              private searchService: SearchService,
+              private urlBuilderService: UrlBuilderService) {}
 
   public getSearcher(): InfrastructureSearcher {
     return new InfrastructureSearcher(this.$q, this.providerServiceDelegate, this.searchService, this.urlBuilderService);

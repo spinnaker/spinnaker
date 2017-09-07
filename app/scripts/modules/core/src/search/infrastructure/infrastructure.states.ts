@@ -25,4 +25,22 @@ module(INFRASTRUCTURE_STATES, [
   });
   stateConfigProvider.addRewriteRule('/', '/infrastructure');
   stateConfigProvider.addRewriteRule('', '/infrastructure');
+}).config((stateConfigProvider: StateConfigProvider) => {
+  stateConfigProvider.addToRootState({
+    name: 'infrastructureV2',
+    url: '/infrastructure/v2',
+    reloadOnSearch: false,
+    views: {
+      'main@': {
+        templateUrl: require('./infrastructureV2.html'),
+        controller: 'InfrastructureV2Ctrl',
+        controllerAs: 'ctrl'
+      }
+    },
+    data: {
+      pageTitleMain: {
+        label: 'Infrastructure V2'
+      }
+    }
+  });
 });

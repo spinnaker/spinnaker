@@ -1,10 +1,8 @@
 import { IPromise } from 'angular';
-
 import { $q } from 'ngimport';
 
-import { ISearchResultFormatter } from '../search/searchResult/searchResultFormatter.registry';
-import { ISearchResult } from '../search/search.service';
-import { searchResultFormatterRegistry } from '../search/searchResult/searchResultFormatter.registry';
+import { IResultRenderer, ISearchResult, ISearchResultFormatter, searchResultFormatterRegistry } from '../search';
+import { LoadBalancerDisplayRenderer } from './LoadBalancerDisplayRenderer';
 
 export interface ILoadBalancerSearchResult extends ISearchResult {
   name?: string;
@@ -16,10 +14,13 @@ export class LoadBalancerSearchResultFormatter implements ISearchResultFormatter
 
   public get displayName() { return 'Load Balancers'; }
   public get order() { return 5; }
-  public get iconClass() { return 'icon icon-elb'; }
+  public get icon() { return 'sitemap'; }
   public displayFormatter(searchResult: ILoadBalancerSearchResult, fromRoute: boolean): IPromise<string> {
     const name = fromRoute ? searchResult.name : searchResult.loadBalancer;
     return $q.when(name + ' (' + searchResult.region + ')');
+  }
+  public get displayRenderer(): IResultRenderer {
+    return LoadBalancerDisplayRenderer.renderer()
   }
 }
 

@@ -20,17 +20,18 @@ export interface IServerGroup {
   cloudProvider: string;
   cluster: string;
   clusterEntityTags?: IEntityTags[];
-  detail?: string;
   detachedInstances?: IInstance[];
+  detail?: string;
   entityTags?: IEntityTags;
   instanceCounts: IInstanceCounts;
-  instanceType?: string;
   instances: IInstance[];
+  instanceType?: string;
   isDisabled?: boolean;
   launchConfig?: any;
   loadBalancers?: string[];
   name: string;
   provider?: string;
+  providerMetadata?: any;
   region: string;
   runningExecutions?: IExecution[];
   runningTasks?: ITask[];
@@ -41,7 +42,6 @@ export interface IServerGroup {
   subnetType?: string;
   tags?: any;
   type: string;
-  vpcName?: string;
   vpcId?: string;
-  providerMetadata?: any;
+  vpcName?: string;
 }

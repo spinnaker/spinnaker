@@ -17,23 +17,45 @@ export interface IFiltersProps {
   activeFilter: IFilterType;
   layouts: IFiltersLayout[];
   isOpen: boolean;
-  onFilterChange?: (key: Key) => void;
+  filterClicked?: (filter: Filter) => void;
+  onKeyUp?: (key: Key) => void;
+  onMouseDown?: () => void;
 }
 
 @autoBindMethods
 export class Filters extends React.Component<IFiltersProps> {
 
   public static defaultProps: Partial<IFiltersProps> = {
-    onFilterChange: () => {}
+    filterClicked: () => {},
+    onKeyUp: () => {},
+    onMouseDown: () => {}
   };
+
+  private filters: Filter[] = [];
+
+  private refCallback(filter: Filter): void {
+    this.filters.push(filter);
+  }
+
+  private handleClick(key: string): void {
+    const clickedFilter = this.filters.find((filter: Filter) => {
+      const { text, modifier  } = filter.props.filterType;
+      return key === [text, modifier].join('|');
+    });
+    this.props.filterClicked(clickedFilter);
+  }
 
   private handleKeyUp(event: React.KeyboardEvent<HTMLElement>): void {
     switch (event.key) {
       case Key.UP_ARROW:
       case Key.DOWN_ARROW:
-        this.props.onFilterChange(event.key);
+        this.props.onKeyUp(event.key);
         break;
     }
+  }
+
+  private handleMouseDown(): void {
+    this.props.onMouseDown();
   }
 
   private generateFilterElement(filterType: IFilterType): JSX.Element {
@@ -42,9 +64,12 @@ export class Filters extends React.Component<IFiltersProps> {
     return (
       <Filter
         key={[text, modifier].join('|')}
+        ref={this.refCallback}
         filterType={filterType}
         isActive={this.props.activeFilter.modifier === modifier}
+        onClick={this.handleClick}
         onKeyUp={this.handleKeyUp}
+        onMouseDown={this.handleMouseDown}
       />
     );
   }

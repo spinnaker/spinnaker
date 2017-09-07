@@ -1,16 +1,23 @@
 import { IPromise } from 'angular';
 import { ISearchResult } from '../search.service';
+
+export interface IResultDisplayFormatter {
+  (entry: ISearchResult, fromRoute?: boolean): IPromise<string>;
+}
+
+export interface IResultRenderer {
+  scrollToTop: () => void;
+  render: (items: any[]) => JSX.Element;
+}
+
 export interface ISearchResultFormatter {
   displayName: string;
   order: number;
   displayFormatter: IResultDisplayFormatter;
+  displayRenderer?: IResultRenderer;
   icon?: string;
   iconClass?: string;
   hideIfEmpty?: boolean;
-}
-
-export interface IResultDisplayFormatter {
-  (entry: ISearchResult, fromRoute?: boolean): IPromise<string>;
 }
 
 export class SearchResultFormatterRegistry {

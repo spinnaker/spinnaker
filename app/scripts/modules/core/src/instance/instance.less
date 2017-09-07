@@ -1,0 +1,12 @@
+@import (reference) "~core/search/searchResult/baseTable.less";
+
+@table-name: instance;
+.generate-table(@table-name);
+
+.@{table-name}-table {
+  .table-header, .@{table-name}-row {
+    .@{table-name}-instanceId {
+      width: 250px;
+    }
+  }
+}

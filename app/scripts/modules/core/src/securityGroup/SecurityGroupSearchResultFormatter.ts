@@ -2,9 +2,8 @@ import { IPromise } from 'angular';
 
 import { $q } from 'ngimport';
 
-import { ISearchResultFormatter } from '../search/searchResult/searchResultFormatter.registry';
-import { ISearchResult } from '../search/search.service';
-import { searchResultFormatterRegistry } from '../search/searchResult/searchResultFormatter.registry';
+import { IResultRenderer, ISearchResult, ISearchResultFormatter, searchResultFormatterRegistry } from '../search';
+import { SecurityGroupDisplayRenderer } from './SecurityGroupDisplayRenderer';
 
 export interface ISecurityGroupSearchResult extends ISearchResult {
   name: string;
@@ -19,6 +18,9 @@ export class SecurityGroupSearchResultFormatter implements ISearchResultFormatte
   public get icon() { return 'exchange'; }
   public displayFormatter(searchResult: ISecurityGroupSearchResult): IPromise<string> {
     return $q.when(searchResult.name + ' (' + searchResult.region + ')');
+  }
+  public get displayRenderer(): IResultRenderer {
+    return SecurityGroupDisplayRenderer.renderer()
   }
 }
 

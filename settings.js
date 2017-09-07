@@ -12,9 +12,6 @@ var entityTagsEnabled = process.env.ENTITY_TAGS_ENABLED === 'true' ? true : fals
 var debugEnabled = process.env.DEBUG_ENABLED === 'false' ? false : true;
 var canaryEnabled = process.env.CANARY_ENABLED === 'true';
 
-// TODO: temporary until new infrastructure search is ready, default to disabled
-var infSearchEnabled = process.env.INF_SEARCH_ENABLED === 'true' ? true : false;
-
 window.spinnakerSettings = {
   checkForUpdates: true,
   debugEnabled: debugEnabled,
@@ -146,7 +143,6 @@ window.spinnakerSettings = {
     jobs: false,
     snapshots: false,
     travis: false,
-    pipelineTemplates: false,
-    infSearchEnabled: infSearchEnabled // TODO: temporary until new infrastructure search is ready
+    pipelineTemplates: false
   },
 };

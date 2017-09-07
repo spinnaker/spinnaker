@@ -3,12 +3,12 @@ import {API_SERVICE, Api} from 'core/api/api.service';
 import {ICache} from 'core/cache/deckCache.service';
 
 export interface ISearchParams {
-  pageSize?: number;
+  [key: string]: any;
   q?: string;
   type?: string | string[];
   platform?: string;
   pageNumber?: number;
-  filter?: {[key: string]: string};
+  pageSize?: number;
 }
 
 export interface ISearchResults<T extends ISearchResult> {
@@ -33,13 +33,13 @@ export const getFallbackResults = (): ISearchResults<ISearchResult> => {
 
 export class SearchService {
 
-  static get defaultPageSize() { return 500; };
+  static get DEFAULT_PAGE_SIZE(): number { return 500; };
 
   constructor(private $log: ILogService, private API: Api) { 'ngInject'; }
 
   public search<T extends ISearchResult>(params: ISearchParams, cache: ICache = null): IPromise<ISearchResults<T>> {
     const defaultParams: ISearchParams = {
-      pageSize: SearchService.defaultPageSize,
+      pageSize: SearchService.DEFAULT_PAGE_SIZE,
     };
 
     const requestBuilder = this.API.one('search').withParams(Object.assign(params, defaultParams));

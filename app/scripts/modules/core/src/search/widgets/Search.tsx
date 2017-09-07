@@ -10,9 +10,11 @@ import { Filters, IFiltersLayout } from './Filters';
 import { IFilterType, SearchFilterTypeRegistry } from './SearchFilterTypeRegistry';
 
 import './search.less';
+import { Filter } from 'core';
 
 export interface ISearchProps {
   query: string;
+  onChange: (tags: ITag[]) => void;
 }
 
 export interface ISearchState {
@@ -31,6 +33,8 @@ export class Search extends React.Component<ISearchProps, ISearchState> {
 
   private tagElements: HTMLElement[] = [];
   private inputElement: HTMLInputElement;
+
+  private mouseDownFired = false;
 
   constructor(props: ISearchProps) {
 
@@ -59,6 +63,7 @@ export class Search extends React.Component<ISearchProps, ISearchState> {
     };
   }
 
+  // TODO:  ANG to clean this up by adding sort weights to filters to control order so this hackery isn't needed
   private reorderFilterTypesForSearch(filterTypes: IFilterType[]): IFilterType[] {
     const mods: Set<string> =
       new Set<string>([SearchFilterTypeRegistry.KEYWORD_FILTER.modifier, SearchFilterTypeRegistry.NAME_FILTER.modifier]);
@@ -91,6 +96,11 @@ export class Search extends React.Component<ISearchProps, ISearchState> {
     return this.state.tags.some((t: ITag) => t.modifier === tag.modifier && t.text === tag.text);
   }
 
+  private isLongEnoughIfKeyword(tag: ITag): boolean {
+    return (tag.modifier !== SearchFilterTypeRegistry.KEYWORD_FILTER.modifier) ||
+      ((tag.modifier === SearchFilterTypeRegistry.KEYWORD_FILTER.modifier) && (tag.text.length > 2))
+  }
+
   private hasModifier(input: string): boolean {
     const index = input.indexOf(':');
     return this.modifiers.has(input.substring(0, index).toLocaleLowerCase()) && (index !== input.length);
@@ -106,14 +116,14 @@ export class Search extends React.Component<ISearchProps, ISearchState> {
     return this.hasModifier(trimmed) ? searchText.trim() : trimmed;
   }
 
-  private buildTagFromInputString(): ITag {
+  private buildTagFromInputString(filter: IFilterType = this.state.activeFilter): ITag {
 
     const value = this.inputElement.value.trim();
     const text = this.getSearchText(value).trim();
     if (!value || !text) {
       return null;
     }
-    const modifier = this.hasModifier(value) ? this.getModifier(value) : this.state.activeFilter.modifier;
+    const modifier = this.hasModifier(value) ? this.getModifier(value) : filter.modifier;
 
     return { modifier, text };
   }
@@ -141,15 +151,17 @@ export class Search extends React.Component<ISearchProps, ISearchState> {
     this.tagElements = elements;
   }
 
-  private refCallback(element: HTMLInputElement) {
+  private refCallback(element: HTMLInputElement): void {
     this.inputElement = element;
   }
 
   private handleBlur(): void {
-    this.setState({
-      isFocused: false,
-      isOpen: false
-    });
+    if (!this.mouseDownFired) {
+      this.setState({
+        isFocused: false,
+        isOpen: false
+      });
+    }
   }
 
   private handleChange(): void {
@@ -171,10 +183,12 @@ export class Search extends React.Component<ISearchProps, ISearchState> {
 
   private handleDelete(tag: ITag, focus: boolean): void {
 
+    const tags = this.state.tags.filter((t: ITag) => tag !== t);
     this.setState({
       isFocused: true,
-      tags: this.state.tags.filter((t: ITag) => tag !== t)
+      tags
     });
+    this.props.onChange(tags);
 
     if (focus) {
       this.inputElement.focus();
@@ -208,6 +222,20 @@ export class Search extends React.Component<ISearchProps, ISearchState> {
     this.setState({ ...newState, isOpen: true } as ISearchState);
   }
 
+  private handleFilterSelection(filter?: IFilterType): void {
+    const tag = this.buildTagFromInputString(filter);
+    if (tag && !this.isTagAlreadyPresent(tag) && this.isLongEnoughIfKeyword(tag)) {
+      const tags: ITag[] = this.state.tags.concat(tag);
+      this.setState({
+        activeFilter: SearchFilterTypeRegistry.KEYWORD_FILTER,
+        isOpen: false,
+        tags
+      });
+      this.inputElement.value = '';
+      this.props.onChange(tags);
+    }
+  }
+
   private handleKeyUpFromInput(event: React.KeyboardEvent<HTMLInputElement>): void {
 
     const length = this.tagElements.length;
@@ -229,15 +257,7 @@ export class Search extends React.Component<ISearchProps, ISearchState> {
         this.navigateDown();
         break;
       case Key.ENTER:
-        const tag = this.buildTagFromInputString();
-        if (tag && !this.isTagAlreadyPresent(tag)) {
-          this.setState({
-            activeFilter: SearchFilterTypeRegistry.KEYWORD_FILTER,
-            isOpen: false,
-            tags: this.state.tags.concat(tag)
-          });
-          this.inputElement.value = '';
-        }
+        this.handleFilterSelection();
         break;
       case Key.ESCAPE:
         const text = this.inputElement.value;
@@ -256,7 +276,12 @@ export class Search extends React.Component<ISearchProps, ISearchState> {
     this.inputElement.focus();
   }
 
-  private handleFilterChange(key: Key): void {
+  private filterClicked(filter: Filter): void {
+    this.handleFilterSelection(filter.props.filterType);
+    this.mouseDownFired = false;
+  }
+
+  private handleKeyUp(key: Key): void {
     switch (key) {
       case Key.UP_ARROW:
         this.navigateUp();
@@ -267,6 +292,10 @@ export class Search extends React.Component<ISearchProps, ISearchState> {
     }
   }
 
+  private handleMouseDown(): void {
+    this.mouseDownFired = true;
+  }
+
   private handleClearClick(): void {
     this.setState({
       isOpen: false,
@@ -274,6 +303,7 @@ export class Search extends React.Component<ISearchProps, ISearchState> {
     });
     this.inputElement.value = '';
     this.inputElement.focus();
+    this.props.onChange([]);
   }
 
   public render(): React.ReactElement<Search> {
@@ -315,7 +345,9 @@ export class Search extends React.Component<ISearchProps, ISearchState> {
               activeFilter={activeFilter}
               isOpen={isOpen}
               layouts={layouts}
-              onFilterChange={this.handleFilterChange}
+              filterClicked={this.filterClicked}
+              onKeyUp={this.handleKeyUp}
+              onMouseDown={this.handleMouseDown}
             />
           </div>
         </div>

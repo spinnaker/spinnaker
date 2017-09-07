@@ -7,7 +7,7 @@ export interface IFilterType {
 export class FilterTypeRegistry {
 
   public KEYWORD_FILTER: IFilterType = Object.freeze({
-    key: 'keyword',
+    key: 'key',
     modifier: 'key',
     text: 'Keyword'
   });
@@ -34,6 +34,10 @@ export class FilterTypeRegistry {
 
   public getFilterType(key: string): IFilterType {
     return this.registry.get(key);
+  }
+
+  public getFilterByModifier(modifier: string): IFilterType {
+    return [...this.registry.values()].find((type: IFilterType) => modifier === type.modifier);
   }
 
   public getValues(): IFilterType[] {

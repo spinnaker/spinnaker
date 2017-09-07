@@ -1,0 +1,12 @@
+@import (reference) "~core/search/searchResult/baseTable.less";
+
+@table-name: cluster;
+.generate-table(@table-name);
+
+.@{table-name}-table {
+  .table-header, .@{table-name}-row {
+    .@{table-name}-cluster {
+      width: 300px;
+    }
+  }
+}

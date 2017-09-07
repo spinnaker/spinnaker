@@ -1,0 +1,32 @@
+<div class="infrastructure">
+  <div class="infrastructure-section search-header">
+    <div class="container">
+      <h2 class="header-section">
+        <tag-search class="flex-grow" query="ctrl.query" on-change="ctrl.handleFilterChange"></tag-search>
+      </h2>
+      <div class="header-actions">
+        <div class="dropdown" uib-dropdown dropdown-append-to-body>
+          <button type="button" class="btn btn-default dropdown-toggle" uib-dropdown-toggle>
+            Actions <span class="caret"></span>
+          </button>
+          <ul uib-dropdown-menu class="uib-dropdown-menu">
+            <li ng-repeat="action in ctrl.menuActions">
+              <a href ng-if="action.disableAutoClose"
+                 ng-click="action.action(status)"
+                 ng-bind-html="action.displayName"></a>
+              <a href ng-if="!action.disableAutoClose"
+                 ng-click="action.action(); status.isOpen = false"
+                 ng-bind-html="action.displayName"></a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="container flex-fill">
+    <search-results class="flex-fill"
+                    search-status="ctrl.viewState.status"
+                    search-result-categories="categories"
+                    search-result-projects="projects"></search-results>
+  </div>
+</div>

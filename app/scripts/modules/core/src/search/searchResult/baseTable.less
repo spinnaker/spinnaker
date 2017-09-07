@@ -1,0 +1,62 @@
+@import (reference) "~coreImports";
+
+.generate-table(@table-name) {
+
+  .@{table-name}-table {
+    width: auto;
+    overflow-x: auto;
+    white-space: nowrap;
+    word-break: break-all;
+    .table-header {
+      position: sticky;
+      top: 0;
+      font-weight: 600;
+      background-color: @lightest_grey;
+      z-index: 2;
+      .fa {
+        padding-left: 2px;
+        &.disabled {
+          color: @mid_light_grey;
+        }
+      }
+      .@{table-name}-header {
+        background-color: @lightest_grey;
+      }
+    }
+    .table-header, .@{table-name}-row {
+      display: flex;
+      flex: 1 1 auto;
+      > div {
+        flex: 1 1 auto;
+        padding: 10px;
+        display: inline-block;
+        width: 150px;
+        word-break: break-all;
+        white-space: normal;
+        border-bottom: 1px solid @mid_light_grey;
+      }
+    }
+    .@{table-name}-row {
+      > div {
+        background-color: @lightest_grey;
+        flex: 1 1 auto;
+      }
+      &:nth-child(even) {
+        > div {
+          background-color: white;
+        }
+      }
+      &:hover {
+        > div {
+          background-color: @lighter_grey;
+        }
+      }
+      &.active {
+        > div {
+          background-color: @pod_header_blue;
+        }
+      }
+    }
+  }
+}
+

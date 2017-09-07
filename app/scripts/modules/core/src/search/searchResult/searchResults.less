@@ -1,0 +1,80 @@
+@import "~bootstrap/less/mixins/vendor-prefixes.less";
+@import (reference) "~core/presentation/main.less";
+@import (reference) "~core/presentation/less/imports/commonImports.less";
+
+.search-results {
+
+  display: flex;
+
+  .search-groups {
+
+    background-color: @active_pod_blue;
+    cursor: default;
+    width: 275px;
+
+    .search-group {
+
+      align-items: baseline;
+      border-bottom: 1px solid @lighter_blue_background;
+      .clickable();
+      display: flex;
+      padding: 10px 5px;
+
+      &.faded {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      .search-group-icon {
+        background-color: @dark_blue_background;
+        border: 2px solid @body-bg;
+        border-radius: 50%;
+        color: @body-bg;
+        display: inline-block;
+        height: 32px;
+        line-height: 29px;
+        margin-left: 5px;
+        margin-right: 10px;
+        text-align: center;
+        width: 32px;
+      }
+
+      .search-group-name {
+        flex: 1 0 auto;
+        font-size: 110%;
+        font-weight: 600;
+        text-transform: uppercase;
+      }
+
+      .badge {
+        background-color: @dark_blue_background;
+        border-radius: 3px;
+      }
+
+      &.search-group--focus {
+        background-color: @pod_header_blue;
+      }
+
+      &.search-group--blur {
+        background-color: @active_pod_blue;
+      }
+    }
+  }
+
+  .flex-center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 1 1 auto;
+  }
+
+  .search-result-grid {
+
+    flex: 1 0 auto;
+    padding-left: 15px;
+
+    .small {
+      font-size: 90%;
+    }
+  }
+}

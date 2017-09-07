@@ -38,6 +38,7 @@
   .filter {
 
     align-items: center;
+    .clickable();
     display: flex;
     padding: 5px 5px 5px 10px;
 
@@ -56,6 +57,11 @@
 
     &.filter--blur {
       background-color: @body-bg;
+    }
+
+    &:hover {
+      background-color: @pod_header_blue;
+      border-color: @glow-init;
     }
   }
 }

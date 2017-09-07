@@ -1,7 +1,7 @@
-import { ITaggedEntity } from './ITaggedEntity';
-import { IServerGroup } from './IServerGroup';
-import { IInstanceCounts } from './IInstanceCounts';
 import { IInstance } from './IInstance';
+import { IInstanceCounts } from './IInstanceCounts';
+import { IServerGroup } from './IServerGroup';
+import { ITaggedEntity } from './ITaggedEntity';
 
 export interface ILoadBalancerSourceData {
   cloudProvider?: string;
@@ -13,22 +13,22 @@ export interface ILoadBalancerSourceData {
 export interface ILoadBalancer extends ITaggedEntity {
   account?: string;
   cloudProvider?: string;
-  name?: string;
   detail?: string;
   healthState?: string;
-  instances?: IInstance[];
   instanceCounts?: IInstanceCounts;
+  instances?: IInstance[];
+  listenerDescriptions?: any[];
   loadBalancerType?: string;
+  name?: string;
   provider?: string;
   region?: string;
+  searchField?: string;
   securityGroups?: string[];
   serverGroups?: IServerGroup[];
   stack?: string;
+  type?: string;
   vpcId?: string;
   vpcName?: string;
-  searchField?: string;
-  type?: string;
-  listenerDescriptions?: any[];
 }
 
 export interface ILoadBalancerGroup {
