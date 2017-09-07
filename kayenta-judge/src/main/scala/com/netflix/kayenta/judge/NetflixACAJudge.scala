@@ -27,6 +27,7 @@ import com.netflix.kayenta.judge.scorers.{ScoreResult, WeightedSumScorer}
 import com.netflix.kayenta.judge.stats.DescriptiveStatistics
 import com.netflix.kayenta.metrics.MetricSetPair
 import com.netflix.kayenta.r.MannWhitney
+import com.typesafe.scalalogging.StrictLogging
 import org.springframework.stereotype.Component
 
 import scala.collection.JavaConverters._
@@ -34,8 +35,8 @@ import scala.collection.JavaConverters._
 case class Metric(name: String, values: Array[Double], label: String)
 
 @Component
-class Judge extends CanaryJudge {
-  private final val judgeName = "doom-v1.0"
+class NetflixACAJudge extends CanaryJudge with StrictLogging {
+  private final val judgeName = "NetflixACAJudge-v1.0"
 
   override def getName: String = judgeName
 
@@ -47,8 +48,9 @@ class Judge extends CanaryJudge {
     val mw = new MannWhitney()
 
     //Metric Classification
-    val metricResults = metricSetPairList.asScala.toList.map{ metricPair =>
-      classifyMetric(canaryConfig, metricPair, mw)}
+    val metricResults = metricSetPairList.asScala.toList.map { metricPair =>
+      classifyMetric(canaryConfig, metricPair, mw)
+    }
 
     //Disconnect from RServe
     mw.disconnect()
@@ -159,6 +161,9 @@ class Judge extends CanaryJudge {
 
     val experiment = Metric(metric.getName, experimentValues, label="Canary")
     val control = Metric(metric.getName, controlValues, label="Baseline")
+
+    logger.debug("Metric " + metric.getName + " Experiment data point count: " + experimentValues.length)
+    logger.debug("Metric " + metric.getName + " Control data point count: " + controlValues.length)
 
     //=============================================
     // Metric Validation
