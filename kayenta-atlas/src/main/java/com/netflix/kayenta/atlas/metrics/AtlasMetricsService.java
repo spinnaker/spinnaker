@@ -39,6 +39,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Builder
 @Slf4j
@@ -80,6 +81,15 @@ public class AtlasMetricsService implements MetricsService {
     Map<String, AtlasResults> idToAtlasResultsMap = AtlasResultsHelper.merge(atlasResultsList);
     List<MetricSet> metricSetList = new ArrayList<>();
 
+    // Gather a list of tags which have multiple values across all results.
+    // This is the set of keys we wish to keep.
+    List<String> interestingKeys = idToAtlasResultsMap.values()
+      .stream()
+      .flatMap(result -> result.getTags().entrySet().stream())
+      .collect(Collectors.groupingBy(Map.Entry::getKey))
+      .entrySet().stream().filter(stringListEntry -> stringListEntry.getValue().size() > 1)
+      .map(Map.Entry::getKey).collect(Collectors.toList());
+
     for (AtlasResults atlasResults : idToAtlasResultsMap.values()) {
       Instant responseStartTimeInstant = Instant.ofEpochMilli(atlasResults.getStart());
       List<Double> timeSeriesList = atlasResults.getData().getValues();
@@ -99,7 +109,10 @@ public class AtlasMetricsService implements MetricsService {
       Map<String, String> tags = atlasResults.getTags();
 
       if (tags != null) {
-        metricSetBuilder.tags(tags);
+        Map<String, String> filteredTags = tags.entrySet().stream()
+          .filter(entry -> interestingKeys.contains(entry.getKey()))
+          .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        metricSetBuilder.tags(filteredTags);
       }
 
       metricSetList.add(metricSetBuilder.build());
