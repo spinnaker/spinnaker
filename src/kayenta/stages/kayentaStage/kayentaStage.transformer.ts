@@ -2,22 +2,18 @@ import { module } from 'angular';
 import { last, round } from 'lodash';
 
 import {
-  Application, IExecution, IExecutionStage, ITransformer, ORCHESTRATED_ITEM_TRANSFORMER,
+  Application, IExecution, IExecutionStage, ITransformer,
   OrchestratedItemTransformer
 } from '@spinnaker/core';
 import { KAYENTA_CANARY, RUN_CANARY } from './stageTypes';
 
 export class KayentaStageTransformer implements ITransformer {
 
-  constructor(private orchestratedItemTransformer: OrchestratedItemTransformer) {
-    'ngInject';
-  }
-
   public transform(_application: Application, execution: IExecution): void {
     let stagesToRenderAsTasks: IExecutionStage[] = [];
     execution.stages.forEach(stage => {
       if (stage.type === KAYENTA_CANARY) {
-        this.orchestratedItemTransformer.defineProperties(stage);
+        OrchestratedItemTransformer.defineProperties(stage);
 
         const syntheticCanaryStages = execution.stages.filter(s => s.parentStageId === stage.id);
         stagesToRenderAsTasks = stagesToRenderAsTasks.concat(syntheticCanaryStages);
@@ -85,7 +81,7 @@ export class KayentaStageTransformer implements ITransformer {
 
   private addExceptions(stages: IExecutionStage[], exceptions: string[]): void {
     stages.forEach(stage => {
-      this.orchestratedItemTransformer.defineProperties(stage);
+      OrchestratedItemTransformer.defineProperties(stage);
       if (this.getException(stage)) {
         exceptions.push(this.getException(stage));
       }
@@ -101,6 +97,5 @@ export class KayentaStageTransformer implements ITransformer {
 }
 
 export const KAYENTA_STAGE_TRANSFORMER = 'spinnaker.kayenta.kayentaStageTransformer';
-module(KAYENTA_STAGE_TRANSFORMER, [
-  ORCHESTRATED_ITEM_TRANSFORMER,
-]).service('kayentaStageTransformer', KayentaStageTransformer);
+module(KAYENTA_STAGE_TRANSFORMER, [])
+  .service('kayentaStageTransformer', KayentaStageTransformer);
