@@ -70,7 +70,7 @@ public class MemoryStorageService implements StorageService {
   @Override
   public <T> T loadObject(String accountName, ObjectType objectType, String objectKey) throws IllegalArgumentException {
     String key = makeKey(accountName, objectType, objectKey);
-    log.info("Getting key {}", key);
+    log.info("Getting object type {}, key {}", objectType.toString(), key);
     String json = entries.get(key);
     if (json == null) {
       throw new IllegalArgumentException("No such object named " + key);
@@ -139,7 +139,7 @@ public class MemoryStorageService implements StorageService {
             .getOne(accountName)
             .orElseThrow(() -> new IllegalArgumentException("Unable to resolve account " + accountName + "."));
     String namespace = credentials.getNamespace();
-    String typename = objectType.getTypeReference().getType().getTypeName();
+    String typename = objectType.toString();
     return namespace + ":" + typename + ":";
   }
 
