@@ -43,15 +43,15 @@ public class MannWhitneyTest {
     // TODO: (mgraff) This test requires a locally running Rserve process, so should be skipped on CIs for now
     MannWhitneyParams params = MannWhitneyParams.builder()
             .confidenceLevel(0.95)
-            .controlData(new double[]{1.0, 2.0, 3.0})
-            .experimentData(new double[]{2.0, 3.0, 4.0})
+            .controlData(new double[]{1.0, 2.0, 3.0, 4.0})
+            .experimentData(new double[]{10.0,20.0,30.0,40.0})
             .mu(0)
             .build();
     MannWhitney mw = new MannWhitney();
     MannWhitneyResult result = mw.eval(params);
-    assertEquals(-1.0, result.getEstimate(),E);
-    assertEquals(0.3686882693617814, result.getPValue(),E);
-    assertEquals(-3.0, result.getConfidenceInterval()[0],E);
-    assertEquals(1.0, result.getConfidenceInterval()[1],E);
+    assertEquals(22.5, result.getEstimate(),E);
+    assertEquals(0.02857142857142857, result.getPValue(),E);
+    assertEquals(6.0, result.getConfidenceInterval()[0],E);
+    assertEquals(39.0, result.getConfidenceInterval()[1],E);
   }
 }

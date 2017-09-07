@@ -48,7 +48,7 @@ public class MannWhitneyParams {
   }
 
   String toCommandString(String controlName, String experimentName) {
-    String ret = "wilcox.test(" + controlName + "," + experimentName;
+    String ret = "wilcox.test(" + experimentName + "," + controlName;
     ret += ",conf.int=TRUE,mu=" + mu;
     ret += ",conf.level=" + confidenceLevel;
     ret += ")";
