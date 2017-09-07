@@ -1,7 +1,18 @@
 <div class="form-horizontal canary-config-view">
   <h4>Canary Config</h4>
 
-  <stage-config-field label="Lifetime" field-columns="3">
+  <stage-config-field label="Analysis Type" field-columns="3">
+    <select
+      class="form-control input-sm"
+      ng-model="kayentaCanaryStageCtrl.stage.analysisType"
+      ng-change="kayentaCanaryStageCtrl.handleAnalysisTypeChange()"
+    >
+      <option value="realTime">Real Time</option>
+      <option value="retrospective">Retrospective</option>
+    </select>
+  </stage-config-field>
+
+  <stage-config-field label="Lifetime" field-columns="3" ng-if="kayentaCanaryStageCtrl.stage.analysisType === 'realTime'">
     <input type="text"
            ng-model="kayentaCanaryStageCtrl.stage.canaryConfig.lifetimeHours"
            class="form-control input-sm"
@@ -17,112 +28,131 @@
     </select>
   </stage-config-field>
 
-  <h5>Analysis Config</h5>
-  <div class="horizontal-rule"></div>
-
-  <stage-config-field label="Config Name">
-    <div ng-if="!kayentaCanaryStageCtrl.state.summariesLoading">
-      <ui-select required
-                 ng-model="kayentaCanaryStageCtrl.stage.canaryConfig.canaryConfigId"
-                 on-select="kayentaCanaryStageCtrl.onCanaryConfigSelect()"
-                 class="visible-sm-inline-block visible-md-inline-block visible-lg-inline-block"
-                 style="width:245px">
-        <ui-select-match>{{$select.selected}}</ui-select-match>
-        <ui-select-choices repeat="name in kayentaCanaryStageCtrl.canaryConfigNames | filter: $select.search">
-          {{name}}
-        </ui-select-choices>
-      </ui-select>
-    </div>
-    <div ng-if="kayentaCanaryStageCtrl.state.summariesLoading" class="col-md-3">
-      <h3><span us-spinner="{radius:3, width:1, length: 4}"></span></h3>
-    </div>
-  </stage-config-field>
-
-  <stage-config-field label="Delay" field-columns="5">
-    <input type="text"
-           ng-model="kayentaCanaryStageCtrl.stage.canaryConfig.beginCanaryAnalysisAfterMins"
-           class="form-control input-sm"
-           style="display: inline-block; width: 19%"/>
-    <span class="form-control-static">
-      minutes before starting analysis
-    </span>
-  </stage-config-field>
-
-  <stage-config-field label="Frequency" field-columns="3">
-    <input type="text"
-           ng-model="kayentaCanaryStageCtrl.stage.canaryConfig.canaryAnalysisIntervalMins"
-           class="form-control input-sm"
-           style="width: 33%; display: inline-block"/>
-    <span class="form-control-static"> minutes</span>
-  </stage-config-field>
-
-  <stage-config-field label="Analysis Type"
-                      field-columns="3">
-    <select class="form-control input-sm"
-            ng-model="kayentaCanaryStageCtrl.state.useLookback"
-            ng-options="(useLookback ? 'Sliding Lookback' : 'Growing') for useLookback in [false, true]"
-            ng-change="kayentaCanaryStageCtrl.onUseLookbackChange()">
-    </select>
-  </stage-config-field>
-  <stage-config-field ng-if="kayentaCanaryStageCtrl.state.useLookback">
-    <div class="form-group">
-      <div class="col-md-9">
-        <p class="form-control-static" ng-if="kayentaCanaryStageCtrl.isExpression(kayentaCanaryStageCtrl.stage.canaryConfig.lookbackMins)">
-          Using a sliding lookback duration defined by an expression viewable in the pipeline JSON editor.
-        </p>
-        <span ng-if="!kayentaCanaryStageCtrl.isExpression(kayentaCanaryStageCtrl.stage.canaryConfig.lookbackMins)">
-          with a look-back duration of
-          <input type="number"
-                 min="1"
-                 max="{{kayentaCanaryStageCtrl.stage.canaryConfig.lifetimeHours * 60}}"
-                 required
-                 ng-model="kayentaCanaryStageCtrl.stage.canaryConfig.lookbackMins"
-                 class="form-control input-sm" style="display: inline-block; margin: 0 5px; width: 15%"/>
-          minutes
-        </span>
+  <kayenta-stage-config-section title="Analysis Config">
+    <stage-config-field label="Config Name">
+      <div ng-if="!kayentaCanaryStageCtrl.state.summariesLoading">
+        <ui-select required
+                   ng-model="kayentaCanaryStageCtrl.stage.canaryConfig.canaryConfigId"
+                   on-select="kayentaCanaryStageCtrl.onCanaryConfigSelect()"
+                   class="visible-sm-inline-block visible-md-inline-block visible-lg-inline-block"
+                   style="width:245px">
+          <ui-select-match>{{$select.selected}}</ui-select-match>
+          <ui-select-choices repeat="name in kayentaCanaryStageCtrl.canaryConfigNames | filter: $select.search">
+            {{name}}
+          </ui-select-choices>
+        </ui-select>
       </div>
+      <div ng-if="kayentaCanaryStageCtrl.state.summariesLoading" class="col-md-3">
+        <h3><span us-spinner="{radius:3, width:1, length: 4}"></span></h3>
+      </div>
+    </stage-config-field>
+
+    <stage-config-field label="Delay" field-columns="5" ng-if="kayentaCanaryStageCtrl.stage.analysisType === 'realTime'">
+      <input type="text"
+             ng-model="kayentaCanaryStageCtrl.stage.canaryConfig.beginCanaryAnalysisAfterMins"
+             class="form-control input-sm"
+             style="display: inline-block; width: 19%"/>
+      <span class="form-control-static">
+        minutes before starting analysis
+      </span>
+    </stage-config-field>
+
+    <stage-config-field label="Interval" field-columns="3">
+      <input type="text"
+             ng-model="kayentaCanaryStageCtrl.stage.canaryConfig.canaryAnalysisIntervalMins"
+             class="form-control input-sm"
+             style="width: 33%; display: inline-block"/>
+      <span class="form-control-static"> minutes</span>
+    </stage-config-field>
+
+    <stage-config-field label="Analysis Type"
+                        field-columns="3">
+      <select class="form-control input-sm"
+              ng-model="kayentaCanaryStageCtrl.state.useLookback"
+              ng-options="(useLookback ? 'Sliding Lookback' : 'Growing') for useLookback in [false, true]"
+              ng-change="kayentaCanaryStageCtrl.onUseLookbackChange()">
+      </select>
+    </stage-config-field>
+
+    <stage-config-field ng-if="kayentaCanaryStageCtrl.state.useLookback">
+      <div class="form-group">
+        <div class="col-md-9">
+          <p class="form-control-static" ng-if="kayentaCanaryStageCtrl.isExpression(kayentaCanaryStageCtrl.stage.canaryConfig.lookbackMins)">
+            Using a sliding lookback duration defined by an expression viewable in the pipeline JSON editor.
+          </p>
+          <span ng-if="!kayentaCanaryStageCtrl.isExpression(kayentaCanaryStageCtrl.stage.canaryConfig.lookbackMins)">
+            with a look-back duration of
+            <input type="number"
+                   min="1"
+                   max="{{kayentaCanaryStageCtrl.stage.canaryConfig.lifetimeHours * 60}}"
+                   required
+                   ng-model="kayentaCanaryStageCtrl.stage.canaryConfig.lookbackMins"
+                   class="form-control input-sm" style="display: inline-block; margin: 0 5px; width: 15%"/>
+            minutes
+          </span>
+        </div>
+      </div>
+      <div class="error-message col-md-12"
+           ng-if="kayentaCanaryStageCtrl.stage.canaryConfig.lookbackMins > 0 && kayentaCanaryStageCtrl.stage.canaryConfig.lookbackMins < 30">
+        <b>NOTE:</b> To provide enough data points for the canary analysis it is recommended to set the look-back
+        time to at least 30 minutes.
+      </div>
+    </stage-config-field>
+  </kayenta-stage-config-section>
+
+  <kayenta-stage-config-section title="Metric Scope">
+    <stage-config-field label="Baseline" field-columns="4">
+      <input
+        class="form-control input-sm"
+        ng-model="kayentaCanaryStageCtrl.stage.canaryConfig.controlScope"
+        required
+        type="text"/>
+    </stage-config-field>
+
+    <stage-config-field label="Canary" field-columns="4">
+      <input
+        class="form-control input-sm"
+        ng-model="kayentaCanaryStageCtrl.stage.canaryConfig.experimentScope"
+        required
+        type="text"/>
+    </stage-config-field>
+    <!--TODO: the unit for step is different for metric stores, and this should be more obvious to the user.-->
+    <stage-config-field label="Step" field-columns="4">
+      <input
+        class="form-control input-sm"
+        ng-model="kayentaCanaryStageCtrl.stage.canaryConfig.step"
+        type="text"/>
+    </stage-config-field>
+
+    <stage-config-field label="Start Time" field-columns="4" ng-if="kayentaCanaryStageCtrl.stage.analysisType === 'retrospective'">
+      <input
+        class="form-control input-sm"
+        ng-model="kayentaCanaryStageCtrl.stage.canaryConfig.startTimeIso"
+        type="text"/>
+    </stage-config-field>
+
+    <stage-config-field label="End Time" field-columns="4" ng-if="kayentaCanaryStageCtrl.stage.analysisType === 'retrospective'">
+      <input
+        class="form-control input-sm"
+        ng-model="kayentaCanaryStageCtrl.stage.canaryConfig.endTimeIso"
+        type="text"/>
+    </stage-config-field>
+  </kayenta-stage-config-section>
+
+  <kayenta-stage-config-section title="Scoring Thresholds">
+    <div class="form-group">
+      <div ng-if="kayentaCanaryStageCtrl.state.detailsLoading" class="col-md-3 col-md-offset-4">
+        <h3><span us-spinner="{radius:3, width:1, length: 4}"></span></h3>
+      </div>
+
+      <kayenta-canary-scores ng-if="!kayentaCanaryStageCtrl.state.detailsLoading"
+                             on-change="kayentaCanaryStageCtrl.handleScoreThresholdChange"
+                             successful-help-field-id="'pipeline.config.canary.passingScore'"
+                             successful-label="'Pass'"
+                             successful-score="kayentaCanaryStageCtrl.stage.canaryConfig.scoreThresholds.pass"
+                             unhealthy-help-field-id="'pipeline.config.canary.marginalScore'"
+                             unhealthy-label="'Marginal'"
+                             unhealthy-score="kayentaCanaryStageCtrl.stage.canaryConfig.scoreThresholds.marginal"></kayenta-canary-scores>
     </div>
-    <div class="error-message col-md-12"
-         ng-if="kayentaCanaryStageCtrl.stage.canaryConfig.lookbackMins > 0 && kayentaCanaryStageCtrl.stage.canaryConfig.lookbackMins < 30">
-      <b>NOTE:</b> To provide enough data points for the canary analysis it is recommended to set the look-back
-      time to at least 30 minutes.
-    </div>
-  </stage-config-field>
-
-  <h5>Metric Scope</h5>
-  <div class="horizontal-rule"></div>
-
-  <stage-config-field label="Baseline">
-    <input
-      class="form-control input-sm"
-      ng-model="kayentaCanaryStageCtrl.stage.canaryConfig.controlScope"
-      required
-      type="text"/>
-  </stage-config-field>
-
-  <stage-config-field label="Canary">
-    <input
-      class="form-control input-sm"
-      ng-model="kayentaCanaryStageCtrl.stage.canaryConfig.experimentScope"
-      required
-      type="text"/>
-  </stage-config-field>
-
-  <h5>Scoring Thresholds</h5>
-  <div class="horizontal-rule"></div>
-
-  <div class="form-group">
-    <div ng-if="kayentaCanaryStageCtrl.state.detailsLoading" class="col-md-3 col-md-offset-4">
-      <h3><span us-spinner="{radius:3, width:1, length: 4}"></span></h3>
-    </div>
-
-    <kayenta-canary-scores ng-if="!kayentaCanaryStageCtrl.state.detailsLoading"
-                           on-change="kayentaCanaryStageCtrl.handleScoreThresholdChange"
-                           successful-help-field-id="'pipeline.config.canary.passingScore'"
-                           successful-label="'Pass'"
-                           successful-score="kayentaCanaryStageCtrl.stage.canaryConfig.scoreThresholds.pass"
-                           unhealthy-help-field-id="'pipeline.config.canary.marginalScore'"
-                           unhealthy-label="'Marginal'"
-                           unhealthy-score="kayentaCanaryStageCtrl.stage.canaryConfig.scoreThresholds.marginal"></kayenta-canary-scores>
-  </div>
+  </kayenta-stage-config-section>
 </div>

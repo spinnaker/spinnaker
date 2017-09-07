@@ -27,7 +27,6 @@
                                     result="canaryRun.result"></kayenta-canary-score>
             </td>
             <td>
-              <!--TODO(dpeach): Orca doesn't calculate this yet.-->
               <span ng-if="canaryRun.context.durationString">
                 {{ canaryRun.context.durationString }}
               </span>
@@ -37,8 +36,7 @@
             </td>
             <td>
               <span ng-if="canaryRun.endTime">
-                <!--TODO(dpeach): this might not be the right interpretation of what's called 'lastUpdated' in the original ACA task execution details-->
-                {{ canaryRun.endTime | timestamp}}
+                {{ canaryRun.context.lastUpdated | timestamp}}
               </span>
               <span ng-if="!canaryRun.endTime">
                 -
@@ -68,6 +66,18 @@
           <div class="col-md-4 sm-label-right compact">Canary</div>
           <div class="col-md-8" style="word-wrap: break-word">{{stage.context.canaryConfig.experimentScope}}</div>
         </div>
+        <div class="row" ng-if="stage.context.canaryConfig.step">
+          <div class="col-md-4 sm-label-right compact">Step</div>
+          <div class="col-md-8" style="word-wrap: break-word">{{stage.context.canaryConfig.step}}</div>
+        </div>
+        <div class="row" ng-if="stage.context.canaryConfig.startTimeIso">
+          <div class="col-md-4 sm-label-right compact">Start Time</div>
+          <div class="col-md-8" style="word-wrap: break-word">{{ stage.context.canaryConfig.startTimeIso | dateToMillis | timestamp}}</div>
+        </div>
+        <div class="row" ng-if="stage.context.canaryConfig.endTimeIso">
+          <div class="col-md-4 sm-label-right compact">End Time</div>
+          <div class="col-md-8" style="word-wrap: break-word">{{stage.context.canaryConfig.endTimeIso | dateToMillis | timestamp}}</div>
+        </div>
       </div>
       <div class="col-md-12 canary-config-section">
         <h5>Analysis Config</h5>
@@ -81,6 +91,10 @@
           </div>
         </div>
         <div class="row">
+          <div class="col-md-4 sm-label-right compact">Analysis Type</div>
+          <div class="col-md-8" style="word-wrap: break-word">{{stage.context.analysisType | robotToHuman}}</div>
+        </div>
+        <div class="row" ng-if="stage.context.canaryConfig.lifetimeHours">
           <div class="col-md-4 sm-label-right compact">Duration</div>
           <div class="col-md-6">{{stage.context.canaryConfig.lifetimeHours}} hours</div>
         </div>

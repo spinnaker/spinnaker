@@ -41,4 +41,5 @@ class KayentaStageExecutionDetailsController {
 
 export const KAYENTA_STAGE_EXECUTION_DETAILS_CONTROLLER = 'spinnaker.kayenta.kayentaStageExecutionDetails.controller';
 module(KAYENTA_STAGE_EXECUTION_DETAILS_CONTROLLER, [])
-  .controller('kayentaStageExecutionDetailsCtrl', KayentaStageExecutionDetailsController);
+  .controller('kayentaStageExecutionDetailsCtrl', KayentaStageExecutionDetailsController)
+  .filter('dateToMillis', () => Date.parse);

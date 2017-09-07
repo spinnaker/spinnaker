@@ -1,10 +1,10 @@
 import { module, IComponentController, IScope } from 'angular';
-import { isString, get } from 'lodash';
+import { isString, get, has } from 'lodash';
 import autoBindMethods from 'class-autobind-decorator';
 
 import {
   ACCOUNT_SERVICE,
-  CLOUD_PROVIDER_REGISTRY,
+  CLOUD_PROVIDER_REGISTRY, IPipeline,
   PipelineConfigProvider
 } from '@spinnaker/core';
 
@@ -17,26 +17,36 @@ import { ICanaryConfig } from 'kayenta/domain/ICanaryConfig';
 import { CANARY_SCORES_CONFIG_COMPONENT } from 'kayenta/components/canaryScores.component';
 import { KayentaStageTransformer, KAYENTA_STAGE_TRANSFORMER } from './kayentaStage.transformer';
 import { KAYENTA_STAGE_EXECUTION_DETAILS_CONTROLLER } from './kayentaStageExecutionDetails.controller';
+import { KAYENTA_STAGE_CONFIG_SECTION } from './kayentaStageConfigSection.component';
 
 interface IKayentaStage {
   canaryConfig: IKayentaStageCanaryConfig;
+  analysisType: KayentaAnalysisType;
 }
 
 interface IKayentaStageCanaryConfig {
-  beginCanaryAnalysisAfterMins: string;
+  beginCanaryAnalysisAfterMins?: string;
   canaryAnalysisIntervalMins: string;
   canaryConfigId: string;
   controlScope: string,
   combinedCanaryResultStrategy: string;
+  endTimeIso?: string;
   experimentScope: string;
-  lifetimeHours: string;
+  lifetimeHours?: string;
   lookbackMins?: string;
   metricsAccountName: string;
   scoreThresholds: {
     pass: string;
     marginal: string;
   };
+  startTimeIso?: string;
+  step?: string;
   storageAccountName: string;
+}
+
+enum KayentaAnalysisType {
+  RealTime = 'realTime',
+  Retrospective = 'retrospective',
 }
 
 @autoBindMethods
@@ -45,7 +55,7 @@ class CanaryStage implements IComponentController {
   public state = {
     useLookback: false,
     summariesLoading: false,
-    detailsLoading: false
+    detailsLoading: false,
   };
   public canaryConfigNames: string[] = [];
   public selectedCanaryConfigDetails: ICanaryConfig;
@@ -77,6 +87,19 @@ class CanaryStage implements IComponentController {
     });
   }
 
+  public handleAnalysisTypeChange(): void {
+    switch (this.stage.analysisType) {
+      case KayentaAnalysisType.RealTime:
+        delete this.stage.canaryConfig.startTimeIso;
+        delete this.stage.canaryConfig.endTimeIso;
+        break;
+      case KayentaAnalysisType.Retrospective:
+        delete this.stage.canaryConfig.beginCanaryAnalysisAfterMins;
+        delete this.stage.canaryConfig.lifetimeHours;
+        break;
+    }
+  }
+
   private initialize(): void {
     this.stage.canaryConfig = this.stage.canaryConfig || {} as IKayentaStageCanaryConfig;
     this.stage.canaryConfig.storageAccountName =
@@ -85,6 +108,8 @@ class CanaryStage implements IComponentController {
       this.stage.canaryConfig.metricsAccountName || CanarySettings.metricsAccountName;
     this.stage.canaryConfig.combinedCanaryResultStrategy =
       this.stage.canaryConfig.combinedCanaryResultStrategy || 'LOWEST';
+    this.stage.analysisType =
+      this.stage.analysisType || KayentaAnalysisType.RealTime;
 
     if (this.stage.canaryConfig.lookbackMins) {
       this.state.useLookback = true;
@@ -138,11 +163,23 @@ class CanaryStage implements IComponentController {
   }
 }
 
+const requiredForAnalysisType = (analysisType: KayentaAnalysisType, fieldName: string, fieldLabel?: string): (p: IPipeline, s: IKayentaStage) => string => {
+  return (_pipeline: IPipeline, stage: IKayentaStage): string => {
+    if (stage.analysisType === analysisType) {
+      if (!has(stage, fieldName) || get(stage, fieldName) === '') {
+        return `<strong>${fieldLabel || fieldName}</strong> is a required field for Kayenta Canary stages.`;
+      }
+    }
+    return null;
+  }
+};
+
 export const KAYENTA_CANARY_STAGE = 'spinnaker.kayenta.canaryStage';
 module(KAYENTA_CANARY_STAGE, [
     ACCOUNT_SERVICE,
     CANARY_SCORES_CONFIG_COMPONENT,
     CLOUD_PROVIDER_REGISTRY,
+    KAYENTA_STAGE_CONFIG_SECTION,
     KAYENTA_STAGE_TRANSFORMER,
     KAYENTA_STAGE_EXECUTION_DETAILS_CONTROLLER,
   ])
@@ -156,10 +193,12 @@ module(KAYENTA_CANARY_STAGE, [
       controllerAs: 'kayentaCanaryStageCtrl',
       executionDetailsUrl: require('./kayentaStageExecutionDetails.html'),
       validators: [
-        { type: 'requiredField', fieldName: 'canaryConfig.lifetimeHours', fieldLabel: 'Lifetime' },
         { type: 'requiredField', fieldName: 'canaryConfig.canaryConfigId', fieldLabel: 'Config Name' },
         { type: 'requiredField', fieldName: 'canaryConfig.controlScope', fieldLabel: 'Baseline Scope' },
         { type: 'requiredField', fieldName: 'canaryConfig.experimentScope', fieldLabel: 'Canary Scope' },
+        { type: 'custom', validate: requiredForAnalysisType(KayentaAnalysisType.RealTime, 'canaryConfig.lifetimeHours', 'Lifetime')},
+        { type: 'custom', validate: requiredForAnalysisType(KayentaAnalysisType.Retrospective, 'canaryConfig.startTimeIso', 'Start Time')},
+        { type: 'custom', validate: requiredForAnalysisType(KayentaAnalysisType.Retrospective, 'canaryConfig.endTimeIso', 'End Time')},
       ]
     });
   })
