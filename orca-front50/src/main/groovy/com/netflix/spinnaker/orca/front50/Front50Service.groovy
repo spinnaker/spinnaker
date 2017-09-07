@@ -79,6 +79,9 @@ interface Front50Service {
   @DELETE("/pipelineTemplates/{pipelineTemplateId}")
   Response deletePipelineTemplate(@Path("pipelineTemplateId") String pipelineTemplateId)
 
+  @GET("/pipelineTemplates/{pipelineTemplateId}/dependentPipelines")
+  List<Map<String, Object>> getPipelineTemplateDependents(@Path("pipelineTemplateId") String pipelineTemplateId, @Query("recursive") boolean recursive)
+
   @GET("/strategies")
   List<Map<String, Object>> getAllStrategies()
 

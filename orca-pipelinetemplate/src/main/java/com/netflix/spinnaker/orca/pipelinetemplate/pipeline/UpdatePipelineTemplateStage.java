@@ -19,6 +19,7 @@ import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder;
 import com.netflix.spinnaker.orca.pipeline.TaskNode.Builder;
 import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
+import com.netflix.spinnaker.orca.pipelinetemplate.tasks.PlanTemplateDependentsTask;
 import com.netflix.spinnaker.orca.pipelinetemplate.tasks.UpdatePipelineTemplateTask;
 import org.springframework.stereotype.Component;
 
@@ -27,6 +28,10 @@ public class UpdatePipelineTemplateStage implements StageDefinitionBuilder {
 
   @Override
   public <T extends Execution<T>> void taskGraph(Stage<T> stage, Builder builder) {
+    if (!Boolean.valueOf(stage.getContext().getOrDefault("skipPlanDependents", "false").toString())) {
+      builder.withTask("planDependentPipelines", PlanTemplateDependentsTask.class);
+    }
+
     builder
       .withTask("updatePipelineTemplate", UpdatePipelineTemplateTask.class);
   }
