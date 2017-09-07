@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.search
 
+import com.google.common.collect.ImmutableList
 import com.netflix.spinnaker.clouddriver.core.services.Front50Service
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
 import groovy.transform.Canonical
@@ -75,5 +76,10 @@ class ApplicationSearchProvider implements SearchProvider {
       return it
     }
     return new SearchResultSet(results.size(), pageNumber, pageSize, getPlatform(), query, results)
+  }
+
+  @Override
+  List<String> excludedFilters() {
+    return ImmutableList.of("cloudProvider")
   }
 }

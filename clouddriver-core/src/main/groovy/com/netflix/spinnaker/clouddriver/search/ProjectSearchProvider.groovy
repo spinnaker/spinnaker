@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.search
 
+import com.google.common.collect.ImmutableList
 import com.netflix.spinnaker.clouddriver.core.services.Front50Service
 import groovy.transform.Canonical
 
@@ -59,5 +60,10 @@ class ProjectSearchProvider implements SearchProvider {
     } as List<Map>
 
     return new SearchResultSet(results.size(), pageNumber, pageSize, getPlatform(), query, results)
+  }
+
+  @Override
+  List<String> excludedFilters() {
+    return ImmutableList.of("cloudProvider")
   }
 }

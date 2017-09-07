@@ -92,11 +92,16 @@ class SearchController {
   List<SearchResultSet> searchAllProviders(List<SearchProvider> providers,
                                            SearchQueryCommand searchQuery) {
     List<SearchResultSet> results = providers.collect {
+
+      SearchProvider provider = it
+      Map<String, String> filters = searchQuery.filters.findAll {
+        !provider.excludedFilters().contains(it.key)
+      }
       try {
         if (searchQuery.type && !searchQuery.type.isEmpty()) {
-          it.search(searchQuery.q, searchQuery.type, searchQuery.page, searchQuery.pageSize, searchQuery.filters)
+          it.search(searchQuery.q, searchQuery.type, searchQuery.page, searchQuery.pageSize, filters)
         } else {
-          it.search(searchQuery.q, searchQuery.page, searchQuery.pageSize, searchQuery.filters)
+          it.search(searchQuery.q, searchQuery.page, searchQuery.pageSize, filters)
         }
       } catch (Exception e) {
         log.debug("Search for '${searchQuery.q}' in '${it.platform}' failed", e)
