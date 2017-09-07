@@ -75,7 +75,7 @@ class WeightedSumScorer(groupWeights: Map[String, Double]) extends BaseScorer{
 
     //Compute the summary score based on the group score and weights
     var summaryScore: Double = 100
-    groupResults.filter(_.noData).foreach{ group =>
+    groupResults.filter(!_.noData).foreach{ group =>
       val weight:Double = groupWeights.getOrElse(group.name, calculatedWeight)
       summaryScore -= (100-group.score)*weight/100
     }
