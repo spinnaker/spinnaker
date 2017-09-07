@@ -427,7 +427,6 @@ class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
       application=self.TEST_APP,
       stageCounter=1,
       parallel=True,
-      index=0,
       limitConcurrent=True,
       appConfig={}
     )
@@ -465,8 +464,7 @@ class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
       stageCounter=4,
       parallel=True,
       limitConcurrent=True,
-      appConfig={},
-      index=3
+      appConfig={}
     )
 
     payload = self.agent.make_json_payload_from_kwargs(**pipeline_spec)
@@ -507,8 +505,7 @@ class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
       triggers=[self.make_jenkins_trigger()],
       application=self.TEST_APP,
       stageCounter=4,
-      parallel=True,
-      index=1
+      parallel=True
     )
     payload = self.agent.make_json_payload_from_kwargs(**pipeline_spec)
 
