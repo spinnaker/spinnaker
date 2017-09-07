@@ -6,6 +6,7 @@ import { Application } from '../application.model';
 import { ApplicationDataSource, DataSourceConfig } from '../service/applicationDataSource';
 import { APPLICATION_DATA_SOURCE_REGISTRY, ApplicationDataSourceRegistry } from './applicationDataSource.registry';
 import { ROBOT_TO_HUMAN_FILTER } from 'core/presentation/robotToHumanFilter/robotToHuman.filter';
+import { INFERRED_APPLICATION_WARNING_SERVICE, InferredApplicationWarningService } from './inferredApplicationWarning.service';
 
 export interface IApplicationDataSourceAttribute {
   enabled: string[];
@@ -26,6 +27,7 @@ export class ApplicationReader {
 
   public constructor(private $q: IQService, private $log: ILogService, private $filter: IFilterService,
                      private API: Api, private schedulerFactory: SchedulerFactory,
+                     private inferredApplicationWarningService: InferredApplicationWarningService,
                      private applicationDataSourceRegistry: ApplicationDataSourceRegistry) {
     'ngInject';
   }
@@ -72,6 +74,9 @@ export class ApplicationReader {
           appDataSources: IApplicationDataSourceAttribute = application.attributes.dataSources;
     if (!appDataSources) {
       allDataSources.filter(ds => ds.optIn).forEach(ds => this.disableDataSource(ds, application));
+      if (this.inferredApplicationWarningService.isInferredApplication(application)) {
+        allDataSources.filter(ds => ds.requireConfiguredApp).forEach(ds => this.disableDataSource(ds, application));
+      }
     } else {
       allDataSources.forEach(ds => {
         if (ds.optional) {
@@ -100,5 +105,6 @@ module(APPLICATION_READ_SERVICE, [
   SCHEDULER_FACTORY,
   API_SERVICE,
   APPLICATION_DATA_SOURCE_REGISTRY,
+  INFERRED_APPLICATION_WARNING_SERVICE,
   ROBOT_TO_HUMAN_FILTER,
 ]).service('applicationReader', ApplicationReader);

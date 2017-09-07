@@ -18,7 +18,6 @@ module(APPLICATION_MODULE, [
     require('./modal/createApplication.modal.controller.js'),
     require('./modal/pageApplicationOwner.modal.controller.js'),
     require('./modal/platformHealthOverride.directive'),
-    require('./inferredApplicationWarning.service.js'),
     require('./config/appConfig.dataSource'),
     APPLICATION_NAV_COMPONENT,
     APPLICATION_NAV_SECONDARY_COMPONENT,

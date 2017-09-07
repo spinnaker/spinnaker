@@ -32,6 +32,15 @@ export class DataSourceConfig {
   public optIn = false;
 
   /**
+   * (Optional) whether this data source will be displayed on non-configured applications
+   *
+   * Use this for features that require additional attributes from the application (e.g. email) to function properly
+   *
+   * If omitted, the value will default to false
+   */
+  public requireConfiguredApp = false;
+
+  /**
    * (Optional) whether this data source can be disabled
    *
    * If omitted, the value will default to false
@@ -207,6 +216,11 @@ export class ApplicationDataSource {
    * See DataSourceConfig#optIn
    */
   public optIn = false;
+
+  /**
+   * See DataSourceConfig#requireConfiguredApp
+   */
+  public requireConfiguredApp = false;
 
   /**
    * See DataSourceConfig#credentialsField

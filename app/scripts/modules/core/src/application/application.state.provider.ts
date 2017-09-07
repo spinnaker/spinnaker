@@ -7,6 +7,10 @@ import { ApplicationModelBuilder } from './applicationModel.builder';
 import { ApplicationReader } from './service/application.read.service';
 import { INestedState, STATE_CONFIG_PROVIDER, StateConfigProvider } from 'core/navigation/state.provider';
 import { NgReact } from 'core/reactShims';
+import {
+  INFERRED_APPLICATION_WARNING_SERVICE,
+  InferredApplicationWarningService
+} from './service/inferredApplicationWarning.service';
 
 export class ApplicationStateProvider implements IServiceProvider {
 
@@ -17,7 +21,7 @@ export class ApplicationStateProvider implements IServiceProvider {
     name: 'insight',
     abstract: true,
     views: {
-      'insight' : {
+      'insight': {
         component: NgReact.InsightLayout, $type: 'react'
       },
     },
@@ -77,14 +81,15 @@ export class ApplicationStateProvider implements IServiceProvider {
       abstract: true,
       url: `${relativeUrl}/:application`,
       resolve: {
-        app: ['$stateParams', 'applicationReader', 'inferredApplicationWarning', 'applicationModelBuilder',
+        app: ['$stateParams', 'applicationReader', 'inferredApplicationWarningService', 'applicationModelBuilder',
           ($stateParams: StateParams,
            applicationReader: ApplicationReader,
-           inferredApplicationWarning: any, applicationModelBuilder: ApplicationModelBuilder) => {
+           inferredApplicationWarningService: InferredApplicationWarningService,
+           applicationModelBuilder: ApplicationModelBuilder) => {
             return applicationReader.getApplication($stateParams.application)
-              .then((app: Application): Application => { // TODO: make the notFound into an application
-                  inferredApplicationWarning.checkIfInferredAndWarn(app);
-                  return app || applicationModelBuilder.createNotFoundApplication($stateParams.application);
+              .then((app: Application): Application => {
+                inferredApplicationWarningService.checkIfInferredAndWarn(app);
+                return app || applicationModelBuilder.createNotFoundApplication($stateParams.application);
               })
               .catch(() => applicationModelBuilder.createNotFoundApplication($stateParams.application));
           }]
@@ -115,5 +120,6 @@ export class ApplicationStateProvider implements IServiceProvider {
 
 export const APPLICATION_STATE_PROVIDER = 'spinnaker.core.application.state.provider';
 module(APPLICATION_STATE_PROVIDER, [
+  INFERRED_APPLICATION_WARNING_SERVICE,
   STATE_CONFIG_PROVIDER,
 ]).provider('applicationState', ApplicationStateProvider);
