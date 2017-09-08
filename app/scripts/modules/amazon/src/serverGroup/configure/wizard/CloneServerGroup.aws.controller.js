@@ -159,11 +159,8 @@ module.exports = angular.module('spinnaker.amazon.cloneServerGroup.controller', 
     }
 
     function processCommandUpdateResult(result) {
-      if (result.dirty.loadBalancers) {
+      if (result.dirty.loadBalancers || result.dirty.targetGroups) {
         v2modalWizardService.markDirty('load-balancers');
-      }
-      if (result.dirty.targetGroups) {
-        v2modalWizardService.markDirty('target-groups');
       }
       if (result.dirty.securityGroups) {
         v2modalWizardService.markDirty('security-groups');
