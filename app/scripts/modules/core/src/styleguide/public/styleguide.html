@@ -596,10 +596,16 @@ These are three categories for buttons based on function:</p>
 </ol>
 <div class="load nano"><div class="bar"></div></div>
 
-<pre><code>&lt;<span class="hljs-keyword">div</span> <span class="hljs-type">class</span>=<span class="hljs-string">"load nano"</span>&gt;&lt;<span class="hljs-keyword">div</span> <span class="hljs-type">class</span>=<span class="hljs-string">"bar"</span>&gt;&lt;/<span class="hljs-keyword">div</span>&gt;&lt;/<span class="hljs-keyword">div</span>&gt;
+<pre><code><span class="hljs-attribute">React</span>: <span class="hljs-string">&lt;Spinner size="nano" /&gt;</span>
+<span class="hljs-attribute">Angular</span>: <span class="hljs-string">&lt;loading-spinner size="'nano'"&gt;&lt;/loading-spinner&gt;</span>
+
+<span class="applescript">&lt;<span class="hljs-keyword">div</span> <span class="hljs-type">class</span>=<span class="hljs-string">"load nano"</span>&gt;&lt;<span class="hljs-keyword">div</span> <span class="hljs-type">class</span>=<span class="hljs-string">"bar"</span>&gt;&lt;/<span class="hljs-keyword">div</span>&gt;&lt;/<span class="hljs-keyword">div</span>&gt;</span>
 </code></pre><div class="load small"><div class="bar"></div><div class="bar"></div><div class="bar"></div></div>
 
-<pre><code>&lt;<span class="hljs-keyword">div</span> <span class="hljs-type">class</span>=<span class="hljs-string">"load small"</span>&gt;&lt;<span class="hljs-keyword">div</span> <span class="hljs-type">class</span>=<span class="hljs-string">"bar"</span>&gt;&lt;/<span class="hljs-keyword">div</span>&gt;&lt;<span class="hljs-keyword">div</span> <span class="hljs-type">class</span>=<span class="hljs-string">"bar"</span>&gt;&lt;/<span class="hljs-keyword">div</span>&gt;&lt;<span class="hljs-keyword">div</span> <span class="hljs-type">class</span>=<span class="hljs-string">"bar"</span>&gt;&lt;/<span class="hljs-keyword">div</span>&gt;&lt;/<span class="hljs-keyword">div</span>&gt;
+<pre><code><span class="hljs-attribute">React</span>: <span class="hljs-string">&lt;Spinner size="small" /&gt;</span>
+<span class="hljs-attribute">Angular</span>: <span class="hljs-string">&lt;loading-spinner size="'small'"&gt;&lt;/loading-spinner&gt;</span>
+
+<span class="applescript">&lt;<span class="hljs-keyword">div</span> <span class="hljs-type">class</span>=<span class="hljs-string">"load small"</span>&gt;&lt;<span class="hljs-keyword">div</span> <span class="hljs-type">class</span>=<span class="hljs-string">"bar"</span>&gt;&lt;/<span class="hljs-keyword">div</span>&gt;&lt;<span class="hljs-keyword">div</span> <span class="hljs-type">class</span>=<span class="hljs-string">"bar"</span>&gt;&lt;/<span class="hljs-keyword">div</span>&gt;&lt;<span class="hljs-keyword">div</span> <span class="hljs-type">class</span>=<span class="hljs-string">"bar"</span>&gt;&lt;/<span class="hljs-keyword">div</span>&gt;&lt;/<span class="hljs-keyword">div</span>&gt;</span>
 </code></pre><div class="load medium">
   <div class="message">Loading something...</div>
   <div class="bars">
@@ -607,12 +613,15 @@ These are three categories for buttons based on function:</p>
   </div>
 </div>
 
-<pre><code>&lt;<span class="hljs-keyword">div</span> <span class="hljs-type">class</span>=<span class="hljs-string">"load medium"</span>&gt;
+<pre><code><span class="hljs-attribute">React</span>: <span class="hljs-string">&lt;Spinner size="medium" /&gt;</span>
+<span class="hljs-attribute">Angular</span>: <span class="hljs-string">&lt;loading-spinner size="'medium'"&gt;&lt;/loading-spinner&gt;</span>
+
+<span class="applescript">&lt;<span class="hljs-keyword">div</span> <span class="hljs-type">class</span>=<span class="hljs-string">"load medium"</span>&gt;
   &lt;<span class="hljs-keyword">div</span> <span class="hljs-type">class</span>=<span class="hljs-string">"message"</span>&gt;Loading something...&lt;/<span class="hljs-keyword">div</span>&gt;
   &lt;<span class="hljs-keyword">div</span> <span class="hljs-type">class</span>=<span class="hljs-string">"bars"</span>&gt;
     &lt;<span class="hljs-keyword">div</span> <span class="hljs-type">class</span>=<span class="hljs-string">"bar"</span>&gt;&lt;/<span class="hljs-keyword">div</span>&gt;&lt;<span class="hljs-keyword">div</span> <span class="hljs-type">class</span>=<span class="hljs-string">"bar"</span>&gt;&lt;/<span class="hljs-keyword">div</span>&gt;&lt;<span class="hljs-keyword">div</span> <span class="hljs-type">class</span>=<span class="hljs-string">"bar"</span>&gt;&lt;/<span class="hljs-keyword">div</span>&gt;
   &lt;/<span class="hljs-keyword">div</span>&gt;
-&lt;/<span class="hljs-keyword">div</span>&gt;
+&lt;/<span class="hljs-keyword">div</span>&gt;</span>
 </code></pre><div class="load large">
   <div class="message">Loading something...</div>
   <div class="bars">
@@ -624,7 +633,10 @@ These are three categories for buttons based on function:</p>
   </div>
 </div>
 
-<pre><code>&lt;<span class="hljs-keyword">div</span> <span class="hljs-type">class</span>=<span class="hljs-string">"load large"</span>&gt;
+<pre><code><span class="hljs-attribute">React</span>: <span class="hljs-string">&lt;Spinner size="large" message="Loading something ..."/&gt;</span>
+<span class="hljs-attribute">Angular</span>: <span class="hljs-string">&lt;loading-spinner size="'large'" message="'Loading something...'"&gt;&lt;/loading-spinner&gt;</span>
+
+<span class="applescript">&lt;<span class="hljs-keyword">div</span> <span class="hljs-type">class</span>=<span class="hljs-string">"load large"</span>&gt;
   &lt;<span class="hljs-keyword">div</span> <span class="hljs-type">class</span>=<span class="hljs-string">"message"</span>&gt;Loading something...&lt;/<span class="hljs-keyword">div</span>&gt;
   &lt;<span class="hljs-keyword">div</span> <span class="hljs-type">class</span>=<span class="hljs-string">"bars"</span>&gt;
     &lt;<span class="hljs-keyword">div</span> <span class="hljs-type">class</span>=<span class="hljs-string">"bar full"</span>&gt;&lt;/<span class="hljs-keyword">div</span>&gt;
@@ -633,7 +645,7 @@ These are three categories for buttons based on function:</p>
     &lt;<span class="hljs-keyword">div</span> <span class="hljs-type">class</span>=<span class="hljs-string">"bar"</span>&gt;&lt;/<span class="hljs-keyword">div</span>&gt;
     &lt;<span class="hljs-keyword">div</span> <span class="hljs-type">class</span>=<span class="hljs-string">"bar"</span>&gt;&lt;/<span class="hljs-keyword">div</span>&gt;
   &lt;/<span class="hljs-keyword">div</span>&gt;
-&lt;/<span class="hljs-keyword">div</span>&gt;
+&lt;/<span class="hljs-keyword">div</span>&gt;</span>
 </code></pre>
               
               </div>

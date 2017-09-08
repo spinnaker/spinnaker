@@ -12,9 +12,16 @@ List of load bars for the app
 
 <div class="load nano"><div class="bar"></div></div>
 
+    React: <Spinner size="nano" />
+    Angular: <loading-spinner size="'nano'"></loading-spinner>
+
     <div class="load nano"><div class="bar"></div></div>
 
+
 <div class="load small"><div class="bar"></div><div class="bar"></div><div class="bar"></div></div>
+
+    React: <Spinner size="small" />
+    Angular: <loading-spinner size="'small'"></loading-spinner>
 
     <div class="load small"><div class="bar"></div><div class="bar"></div><div class="bar"></div></div>
 
@@ -25,12 +32,16 @@ List of load bars for the app
   </div>
 </div>
 
+    React: <Spinner size="medium" />
+    Angular: <loading-spinner size="'medium'"></loading-spinner>
+
     <div class="load medium">
       <div class="message">Loading something...</div>
       <div class="bars">
         <div class="bar"></div><div class="bar"></div><div class="bar"></div>
       </div>
     </div>
+
 
 <div class="load large">
   <div class="message">Loading something...</div>
@@ -43,6 +54,9 @@ List of load bars for the app
   </div>
 </div>
 
+    React: <Spinner size="large" message="Loading something ..."/>
+    Angular: <loading-spinner size="'large'" message="'Loading something...'"></loading-spinner>
+
     <div class="load large">
       <div class="message">Loading something...</div>
       <div class="bars">
@@ -53,6 +67,7 @@ List of load bars for the app
         <div class="bar"></div>
       </div>
     </div>
+
 
 */
 
