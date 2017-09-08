@@ -5,7 +5,6 @@ import _ from 'lodash';
 
 import { AUTHENTICATION_SERVICE } from 'core/authentication/authentication.service';
 import { PIPELINE_CONFIG_PROVIDER } from 'core/pipeline/config/pipelineConfigProvider';
-import { PIPELINE_CONFIG_SERVICE } from 'core/pipeline/config/services/pipelineConfig.service';
 
 import './manualPipelineExecution.less';
 
@@ -13,13 +12,11 @@ module.exports = angular.module('spinnaker.core.delivery.manualPipelineExecution
   require('angular-ui-bootstrap'),
   require('./inlinePropertyScope.filter'),
   PIPELINE_CONFIG_PROVIDER,
-  PIPELINE_CONFIG_SERVICE,
   require('../../notification/notification.service'),
   AUTHENTICATION_SERVICE
 ])
   .controller('ManualPipelineExecutionCtrl', function ($uibModalInstance, pipeline, application, pipelineConfig,
-                                                       notificationService, authenticationService,
-                                                       pipelineConfigService) {
+                                                       notificationService, authenticationService) {
 
     this.origPipeline = {};
 
@@ -129,10 +126,6 @@ module.exports = angular.module('spinnaker.core.delivery.manualPipelineExecution
 
     };
 
-    this.pipelineIsDirty = () => {
-      return !angular.equals(this.command.pipeline, this.origPipeline);
-    };
-
     this.execute = () => {
       let selectedTrigger = this.command.trigger || {},
           command = { trigger: selectedTrigger },
@@ -151,14 +144,7 @@ module.exports = angular.module('spinnaker.core.delivery.manualPipelineExecution
       if (pipeline.parameterConfig && pipeline.parameterConfig.length) {
         selectedTrigger.parameters = this.parameters;
       }
-
-      if (this.pipelineIsDirty()) {
-        pipelineConfigService.savePipeline(pipeline)
-          .then(() => $uibModalInstance.close(command) );
-      } else {
-        $uibModalInstance.close(command);
-      }
-
+      $uibModalInstance.close(command);
     };
 
     this.cancel = $uibModalInstance.dismiss;
