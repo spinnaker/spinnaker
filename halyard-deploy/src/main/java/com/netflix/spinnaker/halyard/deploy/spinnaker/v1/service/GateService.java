@@ -43,7 +43,7 @@ import java.util.Map;
 @Component
 abstract public class GateService extends SpringService<GateService.Gate> {
 
-  private static final String BOOT_UPGRADED_VERSION = "1.0.0";
+  private static final String BOOT_UPGRADED_VERSION = "0.7.0";
 
   @Autowired
   private GateBoot154ProfileFactory boot154ProfileFactory;
