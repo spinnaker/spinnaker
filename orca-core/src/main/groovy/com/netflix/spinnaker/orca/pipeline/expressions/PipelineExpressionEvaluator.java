@@ -25,10 +25,7 @@ import org.springframework.expression.*;
 import org.springframework.expression.spel.standard.SpelExpressionParser;;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 import static com.netflix.spinnaker.orca.pipeline.expressions.PipelineExpressionEvaluator.ExpressionEvaluationVersion.V2;
 import static com.netflix.spinnaker.orca.pipeline.expressions.PipelineExpressionEvaluator.ExpressionEvaluationVersion.V1;
@@ -38,7 +35,7 @@ public class PipelineExpressionEvaluator extends ExpressionsSupport implements E
   public static final String SUMMARY = "expressionEvaluationSummary";
   private static final String SPEL_EVALUATOR = "spelEvaluator";
   private final ExpressionParser parser = new SpelExpressionParser();
-  private static String spelEvaluator = V1;
+  private static String spelEvaluator;
   public static final String ERROR = "Failed Expression Evaluation";
 
   public interface ExpressionEvaluationVersion {
@@ -58,51 +55,13 @@ public class PipelineExpressionEvaluator extends ExpressionsSupport implements E
   }
 
   public static boolean shouldUseV2Evaluator(Object obj) {
-    if (V2.equals(spelEvaluator)) {
-      return true;
-    }
-
     try {
-      if (obj instanceof Map) {
-        Map pipelineConfig = (Map) obj;
-        //if using v2, add version to stage context.
-        if (V2.equals(pipelineConfig.get(SPEL_EVALUATOR))) {
-          updateSpelEvaluatorVersion(pipelineConfig);
-          return true;
-        }
-
-        List<Map> stages = (List<Map>) Optional.ofNullable(pipelineConfig.get("stages")).orElse(Collections.emptyList());
-        boolean useV2 = stages
-          .stream()
-          .filter(i -> i.containsKey(SPEL_EVALUATOR) && V2.equals(i.get(SPEL_EVALUATOR)))
-          .findFirst()
-          .orElse(null) != null;
-
-        if (useV2) {
-          updateSpelEvaluatorVersion(pipelineConfig);
-        }
-      } else if (obj instanceof Pipeline) {
-        Pipeline pipeline = (Pipeline) obj;
-        List stages = Optional.ofNullable(pipeline.getStages()).orElse(Collections.emptyList());
-        return stages
-          .stream()
-          .filter(s -> hasV2InContext(s))
-          .findFirst()
-          .orElse(null) != null;
-
-      } else if (obj instanceof Stage) {
-        if (hasV2InContext(obj)) {
-          return true;
-        }
-
-        Stage stage = (Stage) obj;
-        // if any using v2
-        return stage.getExecution().getStages()
-          .stream()
-          .filter(s -> hasV2InContext(s))
-          .findFirst()
-          .orElse(null) != null;
+      String versionInPipeline = getSpelVersion(obj);
+      if (Arrays.asList(V1, V2).contains(versionInPipeline) && obj instanceof Map) {
+        updateSpelEvaluatorVersion((Map) obj, versionInPipeline);
       }
+
+      return !V1.equals(versionInPipeline) && (V2.equals(spelEvaluator) || V2.equals(versionInPipeline));
     } catch (Exception e) {
       LOGGER.error("Failed to determine whether to use v2 expression evaluator. using V1.", e);
     }
@@ -110,13 +69,57 @@ public class PipelineExpressionEvaluator extends ExpressionsSupport implements E
     return false;
   }
 
-  private static boolean hasV2InContext(Object obj) {
-    return obj instanceof Stage && ((Stage) obj).getContext() != null && V2.equals(((Stage) obj).getContext().get(SPEL_EVALUATOR));
+  private static boolean hasVersionInContext(Object obj) {
+    return obj instanceof Stage && ((Stage) obj).getContext().containsKey(SPEL_EVALUATOR);
   }
 
-  private static void updateSpelEvaluatorVersion(Map rawPipeline) {
+  private static String getSpelVersion(Object obj) {
+    if (obj instanceof Map) {
+      Map pipelineConfig = (Map) obj;
+      if (pipelineConfig.containsKey(SPEL_EVALUATOR)) {
+        return (String) pipelineConfig.get(SPEL_EVALUATOR);
+      }
+
+      List<Map> stages = (List<Map>) Optional.ofNullable(pipelineConfig.get("stages")).orElse(Collections.emptyList());
+      Map stage = stages
+        .stream()
+        .filter(i -> i.containsKey(SPEL_EVALUATOR))
+        .findFirst()
+        .orElse(null);
+
+      return (stage != null) ? (String) stage.get(SPEL_EVALUATOR) : null;
+    } else if (obj instanceof Pipeline) {
+      Pipeline pipeline = (Pipeline) obj;
+      Stage stage = pipeline.getStages()
+        .stream()
+        .filter(PipelineExpressionEvaluator::hasVersionInContext)
+        .findFirst()
+        .orElse(null);
+
+      return (stage != null) ? (String) stage.getContext().get(SPEL_EVALUATOR) : null;
+
+    } else if (obj instanceof Stage) {
+      Stage stage = (Stage) obj;
+      if (hasVersionInContext(obj)) {
+        return (String) stage.getContext().get(SPEL_EVALUATOR);
+      }
+
+      // if any using v2
+      List stages = stage.getExecution().getStages();
+      Stage withVersion = (Stage) stages.stream()
+        .filter(PipelineExpressionEvaluator::hasVersionInContext)
+        .findFirst()
+        .orElse(null);
+
+      return (withVersion != null) ? (String) withVersion.getContext().get(SPEL_EVALUATOR) : null;
+    }
+
+    return null;
+  }
+
+  private static void updateSpelEvaluatorVersion(Map rawPipeline, String versionInPipeline) {
     Optional.ofNullable((List<Map>) rawPipeline.get("stages")).orElse(Collections.emptyList())
-      .forEach(i -> i.put(SPEL_EVALUATOR, V2));
+      .forEach(i -> i.put(SPEL_EVALUATOR, versionInPipeline));
   }
 }
 
