@@ -4,17 +4,16 @@ import * as _ from 'lodash';
 
 const angular = require('angular');
 
-import {OVERRIDE_REGISTRY} from 'core/overrideRegistry/override.registry';
-import {PIPELINE_CONFIG_SERVICE} from 'core/pipeline/config/services/pipelineConfig.service';
-import {EDIT_PIPELINE_JSON_MODAL_CONTROLLER, EditPipelineJsonModalCtrl} from './actions/json/editPipelineJsonModal.controller';
-import {PIPELINE_CONFIG_VALIDATOR} from './validation/pipelineConfig.validator';
-import {PIPELINE_TEMPLATE_SERVICE} from './templates/pipelineTemplate.service';
+import { OVERRIDE_REGISTRY } from 'core/overrideRegistry/override.registry';
+import { PIPELINE_CONFIG_SERVICE } from 'core/pipeline/config/services/pipelineConfig.service';
+import { EditPipelineJsonModalCtrl } from './actions/json/editPipelineJsonModal.controller';
+import { PIPELINE_CONFIG_VALIDATOR } from './validation/pipelineConfig.validator';
+import { PIPELINE_TEMPLATE_SERVICE } from './templates/pipelineTemplate.service';
 
 module.exports = angular.module('spinnaker.core.pipeline.config.pipelineConfigurer', [
   OVERRIDE_REGISTRY,
   PIPELINE_CONFIG_SERVICE,
   PIPELINE_CONFIG_VALIDATOR,
-  EDIT_PIPELINE_JSON_MODAL_CONTROLLER,
   PIPELINE_TEMPLATE_SERVICE,
 ])
   .directive('pipelineConfigurer', function() {
@@ -347,12 +346,10 @@ module.exports = angular.module('spinnaker.core.pipeline.config.pipelineConfigur
 
     this.revertPipelineChanges = function() {
       let original = getOriginal();
-      Object.assign($scope.pipeline, original);
       Object.keys($scope.pipeline).forEach(key => {
-        if (!original.hasOwnProperty(key)) {
-          delete $scope.pipeline[key];
-        }
+        delete $scope.pipeline[key];
       });
+      Object.assign($scope.pipeline, original);
 
       if ($scope.isTemplatedPipeline) {
         const originalRenderablePipeline = getOriginalRenderablePipeline();

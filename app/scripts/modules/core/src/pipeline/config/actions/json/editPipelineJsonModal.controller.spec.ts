@@ -1,6 +1,6 @@
 import { mock, IControllerService } from 'angular';
 
-import { EDIT_PIPELINE_JSON_MODAL_CONTROLLER, EditPipelineJsonModalCtrl } from './editPipelineJsonModal.controller';
+import { EditPipelineJsonModalCtrl } from './editPipelineJsonModal.controller';
 import { IPipeline} from 'core/domain';
 
 describe('Controller: editPipelineJsonModal', () => {
@@ -8,7 +8,6 @@ describe('Controller: editPipelineJsonModal', () => {
   let $ctrl: IControllerService,
     controller: EditPipelineJsonModalCtrl,
     $uibModalInstance: any;
-  beforeEach(mock.module(EDIT_PIPELINE_JSON_MODAL_CONTROLLER));
   beforeEach(mock.inject(($controller: IControllerService) =>  $ctrl = $controller));
 
   function initializeController(pipeline: IPipeline) {

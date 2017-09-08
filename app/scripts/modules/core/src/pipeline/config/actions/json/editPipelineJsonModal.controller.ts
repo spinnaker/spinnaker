@@ -1,9 +1,9 @@
-import {cloneDeepWith} from 'lodash';
-import {extend, module, IController} from 'angular';
-import {IModalServiceInstance} from 'angular-ui-bootstrap';
+import { IController } from 'angular';
+import { cloneDeepWith } from 'lodash';
+import { IModalServiceInstance } from 'angular-ui-bootstrap';
 
-import {JSON_UTILITY_SERVICE, JsonUtilityService} from 'core/utils/json/json.utility.service';
-import {IPipeline, IStage} from 'core/domain';
+import { jsonUtilityService } from 'core/utils/json/json.utility.service';
+import { IPipeline, IStage } from 'core/domain';
 
 export interface IEditPipelineJsonModalCommand {
   errorMessage?: string;
@@ -16,18 +16,16 @@ export class EditPipelineJsonModalCtrl implements IController {
 
   public isStrategy: boolean;
   public command: IEditPipelineJsonModalCommand;
+  private immutableFields = ['name', 'application', 'index', 'id', '$$hashKey'];
 
   constructor(private $uibModalInstance: IModalServiceInstance,
-              private jsonUtilityService: JsonUtilityService,
               private pipeline: IPipeline) {
     'ngInject';
   }
 
   private removeImmutableFields(pipeline: IPipeline): void {
-    delete pipeline.name;
-    delete pipeline.application;
-    delete pipeline.index;
-    delete pipeline.id;
+    // no index signature on pipeline
+    this.immutableFields.forEach(k => delete (pipeline as any)[k]);
   }
 
   private validatePipeline(pipeline: IPipeline): void {
@@ -59,7 +57,7 @@ export class EditPipelineJsonModalCtrl implements IController {
 
     this.isStrategy = this.pipeline.strategy || false;
     this.command = {
-      pipelineJSON: this.jsonUtilityService.makeSortedStringFromObject(copy),
+      pipelineJSON: jsonUtilityService.makeSortedStringFromObject(copy),
       locked: copy.locked
     };
   }
@@ -71,8 +69,12 @@ export class EditPipelineJsonModalCtrl implements IController {
 
       this.validatePipeline(parsed);
 
+      Object.keys(this.pipeline)
+        .filter(k => !this.immutableFields.includes(k) && !parsed.hasOwnProperty(k))
+        .forEach(k => delete (this.pipeline as any)[k]);
       this.removeImmutableFields(parsed);
-      extend(this.pipeline, parsed);
+      Object.assign(this.pipeline, parsed);
+
       this.$uibModalInstance.close();
     } catch (e) {
       this.command.invalid = true;
@@ -80,6 +82,3 @@ export class EditPipelineJsonModalCtrl implements IController {
     }
   }
 }
-
-export const EDIT_PIPELINE_JSON_MODAL_CONTROLLER = 'spinnaker.core.pipeline.config.actions.editJson';
-module(EDIT_PIPELINE_JSON_MODAL_CONTROLLER, [JSON_UTILITY_SERVICE]);
