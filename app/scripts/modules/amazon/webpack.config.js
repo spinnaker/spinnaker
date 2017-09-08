@@ -92,7 +92,7 @@ module.exports = {
       mangle: false,
       beautify: true,
       comments: false,
-      sourceMap: true,
+      sourceMap: false,
     }),
     new HappyPack({
       id: 'lib-html',
