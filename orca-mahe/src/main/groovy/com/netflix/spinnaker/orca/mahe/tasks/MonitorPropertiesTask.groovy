@@ -40,10 +40,6 @@ class MonitorPropertiesTask implements Task{
   TaskResult execute(Stage stage) {
 
     Map context = stage.context
-    if (stage.execution instanceof Pipeline) {
-      List<Map> overrides = ((Pipeline) stage.execution).trigger.stageOverrides ?: []
-      context = overrides.find { it.refId == stage.refId } ?: context
-    }
     log.info("MonitorPropertiesTask context: $context")
     List propertyIds = context.propertyIdList*.propertyId
     log.info("propertyIds: $propertyIds")
