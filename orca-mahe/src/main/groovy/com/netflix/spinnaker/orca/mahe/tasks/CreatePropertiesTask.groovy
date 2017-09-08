@@ -21,6 +21,7 @@ import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.mahe.MaheService
 import com.netflix.spinnaker.orca.mahe.PropertyAction
+import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
@@ -37,14 +38,19 @@ class CreatePropertiesTask implements Task {
 
   @Override
   TaskResult execute(Stage stage) {
-    List properties = assemblePersistedPropertyListFromContext(stage.context, stage.context.persistedProperties)
-    List originalProperties = assemblePersistedPropertyListFromContext(stage.context, stage.context.originalProperties)
+    Map<String, Object> context = stage.context
+    if (stage.execution instanceof Pipeline) {
+      List<Map> overrides = ((Pipeline) stage.execution).trigger.stageOverrides ?: []
+      context = overrides.find { it.refId == stage.refId } ?: context
+    }
+    List properties = assemblePersistedPropertyListFromContext(context, context.persistedProperties)
+    List originalProperties = assemblePersistedPropertyListFromContext(context, context.originalProperties)
     List propertyIdList = []
     PropertyAction propertyAction = PropertyAction.UNKNOWN
 
     properties.forEach { Map prop ->
       Response response
-      if (stage.context.delete) {
+      if (context.delete) {
         log.info("Deleting Property: ${prop.property.propertyId} on execution ${stage.execution.id}")
         response = maheService.deleteProperty(prop.property.propertyId, 'delete', prop.property.env)
         propertyAction = PropertyAction.DELETE
@@ -63,7 +69,7 @@ class CreatePropertiesTask implements Task {
       }
     }
 
-    boolean rollback = stage.context.rollbackProperties
+    boolean rollback = context.rollbackProperties
 
     def outputs = [
       propertyIdList: propertyIdList,

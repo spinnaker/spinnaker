@@ -21,6 +21,7 @@ import com.netflix.spinnaker.orca.mahe.MaheService
 import com.netflix.spinnaker.orca.mahe.pipeline.CreatePropertyStage
 import com.netflix.spinnaker.orca.mahe.pipeline.MonitorCreatePropertyStage
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.PipelineBuilder
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import retrofit.client.Response
 import retrofit.mime.TypedByteArray
@@ -81,6 +82,37 @@ class CreatePropertiesTaskSpec extends Specification {
         cluster == scope.cluster
         appId == scope.appIdList.first()
       }
+    }
+  }
+
+  def "prefer a stage override if present for context"() {
+    given:
+    def trigger = [ stageOverrides: [] ]
+    def pipeline = new PipelineBuilder("foo").withTrigger(trigger).build()
+    def stageOverride = createPropertiesStage(pipeline, createScope(), createProperty("other"), null)
+    stageOverride.context.refId = "a"
+    def property = createProperty()
+    def createPropertiesStage = createPropertiesStage(pipeline, createScope(), property, null)
+    createPropertiesStage.refId = "a"
+    pipeline.stages.addAll([createPropertiesStage, createMonitorStage(pipeline)])
+
+    pipeline.trigger.stageOverrides << stageOverride.context
+
+
+      when:
+    def results = task.execute(createPropertiesStage)
+
+    then:
+    1 * maheService.upsertProperty(_) >> { Map res ->
+      def json = mapper.writeValueAsString([propertyId: 'other'])
+      new Response("http://mahe", 200, "OK", [], new TypedByteArray('application/json', json.bytes))
+    }
+
+    then:
+
+    with(results.context) {
+      propertyIdList.size() == 1
+      propertyIdList.contains(propertyId: 'other')
     }
   }
 

@@ -21,6 +21,7 @@ import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.mahe.MaheService
+import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.util.logging.Slf4j
 import org.apache.http.HttpStatus
@@ -39,6 +40,10 @@ class MonitorPropertiesTask implements Task{
   TaskResult execute(Stage stage) {
 
     Map context = stage.context
+    if (stage.execution instanceof Pipeline) {
+      List<Map> overrides = ((Pipeline) stage.execution).trigger.stageOverrides ?: []
+      context = overrides.find { it.refId == stage.refId } ?: context
+    }
     log.info("MonitorPropertiesTask context: $context")
     List propertyIds = context.propertyIdList*.propertyId
     log.info("propertyIds: $propertyIds")
