@@ -5,7 +5,6 @@ module.exports = {
     'postcss-import': {},
     'postcss-extend': {},
     'autoprefixer': {},
-    'postcss-scopeit': {scopeName: 'styleguide'},
     'postcss-style-guide': {
       project: 'Spinnaker',
       dest: path.join(__dirname, '..', '..', 'public', 'styleguide.html'),

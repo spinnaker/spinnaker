@@ -1,11 +1,11 @@
-ul.pagination {
+.styleguide ul.pagination {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: center;
 }
 
-ul.pagination li:not(.break) {
+.styleguide ul.pagination li:not(.break) {
   border: 1px solid var(--color-divider);
   margin: 0 4px;
   color: var(--color-text-primary);
@@ -13,16 +13,16 @@ ul.pagination li:not(.break) {
   cursor: pointer;
 }
 
-ul.pagination li.selected, ul.pagination li:hover {
+.styleguide ul.pagination li.selected, ul.pagination li:hover {
   background-color: var(--color-primary);
 }
 
-ul.pagination li.selected  *, ul.pagination li:hover * {
+.styleguide ul.pagination li.selected  *, ul.pagination li:hover * {
   color: var(--color-text-on-dark);
   text-decoration: none;
 }
 
-ul.pagination li > a {
+.styleguide ul.pagination li > a {
   display: block;
   padding: 6px 10px;
   text-align: center;

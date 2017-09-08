@@ -11,12 +11,3 @@
 @import 'pagination.css';
 @import 'pills.css';
 @import 'icons.css';
-
-body {
-  letter-spacing: 0.02em;
-  font-size: 12px;
-}
-
-i {
-  font-style: initial;
-}

@@ -1,7 +1,3 @@
-nav ul li {
-  color: var(--color-text-on-dark);
-}
-
 ul.bulleted {
   list-style: square outside none;
 }
