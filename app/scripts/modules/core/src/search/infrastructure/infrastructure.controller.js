@@ -10,6 +10,7 @@ import { OVERRIDE_REGISTRY } from 'core/overrideRegistry/override.registry';
 import { RECENT_HISTORY_SERVICE } from 'core/history/recentHistory.service';
 import { PAGE_TITLE_SERVICE } from 'core/pageTitle/pageTitle.service';
 import { INFRASTRUCTURE_SEARCH_SERVICE } from 'core/search/infrastructure/infrastructureSearch.service';
+import { SPINNER_COMPONENT } from 'core/widgets/spinners/spinner.component';
 import { SearchService } from '../search.service';
 
 module.exports = angular.module('spinnaker.search.infrastructure.controller', [
@@ -22,6 +23,7 @@ module.exports = angular.module('spinnaker.search.infrastructure.controller', [
   CLUSTER_FILTER_SERVICE,
   CACHE_INITIALIZER_SERVICE,
   OVERRIDE_REGISTRY,
+  SPINNER_COMPONENT
 ])
   .controller('InfrastructureCtrl', function($scope, infrastructureSearchService, $stateParams, $location, searchService,
                                              cacheInitializer, overrideRegistry,
