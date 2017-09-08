@@ -36,10 +36,6 @@
       "@spinnaker/core": ["../../core/lib"]
     }
   },
-  "awesomeTypescriptLoaderOptions": {
-    "useBabel": true,
-    "useCache": true
-  },
   "files": [
     "src/index.ts"
   ],

@@ -1,5 +1,23 @@
 const webpack = require('webpack');
 const HappyPack = require('happypack');
+const HAPPY_PACK_POOL_SIZE = process.env.HAPPY_PACK_POOL_SIZE || 3;
+const happyThreadPool = HappyPack.ThreadPool({size: HAPPY_PACK_POOL_SIZE});
+const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
+const lodash = require('lodash');
+const HAPPY_PACK_ENV_INVALIDATE = lodash.pick(process.env, [
+  'FEEDBACK_URL',
+  'API_HOST',
+  'BAKERY_DETAIL_URL',
+  'AUTH_ENDPOINT',
+  'AUTH_ENABLED',
+  'NETFLIX_MODE',
+  'CHAOS_ENABLED',
+  'FIAT_ENABLED',
+  'ENTITY_TAGS_ENABLED',
+  'DEBUG_ENABLED',
+  'CANARY_ENABLED',
+  'INF_SEARCH_ENABLED',
+]);
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 const path = require('path');
@@ -7,10 +25,8 @@ const NODE_MODULE_PATH = path.join(__dirname, 'node_modules');
 const fs = require('fs');
 function configure(IS_TEST) {
 
-  const POOL_SIZE = IS_TEST ? 3 : 6;
-  const happyThreadPool = HappyPack.ThreadPool({size: POOL_SIZE});
-
   const config = {
+    context: __dirname, // to automatically find tsconfig.json,
     plugins: [],
     output: IS_TEST ? undefined : {
         path: path.join(__dirname, 'build', 'webpack', process.env.SPINNAKER_ENV || ''),
@@ -44,10 +60,10 @@ function configure(IS_TEST) {
     },
     module: {
       rules: [
-        {test: /\.json$/, loader: 'json-loader'},
-        {test: /\.tsx?$/, use: ['ng-annotate-loader', 'awesome-typescript-loader', 'tslint-loader'], exclude: /node_modules/},
-        {test: /\.(woff|otf|ttf|eot|png|gif|ico)(.*)?$/, use: 'file-loader'},
         {test: /\.js$/, use: ['happypack/loader?id=js'], exclude: /node_modules(?!\/clipboard)/},
+        {test: /\.tsx?$/, use: ['happypack/loader?id=ts'], exclude: /node_modules/},
+        {test: /\.json$/, loader: 'json-loader'},
+        {test: /\.(woff|otf|ttf|eot|png|gif|ico)(.*)?$/, use: 'file-loader'},
         {
           test: require.resolve('jquery'),
           use: [
@@ -106,6 +122,7 @@ function configure(IS_TEST) {
   }
 
   config.plugins = [
+    new ForkTsCheckerWebpackPlugin({ checkSyntacticErrors: true }),
     new HappyPack({
       id: 'html',
       loaders: [
@@ -117,7 +134,6 @@ function configure(IS_TEST) {
     new HappyPack({
       id: 'js',
       loaders: [
-        'ng-annotate-loader',
         'angular-loader',
         'babel-loader',
         'envify-loader',
@@ -125,9 +141,21 @@ function configure(IS_TEST) {
       ],
       threadPool: happyThreadPool,
       cacheContext: {
-        env: process.env
+        env: HAPPY_PACK_ENV_INVALIDATE
       }
-    })
+    }),
+    new HappyPack({
+      id: 'ts',
+      loaders: [
+        'babel-loader',
+        { path: 'ts-loader', query: { happyPackMode: true } },
+        'tslint-loader',
+      ],
+      threadPool: happyThreadPool,
+      cacheContext: {
+        env: HAPPY_PACK_ENV_INVALIDATE
+      }
+    }),
   ];
 
   if (!IS_TEST) {

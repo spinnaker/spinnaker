@@ -1,5 +1,6 @@
 'use strict';
 
+// Add any env variables used here to the webpack config variable: HAPPY_PACK_ENV_INVALIDATE
 var feedbackUrl = process.env.FEEDBACK_URL;
 var gateHost = process.env.API_HOST || 'http://localhost:8084';
 var bakeryDetailUrl = process.env.BAKERY_DETAIL_URL || (gateHost + '/bakery/logs/{{context.region}}/{{context.status.resourceId}}');

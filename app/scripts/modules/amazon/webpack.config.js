@@ -4,7 +4,9 @@ const path = require('path');
 const basePath = path.join(__dirname, '..', '..', '..', '..');
 const NODE_MODULE_PATH = path.join(basePath, 'node_modules');
 const HappyPack = require('happypack');
-const happyThreadPool = HappyPack.ThreadPool({ size: 3 });
+const HAPPY_PACK_POOL_SIZE = process.env.HAPPY_PACK_POOL_SIZE || 3;
+const happyThreadPool = HappyPack.ThreadPool({size: HAPPY_PACK_POOL_SIZE});
+const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 const webpack = require('webpack');
 const exclusionPattern = /(node_modules|\.\.\/deck)/;
 
@@ -55,16 +57,10 @@ module.exports = {
   devtool: 'source-map',
   module: {
     rules: [
-      {enforce: 'pre', test: /\.(spec\.)?tsx?$/, use: 'tslint-loader', exclude: exclusionPattern},
-      {enforce: 'pre', test: /\.(spec\.)?js$/, loader: 'eslint-loader', exclude: exclusionPattern},
-      {test: /\.json$/, loader: 'json-loader'},
-      {test: /\.tsx?$/, use: [
-        'ng-annotate-loader',
-        { loader: 'awesome-typescript-loader', options: { babelCore: path.join(NODE_MODULE_PATH, 'babel-core') } }
-      ],
-        exclude: exclusionPattern},
-      {test: /\.(woff|otf|ttf|eot|svg|png|gif|ico)(.*)?$/, use: 'file-loader'},
       {test: /\.js$/, use: ['happypack/loader?id=js'], exclude: exclusionPattern},
+      {test: /\.tsx?$/, use: ['happypack/loader?id=ts'], exclude: exclusionPattern},
+      {test: /\.(woff|otf|ttf|eot|svg|png|gif|ico)(.*)?$/, use: 'file-loader'},
+      {test: /\.json$/, loader: 'json-loader'},
       {
         test: require.resolve('jquery'),
         use: [
@@ -91,6 +87,7 @@ module.exports = {
     ],
   },
   plugins: [
+    new ForkTsCheckerWebpackPlugin({ checkSyntacticErrors: true }),
     new webpack.optimize.UglifyJsPlugin({
       mangle: false,
       beautify: true,
@@ -108,16 +105,21 @@ module.exports = {
     new HappyPack({
       id: 'js',
       loaders: [
-        'ng-annotate-loader',
         'angular-loader',
         'babel-loader',
         'envify-loader',
         'eslint-loader'
       ],
       threadPool: happyThreadPool,
-      cacheContext: {
-        env: process.env
-      }
+    }),
+    new HappyPack({
+      id: 'ts',
+      loaders: [
+        'babel-loader',
+        { path: 'ts-loader', query: { happyPackMode: true } },
+        'tslint-loader',
+      ],
+      threadPool: happyThreadPool,
     }),
     new HappyPack({
       id: 'less',

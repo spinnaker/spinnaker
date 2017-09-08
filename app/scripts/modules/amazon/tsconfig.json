@@ -38,10 +38,6 @@
       "amazon": ["."]
     }
   },
-  "awesomeTypescriptLoaderOptions": {
-    "useBabel": true,
-    "useCache": true
-  },
   "include": [
     "src/**/*.ts",
     "src/**/*.tsx"

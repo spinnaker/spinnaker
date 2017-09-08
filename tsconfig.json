@@ -45,10 +45,6 @@
       "node_modules/@types"
     ]
   },
-  "awesomeTypescriptLoaderOptions": {
-    "useBabel": true,
-    "useCache": true
-  },
   "exclude": [
     "build",
     "node",
