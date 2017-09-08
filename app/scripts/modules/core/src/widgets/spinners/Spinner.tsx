@@ -16,10 +16,12 @@ export class Spinner extends React.Component<ISpinnerProps> {
     const { size } = this.props;
     let count = 3;
 
-    if (size === 'nano') {
-      count = 1;
-    } else if (size.match(/large|page/)) {
-      count = 5;
+    if (size) {
+      if (size === 'nano') {
+        count = 1;
+      } else if (size.match(/large|page/)) {
+        count = 5;
+      }
     }
 
     const rows = [];
