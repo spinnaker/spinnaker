@@ -7,7 +7,7 @@
     @media (min-width: 768px) {
       padding: 0 15px;
     }
-    
+
     input[type="search"] {
       width: 200px;
     }
@@ -18,9 +18,12 @@
   .dropdown-menu {
     min-width: 202px;
     top: 34px;
-    margin-right: 19px;
+    right: 0;
+    margin: 2px 19px;
     border-radius: 0;
     z-index: 10000;
+    overflow-y: auto;
+
     li {
       color: #999;
       max-width: 300px;
@@ -63,6 +66,15 @@
         margin-top: 0;
         border: none;
       }
+    }
+
+    @media(max-width: 480px) {
+      position: static;
+      margin: 2px 4px;
+    }
+
+    @media (min-width: 480px) {
+      max-height: 600px;
     }
   }
   .glyphicon-search {

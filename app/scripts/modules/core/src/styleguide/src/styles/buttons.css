@@ -193,7 +193,7 @@ a.button, a.button:hover, a.button:focus, a.button:active, a, button.link {
   text-decoration: none;
 }
 
-button.link, a {
+button.link, a.default {
   background-color: transparent;
   padding: 0;
   font-weight: normal;
@@ -201,7 +201,7 @@ button.link, a {
 }
 
 button.link:hover, button.link:active, button.link:focus,
-a:hover, a:active, a:focus {
+a.default:hover, a.default:active, a.default:focus {
   text-decoration: underline;
   color: var(--color-text-link);
 }

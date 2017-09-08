@@ -52,6 +52,9 @@ export class NgReactInjector extends ReactInject {
   public RunningTasksTag: React.ComponentClass<IRunningTasksTagProps>                 = angular2react('runningTasksTag', { bindings: runningTasksTagBindings }, this.$injectorProxy) as any;
   public Spinner: React.ComponentClass<ISpinnerProps>                                 = angular2react('spinnerWrapper', new SpinnerWrapperComponent(), this.$injectorProxy) as any;
   public TaskMonitorWrapper: React.ComponentClass<ITaskMonitorProps>                  = angular2react('taskMonitorWrapper', new TaskMonitorWrapperComponent(), this.$injectorProxy) as any;
+  public UserMenu: React.ComponentClass<{}>                                           = angular2react('userMenu', {}, this.$injectorProxy) as any;
+  public GlobalSearch: React.ComponentClass<{}>                                       = angular2react('globalSearch', {}, this.$injectorProxy) as any;
+  public WhatsNew: React.ComponentClass<{}>                                           = angular2react('whatsNew', {}, this.$injectorProxy) as any;
 
   public initialize($injector: IInjectorService) {
     const realInjector: { [key: string]: Function } = $injector as any;

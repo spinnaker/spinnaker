@@ -1,21 +1,26 @@
-.navbar-nav .user-menu {
-  .user-name-large:hover, .user-name-large:active {
+.user-menu {
+  a.dropdown-toggle:hover,
+  a.dropdown-toggle:active,
+  a.dropdown-toggle:focus {
     background-color: transparent;
-    border-top-color: transparent;
-    transition: none;
+  }
+
+  i {
+    font-size: 10px;
   }
 
   div[uib-dropdown] {
     > a {
-      border-top: 4px solid transparent;
-      border-bottom: 4px solid transparent;
-      color: #fff;
       font-weight: 200;
       position: relative;
       display: block;
-      padding: 5px 0;
       text-decoration: none;
-      background-color: #3a5469;
+      @media (max-width: 992px) {
+        padding: 10px;
+      }
+      @media (min-width: 992px) {
+        padding: 5px 0;
+      }
       i.glyphicon {
         position: relative;
         top: 1px;
@@ -26,6 +31,10 @@
     .dropdown-menu {
       top: 80%;
       min-width: 125px;
+      @media (max-width: 480px) {
+        position: static;
+      }
+      border: 0;
     }
   }
 }

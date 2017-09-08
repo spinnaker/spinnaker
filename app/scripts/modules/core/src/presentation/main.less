@@ -543,28 +543,36 @@ body > .container {
     font-weight: 200;
     height: 100%;
     padding: 10px 30px 10px 0;
+
+    @media (max-width: 480px) {
+      padding-left: 10px;
+    }
   }
 
-  .navbar-nav > li > a {
+  .navbar-nav > li > a, .nav-items > li > a {
     color: #fff;
     font-weight: 200;
     padding: 10px 15px;
     margin: 0 10px;
     border: 0;
     @media (max-width: 992px) {
-      padding: 10px 0;
+      padding: 10px;
+      margin: 0;
     }
 
     &:focus, &:hover {
       border-top-color: #eeeeee;
-      background-color: lighten(@dark_blue_background, 30%);
+      background-color: var(--color-primary-g1);
       transition: border-top-color .2s, background-color .2s;
     }
   }
 
-  .navbar-nav>.active>a,
-  .navbar-nav>.active>a:focus,
-  .navbar-nav>.active>a:hover
+  .nav-items > .active > a,
+  .nav-items > .active > a:focus,
+  .nav-items > .active> a:hover,
+  .navbar-nav > .active > a,
+  .navbar-nav > .active > a:focus,
+  .navbar-nav > .active > a:hover
   {
     background-color: transparent;
     font-weight: 200;
@@ -1166,13 +1174,7 @@ body, html {
   flex-direction: column;
   width: 100%;
   height: 100%;
-  .spinnaker-header {
-    flex: 0 0 auto;
-    border-radius: 0;
-    margin-bottom: 0;
-    z-index: 25;
-    min-height: 40px;
-  }
+
   .spinnaker-content {
     height: calc(~"100% - 40px");
     display: flex;

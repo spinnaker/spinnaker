@@ -1,17 +1,19 @@
 'use strict';
 
-import {SETTINGS} from 'core/config/settings';
+import { mock } from 'angular';
+
+import { SETTINGS } from 'core/config/settings';
 
 describe('Directives: userMenu', function () {
   var $scope, $compile, authenticationService;
 
   require('./userMenu.directive.html');
-  beforeEach(window.module(
-    require('./userMenu.directive.js')
+  beforeEach(mock.module(
+    require('./userMenu.directive').AUTHENTICATION_USER_MENU
   ));
 
   beforeEach(
-    window.inject(function ($rootScope, _$compile_, _authenticationService_) {
+    mock.inject(function ($rootScope, _$compile_, _authenticationService_) {
       $scope = $rootScope.$new();
       $compile = _$compile_;
       authenticationService = _authenticationService_;
