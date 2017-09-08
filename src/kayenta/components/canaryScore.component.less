@@ -1,12 +1,13 @@
 @import (reference) "~coreImports";
 @import (reference) "~coreColors";
 
-.score.label {
+.score.score-label {
   font-size: 110%;
   padding: 3px 6px;
   display: inline-block;
   height: 20px;
   line-height: 14px;
+  color: white;
   &.label-failing {
     background-color: @unhealthy_orange;
     &.inverse {
@@ -42,7 +43,7 @@
   height: 48px;
 }
 
-.score-large .score.label {
+.score-large .score.score-label {
   height: 48px;
   line-height: 48px;
   padding: 0 10px 0 10px;

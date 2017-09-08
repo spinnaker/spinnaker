@@ -48,6 +48,7 @@ export class CanaryScore extends React.Component<ICanaryScoreProps, ICanaryScore
       this.props.inverse ? 'inverse' : '',
       'score',
       'label',
+      'score-label',
       'label-default',
       `label-${this.state.healthLabel}`
     ].join(' ');

@@ -13,38 +13,7 @@
 
     <div class="row">
       <div class="col-md-12">
-        <table class="table">
-          <tbody>
-          <tr>
-            <td style="border-top: none"><strong>Canary Result</strong></td>
-            <td style="border-top: none"><strong>Duration</strong></td>
-            <td style="border-top: none"><strong>Last Updated</strong></td>
-          </tr>
-          <tr ng-repeat="canaryRun in kayentaStageDetailsCtrl.canaryRuns">
-            <td>
-              <kayenta-canary-score score="canaryRun.context.canaryScore"
-                                    health="canaryRun.health"
-                                    result="canaryRun.result"></kayenta-canary-score>
-            </td>
-            <td>
-              <span ng-if="canaryRun.context.durationString">
-                {{ canaryRun.context.durationString }}
-              </span>
-              <span ng-if="!canaryRun.context.durationString">
-                -
-              </span>
-            </td>
-            <td>
-              <span ng-if="canaryRun.endTime">
-                {{ canaryRun.context.lastUpdated | timestamp}}
-              </span>
-              <span ng-if="!canaryRun.endTime">
-                -
-              </span>
-            </td>
-          </tr>
-          </tbody>
-        </table>
+        <canary-run-summaries canary-runs="kayentaStageDetailsCtrl.canaryRuns"></canary-run-summaries>
       </div>
     </div>
 

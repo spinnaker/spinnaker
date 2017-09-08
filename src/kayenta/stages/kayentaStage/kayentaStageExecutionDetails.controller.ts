@@ -6,6 +6,7 @@ import {
   IExecutionStage
 } from '@spinnaker/core';
 import { RUN_CANARY } from './stageTypes';
+import { CANARY_RUN_SUMMARIES_COMPONENT } from './canaryRunSummaries.component';
 
 class KayentaStageExecutionDetailsController {
 
@@ -40,6 +41,7 @@ class KayentaStageExecutionDetailsController {
 }
 
 export const KAYENTA_STAGE_EXECUTION_DETAILS_CONTROLLER = 'spinnaker.kayenta.kayentaStageExecutionDetails.controller';
-module(KAYENTA_STAGE_EXECUTION_DETAILS_CONTROLLER, [])
-  .controller('kayentaStageExecutionDetailsCtrl', KayentaStageExecutionDetailsController)
+module(KAYENTA_STAGE_EXECUTION_DETAILS_CONTROLLER, [
+  CANARY_RUN_SUMMARIES_COMPONENT,
+]).controller('kayentaStageExecutionDetailsCtrl', KayentaStageExecutionDetailsController)
   .filter('dateToMillis', () => Date.parse);
