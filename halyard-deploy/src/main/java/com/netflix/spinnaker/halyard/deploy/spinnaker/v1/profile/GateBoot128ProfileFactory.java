@@ -12,41 +12,28 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile;
 
-import com.netflix.spinnaker.halyard.config.model.v1.security.OAuth2;
+import com.netflix.spinnaker.halyard.config.model.v1.security.Security;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceSettings;
-import lombok.Data;
+import org.springframework.stereotype.Component;
 
-@Data
-public class SecurityConfig {
-  BasicSecurity basic = new BasicSecurity();
-  User user = new User();
-  OAuth2 oauth2;
+@Component
+public class GateBoot128ProfileFactory extends GateProfileFactory {
 
-  SecurityConfig(ServiceSettings settings) {
-    if (settings.getBasicAuthEnabled() == null || settings.getBasicAuthEnabled()) {
-      String username = settings.getUsername();
-      String password = settings.getPassword();
-      assert(username != null && password != null);
+  @Override
+  protected GateConfig getGateConfig(ServiceSettings gate, Security security) {
+    GateConfig config = new GateConfig(gate, security);
+    config.server.ssl = security.getApiSecurity().getSsl();
 
-      basic.setEnabled(true);
-      user.setName(username);
-      user.setPassword(password);
+    if (security.getAuthn().getOauth2().isEnabled()) {
+      config.spring = new SpringConfig(security);
+    } else if (security.getAuthn().getSaml().isEnabled()) {
+      config.saml = new SamlConfig(security);
     }
-  }
 
-  @Data
-  public static class BasicSecurity {
-    boolean enabled = false;
-  }
-
-  @Data
-  public static class User {
-    String name;
-    String password;
+    return config;
   }
 }

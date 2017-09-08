@@ -20,8 +20,12 @@ package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.config.model.v1.security.ApiSecurity;
+import com.netflix.spinnaker.halyard.core.registry.v1.Versions;
+import com.netflix.spinnaker.halyard.deploy.services.v1.ArtifactService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.GateBoot128ProfileFactory;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.GateBoot154ProfileFactory;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.GateProfileFactory;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
 import lombok.Data;
@@ -38,8 +42,17 @@ import java.util.Map;
 @Data
 @Component
 abstract public class GateService extends SpringService<GateService.Gate> {
+
+  private static final String BOOT_UPGRADED_VERSION = "1.0.0";
+
   @Autowired
-  GateProfileFactory gateProfileFactory;
+  private GateBoot154ProfileFactory boot154ProfileFactory;
+
+  @Autowired
+  private GateBoot128ProfileFactory boot128ProfileFactory;
+
+  @Autowired
+  private ArtifactService artifactService;
 
   @Override
   public SpinnakerArtifact getArtifact() {
@@ -62,10 +75,19 @@ abstract public class GateService extends SpringService<GateService.Gate> {
     String filename = "gate.yml";
 
     String path = Paths.get(OUTPUT_PATH, filename).toString();
+    GateProfileFactory gateProfileFactory = getGateProfileFactory(deploymentConfiguration.getName());
     Profile profile = gateProfileFactory.getProfile(filename, path, deploymentConfiguration, endpoints);
 
     profiles.add(profile);
     return profiles;
+  }
+
+  private GateProfileFactory getGateProfileFactory(String deploymentName) {
+    String version = artifactService.getArtifactVersion(deploymentName, SpinnakerArtifact.GATE);
+    if (Versions.lessThan(version, BOOT_UPGRADED_VERSION)) {
+      return boot128ProfileFactory;
+    }
+    return boot154ProfileFactory;
   }
 
   public GateService() {

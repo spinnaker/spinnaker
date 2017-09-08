@@ -25,12 +25,11 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceSettings
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.apache.commons.lang.StringUtils;
-import org.springframework.stereotype.Component;
 
 import java.util.List;
 
-@Component
-public class GateProfileFactory extends SpringProfileFactory {
+public abstract class GateProfileFactory extends SpringProfileFactory {
+
   @Override
   public SpinnakerArtifact getArtifact() {
     return SpinnakerArtifact.GATE;
@@ -45,16 +44,18 @@ public class GateProfileFactory extends SpringProfileFactory {
     List<String> requiredFiles = backupRequiredFiles(security.getApiSecurity(), deploymentConfiguration.getName());
     requiredFiles.addAll(backupRequiredFiles(security.getAuthn(), deploymentConfiguration.getName()));
     requiredFiles.addAll(backupRequiredFiles(security.getAuthz(), deploymentConfiguration.getName()));
-    GateConfig gateConfig = new GateConfig(endpoints.getServices().getGate(), security);
+    GateConfig gateConfig = getGateConfig(endpoints.getServices().getGate(), security);
     gateConfig.getCors().setAllowedOriginsPattern(security.getApiSecurity());
     profile.appendContents(yamlToString(gateConfig))
         .appendContents(profile.getBaseContents())
         .setRequiredFiles(requiredFiles);
   }
 
+  protected abstract GateConfig getGateConfig(ServiceSettings gate, Security security);
+
   @EqualsAndHashCode(callSuper = true)
   @Data
-  private static class GateConfig extends SpringProfileConfig {
+  protected static class GateConfig extends SpringProfileConfig {
     Cors cors = new Cors();
     SpringConfig spring;
     SamlConfig saml;
@@ -62,12 +63,6 @@ public class GateProfileFactory extends SpringProfileFactory {
     GateConfig(ServiceSettings gate, Security security) {
       super(gate);
       server.ssl = security.getApiSecurity().getSsl();
-
-      if (security.getAuthn().getOauth2().isEnabled()) {
-        this.spring = new SpringConfig(security);
-      } else if (security.getAuthn().getSaml().isEnabled()) {
-        this.saml = new SamlConfig(security);
-      }
     }
 
     @Data
