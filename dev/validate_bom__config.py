@@ -27,6 +27,9 @@ interface, which is provided via free functions.
       validate_options
          Performs a quick validation of the options to fail fast.
 
+      add_init
+         Adds script commands used to initialize this component [before hal].
+
       add_config
          Adds script commands used to configure this component [via hal].
 
@@ -54,6 +57,14 @@ class Configurator(object):
 
   def validate_options(self, options):
     """Validates command-line arguments configuring feature set."""
+    pass
+
+  def add_init(self, options, script):
+    """Writes bash commands to initialize feature set before Halyard.
+
+    This is intended for monitoring or other things that might be
+    desired before installing halyard and performing the remaining add_config.
+    """
     pass
 
   def add_config(self, options, script):
@@ -971,7 +982,7 @@ class MonitoringConfigurator(Configurator):
     script.extend(install_node_exporter)
     script.reverse()
 
-  def add_config(self, options, script):
+  def add_init(self, options, script):
     """Implements interface."""
     if not options.monitoring_install_which:
       return
@@ -980,6 +991,11 @@ class MonitoringConfigurator(Configurator):
     if (options.monitoring_install_which == 'prometheus'
         and options.deploy_spinnaker_type == 'localdebian'):
       self.__inject_prometheus_node_exporter(options, script)
+
+  def add_config(self, options, script):
+    """Implements interface."""
+    if not options.monitoring_install_which:
+      return
 
     script.append('mkdir -p  ~/.hal/default/service-settings')
     script.append('echo "host: 0.0.0.0"'
@@ -1003,7 +1019,7 @@ class SecurityConfigurator(Configurator):
   pass
 
 
-class SpinnakerConfigurator(object):
+class SpinnakerConfigurator(Configurator):
   """Controls spinnaker-local overrides."""
 
   def init_argument_parser(self, parser):
@@ -1027,8 +1043,8 @@ class SpinnakerConfigurator(object):
 
 
 CONFIGURATOR_LIST = [
-    SpinnakerConfigurator(),
     MonitoringConfigurator(),
+    SpinnakerConfigurator(),
     StorageConfigurator(),
     AwsConfigurator(),
     AppengineConfigurator(),
@@ -1063,15 +1079,20 @@ def validate_options(options):
     configurator.validate_options(options)
 
 
-def make_script(options):
+def make_scripts(options):
   """Creates the bash script for configuring Spinnaker.
 
-  Returns a list of bash statement strings.
+  Returns a pair of lists of bash statement strings.
+  The first is to be run before halyard is install to initialize the host,
+  the second after halyard is installed in order to configure spinnaker.
   """
-  script = []
+  init_script = []
+  config_script = []
   for configurator in CONFIGURATOR_LIST:
-    configurator.add_config(options, script)
-  return script
+    configurator.add_init(options, init_script)
+    configurator.add_config(options, config_script)
+
+  return init_script, config_script
 
 
 def get_files_to_upload(options):
