@@ -80,6 +80,7 @@ class BomPublisher(BomGenerator):
     self.__patch_release = options.patch_release
     self.__alias = options.bom_alias # Flag inherited from BomGenerator.
     self.__release_name = options.release_name
+    self.__minimum_halyard_version = options.minimum_halyard_version
     super(BomPublisher, self).__init__(options)
 
   def unpack_bom(self):
@@ -106,8 +107,8 @@ class BomPublisher(BomGenerator):
 
     # Update the available Spinnaker versions.
     check_run_quick(
-      'hal admin publish version --version {version} --alias "{alias}" --changelog {changelog}'
-      .format(version=self.__release_version, alias=self.__release_name, changelog=self.__gist_uri))
+      'hal admin publish version --version {version} --alias "{alias}" --changelog {changelog} --minimum-halyard-version {halyard_version}'
+      .format(version=self.__release_version, alias=self.__release_name, changelog=self.__gist_uri, halyard_version=self.__minimum_halyard_version))
     check_run_quick('hal admin publish latest {version}'
                     .format(version=self.__release_version))
 
@@ -209,6 +210,8 @@ class BomPublisher(BomGenerator):
                         help="The GitHub user token with scope='gists' to write gists.")
     parser.add_argument('--gist_user', default='', required=True,
                         help="The GitHub user to write gists as.")
+    parser.add_argument('--minimum_halyard_version', default='', required=True,
+                        help="The lowest version Halyard can be at to run this version of Spinnaker.")
     parser.add_argument('--patch_release', default=False, action='store_true',
                         help='Make a patch release.')
     parser.add_argument('--rc_version', default='', required=True,
