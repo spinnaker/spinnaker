@@ -16,14 +16,13 @@
 
 package com.netflix.spinnaker.echo.model.pubsub;
 
-import com.netflix.spinnaker.kork.artifacts.model.GenericArtifact;
+import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
-import java.util.Map;
 
 @Data
 @Builder
@@ -43,5 +42,5 @@ public class MessageDescription {
   /**
    * List of artifacts parsed from the pub/sub message.
    */
-  private List<GenericArtifact> artifacts;
+  private List<Artifact> artifacts;
 }

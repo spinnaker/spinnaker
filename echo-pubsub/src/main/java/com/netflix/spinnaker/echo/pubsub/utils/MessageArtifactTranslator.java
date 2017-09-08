@@ -19,7 +19,7 @@ package com.netflix.spinnaker.echo.pubsub.utils;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hubspot.jinjava.Jinjava;
-import com.netflix.spinnaker.kork.artifacts.model.GenericArtifact;
+import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
@@ -40,7 +40,7 @@ public class MessageArtifactTranslator {
 
   private String jinjaTemplate;
 
-  private static final TypeReference<List<GenericArtifact>> artifactListReference = new TypeReference<List<GenericArtifact>>() {};
+  private static final TypeReference<List<Artifact>> artifactListReference = new TypeReference<List<Artifact>>() {};
 
   public MessageArtifactTranslator(String templatePath) {
     if (!StringUtils.isEmpty(templatePath)) {
@@ -52,7 +52,7 @@ public class MessageArtifactTranslator {
     }
   }
 
-  public List<GenericArtifact> parseArtifacts(String messagePayload) {
+  public List<Artifact> parseArtifacts(String messagePayload) {
     if (!StringUtils.isNotBlank(messagePayload)) {
       return Collections.emptyList();
     }
@@ -77,7 +77,7 @@ public class MessageArtifactTranslator {
     return context;
   }
 
-  private List<GenericArtifact> readArtifactList(ObjectMapper mapper, String hydratedTemplate) {
+  private List<Artifact> readArtifactList(ObjectMapper mapper, String hydratedTemplate) {
     try {
       return mapper.readValue(hydratedTemplate, artifactListReference);
     } catch (IOException ioe) {

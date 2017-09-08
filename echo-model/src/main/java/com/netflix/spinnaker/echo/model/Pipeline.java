@@ -19,7 +19,7 @@ package com.netflix.spinnaker.echo.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
-import com.netflix.spinnaker.kork.artifacts.model.GenericArtifact;
+import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import lombok.Builder;
 import lombok.NonNull;
 import lombok.ToString;
@@ -71,7 +71,7 @@ import java.util.Map;
   List<Map<String, Object>> notifications;
 
   @JsonProperty
-  List<GenericArtifact> artifacts;
+  List<Artifact> artifacts;
 
   @JsonProperty
   List<Map<String, Object>> parameterConfig;
