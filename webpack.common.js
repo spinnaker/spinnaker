@@ -63,7 +63,11 @@ function configure(IS_TEST) {
         {test: /\.js$/, use: ['happypack/loader?id=js'], exclude: /node_modules(?!\/clipboard)/},
         {test: /\.tsx?$/, use: ['happypack/loader?id=ts'], exclude: /node_modules/},
         {test: /\.json$/, loader: 'json-loader'},
-        {test: /\.(woff|otf|ttf|eot|png|gif|ico)(.*)?$/, use: 'file-loader'},
+        {
+          test: /\.(woff|woff2|otf|ttf|eot|png|gif|ico)$/,
+          loader: 'file-loader',
+          options: { name: '[name].[hash:5].[ext]'}
+        },
         {
           test: require.resolve('jquery'),
           use: [
@@ -72,9 +76,10 @@ function configure(IS_TEST) {
           ]
         },
         {
-          test: /\.svg(.*)?$/,
+          test: /\.svg$/,
           exclude: /\/app\/scripts\/modules\/core\/src\/widgets\/spinners/,
-          use: 'file-loader'
+          loader: 'file-loader',
+          options: { name: '[name].[hash:5].[ext]'}
         },
         {
           test: /\.svg(.*)?$/,
