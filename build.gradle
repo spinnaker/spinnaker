@@ -34,9 +34,9 @@ node {
     def packageSlurper = new JsonSlurper()
     def packageJson = packageSlurper.parse file('package.json')
 
-    version = packageJson.engines.node
-    npmVersion = packageJson.engines.npm
-    yarnVersion = packageJson.engines.yarn
+    version = packageJson.engines.node.replaceAll(/[^\d\.]/, '')
+    npmVersion = packageJson.engines.npm.replaceAll(/[^\d\.]/, '')
+    yarnVersion = packageJson.engines.yarn.replaceAll(/[^\d\.]/, '')
 
     // Enabled the automatic download. False is the default (for now).
     download = true
