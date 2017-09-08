@@ -11,9 +11,9 @@
     "registry": "http://artifacts.netflix.com/api/npm/npm-local"
   },
   "engines": {
-    "node": "7.0.0",
-    "npm": "5.3.0",
-    "yarn": "0.27.5"
+    "node": ">=7.0.0",
+    "npm": ">=5.3.0",
+    "yarn": ">=0.27.5"
   },
   "scripts": {
     "clean": "rimraf .awcache .happypack build node_modules transpiled",

@@ -2,7 +2,7 @@
 # This script will build the project.
 
 if [ "$TRAVIS_PULL_REQUEST" != "false" ]; then
-  NODE_JS_VERSION=`node -e 'console.log(require("./package.json").engines.node)'`;
+  NODE_JS_VERSION=`node -e 'console.log(require("./package.json").engines.node.replace(/[^\d\.]/g, ""))'`;
   echo -e "Installing/activating nodejs v$NODE_JS_VERSION"
 
   # http://austinpray.com/ops/2015/09/20/change-travis-node-version.html
