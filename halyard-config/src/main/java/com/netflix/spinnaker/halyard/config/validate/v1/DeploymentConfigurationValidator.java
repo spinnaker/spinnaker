@@ -76,11 +76,24 @@ public class DeploymentConfigurationValidator extends Validator<DeploymentConfig
       return;
     }
 
-    boolean isReleased = versions.getVersions()
+    Optional<Versions.Version> releasedVersion = versions.getVersions()
         .stream()
-        .anyMatch(v -> Objects.equals(v.getVersion(), version));
+        .filter(v -> Objects.equals(v.getVersion(), version))
+        .findFirst();
 
-    if (!isReleased) {
+    boolean isReleased = releasedVersion.isPresent();
+
+    String runningVersion = versionsService.getRunningHalyardVersion();
+    boolean halyardSnapshotRelease = runningVersion.endsWith("SNAPSHOT");
+
+    if (isReleased) {
+      String minimumHalyardVersion = releasedVersion.get().getMinimumHalyardVersion();
+      if (!halyardSnapshotRelease
+          && !StringUtils.isEmpty(minimumHalyardVersion)
+          && Versions.lessThan(runningVersion, minimumHalyardVersion)) {
+        p.addProblem(Problem.Severity.ERROR, "Halyard version \"" + runningVersion + "\" is less than Halyard version \"" + minimumHalyardVersion + "\" required for Spinnaker \"" + version + "\"");
+      }
+    } else {
       // Checks if version is of the form X.Y.Z
       if (version.matches("\\d+\\.\\d+\\.\\d+")) {
         String majorMinor = Versions.toMajorMinor(version);

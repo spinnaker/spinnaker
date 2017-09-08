@@ -57,12 +57,20 @@ public class PublishVersionCommand extends NestableCommand {
   )
   private String changelog;
 
+  @Parameter(
+      names = "--minimum-halyard-version",
+      required = true,
+      description = "Minimum version of halyard required to install this release"
+  )
+  private String minimumHalyardVersion;
+
   @Override
   protected void executeThis() {
     Versions.Version publishedVersion = new Versions.Version()
         .setVersion(version)
         .setAlias(alias)
         .setChangelog(changelog)
+        .setMinimumHalyardVersion(minimumHalyardVersion)
         .setLastUpdate(new Date());
 
     new OperationHandler<Void>()

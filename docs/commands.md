@@ -394,6 +394,7 @@ hal admin publish version [parameters]
 #### Parameters
  * `--alias`: (*Required*) The alias this version of Spinnaker goes by.
  * `--changelog`: (*Required*) A link to this Spinnaker release's changelog.
+ * `--minimum-halyard-version`: (*Required*) Minimum version of halyard required to install this release
  * `--version`: (*Required*) The version (x.y.z) of Spinnaker to be recorded. This must exist as a BOM.
 
 

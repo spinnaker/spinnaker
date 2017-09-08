@@ -50,7 +50,6 @@ public class HalconfigValidator extends Validator<Halconfig> {
         return;
       }
 
-
       if (Versions.lessThan(runningVersion, latestVersion)) {
         p.addProblem(Problem.Severity.WARNING, "There is a newer version of Halyard available (" + latestVersion + "), please update when possible")
             .setRemediation("sudo apt-get update && sudo apt-get upgrade spinnaker-halyard");

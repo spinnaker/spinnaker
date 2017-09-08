@@ -18,8 +18,13 @@
 package com.netflix.spinnaker.halyard.core.registry.v1;
 
 import lombok.Data;
+import org.apache.commons.lang3.StringUtils;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Data
@@ -29,11 +34,17 @@ public class Versions {
     String version;
     String alias;
     String changelog;
+    String minimumHalyardVersion;
     Date lastUpdate;
 
     @Override
     public String toString() {
-      return String.format("%s (%s):\n   Changelog: %s\n   Published: %s", version, alias, changelog, lastUpdate);
+      String result = String.format("%s (%s):\n   Changelog: %s\n   Published: %s", version, alias, changelog, lastUpdate);
+      if (!StringUtils.isEmpty(minimumHalyardVersion)) {
+        result += String.format("\n   (Requires Halyard >= %s)", minimumHalyardVersion);
+      }
+
+      return result;
     }
   }
 
