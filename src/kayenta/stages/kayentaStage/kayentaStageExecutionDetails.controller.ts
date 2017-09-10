@@ -11,6 +11,8 @@ import { CANARY_RUN_SUMMARIES_COMPONENT } from './canaryRunSummaries.component';
 class KayentaStageExecutionDetailsController {
 
   public canaryRuns: IExecutionStage[];
+  public resolvedControl: string;
+  public resolvedExperiment: string;
 
   constructor(public $scope: IScope,
               private $stateParams: StateParams,
@@ -27,12 +29,18 @@ class KayentaStageExecutionDetailsController {
   private initialize(): void {
     this.executionDetailsSectionService.synchronizeSection(this.$scope.configSections, () => this.initialized());
     this.setCanaryRuns();
+    this.resolveControlAndExperimentNames();
   }
 
   private setCanaryRuns(): void {
     // The kayentaStageTransformer pushes related 'runCanary' and 'wait' stages
     // into the 'kayentaCanary' tasks list.
     this.canaryRuns = this.$scope.stage.tasks.filter((t: IExecutionStage) => t.type === RUN_CANARY);
+  }
+
+  private resolveControlAndExperimentNames(): void {
+    this.resolvedControl = this.canaryRuns.length ? this.canaryRuns[0].context.controlScope : this.$scope.stage.context.canaryConfig.controlScope;
+    this.resolvedExperiment = this.canaryRuns.length ? this.canaryRuns[0].context.experimentScope : this.$scope.stage.context.canaryConfig.experimentScope;
   }
 
   private initialized(): void {
