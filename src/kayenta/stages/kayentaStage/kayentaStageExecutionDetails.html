@@ -29,11 +29,11 @@
         <div class="horizontal-rule"></div>
         <div class="row">
           <div class="col-md-4 sm-label-right compact">Baseline</div>
-          <div class="col-md-8" style="word-wrap: break-word">{{stage.context.canaryConfig.controlScope}}</div>
+          <div class="col-md-8" style="word-wrap: break-word">{{ kayentaStageDetailsCtrl.resolvedControl }}</div>
         </div>
         <div class="row">
           <div class="col-md-4 sm-label-right compact">Canary</div>
-          <div class="col-md-8" style="word-wrap: break-word">{{stage.context.canaryConfig.experimentScope}}</div>
+          <div class="col-md-8" style="word-wrap: break-word">{{ kayentaStageDetailsCtrl.resolvedExperiment }}</div>
         </div>
         <div class="row" ng-if="stage.context.canaryConfig.step">
           <div class="col-md-4 sm-label-right compact">Step</div>
