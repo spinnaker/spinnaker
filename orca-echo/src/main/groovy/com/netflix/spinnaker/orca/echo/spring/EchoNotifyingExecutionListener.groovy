@@ -1,18 +1,17 @@
 package com.netflix.spinnaker.orca.echo.spring
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.orca.front50.Front50Service
-
-import com.netflix.spinnaker.orca.front50.model.ApplicationNotifications
-import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
-import groovy.transform.CompileStatic
-import groovy.util.logging.Slf4j
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.echo.EchoService
+import com.netflix.spinnaker.orca.front50.Front50Service
+import com.netflix.spinnaker.orca.front50.model.ApplicationNotifications
 import com.netflix.spinnaker.orca.listeners.ExecutionListener
 import com.netflix.spinnaker.orca.listeners.Persister
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
+import groovy.transform.CompileStatic
+import groovy.util.logging.Slf4j
 
 @Slf4j
 @CompileStatic
@@ -43,7 +42,7 @@ class EchoNotifyingExecutionListener implements ExecutionListener {
         echoService.recordEvent(
           details: [
             source     : "orca",
-            type       : "orca:${execution.getClass().simpleName.toLowerCase()}:starting",
+            type       : "orca:${execution.getClass().simpleName.toLowerCase()}:starting".toString(),
             application: execution.application,
           ],
           content: [
