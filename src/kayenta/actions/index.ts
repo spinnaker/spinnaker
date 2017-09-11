@@ -31,3 +31,4 @@ export const UPDATE_STACKDRIVER_METRIC_TYPE = 'update_stackdriver_metric_query';
 export const UPDATE_JUDGES = 'update_judges';
 export const SELECT_JUDGE = 'select_judge';
 export const UPDATE_SCORE_THRESHOLDS = 'update_score_thresholds';
+export const UPDATE_GROUP_WEIGHT = 'update_group_weight';

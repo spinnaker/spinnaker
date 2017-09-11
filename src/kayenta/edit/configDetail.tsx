@@ -6,6 +6,7 @@ import MetricList from './metricList';
 import EditMetricModal from './editMetricModal';
 import NameAndDescription from './nameAndDescription'
 import TitledSection from '../layout/titledSection';
+import GroupWeights from './groupWeights';
 
 /*
  * Top-level config detail layout
@@ -21,6 +22,9 @@ export default function ConfigDetail() {
         <GroupTabs/>
         <MetricList/>
         <EditMetricModal/>
+      </TitledSection>
+      <TitledSection title="Group Weights">
+        <GroupWeights/>
       </TitledSection>
     </section>
   );

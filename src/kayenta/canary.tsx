@@ -46,8 +46,9 @@ export default class Canary extends React.Component<ICanaryProps, {}> {
             pass: null,
           },
           group: {
-            selected: null,
+            selected: '',
             list: [] as string[],
+            groupWeights: {},
           },
           load: {
             state: null,

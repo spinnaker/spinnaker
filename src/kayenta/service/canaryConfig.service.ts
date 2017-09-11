@@ -77,6 +77,7 @@ export function mapStateToConfig(state: ICanaryState): ICanaryConfig {
         metrics: configState.metricList.map((metric, i) => i === 0 ? firstMetric : metric),
         classifier: Object.assign({}, configState.config.classifier || {}, {
           scoreThresholds: configState.thresholds,
+          groupWeights: configState.group.groupWeights,
         }),
       }
     );

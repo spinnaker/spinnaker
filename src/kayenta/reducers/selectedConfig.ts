@@ -11,6 +11,7 @@ import {
   ICanaryMetricConfig
 } from '../domain/ICanaryConfig';
 import { CanarySettings } from '../canary.settings';
+import { IGroupState, group } from './group';
 
 export interface ISelectedConfigState {
   config: ICanaryConfig;
@@ -158,51 +159,6 @@ function destroy(state: IDestroyState = { state: DeleteConfigState.Completed, er
 
     case Actions.DELETE_CONFIG_FAILURE:
       return makeDestroyState(DeleteConfigState.Error, get(action, 'error.data.message', null));
-
-    default:
-      return state;
-  }
-}
-
-interface IGroupState {
-  list: string[];
-  selected: string;
-}
-
-function makeGroupState(list: string[], selected: string = null): IGroupState {
-  return { list, selected };
-}
-
-function group(state: IGroupState = { selected: null, list: [] }, action: Action & any): IGroupState {
-  function groupsFromMetrics(metrics: ICanaryMetricConfig[] = []) {
-    return metrics.reduce((groups, metric) => {
-      return groups.concat(metric.groups.filter((group: string) => !groups.includes(group)))
-    }, []).sort();
-  }
-
-  switch (action.type) {
-    case Actions.INITIALIZE:
-      return makeGroupState(groupsFromMetrics(action.state.selectedConfig.metricList), action.state.selectedConfig.group.selected);
-
-    case Actions.SELECT_GROUP:
-      return makeGroupState(state.list, action.name);
-
-    case Actions.SELECT_CONFIG:
-      return makeGroupState(groupsFromMetrics(action.config.metrics), state.selected);
-
-    case Actions.ADD_METRIC: {
-      const groups = action.metric.groups;
-      return makeGroupState(state.list.concat(groups.filter((group: string) => !state.list.includes(group))), state.selected);
-    }
-
-    case Actions.ADD_GROUP:
-      let n = 1;
-      let name = null;
-      do {
-        name = 'Group ' + n;
-        n++;
-      } while (state.list.includes(name));
-      return makeGroupState(state.list.concat([name]), state.selected);
 
     default:
       return state;

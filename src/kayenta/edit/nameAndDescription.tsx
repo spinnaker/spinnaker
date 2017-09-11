@@ -10,6 +10,7 @@ import {
   UPDATE_CONFIG_DESCRIPTION,
   UPDATE_CONFIG_NAME
 } from '../actions/index';
+import FormList from '../layout/formList';
 
 interface INameAndDescriptionDispatchProps {
   changeName: (event: React.ChangeEvent<HTMLInputElement>) => void;
@@ -26,7 +27,7 @@ interface INameAndDescriptionStateProps {
  */
 function NameAndDescription({ name, description, changeName, changeDescription }: INameAndDescriptionDispatchProps & INameAndDescriptionStateProps) {
   return (
-    <form role="form" className="form-horizontal container-fluid">
+    <FormList>
       <FormRow label="Configuration Name">
         <input
           type="text"
@@ -47,7 +48,7 @@ function NameAndDescription({ name, description, changeName, changeDescription }
         <JudgeSelect/>
       </FormRow>
       <ScoreThresholds/>
-    </form>
+    </FormList>
   );
 }
 
