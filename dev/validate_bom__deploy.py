@@ -131,22 +131,24 @@ class BaseValidateBomDeployer(object):
     return self.__spinnaker_deployer.do_make_port_forward_command(
         service, local_port, remote_port)
 
-  def deploy(self, config_script, files_to_upload):
+  def deploy(self, init_script, config_script, files_to_upload):
     """Deploy and configure spinnaker.
 
     The deployment configuration is specified via the bound options.
     The runtime configuration is passed to the call.
 
     Args:
+      init_script: [list] The sequence of bash commands to run in order
+         to prepare the host before installing halyard and configuring.
       config_script: [list] The sequence of bash commands to run in order
          to configure spinnaker.
       file_to_upload: [set] A set of file paths to upload to the deployed
-         instance before running the config_script. Presumably these will
-         be referenced by the script.
+         instance before running the init_script. Presumably these will
+         be referenced by the init_script or config_script.
     """
     platform = self.options.deploy_hal_platform
     logging.info('Deploying with hal on %s...', platform)
-    script = []
+    script = list(init_script)
     self.add_install_hal_script_statements(script)
     self.add_platform_deploy_script_statements(script)
 
@@ -476,12 +478,6 @@ class GenericVmValidateBomDeployer(BaseValidateBomDeployer):
     script_parts.extend(script)
     script_path = write_script_to_path(script_parts, path=None)
     files_to_upload.add(script_path)
-    if options.jenkins_master_name:
-      write_data_to_secure_path(
-          os.environ.get('JENKINS_MASTER_PASSWORD'),
-          path=os.path.join(os.sep, 'tmp', 'jenkins_{name}_password'
-                            .format(name=options.jenkins_master_name)),
-          is_script=True)
 
     try:
       self.do_create_vm(options)

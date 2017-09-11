@@ -111,11 +111,11 @@ def main():
   options = get_options()
   deployer = validate_bom__deploy.make_deployer(options)
   test_controller = validate_bom__test.ValidateBomTestController(deployer)
-  config_script = validate_bom__config.make_script(options)
+  init_script, config_script = validate_bom__config.make_scripts(options)
   file_set = validate_bom__config.get_files_to_upload(options)
 
   try:
-    deployer.deploy(config_script, file_set)
+    deployer.deploy(init_script, config_script, file_set)
     test_controller.run_tests()
   finally:
     if sys.exc_info()[0] is not None:
