@@ -34,6 +34,7 @@ public class Job {
           instanceId = grpcTask.getTaskContextOrDefault("v2.taskInstanceId", null);
           host = grpcTask.getTaskContextOrDefault("agent.host", null);
           region = grpcTask.getTaskContextOrDefault("agent.region", null);
+          zone = grpcTask.getTaskContextOrDefault("agent.zone", null);
           submittedAt = getTimestampFromStatus(grpcTask, TaskStatus.TaskState.Accepted);
           launchedAt = getTimestampFromStatus(grpcTask, TaskStatus.TaskState.Launched);
           startedAt = getTimestampFromStatus(grpcTask, TaskStatus.TaskState.StartInitiated);
@@ -285,10 +286,12 @@ public class Job {
       iamProfile = grpcJob.getJobDescriptor().getContainer().getSecurityProfile().getIamRole();
       allocateIpAddress = true;
       submittedAt = new Date(grpcJob.getStatus().getTimestamp());
+      softConstraints = new ArrayList<String>();
+      softConstraints.addAll(grpcJob.getJobDescriptor().getContainer().getSoftConstraints().getConstraintsMap().keySet());
+      hardConstraints = new ArrayList<String>();
+      hardConstraints.addAll(grpcJob.getJobDescriptor().getContainer().getHardConstraints().getConstraintsMap().keySet());
 
       /*
-        private List<String> hardConstraints;
-        private List<String> softConstraints;
         private Efs efs;
       */
     }
