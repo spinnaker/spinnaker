@@ -64,7 +64,7 @@ function configure(IS_TEST) {
         {test: /\.tsx?$/, use: ['happypack/loader?id=ts'], exclude: /node_modules/},
         {test: /\.json$/, loader: 'json-loader'},
         {
-          test: /\.(woff|woff2|otf|ttf|eot|png|gif|ico)$/,
+          test: /\.(woff|woff2|otf|ttf|eot|png|gif|ico|svg)$/,
           loader: 'file-loader',
           options: { name: '[name].[hash:5].[ext]'}
         },
@@ -74,17 +74,6 @@ function configure(IS_TEST) {
             'expose-loader?$',
             'expose-loader?jQuery'
           ]
-        },
-        {
-          test: /\.svg$/,
-          exclude: /\/app\/scripts\/modules\/core\/src\/widgets\/spinners/,
-          loader: 'file-loader',
-          options: { name: '[name].[hash:5].[ext]'}
-        },
-        {
-          test: /\.svg(.*)?$/,
-          include: /\/app\/scripts\/modules\/core\/src\/widgets\/spinners/,
-          use: ['svg-react-loader']
         },
         {
           test: /\.less$/,
