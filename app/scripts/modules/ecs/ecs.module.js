@@ -17,7 +17,7 @@ module.exports = angular.module('spinnaker.ecs', [
     cloudProviderRegistryProvider.registerProvider('ecs',
       {
         name: 'EC2 Container Service',
-        logo: { path: require('./logo/ecs.icon.svg')},
+        logo: { path: require('./logo/ecs.logo.svg')},
 
       });
   });
