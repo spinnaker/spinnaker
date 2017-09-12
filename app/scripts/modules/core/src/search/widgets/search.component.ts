@@ -9,4 +9,5 @@ module(SEARCH_COMPONENT, [])
   .component('tagSearch', react2angular(Search, ['query', 'onChange']))
   .run(() => {
     SearchFilterTypeRegistry.register({ key: 'stack', modifier: 'stack', text: 'Stack' });
+    SearchFilterTypeRegistry.register({ key: 'type', modifier: 'type', text: 'Type' });
   });
