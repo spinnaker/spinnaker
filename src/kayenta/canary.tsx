@@ -7,7 +7,7 @@ import { Provider, Store } from 'react-redux';
 import { ICanaryState, rootReducer } from './reducers';
 import { epicMiddleware } from './epics';
 import CanaryConfigEdit from './edit/edit';
-import { ICanaryConfig, ICanaryConfigSummary, ICanaryMetricConfig } from './domain/index';
+import { ICanaryConfigSummary } from './domain/index';
 import { INITIALIZE } from './actions/index';
 import { IJudge } from './domain/IJudge';
 import Styleguide from './layout/styleguide';
@@ -36,41 +36,7 @@ export default class Canary extends React.Component<ICanaryProps, {}> {
           configSummaries: props.app.getDataSource('canaryConfigs').data as ICanaryConfigSummary[],
           judges: props.app.getDataSource('canaryJudges').data as IJudge[],
         },
-        selectedConfig: {
-          config: null as ICanaryConfig,
-          metricList: [] as ICanaryMetricConfig[],
-          editingMetric: null as ICanaryMetricConfig,
-          judge: { name: null } as IJudge,
-          thresholds: {
-            marginal: null,
-            pass: null,
-          },
-          group: {
-            selected: '',
-            list: [] as string[],
-            groupWeights: {},
-          },
-          load: {
-            state: null,
-          },
-          save: {
-            state: null,
-            error: null,
-          },
-          destroy: {
-            state: null,
-            error: null,
-          },
-          json: {
-            state: null,
-            error: null,
-          },
-        },
-        app: {
-          deleteConfigModalOpen: false,
-          editConfigJsonModalOpen: false,
-        },
-      }
+      },
     });
   }
 

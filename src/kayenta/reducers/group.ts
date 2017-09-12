@@ -1,8 +1,9 @@
 import { Action, combineReducers } from 'redux';
+import { handleActions } from 'redux-actions';
 import { get } from 'lodash';
 
 import * as Actions from '../actions';
-import { ICanaryMetricConfig } from '../domain/ICanaryConfig';
+import { GroupWeights, ICanaryMetricConfig } from '../domain/ICanaryConfig';
 
 export interface IGroupState {
   list: string[];
@@ -10,66 +11,37 @@ export interface IGroupState {
   groupWeights: {[group: string]: number};
 }
 
-function list(state: string[] = [], action: Action & any): string[] {
-  function groupsFromMetrics(metrics: ICanaryMetricConfig[] = []) {
-    return metrics.reduce((groups, metric) => {
-      return groups.concat(metric.groups.filter((group: string) => !groups.includes(group)))
-    }, []).sort();
-  }
-
-  switch (action.type) {
-    case Actions.INITIALIZE:
-      return groupsFromMetrics(action.state.selectedConfig.metricList);
-
-    case Actions.SELECT_CONFIG:
-      return groupsFromMetrics(action.config.metrics);
-
-    case Actions.ADD_METRIC:
-      const groups = action.metric.groups;
-      return state.concat(groups.filter((group: string) => !state.includes(group)));
-
-    case Actions.ADD_GROUP:
-      let n = 1;
-      let name = null;
-      do {
-        name = 'Group ' + n;
-        n++;
-      } while (state.includes(name));
-      return state.concat([name]);
-
-    default:
-      return state;
-  }
+function groupsFromMetrics(metrics: ICanaryMetricConfig[] = []) {
+  return metrics.reduce((groups, metric) => {
+    return groups.concat(metric.groups.filter((group: string) => !groups.includes(group)))
+  }, []).sort();
 }
 
-function selected(state: string = null, action: Action & any): string {
-  switch (action.type) {
-    case Actions.INITIALIZE:
-      return action.state.selectedConfig.group.selected;
+const list = handleActions({
+  [Actions.SELECT_CONFIG]: (_state: string[], action: Action & any) => groupsFromMetrics(action.config.metrics),
+  [Actions.ADD_METRIC]: (state: string[], action: Action & any) => {
+    const groups = action.metric.groups;
+    return state.concat(groups.filter((group: string) => !state.includes(group)));
+  },
+  [Actions.ADD_GROUP]: (state: string[]) => {
+    let n = 1;
+    let name = null;
+    do {
+      name = 'Group ' + n;
+      n++;
+    } while (state.includes(name));
+    return state.concat([name]);
+  },
+}, []);
 
-    case Actions.SELECT_GROUP:
-      return action.name;
+const selected = handleActions({
+  [Actions.SELECT_GROUP]: (_state: string, action: Action & any) => action.name,
+}, '');
 
-    default:
-      return state;
-  }
-}
-
-function groupWeights(state: {[group: string]: number} = {}, action: Action & any): {[group: string]: number} {
-  switch (action.type) {
-    case Actions.INITIALIZE:
-      return action.state.selectedConfig.group.groupWeights;
-
-    case Actions.SELECT_CONFIG:
-      return get(action, 'config.classifier.groupWeights', {});
-
-    case Actions.UPDATE_GROUP_WEIGHT:
-      return { ...state, [action.group]: action.weight };
-
-    default:
-      return state;
-  }
-}
+const groupWeights = handleActions({
+  [Actions.SELECT_CONFIG]: (_state: GroupWeights, action: Action & any) => get(action, 'config.classifier.groupWeights', {}),
+  [Actions.UPDATE_GROUP_WEIGHT]: (state: GroupWeights, action: Action & any) => ({ ...state, [action.group]: action.weight }),
+}, {});
 
 export const group = combineReducers<IGroupState>({
   list,

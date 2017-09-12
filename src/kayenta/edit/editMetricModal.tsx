@@ -2,11 +2,8 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 import { Modal } from 'react-bootstrap';
 
-import {
-  EDIT_METRIC_CONFIRM,
-  EDIT_METRIC_CANCEL,
-  RENAME_METRIC
-} from '../actions/index';
+import { RENAME_METRIC } from '../actions/index';
+import * as Creators from '../actions/creators';
 import {ICanaryState} from '../reducers/index';
 import {ICanaryMetricConfig} from 'kayenta/domain';
 import MetricConfigurerDelegator from './metricConfigurerDelegator';
@@ -62,10 +59,10 @@ function mapDispatchToProps(dispatch: any): IEditMetricModalDispatchProps {
       dispatch({ type: RENAME_METRIC, id: event.target.dataset.id, name: event.target.value });
     },
     cancel: () => {
-      dispatch({ type: EDIT_METRIC_CANCEL });
+      dispatch(Creators.editMetricCancel());
     },
     confirm: () => {
-      dispatch({ type: EDIT_METRIC_CONFIRM })
+      dispatch(Creators.editMetricConfirm());
     },
   };
 }

@@ -5,9 +5,10 @@ import { Modal } from 'react-bootstrap';
 
 import {
   CONFIG_JSON_DESERIALIZATION_ERROR,
-  EDIT_CONFIG_JSON_MODAL_CLOSE, SELECT_CONFIG,
+  SELECT_CONFIG,
   SET_CONFIG_JSON
 } from '../actions/index';
+import * as Creators from 'kayenta/actions/creators';
 import { ICanaryState } from '../reducers/index';
 import { ICanaryConfig } from '../domain/ICanaryConfig';
 import { jsonUtilityService } from '@spinnaker/core';
@@ -70,11 +71,7 @@ function EditConfigJsonModal({ show, selectedConfig, configJson, deserialization
 
 function mapDispatchToProps(dispatch: (action: Action & any) => void): IEditConfigJsonDispatchProps {
   return {
-    closeModal: () => {
-      dispatch({
-        type: EDIT_CONFIG_JSON_MODAL_CLOSE
-      });
-    },
+    closeModal: () => dispatch(Creators.closeEditConfigJsonModal()),
     setConfigJson: (event: React.ChangeEvent<HTMLTextAreaElement>) => {
       dispatch({
         type: SET_CONFIG_JSON,

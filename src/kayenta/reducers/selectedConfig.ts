@@ -1,4 +1,5 @@
 import { Action, combineReducers } from 'redux';
+import { combineActions, handleActions } from 'redux-actions';
 import { get, has } from 'lodash';
 
 import * as Actions from '../actions';
@@ -13,6 +14,26 @@ import {
 import { CanarySettings } from '../canary.settings';
 import { IGroupState, group } from './group';
 
+interface ILoadState {
+  state: ConfigDetailLoadState;
+}
+
+interface ISaveState {
+  state: SaveConfigState;
+  error: string;
+}
+
+// Mixing destroy/delete here because delete is a JS keyword.
+interface IDestroyState {
+  state: DeleteConfigState;
+  error: string;
+}
+
+interface IJsonState {
+  state: string;
+  error: string;
+}
+
 export interface ISelectedConfigState {
   config: ICanaryConfig;
   metricList: ICanaryMetricConfig[];
@@ -26,205 +47,92 @@ export interface ISelectedConfigState {
   json: IJsonState;
 }
 
-function config(state: ICanaryConfig = null, action: Action & any): ICanaryConfig {
-  switch (action.type) {
-    case Actions.INITIALIZE:
-      return action.state.selectedConfig.config;
+const config = handleActions({
+  [Actions.SELECT_CONFIG]: (_state: ICanaryConfig, action: Action & any) => action.config,
+  [Actions.UPDATE_CONFIG_NAME]: (state: ICanaryConfig, action: Action & any) => ({ ...state, name: action.name }),
+  [Actions.UPDATE_CONFIG_DESCRIPTION]: (state: ICanaryConfig, action: Action & any) => ({ ...state, description: action.description }),
+  [Actions.DELETE_CONFIG_SUCCESS]: () => null,
+}, null);
 
-    case Actions.SELECT_CONFIG:
-      return action.config;
-
-    case Actions.UPDATE_CONFIG_NAME:
-      return Object.assign({}, state, { name: action.name });
-
-    case Actions.UPDATE_CONFIG_DESCRIPTION:
-      return Object.assign({}, state, { description: action.description });
-
-    case Actions.DELETE_CONFIG_SUCCESS:
-      return null;
-
-    default:
-      return state;
-  }
-}
-
-interface ILoadState {
-  state: ConfigDetailLoadState;
-}
-
-function makeLoadState(state: ConfigDetailLoadState): ILoadState {
-  return { state };
-}
-
-function load(state: ILoadState = { state: ConfigDetailLoadState.Loading }, action: Action & any): ILoadState {
-  switch (action.type) {
-    case Actions.LOAD_CONFIG_REQUEST:
-      return makeLoadState(ConfigDetailLoadState.Loading);
-
-    case Actions.LOAD_CONFIG_FAILURE:
-      return makeLoadState(ConfigDetailLoadState.Error);
-
-    case Actions.SELECT_CONFIG:
-      return makeLoadState(ConfigDetailLoadState.Loaded);
-
-    default:
-      return state;
-  }
-}
+const load = combineReducers({
+  state: handleActions({
+    [Actions.LOAD_CONFIG_REQUEST]: () => ConfigDetailLoadState.Loading,
+    [Actions.LOAD_CONFIG_FAILURE]: () => ConfigDetailLoadState.Error,
+    [Actions.SELECT_CONFIG]: () => ConfigDetailLoadState.Loaded,
+  }, ConfigDetailLoadState.Loading),
+});
 
 function idMetrics(metrics: ICanaryMetricConfig[] = []) {
   return metrics.map((metric, index) => Object.assign({}, metric, { id: '#' + index }));
 }
 
-function metricList(state: ICanaryMetricConfig[] = [], action: Action & any): ICanaryMetricConfig[] {
-  switch (action.type) {
-    case Actions.INITIALIZE:
-      return idMetrics(action.state.selectedConfig.metricList);
+const metricList = handleActions({
+  [Actions.SELECT_CONFIG]: (_state: ICanaryMetricConfig[], action: Action & any) => idMetrics(action.config.metrics),
+  [Actions.ADD_METRIC]: (state: ICanaryMetricConfig[], action: Action & any) => idMetrics(state.concat([action.metric])),
+  [Actions.REMOVE_METRIC]: (state: ICanaryMetricConfig[], action: Action & any) => idMetrics(state.filter(metric => metric.id !== action.id)),
+}, []);
 
-    case Actions.SELECT_CONFIG:
-      return idMetrics(action.config.metrics);
+const editingMetric = handleActions({
+  [Actions.RENAME_METRIC]: (state: ICanaryMetricConfig, action: Action & any) => ({ ...state, name: action.name }),
+  [Actions.UPDATE_STACKDRIVER_METRIC_TYPE]: (state: ICanaryMetricConfig, action: Action & any) => ({
+    ...state, query: { ...state.query, metricType: action.metricType, type: 'stackdriver' },
+  })
+}, null);
 
-    case Actions.ADD_METRIC:
-      return idMetrics(state.concat([action.metric]));
+const save = combineReducers<ISaveState>({
+  state: handleActions({
+    [Actions.SAVE_CONFIG_REQUEST]: () => SaveConfigState.Saving,
+    [Actions.SAVE_CONFIG_SUCCESS]: () => SaveConfigState.Saved,
+    [Actions.SAVE_CONFIG_FAILURE]: () => SaveConfigState.Error,
+    [Actions.DISMISS_SAVE_CONFIG_ERROR]: () => SaveConfigState.Saved,
+  }, SaveConfigState.Saved),
+  error: handleActions({
+    [Actions.SAVE_CONFIG_FAILURE]: (_state: string, action: Action & any) => get(action, 'error.data.message', null),
+  }, null),
+});
 
-    case Actions.REMOVE_METRIC:
-      return idMetrics(state.filter(metric => metric.id !== action.id));
+const destroy = combineReducers<IDestroyState>({
+  state: handleActions({
+    [Actions.DELETE_CONFIG_REQUEST]: () => DeleteConfigState.Deleting,
+    [Actions.DELETE_CONFIG_SUCCESS]: () => DeleteConfigState.Completed,
+    [Actions.DELETE_CONFIG_FAILURE]: () => DeleteConfigState.Error,
+  }, DeleteConfigState.Completed),
+  error: handleActions({
+    [Actions.DELETE_CONFIG_FAILURE]: (_state: string, action: Action & any) => get(action, 'error.data.message', null),
+  }, null),
+});
 
-    default:
-      return state;
-  }
-}
+const json = combineReducers<IJsonState>({
+  state: handleActions({
+    [Actions.SET_CONFIG_JSON]: (_state: IJsonState, action: Action & any) => action.configJson,
+    [combineActions(Actions.EDIT_CONFIG_JSON_MODAL_CLOSE, Actions.SELECT_CONFIG)]: (): void => null,
+    [Actions.CONFIG_JSON_DESERIALIZATION_ERROR]: (state: IJsonState) => state.state,
+  }, null),
+  error: handleActions({
+    [combineActions(Actions.EDIT_CONFIG_JSON_MODAL_CLOSE, Actions.SELECT_CONFIG, Actions.SET_CONFIG_JSON)]: () => null,
+    [Actions.CONFIG_JSON_DESERIALIZATION_ERROR]: (_state: IJsonState, action: Action & any) => action.error,
+  }, null),
+});
 
-function editingMetric(state: ICanaryMetricConfig = null, action: Action & any): ICanaryMetricConfig {
-  switch (action.type) {
-    case Actions.RENAME_METRIC:
-      return Object.assign({}, state, { name: action.name });
+const judge = handleActions({
+  [Actions.SELECT_JUDGE]: (_state: IJudge, action: Action & any) => action.judge,
+}, null);
 
-    case Actions.UPDATE_STACKDRIVER_METRIC_TYPE:
-      return Object.assign({}, state, { query: Object.assign({}, state.query || {}, {
-        metricType: action.metricType,
-        type: 'stackdriver',
-      })});
-
-    default:
-      return state;
-  }
-}
-
-interface ISaveState {
-  state: SaveConfigState;
-  error: string;
-}
-
-function makeSaveState(state: SaveConfigState, error: string = null): ISaveState {
-  return { state, error };
-}
-
-function save(state: ISaveState = { state: SaveConfigState.Saved, error: null }, action: Action & any): ISaveState {
-  switch (action.type) {
-    case Actions.SAVE_CONFIG_REQUEST:
-      return makeSaveState(SaveConfigState.Saving);
-
-    case Actions.SAVE_CONFIG_SUCCESS:
-      return makeSaveState(SaveConfigState.Saved);
-
-    case Actions.SAVE_CONFIG_FAILURE:
-      return makeSaveState(SaveConfigState.Error, get(action, 'error.data.message', null));
-
-    case Actions.DISMISS_SAVE_CONFIG_ERROR:
-      return makeSaveState(SaveConfigState.Saved);
-
-    default:
-      return state;
-  }
-}
-
-interface IDestroyState {
-  state: DeleteConfigState;
-  error: string;
-}
-
-function makeDestroyState(state: DeleteConfigState, error: string = null): IDestroyState {
-  return { state, error };
-}
-
-// Mixing destroy/delete here because delete is a JS keyword.
-function destroy(state: IDestroyState = { state: DeleteConfigState.Completed, error: null }, action: Action & any): IDestroyState {
-  switch (action.type) {
-    case Actions.DELETE_CONFIG_REQUEST:
-      return makeDestroyState(DeleteConfigState.Deleting);
-
-    case Actions.DELETE_CONFIG_SUCCESS:
-      return makeDestroyState(DeleteConfigState.Completed);
-
-    case Actions.DELETE_CONFIG_FAILURE:
-      return makeDestroyState(DeleteConfigState.Error, get(action, 'error.data.message', null));
-
-    default:
-      return state;
-  }
-}
-
-interface IJsonState {
-  state?: string;
-  error?: string;
-}
-
-function makeJsonState(state: string = null, error: string = null): IJsonState {
-  return { state, error };
-}
-
-function json(state: IJsonState = {}, action: Action & any): IJsonState {
-  switch (action.type) {
-    case Actions.SET_CONFIG_JSON:
-      return makeJsonState(action.configJson);
-
-    case Actions.EDIT_CONFIG_JSON_MODAL_CLOSE:
-      return makeJsonState();
-
-    case Actions.CONFIG_JSON_DESERIALIZATION_ERROR:
-      return makeJsonState(state.state, action.error);
-
-    case Actions.SELECT_CONFIG:
-      return makeJsonState();
-
-    default:
-      return state;
-  }
-}
-
-function judge(state: IJudge = null, action: Action & any): IJudge {
-  switch (action.type) {
-    case Actions.SELECT_JUDGE:
-      return action.judge;
-
-    default:
-      return state;
-  }
-}
-
-function thresholds(state: ICanaryClassifierThresholdsConfig = null, action: Action & any): ICanaryClassifierThresholdsConfig {
-  switch (action.type) {
-    case Actions.SELECT_CONFIG:
-      if (has(action.config, 'classifier.scoreThresholds')) {
-        return action.config.classifier.scoreThresholds;
-      } else {
-        return {
-          pass: null,
-          marginal: null,
-        };
-      }
-
-    case Actions.UPDATE_SCORE_THRESHOLDS:
+const thresholds = handleActions({
+  [Actions.SELECT_CONFIG]: (_state: ICanaryClassifierThresholdsConfig, action: Action & any) => {
+    if (has(action.config, 'classifier.scoreThresholds')) {
+      return action.config.classifier.scoreThresholds;
+    } else {
       return {
-        pass: action.pass,
-        marginal: action.marginal,
+        pass: null,
+        marginal: null,
       };
-
-    default:
-      return state;
-  }
-}
+    }
+  },
+  [Actions.UPDATE_SCORE_THRESHOLDS]: (_state: ICanaryClassifierThresholdsConfig, action: Action & any) => ({
+    pass: action.pass, marginal: action.marginal
+  })
+}, null);
 
 // This reducer needs to be able to access both metricList and editingMetric so it won't fit the combineReducers paradigm.
 function editingMetricReducer(state: ISelectedConfigState = null, action: Action & any): ISelectedConfigState {

@@ -1,12 +1,10 @@
 import * as React from 'react';
+import { Action } from 'redux';
 import { connect } from 'react-redux';
 import { Modal } from 'react-bootstrap';
 import * as classNames from 'classnames';
 
-import {
-  DELETE_CONFIG_MODAL_CLOSE,
-  DELETE_CONFIG_REQUEST
-} from '../actions/index';
+import * as Creators from 'kayenta/actions/creators';
 import { ICanaryState } from '../reducers/index';
 import Styleguide from '../layout/styleguide';
 
@@ -64,14 +62,10 @@ function buildErrorMessage(deleteConfigErrorMessage: string): string {
     : message + '.';
 }
 
-function mapDispatchToProps(dispatch: any): IDeleteModalDispatchProps {
+function mapDispatchToProps(dispatch: (action: Action & any) => void): IDeleteModalDispatchProps {
   return {
-    closeDeleteConfigModal: () => {
-      dispatch({type: DELETE_CONFIG_MODAL_CLOSE});
-    },
-    deleteConfig: () => {
-      dispatch({type: DELETE_CONFIG_REQUEST})
-    },
+    closeDeleteConfigModal: () => dispatch(Creators.closeDeleteConfigModal()),
+    deleteConfig: () => dispatch(Creators.deleteConfig()),
   };
 }
 

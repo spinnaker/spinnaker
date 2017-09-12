@@ -2,7 +2,8 @@ import * as React from 'react';
 import { Action } from 'redux';
 import { connect } from 'react-redux';
 import { ICanaryState } from '../reducers';
-import { ADD_GROUP, SELECT_GROUP } from '../actions/index';
+import { SELECT_GROUP } from '../actions/index';
+import * as Creators from '../actions/creators';
 
 export const UNGROUPED = '(ungrouped)';
 
@@ -54,7 +55,7 @@ function mapDispatchToProps(dispatch: (action: Action & any) => void): IGroupTab
       event.stopPropagation();
     },
     addGroup: () => {
-      dispatch({ type: ADD_GROUP });
+      dispatch(Creators.addGroup());
       event.preventDefault();
       event.stopPropagation();
     }

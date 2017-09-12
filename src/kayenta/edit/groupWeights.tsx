@@ -21,7 +21,7 @@ function GroupWeights({ groups }: IGroupWeightsStateProps) {
       <FormList>
         {hasGroups
           ? groups.map(group => <GroupWeight key={group} group={group}/>)
-          : [<p>You have not configured any grouped metrics.</p>]
+          : [<p key="no-groups">You have not configured any grouped metrics.</p>]
         }
       </FormList>
     </section>

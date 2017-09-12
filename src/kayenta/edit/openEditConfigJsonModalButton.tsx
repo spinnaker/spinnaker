@@ -2,7 +2,7 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 import { Action } from 'redux';
 
-import { EDIT_CONFIG_JSON_MODAL_OPEN } from '../actions/index';
+import * as Creators from '../actions/creators';
 import EditConfigJsonModal from './editConfigJsonModal';
 
 interface IOpenEditConfigJsonModalDispatchProps {
@@ -23,9 +23,7 @@ function OpenEditConfigJsonModalButton({ openEditConfigJsonModal }: IOpenEditCon
 
 function mapDispatchToProps(dispatch: (action: Action & any) => void): IOpenEditConfigJsonModalDispatchProps {
   return {
-    openEditConfigJsonModal: () => {
-      dispatch({type: EDIT_CONFIG_JSON_MODAL_OPEN});
-    }
+    openEditConfigJsonModal: () => dispatch(Creators.openEditConfigJsonModal()),
   };
 }
 

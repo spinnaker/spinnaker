@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 
-import { DELETE_CONFIG_MODAL_OPEN } from '../actions/index';
+import * as Creators from '../actions/creators';
 import DeleteConfigModal from './deleteModal';
 import { ICanaryState } from '../reducers/index';
 
@@ -33,9 +33,7 @@ function mapStateToProps(state: ICanaryState) {
 
 function mapDispatchToProps(dispatch: any): IDeleteButtonDispatchProps {
   return {
-    openDeleteConfigModal: () => {
-      dispatch({type: DELETE_CONFIG_MODAL_OPEN});
-    }
+    openDeleteConfigModal: () => dispatch(Creators.openDeleteConfigModal()),
   };
 }
 

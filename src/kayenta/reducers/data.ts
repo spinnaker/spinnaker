@@ -1,4 +1,5 @@
 import { Action, combineReducers } from 'redux';
+import { handleActions } from 'redux-actions';
 import { without } from 'lodash';
 
 import { Application } from '@spinnaker/core';
@@ -15,58 +16,32 @@ export interface IDataState {
   judges: IJudge[];
 }
 
-function application(state: Application = null, action: Action & any): Application {
-  switch (action.type) {
-    case Actions.INITIALIZE:
-      return action.state.data.application;
+export const application = handleActions({
+  [Actions.INITIALIZE]: (_state: Application, action: Action & any) => action.state.data.application,
+}, null);
 
-    default:
-      return state;
-  }
-}
+export const configSummaries = handleActions({
+  [Actions.INITIALIZE]: (_state: ICanaryConfigSummary, action: Action & any) => action.state.data.configSummaries,
+  [Actions.UPDATE_CONFIG_SUMMARIES]: (_state: ICanaryConfigSummary, action: Action & any) => action.configSummaries,
+}, []);
 
-function configSummaries(state: ICanaryConfigSummary[] = [], action: Action & any): ICanaryConfigSummary[] {
-  switch (action.type) {
-    case Actions.INITIALIZE:
-      return action.state.data.configSummaries;
+const configs = handleActions({
+  [Actions.LOAD_CONFIG_SUCCESS]: (state: ICanaryConfig[], action: Action & any): ICanaryConfig[] => {
+    if (state.some(config => config.name === action.config.name)) {
+      return without(
+        state,
+        state.find(config => config.name === action.config.name)
+      ).concat([action.config]);
+    } else {
+      return state.concat([action.config]);
+    }
+  },
+}, []);
 
-    case Actions.UPDATE_CONFIG_SUMMARIES:
-      return action.configSummaries;
-
-    default:
-      return state;
-  }
-}
-
-function configs(state: ICanaryConfig[] = [], action: Action & any): ICanaryConfig[] {
-  switch (action.type) {
-    case Actions.LOAD_CONFIG_SUCCESS:
-      if (state.some(config => config.name === action.config.name)) {
-        return without(
-          state,
-          state.find(config => config.name === action.config.name)
-        ).concat([action.config]);
-      } else {
-        return state.concat([action.config]);
-      }
-
-    default:
-      return state;
-  }
-}
-
-function judges(state: IJudge[] = null, action: Action & any): IJudge[] {
-  switch (action.type) {
-    case Actions.INITIALIZE:
-      return action.state.data.judges;
-
-    case Actions.UPDATE_JUDGES:
-      return action.judges;
-
-    default:
-      return state;
-  }
-}
+const judges = handleActions({
+  [Actions.INITIALIZE]: (_state: IJudge[], action: Action & any): IJudge[] => action.state.data.judges,
+  [Actions.UPDATE_JUDGES]: (_state: IJudge[], action: Action & any): IJudge[] => action.judges,
+}, null);
 
 export const data = combineReducers<IDataState>({
   application,

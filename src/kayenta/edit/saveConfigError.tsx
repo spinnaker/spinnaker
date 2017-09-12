@@ -3,7 +3,7 @@ import { connect } from 'react-redux';
 import * as classNames from 'classnames';
 
 import { ICanaryState } from '../reducers';
-import { DISMISS_SAVE_CONFIG_ERROR } from '../actions/index';
+import * as Creators from '../actions/creators';
 import { SaveConfigState } from './save';
 
 interface ISaveErrorStateProps {
@@ -48,9 +48,7 @@ function mapStateToProps(state: ICanaryState): ISaveErrorStateProps {
 function mapDispatchToProps(dispatch: any): ISaveErrorDispatchProps {
   return {
     dismissError: () => {
-      dispatch({
-        type: DISMISS_SAVE_CONFIG_ERROR,
-      });
+      dispatch(Creators.dismissSaveConfigError());
     }
   };
 }

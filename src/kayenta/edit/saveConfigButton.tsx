@@ -5,7 +5,7 @@ import { isEqual, cloneDeep, omit } from 'lodash';
 import { SubmitButton } from '@spinnaker/core';
 
 import { ICanaryState } from '../reducers';
-import { SAVE_CONFIG_REQUEST } from '../actions/index';
+import * as Creators from '../actions/creators';
 import { SaveConfigState } from './save';
 import { mapStateToConfig } from '../service/canaryConfig.service';
 
@@ -62,7 +62,7 @@ function mapStateToProps(state: ICanaryState): ISaveButtonStateProps {
 function mapDispatchToProps(dispatch: any): ISaveButtonDispatchProps {
   return {
     saveConfig: () => {
-      dispatch({ type: SAVE_CONFIG_REQUEST });
+      dispatch(Creators.saveConfig());
     }
   };
 }
