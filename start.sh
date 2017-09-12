@@ -1,6 +1,8 @@
 #!/bin/bash
 
 NODE_VERSION=$(node -v)
+# Process engines format like { "node": ">=7.0.0" }
+npm_package_engines_node=$(node -e "console.log('$npm_package_engines_node'.replace(/[^0-9.]/g, ''))")
 
 if [[ $NODE_VERSION != $npm_package_engines_node ]]; then
   if [[ -f $HOME/.nvm/nvm.sh ]]; then
