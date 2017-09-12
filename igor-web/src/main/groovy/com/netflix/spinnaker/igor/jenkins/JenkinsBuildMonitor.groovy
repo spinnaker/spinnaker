@@ -145,15 +145,13 @@ class JenkinsBuildMonitor implements PollingMonitor {
      */
 
     void changedBuilds(String master) {
-        log.info("Checking for new builds for ${master}")
+        log.debug("Checking for new builds for ${master}")
         def startTime = System.currentTimeMillis()
         lastPoll = startTime
 
         try {
             JenkinsService jenkinsService = buildMasters.map[master] as JenkinsService
             List<Project> jobs = jenkinsService.getProjects()?.getList() ?:[]
-            log.debug("Jobs on master: ${master} ${jobs.size()}")
-
             for (Project job : jobs) {
                 if (!job.lastBuild) {
                     log.debug("[${master}:${job.name}] has no builds skipping...")
@@ -163,9 +161,6 @@ class JenkinsBuildMonitor implements PollingMonitor {
                 Long cursor = cache.getLastPollCycleTimestamp(master, job.name)
                 Long lastBuildStamp = job.lastBuild.timestamp as Long
                 Date upperBound = new Date(lastBuildStamp)
-
-                log.debug("[${master}:${job.name}] last cursor was ${cursor}, last build on this job was at ${upperBound}")
-
                 if (cursor == lastBuildStamp) {
                     log.debug("[${master}:${job.name}] is up to date. skipping")
                 } else {
@@ -185,8 +180,6 @@ class JenkinsBuildMonitor implements PollingMonitor {
                     List<Build> currentlyBuilding = allBuilds.findAll { it.building }
                     List<Build> completedBuilds = allBuilds.findAll { !it.building }
                     Date lowerBound = new Date(cursor)
-
-                    log.info("[${master}:${job.name}] ${allBuilds.size()} builds between [$lowerBound} - ${upperBound}], currently running builds -> ${currentlyBuilding*.number}")
 
                     // 2. post events for finished builds
                     completedBuilds.forEach { build ->
