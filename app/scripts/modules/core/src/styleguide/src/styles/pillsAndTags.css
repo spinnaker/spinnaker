@@ -1,0 +1,206 @@
+/* TODO(archana): Replace sp-badge selectors with just badge
+when we remove badges from bootstrap. */
+
+/*
+@styleguide
+
+@title Pills
+
+Pills are shaped like pills and used to provide qualifying information.
+There are three variants:
+  1. info
+  2. categories
+  3. success
+  4. danger
+  5. warn
+
+
+<div class="pill info">Information</div>
+
+    <div class="pill info">Information</div>
+
+<div class="pill info">Information<i class="fa fa-times-circle"></i></div>
+
+    <div class="pill info">Information<i class="fa fa-times-circle"></i></div>
+
+<div class="pill category">
+  <div>Server</div>
+  <span>Information<i class="fa fa-times-circle"></i></span>
+</div>
+
+    <div class="pill category">
+      <div>Server</div>
+      <span>Information<i class="fa fa-times-circle"></i></span>
+    </div>
+
+<div class="pill category">
+  <div>Category</div>
+  <span>Name</span>
+</div>
+
+    <div class="pill category">
+      <div>Category</div>
+      <span>Name</span>
+    </div>
+
+<div class="pill success">Success</div>
+
+    <div class="pill success">Success</div>
+
+<div class="pill danger">Danger</div>
+
+    <div class="pill danger">Danger</div>
+
+<div class="pill warn">Warn</div>
+
+    <div class="pill warn">Warn</div>
+*/
+
+/*
+@styleguide
+
+@title Badges
+
+Badges are shaped like rectangles and used to provide qualifying information.
+There are three variants:
+  1. info
+  2. categories
+  3. success
+  4. danger
+  5. warn
+
+Badges are also offered in 2 sizes:
+
+  1. default
+  2. large
+
+<div class="sp-badge info">Information</div>
+
+    <div class="sp-badge info">Information</div>
+
+<div class="sp-badge info">Information<i class="fa fa-times-circle"></i></div>
+
+    <div class="sp-badge info">Information<i class="fa fa-times-circle"></i></div>
+
+<div class="sp-badge category">
+  <div>Server</div>
+  <span>Information<i class="fa fa-times-circle"></i></span>
+</div>
+
+    <div class="sp-badge category">
+      <div>Server</div>
+      <span>Information<i class="fa fa-times-circle"></i></span>
+    </div>
+
+<div class="sp-badge category large">
+  <div>Server</div>
+  <span>Information<i class="fa fa-times-circle"></i></span>
+</div>
+
+    <div class="sp-badge category large">
+      <div>Server</div>
+      <span>Information<i class="fa fa-times-circle"></i></span>
+    </div>
+
+<div class="sp-badge category">
+  <div>Category</div>
+  <span>Name</span>
+</div>
+
+    <div class="sp-badge category">
+      <div>Category</div>
+      <span>Name</span>
+    </div>
+
+<div class="sp-badge success">Success</div>
+
+    <div class="sp-badge success">Success</div>
+
+<div class="sp-badge danger">Danger</div>
+
+    <div class="sp-badge danger">Danger</div>
+
+<div class="sp-badge warn">Warn</div>
+
+    <div class="sp-badge warn">Warn</div>
+*/
+
+:root {
+  --pill-border-radius: 20px;
+  --pill-small-font-size: 12px;
+  --pill-large-font-size: 14px;
+  --pill-xs-spacing: 3px;
+  --pill-s-spacing: 8px;
+  --pill-l-spacing: 12px;
+}
+
+.sp-badge {
+  --pill-border-radius: 4px;
+}
+
+.pill:not(.category), .pill.category > *:first-child,
+.sp-badge:not(.category), .sp-badge.category > *:first-child {
+  padding: var(--pill-xs-spacing) var(--pill-s-spacing);
+}
+
+.pill.category > *:nth-child(2),
+.sp-badge.category > *:nth-child(2) {
+  padding: var(--pill-xs-spacing) var(--pill-s-spacing) var(--pill-xs-spacing) var(--pill-xs-spacing);
+}
+
+.pill, .sp-badge {
+  border-radius: var(--pill-border-radius);
+}
+
+.pill, .pill *,
+.sp-badge, .sp-badge * {
+  font-size: var(--pill-small-font-size);
+  display: inline-block;
+}
+
+.pill i, .sp-badge i {
+  font-size: inherit;
+  margin-left: 5px;
+}
+
+.pill.success, .pill.danger, .pill.warn,
+.sp-badge.success, .sp-badge.danger, .sp-badge.warn {
+  color: var(--color-text-on-dark);
+}
+
+.pill.info, .pill.info *, .pill.category,
+.sp-badge.info, .sp-badge.info *, .sp-badge.category {
+  background-color: var(--color-accent-g2);
+  color: var(--color-primary);
+  font-weight : bold;
+}
+
+.pill.category > *:first-child,
+.sp-badge.category > *:first-child {
+  border-radius: var(--pill-border-radius) 0 0 var(--pill-border-radius);
+  background-color: var(--color-primary);
+  color: var(--color-text-on-dark);
+  text-transform: uppercase;
+  font-weight: 400;
+  position: relative;
+}
+
+.pill.success, .sp-badge.success {
+  background-color: var(--color-asparagus);
+}
+
+.pill.danger, .sp-badge.danger {
+  background-color: var(--color-rose);
+}
+
+.pill.warn, .sp-badge.warn {
+  background-color: var(--color-mango);
+}
+
+.sp-badge.large, .sp-badge.large * {
+  font-size: var(--pill-large-font-size);
+}
+
+.sp-badge.large i {
+  margin-top: 4px;
+}
