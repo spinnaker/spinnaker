@@ -171,6 +171,10 @@
  * [**hal config security api ssl edit**](#hal-config-security-api-ssl-edit)
  * [**hal config security api ssl enable**](#hal-config-security-api-ssl-enable)
  * [**hal config security authn**](#hal-config-security-authn)
+ * [**hal config security authn ldap**](#hal-config-security-authn-ldap)
+ * [**hal config security authn ldap disable**](#hal-config-security-authn-ldap-disable)
+ * [**hal config security authn ldap edit**](#hal-config-security-authn-ldap-edit)
+ * [**hal config security authn ldap enable**](#hal-config-security-authn-ldap-enable)
  * [**hal config security authn oauth2**](#hal-config-security-authn-oauth2)
  * [**hal config security authn oauth2 disable**](#hal-config-security-authn-oauth2-disable)
  * [**hal config security authn oauth2 edit**](#hal-config-security-authn-oauth2-edit)
@@ -3344,8 +3348,79 @@ hal config security authn [parameters] [subcommands]
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 #### Subcommands
+ * `ldap`: Configure the ldap method for authenticating.
  * `oauth2`: Configure the oauth2 method for authenticating.
  * `saml`: Configure the saml method for authenticating.
+
+---
+## hal config security authn ldap
+
+Configure the ldap method for authenticating.
+
+#### Usage
+```
+hal config security authn ldap [parameters] [subcommands]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+#### Subcommands
+ * `disable`: Set the ldap method as disabled
+ * `edit`: Configure authentication using a LDAP identity provider.
+ * `enable`: Set the ldap method as enabled
+
+---
+## hal config security authn ldap disable
+
+Set the ldap method as disabled
+
+#### Usage
+```
+hal config security authn ldap disable [parameters]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config security authn ldap edit
+
+Edit the Ldap authentication method
+
+#### Usage
+```
+hal config security authn ldap edit [parameters]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+ * `--url`: ldap:// or ldaps:// url of the LDAP server
+ * `--user-dn-pattern`: User DN pattern, Base + Unique e.g. uid={0},ou=users,dc=my-org,dc=com
+ * `--user-search-base`: Used when a simple DN pattern is not possible
+ * `--user-search-filter`: Used When a simple DN pattern is not possible
+ 
+Go [here](https://www.spinnaker.io/setup/security/authentication/ldap/) for more information about Ldap parameters and spinnaker.
+
+
+---
+## hal config security authn ldap enable
+
+Set the ldap method as enabled
+
+#### Usage
+```
+hal config security authn ldap enable [parameters]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
 
 ---
 ## hal config security authn oauth2
