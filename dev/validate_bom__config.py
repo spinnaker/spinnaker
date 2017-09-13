@@ -921,6 +921,37 @@ class JenkinsConfigurator(Configurator):
       file_set.add(path)
 
 
+class LoggingConfigurator(Configurator):
+  """Controls hal config logging."""
+
+  def init_argument_parser(self, parser):
+    """Implements interface."""
+    parser.add_argument(
+        '--google_cloud_logging', default=False, action='store_true',
+        help='Install Google Cloud Logging agent.')
+
+  def add_files_to_upload(self, options, file_set):
+    """Implements interface."""
+
+    if not options.google_cloud_logging:
+      return
+
+    # Upload install script from this repo
+    basedir = os.path.join(os.path.dirname(__file__),
+                           '..', 'google', 'google_cloud_logging')
+    file_set.add(os.path.join(basedir, 'add_google_cloud_logging.sh'))
+    file_set.add(os.path.join(basedir, 'spinnaker.conf'))
+
+  def add_init(self, options, script):
+    """Implements interface."""
+
+    if not options.google_cloud_logging:
+      return
+
+    script.append('chmod +x ./add_google_cloud_logging.sh')
+    script.append('sudo ./add_google_cloud_logging.sh')
+
+
 class MonitoringConfigurator(Configurator):
   """Controls hal config monitoring."""
 
@@ -1044,6 +1075,7 @@ class SpinnakerConfigurator(Configurator):
 
 CONFIGURATOR_LIST = [
     MonitoringConfigurator(),
+    LoggingConfigurator(),
     SpinnakerConfigurator(),
     StorageConfigurator(),
     AwsConfigurator(),
