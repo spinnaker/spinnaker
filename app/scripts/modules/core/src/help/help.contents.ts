@@ -144,10 +144,7 @@ module(HELP_CONTENTS, [])
     'pipeline.config.parallel.cancel.queue': '<p>If concurrent pipeline execution is disabled, then the pipelines that are in the waiting queue will get canceled by default. <br><br>Check this box if you want to keep them in the queue.</p>',
     'pipeline.config.timeout': `
         <p>Allows you to override the amount of time the stage can run before failing.</p>
-        <p><b>Note:</b> this is not the overall time the stage has, but rather the time for specific tasks.</p>`,
-    'pipeline.config.timeout.bake': '<p>For the Bake stage, the timeout will apply to both the "Create Bake" and "Monitor Bake" tasks.</p>',
-    'pipeline.config.timeout.deploy': '<p>For the Deploy stage, the timeout will apply to both the "Monitor Deploy" and "Wait For Up Instances" tasks.</p>',
-    'pipeline.config.timeout.jenkins': '<p>For the Jenkins stage, the timeout will apply to both the "Wait For Jenkins Job Start" and "Monitor Jenkins Job" tasks.</p>',
+        <p><b>Note:</b> this represents the overall time the stage has to complete (the sum of all the task times).</p>`,
     'pipeline.config.trigger.runAsUser': 'The current user must have access to the specified service account, and the service account must have access to the current application. Otherwise, you\'ll receive an \'Access is denied\' error.',
     'pipeline.config.script.repoUrl': '<p>Path to the repo hosting the scripts in Stash. (e.g. <samp>CDL/mimir-scripts</samp>). Leave empty to use the default.</p>',
     'pipeline.config.script.repoBranch': '<p>Git Branch. (e.g. <samp>master</samp>). Leave empty to use the master branch.</p>',
