@@ -164,17 +164,22 @@ class RunTaskHandler(
       else -> Duration.ofSeconds(1)
     }
 
-  private fun Task.formatTimeout(timeout: Long): String {
+  private fun formatTimeout(timeout: Long): String {
     return DurationFormatUtils.formatDurationWords(timeout, true, true)
   }
 
   private fun Task.checkForTimeout(stage: Stage<*>, taskModel: com.netflix.spinnaker.orca.pipeline.model.Task, message: Message) {
+    checkForStageTimeout(stage)
+    checkForTaskTimeout(taskModel, stage, message)
+  }
+
+  private fun Task.checkForTaskTimeout(taskModel: com.netflix.spinnaker.orca.pipeline.model.Task, stage: Stage<*>, message: Message) {
     if (this is RetryableTask) {
       val startTime = taskModel.startTime.toInstant()
       val pausedDuration = stage.getExecution().pausedDurationRelativeTo(startTime)
-      val throttleTime = message.getAttribute<TotalThrottleTimeAttribute>()?.totalThrottleTimeMs ?: 0
       val elapsedTime = Duration.between(startTime, clock.instant())
-      if (elapsedTime.minus(pausedDuration).minusMillis(throttleTime) > timeoutDuration(stage)) {
+      val throttleTime = message.getAttribute<TotalThrottleTimeAttribute>()?.totalThrottleTimeMs ?: 0
+      if (elapsedTime.minus(pausedDuration).minusMillis(throttleTime) > timeout.toDuration()) {
         val durationString = formatTimeout(elapsedTime.toMillis())
         val msg = StringBuilder("${javaClass.simpleName} of stage ${stage.getName()} timed out after $durationString. ")
         msg.append("pausedDuration: ${formatTimeout(pausedDuration.toMillis())}, ")
@@ -187,8 +192,16 @@ class RunTaskHandler(
     }
   }
 
-  private fun RetryableTask.timeoutDuration(stage: Stage<*>): Duration
-    = stage.getTopLevelTimeout().orElse(timeout).toDuration()
+  private fun checkForStageTimeout(stage: Stage<*>) {
+    stage.getTopLevelTimeout().map(Duration::ofMillis).ifPresent({
+      val startTime = stage.getTopLevelStage().getStartTime().toInstant()
+      val elapsedTime = Duration.between(startTime, clock.instant())
+      val pausedDuration = stage.getExecution().pausedDurationRelativeTo(startTime)
+      if (elapsedTime.minus(pausedDuration) > it) {
+        throw TimeoutException("Stage ${stage.getName()} timed out after ${formatTimeout(elapsedTime.toMillis())}")
+      }
+    })
+  }
 
 
   private fun Execution<*>.pausedDurationRelativeTo(instant: Instant?): Duration {

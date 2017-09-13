@@ -395,9 +395,9 @@ public class Stage<T extends Execution<T>> implements Serializable {
   }
 
   /**
-   * Returns the top-most stage timeout value if present.
+   * Returns the top-most stage.
    */
-  @JsonIgnore public Optional<Long> getTopLevelTimeout() {
+  @JsonIgnore public Stage<T> getTopLevelStage() {
     Stage<T> topLevelStage = this;
     while (topLevelStage.parentStageId != null) {
       String sid = topLevelStage.parentStageId;
@@ -408,6 +408,14 @@ public class Stage<T extends Execution<T>> implements Serializable {
         throw new IllegalStateException("Could not find stage by parentStageId (stage: " + topLevelStage.getId() + ", parentStageId:" + sid + ")");
       }
     }
+    return topLevelStage;
+  }
+
+  /**
+   * Returns the top-most stage timeout value if present.
+   */
+  @JsonIgnore public Optional<Long> getTopLevelTimeout() {
+    Stage<T> topLevelStage = getTopLevelStage();
     Object timeout = topLevelStage.getContext().get("stageTimeoutMs");
     if (timeout instanceof Integer) {
       return Optional.of((Integer) timeout).map(Long::new);
