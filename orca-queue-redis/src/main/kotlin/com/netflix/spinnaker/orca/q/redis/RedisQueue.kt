@@ -60,8 +60,12 @@ class RedisQueue(
   private val queueKey = "$queueName.queue"
   private val unackedKey = "$queueName.unacked"
   private val messagesKey = "$queueName.messages"
-  private val attemptsKey = "$queueName.attempts"
   private val locksKey = "$queueName.locks"
+
+  // TODO: use AttemptsAttribute instead
+  private val attemptsKey = "$queueName.attempts"
+
+  // TODO: legacy id support
   private val hashKey = "$queueName.hash"
   private val hashesKey = "$queueName.hashes"
 
@@ -69,19 +73,19 @@ class RedisQueue(
     pool.resource.use { redis ->
       redis.zrangeByScore(queueKey, 0.0, score(), 0, 1)
         .firstOrNull()
-        ?.takeIf { id ->
-          redis.acquireLock(id)
+        ?.takeIf { fingerprint ->
+          redis.acquireLock(fingerprint)
         }
-        ?.also { id ->
-          val ack = this::ackMessage.partially1(id)
-          redis.readMessage(id) { message ->
+        ?.also { fingerprint ->
+          val ack = this::ackMessage.partially1(fingerprint)
+          redis.readMessage(fingerprint) { message ->
             val attempts = message.getAttribute<AttemptsAttribute>()?.attempts ?: 0
             val maxAttempts = message.getAttribute<MaxAttemptsAttribute>()?.maxAttempts ?: 0
 
             if (maxAttempts > 0 && attempts > maxAttempts) {
-              log.warn("Message $id with payload $message exceeded $maxAttempts retries")
+              log.warn("Message $fingerprint with payload $message exceeded $maxAttempts retries")
               handleDeadMessage(message)
-              redis.removeMessage(id)
+              redis.removeMessage(fingerprint)
               fire<MessageDead>()
             } else {
               callback(message, ack)
@@ -94,9 +98,9 @@ class RedisQueue(
 
   override fun push(message: Message, delay: TemporalAmount) {
     pool.resource.use { redis ->
-      val id = message.hash()
-      if (redis.zismember(queueKey, id)) {
-        log.warn("Ignoring message as an identical one is already on the queue: $id, message: $message")
+      val fingerprint = message.hash()
+      if (redis.zismember(queueKey, fingerprint)) {
+        log.warn("Ignoring message as an identical one is already on the queue: $fingerprint, message: $message")
         fire<MessageDuplicate>(message)
       } else {
         redis.queueMessage(message, delay)
@@ -110,37 +114,41 @@ class RedisQueue(
     pool.resource.use { redis ->
       redis
         .zrangeByScore(unackedKey, 0.0, score())
-        .let { ids ->
-          if (ids.size > 0) {
-            ids
+        .let { fingerprints ->
+          if (fingerprints.size > 0) {
+            fingerprints
               .map { "$locksKey:$it" }
               .let { redis.del(*it.toTypedArray()) }
           }
 
-          ids.forEach { id ->
-            val attempts = redis.hgetInt(attemptsKey, id)
+          fingerprints.forEach { fingerprint ->
+            val attempts = redis.hgetInt(attemptsKey, fingerprint)
             if (attempts >= Queue.maxRetries) {
-              redis.readMessage(id) { message ->
-                log.warn("Message $id with payload $message exceeded max retries")
+              redis.readMessage(fingerprint) { message ->
+                log.warn("Message $fingerprint with payload $message exceeded max retries")
                 handleDeadMessage(message)
-                redis.removeMessage(id)
+                redis.removeMessage(fingerprint)
               }
               fire<MessageDead>()
             } else {
-              if (redis.zismember(queueKey, id)) {
-                redis.multi {
-                  zrem(unackedKey, id)
-                }
-                // we only need to read the message for metrics purposes
-                redis.hget(messagesKey, id).let { json ->
-                  mapper.readValue<Message>(json).let { message ->
-                    log.warn("Not retrying message $id because an identical message is already on the queue")
-                    fire<MessageDuplicate>(message)
+              if (redis.zismember(queueKey, fingerprint)) {
+                redis
+                  .multi {
+                    zrem(unackedKey, fingerprint)
+                    // we only need to read the message for metrics purposes
+                    hget(messagesKey, fingerprint)
                   }
-                }
+                  .let { (_, json) ->
+                    mapper
+                      .readValue<Message>(json as String)
+                      .let { message ->
+                        log.warn("Not retrying message $fingerprint because an identical message is already on the queue")
+                        fire<MessageDuplicate>(message)
+                      }
+                  }
               } else {
-                log.warn("Retrying message $id after $attempts attempts")
-                redis.requeueMessage(id)
+                log.warn("Retrying message $fingerprint after $attempts attempts")
+                redis.requeueMessage(fingerprint)
                 fire<MessageRetried>()
               }
             }
@@ -173,45 +181,45 @@ class RedisQueue(
 
   override fun toString() = "RedisQueue[$queueName]"
 
-  private fun ackMessage(id: String) {
+  private fun ackMessage(fingerprint: String) {
     pool.resource.use { redis ->
-      if (redis.zismember(queueKey, id)) {
+      if (redis.zismember(queueKey, fingerprint)) {
         // only remove this message from the unacked queue as a matching one has
         // been put on the main queue
         redis.multi {
-          zrem(unackedKey, id)
-          del("$locksKey:$id")
+          zrem(unackedKey, fingerprint)
+          del("$locksKey:$fingerprint")
         }
       } else {
-        redis.removeMessage(id)
+        redis.removeMessage(fingerprint)
       }
       fire<MessageAcknowledged>()
     }
   }
 
   private fun Jedis.queueMessage(message: Message, delay: TemporalAmount = ZERO) {
-    val id = message.hash()
+    val fingerprint = message.hash()
 
+    // ensure the message has the attempts tracking attribute
     message.setAttribute(
-      // ensure the message has the attempts tracking attribute
       message.getAttribute(AttemptsAttribute())
     )
 
     multi {
-      hset(messagesKey, id, mapper.writeValueAsString(message))
-      zadd(queueKey, score(delay), id)
+      hset(messagesKey, fingerprint, mapper.writeValueAsString(message))
+      zadd(queueKey, score(delay), fingerprint)
 
       // TODO: legacy id compatibility
-      hset(hashKey, id, id)
-      sadd(hashesKey, id)
+      hset(hashKey, fingerprint, fingerprint)
+      sadd(hashesKey, fingerprint)
     }
   }
 
-  private fun Jedis.requeueMessage(id: String) {
-    val hash = hget(hashKey, id)
+  private fun Jedis.requeueMessage(fingerprint: String) {
+    val hash = hget(hashKey, fingerprint)
     multi {
-      zrem(unackedKey, id)
-      zadd(queueKey, score(), id)
+      zrem(unackedKey, fingerprint)
+      zadd(queueKey, score(), fingerprint)
 
       // TODO: legacy id compatibility
       if (hash != null) {
@@ -220,46 +228,47 @@ class RedisQueue(
     }
   }
 
-  private fun Jedis.removeMessage(id: String) {
+  private fun Jedis.removeMessage(fingerprint: String) {
     multi {
-      zrem(queueKey, id)
-      zrem(unackedKey, id)
-      hdel(messagesKey, id)
-      del("$locksKey:$id")
+      zrem(queueKey, fingerprint)
+      zrem(unackedKey, fingerprint)
+      hdel(messagesKey, fingerprint)
+      del("$locksKey:$fingerprint")
 
       // TODO: use AttemptAttribute instead
-      hdel(attemptsKey, id)
+      hdel(attemptsKey, fingerprint)
 
       // TODO: legacy id compatibility
-      hdel(hashKey, id)
+      hdel(hashKey, fingerprint)
     }
   }
 
   /**
-   * Tries to read the message with the specified [id] passing it to [block].
-   * If it's not accessible for whatever reason any references are cleaned up.
+   * Tries to read the message with the specified [fingerprint] passing it to
+   * [block]. If it's not accessible for whatever reason any references are
+   * cleaned up.
    */
-  private fun Jedis.readMessage(id: String, block: (Message) -> Unit) {
-    val hash = hget(hashKey, id)
+  private fun Jedis.readMessage(fingerprint: String, block: (Message) -> Unit) {
+    val hash = hget(hashKey, fingerprint)
     multi {
-      hget(messagesKey, id)
-      zrem(queueKey, id)
-      zadd(unackedKey, score(ackTimeout), id)
+      hget(messagesKey, fingerprint)
+      zrem(queueKey, fingerprint)
+      zadd(unackedKey, score(ackTimeout), fingerprint)
 
       // TODO: legacy id compatibility
-      srem(hashesKey, id)
+      srem(hashesKey, fingerprint)
       if (hash != null) {
         srem(hashesKey, hash)
       }
 
       // TODO: use AttemptsAttribute instead
-      hincrBy(attemptsKey, id, 1)
+      hincrBy(attemptsKey, fingerprint, 1)
     }.let {
       val json = it[0] as String?
       if (json == null) {
-        log.error("Payload for message $id is missing")
+        log.error("Payload for message $fingerprint is missing")
         // clean up what is essentially an unrecoverable message
-        removeMessage(id)
+        removeMessage(fingerprint)
       } else {
         try {
           val message = mapper.readValue<Message>(json)
@@ -268,23 +277,23 @@ class RedisQueue(
           message.setAttribute(
             message.getAttribute(AttemptsAttribute())
           ).increment()
-          hset(messagesKey, id, mapper.writeValueAsString(message))
+          hset(messagesKey, fingerprint, mapper.writeValueAsString(message))
 
           block.invoke(message)
         } catch (e: IOException) {
-          log.error("Failed to read message $id, requeuing...", e)
-          requeueMessage(id)
+          log.error("Failed to read message $fingerprint, requeuing...", e)
+          requeueMessage(fingerprint)
         }
       }
     }
   }
 
-  private fun handleDeadMessage(it: Message) {
-    deadMessageHandler.invoke(this, it)
+  private fun handleDeadMessage(message: Message) {
+    deadMessageHandler.invoke(this, message)
   }
 
-  private fun Jedis.acquireLock(id: String) =
-    (set("$locksKey:$id", "\uD83D\uDD12", "NX", "EX", lockTtlSeconds) == "OK")
+  private fun Jedis.acquireLock(fingerprint: String) =
+    (set("$locksKey:$fingerprint", "\uD83D\uDD12", "NX", "EX", lockTtlSeconds) == "OK")
       .also {
         if (!it) {
           fire<LockFailed>()
