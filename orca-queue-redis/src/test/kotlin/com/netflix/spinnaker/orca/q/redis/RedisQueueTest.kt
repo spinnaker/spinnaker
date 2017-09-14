@@ -16,20 +16,11 @@
 
 package com.netflix.spinnaker.orca.q.redis
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.q.DeadMessageCallback
-import com.netflix.spinnaker.orca.q.Message
 import com.netflix.spinnaker.orca.q.QueueTest
-import com.netflix.spinnaker.orca.q.StartExecution
 import com.netflix.spinnaker.orca.q.metrics.MonitorableQueueTest
 import org.funktionale.partials.invoke
-import org.jetbrains.spek.api.Spek
-import org.jetbrains.spek.api.dsl.describe
-import org.jetbrains.spek.api.dsl.it
-import org.junit.Assert
 import org.springframework.context.ApplicationEvent
 import org.springframework.context.ApplicationEventPublisher
 import java.time.Clock
@@ -63,29 +54,3 @@ private val createQueue = { clock: Clock,
 private fun shutdownCallback() {
   redis?.destroy()
 }
-
-class ConvertToMessageSpec : Spek({
-  describe("should support deserializing a nested message") {
-    val objectMapper = ObjectMapper().apply {
-      registerModule(KotlinModule())
-    }
-
-    val message = StartExecution(Pipeline::class.java, "1", "foo")
-
-    it("is not nested") {
-      Assert.assertEquals(
-        message,
-        RedisQueue.convertToMessage(objectMapper.writeValueAsString(message), objectMapper)
-      )
-    }
-
-    it("is nested") {
-      Assert.assertEquals(
-        message,
-        RedisQueue.convertToMessage(objectMapper.writeValueAsString(Envelope(message)), objectMapper)
-      )
-    }
-  }
-})
-
-private data class Envelope(val payload: Message)
