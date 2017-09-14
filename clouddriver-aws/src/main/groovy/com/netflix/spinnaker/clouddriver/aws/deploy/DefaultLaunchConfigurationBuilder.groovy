@@ -219,7 +219,7 @@ class DefaultLaunchConfigurationBuilder implements LaunchConfigurationBuilder {
     String userDataDecoded = new String((settings.base64UserData ?: '').decodeBase64(), Charset.forName("UTF-8"))
     data = [data, userDataDecoded].findResults { it }.join("\n")
     if (data && data.startsWith("\n")) {
-      data = data.substring(1)
+      data = data.trim()
     }
     data ? new String(Base64.encodeBase64(data.bytes),  Charset.forName("UTF-8")) : null
   }
