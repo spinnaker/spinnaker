@@ -454,7 +454,6 @@ open class QueueIntegrationTest {
 
     repository.retrievePipeline(pipeline.id).apply {
       status shouldEqual SUCCEEDED
-      println(stages.first().context)
       // resolved expressions should be persisted
       stages.first().context["expr"] shouldEqual true
       (stages.first().context["key"] as Map<String, Any>)["expr"] shouldEqual true
