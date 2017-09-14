@@ -109,38 +109,7 @@ class DeleteSecurityGroupAtomicOperation implements AtomicOperation<Void> {
                 }
               }
             }
-
-            // Try to clear dependency violations
-            if (description.removeDependencies && securityGroupToRevokeIngressPermissions.size() > 0) {
-              // We only support removing ingress rules right now.
-              // Revoke ingress rules that contain this security group
-              securityGroupToRevokeIngressPermissions.each { entry ->
-                RevokeSecurityGroupIngressRequest req = new RevokeSecurityGroupIngressRequest(groupId: entry.key.groupId, ipPermissions: entry.value)
-                try {
-                  ec2.revokeSecurityGroupIngress(req)
-                } catch (AmazonServiceException ase) {
-                  task.updateStatus BASE_PHASE, ase.errorMessage
-                }
-              }
-
-              // Try to delete the security group one more time
-              // We need to retry a couple times because the ingress revoke has some propagation delay
-              // and we might be trying to delete it too soon
-              try {
-                OperationPoller.retryWithBackoff({ o ->
-                  ec2.deleteSecurityGroup(request)
-                }, 1000, 2)
-              } catch (AmazonServiceException ase) {
-                if (e.errorCode == "DependencyViolation") {
-                  this.generateDependencyError(e, task, securityGroupToRevokeIngressPermissions)
-                } else if (e.errorCode != "InvalidGroup.NotFound") {
-                  task.updateStatus BASE_PHASE, ase.errorMessage
-                  throw ase
-                }
-              }
-            } else {
-              this.generateDependencyError(e, task, securityGroupToRevokeIngressPermissions)
-            }
+            this.generateDependencyError(e, task, securityGroupToRevokeIngressPermissions)
           } else if (e.errorCode != "InvalidGroup.NotFound") {
             task.updateStatus BASE_PHASE, e.errorMessage
             throw e
