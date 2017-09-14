@@ -32,9 +32,16 @@ export class SearchResultGrid extends React.Component<ISearchResultGridProps> {
         );
       case SearchStatus.SEARCHING:
         return (
-          <h2 className="flex-center">
-            <span className="fa fa-cog fa-spin"/>
-          </h2>
+          <div className="load large flex-center">
+            <div className="message">Fetching search results...</div>
+            <div className="bars">
+              <div className="bar full"/>
+              <div className="bar"/>
+              <div className="bar"/>
+              <div className="bar"/>
+              <div className="bar"/>
+            </div>
+          </div>
         );
       case SearchStatus.NO_RESULTS:
         return (
