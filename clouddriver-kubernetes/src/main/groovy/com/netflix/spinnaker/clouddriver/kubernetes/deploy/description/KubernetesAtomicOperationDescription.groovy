@@ -28,4 +28,6 @@ import groovy.transform.Canonical
 class KubernetesAtomicOperationDescription implements DeployDescription, CredentialsNameable {
   String account
   KubernetesNamedAccountCredentials credentials
+  String kind
+  String apiVersion
 }

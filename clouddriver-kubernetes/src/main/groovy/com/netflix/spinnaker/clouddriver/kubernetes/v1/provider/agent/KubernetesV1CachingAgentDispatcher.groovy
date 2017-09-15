@@ -45,6 +45,7 @@ class KubernetesV1CachingAgentDispatcher implements KubernetesCachingAgentDispat
       agents << new KubernetesServiceAccountCachingAgent(credentials, objectMapper, registry, index, credentials.cacheThreads)
       agents << new KubernetesConfigMapCachingAgent(credentials, objectMapper, registry, index, credentials.cacheThreads)
       agents << new KubernetesSecretCachingAgent(credentials, objectMapper, registry, index, credentials.cacheThreads)
+      agents << new KubernetesControllersCachingAgent(credentials, objectMapper, registry, index, credentials.cacheThreads)
     }
 
     return agents

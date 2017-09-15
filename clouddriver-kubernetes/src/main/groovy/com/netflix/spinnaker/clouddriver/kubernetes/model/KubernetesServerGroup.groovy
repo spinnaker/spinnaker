@@ -20,6 +20,7 @@ import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider
 import com.netflix.spinnaker.clouddriver.kubernetes.api.KubernetesApiAdaptor
 import com.netflix.spinnaker.clouddriver.kubernetes.api.KubernetesApiConverter
+import com.netflix.spinnaker.clouddriver.kubernetes.api.KubernetesClientApiConverter
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.KubernetesUtil
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.DeployKubernetesAtomicOperationDescription
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesContainerDescription
@@ -32,6 +33,8 @@ import io.fabric8.kubernetes.api.model.HorizontalPodAutoscaler
 import io.fabric8.kubernetes.api.model.ReplicationController
 import io.fabric8.kubernetes.api.model.extensions.ReplicaSet
 import io.fabric8.kubernetes.client.internal.SerializationUtils
+import io.kubernetes.client.models.V1beta1DaemonSet
+import io.kubernetes.client.models.V1beta1StatefulSet
 
 @CompileStatic
 @EqualsAndHashCode(includes = ["name", "namespace", "account"])
@@ -63,16 +66,20 @@ class KubernetesServerGroup implements ServerGroup, Serializable {
   Map<String, Object> getBuildInfo() {
     def imageList = []
     def buildInfo = [:]
-    for (def container : this.deployDescription.containers) {
-      imageList.add(KubernetesUtil.getImageIdWithoutRegistry(container.imageDescription))
+    /**
+     * I have added a null check as in statefullset deployDescription is null
+     */
+    if (deployDescription != null) {
+      for (def container : this.deployDescription.containers) {
+        imageList.add(KubernetesUtil.getImageIdWithoutRegistry(container.imageDescription))
+      }
+
+      buildInfo.images = imageList
+
+      def parsedName = Names.parseName(name)
+
+      buildInfo.createdBy = this.deployDescription?.deployment?.enabled ? parsedName.cluster : null
     }
-
-    buildInfo.images = imageList
-
-    def parsedName = Names.parseName(name)
-
-    buildInfo.createdBy = this.deployDescription?.deployment?.enabled ? parsedName.cluster : null
-
     return buildInfo
   }
 
@@ -100,6 +107,43 @@ class KubernetesServerGroup implements ServerGroup, Serializable {
     this.name = name
     this.region = namespace
     this.namespace = namespace
+  }
+
+  KubernetesServerGroup(V1beta1StatefulSet statefulSet, String account, List<Event> events) {
+    this.name = statefulSet.metadata?.name
+    this.account = account
+    this.region = statefulSet.metadata?.namespace
+    this.namespace = this.region
+    this.createdTime = statefulSet.metadata?.creationTimestamp?.getMillis()
+    this.zones = [this.region] as Set
+    this.securityGroups = []
+    this.replicas = statefulSet.spec?.replicas ?: 0
+    this.launchConfig = [:]
+    this.labels = statefulSet.spec?.template?.metadata?.labels
+    this.deployDescription = KubernetesClientApiConverter.fromStatefulSet(statefulSet)
+    this.yaml = KubernetesClientApiConverter.getYaml(statefulSet)
+    this.kind = statefulSet.kind
+    this.events = events?.collect {
+      new KubernetesEvent(it)
+    }
+  }
+
+  KubernetesServerGroup(V1beta1DaemonSet daemonSet, String account, List<Event> events) {
+    this.name = daemonSet.metadata?.name
+    this.account = account
+    this.region = daemonSet.metadata?.namespace
+    this.namespace = this.region
+    this.createdTime = daemonSet.metadata?.creationTimestamp?.getMillis()
+    this.zones = [this.region] as Set
+    this.securityGroups = []
+    this.launchConfig = [:]
+    this.labels = daemonSet.spec?.template?.metadata?.labels
+    this.deployDescription = KubernetesClientApiConverter.fromDaemonSet(daemonSet)
+    this.yaml = KubernetesClientApiConverter.getYaml(daemonSet)
+    this.kind = daemonSet.kind
+    this.events = events?.collect {
+      new KubernetesEvent(it)
+    }
   }
 
   KubernetesServerGroup(ReplicaSet replicaSet, String account, List<Event> events, HorizontalPodAutoscaler autoscaler) {

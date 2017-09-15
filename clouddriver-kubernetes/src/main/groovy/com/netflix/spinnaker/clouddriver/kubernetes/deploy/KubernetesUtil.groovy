@@ -35,6 +35,8 @@ class KubernetesUtil {
   static String SERVER_GROUP_KIND = "ReplicaSet"
   static String DEPLOYMENT_KIND = "Deployment"
   static String JOB_LABEL = "job"
+  static String CONTROLLERS_STATEFULSET_KIND = "StatefulSet"
+  static String CONTROLLERS_DAEMONSET_KIND = "DaemonSet"
   @Value("kubernetes.defaultRegistry:gcr.io")
   static String DEFAULT_REGISTRY
   private static int SECURITY_GROUP_LABEL_PREFIX_LENGTH = SECURITY_GROUP_LABEL_PREFIX.length()

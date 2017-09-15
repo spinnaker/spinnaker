@@ -19,12 +19,15 @@ package com.netflix.spinnaker.clouddriver.kubernetes.deploy.ops.servergroup
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.deploy.DeploymentResult
-import com.netflix.spinnaker.clouddriver.kubernetes.api.KubernetesApiConverter
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.KubernetesServerGroupNameResolver
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.KubernetesUtil
+import com.netflix.spinnaker.clouddriver.kubernetes.api.KubernetesApiConverter
+import com.netflix.spinnaker.clouddriver.kubernetes.api.KubernetesClientApiConverter
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.autoscaler.KubernetesAutoscalerDescription
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.DeployKubernetesAtomicOperationDescription
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.exception.KubernetesResourceNotFoundException
+import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials
+import com.netflix.spinnaker.clouddriver.kubernetes.v1.security.KubernetesV1Credentials
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import io.fabric8.kubernetes.api.model.HasMetadata
 import io.fabric8.kubernetes.api.model.extensions.DeploymentBuilder
@@ -75,6 +78,10 @@ class DeployKubernetesAtomicOperation implements AtomicOperation<DeploymentResul
 
     def serverGroupNameResolver = new KubernetesServerGroupNameResolver(namespace, credentials)
     def clusterName = serverGroupNameResolver.combineAppStackDetail(description.application, description.stack, description.freeFormDetails)
+
+    if (description.kind) {
+      return deployController(credentials, clusterName, namespace)
+    }
 
     task.updateStatus BASE_PHASE, "Looking up next sequence index for cluster ${clusterName}..."
 
@@ -140,5 +147,37 @@ class DeployKubernetesAtomicOperation implements AtomicOperation<DeploymentResul
     }
 
     return replicaSet
+  }
+
+  HasMetadata deployController(KubernetesV1Credentials credentials, String controllerName, String namespace) {
+    def controllerSet
+    if (description.kind == KubernetesUtil.CONTROLLERS_STATEFULSET_KIND) {
+      task.updateStatus BASE_PHASE, "Building stateful set..."
+      controllerSet = KubernetesClientApiConverter.toStatefulSet(description, controllerName)
+
+      task.updateStatus BASE_PHASE, "Deployed stateful set ${controllerSet.metadata.name}"
+      controllerSet = credentials.clientApiAdaptor.createStatfulSet(namespace, controllerSet)
+
+      if (description.scalingPolicy) {
+        task.updateStatus BASE_PHASE, "Attaching a horizontal pod autoscaler..."
+
+        def autoscaler = KubernetesClientApiConverter.toAutoscaler(new KubernetesAutoscalerDescription(controllerName, description), controllerName, description.kind)
+
+        if (credentials.clientApiAdaptor.getAutoscaler(namespace, controllerName)) {
+          credentials.clientApiAdaptor.deleteAutoscaler(namespace, controllerName)
+        }
+
+        credentials.clientApiAdaptor.createAutoscaler(namespace, autoscaler)
+      }
+    }
+    else if (description.kind == KubernetesUtil.CONTROLLERS_DAEMONSET_KIND) {
+      task.updateStatus BASE_PHASE, "Building daemonset set..."
+      controllerSet = KubernetesClientApiConverter.toDaemonSet(description, controllerName)
+
+      task.updateStatus BASE_PHASE, "Deployed daemonset set ${controllerSet.metadata.name}"
+      controllerSet = credentials.clientApiAdaptor.createDaemonSet(namespace, controllerSet)
+    }
+
+    return KubernetesClientApiConverter.toKubernetesController(controllerSet)
   }
 }

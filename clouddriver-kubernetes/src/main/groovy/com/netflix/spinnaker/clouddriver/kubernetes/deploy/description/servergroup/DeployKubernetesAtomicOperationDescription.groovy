@@ -40,16 +40,20 @@ class DeployKubernetesAtomicOperationDescription extends KubernetesAtomicOperati
   Capacity capacity
   KubernetesScalingPolicy scalingPolicy
   Map<String, String> replicaSetAnnotations
+  Map<String, String> controllerAnnotations
   Map<String, String> podAnnotations
+  Map<String, String> volumeAnnotations
   Map<String, String> nodeSelector
   KubernetesSecurityContext securityContext
   KubernetesDeployment deployment
+  KubernetesStrategy updateStrategy
   Long terminationGracePeriodSeconds
   String serviceAccountName
   Integer sequence
   KubernetesPodSpecDescription podSpec
   KubernetesDnsPolicy dnsPolicy
   Source source
+  List<KubernetesPersistentVolumeClaimDescription> volumeClaims
 
   @JsonIgnore
   Set<String> imagePullSecrets
@@ -445,3 +449,34 @@ class Source {
   String account
   Boolean useSourceCapacity
 }
+
+class KubernetesPersistentVolumeClaimDescription {
+  String claimName
+  List<String> accessModes
+  KubernetesPeristentResourceRequirement requirements
+  KubernetesPersistentLabelSelector selector
+  String storageClassName
+}
+
+@AutoClone
+@Canonical
+class KubernetesPeristentResourceRequirement {
+  Map<String, String> limits
+  Map<String, String> requests
+}
+
+@AutoClone
+@Canonical
+class KubernetesPersistentLabelSelector {
+  List<KubernetesLabelSelectorRequirements> matchExpressions
+  Map<String, String> matchLabels
+}
+
+@AutoClone
+@Canonical
+class KubernetesLabelSelectorRequirements {
+  String key
+  String operator
+  List<String> values
+}
+
