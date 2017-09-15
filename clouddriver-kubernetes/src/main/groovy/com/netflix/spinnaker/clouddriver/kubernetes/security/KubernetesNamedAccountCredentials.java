@@ -133,6 +133,14 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials> 
     return cacheThreads;
   }
 
+  public List<LinkedDockerRegistryConfiguration> getDockerRegistries() {
+    return dockerRegistries;
+  }
+
+  public Permissions getPermissions() {
+    return permissions;
+  }
+
   @Override
   public List<String> getRequiredGroupMembership() {
     return requiredGroupMembership;
