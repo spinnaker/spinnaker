@@ -62,11 +62,12 @@ class InMemoryQueue(
   }
 
   override fun push(message: Message, delay: TemporalAmount) {
-    if (queue.none { it.payload == message }) {
-      queue.put(Envelope(message, clock.instant().plus(delay), clock))
-      fire<MessagePushed>(message)
-    } else {
+    val existed = queue.removeIf { it.payload == message }
+    queue.put(Envelope(message, clock.instant().plus(delay), clock))
+    if (existed) {
       fire<MessageDuplicate>(message)
+    } else {
+      fire<MessagePushed>(message)
     }
   }
 
@@ -79,12 +80,13 @@ class InMemoryQueue(
         deadMessageHandler.invoke(this, message.payload)
         fire<MessageDead>()
       } else {
-        if (queue.none { it.payload == message.payload }) {
-          log.warn("redelivering unacked message ${message.payload}")
-          queue.put(message.copy(scheduledTime = now, count = message.count + 1))
-          fire<MessageRetried>()
-        } else {
+        val existed = queue.removeIf { it.payload == message.payload }
+        log.warn("redelivering unacked message ${message.payload}")
+        queue.put(message.copy(scheduledTime = now, count = message.count + 1))
+        if (existed) {
           fire<MessageDuplicate>(message.payload)
+        } else {
+          fire<MessageRetried>()
         }
       }
     }

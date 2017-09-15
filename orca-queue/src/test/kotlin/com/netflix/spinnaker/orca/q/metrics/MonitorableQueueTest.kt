@@ -35,7 +35,6 @@ import java.time.Duration
 
 abstract class MonitorableQueueTest<out Q : MonitorableQueue>(
   createQueue: (Clock, DeadMessageCallback, ApplicationEventPublisher?) -> Q,
-  triggerRedeliveryCheck: Q.() -> Unit,
   shutdownCallback: (() -> Unit)? = null
 ) : Spek({
 
@@ -216,8 +215,10 @@ abstract class MonitorableQueueTest<out Q : MonitorableQueue>(
       }
 
       on("checking for unacknowledged messages") {
-        clock.incrementBy(queue!!.ackTimeout)
-        triggerRedeliveryCheck.invoke(queue!!)
+        with(queue!!) {
+          clock.incrementBy(ackTimeout)
+          retry()
+        }
       }
 
       it("fires an event") {
@@ -236,8 +237,10 @@ abstract class MonitorableQueueTest<out Q : MonitorableQueue>(
       }
 
       on("checking for unacknowledged messages") {
-        clock.incrementBy(queue!!.ackTimeout)
-        triggerRedeliveryCheck.invoke(queue!!)
+        with(queue!!) {
+          clock.incrementBy(ackTimeout)
+          retry()
+        }
       }
 
       it("fires an event indicating the message is being retried") {
@@ -269,8 +272,10 @@ abstract class MonitorableQueueTest<out Q : MonitorableQueue>(
       }
 
       on("checking for unacknowledged messages") {
-        clock.incrementBy(queue!!.ackTimeout)
-        triggerRedeliveryCheck.invoke(queue!!)
+        with(queue!!) {
+          clock.incrementBy(ackTimeout)
+          retry()
+        }
       }
 
       it("fires an event indicating the message is a duplicate") {
@@ -297,9 +302,11 @@ abstract class MonitorableQueueTest<out Q : MonitorableQueue>(
 
       on("failing to acknowledge the message ${Queue.maxRetries} times") {
         (1..Queue.maxRetries).forEach {
-          queue!!.poll { _, _ -> }
-          clock.incrementBy(queue!!.ackTimeout)
-          triggerRedeliveryCheck.invoke(queue!!)
+          with(queue!!) {
+            poll { _, _ -> }
+            clock.incrementBy(ackTimeout)
+            retry()
+          }
         }
       }
 

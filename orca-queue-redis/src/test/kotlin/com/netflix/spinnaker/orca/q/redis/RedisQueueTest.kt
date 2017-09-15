@@ -29,7 +29,6 @@ object RedisQueueTest : QueueTest<RedisQueue>(createQueue(p3 = null), ::shutdown
 
 object RedisMonitorableQueueTest : MonitorableQueueTest<RedisQueue>(
   createQueue,
-  RedisQueue::retry,
   ::shutdownCallback
 )
 

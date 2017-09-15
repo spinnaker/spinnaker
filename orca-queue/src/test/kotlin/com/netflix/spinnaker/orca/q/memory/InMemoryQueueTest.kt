@@ -27,8 +27,7 @@ import java.time.Clock
 object InMemoryQueueTest : QueueTest<InMemoryQueue>(createQueue(p3 = null))
 
 object InMemoryMonitorableQueueTest : MonitorableQueueTest<InMemoryQueue>(
-  createQueue,
-  InMemoryQueue::retry
+  createQueue
 )
 
 private val createQueue = {

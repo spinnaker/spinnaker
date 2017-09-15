@@ -100,7 +100,8 @@ class RedisQueue(
     pool.resource.use { redis ->
       val fingerprint = message.hash()
       if (redis.zismember(queueKey, fingerprint)) {
-        log.warn("Ignoring message as an identical one is already on the queue: $fingerprint, message: $message")
+        log.warn("Re-prioritizing message as an identical one is already on the queue: $fingerprint, message: $message")
+        redis.zadd(queueKey, score(delay), fingerprint)
         fire<MessageDuplicate>(message)
       } else {
         redis.queueMessage(message, delay)
@@ -135,10 +136,11 @@ class RedisQueue(
                 redis
                   .multi {
                     zrem(unackedKey, fingerprint)
+                    zadd(queueKey, score(), fingerprint)
                     // we only need to read the message for metrics purposes
                     hget(messagesKey, fingerprint)
                   }
-                  .let { (_, json) ->
+                  .let { (_, _, json) ->
                     mapper
                       .readValue<Message>(json as String)
                       .let { message ->
