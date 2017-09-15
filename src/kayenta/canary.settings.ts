@@ -6,6 +6,7 @@ export interface ICanarySettings {
   storageAccountName: string;
   judge: string;
   metricStore: string;
+  defaultServiceSettings: {[key: string]: any};
 }
 
 export const CanarySettings = <ICanarySettings>SETTINGS.canary;

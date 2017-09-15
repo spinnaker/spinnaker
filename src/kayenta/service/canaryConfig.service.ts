@@ -6,7 +6,6 @@ import { ICanaryState } from '../reducers/index';
 import { localConfigCache } from './localConfigCache.service';
 import {
   ICanaryMetricConfig,
-  ICanaryServiceConfig,
   IJudge,
   ICanaryConfigSummary,
   ICanaryConfig
@@ -99,7 +98,7 @@ export function buildNewConfig(state: ICanaryState): ICanaryConfig {
     isNew: true,
     metrics: [] as ICanaryMetricConfig[],
     configVersion: '1',
-    services: {} as {[key: string]: ICanaryServiceConfig},
+    services: CanarySettings.defaultServiceSettings[CanarySettings.metricStore],
     classifier: {
       groupWeights: {} as {[key: string]: number},
       scoreThresholds: {
