@@ -17,6 +17,9 @@
 
 package com.netflix.spinnaker.orca.front50.migrations
 
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
+import java.util.function.Function
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.orca.ExecutionStatus
@@ -38,9 +41,6 @@ import redis.clients.jedis.Jedis
 import redis.clients.util.Pool
 import rx.Observable
 import rx.schedulers.Schedulers
-
-import java.util.concurrent.TimeUnit
-import java.util.function.Function
 
 @Slf4j
 @Component
@@ -68,9 +68,9 @@ class MultiRedisOrchestrationMigrationNotificationAgent extends AbstractPollingN
     this.jedisPool = jedisPool
     this.jedisPoolPrevious = jedisPoolPrevious
 
-    def queryAllScheduler = Schedulers.from(JedisExecutionRepository.newFixedThreadPool(registry, 1, "QueryAll"))
-    def queryByAppScheduler = Schedulers.from(JedisExecutionRepository.newFixedThreadPool(registry, 1, "QueryByApp"))
-    this.executionRepositoryPrevious = new JedisExecutionRepository(jedisPoolPrevious, Optional.empty(), queryAllScheduler, queryByAppScheduler, 75)
+    def queryAllScheduler = Schedulers.from(Executors.newFixedThreadPool(1))
+    def queryByAppScheduler = Schedulers.from(Executors.newFixedThreadPool(1))
+    this.executionRepositoryPrevious = new JedisExecutionRepository(registry, jedisPoolPrevious, Optional.empty(), queryAllScheduler, queryByAppScheduler, 75)
   }
 
   @Override

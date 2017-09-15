@@ -16,12 +16,12 @@
 
 package com.netflix.spinnaker.orca.pipeline.persistence.jedis
 
+import java.util.concurrent.Executors
 import java.util.function.Function
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.config.OrcaConfiguration
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.model.*
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException
@@ -32,7 +32,6 @@ import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor
 import org.springframework.stereotype.Component
 import redis.clients.jedis.Jedis
 import redis.clients.jedis.Response
@@ -70,49 +69,36 @@ class JedisExecutionRepository implements ExecutionRepository {
 
   @Autowired
   JedisExecutionRepository(
-      Registry registry,
-      @Qualifier("jedisPool") Pool<Jedis> jedisPool,
-      @Qualifier("jedisPoolPrevious") Optional<Pool<Jedis>> jedisPoolPrevious,
-      @Value('${threadPool.executionRepository:150}') int threadPoolSize,
-      @Value('${chunkSize.executionRepository:75}') int threadPoolChunkSize
-  ) {
-    this(
-      jedisPool,
-      jedisPoolPrevious,
-      Schedulers.from(newFixedThreadPool(registry, 10, "QueryAll")),
-      Schedulers.from(newFixedThreadPool(registry, threadPoolSize, "QueryByApp")),
-      threadPoolChunkSize
-    )
-    this.registry = registry
-  }
-
-  JedisExecutionRepository(
     Registry registry,
-    Pool<Jedis> jedisPool,
-    int threadPoolSize,
-    int threadPoolChunkSize
-  ) {
-    this(
-      jedisPool,
-      Optional.empty(),
-      Schedulers.from(newFixedThreadPool(registry, 10, "QueryAll")),
-      Schedulers.from(newFixedThreadPool(registry, threadPoolSize, "QueryByApp")),
-      threadPoolChunkSize
-    )
-  }
-
-  JedisExecutionRepository(
-    Pool<Jedis> jedisPool,
-    Optional<Pool<Jedis>> jedisPoolPrevious,
-    Scheduler queryAllScheduler,
-    Scheduler queryByAppScheduler,
-    int threadPoolChunkSize
+    @Qualifier("jedisPool") Pool<Jedis> jedisPool,
+    @Qualifier("jedisPoolPrevious") Optional<Pool<Jedis>> jedisPoolPrevious,
+    @Qualifier("queryAllScheduler") Scheduler queryAllScheduler,
+    @Qualifier("queryByAppScheduler") Scheduler queryByAppScheduler,
+    @Value('${chunkSize.executionRepository:75}') int threadPoolChunkSize
   ) {
     this.jedisPool = jedisPool
     this.jedisPoolPrevious = jedisPoolPrevious
     this.queryAllScheduler = queryAllScheduler
     this.queryByAppScheduler = queryByAppScheduler
     this.chunkSize = threadPoolChunkSize
+    this.registry = registry
+  }
+
+  JedisExecutionRepository(
+    Registry registry,
+    Pool<Jedis> jedisPool,
+    Optional<Pool<Jedis>> jedisPoolPrevious,
+    int threadPoolSize,
+    int threadPoolChunkSize
+  ) {
+    this(
+      registry,
+      jedisPool,
+      jedisPoolPrevious,
+      Schedulers.from(Executors.newFixedThreadPool(10)),
+      Schedulers.from(Executors.newFixedThreadPool(threadPoolSize)),
+      threadPoolChunkSize
+    )
   }
 
   @Override
@@ -824,13 +810,5 @@ class JedisExecutionRepository implements ExecutionRepository {
 
   private Collection<Pool<Jedis>> allJedis() {
     return ([jedisPool] + (jedisPoolPrevious.present ? [jedisPoolPrevious.get()] : []))
-  }
-
-  private static ThreadPoolTaskExecutor newFixedThreadPool(Registry registry,
-                                                           int threadPoolSize,
-                                                           String threadPoolName) {
-    def executor = new ThreadPoolTaskExecutor(maxPoolSize: threadPoolSize, corePoolSize: threadPoolSize)
-    executor.afterPropertiesSet()
-    return OrcaConfiguration.applyThreadPoolMetrics(registry, executor, threadPoolName)
   }
 }

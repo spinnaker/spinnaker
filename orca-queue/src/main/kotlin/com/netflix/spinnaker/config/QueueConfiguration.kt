@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.config
 
 import com.netflix.spectator.api.Registry
-import com.netflix.spinnaker.orca.config.OrcaConfiguration.applyThreadPoolMetrics
 import com.netflix.spinnaker.orca.log.BlackholeExecutionLogRepository
 import com.netflix.spinnaker.orca.log.ExecutionLogRepository
 import com.netflix.spinnaker.orca.q.Queue
@@ -34,16 +33,17 @@ import org.springframework.context.event.SimpleApplicationEventMulticaster
 import org.springframework.scheduling.annotation.EnableScheduling
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor
 import java.time.Clock
-import java.util.concurrent.ThreadPoolExecutor
 
 @Configuration
 @ComponentScan(basePackages = arrayOf("com.netflix.spinnaker.orca.q", "com.netflix.spinnaker.orca.log", "com.netflix.spinnaker.orca.q.trafficshaping"))
 @EnableScheduling
 open class QueueConfiguration {
-  @Bean @ConditionalOnMissingBean(Clock::class)
+  @Bean
+  @ConditionalOnMissingBean(Clock::class)
   open fun systemClock(): Clock = Clock.systemDefaultZone()
 
-  @Bean(name = arrayOf("queueImpl")) @ConditionalOnMissingBean(Queue::class)
+  @Bean(name = arrayOf("queueImpl"))
+  @ConditionalOnMissingBean(Queue::class)
   open fun inMemoryQueue(clock: Clock, deadMessageHandler: DeadMessageHandler, publisher: ApplicationEventPublisher) =
     InMemoryQueue(
       clock = clock,
@@ -51,20 +51,17 @@ open class QueueConfiguration {
       publisher = publisher
     )
 
-  @Bean @ConditionalOnMissingBean(ExecutionLogRepository::class)
+  @Bean
+  @ConditionalOnMissingBean(ExecutionLogRepository::class)
   open fun executionLogRepository(): ExecutionLogRepository = BlackholeExecutionLogRepository()
 
   @Bean
   open fun messageHandlerPool(registry: Registry): ThreadPoolTaskExecutor =
-    applyThreadPoolMetrics(
-      registry,
-      ThreadPoolTaskExecutor().apply {
-        corePoolSize = 20
-        maxPoolSize = 20
-        setQueueCapacity(0)
-      },
-      "messageHandler"
-    )
+    ThreadPoolTaskExecutor().apply {
+      corePoolSize = 20
+      maxPoolSize = 20
+      setQueueCapacity(0)
+    }
 
   /**
    * This overrides Spring's default application event multicaster as we need
@@ -81,12 +78,8 @@ open class QueueConfiguration {
     }
 
   @Bean open fun applicationEventTaskExecutor(registry: Registry): ThreadPoolTaskExecutor =
-    applyThreadPoolMetrics(
-      registry,
-      ThreadPoolTaskExecutor().apply {
-        corePoolSize = 20
-        maxPoolSize = 20
-      },
-      "applicationEventMulticaster"
-    )
+    ThreadPoolTaskExecutor().apply {
+      corePoolSize = 20
+      maxPoolSize = 20
+    }
 }
