@@ -29,6 +29,7 @@ public class AuthenticatedRequest {
   public static final String SPINNAKER_USER = "X-SPINNAKER-USER";
   public static final String SPINNAKER_ACCOUNTS = "X-SPINNAKER-ACCOUNTS";
   public static final String SPINNAKER_USER_ORIGIN = "X-SPINNAKER-USER-ORIGIN";
+  public static final String SPINNAKER_REQUEST_ID = "X-SPINNAKER-REQUEST-ID";
 
   public static <V> Callable<V> propagate(Callable<V> closure) {
     return propagate(closure, true, principal());
@@ -52,6 +53,7 @@ public class AuthenticatedRequest {
         MDC.remove(SPINNAKER_USER);
         MDC.remove(SPINNAKER_ACCOUNTS);
         MDC.remove(SPINNAKER_USER_ORIGIN);
+        MDC.remove(SPINNAKER_REQUEST_ID);
         return closure.call();
       };
     }
@@ -61,6 +63,7 @@ public class AuthenticatedRequest {
     return () -> {
       String originalSpinnakerUser = MDC.get(SPINNAKER_USER);
       String originalSpinnakerAccounts = MDC.get(SPINNAKER_ACCOUNTS);
+      String originalSpinnakerRequestId = MDC.get(SPINNAKER_REQUEST_ID);
       try {
         MDC.put(SPINNAKER_USER, spinnakerUser);
         if (spinnakerAccounts != null) {
@@ -83,6 +86,10 @@ public class AuthenticatedRequest {
         if (originalSpinnakerAccounts != null && restoreOriginalContext) {
           MDC.put(SPINNAKER_ACCOUNTS, originalSpinnakerAccounts);
         }
+
+        if (originalSpinnakerRequestId != null && restoreOriginalContext) {
+          MDC.put(SPINNAKER_REQUEST_ID, originalSpinnakerRequestId);
+        }
       }
     };
   }
@@ -92,6 +99,7 @@ public class AuthenticatedRequest {
     headers.put(SPINNAKER_USER, getSpinnakerUser());
     headers.put(SPINNAKER_ACCOUNTS, getSpinnakerAccounts());
     headers.put(SPINNAKER_USER_ORIGIN, getSpinnakerUserOrigin());
+    headers.put(SPINNAKER_REQUEST_ID, getSpinnakerRequestId());
     return headers;
   }
 
@@ -135,5 +143,9 @@ public class AuthenticatedRequest {
 
   public static Optional<String> getSpinnakerUserOrigin() {
     return Optional.ofNullable(MDC.get(SPINNAKER_USER_ORIGIN));
+  }
+
+  private static Optional<String> getSpinnakerRequestId() {
+    return Optional.ofNullable(MDC.get(SPINNAKER_REQUEST_ID));
   }
 }
