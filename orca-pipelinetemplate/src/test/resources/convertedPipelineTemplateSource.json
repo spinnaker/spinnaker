@@ -1,0 +1,222 @@
+{
+  "appConfig": {},
+  "description": "This is my favorite pipeline!",
+  "executionEngine": "v3",
+  "lastModifiedBy": "example@example.com",
+  "limitConcurrent": true,
+  "notifications": [
+    {
+      "address": "example@example.com",
+      "level": "pipeline",
+      "type": "email",
+      "when": [
+        "pipeline.failed"
+      ]
+    }
+  ],
+  "parallel": true,
+  "parameterConfig": [],
+  "stageCounter": 7,
+  "stages": [
+    {
+      "baseLabel": "release",
+      "baseOs": "trusty",
+      "cloudProviderType": "aws",
+      "enhancedNetworking": false,
+      "extendedAttributes": {},
+      "name": "Bake",
+      "overrideTimeout": true,
+      "package": "orca",
+      "refId": "1",
+      "regions": [
+        "us-east-1",
+        "us-west-1",
+        "us-west-2",
+        "eu-west-1"
+      ],
+      "requisiteStageRefIds": [],
+      "sendNotifications": true,
+      "showAdvancedOptions": true,
+      "stageTimeoutMs": 900000,
+      "storeType": "ebs",
+      "type": "bake",
+      "user": "example@example.com",
+      "vmType": "hvm"
+    },
+    {
+      "clusters": [
+        {
+          "account": "test",
+          "application": "spindemo",
+          "availabilityZones": {
+            "us-west-1": [
+              "us-west-1a",
+              "us-west-1c"
+            ]
+          },
+          "capacity": {
+            "desired": 1,
+            "max": 1,
+            "min": 1
+          },
+          "cloudProvider": "aws",
+          "cooldown": 10,
+          "copySourceCustomBlockDeviceMappings": true,
+          "ebsOptimized": false,
+          "enabledMetrics": [],
+          "freeFormDetails": "demo",
+          "healthCheckGracePeriod": 600,
+          "healthCheckType": "EC2",
+          "iamRole": "myIAMRole",
+          "instanceMonitoring": false,
+          "instanceType": "m3.large",
+          "interestingHealthProviderNames": [
+            "Amazon"
+          ],
+          "keyPair": "keypair",
+          "loadBalancers": [
+            "spindemo-demo-frontend"
+          ],
+          "maxRemainingAsgs": 2,
+          "preferSourceCapacity": true,
+          "provider": "aws",
+          "scaleDown": true,
+          "securityGroups": [],
+          "stack": "test",
+          "strategy": "redblack",
+          "subnetType": "mySubnet",
+          "suspendedProcesses": [],
+          "tags": {},
+          "targetGroups": [],
+          "targetHealthyDeployPercentage": 100,
+          "terminationPolicies": [
+            "Default"
+          ],
+          "useAmiBlockDeviceMappings": false,
+          "useSourceCapacity": true
+        },
+        {
+          "account": "test",
+          "application": "spindemo",
+          "availabilityZones": {
+            "us-east-1": [
+              "us-east-1c",
+              "us-east-1d",
+              "us-east-1e"
+            ]
+          },
+          "capacity": {
+            "desired": 0,
+            "max": 0,
+            "min": 0
+          },
+          "cloudProvider": "aws",
+          "cooldown": 10,
+          "ebsOptimized": false,
+          "freeFormDetails": "demo",
+          "healthCheckGracePeriod": 600,
+          "healthCheckType": "EC2",
+          "iamRole": "myIAMRole",
+          "instanceMonitoring": false,
+          "instanceType": "m3.large",
+          "interestingHealthProviderNames": [
+            "Amazon"
+          ],
+          "keyPair": "keypair",
+          "provider": "aws",
+          "securityGroups": [],
+          "stack": "test",
+          "strategy": "highlander",
+          "subnetType": "mySubnet",
+          "suspendedProcesses": [],
+          "tags": {},
+          "targetHealthyDeployPercentage": 100,
+          "terminationPolicies": [
+            "Default"
+          ],
+          "useSourceCapacity": false
+        }
+      ],
+      "name": "Deploy",
+      "refId": "2",
+      "requisiteStageRefIds": [
+        "1"
+      ],
+      "type": "deploy"
+    },
+    {
+      "name": "Check Preconditions (us-west-1)",
+      "preconditions": [
+        {
+          "context": {
+            "cluster": "spindemo-test-demo",
+            "comparison": "<=",
+            "credentials": "test",
+            "expected": 2,
+            "regions": [
+              "us-west-1"
+            ]
+          },
+          "failPipeline": true,
+          "type": "clusterSize"
+        }
+      ],
+      "refId": "6",
+      "requisiteStageRefIds": [
+        "8"
+      ],
+      "type": "checkPreconditions"
+    },
+    {
+      "completeOtherBranchesThenFail": false,
+      "continuePipeline": false,
+      "failPipeline": true,
+      "name": "Check Preconditions (us-east-1)",
+      "preconditions": [
+        {
+          "context": {
+            "cluster": "spindemo-test-demo",
+            "comparison": "==",
+            "credentials": "test",
+            "expected": 1,
+            "regions": [
+              "us-east-1"
+            ]
+          },
+          "failPipeline": true,
+          "type": "clusterSize"
+        }
+      ],
+      "refId": "7",
+      "requisiteStageRefIds": [
+        "8"
+      ],
+      "type": "checkPreconditions"
+    },
+    {
+      "comments": "Wait 2 min for the clusters to normalize before the precondition asg size checks",
+      "name": "Wait",
+      "refId": "8",
+      "requisiteStageRefIds": [
+        "2"
+      ],
+      "type": "wait",
+      "waitTime": 120
+    }
+  ],
+  "triggers": [
+    {
+      "enabled": false,
+      "job": "ZZ-demo",
+      "master": "myMaster",
+      "type": "jenkins"
+    },
+    {
+      "cronExpression": "0 0/12 * * * ?",
+      "enabled": true,
+      "id": "b2ba0819-dbe5-42bd-a8b0-0499c131711f",
+      "type": "cron"
+    }
+  ],
+  "updateTs": "1504243528000"
+}

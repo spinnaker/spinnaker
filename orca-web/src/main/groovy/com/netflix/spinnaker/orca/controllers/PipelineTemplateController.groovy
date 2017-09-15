@@ -17,11 +17,13 @@ package com.netflix.spinnaker.orca.controllers
 
 import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException
 import com.netflix.spinnaker.orca.pipelinetemplate.PipelineTemplateService
+import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.converter.PipelineTemplateConverter
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.TemplateConfiguration.TemplateSource
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
+import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RequestParam
@@ -42,5 +44,10 @@ class PipelineTemplateController {
     }
 
     pipelineTemplateService.resolveTemplate(new TemplateSource(source: source))
+  }
+
+  @RequestMapping(value = "/convertPipelineToTemplate", method = RequestMethod.POST, produces = 'text/x-yaml')
+  String convertPipelineToPipelineTemplate(@RequestBody Map<String, Object> pipeline) {
+    new PipelineTemplateConverter().convertToPipelineTemplate(pipeline)
   }
 }
