@@ -19,6 +19,10 @@ Primarily tests the deploy operation and upsert load balancer pipeline stage,
 which are relatively complex and not well covered by unit tests.
 
 Sample Usage:
+    Before running this test, verify that the App Engine application
+    in your GCP project has a default service. If it does not, deploy
+    any App Engine version to your application that will use the default service.
+
     Assuming you have created $PASSPHRASE_FILE (which you should chmod 400)
     and $CITEST_ROOT points to the root directory of the citest library.
     The passphrase file can be omited if you run ssh-agent and add
