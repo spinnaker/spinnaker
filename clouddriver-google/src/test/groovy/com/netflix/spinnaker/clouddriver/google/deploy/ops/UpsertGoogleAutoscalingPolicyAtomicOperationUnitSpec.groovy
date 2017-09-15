@@ -33,6 +33,8 @@ import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoscalingPolicy.Cu
 import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
+import com.netflix.spinnaker.clouddriver.google.GoogleApiTestUtils
+
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -93,10 +95,14 @@ class UpsertGoogleAutoscalingPolicyAtomicOperationUnitSpec extends Specification
     // zonal setup
     def autoscalerMock = Mock(Compute.Autoscalers)
     def insertMock = Mock(Compute.Autoscalers.Insert)
+    def zonalTimerId = GoogleApiTestUtils.makeOkId(registry, "compute.autoscalers.insert", [scope: "zonal", zone: ZONE])
+    registry.timer(zonalTimerId)
 
     // regional setup
     def regionAutoscalerMock = Mock(Compute.RegionAutoscalers)
     def regionInsertMock = Mock(Compute.RegionAutoscalers.Insert)
+    def regionalTimerId = GoogleApiTestUtils.makeOkId(registry, "compute.regionAutoscalers.insert", [scope: "regional", region: REGION])
+    registry.timer(regionalTimerId)
 
     @Subject def operation = new UpsertGoogleAutoscalingPolicyAtomicOperation(description)
     operation.registry = registry
@@ -112,23 +118,13 @@ class UpsertGoogleAutoscalingPolicyAtomicOperationUnitSpec extends Specification
       1 * computeMock.regionAutoscalers() >> regionAutoscalerMock
       1 * regionAutoscalerMock.insert(PROJECT_NAME, location, AUTOSCALER) >> regionInsertMock
       1 * regionInsertMock.execute()
-      registry.timer(
-          registry.createId("google.api",
-                [api: "compute.regionAutoscalers.insert",
-                 scope: "regional", region: REGION,
-                 success: "true", statusCode: "0"])  // See GoogleExecutorTraitsSpec
-      ).count() == 1
     } else {
       1 * computeMock.autoscalers() >> autoscalerMock
       1 * autoscalerMock.insert(PROJECT_NAME, location, AUTOSCALER) >> insertMock
       1 * insertMock.execute()
-      registry.timer(
-          registry.createId("google.api",
-                [api: "compute.autoscalers.insert",
-                 scope: "zonal", zone: ZONE,
-                 success: "true", statusCode: "0"])  // See GoogleExecutorTraitsSpec
-      ).count() == 1
     }
+    registry.timer(regionalTimerId).count() == (isRegional ? 1 : 0)
+    registry.timer(zonalTimerId).count() == (isRegional ? 0 : 1)
 
     where:
     isRegional | location
@@ -138,7 +134,7 @@ class UpsertGoogleAutoscalingPolicyAtomicOperationUnitSpec extends Specification
 
   @Unroll
   void "can update zonal and regional scaling policies"() {
-    setup:
+    given:
     def registry = new DefaultRegistry()
     def googleClusterProviderMock = Mock(GoogleClusterProvider)
     def computeMock = Mock(Compute)
@@ -160,10 +156,12 @@ class UpsertGoogleAutoscalingPolicyAtomicOperationUnitSpec extends Specification
     // zonal setup
     def autoscalerMock = Mock(Compute.Autoscalers)
     def updateMock = Mock(Compute.Autoscalers.Update)
+    def zonalTimerId = GoogleApiTestUtils.makeOkId(registry, "compute.autoscalers.update", [scope: "zonal", zone: ZONE])
 
     // regional setup
     def regionAutoscalerMock = Mock(Compute.RegionAutoscalers)
     def regionUpdateMock = Mock(Compute.RegionAutoscalers.Update)
+    def regionalTimerId = GoogleApiTestUtils.makeOkId(registry, "compute.regionAutoscalers.update", [scope: "regional", region: REGION])
 
     @Subject def operation = new UpsertGoogleAutoscalingPolicyAtomicOperation(description)
     operation.registry = registry
@@ -179,23 +177,13 @@ class UpsertGoogleAutoscalingPolicyAtomicOperationUnitSpec extends Specification
       1 * computeMock.regionAutoscalers() >> regionAutoscalerMock
       1 * regionAutoscalerMock.update(PROJECT_NAME, location, AUTOSCALER) >> regionUpdateMock
       1 * regionUpdateMock.execute()
-      registry.timer(
-          registry.createId("google.api",
-                [api: "compute.autoscalers.update",
-                 scope: "regional", region: REGION,,
-                 success: "true", statusCode: "0"])  // See GoogleExecutorTraitsSpec
-      ).count() == 1
     } else {
       1 * computeMock.autoscalers() >> autoscalerMock
       1 * autoscalerMock.update(PROJECT_NAME, location, AUTOSCALER) >> updateMock
       1 * updateMock.execute()
-      registry.timer(
-          registry.createId("google.api",
-                [api: "compute.autoscalers.update",
-                 scope: "zonal", zone: ZONE,
-                 success: "true", statusCode: "0"])  // See GoogleExecutorTraitsSpec
-      ).count() == 1
     }
+    registry.timer(regionalTimerId).count() == (isRegional ? 1 : 0)
+    registry.timer(zonalTimerId).count() == (isRegional ? 0 : 1)
 
     where:
     isRegional | location

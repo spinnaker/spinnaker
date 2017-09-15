@@ -16,6 +16,9 @@
 
 package com.netflix.spinnaker.clouddriver.google
 
+import com.google.api.client.http.HttpHeaders
+import com.google.api.client.http.HttpResponseException
+import com.google.api.client.googleapis.json.GoogleJsonError
 import com.google.api.client.googleapis.services.AbstractGoogleClientRequest
 
 import com.netflix.spectator.api.DefaultRegistry
@@ -25,17 +28,14 @@ import com.netflix.spectator.api.Registry
 import spock.lang.Specification
 import java.util.concurrent.TimeUnit
 
-
 /**
- * Note: These tests always create a statusCode of 0.
+ * Note: These tests always create a statusCode of 0.^[[m
  *       Ideally we'd inject a 200 on success and something else on error.
  *       However it is not possible to do this. The Google API status codes
  *       appear to come from the HTTP response headers, so would need to be
- *       injected there. But to do that requires all kinds of support machinery
  *       which isnt even clear how to do. You'd probably need to mock out the
  *       entire transport. The clouddriver implementation does not have a hook
  *       for that. We could add one in, but using it seems really hard. Instead
- *       we'll assume that the status codes will be correct (since the underlying
  *       API is stable), and that the presence of the 0 indicates the wiring was
  *       all hooked up.
  */
@@ -45,42 +45,50 @@ class GoogleExecutorTraitsSpec extends Specification {
     Registry registry = new DefaultRegistry(clock)
   }
 
-  final String SEE_NOTE = "0"  // See class note
-
   void "increment success timer"() {
-    setup:
+    given:
       def example = new Example()
       def registry = example.registry
+      def lastStatusCode = "0" // see NOTE above
+      def lastStatus = "0xx"
       def request = Mock(AbstractGoogleClientRequest)
-      def tags = [api: "TestApi", success: "true", statusCode: SEE_NOTE, random: "xyz"]
+
+      // See not as to why this is 0
+      def tags = GoogleApiTestUtils.makeTraitsTagMap("TestApi", 0, [random: "xyz"])
 
     when:
       // Put an existing timer with data into the registry to show accumulation
-      registry.timer(registry.createId("google.api", tags)).record(456, TimeUnit.NANOSECONDS)
+      registry.timer(registry.createId("google.api", tags)).record(3, TimeUnit.NANOSECONDS)
       example.timeExecute(request, "TestApi", "random", "xyz")
 
     then:
-      1 * request.execute() >> { example.clock.setMonotonicTime(3 + 1000) }
+      tags == [api: "TestApi", success: "true", statusCode: lastStatusCode, status: lastStatus, random: "xyz"]
+      1 * request.execute() >> { example.clock.setMonotonicTime(456 + 1000) }
       registry.timer(registry.createId("google.api", tags)).count() == 1 + 1
       registry.timer(registry.createId("google.api", tags)).totalTime() == 3 + 456
       registry.timers().count() == 1
   }
 
-  void "increment IOException failure timer"() {
+  void "increment Exception failure timer"() {
     setup:
     def example = new Example()
     def registry = example.registry
     def request = Mock(AbstractGoogleClientRequest)
-    def tags = [api: "TestApi", success: "false", statusCode: SEE_NOTE]
+    def tags = GoogleApiTestUtils.makeTraitsTagMap("TestApi", 543, [:])
 
     when:
+    registry.timer(registry.createId("google.api", tags)).record(3, TimeUnit.NANOSECONDS)
     example.timeExecute(request, "TestApi")
 
     then:
-    1 * request.execute() >> { example.clock.setMonotonicTime(123 + 1000); throw new IOException() }
-    thrown(IOException)
-    registry.timer(registry.createId("google.api", tags)).count() == 1
-    registry.timer(registry.createId("google.api", tags)).totalTime() == 123
+    tags == [api: "TestApi", success: "false", statusCode: "543", status: "5xx"]
+    1 * request.execute() >> {
+        example.clock.setMonotonicTime(123 + 1000);
+        throw GoogleApiTestUtils.makeHttpResponseException(543)
+    }
+    thrown(HttpResponseException)
+    registry.timer(registry.createId("google.api", tags)).count() == 1 + 1
+    registry.timer(registry.createId("google.api", tags)).totalTime() == 123 + 3
     registry.timers().count() == 1
   }
 
@@ -89,16 +97,18 @@ class GoogleExecutorTraitsSpec extends Specification {
       def example = new Example()
       def registry = example.registry
       def request = Mock(AbstractGoogleClientRequest)
-      def tags = [api: "TestApi", success: "false", statusCode: SEE_NOTE]
+      def tags = GoogleApiTestUtils.makeTraitsTagMap("TestApi", -1, [:])
 
     when:
+      registry.timer(registry.createId("google.api", tags)).record(3, TimeUnit.NANOSECONDS)
       example.timeExecute(request, "TestApi")
 
     then:
+      tags == [api: "TestApi", success: "false", statusCode: "-1", status: "-xx"]
       1 * request.execute() >> { example.clock.setMonotonicTime(123 + 1000); throw new NullPointerException() }
       thrown(NullPointerException)
-      registry.timer(registry.createId("google.api", tags)).count() == 1
-      registry.timer(registry.createId("google.api", tags)).totalTime() == 123
+      registry.timer(registry.createId("google.api", tags)).count() == 1 + 1
+      registry.timer(registry.createId("google.api", tags)).totalTime() == 123 + 3
       registry.timers().count() == 1
   }
 }

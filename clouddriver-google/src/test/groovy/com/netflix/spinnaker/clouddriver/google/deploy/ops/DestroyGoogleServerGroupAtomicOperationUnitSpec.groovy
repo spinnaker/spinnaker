@@ -38,6 +38,8 @@ import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleIntern
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleLoadBalancerProvider
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
+import com.netflix.spinnaker.clouddriver.google.GoogleApiTestUtils
+
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
@@ -157,15 +159,28 @@ class DestroyGoogleServerGroupAtomicOperationUnitSpec extends Specification {
       def zoneOperations = Mock(Compute.ZoneOperations)
       def zoneOperationsGet = Mock(Compute.ZoneOperations.Get)
       def regionInstanceGroupManagersDeleteMock = Mock(Compute.RegionInstanceGroupManagers.Delete)
+      def regionalInstanceGroupTimerId = GoogleApiTestUtils.makeOkId(
+            registry, "compute.regionInstanceGroupManagers.delete",
+            [scope: "regional", region: REGION])
       def instanceGroupManagersDeleteMock = Mock(Compute.InstanceGroupManagers.Delete)
       def instanceGroupManagersDeleteOp = new Operation(name: INSTANCE_GROUP_OP_NAME, status: DONE)
+      def zonalInstanceGroupTimerId = GoogleApiTestUtils.makeOkId(
+            registry, "compute.instanceGroupManagers.delete",
+            [scope: "zonal", zone: ZONE])
+
       def instanceTemplatesMock = Mock(Compute.InstanceTemplates)
       def instanceTemplatesDeleteMock = Mock(Compute.InstanceTemplates.Delete)
       def regionAutoscalersMock = Mock(Compute.RegionAutoscalers)
       def regionAutoscalersDeleteMock = Mock(Compute.RegionAutoscalers.Delete)
+      def regionalAutoscalerTimerId = GoogleApiTestUtils.makeOkId(
+            registry, "compute.regionAutoscalers.delete",
+            [scope: "regional", region: REGION])
       def autoscalersMock = Mock(Compute.Autoscalers)
       def autoscalersDeleteMock = Mock(Compute.Autoscalers.Delete)
       def autoscalersDeleteOp = new Operation(name: AUTOSCALERS_OP_NAME, status: DONE)
+      def zonalAutoscalerTimerId = GoogleApiTestUtils.makeOkId(
+            registry, "compute.autoscalers.delete",
+            [scope: "zonal", zone: ZONE])
 
       def forwardingRules = Mock(Compute.ForwardingRules)
       def forwardingRulesList = Mock(Compute.ForwardingRules.List)
@@ -214,12 +229,6 @@ class DestroyGoogleServerGroupAtomicOperationUnitSpec extends Specification {
         1 * computeMock.regionOperations() >> regionOperations
         1 * regionOperations.get(PROJECT_NAME, location, AUTOSCALERS_OP_NAME) >> regionOperationsGet
         1 * regionOperationsGet.execute() >> autoscalersDeleteOp
-        registry.timer(
-            registry.createId("google.api",
-                  [api: "compute.regionAutoscalers.delete",
-                   scope: "regional", region: REGION,
-                   success: "true", statusCode: "0"])  // See GoogleExecutorTraitsSpec
-        ).count() == 1
       } else {
         1 * computeMock.autoscalers() >> autoscalersMock
         1 * autoscalersMock.delete(PROJECT_NAME, location, SERVER_GROUP_NAME) >> autoscalersDeleteMock
@@ -228,13 +237,9 @@ class DestroyGoogleServerGroupAtomicOperationUnitSpec extends Specification {
         1 * computeMock.zoneOperations() >> zoneOperations
         1 * zoneOperations.get(PROJECT_NAME, location, AUTOSCALERS_OP_NAME) >> zoneOperationsGet
         1 * zoneOperationsGet.execute() >> autoscalersDeleteOp
-        registry.timer(
-            registry.createId("google.api",
-                  [api: "compute.autoscalers.delete",
-                   scope: "zonal", zone: ZONE,
-                   success: "true", statusCode: "0"])  // See GoogleExecutorTraitsSpec
-        ).count() == 1
       }
+      registry.timer(regionalAutoscalerTimerId).count() == (isRegional ? 1 : 0)
+      registry.timer(zonalAutoscalerTimerId).count() == (isRegional ? 0 : 1)
 
     then:
       if (isRegional) {
@@ -245,12 +250,6 @@ class DestroyGoogleServerGroupAtomicOperationUnitSpec extends Specification {
         1 * computeMock.regionOperations() >> regionOperations
         1 * regionOperations.get(PROJECT_NAME, location, INSTANCE_GROUP_OP_NAME) >> regionOperationsGet
         1 * regionOperationsGet.execute() >> instanceGroupManagersDeleteOp
-        registry.timer(
-            registry.createId("google.api",
-                  [api: "compute.regionInstanceGroupManagers.delete",
-                   scope: "regional", region: REGION,
-                   success: "true", statusCode: "0"])  // See GoogleExecutorTraitsSpec
-        ).count() == 1
       } else {
         1 * computeMock.instanceGroupManagers() >> instanceGroupManagersMock
         1 * instanceGroupManagersMock.delete(PROJECT_NAME, location, SERVER_GROUP_NAME) >> instanceGroupManagersDeleteMock
@@ -259,13 +258,9 @@ class DestroyGoogleServerGroupAtomicOperationUnitSpec extends Specification {
         1 * computeMock.zoneOperations() >> zoneOperations
         1 * zoneOperations.get(PROJECT_NAME, location, INSTANCE_GROUP_OP_NAME) >> zoneOperationsGet
         1 * zoneOperationsGet.execute() >> instanceGroupManagersDeleteOp
-        registry.timer(
-            registry.createId("google.api",
-                  [api: "compute.instanceGroupManagers.delete",
-                   scope: "zonal", zone: ZONE,
-                   success: "true", statusCode: "0"])  // See GoogleExecutorTraitsSpec
-        ).count() == 1
       }
+      registry.timer(regionalInstanceGroupTimerId).count() == (isRegional ? 1 : 0)
+      registry.timer(zonalInstanceGroupTimerId).count() == (isRegional ? 0 : 1)
 
     then:
       1 * computeMock.instanceTemplates() >> instanceTemplatesMock

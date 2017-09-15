@@ -16,13 +16,13 @@
 package com.netflix.spinnaker.clouddriver.google
 
 import com.google.api.client.googleapis.batch.BatchRequest
-import com.google.api.client.googleapis.services.AbstractGoogleClientRequest;
+import com.google.api.client.googleapis.services.AbstractGoogleClientRequest
 import com.google.api.client.http.HttpResponseException
 import com.netflix.spectator.api.Clock
 import com.netflix.spectator.api.Id
 import com.netflix.spectator.api.Registry
 
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeUnit
 
 
 trait GoogleExecutorTraits {
@@ -44,12 +44,17 @@ trait GoogleExecutorTraits {
      Registry registry = getRegistry()
      Clock clock = registry.clock()
      long startTime = clock.monotonicTime()
+     int statusCode = 200
 
      try {
        batch.execute()
        success = "true"
+     } catch (HttpResponseException e) {
+       statusCode = e.getStatusCode()
      } finally {
-       def tagDetails = [(TAG_BATCH_CONTEXT): batchContext, "success": success]
+       def status = statusCode.toString()[0] + "xx"
+
+       def tagDetails = [(TAG_BATCH_CONTEXT): batchContext, "success": success, "status": status, "statusCode": statusCode.toString()]
        long nanos = clock.monotonicTime() - startTime
        registry.timer(registry.createId("google.batchExecute", tags).withTags(tagDetails)).record(nanos, TimeUnit.NANOSECONDS)
        registry.counter(registry.createId("google.batchSize", tags).withTags(tagDetails)).increment(batchSize)
@@ -62,16 +67,23 @@ trait GoogleExecutorTraits {
      Registry registry = getRegistry()
      Clock clock = registry.clock()
      long startTime = clock.monotonicTime()
+     int statusCode = -1
 
      try {
        result = request.execute()
        success = "true"
+       statusCode = request.getLastStatusCode()
+     } catch (HttpResponseException e) {
+       statusCode = e.getStatusCode()
+       throw e
      } finally {
        long nanos = clock.monotonicTime() - startTime
-       def tagDetails = ["api": api, "success": success, statusCode: request.getLastStatusCode().toString()]
+       def status = statusCode.toString()[0] + "xx"
+
+       def tagDetails = ["api": api, "success": success, "status": status, "statusCode": statusCode.toString() ]
        registry.timer(registry.createId("google.api", tags).withTags(tagDetails)).record(nanos, TimeUnit.NANOSECONDS)
      }
      return result
   }
 }
-  
+

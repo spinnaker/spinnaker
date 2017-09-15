@@ -35,6 +35,7 @@ import com.netflix.spinnaker.clouddriver.google.model.GoogleNetwork
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleNetworkProvider
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.google.security.TestDefaults
+import com.netflix.spinnaker.clouddriver.google.GoogleApiTestUtils
 import groovy.mock.interceptor.MockFor
 import spock.lang.Specification
 import spock.lang.Subject
@@ -131,10 +132,9 @@ class CreateGoogleInstanceAtomicOperationUnitSpec extends Specification implemen
       1 * instancesMock.insert(PROJECT_NAME, ZONE, _) >> instancesInsertMock
       1 * instancesInsertMock.execute()
       registry.timer(
-          registry.createId("google.api",
-                [api: "compute.instances.insert",
-                 scope: "zonal", zone: ZONE,
-                 success: "true", statusCode: "0"])  // See GoogleExecutorTraitsSpec
+          GoogleApiTestUtils.makeOkId(
+            registry, "compute.instances.insert",
+            [scope: "zonal", zone: ZONE])
       ).count() == 1
   }
 

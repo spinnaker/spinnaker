@@ -27,6 +27,8 @@ import com.netflix.spinnaker.clouddriver.google.model.GoogleInstance
 import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
+import com.netflix.spinnaker.clouddriver.google.GoogleApiTestUtils
+
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -83,6 +85,7 @@ class TerminateGoogleInstancesAtomicOperationUnitSpec extends Specification {
     setup:
       def registry = new DefaultRegistry()
       def computeMock = Mock(Compute)
+      def notFoundException = GoogleApiTestUtils.makeHttpResponseException(404)
       def instancesMock = Mock(Compute.Instances)
       def deleteMock = Mock(Compute.Instances.Delete)
       def credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).compute(computeMock).build()
@@ -106,19 +109,17 @@ class TerminateGoogleInstancesAtomicOperationUnitSpec extends Specification {
       BAD_INSTANCE_IDS.each {
         1 * computeMock.instances() >> instancesMock
         1 * instancesMock.delete(PROJECT_NAME, ZONE, it) >> deleteMock
-        1 * deleteMock.execute() >> { throw new IOException() }
+        1 * deleteMock.execute() >> { throw notFoundException }
       }
       registry.timer(
-          registry.createId("google.api",
-                [api: "compute.instances.delete",
-                 scope: "zonal", zone: ZONE,
-                 success: "true", statusCode: "0"])  // See GoogleExecutorTraitsSpec
+          GoogleApiTestUtils.makeOkId(
+            registry, "compute.instances.delete",
+            [scope: "zonal", zone: ZONE])
       ).count() == GOOD_INSTANCE_IDS.size
       registry.timer(
-          registry.createId("google.api",
-                [api: "compute.instances.delete",
-                 scope: "zonal", zone: ZONE,
-                 success: "false", statusCode: "0"])  // See GoogleExecutorTraitsSpec
+          GoogleApiTestUtils.makeId(
+            registry, "compute.instances.delete", 404,
+            [scope: "zonal", zone: ZONE])
       ).count() == BAD_INSTANCE_IDS.size
       thrown IOException
   }
@@ -140,8 +141,15 @@ class TerminateGoogleInstancesAtomicOperationUnitSpec extends Specification {
       def request = new InstanceGroupManagersRecreateInstancesRequest().setInstances(GOOD_INSTANCE_URLS)
       def regionInstanceGroupManagersMock = Mock(Compute.RegionInstanceGroupManagers)
       def regionInstanceGroupManagersRecreateInstancesMock = Mock(Compute.RegionInstanceGroupManagers.RecreateInstances)
+      def regionalTimerId = GoogleApiTestUtils.makeOkId(
+            registry, "compute.regionInstanceGroupManagers.recreateInstances",
+            [scope: "regional", region: REGION])
+
       def instanceGroupManagersMock = Mock(Compute.InstanceGroupManagers)
       def instanceGroupManagersRecreateInstancesMock = Mock(Compute.InstanceGroupManagers.RecreateInstances)
+      def zonalTimerId = GoogleApiTestUtils.makeOkId(
+            registry, "compute.instanceGroupManagers.recreateInstances",
+            [scope: "zonal", zone: ZONE])
 
       def credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).compute(computeMock).build()
       def description = new TerminateGoogleInstancesDescription(serverGroupName: MANAGED_INSTANCE_GROUP_NAME,
@@ -166,12 +174,6 @@ class TerminateGoogleInstancesAtomicOperationUnitSpec extends Specification {
                                                               MANAGED_INSTANCE_GROUP_NAME,
                                                               request) >> regionInstanceGroupManagersRecreateInstancesMock
         1 * regionInstanceGroupManagersRecreateInstancesMock.execute()
-        registry.timer(
-            registry.createId("google.api",
-                  [api: "compute.regionInstanceGroupManagers.recreateInstances",
-                   scope: "regional", region: REGION,,
-                   success: "true", statusCode: "0"])  // See GoogleExecutorTraitsSpec
-        ).count() == 1
       } else {
         1 * computeMock.instanceGroupManagers() >> instanceGroupManagersMock
         1 * instanceGroupManagersMock.recreateInstances(PROJECT_NAME,
@@ -179,13 +181,9 @@ class TerminateGoogleInstancesAtomicOperationUnitSpec extends Specification {
                                                         MANAGED_INSTANCE_GROUP_NAME,
                                                         request) >> instanceGroupManagersRecreateInstancesMock
         1 * instanceGroupManagersRecreateInstancesMock.execute()
-        registry.timer(
-            registry.createId("google.api",
-                  [api: "compute.instanceGroupManagers.recreateInstances",
-                   scope: "zonal", zone: ZONE,
-                   success: "true", statusCode: "0"])  // See GoogleExecutorTraitsSpec
-        ).count() == 1
       }
+      registry.timer(regionalTimerId).count() == (isRegional ? 1 : 0)
+      registry.timer(zonalTimerId).count() == (isRegional ? 0 : 1)
 
     where:
       isRegional | location
