@@ -65,8 +65,14 @@ class V1SchemaIntegrationSpec extends Specification {
 
   @Unroll
   def 'test "#integration.name"'() {
-    expect:
-    assertReflectionEquals(integration.expected, subject.process(integration.toRequest()), ReflectionComparatorMode.IGNORE_DEFAULTS)
+    given:
+    def expected = integration.expected
+
+    when:
+    def result = subject.process(integration.toRequest())
+
+    then:
+    assertReflectionEquals(expected, result, ReflectionComparatorMode.IGNORE_DEFAULTS)
 
     where:
     integration << new IntegrationTestDataProvider().provide()

@@ -1,0 +1,38 @@
+---
+schema: "1"
+id: modules
+metadata:
+  name: Modules test
+  description: Tests modules functionality
+variables:
+- name: regions
+  type: list
+stages:
+- id: wait
+  type: wait
+  config:
+    someConfig: "{% module wait %}"
+- id: deploy
+  type: deploy
+  dependsOn:
+  - wait
+  config:
+    clusters: |
+      {% for region in regions %}
+      - {% module deployClusterAws region=region %}
+      {% endfor %}
+
+modules:
+- id: wait
+  usage: Defines config for a wait stage
+  definition:
+    foo: 5
+- id: deployClusterAws
+  usage: Defines a deploy stage cluster using the AWS cloud provider
+  variables:
+  - name: region
+    description: The AWS region to deploy into
+  definition:
+    provider: aws
+    account: myAccount
+    region: "{{ region }}"

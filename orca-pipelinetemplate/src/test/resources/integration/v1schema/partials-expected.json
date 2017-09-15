@@ -1,0 +1,44 @@
+{
+  "id": "unknown",
+  "keepWaitingPipelines": false,
+  "limitConcurrent": true,
+  "application": "orca",
+  "name": "Unnamed Execution",
+  "stages": [
+    {
+      "requisiteStageRefIds": [],
+      "name": "firstWait",
+      "id": null,
+      "refId": "firstWait",
+      "type": "wait",
+      "waitTime": 5
+    },
+    {
+      "requisiteStageRefIds": ["firstWait"],
+      "name": "Build chrome",
+      "id": null,
+      "refId": "buildChrome.buildTarget",
+      "type": "jenkins",
+      "group": "buildBrowser: buildChrome",
+      "foo": "bar"
+    },
+    {
+      "requisiteStageRefIds": ["buildChrome.buildTarget"],
+      "name": "Publish chrome",
+      "id": null,
+      "refId": "buildChrome.publishTarget",
+      "type": "jenkins",
+      "group": "buildBrowser: buildChrome",
+      "baz": "bang"
+    },
+    {
+      "requisiteStageRefIds": ["buildChrome.publishTarget"],
+      "name": "finalWait",
+      "id": null,
+      "refId": "finalWait",
+      "type": "wait",
+      "waitTime": 5
+    }
+  ],
+  "notifications": []
+}

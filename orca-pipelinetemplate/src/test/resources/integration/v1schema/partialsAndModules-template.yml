@@ -1,0 +1,42 @@
+---
+schema: "1"
+id: partials
+metadata:
+  name: Partials test
+  description: Tests partials spec
+stages:
+- id: firstWait
+  type: wait
+  config:
+    waitTime: 5
+- id: buildChrome
+  type: partial.buildBrowser
+  dependsOn:
+  - firstWait
+  config:
+    target: chrome
+- id: finalWait
+  type: wait
+  dependsOn:
+  - buildChrome
+  config:
+    waitTime: 5
+
+modules:
+- id: randomConfig
+  variables:
+  - name: target
+  definition: We're building {{ target }}
+
+partials:
+- id: buildBrowser
+  usage: Builds the pipeline artifact targeting the a specified browser.
+  variables:
+  - name: target
+    description: The target browser to build for
+  stages:
+  - id: buildTarget
+    type: jenkins
+    name: Build {{ target }}
+    config:
+      foo: We're building what? {% module randomConfig target=target %}

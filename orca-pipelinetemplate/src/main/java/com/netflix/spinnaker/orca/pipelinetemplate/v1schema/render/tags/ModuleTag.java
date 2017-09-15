@@ -46,7 +46,6 @@ import java.util.function.Supplier;
 public class ModuleTag implements Tag {
 
   private Renderer renderer;
-
   private ObjectMapper objectMapper;
 
   public ModuleTag(Renderer renderer, ObjectMapper pipelineTemplateObjectMapper) {
@@ -144,8 +143,12 @@ public class ModuleTag implements Tag {
       );
     }
 
+    if (rendered instanceof CharSequence) {
+      return (String) rendered;
+    }
+
     try {
-      return new String(objectMapper.writeValueAsBytes(rendered));
+      return objectMapper.writeValueAsString(rendered);
     } catch (JsonProcessingException e) {
       throw TemplateRenderException.fromError(
         new Error()

@@ -1,0 +1,66 @@
+{
+  "keepWaitingPipelines": false,
+  "limitConcurrent": true,
+  "application": "orca",
+  "name": "Stage Injection Test",
+  "stages": [
+    {
+      "requisiteStageRefIds": [],
+      "name": "first",
+      "id": null,
+      "refId": "first",
+      "type": "wait",
+      "waitTime": 5
+    },
+    {
+      "requisiteStageRefIds": ["first"],
+      "name": "wait",
+      "id": null,
+      "refId": "wait",
+      "type": "wait",
+      "waitTime": 5
+    },
+    {
+      "requisiteStageRefIds": ["wait"],
+      "name": "wait3",
+      "id": null,
+      "refId": "wait3",
+      "type": "wait",
+      "waitTime": 5
+    },
+    {
+      "requisiteStageRefIds": ["wait"],
+      "name": "beforeWait2",
+      "id": null,
+      "refId": "beforeWait2",
+      "type": "wait",
+      "waitTime": 5
+    },
+    {
+      "requisiteStageRefIds": ["beforeWait2"],
+      "name": "wait2",
+      "id": null,
+      "refId": "wait2",
+      "type": "wait",
+      "waitTime": 5
+    },
+    {
+      "requisiteStageRefIds": ["wait2"],
+      "name": "afterWait2",
+      "id": null,
+      "refId": "afterWait2",
+      "type": "wait",
+      "waitTime": 5
+    },
+    {
+      "requisiteStageRefIds": ["wait3", "afterWait2"],
+      "name": "last",
+      "id": null,
+      "refId": "last",
+      "type": "wait",
+      "waitTime": 5
+    }
+  ],
+  "id": "unknown",
+  "notifications": []
+}

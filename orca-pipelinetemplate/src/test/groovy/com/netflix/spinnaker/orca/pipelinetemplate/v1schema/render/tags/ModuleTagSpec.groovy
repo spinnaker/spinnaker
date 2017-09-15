@@ -58,7 +58,6 @@ class ModuleTagSpec extends Specification {
     def result = renderer.render('{% module myModule myOtherVar=world, subject=testerName, job=trigger.job %}', context)
 
     then:
-    // The ModuleTag outputs JSON
-    result == '"hello world, Mr. Tester Testington. You triggered myJob"'
+    result == 'hello world, Mr. Tester Testington. You triggered myJob'
   }
 }

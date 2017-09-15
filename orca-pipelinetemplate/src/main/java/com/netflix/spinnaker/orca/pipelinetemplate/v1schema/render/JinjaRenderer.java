@@ -39,9 +39,6 @@ import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.tags.Pipeline
 import com.netflix.spinnaker.orca.pipelinetemplate.validator.Errors;
 import com.netflix.spinnaker.orca.pipelinetemplate.validator.Errors.Error;
 import com.netflix.spinnaker.orca.pipelinetemplate.validator.Errors.Severity;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.yaml.snakeyaml.parser.ParserException;
@@ -49,8 +46,11 @@ import org.yaml.snakeyaml.parser.ParserException;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class JinjaRenderer implements Renderer {
 

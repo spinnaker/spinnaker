@@ -1,0 +1,9 @@
+{
+  "id": "unknown",
+  "keepWaitingPipelines": false,
+  "limitConcurrent": true,
+  "application": "orca",
+  "name": "Unnamed Execution",
+  "stages": [],
+  "notifications": []
+}

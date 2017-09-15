@@ -1,0 +1,39 @@
+{
+  "id": "unknown",
+  "keepWaitingPipelines": false,
+  "limitConcurrent": true,
+  "application": "orca",
+  "name": "Unnamed Execution",
+  "stages": [
+    {
+      "requisiteStageRefIds": [],
+      "name": "wait",
+      "id": null,
+      "refId": "wait",
+      "type": "wait",
+      "someConfig": {
+        "foo": 10
+      }
+    },
+    {
+      "requisiteStageRefIds": ["wait"],
+      "name": "deploy",
+      "id": null,
+      "refId": "deploy",
+      "type": "deploy",
+      "clusters": [
+        {
+          "provider": "aws",
+          "account": "myAccount",
+          "region": "us-east-1"
+        },
+        {
+          "provider": "aws",
+          "account": "myAccount",
+          "region": "us-west-2"
+        }
+      ]
+    }
+  ],
+  "notifications": []
+}

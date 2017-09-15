@@ -15,13 +15,14 @@
  */
 package com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class TemplateModule implements Identifiable {
 
   private String id;
   private String usage;
-  private List<NamedHashMap> variables;
+  private List<NamedHashMap> variables = new ArrayList<>();
   private Object definition;
 
   @Override
