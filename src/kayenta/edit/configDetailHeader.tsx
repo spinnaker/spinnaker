@@ -16,14 +16,16 @@ interface IConfigDetailStateProps {
  */
 function ConfigDetailHeader({ selectedConfig }: IConfigDetailStateProps) {
   return (
-    <div className="row">
-      <div className="col-sm-6">
-        <h2>{selectedConfig ? selectedConfig.name : ''}</h2>
+    <div className="horizontal">
+      <div className="flex-4">
+        <h1 className="heading-1 color-text-primary" style={{marginTop: '10px'}}>Configuration{selectedConfig ? `: ${selectedConfig.name}` : ''}</h1>
       </div>
-      <div className="col-sm-3">
-        <strong>Edited:</strong> <FormattedDate dateIso={selectedConfig ? selectedConfig.updatedTimestampIso : ''}/>
+      <div className="flex-1">
+        <h5 className="heading-5">
+          <strong>Edited:</strong> <FormattedDate dateIso={selectedConfig ? selectedConfig.updatedTimestampIso : ''}/>
+        </h5>
       </div>
-      <div className="col-sm-3">
+      <div className="flex-2">
         <ConfigDetailActionButtons/>
       </div>
     </div>

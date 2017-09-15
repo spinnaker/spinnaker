@@ -48,7 +48,7 @@ const saveConfigEpic = (action$: Observable<Action & any>, store: MiddlewareAPI<
         .catch((error: Error) => ({type: Actions.SAVE_CONFIG_FAILURE, error}));
     });
 
-const deleteConfigEpic = (action$: Observable<Action & any>, store: MiddlewareAPI<ICanaryState>) =>
+const deleteConfigRequestEpic = (action$: Observable<Action & any>, store: MiddlewareAPI<ICanaryState>) =>
   action$
     .filter(action => action.type === Actions.DELETE_CONFIG_REQUEST)
     .concatMap(() =>
@@ -57,7 +57,7 @@ const deleteConfigEpic = (action$: Observable<Action & any>, store: MiddlewareAP
         .catch(error => ({type: Actions.DELETE_CONFIG_FAILURE, error}))
     );
 
-const deleteConfigCompletedEpic = (action$: Observable<Action & any>, store: MiddlewareAPI<ICanaryState>) =>
+const deleteConfigSuccessEpic = (action$: Observable<Action & any>, store: MiddlewareAPI<ICanaryState>) =>
   action$
     .filter(action => action.type === Actions.DELETE_CONFIG_SUCCESS)
     .concatMap(() =>
@@ -72,8 +72,8 @@ const rootEpic = combineEpics(
   loadConfigEpic,
   selectConfigEpic,
   saveConfigEpic,
-  deleteConfigEpic,
-  deleteConfigCompletedEpic,
+  deleteConfigRequestEpic,
+  deleteConfigSuccessEpic,
 );
 
 export const epicMiddleware = createEpicMiddleware(rootEpic);

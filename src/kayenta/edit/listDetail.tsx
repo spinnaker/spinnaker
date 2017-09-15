@@ -13,7 +13,7 @@ interface IListDetailProps {
  */
 export default function ListDetail({ className, list, detail }: IListDetailProps) {
   return (
-    <div className={classNames('container', className)}>
+    <div className={classNames('container', 'row', className)}>
       <div className="col-md-3">
         {list}
       </div>
