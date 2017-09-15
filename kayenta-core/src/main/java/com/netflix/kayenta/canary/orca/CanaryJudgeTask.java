@@ -20,7 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.kayenta.canary.CanaryClassifierThresholdsConfig;
 import com.netflix.kayenta.canary.CanaryConfig;
 import com.netflix.kayenta.canary.CanaryJudge;
-import com.netflix.kayenta.canary.CanaryMetricConfig;
+import com.netflix.kayenta.canary.CanaryJudgeConfig;
 import com.netflix.kayenta.canary.results.CanaryJudgeResult;
 import com.netflix.kayenta.metrics.MetricSetPair;
 import com.netflix.kayenta.security.AccountCredentials;
@@ -33,6 +33,7 @@ import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.RetryableTask;
 import com.netflix.spinnaker.orca.TaskResult;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -87,26 +88,19 @@ public class CanaryJudgeTask implements RetryableTask {
 
     CanaryConfig canaryConfig = storageService.loadObject(resolvedAccountName, ObjectType.CANARY_CONFIG, canaryConfigId.toLowerCase());
     List<MetricSetPair> metricSetPairList = storageService.loadObject(resolvedAccountName, ObjectType.METRIC_SET_PAIR_LIST, metricSetPairListId);
-    List<CanaryMetricConfig> metricConfigList = canaryConfig.getMetrics();
+    CanaryJudgeConfig canaryJudgeConfig = canaryConfig.getJudge();
     CanaryJudge canaryJudge = null;
 
-    if (metricConfigList != null && metricConfigList.size() > 0) {
-      // TODO(duftler): We're just considering the judge reference in the first metric analysis configuration here. Should we be considering each one?
-      Map<String, Map> analysisConfigurations = metricConfigList.get(0).getAnalysisConfigurations();
+    if (canaryJudgeConfig != null) {
+      String judgeName = canaryJudgeConfig.getName();
 
-      if (analysisConfigurations != null && analysisConfigurations.containsKey("canary")) {
-        Map canaryAnalysisConfiguration = analysisConfigurations.get("canary");
-
-        if (canaryAnalysisConfiguration != null && canaryAnalysisConfiguration.containsKey("judge")) {
-          String judgeName = (String)canaryAnalysisConfiguration.get("judge");
-
-          canaryJudge =
-            canaryJudges
-              .stream()
-              .filter(c -> c.getName().equals(judgeName))
-              .findFirst()
-              .orElseThrow(() -> new IllegalArgumentException("Unable to resolve canary judge '" + judgeName + "'."));
-        }
+      if (!StringUtils.isEmpty(judgeName)) {
+        canaryJudge =
+          canaryJudges
+            .stream()
+            .filter(c -> c.getName().equals(judgeName))
+            .findFirst()
+            .orElseThrow(() -> new IllegalArgumentException("Unable to resolve canary judge '" + judgeName + "'."));
       }
     }
 

@@ -2,6 +2,11 @@
   "name": "MySampleStackdriverCanaryConfig",
   "description": "Example Automated Canary Analysis (ACA) Configuration using Stackdriver",
   "configVersion": 1.0,
+  "judge": {
+    "name": "dredd-v1.0",
+    "judgeConfigurations": {
+    }
+  },
   "metrics": [
     {
       "serviceName": "stackdriver",
@@ -11,9 +16,6 @@
         "metricType": "compute.googleapis.com/instance/cpu/utilization"
       },
       "analysisConfigurations": {
-        "canary": {
-          "judge": "dredd-v1.0"
-        }
       },
       "groups": [
         "system"

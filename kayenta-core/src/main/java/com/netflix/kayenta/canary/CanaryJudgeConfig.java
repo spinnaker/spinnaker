@@ -21,12 +21,10 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 import lombok.Singular;
 import lombok.ToString;
 
 import javax.validation.constraints.NotNull;
-import java.util.List;
 import java.util.Map;
 
 @Builder
@@ -34,57 +32,14 @@ import java.util.Map;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class CanaryConfig {
+public class CanaryJudgeConfig {
 
   @NotNull
   @Getter
-  @Setter
-  private Long createdTimestamp;
-
-  @NotNull
-  @Getter
-  @Setter
-  private Long updatedTimestamp;
-
-  @NotNull
-  @Getter
-  @Setter
-  private String createdTimestampIso;
-
-  @NotNull
-  @Getter
-  @Setter
-  private String updatedTimestampIso;
-
-  @NotNull
-  @Getter
-  @Setter
   private String name;
 
   @NotNull
-  @Getter
-  private String description;
-
-  @NotNull
-  @Getter
-  private String configVersion;
-
-  @NotNull
-  @Getter
-  private CanaryJudgeConfig judge;
-
-  @NotNull
   @Singular
   @Getter
-  private List<CanaryMetricConfig> metrics;
-
-  @NotNull
-  @Singular
-  @Getter
-  private Map<String, CanaryServiceConfig> services;
-
-  @NotNull
-  @Getter
-  private CanaryClassifierConfig classifier;
-
+  private Map<String, Object> judgeConfigurations;
 }

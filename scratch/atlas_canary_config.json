@@ -2,6 +2,11 @@
   "name": "MySampleAtlasCanaryConfig",
   "description": "Example Automated Canary Analysis (ACA) Configuration using Atlas",
   "configVersion": "1.0",
+  "judge": {
+    "name": "dredd-v1.0",
+    "judgeConfigurations": {
+    }
+  },
   "metrics": [
     {
       "name": "cpu",
@@ -14,9 +19,6 @@
         "system"
       ],
       "analysisConfigurations": {
-        "canary": {
-          "judge": "dredd-v1.0"
-        }
       }
     },
     {
@@ -30,9 +32,6 @@
         "requests"
       ],
       "analysisConfigurations": {
-        "canary": {
-
-        }
       }
     }
   ],
