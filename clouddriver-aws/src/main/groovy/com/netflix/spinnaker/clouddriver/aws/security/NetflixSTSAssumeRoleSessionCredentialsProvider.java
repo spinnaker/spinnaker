@@ -17,20 +17,37 @@
 package com.netflix.spinnaker.clouddriver.aws.security;
 
 import com.amazonaws.auth.AWSCredentialsProvider;
+import com.amazonaws.auth.AWSSessionCredentials;
+import com.amazonaws.auth.AWSSessionCredentialsProvider;
 import com.amazonaws.auth.STSAssumeRoleSessionCredentialsProvider;
+import com.amazonaws.services.securitytoken.AWSSecurityTokenService;
+import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClient;
 
-public class NetflixSTSAssumeRoleSessionCredentialsProvider extends STSAssumeRoleSessionCredentialsProvider {
+public class NetflixSTSAssumeRoleSessionCredentialsProvider implements AWSSessionCredentialsProvider {
+  private final STSAssumeRoleSessionCredentialsProvider delegate;
   private final String accountId;
+
 
   public NetflixSTSAssumeRoleSessionCredentialsProvider(AWSCredentialsProvider longLivedCredentialsProvider,
                                                         String roleArn,
                                                         String roleSessionName,
                                                         String accountId) {
-    super(longLivedCredentialsProvider, roleArn, roleSessionName);
     this.accountId = accountId;
+    AWSSecurityTokenService stsClient = AWSSecurityTokenServiceClient.builder().withCredentials(longLivedCredentialsProvider).build();
+    delegate = new STSAssumeRoleSessionCredentialsProvider.Builder(roleArn, roleSessionName).withStsClient(stsClient).build();
   }
 
   public String getAccountId() {
     return accountId;
+  }
+
+  @Override
+  public AWSSessionCredentials getCredentials() {
+    return delegate.getCredentials();
+  }
+
+  @Override
+  public void refresh() {
+    delegate.refresh();
   }
 }
