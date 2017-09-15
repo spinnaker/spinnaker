@@ -48,10 +48,10 @@ public class MetricStoresController {
   DaemonTask<Halconfig, MetricStores> getMetricStores(@PathVariable String deploymentName,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity) {
-    DaemonResponse.StaticRequestBuilder<MetricStores> builder = new DaemonResponse.StaticRequestBuilder<>();
+    DaemonResponse.StaticRequestBuilder<MetricStores> builder = new DaemonResponse.StaticRequestBuilder<>(
+            () -> metricStoresService.getMetricStores(deploymentName));
 
     builder.setSeverity(severity);
-    builder.setBuildResponse(() -> metricStoresService.getMetricStores(deploymentName));
 
     if (validate) {
       builder.setValidateResponse(() -> metricStoresService.validateMetricStores(deploymentName));
@@ -65,10 +65,10 @@ public class MetricStoresController {
       @PathVariable String metricStoreType,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity) {
-    DaemonResponse.StaticRequestBuilder<MetricStore> builder = new DaemonResponse.StaticRequestBuilder<>();
+    DaemonResponse.StaticRequestBuilder<MetricStore> builder = new DaemonResponse.StaticRequestBuilder<>(
+            () -> metricStoresService.getMetricStore(deploymentName, metricStoreType));
 
     builder.setSeverity(severity);
-    builder.setBuildResponse(() -> metricStoresService.getMetricStore(deploymentName, metricStoreType));
 
     if (validate) {
       builder.setValidateResponse(() -> metricStoresService.validateMetricStore(deploymentName, metricStoreType));

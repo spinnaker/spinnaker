@@ -48,9 +48,8 @@ public class FeaturesController {
   DaemonTask<Halconfig, Features> getFeatures(@PathVariable String deploymentName,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity) {
-    DaemonResponse.StaticRequestBuilder<Features> builder = new DaemonResponse.StaticRequestBuilder<>();
-
-    builder.setBuildResponse(() -> featuresService.getFeatures(deploymentName));
+    DaemonResponse.StaticRequestBuilder<Features> builder = new DaemonResponse.StaticRequestBuilder<>(
+            () -> featuresService.getFeatures(deploymentName));
 
     return DaemonTaskHandler.submitTask(builder::build, "Get features");
   }

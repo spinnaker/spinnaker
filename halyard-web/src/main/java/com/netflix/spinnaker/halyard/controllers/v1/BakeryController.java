@@ -53,9 +53,8 @@ public class BakeryController {
   DaemonTask<Halconfig, BakeryDefaults> getBakeryDefaults(@PathVariable String deploymentName, @PathVariable String providerName,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity) {
-    DaemonResponse.StaticRequestBuilder<BakeryDefaults> builder = new DaemonResponse.StaticRequestBuilder<>();
-
-    builder.setBuildResponse(() -> bakeryService.getBakeryDefaults(deploymentName, providerName));
+    DaemonResponse.StaticRequestBuilder<BakeryDefaults> builder = new DaemonResponse.StaticRequestBuilder<>(
+            () -> bakeryService.getBakeryDefaults(deploymentName, providerName));
     builder.setSeverity(severity);
 
     if (validate) {
@@ -97,8 +96,8 @@ public class BakeryController {
   DaemonTask<Halconfig, List<BaseImage>> images(@PathVariable String deploymentName, @PathVariable String providerName,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity) {
-    StaticRequestBuilder<List<BaseImage>> builder = new StaticRequestBuilder<>();
-    builder.setBuildResponse(() -> bakeryService.getAllBaseImages(deploymentName, providerName));
+    StaticRequestBuilder<List<BaseImage>> builder = new StaticRequestBuilder<>(
+            () -> bakeryService.getAllBaseImages(deploymentName, providerName));
     builder.setSeverity(severity);
 
     if (validate) {
@@ -115,8 +114,8 @@ public class BakeryController {
       @PathVariable String baseImageId,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity) {
-    StaticRequestBuilder<BaseImage> builder = new StaticRequestBuilder<>();
-    builder.setBuildResponse(() -> bakeryService.getProviderBaseImage(deploymentName, providerName, baseImageId));
+    StaticRequestBuilder<BaseImage> builder = new StaticRequestBuilder<>(
+            () -> bakeryService.getProviderBaseImage(deploymentName, providerName, baseImageId));
     builder.setSeverity(severity);
 
     if (validate) {

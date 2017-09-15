@@ -47,10 +47,9 @@ public class SecurityController {
   DaemonTask<Halconfig, Security> getSecurity(@PathVariable String deploymentName,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity) {
-    DaemonResponse.StaticRequestBuilder<Security> builder = new DaemonResponse.StaticRequestBuilder<>();
+    DaemonResponse.StaticRequestBuilder<Security> builder = new DaemonResponse.StaticRequestBuilder<>(() -> securityService.getSecurity(deploymentName));
 
     builder.setSeverity(severity);
-    builder.setBuildResponse(() -> securityService.getSecurity(deploymentName));
 
     if (validate) {
       builder.setValidateResponse(() -> securityService.validateSecurity(deploymentName));
@@ -63,10 +62,9 @@ public class SecurityController {
   DaemonTask<Halconfig, UiSecurity> getUiSecurity(@PathVariable String deploymentName,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity) {
-    DaemonResponse.StaticRequestBuilder<UiSecurity> builder = new DaemonResponse.StaticRequestBuilder<>();
+    DaemonResponse.StaticRequestBuilder<UiSecurity> builder = new DaemonResponse.StaticRequestBuilder<>(() -> securityService.getUiSecurity(deploymentName));
 
     builder.setSeverity(severity);
-    builder.setBuildResponse(() -> securityService.getUiSecurity(deploymentName));
 
     if (validate) {
       builder.setValidateResponse(() -> securityService.validateUiSecurity(deploymentName));
@@ -102,10 +100,9 @@ public class SecurityController {
   DaemonTask<Halconfig, ApacheSsl> getApacheSsl(@PathVariable String deploymentName,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity) {
-    DaemonResponse.StaticRequestBuilder<ApacheSsl> builder = new DaemonResponse.StaticRequestBuilder<>();
+    DaemonResponse.StaticRequestBuilder<ApacheSsl> builder = new DaemonResponse.StaticRequestBuilder<>(() -> securityService.getApacheSsl(deploymentName));
 
     builder.setSeverity(severity);
-    builder.setBuildResponse(() -> securityService.getApacheSsl(deploymentName));
 
     if (validate) {
       builder.setValidateResponse(() -> securityService.validateUiSecurity(deploymentName));
@@ -162,10 +159,10 @@ public class SecurityController {
   DaemonTask<Halconfig, ApiSecurity> getApiSecurity(@PathVariable String deploymentName,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity) {
-    DaemonResponse.StaticRequestBuilder<ApiSecurity> builder = new DaemonResponse.StaticRequestBuilder<>();
+    DaemonResponse.StaticRequestBuilder<ApiSecurity> builder = new DaemonResponse.StaticRequestBuilder<>(
+            () -> securityService.getApiSecurity(deploymentName));
 
     builder.setSeverity(severity);
-    builder.setBuildResponse(() -> securityService.getApiSecurity(deploymentName));
 
     if (validate) {
       builder.setValidateResponse(() -> securityService.validateApiSecurity(deploymentName));
@@ -201,10 +198,10 @@ public class SecurityController {
   DaemonTask<Halconfig, SpringSsl> getSpringSsl(@PathVariable String deploymentName,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity) {
-    DaemonResponse.StaticRequestBuilder<SpringSsl> builder = new DaemonResponse.StaticRequestBuilder<>();
+    DaemonResponse.StaticRequestBuilder<SpringSsl> builder = new DaemonResponse.StaticRequestBuilder<>(
+            () -> securityService.getSpringSsl(deploymentName));
 
     builder.setSeverity(severity);
-    builder.setBuildResponse(() -> securityService.getSpringSsl(deploymentName));
 
     if (validate) {
       builder.setValidateResponse(() -> securityService.validateUiSecurity(deploymentName));
@@ -284,10 +281,10 @@ public class SecurityController {
   DaemonTask<Halconfig, GroupMembership> getGroupMembership(@PathVariable String deploymentName,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity) {
-    DaemonResponse.StaticRequestBuilder<GroupMembership> builder = new DaemonResponse.StaticRequestBuilder<>();
+    DaemonResponse.StaticRequestBuilder<GroupMembership> builder = new DaemonResponse.StaticRequestBuilder<>(
+            () -> securityService.getGroupMembership(deploymentName));
 
     builder.setSeverity(severity);
-    builder.setBuildResponse(() -> securityService.getGroupMembership(deploymentName));
 
     if (validate) {
       builder.setValidateResponse(() -> securityService.validateAuthz(deploymentName));
@@ -301,10 +298,10 @@ public class SecurityController {
       @PathVariable String methodName,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity) {
-    DaemonResponse.StaticRequestBuilder<AuthnMethod> builder = new DaemonResponse.StaticRequestBuilder<>();
+    DaemonResponse.StaticRequestBuilder<AuthnMethod> builder = new DaemonResponse.StaticRequestBuilder<>(
+            () -> securityService.getAuthnMethod(deploymentName, methodName));
 
     builder.setSeverity(severity);
-    builder.setBuildResponse(() -> securityService.getAuthnMethod(deploymentName, methodName));
 
     if (validate) {
       builder.setValidateResponse(() -> securityService.validateAuthnMethod(deploymentName, methodName));
@@ -318,10 +315,10 @@ public class SecurityController {
       @PathVariable String roleProviderName,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity) {
-    DaemonResponse.StaticRequestBuilder<RoleProvider> builder = new DaemonResponse.StaticRequestBuilder<>();
+    DaemonResponse.StaticRequestBuilder<RoleProvider> builder = new DaemonResponse.StaticRequestBuilder<>(
+            () -> securityService.getRoleProvider(deploymentName, roleProviderName));
 
     builder.setSeverity(severity);
-    builder.setBuildResponse(() -> securityService.getRoleProvider(deploymentName, roleProviderName));
 
     if (validate) {
       builder.setValidateResponse(() -> securityService.validateRoleProvider(deploymentName, roleProviderName));

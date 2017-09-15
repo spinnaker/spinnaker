@@ -100,6 +100,10 @@ public class DaemonResponse<T> {
     private Supplier<ProblemSet> validateResponse;
     private Severity severity = Severity.WARNING;
 
+    public StaticRequestBuilder(Supplier<K> buildResponse) {
+      this.buildResponse = buildResponse;
+    }
+
     public DaemonResponse<K> build() {
       if (buildResponse == null) {
         throw new IllegalArgumentException("No response provided to build");

@@ -51,8 +51,8 @@ public class MasterController {
   DaemonTask<Halconfig, List<Master>> masters(@PathVariable String deploymentName, @PathVariable String ciName,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity) {
-    StaticRequestBuilder<List<Master>> builder = new StaticRequestBuilder<>();
-    builder.setBuildResponse(() -> masterService.getAllMasters(deploymentName, ciName));
+    StaticRequestBuilder<List<Master>> builder = new StaticRequestBuilder<>(
+            () -> masterService.getAllMasters(deploymentName, ciName));
     builder.setSeverity(severity);
 
     if (validate) {
@@ -69,8 +69,8 @@ public class MasterController {
       @PathVariable String masterName,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity) {
-    StaticRequestBuilder<Master> builder = new StaticRequestBuilder<>();
-    builder.setBuildResponse(() -> masterService.getCiMaster(deploymentName, ciName, masterName));
+    StaticRequestBuilder<Master> builder = new StaticRequestBuilder<>(
+            () -> masterService.getCiMaster(deploymentName, ciName, masterName));
     builder.setSeverity(severity);
 
     if (validate) {

@@ -37,22 +37,22 @@ public class VersionsController {
 
   @RequestMapping(value = "/", method = RequestMethod.GET)
   DaemonTask<Halconfig, Versions> config() {
-    DaemonResponse.StaticRequestBuilder<Versions> builder = new DaemonResponse.StaticRequestBuilder<>();
-    builder.setBuildResponse(() -> versionsService.getVersions());
+    DaemonResponse.StaticRequestBuilder<Versions> builder = new DaemonResponse.StaticRequestBuilder<>(
+            () -> versionsService.getVersions());
     return DaemonTaskHandler.submitTask(builder::build, "Get released versions");
   }
 
   @RequestMapping(value = "/latest/", method = RequestMethod.GET)
   DaemonTask<Halconfig, String> latest() {
-    DaemonResponse.StaticRequestBuilder<String> builder = new DaemonResponse.StaticRequestBuilder<>();
-    builder.setBuildResponse(() -> versionsService.getLatestSpinnakerVersion());
+    DaemonResponse.StaticRequestBuilder<String> builder = new DaemonResponse.StaticRequestBuilder<>(
+            () -> versionsService.getLatestSpinnakerVersion());
     return DaemonTaskHandler.submitTask(builder::build, "Get latest released version");
   }
 
   @RequestMapping(value = "/bom/{version:.+}", method = RequestMethod.GET)
   DaemonTask<Halconfig, BillOfMaterials> bom(@PathVariable String version) {
-    DaemonResponse.StaticRequestBuilder<BillOfMaterials> builder = new DaemonResponse.StaticRequestBuilder<>();
-    builder.setBuildResponse(() -> versionsService.getBillOfMaterials(version));
+    DaemonResponse.StaticRequestBuilder<BillOfMaterials> builder = new DaemonResponse.StaticRequestBuilder<>(
+            () -> versionsService.getBillOfMaterials(version));
     return DaemonTaskHandler.submitTask(builder::build, "Get BOM for " + version);
   }
 }

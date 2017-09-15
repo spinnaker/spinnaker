@@ -49,9 +49,8 @@ public class DeploymentEnvironmentController {
   DaemonTask<Halconfig, DeploymentEnvironment> getDeploymentEnvironment(@PathVariable String deploymentName,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity) {
-    DaemonResponse.StaticRequestBuilder<DeploymentEnvironment> builder = new DaemonResponse.StaticRequestBuilder<>();
-
-    builder.setBuildResponse(() -> deploymentEnvironmentService.getDeploymentEnvironment(deploymentName));
+    DaemonResponse.StaticRequestBuilder<DeploymentEnvironment> builder = new DaemonResponse.StaticRequestBuilder<>(
+            () -> deploymentEnvironmentService.getDeploymentEnvironment(deploymentName));
     builder.setSeverity(severity);
 
     if (validate) {

@@ -61,8 +61,8 @@ public class ClusterController {
   DaemonTask<Halconfig, List<Cluster>> clusters(@PathVariable String deploymentName, @PathVariable String providerName,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Problem.Severity severity) {
-    DaemonResponse.StaticRequestBuilder<List<Cluster>> builder = new DaemonResponse.StaticRequestBuilder<>();
-    builder.setBuildResponse(() -> clusterService.getAllClusters(deploymentName, providerName));
+    DaemonResponse.StaticRequestBuilder<List<Cluster>> builder = new DaemonResponse.StaticRequestBuilder<>(
+            () -> clusterService.getAllClusters(deploymentName, providerName));
     builder.setSeverity(severity);
 
     if (validate) {
@@ -79,8 +79,8 @@ public class ClusterController {
       @PathVariable String clusterName,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Problem.Severity severity) {
-    DaemonResponse.StaticRequestBuilder<Cluster> builder = new DaemonResponse.StaticRequestBuilder<>();
-    builder.setBuildResponse(() -> clusterService.getProviderCluster(deploymentName, providerName, clusterName));
+    DaemonResponse.StaticRequestBuilder<Cluster> builder = new DaemonResponse.StaticRequestBuilder<>(
+            () -> clusterService.getProviderCluster(deploymentName, providerName, clusterName));
     builder.setSeverity(severity);
 
     if (validate) {

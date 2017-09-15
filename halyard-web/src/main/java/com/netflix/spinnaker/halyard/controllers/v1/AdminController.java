@@ -38,8 +38,7 @@ public class AdminController {
       @RequestParam(required = false) String latestSpinnaker,
       @RequestParam(required = false) String latestHalyard,
       @RequestBody String _ignored) {
-    StaticRequestBuilder<Void> builder = new StaticRequestBuilder<>();
-    builder.setBuildResponse(() -> {
+    StaticRequestBuilder<Void> builder = new StaticRequestBuilder<>(() -> {
       if (!StringUtils.isEmpty(latestSpinnaker)) {
         artifactService.publishLatestSpinnaker(latestSpinnaker);
       }
@@ -57,8 +56,7 @@ public class AdminController {
   DaemonTask<Halconfig, Void> deprecateVersion(
       @RequestParam(required = false) String illegalReason,
       @RequestBody Versions.Version version) {
-    StaticRequestBuilder<Void> builder = new StaticRequestBuilder<>();
-    builder.setBuildResponse(() -> {
+    StaticRequestBuilder<Void> builder = new StaticRequestBuilder<>( () -> {
       artifactService.deprecateVersion(version, illegalReason);
       return null;
     });
@@ -69,8 +67,7 @@ public class AdminController {
   @RequestMapping(value = "/publishVersion", method = RequestMethod.PUT)
   DaemonTask<Halconfig, Void> publishVersion(
       @RequestBody Versions.Version version) {
-    StaticRequestBuilder<Void> builder = new StaticRequestBuilder<>();
-    builder.setBuildResponse(() -> {
+    StaticRequestBuilder<Void> builder = new StaticRequestBuilder<>(() -> {
       artifactService.publishVersion(version);
       return null;
     });
@@ -82,8 +79,7 @@ public class AdminController {
   DaemonTask<Halconfig, Void> publishBom(
       @RequestParam String bomPath,
       @RequestBody String _ignored) {
-    StaticRequestBuilder<Void> builder = new StaticRequestBuilder<>();
-    builder.setBuildResponse(() -> {
+    StaticRequestBuilder<Void> builder = new StaticRequestBuilder<>(() -> {
       artifactService.writeBom(bomPath);
       return null;
     });
@@ -97,8 +93,7 @@ public class AdminController {
       @PathVariable String artifactName,
       @RequestParam String profilePath,
       @RequestBody String _ignored) {
-    StaticRequestBuilder<Void> builder = new StaticRequestBuilder<>();
-    builder.setBuildResponse(() -> {
+    StaticRequestBuilder<Void> builder = new StaticRequestBuilder<>(() -> {
       artifactService.writeArtifactConfig(bomPath, artifactName, profilePath);
       return null;
     });

@@ -52,9 +52,9 @@ public class ProviderController {
       @PathVariable String providerName,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity) {
-    StaticRequestBuilder<Provider> builder = new StaticRequestBuilder<>();
+    StaticRequestBuilder<Provider> builder = new StaticRequestBuilder<>(
+            () -> providerService.getProvider(deploymentName, providerName));
 
-    builder.setBuildResponse(() -> providerService.getProvider(deploymentName, providerName));
     builder.setSeverity(severity);
 
     if (validate) {
@@ -121,9 +121,9 @@ public class ProviderController {
   DaemonTask<Halconfig, List<Provider>> providers(@PathVariable String deploymentName,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity) {
-    StaticRequestBuilder<List<Provider>> builder = new StaticRequestBuilder<>();
+    StaticRequestBuilder<List<Provider>> builder = new StaticRequestBuilder<>(
+            () -> providerService.getAllProviders(deploymentName));
 
-    builder.setBuildResponse(() -> providerService.getAllProviders(deploymentName));
     builder.setSeverity(severity);
 
     if (validate) {

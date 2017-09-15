@@ -48,9 +48,8 @@ public class CiController {
       @PathVariable String ciName,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity) {
-    StaticRequestBuilder<Ci> builder = new StaticRequestBuilder<>();
-
-    builder.setBuildResponse(() -> ciService.getCi(deploymentName, ciName));
+    StaticRequestBuilder<Ci> builder = new StaticRequestBuilder<>(
+            () -> ciService.getCi(deploymentName, ciName));
     builder.setSeverity(severity);
 
     if (validate) {
@@ -88,9 +87,7 @@ public class CiController {
   DaemonTask<Halconfig, List<Ci>> cis(@PathVariable String deploymentName,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity) {
-    StaticRequestBuilder<List<Ci>> builder = new StaticRequestBuilder<>();
-
-    builder.setBuildResponse(() -> ciService.getAllCis(deploymentName));
+    StaticRequestBuilder<List<Ci>> builder = new StaticRequestBuilder<>(() -> ciService.getAllCis(deploymentName));
     builder.setSeverity(severity);
 
     if (validate) {

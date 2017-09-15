@@ -95,8 +95,7 @@ public class DistributedDeployer<T extends Account> implements Deployer<Distribu
         // Do nothing, the bootstrapping services should already be running, and the services that can't be updated
         // having nothing to rollback to
       } else {
-        DaemonResponse.StaticRequestBuilder<Void> builder = new DaemonResponse.StaticRequestBuilder<>();
-        builder.setBuildResponse(() -> {
+        DaemonResponse.StaticRequestBuilder<Void> builder = new DaemonResponse.StaticRequestBuilder<>(() -> {
           Orca orca = serviceProvider
               .getDeployableService(SpinnakerService.Type.ORCA_BOOTSTRAP, Orca.class)
               .connectToPrimaryService(deploymentDetails, runtimeSettings);
@@ -175,8 +174,7 @@ public class DistributedDeployer<T extends Account> implements Deployer<Distribu
       if (distributedService.isRequiredToBootstrap() || !safeToUpdate) {
         deployServiceManually(deploymentDetails, resolvedConfiguration, distributedService, safeToUpdate);
       } else {
-        DaemonResponse.StaticRequestBuilder<Void> builder = new DaemonResponse.StaticRequestBuilder<>();
-        builder.setBuildResponse(() -> {
+        DaemonResponse.StaticRequestBuilder<Void> builder = new DaemonResponse.StaticRequestBuilder<>(() -> {
           if (runningServiceDetails.getLatestEnabledVersion() == null) {
             DaemonTaskHandler.newStage("Deploying " + distributedService.getServiceName() + " via provider API");
             deployServiceManually(deploymentDetails, resolvedConfiguration, distributedService, safeToUpdate);

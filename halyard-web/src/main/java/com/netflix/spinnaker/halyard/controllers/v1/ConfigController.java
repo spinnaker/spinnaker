@@ -45,15 +45,13 @@ public class ConfigController {
 
   @RequestMapping(value = "/", method = RequestMethod.GET)
   DaemonTask<Halconfig, Halconfig> config() {
-    StaticRequestBuilder<Halconfig> builder = new StaticRequestBuilder<>();
-    builder.setBuildResponse(() -> configService.getConfig());
+    StaticRequestBuilder<Halconfig> builder = new StaticRequestBuilder<>(() -> configService.getConfig());
     return DaemonTaskHandler.submitTask(builder::build, "Get halconfig");
   }
 
   @RequestMapping(value = "/currentDeployment", method = RequestMethod.GET)
   DaemonTask<Halconfig, String> currentDeployment() {
-    StaticRequestBuilder<String> builder = new StaticRequestBuilder<>();
-    builder.setBuildResponse(() -> configService.getCurrentDeployment());
+    StaticRequestBuilder<String> builder = new StaticRequestBuilder<>(() -> configService.getCurrentDeployment());
     return DaemonTaskHandler.submitTask(builder::build, "Get current deployment");
   }
 

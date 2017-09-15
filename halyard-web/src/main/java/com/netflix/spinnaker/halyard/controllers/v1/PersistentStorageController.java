@@ -49,9 +49,9 @@ public class PersistentStorageController {
   DaemonTask<Halconfig, PersistentStorage> getPersistentStorage(@PathVariable String deploymentName,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity) {
-    DaemonResponse.StaticRequestBuilder<PersistentStorage> builder = new DaemonResponse.StaticRequestBuilder<>();
+    DaemonResponse.StaticRequestBuilder<PersistentStorage> builder = new DaemonResponse.StaticRequestBuilder<>(
+            () -> persistentStorageService.getPersistentStorage(deploymentName));
 
-    builder.setBuildResponse(() -> persistentStorageService.getPersistentStorage(deploymentName));
     builder.setSeverity(severity);
 
     if (validate) {
@@ -91,9 +91,9 @@ public class PersistentStorageController {
       @PathVariable String persistentStoreType,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity) {
-    DaemonResponse.StaticRequestBuilder<PersistentStore> builder = new DaemonResponse.StaticRequestBuilder<>();
+    DaemonResponse.StaticRequestBuilder<PersistentStore> builder = new DaemonResponse.StaticRequestBuilder<>(
+            () -> persistentStorageService.getPersistentStore(deploymentName, persistentStoreType));
 
-    builder.setBuildResponse(() -> persistentStorageService.getPersistentStore(deploymentName, persistentStoreType));
     builder.setSeverity(severity);
 
     if (validate) {

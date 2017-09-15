@@ -42,15 +42,14 @@ public class BackupController {
 
   @RequestMapping(value = "/create", method = RequestMethod.PUT)
   DaemonTask<Halconfig, StringBodyRequest> create() {
-    StaticRequestBuilder<StringBodyRequest> builder = new StaticRequestBuilder<>();
-    builder.setBuildResponse(() -> new StringBodyRequest(backupService.create()));
+    StaticRequestBuilder<StringBodyRequest> builder = new StaticRequestBuilder<>(
+            () -> new StringBodyRequest(backupService.create()));
     return DaemonTaskHandler.submitTask(builder::build, "Create backup");
   }
 
   @RequestMapping(value = "/restore", method = RequestMethod.PUT)
   DaemonTask<Halconfig, Void> restore(@RequestParam String backupPath) {
-    StaticRequestBuilder<Void> builder = new StaticRequestBuilder<>();
-    builder.setBuildResponse(() -> {
+    StaticRequestBuilder<Void> builder = new StaticRequestBuilder<>( () -> {
       backupService.restore(backupPath);
       return null;
     });

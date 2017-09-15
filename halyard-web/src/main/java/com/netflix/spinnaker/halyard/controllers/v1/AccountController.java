@@ -54,8 +54,8 @@ public class AccountController {
       @PathVariable String providerName,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity) {
-    StaticRequestBuilder<List<Account>> builder = new StaticRequestBuilder<>();
-    builder.setBuildResponse(() -> accountService.getAllAccounts(deploymentName, providerName));
+    StaticRequestBuilder<List<Account>> builder = new StaticRequestBuilder<>(
+            () -> accountService.getAllAccounts(deploymentName, providerName));
     builder.setSeverity(severity);
 
     if (validate) {
@@ -72,8 +72,8 @@ public class AccountController {
       @PathVariable String accountName,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity) {
-    StaticRequestBuilder<Account> builder = new StaticRequestBuilder<>();
-    builder.setBuildResponse(() -> accountService.getProviderAccount(deploymentName, providerName, accountName));
+    StaticRequestBuilder<Account> builder = new StaticRequestBuilder<>(
+            () -> accountService.getProviderAccount(deploymentName, providerName, accountName));
     builder.setSeverity(severity);
 
     if (validate) {
