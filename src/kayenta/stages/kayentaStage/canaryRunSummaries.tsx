@@ -15,7 +15,7 @@ interface ICanarySummariesProps {
 export default function CanaryRunSummaries({ canaryRuns }: ICanarySummariesProps) {
   const rows = [
     (
-      <CanaryRunRow>
+      <CanaryRunRow key="headers">
         <b>Canary Result</b>
         <b>Duration</b>
         <b>Last Updated</b>
@@ -34,12 +34,13 @@ export default function CanaryRunSummaries({ canaryRuns }: ICanarySummariesProps
 }
 
 function CanaryRunRow({ children }: { children: JSX.Element[] }) {
-  const [first, second, third] = children;
+  const [result, duration, updated, timestamps] = children;
   return (
     <div className="horizontal small">
-      <div className="flex-2">{first}</div>
-      <div className="flex-1">{second}</div>
-      <div className="flex-2">{third}</div>
+      <div className="flex-2">{result}</div>
+      <div className="flex-1">{duration}</div>
+      <div className="flex-2">{updated}</div>
+      <div className="flex-1 text-center">{timestamps}</div>
     </div>
   );
 }
@@ -47,18 +48,19 @@ function CanaryRunRow({ children }: { children: JSX.Element[] }) {
 function CanaryRunSummary({ canaryRun }: { canaryRun: IStage }) {
   const popoverTemplate = <CanaryRunTimestamps canaryRun={canaryRun}/>;
   return (
-    <HoverablePopover hOffsetPercent="20%" template={popoverTemplate}>
-      <CanaryRunRow>
-        <CanaryScore
-          score={canaryRun.context.canaryScore}
-          health={canaryRun.health}
-          result={canaryRun.result}
-          inverse={false}
-        />
-        <span>{canaryRun.context.durationString || ' - '}</span>
-        <span>{timestamp(canaryRun.context.lastUpdated)}</span>
-      </CanaryRunRow>
-    </HoverablePopover>
+    <CanaryRunRow>
+      <CanaryScore
+        score={canaryRun.context.canaryScore}
+        health={canaryRun.health}
+        result={canaryRun.result}
+        inverse={false}
+      />
+      <span>{canaryRun.context.durationString || ' - '}</span>
+      <span>{timestamp(canaryRun.context.lastUpdated)}</span>
+      <HoverablePopover template={popoverTemplate}>
+        <i className="fa fa-clock-o"/>
+      </HoverablePopover>
+    </CanaryRunRow>
   );
 }
 
