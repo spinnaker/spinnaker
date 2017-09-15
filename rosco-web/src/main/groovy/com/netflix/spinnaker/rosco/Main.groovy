@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.rosco
 
+import com.netflix.spinnaker.config.ErrorConfiguration
 import com.netflix.spinnaker.rosco.providers.aws.config.RoscoAWSConfiguration
 import com.netflix.spinnaker.rosco.providers.azure.config.RoscoAzureConfiguration
 import com.netflix.spinnaker.rosco.providers.docker.config.RoscoDockerConfiguration
