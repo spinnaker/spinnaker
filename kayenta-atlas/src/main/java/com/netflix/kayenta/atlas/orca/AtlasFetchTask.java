@@ -18,6 +18,7 @@ package com.netflix.kayenta.atlas.orca;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.kayenta.atlas.canary.AtlasCanaryScope;
+import com.netflix.kayenta.atlas.config.AtlasConfigurationProperties;
 import com.netflix.kayenta.canary.CanaryConfig;
 import com.netflix.kayenta.metrics.SynchronousQueryProcessor;
 import com.netflix.kayenta.security.AccountCredentials;
@@ -54,16 +55,28 @@ public class AtlasFetchTask implements RetryableTask {
   @Autowired
   SynchronousQueryProcessor synchronousQueryProcessor;
 
+  @Autowired
+  AtlasConfigurationProperties atlasConfigurationProperties;
+
   @Override
   public long getBackoffPeriod() {
-    // TODO(duftler): Externalize this configuration.
     return Duration.ofSeconds(2).toMillis();
   }
 
   @Override
   public long getTimeout() {
-    // TODO(duftler): Externalize this configuration.
-    return Duration.ofMinutes(2).toMillis();
+    return Duration.ofMinutes(atlasConfigurationProperties.getStageTimoutMinutes()).toMillis();
+  }
+
+  @Override
+  public long getDynamicBackoffPeriod(Duration taskDuration) {
+    int numZeros = Long.numberOfLeadingZeros(taskDuration.getSeconds());
+    int floorLog = 63 - numZeros;
+    // If the first iteration fails quickly, we still want a one second backoff period.
+    int exponent = Math.max(floorLog, 0);
+    int backoffPeriodSeconds = Math.min(atlasConfigurationProperties.getMaxBackoffPeriodSeconds(), (int)Math.pow(2, exponent));
+
+    return Duration.ofSeconds(backoffPeriodSeconds).toMillis();
   }
 
   @Override

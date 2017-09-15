@@ -203,17 +203,14 @@ public class CanaryController {
 
     Pipeline pipeline =
       Pipeline
-        .builder()
-        .withApplication("kayenta-" + currentInstanceId)
+        .builder("kayenta-" + currentInstanceId)
         .withName("Standard Canary Pipeline")
         .withPipelineConfigId(UUID.randomUUID() + "")
         .withStage(serviceType + "Fetch", "Fetch Control from " + serviceType, fetchControlContext)
         .withStage(serviceType + "Fetch", "Fetch Experiment from " + serviceType, fetchExperimentContext)
         .withStage("metricSetMixer", "Mix Control and Experiment Results", mixMetricSetsContext)
         .withStage("canaryJudge", "Perform Analysis", canaryJudgeContext)
-        .withParallel(true)
         .withLimitConcurrent(false)
-        .withExecutingInstance(currentInstanceId)
         .withExecutionEngine(Execution.ExecutionEngine.v3)
         .build();
 

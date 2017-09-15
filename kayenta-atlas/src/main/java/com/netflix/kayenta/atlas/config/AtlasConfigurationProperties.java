@@ -32,5 +32,13 @@ public class AtlasConfigurationProperties {
   private RemoteService endpoint;
 
   @Getter
+  @Setter
+  private int maxBackoffPeriodSeconds = 32;
+
+  @Getter
+  @Setter
+  private int stageTimoutMinutes = 3;
+
+  @Getter
   private List<AtlasManagedAccount> accounts = new ArrayList<>();
 }

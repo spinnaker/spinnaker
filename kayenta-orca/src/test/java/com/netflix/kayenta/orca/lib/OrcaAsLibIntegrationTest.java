@@ -16,6 +16,7 @@
 
 package com.netflix.kayenta.orca.lib;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.discovery.StatusChangeEvent;
 import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spectator.api.Registry;
@@ -187,5 +188,10 @@ class TestConfig {
   @Bean
   DefaultExceptionHandler defaultExceptionHandler() {
     return new DefaultExceptionHandler();
+  }
+
+  @Bean
+  ObjectMapper objectMapper() {
+    return new ObjectMapper();
   }
 }

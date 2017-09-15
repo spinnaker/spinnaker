@@ -17,6 +17,7 @@
 package com.netflix.kayenta.retrofit.config;
 
 import com.netflix.spinnaker.config.OkHttpClientConfiguration;
+import com.netflix.spinnaker.orca.retrofit.exceptions.RetrofitExceptionHandler;
 import com.squareup.okhttp.ConnectionPool;
 import com.squareup.okhttp.OkHttpClient;
 import org.springframework.beans.factory.annotation.Value;
@@ -24,6 +25,8 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 
 @Configuration
 public class RetrofitClientConfiguration {
@@ -44,5 +47,10 @@ public class RetrofitClientConfiguration {
     okHttpClient.setConnectionPool(new ConnectionPool(maxIdleConnections, keepAliveDurationMs));
     okHttpClient.setRetryOnConnectionFailure(retryOnConnectionFailure);
     return okHttpClient;
+  }
+
+  @Bean @Order(Ordered.HIGHEST_PRECEDENCE)
+  RetrofitExceptionHandler retrofitExceptionHandler() {
+    return new RetrofitExceptionHandler();
   }
 }
