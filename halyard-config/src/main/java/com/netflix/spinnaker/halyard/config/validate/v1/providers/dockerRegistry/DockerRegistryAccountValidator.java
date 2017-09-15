@@ -91,7 +91,7 @@ public class DockerRegistryAccountValidator extends Validator<DockerRegistryAcco
         DockerRegistryCatalog catalog = credentials.getCredentials().getClient().getCatalog();
 
         if (catalog.getRepositories() == null || catalog.getRepositories().size() == 0) {
-          p.addProblem(Severity.ERROR, "Your docker registry has no repositories specified, and the registry's catalog is empty.")
+          p.addProblem(Severity.WARNING, "Your docker registry has no repositories specified, and the registry's catalog is empty. Spinnaker will not be able to deploy any images until some are pushed to this registry.")
               .setRemediation("Manually specify some repositories for this docker registry to index.");
         }
       } catch (Exception e) {
