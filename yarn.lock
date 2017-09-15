@@ -18,6 +18,10 @@
   version "1.6.26"
   resolved "https://registry.yarnpkg.com/@types/angular/-/angular-1.6.26.tgz#a96cccef648de0bf7435f3b9bad13f2430719305"
 
+"@types/angular@^1.6.28":
+  version "1.6.32"
+  resolved "https://registry.yarnpkg.com/@types/angular/-/angular-1.6.32.tgz#fc791aad038227d9413eb5e552993e1076f8a509"
+
 "@types/cheerio@*":
   version "0.22.1"
   resolved "https://registry.yarnpkg.com/@types/cheerio/-/cheerio-0.22.1.tgz#740c4cd8c4d3f3074f83b9ab62e711eac2c764ce"
@@ -295,7 +299,7 @@
   dependencies:
     "@types/react" "*"
 
-"@types/react-dom@^15.5.0", "@types/react-dom@^15.5.4":
+"@types/react-dom@^15.5.0", "@types/react-dom@^15.5.1", "@types/react-dom@^15.5.4":
   version "15.5.4"
   resolved "https://registry.yarnpkg.com/@types/react-dom/-/react-dom-15.5.4.tgz#3f75ba86a2ce9a7d1d9e7d1ee3f186f3a9652d8f"
   dependencies:
@@ -311,11 +315,11 @@
   dependencies:
     "@types/react" "*"
 
-"@types/react@*", "@types/react@^16.0.5":
+"@types/react@*", "@types/react@^16.0.0", "@types/react@^16.0.5":
   version "16.0.5"
   resolved "https://registry.yarnpkg.com/@types/react/-/react-16.0.5.tgz#d713cf67cc211dea20463d2a0b66005c22070c4b"
 
-"@types/react@^15.0.22", "@types/react@^15.0.23":
+"@types/react@^15.0.22":
   version "15.0.35"
   resolved "https://registry.yarnpkg.com/@types/react/-/react-15.0.35.tgz#4672923cd502d03e1480d03816ebc5a719fb86da"
 
@@ -530,6 +534,10 @@ angular2react@^2.0.0:
 angular@>=1.5.0, angular@^1.4.0, angular@^1.6.3, angular@~1.6.3:
   version "1.6.4"
   resolved "https://registry.yarnpkg.com/angular/-/angular-1.6.4.tgz#03b7b15c01a0802d7e2cf593240e604054dc77fb"
+
+angular@>=1.6.5:
+  version "1.6.6"
+  resolved "https://registry.yarnpkg.com/angular/-/angular-1.6.6.tgz#fd5a3cfb437ce382d854ee01120797978527cb64"
 
 angulartics-google-analytics@^0.2.0:
   version "0.2.1"
@@ -4430,9 +4438,9 @@ negotiator@0.6.1:
   version "0.6.1"
   resolved "https://registry.yarnpkg.com/negotiator/-/negotiator-0.6.1.tgz#2b327184e8992101177b28563fb5e7102acd0ca9"
 
-ngcomponent@^3.0.1:
-  version "3.0.1"
-  resolved "https://registry.yarnpkg.com/ngcomponent/-/ngcomponent-3.0.1.tgz#3aceb6a9f0f19a0d69528e06b9dce490dc502084"
+ngcomponent@^3.0.2:
+  version "3.0.2"
+  resolved "https://registry.yarnpkg.com/ngcomponent/-/ngcomponent-3.0.2.tgz#d67f89d892ec5806c6d1445c5f195a6ce6ec5486"
   dependencies:
     "@types/angular" "^1.6.16"
     "@types/lodash.assign" "^4.2.2"
@@ -5419,7 +5427,7 @@ react-dom@^0.14.8:
   version "0.14.9"
   resolved "https://registry.yarnpkg.com/react-dom/-/react-dom-0.14.9.tgz#05064a3dcf0fb1880a3b2bfc9d58c55d8d9f6293"
 
-react-dom@^15.4.2, react-dom@^15.5.4, react-dom@^15.6.1:
+react-dom@^15.4.2, react-dom@^15.6.1:
   version "15.6.1"
   resolved "https://registry.yarnpkg.com/react-dom/-/react-dom-15.6.1.tgz#2cb0ed4191038e53c209eb3a79a23e2a4cf99470"
   dependencies:
@@ -5494,19 +5502,17 @@ react-virtualized@^9.0.0:
     loose-envify "^1.3.0"
     prop-types "^15.5.4"
 
-react2angular@^1.1.3:
-  version "1.1.3"
-  resolved "https://registry.yarnpkg.com/react2angular/-/react2angular-1.1.3.tgz#9d69f5277980d41af1a625b04c78a4497c641893"
+react2angular@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/react2angular/-/react2angular-2.0.0.tgz#6345372505aa467652c425043ee9fe6fb4dbdf70"
   dependencies:
-    "@types/angular" "^1.6.16"
+    "@types/angular" "^1.6.28"
     "@types/lodash.frompairs" "^4.0.2"
-    "@types/react" "^15.0.23"
-    "@types/react-dom" "^15.5.0"
-    angular ">=1.5.0"
+    "@types/react" "^16.0.0"
+    "@types/react-dom" "^15.5.1"
+    angular ">=1.6.5"
     lodash.frompairs "^4.0.1"
-    ngcomponent "^3.0.1"
-    react "^15.5.4"
-    react-dom "^15.5.4"
+    ngcomponent "^3.0.2"
 
 react@^0.14.8:
   version "0.14.9"
@@ -5515,7 +5521,7 @@ react@^0.14.8:
     envify "^3.0.0"
     fbjs "^0.6.1"
 
-react@^15.4.2, react@^15.5.4, react@^15.6.1:
+react@^15.4.2, react@^15.6.1:
   version "15.6.1"
   resolved "https://registry.yarnpkg.com/react/-/react-15.6.1.tgz#baa8434ec6780bde997cdc380b79cd33b96393df"
   dependencies:

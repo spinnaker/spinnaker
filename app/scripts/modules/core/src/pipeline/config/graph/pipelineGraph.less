@@ -1,11 +1,24 @@
 @import (reference) "~core/presentation/less/imports/commonImports.less";
 
-pipeline-graph {
+.pipeline-config-graph {
+  svg {
+    g {
+      &.active, &.highlighted {
+        circle, rect {
+          fill: @healthy_green_border;
+        }
+      }
+    }
+  }
+}
+
+pipeline-graph, .pipeline-graph {
   display: block;
   overflow-x: auto;
   svg {
     path.link {
       fill: none;
+      transition: stroke .2s, stroke-width .2s;
       stroke: #CCC;
       stroke-width: 1px;
       stroke-opacity: 0.3;
@@ -35,7 +48,6 @@ pipeline-graph {
           stroke-width: 4px;
         }
         stroke-width: 2.5px;
-        transition: stroke .2s, stroke-width .2s;
       }
       &.running {
         stroke: @spinnaker-blue;
@@ -55,9 +67,12 @@ pipeline-graph {
       rect {
         fill: @stage-default;
       }
+      .label-component {
+        transition: all 0.10s;
+        display: inline-block;
+      }
       &.active, &.highlighted {
         circle, rect {
-          fill: @healthy_green_border;
           transition: fill .2s;
         }
         &.has-status {
@@ -92,23 +107,21 @@ pipeline-graph {
         line-height: 17px;
         text-shadow: 0 1px 0 #fff, 1px 0 0 #fff, 0 -1px 0 #fff, -1px 0 0 #fff;
         word-wrap: break-word;
+        transition: color .2s;
       }
       &.active, &.highlighted {
         div.label-body {
           color: @text-color;
-          transition: color .2s;
           font-weight: 600;
         }
         div.execution-stage-label {
           .label-component {
             padding: 3px;
             margin: -3px;
-            display: inline-block;
             color: #ffffff;
             background-color: @spinnaker-link-color;
             border-radius: 2px;
             text-shadow: none;
-            transition: 0.10s all;
           }
           font-weight: 600;
           margin-left: -12px;

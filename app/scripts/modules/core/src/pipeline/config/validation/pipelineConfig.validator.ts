@@ -1,4 +1,4 @@
-import { module } from 'angular';
+import { ILogService, IPromise, IQService, IServiceProvider, module } from 'angular';
 import { Subject, Subscription } from 'rxjs';
 
 import {
@@ -9,7 +9,7 @@ import {
   ITrigger,
   ITriggerTypeConfig
 } from 'core/domain';
-import { PIPELINE_CONFIG_PROVIDER } from 'core/pipeline/config/pipelineConfigProvider';
+import { PIPELINE_CONFIG_PROVIDER, PipelineConfigProvider } from 'core/pipeline/config/pipelineConfigProvider';
 
 export interface IStageValidationResults {
   stage: IStage;
@@ -37,14 +37,14 @@ export interface IStageOrTriggerValidator {
   validate(pipeline: IPipeline,
            stageOrTrigger: IStage | ITrigger,
            validator: IValidatorConfig,
-           config: IStageOrTriggerTypeConfig): string | ng.IPromise<string>;
+           config: IStageOrTriggerTypeConfig): string | IPromise<string>;
 }
 
 export interface ICustomValidator extends IStageOrTriggerValidator, IValidatorConfig {
   [k: string]: any;
 }
 
-export class PipelineConfigValidator implements ng.IServiceProvider {
+export class PipelineConfigValidator implements IServiceProvider {
 
   private validators: Map<string, IStageOrTriggerValidator> = new Map();
   private validationStream: Subject<IPipelineValidationResults> = new Subject();
@@ -53,16 +53,16 @@ export class PipelineConfigValidator implements ng.IServiceProvider {
     this.validators.set(type, validator);
   }
 
-  constructor(private $log: ng.ILogService,
-              private $q: ng.IQService,
-              private pipelineConfig: any) {
+  constructor(private $log: ILogService,
+              private $q: IQService,
+              private pipelineConfig: PipelineConfigProvider) {
     'ngInject';
   }
 
-  public validatePipeline(pipeline: IPipeline): ng.IPromise<IPipelineValidationResults> {
+  public validatePipeline(pipeline: IPipeline): IPromise<IPipelineValidationResults> {
     const stages: IStage[] = pipeline.stages || [],
           triggers: ITrigger[] = pipeline.triggers || [],
-          validations: ng.IPromise<string>[] = [],
+          validations: IPromise<string>[] = [],
           pipelineValidations: string[] = this.getPipelineLevelValidations(pipeline),
           stageValidations: Map<IStage, string[]> = new Map();
     let preventSave = false;

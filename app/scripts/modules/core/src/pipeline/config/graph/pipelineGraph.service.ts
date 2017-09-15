@@ -1,86 +1,86 @@
-import {module} from 'angular';
-import {IExecution, IExecutionStageSummary, IPipeline, IStage} from 'core/domain';
+import { IExecution, IExecutionStageSummary, IPipeline, IStage } from 'core/domain';
 
 export interface IExecutionViewState {
   activeStageId: number;
-  executionId: string;
-  canTriggerPipelineManually: boolean;
   canConfigure: boolean;
+  canTriggerPipelineManually: boolean;
+  executionId: string;
   section?: string;
   stageIndex?: number;
 }
 
-export interface IPipelineLink {
-  parent: IPipelineNode;
-  child: IPipelineNode;
-  line: string;
+export interface IPipelineGraphLink {
+  child: IPipelineGraphNode;
   isHighlighted?: boolean;
+  line: string;
   linkClass?: string; // Added after the fact in PipelineGraphDirective
+  parent: IPipelineGraphNode;
 }
 
-export interface IPipelineNode {
+export interface IPipelineGraphNode {
+  childLinks: IPipelineGraphLink[];
+  children: IPipelineGraphNode[];
+  color?: string;
+  height?: number; // Added after the fact in PipelineGraphDirective
   id: (string | number);
   index?: number;
+  leaf?: boolean;
   name: string;
   parentIds: (string | number)[];
-  parents: IPipelineNode[];
-  children: IPipelineNode[];
-  parentLinks: IPipelineLink[];
-  childLinks: IPipelineLink[];
-  isActive: boolean;
-  isHighlighted: boolean;
+  parentLinks: IPipelineGraphLink[];
+  parents: IPipelineGraphNode[];
+  placeholder?: boolean;
   root?: boolean;
-  leaf?: boolean;
-  height?: number; // Added after the fact in PipelineGraphDirective
   row?: number; // Added after the fact in PipelineGraphDirective
   x?: number; // Added after the fact in PipelineGraphDirective
   y?: number; // Added after the fact in PipelineGraphDirective
-  placeholder?: boolean;
 
-  // PipelineGraphDirective conflates the two node types, so adding as optional here
+  // PipelineGraphComponent conflates the two node types, so adding as optional here
   // Config node parameters
-  phase?: number;
-  lastPhase?: number; // Added after the fact in PipelineGraphDirective
   extraLabelLines?: number;
+  hasWarnings?: boolean;
+  isActive: boolean;
+  isHighlighted: boolean;
+  lastPhase?: number; // Added after the fact in PipelineGraphDirective
+  phase?: number;
   section?: string;
   warnings?: { messages: string[] };
-  hasWarnings?: boolean;
 
   // Execution node parameters
-  stage?: IExecutionStageSummary;
-  masterStage?: IStage;
+  executionId?: string;
   executionStage?: boolean;
   hasNotStarted?: boolean;
-  status?: string;
   labelComponent?: React.ComponentClass<{ stage: IExecutionStageSummary }>;
-  executionId?: string;
+  masterStage?: IStage;
+  stage?: IExecutionStageSummary;
+  status?: string;
 }
 
 export class PipelineGraphService {
-  public xScrollOffset: any = {};
+  public static xScrollOffset: any = {};
 
-  public generateExecutionGraph(execution: IExecution, viewState: IExecutionViewState) {
-    const nodes: IPipelineNode[] = [];
+  public static generateExecutionGraph(execution: IExecution, viewState: IExecutionViewState) {
+    const nodes: IPipelineGraphNode[] = [];
     (execution.stageSummaries || []).forEach((stage: IExecutionStageSummary, idx: number) => {
-      const node: IPipelineNode = {
-        id: stage.refId,
-        name: stage.name,
-        index: idx,
-        parentIds: Object.assign([], (stage.requisiteStageRefIds || [])),
-        stage: stage,
-        masterStage: stage.masterStage,
-        labelComponent: stage.labelComponent,
-        extraLabelLines: stage.extraLabelLines ? stage.extraLabelLines(stage) : 0,
-        parents: [],
-        children: [],
-        parentLinks: [],
+      const node: IPipelineGraphNode = {
         childLinks: [],
+        children: [],
+        executionId: execution.id,
+        executionStage: true,
+        extraLabelLines: stage.extraLabelLines ? stage.extraLabelLines(stage) : 0,
+        hasNotStarted: stage.hasNotStarted,
+        id: stage.refId,
+        index: idx,
         isActive: viewState.activeStageId === stage.index && viewState.executionId === execution.id,
         isHighlighted: false,
+        labelComponent: stage.labelComponent,
+        masterStage: stage.masterStage,
+        name: stage.name,
+        parentIds: Object.assign([], (stage.requisiteStageRefIds || [])),
+        parentLinks: [],
+        parents: [],
+        stage: stage,
         status: stage.status,
-        executionStage: true,
-        hasNotStarted: stage.hasNotStarted,
-        executionId: execution.id,
       };
       if (!node.parentIds.length) {
         node.root = true;
@@ -91,44 +91,44 @@ export class PipelineGraphService {
     return nodes;
   }
 
-  public generateConfigGraph(pipeline: IPipeline, viewState: IExecutionViewState, pipelineValidations: any) {
-    const nodes: IPipelineNode[] = [];
+  public static generateConfigGraph(pipeline: IPipeline, viewState: IExecutionViewState, pipelineValidations: any) {
+    const nodes: IPipelineGraphNode[] = [];
     const configWarnings = pipelineValidations.pipeline;
-    const configNode: IPipelineNode = {
-          name: 'Configuration',
-          phase: 0,
-          id: -1,
-          section: 'triggers',
-          parentIds: [],
-          parents: [],
-          children: [],
-          parentLinks: [],
+    const configNode: IPipelineGraphNode = {
           childLinks: [],
-          root: true,
+          children: [],
+          hasWarnings: !!configWarnings.length,
+          id: -1,
           isActive: viewState.section === 'triggers',
           isHighlighted: false,
+          name: 'Configuration',
+          parentIds: [],
+          parentLinks: [],
+          parents: [],
+          phase: 0,
+          root: true,
+          section: 'triggers',
           warnings: configWarnings.length ? {messages: configWarnings} : null,
-          hasWarnings: !!configWarnings.length,
         };
     nodes.push(configNode);
 
     pipeline.stages.forEach(function(stage: IExecutionStageSummary, idx: number) {
       const warnings = pipelineValidations.stages.find((e: any) => e.stage === stage);
-      const node: IPipelineNode = {
-        id: stage.refId,
-        name: stage.name || '[new stage]',
-        section: 'stage',
-        index: idx,
-        parentIds: Object.assign([], (stage.requisiteStageRefIds || [])),
-        parents: [],
-        children: [],
-        parentLinks: [],
+      const node: IPipelineGraphNode = {
         childLinks: [],
+        children: [],
+        hasWarnings: !!warnings,
+        id: stage.refId,
+        index: idx,
         isActive: viewState.stageIndex === idx && viewState.section === 'stage',
         isHighlighted: false,
+        name: stage.name || '[new stage]',
+        parentIds: Object.assign([], (stage.requisiteStageRefIds || [])),
+        parentLinks: [],
+        parents: [],
+        root: false,
+        section: 'stage',
         warnings: warnings,
-        hasWarnings: !!warnings,
-        root: false
       };
       if (!node.parentIds.length) {
         node.parentIds.push(configNode.id);
@@ -139,7 +139,3 @@ export class PipelineGraphService {
     return nodes;
   }
 }
-
-export const PIPELINE_GRAPH_SERVICE = 'spinnaker.core.pipeline.config.graph.pipelineGraph.service';
-module(PIPELINE_GRAPH_SERVICE, [])
-  .service('pipelineGraphService', PipelineGraphService);

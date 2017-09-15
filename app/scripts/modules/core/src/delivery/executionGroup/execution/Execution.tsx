@@ -9,7 +9,7 @@ import * as classNames from 'classnames';
 import { Application } from 'core/application/application.model';
 import { IExecution , IRestartDetails } from 'core/domain';
 import { IExecutionViewState } from 'core/pipeline/config/graph/pipelineGraph.service';
-import { IPipelineNode } from 'core/pipeline/config/graph/pipelineGraph.service';
+import { IPipelineGraphNode } from 'core/pipeline/config/graph/pipelineGraph.service';
 import { IScheduler } from 'core/scheduler/scheduler.factory';
 import { OrchestratedItemRunningTime } from './OrchestratedItemRunningTime';
 import { SETTINGS } from 'core/config/settings';
@@ -18,6 +18,7 @@ import { duration, timestamp } from 'core/utils/timeFormatters';
 
 // react components
 import { ExecutionMarker } from './ExecutionMarker';
+import { PipelineGraph } from 'core/pipeline/config/graph/PipelineGraph';
 import { Tooltip } from 'core/presentation/Tooltip';
 
 import './execution.less';
@@ -224,7 +225,7 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
     this.stateChangeSuccessSubscription.unsubscribe();
   }
 
-  private handleNodeClick(node: IPipelineNode): void {
+  private handleNodeClick(node: IPipelineGraphNode): void {
     this.toggleDetails(node.index);
   }
 
@@ -265,7 +266,7 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
   }
 
   public render() {
-    const { AccountTag, ExecutionStatus, PipelineGraph, ExecutionDetails, CopyToClipboard } = NgReact;
+    const { AccountTag, ExecutionStatus, ExecutionDetails, CopyToClipboard } = NgReact;
     const accountLabels = this.props.execution.deploymentTargets.map((account) => (
       <AccountTag key={account} account={account}/>
     ));
