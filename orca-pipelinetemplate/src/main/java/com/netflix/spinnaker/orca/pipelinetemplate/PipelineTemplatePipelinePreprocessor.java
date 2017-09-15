@@ -123,17 +123,17 @@ public class PipelineTemplatePipelinePreprocessor implements PipelinePreprocesso
   }
 
   private PipelineTemplate getPipelineTemplate(TemplatedPipelineRequest request, TemplateConfiguration templateConfiguration) {
+    List<PipelineTemplate> templates;
     if (request.plan && request.template != null) {
       // Allow template inlining to perform plans without first publishing the template somewhere.
-      return request.template;
-    }
-
-    if (request.getConfig().getPipeline().getTemplate() == null) {
+      PipelineTemplate template = pipelineTemplateObjectMapper.convertValue(request.template, PipelineTemplate.class);
+      templates = templateLoader.load(template);
+    } else if (request.getConfig().getPipeline().getTemplate() != null) {
+      setTemplateSourceWithJinja(request);
+      templates = templateLoader.load(templateConfiguration.getPipeline().getTemplate());
+    } else {
       throw new IllegalTemplateConfigurationException(new Error().withMessage("configuration is missing a template"));
     }
-
-    setTemplateSourceWithJinja(request);
-    List<PipelineTemplate> templates = templateLoader.load(templateConfiguration.getPipeline().getTemplate());
 
     PipelineTemplate pipelineTemplate = TemplateMerge.merge(templates);
 

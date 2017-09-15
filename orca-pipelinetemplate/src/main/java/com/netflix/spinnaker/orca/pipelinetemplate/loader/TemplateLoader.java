@@ -45,9 +45,13 @@ public class TemplateLoader {
    * @return a LIFO list of pipeline templates
    */
   public List<PipelineTemplate> load(TemplateConfiguration.TemplateSource template) {
+    PipelineTemplate pipelineTemplate = load(template.getSource());
+    return load(pipelineTemplate);
+  }
+
+  public List<PipelineTemplate> load(PipelineTemplate pipelineTemplate) {
     List<PipelineTemplate> pipelineTemplates = new ArrayList<>();
 
-    PipelineTemplate pipelineTemplate = load(template.getSource());
     pipelineTemplates.add(0, pipelineTemplate);
 
     Set<String> seenTemplateSources = new HashSet<>();

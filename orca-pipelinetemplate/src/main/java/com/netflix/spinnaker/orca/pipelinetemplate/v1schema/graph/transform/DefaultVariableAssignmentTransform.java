@@ -22,6 +22,7 @@ import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTempla
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.TemplateConfiguration;
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -40,7 +41,9 @@ public class DefaultVariableAssignmentTransform implements PipelineTemplateVisit
       return;
     }
 
-    Map<String, Object> configVars = templateConfiguration.getPipeline().getVariables();
+    Map<String, Object> configVars = templateConfiguration.getPipeline().getVariables() != null
+      ? templateConfiguration.getPipeline().getVariables()
+      : new HashMap<>();
 
     // if the config is missing vars and the template defines a default value, assign those values from the config
     pipelineTemplate.getVariables().stream()

@@ -218,11 +218,25 @@ class PipelineTemplatePipelinePreprocessorSpec extends Specification {
 
     then:
     noExceptionThrown()
-    0 * templateLoader.load(_)
     result.stages*.name == ['wait']
 
     when:
     result = subject.process(createInlinedTemplateRequest(false))
+
+    then:
+    result.errors != null
+  }
+
+  def 'should load parent templates of inlined template during plan'() {
+    when:
+    def result = subject.process(createInlinedTemplateRequestWithParent(true, 'jinja-001.yml'))
+
+    then:
+    noExceptionThrown()
+    result.stages*.name == ['jinja1', 'childTemplateWait']
+
+    when:
+    result = subject.process(createInlinedTemplateRequestWithParent(false, 'jinja-001.yml'))
 
     then:
     result.errors != null
@@ -429,6 +443,36 @@ class PipelineTemplatePipelinePreprocessorSpec extends Specification {
         ]
       ],
       plan: plan
+    ]
+  }
+
+  Map<String, Object> createInlinedTemplateRequestWithParent(boolean plan, String templatePath) {
+    return [
+      type: 'templatedPipeline',
+      config: [
+        schema: '1',
+        pipeline: [
+          application: 'myapp'
+        ]
+      ],
+      template: [
+        schema: '1',
+        id: 'myTemplate',
+        stages: [
+          [
+            id: 'childTemplateWait',
+            type: 'wait',
+            config: [
+              waitTime: 5
+            ],
+            inject: [
+              last: true
+            ]
+          ]
+        ],
+        source: getClass().getResource("/templates/${templatePath}").toURI()
+      ],
+      plan: plan,
     ]
   }
 }
