@@ -20,7 +20,9 @@
     <span class="form-control-static">hours</span>
   </stage-config-field>
 
-  <stage-config-field label="Result Strategy" field-columns="3">
+  <stage-config-field label="Result Strategy"
+                      help-key="pipeline.config.canary.resultStrategy"
+                      field-columns="3">
     <select class="form-control input-sm"
             ng-model="kayentaCanaryStageCtrl.stage.canaryConfig.combinedCanaryResultStrategy">
       <option value="LOWEST">lowest</option>
@@ -35,7 +37,7 @@
                    ng-model="kayentaCanaryStageCtrl.stage.canaryConfig.canaryConfigId"
                    on-select="kayentaCanaryStageCtrl.onCanaryConfigSelect()"
                    class="visible-sm-inline-block visible-md-inline-block visible-lg-inline-block"
-                   style="width:245px">
+                   style="width:300px">
           <ui-select-match>{{$select.selected}}</ui-select-match>
           <ui-select-choices repeat="name in kayentaCanaryStageCtrl.canaryConfigNames | filter: $select.search">
             {{name}}
@@ -47,7 +49,10 @@
       </div>
     </stage-config-field>
 
-    <stage-config-field label="Delay" field-columns="5" ng-if="kayentaCanaryStageCtrl.stage.analysisType === 'realTime'">
+    <stage-config-field label="Delay"
+                        help-key="pipeline.config.canary.scaleUpDelay"
+                        field-columns="5"
+                        ng-if="kayentaCanaryStageCtrl.stage.analysisType === 'realTime'">
       <input type="text"
              ng-model="kayentaCanaryStageCtrl.stage.canaryConfig.beginCanaryAnalysisAfterMins"
              class="form-control input-sm"
@@ -57,7 +62,9 @@
       </span>
     </stage-config-field>
 
-    <stage-config-field label="Interval" field-columns="3">
+    <stage-config-field label="Interval"
+                        help-key="pipeline.config.canary.canaryInterval"
+                        field-columns="3">
       <input type="text"
              ng-model="kayentaCanaryStageCtrl.stage.canaryConfig.canaryAnalysisIntervalMins"
              class="form-control input-sm"
@@ -66,6 +73,7 @@
     </stage-config-field>
 
     <stage-config-field label="Analysis Type"
+                        help-key="pipeline.config.canary.lookback"
                         field-columns="3">
       <select class="form-control input-sm"
               ng-model="kayentaCanaryStageCtrl.state.useLookback"
@@ -101,7 +109,7 @@
   </kayenta-stage-config-section>
 
   <kayenta-stage-config-section title="Metric Scope">
-    <stage-config-field label="Baseline" field-columns="4">
+    <stage-config-field label="Baseline">
       <input
         class="form-control input-sm"
         ng-model="kayentaCanaryStageCtrl.stage.canaryConfig.controlScope"
@@ -109,7 +117,7 @@
         type="text"/>
     </stage-config-field>
 
-    <stage-config-field label="Canary" field-columns="4">
+    <stage-config-field label="Canary">
       <input
         class="form-control input-sm"
         ng-model="kayentaCanaryStageCtrl.stage.canaryConfig.experimentScope"
@@ -117,21 +125,21 @@
         type="text"/>
     </stage-config-field>
     <!--TODO: the unit for step is different for metric stores, and this should be more obvious to the user.-->
-    <stage-config-field label="Step" field-columns="4">
+    <stage-config-field label="Step">
       <input
         class="form-control input-sm"
         ng-model="kayentaCanaryStageCtrl.stage.canaryConfig.step"
         type="text"/>
     </stage-config-field>
 
-    <stage-config-field label="Start Time" field-columns="4" ng-if="kayentaCanaryStageCtrl.stage.analysisType === 'retrospective'">
+    <stage-config-field label="Start Time" ng-if="kayentaCanaryStageCtrl.stage.analysisType === 'retrospective'">
       <input
         class="form-control input-sm"
         ng-model="kayentaCanaryStageCtrl.stage.canaryConfig.startTimeIso"
         type="text"/>
     </stage-config-field>
 
-    <stage-config-field label="End Time" field-columns="4" ng-if="kayentaCanaryStageCtrl.stage.analysisType === 'retrospective'">
+    <stage-config-field label="End Time" ng-if="kayentaCanaryStageCtrl.stage.analysisType === 'retrospective'">
       <input
         class="form-control input-sm"
         ng-model="kayentaCanaryStageCtrl.stage.canaryConfig.endTimeIso"
