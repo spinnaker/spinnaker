@@ -61,6 +61,11 @@ var dcos = {
 };
 var entityTagsEnabled = false;
 var netflixMode = false;
+var notifications = '{%notifications.enabled%}' === 'true'
+var slack = {
+  enabled: '{%notifications.slack.enabled%}' === 'true'
+  botName: '{%notifications.slack.botName%}'
+};
 
 window.spinnakerSettings = {
   version: version,
@@ -119,10 +124,7 @@ window.spinnakerSettings = {
     sms: {
       enabled: true,
     },
-    slack: {
-      enabled: true,
-      botName: 'spinnakerbot'
-    }
+    slack: slack
   },
   authEnabled: authEnabled,
   authTtl: 600000,
@@ -136,7 +138,7 @@ window.spinnakerSettings = {
     jobs: jobsEnabled,
     pipelineTemplates: pipelineTemplatesEnabled,
     pipelines: true,
-    notifications: false,
+    notifications: notifications,
     fastProperty: true,
     vpcMigrator: true,
     clusterDiff: false,
