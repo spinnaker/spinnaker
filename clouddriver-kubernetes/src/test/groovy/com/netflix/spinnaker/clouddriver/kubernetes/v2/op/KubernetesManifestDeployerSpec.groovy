@@ -97,7 +97,7 @@ metadata:
 
     then:
     1 * credentialsMock.createReplicaSet(_) >> null
-    result.serverGroupNames == ["$NAMESPACE:$KIND/$NAME"]
+    result.serverGroupNames == ["$NAMESPACE:$API_VERSION|$KIND|$NAME"]
   }
 
   void "replica set deployer uses backup namespace"() {
@@ -111,6 +111,6 @@ metadata:
 
     then:
     1 * credentialsMock.createReplicaSet(_) >> null
-    result.serverGroupNames == ["$BACKUP_NAMESPACE:$KIND/$NAME"]
+    result.serverGroupNames == ["$BACKUP_NAMESPACE:$API_VERSION|$KIND|$NAME"]
   }
 }

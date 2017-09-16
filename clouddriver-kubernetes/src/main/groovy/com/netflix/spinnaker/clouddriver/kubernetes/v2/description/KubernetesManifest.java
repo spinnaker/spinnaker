@@ -21,8 +21,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
-import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.commons.lang3.tuple.Pair;
+import org.apache.commons.lang3.tuple.ImmutableTriple;
+import org.apache.commons.lang3.tuple.Triple;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -130,19 +130,20 @@ public class KubernetesManifest extends HashMap<String, Object> {
 
   @JsonIgnore
   public String getFullResourceName() {
-    return getKind() + "/" + getName();
+    return String.join("|", getApiVersion().toString(), getKind().toString(), getName());
   }
 
-  public static Pair<KubernetesKind, String> fromFullResourceName(String fullResourceName) {
-    String[] split = fullResourceName.split("/");
-    if (split.length != 2) {
-      throw new IllegalArgumentException("Expected a full resource name of the form <kind>/<name>");
+  public static Triple<KubernetesApiVersion, KubernetesKind, String> fromFullResourceName(String fullResourceName) {
+    String[] split = fullResourceName.split("\\|");
+    if (split.length != 3) {
+      throw new IllegalArgumentException("Expected a full resource name of the form <version>|<kind>|<name>");
     }
 
-    KubernetesKind kind = KubernetesKind.fromString(split[0]);
-    String name = split[1];
+    KubernetesApiVersion apiVersion = KubernetesApiVersion.fromString(split[0]);
+    KubernetesKind kind = KubernetesKind.fromString(split[1]);
+    String name = split[2];
 
-    return new ImmutablePair<>(kind, name);
+    return new ImmutableTriple<>(apiVersion, kind, name);
   }
 
   @Data

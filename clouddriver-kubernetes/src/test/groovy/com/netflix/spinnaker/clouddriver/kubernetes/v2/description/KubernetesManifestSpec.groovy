@@ -65,15 +65,16 @@ spec:
   @Unroll
   void "correctly parses a fully qualified resource name #kind/#name"() {
     expect:
-    def pair = KubernetesManifest.fromFullResourceName(fullResourceName)
-    pair.getLeft() == kind
-    pair.getRight() == name
+    def triple = KubernetesManifest.fromFullResourceName(fullResourceName)
+    triple.getRight() == name
+    triple.getLeft() == apiVersion
+    triple.getMiddle() == kind
 
     where:
-    fullResourceName || kind                       | name
-    "replicaSet/abc" || KubernetesKind.REPLICA_SET | "abc"
-    "service/abc"    || KubernetesKind.SERVICE     | "abc"
-    "SERVICE/abc"    || KubernetesKind.SERVICE     | "abc"
-    "ingress/abc"    || KubernetesKind.INGRESS     | "abc"
+    fullResourceName                    || apiVersion                              | kind                       | name
+    "extensions/v1beta1|replicaSet|abc" || KubernetesApiVersion.EXTENSIONS_V1BETA1 | KubernetesKind.REPLICA_SET | "abc"
+    "v1|service|abc"                    || KubernetesApiVersion.V1                 | KubernetesKind.SERVICE     | "abc"
+    "V1|SERVICE|abc"                    || KubernetesApiVersion.V1                 | KubernetesKind.SERVICE     | "abc"
+    "apps/v1beta1|ingress|abc"          || KubernetesApiVersion.APPS_V1BETA1       | KubernetesKind.INGRESS     | "abc"
   }
 }
