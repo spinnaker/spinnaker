@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.caching;
 
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesApiVersion;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesKind;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesManifest;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
@@ -91,6 +92,10 @@ public class Keys {
     return createKey(Kind.INFRASTRUCTURE, kind, version, account, namespace, name);
   }
 
+  public static String infrastructure(KubernetesManifest manifest, String account) {
+    return infrastructure(manifest.getKind(), manifest.getApiVersion(), account, manifest.getNamespace(), manifest.getName());
+  }
+
   public static Optional<CacheKey> parseKey(String key) {
     String[] parts = key.split(":", -1);
 
@@ -151,6 +156,11 @@ public class Keys {
     }
 
     @Override
+    public String toString() {
+      return createKey(kind, logicalKind, name);
+    }
+
+    @Override
     public String getGroup() {
       return logicalKind.toString();
     }
@@ -171,6 +181,11 @@ public class Keys {
 
       account = parts[3];
       name = parts[4];
+    }
+
+    @Override
+    public String toString() {
+      return createKey(kind, logicalKind, account, name);
     }
 
     @Override
@@ -199,6 +214,11 @@ public class Keys {
       account = parts[4];
       namespace = parts[5];
       name = parts[6];
+    }
+
+    @Override
+    public String toString() {
+      return createKey(kind, kubernetesKind, kubernetesApiVersion, account, namespace, name);
     }
 
     @Override

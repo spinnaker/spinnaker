@@ -60,7 +60,7 @@ public class KubernetesPodCachingAgent extends KubernetesV2CachingAgent<V1Pod> {
   );
 
   @Override
-  protected List<V1Pod> loadPrimaryResource() {
+  protected List<V1Pod> loadPrimaryResourceList() {
     return namespaces.stream()
         .map(credentials::listAllPods)
         .flatMap(Collection::stream)

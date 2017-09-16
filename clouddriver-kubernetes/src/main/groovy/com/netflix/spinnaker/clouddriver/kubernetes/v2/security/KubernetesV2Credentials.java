@@ -227,6 +227,24 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
     });
   }
 
+  public V1beta1ReplicaSet readReplicaSet(String namespace, String name) {
+    final String methodName = "replicaSets.read";
+    final KubernetesApiVersion apiVersion = KubernetesApiVersion.EXTENSIONS_V1BETA1;
+    final KubernetesKind kind = KubernetesKind.REPLICA_SET;
+    return runAndRecordMetrics(methodName, namespace, () -> {
+      try {
+        V1beta1ReplicaSet result = extensionsV1beta1Api.readNamespacedReplicaSet(name, namespace, PRETTY, EXACT, EXPORT);
+        return annotateMissingFields(result, V1beta1ReplicaSet.class, apiVersion, kind);
+      } catch (ApiException e) {
+        if (notFound(e)) {
+          return null;
+        }
+
+        throw new KubernetesApiException(methodName, e);
+      }
+    });
+  }
+
   public void createService(V1Service service) {
     final String methodName = "services.create";
     final String namespace = service.getMetadata().getNamespace();

@@ -28,6 +28,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAcco
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -45,8 +46,15 @@ public abstract class KubernetesV2CachingAgent<T> extends KubernetesCachingAgent
   @Override
   public CacheResult loadData(ProviderCache providerCache) {
     reloadNamespaces();
+    return buildCacheResult(loadPrimaryResourceList());
+  }
 
-    List<CacheData> resourceData = loadPrimaryResource().stream()
+  protected CacheResult buildCacheResult(T resource) {
+    return buildCacheResult(Collections.singletonList(resource));
+  }
+
+  protected CacheResult buildCacheResult(List<T> resources) {
+    List<CacheData> resourceData = resources.stream()
         .map(rs -> KubernetesCacheDataConverter.fromResource(accountName, objectMapper, rs))
         .filter(Objects::nonNull)
         .collect(Collectors.toList());
@@ -62,7 +70,8 @@ public abstract class KubernetesV2CachingAgent<T> extends KubernetesCachingAgent
     KubernetesCacheDataConverter.logStratifiedCacheData(getAgentType(), entries);
 
     return new DefaultCacheResult(entries);
+
   }
 
-  protected abstract List<T> loadPrimaryResource();
+  protected abstract List<T> loadPrimaryResourceList();
 }
