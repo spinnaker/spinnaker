@@ -41,24 +41,34 @@ public class FieldValidator extends Validator<Node> {
     }
     
     Class clazz = n.getClass();
-    Arrays.stream(clazz.getDeclaredFields())
-      .forEach(field -> {
-        ValidForSpinnakerVersion annotation = field.getDeclaredAnnotation(ValidForSpinnakerVersion.class);
-        try {
-          field.setAccessible(true);
-          boolean fieldNotValid = field.get(n) != null && 
-            annotation != null && 
-            Versions.lessThan(spinnakerVersion, annotation.lowerBound());
-          
-          if (fieldNotValid) {
-            p.addProblem(
-              Problem.Severity.WARNING,
-              "Field " + clazz.getSimpleName() + "." + field.getName() + " not supported for Spinnaker version " + spinnakerVersion + "."
-            ).setRemediation("Use at least " + annotation.lowerBound() + " (It may not have been released yet).");
-          }
-        } catch (IllegalArgumentException /* Probably using nightly build */ | IllegalAccessException /* Probably shouldn't happen */ e) {
-          log.warn("Error validating field " + clazz.getSimpleName() + "." + field.getName() + ": ", e);
-        }
-      });
+    while (clazz != Object.class) {
+      Class finalClazz = clazz;
+      Arrays.stream(clazz.getDeclaredFields())
+          .forEach(field -> {
+            ValidForSpinnakerVersion annotation = field.getDeclaredAnnotation(ValidForSpinnakerVersion.class);
+            try {
+              field.setAccessible(true);
+              Object v = field.get(n);
+              boolean fieldNotValid = v != null &&
+                  annotation != null &&
+                  Versions.lessThan(spinnakerVersion, annotation.lowerBound());
+
+              // If the field was set to false, it's assumed it's not enabling a restricted feature
+              if (fieldNotValid && (v instanceof Boolean) && !((Boolean) v)) {
+                fieldNotValid = false;
+              }
+
+              if (fieldNotValid) {
+                p.addProblem(
+                    Problem.Severity.WARNING,
+                    "Field " + finalClazz.getSimpleName() + "." + field.getName() + " not supported for Spinnaker version " + spinnakerVersion + ": " + annotation.message()
+                ).setRemediation("Use at least " + annotation.lowerBound() + " (It may not have been released yet).");
+              }
+            } catch (IllegalArgumentException /* Probably using nightly build */ | IllegalAccessException /* Probably shouldn't happen */ e) {
+              log.warn("Error validating field " + finalClazz.getSimpleName() + "." + field.getName() + ": ", e);
+            }
+          });
+      clazz = clazz.getSuperclass();
+    }
   }
 }

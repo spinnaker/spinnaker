@@ -12,17 +12,27 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
+ *
  */
 
 package com.netflix.spinnaker.halyard.config.model.v1.node;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.netflix.spinnaker.halyard.config.model.v1.notifications.SlackNotification;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import java.lang.reflect.Field;
+import java.util.Arrays;
+import java.util.Optional;
+
 @Data
 @EqualsAndHashCode(callSuper = false)
-public class Features extends Node {
+public class Notifications extends Node implements Cloneable {
+  SlackNotification slack = new SlackNotification();
+
   @Override
   public void accept(ConfigProblemSetBuilder psBuilder, Validator v) {
     v.validate(psBuilder, this);
@@ -30,23 +40,29 @@ public class Features extends Node {
 
   @Override
   public String getNodeName() {
-    return "features";
+    return "notification";
   }
 
   @Override
   public NodeIterator getChildren() {
-    return NodeIteratorFactory.makeEmptyIterator();
+    return NodeIteratorFactory.makeReflectiveIterator(this);
   }
 
-  private boolean auth;
-  private boolean fiat;
-  private boolean chaos;
-  private boolean entityTags;
-  private boolean jobs;
-  @ValidForSpinnakerVersion(lowerBound = "1.2.0", message = "Pipeline templates are not stable prior to this release.")
-  private Boolean pipelineTemplates;
+  @JsonIgnore
+  public boolean isEnabled() {
+    return slack.isEnabled();
+  }
 
-  public boolean isAuth(DeploymentConfiguration deploymentConfiguration) {
-    return deploymentConfiguration.getSecurity().getAuthn().isEnabled();
+  public static Class<? extends Notification> translateNotificationType(String notificationName) {
+    Optional<? extends Class<?>> res = Arrays.stream(Notifications.class.getDeclaredFields())
+        .filter(f -> f.getName().equals(notificationName))
+        .map(Field::getType)
+        .findFirst();
+
+    if (res.isPresent()) {
+      return (Class<? extends Notification>)res.get();
+    } else {
+      throw new IllegalArgumentException("No notification type with name \"" + notificationName + "\" handled by halyard");
+    }
   }
 }

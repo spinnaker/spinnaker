@@ -12,21 +12,26 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
+ *
  */
 
-package com.netflix.spinnaker.halyard.config.model.v1.node;
+package com.netflix.spinnaker.halyard.config.model.v1.notifications;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Notification;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
-/**
- * This annotation defines a strict subset of Spinnaker versions for which the field it annotates is valid.
- */
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.FIELD)
-public @interface ValidForSpinnakerVersion {
-  String lowerBound();
-  String message();
+@Data
+@EqualsAndHashCode(callSuper = true)
+public class SlackNotification extends Notification {
+  String botName;
+  String token;
+
+  @Override
+  @JsonIgnore
+  public NotificationType getNotificationType() {
+    return NotificationType.SLACK;
+  }
 }

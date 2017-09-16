@@ -53,6 +53,7 @@ public class ConfigCommand extends AbstractConfigCommand {
     registerSubcommand(new FeaturesCommand());
     registerSubcommand(new GenerateCommand());
     registerSubcommand(new MetricStoresCommand());
+    registerSubcommand(new NotificationCommand());
     registerSubcommand(new PersistentStorageCommand());
     registerSubcommand(new ProviderCommand());
     registerSubcommand(new SecurityCommand());

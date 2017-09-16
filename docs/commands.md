@@ -48,6 +48,11 @@
  * [**hal config metric-stores stackdriver disable**](#hal-config-metric-stores-stackdriver-disable)
  * [**hal config metric-stores stackdriver edit**](#hal-config-metric-stores-stackdriver-edit)
  * [**hal config metric-stores stackdriver enable**](#hal-config-metric-stores-stackdriver-enable)
+ * [**hal config notification**](#hal-config-notification)
+ * [**hal config notification slack**](#hal-config-notification-slack)
+ * [**hal config notification slack disable**](#hal-config-notification-slack-disable)
+ * [**hal config notification slack edit**](#hal-config-notification-slack-edit)
+ * [**hal config notification slack enable**](#hal-config-notification-slack-enable)
  * [**hal config provider**](#hal-config-provider)
  * [**hal config provider appengine**](#hal-config-provider-appengine)
  * [**hal config provider appengine account**](#hal-config-provider-appengine-account)
@@ -463,6 +468,7 @@ hal config [parameters] [subcommands]
  * `features`: Display the state of Spinnaker's feature flags.
  * `generate`: Generate the full Spinnaker config for your current deployment.
  * `metric-stores`: Configure Spinnaker's metric stores. This configuration only affects the publishing of metrics against whichever metric stores you enable (it can be more than one).
+ * `notification`: Display the state of Spinnaker's notification settings.
  * `provider`: Configure, validate, and view the specified provider.
  * `security`: Configure Spinnaker's security. This includes external SSL, authentication mechanisms, and authorization policies.
  * `storage`: Show Spinnaker's persistent storage configuration.
@@ -971,6 +977,89 @@ Set the stackdriver method as enabled
 #### Usage
 ```
 hal config metric-stores stackdriver enable [parameters]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config notification
+
+Display the state of Spinnaker's notification settings.
+
+#### Usage
+```
+hal config notification [parameters] [subcommands]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+#### Subcommands
+ * `slack`: Manage and view Spinnaker configuration for the slack notification
+
+---
+## hal config notification slack
+
+Manage and view Spinnaker configuration for the slack notification
+
+#### Usage
+```
+hal config notification slack [parameters] [subcommands]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+#### Subcommands
+ * `disable`: Set the slack notification as disabled
+ * `edit`: Edit the slack notification type
+ * `enable`: Set the slack notification as enabled
+
+---
+## hal config notification slack disable
+
+Set the slack notification as disabled
+
+#### Usage
+```
+hal config notification slack disable [parameters]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config notification slack edit
+
+Edit the slack notification type
+
+#### Usage
+```
+hal config notification slack edit [parameters]
+```
+
+#### Parameters
+ * `--bot-name`: The name of your slack bot.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+ * `--token`: (*Sensitive data* - user will be prompted on standard input) Your slack bot token.
+
+
+---
+## hal config notification slack enable
+
+Set the slack notification as enabled
+
+#### Usage
+```
+hal config notification slack enable [parameters]
 ```
 
 #### Parameters
@@ -3389,7 +3478,7 @@ hal config security authn ldap disable [parameters]
 ---
 ## hal config security authn ldap edit
 
-Edit the Ldap authentication method
+Lightweight Directory Access Protocol (LDAP) is a standard way many organizations maintain user credentials and group memberships. Spinnaker uses the standard “bind” approach for user authentication. This is a fancy way of saying that Gate uses your username and password to login to the LDAP server, and if the connection is successful, you’re considered authenticated.
 
 #### Usage
 ```
@@ -3400,11 +3489,9 @@ hal config security authn ldap edit [parameters]
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--url`: ldap:// or ldaps:// url of the LDAP server
- * `--user-dn-pattern`: User DN pattern, Base + Unique e.g. uid={0},ou=users,dc=my-org,dc=com
- * `--user-search-base`: Used when a simple DN pattern is not possible
- * `--user-search-filter`: Used When a simple DN pattern is not possible
- 
-Go [here](https://www.spinnaker.io/setup/security/authentication/ldap/) for more information about Ldap parameters and spinnaker.
+ * `--user-dn-pattern`: Placeholder...uid={0},ou=users
+ * `--user-search-base`: Placeholder...
+ * `--user-search-filter`: Placeholder
 
 
 ---

@@ -72,6 +72,11 @@ public class DeploymentConfiguration extends Node {
    */
   MetricStores metricStores = new MetricStores();
 
+  /**
+   * Notification configuration
+   */
+  Notifications notifications = new Notifications();
+
   String timezone = "America/Los_Angeles";
 
   /**

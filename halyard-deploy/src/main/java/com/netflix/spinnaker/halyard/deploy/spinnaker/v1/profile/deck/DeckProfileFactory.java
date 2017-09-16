@@ -19,6 +19,8 @@ package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.deck;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Features;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Notifications;
+import com.netflix.spinnaker.halyard.config.model.v1.notifications.SlackNotification;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.appengine.AppengineProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.azure.AzureProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.dcos.DCOSProvider;
@@ -68,6 +70,7 @@ public class DeckProfileFactory extends RegistryBackedProfileFactory {
     profile.setUser(ApacheSettings.APACHE_USER);
 
     Features features = deploymentConfiguration.getFeatures();
+    Notifications notifications = deploymentConfiguration.getNotifications();
     Map<String, String> bindings = new HashMap<>();
     String version = deploymentConfiguration.getVersion();
 
@@ -126,6 +129,13 @@ public class DeckProfileFactory extends RegistryBackedProfileFactory {
       String firstRegion = openstackAccount.getRegions().get(0);
       bindings.put("openstack.default.region", firstRegion);
     }
+
+    // Configure notifications
+    bindings.put("notifications.enabled", notifications.isEnabled() + "");
+
+    SlackNotification slackNotification = notifications.getSlack();
+    bindings.put("notifications.slack.enabled", slackNotification.isEnabled() + "");
+    bindings.put("notifications.slack.botName", slackNotification.getBotName());
 
     profile.appendContents(configTemplate.setBindings(bindings).toString())
         .setRequiredFiles(backupRequiredFiles(uiSecurity, deploymentConfiguration.getName()));

@@ -32,6 +32,10 @@ public class EchoProfileFactory extends SpringProfileFactory {
   protected void setProfile(Profile profile, DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
     super.setProfile(profile, deploymentConfiguration, endpoints);
     profile.appendContents("global.spinnaker.timezone: " + deploymentConfiguration.getTimezone());
+    profile.appendContents("spinnaker.baseUrl: " + endpoints.getServices().getDeck().getBaseUrl());
+    if (deploymentConfiguration.getNotifications() != null) {
+      profile.appendContents(yamlToString(deploymentConfiguration.getNotifications()));
+    }
     profile.appendContents(profile.getBaseContents());
   }
 }

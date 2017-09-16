@@ -464,6 +464,31 @@ public interface DaemonService {
       @Path("baseImageId") String baseImageId,
       @Query("validate") boolean validate);
 
+  @GET("/v1/config/deployments/{deploymentName}/notifications/")
+  DaemonTask<Halconfig, Object> getNotifications(
+      @Path("deploymentName") String deploymentName,
+      @Query("validate") boolean validate);
+
+  @GET("/v1/config/deployments/{deploymentName}/notifications/{notificationName}/")
+  DaemonTask<Halconfig, Object> getNotification(
+      @Path("deploymentName") String deploymentName,
+      @Path("notificationName") String notificationName,
+      @Query("validate") boolean validate);
+
+  @PUT("/v1/config/deployments/{deploymentName}/notifications/{notificationName}/enabled")
+  DaemonTask<Halconfig, Void> setNotificationEnabled(
+      @Path("deploymentName") String deploymentName,
+      @Path("notificationName") String notificationName,
+      @Query("validate") boolean validate,
+      @Body boolean enabled);
+
+  @PUT("/v1/config/deployments/{deploymentName}/notifications/{notificationName}/")
+  DaemonTask<Halconfig, Object> setNotification(
+      @Path("deploymentName") String deploymentName,
+      @Path("notificationName") String notificationName,
+      @Query("validate") boolean validate,
+      @Body Notification notification);
+
   @GET("/v1/config/deployments/{deploymentName}/ci/{ciName}/")
   DaemonTask<Halconfig, Object> getCi(
       @Path("deploymentName") String deploymentName,
