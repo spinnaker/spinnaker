@@ -51,6 +51,7 @@ class DockerRegistryClient {
     File dockerconfigFile
     long clientTimeoutMillis
     int paginateSize
+    String catalogFile
 
     Builder address(String address) {
       this.address = address
@@ -92,16 +93,22 @@ class DockerRegistryClient {
       return this
     }
 
+    Builder catalogFile(String catalogFile) {
+      this.catalogFile = catalogFile
+      return this
+    }
+
     DockerRegistryClient build() {
+
       if (password && passwordFile) {
         throw new IllegalArgumentException('Error, at most one of "password", "passwordFile", or "dockerconfigFile" can be specified')
       }
       if (password) {
-        return new DockerRegistryClient(address, email, username, password, clientTimeoutMillis, paginateSize)
+        return new DockerRegistryClient(address, email, username, password, clientTimeoutMillis, paginateSize, catalogFile)
       } else if (passwordFile) {
-        return new DockerRegistryClient(address, email, username, passwordFile, clientTimeoutMillis, paginateSize)
+        return new DockerRegistryClient(address, email, username, passwordFile, clientTimeoutMillis, paginateSize, catalogFile)
       } else {
-        return new DockerRegistryClient(address, clientTimeoutMillis, paginateSize)
+        return new DockerRegistryClient(address, clientTimeoutMillis, paginateSize, catalogFile)
       }
     }
 
@@ -115,6 +122,7 @@ class DockerRegistryClient {
   String email
   DockerRegistryService registryService
   GsonConverter converter
+  String catalogFile
 
   String getBasicAuth() {
     return tokenService?.basicAuth
@@ -125,7 +133,7 @@ class DockerRegistryClient {
 
   final int paginateSize
 
-  DockerRegistryClient(String address, long clientTimeoutMillis, int paginateSize) {
+  DockerRegistryClient(String address, long clientTimeoutMillis, int paginateSize, String catalogFile) {
     this.paginateSize = paginateSize
     this.tokenService = new DockerBearerTokenService()
     OkHttpClient client = new OkHttpClient()
@@ -138,15 +146,16 @@ class DockerRegistryClient {
       .create(DockerRegistryService)
     this.converter = new GsonConverter(new GsonBuilder().create())
     this.address = address
+    this.catalogFile = catalogFile
   }
 
-  DockerRegistryClient(String address, String email, String username, String password, long clientTimeoutMillis, int paginateSize) {
+  DockerRegistryClient(String address, String email, String username, String password, long clientTimeoutMillis, int paginateSize, String catalogFile) {
     this(address, clientTimeoutMillis, paginateSize)
     this.tokenService = new DockerBearerTokenService(username, password)
     this.email = email
   }
 
-  DockerRegistryClient(String address, String email, String username, File passwordFile, long clientTimeoutMillis, int paginateSize) {
+  DockerRegistryClient(String address, String email, String username, File passwordFile, long clientTimeoutMillis, int paginateSize, String catalogFile) {
     this(address, clientTimeoutMillis, paginateSize)
     this.tokenService = new DockerBearerTokenService(username, passwordFile)
     this.email = email
@@ -270,6 +279,16 @@ class DockerRegistryClient {
    * don't want you to download their whole catalog (it's potentially a lot of data).
    */
   public DockerRegistryCatalog getCatalog(String path = null) {
+    if (catalogFile) {
+      log.info("Using catalog list at $catalogFile")
+      try {
+        String userDefinedCatalog = new File(catalogFile).getText()
+        return (DockerRegistryCatalog) new Gson().fromJson(userDefinedCatalog, DockerRegistryCatalog.class)
+      } catch (Exception e) {
+        throw new DockerRegistryOperationException("Unable to read catalog file $catalogFile:" + e.getMessage())
+      }
+    }
+
     def response
     try {
       response = request({

@@ -53,6 +53,8 @@ class DockerRegistryConfigurationProperties {
     // or <library> for repositories like 'ubuntu'.
     List<String> repositories
     List<String> skip
+    // a file listing all repositories to index
+    String catalogFile
   }
 
   List<ManagedAccount> accounts = []
