@@ -63,7 +63,7 @@ function configure_defaults() {
   fi
 
   set +e
-  getent passwd $HAL_USER &> /dev/null
+  id $HAL_USER &> /dev/null
 
   if [ "$?" != "0" ]; then
     >&2 echo "Supplied user $HAL_USER does not exist"
@@ -150,7 +150,7 @@ function install_java() {
   local java_version=$(java -version 2>&1 head -1)
   set -e
 
-  if [[ "$java_version" == "*1.8*" ]]; then
+  if [[ "$java_version" == *"1.8"* ]]; then
     echo "Java is already installed & at the right version"
     return 0;
   fi
@@ -164,7 +164,7 @@ function install_halyard() {
   TEMPDIR=$(mktemp -d installhalyard.XXXX)
   pushd $TEMPDIR
 
-  curl -O https://storage.googleapis.com/spinnaker-artifacts/halyard/$HALYARD_VERSION/osx/halyard.tar.gz
+  curl -OL https://storage.googleapis.com/spinnaker-artifacts/halyard/$HALYARD_VERSION/osx/halyard.tar.gz
   tar -xvf halyard.tar.gz -C /opt
 
   groupadd halyard
