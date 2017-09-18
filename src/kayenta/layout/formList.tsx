@@ -1,7 +1,7 @@
 import * as React from 'react';
 
 export interface IFormListProps {
-  children: JSX.Element[];
+  children: JSX.Element[] | JSX.Element;
 }
 
 /*
@@ -10,8 +10,8 @@ export interface IFormListProps {
 export default function FormList({ children }: IFormListProps) {
   return (
     <ul className="list-group">
-      {children.map((c, i) =>
-        <li key={i} className="list-group-item">
+      {React.Children.map(children, c =>
+        <li className="list-group-item">
           <form role="form" className="form-horizontal container-fluid">
             <div className="col-md-11">{c}</div>
           </form>

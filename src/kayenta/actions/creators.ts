@@ -17,3 +17,4 @@ export const saveConfig = createAction(Actions.SAVE_CONFIG_REQUEST);
 export const dismissSaveConfigError = createAction(Actions.DISMISS_SAVE_CONFIG_ERROR);
 export const setConfigJsonModalTabState = createAction(Actions.SET_CONFIG_JSON_MODAL_TAB_STATE, typedPayloadCreator<ConfigJsonModalTabState>());
 export const setConfigJson = createAction(Actions.SET_CONFIG_JSON, typedPayloadCreator<string>());
+export const deleteConfigSuccess = createAction(Actions.DELETE_CONFIG_SUCCESS);
