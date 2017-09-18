@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.front50.model
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.front50.config.S3Properties
 import com.netflix.spinnaker.front50.model.events.S3Event
 import org.springframework.scheduling.TaskScheduler
@@ -34,6 +35,7 @@ class EventingS3ObjectKeyLoaderSpec extends Specification {
   )
   def temporarySQSQueue = Mock(TemporarySQSQueue)
   def s3StorageService = Mock(S3StorageService)
+  def registry = Mock(Registry)
 
   @Subject
   def objectKeyLoader = new EventingS3ObjectKeyLoader(
@@ -42,6 +44,7 @@ class EventingS3ObjectKeyLoaderSpec extends Specification {
     s3Properties,
     temporarySQSQueue,
     s3StorageService,
+    registry,
     false
   )
 

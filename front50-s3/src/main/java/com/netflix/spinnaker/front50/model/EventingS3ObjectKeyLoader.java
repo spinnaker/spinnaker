@@ -24,6 +24,7 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListenableFutureTask;
+import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.front50.config.S3Properties;
 import com.netflix.spinnaker.front50.model.events.S3Event;
 import com.netflix.spinnaker.front50.model.events.S3EventWrapper;
@@ -62,8 +63,9 @@ public class EventingS3ObjectKeyLoader implements ObjectKeyLoader, Runnable {
   private static final Executor executor = Executors.newFixedThreadPool(5);
 
   private final ObjectMapper objectMapper;
-  private final S3StorageService s3StorageService;
   private final TemporarySQSQueue temporarySQSQueue;
+  private final S3StorageService s3StorageService;
+  private final Registry registry;
 
   private final Cache<KeyWithObjectType, Long> objectKeysByLastModifiedCache;
   private final LoadingCache<ObjectType, Map<String, Long>> objectKeysByObjectTypeCache;
@@ -77,10 +79,12 @@ public class EventingS3ObjectKeyLoader implements ObjectKeyLoader, Runnable {
                                    S3Properties s3Properties,
                                    TemporarySQSQueue temporarySQSQueue,
                                    S3StorageService s3StorageService,
+                                   Registry registry,
                                    boolean scheduleImmediately) {
     this.objectMapper = objectMapper;
     this.temporarySQSQueue = temporarySQSQueue;
     this.s3StorageService = s3StorageService;
+    this.registry = registry;
 
     this.objectKeysByLastModifiedCache = CacheBuilder
       .newBuilder()
@@ -173,19 +177,24 @@ public class EventingS3ObjectKeyLoader implements ObjectKeyLoader, Runnable {
   @Override
   public void run() {
     while (pollForMessages) {
-      List<Message> messages = temporarySQSQueue.fetchMessages();
+      try {
+        List<Message> messages = temporarySQSQueue.fetchMessages();
 
-      if (messages.isEmpty()) {
-        continue;
-      }
-
-      messages.forEach(message -> {
-        S3Event s3Event = unmarshall(objectMapper, message.getBody());
-        if (s3Event != null) {
-          tick(s3Event);
+        if (messages.isEmpty()) {
+          continue;
         }
-        temporarySQSQueue.markMessageAsHandled(message.getReceiptHandle());
-      });
+
+        messages.forEach(message -> {
+          S3Event s3Event = unmarshall(objectMapper, message.getBody());
+          if (s3Event != null) {
+            tick(s3Event);
+          }
+          temporarySQSQueue.markMessageAsHandled(message.getReceiptHandle());
+        });
+      } catch (Exception e) {
+        log.error("Failed to poll for messages", e);
+        registry.counter("s3.eventing.pollErrors").increment();
+      }
     }
   }
 

@@ -15,6 +15,7 @@ import com.amazonaws.services.sqs.AmazonSQSClientBuilder;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.appinfo.ApplicationInfoManager;
 import com.netflix.awsobjectmapper.AmazonObjectMapperConfigurer;
+import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.aws.bastion.BastionConfig;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
 import com.netflix.spinnaker.front50.model.EventingS3ObjectKeyLoader;
@@ -120,13 +121,15 @@ public class S3Config extends CommonStorageServiceDAOConfig {
   public ObjectKeyLoader eventingS3ObjectKeyLoader(ObjectMapper objectMapper,
                                                    S3Properties s3Properties,
                                                    S3StorageService s3StorageService,
-                                                   TemporarySQSQueue temporaryQueueSupport) {
+                                                   TemporarySQSQueue temporaryQueueSupport,
+                                                   Registry registry) {
     return new EventingS3ObjectKeyLoader(
       Executors.newFixedThreadPool(1),
       objectMapper,
       s3Properties,
       temporaryQueueSupport,
       s3StorageService,
+      registry,
       true
     );
   }
