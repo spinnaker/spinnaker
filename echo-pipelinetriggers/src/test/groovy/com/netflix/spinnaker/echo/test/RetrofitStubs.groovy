@@ -6,6 +6,7 @@ import com.netflix.spinnaker.echo.model.Trigger
 import com.netflix.spinnaker.echo.model.pubsub.MessageDescription
 import com.netflix.spinnaker.echo.model.pubsub.PubsubType
 import com.netflix.spinnaker.echo.model.trigger.*
+import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import retrofit.RetrofitError
 import retrofit.client.Response
 
@@ -84,13 +85,14 @@ trait RetrofitStubs {
     return res
   }
 
-  PubsubEvent createPubsubEvent(PubsubType pubsubType, String subscriptionName) {
+  PubsubEvent createPubsubEvent(PubsubType pubsubType, String subscriptionName, List<Artifact> artifacts) {
     def res = new PubsubEvent()
 
     def description = MessageDescription.builder()
         .pubsubType(pubsubType)
         .ackDeadlineMillis(10000)
         .subscriptionName(subscriptionName)
+        .artifacts(artifacts)
         .build()
 
     def content = new PubsubEvent.Content()

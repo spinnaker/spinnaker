@@ -18,11 +18,13 @@ package com.netflix.spinnaker.echo.model;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import lombok.Builder;
 import lombok.ToString;
 import lombok.Value;
 import lombok.experimental.Wither;
 
+import java.util.List;
 import java.util.Map;
 
 @JsonDeserialize(builder = Trigger.TriggerBuilder.class)
@@ -73,6 +75,7 @@ public class Trigger {
   String secret;
   String subscriptionName;
   String pubsubType;
+  List<Artifact> expectedArtifacts;
 
   public Trigger atBuildNumber(final int buildNumber) {
     return this.toBuilder()

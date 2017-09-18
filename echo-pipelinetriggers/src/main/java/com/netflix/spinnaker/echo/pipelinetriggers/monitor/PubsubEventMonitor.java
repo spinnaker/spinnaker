@@ -25,7 +25,9 @@ import com.netflix.spinnaker.echo.model.pubsub.MessageDescription;
 import com.netflix.spinnaker.echo.model.trigger.PubsubEvent;
 import com.netflix.spinnaker.echo.model.trigger.TriggerEvent;
 import com.netflix.spinnaker.echo.pipelinetriggers.PipelineCache;
+import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import lombok.NonNull;
+import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,6 +35,7 @@ import org.springframework.stereotype.Component;
 import rx.Observable;
 import rx.functions.Action1;
 
+import java.util.List;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
@@ -40,6 +43,7 @@ import java.util.function.Predicate;
  * Triggers pipelines in _Orca_ when a trigger-enabled pubsub message arrives.
  */
 @Component
+@Slf4j
 public class PubsubEventMonitor extends TriggerMonitor {
 
   public static final String PUBSUB_TRIGGER_TYPE = "pubsub";
@@ -96,10 +100,25 @@ public class PubsubEventMonitor extends TriggerMonitor {
     PubsubEvent pubsubEvent = (PubsubEvent) event;
     MessageDescription description = pubsubEvent.getContent().getMessageDescription();
 
-    // TODO(jacobkiefer): Need to apply filters specified in triggers here.
     return trigger -> trigger.getType().equalsIgnoreCase(PUBSUB_TRIGGER_TYPE)
         && trigger.getPubsubType().equalsIgnoreCase(description.getPubsubType().toString())
-        && trigger.getSubscriptionName().equalsIgnoreCase(description.getSubscriptionName());
+        && trigger.getSubscriptionName().equalsIgnoreCase(description.getSubscriptionName())
+        && anyArtifactsMatchExpected(description.getArtifacts(), trigger);
+  }
+
+  private Boolean anyArtifactsMatchExpected(List<Artifact> messageArtifacts, Trigger trigger) {
+    List<Artifact> expectedArtifacts = trigger.getExpectedArtifacts();
+
+    if (expectedArtifacts == null || expectedArtifacts.isEmpty()) {
+      return true;
+    }
+
+    if (messageArtifacts.size() > expectedArtifacts.size()) {
+      log.warn("Parsed message artifacts (size {}) greater than expected artifacts (size {}), continuing trigger anyway", messageArtifacts.size(), expectedArtifacts.size());
+    }
+
+    Predicate<Artifact> expectedArtifactMatch = a -> trigger.getExpectedArtifacts().stream().anyMatch(e -> a.getType().equals(e.getType()) && a.getName().equals(e.getName()));
+    return messageArtifacts.stream().anyMatch(expectedArtifactMatch);
   }
 
   @Override
