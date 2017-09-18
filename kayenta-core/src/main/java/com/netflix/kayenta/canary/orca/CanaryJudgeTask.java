@@ -73,9 +73,13 @@ public class CanaryJudgeTask implements RetryableTask {
   public TaskResult execute(Stage stage) {
     Map<String, Object> context = stage.getContext();
     String storageAccountName = (String)context.get("storageAccountName");
-    String resolvedAccountName = CredentialsHelper.resolveAccountByNameOrType(storageAccountName,
-                                                                              AccountCredentials.Type.OBJECT_STORE,
-                                                                              accountCredentialsRepository);
+    String resolvedStorageAccountName = CredentialsHelper.resolveAccountByNameOrType(storageAccountName,
+      AccountCredentials.Type.OBJECT_STORE,
+      accountCredentialsRepository);
+    String configurationAccountName = (String)context.get("configurationAccountName");
+    String resolvedConfigurationAccountName = CredentialsHelper.resolveAccountByNameOrType(configurationAccountName,
+      AccountCredentials.Type.CONFIGURATION_STORE,
+      accountCredentialsRepository);
     String canaryConfigId = (String)context.get("canaryConfigId");
     String metricSetPairListId = (String)context.get("metricSetPairListId");
     Map<String, String> orchestratorScoreThresholdsMap = (Map<String, String>)context.get("orchestratorScoreThresholds");
@@ -83,11 +87,16 @@ public class CanaryJudgeTask implements RetryableTask {
                                                                                              CanaryClassifierThresholdsConfig.class);
     StorageService storageService =
       storageServiceRepository
-        .getOne(resolvedAccountName)
+        .getOne(resolvedStorageAccountName)
         .orElseThrow(() -> new IllegalArgumentException("No storage service was configured; unable to load metric set lists."));
 
-    CanaryConfig canaryConfig = storageService.loadObject(resolvedAccountName, ObjectType.CANARY_CONFIG, canaryConfigId.toLowerCase());
-    List<MetricSetPair> metricSetPairList = storageService.loadObject(resolvedAccountName, ObjectType.METRIC_SET_PAIR_LIST, metricSetPairListId);
+    StorageService configurationService =
+      storageServiceRepository
+        .getOne(resolvedStorageAccountName)
+        .orElseThrow(() -> new IllegalArgumentException("No configuration service was configured; unable to load configurations."));
+
+    CanaryConfig canaryConfig = configurationService.loadObject(resolvedConfigurationAccountName, ObjectType.CANARY_CONFIG, canaryConfigId.toLowerCase());
+    List<MetricSetPair> metricSetPairList = storageService.loadObject(resolvedStorageAccountName, ObjectType.METRIC_SET_PAIR_LIST, metricSetPairListId);
     CanaryJudgeConfig canaryJudgeConfig = canaryConfig.getJudge();
     CanaryJudge canaryJudge = null;
 

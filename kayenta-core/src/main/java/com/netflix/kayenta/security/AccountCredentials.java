@@ -32,6 +32,7 @@ public interface AccountCredentials<T> {
 
   enum Type {
     METRICS_STORE,
-    OBJECT_STORE
+    OBJECT_STORE,
+    CONFIGURATION_STORE
   }
 }

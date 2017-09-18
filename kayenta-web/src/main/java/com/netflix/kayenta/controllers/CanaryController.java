@@ -90,6 +90,7 @@ public class CanaryController {
   @ApiOperation(value = "Initiate a canary pipeline")
   @RequestMapping(consumes = "application/json", method = RequestMethod.POST)
   public String initiateCanary(@RequestParam(required = false) final String metricsAccountName,
+                               @RequestParam(required = false) final String configurationAccountName,
                                @RequestParam(required = false) final String storageAccountName,
                                @ApiParam(defaultValue = "MySampleStackdriverCanaryConfig") @RequestParam String canaryConfigId,
                                @ApiParam(defaultValue = "myapp-v010-") @RequestParam String controlScope,
@@ -107,14 +108,18 @@ public class CanaryController {
     String resolvedStorageAccountName = CredentialsHelper.resolveAccountByNameOrType(storageAccountName,
                                                                                      AccountCredentials.Type.OBJECT_STORE,
                                                                                      accountCredentialsRepository);
-    StorageService storageService =
+    String resolvedConfigurationAccountName = CredentialsHelper.resolveAccountByNameOrType(configurationAccountName,
+                                                                                           AccountCredentials.Type.CONFIGURATION_STORE,
+                                                                                           accountCredentialsRepository);
+
+    StorageService configurationService =
       storageServiceRepository
-        .getOne(resolvedStorageAccountName)
-        .orElseThrow(() -> new IllegalArgumentException("No storage service was configured; unable to retrieve canary config."));
+        .getOne(resolvedConfigurationAccountName)
+        .orElseThrow(() -> new IllegalArgumentException("No configuration service was configured."));
 
     canaryConfigId = canaryConfigId.toLowerCase();
 
-    CanaryConfig canaryConfig = storageService.loadObject(resolvedStorageAccountName, ObjectType.CANARY_CONFIG, canaryConfigId);
+    CanaryConfig canaryConfig = configurationService.loadObject(resolvedConfigurationAccountName, ObjectType.CANARY_CONFIG, canaryConfigId);
 
     CanaryServiceConfig canaryConfigService =
       canaryConfig
@@ -147,6 +152,7 @@ public class CanaryController {
           .put("user", "[anonymous]")
           .put("metricsAccountName", resolvedMetricsAccountName)
           .put("storageAccountName", resolvedStorageAccountName)
+          .put("configurationAccountName", resolvedConfigurationAccountName)
           .put("canaryConfigId", canaryConfigId)
           .put(serviceType + "CanaryScope", controlScopeModel)
           .build());
@@ -158,6 +164,7 @@ public class CanaryController {
           .put("user", "[anonymous]")
           .put("metricsAccountName", resolvedMetricsAccountName)
           .put("storageAccountName", resolvedStorageAccountName)
+          .put("configurationAccountName", resolvedConfigurationAccountName)
           .put("canaryConfigId", canaryConfigId)
           .put(serviceType + "CanaryScope", experimentScopeModel)
           .build());
@@ -195,6 +202,7 @@ public class CanaryController {
           .put("requisiteStageRefIds", Collections.singletonList("3"))
           .put("user", "[anonymous]")
           .put("storageAccountName", resolvedStorageAccountName)
+          .put("configurationAccountName", resolvedConfigurationAccountName)
           .put("canaryConfigId", canaryConfigId)
           .put("metricSetPairListId", "${ #stage('Mix Control and Experiment Results')['context']['metricSetPairListId']}")
           .put("durationString", duration.toString())

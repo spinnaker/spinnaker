@@ -84,6 +84,7 @@ public class AtlasFetchTask implements RetryableTask {
     Map<String, Object> context = stage.getContext();
     String metricsAccountName = (String)context.get("metricsAccountName");
     String storageAccountName = (String)context.get("storageAccountName");
+    String configurationAccountName = (String)context.get("configurationAccountName");
     String canaryConfigId = (String)context.get("canaryConfigId");
     AtlasCanaryScope atlasCanaryScope =
       objectMapper.convertValue(stage.getContext().get("atlasCanaryScope"), AtlasCanaryScope.class);
@@ -93,14 +94,17 @@ public class AtlasFetchTask implements RetryableTask {
     String resolvedStorageAccountName = CredentialsHelper.resolveAccountByNameOrType(storageAccountName,
                                                                                      AccountCredentials.Type.OBJECT_STORE,
                                                                                      accountCredentialsRepository);
-    StorageService storageService =
+    String resolvedConfigurationAccountName = CredentialsHelper.resolveAccountByNameOrType(configurationAccountName,
+                                                                                           AccountCredentials.Type.CONFIGURATION_STORE,
+                                                                                           accountCredentialsRepository);
+    StorageService configurationService =
       storageServiceRepository
-        .getOne(resolvedStorageAccountName)
-        .orElseThrow(() -> new IllegalArgumentException("No storage service was configured; unable to load canary config."));
+        .getOne(resolvedConfigurationAccountName)
+        .orElseThrow(() -> new IllegalArgumentException("No configuration service was configured; unable to load canary config."));
 
     try {
       CanaryConfig canaryConfig =
-        storageService.loadObject(resolvedStorageAccountName, ObjectType.CANARY_CONFIG, canaryConfigId.toLowerCase());
+              configurationService.loadObject(resolvedConfigurationAccountName, ObjectType.CANARY_CONFIG, canaryConfigId.toLowerCase());
 
       List<String> metricSetListIds = synchronousQueryProcessor.processQuery(resolvedMetricsAccountName,
                                                                              resolvedStorageAccountName,

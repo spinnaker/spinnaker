@@ -40,7 +40,6 @@ import java.io.IOException;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
@@ -59,32 +58,32 @@ public class CanaryConfigController {
 
   @ApiOperation(value = "Retrieve a canary config from object storage")
   @RequestMapping(value = "/{canaryConfigId:.+}", method = RequestMethod.GET)
-  public CanaryConfig loadCanaryConfig(@RequestParam(required = false) final String accountName,
+  public CanaryConfig loadCanaryConfig(@RequestParam(required = false) final String configurationAccountName,
                                        @PathVariable String canaryConfigId) {
-    String resolvedAccountName = CredentialsHelper.resolveAccountByNameOrType(accountName,
-                                                                              AccountCredentials.Type.OBJECT_STORE,
+    String resolvedConfigurationAccountName = CredentialsHelper.resolveAccountByNameOrType(configurationAccountName,
+                                                                              AccountCredentials.Type.CONFIGURATION_STORE,
                                                                               accountCredentialsRepository);
-    StorageService storageService =
+    StorageService configurationService =
       storageServiceRepository
-        .getOne(resolvedAccountName)
-        .orElseThrow(() -> new IllegalArgumentException("No storage service was configured; unable to read canary config from bucket."));
+        .getOne(resolvedConfigurationAccountName)
+        .orElseThrow(() -> new IllegalArgumentException("No configuration service was configured; unable to read canary config from bucket."));
 
     canaryConfigId = canaryConfigId.toLowerCase();
 
-    return storageService.loadObject(resolvedAccountName, ObjectType.CANARY_CONFIG, canaryConfigId);
+    return configurationService.loadObject(resolvedConfigurationAccountName, ObjectType.CANARY_CONFIG, canaryConfigId);
   }
 
   @ApiOperation(value = "Write a canary config to object storage")
   @RequestMapping(consumes = "application/json", method = RequestMethod.POST)
-  public String storeCanaryConfig(@RequestParam(required = false) final String accountName,
+  public String storeCanaryConfig(@RequestParam(required = false) final String configurationAccountName,
                                   @RequestBody CanaryConfig canaryConfig) throws IOException {
-    String resolvedAccountName = CredentialsHelper.resolveAccountByNameOrType(accountName,
-                                                                              AccountCredentials.Type.OBJECT_STORE,
+    String resolvedConfigurationAccountName = CredentialsHelper.resolveAccountByNameOrType(configurationAccountName,
+                                                                              AccountCredentials.Type.CONFIGURATION_STORE,
                                                                               accountCredentialsRepository);
-    StorageService storageService =
+    StorageService configurationService =
       storageServiceRepository
-        .getOne(resolvedAccountName)
-        .orElseThrow(() -> new IllegalArgumentException("No storage service was configured; unable to write canary config to bucket."));
+        .getOne(resolvedConfigurationAccountName)
+        .orElseThrow(() -> new IllegalArgumentException("No configuration service was configured; unable to write canary config to bucket."));
 
     if (canaryConfig.getCreatedTimestamp() == null) {
       canaryConfig.setCreatedTimestamp(System.currentTimeMillis());
@@ -116,9 +115,9 @@ public class CanaryConfigController {
     }
 
     try {
-      storageService.loadObject(resolvedAccountName, ObjectType.CANARY_CONFIG, canaryConfigId);
+      configurationService.loadObject(resolvedConfigurationAccountName, ObjectType.CANARY_CONFIG, canaryConfigId);
     } catch (IllegalArgumentException e) {
-      storageService.storeObject(resolvedAccountName, ObjectType.CANARY_CONFIG, canaryConfigId, canaryConfig);
+      configurationService.storeObject(resolvedConfigurationAccountName, ObjectType.CANARY_CONFIG, canaryConfigId, canaryConfig);
 
       return canaryConfigId;
     }
@@ -128,16 +127,16 @@ public class CanaryConfigController {
 
   @ApiOperation(value = "Update a canary config")
   @RequestMapping(value = "/{canaryConfigId:.+}", consumes = "application/json", method = RequestMethod.PUT)
-  public String updateCanaryConfig(@RequestParam(required = false) final String accountName,
+  public String updateCanaryConfig(@RequestParam(required = false) final String configurationAccountName,
                                    @PathVariable String canaryConfigId,
                                    @RequestBody CanaryConfig canaryConfig) throws IOException {
-    String resolvedAccountName = CredentialsHelper.resolveAccountByNameOrType(accountName,
-                                                                              AccountCredentials.Type.OBJECT_STORE,
+    String resolvedConfigurationAccountName = CredentialsHelper.resolveAccountByNameOrType(configurationAccountName,
+                                                                              AccountCredentials.Type.CONFIGURATION_STORE,
                                                                               accountCredentialsRepository);
-    StorageService storageService =
+    StorageService configurationService =
       storageServiceRepository
-        .getOne(resolvedAccountName)
-        .orElseThrow(() -> new IllegalArgumentException("No storage service was configured; unable to write canary config to bucket."));
+        .getOne(resolvedConfigurationAccountName)
+        .orElseThrow(() -> new IllegalArgumentException("No configuration service was configured; unable to write canary config to bucket."));
 
     canaryConfig.setUpdatedTimestamp(System.currentTimeMillis());
     canaryConfig.setUpdatedTimestampIso(Instant.ofEpochMilli(canaryConfig.getUpdatedTimestamp()).toString());
@@ -149,44 +148,44 @@ public class CanaryConfigController {
     canaryConfigId = canaryConfigId.toLowerCase();
 
     try {
-      storageService.loadObject(resolvedAccountName, ObjectType.CANARY_CONFIG, canaryConfigId);
+      configurationService.loadObject(resolvedConfigurationAccountName, ObjectType.CANARY_CONFIG, canaryConfigId);
     } catch (Exception e) {
       throw new IllegalArgumentException("Canary config '" + canaryConfigId + "' does not exist.");
     }
 
-    storageService.storeObject(resolvedAccountName, ObjectType.CANARY_CONFIG, canaryConfigId, canaryConfig);
+    configurationService.storeObject(resolvedConfigurationAccountName, ObjectType.CANARY_CONFIG, canaryConfigId, canaryConfig);
     return canaryConfigId;
   }
 
   @ApiOperation(value = "Delete a canary config")
   @RequestMapping(value = "/{canaryConfigId:.+}", method = RequestMethod.DELETE)
-  public void deleteCanaryConfig(@RequestParam(required = false) final String accountName,
+  public void deleteCanaryConfig(@RequestParam(required = false) final String configurationAccountName,
                                  @PathVariable String canaryConfigId,
                                  HttpServletResponse response) {
-    String resolvedAccountName = CredentialsHelper.resolveAccountByNameOrType(accountName,
-                                                                              AccountCredentials.Type.OBJECT_STORE,
+    String resolvedConfigurationAccountName = CredentialsHelper.resolveAccountByNameOrType(configurationAccountName,
+                                                                              AccountCredentials.Type.CONFIGURATION_STORE,
                                                                               accountCredentialsRepository);
-    StorageService storageService =
+    StorageService configurationService =
       storageServiceRepository
-        .getOne(resolvedAccountName)
-        .orElseThrow(() -> new IllegalArgumentException("No storage service was configured; unable to delete canary config."));
+        .getOne(resolvedConfigurationAccountName)
+        .orElseThrow(() -> new IllegalArgumentException("No configuration service was configured; unable to delete canary config."));
 
-    storageService.deleteObject(resolvedAccountName, ObjectType.CANARY_CONFIG, canaryConfigId.toLowerCase());
+    configurationService.deleteObject(resolvedConfigurationAccountName, ObjectType.CANARY_CONFIG, canaryConfigId.toLowerCase());
 
     response.setStatus(HttpStatus.NO_CONTENT.value());
   }
 
   @ApiOperation(value = "Retrieve a list of canary config ids and timestamps")
   @RequestMapping(method = RequestMethod.GET)
-  public List<Map<String, Object>> listAllCanaryConfigs(@RequestParam(required = false) final String accountName) {
-    String resolvedAccountName = CredentialsHelper.resolveAccountByNameOrType(accountName,
-                                                                              AccountCredentials.Type.OBJECT_STORE,
+  public List<Map<String, Object>> listAllCanaryConfigs(@RequestParam(required = false) final String configurationAccountName) {
+    String resolvedConfigurationAccountName = CredentialsHelper.resolveAccountByNameOrType(configurationAccountName,
+                                                                              AccountCredentials.Type.CONFIGURATION_STORE,
                                                                               accountCredentialsRepository);
-    StorageService storageService =
+    StorageService configurationService =
       storageServiceRepository
-        .getOne(resolvedAccountName)
-        .orElseThrow(() -> new IllegalArgumentException("No storage service was configured; unable to list all canary configs."));
+        .getOne(resolvedConfigurationAccountName)
+        .orElseThrow(() -> new IllegalArgumentException("No configuration service was configured; unable to list all canary configs."));
 
-    return storageService.listObjectKeys(resolvedAccountName, ObjectType.CANARY_CONFIG);
+    return configurationService.listObjectKeys(resolvedConfigurationAccountName, ObjectType.CANARY_CONFIG);
   }
 }
