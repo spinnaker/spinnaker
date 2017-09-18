@@ -24,7 +24,7 @@ import com.netflix.kayenta.metrics.MetricSetPair
 import org.springframework.stereotype.Component
 
 @Component
-class RandomDummyJudge extends CanaryJudge{
+class RandomDummyJudge extends CanaryJudge {
   private final val _judgeName = "dredd-v1.0"
 
   override def getName: String = _judgeName

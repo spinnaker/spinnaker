@@ -21,9 +21,13 @@ import com.netflix.kayenta.metrics.MetricSetPair;
 
 import java.util.List;
 
-public interface CanaryJudge {
-  String getName();
-  CanaryJudgeResult judge(CanaryConfig canaryConfig,
-                          CanaryClassifierThresholdsConfig orchestratorScoreThresholds,
-                          List<MetricSetPair> metricSetPairList);
+public abstract class CanaryJudge {
+  public boolean isVisible() {
+    return false;
+  }
+
+  abstract public String getName();
+  abstract public CanaryJudgeResult judge(CanaryConfig canaryConfig,
+                                          CanaryClassifierThresholdsConfig orchestratorScoreThresholds,
+                                          List<MetricSetPair> metricSetPairList);
 }

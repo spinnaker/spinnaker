@@ -38,6 +38,8 @@ case class Metric(name: String, values: Array[Double], label: String)
 class NetflixACAJudge extends CanaryJudge with StrictLogging {
   private final val judgeName = "NetflixACAJudge-v1.0"
 
+  override def isVisible: Boolean = true
+
   override def getName: String = judgeName
 
   override def judge(canaryConfig: CanaryConfig,
