@@ -121,7 +121,6 @@ rm /opt/halyard -rf
 rm /var/log/spinnaker/halyard -rf
 
 echo "Deleting halconfig and artifacts"
-rm $staging -rf
 rm /opt/spinnaker/config/halyard* -rf
 rm $halconfig_dir -rf
 EOL

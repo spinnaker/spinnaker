@@ -110,20 +110,19 @@ if [[ \`/usr/bin/id -u\` -ne 0 ]]; then
   exit 1
 fi
 
-read -p "This script uninstalls Halyard and deletes all of its artifacts, are you sure you want to continue? (Y/n): " yes
+read -p "This script uninstalls Halyard and deletes all of its artifacts, are you sure you want to continue? (y/N): " yes
 
 if [ "\$yes" != "y" ] && [ "\$yes" != "Y" ]; then
   echo "Aborted"
   exit 0
 fi
 
-rm /opt/halyard -rf
-rm /var/log/spinnaker/halyard -rf
+rm -rf /opt/halyard
+rm -rf /var/log/spinnaker/halyard
 
 echo "Deleting halconfig and artifacts"
-rm $staging -rf
-rm /opt/spinnaker/config/halyard* -rf
-rm $halconfig_dir -rf
+rm -rf /opt/spinnaker/config/halyard*
+rm -rf $halconfig_dir 
 EOL
 
   chmod +x $halconfig_dir/uninstall.sh
@@ -186,4 +185,4 @@ configure_defaults
 install_java
 install_halyard
 
-su -c "hal -v" -s /bin/bash $HAL_USER
+su $HAL_USER -c "hal -v" -s /bin/bash

@@ -339,7 +339,6 @@ fi
 apt-get purge spinnaker-halyard
 
 echo "Deleting halconfig and artifacts"
-rm $staging -rf
 rm /opt/spinnaker/config/halyard* -rf
 rm $halconfig_dir -rf
 EOL
