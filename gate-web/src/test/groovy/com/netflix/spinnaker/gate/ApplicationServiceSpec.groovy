@@ -252,7 +252,7 @@ class ApplicationServiceSpec extends Specification {
 
     then:
     result == expected
-    1 * front50.getPipelineConfigsForApplication(app, false) >> [ [ id: "by-id", name: "by-name" ] ]
+    1 * front50.getPipelineConfigsForApplication(app, true) >> [ [ id: "by-id", name: "by-name" ] ]
 
     where:
     nameOrId  || expected
