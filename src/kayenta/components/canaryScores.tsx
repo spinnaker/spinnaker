@@ -4,6 +4,8 @@ import autoBindMethods from 'class-autobind-decorator';
 
 import { HelpField } from '@spinnaker/core';
 
+import './canaryScores.less';
+
 export interface IScoreConfig {
   successfulScore: string;
   unhealthyScore: string;

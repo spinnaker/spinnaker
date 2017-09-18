@@ -1,4 +1,4 @@
-import { cloneDeep, set } from 'lodash';
+import { cloneDeep, set, omit } from 'lodash';
 import { ReactInjector } from '@spinnaker/core';
 
 import { CanarySettings } from 'kayenta/canary.settings';
@@ -73,7 +73,7 @@ export function mapStateToConfig(state: ICanaryState): ICanaryConfig {
 
     return Object.assign({}, configState.config,
       {
-        metrics: configState.metricList.map((metric, i) => i === 0 ? firstMetric : metric),
+        metrics: configState.metricList.map((metric, i) => i === 0 ? firstMetric : metric).map(metric => omit(metric, 'id')),
         classifier: Object.assign({}, configState.config.classifier || {}, {
           scoreThresholds: configState.thresholds,
           groupWeights: configState.group.groupWeights,

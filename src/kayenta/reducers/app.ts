@@ -1,11 +1,13 @@
-import { combineReducers } from 'redux';
+import { combineReducers, Action } from 'redux';
 import { handleActions, combineActions } from 'redux-actions';
 
 import * as Actions from '../actions';
+import { ConfigJsonModalTabState } from '../edit/configJsonModal';
 
 export interface IAppState {
   deleteConfigModalOpen: boolean;
-  editConfigJsonModalOpen: boolean;
+  configJsonModalOpen: boolean;
+  configJsonModalTabState: ConfigJsonModalTabState;
 }
 
 const deleteConfigModalOpen = handleActions({
@@ -13,12 +15,18 @@ const deleteConfigModalOpen = handleActions({
   [combineActions(Actions.DELETE_CONFIG_MODAL_CLOSE, Actions.DELETE_CONFIG_SUCCESS)]: () => false,
 }, false);
 
-const editConfigJsonModalOpen = handleActions({
-  [Actions.EDIT_CONFIG_JSON_MODAL_OPEN]: () => true,
-  [combineActions(Actions.EDIT_CONFIG_JSON_MODAL_CLOSE, Actions.SELECT_CONFIG)]: () => false,
+const configJsonModalOpen = handleActions({
+  [Actions.CONFIG_JSON_MODAL_OPEN]: () => true,
+  [combineActions(Actions.CONFIG_JSON_MODAL_CLOSE, Actions.SELECT_CONFIG)]: () => false,
 }, false);
+
+const configJsonModalTabState = handleActions({
+  [Actions.SET_CONFIG_JSON_MODAL_TAB_STATE]: (_state: ConfigJsonModalTabState, action: Action & any) => action.payload,
+  [Actions.CONFIG_JSON_MODAL_OPEN]: () => ConfigJsonModalTabState.Edit,
+}, ConfigJsonModalTabState.Edit);
 
 export const app = combineReducers<IAppState>({
   deleteConfigModalOpen,
-  editConfigJsonModalOpen,
+  configJsonModalOpen,
+  configJsonModalTabState,
 });

@@ -1,7 +1,7 @@
 import * as React from 'react';
 
 import OpenDeleteModalButton from './openDeleteModalButton';
-import OpenEditConfigJsonModalButton from './openEditConfigJsonModalButton'
+import OpenEditConfigJsonModalButton from './openConfigJsonModalButton'
 import CopyConfigButton from './copyConfigButton';
 
 /*

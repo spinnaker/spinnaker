@@ -4,6 +4,7 @@ import { connect } from 'react-redux';
 import { ICanaryState } from '../reducers';
 import { SELECT_GROUP } from '../actions/index';
 import * as Creators from '../actions/creators';
+import { Tabs, Tab } from '../layout/tabs';
 
 export const UNGROUPED = '(ungrouped)';
 
@@ -22,19 +23,19 @@ interface IGroupTabsDispatchProps {
  * Configures an entire list of metrics.
  */
 function GroupTabs({ groupList, selectedGroup, selectGroup, addGroup }: IGroupTabsStateProps & IGroupTabsDispatchProps) {
-  const Tab = ({ group }: { group: string }) => (
-    <li className={selectedGroup === group ? 'selected' : ''}>
+  const GroupTab = ({ group }: { group: string }) => (
+    <Tab selected={selectedGroup === group}>
       <a data-group={group} onClick={selectGroup}>{group || '(all)'}</a>
-    </li>
+    </Tab>
   );
   return (
     <section>
-      <ul className="tabs-basic list-unstyled">
-        <Tab group=""/>
-        {groupList.map(group => <Tab key={group} group={group}/>)}
-        <Tab group={UNGROUPED}/>
+      <Tabs>
+        <GroupTab group=""/>
+        {groupList.map(group => <GroupTab key={group} group={group}/>)}
+        <GroupTab group={UNGROUPED}/>
         <button className="passive float-right" onClick={addGroup}>Add Group</button>
-      </ul>
+      </Tabs>
     </section>
   );
 }

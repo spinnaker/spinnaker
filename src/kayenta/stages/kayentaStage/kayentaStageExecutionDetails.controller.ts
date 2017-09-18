@@ -8,6 +8,8 @@ import {
 import { RUN_CANARY } from './stageTypes';
 import { CANARY_RUN_SUMMARIES_COMPONENT } from './canaryRunSummaries.component';
 
+import './kayentaStageExecutionDetails.less';
+
 class KayentaStageExecutionDetailsController {
 
   public canaryRuns: IExecutionStage[];

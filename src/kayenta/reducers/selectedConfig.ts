@@ -30,7 +30,7 @@ interface IDestroyState {
 }
 
 interface IJsonState {
-  state: string;
+  configJson: string;
   error: string;
 }
 
@@ -103,14 +103,20 @@ const destroy = combineReducers<IDestroyState>({
 });
 
 const json = combineReducers<IJsonState>({
-  state: handleActions({
-    [Actions.SET_CONFIG_JSON]: (_state: IJsonState, action: Action & any) => action.configJson,
-    [combineActions(Actions.EDIT_CONFIG_JSON_MODAL_CLOSE, Actions.SELECT_CONFIG)]: (): void => null,
-    [Actions.CONFIG_JSON_DESERIALIZATION_ERROR]: (state: IJsonState) => state.state,
+  configJson: handleActions({
+    [Actions.SET_CONFIG_JSON]: (_state: IJsonState, action: Action & any) => action.payload,
+    [combineActions(Actions.CONFIG_JSON_MODAL_CLOSE, Actions.SELECT_CONFIG)]: (): void => null,
   }, null),
   error: handleActions({
-    [combineActions(Actions.EDIT_CONFIG_JSON_MODAL_CLOSE, Actions.SELECT_CONFIG, Actions.SET_CONFIG_JSON)]: () => null,
-    [Actions.CONFIG_JSON_DESERIALIZATION_ERROR]: (_state: IJsonState, action: Action & any) => action.error,
+    [combineActions(Actions.CONFIG_JSON_MODAL_CLOSE, Actions.SELECT_CONFIG, Actions.SET_CONFIG_JSON)]: () => null,
+    [Actions.SET_CONFIG_JSON]: (_state: IJsonState, action: Action & any) => {
+      try {
+        JSON.parse(action.payload);
+        return null;
+      } catch (e) {
+        return e.message;
+      }
+    }
   }, null),
 });
 
