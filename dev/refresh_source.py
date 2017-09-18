@@ -78,6 +78,10 @@ class Refresher(object):
   branch is 'master'. This is intended to perform complete updates of the
   local repositories.
 
+  If the branch is not found, then pull the --default_branch if one is set.
+  This allows builds of an individual feature branch affecting only a
+  subset of repositories.
+  
   --push_branch (or --push_master, implying 'master' branch) will push the
   local repository branch back to the origin, but only if the local repository
   is in the specified branch. This is for safety to prevent accidental pushes.
@@ -226,6 +230,22 @@ class Refresher(object):
       shell_result = run_and_monitor(
           'git clone {url} -b {branch}'.format(url=origin_url, branch=branch),
           echo=False)
+
+      if (shell_result.returncode
+          and self.__options.default_branch
+          and branch != self.__options.default_branch
+          and shell_result.stderr.find('Remote branch {branch} not found'
+                                       .format(branch=branch)) >= 0):
+        print 'Falling back on branch={branch}.'.format(
+            branch=self.__options.default_branch)
+        print 'Cloning {name} from {origin_url} -b {branch}.'.format(
+            name=name, origin_url=origin_url,
+            branch=self.__options.default_branch)
+        shell_result = run_and_monitor(
+            'git clone {url} -b {branch}'.format(
+                url=origin_url, branch=self.__options.default_branch),
+            echo=False)
+
       if not shell_result.returncode:
           if shell_result.stdout:
               print shell_result.stdout
@@ -522,6 +542,13 @@ bash -c "(./start.sh >> '$LOG_DIR/{name}.log') 2>&1\
                                ' it is in the specified branch,'
                                ' otherwise skip it.'
                                ' If cloning, then clone this branch.')
+
+      parser.add_argument(
+          '--default_branch', default=None,
+          help='If specified and the --pull_branch is not present in the repo'
+               ' when it is cloned, then clone this default branch instead.'
+               ' If not default is given, or the default doesnt exist, then'
+               ' the clone will fail. This has no effect on updates.')
 
       parser.add_argument('--force_pull', default=False,
                           help='Force pulls, even if the current branch'
