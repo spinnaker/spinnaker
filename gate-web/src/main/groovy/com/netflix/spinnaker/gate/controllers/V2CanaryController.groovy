@@ -30,6 +30,12 @@ class V2CanaryController {
   @Autowired
   KayentaService kayentaService
 
+  @ApiOperation(value = "Retrieve a list of configured Kayenta accounts")
+  @RequestMapping(value = '/v2/canaries/credentials', method = RequestMethod.GET)
+  List listCredentials() {
+    kayentaService.getCredentials()
+  }
+
   @ApiOperation(value = "Retrieve a list of all configured canary judges")
   @RequestMapping(value = "/v2/canaries/judges", method = RequestMethod.GET)
   List listJudges() {

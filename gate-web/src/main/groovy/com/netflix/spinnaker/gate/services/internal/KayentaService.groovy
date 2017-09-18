@@ -20,6 +20,9 @@ import retrofit.client.Response
 import retrofit.http.*
 
 interface KayentaService {
+  @GET("/credentials")
+  List getCredentials()
+
   @GET("/canaryConfig")
   List getCanaryConfigs()
 
