@@ -1,4 +1,4 @@
-import { cloneDeep, set, omit } from 'lodash';
+import { omit } from 'lodash';
 import { ReactInjector } from '@spinnaker/core';
 
 import { CanarySettings } from 'kayenta/canary.settings';
@@ -52,11 +52,13 @@ export function deleteCanaryConfig(id: string): Promise<void> {
 }
 
 export function listJudges(): Promise<IJudge[]> {
+  let allJudges: Promise<IJudge[]>;
   if (CanarySettings.liveCalls) {
-    return ReactInjector.API.one('v2/canaries/judges').get();
+    allJudges = ReactInjector.API.one('v2/canaries/judges').get();
   } else {
-    return localConfigCache.listJudges();
+    allJudges = localConfigCache.listJudges();
   }
+  return allJudges.then(judges => judges.filter(judge => judge.visible));
 }
 
 // Not sure if this is the right way to go about this. We have pieces of the config
@@ -65,21 +67,16 @@ export function listJudges(): Promise<IJudge[]> {
 export function mapStateToConfig(state: ICanaryState): ICanaryConfig {
   if (state.selectedConfig.config) {
     const configState = state.selectedConfig;
-
-    const firstMetric = cloneDeep(configState.metricList[0]);
-    if (firstMetric && configState.judge) {
-      set(firstMetric, 'analysisConfigurations.canary.judge', configState.judge.name);
-    }
-
-    return Object.assign({}, configState.config,
-      {
-        metrics: configState.metricList.map((metric, i) => i === 0 ? firstMetric : metric).map(metric => omit(metric, 'id')),
-        classifier: Object.assign({}, configState.config.classifier || {}, {
-          scoreThresholds: configState.thresholds,
-          groupWeights: configState.group.groupWeights,
-        }),
-      }
-    );
+    return {
+      ...configState.config,
+      judge: configState.judge.judgeConfig,
+      metrics: configState.metricList.map(metric => omit(metric, 'id')),
+      classifier: {
+        ...configState.config.classifier,
+        scoreThresholds: configState.thresholds,
+        groupWeights: configState.group.groupWeights,
+      },
+    };
   } else {
     return null;
   }
@@ -105,6 +102,10 @@ export function buildNewConfig(state: ICanaryState): ICanaryConfig {
         pass: 75,
         marginal: 50,
       }
+    },
+    judge: {
+      name: CanarySettings.defaultJudge,
+      judgeConfigurations: {},
     }
   };
 }

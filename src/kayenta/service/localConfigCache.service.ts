@@ -53,7 +53,10 @@ class LocalConfigCache {
   }
 
   public listJudges(): Promise<IJudge[]> {
-    return Promise.resolve([{name: 'dredd-v1.0'}, {name: 'netflixJudge-v1.0'}]);
+    return Promise.resolve([
+      { name: 'dredd-v1.0', visible: false },
+      { name: 'NetflixACAJudge-v1.0', visible: true },
+    ]);
   }
 }
 

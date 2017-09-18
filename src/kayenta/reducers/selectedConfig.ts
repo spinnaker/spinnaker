@@ -8,11 +8,14 @@ import { SaveConfigState } from '../edit/save';
 import { ConfigDetailLoadState } from '../edit/configDetailLoader';
 import { IJudge } from '../domain/IJudge';
 import {
-  ICanaryClassifierThresholdsConfig, ICanaryConfig,
+  ICanaryClassifierThresholdsConfig,
+  ICanaryConfig,
+  ICanaryJudgeConfig,
   ICanaryMetricConfig
 } from '../domain/ICanaryConfig';
 import { CanarySettings } from '../canary.settings';
 import { IGroupState, group } from './group';
+import { JudgeSelectRenderState } from '../edit/judgeSelect';
 
 interface ILoadState {
   state: ConfigDetailLoadState;
@@ -34,12 +37,17 @@ interface IJsonState {
   error: string;
 }
 
+interface IJudgeState {
+  judgeConfig: ICanaryJudgeConfig;
+  renderState: JudgeSelectRenderState;
+}
+
 export interface ISelectedConfigState {
   config: ICanaryConfig;
   metricList: ICanaryMetricConfig[];
   editingMetric: ICanaryMetricConfig;
   thresholds: ICanaryClassifierThresholdsConfig;
-  judge: IJudge;
+  judge: IJudgeState;
   group: IGroupState;
   load: ILoadState;
   save: ISaveState;
@@ -120,9 +128,13 @@ const json = combineReducers<IJsonState>({
   }, null),
 });
 
-const judge = handleActions({
-  [Actions.SELECT_JUDGE]: (_state: IJudge, action: Action & any) => action.judge,
-}, null);
+
+const judge = combineReducers<IJudgeState>({
+  judgeConfig: handleActions({
+    [Actions.SELECT_JUDGE_NAME]: (state: IJudge, action: Action & any) => ({ ...state, name: action.judge.name }),
+  }, null),
+  renderState: handleActions({}, JudgeSelectRenderState.None),
+});
 
 const thresholds = handleActions({
   [Actions.SELECT_CONFIG]: (_state: ICanaryClassifierThresholdsConfig, action: Action & any) => {
@@ -167,12 +179,11 @@ function editingMetricReducer(state: ISelectedConfigState = null, action: Action
 function selectedJudgeReducer(state: ISelectedConfigState = null, action: Action & any): ISelectedConfigState {
   switch (action.type) {
     case Actions.SELECT_CONFIG:
-      if (has(state.config, 'metrics[0].analysisConfigurations.canary.judge')) {
-        state.judge = { name: get(state.config, 'metrics[0].analysisConfigurations.canary.judge') };
+      if (state.config && state.config.judge) {
+        return { ...state, judge: { ...state.judge, judgeConfig: { ...state.config.judge } }};
       } else {
-        state.judge = { name: CanarySettings.judge };
+        return { ...state, judge: { ...state.judge, judgeConfig: { name: CanarySettings.defaultJudge, judgeConfigurations: {} }}};
       }
-      return state;
 
     default:
       return state;
