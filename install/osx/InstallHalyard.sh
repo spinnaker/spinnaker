@@ -77,7 +77,7 @@ function configure_defaults() {
 
   echo "$(tput bold)Halyard version will be $HALYARD_VERSION $(tput sgr0)"
 
-  home=$(getent passwd $HAL_USER | cut -d: -f6)
+  home="/Users/$HAL_USER"
   local halconfig_dir="$home/.hal"
 
   echo "$(tput bold)Halconfig will be stored at $halconfig_dir/config$(tput sgr0)"
@@ -167,9 +167,7 @@ function install_halyard() {
   curl -OL https://storage.googleapis.com/spinnaker-artifacts/halyard/$HALYARD_VERSION/osx/halyard.tar.gz
   tar -xvf halyard.tar.gz -C /opt
 
-  groupadd halyard
-  usermod -G halyard $HAL_USER
-  chown $HAL_USER:halyard /opt/halyard
+  chown $HAL_USER /opt/halyard
 
   mv /opt/hal /usr/local/bin
   chmod +x /usr/local/bin/hal
