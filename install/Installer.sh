@@ -324,7 +324,7 @@ EOL
   cat > $halconfig_dir/uninstall.sh <<EOL
 #!/usr/bin/env bash
 
-if [[ `/usr/bin/id -u` -ne 0 ]]; then
+if [[ \`/usr/bin/id -u\` -ne 0 ]]; then
   echo "$0 must be executed with root permissions; exiting"
   exit 1
 fi
