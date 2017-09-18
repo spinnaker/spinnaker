@@ -32,3 +32,5 @@ export const SELECT_JUDGE_NAME = 'select_judge_name';
 export const UPDATE_SCORE_THRESHOLDS = 'update_score_thresholds';
 export const UPDATE_GROUP_WEIGHT = 'update_group_weight';
 export const SET_CONFIG_JSON_MODAL_TAB_STATE = 'set_config_json_modal_tab_state';
+export const UPDATE_ATLAS_QUERY = 'update-atlas-query';
+

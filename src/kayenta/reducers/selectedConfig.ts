@@ -84,6 +84,9 @@ const editingMetric = handleActions({
   [Actions.RENAME_METRIC]: (state: ICanaryMetricConfig, action: Action & any) => ({ ...state, name: action.name }),
   [Actions.UPDATE_STACKDRIVER_METRIC_TYPE]: (state: ICanaryMetricConfig, action: Action & any) => ({
     ...state, query: { ...state.query, metricType: action.metricType, type: 'stackdriver' },
+  }),
+  [Actions.UPDATE_ATLAS_QUERY]: (state: ICanaryMetricConfig, action: Action & any) => ({
+    ...state, query: { ...state.query, q: action.query }
   })
 }, null);
 

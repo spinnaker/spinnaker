@@ -1,1 +1,2 @@
 import './stackdriver';
+import './atlas';
