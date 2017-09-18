@@ -15,19 +15,22 @@
  *
  */
 
-package com.netflix.spinnaker.clouddriver.kubernetes.v2.description;
+package com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact;
 
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesManifest;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
-import lombok.Data;
+import org.apache.commons.lang.RandomStringUtils;
+import org.springframework.stereotype.Component;
 
-@Data
-public class KubernetesAugmentedManifest {
-  KubernetesManifest manifest;
-  Metadata metadata;
-
-  @Data
-  public class Metadata {
-    KubernetesManifestSpinnakerRelationships relationships;
-    Artifact artifact;
+@Component
+public class ManifestToUnversionedArtifact implements ManifestToArtifact {
+  @Override
+  public Artifact convert(KubernetesManifest manifest) {
+    String type = manifest.getKind().toString();
+    String name = manifest.getName();
+    return Artifact.builder()
+        .type(type)
+        .name(name)
+        .build();
   }
 }

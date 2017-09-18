@@ -32,4 +32,9 @@ public class KubernetesServiceDeployer extends KubernetesDeployer<V1Service> {
   void deploy(KubernetesV2Credentials credentials, V1Service resource) {
     credentials.createService(resource);
   }
+
+  @Override
+  public boolean isVersionedResource() {
+    return false;
+  }
 }

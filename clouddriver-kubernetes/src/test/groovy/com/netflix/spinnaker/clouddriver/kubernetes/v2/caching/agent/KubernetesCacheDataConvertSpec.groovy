@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesApiVersion
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesAugmentedManifest
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesKind
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesManifest
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesManifestAnnotater
@@ -54,9 +55,11 @@ metadata:
     def relationships = new KubernetesManifestSpinnakerRelationships()
         .setApplication(application)
         .setCluster(cluster)
+    def metadata = new KubernetesAugmentedManifest.Metadata()
+        .setRelationships(relationships)
 
     def manifest = stringToManifest(rawManifest)
-    KubernetesManifestAnnotater.annotateManifestWithRelationships(manifest, relationships)
+    KubernetesManifestAnnotater.annotateManifest(manifest, metadata)
     V1beta1ReplicaSet resource = mapper.convertValue(manifest, V1beta1ReplicaSet.class)
 
     when:

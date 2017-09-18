@@ -21,6 +21,8 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.ManifestToArtifact
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.ManifestToVersionedArtifact
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesApiVersion
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesAugmentedManifest
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesKind
@@ -29,6 +31,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesMan
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesManifestSpinnakerRelationships
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.deployer.KubernetesReplicaSetDeployer
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials
+import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import org.yaml.snakeyaml.Yaml
 import spock.lang.Specification
 
@@ -66,9 +69,11 @@ metadata:
   }
 
   KubernetesManifestDeployer createMockDeployer(KubernetesV2Credentials credentials, String manifest) {
+    def metadata = new KubernetesAugmentedManifest.Metadata()
+    metadata.setRelationships(new KubernetesManifestSpinnakerRelationships())
     def manifestPair = new KubernetesAugmentedManifest()
         .setManifest(stringToManifest(manifest))
-        .setRelationships(new KubernetesManifestSpinnakerRelationships())
+        .setMetadata(metadata)
 
     def deployDescription = new KubernetesManifestOperationDescription()
         .setManifests(Collections.singletonList(manifestPair))
@@ -82,6 +87,7 @@ metadata:
 
     def deployOp = new KubernetesManifestDeployer(deployDescription)
     deployOp.replicaSetDeployer = replicaSetDeployer
+    deployOp.manifestToVersionedArtifact = new ManifestToVersionedArtifact()
 
     return deployOp
   }
@@ -97,7 +103,8 @@ metadata:
 
     then:
     1 * credentialsMock.createReplicaSet(_) >> null
-    result.serverGroupNames == ["$NAMESPACE:$API_VERSION|$KIND|$NAME"]
+    result.serverGroupNames.size == 1
+    result.serverGroupNames[0].startsWith("$NAMESPACE:$API_VERSION|$KIND|$NAME")
   }
 
   void "replica set deployer uses backup namespace"() {
@@ -111,6 +118,7 @@ metadata:
 
     then:
     1 * credentialsMock.createReplicaSet(_) >> null
-    result.serverGroupNames == ["$BACKUP_NAMESPACE:$API_VERSION|$KIND|$NAME"]
+    result.serverGroupNames.size == 1
+    result.serverGroupNames[0].startsWith("$BACKUP_NAMESPACE:$API_VERSION|$KIND|$NAME")
   }
 }

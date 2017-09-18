@@ -20,6 +20,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.description;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import lombok.Data;
 import org.apache.commons.lang3.tuple.ImmutableTriple;
 import org.apache.commons.lang3.tuple.Triple;
@@ -68,6 +69,11 @@ public class KubernetesManifest extends HashMap<String, Object> {
   @JsonIgnore
   public String getName() {
     return (String) getMetatdata().get("name");
+  }
+
+  @JsonIgnore
+  public void setName(String name) {
+    getMetatdata().put("name", name);
   }
 
   @JsonIgnore

@@ -32,4 +32,9 @@ public class KubernetesIngressDeployer extends KubernetesDeployer<V1beta1Ingress
   void deploy(KubernetesV2Credentials credentials, V1beta1Ingress resource) {
     credentials.createIngress(resource);
   }
+
+  @Override
+  public boolean isVersionedResource() {
+    return false;
+  }
 }

@@ -32,4 +32,9 @@ public class KubernetesReplicaSetDeployer extends KubernetesDeployer<V1beta1Repl
   void deploy(KubernetesV2Credentials credentials, V1beta1ReplicaSet resource) {
     credentials.createReplicaSet(resource);
   }
+
+  @Override
+  public boolean isVersionedResource() {
+    return true;
+  }
 }

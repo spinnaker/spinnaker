@@ -20,6 +20,9 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.op;
 import com.netflix.spinnaker.clouddriver.data.task.Task;
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository;
 import com.netflix.spinnaker.clouddriver.deploy.DeploymentResult;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.ManifestToArtifact;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.ManifestToUnversionedArtifact;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.ManifestToVersionedArtifact;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesAugmentedManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesManifestOperationDescription;
@@ -50,6 +53,12 @@ public class KubernetesManifestDeployer implements AtomicOperation<DeploymentRes
 
   @Autowired
   private KubernetesDeploymentDeployer deploymentDeployer;
+
+  @Autowired
+  private ManifestToVersionedArtifact manifestToVersionedArtifact;
+
+  @Autowired
+  private ManifestToUnversionedArtifact manifestToUnversionedArtifact;
 
   public KubernetesManifestDeployer(KubernetesManifestOperationDescription description) {
     this.description = description;
@@ -89,9 +98,16 @@ public class KubernetesManifestDeployer implements AtomicOperation<DeploymentRes
     }
   }
 
-  private DeploymentResult dispatchDeployer(KubernetesAugmentedManifest pair) {
-    KubernetesKind kind = pair.getManifest().getKind();
+  private ManifestToArtifact findTranslator(KubernetesDeployer deployer) {
+    return deployer.isVersionedResource() ? manifestToVersionedArtifact : manifestToUnversionedArtifact;
+  }
+
+  private DeploymentResult dispatchDeployer(KubernetesAugmentedManifest augmentedManifest) {
+    KubernetesKind kind = augmentedManifest.getManifest().getKind();
     getTask().updateStatus(OP_NAME, "Finding deployer for " + kind);
-    return findDeployer(kind).deployManifestPair(credentials, pair);
+    KubernetesDeployer deployer = findDeployer(kind);
+    ManifestToArtifact translator = findTranslator(deployer);
+    augmentedManifest.getMetadata().setArtifact(translator.convert(augmentedManifest.getManifest()));
+    return deployer.deployManifestPair(credentials, augmentedManifest);
   }
 }

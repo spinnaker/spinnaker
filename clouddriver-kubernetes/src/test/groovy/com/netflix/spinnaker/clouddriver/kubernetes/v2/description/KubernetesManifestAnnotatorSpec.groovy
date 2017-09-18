@@ -40,7 +40,9 @@ class KubernetesManifestAnnotatorSpec extends Specification {
       .setCluster(cluster)
       .setApplication(application)
 
-    KubernetesManifestAnnotater.annotateManifestWithRelationships(manifest, input)
+    def metadata = new KubernetesAugmentedManifest.Metadata().setRelationships(input)
+
+    KubernetesManifestAnnotater.annotateManifest(manifest, metadata)
     input == KubernetesManifestAnnotater.getManifestRelationships(manifest)
 
     where:
@@ -64,7 +66,9 @@ class KubernetesManifestAnnotatorSpec extends Specification {
       .setCluster(cluster)
       .setApplication(application)
 
-    KubernetesManifestAnnotater.annotateManifestWithRelationships(manifest, relationships)
+    def metadata = new KubernetesAugmentedManifest.Metadata().setRelationships(relationships)
+
+    KubernetesManifestAnnotater.annotateManifest(manifest, metadata)
     manifest.getAnnotations().get(clusterKey) == '"' + cluster + '"'
     manifest.getAnnotations().get(applicationKey) == '"' + application + '"'
 

@@ -2,9 +2,10 @@ dependencies {
   spinnaker.group('kubernetes')
   compile project(":clouddriver-core")
   compile project(":clouddriver-docker")
-  compile spinnaker.dependency('frigga')
   compile spinnaker.dependency('bootActuator')
   compile spinnaker.dependency('bootWeb')
+  compile spinnaker.dependency('frigga')
+  compile spinnaker.dependency('korkArtifacts')
   compile spinnaker.dependency('lombok')
 
   // TODO(lwander) move to spinnaker-dependencies when library stabilizes

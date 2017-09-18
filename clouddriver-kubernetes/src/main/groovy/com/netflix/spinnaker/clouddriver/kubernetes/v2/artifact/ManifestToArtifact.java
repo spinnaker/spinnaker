@@ -15,19 +15,11 @@
  *
  */
 
-package com.netflix.spinnaker.clouddriver.kubernetes.v2.description;
+package com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact;
 
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesManifest;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
-import lombok.Data;
 
-@Data
-public class KubernetesAugmentedManifest {
-  KubernetesManifest manifest;
-  Metadata metadata;
-
-  @Data
-  public class Metadata {
-    KubernetesManifestSpinnakerRelationships relationships;
-    Artifact artifact;
-  }
+public interface ManifestToArtifact {
+  Artifact convert(KubernetesManifest manifest);
 }

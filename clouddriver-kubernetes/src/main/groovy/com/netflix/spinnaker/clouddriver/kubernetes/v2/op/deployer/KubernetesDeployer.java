@@ -23,6 +23,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesAug
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesManifestAnnotater;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
+import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -35,8 +36,8 @@ public abstract class KubernetesDeployer<T> {
   @Autowired
   protected ObjectMapper objectMapper;
 
-  private void annotateRelationships(KubernetesAugmentedManifest pair) {
-    KubernetesManifestAnnotater.annotateManifestWithRelationships(pair.getManifest(), pair.getRelationships());
+  private void annotate(KubernetesAugmentedManifest pair) {
+    KubernetesManifestAnnotater.annotateManifest(pair.getManifest(), pair.getMetadata());
   }
 
   private T convertManifest(KubernetesAugmentedManifest pair) {
@@ -49,11 +50,23 @@ public abstract class KubernetesDeployer<T> {
     }
   }
 
+  private void assignArtifactName(KubernetesManifest manifest, Artifact artifact) {
+    String name = artifact.getName();
+    String version = artifact.getVersion();
+    if (!StringUtils.isEmpty(version)) {
+      name = String.join("-", name, version);
+    }
+
+    manifest.setName(name);
+  }
+
   public DeploymentResult deployManifestPair(KubernetesV2Credentials credentials, KubernetesAugmentedManifest pair) {
     KubernetesManifest manifest = pair.getManifest();
+    KubernetesAugmentedManifest.Metadata metadata = pair.getMetadata();
     setNamespaceIfMissing(manifest, credentials.getDefaultNamespace());
+    assignArtifactName(manifest, metadata.getArtifact());
 
-    annotateRelationships(pair);
+    annotate(pair);
     T resource = convertManifest(pair);
     deploy(credentials, resource);
 
@@ -67,4 +80,6 @@ public abstract class KubernetesDeployer<T> {
   abstract Class<T> getDeployedClass();
 
   abstract void deploy(KubernetesV2Credentials credentials, T resource);
+
+  abstract public boolean isVersionedResource();
 }

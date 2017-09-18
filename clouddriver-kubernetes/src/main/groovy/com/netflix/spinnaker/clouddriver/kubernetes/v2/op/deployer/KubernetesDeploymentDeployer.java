@@ -39,4 +39,9 @@ public class KubernetesDeploymentDeployer extends KubernetesDeployer<AppsV1beta1
       credentials.createDeployment(resource);
     }
   }
+
+  @Override
+  public boolean isVersionedResource() {
+    return false;
+  }
 }
