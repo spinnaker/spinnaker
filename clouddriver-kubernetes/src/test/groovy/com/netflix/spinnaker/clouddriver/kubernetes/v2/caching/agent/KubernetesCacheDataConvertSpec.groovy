@@ -26,6 +26,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesMan
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesManifestAnnotater
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesManifestSpinnakerRelationships
 import io.kubernetes.client.models.V1beta1ReplicaSet
+import org.apache.commons.lang3.tuple.Triple
 import org.yaml.snakeyaml.Yaml
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -33,6 +34,8 @@ import spock.lang.Unroll
 class KubernetesCacheDataConvertSpec extends Specification {
   def mapper = new ObjectMapper()
   def yaml = new Yaml()
+  def ACCOUNT = "my-account"
+  def NAMESPACE = "spinnaker"
 
   KubernetesManifest stringToManifest(String input) {
     return mapper.convertValue(yaml.load(input), KubernetesManifest.class)
@@ -128,5 +131,46 @@ metadata:
     KubernetesKind.REPLICA_SET | KubernetesApiVersion.APPS_V1BETA1 | ["deployment": [Keys.infrastructure(KubernetesKind.DEPLOYMENT, KubernetesApiVersion.APPS_V1BETA1, "account", "namespace", "a-name")]]
     KubernetesKind.SERVICE     | KubernetesApiVersion.V1           | ["cluster": [Keys.cluster("account", "name")], "application": [Keys.application("blarg")]]
     KubernetesKind.SERVICE     | KubernetesApiVersion.V1           | ["cluster": [Keys.cluster("account", "name")], "application": [Keys.application("blarg"), Keys.application("asdfasdf")]]
+  }
+
+  def filterRelationships(Collection<String> keys, List<Triple<KubernetesApiVersion, KubernetesKind, String>> existingResources) {
+    return keys.findAll { sk ->
+      def key = (Keys.InfrastructureCacheKey) Keys.parseKey(sk).get()
+      return existingResources.find { Triple<KubernetesApiVersion, KubernetesKind, String> lb ->
+        return lb.getLeft() == key.getKubernetesApiVersion() && lb.getMiddle() == key.getKubernetesKind() && lb.getRight() == key.getName()
+      } != null
+    }
+  }
+
+  @Unroll
+  def "correctly derive annotated spinnaker relationships"() {
+    setup:
+    def spinnakerRelationships = new KubernetesManifestSpinnakerRelationships()
+      .setCluster(cluster)
+      .setApplication(application)
+      .setLoadBalancers(loadBalancers)
+
+    when:
+    def relationships = KubernetesCacheDataConverter.annotatedRelationships(ACCOUNT, NAMESPACE, spinnakerRelationships)
+    def parsedLbs = loadBalancers.collect { lb -> KubernetesManifest.fromFullResourceName(lb) }
+
+    then:
+    relationships.get(Keys.LogicalKind.CLUSTER.toString()) == [Keys.cluster(ACCOUNT, cluster)]
+    relationships.get(Keys.LogicalKind.APPLICATION.toString()) == [Keys.application(application)]
+
+    def services = filterRelationships(relationships.get(KubernetesKind.SERVICE.toString()), parsedLbs)
+    def ingresses = filterRelationships(relationships.get(KubernetesKind.INGRESS.toString()), parsedLbs)
+
+    ingresses.size() + services.size() == loadBalancers.size()
+
+    where:
+    cluster | application | loadBalancers
+    "a"     | "b"         | ["v1|service|hi"]
+    "a"     | "b"         | ["v1|service|hi", "v1|service|bye"]
+    "a"     | "b"         | []
+    "a"     | "b"         | ["v1|service|hi", "v1|service|bye", "extensions/v1beta1|ingress|into"]
+    "a"     | "b"         | ["extensions/v1beta1|ingress|into"]
+    "a"     | "b"         | ["extensions/v1beta1|ingress|into", "extensions/v1beta1|ingress|outof"]
+    "a"     | "b"         | ["v1|service|hi", "v1|service|bye", "extensions/v1beta1|ingress|into", "extensions/v1beta1|ingress|outof"]
   }
 }

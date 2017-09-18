@@ -19,12 +19,13 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.description;
 
 import lombok.Data;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
 public class KubernetesManifestSpinnakerRelationships {
   String application;
   String cluster;
-  List<String> loadBalancers;
-  List<String> securityGroups;
+  List<String> loadBalancers = new ArrayList<>();
+  List<String> securityGroups = new ArrayList<>();
 }

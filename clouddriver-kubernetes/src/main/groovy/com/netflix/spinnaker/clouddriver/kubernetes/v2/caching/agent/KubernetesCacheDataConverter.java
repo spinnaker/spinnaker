@@ -29,6 +29,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesMan
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesManifestSpinnakerRelationships;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Triple;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -67,6 +68,18 @@ public class KubernetesCacheDataConverter {
       return null;
     }
 
+    relationships.putAll(annotatedRelationships(account, namespace, spinnakerRelationships));
+    // TODO(lwander) avoid overwriting keys here
+    relationships.putAll(ownerReferenceRelationships(account, namespace, manifest.getOwnerReferences(mapper)));
+
+    String key = Keys.infrastructure(kind, apiVersion, account, namespace, name);
+    return new DefaultCacheData(key, attributes, relationships);
+  }
+
+  static Map<String, Collection<String>> annotatedRelationships(String account, String namespace, KubernetesManifestSpinnakerRelationships spinnakerRelationships) {
+    Map<String, Collection<String>> relationships = new HashMap<>();
+    String application = spinnakerRelationships.getApplication();
+
     relationships.put(APPLICATION.toString(), Collections.singletonList(Keys.application(application)));
 
     String cluster = spinnakerRelationships.getCluster();
@@ -74,10 +87,36 @@ public class KubernetesCacheDataConverter {
       relationships.put(CLUSTER.toString(), Collections.singletonList(Keys.cluster(account, cluster)));
     }
 
-    relationships.putAll(ownerReferenceRelationships(account, namespace, manifest.getOwnerReferences(mapper)));
+    if (spinnakerRelationships.getLoadBalancers() != null) {
+      for (String loadBalancer : spinnakerRelationships.getLoadBalancers()) {
+        addSingleRelationship(relationships, account, namespace, loadBalancer);
+      }
+    }
 
-    String key = Keys.infrastructure(kind, apiVersion, account, namespace, name);
-    return new DefaultCacheData(key, attributes, relationships);
+    if (spinnakerRelationships.getSecurityGroups() != null) {
+      for (String securityGroup : spinnakerRelationships.getSecurityGroups()) {
+        addSingleRelationship(relationships, account, namespace, securityGroup);
+      }
+    }
+
+    return relationships;
+  }
+
+  static void addSingleRelationship(Map<String, Collection<String>> relationships, String account, String namespace, String fullName) {
+    Triple<KubernetesApiVersion, KubernetesKind, String> triple = KubernetesManifest.fromFullResourceName(fullName);
+    KubernetesKind kind = triple.getMiddle();
+    KubernetesApiVersion apiVersion = triple.getLeft();
+    String name = triple.getRight();
+
+    Collection<String> keys = relationships.get(kind.toString());
+
+    if (keys == null) {
+      keys = new ArrayList<>();
+    }
+
+    keys.add(Keys.infrastructure(kind, apiVersion, account, namespace, name));
+
+    relationships.put(kind.toString(), keys);
   }
 
   static Map<String, Collection<String>> ownerReferenceRelationships(String account, String namespace, List<KubernetesManifest.OwnerReference> references) {
