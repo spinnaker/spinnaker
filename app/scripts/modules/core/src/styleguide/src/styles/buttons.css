@@ -180,7 +180,7 @@ button.zombie, a.button.zombie {
 }
 
 button.zombie, a.button.zombie, button.zombie i, a.button.zombie i {
-  color: var(--color-text-secondary);
+  color: var(--color-text-primary);
 }
 
 button.zombie:hover, a.button.zombie:hover,
