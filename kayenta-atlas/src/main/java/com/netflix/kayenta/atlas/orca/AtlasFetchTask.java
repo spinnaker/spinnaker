@@ -104,7 +104,7 @@ public class AtlasFetchTask implements RetryableTask {
 
     try {
       CanaryConfig canaryConfig =
-              configurationService.loadObject(resolvedConfigurationAccountName, ObjectType.CANARY_CONFIG, canaryConfigId.toLowerCase());
+        configurationService.loadObject(resolvedConfigurationAccountName, ObjectType.CANARY_CONFIG, canaryConfigId.toLowerCase());
 
       List<String> metricSetListIds = synchronousQueryProcessor.processQuery(resolvedMetricsAccountName,
                                                                              resolvedStorageAccountName,

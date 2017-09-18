@@ -95,7 +95,7 @@ public class PrometheusFetchTask implements RetryableTask {
 
     try {
       CanaryConfig canaryConfig =
-              configurationService.loadObject(resolvedConfigurationAccountName, ObjectType.CANARY_CONFIG, canaryConfigId.toLowerCase());
+        configurationService.loadObject(resolvedConfigurationAccountName, ObjectType.CANARY_CONFIG, canaryConfigId.toLowerCase());
 
 
       Instant startTimeInstant = Instant.parse(prometheusCanaryScope.getIntervalStartTimeIso());

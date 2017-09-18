@@ -74,12 +74,12 @@ public class CanaryJudgeTask implements RetryableTask {
     Map<String, Object> context = stage.getContext();
     String storageAccountName = (String)context.get("storageAccountName");
     String resolvedStorageAccountName = CredentialsHelper.resolveAccountByNameOrType(storageAccountName,
-      AccountCredentials.Type.OBJECT_STORE,
-      accountCredentialsRepository);
+                                                                                     AccountCredentials.Type.OBJECT_STORE,
+                                                                                     accountCredentialsRepository);
     String configurationAccountName = (String)context.get("configurationAccountName");
     String resolvedConfigurationAccountName = CredentialsHelper.resolveAccountByNameOrType(configurationAccountName,
-      AccountCredentials.Type.CONFIGURATION_STORE,
-      accountCredentialsRepository);
+                                                                                           AccountCredentials.Type.CONFIGURATION_STORE,
+                                                                                           accountCredentialsRepository);
     String canaryConfigId = (String)context.get("canaryConfigId");
     String metricSetPairListId = (String)context.get("metricSetPairListId");
     Map<String, String> orchestratorScoreThresholdsMap = (Map<String, String>)context.get("orchestratorScoreThresholds");
