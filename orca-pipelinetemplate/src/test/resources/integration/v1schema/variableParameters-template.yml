@@ -1,0 +1,16 @@
+---
+schema: "1"
+id: variableParameters
+metadata:
+  name: Variable Parameters
+  description: Asserts that variables can be used in parameters.
+configuration:
+  parameters:
+  - name: instances
+    description: Number of instances to start per region
+    default: "{{ instances }}"
+variables:
+- name: instances
+  description: The number of instances to start per region
+  defaultValue: 3
+stages: []

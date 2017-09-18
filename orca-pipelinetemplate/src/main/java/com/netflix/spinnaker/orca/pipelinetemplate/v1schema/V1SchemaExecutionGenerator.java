@@ -51,6 +51,7 @@ public class V1SchemaExecutionGenerator implements ExecutionGenerator {
     }
 
     addNotifications(pipeline, template, configuration);
+    addParameters(pipeline, template, configuration);
 
     pipeline.put("stages", template.getStages()
       .stream()
@@ -88,6 +89,23 @@ public class V1SchemaExecutionGenerator implements ExecutionGenerator {
       pipeline.put(
         "notifications",
         Optional.ofNullable(configuration.getConfiguration().getNotifications()).orElse(Collections.emptyList())
+      );
+    }
+  }
+
+  private void addParameters(Map<String, Object> pipeline, PipelineTemplate template, TemplateConfiguration configuration) {
+    if (configuration.getConfiguration().getInherit().contains("parameters")) {
+      pipeline.put(
+        "parameterConfig",
+        TemplateMerge.mergeNamedContent(
+          template.getConfiguration().getParameters(),
+          configuration.getConfiguration().getParameters()
+        )
+      );
+    } else {
+      pipeline.put(
+        "parameterConfig",
+        Optional.ofNullable(configuration.getConfiguration().getParameters()).orElse(Collections.emptyList())
       );
     }
   }

@@ -6,5 +6,11 @@
   "name": "Unnamed Execution",
   "stages": [],
   "notifications": [],
-  "parameterConfig": []
+  "parameterConfig": [
+    {
+      "name": "instances",
+      "description": "Number of instances to start per region",
+      "default": 3
+    }
+  ]
 }

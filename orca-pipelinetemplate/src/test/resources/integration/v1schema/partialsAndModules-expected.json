@@ -31,5 +31,6 @@
       "waitTime": 5
     }
   ],
-  "notifications": []
+  "notifications": [],
+  "parameterConfig": []
 }

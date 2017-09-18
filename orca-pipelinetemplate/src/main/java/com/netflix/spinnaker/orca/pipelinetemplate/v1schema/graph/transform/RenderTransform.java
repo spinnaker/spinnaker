@@ -20,6 +20,7 @@ import com.netflix.spectator.api.Timer;
 import com.netflix.spinnaker.orca.pipelinetemplate.exceptions.IllegalTemplateConfigurationException;
 import com.netflix.spinnaker.orca.pipelinetemplate.exceptions.TemplateRenderException;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.PipelineTemplateVisitor;
+import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.NamedHashMap;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PartialDefinition;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.StageDefinition;
@@ -74,6 +75,15 @@ public class RenderTransform implements PipelineTemplateVisitor {
 
     // We don't care about configuration partials, they were already merged into the template at this point
     renderPartials(template.getPartials(), filterStages(template.getStages(), true), context);
+
+    renderConfigurations(template.getConfiguration().getParameters(), context, "template:configuration.parameters");
+    renderConfigurations(templateConfiguration.getConfiguration().getParameters(), context, "configuration:configuration.parameters");
+
+    renderConfigurations(template.getConfiguration().getTriggers(), context, "template:configuration.triggers");
+    renderConfigurations(templateConfiguration.getConfiguration().getTriggers(), context, "configuration:configuration.triggers");
+
+    renderConfigurations(template.getConfiguration().getNotifications(), context, "template:configuration.notifications");
+    renderConfigurations(templateConfiguration.getConfiguration().getNotifications(), context, "configuration:configuration.notifications");
   }
 
   private void renderStages(List<StageDefinition> stages, RenderContext context, String locationNamespace) {
@@ -194,6 +204,27 @@ public class RenderTransform implements PipelineTemplateVisitor {
         renderedStages.add(renderedStage);
       }
       partial.getRenderedPartials().put(stage.getId(), renderedStages);
+    }
+  }
+
+  private void renderConfigurations(List<NamedHashMap> configurations, RenderContext context, String location) {
+    if (configurations == null) {
+      return;
+    }
+
+    for (Map<String, Object> config : configurations) {
+      for (Map.Entry<String, Object> pair : config.entrySet()) {
+        try {
+          pair.setValue(RenderUtil.deepRender(renderer, pair.getValue(), context));
+        } catch (TemplateRenderException e) {
+          throw TemplateRenderException.fromError(
+            new Error()
+              .withMessage("Failed rendering configuration property")
+              .withLocation(location),
+            e
+          );
+        }
+      }
     }
   }
 }

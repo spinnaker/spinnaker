@@ -152,7 +152,8 @@ class PipelineTemplatePipelinePreprocessorSpec extends Specification {
           requisiteStageRefIds: ['tagImage'],
           waitTime: 5
         ]
-      ]
+      ],
+      parameterConfig: []
     ]
     assertReflectionEquals(expected, result, ReflectionComparatorMode.IGNORE_DEFAULTS)
   }

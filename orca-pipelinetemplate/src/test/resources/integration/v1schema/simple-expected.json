@@ -5,5 +5,6 @@
   "application": "orca",
   "name": "Unnamed Execution",
   "stages": [],
-  "notifications": []
+  "notifications": [],
+  "parameterConfig": []
 }
