@@ -150,13 +150,13 @@ class DockerRegistryClient {
   }
 
   DockerRegistryClient(String address, String email, String username, String password, long clientTimeoutMillis, int paginateSize, String catalogFile) {
-    this(address, clientTimeoutMillis, paginateSize)
+    this(address, clientTimeoutMillis, paginateSize, catalogFile)
     this.tokenService = new DockerBearerTokenService(username, password)
     this.email = email
   }
 
   DockerRegistryClient(String address, String email, String username, File passwordFile, long clientTimeoutMillis, int paginateSize, String catalogFile) {
-    this(address, clientTimeoutMillis, paginateSize)
+    this(address, clientTimeoutMillis, paginateSize, catalogFile)
     this.tokenService = new DockerBearerTokenService(username, passwordFile)
     this.email = email
   }
