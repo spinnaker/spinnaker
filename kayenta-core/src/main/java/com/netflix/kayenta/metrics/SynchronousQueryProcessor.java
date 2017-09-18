@@ -21,6 +21,8 @@ import com.netflix.kayenta.canary.CanaryScope;
 import com.netflix.kayenta.storage.ObjectType;
 import com.netflix.kayenta.storage.StorageService;
 import com.netflix.kayenta.storage.StorageServiceRepository;
+import com.netflix.spectator.api.Id;
+import com.netflix.spectator.api.Registry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -40,6 +42,9 @@ public class SynchronousQueryProcessor {
   @Autowired
   StorageServiceRepository storageServiceRepository;
 
+  @Autowired
+  Registry registry;
+
   public List<String> processQuery(String metricsAccountName,
                                    String storageAccountName,
                                    List<CanaryMetricConfig> canaryMetricConfigs,
@@ -55,8 +60,11 @@ public class SynchronousQueryProcessor {
         .orElseThrow(() -> new IllegalArgumentException("No storage service was configured; unable to write metric set list."));
 
     List<String> metricSetListIds = new ArrayList<>();
+    Id queryId = registry.createId("canary.telemetry.query").withTag("metricsStore", metricsService.getType());
 
     for (CanaryMetricConfig canaryMetricConfig : canaryMetricConfigs) {
+      registry.counter(queryId).increment();
+
       List<MetricSet> metricSetList = metricsService.queryMetrics(metricsAccountName, canaryMetricConfig, canaryScope);
       String metricSetListId = UUID.randomUUID() + "";
 

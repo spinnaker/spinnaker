@@ -58,6 +58,11 @@ queue:
 
 executionLog.redis.enabled: false
 
+spectator:
+  applicationName: ${spring.application.name}
+  webEndpoint:
+    enabled: true
+
 swagger:
   enabled: true
   title: Kayenta API

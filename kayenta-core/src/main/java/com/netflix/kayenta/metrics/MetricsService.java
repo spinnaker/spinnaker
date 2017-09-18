@@ -23,6 +23,8 @@ import java.io.IOException;
 import java.util.List;
 
 public interface MetricsService {
+  String getType();
+
   boolean servicesAccount(String accountName);
 
   List<MetricSet> queryMetrics(String accountName,

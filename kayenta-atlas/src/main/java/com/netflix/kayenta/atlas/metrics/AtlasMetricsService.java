@@ -54,6 +54,11 @@ public class AtlasMetricsService implements MetricsService {
   AccountCredentialsRepository accountCredentialsRepository;
 
   @Override
+  public String getType() {
+    return "atlas";
+  }
+
+  @Override
   public boolean servicesAccount(String accountName) {
     return accountNames.contains(accountName);
   }

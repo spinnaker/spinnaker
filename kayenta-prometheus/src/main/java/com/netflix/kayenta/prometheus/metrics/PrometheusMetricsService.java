@@ -57,6 +57,11 @@ public class PrometheusMetricsService implements MetricsService {
   AccountCredentialsRepository accountCredentialsRepository;
 
   @Override
+  public String getType() {
+    return "prometheus";
+  }
+
+  @Override
   public boolean servicesAccount(String accountName) {
     return accountNames.contains(accountName);
   }

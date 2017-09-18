@@ -57,6 +57,11 @@ public class StackdriverMetricsService implements MetricsService {
   AccountCredentialsRepository accountCredentialsRepository;
 
   @Override
+  public String getType() {
+    return "stackdriver";
+  }
+
+  @Override
   public boolean servicesAccount(String accountName) {
     return accountNames.contains(accountName);
   }

@@ -30,6 +30,7 @@ import com.netflix.kayenta.security.CredentialsHelper;
 import com.netflix.kayenta.storage.ObjectType;
 import com.netflix.kayenta.storage.StorageService;
 import com.netflix.kayenta.storage.StorageServiceRepository;
+import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.pipeline.PipelineLauncher;
 import com.netflix.spinnaker.orca.pipeline.model.Execution;
@@ -65,6 +66,7 @@ public class CanaryController {
   private final AccountCredentialsRepository accountCredentialsRepository;
   private final StorageServiceRepository storageServiceRepository;
   private final List<CanaryScopeFactory> canaryScopeFactories;
+  private final Registry registry;
 
   @Autowired
   public CanaryController(String currentInstanceId,
@@ -72,7 +74,8 @@ public class CanaryController {
                           ExecutionRepository executionRepository,
                           AccountCredentialsRepository accountCredentialsRepository,
                           StorageServiceRepository storageServiceRepository,
-                          Optional<List<CanaryScopeFactory>> canaryScopeFactories) {
+                          Optional<List<CanaryScopeFactory>> canaryScopeFactories,
+                          Registry registry) {
     this.currentInstanceId = currentInstanceId;
     this.pipelineLauncher = pipelineLauncher;
     this.executionRepository = executionRepository;
@@ -84,6 +87,8 @@ public class CanaryController {
     } else {
       this.canaryScopeFactories = Collections.emptyList();
     }
+
+    this.registry = registry;
   }
 
   // TODO(duftler): Allow for user to be passed in.
@@ -136,6 +141,8 @@ public class CanaryController {
         .stream()
         .filter((f) -> f.handles(serviceType)).findFirst()
         .orElseThrow(() -> new IllegalArgumentException("Unable to resolve canary scope factory for '" + serviceType + "'."));
+
+    registry.counter(registry.createId("canary.pipelines.initiated")).increment();
 
     Instant startTimeInstant = Instant.parse(startTimeIso);
     Instant endTimeInstant = Instant.parse(endTimeIso);

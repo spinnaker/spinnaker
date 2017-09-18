@@ -2,6 +2,9 @@ dependencies {
   //compile spinnaker.dependency('jedis')
   compile "redis.clients:jedis:2.8.1"
 
+  // compile spinnaker.dependency('kork')
+  compile "com.netflix.spinnaker.kork:kork-core:$korkVersion"
+
   // compile spinnaker.dependency('korkJedisTest')
   compile "com.netflix.spinnaker.kork:kork-jedis-test:$korkVersion"
 
@@ -13,6 +16,9 @@ dependencies {
 
   // compile spinnaker.dependency('lombok')
   compile "org.projectlombok:lombok:1.16.10"
+
+  // compile spinnaker.dependency('spectatorApi')
+  compile "com.netflix.spectator:spectator-api:$spectatorVersion"
 
   compile "com.netflix.spinnaker.orca:orca-core:$orcaVersion"
   compile "com.netflix.spinnaker.orca:orca-retrofit:$orcaVersion"
