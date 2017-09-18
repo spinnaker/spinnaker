@@ -1,4 +1,4 @@
-import { cloneDeep, set, omit } from 'lodash';
+import { omit } from 'lodash';
 import { ReactInjector } from '@spinnaker/core';
 
 import { CanarySettings } from 'kayenta/canary.settings';
@@ -65,21 +65,16 @@ export function listJudges(): Promise<IJudge[]> {
 export function mapStateToConfig(state: ICanaryState): ICanaryConfig {
   if (state.selectedConfig.config) {
     const configState = state.selectedConfig;
-
-    const firstMetric = cloneDeep(configState.metricList[0]);
-    if (firstMetric && configState.judge) {
-      set(firstMetric, 'analysisConfigurations.canary.judge', configState.judge.name);
-    }
-
-    return Object.assign({}, configState.config,
-      {
-        metrics: configState.metricList.map((metric, i) => i === 0 ? firstMetric : metric).map(metric => omit(metric, 'id')),
-        classifier: Object.assign({}, configState.config.classifier || {}, {
-          scoreThresholds: configState.thresholds,
-          groupWeights: configState.group.groupWeights,
-        }),
-      }
-    );
+    return {
+      ...configState.config,
+      judge: configState.judge,
+      metrics: configState.metricList.map(metric => omit(metric, 'id')),
+      classifier: {
+        ...configState.config.classifier,
+        scoreThresholds: configState.thresholds,
+        groupWeights: configState.group.groupWeights,
+      },
+    };
   } else {
     return null;
   }
@@ -105,6 +100,10 @@ export function buildNewConfig(state: ICanaryState): ICanaryConfig {
         pass: 75,
         marginal: 50,
       }
+    },
+    judge: {
+      name: CanarySettings.judge,
+      judgeConfigurations: {},
     }
   };
 }

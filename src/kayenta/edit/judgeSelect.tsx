@@ -4,7 +4,7 @@ import { Action } from 'redux';
 import { connect } from 'react-redux';
 
 import { ICanaryState } from '../reducers/index';
-import { SELECT_JUDGE } from '../actions/index';
+import { SELECT_JUDGE_NAME } from '../actions/index';
 
 interface IJudgeSelectStateProps {
   judgeOptions: Select.Option[];
@@ -40,7 +40,7 @@ function mapDispatchToProps(dispatch: (action: Action & any) => void): IJudgeSel
   return {
     handleJudgeSelect: (option: Select.Option) => {
       dispatch({
-        type: SELECT_JUDGE,
+        type: SELECT_JUDGE_NAME,
         judge: { name: option.value },
       });
     }

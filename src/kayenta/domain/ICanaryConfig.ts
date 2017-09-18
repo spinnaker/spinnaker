@@ -10,6 +10,7 @@ export interface ICanaryConfig {
   metrics: ICanaryMetricConfig[];
   services: {[key: string]: ICanaryServiceConfig};
   classifier: ICanaryClassifierConfig;
+  judge: ICanaryJudgeConfig;
 }
 
 export interface ICanaryMetricConfig {
@@ -20,9 +21,6 @@ export interface ICanaryMetricConfig {
   groups: string[];
   analysisConfigurations: {
     [key: string]: any;
-    canary?: {
-      judge?: string;
-    }
   };
 }
 
@@ -48,4 +46,9 @@ export interface ICanaryClassifierConfig {
 export interface ICanaryClassifierThresholdsConfig {
   pass: number;
   marginal: number;
+}
+
+export interface ICanaryJudgeConfig {
+  name: string;
+  judgeConfigurations: {[key: string]: any};
 }
