@@ -52,11 +52,13 @@ export function deleteCanaryConfig(id: string): Promise<void> {
 }
 
 export function listJudges(): Promise<IJudge[]> {
+  let allJudges: Promise<IJudge[]>;
   if (CanarySettings.liveCalls) {
-    return ReactInjector.API.one('v2/canaries/judges').get();
+    allJudges = ReactInjector.API.one('v2/canaries/judges').get();
   } else {
-    return localConfigCache.listJudges();
+    allJudges = localConfigCache.listJudges();
   }
+  return allJudges.then(judges => judges.filter(judge => judge.visible));
 }
 
 // Not sure if this is the right way to go about this. We have pieces of the config
@@ -67,7 +69,7 @@ export function mapStateToConfig(state: ICanaryState): ICanaryConfig {
     const configState = state.selectedConfig;
     return {
       ...configState.config,
-      judge: configState.judge,
+      judge: configState.judge.judgeConfig,
       metrics: configState.metricList.map(metric => omit(metric, 'id')),
       classifier: {
         ...configState.config.classifier,
@@ -102,7 +104,7 @@ export function buildNewConfig(state: ICanaryState): ICanaryConfig {
       }
     },
     judge: {
-      name: CanarySettings.judge,
+      name: CanarySettings.defaultJudge,
       judgeConfigurations: {},
     }
   };

@@ -15,6 +15,7 @@ import {
 } from '../domain/ICanaryConfig';
 import { CanarySettings } from '../canary.settings';
 import { IGroupState, group } from './group';
+import { JudgeSelectRenderState } from '../edit/judgeSelect';
 
 interface ILoadState {
   state: ConfigDetailLoadState;
@@ -36,12 +37,17 @@ interface IJsonState {
   error: string;
 }
 
+interface IJudgeState {
+  judgeConfig: ICanaryJudgeConfig;
+  renderState: JudgeSelectRenderState;
+}
+
 export interface ISelectedConfigState {
   config: ICanaryConfig;
   metricList: ICanaryMetricConfig[];
   editingMetric: ICanaryMetricConfig;
   thresholds: ICanaryClassifierThresholdsConfig;
-  judge: ICanaryJudgeConfig;
+  judge: IJudgeState;
   group: IGroupState;
   load: ILoadState;
   save: ISaveState;
@@ -122,9 +128,13 @@ const json = combineReducers<IJsonState>({
   }, null),
 });
 
-const judge = handleActions({
-  [Actions.SELECT_JUDGE_NAME]: (state: IJudge, action: Action & any) => ({ ...state, name: action.judge.name }),
-}, null);
+
+const judge = combineReducers<IJudgeState>({
+  judgeConfig: handleActions({
+    [Actions.SELECT_JUDGE_NAME]: (state: IJudge, action: Action & any) => ({ ...state, name: action.judge.name }),
+  }, null),
+  renderState: handleActions({}, JudgeSelectRenderState.None),
+});
 
 const thresholds = handleActions({
   [Actions.SELECT_CONFIG]: (_state: ICanaryClassifierThresholdsConfig, action: Action & any) => {
@@ -170,9 +180,9 @@ function selectedJudgeReducer(state: ISelectedConfigState = null, action: Action
   switch (action.type) {
     case Actions.SELECT_CONFIG:
       if (state.config && state.config.judge) {
-        return { ...state, judge: { ...state.config.judge }};
+        return { ...state, judge: { ...state.judge, judgeConfig: { ...state.config.judge } }};
       } else {
-        return { ...state, judge: { name: CanarySettings.judge, judgeConfigurations: {} }};
+        return { ...state, judge: { ...state.judge, judgeConfig: { name: CanarySettings.defaultJudge, judgeConfigurations: {} }}};
       }
 
     default:

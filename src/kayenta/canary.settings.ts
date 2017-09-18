@@ -4,7 +4,7 @@ export interface ICanarySettings {
   liveCalls: boolean;
   metricsAccountName: string;
   storageAccountName: string;
-  judge: string;
+  defaultJudge: string;
   metricStore: string;
   defaultServiceSettings: {[key: string]: any};
 }
