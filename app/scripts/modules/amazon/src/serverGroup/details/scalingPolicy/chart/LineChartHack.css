@@ -1,7 +1,16 @@
 /*
   This is a copy of the n3-charts/build/LineChart.css file with the unicode newline escape sequences stripped out.
-  This file should be removed as soon as possible. See https://github.com/n3-charts/line-chart/issues/512 for updates.
+  See https://github.com/n3-charts/line-chart/issues/512.
 */
+
+/* This ruleset overrides some entries from the style guide */
+.chart-legend .item {
+  margin: 0 10px 0 0;
+  padding: 0;
+  border-width: 0;
+  background-color: transparent;
+}
+
 .chart-legend {
   margin-left: 20px; }
 .chart-legend .item {
