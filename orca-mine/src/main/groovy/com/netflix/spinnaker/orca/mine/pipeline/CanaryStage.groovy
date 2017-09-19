@@ -16,10 +16,13 @@
 
 package com.netflix.spinnaker.orca.mine.pipeline
 
+import com.netflix.spinnaker.orca.CancellableStage.Result
+import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.DestroyServerGroupTask
+import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
+
 import java.util.concurrent.TimeUnit
 import com.netflix.frigga.autoscaling.AutoScalingGroupNameBuilder
 import com.netflix.spinnaker.orca.CancellableStage
-import com.netflix.spinnaker.orca.clouddriver.tasks.cluster.ShrinkClusterTask
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
@@ -35,7 +38,8 @@ class CanaryStage implements StageDefinitionBuilder, CancellableStage {
 
   @Autowired DeployCanaryStage deployCanaryStage
   @Autowired MonitorCanaryStage monitorCanaryStage
-  @Autowired ShrinkClusterTask shrinkClusterTask
+  @Autowired DestroyServerGroupTask destroyServerGroupTask
+  @Autowired OortHelper oortHelper
 
   @Override
   def <T extends Execution<T>> List<Stage<T>> aroundStages(Stage<T> stage) {
@@ -55,13 +59,18 @@ class CanaryStage implements StageDefinitionBuilder, CancellableStage {
   }
 
   @Override
-  CancellableStage.Result cancel(Stage stage) {
+  Result cancel(Stage stage) {
     log.info("Cancelling stage (stageId: ${stage.id}, executionId: ${stage.execution.id}, context: ${stage.context as Map})")
 
     // it's possible the server groups haven't been created yet, allow a grace period before cleanup
     Thread.sleep(TimeUnit.MINUTES.toMillis(2))
 
-    Collection<Map<String, Object>> shrinkContexts = []
+    return cleanupCanary(stage)
+  }
+
+  protected Result cleanupCanary(Stage stage) {
+    Collection<Map<String, Object>> destroyContexts = []
+
     stage.context.clusterPairs.each { Map<String, Map> clusterPair ->
       [clusterPair.baseline, clusterPair.canary].each { Map<String, String> cluster ->
 
@@ -70,28 +79,40 @@ class CanaryStage implements StageDefinitionBuilder, CancellableStage {
         builder.stack = cluster.stack
         builder.detail = cluster.freeFormDetails
 
-        String region = cluster.region ?: (cluster.availabilityZones as Map).keySet().first()
+        Map deployedCluster = oortHelper.getCluster(cluster.application, cluster.account, builder.buildGroupName(), cluster.cloudProvider ?: 'aws').orElse([:])
+        Long start = stage.startTime
+        // add a small buffer to deal with latency between the cloud provider and Orca
+        Long createdTimeCutoff = stage.endTime + 5000
 
-        shrinkContexts << [
-          cluster          : builder.buildGroupName(),
-          region           : region,
-          shrinkToSize     : 0,
-          allowDeleteActive: true,
-          credentials      : cluster.account,
-          cloudProvider    : cluster.cloudProvider ?: 'aws'
-        ]
+        List<Map> serverGroups = deployedCluster.serverGroups ?: []
+
+        String clusterRegion = cluster.region ?: (cluster.availabilityZones as Map).keySet().first()
+        List<Map> matches = serverGroups.findAll {
+          it.region == clusterRegion && it.createdTime > start && it.createdTime < createdTimeCutoff
+        } ?: []
+
+        // really hope they're not running concurrent canaries in the same cluster
+        matches.each {
+          destroyContexts << [
+            serverGroupName: it.name,
+            region         : it.region,
+            credentials    : cluster.account,
+            cloudProvider  : it.cloudProvider ?: 'aws'
+          ]
+        }
       }
     }
 
-    def shrinkResults = shrinkContexts.collect {
-      def shrinkStage = new Stage<>()
-      shrinkStage.context.putAll(it)
-      shrinkClusterTask.execute(shrinkStage)
+    def destroyResults = destroyContexts.collect {
+      def destroyStage = new Stage<>()
+      destroyStage.execution = stage.execution
+      destroyStage.context.putAll(it)
+      destroyServerGroupTask.execute(destroyStage)
     }
 
-    return new CancellableStage.Result(stage, [
-      shrinkContexts: shrinkContexts,
-      shrinkResults : shrinkResults
+    return new Result(stage, [
+      destroyContexts: destroyContexts,
+      destroyResults : destroyResults
     ])
   }
 }
