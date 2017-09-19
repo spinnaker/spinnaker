@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.echo.notification
 
+import com.netflix.spinnaker.echo.notification.NotificationTemplateEngine.HtmlToPlainTextFormatter
+import com.netflix.spinnaker.echo.notification.NotificationTemplateEngine.MarkdownToHtmlFormatter
 import groovy.util.logging.Slf4j
 import com.netflix.spinnaker.echo.email.EmailNotificationService
 import com.netflix.spinnaker.echo.model.Event
@@ -97,15 +99,17 @@ class EmailNotificationAgent extends AbstractEventNotificationAgent {
     def body = FreeMarkerTemplateUtils.processTemplateIntoString(
       template,
       [
-        event      : prettyPrint(toJson(event.content)),
-        url        : spinnakerUrl,
-        application: event.details?.application,
-        executionId: event.content?.execution?.id,
-        type       : type,
-        status     : status,
-        link       : link,
-        name       : event.content?.execution?.name ?: event.content?.execution?.description,
-        message    : customMessage
+        event          : prettyPrint(toJson(event.content)),
+        url            : spinnakerUrl,
+        htmlToText     : new HtmlToPlainTextFormatter(),
+        markdownToHtml : new MarkdownToHtmlFormatter(),
+        application    : event.details?.application,
+        executionId    : event.content?.execution?.id,
+        type           : type,
+        status         : status,
+        link           : link,
+        name           : event.content?.execution?.name ?: event.content?.execution?.description,
+        message        : customMessage
       ]
     )
 
