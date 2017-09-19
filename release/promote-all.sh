@@ -4,7 +4,7 @@ set -e
 
 SOURCE_VERSION=$1
 TARGET_VERSION=$2
-PLATFORMS=(debian docker)
+PLATFORMS=(debian docker osx)
 
 USAGE="You must supply the <SOURCE_VERSION>, and <TARGET_VERSION>:
   $0 <SOURCE_VERSION> <TARGET_VERSION>"

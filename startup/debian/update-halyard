@@ -1,0 +1,72 @@
+#!/usr/bin/env bash
+
+set -e
+
+function process_args() {
+  while [ "$#" -gt "0" ]
+  do
+    local key="$1"
+    shift
+    case $key in
+      --version)
+        echo "version"
+        HALYARD_VERSION="$1"
+        shift
+        ;;
+      --help|-help|-h)
+        print_usage
+        exit 13
+        ;;
+      *)
+        echo "ERROR: Unknown argument '$key'"
+        exit -1
+    esac
+  done
+}
+
+function configure_defaults() {
+  if [ -z "$HALYARD_VERSION" ]; then
+    HALYARD_VERSION="stable"
+  fi
+
+  HAL_USER=$(cat /opt/spinnaker/config/halyard-user)
+
+  if [ -z "$HAL_USER" ]; then
+    echo >&2 "Unable to derive halyard user, likely a corrupted install. Aborting."
+    exit 1
+  fi
+}
+
+
+function print_usage() {
+  cat <<EOF
+usage: $0 [-y] [--version=<version>] [--user=<user>]
+    --version <version>             Specify the exact verison of Halyard to
+                                    install. Default is 'stable'.
+EOF
+}
+
+function install_halyard() {
+  TEMPDIR=$(mktemp -d installhalyard.XXXX)
+  pushd $TEMPDIR
+
+  curl -O https://storage.googleapis.com/spinnaker-artifacts/halyard/$HALYARD_VERSION/debian/halyard.tar.gz
+  tar -xvf halyard.tar.gz -C /opt
+
+  chown $HAL_USER:halyard /opt/halyard
+
+  mv /opt/hal /usr/local/bin
+  mv /opt/update-halyard /usr/local/bin
+  chmod +x /usr/local/bin/hal
+  chmod +x /usr/local/bin/update-halyard
+
+  popd
+  rm -rf $TEMPDIR
+}
+
+process_args $@
+configure_defaults
+
+install_halyard
+
+su -c "hal -v" -s /bin/bash $HAL_USER

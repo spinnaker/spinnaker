@@ -171,6 +171,13 @@ function install_halyard() {
   mv /opt/hal /usr/local/bin
   chmod +x /usr/local/bin/hal
 
+  if [ -f /opt/update-halyard ]; then
+    mv /opt/update-halyard /usr/local/bin
+    chmod +x /usr/local/bin/update-halyard
+  else 
+    echo "No update script supplied with installer..."
+  fi
+
   mkdir -p /var/log/spinnaker/halyard
   chown $HAL_USER /var/log/spinnaker/halyard
   chmod 755 /var/log/spinnaker/halyard
