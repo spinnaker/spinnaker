@@ -21,10 +21,12 @@ import com.netflix.spinnaker.orca.q.redis.RedisDeadMessageHandler
 import com.netflix.spinnaker.orca.q.redis.RedisQueue
 import com.netflix.spinnaker.orca.q.QueueShovel
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig
+import org.springframework.beans.factory.BeanInitializationException
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -35,22 +37,25 @@ import java.time.Duration
 
 @Configuration
 @ConditionalOnExpression("\${queue.redis.enabled:true}")
-class RedisQueueShovelConfiguration {
+open class RedisQueueShovelConfiguration {
 
-  @Bean(name = arrayOf("previousQueueJedisPool")) open fun previousQueueJedisPool(
+  @Bean
+  @ConditionalOnProperty("redis.connectionPrevious")
+  open fun previousQueueJedisPool(
     @Value("\${redis.connection:redis://localhost:6379}") mainConnection: String,
     @Value("\${redis.connectionPrevious:#{null}}") previousConnection: String?,
     @Value("\${redis.timeout:2000}") timeout: Int,
     redisPoolConfig: GenericObjectPoolConfig,
-    registry: Registry): Pool<Jedis>? {
-    if (mainConnection == previousConnection || previousConnection == null) {
-      return null
+    registry: Registry): Pool<Jedis> {
+    if (mainConnection == previousConnection) {
+      throw BeanInitializationException("previous Redis connection must not be the same as current connection")
     }
 
     return RedisConfiguration.createPool(redisPoolConfig, previousConnection, timeout, registry, "previousQueueJedisPool")
   }
 
-  @Bean(name = arrayOf("previousQueueImpl")) open fun previousRedisQueue(
+  @Bean(name = arrayOf("previousQueueImpl"))
+  @ConditionalOnBean(name = arrayOf("previousQueueJedisPool")) open fun previousRedisQueue(
     @Qualifier("previousQueueJedisPool") redisPool: Pool<Jedis>,
     redisQueueProperties: RedisQueueProperties,
     clock: Clock,
@@ -67,7 +72,7 @@ class RedisQueueShovelConfiguration {
     )
 
 
-  @Bean()
+  @Bean
   @ConditionalOnBean(name = arrayOf("previousQueueJedisPool")) open fun redisQueueShovel(
     @Qualifier("queueImpl") queueImpl: RedisQueue,
     @Qualifier("previousQueueImpl") previousQueueImpl: RedisQueue,

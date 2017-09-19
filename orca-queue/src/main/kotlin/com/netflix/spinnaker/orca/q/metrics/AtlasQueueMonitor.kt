@@ -22,6 +22,7 @@ import com.netflix.spinnaker.orca.q.ApplicationAware
 import com.netflix.spinnaker.orca.q.Queue
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
 import org.springframework.context.ApplicationListener
 import org.springframework.scheduling.annotation.Scheduled
@@ -39,7 +40,7 @@ import javax.annotation.PostConstruct
 @ConditionalOnBean(MonitorableQueue::class)
 open class AtlasQueueMonitor
 @Autowired constructor(
-  private val queue: MonitorableQueue,
+  @Qualifier("queueImpl") private val queue: MonitorableQueue,
   private val registry: Registry,
   private val clock: Clock
 ) : ApplicationListener<QueueEvent> {
