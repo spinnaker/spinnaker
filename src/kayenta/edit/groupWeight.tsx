@@ -6,7 +6,7 @@ import { get, isNumber } from 'lodash';
 import FormRow from '../layout/formRow';
 import { ICanaryState } from '../reducers/index';
 import { ICanaryConfig } from '../domain/ICanaryConfig';
-import { UPDATE_GROUP_WEIGHT } from '../actions/index';
+import * as Creators from '../actions/creators';
 import { mapStateToConfig } from '../service/canaryConfig.service';
 
 interface IGroupWeightOwnProps {
@@ -52,11 +52,10 @@ function mapStateToProps(state: ICanaryState, ownProps: IGroupWeightOwnProps): I
 function mapDispatchToProps(dispatch: (action: Action & any) => void, { group }: IGroupWeightOwnProps): IGroupWeightDispatchProps {
   return {
     handleInputChange: (event: React.ChangeEvent<HTMLInputElement>) => {
-      dispatch({
-        type: UPDATE_GROUP_WEIGHT,
+      dispatch(Creators.updateGroupWeight({
         group,
         weight: event.target.value ? parseInt(event.target.value, 10) : null,
-      });
+      }));
     }
   };
 }

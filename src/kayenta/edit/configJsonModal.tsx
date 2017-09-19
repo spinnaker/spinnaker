@@ -4,7 +4,6 @@ import { connect } from 'react-redux';
 import { Modal } from 'react-bootstrap';
 import { get } from 'lodash';
 
-import { SELECT_CONFIG } from '../actions/index';
 import * as Creators from 'kayenta/actions/creators';
 import { ICanaryState } from '../reducers/index';
 import { jsonUtilityService, NgReact, IJsonDiff } from '@spinnaker/core';
@@ -105,13 +104,10 @@ function ConfigJsonModal({ show, configJson, deserializationError, closeModal, s
 function mapDispatchToProps(dispatch: (action: Action & any) => void): IConfigJsonDispatchProps {
   return {
     closeModal: () => dispatch(Creators.closeConfigJsonModal()),
-    setTabState: (state: ConfigJsonModalTabState) => () => dispatch(Creators.setConfigJsonModalTabState(state)),
-    setConfigJson: (event: React.ChangeEvent<HTMLTextAreaElement>) => dispatch(Creators.setConfigJson(event.target.value)),
+    setTabState: (state: ConfigJsonModalTabState) => () => dispatch(Creators.setConfigJsonModalTabState({ state })),
+    setConfigJson: (event: React.ChangeEvent<HTMLTextAreaElement>) => dispatch(Creators.setConfigJson({ json: event.target.value })),
     updateConfig: (event: any) => {
-      dispatch({
-        type: SELECT_CONFIG,
-        config: JSON.parse(event.target.dataset.serialized),
-      });
+      dispatch(Creators.selectConfig({ config: JSON.parse(event.target.dataset.serialized) }));
     }
   };
 }

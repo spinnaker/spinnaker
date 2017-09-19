@@ -3,7 +3,7 @@ import { connect } from 'react-redux';
 
 import { ICanaryState } from '../reducers';
 import { CanaryScores } from '../components/canaryScores';
-import { UPDATE_SCORE_THRESHOLDS } from '../actions/index';
+import * as Creators from '../actions/creators';
 
 interface IScoreThresholdsStateProps {
   pass: number;
@@ -41,11 +41,10 @@ function mapStateToProps(state: ICanaryState): IScoreThresholdsStateProps {
 function mapDispatchToProps(dispatch: any): IScoreThresholdsDispatchProps {
   return {
     handleThresholdsChange: (thresholds: { unhealthyScore: string, successfulScore: string }) => {
-      dispatch({
-        type: UPDATE_SCORE_THRESHOLDS,
+      dispatch(Creators.updateScoreThresholds({
         marginal: parseInt(thresholds.unhealthyScore, 10),
         pass: parseInt(thresholds.successfulScore, 10),
-      });
+      }));
     }
   };
 }

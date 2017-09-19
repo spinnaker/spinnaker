@@ -22,25 +22,25 @@ export const application = handleActions({
 
 export const configSummaries = handleActions({
   [Actions.INITIALIZE]: (_state: ICanaryConfigSummary, action: Action & any) => action.state.data.configSummaries,
-  [Actions.UPDATE_CONFIG_SUMMARIES]: (_state: ICanaryConfigSummary, action: Action & any) => action.configSummaries,
+  [Actions.UPDATE_CONFIG_SUMMARIES]: (_state: ICanaryConfigSummary, action: Action & any) => action.payload.configSummaries,
 }, []);
 
 const configs = handleActions({
   [Actions.LOAD_CONFIG_SUCCESS]: (state: ICanaryConfig[], action: Action & any): ICanaryConfig[] => {
-    if (state.some(config => config.name === action.config.name)) {
+    if (state.some(config => config.name === action.payload.config.name)) {
       return without(
         state,
-        state.find(config => config.name === action.config.name)
-      ).concat([action.config]);
+        state.find(config => config.name === action.payload.config.name)
+      ).concat([action.payload.config]);
     } else {
-      return state.concat([action.config]);
+      return state.concat([action.payload.config]);
     }
   },
 }, []);
 
 const judges = handleActions({
   [Actions.INITIALIZE]: (_state: IJudge[], action: Action & any): IJudge[] => action.state.data.judges,
-  [Actions.UPDATE_JUDGES]: (_state: IJudge[], action: Action & any): IJudge[] => action.judges,
+  [Actions.UPDATE_JUDGES]: (_state: IJudge[], action: Action & any): IJudge[] => action.payload.judges,
 }, null);
 
 export const data = combineReducers<IDataState>({

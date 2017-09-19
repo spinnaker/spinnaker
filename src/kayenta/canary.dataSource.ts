@@ -8,7 +8,7 @@ import {
 import { getCanaryConfigSummaries, listJudges } from './service/canaryConfig.service';
 import { ICanaryConfigSummary, IJudge } from './domain/index';
 import { canaryStore } from './canary';
-import { UPDATE_CONFIG_SUMMARIES, UPDATE_JUDGES } from './actions/index';
+import * as Creators from './actions/creators';
 
 export const CANARY_DATA_SOURCE = 'spinnaker.kayenta.canary.dataSource';
 module(CANARY_DATA_SOURCE, [APPLICATION_DATA_SOURCE_REGISTRY])
@@ -20,10 +20,9 @@ module(CANARY_DATA_SOURCE, [APPLICATION_DATA_SOURCE_REGISTRY])
     };
 
     const afterConfigsLoad = (application: Application) => {
-      canaryStore.dispatch({
-        type: UPDATE_CONFIG_SUMMARIES,
-        configSummaries: application.getDataSource('canaryConfigs').data,
-      });
+      canaryStore.dispatch(Creators.updateConfigSummaries({
+        configSummaries: application.getDataSource('canaryConfigs').data as ICanaryConfigSummary[],
+      }));
     };
 
     applicationDataSourceRegistry.registerDataSource(new DataSourceConfig({
@@ -48,10 +47,9 @@ module(CANARY_DATA_SOURCE, [APPLICATION_DATA_SOURCE_REGISTRY])
     };
 
     const afterJudgesLoad = (application: Application) => {
-      canaryStore.dispatch({
-        type: UPDATE_JUDGES,
-        judges: application.getDataSource('canaryJudges').data,
-      });
+      canaryStore.dispatch(Creators.updateJudges({
+        judges: application.getDataSource('canaryJudges').data as IJudge[],
+      }));
     };
 
     applicationDataSourceRegistry.registerDataSource(new DataSourceConfig({

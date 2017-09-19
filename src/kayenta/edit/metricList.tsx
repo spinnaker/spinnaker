@@ -5,7 +5,7 @@ import { ICanaryMetricConfig } from '../domain/ICanaryConfig';
 import { ICanaryState } from '../reducers';
 import { UNGROUPED } from './groupTabs';
 import MetricDetail from './metricDetail';
-import { ADD_METRIC, EDIT_METRIC_BEGIN, REMOVE_METRIC } from '../actions/index';
+import * as Creators from '../actions/creators';
 import { CanarySettings } from 'kayenta/canary.settings';
 
 interface IMetricListStateProps {
@@ -65,8 +65,7 @@ function mapDispatchToProps(dispatch: (action: Action & any) => void): IMetricLi
   return {
     addMetric: (event: any) => {
       const group = event.target.dataset.group;
-      dispatch({
-        type: ADD_METRIC,
+      dispatch(Creators.addMetric({
         metric: {
           // TODO: need to block saving an invalid name
           // TODO: for Atlas metrics, attempt to gather name when query changes
@@ -74,21 +73,15 @@ function mapDispatchToProps(dispatch: (action: Action & any) => void): IMetricLi
           serviceName: CanarySettings.metricStore,
           groups: (group && group !== UNGROUPED) ? [group] : []
         }
-      })
+      }));
     },
 
     editMetric: (event: any) => {
-      dispatch({
-        type: EDIT_METRIC_BEGIN,
-        id: event.target.dataset.id
-      });
+      dispatch(Creators.editMetricBegin({ id: event.target.dataset.id }));
     },
 
     removeMetric: (event: any) => {
-      dispatch({
-        type: REMOVE_METRIC,
-        id: event.target.dataset.id
-      });
+      dispatch(Creators.removeMetric({ id: event.target.dataset.id }));
     }
   };
 }

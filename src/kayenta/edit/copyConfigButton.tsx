@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { Action } from 'redux';
 import { connect } from 'react-redux';
-import { SELECT_CONFIG } from '../actions/index';
+import * as Creators from '../actions/creators';
 import { ICanaryState } from '../reducers/index';
 import { ICanaryConfig } from '../domain/ICanaryConfig';
 import { mapStateToConfig } from '../service/canaryConfig.service';
@@ -52,10 +52,7 @@ function buildConfigCopy(state: ICanaryState): ICanaryConfig {
 function mapDispatchToProps(dispatch: (action: Action & any) => void): ICopyConfigButtonDispatchProps {
   return {
     copyConfig: (event: any) => {
-      dispatch({
-        type: SELECT_CONFIG,
-        config: JSON.parse(event.target.dataset.config),
-      });
+      dispatch(Creators.selectConfig({ config: JSON.parse(event.target.dataset.config) }));
     },
   };
 }
