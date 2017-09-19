@@ -19,7 +19,7 @@ pipeline-graph, .pipeline-graph {
     path.link {
       fill: none;
       transition: stroke .2s, stroke-width .2s;
-      stroke: #CCC;
+      stroke: var(--color-alto);
       stroke-width: 1px;
       stroke-opacity: 0.3;
       &.active, &.highlighted {
@@ -105,7 +105,7 @@ pipeline-graph, .pipeline-graph {
       }
       div.label-body, div.execution-stage-label {
         line-height: 17px;
-        text-shadow: 0 1px 0 #fff, 1px 0 0 #fff, 0 -1px 0 #fff, -1px 0 0 #fff;
+        text-shadow: 0 1px 0 var(--color-white), 1px 0 0 var(--color-white), 0 -1px 0 var(--color-white), -1px 0 0 var(--color-white);
         word-wrap: break-word;
         transition: color .2s;
       }
@@ -118,7 +118,7 @@ pipeline-graph, .pipeline-graph {
           .label-component {
             padding: 3px;
             margin: -3px;
-            color: #ffffff;
+            color: var(--color-white);
             background-color: @spinnaker-link-color;
             border-radius: 2px;
             text-shadow: none;

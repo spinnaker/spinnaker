@@ -58,7 +58,7 @@
 }
 
 .diff {
-  color: #000000;
+  color: var(--color-black);
   font-size: 80%;
   overflow-x: visible;
   margin: 0;
@@ -77,14 +77,14 @@
   }
 
   .add {
-    background-color: #eaffea; // copied from GitHub
+    background-color: var(--color-accent-g3); // copied from GitHub
     &::before {
       content: '+';
     }
   }
 
   .remove {
-    background-color: #ffecec; // also copied from GitHub
+    background-color: var(--color-cirrus); // also copied from GitHub
     &::before {
       content: '-';
     }

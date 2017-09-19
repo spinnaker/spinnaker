@@ -20,12 +20,12 @@
     margin: 0;
     padding: 10px 0;
     &.heading-sticky {
-      box-shadow: 0 8px 6px -6px #999999;
+      box-shadow: 0 8px 6px -6px var(--color-concrete);
     }
   }
   .heading-sticky {
     > h4 {
-      box-shadow: 0 8px 6px -6px #999999;
+      box-shadow: 0 8px 6px -6px var(--color-concrete);
     }
   }
 }
@@ -40,7 +40,7 @@
 
   &.disabled {
     opacity: 0.4;
-    border: 1px dashed #aaaaaa;
+    border: 1px dashed var(--color-titanium);
     &:hover, &.active {
       opacity: .75;
     }
@@ -82,8 +82,8 @@ table.instances {
     margin: 0;
     display: inline-block;
     width: @instance-width;
-    border-right: 1px solid #ffffff;
-    border-bottom: 1px solid #ffffff;
+    border-right: 1px solid var(--color-white);
+    border-bottom: 1px solid var(--color-white);
     height: @instance-height;
     background-color: @healthy_green;
 
@@ -111,7 +111,7 @@ table.instances {
       margin-top: 0;
       margin-bottom: 1px;
       border: 1px solid @dark_grey;
-      box-shadow: 0 0 3px 1px #999999;
+      box-shadow: 0 0 3px 1px var(--color-concrete);
       z-index: 2;
     }
 
@@ -221,11 +221,11 @@ running-tasks-tag {
   z-index: 99999;
   top: 20px;
   right: -12px;
-  background-color: #ffffff;
+  background-color: var(--color-white);
   margin-top: 12px;
-  border: 1px solid #777777;
+  border: 1px solid var(--color-dovegray);
   padding: 5px 10px;
-  box-shadow: 0 0 2px 1px #eeeeee;
+  box-shadow: 0 0 2px 1px var(--color-cirrus);
   text-transform: none;
   color: @text-color;
   font-weight: 400;
@@ -243,7 +243,7 @@ running-tasks-tag {
   }
   &::after {
     top: -10px;
-    border-bottom-color: #ffffff;
+    border-bottom-color: var(--color-white);
   }
   &::before {
     top: -11px;
@@ -265,7 +265,7 @@ running-tasks-tag {
 
   .menu-load-balancers-header {
     font-weight: 600;
-    color: #eeeeee;
+    color: var(--color-cirrus);
     background-color: @mid_grey;
   }
   .menu-load-balancers-header, a {
@@ -278,7 +278,7 @@ running-tasks-tag {
     cursor: pointer;
     display: flex;
     justify-content: space-between;
-    border-bottom: 1px solid #d1d1d1;
+    border-bottom: 1px solid var(--color-alto);
     white-space: nowrap;
 
     .health-counts {
@@ -292,7 +292,7 @@ running-tasks-tag {
       border-bottom-width: 0;
     }
     &:hover, &:focus {
-      background-color: #eeeeee;
+      background-color: var(--color-cirrus);
       text-decoration: none;
     }
     &:focus {
@@ -324,7 +324,7 @@ running-tasks-tag {
   }
   .badge-counter {
     color: @spinnaker-link-color;
-    background-color: #fff;
+    background-color: var(--color-white);
     border: 1px solid @spinnaker-link-color;
     right: 0;
     font-size: 100%;
@@ -349,7 +349,7 @@ running-tasks-tag {
   }
 
   .clickable-row {
-    background-color: #ffffff;
+    background-color: var(--color-white);
     border: 1px solid @mid_light_grey;
     margin: 5px 15px 0;
     &.active {
@@ -429,7 +429,7 @@ running-tasks-tag {
   }
 
   .rollup-details-section {
-    border-right: 1px solid #c4c4c4;
+    border-right: 1px solid var(--color-silver);
     padding: 10px;
     &:last-child {
       border-right-width: 0;
@@ -501,6 +501,6 @@ running-tasks-tag {
     }
   }
   .heading-sticky {
-    box-shadow: 0 8px 6px -6px #999999;
+    box-shadow: 0 8px 6px -6px var(--color-concrete);
   }
 }

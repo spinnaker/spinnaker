@@ -28,7 +28,7 @@
     overflow-y: auto;
 
     li {
-      color: #999;
+      color: var(--color-concrete);
       max-width: 300px;
       strong {
         font-weight: 600;
@@ -41,7 +41,7 @@
         overflow: hidden;
         text-overflow: ellipsis;
         font-variant: normal;
-        color: #000;
+        color: var(--color-black);
         transition: background-color 0.2s, outline-width 0.2s;
         .expand-results {
           font-weight: bold;
@@ -62,7 +62,7 @@
       &.category-heading {
         margin-top: 10px;
         padding-top: 10px;
-        border-top: 1px solid #f1f1f1;
+        border-top: 1px solid var(--color-cirrus);
         text-transform: uppercase;
       }
       &:first-child {

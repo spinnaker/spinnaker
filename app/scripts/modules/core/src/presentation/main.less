@@ -9,7 +9,7 @@ body {
   padding-left: 10px;
   padding-right: 10px;
   padding-bottom: 20px;
-  background-color: #f8f8f8;
+  background-color: var(--color-alabaster);
   padding-top: 125px;
 }
 
@@ -29,7 +29,7 @@ body {
 
 /* Custom page header */
 .header {
-  border-bottom: 1px solid #e5e5e5;
+  border-bottom: 1px solid var(--color-seashell);
 }
 
 /* Make the masthead heading the same height as the navigation */
@@ -345,7 +345,7 @@ html {
     a {
       padding: 0;
       font-size: 125%;
-      color: #a4a4a4;
+      color: var(--color-concrete);
     }
   }
 }
@@ -490,7 +490,7 @@ body > .container {
 /* Main marketing message and sign up button */
 .jumbotron {
   text-align: center;
-  border-bottom: 1px solid #e5e5e5;
+  border-bottom: 1px solid var(--color-seashell);
 }
 
 .jumbotron .btn {
@@ -517,7 +517,7 @@ body > .container {
 }
 
 .nav-tabs a {
-  color: #000;
+  color: var(--color-black);
 }
 
 .nav-tabs li {
@@ -526,7 +526,7 @@ body > .container {
 
 .nav-tabs a:hover
 {
-  color: #666;
+  color: var(--color-dovegray);
 }
 
 .navbar-fixed-primary {
@@ -538,7 +538,7 @@ body > .container {
   border: none;
 
   .navbar-brand {
-    color: #fff;
+    color: var(--color-white);
     text-shadow: none;
     font-weight: 200;
     height: 100%;
@@ -550,7 +550,7 @@ body > .container {
   }
 
   .navbar-nav > li > a, .nav-items > li > a {
-    color: #fff;
+    color: var(--color-white);
     font-weight: 200;
     padding: 10px 15px;
     margin: 0 10px;
@@ -561,7 +561,7 @@ body > .container {
     }
 
     &:focus, &:hover {
-      border-top-color: #eeeeee;
+      border-top-color: var(--color-cirrus);
       background-color: var(--color-primary-g1);
       transition: border-top-color .2s, background-color .2s;
     }
@@ -576,14 +576,14 @@ body > .container {
   {
     background-color: transparent;
     font-weight: 200;
-    border-top-color: #ffffff;
+    border-top-color: var(--color-white);
   }
 }
 
 .nav-tabs>li.active>a, .nav-tabs>li.active>a:focus, .nav-tabs>li.active>a:hover {
   border-top: 4px solid transparent;
-  background-color: #666666;
-  color: #fff;
+  background-color: var(--color-dovegray);
+  color: var(--color-white);
 }
 
 .form-horizontal {
@@ -610,7 +610,7 @@ body > .container {
   .help-text {
     font-size: 90%;
     font-weight: normal;
-    color: #777777;
+    color: var(--color-dovegray);
     line-height: normal;
     margin-bottom: 0;
   }
@@ -663,7 +663,7 @@ body > .container {
   }
   :hover {
     ::-webkit-scrollbar-thumb {
-      background: #bdbdbd;
+      background: var(--color-silver);
     }
   }
 }
@@ -674,7 +674,6 @@ body > .container {
   .modal-page {
     position: relative;
     width: 600px;
-//    float:left;
   }
 }
 
@@ -699,8 +698,8 @@ body > .container {
 }
 
 .add-new {
-  border: 1px dashed #a5a5a5;
-  color: #a5a5a5;
+  border: 1px dashed var(--color-concrete);
+  color: var(--color-concrete);
   padding: 8px;
   margin: 5px 0 20px;
   cursor: pointer;
@@ -712,8 +711,8 @@ body > .container {
   }
 
   &:hover, &:focus, &:active {
-    border-color: #000;
-    color: #000;
+    border-color: var(--color-black);
+    color: var(--color-black);
   }
   &.sub-select {
     width: 100%;
@@ -748,7 +747,7 @@ tfoot .add-new {
 
 .config-table {
   td {
-    background-color: #ffffff;
+    background-color: var(--color-white);
   }
   thead th, tfoot td {
     background-color: transparent
@@ -871,21 +870,21 @@ tfoot .add-new {
 }
 
 .panel {
-  border: 1px solid #c4c4c4;
+  border: 1px solid var(--color-silver);
   border-radius: 3px;
   .summary {
     font-size: 110%;
     padding: 10px;
   }
   .details {
-    border-top: 1px solid #c4c4c4;
-    background-color: #ffffff;
+    border-top: 1px solid var(--color-silver);
+    background-color: var(--color-white);
   }
 }
 
 .collapsible-subsection {
   a.section-subheading {
-    color: #000000;
+    color: var(--color-black);
   }
   h4.collapsible-subheading {
     padding: 10px 15px;
@@ -923,7 +922,7 @@ tfoot .add-new {
 
 .collapsible-section {
   a.section-heading {
-    color: #000000;
+    color: var(--color-black);
   }
   h4.collapsible-heading {
     padding: 10px 15px;
@@ -949,7 +948,7 @@ tfoot .add-new {
     }
   }
   padding: 0;
-  border-bottom: 1px solid #c4c4c4;
+  border-bottom: 1px solid var(--color-silver);
 
   &:last-child {
     border-bottom-width: 0;
@@ -962,7 +961,7 @@ tfoot .add-new {
 
 .collapsible-filter-section {
   a.section-heading {
-    color: #000000;
+    color: var(--color-black);
   }
   h4 {
     padding: 10px 5px 0;
@@ -993,7 +992,6 @@ tfoot .add-new {
     }
   }
   padding: 0;
-//  border-bottom: 1px solid #c4c4c4;
 
   &:last-child {
     border-bottom-width: 0;
@@ -1006,7 +1004,7 @@ tfoot .add-new {
 
 .sort-toggle {
   a {
-    color: #000;
+    color: var(--color-black);
   }
 
   .glyphicon {
@@ -1265,12 +1263,12 @@ ul.select2-results {
 
 .select2-container.input-sm.direction-up {
   .select2-drop-active {
-    border-top: 1px solid #5897fb;
+    border-top: 1px solid var(--color-accent);
     padding-top: 3px;
     margin-bottom: 3px;
   }
   .select2-choice {
-    border-bottom-color: #5897fb;
+    border-bottom-color: var(--color-accent);
   }
 }
 
@@ -1340,7 +1338,7 @@ ul.checkmap {
 }
 
 .horizontal-rule {
-  border-top: 1px solid #D0D0D0;
+  border-top: 1px solid var(--color-alto);
   margin-top: 2px;
   margin-bottom: 5px;
 }
@@ -1385,13 +1383,13 @@ ul.checkmap {
       display: block;
       padding: 3px 20px;
       clear: both;
-      color: #333333;
+      color: var(--color-mineshaft);
       white-space: nowrap;
       cursor: pointer;
       &:hover, &:focus {
-        background-color: #f5f5f5;
+        background-color: var(--color-alabaster);
         text-decoration: none;
-        color: #262626;
+        color: var(--color-mineshaft);
       }
     }
   }

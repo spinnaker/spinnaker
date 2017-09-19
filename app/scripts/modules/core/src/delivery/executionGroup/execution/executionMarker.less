@@ -8,10 +8,10 @@
   transition: 0.2s all;
   text-align: center;
   padding: 0;
-  color: #000000;
+  color: var(--color-black);
   font-size: 90%;
   border: 1px solid transparent;
-  border-left-color: #FFFFFF;
+  border-left-color: var(--color-white);
   &:hover, &.active {
     opacity: 1;
   }
@@ -19,7 +19,7 @@
     border-left-color: transparent;
   }
   &.active {
-    border-color: #222222;
+    border-color: var(--color-mineshaft);
     &:first-child {
       border-left-width: 1px;
     }
