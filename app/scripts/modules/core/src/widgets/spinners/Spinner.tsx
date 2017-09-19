@@ -24,7 +24,7 @@ export class Spinner extends React.Component<ISpinnerProps> {
     const rows = [];
     let i: number;
     for (i = 0; i < count; i++) {
-      rows.push(<div className="bar" />)
+      rows.push(<div key={i} className="bar" />)
     }
     return rows;
   }
