@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { Action } from 'redux';
 import { connect } from 'react-redux';
-import { SELECT_CONFIG } from '../actions/index';
+import * as Creators from '../actions/creators';
 import { buildNewConfig } from '../service/canaryConfig.service';
 import { ICanaryState } from '../reducers/index';
 
@@ -33,10 +33,7 @@ function mapStateToProps(state: ICanaryState): ICreateConfigButtonStateProps {
 function mapDispatchToProps(dispatch: (action: Action & any) => void): ICreateConfigButtonDispatchProps {
   return {
     createNewConfig: (event: any) => {
-      dispatch({
-        type: SELECT_CONFIG,
-        config: JSON.parse(event.target.dataset.config),
-      });
+      dispatch(Creators.selectConfig({ config: JSON.parse(event.target.dataset.config) }));
     }
   };
 }

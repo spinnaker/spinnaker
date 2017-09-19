@@ -4,7 +4,7 @@ import { Action } from 'redux';
 import { connect } from 'react-redux';
 
 import { ICanaryState } from '../reducers/index';
-import { SELECT_JUDGE_NAME } from '../actions/index';
+import * as Creators from '../actions/creators';
 import FormRow from '../layout/formRow';
 
 interface IJudgeSelectStateProps {
@@ -66,10 +66,7 @@ function mapStateToProps(state: ICanaryState): IJudgeSelectStateProps {
 function mapDispatchToProps(dispatch: (action: Action & any) => void): IJudgeSelectDispatchProps {
   return {
     handleJudgeSelect: (option: Select.Option) => {
-      dispatch({
-        type: SELECT_JUDGE_NAME,
-        judge: { name: option.value },
-      });
+      dispatch(Creators.selectJudgeName({ judge: { name: option.value as string } }));
     }
   };
 }

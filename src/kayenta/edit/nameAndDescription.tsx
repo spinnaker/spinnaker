@@ -6,10 +6,7 @@ import FormRow from '../layout/formRow';
 import JudgeSelect, { JudgeSelectRenderState } from './judgeSelect';
 import ScoreThresholds from './scoreThresholds';
 import { ICanaryState } from '../reducers/index';
-import {
-  UPDATE_CONFIG_DESCRIPTION,
-  UPDATE_CONFIG_NAME
-} from '../actions/index';
+import * as Creators from '../actions/creators';
 import FormList from '../layout/formList';
 
 interface INameAndDescriptionDispatchProps {
@@ -70,16 +67,14 @@ function mapStateToProps(state: ICanaryState) {
 function mapDispatchToProps(dispatch: (action: Action & any) => void) {
   return {
     changeName: (event: React.ChangeEvent<HTMLInputElement>) => {
-      dispatch({
-        type: UPDATE_CONFIG_NAME,
+      dispatch(Creators.updateConfigName({
         name: event.target.value,
-      });
+      }));
     },
     changeDescription: (event: React.ChangeEvent<HTMLTextAreaElement>) => {
-      dispatch({
-        type: UPDATE_CONFIG_DESCRIPTION,
+      dispatch(Creators.updateConfigDescription({
         description: event.target.value,
-      });
+      }));
     },
   };
 }

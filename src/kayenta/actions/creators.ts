@@ -2,6 +2,9 @@ import { createAction } from 'redux-actions';
 
 import * as Actions from './index';
 import { ConfigJsonModalTabState } from '../edit/configJsonModal';
+import { ICanaryConfig } from '../domain/ICanaryConfig';
+import { ICanaryConfigSummary } from '../domain/ICanaryConfigSummary';
+import { IJudge } from '../domain/IJudge';
 
 const typedPayloadCreator = <T>() => (payload: T): T => payload;
 
@@ -15,6 +18,25 @@ export const editMetricConfirm = createAction(Actions.EDIT_METRIC_CONFIRM);
 export const addGroup = createAction(Actions.ADD_GROUP);
 export const saveConfig = createAction(Actions.SAVE_CONFIG_REQUEST);
 export const dismissSaveConfigError = createAction(Actions.DISMISS_SAVE_CONFIG_ERROR);
-export const setConfigJsonModalTabState = createAction(Actions.SET_CONFIG_JSON_MODAL_TAB_STATE, typedPayloadCreator<ConfigJsonModalTabState>());
-export const setConfigJson = createAction(Actions.SET_CONFIG_JSON, typedPayloadCreator<string>());
+export const setConfigJsonModalTabState = createAction(Actions.SET_CONFIG_JSON_MODAL_TAB_STATE, typedPayloadCreator<{state: ConfigJsonModalTabState}>());
+export const setConfigJson = createAction(Actions.SET_CONFIG_JSON, typedPayloadCreator<{json: string}>());
 export const deleteConfigSuccess = createAction(Actions.DELETE_CONFIG_SUCCESS);
+export const loadConfigRequest = createAction(Actions.LOAD_CONFIG_REQUEST, typedPayloadCreator<{configName: string}>());
+export const saveConfigSuccess = createAction(Actions.SAVE_CONFIG_SUCCESS, typedPayloadCreator<{configName: string}>());
+export const selectConfig = createAction(Actions.SELECT_CONFIG, typedPayloadCreator<{config: ICanaryConfig}>());
+export const renameMetric = createAction(Actions.RENAME_METRIC, typedPayloadCreator<{id: string, name: string}>());
+export const selectGroup = createAction(Actions.SELECT_GROUP, typedPayloadCreator<{name: string}>());
+export const updateGroupWeight = createAction(Actions.UPDATE_GROUP_WEIGHT, typedPayloadCreator<{group: string, weight: number}>());
+export const selectJudgeName = createAction(Actions.SELECT_JUDGE_NAME, typedPayloadCreator<{judge: {name: string}}>());
+export const editMetricBegin = createAction(Actions.EDIT_METRIC_BEGIN, typedPayloadCreator<{id: string}>());
+export const removeMetric = createAction(Actions.REMOVE_METRIC, typedPayloadCreator<{id: string}>());
+export const addMetric = createAction(Actions.ADD_METRIC, typedPayloadCreator<{metric: {name: string, serviceName: string, groups: string[]}}>());
+export const updateConfigName = createAction(Actions.UPDATE_CONFIG_NAME, typedPayloadCreator<{name: string}>());
+export const updateConfigDescription = createAction(Actions.UPDATE_CONFIG_DESCRIPTION, typedPayloadCreator<{description: string}>());
+export const updateScoreThresholds = createAction(Actions.UPDATE_SCORE_THRESHOLDS, typedPayloadCreator<{marginal: number, pass: number}>());
+export const saveConfigFailure = createAction(Actions.SAVE_CONFIG_FAILURE, typedPayloadCreator<{error: Error}>());
+export const deleteConfigFailure = createAction(Actions.DELETE_CONFIG_FAILURE, typedPayloadCreator<{error: Error}>());
+export const updateConfigSummaries = createAction(Actions.UPDATE_CONFIG_SUMMARIES, typedPayloadCreator<{configSummaries: ICanaryConfigSummary[]}>());
+export const updateJudges = createAction(Actions.UPDATE_JUDGES, typedPayloadCreator<{judges: IJudge[]}>());
+export const loadConfigSuccess = createAction(Actions.LOAD_CONFIG_SUCCESS, typedPayloadCreator<{config: ICanaryConfig}>());
+export const loadConfigFailure = createAction(Actions.LOAD_CONFIG_FAILURE, typedPayloadCreator<{error: Error}>());

@@ -56,9 +56,9 @@ export interface ISelectedConfigState {
 }
 
 const config = handleActions({
-  [Actions.SELECT_CONFIG]: (_state: ICanaryConfig, action: Action & any) => action.config,
-  [Actions.UPDATE_CONFIG_NAME]: (state: ICanaryConfig, action: Action & any) => ({ ...state, name: action.name }),
-  [Actions.UPDATE_CONFIG_DESCRIPTION]: (state: ICanaryConfig, action: Action & any) => ({ ...state, description: action.description }),
+  [Actions.SELECT_CONFIG]: (_state: ICanaryConfig, action: Action & any) => action.payload.config,
+  [Actions.UPDATE_CONFIG_NAME]: (state: ICanaryConfig, action: Action & any) => ({ ...state, name: action.payload.name }),
+  [Actions.UPDATE_CONFIG_DESCRIPTION]: (state: ICanaryConfig, action: Action & any) => ({ ...state, description: action.payload.description }),
   [Actions.DELETE_CONFIG_SUCCESS]: () => null,
 }, null);
 
@@ -75,13 +75,13 @@ function idMetrics(metrics: ICanaryMetricConfig[] = []) {
 }
 
 const metricList = handleActions({
-  [Actions.SELECT_CONFIG]: (_state: ICanaryMetricConfig[], action: Action & any) => idMetrics(action.config.metrics),
-  [Actions.ADD_METRIC]: (state: ICanaryMetricConfig[], action: Action & any) => idMetrics(state.concat([action.metric])),
-  [Actions.REMOVE_METRIC]: (state: ICanaryMetricConfig[], action: Action & any) => idMetrics(state.filter(metric => metric.id !== action.id)),
+  [Actions.SELECT_CONFIG]: (_state: ICanaryMetricConfig[], action: Action & any) => idMetrics(action.payload.config.metrics),
+  [Actions.ADD_METRIC]: (state: ICanaryMetricConfig[], action: Action & any) => idMetrics(state.concat([action.payload.metric])),
+  [Actions.REMOVE_METRIC]: (state: ICanaryMetricConfig[], action: Action & any) => idMetrics(state.filter(metric => metric.id !== action.payload.id)),
 }, []);
 
 const editingMetric = handleActions({
-  [Actions.RENAME_METRIC]: (state: ICanaryMetricConfig, action: Action & any) => ({ ...state, name: action.name }),
+  [Actions.RENAME_METRIC]: (state: ICanaryMetricConfig, action: Action & any) => ({ ...state, name: action.payload.name }),
   [Actions.UPDATE_STACKDRIVER_METRIC_TYPE]: (state: ICanaryMetricConfig, action: Action & any) => ({
     ...state, query: { ...state.query, metricType: action.metricType, type: 'stackdriver' },
   })
@@ -95,7 +95,7 @@ const save = combineReducers<ISaveState>({
     [Actions.DISMISS_SAVE_CONFIG_ERROR]: () => SaveConfigState.Saved,
   }, SaveConfigState.Saved),
   error: handleActions({
-    [Actions.SAVE_CONFIG_FAILURE]: (_state: string, action: Action & any) => get(action, 'error.data.message', null),
+    [Actions.SAVE_CONFIG_FAILURE]: (_state: string, action: Action & any) => get(action, 'payload.error.data.message', null),
   }, null),
 });
 
@@ -106,20 +106,20 @@ const destroy = combineReducers<IDestroyState>({
     [Actions.DELETE_CONFIG_FAILURE]: () => DeleteConfigState.Error,
   }, DeleteConfigState.Completed),
   error: handleActions({
-    [Actions.DELETE_CONFIG_FAILURE]: (_state: string, action: Action & any) => get(action, 'error.data.message', null),
+    [Actions.DELETE_CONFIG_FAILURE]: (_state: string, action: Action & any) => get(action, 'payload.error.data.message', null),
   }, null),
 });
 
 const json = combineReducers<IJsonState>({
   configJson: handleActions({
-    [Actions.SET_CONFIG_JSON]: (_state: IJsonState, action: Action & any) => action.payload,
+    [Actions.SET_CONFIG_JSON]: (_state: IJsonState, action: Action & any) => action.payload.json,
     [combineActions(Actions.CONFIG_JSON_MODAL_CLOSE, Actions.SELECT_CONFIG)]: (): void => null,
   }, null),
   error: handleActions({
     [combineActions(Actions.CONFIG_JSON_MODAL_CLOSE, Actions.SELECT_CONFIG, Actions.SET_CONFIG_JSON)]: () => null,
     [Actions.SET_CONFIG_JSON]: (_state: IJsonState, action: Action & any) => {
       try {
-        JSON.parse(action.payload);
+        JSON.parse(action.payload.json);
         return null;
       } catch (e) {
         return e.message;
@@ -131,15 +131,15 @@ const json = combineReducers<IJsonState>({
 
 const judge = combineReducers<IJudgeState>({
   judgeConfig: handleActions({
-    [Actions.SELECT_JUDGE_NAME]: (state: IJudge, action: Action & any) => ({ ...state, name: action.judge.name }),
+    [Actions.SELECT_JUDGE_NAME]: (state: IJudge, action: Action & any) => ({ ...state, name: action.payload.judge.name }),
   }, null),
   renderState: handleActions({}, JudgeSelectRenderState.None),
 });
 
 const thresholds = handleActions({
   [Actions.SELECT_CONFIG]: (_state: ICanaryClassifierThresholdsConfig, action: Action & any) => {
-    if (has(action.config, 'classifier.scoreThresholds')) {
-      return action.config.classifier.scoreThresholds;
+    if (has(action, 'payload.config.classifier.scoreThresholds')) {
+      return action.payload.config.classifier.scoreThresholds;
     } else {
       return {
         pass: null,
@@ -148,7 +148,7 @@ const thresholds = handleActions({
     }
   },
   [Actions.UPDATE_SCORE_THRESHOLDS]: (_state: ICanaryClassifierThresholdsConfig, action: Action & any) => ({
-    pass: action.pass, marginal: action.marginal
+    pass: action.payload.pass, marginal: action.payload.marginal
   })
 }, null);
 
@@ -157,7 +157,7 @@ function editingMetricReducer(state: ISelectedConfigState = null, action: Action
   switch (action.type) {
     case Actions.EDIT_METRIC_BEGIN:
       return Object.assign({}, state, {
-        editingMetric: state.metricList.find(metric => metric.id === action.id)
+        editingMetric: state.metricList.find(metric => metric.id === action.payload.id)
       });
 
     case Actions.EDIT_METRIC_CONFIRM:
@@ -179,8 +179,8 @@ function editingMetricReducer(state: ISelectedConfigState = null, action: Action
 function selectedJudgeReducer(state: ISelectedConfigState = null, action: Action & any): ISelectedConfigState {
   switch (action.type) {
     case Actions.SELECT_CONFIG:
-      if (state.config && state.config.judge) {
-        return { ...state, judge: { ...state.judge, judgeConfig: { ...state.config.judge } }};
+      if (has(action, 'payload.config.judge')) {
+        return { ...state, judge: { ...state.judge, judgeConfig: { ...action.payload.config.judge } }};
       } else {
         return { ...state, judge: { ...state.judge, judgeConfig: { name: CanarySettings.defaultJudge, judgeConfigurations: {} }}};
       }

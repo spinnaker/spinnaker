@@ -2,7 +2,6 @@ import * as React from 'react';
 import { Action } from 'redux';
 import { connect } from 'react-redux';
 import { ICanaryState } from '../reducers';
-import { SELECT_GROUP } from '../actions/index';
 import * as Creators from '../actions/creators';
 import { Tabs, Tab } from '../layout/tabs';
 
@@ -51,7 +50,7 @@ function mapDispatchToProps(dispatch: (action: Action & any) => void): IGroupTab
   return {
     selectGroup: (event: any) => {
       const name = event.target.dataset.group;
-      dispatch({ type: SELECT_GROUP, name });
+      dispatch(Creators.selectGroup({ name }));
       event.preventDefault();
       event.stopPropagation();
     },

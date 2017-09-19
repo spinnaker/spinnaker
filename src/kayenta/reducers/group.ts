@@ -18,9 +18,9 @@ function groupsFromMetrics(metrics: ICanaryMetricConfig[] = []) {
 }
 
 const list = handleActions({
-  [Actions.SELECT_CONFIG]: (_state: string[], action: Action & any) => groupsFromMetrics(action.config.metrics),
+  [Actions.SELECT_CONFIG]: (_state: string[], action: Action & any) => groupsFromMetrics(action.payload.config.metrics),
   [Actions.ADD_METRIC]: (state: string[], action: Action & any) => {
-    const groups = action.metric.groups;
+    const groups = action.payload.metric.groups;
     return state.concat(groups.filter((group: string) => !state.includes(group)));
   },
   [Actions.ADD_GROUP]: (state: string[]) => {
@@ -35,12 +35,12 @@ const list = handleActions({
 }, []);
 
 const selected = handleActions({
-  [Actions.SELECT_GROUP]: (_state: string, action: Action & any) => action.name,
+  [Actions.SELECT_GROUP]: (_state: string, action: Action & any) => action.payload.name,
 }, '');
 
 const groupWeights = handleActions({
-  [Actions.SELECT_CONFIG]: (_state: GroupWeights, action: Action & any) => get(action, 'config.classifier.groupWeights', {}),
-  [Actions.UPDATE_GROUP_WEIGHT]: (state: GroupWeights, action: Action & any) => ({ ...state, [action.group]: action.weight }),
+  [Actions.SELECT_CONFIG]: (_state: GroupWeights, action: Action & any) => get(action, 'payload.config.classifier.groupWeights', {}),
+  [Actions.UPDATE_GROUP_WEIGHT]: (state: GroupWeights, action: Action & any) => ({ ...state, [action.payload.group]: action.payload.weight }),
 }, {});
 
 export const group = combineReducers<IGroupState>({

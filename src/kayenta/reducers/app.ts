@@ -21,7 +21,7 @@ const configJsonModalOpen = handleActions({
 }, false);
 
 const configJsonModalTabState = handleActions({
-  [Actions.SET_CONFIG_JSON_MODAL_TAB_STATE]: (_state: ConfigJsonModalTabState, action: Action & any) => action.payload,
+  [Actions.SET_CONFIG_JSON_MODAL_TAB_STATE]: (_state: ConfigJsonModalTabState, action: Action & any) => action.payload.state,
   [Actions.CONFIG_JSON_MODAL_OPEN]: () => ConfigJsonModalTabState.Edit,
 }, ConfigJsonModalTabState.Edit);
 
