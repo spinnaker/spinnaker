@@ -350,6 +350,7 @@ export class CreatePipelineModal extends React.Component<ICreatePipelineModalPro
                       value={this.state.command.name}
                       onChange={this.handleNameChange}
                       required={true}
+                      autoFocus={true}
                     />
                   </div>
                 </div>
