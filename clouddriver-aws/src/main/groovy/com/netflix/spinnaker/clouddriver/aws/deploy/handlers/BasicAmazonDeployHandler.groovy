@@ -242,6 +242,10 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
         description.blockDevices = convertBlockDevices(ami.blockDeviceMappings)
       }
 
+      if (description.spotPrice == "") {
+        description.spotPrice = null
+      }
+
       def autoScalingWorker = new AutoScalingWorker(
         application: description.application,
         region: region,

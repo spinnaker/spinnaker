@@ -181,6 +181,14 @@ class CopyLastAsgAtomicOperation implements AtomicOperation<DeploymentResult> {
         if (localFileUserDataProperties && !localFileUserDataProperties.enabled) {
           newDescription.base64UserData = description.base64UserData != null ? description.base64UserData : ancestorLaunchConfiguration.userData
         }
+
+        if (description.spotPrice == null) {
+          newDescription.spotPrice = ancestorLaunchConfiguration.spotPrice
+        } else if (description.spotPrice) {
+          newDescription.spotPrice = description.spotPrice
+        } else { // ""
+          newDescription.spotPrice = null
+        }
       }
 
       task.updateStatus BASE_PHASE, "Validating clone configuration for $targetRegion."

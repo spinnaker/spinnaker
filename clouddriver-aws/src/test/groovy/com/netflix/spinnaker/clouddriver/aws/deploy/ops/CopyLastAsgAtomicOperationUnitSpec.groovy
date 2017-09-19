@@ -38,6 +38,7 @@ import com.netflix.spinnaker.clouddriver.aws.deploy.description.BasicAmazonDeplo
 import com.netflix.spinnaker.clouddriver.aws.deploy.handlers.BasicAmazonDeployHandler
 import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactory
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class CopyLastAsgAtomicOperationUnitSpec extends Specification {
 
@@ -45,6 +46,7 @@ class CopyLastAsgAtomicOperationUnitSpec extends Specification {
     TaskRepository.threadLocalTask.set(Mock(Task))
   }
 
+  @Unroll
   void "operation builds description based on ancestor asg"() {
     setup:
     def deployHandler = Mock(BasicAmazonDeployHandler)
@@ -53,6 +55,7 @@ class CopyLastAsgAtomicOperationUnitSpec extends Specification {
     description.credentials = TestCredential.named('baz')
     description.securityGroups = ['someGroupName', 'sg-12345a']
     description.capacity = new BasicAmazonDeployDescription.Capacity(min: 1, max: 3, desired: 5)
+    description.spotPrice = requestSpotPrice
     def mockEC2 = Mock(AmazonEC2)
     def mockAutoScaling = Mock(AmazonAutoScaling)
     def mockProvider = Mock(AmazonClientProvider)
@@ -78,6 +81,7 @@ class CopyLastAsgAtomicOperationUnitSpec extends Specification {
         securityGroups: ['someGroupName', 'sg-12345a'], availabilityZones: [(region): null],
         capacity: new BasicAmazonDeployDescription.Capacity(min: 1, max: 3, desired: 5),
         tags: [Name: 'name-tag'],
+        spotPrice: expectedSpotPrice,
         source: new BasicAmazonDeployDescription.Source(
           asgName: "asgard-stack-v000",
           account: 'baz',
@@ -95,6 +99,7 @@ class CopyLastAsgAtomicOperationUnitSpec extends Specification {
       mockLaunch.getLaunchConfigurationName() >> "foo"
       mockLaunch.getKeyName() >> "key-pair-name"
       mockLaunch.getBlockDeviceMappings() >> [new BlockDeviceMapping().withDeviceName('/dev/sdb').withEbs(new Ebs().withVolumeSize(125)), new BlockDeviceMapping().withDeviceName('/dev/sdc').withVirtualName('ephemeral1')]
+      mockLaunch.getSpotPrice() >> ancestorSpotPrice
       new DescribeLaunchConfigurationsResult().withLaunchConfigurations([mockLaunch])
     }
     2 * mockAutoScaling.describeAutoScalingGroups(_) >> {
@@ -111,5 +116,13 @@ class CopyLastAsgAtomicOperationUnitSpec extends Specification {
     0 * serverGroupNameResolver._
     1 * deployHandler.handle(expectedDeployDescription('us-east-1'), _) >> new DeploymentResult(serverGroupNameByRegion: ['us-east-1': 'asgard-stack-v001'])
     1 * deployHandler.handle(expectedDeployDescription('us-west-1'), _) >> new DeploymentResult(serverGroupNameByRegion: ['us-west-1': 'asgard-stack-v001'])
+
+    where:
+    requestSpotPrice | ancestorSpotPrice || expectedSpotPrice
+    0.25             | null              || 0.25
+    0.25             | 0.5               || 0.25
+    null             | 0.25              || 0.25
+    ""               | 0.25              || null
+    null             | null              || null
   }
 }
