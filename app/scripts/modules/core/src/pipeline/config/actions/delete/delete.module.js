@@ -28,8 +28,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.actions.delete',
               pipelineConfigService.savePipeline(pipeline);
             }
           });
-          application.pipelineConfigs.refresh();
-          $state.go('^.executions', null, {location: 'replace'});
+          $state.go('^.executions', null, { location: 'replace' });
         },
         function(response) {
           $log.warn(response);
@@ -38,5 +37,4 @@ module.exports = angular.module('spinnaker.core.pipeline.config.actions.delete',
         }
       );
     };
-
   });
