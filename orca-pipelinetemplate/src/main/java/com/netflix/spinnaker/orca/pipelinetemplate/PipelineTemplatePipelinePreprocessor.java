@@ -28,6 +28,7 @@ import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.TemplateMerge;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.V1SchemaExecutionGenerator;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.graph.GraphMutator;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate;
+import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.StageDefinition;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.TemplateConfiguration;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.DefaultRenderContext;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.RenderContext;
@@ -44,6 +45,7 @@ import org.springframework.stereotype.Component;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * highlevel lifecycle
@@ -100,12 +102,19 @@ public class PipelineTemplatePipelinePreprocessor implements PipelinePreprocesso
     Errors validationErrors = new Errors();
 
     TemplateConfiguration templateConfiguration = request.getConfig();
-    new V1TemplateConfigurationSchemaValidator().validate(templateConfiguration, validationErrors);
+
+    PipelineTemplate template = getPipelineTemplate(request, templateConfiguration);
+
+    new V1TemplateConfigurationSchemaValidator().validate(
+      templateConfiguration,
+      validationErrors,
+      new V1TemplateConfigurationSchemaValidator.SchemaValidatorContext(
+        template.getStages().stream().map(StageDefinition::getId).collect(Collectors.toList())
+      )
+    );
     if (validationErrors.hasErrors(request.plan)) {
       return validationErrors.toResponse();
     }
-
-    PipelineTemplate template = getPipelineTemplate(request, templateConfiguration);
 
     new V1TemplateSchemaValidator().validate(template, validationErrors, new SchemaValidatorContext(!templateConfiguration.getStages().isEmpty()));
     if (validationErrors.hasErrors(request.plan)) {

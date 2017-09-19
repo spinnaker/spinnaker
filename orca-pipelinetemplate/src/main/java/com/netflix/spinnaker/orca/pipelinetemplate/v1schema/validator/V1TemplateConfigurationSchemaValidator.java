@@ -25,16 +25,14 @@ import com.netflix.spinnaker.orca.pipelinetemplate.validator.SchemaValidator;
 import com.netflix.spinnaker.orca.pipelinetemplate.validator.ValidatorContext;
 import com.netflix.spinnaker.orca.pipelinetemplate.validator.VersionedSchema;
 
-public class V1TemplateConfigurationSchemaValidator implements SchemaValidator {
+import java.util.List;
+
+public class V1TemplateConfigurationSchemaValidator<T extends V1TemplateConfigurationSchemaValidator.SchemaValidatorContext> implements SchemaValidator<T> {
 
   private static final String SUPPORTED_VERSION = "1";
 
-  public void validate(VersionedSchema configuration, Errors errors) {
-    validate(configuration, errors, new EmptyValidatorContext());
-  }
-
   @Override
-  public void validate(VersionedSchema configuration, Errors errors, ValidatorContext context) {
+  public void validate(VersionedSchema configuration, Errors errors, SchemaValidatorContext context) {
     if (!(configuration instanceof TemplateConfiguration)) {
       throw new IllegalArgumentException("Expected TemplateConfiguration");
     }
@@ -63,7 +61,7 @@ public class V1TemplateConfigurationSchemaValidator implements SchemaValidator {
     V1SchemaValidationHelper.validateStageDefinitions(config.getStages(), errors, V1TemplateConfigurationSchemaValidator::location);
 
     config.getStages().forEach(s -> {
-      if ((s.getDependsOn() == null || s.getDependsOn().isEmpty()) && (s.getInject() == null || !s.getInject().hasAny())) {
+      if (!context.stageIds.contains(s.getId()) && (s.getDependsOn() == null || s.getDependsOn().isEmpty()) && (s.getInject() == null || !s.getInject().hasAny())) {
         errors.add(new Error()
           .withMessage("A configuration-defined stage should have either dependsOn or an inject rule defined")
           .withLocation(location(String.format("stages.%s", s.getId())))
@@ -76,5 +74,13 @@ public class V1TemplateConfigurationSchemaValidator implements SchemaValidator {
 
   private static String location(String location) {
     return "configuration:" + location;
+  }
+
+  public static class SchemaValidatorContext implements ValidatorContext {
+    List<String> stageIds;
+
+    public SchemaValidatorContext(List<String> stageIds) {
+      this.stageIds = stageIds;
+    }
   }
 }

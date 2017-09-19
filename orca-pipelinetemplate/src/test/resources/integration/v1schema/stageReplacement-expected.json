@@ -1,0 +1,132 @@
+{
+  "id": "unknown",
+  "keepWaitingPipelines": false,
+  "limitConcurrent": true,
+  "application": "orca",
+  "name": "MPT Stage Replacement Test",
+  "notifications": [],
+  "stages": [
+    {
+      "cloudProvider": "aws",
+      "cloudProviderType": "aws",
+      "name": "HELLO ROB",
+      "packageName": "orca",
+      "refId": "bake1",
+      "regions": [
+        "us-east-1",
+        "us-west-1",
+        "us-west-2",
+        "eu-west-1"
+      ],
+      "tags": {
+        "stack": "test"
+      },
+      "requisiteStageRefIds": [],
+      "type": "findImageFromTags",
+      "id": null
+    },
+    {
+      "id": null,
+      "clusters": [
+        {
+          "account": "test",
+          "application": "spindemo",
+          "availabilityZones": {
+            "us-west-1": [
+              "us-west-1a",
+              "us-west-1c"
+            ]
+          },
+          "capacity": {
+            "desired": 1,
+            "max": 1,
+            "min": 1
+          },
+          "cloudProvider": "aws",
+          "cooldown": 10,
+          "copySourceCustomBlockDeviceMappings": true,
+          "ebsOptimized": false,
+          "enabledMetrics": [],
+          "freeFormDetails": "demo",
+          "healthCheckGracePeriod": 600,
+          "healthCheckType": "EC2",
+          "iamRole": "myIAMRole",
+          "instanceMonitoring": false,
+          "instanceType": "m3.large",
+          "interestingHealthProviderNames": [
+            "Amazon"
+          ],
+          "keyPair": "keypair",
+          "loadBalancers": [
+            "spindemo-demo-frontend"
+          ],
+          "maxRemainingAsgs": 2,
+          "preferSourceCapacity": true,
+          "provider": "aws",
+          "scaleDown": true,
+          "securityGroups": [],
+          "stack": "test",
+          "strategy": "redblack",
+          "subnetType": "mySubnet",
+          "suspendedProcesses": [],
+          "tags": {},
+          "targetGroups": [],
+          "targetHealthyDeployPercentage": 100,
+          "terminationPolicies": [
+            "Default"
+          ],
+          "useAmiBlockDeviceMappings": false,
+          "useSourceCapacity": true
+        },
+        {
+          "account": "test",
+          "application": "spindemo",
+          "availabilityZones": {
+            "us-east-1": [
+              "us-east-1c",
+              "us-east-1d",
+              "us-east-1e"
+            ]
+          },
+          "capacity": {
+            "desired": 0,
+            "max": 0,
+            "min": 0
+          },
+          "cloudProvider": "aws",
+          "cooldown": 10,
+          "ebsOptimized": false,
+          "freeFormDetails": "demo",
+          "healthCheckGracePeriod": 600,
+          "healthCheckType": "EC2",
+          "iamRole": "myIAMRole",
+          "instanceMonitoring": false,
+          "instanceType": "m3.large",
+          "interestingHealthProviderNames": [
+            "Amazon"
+          ],
+          "keyPair": "keypair",
+          "provider": "aws",
+          "securityGroups": [],
+          "stack": "test",
+          "strategy": "highlander",
+          "subnetType": "mySubnet",
+          "suspendedProcesses": [],
+          "tags": {},
+          "targetHealthyDeployPercentage": 100,
+          "terminationPolicies": [
+            "Default"
+          ],
+          "useSourceCapacity": false
+        }
+      ],
+      "name": "Deploy",
+      "refId": "deploy2",
+      "requisiteStageRefIds": [
+        "bake1"
+      ],
+      "type": "deploy"
+    }
+  ],
+  "parameterConfig": []
+}

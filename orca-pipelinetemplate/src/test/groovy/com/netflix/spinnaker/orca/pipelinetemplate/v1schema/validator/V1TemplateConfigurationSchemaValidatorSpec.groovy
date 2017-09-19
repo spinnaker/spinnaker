@@ -34,7 +34,7 @@ class V1TemplateConfigurationSchemaValidatorSpec extends Specification {
     def templateConfiguration = new TemplateConfiguration(schema: schema)
 
     when:
-    subject.validate(templateConfiguration, errors)
+    subject.validate(templateConfiguration, errors, new V1TemplateConfigurationSchemaValidator.SchemaValidatorContext([]))
 
     then:
     if (hasErrors) {
@@ -56,7 +56,7 @@ class V1TemplateConfigurationSchemaValidatorSpec extends Specification {
     def templateConfiguration = new TemplateConfiguration(schema: "1", pipeline: new PipelineDefinition(application: application))
 
     when:
-    subject.validate(templateConfiguration, errors)
+    subject.validate(templateConfiguration, errors, new V1TemplateConfigurationSchemaValidator.SchemaValidatorContext([]))
 
     then:
     if (hasErrors) {
@@ -89,7 +89,7 @@ class V1TemplateConfigurationSchemaValidatorSpec extends Specification {
     )
 
     when:
-    subject.validate(templateConfiguration, errors)
+    subject.validate(templateConfiguration, errors, new V1TemplateConfigurationSchemaValidator.SchemaValidatorContext(templateStageIds))
 
     then:
     if (hasErrors) {
@@ -100,9 +100,10 @@ class V1TemplateConfigurationSchemaValidatorSpec extends Specification {
     }
 
     where:
-    dependsOn | injectFirst | hasErrors
-    null      | true        | false
-    ['bar']   | false       | false
-    null      | null        | true
+    dependsOn | injectFirst | templateStageIds | hasErrors
+    null      | true        | []               | false
+    ['bar']   | false       | []               | false
+    null      | null        | []               | true
+    null      | null        | ["foo"]          | false
   }
 }
