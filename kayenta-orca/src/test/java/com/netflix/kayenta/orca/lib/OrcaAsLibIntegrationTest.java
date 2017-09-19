@@ -24,6 +24,7 @@ import com.netflix.spinnaker.config.QueueConfiguration;
 import com.netflix.spinnaker.kork.eureka.RemoteStatusChangedEvent;
 import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.TaskResult;
+import com.netflix.spinnaker.orca.config.OrcaConfiguration;
 import com.netflix.spinnaker.orca.exceptions.DefaultExceptionHandler;
 import com.netflix.spinnaker.orca.pipeline.RestrictExecutionDuringTimeWindow;
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder;
@@ -49,12 +50,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.PropertyPlaceholderAutoConfiguration;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit4.SpringRunner;
 
 import java.time.Duration;
 
@@ -62,10 +63,13 @@ import static com.netflix.appinfo.InstanceInfo.InstanceStatus.OUT_OF_SERVICE;
 import static com.netflix.appinfo.InstanceInfo.InstanceStatus.STARTING;
 import static com.netflix.appinfo.InstanceInfo.InstanceStatus.UP;
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.when;
 
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes = {TestConfig.class})
+@SpringBootTest(classes = {TestConfig.class})
+@RunWith(SpringRunner.class)
 public class OrcaAsLibIntegrationTest {
 
   Logger log = LoggerFactory.getLogger(OrcaAsLibIntegrationTest.class);
@@ -141,7 +145,8 @@ public class OrcaAsLibIntegrationTest {
   EmbeddedRedisConfiguration.class,
   JedisExecutionRepository.class,
   StageNavigator.class,
-  RestrictExecutionDuringTimeWindow.class
+  RestrictExecutionDuringTimeWindow.class,
+  OrcaConfiguration.class
 })
 
 class TestConfig {
