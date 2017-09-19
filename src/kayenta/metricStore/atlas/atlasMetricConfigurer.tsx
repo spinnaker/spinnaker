@@ -32,16 +32,16 @@ interface ChangeQueryStringEvent extends CustomEvent {
   detail: string;
 }
 
-const ATLAS_WEB_COMPONENT_URL = 'https://uicommons.test.netflix.net/lib/atlas-web-components-2.1.X/atlas-web-components.js';
+const ATLAS_WEB_COMPONENTS_URL = process.env.ATLAS_WEB_COMPONENTS_URL;
 
-if (ATLAS_WEB_COMPONENT_URL) {
+if (ATLAS_WEB_COMPONENTS_URL) {
   // make React available to components
   const global = window as any;
   global['React'] = React;
   global['ReactDOM'] = ReactDOM;
   // download components; they will register when the script executes
   const script = document.createElement('script');
-  script.src = ATLAS_WEB_COMPONENT_URL;
+  script.src = ATLAS_WEB_COMPONENTS_URL;
   document.head.appendChild(script);
 }
 
