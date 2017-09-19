@@ -72,7 +72,20 @@ class DeployKubernetesAtomicOperation implements AtomicOperation<DeploymentResul
 
     def credentials = description.credentials.credentials
 
-    def namespace = KubernetesUtil.validateNamespace(credentials, description.namespace)
+    /*
+     * Prefer the source namespace when it is available
+     * Fall back on the current namespace and use 'default' if both are not set.
+     */
+    def namespaceToValidate
+    if (description.source?.namespace) {
+      namespaceToValidate = description.source.namespace
+    }
+    else if (description.namespace) {
+      namespaceToValidate = description.namespace
+    }
+    else { namespaceToValidate = "default" }
+
+    def namespace = KubernetesUtil.validateNamespace(credentials, namespaceToValidate)
     description.imagePullSecrets = credentials.imagePullSecrets[namespace]
 
     def serverGroupNameResolver = new KubernetesServerGroupNameResolver(namespace, credentials)
@@ -92,31 +105,40 @@ class DeployKubernetesAtomicOperation implements AtomicOperation<DeploymentResul
     }
 
     task.updateStatus BASE_PHASE, "Replica set name chosen to be ${replicaSetName}."
+    def hasDeployment = KubernetesApiConverter.hasDeployment(description)
+    def replicaSet
 
     if (description.source?.useSourceCapacity) {
-      task.updateStatus BASE_PHASE, "Reading ancestor server group ${description.source.serverGroupName}..."
-      def ancestorServerGroup = credentials.apiAdaptor.getReplicationController(description.source.namespace, description.source.serverGroupName)
+      task.updateStatus BASE_PHASE, "Searching for ancestor server group ${description.source.serverGroupName}..."
+      def ancestorServerGroup = credentials.apiAdaptor.getReplicationController(namespace, description.source.serverGroupName)
       if (!ancestorServerGroup) {
-        ancestorServerGroup = credentials.apiAdaptor.getReplicaSet(description.source.namespace, description.source.serverGroupName)
+        ancestorServerGroup = credentials.apiAdaptor.getReplicaSet(namespace, description.source.serverGroupName)
       }
       if (!ancestorServerGroup) {
-        throw new KubernetesResourceNotFoundException("Source server group $description.source.serverGroupName does not exist.")
+        throw new KubernetesResourceNotFoundException("Source Server Group: $description.source.serverGroupName does not exist in Namespace: ${namespace}!")
       }
+      task.updateStatus BASE_PHASE, "Ancestor Server Group Located: ${ancestorServerGroup}"
 
       description.targetSize = ancestorServerGroup.spec?.replicas
+      task.updateStatus BASE_PHASE, "Building replica set..."
+      replicaSet = KubernetesApiConverter.toReplicaSet(new ReplicaSetBuilder(), description, replicaSetName)
+      if (hasDeployment) {
+        replicaSet.spec.replicas = 0
+      }
     }
+    //User might set targetSize and useSourceCapacity to false
+    else {
+      task.updateStatus BASE_PHASE, "Building replica set..."
+      replicaSet = KubernetesApiConverter.toReplicaSet(new ReplicaSetBuilder(), description, replicaSetName)
 
-    task.updateStatus BASE_PHASE, "Building replica set..."
-    def replicaSet = KubernetesApiConverter.toReplicaSet(new ReplicaSetBuilder(), description, replicaSetName)
-
-    if (KubernetesApiConverter.hasDeployment(description)) {
-      replicaSet.spec.replicas = 0
+      if (hasDeployment) {
+        replicaSet.spec.replicas = 0
+      }
     }
 
     replicaSet = credentials.apiAdaptor.createReplicaSet(namespace, replicaSet)
 
     task.updateStatus BASE_PHASE, "Deployed replica set ${replicaSet.metadata.name}"
-    def hasDeployment = KubernetesApiConverter.hasDeployment(description)
 
     if (hasDeployment) {
       if (!credentials.apiAdaptor.getDeployment(namespace, clusterName)) {
