@@ -133,11 +133,9 @@ public class TrafficGuard {
       return false;
     }
     List<Map<String, String>> trafficGuards = (List<Map<String, String>>) application.details().get("trafficGuards");
-    return trafficGuards.stream().anyMatch(guard ->
-      ("*".equals(guard.get("account")) || account.equals(guard.get("account"))) &&
-        ("*".equals(guard.get("location")) || location.getValue().equals(guard.get("location"))) &&
-          ("*".equals(guard.get("stack")) || StringUtils.equals(names.getStack(), guard.get("stack"))) &&
-            ("*".equals(guard.get("detail")) || StringUtils.equals(names.getDetail(), guard.get("detail")))
-    );
+    List<ClusterMatchRule> rules = trafficGuards.stream().map(guard ->
+      new ClusterMatchRule(guard.get("account"), guard.get("location"), guard.get("stack"), guard.get("detail"), 1)
+    ).collect(Collectors.toList());
+    return ClusterMatcher.getMatchingRule(account, location.getValue(), cluster, rules) != null;
   }
 }
