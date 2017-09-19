@@ -53,13 +53,13 @@ class KeysSpec extends Specification {
   @Unroll
   def "produces correct infra keys #key"() {
     expect:
-    Keys.infrastructure(kind, apiVersion, account, namespace, name) == key
+    Keys.infrastructure(apiVersion, kind, account, namespace, name) == key
 
     where:
     kind                       | apiVersion                              | account | namespace   | name      || key
-    KubernetesKind.REPLICA_SET | KubernetesApiVersion.EXTENSIONS_V1BETA1 | "ac"    | "namespace" | "v1-v000" || "kubernetes.v2:infrastructure:replicaSet:extensions/v1beta1:ac:namespace:v1-v000"
-    KubernetesKind.SERVICE     | KubernetesApiVersion.V1                 | "ac"    | "namespace" | "v1"      || "kubernetes.v2:infrastructure:service:v1:ac:namespace:v1"
-    KubernetesKind.DEPLOYMENT  | KubernetesApiVersion.APPS_V1BETA1       | "ac"    | "namespace" | "v1"      || "kubernetes.v2:infrastructure:deployment:apps/v1beta1:ac:namespace:v1"
+    KubernetesKind.REPLICA_SET | KubernetesApiVersion.EXTENSIONS_V1BETA1 | "ac"    | "namespace" | "v1-v000" || "kubernetes.v2:infrastructure:extensions/v1beta1:replicaSet:ac:namespace:v1-v000"
+    KubernetesKind.SERVICE     | KubernetesApiVersion.V1                 | "ac"    | "namespace" | "v1"      || "kubernetes.v2:infrastructure:v1:service:ac:namespace:v1"
+    KubernetesKind.DEPLOYMENT  | KubernetesApiVersion.APPS_V1BETA1       | "ac"    | "namespace" | "v1"      || "kubernetes.v2:infrastructure:apps/v1beta1:deployment:ac:namespace:v1"
   }
 
   @Unroll
@@ -102,7 +102,7 @@ class KeysSpec extends Specification {
   @Unroll
   def "unpacks infrastructure key for '#kind' and '#version'"() {
     when:
-    def key = "kubernetes.v2:infrastructure:$kind:$version:$account:$namespace:$name"
+    def key = "kubernetes.v2:infrastructure:$version:$kind:$account:$namespace:$name"
     def parsed = Keys.parseKey(key).get()
 
     then:

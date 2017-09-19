@@ -72,7 +72,7 @@ public class KubernetesCacheDataConverter {
     // TODO(lwander) avoid overwriting keys here
     relationships.putAll(ownerReferenceRelationships(account, namespace, manifest.getOwnerReferences(mapper)));
 
-    String key = Keys.infrastructure(kind, apiVersion, account, namespace, name);
+    String key = Keys.infrastructure(apiVersion, kind, account, namespace, name);
     return new DefaultCacheData(key, attributes, relationships);
   }
 
@@ -114,7 +114,7 @@ public class KubernetesCacheDataConverter {
       keys = new ArrayList<>();
     }
 
-    keys.add(Keys.infrastructure(kind, apiVersion, account, namespace, name));
+    keys.add(Keys.infrastructure(apiVersion, kind, account, namespace, name));
 
     relationships.put(kind.toString(), keys);
   }
@@ -130,7 +130,7 @@ public class KubernetesCacheDataConverter {
         keys = new ArrayList<>();
       }
 
-      keys.add(Keys.infrastructure(kind, apiVersion, account, namespace, name));
+      keys.add(Keys.infrastructure(apiVersion, kind, account, namespace, name));
       relationships.put(kind.toString(), keys);
     }
 

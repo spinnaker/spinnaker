@@ -19,11 +19,13 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.description;
 
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.KubernetesAtomicOperationDescription;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Data
+@EqualsAndHashCode(callSuper = true)
 public class KubernetesManifestOperationDescription extends KubernetesAtomicOperationDescription {
   List<KubernetesAugmentedManifest> manifests = new ArrayList<>();
 }

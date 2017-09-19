@@ -78,7 +78,7 @@ metadata:
       cacheData.attributes.get("name") == name
       cacheData.attributes.get("namespace") == namespace
       cacheData.attributes.get("kind") == kind
-      cacheData.id == Keys.infrastructure(kind, apiVersion, account, namespace, name)
+      cacheData.id == Keys.infrastructure(apiVersion, kind, account, namespace, name)
     }
 
     where:
@@ -98,7 +98,7 @@ metadata:
     def result = KubernetesCacheDataConverter.ownerReferenceRelationships(account, namespace, ownerRefs)
 
     then:
-    result.get(kind.toString()) == [Keys.infrastructure(kind, apiVersion, account, namespace, name)]
+    result.get(kind.toString()) == [Keys.infrastructure(apiVersion, kind, account, namespace, name)]
 
     where:
     kind                       | apiVersion                              | account           | cluster       | namespace        | name
@@ -111,7 +111,7 @@ metadata:
   @Unroll
   def "given a cache data entry, invert its relationships"() {
     setup:
-    def id = Keys.infrastructure(kind, version, "account", "namespace", "version")
+    def id = Keys.infrastructure(version, kind, "account", "namespace", "version")
     def cacheData = new DefaultCacheData(id, null, relationships)
 
     when:
@@ -131,7 +131,7 @@ metadata:
     KubernetesKind.REPLICA_SET | KubernetesApiVersion.APPS_V1BETA1 | ["application": [Keys.application("app")]]
     KubernetesKind.REPLICA_SET | KubernetesApiVersion.APPS_V1BETA1 | ["application": []]
     KubernetesKind.REPLICA_SET | KubernetesApiVersion.APPS_V1BETA1 | [:]
-    KubernetesKind.REPLICA_SET | KubernetesApiVersion.APPS_V1BETA1 | ["deployment": [Keys.infrastructure(KubernetesKind.DEPLOYMENT, KubernetesApiVersion.APPS_V1BETA1, "account", "namespace", "a-name")]]
+    KubernetesKind.REPLICA_SET | KubernetesApiVersion.APPS_V1BETA1 | ["deployment": [Keys.infrastructure(KubernetesApiVersion.APPS_V1BETA1, KubernetesKind.DEPLOYMENT, "account", "namespace", "a-name")]]
     KubernetesKind.SERVICE     | KubernetesApiVersion.V1           | ["cluster": [Keys.cluster("account", "name")], "application": [Keys.application("blarg")]]
     KubernetesKind.SERVICE     | KubernetesApiVersion.V1           | ["cluster": [Keys.cluster("account", "name")], "application": [Keys.application("blarg"), Keys.application("asdfasdf")]]
   }

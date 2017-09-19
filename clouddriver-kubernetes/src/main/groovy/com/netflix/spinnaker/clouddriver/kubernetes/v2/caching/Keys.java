@@ -88,12 +88,12 @@ public class Keys {
     return createKey(Kind.LOGICAL, LogicalKind.CLUSTER, account, name);
   }
 
-  public static String infrastructure(KubernetesKind kind, KubernetesApiVersion version, String account, String namespace, String name) {
-    return createKey(Kind.INFRASTRUCTURE, kind, version, account, namespace, name);
+  public static String infrastructure(KubernetesApiVersion version, KubernetesKind kind, String account, String namespace, String name) {
+    return createKey(Kind.INFRASTRUCTURE, version, kind, account, namespace, name);
   }
 
   public static String infrastructure(KubernetesManifest manifest, String account) {
-    return infrastructure(manifest.getKind(), manifest.getApiVersion(), account, manifest.getNamespace(), manifest.getName());
+    return infrastructure(manifest.getApiVersion(), manifest.getKind(), account, manifest.getNamespace(), manifest.getName());
   }
 
   public static Optional<CacheKey> parseKey(String key) {
@@ -209,8 +209,8 @@ public class Keys {
         throw new IllegalArgumentException("Malformed infrastructure key " + Arrays.toString(parts));
       }
 
-      kubernetesKind = KubernetesKind.fromString(parts[2]);
-      kubernetesApiVersion = KubernetesApiVersion.fromString(parts[3]);
+      kubernetesApiVersion = KubernetesApiVersion.fromString(parts[2]);
+      kubernetesKind = KubernetesKind.fromString(parts[3]);
       account = parts[4];
       namespace = parts[5];
       name = parts[6];

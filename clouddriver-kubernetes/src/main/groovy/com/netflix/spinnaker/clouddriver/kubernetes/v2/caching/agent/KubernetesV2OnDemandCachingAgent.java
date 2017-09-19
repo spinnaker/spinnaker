@@ -253,7 +253,7 @@ public abstract class KubernetesV2OnDemandCachingAgent<T> extends KubernetesV2Ca
 
     OnDemandAgent.OnDemandResult result;
     T resource = loadPrimaryResource(namespace, name);
-    String resourceKey = Keys.infrastructure(primaryKind(), primaryApiVersion(), account, namespace, name);
+    String resourceKey = Keys.infrastructure(primaryApiVersion(), primaryKind(), account, namespace, name);
     try {
       result = resource == null ? evictEntry(providerCache, resourceKey) : addEntry(providerCache, resourceKey, resource);
     } catch (Exception e) {
