@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.clouddriver.kubernetes
 
 import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesConfigurationProperties
-import com.netflix.spinnaker.clouddriver.kubernetes.deploy.KubernetesUtil
+import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.KubernetesUtil
 import com.netflix.spinnaker.clouddriver.kubernetes.health.KubernetesHealthIndicator
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentialsInitializer
 import org.springframework.beans.factory.config.ConfigurableBeanFactory

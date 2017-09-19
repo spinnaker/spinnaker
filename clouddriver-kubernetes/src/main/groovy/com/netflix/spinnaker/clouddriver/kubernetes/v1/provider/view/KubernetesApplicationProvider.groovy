@@ -22,7 +22,7 @@ import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider
-import com.netflix.spinnaker.clouddriver.kubernetes.model.KubernetesApplication
+import com.netflix.spinnaker.clouddriver.kubernetes.v1.model.KubernetesApplication
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.caching.Keys
 import com.netflix.spinnaker.clouddriver.model.Application
 import com.netflix.spinnaker.clouddriver.model.ApplicationProvider

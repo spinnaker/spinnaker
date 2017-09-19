@@ -23,7 +23,7 @@ import com.netflix.spinnaker.cats.agent.CacheResult
 import com.netflix.spinnaker.cats.agent.DefaultCacheResult
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.KubernetesCachingAgent
-import com.netflix.spinnaker.clouddriver.kubernetes.model.KubernetesInstance
+import com.netflix.spinnaker.clouddriver.kubernetes.v1.model.KubernetesInstance
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.caching.Keys
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.provider.view.MutableCacheData
