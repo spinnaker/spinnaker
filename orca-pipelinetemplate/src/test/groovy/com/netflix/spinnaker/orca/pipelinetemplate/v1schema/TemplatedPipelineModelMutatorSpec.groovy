@@ -137,4 +137,31 @@ class TemplatedPipelineModelMutatorSpec extends Specification {
     )] }
     pipeline.id == pipeline.config.pipeline.pipelineConfigId
   }
+
+  def "should map root-level configurations to mpt format if undefined"() {
+    given:
+    def pipeline = [
+      id: 'id',
+      name: 'my pipeline',
+      application: 'orca',
+      config: [
+        schema: '1',
+        pipeline: [
+          template: [
+            source: 'static-template'
+          ]
+        ]
+      ]
+    ]
+
+    when:
+    subject.mutate(pipeline)
+
+    then:
+    1 * templateLoader.load(_) >> { [new PipelineTemplate(
+      schema: '1'
+    )] }
+    pipeline.name == pipeline.config.pipeline.name
+    pipeline.application == pipeline.config.pipeline.application
+  }
 }

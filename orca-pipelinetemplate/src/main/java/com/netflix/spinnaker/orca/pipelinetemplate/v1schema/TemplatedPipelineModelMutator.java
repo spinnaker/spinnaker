@@ -75,21 +75,28 @@ public class TemplatedPipelineModelMutator implements PipelineModelMutator {
       }
     }
 
-    mapPipelineConfigId(pipeline, configuration);
-
-    pipeline.computeIfAbsent("application", k -> configuration.getPipeline().getApplication());
-    pipeline.computeIfAbsent("name", k -> configuration.getPipeline().getName());
+    mapRootPipelineConfigs(pipeline, configuration);
 
     applyConfigurations(configuration.getConfiguration(), pipeline);
     renderConfigurations(pipeline, RenderUtil.createDefaultRenderContext(template, configuration, null));
   }
 
   @SuppressWarnings("unchecked")
-  private void mapPipelineConfigId(Map<String, Object> pipeline, TemplateConfiguration configuration) {
+  private void mapRootPipelineConfigs(Map<String, Object> pipeline, TemplateConfiguration configuration) {
     if (pipeline.containsKey("id") && pipeline.get("id") != configuration.getPipeline().getPipelineConfigId()) {
       Map<String, Object> config = (Map<String, Object>) pipeline.get("config");
       Map<String, Object> p = (Map<String, Object>) config.get("pipeline");
       p.put("pipelineConfigId", pipeline.get("id"));
+    }
+    if (pipeline.containsKey("name") && pipeline.get("name") != configuration.getPipeline().getName()) {
+      Map<String, Object> config = (Map<String, Object>) pipeline.get("config");
+      Map<String, Object> p = (Map<String, Object>) config.get("pipeline");
+      p.put("name", pipeline.get("name"));
+    }
+    if (pipeline.containsKey("application") && pipeline.get("application") != configuration.getPipeline().getApplication()) {
+      Map<String, Object> config = (Map<String, Object>) pipeline.get("config");
+      Map<String, Object> p = (Map<String, Object>) config.get("pipeline");
+      p.put("application", pipeline.get("application"));
     }
   }
 

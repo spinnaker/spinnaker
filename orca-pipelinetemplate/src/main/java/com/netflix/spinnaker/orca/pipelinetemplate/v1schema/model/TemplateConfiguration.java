@@ -30,7 +30,7 @@ import java.util.UUID;
 public class TemplateConfiguration implements VersionedSchema {
 
   private String schema;
-  private PipelineDefinition pipeline;
+  private PipelineDefinition pipeline = new PipelineDefinition();
   private PipelineConfiguration configuration = new PipelineConfiguration();
   private List<StageDefinition> stages;
   private List<TemplateModule> modules;
