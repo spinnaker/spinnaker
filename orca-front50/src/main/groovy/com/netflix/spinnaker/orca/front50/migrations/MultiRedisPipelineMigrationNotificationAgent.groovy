@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-
 package com.netflix.spinnaker.orca.front50.migrations
 
+import java.util.concurrent.TimeUnit
+import java.util.function.Function
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.orca.ExecutionStatus
@@ -36,10 +37,7 @@ import org.springframework.stereotype.Component
 import redis.clients.jedis.Jedis
 import redis.clients.util.Pool
 import rx.Observable
-import rx.schedulers.Schedulers
-
-import java.util.concurrent.TimeUnit
-import java.util.function.Function
+import rx.Scheduler
 
 @Slf4j
 @Component
@@ -56,20 +54,22 @@ class MultiRedisPipelineMigrationNotificationAgent extends AbstractPollingNotifi
   long pollingIntervalMs
 
   @Autowired
-  MultiRedisPipelineMigrationNotificationAgent(ObjectMapper objectMapper,
-                                               Client jesqueClient,
-                                               Registry registry,
-                                               @Qualifier("jedisPool") Pool<Jedis> jedisPool,
-                                               @Qualifier("jedisPoolPrevious") Pool<Jedis> jedisPoolPrevious,
-                                               Front50Service front50Service) {
+  MultiRedisPipelineMigrationNotificationAgent(
+    ObjectMapper objectMapper,
+    Client jesqueClient,
+    Registry registry,
+    @Qualifier("jedisPool") Pool<Jedis> jedisPool,
+    @Qualifier("jedisPoolPrevious") Pool<Jedis> jedisPoolPrevious,
+    @Qualifier("queryAllScheduler") Scheduler queryAllScheduler,
+    @Qualifier("queryByAppScheduler") Scheduler queryByAppScheduler,
+    Front50Service front50Service
+  ) {
     super(objectMapper, jesqueClient)
     this.jedisPool = jedisPool
     this.jedisPoolPrevious = jedisPoolPrevious
     this.front50Service = front50Service
 
-    def queryAllScheduler = Schedulers.from(JedisExecutionRepository.newFixedThreadPool(registry, 1, "QueryAll"))
-    def queryByAppScheduler = Schedulers.from(JedisExecutionRepository.newFixedThreadPool(registry, 1, "QueryByApp"))
-    this.executionRepositoryPrevious = new JedisExecutionRepository(jedisPoolPrevious, Optional.empty(), queryAllScheduler, queryByAppScheduler, 75)
+    this.executionRepositoryPrevious = new JedisExecutionRepository(registry, jedisPoolPrevious, Optional.empty(), queryAllScheduler, queryByAppScheduler, 75)
   }
 
   @Override
@@ -99,7 +99,9 @@ class MultiRedisPipelineMigrationNotificationAgent extends AbstractPollingNotifi
     }
 
     def executionCriteria = new ExecutionRepository.ExecutionCriteria(limit: 50)
-    executionCriteria.statuses = ExecutionStatus.values().findAll { it.complete }.collect { it.name() }
+    executionCriteria.statuses = ExecutionStatus.values().findAll {
+      it.complete
+    }.collect { it.name() }
 
     def allPipelineConfigIds = front50Service.allPipelines*.id + front50Service.allStrategies*.id
     log.info("Found ${allPipelineConfigIds.size()} pipeline configs")
@@ -143,7 +145,6 @@ class MultiRedisPipelineMigrationNotificationAgent extends AbstractPollingNotifi
 
       log.info("${migratablePipelines.size()} pipelines migrated (${pipelineConfigId}) [${index}/${allPipelineConfigIds.size()}]")
     }
-
 
   }
 
