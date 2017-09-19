@@ -110,14 +110,20 @@ class MultiRedisOrchestrationMigrationNotificationAgent extends AbstractPollingN
 
     allApplications.eachWithIndex { Application application, int index ->
       def applicationName = application.name.toLowerCase()
-      def migratableOrchestrations = executionRepositoryPrevious
+      def unmigratedOrchestrations = executionRepositoryPrevious
         .retrieveOrchestrationsForApplication(applicationName, executionCriteria)
-        .filter({ orchestration -> orchestration.status.isComplete() && !previouslyMigratedOrchestrationIds.contains(orchestration.id) })
+        .filter({ orchestration -> !previouslyMigratedOrchestrationIds.contains(orchestration.id) })
         .toList()
         .toBlocking()
         .single()
 
+      def migratableOrchestrations = unmigratedOrchestrations.findAll { it.status.isComplete() }
+      def pendingOrchestrations = unmigratedOrchestrations.findAll { !it.status.isComplete() }
+
       if (migratableOrchestrations.isEmpty()) {
+        if (!pendingOrchestrations.isEmpty()) {
+          log.info("${pendingOrchestrations.size()} orchestrations yet to complete ${applicationName}) [${index}/${allApplications.size()}]")
+        }
         return
       }
 

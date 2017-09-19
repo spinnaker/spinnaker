@@ -107,14 +107,20 @@ class MultiRedisPipelineMigrationNotificationAgent extends AbstractPollingNotifi
     log.info("Found ${allPipelineConfigIds.size()} pipeline configs")
 
     allPipelineConfigIds.eachWithIndex { String pipelineConfigId, int index ->
-      def migratablePipelines = executionRepositoryPrevious
+      def unmigratedPipelines = executionRepositoryPrevious
         .retrievePipelinesForPipelineConfigId(pipelineConfigId, executionCriteria)
-        .filter({ pipeline -> pipeline.status.isComplete() && !previouslyMigratedPipelineIds.contains(pipeline.id) })
+        .filter({ pipeline -> !previouslyMigratedPipelineIds.contains(pipeline.id) })
         .toList()
         .toBlocking()
         .single()
 
+      def migratablePipelines = unmigratedPipelines.findAll { it.status.isComplete() }
+      def pendingPipelines = unmigratedPipelines.findAll { !it.status.isComplete() }
+
       if (migratablePipelines.isEmpty()) {
+        if (!pendingPipelines.isEmpty()) {
+          log.info("${pendingPipelines.size()} pipelines yet to complete (${pipelineConfigId}) [${index}/${allPipelineConfigIds.size()}]")
+        }
         return
       }
 
