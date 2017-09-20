@@ -231,8 +231,9 @@ class TrafficGuardSpec extends Specification {
     given:
     addGuard([account: "test", location: "us-east-1", stack: "foo"])
     targetServerGroup.instances = [[name: "i-1", healthState: "Up"], [name: "i-2", healthState: "Down"]]
+
     when:
-    trafficGuard.verifyInstanceTermination(["i-1"], "test", location, "aws", "x")
+    trafficGuard.verifyInstanceTermination(null, ["i-1"], "test", location, "aws", "x")
 
     then:
     thrown(IllegalStateException)
@@ -249,8 +250,9 @@ class TrafficGuardSpec extends Specification {
     addGuard([account: "test", location: "us-east-1", stack: "foo"])
     targetServerGroup.instances = [[name: "i-1", healthState: "Up"], [name: "i-2", healthState: "Down"]]
     otherServerGroup.instances = [[name: "i-1", healthState: "Down"]]
+
     when:
-    trafficGuard.verifyInstanceTermination(["i-1"], "test", location, "aws", "x")
+    trafficGuard.verifyInstanceTermination(null, ["i-1"], "test", location, "aws", "x")
 
     then:
     thrown(IllegalStateException)
@@ -267,8 +269,9 @@ class TrafficGuardSpec extends Specification {
     addGuard([account: "test", location: "us-east-1", stack: "foo"])
     targetServerGroup.instances = [[name: "i-1", healthState: "Up"], [name: "i-2", healthState: "Down"]]
     otherServerGroup.instances = [[name: "i-1", healthState: "Up"]]
+
     when:
-    trafficGuard.verifyInstanceTermination(["i-1"], "test", location, "aws", "x")
+    trafficGuard.verifyInstanceTermination(null, ["i-1"], "test", location, "aws", "x")
 
     then:
     notThrown(IllegalStateException)
@@ -285,8 +288,9 @@ class TrafficGuardSpec extends Specification {
     addGuard([account: "test", location: "us-east-1", stack: "foo"])
     targetServerGroup.instances = [[name: "i-1", healthState: "Up"], [name: "i-2", healthState: "Up"]]
     otherServerGroup.instances = [[name: "i-1", healthState: "Down"]]
+
     when:
-    trafficGuard.verifyInstanceTermination(["i-1", "i-2"], "test", location, "aws", "x")
+    trafficGuard.verifyInstanceTermination(null, ["i-1", "i-2"], "test", location, "aws", "x")
 
     then:
     thrown(IllegalStateException)
@@ -303,13 +307,29 @@ class TrafficGuardSpec extends Specification {
     given:
     addGuard([account: "test", location: "us-east-1", stack: "foo"])
     targetServerGroup.instances = [[name: "i-1"]]
+
     when:
-    trafficGuard.verifyInstanceTermination(["i-1"], "test", location, "aws", "x")
+    trafficGuard.verifyInstanceTermination(null, ["i-1"], "test", location, "aws", "x")
 
     then:
     notThrown(IllegalStateException)
     1 * front50Service.get("app") >> application
     1 * oortHelper.getSearchResults("i-1", "instances", "aws") >> [ [results: [[account: "test", region: location.value, serverGroup: "app-foo-v001"]]]]
+    1 * oortHelper.getTargetServerGroup("test", "app-foo-v001", location.value, "aws") >> (targetServerGroup as TargetServerGroup)
+    0 * _
+  }
+
+  void "should avoid searching for instance ids when server group provided"() {
+    given:
+    addGuard([account: "test", location: "us-east-1", stack: "foo"])
+    targetServerGroup.instances = [[name: "i-1"]]
+
+    when:
+    trafficGuard.verifyInstanceTermination("app-foo-v001", ["i-1"], "test", location, "aws", "x")
+
+    then:
+    notThrown(IllegalStateException)
+    1 * front50Service.get("app") >> application
     1 * oortHelper.getTargetServerGroup("test", "app-foo-v001", location.value, "aws") >> (targetServerGroup as TargetServerGroup)
     0 * _
   }

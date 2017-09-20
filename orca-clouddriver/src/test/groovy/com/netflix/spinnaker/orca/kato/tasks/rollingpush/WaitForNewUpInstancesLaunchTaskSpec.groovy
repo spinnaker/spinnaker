@@ -54,7 +54,7 @@ class WaitForNewUpInstancesLaunchTaskSpec extends Specification {
     def response = task.execute(stage)
 
     then:
-    1 * oortService.getServerGroupFromCluster(application, account, cluster, serverGroup, region, cloudProvider) >> oortResponse
+    1 * oortService.getServerGroup(application, account, region, serverGroup) >> oortResponse
     response.status == expectedStatus
 
 

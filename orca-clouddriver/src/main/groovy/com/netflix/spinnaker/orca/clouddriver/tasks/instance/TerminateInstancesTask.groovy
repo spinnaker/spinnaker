@@ -49,7 +49,10 @@ class TerminateInstancesTask extends AbstractCloudProviderAwareTask implements T
 
     List<TerminatingInstance> remainingInstances = instanceSupport.remainingInstances(stage)
 
+    def serverGroupName = stage.context.serverGroupName ?: stage.context.asgName
+
     trafficGuard.verifyInstanceTermination(
+      serverGroupName,
       stage.context.instanceIds as List<String>,
       account,
       Location.region(stage.context.region as String),

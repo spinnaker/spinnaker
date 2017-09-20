@@ -46,13 +46,24 @@ public class TrafficGuard {
     this.front50Service = front50Service.orElse(null);
   }
 
-  public void verifyInstanceTermination(List<String> instanceIds, String account, Location location, String cloudProvider, String operationDescriptor) {
+  public void verifyInstanceTermination(String serverGroupNameFromStage,
+                                        List<String> instanceIds,
+                                        String account,
+                                        Location location,
+                                        String cloudProvider,
+                                        String operationDescriptor) {
     Map<String, List<String>> instancesPerServerGroup = new HashMap<>();
-    instanceIds.forEach(instanceId -> {
+    for (String instanceId : instanceIds) {
+      String serverGroupName = serverGroupNameFromStage;
+      if (serverGroupName == null) {
+        Optional<String> resolvedServerGroupName = resolveServerGroupNameForInstance(instanceId, account, location.getValue(), cloudProvider);
+        serverGroupName = resolvedServerGroupName.orElse(null);
+      }
 
-      Optional<String> resolvedServerGroupName = resolveServerGroupNameForInstance(instanceId, account, location.getValue(), cloudProvider);
-      resolvedServerGroupName.ifPresent(name -> instancesPerServerGroup.computeIfAbsent(name, serverGroup -> new ArrayList<>()).add(instanceId));
-    });
+      if (serverGroupName != null) {
+        instancesPerServerGroup.computeIfAbsent(serverGroupName, serverGroup -> new ArrayList<>()).add(instanceId);
+      }
+    }
 
     instancesPerServerGroup.entrySet().forEach(entry -> {
       String serverGroupName = entry.getKey();

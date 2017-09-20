@@ -42,7 +42,10 @@ class DisableInstancesTask implements CloudProviderAware, Task {
     String cloudProvider = getCloudProvider(stage)
     String account = getCredentials(stage)
 
+    def serverGroupName = stage.context.serverGroupName ?: stage.context.asgName
+
     trafficGuard.verifyInstanceTermination(
+      serverGroupName,
       stage.context.instanceIds as List<String>,
       account,
       Location.region(stage.context.region as String),
