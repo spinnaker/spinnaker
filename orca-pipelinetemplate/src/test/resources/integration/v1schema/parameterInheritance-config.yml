@@ -1,0 +1,13 @@
+---
+schema: "1"
+pipeline:
+  application: orca
+configuration:
+  inherit: ['parameters']
+  parameters:
+  - name: instances
+    default: 9000
+    merge: true
+  - name: toBeRemoved
+    remove: true
+stages: []

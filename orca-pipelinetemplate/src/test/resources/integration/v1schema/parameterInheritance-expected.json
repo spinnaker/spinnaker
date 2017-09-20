@@ -1,0 +1,16 @@
+{
+  "id": "unknown",
+  "keepWaitingPipelines": false,
+  "limitConcurrent": true,
+  "application": "orca",
+  "name": "Unnamed Execution",
+  "stages": [],
+  "notifications": [],
+  "parameterConfig": [
+    {
+      "name": "instances",
+      "description": "Number of instances to start per region",
+      "default": 9000
+    }
+  ]
+}

@@ -89,7 +89,13 @@ public class TemplateMerge {
       boolean updated = false;
       for (int i = 0; i < merged.size(); i++) {
         if (merged.get(i).getName().equals(bNode.getName())) {
-          merged.set(i, bNode);
+          if (bNode.isRemove()) {
+            merged.remove(i);
+          } else if (bNode.isMerge()) {
+            merged.set(i, (T) merged.get(i).merge(bNode));
+          } else {
+            merged.set(i, bNode);
+          }
           updated = true;
           break;
         }

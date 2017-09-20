@@ -17,9 +17,34 @@ package com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model;
 
 import java.util.HashMap;
 
-public class NamedHashMap extends HashMap<String, Object> implements NamedContent {
+public class NamedHashMap extends HashMap<String, Object> implements NamedContent<NamedHashMap> {
+
+  public NamedHashMap() {
+  }
+
+  private NamedHashMap(NamedHashMap m) {
+    super(m);
+  }
 
   public String getName() {
     return String.valueOf(get("name"));
+  }
+
+  @Override
+  public boolean isRemove() {
+    return Boolean.parseBoolean(String.valueOf(getOrDefault("remove", "false")));
+  }
+
+  @Override
+  public boolean isMerge() {
+    return Boolean.parseBoolean(String.valueOf(getOrDefault("merge", "false")));
+  }
+
+  @Override
+  public NamedHashMap merge(NamedHashMap overlay) {
+    NamedHashMap m = new NamedHashMap(this);
+    m.putAll(overlay);
+    m.remove("merge");
+    return m;
   }
 }

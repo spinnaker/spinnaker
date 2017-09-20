@@ -78,13 +78,15 @@ public class PipelineTemplate implements VersionedSchema {
     }
   }
 
-  public static class Variable implements NamedContent {
+  public static class Variable implements NamedContent<Variable>, Cloneable {
     private String name;
-    private String group = "General";
+    private String group;
     private String description;
-    private String type = "string";
+    private String type;
     private Object defaultValue;
     private String example;
+    private boolean merge = false;
+    private boolean remove = false;
 
     @Override
     public String getName() {
@@ -96,7 +98,7 @@ public class PipelineTemplate implements VersionedSchema {
     }
 
     public String getGroup() {
-      return group;
+      return Optional.ofNullable(group).orElse("General");
     }
 
     public void setGroup(String group) {
@@ -112,7 +114,7 @@ public class PipelineTemplate implements VersionedSchema {
     }
 
     public String getType() {
-      return type;
+      return Optional.ofNullable(type).orElse("string");
     }
 
     public void setType(String type) {
@@ -137,6 +139,43 @@ public class PipelineTemplate implements VersionedSchema {
 
     public void setExample(String example) {
       this.example = example;
+    }
+
+    public boolean isMerge() {
+      return merge;
+    }
+
+    public void setMerge(boolean merge) {
+      this.merge = merge;
+    }
+
+    public boolean isRemove() {
+      return remove;
+    }
+
+    public void setRemove(boolean remove) {
+      this.remove = remove;
+    }
+
+    @Override
+    public Variable merge(Variable overlay) {
+      Variable v;
+      try {
+        v = (Variable) this.clone();
+      } catch (CloneNotSupportedException e) {
+        throw new RuntimeException("Could not clone Variable", e);
+      }
+      if (overlay.group != null) { v.group = overlay.group; }
+      if (overlay.description != null) { v.description = overlay.description; }
+      if (overlay.type != null) { v.type = overlay.type; }
+      if (overlay.defaultValue != null) { v.defaultValue = overlay.defaultValue; }
+      if (overlay.example != null) { v.example = overlay.example; }
+      return v;
+    }
+
+    @Override
+    protected Object clone() throws CloneNotSupportedException {
+      return super.clone();
     }
   }
 

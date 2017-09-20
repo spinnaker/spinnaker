@@ -44,6 +44,12 @@ class TemplateMergeSpec extends Specification {
         parameters: [
           new NamedHashMap().with {
             put('name', 'parameter1')
+            put('description', 'blah blah')
+            put('defaultValue', 'default')
+            return it
+          },
+          new NamedHashMap().with {
+            put('name', 'parameter2')
             return it
           }
         ],
@@ -74,6 +80,19 @@ class TemplateMergeSpec extends Specification {
             put('name', 'trigger2')
             return it
           }
+        ],
+        parameters: [
+          new NamedHashMap().with {
+            put('name', 'parameter1')
+            put('merge', true)
+            put('defaultValue', 'overridden')
+            return it
+          },
+          new NamedHashMap().with {
+            put('name', 'parameter2')
+            put('remove', true)
+            return it
+          }
         ]
       )
       stages = [
@@ -95,6 +114,8 @@ class TemplateMergeSpec extends Specification {
     result.variables.find { it.name == 'foo' }.defaultValue == 'overridden value'
     result.configuration.triggers*.name == ['trigger1', 'trigger2']
     result.configuration.parameters*.name == ['parameter1']
+    result.configuration.parameters*.description == ['blah blah']
+    result.configuration.parameters*.defaultValue == ['overridden']
     result.configuration.notifications*.name == ['notification1']
     result.stages*.id == ['s1', 's2', 's3']
     result.modules == null
