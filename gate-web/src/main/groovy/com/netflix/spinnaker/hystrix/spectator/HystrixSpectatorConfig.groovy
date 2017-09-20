@@ -34,6 +34,7 @@ class HystrixSpectatorConfig {
   @PostConstruct
   void enableSpecatorPublisher() {
     log.info("Enabling HystrixSpectatorPublisher")
+    HystrixPlugins.reset()
     HystrixPlugins.getInstance().registerMetricsPublisher(
       new HystrixSpectatorPublisher(registry)
     )

@@ -11,6 +11,7 @@ tasks.withType(org.springframework.boot.gradle.run.BootRunTask) {
 
 apply plugin: 'org.springframework.boot'
 apply plugin: 'spinnaker.package'
+apply from: "$rootDir/gradle/ldap.gradle"
 
 repositories {
   maven {
@@ -49,6 +50,7 @@ dependencies {
   }
 
   testCompile "com.squareup.okhttp:mockwebserver:${spinnaker.version('okHttp')}"
+  testCompile apachedsDependencies
   testCompile spinnaker.dependency("korkJedisTest")
 
   //this brings in the jetty GzipFilter which boot will autoconfigure

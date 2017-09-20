@@ -1,0 +1,49 @@
+version: 1
+
+dn: ou=users,dc=unit,dc=test
+objectClass: organizationalUnit
+objectClass: top
+ou: users
+
+dn: dc=unit,dc=test
+objectclass: top
+objectclass: domain
+dc: unit
+
+dn: uid=batman,ou=users,dc=unit,dc=test
+objectClass: organizationalPerson
+objectClass: person
+objectClass: inetOrgPerson
+objectClass: top
+cn: Bruce
+sn: Wayne
+uid: batman
+userPassword:: e1NIQX1YRzJlM0RxVkhOcDJQMlVDTmMvRUdqL0NQK2c9
+
+dn: uid=joker,ou=users,dc=unit,dc=test
+objectClass: organizationalPerson
+objectClass: person
+objectClass: inetOrgPerson
+objectClass: top
+cn: Jack
+sn: Nicholson
+uid: joker
+userPassword:: e1NIQX1iSmMraUFPeis2cS9zSjNaRnVLVjdTVGFIVU09
+
+dn: ou=groups,dc=unit,dc=test
+objectClass: organizationalUnit
+objectClass: top
+ou: groups
+
+dn: cn=badGuys,ou=groups,dc=unit,dc=test
+objectClass: groupOfUniqueNames
+objectClass: top
+cn: badGuys
+uniqueMember: uid=joker,ou=users,dc=unit,dc=test
+
+dn: cn=goodGuys,ou=groups,dc=unit,dc=test
+objectClass: groupOfUniqueNames
+objectClass: top
+cn: goodGuys
+uniqueMember: uid=batman,ou=users,dc=unit,dc=test
+

@@ -42,7 +42,6 @@ import org.springframework.stereotype.Component
 @Configuration
 @SpinnakerAuthConfig
 @EnableWebSecurity
-@Import(SecurityAutoConfiguration)
 class LdapSsoConfig extends WebSecurityConfigurerAdapter {
 
   @Autowired

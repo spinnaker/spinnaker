@@ -239,8 +239,7 @@ class FunctionalSpec extends Specification {
   }
 
   @EnableAutoConfiguration(exclude = [SecurityAutoConfiguration, GroovyTemplateAutoConfiguration])
-  @Configuration
-  static class FunctionalConfiguration {
+  private static class FunctionalConfiguration {
 
     @Bean
     ClouddriverServiceSelector clouddriverSelector() {
