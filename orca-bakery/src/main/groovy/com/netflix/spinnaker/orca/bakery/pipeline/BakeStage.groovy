@@ -32,6 +32,7 @@ import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import org.springframework.stereotype.Component
+
 import static com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_BEFORE
 
 @Slf4j
@@ -43,8 +44,15 @@ class BakeStage implements StageDefinitionBuilder, RestartableStage {
 
   @Override
   <T extends Execution<T>> void taskGraph(Stage<T> stage, TaskNode.Builder builder) {
-    builder
-      .withTask("completeParallel", CompleteParallelBakeTask)
+    if (isTopLevelStage(stage)) {
+      builder
+        .withTask("completeParallel", CompleteParallelBakeTask)
+    } else {
+      builder
+        .withTask("createBake", CreateBakeTask)
+        .withTask("monitorBake", MonitorBakeTask)
+        .withTask("completedBake", CompletedBakeTask)
+    }
   }
 
   @Override
@@ -52,9 +60,17 @@ class BakeStage implements StageDefinitionBuilder, RestartableStage {
   <T extends Execution<T>> List<Stage<T>> parallelStages(
     @Nonnull Stage<T> stage
   ) {
-    parallelContexts(stage).collect { context ->
-      newStage(stage.execution, "${type}.parallel", "Bake in ${context.region}", context, stage, STAGE_BEFORE)
+    if (isTopLevelStage(stage)) {
+      return parallelContexts(stage).collect { context ->
+        newStage(stage.execution, type, "Bake in ${context.region}", context, stage, STAGE_BEFORE)
+      }
+    } else {
+      return Collections.emptyList()
     }
+  }
+
+  private boolean isTopLevelStage(Stage<?> stage) {
+    stage.parentStageId == null
   }
 
   @CompileDynamic
@@ -100,23 +116,6 @@ class BakeStage implements StageDefinitionBuilder, RestartableStage {
         region: it,
         name  : "Bake in ${it}" as String
       ] as Map<String, Object>)
-    }
-  }
-
-  @Component
-  @CompileStatic
-  static class Parallel implements StageDefinitionBuilder {
-    @Override
-    <T extends Execution<T>> void taskGraph(Stage<T> stage, TaskNode.Builder builder) {
-      builder
-        .withTask("createBake", CreateBakeTask)
-        .withTask("monitorBake", MonitorBakeTask)
-        .withTask("completedBake", CompletedBakeTask)
-    }
-
-    @Override
-    String getType() {
-      return "${PIPELINE_CONFIG_TYPE}.parallel"
     }
   }
 

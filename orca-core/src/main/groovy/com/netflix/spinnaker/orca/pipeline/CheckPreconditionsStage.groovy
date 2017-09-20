@@ -25,6 +25,7 @@ import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import static com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_BEFORE
+import static java.util.Collections.emptyList
 
 @Component
 @CompileStatic
@@ -32,11 +33,44 @@ class CheckPreconditionsStage implements StageDefinitionBuilder {
 
   static final String PIPELINE_CONFIG_TYPE = "checkPreconditions"
 
-  @Nonnull <T extends Execution<T>> List<Stage<T>> parallelStages(
-    @Nonnull Stage<T> stage) {
-    parallelContexts(stage).collect { context ->
-      newStage(stage.execution, "${type}.parallel", "Check precondition (${context.preconditionType})", context, stage, STAGE_BEFORE)
+  private final List<? extends PreconditionTask> preconditionTasks
+
+  @Autowired
+  CheckPreconditionsStage(List<? extends PreconditionTask> preconditionTasks) {
+    this.preconditionTasks = preconditionTasks
+  }
+
+  @Override
+  def <T extends Execution<T>> void taskGraph(Stage<T> stage, TaskNode.Builder builder) {
+    if (!isTopLevelStage(stage)) {
+      String preconditionType = stage.context.preconditionType
+      if (!preconditionType) {
+        throw new IllegalStateException("no preconditionType specified for stage $stage.id")
+      }
+      Task preconditionTask = preconditionTasks.find {
+        it.preconditionType == preconditionType
+      }
+      if (!preconditionTask) {
+        throw new IllegalStateException("no Precondition implementation for type $preconditionType")
+      }
+      builder.withTask("checkPrecondition", preconditionTask.getClass() as Class<? extends Task>)
     }
+  }
+
+  @Nonnull
+  <T extends Execution<T>> List<Stage<T>> parallelStages(
+    @Nonnull Stage<T> stage) {
+    if (isTopLevelStage(stage)) {
+      return parallelContexts(stage).collect { context ->
+        newStage(stage.execution, type, "Check precondition (${context.preconditionType})", context, stage, STAGE_BEFORE)
+      }
+    } else {
+      return emptyList()
+    }
+  }
+
+  private boolean isTopLevelStage(Stage stage) {
+    return stage.parentStageId == null
   }
 
   private <T extends Execution<T>> Collection<Map<String, Object>> parallelContexts(Stage<T> stage) {
@@ -56,36 +90,6 @@ class CheckPreconditionsStage implements StageDefinitionBuilder {
       }
 
       return context
-    }
-  }
-
-  @Component
-  static class Parallel implements StageDefinitionBuilder {
-    private final List<? extends PreconditionTask> preconditionTasks
-
-    @Autowired
-    Parallel(List<? extends PreconditionTask> preconditionTasks) {
-      this.preconditionTasks = preconditionTasks
-    }
-
-    @Override
-    def <T extends Execution<T>> void taskGraph(Stage<T> stage, TaskNode.Builder builder) {
-      String preconditionType = stage.context.preconditionType
-      if (!preconditionType) {
-        throw new IllegalStateException("no preconditionType specified for stage $stage.id")
-      }
-      Task preconditionTask = preconditionTasks.find {
-        it.preconditionType == preconditionType
-      }
-      if (!preconditionTask) {
-        throw new IllegalStateException("no Precondition implementation for type $preconditionType")
-      }
-      builder.withTask("checkPrecondition", preconditionTask.getClass() as Class<? extends Task>)
-    }
-
-    @Override
-    String getType() {
-      return "${PIPELINE_CONFIG_TYPE}.parallel"
     }
   }
 }

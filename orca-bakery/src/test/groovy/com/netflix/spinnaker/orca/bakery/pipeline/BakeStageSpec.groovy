@@ -84,40 +84,28 @@ class BakeStageSpec extends Specification {
       stage {
         id = "1"
         type = "bake"
-        status = ExecutionStatus.RUNNING
-      }
-      stage {
-        parentStageId = "1"
-        type = "bake"
-        name = "Bake"
-        context = ["ami": 1]
-        status = ExecutionStatus.RUNNING
-      }
-      stage {
-        parentStageId = "1"
-        type = "bake"
-        name = "Bake"
-        context = ["ami": 2]
-        status = ExecutionStatus.RUNNING
-      }
-      stage {
-        parentStageId = "1"
-        type = "bake"
-        name = "Bake"
-        context = ["ami": 3]
+        context = [
+          "region": "us-east-1",
+          "regions": ["us-east-1", "us-west-2", "eu-east-1"]
+        ]
         status = ExecutionStatus.RUNNING
       }
     }
+
+    def bakeStage = pipeline.stageById("1")
+    def parallelStages = new BakeStage().parallelStages(bakeStage)
+    parallelStages.eachWithIndex { it, idx -> it.context.ami = idx + 1 }
+    pipeline.stages.addAll(parallelStages)
 
     when:
     def taskResult = new BakeStage.CompleteParallelBakeTask().execute(pipeline.stageById("1"))
 
     then:
-    taskResult.outputs == [
-      deploymentDetails: [
-        ["ami": 1], ["ami": 2], ["ami": 3]
-      ]
-    ]
+    with(taskResult.outputs) {
+      deploymentDetails[0].ami == 1
+      deploymentDetails[1].ami == 2
+      deploymentDetails[2].ami == 3
+    }
   }
 
   private
