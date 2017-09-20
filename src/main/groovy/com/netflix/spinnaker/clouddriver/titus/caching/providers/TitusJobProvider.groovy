@@ -75,7 +75,7 @@ class TitusJobProvider implements JobProvider<TitusJobStatus> {
 
     def fileContents
 
-    if (job.tasks.last().logLocation.containsKey("s3")) {
+    if (job.tasks.last().logLocation != null && job.tasks.last().logLocation.containsKey("s3")) {
       HashMap s3 = job.tasks.last().logLocation.get("s3")
       OutputStream outputStream = new ByteArrayOutputStream()
       try {
