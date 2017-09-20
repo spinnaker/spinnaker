@@ -97,7 +97,7 @@ class KubernetesProviderConfig implements Runnable {
 
     for (KubernetesNamedAccountCredentials credentials : allAccounts) {
       KubernetesCachingAgentDispatcher dispatcher
-      switch (credentials.version) {
+      switch (credentials.providerVersion) {
         case ProviderVersion.v1:
           dispatcher = kubernetesV1CachingAgentDispatcher
           break
@@ -105,13 +105,13 @@ class KubernetesProviderConfig implements Runnable {
           dispatcher = kubernetesV2CachingAgentDispatcher
           break
         default:
-          log.warn "No support for caching accounts of $credentials.version"
+          log.warn "No support for caching accounts of $credentials.providerVersion"
           continue
       }
 
       def newlyAddedAgents = dispatcher.buildAllCachingAgents(credentials)
 
-      log.info "Adding ${newlyAddedAgents.size()} agents for account ${credentials.name} at version ${credentials.version}"
+      log.info "Adding ${newlyAddedAgents.size()} agents for account ${credentials.name} at version ${credentials.providerVersion}"
 
       // If there is an agent scheduler, then this provider has been through the AgentController in the past.
       // In that case, we need to do the scheduling here (because accounts have been added to a running system).

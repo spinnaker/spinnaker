@@ -68,7 +68,7 @@ public interface AccountCredentials<T> {
    *
    * @return the account's version.
    */
-  default ProviderVersion getVersion() {
+  default ProviderVersion getProviderVersion() {
     return ProviderVersion.v1;
   }
 

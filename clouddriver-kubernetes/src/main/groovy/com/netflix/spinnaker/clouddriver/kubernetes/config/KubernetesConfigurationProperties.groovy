@@ -25,7 +25,7 @@ class KubernetesConfigurationProperties {
   @ToString(includeNames = true)
   static class ManagedAccount {
     String name
-    ProviderVersion version
+    ProviderVersion providerVersion
     String environment
     String accountType
     String context
