@@ -91,6 +91,9 @@ class RenderTransformSpec extends Specification {
               channel: '{{slackChannel}}',
               when: ['awaiting']
             ]
+          ],
+          when: [
+            "{{ application == 'blah' }}"
           ]
         ),
         new StageDefinition(
@@ -153,6 +156,7 @@ class RenderTransformSpec extends Specification {
       ]
     ]
     findStage(template, 'deploy').name == 'Deploy to Env'
+    findStage(template, 'manualjudgment').when == ['false']
   }
 
   def 'should render partials'() {

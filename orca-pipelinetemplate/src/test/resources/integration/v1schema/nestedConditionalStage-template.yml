@@ -1,0 +1,31 @@
+---
+schema: "1"
+id: nestedConditionalStage
+metadata:
+  name: Nested partials conditional test
+  description: Asserts that stages inside of a partial can be conditionally excluded
+stages:
+- id: foo
+  type: partial.myPartial
+  config:
+    includeStage: false
+
+partials:
+- id: myPartial
+  usage: It has stages.
+  variables:
+  - name: includeStage
+    description: Whether the nested stage should be included
+  stages:
+  - id: wait
+    type: wait
+    config:
+      waitTime: 5
+  - id: wait2
+    type: wait
+    dependsOn:
+    - wait
+    config:
+      waitTime: 5
+    when:
+    - "{{ includeStage }}"

@@ -19,7 +19,6 @@ import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTempla
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.StageDefinition
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.TemplateConfiguration
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.TemplateConfiguration.PipelineDefinition
-import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.Renderer
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -29,13 +28,7 @@ class ConditionalStanzaTransformSpec extends Specification {
     pipeline: new PipelineDefinition(variables: [:])
   )
 
-  Renderer renderer = Mock() {
-    render(_, _) >> { conditional, context ->
-      return (conditional == 'true').toString()
-    }
-  }
-
-  @Subject ConditionalStanzaTransform subject = new ConditionalStanzaTransform(configuration, renderer, [:])
+  @Subject ConditionalStanzaTransform subject = new ConditionalStanzaTransform(configuration, [:])
 
   def 'should remove falsy conditional stages'() {
     given:

@@ -127,11 +127,18 @@ public class RenderTransform implements PipelineTemplateVisitor {
 
     stage.setName(renderStageProperty(stage.getName(), context, getStagePropertyLocation(locationNamespace, stage.getId(), "name")));
     stage.setComments(renderStageProperty(stage.getComments(), context, getStagePropertyLocation(locationNamespace, stage.getId(), "comments")));
+    stage.setWhen(
+      stage.getWhen()
+        .stream()
+        .map(w -> renderStageProperty(w, context, getStagePropertyLocation(locationNamespace, stage.getId(), "when")))
+        .collect(Collectors.toList())
+    );
   }
 
   private String renderStageProperty(String input, RenderContext context, String location) {
+    Object result;
     try {
-      return (String) RenderUtil.deepRender(renderer, input, context);
+      result = RenderUtil.deepRender(renderer, input, context);
     } catch (TemplateRenderException e) {
       throw TemplateRenderException.fromError(
         new Error()
@@ -140,6 +147,7 @@ public class RenderTransform implements PipelineTemplateVisitor {
         e
       );
     }
+    return (result == null) ? null : result.toString();
   }
 
   private static String getStagePropertyLocation(String namespace, String stageId, String propertyName) {

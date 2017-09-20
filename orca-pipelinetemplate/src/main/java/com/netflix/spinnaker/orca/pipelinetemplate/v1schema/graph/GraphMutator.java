@@ -46,7 +46,7 @@ public class GraphMutator {
     visitors.add(new RenderTransform(configuration, renderer, registry, trigger));
     visitors.add(new ConfigStageInjectionTransform(configuration));
     visitors.add(new StageInheritanceControlTransform());
-    visitors.add(new ConditionalStanzaTransform(configuration, renderer, trigger));
+    visitors.add(new ConditionalStanzaTransform(configuration, trigger));
     visitors.add(new TrimConditionalsTransform());
   }
 

@@ -21,7 +21,6 @@ import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTempla
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.TemplateConfiguration;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.DefaultRenderContext;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.RenderContext;
-import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.Renderer;
 
 import java.util.List;
 import java.util.Map;
@@ -31,12 +30,10 @@ public class ConditionalStanzaTransform implements PipelineTemplateVisitor {
 
   private TemplateConfiguration templateConfiguration;
 
-  private Renderer renderer;
   private Map<String, Object> trigger;
 
-  public ConditionalStanzaTransform(TemplateConfiguration templateConfiguration, Renderer renderer, Map<String, Object> trigger) {
+  public ConditionalStanzaTransform(TemplateConfiguration templateConfiguration, Map<String, Object> trigger) {
     this.templateConfiguration = templateConfiguration;
-    this.renderer = renderer;
     this.trigger = trigger;
   }
 
@@ -53,9 +50,9 @@ public class ConditionalStanzaTransform implements PipelineTemplateVisitor {
       .forEach(stage -> {
         RenderContext context = new DefaultRenderContext(templateConfiguration.getPipeline().getApplication(), template, trigger);
         context.getVariables().putAll(templateConfiguration.getPipeline().getVariables());
+        // Conditionals have already been rendered
         for (String conditional : stage.getWhen()) {
-          String rendered = renderer.render(conditional, context);
-          if (!Boolean.parseBoolean(rendered)) {
+          if (!Boolean.parseBoolean(conditional)) {
             stage.setRemove();
           }
         }
