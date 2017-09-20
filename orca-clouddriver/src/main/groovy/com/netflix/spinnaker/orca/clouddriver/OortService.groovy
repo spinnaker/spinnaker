@@ -30,6 +30,9 @@ interface OortService {
                       @Path("cluster") String cluster,
                       @Path("cloudProvider") String cloudProvider)
 
+  @GET("/applications/{app}/serverGroups")
+  Response getServerGroups(@Path("app") String app)
+
   @GET("/applications/{app}/clusters/{account}/{cluster}/{cloudProvider}/serverGroups/{serverGroup}")
   Response getServerGroupFromCluster(@Path("app") String app,
                                      @Path("account") String account,
