@@ -26,7 +26,7 @@ public class KubernetesAugmentedManifest {
   Metadata metadata;
 
   @Data
-  public class Metadata {
+  public static class Metadata {
     KubernetesManifestSpinnakerRelationships relationships;
     Artifact artifact;
   }

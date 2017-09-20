@@ -17,9 +17,13 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.security;
 
 import com.netflix.spectator.api.Registry;
+import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider;
 import com.netflix.spinnaker.clouddriver.kubernetes.config.LinkedDockerRegistryConfiguration;
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.security.KubernetesV1Credentials;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesManifest;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.names.KubernetesManifestNamer;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
+import com.netflix.spinnaker.clouddriver.names.NamerRegistry;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository;
 import com.netflix.spinnaker.clouddriver.security.ProviderVersion;
@@ -283,6 +287,10 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials> 
               accountCredentialsRepository
           );
         case v2:
+          NamerRegistry.lookup()
+              .withProvider(KubernetesCloudProvider.getID())
+              .withAccount(name)
+              .setNamer(KubernetesManifest.class, new KubernetesManifestNamer());
           return (C) new KubernetesV2Credentials(name, spectatorRegistry);
         default:
           throw new IllegalArgumentException("Unknown provider type: " + version);

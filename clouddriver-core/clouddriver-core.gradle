@@ -10,6 +10,7 @@ dependencies {
   compile spinnaker.dependency('eurekaClient')
   compile spinnaker.dependency("jedis")
   compile spinnaker.dependency("frigga")
+  compile spinnaker.dependency("lombok")
 
   compile project(':cats:cats-core')
   compile project(':cats:cats-redis')
@@ -17,4 +18,6 @@ dependencies {
   compile project(':clouddriver-security')
   testCompile project(':cats:cats-test')
   testCompile spinnaker.dependency('korkJedisTest')
+
+  compile 'com.netflix.spinnaker.moniker:moniker:0.2.0'
 }
