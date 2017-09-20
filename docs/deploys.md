@@ -120,10 +120,13 @@ to use for config generation.
  `contents` into `path`.  Service endpoints will be configured using typical Consul DNS names, which
  will be written during config generation. Both Vault & Consul endpoints will
  be distributed as instance metadata.
+ 
 2. **Service Dependency Setup**: Redis, Consul, & Vault will all be deployed if
  not supplied. A first-pass will configure a small Consul cluster and
  file-backed Vault data store for simplicity.
+ 
 3. **Deployent & Updates**: See above.
+
 4. **Logging & Monitoring**: Monitoring daemon debians are baked into the
  service's images, and are enabled via configuration. Dashboards are published 
  using Eric's `spinnaker-monitoring-third-party` scripts.
