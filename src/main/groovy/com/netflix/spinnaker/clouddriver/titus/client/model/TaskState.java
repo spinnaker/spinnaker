@@ -43,4 +43,39 @@ public enum TaskState {
             return null;
         }
     }
+
+    public static TaskState from(String taskStateStr, String reasonCode) {
+
+      if(taskStateStr.equals("Finished")){
+        switch(reasonCode){
+          case "normal":
+            return TaskState.FINISHED;
+          case "killed":
+            return TaskState.STOPPED;
+          case "crashed":
+          case "lost":
+            return TaskState.CRASHED;
+          case "failed":
+            return TaskState.FAILED;
+          default:
+            return TaskState.FINISHED;
+        }
+      }
+
+      switch (taskStateStr) {
+        case "Accepted":
+          return TaskState.QUEUED;
+        case "Launched":
+          return TaskState.DISPATCHED;
+        case "StartInitiated":
+          return TaskState.STARTING;
+        case "Started":
+          return TaskState.RUNNING;
+        case "KillInitiated":
+        case "Disconnected":
+          return TaskState.FINISHED;
+        default:
+          return null;
+      }
+    }
 }

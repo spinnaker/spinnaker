@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.titus.caching.providers
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.clouddriver.aws.provider.view.AmazonS3DataProvider
 import com.netflix.spinnaker.clouddriver.model.JobProvider
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import com.netflix.spinnaker.clouddriver.titus.TitusClientProvider
@@ -40,6 +41,9 @@ class TitusJobProvider implements JobProvider<TitusJobStatus> {
 
   @Autowired
   ObjectMapper objectMapper
+
+  @Autowired
+  AmazonS3DataProvider amazonS3DataProvider
 
   OkHttpClient client = new OkHttpClient.Builder()
     .hostnameVerifier(new HostnameVerifier() {
@@ -68,20 +72,38 @@ class TitusJobProvider implements JobProvider<TitusJobStatus> {
   Map<String, Object> getFileContents(String account, String location, String id, String fileName) {
     TitusClient titusClient = titusClientProvider.getTitusClient(accountCredentialsProvider.getCredentials(account), location)
     Job job = titusClient.getJob(id)
-    Map files = titusClient.logsDownload(job.tasks.last().id)
-    if (!files.containsKey(fileName)) {
-      throw new RuntimeException("File ${fileName} not found for task ${job.tasks.last().id}")
-    }
-    def fileContents = client.newCall(new Request.Builder().url(files.get(fileName) as String).build()).execute().body().byteStream()
-    Map results = [:]
-    if (fileName.endsWith('.json')) {
-      results = objectMapper.readValue(fileContents, Map)
+
+    def fileContents
+
+    if (job.tasks.last().logLocation.containsKey("s3")) {
+      HashMap s3 = job.tasks.last().logLocation.get("s3")
+      OutputStream outputStream = new ByteArrayOutputStream()
+      try {
+        amazonS3DataProvider.getAdhocData("titus", "${s3.accountName}:${s3.region}:${s3.bucket}", "${s3.key}/${fileName}", outputStream)
+      } catch(Exception e){
+        throw new RuntimeException("Could not load ${fileName} for task ${job.tasks.last().id}")
+      }
+      fileContents = new ByteArrayInputStream(outputStream.toByteArray())
     } else {
-      Properties propertiesFile = new Properties()
-      propertiesFile.load(fileContents)
-      results = results << propertiesFile
+      Map files = titusClient.logsDownload(job.tasks.last().id)
+      if (!files.containsKey(fileName)) {
+        throw new RuntimeException("File ${fileName} not found for task ${job.tasks.last().id}")
+      }
+      fileContents = client.newCall(new Request.Builder().url(files.get(fileName) as String).build()).execute().body().byteStream()
     }
-    results
+
+    if (fileContents) {
+      Map results = [:]
+      if (fileName.endsWith('.json')) {
+        results = objectMapper.readValue(fileContents, Map)
+      } else {
+        Properties propertiesFile = new Properties()
+        propertiesFile.load(fileContents)
+        results = results << propertiesFile
+      }
+      return results
+    }
+    null
   }
 
 }

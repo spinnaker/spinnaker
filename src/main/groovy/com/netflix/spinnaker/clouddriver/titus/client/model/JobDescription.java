@@ -364,17 +364,6 @@ public class JobDescription {
     jobDescriptorBuilder.setOwner(Owner.newBuilder().setTeamEmail(user));
     jobDescriptorBuilder.setApplicationName(appName);
 
-    JobGroupInfo.Builder jobGroupInfoBuilder = JobGroupInfo.newBuilder();
-    if (jobGroupStack != null) {
-      jobGroupInfoBuilder.setStack(jobGroupStack);
-    }
-    if (jobGroupDetail != null) {
-      jobGroupInfoBuilder.setDetail(jobGroupDetail);
-    }
-    jobGroupInfoBuilder.setSequence(jobGroupSequence);
-
-    jobDescriptorBuilder.setJobGroupInfo(jobGroupInfoBuilder);
-
     if (!labels.isEmpty()) {
       jobDescriptorBuilder.putAllAttributes(labels);
     }
@@ -406,7 +395,7 @@ public class JobDescription {
 
     SecurityProfile.Builder securityProfile = SecurityProfile.newBuilder();
 
-    if (!securityGroups.isEmpty()) {
+    if (securityGroups!= null && !securityGroups.isEmpty()) {
       securityGroups.forEach(sg ->
         {
           securityProfile.addSecurityGroups(sg);
@@ -443,6 +432,15 @@ public class JobDescription {
     jobCapacity.setMin(instancesMin).setMax(instancesMax).setDesired(instancesDesired);
 
     if (type == "service") {
+      JobGroupInfo.Builder jobGroupInfoBuilder = JobGroupInfo.newBuilder();
+      if (jobGroupStack != null) {
+        jobGroupInfoBuilder.setStack(jobGroupStack);
+      }
+      if (jobGroupDetail != null) {
+        jobGroupInfoBuilder.setDetail(jobGroupDetail);
+      }
+      jobGroupInfoBuilder.setSequence(jobGroupSequence);
+      jobDescriptorBuilder.setJobGroupInfo(jobGroupInfoBuilder);
       jobDescriptorBuilder.setService(
         ServiceJobSpec.newBuilder().setEnabled(inService)
         .setCapacity(jobCapacity)
@@ -455,9 +453,7 @@ public class JobDescription {
       if (runtimeLimitSecs != 0) {
         batchJobSpec.setRuntimeLimitSec(runtimeLimitSecs);
       }
-      if (retries != 0) {
-        batchJobSpec.setRetryPolicy(RetryPolicy.newBuilder().setImmediate(RetryPolicy.Immediate.newBuilder().setRetries(retries)));
-      }
+      batchJobSpec.setRetryPolicy(RetryPolicy.newBuilder().setImmediate(RetryPolicy.Immediate.newBuilder().setRetries(retries)));
       jobDescriptorBuilder.setBatch(batchJobSpec);
     }
 

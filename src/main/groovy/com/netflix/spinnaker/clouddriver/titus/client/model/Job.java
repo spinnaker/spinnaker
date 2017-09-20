@@ -30,7 +30,7 @@ public class Job {
 
       public TaskSummary(com.netflix.titus.grpc.protogen.Task grpcTask){
           id = grpcTask.getId();
-          state = TaskState.from(grpcTask.getStatus().getState().name());
+          state = TaskState.from(grpcTask.getStatus().getState().name(), grpcTask.getStatus().getReasonCode());
           instanceId = grpcTask.getTaskContextOrDefault("v2.taskInstanceId", null);
           host = grpcTask.getTaskContextOrDefault("agent.host", null);
           region = grpcTask.getTaskContextOrDefault("agent.region", null);
@@ -40,7 +40,17 @@ public class Job {
           startedAt = getTimestampFromStatus(grpcTask, TaskStatus.TaskState.StartInitiated);
           finishedAt = getTimestampFromStatus(grpcTask, TaskStatus.TaskState.Finished);
           containerIp = grpcTask.getTaskContextOrDefault("task.containerIp", null);
-        }
+          logLocation = new HashMap<>();
+          logLocation.put("ui", grpcTask.getLogLocation().getUi().getUrl());
+          logLocation.put("liveStream", grpcTask.getLogLocation().getLiveStream().getUrl());
+          HashMap<String, String> s3 = new HashMap<>();
+          s3.put("accountId", grpcTask.getLogLocation().getS3().getAccountId());
+          s3.put("accountName", grpcTask.getLogLocation().getS3().getAccountName());
+          s3.put("region", grpcTask.getLogLocation().getS3().getRegion());
+          s3.put("bucket", grpcTask.getLogLocation().getS3().getBucket());
+          s3.put("key", grpcTask.getLogLocation().getS3().getKey());
+          logLocation.put("s3", s3);
+      }
 
         private Date getTimestampFromStatus( com.netflix.titus.grpc.protogen.Task grpcTask, TaskStatus.TaskState state ){
           return grpcTask.getStatusHistoryList().stream().filter(status -> status.getState().equals(state)).findFirst().map(status -> new Date(status.getTimestamp())).orElse(null);
@@ -62,6 +72,8 @@ public class Job {
         private String logs;
         private String snapshots;
         private String containerIp;
+
+        private Map<String, Object> logLocation;
 
         public String getId() {
             return id;
@@ -191,6 +203,7 @@ public class Job {
           this.containerIp = containerIp;
         }
 
+        public Map<String, Object> getLogLocation() { return logLocation; }
 
     }
 
