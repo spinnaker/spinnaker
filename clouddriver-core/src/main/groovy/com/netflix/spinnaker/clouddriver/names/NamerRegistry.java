@@ -27,7 +27,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * The idea is each provider can register (per-account) based on config naming
  * strategy. This assigns a `moniker` to any named resource which is then pushed
  * through the rest of Spinnaker and can be handled without prior knowledge of what
- * naming strategy was used. This is the only place the mapping from (provider, account, resource) -> namer
+ * naming strategy was used. This is the only place the mapping from (provider, account, resource) -&lt; namer
  * must happen within Spinnaker.
  */
 public class NamerRegistry {
