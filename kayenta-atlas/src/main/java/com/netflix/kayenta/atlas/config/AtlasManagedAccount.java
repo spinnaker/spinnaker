@@ -16,8 +16,11 @@
 
 package com.netflix.kayenta.atlas.config;
 
+import com.netflix.kayenta.retrofit.config.RemoteService;
 import com.netflix.kayenta.security.AccountCredentials;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 import javax.validation.constraints.NotNull;
 import java.util.List;
@@ -27,6 +30,11 @@ public class AtlasManagedAccount {
 
   @NotNull
   private String name;
+
+  @NotNull
+  @Getter
+  @Setter
+  private RemoteService endpoint;
 
   private String namespace;
 

@@ -51,9 +51,11 @@ public class AtlasConfiguration {
   }
 
   @Bean
-  MetricsService atlasMetricsService(AtlasConfigurationProperties atlasConfigurationProperties,
-                                     AccountCredentialsRepository accountCredentialsRepository,
-                                     AtlasRemoteService atlasRemoteService) throws IOException {
+  MetricsService atlasMetricsService(AtlasSSEConverter atlasSSEConverter,
+                                     AtlasConfigurationProperties atlasConfigurationProperties,
+                                     RetrofitClientFactory retrofitClientFactory,
+                                     OkHttpClient okHttpClient,
+                                     AccountCredentialsRepository accountCredentialsRepository) throws IOException {
     AtlasMetricsService.AtlasMetricsServiceBuilder atlasMetricsServiceBuilder = AtlasMetricsService.builder();
 
     for (AtlasManagedAccount atlasManagedAccount : atlasConfigurationProperties.getAccounts()) {
@@ -76,6 +78,11 @@ public class AtlasConfiguration {
 
       if (!CollectionUtils.isEmpty(supportedTypes)) {
         if (supportedTypes.contains(AccountCredentials.Type.METRICS_STORE)) {
+          AtlasRemoteService atlasRemoteService = retrofitClientFactory.createClient(AtlasRemoteService.class,
+                                                                                     atlasSSEConverter,
+                                                                                     atlasManagedAccount.getEndpoint(),
+                                                                                     okHttpClient);
+
           atlasNamedAccountCredentialsBuilder.atlasRemoteService(atlasRemoteService);
         }
 
@@ -92,16 +99,5 @@ public class AtlasConfiguration {
     log.info("Populated AtlasMetricsService with {} Atlas accounts.", atlasMetricsService.getAccountNames().size());
 
     return atlasMetricsService;
-  }
-
-  @Bean
-  AtlasRemoteService atlasRemoteService(AtlasSSEConverter atlasSSEConverter,
-                                        AtlasConfigurationProperties atlasConfigurationProperties,
-                                        RetrofitClientFactory retrofitClientFactory,
-                                        OkHttpClient okHttpClient) {
-    return retrofitClientFactory.createClient(AtlasRemoteService.class,
-                                              atlasSSEConverter,
-                                              atlasConfigurationProperties.getEndpoint(),
-                                              okHttpClient);
   }
 }

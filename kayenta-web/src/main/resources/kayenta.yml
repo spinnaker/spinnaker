@@ -4,10 +4,10 @@ server:
 kayenta:
   atlas:
     enabled: false
-#    endpoint:
-#      baseUrl: http://localhost:7101
 #    accounts:
 #      - name:
+#        endpoint:
+#          baseUrl: http://localhost:7101
 #        namespace:
 #        supportedTypes:
 #          - METRICS_STORE
@@ -23,6 +23,7 @@ kayenta:
 #        supportedTypes:
 #          - METRICS_STORE
 #          - OBJECT_STORE
+#          - CONFIGURATION_STORE
 
   aws:
     enabled: false
@@ -32,6 +33,7 @@ kayenta:
 #        rootFolder: kayenta
 #        supportedTypes:
 #          - OBJECT_STORE
+#          - CONFIGURATION_STORE
 
   gcs:
     enabled: false

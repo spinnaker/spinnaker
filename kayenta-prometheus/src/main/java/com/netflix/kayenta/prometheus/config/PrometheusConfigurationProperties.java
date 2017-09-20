@@ -16,11 +16,9 @@
 
 package com.netflix.kayenta.prometheus.config;
 
-import com.netflix.kayenta.retrofit.config.RemoteService;
 import lombok.Getter;
 import lombok.Setter;
 
-import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -57,12 +55,6 @@ public class PrometheusConfigurationProperties {
   @Getter
   @Setter
   private String scopeLabel = "instance";
-
-  // Location of prometheus server.
-  @NotNull
-  @Getter
-  @Setter
-  private RemoteService endpoint;
 
   @Getter
   private List<PrometheusManagedAccount> accounts = new ArrayList<>();

@@ -16,20 +16,13 @@
 
 package com.netflix.kayenta.atlas.config;
 
-import com.netflix.kayenta.retrofit.config.RemoteService;
 import lombok.Getter;
 import lombok.Setter;
 
-import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 
 public class AtlasConfigurationProperties {
-
-  @NotNull
-  @Getter
-  @Setter
-  private RemoteService endpoint;
 
   @Getter
   @Setter

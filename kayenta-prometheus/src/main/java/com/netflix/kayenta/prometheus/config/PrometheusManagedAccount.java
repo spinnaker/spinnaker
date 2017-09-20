@@ -16,8 +16,11 @@
 
 package com.netflix.kayenta.prometheus.config;
 
+import com.netflix.kayenta.retrofit.config.RemoteService;
 import com.netflix.kayenta.security.AccountCredentials;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 import javax.validation.constraints.NotNull;
 import java.util.List;
@@ -27,6 +30,12 @@ public class PrometheusManagedAccount {
 
   @NotNull
   private String name;
+
+  // Location of prometheus server.
+  @NotNull
+  @Getter
+  @Setter
+  private RemoteService endpoint;
 
   private List<AccountCredentials.Type> supportedTypes;
 }

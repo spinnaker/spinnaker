@@ -50,14 +50,12 @@ public class PrometheusConfiguration {
     return new PrometheusConfigurationProperties();
   }
 
-  // This is following Atlas pattern, which uses a single global service.
-  // However, I might rather have an endpoint per account or some list of services if monitoring is partitioned
-  // across multiple prometheus servers. I dont know how to wire that up in Spring unless I were to change
-  // the RemoteService to a facade that used an endpoint from the request (either injected or from credentials used).
   @Bean
-  MetricsService prometheusMetricsService(PrometheusConfigurationProperties prometheusConfigurationProperties,
-                                     AccountCredentialsRepository accountCredentialsRepository,
-                                     PrometheusRemoteService prometheusRemoteService) throws IOException {
+  MetricsService prometheusMetricsService(PrometheusResponseConverter prometheusConverter,
+                                          PrometheusConfigurationProperties prometheusConfigurationProperties,
+                                          RetrofitClientFactory retrofitClientFactory,
+                                          OkHttpClient okHttpClient,
+                                          AccountCredentialsRepository accountCredentialsRepository) throws IOException {
     PrometheusMetricsService.PrometheusMetricsServiceBuilder prometheusMetricsServiceBuilder = PrometheusMetricsService.builder();
     prometheusMetricsServiceBuilder.scopeLabel(prometheusConfigurationProperties.getScopeLabel());
 
@@ -75,10 +73,16 @@ public class PrometheusConfiguration {
         PrometheusNamedAccountCredentials
           .builder()
           .name(name)
+          .endpoint(prometheusManagedAccount.getEndpoint())
           .credentials(prometheusCredentials);
 
       if (!CollectionUtils.isEmpty(supportedTypes)) {
         if (supportedTypes.contains(AccountCredentials.Type.METRICS_STORE)) {
+          PrometheusRemoteService prometheusRemoteService = retrofitClientFactory.createClient(PrometheusRemoteService.class,
+                                                                                               prometheusConverter,
+                                                                                               prometheusManagedAccount.getEndpoint(),
+                                                                                               okHttpClient);
+
           prometheusNamedAccountCredentialsBuilder.prometheusRemoteService(prometheusRemoteService);
         }
 
@@ -95,16 +99,5 @@ public class PrometheusConfiguration {
     log.info("Populated PrometheusMetricsService with {} Prometheus accounts.", prometheusMetricsService.getAccountNames().size());
 
     return prometheusMetricsService;
-  }
-
-  @Bean
-  PrometheusRemoteService prometheusRemoteService(PrometheusResponseConverter prometheusConverter,
-                                                  PrometheusConfigurationProperties prometheusConfigurationProperties,
-                                                  RetrofitClientFactory retrofitClientFactory,
-                                                  OkHttpClient okHttpClient) {
-    return retrofitClientFactory.createClient(PrometheusRemoteService.class,
-                                              prometheusConverter,
-                                              prometheusConfigurationProperties.getEndpoint(),
-                                              okHttpClient);
   }
 }
