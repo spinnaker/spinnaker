@@ -28,14 +28,14 @@ import spock.lang.Unroll
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.orchestration
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
 
-class ServerGroupMetadataTagTaskSpec extends Specification {
+class AddServerGroupEntityTagsTaskSpec extends Specification {
 
   KatoService katoService = Mock(KatoService)
 
   ServerGroupEntityTagGenerator tagGenerator = new SpinnakerMetadataServerGroupTagGenerator()
 
   @Subject
-  ServerGroupMetadataTagTask task = new ServerGroupMetadataTagTask(kato: katoService, tagGenerators: [tagGenerator])
+  AddServerGroupEntityTagsTask task = new AddServerGroupEntityTagsTask(kato: katoService, tagGenerators: [tagGenerator])
 
   List<Map> taggingOps = null
 
@@ -146,7 +146,7 @@ class ServerGroupMetadataTagTaskSpec extends Specification {
 
   void "skips tagging when no tag generators or generators do not produce any tags"() {
     given:
-    ServerGroupMetadataTagTask emptyTask = new ServerGroupMetadataTagTask(kato: katoService, tagGenerators: [])
+    AddServerGroupEntityTagsTask emptyTask = new AddServerGroupEntityTagsTask(kato: katoService, tagGenerators: [])
 
     when:
     def stage = new Stage<>(new Pipeline("orca"), "whatever", [

@@ -22,6 +22,8 @@ import com.netflix.spinnaker.orca.pipeline.model.Pipeline;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import org.springframework.stereotype.Component;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -29,7 +31,7 @@ import java.util.Map;
 public class SpinnakerMetadataServerGroupTagGenerator implements ServerGroupEntityTagGenerator {
 
   @Override
-  public Map<String, Object> generateTag(Stage stage) {
+  public Collection<Map<String, Object>> generateTags(Stage stage) {
     Execution execution = stage.getExecution();
     Map context = stage.getContext();
 
@@ -61,7 +63,7 @@ public class SpinnakerMetadataServerGroupTagGenerator implements ServerGroupEnti
     tag.put("name", "spinnaker:metadata");
     tag.put("value", value);
 
-    return tag;
+    return Collections.singletonList(tag);
   }
 
 }

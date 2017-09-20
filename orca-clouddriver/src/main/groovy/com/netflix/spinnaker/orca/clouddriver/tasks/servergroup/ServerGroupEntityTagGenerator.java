@@ -18,14 +18,15 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup;
 
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 
+import java.util.Collection;
 import java.util.Map;
 
 public interface ServerGroupEntityTagGenerator {
 
   /**
-   * Generates an entity tag (e.g. server group provenance metadata) to be applied to a server group after deployment
+   * Generates a collection of entity tags (e.g. server group provenance metadata) to be applied to a server group after deployment
    * @param stage the stage that performed the deployment
-   * @return a map representing a tag to send to Clouddriver
+   * @return a collection of maps representing tags to send to Clouddriver
    */
-  Map<String, Object> generateTag(Stage stage);
+  Collection<Map<String, Object>> generateTags(Stage stage);
 }

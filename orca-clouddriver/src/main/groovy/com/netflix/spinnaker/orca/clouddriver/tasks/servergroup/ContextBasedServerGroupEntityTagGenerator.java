@@ -14,15 +14,24 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup
+package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup;
 
-import groovy.util.logging.Slf4j
-import org.springframework.stereotype.Component
+import com.netflix.spinnaker.orca.pipeline.model.Stage;
+import org.springframework.stereotype.Component;
+
+import java.util.List;
+import java.util.Map;
 
 @Component
-@Slf4j
-@Deprecated
-class ServerGroupMetadataTagTask extends AddServerGroupEntityTagsTask {
-  // TODO: Remove after 11/11/17 - only here to smooth over initial round of deployments
-  // Just use AddServerGroupEntityTagsTask
+public class ContextBasedServerGroupEntityTagGenerator implements ServerGroupEntityTagGenerator {
+
+  @Override
+  public List<Map<String, Object>> generateTags(Stage stage) {
+    Map context = stage.getContext();
+
+    if (context.containsKey("entityTags")) {
+      return (List<Map<String, Object>>) context.getOrDefault("entityTags", null);
+    }
+    return null;
+  }
 }
