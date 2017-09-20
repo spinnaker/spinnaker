@@ -17,25 +17,23 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.view.model;
 
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys;
-import com.netflix.spinnaker.clouddriver.model.Cluster;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.model.LoadBalancer;
-import com.netflix.spinnaker.clouddriver.model.ServerGroup;
+import com.netflix.spinnaker.clouddriver.model.LoadBalancerServerGroup;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.util.HashSet;
 import java.util.Set;
 
+@EqualsAndHashCode(callSuper = true)
 @Data
-public class KubernetesCluster implements Cluster {
-  String name;
-  String type;
-  String accountName;
-  Set<ServerGroup> serverGroups = new HashSet<>();
-  Set<LoadBalancer> loadBalancers = new HashSet<>();
+public class KubernetesV2LoadBalancer extends ManifestBasedModel implements LoadBalancer {
+  String account;
+  Set<LoadBalancerServerGroup> serverGroups = new HashSet<>();
+  KubernetesManifest manifest;
 
-  public KubernetesCluster(Keys.ClusterCacheKey key) {
-    this.name = key.getName();
-    this.accountName = key.getAccount();
+  public KubernetesV2LoadBalancer(KubernetesManifest manifest) {
+    this.manifest = manifest;
   }
 }

@@ -18,24 +18,38 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.view.model;
 
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesManifest;
-import com.netflix.spinnaker.clouddriver.model.HealthState;
 import com.netflix.spinnaker.clouddriver.model.Instance;
+import com.netflix.spinnaker.clouddriver.model.ServerGroup;
 import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.EqualsAndHashCode;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
+@EqualsAndHashCode(callSuper = true)
 @Data
-@NoArgsConstructor
-public class KubernetesInstance extends ManifestBasedModel implements Instance {
-  HealthState healthState;
-  Long launchTime;
-  List<Map<String, String>> health = new ArrayList<>();
+public class KubernetesV2ServerGroup extends ManifestBasedModel implements ServerGroup {
+  Boolean disabled;
+  Long createdTime;
+  Set<String> zones = new HashSet<>();
+  Set<Instance> instances = new HashSet<>();
+  Set<String> loadBalancers = new HashSet<>();
+  Set<String> securityGroups = new HashSet<>();
+  Map<String, Object> launchConfig = new HashMap<>();
+  InstanceCounts instanceCounts;
+  Capacity capacity = new Capacity();
+  ImageSummary imageSummary;
+  ImagesSummary imagesSummary;
   KubernetesManifest manifest;
 
-  public KubernetesInstance(KubernetesManifest manifest) {
+  @Override
+  public Boolean isDisabled() {
+    return disabled;
+  }
+
+  public KubernetesV2ServerGroup(KubernetesManifest manifest) {
     this.manifest = manifest;
   }
 }

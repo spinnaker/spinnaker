@@ -29,7 +29,7 @@ import io.fabric8.kubernetes.api.model.Service
 import io.fabric8.kubernetes.client.internal.SerializationUtils
 
 @EqualsAndHashCode(includes = ["name", "namespace", "account"])
-class KubernetesLoadBalancer implements LoadBalancer, Serializable, LoadBalancerProvider.Item {
+class KubernetesV1LoadBalancer implements LoadBalancer, Serializable, LoadBalancerProvider.Item {
   String name
   final String type = KubernetesCloudProvider.ID
   final String cloudProvider = KubernetesCloudProvider.ID
@@ -44,14 +44,14 @@ class KubernetesLoadBalancer implements LoadBalancer, Serializable, LoadBalancer
   List<String> securityGroups = []
   KubernetesLoadBalancerDescription description
 
-  KubernetesLoadBalancer(String name, String namespace, String accountName) {
+  KubernetesV1LoadBalancer(String name, String namespace, String accountName) {
     this.name = name
     this.namespace = namespace
     this.region = namespace
     this.account = accountName
   }
 
-  KubernetesLoadBalancer(Service service, List<KubernetesServerGroup> serverGroupList, String accountName, List<String> securityGroups) {
+  KubernetesV1LoadBalancer(Service service, List<KubernetesV1ServerGroup> serverGroupList, String accountName, List<String> securityGroups) {
     this.service = service
     this.name = service.metadata.name
     this.namespace = service.metadata.namespace

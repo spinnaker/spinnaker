@@ -26,7 +26,7 @@ import io.fabric8.kubernetes.api.model.Event
 import io.fabric8.kubernetes.api.model.Pod
 import io.fabric8.kubernetes.client.internal.SerializationUtils
 
-class KubernetesInstance implements Instance, Serializable {
+class KubernetesV1Instance implements Instance, Serializable {
   String name
   String location
   String instanceId
@@ -46,13 +46,13 @@ class KubernetesInstance implements Instance, Serializable {
     KubernetesUtil.getPodLoadBalancerStates(pod)?.get(KubernetesUtil.loadBalancerKey(serviceName)) == "true"
   }
 
-  KubernetesInstance() { }
+  KubernetesV1Instance() { }
 
-  KubernetesInstance(Pod pod) {
+  KubernetesV1Instance(Pod pod) {
     this(pod, [])
   }
 
-  KubernetesInstance(Pod pod, List<Event> events) {
+  KubernetesV1Instance(Pod pod, List<Event> events) {
     this.name = pod.metadata?.name
     this.location = pod.metadata?.namespace
     this.instanceId = this.name

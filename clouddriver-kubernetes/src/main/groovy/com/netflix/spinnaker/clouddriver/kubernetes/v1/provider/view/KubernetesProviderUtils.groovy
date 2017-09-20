@@ -23,8 +23,8 @@ import com.netflix.spinnaker.cats.cache.CacheFilter
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.api.KubernetesApiConverter
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.model.KubernetesDeploymentStatus
-import com.netflix.spinnaker.clouddriver.kubernetes.v1.model.KubernetesInstance
-import com.netflix.spinnaker.clouddriver.kubernetes.v1.model.KubernetesServerGroup
+import com.netflix.spinnaker.clouddriver.kubernetes.v1.model.KubernetesV1Instance
+import com.netflix.spinnaker.clouddriver.kubernetes.v1.model.KubernetesV1ServerGroup
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.caching.Keys
 import io.fabric8.kubernetes.api.model.extensions.Deployment
 
@@ -51,8 +51,8 @@ class KubernetesProviderUtils {
     relationships ? cacheView.getAll(relationship, relationships, cacheFilter) : []
   }
 
-  static KubernetesInstance convertInstance(ObjectMapper objectMapper, CacheData instanceData) {
-    def instance = objectMapper.convertValue(instanceData.attributes.instance, KubernetesInstance)
+  static KubernetesV1Instance convertInstance(ObjectMapper objectMapper, CacheData instanceData) {
+    def instance = objectMapper.convertValue(instanceData.attributes.instance, KubernetesV1Instance)
     def loadBalancers = instanceData.relationships[Keys.Namespace.LOAD_BALANCERS.ns].collect {
       Keys.parse(it).name
     }
@@ -61,8 +61,8 @@ class KubernetesProviderUtils {
     return instance
   }
 
-  static Map<String, Set<KubernetesInstance>> controllerToInstanceMap(ObjectMapper objectMapper, Collection<CacheData> instances) {
-    Map<String, Set<KubernetesInstance>> instanceMap = [:].withDefault { _ -> [] as Set }
+  static Map<String, Set<KubernetesV1Instance>> controllerToInstanceMap(ObjectMapper objectMapper, Collection<CacheData> instances) {
+    Map<String, Set<KubernetesV1Instance>> instanceMap = [:].withDefault { _ -> [] as Set }
     instances?.forEach {
       def instance = convertInstance(objectMapper, it)
       instanceMap[instance.controllerName].add(instance)
@@ -70,8 +70,8 @@ class KubernetesProviderUtils {
     return instanceMap
   }
 
-  static KubernetesServerGroup serverGroupFromCacheData(ObjectMapper objectMapper, CacheData cacheData, Set<KubernetesInstance> instances, Deployment deployment) {
-    KubernetesServerGroup serverGroup = objectMapper.convertValue(cacheData.attributes.serverGroup, KubernetesServerGroup)
+  static KubernetesV1ServerGroup serverGroupFromCacheData(ObjectMapper objectMapper, CacheData cacheData, Set<KubernetesV1Instance> instances, Deployment deployment) {
+    KubernetesV1ServerGroup serverGroup = objectMapper.convertValue(cacheData.attributes.serverGroup, KubernetesV1ServerGroup)
     serverGroup.instances = instances
     serverGroup.deploymentStatus = deployment ? new KubernetesDeploymentStatus(deployment) : null
     serverGroup.deployDescription.deployment = KubernetesApiConverter.fromDeployment(deployment)

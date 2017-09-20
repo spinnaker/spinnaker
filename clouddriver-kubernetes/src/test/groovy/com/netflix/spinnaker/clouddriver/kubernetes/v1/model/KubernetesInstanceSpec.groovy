@@ -120,7 +120,7 @@ class KubernetesInstanceSpec extends Specification {
       podStatusMock.getPhase() >> "Running"
 
     when:
-      def instance = new KubernetesInstance(podMock, [])
+      def instance = new KubernetesV1Instance(podMock, [])
 
     then:
       instance.healthState == HealthState.Up
@@ -129,7 +129,7 @@ class KubernetesInstanceSpec extends Specification {
   void "Should report pod state as Unscheduled"() {
     when:
       podStatusMock.getPhase() >> "Pending"
-      def instance = new KubernetesInstance(podMock, [])
+      def instance = new KubernetesV1Instance(podMock, [])
 
     then:
       instance.healthState == HealthState.Down
@@ -140,14 +140,14 @@ class KubernetesInstanceSpec extends Specification {
       podStatusMock.getPhase() >> "floof"
 
     when:
-      def instance = new KubernetesInstance(podMock, [])
+      def instance = new KubernetesV1Instance(podMock, [])
 
     then:
       instance.healthState == HealthState.Unknown
 
     when:
       podStatusMock.getPhase() >> "Failed"
-      instance = new KubernetesInstance(podMock, [])
+      instance = new KubernetesV1Instance(podMock, [])
 
     then:
       instance.healthState == HealthState.Unknown
@@ -160,7 +160,7 @@ class KubernetesInstanceSpec extends Specification {
 
     when:
 
-      def instance = new KubernetesInstance(podMock, [])
+      def instance = new KubernetesV1Instance(podMock, [])
 
     then:
       instance.controllerName == REPLICATION_CONTROLLER

@@ -23,10 +23,10 @@ import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.CacheFilter
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider
-import com.netflix.spinnaker.clouddriver.kubernetes.v1.model.KubernetesCluster
-import com.netflix.spinnaker.clouddriver.kubernetes.v1.model.KubernetesInstance
-import com.netflix.spinnaker.clouddriver.kubernetes.v1.model.KubernetesLoadBalancer
-import com.netflix.spinnaker.clouddriver.kubernetes.v1.model.KubernetesServerGroup
+import com.netflix.spinnaker.clouddriver.kubernetes.v1.model.KubernetesV1Cluster
+import com.netflix.spinnaker.clouddriver.kubernetes.v1.model.KubernetesV1Instance
+import com.netflix.spinnaker.clouddriver.kubernetes.v1.model.KubernetesV1LoadBalancer
+import com.netflix.spinnaker.clouddriver.kubernetes.v1.model.KubernetesV1ServerGroup
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.caching.Keys
 import com.netflix.spinnaker.clouddriver.model.ClusterProvider
 import com.netflix.spinnaker.clouddriver.model.ServerGroup
@@ -35,7 +35,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component
-class KubernetesV1ClusterProvider implements ClusterProvider<KubernetesCluster> {
+class KubernetesV1ClusterProvider implements ClusterProvider<KubernetesV1Cluster> {
   private final KubernetesCloudProvider kubernetesCloudProvider
   private final Cache cacheView
   private final ObjectMapper objectMapper
@@ -53,7 +53,7 @@ class KubernetesV1ClusterProvider implements ClusterProvider<KubernetesCluster> 
   }
 
   @Override
-  Set<KubernetesCluster> getClusters(String applicationName, String account) {
+  Set<KubernetesV1Cluster> getClusters(String applicationName, String account) {
     CacheData application = cacheView.get(Keys.Namespace.APPLICATIONS.ns, Keys.getApplicationKey(applicationName), RelationshipCacheFilter.include(Keys.Namespace.CLUSTERS.ns))
     if (!application) {
       return [] as Set
@@ -61,26 +61,26 @@ class KubernetesV1ClusterProvider implements ClusterProvider<KubernetesCluster> 
 
     Collection<String> clusterKeys = application.relationships[Keys.Namespace.CLUSTERS.ns].findAll { Keys.parse(it).account == account }
     Collection<CacheData> clusters = cacheView.getAll(Keys.Namespace.CLUSTERS.ns, clusterKeys)
-    translateClusters(clusters, true) as Set<KubernetesCluster>
+    translateClusters(clusters, true) as Set<KubernetesV1Cluster>
   }
 
   @Override
-  Map<String, Set<KubernetesCluster>> getClusterSummaries(String applicationName) {
+  Map<String, Set<KubernetesV1Cluster>> getClusterSummaries(String applicationName) {
     CacheData application = cacheView.get(Keys.Namespace.APPLICATIONS.ns, Keys.getApplicationKey(applicationName))
     application ? mapResponse(translateClusters(KubernetesProviderUtils.resolveRelationshipData(cacheView, application, Keys.Namespace.CLUSTERS.ns), false)) : null
   }
 
   @Override
-  Map<String, Set<KubernetesCluster>> getClusterDetails(String applicationName) {
+  Map<String, Set<KubernetesV1Cluster>> getClusterDetails(String applicationName) {
     CacheData application = cacheView.get(Keys.Namespace.APPLICATIONS.ns, Keys.getApplicationKey(applicationName))
     application ? mapResponse(translateClusters(KubernetesProviderUtils.resolveRelationshipData(cacheView, application, Keys.Namespace.CLUSTERS.ns), true)) : null
   }
 
   @Override
-  KubernetesCluster getCluster(String application, String account, String name, boolean includeDetails) {
+  KubernetesV1Cluster getCluster(String application, String account, String name, boolean includeDetails) {
     CacheData serverGroupCluster = cacheView.get(Keys.Namespace.CLUSTERS.ns, Keys.getClusterKey(account, application, "serverGroup", name))
     List<CacheData> clusters = [serverGroupCluster] - null
-    return clusters ? translateClusters(clusters, includeDetails).inject(new KubernetesCluster()) { KubernetesCluster acc, KubernetesCluster val ->
+    return clusters ? translateClusters(clusters, includeDetails).inject(new KubernetesV1Cluster()) { KubernetesV1Cluster acc, KubernetesV1Cluster val ->
       acc.name = acc.name ?: val.name
       acc.accountName = acc.accountName ?: val.accountName
       acc.loadBalancers.addAll(val.loadBalancers)
@@ -90,7 +90,7 @@ class KubernetesV1ClusterProvider implements ClusterProvider<KubernetesCluster> 
   }
 
   @Override
-  KubernetesCluster getCluster(String applicationName, String account, String name) {
+  KubernetesV1Cluster getCluster(String applicationName, String account, String name) {
     return getCluster(applicationName, account, name, true)
   }
 
@@ -109,9 +109,9 @@ class KubernetesV1ClusterProvider implements ClusterProvider<KubernetesCluster> 
     }
   }
 
-  private Collection<KubernetesCluster> translateClusters(Collection<CacheData> clusterData, boolean includeDetails) {
-    Map<String, KubernetesLoadBalancer> loadBalancers
-    Map<String, Set<KubernetesServerGroup>> serverGroups
+  private Collection<KubernetesV1Cluster> translateClusters(Collection<CacheData> clusterData, boolean includeDetails) {
+    Map<String, KubernetesV1LoadBalancer> loadBalancers
+    Map<String, Set<KubernetesV1ServerGroup>> serverGroups
 
     if (includeDetails) {
       Collection<CacheData> allLoadBalancers = resolveRelationshipDataForCollection(cacheView, clusterData, Keys.Namespace.LOAD_BALANCERS.ns)
@@ -121,10 +121,10 @@ class KubernetesV1ClusterProvider implements ClusterProvider<KubernetesCluster> 
       serverGroups = translateServerGroups(allServerGroups)
     }
 
-    Collection<KubernetesCluster> clusters = clusterData.collect { CacheData clusterDataEntry ->
+    Collection<KubernetesV1Cluster> clusters = clusterData.collect { CacheData clusterDataEntry ->
       Map<String, String> clusterKey = Keys.parse(clusterDataEntry.id)
 
-      def cluster = new KubernetesCluster()
+      def cluster = new KubernetesV1Cluster()
       cluster.accountName = clusterKey.account
       cluster.name = clusterKey.name
       if (includeDetails) {
@@ -133,12 +133,12 @@ class KubernetesV1ClusterProvider implements ClusterProvider<KubernetesCluster> 
       } else {
         cluster.loadBalancers = clusterDataEntry.relationships[Keys.Namespace.LOAD_BALANCERS.ns]?.collect { loadBalancerKey ->
           Map parts = Keys.parse(loadBalancerKey)
-          new KubernetesLoadBalancer(parts.name, parts.namespace, parts.account)
+          new KubernetesV1LoadBalancer(parts.name, parts.namespace, parts.account)
         }
 
         cluster.serverGroups = clusterDataEntry.relationships[Keys.Namespace.SERVER_GROUPS.ns]?.collect { serverGroupKey ->
           Map parts = Keys.parse(serverGroupKey)
-          new KubernetesServerGroup(parts.name, parts.namespace)
+          new KubernetesV1ServerGroup(parts.name, parts.namespace)
         }
       }
       cluster
@@ -147,10 +147,10 @@ class KubernetesV1ClusterProvider implements ClusterProvider<KubernetesCluster> 
     clusters
   }
 
-  private Map<String, Set<KubernetesServerGroup>> translateServerGroups(Collection<CacheData> serverGroupData) {
+  private Map<String, Set<KubernetesV1ServerGroup>> translateServerGroups(Collection<CacheData> serverGroupData) {
     Collection<CacheData> allLoadBalancers = resolveRelationshipDataForCollection(cacheView, serverGroupData, Keys.Namespace.LOAD_BALANCERS.ns, RelationshipCacheFilter.include(Keys.Namespace.SECURITY_GROUPS.ns))
     def securityGroups = loadBalancerToSecurityGroupMap(securityGroupProvider, cacheView, allLoadBalancers)
-    Map<String, Set<KubernetesInstance>> instances = [:]
+    Map<String, Set<KubernetesV1Instance>> instances = [:]
     preserveRelationshipDataForCollection(cacheView, serverGroupData, Keys.Namespace.INSTANCES.ns, RelationshipCacheFilter.none()).each { key, cacheData ->
       instances[key] = cacheData.collect { it -> KubernetesProviderUtils.convertInstance(objectMapper, it) } as Set
     }
@@ -159,7 +159,7 @@ class KubernetesV1ClusterProvider implements ClusterProvider<KubernetesCluster> 
       deployments[key] = cacheData.collect { it -> objectMapper.convertValue(it.attributes.deployment, Deployment.class) }[0]
     }
 
-    Map<String, Set<KubernetesServerGroup>> serverGroups = [:].withDefault { _ -> [] as Set }
+    Map<String, Set<KubernetesV1ServerGroup>> serverGroups = [:].withDefault { _ -> [] as Set }
     serverGroupData.forEach { cacheData ->
       def serverGroup = KubernetesProviderUtils.serverGroupFromCacheData(objectMapper, cacheData, instances[cacheData.id], deployments[cacheData.id])
 
@@ -173,21 +173,21 @@ class KubernetesV1ClusterProvider implements ClusterProvider<KubernetesCluster> 
     serverGroups
   }
 
-  private static Map<String, KubernetesLoadBalancer> translateLoadBalancers(Collection<CacheData> loadBalancerData) {
+  private static Map<String, KubernetesV1LoadBalancer> translateLoadBalancers(Collection<CacheData> loadBalancerData) {
     loadBalancerData.collectEntries { loadBalancerEntry ->
       Map<String, String> parts = Keys.parse(loadBalancerEntry.id)
-      [(loadBalancerEntry.id) : new KubernetesLoadBalancer(parts.name, parts.namespace, parts.account)]
+      [(loadBalancerEntry.id) : new KubernetesV1LoadBalancer(parts.name, parts.namespace, parts.account)]
     }
   }
 
   @Override
-  Map<String, Set<KubernetesCluster>> getClusters() {
+  Map<String, Set<KubernetesV1Cluster>> getClusters() {
     Collection<CacheData> clusterData = cacheView.getAll(Keys.Namespace.CLUSTERS.ns)
-    Collection<KubernetesCluster> clusters = translateClusters(clusterData, true)
+    Collection<KubernetesV1Cluster> clusters = translateClusters(clusterData, true)
     mapResponse(clusters)
   }
 
-  private static Map<String, Set<KubernetesCluster>> mapResponse(Collection<KubernetesCluster> clusters) {
+  private static Map<String, Set<KubernetesV1Cluster>> mapResponse(Collection<KubernetesV1Cluster> clusters) {
     clusters.groupBy { it.accountName }.collectEntries { k, v -> [k, new HashSet(v)] }
   }
 
@@ -218,7 +218,7 @@ class KubernetesV1ClusterProvider implements ClusterProvider<KubernetesCluster> 
     Deployment deployment = resolveRelationshipDataForCollection(cacheView, [serverGroupData], Keys.Namespace.DEPLOYMENTS.ns, RelationshipCacheFilter.none()).collect { cacheData ->
       objectMapper.convertValue(cacheData.attributes.deployment, Deployment.class)
     }[0]
-    Set<KubernetesInstance> instances = resolveRelationshipDataForCollection(cacheView, [serverGroupData], Keys.Namespace.INSTANCES.ns, RelationshipCacheFilter.none()).collect {
+    Set<KubernetesV1Instance> instances = resolveRelationshipDataForCollection(cacheView, [serverGroupData], Keys.Namespace.INSTANCES.ns, RelationshipCacheFilter.none()).collect {
       KubernetesProviderUtils.convertInstance(objectMapper, it)
     } as Set
 

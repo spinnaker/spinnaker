@@ -20,14 +20,14 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider
-import com.netflix.spinnaker.clouddriver.kubernetes.v1.model.KubernetesInstance
+import com.netflix.spinnaker.clouddriver.kubernetes.v1.model.KubernetesV1Instance
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.caching.Keys
 import com.netflix.spinnaker.clouddriver.model.InstanceProvider
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component
-class KubernetesInstanceProvider implements InstanceProvider<KubernetesInstance> {
+class KubernetesInstanceProvider implements InstanceProvider<KubernetesV1Instance> {
   private final Cache cacheView
   private final ObjectMapper objectMapper
 
@@ -40,7 +40,7 @@ class KubernetesInstanceProvider implements InstanceProvider<KubernetesInstance>
   final String cloudProvider = KubernetesCloudProvider.ID
 
   @Override
-  KubernetesInstance getInstance(String account, String namespace, String name) {
+  KubernetesV1Instance getInstance(String account, String namespace, String name) {
     Set<CacheData> instances = KubernetesProviderUtils.getAllMatchingKeyPattern(cacheView, Keys.Namespace.INSTANCES.ns, Keys.getInstanceKey(account, namespace, name))
     if (!instances || instances.size() == 0) {
       return null
@@ -60,7 +60,7 @@ class KubernetesInstanceProvider implements InstanceProvider<KubernetesInstance>
       Keys.parse(it).name
     }
 
-    KubernetesInstance instance = objectMapper.convertValue(instanceData.attributes.instance, KubernetesInstance)
+    KubernetesV1Instance instance = objectMapper.convertValue(instanceData.attributes.instance, KubernetesV1Instance)
     instance.loadBalancers = loadBalancers
 
     return instance

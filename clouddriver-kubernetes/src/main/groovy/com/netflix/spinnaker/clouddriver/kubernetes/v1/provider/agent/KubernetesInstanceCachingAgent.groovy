@@ -23,7 +23,7 @@ import com.netflix.spinnaker.cats.agent.CacheResult
 import com.netflix.spinnaker.cats.agent.DefaultCacheResult
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.KubernetesCachingAgent
-import com.netflix.spinnaker.clouddriver.kubernetes.v1.model.KubernetesInstance
+import com.netflix.spinnaker.clouddriver.kubernetes.v1.model.KubernetesV1Instance
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.caching.Keys
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.provider.view.MutableCacheData
@@ -94,7 +94,7 @@ class KubernetesInstanceCachingAgent extends KubernetesCachingAgent<KubernetesV1
           attributes.cacheExpiry = pod.metadata.annotations[CACHE_TTL_ANNOTATION]
         }
         attributes.name = pod.metadata.name
-        attributes.instance = new KubernetesInstance(pod, events)
+        attributes.instance = new KubernetesV1Instance(pod, events)
       }
 
     }

@@ -38,7 +38,7 @@ import io.kubernetes.client.models.V1beta1StatefulSet
 
 @CompileStatic
 @EqualsAndHashCode(includes = ["name", "namespace", "account"])
-class KubernetesServerGroup implements ServerGroup, Serializable {
+class KubernetesV1ServerGroup implements ServerGroup, Serializable {
   String name
   final String type = KubernetesCloudProvider.ID
   final String cloudProvider = KubernetesCloudProvider.ID
@@ -49,7 +49,7 @@ class KubernetesServerGroup implements ServerGroup, Serializable {
   Integer replicas = 0
   Boolean hostNetwork = false
   Set<String> zones
-  Set<KubernetesInstance> instances
+  Set<KubernetesV1Instance> instances
   Set<String> loadBalancers = [] as Set
   Set<String> securityGroups = [] as Set
   Map<String, Object> launchConfig
@@ -101,15 +101,15 @@ class KubernetesServerGroup implements ServerGroup, Serializable {
     return false
   }
 
-  KubernetesServerGroup() { }
+  KubernetesV1ServerGroup() { }
 
-  KubernetesServerGroup(String name, String namespace) {
+  KubernetesV1ServerGroup(String name, String namespace) {
     this.name = name
     this.region = namespace
     this.namespace = namespace
   }
 
-  KubernetesServerGroup(V1beta1StatefulSet statefulSet, String account, List<Event> events) {
+  KubernetesV1ServerGroup(V1beta1StatefulSet statefulSet, String account, List<Event> events) {
     this.name = statefulSet.metadata?.name
     this.account = account
     this.region = statefulSet.metadata?.namespace
@@ -128,7 +128,7 @@ class KubernetesServerGroup implements ServerGroup, Serializable {
     }
   }
 
-  KubernetesServerGroup(V1beta1DaemonSet daemonSet, String account, List<Event> events) {
+  KubernetesV1ServerGroup(V1beta1DaemonSet daemonSet, String account, List<Event> events) {
     this.name = daemonSet.metadata?.name
     this.account = account
     this.region = daemonSet.metadata?.namespace
@@ -146,7 +146,7 @@ class KubernetesServerGroup implements ServerGroup, Serializable {
     }
   }
 
-  KubernetesServerGroup(ReplicaSet replicaSet, String account, List<Event> events, HorizontalPodAutoscaler autoscaler) {
+  KubernetesV1ServerGroup(ReplicaSet replicaSet, String account, List<Event> events, HorizontalPodAutoscaler autoscaler) {
     this.name = replicaSet.metadata?.name
     this.account = account
     this.region = replicaSet.metadata?.namespace
@@ -171,7 +171,7 @@ class KubernetesServerGroup implements ServerGroup, Serializable {
     this.revision = KubernetesApiAdaptor.getDeploymentRevision(replicaSet)
   }
 
-  KubernetesServerGroup(ReplicationController replicationController, String account, List<Event> events, HorizontalPodAutoscaler autoscaler) {
+  KubernetesV1ServerGroup(ReplicationController replicationController, String account, List<Event> events, HorizontalPodAutoscaler autoscaler) {
     this.name = replicationController.metadata?.name
     this.account = account
     this.region = replicationController.metadata?.namespace

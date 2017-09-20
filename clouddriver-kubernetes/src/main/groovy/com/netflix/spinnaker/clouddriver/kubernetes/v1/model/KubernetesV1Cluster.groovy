@@ -23,11 +23,11 @@ import groovy.transform.EqualsAndHashCode
 
 @CompileStatic
 @EqualsAndHashCode(includes = ["name", "accountName"])
-class KubernetesCluster implements Cluster, Serializable {
+class KubernetesV1Cluster implements Cluster, Serializable {
   String name
   String type = Keys.Namespace.provider
   String accountName
-  Set<KubernetesServerGroup> serverGroups = Collections.synchronizedSet(new HashSet<KubernetesServerGroup>())
-  Set<KubernetesLoadBalancer> loadBalancers = Collections.synchronizedSet(new HashSet<KubernetesLoadBalancer>())
+  Set<KubernetesV1ServerGroup> serverGroups = Collections.synchronizedSet(new HashSet<KubernetesV1ServerGroup>())
+  Set<KubernetesV1LoadBalancer> loadBalancers = Collections.synchronizedSet(new HashSet<KubernetesV1LoadBalancer>())
 }
 

@@ -29,7 +29,7 @@ import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.cache.OnDemandAgent
 import com.netflix.spinnaker.clouddriver.cache.OnDemandMetricsSupport
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.KubernetesUtil
-import com.netflix.spinnaker.clouddriver.kubernetes.v1.model.KubernetesServerGroup
+import com.netflix.spinnaker.clouddriver.kubernetes.v1.model.KubernetesV1ServerGroup
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.provider.view.MutableCacheData
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.security.KubernetesV1Credentials
@@ -305,7 +305,7 @@ class KubernetesControllersCachingAgent extends KubernetesCachingAgent<Kubernete
           } else if (serverGroup.controller instanceof V1beta1DaemonSet) {
             events = daemonsetEvents[serverGroup.namespace][serverGroupName]
           }
-          attributes.serverGroup = new KubernetesServerGroup(serverGroup.controller, accountName, events)
+          attributes.serverGroup = new KubernetesV1ServerGroup(serverGroup.controller, accountName, events)
           relationships[Keys.Namespace.APPLICATIONS.ns].add(applicationKey)
           relationships[Keys.Namespace.CLUSTERS.ns].add(clusterKey)
           relationships[Keys.Namespace.INSTANCES.ns].addAll(instanceKeys)

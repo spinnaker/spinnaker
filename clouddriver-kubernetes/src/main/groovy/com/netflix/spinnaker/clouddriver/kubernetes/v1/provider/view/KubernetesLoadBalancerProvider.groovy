@@ -21,8 +21,8 @@ import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.KubernetesUtil
-import com.netflix.spinnaker.clouddriver.kubernetes.v1.model.KubernetesLoadBalancer
-import com.netflix.spinnaker.clouddriver.kubernetes.v1.model.KubernetesServerGroup
+import com.netflix.spinnaker.clouddriver.kubernetes.v1.model.KubernetesV1LoadBalancer
+import com.netflix.spinnaker.clouddriver.kubernetes.v1.model.KubernetesV1ServerGroup
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.caching.Keys
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerProvider
 import io.fabric8.kubernetes.api.model.Service
@@ -32,7 +32,7 @@ import org.springframework.stereotype.Component
 import javax.naming.OperationNotSupportedException
 
 @Component
-class KubernetesLoadBalancerProvider implements LoadBalancerProvider<KubernetesLoadBalancer> {
+class KubernetesLoadBalancerProvider implements LoadBalancerProvider<KubernetesV1LoadBalancer> {
 
   final String cloudProvider = KubernetesCloudProvider.ID
 
@@ -46,7 +46,7 @@ class KubernetesLoadBalancerProvider implements LoadBalancerProvider<KubernetesL
   }
 
   @Override
-  Set<KubernetesLoadBalancer> getApplicationLoadBalancers(String applicationName) {
+  Set<KubernetesV1LoadBalancer> getApplicationLoadBalancers(String applicationName) {
     String applicationKey = Keys.getApplicationKey(applicationName)
 
     CacheData application = cacheView.get(Keys.Namespace.APPLICATIONS.ns, applicationKey)
@@ -74,7 +74,7 @@ class KubernetesLoadBalancerProvider implements LoadBalancerProvider<KubernetesL
 
     def instanceMap = KubernetesProviderUtils.controllerToInstanceMap(objectMapper, instances)
 
-    Map<String, KubernetesServerGroup> serverGroupMap = allServerGroups.collectEntries { serverGroupData ->
+    Map<String, KubernetesV1ServerGroup> serverGroupMap = allServerGroups.collectEntries { serverGroupData ->
       def ownedInstances = instanceMap[(String) serverGroupData.attributes.name]
       def serverGroup = KubernetesProviderUtils.serverGroupFromCacheData(objectMapper, serverGroupData, ownedInstances, null)
       return [(serverGroupData.id): serverGroup]
@@ -85,13 +85,13 @@ class KubernetesLoadBalancerProvider implements LoadBalancerProvider<KubernetesL
     } as Set
   }
 
-  private KubernetesLoadBalancer translateLoadBalancer(CacheData loadBalancerEntry, Map<String, KubernetesServerGroup> serverGroupMap) {
+  private KubernetesV1LoadBalancer translateLoadBalancer(CacheData loadBalancerEntry, Map<String, KubernetesV1ServerGroup> serverGroupMap) {
     def parts = Keys.parse(loadBalancerEntry.id)
     Service service = objectMapper.convertValue(loadBalancerEntry.attributes.service, Service)
-    List<KubernetesServerGroup> serverGroups = []
+    List<KubernetesV1ServerGroup> serverGroups = []
     List<String> securityGroups
     loadBalancerEntry.relationships[Keys.Namespace.SERVER_GROUPS.ns]?.forEach { String serverGroupKey ->
-      KubernetesServerGroup serverGroup = serverGroupMap[serverGroupKey]
+      KubernetesV1ServerGroup serverGroup = serverGroupMap[serverGroupKey]
       if (serverGroup) {
         serverGroups << serverGroup
       }
@@ -107,17 +107,17 @@ class KubernetesLoadBalancerProvider implements LoadBalancerProvider<KubernetesL
       }
     }
 
-    return new KubernetesLoadBalancer(service, serverGroups, parts.account, securityGroups)
+    return new KubernetesV1LoadBalancer(service, serverGroups, parts.account, securityGroups)
   }
 
   // TODO(lwander): Groovy allows this to compile just fine, even though KubernetesLoadBalancer does
   // not implement the LoadBalancerProvider.list interface.
   @Override
-  List<KubernetesLoadBalancer> list() {
+  List<KubernetesV1LoadBalancer> list() {
     Collection<String> loadBalancers = cacheView.getIdentifiers(Keys.Namespace.LOAD_BALANCERS.ns)
     loadBalancers.findResults {
       def parse = Keys.parse(it)
-      parse ? new KubernetesLoadBalancer(parse.name, parse.namespace, parse.account) : null
+      parse ? new KubernetesV1LoadBalancer(parse.name, parse.namespace, parse.account) : null
     }
   }
 

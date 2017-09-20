@@ -31,7 +31,7 @@ import com.netflix.spinnaker.clouddriver.cache.OnDemandMetricsSupport
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.KubernetesCachingAgent
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.KubernetesUtil
-import com.netflix.spinnaker.clouddriver.kubernetes.v1.model.KubernetesServerGroup
+import com.netflix.spinnaker.clouddriver.kubernetes.v1.model.KubernetesV1ServerGroup
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.caching.Keys
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.provider.view.MutableCacheData
@@ -373,7 +373,7 @@ class KubernetesServerGroupCachingAgent extends KubernetesCachingAgent<Kubernete
             events = rcEvents[serverGroup.namespace][serverGroupName]
           }
 
-          attributes.serverGroup = new KubernetesServerGroup(serverGroup.replicaSet ?: serverGroup.replicationController, accountName, events, autoscaler)
+          attributes.serverGroup = new KubernetesV1ServerGroup(serverGroup.replicaSet ?: serverGroup.replicationController, accountName, events, autoscaler)
           relationships[Keys.Namespace.APPLICATIONS.ns].add(applicationKey)
           relationships[Keys.Namespace.CLUSTERS.ns].add(clusterKey)
           relationships[Keys.Namespace.LOAD_BALANCERS.ns].addAll(loadBalancerKeys)
