@@ -52,6 +52,9 @@ class X509Config {
   @Value('${x509.subjectPrincipalRegex:}')
   String subjectPrincipalRegex
 
+  @Value('${x509.roleOid:}')
+  String roleOid
+
   @Autowired
   AuthConfig authConfig
 
