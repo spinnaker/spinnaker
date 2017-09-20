@@ -26,7 +26,7 @@ import java.util.Map;
 public class ContextBasedServerGroupEntityTagGenerator implements ServerGroupEntityTagGenerator {
 
   @Override
-  public List<Map<String, Object>> generateTags(Stage stage) {
+  public List<Map<String, Object>> generateTags(Stage stage, String serverGroup, String account, String location, String cloudProvider) {
     Map context = stage.getContext();
 
     if (context.containsKey("entityTags")) {

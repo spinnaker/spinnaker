@@ -31,7 +31,7 @@ import java.util.Map;
 public class SpinnakerMetadataServerGroupTagGenerator implements ServerGroupEntityTagGenerator {
 
   @Override
-  public Collection<Map<String, Object>> generateTags(Stage stage) {
+  public Collection<Map<String, Object>> generateTags(Stage stage, String serverGroup, String account, String location, String cloudProvider) {
     Execution execution = stage.getExecution();
     Map context = stage.getContext();
 

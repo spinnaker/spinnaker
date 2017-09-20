@@ -28,5 +28,5 @@ public interface ServerGroupEntityTagGenerator {
    * @param stage the stage that performed the deployment
    * @return a collection of maps representing tags to send to Clouddriver
    */
-  Collection<Map<String, Object>> generateTags(Stage stage);
+  Collection<Map<String, Object>> generateTags(Stage stage, String serverGroup, String account, String location, String cloudProvider);
 }

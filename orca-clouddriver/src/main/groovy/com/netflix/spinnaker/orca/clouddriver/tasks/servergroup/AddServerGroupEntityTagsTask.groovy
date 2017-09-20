@@ -65,7 +65,11 @@ class AddServerGroupEntityTagsTask extends AbstractCloudProviderAwareTask implem
     def operations = []
     ((StageData) stage.mapTo(StageData)).deployServerGroups.each { String region, Set<String> serverGroups ->
       serverGroups.each { String serverGroup ->
-        Collection<Map<String, Object>> tags = tagGenerators ? tagGenerators.findResults { it.generateTags(stage) }.flatten() : []
+        Collection<Map<String, Object>> tags = tagGenerators ?
+          tagGenerators.findResults {
+            it.generateTags(stage, serverGroup, getCredentials(stage), region, getCloudProvider(stage))
+          }.flatten() :
+          []
         if (!tags) {
           return []
         }
