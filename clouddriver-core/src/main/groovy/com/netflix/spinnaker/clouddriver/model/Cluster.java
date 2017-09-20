@@ -14,37 +14,53 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.model
+package com.netflix.spinnaker.clouddriver.model;
 
-import com.fasterxml.jackson.databind.annotation.JsonSerialize
-import com.netflix.spinnaker.clouddriver.documentation.Empty
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.netflix.spinnaker.clouddriver.documentation.Empty;
+import com.netflix.spinnaker.clouddriver.names.NamerRegistry;
+import com.netflix.spinnaker.moniker.Moniker;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.util.Set;
 
 /**
  * A cluster is an object that provides an association between an account, many server groups, and many load balancers.
  *
  *
  */
-interface Cluster {
+public interface Cluster {
   /**
    * The name of the cluster
    *
    * @return the cluster name
    */
-  String getName()
+  String getName();
+
+  /**
+   * This resource's moniker
+   *
+   * @return
+   */
+  default Moniker getMoniker() {
+    return NamerRegistry.getDefaultNamer().deriveMoniker(this);
+  }
 
   /**
    * The type of the cluster -- may be used for datacenter awareness
    *
    * @return the cluster type
    */
-  String getType()
+  String getType();
 
   /**
    * The account name to which this cluster is associated
    *
    * @return account name
    */
-  String getAccountName()
+  String getAccountName();
 
   /**
    * A set of {@link ServerGroup} objects that comprise this cluster
@@ -52,8 +68,8 @@ interface Cluster {
    * @return a set of {@link ServerGroup} objects or an empty set if none exist
    */
   @Empty
-  @JsonSerialize(nullsUsing = NullCollectionSerializer)
-  Set<ServerGroup> getServerGroups()
+  @JsonSerialize(nullsUsing = NullCollectionSerializer.class)
+  Set<ServerGroup> getServerGroups();
 
   /**
    * A set of {@link LoadBalancer} objects that are associated with this cluster
@@ -61,15 +77,18 @@ interface Cluster {
    * @return a set of {@link LoadBalancer} objects or an empty set if none exist
    */
   @Empty
-  @JsonSerialize(nullsUsing = NullCollectionSerializer)
+  @JsonSerialize(nullsUsing = NullCollectionSerializer.class)
   // TODO(ttomsu): Why are load balancers associated with Clusters instead of ServerGroups?
-  Set<LoadBalancer> getLoadBalancers()
+  Set<LoadBalancer> getLoadBalancers();
 
-  static class SimpleCluster implements Cluster {
-    String name
-    String type
-    String accountName
-    Set<ServerGroup> serverGroups
-    Set<LoadBalancer> loadBalancers
+  @Data
+  @NoArgsConstructor
+  @AllArgsConstructor
+  class SimpleCluster implements Cluster {
+    String name;
+    String type;
+    String accountName;
+    Set<ServerGroup> serverGroups;
+    Set<LoadBalancer> loadBalancers;
   }
 }

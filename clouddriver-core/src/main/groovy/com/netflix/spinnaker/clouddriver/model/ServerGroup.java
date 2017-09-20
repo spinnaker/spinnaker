@@ -19,6 +19,8 @@ package com.netflix.spinnaker.clouddriver.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.netflix.spinnaker.clouddriver.documentation.Empty;
+import com.netflix.spinnaker.clouddriver.names.NamerRegistry;
+import com.netflix.spinnaker.moniker.Moniker;
 
 import java.util.List;
 import java.util.Map;
@@ -36,6 +38,15 @@ public interface ServerGroup {
    * @return name
    */
   String getName();
+
+  /**
+   * This resource's moniker
+   *
+   * @return
+   */
+  default Moniker getMoniker() {
+    return NamerRegistry.getDefaultNamer().deriveMoniker(this);
+  }
 
   /**
    * Some arbitrary identifying type for this server group. May provide vendor-specific identification or data-center awareness to callers.

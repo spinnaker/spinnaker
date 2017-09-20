@@ -25,6 +25,7 @@ import com.netflix.spinnaker.clouddriver.model.Summary
 import com.netflix.spinnaker.clouddriver.model.TargetServerGroup
 import com.netflix.spinnaker.clouddriver.requestqueue.RequestQueue
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
+import com.netflix.spinnaker.moniker.Moniker
 import groovy.transform.Canonical
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.MessageSource
@@ -80,11 +81,17 @@ class ClusterController {
       def clusters = (Set<Cluster>) it.getClusters(application, account)
       def clusterViews = []
       for (cluster in clusters) {
-        clusterViews << new ClusterViewModel(name: cluster.name, account: cluster.accountName, loadBalancers: cluster.loadBalancers.collect {
-          it.name
-        }, serverGroups: cluster.serverGroups.collect {
-          it.name
-        })
+        clusterViews << new ClusterViewModel(
+            name: cluster.name,
+            moniker: cluster.moniker,
+            account: cluster.accountName,
+            loadBalancers: cluster.loadBalancers.collect {
+              it.name
+            },
+            serverGroups: cluster.serverGroups.collect {
+              it.name
+            },
+        )
       }
       clusterViews
     }?.flatten() as Set<ClusterViewModel>
@@ -272,6 +279,7 @@ class ClusterController {
   static class ClusterViewModel {
     String name
     String account
+    Moniker moniker
     List<String> loadBalancers
     List<String> serverGroups
   }
