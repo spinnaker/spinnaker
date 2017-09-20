@@ -64,7 +64,8 @@ abstract public class AuthnMethod extends Node {
   public enum Method {
     OAuth2("oauth2"),
     SAML("saml"),
-    LDAP("ldap");
+    LDAP("ldap"),
+    X509("x509");
 
     public final String id;
 

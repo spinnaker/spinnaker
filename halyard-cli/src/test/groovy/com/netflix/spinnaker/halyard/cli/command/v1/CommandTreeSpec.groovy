@@ -34,6 +34,7 @@ import com.netflix.spinnaker.halyard.cli.command.v1.config.security.authn.oauth2
 import com.netflix.spinnaker.halyard.cli.command.v1.config.security.authn.oauth2.OAuth2Command
 import com.netflix.spinnaker.halyard.cli.command.v1.config.security.authn.saml.EditSamlCommand
 import com.netflix.spinnaker.halyard.cli.command.v1.config.security.authn.saml.SamlCommand
+import com.netflix.spinnaker.halyard.cli.command.v1.config.security.authn.x509.X509Command
 import com.netflix.spinnaker.halyard.cli.command.v1.config.security.authz.AuthzCommand
 import com.netflix.spinnaker.halyard.cli.command.v1.config.security.ui.UiSecurityCommand
 import spock.lang.Specification
@@ -103,6 +104,7 @@ class CommandTreeSpec extends Specification {
     AuthnCommand    | "oauth2"        | OAuth2Command
     AuthnCommand    | "saml"          | SamlCommand
     AuthnCommand    | "ldap"          | LdapCommand
+    AuthnCommand    | "x509"          | X509Command
 
     OAuth2Command   | "disable"       | AuthnMethodEnableDisableCommand
     OAuth2Command   | "enable"        | AuthnMethodEnableDisableCommand

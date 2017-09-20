@@ -114,6 +114,8 @@ deploymentConfigurations:
     "saml"        | "enabled"    | true
     "saml"        | "issuerId"   | "myIssuer"
     "saml"        | "keyStore"   | "/my/key/store"
+    "x509"        | "enabled"    | true
+    "x509"        | "roleOid"    | "1.2.3.4.5"
     // Uncomment the below to implement LDAP. Then fill in the rest of the LDAP properties, one per line.
 //    "ldap"        | "enabled"    | true
   }

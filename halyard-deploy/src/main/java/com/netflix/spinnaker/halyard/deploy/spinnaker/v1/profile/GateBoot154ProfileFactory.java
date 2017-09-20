@@ -31,6 +31,12 @@ public class GateBoot154ProfileFactory extends GateProfileFactory {
       config.security.oauth2 = security.getAuthn().getOauth2();
     } else if (security.getAuthn().getSaml().isEnabled()) {
       config.saml = new SamlConfig(security);
+    } else if (security.getAuthn().getLdap().isEnabled()) {
+      config.ldap = new LdapConfig(security);
+    }
+
+    if (security.getAuthn().getX509().isEnabled()) {
+      config.x509 = new X509Config(security);
     }
 
     return config;
