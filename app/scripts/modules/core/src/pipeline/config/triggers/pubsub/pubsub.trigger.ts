@@ -1,6 +1,6 @@
 import { IController, module } from 'angular';
 
-import { PIPELINE_CONFIG_PROVIDER } from 'core/pipeline/config/pipelineConfigProvider';
+import { PIPELINE_CONFIG_PROVIDER, PipelineConfigProvider } from 'core/pipeline/config/pipelineConfigProvider';
 import { IPubsubTrigger } from '@spinnaker/core';
 
 class PubsubTriggerController implements IController {
@@ -14,7 +14,7 @@ class PubsubTriggerController implements IController {
 export const PUBSUB_TRIGGER = 'spinnaker.core.pipeline.trigger.pubsub';
 module(PUBSUB_TRIGGER, [
   PIPELINE_CONFIG_PROVIDER,
-]).config((pipelineConfigProvider: any) => {
+]).config((pipelineConfigProvider: PipelineConfigProvider) => {
   pipelineConfigProvider.registerTrigger({
     label: 'Pub/Sub',
     description: 'Executes the pipeline when a pubsub message is received',

@@ -7,6 +7,6 @@ export interface IStageOrTriggerTypeConfig {
   key: string;
   templateUrl: string;
   controller: string;
-  controllerAs: string;
+  controllerAs?: string;
   validators: IValidatorConfig[];
 }

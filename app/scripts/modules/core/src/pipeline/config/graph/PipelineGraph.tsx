@@ -20,7 +20,7 @@ import './pipelineGraph.less'
 
 export interface IPipelineGraphProps {
   execution?: IExecution;
-  onNodeClick: (node: IPipelineGraphNode) => void;
+  onNodeClick: (node: IPipelineGraphNode, subIndex?: number) => void;
   pipeline?: IPipeline;
   shouldValidate?: boolean;
   viewState: IExecutionViewState;

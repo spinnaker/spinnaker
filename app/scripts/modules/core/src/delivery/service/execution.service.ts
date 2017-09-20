@@ -1,12 +1,13 @@
 import { IHttpService, IPromise, IQService, ITimeoutService, module } from 'angular';
-import { identity, pickBy } from 'lodash';
+import { get, identity, pickBy } from 'lodash';
+import { StateService } from '@uirouter/core';
 
 import { API_SERVICE, Api } from 'core/api/api.service';
 import { Application } from 'core/application/application.model';
 import { EXECUTION_FILTER_MODEL, ExecutionFilterModel } from 'core/delivery/filter/executionFilter.model';
-import { EXECUTIONS_TRANSFORMER_SERVICE } from 'core/delivery/service/executions.transformer.service';
-import { IExecution, IExecutionStage } from 'core/domain';
-import { PIPELINE_CONFIG_PROVIDER } from 'core/pipeline/config/pipelineConfigProvider';
+import { EXECUTIONS_TRANSFORMER_SERVICE, ExecutionsTransformerService } from 'core/delivery/service/executions.transformer.service';
+import { IExecution, IExecutionStage, IExecutionStageSummary } from 'core/domain';
+import { PIPELINE_CONFIG_PROVIDER, PipelineConfigProvider } from 'core/pipeline/config/pipelineConfigProvider';
 import { SETTINGS } from 'core/config/settings';
 import { ApplicationDataSource } from 'core/application/service/applicationDataSource';
 import { DebugWindow } from 'core/utils/consoleDebug';
@@ -17,11 +18,12 @@ export class ExecutionService {
 
   constructor(private $http: IHttpService,
               private $q: IQService,
+              private $state: StateService,
               private $timeout: ITimeoutService,
               private API: Api,
               private executionFilterModel: ExecutionFilterModel,
-              private executionsTransformer: any,
-              private pipelineConfig: any) {
+              private executionsTransformer: ExecutionsTransformerService,
+              private pipelineConfig: PipelineConfigProvider) {
     'ngInject';
   }
 
@@ -76,6 +78,52 @@ export class ExecutionService {
       (execution.stages || []).forEach((stage: IExecutionStage) => this.removeInstances(stage));
       if (execution.trigger && execution.trigger.parentExecution) {
         (execution.trigger.parentExecution.stages || []).forEach((stage: IExecutionStage) => this.removeInstances(stage));
+      }
+    }
+
+    public toggleDetails(execution: IExecution, stageIndex: number, subIndex: number) {
+      const standalone = this.$state.current.name.endsWith('.executionDetails.execution');
+
+      if (execution.id === this.$state.params.executionId && this.$state.current.name.includes('.execution') && stageIndex === undefined) {
+        this.$state.go('^');
+        return;
+      }
+
+      const index = stageIndex || 0;
+      let stageSummary = get<IExecutionStageSummary>(execution, ['stageSummaries', index]);
+      if (stageSummary && stageSummary.type === 'group') {
+        if (subIndex === undefined) {
+          // Disallow clicking on a group itself
+          return;
+        }
+        stageSummary = get<IExecutionStageSummary>(stageSummary, ['groupStages', subIndex]);
+      }
+      stageSummary = stageSummary || { firstActiveStage: 0 } as IExecutionStageSummary;
+
+      const params = {
+        executionId: execution.id,
+        stage: index,
+        subStage: subIndex,
+        step: stageSummary.firstActiveStage,
+      } as any;
+
+      // Can't show details of a grouped stage
+      if (subIndex === undefined && stageSummary.type === 'group') {
+        params.stage = null;
+        params.step = null;
+        return;
+      }
+
+      if (this.$state.includes('**.execution', params)) {
+        if (!standalone) {
+          this.$state.go('^');
+        }
+      } else {
+        if (this.$state.current.name.endsWith('.execution') || standalone) {
+          this.$state.go('.', params);
+        } else {
+          this.$state.go('.execution', params);
+        }
       }
     }
 
@@ -232,7 +280,7 @@ export class ExecutionService {
           if (!executions || !executions.length) {
             return [];
           }
-          executions.forEach((execution) => this.executionsTransformer.transformExecution({}, execution));
+          executions.forEach((execution) => this.executionsTransformer.transformExecution({} as Application, execution));
           return executions.sort((a, b) => b.startTime - (a.startTime || Date.now()));
         });
     }
@@ -411,7 +459,7 @@ module(EXECUTION_SERVICE, [
   EXECUTIONS_TRANSFORMER_SERVICE,
   PIPELINE_CONFIG_PROVIDER,
   API_SERVICE
-]).factory('executionService', ($http: IHttpService, $q: IQService, $timeout: ITimeoutService, API: Api, executionFilterModel: any, executionsTransformer: any, pipelineConfig: any) =>
-                                new ExecutionService($http, $q, $timeout, API, executionFilterModel, executionsTransformer, pipelineConfig));
+]).factory('executionService', ($http: IHttpService, $q: IQService, $state: StateService, $timeout: ITimeoutService, API: Api, executionFilterModel: any, executionsTransformer: any, pipelineConfig: any) =>
+                                new ExecutionService($http, $q, $state, $timeout, API, executionFilterModel, executionsTransformer, pipelineConfig));
 
 DebugWindow.addInjectable('executionService');

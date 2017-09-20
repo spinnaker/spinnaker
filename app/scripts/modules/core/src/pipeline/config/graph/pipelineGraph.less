@@ -72,14 +72,14 @@ pipeline-graph, .pipeline-graph {
         display: inline-block;
       }
       &.active, &.highlighted {
-        circle, rect {
+        circle, rect, path.graph-node {
           transition: fill .2s;
         }
         &.has-status {
-          circle {
+          circle.graph-node, path.graph-node {
             fill-opacity: 1;
             stroke: @mid_grey;
-            stroke-width: 2px;
+            stroke-width: 1px;
           }
         }
       }
@@ -134,6 +134,12 @@ pipeline-graph, .pipeline-graph {
         }
       }
     }
+  }
+}
+
+.stage-group {
+  .label-component {
+    cursor: default;
   }
 }
 

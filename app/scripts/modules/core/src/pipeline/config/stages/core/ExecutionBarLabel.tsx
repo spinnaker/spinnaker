@@ -4,6 +4,7 @@ import { OverlayTrigger, Tooltip } from 'react-bootstrap';
 import { IExecutionStageLabelComponentProps } from 'core/domain';
 import { ExecutionWindowActions } from 'core/pipeline/config/stages/executionWindows/ExecutionWindowActions';
 import { HoverablePopover } from 'core/presentation/HoverablePopover';
+import { ReactInjector } from 'core/reactShims';
 
 export interface IExecutionBarLabelProps extends IExecutionStageLabelComponentProps {
   tooltip?: JSX.Element;
@@ -40,8 +41,20 @@ export class ExecutionBarLabel extends React.Component<IExecutionBarLabelProps> 
         </OverlayTrigger>
       );
     }
+
+    let stageName = stage.name ? stage.name : stage.type;
+    const params = ReactInjector.$uiRouter.globals.params;
+    if (stage.type === 'group' && stage.groupStages && stage.index === Number(params.stage)) {
+      const subStageIndex = Number(params.subStage);
+      if (!Number.isNaN(subStageIndex)) {
+        const activeStage = stage.groupStages[subStageIndex];
+        if (activeStage) {
+          stageName += `: ${activeStage.name}`;
+        }
+      }
+    }
     return (
-      <span>{stage.name ? stage.name : stage.type}</span>
+      <span>{stageName}</span>
     )
   }
 }

@@ -39,7 +39,7 @@ function configure(IS_TEST) {
         moduleExtensions: ['-loader']
       },
     resolve: {
-      extensions: ['.json', '.js', '.jsx', '.ts', '.tsx', '.css', '.less', '.html'],
+      extensions: ['.json', '.ts', '.tsx', '.js', '.jsx', '.css', '.less', '.html'],
       modules: [
         NODE_MODULE_PATH,
         path.join(__dirname, 'app', 'scripts', 'modules'),

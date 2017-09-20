@@ -8,8 +8,7 @@ import * as classNames from 'classnames';
 
 import { Application } from 'core/application/application.model';
 import { IExecution , IRestartDetails } from 'core/domain';
-import { IExecutionViewState } from 'core/pipeline/config/graph/pipelineGraph.service';
-import { IPipelineGraphNode } from 'core/pipeline/config/graph/pipelineGraph.service';
+import { IExecutionViewState, IPipelineGraphNode } from 'core/pipeline/config/graph/pipelineGraph.service';
 import { IScheduler } from 'core/scheduler/scheduler.factory';
 import { OrchestratedItemRunningTime } from './OrchestratedItemRunningTime';
 import { SETTINGS } from 'core/config/settings';
@@ -60,10 +59,11 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
   constructor(props: IExecutionProps) {
     super(props);
     const { execution } = this.props;
-    const { executionFilterModel } = ReactInjector;
+    const { $stateParams, executionFilterModel } = ReactInjector;
 
     const initialViewState = {
-      activeStageId: Number(ReactInjector.$stateParams.stage),
+      activeStageId: Number($stateParams.stage),
+      activeSubStageId: Number($stateParams.subStage),
       executionId: execution.id,
       canTriggerPipelineManually: false,
       canConfigure: false,
@@ -85,6 +85,7 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
     const { $stateParams } = ReactInjector;
     const newViewState = clone(this.state.viewState);
     newViewState.activeStageId = Number($stateParams.stage);
+    newViewState.activeSubStageId = Number($stateParams.subStage);
     newViewState.executionId = $stateParams.executionId;
     this.setState({
       viewState: newViewState,
@@ -102,31 +103,9 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
     return this.state.showingDetails && Number(ReactInjector.$stateParams.stage) === stageIndex;
   }
 
-  public toggleDetails(stageIndex?: number): void {
-    const { $state } = ReactInjector;
-    if (this.props.execution.id === $state.params.executionId && $state.current.name.includes('.execution') && stageIndex === undefined) {
-      $state.go('^');
-      return;
-    }
-    const index = stageIndex || 0;
-    const stageSummary = this.props.execution.stageSummaries[index] || { firstActiveStage: 0 };
-    const params = {
-      executionId: this.props.execution.id,
-      stage: index,
-      step: stageSummary.firstActiveStage
-    };
-
-    if ($state.includes('**.execution', params)) {
-      if (!this.props.standalone) {
-        $state.go('^');
-      }
-    } else {
-      if ($state.current.name.endsWith('.execution') || this.props.standalone) {
-        $state.go('.', params);
-      } else {
-        $state.go('.execution', params);
-      }
-    }
+  public toggleDetails(stageIndex?: number, subIndex?: number): void {
+    const { executionService } = ReactInjector;
+    executionService.toggleDetails(this.props.execution, stageIndex, subIndex);
   }
 
   public getUrl(): string {
@@ -225,8 +204,8 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
     this.stateChangeSuccessSubscription.unsubscribe();
   }
 
-  private handleNodeClick(node: IPipelineGraphNode): void {
-    this.toggleDetails(node.index);
+  private handleNodeClick(node: IPipelineGraphNode, subIndex: number): void {
+    this.toggleDetails(node.index, subIndex);
   }
 
   private handleSourceNoStagesClick(): void {

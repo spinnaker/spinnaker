@@ -1,9 +1,10 @@
 export interface IStage {
+  [k: string]: any;
+  alias?: string;
+  group?: string;
+  isNew?: boolean;
   name: string;
-  type: string;
   refId: string | number; // unfortunately, we kept this loose early on, so it's either a string or a number
   requisiteStageRefIds: (string | number)[];
-  [k: string]: any;
-  isNew?: boolean;
-  alias?: string;
+  type: string;
 }

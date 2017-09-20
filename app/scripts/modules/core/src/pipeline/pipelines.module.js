@@ -3,6 +3,7 @@
 const angular = require('angular');
 
 import { COPY_STAGE_MODAL_CONTROLLER } from './config/copyStage/copyStage.modal.controller';
+import { GROUP_STAGE_MODULE } from './config/stages/group/groupStage.module';
 import { TRAVIS_STAGE_MODULE } from './config/stages/travis/travisStage.module';
 import { UNMATCHED_STAGE_TYPE_STAGE } from './config/stages/unmatchedStageTypeStage/unmatchedStageTypeStage';
 import { WEBHOOK_STAGE_MODULE } from './config/stages/webhook/webhookStage.module';
@@ -14,6 +15,7 @@ module.exports = angular.module('spinnaker.core.pipeline', [
   'ui.sortable',
   require('./config/pipelineConfig.module'),
   COPY_STAGE_MODAL_CONTROLLER,
+  GROUP_STAGE_MODULE,
   TRAVIS_STAGE_MODULE,
   WEBHOOK_STAGE_MODULE,
   UNMATCHED_STAGE_TYPE_STAGE,

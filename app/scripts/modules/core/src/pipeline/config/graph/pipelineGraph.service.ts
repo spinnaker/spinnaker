@@ -2,6 +2,7 @@ import { IExecution, IExecutionStageSummary, IPipeline, IStage } from 'core/doma
 
 export interface IExecutionViewState {
   activeStageId: number;
+  activeSubStageId: number;
   canConfigure: boolean;
   canTriggerPipelineManually: boolean;
   executionId: string;

@@ -4,6 +4,7 @@ const angular = require('angular');
 
 import { DELIVERY_STATES } from './delivery.states';
 import { EXECUTION_DETAILS_COMPONENT } from './details/executionDetails.component';
+import { EXECUTION_DETAILS_CONTROLLER } from './details/executionDetails.controller';
 import { BUILD_DISPLAY_NAME_FILTER } from './executionBuild/buildDisplayName.filter';
 import { EXECUTION_BUILD_NUMBER_COMPONENT } from './executionBuild/executionBuildNumber.component';
 import { EXECUTION_COMPONENT } from './executionGroup/execution/execution.component';
@@ -15,8 +16,7 @@ import { CORE_DELIVERY_DETAILS_SINGLEEXECUTIONDETAILS } from './details/singleEx
 
 
 module.exports = angular.module('spinnaker.delivery', [
-
-  require('./details/executionDetails.controller.js'),
+  EXECUTION_DETAILS_CONTROLLER,
   CORE_DELIVERY_DETAILS_SINGLEEXECUTIONDETAILS,
   EXECUTION_COMPONENT,
   EXECUTION_GROUPS_COMPONENT,

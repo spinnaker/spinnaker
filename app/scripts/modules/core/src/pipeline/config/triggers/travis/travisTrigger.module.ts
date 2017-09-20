@@ -1,7 +1,7 @@
 import { IController, IQService, IScope, module } from 'angular';
 
 import { IGOR_SERVICE, IgorService, BuildServiceType } from 'core/ci/igor.service';
-import { PIPELINE_CONFIG_PROVIDER } from 'core/pipeline/config/pipelineConfigProvider';
+import { PIPELINE_CONFIG_PROVIDER, PipelineConfigProvider } from 'core/pipeline/config/pipelineConfigProvider';
 import { SERVICE_ACCOUNT_SERVICE, ServiceAccountService } from 'core/serviceAccount/serviceAccount.service';
 import { IBuildTrigger } from 'core/domain/ITrigger';
 import { TRAVIS_TRIGGER_OPTIONS_COMPONENT } from './travisTriggerOptions.component';
@@ -87,7 +87,7 @@ module(TRAVIS_TRIGGER, [
   IGOR_SERVICE,
   SERVICE_ACCOUNT_SERVICE,
   PIPELINE_CONFIG_PROVIDER,
-]).config((pipelineConfigProvider: any) => {
+]).config((pipelineConfigProvider: PipelineConfigProvider) => {
   pipelineConfigProvider.registerTrigger({
     label: 'Travis',
     description: 'Listens to a Travis job',

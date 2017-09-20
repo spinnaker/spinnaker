@@ -1,5 +1,7 @@
 import { IComponentOptions, module } from 'angular';
 
+import { ExecutionDetailsController } from './executionDetails.controller';
+
 import './executionDetails.less';
 
 export class ExecutionDetailsComponent implements IComponentOptions {
@@ -8,7 +10,8 @@ export class ExecutionDetailsComponent implements IComponentOptions {
     application: '<',
     standalone: '<'
   };
-  public controller = 'executionDetails as ctrl';
+  public controller = ExecutionDetailsController;
+  public controllerAs = 'ctrl';
   public templateUrl: string = require('./executionDetails.html');
 
 }

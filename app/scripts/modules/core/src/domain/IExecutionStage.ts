@@ -35,6 +35,7 @@ export interface IExecutionStageLabelComponentProps {
 }
 
 export interface IExecutionStageSummary extends IOrchestratedItem {
+  activeStageType?: string,
   after: IExecutionStage[];
   before: IExecutionStage[];
   cloudProvider: string;
@@ -43,6 +44,8 @@ export interface IExecutionStageSummary extends IOrchestratedItem {
   endTime: number;
   extraLabelLines?: (stage: IExecutionStageSummary) => number;
   firstActiveStage?: number;
+  group?: string;
+  groupStages?: IExecutionStageSummary[];
   id: string;
   inSuspendedExecutionWindow?: boolean;
   index: number;

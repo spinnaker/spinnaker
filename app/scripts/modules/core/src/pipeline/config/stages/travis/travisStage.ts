@@ -1,4 +1,4 @@
-import { PIPELINE_CONFIG_PROVIDER } from 'core/pipeline/config/pipelineConfigProvider';
+import { PIPELINE_CONFIG_PROVIDER, PipelineConfigProvider } from 'core/pipeline/config/pipelineConfigProvider';
 import { IController, IScope, module } from 'angular';
 import * as moment from 'moment';
 
@@ -145,7 +145,7 @@ export const TRAVIS_STAGE = 'spinnaker.core.pipeline.stage.travisStage';
 module(TRAVIS_STAGE, [
   IGOR_SERVICE,
   PIPELINE_CONFIG_PROVIDER
-]).config((pipelineConfigProvider: any) => {
+]).config((pipelineConfigProvider: PipelineConfigProvider) => {
 
   if (SETTINGS.feature.travis) {
     pipelineConfigProvider.registerStage({

@@ -33,7 +33,7 @@ module(DELIVERY_STATES, [
   // replacing the URL
   const executionDetails: INestedState = {
     name: 'execution',
-    url: '/:executionId?refId&stage&step&details&stageId',
+    url: '/:executionId?refId&stage&subStage&step&details&stageId',
     params: {
       stage: {
         value: '0',
@@ -41,9 +41,6 @@ module(DELIVERY_STATES, [
       step: {
         value: '0',
       },
-      refId: {
-        value: null,
-      }
     },
     data: {
       pageTitleDetails: {

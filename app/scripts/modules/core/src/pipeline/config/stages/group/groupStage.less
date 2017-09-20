@@ -1,0 +1,67 @@
+@import (reference) "~core/presentation/less/imports/colors.less";
+
+.group-execution-label-list {
+  .group-name {
+    color: @dark_blue_background_title;
+    border-bottom: 1px #7e94a4 solid;
+    margin-bottom: 7px;
+  }
+
+  list-style-type: none;
+  padding: 3px 10px 0 10px;
+  >a, >a:hover, >a:visited {
+    text-decoration: none;
+    color: inherit;
+  }
+  li {
+    div {
+      display: flex;
+      padding: 3px;
+    }
+    font-size: 13px;
+    >:hover {
+      background-color: lighten(@dark_blue_background, 10%);
+    }
+    span+span {
+      padding-left: 20px;
+    }
+    .stage-status {
+      display: inline-block;
+      width: 13px;
+      height: 13px;
+      border-radius: 15px;
+      margin-right: 7px;
+      margin-top: 2px;
+    }
+  }
+  a:first-child {
+    >li {
+      border-top: none;
+    }
+  }
+}
+
+.group-stages-list-popover {
+  background-color: @dark_blue_background !important;
+  .popover-content, &.inverse {
+    background-color: @dark_blue_background;
+    color: white;
+    padding: 5px;
+  }
+
+  &.top > div.arrow:after {
+    border-top-color: @dark_blue_background;
+  }
+
+  &.bottom > div.arrow:after {
+    border-bottom-color: @dark_blue_background;
+  }
+}
+
+.marker-group-icon {
+  display: inline-block;
+  vertical-align: middle;
+  svg {
+    fill: var(--color-text-secondary);
+  }
+}

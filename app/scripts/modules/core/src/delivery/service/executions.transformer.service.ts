@@ -1,5 +1,6 @@
 import { module } from 'angular';
 
+import { duration } from 'moment';
 import { find, findLast, flattenDeep, get, has, maxBy, uniq, sortBy } from 'lodash';
 
 import { Application } from 'core/application';
@@ -41,6 +42,11 @@ export class ExecutionsTransformerService {
   }
 
   private flattenStages(stages: IExecutionStage[], stage: IExecutionStage | IExecutionStageSummary): IExecutionStage[] {
+    const stageSummary = stage as IExecutionStageSummary;
+    if (stageSummary.groupStages) {
+      stageSummary.groupStages.forEach((s) => this.flattenStages(stages, s));
+      return stages;
+    }
     if (stage.before && stage.before.length) {
       stage.before.sort((a, b) => this.siblingStageSorter(a, b));
       stage.before.forEach((beforeStage) => this.flattenStages(stages, beforeStage));
@@ -85,6 +91,16 @@ export class ExecutionsTransformerService {
     }
   }
 
+  private getCurrentStage<T extends IOrchestratedItem>(stages: T[]) {
+    const lastStage = stages[stages.length - 1];
+    const lastNotStartedStage = findLast<T>(stages, (childStage) => childStage.hasNotStarted);
+    const lastFailedStage = findLast<T>(stages, (childStage) => childStage.isFailed);
+    const lastRunningStage = findLast<T>(stages, (childStage) => childStage.isRunning);
+    const lastCanceledStage = findLast<T>(stages, (childStage) => childStage.isCanceled);
+    const lastStoppedStage = findLast<T>(stages, (childStage) => childStage.isStopped);
+    return lastRunningStage || lastFailedStage || lastStoppedStage || lastCanceledStage || lastNotStartedStage || lastStage;
+  }
+
   private transformStage(stage: IExecutionStageSummary): void {
     const stages = this.flattenAndFilter(stage);
     if (!stages.length) {
@@ -92,16 +108,9 @@ export class ExecutionsTransformerService {
     }
 
     if ((stage as IExecutionStageSummary).masterStage) {
-      const lastStage = stages[stages.length - 1];
       this.setMasterStageStartTime(stages, stage as IExecutionStageSummary);
 
-      const lastNotStartedStage = findLast<IExecutionStage>(stages, (childStage) => childStage.hasNotStarted);
-      const lastFailedStage = findLast<IExecutionStage>(stages, (childStage) => childStage.isFailed);
-      const lastRunningStage = findLast<IExecutionStage>(stages, (childStage) => childStage.isRunning);
-      const lastCanceledStage = findLast<IExecutionStage>(stages, (childStage) => childStage.isCanceled);
-      const lastStoppedStage = findLast<IExecutionStage>(stages, (childStage) => childStage.isStopped);
-      const currentStage = lastRunningStage || lastFailedStage || lastStoppedStage || lastCanceledStage || lastNotStartedStage || lastStage;
-
+      const currentStage = this.getCurrentStage(stages);
       stage.status = currentStage.status;
 
       // if a stage is running, ignore the endTime of the parent stage
@@ -163,8 +172,9 @@ export class ExecutionsTransformerService {
     execution.stageWidth = 100 / execution.stageSummaries.length + '%';
   }
 
-  private styleStage(stage: IExecutionStageSummary): void {
-    const stageConfig = this.pipelineConfig.getStageConfig(stage);
+  private styleStage(stage: IExecutionStageSummary, styleStage?: IExecutionStageSummary): void {
+    styleStage = styleStage || stage;
+    const stageConfig = this.pipelineConfig.getStageConfig(styleStage);
     if (stageConfig) {
       stage.labelComponent = stageConfig.executionLabelComponent || ExecutionBarLabel;
       stage.markerIcon = stageConfig.markerIcon || ExecutionMarkerIcon;
@@ -212,6 +222,10 @@ export class ExecutionsTransformerService {
     this.transformStage(summary);
     this.styleStage(summary);
     OrchestratedItemTransformer.defineProperties(summary);
+
+    if (summary.type === 'group') {
+      summary.groupStages.forEach((stage, i) => this.transformStageSummary(stage, i));
+    }
   }
 
   private filterStages(summary: IExecutionStageSummary): void {
@@ -246,7 +260,6 @@ export class ExecutionsTransformerService {
     this.pipelineConfig.getExecutionTransformers().forEach((transformer) => {
       transformer.transform(application, execution);
     });
-    const stageSummaries: IExecutionStageSummary[] = [];
 
     execution.context = execution.context || {};
     execution.stages.forEach((stage, index) => {
@@ -259,21 +272,43 @@ export class ExecutionsTransformerService {
       }
     });
 
+    // Handle synthetic stages
     execution.stages.forEach((stage) => {
-      const context = stage.context || {};
-      const owner = stage.syntheticStageOwner;
       const parent = find(execution.stages, { id: stage.parentStageId });
       if (parent) {
-        if (owner === 'STAGE_BEFORE') {
+        if (stage.syntheticStageOwner === 'STAGE_BEFORE') {
           parent.before.push(stage);
         }
-        if (owner === 'STAGE_AFTER') {
+        if (stage.syntheticStageOwner === 'STAGE_AFTER') {
           parent.after.push(stage);
         }
       }
+      const context = stage.context || {};
       stage.cloudProvider = context.cloudProvider || context.cloudProviderType;
     });
 
+    OrchestratedItemTransformer.defineProperties(execution);
+    this.processStageSummaries(execution);
+  }
+
+  private calculateRunningTime(stage: IExecutionStageSummary): () => number {
+    return () => {
+      // Find the earliest startTime and latest endTime
+      stage.groupStages.forEach((subStage) => {
+        if (subStage.startTime && subStage.startTime < stage.startTime) { stage.startTime = subStage.startTime; }
+        if (subStage.endTime && subStage.endTime > stage.endTime) { stage.endTime = subStage.endTime; }
+      });
+
+      if (!stage.startTime) {
+        return null;
+      }
+      const normalizedNow: number = Math.max(Date.now(), stage.startTime);
+      return (stage.endTime || normalizedNow) - stage.startTime;
+    };
+  }
+
+  public processStageSummaries(execution: IExecution): void {
+    let stageSummaries: IExecutionStageSummary[] = [];
     execution.stages.forEach((stage) => {
       if (!stage.syntheticStageOwner && !this.hiddenStageTypes.includes(stage.type)) {
         // HACK: Orca sometimes (always?) incorrectly reports a parent stage as running when a child stage has stopped
@@ -282,27 +317,103 @@ export class ExecutionsTransformerService {
         }
         const context = stage.context || {};
         const summary: IExecutionStageSummary = {
-          name: stage.name,
-          id: stage.id,
-          startTime: stage.startTime,
-          endTime: stage.endTime,
-          masterStage: stage,
-          type: stage.type,
-          before: stage.before,
           after: stage.after,
-          status: stage.status,
-          comments: context.comments || null,
+          before: stage.before,
           cloudProvider: stage.cloudProvider,
+          comments: context.comments || null,
+          endTime: stage.endTime,
+          group: context.group,
+          id: stage.id,
+          index: undefined,
+          masterStage: stage,
+          name: stage.name,
           refId: stage.refId,
           requisiteStageRefIds: stage.requisiteStageRefIds && stage.requisiteStageRefIds[0] === '*' ? [] : stage.requisiteStageRefIds || [],
           stages: [],
-          index: undefined
+          startTime: stage.startTime,
+          status: stage.status,
+          type: stage.type,
         } as IExecutionStageSummary;
         stageSummaries.push(summary);
       }
     });
 
-    OrchestratedItemTransformer.defineProperties(execution);
+    const idToGroupIdMap: { [key: string]: (number | string) }  = {};
+    stageSummaries = stageSummaries.reduce((groupedStages, stage) => {
+
+      // Since everything should already be sorted, if the stage is not in a group, just push it on and continue
+      if (!stage.group) {
+        groupedStages.push(stage);
+        return groupedStages;
+      }
+
+      // The stage is in a group
+      let groupedStage = groupedStages.find((s) => s.type === 'group' && s.name === stage.group);
+      if (!groupedStage) {
+        // Create a new grouped stage
+        groupedStage = {
+          activeStageType: undefined,
+          after: undefined,
+          before: stage.before,
+          cloudProvider: stage.cloudProvider, // what if the group has two different cloud providers?
+          comments: '',
+          endTime: stage.endTime,
+          groupStages: [],
+          id: stage.group, // TODO: Can't key off group name because a partial 'group' can be used multiple times...
+          index: undefined,
+          masterStage: undefined,
+          name: stage.group,
+          refId: stage.group, // TODO: Can't key off group name because a partial 'group' can be used multiple times...
+          requisiteStageRefIds: stage.requisiteStageRefIds && stage.requisiteStageRefIds[0] === '*' ? [] : stage.requisiteStageRefIds || [], // TODO: No idea what to do with refids...
+          stages: [],
+          startTime: stage.startTime,
+          status: undefined,
+          type: 'group',
+        } as IExecutionStageSummary;
+        groupedStages.push(groupedStage);
+      }
+      OrchestratedItemTransformer.defineProperties(stage);
+
+      // Update the runningTimeInMs function to account for the group
+      Object.defineProperties(groupedStage, {
+        runningTime: {
+          get: () => duration(this.calculateRunningTime(groupedStage)()).humanize(),
+          configurable: true,
+        },
+        runningTimeInMs: {
+          get: this.calculateRunningTime(groupedStage),
+          configurable: true,
+        }
+      });
+
+      idToGroupIdMap[stage.refId] = groupedStage.refId;
+      groupedStage.groupStages.push(stage);
+      return groupedStages;
+    }, [] as IExecutionStageSummary[]);
+
+    stageSummaries.forEach((summary) => {
+      if (summary.type === 'group' && summary.groupStages.length > 1) {
+        const subComments: string[] = [];
+        // Find the earliest startTime and latest endTime
+        summary.groupStages.forEach((subStage) => {
+          if (subStage.comments) { subComments.push(subStage.comments); }
+        });
+
+        // Assuming the last stage in the group has the "output" stages
+        summary.after = summary.groupStages[summary.groupStages.length - 1].after;
+
+        const currentStage = this.getCurrentStage(summary.groupStages);
+        summary.activeStageType = currentStage.type;
+        summary.status = currentStage.status;
+        this.styleStage(summary, currentStage);
+
+        // Set the group comment as a concatenation of all the stage summary comments
+        summary.comments = subComments.join(', ');
+      }
+
+      // Make sure the requisite ids that were pointing at stages within a group are now pointing at the group
+      summary.requisiteStageRefIds = uniq(summary.requisiteStageRefIds.map((id) => idToGroupIdMap[id] || id));
+    });
 
     stageSummaries.forEach((summary, index) => this.transformStageSummary(summary, index));
     execution.stageSummaries = stageSummaries;

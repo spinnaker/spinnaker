@@ -78,10 +78,12 @@ export class OrchestratedItemTransformer {
         }
       },
       runningTime: {
-        get: () => duration(this.calculateRunningTime(item)()).humanize()
+        get: () => duration(this.calculateRunningTime(item)()).humanize(),
+        configurable: true,
       },
       runningTimeInMs: {
-        get: this.calculateRunningTime(item)
+        get: this.calculateRunningTime(item),
+        configurable: true,
       }
     });
   }

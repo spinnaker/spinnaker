@@ -142,7 +142,7 @@ export class HoverablePopover extends React.Component<IHoverablePopoverProps, IH
   }
 
   private refCallback(ref: any): void {
-    this.setState({ target: ref })
+    this.setState({ target: ref });
   }
 
   public render() {
@@ -150,7 +150,7 @@ export class HoverablePopover extends React.Component<IHoverablePopoverProps, IH
     const PopoverRenderer = this.state.PopoverRenderer;
 
     return (
-      <span onMouseEnter={this.handleMouseEvent} onMouseLeave={this.handleMouseEvent} ref={this.refCallback}>
+      <g onMouseEnter={this.handleMouseEvent} onMouseLeave={this.handleMouseEvent} ref={this.refCallback}>
         {this.props.children}
         <Overlay show={this.state.popoverIsOpen} placement={this.props.placement} target={this.state.target} container={this.props.container}>
           <PopoverRenderer
@@ -163,7 +163,7 @@ export class HoverablePopover extends React.Component<IHoverablePopoverProps, IH
             {PopoverContents}
           </PopoverRenderer>
         </Overlay>
-      </span>
+      </g>
     );
   }
 }

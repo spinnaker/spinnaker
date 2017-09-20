@@ -11,6 +11,7 @@ export interface IExecution extends IOrchestratedItem {
   context?: { [key: string]: any };
   currentStages?: IExecutionStageSummary[];
   deploymentTargets: string[];
+  // expandedGroups?: {[groupId: string]: boolean};
   graphStatusHash?: string;
   id: string;
   isComplete?: boolean;
@@ -18,8 +19,8 @@ export interface IExecution extends IOrchestratedItem {
   name?: string;
   pipelineConfigId?: string;
   searchField?: string;
-  stageSummaries?: IExecutionStageSummary[];
-  stageWidth?: string;
+  stageSummaries?: IExecutionStageSummary[]; // added by transformer
+  stageWidth?: string; // added by transformer
   stages: IExecutionStage[];
   stringVal?: string;
   trigger: IExecutionTrigger;

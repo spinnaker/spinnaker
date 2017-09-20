@@ -6,7 +6,7 @@ import { Subject } from 'rxjs';
 import { Application } from 'core/application/application.model';
 import { EXECUTION_FILTER_MODEL, ExecutionFilterModel } from 'core/delivery';
 import { IExecution, IExecutionGroup, IPipeline } from 'core/domain';
-import { PIPELINE_CONFIG_PROVIDER } from 'core/pipeline/config/pipelineConfigProvider';
+import { PIPELINE_CONFIG_PROVIDER, PipelineConfigProvider } from 'core/pipeline/config/pipelineConfigProvider';
 
 export class ExecutionFilterService {
 
@@ -19,7 +19,7 @@ export class ExecutionFilterService {
               private timeBoundaries: any,
               private $log: ILogService,
               private filterModelService: any,
-              private pipelineConfig: any) {
+              private pipelineConfig: PipelineConfigProvider) {
     'ngInject';
     this.isFilterable = filterModelService.isFilterable;
   }

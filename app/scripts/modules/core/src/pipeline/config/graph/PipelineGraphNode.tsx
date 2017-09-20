@@ -5,6 +5,8 @@ import * as classNames from 'classnames';
 import autoBindMethods from 'class-autobind-decorator';
 import { get } from 'lodash';
 
+import { IExecutionStageSummary } from 'core/domain';
+import { GroupExecutionPopover } from 'core/pipeline/config/stages/group/GroupExecutionPopover';
 import { LabelComponent } from 'core/presentation';
 import { Popover } from 'core/presentation/Popover';
 
@@ -15,7 +17,7 @@ export interface IPipelineGraphNodeProps {
   labelOffsetX: number;
   labelOffsetY: number;
   maxLabelWidth: number;
-  nodeClicked: (node: IPipelineGraphNode) => void;
+  nodeClicked: (node: IPipelineGraphNode | IExecutionStageSummary, subIndex?: number) => void;
   highlight: (node: IPipelineGraphNode, highlight: boolean) => void;
   nodeRadius: number;
   node: IPipelineGraphNode;
@@ -23,15 +25,15 @@ export interface IPipelineGraphNodeProps {
 
 @autoBindMethods
 export class PipelineGraphNode extends React.Component<IPipelineGraphNodeProps> {
-  private highlight() {
+  private highlight(): void {
     this.props.highlight(this.props.node, true);
   }
 
-  private removeHighlight() {
+  private removeHighlight(): void {
     this.props.highlight(this.props.node, false);
   }
 
-  private handleClick() {
+  private handleClick(): void {
     ReactGA.event({
       category: `Pipeline Graph (${this.props.isExecution ? 'execution' : 'config'})`,
       action: `Node clicked`
@@ -39,16 +41,29 @@ export class PipelineGraphNode extends React.Component<IPipelineGraphNodeProps> 
     this.props.nodeClicked(this.props.node);
   }
 
+  private subStageClicked(groupStage: IExecutionStageSummary, stage: IExecutionStageSummary): void {
+    ReactGA.event({
+      category: `Pipeline Graph (${this.props.isExecution ? 'execution' : 'config'})`,
+      action: `Grouped stage clicked`
+    });
+    this.props.nodeClicked(groupStage, stage.index);
+  }
+
   public render() {
     const { labelOffsetX, labelOffsetY, maxLabelWidth, nodeRadius, node } = this.props;
 
-    const masterStageType = get(node, ['masterStage', 'type'], '');
+    const isGroup = node.stage && node.stage.type === 'group';
+    let stageType = get(node, ['masterStage', 'type'], undefined);
+    stageType = stageType || get(node, ['stage', 'activeStageType'], '');
     const circleClassName = classNames(
-      'clickable',
-      `stage-type-${masterStageType.toLowerCase()}`,
+      `stage-type-${stageType.toLowerCase()}`,
       'execution-marker',
       `execution-marker-${(node.status || '').toLowerCase()}`,
-      { active: node.isActive }
+      'graph-node',
+      {
+        active: node.isActive,
+        clickable: !isGroup
+      }
     );
 
     const warningsPopover = (
@@ -62,65 +77,86 @@ export class PipelineGraphNode extends React.Component<IPipelineGraphNodeProps> 
 
     let GraphNode = (
       <g>
-      <circle
-        r={nodeRadius}
-        className={circleClassName}
-        fillOpacity={!node.isActive && node.executionStage ? 0.4 : 1}
-        onMouseEnter={this.highlight}
-        onMouseLeave={this.removeHighlight}
-        onClick={this.handleClick}
-      />
+        { isGroup && (
+          <path
+            className={circleClassName}
+            fillOpacity={!node.isActive && node.executionStage ? 0.4 : 1}
+            transform="translate(-7,-9)"
+            d="M8 9l-8-4 8-4 8 4zM14.398 7.199l1.602 0.801-8 4-8-4 1.602-0.801 6.398 3.199zM14.398 10.199l1.602 0.801-8 4-8-4 1.602-0.801 6.398 3.199z"
+          />
+        )}
 
-      { (node.root || node.leaf) && !node.executionStage && (
-        <rect
-          transform={node.root ? `translate(${nodeRadius * -1},${nodeRadius * -1})` : `translate(0,${nodeRadius * -1})`}
-          className="clickable"
-          height={nodeRadius * 2}
-          width={nodeRadius}
-          onMouseEnter={this.highlight}
-          onMouseLeave={this.removeHighlight}
-          onClick={this.handleClick}
-        />
-      )}
-    </g>
+        { !isGroup && (
+          <circle
+            r={nodeRadius}
+            className={circleClassName}
+            fillOpacity={!node.isActive && node.executionStage ? 0.4 : 1}
+            onClick={this.handleClick}
+          />
+        )}
+
+        { (node.root || node.leaf) && !node.executionStage && !isGroup && (
+          <rect
+            transform={node.root ? `translate(${nodeRadius * -1},${nodeRadius * -1})` : `translate(0,${nodeRadius * -1})`}
+            className={circleClassName}
+            height={nodeRadius * 2}
+            width={nodeRadius}
+            onClick={this.handleClick}
+          />
+        )}
+      </g>
     );
 
+    // Only for pipeline
     if (node.hasWarnings) {
       GraphNode = <Popover placement="bottom" template={warningsPopover}>{GraphNode}</Popover>;
     }
 
-    const GraphLabel = (
+    // Add the group popover to the circle if the node is representative of a group
+    // Only executions have a 'stage' property
+    if (node.stage && node.stage.type === 'group') {
+      GraphNode = <GroupExecutionPopover stage={node.stage} subStageClicked={this.subStageClicked}>{GraphNode}</GroupExecutionPopover>;
+    }
+
+    // Render the label differently if there is a custom label component
+    let GraphLabel = node.labelComponent ? (
+      <div
+        className={`execution-stage-label ${!isGroup ? 'clickable' : 'stage-group'} ${(node.status || '').toLowerCase()}`}
+        onClick={this.handleClick}
+      >
+        <LabelComponent stage={node.stage}/>
+      </div>
+    ) : (
+      <div
+        className={`label-body node ${!isGroup ? 'clickable' : ''}`}
+        onClick={this.handleClick}
+      >
+        <a>{node.name}</a>
+      </div>
+    );
+
+    // Add the group popover to the label if the node is representative of a group
+    if (node.stage && node.stage.type === 'group') {
+      GraphLabel = <GroupExecutionPopover stage={node.stage} subStageClicked={this.subStageClicked}>{GraphLabel}</GroupExecutionPopover>
+    }
+
+    // Wrap all the label html in a foreignObject to make SVG happy
+    GraphLabel = (
       <foreignObject
         width={maxLabelWidth}
-        height="100"
+        height="34"
         transform={`translate(${labelOffsetX}, ${node.leaf && !node.executionStage ? -8 : labelOffsetY * -1})`}
       >
-        { node.labelComponent && (
-          <div
-            className={`execution-stage-label clickable ${(node.status || '').toLowerCase()}`}
-            onMouseEnter={this.highlight}
-            onMouseLeave={this.removeHighlight}
-            style={{height: node.height + 'px'}}
-            onClick={this.handleClick}
-          >
-            <LabelComponent stage={node as any}/>
-          </div>
-        )}
-        { !node.labelComponent && (
-          <div
-            className="label-body node clickable"
-            onMouseEnter={this.highlight}
-            onMouseLeave={this.removeHighlight}
-            onClick={this.handleClick}
-          >
-            <a>{node.name}</a>
-          </div>
-        )}
+        {GraphLabel}
       </foreignObject>
     );
 
     return (
-      <g>
+      <g
+        onMouseEnter={this.highlight}
+        onMouseLeave={this.removeHighlight}
+        style={{pointerEvents: 'bounding-box'}}
+      >
         {GraphNode}
         {GraphLabel}
       </g>

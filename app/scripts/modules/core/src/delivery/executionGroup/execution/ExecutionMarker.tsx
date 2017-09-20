@@ -56,11 +56,12 @@ export class ExecutionMarker extends React.Component<IExecutionMarkerProps, IExe
 
   public render() {
     const {stage, application, execution, active, previousStageActive, width} = this.props;
+    const stageType = (stage.activeStageType || stage.type).toLowerCase(); // support groups
     const markerClassName = [
-      'clickable',
+      stage.type !== 'group' ? 'clickable' : '',
       'stage',
       'execution-marker',
-      `stage-type-${stage.type.toLowerCase()}`,
+      `stage-type-${stageType}`,
       `execution-marker-${stage.status.toLowerCase()}`,
       active ? 'active' : '',
       previousStageActive ? 'after-active' : '',
