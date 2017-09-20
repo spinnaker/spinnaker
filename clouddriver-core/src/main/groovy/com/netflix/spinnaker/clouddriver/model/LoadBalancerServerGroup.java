@@ -14,13 +14,24 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.model
+package com.netflix.spinnaker.clouddriver.model;
 
-import groovy.transform.Canonical
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-@Canonical
-class LoadBalancerInstance {
-  String id
-  String zone
-  Map<String, String> health
+import java.util.Set;
+
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class LoadBalancerServerGroup {
+  String name;
+  String account;
+  String region;
+  Boolean isDisabled;
+  Set<String> detachedInstances;
+  Set<LoadBalancerInstance> instances;
 }

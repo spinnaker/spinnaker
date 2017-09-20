@@ -35,7 +35,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component
-class KubernetesClusterProvider implements ClusterProvider<KubernetesCluster> {
+class KubernetesV1ClusterProvider implements ClusterProvider<KubernetesCluster> {
   private final KubernetesCloudProvider kubernetesCloudProvider
   private final Cache cacheView
   private final ObjectMapper objectMapper
@@ -44,9 +44,9 @@ class KubernetesClusterProvider implements ClusterProvider<KubernetesCluster> {
   KubernetesSecurityGroupProvider securityGroupProvider
 
   @Autowired
-  KubernetesClusterProvider(KubernetesCloudProvider kubernetesCloudProvider,
-                            Cache cacheView,
-                            ObjectMapper objectMapper) {
+  KubernetesV1ClusterProvider(KubernetesCloudProvider kubernetesCloudProvider,
+                              Cache cacheView,
+                              ObjectMapper objectMapper) {
     this.kubernetesCloudProvider = kubernetesCloudProvider
     this.cacheView = cacheView
     this.objectMapper = objectMapper
