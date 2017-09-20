@@ -31,6 +31,8 @@ import javax.servlet.ServletResponse
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpSession
 
+import static net.logstash.logback.argument.StructuredArguments.value
+
 @Slf4j
 class FiatSessionFilter implements Filter {
 
@@ -56,8 +58,8 @@ class FiatSessionFilter implements Filter {
         HttpServletRequest httpReq = (HttpServletRequest) request
         HttpSession session = httpReq.getSession(false)
         if (session != null) {
-          log.info("Invalidating user '${user}' session '${session.id}'" +
-            " because Fiat permission was not found.")
+          log.info("Invalidating user '{}' session '{}' because Fiat permission was not found.",
+          value("user", user), value("session", session))
           session.invalidate()
           SecurityContextHolder.clearContext()
         }

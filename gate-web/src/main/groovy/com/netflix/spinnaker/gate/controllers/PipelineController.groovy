@@ -43,6 +43,8 @@ import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import retrofit.RetrofitError
 
+import static net.logstash.logback.argument.StructuredArguments.value
+
 @Slf4j
 @CompileStatic
 @RestController
@@ -207,7 +209,8 @@ class PipelineController {
     } catch (NotFoundException e) {
       throw e
     } catch (e) {
-      log.error("Unable to trigger pipeline (application: ${application}, pipelineName: ${pipelineNameOrId})", e)
+      log.error("Unable to trigger pipeline (application: {}, pipelineName: {})",
+        value("application", application), value("pipelineName", pipelineNameOrId), e)
       new ResponseEntity([message: e.message], new HttpHeaders(), HttpStatus.UNPROCESSABLE_ENTITY)
     }
   }

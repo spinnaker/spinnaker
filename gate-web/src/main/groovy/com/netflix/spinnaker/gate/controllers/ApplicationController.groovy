@@ -34,6 +34,8 @@ import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
+import static net.logstash.logback.argument.StructuredArguments.value
+
 @RequestMapping("/applications")
 @RestController
 @Slf4j
@@ -83,7 +85,7 @@ class ApplicationController {
   Map getApplication(@PathVariable("application") String application, @RequestParam(value = "expand", defaultValue = "true") boolean expand) {
     def result = applicationService.getApplication(application, expand)
     if (!result) {
-      log.warn("Application ${application} not found")
+      log.warn("Application {} not found", value("application", application))
       throw new NotFoundException("Application not found (id: ${application})")
     } else if (!result.name) {
       // applicationService.getApplication() doesn't set the name unless clusters are found. Deck requires the name.

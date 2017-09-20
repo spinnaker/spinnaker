@@ -24,6 +24,8 @@ import groovy.util.logging.Slf4j
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.stereotype.Component
 
+import static net.logstash.logback.argument.StructuredArguments.value
+
 @Slf4j
 @Component
 @CompileStatic
@@ -51,7 +53,7 @@ class InsightConfiguration {
           label: label
         ]
       } catch (Exception e) {
-        log.info("Unable to apply context to link (url: ${url})", e)
+        log.info("Unable to apply context to link (url: {})", value("url", url), e)
         return [url: url, label: label]
       }
     }

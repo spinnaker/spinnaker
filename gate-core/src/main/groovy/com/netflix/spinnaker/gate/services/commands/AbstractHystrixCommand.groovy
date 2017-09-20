@@ -26,6 +26,7 @@ import org.springframework.http.HttpStatus
 import retrofit.RetrofitError
 import static HystrixFactory.createHystrixCommandPropertiesSetter
 import static HystrixFactory.toGroupKey
+import static net.logstash.logback.argument.StructuredArguments.value
 
 @Slf4j
 @CompileStatic
@@ -77,7 +78,8 @@ abstract class AbstractHystrixCommand<T> extends HystrixCommand<T> {
     def e = getFailedExecutionException()
     if (e instanceof RetrofitError) {
       def retrofitError = (RetrofitError) e
-      log.error("Fallback encountered (url: ${retrofitError.url}, type: ${retrofitError.kind}, status: ${retrofitError.response?.status})", e)
+      log.error("Fallback encountered (url: {}, type: {}, status: {})", value("retrofitErrorUrl", retrofitError.url),
+        value("retrofitErrorKind", retrofitError.kind), value("retrofitResponseStatus", retrofitError.response?.status), e)
       def status = e?.getResponse()?.getStatus()
 
       if (status == 429 || status == 503) {
@@ -88,7 +90,8 @@ abstract class AbstractHystrixCommand<T> extends HystrixCommand<T> {
         throw new ServerErrorException()
       }
 
-      log.error("No fallback available (group: '${groupKey}', command: '${commandKey}', exception: '${e?.toString() ?: ""}')", e)
+      log.error("No fallback available (group: '{}', command: '{}', exception: '{}'", value("group", groupKey),
+        value("command", commandKey), value("exception", e?.toString() ?: ""), e)
     }
 
     /**
@@ -97,7 +100,8 @@ abstract class AbstractHystrixCommand<T> extends HystrixCommand<T> {
      */
 
     if (isResponseShortCircuited() || isResponseTimedOut()) {
-      log.error("(Circuit breaker open| Response Timeout | Semaphore rejected) for group: '${groupKey}', command: '${commandKey}'")
+      log.error("(Circuit breaker open| Response Timeout | Semaphore rejected) for group: '{}', command: '{}'",
+        value("group", groupKey), value("command", commandKey))
       throw new ServiceUnavailableException()
     }
 

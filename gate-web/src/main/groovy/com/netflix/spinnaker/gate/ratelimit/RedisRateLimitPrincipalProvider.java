@@ -25,6 +25,8 @@ import redis.clients.jedis.exceptions.JedisException;
 import java.util.ArrayList;
 import java.util.List;
 
+import static net.logstash.logback.argument.StructuredArguments.value;
+
 public class RedisRateLimitPrincipalProvider extends AbstractRateLimitPrincipalProvider {
 
   private final static Logger log = LoggerFactory.getLogger(RedisRateLimitPrincipalProvider.class);
@@ -68,7 +70,8 @@ public class RedisRateLimitPrincipalProvider extends AbstractRateLimitPrincipalP
       try {
         return Integer.parseInt(capacity);
       } catch (NumberFormatException e) {
-        log.error("invalid principal capacity value, expected integer (principal: {}, value: {})", name, capacity);
+        log.error("invalid principal capacity value, expected integer (principal: {}, value: {})",
+          value("principal", name), value("capacity", capacity));
       }
     }
     return overrideOrDefault(name, rateLimiterConfiguration.getCapacityByPrincipal(), rateLimiterConfiguration.getCapacity());
@@ -80,7 +83,8 @@ public class RedisRateLimitPrincipalProvider extends AbstractRateLimitPrincipalP
       try {
         return Integer.parseInt(rateSeconds);
       } catch (NumberFormatException e) {
-        log.error("invalid principal rateSeconds value, expected integer (principal: {}, value: {})", name, rateSeconds);
+        log.error("invalid principal rateSeconds value, expected integer (principal: {}, value: {})",
+          value("principal", name), value("rateSeconds", rateSeconds));
       }
     }
     return overrideOrDefault(name, rateLimiterConfiguration.getRateSecondsByPrincipal(), rateLimiterConfiguration.getRateSeconds());
@@ -91,7 +95,8 @@ public class RedisRateLimitPrincipalProvider extends AbstractRateLimitPrincipalP
     List<String> ignoring = new ArrayList<>(jedis.smembers(getIgnoringKey()));
 
     if (enforcing.contains(name) && ignoring.contains(name)) {
-      log.warn("principal is configured to be enforced AND ignored in Redis, ENFORCING for request (principal: {})", name);
+      log.warn("principal is configured to be enforced AND ignored in Redis, ENFORCING for request (principal: {})",
+        value("principal", name));
       return false;
     }
 
@@ -100,7 +105,8 @@ public class RedisRateLimitPrincipalProvider extends AbstractRateLimitPrincipalP
       ignoring = rateLimiterConfiguration.getIgnoring();
 
       if (enforcing.contains(name) && ignoring.contains(name)) {
-        log.warn("principal is configured to be enforced AND ignored in static config, ENFORCING for request (principal: {})", name);
+        log.warn("principal is configured to be enforced AND ignored in static config, ENFORCING for request (principal: {})",
+          value("principal", name));
         return false;
       }
     }

@@ -38,6 +38,8 @@ import retrofit.RetrofitError
 import java.util.regex.Pattern
 import java.util.regex.PatternSyntaxException
 
+import static net.logstash.logback.argument.StructuredArguments.*
+
 /**
  * ResourceServerTokenServices is an interface used to manage access tokens. The UserInfoTokenService object is an
  * implementation of that interface that uses an access token to get the logged in user's data (such as email or
@@ -73,7 +75,7 @@ class SpinnakerUserInfoTokenServices implements ResourceServerTokenServices {
     Map details = oAuth2Authentication.userAuthentication.details as Map
 
     if (log.isDebugEnabled()) {
-      log.debug("UserInfo details: " + new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(details))
+      log.debug("UserInfo details: ", entries(details))
     }
 
     def isServiceAccount = isServiceAccount(details)

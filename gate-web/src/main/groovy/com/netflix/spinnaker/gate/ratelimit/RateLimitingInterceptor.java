@@ -34,6 +34,8 @@ import javax.servlet.http.HttpServletResponse;
 import java.time.ZonedDateTime;
 import java.util.Collections;
 
+import static net.logstash.logback.argument.StructuredArguments.value;
+
 public class RateLimitingInterceptor extends HandlerInterceptorAdapter {
 
   private static Logger log = LoggerFactory.getLogger(RateLimitingInterceptor.class);
@@ -82,7 +84,9 @@ public class RateLimitingInterceptor extends HandlerInterceptorAdapter {
     if (principal.isLearning()) {
       if (rate.isThrottled()) {
         learningThrottlingCounter.increment();
-        log.warn("Rate limiting principal (principal: {}, rateSeconds: {}, capacity: {}, learning: true)", principal.getName(), rate.rateSeconds, rate.capacity);
+        log.warn("Rate limiting principal (principal: {}, rateSeconds: {}, capacity: {}, learning: true)",
+          value("principal", principal.getName()), value("rateSeconds", rate.rateSeconds),
+          value("rateCapacity", rate.capacity));
       }
       return true;
     }
@@ -90,7 +94,9 @@ public class RateLimitingInterceptor extends HandlerInterceptorAdapter {
 
     if (rate.isThrottled()) {
       throttlingCounter.increment();
-      log.warn("Rate limiting principal (principal: {}, rateSeconds: {}, capacity: {}, learning: false)", principal.getName(), rate.rateSeconds, rate.capacity);
+      log.warn("Rate limiting principal (principal: {}, rateSeconds: {}, capacity: {}, learning: false)",
+        value("principal", principal.getName()), value("rateSeconds", rate.rateSeconds),
+        value("rateCapacity", rate.capacity));
       response.sendError(429, "Rate capacity exceeded");
       return false;
     }
@@ -123,7 +129,8 @@ public class RateLimitingInterceptor extends HandlerInterceptorAdapter {
       if ("anonymous".equals(principal)) {
         String rateLimitApp = request.getHeader("X-RateLimit-App");
         if (rateLimitApp != null && !rateLimitApp.equals("")) {
-          log.info("Unknown or anonymous principal, using X-RateLimit-App instead: " + rateLimitApp);
+          log.info("Unknown or anonymous principal, using X-RateLimit-App instead: {}",
+            value("rateLimitApp", rateLimitApp));
           return rateLimitApp;
         }
       }

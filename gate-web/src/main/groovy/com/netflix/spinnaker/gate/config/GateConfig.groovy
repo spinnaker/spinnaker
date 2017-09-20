@@ -266,7 +266,7 @@ class GateConfig extends RedisHttpSessionConfiguration {
    */
   @Bean
   FilterRegistrationBean authenticatedRequestFilter() {
-    def frb = new FilterRegistrationBean(new AuthenticatedRequestFilter(false, true))
+    def frb = new FilterRegistrationBean(new AuthenticatedRequestFilter(false, true, true))
     frb.order = Ordered.LOWEST_PRECEDENCE
     return frb
   }
