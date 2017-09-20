@@ -173,7 +173,20 @@ public interface DistributedService<T, A extends Account> extends HasServiceSett
       List<ConfigSource> configSources,
       Integer maxRemaining,
       boolean scaleDown) {
+    String accountName = details.getAccount().getName();
+    String region = runtimeSettings.getServiceSettings(getService()).getLocation();
     Map<String, Object> deployDescription  = getServerGroupDescription(details, runtimeSettings, configSources);
+    Map<String, String> source = new HashMap<>();
+    RunningServiceDetails runningServiceDetails = getRunningServiceDetails(details, runtimeSettings);
+    if (runningServiceDetails.getLatestEnabledVersion() == null) {
+      throw new HalException(Problem.Severity.FATAL, "No prior server group to clone for " + getServiceName());
+    }
+    source.put("account", accountName);
+    source.put("credentials", accountName);
+    source.put("serverGroupName", getVersionedName(runningServiceDetails.getLatestEnabledVersion()));
+    source.put("region", region);
+    source.put("namespace", region);
+    deployDescription.put("source", source);
     deployDescription.put("interestingHealthProviders", getHealthProviders());
     deployDescription.put("type", AtomicOperations.CLONE_SERVER_GROUP);
     deployDescription.put("cloudProvider", getProviderType().getId());
