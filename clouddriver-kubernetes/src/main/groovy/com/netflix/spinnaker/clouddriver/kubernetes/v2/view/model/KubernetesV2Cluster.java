@@ -21,6 +21,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys;
 import com.netflix.spinnaker.clouddriver.model.Cluster;
 import com.netflix.spinnaker.clouddriver.model.LoadBalancer;
 import com.netflix.spinnaker.clouddriver.model.ServerGroup;
+import com.netflix.spinnaker.moniker.Moniker;
 import lombok.Data;
 
 import java.util.HashSet;
@@ -29,6 +30,7 @@ import java.util.Set;
 @Data
 public class KubernetesV2Cluster implements Cluster {
   String name;
+  Moniker moniker;
   String type;
   String accountName;
   Set<ServerGroup> serverGroups = new HashSet<>();
@@ -37,5 +39,6 @@ public class KubernetesV2Cluster implements Cluster {
   public KubernetesV2Cluster(Keys.ClusterCacheKey key) {
     this.name = key.getName();
     this.accountName = key.getAccount();
+    this.moniker = Moniker.builder().cluster(name).build(); // TODO(lwander) if it turns out that cluster -> app is important, enforce constraints here.
   }
 }

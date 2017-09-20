@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.view.model;
 
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.model.Instance;
 import com.netflix.spinnaker.clouddriver.model.ServerGroup;
@@ -43,13 +44,15 @@ public class KubernetesV2ServerGroup extends ManifestBasedModel implements Serve
   ImageSummary imageSummary;
   ImagesSummary imagesSummary;
   KubernetesManifest manifest;
+  Keys.InfrastructureCacheKey key;
 
   @Override
   public Boolean isDisabled() {
     return disabled;
   }
 
-  public KubernetesV2ServerGroup(KubernetesManifest manifest) {
+  public KubernetesV2ServerGroup(KubernetesManifest manifest, String key) {
     this.manifest = manifest;
+    this.key = (Keys.InfrastructureCacheKey) Keys.parseKey(key).get();
   }
 }

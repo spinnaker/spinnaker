@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.view.model;
 
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.model.HealthState;
 import com.netflix.spinnaker.clouddriver.model.Instance;
@@ -36,8 +37,10 @@ public class KubernetesV2Instance extends ManifestBasedModel implements Instance
   Long launchTime;
   List<Map<String, String>> health = new ArrayList<>();
   KubernetesManifest manifest;
+  Keys.InfrastructureCacheKey key;
 
-  public KubernetesV2Instance(KubernetesManifest manifest) {
+  public KubernetesV2Instance(KubernetesManifest manifest, String key) {
     this.manifest = manifest;
+    this.key = (Keys.InfrastructureCacheKey) Keys.parseKey(key).get();
   }
 }

@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.view.model;
 
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.model.LoadBalancer;
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerServerGroup;
@@ -32,8 +33,10 @@ public class KubernetesV2LoadBalancer extends ManifestBasedModel implements Load
   String account;
   Set<LoadBalancerServerGroup> serverGroups = new HashSet<>();
   KubernetesManifest manifest;
+  Keys.InfrastructureCacheKey key;
 
-  public KubernetesV2LoadBalancer(KubernetesManifest manifest) {
+  public KubernetesV2LoadBalancer(KubernetesManifest manifest, String key) {
     this.manifest = manifest;
+    this.key = (Keys.InfrastructureCacheKey) Keys.parseKey(key).get();
   }
 }
