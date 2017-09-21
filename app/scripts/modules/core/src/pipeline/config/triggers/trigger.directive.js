@@ -35,6 +35,11 @@ module.exports = angular.module('spinnaker.core.pipeline.config.trigger.triggerD
       $scope.pipeline.triggers.splice(triggerIndex, 1);
     };
 
+    this.artifactFilter = function(artifact) {
+      // Ensure suggested artifacts have a name and type
+      return artifact.type && artifact.name;
+    };
+
     this.loadTrigger = () => {
       var type = $scope.trigger.type,
           triggerScope = $scope.$new();

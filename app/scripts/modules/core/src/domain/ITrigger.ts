@@ -1,7 +1,9 @@
+import { IExpectedArtifact } from 'core/domain/IExpectedArtifact';
 export interface ITrigger {
   enabled: boolean;
   user?: string;
   type: string;
+  expectedArtifacts?: IExpectedArtifact[];
 }
 
 export interface IGitTrigger extends ITrigger {

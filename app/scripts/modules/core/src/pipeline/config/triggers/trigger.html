@@ -28,6 +28,26 @@
           <div class="trigger-body"></div>
         </div>
       </div>
+      <render-if-feature feature="artifacts">
+        <div class="form-group" ng-if="pipeline.expectedArtifacts.length">
+          <div class="col-md-10">
+            <div class="form-group">
+              <label class=" col-md-3 sm-label-right">Expected Artifacts</label>
+              <div class="col-md-9">
+                <ui-select ng-if="pipeline.expectedArtifacts.length"
+                           multiple
+                           ng-model="trigger.expectedArtifacts"
+                           class="form-control input-sm">
+                  <ui-select-match>{{$item.name}}</ui-select-match>
+                  <ui-select-choices repeat="artifact in pipeline.expectedArtifacts | filter: triggerCtrl.artifactFilter">
+                    <span ng-bind-html="artifact.name"></span>
+                  </ui-select-choices>
+                </ui-select>
+              </div>
+            </div>
+          </div>
+        </div>
+      </render-if-feature>
       <div class="form-group" ng-if="trigger.type && !triggerCtrl.disableAutoTriggering.includes(trigger.type)">
         <div class="col-md-10">
           <div class="row">

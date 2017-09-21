@@ -148,6 +148,9 @@ export class PipelineConfigValidator implements IServiceProvider {
     if (pipeline.strategy && !(pipeline.stages.some(stage => stage.type === 'deploy'))) {
       messages.push('To be able to create new server groups, a custom strategy should contain a Deploy stage.');
     }
+    if ((pipeline.expectedArtifacts || []).some(a => !a.name || !a.type)) {
+      messages.push('<b>Name</b> and <b>Type</b> are required fields for artifacts.');
+    }
     return messages;
   }
 

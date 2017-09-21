@@ -1,0 +1,65 @@
+<div class="row">
+  <div class="col-md-12">
+    <div class="form-horizontal panel-pipeline-phase">
+      <div class="form-group row">
+        <div class="col-md-10">
+          <div class="row">
+            <label class="col-md-3 sm-label-right">
+              Type
+              <help-field key="pipeline.config.artifact.type"></help-field>
+            </label>
+            <div class="col-md-9">
+              <input type="text"
+                     required
+                     class="form-control input-sm"
+                     ng-model="$ctrl.artifact.type"/>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-2 text-right">
+          <button class="btn btn-sm btn-default" ng-click="$ctrl.removeArtifact()">
+            <span class="glyphicon glyphicon-trash" uib-tooltip="Remove artifact"></span>
+            <span class="visible-xl-inline">Remove artifact</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="form-group row">
+        <div class="col-md-10">
+          <div class="row">
+            <label class="col-md-3 sm-label-right">
+              Name
+              <help-field key="pipeline.config.artifact.name"></help-field>
+            </label>
+            <div class="col-md-9">
+              <input type="text"
+                     required
+                     class="form-control input-sm"
+                     ng-model="$ctrl.artifact.name"/>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group row">
+        <div class="col-md-10">
+          <div class="row">
+            <label class="col-md-3 sm-label-right" help-key="pipeline.config.artifact.missingPolicy">
+              Missing Policy
+              <help-field key="pipeline.config.artifact.missingPolicy"></help-field>
+            </label>
+            <div class="col-md-9">
+              <select class="form-control input-sm"
+                      required
+                      ng-options="policy for policy in $ctrl.missingPolicies"
+                      ng-model="$ctrl.artifact.missingPolicy">
+                <option value="">Select...</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

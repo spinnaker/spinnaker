@@ -55,6 +55,15 @@ module(HELP_CONTENTS, [])
           <li>Trigger</li>
           <li>Context - server groups, bakery results, etc.</li>
         </ul>`,
+    'pipeline.config.artifact.help': `
+        <p>There are certain types of triggers (e.g. Pub/Sub triggers) that can produce artifacts and inject them into the execution context for a pipeline.</p>
+        <p>You can specify artifacts that your pipeline expects to be present in the execution context in this section.</p>`,
+    'pipeline.config.artifact.missingPolicy': `
+        <p>The behavior of the pipeline if the Artifact is missing from the pipeline execution.</p>`,
+    'pipeline.config.artifact.name': `
+        <p>The name of the Artifact.</p>`,
+    'pipeline.config.artifact.type': `
+        <p>The type of the Artifact, e.g. 'gcs/object' or 'rpm'.</p>`,
     'pipeline.config.lock.allowUnlockUi': `
         <p><strong>Checked</strong> - the pipeline can be unlocked via the Spinnaker UI.</p>
         <p><strong>Unchecked</strong> - the pipeline can only be unlocked via the Spinnaker API.</p>`,

@@ -1,5 +1,6 @@
-import {IStage} from './IStage';
-import {ITrigger} from './ITrigger';
+import { IStage } from './IStage';
+import { ITrigger } from './ITrigger';
+import { IExpectedArtifact } from 'core/domain/IExpectedArtifact';
 
 export interface IPipeline {
   application: string;
@@ -17,6 +18,7 @@ export interface IPipeline {
   triggers: ITrigger[];
   parameterConfig: IParameter[];
   disabled?: boolean;
+  expectedArtifacts?: IExpectedArtifact[];
 }
 
 export interface IParameter {

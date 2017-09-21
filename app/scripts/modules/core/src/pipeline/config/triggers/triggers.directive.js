@@ -1,6 +1,7 @@
 'use strict';
 
-import {PIPELINE_CONFIG_PROVIDER} from 'core/pipeline/config/pipelineConfigProvider';
+import { PIPELINE_CONFIG_PROVIDER } from 'core/pipeline/config/pipelineConfigProvider';
+import { MissingArtifactPolicy } from 'core/domain/IExpectedArtifact';
 
 const angular = require('angular');
 
@@ -33,5 +34,13 @@ module.exports = angular.module('spinnaker.core.pipeline.config.trigger.triggers
       $scope.pipeline.triggers.push(newTrigger);
     };
 
+    this.addArtifact = () => {
+      const newArtifact = {name: '', type: '', missingPolicy: MissingArtifactPolicy.FailPipeline};
+
+      if (!$scope.pipeline.expectedArtifacts) {
+        $scope.pipeline.expectedArtifacts = [];
+      }
+      $scope.pipeline.expectedArtifacts.push(newArtifact);
+    };
 
   });
