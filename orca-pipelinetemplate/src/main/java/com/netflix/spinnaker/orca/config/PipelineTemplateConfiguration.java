@@ -40,7 +40,12 @@ import java.util.List;
 @ConditionalOnExpression("${pipelineTemplates.enabled:true}")
 @ComponentScan(
   basePackageClasses = PipelineTemplateModule.class,
-  basePackages = {"com.netflix.spinnaker.orca.pipelinetemplate.tasks", "com.netflix.spinnaker.orca.pipelinetemplate.pipeline"}
+  basePackages = {
+    "com.netflix.spinnaker.orca.pipelinetemplate.tasks",
+    "com.netflix.spinnaker.orca.pipelinetemplate.pipeline",
+    "com.netflix.spinnaker.orca.pipelinetemplate.handler",
+    "com.netflix.spinnaker.orca.pipelinetemplate.v1schema.handler"
+  }
 )
 public class PipelineTemplateConfiguration {
 

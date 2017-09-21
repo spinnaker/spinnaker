@@ -20,8 +20,11 @@ import com.netflix.spectator.api.Clock
 import com.netflix.spectator.api.Registry
 import com.netflix.spectator.api.Timer
 import com.netflix.spinnaker.orca.front50.Front50Service
+import com.netflix.spinnaker.orca.pipelinetemplate.handler.PipelineTemplateErrorHandler
+import com.netflix.spinnaker.orca.pipelinetemplate.handler.SchemaVersionHandler
 import com.netflix.spinnaker.orca.pipelinetemplate.loader.FileTemplateSchemeLoader
 import com.netflix.spinnaker.orca.pipelinetemplate.loader.TemplateLoader
+import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.handler.V1SchemaHandlerGroup
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.StageDefinition
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.TemplateConfiguration
@@ -55,10 +58,15 @@ class PipelineTemplatePipelinePreprocessorSpec extends Specification {
   }
 
   @Subject
-  PipelineTemplatePipelinePreprocessor subject = new PipelineTemplatePipelinePreprocessor(
+  PipelineTemplatePreprocessor subject = new PipelineTemplatePreprocessor(
     objectMapper,
-    templateLoader,
-    renderer,
+    new SchemaVersionHandler(new V1SchemaHandlerGroup(
+      templateLoader,
+      renderer,
+      objectMapper,
+      registry
+    )),
+    new PipelineTemplateErrorHandler(),
     registry
   )
 

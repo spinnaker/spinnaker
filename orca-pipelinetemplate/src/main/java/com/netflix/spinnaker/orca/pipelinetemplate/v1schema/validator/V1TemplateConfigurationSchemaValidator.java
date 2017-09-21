@@ -17,7 +17,6 @@ package com.netflix.spinnaker.orca.pipelinetemplate.v1schema.validator;
 
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.TemplateConfiguration;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.TemplateConfiguration.PipelineDefinition;
-import com.netflix.spinnaker.orca.pipelinetemplate.validator.EmptyValidatorContext;
 import com.netflix.spinnaker.orca.pipelinetemplate.validator.Errors;
 import com.netflix.spinnaker.orca.pipelinetemplate.validator.Errors.Error;
 import com.netflix.spinnaker.orca.pipelinetemplate.validator.Errors.Severity;
@@ -27,7 +26,7 @@ import com.netflix.spinnaker.orca.pipelinetemplate.validator.VersionedSchema;
 
 import java.util.List;
 
-public class V1TemplateConfigurationSchemaValidator<T extends V1TemplateConfigurationSchemaValidator.SchemaValidatorContext> implements SchemaValidator<T> {
+public class V1TemplateConfigurationSchemaValidator implements SchemaValidator<V1TemplateConfigurationSchemaValidator.SchemaValidatorContext> {
 
   private static final String SUPPORTED_VERSION = "1";
 

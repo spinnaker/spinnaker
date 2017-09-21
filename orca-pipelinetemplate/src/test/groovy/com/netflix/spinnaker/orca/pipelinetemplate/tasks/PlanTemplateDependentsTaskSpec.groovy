@@ -20,7 +20,7 @@ import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
-import com.netflix.spinnaker.orca.pipelinetemplate.PipelineTemplatePipelinePreprocessor
+import com.netflix.spinnaker.orca.pipelinetemplate.PipelineTemplatePreprocessor
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate
 import spock.lang.Specification
 import spock.lang.Subject
@@ -29,7 +29,7 @@ class PlanTemplateDependentsTaskSpec extends Specification {
 
   Front50Service front50Service = Mock()
 
-  PipelineTemplatePipelinePreprocessor pipelinePreprocessor = Mock()
+  PipelineTemplatePreprocessor pipelinePreprocessor = Mock()
 
   ObjectMapper objectMapper = new ObjectMapper()
 
@@ -37,7 +37,7 @@ class PlanTemplateDependentsTaskSpec extends Specification {
   def task = new PlanTemplateDependentsTask(
     front50Service: front50Service,
     pipelineTemplateObjectMapper: objectMapper,
-    pipelineTemplatePipelinePreprocessor: pipelinePreprocessor
+    pipelineTemplatePreprocessor: pipelinePreprocessor
   )
 
   def 'should aggregate all failed pipeline plan errors'() {

@@ -15,20 +15,26 @@
  */
 package com.netflix.spinnaker.orca.pipelinetemplate;
 
-import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate;
-import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.TemplateConfiguration;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.Map;
 
 public class TemplatedPipelineRequest {
   String id;
+  String schema;
   String type;
   Map<String, Object> trigger;
-  TemplateConfiguration config;
-  PipelineTemplate template;
+  Map<String, Object> config;
+  Map<String, Object> template;
   Boolean plan = false;
   boolean limitConcurrent = true;
   boolean keepWaitingPipelines = false;
+
+  @JsonProperty("config")
+  private void unpackConfig(Map<String, Object> config) {
+    this.config = config;
+    schema = (String) config.get("schema");
+  }
 
   public String getId() {
     return id;
@@ -38,8 +44,12 @@ public class TemplatedPipelineRequest {
     this.id = id;
   }
 
-  public boolean isTemplatedPipelineRequest() {
-    return "templatedPipeline".equals(type);
+  public String getSchema() {
+    return schema;
+  }
+
+  public void setSchema(String schema) {
+    this.schema = schema;
   }
 
   public String getType() {
@@ -50,12 +60,8 @@ public class TemplatedPipelineRequest {
     this.type = type;
   }
 
-  public TemplateConfiguration getConfig() {
-    return config;
-  }
-
-  public void setConfig(TemplateConfiguration config) {
-    this.config = config;
+  public boolean isTemplatedPipelineRequest() {
+    return "templatedPipeline".equals(type);
   }
 
   public Map<String, Object> getTrigger() {
@@ -66,11 +72,19 @@ public class TemplatedPipelineRequest {
     this.trigger = trigger;
   }
 
-  public PipelineTemplate getTemplate() {
+  public Map<String, Object> getConfig() {
+    return config;
+  }
+
+  public void setConfig(Map<String, Object> config) {
+    this.config = config;
+  }
+
+  public Map<String, Object> getTemplate() {
     return template;
   }
 
-  public void setTemplate(PipelineTemplate template) {
+  public void setTemplate(Map<String, Object> template) {
     this.template = template;
   }
 

@@ -19,9 +19,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.RetryableTask;
 import com.netflix.spinnaker.orca.TaskResult;
+import com.netflix.spinnaker.orca.extensionpoint.pipeline.PipelinePreprocessor;
 import com.netflix.spinnaker.orca.front50.Front50Service;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
-import com.netflix.spinnaker.orca.pipelinetemplate.PipelineTemplatePipelinePreprocessor;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -44,7 +44,7 @@ public class PlanTemplateDependentsTask implements RetryableTask {
   private ObjectMapper pipelineTemplateObjectMapper;
 
   @Autowired
-  private PipelineTemplatePipelinePreprocessor pipelineTemplatePipelinePreprocessor;
+  private PipelinePreprocessor pipelineTemplatePreprocessor;
 
   @Nonnull
   @Override
@@ -78,7 +78,7 @@ public class PlanTemplateDependentsTask implements RetryableTask {
       request.put("template", pipelineTemplate);
       request.put("plan", true);
 
-      Map<String, Object> response = pipelineTemplatePipelinePreprocessor.process(request);
+      Map<String, Object> response = pipelineTemplatePreprocessor.process(request);
       if (response.containsKey("errors")) {
         errorResponses.put((String) dependentPipeline.get("id"), response.get("errors"));
       }
