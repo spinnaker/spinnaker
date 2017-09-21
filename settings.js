@@ -145,6 +145,6 @@ window.spinnakerSettings = {
     snapshots: false,
     travis: false,
     pipelineTemplates: false,
-    artifacts: true,
+    artifacts: false,
   },
 };
