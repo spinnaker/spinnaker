@@ -4,7 +4,7 @@ import com.netflix.spinnaker.echo.model.Metadata
 import com.netflix.spinnaker.echo.model.Pipeline
 import com.netflix.spinnaker.echo.model.Trigger
 import com.netflix.spinnaker.echo.model.pubsub.MessageDescription
-import com.netflix.spinnaker.echo.model.pubsub.PubsubType
+import com.netflix.spinnaker.echo.model.pubsub.PubsubSystem
 import com.netflix.spinnaker.echo.model.trigger.*
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import retrofit.RetrofitError
@@ -42,9 +42,9 @@ trait RetrofitStubs {
   final Trigger teamcityTriggerWithoutConstraints = Trigger.builder().enabled(true).type('teamcity').constraints().build()
 
   final Trigger enabledGooglePubsubTrigger = Trigger.builder()
-      .enabled(true).type('pubsub').pubsubType('google').subscriptionName('projects/project/subscriptions/subscription').build()
+      .enabled(true).type('pubsub').pubsubSystem('google').subscriptionName('projects/project/subscriptions/subscription').build()
   final Trigger disabledGooglePubsubTrigger = Trigger.builder()
-      .enabled(false).type('pubsub').pubsubType('google').subscriptionName('projects/project/subscriptions/subscription').build()
+      .enabled(false).type('pubsub').pubsubSystem('google').subscriptionName('projects/project/subscriptions/subscription').build()
 
   private nextId = new AtomicInteger(1)
 
@@ -85,11 +85,11 @@ trait RetrofitStubs {
     return res
   }
 
-  PubsubEvent createPubsubEvent(PubsubType pubsubType, String subscriptionName, List<Artifact> artifacts) {
+  PubsubEvent createPubsubEvent(PubsubSystem pubsubSystem, String subscriptionName, List<Artifact> artifacts) {
     def res = new PubsubEvent()
 
     def description = MessageDescription.builder()
-        .pubsubType(pubsubType)
+        .pubsubSystem(pubsubSystem)
         .ackDeadlineMillis(10000)
         .subscriptionName(subscriptionName)
         .artifacts(artifacts)

@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.echo.pubsub;
 
-import com.netflix.spinnaker.echo.model.pubsub.PubsubType;
+import com.netflix.spinnaker.echo.model.pubsub.PubsubSystem;
 import com.netflix.spinnaker.echo.pubsub.model.PubsubSubscriber;
 
 import java.util.ArrayList;
@@ -30,10 +30,10 @@ public class PubsubSubscribers {
     subscribers.addAll(newEntries);
   }
 
-  public List<PubsubSubscriber> subscribersMatchingType(PubsubType pubsubType) {
+  public List<PubsubSubscriber> subscribersMatchingType(PubsubSystem pubsubSystem) {
     return subscribers
         .stream()
-        .filter(subscriber -> subscriber.pubsubType().equals(pubsubType))
+        .filter(subscriber -> subscriber.pubsubSystem().equals(pubsubSystem))
         .collect(Collectors.toList());
   }
 }

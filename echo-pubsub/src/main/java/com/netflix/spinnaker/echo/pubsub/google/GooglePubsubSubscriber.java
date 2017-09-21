@@ -27,7 +27,7 @@ import com.google.common.util.concurrent.MoreExecutors;
 import com.google.pubsub.v1.PubsubMessage;
 import com.google.pubsub.v1.SubscriptionName;
 import com.netflix.spinnaker.echo.model.pubsub.MessageDescription;
-import com.netflix.spinnaker.echo.model.pubsub.PubsubType;
+import com.netflix.spinnaker.echo.model.pubsub.PubsubSystem;
 import com.netflix.spinnaker.echo.pubsub.PubsubMessageHandler;
 import com.netflix.spinnaker.echo.pubsub.model.PubsubSubscriber;
 import com.netflix.spinnaker.echo.pubsub.utils.MessageArtifactTranslator;
@@ -49,7 +49,7 @@ public class GooglePubsubSubscriber implements PubsubSubscriber {
   @Getter
   private Subscriber subscriber;
 
-  static private final PubsubType pubsubType = PubsubType.GOOGLE;
+  static private final PubsubSystem pubsubSystem = PubsubSystem.GOOGLE;
 
 
   public GooglePubsubSubscriber(String name, String project, Subscriber subscriber) {
@@ -58,8 +58,8 @@ public class GooglePubsubSubscriber implements PubsubSubscriber {
   }
 
   @Override
-  public PubsubType pubsubType() {
-    return pubsubType;
+  public PubsubSystem pubsubSystem() {
+    return pubsubSystem;
   }
 
   @Override
@@ -132,7 +132,7 @@ public class GooglePubsubSubscriber implements PubsubSubscriber {
       MessageDescription description = MessageDescription.builder()
           .subscriptionName(subscriptionName)
           .messagePayload(messagePayload)
-          .pubsubType(pubsubType)
+          .pubsubSystem(pubsubSystem)
           .ackDeadlineMillis(5 * TimeUnit.SECONDS.toMillis(ackDeadlineSeconds)) // Set a high upper bound on message processing time.
           .retentionDeadlineMillis(TimeUnit.DAYS.toMillis(7)) // Expire key after max retention time, which is 7 days.
           .artifacts(messageArtifactTranslator.parseArtifacts(messagePayload))

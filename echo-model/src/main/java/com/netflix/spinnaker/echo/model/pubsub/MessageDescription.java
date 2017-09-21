@@ -33,7 +33,7 @@ public class MessageDescription {
 
   private String messagePayload;
 
-  private PubsubType pubsubType;
+  private PubsubSystem pubsubSystem;
 
   private Long ackDeadlineMillis;
 

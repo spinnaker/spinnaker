@@ -21,7 +21,7 @@ import com.netflix.spectator.api.Counter
 import com.netflix.spectator.api.Id
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.echo.model.Event
-import com.netflix.spinnaker.echo.model.pubsub.PubsubType
+import com.netflix.spinnaker.echo.model.pubsub.PubsubSystem
 import com.netflix.spinnaker.echo.pipelinetriggers.monitor.PubsubEventMonitor
 import com.netflix.spinnaker.echo.test.RetrofitStubs
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
@@ -62,10 +62,10 @@ class PubsubEventMonitorSpec extends Specification implements RetrofitStubs {
 
     where:
     event                                                                                              | trigger
-    createPubsubEvent(PubsubType.GOOGLE, "projects/project/subscriptions/subscription", null)          | enabledGooglePubsubTrigger
-    createPubsubEvent(PubsubType.GOOGLE, "projects/project/subscriptions/subscription", [])            | enabledGooglePubsubTrigger
-    createPubsubEvent(PubsubType.GOOGLE, "projects/project/subscriptions/subscription", goodArtifacts) | enabledGooglePubsubTrigger.withExpectedArtifacts(goodArtifacts)
-    createPubsubEvent(PubsubType.GOOGLE, "projects/project/subscriptions/subscription", goodArtifacts) | enabledGooglePubsubTrigger // Trigger doesn't care about artifacts.
+    createPubsubEvent(PubsubSystem.GOOGLE, "projects/project/subscriptions/subscription", null)          | enabledGooglePubsubTrigger
+    createPubsubEvent(PubsubSystem.GOOGLE, "projects/project/subscriptions/subscription", [])            | enabledGooglePubsubTrigger
+    createPubsubEvent(PubsubSystem.GOOGLE, "projects/project/subscriptions/subscription", goodArtifacts) | enabledGooglePubsubTrigger.withExpectedArtifacts(goodArtifacts)
+    createPubsubEvent(PubsubSystem.GOOGLE, "projects/project/subscriptions/subscription", goodArtifacts) | enabledGooglePubsubTrigger // Trigger doesn't care about artifacts.
     // TODO(jacobkiefer): Add Kafka cases when that is implemented.
   }
 
@@ -85,7 +85,7 @@ class PubsubEventMonitorSpec extends Specification implements RetrofitStubs {
     disabledGooglePubsubTrigger | "disabled Google pubsub trigger"
 
     pipeline = createPipelineWith(trigger)
-    event = createPubsubEvent(PubsubType.GOOGLE, "projects/project/subscriptions/subscription", [])
+    event = createPubsubEvent(PubsubSystem.GOOGLE, "projects/project/subscriptions/subscription", [])
     // TODO(jacobkiefer): Add Kafka cases when that is implemented.
   }
 
@@ -99,12 +99,12 @@ class PubsubEventMonitorSpec extends Specification implements RetrofitStubs {
     then:
     1 * subscriber.call({
       it.trigger.type == enabledGooglePubsubTrigger.type
-      it.trigger.pubsubType == enabledGooglePubsubTrigger.pubsubType
+      it.trigger.pubsubSystem == enabledGooglePubsubTrigger.pubsubSystem
       it.trigger.subscriptionName == enabledGooglePubsubTrigger.subscriptionName
     })
 
     where:
-    event = createPubsubEvent(PubsubType.GOOGLE, "projects/project/subscriptions/subscription", [])
+    event = createPubsubEvent(PubsubSystem.GOOGLE, "projects/project/subscriptions/subscription", [])
     pipeline = createPipelineWith(enabledGooglePubsubTrigger, disabledGooglePubsubTrigger)
   }
 
@@ -123,10 +123,10 @@ class PubsubEventMonitorSpec extends Specification implements RetrofitStubs {
     trigger                                                        | description
     disabledGooglePubsubTrigger                                    | "disabled Google pubsub trigger"
     enabledGooglePubsubTrigger.withSubscriptionName("wrongName")   | "different subscription name"
-    enabledGooglePubsubTrigger.withPubsubType("noogle")            | "different subscription name"
+    enabledGooglePubsubTrigger.withPubsubSystem("noogle")            | "different subscription name"
 
     pipeline = createPipelineWith(trigger)
-    event = createPubsubEvent(PubsubType.GOOGLE, "projects/project/subscriptions/subscription", [])
+    event = createPubsubEvent(PubsubSystem.GOOGLE, "projects/project/subscriptions/subscription", [])
   }
 
   @Unroll
@@ -145,7 +145,7 @@ class PubsubEventMonitorSpec extends Specification implements RetrofitStubs {
     enabledGooglePubsubTrigger.withExpectedArtifacts(badArtifacts) | "non-matching artifact in message"
 
     pipeline = createPipelineWith(trigger)
-    event = createPubsubEvent(PubsubType.GOOGLE, "projects/project/subscriptions/subscription", goodArtifacts)
+    event = createPubsubEvent(PubsubSystem.GOOGLE, "projects/project/subscriptions/subscription", goodArtifacts)
   }
 
   @Unroll
@@ -162,9 +162,9 @@ class PubsubEventMonitorSpec extends Specification implements RetrofitStubs {
     where:
     trigger                                               | field
     enabledGooglePubsubTrigger.withSubscriptionName(null) | "subscriptionName"
-    enabledGooglePubsubTrigger.withPubsubType(null)       | "pubsubType"
+    enabledGooglePubsubTrigger.withPubsubSystem(null)       | "pubsubSystem"
 
-    event = createPubsubEvent(PubsubType.GOOGLE, "projects/project/subscriptions/subscription", [])
+    event = createPubsubEvent(PubsubSystem.GOOGLE, "projects/project/subscriptions/subscription", [])
     goodPipeline = createPipelineWith(enabledGooglePubsubTrigger)
     badPipeline = createPipelineWith(trigger)
   }

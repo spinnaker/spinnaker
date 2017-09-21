@@ -19,7 +19,7 @@ package com.netflix.spinnaker.echo.pubsub;
 import com.netflix.spinnaker.echo.model.Event;
 import com.netflix.spinnaker.echo.model.Metadata;
 import com.netflix.spinnaker.echo.model.pubsub.MessageDescription;
-import com.netflix.spinnaker.echo.model.pubsub.PubsubType;
+import com.netflix.spinnaker.echo.model.pubsub.PubsubSystem;
 import com.netflix.spinnaker.echo.pipelinetriggers.monitor.PubsubEventMonitor;
 import com.netflix.spinnaker.echo.pubsub.model.MessageAcknowledger;
 import lombok.Data;
@@ -68,7 +68,7 @@ public class PubsubMessageHandler {
   public void handleMessage(MessageDescription description,
                             MessageAcknowledger acknowledger,
                             String identifier) {
-    String messageKey = makeKey(description.getMessagePayload(), description.getPubsubType(), description.getSubscriptionName());
+    String messageKey = makeKey(description.getMessagePayload(), description.getPubsubSystem(), description.getSubscriptionName());
 
     if (!acquireMessageLock(messageKey, identifier, description.getAckDeadlineMillis())) {
       acknowledger.nack();
@@ -93,11 +93,11 @@ public class PubsubMessageHandler {
     }
   }
 
-  private String makeKey(String messagePayload, PubsubType pubsubType, String subscription) {
+  private String makeKey(String messagePayload, PubsubSystem pubsubSystem, String subscription) {
     digest.reset();
     digest.update(messagePayload.getBytes());
     String messageHash = new String(Base64.getEncoder().encode(digest.digest()));
-    return String.format("%s:echo-pubsub:%s:%s", pubsubType.toString(), subscription, messageHash);
+    return String.format("%s:echo-pubsub:%s:%s", pubsubSystem.toString(), subscription, messageHash);
   }
 
 

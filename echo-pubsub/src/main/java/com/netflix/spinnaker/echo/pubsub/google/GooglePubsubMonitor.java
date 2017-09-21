@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.echo.pubsub.google;
 
-import com.netflix.spinnaker.echo.model.pubsub.PubsubType;
+import com.netflix.spinnaker.echo.model.pubsub.PubsubSystem;
 import com.netflix.spinnaker.echo.pubsub.PollingMonitor;
 import com.netflix.spinnaker.echo.pubsub.PubsubSubscribers;
 import com.netflix.spinnaker.echo.pubsub.model.PubsubSubscriber;
@@ -51,7 +51,7 @@ public class GooglePubsubMonitor implements PollingMonitor {
   private void closeAsyncConnections() {
     log.info("Closing async connections for Google Pubsub subscribers");
     pubsubSubscribers
-        .subscribersMatchingType(PubsubType.GOOGLE)
+        .subscribersMatchingType(PubsubSystem.GOOGLE)
         .parallelStream()
         .forEach(this::closeConnection);
   }
@@ -61,7 +61,7 @@ public class GooglePubsubMonitor implements PollingMonitor {
     // TODO(jacobkiefer): Register Echo as enabled on startup.
     log.info("Starting async connections for Google Pubsub subscribers");
     pubsubSubscribers
-        .subscribersMatchingType(PubsubType.GOOGLE)
+        .subscribersMatchingType(PubsubSystem.GOOGLE)
         .parallelStream()
         .forEach(this::openConnection);
   }

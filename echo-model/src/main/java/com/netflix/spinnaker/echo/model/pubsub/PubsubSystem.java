@@ -16,18 +16,18 @@
 
 package com.netflix.spinnaker.echo.model.pubsub;
 
-public enum PubsubType {
+public enum PubsubSystem {
   GOOGLE("google"),
   KAFKA("kafka");
 
-  private String type;
+  private String system;
 
-  PubsubType(String type) {
-    this.type = type;
+  PubsubSystem(String system) {
+    this.system = system;
   }
 
   @Override
   public String toString() {
-    return this.type;
+    return this.system;
   }
 }

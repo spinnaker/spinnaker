@@ -30,7 +30,7 @@ import java.util.Map;
 @JsonDeserialize(builder = Trigger.TriggerBuilder.class)
 @Builder(toBuilder = true)
 @Wither
-@ToString(of = {"type", "master", "job", "cronExpression", "source", "project", "slug", "account", "repository", "tag", "constraints", "branch", "runAsUser", "subscriptionName", "pubsubType"}, includeFieldNames = false)
+@ToString(of = {"type", "master", "job", "cronExpression", "source", "project", "slug", "account", "repository", "tag", "constraints", "branch", "runAsUser", "subscriptionName", "pubsubSystem"}, includeFieldNames = false)
 @Value
 public class Trigger {
   public enum Type {
@@ -74,7 +74,7 @@ public class Trigger {
   String runAsUser;
   String secret;
   String subscriptionName;
-  String pubsubType;
+  String pubsubSystem;
   List<Artifact> expectedArtifacts;
 
   public Trigger atBuildNumber(final int buildNumber) {
@@ -84,7 +84,7 @@ public class Trigger {
         .tag(null)
         .constraints(null)
         .subscriptionName(null)
-        .pubsubType(null)
+        .pubsubSystem(null)
         .build();
   }
 
@@ -95,7 +95,7 @@ public class Trigger {
         .tag(null)
         .constraints(null)
         .subscriptionName(null)
-        .pubsubType(null)
+        .pubsubSystem(null)
         .build();
   }
 
@@ -106,7 +106,7 @@ public class Trigger {
         .constraints(null)
         .branch(branch)
         .subscriptionName(null)
-        .pubsubType(null)
+        .pubsubSystem(null)
         .build();
   }
 
@@ -117,7 +117,7 @@ public class Trigger {
         .tag(tag)
         .constraints(null)
         .subscriptionName(null)
-        .pubsubType(null)
+        .pubsubSystem(null)
         .build();
   }
 
@@ -128,7 +128,7 @@ public class Trigger {
         .digest(null)
         .constraints(constraints)
         .subscriptionName(null)
-        .pubsubType(null)
+        .pubsubSystem(null)
         .build();
   }
 
@@ -139,14 +139,14 @@ public class Trigger {
         .digest(null)
         .secret(secret)
         .subscriptionName(null)
-        .pubsubType(null)
+        .pubsubSystem(null)
         .build();
   }
 
-  public Trigger atMessageDescription(final String subscriptionName, final String pubsubType) {
+  public Trigger atMessageDescription(final String subscriptionName, final String pubsubSystem) {
     return this.toBuilder()
         .subscriptionName(subscriptionName)
-        .pubsubType(pubsubType)
+        .pubsubSystem(pubsubSystem)
         .build();
   }
 

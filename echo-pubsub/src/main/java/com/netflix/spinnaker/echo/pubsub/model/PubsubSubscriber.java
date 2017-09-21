@@ -16,9 +16,9 @@
 
 package com.netflix.spinnaker.echo.pubsub.model;
 
-import com.netflix.spinnaker.echo.model.pubsub.PubsubType;
+import com.netflix.spinnaker.echo.model.pubsub.PubsubSystem;
 
 public interface PubsubSubscriber {
-  PubsubType pubsubType();
+  PubsubSystem pubsubSystem();
   String subscriptionName();
 }

@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.echo.pubsub
 
 import com.netflix.spinnaker.echo.model.pubsub.MessageDescription
-import com.netflix.spinnaker.echo.model.pubsub.PubsubType
+import com.netflix.spinnaker.echo.model.pubsub.PubsubSystem
 import com.netflix.spinnaker.echo.pipelinetriggers.monitor.PubsubEventMonitor
 import com.netflix.spinnaker.echo.pubsub.google.GoogleMessageAcknowledger
 import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
@@ -118,7 +118,7 @@ class PubsubMessageHandlerSpec extends Specification {
     MessageDescription description = MessageDescription.builder()
     .subscriptionName('subscriptionName')
     .messagePayload('THE TRUTH IS OUT THERE')
-    .pubsubType(PubsubType.GOOGLE)
+    .pubsubSystem(PubsubSystem.GOOGLE)
     .ackDeadlineMillis(1000)
     .retentionDeadlineMillis(10001)
     .build()
@@ -140,7 +140,7 @@ class PubsubMessageHandlerSpec extends Specification {
     MessageDescription description = MessageDescription.builder()
         .subscriptionName('subscriptionName')
         .messagePayload('THE TRUTH IS OUT THERE')
-        .pubsubType(PubsubType.GOOGLE)
+        .pubsubSystem(PubsubSystem.GOOGLE)
         .ackDeadlineMillis(1000)
         .retentionDeadlineMillis(10001)
         .build()

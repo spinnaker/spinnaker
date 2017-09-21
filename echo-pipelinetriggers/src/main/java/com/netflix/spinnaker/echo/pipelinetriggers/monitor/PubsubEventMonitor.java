@@ -86,7 +86,7 @@ public class PubsubEventMonitor extends TriggerMonitor {
     MessageDescription description = pubsubEvent.getContent().getMessageDescription();
     return trigger -> pipeline
         .withArtifacts(description.getArtifacts())
-        .withTrigger(trigger.atMessageDescription(description.getSubscriptionName(), description.getPubsubType().toString()));
+        .withTrigger(trigger.atMessageDescription(description.getSubscriptionName(), description.getPubsubSystem().toString()));
   }
 
   @Override
@@ -101,7 +101,7 @@ public class PubsubEventMonitor extends TriggerMonitor {
     MessageDescription description = pubsubEvent.getContent().getMessageDescription();
 
     return trigger -> trigger.getType().equalsIgnoreCase(PUBSUB_TRIGGER_TYPE)
-        && trigger.getPubsubType().equalsIgnoreCase(description.getPubsubType().toString())
+        && trigger.getPubsubSystem().equalsIgnoreCase(description.getPubsubSystem().toString())
         && trigger.getSubscriptionName().equalsIgnoreCase(description.getSubscriptionName())
         && anyArtifactsMatchExpected(description.getArtifacts(), trigger);
   }
@@ -129,7 +129,7 @@ public class PubsubEventMonitor extends TriggerMonitor {
         .withTag("name", pipeline.getName());
 
     if (isPubsubTrigger(pipeline.getTrigger())) {
-      id.withTag("pubsubType", pipeline.getTrigger().getPubsubType());
+      id.withTag("pubsubSystem", pipeline.getTrigger().getPubsubSystem());
       id.withTag("subscriptionName", pipeline.getTrigger().getSubscriptionName());
     }
 
@@ -139,6 +139,6 @@ public class PubsubEventMonitor extends TriggerMonitor {
   private boolean isPubsubTrigger(Trigger trigger) {
     return PUBSUB_TRIGGER_TYPE.equals(trigger.getType())
         && !StringUtils.isEmpty(trigger.getSubscriptionName())
-        && !StringUtils.isEmpty(trigger.getPubsubType());
+        && !StringUtils.isEmpty(trigger.getPubsubSystem());
   }
 }
