@@ -140,7 +140,7 @@ public class Errors {
 
     public Map<String, Object> toResponse() {
       HashMap<String, Object> err = new HashMap<>();
-      err.put("severity", severity);
+      err.put("severity", severity.toString());
       if (message != null) err.put("message", message);
       if (location != null) err.put("location", location);
       if (cause != null) err.put("cause", cause);

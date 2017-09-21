@@ -1,0 +1,7 @@
+---
+schema: "0.1"
+id: badversion
+metadata:
+  name: Bad Version
+  description: I don't follow directions.
+stages: []

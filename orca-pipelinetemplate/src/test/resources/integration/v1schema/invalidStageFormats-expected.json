@@ -1,0 +1,29 @@
+{
+  "errors": [
+    {
+      "severity": "FATAL",
+      "message": "Stage ID is unset",
+      "location": "template:stages"
+    },
+    {
+      "severity": "FATAL",
+      "message": "Stage is missing type",
+      "location": "template:stages.wait1"
+    },
+    {
+      "severity": "FATAL",
+      "message": "Stage configuration is unset",
+      "location": "template:stages.wait2"
+    },
+    {
+      "severity": "FATAL",
+      "message": "A stage cannot have both dependsOn and an inject rule defined simultaneously",
+      "location": "template:stages.wait3"
+    },
+    {
+      "severity": "FATAL",
+      "message": "A stage cannot have multiple inject rules defined",
+      "location": "template:stages.wait4"
+    }
+  ]
+}

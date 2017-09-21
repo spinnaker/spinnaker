@@ -1,0 +1,16 @@
+---
+schema: "1"
+id: varwrongtype
+metadata:
+  name: Waiting Template
+  description: Simple waiting template.
+variables:
+- name: waitTime
+  description: The time a wait stage should pause
+  type: int
+stages:
+- id: sleepingbeauty
+  type: wait
+  config:
+    waitTime: "{{ waitTime }}"
+

@@ -33,7 +33,7 @@ public class PipelineTemplate implements VersionedSchema {
   private String source;
   private Metadata metadata = new Metadata();
   private Boolean protect = false;
-  private List<Variable> variables;
+  private List<Variable> variables = new ArrayList<>();
   private Configuration configuration;
   private List<StageDefinition> stages;
   private List<TemplateModule> modules;
@@ -114,7 +114,7 @@ public class PipelineTemplate implements VersionedSchema {
     }
 
     public String getType() {
-      return Optional.ofNullable(type).orElse("string");
+      return Optional.ofNullable(type).orElse("object");
     }
 
     public void setType(String type) {

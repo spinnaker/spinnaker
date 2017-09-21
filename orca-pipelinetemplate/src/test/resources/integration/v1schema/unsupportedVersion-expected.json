@@ -1,0 +1,8 @@
+{
+  "errors": [
+    {
+      "severity": "FATAL",
+      "message": "config schema version is unsupported: expected '1', got '0.1'"
+    }
+  ]
+}

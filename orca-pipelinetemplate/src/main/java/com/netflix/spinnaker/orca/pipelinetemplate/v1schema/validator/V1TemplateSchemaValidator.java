@@ -47,8 +47,6 @@ public class V1TemplateSchemaValidator<T extends SchemaValidatorContext> impleme
     }
 
     V1SchemaValidationHelper.validateStageDefinitions(template.getStages(), errors, V1TemplateSchemaValidator::location);
-
-    // TODO rz - validate variable type & defaultValue combinations
   }
 
   private static String location(String location) {
