@@ -9,7 +9,7 @@ notifier {
   .user-notifications-top {
     top: 60px;
     .user-notification {
-      background-color: @warning-background;
+      background-color: var(--color-warning-light);
     }
   }
   .user-notifications-bottom {
@@ -24,8 +24,8 @@ notifier {
     font-size: 120%;
     margin: 10px;
     padding: 10px;
-    background-color: @bootstrap_info;
-    box-shadow: 0 2px 5px @mid_lighter_grey;
+    background-color: var(--color-accent-g2);
+    box-shadow: 0 2px 5px var(--color-concrete);
     & > .message {
       display: inline-block;
       padding-right: 30px;
@@ -40,7 +40,7 @@ notifier {
       position: absolute;
       top: 16px;
       right: 20px;
-      color: @text-color;
+      color: var(--color-mineshaft);
     }
   }
 }

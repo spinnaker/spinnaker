@@ -45,45 +45,45 @@ html {
     border-radius: 0;
   }
   a {
-    color: @spinnaker-link-color;
+    color: var(--color-accent);
     &.disabled {
-      color: @mid_lighter_grey;
+      color: var(--color-concrete);
     }
   }
   .table > tbody > tr.info > td {
-    background-color: @pod_header_blue;
+    background-color: var(--color-accent-g2);
   }
   .btn-link {
     &.link-inverse {
-      color: @active_pod_blue;
+      color: var(--color-alabaster);
       &:active, &:hover, &:focus, &.active {
-        color: darken(@active_pod_blue, 20%);
+        color: var(--color-alto);
       }
     }
-    color: @spinnaker-link-color;
+    color: var(--color-accent);
     &:active, &:hover, &:focus, &.active {
-      color: darken(@active_pod_blue, 60%);
+      color: var(--color-alto);
     }
   }
   .btn-primary {
-    background-color: @spinnaker-link-color;
-    border-color: @spinnaker-link-color;
+    background-color: var(--color-accent);
+    border-color: var(--color-accent);
     &:active, &:hover, &:focus, &.active {
-      background-color: @spinnaker-link-hover;
-      border-color: @spinnaker-link-hover;
+      background-color: var(--color-accent);
+      border-color: var(--color-accent);
     }
     &[disabled], &[disabled]:hover {
-      background-color: @spinnaker-link-color;
-      border-color: @spinnaker-link-color;
+      background-color: var(--color-accent);
+      border-color: var(--color-accent);
       opacity: 0.4;
     }
   }
   .open > .dropdown-toggle.btn-primary {
-    background-color: @spinnaker-link-hover;
-    border-color: @spinnaker-link-hover;
+    background-color: var(--color-accent);
+    border-color: var(--color-accent);
     &:focus, &:active {
-      background-color: @spinnaker-link-hover;
-      border-color: @spinnaker-link-hover;
+      background-color: var(--color-accent);
+      border-color: var(--color-accent);
     }
   }
   .select2-container .select2-choices .select2-search-field input, .select2-container .select2-choice, .select2-container .select2-choices {
@@ -353,7 +353,7 @@ html {
 .glyphicon-Warn {
   &:before {
     content: "\26A0";
-    color: @unhealthy_red;
+    color: var(--color-danger);
     font-weight: bold;
   }
 }
@@ -361,7 +361,7 @@ html {
 .glyphicon-Normal {
   &:before {
     content: "\2022";
-    color: @healthy_green_border;
+    color: var(--color-success);
     font-weight: bold;
   }
 }
@@ -369,7 +369,7 @@ html {
 .glyphicon-Up-triangle {
   &:before {
     content: "\25B2";
-    color: @healthy_green_border;
+    color: var(--color-success);
     font-size: 75%;
   }
 }
@@ -377,7 +377,7 @@ html {
 .glyphicon-Down-triangle {
   &:before {
     content: "\25BC";
-    color: @unhealthy_red;
+    color: var(--color-danger);
     font-size: 75%;
   }
 }
@@ -385,7 +385,7 @@ html {
   &:before {
     content: "\2666";
     font-weight: 900;
-    color: @missing_health;
+    color: var(--color-accent-g1);
     font-size: 85%;
   }
   display: inline-block;
@@ -396,7 +396,7 @@ html {
   &:before {
   content: "\2212";
     font-weight: 900;
-    color: @unknown-label-color;
+    color: var(--color-titanium);
     font-size: 80%;
   }
 }
@@ -409,7 +409,7 @@ html {
   &:before {
     content: "\2717";
     font-weight: 900;
-    color: @unhealthy_red;
+    color: var(--color-danger);
     font-size: 120%;
   }
 }
@@ -418,7 +418,7 @@ html {
   &:before {
     content: "\2713";
     font-weight: 900;
-    color: @healthy_green_border;
+    color: var(--color-success);
     font-size: 120%;
   }
 }
@@ -534,7 +534,7 @@ body > .container {
 }
 
 .navbar-inverse {
-  background-color: @dark_blue_background;
+  background-color: var(--color-primary);
   border: none;
 
   .navbar-brand {
@@ -797,7 +797,7 @@ tfoot .add-new {
 
 .application-list {
   a {
-    color: @spinnaker-link-color;
+    color: var(--color-accent);
   }
 }
 
@@ -844,7 +844,7 @@ tfoot .add-new {
 .details-row {
   width: 99%;
   table {
-    color: @mid_grey;
+    color: var(--color-dovegray);
     th, td {
       padding-left: 0px !important;
     }
@@ -861,7 +861,7 @@ tfoot .add-new {
 
 .transition-overlay {
   z-index: @fixed-header-z-index + 1;
-  background-color: @lightest_grey;
+  background-color: var(--color-alabaster);
   opacity:.7;
   position:fixed;
   width:100%;
@@ -888,7 +888,7 @@ tfoot .add-new {
   }
   h4.collapsible-subheading {
     padding: 10px 15px;
-    background-color: @lightest_grey;
+    background-color: var(--color-alabaster);
     margin: 0;
     .glyphicon {
       font-size: 70%;
@@ -926,7 +926,7 @@ tfoot .add-new {
   }
   h4.collapsible-heading {
     padding: 10px 15px;
-    background-color: @lightest_grey;
+    background-color: var(--color-alabaster);
     margin: 0;
     .glyphicon {
       font-size: 70%;
@@ -965,7 +965,7 @@ tfoot .add-new {
   }
   h4 {
     padding: 10px 5px 0;
-    background-color: @secondary_panel_grey;
+    background-color: var(--color-cirrus);
     margin: 0;
     .glyphicon {
       font-size: 70%;
@@ -1009,7 +1009,7 @@ tfoot .add-new {
 
   .glyphicon {
     &:before {
-      color: @mid_grey;
+      color: var(--color-dovegray);
     }
     font-size: .75em;
     top: 0px;
@@ -1047,7 +1047,7 @@ tfoot .add-new {
 }
 
 a.help-field {
-  color: @mid_lighter_grey;
+  color: var(--color-concrete);
   opacity: 0.8;
   &:active, &:hover {
     opacity: 1;
@@ -1061,9 +1061,9 @@ a.help-field {
 div.text-only {
   display: inline-block;
   a.help-field {
-    color: @text-color;
+    color: var(--color-mineshaft);
     text-decoration: none;
-    border-bottom: 1px dashed @mid_lighter_grey;
+    border-bottom: 1px dashed var(--color-concrete);
   }
 }
 
@@ -1078,7 +1078,7 @@ textarea.code {
 }
 
 .warning-text {
-  color: @text_error;
+  color: var(--color-danger);
 }
 
 .panel-progress {
@@ -1089,10 +1089,10 @@ textarea.code {
   border: 0px;
   padding: 0px;
   .progress-bar-danger {
-    background-color: @unhealthy_red;
+    background-color: var(--color-danger);
   }
   .progress-bar-success {
-    background-color: @healthy_green_icon;
+    background-color: var(--color-success);
   }
 }
 
@@ -1113,7 +1113,7 @@ textarea.code {
 
 .modal-backdrop {
   &.modal-backdrop-no-animate {
-    background-color: @lightest_grey;
+    background-color: var(--color-alabaster);
     transition: none;
     &.fade .modal-dialog {
       transition: none;
@@ -1137,7 +1137,7 @@ textarea.code {
 }
 
 .text-disabled {
-  color: @mid_lighter_grey;
+  color: var(--color-concrete);
 }
 
 select.input-sm {
@@ -1183,7 +1183,7 @@ body, html {
       border-bottom: none;
       height: 80px;
       padding: 0;
-      background-color: @pod_header_blue;
+      background-color: var(--color-accent-g2);
       h2 {
         margin-top: 10px;
       }
@@ -1206,7 +1206,7 @@ body, html {
       }
     }
     .scrollable-columns {
-      background-color: @lightest_grey;
+      background-color: var(--color-alabaster);
       flex: 1 1 auto;
       display: flex;
       overflow-y: hidden;
@@ -1256,7 +1256,7 @@ ul.select2-results {
 .select2.select2-container {
   &.ng-invalid-required {
     a.select2-default {
-      border: 1px solid @unhealthy_red_border;
+      border: 1px solid var(--color-danger);
     }
   }
 }
@@ -1284,8 +1284,8 @@ body > .select2-container.open {
 .btn-configure {
   padding: 6px;
   &:hover, &:active {
-    border: 1px solid @spinnaker-blue;
-    background-color: @lighter_grey;
+    border: 1px solid var(--color-accent);
+    background-color: var(--color-cirrus);
     transition: border-color 0.2s, background-color 0.2s, color 0.2s
   }
 }
@@ -1344,7 +1344,7 @@ ul.checkmap {
 }
 
 .bottom-border {
-  border-bottom: 1px solid @light_grey;
+  border-bottom: 1px solid var(--color-cirrus);
   padding-bottom: 10px;
 }
 
@@ -1369,10 +1369,10 @@ ul.checkmap {
 }
 
 .fa-exclamation-triangle {
-  color: @unhealthy_red;
+  color: var(--color-danger);
 }
 .fa-info-circle {
-  color: @spinnaker-blue;
+  color: var(--color-accent);
 }
 
 // duplicated from bootstrap core
@@ -1411,8 +1411,8 @@ div.modal-header.has-sticky-headers {
   h4 {
     padding: 10px;
     margin-bottom: 0;
-    color: @default_link_hover;
-    background-color: @pod_header_blue;
+    color: var(--color-primary);
+    background-color: var(--color-accent-g2);
   }
 }
 
@@ -1434,7 +1434,7 @@ div.modal-header.has-sticky-headers {
 
 .badge.badge-running-count {
   border-radius: 3px;
-  background-color: @spinnaker-link-color;
+  background-color: var(--color-accent);
   padding: 3px 6px;
   margin-bottom: 3px;
   @media (max-width: 1400px) {

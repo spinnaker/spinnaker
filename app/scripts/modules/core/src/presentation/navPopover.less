@@ -2,12 +2,12 @@
 
 .nav-popover {
   font-weight: 600;
-  color: @text-color;
+  color: var(--color-mineshaft);
   .small {
-    color: @text-color;
+    color: var(--color-mineshaft);
   }
   &:hover, &:active, &:focus {
-    color: @text-color;
+    color: var(--color-mineshaft);
     text-decoration: none;
   }
 }
@@ -17,7 +17,7 @@
   position: absolute;
   min-width: 200px;
   z-index: 12;
-  border: 1px solid @mid_grey;
+  border: 1px solid var(--color-dovegray);
   background-color: var(--color-white);
   &::before, &::after {
     width: 0;
@@ -37,7 +37,7 @@
   }
   &::before {
     top: -10px;
-    border-bottom-color: @mid_grey;
+    border-bottom-color: var(--color-dovegray);
   }
   .list-group-item {
     border-radius: 0;

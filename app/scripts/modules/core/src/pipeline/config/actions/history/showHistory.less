@@ -31,10 +31,10 @@
         position: absolute;
         min-height: 3px;
         &.add {
-          background: @stage-succeeded;
+          background: var(--color-success);
         }
         &.remove {
-          background: @unhealthy_red;
+          background: var(--color-danger);
         }
       }
     }
@@ -49,10 +49,10 @@
     letter-spacing: -1px;
   }
   .footer-additions {
-    color: @healthy_green_border;
+    color: var(--color-success);
   }
   .footer-removals {
-    color: @unhealthy_red_border;
+    color: var(--color-danger);
     display: inline-block;
     margin-left: 5px;
   }
@@ -72,7 +72,7 @@
     }
   }
   .match {
-    color: @mid_grey;
+    color: var(--color-dovegray);
     &::before {
       content: ' ';
     }

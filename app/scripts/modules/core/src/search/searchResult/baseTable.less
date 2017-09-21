@@ -11,16 +11,16 @@
       position: sticky;
       top: 0;
       font-weight: 600;
-      background-color: @lightest_grey;
+      background-color: var(--color-alabaster);
       z-index: 2;
       .fa {
         padding-left: 2px;
         &.disabled {
-          color: @mid_light_grey;
+          color: var(--color-alto);
         }
       }
       .@{table-name}-header {
-        background-color: @lightest_grey;
+        background-color: var(--color-alabaster);
       }
     }
     .table-header, .@{table-name}-row {
@@ -33,12 +33,12 @@
         width: 150px;
         word-break: break-all;
         white-space: normal;
-        border-bottom: 1px solid @mid_light_grey;
+        border-bottom: 1px solid var(--color-alto);
       }
     }
     .@{table-name}-row {
       > div {
-        background-color: @lightest_grey;
+        background-color: var(--color-alabaster);
         flex: 1 1 auto;
       }
       &:nth-child(even) {
@@ -48,12 +48,12 @@
       }
       &:hover {
         > div {
-          background-color: @lighter_grey;
+          background-color: var(--color-cirrus);
         }
       }
       &.active {
         > div {
-          background-color: @pod_header_blue;
+          background-color: var(--color-accent-g2);
         }
       }
     }

@@ -12,7 +12,7 @@ executions {
     z-index: 20;
     padding: 30px 0 0 0;
     margin-top: -30px;
-    background-color: @lightest_grey;
+    background-color: var(--color-alabaster);
     h3 {
       display: inline-block;
       font-weight: 600;
@@ -59,18 +59,18 @@ executions {
     .permalinks-content {
       display: inline-block;
       width: 50%;
-      background-color: @pod_header_blue;
+      background-color: var(--color-accent-g2);
     }
   }
 
   .execution {
     margin-bottom: 10px;
-    background-color: @lightest_grey;
+    background-color: var(--color-alabaster);
 
     .execution-overview {
       padding: 10px;
       background-color: var(--color-white);
-      border: 1px solid @mid_light_grey;
+      border: 1px solid var(--color-alto);
       .execution-name {
         margin-top: 0;
         font-weight: 600;
@@ -86,63 +86,63 @@ executions {
 
 // default
 .execution-status {
-  color: @mid_lighter_grey;
+  color: var(--color-concrete);
 }
 
 // overrides
 .execution-status-executing, .execution-status-running {
-  color: @spinnaker-blue;
+  color: var(--color-accent);
 }
 .execution-status-terminal {
-  color: @unhealthy_red;
+  color: var(--color-danger);
 }
 .execution-status-succeeded {
-  color: @healthy_green_border;
+  color: var(--color-success);
 }
 
 .execution-marker {
-  fill: @stage-default;
-  background-color: @stage-default;
+  fill: var(--color-alto);
+  background-color: var(--color-alto);
   &.execution-marker-terminal {
-    fill: @stage-terminal;
-    background-color: @stage-terminal;
+    fill: var(--color-danger);
+    background-color: var(--color-danger);
   }
   &.execution-marker-failed_continue {
-    fill: @stage-failed_continue;
-    background-color: @stage-failed_continue;
+    fill: var(--color-alert);
+    background-color: var(--color-alert);
   }
   &.execution-marker-succeeded {
-    fill: @stage-succeeded;
-    background-color: @stage-succeeded;
+    fill: var(--color-success);
+    background-color: var(--color-success);
   }
   &.execution-marker-running {
-    fill: @stage-running;
-    background-color: @stage-running;
+    fill: var(--color-accent);
+    background-color: var(--color-accent);
   }
   &.execution-marker-stopped {
-    fill: @stage-stopped;
-    background-color: @stage-stopped;
+    fill: var(--color-danger-light);
+    background-color: var(--color-danger-light);
   }
   &.execution-marker-not_started, &.execution-marker-canceled {
-    fill: @stage-default;
-    background-color: @stage-default;
+    fill: var(--color-alto);
+    background-color: var(--color-alto);
   }
   &.execution-marker-paused {
-    fill: @stage-running;
-    background-color: @stage-running;
+    fill: var(--color-accent);
+    background-color: var(--color-accent);
   }
   &.execution-marker-skipped {
-    fill: @stage-stopped-intentional;
-    background-color: @stage-stopped-intentional;
+    fill: var(--color-titanium);
+    background-color: var(--color-titanium);
   }
   &.execution-marker-stopped {
-    fill: @stage-stopped;
-    background-color: @stage-stopped;
+    fill: var(--color-danger-light);
+    background-color: var(--color-danger-light);
   }
   &.execution-marker-stopped {
     &.stage-type-checkpreconditions, &.stage-type-manualjudgment {
-      fill: @stage-stopped-intentional;
-      background-color: @stage-stopped-intentional;
+      fill: var(--color-titanium);
+      background-color: var(--color-titanium);
     }
   }
 }

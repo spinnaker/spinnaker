@@ -12,7 +12,7 @@ application-nav, application-nav-secondary, .application-nav {
   .badge {
     // TODO: move this to .badge.badge-running-count in main
     border-radius: 3px;
-    background-color: @spinnaker-link-color;
+    background-color: var(--color-accent);
     padding: 3px 6px;
     margin-bottom: 3px;
     @media (max-width: 1400px) {
@@ -30,9 +30,9 @@ application-nav, application-nav-secondary, .application-nav {
     &.active, &:focus, &:hover {
       text-decoration: none;
       background-color: transparent;
-      color: @default_link_hover;
+      color: var(--color-primary);
       .badge {
-        background-color: @default_link_hover;
+        background-color: var(--color-primary);
       }
       &:after {
         content: ' ';
@@ -40,7 +40,7 @@ application-nav, application-nav-secondary, .application-nav {
         height: 0;
         border-left: 12px solid transparent;
         border-right: 12px solid transparent;
-        border-bottom: 12px solid @lightest_grey;
+        border-bottom: 12px solid var(--color-alabaster);
         position: absolute;
         left: calc(~"50% - 12px");
         bottom: 0;

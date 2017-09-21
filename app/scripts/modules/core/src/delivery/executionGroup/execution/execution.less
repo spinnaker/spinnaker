@@ -10,32 +10,32 @@
       color: var(--color-white);
     }
     &.label-succeeded {
-      background-color: @healthy_green_border;
+      background-color: var(--color-success);
     }
     &.label-terminal, &.label-terminated {
-      background-color: @unhealthy_red;
+      background-color: var(--color-danger);
     }
     &.label-failed_continue {
-      background-color: @stage-failed_continue;
-      color: @text-color;
+      background-color: var(--color-alert);
+      color: var(--color-mineshaft);
     }
     &.label-running, &.label-launched {
-      background-color: @spinnaker-blue;
+      background-color: var(--color-accent);
     }
     &.label-stopped {
-      background-color: @stage-stopped;
-      color: @text-color;
+      background-color: var(--color-danger-light);
+      color: var(--color-mineshaft);
     }
 
   }
   .timestamp {
-    color: @mid_grey;
+    color: var(--color-dovegray);
     font-size: .8em;
     padding-top: 22px;
   }
   .panel {
     .summary {
-      background-color: @mid_light_grey;
+      background-color: var(--color-alto);
       cursor: pointer;
       padding-bottom: 0px;
       h5 {
@@ -49,7 +49,7 @@
 
     .details {
       .tr {
-        background-color: lighten(@spinnaker-blue, 20%);
+        background-color: var(--color-accent-g1);
       }
     }
 
@@ -63,7 +63,7 @@
   padding-top: 20px;
   margin-left: 6px;
   .glyphicon-remove-circle {
-    color: @unhealthy_red;
+    color: var(--color-danger);
   }
 
   a {

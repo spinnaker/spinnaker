@@ -1,62 +1,69 @@
 @import (reference) "~core/presentation/less/imports/commonImports.less";
 
-// A mixin which creates all the color styles for a notification category
-.notification-category-color(@class, @color, @secondary-color: lighten(@color, 30%)) {
-  .notification.@{class}, .notifications-popover.@{class} {
-    &.fa {
-      color: @color;
-    }
+.notices-severity-0, .notices-severity-1, .notices-severity-2 {
+  --color-notice: var(--color-accent);
+  --color-notice-light: var(--color-accent-g2);
+}
 
-    // popover trigger fg/bg inverts for alerts on "all server groups in all regions"
-    .popover-title,
-    &.inverse .notification.fa {
-      background-color: @color;
-      color: white;
-    }
+.alerts-severity-0 {
+  --color-notice: var(--color-warning);
+  --color-notice-light: var(--color-warning-light);
+}
 
-    // must be more specific than the stock bootstrap style
-    &.bottom > div.arrow:after {
-      border-bottom-color: @color;
-    }
+.alerts-severity-1 {
+  --color-notice: var(--color-alert);
+  --color-notice-light: var(--color-alert-light);
+}
+
+.alerts-severity-2 {
+  --color-notice: var(--color-danger);
+  --color-notice-light: var(--color-danger-light);
+}
+
+.notification, .notifications-popover {
+  &.fa {
+    color: var(--color-notice);
   }
 
-
-  .notifications-popover .notification-categories .@{class} {
-    color: @color;
-
-    .notification-category-label {
-      color: black;
-      & when (@class = alerts-severity-2) {
-        // Extra (red) color to emphasize severe alerts
-        color: @color;
-      }
-    }
-
-    .badge {
-      background-color: @color;
-    }
-
-    &.selected {
-      background-color: @secondary-color;
-    }
-
-    &:hover {
-      background-color: lighten(@secondary-color, 3%)
-    }
+  .popover-title,
+  &.inverse .notification.fa {
+    background-color: var(--color-notice);
+    color: var(--color-white);
   }
+
+  &.bottom > div.arrow:after {
+    border-bottom-color: var(--color-notice);
+  }
+}
+
+.notifications-popover .notification-categories {
+  color: var(--color-notice);
+
+  .notification-category-label {
+    color: var(--color-black);
+  }
+
+  .badge {
+    background-color: var(--color-notice);
+  }
+
+  &.selected {
+    background-color: var(--color-notice-light);
+  }
+
+  &:hover {
+    background-color: var(--color-notice-light);
+  }
+}
+
+.alert-severity-2 .notification-category-label {
+  color: var(--color-danger);
 }
 
 .notification-category-icon {
   flex: 0 0 1em;
   text-align: center;
 }
-
-.notification-category-color(notices-severity-0, @spinnaker-link-color);
-.notification-category-color(notices-severity-1, @spinnaker-link-color);
-.notification-category-color(notices-severity-2, @spinnaker-link-color);
-.notification-category-color(alerts-severity-0, @unhealthy_yellow, @unhealthy_yellow_bg);
-.notification-category-color(alerts-severity-1, @unhealthy_orange, @unhealthy_orange_bg);
-.notification-category-color(alerts-severity-2, @unhealthy_red, @unhealthy_red_bg);
 
 .entity-notifications {
   display: inline-block;

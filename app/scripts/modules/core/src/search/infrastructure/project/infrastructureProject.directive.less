@@ -2,11 +2,11 @@
 
 infrastructure-project {
   display: block;
-  border: 1px solid @dark_grey;
+  border: 1px solid var(--color-mineshaft);
   background-color: var(--color-white);
   margin-bottom: 15px;
   a {
-    color: @text-color;
+    color: var(--color-mineshaft);
     display: block;
     &:active, &:hover {
       font-weight: 600;
@@ -15,8 +15,8 @@ infrastructure-project {
 
   .project-summary {
     padding: 10px;
-    background-color: @dark_blue_background;
-    color: @lightest_grey;
+    background-color: var(--color-primary);
+    color: var(--color-alabaster);
     .remove-result-link {
       opacity: 0;
     }
@@ -24,9 +24,9 @@ infrastructure-project {
       .remove-result-link {
         opacity: 1;
         transition: opacity 0.25s ease-in;
-        color: @mid_lighter_grey;
+        color: var(--color-concrete);
         &:hover, &:active {
-          color: @spinnaker-link-color;
+          color: var(--color-accent);
         }
       }
     }
@@ -35,7 +35,7 @@ infrastructure-project {
       font-weight: 600;
       font-size: 120%;
       a {
-        color: @inverse-link-color;
+        color: var(--color-accessory-light);
         display: inline-block;
         width: calc(~"100% - 20px");
       }
@@ -44,11 +44,11 @@ infrastructure-project {
   .application-list {
     padding: 10px 15px;
     margin-bottom: 0;
-    border-top: 1px solid @dark_grey;
-    background-color: @secondary_panel_grey;
+    border-top: 1px solid var(--color-mineshaft);
+    background-color: var(--color-cirrus);
     li {
       a {
-        color: @text-color;
+        color: var(--color-mineshaft);
       }
       list-style-type: none;
     }

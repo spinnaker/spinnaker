@@ -13,15 +13,15 @@ page-navigator {
     li {
       display: block;
       &:hover, &.current {
-        background-color: @lighter_grey;
+        background-color: var(--color-cirrus);
         a {
-          color: @dark_blue_background;
+          color: var(--color-primary);
         }
         font-weight: 600;
       }
       a {
         &:focus {
-          color: @spinnaker-link-color;
+          color: var(--color-accent);
         }
         display: block;
         cursor: pointer;
@@ -43,13 +43,13 @@ page-navigator {
     }
     .section-body {
       background-color: var(--color-white);
-      border: 1px solid @lighter_grey;
+      border: 1px solid var(--color-cirrus);
       padding: 15px;
     }
     .clearfix();
     h4.sticky-header {
       padding: 10px;
-      background-color: @pod_header_blue;
+      background-color: var(--color-accent-g2);
       margin: 0;
     }
     .highlighted {

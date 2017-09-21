@@ -7,7 +7,7 @@ project-cluster {
     text-transform: uppercase;
   }
   .cluster-health {
-    background-color: @pod_header_blue;
+    background-color: var(--color-accent-g2);
     font-size: 80%;
     padding-right: 10px;
   }
@@ -44,13 +44,13 @@ project-cluster {
       &.heavy {
         font-weight: 600;
       }
-      color: @text-color;
+      color: var(--color-mineshaft);
       &:hover, &:active {
-        color: @text-color;
+        color: var(--color-mineshaft);
       }
     }
     .text-warning {
-      color: @unhealthy_orange;
+      color: var(--color-alert);
     }
     .instance-health-counts {
       padding-left: 0;

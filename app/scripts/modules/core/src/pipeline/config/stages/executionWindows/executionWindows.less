@@ -5,7 +5,7 @@ execution-windows {
     @graph_height: 70px;
     width: 100%;
     height: @graph_height;
-    border: 1px solid @mid_lighter_grey;
+    border: 1px solid var(--color-concrete);
     position: relative;
     margin: 0 0 0 10px;
 
@@ -14,14 +14,14 @@ execution-windows {
 
     .execution-window {
       height: @graph_height - 1;
-      background-color: @healthy_green;
+      background-color: var(--color-success-light);
       position: absolute;
       bottom: 0;
       z-index: 3;
       &:after {
         content: '';
         width: calc(~"100% + 1px");
-        border: 1px solid darken(@mid_lighter_grey, 20%);
+        border: 1px solid var(--color-dovegray);
         border-bottom-width: 0;
         height: @graph_height - @label-height - 1;
         position: absolute;
@@ -32,7 +32,7 @@ execution-windows {
     }
 
     .divider-label-fill {
-      background-color: @lighter_grey;
+      background-color: var(--color-cirrus);
       height: @label-height;
       width: 100%;
       position: absolute;
@@ -55,17 +55,17 @@ execution-windows {
           position: absolute;
           height: @divider-height;
           z-index: 2;
-          border-right: 1px solid @mid_light_grey;
+          border-right: 1px solid var(--color-alto);
         }
         .divider-label {
           font-size: 75%;
-          color: @mid_grey;
+          color: var(--color-dovegray);
           width: 100%;
           position: absolute;
           bottom: 1px;
           padding: 3px;
-          border-top: 1px solid @mid_lighter_grey;
-          border-right: 1px solid @mid_lighter_grey;
+          border-top: 1px solid var(--color-concrete);
+          border-right: 1px solid var(--color-concrete);
           text-align: center;
           z-index: 4;
         }

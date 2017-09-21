@@ -42,11 +42,11 @@ instance-archetype-selector, v2-instance-archetype-selector {
   font-size: 90%;
   border: 1px solid var(--color-silver);
   border-radius: 3px;
-  color: @text-color;
+  color: var(--color-mineshaft);
   background-color: transparent;
 
   &:hover, &:focus {
-    color: @text-color;
+    color: var(--color-mineshaft);
     text-decoration: none;
   }
 
@@ -56,7 +56,7 @@ instance-archetype-selector, v2-instance-archetype-selector {
     text-align: right;
     padding-right: 5px;
     font-size: 150%;
-    color: @spinnaker-blue;
+    color: var(--color-accent);
 
     &.custom {
       margin-top: 5px;
@@ -84,16 +84,16 @@ instance-archetype-selector, v2-instance-archetype-selector {
     outline: 0;
   }
   &.active {
-    box-shadow: inset 0 0 3px 2px @spinnaker-blue;
-    border-color: @spinnaker-blue;
+    box-shadow: inset 0 0 3px 2px var(--color-accent);
+    border-color: var(--color-accent);
   }
   &:hover, &:focus {
-    box-shadow: 0 0 8px 2px @spinnaker-blue;
+    box-shadow: 0 0 8px 2px var(--color-accent);
   }
 }
 .cost-factor {
-  color: @mid_light_grey;
+  color: var(--color-alto);
   .cost {
-    color: @text-color;
+    color: var(--color-mineshaft);
   }
 }

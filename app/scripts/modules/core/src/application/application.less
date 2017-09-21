@@ -66,7 +66,7 @@
       .compactPageButton();
     }
     .btn-danger {
-      background-color: @unhealthy_red;
+      background-color: var(--color-danger);
       border-color: transparent;
       padding: 0 5px;
       font-size: 14px;
@@ -115,9 +115,9 @@
 }
 
 .link-inverse {
-  color: @inverse-link-color;
+  color: var(--color-accessory-light);
   &:active, &:focus, &:hover {
-    color: @inverse-link-color-active;
+    color: var(--color-accessory);
     text-decoration: none;
   }
 }
@@ -134,17 +134,17 @@
     padding: 3px 5px;
     margin-right: 10px;
     margin-bottom: 5px;
-    background-color: @light_grey;
+    background-color: var(--color-cirrus);
     font-size: 90%;
     a {
       font-size: 90%;
-      color: @mid_grey;
+      color: var(--color-dovegray);
     }
   }
   .clear-filters {
     display: inline-block;
     margin-left: 5px;
-    color: @text-color;
+    color: var(--color-mineshaft);
     font-size: 90%;
   }
 }

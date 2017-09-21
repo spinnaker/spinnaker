@@ -61,8 +61,8 @@
     margin-top: 0;
   }
   .section-heading {
-    color: @text-color;
-    background-color: @pod_header_blue;
+    color: var(--color-mineshaft);
+    background-color: var(--color-accent-g2);
     padding: 10px;
     margin-bottom: 0;
   }
@@ -248,23 +248,23 @@ abbr.select2-search-choice-close {
   li {
     margin-bottom: 5px;
     .fa-check-circle-o {
-      color: @healthy_green_border;
+      color: var(--color-success);
     }
     .fa-exclamation-triangle {
-      color: @text_error;
+      color: var(--color-danger);
     }
   }
   &.task-progress-refresh {
     margin-top: 15px;
     padding-top: 15px;
-    border-top: 2px solid @mid_lighter_grey;
+    border-top: 2px solid var(--color-concrete);
   }
   &.task-progress-running {
     margin-top: 20px;
     text-align: center;
     .glyphicon {
       font-size: 150%;
-      color: @healthy_green_border;
+      color: var(--color-success);
     }
   }
 }
@@ -274,7 +274,7 @@ abbr.select2-search-choice-close {
   height: 0;
   opacity: 0;
   overflow-y: auto;
-  border-bottom: 2px solid @dark_blue_background;
+  border-bottom: 2px solid var(--color-primary);
   background-color: var(--color-white);
   z-index: 6;
   position: relative;
@@ -284,7 +284,7 @@ abbr.select2-search-choice-close {
   }
   .overlay-modal-error {
     padding: 30px 30px 0 30px;
-    color: @text_error;
+    color: var(--color-danger);
   }
   .modal-body {
     overflow-y: auto;
@@ -324,22 +324,22 @@ abbr.select2-search-choice-close {
   display: flex;
   justify-content: center;
   .card {
-    border: 1px solid @mid_light_grey;
+    border: 1px solid var(--color-alto);
     border-radius: 2px;
     width: 200px;
     margin: 15px;
     padding: 30px 15px;
     cursor: pointer;
     &.active {
-      border: 1px solid @spinnaker-link-color;
-      background-color: @lighter_blue_background;
-      box-shadow: 0 0 5px 0 @spinnaker-link-color;
+      border: 1px solid var(--color-accent);
+      background-color: var(--color-accent-g2);
+      box-shadow: 0 0 5px 0 var(--color-accent);
       h3 {
-        color: @default_link_hover;
+        color: var(--color-primary);
       }
     }
     &:hover {
-      border: 1px solid @spinnaker-link-color;
+      border: 1px solid var(--color-accent);
     }
     h3 {
       &.card-label {

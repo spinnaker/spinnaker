@@ -2,17 +2,17 @@
 
 .details-panel {
   &.health-status-Healthy {
-    background-color: @healthy_green;
-    border-color: @healthy_green_border;
+    background-color: var(--color-success-light);
+    border-color: var(--color-success);
   }
   &.health-status-Unhealthy {
-    background-color: @unhealthy_red;
-    border-color: @unhealthy_red_border;
+    background-color: var(--color-danger-light);
+    border-color: var(--color-danger);
   }
 
   &.health-status-Unknown{
-    background-color: @missing_health;
-    border-color: @missing_health_border;
+    background-color: var(--color-accent-g2);
+    border-color: var(--color-accent);
   }
 }
 
@@ -38,10 +38,10 @@
   text-align: center;
   color: var(--color-white);
   &.band-info {
-    background-color: @mid_grey;
+    background-color: var(--color-dovegray);
   }
   &.band-warning {
-    background-color: @unhealthy_red;
+    background-color: var(--color-danger);
   }
 }
 .collapsible-section {
@@ -111,19 +111,19 @@
         display: inline-block;
         vertical-align: middle;
         top: 50%;
-        color: @healthy_green;
+        color: var(--color-success-light);
         font-size: 300%;
         &.Unhealthy, &.Down {
-          color: @unhealthy_red;
+          color: var(--color-danger);
         }
         &.Unknown, &.Starting {
-          color: @missing_health;
+          color: var(--color-accent-g1);
         }
         &.Starting {
           .pulsing(1.0);
         }
         &.disabled, &.OutOfService {
-          color: @mid_light_grey;
+          color: var(--color-alto);
         }
         padding-right: 10px;
       }
@@ -183,7 +183,7 @@
         .pull-left;
       }
       &.details-running-tasks {
-        background-color: @active_pod_blue;
+        background-color: var(--color-alabaster);
         margin: 0;
         padding: 10px 17px 20px;
       }
@@ -202,7 +202,7 @@
   }
   .scaling-processes {
     .fa-check {
-      color: @healthy_green_icon;
+      color: var(--color-success);
     }
   }
 }

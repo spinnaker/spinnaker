@@ -22,8 +22,8 @@
       vertical-align: -1px;
       font-weight: normal;
     }
-    border-bottom: 1px solid @mid_light_grey;
-    border-top: 1px solid @mid_light_grey;
+    border-bottom: 1px solid var(--color-alto);
+    border-top: 1px solid var(--color-alto);
     padding-top: 5px;
     padding-bottom: 5px;
     margin-bottom: 5px;
@@ -38,7 +38,7 @@
     }
   }
   .faded {
-    color: @mid_lighter_grey;
+    color: var(--color-concrete);
   }
 }
 
@@ -46,7 +46,7 @@
   h4 {
     margin: 20px 0 20px 0px;
     padding-bottom: 10px;
-    border-bottom: 1px solid @mid_lighter_grey;
+    border-bottom: 1px solid var(--color-concrete);
   }
   h5 {
     margin: 20px 0 0px 30px;
@@ -87,10 +87,10 @@
     }
   }
   .fa-check {
-    color: @healthy_green_icon;
+    color: var(--color-success);
   }
   .fa-exclamation-triangle {
-    color: @unhealthy_red;
+    color: var(--color-danger);
   }
   dt {
     float: left;
@@ -100,13 +100,13 @@
 
 .stage-label {
   .tests-pass-count {
-    color: @healthy_green_icon;
+    color: var(--color-success);
   }
   .tests-fail-count {
-    color: @unhealthy_red;
+    color: var(--color-danger);
   }
   .tests-skip-count {
-    color: @mid_lighter_grey;
+    color: var(--color-concrete);
   }
 }
 
@@ -117,12 +117,12 @@
       text-align: right;
       width: 65px;
       .fa-check {
-        color: @healthy_green_icon;
+        color: var(--color-success);
       }
       .glyphicon-remove {
-        color: @unhealthy_red;
+        color: var(--color-danger);
         &.informational {
-          color: @unhealthy_red !important;
+          color: var(--color-danger) !important;
           cursor: default;
         }
       }

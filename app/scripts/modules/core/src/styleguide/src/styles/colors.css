@@ -12,14 +12,14 @@
     --color-accessory: #7E94A4;
     --color-accessory-light: #C1D4DB;
 
-    --color-asparagus: #8AAD6A;
-    --color-sprout: #BFDD9A;
-    --color-rose: #BB231E;
-    --color-blush: #F1C0BF;
-    --color-mango: #EEBB3C;
-    --color-lemon: #FFE7AB;
-    --color-copper: #EEBB3C;
-    --color-cantaloupe: #FAD6AA;
+    --color-success: #8AAD6A;
+    --color-success-light: #BFDD9A;
+    --color-danger: #BB231E;
+    --color-danger-light: #F1C0BF;
+    --color-warning: #EEBB3C;
+    --color-warning-light: #FFE7AB;
+    --color-alert: #EEBB3C;
+    --color-alert-light: #FAD6AA;
 
     --color-black: #000000;
     --color-mineshaft: #393939;

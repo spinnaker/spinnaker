@@ -186,15 +186,15 @@ Badges are also offered in 2 sizes:
 }
 
 .pill.success, .sp-badge.success {
-  background-color: var(--color-asparagus);
+  background-color: var(--color-success);
 }
 
 .pill.danger, .sp-badge.danger {
-  background-color: var(--color-rose);
+  background-color: var(--color-danger);
 }
 
 .pill.warn, .sp-badge.warn {
-  background-color: var(--color-mango);
+  background-color: var(--color-warning);
 }
 
 .sp-badge.large, .sp-badge.large * {

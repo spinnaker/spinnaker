@@ -3,7 +3,7 @@
 @import (reference) "~core/presentation/less/imports/commonImports.less";
 
 .secondary-text() {
-  color: @mid_lighter_grey;
+  color: var(--color-concrete);
   font-size: small;
   margin-left: 5px;
 }
@@ -43,7 +43,7 @@
     padding: 5px 5px 5px 10px;
 
     .filter__text {
-      color: @text-color;
+      color: var(--color-mineshaft);
     }
 
     .filter__modifier {
@@ -51,8 +51,8 @@
     }
 
     &.filter--focus {
-      border-color: @glow-init;
-      background-color: @pod_header_blue;
+      border-color: var(--color-accent-g1);
+      background-color: var(--color-accent-g2);
     }
 
     &.filter--blur {
@@ -60,8 +60,8 @@
     }
 
     &:hover {
-      background-color: @pod_header_blue;
-      border-color: @glow-init;
+      background-color: var(--color-accent-g2);
+      border-color: var(--color-accent-g1);
     }
   }
 }

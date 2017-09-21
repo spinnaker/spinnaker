@@ -166,11 +166,11 @@ button.passive:hover, a.button.passive:hover {
 }
 
 button.danger, a.button.danger {
-  color: var(--color-rose);
+  color: var(--color-danger);
 }
 
 button.danger:hover, a.button.danger:hover {
-  background-color: var(--color-rose);
+  background-color: var(--color-danger);
   color: var(--color-text-on-dark);
 }
 

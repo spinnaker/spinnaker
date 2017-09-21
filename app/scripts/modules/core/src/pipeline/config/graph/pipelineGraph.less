@@ -5,7 +5,7 @@
     g {
       &.active, &.highlighted {
         circle, rect {
-          fill: @healthy_green_border;
+          fill: var(--color-success);
         }
       }
     }
@@ -30,19 +30,19 @@ pipeline-graph, .pipeline-graph {
       }
       &.active {
         &.target {
-          stroke: @healthy_green;
+          stroke: var(--color-success-light);
         }
         &.source {
-          stroke: @spinnaker-blue;
+          stroke: var(--color-accent);
         }
         stroke-width: 4px;
       }
       &.highlighted {
         &.target {
-          stroke: lighten(@healthy_green, 10);
+          stroke: var(--color-success-light);
         }
         &.source {
-          stroke: lighten(@spinnaker-blue, 25);
+          stroke: var(--color-accent-g1);
         }
         &.has-status {
           stroke-width: 4px;
@@ -50,22 +50,22 @@ pipeline-graph, .pipeline-graph {
         stroke-width: 2.5px;
       }
       &.running {
-        stroke: @spinnaker-blue;
+        stroke: var(--color-accent);
       }
       &.failed {
-        stroke: @unhealthy_red;
+        stroke: var(--color-danger);
       }
       &.completed {
-        stroke: @stage-succeeded;
+        stroke: var(--color-success);
       }
       &.not_started, &.suspended, &.canceled, &.unknown {
-        stroke: @mid_light_grey;
+        stroke: var(--color-alto);
       }
     }
 
     g {
       rect {
-        fill: @stage-default;
+        fill: var(--color-alto);
       }
       .label-component {
         transition: all 0.10s;
@@ -78,26 +78,26 @@ pipeline-graph, .pipeline-graph {
         &.has-status {
           circle.graph-node, path.graph-node {
             fill-opacity: 1;
-            stroke: @mid_grey;
             stroke-width: 1px;
+            stroke: var(--color-dovegray);
           }
         }
       }
       &.warning {
         circle, rect {
-          fill: @unhealthy_red;
+          fill: var(--color-danger);
         }
       }
       a {
-        color: @text-color;
+        color: var(--color-mineshaft);
       }
       a:hover {
-        color: @text-color;
+        color: var(--color-mineshaft);
         font-weight: 600;
         text-decoration: none;
       }
       div.execution-stage-label {
-        color: lighten(@text-color, 30);
+        color: var(--color-dovegray);
         font-weight: 400;
         padding: 0 5px 0 0;
         border: 2px solid transparent;
@@ -111,7 +111,7 @@ pipeline-graph, .pipeline-graph {
       }
       &.active, &.highlighted {
         div.label-body {
-          color: @text-color;
+          color: var(--color-mineshaft);
           font-weight: 600;
         }
         div.execution-stage-label {
@@ -119,7 +119,7 @@ pipeline-graph, .pipeline-graph {
             padding: 3px;
             margin: -3px;
             color: var(--color-white);
-            background-color: @spinnaker-link-color;
+            background-color: var(--color-accent);
             border-radius: 2px;
             text-shadow: none;
           }
@@ -146,7 +146,7 @@ pipeline-graph, .pipeline-graph {
 .execution-graph {
   margin: 0 20px;
   padding: 10px 10px 20px 10px;
-  background-color: @secondary_panel_grey;
-  border: 1px solid @mid_light_grey;
+  background-color: var(--color-cirrus);
+  border: 1px solid var(--color-alto);
   border-top: none;
 }

@@ -21,10 +21,10 @@
 .execution-group-heading {
   display: flex;
   padding: 0;
-  color: @default_link_hover;
+  color: var(--color-primary);
   height: 37px;
   .pipeline-toggle {
-    background-color: @lightest_grey;
+    background-color: var(--color-alabaster);
     display: inline-block;
     padding: 10px 10px 10px 0;
     height: 36px;
@@ -41,7 +41,7 @@
     padding: 0 10px;
     margin: 0;
     .disabled {
-      color: @mid_lighter_grey;
+      color: var(--color-concrete);
     }
     .badge {
       margin-left: 5px;
@@ -60,18 +60,18 @@
     }
   }
   .badge {
-    background-color: @default_link_hover;
-    color: @lightest_grey;
+    background-color: var(--color-primary);
+    color: var(--color-alabaster);
     border-radius: 3px;
   }
   &.inactive {
-    color: tint(@default_link_hover, 50%);
+    color: var(--color-accessory-light);
     .shadowed, .execution-group-actions {
-      background-color: tint(@pod_header_blue, 50%);
+      background-color: var(--color-accent-g3);
     }
     .label-retired {
       background-color: transparent;
-      color: @light_grey;
+      color: var(--color-cirrus);
       padding: 3px 10px;
       font-size: 12px;
     }
@@ -83,9 +83,9 @@
   font-weight: 400;
   font-size: 85%;
   position: relative;
-  color: @healthy_green_border;
+  color: var(--color-success);
   &.disabled {
-    color: @mid_grey;
+    color: var(--color-dovegray);
   }
 }
 
@@ -95,7 +95,7 @@
 }
 
 .execution-group-actions {
-  background-color: @pod_header_blue;
+  background-color: var(--color-accent-g2);
   flex: 0 0 auto;
   h4 {
     margin-left: 20px;
