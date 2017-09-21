@@ -1,0 +1,35 @@
+schema: "1"
+id: combined-template
+metadata:
+  name: Less simple wait template
+  description: A template with many waits
+variables:
+- name: waitTime
+  description: The time a wait stage should pause
+  type: int
+- name: childWaitTime
+  description: pause time for another wait
+stages:
+- id: wait1
+  type: wait
+  config:
+    waitTime: "{{ waitTime }}"
+- id: waitChild1
+  type: wait
+  dependsOn:
+  - wait1
+  config:
+    waitTime: "{{ waitTime }}"
+- id: waitChild2
+  type: wait
+  dependsOn:
+  - wait1
+  config:
+    waitTime: "{{ childWaitTime }}"
+- id: finalWait
+  type: wait
+  dependsOn:
+  - waitChild1
+  - waitChild2
+  config:
+    waitTime: 10

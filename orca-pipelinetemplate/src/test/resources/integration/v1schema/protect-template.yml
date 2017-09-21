@@ -1,0 +1,13 @@
+---
+schema: "1"
+id: simple
+protect: true
+metadata:
+  name: Barebones
+  description: The simplest template possible.
+stages:
+- id: wait1
+  type: wait
+  config:
+    waitTime: "{{ waitTime }}"
+

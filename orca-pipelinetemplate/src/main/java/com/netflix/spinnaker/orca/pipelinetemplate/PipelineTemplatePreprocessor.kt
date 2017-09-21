@@ -66,7 +66,7 @@ class PipelineTemplatePreprocessor
           throw IrrecoverableConditionException(t)
         }
 
-        log.error("Unexpected error occurred while processing template: (requestId: {})", context.getRequestId(), t)
+        log.error("Unexpected error occurred while processing template: ", context.getRequest().getId(), t)
         errorHandler.recordThrowable(t)
         chain.clear()
       }

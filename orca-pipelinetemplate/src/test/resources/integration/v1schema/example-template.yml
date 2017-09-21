@@ -1,0 +1,16 @@
+schema: "1"
+id: child-2-template
+source: example-child.yml
+variables:
+- name: childWaitTime
+  description: pause time for another wait
+metadata:
+  name: A Second Child template
+  description: A second child template
+stages:
+- id: waitChild2
+  type: wait
+  dependsOn:
+  - wait1
+  config:
+    waitTime: "{{ childWaitTime }}"

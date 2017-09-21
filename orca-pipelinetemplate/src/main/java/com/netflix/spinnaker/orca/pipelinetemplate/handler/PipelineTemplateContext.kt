@@ -20,7 +20,6 @@ import com.netflix.spinnaker.orca.pipelinetemplate.validator.Errors
 import java.util.*
 
 interface PipelineTemplateContext {
-  fun getRequestId(): String
   fun getChain(): HandlerChain
   fun getErrors(): Errors
   fun getProcessedOutput(): MutableMap<String, Any>
@@ -35,8 +34,6 @@ class GlobalPipelineTemplateContext(
   private val chain: HandlerChain,
   private val request: TemplatedPipelineRequest
 ) : PipelineTemplateContext {
-
-  override fun getRequestId() = UUID.randomUUID().toString()
 
   private val errors = Errors()
   private val processedOutput = mutableMapOf<String, Any>()

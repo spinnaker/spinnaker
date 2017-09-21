@@ -2,7 +2,7 @@
   "errors": [
     {
       "severity": "FATAL",
-      "message": "config schema version is unsupported: expected '1', got '0.1'"
+      "message": "unexpected schema version '0.1'"
     }
   ]
 }

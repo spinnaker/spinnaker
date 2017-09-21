@@ -31,7 +31,6 @@ class PipelineTemplateErrorHandler : Handler {
 
     if (context.getErrors().hasErrors(context.getRequest().plan)) {
       context.getProcessedOutput().putAll(context.getErrors().toResponse())
-      context.getProcessedOutput().put("mptRequestId", context.getRequestId())
     }
   }
 

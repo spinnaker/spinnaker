@@ -67,8 +67,6 @@ public class V1TemplateConfigurationSchemaValidator implements SchemaValidator<V
           .withSeverity(Severity.WARN));
       }
     });
-
-    // TODO rz - validate required variables are set and of the correct type
   }
 
   private static String location(String location) {

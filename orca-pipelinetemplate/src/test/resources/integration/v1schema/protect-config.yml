@@ -1,0 +1,11 @@
+---
+schema: "1"
+pipeline:
+  application: orca
+stages:
+- id: wait2
+  type: wait
+  config:
+    waitTime: "{{ waitTime }}"
+  dependsOn:
+  - wait1

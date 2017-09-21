@@ -1,0 +1,20 @@
+schema: "1"
+pipeline:
+  application: myApp
+  name: My super awesome pipeline
+  template:
+    source: exampleCombined-template.yml
+  variables:
+    waitTime: 20
+    childWaitTime: 15
+configuration:
+  notifications:
+  - address: example@example.com
+    level: pipeline
+    name: email0
+    type: email
+    when:
+    - pipeline.failed
+  triggers: []
+
+

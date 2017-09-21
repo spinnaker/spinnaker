@@ -1,0 +1,9 @@
+{
+  "errors": [
+    {
+      "severity": "FATAL",
+      "cause": "The template being used has marked itself as protected",
+      "message": "Modification of the stage graph (adding, removing, editing) is disallowed"
+    }
+  ]
+}

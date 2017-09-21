@@ -1,0 +1,51 @@
+{
+  "keepWaitingPipelines": false,
+  "limitConcurrent": true,
+  "application": "myApp",
+  "name": "My super awesome pipeline",
+  "stages": [
+    {
+      "requisiteStageRefIds": [],
+      "name": "wait1",
+      "id": null,
+      "refId": "wait1",
+      "type": "wait",
+      "waitTime": 20
+    },
+    {
+      "requisiteStageRefIds": ["wait1"],
+      "id": null,
+      "name": "waitChild2",
+      "refId": "waitChild2",
+      "type": "wait",
+      "waitTime": 15
+    },
+    {
+      "requisiteStageRefIds": ["wait1"],
+      "id": null,
+      "name": "waitChild1",
+      "refId": "waitChild1",
+      "type": "wait",
+      "waitTime": 20
+    },
+    {
+      "requisiteStageRefIds": ["waitChild2", "waitChild1"],
+      "id": null,
+      "name": "finalWait",
+      "refId": "finalWait",
+      "type": "wait",
+      "waitTime": 10
+    }
+  ],
+  "id": "unknown",
+  "notifications": [
+    {
+      "address": "example@example.com",
+      "level": "pipeline",
+      "name": "email0",
+      "when": ["pipeline.failed"],
+      "type": "email"
+    }
+  ],
+  "parameterConfig": []
+}
