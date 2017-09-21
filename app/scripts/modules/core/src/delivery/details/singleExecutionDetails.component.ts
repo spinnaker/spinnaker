@@ -63,7 +63,7 @@ const template = `
     <div class="row" ng-if="$ctrl.stateNotFound" style="min-height: 300px">
       <h4 class="text-center">
         <p>The execution cannot be found.</p>
-        <a ui-sref="^.executions.execution({application: $ctrl.app.name})">Back to Executions.</span>
+        <a ui-sref="^.executions({application: $ctrl.app.name})">Back to Executions.</span>
         </a>
       </h4>
     </div>
