@@ -7,6 +7,7 @@ var authEndpoint = process.env.AUTH_ENDPOINT || (gateHost + '/auth/user');
 var fiatEnabled = process.env.FIAT_ENABLED === 'true' ? true : false;
 var entityTagsEnabled = process.env.ENTITY_TAGS_ENABLED === 'true' ? true : false;
 var liveCallsEnabled = process.env.LIVE_CALLS === 'true';
+var reduxLoggerEnabled = process.env.REDUX_LOGGER === 'true';
 var defaultMetricStore = process.env.METRIC_STORE || 'atlas';
 
 window.spinnakerSettings = {
@@ -66,6 +67,7 @@ window.spinnakerSettings = {
   triggerTypes: ['git', 'pipeline', 'docker', 'cron', 'jenkins', 'travis'],
   canary: {
     liveCalls: liveCallsEnabled,
+    reduxLogger: reduxLoggerEnabled,
     metricsAccountName: 'my-google-account',
     storageAccountName: 'my-google-account',
     defaultJudge: 'NetflixACAJudge-v1.0',

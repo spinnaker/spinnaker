@@ -84,7 +84,7 @@ export function mapStateToConfig(state: ICanaryState): ICanaryConfig {
 
 export function buildNewConfig(state: ICanaryState): ICanaryConfig {
   let configName = 'new-config', i = 1;
-  while ((state.data.configSummaries || []).find(summary => summary.name === configName)) {
+  while ((state.data.configSummaries || []).some(summary => summary.name === configName)) {
     configName = `new-config-${i}`;
     i++;
   }
@@ -107,5 +107,25 @@ export function buildNewConfig(state: ICanaryState): ICanaryConfig {
       name: CanarySettings.defaultJudge,
       judgeConfigurations: {},
     }
+  };
+}
+
+export function buildConfigCopy(state: ICanaryState): ICanaryConfig {
+  const config = mapStateToConfig(state);
+  if (!config) {
+    return null;
+  }
+
+  // Probably a rare case, but someone could be lazy about naming their configs.
+  let configName = `${config.name}-copy`, i = 1;
+  while ((state.data.configSummaries || []).some(summary => summary.name === configName)) {
+    configName = `${config.name}-copy-${i}`;
+    i++;
+  }
+
+  return {
+    ...config,
+    name: configName,
+    isNew: true,
   };
 }

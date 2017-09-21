@@ -40,3 +40,5 @@ export const updateConfigSummaries = createAction(Actions.UPDATE_CONFIG_SUMMARIE
 export const updateJudges = createAction(Actions.UPDATE_JUDGES, typedPayloadCreator<{judges: IJudge[]}>());
 export const loadConfigSuccess = createAction(Actions.LOAD_CONFIG_SUCCESS, typedPayloadCreator<{config: ICanaryConfig}>());
 export const loadConfigFailure = createAction(Actions.LOAD_CONFIG_FAILURE, typedPayloadCreator<{error: Error}>());
+export const copySelectedConfig = createAction(Actions.COPY_SELECTED_CONFIG);
+export const createNewConfig = createAction(Actions.CREATE_NEW_CONFIG);

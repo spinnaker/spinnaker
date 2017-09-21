@@ -1,24 +1,30 @@
 import * as React from 'react';
 import { createStore, applyMiddleware } from 'redux';
+import { logger } from 'redux-logger';
 
 import { Application } from '@spinnaker/core';
 
 import { Provider, Store } from 'react-redux';
 import { ICanaryState, rootReducer } from './reducers';
-import { epicMiddleware } from './epics';
+import { actionInterceptingMiddleware, epicMiddleware } from './middleware';
 import CanaryConfigEdit from './edit/edit';
 import { ICanaryConfigSummary } from './domain/index';
 import { INITIALIZE } from './actions/index';
 import { IJudge } from './domain/IJudge';
 import Styleguide from './layout/styleguide';
+import { CanarySettings } from './canary.settings';
 
 export interface ICanaryProps {
   app: Application;
 }
 
+const middleware = [epicMiddleware, actionInterceptingMiddleware];
+
 export const canaryStore = createStore<ICanaryState>(
   rootReducer,
-  applyMiddleware(epicMiddleware)
+  applyMiddleware(
+    ...(CanarySettings.reduxLogger ? [...middleware, logger] : middleware)
+  )
 );
 
 export default class Canary extends React.Component<ICanaryProps, {}> {
