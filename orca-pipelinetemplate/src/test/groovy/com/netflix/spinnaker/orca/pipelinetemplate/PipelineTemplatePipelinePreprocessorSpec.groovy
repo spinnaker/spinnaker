@@ -334,6 +334,15 @@ class PipelineTemplatePipelinePreprocessorSpec extends Specification {
     result.stages*.group == ['my group of stages: wowow waiting', 'my group of stages: wowow waiting']
   }
 
+  def 'should render stage config variables used in partials'() {
+    when:
+    def template =  createTemplateRequest('conditional-partials.yml', [includeWait: false])
+    def result = subject.process(template)
+
+    then:
+    result.stages*.shouldBeSet == ["isSet"]
+  }
+
   @Unroll
   def 'should not render falsy conditional stages inside partials'() {
     when:
