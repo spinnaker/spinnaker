@@ -1,6 +1,6 @@
 import { Action, combineReducers } from 'redux';
 import { combineActions, handleActions } from 'redux-actions';
-import { get, has } from 'lodash';
+import { get, has, omit } from 'lodash';
 
 import * as Actions from '../actions';
 import { DeleteConfigState } from '../edit/deleteModal';
@@ -8,6 +8,7 @@ import { SaveConfigState } from '../edit/save';
 import { ConfigDetailLoadState } from '../edit/configDetailLoader';
 import { IJudge } from '../domain/IJudge';
 import {
+  GroupWeights,
   ICanaryClassifierThresholdsConfig,
   ICanaryConfig,
   ICanaryJudgeConfig,
@@ -16,6 +17,7 @@ import {
 import { CanarySettings } from '../canary.settings';
 import { IGroupState, group } from './group';
 import { JudgeSelectRenderState } from '../edit/judgeSelect';
+import { UNGROUPED, ALL } from '../edit/groupTabs';
 
 interface ILoadState {
   state: ConfigDetailLoadState;
@@ -190,6 +192,43 @@ function selectedJudgeReducer(state: ISelectedConfigState = null, action: Action
   }
 }
 
+export function editGroupConfirm(state: ISelectedConfigState = null, action: Action & any): ISelectedConfigState {
+  if (action.type !== Actions.EDIT_GROUP_CONFIRM) {
+    return state;
+  }
+
+  const { payload: { group, edit } } = action;
+  if (!edit || edit === UNGROUPED || edit === ALL) {
+    return state;
+  }
+
+  const metricUpdator = (c: ICanaryMetricConfig): ICanaryMetricConfig => ({
+    ...c,
+    groups: [edit].concat((c.groups || []).filter(g => g !== group)),
+  });
+
+  const weightsUpdator = (weights: GroupWeights): GroupWeights => {
+    const weight = weights[group];
+    weights = omit(weights, group);
+    return {
+      ...weights,
+      [edit]: weight,
+    };
+  };
+
+  const listUpdator = (groupList: string[]): string[] => [edit].concat((groupList || []).filter(g => g !== group));
+  return {
+    ...state,
+    metricList: state.metricList.map(metricUpdator),
+    group: {
+      ...state.group,
+      selected: edit,
+      groupWeights: weightsUpdator(state.group.groupWeights),
+      list: listUpdator(state.group.list),
+    },
+  };
+}
+
 const combined = combineReducers<ISelectedConfigState>({
   config,
   load,
@@ -209,5 +248,6 @@ export const selectedConfig = (state: ISelectedConfigState, action: Action & any
     combined,
     editingMetricReducer,
     selectedJudgeReducer,
+    editGroupConfirm,
   ].reduce((s, reducer) => reducer(s, action), state);
 };

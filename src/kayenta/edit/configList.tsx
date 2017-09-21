@@ -21,7 +21,7 @@ function ConfigList({ configs, selectedConfigName }: IConfigListStateProps) {
         {configs.map(config => (
           <li key={config.name} className={config.name === selectedConfigName ? 'selected' : ''}>
             <UISrefActive class="active">
-              <UISref to=".configDetail" params={{configName: config.name}}>
+              <UISref to=".configDetail" params={{configName: config.name, 'new': false, copy: false}}>
                 <a className="heading-4">{config.name}</a>
               </UISref>
             </UISrefActive>
