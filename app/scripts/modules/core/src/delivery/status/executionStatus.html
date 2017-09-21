@@ -41,7 +41,7 @@
         {{ ::$ctrl.execution | executionUser }}
       </li>
       <li title="{{ ::$ctrl.execution.startTime | timestamp }}">
-        {{ ::$ctrl.execution.startTime | relativeTime }}
+        {{ $ctrl.timestamp }}
       </li>
     </span>
     <li class="break-word" ng-repeat="parameter in ::$ctrl.parameters">
