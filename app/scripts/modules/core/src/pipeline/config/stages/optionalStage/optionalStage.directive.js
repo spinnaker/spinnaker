@@ -16,7 +16,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.optionalStage.dir
     };
   }).controller('OptionalStageCtrl', function($scope) {
     this.isOptional = function() {
-      return $scope.stage.stageEnabled;
+      return $scope.stage && $scope.stage.stageEnabled;
     };
 
     this.toggleOptional = function() {
@@ -29,4 +29,3 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.optionalStage.dir
       }
     };
   });
-
