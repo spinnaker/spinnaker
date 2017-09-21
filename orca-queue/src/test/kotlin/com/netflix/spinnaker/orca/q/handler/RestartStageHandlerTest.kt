@@ -21,6 +21,7 @@ import com.natpryce.hamkrest.should.shouldMatch
 import com.natpryce.hamkrest.should.shouldNotMatch
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.ExecutionStatus.*
+import com.netflix.spinnaker.orca.pipeline.DefaultStageDefinitionBuilderFactory
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
@@ -49,7 +50,7 @@ object RestartStageHandlerTest : SubjectSpek<RestartStageHandler>({
     RestartStageHandler(
       queue,
       repository,
-      listOf(
+      DefaultStageDefinitionBuilderFactory(
         singleTaskStage,
         stageWithSyntheticBefore,
         stageWithNestedSynthetics

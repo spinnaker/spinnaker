@@ -16,15 +16,14 @@
 
 package com.netflix.spinnaker.orca.q.handler
 
-import com.netflix.spinnaker.orca.pipeline.ExecutionRunner.NoSuchStageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
+import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilderFactory
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 
 interface StageBuilderAware {
 
-  val stageDefinitionBuilders: Collection<StageDefinitionBuilder>
+  val stageDefinitionBuilderFactory: StageDefinitionBuilderFactory
 
   fun Stage<*>.builder(): StageDefinitionBuilder =
-    stageDefinitionBuilders.find { it.type == getType() || getContext().get("alias") == it.type }
-      ?: throw NoSuchStageDefinitionBuilder(getType())
+    stageDefinitionBuilderFactory.builderFor(this)
 }

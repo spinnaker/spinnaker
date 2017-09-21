@@ -25,6 +25,7 @@ import com.netflix.spinnaker.orca.listeners.Persister
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
+import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 
@@ -33,14 +34,18 @@ import groovy.util.logging.Slf4j
 class EchoNotifyingExecutionListener implements ExecutionListener {
 
   private final EchoService echoService
-
   private final Front50Service front50Service
-
   private final ObjectMapper objectMapper
-
   private final ContextParameterProcessor contextParameterProcessor
+  private final Set<String> dryRunPipelineIds
 
-  EchoNotifyingExecutionListener(EchoService echoService, Front50Service front50Service, ObjectMapper objectMapper, ContextParameterProcessor contextParameterProcessor) {
+  EchoNotifyingExecutionListener(
+    EchoService echoService,
+    Front50Service front50Service,
+    ObjectMapper objectMapper,
+    ContextParameterProcessor contextParameterProcessor,
+    Set<String> dryRunPipelineIds) {
+    this.dryRunPipelineIds = dryRunPipelineIds
     this.echoService = echoService
     this.front50Service = front50Service
     this.objectMapper = objectMapper
@@ -53,6 +58,7 @@ class EchoNotifyingExecutionListener implements ExecutionListener {
       if (execution.status != ExecutionStatus.SUSPENDED) {
         if (execution instanceof Pipeline) {
           addApplicationNotifications(execution as Pipeline)
+          addDryRunNotifications(execution as Pipeline)
         }
         echoService.recordEvent(
           details: [
@@ -131,4 +137,16 @@ class EchoNotifyingExecutionListener implements ExecutionListener {
       }
     }
   }
+
+  /**
+   * Adds a notification for dry run enabled pipelines.
+   * @param pipeline
+   */
+  @CompileDynamic
+  private void addDryRunNotifications(Pipeline pipeline) {
+    if (pipeline.pipelineConfigId in dryRunPipelineIds) {
+      pipeline.notifications << [type: "dryrun"]
+    }
+  }
+
 }

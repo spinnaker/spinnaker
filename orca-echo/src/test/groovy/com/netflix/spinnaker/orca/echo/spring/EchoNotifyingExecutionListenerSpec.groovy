@@ -27,6 +27,7 @@ import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
+import static java.util.Collections.emptySet
 
 class EchoNotifyingExecutionListenerSpec extends Specification {
 
@@ -37,7 +38,7 @@ class EchoNotifyingExecutionListenerSpec extends Specification {
   @Shared ContextParameterProcessor contextParameterProcessor = new ContextParameterProcessor()
 
   @Subject
-  def echoListener = new EchoNotifyingExecutionListener(echoService, front50Service, objectMapper, contextParameterProcessor)
+  def echoListener = new EchoNotifyingExecutionListener(echoService, front50Service, objectMapper, contextParameterProcessor, emptySet())
 
   @Shared
   ApplicationNotifications notifications = new ApplicationNotifications()

@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.orca.q.handler
 
 import com.netflix.spinnaker.orca.CancellableStage
-import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
+import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilderFactory
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.q.CancelStage
 import com.netflix.spinnaker.orca.q.MessageHandler
@@ -30,7 +30,7 @@ import java.util.concurrent.Executor
 class CancelStageHandler(
   override val queue: Queue,
   override val repository: ExecutionRepository,
-  override val stageDefinitionBuilders: Collection<StageDefinitionBuilder>,
+  override val stageDefinitionBuilderFactory: StageDefinitionBuilderFactory,
   @Qualifier("messageHandlerPool") private val executor: Executor
 ) : MessageHandler<CancelStage>, StageBuilderAware {
 

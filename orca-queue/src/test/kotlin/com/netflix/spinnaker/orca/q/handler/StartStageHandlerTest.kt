@@ -25,6 +25,7 @@ import com.natpryce.hamkrest.should.shouldMatch
 import com.netflix.spinnaker.orca.ExecutionStatus.*
 import com.netflix.spinnaker.orca.events.StageStarted
 import com.netflix.spinnaker.orca.exceptions.ExceptionHandler
+import com.netflix.spinnaker.orca.pipeline.DefaultStageDefinitionBuilderFactory
 import com.netflix.spinnaker.orca.pipeline.RestrictExecutionDuringTimeWindow
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
@@ -64,7 +65,7 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
       queue,
       repository,
       stageNavigator,
-      listOf(
+      DefaultStageDefinitionBuilderFactory(
         singleTaskStage,
         multiTaskStage,
         stageWithSyntheticBefore,

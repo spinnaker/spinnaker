@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-apply from: "$rootDir/gradle/kotlin.gradle"
-apply from: "$rootDir/gradle/spek.gradle"
+package com.netflix.spinnaker.orca.pipeline;
 
-repositories {
-  jcenter()
-}
+import javax.annotation.Nonnull;
+import com.netflix.spinnaker.orca.pipeline.ExecutionRunner.NoSuchStageDefinitionBuilder;
+import com.netflix.spinnaker.orca.pipeline.model.Stage;
 
-dependencies {
-  compile project(":orca-queue")
-  compile "com.fasterxml.jackson.module:jackson-module-kotlin:${spinnaker.version("jackson")}"
+@FunctionalInterface
+public interface StageDefinitionBuilderFactory {
 
-  testCompile project(path: ":orca-queue", configuration: "testArtifacts")
+  @Nonnull StageDefinitionBuilder builderFor(
+    @Nonnull Stage<?> stage) throws NoSuchStageDefinitionBuilder;
+
 }

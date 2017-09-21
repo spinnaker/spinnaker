@@ -16,18 +16,20 @@
 
 package com.netflix.spinnaker.orca.listeners;
 
+import javax.annotation.Nonnull;
 import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import org.springframework.core.Ordered;
 
 public interface ExecutionListener extends Ordered, Comparable<ExecutionListener> {
-  default void beforeExecution(Persister persister, Execution execution) {
+  default void beforeExecution(@Nonnull Persister persister,
+                               @Nonnull Execution execution) {
     // do nothing
   }
 
-  default void afterExecution(Persister persister,
-                              Execution execution,
-                              ExecutionStatus executionStatus,
+  default void afterExecution(@Nonnull Persister persister,
+                              @Nonnull Execution execution,
+                              @Nonnull ExecutionStatus executionStatus,
                               boolean wasSuccessful) {
     // do nothing
   }
@@ -37,7 +39,7 @@ public interface ExecutionListener extends Ordered, Comparable<ExecutionListener
   }
 
   @Override
-  default int compareTo(ExecutionListener o) {
+  default int compareTo(@Nonnull ExecutionListener o) {
     return o.getOrder() - getOrder();
   }
 }

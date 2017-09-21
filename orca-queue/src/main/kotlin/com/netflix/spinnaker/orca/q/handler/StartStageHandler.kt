@@ -20,7 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.ExecutionStatus.*
 import com.netflix.spinnaker.orca.events.StageStarted
 import com.netflix.spinnaker.orca.exceptions.ExceptionHandler
-import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
+import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilderFactory
 import com.netflix.spinnaker.orca.pipeline.expressions.PipelineExpressionEvaluator
 import com.netflix.spinnaker.orca.pipeline.model.OptionalStageSupport
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
@@ -41,7 +41,7 @@ class StartStageHandler(
   override val queue: Queue,
   override val repository: ExecutionRepository,
   override val stageNavigator: StageNavigator,
-  override val stageDefinitionBuilders: Collection<StageDefinitionBuilder>,
+  override val stageDefinitionBuilderFactory: StageDefinitionBuilderFactory,
   override val contextParameterProcessor: ContextParameterProcessor,
   private val publisher: ApplicationEventPublisher,
   private val exceptionHandlers: List<ExceptionHandler>,

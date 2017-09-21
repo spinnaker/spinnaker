@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.q.handler
 import com.google.common.util.concurrent.MoreExecutors
 import com.netflix.spinnaker.orca.CancellableStage
 import com.netflix.spinnaker.orca.ExecutionStatus.*
+import com.netflix.spinnaker.orca.pipeline.DefaultStageDefinitionBuilderFactory
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
@@ -40,7 +41,7 @@ object CancelStageHandlerTest : SubjectSpek<CancelStageHandler>({
     CancelStageHandler(
       queue,
       repository,
-      listOf(singleTaskStage, cancellableStage),
+      DefaultStageDefinitionBuilderFactory(singleTaskStage, cancellableStage),
       executor
     )
   }

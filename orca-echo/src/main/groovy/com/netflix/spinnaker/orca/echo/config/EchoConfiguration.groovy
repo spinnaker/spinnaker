@@ -83,11 +83,19 @@ class EchoConfiguration {
   }
 
   @Bean
-  EchoNotifyingExecutionListener echoNotifyingPipelineExecutionListener(EchoService echoService,
-                                                                        Front50Service front50Service,
-                                                                        ObjectMapper objectMapper,
-                                                                        ContextParameterProcessor contextParameterProcessor) {
-    new EchoNotifyingExecutionListener(echoService, front50Service, objectMapper, contextParameterProcessor)
+  EchoNotifyingExecutionListener echoNotifyingPipelineExecutionListener(
+    EchoService echoService,
+    Front50Service front50Service,
+    ObjectMapper objectMapper,
+    ContextParameterProcessor contextParameterProcessor,
+    @Value("\${dryrun.pipelineIds:}") Set<String> dryRunPipelineIds) {
+    new EchoNotifyingExecutionListener(
+      echoService,
+      front50Service,
+      objectMapper,
+      contextParameterProcessor,
+      dryRunPipelineIds
+    )
   }
 
   @Bean

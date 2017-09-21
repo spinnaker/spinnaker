@@ -17,6 +17,7 @@ package com.netflix.spinnaker.orca.config;
 
 import java.time.Clock;
 import java.time.Duration;
+import java.util.Collection;
 import java.util.Map;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
@@ -30,8 +31,7 @@ import com.netflix.spinnaker.orca.listeners.ExecutionCleanupListener;
 import com.netflix.spinnaker.orca.listeners.ExecutionListener;
 import com.netflix.spinnaker.orca.listeners.MetricsExecutionListener;
 import com.netflix.spinnaker.orca.notifications.scheduling.SuspendedPipelinesNotificationHandler;
-import com.netflix.spinnaker.orca.pipeline.PipelineStartTracker;
-import com.netflix.spinnaker.orca.pipeline.PipelineStarterListener;
+import com.netflix.spinnaker.orca.pipeline.*;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 import com.netflix.spinnaker.orca.pipeline.persistence.PipelineStack;
 import com.netflix.spinnaker.orca.pipeline.persistence.memory.InMemoryPipelineStack;
@@ -134,7 +134,8 @@ public class OrcaConfiguration {
 
   @Bean
   public ContextFunctionConfiguration contextFunctionConfiguration(UserConfiguredUrlRestrictions userConfiguredUrlRestrictions,
-                                                                   @Value("${spelEvaluator:v1}") String spelEvaluator) {
+                                                                   @Value("${spelEvaluator:v1}")
+                                                                     String spelEvaluator) {
     return new ContextFunctionConfiguration(userConfiguredUrlRestrictions, spelEvaluator);
   }
 
@@ -147,4 +148,11 @@ public class OrcaConfiguration {
   public ApplicationListener<ExecutionEvent> onCompleteMetricExecutionListenerAdapter(Registry registry, ExecutionRepository repository) {
     return new ExecutionListenerAdapter(new MetricsExecutionListener(registry), repository);
   }
+
+  @Bean
+  @ConditionalOnMissingBean(StageDefinitionBuilderFactory.class)
+  public StageDefinitionBuilderFactory stageDefinitionBuilderFactory(Collection<StageDefinitionBuilder> stageDefinitionBuilders) {
+    return new DefaultStageDefinitionBuilderFactory(stageDefinitionBuilders);
+  }
+
 }
