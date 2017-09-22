@@ -26,7 +26,7 @@ import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.TemplateConfig
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.DefaultRenderContext
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.RenderContext
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.Renderer
-import com.netflix.spinnaker.orca.pipelinetemplate.validator.Errors
+import java.util.stream.Collectors
 
 class V1TemplateLoaderHandler(
   private val templateLoader: TemplateLoader,
@@ -44,25 +44,32 @@ class V1TemplateLoaderHandler(
       return
     }
 
+    val trigger = context.getRequest().trigger as MutableMap<String, Any>?
+    setTemplateSourceWithJinja(config, trigger)
+
+    // If a template source isn't provided by the configuration, we're assuming that the configuration is fully-formed.
+    val template: PipelineTemplate
     if (config.pipeline.template == null) {
-      context.getErrors().add(Errors.Error().withMessage("configuration is missing a template"))
-      return
+      template = PipelineTemplate().apply {
+        variables = config.pipeline.variables.entries.stream()
+          .map { PipelineTemplate.Variable().apply {
+            name = it.key
+            defaultValue = it.value
+          }}
+          .collect(Collectors.toList())
+      }
+    } else {
+      val templates = templateLoader.load(config.pipeline.template)
+      template = TemplateMerge.merge(templates)
     }
 
-    val trigger = context.getRequest().trigger as MutableMap<String, Any>?
-
-    setTemplateSourceWithJinja(config, trigger)
-    val templates = templateLoader.load(config.pipeline.template)
-
-    val mergedTemplate = TemplateMerge.merge(templates)
-
     // ensure that any expressions contained with template variables are rendered
-    val renderContext = DefaultRenderContext(config.pipeline.application, mergedTemplate, trigger)
-    renderTemplateVariables(renderContext, mergedTemplate)
+    val renderContext = DefaultRenderContext(config.pipeline.application, template, trigger)
+    renderTemplateVariables(renderContext, template)
 
     context.setSchemaContext(V1PipelineTemplateContext(
       config,
-      mergedTemplate
+      template
     ))
   }
 

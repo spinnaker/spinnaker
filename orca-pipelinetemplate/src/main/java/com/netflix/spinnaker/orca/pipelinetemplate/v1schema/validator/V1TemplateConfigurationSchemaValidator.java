@@ -15,6 +15,7 @@
  */
 package com.netflix.spinnaker.orca.pipelinetemplate.v1schema.validator;
 
+import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.StageDefinition;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.TemplateConfiguration;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.TemplateConfiguration.PipelineDefinition;
 import com.netflix.spinnaker.orca.pipelinetemplate.validator.Errors;
@@ -60,13 +61,20 @@ public class V1TemplateConfigurationSchemaValidator implements SchemaValidator<V
     V1SchemaValidationHelper.validateStageDefinitions(config.getStages(), errors, V1TemplateConfigurationSchemaValidator::location);
 
     config.getStages().forEach(s -> {
-      if (!context.stageIds.contains(s.getId()) && (s.getDependsOn() == null || s.getDependsOn().isEmpty()) && (s.getInject() == null || !s.getInject().hasAny())) {
+      if (shouldRequireDagRules(s, config, context.stageIds)) {
         errors.add(new Error()
           .withMessage("A configuration-defined stage should have either dependsOn or an inject rule defined")
           .withLocation(location(String.format("stages.%s", s.getId())))
           .withSeverity(Severity.WARN));
       }
     });
+  }
+
+  private static boolean shouldRequireDagRules(StageDefinition s, TemplateConfiguration config, List<String> stageIds) {
+    return config.getPipeline().getTemplate() != null &&
+      !stageIds.contains(s.getId()) &&
+      (s.getDependsOn() == null || s.getDependsOn().isEmpty()) &&
+      (s.getInject() == null || !s.getInject().hasAny());
   }
 
   private static String location(String location) {
