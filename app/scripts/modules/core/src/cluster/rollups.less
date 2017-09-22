@@ -138,6 +138,19 @@ table.instances {
   font-size: 110%;
   margin: 0;
   width: 100%;
+  display: flex;
+
+  .remove-button {
+    display: flex;
+    flex: 0 0 auto;
+    padding: 0 5px;
+    margin-left: 2px;
+    text-align: center;
+    button {
+      margin-right: 0;
+    }
+    background-color: var(--color-accent-g2);
+  }
 
   .tooltip {
     text-transform: none;
@@ -163,17 +176,7 @@ table.instances {
 }
 
 .rollup-title-cell {
-  .remove-button {
-    display: flex;
-    flex: 0 0 auto;
-    padding: 0 5px;
-    margin-left: 2px;
-    text-align: center;
-    button {
-      margin-right: 0;
-    }
-    background-color: var(--color-accent-g2);
-  }
+  flex: 1;
   display: flex;
   height: 36px;
   line-height: 36px;

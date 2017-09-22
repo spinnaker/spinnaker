@@ -1,3 +1,4 @@
+export * from './cluster/clusterMatches.component';
 export * from './CustomDropdown';
 export * from './Keys';
 export * from './notifier/notifier.service';

@@ -17,6 +17,9 @@ export * from './deploymentStrategy';
 export * from './domain';
 
 export * from './entityTag';
+// TODO: try pushing this export back down; for some unknown reason, it causes grief with the library (the export
+// is found by the TS compiler, but not at runtime)
+export * from './entityTag/notifications/EntityNotifications';
 
 export * from './filterModel';
 

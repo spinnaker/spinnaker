@@ -2,14 +2,14 @@ import * as React from 'react';
 import autoBindMethods from 'class-autobind-decorator';
 import { orderBy } from 'lodash';
 
-import { NgReact, ReactInjector } from 'core/reactShims';
+import { ReactInjector } from 'core/reactShims';
 import { ServerGroup } from 'core/serverGroup/ServerGroup';
 import { Application } from 'core/application';
 import { EntityNotifications } from 'core/entityTag/notifications/EntityNotifications';
-import { HealthCounts } from 'core/healthCounts';
 import { IServerGroup } from 'core/domain';
 import { Tooltip } from 'core/presentation';
 import { IClusterSubgroup, IServerGroupSubgroup } from './filter/clusterFilter.service';
+import { ClusterPodTitleWrapper } from 'core/cluster/ClusterPodTitleWrapper';
 
 export interface IClusterPodProps {
   grouping: IClusterSubgroup;
@@ -43,12 +43,22 @@ export class ClusterPod extends React.Component<IClusterPodProps, IClusterPodSta
 
   public render() {
     const { grouping } = this.props;
+    const { showCloseButton } = this.state;
 
     return (
       <div className="row rollup-entry sub-group">
         <div className="sticky-header">
           <div className="rollup-summary">
-            {this.renderPodTitle()}
+            <ClusterPodTitleWrapper {...this.props} />
+            {showCloseButton && (
+              <div className="remove-button">
+                <Tooltip value="Remove cluster from view">
+                  <button className="btn btn-link" onClick={this.close}>
+                    <span className="glyphicon glyphicon-remove"/>
+                  </button>
+                </Tooltip>
+              </div>
+            )}
           </div>
         </div>
 
@@ -57,50 +67,6 @@ export class ClusterPod extends React.Component<IClusterPodProps, IClusterPodSta
         </div>
       </div>
     );
-  }
-
-  private renderPodTitle() {
-    const { AccountTag } = NgReact;
-    const { grouping, application, parentHeading } = this.props;
-    const { showCloseButton } = this.state;
-
-    return (
-      <div className="rollup-title-cell">
-        <div className="heading-tag">
-          <AccountTag account={parentHeading} />
-        </div>
-
-        <div className="pod-center">
-          <div>
-            <span className="glyphicon glyphicon-th"/>
-            {' ' + grouping.heading}
-          </div>
-
-          <EntityNotifications
-            entity={grouping}
-            application={application}
-            placement="top"
-            hOffsetPercent="90%"
-            entityType="cluster"
-            pageLocation="pod"
-            className="inverse"
-            onUpdate={application.serverGroups.refresh}
-          />
-        </div>
-
-        <HealthCounts container={grouping.cluster.instanceCounts}/>
-
-        {showCloseButton && (
-          <div className="remove-button">
-            <Tooltip value="Remove cluster from view">
-              <button className="btn btn-link" onClick={this.close}>
-                <span className="glyphicon glyphicon-remove"/>
-              </button>
-            </Tooltip>
-          </div>
-        )}
-      </div>
-    )
   }
 
   private renderSubGroup(subgroup: IServerGroupSubgroup) {
