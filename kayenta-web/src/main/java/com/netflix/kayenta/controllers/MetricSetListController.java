@@ -68,7 +68,7 @@ public class MetricSetListController {
   }
 
   @ApiOperation(value = "Write a metric set list to object storage")
-  @RequestMapping(consumes = "application/context+json", method = RequestMethod.POST)
+  @RequestMapping(consumes = "application/json", method = RequestMethod.POST)
   public String storeMetricSetList(@RequestParam(required = false) final String accountName,
                                    @RequestBody List<MetricSet> metricSetList) throws IOException {
     String resolvedAccountName = CredentialsHelper.resolveAccountByNameOrType(accountName,

@@ -73,6 +73,7 @@ swagger:
   patterns:
     - /canary.*
     - /canaryConfig.*
+    - /canaryJudgeResult.*
     - /credentials.*
     - /fetch.*
     - /health

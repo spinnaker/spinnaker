@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Netflix, Inc.
+ * Copyright 2017 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package com.netflix.kayenta.controllers;
 
-import com.netflix.kayenta.metrics.MetricSet;
-import com.netflix.kayenta.metrics.MetricSetPair;
+import com.netflix.kayenta.canary.results.CanaryJudgeResult;
 import com.netflix.kayenta.security.AccountCredentials;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
 import com.netflix.kayenta.security.CredentialsHelper;
@@ -39,13 +38,12 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/metricSetPairList")
+@RequestMapping("/canaryJudgeResult")
 @Slf4j
-public class MetricSetPairListController {
+public class CanaryJudgeResultController {
 
   @Autowired
   AccountCredentialsRepository accountCredentialsRepository;
@@ -53,43 +51,43 @@ public class MetricSetPairListController {
   @Autowired
   StorageServiceRepository storageServiceRepository;
 
-  @ApiOperation(value = "Retrieve a metric set pair list from object storage")
-  @RequestMapping(value = "/{metricSetPairListId:.+}", method = RequestMethod.GET)
-  public List<MetricSetPair> loadMetricSetPairList(@RequestParam(required = false) final String accountName,
-                                                   @PathVariable String metricSetPairListId) {
+  @ApiOperation(value = "Retrieve a canary judge result from object storage")
+  @RequestMapping(value = "/{canaryJudgeResultId:.+}", method = RequestMethod.GET)
+  public CanaryJudgeResult loadCanaryJudgeResult(@RequestParam(required = false) final String accountName,
+                                                 @PathVariable String canaryJudgeResultId) {
     String resolvedAccountName = CredentialsHelper.resolveAccountByNameOrType(accountName,
                                                                               AccountCredentials.Type.OBJECT_STORE,
                                                                               accountCredentialsRepository);
     StorageService storageService =
       storageServiceRepository
         .getOne(resolvedAccountName)
-        .orElseThrow(() -> new IllegalArgumentException("No storage service was configured; unable to read metric set pair list from bucket."));
+        .orElseThrow(() -> new IllegalArgumentException("No storage service was configured; unable to read canary judge result from bucket."));
 
-    return storageService.loadObject(resolvedAccountName, ObjectType.METRIC_SET_PAIR_LIST, metricSetPairListId);
+    return storageService.loadObject(resolvedAccountName, ObjectType.CANARY_JUDGE_RESULT, canaryJudgeResultId);
   }
 
-  @ApiOperation(value = "Write a metric set pair list to object storage")
+  @ApiOperation(value = "Write a canary judge result to object storage")
   @RequestMapping(consumes = "application/json", method = RequestMethod.POST)
-  public String storeMetricSetPairList(@RequestParam(required = false) final String accountName,
-                                       @RequestBody List<MetricSetPair> metricSetPairList) throws IOException {
+  public String storeCanaryJudgeResult(@RequestParam(required = false) final String accountName,
+                                       @RequestBody CanaryJudgeResult canaryJudgeResult) throws IOException {
     String resolvedAccountName = CredentialsHelper.resolveAccountByNameOrType(accountName,
                                                                               AccountCredentials.Type.OBJECT_STORE,
                                                                               accountCredentialsRepository);
     StorageService storageService =
       storageServiceRepository
         .getOne(resolvedAccountName)
-        .orElseThrow(() -> new IllegalArgumentException("No storage service was configured; unable to write metric set pair list to bucket."));
-    String metricSetPairListId = UUID.randomUUID() + "";
+        .orElseThrow(() -> new IllegalArgumentException("No storage service was configured; unable to write canary judge result to bucket."));
+    String canaryJudgeResultId = UUID.randomUUID() + "";
 
-    storageService.storeObject(resolvedAccountName, ObjectType.METRIC_SET_PAIR_LIST, metricSetPairListId, metricSetPairList);
+    storageService.storeObject(resolvedAccountName, ObjectType.CANARY_JUDGE_RESULT, canaryJudgeResultId, canaryJudgeResult);
 
-    return metricSetPairListId;
+    return canaryJudgeResultId;
   }
 
-  @ApiOperation(value = "Delete a metric set pair list")
-  @RequestMapping(value = "/{metricSetPairListId:.+}", method = RequestMethod.DELETE)
-  public void deleteMetricSetPairList(@RequestParam(required = false) final String accountName,
-                                      @PathVariable String metricSetPairListId,
+  @ApiOperation(value = "Delete a canary judge result")
+  @RequestMapping(value = "/{canaryJudgeResultId:.+}", method = RequestMethod.DELETE)
+  public void deleteCanaryJudgeResult(@RequestParam(required = false) final String accountName,
+                                      @PathVariable String canaryJudgeResultId,
                                       HttpServletResponse response) {
     String resolvedAccountName = CredentialsHelper.resolveAccountByNameOrType(accountName,
                                                                               AccountCredentials.Type.OBJECT_STORE,
@@ -97,24 +95,24 @@ public class MetricSetPairListController {
     StorageService storageService =
       storageServiceRepository
         .getOne(resolvedAccountName)
-        .orElseThrow(() -> new IllegalArgumentException("No storage service was configured; unable to delete metric set pair list."));
+        .orElseThrow(() -> new IllegalArgumentException("No storage service was configured; unable to delete canary judge result."));
 
-    storageService.deleteObject(resolvedAccountName, ObjectType.METRIC_SET_PAIR_LIST, metricSetPairListId);
+    storageService.deleteObject(resolvedAccountName, ObjectType.CANARY_JUDGE_RESULT, canaryJudgeResultId);
 
     response.setStatus(HttpStatus.NO_CONTENT.value());
   }
 
-  @ApiOperation(value = "Retrieve a list of metric set pair list ids and timestamps")
+  @ApiOperation(value = "Retrieve a list of canary judge result ids and timestamps")
   @RequestMapping(method = RequestMethod.GET)
-  public List<Map<String, Object>> listAllMetricSetPairLists(@RequestParam(required = false) final String accountName) {
+  public List<Map<String, Object>> listAllCanaryJudgeResults(@RequestParam(required = false) final String accountName) {
     String resolvedAccountName = CredentialsHelper.resolveAccountByNameOrType(accountName,
                                                                               AccountCredentials.Type.OBJECT_STORE,
                                                                               accountCredentialsRepository);
     StorageService storageService =
       storageServiceRepository
         .getOne(resolvedAccountName)
-        .orElseThrow(() -> new IllegalArgumentException("No storage service was configured; unable to list all metric set pair lists."));
+        .orElseThrow(() -> new IllegalArgumentException("No storage service was configured; unable to list all canary judge results."));
 
-      return storageService.listObjectKeys(resolvedAccountName, ObjectType.METRIC_SET_PAIR_LIST);
+      return storageService.listObjectKeys(resolvedAccountName, ObjectType.CANARY_JUDGE_RESULT);
   }
 }

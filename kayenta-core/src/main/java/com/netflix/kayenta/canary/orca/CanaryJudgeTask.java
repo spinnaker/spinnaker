@@ -17,6 +17,7 @@
 package com.netflix.kayenta.canary.orca;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableMap;
 import com.netflix.kayenta.canary.CanaryClassifierThresholdsConfig;
 import com.netflix.kayenta.canary.CanaryConfig;
 import com.netflix.kayenta.canary.CanaryJudge;
@@ -41,6 +42,7 @@ import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 @Component
 public class CanaryJudgeTask implements RetryableTask {
@@ -118,7 +120,15 @@ public class CanaryJudgeTask implements RetryableTask {
     }
 
     CanaryJudgeResult result = canaryJudge.judge(canaryConfig, orchestratorScoreThresholds, metricSetPairList);
-    Map<String, CanaryJudgeResult> outputs = Collections.singletonMap("result", result);
+    String canaryJudgeResultId = UUID.randomUUID() + "";
+
+    storageService.storeObject(resolvedStorageAccountName, ObjectType.CANARY_JUDGE_RESULT, canaryJudgeResultId, result);
+
+    Map<String, Object> outputs =
+      ImmutableMap.<String, Object>builder()
+        .put("canaryJudgeResultId", canaryJudgeResultId)
+        .put("result", result)
+        .build();
 
     return new TaskResult(ExecutionStatus.SUCCEEDED, outputs);
   }
