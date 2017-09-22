@@ -12,8 +12,8 @@
 
     <li ng-if="pipeline.locked"><a href ng-click="pipelineConfigurerCtrl.editPipelineJson()">Show JSON</a></li>
     <li ng-if="!pipeline.locked"><a href ng-click="pipelineConfigurerCtrl.editPipelineJson()">Edit as JSON</a></li>
-
-    <li ng-if="viewState.hasHistory"><a href ng-click="pipelineConfigurerCtrl.showHistory()">Show Revision History</a></li>
-    <li ng-if="!viewState.hasHistory"><a class="disabled">No version history found</a></li>
+    <li ng-if="viewState.loadingHistory"><a class="disabled"><em>Loading History...</em></a></li>
+    <li ng-if="!viewState.loadingHistory && viewState.hasHistory"><a href ng-click="pipelineConfigurerCtrl.showHistory()">Show Revision History</a></li>
+    <li ng-if="!viewState.loadingHistory && !viewState.hasHistory"><a class="disabled">No version history found</a></li>
   </ul>
 </div>

@@ -44,9 +44,9 @@ module.exports = angular.module('spinnaker.core.pipeline.config.pipelineConfigur
     pipelineConfigService.getHistory($scope.pipeline.id, 2).then(history => {
       if (history && history.length > 1) {
         $scope.viewState.hasHistory = true;
-        this.setViewState({ hasHistory: true });
+        this.setViewState({ hasHistory: true, loadingHistory: false });
       }
-    });
+    }).finally(() => this.setViewState({loadingHistory: false}));
 
     var configViewStateCache = viewStateCache.get('pipelineConfig');
 
@@ -59,6 +59,8 @@ module.exports = angular.module('spinnaker.core.pipeline.config.pipelineConfigur
       stageIndex: 0,
       loading: false,
     };
+
+    $scope.viewState.loadingHistory = true;
 
     let setOriginal = (pipeline) => {
       $scope.viewState.original = angular.toJson(pipeline);
