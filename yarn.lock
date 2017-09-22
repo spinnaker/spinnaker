@@ -14,13 +14,13 @@
   dependencies:
     "@types/angular" "*"
 
-"@types/angular@*", "@types/angular@1.6.26", "@types/angular@^1.6.15", "@types/angular@^1.6.16":
-  version "1.6.26"
-  resolved "https://registry.yarnpkg.com/@types/angular/-/angular-1.6.26.tgz#a96cccef648de0bf7435f3b9bad13f2430719305"
-
-"@types/angular@^1.6.28":
+"@types/angular@*", "@types/angular@^1.6.28":
   version "1.6.32"
   resolved "https://registry.yarnpkg.com/@types/angular/-/angular-1.6.32.tgz#fc791aad038227d9413eb5e552993e1076f8a509"
+
+"@types/angular@1.6.26", "@types/angular@^1.6.15", "@types/angular@^1.6.16":
+  version "1.6.26"
+  resolved "https://registry.yarnpkg.com/@types/angular/-/angular-1.6.26.tgz#a96cccef648de0bf7435f3b9bad13f2430719305"
 
 "@types/cheerio@*":
   version "0.22.1"

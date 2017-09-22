@@ -63,7 +63,7 @@ var entityTagsEnabled = false;
 var netflixMode = false;
 var notifications = '{%notifications.enabled%}' === 'true'
 var slack = {
-  enabled: '{%notifications.slack.enabled%}' === 'true'
+  enabled: '{%notifications.slack.enabled%}' === 'true',
   botName: '{%notifications.slack.botName%}'
 };
 
