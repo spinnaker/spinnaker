@@ -1,6 +1,6 @@
 // https://github.com/christianalfoni/formsy-react/issues/191#issuecomment-144872142
 
-// FormComponent.ts
+// FormsyComponent.ts
 // Type wrapper for Formsy-React
 // Project: https://github.com/christianalfoni/formsy-react
 
@@ -10,7 +10,7 @@ declare module 'formsy-react' {
     [key: string]: string;
   }
 
-  // This is declared for a reference to Formsy.Mixin in FormComponent.ts
+  // This is declared for a reference to Formsy.Mixin in FormsyComponent.ts
   const Mixin: any;
 
   interface IFormProps {

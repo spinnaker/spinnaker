@@ -9,3 +9,4 @@ export * from './service/applicationDataSource';
 export * from './service/applicationDataSource.registry';
 export * from './application.state.provider';
 export * from './config/footer/configSectionFooter.component';
+export * from './config/footer/ConfigSectionFooter';

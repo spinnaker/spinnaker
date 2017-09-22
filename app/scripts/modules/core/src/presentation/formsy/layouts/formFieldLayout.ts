@@ -9,3 +9,5 @@ export interface IFormFieldLayoutProps extends HTMLAttributes<any> {
   showRequired?: boolean;
   showError?: boolean;
 }
+
+export type LayoutComponent = React.ComponentType<IFormFieldLayoutProps>;

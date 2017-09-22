@@ -1,34 +1,33 @@
 import * as React from 'react';
 import autoBindMethods from 'class-autobind-decorator';
 
-import { FormsyComponent, IFormsyComponentProps, IFormComponentState } from '../FormsyComponent';
+import { FormsyComponent, IFormsyComponentProps } from '../FormsyComponent';
 
-export interface ITextAreaProps extends IFormsyComponentProps {
+export interface ITextInputProps extends IFormsyComponentProps {
   placeholder?: string;
-  rows?: number;
 }
 
 /**
  * A Formsy form component that accepts a LayoutComponent
  */
-@autoBindMethods()
-export class TextArea extends FormsyComponent<string, ITextAreaProps, IFormComponentState> {
+@autoBindMethods
+export class TextInput extends FormsyComponent<string, ITextInputProps> {
   public static contextTypes = FormsyComponent.contextTypes;
   public static defaultProps = FormsyComponent.defaultProps;
 
-  public renderInput() {
-    const { name, placeholder, rows } = this.props;
+  public renderInput(): JSX.Element {
+    const { name, placeholder } = this.props;
     const inputClass = this.getInputClass();
 
     return (
-      <textarea
+      <input
         className={inputClass}
+        type="text"
         name={name}
         id={name}
         placeholder={placeholder}
-        rows={rows}
         onChange={this.handleChange}
-        value={this.getValue()}
+        value={this.getValue() || ''}
       />
     );
   }

@@ -20,10 +20,6 @@ import { IFormFieldLayoutProps } from './formFieldLayout';
  * +----------------------------------------------------------+
  */
 export class BasicFieldLayout extends React.Component<IFormFieldLayoutProps, {}> {
-  constructor(props: IFormFieldLayoutProps) {
-    super(props);
-  }
-
   public render() {
     const { Label, Input, Help, Error, showRequired, showError } = this.props;
 

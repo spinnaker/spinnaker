@@ -34,6 +34,12 @@
   &.right {
     justify-content: flex-end;
   }
+
+  &.margin-between {
+    > * + * {
+      margin-left: 1em;
+    }
+  }
 }
 
 .flex-container-v {

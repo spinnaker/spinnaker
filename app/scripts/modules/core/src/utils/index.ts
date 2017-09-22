@@ -1,3 +1,4 @@
+///<reference path="./classnames.d.ts" />
 export * from './debug';
 export * from './json/json.utility.service';
 export * from './noop';

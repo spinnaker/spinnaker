@@ -20,6 +20,7 @@ module.exports = angular
   ])
   .controller('ApplicationConfigController', function ($state, app) {
     this.application = app;
+    this.isDataSourceEnabled = (key) => app.dataSources.some(ds => ds.key === key && ds.disabled === false);
     this.feature = SETTINGS.feature;
     if (app.notFound) {
       $state.go('home.infrastructure', null, {location: 'replace'});
