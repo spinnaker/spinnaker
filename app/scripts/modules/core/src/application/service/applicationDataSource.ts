@@ -1,102 +1,76 @@
-import {get} from 'lodash';
-import {ILogService, IPromise, IQService, IScope} from 'angular';
-import {Subject, Subscription} from 'rxjs';
+import { ILogService, IPromise, IQService, IScope } from 'angular';
+import { get } from 'lodash';
+import { UIRouter } from '@uirouter/core';
+import { Subject, Subscription } from 'rxjs';
 
-import {Application} from '../application.model';
-import {IEntityTags} from 'core/domain/IEntityTags';
+import { Application } from '../application.model';
+import { IEntityTags } from 'core/domain/IEntityTags';
 
-export class DataSourceConfig {
-
-  /**
-   * unique value for this data source; the data source will be available on the Application directly via this key,
-   * e.g. if the key is "serverGroups", you can access the data source via application.serverGroups
-   */
-  public key: string;
-
-  /**
-   * (Optional) the sref used to route to the view associated with this data source. This value will be used to populate
-   * the link in the application's header.
-   *
-   * If the "visible" field is set to false, this value is ignored; if "visible" is true and this field is omitted, the
-   * tab will use ".insight.{key}" as the sref value in the application header tab
-   */
-  public sref: string;
-
-  /**
-   * (Optional) whether this data source should be included in the application by default
-   *
-   * Use this for optional or experimental features that users must explicitly enable.
-   *
-   * If omitted, the value will default to false
-   */
-  public optIn = false;
-
-  /**
-   * (Optional) whether this data source will be displayed on non-configured applications
-   *
-   * Use this for features that require additional attributes from the application (e.g. email) to function properly
-   *
-   * If omitted, the value will default to false
-   */
-  public requireConfiguredApp = false;
-
-  /**
-   * (Optional) whether this data source can be disabled
-   *
-   * If omitted, the value will default to false
-   */
-  public optional = false;
-
-  /**
-   * (Optional) a description of the data source that will be displayed on the app config screen
-   *
-   * Only needed if the data source is optional
-   */
-  public description: string;
-
-  /**
-   * (Optional) The display label of the application header tab
-   *
-   * If omitted, the value will default to the result of running the "key" through the robotToHuman filter
-   */
-  public label: string;
-
-  /**
-   * (Optional) the key of another data source that will display the number of data items contained by that data source,
-   * e.g. runningTasks, runningExecutions
-   */
-  public badge: string;
-
+export interface IDataSourceConfig {
   /**
    * (Optional) Used to determine when the application header tab should appear active; the field will be used via
    * $state.includes(activeState).
    *
    * If omitted, the value will default to "**.{key}.**"
    */
-  public activeState: string;
+  activeState?: string;
 
   /**
-   * Determines whether the data source appears on the application header and contributes to the application's ready state.
+   * (Optional) A method that is called after the "onLoad" method resolves. The data source's data will be populated
+   * when this method is called.
+   */
+  afterLoad?: (application: Application) => void;
+
+  /**
+   * (Optional) Enables automatic activate/deactivate of a lazy data source based on the value of 'activeState'
+   * and the current state
    *
-   * Default: true
+   * If omitted, the value will default to false
    */
-  public visible = true;
+  autoActivate?: boolean;
 
   /**
-   * Determines whether the data source should participate in the application's refresh cycle. If set to true, the
-   * data source will not be loaded unless "activate()" has been called on it
+   * (Optional) the key of another data source that will display the number of data items contained by that data source,
+   * e.g. runningTasks, runningExecutions
    */
-  public lazy = false;
+  badge?: string;
 
   /**
-   * Determines whether the data source is listed directly to the left of the application name
+   * (Optional) If the data source should contribute to the application's default credentials setting, this field should be set
+   * to the field name on each data item.
    */
-  public primary = false;
+  credentialsField?: string;
+
+  /**
+   * (Optional) a description of the data source that will be displayed on the app config screen
+   *
+   * Only needed if the data source is optional
+   */
+  description?: string;
 
   /**
    * Represents a font-awesome icon to be displayed before the name of the tab
    */
-  public icon: string;
+  icon?: string;
+
+  /**
+   * unique value for this data source; the data source will be available on the Application directly via this key,
+   * e.g. if the key is "serverGroups", you can access the data source via application.serverGroups
+   */
+  key: string;
+
+  /**
+   * (Optional) The display label of the application header tab
+   *
+   * If omitted, the value will default to the result of running the "key" through the robotToHuman filter
+   */
+  label?: string;
+
+  /**
+   * (Optional) Determines whether the data source should participate in the application's refresh cycle. If set to true, the
+   * data source will not be loaded unless "activate()" has been called on it
+   */
+  lazy?: boolean;
 
   /**
    * (Optional) Method used to populate the data source. The method must return a promise; the return value of the
@@ -105,137 +79,135 @@ export class DataSourceConfig {
    * It does *not* automatically populate the "data" field of the data source - that is the responsibility of the
    * "onLoad" method.
    */
-  public loader: {(fn: any): IPromise<any>};
+  loader?: (application: Application) => IPromise<any>;
 
   /**
-   * A method that is called when the "loader" method resolves. The method must return a promise. If the "loader"
+   * (Optional) A method that is called when the "loader" method resolves. The method must return a promise. If the "loader"
    * promise resolves with data, the "onLoad" method is responsible for transforming the data, then returning the new
    * value via the promise, which will be assigned to the data source's "data" field.
    *
    * If the onLoad method resolves with a null value, the result will be discarded and the data source's "data" field
    * will remain unchanged.
    */
-  public onLoad: {(fn: any): IPromise<any>};
+  onLoad?: (application: Application, result: any) => IPromise<any>;
 
   /**
-   * (Optional) A method that is called after the "onLoad" method resolves. The data source's data will be populated
-   * when this method is called.
+   * (Optional) whether this data source should be included in the application by default
+   *
+   * Use this for optional or experimental features that users must explicitly enable.
+   *
+   * If omitted, the value will default to false
    */
-  public afterLoad: {(application: Application): void};
+  optIn?: boolean;
 
   /**
-   * If the data source should contribute to the application's default credentials setting, this field should be set
-   * to the field name on each data item.
+   * (Optional) whether this data source can be disabled
+   *
+   * If omitted, the value will default to false
    */
-  public credentialsField: string;
+  optional?: boolean;
 
   /**
-   * If the data source should contribute to the application's default region setting, this field should be set
-   * to the field name on each data item.
+   * (Optional) Determines whether the data source is listed directly to the left of the application name
    */
-  public regionField: string;
+  primary?: boolean;
 
   /**
-   * The application has potentially two default fields for each provider: region and credentials. These fields will
+   * (Optional) The application has potentially two default fields for each provider: region and credentials. These fields will
    * only have a value if every data source that contributes values has just one unique value for each provider. Useful
    * for setting initial values in modal dialogs when creating new server groups, load balancers, etc.
 
    * If the data source should contribute to the application's default region or credentials, this field should be set
    * to the field name that represents the provider on each data item.
    */
-  public providerField: string;
+  providerField?: string;
 
-  constructor(config: any) {
+  /**
+   * (Optional) If the data source should contribute to the application's default region setting, this field should be set
+   * to the field name on each data item.
+   */
+  regionField?: string;
+
+  /**
+   * (Optional) whether this data source will be displayed on non-configured applications
+   *
+   * Use this for features that require additional attributes from the application (e.g. email) to function properly
+   *
+   * If omitted, the value will default to false
+   */
+  requireConfiguredApp?: boolean;
+
+  /**
+   * (Optional) the sref used to route to the view associated with this data source. This value will be used to populate
+   * the link in the application's header.
+   *
+   * If the "visible" field is set to false, this value is ignored; if "visible" is true and this field is omitted, the
+   * tab will use ".insight.{key}" as the sref value in the application header tab
+   */
+  sref?: string;
+
+  /**
+   * (Optional) Determines whether the data source appears on the application header and contributes to the application's ready state.
+   *
+   * Default: true
+   */
+  visible?: boolean;
+}
+
+/**
+ * @deprecated just use the IDataSourceConfig interface
+ */
+export class DataSourceConfig implements IDataSourceConfig {
+  public activeState: string;
+  public afterLoad: (application: Application) => void;
+  public autoActivate: boolean = false;
+  public badge: string;
+  public credentialsField: string;
+  public description: string;
+  public icon: string;
+  public key: string;
+  public label: string;
+  public lazy: boolean = false;
+  public loader: (application: Application) => IPromise<any>;
+  public onLoad: (application: Application, result: any) => IPromise<any>;
+  public optIn: boolean = false;
+  public optional: boolean = false;
+  public primary: boolean = false;
+  public providerField: string;
+  public regionField: string;
+  public requireConfiguredApp: boolean = false;
+  public sref: string;
+  public visible: boolean = true;
+
+  constructor(config: IDataSourceConfig) {
     Object.assign(this, config);
   }
 }
 
-export class ApplicationDataSource {
-
-  /**
-   * Index Signature
-   */
+export class ApplicationDataSource implements IDataSourceConfig {
+  /** Index Signature */
   [k: string]: any;
 
-  /**
-   * See DataSourceConfig#key
-   */
-  public key: string;
-
-  /**
-   * See DataSourceConfig#sref
-   */
-  public sref: string;
-
-  /**
-   * See DataSourceConfig#label
-   */
-  public label: string;
-
-  /**
-   * See DataSourceConfig#badge
-   */
-  public badge: string;
-
-  /**
-   * See DataSourceConfig#activeState
-   */
   public activeState: string;
-
-  /**
-   * See DataSourceConfig#visible
-   */
-  public visible = true;
-
-  /**
-   * See DataSourceConfig#lazy
-   */
-  public lazy = false;
-
-  /**
-   * See DataSourceConfig#optional
-   */
-  public optional = false;
-
-  /**
-   * See DataSourceConfig#icon
-   */
-  public icon: string;
-
-  /**
-   * See DataSourceConfig#primary
-   */
-  public primary = false;
-
-  /**
-   * See DataSourceConfig#description
-   */
-  public description: string;
-
-  /**
-   * See DataSourceConfig#optIn
-   */
-  public optIn = false;
-
-  /**
-   * See DataSourceConfig#requireConfiguredApp
-   */
-  public requireConfiguredApp = false;
-
-  /**
-   * See DataSourceConfig#credentialsField
-   */
+  public afterLoad: (application: Application) => void;
+  public autoActivate: boolean = false;
+  public badge: string;
   public credentialsField: string;
-
-  /**
-   * See DataSourceConfig#regionField
-   */
-  public regionField: string;
-
-  /**
-   * See DataSourceConfig#providerField
-   */
+  public description: string;
+  public icon: string;
+  public key: string;
+  public label: string;
+  public lazy: boolean = false;
+  public loader: (application: Application) => IPromise<any>;
+  public onLoad: (application: Application, result: any) => IPromise<any>;
+  public optIn: boolean = false;
+  public optional: boolean = false;
+  public primary: boolean = false;
   public providerField: string;
+  public regionField: string;
+  public requireConfiguredApp: boolean = false;
+  public sref: string;
+  public visible: boolean = true;
 
   /**
    * State flag that indicates whether the data source has been loaded. If the data source does not have a declared
@@ -266,7 +238,7 @@ export class ApplicationDataSource {
    *
    * If the data source is lazy, this field will default to false.
    *
-   * To activate a data source, call "activate()"
+   * To activate a data source, call "activate()" or set "autoActivate = true"
    */
   public active = false;
 
@@ -281,26 +253,10 @@ export class ApplicationDataSource {
    */
   public alerts: IEntityTags[];
 
-
   /**
    * A timestamp indicating the last time the data source was successfully refreshed
    */
   public lastRefresh: number;
-
-  /**
-   * See DataSourceConfig#onLoad
-   */
-  public onLoad: {(application: Application, fn: any): IPromise<any>};
-
-  /**
-   * See DataSourceConfig#afterLoad
-   */
-  public afterLoad: {(application: Application): void};
-
-  /**
-   * See DataSourceConfig#loader
-   */
-  public loader: {(fn: any): IPromise<any>};
 
   private refreshStream: Subject<any> = new Subject();
 
@@ -316,8 +272,14 @@ export class ApplicationDataSource {
     }
   }
 
-  constructor(config: DataSourceConfig, private application: Application, private $q?: IQService, private $log?: ILogService, private $filter?: any) {
+  constructor(config: IDataSourceConfig,
+              private application: Application,
+              private $q: IQService,
+              private $log: ILogService,
+              private $filter: any,
+              $uiRouter: UIRouter) {
     Object.assign(this, config);
+
     if (!config.sref && config.visible !== false) {
       this.sref = '.insight.' + config.key;
     }
@@ -328,6 +290,11 @@ export class ApplicationDataSource {
 
     if (!config.activeState) {
       this.activeState = '**' + this.sref + '.**';
+    }
+
+    if (config.autoActivate) {
+      $uiRouter.transitionService.onSuccess({ entering: this.activeState }, () => this.activate());
+      $uiRouter.transitionService.onSuccess({ exiting: this.activeState }, () => this.deactivate());
     }
   }
 

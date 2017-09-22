@@ -2,7 +2,6 @@ import { module, IQService } from 'angular';
 
 import { APPLICATION_DATA_SOURCE_REGISTRY, ApplicationDataSourceRegistry } from 'core/application/service/applicationDataSource.registry';
 import { Application } from 'core/application/application.model';
-import { DataSourceConfig } from 'core/application/service/applicationDataSource';
 import { ENTITY_TAGS_READ_SERVICE, EntityTagsReader } from 'core/entityTag/entityTags.read.service';
 import { ILoadBalancer } from 'core/domain';
 import { LOAD_BALANCER_READ_SERVICE, LoadBalancerReader } from 'core/loadBalancer/loadBalancer.read.service';
@@ -37,7 +36,7 @@ module(LOAD_BALANCER_DATA_SOURCE, [
     });
   };
 
-  applicationDataSourceRegistry.registerDataSource(new DataSourceConfig({
+  applicationDataSourceRegistry.registerDataSource({
     key: 'loadBalancers',
     optional: true,
     loader: loadLoadBalancers,
@@ -46,5 +45,5 @@ module(LOAD_BALANCER_DATA_SOURCE, [
     credentialsField: 'account',
     regionField: 'region',
     description: 'Traffic distribution management between servers'
-  }));
+  });
 });

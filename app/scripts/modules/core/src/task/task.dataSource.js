@@ -1,4 +1,3 @@
-import {DataSourceConfig} from '../application/service/applicationDataSource';
 import {APPLICATION_DATA_SOURCE_REGISTRY} from '../application/service/applicationDataSource.registry';
 import {TASK_READ_SERVICE} from 'core/task/task.read.service';
 import {CLUSTER_SERVICE} from 'core/cluster/cluster.service';
@@ -34,7 +33,7 @@ module.exports = angular
       application.getDataSource('serverGroups').dataUpdated();
     };
 
-    applicationDataSourceRegistry.registerDataSource(new DataSourceConfig({
+    applicationDataSourceRegistry.registerDataSource({
       key: 'tasks',
       sref: '.tasks',
       badge: 'runningTasks',
@@ -44,12 +43,12 @@ module.exports = angular
       lazy: true,
       primary: true,
       icon: 'list',
-    }));
+    });
 
-    applicationDataSourceRegistry.registerDataSource(new DataSourceConfig({
+    applicationDataSourceRegistry.registerDataSource({
       key: 'runningTasks',
       visible: false,
       loader: loadRunningTasks,
       onLoad: addRunningTasks,
-    }));
+    });
   });

@@ -1,13 +1,13 @@
+import { module } from 'angular';
+
 import * as _ from 'lodash';
 
-import {module} from 'angular';
-
-import {DataSourceConfig} from './applicationDataSource';
+import { IDataSourceConfig } from './applicationDataSource';
 
 export class ApplicationDataSourceRegistry {
 
   private defaultDataSourceOrder: string[] = ['executions', 'serverGroups', 'loadBalancers', 'securityGroups', 'tasks', 'config'];
-  private dataSources: DataSourceConfig[] = [];
+  private dataSources: IDataSourceConfig[] = [];
   private dataSourceOrder: string[] = [];
 
   public setDataSourceOrder(keys: string[]): void {
@@ -28,12 +28,12 @@ export class ApplicationDataSourceRegistry {
     this.dataSources.sort((a, b) => order.indexOf(a.key) - order.indexOf(b.key));
   }
 
-  public registerDataSource(config: any): void {
-    this.dataSources.push(new DataSourceConfig(config));
+  public registerDataSource(config: IDataSourceConfig): void {
+    this.dataSources.push(config);
     this.sortDataSources();
   }
 
-  public getDataSources(): DataSourceConfig[] {
+  public getDataSources(): IDataSourceConfig[] {
     return _.cloneDeep(this.dataSources);
   }
 }

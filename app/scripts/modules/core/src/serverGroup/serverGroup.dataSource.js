@@ -1,6 +1,5 @@
 const angular = require('angular');
 
-import {DataSourceConfig} from '../application/service/applicationDataSource';
 import {APPLICATION_DATA_SOURCE_REGISTRY} from '../application/service/applicationDataSource.registry';
 import {ENTITY_TAGS_READ_SERVICE} from '../entityTag/entityTags.read.service';
 import {SETTINGS} from 'core/config/settings';
@@ -56,7 +55,7 @@ module.exports = angular
       return $q.all([serverGroupTagger, clusterTagger]);
     };
 
-    applicationDataSourceRegistry.registerDataSource(new DataSourceConfig({
+    applicationDataSourceRegistry.registerDataSource({
       key: 'serverGroups',
       label: 'Clusters',
       sref: '.insight.clusters',
@@ -69,5 +68,5 @@ module.exports = angular
       credentialsField: 'account',
       regionField: 'region',
       description: 'Collections of server groups or jobs'
-    }));
+    });
   });

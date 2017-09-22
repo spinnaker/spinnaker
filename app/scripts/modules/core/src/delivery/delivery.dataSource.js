@@ -1,4 +1,3 @@
-import {DataSourceConfig} from '../application/service/applicationDataSource';
 import {APPLICATION_DATA_SOURCE_REGISTRY} from '../application/service/applicationDataSource.registry';
 import {EXECUTION_SERVICE} from './service/execution.service';
 import {PIPELINE_CONFIG_SERVICE} from 'core/pipeline/config/services/pipelineConfig.service';
@@ -56,7 +55,7 @@ module.exports = angular
     };
 
     if (SETTINGS.feature.pipelines !== false) {
-      applicationDataSourceRegistry.registerDataSource(new DataSourceConfig({
+      applicationDataSourceRegistry.registerDataSource({
         optional: true,
         primary: true,
         icon: 'tasks',
@@ -70,23 +69,23 @@ module.exports = angular
         lazy: true,
         badge: 'runningExecutions',
         description: 'Orchestrated deployment management'
-      }));
+      });
 
-      applicationDataSourceRegistry.registerDataSource(new DataSourceConfig({
+      applicationDataSourceRegistry.registerDataSource({
         key: 'pipelineConfigs',
         loader: loadPipelineConfigs,
         onLoad: addPipelineConfigs,
         lazy: true,
         visible: false,
-      }));
+      });
 
-      applicationDataSourceRegistry.registerDataSource(new DataSourceConfig({
+      applicationDataSourceRegistry.registerDataSource({
         key: 'runningExecutions',
         visible: false,
         loader: loadRunningExecutions,
         onLoad: addRunningExecutions,
         afterLoad: runningExecutionsLoaded,
-      }));
+      });
     }
 
   });

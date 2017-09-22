@@ -1,4 +1,3 @@
-import {DataSourceConfig} from '../service/applicationDataSource';
 import {APPLICATION_DATA_SOURCE_REGISTRY} from '../service/applicationDataSource.registry';
 import {APP_CONFIG_STATES} from './appConfig.states';
 
@@ -10,10 +9,10 @@ module.exports = angular
     APP_CONFIG_STATES,
   ])
   .run(function($q, applicationDataSourceRegistry) {
-    applicationDataSourceRegistry.registerDataSource(new DataSourceConfig({
+    applicationDataSourceRegistry.registerDataSource({
       key: 'config',
       label: 'Config',
       sref: '.config',
       active: '**.config.**',
-    }));
+    });
   });
