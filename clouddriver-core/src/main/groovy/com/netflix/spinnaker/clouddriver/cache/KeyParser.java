@@ -59,7 +59,15 @@ public interface KeyParser {
   /**
    * indicates whether this parser can parse the supplied type
    * @param type the entity type, typically corresponding to a value in the implementing class's Namespace
-   * @return true if it can parse this type
+   * @return <code>true</code> if it can parse this type, <code>false</code> otherwise
    */
-  Boolean canParse(String type);
+  Boolean canParseType(String type);
+
+  /**
+   * indicates whether this parser can parse the supplied field
+   * @param field the entity type field, typically corresponding to a value in the implementing class's
+   *              parsed Namespace field
+   * @return <code>true</code> if it can parse this field, <code>false</code> otherwise
+   */
+  Boolean canParseField(String field);
 }

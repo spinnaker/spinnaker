@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.data.aws
+package com.netflix.spinnaker.clouddriver.aws.data
 
-import com.netflix.spinnaker.clouddriver.aws.data.Keys
 import spock.lang.Specification
 import com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace
 import spock.lang.Unroll
@@ -74,4 +73,18 @@ class KeysSpec extends Specification {
 
   }
 
+  @Unroll
+  def 'key fields match namespace fields if present'() {
+
+    expect:
+    Keys.parse(key).keySet() == namespace.fields
+
+    where:
+
+    key                                                                                                       | namespace
+    "aws:serverGroups:appname:appname-stack-detail:test:us-west-1:appname-stack-detail-v000:stack:detail:000" | Namespace.SERVER_GROUPS
+    "aws:instances:test:us-west-1:i-abc123abc123"                                                             | Namespace.INSTANCES
+    "aws:loadBalancers:test:us-west-1:appname-stack-vpc0:vpc-abc123:appname:stack:detail:classic"             | Namespace.LOAD_BALANCERS
+    "aws:clusters:appname:test:appname-stack-detail:stack:detail:"                                            | Namespace.CLUSTERS
+  }
 }

@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.aws.cache
 
 import com.google.common.base.CaseFormat
+import com.google.common.collect.ImmutableSet
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.cache.KeyParser
 import org.springframework.stereotype.Component
@@ -25,9 +26,10 @@ import static com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider.ID
 
 @Component("AmazonInfraKeys")
 class Keys implements KeyParser {
+
   static enum Namespace {
     CERTIFICATES,
-    SECURITY_GROUPS,
+    SECURITY_GROUPS(["application", "name", "id", "region", "account", "vpcId"]),
     SUBNETS,
     VPCS,
     KEY_PAIRS,
@@ -36,15 +38,19 @@ class Keys implements KeyParser {
     ON_DEMAND
 
     final String ns
+    final Set<String> fields
 
-    private Namespace() {
+    private Namespace(List<String> keyFields = []) {
       ns = CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, name())
+      fields = ImmutableSet.copyOf(["provider", "type"] + keyFields);
     }
 
     String toString() {
       ns
     }
   }
+  private static final Set<String> PARSEABLE_FIELDS =
+    ImmutableSet.builder().addAll(Namespace.SECURITY_GROUPS.fields).build()
 
   @Override
   String getCloudProvider() {
@@ -57,8 +63,13 @@ class Keys implements KeyParser {
   }
 
   @Override
-  Boolean canParse(String type) {
+  Boolean canParseType(String type) {
     return Namespace.values().any { it.ns == type }
+  }
+
+  @Override
+  Boolean canParseField(String field) {
+    return PARSEABLE_FIELDS.contains(field)
   }
 
   static Map<String, String> parse(String key) {

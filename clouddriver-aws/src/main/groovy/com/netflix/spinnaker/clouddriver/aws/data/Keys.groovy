@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.aws.data
 
 import com.google.common.collect.ImmutableMap
+import com.google.common.collect.ImmutableSet
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.cache.KeyParser
 import com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace
@@ -41,6 +42,12 @@ class Keys implements KeyParser {
       .put(Namespace.APPLICATIONS.ns, "application")
       .build()
 
+  private static final Set<String> PARSEABLE_FIELDS =
+    ImmutableSet.builder()
+      .addAll(Namespace.SERVER_GROUPS.fields)
+      .addAll(Namespace.LOAD_BALANCERS.fields)
+      .build()
+
   @Override
   String getNameMapping(String cache) {
     return NAMESPACE_MAPPING.get(cache)
@@ -58,8 +65,13 @@ class Keys implements KeyParser {
 
   @Override
   @TypeChecked(value = TypeCheckingMode.SKIP)
-  Boolean canParse(String type) {
+  Boolean canParseType(String type) {
     return Namespace.values().any { it.ns == type }
+  }
+
+  @Override
+  Boolean canParseField(String field) {
+    return PARSEABLE_FIELDS.contains(field)
   }
 
   static Map<String, String> parse(String key) {

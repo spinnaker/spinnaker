@@ -17,20 +17,21 @@
 package com.netflix.spinnaker.clouddriver.core.provider.agent
 
 import com.google.common.base.CaseFormat
+import com.google.common.collect.ImmutableSet
 import groovy.transform.CompileStatic
 
 @CompileStatic
-public enum Namespace {
+enum Namespace {
   CERTIFICATES,
   IMAGES,
   NAMED_IMAGES,
-  SERVER_GROUPS,
-  INSTANCES,
+  SERVER_GROUPS(["application", "cluster", "account", "region", "serverGroup", "stack", "detail", "sequence"]),
+  INSTANCES(["account", "region", "instanceId"]),
   LAUNCH_CONFIGS,
   LISTENERS,
-  LOAD_BALANCERS,
+  LOAD_BALANCERS(["account", "region", "loadBalancer", "vpcId", "application", "stack", "detail", "loadBalancerType"]),
   TARGET_GROUPS,
-  CLUSTERS,
+  CLUSTERS(["application", "account", "cluster", "stack", "detail"]),
   APPLICATIONS,
   HEALTH,
   ON_DEMAND,
@@ -38,9 +39,11 @@ public enum Namespace {
   RESERVED_INSTANCES
 
   final String ns
+  final Set<String> fields
 
-  private Namespace() {
+  private Namespace(List<String> keyFields = []) {
     ns = CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, name()) // FOO_BAR -> fooBar
+    fields = ImmutableSet.copyOf(["provider", "type"] + keyFields);
   }
 
   String toString() {

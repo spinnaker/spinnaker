@@ -155,6 +155,21 @@ class CatsSearchProvider implements SearchProvider {
   }
 
   private List<String> findMatches(String q, List<String> toQuery, Map<String, String> filters) {
+
+    if (!q && keyParsers) {
+      // no keyword search so find sensible default value to set for searching
+      Set<String> filterKeys = filters.keySet()
+      keyParsers.find {
+        KeyParser parser = it
+        String field = filterKeys.find {String field -> parser.canParseField(field) }
+        if (field) {
+          q = filters.get(field)
+          return true
+        }
+      }
+      log.info("no query string specified, looked for sensible default and found: ${q}")
+    }
+
     log.info("Querying ${toQuery} for term: ${q}")
     String normalizedWord = q.toLowerCase()
     List<String> matches = new ArrayList<String>()
@@ -165,7 +180,7 @@ class CatsSearchProvider implements SearchProvider {
             return true
           }
           if (keyParsers) {
-            KeyParser parser = keyParsers.find { it.cloudProvider == filters.cloudProvider && it.canParse(cache) }
+            KeyParser parser = keyParsers.find { it.cloudProvider == filters.cloudProvider && it.canParseType(cache) }
             if (parser) {
               Map<String, String> parsed = parser.parseKey(key)
               return filters.entrySet().every { filter ->
