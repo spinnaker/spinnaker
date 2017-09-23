@@ -8,7 +8,10 @@ import { Application } from '../application.model';
 import { ApplicationDataSource, IDataSourceConfig } from '../service/applicationDataSource';
 import { APPLICATION_DATA_SOURCE_REGISTRY, ApplicationDataSourceRegistry } from './applicationDataSource.registry';
 import { ROBOT_TO_HUMAN_FILTER } from 'core/presentation/robotToHumanFilter/robotToHuman.filter';
-import { INFERRED_APPLICATION_WARNING_SERVICE, InferredApplicationWarningService } from './inferredApplicationWarning.service';
+import {
+  INFERRED_APPLICATION_WARNING_SERVICE,
+  InferredApplicationWarningService
+} from './inferredApplicationWarning.service';
 
 export interface IApplicationDataSourceAttribute {
   enabled: string[];
@@ -27,6 +30,8 @@ export interface IApplicationSummary {
 
 export class ApplicationReader {
 
+  private applicationMap: Map<string, IApplicationSummary> = new Map<string, IApplicationSummary>();
+
   public constructor(private $q: IQService,
                      private $log: ILogService,
                      private $filter: IFilterService,
@@ -38,8 +43,15 @@ export class ApplicationReader {
     'ngInject';
   }
 
-  public listApplications(): IPromise<IApplicationSummary[]> {
-    return this.API.all('applications').useCache().getList();
+  public listApplications(populateMap = false): IPromise<IApplicationSummary[]> {
+    return this.API.all('applications').useCache().getList().then((applications: IApplicationSummary[]) => {
+      if (populateMap) {
+        const tmpMap: Map<string, IApplicationSummary> = new Map<string, IApplicationSummary>();
+        applications.forEach((application: IApplicationSummary) => tmpMap.set(application.name, application));
+        this.applicationMap = tmpMap;
+      }
+      return applications;
+    });
   }
 
   public getApplication(name: string): IPromise<Application> {
@@ -51,6 +63,10 @@ export class ApplicationReader {
       application.refresh();
       return application;
     });
+  }
+
+  public getApplicationMap(): Map<string, IApplicationSummary> {
+    return this.applicationMap;
   }
 
   private splitAttributes(attributes: any, fields: string[]) {
@@ -77,7 +93,7 @@ export class ApplicationReader {
 
   private setDisabledDataSources(application: Application) {
     const allDataSources: ApplicationDataSource[] = application.dataSources,
-          appDataSources: IApplicationDataSourceAttribute = application.attributes.dataSources;
+      appDataSources: IApplicationDataSourceAttribute = application.attributes.dataSources;
     if (!appDataSources) {
       allDataSources.filter(ds => ds.optIn).forEach(ds => this.disableDataSource(ds, application));
       if (this.inferredApplicationWarningService.isInferredApplication(application)) {

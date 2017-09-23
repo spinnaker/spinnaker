@@ -1,5 +1,5 @@
 import autoBindMethods from 'class-autobind-decorator';
-import { isEmpty, sumBy } from 'lodash';
+import { isEmpty } from 'lodash';
 import { module, IController, ILocationService, IScope } from 'angular';
 import { StateService } from '@uirouter/core';
 import { IModalService } from 'angular-ui-bootstrap';
@@ -13,9 +13,10 @@ import { OVERRIDE_REGISTRY, OverrideRegistry } from 'core/overrideRegistry/overr
 import { RECENT_HISTORY_SERVICE } from 'core/history/recentHistory.service';
 import { PAGE_TITLE_SERVICE, PageTitleService } from 'core/pageTitle/pageTitle.service';
 import { INFRASTRUCTURE_SEARCH_SERVICE, InfrastructureSearchService } from './infrastructureSearch.service';
+import { ISearchResultHydrator, SearchResultHydratorRegistry } from '../searchResult/SearchResultHydratorRegistry';
 import { SearchStatus } from '../searchResult/SearchResults';
-import { SearchService } from '../search.service';
 import { ISearchResultSet } from '..';
+import { ISearchResult } from 'core/search/search.service';
 
 export interface IViewState {
   status: SearchStatus;
@@ -84,6 +85,24 @@ export class InfrastructureV2Ctrl implements IController {
     ];
   }
 
+  private hydrateResults(results: ISearchResultSet[]): void {
+
+    const resultMap: { [key: string]: ISearchResult[] } =
+      results.reduce((categoryMap: { [key: string]: ISearchResult[] }, result: ISearchResultSet) => {
+      categoryMap[result.id] = result.results;
+      return categoryMap;
+    }, {});
+
+    SearchResultHydratorRegistry.getHydratorKeys().forEach((hydratorKey: string) => {
+      const hydrator: ISearchResultHydrator<ISearchResult> =
+        SearchResultHydratorRegistry.getSearchResultHydrator(hydratorKey);
+      const target: ISearchResult[] = resultMap[hydratorKey];
+      if (target && hydrator) {
+        hydrator.hydrate(target);
+      }
+    });
+  }
+
   private loadNewQuery(params: IQueryParams) {
 
     if (isEmpty(params)) {
@@ -98,12 +117,13 @@ export class InfrastructureV2Ctrl implements IController {
     this.viewState.status = SearchStatus.SEARCHING;
     this.infrastructureSearchService.getSearcher().query(params).then((result: ISearchResultSet[]) => {
 
-      this.$scope.categories =
+      const categories: ISearchResultSet[] =
         result.filter((category: ISearchResultSet) => category.category !== 'Projects' && category.results.length);
+      this.hydrateResults(categories);
+      this.$scope.categories = categories;
+
       this.$scope.projects =
         result.filter((category: ISearchResultSet) => category.category === 'Projects' && category.results.length);
-      this.$scope.moreResults =
-        sumBy(result, (resultSet) => resultSet.results.length) === SearchService.DEFAULT_PAGE_SIZE;
       this.pageTitleService.handleRoutingSuccess(
         {
           pageTitleMain: {

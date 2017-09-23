@@ -11,5 +11,4 @@ module(SEARCH_COMPONENT, [])
     SearchFilterTypeRegistry.register({ key: 'account', modifier: 'acct', text: 'Account' });
     SearchFilterTypeRegistry.register({ key: 'region', modifier: 'reg', text: 'Region' });
     SearchFilterTypeRegistry.register({ key: 'stack', modifier: 'stack', text: 'Stack' });
-    SearchFilterTypeRegistry.register({ key: 'type', modifier: 'type', text: 'Type' });
   });

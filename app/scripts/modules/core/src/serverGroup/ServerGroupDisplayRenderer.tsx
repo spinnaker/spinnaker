@@ -37,7 +37,8 @@ export class ServerGroupDisplayRenderer extends AbstractBaseResultRenderer<IServ
     return [
       { key: 'serverGroup', label: 'Name', cellRenderer: this.hrefCellRenderer },
       { key: 'account', cellRenderer: this.accountCellRenderer },
-      { key: 'region', cellRenderer: this.defaultCellRender }
+      { key: 'region', cellRenderer: this.defaultCellRender },
+      { key: 'email', cellRenderer: this.defaultCellRender }
     ];
   }
 }

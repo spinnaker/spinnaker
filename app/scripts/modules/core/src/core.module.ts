@@ -45,6 +45,7 @@ import { PAGE_TITLE_MODULE } from './pageTitle/pageTitle.module';
 import { PIPELINE_TEMPLATE_MODULE } from './pipeline/config/templates/pipelineTemplate.module';
 import { REACT_MODULE } from './reactShims';
 import { REGION_MODULE } from './region/region.module';
+import { SERVERGROUP_MODULE } from './serverGroup/serverGroup.module';
 import { SUBNET_MODULE } from './subnet/subnet.module';
 import { WHATS_NEW_MODULE } from './whatsNew/whatsNew.module';
 import { WIDGETS_MODULE } from './widgets/widgets.module';
@@ -112,7 +113,7 @@ module(CORE_MODULE, [
 
   require('./search/search.module'),
   require('./securityGroup/securityGroup.module'),
-  require('./serverGroup/serverGroup.module'),
+  SERVERGROUP_MODULE,
   SUBNET_MODULE,
 
   require('./task/task.module'),

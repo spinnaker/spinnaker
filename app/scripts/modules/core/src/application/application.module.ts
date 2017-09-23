@@ -1,4 +1,5 @@
 import { module } from 'angular';
+import { StateService } from '@uirouter/angularjs';
 
 import './ApplicationSearchResultFormatter';
 import { APPLICATION_NAV_COMPONENT } from './nav/applicationNav.component';
@@ -8,19 +9,25 @@ import { APPLICATIONS_COMPONENT } from './applications.component';
 import { APPLICATIONS_STATE_PROVIDER } from './applications.state.provider';
 import { PERMISSIONS_CONFIGURER_COMPONENT } from './modal/permissionsConfigurer.component';
 import { UPSERT_APPLICATION_HELP } from './modal/upsertApplication.help';
+import { ApplicationReader } from './service/application.read.service';
+import { PostSearchResultSearcherRegistry } from 'core/search/searchResult/PostSearchResultSearcherRegistry';
+import { ApplicationPostSearchResultSearcher } from 'core/application/ApplicationPostSearchResultSearcher';
 
 export const APPLICATION_MODULE = 'spinnaker.core.application';
 module(APPLICATION_MODULE, [
-    APPLICATION_STATE_PROVIDER,
-    APPLICATIONS_STATE_PROVIDER,
-    APPLICATIONS_COMPONENT,
-    require('./config/applicationConfig.controller.js'),
-    require('./modal/createApplication.modal.controller.js'),
-    require('./modal/pageApplicationOwner.modal.controller.js'),
-    require('./modal/platformHealthOverride.directive'),
-    require('./config/appConfig.dataSource'),
-    APPLICATION_NAV_COMPONENT,
-    APPLICATION_NAV_SECONDARY_COMPONENT,
-    PERMISSIONS_CONFIGURER_COMPONENT,
-    UPSERT_APPLICATION_HELP,
-  ]);
+  APPLICATION_STATE_PROVIDER,
+  APPLICATIONS_STATE_PROVIDER,
+  APPLICATIONS_COMPONENT,
+  require('./config/applicationConfig.controller.js'),
+  require('./modal/createApplication.modal.controller.js'),
+  require('./modal/pageApplicationOwner.modal.controller.js'),
+  require('./modal/platformHealthOverride.directive'),
+  require('./config/appConfig.dataSource'),
+  APPLICATION_NAV_COMPONENT,
+  APPLICATION_NAV_SECONDARY_COMPONENT,
+  PERMISSIONS_CONFIGURER_COMPONENT,
+  UPSERT_APPLICATION_HELP,
+])
+  .run(($state: StateService, applicationReader: ApplicationReader) => {
+    PostSearchResultSearcherRegistry.register('applications', 'serverGroups', new ApplicationPostSearchResultSearcher($state, applicationReader));
+  });

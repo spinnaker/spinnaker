@@ -1,4 +1,4 @@
-import { isEmpty, isObject, isString } from 'lodash';
+import { flatten, isEmpty, isObject, isString } from 'lodash';
 import { module, IDeferred, IPromise, IQService } from 'angular';
 import { Observable, Subject } from 'rxjs';
 
@@ -21,6 +21,7 @@ import {
   searchResultFormatterRegistry
 } from '../searchResult/searchResultFormatter.registry';
 import { externalSearchRegistry } from '../externalSearch.registry';
+import { ITypeMapping, PostSearchResultSearcherRegistry } from 'core/search/searchResult/PostSearchResultSearcherRegistry';
 
 export interface ISearchResultSet {
   id: string,
@@ -41,6 +42,7 @@ export class InfrastructureSearcher {
   public querySubject: Subject<string | IQueryParams> = new Subject<string | IQueryParams>();
 
   constructor(private $q: IQService, private providerServiceDelegate: ProviderServiceDelegate, searchService: SearchService, urlBuilderService: UrlBuilderService) {
+    'ngInject'
     this.querySubject.switchMap(
       (query: string | IQueryParams) => {
 
@@ -48,12 +50,28 @@ export class InfrastructureSearcher {
           return Observable.of(getFallbackResults());
         }
 
-        const searchParams: ISearchParams = {
-          type: searchResultFormatterRegistry.getSearchCategories()
-        };
+        let searchParams: ISearchParams;
+
+        // if the query is a string, then it's the legacy search page so do what that did before
         if (isString(query)) {
-          searchParams.q = query;
+          searchParams = { q: query, type: searchResultFormatterRegistry.getSearchCategories() };
         } else {
+
+          // otherwise, it's the new search so we need to do a bunch of things differently
+          // for new search we don't need to search applications and clusters since those are derivable
+          // from server groups.  the search API now intelligently tries to guess a query string from the
+          // search parameters passed to the search API.
+          // this bit of code removes any registered post search results searchers from the `type` query
+          // parameter sent to the search API because we are going to get that data later (further below)
+          const postSearchResultKeys: Set<string> =
+            new Set<string>(PostSearchResultSearcherRegistry.getRegisteredTypes()
+              .map((mapping: ITypeMapping) => mapping.sourceType));
+          searchParams = {
+            type: searchResultFormatterRegistry.getSearchCategories().filter((category: string) => query[SearchFilterTypeRegistry.KEYWORD_FILTER.key] ? true : !postSearchResultKeys.has(category))
+          };
+
+          // the search API uses `q` as the query parameter argument for a keyword search so if a keyword
+          // search is being done, map it to `q`
           const copy = Object.assign({}, query);
           copy.cloudProvider = SETTINGS.defaultProviders[0];
           if (copy[SearchFilterTypeRegistry.KEYWORD_FILTER.key]) {
@@ -73,16 +91,19 @@ export class InfrastructureSearcher {
         )
       })
       .subscribe((result: ISearchResults<ISearchResult>) => {
-        const tmp: { [type: string]: ISearchResult[] } = result.results.reduce((categories: { [type: string]: ISearchResult[] }, entry: ISearchResult) => {
-          this.formatResult(entry.type, entry).then((name) => entry.displayName = name);
-          entry.href = urlBuilderService.buildFromMetadata(entry);
-          if (!categories[entry.type]) {
-            categories[entry.type] = [];
-          }
-          categories[entry.type].push(entry);
-          return categories;
-        }, {});
-        this.deferred.resolve(Object.keys(tmp)
+
+        const categorizedSearchResults: { [type: string]: ISearchResult[] } =
+          result.results.reduce((categories: { [type: string]: ISearchResult[] }, entry: ISearchResult) => {
+            this.formatResult(entry.type, entry).then((name) => entry.displayName = name);
+            entry.href = urlBuilderService.buildFromMetadata(entry);
+            if (!categories[entry.type]) {
+              categories[entry.type] = [];
+            }
+            categories[entry.type].push(entry);
+            return categories;
+          }, {});
+
+        const results: ISearchResultSet[] = Object.keys(categorizedSearchResults)
           .filter(c => searchResultFormatterRegistry.get(c))
           .map(category => {
             const config = searchResultFormatterRegistry.get(category);
@@ -93,10 +114,23 @@ export class InfrastructureSearcher {
               iconClass: config.iconClass,
               order: config.order,
               hideIfEmpty: config.hideIfEmpty,
-              results: tmp[category]
+              results: categorizedSearchResults[category]
             };
-          })
-        );
+          });
+
+        // finally, for any registered post search result searcher, take its registered type mapping,
+        // retrieve that data from the search results from the search API above, and pass to the
+        // appropriate post search result searcher.
+        // the post search result searcher will return a promise containing the data and we want all of
+        // the promises to resolve before we return to the search controller so we `$q.all` it.
+        const promises: IPromise<ISearchResultSet[]>[] = [this.$q.when(results)];
+        PostSearchResultSearcherRegistry.getRegisteredTypes().forEach((mapping: ITypeMapping) => {
+          if (!categorizedSearchResults[mapping.sourceType] && !isEmpty(categorizedSearchResults)) {
+            promises.push(PostSearchResultSearcherRegistry.getPostResultSearcher(mapping.sourceType).getPostSearchResults(categorizedSearchResults[mapping.targetType]));
+          }
+        });
+
+        this.$q.all(promises).then((promiseResults) => this.deferred.resolve(flatten(promiseResults)));
       });
   }
 

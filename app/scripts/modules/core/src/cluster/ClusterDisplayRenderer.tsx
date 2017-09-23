@@ -30,6 +30,7 @@ export class ClusterDisplayRenderer extends AbstractBaseResultRenderer<IClusterS
     return [
       { key: 'cluster', label: 'Name', cellRenderer: this.hrefCellRenderer },
       { key: 'account', cellRenderer: this.accountCellRenderer },
+      { key: 'email', cellRenderer: this.defaultCellRender }
     ];
   }
 }

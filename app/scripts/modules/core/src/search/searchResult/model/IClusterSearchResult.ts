@@ -1,11 +1,9 @@
-export interface IClusterSearchResult {
+import { ISearchResult } from 'core/search';
+
+export interface IClusterSearchResult extends ISearchResult {
   account: string;
   application: string;
   cluster: string;
-  displayName: string;
-  href: string;
-  provider: string;
+  email?: string;
   stack: string;
-  type: string;
-  url: string;
 }
