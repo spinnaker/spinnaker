@@ -33,7 +33,6 @@ class NetflixTitusCredentials implements AccountCredentials<TitusCredentials> {
   final String discovery
   final String awsAccount
   final String awsVpc
-  final String apiVersion
   final boolean discoveryEnabled
   final String stack
 
@@ -50,7 +49,6 @@ class NetflixTitusCredentials implements AccountCredentials<TitusCredentials> {
                           boolean discoveryEnabled,
                           String discovery,
                           String stack,
-                          String apiVersion,
                           List<String> requiredGroupMembership
   ) {
     this.name = name
@@ -64,7 +62,6 @@ class NetflixTitusCredentials implements AccountCredentials<TitusCredentials> {
     this.discoveryEnabled = discoveryEnabled
     this.discovery = discovery
     this.stack = stack
-    this.apiVersion = apiVersion
     this.requiredGroupMembership = requiredGroupMembership
   }
 
@@ -100,10 +97,6 @@ class NetflixTitusCredentials implements AccountCredentials<TitusCredentials> {
 
   boolean getDiscoveryEnabled() {
     return discoveryEnabled
-  }
-
-  String getApiVersion(){
-    return apiVersion
   }
 
   String getStack() {

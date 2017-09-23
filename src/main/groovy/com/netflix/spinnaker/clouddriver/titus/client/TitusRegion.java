@@ -24,6 +24,7 @@ public class TitusRegion {
     private final String account;
     private final String endpoint;
     private final List<TitusFaultDomain> faultDomains;
+    private final String apiVersion;
 
     private <T> T notNull(T val, String name) {
         if (val == null) {
@@ -35,15 +36,17 @@ public class TitusRegion {
     public TitusRegion(String name,
                        String account,
                        String endpoint,
-                       List<TitusFaultDomain> faultDomains) {
+                       List<TitusFaultDomain> faultDomains,
+                       String apiVersion) {
         this.name = notNull(name, "name");
         this.account = notNull(account, "account");
         this.endpoint = EndpointValidator.validateEndpoint(endpoint);
         this.faultDomains = faultDomains == null ? Collections.emptyList() : Collections.unmodifiableList(faultDomains);
+        this.apiVersion = apiVersion;
     }
 
-    public TitusRegion(String name, String account, String endpoint) {
-        this(name, account, endpoint, Collections.emptyList());
+    public TitusRegion(String name, String account, String endpoint, String apiVersion) {
+        this(name, account, endpoint, Collections.emptyList(), apiVersion);
     }
 
     public String getAccount() {
@@ -57,6 +60,10 @@ public class TitusRegion {
     public String getEndpoint() {
         return endpoint;
     }
+
+    public String getApiVersion() {
+    return apiVersion;
+  }
 
     public List<TitusFaultDomain> getFaultDomains() {
         return faultDomains;

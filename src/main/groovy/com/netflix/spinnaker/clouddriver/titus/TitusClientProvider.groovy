@@ -41,7 +41,7 @@ class TitusClientProvider {
   TitusClient getTitusClient(NetflixTitusCredentials account, String region) {
     final TitusRegion titusRegion = Objects.requireNonNull(account.regions.find { it.name == region }, "region")
     final TitusClientKey key = new TitusClientKey(Objects.requireNonNull(account.name), titusRegion)
-    return titusClients.computeIfAbsent(key, { k -> account.apiVersion == '3' ? new RegionScopedV3TitusClient(k.region, registry, titusJobCustomizers) : new RegionScopedTitusClient(k.region, registry, titusJobCustomizers) })
+    return titusClients.computeIfAbsent(key, { k -> k.region.apiVersion == '3' ? new RegionScopedV3TitusClient(k.region, registry, titusJobCustomizers) : new RegionScopedTitusClient(k.region, registry, titusJobCustomizers) })
   }
 
   @Immutable(knownImmutableClasses = [TitusRegion])
