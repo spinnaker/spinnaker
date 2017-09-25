@@ -1,9 +1,10 @@
 import * as React from 'react';
 import { ICanaryMetricConfig } from '../domain/ICanaryConfig';
-import FormRow from '../layout/formRow';
+import metricStoreConfigService from 'kayenta/metricStore/metricStoreConfig.service';
 
 interface IMetricDetailProps {
   metric: ICanaryMetricConfig;
+  showGroups: boolean;
   edit: (event: any) => void;
   remove: (event: any) => void;
 }
@@ -11,40 +12,22 @@ interface IMetricDetailProps {
 /*
  * Configures all the available settings for a single metric.
  */
-export default function MetricDetail({ metric, edit, remove }: IMetricDetailProps) {
+export default function MetricDetail({ metric, showGroups, edit, remove }: IMetricDetailProps) {
+  const config = metricStoreConfigService.getConfig(metric.serviceName);
+  const queryFinder = config && config.queryFinder ? config.queryFinder : (_metric: ICanaryMetricConfig) => `queryFinder not yet implemented for ${metric.serviceName}`;
+
   return (
-    <form role="form" className="form-horizontal container-fluid">
-      <div className="col-md-11">
-        <FormRow label="Name">
-          <input
-            type="text"
-            className="form-control"
-            value={metric.name}
-            data-id={metric.id}
-            disabled={true}
-          />
-        </FormRow>
-        <FormRow label="Service">
-          <input
-            type="text"
-            className="form-control"
-            value={metric.serviceName}
-            data-id={metric.id}
-            disabled={true}
-          />
-        </FormRow>
-        <FormRow label="Groups">
-          {/* TODO: needs to be a multiselect combo box like select2 */}
-          <input
-            type="text"
-            className="form-control"
-            value={metric.groups.join(',')}
-            data-id={metric.id}
-            disabled={true}
-          />
-        </FormRow>
+    <section className="horizontal metric-list-row">
+      <div className="flex-3">
+        {metric.name || '(new)'}
       </div>
-      <div className="col-md-1">
+      <div className="flex-3">
+        {queryFinder(metric)}
+      </div>
+      <div className="flex-3">
+        {showGroups && metric.groups.join(', ')}
+      </div>
+      <div className="flex-1 horizontal center">
         <i
           className="fa fa-edit"
           data-id={metric.id}
@@ -56,6 +39,6 @@ export default function MetricDetail({ metric, edit, remove }: IMetricDetailProp
           onClick={remove}
         />
       </div>
-    </form>
+    </section>
   );
 }

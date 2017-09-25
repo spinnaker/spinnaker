@@ -33,4 +33,8 @@ export const UPDATE_SCORE_THRESHOLDS = 'update_score_thresholds';
 export const UPDATE_GROUP_WEIGHT = 'update_group_weight';
 export const SET_CONFIG_JSON_MODAL_TAB_STATE = 'set_config_json_modal_tab_state';
 export const UPDATE_ATLAS_QUERY = 'update-atlas-query';
-
+export const COPY_SELECTED_CONFIG = 'copy_selected_config';
+export const CREATE_NEW_CONFIG = 'create_new_config';
+export const EDIT_GROUP_BEGIN = 'edit_group_name_begin';
+export const EDIT_GROUP_CONFIRM = 'edit_group_name_confirm';
+export const EDIT_GROUP_UPDATE = 'edit_group_name_update';

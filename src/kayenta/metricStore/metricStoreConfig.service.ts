@@ -1,8 +1,10 @@
 import * as React from 'react';
+import { ICanaryMetricConfig } from 'kayenta/domain/ICanaryConfig';
 
 export interface IMetricStoreConfig {
   name: string;
   metricConfigurer: React.ComponentClass;
+  queryFinder: (metric: ICanaryMetricConfig) => string;
 }
 
 class MetricStoreConfigService {

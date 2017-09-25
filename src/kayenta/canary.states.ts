@@ -17,7 +17,7 @@ module(CANARY_STATES, [APPLICATION_STATE_PROVIDER])
   .config((applicationStateProvider: ApplicationStateProvider) => {
   const configDetail: INestedState = {
     name: 'configDetail',
-    url: '/canary/:configName',
+    url: '/canary/:configName?copy&new',
     views: {
       detail: {
         component: ConfigDetailLoader, $type: 'react'
@@ -27,7 +27,8 @@ module(CANARY_STATES, [APPLICATION_STATE_PROVIDER])
       }
     },
     params: {
-      configName: { squash: true, value: null },
+      copy: { type: 'boolean', value: false, squash: true },
+      'new': { type: 'boolean', value: false, squash: true },
     },
     resolve: [
       {

@@ -5,7 +5,7 @@ import { Observable } from 'rxjs/Observable';
 import { Subscription } from 'rxjs/Subscription';
 
 import ConfigDetailLoadStates from './configDetailLoadStates';
-import { LOAD_CONFIG_REQUEST } from '../actions/index';
+import * as Creators from '../actions/creators';
 
 interface IConfigLoaderStateParamsProps {
   configNameStream: Observable<IConfigDetailStateParams>;
@@ -17,6 +17,8 @@ interface IConfigLoaderDispatchProps {
 
 interface IConfigDetailStateParams {
   configName: string;
+  copy: boolean;
+  'new': boolean;
 }
 
 export enum ConfigDetailLoadState {
@@ -49,11 +51,12 @@ class ConfigDetailLoader extends React.Component<IConfigLoaderDispatchProps & IC
 function mapDispatchToProps(dispatch: (action: Action & any) => void): IConfigLoaderDispatchProps {
   return {
     loadConfig: (stateParams: IConfigDetailStateParams) => {
-      if (stateParams.configName) {
-        dispatch({
-          type: LOAD_CONFIG_REQUEST,
-          id: stateParams.configName,
-        });
+      if (stateParams.copy) {
+        dispatch(Creators.copySelectedConfig());
+      } else if (stateParams.new) {
+        dispatch(Creators.createNewConfig());
+      } else if (stateParams.configName) {
+        dispatch(Creators.loadConfigRequest({ configName: stateParams.configName }));
       }
     }
   };

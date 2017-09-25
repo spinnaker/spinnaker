@@ -1,7 +1,53 @@
+@import (reference) "~coreColors";
+
 .kayenta {
   button {
-   &[disabled] {
-    cursor: not-allowed;
-   }
+    &[disabled] {
+      cursor: not-allowed;
+    }
+  }
+
+  .group-tabs {
+    .fa.fa-pencil {
+      padding-left: 1rem;
+      font-size: smaller;
+      font-weight: 100;
+    }
+
+    .tabs-basic {
+      input {
+        text-transform: none;
+        font-weight: normal;
+      }
+    }
+  }
+
+  .metric-list-header {
+    h6 {
+      font-weight: 600;
+    }
+  }
+
+  .metric-list-row {
+    > div {
+      padding: .8rem 0;
+    }
+
+    i {
+      &.fa {
+        padding: 0 .5rem;
+        cursor: pointer;
+        &.fa-edit {
+          margin-top: .1rem;
+        }
+      }
+    }
+  }
+
+  .metric-list-header, .metric-list-row {
+    border-bottom: 1px solid var(--color-divider);
+    &:first-child {
+      padding-left: 1rem;
+    }
   }
 }

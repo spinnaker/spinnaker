@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
-import { isEqual, cloneDeep, omit } from 'lodash';
+import { isEqual, omit } from 'lodash';
 
 import { SubmitButton } from '@spinnaker/core';
 
@@ -40,7 +40,7 @@ function SaveConfigButton({ saveConfigState, inSyncWithServer, saveConfig }: ISa
 }
 
 function isInSyncWithServer(state: ICanaryState): boolean {
-  const editedConfig = cloneDeep(mapStateToConfig(state));
+  const editedConfig = mapStateToConfig(state);
   if (!editedConfig) {
     return true;
   } else {

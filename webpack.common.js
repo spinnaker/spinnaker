@@ -133,6 +133,7 @@ function configure(IS_TEST) {
         LIVE_CALLS: false,
         METRIC_STORE: 'atlas',
         ATLAS_WEB_COMPONENTS_URL: '',
+        REDUX_LOGGER: false,
       }),
     ]);
   }

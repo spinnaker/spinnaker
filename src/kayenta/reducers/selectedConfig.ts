@@ -1,6 +1,6 @@
 import { Action, combineReducers } from 'redux';
 import { combineActions, handleActions } from 'redux-actions';
-import { get, has } from 'lodash';
+import { get, has, omit } from 'lodash';
 
 import * as Actions from '../actions';
 import { DeleteConfigState } from '../edit/deleteModal';
@@ -8,6 +8,7 @@ import { SaveConfigState } from '../edit/save';
 import { ConfigDetailLoadState } from '../edit/configDetailLoader';
 import { IJudge } from '../domain/IJudge';
 import {
+  GroupWeights,
   ICanaryClassifierThresholdsConfig,
   ICanaryConfig,
   ICanaryJudgeConfig,
@@ -16,6 +17,7 @@ import {
 import { CanarySettings } from '../canary.settings';
 import { IGroupState, group } from './group';
 import { JudgeSelectRenderState } from '../edit/judgeSelect';
+import { UNGROUPED, ALL } from '../edit/groupTabs';
 
 interface ILoadState {
   state: ConfigDetailLoadState;
@@ -56,9 +58,9 @@ export interface ISelectedConfigState {
 }
 
 const config = handleActions({
-  [Actions.SELECT_CONFIG]: (_state: ICanaryConfig, action: Action & any) => action.config,
-  [Actions.UPDATE_CONFIG_NAME]: (state: ICanaryConfig, action: Action & any) => ({ ...state, name: action.name }),
-  [Actions.UPDATE_CONFIG_DESCRIPTION]: (state: ICanaryConfig, action: Action & any) => ({ ...state, description: action.description }),
+  [Actions.SELECT_CONFIG]: (_state: ICanaryConfig, action: Action & any) => action.payload.config,
+  [Actions.UPDATE_CONFIG_NAME]: (state: ICanaryConfig, action: Action & any) => ({ ...state, name: action.payload.name }),
+  [Actions.UPDATE_CONFIG_DESCRIPTION]: (state: ICanaryConfig, action: Action & any) => ({ ...state, description: action.payload.description }),
   [Actions.DELETE_CONFIG_SUCCESS]: () => null,
 }, null);
 
@@ -75,13 +77,13 @@ function idMetrics(metrics: ICanaryMetricConfig[] = []) {
 }
 
 const metricList = handleActions({
-  [Actions.SELECT_CONFIG]: (_state: ICanaryMetricConfig[], action: Action & any) => idMetrics(action.config.metrics),
-  [Actions.ADD_METRIC]: (state: ICanaryMetricConfig[], action: Action & any) => idMetrics(state.concat([action.metric])),
-  [Actions.REMOVE_METRIC]: (state: ICanaryMetricConfig[], action: Action & any) => idMetrics(state.filter(metric => metric.id !== action.id)),
+  [Actions.SELECT_CONFIG]: (_state: ICanaryMetricConfig[], action: Action & any) => idMetrics(action.payload.config.metrics),
+  [Actions.ADD_METRIC]: (state: ICanaryMetricConfig[], action: Action & any) => idMetrics(state.concat([action.payload.metric])),
+  [Actions.REMOVE_METRIC]: (state: ICanaryMetricConfig[], action: Action & any) => idMetrics(state.filter(metric => metric.id !== action.payload.id)),
 }, []);
 
 const editingMetric = handleActions({
-  [Actions.RENAME_METRIC]: (state: ICanaryMetricConfig, action: Action & any) => ({ ...state, name: action.name }),
+  [Actions.RENAME_METRIC]: (state: ICanaryMetricConfig, action: Action & any) => ({ ...state, name: action.payload.name }),
   [Actions.UPDATE_STACKDRIVER_METRIC_TYPE]: (state: ICanaryMetricConfig, action: Action & any) => ({
     ...state, query: { ...state.query, metricType: action.metricType, type: 'stackdriver' },
   }),
@@ -98,7 +100,7 @@ const save = combineReducers<ISaveState>({
     [Actions.DISMISS_SAVE_CONFIG_ERROR]: () => SaveConfigState.Saved,
   }, SaveConfigState.Saved),
   error: handleActions({
-    [Actions.SAVE_CONFIG_FAILURE]: (_state: string, action: Action & any) => get(action, 'error.data.message', null),
+    [Actions.SAVE_CONFIG_FAILURE]: (_state: string, action: Action & any) => get(action, 'payload.error.data.message', null),
   }, null),
 });
 
@@ -109,20 +111,20 @@ const destroy = combineReducers<IDestroyState>({
     [Actions.DELETE_CONFIG_FAILURE]: () => DeleteConfigState.Error,
   }, DeleteConfigState.Completed),
   error: handleActions({
-    [Actions.DELETE_CONFIG_FAILURE]: (_state: string, action: Action & any) => get(action, 'error.data.message', null),
+    [Actions.DELETE_CONFIG_FAILURE]: (_state: string, action: Action & any) => get(action, 'payload.error.data.message', null),
   }, null),
 });
 
 const json = combineReducers<IJsonState>({
   configJson: handleActions({
-    [Actions.SET_CONFIG_JSON]: (_state: IJsonState, action: Action & any) => action.payload,
+    [Actions.SET_CONFIG_JSON]: (_state: IJsonState, action: Action & any) => action.payload.json,
     [combineActions(Actions.CONFIG_JSON_MODAL_CLOSE, Actions.SELECT_CONFIG)]: (): void => null,
   }, null),
   error: handleActions({
     [combineActions(Actions.CONFIG_JSON_MODAL_CLOSE, Actions.SELECT_CONFIG, Actions.SET_CONFIG_JSON)]: () => null,
     [Actions.SET_CONFIG_JSON]: (_state: IJsonState, action: Action & any) => {
       try {
-        JSON.parse(action.payload);
+        JSON.parse(action.payload.json);
         return null;
       } catch (e) {
         return e.message;
@@ -134,15 +136,15 @@ const json = combineReducers<IJsonState>({
 
 const judge = combineReducers<IJudgeState>({
   judgeConfig: handleActions({
-    [Actions.SELECT_JUDGE_NAME]: (state: IJudge, action: Action & any) => ({ ...state, name: action.judge.name }),
+    [Actions.SELECT_JUDGE_NAME]: (state: IJudge, action: Action & any) => ({ ...state, name: action.payload.judge.name }),
   }, null),
   renderState: handleActions({}, JudgeSelectRenderState.None),
 });
 
 const thresholds = handleActions({
   [Actions.SELECT_CONFIG]: (_state: ICanaryClassifierThresholdsConfig, action: Action & any) => {
-    if (has(action.config, 'classifier.scoreThresholds')) {
-      return action.config.classifier.scoreThresholds;
+    if (has(action, 'payload.config.classifier.scoreThresholds')) {
+      return action.payload.config.classifier.scoreThresholds;
     } else {
       return {
         pass: null,
@@ -151,7 +153,7 @@ const thresholds = handleActions({
     }
   },
   [Actions.UPDATE_SCORE_THRESHOLDS]: (_state: ICanaryClassifierThresholdsConfig, action: Action & any) => ({
-    pass: action.pass, marginal: action.marginal
+    pass: action.payload.pass, marginal: action.payload.marginal
   })
 }, null);
 
@@ -160,7 +162,7 @@ function editingMetricReducer(state: ISelectedConfigState = null, action: Action
   switch (action.type) {
     case Actions.EDIT_METRIC_BEGIN:
       return Object.assign({}, state, {
-        editingMetric: state.metricList.find(metric => metric.id === action.id)
+        editingMetric: state.metricList.find(metric => metric.id === action.payload.id)
       });
 
     case Actions.EDIT_METRIC_CONFIRM:
@@ -182,8 +184,8 @@ function editingMetricReducer(state: ISelectedConfigState = null, action: Action
 function selectedJudgeReducer(state: ISelectedConfigState = null, action: Action & any): ISelectedConfigState {
   switch (action.type) {
     case Actions.SELECT_CONFIG:
-      if (state.config && state.config.judge) {
-        return { ...state, judge: { ...state.judge, judgeConfig: { ...state.config.judge } }};
+      if (has(action, 'payload.config.judge')) {
+        return { ...state, judge: { ...state.judge, judgeConfig: { ...action.payload.config.judge } }};
       } else {
         return { ...state, judge: { ...state.judge, judgeConfig: { name: CanarySettings.defaultJudge, judgeConfigurations: {} }}};
       }
@@ -191,6 +193,43 @@ function selectedJudgeReducer(state: ISelectedConfigState = null, action: Action
     default:
       return state;
   }
+}
+
+export function editGroupConfirm(state: ISelectedConfigState = null, action: Action & any): ISelectedConfigState {
+  if (action.type !== Actions.EDIT_GROUP_CONFIRM) {
+    return state;
+  }
+
+  const { payload: { group, edit } } = action;
+  if (!edit || edit === UNGROUPED || edit === ALL) {
+    return state;
+  }
+
+  const metricUpdator = (c: ICanaryMetricConfig): ICanaryMetricConfig => ({
+    ...c,
+    groups: [edit].concat((c.groups || []).filter(g => g !== group)),
+  });
+
+  const weightsUpdator = (weights: GroupWeights): GroupWeights => {
+    const weight = weights[group];
+    weights = omit(weights, group);
+    return {
+      ...weights,
+      [edit]: weight,
+    };
+  };
+
+  const listUpdator = (groupList: string[]): string[] => [edit].concat((groupList || []).filter(g => g !== group));
+  return {
+    ...state,
+    metricList: state.metricList.map(metricUpdator),
+    group: {
+      ...state.group,
+      selected: edit,
+      groupWeights: weightsUpdator(state.group.groupWeights),
+      list: listUpdator(state.group.list),
+    },
+  };
 }
 
 const combined = combineReducers<ISelectedConfigState>({
@@ -212,5 +251,6 @@ export const selectedConfig = (state: ISelectedConfigState, action: Action & any
     combined,
     editingMetricReducer,
     selectedJudgeReducer,
+    editGroupConfirm,
   ].reduce((s, reducer) => reducer(s, action), state);
 };

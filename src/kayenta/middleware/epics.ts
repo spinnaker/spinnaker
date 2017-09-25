@@ -19,14 +19,16 @@ const typeMatches = (...actions: string[]) => (action: Action & any) => actions.
 const loadConfigEpic = (action$: Observable<Action & any>) =>
   action$
     .filter(typeMatches(Actions.LOAD_CONFIG_REQUEST, Actions.SAVE_CONFIG_SUCCESS))
-    .concatMap(action => getCanaryConfigById(action.id))
-    .map(config => ({type: Actions.LOAD_CONFIG_SUCCESS, config}))
-    .catch(error => Observable.of({type: Actions.LOAD_CONFIG_FAILURE, error}));
+    .concatMap(action =>
+      Observable.fromPromise(getCanaryConfigById(action.payload.configName))
+        .map(config => Creators.loadConfigSuccess({ config }))
+        .catch(error => Observable.of(Creators.loadConfigFailure({ error })))
+    );
 
 const selectConfigEpic = (action$: Observable<Action & any>) =>
   action$
     .filter(typeMatches(Actions.LOAD_CONFIG_SUCCESS))
-    .map(action => ({type: Actions.SELECT_CONFIG, config: action.config}));
+    .map(action => Creators.selectConfig({ config: action.payload.config }));
 
 const saveConfigEpic = (action$: Observable<Action & any>, store: MiddlewareAPI<ICanaryState>) =>
   action$
@@ -43,19 +45,21 @@ const saveConfigEpic = (action$: Observable<Action & any>, store: MiddlewareAPI<
 
       return Observable.fromPromise(saveAction)
         .map(() => Observable.forkJoin(
-          ReactInjector.$state.go('^.configDetail', {configName: config.name}),
+          ReactInjector.$state.go('^.configDetail', {configName: config.name, copy: false, 'new': false}),
           store.getState().data.application.getDataSource('canaryConfigs').refresh(true)
         ))
-        .mapTo({type: Actions.SAVE_CONFIG_SUCCESS, id: config.name})
-        .catch((error: Error) => Observable.of({type: Actions.SAVE_CONFIG_FAILURE, error}));
+        .mapTo(Creators.saveConfigSuccess({ configName: config.name }))
+        .catch((error: Error) => Observable.of(Creators.saveConfigFailure({ error })));
     });
 
 const deleteConfigRequestEpic = (action$: Observable<Action & any>, store: MiddlewareAPI<ICanaryState>) =>
   action$
     .filter(typeMatches(Actions.DELETE_CONFIG_REQUEST))
-    .concatMap(() => deleteCanaryConfig(store.getState().selectedConfig.config.name))
-    .mapTo(Creators.deleteConfigSuccess())
-    .catch((error: Error) => Observable.of({type: Actions.DELETE_CONFIG_FAILURE, error}));
+    .concatMap(() =>
+      Observable.fromPromise(deleteCanaryConfig(store.getState().selectedConfig.config.name))
+        .mapTo(Creators.deleteConfigSuccess())
+        .catch((error: Error) => Observable.of(Creators.deleteConfigFailure({ error })))
+    );
 
 const deleteConfigSuccessEpic = (action$: Observable<Action & any>, store: MiddlewareAPI<ICanaryState>) =>
   action$
