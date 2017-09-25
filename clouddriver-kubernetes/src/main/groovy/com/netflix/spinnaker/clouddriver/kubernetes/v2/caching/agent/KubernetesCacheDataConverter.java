@@ -43,6 +43,8 @@ import static com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys.Logic
 
 @Slf4j
 public class KubernetesCacheDataConverter {
+  private static ObjectMapper mapper = new ObjectMapper();
+
   public static CacheData fromResource(String account, ObjectMapper mapper, Object resource) {
     KubernetesManifest manifest = mapper.convertValue(resource, KubernetesManifest.class);
     KubernetesKind kind = manifest.getKind();
@@ -74,6 +76,10 @@ public class KubernetesCacheDataConverter {
 
     String key = Keys.infrastructure(apiVersion, kind, account, namespace, name);
     return new DefaultCacheData(key, attributes, relationships);
+  }
+
+  public static KubernetesManifest getManifest(CacheData cacheData) {
+    return mapper.convertValue(cacheData.getAttributes().get("manifest"), KubernetesManifest.class);
   }
 
   static Map<String, Collection<String>> annotatedRelationships(String account, String namespace, KubernetesManifestSpinnakerRelationships spinnakerRelationships) {

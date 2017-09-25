@@ -25,7 +25,9 @@ import com.netflix.spinnaker.moniker.Moniker;
 import lombok.Data;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Data
 public class KubernetesV2Cluster implements Cluster {
@@ -36,9 +38,21 @@ public class KubernetesV2Cluster implements Cluster {
   Set<ServerGroup> serverGroups = new HashSet<>();
   Set<LoadBalancer> loadBalancers = new HashSet<>();
 
-  public KubernetesV2Cluster(Keys.ClusterCacheKey key) {
+  public KubernetesV2Cluster(String rawKey) {
+    Keys.ClusterCacheKey key = (Keys.ClusterCacheKey) Keys.parseKey(rawKey).get();
     this.name = key.getName();
     this.accountName = key.getAccount();
     this.moniker = Moniker.builder().cluster(name).build(); // TODO(lwander) if it turns out that cluster -> app is important, enforce constraints here.
+  }
+
+  public KubernetesV2Cluster(String rawKey, List<KubernetesV2ServerGroup> serverGroups, List<KubernetesV2LoadBalancer> loadBalancers) {
+    this(rawKey);
+    this.serverGroups = serverGroups.stream()
+        .map(sg -> (ServerGroup) sg)
+        .collect(Collectors.toSet());
+
+    this.loadBalancers = loadBalancers.stream()
+        .map(sg -> (LoadBalancer) sg)
+        .collect(Collectors.toSet());
   }
 }
