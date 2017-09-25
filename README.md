@@ -4,6 +4,8 @@
 
 A tool for configuring, installing, and updating Spinnaker.
 
+[Halyard Docs](https://www.spinnaker.io/setup/install/halyard/) are available on [spinnaker.io](https://spinnaker.io)
+
 ![](./demo.gif)
 
 ## Installation
