@@ -3,6 +3,7 @@
 
   ProxyPass "/gate" "{%API_HOST%}" retry=0
   ProxyPassReverse "/gate" "{%API_HOST%}"
+  ProxyPreserveHost On
 
   <Directory "/opt/deck/html/">
     Require all granted
