@@ -166,7 +166,7 @@ public class TemplatedPipelineModelMutator implements PipelineModelMutator {
     if (pipeline.containsKey("triggers")) {
       pipeline.put("triggers", renderList((List<Object>) pipeline.get("triggers"), renderContext));
     }
-    if (pipeline.containsKey("parameters")) {
+    if (pipeline.containsKey("parameterConfig")) {
       pipeline.put("parameterConfig", renderList((List<Object>) pipeline.get("parameterConfig"), renderContext));
     }
     if (pipeline.containsKey("notifications")) {
