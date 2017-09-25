@@ -7,10 +7,12 @@ import { UNGROUPED } from './groupTabs';
 import MetricDetail from './metricDetail';
 import * as Creators from '../actions/creators';
 import { CanarySettings } from 'kayenta/canary.settings';
+import MetricListHeader from './metricListHeader';
 
 interface IMetricListStateProps {
   selectedGroup: string;
   metrics: ICanaryMetricConfig[];
+  showGroups: boolean;
 }
 
 interface IMetricListDispatchProps {
@@ -22,13 +24,14 @@ interface IMetricListDispatchProps {
 /*
  * Configures an entire list of metrics.
  */
-function MetricList({ metrics, selectedGroup, addMetric, editMetric, removeMetric }: IMetricListStateProps & IMetricListDispatchProps) {
+function MetricList({ metrics, selectedGroup, showGroups, addMetric, editMetric, removeMetric }: IMetricListStateProps & IMetricListDispatchProps) {
   return (
     <section>
+      <MetricListHeader showGroups={showGroups}/>
       <ul className="list-group">
         {metrics.map((metric, index) => (
-          <li className="list-group-item" key={index}>
-            <MetricDetail metric={metric} edit={editMetric} remove={removeMetric}/>
+          <li className="list-unstyled" key={index}>
+            <MetricDetail metric={metric} edit={editMetric} remove={removeMetric} showGroups={showGroups}/>
           </li>
         ))}
       </ul>
@@ -58,6 +61,7 @@ function mapStateToProps(state: ICanaryState): IMetricListStateProps {
   return {
     selectedGroup,
     metrics: metricList.filter(filter),
+    showGroups: metricList.filter(filter).some(metric => metric.groups.length > 1),
   };
 }
 

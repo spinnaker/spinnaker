@@ -1,7 +1,38 @@
+@import (reference) "~coreColors";
+
 .kayenta {
   button {
    &[disabled] {
     cursor: not-allowed;
    }
+  }
+
+  .metric-list-header {
+    h6 {
+      font-weight: 600;
+    }
+  }
+
+  .metric-list-row {
+    > div {
+      padding: .8rem 0;
+    }
+
+    i {
+      &.fa {
+        padding: 0 .5rem;
+        cursor: pointer;
+        &.fa-edit {
+          margin-top: .1rem;
+        }
+      }
+    }
+  }
+
+  .metric-list-header, .metric-list-row {
+    border-bottom: 1px solid var(--color-divider);
+    &:first-child {
+      padding-left: 1rem;
+    }
   }
 }
