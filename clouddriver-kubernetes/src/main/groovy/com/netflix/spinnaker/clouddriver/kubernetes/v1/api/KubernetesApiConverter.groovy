@@ -810,7 +810,13 @@ class KubernetesApiConverter {
                                  DeployKubernetesAtomicOperationDescription description,
                                  String replicaSetName) {
 
-    def targetSize = description.targetSize ?: description.capacity?.desired
+    def targetSize
+    if (description.targetSize == 0) {
+      targetSize = description.targetSize
+    }
+    else {
+      targetSize = description.targetSize ?: description.capacity?.desired
+    }
 
     return serverGroupBuilder.withNewMetadata()
       .withName(replicaSetName)
@@ -830,8 +836,15 @@ class KubernetesApiConverter {
   static DeploymentFluentImpl toDeployment(DeploymentFluentImpl serverGroupBuilder,
                                         DeployKubernetesAtomicOperationDescription description,
                                         String replicaSetName) {
+
     def parsedName = Names.parseName(replicaSetName)
-    def targetSize = description.targetSize ?: description.capacity?.desired
+    def targetSize
+    if (description.targetSize == 0) {
+      targetSize = description.targetSize
+    }
+    else {
+      targetSize = description.targetSize ?: description.capacity?.desired
+    }
 
     def builder = serverGroupBuilder.withNewMetadata()
       .withName(parsedName.cluster)
