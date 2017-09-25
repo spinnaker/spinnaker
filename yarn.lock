@@ -6214,6 +6214,10 @@ spdy@^3.4.1:
     select-hose "^2.0.0"
     spdy-transport "^2.0.15"
 
+spel2js@^0.2.1:
+  version "0.2.1"
+  resolved "https://registry.yarnpkg.com/spel2js/-/spel2js-0.2.1.tgz#8c42ca3340c907b8ecbc8157a745ebc810de68c6"
+
 spin.js@2.3.2:
   version "2.3.2"
   resolved "https://registry.yarnpkg.com/spin.js/-/spin.js-2.3.2.tgz#6caa56d520673450fd5cfbc6971e6d0772c37a1a"
