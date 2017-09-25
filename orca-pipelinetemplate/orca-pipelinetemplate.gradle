@@ -11,6 +11,7 @@ dependencies {
   compile('com.hubspot.jinjava:jinjava:2.2.3')
 
   compile "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:${spinnaker.version('jackson')}"
+  compile "com.fasterxml.jackson.module:jackson-module-kotlin:${spinnaker.version("jackson")}"
   compile('com.jayway.jsonpath:json-path:2.2.0')
 
   compile spinnaker.dependency("slf4jApi")

@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.config;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.module.kotlin.KotlinModule;
 import com.hubspot.jinjava.lib.tag.Tag;
 import com.netflix.spinnaker.orca.front50.Front50Service;
 import com.netflix.spinnaker.orca.front50.PipelineModelMutator;
@@ -56,7 +57,8 @@ public class PipelineTemplateConfiguration {
   ObjectMapper pipelineTemplateObjectMapper() {
     return new ObjectMapper()
       .enable(SerializationFeature.INDENT_OUTPUT)
-      .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+      .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+      .registerModule(new KotlinModule());
   }
 
   @Bean
