@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.orca.bakery.tasks
 
 import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.RetryableTask
+import com.netflix.spinnaker.orca.OverridableTimeoutRetryableTask
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.bakery.api.BakeStatus
 import com.netflix.spinnaker.orca.bakery.api.BakeryService
@@ -31,7 +31,7 @@ import retrofit.RetrofitError
 @Slf4j
 @Component
 @CompileStatic
-class MonitorBakeTask implements RetryableTask {
+class MonitorBakeTask implements OverridableTimeoutRetryableTask {
 
   long backoffPeriod = 30000
   long timeout = 3600000 // 1hr

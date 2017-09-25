@@ -18,7 +18,7 @@ package com.netflix.spinnaker.orca.front50.tasks
 
 import java.util.concurrent.TimeUnit
 import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.RetryableTask
+import com.netflix.spinnaker.orca.OverridableTimeoutRetryableTask
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
@@ -29,7 +29,7 @@ import org.springframework.stereotype.Component
 
 @Slf4j
 @Component
-class MonitorPipelineTask implements RetryableTask {
+class MonitorPipelineTask implements OverridableTimeoutRetryableTask {
 
   @Autowired
   ExecutionRepository executionRepository

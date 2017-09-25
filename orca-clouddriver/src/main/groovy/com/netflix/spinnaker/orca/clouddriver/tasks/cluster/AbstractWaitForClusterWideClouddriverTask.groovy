@@ -18,7 +18,7 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.cluster
 
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.RetryableTask
+import com.netflix.spinnaker.orca.OverridableTimeoutRetryableTask
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup
 import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask
@@ -30,7 +30,7 @@ import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 
 @Slf4j
-abstract class AbstractWaitForClusterWideClouddriverTask extends AbstractCloudProviderAwareTask implements RetryableTask {
+abstract class AbstractWaitForClusterWideClouddriverTask extends AbstractCloudProviderAwareTask implements OverridableTimeoutRetryableTask {
   @Override
   public long getBackoffPeriod() { 10000 }
 

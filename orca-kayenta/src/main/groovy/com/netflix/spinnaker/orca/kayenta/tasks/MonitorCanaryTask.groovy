@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.orca.kayenta.tasks
 
 import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.RetryableTask
+import com.netflix.spinnaker.orca.OverridableTimeoutRetryableTask
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.kayenta.KayentaService
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
@@ -32,7 +32,7 @@ import java.util.concurrent.TimeUnit
 
 @Slf4j
 @Component
-class MonitorCanaryTask implements RetryableTask {
+class MonitorCanaryTask implements OverridableTimeoutRetryableTask {
 
   long backoffPeriod = 1000
   long timeout = TimeUnit.HOURS.toMillis(12)

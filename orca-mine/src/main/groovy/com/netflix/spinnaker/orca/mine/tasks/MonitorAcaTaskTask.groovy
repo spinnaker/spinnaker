@@ -18,7 +18,7 @@ package com.netflix.spinnaker.orca.mine.tasks
 
 import java.util.concurrent.TimeUnit
 import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.RetryableTask
+import com.netflix.spinnaker.orca.OverridableTimeoutRetryableTask
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask
 import com.netflix.spinnaker.orca.mine.MineService
@@ -30,7 +30,7 @@ import retrofit.RetrofitError
 
 @Component
 @Slf4j
-class MonitorAcaTaskTask extends AbstractCloudProviderAwareTask implements RetryableTask {
+class MonitorAcaTaskTask extends AbstractCloudProviderAwareTask implements OverridableTimeoutRetryableTask {
   long backoffPeriod = 10000
   long timeout = TimeUnit.DAYS.toMillis(2)
 

@@ -18,11 +18,8 @@ package com.netflix.spinnaker.orca.q.handler
 
 import com.netflix.spectator.api.Registry
 import com.netflix.spectator.api.histogram.BucketCounter
-import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.orca.*
 import com.netflix.spinnaker.orca.ExecutionStatus.*
-import com.netflix.spinnaker.orca.RetryableTask
-import com.netflix.spinnaker.orca.Task
-import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.exceptions.ExceptionHandler
 import com.netflix.spinnaker.orca.exceptions.TimeoutException
 import com.netflix.spinnaker.orca.pipeline.model.Execution
@@ -179,7 +176,13 @@ class RunTaskHandler(
       val pausedDuration = stage.getExecution().pausedDurationRelativeTo(startTime)
       val elapsedTime = Duration.between(startTime, clock.instant())
       val throttleTime = message.getAttribute<TotalThrottleTimeAttribute>()?.totalThrottleTimeMs ?: 0
-      if (elapsedTime.minus(pausedDuration).minusMillis(throttleTime) > timeout.toDuration()) {
+      val actualTimeout = (
+        if (this is OverridableTimeoutRetryableTask && stage.getTopLevelTimeout().isPresent)
+          stage.getTopLevelTimeout().get().toDuration()
+        else
+          timeout.toDuration()
+      )
+        if (elapsedTime.minus(pausedDuration).minusMillis(throttleTime) > actualTimeout) {
         val durationString = formatTimeout(elapsedTime.toMillis())
         val msg = StringBuilder("${javaClass.simpleName} of stage ${stage.getName()} timed out after $durationString. ")
         msg.append("pausedDuration: ${formatTimeout(pausedDuration.toMillis())}, ")

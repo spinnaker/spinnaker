@@ -18,13 +18,13 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.instance
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.RetryableTask
+import com.netflix.spinnaker.orca.OverridableTimeoutRetryableTask
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
 
-abstract class AbstractWaitForInstanceHealthChangeTask implements RetryableTask {
+abstract class AbstractWaitForInstanceHealthChangeTask implements OverridableTimeoutRetryableTask {
   long backoffPeriod = 5000
   long timeout = 3600000
 

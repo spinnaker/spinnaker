@@ -18,7 +18,7 @@ package com.netflix.spinnaker.orca.igor.tasks
 
 import java.util.concurrent.TimeUnit
 import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.RetryableTask
+import com.netflix.spinnaker.orca.OverridableTimeoutRetryableTask
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.igor.BuildArtifactFilter
 import com.netflix.spinnaker.orca.igor.BuildService
@@ -30,7 +30,7 @@ import retrofit.RetrofitError
 
 @Slf4j
 @Component
-class MonitorJenkinsJobTask implements RetryableTask {
+class MonitorJenkinsJobTask implements OverridableTimeoutRetryableTask {
 
   long backoffPeriod = 10000
   long timeout = TimeUnit.HOURS.toMillis(2)
