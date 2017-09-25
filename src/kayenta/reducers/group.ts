@@ -1,5 +1,5 @@
 import { Action, combineReducers } from 'redux';
-import { handleActions } from 'redux-actions';
+import { combineActions, handleActions } from 'redux-actions';
 import { get } from 'lodash';
 
 import * as Actions from '../actions';
@@ -9,6 +9,7 @@ export interface IGroupState {
   list: string[];
   selected: string;
   groupWeights: {[group: string]: number};
+  edit: string;
 }
 
 function groupsFromMetrics(metrics: ICanaryMetricConfig[] = []) {
@@ -43,8 +44,15 @@ const groupWeights = handleActions({
   [Actions.UPDATE_GROUP_WEIGHT]: (state: GroupWeights, action: Action & any) => ({ ...state, [action.payload.group]: action.payload.weight }),
 }, {});
 
+const edit = handleActions({
+  [Actions.EDIT_GROUP_BEGIN]: (_state: string, action: Action & any) => action.payload.group,
+  [Actions.EDIT_GROUP_UPDATE]: (_state: string, action: Action & any) => action.payload.edit,
+  [combineActions(Actions.SELECT_GROUP, Actions.EDIT_GROUP_CONFIRM)]: () => null,
+}, null);
+
 export const group = combineReducers<IGroupState>({
   list,
   selected,
   groupWeights,
+  edit,
 });
