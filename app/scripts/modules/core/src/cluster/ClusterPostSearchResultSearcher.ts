@@ -1,3 +1,4 @@
+import { uniqBy } from 'lodash';
 import { IPromise, IQService } from 'angular';
 import { StateService } from '@uirouter/angularjs';
 
@@ -15,12 +16,11 @@ export class ClusterPostSearchResultSearcher implements IPostSearchResultSearche
 
   private static TYPE = 'clusters';
 
-  constructor(private $q: IQService, private $state: StateService) {
-  }
+  constructor(private $q: IQService, private $state: StateService) {}
 
   public getPostSearchResults(inputs: IServerGroupSearchResult[] = []): IPromise<ISearchResultSet[]> {
 
-    const clusters: IClusterSearchResult[] = inputs.map((serverGroup: IServerGroupSearchResult) => {
+    const clusters: IClusterSearchResult[] = uniqBy(inputs.map((serverGroup: IServerGroupSearchResult) => {
       const { account, application, cluster, detail, region, stack } = serverGroup;
       return {
         account,
@@ -40,7 +40,7 @@ export class ClusterPostSearchResultSearcher implements IPostSearchResultSearche
         stack,
         type: ClusterPostSearchResultSearcher.TYPE
       }
-    });
+    }), 'cluster');
 
     const formatter: ISearchResultFormatter = searchResultFormatterRegistry.get(ClusterPostSearchResultSearcher.TYPE);
     return this.$q.when([{
