@@ -46,4 +46,8 @@ buildDeb {
   requires('unzip')
 }
 
+buildRpm {
+  requires('unzip')
+}
+
 tasks.bootRepackage.enabled = Boolean.valueOf(project.repackage)
