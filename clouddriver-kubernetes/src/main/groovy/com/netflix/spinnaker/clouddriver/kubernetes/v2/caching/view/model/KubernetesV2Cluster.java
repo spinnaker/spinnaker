@@ -15,7 +15,7 @@
  *
  */
 
-package com.netflix.spinnaker.clouddriver.kubernetes.v2.view.model;
+package com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.model;
 
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys;
 import com.netflix.spinnaker.clouddriver.model.Cluster;

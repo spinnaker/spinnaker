@@ -15,7 +15,7 @@
  *
  */
 
-package com.netflix.spinnaker.clouddriver.kubernetes.v2.view.provider;
+package com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.provider;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.cats.cache.Cache;
@@ -28,9 +28,9 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesApi
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpinnakerKindMap;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.view.model.KubernetesV2Cluster;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.view.model.KubernetesV2LoadBalancer;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.view.model.KubernetesV2ServerGroup;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.model.KubernetesV2Cluster;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.model.KubernetesV2LoadBalancer;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.model.KubernetesV2ServerGroup;
 import com.netflix.spinnaker.clouddriver.model.ClusterProvider;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Triple;

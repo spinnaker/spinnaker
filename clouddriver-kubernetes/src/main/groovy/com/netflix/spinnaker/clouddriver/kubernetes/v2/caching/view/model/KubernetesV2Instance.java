@@ -15,27 +15,31 @@
  *
  */
 
-package com.netflix.spinnaker.clouddriver.kubernetes.v2.view.model;
+package com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.model;
 
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesManifest;
-import com.netflix.spinnaker.clouddriver.model.LoadBalancer;
-import com.netflix.spinnaker.clouddriver.model.LoadBalancerServerGroup;
+import com.netflix.spinnaker.clouddriver.model.HealthState;
+import com.netflix.spinnaker.clouddriver.model.Instance;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class KubernetesV2LoadBalancer extends ManifestBasedModel implements LoadBalancer {
-  String account;
-  Set<LoadBalancerServerGroup> serverGroups = new HashSet<>();
+@NoArgsConstructor
+public class KubernetesV2Instance extends ManifestBasedModel implements Instance {
+  HealthState healthState;
+  Long launchTime;
+  List<Map<String, String>> health = new ArrayList<>();
   KubernetesManifest manifest;
   Keys.InfrastructureCacheKey key;
 
-  public KubernetesV2LoadBalancer(KubernetesManifest manifest, String key) {
+  public KubernetesV2Instance(KubernetesManifest manifest, String key) {
     this.manifest = manifest;
     this.key = (Keys.InfrastructureCacheKey) Keys.parseKey(key).get();
   }

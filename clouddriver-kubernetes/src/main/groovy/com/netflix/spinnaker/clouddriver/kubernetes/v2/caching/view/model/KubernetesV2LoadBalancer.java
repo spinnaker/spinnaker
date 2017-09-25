@@ -15,43 +15,27 @@
  *
  */
 
-package com.netflix.spinnaker.clouddriver.kubernetes.v2.view.model;
+package com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.model;
 
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesManifest;
-import com.netflix.spinnaker.clouddriver.model.Instance;
-import com.netflix.spinnaker.clouddriver.model.ServerGroup;
+import com.netflix.spinnaker.clouddriver.model.LoadBalancer;
+import com.netflix.spinnaker.clouddriver.model.LoadBalancerServerGroup;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class KubernetesV2ServerGroup extends ManifestBasedModel implements ServerGroup {
-  Boolean disabled;
-  Long createdTime;
-  Set<String> zones = new HashSet<>();
-  Set<Instance> instances = new HashSet<>();
-  Set<String> loadBalancers = new HashSet<>();
-  Set<String> securityGroups = new HashSet<>();
-  Map<String, Object> launchConfig = new HashMap<>();
-  InstanceCounts instanceCounts;
-  Capacity capacity = new Capacity();
-  ImageSummary imageSummary;
-  ImagesSummary imagesSummary;
+public class KubernetesV2LoadBalancer extends ManifestBasedModel implements LoadBalancer {
+  String account;
+  Set<LoadBalancerServerGroup> serverGroups = new HashSet<>();
   KubernetesManifest manifest;
   Keys.InfrastructureCacheKey key;
 
-  @Override
-  public Boolean isDisabled() {
-    return disabled;
-  }
-
-  public KubernetesV2ServerGroup(KubernetesManifest manifest, String key) {
+  public KubernetesV2LoadBalancer(KubernetesManifest manifest, String key) {
     this.manifest = manifest;
     this.key = (Keys.InfrastructureCacheKey) Keys.parseKey(key).get();
   }
