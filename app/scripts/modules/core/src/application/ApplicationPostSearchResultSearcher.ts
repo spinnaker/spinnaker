@@ -15,7 +15,7 @@ export class ApplicationPostSearchResultSearcher implements IPostSearchResultSea
 
   constructor(private $state: StateService, private applicationReader: ApplicationReader) {}
 
-  public getPostSearchResults(inputs: IServerGroupSearchResult[]): IPromise<ISearchResultSet[]> {
+  public getPostSearchResults(inputs: IServerGroupSearchResult[] = []): IPromise<ISearchResultSet[]> {
 
     const names: Set<string> = new Set<string>(inputs.map((result: IServerGroupSearchResult) => result.application));
     return this.applicationReader.listApplications(true).then((apps: IApplicationSummary[]) => {

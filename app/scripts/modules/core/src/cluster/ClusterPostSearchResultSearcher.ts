@@ -18,7 +18,7 @@ export class ClusterPostSearchResultSearcher implements IPostSearchResultSearche
   constructor(private $q: IQService, private $state: StateService) {
   }
 
-  public getPostSearchResults(inputs: IServerGroupSearchResult[]): IPromise<ISearchResultSet[]> {
+  public getPostSearchResults(inputs: IServerGroupSearchResult[] = []): IPromise<ISearchResultSet[]> {
 
     const clusters: IClusterSearchResult[] = inputs.map((serverGroup: IServerGroupSearchResult) => {
       const { account, application, cluster, detail, region, stack } = serverGroup;
