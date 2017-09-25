@@ -21,6 +21,7 @@ dependencies {
   compile project(':kayenta-gcs')
   compile project(':kayenta-google')
   compile project(':kayenta-judge')
+  compile project(':kayenta-objectstore-configbin')
   compile project(':kayenta-objectstore-memory')
   compile project(':kayenta-orca')
   compile project(':kayenta-prometheus')

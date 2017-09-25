@@ -20,6 +20,7 @@ import com.netflix.kayenta.atlas.config.AtlasConfiguration;
 import com.netflix.kayenta.aws.config.AwsConfiguration;
 import com.netflix.kayenta.config.KayentaConfiguration;
 import com.netflix.kayenta.config.WebConfiguration;
+import com.netflix.kayenta.configbin.config.ConfigBinConfiguration;
 import com.netflix.kayenta.gcs.config.GcsConfiguration;
 import com.netflix.kayenta.google.config.GoogleConfiguration;
 import com.netflix.kayenta.judge.config.NetflixJudgeConfiguration;
@@ -42,6 +43,7 @@ import java.util.Map;
 @Import({
   AtlasConfiguration.class,
   AwsConfiguration.class,
+  ConfigBinConfiguration.class,
   GcsConfiguration.class,
   GoogleConfiguration.class,
   KayentaConfiguration.class,

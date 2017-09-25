@@ -50,6 +50,9 @@ kayenta:
   memory:
     enabled: false
 
+  configbin:
+    enabled: false
+
 management.security.enabled: false
 
 queue:
