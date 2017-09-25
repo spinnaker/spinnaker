@@ -19,6 +19,7 @@ package com.netflix.spinnaker.gate.security.x509
 import com.netflix.spinnaker.gate.security.AuthConfig
 import com.netflix.spinnaker.gate.security.SpinnakerAuthConfig
 import com.netflix.spinnaker.gate.security.oauth2.OAuth2SsoConfig
+import com.netflix.spinnaker.gate.security.oauth2.OAuthSsoConfigurer
 import com.netflix.spinnaker.gate.security.saml.SamlSsoConfig
 import com.netflix.spinnaker.gate.security.saml.SamlSsoConfigurer
 import org.springframework.beans.factory.annotation.Autowired
@@ -128,6 +129,20 @@ class X509Config {
       Authentication authenticate(Authentication authentication) throws AuthenticationException {
         throw new UnsupportedOperationException("No authentication should be done with this AuthenticationManager");
       }
+    }
+  }
+
+  @ConditionalOnBean(OAuth2SsoConfig)
+  @Bean
+  X509OAuthConfig withOAuthConfig() {
+    new X509OAuthConfig()
+  }
+
+  class X509OAuthConfig implements OAuthSsoConfigurer {
+    @Override
+    void configure(HttpSecurity http) throws Exception {
+      X509Config.this.configure(http)
+      http.securityContext().securityContextRepository(new X509SecurityContextRepository())
     }
   }
 

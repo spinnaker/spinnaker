@@ -62,6 +62,9 @@ class OAuth2SsoConfig extends WebSecurityConfigurerAdapter {
   @Autowired
   ExternalSslAwareEntryPoint entryPoint
 
+  @Autowired(required = false)
+  List<OAuthSsoConfigurer> configurers
+
   @Primary
   @Bean
   ResourceServerTokenServices spinnakerUserInfoTokenServices() {
@@ -84,6 +87,10 @@ class OAuth2SsoConfig extends WebSecurityConfigurerAdapter {
 
     http.exceptionHandling().authenticationEntryPoint(entryPoint)
     http.addFilterBefore(externalAuthTokenFilter, AbstractPreAuthenticatedProcessingFilter.class)
+
+    configurers?.each {
+      it.configure(http)
+    }
   }
 
   /**
