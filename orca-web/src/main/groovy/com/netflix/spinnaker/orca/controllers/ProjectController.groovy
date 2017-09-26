@@ -71,7 +71,7 @@ class ProjectController {
       executionRepository.retrievePipelinesForPipelineConfigId(it, executionCriteria)
     }).subscribeOn(Schedulers.io()).toList().toBlocking().single().sort(startTimeOrId)
 
-    return allPipelines
+    return allPipelines.take(limit)
   }
 
   private static Closure startTimeOrId = { a, b ->
