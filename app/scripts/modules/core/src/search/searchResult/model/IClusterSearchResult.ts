@@ -1,3 +1,4 @@
+import { IServerGroup } from 'core/domain';
 import { ISearchResult } from 'core/search';
 
 export interface IClusterSearchResult extends ISearchResult {
@@ -5,5 +6,6 @@ export interface IClusterSearchResult extends ISearchResult {
   application: string;
   cluster: string;
   email?: string;
+  serverGroups?: IServerGroup[];
   stack: string;
 }

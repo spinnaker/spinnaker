@@ -1,7 +1,6 @@
 import { IPromise } from 'angular';
 import { $q, $log } from 'ngimport';
 
-import { IQueryParams } from 'core/navigation';
 import { urlBuilderRegistry } from 'core/navigation/urlBuilder.registry';
 import { IUrlBuilder } from 'core/navigation/urlBuilder.service';
 import { searchResultFormatterRegistry } from './searchResult/searchResultFormatter.registry';
@@ -12,6 +11,7 @@ import { ISearchResultFormatter } from './searchResult/searchResultFormatter.reg
  * External search registry entries add a section to the infrastructure search
  */
 export interface IExternalSearchConfig {
+
   /**
    * Provides the display text of the search entry. Can include HTML
    */
@@ -21,7 +21,7 @@ export interface IExternalSearchConfig {
    * Method to fetch search results
    * @param query
    */
-  search: (query: string | IQueryParams) => IPromise<ISearchResult[]>;
+  search: (query: string) => IPromise<ISearchResult[]>;
 
   /**
    * Class to build the URL for search results
@@ -38,7 +38,7 @@ export class ExternalSearchRegistry {
     this.registry[key] = searchConfig;
   }
 
-  public search(query: string | IQueryParams): IPromise<ISearchResult[]> {
+  public search(query: string): IPromise<ISearchResult[]> {
     return $q.all(Object.keys(this.registry).map(k => this.registry[k].search(query)))
       .then((searchResults: ISearchResult[][]) => [].concat.apply([], searchResults))
       .catch((e) => {

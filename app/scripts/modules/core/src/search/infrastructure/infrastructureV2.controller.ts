@@ -1,6 +1,6 @@
 import { BindAll } from 'lodash-decorators';
-import { isEmpty } from 'lodash';
-import { module, IController, ILocationService, IScope } from 'angular';
+import { flatten, isEmpty } from 'lodash';
+import { module, IController, ILocationService, IQService, IScope, IPromise } from 'angular';
 import { StateService } from '@uirouter/core';
 import { IModalService } from 'angular-ui-bootstrap';
 
@@ -12,11 +12,15 @@ import { CACHE_INITIALIZER_SERVICE, CacheInitializerService } from 'core/cache/c
 import { OVERRIDE_REGISTRY, OverrideRegistry } from 'core/overrideRegistry/override.registry';
 import { RECENT_HISTORY_SERVICE } from 'core/history/recentHistory.service';
 import { PAGE_TITLE_SERVICE, PageTitleService } from 'core/pageTitle/pageTitle.service';
-import { INFRASTRUCTURE_SEARCH_SERVICE, InfrastructureSearchService } from './infrastructureSearch.service';
+import { INFRASTRUCTURE_SEARCH_SERVICE_V2, InfrastructureSearchServiceV2 } from './infrastructureSearchV2.service';
 import { ISearchResultHydrator, SearchResultHydratorRegistry } from '../searchResult/SearchResultHydratorRegistry';
 import { SearchStatus } from '../searchResult/SearchResults';
 import { ISearchResultSet } from '..';
 import { ISearchResult } from 'core/search/search.service';
+import {
+  ITypeMapping,
+  PostSearchResultSearcherRegistry
+} from 'core/search/searchResult/PostSearchResultSearcherRegistry';
 
 export interface IViewState {
   status: SearchStatus;
@@ -32,6 +36,10 @@ export interface IMenuItem {
   displayName: string;
 }
 
+export interface ISearchResultSetMap {
+  [key: string]: ISearchResultSet;
+}
+
 @BindAll()
 export class InfrastructureV2Ctrl implements IController {
 
@@ -39,10 +47,14 @@ export class InfrastructureV2Ctrl implements IController {
   public query: string;
   public menuActions: IMenuItem[];
 
-  constructor(private $location: ILocationService, private $scope: IScope,
-              private $state: StateService, private $uibModal: IModalService,
-              private infrastructureSearchService: InfrastructureSearchService,
-              private cacheInitializer: CacheInitializerService, private overrideRegistry: OverrideRegistry,
+  constructor(private $location: ILocationService,
+              private $q: IQService,
+              private $scope: IScope,
+              private $state: StateService,
+              private $uibModal: IModalService,
+              private infrastructureSearchServiceV2: InfrastructureSearchServiceV2,
+              private cacheInitializer: CacheInitializerService,
+              private overrideRegistry: OverrideRegistry,
               pageTitleService: PageTitleService) {
     'ngInject';
     this.$scope.categories = [];
@@ -118,22 +130,45 @@ export class InfrastructureV2Ctrl implements IController {
     }
 
     this.viewState.status = SearchStatus.SEARCHING;
-    this.infrastructureSearchService.getSearcher().query(params).then((result: ISearchResultSet[]) => {
+    this.infrastructureSearchServiceV2.search(params).then((results: ISearchResultSet[]) => {
 
-      const categories: ISearchResultSet[] =
-        result.filter((category: ISearchResultSet) => category.category !== 'Projects' && category.results.length);
-      this.hydrateResults(categories);
-      this.$scope.categories = categories;
+      // for any registered post search result searcher, take its registered type mapping,
+      // retrieve that data from the search results from the search API above, and pass to the
+      // appropriate post search result searcher.
+      const searchResultMap: ISearchResultSetMap = this.categorizeSearchResultSet(results);
+      const promises: IPromise<ISearchResultSet[]>[] = [];
+      PostSearchResultSearcherRegistry.getRegisteredTypes().forEach((mapping: ITypeMapping) => {
+        if (!searchResultMap[mapping.sourceType] && !isEmpty(searchResultMap[mapping.targetType]['results'])) {
+          promises.push(PostSearchResultSearcherRegistry.getPostResultSearcher(mapping.sourceType).getPostSearchResults(searchResultMap[mapping.targetType].results));
+        }
+      });
 
-      this.$scope.projects =
-        result.filter((category: ISearchResultSet) => category.category === 'Projects' && category.results.length);
+      this.$q.all(promises).then((postSearchResults: ISearchResultSet[][]) => {
 
-      if (this.$scope.categories.length || this.$scope.projects.length) {
-        this.viewState.status = SearchStatus.FINISHED;
-      } else {
-        this.viewState.status = SearchStatus.NO_RESULTS;
-      }
+        results = results.concat(flatten(postSearchResults));
+        const categories: ISearchResultSet[] =
+          results.filter((category: ISearchResultSet) => category.category !== 'Projects' && category.results.length);
+        this.hydrateResults(categories);
+        this.$scope.categories = categories;
+
+        this.$scope.projects =
+          results.filter((category: ISearchResultSet) => category.category === 'Projects' && category.results.length);
+
+        if (this.$scope.categories.length || this.$scope.projects.length) {
+          this.viewState.status = SearchStatus.FINISHED;
+        } else {
+          this.viewState.status = SearchStatus.NO_RESULTS;
+        }
+      });
     });
+  }
+
+  private categorizeSearchResultSet(results: ISearchResultSet[]): ISearchResultSetMap {
+
+    return results.reduce((map: ISearchResultSetMap, result: ISearchResultSet) => {
+      map[result.id] = result;
+      return map;
+    } , {});
   }
 
   private createProject() {
@@ -180,7 +215,7 @@ export class InfrastructureV2Ctrl implements IController {
 
 export const SEARCH_INFRASTRUCTURE_V2_CONTROLLER = 'spinnaker.search.infrastructureNew.controller';
 module(SEARCH_INFRASTRUCTURE_V2_CONTROLLER, [
-  INFRASTRUCTURE_SEARCH_SERVICE,
+  INFRASTRUCTURE_SEARCH_SERVICE_V2,
   RECENT_HISTORY_SERVICE,
   PAGE_TITLE_SERVICE,
   CACHE_INITIALIZER_SERVICE,

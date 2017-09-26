@@ -9,6 +9,7 @@ import { SearchResultHydratorRegistry } from 'core/search/searchResult/SearchRes
 import { ClusterPostSearchResultSearcher } from './ClusterPostSearchResultSearcher';
 import { ClusterSearchResultHydrator } from './ClusterSearchResultHydrator';
 import { ApplicationReader } from 'core/application/service/application.read.service';
+import { ServerGroupReader } from 'core/serverGroup/serverGroupReader.service';
 
 export const CLUSTER_MODULE = 'spinnaker.core.cluster';
 
@@ -17,7 +18,8 @@ module(CLUSTER_MODULE, [
   CLUSTER_ALLCLUSTERSGROUPINGS,
   ON_DEMAND_CLUSTER_PICKER_COMPONENT,
 ])
-  .run(($q: IQService, $state: StateService, applicationReader: ApplicationReader) => {
-    PostSearchResultSearcherRegistry.register('clusters', 'serverGroups', new ClusterPostSearchResultSearcher($q, $state));
+  .run(($q: IQService, $state: StateService, applicationReader: ApplicationReader, serverGroupReader: ServerGroupReader) => {
+    'ngInject';
+    PostSearchResultSearcherRegistry.register('clusters', 'serverGroups', new ClusterPostSearchResultSearcher($q, $state, serverGroupReader));
     SearchResultHydratorRegistry.register('clusters', new ClusterSearchResultHydrator(applicationReader));
   });

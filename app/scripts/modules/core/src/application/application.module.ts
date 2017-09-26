@@ -29,5 +29,6 @@ module(APPLICATION_MODULE, [
   UPSERT_APPLICATION_HELP,
 ])
   .run(($state: StateService, applicationReader: ApplicationReader) => {
+    'ngInject';
     PostSearchResultSearcherRegistry.register('applications', 'serverGroups', new ApplicationPostSearchResultSearcher($state, applicationReader));
   });

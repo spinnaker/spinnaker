@@ -23,4 +23,7 @@ module(SERVERGROUP_MODULE, [
   VIEW_SCALING_ACTIVITIES_LINK,
   DEPLOY_INITIALIZER_COMPONENT
 ])
-  .run((applicationReader: ApplicationReader) => SearchResultHydratorRegistry.register('serverGroups', new ServerGroupSearchResultHydrator(applicationReader)));
+  .run((applicationReader: ApplicationReader) => {
+    'ngInject';
+    SearchResultHydratorRegistry.register('serverGroups', new ServerGroupSearchResultHydrator(applicationReader))
+  });

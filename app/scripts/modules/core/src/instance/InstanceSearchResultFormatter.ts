@@ -1,6 +1,7 @@
 import { IPromise } from 'angular';
 import { $q } from 'ngimport';
 
+import { SearchFilterTypeRegistry } from 'core/search/widgets/SearchFilterTypeRegistry';
 import { IResultRenderer, ISearchResult, ISearchResultFormatter, searchResultFormatterRegistry } from '../search';
 import { InstanceDisplayRenderer } from './InstanceDisplayRenderer';
 
@@ -21,6 +22,9 @@ export class InstanceSearchResultFormatter implements ISearchResultFormatter {
   }
   public get displayRenderer(): IResultRenderer {
     return InstanceDisplayRenderer.renderer()
+  }
+  public get requiredSearchFields(): string[] {
+    return [SearchFilterTypeRegistry.KEYWORD_FILTER.key];
   }
 }
 

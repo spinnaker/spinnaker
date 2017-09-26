@@ -6,6 +6,7 @@ export interface IServerGroupSearchResult extends ISearchResult {
   cluster: string;
   detail: string;
   email?: string;
+  exists?: boolean;
   region: string;
   sequence: string;
   serverGroup: string;

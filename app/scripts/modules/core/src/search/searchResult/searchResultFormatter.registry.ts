@@ -11,13 +11,14 @@ export interface IResultRenderer {
 }
 
 export interface ISearchResultFormatter {
-  displayName: string;
-  order: number;
   displayFormatter: IResultDisplayFormatter;
+  displayName: string;
   displayRenderer?: IResultRenderer;
+  hideIfEmpty?: boolean;
   icon?: string;
   iconClass?: string;
-  hideIfEmpty?: boolean;
+  order: number;
+  requiredSearchFields?: string[];
 }
 
 export class SearchResultFormatterRegistry {

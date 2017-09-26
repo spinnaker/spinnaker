@@ -40,6 +40,10 @@ export class FilterTypeRegistry {
     return [...this.registry.values()].find((type: IFilterType) => modifier === type.modifier);
   }
 
+  public getRegisteredFilterKeys(): string[] {
+    return [...this.registry.keys()];
+  }
+
   public getValues(): IFilterType[] {
     const filterTypes = Array.from(this.registry.values());
     filterTypes.sort((a: IFilterType, b: IFilterType) => a.text.localeCompare(b.text));
