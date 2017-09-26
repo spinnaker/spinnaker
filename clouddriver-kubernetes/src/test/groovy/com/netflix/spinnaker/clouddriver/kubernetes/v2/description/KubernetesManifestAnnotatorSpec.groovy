@@ -17,12 +17,13 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.description
 
+import com.netflix.spinnaker.moniker.Moniker
 import spock.lang.Specification
 import spock.lang.Unroll
 
 class KubernetesManifestAnnotatorSpec extends Specification {
-  def clusterKey = "relationships.spinnaker.io/cluster"
-  def applicationKey = "relationships.spinnaker.io/application"
+  def clusterKey = "moniker.spinnaker.io/cluster"
+  def applicationKey = "moniker.spinnaker.io/application"
 
   private KubernetesManifest freshManifest() {
     def result = new KubernetesManifest()
@@ -34,16 +35,19 @@ class KubernetesManifestAnnotatorSpec extends Specification {
   void "manifests are annotated and deannotated symmetrically"() {
     expect:
     def manifest = freshManifest()
-    def input = new KubernetesManifestSpinnakerRelationships()
+    def relationships = new KubernetesManifestSpinnakerRelationships()
       .setLoadBalancers(loadBalancers)
       .setSecurityGroups(securityGroups)
-      .setCluster(cluster)
-      .setApplication(application)
+    def moniker = Moniker.builder()
+      .cluster(cluster)
+      .app(application)
+      .build()
 
-    def metadata = new KubernetesAugmentedManifest.Metadata().setRelationships(input)
+    def metadata = new KubernetesAugmentedManifest.Metadata().setRelationships(relationships).setMoniker(moniker)
 
     KubernetesManifestAnnotater.annotateManifest(manifest, metadata)
-    input == KubernetesManifestAnnotater.getManifestRelationships(manifest)
+    relationships == KubernetesManifestAnnotater.getManifestRelationships(manifest)
+    moniker == KubernetesManifestAnnotater.getMoniker(manifest)
 
     where:
     loadBalancers  | securityGroups   | cluster | application
@@ -62,11 +66,12 @@ class KubernetesManifestAnnotatorSpec extends Specification {
   void "manifests are annotated with the expected prefix"() {
     expect:
     def manifest = freshManifest()
-    def relationships = new KubernetesManifestSpinnakerRelationships()
-      .setCluster(cluster)
-      .setApplication(application)
+    def moniker = Moniker.builder()
+      .cluster(cluster)
+      .app(application)
+      .build()
 
-    def metadata = new KubernetesAugmentedManifest.Metadata().setRelationships(relationships)
+    def metadata = new KubernetesAugmentedManifest.Metadata().setMoniker(moniker)
 
     KubernetesManifestAnnotater.annotateManifest(manifest, metadata)
     manifest.getAnnotations().get(clusterKey) == '"' + cluster + '"'

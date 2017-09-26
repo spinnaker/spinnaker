@@ -32,6 +32,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesMan
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.deployer.KubernetesReplicaSetDeployer
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
+import com.netflix.spinnaker.moniker.Moniker
 import org.yaml.snakeyaml.Yaml
 import spock.lang.Specification
 
@@ -71,6 +72,7 @@ metadata:
   KubernetesManifestDeployer createMockDeployer(KubernetesV2Credentials credentials, String manifest) {
     def metadata = new KubernetesAugmentedManifest.Metadata()
     metadata.setRelationships(new KubernetesManifestSpinnakerRelationships())
+        .setMoniker(new Moniker())
     def manifestPair = new KubernetesAugmentedManifest()
         .setManifest(stringToManifest(manifest))
         .setMetadata(metadata)

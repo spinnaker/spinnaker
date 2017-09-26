@@ -17,26 +17,23 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.names;
 
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesAugmentedManifest.Metadata;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesManifestAnnotater;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesManifestSpinnakerRelationships;
 import com.netflix.spinnaker.moniker.Moniker;
 import com.netflix.spinnaker.moniker.Namer;
-import org.apache.commons.lang3.NotImplementedException;
 
 public class KubernetesManifestNamer implements Namer<KubernetesManifest> {
   @Override
   public void applyMoniker(KubernetesManifest obj, Moniker moniker) {
-    throw new NotImplementedException("TODO(lwander)");
+    KubernetesManifestAnnotater.annotateManifest(obj, Metadata.builder()
+        .moniker(moniker)
+        .build()
+    );
   }
 
   @Override
   public Moniker deriveMoniker(KubernetesManifest obj) {
-    KubernetesManifestSpinnakerRelationships relationships = KubernetesManifestAnnotater.getManifestRelationships(obj);
-
-    return Moniker.builder()
-        .app(relationships.getApplication())
-        .cluster(relationships.getCluster())
-        .build();
+    return KubernetesManifestAnnotater.getMoniker(obj);
   }
 }

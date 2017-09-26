@@ -38,8 +38,8 @@ class KubernetesPodCachingAgentSpec extends Specification {
     setup:
     def pod = new V1Pod()
     def annotations = [
-        'relationships.spinnaker.io/cluster': '"' + CLUSTER + '"',
-        'relationships.spinnaker.io/application': '"' + APPLICATION + '"'
+        'moniker.spinnaker.io/cluster': '"' + CLUSTER + '"',
+        'moniker.spinnaker.io/application': '"' + APPLICATION + '"'
     ]
 
     def metadata = new V1ObjectMeta()

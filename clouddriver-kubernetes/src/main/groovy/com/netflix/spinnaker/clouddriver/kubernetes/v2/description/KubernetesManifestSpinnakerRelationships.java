@@ -24,8 +24,6 @@ import java.util.List;
 
 @Data
 public class KubernetesManifestSpinnakerRelationships {
-  String application;
-  String cluster;
   List<String> loadBalancers = new ArrayList<>();
   List<String> securityGroups = new ArrayList<>();
 }

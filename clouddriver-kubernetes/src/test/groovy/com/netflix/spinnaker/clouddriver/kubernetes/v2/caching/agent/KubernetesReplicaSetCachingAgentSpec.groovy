@@ -42,8 +42,8 @@ class KubernetesReplicaSetCachingAgentSpec extends Specification {
     setup:
     def replicaSet = new V1beta1ReplicaSet()
     def annotations = [
-        'relationships.spinnaker.io/cluster': '"' + CLUSTER + '"',
-        'relationships.spinnaker.io/application': '"' + APPLICATION + '"'
+        'moniker.spinnaker.io/cluster': '"' + CLUSTER + '"',
+        'moniker.spinnaker.io/application': '"' + APPLICATION + '"'
     ]
 
     def metadata = new V1ObjectMeta()

@@ -27,6 +27,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesKin
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesManifestAnnotater;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesManifestSpinnakerRelationships;
+import com.netflix.spinnaker.moniker.Moniker;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Triple;
@@ -62,15 +63,16 @@ public class KubernetesCacheDataConverter {
         .build();
 
     KubernetesManifestSpinnakerRelationships spinnakerRelationships = KubernetesManifestAnnotater.getManifestRelationships(manifest);
+    Moniker moniker = KubernetesManifestAnnotater.getMoniker(manifest);
     Map<String, Collection<String>> relationships = new HashMap<>();
 
-    String application = spinnakerRelationships.getApplication();
+    String application = moniker.getApp();
     if (StringUtils.isEmpty(application)) {
       log.info("Skipping not-spinnaker-owned resource " + namespace + ":" + manifest.getFullResourceName());
       return null;
     }
 
-    relationships.putAll(annotatedRelationships(account, namespace, spinnakerRelationships));
+    relationships.putAll(annotatedRelationships(account, namespace, spinnakerRelationships, moniker));
     // TODO(lwander) avoid overwriting keys here
     relationships.putAll(ownerReferenceRelationships(account, namespace, manifest.getOwnerReferences(mapper)));
 
@@ -82,13 +84,13 @@ public class KubernetesCacheDataConverter {
     return mapper.convertValue(cacheData.getAttributes().get("manifest"), KubernetesManifest.class);
   }
 
-  static Map<String, Collection<String>> annotatedRelationships(String account, String namespace, KubernetesManifestSpinnakerRelationships spinnakerRelationships) {
+  static Map<String, Collection<String>> annotatedRelationships(String account, String namespace, KubernetesManifestSpinnakerRelationships spinnakerRelationships, Moniker moniker) {
     Map<String, Collection<String>> relationships = new HashMap<>();
-    String application = spinnakerRelationships.getApplication();
+    String application = moniker.getApp();
 
     relationships.put(APPLICATION.toString(), Collections.singletonList(Keys.application(application)));
 
-    String cluster = spinnakerRelationships.getCluster();
+    String cluster = moniker.getCluster();
     if (!StringUtils.isEmpty(cluster)) {
       relationships.put(CLUSTER.toString(), Collections.singletonList(Keys.cluster(account, cluster)));
     }
