@@ -2,6 +2,11 @@
 
 set -e
 
+if [[ `/usr/bin/id -u` -ne 0 ]]; then
+  echo "$0 must be executed with root permissions; exiting"
+  exit 1
+fi
+
 function process_args() {
   while [ "$#" -gt "0" ]
   do
@@ -51,6 +56,7 @@ function install_halyard() {
   pushd $TEMPDIR
 
   curl -OL https://storage.googleapis.com/spinnaker-artifacts/halyard/$HALYARD_VERSION/osx/halyard.tar.gz
+  rm -rf /opt/halyard
   tar -xvf halyard.tar.gz -C /opt
 
   chown $HAL_USER /opt/halyard
