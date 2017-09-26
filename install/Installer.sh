@@ -389,6 +389,8 @@ fi
 ## Spinnaker
 echo "$(tput bold)Installing Halyard...$(tput sgr0)"
 install_halyard
+groupadd spinnaker
+usermod -G spinnaker $HAL_USER
 
 configure_bash_completion
 

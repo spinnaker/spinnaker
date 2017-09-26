@@ -49,6 +49,7 @@ public class Profile {
   final private String outputFile;
   boolean executable = false;
   private String user = "spinnaker";
+  private String group = "spinnaker";
 
   public String getStagedFile(String stagingPath) {
     return Paths.get(stagingPath, name).toString();

@@ -198,7 +198,9 @@ function install_halyard() {
   tar -xvf halyard.tar.gz -C /opt
 
   groupadd halyard
+  groupadd spinnaker
   usermod -G halyard $HAL_USER
+  usermod -G spinnaker $HAL_USER
   chown $HAL_USER:halyard /opt/halyard
 
   mv /opt/hal /usr/local/bin
