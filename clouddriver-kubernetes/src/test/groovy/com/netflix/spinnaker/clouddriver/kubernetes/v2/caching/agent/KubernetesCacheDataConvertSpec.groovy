@@ -26,6 +26,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesKin
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesManifest
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesManifestAnnotater
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesManifestSpinnakerRelationships
+import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import com.netflix.spinnaker.moniker.Moniker
 import io.kubernetes.client.models.V1beta1ReplicaSet
 import org.apache.commons.lang3.tuple.Triple
@@ -65,7 +66,7 @@ metadata:
     V1beta1ReplicaSet resource = mapper.convertValue(manifest, V1beta1ReplicaSet.class)
 
     when:
-    def cacheData = KubernetesCacheDataConverter.fromResource(account, mapper, resource)
+    def cacheData = KubernetesCacheDataConverter.convertAsResource(account, mapper, resource)
 
     then:
     if (application == null) {
@@ -158,8 +159,16 @@ metadata:
       .app(application)
       .build()
 
+    def artifact = new Artifact()
+
+    def metadata = KubernetesAugmentedManifest.Metadata.builder()
+      .relationships(spinnakerRelationships)
+      .moniker(moniker)
+      .artifact(artifact)
+      .build()
+
     when:
-    def relationships = KubernetesCacheDataConverter.annotatedRelationships(ACCOUNT, NAMESPACE, spinnakerRelationships, moniker)
+    def relationships = KubernetesCacheDataConverter.annotatedRelationships(ACCOUNT, NAMESPACE, metadata)
     def parsedLbs = loadBalancers.collect { lb -> KubernetesManifest.fromFullResourceName(lb) }
 
     then:

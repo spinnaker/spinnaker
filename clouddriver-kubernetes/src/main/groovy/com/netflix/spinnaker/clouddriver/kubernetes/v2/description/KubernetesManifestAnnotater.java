@@ -33,7 +33,7 @@ import java.util.Optional;
 public class KubernetesManifestAnnotater {
   private static final String SPINNAKER_ANNOTATION = "spinnaker.io";
   private static final String RELATIONSHIP_ANNOTATION_PREFIX = "relationships." + SPINNAKER_ANNOTATION;
-  private static final String ARTIFACT_ANNOTATION_PREFIX = "artifacts." + SPINNAKER_ANNOTATION;
+  private static final String ARTIFACT_ANNOTATION_PREFIX = "artifact." + SPINNAKER_ANNOTATION;
   private static final String MONIKER_ANNOTATION_PREFIX = "moniker." + SPINNAKER_ANNOTATION;
   private static final String LOAD_BALANCERS = RELATIONSHIP_ANNOTATION_PREFIX + "/loadBalancers";
   private static final String SECURITY_GROUPS = RELATIONSHIP_ANNOTATION_PREFIX + "/securityGroups";

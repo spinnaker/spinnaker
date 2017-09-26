@@ -28,6 +28,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesKin
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials
 import io.kubernetes.client.models.V1ObjectMeta
 import io.kubernetes.client.models.V1beta1ReplicaSet
+import org.joda.time.DateTime
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -43,13 +44,16 @@ class KubernetesReplicaSetCachingAgentSpec extends Specification {
     def replicaSet = new V1beta1ReplicaSet()
     def annotations = [
         'moniker.spinnaker.io/cluster': '"' + CLUSTER + '"',
-        'moniker.spinnaker.io/application': '"' + APPLICATION + '"'
+        'moniker.spinnaker.io/application': '"' + APPLICATION + '"',
+        'artifact.spinnaker.io/type': '"' + "replicaSet" + '"',
+        'artifact.spinnaker.io/name': '"' + NAME + '"'
     ]
 
     def metadata = new V1ObjectMeta()
     metadata.setAnnotations(annotations)
     metadata.setName(NAME)
     metadata.setNamespace(NAMESPACE)
+    metadata.setCreationTimestamp(DateTime.now())
     replicaSet.setMetadata(metadata)
     replicaSet.setKind(KubernetesKind.REPLICA_SET.name)
     replicaSet.setApiVersion(KubernetesApiVersion.EXTENSIONS_V1BETA1.name)
@@ -72,12 +76,13 @@ class KubernetesReplicaSetCachingAgentSpec extends Specification {
     def result = cachingAgent.loadData(providerCacheMock)
 
     then:
-    result.cacheResults[KubernetesKind.REPLICA_SET.name].size() == 1
-    def cacheData = result.cacheResults[KubernetesKind.REPLICA_SET.name].iterator().next()
-    cacheData.relationships.get(Keys.LogicalKind.CLUSTER.toString()) == [Keys.cluster(ACCOUNT, CLUSTER)]
-    cacheData.relationships.get(Keys.LogicalKind.APPLICATION.toString()) == [Keys.application(APPLICATION)]
-    cacheData.attributes.get("name") == NAME
-    cacheData.attributes.get("namespace") == NAMESPACE
+    result.cacheResults[KubernetesKind.REPLICA_SET.name].size() == 2
+    result.cacheResults[KubernetesKind.REPLICA_SET.name].find { cacheData ->
+      cacheData.relationships.get(Keys.LogicalKind.CLUSTER.toString()) == [Keys.cluster(ACCOUNT, CLUSTER)]
+      cacheData.relationships.get(Keys.LogicalKind.APPLICATION.toString()) == [Keys.application(APPLICATION)]
+      cacheData.attributes.get("name") == NAME
+      cacheData.attributes.get("namespace") == NAMESPACE
+    } != null
   }
 
   @Unroll

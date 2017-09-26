@@ -23,10 +23,12 @@ import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.cats.cache.DefaultCacheData;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesApiVersion;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesAugmentedManifest.Metadata;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesManifestAnnotater;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesManifestSpinnakerRelationships;
+import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.moniker.Moniker;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -39,6 +41,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys.Kind.ARTIFACT;
 import static com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys.LogicalKind.APPLICATION;
 import static com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys.LogicalKind.CLUSTER;
 
@@ -46,7 +49,27 @@ import static com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys.Logic
 public class KubernetesCacheDataConverter {
   private static ObjectMapper mapper = new ObjectMapper();
 
-  public static CacheData fromResource(String account, ObjectMapper mapper, Object resource) {
+  public static CacheData convertAsArtifact(String account, ObjectMapper mapper, Object resource) {
+    KubernetesManifest manifest = mapper.convertValue(resource, KubernetesManifest.class);
+    Artifact artifact = KubernetesManifestAnnotater.getArtifact(manifest);
+
+    Map<String, Object> attributes = new ImmutableMap.Builder<String, Object>()
+        .put("type", artifact.getType())
+        .put("name", artifact.getName())
+        .put("version", artifact.getVersion() == null ? "" : artifact.getVersion())
+        .put("creationTimestamp", manifest.getCreationTimestamp())
+        .build();
+
+    Map<String, Collection<String>> cacheRelationships = new HashMap<>();
+
+    String key = Keys.artifact(artifact.getType(), artifact.getName(), artifact.getVersion());
+    String owner = Keys.infrastructure(manifest, account);
+    cacheRelationships.put(manifest.getKind().toString(), Collections.singletonList(owner));
+
+    return new DefaultCacheData(key, attributes, cacheRelationships);
+  }
+
+  public static CacheData convertAsResource(String account, ObjectMapper mapper, Object resource) {
     KubernetesManifest manifest = mapper.convertValue(resource, KubernetesManifest.class);
     KubernetesKind kind = manifest.getKind();
     KubernetesApiVersion apiVersion = manifest.getApiVersion();
@@ -62,9 +85,16 @@ public class KubernetesCacheDataConverter {
         .put("manifest", manifest)
         .build();
 
-    KubernetesManifestSpinnakerRelationships spinnakerRelationships = KubernetesManifestAnnotater.getManifestRelationships(manifest);
+    KubernetesManifestSpinnakerRelationships relationships = KubernetesManifestAnnotater.getManifestRelationships(manifest);
     Moniker moniker = KubernetesManifestAnnotater.getMoniker(manifest);
-    Map<String, Collection<String>> relationships = new HashMap<>();
+    Artifact artifact = KubernetesManifestAnnotater.getArtifact(manifest);
+    Metadata metadata = Metadata.builder()
+        .relationships(relationships)
+        .moniker(moniker)
+        .artifact(artifact)
+        .build();
+
+    Map<String, Collection<String>> cacheRelationships = new HashMap<>();
 
     String application = moniker.getApp();
     if (StringUtils.isEmpty(application)) {
@@ -72,42 +102,46 @@ public class KubernetesCacheDataConverter {
       return null;
     }
 
-    relationships.putAll(annotatedRelationships(account, namespace, spinnakerRelationships, moniker));
+    cacheRelationships.putAll(annotatedRelationships(account, namespace, metadata));
     // TODO(lwander) avoid overwriting keys here
-    relationships.putAll(ownerReferenceRelationships(account, namespace, manifest.getOwnerReferences(mapper)));
+    cacheRelationships.putAll(ownerReferenceRelationships(account, namespace, manifest.getOwnerReferences(mapper)));
 
     String key = Keys.infrastructure(apiVersion, kind, account, namespace, name);
-    return new DefaultCacheData(key, attributes, relationships);
+    return new DefaultCacheData(key, attributes, cacheRelationships);
   }
 
   public static KubernetesManifest getManifest(CacheData cacheData) {
     return mapper.convertValue(cacheData.getAttributes().get("manifest"), KubernetesManifest.class);
   }
 
-  static Map<String, Collection<String>> annotatedRelationships(String account, String namespace, KubernetesManifestSpinnakerRelationships spinnakerRelationships, Moniker moniker) {
-    Map<String, Collection<String>> relationships = new HashMap<>();
+  static Map<String, Collection<String>> annotatedRelationships(String account, String namespace, Metadata metadata) {
+    KubernetesManifestSpinnakerRelationships relationships = metadata.getRelationships();
+    Moniker moniker = metadata.getMoniker();
+    Artifact artifact = metadata.getArtifact();
+    Map<String, Collection<String>> cacheRelationships = new HashMap<>();
     String application = moniker.getApp();
 
-    relationships.put(APPLICATION.toString(), Collections.singletonList(Keys.application(application)));
+    cacheRelationships.put(ARTIFACT.toString(), Collections.singletonList(Keys.artifact(artifact.getType(), artifact.getName(), artifact.getVersion())));
+    cacheRelationships.put(APPLICATION.toString(), Collections.singletonList(Keys.application(application)));
 
     String cluster = moniker.getCluster();
     if (!StringUtils.isEmpty(cluster)) {
-      relationships.put(CLUSTER.toString(), Collections.singletonList(Keys.cluster(account, cluster)));
+      cacheRelationships.put(CLUSTER.toString(), Collections.singletonList(Keys.cluster(account, cluster)));
     }
 
-    if (spinnakerRelationships.getLoadBalancers() != null) {
-      for (String loadBalancer : spinnakerRelationships.getLoadBalancers()) {
-        addSingleRelationship(relationships, account, namespace, loadBalancer);
+    if (relationships.getLoadBalancers() != null) {
+      for (String loadBalancer : relationships.getLoadBalancers()) {
+        addSingleRelationship(cacheRelationships, account, namespace, loadBalancer);
       }
     }
 
-    if (spinnakerRelationships.getSecurityGroups() != null) {
-      for (String securityGroup : spinnakerRelationships.getSecurityGroups()) {
-        addSingleRelationship(relationships, account, namespace, securityGroup);
+    if (relationships.getSecurityGroups() != null) {
+      for (String securityGroup : relationships.getSecurityGroups()) {
+        addSingleRelationship(cacheRelationships, account, namespace, securityGroup);
       }
     }
 
-    return relationships;
+    return cacheRelationships;
   }
 
   static void addSingleRelationship(Map<String, Collection<String>> relationships, String account, String namespace, String fullName) {

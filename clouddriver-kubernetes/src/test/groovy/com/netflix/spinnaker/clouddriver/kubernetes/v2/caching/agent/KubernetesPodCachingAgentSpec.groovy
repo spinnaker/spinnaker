@@ -25,6 +25,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesKin
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials
 import io.kubernetes.client.models.V1ObjectMeta
 import io.kubernetes.client.models.V1Pod
+import org.joda.time.DateTime
 import spock.lang.Specification
 
 class KubernetesPodCachingAgentSpec extends Specification {
@@ -39,16 +40,19 @@ class KubernetesPodCachingAgentSpec extends Specification {
     def pod = new V1Pod()
     def annotations = [
         'moniker.spinnaker.io/cluster': '"' + CLUSTER + '"',
-        'moniker.spinnaker.io/application': '"' + APPLICATION + '"'
+        'moniker.spinnaker.io/application': '"' + APPLICATION + '"',
+        'artifact.spinnaker.io/type': '"' + "pod" + '"',
+        'artifact.spinnaker.io/name': '"' + NAME + '"'
     ]
 
     def metadata = new V1ObjectMeta()
     metadata.setAnnotations(annotations)
     metadata.setName(NAME)
     metadata.setNamespace(NAMESPACE)
+    metadata.setCreationTimestamp(DateTime.now())
     pod.setMetadata(metadata)
-    pod.setKind(KubernetesKind.REPLICA_SET.name)
-    pod.setApiVersion(KubernetesApiVersion.EXTENSIONS_V1BETA1.name)
+    pod.setKind(KubernetesKind.POD.name)
+    pod.setApiVersion(KubernetesApiVersion.V1.name)
 
     def credentials = Mock(KubernetesV2Credentials)
     credentials.getDeclaredNamespaces() >> [NAMESPACE]
@@ -64,11 +68,12 @@ class KubernetesPodCachingAgentSpec extends Specification {
     def result = cachingAgent.loadData(null)
 
     then:
-    result.cacheResults[KubernetesKind.REPLICA_SET.name].size() == 1
-    def cacheData = result.cacheResults[KubernetesKind.REPLICA_SET.name].iterator().next()
-    cacheData.relationships.get(Keys.LogicalKind.CLUSTER.toString()) == [Keys.cluster(ACCOUNT, CLUSTER)]
-    cacheData.relationships.get(Keys.LogicalKind.APPLICATION.toString()) == [Keys.application(APPLICATION)]
-    cacheData.attributes.get("name") == NAME
-    cacheData.attributes.get("namespace") == NAMESPACE
+    result.cacheResults[KubernetesKind.POD.name].size() == 2
+    result.cacheResults[KubernetesKind.POD.name].find { cacheData ->
+      cacheData.relationships.get(Keys.LogicalKind.CLUSTER.toString()) == [Keys.cluster(ACCOUNT, CLUSTER)]
+      cacheData.relationships.get(Keys.LogicalKind.APPLICATION.toString()) == [Keys.application(APPLICATION)]
+      cacheData.attributes.get("name") == NAME
+      cacheData.attributes.get("namespace") == NAMESPACE
+    } != null
   }
 }

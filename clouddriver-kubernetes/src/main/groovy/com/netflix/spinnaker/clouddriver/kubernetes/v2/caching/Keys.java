@@ -38,6 +38,7 @@ public class Keys {
    */
   public enum Kind {
     LOGICAL,
+    ARTIFACT,
     INFRASTRUCTURE;
 
     @Override
@@ -74,10 +75,14 @@ public class Keys {
 
   private static String createKey(Object... elems) {
     List<String> components = Arrays.stream(elems)
-        .map(Object::toString)
+        .map(s -> s == null ? "" : s.toString())
         .collect(Collectors.toList());
     components.add(0, provider);
     return String.join(":", components);
+  }
+
+  public static String artifact(String type, String name, String version) {
+    return createKey(Kind.ARTIFACT, type, name, version);
   }
 
   public static String application(String name) {
@@ -108,13 +113,15 @@ public class Keys {
       switch (kind) {
         case LOGICAL:
           return Optional.of(parseLogicalKey(parts));
+        case ARTIFACT:
+          return Optional.of(new ArtifactCacheKey(parts));
         case INFRASTRUCTURE:
           return Optional.of(new InfrastructureCacheKey(parts));
         default:
           throw new IllegalArgumentException("Unknown kind " + kind);
       }
     } catch (IllegalArgumentException e) {
-      log.warn("Kubernetes owned kind with unknown key structure '{}' (perhaps try flushing all clouddriver:* redis keys)", key, e);
+      log.warn("Kubernetes owned kind with unknown key structure '{}': {} (perhaps try flushing all clouddriver:* redis keys)", key, parts, e);
       return Optional.empty();
     }
   }
@@ -138,6 +145,35 @@ public class Keys {
   public static abstract class CacheKey {
     private Kind kind;
     public abstract String getGroup();
+  }
+
+  @EqualsAndHashCode(callSuper = true)
+  @Data
+  public static class ArtifactCacheKey extends CacheKey {
+    private Kind kind = Kind.ARTIFACT;
+    private String type;
+    private String name;
+    private String version;
+
+    public ArtifactCacheKey(String[] parts) {
+      if (parts.length != 5) {
+        throw new IllegalArgumentException("Malformed artifact key" + Arrays.toString(parts));
+      }
+
+      type = parts[2];
+      name = parts[3];
+      version = parts[4];
+    }
+
+    @Override
+    public String toString() {
+      return createKey(kind, type, name, version);
+    }
+
+    @Override
+    public String getGroup() {
+      return kind.toString();
+    }
   }
 
   @EqualsAndHashCode(callSuper = true)
