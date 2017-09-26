@@ -197,10 +197,10 @@ function install_halyard() {
   curl -O https://storage.googleapis.com/spinnaker-artifacts/halyard/$HALYARD_VERSION/debian/halyard.tar.gz
   tar -xvf halyard.tar.gz -C /opt
 
-  groupadd halyard
-  groupadd spinnaker
-  usermod -G halyard $HAL_USER
-  usermod -G spinnaker $HAL_USER
+  groupadd halyard || true
+  groupadd spinnaker || true
+  usermod -G halyard $HAL_USER || true
+  usermod -G spinnaker $HAL_USER || true
   chown $HAL_USER:halyard /opt/halyard
 
   mv /opt/hal /usr/local/bin
