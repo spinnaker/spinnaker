@@ -30,7 +30,7 @@ module.exports = angular.module('spinnaker.openstack.subnet.subnetSelectField.di
           label: 'Subnet',
           labelColumnSize: 3,
           valueColumnSize: 7,
-          options: [],
+          options: [{label: scope.model, value: scope.model}],
           filter: {},
           backingCache: 'subnets',
 
