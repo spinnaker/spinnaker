@@ -14,7 +14,7 @@ export class ProjectSearchResultFormatter implements ISearchResultFormatter {
 
   public get displayName() { return 'Projects'; }
   public get order() { return 0; }
-  public get icon() { return 'hand-spock-o'; }
+  public get icon() { return 'folder-o'; }
   public displayFormatter(searchResult: IProjectSearchResult): IPromise<string> {
     const applications = searchResult.config && searchResult.config.applications ?
       ' (' + searchResult.config.applications.join(', ') + ')' :

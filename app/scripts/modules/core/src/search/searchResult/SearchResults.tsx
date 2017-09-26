@@ -62,7 +62,7 @@ export class SearchResults extends React.Component<ISearchResultsProps, ISearchR
         return {
           category: category,
           count: 0,
-          iconClass: formatter.icon ? `fa fa-${formatter.icon} fa-fw` : formatter.iconClass,
+          iconClass: formatter.icon ? `fa fa-${formatter.icon}` : formatter.iconClass,
           name: formatter.displayName,
           order: formatter.order,
           results: []
