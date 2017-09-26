@@ -117,10 +117,11 @@ class MultiRedisPipelineMigrationNotificationAgent extends AbstractPollingNotifi
       def migratablePipelines = unmigratedPipelines.findAll { it.status.isComplete() }
       def pendingPipelines = unmigratedPipelines.findAll { !it.status.isComplete() }
 
+      if (!pendingPipelines.isEmpty()) {
+        log.info("${pendingPipelines.size()} pipelines yet to complete (${pipelineConfigId}) [${index}/${allPipelineConfigIds.size()}]")
+      }
+
       if (migratablePipelines.isEmpty()) {
-        if (!pendingPipelines.isEmpty()) {
-          log.info("${pendingPipelines.size()} pipelines yet to complete (${pipelineConfigId}) [${index}/${allPipelineConfigIds.size()}]")
-        }
         return
       }
 

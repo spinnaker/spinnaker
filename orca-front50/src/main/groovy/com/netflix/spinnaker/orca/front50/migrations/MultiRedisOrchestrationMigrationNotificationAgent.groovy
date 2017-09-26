@@ -120,10 +120,11 @@ class MultiRedisOrchestrationMigrationNotificationAgent extends AbstractPollingN
       def migratableOrchestrations = unmigratedOrchestrations.findAll { it.status.isComplete() }
       def pendingOrchestrations = unmigratedOrchestrations.findAll { !it.status.isComplete() }
 
+      if (!pendingOrchestrations.isEmpty()) {
+        log.info("${pendingOrchestrations.size()} orchestrations yet to complete ${applicationName}) [${index}/${allApplications.size()}]")
+      }
+
       if (migratableOrchestrations.isEmpty()) {
-        if (!pendingOrchestrations.isEmpty()) {
-          log.info("${pendingOrchestrations.size()} orchestrations yet to complete ${applicationName}) [${index}/${allApplications.size()}]")
-        }
         return
       }
 
