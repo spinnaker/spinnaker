@@ -36,6 +36,8 @@ import io.kubernetes.client.models.V1Pod;
 import io.kubernetes.client.models.V1PodList;
 import io.kubernetes.client.models.V1Service;
 import io.kubernetes.client.models.V1beta1Ingress;
+import io.kubernetes.client.models.V1beta1NetworkPolicy;
+import io.kubernetes.client.models.V1beta1NetworkPolicyList;
 import io.kubernetes.client.models.V1beta1ReplicaSet;
 import io.kubernetes.client.models.V1beta1ReplicaSetList;
 import io.kubernetes.client.util.Config;
@@ -164,6 +166,47 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
       try {
         return extensionsV1beta1Api.createNamespacedIngress(namespace, ingress, null);
       } catch (ApiException e) {
+        throw new KubernetesApiException(methodName, e);
+      }
+    });
+  }
+
+  public List<V1beta1NetworkPolicy> listAllNetworkPolicies(String namespace) {
+    return listNetworkPolicies(namespace, new KubernetesSelectorList(), new KubernetesSelectorList());
+  }
+
+  public List<V1beta1NetworkPolicy> listNetworkPolicies(String namespace, KubernetesSelectorList fieldSelectors, KubernetesSelectorList labelSelectors) {
+    final String methodName = "networkPolicies.list";
+    final String fieldSelectorString = fieldSelectors.toString();
+    final String labelSelectorString = labelSelectors.toString();
+    final KubernetesApiVersion apiVersion = KubernetesApiVersion.EXTENSIONS_V1BETA1;
+    final KubernetesKind kind = KubernetesKind.NETWORK_POLICY;
+    return runAndRecordMetrics(methodName, namespace, () -> {
+      try {
+        V1beta1NetworkPolicyList list = extensionsV1beta1Api.listNamespacedNetworkPolicy(namespace, PRETTY, fieldSelectorString, labelSelectorString, DEFAULT_VERSION, TIMEOUT_SECONDS, WATCH);
+        return annotateMissingFields(list == null ? new ArrayList<>() : list.getItems(),
+            V1beta1NetworkPolicy.class,
+            apiVersion,
+            kind);
+      } catch (ApiException e) {
+        throw new KubernetesApiException(methodName, e);
+      }
+    });
+  }
+
+  public V1beta1NetworkPolicy readNetworkPolicy(String namespace, String name) {
+    final String methodName = "networkPolicies.read";
+    final KubernetesApiVersion apiVersion = KubernetesApiVersion.EXTENSIONS_V1BETA1;
+    final KubernetesKind kind = KubernetesKind.NETWORK_POLICY;
+    return runAndRecordMetrics(methodName, namespace, () -> {
+      try {
+        V1beta1NetworkPolicy result = extensionsV1beta1Api.readNamespacedNetworkPolicy(name, namespace, PRETTY, EXACT, EXPORT);
+        return annotateMissingFields(result, V1beta1NetworkPolicy.class, apiVersion, kind);
+      } catch (ApiException e) {
+        if (notFound(e)) {
+          return null;
+        }
+
         throw new KubernetesApiException(methodName, e);
       }
     });
