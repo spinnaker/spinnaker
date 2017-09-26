@@ -27,6 +27,7 @@ import com.netflix.spinnaker.clouddriver.model.ServerGroup
 import com.netflix.spinnaker.clouddriver.model.view.ServerGroupViewModelPostProcessor
 import com.netflix.spinnaker.clouddriver.requestqueue.RequestQueue
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
+import com.netflix.spinnaker.moniker.Moniker
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.MessageSource
 import org.springframework.security.access.prepost.PostAuthorize
@@ -172,6 +173,7 @@ class ServerGroupController {
     String instanceType
     String application
     Boolean isDisabled
+    Moniker moniker
     Map buildInfo
     Long createdTime
     List<InstanceViewModel> instances
@@ -196,6 +198,7 @@ class ServerGroupController {
       instanceCounts = serverGroup.getInstanceCounts()
       securityGroups = serverGroup.getSecurityGroups()
       loadBalancers = serverGroup.getLoadBalancers()
+      moniker = serverGroup.getMoniker()
       if (serverGroup.launchConfig) {
         if (serverGroup.launchConfig.instanceType) {
           instanceType = serverGroup.launchConfig.instanceType
