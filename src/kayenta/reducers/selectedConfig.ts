@@ -204,7 +204,7 @@ export function editGroupConfirm(state: ISelectedConfigState = null, action: Act
 
   const metricUpdator = (c: ICanaryMetricConfig): ICanaryMetricConfig => ({
     ...c,
-    groups: [edit].concat((c.groups || []).filter(g => g !== group)),
+    groups: (c.groups || []).includes(group) ? [edit].concat((c.groups || []).filter(g => g !== group)) : c.groups,
   });
 
   const weightsUpdator = (weights: GroupWeights): GroupWeights => {
