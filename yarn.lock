@@ -6,9 +6,9 @@
   version "0.0.5"
   resolved "https://registry.yarnpkg.com/@spinnaker/amazon/-/amazon-0.0.5.tgz#0121bf83ef28e68ee938ccae5e66c996420a675d"
 
-"@spinnaker/core@^0.0.62":
-  version "0.0.62"
-  resolved "https://registry.yarnpkg.com/@spinnaker/core/-/core-0.0.62.tgz#f441355fabc3511b4c30ac66be81e3c929f2df4f"
+"@spinnaker/core@^0.0.69":
+  version "0.0.69"
+  resolved "https://registry.yarnpkg.com/@spinnaker/core/-/core-0.0.69.tgz#28cc018e3fded6df75e49cb0d5ff8bb5a1174101"
 
 "@spinnaker/google@^0.0.1":
   version "0.0.1"
@@ -5757,6 +5757,10 @@ spdy@^3.4.1:
     http-deceiver "^1.2.4"
     select-hose "^2.0.0"
     spdy-transport "^2.0.15"
+
+spel2js@^0.2.3:
+  version "0.2.3"
+  resolved "https://registry.yarnpkg.com/spel2js/-/spel2js-0.2.3.tgz#834781719bef6a2be5eb2db6605c4dc7603316ad"
 
 spin.js@2.3.2:
   version "2.3.2"

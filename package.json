@@ -27,7 +27,7 @@
   },
   "dependencies": {
     "@spinnaker/amazon": "0.0.5",
-    "@spinnaker/core": "^0.0.62",
+    "@spinnaker/core": "^0.0.69",
     "@spinnaker/google": "^0.0.1",
     "@uirouter/angularjs": "^1.0.4",
     "@uirouter/react-hybrid": "^0.0.12",
@@ -84,6 +84,7 @@
     "select2-bootstrap-css": "git://github.com/t0m/select2-bootstrap-css.git#v1.3.1",
     "source-map": "^0.4.4",
     "source-sans-pro": "^2.0.10",
+    "spel2js": "^0.2.3",
     "spin.js": "git://github.com/fgnass/spin.js.git#2.3.1",
     "ui-router-visualizer": "^4.0.0",
     "ui-select": "^0.19.6"
