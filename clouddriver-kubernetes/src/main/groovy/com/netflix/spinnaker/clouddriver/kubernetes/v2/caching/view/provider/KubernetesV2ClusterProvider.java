@@ -122,7 +122,11 @@ public class KubernetesV2ClusterProvider implements ClusterProvider<KubernetesV2
 
   @Override
   public KubernetesV2Cluster getCluster(String application, String account, String name, boolean includeDetails) {
-    Collection<CacheData> clusterData = Collections.singletonList(cacheUtils.getSingleEntry(CLUSTER.toString(), Keys.cluster(account, name)));
+    CacheData entry = cacheUtils.getSingleEntry(CLUSTER.toString(), Keys.cluster(account, name));
+    if (entry == null) {
+      return null;
+    }
+    Collection<CacheData> clusterData = Collections.singletonList(entry);
     Set<KubernetesV2Cluster> result = includeDetails ? translateClustersWithRelationships(clusterData) : translateClusters(clusterData);
     return result.iterator().next();
   }
