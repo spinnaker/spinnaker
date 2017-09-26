@@ -24,6 +24,7 @@ import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class KubernetesCacheUtils {
@@ -48,14 +49,20 @@ public class KubernetesCacheUtils {
     }
 
     return cache.getAll(to, sourceData.stream()
-        .map(cd -> cd.getRelationships().get(to))
+        .filter(Objects::nonNull)
+        .map(CacheData::getRelationships)
+        .filter(Objects::nonNull)
+        .map(r -> r.get(to))
         .flatMap(Collection::stream)
         .collect(Collectors.toList()));
   }
 
   public Collection<CacheData> loadRelationshipsFromCache(Collection<CacheData> sources, String relationshipType) {
     List<String> keys = sources.stream()
-        .map(cd -> cd.getRelationships().get(relationshipType))
+        .filter(Objects::nonNull)
+        .map(CacheData::getRelationships)
+        .filter(Objects::nonNull)
+        .map(r -> r.get(relationshipType))
         .flatMap(Collection::stream)
         .collect(Collectors.toList());
 
