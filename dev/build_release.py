@@ -210,21 +210,17 @@ class Builder(object):
     bintray_key = os.environ['BINTRAY_KEY']
     bintray_user = os.environ['BINTRAY_USER']
 
-    if options.nebula:
-      target = 'candidate'
-      extra_args = [
-        '--stacktrace',
-        '-Prelease.useLastTag=true',
-        '-PbintrayPackageBuildNumber={number}'.format(number=build_number),
-        '-PbintrayOrg="{org}"'.format(org=org),
-        '-PbintrayPackageRepo="{repo}"'.format(repo=packageRepo),
-        '-PbintrayJarRepo="{jarRepo}"'.format(jarRepo=jarRepo),
-        '-PbintrayKey="{key}"'.format(key=bintray_key),
-        '-PbintrayUser="{user}"'.format(user=bintray_user)
-      ]
-    else:
-      target = 'buildDeb'
-      extra_args = []
+    target = 'candidate'
+    extra_args = [
+      '--stacktrace',
+      '-Prelease.useLastTag=true',
+      '-PbintrayPackageBuildNumber={number}'.format(number=build_number),
+      '-PbintrayOrg="{org}"'.format(org=org),
+      '-PbintrayPackageRepo="{repo}"'.format(repo=packageRepo),
+      '-PbintrayJarRepo="{jarRepo}"'.format(jarRepo=jarRepo),
+      '-PbintrayKey="{key}"'.format(key=bintray_key),
+      '-PbintrayUser="{user}"'.format(user=bintray_user)
+    ]
 
 
     if options.info_gradle:
@@ -295,18 +291,12 @@ class Builder(object):
     bintray_key = os.environ['BINTRAY_KEY']
     bintray_user = os.environ['BINTRAY_USER']
 
-    if options.nebula:
-      target = 'buildRpm'
-      extra_args = [
-        '--stacktrace',
-        '-Prelease.useLastTag=true',
-        '-PbintrayPackageBuildNumber={number}'.format(number=build_number)
-      ]
-    else:
-      target = 'buildRpm'
-      extra_args = [
-        '-PbintrayPackageBuildNumber={number}'.format(number=build_number)
-      ]
+    target = 'buildRpm'
+    extra_args = [
+      '--stacktrace',
+      '-Prelease.useLastTag=true',
+      '-PbintrayPackageBuildNumber={number}'.format(number=build_number)
+    ]
 
     if options.debug_gradle:
       extra_args.append('--debug')
@@ -504,228 +494,6 @@ class Builder(object):
       os.remove(logfile)
     run_shell_and_log(cmds, logfile, cwd=gradle_root)
 
-  def publish_to_bintray(self, source, package, version, path, debian_tags=''):
-    bintray_key = os.environ['BINTRAY_KEY']
-    bintray_user = os.environ['BINTRAY_USER']
-    parts = self.__options.bintray_repo.split('/')
-    if len(parts) != 2:
-      raise ValueError(
-          'Expected --bintray_repo to be in the form <owner>/<repo>')
-    subject, repo = parts[0], parts[1]
-
-    pkg_filename = os.path.basename(path)
-    if (pkg_filename.startswith('spinnaker-')
-        and not package.startswith('spinnaker')):
-      package = 'spinnaker-' + package
-
-    if debian_tags and debian_tags[0] != ';':
-      debian_tags = ';' + debian_tags
-
-    url = ('https://api.bintray.com/content'
-           '/{subject}/{repo}/{package}/{version}/{path}'
-           '{debian_tags}'
-           ';publish=1;override=1'
-           .format(subject=subject, repo=repo, package=package,
-                   version=version, path=path,
-                   debian_tags=debian_tags))
-
-    with open(source, 'r') as f:
-        data = f.read()
-        put_request = urllib2.Request(url)
-        encoded_auth = base64.encodestring('{user}:{pwd}'.format(
-            user=bintray_user, pwd=bintray_key))[:-1]  # strip eoln
-
-        put_request.add_header('Authorization', 'Basic ' + encoded_auth)
-        put_request.get_method = lambda: 'PUT'
-        try:
-            result = urllib2.urlopen(put_request, data)
-        except HTTPError as put_error:
-            if put_error.code == 409 and self.__options.wipe_package_on_409:
-              # The problem here is that BinTray does not allow packages to change once
-              # they have been published (even though we are explicitly asking it to
-              # override). PATCH wont work either.
-              # Since we are building from source, we don't really have a version
-              # yet, since we are still modifying the code. Either we need to generate a new
-              # version number every time or we don't want to publish these.
-              # Ideally we could control whether or not to publish. However,
-              # if we do not publish, then the repository will not be visible without
-              # credentials, and adding conditional credentials into the packer scripts
-              # starts getting even more complex.
-              #
-              # We cannot seem to delete individual versions either (at least not for
-              # InstallSpinnaker.sh, which is where this problem seems to occur),
-              # so we'll be heavy handed and wipe the entire package.
-              print 'Got 409 on {url}.'.format(url=url)
-              delete_url = ('https://api.bintray.com/content'
-                            '/{subject}/{repo}/{path}'
-                            .format(subject=subject, repo=repo, path=path))
-              print 'Attempt to delete url={url} then retry...'.format(url=delete_url)
-              delete_request = urllib2.Request(delete_url)
-              delete_request.add_header('Authorization', 'Basic ' + encoded_auth)
-              delete_request.get_method = lambda: 'DELETE'
-              try:
-                urllib2.urlopen(delete_request)
-                print 'Deleted...'
-              except HTTPError as ex:
-                # Maybe it didn't exist. Try again anyway.
-                print 'Delete {url} got {ex}. Try again anyway.'.format(url=url, ex=ex)
-              print 'Retrying {url}'.format(url=url)
-              result = urllib2.urlopen(put_request, data)
-              print 'SUCCESS'
-
-            elif put_error.code != 400:
-              raise
-
-            else:
-              # Try creating the package and retrying.
-              pkg_url = os.path.join('https://api.bintray.com/packages',
-                                     subject, repo)
-              print 'Creating an entry for {package} with {pkg_url}...'.format(
-                  package=package, pkg_url=pkg_url)
-
-              # All the packages are from spinnaker so we'll hardcode it.
-              # Note spinnaker-monitoring is a github repo with two packages.
-              # Neither is "spinnaker-monitoring"; that's only the github repo.
-              gitname = (package.replace('spinnaker-', '')
-                         if not package.startswith('spinnaker-monitoring')
-                         else 'spinnaker-monitoring')
-              pkg_data = """{{
-                "name": "{package}",
-                "licenses": ["Apache-2.0"],
-                "vcs_url": "https://github.com/spinnaker/{gitname}.git",
-                "website_url": "http://spinnaker.io",
-                "github_repo": "spinnaker/{gitname}",
-                "public_download_numbers": false,
-                "public_stats": false
-              }}'""".format(package=package, gitname=gitname)
-
-              pkg_request = urllib2.Request(pkg_url)
-              pkg_request.add_header('Authorization', 'Basic ' + encoded_auth)
-              pkg_request.add_header('Content-Type', 'application/json')
-              pkg_request.get_method = lambda: 'POST'
-              pkg_result = urllib2.urlopen(pkg_request, pkg_data)
-              pkg_code = pkg_result.getcode()
-              if pkg_code >= 200 and pkg_code < 300:
-                  result = urllib2.urlopen(put_request, data)
-
-        code = result.getcode()
-        if code < 200 or code >= 300:
-          raise ValueError('{code}: Could not add version to {url}\n{msg}'
-                           .format(code=code, url=url, msg=result.read()))
-
-    print 'Wrote {source} to {url}'.format(source=source, url=url)
-
-  def publish_install_script(self, source):
-    gradle_root = self.determine_gradle_root('spinnaker')
-    version = determine_package_version(self.__options.platform, gradle_root)
-
-    self.publish_to_bintray(source, package='spinnaker', version=version,
-                            path='InstallSpinnaker.sh')
-
-  def publish_file(self, source, package, version):
-    """Write a file to the bintray repository.
-
-    Args:
-      source [string]: The path to the source to copy must be local.
-    """
-    path = os.path.basename(source)
-    debian_tags = ''
-    if self.__options.platform == 'debian':
-      debian_tags = ';'.join(['deb_component=spinnaker',
-                              'deb_distribution=trusty,utopic,vivid,wily',
-                              'deb_architecture=all'])
-
-    self.publish_to_bintray(source, package=package, version=version,
-                            path=path, debian_tags=debian_tags)
-
-  def start_copy_debian_target(self, name):
-      """Copies the debian package for the specified subsystem.
-
-      Args:
-        name [string]: The name of the subsystem repository.
-      """
-      pids = []
-      gradle_root = self.determine_gradle_root(name)
-      version = determine_package_version(self.__options.platform, gradle_root)
-      if version is None:
-        return []
-
-      for root in determine_modules_with_debians(gradle_root):
-        deb_dir = '{root}/build/distributions'.format(root=root)
-
-        non_spinnaker_name = '{name}_{version}_all.deb'.format(
-              name=name, version=version)
-
-        if os.path.exists(os.path.join(deb_dir,
-                                       'spinnaker-' + non_spinnaker_name)):
-         deb_file = 'spinnaker-' + non_spinnaker_name
-        elif os.path.exists(os.path.join(deb_dir, non_spinnaker_name)):
-          deb_file = non_spinnaker_name
-        else:
-          module_name = os.path.basename(
-            os.path.dirname(os.path.dirname(deb_dir)))
-          deb_file = '{module_name}_{version}_all.deb'.format(
-            module_name=module_name, version=version)
-
-        if not os.path.exists(os.path.join(deb_dir, deb_file)):
-          error = ('.deb for name={name} version={version} is not in {dir}\n'
-                   .format(name=name, version=version, dir=deb_dir))
-          raise AssertionError(error)
-
-        from_path = os.path.join(deb_dir, deb_file)
-        print 'Adding {path}'.format(path=from_path)
-        self.__package_list.append(from_path)
-        basename = os.path.basename(from_path)
-        module_name = basename[0:basename.find('_')]
-        if self.__options.bintray_repo:
-          self.publish_file(from_path, module_name, version)
-
-      return pids
-
-  def start_copy_redhat_target(self, name):
-      """Copies the redhat package for the specified subsystem.
-
-      Args:
-        name [string]: The name of the subsystem repository.
-      """
-      pids = []
-      gradle_root = self.determine_gradle_root(name)
-      version = determine_package_version(self.__options.platform, gradle_root)
-      if version is None:
-        return []
-
-      for root in determine_modules_with_redhats(gradle_root):
-        rpm_dir = '{root}/build/distributions'.format(root=root)
-
-        non_spinnaker_name = '{name}-{version}.noarch.rpm'.format(
-              name=name, version=version)
-
-        if os.path.exists(os.path.join(rpm_dir,
-                                       'spinnaker-' + non_spinnaker_name)):
-          rpm_file = 'spinnaker-' + non_spinnaker_name
-        elif os.path.exists(os.path.join(rpm_dir, non_spinnaker_name)):
-          rpm_file = non_spinnaker_name
-        else:
-          module_name = os.path.basename(os.path.dirname(
-            os.path.dirname(rpm_dir)))
-          rpm_file = '{module_name}-{version}.noarch.rpm'.format(
-            module_name=module_name, version=version)
-
-        if not os.path.exists(os.path.join(rpm_dir, rpm_file)):
-          error = ('.rpm for name={name} version={version} is not in {dir}\n'
-                   .format(name=name, version=version, dir=rpm_dir))
-          raise AssertionError(error)
-
-        from_path = os.path.join(rpm_dir, rpm_file)
-        print 'Adding {path}'.format(path=from_path)
-        self.__package_list.append(from_path)
-        basename = os.path.basename(from_path)
-        module_name = re.search("^(.*)-{}.noarch.rpm$".format(version), basename).group(1)
-        if self.__options.bintray_repo:
-          self.publish_file(from_path, module_name, version)
-
-      return pids
-
   def __do_jar_build(self, subsys):
     if self.__options.do_jar_build:
       try:
@@ -812,32 +580,6 @@ class Builder(object):
 
       self.__check_build_failures(SUBSYSTEM_LIST)
 
-      if self.__options.nebula:
-        return
-
-      # Do not choke if there is nothing to copy
-      failed_components = [failure.component for failure in self.__build_failures]
-      wait_on = set(all_subsystems).difference(set(failed_components))
-      if len(wait_on) > 0:
-        pool = multiprocessing.pool.ThreadPool(processes=len(wait_on))
-        print 'Copying packages...'
-        pool.map(self.__do_copy, wait_on)
-      else:
-        print 'Nothing to copy.'
-      return
-
-  def __do_copy(self, subsys):
-    print 'Starting to copy {0}...'.format(subsys)
-    if self.__options.platform == 'debian':
-      pids = self.start_copy_debian_target(subsys)
-
-    elif self.__options.platform == 'redhat':
-      pids = self.start_copy_redhat_target(subsys)
-
-    for p in pids:
-      p.check_wait()
-    print 'Finished copying {0}.'.format(subsys)
-
   @classmethod
   def init_argument_parser(cls, parser):
       refresh_source.Refresher.init_argument_parser(parser)
@@ -889,12 +631,6 @@ class Builder(object):
           action='store_false')
 
       parser.add_argument(
-          '--nebula', default=True, action='store_true',
-          help='Use nebula to build "candidate" target and upload to bintray.')
-      parser.add_argument(
-          '--nonebula', dest='nebula', action='store_false',
-          help='Explicitly "buildDeb" then curl upload them to bintray.')
-      parser.add_argument(
           '--gcb_service_account', default='',
           help='Google service account to invoke the gcp container builder with.')
       parser.add_argument(
@@ -945,29 +681,6 @@ class Builder(object):
     if container_builder:
       print "Starting container build..."
       builder.build_container_images()
-
-    if options.build and options.bintray_repo:
-      fd, temp_path = tempfile.mkstemp()
-      with open(os.path.join(determine_project_root(), 'InstallSpinnaker.sh'),
-                'r') as f:
-          content = f.read()
-          match = re.search(
-                'REPOSITORY_URL="https://dl\.bintray\.com/(.+)"',
-                content)
-          content = ''.join([content[0:match.start(1)],
-                             options.bintray_repo,
-                             content[match.end(1):]])
-          os.write(fd, content)
-      os.close(fd)
-
-      try:
-        builder.publish_install_script(
-          os.path.join(determine_project_root(), temp_path))
-      finally:
-        os.remove(temp_path)
-
-      print '\nFINISHED writing release to {rep}'.format(
-        rep=options.bintray_repo)
 
   @classmethod
   def main(cls):
