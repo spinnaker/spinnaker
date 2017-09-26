@@ -291,7 +291,15 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials> 
               .withProvider(KubernetesCloudProvider.getID())
               .withAccount(name)
               .setNamer(KubernetesManifest.class, new KubernetesManifestNamer());
-          return (C) new KubernetesV2Credentials(name, spectatorRegistry);
+          return (C) new KubernetesV2Credentials.Builder()
+              .accountName(name)
+              .kubeconfigFile(kubeconfigFile)
+              .context(context)
+              .userAgent(userAgent)
+              .namespaces(namespaces)
+              .omitNamespaces(omitNamespaces)
+              .registry(spectatorRegistry)
+              .build();
         default:
           throw new IllegalArgumentException("Unknown provider type: " + providerVersion);
       }

@@ -41,10 +41,13 @@ import io.kubernetes.client.models.V1beta1NetworkPolicyList;
 import io.kubernetes.client.models.V1beta1ReplicaSet;
 import io.kubernetes.client.models.V1beta1ReplicaSetList;
 import io.kubernetes.client.util.Config;
+import io.kubernetes.client.util.KubeConfig;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 
-import java.io.IOException;
+import javax.validation.constraints.NotNull;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -64,6 +67,8 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
   private final String accountName;
   private final ObjectMapper mapper = new ObjectMapper();
   private final Gson gson = new Gson();
+  private final List<String> namespaces;
+  private final List<String> omitNamespaces;
   private final String PRETTY = "";
   private final boolean EXACT = true;
   private final boolean EXPORT = false;
@@ -74,34 +79,122 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
   @Getter
   private final String defaultNamespace = "default";
 
-  public KubernetesV2Credentials(String accountName, Registry registry) {
+  public static class Builder {
+    String accountName;
+    String kubeconfigFile;
+    String context;
+    String userAgent;
+    List<String> namespaces = new ArrayList<>();
+    List<String> omitNamespaces = new ArrayList<>();
+    Registry registry;
+
+    public Builder accountName(String accountName) {
+      this.accountName = accountName;
+      return this;
+    }
+
+    public Builder kubeconfigFile(String kubeconfigFile) {
+      this.kubeconfigFile = kubeconfigFile;
+      return this;
+    }
+
+    public Builder context(String context) {
+      this.context = context;
+      return this;
+    }
+
+    public Builder userAgent(String userAgent) {
+      this.userAgent = userAgent;
+      return this;
+    }
+
+    public Builder namespaces(List<String> namespaces) {
+      this.namespaces = namespaces;
+      return this;
+    }
+
+    public Builder omitNamespaces(List<String> omitNamespaces) {
+      this.omitNamespaces = omitNamespaces;
+      return this;
+    }
+
+    public Builder registry(Registry registry) {
+      this.registry = registry;
+      return this;
+    }
+
+    public KubernetesV2Credentials build() {
+      KubeConfig kubeconfig;
+      try {
+        if (StringUtils.isEmpty(kubeconfigFile)) {
+          kubeconfig = KubeConfig.loadDefaultKubeConfig();
+        } else {
+          kubeconfig = KubeConfig.loadKubeConfig(new FileReader(kubeconfigFile));
+        }
+      } catch (FileNotFoundException e) {
+        throw new RuntimeException("Unable to create credentials from kubeconfig file: " + e, e);
+      }
+
+      if (!StringUtils.isEmpty(context)) {
+        kubeconfig.setContext(context);
+      }
+
+      ApiClient client = Config.fromConfig(kubeconfig);
+
+      if (!StringUtils.isEmpty(userAgent)) {
+        client.setUserAgent(userAgent);
+      }
+
+      namespaces = namespaces == null ? new ArrayList<>() : namespaces;
+      omitNamespaces = omitNamespaces == null ? new ArrayList<>() : omitNamespaces;
+      
+      return new KubernetesV2Credentials(accountName, client, namespaces, omitNamespaces, registry);
+    }
+
+  }
+
+  private KubernetesV2Credentials(@NotNull String accountName,
+      @NotNull ApiClient client,
+      @NotNull List<String> namespaces,
+      @NotNull List<String> omitNamespaces,
+      @NotNull Registry registry) {
     this.registry = registry;
     this.clock = registry.clock();
     this.accountName = accountName;
-    try {
-      // TODO(lwander) initialize client based on provided config
-      client = Config.defaultClient();
+    this.namespaces = namespaces;
+    this.omitNamespaces = omitNamespaces;
+    this.client = client;
       // TODO(lwander) make debug mode configurable
-      client.setDebugging(true);
-      coreV1Api = new CoreV1Api(client);
-      extensionsV1beta1Api = new ExtensionsV1beta1Api(client);
-      appsV1beta1Api = new AppsV1beta1Api(client);
-    } catch (IOException e) {
-      throw new RuntimeException("Failed to instantiate Kubernetes credentials", e);
-    }
+    this.client.setDebugging(true);
+    this.coreV1Api = new CoreV1Api(this.client);
+    this.extensionsV1beta1Api = new ExtensionsV1beta1Api(this.client);
+    this.appsV1beta1Api = new AppsV1beta1Api(this.client);
   }
 
   @Override
   public List<String> getDeclaredNamespaces() {
-    try {
-      return coreV1Api.listNamespace(null, null, null, null, 10, null)
-          .getItems()
-          .stream()
-          .map(n -> n.getMetadata().getName())
-          .collect(Collectors.toList());
-    } catch (ApiException e) {
-      throw new RuntimeException(e);
+    List<String> result;
+    if (!namespaces.isEmpty()) {
+      result = namespaces;
+    } else {
+      try {
+        result = coreV1Api.listNamespace(null, null, null, null, TIMEOUT_SECONDS, null)
+            .getItems()
+            .stream()
+            .map(n -> n.getMetadata().getName())
+            .collect(Collectors.toList());
+      } catch (ApiException e) {
+        throw new RuntimeException(e);
+      }
     }
+
+    if (!omitNamespaces.isEmpty()) {
+      result = result.stream()
+          .filter(n -> !omitNamespaces.contains(n))
+          .collect(Collectors.toList());
+    }
+
+    return result;
   }
 
   private boolean notFound(ApiException e) {
