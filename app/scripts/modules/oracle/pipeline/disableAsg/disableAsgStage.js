@@ -5,7 +5,7 @@ import {StageConstants} from 'core/pipeline/config/stages/stageConstants';
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
 
 module.exports = angular.module('spinnaker.oraclebmcs.pipeline.stage.disableAsgStage', [
-  require('core/application/modal/platformHealthOverride.directive.js'),
+  require('core/application/modal/platformHealthOverride.directive.js').name,
   ACCOUNT_SERVICE,
 ])
   .config(function(pipelineConfigProvider) {

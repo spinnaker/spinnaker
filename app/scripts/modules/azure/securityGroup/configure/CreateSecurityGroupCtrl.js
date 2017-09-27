@@ -8,7 +8,7 @@ module.exports = angular
   .module('spinnaker.azure.securityGroup.create.controller', [
     require('@uirouter/angularjs').default,
     TASK_MONITOR_BUILDER,
-    require('../securityGroup.write.service.js'),
+    require('../securityGroup.write.service.js').name,
     ACCOUNT_SERVICE,
   ])
 

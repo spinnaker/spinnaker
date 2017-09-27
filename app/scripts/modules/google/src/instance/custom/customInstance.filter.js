@@ -5,7 +5,7 @@ import _ from 'lodash';
 const angular = require('angular');
 
 module.exports = angular.module('spinnaker.gce.customInstance.filter', [
-  require('./customInstanceBuilder.gce.service.js')
+  require('./customInstanceBuilder.gce.service.js').name
 ])
   .filter('customInstanceFilter', function(gceCustomInstanceBuilderService) {
     return function (instanceTypeString) {

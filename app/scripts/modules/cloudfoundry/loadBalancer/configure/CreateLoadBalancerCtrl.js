@@ -13,7 +13,7 @@ module.exports = angular.module('spinnaker.loadBalancer.cf.create.controller', [
   require('@uirouter/angularjs').default,
   LOAD_BALANCER_WRITE_SERVICE,
   ACCOUNT_SERVICE,
-  require('../loadBalancer.transformer.js'),
+  require('../loadBalancer.transformer.js').name,
   V2_MODAL_WIZARD_SERVICE,
   TASK_MONITOR_BUILDER,
 ])

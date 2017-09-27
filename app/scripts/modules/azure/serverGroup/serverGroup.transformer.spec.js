@@ -6,7 +6,7 @@ describe('azureServerGroupTransformer', function () {
 
   beforeEach(
     window.module(
-      require('./serverGroup.transformer.js')
+      require('./serverGroup.transformer.js').name
     )
   );
 

@@ -7,7 +7,7 @@ describe('Service: gceInstanceTypeService', function () {
   var gceInstanceTypeService;
 
   beforeEach(
-    window.module(require('./gceInstanceType.service'))
+    window.module(require('./gceInstanceType.service').name)
   );
 
   beforeEach(

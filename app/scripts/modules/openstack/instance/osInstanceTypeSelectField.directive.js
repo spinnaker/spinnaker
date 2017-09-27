@@ -7,7 +7,7 @@ import { INSTANCE_TYPE_SERVICE } from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.openstack.instance.instanceTypeSelectField', [
   INSTANCE_TYPE_SERVICE,
-  require('../common/selectField.component.js')
+  require('../common/selectField.component.js').name
 ])
   .directive('osInstanceTypeSelectField', function (instanceTypeService) {
     return {

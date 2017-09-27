@@ -60,8 +60,8 @@ let decorateFn = function ($delegate, jsonListBuilder, spelAutocomplete) {
 
 module.exports = angular
   .module('spinnaker.core.widget.spelText', [
-    require('./spelAutocomplete.service'),
-    require('./jsonListBuilder'),
+    require('./spelAutocomplete.service').name,
+    require('./jsonListBuilder').name,
   ])
   .config( function($provide) {
     $provide.decorator('inputDirective', decorateFn);

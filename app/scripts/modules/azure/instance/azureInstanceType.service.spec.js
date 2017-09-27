@@ -8,7 +8,7 @@ describe('Service: InstanceType', function () {
 
   beforeEach(function() {
       window.module(
-        require('./azureInstanceType.service'),
+        require('./azureInstanceType.service').name,
         API_SERVICE
       );
   });

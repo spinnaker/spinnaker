@@ -9,11 +9,11 @@ import { IFilterTag } from 'core/filterModel/FilterTags';
 export const CLUSTER_FILTER = 'spinnaker.core.cluster.filter.component';
 
 const ngmodule = module(CLUSTER_FILTER, [
-  require('./collapsibleFilterSection.directive'),
+  require('./collapsibleFilterSection.directive').name,
   CLUSTER_FILTER_SERVICE,
   CLUSTER_FILTER_MODEL,
-  require('core/filterModel/dependentFilter/dependentFilter.service'),
-  require('./clusterDependentFilterHelper.service'),
+  require('core/filterModel/dependentFilter/dependentFilter.service').name,
+  require('./clusterDependentFilterHelper.service').name,
 ]);
 
 class ClusterFilterCtrl {

@@ -10,11 +10,11 @@ import { JSON_UTILITY_SERVICE } from 'core/utils/json/json.utility.service';
 import './snapshotDiff.modal.less';
 
 module.exports = angular.module('spinnaker.deck.core.snapshot.diff.modal.controller', [
-    require('../snapshot.read.service.js'),
-    require('../snapshot.write.service.js'),
+    require('../snapshot.read.service.js').name,
+    require('../snapshot.write.service.js').name,
     CONFIRMATION_MODAL_SERVICE,
     JSON_UTILITY_SERVICE,
-    require('../../pipeline/config/actions/history/diffSummary.component.js'),
+    require('../../pipeline/config/actions/history/diffSummary.component.js').name,
     DIFF_VIEW_COMPONENT,
   ])
   .controller('SnapshotDiffModalCtrl', function (availableAccounts, application, $filter, $uibModalInstance,

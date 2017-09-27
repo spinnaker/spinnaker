@@ -11,7 +11,7 @@ module.exports = angular
   .module('spinnaker.amazon.securityGroup.clone.controller', [
     ACCOUNT_SERVICE,
     VPC_READ_SERVICE,
-    require('../configure/configSecurityGroup.mixin.controller.js')
+    require('../configure/configSecurityGroup.mixin.controller.js').name
   ])
   .controller('awsCloneSecurityGroupController', function($scope, $uibModalInstance, $controller, accountService, securityGroup, application) {
     var vm = this;

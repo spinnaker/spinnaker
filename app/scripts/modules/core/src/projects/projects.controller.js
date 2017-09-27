@@ -7,13 +7,13 @@ import {VIEW_STATE_CACHE_SERVICE} from 'core/cache/viewStateCache.service';
 
 module.exports = angular.module('spinnaker.projects.controller', [
   require('@uirouter/angularjs').default,
-  require('./service/project.write.service.js'),
-  require('./service/project.read.service.js'),
+  require('./service/project.write.service.js').name,
+  require('./service/project.read.service.js').name,
   ACCOUNT_SERVICE,
   ANY_FIELD_FILTER,
   VIEW_STATE_CACHE_SERVICE,
-  require('../presentation/sortToggle/sorttoggle.directive.js'),
-  require('../insight/insightmenu.directive.js'),
+  require('../presentation/sortToggle/sorttoggle.directive.js').name,
+  require('../insight/insightmenu.directive.js').name,
 ])
   .controller('ProjectsCtrl', function($scope, $uibModal, $log, $filter,
                                            $state, projectWriter, projectReader, viewStateCache) {

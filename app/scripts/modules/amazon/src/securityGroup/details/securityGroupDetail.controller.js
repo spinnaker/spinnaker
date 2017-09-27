@@ -16,7 +16,7 @@ module.exports = angular.module('spinnaker.amazon.securityGroup.details.controll
   SECURITY_GROUP_READER,
   SECURITY_GROUP_WRITER,
   CONFIRMATION_MODAL_SERVICE,
-  require('../clone/cloneSecurityGroup.controller.js'),
+  require('../clone/cloneSecurityGroup.controller.js').name,
   CLOUD_PROVIDER_REGISTRY,
   RECENT_HISTORY_SERVICE,
 ])

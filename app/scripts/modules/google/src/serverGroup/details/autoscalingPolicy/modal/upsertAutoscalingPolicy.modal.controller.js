@@ -7,9 +7,9 @@ import { TASK_MONITOR_BUILDER } from '@spinnaker/core';
 import './upsertAutoscalingPolicy.modal.less';
 
 module.exports = angular.module('spinnaker.deck.gce.upsertAutoscalingPolicy.modal.controller', [
-    require('google/autoscalingPolicy/autoscalingPolicy.write.service'),
-    require('google/autoscalingPolicy/components/basicSettings/basicSettings.component.js'),
-    require('google/autoscalingPolicy/components/metricSettings/metricSettings.component.js'),
+    require('google/autoscalingPolicy/autoscalingPolicy.write.service').name,
+    require('google/autoscalingPolicy/components/basicSettings/basicSettings.component.js').name,
+    require('google/autoscalingPolicy/components/metricSettings/metricSettings.component.js').name,
     TASK_MONITOR_BUILDER,
   ])
   .controller('gceUpsertAutoscalingPolicyModalCtrl', function (policy, application, serverGroup,

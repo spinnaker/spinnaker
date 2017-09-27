@@ -20,7 +20,7 @@ describe('Service: instance writer', function () {
     mock.module(
       INSTANCE_WRITE_SERVICE,
       APPLICATION_MODEL_BUILDER,
-      require('../cluster/filter/multiselect.model')
+      require('../cluster/filter/multiselect.model').name
     )
   );
 

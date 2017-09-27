@@ -12,7 +12,7 @@ import { TASK_WRITE_SERVICE } from './task.write.service';
 
 module.exports = angular.module('spinnaker.core.task.controller', [
   require('@uirouter/angularjs').default,
-  require('./taskProgressBar.directive.js'),
+  require('./taskProgressBar.directive.js').name,
   VIEW_STATE_CACHE_SERVICE,
   TASK_WRITE_SERVICE,
   CONFIRMATION_MODAL_SERVICE,

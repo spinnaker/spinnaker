@@ -6,7 +6,7 @@ describe('Jenkins Trigger: ExecutionHandler', function() {
 
   beforeEach(
     window.module(
-      require('./jenkinsTrigger.module.js')
+      require('./jenkinsTrigger.module.js').name
     )
   );
 

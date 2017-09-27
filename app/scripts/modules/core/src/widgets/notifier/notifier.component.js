@@ -9,7 +9,7 @@ import './notifier.component.less';
 module.exports = angular
   .module('spinnaker.core.widgets.notification', [
     NOTIFIER_SERVICE,
-    require('./userNotification.component'),
+    require('./userNotification.component').name,
   ])
   .component('notifier', {
     templateUrl: require('./notifier.component.html'),

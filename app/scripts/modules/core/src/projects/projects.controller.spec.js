@@ -6,7 +6,7 @@ describe('Controller: Projects', function() {
 
   beforeEach(
     window.module(
-      require('./projects.controller'),
+      require('./projects.controller').name,
       require('angular-ui-bootstrap')
     )
   );

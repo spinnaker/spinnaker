@@ -15,7 +15,7 @@ require('../configure/serverGroup.configure.azure.module.js');
 
 module.exports = angular.module('spinnaker.azure.serverGroup.details.controller', [
   require('@uirouter/angularjs').default,
-  require('../configure/serverGroupCommandBuilder.service.js'),
+  require('../configure/serverGroupCommandBuilder.service.js').name,
   SERVER_GROUP_READER,
   CONFIRMATION_MODAL_SERVICE,
   SERVER_GROUP_WRITER,

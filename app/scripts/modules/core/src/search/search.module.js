@@ -8,7 +8,7 @@ import { SEARCH_SERVICE } from './search.service';
 
 module.exports = angular.module('spinnaker.core.search', [
   SEARCH_INFRASTRUCTURE,
-  require('./global/globalSearch.module'),
+  require('./global/globalSearch.module').name,
   SEARCH_SERVICE,
   INFRASTRUCTURE_STATES,
 ]);

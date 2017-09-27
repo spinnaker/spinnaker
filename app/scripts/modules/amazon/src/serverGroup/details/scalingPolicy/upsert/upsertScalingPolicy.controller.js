@@ -13,9 +13,9 @@ module.exports = angular
   .module('spinnaker.amazon.serverGroup.details.scalingPolicy.upsertScalingPolicy.controller', [
     SCALING_POLICY_WRITE_SERVICE,
     require('exports-loader?"n3-line-chart"!n3-charts/build/LineChart.js'),
-    require('./simple/simplePolicyAction.component.js'),
+    require('./simple/simplePolicyAction.component.js').name,
     STEP_POLICY_ACTION,
-    require('./alarm/alarmConfigurer.component.js'),
+    require('./alarm/alarmConfigurer.component.js').name,
     TASK_MONITOR_BUILDER,
   ])
   .controller('awsUpsertScalingPolicyCtrl', function ($uibModalInstance, scalingPolicyWriter,

@@ -7,7 +7,7 @@ describe('dcosServerGroupEnvironmentVariablesController', function() {
 
   beforeEach(
     window.module(
-      require('./environmentVariables.controller.js')
+      require('./environmentVariables.controller.js').name
     )
   );
 

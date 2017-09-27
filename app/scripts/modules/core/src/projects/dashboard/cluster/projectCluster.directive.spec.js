@@ -6,7 +6,7 @@ describe('Directives: projectCluster', function () {
 
   beforeEach(
     window.module(
-      require('./projectCluster.directive')
+      require('./projectCluster.directive').name
     )
   );
 

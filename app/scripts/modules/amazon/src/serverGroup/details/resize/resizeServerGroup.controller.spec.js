@@ -9,7 +9,7 @@ describe('Controller: awsResizeServerGroupCtrl', function () {
 
   beforeEach(
     window.module(
-      require('./resizeServerGroup.controller')
+      require('./resizeServerGroup.controller').name
     )
   );
 

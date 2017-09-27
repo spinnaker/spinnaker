@@ -9,8 +9,8 @@ module.exports = angular.module('spinnaker.core.instance.details.multipleInstanc
   require('@uirouter/angularjs').default,
   INSTANCE_WRITE_SERVICE,
   CONFIRMATION_MODAL_SERVICE,
-  require('../../cluster/filter/multiselect.model'),
-  require('./multipleInstanceServerGroup.directive'),
+  require('../../cluster/filter/multiselect.model').name,
+  require('./multipleInstanceServerGroup.directive').name,
 ])
   .controller('MultipleInstancesCtrl', function ($scope, $state, confirmationModalService, MultiselectModel,
                                                  instanceWriter, app) {

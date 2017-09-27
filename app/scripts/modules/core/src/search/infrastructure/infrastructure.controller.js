@@ -16,10 +16,10 @@ import { SearchService } from '../search.service';
 module.exports = angular.module('spinnaker.search.infrastructure.controller', [
   INFRASTRUCTURE_SEARCH_SERVICE,
   RECENT_HISTORY_SERVICE,
-  require('../searchResult/searchResult.directive.js'),
+  require('../searchResult/searchResult.directive.js').name,
   PAGE_TITLE_SERVICE,
-  require('./project/infrastructureProject.directive.js'),
-  require('../searchRank.filter.js'),
+  require('./project/infrastructureProject.directive.js').name,
+  require('../searchRank.filter.js').name,
   CLUSTER_FILTER_SERVICE,
   CACHE_INITIALIZER_SERVICE,
   OVERRIDE_REGISTRY,

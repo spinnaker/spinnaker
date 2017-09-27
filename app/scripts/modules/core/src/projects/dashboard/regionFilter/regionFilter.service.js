@@ -5,7 +5,7 @@ import _ from 'lodash';
 const angular = require('angular');
 
 module.exports = angular.module('spinnaker.deck.projects.dashboard.regionFilter.service', [
-    require('../../../filterModel/filter.model.service.js'),
+    require('../../../filterModel/filter.model.service.js').name,
   ])
   .factory('regionFilterService', function (filterModelService) {
     let callbacks = [];

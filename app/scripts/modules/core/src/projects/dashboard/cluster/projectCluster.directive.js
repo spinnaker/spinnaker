@@ -17,7 +17,7 @@ module.exports = angular.module('spinnaker.core.projects.dashboard.clusters.proj
   CLUSTER_FILTER_SERVICE,
   TIME_FORMATTERS,
   HEALTH_COUNTS_COMPONENT,
-  require('../regionFilter/regionFilter.service.js'),
+  require('../regionFilter/regionFilter.service.js').name,
 ])
   .directive('projectCluster', function () {
     return {

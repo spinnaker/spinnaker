@@ -3,6 +3,6 @@
 const angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.bake', [
-  require('./bakeStage'),
-  require('./modal/addExtendedAttribute.controller.modal')
+  require('./bakeStage').name,
+  require('./modal/addExtendedAttribute.controller.modal').name
 ]);

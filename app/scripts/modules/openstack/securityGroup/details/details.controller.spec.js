@@ -4,7 +4,7 @@ describe('Controller: openstackSecurityGroupDetailsController', function() {
 
   //load the controller module
   beforeEach(
-    window.module(require('./details.controller'))
+    window.module(require('./details.controller').name)
   );
 
   // Initialize the controller and a mock scope

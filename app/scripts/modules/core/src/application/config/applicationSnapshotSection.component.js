@@ -7,9 +7,9 @@ const angular = require('angular');
 module.exports = angular
   .module('spinnaker.core.application.config.serialize.component', [
     require('@uirouter/angularjs').default,
-    require('./../../snapshot/snapshot.write.service.js'),
+    require('./../../snapshot/snapshot.write.service.js').name,
     CONFIRMATION_MODAL_SERVICE,
-    require('core/snapshot/diff/viewSnapshotDiffButton.component.js'),
+    require('core/snapshot/diff/viewSnapshotDiffButton.component.js').name,
   ])
   .component('applicationSnapshotSection', {
     templateUrl: require('./applicationSnapshotSection.component.html'),

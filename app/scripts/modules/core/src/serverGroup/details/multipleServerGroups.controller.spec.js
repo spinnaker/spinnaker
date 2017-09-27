@@ -9,7 +9,7 @@ describe('Controller: MultipleServerGroups', function () {
 
   beforeEach(
     window.module(
-      require('./multipleServerGroups.controller'),
+      require('./multipleServerGroups.controller').name,
       APPLICATION_READ_SERVICE,
       APPLICATION_MODEL_BUILDER
     )

@@ -242,6 +242,6 @@ export class LoadBalancerFilterService {
 export const LOAD_BALANCER_FILTER_SERVICE = 'spinnaker.core.loadBalancer.filter.service';
 module(LOAD_BALANCER_FILTER_SERVICE, [
   LOAD_BALANCER_FILTER_MODEL,
-  require('core/filterModel/filter.model.service.js')
+  require('core/filterModel/filter.model.service.js').name
 ]).factory('loadBalancerFilterService', (loadBalancerFilterModel: LoadBalancerFilterModel, filterModelService: any, $log: ILogService) =>
                                         new LoadBalancerFilterService(loadBalancerFilterModel, filterModelService, $log));

@@ -11,7 +11,7 @@ describe('Controller: openstackCreateLoadBalancerCtrl', function () {
   // load the controller's module
   beforeEach(
     window.module(
-      require('./upsert.controller'),
+      require('./upsert.controller').name,
       APPLICATION_MODEL_BUILDER
     )
   );

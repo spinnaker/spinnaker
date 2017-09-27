@@ -7,7 +7,7 @@ describe('Directive: GCE Server Group Capacity Selector', function() {
 
   beforeEach(
     window.module(
-      require('./simpleCapacitySelector.component.js')
+      require('./simpleCapacitySelector.component.js').name
     )
   );
 

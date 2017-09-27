@@ -4,7 +4,7 @@ describe('Directives: accountSelectField', function () {
 
   beforeEach(
     window.module(
-      require('./accountSelectField.directive.js')
+      require('./accountSelectField.directive.js').name
     )
   );
 

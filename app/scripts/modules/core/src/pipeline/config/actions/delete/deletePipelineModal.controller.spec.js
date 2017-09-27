@@ -5,7 +5,7 @@ describe('Controller: deletePipelineModal', function() {
 
   beforeEach(
     window.module(
-      require('./delete.module.js'),
+      require('./delete.module.js').name,
       APPLICATION_MODEL_BUILDER
     )
   );

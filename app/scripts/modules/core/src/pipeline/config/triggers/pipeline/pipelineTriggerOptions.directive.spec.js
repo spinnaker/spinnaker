@@ -6,7 +6,7 @@ describe('Pipeline Trigger: PipelineTriggerOptionsCtrl', function() {
 
   beforeEach(
     window.module(
-      require('./pipelineTriggerOptions.directive.js')
+      require('./pipelineTriggerOptions.directive.js').name
     )
   );
 

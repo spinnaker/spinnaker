@@ -8,8 +8,8 @@ import {TRAVIS_EXECUTION_DETAILS_CONTROLLER} from './travisExecutionDetails.cont
 export const TRAVIS_STAGE_MODULE = 'spinnaker.core.pipeline.stage.travis';
 module(TRAVIS_STAGE_MODULE, [
   TRAVIS_STAGE,
-  require('../stage.module.js'),
-  require('../core/stage.core.module.js'),
+  require('../stage.module.js').name,
+  require('../core/stage.core.module.js').name,
   TIME_FORMATTERS,
   IGOR_SERVICE,
   TRAVIS_EXECUTION_DETAILS_CONTROLLER,

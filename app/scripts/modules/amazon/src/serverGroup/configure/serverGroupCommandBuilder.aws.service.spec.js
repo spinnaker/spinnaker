@@ -5,7 +5,7 @@ import {AWSProviderSettings} from 'amazon/aws.settings';
 describe('Service: awsServerGroup', function () {
   beforeEach(
     window.module(
-      require('./serverGroupCommandBuilder.service.js')
+      require('./serverGroupCommandBuilder.service.js').name
     )
   );
 

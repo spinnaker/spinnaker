@@ -10,7 +10,7 @@ const angular = require('angular');
 module.exports = angular.module('spinnaker.deck.core.viewSnapshotDiff.component', [
     CLOUD_PROVIDER_REGISTRY,
     ACCOUNT_SERVICE,
-    require('./snapshotDiff.modal.controller.js'),
+    require('./snapshotDiff.modal.controller.js').name,
   ])
   .component('viewSnapshotDiffButton', {
     bindings: {

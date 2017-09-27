@@ -7,8 +7,8 @@ import {AWSProviderSettings} from 'amazon/aws.settings';
 describe('Controller: CreateSecurityGroup', function () {
   beforeEach(
     window.module(
-      require('./CreateSecurityGroupCtrl.js'),
-      require('./configSecurityGroup.mixin.controller.js')
+      require('./CreateSecurityGroupCtrl.js').name,
+      require('./configSecurityGroup.mixin.controller.js').name
     )
   );
 

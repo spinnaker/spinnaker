@@ -104,5 +104,5 @@ export class LoadBalancerFilterModel {
 
 export const LOAD_BALANCER_FILTER_MODEL = 'spinnaker.core.loadBalancer.filter.model';
 module(LOAD_BALANCER_FILTER_MODEL, [
-  require('core/filterModel/filter.model.service'),
+  require('core/filterModel/filter.model.service').name,
 ]).service('loadBalancerFilterModel', LoadBalancerFilterModel);

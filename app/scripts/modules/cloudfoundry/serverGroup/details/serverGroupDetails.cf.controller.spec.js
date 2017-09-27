@@ -6,7 +6,7 @@ describe('Controller: cfServerGroupDetailsCtrl', function () {
 
   beforeEach(
     window.module(
-      require('./serverGroupDetails.cf.controller'),
+      require('./serverGroupDetails.cf.controller').name,
       APPLICATION_MODEL_BUILDER
     )
   );

@@ -4,7 +4,7 @@ describe('gceServerGroupTransformer', () => {
   let transformer, $q, $scope;
   beforeEach(
     window.module(
-      require('./serverGroup.transformer.js')
+      require('./serverGroup.transformer.js').name
     )
   );
 

@@ -8,7 +8,7 @@ describe('Service: timeBoundaries', function () {
 
   beforeEach(
     window.module(
-      require('./timeBoundaries.service')
+      require('./timeBoundaries.service').name
     )
   );
 

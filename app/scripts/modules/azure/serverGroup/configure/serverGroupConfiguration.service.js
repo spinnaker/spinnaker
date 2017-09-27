@@ -12,7 +12,7 @@ import {
 } from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.azure.serverGroup.configure.service', [
-  require('../../image/image.reader.js'),
+  require('../../image/image.reader.js').name,
   ACCOUNT_SERVICE,
   NAMING_SERVICE,
   LOAD_BALANCER_READ_SERVICE,

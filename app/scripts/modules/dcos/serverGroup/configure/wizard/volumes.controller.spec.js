@@ -7,7 +7,7 @@ describe('dcosServerGroupVolumesController', function() {
 
   beforeEach(
     window.module(
-      require('./volumes.controller.js')
+      require('./volumes.controller.js').name
     )
   );
 

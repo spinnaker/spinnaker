@@ -18,13 +18,13 @@ module.exports = angular.module('spinnaker.core.pipeline.config.stage', [
   EDIT_STAGE_JSON_CONTROLLER,
   PIPELINE_CONFIG_PROVIDER,
   PIPELINE_CONFIG_SERVICE,
-  require('./overrideTimeout/overrideTimeout.directive.js'),
-  require('./overrideFailure/overrideFailure.component.js'),
-  require('./optionalStage/optionalStage.directive.js'),
+  require('./overrideTimeout/overrideTimeout.directive.js').name,
+  require('./overrideFailure/overrideFailure.component.js').name,
+  require('./optionalStage/optionalStage.directive.js').name,
   CONFIRMATION_MODAL_SERVICE,
   PIPELINE_BAKE_STAGE_CHOOSE_OS,
-  require('./core/stageConfigField/stageConfigField.directive.js'),
-  require('./bake/bakeStage.module'),
+  require('./core/stageConfigField/stageConfigField.directive.js').name,
+  require('./bake/bakeStage.module').name,
 ])
   .directive('pipelineConfigStage', function() {
     return {

@@ -12,7 +12,7 @@ module.exports = angular
   .module('spinnaker.core.pipeline.config.actions.history.controller', [
     PIPELINE_CONFIG_SERVICE,
     JSON_UTILITY_SERVICE,
-    require('./diffSummary.component'),
+    require('./diffSummary.component').name,
     DIFF_VIEW_COMPONENT,
   ])
   .controller('ShowHistoryCtrl', function ($window, pipelineConfigService, jsonUtilityService,

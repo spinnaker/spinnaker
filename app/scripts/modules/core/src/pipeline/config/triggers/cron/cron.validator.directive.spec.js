@@ -6,7 +6,7 @@ describe('Validator: cronExpression', function () {
 
   beforeEach(
     window.module(
-      require('./cron.validator.directive')
+      require('./cron.validator.directive').name
     )
   );
 

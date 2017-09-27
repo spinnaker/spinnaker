@@ -4,7 +4,7 @@ describe('dcosServerGroupCommandBuilder', function() {
 
   beforeEach(
     window.module(
-      require('./CommandBuilder.js')
+      require('./CommandBuilder.js').name
     )
   );
 

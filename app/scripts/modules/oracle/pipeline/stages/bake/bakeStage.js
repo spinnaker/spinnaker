@@ -13,7 +13,7 @@ import {
 } from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.oraclebmcs.pipeline.stage.bakeStage', [
-  require('./bakeExecutionDetails.controller.js'),
+  require('./bakeExecutionDetails.controller.js').name,
   PIPELINE_CONFIG_PROVIDER,
   BAKERY_SERVICE,
   ACCOUNT_SERVICE,

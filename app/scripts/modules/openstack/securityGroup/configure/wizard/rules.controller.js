@@ -5,8 +5,8 @@ const angular = require('angular');
 import { SECURITY_GROUP_READER } from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.securityGroup.configure.openstack.ports', [
-  require('../../transformer.js'),
-  require('../../../common/validateType.directive.js'),
+  require('../../transformer.js').name,
+  require('../../../common/validateType.directive.js').name,
   SECURITY_GROUP_READER
 ])
   .controller('openstackSecurityGroupRulesController', function($scope, openstackSecurityGroupTransformer, infrastructureCaches, securityGroupReader, cacheInitializer) {

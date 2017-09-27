@@ -8,7 +8,7 @@ module.exports = angular.module('spinnaker.google.serverGroup.details.rollback.c
       ACCOUNT_SERVICE,
       SERVER_GROUP_WRITER,
       TASK_MONITOR_BUILDER,
-      require('../../../common/footer.directive.js'),
+      require('../../../common/footer.directive.js').name,
     ])
     .controller('gceRollbackServerGroupCtrl', function ($scope, $uibModalInstance, serverGroupWriter,
                                                         taskMonitorBuilder,

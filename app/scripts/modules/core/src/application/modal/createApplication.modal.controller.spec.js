@@ -9,7 +9,7 @@ describe('Controller: CreateApplicationModalCtrl', function () {
 
   beforeEach(
     window.module(
-      require('./createApplication.modal.controller')
+      require('./createApplication.modal.controller').name
     )
   );
 

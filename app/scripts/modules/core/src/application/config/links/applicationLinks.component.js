@@ -10,7 +10,7 @@ import './applicationLinks.component.less';
 
 module.exports = angular
   .module('spinnaker.core.application.config.applicationLinks.component', [
-    require('./editLinks.modal.controller'),
+    require('./editLinks.modal.controller').name,
     require('angular-ui-bootstrap'),
     CONFIG_SECTION_FOOTER,
   ])

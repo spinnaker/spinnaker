@@ -5,7 +5,7 @@ describe('Controller: projectCluster directive', function () {
   var $controller, $scope, project, cluster, urlBuilder;
 
   beforeEach(window.module(
-    require('./projectCluster.directive.js')
+    require('./projectCluster.directive.js').name
   ));
 
   beforeEach(

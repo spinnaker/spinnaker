@@ -8,14 +8,14 @@ import { CANARY_SCORE_COMPONENT } from './canaryScore.component';
 import { CANARY_SCORES_CONFIG_COMPONENT } from './canaryScores.component';
 
 module.exports = angular.module('spinnaker.canary.stage', [
-  require('./canaryStage.js'),
-  require('./canaryExecutionDetails.controller.js'),
-  require('./canaryExecutionSummary.controller.js'),
-  require('./canaryDeployment/canaryDeployment.module.js'),
-  require('./canaryStage.transformer.js'),
+  require('./canaryStage.js').name,
+  require('./canaryExecutionDetails.controller.js').name,
+  require('./canaryExecutionSummary.controller.js').name,
+  require('./canaryDeployment/canaryDeployment.module.js').name,
+  require('./canaryStage.transformer.js').name,
   CANARY_SCORE_COMPONENT,
   CANARY_SCORES_CONFIG_COMPONENT,
-  require('./canaryStatus.directive.js'),
+  require('./canaryStatus.directive.js').name,
   ACCOUNT_SERVICE,
   NAMING_SERVICE,
 ])

@@ -103,7 +103,6 @@
     "@types/react-select": "^1.0.54",
     "@types/webpack": "^2.2.4",
     "@types/webpack-env": "^1.13.0",
-    "angular-loader": "file:./angular-loader",
     "angular-mocks": "1.6.4",
     "angulartics": "^1.1.2",
     "angulartics-google-analytics": "^0.2.0",

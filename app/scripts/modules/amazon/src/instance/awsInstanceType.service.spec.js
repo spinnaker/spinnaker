@@ -8,7 +8,7 @@ describe('Service: InstanceType', function () {
 
   beforeEach(function() {
       window.module(
-        require('./awsInstanceType.service'),
+        require('./awsInstanceType.service').name,
         API_SERVICE
       );
   });

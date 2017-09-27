@@ -6,7 +6,7 @@ describe('Controller: jenkinsTrigger', function() {
 
   beforeEach(
     window.module(
-      require('./jenkinsTrigger.module.js')
+      require('./jenkinsTrigger.module.js').name
     )
   );
 

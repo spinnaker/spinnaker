@@ -11,9 +11,9 @@ module.exports = angular.module('spinnaker.google.serverGroup.configure.wizard.b
   V2_MODAL_WIZARD_SERVICE,
   IMAGE_READER,
   NAMING_SERVICE,
-  require('../../../../gceRegionSelectField.directive.js'),
-  require('../../../../gceNetworkSelectField.directive.js'),
-  require('../../../../subnet/subnetSelectField.directive.js'),
+  require('../../../../gceRegionSelectField.directive.js').name,
+  require('../../../../gceNetworkSelectField.directive.js').name,
+  require('../../../../subnet/subnetSelectField.directive.js').name,
 ])
   .controller('gceServerGroupBasicSettingsCtrl', function($scope, $controller, $uibModalStack, $state,
                                                           v2modalWizardService, imageReader, namingService) {

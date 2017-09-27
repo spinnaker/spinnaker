@@ -165,6 +165,6 @@ module(AWS_CREATE_CLASSIC_LOAD_BALANCER_CTRL, [
   CACHE_INITIALIZER_SERVICE,
   INFRASTRUCTURE_CACHE_SERVICE,
   NAMING_SERVICE,
-  require('../common/loadBalancerAvailabilityZoneSelector.directive.js'),
+  require('../common/loadBalancerAvailabilityZoneSelector.directive.js').name,
   SUBNET_SELECT_FIELD_COMPONENT,
 ]).controller('awsCreateClassicLoadBalancerCtrl', CreateClassicLoadBalancerCtrl);

@@ -5,7 +5,7 @@ describe('Jenkins Stage Controller', function () {
 
   beforeEach(
     window.module(
-      require('./jenkinsStage')
+      require('./jenkinsStage').name
     )
   );
 

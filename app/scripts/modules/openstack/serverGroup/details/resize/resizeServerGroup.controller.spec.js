@@ -9,7 +9,7 @@ describe('Controller: openstackResizeServerGroupCtrl', function () {
 
   beforeEach(
     window.module(
-      require('./resizeServerGroup.controller')
+      require('./resizeServerGroup.controller').name
     )
   );
 

@@ -6,7 +6,7 @@ describe('Pipeline Trigger: ExecutionHandler', function() {
 
   beforeEach(
     window.module(
-      require('./pipelineTrigger.module.js')
+      require('./pipelineTrigger.module.js').name
     )
   );
 

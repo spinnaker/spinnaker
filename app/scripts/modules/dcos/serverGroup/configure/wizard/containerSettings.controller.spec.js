@@ -7,7 +7,7 @@ describe('dcosServerGroupContainerSettingsController', function() {
 
   beforeEach(
     window.module(
-      require('./containerSettings.controller.js')
+      require('./containerSettings.controller.js').name
     )
   );
 

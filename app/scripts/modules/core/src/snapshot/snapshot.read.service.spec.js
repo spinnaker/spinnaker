@@ -8,7 +8,7 @@ describe('Service: SnapshotRead', function() {
   const params = { limit: 20 };
 
   beforeEach(
-    window.module(require('./snapshot.read.service.js')));
+    window.module(require('./snapshot.read.service.js').name));
 
   beforeEach(window.inject(function($httpBackend, snapshotReader) {
     this.$httpBackend = $httpBackend;

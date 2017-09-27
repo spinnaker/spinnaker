@@ -8,7 +8,7 @@ describe('Controller: MultipleInstances', function () {
 
   beforeEach(
     window.module(
-      require('./multipleInstances.controller'),
+      require('./multipleInstances.controller').name,
       APPLICATION_MODEL_BUILDER
     )
   );

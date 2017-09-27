@@ -6,7 +6,7 @@ describe('dcosServerGroupConfigurationService', function() {
 
   beforeEach(
     window.module(
-      require('./configuration.service.js')
+      require('./configuration.service.js').name
     )
   );
 

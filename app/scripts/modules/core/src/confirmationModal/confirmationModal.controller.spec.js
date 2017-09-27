@@ -5,7 +5,7 @@ describe('Controller: ConfirmationModal', function () {
 
   beforeEach(
     window.module(
-      require('./confirmationModal.controller.js')
+      require('./confirmationModal.controller.js').name
     )
   );
 

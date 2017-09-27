@@ -8,7 +8,7 @@ describe('Service: aws Image Reader', function() {
 
   beforeEach(
     window.module(
-      require('./image.reader.js'),
+      require('./image.reader.js').name,
       API_SERVICE
     )
   );

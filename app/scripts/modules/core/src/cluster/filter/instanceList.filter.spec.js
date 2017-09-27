@@ -6,7 +6,7 @@ describe('Filter: instanceList', function () {
 
   beforeEach(
     window.module(
-      require('./instanceList.filter.js')
+      require('./instanceList.filter.js').name
     )
   );
 

@@ -13,7 +13,7 @@ import { ApplicationReader } from 'core/application/service/application.read.ser
 export const CLUSTER_MODULE = 'spinnaker.core.cluster';
 
 module(CLUSTER_MODULE, [
-  require('./allClusters.controller.js'),
+  require('./allClusters.controller.js').name,
   CLUSTER_ALLCLUSTERSGROUPINGS,
   ON_DEMAND_CLUSTER_PICKER_COMPONENT,
 ])

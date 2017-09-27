@@ -6,7 +6,7 @@ describe('Controller: AllSecurityGroupsCtrl', function () {
 
   beforeEach(
     window.module(
-      require('./AllSecurityGroupsCtrl.js')
+      require('./AllSecurityGroupsCtrl.js').name
     )
   );
 

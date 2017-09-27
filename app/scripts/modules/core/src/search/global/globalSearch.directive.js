@@ -6,7 +6,7 @@ const $ = require('jquery');
 import { SPINNER_COMPONENT } from '../../widgets/spinners/spinner.component';
 
 module.exports = angular.module('spinnaker.core.search.global.directive', [
-  require('./globalSearch.controller.js'), SPINNER_COMPONENT
+  require('./globalSearch.controller.js').name, SPINNER_COMPONENT
 ])
   .directive('globalSearch', function($window) {
     return {

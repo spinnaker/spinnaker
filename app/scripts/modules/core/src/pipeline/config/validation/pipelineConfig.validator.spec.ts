@@ -74,7 +74,7 @@ describe('pipelineConfigValidator', () => {
   beforeEach(
     mock.module(
       PIPELINE_CONFIG_VALIDATOR,
-      require('../pipelineConfig.module.js')
+      require('../pipelineConfig.module.js').name
     )
   );
 

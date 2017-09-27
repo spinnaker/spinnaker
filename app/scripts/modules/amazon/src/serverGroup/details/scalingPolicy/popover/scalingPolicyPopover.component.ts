@@ -25,5 +25,5 @@ const scalingPolicyPopover: IComponentOptions = {
 
 export const SCALING_POLICY_POPOVER = 'spinnaker.amazon.serverGroup.details.scalingPolicy.popover.component';
 module(SCALING_POLICY_POPOVER, [
-  require('../chart/metricAlarmChart.component.js')
+  require('../chart/metricAlarmChart.component.js').name
 ]).component('awsScalingPolicyPopover', scalingPolicyPopover);

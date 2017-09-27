@@ -8,7 +8,7 @@ describe('Controller: tasks', function () {
 
   beforeEach(
     window.module(
-      require('./tasks.controller.js'),
+      require('./tasks.controller.js').name,
       APPLICATION_MODEL_BUILDER
     )
   );

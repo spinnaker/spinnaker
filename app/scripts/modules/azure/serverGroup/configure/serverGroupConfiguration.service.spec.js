@@ -6,7 +6,7 @@ describe('Service: azureServerGroupConfiguration', function () {
 
   beforeEach(
     window.module(
-      require('./serverGroupConfiguration.service.js')
+      require('./serverGroupConfiguration.service.js').name
       )
     );
 

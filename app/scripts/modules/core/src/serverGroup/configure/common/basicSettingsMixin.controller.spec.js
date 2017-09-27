@@ -5,7 +5,7 @@ describe('Basic Settings Mixin Controller:', function () {
 
   beforeEach(
     window.module(
-      require('./basicSettingsMixin.controller.js')
+      require('./basicSettingsMixin.controller.js').name
     )
   );
 

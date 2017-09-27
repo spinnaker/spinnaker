@@ -5,8 +5,8 @@ import {CLUSTER_FILTER_MODEL} from '../cluster/filter/clusterFilter.model';
 
 module.exports = angular.module('spinnaker.core.instance.instanceList.directive', [
   CLUSTER_FILTER_MODEL,
-  require('../cluster/filter/multiselect.model'),
-  require('./instanceListBody.directive'),
+  require('../cluster/filter/multiselect.model').name,
+  require('./instanceListBody.directive').name,
 ])
   .directive('instanceList', function (clusterFilterModel, MultiselectModel) {
     return {

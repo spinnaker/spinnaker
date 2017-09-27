@@ -4,7 +4,7 @@ describe('Controller: ManualPipelineExecution', function () {
 
   beforeEach(
     window.module(
-      require('./manualPipelineExecution.controller')
+      require('./manualPipelineExecution.controller').name
     )
   );
 

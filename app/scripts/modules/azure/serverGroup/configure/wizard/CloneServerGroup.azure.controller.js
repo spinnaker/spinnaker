@@ -6,8 +6,8 @@ import { SERVER_GROUP_WRITER, TASK_MONITOR_BUILDER, V2_MODAL_WIZARD_SERVICE } fr
 
 module.exports = angular.module('spinnaker.azure.cloneServerGroup.controller', [
   require('@uirouter/angularjs').default,
-  require('../serverGroupConfiguration.service.js'),
-  require('../../serverGroup.transformer.js'),
+  require('../serverGroupConfiguration.service.js').name,
+  require('../../serverGroup.transformer.js').name,
   SERVER_GROUP_WRITER,
   TASK_MONITOR_BUILDER,
   V2_MODAL_WIZARD_SERVICE,

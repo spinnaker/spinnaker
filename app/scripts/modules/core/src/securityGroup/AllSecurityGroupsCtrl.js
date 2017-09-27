@@ -10,7 +10,7 @@ import { SECURITY_GROUP_FILTER_MODEL } from './filter/securityGroupFilter.model'
 const angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.securityGroup.all.controller', [
-  require('./filter/securityGroup.filter.service.js'),
+  require('./filter/securityGroup.filter.service.js').name,
   SECURITY_GROUP_FILTER_MODEL,
   PROVIDER_SELECTION_SERVICE,
   require('angular-ui-bootstrap'),

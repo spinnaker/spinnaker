@@ -9,7 +9,7 @@ import {
 
 module.exports = angular.module('spinnaker.oraclebmcs.pipeline.stage.resizeAsgStage', [
   ACCOUNT_SERVICE,
-  require('core/application/modal/platformHealthOverride.directive.js'),
+  require('core/application/modal/platformHealthOverride.directive.js').name,
 ])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({

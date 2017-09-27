@@ -24,8 +24,8 @@ describe('Service: applicationReader', function () {
   beforeEach(
     mock.module(
       APPLICATION_READ_SERVICE,
-      require('core/securityGroup/securityGroup.dataSource'),
-      require('core/serverGroup/serverGroup.dataSource'),
+      require('core/securityGroup/securityGroup.dataSource').name,
+      require('core/serverGroup/serverGroup.dataSource').name,
       LOAD_BALANCER_DATA_SOURCE,
       SECURITY_GROUP_READER,
       CLUSTER_SERVICE,

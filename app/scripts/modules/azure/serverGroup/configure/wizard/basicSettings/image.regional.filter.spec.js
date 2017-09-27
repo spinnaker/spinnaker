@@ -4,7 +4,7 @@ describe('Filter: regional', function () {
 
   beforeEach(
     window.module(
-      require('./image.regional.filter.js')
+      require('./image.regional.filter.js').name
       )
     );
 

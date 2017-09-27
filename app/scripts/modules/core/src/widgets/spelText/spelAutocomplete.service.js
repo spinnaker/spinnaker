@@ -6,7 +6,7 @@ const angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.core.widget.spelAutocomplete', [
-    require('./jsonListBuilder'),
+    require('./jsonListBuilder').name,
     EXECUTION_SERVICE,
   ])
   .factory('spelAutocomplete', function($q, jsonListBuilder, executionService) {

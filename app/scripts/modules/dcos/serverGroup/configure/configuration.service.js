@@ -8,7 +8,7 @@ const angular = require('angular');
 
 module.exports = angular.module('spinnaker.dcos.serverGroup.configure.configuration.service', [
   ACCOUNT_SERVICE,
-  require('../../image/image.reader.js'),
+  require('../../image/image.reader.js').name,
 ])
   .factory('dcosServerGroupConfigurationService', function($q, accountService, dcosImageReader) {
     function configureCommand(application, command, query = '') {

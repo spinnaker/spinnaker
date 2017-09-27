@@ -5,7 +5,7 @@ const angular = require('angular');
 module.exports = angular.module('spinnaker.serverGroup.configure.openstack.accessSettings', [
   require('@uirouter/angularjs').default,
   require('angular-ui-bootstrap'),
-  require('../../../../common/cacheBackedMultiSelectField.directive.js'),
+  require('../../../../common/cacheBackedMultiSelectField.directive.js').name,
 ]).controller('openstackServerGroupAccessSettingsCtrl', function($scope, loadBalancerReader, securityGroupReader, networkReader, v2modalWizardService) {
 
   // Loads all load balancers in the current application, region, and account

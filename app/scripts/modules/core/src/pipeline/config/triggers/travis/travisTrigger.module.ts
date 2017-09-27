@@ -83,7 +83,7 @@ export class TravisTrigger implements IController {
 export const TRAVIS_TRIGGER = 'spinnaker.core.pipeline.config.trigger.travis';
 module(TRAVIS_TRIGGER, [
   TRAVIS_TRIGGER_OPTIONS_COMPONENT,
-  require('../trigger.directive.js'),
+  require('../trigger.directive.js').name,
   IGOR_SERVICE,
   SERVICE_ACCOUNT_SERVICE,
   PIPELINE_CONFIG_PROVIDER,

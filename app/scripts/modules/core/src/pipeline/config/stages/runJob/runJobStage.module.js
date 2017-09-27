@@ -3,5 +3,5 @@
 const angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.runJob', [
-  require('./runJobStage.js'),
+  require('./runJobStage.js').name,
 ]);

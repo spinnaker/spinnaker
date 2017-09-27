@@ -5,7 +5,7 @@ describe('Jenkins Execution Details Controller:', function () {
 
   beforeEach(
     window.module(
-      require('./jenkinsExecutionDetails.controller.js')
+      require('./jenkinsExecutionDetails.controller.js').name
     )
   );
 

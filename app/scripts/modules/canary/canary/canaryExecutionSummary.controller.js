@@ -6,8 +6,8 @@ import { PIPELINE_CONFIG_PROVIDER } from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.canary.summary.controller', [
   require('@uirouter/angularjs').default,
-  require('./actions/generateScore.controller.js'),
-  require('./actions/endCanary.controller.js'),
+  require('./actions/generateScore.controller.js').name,
+  require('./actions/endCanary.controller.js').name,
   PIPELINE_CONFIG_PROVIDER
 ])
   .controller('CanaryExecutionSummaryCtrl', function ($scope, $http, $uibModal, pipelineConfig) {

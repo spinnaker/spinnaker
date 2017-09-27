@@ -8,13 +8,13 @@ import { SELECT_ON_DOUBLE_CLICK_DIRECTIVE } from 'core/utils/selectOnDblClick.di
 const angular = require('angular');
 
 module.exports = angular.module('spinnaker.utils', [
-  require('./moment.js'),
-  require('./appendTransform.js'),
+  require('./moment.js').name,
+  require('./appendTransform.js').name,
   COPY_TO_CLIPBOARD_COMPONENT,
   TIME_FORMATTERS,
   SELECT_ON_DOUBLE_CLICK_DIRECTIVE,
-  require('./infiniteScroll.directive.js'),
+  require('./infiniteScroll.directive.js').name,
   RENDER_IF_FEATURE,
-  require('./waypoints/waypoint.directive'),
-  require('./waypoints/waypointContainer.directive'),
+  require('./waypoints/waypoint.directive').name,
+  require('./waypoints/waypointContainer.directive').name,
 ]);

@@ -8,8 +8,8 @@ import {V2_MODAL_WIZARD_SERVICE} from 'core/modal/wizard/v2modalWizard.service';
 const angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.serverGroup.configure.common.v2instanceArchetypeSelector', [
-  require('./costFactor.js'),
-  require('../../../presentation/isVisible/isVisible.directive.js'),
+  require('./costFactor.js').name,
+  require('../../../presentation/isVisible/isVisible.directive.js').name,
   V2_MODAL_WIZARD_SERVICE,
   CLOUD_PROVIDER_REGISTRY,
 ])

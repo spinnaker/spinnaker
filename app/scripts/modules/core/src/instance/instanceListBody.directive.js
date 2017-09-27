@@ -9,7 +9,7 @@ import { CLUSTER_FILTER_SERVICE } from 'core/cluster/filter/clusterFilter.servic
 
 module.exports = angular.module('spinnaker.core.instance.instanceListBody.directive', [
   CLUSTER_FILTER_SERVICE,
-  require('../cluster/filter/multiselect.model'),
+  require('../cluster/filter/multiselect.model').name,
   CLUSTER_FILTER_MODEL,
 ])
   .directive('instanceListBody', function ($timeout, $filter, $rootScope, $state, clusterFilterService,

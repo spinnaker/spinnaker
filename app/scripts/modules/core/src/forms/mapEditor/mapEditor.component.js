@@ -6,7 +6,7 @@ import './mapEditor.component.less';
 
 module.exports = angular
   .module('spinnaker.core.forms.mapEditor.component', [
-    require('../../validation/validateUnique.directive')
+    require('../../validation/validateUnique.directive').name
   ])
   .component('mapEditor', {
     bindings: {

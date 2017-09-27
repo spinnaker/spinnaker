@@ -9,7 +9,7 @@ import './executionFilter.less';
 
 module.exports = angular
   .module('spinnaker.core.delivery.filter.executionFilters.directive', [
-    require('./executionFilter.controller.js'),
+    require('./executionFilter.controller.js').name,
     EXECUTION_FILTER_SERVICE,
     EXECUTION_FILTER_MODEL,
   ])

@@ -8,10 +8,10 @@ import './instanceSelection.less';
 
 module.exports = angular
   .module('spinnaker.core.instance', [
-    require('./details/console/consoleOutputLink.directive.js'),
-    require('./loadBalancer/instanceLoadBalancerHealth.directive.js'),
-    require('./details/multipleInstances.controller.js'),
-    require('./details/instanceLinks.component'),
-    require('./instanceList.directive'),
+    require('./details/console/consoleOutputLink.directive.js').name,
+    require('./loadBalancer/instanceLoadBalancerHealth.directive.js').name,
+    require('./details/multipleInstances.controller.js').name,
+    require('./details/instanceLinks.component').name,
+    require('./instanceList.directive').name,
     INSTANCE_STATES
   ]);

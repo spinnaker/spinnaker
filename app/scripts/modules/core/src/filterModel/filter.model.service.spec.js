@@ -19,7 +19,7 @@ describe('Service: FilterModelService', function () {
 
   beforeEach(
     window.module(
-      require('./filter.model.service.js')
+      require('./filter.model.service.js').name
     )
   );
 

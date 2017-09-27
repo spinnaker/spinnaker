@@ -6,7 +6,7 @@ describe('Component: mapEditor', function () {
 
   beforeEach(
     window.module(
-      require('./mapEditor.component.js')
+      require('./mapEditor.component.js').name
     )
   );
 

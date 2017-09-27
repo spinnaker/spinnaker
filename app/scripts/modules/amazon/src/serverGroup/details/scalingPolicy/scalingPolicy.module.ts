@@ -7,5 +7,5 @@ export const SCALING_POLICY_MODULE = 'spinnaker.amazon.scalingPolicy.module';
 module(SCALING_POLICY_MODULE, [
   DETAILS_SUMMARY,
   TARGET_TRACKING_MODULE,
-  require('./alarmBasedSummary.component'),
+  require('./alarmBasedSummary.component').name,
 ]);

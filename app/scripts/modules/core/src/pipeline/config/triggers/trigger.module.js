@@ -9,15 +9,15 @@ import { PUBSUB_TRIGGER } from './pubsub/pubsub.trigger';
 import { ARTIFACT } from './artifacts/artifact.component';
 
 module.exports = angular.module('spinnaker.core.pipeline.config.trigger', [
-    require('../stages/stage.module.js'),
-    require('./cron/cronTrigger.module.js'),
+    require('../stages/stage.module.js').name,
+    require('./cron/cronTrigger.module.js').name,
     GIT_TRIGGER,
-    require('./jenkins/jenkinsTrigger.module.js'),
+    require('./jenkins/jenkinsTrigger.module.js').name,
     TRAVIS_TRIGGER,
-    require('./pipeline/pipelineTrigger.module.js'),
+    require('./pipeline/pipelineTrigger.module.js').name,
     PUBSUB_TRIGGER,
     ARTIFACT,
-    require('./trigger.directive.js'),
-    require('./triggers.directive.js'),
+    require('./trigger.directive.js').name,
+    require('./triggers.directive.js').name,
     RUN_AS_USER_SELECTOR_COMPONENT,
   ]);

@@ -10,7 +10,7 @@ templates.keys().forEach(function(key) {
 
 export const DOCKER_MODULE = 'spinnaker.docker';
 module(DOCKER_MODULE, [
-  require('./pipeline/stages/bake/dockerBakeStage'),
-  require('./pipeline/trigger/dockerTrigger.module'),
+  require('./pipeline/stages/bake/dockerBakeStage').name,
+  require('./pipeline/trigger/dockerTrigger.module').name,
   IMAGE_MODULE,
 ]);

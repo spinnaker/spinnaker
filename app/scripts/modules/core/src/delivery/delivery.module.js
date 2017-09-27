@@ -22,21 +22,21 @@ module.exports = angular.module('spinnaker.delivery', [
   EXECUTION_GROUPS_COMPONENT,
   EXECUTION_DETAILS_COMPONENT,
   EXECUTIONS_COMPONENT,
-  require('./details/executionDetailsSectionNav.directive.js'),
+  require('./details/executionDetailsSectionNav.directive.js').name,
 
   BUILD_DISPLAY_NAME_FILTER,
   EXECUTION_BUILD_NUMBER_COMPONENT,
 
-  require('./filter/executionFilters.directive.js'),
+  require('./filter/executionFilters.directive.js').name,
 
-  require('./manualExecution/manualPipelineExecution.controller.js'),
+  require('./manualExecution/manualPipelineExecution.controller.js').name,
 
   STAGE_FAILURE_MESSAGE_COMPONENT,
   EXECUTION_STATUS_COMPONENT,
 
-  require('../utils/appendTransform.js'),
-  require('../utils/moment.js'),
+  require('../utils/appendTransform.js').name,
+  require('../utils/moment.js').name,
 
-  require('./delivery.dataSource'),
+  require('./delivery.dataSource').name,
   DELIVERY_STATES,
 ]);

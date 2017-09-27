@@ -5,7 +5,7 @@ describe('Controller: modifyScalingProcesses', function() {
 
   beforeEach(
     window.module(
-      require('./modifyScalingProcesses.controller.js')
+      require('./modifyScalingProcesses.controller.js').name
     )
   );
 

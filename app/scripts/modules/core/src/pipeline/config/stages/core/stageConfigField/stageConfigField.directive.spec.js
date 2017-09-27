@@ -8,7 +8,7 @@ describe('Directives: stageConfigField', function () {
 
   beforeEach(
     window.module(
-      require('./stageConfigField.directive.js')
+      require('./stageConfigField.directive.js').name
     )
   );
 

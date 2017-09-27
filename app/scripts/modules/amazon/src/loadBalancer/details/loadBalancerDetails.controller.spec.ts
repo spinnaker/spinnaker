@@ -20,9 +20,8 @@ describe('Controller: LoadBalancerDetailsCtrl', function () {
 
   beforeEach(
     mock.module(
-      require('./loadBalancerDetails.controller'),
       APPLICATION_MODEL_BUILDER,
-      AWS_LOAD_BALANCER_DETAILS_CTRL
+      AWS_LOAD_BALANCER_DETAILS_CTRL,
     )
   );
 

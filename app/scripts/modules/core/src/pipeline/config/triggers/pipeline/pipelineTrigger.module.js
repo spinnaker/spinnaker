@@ -11,8 +11,8 @@ module.exports = angular.module('spinnaker.core.pipeline.config.trigger.pipeline
   PIPELINE_CONFIG_SERVICE,
   PIPELINE_CONFIG_PROVIDER,
   APPLICATION_READ_SERVICE,
-  require('../trigger.directive.js'),
-  require('./pipelineTriggerOptions.directive.js'),
+  require('../trigger.directive.js').name,
+  require('./pipelineTriggerOptions.directive.js').name,
 ])
   .config(function (pipelineConfigProvider) {
     pipelineConfigProvider.registerTrigger({

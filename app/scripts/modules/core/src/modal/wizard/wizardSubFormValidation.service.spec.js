@@ -9,7 +9,7 @@ describe('Service: wizardSubFormValidation', function () {
 
   beforeEach(
     window.module(
-      require('./wizardSubFormValidation.service.js'),
+      require('./wizardSubFormValidation.service.js').name,
       V2_MODAL_WIZARD_SERVICE
     )
   );

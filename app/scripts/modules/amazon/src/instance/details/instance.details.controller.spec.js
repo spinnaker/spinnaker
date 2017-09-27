@@ -10,7 +10,7 @@ describe('Controller: awsInstanceDetailsCtrl', function () {
 
   beforeEach(
     window.module(
-      require('./instance.details.controller'),
+      require('./instance.details.controller').name,
       APPLICATION_MODEL_BUILDER
     )
   );

@@ -12,5 +12,5 @@ const executionsComponent: IComponentOptions = {
 
 export const EXECUTIONS_COMPONENT = 'spinnaker.core.executions.component';
 module(EXECUTIONS_COMPONENT, [
-  require('./executions.controller'),
+  require('./executions.controller').name,
 ]).component('executions', executionsComponent);

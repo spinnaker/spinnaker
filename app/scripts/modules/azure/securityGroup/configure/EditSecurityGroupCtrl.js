@@ -17,7 +17,7 @@ module.exports = angular.module('spinnaker.azure.securityGroup.azure.edit.contro
   CACHE_INITIALIZER_SERVICE,
   SECURITY_GROUP_READER,
   TASK_MONITOR_BUILDER,
-  require('../securityGroup.write.service.js'),
+  require('../securityGroup.write.service.js').name,
 ])
   .controller('azureEditSecurityGroupCtrl', function($scope, $uibModalInstance, $exceptionHandler, $state,
                                                      accountService, securityGroupReader,

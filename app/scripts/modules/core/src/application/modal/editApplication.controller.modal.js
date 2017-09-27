@@ -12,7 +12,7 @@ module.exports = angular
     APPLICATION_WRITE_SERVICE,
     ACCOUNT_SERVICE,
     TASK_READ_SERVICE,
-    require('./applicationProviderFields.component.js'),
+    require('./applicationProviderFields.component.js').name,
   ])
   .controller('EditApplicationController', function ($scope, $window, $state, $uibModalInstance, application, applicationWriter,
                                                      accountService, taskReader) {

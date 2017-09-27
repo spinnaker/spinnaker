@@ -6,7 +6,7 @@ describe('jsonListBuilder', function () {
 
   beforeEach(
     window.module(
-      require('./jsonListBuilder')
+      require('./jsonListBuilder').name
     )
   );
 

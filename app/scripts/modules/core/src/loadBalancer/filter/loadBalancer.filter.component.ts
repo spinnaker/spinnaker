@@ -12,8 +12,8 @@ export const LOAD_BALANCER_FILTER = 'spinnaker.core.loadBalancer.filter.controll
 const ngmodule = module('spinnaker.core.loadBalancer.filter.controller', [
   LOAD_BALANCER_FILTER_SERVICE,
   LOAD_BALANCER_FILTER_MODEL,
-  require('../../filterModel/dependentFilter/dependentFilter.service'),
-  require('./loadBalancerDependentFilterHelper.service'),
+  require('../../filterModel/dependentFilter/dependentFilter.service').name,
+  require('./loadBalancerDependentFilterHelper.service').name,
 ]);
 
 class LoadBalancerFilterCtrl {

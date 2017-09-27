@@ -10,7 +10,7 @@ import { METRIC_SELECTOR_COMPONENT } from './metricSelector.component';
 module.exports = angular
   .module('spinnaker.amazon.serverGroup.details.scalingPolicy.alarm.configurer', [
     CLOUD_METRICS_READ_SERVICE,
-    require('./dimensionsEditor.component'),
+    require('./dimensionsEditor.component').name,
     METRIC_SELECTOR_COMPONENT,
   ])
   .component('awsAlarmConfigurer', {

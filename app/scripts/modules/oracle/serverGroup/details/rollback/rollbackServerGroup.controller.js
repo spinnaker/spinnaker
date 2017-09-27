@@ -8,7 +8,7 @@ module.exports = angular.module('spinnaker.oraclebmcs.serverGroup.details.rollba
       ACCOUNT_SERVICE,
       SERVER_GROUP_WRITER,
       TASK_MONITOR_BUILDER,
-      require('oracle/common/footer.component.js'),
+      require('oracle/common/footer.component.js').name,
     ])
     .controller('oraclebmcsRollbackServerGroupCtrl', function ($scope, $uibModalInstance, serverGroupWriter, taskMonitorBuilder, application, serverGroup, disabledServerGroups) {
       $scope.serverGroup = serverGroup;

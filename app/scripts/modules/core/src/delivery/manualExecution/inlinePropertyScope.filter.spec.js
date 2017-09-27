@@ -5,7 +5,7 @@ describe('inline property filter', function () {
   let filter;
 
   beforeEach(
-    window.module(require('./inlinePropertyScope.filter'))
+    window.module(require('./inlinePropertyScope.filter').name)
   );
 
   beforeEach(

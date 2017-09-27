@@ -3,8 +3,8 @@
 describe('Controller: SnapshotDiffModalCtrl', function () {
   beforeEach(
     window.module(
-      require('./snapshotDiff.modal.controller.js'),
-      require('../snapshot.read.service.js')
+      require('./snapshotDiff.modal.controller.js').name,
+      require('../snapshot.read.service.js').name
     )
   );
 

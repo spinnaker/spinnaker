@@ -59,6 +59,6 @@ export const LOAD_BALANCER_READ_SERVICE = 'spinnaker.core.loadBalancer.read.serv
 module(LOAD_BALANCER_READ_SERVICE, [
   NAMING_SERVICE,
   INFRASTRUCTURE_CACHE_SERVICE,
-  require('./loadBalancer.transformer.js'),
+  require('./loadBalancer.transformer.js').name,
   API_SERVICE
 ]).service('loadBalancerReader', LoadBalancerReader);

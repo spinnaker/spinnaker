@@ -10,9 +10,9 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
   ACCOUNT_SERVICE,
   INSTANCE_TYPE_SERVICE,
   NAMING_SERVICE,
-  require('google/common/xpnNaming.gce.service.js'),
-  require('./../../instance/custom/customInstanceBuilder.gce.service.js'),
-  require('./wizard/hiddenMetadataKeys.value.js'),
+  require('google/common/xpnNaming.gce.service.js').name,
+  require('./../../instance/custom/customInstanceBuilder.gce.service.js').name,
+  require('./wizard/hiddenMetadataKeys.value.js').name,
 ])
   .factory('gceServerGroupCommandBuilder', function ($q, accountService, instanceTypeService, namingService,
                                                      gceCustomInstanceBuilderService, gceServerGroupHiddenMetadataKeys,

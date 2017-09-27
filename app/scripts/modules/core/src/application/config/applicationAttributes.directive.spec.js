@@ -8,7 +8,7 @@ describe('Controller: Config', function () {
   var application;
 
   beforeEach(window.module(
-    require('./applicationAttributes.directive.js')
+    require('./applicationAttributes.directive.js').name
   ));
 
   beforeEach(

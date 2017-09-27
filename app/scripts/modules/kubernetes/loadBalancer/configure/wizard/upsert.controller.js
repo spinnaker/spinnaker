@@ -15,8 +15,8 @@ module.exports = angular.module('spinnaker.loadBalancer.kubernetes.create.contro
   ACCOUNT_SERVICE,
   V2_MODAL_WIZARD_SERVICE,
   TASK_MONITOR_BUILDER,
-  require('../../../namespace/selectField.directive.js'),
-  require('../../transformer.js'),
+  require('../../../namespace/selectField.directive.js').name,
+  require('../../transformer.js').name,
 ])
   .controller('kubernetesUpsertLoadBalancerController', function($scope, $uibModalInstance, $state,
                                                                  application, loadBalancer, isNew,

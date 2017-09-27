@@ -15,7 +15,7 @@ describe('Controller: azureLoadBalancerDetailsCtrl', function () {
 
   beforeEach(
     window.module(
-      require('./loadBalancerDetail.controller'),
+      require('./loadBalancerDetail.controller').name,
       APPLICATION_MODEL_BUILDER
     )
   );

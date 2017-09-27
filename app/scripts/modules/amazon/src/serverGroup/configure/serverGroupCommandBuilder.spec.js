@@ -7,7 +7,7 @@ describe('awsServerGroupCommandBuilder', function() {
 
   beforeEach(
     window.module(
-      require('./serverGroupCommandBuilder.service.js')
+      require('./serverGroupCommandBuilder.service.js').name
     )
   );
 

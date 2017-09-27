@@ -7,10 +7,10 @@ import { INSTANCE_TYPE_SERVICE } from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.serverGroup.configure.gce.cloneServerGroup', [
   require('@uirouter/angularjs').default,
-  require('google/instance/custom/customInstanceBuilder.gce.service.js'),
+  require('google/instance/custom/customInstanceBuilder.gce.service.js').name,
   INSTANCE_TYPE_SERVICE,
-  require('./hiddenMetadataKeys.value.js'),
-  require('./securityGroups/tagManager.service.js')
+  require('./hiddenMetadataKeys.value.js').name,
+  require('./securityGroups/tagManager.service.js').name
 ])
   .controller('gceCloneServerGroupCtrl', function($scope, $uibModalInstance, $q, $state, $log,
                                                   serverGroupWriter, v2modalWizardService, taskMonitorBuilder,

@@ -15,29 +15,29 @@ module.exports = angular.module('spinnaker.oraclebmcs', [
   CLOUD_PROVIDER_REGISTRY,
   ORACLE_HELP_CONTENTS_REGISTRY,
   //Cache
-  require('./cache/cacheConfigurer.service.js'),
+  require('./cache/cacheConfigurer.service.js').name,
   // Pipeline
-  require('./pipeline/stages/bake/bakeStage.js'),
-  require('./pipeline/stages/destroyAsg/destroyAsgStage.js'),
-  require('./pipeline/stages/disableAsg/disableAsgStage.js'),
-  require('./pipeline/stages/findAmi/findAmiStage.js'),
-  require('./pipeline/stages/resizeAsg/resizeAsgStage.js'),
-  require('./pipeline/stages/scaleDownCluster/scaleDownClusterStage.js'),
-  require('./pipeline/stages/shrinkCluster/shrinkClusterStage.js'),
+  require('./pipeline/stages/bake/bakeStage.js').name,
+  require('./pipeline/stages/destroyAsg/destroyAsgStage.js').name,
+  require('./pipeline/stages/disableAsg/disableAsgStage.js').name,
+  require('./pipeline/stages/findAmi/findAmiStage.js').name,
+  require('./pipeline/stages/resizeAsg/resizeAsgStage.js').name,
+  require('./pipeline/stages/scaleDownCluster/scaleDownClusterStage.js').name,
+  require('./pipeline/stages/shrinkCluster/shrinkClusterStage.js').name,
   // Server Groups
-  require('./serverGroup/serverGroup.transformer.js'),
-  require('./serverGroup/configure/serverGroup.configure.module.js'),
-  require('./serverGroup/details/serverGroupDetails.controller.js'),
-  require('./serverGroup/configure/serverGroupCommandBuilder.service.js'),
-  require('./serverGroup/configure/wizard/cloneServerGroup.controller.js'),
+  require('./serverGroup/serverGroup.transformer.js').name,
+  require('./serverGroup/configure/serverGroup.configure.module.js').name,
+  require('./serverGroup/details/serverGroupDetails.controller.js').name,
+  require('./serverGroup/configure/serverGroupCommandBuilder.service.js').name,
+  require('./serverGroup/configure/wizard/cloneServerGroup.controller.js').name,
   // Images
-  require('./image/image.reader.js'),
+  require('./image/image.reader.js').name,
   // Instances
-  require('./instance/details/instance.details.controller.js'),
+  require('./instance/details/instance.details.controller.js').name,
   // Security Groups
-  require('./securityGroup/securityGroup.reader.js'),
-  require('./securityGroup/securityGroup.transformer.js'),
-  require('./securityGroup/configure/createSecurityGroup.controller.js'),
+  require('./securityGroup/securityGroup.reader.js').name,
+  require('./securityGroup/securityGroup.transformer.js').name,
+  require('./securityGroup/configure/createSecurityGroup.controller.js').name,
 ])
   .config(function (cloudProviderRegistryProvider) {
     cloudProviderRegistryProvider.registerProvider('oraclebmcs', {

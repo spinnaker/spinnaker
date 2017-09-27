@@ -15,7 +15,7 @@ import {
 
 module.exports = angular.module('spinnaker.amazon.pipeline.stage.bakeStage', [
   PIPELINE_CONFIG_PROVIDER,
-  require('./bakeExecutionDetails.controller.js'),
+  require('./bakeExecutionDetails.controller.js').name,
   BAKERY_SERVICE,
 ])
   .config(function(pipelineConfigProvider) {

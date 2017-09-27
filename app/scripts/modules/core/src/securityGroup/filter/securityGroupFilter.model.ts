@@ -97,5 +97,5 @@ export class SecurityGroupFilterModel {
 }
 
 module(SECURITY_GROUP_FILTER_MODEL, [
-  require('core/filterModel/filter.model.service'),
+  require('core/filterModel/filter.model.service').name,
 ]).service('securityGroupFilterModel', SecurityGroupFilterModel);

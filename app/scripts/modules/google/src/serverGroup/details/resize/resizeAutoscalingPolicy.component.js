@@ -5,7 +5,7 @@ import _ from 'lodash';
 const angular = require('angular');
 
 module.exports = angular.module('spinnaker.deck.gce.serverGroup.details.resizeAutoscalingPolicy.component', [
-    require('../../../autoscalingPolicy/autoscalingPolicy.write.service.js'),
+    require('../../../autoscalingPolicy/autoscalingPolicy.write.service.js').name,
   ])
   .component('gceResizeAutoscalingPolicy', {
     bindings: {

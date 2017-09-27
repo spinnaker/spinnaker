@@ -18,7 +18,7 @@ describe('Delivery Data Source', function () {
 
   beforeEach(
     mock.module(
-      require('./delivery.dataSource'),
+      require('./delivery.dataSource').name,
       EXECUTION_SERVICE,
       PIPELINE_CONFIG_SERVICE,
       APPLICATION_DATA_SOURCE_REGISTRY,

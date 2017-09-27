@@ -16,7 +16,7 @@ import { GCE_HTTP_LOAD_BALANCER_UTILS } from 'google/loadBalancer/httpLoadBalanc
 module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
   require('@uirouter/angularjs').default,
   require('angular-ui-bootstrap'),
-  require('google/common/xpnNaming.gce.service.js'),
+  require('google/common/xpnNaming.gce.service.js').name,
   INSTANCE_WRITE_SERVICE,
   INSTANCE_READ_SERVICE,
   CONFIRMATION_MODAL_SERVICE,

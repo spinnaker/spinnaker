@@ -7,7 +7,7 @@ const angular = require('angular');
 import {OpenStackProviderSettings} from '../../openstack.settings';
 
 module.exports = angular.module('spinnaker.openstack.serverGroupCommandBuilder.service', [
-  require('../../image/image.reader.js'),
+  require('../../image/image.reader.js').name,
 ])
   .factory('openstackServerGroupCommandBuilder', function ($q, openstackImageReader, subnetReader, loadBalancerReader, namingService, applicationReader) {
 

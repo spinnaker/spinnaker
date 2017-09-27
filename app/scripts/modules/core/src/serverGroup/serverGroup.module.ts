@@ -11,14 +11,14 @@ import { ApplicationReader } from 'core/application/service/application.read.ser
 
 export const SERVERGROUP_MODULE = 'spinnaker.core.serverGroup';
 module(SERVERGROUP_MODULE, [
-  require('./serverGroup.transformer'),
+  require('./serverGroup.transformer').name,
   SERVER_GROUP_CONFIGURATION_SERVICE,
-  require('./configure/common/v2instanceArchetypeSelector.directive'),
-  require('./configure/common/v2InstanceTypeSelector.directive'),
-  require('./pod/runningTasksTag.directive'),
-  require('./details/multipleServerGroups.controller'),
-  require('./serverGroup.dataSource'),
-  require('./configure/common/basicSettingsMixin.controller'),
+  require('./configure/common/v2instanceArchetypeSelector.directive').name,
+  require('./configure/common/v2InstanceTypeSelector.directive').name,
+  require('./pod/runningTasksTag.directive').name,
+  require('./details/multipleServerGroups.controller').name,
+  require('./serverGroup.dataSource').name,
+  require('./configure/common/basicSettingsMixin.controller').name,
   SERVER_GROUP_STATES,
   VIEW_SCALING_ACTIVITIES_LINK,
   DEPLOY_INITIALIZER_COMPONENT

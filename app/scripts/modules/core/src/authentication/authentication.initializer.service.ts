@@ -130,6 +130,6 @@ module(AUTHENTICATION_INITIALIZER_SERVICE, [
   require('angular-ui-bootstrap'),
   REDIRECT_SERVICE,
   AUTHENTICATION_SERVICE,
-  require('./loggedOut.modal.controller')
+  require('./loggedOut.modal.controller').name
 ])
   .service('authenticationInitializer', AuthenticationInitializer);

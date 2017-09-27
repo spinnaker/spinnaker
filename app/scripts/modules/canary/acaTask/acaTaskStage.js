@@ -8,7 +8,7 @@ import { CanaryExecutionLabel } from '../canary/CanaryExecutionLabel';
 
 module.exports = angular.module('spinnaker.canary.acaTaskStage', [
   CLOUD_PROVIDER_REGISTRY,
-  require('../canary/canaryExecutionSummary.controller'),
+  require('../canary/canaryExecutionSummary.controller').name,
   ACCOUNT_SERVICE,
 ])
   .config(function (pipelineConfigProvider) {

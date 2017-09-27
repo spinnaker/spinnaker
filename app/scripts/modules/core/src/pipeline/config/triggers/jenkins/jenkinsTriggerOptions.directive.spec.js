@@ -6,7 +6,7 @@ describe('Jenkins Trigger: JenkinsTriggerOptionsCtrl', function() {
 
   beforeEach(
     window.module(
-      require('./jenkinsTriggerOptions.directive.js')
+      require('./jenkinsTriggerOptions.directive.js').name
     )
   );
 

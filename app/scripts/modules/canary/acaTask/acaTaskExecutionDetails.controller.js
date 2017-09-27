@@ -7,7 +7,7 @@ import { CLUSTER_FILTER_SERVICE, SETTINGS } from '@spinnaker/core';
 module.exports = angular.module('spinnaker.canary.acaTask.details.controller', [
   require('@uirouter/angularjs').default,
   CLUSTER_FILTER_SERVICE,
-  require('../canary/canaryDeployment/canaryDeploymentHistory.service.js')
+  require('../canary/canaryDeployment/canaryDeploymentHistory.service.js').name
 ])
   .controller('acaTaskExecutionDetailsCtrl', function ($scope, $stateParams,
                                                        executionDetailsSectionService, canaryDeploymentHistoryService, clusterFilterService) {

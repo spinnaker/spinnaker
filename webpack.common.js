@@ -128,7 +128,6 @@ function configure(IS_TEST) {
     new HappyPack({
       id: 'js',
       loaders: [
-        'angular-loader',
         'babel-loader',
         'envify-loader',
         'eslint-loader'

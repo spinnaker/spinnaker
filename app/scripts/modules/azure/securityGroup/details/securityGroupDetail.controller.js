@@ -8,9 +8,9 @@ import { CONFIRMATION_MODAL_SERVICE, SECURITY_GROUP_READER } from '@spinnaker/co
 module.exports = angular.module('spinnaker.azure.securityGroup.azure.details.controller', [
   require('@uirouter/angularjs').default,
   SECURITY_GROUP_READER,
-  require('../securityGroup.write.service.js'),
+  require('../securityGroup.write.service.js').name,
   CONFIRMATION_MODAL_SERVICE,
-  require('../clone/cloneSecurityGroup.controller.js'),
+  require('../clone/cloneSecurityGroup.controller.js').name,
 ])
   .controller('azureSecurityGroupDetailsCtrl', function ($scope, $state, resolvedSecurityGroup, app,
                                                     confirmationModalService, azureSecurityGroupWriter, securityGroupReader,

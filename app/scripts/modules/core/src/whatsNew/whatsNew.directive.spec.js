@@ -6,7 +6,7 @@ describe('Directives: whatsNew', function () {
 
   beforeEach(
     window.module(
-      require('./whatsNew.directive'),
+      require('./whatsNew.directive').name,
       require('angular-ui-bootstrap')
     )
   );

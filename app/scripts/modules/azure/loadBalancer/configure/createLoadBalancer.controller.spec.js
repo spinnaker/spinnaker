@@ -10,7 +10,7 @@ describe('Controller: azureCreateLoadBalancerCtrl', function () {
   // load the controller's module
   beforeEach(
     window.module(
-      require('./createLoadBalancer.controller'),
+      require('./createLoadBalancer.controller').name,
       API_SERVICE,
       APPLICATION_MODEL_BUILDER
     )

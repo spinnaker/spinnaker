@@ -7,7 +7,7 @@ describe('dcosServerGroupNetworkController', function() {
 
   beforeEach(
     window.module(
-      require('./network.controller.js')
+      require('./network.controller.js').name
     )
   );
 

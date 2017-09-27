@@ -7,7 +7,7 @@ import { SERVER_GROUP_WRITER, TASK_MONITOR_BUILDER } from '@spinnaker/core';
 module.exports = angular.module('spinnaker.openstack.serverGroup.details.rollback.controller', [
       SERVER_GROUP_WRITER,
       TASK_MONITOR_BUILDER,
-      require('../../../common/footer.directive.js'),
+      require('../../../common/footer.directive.js').name,
     ])
     .controller('openstackRollbackServerGroupCtrl', function ($scope, $uibModalInstance, serverGroupWriter,
                                                               taskMonitorBuilder,

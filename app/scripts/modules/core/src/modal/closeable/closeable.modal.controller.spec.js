@@ -9,7 +9,7 @@ describe('Controller: CloseableModalCtrl', function () {
 
   beforeEach(
     window.module(
-      require('./closeable.modal.controller.js')
+      require('./closeable.modal.controller.js').name
     )
   );
 

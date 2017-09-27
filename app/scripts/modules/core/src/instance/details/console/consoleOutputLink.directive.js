@@ -7,7 +7,7 @@ import {InstanceTemplates} from 'core/instance/templates';
 module.exports = angular
   .module('spinnaker.core.instance.details.console.link', [
     require('angular-ui-bootstrap'),
-    require('./consoleOutput.modal.controller.js'),
+    require('./consoleOutput.modal.controller.js').name,
   ])
   .directive('consoleOutputLink', function () {
     return {

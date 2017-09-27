@@ -7,8 +7,8 @@ import {PIPELINE_CONFIG_PROVIDER} from 'core/pipeline/config/pipelineConfigProvi
 import {SETTINGS} from 'core/config/settings';
 
 module.exports = angular.module('spinnaker.core.pipeline.config.trigger.jenkins', [
-  require('./jenkinsTriggerOptions.directive.js'),
-  require('../trigger.directive.js'),
+  require('./jenkinsTriggerOptions.directive.js').name,
+  require('../trigger.directive.js').name,
   IGOR_SERVICE,
   SERVICE_ACCOUNT_SERVICE,
   PIPELINE_CONFIG_PROVIDER,

@@ -8,7 +8,7 @@ describe('Directives: vpcTag', function () {
 
   beforeEach(
     window.module(
-      require('./vpcTag.directive.js'),
+      require('./vpcTag.directive.js').name,
       VPC_READ_SERVICE
     )
   );

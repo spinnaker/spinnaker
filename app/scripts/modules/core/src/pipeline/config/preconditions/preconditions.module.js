@@ -3,10 +3,10 @@
 const angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.config.preconditions', [
-  require('./preconditionTypeConfig.provider.js'),
-  require('./selector/preconditionSelector.directive.js'),
-  require('./preconditionList.directive.js'),
-  require('./preconditionType.service.js'),
-  require('./modal/editPrecondition.controller.modal.js'),
-  require('./precondition.details.filter.js')
+  require('./preconditionTypeConfig.provider.js').name,
+  require('./selector/preconditionSelector.directive.js').name,
+  require('./preconditionList.directive.js').name,
+  require('./preconditionType.service.js').name,
+  require('./modal/editPrecondition.controller.modal.js').name,
+  require('./precondition.details.filter.js').name
 ]);

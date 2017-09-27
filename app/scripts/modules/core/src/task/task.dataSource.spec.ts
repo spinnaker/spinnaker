@@ -16,7 +16,7 @@ describe('Task Data Source', function () {
 
   beforeEach(
     mock.module(
-      require('./task.dataSource'),
+      require('./task.dataSource').name,
       TASK_READ_SERVICE,
       APPLICATION_DATA_SOURCE_REGISTRY,
       APPLICATION_MODEL_BUILDER

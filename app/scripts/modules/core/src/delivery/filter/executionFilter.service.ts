@@ -300,8 +300,8 @@ export class ExecutionFilterService {
 export const EXECUTION_FILTER_SERVICE = 'spinnaker.core.delivery.filter.executionFilter.service';
 module (EXECUTION_FILTER_SERVICE, [
   EXECUTION_FILTER_MODEL,
-  require('core/filterModel/filter.model.service'),
-  require('core/orchestratedItem/timeBoundaries.service'),
+  require('core/filterModel/filter.model.service').name,
+  require('core/orchestratedItem/timeBoundaries.service').name,
   PIPELINE_CONFIG_PROVIDER
 ]).factory('executionFilterService', (executionFilterModel: ExecutionFilterModel, timeBoundaries: any, $log: ILogService, filterModelService: any, pipelineConfig: any) =>
                                       new ExecutionFilterService(executionFilterModel, timeBoundaries, $log, filterModelService, pipelineConfig));

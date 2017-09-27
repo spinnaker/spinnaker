@@ -11,10 +11,10 @@ import './modals.less';
 
 module.exports = angular
   .module('spinnaker.core.modal', [
-    require('./modalOverlay.directive.js'),
-    require('./modalPage.directive.js'),
-    require('./wizard/wizardSubFormValidation.service'),
-    require('./closeable/closeable.modal.controller'),
+    require('./modalOverlay.directive.js').name,
+    require('./modalPage.directive.js').name,
+    require('./wizard/wizardSubFormValidation.service').name,
+    require('./closeable/closeable.modal.controller').name,
     MODAL_CLOSE_COMPONENT,
     SUBMIT_BUTTON_COMPONENT,
     V2_MODAL_WIZARD_SERVICE,

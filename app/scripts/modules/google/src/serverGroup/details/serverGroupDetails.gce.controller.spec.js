@@ -7,7 +7,7 @@ describe('Controller: gceServerGroupDetailsCtrl', function () {
 
   beforeEach(
     window.module(
-      require('./serverGroupDetails.gce.controller')
+      require('./serverGroupDetails.gce.controller').name
     )
   );
 

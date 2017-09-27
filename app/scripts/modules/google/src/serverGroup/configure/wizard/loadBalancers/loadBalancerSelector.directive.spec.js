@@ -11,8 +11,8 @@ describe('Directive: GCE Load Balancers Selector', function() {
 
   beforeEach(
     window.module(
-      require('./loadBalancerSelector.directive.js'),
-      require('./../../serverGroupConfiguration.service.js'),
+      require('./loadBalancerSelector.directive.js').name,
+      require('./../../serverGroupConfiguration.service.js').name,
       require('ui-select'),
       TIME_FORMATTERS
     )

@@ -19,9 +19,9 @@ module.exports = angular.module('spinnaker.oraclebmcs.serverGroup.details.contro
   SERVER_GROUP_WARNING_MESSAGE_SERVICE,
   NETWORK_READ_SERVICE,
   SUBNET_READ_SERVICE,
-  require('../../image/image.reader.js'),
-  require('./resize/resizeServerGroup.controller.js'),
-  require('./rollback/rollbackServerGroup.controller.js'),
+  require('../../image/image.reader.js').name,
+  require('./resize/resizeServerGroup.controller.js').name,
+  require('./rollback/rollbackServerGroup.controller.js').name,
 ])
   .controller('oraclebmcsServerGroupDetailsCtrl', function ($scope,
                                                             $state,

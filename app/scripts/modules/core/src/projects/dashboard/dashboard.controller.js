@@ -11,14 +11,14 @@ import { PROJECT_PIPELINE_COMPONENT } from './pipeline/projectPipeline.component
 import './dashboard.less';
 
 module.exports = angular.module('spinnaker.core.projects.dashboard.controller', [
-  require('./cluster/projectCluster.directive.js'),
+  require('./cluster/projectCluster.directive.js').name,
   PROJECT_PIPELINE_COMPONENT,
-  require('../service/project.read.service.js'),
+  require('../service/project.read.service.js').name,
   EXECUTION_SERVICE,
   SCHEDULER_FACTORY,
   RECENT_HISTORY_SERVICE,
-  require('./regionFilter/regionFilter.component.js'),
-  require('./regionFilter/regionFilter.service.js'),
+  require('./regionFilter/regionFilter.component.js').name,
+  require('./regionFilter/regionFilter.service.js').name,
 ])
   .controller('ProjectDashboardCtrl', function ($scope, $rootScope, projectConfiguration,
                                                 executionService, projectReader, regionFilterService,

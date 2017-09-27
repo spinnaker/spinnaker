@@ -24,8 +24,8 @@ module.exports = angular.module('spinnaker.serverGroup.details.openstack.control
   OVERRIDE_REGISTRY,
   ACCOUNT_SERVICE,
   SERVER_GROUP_READER,
-  require('../configure/ServerGroupCommandBuilder.js'),
-  require('../serverGroup.transformer.js'),
+  require('../configure/ServerGroupCommandBuilder.js').name,
+  require('../serverGroup.transformer.js').name,
 ])
   .controller('openstackServerGroupDetailsCtrl', function ($scope, $state, app, serverGroup,
                                                      serverGroupReader, openstackServerGroupCommandBuilder, $uibModal,

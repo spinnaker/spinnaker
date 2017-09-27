@@ -11,7 +11,7 @@ describe('Controller: awsCloneServerGroup', function () {
 
   beforeEach(
     window.module(
-      require('./CloneServerGroup.aws.controller.js')
+      require('./CloneServerGroup.aws.controller.js').name
     )
   );
 

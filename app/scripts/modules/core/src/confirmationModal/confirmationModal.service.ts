@@ -59,5 +59,5 @@ export class ConfirmationModalService {
 export const CONFIRMATION_MODAL_SERVICE = 'spinnaker.core.confirmationModal.service';
 module(CONFIRMATION_MODAL_SERVICE, [
   require('angular-ui-bootstrap'),
-  require('./confirmationModal.controller.js'),
+  require('./confirmationModal.controller.js').name,
 ]).service('confirmationModalService', ConfirmationModalService);

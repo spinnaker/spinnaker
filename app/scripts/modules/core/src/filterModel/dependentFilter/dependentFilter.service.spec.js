@@ -5,7 +5,7 @@ describe('Service: dependentFilterService', function () {
 
   beforeEach(
     window.module(
-      require('./dependentFilter.service.js')
+      require('./dependentFilter.service.js').name
     )
   );
 

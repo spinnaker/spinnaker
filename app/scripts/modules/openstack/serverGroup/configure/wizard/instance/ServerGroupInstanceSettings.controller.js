@@ -12,7 +12,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.openstack.insta
   V2_MODAL_WIZARD_SERVICE,
   IMAGE_READER,
   NAMING_SERVICE,
-  require('../../../../instance/osInstanceTypeSelectField.directive.js'),
+  require('../../../../instance/osInstanceTypeSelectField.directive.js').name,
 ])
   .controller('openstackServerGroupInstanceSettingsCtrl', function($scope, $controller, $uibModalStack, $state,
                                                           v2modalWizardService, imageReader) {

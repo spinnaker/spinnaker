@@ -8,7 +8,7 @@ import './infrastructure.less';
 
 export const SEARCH_INFRASTRUCTURE = 'spinnaker.search.infrastructure';
 module(SEARCH_INFRASTRUCTURE, [
-  require('./infrastructure.controller.js'),
+  require('./infrastructure.controller.js').name,
   SEARCH_INFRASTRUCTURE_V2_CONTROLLER,
   SEARCH_RESULTS_COMPONENT,
   SEARCH_COMPONENT

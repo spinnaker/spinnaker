@@ -7,10 +7,10 @@ const angular = require('angular');
 import { DcosProviderSettings } from '../../../dcos.settings';
 
 module.exports = angular.module('spinnaker.dcos.pipeline.stage.runJobStage', [
-  require('dcos/job/general.component.js'),
+  require('dcos/job/general.component.js').name,
   //TODO Add back when scheduled jobs are supported better by Spinnaker
-  //require('dcos/job/schedule.component.js'),
-  require('dcos/job/labels.component.js')
+  //require('dcos/job/schedule.component.js').name,
+  require('dcos/job/labels.component.js').name
 ])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({

@@ -9,7 +9,7 @@ describe('Controller: gceCreateLoadBalancerCtrl', function () {
   // load the controller's module
   beforeEach(function() {
       window.module(
-        require('./createLoadBalancer.controller.js'),
+        require('./createLoadBalancer.controller.js').name,
         APPLICATION_MODEL_BUILDER
       );
     });

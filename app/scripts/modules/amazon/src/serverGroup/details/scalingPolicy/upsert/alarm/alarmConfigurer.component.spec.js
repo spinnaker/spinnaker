@@ -6,7 +6,7 @@ describe('Component: alarmConfigurer', function () {
 
   beforeEach(
     window.module(
-      require('./alarmConfigurer.component')
+      require('./alarmConfigurer.component').name
     )
   );
 

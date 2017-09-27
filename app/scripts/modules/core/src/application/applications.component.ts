@@ -145,7 +145,7 @@ module(APPLICATIONS_COMPONENT, [
   ACCOUNT_SERVICE,
   ANY_FIELD_FILTER,
   VIEW_STATE_CACHE_SERVICE,
-  require('../presentation/sortToggle/sorttoggle.directive'),
-  require('../insight/insightmenu.directive'),
+  require('../presentation/sortToggle/sorttoggle.directive').name,
+  require('../insight/insightmenu.directive').name,
   OVERRIDE_REGISTRY,
 ]).component('applications', new ApplicationsComponent());

@@ -14,14 +14,14 @@ import { sessionAffinityModelToViewMap } from '../common/sessionAffinityNameMaps
 import { HttpLoadBalancerTemplate, ListenerTemplate } from './templates';
 
 module.exports = angular.module('spinnaker.deck.gce.httpLoadBalancer.backing.service', [
-    require('../../../backendService/backendService.reader.js'),
+    require('../../../backendService/backendService.reader.js').name,
     GCE_CERTIFICATE_READER,
     ACCOUNT_SERVICE,
     LOAD_BALANCER_READ_SERVICE,
     GCE_HTTP_LOAD_BALANCER_UTILS,
     GCE_ADDRESS_READER,
     GCE_HEALTH_CHECK_READER,
-    require('./transformer.service.js'),
+    require('./transformer.service.js').name,
   ])
   .factory('gceHttpLoadBalancerCommandBuilder', function ($q, accountService,
                                                           gceHttpLoadBalancerUtils,

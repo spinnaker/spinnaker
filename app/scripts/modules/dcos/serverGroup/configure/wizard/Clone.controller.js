@@ -8,7 +8,7 @@ module.exports = angular.module('spinnaker.dcos.serverGroup.configure.clone', [
   SERVER_GROUP_WRITER,
   V2_MODAL_WIZARD_SERVICE,
   TASK_MONITOR_BUILDER,
-  require('../configuration.service.js'),
+  require('../configuration.service.js').name,
 ])
   .controller('dcosCloneServerGroupController', function($scope, $uibModalInstance, $q, $state,
                                                                serverGroupWriter, v2modalWizardService, taskMonitorBuilder,

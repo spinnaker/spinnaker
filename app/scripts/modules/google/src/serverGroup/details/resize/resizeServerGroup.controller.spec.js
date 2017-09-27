@@ -14,8 +14,8 @@ describe('Controller: gceResizeServerGroupCtrl', function () {
 
   beforeEach(
     window.module(
-      require('./resizeServerGroup.controller'),
-      require('../../../autoscalingPolicy/autoscalingPolicy.write.service.js'),
+      require('./resizeServerGroup.controller').name,
+      require('../../../autoscalingPolicy/autoscalingPolicy.write.service.js').name,
       SERVER_GROUP_WRITER
     )
   );

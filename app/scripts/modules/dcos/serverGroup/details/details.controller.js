@@ -12,12 +12,12 @@ import {
 } from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.dcos.serverGroup.details.controller', [
-  require('../configure/configure.dcos.module.js'),
+  require('../configure/configure.dcos.module.js').name,
   CONFIRMATION_MODAL_SERVICE,
   SERVER_GROUP_WARNING_MESSAGE_SERVICE,
   SERVER_GROUP_READER,
   SERVER_GROUP_WRITER,
-  require('../paramsMixin.js'),
+  require('../paramsMixin.js').name,
 ])
   .controller('dcosServerGroupDetailsController', function ($scope, $state, app, serverGroup,
                                                                   serverGroupReader, $uibModal, serverGroupWriter,

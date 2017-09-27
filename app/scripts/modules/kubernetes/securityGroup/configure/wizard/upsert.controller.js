@@ -19,8 +19,8 @@ module.exports = angular.module('spinnaker.securityGroup.kubernetes.create.contr
   ACCOUNT_SERVICE,
   V2_MODAL_WIZARD_SERVICE,
   TASK_MONITOR_BUILDER,
-  require('../../../namespace/selectField.directive.js'),
-  require('../../transformer.js'),
+  require('../../../namespace/selectField.directive.js').name,
+  require('../../transformer.js').name,
 ])
   .controller('kubernetesUpsertSecurityGroupController', function($q, $scope, $uibModalInstance, $state,
                                                                   application, securityGroup,

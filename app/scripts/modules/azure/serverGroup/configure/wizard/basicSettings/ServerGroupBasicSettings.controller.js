@@ -7,7 +7,7 @@ const angular = require('angular');
 module.exports = angular.module('spinnaker.azure.serverGroup.configure.basicSettings', [
   require('@uirouter/angularjs').default,
   require('angular-ui-bootstrap'),
-  require('./image.regional.filter.js'),
+  require('./image.regional.filter.js').name,
   V2_MODAL_WIZARD_SERVICE,
   IMAGE_READER,
   NAMING_SERVICE,

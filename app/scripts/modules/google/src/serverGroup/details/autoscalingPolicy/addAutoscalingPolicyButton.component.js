@@ -5,7 +5,7 @@ const angular = require('angular');
 module.exports = angular
   .module('spinnaker.gce.serverGroup.details.scalingPolicy.addButton', [
     require('angular-ui-bootstrap'),
-    require('./modal/upsertAutoscalingPolicy.modal.controller.js'),
+    require('./modal/upsertAutoscalingPolicy.modal.controller.js').name,
   ])
   .component('gceAddAutoscalingPolicyButton', {
     bindings: {

@@ -260,5 +260,5 @@ module(CLUSTER_SERVICE, [
   API_SERVICE,
   NAMING_SERVICE,
   CLUSTER_FILTER_MODEL,
-  require('../serverGroup/serverGroup.transformer.js')
+  require('../serverGroup/serverGroup.transformer.js').name
 ]).service('clusterService', ClusterService);

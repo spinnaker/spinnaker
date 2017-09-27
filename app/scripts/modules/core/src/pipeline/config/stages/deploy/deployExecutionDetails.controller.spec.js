@@ -4,7 +4,7 @@ describe('DeployExecutionDetailsCtrl', function() {
 
   beforeEach(
     window.module(
-      require('./deployExecutionDetails.controller')
+      require('./deployExecutionDetails.controller').name
     )
   );
 

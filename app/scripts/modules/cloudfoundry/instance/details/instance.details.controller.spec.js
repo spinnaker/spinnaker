@@ -8,7 +8,7 @@ describe('Controller: cfInstanceDetailsCtrl', function () {
 
   beforeEach(
     window.module(
-      require('./instance.details.controller.js')
+      require('./instance.details.controller.js').name
     )
   );
 

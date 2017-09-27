@@ -11,7 +11,7 @@ import './scalingPolicySummary.component.less';
 
 module.exports = angular.module('spinnaker.amazon.serverGroup.details.scalingPolicy.alarmBasedSummary.component', [
   SCALING_POLICY_WRITE_SERVICE,
-  require('./upsert/upsertScalingPolicy.controller'),
+  require('./upsert/upsertScalingPolicy.controller').name,
   SCALING_POLICY_POPOVER,
   CONFIRMATION_MODAL_SERVICE,
 ])

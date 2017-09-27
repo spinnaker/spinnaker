@@ -10,8 +10,8 @@ import { INFRASTRUCTURE_SEARCH_SERVICE } from 'core/search/infrastructure/infras
 module.exports = angular.module('spinnaker.core.search.global.controller', [
   require('angulartics'),
   CLUSTER_FILTER_SERVICE,
-  require('../searchResult/searchResult.directive.js'),
-  require('../searchRank.filter.js'),
+  require('../searchResult/searchResult.directive.js').name,
+  require('../searchRank.filter.js').name,
   RECENT_HISTORY_SERVICE,
   INFRASTRUCTURE_SEARCH_SERVICE
 ])

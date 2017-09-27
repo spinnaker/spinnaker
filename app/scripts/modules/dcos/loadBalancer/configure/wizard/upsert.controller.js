@@ -11,7 +11,7 @@ module.exports = angular.module('spinnaker.dcos.loadBalancer.create.controller',
   V2_MODAL_WIZARD_SERVICE,
   TASK_MONITOR_BUILDER,
   SEARCH_SERVICE,
-  require('../../transformer.js'),
+  require('../../transformer.js').name,
 ])
   .controller('dcosUpsertLoadBalancerController', function($scope, $uibModalInstance, $state,
                                                                  application, loadBalancer, isNew, loadBalancerReader,

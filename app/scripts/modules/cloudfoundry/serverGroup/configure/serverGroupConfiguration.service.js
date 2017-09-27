@@ -9,8 +9,8 @@ module.exports = angular.module('spinnaker.serverGroup.configure.cf.configuratio
   ACCOUNT_SERVICE,
   SECURITY_GROUP_READER,
   CACHE_INITIALIZER_SERVICE,
-  require('../../image/image.reader.js'),
-  require('../../instance/cfInstanceTypeService.js'),
+  require('../../image/image.reader.js').name,
+  require('../../instance/cfInstanceTypeService.js').name,
 ])
   .factory('cfServerGroupConfigurationService', function(cfImageReader, accountService, securityGroupReader,
                                                          cfInstanceTypeService, cacheInitializer, $q) {

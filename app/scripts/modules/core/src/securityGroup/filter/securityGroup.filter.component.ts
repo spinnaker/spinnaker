@@ -9,10 +9,10 @@ import { SECURITY_GROUP_FILTER_MODEL, SecurityGroupFilterModel } from './securit
 export const SECURITY_GROUP_FILTER = 'securityGroup.filter.controller';
 
 const ngmodule = module(SECURITY_GROUP_FILTER, [
-  require('./securityGroup.filter.service'),
+  require('./securityGroup.filter.service').name,
   SECURITY_GROUP_FILTER_MODEL,
-  require('core/filterModel/dependentFilter/dependentFilter.service'),
-  require('./securityGroupDependentFilterHelper.service'),
+  require('core/filterModel/dependentFilter/dependentFilter.service').name,
+  require('./securityGroupDependentFilterHelper.service').name,
 ]);
 
 export class SecurityGroupFilterCtrl {

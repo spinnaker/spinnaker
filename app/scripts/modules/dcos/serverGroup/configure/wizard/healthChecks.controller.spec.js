@@ -7,7 +7,7 @@ describe('dcosServerGroupHealthChecksController', function() {
 
   beforeEach(
     window.module(
-      require('./healthChecks.controller.js')
+      require('./healthChecks.controller.js').name
     )
   );
 

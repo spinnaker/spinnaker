@@ -8,7 +8,7 @@ describe('Multiselect Model', () => {
   let MultiselectModel: any, clusterFilterModel: ClusterFilterModel, $state: StateService;
 
   beforeEach(mock.module(
-    require('./multiselect.model')
+    require('./multiselect.model').name
   ));
 
   beforeEach(

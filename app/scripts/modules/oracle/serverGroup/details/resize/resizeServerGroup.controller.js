@@ -6,8 +6,8 @@ import { TASK_MONITOR_BUILDER } from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.oraclebmcs.serverGroup.details.resize.controller', [
   TASK_MONITOR_BUILDER,
-  require('./resizeCapacity.component.js'),
-  require('oracle/common/footer.component.js'),
+  require('./resizeCapacity.component.js').name,
+  require('oracle/common/footer.component.js').name,
 ])
   .controller('oraclebmcsResizeServerGroupCtrl', function ($scope, $uibModalInstance, taskMonitorBuilder, application, serverGroup) {
     $scope.serverGroup = serverGroup;

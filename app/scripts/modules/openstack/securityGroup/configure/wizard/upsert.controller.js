@@ -10,8 +10,8 @@ module.exports = angular.module('spinnaker.securityGroup.openstack.create.contro
   SECURITY_GROUP_WRITER,
   ACCOUNT_SERVICE,
   TASK_MONITOR_BUILDER,
-  require('../../../region/regionSelectField.directive.js'),
-  require('../../transformer.js'),
+  require('../../../region/regionSelectField.directive.js').name,
+  require('../../transformer.js').name,
 ])
   .controller('openstackUpsertSecurityGroupController', function($q, $scope, $uibModalInstance, $state,
                                                                  application, securityGroup,

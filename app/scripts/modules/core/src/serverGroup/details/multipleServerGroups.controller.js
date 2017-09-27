@@ -10,9 +10,9 @@ module.exports = angular.module('spinnaker.core.serverGroup.details.multipleServ
     require('@uirouter/angularjs').default,
     SERVER_GROUP_WRITER,
     CONFIRMATION_MODAL_SERVICE,
-    require('../../cluster/filter/multiselect.model'),
+    require('../../cluster/filter/multiselect.model').name,
     PROVIDER_SERVICE_DELEGATE,
-    require('./multipleServerGroup.component'),
+    require('./multipleServerGroup.component').name,
   ])
   .controller('MultipleServerGroupsCtrl', function ($scope, $state, confirmationModalService, MultiselectModel,
                                                     serverGroupWriter, providerServiceDelegate, app) {

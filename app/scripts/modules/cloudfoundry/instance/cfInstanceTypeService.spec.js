@@ -7,7 +7,7 @@ describe('Service: cfInstanceTypeService', function () {
   var cfInstanceTypeService;
 
   beforeEach(
-    window.module(require('./cfInstanceTypeService'))
+    window.module(require('./cfInstanceTypeService').name)
   );
 
   beforeEach(

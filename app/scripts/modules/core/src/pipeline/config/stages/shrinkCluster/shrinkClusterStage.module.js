@@ -5,6 +5,6 @@ import {SHRINK_CLUSTER_EXECUTION_DETAILS_CTRL} from './templates/shrinkClusterEx
 const angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.shrinkCluster', [
-  require('./shrinkClusterStage.js'),
+  require('./shrinkClusterStage.js').name,
   SHRINK_CLUSTER_EXECUTION_DETAILS_CTRL,
 ]);

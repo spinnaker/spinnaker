@@ -10,8 +10,8 @@ module.exports = angular
   .module('spinnaker.google.serverGroup.configure.wizard.loadBalancers.selector.directive', [
     INFRASTRUCTURE_CACHE_SERVICE,
     GCE_HTTP_LOAD_BALANCER_UTILS,
-    require('./elSevenOptions/elSevenOptionsGenerator.component.js'),
-    require('../../serverGroupConfiguration.service.js'),
+    require('./elSevenOptions/elSevenOptionsGenerator.component.js').name,
+    require('../../serverGroupConfiguration.service.js').name,
   ])
   .directive('gceServerGroupLoadBalancerSelector', function () {
     return {

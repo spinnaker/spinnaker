@@ -153,7 +153,7 @@ export class ExecutionFilterModel {
 
 export const EXECUTION_FILTER_MODEL = 'spinnaker.core.delivery.filter.executionFilter.model';
 module (EXECUTION_FILTER_MODEL, [
-  require('core/filterModel/filter.model.service'),
+  require('core/filterModel/filter.model.service').name,
   VIEW_STATE_CACHE_SERVICE
 ]).factory('executionFilterModel', ($rootScope: IRootScopeService, filterModelService: any, viewStateCache: ViewStateCacheService) =>
                                     new ExecutionFilterModel($rootScope, filterModelService, viewStateCache));

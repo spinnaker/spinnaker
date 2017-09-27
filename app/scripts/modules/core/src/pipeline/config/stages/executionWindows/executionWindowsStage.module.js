@@ -7,10 +7,10 @@ import { EXECUTION_WINDOW_ACTIONS_COMPONENT } from './executionWindowActions.com
 import './executionWindows.less';
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.executionWindows', [
-  require('./executionWindowsStage.js'),
-  require('./executionWindows.transformer.js'),
-  require('./executionWindows.directive.js'),
+  require('./executionWindowsStage.js').name,
+  require('./executionWindows.transformer.js').name,
+  require('./executionWindows.directive.js').name,
   EXECUTION_WINDOW_ACTIONS_COMPONENT,
-  require('../stage.module.js'),
-  require('../core/stage.core.module.js'),
+  require('../stage.module.js').name,
+  require('../core/stage.core.module.js').name,
 ]);

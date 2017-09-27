@@ -8,7 +8,7 @@ import { ACCOUNT_SERVICE } from '@spinnaker/core';
 module.exports = angular
   .module('spinnaker.google.securityGroup.clone.controller', [
     ACCOUNT_SERVICE,
-    require('../configure/ConfigSecurityGroupMixin.controller.js')
+    require('../configure/ConfigSecurityGroupMixin.controller.js').name
   ])
   .controller('gceCloneSecurityGroupController', function($scope, $uibModalInstance, $controller, accountService, securityGroup, application) {
     var vm = this;

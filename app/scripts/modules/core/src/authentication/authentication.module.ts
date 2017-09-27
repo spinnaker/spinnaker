@@ -13,7 +13,7 @@ angular.module(AUTHENTICATION_MODULE, [
   REDIRECT_SERVICE,
   AUTHENTICATION_INITIALIZER_SERVICE,
   AUTHENTICATION_INTERCEPTOR_SERVICE,
-  require('./userMenu/userMenu.module.js'),
+  require('./userMenu/userMenu.module.js').name,
   SCHEDULER_FACTORY
 ])
   .config(function ($httpProvider: ng.IHttpProvider) {

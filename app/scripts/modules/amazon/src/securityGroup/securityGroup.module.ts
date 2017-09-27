@@ -6,11 +6,11 @@ import { INGRESS_RULE_GROUP_SELECTOR_COMPONENT } from './configure/ingressRuleGr
 export const AWS_SECURITY_GROUP_MODULE = 'spinnaker.amazon.securityGroup';
 module(AWS_SECURITY_GROUP_MODULE, [
   AWS_SECURITY_GROUP_READER,
-  require('./clone/cloneSecurityGroup.controller'),
+  require('./clone/cloneSecurityGroup.controller').name,
   INGRESS_RULE_GROUP_SELECTOR_COMPONENT,
-  require('./configure/configSecurityGroup.mixin.controller'),
-  require('./configure/CreateSecurityGroupCtrl'),
-  require('./configure/EditSecurityGroupCtrl'),
-  require('./details/securityGroupDetail.controller'),
-  require('./securityGroup.transformer'),
+  require('./configure/configSecurityGroup.mixin.controller').name,
+  require('./configure/CreateSecurityGroupCtrl').name,
+  require('./configure/EditSecurityGroupCtrl').name,
+  require('./details/securityGroupDetail.controller').name,
+  require('./securityGroup.transformer').name,
 ]);

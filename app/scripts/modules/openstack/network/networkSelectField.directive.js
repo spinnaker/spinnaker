@@ -7,7 +7,7 @@ import { NETWORK_READ_SERVICE } from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.openstack.network.networkSelectField.directive', [
   NETWORK_READ_SERVICE,
-  require('../common/selectField.component.js')
+  require('../common/selectField.component.js').name
 ])
   .directive('networkSelectField', function (networkReader) {
     return {

@@ -8,7 +8,7 @@ describe('Component: metricAlarmChart', function () {
 
   beforeEach(
     window.module(
-      require('./metricAlarmChart.component')
+      require('./metricAlarmChart.component').name
     )
   );
 

@@ -8,7 +8,7 @@ describe('Controller: Project Dashboard', function () {
 
   beforeEach(
     window.module(
-      require('./dashboard.controller.js')
+      require('./dashboard.controller.js').name
     )
   );
 

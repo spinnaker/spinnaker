@@ -21,7 +21,7 @@ module.exports = angular
     TASK_READ_SERVICE,
     APPLICATION_NAME_VALIDATION_MESSAGES,
     VALIDATE_APPLICATION_NAME,
-    require('./applicationProviderFields.component.js'),
+    require('./applicationProviderFields.component.js').name,
     CHAOS_MONKEY_NEW_APPLICATION_CONFIG_COMPONENT,
   ])
   .controller('CreateApplicationModalCtrl', function($scope, $q, $log, $state, $uibModalInstance, accountService,

@@ -9,7 +9,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.clon
   SERVER_GROUP_WRITER,
   V2_MODAL_WIZARD_SERVICE,
   TASK_MONITOR_BUILDER,
-  require('../configuration.service.js'),
+  require('../configuration.service.js').name,
 ])
   .controller('kubernetesCloneServerGroupController', function($scope, $uibModalInstance, $q, $state,
                                                                serverGroupWriter, v2modalWizardService, taskMonitorBuilder,

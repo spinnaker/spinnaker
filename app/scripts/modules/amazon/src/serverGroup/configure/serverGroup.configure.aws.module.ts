@@ -16,8 +16,8 @@ module(SERVER_GROUP_CONFIGURE_MODULE, [
   HEALTH_PERCENT_SELECTOR,
   LOAD_BALANCER_SELECTOR,
   SECURITY_GROUPS_REMOVED,
-  require('./wizard/location/ServerGroupBasicSettings.controller.js'),
-  require('./wizard/securityGroups/securityGroupSelector.directive.js'),
-  require('./wizard/zones/availabilityZoneSelector.directive.js'),
-  require('./wizard/advancedSettings/advancedSettings.component.js'),
+  require('./wizard/location/ServerGroupBasicSettings.controller.js').name,
+  require('./wizard/securityGroups/securityGroupSelector.directive.js').name,
+  require('./wizard/zones/availabilityZoneSelector.directive.js').name,
+  require('./wizard/advancedSettings/advancedSettings.component.js').name,
 ]);

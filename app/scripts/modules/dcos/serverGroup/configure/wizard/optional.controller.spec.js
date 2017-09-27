@@ -8,7 +8,7 @@ describe('dcosServerGroupOptionalController', function() {
 
   beforeEach(
     window.module(
-      require('./optional.controller.js')
+      require('./optional.controller.js').name
     )
   );
 

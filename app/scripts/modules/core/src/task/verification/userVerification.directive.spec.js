@@ -5,7 +5,7 @@ describe('Controller: UserVerification', function () {
 
   beforeEach(
     window.module(
-      require('./userVerification.directive')
+      require('./userVerification.directive').name
     )
   );
 

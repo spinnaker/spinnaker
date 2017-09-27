@@ -25,7 +25,7 @@ describe('Service: clusterFilterService', function () {
       APPLICATION_MODEL_BUILDER,
       CLUSTER_FILTER_MODEL,
       CLUSTER_SERVICE,
-      require('./mockApplicationData.js')
+      require('./mockApplicationData.js').name
     );
     mock.inject(
       function (clusterFilterService: ClusterFilterService, _clusterFilterModel_: ClusterFilterModel, _MultiselectModel_: any,

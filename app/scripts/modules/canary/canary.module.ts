@@ -12,7 +12,7 @@ templates.keys().forEach(function(key) {
 
 export const CANARY_MODULE = 'spinnaker.canary';
 module(CANARY_MODULE, [
-  require('./acaTask/acaTaskStage.module'),
-  require('./canary/canaryStage.module'),
+  require('./acaTask/acaTaskStage.module').name,
+  require('./canary/canaryStage.module').name,
   CANARY_HELP,
 ]);

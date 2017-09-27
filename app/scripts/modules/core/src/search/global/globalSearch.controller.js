@@ -9,8 +9,8 @@ import {RECENT_HISTORY_SERVICE} from 'core/history/recentHistory.service';
 module.exports = angular.module('spinnaker.core.search.global.controller', [
   require('angulartics'),
   CLUSTER_FILTER_SERVICE,
-  require('../searchResult/searchResult.directive.js'),
-  require('../searchRank.filter.js'),
+  require('../searchResult/searchResult.directive.js').name,
+  require('../searchRank.filter.js').name,
   RECENT_HISTORY_SERVICE,
 ])
   .controller('GlobalSearchCtrl', function($scope, $element, infrastructureSearchService, recentHistoryService,

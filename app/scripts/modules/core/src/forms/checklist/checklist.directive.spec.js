@@ -6,7 +6,7 @@ describe('Directives: checklist', function () {
 
   beforeEach(
     window.module(
-      require('./checklist.directive.js')
+      require('./checklist.directive.js').name
     )
   );
 

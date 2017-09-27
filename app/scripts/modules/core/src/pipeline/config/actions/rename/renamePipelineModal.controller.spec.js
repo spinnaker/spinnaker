@@ -5,7 +5,7 @@ describe('Controller: renamePipelineModal', function() {
 
   beforeEach(
     window.module(
-      require('./rename.module.js'),
+      require('./rename.module.js').name,
       APPLICATION_MODEL_BUILDER
     )
   );

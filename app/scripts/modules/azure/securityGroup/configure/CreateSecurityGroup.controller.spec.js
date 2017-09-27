@@ -7,7 +7,7 @@
    beforeEach(
      window.module(
        SECURITY_GROUP_READER,
-       require('./CreateSecurityGroupCtrl.js')
+       require('./CreateSecurityGroupCtrl.js').name
      )
    );
 

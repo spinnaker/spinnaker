@@ -5,7 +5,7 @@ describe('Directives: checkmap', function () {
 
   beforeEach(
     window.module(
-      require('./checkmap.directive.js')
+      require('./checkmap.directive.js').name
     )
   );
 

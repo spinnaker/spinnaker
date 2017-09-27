@@ -10,9 +10,9 @@ import './manualPipelineExecution.less';
 
 module.exports = angular.module('spinnaker.core.delivery.manualPipelineExecution.controller', [
   require('angular-ui-bootstrap'),
-  require('./inlinePropertyScope.filter'),
+  require('./inlinePropertyScope.filter').name,
   PIPELINE_CONFIG_PROVIDER,
-  require('../../notification/notification.service'),
+  require('../../notification/notification.service').name,
   AUTHENTICATION_SERVICE
 ])
   .controller('ManualPipelineExecutionCtrl', function ($uibModalInstance, pipeline, application, pipelineConfig,

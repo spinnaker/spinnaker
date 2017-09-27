@@ -11,7 +11,7 @@ import { DOCKER_IMAGE_AND_TAG_SELECTOR_COMPONENT } from 'docker/image/dockerImag
 module.exports = angular.module('spinnaker.docker.pipeline.trigger', [
     SERVICE_ACCOUNT_SERVICE,
     DOCKER_IMAGE_READER,
-    require('./dockerTriggerOptions.directive.js'),
+    require('./dockerTriggerOptions.directive.js').name,
     DOCKER_IMAGE_AND_TAG_SELECTOR_COMPONENT
   ])
   .config(function (pipelineConfigProvider) {

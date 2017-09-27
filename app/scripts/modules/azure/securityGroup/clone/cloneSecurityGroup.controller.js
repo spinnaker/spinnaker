@@ -9,8 +9,8 @@ module.exports = angular
   .module('spinnaker.azure.securityGroup.clone.controller', [
     ACCOUNT_SERVICE,
     TASK_MONITOR_BUILDER,
-    require('../securityGroup.write.service.js'),
-    require('../configure/CreateSecurityGroupCtrl.js')
+    require('../securityGroup.write.service.js').name,
+    require('../configure/CreateSecurityGroupCtrl.js').name
   ])
   .controller('azureCloneSecurityGroupController', function($scope, $uibModalInstance, $controller, $state, taskMonitorBuilder, accountService,
                                                             azureSecurityGroupWriter, securityGroup, application) {

@@ -8,7 +8,7 @@ import { ACCOUNT_SERVICE, NAMING_SERVICE, StageConstants } from '@spinnaker/core
 module.exports = angular.module('spinnaker.gce.pipeline.stage..cloneServerGroupStage', [
   ACCOUNT_SERVICE,
   NAMING_SERVICE,
-  require('./cloneServerGroupExecutionDetails.controller.js'),
+  require('./cloneServerGroupExecutionDetails.controller.js').name,
 ])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({

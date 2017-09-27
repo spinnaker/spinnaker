@@ -4,7 +4,7 @@ describe('bakeStageTransformer', function() {
 
   beforeEach(
     window.module(
-      require('./bakeStage.transformer')
+      require('./bakeStage.transformer').name
     )
   );
 

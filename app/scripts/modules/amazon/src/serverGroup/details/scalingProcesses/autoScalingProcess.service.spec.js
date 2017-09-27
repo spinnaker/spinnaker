@@ -6,7 +6,7 @@ describe('Service: autoScalingProcess ', function () {
 
   beforeEach(
     window.module(
-      require('./autoScalingProcess.service')
+      require('./autoScalingProcess.service').name
     )
   );
 

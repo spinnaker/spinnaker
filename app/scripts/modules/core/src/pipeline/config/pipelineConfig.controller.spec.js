@@ -8,7 +8,7 @@ describe('Controller: PipelineConfigCtrl', function () {
 
   beforeEach(
     window.module(
-      require('./pipelineConfig.controller.js'),
+      require('./pipelineConfig.controller.js').name,
       APPLICATION_MODEL_BUILDER
     )
   );

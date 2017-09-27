@@ -7,7 +7,7 @@ const angular = require('angular');
 module.exports = angular
   .module('spinnaker.core.pipeline.stage.bakeStage', [
     PIPELINE_CONFIG_PROVIDER,
-    require('./bakeStage.transformer.js'),
+    require('./bakeStage.transformer.js').name,
   ])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({

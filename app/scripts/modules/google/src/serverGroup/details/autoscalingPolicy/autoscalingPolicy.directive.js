@@ -7,8 +7,8 @@ import { CONFIRMATION_MODAL_SERVICE } from '@spinnaker/core';
 module.exports = angular.module('spinnaker.gce.instance.details.scalingPolicy.directive', [
   CONFIRMATION_MODAL_SERVICE,
   require('angular-ui-bootstrap'),
-  require('./../../../autoscalingPolicy/autoscalingPolicy.write.service.js'),
-  require('./modal/upsertAutoscalingPolicy.modal.controller.js'),
+  require('./../../../autoscalingPolicy/autoscalingPolicy.write.service.js').name,
+  require('./modal/upsertAutoscalingPolicy.modal.controller.js').name,
 ])
   .component('gceAutoscalingPolicy', {
     bindings: {

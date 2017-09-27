@@ -3,7 +3,7 @@
 const angular = require('angular');
 
 module.exports = angular.module('spinnaker.deck.gce.elSevenOptionsGenerator.component', [
-    require('./backendServiceSelector.component.js')
+    require('./backendServiceSelector.component.js').name
   ])
   .directive('gceElSevenOptionsGenerator', function($compile) {
     let template = `<gce-backend-service-selector load-balancer-name="loadBalancerName" command="command">

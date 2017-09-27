@@ -4,7 +4,7 @@ describe('Controller: manualJudgmentExecutionDetails', function () {
 
   var $scope, controller, $q, manualJudgmentService;
 
-  beforeEach(window.module(require('./manualJudgmentExecutionDetails.controller')));
+  beforeEach(window.module(require('./manualJudgmentExecutionDetails.controller').name));
 
   beforeEach(window.inject(function ($controller, $rootScope, _manualJudgmentService_, _executionDetailsSectionService_, _$q_) {
     $scope = $rootScope.$new();

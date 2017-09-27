@@ -9,7 +9,7 @@ describe('Controller: cfCreateLoadBalancerCtrl', function () {
   // load the controller's module
   beforeEach(function() {
       window.module(
-        require('./CreateLoadBalancerCtrl.js'),
+        require('./CreateLoadBalancerCtrl.js').name,
         APPLICATION_MODEL_BUILDER
       );
     });

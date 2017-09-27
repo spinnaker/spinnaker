@@ -27,8 +27,8 @@ describe ('Application Model', function () {
 
   beforeEach(
     mock.module(
-      require('../securityGroup/securityGroup.dataSource'),
-      require('../serverGroup/serverGroup.dataSource'),
+      require('../securityGroup/securityGroup.dataSource').name,
+      require('../serverGroup/serverGroup.dataSource').name,
       LOAD_BALANCER_DATA_SOURCE,
       APPLICATION_MODEL_BUILDER
   ));

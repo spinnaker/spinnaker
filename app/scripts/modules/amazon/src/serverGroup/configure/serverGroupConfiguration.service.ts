@@ -598,15 +598,15 @@ export class AwsServerGroupConfigurationService {
 
 export const AWS_SERVER_GROUP_CONFIGURATION_SERVICE = 'spinnaker.amazon.serverGroup.configure.service';
 module(AWS_SERVER_GROUP_CONFIGURATION_SERVICE, [
-  require('amazon/image/image.reader.js'),
+  require('amazon/image/image.reader.js').name,
   ACCOUNT_SERVICE,
   SECURITY_GROUP_READER,
   SUBNET_READ_SERVICE,
-  require('amazon/instance/awsInstanceType.service.js'),
+  require('amazon/instance/awsInstanceType.service.js').name,
   KEY_PAIRS_READ_SERVICE,
   LOAD_BALANCER_READ_SERVICE,
   CACHE_INITIALIZER_SERVICE,
   SERVER_GROUP_COMMAND_REGISTRY_PROVIDER,
-  require('../details/scalingProcesses/autoScalingProcess.service.js'),
+  require('../details/scalingProcesses/autoScalingProcess.service.js').name,
 ])
   .service('awsServerGroupConfigurationService', AwsServerGroupConfigurationService);

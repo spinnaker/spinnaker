@@ -103,7 +103,7 @@ module(DELETE_MODAL_CONTROLLER, [
     require('angular-ui-bootstrap'),
     TASK_MONITOR_BUILDER,
     LOAD_BALANCER_WRITE_SERVICE,
-    require('../../configure/http/httpLoadBalancer.write.service.js'),
+    require('../../configure/http/httpLoadBalancer.write.service.js').name,
     GCE_HTTP_LOAD_BALANCER_UTILS,
   ])
   .controller('gceLoadBalancerDeleteModalCtrl', DeleteLoadBalancerModalController);
