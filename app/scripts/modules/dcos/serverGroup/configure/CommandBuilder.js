@@ -154,6 +154,7 @@ module.exports = angular.module('spinnaker.dcos.serverGroupCommandBuilder.servic
         serviceEndpoints: [],
         viewState: {
           mode: defaults.mode || 'create',
+          disableStrategySelection: true,
         },
         cloudProvider: 'dcos',
         selectedProvider: 'dcos',

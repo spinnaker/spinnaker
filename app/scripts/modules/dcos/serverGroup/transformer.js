@@ -22,7 +22,7 @@ module.exports = angular
       }
 
       command.availabilityZones = {};
-      command.availabilityZones[command.region] = [];
+      command.availabilityZones[command.region] = ['default'];
 
       command.cloudProvider = 'dcos';
       command.credentials = command.account;
