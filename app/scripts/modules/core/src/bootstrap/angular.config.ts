@@ -1,4 +1,4 @@
-import { ICompileProvider, IHttpProvider, ILocationProvider, ILogProvider, IQProvider } from 'angular';
+import { ICompileProvider, IHttpProvider, ILocationProvider, ILogProvider } from 'angular';
 
 import { bootstrapModule } from './bootstrap.module';
 import { SETTINGS } from 'core/config';
