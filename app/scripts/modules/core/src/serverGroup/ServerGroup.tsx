@@ -80,7 +80,7 @@ export class ServerGroup extends React.Component<IServerGroupProps, IServerGroup
 
       jenkins = {
         number: jenkinsConfig.number,
-        href: fromHost || fromFullUrl || fromBuildInfo,
+        href: fromBuildInfo || fromFullUrl || fromHost ,
       };
     } else if (has(serverGroup, 'buildInfo.images')) {
       images = serverGroup.buildInfo.images.join(', ');
