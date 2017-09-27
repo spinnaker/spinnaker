@@ -24,18 +24,12 @@ import org.springframework.stereotype.Component
 @Component
 class PipelineTemplateErrorHandler : Handler {
 
-  private val caughtThrowables = mutableListOf<Throwable>()
-
   override fun handle(chain: HandlerChain, context: PipelineTemplateContext) {
-    caughtThrowables.map { generateErrors(it) }.forEach { context.getErrors().addAll(it) }
+    context.getCaughtThrowables().map { generateErrors(it) }.forEach { context.getErrors().addAll(it) }
 
     if (context.getErrors().hasErrors(context.getRequest().plan)) {
       context.getProcessedOutput().putAll(context.getErrors().toResponse())
     }
-  }
-
-  fun recordThrowable(t: Throwable) {
-    caughtThrowables.add(t)
   }
 
   // Gross backwards compat with old error handler logic

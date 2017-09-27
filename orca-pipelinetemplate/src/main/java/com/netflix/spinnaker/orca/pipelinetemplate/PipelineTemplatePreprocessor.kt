@@ -67,7 +67,7 @@ class PipelineTemplatePreprocessor
         }
 
         log.error("Unexpected error occurred while processing template: ", context.getRequest().getId(), t)
-        errorHandler.recordThrowable(t)
+        context.getCaughtThrowables().add(t)
         chain.clear()
       }
 

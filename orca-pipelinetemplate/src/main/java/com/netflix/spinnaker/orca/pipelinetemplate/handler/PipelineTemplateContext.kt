@@ -17,13 +17,13 @@ package com.netflix.spinnaker.orca.pipelinetemplate.handler
 
 import com.netflix.spinnaker.orca.pipelinetemplate.TemplatedPipelineRequest
 import com.netflix.spinnaker.orca.pipelinetemplate.validator.Errors
-import java.util.*
 
 interface PipelineTemplateContext {
   fun getChain(): HandlerChain
   fun getErrors(): Errors
   fun getProcessedOutput(): MutableMap<String, Any>
   fun getRequest(): TemplatedPipelineRequest
+  fun getCaughtThrowables(): MutableList<Throwable>
   fun <T : PipelineTemplateSchemaContext> setSchemaContext(c: T)
   fun <T : PipelineTemplateSchemaContext> getSchemaContext(): T
 }
@@ -37,12 +37,14 @@ class GlobalPipelineTemplateContext(
 
   private val errors = Errors()
   private val processedOutput = mutableMapOf<String, Any>()
+  private val throwables = mutableListOf<Throwable>()
 
   private var schemaContext: PipelineTemplateSchemaContext? = null
   override fun getChain() = chain
   override fun getErrors() = errors
   override fun getProcessedOutput() = processedOutput
   override fun getRequest() = request
+  override fun getCaughtThrowables() = throwables
 
   override fun <T : PipelineTemplateSchemaContext> setSchemaContext(c: T) {
     if (schemaContext != null) {
