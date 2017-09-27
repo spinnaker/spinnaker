@@ -322,7 +322,7 @@ class TaskController {
       executionRepository.retrievePipelinesForPipelineConfigId(it, executionCriteria)
     }).subscribeOn(Schedulers.io()).toList().toBlocking().single().sort(startTimeOrId)
 
-    return filterPipelinesByHistoryCutoff(allPipelines)
+    return filterPipelinesByHistoryCutoff(allPipelines).take(limit)
   }
 
   private List<Pipeline> filterPipelinesByHistoryCutoff(List<Pipeline> pipelines) {
