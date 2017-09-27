@@ -31,6 +31,7 @@ public class Artifact {
   private String type;
   private String name;
   private String version;
+  private String location;
   private String reference;
   private Map<String, String> metadata;
   private String artifactAccount;
