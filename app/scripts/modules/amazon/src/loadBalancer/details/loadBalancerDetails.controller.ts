@@ -143,7 +143,9 @@ export class AwsLoadBalancerDetailsController implements IController {
           this.loadBalancer.elb.vpcId = this.loadBalancer.elb.vpcId || this.loadBalancer.elb.vpcid;
           this.loadBalancer.account = this.loadBalancerFromParams.accountId;
 
-          if ((details[0] as IApplicationLoadBalancerSourceData).loadBalancerType === 'application') {
+          const sourceData = (details[0] as IApplicationLoadBalancerSourceData);
+          if (sourceData.loadBalancerType === 'application' || sourceData.loadBalancerType === 'network') {
+            // Transform listener data
             const elb = details[0] as IApplicationLoadBalancerSourceData;
             if (elb.listeners && elb.listeners.length) {
               this.elbProtocol = 'http:';

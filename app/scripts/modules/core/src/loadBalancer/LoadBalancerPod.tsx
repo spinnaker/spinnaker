@@ -43,7 +43,7 @@ export class LoadBalancerPod extends React.Component<ILoadBalancerPodProps> {
             </div>
             <div className="pod-center">
               <div>
-                <span className="icon icon-elb"/> {grouping.heading}
+                {grouping.heading}
               </div>
             </div>
           </div>

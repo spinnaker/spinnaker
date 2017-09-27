@@ -11,7 +11,7 @@ export class AmazonLoadBalancerClusterContainer extends React.Component<ILoadBal
   public render(): React.ReactElement<AmazonLoadBalancerClusterContainer> {
     const { loadBalancer, showInstances, showServerGroups } = this.props;
 
-    if (loadBalancer.loadBalancerType === 'application') {
+    if (loadBalancer.loadBalancerType !== 'classic') {
       const alb = loadBalancer as IAmazonApplicationLoadBalancer
       const TargetGroups = alb.targetGroups.map(targetGroup => {
         return (

@@ -39,7 +39,7 @@
       </h3>
     </div>
     <div>
-      <div class="actions">
+      <div class="actions" ng-if="ctrl.loadBalancer.loadBalancerType !== 'network'">
         <div class="dropdown" uib-dropdown dropdown-append-to-body>
           <button type="button" class="btn btn-sm btn-primary dropdown-toggle" uib-dropdown-toggle>
             Load Balancer Actions <span class="caret"></span>
@@ -72,6 +72,8 @@
         <dd><vpc-tag vpc-id="ctrl.loadBalancer.elb.vpcId"></vpc-tag></dd>
         <dt>Subnet</dt>
         <dd>{{ctrl.getFirstSubnetPurpose(ctrl.loadBalancer.subnetDetails)}}</dd>
+        <dt ng-if="ctrl.ipAddressTypeDescription">Type</dt>
+        <dd ng-if="ctrl.ipAddressTypeDescription">{{ctrl.loadBalancer.loadBalancerType}}</dd>
         <dt ng-if="ctrl.ipAddressTypeDescription">IP Type</dt>
         <dd ng-if="ctrl.ipAddressTypeDescription">{{ctrl.ipAddressTypeDescription}}</dd>
       </dl>
