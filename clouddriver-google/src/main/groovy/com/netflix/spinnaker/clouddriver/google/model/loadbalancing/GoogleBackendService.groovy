@@ -44,6 +44,15 @@ class GoogleBackendService {
   GoogleLoadBalancingScheme loadBalancingScheme
 
   /**
+   * The portName this backend service will forward traffic to.
+   *
+   * Load balancers in GCP specify a port name, and each server group added to a
+   * load balancer needs to specify a mapping from that port name to a port to actually
+   * receive traffic.
+   */
+  String portName = GoogleHttpLoadBalancingPolicy.HTTP_DEFAULT_PORT_NAME
+
+  /**
    * Specifies whether edge caching is enabled or not. Only applicable for Https LBs.
    */
   Boolean enableCDN

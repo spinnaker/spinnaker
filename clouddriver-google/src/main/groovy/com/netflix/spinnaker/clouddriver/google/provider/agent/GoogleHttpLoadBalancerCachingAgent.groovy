@@ -338,7 +338,7 @@ class GoogleHttpLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerCachi
     void onFailure(GoogleJsonError e, HttpHeaders responseHeaders) throws IOException {
       if (e.getCode() == 404) {
         log.warn(e.getMessage())
-        googleLoadBalancer.containsBackendBucket = true;
+        googleLoadBalancer.containsBackendBucket = true
       } else {
         throw new GoogleOperationException(e.getMessage())
       }
@@ -362,6 +362,7 @@ class GoogleHttpLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerCachi
         service.sessionAffinity = GoogleSessionAffinity.valueOf(backendService.sessionAffinity)
         service.affinityCookieTtlSec = backendService.affinityCookieTtlSec
         service.enableCDN = backendService.enableCDN
+        service.portName = backendService.portName ?: GoogleHttpLoadBalancingPolicy.HTTP_DEFAULT_PORT_NAME
         service.backends = backendService.backends?.collect { Backend backend ->
           new GoogleLoadBalancedBackend(
               serverGroupUrl: backend.group,

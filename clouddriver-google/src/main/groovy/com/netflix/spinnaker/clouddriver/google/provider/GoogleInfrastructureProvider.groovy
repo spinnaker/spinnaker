@@ -89,6 +89,7 @@ class GoogleInfrastructureProvider extends AgentSchedulerAware implements Search
           sessionAffinity: backendService.attributes.sessionAffinity as String,
           affinityCookieTtlSec: backendService.attributes.affinityCookieTtlSec as String,
           enableCDN: backendService.attributes.enableCDN as String,
+          portName: backendService.attributes.portName as String,
           region: GCEUtil.getLocalName(backendService.attributes?.region as String)
       ]
     }

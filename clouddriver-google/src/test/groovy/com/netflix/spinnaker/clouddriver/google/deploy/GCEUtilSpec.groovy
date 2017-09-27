@@ -414,7 +414,7 @@ class GCEUtilSpec extends Specification {
                 'metadata': new Metadata(items: [
                   new Metadata.Items(
                     key: (GoogleServerGroup.View.LOAD_BALANCING_POLICY),
-                    value: "{\"balancingMode\": \"UTILIZATION\",\"maxUtilization\": 0.80, \"listeningPort\": 8080, \"capacityScaler\": 0.77}"
+                    value: "{\"balancingMode\": \"UTILIZATION\",\"maxUtilization\": 0.80, \"namedPorts\": [{\"name\": \"http\", \"port\": 8080}], \"capacityScaler\": 0.77}"
                   ),
                   new Metadata.Items(
                     key: (GoogleServerGroup.View.BACKEND_SERVICE_NAMES),

@@ -17,6 +17,8 @@
 package com.netflix.spinnaker.clouddriver.google.model.loadbalancing
 
 import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import com.google.api.services.compute.model.NamedPort
 
 /**
  * For Http(s), balancingMode must be either UTILIZATION or RATE.
@@ -25,9 +27,10 @@ import com.fasterxml.jackson.annotation.JsonIgnore
  * For Ssl/Tcp, balancingMode must be either UTILIZATION or CONNECTION.
  * maxUtilization must be set if UTILIZATION, maxConnectionsPerInstance if CONNECTION.
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 class GoogleHttpLoadBalancingPolicy extends GoogleLoadBalancingPolicy {
   @JsonIgnore
-  static final String HTTP_PORT_NAME = 'http'
+  static final String HTTP_DEFAULT_PORT_NAME = 'http'
 
   @JsonIgnore
   static final Integer HTTP_DEFAULT_PORT = 80
@@ -38,6 +41,9 @@ class GoogleHttpLoadBalancingPolicy extends GoogleLoadBalancingPolicy {
 
   Float maxConnectionsPerInstance
 
+  @Deprecated
+  Integer listeningPort
+
   /**
    * Additional scaler option that sets the current max usage of the server group for either balancingMode.
    * Valid values are 0.0 through 1.0.
@@ -46,7 +52,7 @@ class GoogleHttpLoadBalancingPolicy extends GoogleLoadBalancingPolicy {
   Float capacityScaler
 
   /**
-   * Port that the HTTP LB will forward traffic to on the server group.
+   * List of named ports load balancers use to forward traffic to server groups.
    */
-  Integer listeningPort
+  List<NamedPort> namedPorts
 }

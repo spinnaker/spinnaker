@@ -24,6 +24,7 @@ import com.netflix.spinnaker.clouddriver.google.deploy.GoogleOperationPoller
 import com.netflix.spinnaker.clouddriver.google.deploy.SafeRetry
 import com.netflix.spinnaker.clouddriver.google.deploy.description.UpsertGoogleLoadBalancerDescription
 import com.netflix.spinnaker.clouddriver.google.model.GoogleHealthCheck
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleHttpLoadBalancingPolicy
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleSessionAffinity
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
@@ -130,9 +131,10 @@ class UpsertGoogleTcpLoadBalancerAtomicOperation extends UpsertGoogleLoadBalance
     ) as BackendService
     if (existingBackendService) {
       Boolean differentHealthChecks = existingBackendService.getHealthChecks().collect { GCEUtil.getLocalName(it) } != [healthCheckName]
+      Boolean differentPortName = existingBackendService.getPortName() != description.backendService.portName
       Boolean differentSessionAffinity = GoogleSessionAffinity.valueOf(existingBackendService.getSessionAffinity()) != description.backendService.sessionAffinity ||
         existingBackendService.getAffinityCookieTtlSec() != description.backendService.affinityCookieTtlSec
-      needToUpdateBackendService = differentHealthChecks || differentSessionAffinity
+      needToUpdateBackendService = differentHealthChecks || differentPortName || differentSessionAffinity
     }
 
     // Note: TCP LBs only use HealthCheck objects, _not_ Http(s)HealthChecks. The actual check (i.e. Ssl, Tcp, Http(s))
@@ -195,6 +197,7 @@ class UpsertGoogleTcpLoadBalancerAtomicOperation extends UpsertGoogleLoadBalance
       task.updateStatus BASE_PHASE, "Creating backend service ${description.backendService.name}..."
       BackendService bs = new BackendService(
         name: backendServiceName,
+        portName: description.backendService.portName ?: GoogleHttpLoadBalancingPolicy.HTTP_DEFAULT_PORT_NAME,
         healthChecks: [GCEUtil.buildHealthCheckUrl(project, healthCheckName)],
         sessionAffinity: description.backendService.sessionAffinity ?: 'NONE',
         affinityCookieTtlSec: description.backendService.affinityCookieTtlSec,
@@ -220,6 +223,7 @@ class UpsertGoogleTcpLoadBalancerAtomicOperation extends UpsertGoogleLoadBalance
       existingBackendService.affinityCookieTtlSec = description.backendService.affinityCookieTtlSec
       existingBackendService.loadBalancingScheme = 'EXTERNAL'
       existingBackendService.protocol = description.ipProtocol
+      existingBackendService.portName = description.backendService.portName ?: GoogleHttpLoadBalancingPolicy.HTTP_DEFAULT_PORT_NAME
       backendServiceOp = safeRetry.doRetry(
         { timeExecute(
               compute.backendServices().update(project, existingBackendService.getName(), existingBackendService),

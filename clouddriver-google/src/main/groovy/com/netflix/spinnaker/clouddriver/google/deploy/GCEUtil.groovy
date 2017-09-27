@@ -1048,7 +1048,7 @@ class GCEUtil {
     )
   }
 
-  // Note: listeningPort is not set in this method.
+  // Note: namedPorts are not set in this method.
   static GoogleHttpLoadBalancingPolicy loadBalancingPolicyFromBackend(Backend backend) {
     def backendBalancingMode = GoogleLoadBalancingPolicy.BalancingMode.valueOf(backend.balancingMode)
     return new GoogleHttpLoadBalancingPolicy(

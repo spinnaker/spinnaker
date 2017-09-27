@@ -26,6 +26,7 @@ import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.google.cache.CacheResultBuilder
 import com.netflix.spinnaker.clouddriver.google.cache.Keys
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleBackendService
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleHttpLoadBalancingPolicy
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import groovy.util.logging.Slf4j
 
@@ -97,6 +98,7 @@ class GoogleBackendServiceCachingAgent extends AbstractGoogleCachingAgent {
         attributes.affinityCookieTtlSec = backendService.affinityCookieTtlSec
         attributes.region = backendService.region
         attributes.enableCDN = backendService.enableCDN
+        attributes.portName = backendService.portName
       }
     }
 
@@ -113,7 +115,8 @@ class GoogleBackendServiceCachingAgent extends AbstractGoogleCachingAgent {
       sessionAffinity: bs.sessionAffinity,
       affinityCookieTtlSec: bs.affinityCookieTtlSec,
       enableCDN: bs.enableCDN,
-      region: bs.region ?: 'global'
+      region: bs.region ?: 'global',
+      portName: bs.portName ?: GoogleHttpLoadBalancingPolicy.HTTP_DEFAULT_PORT_NAME,
     )
   }
 }
