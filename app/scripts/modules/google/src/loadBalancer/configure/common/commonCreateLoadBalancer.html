@@ -12,6 +12,12 @@
     <v2-wizard-page key="listener" label="Listener" mark-complete-on-view="false">
       <ng-include src="ctrl.pages.listener"></ng-include>
     </v2-wizard-page>
+    <v2-wizard-page key="portName"
+                    label="Port Name"
+                    ng-if="ctrl.hasPortName"
+                    mark-complete-on-view="false">
+      <ng-include src="ctrl.pages.portName"></ng-include>
+    </v2-wizard-page>
     <v2-wizard-page key="healthCheck" label="Health Check" mark-complete-on-view="false">
       <ng-include src="ctrl.pages.healthCheck"></ng-include>
     </v2-wizard-page>

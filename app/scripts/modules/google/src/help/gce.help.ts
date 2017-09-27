@@ -33,6 +33,7 @@ const helpContents: {[key: string]: string} = {
   'gce.loadBalancer.advancedSettings.healthyThreshold': '<p>Configures the number of healthy observations before reinstituting an instance into the load balancer’s traffic rotation.</p><p>Default: <b>10</b></p>',
   'gce.loadBalancer.advancedSettings.unhealthyThreshold': '<p>Configures the number of unhealthy observations before deservicing an instance from the load balancer.</p><p>Default: <b>2</b></p>',
   'gce.loadBalancer.healthCheck': '(Optional) <b>Health Checks</b> use HTTP requests to determine if a VM instance is healthy.',
+  'gce.loadBalancer.portName': '(Required) The <b>Port Name</b> this backend service will forward traffic to. Load balancers in GCP specify a <b>Port Name</b>, and each server group added to a load balancer needs to specify a mapping from that <b>Port Name</b> to a port to actually receive traffic.',
   'gce.loadBalancer.portRange': '(Optional) Only packets addressed to ports in the specified <b>Port Range</b> will be forwarded. If left empty, all ports are forwarded. Must be a single port number or two port numbers separated by a dash. Each port number must be between 1 and 65535, inclusive. For example: 5000-5999.',
   'gce.securityGroup.sourceCIDRs': 'Traffic is only allowed from sources that match one of these CIDR ranges, or one of the source tags above.',
   'gce.securityGroup.sourceTags': 'Traffic is only allowed from sources that match one of these tags, or one of the source CIDR ranges below.',
@@ -91,6 +92,7 @@ const helpContents: {[key: string]: string} = {
       An additional control to manage your maximum CPU utilization or RPS.
       If you want your instances to operate at a max 80% CPU utilization, set your balancing mode to 80% max CPU utilization and your capacity to 100%.
       If you want to cut instance utilization by half, set your balancing mode to 80% max CPU utilization and your capacity to 50%. Input must be a number between 0 and 100.`,
+  'gce.serverGroup.loadBalancingPolicy.portName': 'A load balancer sends traffic to an instance group through a named port. Input must be a port name.',
   'gce.serverGroup.loadBalancingPolicy.listeningPort': 'A load balancer sends traffic to an instance group through a named port. Input must be a port number (i.e., between 1 and 65535).',
   'gce.serverGroup.traffic': 'Registers the server group with any associated load balancers. These registrations are used by Spinnaker to determine if the server group is enabled.',
   'pipeline.config.gce.bake.accountName': '<p>(Optional) The name of a Google account configured within Rosco. If left blank, the first configured account will be used.</p>',

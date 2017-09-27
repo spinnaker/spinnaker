@@ -1,19 +1,49 @@
 <ng-form name="loadBalancingPolicySubForm">
   <collapsible-section heading="Port Name Mapping" expanded="true" subsection="true">
     <div class="form-group">
-      <div class="col-md-5 sm-label-right">
-        <span>http</span><help-field key="gce.serverGroup.loadBalancingPolicy.listeningPort"></help-field>
+      <div class="form-group row" ng-repeat="namedPort in $ctrl.command.loadBalancingPolicy.namedPorts">
+        <div class="col-md-12">
+          <div class="col-md-2 sm-label-right">
+            <b>Name</b>
+            <help-field key="gce.serverGroup.loadBalancingPolicy.portName"></help-field>
+          </div>
+          <div class="col-md-3">
+            <ui-select
+                       ng-model="namedPort.name"
+                       class="form-control input-sm">
+              <ui-select-match>{{namedPort.name}}</ui-select-match>
+              <ui-select-choices repeat="portName in $ctrl.getPortNames()">
+                <span ng-bind-html="portName"></span>
+              </ui-select-choices>
+            </ui-select>
+          </div>
+          <div class="col-md-2 sm-label-right">
+            <b>Port</b>
+            <help-field key="gce.serverGroup.loadBalancingPolicy.listeningPort"></help-field>
+          </div>
+          <div class="col-md-3">
+            <input type="number"
+                   name="listeningPort"
+                   required
+                   class="form-control input-sm"
+                   ng-model="namedPort.port"
+                   max="{{ $ctrl.maxPort }}"
+                   min="1"/>
+          </div>
+          <div class="col-md-2 sm-label-left">
+            <span class="glyphicon glyphicon-trash" uib-tooltip="Remove Named Port"
+                  ng-click="$ctrl.removeNamedPort($index)"></span>
+          </div>
+          <div class="col-md-4 error-message"
+               ng-if="loadBalancingPolicySubForm.listeningPort.$error.min || loadBalancingPolicySubForm.listeningPort.$error.max">
+            Must be between 1 and {{ $ctrl.maxPort }}.
+          </div>
+        </div>
       </div>
-      <div class="col-md-3"><input type="number"
-                                   name="listeningPort"
-                                   required
-                                   class="form-control input-sm"
-                                   ng-model="$ctrl.command.loadBalancingPolicy.listeningPort"
-                                   max="{{ $ctrl.maxPort }}"
-                                   min="1"/></div>
-      <div class="col-md-4 error-message"
-           ng-if="loadBalancingPolicySubForm.listeningPort.$error.min || loadBalancingPolicySubForm.listeningPort.$error.max">
-        Must be between 1 and {{ $ctrl.maxPort }}.
+      <div class="col-md-11">
+        <button class="btn btn-block add-new" ng-click="$ctrl.addNamedPort()">
+          <span class="glyphicon glyphicon-plus-sign"></span> Add Port Name Mapping
+        </button>
       </div>
     </div>
   </collapsible-section>
