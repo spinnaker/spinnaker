@@ -45,6 +45,14 @@ class PipelineBuilder {
     return this
   }
 
+  PipelineBuilder withReceivedArtifacts(List receivedArtifacts = []) {
+    pipeline.receivedArtifacts.clear()
+    if (receivedArtifacts) {
+      pipeline.receivedArtifacts.addAll(receivedArtifacts)
+    }
+    return this
+  }
+
   PipelineBuilder withNotifications(List<Map<String, Object>> notifications = []) {
     pipeline.notifications.clear()
     if (notifications) {

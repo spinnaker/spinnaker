@@ -545,6 +545,7 @@ class JedisExecutionRepository implements ExecutionRepository {
       map.pipelineConfigId = execution.pipelineConfigId
       map.trigger = mapper.writeValueAsString(execution.trigger)
       map.notifications = mapper.writeValueAsString(execution.notifications)
+      map.receivedArtifacts = mapper.writeValueAsString(execution.receivedArtifacts)
       map.initialConfig = mapper.writeValueAsString(execution.initialConfig)
     } else if (execution instanceof Orchestration) {
       map.description = execution.description
@@ -653,6 +654,7 @@ class JedisExecutionRepository implements ExecutionRepository {
         execution.pipelineConfigId = map.pipelineConfigId
         execution.trigger.putAll(mapper.readValue(map.trigger, Map))
         execution.notifications.addAll(mapper.readValue(map.notifications, List))
+        execution.receivedArtifacts.addAll(mapper.readValue(map.receivedArtifacts, List))
         execution.initialConfig.putAll(mapper.readValue(map.initialConfig, Map))
       } else if (execution instanceof Orchestration) {
         execution.description = map.description
