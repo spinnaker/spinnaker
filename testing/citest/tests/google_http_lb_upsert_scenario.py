@@ -601,7 +601,7 @@ class GoogleHttpLoadBalancerTestScenario(sk.SpinnakerTestScenario):
                                              stack=bindings['TEST_STACK'])
     policy = {
       'balancingMode': 'UTILIZATION',
-      'listeningPort': 80,
+      'namedPorts': [{'name': 'http', 'port': 80}],
       'maxUtilization': 0.8,
       'capacityScaler': 0.8
     }
@@ -625,7 +625,7 @@ class GoogleHttpLoadBalancerTestScenario(sk.SpinnakerTestScenario):
         'disableTraffic': False,
         'loadBalancingPolicy': {
           'balancingMode': 'UTILIZATION',
-          'listeningPort': 80,
+          'namedPorts': [{'name': http, 'port': 80}],
           'maxUtilization': 0.8,
           'capacityScaler': 0.8
         },
