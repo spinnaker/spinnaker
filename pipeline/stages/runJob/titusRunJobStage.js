@@ -14,6 +14,7 @@ module.exports = angular.module('spinnaker.titus.pipeline.stage.runJobStage', [
       providesFor: ['aws', 'titus'],
       templateUrl: require('./runJobStage.html'),
       executionDetailsUrl: require('./runJobExecutionDetails.html'),
+      defaultTimeoutMs: 2 * 60 * 60 * 1000, // 2 hours
       validators: [
         {type: 'requiredField', fieldName: 'cluster.imageId'},
         {type: 'requiredField', fieldName: 'credentials'},
@@ -150,4 +151,3 @@ module.exports = angular.module('spinnaker.titus.pipeline.stage.runJobStage', [
       });
     });
   });
-
