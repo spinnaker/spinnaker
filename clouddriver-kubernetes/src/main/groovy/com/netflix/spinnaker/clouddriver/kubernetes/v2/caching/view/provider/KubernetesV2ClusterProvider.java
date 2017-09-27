@@ -133,7 +133,13 @@ public class KubernetesV2ClusterProvider implements ClusterProvider<KubernetesV2
 
   @Override
   public KubernetesV2ServerGroup getServerGroup(String account, String namespace, String name) {
-    Triple<KubernetesApiVersion, KubernetesKind, String> parsedName = KubernetesManifest.fromFullResourceName(name);
+    Triple<KubernetesApiVersion, KubernetesKind, String> parsedName;
+    try {
+      parsedName = KubernetesManifest.fromFullResourceName(name);
+    } catch (IllegalArgumentException e) {
+      return null;
+    }
+
     KubernetesApiVersion apiVersion = parsedName.getLeft();
     KubernetesKind kind = parsedName.getMiddle();
     String shortName = parsedName.getRight();
