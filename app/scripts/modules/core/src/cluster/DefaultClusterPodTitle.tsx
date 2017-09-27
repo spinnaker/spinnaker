@@ -1,12 +1,12 @@
 import * as React from 'react';
-import autoBindMethods from 'class-autobind-decorator';
+import { BindAll } from 'lodash-decorators';
 
 import { NgReact } from 'core/reactShims';
 import { EntityNotifications } from 'core/entityTag/notifications/EntityNotifications';
 import { HealthCounts } from 'core/healthCounts';
 import { IClusterPodTitleProps } from './ClusterPodTitleWrapper';
 
-@autoBindMethods
+@BindAll()
 export class DefaultClusterPodTitle extends React.Component<IClusterPodTitleProps> {
 
   public render(): React.ReactElement<DefaultClusterPodTitle> {

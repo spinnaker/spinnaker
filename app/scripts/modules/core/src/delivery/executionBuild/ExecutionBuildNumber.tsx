@@ -1,6 +1,6 @@
 import * as React from 'react';
 import * as ReactGA from 'react-ga';
-import autoBindMethods from 'class-autobind-decorator';
+import { BindAll } from 'lodash-decorators';
 
 import { IExecution } from 'core/domain';
 import { ReactInjector } from 'core/reactShims';
@@ -11,7 +11,7 @@ export interface IExecutionBuildNumberProps {
   execution: IExecution;
 }
 
-@autoBindMethods
+@BindAll()
 export class ExecutionBuildNumber extends React.Component<IExecutionBuildNumberProps, {}> {
   constructor(props: IExecutionBuildNumberProps) {
     super(props);

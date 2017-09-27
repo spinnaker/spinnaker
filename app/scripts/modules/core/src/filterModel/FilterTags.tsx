@@ -1,6 +1,6 @@
 import * as React from 'react';
 import * as ReactGA from 'react-ga';
-import autoBindMethods from 'class-autobind-decorator';
+import { BindAll } from 'lodash-decorators';
 
 export interface IFilter {
   label: string;
@@ -21,7 +21,7 @@ export interface IFilterTagsState {
   tags: IFilterTag[];
 }
 
-@autoBindMethods
+@BindAll()
 export class FilterTags extends React.Component<IFilterTagsProps, IFilterTagsState> {
 
   public static defaultProps: Partial<IFilterTagsProps> = {

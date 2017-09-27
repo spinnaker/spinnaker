@@ -1,4 +1,4 @@
-import autoBindMethods from 'class-autobind-decorator';
+import { BindAll } from 'lodash-decorators';
 import { isEmpty } from 'lodash';
 import { module, IController, ILocationService, IScope } from 'angular';
 import { StateService } from '@uirouter/core';
@@ -32,7 +32,7 @@ export interface IMenuItem {
   displayName: string;
 }
 
-@autoBindMethods
+@BindAll()
 export class InfrastructureV2Ctrl implements IController {
 
   public viewState: IViewState;

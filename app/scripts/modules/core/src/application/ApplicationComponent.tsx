@@ -1,5 +1,5 @@
 import * as React from 'react';
-import autoBindMethods from 'class-autobind-decorator';
+import { BindAll } from 'lodash-decorators';
 import { Subscription } from 'rxjs';
 
 import { Application } from 'core/application';
@@ -22,7 +22,7 @@ export interface IApplicationComponentState {
   lastRefresh: number;
 }
 
-@autoBindMethods
+@BindAll()
 export class ApplicationComponent extends React.Component<IApplicationComponentProps, IApplicationComponentState> {
   private activeStateRefreshUnsubscribe: () => void;
   private activeStateChangeSubscription: Subscription;

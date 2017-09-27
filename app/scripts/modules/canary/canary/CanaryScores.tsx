@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { isString } from 'lodash';
-import autoBindMethods from 'class-autobind-decorator';
+import { BindAll } from 'lodash-decorators';
 
 import { HelpField } from 'core/help/HelpField';
 
@@ -19,7 +19,7 @@ export interface ICanaryScoresProps {
   unhealthyScore: string;
 }
 
-@autoBindMethods
+@BindAll()
 export class CanaryScores extends React.Component<ICanaryScoresProps> {
 
   public render() {

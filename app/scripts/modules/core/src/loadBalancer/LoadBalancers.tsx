@@ -1,5 +1,5 @@
 import * as React from 'react';
-import autoBindMethods from 'class-autobind-decorator';
+import { BindAll } from 'lodash-decorators';
 import { Debounce } from 'lodash-decorators';
 import { Subscription } from 'rxjs';
 
@@ -23,7 +23,7 @@ export interface ILoadBalancersState {
   showInstances: boolean;
 }
 
-@autoBindMethods
+@BindAll()
 export class LoadBalancers extends React.Component<ILoadBalancersProps, ILoadBalancersState> {
   private groupsUpdatedListener: Subscription;
   private loadBalancersRefreshUnsubscribe: () => any;

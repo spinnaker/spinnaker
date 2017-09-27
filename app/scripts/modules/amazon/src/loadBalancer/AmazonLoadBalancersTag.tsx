@@ -3,7 +3,7 @@
 
 import * as React from 'react';
 import * as ReactGA from 'react-ga';
-import autoBindMethods from 'class-autobind-decorator';
+import { BindAll } from 'lodash-decorators';
 import { sortBy } from 'lodash';
 
 import {
@@ -22,7 +22,7 @@ interface ILoadBalancerSingleItemProps extends ILoadBalancerListItemProps {
   label: string;
 }
 
-@autoBindMethods
+@BindAll()
 class LoadBalancerListItem extends React.Component<ILoadBalancerListItemProps> {
   private onClick(e: React.MouseEvent<HTMLElement>): void {
     this.props.onItemClick(this.props.loadBalancer);
@@ -39,7 +39,7 @@ class LoadBalancerListItem extends React.Component<ILoadBalancerListItemProps> {
   }
 }
 
-@autoBindMethods
+@BindAll()
 class LoadBalancerButton extends React.Component<ILoadBalancerSingleItemProps> {
   private onClick(e: React.MouseEvent<HTMLElement>): void {
     this.props.onItemClick(this.props.loadBalancer);
@@ -66,7 +66,7 @@ export interface IAmazonLoadBalancersTagState {
   targetGroups: ITargetGroup[];
 }
 
-@autoBindMethods
+@BindAll()
 export class AmazonLoadBalancersTag extends React.Component<ILoadBalancersTagProps, IAmazonLoadBalancersTagState> {
   private loadBalancersRefreshUnsubscribe: () => void;
 

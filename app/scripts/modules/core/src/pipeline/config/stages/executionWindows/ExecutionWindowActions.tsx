@@ -1,5 +1,5 @@
 import * as React from 'react';
-import autoBindMethods from 'class-autobind-decorator';
+import { BindAll } from 'lodash-decorators';
 
 import {IExecution, IExecutionStage} from 'core/domain';
 import {Application} from 'core/application/application.model';
@@ -25,7 +25,7 @@ export interface IExecutionWindowWhitelistEntry {
   endMin: number;
 }
 
-@autoBindMethods
+@BindAll()
 export class ExecutionWindowActions extends React.Component<IExecutionWindowActionsProps, IExecutionWindowActionsState> {
   constructor(props: IExecutionWindowActionsProps) {
     super(props);

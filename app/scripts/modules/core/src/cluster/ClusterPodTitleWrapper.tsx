@@ -1,5 +1,5 @@
 import * as React from 'react';
-import autoBindMethods from 'class-autobind-decorator';
+import { BindAll } from 'lodash-decorators';
 
 import { Application } from 'core/application/application.model';
 import { ReactInjector } from 'core/reactShims';
@@ -12,7 +12,7 @@ export interface IClusterPodTitleProps {
   parentHeading: string;
 }
 
-@autoBindMethods
+@BindAll()
 export class ClusterPodTitleWrapper extends React.Component<IClusterPodTitleProps> {
   public render(): React.ReactElement<ClusterPodTitleWrapper> {
     const { overrideRegistry } = ReactInjector;

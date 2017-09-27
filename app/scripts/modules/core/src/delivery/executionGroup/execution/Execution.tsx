@@ -3,7 +3,7 @@ import * as ReactGA from 'react-ga';
 import { clone } from 'lodash';
 import { $location } from 'ngimport';
 import { Subscription } from 'rxjs';
-import autoBindMethods from 'class-autobind-decorator';
+import { BindAll } from 'lodash-decorators';
 import * as classNames from 'classnames';
 
 import { Application } from 'core/application/application.model';
@@ -41,7 +41,7 @@ export interface IExecutionState {
   runningTimeInMs: number;
 }
 
-@autoBindMethods
+@BindAll()
 export class Execution extends React.Component<IExecutionProps, IExecutionState> {
   public static defaultProps: Partial<IExecutionProps> = {
     dataSourceKey: 'executions'

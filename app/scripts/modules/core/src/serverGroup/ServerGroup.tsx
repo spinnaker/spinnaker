@@ -2,7 +2,7 @@ import * as React from 'react';
 import * as ReactGA from 'react-ga';
 import { has, get } from 'lodash';
 import classNames = require('classnames');
-import autoBindMethods from 'class-autobind-decorator';
+import { BindAll } from 'lodash-decorators';
 import { Subscription } from 'rxjs/Subscription';
 
 import { Application } from 'core/application';
@@ -50,7 +50,7 @@ export interface IServerGroupState {
 
 const getSequence = serverGroupSequenceFilter(new NamingService());
 
-@autoBindMethods
+@BindAll()
 export class ServerGroup extends React.Component<IServerGroupProps, IServerGroupState> {
   private stateChangeSubscription: Subscription;
   private serverGroupsSubscription: Subscription;

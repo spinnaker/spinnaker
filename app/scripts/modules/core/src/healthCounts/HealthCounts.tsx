@@ -1,5 +1,5 @@
 import * as React from 'react';
-import autoBindMethods from 'class-autobind-decorator';
+import { BindAll } from 'lodash-decorators';
 import { isEqual } from 'lodash';
 
 import { IInstanceCounts } from 'core/domain';
@@ -19,7 +19,7 @@ export interface IHealthCountsState {
   total: number;
 };
 
-@autoBindMethods
+@BindAll()
 export class HealthCounts extends React.Component<IHealthCountsProps, IHealthCountsState> {
   public static defaultProps: Partial<IHealthCountsProps> = {
     legendPlacement: 'top',

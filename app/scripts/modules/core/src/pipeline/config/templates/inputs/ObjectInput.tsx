@@ -1,10 +1,10 @@
 import {module} from 'angular';
 import * as React from 'react';
 import {IVariableInputBuilder, VariableInputService, IVariable, IVariableProps, IVariableState} from './variableInput.service';
-import autoBindMethods from 'class-autobind-decorator';
+import { BindAll } from 'lodash-decorators';
 import {VariableError} from '../VariableError';
 
-@autoBindMethods
+@BindAll()
 class ObjectInput extends React.Component<IVariableProps, IVariableState> {
 
   public render() {

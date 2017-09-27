@@ -1,5 +1,5 @@
 import * as React from 'react';
-import autoBindMethods from 'class-autobind-decorator';
+import { BindAll } from 'lodash-decorators';
 import { UISref, UISrefActive } from '@uirouter/react';
 
 import { Application } from 'core/application/application.model';
@@ -18,7 +18,7 @@ export interface ILoadBalancerProps {
   showInstances?: boolean;
 }
 
-@autoBindMethods
+@BindAll()
 export class LoadBalancer extends React.Component<ILoadBalancerProps> {
   public static defaultProps: Partial<ILoadBalancerProps> = {
     showServerGroups: true,

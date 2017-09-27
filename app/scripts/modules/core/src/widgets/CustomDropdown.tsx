@@ -1,12 +1,12 @@
 import * as React from 'react';
-import autoBindMethods from 'class-autobind-decorator';
+import { BindAll } from 'lodash-decorators';
 
 export interface ToggleProps {
   bsRole: string;
   onClick?: React.EventHandler<React.MouseEvent<HTMLAnchorElement>>;
 }
 
-@autoBindMethods
+@BindAll()
 export class CustomToggle extends React.Component<ToggleProps, {}> {
   constructor(props: ToggleProps) {
     super(props);

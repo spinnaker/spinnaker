@@ -1,9 +1,9 @@
 import {module, IRequestConfig, IHttpInterceptor, IHttpProvider} from 'angular';
 import {$log, $location} from 'ngimport';
 import {JSON_UTILITY_SERVICE, JsonUtilityService} from 'core/utils/json/json.utility.service';
-import autoBindMethods from 'class-autobind-decorator';
+import { BindAll } from 'lodash-decorators';
 
-@autoBindMethods
+@BindAll()
 export class DebugInterceptor implements IHttpInterceptor {
 
   constructor(private jsonUtilityService: JsonUtilityService) { 'ngInject'; }

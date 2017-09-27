@@ -1,5 +1,5 @@
 import * as React from 'react';
-import autoBindMethods from 'class-autobind-decorator';
+import { BindAll } from 'lodash-decorators';
 import { orderBy } from 'lodash';
 
 import { ReactInjector } from 'core/reactShims';
@@ -22,7 +22,7 @@ export interface IClusterPodState {
   showCloseButton: boolean;
 }
 
-@autoBindMethods
+@BindAll()
 export class ClusterPod extends React.Component<IClusterPodProps, IClusterPodState> {
   constructor(props: IClusterPodProps) {
     super(props);

@@ -1,13 +1,13 @@
 import { module } from 'angular';
 import * as React from 'react';
-import autoBindMethods from 'class-autobind-decorator';
+import { BindAll } from 'lodash-decorators';
 
 import {
   IVariableInputBuilder, VariableInputService, IVariable, IVariableProps, IVariableState
 } from './variableInput.service';
 import { VariableError } from '../VariableError';
 
-@autoBindMethods
+@BindAll()
 class BooleanInput extends React.Component<IVariableProps, IVariableState> {
 
   public render() {

@@ -1,5 +1,5 @@
 import * as React from 'react';
-import autoBindMethods from 'class-autobind-decorator';
+import { BindAll } from 'lodash-decorators';
 
 import { IExecutionStageSummary } from 'core/domain';
 import { HoverablePopover } from 'core/presentation/HoverablePopover';
@@ -16,7 +16,7 @@ export interface IGroupedStageListItemProps {
   stageClicked?: (stage: IExecutionStageSummary) => void;
 }
 
-@autoBindMethods
+@BindAll()
 class GroupedStageListItem extends React.Component<IGroupedStageListItemProps> {
   private onClick(): void {
     if (this.props.stageClicked) {
@@ -48,7 +48,7 @@ class GroupedStageListItem extends React.Component<IGroupedStageListItemProps> {
   }
 }
 
-@autoBindMethods
+@BindAll()
 export class GroupExecutionPopover extends React.Component<IGroupExecutionPopoverProps> {
   private subStageClicked(subStage: IExecutionStageSummary): void {
     if (this.props.subStageClicked) {

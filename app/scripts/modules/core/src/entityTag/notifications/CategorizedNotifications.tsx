@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { uniq } from 'lodash';
-import autoBindMethods from 'class-autobind-decorator';
+import { BindAll } from 'lodash-decorators';
 
 import { GroupedNotificationList } from './GroupedNotificationList';
 import { NotificationCategory } from './NotificationCategory';
@@ -46,7 +46,7 @@ export interface ICategorizedNotificationsState {
  * |                  |                                   |
  * +------------------+-----------------------------------+
  */
-@autoBindMethods
+@BindAll()
 export class CategorizedNotifications extends React.Component<ICategorizedNotificationsProps, ICategorizedNotificationsState> {
   public state: ICategorizedNotificationsState;
 

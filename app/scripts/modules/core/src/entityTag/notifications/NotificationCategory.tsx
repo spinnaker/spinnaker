@@ -1,5 +1,5 @@
 import * as React from 'react';
-import autoBindMethods from 'class-autobind-decorator';
+import { BindAll } from 'lodash-decorators';
 
 import { INotificationCategory } from './notificationCategories';
 import { INotification } from './NotificationsPopover';
@@ -17,7 +17,7 @@ export interface INotificationCategoryProps {
  * | (icon) Category      (# badge) |
  * +--------------------------------+
  */
-@autoBindMethods
+@BindAll()
 export class NotificationCategory extends React.Component<INotificationCategoryProps, any> {
   public selectCategory(): void {
     this.props.onCategorySelected(this.props.category);

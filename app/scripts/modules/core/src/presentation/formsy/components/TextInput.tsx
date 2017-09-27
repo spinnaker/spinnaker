@@ -1,5 +1,5 @@
 import * as React from 'react';
-import autoBindMethods from 'class-autobind-decorator';
+import { BindAll } from 'lodash-decorators';
 
 import { FormsyComponent, IFormsyComponentProps } from '../FormsyComponent';
 
@@ -10,7 +10,7 @@ export interface ITextInputProps extends IFormsyComponentProps {
 /**
  * A Formsy form component that accepts a LayoutComponent
  */
-@autoBindMethods
+@BindAll()
 export class TextInput extends FormsyComponent<string, ITextInputProps> {
   public static contextTypes = FormsyComponent.contextTypes;
   public static defaultProps = FormsyComponent.defaultProps;

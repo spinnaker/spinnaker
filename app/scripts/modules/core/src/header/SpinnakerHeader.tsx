@@ -1,5 +1,5 @@
 import * as React from 'react';
-import autoBindMethods from 'class-autobind-decorator';
+import { BindAll } from 'lodash-decorators';
 import { UISref, UISrefActive } from '@uirouter/react';
 import { UIRouterContext } from '@uirouter/react-hybrid';
 
@@ -12,7 +12,7 @@ export interface ISpinnakerHeaderState {
 }
 
 @UIRouterContext
-@autoBindMethods
+@BindAll()
 export class SpinnakerHeader extends React.Component<{}, ISpinnakerHeaderState> {
 
   constructor() {

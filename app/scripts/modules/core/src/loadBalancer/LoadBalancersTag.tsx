@@ -1,6 +1,6 @@
 import * as React from 'react';
 import * as ReactGA from 'react-ga';
-import autoBindMethods from 'class-autobind-decorator';
+import { BindAll } from 'lodash-decorators';
 import { sortBy } from 'lodash';
 
 import { ILoadBalancer } from 'core/domain';
@@ -16,7 +16,7 @@ interface ILoadBalancerListItemProps {
   onItemClick: (loadBalancer: ILoadBalancer) => void;
 }
 
-@autoBindMethods
+@BindAll()
 class LoadBalancerListItem extends React.Component<ILoadBalancerListItemProps> {
   private onClick(e: React.MouseEvent<HTMLElement>): void {
     this.props.onItemClick(this.props.loadBalancer);
@@ -33,7 +33,7 @@ class LoadBalancerListItem extends React.Component<ILoadBalancerListItemProps> {
   }
 }
 
-@autoBindMethods
+@BindAll()
 class LoadBalancerButton extends React.Component<ILoadBalancerListItemProps> {
   private onClick(e: React.MouseEvent<HTMLElement>): void {
     this.props.onItemClick(this.props.loadBalancer);
@@ -59,7 +59,7 @@ export interface ILoadBalancersTagState {
   loadBalancers: ILoadBalancer[];
 }
 
-@autoBindMethods
+@BindAll()
 export class LoadBalancersTag extends React.Component<ILoadBalancersTagProps, ILoadBalancersTagState> {
   private loadBalancersRefreshUnsubscribe: () => void;
 

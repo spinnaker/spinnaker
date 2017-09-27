@@ -1,12 +1,12 @@
 import * as React from 'react';
-import autoBindMethods from 'class-autobind-decorator';
+import { BindAll } from 'lodash-decorators';
 
 export interface ISpinnerProps {
   size?: 'nano' | 'small' | 'medium' | 'large';
   message?: string;
 }
 
-@autoBindMethods
+@BindAll()
 export class Spinner extends React.Component<ISpinnerProps> {
 
   public getBarRows(): Array<React.ReactNode> {

@@ -1,7 +1,7 @@
 import * as React from 'react';
 import * as ReactGA from 'react-ga';
 import * as DOMPurify from 'dompurify';
-import autoBindMethods from 'class-autobind-decorator';
+import { BindAll } from 'lodash-decorators';
 import { $injector } from 'ngimport';
 
 import { HelpContentsRegistry, IHelpContents } from 'core/help';
@@ -20,7 +20,7 @@ export interface IState {
   contents: React.ReactElement<any>;
 }
 
-@autoBindMethods
+@BindAll()
 export class HelpField extends React.Component<IHelpFieldProps, IState> {
   public static defaultProps: IHelpFieldProps = {
     placement: 'top',

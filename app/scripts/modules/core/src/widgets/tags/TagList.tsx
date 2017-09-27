@@ -1,6 +1,6 @@
 import * as React from 'react';
 import * as ReactGA from 'react-ga';
-import autoBindMethods from 'class-autobind-decorator';
+import { BindAll } from 'lodash-decorators';
 
 import { Key } from 'core/widgets/Keys';
 import { DeleteType, ITag, Tag } from './Tag';
@@ -16,7 +16,7 @@ export interface ITagListProps {
   onUpdate?: (elements: HTMLElement[]) => void;
 }
 
-@autoBindMethods
+@BindAll()
 export class TagList extends React.Component<ITagListProps> {
 
   public static defaultProps: Partial<ITagListProps> = {

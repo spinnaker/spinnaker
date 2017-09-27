@@ -1,5 +1,5 @@
 import * as React from 'react';
-import autoBindMethods from 'class-autobind-decorator';
+import { BindAll } from 'lodash-decorators';
 
 import { IEntityTags, IEntityTag } from 'core/domain';
 import { Placement } from 'core/presentation';
@@ -27,7 +27,7 @@ export interface IEntityNotificationsProps {
  * A notifications popover for alerts and notices.
  * Shows the notifications for a single entity (not rolled up, and not grouped by message)
  */
-@autoBindMethods
+@BindAll()
 export class EntityNotifications extends React.Component<IEntityNotificationsProps> {
   public static defaultProps: Partial<IEntityNotificationsProps> = {
     placement: 'bottom',

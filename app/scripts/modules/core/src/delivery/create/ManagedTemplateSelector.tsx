@@ -1,7 +1,7 @@
 import * as React from 'react';
 import * as Select from 'react-select';
 import {IPipelineTemplate} from 'core/pipeline/config/templates/pipelineTemplate.service';
-import autoBindMethods from 'class-autobind-decorator';
+import { BindAll } from 'lodash-decorators';
 
 export interface IManagedTemplateSelectorProps {
   selectedTemplate: IPipelineTemplate;
@@ -9,7 +9,7 @@ export interface IManagedTemplateSelectorProps {
   onChange: (template: IPipelineTemplate) => void;
 }
 
-@autoBindMethods
+@BindAll()
 export class ManagedTemplateSelector extends React.Component<IManagedTemplateSelectorProps> {
 
   public render() {

@@ -1,5 +1,5 @@
 import * as React from 'react';
-import autoBindMethods from 'class-autobind-decorator';
+import { BindAll } from 'lodash-decorators';
 
 import { ISearchResultGroup, SearchResultGroup } from './SearchResultGroup';
 
@@ -9,7 +9,7 @@ export interface ISearchResultGroupsProps {
   searchResultGroups: ISearchResultGroup[]
 }
 
-@autoBindMethods
+@BindAll()
 export class SearchResultGroups extends React.Component<ISearchResultGroupsProps> {
 
   public static defaultProps: Partial<ISearchResultGroupsProps> = {

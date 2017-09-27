@@ -1,6 +1,6 @@
 import { get } from 'lodash';
 import * as React from 'react';
-import autoBindMethods from 'class-autobind-decorator';
+import { BindAll } from 'lodash-decorators';
 import { capitalize } from 'lodash';
 
 import { NgReact } from 'core/reactShims';
@@ -15,7 +15,7 @@ export interface ITableColumnConfigEntry<T> {
   cellRenderer: (item: T, key?: string, defaultValue?: string) => JSX.Element;
 }
 
-@autoBindMethods
+@BindAll()
 export abstract class AbstractBaseResultRenderer<T> implements IResultRenderer {
 
   private gridElement: HTMLElement;

@@ -1,6 +1,6 @@
 import * as React from 'react';
 import * as Select from 'react-select';
-import autoBindMethods from 'class-autobind-decorator'
+import { BindAll } from 'lodash-decorators';
 
 import { HelpField } from '@spinnaker/core';
 
@@ -17,7 +17,7 @@ export interface ICustomInstanceConfigurerProps {
   onChange: (config: ICustomInstanceConfig) => void;
 }
 
-@autoBindMethods()
+@BindAll()
 export class CustomInstanceConfigurer extends React.Component<ICustomInstanceConfigurerProps> {
   public render() {
     const vCpuOptions: Select.Option[] = (this.props.vCpuList || []).map(vCpu => ({label: vCpu + '', value: vCpu}));

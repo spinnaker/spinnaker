@@ -1,6 +1,6 @@
 import * as React from 'react';
 import * as classNames from 'classnames';
-import autoBindMethods from 'class-autobind-decorator';
+import { BindAll } from 'lodash-decorators';
 
 import { Key } from 'core/widgets/Keys';
 import { ITag } from 'core/widgets/tags/Tag';
@@ -25,7 +25,7 @@ export interface ISearchState {
   tags: ITag[];
 }
 
-@autoBindMethods
+@BindAll()
 export class Search extends React.Component<ISearchProps, ISearchState> {
 
   private filterTypes: IFilterType[] = [];

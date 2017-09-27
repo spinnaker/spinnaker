@@ -1,5 +1,5 @@
 import * as React from 'react';
-import autoBindMethods from 'class-autobind-decorator';
+import { BindAll } from 'lodash-decorators';
 
 import { Application, ReactInjector } from '@spinnaker/core';
 
@@ -19,7 +19,7 @@ export interface ICreateScalingPolicyButtonState {
   typeSelection: string;
 }
 
-@autoBindMethods
+@BindAll()
 export class CreateScalingPolicyButton extends React.Component<ICreateScalingPolicyButtonProps, ICreateScalingPolicyButtonState> {
 
   constructor(props: ICreateScalingPolicyButtonProps) {

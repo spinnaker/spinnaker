@@ -1,6 +1,6 @@
 import * as React from 'react';
 import * as moment from 'moment';
-import autoBindMethods from 'class-autobind-decorator';
+import { BindAll } from 'lodash-decorators';
 
 import { IPipeline, ICronTrigger } from 'core/domain';
 import { Popover } from 'core/presentation/Popover';
@@ -17,7 +17,7 @@ export interface INextRunTagState {
   hasNextScheduled: boolean;
 }
 
-@autoBindMethods
+@BindAll()
 export class NextRunTag extends React.Component<INextRunTagProps, INextRunTagState> {
   constructor(props: INextRunTagProps) {
     super(props);

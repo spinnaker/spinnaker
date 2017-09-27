@@ -6,9 +6,9 @@ import {
   IVariableState, IVariableProps
 } from './variableInput.service';
 import {VariableError} from '../VariableError';
-import autoBindMethods from 'class-autobind-decorator';
+import { BindAll } from 'lodash-decorators';
 
-@autoBindMethods()
+@BindAll()
 class ListInput extends React.Component<IVariableProps, IVariableState> {
 
   public render() {

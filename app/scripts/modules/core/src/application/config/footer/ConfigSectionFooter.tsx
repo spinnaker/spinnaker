@@ -1,5 +1,5 @@
 import * as React from 'react';
-import autoBindMethods from 'class-autobind-decorator';
+import { BindAll } from 'lodash-decorators';
 
 export interface IConfigSectionFooterProps {
   isDirty: boolean;
@@ -10,7 +10,7 @@ export interface IConfigSectionFooterProps {
   onSaveClicked: () => void;
 }
 
-@autoBindMethods
+@BindAll()
 export class ConfigSectionFooter extends React.Component<IConfigSectionFooterProps> {
   public render() {
     const { isValid, isDirty, isSaving, saveError, onRevertClicked, onSaveClicked } = this.props;

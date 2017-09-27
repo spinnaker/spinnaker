@@ -1,5 +1,5 @@
 import * as React from 'react';
-import autoBindMethods from 'class-autobind-decorator';
+import { BindAll } from 'lodash-decorators';
 
 import { Key } from '../Keys';
 
@@ -21,7 +21,7 @@ export interface ITagProps {
   tag: ITag;
 }
 
-@autoBindMethods
+@BindAll()
 export class Tag extends React.Component<ITagProps> {
 
   public static defaultProps: Partial<ITagProps> = {

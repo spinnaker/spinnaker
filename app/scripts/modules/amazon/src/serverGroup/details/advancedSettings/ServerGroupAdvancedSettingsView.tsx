@@ -1,12 +1,12 @@
 import * as React from 'react';
-import autoBindMethods from 'class-autobind-decorator';
+import { BindAll } from 'lodash-decorators';
 import { IAmazonServerGroupView } from 'amazon/domain';
 
 export interface IServerGroupAdvancedSettingsViewProps {
   serverGroup: IAmazonServerGroupView;
 }
 
-@autoBindMethods
+@BindAll()
 export class ServerGroupAdvancedSettingsView extends React.PureComponent<IServerGroupAdvancedSettingsViewProps> {
 
   public render(): JSX.Element {

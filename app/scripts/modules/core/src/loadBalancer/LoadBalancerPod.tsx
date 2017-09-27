@@ -1,5 +1,5 @@
 import * as React from 'react';
-import autoBindMethods from 'class-autobind-decorator';
+import { BindAll } from 'lodash-decorators';
 import { isEqual, zip } from 'lodash';
 
 import { NgReact } from 'core/reactShims';
@@ -18,7 +18,7 @@ export interface ILoadBalancerPodProps {
 }
 
 
-@autoBindMethods
+@BindAll()
 export class LoadBalancerPod extends React.Component<ILoadBalancerPodProps> {
   public render(): React.ReactElement<LoadBalancerPod> {
     const { grouping, application, parentHeading, showServerGroups, showInstances } = this.props;

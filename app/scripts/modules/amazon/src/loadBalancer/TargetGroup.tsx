@@ -1,5 +1,5 @@
 import * as React from 'react';
-import autoBindMethods from 'class-autobind-decorator';
+import { BindAll } from 'lodash-decorators';
 import { orderBy } from 'lodash';
 import { UISref, UISrefActive } from '@uirouter/react';
 
@@ -16,7 +16,7 @@ export interface ITargetGroupProps {
   showInstances: boolean;
 }
 
-@autoBindMethods
+@BindAll()
 export class TargetGroup extends React.Component<ITargetGroupProps> {
   public render(): React.ReactElement<TargetGroup> {
     const { targetGroup, showInstances, showServerGroups, loadBalancer } = this.props;

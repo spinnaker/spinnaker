@@ -1,5 +1,5 @@
 import * as React from 'react';
-import autoBindMethods from 'class-autobind-decorator';
+import { BindAll } from 'lodash-decorators';
 
 import { Markdown } from 'core/presentation';
 import { relativeTime, timestamp } from 'core/utils';
@@ -56,7 +56,7 @@ interface IActionsProps {
   onDeleteTag(notification: INotification): void;
 }
 
-@autoBindMethods
+@BindAll()
 class NotificationActions extends React.Component<IActionsProps> {
   private editTag(): void {
     this.props.onEditTag(this.props.notification);

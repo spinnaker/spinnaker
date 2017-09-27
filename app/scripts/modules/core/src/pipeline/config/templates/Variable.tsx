@@ -1,5 +1,5 @@
 import * as React from 'react';
-import autoBindMethods from 'class-autobind-decorator';
+import { BindAll } from 'lodash-decorators';
 
 import { ReactInjector } from 'core/reactShims';
 
@@ -15,7 +15,7 @@ export interface IVariableProps {
   onChange: (variable: IVariable) => void;
 }
 
-@autoBindMethods
+@BindAll()
 export class Variable extends React.Component<IVariableProps> {
 
   private getVariableInput(): JSX.Element {

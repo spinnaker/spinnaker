@@ -1,6 +1,6 @@
 import * as React from 'react';
 import * as spel2js from 'spel2js';
-import autoBindMethods from 'class-autobind-decorator';
+import { BindAll } from 'lodash-decorators';
 import { truncate } from 'lodash';
 
 import { FormsyComponent, IFormsyComponentProps, IFormComponentState } from '../FormsyComponent';
@@ -31,7 +31,7 @@ export interface ISpelError {
 /**
  * A validating Formsy form component for SpEL Expressions
  */
-@autoBindMethods
+@BindAll()
 export class ExpressionInput extends FormsyComponent<string, IExpressionInputProps, IExpressionInputState> {
   public static contextTypes = FormsyComponent.contextTypes;
   public static defaultProps = Object.assign({ context: {}, locals: {} }, FormsyComponent.defaultProps);

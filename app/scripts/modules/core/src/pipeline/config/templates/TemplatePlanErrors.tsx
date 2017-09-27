@@ -1,5 +1,5 @@
 import * as React from 'react';
-import autoBindMethods from 'class-autobind-decorator';
+import { BindAll } from 'lodash-decorators';
 
 import { IPipelineTemplatePlanError } from 'core/pipeline/config/templates/pipelineTemplate.service';
 
@@ -7,7 +7,7 @@ export interface ITemplatePlanErrorsProps {
   errors: IPipelineTemplatePlanError[];
 }
 
-@autoBindMethods
+@BindAll()
 export class TemplatePlanErrors extends React.Component<ITemplatePlanErrorsProps> {
 
   public render() {

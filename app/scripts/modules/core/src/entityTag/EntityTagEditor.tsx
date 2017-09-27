@@ -4,7 +4,7 @@ import * as Formsy from 'formsy-react';
 import * as React from 'react';
 import { Modal } from 'react-bootstrap';
 import { IModalServiceInstance } from 'angular-ui-bootstrap';
-import autoBindMethods from 'class-autobind-decorator';
+import { BindAll } from 'lodash-decorators';
 
 import {
   UUIDGenerator, Application, EntityTagWriter, HelpField, IEntityRef, IEntityTag,
@@ -56,7 +56,7 @@ export interface IEntityTagEditorState {
   entityType: string;
 }
 
-@autoBindMethods
+@BindAll()
 export class EntityTagEditor extends React.Component<IEntityTagEditorProps, IEntityTagEditorState> {
   public static defaultProps: Partial<IEntityTagEditorProps> = {
     onHide: noop,
@@ -233,7 +233,7 @@ interface IEntityTagMessageProps {
   onMessageChanged(message: string): void;
 }
 
-@autoBindMethods
+@BindAll()
 class EntityTagMessage extends React.Component<IEntityTagMessageProps, {}> {
   private handleTextareaChanged(event: React.FormEvent<HTMLTextAreaElement>): void {
     this.props.onMessageChanged(event.currentTarget.value);
@@ -283,7 +283,7 @@ interface IOwnerOptionsProps {
   onOwnerOptionChanged(owner: IOwnerOption): void;
 }
 
-@autoBindMethods
+@BindAll()
 class OwnerOptions extends React.Component<IOwnerOptionsProps> {
   public handleOwnerOptionChanged(option: IOwnerOption): void {
     this.props.onOwnerOptionChanged(option);
@@ -328,7 +328,7 @@ interface IOwnerOptionProps {
   onOwnerOptionChanged?(option: IOwnerOption): void;
 }
 
-@autoBindMethods
+@BindAll()
 class OwnerOption extends React.Component<IOwnerOptionProps, any> {
   public handleOwnerChanged(): void {
     this.props.onOwnerOptionChanged(this.props.option);

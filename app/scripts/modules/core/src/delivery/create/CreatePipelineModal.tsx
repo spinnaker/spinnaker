@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { Button, Modal } from 'react-bootstrap';
 import * as Select from 'react-select';
-import autoBindMethods from 'class-autobind-decorator';
+import { BindAll } from 'lodash-decorators';
 import { $log } from 'ngimport';
 import { IHttpPromiseCallbackArg } from 'angular';
 import { cloneDeep, get, uniqBy } from 'lodash';
@@ -52,7 +52,7 @@ export interface ICreatePipelineModalProps {
   pipelineSavedCallback: (pipelineId: string) => void;
 }
 
-@autoBindMethods
+@BindAll()
 export class CreatePipelineModal extends React.Component<ICreatePipelineModalProps, ICreatePipelineModalState> {
 
   constructor(props: ICreatePipelineModalProps) {

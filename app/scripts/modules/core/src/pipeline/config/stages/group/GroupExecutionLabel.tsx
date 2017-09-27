@@ -1,5 +1,5 @@
 import * as React from 'react';
-import autoBindMethods from 'class-autobind-decorator';
+import { BindAll } from 'lodash-decorators';
 
 import { IExecutionStageSummary, IExecution } from 'core/domain';
 import { Application } from 'core/application/application.model';
@@ -23,7 +23,7 @@ export interface IGroupedStageListItemProps {
   stage: IExecutionStageSummary;
 }
 
-@autoBindMethods
+@BindAll()
 export class GroupExecutionLabel extends React.Component<IGroupExecutionLabelProps> {
   private subStageClicked(groupStage: IExecutionStageSummary, stage: IExecutionStageSummary): void {
     const { executionService } = ReactInjector;

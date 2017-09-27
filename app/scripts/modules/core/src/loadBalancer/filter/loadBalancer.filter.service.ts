@@ -2,13 +2,13 @@ import { ILogService, module } from 'angular';
 import { chain, find, forOwn, groupBy, includes, intersection, map, some, sortBy, values, without } from 'lodash';
 import { Debounce } from 'lodash-decorators';
 import { Subject } from 'rxjs';
-import autoBindMethods from 'class-autobind-decorator';
+import { BindAll } from 'lodash-decorators';
 
 import { Application } from 'core/application/application.model';
 import { ILoadBalancer, ILoadBalancerGroup, IInstance, IServerGroup } from 'core/domain';
 import { LOAD_BALANCER_FILTER_MODEL, LoadBalancerFilterModel } from './loadBalancerFilter.model';
 
-@autoBindMethods
+@BindAll()
 export class LoadBalancerFilterService {
 
   public groupsUpdatedStream: Subject<ILoadBalancerGroup[]> = new Subject<ILoadBalancerGroup[]>();

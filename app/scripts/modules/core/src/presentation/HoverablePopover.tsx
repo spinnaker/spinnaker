@@ -2,7 +2,7 @@ import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import { Overlay, Popover, PopoverProps } from 'react-bootstrap';
 import { Observable, Subject, Subscription } from 'rxjs';
-import autoBindMethods from 'class-autobind-decorator';
+import { BindAll } from 'lodash-decorators';
 
 import { Placement } from 'core/presentation';
 import { UUIDGenerator } from 'core/utils';
@@ -39,7 +39,7 @@ export interface IHoverablePopoverState {
   PopoverRenderer?: React.ComponentClass<PopoverProps> | React.StatelessComponent<PopoverProps>;
 }
 
-@autoBindMethods
+@BindAll()
 export class HoverablePopover extends React.Component<IHoverablePopoverProps, IHoverablePopoverState> {
 
   public static defaultProps: Partial<IHoverablePopoverProps> = {

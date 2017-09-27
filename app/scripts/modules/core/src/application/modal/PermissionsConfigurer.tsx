@@ -1,7 +1,7 @@
 import * as React from 'react';
 import * as Select from 'react-select';
 import { intersection, uniq, without, cloneDeep, compact } from 'lodash';
-import autoBindMethods from 'class-autobind-decorator';
+import { BindAll } from 'lodash-decorators';
 import { Button } from 'react-bootstrap';
 
 import { ReactInjector } from 'core/reactShims';
@@ -29,7 +29,7 @@ export interface IPermissionsConfigurerState {
   roleOptions: Select.Option[];
 }
 
-@autoBindMethods
+@BindAll()
 export class PermissionsConfigurer extends React.Component<IPermissionsConfigurerProps, IPermissionsConfigurerState> {
 
   private static accessTypes: Select.Option[] = [

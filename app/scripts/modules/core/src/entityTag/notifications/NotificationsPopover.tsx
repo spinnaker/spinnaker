@@ -1,6 +1,6 @@
 import * as React from 'react';
 import * as ReactGA from 'react-ga';
-import autoBindMethods from 'class-autobind-decorator';
+import { BindAll } from 'lodash-decorators';
 import { uniq, pick } from 'lodash';
 
 import { Application } from 'core/application';
@@ -71,7 +71,7 @@ export interface INotificationsPopoverState {
 /**
  * A configurable popover which renders notifications
  */
-@autoBindMethods
+@BindAll()
 export class NotificationsPopover extends React.Component<INotificationsPopoverProps, INotificationsPopoverState> {
   public static defaultProps: Partial<INotificationsPopoverProps> = {
     tags: [],

@@ -4,10 +4,10 @@ import {
   IVariableInputBuilder, VariableInputService, IVariable,
   IVariableState, IVariableProps
 } from './variableInput.service';
-import autoBindMethods from 'class-autobind-decorator';
+import { BindAll } from 'lodash-decorators';
 import {VariableError} from '../VariableError';
 
-@autoBindMethods
+@BindAll()
 class NumberInput extends React.Component<IVariableProps, IVariableState> {
 
   public render() {

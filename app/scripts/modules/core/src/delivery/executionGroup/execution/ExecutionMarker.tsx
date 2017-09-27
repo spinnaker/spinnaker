@@ -1,6 +1,6 @@
 import * as React from 'react';
 import * as ReactGA from 'react-ga';
-import autoBindMethods from 'class-autobind-decorator';
+import { BindAll } from 'lodash-decorators';
 
 import { IExecution, IExecutionStageSummary } from 'core/domain';
 import { OrchestratedItemRunningTime } from './OrchestratedItemRunningTime';
@@ -25,7 +25,7 @@ export interface IExecutionMarkerState {
   duration: string;
 }
 
-@autoBindMethods
+@BindAll()
 export class ExecutionMarker extends React.Component<IExecutionMarkerProps, IExecutionMarkerState> {
   private runningTime: OrchestratedItemRunningTime;
 

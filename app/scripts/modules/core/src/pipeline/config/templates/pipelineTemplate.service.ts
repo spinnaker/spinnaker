@@ -2,7 +2,7 @@ import { module, IPromise, IQService } from 'angular';
 import { flatten } from 'lodash';
 import { Api, API_SERVICE } from 'core/api/api.service';
 import { IPipeline } from 'core/domain/IPipeline';
-import autoBindMethods from 'class-autobind-decorator';
+import { BindAll } from 'lodash-decorators';
 
 export interface IPipelineTemplate {
   id: string;
@@ -72,7 +72,7 @@ export interface IPipelineTemplatePlanError {
   nestedErrors: IPipelineTemplatePlanError[];
 }
 
-@autoBindMethods
+@BindAll()
 export class PipelineTemplateService {
 
   constructor(private API: Api, private $q: IQService) {

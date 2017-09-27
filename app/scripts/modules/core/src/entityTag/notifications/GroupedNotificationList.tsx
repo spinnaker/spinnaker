@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { groupBy } from 'lodash';
-import autoBindMethods from 'class-autobind-decorator';
+import { BindAll } from 'lodash-decorators';
 
 import { EntityName } from './EntityName';
 import { INotification } from './NotificationsPopover';
@@ -26,7 +26,7 @@ export interface IGroupedNotificationListState {
  * Notifications list where duplicated messages are grouped together
  * A clickable link shows/hides the entities (server groups) affected
  */
-@autoBindMethods
+@BindAll()
 export class GroupedNotificationList extends React.Component<IGroupedNotificationListProps, IGroupedNotificationListState> {
   public static defaultProps: Partial<IGroupedNotificationListProps> = {
     notifications: [],
@@ -75,7 +75,7 @@ interface IAlertsForMessageState {
   collapsed: boolean;
 }
 
-@autoBindMethods
+@BindAll()
 class AlertsForMessage extends React.Component<IAlertsForMessageProps, IAlertsForMessageState> {
   public state: IAlertsForMessageState = {
     collapsed: true,

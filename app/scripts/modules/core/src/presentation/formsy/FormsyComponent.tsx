@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { Requireable, PropTypes, ValidationMap, ChangeEvent } from 'react';
 import { Mixin, ValidationErrors } from 'formsy-react';
-import autoBindMethods from 'class-autobind-decorator';
+import { BindAll } from 'lodash-decorators';
 import * as classNames from 'classnames';
 
 import { LayoutComponent } from './layouts/formFieldLayout';
@@ -51,7 +51,7 @@ export interface IFormComponentState {
 }
 
 /** A base class for Formsy form components */
-@autoBindMethods
+@BindAll()
 export abstract class FormsyComponent
     <
       VALUE = string,

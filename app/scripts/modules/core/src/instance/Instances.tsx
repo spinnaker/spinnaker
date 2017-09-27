@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { UIRouterContext } from '@uirouter/react-hybrid';
 import { Transition } from '@uirouter/core';
-import autoBindMethods from 'class-autobind-decorator';
+import { BindAll } from 'lodash-decorators';
 import { Subscription } from 'rxjs';
 
 import { IInstance } from 'core/domain';
@@ -17,7 +17,7 @@ export interface IInstancesState {
 }
 
 @UIRouterContext
-@autoBindMethods
+@BindAll()
 export class Instances extends React.Component<IInstancesProps, IInstancesState> {
   // context from enclosing UIView
   public static contextTypes = {

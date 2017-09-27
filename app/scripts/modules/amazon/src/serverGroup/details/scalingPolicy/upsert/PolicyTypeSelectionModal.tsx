@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Modal } from 'react-bootstrap';
-import autoBindMethods from 'class-autobind-decorator';
+import { BindAll } from 'lodash-decorators';
 
 export interface IPolicyTypeSelectionModalState {
   typeSelection: string;
@@ -11,7 +11,7 @@ export interface IPolicyTypeSelectionModalProps {
   typeSelectedCallback: (type: string) => void;
 }
 
-@autoBindMethods
+@BindAll()
 export class PolicyTypeSelectionModal extends React.Component<IPolicyTypeSelectionModalProps, IPolicyTypeSelectionModalState> {
 
   constructor(props: IPolicyTypeSelectionModalProps) {

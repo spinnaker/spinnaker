@@ -2,7 +2,7 @@ import * as React from 'react';
 import * as ReactGA from 'react-ga';
 import * as DOMPurify from 'dompurify';
 import * as classNames from 'classnames';
-import autoBindMethods from 'class-autobind-decorator';
+import { BindAll } from 'lodash-decorators';
 import { get } from 'lodash';
 
 import { IExecutionStageSummary } from 'core/domain';
@@ -23,7 +23,7 @@ export interface IPipelineGraphNodeProps {
   node: IPipelineGraphNode;
 }
 
-@autoBindMethods
+@BindAll()
 export class PipelineGraphNode extends React.Component<IPipelineGraphNodeProps> {
   private highlight(): void {
     this.props.highlight(this.props.node, true);

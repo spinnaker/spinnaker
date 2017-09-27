@@ -1,6 +1,6 @@
 import * as React from 'react';
 import * as classNames from 'classnames';
-import autoBindMethods from 'class-autobind-decorator';
+import { BindAll } from 'lodash-decorators';
 
 import { Key } from 'core/widgets/Keys';
 import { Filter } from './Filter';
@@ -22,7 +22,7 @@ export interface IFiltersProps {
   onMouseDown?: () => void;
 }
 
-@autoBindMethods
+@BindAll()
 export class Filters extends React.Component<IFiltersProps> {
 
   public static defaultProps: Partial<IFiltersProps> = {

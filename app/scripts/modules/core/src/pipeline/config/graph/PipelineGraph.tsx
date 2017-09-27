@@ -2,7 +2,7 @@ import * as React from 'react';
 import * as DOMPurify from 'dompurify';
 import * as $ from 'jquery';
 import * as classNames from 'classnames';
-import autoBindMethods from 'class-autobind-decorator';
+import { BindAll } from 'lodash-decorators';
 import { clone, find, flatten, forOwn, groupBy, max, maxBy, sortBy, sum, sumBy, uniq } from 'lodash';
 import { Debounce, Throttle } from 'lodash-decorators';
 import { Subscription } from 'rxjs';
@@ -38,7 +38,7 @@ export interface IPipelineGraphState {
   rowHeights: number[];
 }
 
-@autoBindMethods
+@BindAll()
 export class PipelineGraph extends React.Component<IPipelineGraphProps, IPipelineGraphState> {
   private defaultNodeRadius = 8;
   private defaultState: IPipelineGraphState = {

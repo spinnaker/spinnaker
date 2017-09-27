@@ -2,7 +2,7 @@ import { IPromise } from 'angular';
 import * as React from 'react';
 import * as Select from 'react-select';
 import 'react-select/dist/react-select.css';
-import autoBindMethods from 'class-autobind-decorator';
+import { BindAll } from 'lodash-decorators';
 
 import { IExecution, IExecutionStage } from 'core/domain';
 import { Application } from 'core/application/application.model';
@@ -22,7 +22,7 @@ export interface IManualJudgmentApprovalState {
   error: boolean;
 }
 
-@autoBindMethods
+@BindAll()
 export class ManualJudgmentApproval extends React.Component<IManualJudgmentApprovalProps, IManualJudgmentApprovalState> {
 
   constructor(props: IManualJudgmentApprovalProps) {

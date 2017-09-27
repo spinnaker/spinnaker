@@ -4,7 +4,7 @@ import { $timeout } from 'ngimport';
 import { IPromise } from 'angular';
 import { Subscription } from 'rxjs';
 import { find, flatten, uniq, without } from 'lodash';
-import autoBindMethods from 'class-autobind-decorator';
+import { BindAll } from 'lodash-decorators';
 
 import { Application } from 'core/application/application.model';
 import { Execution } from './execution/Execution';
@@ -32,7 +32,7 @@ export interface IExecutionGroupState {
   showAccounts: boolean;
 }
 
-@autoBindMethods
+@BindAll()
 export class ExecutionGroup extends React.Component<IExecutionGroupProps, IExecutionGroupState> {
   private strategyConfig: IPipeline;
   private expandUpdatedSubscription: Subscription;

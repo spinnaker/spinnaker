@@ -1,7 +1,7 @@
 import { module } from 'angular';
 
 import * as React from 'react';
-import autoBindMethods from 'class-autobind-decorator';
+import { BindAll } from 'lodash-decorators';
 import { react2angular } from 'react2angular';
 
 import { IEntityTags, IEntityTag } from 'core/domain';
@@ -20,7 +20,7 @@ export interface IDataSourceNotificationsProps {
  * Shown in the tabs for the main "data source entities" such as clusters and load balancers.
  * Identical alerts for multiple entities are grouped together.
  */
-@autoBindMethods
+@BindAll()
 export class DataSourceNotifications extends React.Component<IDataSourceNotificationsProps> {
   public getDataSourceAnalyticsLabel(): string {
     const { tabName, application, tags } = this.props;

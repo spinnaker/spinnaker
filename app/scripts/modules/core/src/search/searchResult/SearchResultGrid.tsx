@@ -1,5 +1,5 @@
 import * as React from 'react';
-import autoBindMethods from 'class-autobind-decorator';
+import { BindAll } from 'lodash-decorators';
 
 import { ISearchResultFormatter } from './searchResultFormatter.registry';
 import { SearchStatus } from './SearchResults';
@@ -10,7 +10,7 @@ export interface ISearchResultGridProps {
   searchResults: any[];
 }
 
-@autoBindMethods
+@BindAll()
 export class SearchResultGrid extends React.Component<ISearchResultGridProps> {
 
   public componentDidUpdate(): void {

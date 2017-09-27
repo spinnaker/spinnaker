@@ -1,5 +1,5 @@
 import * as React from 'react';
-import autoBindMethods from 'class-autobind-decorator';
+import { BindAll } from 'lodash-decorators';
 import { $window } from 'ngimport';
 
 import { IScheduler } from 'core/scheduler/scheduler.factory';
@@ -20,7 +20,7 @@ export interface IRefresherState {
   relativeTime: string;
 }
 
-@autoBindMethods
+@BindAll()
 export class Refresher extends React.Component<IRefresherProps, IRefresherState> {
   private activeRefresher: IScheduler;
   private yellowAge = 2 * 60 * 1000; // 2 minutes

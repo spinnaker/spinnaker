@@ -1,5 +1,5 @@
 import * as React from 'react';
-import autoBindMethods from 'class-autobind-decorator';
+import { BindAll } from 'lodash-decorators';
 
 import { Application } from 'core/application/application.model';
 import { IServerGroup } from 'core/domain';
@@ -13,7 +13,7 @@ export interface ILoadBalancersTagProps {
   container?: JSX.Element | HTMLElement;
 };
 
-@autoBindMethods
+@BindAll()
 export class LoadBalancersTagWrapper extends React.Component<ILoadBalancersTagProps> {
   public render(): React.ReactElement<LoadBalancersTagWrapper> {
     const { serverGroup } = this.props;
