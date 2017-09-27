@@ -85,7 +85,7 @@ public class PubsubEventMonitor extends TriggerMonitor {
     PubsubEvent pubsubEvent = (PubsubEvent) event;
     MessageDescription description = pubsubEvent.getContent().getMessageDescription();
     return trigger -> pipeline
-        .withArtifacts(description.getArtifacts())
+        .withReceivedArtifacts(description.getArtifacts())
         .withTrigger(trigger.atMessageDescription(description.getSubscriptionName(), description.getPubsubSystem().toString()));
   }
 

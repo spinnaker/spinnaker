@@ -71,7 +71,7 @@ import java.util.Map;
   List<Map<String, Object>> notifications;
 
   @JsonProperty
-  List<Artifact> artifacts;
+  List<Artifact> receivedArtifacts;
 
   @JsonProperty
   List<Map<String, Object>> parameterConfig;

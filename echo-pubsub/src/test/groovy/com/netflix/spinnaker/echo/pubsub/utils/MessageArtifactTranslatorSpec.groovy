@@ -75,7 +75,7 @@ class MessageArtifactTranslatorSpec extends Specification {
   def "can deserialize several artifacts from a list with jinja magic"() {
     String template = '''
     [
-        {% for artifact in artifacts %}
+        {% for artifact in receivedArtifacts %}
         {
             "reference": "{{ artifact['id'] }}",
             "type": "{{ artifact['type'] }}"
@@ -85,7 +85,7 @@ class MessageArtifactTranslatorSpec extends Specification {
     '''
     String payload = '''
     {
-        "artifacts": [
+        "receivedArtifacts": [
             {"id": "gs://this/is/my/id1", "type": "gcs/object"},
             {"id": "gs://this/is/my/id2", "type": "tarball"},
             {"id": "gs://this/is/my/id3", "type": "binary"}
