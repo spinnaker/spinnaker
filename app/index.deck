@@ -29,7 +29,7 @@
       font-family: 'Source Sans Pro', sans-serif;
       font-weight: 400;
       margin: 8px 0;
-      font-size: 24px;
+      font-size: 18px;
       line-height: 30px;
       position: relative;
       top: 0;
@@ -70,7 +70,7 @@
       background-color: #149CB5;
       animation: rollingColor 2.2s infinite ease-in;
       display: inline-block;
-      min-height: 12px;
+      min-height: 8px;
       min-width: 60px;
     }
 
