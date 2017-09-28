@@ -448,13 +448,16 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware, 
       key.type == SERVER_GROUPS.ns && key.account == account.name && key.region == region
     }
     return providerCache.getAll(ON_DEMAND.ns, keys, RelationshipCacheFilter.none()).collect {
-      [
-        id: it.id,
-        details  : Keys.parse(it.id),
-        cacheTime: it.attributes.cacheTime,
-        cacheExpiry: it.attributes.cacheExpiry,
-        processedCount: it.attributes.processedCount,
-        processedTime: it.attributes.processedTime
+      def details = Keys.parse(it.id)
+
+      return [
+          id            : it.id,
+          details       : details,
+          moniker       : convertOnDemandDetails(details),
+          cacheTime     : it.attributes.cacheTime,
+          cacheExpiry   : it.attributes.cacheExpiry,
+          processedCount: it.attributes.processedCount,
+          processedTime : it.attributes.processedTime
       ]
     }
   }

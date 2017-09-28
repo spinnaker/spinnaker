@@ -36,6 +36,8 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesApi
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
+import com.netflix.spinnaker.clouddriver.names.NamerRegistry;
+import com.netflix.spinnaker.moniker.Namer;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -62,9 +64,12 @@ public abstract class KubernetesV2OnDemandCachingAgent<T> extends KubernetesV2Ca
   private final static String PROCESSED_COUNT_KEY = "processedCount";
   private final static String PROCESSED_TIME_KEY = "processedTime";
   private final static String CACHE_RESULTS_KEY = "cacheResults";
+  private final static String MONIKER_KEY = "moniker";
+  private final Namer<KubernetesManifest> namer;
 
   protected abstract List<T> loadPrimaryResourceList();
   protected abstract T loadPrimaryResource(String namespace, String name);
+  protected abstract Class<T> primaryResourceClass();
   protected abstract OnDemandType onDemandType();
   protected abstract KubernetesKind primaryKind();
   protected abstract KubernetesApiVersion primaryApiVersion();
@@ -79,6 +84,10 @@ public abstract class KubernetesV2OnDemandCachingAgent<T> extends KubernetesV2Ca
       int agentIndex,
       int agentCount) {
     super(namedAccountCredentials, objectMapper, registry, agentIndex, agentCount);
+    namer = NamerRegistry.lookup()
+        .withProvider(KubernetesCloudProvider.getID())
+        .withAccount(namedAccountCredentials.getName())
+        .withResource(primaryResourceClass());
 
     metricsSupport = new OnDemandMetricsSupport(registry, this, KubernetesCloudProvider.getID() + ":" + onDemandType());
   }
@@ -218,6 +227,7 @@ public abstract class KubernetesV2OnDemandCachingAgent<T> extends KubernetesV2Ca
 
     log.info("Storing on demand '{}'", key);
     cacheResult = buildCacheResult(resource);
+    KubernetesManifest manifest = objectMapper.convertValue(resource, KubernetesManifest.class);
     String jsonResult = objectMapper.writeValueAsString(cacheResult.getCacheResults());
 
     Map<String, Object> attributes = new ImmutableMap.Builder<String, Object>()
@@ -225,6 +235,7 @@ public abstract class KubernetesV2OnDemandCachingAgent<T> extends KubernetesV2Ca
         .put(CACHE_RESULTS_KEY, jsonResult)
         .put(PROCESSED_COUNT_KEY, 0)
         .put(PROCESSED_TIME_KEY, null)
+        .put(MONIKER_KEY, namer.deriveMoniker(manifest))
         .build();
 
     Map<String, Collection<String>> relationships = new HashMap<>();
@@ -299,6 +310,7 @@ public abstract class KubernetesV2OnDemandCachingAgent<T> extends KubernetesV2Ca
           Map<String, Object> attributes = cd.getAttributes();
           return new ImmutableMap.Builder<String, Object>()
               .put("details", details)
+              .put("moniker", attributes.get(MONIKER_KEY))
               .put(CACHE_TIME_KEY, attributes.get(CACHE_TIME_KEY))
               .put(PROCESSED_COUNT_KEY, attributes.get(PROCESSED_COUNT_KEY))
               .put(PROCESSED_TIME_KEY, attributes.get(PROCESSED_TIME_KEY))

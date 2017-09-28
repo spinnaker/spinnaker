@@ -34,7 +34,6 @@ import com.netflix.spinnaker.clouddriver.cache.OnDemandAgent
 import com.netflix.spinnaker.clouddriver.cache.OnDemandAgent.OnDemandResult
 import com.netflix.spinnaker.clouddriver.cache.OnDemandMetricsSupport
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.provider.view.MutableCacheData
-
 import groovy.util.logging.Slf4j
 
 import java.util.concurrent.TimeUnit
@@ -218,11 +217,13 @@ class AppengineLoadBalancerCachingAgent extends AbstractAppengineCachingAgent im
     }
 
     return providerCache.getAll(ON_DEMAND.ns, keys).collect {
-      [
-        details  : Keys.parse(it.id),
-        cacheTime: it.attributes.cacheTime,
-        processedCount: it.attributes.processedCount,
-        processedTime: it.attributes.processedTime
+      def details = Keys.parse(it.id)
+      return [
+          details       : details,
+          moniker       : convertOnDemandDetails(details),
+          cacheTime     : it.attributes.cacheTime,
+          processedCount: it.attributes.processedCount,
+          processedTime : it.attributes.processedTime
       ]
     }
   }

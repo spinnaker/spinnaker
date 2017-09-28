@@ -155,11 +155,14 @@ class GoogleSecurityGroupCachingAgent extends AbstractGoogleCachingAgent impleme
     }
 
     return providerCache.getAll(ON_DEMAND.ns, keys).collect { CacheData cacheData ->
-      [
-        details       : Keys.parse(cacheData.id),
-        cacheTime     : cacheData.attributes.cacheTime,
-        processedCount: cacheData.attributes.processedCount,
-        processedTime : cacheData.attributes.processedTime
+      def details = Keys.parse(cacheData.id)
+
+      return [
+          details       : details,
+          moniker       : convertOnDemandDetails(details),
+          cacheTime     : cacheData.attributes.cacheTime,
+          processedCount: cacheData.attributes.processedCount,
+          processedTime : cacheData.attributes.processedTime
       ]
     }
   }

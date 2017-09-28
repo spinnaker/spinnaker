@@ -147,11 +147,14 @@ class KubernetesLoadBalancerCachingAgent extends KubernetesCachingAgent<Kubernet
     }
 
     providerCache.getAll(Keys.Namespace.ON_DEMAND.ns, keys).collect {
+      def details = Keys.parse(it.id)
+
       [
-        details: Keys.parse(it.id),
-        cacheTime: it.attributes.cacheTime,
-        processedCount: it.attributes.processedCount,
-        processedTime: it.attributes.processedTime
+          details       : details,
+          moniker       : convertOnDemandDetails(details),
+          cacheTime     : it.attributes.cacheTime,
+          processedCount: it.attributes.processedCount,
+          processedTime : it.attributes.processedTime
       ]
     }
   }

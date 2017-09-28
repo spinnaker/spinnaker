@@ -76,6 +76,11 @@ public class KubernetesReplicaSetCachingAgent extends KubernetesV2OnDemandCachin
   }
 
   @Override
+  protected Class<V1beta1ReplicaSet> primaryResourceClass() {
+    return V1beta1ReplicaSet.class;
+  }
+
+  @Override
   protected OnDemandType onDemandType() {
     return OnDemandType.ServerGroup;
   }

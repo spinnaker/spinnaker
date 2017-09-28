@@ -75,6 +75,11 @@ public class KubernetesNetworkPolicyCachingAgent extends KubernetesV2OnDemandCac
   }
 
   @Override
+  protected Class<V1beta1NetworkPolicy> primaryResourceClass() {
+    return V1beta1NetworkPolicy.class;
+  }
+
+  @Override
   protected OnDemandType onDemandType() {
     return OnDemandType.SecurityGroup;
   }

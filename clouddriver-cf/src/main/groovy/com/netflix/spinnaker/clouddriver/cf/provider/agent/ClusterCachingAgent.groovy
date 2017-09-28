@@ -214,12 +214,15 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware {
   Collection<Map> pendingOnDemandRequests(ProviderCache providerCache) {
     def keys = providerCache.getIdentifiers(ON_DEMAND.ns)
     providerCache.getAll(ON_DEMAND.ns, keys).collect {
-      [
-        id: it.id,
-        details: Keys.parse(it.id),
-        cacheTime: it.attributes.cacheTime,
-        processedCount: it.attributes.processedCount ?: 0,
-        processedTime: it.attributes.processedTime
+      def details = Keys.parse(it.id)
+
+      return [
+          id            : it.id,
+          details       : details,
+          moniker       : convertOnDemandDetails(details),
+          cacheTime     : it.attributes.cacheTime,
+          processedCount: it.attributes.processedCount ?: 0,
+          processedTime : it.attributes.processedTime
       ]
     }
   }

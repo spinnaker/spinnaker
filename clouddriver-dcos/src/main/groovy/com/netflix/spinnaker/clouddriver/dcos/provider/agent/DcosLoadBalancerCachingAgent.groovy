@@ -174,11 +174,14 @@ class DcosLoadBalancerCachingAgent implements CachingAgent, AccountAware, OnDema
     }
 
     return providerCache.getAll(Keys.Namespace.ON_DEMAND.ns, keys).collect {
-      [
-        details       : Keys.parse(it.id),
-        cacheTime     : it.attributes.cacheTime,
-        processedCount: it.attributes.processedCount,
-        processedTime : it.attributes.processedTime
+      def details = Keys.parse(it.id)
+
+      return [
+          details       : details,
+          moniker       : convertOnDemandDetails(details),
+          cacheTime     : it.attributes.cacheTime,
+          processedCount: it.attributes.processedCount,
+          processedTime : it.attributes.processedTime
       ]
     }
   }

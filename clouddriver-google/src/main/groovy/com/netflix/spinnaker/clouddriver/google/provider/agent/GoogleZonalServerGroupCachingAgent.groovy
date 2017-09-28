@@ -242,8 +242,11 @@ class GoogleZonalServerGroupCachingAgent extends AbstractGoogleCachingAgent impl
     }
 
     providerCache.getAll(ON_DEMAND.ns, keys).collect { CacheData cacheData ->
+      def details = Keys.parse(it.id)
+
       [
-          details       : Keys.parse(cacheData.id),
+          details       : details,
+          moniker       : convertOnDemandDetails(details),
           cacheTime     : cacheData.attributes.cacheTime,
           processedCount: cacheData.attributes.processedCount,
           processedTime : cacheData.attributes.processedTime

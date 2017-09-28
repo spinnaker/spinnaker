@@ -144,12 +144,15 @@ class AzureServerGroupCachingAgent extends AzureCachingAgent {
       key.type == AZURE_SERVER_GROUPS.ns && key.account == accountName && key.region == region
     }
     return providerCache.getAll(AZURE_ON_DEMAND.ns, keys, RelationshipCacheFilter.none()).collect {
-      [
-        id: it.id,
-        details  : Keys.parse(azureCloudProvider, it.id),
-        cacheTime: it.attributes.cacheTime,
-        processedCount: it.attributes.processedCount,
-        processedTime: it.attributes.processedTime
+      def details = Keys.parse(azureCloudProvider, it.id);
+
+      return [
+          id            : it.id,
+          details       : details,
+          moniker       : convertOnDemandDetails(details),
+          cacheTime     : it.attributes.cacheTime,
+          processedCount: it.attributes.processedCount,
+          processedTime : it.attributes.processedTime
       ]
     }
   }

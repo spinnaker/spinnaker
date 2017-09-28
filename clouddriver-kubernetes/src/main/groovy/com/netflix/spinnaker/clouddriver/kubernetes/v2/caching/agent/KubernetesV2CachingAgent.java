@@ -75,7 +75,6 @@ public abstract class KubernetesV2CachingAgent<T> extends KubernetesCachingAgent
     KubernetesCacheDataConverter.logStratifiedCacheData(getAgentType(), entries);
 
     return new DefaultCacheResult(entries);
-
   }
 
   protected abstract List<T> loadPrimaryResourceList();
