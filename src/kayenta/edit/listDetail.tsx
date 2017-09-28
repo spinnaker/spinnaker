@@ -13,11 +13,11 @@ interface IListDetailProps {
  */
 export default function ListDetail({ className, list, detail }: IListDetailProps) {
   return (
-    <div className={classNames('container', 'row', className)}>
-      <div className="col-md-3">
+    <div className={classNames('horizontal', 'container', className)}>
+      <div className="flex-1">
         {list}
       </div>
-      <div className="col-md-9">
+      <div className="flex-4">
         {detail}
       </div>
     </div>

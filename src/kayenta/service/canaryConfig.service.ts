@@ -95,7 +95,9 @@ export function buildNewConfig(state: ICanaryState): ICanaryConfig {
     isNew: true,
     metrics: [] as ICanaryMetricConfig[],
     configVersion: '1',
-    services: CanarySettings.defaultServiceSettings[CanarySettings.metricStore],
+    services: {
+      [CanarySettings.metricStore]: CanarySettings.defaultServiceSettings[CanarySettings.metricStore]
+    },
     classifier: {
       groupWeights: {} as {[key: string]: number},
       scoreThresholds: {

@@ -20,9 +20,9 @@ function ConfigDetailLoadStates({ configLoadState }: IConfigLoadStatesProps) {
   switch (configLoadState) {
     case ConfigDetailLoadState.Loading:
       return (
-        <CenteredDetail>
+        <div className="spinner">
           <NgReact.Spinner radius={20} width={3} length={20}/>
-        </CenteredDetail>
+        </div>
       );
 
     case ConfigDetailLoadState.Loaded:

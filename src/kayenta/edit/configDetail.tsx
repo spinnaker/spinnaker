@@ -13,7 +13,7 @@ import GroupWeights from './groupWeights';
  */
 export default function ConfigDetail() {
   return (
-    <section>
+    <section className="config-detail">
       <ConfigDetailHeader/>
       <TitledSection title="Name and Description">
         <NameAndDescription/>

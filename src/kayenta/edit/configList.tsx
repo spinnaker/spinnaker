@@ -16,7 +16,7 @@ interface IConfigListStateProps {
  */
 function ConfigList({ configs, selectedConfigName }: IConfigListStateProps) {
   return (
-    <section>
+    <section className="config-list">
       <ul className="tabs-vertical list-unstyled">
         {configs.map(config => (
           <li key={config.name} className={config.name === selectedConfigName ? 'selected' : ''}>
