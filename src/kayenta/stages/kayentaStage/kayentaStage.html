@@ -32,7 +32,7 @@
 
   <kayenta-stage-config-section title="Analysis Config">
     <stage-config-field label="Config Name">
-      <div ng-if="!kayentaCanaryStageCtrl.state.summariesLoading">
+      <div ng-if="!kayentaCanaryStageCtrl.state.backingDataLoading">
         <ui-select required
                    ng-model="kayentaCanaryStageCtrl.stage.canaryConfig.canaryConfigId"
                    on-select="kayentaCanaryStageCtrl.onCanaryConfigSelect()"
@@ -44,7 +44,7 @@
           </ui-select-choices>
         </ui-select>
       </div>
-      <div ng-if="kayentaCanaryStageCtrl.state.summariesLoading" class="col-md-3">
+      <div ng-if="kayentaCanaryStageCtrl.state.backingDataLoading" class="col-md-3">
         <h3><span us-spinner="{radius:3, width:1, length: 4}"></span></h3>
       </div>
     </stage-config-field>
@@ -162,5 +162,34 @@
                              unhealthy-label="'Marginal'"
                              unhealthy-score="kayentaCanaryStageCtrl.stage.canaryConfig.scoreThresholds.marginal"></kayenta-canary-scores>
     </div>
+  </kayenta-stage-config-section>
+
+  <kayenta-stage-config-section title="Advanced Settings">
+    <div class="form-group">
+      <div ng-if="kayentaCanaryStageCtrl.state.backingDataLoading" class="col-md-3 col-md-offset-4">
+        <h3><span us-spinner="{radius:3, width:1, length: 4}"></span></h3>
+      </div>
+    </div>
+
+    <stage-config-field label="Metrics Account"
+                        help-key="pipeline.config.metricsAccount"
+                        ng-if="!kayentaCanaryStageCtrl.state.backingDataLoading">
+      <select
+        class="form-control input-sm"
+        ng-model="kayentaCanaryStageCtrl.stage.canaryConfig.metricsAccountName"
+        ng-options="account.name as account.name for account in kayentaCanaryStageCtrl.kayentaAccounts.get('METRICS_STORE')"
+      >
+      </select>
+    </stage-config-field>
+    <stage-config-field label="Storage Account"
+                        help-key="pipeline.config.storageAccount"
+                        ng-if="!kayentaCanaryStageCtrl.state.backingDataLoading">
+      <select
+        class="form-control input-sm"
+        ng-model="kayentaCanaryStageCtrl.stage.canaryConfig.storageAccountName"
+        ng-options="account.name as account.name for account in kayentaCanaryStageCtrl.kayentaAccounts.get('OBJECT_STORE')"
+      >
+      </select>
+    </stage-config-field>
   </kayenta-stage-config-section>
 </div>

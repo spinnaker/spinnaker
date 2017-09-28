@@ -27,7 +27,7 @@
   },
   "dependencies": {
     "@spinnaker/amazon": "0.0.5",
-    "@spinnaker/core": "^0.0.69",
+    "@spinnaker/core": "^0.0.70",
     "@spinnaker/google": "^0.0.1",
     "@uirouter/angularjs": "^1.0.4",
     "@uirouter/react-hybrid": "^0.0.12",
@@ -61,7 +61,7 @@
     "jquery-ui": "~1.10.5",
     "js-yaml": "^3.8.3",
     "lodash": "^4.16.1",
-    "lodash-decorators": "^4.3.1",
+    "lodash-decorators": "^4.4.1",
     "marked": "^0.3.6",
     "moment-timezone": "^0.4.0",
     "n3-charts": "^2.0.18",

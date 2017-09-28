@@ -8,7 +8,8 @@ import {
   ICanaryMetricConfig,
   IJudge,
   ICanaryConfigSummary,
-  ICanaryConfig
+  ICanaryConfig,
+  IKayentaAccount
 } from '../domain/index';
 
 export function getCanaryConfigById(id: string): Promise<ICanaryConfig> {
@@ -59,6 +60,14 @@ export function listJudges(): Promise<IJudge[]> {
     allJudges = localConfigCache.listJudges();
   }
   return allJudges.then(judges => judges.filter(judge => judge.visible));
+}
+
+export function listKayentaAccounts(): Promise<IKayentaAccount[]> {
+  if (CanarySettings.liveCalls) {
+    return ReactInjector.API.one('v2/canaries/credentials').get();
+  } else {
+    return localConfigCache.listKayentaAccounts();
+  }
 }
 
 // Not sure if this is the right way to go about this. We have pieces of the config
