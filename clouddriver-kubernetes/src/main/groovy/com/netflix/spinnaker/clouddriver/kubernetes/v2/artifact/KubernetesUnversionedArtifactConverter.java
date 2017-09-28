@@ -17,20 +17,35 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact;
 
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesCoordinates;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesManifest;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
-import org.apache.commons.lang.RandomStringUtils;
 import org.springframework.stereotype.Component;
 
 @Component
-public class ManifestToUnversionedArtifact implements ManifestToArtifact {
+public class KubernetesUnversionedArtifactConverter extends KubernetesArtifactConverter {
   @Override
-  public Artifact convert(KubernetesManifest manifest) {
-    String type = manifest.getKind().toString();
+  public Artifact toArtifact(KubernetesManifest manifest) {
+    String type = getType(manifest);
     String name = manifest.getName();
     return Artifact.builder()
         .type(type)
         .name(name)
         .build();
+  }
+
+  @Override
+  public KubernetesCoordinates toCoordinates(Artifact artifact) {
+    return KubernetesCoordinates.builder()
+        .apiVersion(getApiVersion(artifact))
+        .kind(getKind(artifact))
+        .namespace(getNamespace(artifact))
+        .name(artifact.getName())
+        .build();
+  }
+
+  @Override
+  public String getDeployedName(Artifact artifact) {
+    return artifact.getName();
   }
 }

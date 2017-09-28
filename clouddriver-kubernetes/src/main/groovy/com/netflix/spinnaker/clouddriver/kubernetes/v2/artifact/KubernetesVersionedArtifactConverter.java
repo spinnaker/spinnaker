@@ -17,16 +17,17 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact;
 
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesCoordinates;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesManifest;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import org.apache.commons.lang.RandomStringUtils;
 import org.springframework.stereotype.Component;
 
 @Component
-public class ManifestToVersionedArtifact implements ManifestToArtifact {
+public class KubernetesVersionedArtifactConverter extends KubernetesArtifactConverter {
   @Override
-  public Artifact convert(KubernetesManifest manifest) {
-    String type = manifest.getKind().toString();
+  public Artifact toArtifact(KubernetesManifest manifest) {
+    String type = getType(manifest);
     String name = manifest.getName();
     String version = RandomStringUtils.randomAlphanumeric(8).toLowerCase(); // TODO(lwander) rely on cache to get proper vNNN number in the future.
     return Artifact.builder()
@@ -34,5 +35,20 @@ public class ManifestToVersionedArtifact implements ManifestToArtifact {
         .name(name)
         .version(version)
         .build();
+  }
+
+  @Override
+  public KubernetesCoordinates toCoordinates(Artifact artifact) {
+    return KubernetesCoordinates.builder()
+        .apiVersion(getApiVersion(artifact))
+        .kind(getKind(artifact))
+        .name(getDeployedName(artifact))
+        .namespace(getNamespace(artifact))
+        .build();
+  }
+
+  @Override
+  public String getDeployedName(Artifact artifact) {
+    return artifact.getName() + "-" + artifact.getVersion();
   }
 }

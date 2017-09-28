@@ -15,11 +15,20 @@
  *
  */
 
-package com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact;
+package com.netflix.spinnaker.clouddriver.kubernetes.v2.description;
 
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesManifest;
-import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.KubernetesArtifactConverter;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.deployer.KubernetesDeployer;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-public interface ManifestToArtifact {
-  Artifact convert(KubernetesManifest manifest);
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class KubernetesResourceProperties {
+  KubernetesDeployer deployer;
+  KubernetesArtifactConverter converter;
 }

@@ -20,36 +20,41 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.provider;
 import com.netflix.spinnaker.cats.cache.Cache;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
+@Component
 public class KubernetesCacheUtils {
   private final Cache cache;
 
+  @Autowired
   public KubernetesCacheUtils(Cache cache) {
     this.cache = cache;
   }
 
   public Collection<CacheData> getAllKeys(String type) {
-    return cache.getAll(type);
+    return cleanupCollection(cache.getAll(type));
   }
 
-  public CacheData getSingleEntry(String type, String key) {
-    return cache.get(type, key);
+  public Collection<CacheData> getAllMatchingPattern(String type, String key) {
+    return cleanupCollection(cache.getAll(type, cleanupCollection(cache.filterIdentifiers(type, key))));
+  }
+
+  public Optional<CacheData> getSingleEntry(String type, String key) {
+    CacheData result = cache.get(type, key);
+    return result == null ? Optional.empty() : Optional.of(result);
   }
 
   public Collection<CacheData> getTransitiveRelationship(String from, List<String> sourceKeys, String to) {
-    Collection<CacheData> sourceData = cache.getAll(from, sourceKeys, RelationshipCacheFilter.include(to));
-    if (sourceData == null) {
-      return Collections.emptyList();
-    }
-
+    Collection<CacheData> sourceData = cleanupCollection(cache.getAll(from, sourceKeys, RelationshipCacheFilter.include(to)));
     return cache.getAll(to, sourceData.stream()
-        .filter(Objects::nonNull)
         .map(CacheData::getRelationships)
         .filter(Objects::nonNull)
         .map(r -> r.get(to))
@@ -58,14 +63,23 @@ public class KubernetesCacheUtils {
   }
 
   public Collection<CacheData> loadRelationshipsFromCache(Collection<CacheData> sources, String relationshipType) {
-    List<String> keys = sources.stream()
-        .filter(Objects::nonNull)
+    List<String> keys = cleanupCollection(sources).stream()
         .map(CacheData::getRelationships)
         .filter(Objects::nonNull)
         .map(r -> r.get(relationshipType))
         .flatMap(Collection::stream)
         .collect(Collectors.toList());
 
-    return cache.getAll(relationshipType, keys);
+    return cleanupCollection(cache.getAll(relationshipType, keys));
+  }
+
+  private <T> Collection<T> cleanupCollection(Collection<T> items) {
+    if (items == null) {
+      return new ArrayList<>();
+    }
+
+    return items.stream()
+        .filter(Objects::nonNull)
+        .collect(Collectors.toList());
   }
 }

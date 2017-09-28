@@ -17,12 +17,24 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.op.deployer;
 
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesApiVersion;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
 import io.kubernetes.client.models.V1beta1Ingress;
 import org.springframework.stereotype.Component;
 
 @Component
 public class KubernetesIngressDeployer extends KubernetesDeployer<V1beta1Ingress> {
+  @Override
+  public KubernetesKind kind() {
+    return KubernetesKind.INGRESS;
+  }
+
+  @Override
+  public KubernetesApiVersion apiVersion() {
+    return KubernetesApiVersion.EXTENSIONS_V1BETA1;
+  }
+
   @Override
   Class<V1beta1Ingress> getDeployedClass() {
     return V1beta1Ingress.class;
@@ -34,7 +46,7 @@ public class KubernetesIngressDeployer extends KubernetesDeployer<V1beta1Ingress
   }
 
   @Override
-  public boolean isVersionedResource() {
+  public boolean versioned() {
     return false;
   }
 }

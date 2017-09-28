@@ -18,19 +18,18 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.provider;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spinnaker.cats.cache.Cache;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys.ClusterCacheKey;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesCacheDataConverter;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.model.KubernetesV2Cluster;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.model.KubernetesV2LoadBalancer;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.model.KubernetesV2ServerGroup;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesApiVersion;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpinnakerKindMap;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.model.KubernetesV2Cluster;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.model.KubernetesV2LoadBalancer;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.model.KubernetesV2ServerGroup;
 import com.netflix.spinnaker.clouddriver.model.ClusterProvider;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Triple;
@@ -64,11 +63,11 @@ public class KubernetesV2ClusterProvider implements ClusterProvider<KubernetesV2
 
   @Autowired
   KubernetesV2ClusterProvider(KubernetesCloudProvider kubernetesCloudProvider,
-      Cache cache,
+      KubernetesCacheUtils cacheUtils,
       ObjectMapper objectMapper,
       KubernetesSpinnakerKindMap kindMap) {
     this.kubernetesCloudProvider = kubernetesCloudProvider;
-    this.cacheUtils = new KubernetesCacheUtils(cache);
+    this.cacheUtils = cacheUtils;
     this.objectMapper = objectMapper;
     this.kindMap = kindMap;
   }
@@ -122,13 +121,12 @@ public class KubernetesV2ClusterProvider implements ClusterProvider<KubernetesV2
 
   @Override
   public KubernetesV2Cluster getCluster(String application, String account, String name, boolean includeDetails) {
-    CacheData entry = cacheUtils.getSingleEntry(CLUSTER.toString(), Keys.cluster(account, name));
-    if (entry == null) {
-      return null;
-    }
-    Collection<CacheData> clusterData = Collections.singletonList(entry);
-    Set<KubernetesV2Cluster> result = includeDetails ? translateClustersWithRelationships(clusterData) : translateClusters(clusterData);
-    return result.iterator().next();
+    return cacheUtils.getSingleEntry(CLUSTER.toString(), Keys.cluster(account, name))
+        .map(entry -> {
+          Collection<CacheData> clusterData = Collections.singletonList(entry);
+          Set<KubernetesV2Cluster> result = includeDetails ? translateClustersWithRelationships(clusterData) : translateClusters(clusterData);
+          return result.iterator().next();
+        }).orElse(null);
   }
 
   @Override
@@ -146,10 +144,11 @@ public class KubernetesV2ClusterProvider implements ClusterProvider<KubernetesV2
     String key = Keys.infrastructure(apiVersion, kind, account, namespace, shortName);
 
     // TODO(lwander) get instances
-    CacheData serverGroupData = cacheUtils.getSingleEntry(kind.toString(), key);
-    KubernetesManifest manifest = KubernetesCacheDataConverter.getManifest(serverGroupData);
-
-    return new KubernetesV2ServerGroup(manifest, key);
+    return cacheUtils.getSingleEntry(kind.toString(), key)
+        .map(serverGroupData -> {
+          KubernetesManifest manifest = KubernetesCacheDataConverter.getManifest(serverGroupData);
+          return new KubernetesV2ServerGroup(manifest, key);
+        }).orElse(null);
   }
 
   @Override
