@@ -22,8 +22,10 @@ import com.netflix.spinnaker.orca.q.*
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.reset
 import com.nhaarman.mockito_kotlin.verify
+import com.nhaarman.mockito_kotlin.verifyZeroInteractions
 import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.it
+import org.jetbrains.spek.api.dsl.on
 import org.jetbrains.spek.api.lifecycle.CachingMode.GROUP
 import org.jetbrains.spek.subject.SubjectSpek
 
@@ -42,7 +44,7 @@ object DeadMessageHandlerTest : SubjectSpek<DeadMessageHandler>({
 
     afterGroup(::resetMocks)
 
-    action("the handler receives a message") {
+    on("receiving a message") {
       subject.handle(queue, message)
     }
 
@@ -56,7 +58,7 @@ object DeadMessageHandlerTest : SubjectSpek<DeadMessageHandler>({
 
     afterGroup(::resetMocks)
 
-    action("the handler receives a message") {
+    on("receiving a message") {
       subject.handle(queue, message)
     }
 
@@ -70,12 +72,28 @@ object DeadMessageHandlerTest : SubjectSpek<DeadMessageHandler>({
 
     afterGroup(::resetMocks)
 
-    action("the handler receives a message") {
+    on("receiving a message") {
       subject.handle(queue, message)
     }
 
     it("terminates the task") {
       verify(queue).push(CompleteTask(message, TERMINAL))
+    }
+  }
+
+  describe("handling a message that was previously dead-lettered") {
+    val message = CompleteExecution(Pipeline::class.java, "1", "spinnaker").apply {
+      setAttribute(DeadMessageAttribute)
+    }
+
+    afterGroup(::resetMocks)
+
+    on("receiving a message") {
+      subject.handle(queue, message)
+    }
+
+    it("does nothing") {
+      verifyZeroInteractions(queue)
     }
   }
 })

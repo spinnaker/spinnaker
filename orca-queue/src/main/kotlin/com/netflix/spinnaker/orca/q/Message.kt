@@ -24,7 +24,6 @@ import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
-import java.util.*
 
 /**
  * Messages used internally by the queueing system.
@@ -73,6 +72,9 @@ sealed class Message {
       null
     }
   }
+
+  inline fun <reified A : Attribute> hasAttribute() =
+    attributes.any { it is A }
 
   inline fun <reified A : Attribute> getAttribute(defaultValue : A): A {
     return getAttribute<A>() ?: defaultValue
