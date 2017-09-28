@@ -26,7 +26,6 @@ import javax.annotation.Nullable;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.netflix.spectator.api.Registry;
-import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 
 public class Pipeline extends Execution<Pipeline> {
 
@@ -42,19 +41,6 @@ public class Pipeline extends Execution<Pipeline> {
   }
 
   private String pipelineConfigId;
-
-  /**
-   * Artifacts produced from trigger events and injected into the pipeline context.
-   */
-  private List<Artifact> receivedArtifacts = new ArrayList<>();
-
-  public void setReceivedArtifacts(List<Artifact> receivedArtifacts) {
-    this.receivedArtifacts = receivedArtifacts;
-  }
-
-  public @Nonnull List<Artifact> getReceivedArtifacts() {
-    return receivedArtifacts;
-  }
 
   public @Nullable String getPipelineConfigId() {
     return pipelineConfigId;
