@@ -185,7 +185,7 @@ class Refresher(object):
                          echo=False)
       if result.returncode:
         error = 'Could not determine branch: ' + result.stdout.strip()
-        raise RuntimeError(error)
+        raise RuntimeError(error + ' in ' + name)
       return result.stdout.strip()
 
   def get_github_repository_url(self, repository, owner=None):
