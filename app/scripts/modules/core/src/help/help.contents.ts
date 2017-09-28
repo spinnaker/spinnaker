@@ -113,7 +113,7 @@ module(HELP_CONTENTS, [])
     'pipeline.config.docker.bake.targetImage': '<p>The name of the resulting docker image.</p>',
     'pipeline.config.docker.bake.targetImageTag': '<p>The tag of the resulting docker image, defaults to commit hash if available.</p>',
     'pipeline.config.docker.bake.organization': '<p>The name of the organization or repo to use for the resulting docker image.</p>',
-    'pipeline.config.bake.baseAmi': '<p>(Optional) ami-????????</p>',
+    'pipeline.config.bake.baseAmi': '<p>(Optional) If Base AMI is specified, this will be used instead of the Base OS provided',
     'pipeline.config.bake.amiSuffix': '<p>(Optional) String of date in format YYYYMMDDHHmm, default is calculated from timestamp,</p>',
     'pipeline.config.bake.amiName': '<p>(Optional) Default = $package-$arch-$ami_suffix-$store_type</p>',
     'pipeline.config.bake.templateFileName': '<p>(Optional) The explicit packer template to use, instead of resolving one from rosco\'s configuration.</p>',
