@@ -3,12 +3,12 @@
 const angular = require('angular');
 
 module.exports = angular.module('spinnaker.serverGroup.configure.titus', [
-  require('./wizard/deployInitializer.controller.js'),
-  require('./serverGroupConfiguration.service.js'),
-  require('./wizard/ServerGroupBasicSettings.controller.js'),
-  require('./wizard/ServerGroupResources.controller.js'),
-  require('./wizard/ServerGroupCapacity.controller.js'),
-  require('./wizard/ServerGroupParameters.controller.js'),
-  require('./serverGroupBasicSettingsSelector.directive.js'),
-  require('./serverGroupCapacitySelector.directive.js'),
+  require('./wizard/deployInitializer.controller.js').name,
+  require('./serverGroupConfiguration.service.js').name,
+  require('./wizard/ServerGroupBasicSettings.controller.js').name,
+  require('./wizard/ServerGroupResources.controller.js').name,
+  require('./wizard/ServerGroupCapacity.controller.js').name,
+  require('./wizard/ServerGroupParameters.controller.js').name,
+  require('./serverGroupBasicSettingsSelector.directive.js').name,
+  require('./serverGroupCapacitySelector.directive.js').name,
 ]);

@@ -7,7 +7,7 @@ describe('Directive: Titus Server Group Group Capacity Selector', function() {
 
   beforeEach(
     window.module(
-      require('./serverGroupCapacitySelector.directive.js')
+      require('./serverGroupCapacitySelector.directive.js').name
     )
   );
 

@@ -8,7 +8,7 @@ describe('Controller: titusServerGroupDetailsCtrl', function () {
 
   beforeEach(
     window.module(
-      require('./serverGroupDetails.titus.controller')
+      require('./serverGroupDetails.titus.controller').name
     )
   );
 

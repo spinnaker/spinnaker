@@ -7,7 +7,7 @@ describe('Directive: Titus SG Advanced Settings Selector', function() {
 
   beforeEach(
     window.module(
-      require('./serverGroupAdvancedSettingsSelector.directive.js')
+      require('./serverGroupAdvancedSettingsSelector.directive.js').name
     )
   );
 

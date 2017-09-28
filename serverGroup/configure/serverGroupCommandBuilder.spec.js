@@ -5,7 +5,7 @@ import {TitusProviderSettings} from '../../titus.settings';
 describe('titusServerGroupCommandBuilder', function() {
   beforeEach(
     window.module(
-      require('./ServerGroupCommandBuilder.js')
+      require('./ServerGroupCommandBuilder.js').name
     )
   );
 

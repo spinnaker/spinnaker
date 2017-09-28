@@ -4,7 +4,7 @@ const angular = require('angular');
 import {Subject} from 'rxjs';
 
 module.exports = angular.module('spinnaker.titus.pipeline.stage.runJobStage', [
-  require('./runJobExecutionDetails.controller.js')
+  require('./runJobExecutionDetails.controller.js').name
 ])
   .config(function (pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({

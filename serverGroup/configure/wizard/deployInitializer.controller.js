@@ -7,7 +7,7 @@ import { SERVER_GROUP_READER } from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.serverGroup.configure.titus.deployInitialization.controller', [
   SERVER_GROUP_READER,
-  require('../ServerGroupCommandBuilder.js'),
+  require('../ServerGroupCommandBuilder.js').name,
 ])
   .controller('titusDeployInitializerCtrl', function($scope, titusServerGroupCommandBuilder, serverGroupReader) {
     var controller = this;
