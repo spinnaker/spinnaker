@@ -57,6 +57,16 @@ class GoogleBackendService {
    */
   Boolean enableCDN
 
+  /**
+   * If set, enables connection draining for this backend service. This is the number of seconds to wait
+   * before instances that belong to this backend service are terminated in order to drain in-flight connections.
+   *
+   * No new connections are accepted.
+   *
+   * For reference: https://cloud.google.com/compute/docs/load-balancing/enabling-connection-draining
+   */
+  Integer connectionDrainingTimeoutSec
+
   // Note: This enum has non-standard style constants because we use these constants as strings directly
   // in the redis cache keys for backend services, where we want to avoid underscores and camelcase is the norm.
   static enum BackendServiceKind {

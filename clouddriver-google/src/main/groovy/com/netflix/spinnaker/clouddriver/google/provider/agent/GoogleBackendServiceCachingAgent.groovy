@@ -99,6 +99,7 @@ class GoogleBackendServiceCachingAgent extends AbstractGoogleCachingAgent {
         attributes.region = backendService.region
         attributes.enableCDN = backendService.enableCDN
         attributes.portName = backendService.portName
+        attributes.connectionDrainingTimeoutSec = backendService.connectionDrainingTimeoutSec
       }
     }
 
@@ -117,6 +118,7 @@ class GoogleBackendServiceCachingAgent extends AbstractGoogleCachingAgent {
       enableCDN: bs.enableCDN,
       region: bs.region ?: 'global',
       portName: bs.portName ?: GoogleHttpLoadBalancingPolicy.HTTP_DEFAULT_PORT_NAME,
+      connectionDrainingTimeoutSec: bs.getConnectionDraining()?.getDrainingTimeoutSec() ?: 0,
     )
   }
 }

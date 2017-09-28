@@ -239,7 +239,8 @@ class UpsertGoogleHttpLoadBalancerAtomicOperation extends UpsertGoogleLoadBalanc
         Boolean differentSessionCookieTtl = existingService.getAffinityCookieTtlSec() != backendService.affinityCookieTtlSec
         Boolean differentCDN = existingService.getEnableCDN() != backendService.enableCDN
         Boolean differentPortName = existingService.getPortName() != backendService.portName
-        if (differentHealthChecks || differentSessionAffinity || differentSessionCookieTtl || differentCDN || differentPortName) {
+        Boolean differentConnectionDraining = existingService.getConnectionDraining()?.getDrainingTimeoutSec() != backendService?.connectionDrainingTimeoutSec
+        if (differentHealthChecks || differentSessionAffinity || differentSessionCookieTtl || differentCDN || differentPortName || differentConnectionDraining) {
           serviceNeedsUpdatedSet.add(backendService.name)
         }
       }
@@ -301,6 +302,7 @@ class UpsertGoogleHttpLoadBalancerAtomicOperation extends UpsertGoogleLoadBalanc
         BackendService bs = new BackendService(
           name: backendServiceName,
           portName: backendService.portName ?: GoogleHttpLoadBalancingPolicy.HTTP_DEFAULT_PORT_NAME,
+          connectionDraining: new ConnectionDraining().setDrainingTimeoutSec(backendService.connectionDrainingTimeoutSec),
           healthChecks: [GCEUtil.buildHttpHealthCheckUrl(project, backendService.healthCheck.name)],
           sessionAffinity: sessionAffinity,
           enableCDN: backendService.enableCDN,
@@ -319,6 +321,7 @@ class UpsertGoogleHttpLoadBalancerAtomicOperation extends UpsertGoogleLoadBalanc
           def bsToUpdate = existingServices.find { it.name == backendServiceName }
           def hcName = backendService.healthCheck.name
           bsToUpdate.portName = backendService.portName ?: GoogleHttpLoadBalancingPolicy.HTTP_DEFAULT_PORT_NAME
+          bsToUpdate.connectionDraining = new ConnectionDraining().setDrainingTimeoutSec(backendService.connectionDrainingTimeoutSec)
           bsToUpdate.healthChecks = [GCEUtil.buildHttpHealthCheckUrl(project, hcName)]
           bsToUpdate.sessionAffinity = sessionAffinity
           bsToUpdate.enableCDN = backendService.enableCDN

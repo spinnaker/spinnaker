@@ -132,9 +132,10 @@ class UpsertGoogleTcpLoadBalancerAtomicOperation extends UpsertGoogleLoadBalance
     if (existingBackendService) {
       Boolean differentHealthChecks = existingBackendService.getHealthChecks().collect { GCEUtil.getLocalName(it) } != [healthCheckName]
       Boolean differentPortName = existingBackendService.getPortName() != description.backendService.portName
+      Boolean differentConnectionDraining = existingBackendService.getConnectionDraining()?.getDrainingTimeoutSec() != description.backendService.connectionDrainingTimeoutSec
       Boolean differentSessionAffinity = GoogleSessionAffinity.valueOf(existingBackendService.getSessionAffinity()) != description.backendService.sessionAffinity ||
         existingBackendService.getAffinityCookieTtlSec() != description.backendService.affinityCookieTtlSec
-      needToUpdateBackendService = differentHealthChecks || differentPortName || differentSessionAffinity
+      needToUpdateBackendService = differentHealthChecks || differentPortName || differentSessionAffinity || differentConnectionDraining
     }
 
     // Note: TCP LBs only use HealthCheck objects, _not_ Http(s)HealthChecks. The actual check (i.e. Ssl, Tcp, Http(s))
@@ -198,6 +199,7 @@ class UpsertGoogleTcpLoadBalancerAtomicOperation extends UpsertGoogleLoadBalance
       BackendService bs = new BackendService(
         name: backendServiceName,
         portName: description.backendService.portName ?: GoogleHttpLoadBalancingPolicy.HTTP_DEFAULT_PORT_NAME,
+        connectionDraining: new ConnectionDraining().setDrainingTimeoutSec(description.backendService.connectionDrainingTimeoutSec),
         healthChecks: [GCEUtil.buildHealthCheckUrl(project, healthCheckName)],
         sessionAffinity: description.backendService.sessionAffinity ?: 'NONE',
         affinityCookieTtlSec: description.backendService.affinityCookieTtlSec,
@@ -224,6 +226,7 @@ class UpsertGoogleTcpLoadBalancerAtomicOperation extends UpsertGoogleLoadBalance
       existingBackendService.loadBalancingScheme = 'EXTERNAL'
       existingBackendService.protocol = description.ipProtocol
       existingBackendService.portName = description.backendService.portName ?: GoogleHttpLoadBalancingPolicy.HTTP_DEFAULT_PORT_NAME
+      existingBackendService.connectionDraining = new ConnectionDraining().setDrainingTimeoutSec(description.backendService.connectionDrainingTimeoutSec)
       backendServiceOp = safeRetry.doRetry(
         { timeExecute(
               compute.backendServices().update(project, existingBackendService.getName(), existingBackendService),

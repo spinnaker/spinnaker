@@ -363,6 +363,7 @@ class GoogleHttpLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerCachi
         service.affinityCookieTtlSec = backendService.affinityCookieTtlSec
         service.enableCDN = backendService.enableCDN
         service.portName = backendService.portName ?: GoogleHttpLoadBalancingPolicy.HTTP_DEFAULT_PORT_NAME
+        service.connectionDrainingTimeoutSec = backendService.connectionDraining?.drainingTimeoutSec ?: 0
         service.backends = backendService.backends?.collect { Backend backend ->
           new GoogleLoadBalancedBackend(
               serverGroupUrl: backend.group,

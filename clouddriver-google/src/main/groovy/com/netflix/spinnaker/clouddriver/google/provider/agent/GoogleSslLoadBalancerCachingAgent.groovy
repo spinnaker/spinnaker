@@ -216,6 +216,7 @@ class GoogleSslLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerCachin
         sessionAffinity: backendService.sessionAffinity,
         affinityCookieTtlSec: backendService.affinityCookieTtlSec,
         portName: backendService.portName ?: GoogleHttpLoadBalancingPolicy.HTTP_DEFAULT_PORT_NAME,
+        connectionDrainingTimeoutSec: backendService.connectionDraining?.drainingTimeoutSec ?: 0,
         backends: backendService.backends?.collect { Backend backend ->
           new GoogleLoadBalancedBackend(
             serverGroupUrl: backend.group,
