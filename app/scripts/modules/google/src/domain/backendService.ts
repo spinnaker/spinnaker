@@ -1,4 +1,4 @@
-import {IGceHealthCheck} from './healthCheck';
+import { IGceHealthCheck } from './healthCheck';
 
 export interface IGceBackendService {
   name: string;
@@ -6,6 +6,7 @@ export interface IGceBackendService {
   healthCheck: IGceHealthCheck;
   sessionAffinity: string;
   portName: string;
+  connectionDrainingTimeoutsSec: number;
 }
 
 export interface INamedPort {

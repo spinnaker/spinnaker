@@ -28,6 +28,7 @@ const helpContents: {[key: string]: string} = {
   'gce.instance.authScopes.cloud-platform': '<p>The instances in this server group have full API access to all Google Cloud services.</p>',
   'gce.instanceType.32core': '<p>32-core machine types are in Beta and are available only in Ivy Bridge and Haswell zones.</p>',
   'gce.internalLoadBalancer.ports': 'Use a comma to separate up to five TCP ports.',
+  'gce.loadBalancer.connectionDraining': '(Optional) If set, enables connection draining for this backend service. This field defines the number of seconds to wait before instances that belong to this backend service are terminated in order to drain in-flight connections.',
   'gce.loadBalancer.detail': '<p>(Optional) <b>Detail</b> is a string of free-form alphanumeric characters and hyphens to describe any other variables.</p>',
   'gce.loadBalancer.advancedSettings.healthInterval': '<p>Configures the interval, in seconds, between load balancer health checks.</p><p>Default: <b>10</b></p>',
   'gce.loadBalancer.advancedSettings.healthyThreshold': '<p>Configures the number of healthy observations before reinstituting an instance into the load balancer’s traffic rotation.</p><p>Default: <b>10</b></p>',

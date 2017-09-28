@@ -116,6 +116,18 @@
 
     <div class="form-group">
       <div class="col-md-4 sm-label-right">
+        Connection Draining
+        <help-field key="gce.loadBalancer.connectionDraining"></help-field>
+      </div>
+      <div class="col-md-4">
+        <input type="number"
+               class="form-control input-sm"
+               ng-model="$ctrl.backendService.connectionDrainingTimeoutSec"/>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <div class="col-md-4 sm-label-right">
         <b>Enable CDN</b>
       </div>
       <div class="col-md-4">
