@@ -39,6 +39,7 @@ public class ExpectedArtifact {
   public static class ArtifactField {
     String fieldName;
     FieldType fieldType;
+    String value;
     MissingPolicy missingPolicy;
     String expression;
 
