@@ -21,6 +21,7 @@ import com.fasterxml.jackson.annotation.JsonAnySetter
 import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
 import com.netflix.spinnaker.clouddriver.model.LoadBalancer
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerServerGroup
+import com.netflix.spinnaker.moniker.Moniker
 import groovy.transform.CompileStatic
 
 @CompileStatic
@@ -32,6 +33,8 @@ class AmazonLoadBalancer implements LoadBalancer {
   String vpcId
   Set<LoadBalancerServerGroup> serverGroups = []
   Set<AmazonTargetGroup> targetGroups = []
+
+  void setMoniker(Moniker _ignored) {}
 
   final String type = AmazonCloudProvider.ID
   final String cloudProvider = AmazonCloudProvider.ID

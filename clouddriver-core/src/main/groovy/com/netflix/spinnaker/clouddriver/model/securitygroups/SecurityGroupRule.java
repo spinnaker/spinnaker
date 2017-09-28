@@ -14,25 +14,33 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.model.securitygroups
+package com.netflix.spinnaker.clouddriver.model.securitygroups;
 
-import com.netflix.spinnaker.clouddriver.model.SecurityGroup
-import groovy.transform.Immutable
+import com.netflix.spinnaker.clouddriver.model.SecurityGroup;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-@Immutable
-class SecurityGroupRule implements Rule {
+import java.util.SortedSet;
+
+@Data
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
+public class SecurityGroupRule implements Rule {
   /**
    * The security group associated with this rule
    */
-  final SecurityGroup securityGroup
+  SecurityGroup securityGroup;
 
   /**
    * The IP protocol associated with this rule
    */
-  final String protocol
+  String protocol;
 
   /**
    * {@inheritDoc}
    */
-  final SortedSet<Rule.PortRange> portRanges
+  SortedSet<PortRange> portRanges;
 }

@@ -23,6 +23,7 @@ import com.netflix.spinnaker.clouddriver.appengine.AppengineCloudProvider
 import com.netflix.spinnaker.clouddriver.model.LoadBalancer
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerInstance
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerServerGroup
+import com.netflix.spinnaker.moniker.Moniker
 import groovy.transform.AutoClone
 import groovy.transform.CompileStatic
 import groovy.transform.EqualsAndHashCode
@@ -43,6 +44,8 @@ class AppengineLoadBalancer implements LoadBalancer, Serializable {
   String httpsUrl
   String project
   List<AppenginePlatformApplication.AppengineDispatchRule> dispatchRules
+
+  void setMoniker(Moniker _ignored) {}
 
   AppengineLoadBalancer() { }
 

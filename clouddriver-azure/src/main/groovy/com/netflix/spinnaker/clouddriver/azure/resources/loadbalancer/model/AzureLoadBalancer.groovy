@@ -21,6 +21,7 @@ import com.fasterxml.jackson.annotation.JsonAnySetter
 import com.netflix.spinnaker.clouddriver.azure.AzureCloudProvider
 import com.netflix.spinnaker.clouddriver.model.LoadBalancer
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerServerGroup
+import com.netflix.spinnaker.moniker.Moniker
 
 class AzureLoadBalancer implements LoadBalancer {
 
@@ -33,6 +34,8 @@ class AzureLoadBalancer implements LoadBalancer {
   String cluster
   final String type = AzureCloudProvider.ID
   final String cloudProvider = AzureCloudProvider.ID
+
+  void setMoniker(Moniker _ignored) {}
 
   private Map<String, Object> dynamicProperties = new HashMap<String, Object>()
 

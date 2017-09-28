@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.cf.model
 import com.netflix.spinnaker.clouddriver.cf.CloudFoundryCloudProvider
 import com.netflix.spinnaker.clouddriver.model.LoadBalancer
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerServerGroup
+import com.netflix.spinnaker.moniker.Moniker
 import groovy.transform.CompileStatic
 import groovy.transform.EqualsAndHashCode
 import org.cloudfoundry.client.lib.domain.CloudRoute
@@ -34,5 +35,7 @@ class CloudFoundryLoadBalancer implements LoadBalancer {
   String region
   String account
   CloudRoute nativeRoute
+
+  void setMoniker(Moniker _ignored) {}
 
 }

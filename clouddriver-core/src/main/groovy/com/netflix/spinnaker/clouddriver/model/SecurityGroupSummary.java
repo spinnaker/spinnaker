@@ -14,9 +14,17 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.model
+package com.netflix.spinnaker.clouddriver.model;
 
-interface SecurityGroupSummary {
-  String getName()
-  String getId()
+import com.netflix.spinnaker.clouddriver.names.NamerRegistry;
+import com.netflix.spinnaker.moniker.Moniker;
+
+public interface SecurityGroupSummary {
+  String getName();
+
+  default Moniker getMoniker() {
+    return NamerRegistry.getDefaultNamer().deriveMoniker(this);
+  }
+
+  String getId();
 }

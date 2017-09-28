@@ -14,11 +14,13 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.model.securitygroups
+package com.netflix.spinnaker.clouddriver.model.securitygroups;
 
-import com.fasterxml.jackson.annotation.JsonTypeInfo
-import groovy.transform.Canonical
-import groovy.transform.Sortable
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import lombok.Data;
+import org.apache.commons.lang3.ObjectUtils;
+
+import java.util.SortedSet;
 
 /**
  * An abstract interface representing a security rule.
@@ -26,21 +28,30 @@ import groovy.transform.Sortable
  * @see IpRangeRule
  * @see SecurityGroupRule
  */
-@JsonTypeInfo(use=JsonTypeInfo.Id.CLASS, include=JsonTypeInfo.As.PROPERTY, property='class')
-interface Rule {
+@JsonTypeInfo(use=JsonTypeInfo.Id.CLASS, include=JsonTypeInfo.As.PROPERTY, property="class")
+public interface Rule {
   /**
    * The port ranges associated with this rule
    *
    * @return
    */
-  SortedSet<PortRange> getPortRanges()
+  SortedSet<PortRange> getPortRanges();
 
-  String getProtocol()
+  String getProtocol();
 
-  @Sortable
-  @Canonical
-  static class PortRange {
-    Integer startPort
-    Integer endPort
+  @Data
+  class PortRange implements Comparable<PortRange> {
+    Integer startPort;
+    Integer endPort;
+
+    @Override
+    public int compareTo(PortRange o) {
+      if (o == null) {
+        return 1;
+      }
+      
+      int res = ObjectUtils.compare(this.startPort, o.startPort);
+      return res == 0 ? ObjectUtils.compare(this.endPort, o.endPort) : res;
+    }
   }
 }

@@ -21,6 +21,7 @@ import com.netflix.spinnaker.clouddriver.azure.AzureCloudProvider
 import com.netflix.spinnaker.clouddriver.model.SecurityGroup
 import com.netflix.spinnaker.clouddriver.model.SecurityGroupSummary
 import com.netflix.spinnaker.clouddriver.model.securitygroups.Rule
+import com.netflix.spinnaker.moniker.Moniker
 import groovy.transform.EqualsAndHashCode
 import groovy.transform.Immutable
 
@@ -42,6 +43,8 @@ class AzureSecurityGroup implements SecurityGroup {
   final Set<Rule> inboundRules = []
   final Set<Rule> outboundRules = []
   final List<AzureSecurityGroupDescription.AzureSGRule> securityRules = []
+
+  void setMoniker(Moniker _ignored) {}
 
   @Override
   SecurityGroupSummary getSummary() {

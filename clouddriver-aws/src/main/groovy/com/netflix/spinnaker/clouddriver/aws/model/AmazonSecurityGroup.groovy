@@ -21,6 +21,7 @@ import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
 import com.netflix.spinnaker.clouddriver.model.SecurityGroup
 import com.netflix.spinnaker.clouddriver.model.SecurityGroupSummary
 import com.netflix.spinnaker.clouddriver.model.securitygroups.Rule
+import com.netflix.spinnaker.moniker.Moniker
 import groovy.transform.Immutable
 
 @Immutable
@@ -38,6 +39,8 @@ class AmazonSecurityGroup implements SecurityGroup {
   final String region
   final Set<Rule> inboundRules
   final Set<Rule> outboundRules
+
+  void setMoniker(Moniker _ignored) {}
 
   @Override
   SecurityGroupSummary getSummary() {

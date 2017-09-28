@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.google.model.loadbalancing
 import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
 import com.netflix.spinnaker.clouddriver.model.LoadBalancer
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerServerGroup
+import com.netflix.spinnaker.moniker.Moniker
 import groovy.transform.Canonical
 
 @Canonical
@@ -35,6 +36,8 @@ abstract class GoogleLoadBalancerView implements LoadBalancer {
   String ipAddress
   String ipProtocol
   String portRange
+
+  void setMoniker(Moniker _ignored) {}
 
   Set<LoadBalancerServerGroup> serverGroups = new HashSet<>()
 }

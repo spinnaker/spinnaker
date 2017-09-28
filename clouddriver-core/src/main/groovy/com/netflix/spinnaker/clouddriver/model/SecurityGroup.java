@@ -14,72 +14,88 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.model
+package com.netflix.spinnaker.clouddriver.model;
 
-import com.fasterxml.jackson.annotation.JsonTypeInfo
-import com.netflix.spinnaker.clouddriver.model.securitygroups.Rule
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.netflix.spinnaker.clouddriver.model.securitygroups.Rule;
+import com.netflix.spinnaker.clouddriver.names.NamerRegistry;
+import com.netflix.spinnaker.moniker.Moniker;
+
+import java.util.Set;
 
 /**
  * A representation of a security group
  */
-@JsonTypeInfo(use=JsonTypeInfo.Id.CLASS, include=JsonTypeInfo.As.PROPERTY, property='class')
-interface SecurityGroup {
+@JsonTypeInfo(use=JsonTypeInfo.Id.CLASS, include=JsonTypeInfo.As.PROPERTY, property="class")
+public interface SecurityGroup {
 
   /**
    * The type of this security group. May reference the cloud provider to which it is associated
    * @deprecated use #getCloudProvider
    * @return
    */
-  String getType()
+  String getType();
 
   /**
    * Provider-specific identifier
    */
-  String getCloudProvider()
+  String getCloudProvider();
 
   /**
    * The ID associated with this security group
    *
    * @return
    */
-  String getId()
+  String getId();
 
   /**
    * The name representing this security group
    *
    * @return
    */
-  String getName()
+  String getName();
 
   /**
-   * The application associated with this security group
+   * This resource's moniker
+   *
+   * @return moniker
+   */
+  default Moniker getMoniker() {
+    return NamerRegistry.getDefaultNamer().deriveMoniker(this);
+  }
+
+  /**
+   * The application associated with this security group.
+   *
+   * Deprecated in favor of getMoniker().getApp()
    *
    * @return
    */
-  String getApplication()
+  @Deprecated
+  String getApplication();
 
   /**
    * The account associated with this security group
    *
    * @return
    */
-  String getAccountName()
+  String getAccountName();
 
   /**
    * The region associated with this security group
    *
    * @return
    */
-  String getRegion()
+  String getRegion();
 
   /**
    * A representation of the inbound securityRules
    *
    * @return
    */
-  Set<Rule> getInboundRules()
+  Set<Rule> getInboundRules();
 
-  Set<Rule> getOutboundRules()
+  Set<Rule> getOutboundRules();
 
-  SecurityGroupSummary getSummary()
+  SecurityGroupSummary getSummary();
 }

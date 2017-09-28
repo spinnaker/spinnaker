@@ -23,6 +23,7 @@ import com.netflix.spinnaker.clouddriver.model.SecurityGroup
 import com.netflix.spinnaker.clouddriver.model.SecurityGroupSummary
 import com.netflix.spinnaker.clouddriver.model.securitygroups.Rule
 import com.netflix.spinnaker.clouddriver.openstack.OpenstackCloudProvider
+import com.netflix.spinnaker.moniker.Moniker
 import groovy.transform.Immutable
 
 @Immutable
@@ -38,6 +39,8 @@ class OpenstackSecurityGroup implements SecurityGroup {
   final String region
   final Set<Rule> inboundRules
   final Set<Rule> outboundRules
+
+  void setMoniker(Moniker _ignored) {}
 
   @JsonIgnore
   @Override

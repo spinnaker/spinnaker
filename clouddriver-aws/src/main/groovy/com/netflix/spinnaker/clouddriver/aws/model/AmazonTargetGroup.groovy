@@ -21,6 +21,7 @@ import com.fasterxml.jackson.annotation.JsonAnySetter
 import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
 import com.netflix.spinnaker.clouddriver.model.LoadBalancer
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerServerGroup
+import com.netflix.spinnaker.moniker.Moniker
 
 class AmazonTargetGroup implements LoadBalancer {
   String account
@@ -31,6 +32,8 @@ class AmazonTargetGroup implements LoadBalancer {
   Set<LoadBalancerServerGroup> serverGroups = []
 
   private Map<String, Object> dynamicProperties = new HashMap<String, Object>()
+
+  void setMoniker(Moniker _ignored) {}
 
   @JsonAnyGetter
   public Map<String,Object> any() {

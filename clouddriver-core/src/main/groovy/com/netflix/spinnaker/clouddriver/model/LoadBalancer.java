@@ -14,9 +14,13 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.model
+package com.netflix.spinnaker.clouddriver.model;
 
-import com.netflix.spinnaker.clouddriver.documentation.Empty
+import com.netflix.spinnaker.clouddriver.documentation.Empty;
+import com.netflix.spinnaker.clouddriver.names.NamerRegistry;
+import com.netflix.spinnaker.moniker.Moniker;
+
+import java.util.Set;
 
 /**
  * A representation of a network load balancer, which is indirectly correlated to a {@link Cluster} through its relationship to {@link ServerGroup} objects. This interface provides a contract for
@@ -24,31 +28,40 @@ import com.netflix.spinnaker.clouddriver.documentation.Empty
  *
  *
  */
-interface LoadBalancer {
+public interface LoadBalancer {
   /**
    * Name of the load balancer
    *
    * @return name
    */
-  String getName()
+  String getName();
+
+  /**
+   * This resource's moniker
+   *
+   * @return moniker
+   */
+  default Moniker getMoniker() {
+    return NamerRegistry.getDefaultNamer().deriveMoniker(this);
+  }
 
   /**
    * The type of this load balancer. Can indicate some vendor-specific designation, or cloud provider
    * @deprecated use #getCloudProvider
    * @return type
    */
-  String getType()
+  String getType();
 
   /**
    * Provider-specific identifier
    */
-  String getCloudProvider()
+  String getCloudProvider();
 
   /**
    * Account under which this load balancer exists.
    * @return
    */
-  String getAccount()
+  String getAccount();
 
   /**
    * The names of the server groups that this load balancer is servicing.
@@ -56,5 +69,5 @@ interface LoadBalancer {
    * @return set of names or an empty set if none exist
    */
   @Empty
-  Set<LoadBalancerServerGroup> getServerGroups()
+  Set<LoadBalancerServerGroup> getServerGroups();
 }
