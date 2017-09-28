@@ -58,6 +58,7 @@ function configure(IS_TEST) {
         'coreColors': path.resolve(__dirname, 'app', 'scripts', 'modules', 'core', 'src', 'presentation', 'less', 'imports', 'colors.less'),
       }
     },
+    devtool: 'source-map',
     module: {
       rules: [
         {test: /\.js$/, use: ['happypack/loader?id=js'], exclude: /node_modules(?!\/clipboard)/},

@@ -80,7 +80,7 @@ module.exports = {
       mangle: false,
       beautify: true,
       comments: false,
-      sourceMap: false, // enabling trips a known bug: https://github.com/mozilla/source-map/issues/247
+      sourceMap: true,
     }),
     new HappyPack({
       id: 'lib-html',
