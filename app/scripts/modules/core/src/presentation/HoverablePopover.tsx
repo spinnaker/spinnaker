@@ -34,8 +34,8 @@ export interface IHoverablePopoverProps {
 }
 
 export interface IHoverablePopoverState {
+  placementOverride?: Placement;
   popoverIsOpen: boolean;
-  target?: any;
   PopoverRenderer?: React.ComponentClass<PopoverProps> | React.StatelessComponent<PopoverProps>;
 }
 
@@ -48,6 +48,8 @@ export class HoverablePopover extends React.Component<IHoverablePopoverProps, IH
     delayShow: 0,
     delayHide: 300,
   };
+
+  private target: Element;
 
   private mouseEvents$: Subject<React.SyntheticEvent<any>>;
   private showHide$: Observable<boolean>;
@@ -141,8 +143,34 @@ export class HoverablePopover extends React.Component<IHoverablePopoverProps, IH
     this.mouseEvents$.next(e);
   }
 
-  private refCallback(ref: any): void {
-    this.setState({ target: ref });
+  private refCallback(ref: Element): void {
+    this.target = ref;
+  }
+
+  private rendererRefCallback(ref: React.Component): void {
+    if (ref) {
+      const { clientWidth, clientHeight } = ReactDOM.findDOMNode(ref);
+      const bounds = this.target.getBoundingClientRect();
+      const bottomSpace = window.innerHeight - bounds.bottom;
+      const rightSpace = window.innerWidth - bounds.right;
+
+      let placementOverride: Placement;
+      switch (this.props.placement) {
+        case 'top':
+          placementOverride = clientHeight > bounds.top && bounds.top < bottomSpace ? 'bottom' : undefined;
+          break;
+        case 'bottom':
+          placementOverride = clientHeight > bottomSpace && bottomSpace < bounds.top ? 'top' : undefined;
+          break;
+        case 'left':
+          placementOverride = clientWidth > bounds.left && bounds.left < rightSpace ? 'right' : undefined;
+          break;
+        case 'right':
+          placementOverride = clientWidth > rightSpace && rightSpace < bounds.left ? 'left' : undefined;
+          break;
+      }
+      this.setState({ placementOverride });
+    }
   }
 
   public render() {
@@ -152,8 +180,9 @@ export class HoverablePopover extends React.Component<IHoverablePopoverProps, IH
     return (
       <g onMouseEnter={this.handleMouseEvent} onMouseLeave={this.handleMouseEvent} ref={this.refCallback}>
         {this.props.children}
-        <Overlay show={this.state.popoverIsOpen} placement={this.props.placement} target={this.state.target} container={this.props.container}>
+        <Overlay show={this.state.popoverIsOpen} placement={this.state.placementOverride || this.props.placement} target={this.target as any} container={this.props.container}>
           <PopoverRenderer
+            ref={this.rendererRefCallback}
             onMouseOver={this.handleMouseEvent}
             onMouseLeave={this.handleMouseEvent}
             id={this.props.id}
