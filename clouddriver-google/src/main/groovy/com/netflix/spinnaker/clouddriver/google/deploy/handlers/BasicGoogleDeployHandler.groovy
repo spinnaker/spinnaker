@@ -430,10 +430,7 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
 
       if (!namedPorts) {
         log.warn("Could not locate named port on either load balancing policy or source server group. Setting default named port.")
-        namedPorts << new NamedPort(
-            name: GoogleHttpLoadBalancingPolicy.HTTP_DEFAULT_PORT_NAME,
-            port: GoogleHttpLoadBalancingPolicy.HTTP_DEFAULT_PORT,
-        )
+        namedPorts = [new NamedPort(name: GoogleHttpLoadBalancingPolicy.HTTP_DEFAULT_PORT_NAME, port: GoogleHttpLoadBalancingPolicy.HTTP_DEFAULT_PORT)]
       }
       instanceGroupManager.setNamedPorts(namedPorts)
     }
