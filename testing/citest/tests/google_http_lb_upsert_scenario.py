@@ -625,7 +625,7 @@ class GoogleHttpLoadBalancerTestScenario(sk.SpinnakerTestScenario):
         'disableTraffic': False,
         'loadBalancingPolicy': {
           'balancingMode': 'UTILIZATION',
-          'namedPorts': [{'name': http, 'port': 80}],
+          'namedPorts': [{'name': 'http', 'port': 80}],
           'maxUtilization': 0.8,
           'capacityScaler': 0.8
         },
