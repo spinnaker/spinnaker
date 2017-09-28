@@ -46,9 +46,17 @@ public class EditX509Command extends AbstractEditAuthnMethodCommand<X509> {
   )
   private String roleOid;
 
+  @Parameter(
+      names = "--subject-principal-regex",
+      description = "The regex used to parse the subject principal name embedded in the x509" +
+          " certificate if necessary"
+  )
+  private String subjectPrincipalRegex;
+
   @Override
   protected AuthnMethod editAuthnMethod(X509 x) {
     x.setRoleOid(isSet(roleOid) ? roleOid : x.getRoleOid());
+    x.setSubjectPrincipalRegex(isSet(subjectPrincipalRegex) ? subjectPrincipalRegex : x.getSubjectPrincipalRegex());
 
     return x;
   }

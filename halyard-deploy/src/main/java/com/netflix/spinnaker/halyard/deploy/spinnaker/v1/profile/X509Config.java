@@ -29,6 +29,7 @@ public class X509Config {
   boolean enabled;
 
   String roleOid;
+  String subjectPrincipalRegex;
 
   public X509Config(Security security) {
     if (!security.getAuthn().getX509().isEnabled()) {
@@ -40,6 +41,9 @@ public class X509Config {
     this.enabled = x509.isEnabled();
     if (StringUtils.isNotEmpty(x509.getRoleOid())) {
       this.roleOid = x509.getRoleOid();
+    }
+    if (StringUtils.isNotEmpty(x509.getNodeName())) {
+      this.subjectPrincipalRegex = x509.getSubjectPrincipalRegex();
     }
   }
 }

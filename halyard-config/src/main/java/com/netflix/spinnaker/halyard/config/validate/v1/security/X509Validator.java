@@ -34,5 +34,6 @@ public class X509Validator extends Validator<X509> {
     if (x509.getRoleOid() != null && (x509.getRoleOid() == "")) {
       p.addProblem(Problem.Severity.ERROR, "roleOid specified but given blank line");
     }
+
   }
 }

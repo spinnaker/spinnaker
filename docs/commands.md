@@ -188,6 +188,10 @@
  * [**hal config security authn saml disable**](#hal-config-security-authn-saml-disable)
  * [**hal config security authn saml edit**](#hal-config-security-authn-saml-edit)
  * [**hal config security authn saml enable**](#hal-config-security-authn-saml-enable)
+ * [**hal config security authn x509**](#hal-config-security-authn-x509)
+ * [**hal config security authn x509 disable**](#hal-config-security-authn-x509-disable)
+ * [**hal config security authn x509 edit**](#hal-config-security-authn-x509-edit)
+ * [**hal config security authn x509 enable**](#hal-config-security-authn-x509-enable)
  * [**hal config security authz**](#hal-config-security-authz)
  * [**hal config security authz disable**](#hal-config-security-authz-disable)
  * [**hal config security authz edit**](#hal-config-security-authz-edit)
@@ -3440,6 +3444,7 @@ hal config security authn [parameters] [subcommands]
  * `ldap`: Configure the ldap method for authenticating.
  * `oauth2`: Configure the oauth2 method for authenticating.
  * `saml`: Configure the saml method for authenticating.
+ * `x509`: Configure the x509 method for authenticating.
 
 ---
 ## hal config security authn ldap
@@ -3641,6 +3646,72 @@ Set the saml method as enabled
 #### Usage
 ```
 hal config security authn saml enable [parameters]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config security authn x509
+
+Configure the x509 method for authenticating.
+
+#### Usage
+```
+hal config security authn x509 [parameters] [subcommands]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+#### Subcommands
+ * `disable`: Set the x509 method as disabled
+ * `edit`: Configure authentication and role information for a x509 authentication scheme
+ * `enable`: Set the x509 method as enabled
+
+---
+## hal config security authn x509 disable
+
+Set the x509 method as disabled
+
+#### Usage
+```
+hal config security authn x509 disable [parameters]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config security authn x509 edit
+
+x509 authenticates users via client certificate and a corresponding private key These certificates optionally provide authorization information via custom Oids with corresponding group information for the user. This can be configured via --roleOid
+
+#### Usage
+```
+hal config security authn x509 edit [parameters]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+ * `--role-oid`: The OID that encodes roles that the user specified in the x509 certificate belongs to
+ * `--subject-principal-regex`: The regex used to parse the subject principal name embedded in the x509 certificate if necessary
+
+
+---
+## hal config security authn x509 enable
+
+Set the x509 method as enabled
+
+#### Usage
+```
+hal config security authn x509 enable [parameters]
 ```
 
 #### Parameters
