@@ -22,6 +22,8 @@ import com.netflix.spinnaker.clouddriver.appengine.deploy.AppengineMutexReposito
 import com.netflix.spinnaker.clouddriver.appengine.deploy.AppengineServerGroupNameResolver
 import com.netflix.spinnaker.clouddriver.appengine.deploy.description.DeployAppengineDescription
 import com.netflix.spinnaker.clouddriver.appengine.deploy.exception.AppengineOperationException
+import com.netflix.spinnaker.clouddriver.appengine.storage.config.StorageConfigurationProperties
+import com.netflix.spinnaker.clouddriver.appengine.storage.GcsStorageService
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.deploy.DeploymentResult
@@ -39,6 +41,12 @@ class DeployAppengineAtomicOperation implements AtomicOperation<DeploymentResult
 
   @Autowired
   AppengineJobExecutor jobExecutor
+
+  @Autowired
+  StorageConfigurationProperties storageConfiguration
+
+  @Autowired
+  GcsStorageService.Factory storageServiceFactory
 
   DeployAppengineDescription description
   boolean usesGcs
@@ -83,10 +91,15 @@ class DeployAppengineAtomicOperation implements AtomicOperation<DeploymentResult
 
     if (usesGcs) {
       def applicationDirectoryRoot = description.applicationDirectoryRoot
-      repositoryClient = new AppengineGcsRepositoryClient(repositoryUrl, directoryPath, applicationDirectoryRoot, jobExecutor)
+      String credentialPath = ""
+      if (description.storageAccountName != null && !description.storageAccountName.isEmpty()) {
+        credentialPath = storageConfiguration.getAccount(description.storageAccountName).jsonPath
+      }
+      GcsStorageService storage = storageServiceFactory.newForCredentials(credentialPath)
+      repositoryClient = new AppengineGcsRepositoryClient(repositoryUrl, directoryPath, applicationDirectoryRoot,
+                                                          storage, jobExecutor)
       branchLogName = "(current)"
     } else {
-      
       repositoryClient = description.credentials.gitCredentials.buildRepositoryClient(
         repositoryUrl,
         directoryPath,

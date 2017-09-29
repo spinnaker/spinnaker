@@ -18,6 +18,8 @@ package com.netflix.spinnaker.clouddriver.appengine.gcsClient
 
 import com.netflix.spinnaker.clouddriver.appengine.AppengineJobExecutor
 import com.netflix.spinnaker.clouddriver.appengine.model.AppengineRepositoryClient
+import com.netflix.spinnaker.clouddriver.appengine.storage.GcsStorageService
+import com.netflix.spinnaker.clouddriver.appengine.storage.StorageUtils
 
 import groovy.transform.TupleConstructor
 
@@ -26,24 +28,33 @@ class AppengineGcsRepositoryClient implements AppengineRepositoryClient {
   String repositoryUrl
   String targetDirectory
   String applicationDirectoryRoot
+  GcsStorageService storage
   AppengineJobExecutor jobExecutor
 
   void initializeLocalDirectory() {
-    rsync()
+    downloadFiles()
   }
 
   void updateLocalDirectoryWithVersion(String version) {
-    rsync()
+    downloadFiles()
   }
 
-  void rsync() {
-    def dest = targetDirectory + '/' + applicationDirectoryRoot
-    new File(dest).mkdirs()  // ensure target root exists
+  void downloadFiles() {
+    def gsPrefix = "gs://"
+    if (!repositoryUrl.startsWith(gsPrefix)) {
+      throw new IllegalArgumentException("Repository is not a GCS bucket: " + repositoryUrl)
+    }
 
-    def command  = ["gsutil", "-m", "rsync", "-d", "-r",
-                    repositoryUrl + '/' + applicationDirectoryRoot,
-                    dest]
-                    
-    jobExecutor.runCommand(command)
+    def dest = targetDirectory + File.separator + applicationDirectoryRoot
+    def fullPath = repositoryUrl.substring(gsPrefix.length()) + '/' + applicationDirectoryRoot
+    def slash = fullPath.indexOf("/");
+    def bucketName = fullPath.substring(0, slash);
+    def bucketPath = fullPath.substring(slash + 1);
+
+    if (fullPath.endsWith(".tar")) {
+      StorageUtils.untarStreamToPath(storage.openObjectStream(bucketName, bucketPath), dest)
+    } else {
+      storage.visitObjects(bucketName, bucketPath, { obj -> storage.downloadStorageObject(obj, dest) })
+    }
   }
 }

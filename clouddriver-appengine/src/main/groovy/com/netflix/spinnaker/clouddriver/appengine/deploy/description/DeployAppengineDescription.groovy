@@ -29,6 +29,7 @@ class DeployAppengineDescription extends AbstractAppengineCredentialsDescription
   String stack
   String freeFormDetails
   String repositoryUrl
+  String storageAccountName  // for GCS repositories only
   AppengineGitCredentialType gitCredentialType
   String branch
   String applicationDirectoryRoot
