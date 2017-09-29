@@ -119,6 +119,10 @@ export class ConfigurePipelineTemplateModalController implements IController {
       .map(v => {
         if (v.type === 'object') {
           v.value = load(v.value);
+        } else if (v.type === 'int') {
+          return [v.name, parseInt(v.value, 10)];
+        } else if (v.type === 'float') {
+          return [v.name, parseFloat(v.value)];
         }
         return [v.name, v.value];
       })
