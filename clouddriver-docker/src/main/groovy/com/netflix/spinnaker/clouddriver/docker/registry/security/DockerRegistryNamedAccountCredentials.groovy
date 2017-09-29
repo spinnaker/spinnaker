@@ -41,6 +41,7 @@ class DockerRegistryNamedAccountCredentials implements AccountCredentials<Docker
     int paginateSize
     boolean trackDigests
     boolean sortTagsByDate
+    boolean insecureRegistry
     List<String> repositories
     List<String> skip
     String catalogFile
@@ -132,6 +133,11 @@ class DockerRegistryNamedAccountCredentials implements AccountCredentials<Docker
       return this
     }
 
+    Builder insecureRegistry(boolean insecureRegistry) {
+      this.insecureRegistry = insecureRegistry
+      return this
+    }
+
     Builder repositories(List<String> repositories) {
       this.repositories = repositories
       return this
@@ -165,7 +171,8 @@ class DockerRegistryNamedAccountCredentials implements AccountCredentials<Docker
                                                        paginateSize,
                                                        trackDigests,
                                                        sortTagsByDate,
-                                                       catalogFile)
+                                                       catalogFile,
+                                                       insecureRegistry)
     }
   }
 
@@ -186,7 +193,8 @@ class DockerRegistryNamedAccountCredentials implements AccountCredentials<Docker
                                         int paginateSize,
                                         boolean trackDigests,
                                         boolean sortTagsByDate,
-                                        String catalogFile) {
+                                        String catalogFile,
+                                        boolean insecureRegistry) {
     this(accountName,
          environment,
          accountType,
@@ -205,6 +213,7 @@ class DockerRegistryNamedAccountCredentials implements AccountCredentials<Docker
          trackDigests,
          sortTagsByDate,
          catalogFile,
+         insecureRegistry,
          null)
   }
 
@@ -226,6 +235,7 @@ class DockerRegistryNamedAccountCredentials implements AccountCredentials<Docker
                                         boolean trackDigests,
                                         boolean sortTagsByDate,
                                         String catalogFile,
+                                        boolean insecureRegistry,
                                         List<String> requiredGroupMembership) {
     if (!accountName) {
       throw new IllegalArgumentException("Docker Registry account must be provided with a name.")
@@ -271,6 +281,7 @@ class DockerRegistryNamedAccountCredentials implements AccountCredentials<Docker
     this.email = email
     this.trackDigests = trackDigests
     this.sortTagsByDate = sortTagsByDate
+    this.insecureRegistry = insecureRegistry;
     this.skip = skip ?: []
     this.requiredGroupMembership = requiredGroupMembership == null ? Collections.emptyList() : Collections.unmodifiableList(requiredGroupMembership)
     this.credentials = buildCredentials(repositories, catalogFile)
@@ -324,6 +335,7 @@ class DockerRegistryNamedAccountCredentials implements AccountCredentials<Docker
         .clientTimeoutMillis(clientTimeoutMillis)
         .paginateSize(paginateSize)
         .catalogFile(catalogFile)
+        .insecureRegistry(insecureRegistry)
         .build()
 
       return new DockerRegistryCredentials(client, repositories, trackDigests, skip, sortTagsByDate)
@@ -354,6 +366,7 @@ class DockerRegistryNamedAccountCredentials implements AccountCredentials<Docker
   final long cacheIntervalSeconds
   final long clientTimeoutMillis
   final int paginateSize
+  final boolean insecureRegistry
   @JsonIgnore
   final DockerRegistryCredentials credentials
   final List<String> requiredGroupMembership
