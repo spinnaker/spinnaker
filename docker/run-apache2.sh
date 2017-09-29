@@ -72,4 +72,9 @@ then
 	cp /opt/spinnaker/config/settings.js /opt/deck/html/settings.js
 fi
 
+if [ -e /opt/spinnaker/config/settings-local.js ];
+then 
+	cp /opt/spinnaker/config/settings-local.js /opt/deck/html/settings-local.js
+fi
+
 apache2ctl -D FOREGROUND 
