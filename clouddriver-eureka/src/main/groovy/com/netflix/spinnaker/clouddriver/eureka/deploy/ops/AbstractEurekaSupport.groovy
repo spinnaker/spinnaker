@@ -71,6 +71,12 @@ abstract class AbstractEurekaSupport {
     def eureka = getEureka(description.credentials, description.region)
     def random = new Random()
     def applicationName = null
+    def targetHealthyDeployPercentage = description.targetHealthyDeployPercentage != null ? description.targetHealthyDeployPercentage : 100
+    if (targetHealthyDeployPercentage < 0 || targetHealthyDeployPercentage > 100) {
+      throw new NumberFormatException("targetHealthyDeployPercentage must be an integer between 0 and 100")
+    } else if (targetHealthyDeployPercentage < 100) {
+      AbstractEurekaSupport.log.info("Marking ${description.asgName} instances ${discoveryStatus.value} with targetHealthyDeployPercentage ${targetHealthyDeployPercentage}")
+    }
     try {
       applicationName = retry(task, phaseName, findApplicationNameRetryMax) { retryCount ->
         def instanceId = instanceIds[random.nextInt(instanceIds.size())]
@@ -96,7 +102,7 @@ abstract class AbstractEurekaSupport {
     }
 
     def errors = [:]
-    boolean shouldFail = false
+    def fatals = []
     int index = 0
     for (String instanceId : instanceIds) {
       if (index > 0) {
@@ -150,17 +156,23 @@ abstract class AbstractEurekaSupport {
       }
       if (errors[instanceId]) {
         if (verifyInstanceAndAsgExist(description.credentials, description.region, instanceId, description.asgName)) {
-          shouldFail = true
+          fatals.add(instanceId)
         } else {
           task.updateStatus phaseName, "Instance '${instanceId}' does not exist and will not be marked as '${discoveryStatus.value}'"
         }
       }
       index++
     }
-    if (shouldFail) {
-      task.updateStatus phaseName, "Failed marking instances '${discoveryStatus.value}' in discovery for instances ${errors.keySet()}"
-      task.fail()
-      AbstractEurekaSupport.log.info("[$phaseName] - Failed marking discovery $discoveryStatus.value for instances ${errors}")
+    if (fatals) {
+      Integer requiredInstances = Math.ceil(instanceIds.size() * targetHealthyDeployPercentage / 100D) as Integer
+      if (instanceIds.size() - fatals.size() >= requiredInstances) {
+        AbstractEurekaSupport.log.info("[$phaseName] - Failed marking discovery $discoveryStatus.value for instances ${fatals} " +
+          "but proceeding as ${fatals.size()} failures is within targetHealthyDeployPercentage: ${targetHealthyDeployPercentage}")
+      } else {
+        task.updateStatus phaseName, "Failed marking instances '${discoveryStatus.value}' in discovery for instances ${errors.keySet()}"
+        task.fail()
+        AbstractEurekaSupport.log.info("[$phaseName] - Failed marking discovery $discoveryStatus.value for instances ${errors}")
+      }
     }
   }
 

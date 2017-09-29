@@ -20,4 +20,5 @@ abstract class AbstractRegionAsgInstanceIdsDescription extends AbstractAmazonCre
   String region
   String asgName
   List<String> instanceIds
+  Integer targetHealthyDeployPercentage
 }
