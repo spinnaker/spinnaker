@@ -67,4 +67,17 @@ class DockerRegistryClientSpec extends Specification {
       result.name == REPOSITORY1
       result.tags.size() > 0
   }
+
+  void "DockerRegistryClient uses correct user agent"() {
+    when:
+    client = new DockerRegistryClient("https://index.docker.io", "", "", "", TimeUnit.MINUTES.toMillis(1), 100, "", true)
+    client.registryService = Mock(DockerRegistryClient.DockerRegistryService)
+
+    def userAgent = client.userAgent
+    client.getTags(REPOSITORY1)
+
+    then:
+    userAgent.startsWith("Spinnaker")
+    1 * client.registryService.getTags(_, _, userAgent)
+  }
 }

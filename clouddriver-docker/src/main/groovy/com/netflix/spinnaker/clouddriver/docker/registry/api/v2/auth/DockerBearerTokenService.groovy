@@ -16,11 +16,10 @@
 
 package com.netflix.spinnaker.clouddriver.docker.registry.api.v2.auth
 
+import com.netflix.spinnaker.clouddriver.docker.registry.api.v2.DockerUserAgent
 import com.netflix.spinnaker.clouddriver.docker.registry.api.v2.exception.DockerRegistryAuthenticationException
 import groovy.util.logging.Slf4j
-import org.springframework.beans.factory.annotation.Autowired
 import retrofit.RestAdapter
-import retrofit.client.Header
 import retrofit.http.GET
 import retrofit.http.Headers
 import retrofit.http.Path
@@ -34,8 +33,7 @@ class DockerBearerTokenService {
   String password
   File passwordFile
 
-  @Autowired
-  String clouddriverUserAgentApplicationName
+  final static String userAgent = DockerUserAgent.getUserAgent()
 
   DockerBearerTokenService() {
     realmToService = new HashMap<String, TokenService>()
@@ -195,10 +193,10 @@ class DockerBearerTokenService {
     def tokenService = getTokenService(authenticateDetails.realm)
     def token
     if (basicAuthHeader) {
-      token = tokenService.getToken(authenticateDetails.path, authenticateDetails.service, authenticateDetails.scope, basicAuthHeader, clouddriverUserAgentApplicationName)
+      token = tokenService.getToken(authenticateDetails.path, authenticateDetails.service, authenticateDetails.scope, basicAuthHeader, userAgent)
     }
     else {
-      token = tokenService.getToken(authenticateDetails.path, authenticateDetails.service, authenticateDetails.scope, clouddriverUserAgentApplicationName)
+      token = tokenService.getToken(authenticateDetails.path, authenticateDetails.service, authenticateDetails.scope, userAgent)
     }
 
     cachedTokens[repository] = token

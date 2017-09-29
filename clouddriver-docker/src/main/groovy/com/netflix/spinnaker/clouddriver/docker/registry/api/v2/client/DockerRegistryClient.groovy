@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.docker.registry.api.v2.client
 
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
+import com.netflix.spinnaker.clouddriver.docker.registry.api.v2.DockerUserAgent
 import com.netflix.spinnaker.clouddriver.docker.registry.api.v2.auth.DockerBearerToken
 import com.netflix.spinnaker.clouddriver.docker.registry.api.v2.auth.DockerBearerTokenService
 import com.netflix.spinnaker.clouddriver.docker.registry.api.v2.exception.DockerRegistryAuthenticationException
@@ -27,21 +28,21 @@ import com.squareup.okhttp.OkHttpClient
 import groovy.util.logging.Slf4j
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Autowired
 import retrofit.RestAdapter
 import retrofit.RetrofitError
 import retrofit.client.OkClient
 import retrofit.client.Response
 import retrofit.converter.GsonConverter
-import retrofit.http.*
-
-import java.net.*
-import java.io.*
-import java.time.Instant
-import java.util.concurrent.TimeUnit
+import retrofit.http.GET
+import retrofit.http.Header
+import retrofit.http.Headers
+import retrofit.http.Path
+import retrofit.http.Query
 
 import javax.net.ssl.SSLContext
 import javax.net.ssl.TrustManager
+import java.time.Instant
+import java.util.concurrent.TimeUnit
 
 @Slf4j
 class DockerRegistryClient {
@@ -134,14 +135,12 @@ class DockerRegistryClient {
   GsonConverter converter
   String catalogFile
 
+  final static String userAgent = DockerUserAgent.getUserAgent()
+  final int paginateSize
+
   String getBasicAuth() {
     return tokenService?.basicAuth
   }
-
-  @Autowired
-  String clouddriverUserAgentApplicationName
-
-  final int paginateSize
 
   DockerRegistryClient(String address, long clientTimeoutMillis, int paginateSize, String catalogFile, boolean insecureRegistry) {
     this.paginateSize = paginateSize
@@ -236,9 +235,9 @@ class DockerRegistryClient {
 
   private getManifest(String name, String tag) {
     request({
-      registryService.getManifest(name, tag, tokenService.basicAuthHeader, clouddriverUserAgentApplicationName)
+      registryService.getManifest(name, tag, tokenService.basicAuthHeader, userAgent)
     }, { token ->
-      registryService.getManifest(name, tag, token, clouddriverUserAgentApplicationName)
+      registryService.getManifest(name, tag, token, userAgent)
     }, name)
   }
 
@@ -310,11 +309,11 @@ class DockerRegistryClient {
     def response
     try {
       response = request({
-        path ? registryService.get(path, tokenService.basicAuthHeader, clouddriverUserAgentApplicationName) :
-          registryService.getCatalog(paginateSize, tokenService.basicAuthHeader, clouddriverUserAgentApplicationName)
+        path ? registryService.get(path, tokenService.basicAuthHeader, userAgent) :
+          registryService.getCatalog(paginateSize, tokenService.basicAuthHeader, userAgent)
       }, { token ->
-        path ? registryService.get(path, token, clouddriverUserAgentApplicationName) :
-          registryService.getCatalog(paginateSize, token, clouddriverUserAgentApplicationName)
+        path ? registryService.get(path, token, userAgent) :
+          registryService.getCatalog(paginateSize, token, userAgent)
       }, "_catalog")
     } catch (Exception e) {
       log.warn("Error encountered during catalog of $path" + e.getMessage())
@@ -334,11 +333,11 @@ class DockerRegistryClient {
 
   public DockerRegistryTags getTags(String repository, String path = null) {
     def response = request({
-      path ? registryService.get(path, tokenService.basicAuthHeader, clouddriverUserAgentApplicationName) :
-        registryService.getTags(repository, tokenService.basicAuthHeader, clouddriverUserAgentApplicationName)
+      path ? registryService.get(path, tokenService.basicAuthHeader, userAgent) :
+        registryService.getTags(repository, tokenService.basicAuthHeader, userAgent)
     }, { token ->
-      path ? registryService.get(path, token, clouddriverUserAgentApplicationName) :
-        registryService.getTags(repository, token, clouddriverUserAgentApplicationName)
+      path ? registryService.get(path, token, userAgent) :
+        registryService.getTags(repository, token, userAgent)
     }, repository)
 
     def nextPath = findNextLink(response?.headers)
@@ -377,9 +376,9 @@ class DockerRegistryClient {
 
   private Response doCheckV2Availability(String basicAuthHeader = null) {
     request({
-      registryService.checkVersion(basicAuthHeader, clouddriverUserAgentApplicationName)
+      registryService.checkVersion(basicAuthHeader, userAgent)
     }, { token ->
-      registryService.checkVersion(token, clouddriverUserAgentApplicationName)
+      registryService.checkVersion(token, userAgent)
     }, "v2 version check")
   }
 
