@@ -66,12 +66,14 @@ class RollbackServerGroupStageSpec extends Specification {
       context = [
         rollbackType   : "EXPLICIT",
         rollbackContext: [
-          restoreServerGroupName : "servergroup-v001",
-          rollbackServerGroupName: "servergroup-v002"
+          restoreServerGroupName          : "servergroup-v001",
+          rollbackServerGroupName         : "servergroup-v002",
+          targetHealthyRollbackPercentage : 95
         ],
-        credentials    : "test",
-        cloudProvider  : "aws",
-        "region"       : "us-west-1"
+        credentials                     : "test",
+        cloudProvider                   : "aws",
+        "region"                        : "us-west-1",
+        "targetHealthyDeployPercentage" : 95
       ]
     }
 

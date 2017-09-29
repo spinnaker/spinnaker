@@ -70,6 +70,7 @@ class RollbackServerGroupStage implements StageDefinitionBuilder {
   static class ExplicitRollback implements Rollback {
     String rollbackServerGroupName
     String restoreServerGroupName
+    Integer targetHealthyRollbackPercentage
 
     @Autowired
     @JsonIgnore
@@ -96,6 +97,7 @@ class RollbackServerGroupStage implements StageDefinitionBuilder {
       def stages = []
 
       Map enableServerGroupContext = new HashMap(parentStage.context)
+      enableServerGroupContext.targetHealthyDeployPercentage = targetHealthyRollbackPercentage
       enableServerGroupContext.serverGroupName = restoreServerGroupName
       stages << newStage(
         parentStage.execution, enableServerGroupStage.type, "enable", enableServerGroupContext, parentStage, SyntheticStageOwner.STAGE_AFTER
@@ -111,7 +113,8 @@ class RollbackServerGroupStage implements StageDefinitionBuilder {
           return source
         }.call(),
         asgName           : restoreServerGroupName,
-        pinMinimumCapacity: true
+        pinMinimumCapacity: true,
+        targetHealthyDeployPercentage: targetHealthyRollbackPercentage
       ]
       stages << newStage(
         parentStage.execution, resizeServerGroupStage.type, "resize", resizeServerGroupContext, parentStage, SyntheticStageOwner.STAGE_AFTER
