@@ -97,7 +97,7 @@
 </head>
 <body>
   <!-- Sample loading styles -->
-  <div ng-style="{display: authenticating ? '' : 'none'}" class="loading-placeholder">
+  <div ng-style="{display: (authenticating || accountsLoading) ? '' : 'none'}" class="loading-placeholder">
     <svg width="322px" height="170px" viewBox="0 0 322 170" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
         <!-- Generator: Sketch 46.2 (44496) - http://www.bohemiancoding.com/sketch -->
         <title>Group 3</title>
@@ -137,8 +137,8 @@
         </g>
     </svg>
 
-    <h1 id="welcome-message" ng-if="!authenticating">Hello!</h1>
-    <h1 style="display: none" ng-style="{display: authenticating ? '' : 'none'}">Authenticating...</h1>
+    <h1 id="welcome-message" ng-if="!(authenticating || accountsLoading)">Hello!</h1>
+    <h1 style="display: none" ng-style="{display: (authenticating || accountsLoading) ? '' : 'none'}">Authenticating...</h1>
 
     <div class="bars">
       <div class="bar"></div>
@@ -186,7 +186,7 @@
   </script>
 
   <!-- Actually injects our application -->
-  <spinnaker ng-if="!authenticating"></spinnaker>
+  <spinnaker ng-if="!(authenticating || accountsLoading)"></spinnaker>
 
 </body>
 </html>

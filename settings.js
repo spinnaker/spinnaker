@@ -146,5 +146,6 @@ window.spinnakerSettings = {
     travis: false,
     pipelineTemplates: false,
     artifacts: false,
+    versionedProviders: false,
   },
 };

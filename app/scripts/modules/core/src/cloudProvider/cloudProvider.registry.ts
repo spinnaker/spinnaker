@@ -1,6 +1,6 @@
 /* tslint:disable: no-console */
 import { module } from 'angular';
-import { cloneDeep } from 'lodash';
+import { cloneDeep, uniq, without } from 'lodash';
 
 import { SETTINGS } from 'core/config/settings';
 
@@ -11,14 +11,54 @@ export interface ICloudProviderLogo {
 export interface ICloudProviderConfig {
   name: string;
   logo?: ICloudProviderLogo;
+  providerVersion?: string;
+  defaultVersion?: boolean;
   [attribute: string]: any;
+}
+
+class Providers {
+
+  private providers: { cloudProvider: string, config: ICloudProviderConfig }[] = [];
+
+  public set(cloudProvider: string, config: ICloudProviderConfig): void {
+    // The original implementation used a Map, so calling #set could overwrite a config.
+    // The tests depend on this behavior, but maybe something else does as well.
+    this.providers = without(
+      this.providers,
+      this.providers.find(p => p.cloudProvider === cloudProvider && p.config.providerVersion === config.providerVersion)
+    ).concat([{ cloudProvider, config }]);
+  }
+
+  public get(cloudProvider: string, providerVersion?: string): ICloudProviderConfig {
+    if (providerVersion) {
+      const provider = this.providers.find(p => p.cloudProvider === cloudProvider && p.config.providerVersion === providerVersion);
+      return provider ? provider.config : this.getDefaultConfig(cloudProvider);
+    } else {
+      return this.getDefaultConfig(cloudProvider);
+    }
+  }
+
+  public has(cloudProvider: string, providerVersion?: string): boolean {
+    return !!this.get(cloudProvider, providerVersion);
+  }
+
+  public keys(): string[] {
+    return uniq(this.providers.map(p => p.cloudProvider));
+  }
+
+  private getDefaultConfig(cloudProvider: string): ICloudProviderConfig {
+    const provider = this.providers.some(p => p.cloudProvider === cloudProvider && p.config.defaultVersion)
+      ? this.providers.find(p => p.cloudProvider === cloudProvider && p.config.defaultVersion)
+      : this.providers.find(p => p.cloudProvider === cloudProvider);
+    return provider ? provider.config : null;
+  }
 }
 
 export class CloudProviderRegistry {
   /*
   Note: Providers don't get $log, so we stick with console statements here
    */
-  private providers: Map<string, ICloudProviderConfig> = new Map();
+  private providers = new Providers();
 
   public $get(): CloudProviderRegistry {
     return this;
@@ -30,20 +70,20 @@ export class CloudProviderRegistry {
     }
   }
 
-  public getProvider(cloudProvider: string): ICloudProviderConfig {
-    return this.providers.has(cloudProvider) ? cloneDeep(this.providers.get(cloudProvider)) : null;
+  public getProvider(cloudProvider: string, providerVersion?: string): ICloudProviderConfig {
+    return this.providers.has(cloudProvider, providerVersion) ? cloneDeep(this.providers.get(cloudProvider, providerVersion)) : null;
   }
 
   public listRegisteredProviders(): string[] {
     return Array.from(this.providers.keys());
   }
 
-  public overrideValue(cloudProvider: string, key: string, overrideValue: any) {
-    if (!this.providers.has(cloudProvider)) {
-      console.warn(`Cannot override "${key}" for provider "${cloudProvider}" (provider not registered)`);
+  public overrideValue(cloudProvider: string, key: string, overrideValue: any, providerVersion?: string) {
+    if (!this.providers.has(cloudProvider, providerVersion)) {
+      console.warn(`Cannot override "${key}" for provider "${cloudProvider}${providerVersion ? `:${providerVersion}` : ''}" (provider not registered)`);
       return;
     }
-    const config = this.providers.get(cloudProvider),
+    const config = this.providers.get(cloudProvider, providerVersion),
       parentKeys = key.split('.'),
       lastKey = parentKeys.pop();
     let current = config;
@@ -58,15 +98,15 @@ export class CloudProviderRegistry {
     current[lastKey] = overrideValue;
   }
 
-  public hasValue(cloudProvider: string, key: string) {
-    return this.providers.has(cloudProvider) && this.getValue(cloudProvider, key) !== null;
+  public hasValue(cloudProvider: string, key: string, providerVersion?: string) {
+    return this.providers.has(cloudProvider, providerVersion) && this.getValue(cloudProvider, key, providerVersion) !== null;
   }
 
-  public getValue(cloudProvider: string, key: string): any {
-    if (!key || !this.providers.has(cloudProvider)) {
+  public getValue(cloudProvider: string, key: string, providerVersion?: string): any {
+    if (!key || !this.providers.has(cloudProvider, providerVersion)) {
       return null;
     }
-    const config = this.getProvider(cloudProvider),
+    const config = this.getProvider(cloudProvider, providerVersion),
       keyParts = key.split('.');
     let current = config,
       notFound = false;

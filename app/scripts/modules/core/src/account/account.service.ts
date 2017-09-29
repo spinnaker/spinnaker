@@ -34,6 +34,7 @@ export interface IAccountDetails extends IAccount {
   primaryAccount: boolean;
   regions: IRegion[];
   namespaces?: string[];
+  providerVersion?: string;
 }
 
 export interface IAggregatedAccounts {

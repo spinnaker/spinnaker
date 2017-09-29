@@ -1,13 +1,13 @@
-import {module} from 'angular';
+import { module } from 'angular';
 
-import {StateParams} from '@uirouter/angularjs';
-import {STATE_CONFIG_PROVIDER, INestedState, StateConfigProvider} from 'core/navigation/state.provider';
+import { StateParams } from '@uirouter/angularjs';
+import { STATE_CONFIG_PROVIDER, INestedState, StateConfigProvider } from 'core/navigation/state.provider';
 import {
   APPLICATION_STATE_PROVIDER, ApplicationStateProvider,
 } from 'core/application/application.state.provider';
-import {CloudProviderRegistry} from 'core/cloudProvider/cloudProvider.registry';
-import {Application} from 'core/application/application.model';
-import {filterModelConfig} from 'core/cluster/filter/clusterFilter.model';
+import { VersionedCloudProviderService } from 'core/cloudProvider';
+import { Application } from 'core/application/application.model';
+import { filterModelConfig } from 'core/cluster/filter/clusterFilter.model';
 
 export const SERVER_GROUP_STATES = 'spinnaker.core.serverGroup.states';
 module(SERVER_GROUP_STATES, [
@@ -54,16 +54,16 @@ module(SERVER_GROUP_STATES, [
     url: '/serverGroupDetails/:provider/:accountId/:region/:serverGroup',
     views: {
       'detail@../insight': {
-        templateProvider: ['$templateCache', '$stateParams', 'cloudProviderRegistry',
+        templateProvider: ['$templateCache', '$stateParams', 'versionedCloudProviderService',
           ($templateCache: ng.ITemplateCacheService,
            $stateParams: StateParams,
-           cloudProviderRegistry: CloudProviderRegistry) => {
-            return $templateCache.get(cloudProviderRegistry.getValue($stateParams.provider, 'serverGroup.detailsTemplateUrl'));
+           versionedCloudProviderService: VersionedCloudProviderService) => {
+            return $templateCache.get(versionedCloudProviderService.getValue($stateParams.provider, $stateParams.accountId, 'serverGroup.detailsTemplateUrl'));
         }],
-        controllerProvider: ['$stateParams', 'cloudProviderRegistry',
+        controllerProvider: ['$stateParams', 'versionedCloudProviderService',
           ($stateParams: StateParams,
-           cloudProviderRegistry: CloudProviderRegistry) => {
-            return cloudProviderRegistry.getValue($stateParams.provider, 'serverGroup.detailsController');
+           versionedCloudProviderService: VersionedCloudProviderService) => {
+            return versionedCloudProviderService.getValue($stateParams.provider, $stateParams.accountId, 'serverGroup.detailsController');
         }],
         controllerAs: 'ctrl'
       }
