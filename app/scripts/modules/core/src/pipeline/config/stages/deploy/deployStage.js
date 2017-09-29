@@ -21,7 +21,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.deployStage', [
       executionDetailsUrl: require('./deployExecutionDetails.html'),
       controller: 'DeployStageCtrl',
       controllerAs: 'deployStageCtrl',
-      defaultTimeoutMs: 60 * 60 * 1000, // 60 minutes
+      defaultTimeoutMs: 2 * 60 * 60 * 1000, // 2 hours
       validators: [
         {
           type: 'stageBeforeType',
