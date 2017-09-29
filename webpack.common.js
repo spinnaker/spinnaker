@@ -155,6 +155,7 @@ function configure(IS_TEST) {
   if (!IS_TEST) {
     config.entry = {
       settings: './settings.js',
+      settingsLocal: './settings-local.js',
       app: './app/scripts/app.ts',
       vendor: [
         'jquery', 'angular', 'angular-ui-bootstrap', 'source-sans-pro',
@@ -189,7 +190,7 @@ function configure(IS_TEST) {
         // settings.js is put at the end of the <script> blocks
         // which breaks the booting of the app.
         chunksSortMode: (a, b) => {
-          const chunks = ['init', 'vendor', 'settings', 'app'];
+          const chunks = ['init', 'vendor', 'settings', 'settingsLocal', 'app'];
           return chunks.indexOf(a.names[0]) - chunks.indexOf(b.names[0]);
         }
       })
