@@ -86,7 +86,7 @@ class ViewChangesLinkController implements IController {
     this.loadingExecution = true;
     this.executionService.getExecution(executionId).then((details: any) => {
       const stage: any = details.stages.find((s: any) => s.id === stageId);
-      this.jarDiffs = stage.context.jarDiffs;
+      this.jarDiffs = stage.context.jarDiffs || {};
       this.commits = stage.context.commits || [];
       extend(this.changeConfig.buildInfo, stage.context.buildInfo);
       this.setJarDiffs();
