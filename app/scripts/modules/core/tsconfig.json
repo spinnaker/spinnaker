@@ -26,7 +26,8 @@
     "removeComments": false,
     "rootDir": "./src",
     "skipLibCheck": true,
-    "sourceMap": false,
+    "sourceMap": true,
+    "inlineSources": true,
     "strictNullChecks": false, // should really get to a place where we can turn this on
     "target": "es6",
     "typeRoots": [

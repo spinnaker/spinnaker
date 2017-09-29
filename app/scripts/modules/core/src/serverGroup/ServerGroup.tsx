@@ -1,7 +1,7 @@
 import * as React from 'react';
 import * as ReactGA from 'react-ga';
 import { has, get } from 'lodash';
-import classNames = require('classnames');
+import * as classNames from 'classnames';
 import { BindAll } from 'lodash-decorators';
 import { Subscription } from 'rxjs/Subscription';
 

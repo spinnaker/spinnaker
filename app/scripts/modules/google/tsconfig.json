@@ -26,7 +26,8 @@
     "removeComments": false,
     "rootDir": "./src",
     "skipLibCheck": true,
-    "sourceMap": false,
+    "sourceMap": true,
+    "inlineSources": true,
     "strictNullChecks": false,
     "target": "es6",
     "typeRoots": [
