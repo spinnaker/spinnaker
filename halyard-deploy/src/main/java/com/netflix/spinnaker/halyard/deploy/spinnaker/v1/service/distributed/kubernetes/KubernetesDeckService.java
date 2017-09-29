@@ -69,7 +69,7 @@ public class KubernetesDeckService extends DeckService implements KubernetesDist
 
   @Override
   protected Optional<String> customProfileOutputPath(String profileName) {
-    if (profileName.equals("settings.js")) {
+    if (profileName.equals("settings.js") || profileName.equals("settings-local.js")) {
       return Optional.of(Paths.get(settingsPath, profileName).toString());
     } else {
       return Optional.empty();
