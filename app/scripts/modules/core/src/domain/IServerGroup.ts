@@ -3,6 +3,7 @@ import { IExecution } from './IExecution';
 import { IInstance } from './IInstance';
 import { IInstanceCounts } from './IInstanceCounts';
 import { ITask } from './ITask';
+import { IMoniker } from 'core/naming/IMoniker';
 
 // remnant from legacy code
 export interface IAsg {
@@ -30,6 +31,7 @@ export interface IServerGroup {
   launchConfig?: any;
   loadBalancers?: string[];
   name: string;
+  moniker?: IMoniker;
   provider?: string;
   providerMetadata?: any;
   region: string;

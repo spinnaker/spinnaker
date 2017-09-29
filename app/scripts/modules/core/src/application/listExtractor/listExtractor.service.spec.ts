@@ -3,6 +3,7 @@ import { IInstance, IServerGroup } from 'core/domain';
 import { Application } from '../application.model';
 import { APPLICATION_MODEL_BUILDER, ApplicationModelBuilder } from '../applicationModel.builder';
 import { AppListExtractor, LIST_EXTRACTOR_SERVICE } from './listExtractor.service';
+import { IMoniker } from 'core/naming/IMoniker';
 
 describe('appListExtractorService', function () {
 
@@ -33,6 +34,38 @@ describe('appListExtractorService', function () {
       applicationModelBuilder = _applicationModelBuilder_;
     })
   );
+
+  describe('Get Monikers from a list of applications', function () {
+      it('should get a empty list for one application w/ no monikers', function () {
+        const application: Application = buildApplication([ {stack: 'prod'}, {stack: 'test'} ]);
+        const result = service.getMonikers([application]);
+        expect(result.length).toEqual(0);
+        expect(result).toEqual([]);
+      });
+
+      it('should return an list of a single moniker for one application with a moniker', function () {
+        let moniker: IMoniker = {
+          cluster: 'test-cluster',
+          application: 'test-application'
+        };
+        const application: Application = buildApplication([ {moniker: moniker} ]);
+        const result = service.getMonikers([application]);
+        expect(result.length).toEqual(1);
+        expect(result).toEqual([moniker]);
+      });
+
+      it('should return a single moniker for two applications but only one has a moniker', function () {
+        let moniker: IMoniker = {
+          cluster: 'test-cluster',
+          application: 'test-application'
+        };
+        const applicationA: Application = buildApplication([ {moniker: moniker} ]);
+        const applicationB: Application = buildApplication();
+        const result = service.getMonikers([applicationA, applicationB]);
+        expect(result.length).toEqual(1);
+        expect(result).toEqual([moniker]);
+      })
+  });
 
   describe('Get Regions from a list of applications', function () {
 
@@ -375,5 +408,3 @@ describe('appListExtractorService', function () {
     });
   });
 });
-
-

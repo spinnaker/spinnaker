@@ -3,11 +3,11 @@
 const angular = require('angular');
 import _ from 'lodash';
 
-import { ACCOUNT_SERVICE, NAMING_SERVICE, StageConstants } from '@spinnaker/core';
+import { ACCOUNT_SERVICE, LIST_EXTRACTOR_SERVICE, StageConstants } from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.amazon.pipeline.stage.cloneServerGroupStage', [
   ACCOUNT_SERVICE,
-  NAMING_SERVICE,
+  LIST_EXTRACTOR_SERVICE,
   require('./cloneServerGroupExecutionDetails.controller.js').name,
 ])
   .config(function(pipelineConfigProvider) {
@@ -25,7 +25,7 @@ module.exports = angular.module('spinnaker.amazon.pipeline.stage.cloneServerGrou
         { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account'}
       ],
     });
-  }).controller('awsCloneServerGroupStageCtrl', function($scope, accountService, namingService) {
+  }).controller('awsCloneServerGroupStageCtrl', function($scope, accountService, appListExtractorService) {
 
     let stage = $scope.stage;
 
@@ -60,9 +60,9 @@ module.exports = angular.module('spinnaker.amazon.pipeline.stage.cloneServerGrou
 
     this.targetClusterUpdated = () => {
       if (stage.targetCluster) {
-        let clusterName = namingService.parseServerGroupName(stage.targetCluster);
-        stage.stack = clusterName.stack;
-        stage.freeFormDetails = clusterName.freeFormDetails;
+        let moniker = _.first(appListExtractorService.getMonikers([$scope.application]));
+        stage.stack = moniker.stack;
+        stage.freeFormDetails = moniker.detail;
       } else {
         stage.stack = '';
         stage.freeFormDetails = '';
@@ -118,4 +118,3 @@ module.exports = angular.module('spinnaker.amazon.pipeline.stage.cloneServerGrou
       }
     };
   });
-
