@@ -87,6 +87,11 @@ class AppengineSmokeTestScenario(sk.SpinnakerTestScenario):
              ' The test will write into this bucket'
              ' then deploy what it writes.')
 
+    parser.add_argument(
+        '--test_storage_account_name', default=None,
+        help='Storage account when testing GCS buckets.'
+        ' If not specified, use the application default credentials.')
+
     parser.add_argument('--git_repo_url', default=None,
                         help='URL of a GIT source code repository used by Spinnaker to deploy to App Engine.')
     parser.add_argument('--branch', default='master',
@@ -190,6 +195,10 @@ class AppengineSmokeTestScenario(sk.SpinnakerTestScenario):
         'cloudProvider': 'appengine',
         'region': 'us-central'
       }
+    storageAccountName = self.bindings.get('TEST_STORAGE_ACCOUNT_NAME')
+    if storageAccountName is not None:
+      job_spec['storageAccountName'] = storageAccountName
+
     if not self.__test_repository_url.startswith('gs://'):
       job_spec.update({
           'gitCredentialType': 'NONE',
