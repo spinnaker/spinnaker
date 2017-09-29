@@ -31,6 +31,7 @@ import io.grpc.ManagedChannelBuilder;
 import io.grpc.netty.NegotiationType;
 import io.grpc.netty.NettyChannelBuilder;
 import io.grpc.util.RoundRobinLoadBalancerFactory;
+import io.netty.channel.ChannelOption;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,6 +40,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Log
@@ -48,7 +50,7 @@ public class RegionScopedV3TitusClient implements TitusClient {
   /**
    * Default connect timeout in milliseconds
    */
-  private static final long DEFAULT_CONNECT_TIMEOUT = 10000;
+  private static final long DEFAULT_CONNECT_TIMEOUT = 5000;
 
   /**
    * Default read timeout in milliseconds
@@ -104,7 +106,7 @@ public class RegionScopedV3TitusClient implements TitusClient {
 
   @Override
   public Job getJob(String jobId) {
-    return new Job(grpcBlockingStub.findJob(JobId.newBuilder().setId(jobId).build()), getTasks(Arrays.asList(jobId)).get(jobId));
+    return new Job(grpcBlockingStub.withDeadlineAfter(DEFAULT_CONNECT_TIMEOUT, TimeUnit.MILLISECONDS).findJob(JobId.newBuilder().setId(jobId).build()), getTasks(Arrays.asList(jobId)).get(jobId));
   }
 
   @Override
@@ -147,7 +149,7 @@ public class RegionScopedV3TitusClient implements TitusClient {
     for (TitusJobCustomizer customizer : titusJobCustomizers) {
       customizer.customize(jobDescription);
     }
-    return grpcBlockingStub.createJob(jobDescription.getGrpcJobDescriptor()).getId();
+    return grpcBlockingStub.withDeadlineAfter(DEFAULT_CONNECT_TIMEOUT, TimeUnit.MILLISECONDS).createJob(jobDescription.getGrpcJobDescriptor()).getId();
   }
 
   @Override
@@ -159,7 +161,7 @@ public class RegionScopedV3TitusClient implements TitusClient {
 
   @Override
   public void resizeJob(ResizeJobRequest resizeJobRequest) {
-    grpcBlockingStub.updateJobCapacity(JobCapacityUpdate.newBuilder()
+    grpcBlockingStub.withDeadlineAfter(DEFAULT_CONNECT_TIMEOUT, TimeUnit.MILLISECONDS).updateJobCapacity(JobCapacityUpdate.newBuilder()
       .setJobId(resizeJobRequest.getJobId())
       .setCapacity(Capacity.newBuilder()
         .setDesired(resizeJobRequest.getInstancesDesired())
@@ -172,18 +174,18 @@ public class RegionScopedV3TitusClient implements TitusClient {
 
   @Override
   public void activateJob(ActivateJobRequest activateJobRequest) {
-    grpcBlockingStub.updateJobStatus(JobStatusUpdate.newBuilder().setId(activateJobRequest.getJobId()).setEnableStatus(activateJobRequest.getInService()).build());
+    grpcBlockingStub.withDeadlineAfter(DEFAULT_CONNECT_TIMEOUT, TimeUnit.MILLISECONDS).updateJobStatus(JobStatusUpdate.newBuilder().setId(activateJobRequest.getJobId()).setEnableStatus(activateJobRequest.getInService()).build());
   }
 
   @Override
   public void terminateJob(TerminateJobRequest terminateJobRequest) {
-    grpcBlockingStub.killJob(JobId.newBuilder().setId(terminateJobRequest.getJobId()).build());
+    grpcBlockingStub.withDeadlineAfter(DEFAULT_CONNECT_TIMEOUT, TimeUnit.MILLISECONDS).killJob(JobId.newBuilder().setId(terminateJobRequest.getJobId()).build());
   }
 
   @Override
   public void terminateTasksAndShrink(TerminateTasksAndShrinkJobRequest terminateTasksAndShrinkJob) {
     terminateTasksAndShrinkJob.getTaskIds().forEach(id ->
-      grpcBlockingStub.killTask(TaskKillRequest.newBuilder().setTaskId(id).setShrink(terminateTasksAndShrinkJob.isShrink()).build())
+      grpcBlockingStub.withDeadlineAfter(DEFAULT_CONNECT_TIMEOUT, TimeUnit.MILLISECONDS).killTask(TaskKillRequest.newBuilder().setTaskId(id).setShrink(terminateTasksAndShrinkJob.isShrink()).build())
     );
   }
 
@@ -213,7 +215,7 @@ public class RegionScopedV3TitusClient implements TitusClient {
     do {
       jobQuery.setPage(Page.newBuilder().setPageNumber(currentPage).setPageSize(100));
       JobQuery criteria = jobQuery.build();
-      JobQueryResult resultPage = grpcBlockingStub.findJobs(criteria);
+      JobQueryResult resultPage = grpcBlockingStub.withDeadlineAfter(DEFAULT_CONNECT_TIMEOUT, TimeUnit.MILLISECONDS).findJobs(criteria);
       grpcJobs.addAll(resultPage.getItemsList());
       totalPages = resultPage.getPagination().getTotalPages();
       currentPage++;
@@ -230,7 +232,7 @@ public class RegionScopedV3TitusClient implements TitusClient {
     TaskQueryResult taskResults;
     int currentTaskPage = 0;
     do {
-      taskResults = grpcBlockingStub.findTasks(
+      taskResults = grpcBlockingStub.withDeadlineAfter(DEFAULT_CONNECT_TIMEOUT, TimeUnit.MILLISECONDS).findTasks(
         TaskQuery.newBuilder()
           .putFilteringCriteria("jobIds", jobIds.stream().collect(Collectors.joining(",")))
           .setPage(Page.newBuilder().setPageNumber(currentTaskPage).setPageSize(100)
