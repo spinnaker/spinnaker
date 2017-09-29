@@ -32,6 +32,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesMan
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesResourcePropertyRegistry
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.deployer.KubernetesReplicaSetDeployer
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials
+import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import com.netflix.spinnaker.moniker.Moniker
 import org.yaml.snakeyaml.Yaml
 import spock.lang.Specification
@@ -41,6 +42,7 @@ class KubernetesManifestDeployerSpec extends Specification {
   def yaml = new Yaml()
 
   def NAME = "my-name"
+  def VERSION = "version"
   def NAMESPACE = "my-namespace"
   def BACKUP_NAMESPACE = "my-backup-namespace"
   def KIND = KubernetesKind.REPLICA_SET
@@ -89,8 +91,11 @@ metadata:
     replicaSetDeployer.versioned() >> true
     replicaSetDeployer.apiVersion() >> API_VERSION
     replicaSetDeployer.kind() >> KIND
+    def versionedArtifactConverterMock = Mock(KubernetesVersionedArtifactConverter)
+    versionedArtifactConverterMock.getDeployedName(_) >> "$NAME-$VERSION"
+    versionedArtifactConverterMock.toArtifact(_) >> new Artifact()
     def registry = new KubernetesResourcePropertyRegistry(Collections.singletonList(replicaSetDeployer),
-        new KubernetesVersionedArtifactConverter(),
+        versionedArtifactConverterMock,
         new KubernetesUnversionedArtifactConverter())
 
     def deployOp = new KubernetesManifestDeployer(deployDescription)
@@ -111,7 +116,7 @@ metadata:
     then:
     1 * credentialsMock.createReplicaSet(_) >> null
     result.serverGroupNames.size == 1
-    result.serverGroupNames[0].startsWith("$NAMESPACE:$API_VERSION|$KIND|$NAME")
+    result.serverGroupNames[0] == "$NAMESPACE:$API_VERSION|$KIND|$NAME-$VERSION"
   }
 
   void "replica set deployer uses backup namespace"() {
@@ -126,6 +131,6 @@ metadata:
     then:
     1 * credentialsMock.createReplicaSet(_) >> null
     result.serverGroupNames.size == 1
-    result.serverGroupNames[0].startsWith("$BACKUP_NAMESPACE:$API_VERSION|$KIND|$NAME")
+    result.serverGroupNames[0] == "$BACKUP_NAMESPACE:$API_VERSION|$KIND|$NAME-$VERSION"
   }
 }

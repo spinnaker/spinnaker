@@ -6,6 +6,7 @@ dependencies {
   compile spinnaker.dependency("commonsExec")
   compile spinnaker.dependency('rxJava')
   compile spinnaker.dependency('kork')
+  compile spinnaker.dependency('korkArtifacts')
   compile spinnaker.dependency('korkWeb')
   compile spinnaker.dependency('eurekaClient')
   compile spinnaker.dependency("jedis")

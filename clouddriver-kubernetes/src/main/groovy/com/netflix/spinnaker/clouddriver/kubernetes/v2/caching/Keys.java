@@ -81,8 +81,8 @@ public class Keys {
     return String.join(":", components);
   }
 
-  public static String artifact(String type, String name, String version) {
-    return createKey(Kind.ARTIFACT, type, name, version);
+  public static String artifact(String type, String name, String location, String version) {
+    return createKey(Kind.ARTIFACT, type, name, location, version);
   }
 
   public static String application(String name) {
@@ -153,16 +153,18 @@ public class Keys {
     private Kind kind = Kind.ARTIFACT;
     private String type;
     private String name;
+    private String location;
     private String version;
 
     public ArtifactCacheKey(String[] parts) {
-      if (parts.length != 5) {
+      if (parts.length != 6) {
         throw new IllegalArgumentException("Malformed artifact key" + Arrays.toString(parts));
       }
 
       type = parts[2];
       name = parts[3];
-      version = parts[4];
+      location = parts[4];
+      version = parts[5];
     }
 
     @Override

@@ -54,15 +54,13 @@ public class KubernetesCacheDataConverter {
     Artifact artifact = KubernetesManifestAnnotater.getArtifact(manifest);
 
     Map<String, Object> attributes = new ImmutableMap.Builder<String, Object>()
-        .put("type", artifact.getType())
-        .put("name", artifact.getName())
-        .put("version", artifact.getVersion() == null ? "" : artifact.getVersion())
+        .put("artifact", artifact)
         .put("creationTimestamp", manifest.getCreationTimestamp())
         .build();
 
     Map<String, Collection<String>> cacheRelationships = new HashMap<>();
 
-    String key = Keys.artifact(artifact.getType(), artifact.getName(), artifact.getVersion());
+    String key = Keys.artifact(artifact.getType(), artifact.getName(), artifact.getLocation(), artifact.getVersion());
     String owner = Keys.infrastructure(manifest, account);
     cacheRelationships.put(manifest.getKind().toString(), Collections.singletonList(owner));
 
@@ -121,7 +119,7 @@ public class KubernetesCacheDataConverter {
     Map<String, Collection<String>> cacheRelationships = new HashMap<>();
     String application = moniker.getApp();
 
-    cacheRelationships.put(ARTIFACT.toString(), Collections.singletonList(Keys.artifact(artifact.getType(), artifact.getName(), artifact.getVersion())));
+    cacheRelationships.put(ARTIFACT.toString(), Collections.singletonList(Keys.artifact(artifact.getType(), artifact.getName(), artifact.getLocation(), artifact.getVersion())));
     cacheRelationships.put(APPLICATION.toString(), Collections.singletonList(Keys.application(application)));
 
     String cluster = moniker.getCluster();

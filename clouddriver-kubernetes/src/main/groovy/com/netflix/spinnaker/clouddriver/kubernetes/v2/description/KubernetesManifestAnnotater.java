@@ -43,6 +43,7 @@ public class KubernetesManifestAnnotater {
   private static final String DETAIL = MONIKER_ANNOTATION_PREFIX + "/detail";
   private static final String TYPE = ARTIFACT_ANNOTATION_PREFIX + "/type";
   private static final String NAME = ARTIFACT_ANNOTATION_PREFIX + "/name";
+  private static final String LOCATION = ARTIFACT_ANNOTATION_PREFIX + "/location";
   private static final String VERSION = ARTIFACT_ANNOTATION_PREFIX + "/version";
 
   private static ObjectMapper objectMapper = new ObjectMapper();
@@ -113,6 +114,7 @@ public class KubernetesManifestAnnotater {
 
     storeAnnotation(annotations, TYPE, artifact.getType());
     storeAnnotation(annotations, NAME, artifact.getName());
+    storeAnnotation(annotations, LOCATION, artifact.getLocation());
     storeAnnotation(annotations, VERSION, artifact.getVersion());
   }
 
@@ -130,6 +132,7 @@ public class KubernetesManifestAnnotater {
     return Artifact.builder()
         .type(getAnnotation(annotations, TYPE, new TypeReference<String>() {}))
         .name(getAnnotation(annotations, NAME, new TypeReference<String>() {}))
+        .location(getAnnotation(annotations, LOCATION, new TypeReference<String>() {}))
         .version(getAnnotation(annotations, VERSION, new TypeReference<String>() {}))
         .build();
   }

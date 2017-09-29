@@ -17,12 +17,15 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact
 
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.provider.KubernetesV2ArtifactProvider
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesApiVersion
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesKind
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class KubernetesVersionedArtifactConverterSpec extends Specification {
+  @Unroll
   def "correctly infer versioned artifact properties"() {
     expect:
     def type = "kubernetes/$apiVersion:$kind"
@@ -43,5 +46,35 @@ class KubernetesVersionedArtifactConverterSpec extends Specification {
     apiVersion                              | kind                       | name             | version
     KubernetesApiVersion.EXTENSIONS_V1BETA1 | KubernetesKind.REPLICA_SET | "my-rs"          | "v000"
     KubernetesApiVersion.EXTENSIONS_V1BETA1 | KubernetesKind.REPLICA_SET | "my-other-rs-_-" | "v010"
+  }
+
+  @Unroll
+  def "correctly pick next version"() {
+    when:
+    def artifacts = versions.collect { v -> Artifact.builder().version("v$v").build() }
+    def artifactProvider = Mock(KubernetesV2ArtifactProvider)
+    def type = "type"
+    def name = "name"
+    def location = "location"
+
+    artifactProvider.getArtifacts(type, name, location) >> artifacts
+
+    def converter = new KubernetesVersionedArtifactConverter()
+    converter.artifactProvider = artifactProvider
+
+    then:
+    converter.getVersion(type, name, location) == expected
+
+    where:
+    versions  | expected
+    [0, 1, 2] | "v3"
+    [0]       | "v1"
+    []        | "v0"
+    [1]       | "v0"
+    [1, 2, 3] | "v0"
+    [0, 2, 3] | "v1"
+    [2, 0, 1] | "v3"
+    [0, 1, 3] | "v2"
+    [1, 0, 3] | "v2"
   }
 }

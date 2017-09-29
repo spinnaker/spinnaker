@@ -15,10 +15,12 @@
  *
  */
 
-package com.netflix.spinnaker.clouddriver.kubernetes.v2.security;
+package com.netflix.spinnaker.clouddriver.model;
 
-public class KubernetesApiException extends RuntimeException {
-  public KubernetesApiException(String operation, Throwable e) {
-    super(operation + " failed: " + e.getMessage(), e);
-  }
+import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+
+import java.util.List;
+
+public interface ArtifactProvider {
+  List<Artifact> getArtifacts(String type, String name, String location);
 }

@@ -28,9 +28,11 @@ public class KubernetesUnversionedArtifactConverter extends KubernetesArtifactCo
   public Artifact toArtifact(KubernetesManifest manifest) {
     String type = getType(manifest);
     String name = manifest.getName();
+    String location = manifest.getNamespace();
     return Artifact.builder()
         .type(type)
         .name(name)
+        .location(location)
         .build();
   }
 

@@ -21,8 +21,10 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesApi
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesKind
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class KubernetesUnversionedArtifactConverterSpec extends Specification {
+  @Unroll
   def "correctly infer unversioned artifact properties"() {
     expect:
     def type = "kubernetes/$apiVersion:$kind"
