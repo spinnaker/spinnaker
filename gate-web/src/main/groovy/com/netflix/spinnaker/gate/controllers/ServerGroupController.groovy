@@ -63,7 +63,7 @@ class ServerGroupController {
                             @RequestHeader(value = "X-RateLimit-App", required = false) String sourceApp) {
     def serverGroupDetails = serverGroupService.getForApplicationAndAccountAndRegion(applicationName, account, region, serverGroupName, sourceApp)
     if (!serverGroupDetails) {
-      throw new NotFoundException("Server group now found (id: ${serverGroupName})")
+      throw new NotFoundException("Server group not found (id: ${serverGroupName})")
     }
 
     return serverGroupDetails
