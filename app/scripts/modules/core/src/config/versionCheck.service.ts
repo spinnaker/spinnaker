@@ -35,7 +35,7 @@ class VersionCheckService {
 
   private checkVersion(): void {
     const url = `/version.json?_=${Date.now()}`;
-    this.$http.get(url).then((resp) => this.versionRetrieved(resp));
+    this.$http.get(url).then((resp) => this.versionRetrieved(resp)).catch(() => {});
   }
 
   private versionRetrieved(response: any): void {
