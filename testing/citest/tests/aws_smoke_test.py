@@ -434,6 +434,10 @@ class AwsSmokeTestScenario(sk.SpinnakerTestScenario):
      .OR(
          ov_factory.value_list_path_contains(
              'AutoScalingGroups',
+           jp.LIST_MATCHES([])))
+     .OR(
+         ov_factory.value_list_path_contains(
+             'AutoScalingGroups',
              jp.LIST_MATCHES([
                  jp.DICT_MATCHES({'Status': jp.STR_SUBSTR('Delete'),
                                   'MaxSize': jp.NUM_EQ(0)})])))
