@@ -1,14 +1,10 @@
 @import (reference) "~core/presentation/less/imports/colors.less";
 
 .group-execution-label-list {
-  .group-name {
-    color: @dark_blue_background_title;
-    border-bottom: 1px #7e94a4 solid;
-    margin-bottom: 7px;
-  }
-
   list-style-type: none;
   padding: 3px 10px 0 10px;
+  max-height: 185px;
+  overflow-y: scroll;
   >a, >a:hover, >a:visited {
     text-decoration: none;
     color: inherit;
@@ -55,6 +51,12 @@
 
   &.bottom > div.arrow:after {
     border-bottom-color: @dark_blue_background;
+  }
+
+  .group-name {
+    color: @dark_blue_background_title;
+    border-bottom: 1px #7e94a4 solid;
+    margin: 5px 10px 7px 10px;
   }
 }
 
