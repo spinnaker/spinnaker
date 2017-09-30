@@ -382,24 +382,48 @@ class GCEUtil {
                                                                   String phase,
                                                                   SafeRetry safeRetry,
                                                                   GoogleExecutorTraits executor) {
-    Map<String, InstanceGroupManagersScopedList> aggregatedList = safeRetry.doRetry(
-      { return executor.timeExecute(
-            credentials.compute.instanceGroupManagers().aggregatedList(projectName),
+    boolean executedAtLeastOnce = false
+    String nextPageToken = null
+    Map<String, InstanceGroupManagersScopedList> fullAggregatedList = [:].withDefault { new InstanceGroupManagersScopedList() }
+
+    while (!executedAtLeastOnce || nextPageToken) {
+      Map<String, InstanceGroupManagersScopedList> aggregatedList = safeRetry.doRetry(
+        {
+          InstanceGroupManagerAggregatedList instanceGroupManagerAggregatedList = executor.timeExecute(
+            credentials.compute.instanceGroupManagers().aggregatedList(projectName).setPageToken(nextPageToken),
             "compute.instanceGroupManagers.aggregatedList",
             executor.TAG_SCOPE, executor.SCOPE_GLOBAL
-        ).getItems()
-      },
-      "aggregated managed instance groups",
-      task,
-      RETRY_ERROR_CODES,
-      [],
-      [action: "list", phase: phase, operation: "compute.instanceGroupManagers.aggregatedList", (executor.TAG_SCOPE): executor.SCOPE_GLOBAL],
-      executor.registry
-    ) as Map<String, InstanceGroupManagersScopedList>
+          )
+
+          executedAtLeastOnce = true
+          nextPageToken = instanceGroupManagerAggregatedList.getNextPageToken()
+
+          return instanceGroupManagerAggregatedList.getItems()
+        },
+        "aggregated managed instance groups",
+        task,
+        RETRY_ERROR_CODES,
+        [],
+        [action: "list", phase: phase, operation: "compute.instanceGroupManagers.aggregatedList", (executor.TAG_SCOPE): executor.SCOPE_GLOBAL],
+        executor.registry
+      ) as Map<String, InstanceGroupManagersScopedList>
+
+      aggregatedList.each { scope, InstanceGroupManagersScopedList instanceGroupManagersScopedList ->
+        // Only accumulate these results if there are actual MIGs in this scope.
+        if (instanceGroupManagersScopedList.getInstanceGroupManagers()) {
+          // The scope we are adding to may not have any MIGs yet.
+          if (!fullAggregatedList[scope].getInstanceGroupManagers()) {
+            fullAggregatedList[scope].setInstanceGroupManagers([])
+          }
+
+          fullAggregatedList[scope].getInstanceGroupManagers().addAll(instanceGroupManagersScopedList.getInstanceGroupManagers())
+        }
+      }
+    }
 
     def zonesInRegion = credentials.getZonesFromRegion(region)
 
-    return aggregatedList.findResults { _, InstanceGroupManagersScopedList instanceGroupManagersScopedList ->
+    return fullAggregatedList.findResults { _, InstanceGroupManagersScopedList instanceGroupManagersScopedList ->
       return instanceGroupManagersScopedList.getInstanceGroupManagers()?.findResults { mig ->
         if (mig.zone) {
           return getLocalName(mig.zone) in zonesInRegion ? mig : null
