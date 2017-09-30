@@ -36,7 +36,9 @@ import { ProviderSelectionService } from '../cloudProvider/providerSelection/pro
 import { RecentHistoryService } from 'core/history/recentHistory.service'
 import { SchedulerFactory } from '../scheduler/scheduler.factory';
 import { StateEvents } from './state.events';
+import { TaskExecutor } from '../task/taskExecutor';
 import { TaskMonitorBuilder } from '../task/monitor/taskMonitor.builder';
+import { TaskReader } from '../task/task.read.service';
 import { VariableInputService } from '../pipeline/config/templates/inputs/variableInput.service';
 import { VariableValidatorService } from '../pipeline/config/templates/validators/variableValidator.service';
 import { ViewStateCacheService } from '../cache/viewStateCache.service';
@@ -98,6 +100,8 @@ export class CoreReactInject extends ReactInject {
   public get schedulerFactory() { return this.$injector.get('schedulerFactory') as SchedulerFactory; }
   public get recentHistoryService() { return this.$injector.get('recentHistoryService') as RecentHistoryService; }
   public get stateEvents() { return this.$injector.get('stateEvents') as StateEvents; }
+  public get taskExecutor() { return this.$injector.get('taskExecutor') as TaskExecutor; }
+  public get taskReader() { return this.$injector.get('taskReader') as TaskReader; }
   public get taskMonitorBuilder() { return this.$injector.get('taskMonitorBuilder') as TaskMonitorBuilder; }
   public get variableInputService() { return this.$injector.get('variableInputService') as VariableInputService; }
   public get variableValidatorService() { return this.$injector.get('variableValidatorService') as VariableValidatorService; }

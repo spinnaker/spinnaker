@@ -129,7 +129,7 @@ export class LoadBalancers extends React.Component<ILoadBalancersProps, ILoadBal
   }
 
   public render(): React.ReactElement<LoadBalancers> {
-    const { Spinner, HelpField } = NgReact;
+    const { LegacySpinner, HelpField } = NgReact;
     const groupings = this.state.initialized ? (
       <div>
         { this.state.groups.map((group) => (
@@ -150,7 +150,7 @@ export class LoadBalancers extends React.Component<ILoadBalancersProps, ILoadBal
       </div>
     ) : (
       <div>
-        <h3><Spinner radius={30} width={8} length={16}/></h3>
+        <h3><LegacySpinner radius={30} width={8} length={16}/></h3>
       </div>
     );
 

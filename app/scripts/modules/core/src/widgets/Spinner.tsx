@@ -1,6 +1,6 @@
 import { module, IComponentOptions } from 'angular';
 
-export interface ISpinnerProps {
+export interface ILegacySpinnerProps {
   radius: number;
   width: number;
   length: number;

@@ -52,7 +52,7 @@ export class AllClustersGroupings extends React.Component<IAllClustersGroupingsP
     const { groups = [], sortFilter } = this.state;
 
     if (!initialized) {
-      return <NgReact.Spinner radius={30} width={8} length={16} />;
+      return <NgReact.LegacySpinner radius={30} width={8} length={16} />;
     }
 
     return (

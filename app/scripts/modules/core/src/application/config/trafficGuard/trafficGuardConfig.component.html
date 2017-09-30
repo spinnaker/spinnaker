@@ -53,7 +53,7 @@
                    ng-change="$ctrl.configChanged()"/>
           </td>
           <td>
-            <cluster-matches matches="$ctrl.clusterMatches" index="$index"></cluster-matches>
+            <cluster-matches matches="$ctrl.clusterMatches[$index]"></cluster-matches>
           </td>
           <td><a href ng-click="$ctrl.removeGuard($index)"><span class="glyphicon glyphicon-trash" uib-tooltip="Remove guard"></span></a></td>
         </tr>

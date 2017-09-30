@@ -14,12 +14,12 @@ export interface ITemplateDescriptionProps {
 
 export class TemplateDescription extends React.Component<ITemplateDescriptionProps> {
   public render() {
-    const { Spinner } = NgReact;
+    const { LegacySpinner } = NgReact;
     return (
       <div className="col-md-12 template-description">
         {this.props.loading && (
           <div className="spinner">
-            <Spinner radius={5} width={3} length={8} />
+            <LegacySpinner radius={5} width={3} length={8} />
           </div>
         )}
         {this.props.template && (

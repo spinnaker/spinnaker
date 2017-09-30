@@ -23,7 +23,7 @@ import { IInsightLayoutProps } from 'core/insight/InsightLayout';
 import { IInstanceListProps, instanceListBindings } from '../instance/InstanceList';
 import { InsightLayoutComponent } from 'core/insight/insightLayout.component';
 import { IRunningTasksTagProps, runningTasksTagBindings } from '../serverGroup/pod/RunningTasksTag';
-import { ISpinnerProps, SpinnerWrapperComponent } from '../widgets/Spinner';
+import { ILegacySpinnerProps, SpinnerWrapperComponent } from '../widgets/Spinner';
 import { ITaskMonitorProps } from 'core/task/monitor/TaskMonitor';
 import { ReactInject } from './react.injector';
 import { TaskMonitorWrapperComponent } from 'core/task/monitor/taskMonitor.directive';
@@ -47,7 +47,7 @@ export class NgReactInjector extends ReactInject {
   public InsightLayout: React.ComponentClass<IInsightLayoutProps>                     = angular2react('insightLayout', new InsightLayoutComponent(), this.$injectorProxy) as any;
   public InstanceList: React.ComponentClass<IInstanceListProps>                       = angular2react('instanceList', { bindings: instanceListBindings }, this.$injectorProxy) as any;
   public RunningTasksTag: React.ComponentClass<IRunningTasksTagProps>                 = angular2react('runningTasksTag', { bindings: runningTasksTagBindings }, this.$injectorProxy) as any;
-  public Spinner: React.ComponentClass<ISpinnerProps>                                 = angular2react('spinnerWrapper', new SpinnerWrapperComponent(), this.$injectorProxy) as any;
+  public LegacySpinner: React.ComponentClass<ILegacySpinnerProps>                     = angular2react('spinnerWrapper', new SpinnerWrapperComponent(), this.$injectorProxy) as any;
   public TaskMonitorWrapper: React.ComponentClass<ITaskMonitorProps>                  = angular2react('taskMonitorWrapper', new TaskMonitorWrapperComponent(), this.$injectorProxy) as any;
   public UserMenu: React.ComponentClass<{}>                                           = angular2react('userMenu', {}, this.$injectorProxy) as any;
   public GlobalSearch: React.ComponentClass<{}>                                       = angular2react('globalSearch', {}, this.$injectorProxy) as any;

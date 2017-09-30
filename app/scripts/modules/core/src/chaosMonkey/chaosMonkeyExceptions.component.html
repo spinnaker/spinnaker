@@ -45,7 +45,7 @@
                  required/>
         </td>
         <td>
-          <cluster-matches matches="$ctrl.clusterMatches" index="$index"></cluster-matches>
+          <cluster-matches matches="$ctrl.clusterMatches[$index]"></cluster-matches>
         </td>
         <td><a href ng-click="$ctrl.removeException($index)"><span class="glyphicon glyphicon-trash" uib-tooltip="Remove exception"></span></a></td>
       </tr>

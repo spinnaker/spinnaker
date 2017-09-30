@@ -292,7 +292,7 @@ export class CreatePipelineModal extends React.Component<ICreatePipelineModalPro
   }
 
   public render() {
-    const { Spinner } = NgReact;
+    const { LegacySpinner } = NgReact;
     const nameHasError: boolean = !this.validateNameCharacters();
     const nameIsNotUnique: boolean = !this.validateNameIsUnique();
     const formValid = !nameHasError &&
@@ -306,7 +306,7 @@ export class CreatePipelineModal extends React.Component<ICreatePipelineModalPro
           <Modal.Title>Create New {this.state.command.strategy ? 'Strategy' : 'Pipeline'}</Modal.Title>
         </Modal.Header>
         {this.state.loading && (
-          <Modal.Body style={{height: '200px'}}><Spinner radius={25} width={6} length={16} /></Modal.Body>
+          <Modal.Body style={{height: '200px'}}><LegacySpinner radius={25} width={6} length={16} /></Modal.Body>
         )}
         {!this.state.loading && (
           <Modal.Body>
