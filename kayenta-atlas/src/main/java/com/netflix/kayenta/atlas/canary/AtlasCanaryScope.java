@@ -33,14 +33,16 @@ public class AtlasCanaryScope extends CanaryScope {
 
   public String cq() {
     if (type == null) {
-      throw new IllegalArgumentException("Atlas canary scope requires 'type' to be application, cluster or node.");
+      throw new IllegalArgumentException("Atlas canary scope requires 'type' to be application, cluster or query.");
     }
 
     switch (type) {
       case "application":
+        return ":list,(,nf.app," + scope + ",:eq,:cq,),:each";
       case "cluster":
-      case "node":
-        return ":list,(,nf." + type + "," + scope + ",:eq,:cq,),:each";
+        return ":list,(,nf.cluster," + scope + ",:eq,:cq,),:each";
+      case "query":
+        return ":list,(," + scope + ",:cq,),:each";
       default:
         throw new IllegalArgumentException("Scope type '" + type + "' is unknown: scope=" + scope);
     }

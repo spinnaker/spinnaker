@@ -104,7 +104,7 @@ public class CanaryController {
                                @ApiParam(defaultValue = "2017-07-02T15:27:00Z") @RequestParam String endTimeIso,
                                // TODO(duftler): Normalize this somehow. Stackdriver expects a number in seconds and Atlas expects a duration like PT10S.
                                @ApiParam(value = "Stackdriver expects a number in seconds and Atlas expects a duration like PT10S.", defaultValue = "3600") @RequestParam String step,
-                               @ApiParam(value = "Atlas requires \"type\" to be set to application, cluster or node.") @RequestBody(required = false) Map<String, String> extendedScopeParams,
+                               @ApiParam(value = "Atlas requires \"type\" to be set to application, cluster or query.") @RequestBody(required = false) Map<String, String> extendedScopeParams,
                                @RequestParam(required = false) String scoreThresholdPass,
                                @RequestParam(required = false) String scoreThresholdMarginal) {
     String resolvedMetricsAccountName = CredentialsHelper.resolveAccountByNameOrType(metricsAccountName,
