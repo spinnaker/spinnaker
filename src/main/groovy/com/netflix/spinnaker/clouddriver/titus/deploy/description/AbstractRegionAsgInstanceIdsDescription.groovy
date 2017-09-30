@@ -20,4 +20,5 @@ abstract class AbstractRegionAsgInstanceIdsDescription extends AbstractTitusCred
   String region
   String asgName
   List<String> instanceIds
+  Integer targetHealthyDeployPercentage
 }
