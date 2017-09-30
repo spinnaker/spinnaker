@@ -4,6 +4,7 @@ import { Application } from 'core/application/application.model';
 import { ISecurityGroup, IServerGroup, ITask } from 'core/domain';
 import { IServerGroupCommand } from './configure/common/serverGroupCommandBuilder.service';
 import { NAMING_SERVICE, NamingService } from 'core/naming/naming.service';
+import { IMoniker } from 'core/naming/IMoniker';
 import { IJob, TASK_EXECUTOR, TaskExecutor } from 'core/task/taskExecutor';
 
 export interface ICapacity {
@@ -22,6 +23,7 @@ export interface IServerGroupJob extends IJob {
   securityGroups?: string[];
   serverGroupName?: string;
   type?: string;
+  moniker?: IMoniker;
 }
 
 export class ServerGroupWriter {
@@ -60,6 +62,7 @@ export class ServerGroupWriter {
                             params: IServerGroupJob = {}): ng.IPromise<ITask> {
 
     params.asgName = serverGroup.name;
+    params.moniker = serverGroup.moniker;
     params.serverGroupName = serverGroup.name;
     params.type = 'destroyServerGroup';
     params.region = serverGroup.region;
@@ -79,6 +82,7 @@ export class ServerGroupWriter {
 
     params.asgName = serverGroup.name;
     params.serverGroupName = serverGroup.name;
+    params.moniker = serverGroup.moniker;
     params.type = 'disableServerGroup';
     params.region = serverGroup.region;
     params.credentials = serverGroup.account;
@@ -97,6 +101,7 @@ export class ServerGroupWriter {
 
     params.asgName = serverGroup.name;
     params.serverGroupName = serverGroup.name;
+    params.moniker = serverGroup.moniker;
     params.type = 'enableServerGroup';
     params.region = serverGroup.region;
     params.credentials = serverGroup.account;
@@ -115,6 +120,7 @@ export class ServerGroupWriter {
 
     params.asgName = serverGroup.name;
     params.serverGroupName = serverGroup.name;
+    params.moniker = serverGroup.moniker;
     params.type = 'resizeServerGroup';
     params.region = serverGroup.region;
     params.credentials = serverGroup.account;
@@ -132,6 +138,7 @@ export class ServerGroupWriter {
                              params: IServerGroupJob = {}): ng.IPromise<ITask> {
 
     params.type = 'rollbackServerGroup';
+    params.moniker = serverGroup.moniker;
     params.region = serverGroup.region;
     params.credentials = serverGroup.account;
     params.cloudProvider = serverGroup.type || serverGroup.provider;
@@ -149,6 +156,7 @@ export class ServerGroupWriter {
 
     const job: IServerGroupJob = {
       amiName: serverGroup.launchConfig.imageId,
+      moniker: serverGroup.moniker,
       cloudProvider: serverGroup.type || serverGroup.provider,
       credentials: serverGroup.account,
       region: serverGroup.region,
