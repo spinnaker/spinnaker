@@ -9,7 +9,9 @@
       <precondition-selector precondition="editPrecondition.precondition" strategy="editPrecondition.strategy" application="editPrecondition.application"></precondition-selector>
     </div>
     <div class="modal-footer">
-      <span ng-show="editApp.submitting" us-spinner="{radius:20, width:6, length: 12}"></span>
+      <div ng-show="editApp.submitting">
+        <loading-spinner size="'small'"></loading-spinner>
+      </div>
       <a href class="btn btn-default" ng-click="$dismiss()">Cancel</a>
       <button type="submit"
               class="btn btn-primary"

@@ -10,7 +10,7 @@ import { SpinnakerHeader } from 'core/header/SpinnakerHeader';
 const template = `
   <div class="spinnaker-container">
     <div class="transition-overlay" ng-if="!authenticating && routing">
-      <h1 us-spinner="{radius:30, width:8, length: 16}"></h1>
+      <loading-spinner size="'medium'"></loading-spinner>
     </div>
     <div class="navbar-inverse">
       <div ng-include="$ctrl.spinnakerHeaderTemplate"></div>

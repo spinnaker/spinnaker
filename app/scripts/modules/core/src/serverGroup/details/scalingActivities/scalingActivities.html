@@ -5,7 +5,7 @@
   </div>
   <div class="modal-body">
     <div class="loading" ng-if="$ctrl.viewState.loading">
-      <span us-spinner="{radius:5, width:2, length: 3}"></span>
+      <loading-spinner size="'nano'"></loading-spinner>
     </div>
     <div ng-if="$ctrl.viewState.error" class="text-center">
       <p>There was an error loading scaling activities for {{$ctrl.serverGroup.name}}. Please try again later.</p>

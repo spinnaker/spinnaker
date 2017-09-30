@@ -6,9 +6,9 @@
   <div class="modal-body">
     <div class="row">
       <div class="col-md-12">
-        <h4 class="text-center" style="margin-top:100px" ng-if="vm.loading">
-          <span us-spinner="{radius:12, width:4, length: 8}"></span>
-        </h4>
+        <div class="horizontal center middle spinner-container" ng-if="vm.loading">
+          <loading-spinner size="'small'"></loading-spinner>
+        </div>
         <pre style="font-size:75%" ng-if="vm.consoleOutput">{{vm.consoleOutput}}</pre>
         <div ng-if="vm.exception">
           <p>An error occurred trying to load console output. Please try again later.</p>

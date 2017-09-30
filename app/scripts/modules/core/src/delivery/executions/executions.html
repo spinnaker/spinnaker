@@ -99,8 +99,8 @@
       </form>
       <filter-tags tags="$ctrl.tags" tag-cleared="$ctrl.forceUpdateExecutionGroups" clear-filters="$ctrl.clearFilters"></filter-tags>
     </div>
-    <div class="text-center" ng-if="$ctrl.viewState.loading">
-      <h3 us-spinner="{radius:30, width:8, length: 16}"></h3>
+    <div class="horizontal center middle spinner-container" ng-if="$ctrl.viewState.loading">
+      <loading-spinner size="'medium'"></loading-spinner>
     </div>
     <div class="text-center transition-overlay" ng-if="$ctrl.application.executions.reloadingForFilters" style="margin-left: -25px">
     </div>

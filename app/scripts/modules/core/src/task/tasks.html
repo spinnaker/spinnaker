@@ -1,6 +1,6 @@
 <div class="row tasks-wrapper">
-  <div class="text-center" ng-if="viewState.loading">
-    <h3 us-spinner="{radius:30, width:8, length: 16}"></h3>
+  <div class="horizontal center spinner-container" ng-if="viewState.loading">
+    <loading-spinner size="'medium'"></loading-spinner>
   </div>
   <div class="col-md-12" ng-if="viewState.loadError">
     <h4 class="text-center">There was an error loading tasks. Please try again later.</h4>

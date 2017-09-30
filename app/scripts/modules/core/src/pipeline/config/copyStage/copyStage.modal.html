@@ -41,7 +41,7 @@
           </ui-select>
         </div>
         <div class="col-md-7" ng-if="copyStageModalCtrl.viewState.loading" style="margin-top: 5px;">
-          <h3 us-spinner="{radius:4, width:2, length: 2}"></h3>
+          <loading-spinner size="'small'"></loading-spinner>
         </div>
         <div class="col-md-7 no-stages-message" ng-if="copyStageModalCtrl.stages.length === 0">
           <p>This application has no {{ copyStageModalCtrl.forStrategyConfig ? 'strategy' : 'pipeline' }} stages.</p>

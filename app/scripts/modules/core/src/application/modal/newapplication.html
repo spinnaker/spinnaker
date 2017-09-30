@@ -4,7 +4,7 @@
     <h3 data-purpose="modal-header">New Application</h3>
   </div>
   <div ng-if="newAppModal.state.initializing" style="height: 200px">
-    <h3 us-spinner="{radius:30, width:8, length: 16}"></h3>
+    <loading-spinner size="'medium'"></loading-spinner>
   </div>
   <form role="form" class="container-fluid" novalidate name="newApplicationForm" ng-if="!newAppModal.state.initializing">
     <div class="modal-body">

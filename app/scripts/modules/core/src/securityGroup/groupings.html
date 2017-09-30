@@ -9,6 +9,6 @@
     <h4 class="text-center">No security groups match the filters you've selected.</h4>
   </div>
 </div>
-<div ng-if="!ctrl.initialized">
-  <h3 us-spinner="{radius:30, width:8, length: 16}"></h3>
+<div ng-if="!ctrl.initialized" class="horizontal center spinner-container">
+  <loading-spinner size="'medium'"></loading-spinner>
 </div>
