@@ -59,6 +59,7 @@ module.exports = angular.module('spinnaker.kubernetes', [
     cloudProviderRegistryProvider.registerProvider('kubernetes', {
       name: 'Kubernetes',
       providerVersion: 'v1',
+      defaultVersion: true,
       cache: {
         configurer: 'kubernetesCacheConfigurer',
       },
