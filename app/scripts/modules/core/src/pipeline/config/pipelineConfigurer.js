@@ -173,7 +173,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.pipelineConfigur
         controllerAs: '$ctrl',
         size: 'lg modal-fullscreen',
         resolve: {
-          pipeline: () => $scope.pipeline,
+          pipeline: () => $scope.renderablePipeline,
         }
       }).result.then(() => {
         $scope.$broadcast('pipeline-json-edited');
