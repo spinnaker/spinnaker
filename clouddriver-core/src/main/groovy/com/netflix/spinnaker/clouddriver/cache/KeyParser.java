@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.cache;
 
-import com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace;
-
 import java.util.Map;
 
 public interface KeyParser {

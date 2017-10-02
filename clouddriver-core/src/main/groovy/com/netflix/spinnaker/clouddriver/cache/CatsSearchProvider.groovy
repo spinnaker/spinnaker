@@ -49,6 +49,9 @@ class CatsSearchProvider implements SearchProvider {
   @Autowired(required = false)
   List<KeyParser> keyParsers;
 
+  @Autowired(required = false)
+  List<KeyProcessor> keyProcessors;
+
   @Autowired
   public CatsSearchProvider(Cache cacheView, List<SearchableProvider> providers) {
     this.cacheView = cacheView
@@ -176,6 +179,13 @@ class CatsSearchProvider implements SearchProvider {
     toQuery.each { String cache ->
       matches.addAll(cacheView.filterIdentifiers(cache, "*:${cache}:*${normalizedWord}*").findAll { String key ->
         try {
+
+          // if the key represented in the cache doesn't actually exist, don't process it
+          if (keyProcessors && !keyProcessors.any { it.canProcess(cache) && it.exists(key) }) {
+            log.warn("found ${cache} key that did not exist: ${key}")
+            return false;
+          }
+
           if (!filters) {
             return true
           }
