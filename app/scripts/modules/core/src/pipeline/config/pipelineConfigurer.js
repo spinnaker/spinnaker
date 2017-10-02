@@ -254,8 +254,8 @@ module.exports = angular.module('spinnaker.core.pipeline.config.pipelineConfigur
 
     // Poor react setState
     this.setViewState = (newViewState) => {
+      Object.assign($scope.viewState, newViewState);
       const viewState = _.clone($scope.viewState);
-      Object.assign(viewState, newViewState);
       $scope.$applyAsync(() => $scope.viewState = viewState);
     };
 
