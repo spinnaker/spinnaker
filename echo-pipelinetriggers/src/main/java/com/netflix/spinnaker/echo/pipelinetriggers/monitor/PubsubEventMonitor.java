@@ -26,6 +26,7 @@ import com.netflix.spinnaker.echo.model.trigger.PubsubEvent;
 import com.netflix.spinnaker.echo.model.trigger.TriggerEvent;
 import com.netflix.spinnaker.echo.pipelinetriggers.PipelineCache;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import com.netflix.spinnaker.kork.artifacts.model.ExpectedArtifact;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
@@ -35,9 +36,13 @@ import org.springframework.stereotype.Component;
 import rx.Observable;
 import rx.functions.Action1;
 
+import java.lang.reflect.Field;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 /**
  * Triggers pipelines in _Orca_ when a trigger-enabled pubsub message arrives.
@@ -107,7 +112,7 @@ public class PubsubEventMonitor extends TriggerMonitor {
   }
 
   private Boolean anyArtifactsMatchExpected(List<Artifact> messageArtifacts, Trigger trigger) {
-    List<Artifact> expectedArtifacts = trigger.getExpectedArtifacts();
+    List<ExpectedArtifact> expectedArtifacts = trigger.getExpectedArtifacts();
 
     if (expectedArtifacts == null || expectedArtifacts.isEmpty()) {
       return true;
@@ -117,8 +122,27 @@ public class PubsubEventMonitor extends TriggerMonitor {
       log.warn("Parsed message artifacts (size {}) greater than expected artifacts (size {}), continuing trigger anyway", messageArtifacts.size(), expectedArtifacts.size());
     }
 
-    Predicate<Artifact> expectedArtifactMatch = a -> trigger.getExpectedArtifacts().stream().anyMatch(e -> a.getType().equals(e.getType()) && a.getName().equals(e.getName()));
+    Predicate<Artifact> expectedArtifactMatch = a -> trigger.getExpectedArtifacts()
+        .stream()
+        .anyMatch(e -> expectedMatch(e, a));
     return messageArtifacts.stream().anyMatch(expectedArtifactMatch);
+  }
+
+  private Boolean expectedMatch(ExpectedArtifact e, Artifact a) {
+    return e.getFields().stream()
+        .filter(field -> field.getFieldType().equals(ExpectedArtifact.ArtifactField.FieldType.MUST_MATCH))
+        .allMatch(field -> { // Look up the field in the actual artifact and check that the values match.
+          try {
+            Field declaredField = a.getClass().getDeclaredField(field.getFieldName());
+            declaredField.setAccessible(true);
+            String actualValue = (String) declaredField.get(a); // Note: all fields we can match on are Strings.
+            declaredField.setAccessible(false);
+            return actualValue.equals(field.getValue());
+          } catch (IllegalAccessException | NoSuchFieldException ex) {
+            log.error(ex.getMessage());
+            return false;
+          }
+        });
   }
 
   @Override

@@ -18,7 +18,7 @@ package com.netflix.spinnaker.echo.model;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
-import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import com.netflix.spinnaker.kork.artifacts.model.ExpectedArtifact;
 import lombok.Builder;
 import lombok.ToString;
 import lombok.Value;
@@ -30,7 +30,7 @@ import java.util.Map;
 @JsonDeserialize(builder = Trigger.TriggerBuilder.class)
 @Builder(toBuilder = true)
 @Wither
-@ToString(of = {"type", "master", "job", "cronExpression", "source", "project", "slug", "account", "repository", "tag", "constraints", "branch", "runAsUser", "subscriptionName", "pubsubSystem"}, includeFieldNames = false)
+@ToString(of = {"type", "master", "job", "cronExpression", "source", "project", "slug", "account", "repository", "tag", "constraints", "branch", "runAsUser", "subscriptionName", "pubsubSystem", "expectedArtifacts"}, includeFieldNames = false)
 @Value
 public class Trigger {
   public enum Type {
@@ -75,7 +75,7 @@ public class Trigger {
   String secret;
   String subscriptionName;
   String pubsubSystem;
-  List<Artifact> expectedArtifacts;
+  List<ExpectedArtifact> expectedArtifacts;
 
   public Trigger atBuildNumber(final int buildNumber) {
     return this.toBuilder()

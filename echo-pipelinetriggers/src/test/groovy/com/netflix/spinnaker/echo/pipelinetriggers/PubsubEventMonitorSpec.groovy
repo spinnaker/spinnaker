@@ -25,6 +25,7 @@ import com.netflix.spinnaker.echo.model.pubsub.PubsubSystem
 import com.netflix.spinnaker.echo.pipelinetriggers.monitor.PubsubEventMonitor
 import com.netflix.spinnaker.echo.test.RetrofitStubs
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
+import com.netflix.spinnaker.kork.artifacts.model.ExpectedArtifact
 import rx.functions.Action1
 import spock.lang.Shared
 import spock.lang.Specification
@@ -42,6 +43,21 @@ class PubsubEventMonitorSpec extends Specification implements RetrofitStubs {
   }
   @Shared def goodArtifacts = [new Artifact(name: 'myArtifact', type: 'artifactType')]
   @Shared def badArtifacts = [new Artifact(name: 'myBadArtifact', type: 'badArtifactType')]
+
+  @Shared def goodExpectedArtifacts = [
+      new ExpectedArtifact(fields: [
+          new ExpectedArtifact.ArtifactField(
+              fieldName: 'name',
+              fieldType: ExpectedArtifact.ArtifactField.FieldType.MUST_MATCH,
+              value: 'myArtifact',
+          ),
+          new ExpectedArtifact.ArtifactField(
+              fieldName: 'type',
+              fieldType: ExpectedArtifact.ArtifactField.FieldType.MUST_MATCH,
+              value: 'artifactType',
+          ),
+      ])
+  ]
 
   @Subject
   def monitor = new PubsubEventMonitor(pipelineCache, subscriber, registry)
@@ -61,10 +77,10 @@ class PubsubEventMonitorSpec extends Specification implements RetrofitStubs {
     })
 
     where:
-    event                                                                                              | trigger
+    event                                                                                                | trigger
     createPubsubEvent(PubsubSystem.GOOGLE, "projects/project/subscriptions/subscription", null)          | enabledGooglePubsubTrigger
     createPubsubEvent(PubsubSystem.GOOGLE, "projects/project/subscriptions/subscription", [])            | enabledGooglePubsubTrigger
-    createPubsubEvent(PubsubSystem.GOOGLE, "projects/project/subscriptions/subscription", goodArtifacts) | enabledGooglePubsubTrigger.withExpectedArtifacts(goodArtifacts)
+    createPubsubEvent(PubsubSystem.GOOGLE, "projects/project/subscriptions/subscription", goodArtifacts) | enabledGooglePubsubTrigger.withExpectedArtifacts(goodExpectedArtifacts)
     createPubsubEvent(PubsubSystem.GOOGLE, "projects/project/subscriptions/subscription", goodArtifacts) | enabledGooglePubsubTrigger // Trigger doesn't care about artifacts.
     // TODO(jacobkiefer): Add Kafka cases when that is implemented.
   }
