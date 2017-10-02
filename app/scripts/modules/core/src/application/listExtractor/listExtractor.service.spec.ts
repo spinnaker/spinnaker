@@ -36,6 +36,21 @@ describe('appListExtractorService', function () {
   );
 
   describe('Get Monikers from a list of applications', function () {
+
+      it('should return a filtered list of monikers', function () {
+        let moniker: IMoniker = {
+          cluster: 'test-cluster',
+          application: 'test-application'
+        };
+        const filterByCluster = (serverGroup:IServerGroup) => serverGroup.moniker.cluster === 'test-cluster'
+        const applicationA: Application = buildApplication([ {moniker: moniker} ]);
+        const applicationB: Application = buildApplication();
+
+        const result = service.getMonikers([applicationA, applicationB], filterByCluster);
+        expect(result.length).toEqual(1);
+        expect(result).toEqual([moniker]);
+      });
+
       it('should get a empty list for one application w/ no monikers', function () {
         const application: Application = buildApplication([ {stack: 'prod'}, {stack: 'test'} ]);
         const result = service.getMonikers([application]);

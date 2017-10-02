@@ -16,8 +16,9 @@ const defaultFilter = () => true;
 
 export class AppListExtractor {
 
-  public getMonikers(applications: Application[]): IMoniker[] {
+  public getMonikers(applications: Application[],  filter: IServerGroupFilter = defaultFilter): IMoniker[] {
     const allMonikers: IMoniker[][] = applications.map(a => a.getDataSource('serverGroups').data
+      .filter(filter)
       .map((serverGroup: IServerGroup) => serverGroup.moniker));
     return compact(flatten(allMonikers));
   }
