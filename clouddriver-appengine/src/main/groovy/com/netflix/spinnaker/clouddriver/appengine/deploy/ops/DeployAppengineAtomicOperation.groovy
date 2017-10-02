@@ -42,10 +42,10 @@ class DeployAppengineAtomicOperation implements AtomicOperation<DeploymentResult
   @Autowired
   AppengineJobExecutor jobExecutor
 
-  @Autowired
+  @Autowired(required=false)
   StorageConfigurationProperties storageConfiguration
 
-  @Autowired
+  @Autowired(required=false)
   GcsStorageService.Factory storageServiceFactory
 
   DeployAppengineDescription description
@@ -90,6 +90,11 @@ class DeployAppengineAtomicOperation implements AtomicOperation<DeploymentResult
     def repositoryClient
 
     if (usesGcs) {
+      if (storageConfiguration == null) {
+        throw new IllegalStateException(
+            "GCS has been disabled. To enable it, configure storage.gcs.enabled=false and restart clouddriver.")
+      }
+
       def applicationDirectoryRoot = description.applicationDirectoryRoot
       String credentialPath = ""
       if (description.storageAccountName != null && !description.storageAccountName.isEmpty()) {
