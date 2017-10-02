@@ -24,10 +24,16 @@ import com.netflix.spinnaker.cats.agent.Agent;
 public interface AgentIntervalProvider {
     public static class Interval {
         final long interval;
+        final long errorInterval;
         final long timeout;
 
         public Interval(long interval, long timeout) {
+            this(interval, interval, timeout);
+        }
+
+        public Interval(long interval, long errorInterval, long timeout) {
             this.interval = interval;
+            this.errorInterval = errorInterval;
             this.timeout = timeout;
         }
 
@@ -36,6 +42,13 @@ public interface AgentIntervalProvider {
          */
         public long getInterval() {
             return interval;
+        }
+
+        /**
+         * @return how frequently after an error the Agent should run in milliseconds
+         */
+        public long getErrorInterval() {
+            return errorInterval;
         }
 
         /**

@@ -14,21 +14,28 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.cache
+package com.netflix.spinnaker.clouddriver.cache;
 
-import com.netflix.spinnaker.cats.agent.Agent
+import com.netflix.spinnaker.cats.agent.Agent;
 
 /**
  * Allows an Agent to customize it's poll interval.
  */
-interface CustomScheduledAgent extends Agent {
+public interface CustomScheduledAgent extends Agent {
   /**
    * @return the interval in milliseconds, or -1 to use the system default poll interval
    */
-  long getPollIntervalMillis()
+  long getPollIntervalMillis();
 
   /**
    * @return the timeout in milliseconds, or -1 to use the system default timeout
    */
-  long getTimeoutMillis()
+  long getTimeoutMillis();
+
+  /**
+   * @return the error interval in milliseconds, or -1 to use the system default error interval
+   */
+  default long getErrorIntervalMillis() {
+    return getPollIntervalMillis();
+  }
 }

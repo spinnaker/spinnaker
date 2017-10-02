@@ -57,7 +57,11 @@ import java.util.concurrent.TimeUnit;
  */
 @SuppressFBWarnings
 public class ClusteredSortAgentScheduler extends CatsModuleAware implements AgentScheduler<ClusteredSortAgentLock>, Runnable {
-
+  private static enum Status {
+    SUCCESS,
+    FAILURE
+  }
+ 
   private final JedisPool jedisPool;
   private final NodeStatusProvider nodeStatusProvider;
   private final AgentIntervalProvider intervalProvider;
@@ -273,9 +277,12 @@ public class ClusteredSortAgentScheduler extends CatsModuleAware implements Agen
     }
   }
 
-  private ScoreTuple conditionalReleaseAgent(Agent agent, String acquireScore) {
+  private ScoreTuple conditionalReleaseAgent(Agent agent, String acquireScore, Status status) {
     try (Jedis jedis = jedisPool.getResource()) {
-      String newAcquireScore = score(jedis, intervalProvider.getInterval(agent).getInterval());
+      long newInterval = status == Status.SUCCESS 
+        ? intervalProvider.getInterval(agent).getInterval() 
+        : intervalProvider.getInterval(agent).getErrorInterval();
+      String newAcquireScore = score(jedis, newInterval);
       Object releaseScore = jedis.evalsha(getScriptSha(CONDITIONAL_SWAP_SET_SCRIPT, jedis),
           Arrays.asList(WORKING_SET, WAITING_SET),
           Arrays.asList(agent.getAgentType(), newAcquireScore,
@@ -374,18 +381,20 @@ public class ClusteredSortAgentScheduler extends CatsModuleAware implements Agen
     public void run() {
       assert acquireScore != null;
       CacheResult result = null;
+      Status status = Status.FAILURE;
       try {
         executionInstrumentation.executionStarted(agent);
         long startTime = System.nanoTime();
         result = agentExecution.executeAgentWithoutStore(agent);
         executionInstrumentation.executionCompleted(agent, TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime));
+        status = Status.SUCCESS;
       } catch (Throwable cause) {
         executionInstrumentation.executionFailed(agent, cause);
       } finally {
         // Regardless of success or failure, we need to try and release this agent. If the release is successful (we
         // own this agent), and a result was created, we can store it.
         scheduler.runningAgents.ifPresent(Semaphore::release);
-        if (scheduler.conditionalReleaseAgent(agent, acquireScore) != null && result != null) {
+        if (scheduler.conditionalReleaseAgent(agent, acquireScore, status) != null && result != null) {
           agentExecution.storeAgentResult(agent, result);
         }
       }

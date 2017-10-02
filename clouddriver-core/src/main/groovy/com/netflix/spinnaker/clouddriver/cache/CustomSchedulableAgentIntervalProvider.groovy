@@ -28,6 +28,10 @@ class CustomSchedulableAgentIntervalProvider extends DefaultAgentIntervalProvide
     super(interval, timeout)
   }
 
+  CustomSchedulableAgentIntervalProvider(long interval, long errorInterval, long timeout) {
+    super(interval, errorInterval, timeout)
+  }
+
   @Override
   AgentIntervalProvider.Interval getInterval(Agent agent) {
     if (agent instanceof CustomScheduledAgent) {
@@ -38,7 +42,8 @@ class CustomSchedulableAgentIntervalProvider extends DefaultAgentIntervalProvide
 
   AgentIntervalProvider.Interval getCustomInterval(CustomScheduledAgent agent) {
     final long pollInterval = agent.pollIntervalMillis == -1 ? super.interval : agent.pollIntervalMillis
+    final long errorInterval = agent.errorIntervalMillis == -1 ? super.errorInterval : agent.errorIntervalMillis
     final long timeoutMillis = agent.timeoutMillis == -1 ? super.timeout : agent.timeoutMillis
-    return new AgentIntervalProvider.Interval(pollInterval, timeoutMillis)
+    return new AgentIntervalProvider.Interval(pollInterval, errorInterval, timeoutMillis)
   }
 }

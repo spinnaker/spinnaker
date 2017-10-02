@@ -24,4 +24,11 @@ public interface AgentIntervalAware {
    * @return Agent's interval to be scheduled at in milliseconds.
    */
   Long getAgentInterval();
+
+  /**
+   * @return Agent's error interval to be scheduled at in milliseconds.
+   */
+  default Long getAgentErrorInterval() {
+    return getAgentInterval();
+  }
 }

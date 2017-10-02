@@ -27,6 +27,7 @@ class RedisConfigurationProperties {
   @Canonical
   static class PollConfiguration {
     int intervalSeconds = 30
+    int errorIntervalSeconds = 30
     int timeoutSeconds = 300
   }
 

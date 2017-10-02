@@ -21,6 +21,7 @@ import com.netflix.spinnaker.cats.agent.AgentIntervalAware;
 
 public class DefaultAgentIntervalProvider implements AgentIntervalProvider {
     private final long interval;
+    private final long errorInterval;
     private final long timeout;
 
     public DefaultAgentIntervalProvider(long interval) {
@@ -28,7 +29,12 @@ public class DefaultAgentIntervalProvider implements AgentIntervalProvider {
     }
 
     public DefaultAgentIntervalProvider(long interval, long timeout) {
+        this(interval, interval, timeout);
+    }
+
+    public DefaultAgentIntervalProvider(long interval, long errorInterval, long timeout) {
         this.interval = interval;
+        this.errorInterval = errorInterval;
         this.timeout = timeout;
     }
 
@@ -36,19 +42,24 @@ public class DefaultAgentIntervalProvider implements AgentIntervalProvider {
     public Interval getInterval(Agent agent) {
         if (agent instanceof AgentIntervalAware) {
             Long agentInterval = ((AgentIntervalAware) agent).getAgentInterval();
+            Long agentErrorInterval = ((AgentIntervalAware) agent).getAgentErrorInterval();
             if (agentInterval != null && agentInterval > 0) {
                 // Specify the caching agent timeout as twice the interval. This gives a high upper bound
                 // on the time it should take the agent to complete its work. The agent's lock is revoked
                 // after the timeout.
-                return new Interval(agentInterval, 2 * agentInterval);
+                return new Interval(agentInterval, agentErrorInterval, 2 * agentInterval);
             }
         }
 
-        return new Interval(interval, timeout);
+        return new Interval(interval, errorInterval, timeout);
     }
 
     public long getInterval() {
         return interval;
+    }
+
+    public long getErrorInterval() {
+        return errorInterval;
     }
 
     public long getTimeout() {

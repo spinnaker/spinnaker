@@ -59,6 +59,7 @@ class RedisCacheConfig {
   AgentIntervalProvider agentIntervalProvider(RedisConfigurationProperties redisConfigurationProperties) {
     new CustomSchedulableAgentIntervalProvider(
       TimeUnit.SECONDS.toMillis(redisConfigurationProperties.poll.intervalSeconds),
+      TimeUnit.SECONDS.toMillis(redisConfigurationProperties.poll.errorIntervalSeconds),
       TimeUnit.SECONDS.toMillis(redisConfigurationProperties.poll.timeoutSeconds)
     );
   }
