@@ -555,7 +555,7 @@ class KubernetesClientApiConverter {
     def imageId = KubernetesUtil.getImageId(container.imageDescription)
     def v1container = new V1Container()
 
-    v1container.image = container.imageDescription.repository
+    v1container.image = imageId
 
     if (container.imagePullPolicy) {
       v1container.imagePullPolicy = container.imagePullPolicy.toString()

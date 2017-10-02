@@ -22,18 +22,66 @@ import io.kubernetes.client.util.KubeConfig;
 import io.kubernetes.client.util.SSLUtils;
 
 import groovy.util.logging.Slf4j
+import org.apache.commons.lang3.StringUtils
+import org.yaml.snakeyaml.Yaml
+import org.yaml.snakeyaml.constructor.SafeConstructor
 
 import javax.net.ssl.KeyManager;
 
 @Slf4j
 public class KubernetesApiClientConfig extends Config {
   String kubeconfigFile
+  String context
+  String cluster
+  String user
+  String userAgent
 
-  public KubernetesApiClientConfig(String kubeconfigFile) {
+  public KubernetesApiClientConfig(String kubeconfigFile, String context, String cluster, String user, String userAgent) {
     this.kubeconfigFile = kubeconfigFile
+    this.context = context
+    this.user = user
+    this.userAgent = userAgent
   }
 
   public ApiClient getApiCient() throws Exception {
-    return (kubeconfigFile ? fromConfig(kubeconfigFile) : Config.defaultClient())
+    KubeConfig kubeconfig
+
+    try {
+      if (StringUtils.isEmpty(kubeconfigFile)) {
+        kubeconfig = KubeConfig.loadDefaultKubeConfig()
+      } else {
+        kubeconfig = KubeConfig.loadKubeConfig(new FileReader(kubeconfigFile))
+      }
+    } catch (FileNotFoundException e) {
+      throw new RuntimeException("Unable to create credentials from kubeconfig file: " + e, e)
+    } catch (Exception e2) {
+      throw new RuntimeException("Missing required field(s) in kubenetes configuration file.")
+    }
+
+    InputStream is = new FileInputStream(kubeconfigFile)
+    Reader input = new InputStreamReader(is)
+    Yaml yaml = new Yaml(new SafeConstructor())
+    Object config = yaml.load(input)
+    Map<String, Object> configMap = (Map<String, Object>)config
+
+    //TODO: Need to validate cluster and user when client library exposes these api.
+    if (StringUtils.isEmpty(context) && !configMap.get("current-context")) {
+      throw new RuntimeException("Missing required field ${context} in kubeconfig file and clouddriver configuration.")
+    }
+
+    if (!StringUtils.isEmpty(context)) {
+      kubeconfig.setContext(context);
+    }
+
+    ApiClient client = Config.fromConfig(kubeconfig);
+
+    if (!StringUtils.isEmpty(userAgent)) {
+      client.setUserAgent(userAgent);
+    }
+
+    is.close()
+    input.close()
+
+    return client
   }
 }
