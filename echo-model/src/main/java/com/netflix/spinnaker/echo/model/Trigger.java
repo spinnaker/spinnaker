@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.echo.model;
 
+import java.util.List;
+import java.util.Map;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import com.netflix.spinnaker.kork.artifacts.model.ExpectedArtifact;
@@ -23,9 +25,6 @@ import lombok.Builder;
 import lombok.ToString;
 import lombok.Value;
 import lombok.experimental.Wither;
-
-import java.util.List;
-import java.util.Map;
 
 @JsonDeserialize(builder = Trigger.TriggerBuilder.class)
 @Builder(toBuilder = true)
@@ -39,7 +38,8 @@ public class Trigger {
     JENKINS("jenkins"),
     DOCKER("docker"),
     WEBHOOK("webhook"),
-    PUBSUB("pubsub");
+    PUBSUB("pubsub"),
+    DRYRUN("dryrun");
 
     private final String type;
 
@@ -76,6 +76,7 @@ public class Trigger {
   String subscriptionName;
   String pubsubSystem;
   List<ExpectedArtifact> expectedArtifacts;
+  Map<String, ?> lastSuccessfulExecution;
 
   public Trigger atBuildNumber(final int buildNumber) {
     return this.toBuilder()

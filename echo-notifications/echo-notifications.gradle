@@ -16,6 +16,7 @@
 
 dependencies {
     compile project(':echo-core')
+    compile project(":echo-pipelinetriggers")
     spinnaker.group("test")
     spinnaker.group("bootWeb")
     spinnaker.group("retrofitDefault")
