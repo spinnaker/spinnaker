@@ -16,11 +16,15 @@
 
 package com.netflix.spinnaker.orca.pipeline.model;
 
+import com.google.common.collect.ForwardingMap;
+
+import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import javax.annotation.Nullable;
-import com.google.common.collect.ForwardingMap;
+import java.util.stream.Collectors;
 
 public class StageContext extends ForwardingMap<String, Object> {
 
@@ -52,5 +56,24 @@ public class StageContext extends ForwardingMap<String, Object> {
             .orElse(null)
         );
     }
+  }
+
+  /*
+   * Gets all objects matching 'key', sorted by proximity to the current stage.
+   * If the key exists in the current context, it will be the first element returned
+   */
+  public List<Object> getAll(Object key) {
+    List<Object> result = stage
+        .ancestors()
+        .stream()
+        .filter(it -> it.getOutputs().containsKey(key))
+        .map(it -> it.getOutputs().get(key))
+        .collect(Collectors.toList());
+
+    if (delegate.containsKey(key)) {
+      result.add(0, delegate.get(key));
+    }
+
+    return result;
   }
 }
