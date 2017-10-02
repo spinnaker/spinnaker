@@ -15,7 +15,10 @@ interface IOpenConfigJsonModalDispatchProps {
 function OpenConfigJsonModalButton({ openConfigJsonModal }: IOpenConfigJsonModalDispatchProps) {
   return (
     <div>
-      <button className="passive" onClick={openConfigJsonModal}>JSON</button>
+      <button className="passive" onClick={openConfigJsonModal}>
+        <i className="fa fa-file-code-o"/>
+        <span>JSON</span>
+      </button>
       <ConfigJsonModal/>
     </div>
   );

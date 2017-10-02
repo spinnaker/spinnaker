@@ -14,7 +14,10 @@ interface ICreateConfigButtonStateProps {
 function CreateConfigButton({ disabled }: ICreateConfigButtonStateProps) {
   return (
     <UISref to=".configDetail" params={{configName: UUIDGenerator.generateUuid(), 'new': true}}>
-      <button className="passive" disabled={disabled}>Add configuration</button>
+      <button className="zombie text-left form-control" disabled={disabled}>
+        <i className="fa fa-plus-circle"/>
+        <span>Add configuration</span>
+      </button>
     </UISref>
   );
 }
