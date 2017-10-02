@@ -201,8 +201,8 @@ class NetflixACAJudge extends CanaryJudge with StrictLogging {
       .classification(metricClassification.classification.toString)
       .classificationReason(metricClassification.reason.orNull)
       .groups(metricConfig.getGroups)
-      .experimentMetadata(Map("stats" -> experimentStats.asInstanceOf[Object]).asJava)
-      .controlMetadata(Map("stats" -> controlStats.asInstanceOf[Object]).asJava)
+      .experimentMetadata(Map("stats" -> DescriptiveStatistics.toMap(experimentStats).asJava.asInstanceOf[Object]).asJava)
+      .controlMetadata(Map("stats" -> DescriptiveStatistics.toMap(controlStats).asJava.asInstanceOf[Object]).asJava)
       .resultMetadata(Map("ratio" -> metricClassification.ratio.asInstanceOf[Object]).asJava)
       .build()
 

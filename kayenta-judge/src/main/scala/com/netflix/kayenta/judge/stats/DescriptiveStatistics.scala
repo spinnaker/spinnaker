@@ -48,4 +48,12 @@ object DescriptiveStatistics {
     MetricStatistics(min, max, mean, median, count)
   }
 
+  def toMap(metricStatistics: MetricStatistics): Map[String, Any] = {
+    Map(
+      "min" -> metricStatistics.min,
+      "max" -> metricStatistics.max,
+      "mean" -> metricStatistics.mean,
+      "median" -> metricStatistics.median,
+      "count" -> metricStatistics.count)
+  }
 }
