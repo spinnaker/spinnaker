@@ -57,7 +57,7 @@ class MonitorKatoTask implements RetryableTask {
     this.clock = clock
   }
 
-  long getBackoffPeriod() { 10000L }
+  long getBackoffPeriod() { 5000L }
 
   long getTimeout() { 3600000L }
 
