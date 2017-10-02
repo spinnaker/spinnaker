@@ -119,7 +119,7 @@ def __write_image_delete_script(possible_versions_to_delete, days_before, projec
     if __image_age_days(payload) > days_before:
       labels = payload.get('labels', None)
       if not labels or not PUBLISHED_TAG_KEY in labels:
-        line = 'gcloud compute images delete --project={project} --account={account} {image}'.format(project=project, account=account, image=image)
+        line = 'gcloud compute images delete --project={project} --account={account} {image} -q'.format(project=project, account=account, image=image)
         delete_script_lines.append(line)
   delete_script = '\n'.join(delete_script_lines)
   timestamp = '{:%Y%m%d%H%M%S}'.format(datetime.datetime.utcnow())
