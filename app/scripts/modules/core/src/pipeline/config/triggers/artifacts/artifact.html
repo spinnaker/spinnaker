@@ -1,64 +1,86 @@
 <div class="row">
   <div class="col-md-12">
     <div class="form-horizontal panel-pipeline-phase">
-      <div class="form-group row">
-        <div class="col-md-10">
-          <div class="row">
-            <label class="col-md-3 sm-label-right">
-              Type
-              <help-field key="pipeline.config.artifact.type"></help-field>
-            </label>
-            <div class="col-md-9">
-              <input type="text"
-                     required
-                     class="form-control input-sm"
-                     ng-model="$ctrl.artifact.type"/>
+      <div class="row" ng-repeat="field in $ctrl.artifact.fields">
+        <div class="form-group row">
+          <div class="col-md-12">
+            <div class="form-group row">
+              <label class="col-md-3 sm-label-right">
+                Field Name
+                <help-field key="pipeline.config.expectedArtifact.fieldName"></help-field>
+              </label>
+              <div class="col-md-3">
+                <select class="input-sm"
+                        required
+                        ng-options="fieldName for fieldName in $ctrl.fieldNames"
+                        ng-model="field.fieldName">
+                  <option value="">Select...</option>
+                </select>
+              </div>
+              <label class="col-md-2 sm-label-right">
+                Field Type
+                <help-field key="pipeline.config.expectedArtifact.fieldType"></help-field>
+              </label>
+              <div class="col-md-3">
+                <select class="input-sm"
+                        required
+                        ng-options="fieldType for fieldType in $ctrl.fieldTypes"
+                        ng-model="field.fieldType">
+                  <option value="">Select...</option>
+                </select>
+                <button class="btn-link" ng-click="$ctrl.removeField($index)">
+                  <span class="glyphicon glyphicon-trash" uib-tooltip="Delete Field"></span><span class="sr-only">Delete Field</span>
+                </button>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-12">
+            <div class="form-group row">
+              <label class="col-md-3 sm-label-right">
+                Field Value
+              </label>
+              <div class="col-md-3">
+                <input type="text"
+                       required
+                       class="form-control input-sm"
+                       ng-model="field.value"/>
+              </div>
+              <div ng-if="field.fieldType === 'FIND_IF_MISSING'">
+                <label class="col-md-2 sm-label-right">
+                  Missing Policy
+                  <help-field key="pipeline.config.expectedArtifact.missingPolicy"></help-field>
+                </label>
+                <div class="col-md-3">
+                  <select class="input-sm"
+                          required
+                          ng-options="policy for policy in $ctrl.missingPolicies"
+                          ng-model="field.missingPolicy">
+                    <option value="">Select...</option>
+                  </select>
+                </div>
+              </div>
             </div>
           </div>
         </div>
-
-        <div class="col-md-2 text-right">
-          <button class="btn btn-sm btn-default" ng-click="$ctrl.removeArtifact()">
-            <span class="glyphicon glyphicon-trash" uib-tooltip="Remove artifact"></span>
-            <span class="visible-xl-inline">Remove artifact</span>
+        <hr/>
+      </div>
+      <div class="row" ng-if="!$ctrl.artifact.fields.length">
+        <p class="col-md-12">
+          You don't have any fields declared for this artifact.
+        </p>
+      </div>
+      <div class="form-group row">
+        <div class="col-md-12">
+          <button class="btn btn-block btn-add-trigger add-new" ng-click="$ctrl.addField()">
+            <span class="glyphicon glyphicon-plus-sign"></span> Add Field
           </button>
         </div>
       </div>
-
-      <div class="form-group row">
-        <div class="col-md-10">
-          <div class="row">
-            <label class="col-md-3 sm-label-right">
-              Name
-              <help-field key="pipeline.config.artifact.name"></help-field>
-            </label>
-            <div class="col-md-9">
-              <input type="text"
-                     required
-                     class="form-control input-sm"
-                     ng-model="$ctrl.artifact.name"/>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="form-group row">
-        <div class="col-md-10">
-          <div class="row">
-            <label class="col-md-3 sm-label-right" help-key="pipeline.config.artifact.missingPolicy">
-              Missing Policy
-              <help-field key="pipeline.config.artifact.missingPolicy"></help-field>
-            </label>
-            <div class="col-md-9">
-              <select class="form-control input-sm"
-                      required
-                      ng-options="policy for policy in $ctrl.missingPolicies"
-                      ng-model="$ctrl.artifact.missingPolicy">
-                <option value="">Select...</option>
-              </select>
-            </div>
-          </div>
-        </div>
+      <div class="col-md-2 text-right">
+        <button class="btn btn-sm btn-default" ng-click="$ctrl.removeArtifact()">
+          <span class="glyphicon glyphicon-trash" uib-tooltip="Remove artifact"></span>
+          <span class="visible-xl-inline">Remove artifact</span>
+        </button>
       </div>
     </div>
   </div>

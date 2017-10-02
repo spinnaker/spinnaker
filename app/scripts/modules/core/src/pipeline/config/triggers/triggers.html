@@ -37,7 +37,7 @@
     <parameters pipeline="pipeline"></parameters>
   </page-section>
   <render-if-feature feature="artifacts">
-    <page-section key="artifacts" label="Artifacts" badge="pipeline.expectedArtifacts.length" no-wrapper="true">
+    <page-section key="artifacts" label="Expected Artifacts" badge="pipeline.expectedArtifacts.length" no-wrapper="true">
       <div class="row">
         <p class="col-md-12">
           Declare artifacts your pipeline expects during execution in this section.
@@ -45,6 +45,7 @@
         </p>
       </div>
       <artifact ng-repeat="artifact in pipeline.expectedArtifacts" artifact="artifact" pipeline="pipeline" application="application"></artifact>
+      <hr/>
       <div class="row" ng-if="!pipeline.expectedArtifacts.length">
         <p class="col-md-12">
           You don't have any expected artifacts declared for {{pipeline.name}}.

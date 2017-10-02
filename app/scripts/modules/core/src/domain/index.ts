@@ -14,6 +14,7 @@ export * from './IEntityTags';
 export * from './IExecution';
 export * from './IExecutionStage';
 export * from './IExecutionTrigger';
+export * from './IExpectedArtifact'
 
 export * from './IHealth';
 

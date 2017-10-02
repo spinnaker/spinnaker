@@ -10,6 +10,7 @@ import {
   ITriggerTypeConfig
 } from 'core/domain';
 import { PIPELINE_CONFIG_PROVIDER, PipelineConfigProvider } from 'core/pipeline/config/pipelineConfigProvider';
+import { FieldType } from '@spinnaker/core';
 
 export interface IStageValidationResults {
   stage: IStage;
@@ -148,8 +149,11 @@ export class PipelineConfigValidator implements IServiceProvider {
     if (pipeline.strategy && !(pipeline.stages.some(stage => stage.type === 'deploy'))) {
       messages.push('To be able to create new server groups, a custom strategy should contain a Deploy stage.');
     }
-    if ((pipeline.expectedArtifacts || []).some(a => !a.name || !a.type)) {
-      messages.push('<b>Name</b> and <b>Type</b> are required fields for artifacts.');
+    if ((pipeline.expectedArtifacts || []).some(a => a.fields.some(f => !f.fieldName || !f.fieldType || !f.value))) {
+      messages.push('<b>Name</b>, <b>Type</b>, <b>Value</b> are required attributes for artifact fields.');
+    }
+    if ((pipeline.expectedArtifacts || []).some(a => a.fields.some(f => f.fieldType === FieldType.FindIfMissing && !f.missingPolicy))) {
+      messages.push('If <b>Field Type</b> is set to "FIND_IF_MISSING", a <b>Missing Policy</b> must be set.');
     }
     return messages;
   }

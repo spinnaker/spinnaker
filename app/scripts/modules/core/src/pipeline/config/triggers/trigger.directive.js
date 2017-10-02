@@ -1,7 +1,8 @@
 'use strict';
 
-import {SETTINGS} from 'core/config/settings';
-import {PIPELINE_CONFIG_PROVIDER} from 'core/pipeline/config/pipelineConfigProvider';
+import { SETTINGS } from 'core/config/settings';
+import { PIPELINE_CONFIG_PROVIDER } from 'core/pipeline/config/pipelineConfigProvider';
+import { FieldType } from 'core/domain';
 
 const angular = require('angular');
 
@@ -38,6 +39,11 @@ module.exports = angular.module('spinnaker.core.pipeline.config.trigger.triggerD
     this.artifactFilter = function(artifact) {
       // Ensure suggested artifacts have a name and type
       return artifact.type && artifact.name;
+    };
+
+    this.summarizeExpectedArtifact = function(expected) {
+      const fieldSummaries = expected.fields.filter(field => field.fieldType === FieldType.MustMatch).map(field => field.fieldName + ':' + field.value);
+      return fieldSummaries.join(', ');
     };
 
     this.loadTrigger = () => {
