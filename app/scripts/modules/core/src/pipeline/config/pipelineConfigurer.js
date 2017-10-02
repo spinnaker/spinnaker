@@ -261,7 +261,15 @@ module.exports = angular.module('spinnaker.core.pipeline.config.pipelineConfigur
 
     // Poor react setState
     this.updatePipeline = () => {
-      $scope.$applyAsync(() => $scope.renderablePipeline = _.clone($scope.renderablePipeline));
+      $scope.$applyAsync(() => {
+        $scope.renderablePipeline = _.clone($scope.renderablePipeline);
+        // need to ensure references are maintained
+        if ($scope.plan) {
+          $scope.plan = $scope.renderablePipeline;
+        } else {
+          $scope.pipeline = $scope.renderablePipeline;
+        }
+      });
     };
 
     this.navigateToStage = (index, event) => {
