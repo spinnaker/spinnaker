@@ -37,6 +37,7 @@ const list = handleActions({
 
 const selected = handleActions({
   [Actions.SELECT_GROUP]: (_state: string, action: Action & any) => action.payload.name,
+  [Actions.SELECT_CONFIG]: () => '',
 }, '');
 
 const groupWeights = handleActions({
