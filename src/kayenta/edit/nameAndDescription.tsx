@@ -8,6 +8,7 @@ import ScoreThresholds from './scoreThresholds';
 import { ICanaryState } from '../reducers/index';
 import * as Creators from '../actions/creators';
 import FormList from '../layout/formList';
+import KayentaInput from '../layout/kayentaInput';
 
 interface INameAndDescriptionDispatchProps {
   changeName: (event: React.ChangeEvent<HTMLInputElement>) => void;
@@ -27,16 +28,15 @@ function NameAndDescription({ name, description, changeName, changeDescription, 
   return (
     <FormList>
       <FormRow label="Configuration Name">
-        <input
+        <KayentaInput
           type="text"
-          className="form-control"
           value={name}
           onChange={changeName}
         />
       </FormRow>
       <FormRow label="Description">
         <textarea
-          className="form-control"
+          className="form-control input-sm"
           value={description}
           onChange={changeDescription}
         />

@@ -4,6 +4,7 @@ import { Action } from 'redux';
 import { get, isNumber } from 'lodash';
 
 import FormRow from '../layout/formRow';
+import KayentaInput from '../layout/kayentaInput';
 import { ICanaryState } from '../reducers/index';
 import { ICanaryConfig } from '../domain/ICanaryConfig';
 import * as Creators from '../actions/creators';
@@ -28,9 +29,8 @@ function GroupWeight({ group, config, handleInputChange }: IGroupWeightOwnProps 
   const groupWeight = getGroupWeights(config)[group] || 0;
   return (
     <FormRow label={group}>
-      <input
+      <KayentaInput
         type="number"
-        className="input-sm form-control"
         value={isNumber(groupWeight) ? groupWeight : ''}
         onChange={handleInputChange}
       />

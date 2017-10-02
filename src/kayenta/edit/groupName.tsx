@@ -3,6 +3,7 @@ import { Action } from 'redux';
 import { connect } from 'react-redux';
 import { ICanaryState } from '../reducers';
 import * as Creators from '../actions/creators';
+import KayentaInput from '../layout/kayentaInput';
 
 interface IGroupNameStateProps {
   group: string;
@@ -29,11 +30,10 @@ function GroupName({ editing, edit, group, onClick, handleUpdate, handleSubmit, 
   if (editing) {
     return (
       <form onSubmit={handleSubmit} data-group={group} data-edit={edit}>
-        <input
+        <KayentaInput
           autoFocus={true}
           value={edit}
           onChange={handleUpdate}
-          className="form-control input-sm"
         />
       </form>
     );

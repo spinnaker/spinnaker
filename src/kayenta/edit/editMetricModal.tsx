@@ -8,6 +8,7 @@ import {ICanaryMetricConfig} from 'kayenta/domain';
 import MetricConfigurerDelegator from './metricConfigurerDelegator';
 import Styleguide from '../layout/styleguide';
 import FormRow from '../layout/formRow';
+import KayentaInput from '../layout/kayentaInput';
 
 import './editMetricModal.less';
 
@@ -36,9 +37,8 @@ function EditMetricModal({ metric, rename, confirm, cancel }: IEditMetricModalDi
         </Modal.Header>
         <Modal.Body>
           <FormRow label="Name">
-            <input
+            <KayentaInput
               type="text"
-              className="form-control input-sm"
               value={metric.name}
               data-id={metric.id}
               onChange={rename}
