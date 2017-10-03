@@ -16,11 +16,27 @@ module.exports = angular.module('spinnaker.amazon.serverGroup.details.rollback.c
       $scope.allServerGroups = allServerGroups.sort((a, b) => b.name.localeCompare(a.name));
       $scope.verification = {};
 
+      var desired = serverGroup.capacity.desired;
+
+      if (desired < 10) {
+        var healthyPercent = 100;
+      } else if (desired < 20) {
+        // accept 1 instance in an unknown state during rollback
+        healthyPercent = 90;
+      } else {
+        healthyPercent = 95;
+      }
+
       $scope.command = {
         rollbackType: 'EXPLICIT',
         rollbackContext: {
-          rollbackServerGroupName: serverGroup.name
+          rollbackServerGroupName: serverGroup.name,
+          targetHealthyRollbackPercentage: healthyPercent
         }
+      };
+
+      $scope.minHealthy = function(percent) {
+        return Math.ceil(desired * percent / 100);
       };
 
       if (application && application.attributes) {

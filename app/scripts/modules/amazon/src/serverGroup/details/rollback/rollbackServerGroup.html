@@ -30,7 +30,22 @@
         </div>
       </div>
 
-      <task-reason command="command"></task-reason>
+      <div class="row">
+        <task-reason command="command"></task-reason>
+      </div>
+
+      <div class="row">
+        <div class="col-sm-11 col-sm-offset-1">
+          Consider rollback successful when
+          <input type="number"
+                 min="0"
+                 max="100"
+                 ng-model="command.rollbackContext.targetHealthyRollbackPercentage"
+                 class="form-control input-sm inline-number"
+          />
+          percent of instances are healthy.
+        </div>
+      </div>
 
       <div class="row">
         <div class="col-sm-4 sm-label-right">
@@ -46,6 +61,10 @@
               <strong>max</strong>: {{ serverGroup.capacity.max }},
               <strong>desired</strong>: {{ serverGroup.capacity.desired }}
             ]<br/>(minimum capacity pinned at {{serverGroup.capacity.desired}} to prevent autoscaling down during rollback)
+              <li ng-if="command.rollbackContext.targetHealthyRollbackPercentage < 100">
+                Wait for at least {{minHealthy(command.rollbackContext.targetHealthyRollbackPercentage)}}
+                instances to report as healthy
+              </li>
             </li>
             <li>Disable {{ serverGroup.name }}</li>
             <li>Restore minimum capacity of <em>{{ command.rollbackContext.restoreServerGroupName || 'previous server group' }}</em> [
