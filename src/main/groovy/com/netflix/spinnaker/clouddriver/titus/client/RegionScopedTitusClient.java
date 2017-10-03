@@ -156,6 +156,7 @@ public class RegionScopedTitusClient implements TitusClient {
              .withTag("titusRegion", titusRegion.getName())
              .withTag("request", requestName)
              .withTag("success", Boolean.toString(success))
+             .withTag( "apiVersion", "2")
              .withTag("responseCode", Optional.ofNullable(responseCode).map(Object::toString).orElse("UNKNOWN"));
            registry.timer(timerId).record(System.nanoTime() - startTime, TimeUnit.NANOSECONDS);
          }

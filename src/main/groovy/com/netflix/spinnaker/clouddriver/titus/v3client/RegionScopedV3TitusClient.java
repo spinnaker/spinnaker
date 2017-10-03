@@ -31,7 +31,6 @@ import io.grpc.ManagedChannelBuilder;
 import io.grpc.netty.NegotiationType;
 import io.grpc.netty.NettyChannelBuilder;
 import io.grpc.util.RoundRobinLoadBalancerFactory;
-import io.netty.channel.ChannelOption;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -96,6 +95,7 @@ public class RegionScopedV3TitusClient implements TitusClient {
       .sslContext(ClientAuthenticationUtils.newSslContext("titusapi"))
       .negotiationType(NegotiationType.TLS)
       .loadBalancerFactory(RoundRobinLoadBalancerFactory.getInstance())
+      .intercept(new GrpcMetricsInterceptor(registry, titusRegion))
       .build();
 
     this.grpcBlockingStub = JobManagementServiceGrpc.newBlockingStub(channel);
