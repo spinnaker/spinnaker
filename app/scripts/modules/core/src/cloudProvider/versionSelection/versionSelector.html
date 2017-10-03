@@ -1,0 +1,27 @@
+<div modal-page>
+  <form role="form">
+    <div class="modal-header">
+      <h3>Select Your Provider's Version</h3>
+    </div>
+    <div class="modal-body clearfix">
+      <div class="col-md-3 sm-label-right">Version</div>
+      <div class="col-md-5">
+        <select class="form-control input-sm"
+                ng-model="ctrl.command.version"
+                required>
+          <option ng-repeat="version in ctrl.versionOptions"
+                  value="{{version}}"
+                  ng-selected="ctrl.command.version === version">{{version}}</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" ng-click="ctrl.cancel()">Cancel</button>
+      <button class="btn btn-primary" ng-click="ctrl.selectVersion()" ng-disabled="!ctrl.command.version">
+        <span class="glyphicon glyphicon-chevron-right"></span>
+        Next
+      </button>
+    </div>
+  </form>
+</div>
+
