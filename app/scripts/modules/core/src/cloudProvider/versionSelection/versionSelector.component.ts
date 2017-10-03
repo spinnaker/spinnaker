@@ -8,7 +8,7 @@ import { CLOUD_PROVIDER_REGISTRY } from 'core/cloudProvider/cloudProvider.regist
 export class VersionSelectorCtrl implements IController {
   public command: any =  { version: '' };
 
-  constructor(private versionOptions: string[],
+  constructor(public versionOptions: string[],
               private $uibModalInstance: IModalInstanceService) {
     'ngInject';
 
