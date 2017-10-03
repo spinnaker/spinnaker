@@ -46,6 +46,7 @@ interface IJudgeState {
 
 export interface ISelectedConfigState {
   config: ICanaryConfig;
+  isInSyncWithServer: boolean;
   metricList: ICanaryMetricConfig[];
   editingMetric: ICanaryMetricConfig;
   thresholds: ICanaryClassifierThresholdsConfig;

@@ -1,5 +1,6 @@
 import { combineReducers, Action } from 'redux';
 import { combineActions, handleActions } from 'redux-actions';
+import { isEqual } from 'lodash';
 
 import * as Actions from 'kayenta/actions/index';
 import { IDataState, data } from './data';
@@ -11,6 +12,7 @@ import {
 import { JudgeSelectRenderState } from '../edit/judgeSelect';
 import { IJudge } from '../domain/IJudge';
 import { ICanaryJudgeConfig } from '../domain/ICanaryConfig';
+import { mapStateToConfig } from '../service/canaryConfig.service';
 
 export interface ICanaryState {
   data: IDataState;
@@ -62,9 +64,28 @@ const getRenderState = (judges: IJudge[], judgeConfig: ICanaryJudgeConfig): Judg
   }
 };
 
+const isInSyncWithServerReducer = (state: ICanaryState): ICanaryState => {
+  return {
+    ...state,
+    selectedConfig: {
+      ...state.selectedConfig,
+      isInSyncWithServer: (() => {
+        const editedConfig = mapStateToConfig(state);
+        if (!editedConfig) {
+          return true;
+        } else {
+          const originalConfig = state.data.configs.find(c => c.name === editedConfig.name);
+          return isEqual(editedConfig, originalConfig);
+        }
+      })(),
+    },
+  }
+};
+
 export const rootReducer = (state: ICanaryState, action: Action & any): ICanaryState => {
   return [
     combined,
     judgeRenderStateReducer,
+    isInSyncWithServerReducer,
   ].reduce((s, reducer) => reducer(s, action), state);
 };
