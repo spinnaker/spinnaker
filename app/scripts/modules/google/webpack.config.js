@@ -40,7 +40,6 @@ module.exports = {
     alias: {
       '@spinnaker/google': path.join(__dirname, 'src'),
       'coreImports': path.resolve(basePath, 'app', 'scripts', 'modules', 'core', 'src', 'presentation', 'less', 'imports', 'commonImports.less'),
-      'coreColors': path.resolve(basePath, 'app', 'scripts', 'modules', 'core', 'src', 'presentation', 'less', 'imports', 'colors.less'),
       'google': path.join(__dirname, 'src')
     }
   },

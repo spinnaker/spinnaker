@@ -56,7 +56,6 @@ function configure(IS_TEST) {
         'google': path.join(__dirname, 'app', 'scripts', 'modules', 'google', 'src'),
         '@spinnaker/google': path.join(__dirname, 'app', 'scripts', 'modules', 'google', 'src'),
         'coreImports': path.resolve(__dirname, 'app', 'scripts', 'modules', 'core', 'src', 'presentation', 'less', 'imports', 'commonImports.less'),
-        'coreColors': path.resolve(__dirname, 'app', 'scripts', 'modules', 'core', 'src', 'presentation', 'less', 'imports', 'colors.less'),
       }
     },
     devtool: 'source-map',

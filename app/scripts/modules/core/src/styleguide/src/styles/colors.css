@@ -18,7 +18,7 @@
     --color-danger-light: #F1C0BF;
     --color-warning: #EEBB3C;
     --color-warning-light: #FFE7AB;
-    --color-alert: #EEBB3C;
+    --color-alert: #DF8D3B;
     --color-alert-light: #FAD6AA;
 
     --color-black: #000000;
@@ -42,7 +42,7 @@
     --color-text-accent: var(--color-accent);
     --color-text-caption: #747474;
     --color-text-link: #478CC8;
-    --color-text-on-dark: #FFFFFF;
+    --color-text-on-dark: var(--color-white);
 }
 /* @end color */
 
