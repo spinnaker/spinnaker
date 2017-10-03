@@ -3,8 +3,6 @@ import { Action } from 'redux';
 import { connect } from 'react-redux';
 
 import FormRow from '../layout/formRow';
-import JudgeSelect, { JudgeSelectRenderState } from './judgeSelect';
-import ScoreThresholds from './scoreThresholds';
 import { ICanaryState } from '../reducers/index';
 import * as Creators from '../actions/creators';
 import FormList from '../layout/formList';
@@ -18,13 +16,12 @@ interface INameAndDescriptionDispatchProps {
 interface INameAndDescriptionStateProps {
   name: string;
   description: string;
-  judgeSelectRenderState: JudgeSelectRenderState;
 }
 
 /*
  * Configures canary config name and description.
  */
-function NameAndDescription({ name, description, changeName, changeDescription, judgeSelectRenderState }: INameAndDescriptionDispatchProps & INameAndDescriptionStateProps) {
+function NameAndDescription({ name, description, changeName, changeDescription }: INameAndDescriptionDispatchProps & INameAndDescriptionStateProps) {
   return (
     <FormList>
       <FormRow label="Configuration Name">
@@ -41,9 +38,6 @@ function NameAndDescription({ name, description, changeName, changeDescription, 
           onChange={changeDescription}
         />
       </FormRow>
-      {/* TODO: either rename the NameAndDescription component (and label), or find a different place for the judge selector. */}
-      {judgeSelectRenderState !== JudgeSelectRenderState.None && <JudgeSelect/>}
-      <ScoreThresholds/>
     </FormList>
   );
 }
@@ -53,13 +47,11 @@ function mapStateToProps(state: ICanaryState) {
     return {
       name: state.selectedConfig.config.name,
       description: state.selectedConfig.config.description,
-      judgeSelectRenderState: state.selectedConfig.judge.renderState,
     };
   } else {
     return {
       name: '',
       description: '',
-      judgeSelectRenderState: state.selectedConfig.judge.renderState,
     };
   }
 }

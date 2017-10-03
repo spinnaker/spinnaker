@@ -31,7 +31,7 @@ function JudgeSelect({ judgeOptions, selectedJudge, handleJudgeSelect, renderSta
   switch (renderState) {
     case JudgeSelectRenderState.Multiple:
       return (
-        <FormRow label="Judge">
+        <FormRow>
           <Select
             value={selectedJudge}
             options={judgeOptions}
@@ -42,7 +42,7 @@ function JudgeSelect({ judgeOptions, selectedJudge, handleJudgeSelect, renderSta
       );
     case JudgeSelectRenderState.Single:
       return (
-        <FormRow label="Judge">
+        <FormRow>
           <KayentaInput
             type="text"
             value={selectedJudge}

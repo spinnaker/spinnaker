@@ -11,9 +11,9 @@ export default function FormList({ children }: IFormListProps) {
   return (
     <ul className="list-group">
       {React.Children.map(children, c => c &&
-        <li className="list-group-item">
+        <li className="list-unstyled">
           <form role="form" className="form-horizontal container-fluid">
-            <div className="col-md-11">{c}</div>
+            <div className="col-md-12">{c}</div>
           </form>
         </li>
       )}
