@@ -43,7 +43,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.conf
       }
 
       return $q.all({
-        accounts: accountService.listAccounts('kubernetes'),
+        accounts: accountService.listAccounts('kubernetes', 'v1'),
         loadBalancers: loadBalancerReader.listLoadBalancers('kubernetes'),
         allImages: imagesPromise
       }).then(function(backingData) {

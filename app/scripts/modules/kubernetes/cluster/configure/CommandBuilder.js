@@ -12,7 +12,7 @@ module.exports = angular.module('spinnaker.kubernetes.clusterCommandBuilder.serv
 ])
   .factory('kubernetesClusterCommandBuilder', function (accountService) {
     function attemptToSetValidAccount(application, defaultAccount, command) {
-      return accountService.listAccounts('kubernetes').then(function(kubernetesAccounts) {
+      return accountService.listAccounts('kubernetes', 'v1').then(function(kubernetesAccounts) {
         var kubernetesAccountNames = _.map(kubernetesAccounts, 'name');
         var firstKubernetesAccount = null;
 
