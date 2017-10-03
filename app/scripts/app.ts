@@ -15,7 +15,7 @@ module('netflix.spinnaker', [
   require('./modules/ecs/ecs.module.js').name,
   require('./modules/cloudfoundry/cf.module.js').name,
   require('./modules/azure/azure.module.js').name,
-  require('./modules/kubernetes/kubernetes.module.js').name,
+  require('./modules/kubernetes/v1/kubernetes.v1.module.js').name,
   require('./modules/openstack/openstack.module.js').name,
   DOCKER_MODULE,
   require('./modules/oracle/oraclebmcs.module.js').name,

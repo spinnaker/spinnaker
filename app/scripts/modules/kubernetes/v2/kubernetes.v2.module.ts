@@ -10,7 +10,7 @@ templates.keys().forEach(function (key) {
   templates(key);
 });
 
-export const KUBERNETES_V2_MODULE = 'spinnaker.v2.kubernetes';
+export const KUBERNETES_V2_MODULE = 'spinnaker.kubernetes.v2';
 
 module(KUBERNETES_V2_MODULE, [
   CLOUD_PROVIDER_REGISTRY,
