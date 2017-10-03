@@ -41,6 +41,7 @@ interface ClouddriverService {
     String name
     String accountId
     String type
+    String providerVersion
     Collection<String> requiredGroupMembership = []
   }
 
