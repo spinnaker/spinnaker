@@ -20,20 +20,16 @@ package com.netflix.spinnaker.orca.mine.pipeline
 import com.netflix.spinnaker.orca.CancellableStage
 import com.netflix.spinnaker.orca.mine.MineService
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.PipelineBuilder
 import com.netflix.spinnaker.orca.pipeline.model.Stage
-import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
 import spock.lang.Specification
-import spock.lang.Subject
 
 class MonitorCanaryStageSpec extends Specification {
   def mineService = Mock(MineService)
-  def stageNavigator = Stub(StageNavigator)
-
-  @Subject
-  def monitorCanaryStage = new MonitorCanaryStage(mineService: mineService, stageNavigator: stageNavigator)
 
   def "should short-circuit if canary registered but execution not explicitly canceled"() {
     given:
+    def monitorCanaryStage = new MonitorCanaryStage(mineService: mineService)
     def stage = new Stage<>(new Pipeline("orca"), "pipelineStage", [
       canary: [id: "canaryId"]
     ])
@@ -49,14 +45,15 @@ class MonitorCanaryStageSpec extends Specification {
 
   def "should propagate cancel upstream if canary registered and execution explicitly canceled"() {
     given:
-    def canaryStage = new Stage<Pipeline>()
+    def pipeline = new PipelineBuilder("orca").withStage(CanaryStage.PIPELINE_CONFIG_TYPE).build()
+    def canaryStage = pipeline.namedStage(CanaryStage.PIPELINE_CONFIG_TYPE)
+    canaryStage.setRefId("1")
     def canaryStageBuilder = Mock(CanaryStage)
-    def stage = new Stage<Pipeline>(new Pipeline("orca"), "pipelineStage", [
+    def monitorCanaryStage = new MonitorCanaryStage(mineService: mineService, canaryStage: canaryStageBuilder)
+    def stage = new Stage<Pipeline>(pipeline, "pipelineStage", [
       canary: [id: "canaryId"]
     ])
-
-    and:
-    stageNavigator.ancestors(_) >> [new StageNavigator.Result(canaryStage, canaryStageBuilder)]
+    stage.setRequisiteStageRefIds(["1"])
 
     when:
     stage.execution.canceled = true
@@ -71,6 +68,7 @@ class MonitorCanaryStageSpec extends Specification {
   }
 
   def "should raise exception if no upstream canary stage found"() {
+    def monitorCanaryStage = new MonitorCanaryStage(mineService: mineService)
     def stage = new Stage<>(new Pipeline("orca"), "pipelineStage", [
       canary: [id: "canaryId"]
     ])
