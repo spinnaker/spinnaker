@@ -16,7 +16,7 @@
 
 package com.netflix.kayenta.judge.detectors
 
-import org.apache.commons.math3.stat.StatUtils
+import com.netflix.kayenta.judge.stats.DescriptiveStatistics.percentile
 
 /**
   * Interquartile Range Detector
@@ -39,8 +39,8 @@ class IQRDetector(factor: Double = 1.5, reduceSensitivity: Boolean = false) exte
     */
   private def calculateIQR(data: Array[Double]): (Double, Double) = {
     //Calculate the 25th and 75th percentiles
-    val p75 = StatUtils.percentile(data, 75)
-    val p25 = StatUtils.percentile(data, 25)
+    val p75 = percentile(data, 75)
+    val p25 = percentile(data, 25)
 
     //Calculate the Interquartile Range (IQR)
     val iqr = p75-p25
@@ -60,8 +60,8 @@ class IQRDetector(factor: Double = 1.5, reduceSensitivity: Boolean = false) exte
       val (lowerIQR, upperIQR) = calculateIQR(data)
 
       //Calculate the 1st and 99th percentiles
-      val p01 = StatUtils.percentile(data, 1)
-      val p99 = StatUtils.percentile(data, 99)
+      val p01 = percentile(data, 1)
+      val p99 = percentile(data, 99)
 
       //Calculate the upper and lower fences
       val lowerFence = math.min(p01, lowerIQR)

@@ -59,18 +59,25 @@ class DetectorSuite extends FunSuite{
     assert(result === truth)
   }
 
-  test("IQR Reduce Sensitivity"){
-    val testData = Array(1.0, 1.0, 1.0, 1.0, 1.0, 20.0, 1.0, 1.0, 1.0, 1.0, 1.0)
-    val truth = Array(false, false, false, false, false, false, false, false, false, false, false)
+  test("IQR Empty Data"){
+    val testData = Array[Double]()
+    val truth = Array[Boolean]()
 
-    val detector = new IQRDetector(factor = 3.0, reduceSensitivity=true)
+    val detector = new IQRDetector(factor = 1.5)
     val result = detector.detect(testData)
     assert(result === truth)
   }
 
-  test("IQR Empty Data"){
-    val testData = Array[Double]()
-    val truth = Array[Boolean]()
+  test("IQR NIST Test"){
+    val testData = Array[Double](
+      30, 171, 184, 201, 212, 250, 265, 270, 272, 289, 305, 306, 322, 322, 336, 346,
+      351, 370, 390, 404, 409, 411, 436, 437, 439, 441, 444, 448, 451, 453, 470, 480,
+      482, 487, 494, 495, 499, 503, 514, 521, 522, 527, 548, 550, 559, 560, 570, 572,
+      574, 578, 585, 592, 592, 607, 616, 618, 621, 629, 637, 638, 640, 656, 668, 707,
+      709, 719, 737, 739, 752, 758, 766, 792, 792, 794, 802, 818, 830, 832, 843, 858,
+      860, 869, 918, 925, 953, 991, 1000, 1005, 1068, 1441
+    )
+    val truth = Array.fill[Boolean](testData.length - 1)(false) :+ true
 
     val detector = new IQRDetector(factor = 1.5)
     val result = detector.detect(testData)

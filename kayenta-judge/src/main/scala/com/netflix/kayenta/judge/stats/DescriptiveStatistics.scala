@@ -18,25 +18,50 @@ package com.netflix.kayenta.judge.stats
 
 import com.netflix.kayenta.judge.Metric
 import org.apache.commons.math3.stat.StatUtils
+import org.apache.commons.math3.stat.descriptive.rank.Percentile
+import org.apache.commons.math3.stat.descriptive.rank.Percentile.EstimationType
 
 case class MetricStatistics(min: Double, max: Double, mean: Double, median: Double, count: Int)
 
 object DescriptiveStatistics {
 
   def mean(metric: Metric): Double = {
-    if(metric.values.isEmpty) 0.0 else StatUtils.mean(metric.values)
+    if (metric.values.isEmpty) 0.0 else StatUtils.mean(metric.values)
   }
 
   def median(metric: Metric): Double = {
-    if(metric.values.isEmpty) 0.0 else StatUtils.percentile(metric.values, 50)
+    if (metric.values.isEmpty) 0.0 else StatUtils.percentile(metric.values, 50)
   }
 
   def min(metric: Metric): Double = {
-    if(metric.values.isEmpty) 0.0 else StatUtils.min(metric.values)
+    if (metric.values.isEmpty) 0.0 else StatUtils.min(metric.values)
   }
 
   def max(metric: Metric): Double = {
-    if(metric.values.isEmpty) 0.0 else StatUtils.max(metric.values)
+    if (metric.values.isEmpty) 0.0 else StatUtils.max(metric.values)
+  }
+
+  /**
+    * Returns an estimate of the pth percentile of the values in the metric object.
+    * Uses the R-7 estimation strategy when the desired percentile lies between two data points.
+    * @param metric input metric
+    * @param p the percentile value to compute
+    * @return the percentile value or Double.NaN if the metric is empty
+    */
+  def percentile(metric: Metric, p: Double): Double ={
+    this.percentile(metric.values, p)
+  }
+
+  /**
+    * Returns an estimate of the pth percentile of the values in the values array.
+    * Uses the R-7 estimation strategy when the desired percentile lies between two data points.
+    * @param values input array of values
+    * @param p the percentile value to compute
+    * @return the percentile value or Double.NaN if the array is empty
+    */
+  def percentile(values: Array[Double], p: Double): Double ={
+    val percentile = new Percentile().withEstimationType(EstimationType.R_7)
+    percentile.evaluate(values, p)
   }
 
   def summary(metric: Metric): MetricStatistics = {
