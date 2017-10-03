@@ -31,6 +31,7 @@ const helpContents: {[key: string]: string} = {
   'aws.loadBalancer.detail':
     `<p>(Optional) <b>Detail</b> is a string of free-form alphanumeric characters; by convention, we recommend using "frontend".</p>
      <p>However, if your stack name needs to be longer (load balancer names are limited to 32 characters), consider changing it to "elb", or omit it altogether.</p>`,
+  'aws.loadBalancer.internal': 'Controls the load balancer scheme, <strong>not</strong> the subnet. By default, load balancers are created with a DNS name that resolves to public IP addresses. Specify internal to create a load balancer with a DNS name that resolves to private IP addresses.',
   'aws.loadBalancer.stack': '(Optional) <b>Stack</b> is one of the core naming components of a cluster, used to create vertical stacks of dependent services for integration testing.',
   'aws.loadBalancer.targetGroups': 'Add a target group if you want to associate this with an Application Load Balancer (ALB)',
   'aws.loadBalancer.loadBalancers': 'And a load balancer directly if you created a Classic Load Balancer (a classic load balancer does not have target groups)',

@@ -89,7 +89,7 @@
                          on-change="ctrl.subnetUpdated()"></subnet-select-field>
     <!--Adding support for public facing elb. Display only for vpc-->
     <div class="form-group" ng-if="ctrl.loadBalancerCommand.vpcId && !ctrl.viewState.hideInternalFlag">
-      <div class="col-md-3 sm-label-right"><b>Internal</b></div>
+      <div class="col-md-3 sm-label-right"><b>Internal</b> <help-field key="aws.loadBalancer.internal"></help-field></div>
       <div class="col-md-7 checkbox">
         <label><input type="checkbox"
                       ng-change="ctrl.internalFlagChanged()"
