@@ -13,9 +13,7 @@ If you want more information on how Spinnaker is designed, see the https://www.s
 
 These instructions cover pulling Spinnaker from source and setting up to run locally against Amazon Web Services and/or Google Cloud Platform accounts. 
 
-Please ensure you have set up your target environment correctly by following step 1 of the http://www.spinnaker.io/docs/target-deployment-setup[Getting Started Documentation].
-
-If you do not wish to build from source, please follow the http://www.spinnaker.io/docs/creating-a-spinnaker-instance#section-localhost[Localhost] section of the Creating a Spinnaker Instance guide.
+To build from source and run on localhost follow the https://www.spinnaker.io/setup/install/#getting-started[Getting Started Documentation].
 
 If you would prefer to try a container based solution, see https://github.com/spinnaker/spinnaker/tree/master/experimental/docker-compose[docker-compose installation].
 
