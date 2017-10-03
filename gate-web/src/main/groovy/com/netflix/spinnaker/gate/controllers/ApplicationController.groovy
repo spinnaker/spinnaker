@@ -115,7 +115,7 @@ class ApplicationController {
                     @RequestParam(value = "limit", required = false) Integer limit,
                     @RequestParam(value = "statuses", required = false) String statuses) {
     def listLimit = limit ?: environment.getProperty(PIPELINE_EXECUTION_LIMIT, Integer, 10)
-    executionHistoryService.getPipelines(application, listLimit, statuses).take(listLimit)
+    executionHistoryService.getPipelines(application, listLimit, statuses)
   }
 
   /**
