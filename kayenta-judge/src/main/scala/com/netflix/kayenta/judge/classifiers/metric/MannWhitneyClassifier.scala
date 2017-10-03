@@ -23,7 +23,7 @@ import org.apache.commons.math3.stat.StatUtils
 case class MannWhitneyResult(pValue: Double, lowerConfidence: Double, upperConfidence: Double, estimate: Double)
 
 //todo (csanden) rename this classifier
-class MannWhitneyClassifier(fraction: Double=0.25, confLevel: Double=0.99, mw: MannWhitney) extends BaseMetricClassifier{
+class MannWhitneyClassifier(fraction: Double=0.25, confLevel: Double=0.95, mw: MannWhitney) extends BaseMetricClassifier{
 
   /**
     * Mann-Whitney U Test
@@ -36,23 +36,27 @@ class MannWhitneyClassifier(fraction: Double=0.25, confLevel: Double=0.99, mw: M
     //todo: move this to its own package
     val params = MannWhitneyParams.builder()
       .mu(0)
-      .confidenceLevel(0.99)
+      .confidenceLevel(confLevel)
       .controlData(controlValues)
       .experimentData(experimentValues)
       .build()
 
-    val mwResult = mw.eval(params)
-    val confInterval = mwResult.getConfidenceInterval
-    val pValue = mwResult.getPValue
-    val estimate = mwResult.getEstimate
+    val testResult = mw.eval(params)
+    val confInterval = testResult.getConfidenceInterval
+    val pValue = testResult.getPValue
+    val estimate = testResult.getEstimate
 
     MannWhitneyResult(pValue, confInterval(0), confInterval(1), estimate)
   }
 
-  def calculateBounds(control: Metric, experiment: Metric):  (Double, Double)={
-    //todo(csanden): use the Hodges–Lehmann estimate
-    val delta = math.abs(StatUtils.mean(experiment.values) - StatUtils.mean(control.values))
-    val criticalValue = fraction * delta
+  /**
+    * Calculate the upper and lower bounds for classifying the metric.
+    * The bounds are calculated as a fraction of the Hodges–Lehmann estimator
+    * @param testResult
+    * @return
+    */
+  def calculateBounds(testResult: MannWhitneyResult):  (Double, Double)={
+    val criticalValue = fraction * testResult.estimate
     val lowerBound = -1 * criticalValue
     val upperBound = criticalValue
     (lowerBound, upperBound)
@@ -74,7 +78,7 @@ class MannWhitneyClassifier(fraction: Double=0.25, confLevel: Double=0.99, mw: M
     //Perform Mann-Whitney U Test
     val mwResult = MannWhitneyUTest(experiment.values, control.values)
     val ratio = StatUtils.mean(experiment.values)/StatUtils.mean(control.values)
-    val (lowerBound, upperBound) = calculateBounds(control, experiment)
+    val (lowerBound, upperBound) = calculateBounds(mwResult)
 
     //todo(csanden): improve the reason
     if(mwResult.lowerConfidence > upperBound){
