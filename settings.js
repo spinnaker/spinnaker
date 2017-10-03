@@ -12,6 +12,7 @@ var fiatEnabled = process.env.FIAT_ENABLED === 'true' ? true : false;
 var entityTagsEnabled = process.env.ENTITY_TAGS_ENABLED === 'true' ? true : false;
 var debugEnabled = process.env.DEBUG_ENABLED === 'false' ? false : true;
 var canaryEnabled = process.env.CANARY_ENABLED === 'true';
+var infrastructureEnabled = process.env.INFRA_ENABLED === 'true' ? true : false;
 
 window.spinnakerSettings = {
   checkForUpdates: true,
@@ -140,7 +141,7 @@ window.spinnakerSettings = {
     netflixMode: netflixMode,
     chaosMonkey: chaosEnabled,
     // whether stages affecting infrastructure (like "Create Load Balancer") should be enabled or not
-    infrastructureStages: process.env.INFRA_STAGES === 'enabled',
+    infrastructureStages: infrastructureEnabled,
     jobs: false,
     snapshots: false,
     travis: false,

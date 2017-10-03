@@ -58,7 +58,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.createLoadBalance
 
         let config = cloudProviderRegistry.getValue(selectedProvider, 'loadBalancer');
         $uibModal.open({
-          templateUrl: config.editLoadBalancerTemplateUrl,
+          templateUrl: config.createLoadBalancerTemplateUrl,
           controller: `${config.createLoadBalancerController} as ctrl`,
           size: 'lg',
           resolve: {

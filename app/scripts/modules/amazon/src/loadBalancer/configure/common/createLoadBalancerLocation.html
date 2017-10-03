@@ -4,7 +4,7 @@
   </div>
   <div class="modal-body" ng-if="ctrl.viewState.accountsLoaded">
     <div class="form-group">
-      <div class="col-md-12 well" ng-class="{'alert-danger': form.loadBalancerName.$error.validateUnique, 'alert-info': !form.loadBalancerName.$error.validateUnique}">
+      <div class="col-md-12 well" ng-class="{'alert-danger': form.loadBalancerName.$error.validateUnique && ctrl.enforceUniqueName, 'alert-info': !form.loadBalancerName.$error.validateUnique}">
         <strong>Your load balancer will be named:</strong>
         <span>{{ctrl.getName()}}</span>
           <!-- Angular does not seem to run length validation on hidden inputs, hence the text + display:none -->
@@ -15,7 +15,16 @@
                ng-model="ctrl.loadBalancerCommand.name"
                validate-unique="ctrl.existingLoadBalancerNames"
                validate-ignore-case="true"
-               name="loadBalancerName"/>
+               name="loadBalancerName"
+               ng-if="ctrl.enforceUniqueName" />
+        <input type="text"
+               style="display: none"
+               ng-maxlength="32"
+               class="form-control input-sm no-spel"
+               ng-model="ctrl.loadBalancerCommand.name"
+               validate-ignore-case="true"
+               name="loadBalancerName"
+               ng-if="!ctrl.enforceUniqueName" />
         <validation-error ng-if="form.loadBalancerName.$error.validateUnique" message="There is already a load balancer in {{ctrl.loadBalancerCommand.credentials}}:{{ctrl.loadBalancerCommand.region}} with that name."></validation-error>
       </div>
     </div>

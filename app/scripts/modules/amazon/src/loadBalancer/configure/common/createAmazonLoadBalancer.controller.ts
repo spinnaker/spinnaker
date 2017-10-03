@@ -65,6 +65,7 @@ export abstract class CreateAmazonLoadBalancerCtrl {
   private regions: IRegion[];
   public subnets: ISubnetOption[];
   private taskMonitor: TaskMonitor;
+  public enforceUniqueName: boolean;
 
   constructor(protected $scope: IScope,
               protected $uibModalInstance: IModalInstanceService,
@@ -89,6 +90,7 @@ export abstract class CreateAmazonLoadBalancerCtrl {
     // if this controller is used in the context of "Create Load Balancer" stage,
     // then forPipelineConfig flag will be true. In that case, the Load Balancer
     // modal dialog will just return the Load Balancer object.
+    this.enforceUniqueName = !this.forPipelineConfig;
 
     this.viewState = {
       accountsLoaded: false,

@@ -17,6 +17,7 @@ const HAPPY_PACK_ENV_INVALIDATE = lodash.pick(process.env, [
   'DEBUG_ENABLED',
   'CANARY_ENABLED',
   'INF_SEARCH_ENABLED',
+  'INFRA_ENABLED',
 ]);
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 
