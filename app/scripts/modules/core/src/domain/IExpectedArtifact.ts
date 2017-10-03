@@ -5,9 +5,9 @@ export interface IExpectedArtifact {
 export interface IArtifactField {
   fieldName: string;
   fieldType: FieldType;
-  value: string;
-  missingPolicy: MissingArtifactPolicy;
-  expression: string;
+  value?: string;
+  missingPolicy?: MissingArtifactPolicy;
+  expression?: string;
 }
 
 export enum FieldType {

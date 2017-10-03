@@ -1,7 +1,6 @@
 'use strict';
 
 import { PIPELINE_CONFIG_PROVIDER } from 'core/pipeline/config/pipelineConfigProvider';
-import { MissingArtifactPolicy } from 'core/domain/IExpectedArtifact';
 
 const angular = require('angular');
 
