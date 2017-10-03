@@ -112,7 +112,11 @@ class DcosClusterProvider implements ClusterProvider<DcosCluster> {
   ServerGroup getServerGroup(final String account, final String combinedRegion, final String name) {
     String region = combinedRegion.split(DcosSpinnakerAppId.SAFE_REGION_SEPARATOR).first()
     String group = combinedRegion.split(DcosSpinnakerAppId.SAFE_REGION_SEPARATOR).tail().join("/")
-    String serverGroupKey = Keys.getServerGroupKey(DcosSpinnakerAppId.from(account, group, name).get(), region)
+    Optional<DcosSpinnakerAppId> appId = DcosSpinnakerAppId.from(account, group, name)
+    if (!appId.present) {
+      return null
+    }
+    String serverGroupKey = Keys.getServerGroupKey(appId.get(), region)
     CacheData serverGroupData = cacheView.get(Keys.Namespace.SERVER_GROUPS.ns, serverGroupKey)
     if (!serverGroupData) {
       return null
