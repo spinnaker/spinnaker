@@ -19,7 +19,7 @@ package com.netflix.spinnaker.orca.pipeline.model;
 import com.google.common.collect.ForwardingMap;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -39,6 +39,15 @@ public class StageContext extends ForwardingMap<String, Object> {
     return delegate;
   }
 
+  private Map<String, Object> getTrigger() {
+    Execution execution = stage.getExecution();
+    if (execution instanceof Pipeline) {
+      return ((Pipeline) execution).getTrigger();
+    } else {
+      return Collections.emptyMap();
+    }
+  }
+
   @Override public Object get(@Nullable Object key) {
     if (delegate().containsKey(key)) {
       return super.get(key);
@@ -53,7 +62,7 @@ public class StageContext extends ForwardingMap<String, Object> {
           Optional
             .ofNullable(stage.getExecution())
             .map(execution -> execution.getContext().get(key))
-            .orElse(null)
+            .orElse(getTrigger().get(key))
         );
     }
   }
@@ -72,6 +81,11 @@ public class StageContext extends ForwardingMap<String, Object> {
 
     if (delegate.containsKey(key)) {
       result.add(0, delegate.get(key));
+    }
+
+    Map<String, Object> trigger = getTrigger();
+    if (trigger.containsKey(key)) {
+      result.add(key);
     }
 
     return result;
