@@ -7,6 +7,7 @@ const HappyPack = require('happypack');
 const HAPPY_PACK_POOL_SIZE = process.env.HAPPY_PACK_POOL_SIZE || 3;
 const happyThreadPool = HappyPack.ThreadPool({size: HAPPY_PACK_POOL_SIZE});
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
+const nodeExternals = require('webpack-node-externals');
 const webpack = require('webpack');
 const exclusionPattern = /(node_modules|\.\.\/deck)/;
 
@@ -22,14 +23,10 @@ module.exports = {
     libraryTarget: 'umd',
     umdNamedDefine: true,
   },
-  externals: {
-    '@spinnaker/core': '@spinnaker/core',
-    'angular': 'angular',
-    'lodash': 'lodash',
-    'rxjs': 'rxjs',
-    '@uirouter/core': '@uirouter/core',
-    '@uirouter/angularjs': '@uirouter/angularjs',
-  },
+  externals: [
+    '@spinnaker/core',
+    nodeExternals({ modulesDir: '../../../../node_modules' }),
+  ],
   resolve: {
     extensions: ['.json', '.js', '.jsx', '.ts', '.tsx', '.css', '.less', '.html'],
     modules: [
