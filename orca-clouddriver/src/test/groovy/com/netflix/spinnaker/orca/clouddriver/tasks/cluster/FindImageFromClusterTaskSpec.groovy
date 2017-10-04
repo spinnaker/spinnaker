@@ -33,7 +33,7 @@ import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
 class FindImageFromClusterTaskSpec extends Specification {
 
   @Subject
-      task = new FindImageFromClusterTask()
+    task = new FindImageFromClusterTask()
   OortService oortService = Mock(OortService)
 
   def setup() {
@@ -47,23 +47,23 @@ class FindImageFromClusterTaskSpec extends Specification {
     def pipe = pipeline {
       application = "contextAppName" // Should be ignored.
     }
-      def stage = new Stage<>(pipe, "findImage", [
-          cloudProvider    : "cloudProvider",
-          cluster          : "foo-test",
-          account          : "test",
-          selectionStrategy: "LARGEST",
-          onlyEnabled      : "false",
-          regions          : [location1.value, location2.value]
-      ])
+    def stage = new Stage<>(pipe, "findImage", [
+      cloudProvider    : "cloudProvider",
+      cluster          : "foo-test",
+      account          : "test",
+      selectionStrategy: "LARGEST",
+      onlyEnabled      : "false",
+      regions          : [location1.value, location2.value]
+    ])
 
     when:
-      def result = task.execute(stage)
+    def result = task.execute(stage)
 
     then:
-      1 * oortService.getServerGroupSummary("foo", "test", "foo-test", "cloudProvider", location1.value,
-          "LARGEST", FindImageFromClusterTask.SUMMARY_TYPE, false.toString()) >> oortResponse1
-      1 * oortService.getServerGroupSummary("foo", "test", "foo-test", "cloudProvider", location2.value,
-          "LARGEST", FindImageFromClusterTask.SUMMARY_TYPE, false.toString()) >> oortResponse2
+    1 * oortService.getServerGroupSummary("foo", "test", "foo-test", "cloudProvider", location1.value,
+      "LARGEST", FindImageFromClusterTask.SUMMARY_TYPE, false.toString()) >> oortResponse1
+    1 * oortService.getServerGroupSummary("foo", "test", "foo-test", "cloudProvider", location2.value,
+      "LARGEST", FindImageFromClusterTask.SUMMARY_TYPE, false.toString()) >> oortResponse2
     assertNorth result.outputs?.deploymentDetails?.find {
       it.region == "north"
     } as Map
@@ -72,28 +72,28 @@ class FindImageFromClusterTaskSpec extends Specification {
     } as Map
 
     where:
-      location1 = new Location(type: Location.Type.REGION, value: "north")
-      location2 = new Location(type: Location.Type.REGION, value: "south")
+    location1 = new Location(type: Location.Type.REGION, value: "north")
+    location2 = new Location(type: Location.Type.REGION, value: "south")
 
-      oortResponse1 = [
-        summaries: [[
-          serverGroupName:  "foo-test-v000",
-          imageId: "ami-012",
-          imageName: "ami-012-name",
-          image: [ imageId: "ami-012", name: "ami-012-name", foo: "bar" ],
-          buildInfo: [ job: "foo-build", buildNumber: 1 ]
-        ]]
-      ]
+    oortResponse1 = [
+      summaries: [[
+                    serverGroupName: "foo-test-v000",
+                    imageId        : "ami-012",
+                    imageName      : "ami-012-name",
+                    image          : [imageId: "ami-012", name: "ami-012-name", foo: "bar"],
+                    buildInfo      : [job: "foo-build", buildNumber: 1]
+                  ]]
+    ]
 
-      oortResponse2 = [
-        summaries: [[
-          serverGroupName:  "foo-test-v002",
-          imageId: "ami-234",
-          imageName: "ami-234-name",
-          image: [ imageId: "ami-234", name: "ami-234-name", foo: "baz" ],
-          buildInfo: [ job: "foo-build", buildNumber: 1 ]
-        ]]
-      ]
+    oortResponse2 = [
+      summaries: [[
+                    serverGroupName: "foo-test-v002",
+                    imageId        : "ami-234",
+                    imageName      : "ami-234-name",
+                    image          : [imageId: "ami-234", name: "ami-234-name", foo: "baz"],
+                    buildInfo      : [job: "foo-build", buildNumber: 1]
+                  ]]
+    ]
   }
 
   def "should be RUNNING if summary does not include imageId"() {
@@ -123,17 +123,17 @@ class FindImageFromClusterTaskSpec extends Specification {
 
     oortResponse1 = [
       summaries: [[
-                    serverGroupName:  "foo-test-v000",
-                    imageId: "ami-012",
-                    imageName: "ami-012-name",
-                    image: [ imageId: "ami-012", name: "ami-012-name", foo: "bar" ],
-                    buildInfo: [ job: "foo-build", buildNumber: 1 ]
+                    serverGroupName: "foo-test-v000",
+                    imageId        : "ami-012",
+                    imageName      : "ami-012-name",
+                    image          : [imageId: "ami-012", name: "ami-012-name", foo: "bar"],
+                    buildInfo      : [job: "foo-build", buildNumber: 1]
                   ]]
     ]
 
     oortResponse2 = [
       summaries: [[
-                    serverGroupName:  "foo-test-v002"
+                    serverGroupName: "foo-test-v002"
                   ]]
     ]
   }
@@ -181,12 +181,12 @@ class FindImageFromClusterTaskSpec extends Specification {
     }
     def stage = new Stage<>(pipe, "findImage", [
       resolveMissingLocations: true,
-      cloudProvider    : "cloudProvider",
-      cluster          : "foo-test",
-      account          : "test",
-      selectionStrategy: "LARGEST",
-      onlyEnabled      : "false",
-      regions          : [location1.value, location2.value]
+      cloudProvider          : "cloudProvider",
+      cluster                : "foo-test",
+      account                : "test",
+      selectionStrategy      : "LARGEST",
+      onlyEnabled            : "false",
+      regions                : [location1.value, location2.value]
     ])
 
     when:
@@ -213,12 +213,12 @@ class FindImageFromClusterTaskSpec extends Specification {
 
     oortResponse1 = [
       summaries: [[
-        serverGroupName: "foo-test-v000",
-        imageId        : "ami-012",
-        imageName      : "ami-012-name-ebs",
-        image          : [imageId: "ami-012", name: "ami-012-name-ebs", foo: "bar"],
-        buildInfo      : [job: "foo-build", buildNumber: 1]
-      ]]
+                    serverGroupName: "foo-test-v000",
+                    imageId        : "ami-012",
+                    imageName      : "ami-012-name-ebs",
+                    image          : [imageId: "ami-012", name: "ami-012-name-ebs", foo: "bar"],
+                    buildInfo      : [job: "foo-build", buildNumber: 1]
+                  ]]
     ]
 
     imageSearchResult = [
@@ -230,7 +230,7 @@ class FindImageFromClusterTaskSpec extends Specification {
       ],
       [
         imageName: "ami-012-name-ebs1",
-        amis : [
+        amis     : [
           "south": ["ami-234"]
         ]
       ]
@@ -244,12 +244,12 @@ class FindImageFromClusterTaskSpec extends Specification {
     }
     def stage = new Stage<>(pipe, "findImage", [
       resolveMissingLocations: true,
-      cloudProvider    : "cloudProvider",
-      cluster          : "foo-test",
-      account          : "test",
-      selectionStrategy: "LARGEST",
-      onlyEnabled      : "false",
-      regions          : [location1.value, location2.value]
+      cloudProvider          : "cloudProvider",
+      cluster                : "foo-test",
+      account                : "test",
+      selectionStrategy      : "LARGEST",
+      onlyEnabled            : "false",
+      regions                : [location1.value, location2.value]
     ])
 
     when:
@@ -276,11 +276,11 @@ class FindImageFromClusterTaskSpec extends Specification {
 
     oortResponse1 = [
       summaries: [[
-        serverGroupName: "foo-test-v000",
-        imageId        : "ami-012",
-        imageName      : "ami-012-name-ebs",
-        image          : [imageId: "ami-012", name: "ami-012-name-ebs", foo: "bar"]
-      ]]
+                    serverGroupName: "foo-test-v000",
+                    imageId        : "ami-012",
+                    imageName      : "ami-012-name-ebs",
+                    image          : [imageId: "ami-012", name: "ami-012-name-ebs", foo: "bar"]
+                  ]]
     ]
 
     imageSearchResult = [
@@ -292,7 +292,7 @@ class FindImageFromClusterTaskSpec extends Specification {
       ],
       [
         imageName: "ami-012-name-ebs1",
-        amis : [
+        amis     : [
           "south": ["ami-234"]
         ]
       ]
@@ -307,12 +307,12 @@ class FindImageFromClusterTaskSpec extends Specification {
     }
     def stage = new Stage<>(pipe, "findImage", [
       resolveMissingLocations: true,
-      cloudProvider    : "aws",
-      cluster          : "foo-test",
-      account          : "test",
-      selectionStrategy: "LARGEST",
-      onlyEnabled      : "false",
-      regions          : [location1.value, location2.value]
+      cloudProvider          : "aws",
+      cluster                : "foo-test",
+      account                : "test",
+      selectionStrategy      : "LARGEST",
+      onlyEnabled            : "false",
+      regions                : [location1.value, location2.value]
     ])
 
     when:
@@ -356,7 +356,7 @@ class FindImageFromClusterTaskSpec extends Specification {
       ],
       [
         imageName: "ami-012-name-ebs1",
-        amis : [
+        amis     : [
           "south": ["ami-234"]
         ]
       ]
@@ -367,35 +367,55 @@ class FindImageFromClusterTaskSpec extends Specification {
   def "should parse fail strategy error message"() {
     given:
     def stage = new Stage<>(new Pipeline("orca"), "whatever", [
-          cloudProvider    : "cloudProvider",
-          cluster          : "foo-test",
-          account          : "test",
-          selectionStrategy: "FAIL",
-          onlyEnabled      : "false",
-          zones          : [location.value]
-      ])
+      cloudProvider    : "cloudProvider",
+      cluster          : "foo-test",
+      account          : "test",
+      selectionStrategy: "FAIL",
+      onlyEnabled      : "false",
+      zones            : [location.value]
+    ])
 
-      Response response = new Response("http://oort", 404, "NOT_FOUND", [], new TypedString(oortResponse))
+    Response response = new Response("http://oort", 404, "NOT_FOUND", [], new TypedString(oortResponse))
 
     when:
     task.execute(stage)
 
     then:
-      1 * oortService.getServerGroupSummary("foo", "test", "foo-test", "cloudProvider", location.value,
-          "FAIL", FindImageFromClusterTask.SUMMARY_TYPE, false.toString()) >> {
-        throw new RetrofitError(null, null, response, null, null, null, null)
-      }
-      IllegalStateException ise = thrown()
-      ise.message == "Multiple possible server groups present in ${location.value}".toString()
+    1 * oortService.getServerGroupSummary("foo", "test", "foo-test", "cloudProvider", location.value,
+      "FAIL", FindImageFromClusterTask.SUMMARY_TYPE, false.toString()) >> {
+      throw new RetrofitError(null, null, response, null, null, null, null)
+    }
+    IllegalStateException ise = thrown()
+    ise.message == "Multiple possible server groups present in ${location.value}".toString()
 
     where:
-      location = new Location(type: Location.Type.ZONE, value: "north-pole-1a")
-      oortResponse = """\
+    location = new Location(type: Location.Type.ZONE, value: "north-pole-1a")
+    oortResponse = """\
       {
         "error" : "target.fail.strategy",
         "message" : "target.fail.strategy",
         "status" : "NOT_FOUND"
       }
       """.stripIndent()
+  }
+
+  @Unroll
+  'cluster with name "#cluster" and moniker "#moniker" should have application name "#expected"'() {
+    given:
+    def stage = new Stage<>(new Pipeline("orca"), 'findImageFromCluster', [
+      cluster: cluster,
+      moniker: moniker,
+    ])
+    when:
+    FindImageFromClusterTask.FindImageConfiguration config = stage.mapTo(FindImageFromClusterTask.FindImageConfiguration)
+
+    then:
+    config.getApplication() == expected
+
+    where:
+    cluster       | moniker            | expected
+    'clustername' | ['app': 'appname'] | 'appname'
+    'app-stack'   | null               | 'app'
+
   }
 }

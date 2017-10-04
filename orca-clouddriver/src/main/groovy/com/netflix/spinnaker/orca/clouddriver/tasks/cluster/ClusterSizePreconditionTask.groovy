@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.cluster
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.frigga.Names
+import com.netflix.spinnaker.moniker.Moniker
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.OortService
@@ -48,13 +49,14 @@ class ClusterSizePreconditionTask extends AbstractCloudProviderAwareTask impleme
   @Canonical
   static class ComparisonConfig {
     String cluster
+    Moniker moniker
     String comparison = '=='
     int expected = 1
     String credentials
     Set<String> regions
 
     public String getApplication() {
-      Names.parseName(cluster)?.app
+      moniker?.app ?: Names.parseName(cluster)?.app
     }
 
     public Operator getOp() {

@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.cluster
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.frigga.Names
+import com.netflix.spinnaker.moniker.Moniker
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
@@ -80,6 +81,7 @@ class FindImageFromClusterTask extends AbstractCloudProviderAwareTask implements
   @Canonical
   static class FindImageConfiguration {
     String cluster
+    Moniker moniker
     List<String> regions
     List<String> zones
     List<String> namespaces
@@ -89,7 +91,7 @@ class FindImageFromClusterTask extends AbstractCloudProviderAwareTask implements
     String imageNamePattern
 
     String getApplication() {
-      Names.parseName(cluster).app
+      moniker?.app ?: Names.parseName(cluster).app
     }
 
     Set<Location> getRequiredLocations() {

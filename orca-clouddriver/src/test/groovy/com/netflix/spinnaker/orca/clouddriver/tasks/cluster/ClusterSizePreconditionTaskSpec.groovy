@@ -120,6 +120,29 @@ class ClusterSizePreconditionTaskSpec extends Specification {
   }
 
 
+  @Unroll
+  'cluster with name "#cluster" and moniker "#moniker" should have application name "#expected"'() {
+    given:
+    def stage = new Stage<>(new Pipeline("orca"), 'checkCluster', [
+      context: [
+        cluster: cluster,
+        moniker: moniker,
+      ]
+    ])
+    when:
+    ClusterSizePreconditionTask.ComparisonConfig config = stage.mapTo("/context", ClusterSizePreconditionTask.ComparisonConfig)
+
+    then:
+    config.getApplication() == expected
+
+    where:
+    cluster       | moniker            | expected
+    'clustername' | ['app': 'appname'] | 'appname'
+    'app-stack'   | null               | 'app'
+
+  }
+
+
   Map mkSg(String region) {
     [name: "foo-v${cnt.incrementAndGet()}".toString(), region: region]
   }

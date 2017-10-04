@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.cluster
 
 import com.netflix.frigga.Names
+import com.netflix.spinnaker.moniker.Moniker
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
@@ -62,13 +63,19 @@ abstract class AbstractClusterWideClouddriverTask extends AbstractCloudProviderA
   @Canonical
   static class ClusterSelection {
     String cluster
+    Moniker moniker;
     String cloudProvider = 'aws'
     String credentials
 
     @Override
     String toString() {
-      "Cluster $cloudProvider/$credentials/$cluster"
+      "Cluster $cloudProvider/$credentials/$cluster/$moniker"
     }
+
+    String getApplication() {
+      moniker?.app ?: Names.parseName(cluster).app
+    }
+
   }
 
   protected TaskResult missingClusterResult(Stage stage, ClusterSelection clusterSelection) {
@@ -83,9 +90,7 @@ abstract class AbstractClusterWideClouddriverTask extends AbstractCloudProviderA
   @Override
   TaskResult execute(Stage stage) {
     def clusterSelection = stage.mapTo(ClusterSelection)
-    def names = Names.parseName(clusterSelection.cluster)
-
-    Optional<Map> cluster = oortHelper.getCluster(names.app,
+    Optional<Map> cluster = oortHelper.getCluster(clusterSelection.getApplication(),
                                                   clusterSelection.credentials,
                                                   clusterSelection.cluster,
                                                   clusterSelection.cloudProvider)
