@@ -40,9 +40,9 @@ describe('Controller: deletePipelineModal', function() {
 
     beforeEach(function() {
       this.pipelines = [
-        {name: 'a', index: 0},
-        {name: 'b', index: 1},
-        {name: 'c', index: 2}
+        {name: 'a', index: 0, id: 'A'},
+        {name: 'b', index: 1, id: 'B'},
+        {name: 'c', index: 2, id: 'C'}
       ];
 
       this.application.pipelineConfigs.activate();

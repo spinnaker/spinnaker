@@ -59,7 +59,7 @@ describe('namingService', function () {
     expect(this.namingService.getClusterName('app', 'cluster', 'details-withdash')).toBe('app-cluster-details-withdash');
   });
 
-  fit('returns sequence if found, else null', function () {
+  it('returns sequence if found, else null', function () {
     expect(this.namingService.getSequence(0)).toBe('v000');
     expect(this.namingService.getSequence(10)).toBe('v010');
     expect(this.namingService.getSequence(100)).toBe('v100');
