@@ -18,11 +18,13 @@ module.exports = angular.module('spinnaker.core.pipeline.config.actions.delete',
 
     $scope.pipeline = pipeline;
 
-    this.deletePipeline = function() {
+    this.deletePipeline = () => {
+      $scope.viewState.deleting = true;
       return pipelineConfigService.deletePipeline(application.name, pipeline, pipeline.name).then(
-        function() {
-          application.pipelineConfigs.data.splice(application.pipelineConfigs.data.indexOf(pipeline), 1);
-          application.pipelineConfigs.data.forEach(function(pipeline, index) {
+        () => {
+          const data = pipeline.strategy ? application.strategyConfigs.data : application.pipelineConfigs.data;
+          data.splice(data.findIndex(p => p.id === pipeline.id), 1);
+          data.forEach(function(pipeline, index) {
             if (pipeline.index !== index) {
               pipeline.index = index;
               pipelineConfigService.savePipeline(pipeline);
@@ -30,9 +32,10 @@ module.exports = angular.module('spinnaker.core.pipeline.config.actions.delete',
           });
           $state.go('^.executions', null, { location: 'replace' });
         },
-        function(response) {
+        (response) => {
           $log.warn(response);
-          $scope.viewState.saveError = true;
+          $scope.viewState.deleting = false;
+          $scope.viewState.deleteError = true;
           $scope.viewState.errorMessage = response.message || 'No message provided';
         }
       );

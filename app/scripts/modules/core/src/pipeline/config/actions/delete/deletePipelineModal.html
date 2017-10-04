@@ -4,10 +4,10 @@
     <h3>Really Delete {{pipeline.strategy === true ? 'Strategy' : 'Pipeline'}}?</h3>
   </div>
   <div class="modal-body">
-    <div class="alert alert-danger" ng-if="viewState.saveError">
+    <div class="alert alert-danger" ng-if="viewState.deleteError">
       <p>Could not delete {{pipeline.strategy === true ? 'strategy' : 'pipeline'}}.</p>
       <p><b>Reason: </b>{{viewState.errorMessage}}</p>
-      <p><a href ng-click="viewState.saveError = false">[dismiss]</a></p>
+      <p><a href ng-click="viewState.deleteError = false">[dismiss]</a></p>
     </div>
     <form role="form" name="form" class="form-horizontal">
       <div class="form-group">
@@ -21,7 +21,12 @@
     <button class="btn btn-default" ng-click="deletePipelineModalCtrl.cancel()">Cancel</button>
     <button class="btn btn-primary"
             ng-click="deletePipelineModalCtrl.deletePipeline()">
-      <span class="glyphicon glyphicon-remove-circle"></span> Delete
+      <span ng-if="!viewState.deleting">
+        <span class="fa fa-check-circle-o"></span> Delete
+      </span>
+      <span ng-if="viewState.deleting" class="pulsing">
+        <span class="fa fa-cog fa-spin"></span> Deleting&hellip;
+      </span>
     </button>
   </div>
 </div>

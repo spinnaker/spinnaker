@@ -72,7 +72,7 @@ export class NamingService {
 
   public getSequence(monikerSequence: number): string {
     if (isNil(monikerSequence)) {
-      return "N/A";
+      return 'N/A';
     } else {
       return `v${padStart(monikerSequence.toString(), 3, '0')}`;
     }
