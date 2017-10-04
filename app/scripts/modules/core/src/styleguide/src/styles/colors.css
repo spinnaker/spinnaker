@@ -42,7 +42,10 @@
     --color-text-accent: var(--color-accent);
     --color-text-caption: #747474;
     --color-text-link: #478CC8;
-    --color-text-on-dark: var(--color-white);
+    --color-text-on-dark: #FFFFFF;
+
+    --color-github-history-add: #eaffea;
+    --color-github-history-remove: #ffecec;
 }
 /* @end color */
 

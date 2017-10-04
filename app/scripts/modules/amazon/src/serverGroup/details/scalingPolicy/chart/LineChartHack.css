@@ -111,7 +111,7 @@
 .chart .grid .tick > text {
   display: none; }
 .chart .grid .tick > line {
-  stroke: #eee;
+  stroke: var(--color-cirrus);
   stroke-width: 1;
   shape-rendering: crispEdges; }
 .chart .dot-series circle {
