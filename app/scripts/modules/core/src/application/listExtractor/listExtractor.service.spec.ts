@@ -40,7 +40,7 @@ describe('appListExtractorService', function () {
       it('should return a filtered list of monikers', function () {
         let moniker: IMoniker = {
           cluster: 'test-cluster',
-          application: 'test-application'
+          app: 'test-application'
         };
         const filterByCluster = (serverGroup:IServerGroup) => serverGroup.moniker.cluster === 'test-cluster'
         const applicationA: Application = buildApplication([ {moniker: moniker} ]);
@@ -61,7 +61,7 @@ describe('appListExtractorService', function () {
       it('should return an list of a single moniker for one application with a moniker', function () {
         let moniker: IMoniker = {
           cluster: 'test-cluster',
-          application: 'test-application'
+          app: 'test-application'
         };
         const application: Application = buildApplication([ {moniker: moniker} ]);
         const result = service.getMonikers([application]);
@@ -72,7 +72,7 @@ describe('appListExtractorService', function () {
       it('should return a single moniker for two applications but only one has a moniker', function () {
         let moniker: IMoniker = {
           cluster: 'test-cluster',
-          application: 'test-application'
+          app: 'test-application'
         };
         const applicationA: Application = buildApplication([ {moniker: moniker} ]);
         const applicationB: Application = buildApplication();

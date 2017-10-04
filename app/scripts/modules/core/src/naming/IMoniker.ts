@@ -1,6 +1,6 @@
 
 export interface IMoniker {
-  application: string;
+  app: string;
   cluster: string;
   detail?: string;
   stack?: string;
