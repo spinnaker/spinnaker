@@ -134,7 +134,7 @@ export class AwsLoadBalancerTransformer {
       isInternal: loadBalancer.isInternal,
       region: loadBalancer.region,
       cloudProvider: loadBalancer.cloudProvider,
-      credentials: loadBalancer.credentials,
+      credentials: loadBalancer.credentials || loadBalancer.account,
       listeners: loadBalancer.listeners,
       loadBalancerType: 'classic',
       name: loadBalancer.name,
