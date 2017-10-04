@@ -1,6 +1,6 @@
 import { Action, combineReducers } from 'redux';
 import { combineActions, handleActions } from 'redux-actions';
-import { get, has, omit } from 'lodash';
+import { get, has, omit, chain, pick, fromPairs } from 'lodash';
 
 import * as Actions from '../actions';
 import { DeleteConfigState } from '../edit/deleteModal';
@@ -44,6 +44,10 @@ interface IJudgeState {
   renderState: JudgeSelectRenderState;
 }
 
+interface IChangeMetricGroupState {
+  toGroup: string;
+}
+
 export interface ISelectedConfigState {
   config: ICanaryConfig;
   isInSyncWithServer: boolean;
@@ -56,6 +60,7 @@ export interface ISelectedConfigState {
   save: ISaveState;
   destroy: IDestroyState;
   json: IJsonState;
+  changeMetricGroup: IChangeMetricGroupState;
 }
 
 const config = handleActions({
@@ -155,6 +160,14 @@ const thresholds = handleActions({
   })
 }, null);
 
+const changeMetricGroup = combineReducers<IChangeMetricGroupState>({
+  toGroup: handleActions({
+    [Actions.CHANGE_METRIC_GROUP_SELECT]: (_state: string, action: Action & any) => action.payload.group,
+  }, null),
+});
+
+const isInSyncWithServer = handleActions({}, null);
+
 // This reducer needs to be able to access both metricList and editingMetric so it won't fit the combineReducers paradigm.
 function editingMetricReducer(state: ISelectedConfigState = null, action: Action & any): ISelectedConfigState {
   switch (action.type) {
@@ -193,7 +206,7 @@ function selectedJudgeReducer(state: ISelectedConfigState = null, action: Action
   }
 }
 
-export function editGroupConfirm(state: ISelectedConfigState = null, action: Action & any): ISelectedConfigState {
+export function editGroupConfirmReducer(state: ISelectedConfigState = null, action: Action & any): ISelectedConfigState {
   if (action.type !== Actions.EDIT_GROUP_CONFIRM) {
     return state;
   }
@@ -230,6 +243,58 @@ export function editGroupConfirm(state: ISelectedConfigState = null, action: Act
   };
 }
 
+export function changeMetricGroupConfirmReducer(state: ISelectedConfigState, action: Action & any): ISelectedConfigState {
+  if (action.type !== Actions.CHANGE_METRIC_GROUP_CONFIRM) {
+    return state;
+  }
+
+  const { changeMetricGroup: { toGroup } } = state;
+  const { payload: { metricId } } = action;
+
+  const metricUpdator = (m: ICanaryMetricConfig): ICanaryMetricConfig => ({
+    ...m,
+    groups: m.id === metricId
+      ? (toGroup === UNGROUPED ? [] : [toGroup])
+      : m.groups,
+  });
+
+  return {
+    ...state,
+    metricList: state.metricList.map(metricUpdator),
+  };
+}
+
+export function updateGroupWeightsReducer(state: ISelectedConfigState, action: Action & any): ISelectedConfigState {
+  if (![Actions.SELECT_CONFIG,
+        Actions.CHANGE_METRIC_GROUP_CONFIRM,
+        Actions.ADD_METRIC,
+        Actions.REMOVE_METRIC].includes(action.type)) {
+    return state;
+  }
+
+  const groups = chain(state.metricList)
+    .flatMap(metric => metric.groups)
+    .uniq()
+    .value();
+
+  // Prune weights for groups that no longer exist.
+  let groupWeights: GroupWeights = pick(state.group.groupWeights, groups);
+
+  // Initialize weights for new groups.
+  groupWeights = {
+    ...fromPairs(groups.map(g => [g, 0])),
+    ...groupWeights,
+  };
+
+  return {
+    ...state,
+    group: {
+      ...state.group,
+      groupWeights,
+    }
+  };
+}
+
 const combined = combineReducers<ISelectedConfigState>({
   config,
   load,
@@ -241,6 +306,8 @@ const combined = combineReducers<ISelectedConfigState>({
   editingMetric,
   group,
   thresholds,
+  changeMetricGroup,
+  isInSyncWithServer,
 });
 
 // First combine all simple reducers, then apply more complex ones as needed.
@@ -249,6 +316,8 @@ export const selectedConfig = (state: ISelectedConfigState, action: Action & any
     combined,
     editingMetricReducer,
     selectedJudgeReducer,
-    editGroupConfirm,
+    editGroupConfirmReducer,
+    changeMetricGroupConfirmReducer,
+    updateGroupWeightsReducer,
   ].reduce((s, reducer) => reducer(s, action), state);
 };

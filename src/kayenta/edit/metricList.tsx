@@ -61,7 +61,7 @@ function mapStateToProps(state: ICanaryState): IMetricListStateProps {
   return {
     selectedGroup,
     metrics: metricList.filter(filter),
-    showGroups: metricList.filter(filter).some(metric => metric.groups.length > 1),
+    showGroups: !selectedGroup || metricList.filter(filter).some(metric => metric.groups.length > 1),
   };
 }
 
@@ -79,11 +79,9 @@ function mapDispatchToProps(dispatch: (action: Action & any) => void): IMetricLi
         }
       }));
     },
-
     editMetric: (event: any) => {
       dispatch(Creators.editMetricBegin({ id: event.target.dataset.id }));
     },
-
     removeMetric: (event: any) => {
       dispatch(Creators.removeMetric({ id: event.target.dataset.id }));
     }

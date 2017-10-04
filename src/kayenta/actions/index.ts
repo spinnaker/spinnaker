@@ -37,3 +37,5 @@ export const CREATE_NEW_CONFIG = 'create_new_config';
 export const EDIT_GROUP_BEGIN = 'edit_group_name_begin';
 export const EDIT_GROUP_CONFIRM = 'edit_group_name_confirm';
 export const EDIT_GROUP_UPDATE = 'edit_group_name_update';
+export const CHANGE_METRIC_GROUP_SELECT = 'change_metric_group_select';
+export const CHANGE_METRIC_GROUP_CONFIRM = 'change_metric_group_confirm';
