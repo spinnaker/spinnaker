@@ -1,4 +1,5 @@
 import {module} from 'angular';
+import { padStart, isNil } from 'lodash';
 
 export interface IComponentName {
   application: string;
@@ -69,14 +70,12 @@ export class NamingService {
     return split.join('-');
   }
 
-  public getSequence(serverGroupName: string): string {
-    const split = serverGroupName.split('-'),
-      isVersioned = NamingService.VERSION_PATTERN.test(split[split.length - 1]);
-
-    if (isVersioned) {
-      return split.pop();
+  public getSequence(monikerSequence: number): string {
+    if (isNil(monikerSequence)) {
+      return "N/A";
+    } else {
+      return `v${padStart(monikerSequence.toString(), 3, '0')}`;
     }
-    return null;
   }
 
   public parseLoadBalancerName(loadBalancerName: string): IComponentName {

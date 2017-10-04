@@ -59,13 +59,11 @@ describe('namingService', function () {
     expect(this.namingService.getClusterName('app', 'cluster', 'details-withdash')).toBe('app-cluster-details-withdash');
   });
 
-  it('returns sequence if found, else null', function () {
-    expect(this.namingService.getSequence('app')).toBe(null);
-    expect(this.namingService.getSequence('app-vnope')).toBe(null);
-    expect(this.namingService.getSequence('app-v003-no')).toBe(null);
-    expect(this.namingService.getSequence('app-v003')).toBe('v003');
-    expect(this.namingService.getSequence('app-cluster-v003')).toBe('v003');
-    expect(this.namingService.getSequence('app-cluster-details-v003')).toBe('v003');
-    expect(this.namingService.getSequence('app--v003')).toBe('v003');
+  fit('returns sequence if found, else null', function () {
+    expect(this.namingService.getSequence(0)).toBe('v000');
+    expect(this.namingService.getSequence(10)).toBe('v010');
+    expect(this.namingService.getSequence(100)).toBe('v100');
+    expect(this.namingService.getSequence(null)).toBe('N/A');
+    expect(this.namingService.getSequence(undefined)).toBe('N/A');
   });
 });

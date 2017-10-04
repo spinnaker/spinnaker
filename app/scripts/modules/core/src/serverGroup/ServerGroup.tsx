@@ -7,7 +7,6 @@ import { Subscription } from 'rxjs/Subscription';
 
 import { Application } from 'core/application';
 import { CloudProviderLogo } from 'core/cloudProvider';
-import { serverGroupSequenceFilter } from 'core/cluster/serverGroup.sequence.filter';
 import { IInstance, IServerGroup } from 'core/domain';
 import { EntityNotifications } from 'core/entityTag/notifications/EntityNotifications';
 import { HealthCounts } from 'core/healthCounts';
@@ -48,8 +47,6 @@ export interface IServerGroupState {
   isMultiSelected: boolean; // multiselect mode
 }
 
-const getSequence = serverGroupSequenceFilter(new NamingService());
-
 @BindAll()
 export class ServerGroup extends React.Component<IServerGroupProps, IServerGroupState> {
   private stateChangeSubscription: Subscription;
@@ -64,7 +61,7 @@ export class ServerGroup extends React.Component<IServerGroupProps, IServerGroup
     const { serverGroup } = props;
     const { showAllInstances, listInstances, multiselect, filter } = props.sortFilter;
     const instances = serverGroup.instances.filter(i => ReactInjector.clusterFilterService.shouldShowInstance(i));
-    const serverGroupSequence = getSequence(serverGroup.name);
+    const serverGroupSequence = new NamingService().getSequence(serverGroup.moniker.sequence);
     const hasBuildInfo = !!serverGroup.buildInfo;
     const isSelected = this.isSelected(serverGroup);
     const isMultiSelected = this.isMultiSelected(multiselect, serverGroup);
