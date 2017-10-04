@@ -20,7 +20,6 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.security;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.fge.jsonpatch.diff.JsonDiff;
-import com.google.gson.Gson;
 import com.netflix.spectator.api.Clock;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials;
@@ -66,12 +65,14 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
   private final Clock clock;
   private final String accountName;
   private final ObjectMapper mapper = new ObjectMapper();
-  private final Gson gson = new Gson();
   private final List<String> namespaces;
   private final List<String> omitNamespaces;
   private final String PRETTY = "";
+  private final String CONTINUE = null;
   private final boolean EXACT = true;
   private final boolean EXPORT = false;
+  private final boolean INCLUDE_UNINITIALIZED = false;
+  private final Integer LIMIT = null; // TODO(lwander): include paginination
   private final boolean WATCH = false;
   private final String DEFAULT_VERSION = "0";
   private final int TIMEOUT_SECONDS = 10; // TODO(lwander) make configurable
@@ -174,11 +175,13 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
   @Override
   public List<String> getDeclaredNamespaces() {
     List<String> result;
+    String labelSelector = null;
+    String fieldSelector = null;
     if (!namespaces.isEmpty()) {
       result = namespaces;
     } else {
       try {
-        result = coreV1Api.listNamespace(null, null, null, null, TIMEOUT_SECONDS, null)
+        result = coreV1Api.listNamespace(PRETTY, CONTINUE, fieldSelector, INCLUDE_UNINITIALIZED, labelSelector, LIMIT, DEFAULT_VERSION, TIMEOUT_SECONDS, WATCH)
             .getItems()
             .stream()
             .map(n -> n.getMetadata().getName())
@@ -276,7 +279,7 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
     final KubernetesKind kind = KubernetesKind.NETWORK_POLICY;
     return runAndRecordMetrics(methodName, namespace, () -> {
       try {
-        V1beta1NetworkPolicyList list = extensionsV1beta1Api.listNamespacedNetworkPolicy(namespace, PRETTY, fieldSelectorString, labelSelectorString, DEFAULT_VERSION, TIMEOUT_SECONDS, WATCH);
+        V1beta1NetworkPolicyList list = extensionsV1beta1Api.listNamespacedNetworkPolicy(namespace, PRETTY, CONTINUE, fieldSelectorString, INCLUDE_UNINITIALIZED, labelSelectorString, LIMIT, DEFAULT_VERSION, TIMEOUT_SECONDS, WATCH);
         return annotateMissingFields(list == null ? new ArrayList<>() : list.getItems(),
             V1beta1NetworkPolicy.class,
             apiVersion,
@@ -317,7 +320,7 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
     final KubernetesKind kind = KubernetesKind.POD;
     return runAndRecordMetrics(methodName, namespace, () -> {
       try {
-        V1PodList list = coreV1Api.listNamespacedPod(namespace, PRETTY, fieldSelectorString, labelSelectorString, DEFAULT_VERSION, TIMEOUT_SECONDS, WATCH);
+        V1PodList list = coreV1Api.listNamespacedPod(namespace, PRETTY, CONTINUE, fieldSelectorString, INCLUDE_UNINITIALIZED, labelSelectorString, LIMIT, DEFAULT_VERSION, TIMEOUT_SECONDS, WATCH);
         return annotateMissingFields(list == null ? new ArrayList<>() : list.getItems(),
             V1Pod.class,
             apiVersion,
@@ -352,7 +355,7 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
     final KubernetesKind kind = KubernetesKind.REPLICA_SET;
     return runAndRecordMetrics(methodName, namespace, () -> {
       try {
-        V1beta1ReplicaSetList list = extensionsV1beta1Api.listNamespacedReplicaSet(namespace, PRETTY, fieldSelectorString, labelSelectorString, DEFAULT_VERSION, TIMEOUT_SECONDS, WATCH);
+        V1beta1ReplicaSetList list = extensionsV1beta1Api.listNamespacedReplicaSet(namespace, PRETTY, CONTINUE, fieldSelectorString, INCLUDE_UNINITIALIZED, labelSelectorString, LIMIT, DEFAULT_VERSION, TIMEOUT_SECONDS, WATCH);
         return annotateMissingFields(list == null ? new ArrayList<>() : list.getItems(),
             V1beta1ReplicaSet.class,
             apiVersion,

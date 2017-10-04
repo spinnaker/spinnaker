@@ -144,7 +144,7 @@ class KubernetesClientApiAdapter {
       /*
        "fixme" and note this is k8s-client api issue and we are working this as workaround.
         */
-      V1beta1StatefulSetList list = apiInstance.listNamespacedStatefulSet(namespace, null, null, null, null, API_CALL_TIMEOUT_SECONDS, false)
+      V1beta1StatefulSetList list = apiInstance.listNamespacedStatefulSet(namespace, null, null, null, null, null, null, null, API_CALL_TIMEOUT_SECONDS, false)
       String apiVersion = list.getApiVersion();
       for (V1beta1StatefulSet item : list.getItems()) {
         item.setApiVersion(apiVersion);
@@ -160,7 +160,7 @@ class KubernetesClientApiAdapter {
       /*
      "fixme" and note this is k8s-client api issue and we are working this as workaround.
       */
-      V1beta1DaemonSetList list = extApi.listNamespacedDaemonSet(namespace, null, null, null, null, API_CALL_TIMEOUT_SECONDS, null)
+      V1beta1DaemonSetList list = extApi.listNamespacedDaemonSet(namespace, null, null, null, null, null, null, null, API_CALL_TIMEOUT_SECONDS, null)
       String apiVersion = list.getApiVersion();
       for (V1beta1DaemonSet item : list.getItems()) {
         item.setApiVersion(apiVersion);
@@ -228,8 +228,8 @@ class KubernetesClientApiAdapter {
 
   List<String> getNamespacesByName() {
     exceptionWrapper("namespaces.list", "Get Namespaces", null) {
-      V1NamespaceList result = coreApi.listNamespace(API_CALL_RESULT_FORMAT, null, null, null, 30, null);
-      return result.items
+      V1NamespaceList result = coreApi.listNamespace(API_CALL_RESULT_FORMAT, null, null, null, null, null, null, 30, null)
+      return result.items.collect { n -> n.getMetadata().getName() }
     }
   }
 }
