@@ -20,12 +20,14 @@ public class ExecutionContext {
   private static final ThreadLocal<ExecutionContext> threadLocal = new ThreadLocal<>();
 
   private final String application;
+  private final String authenticatedUser;
   private final String executionType;
   private final String executionId;
   private final String origin;
 
-  public ExecutionContext(String application, String executionType, String executionId, String origin) {
+  public ExecutionContext(String application, String authenticatedUser, String executionType, String executionId, String origin) {
     this.application = application;
+    this.authenticatedUser = authenticatedUser;
     this.executionType = executionType;
     this.executionId = executionId;
     this.origin = origin;
@@ -45,6 +47,10 @@ public class ExecutionContext {
 
   public String getApplication() {
     return application;
+  }
+
+  public String getAuthenticatedUser() {
+    return authenticatedUser;
   }
 
   public String getExecutionType() {

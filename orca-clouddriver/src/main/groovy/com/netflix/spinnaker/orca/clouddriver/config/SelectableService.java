@@ -41,19 +41,22 @@ public class SelectableService {
 
   public static class Criteria {
     private final String application;
+    private final String authenticatedUser;
     private final String executionType;
     private final String executionId;
     private final String origin;
 
-    public Criteria(String application, String executionType, String origin) {
-      this(application, executionType, null, origin);
+    public Criteria(String application, String authenticatedUser, String executionType, String origin) {
+      this(application, authenticatedUser, executionType, null, origin);
     }
 
     public Criteria(String application,
+                    String authenticatedUser,
                     String executionType,
                     String executionId,
                     String origin) {
       this.application = application;
+      this.authenticatedUser = authenticatedUser;
       this.executionType = executionType;
       this.executionId = executionId;
       this.origin = origin;
@@ -61,6 +64,10 @@ public class SelectableService {
 
     public String getApplication() {
       return application;
+    }
+
+    public String getAuthenticatedUser() {
+      return authenticatedUser;
     }
 
     public String getExecutionType() {

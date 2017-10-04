@@ -16,26 +16,25 @@
 
 package com.netflix.spinnaker.orca.clouddriver.config
 
-import com.netflix.spinnaker.orca.clouddriver.InstanceService
-import com.netflix.spinnaker.orca.clouddriver.KatoService
-import com.netflix.spinnaker.orca.clouddriver.MortService
-import com.netflix.spinnaker.orca.clouddriver.OortService
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll;
 
 class SelectableServiceSpec extends Specification {
   @Shared
-  def mortService = Mock(MortService)
+  def mortService = "mort"
 
   @Shared
-  def oortService = Mock(OortService)
+  def oortService = "oort"
 
   @Shared
-  def katoService = Mock(KatoService)
+  def katoService = "kato"
 
   @Shared
-  def instanceService = Mock(InstanceService)
+  def instanceService = "instance"
+
+  @Shared
+  def bakeryService = "bakery"
 
   @Unroll
   def "should lookup service by application or executionType"() {
@@ -45,6 +44,7 @@ class SelectableServiceSpec extends Specification {
         new ByApplicationServiceSelector(mortService, 10, ["applicationPattern": ".*spindemo.*"]),
         new ByExecutionTypeServiceSelector(oortService, 5, ["executionTypes": [0: "orchestration"]]),
         new ByOriginServiceSelector(instanceService, 20, ["origin": "deck", "executionTypes": [0: "orchestration"]]),
+        new ByAuthenticatedUserServiceSelector(bakeryService, 25, ["users": [0: "user1@email.com", 1: ".*user2.*"]]),
         new DefaultServiceSelector(katoService, 1, [:])
       ]
     )
@@ -56,14 +56,17 @@ class SelectableServiceSpec extends Specification {
     service == expectedService
 
     where:
-    criteria                                                               || expectedService
-    new SelectableService.Criteria(null, null, null)                       || katoService      // the default service selector
-    new SelectableService.Criteria("spindemo", "orchestration", "api")     || mortService
-    new SelectableService.Criteria("1-spindemo-1", "orchestration", "api") || mortService
-    new SelectableService.Criteria("spindemo", "orchestration", "deck")    || instanceService  // origin selector is higher priority
-    new SelectableService.Criteria("spindemo", "pipeline", "deck")         || mortService      // fall back to application selector as origin selector does not support pipeline
-    new SelectableService.Criteria("spintest", "orchestration", "api")     || oortService
-    new SelectableService.Criteria("spintest", "pipeline", "api")          || katoService
+    criteria                                                                                    || expectedService
+    new SelectableService.Criteria(null, null, null, null)                                      || katoService      // the default service selector
+    new SelectableService.Criteria("spindemo", null, "orchestration", "api")                    || mortService
+    new SelectableService.Criteria("1-spindemo-1", null, "orchestration", "api")                || mortService
+    new SelectableService.Criteria("spindemo", null, "orchestration", "deck")                   || instanceService  // origin selector is higher priority
+    new SelectableService.Criteria("spindemo", null, "pipeline", "deck")                        || mortService      // fall back to application selector as origin selector does not support pipeline
+    new SelectableService.Criteria("spintest", null, "orchestration", "api")                    || oortService
+    new SelectableService.Criteria("spintest", null, "pipeline", "api")                         || katoService
+    new SelectableService.Criteria("spintest", "user1@unsupported.com", "orchestration", "api") || oortService
+    new SelectableService.Criteria("spintest", "user1@email.com", "orchestration", "api")       || bakeryService    // user selector is highest priority
+    new SelectableService.Criteria("spintest", "user2@random.com", "orchestration", "api")      || bakeryService    // user selector supports regex patterns
   }
 
   def "should default to all execution types if none configured (by origin selector)"() {

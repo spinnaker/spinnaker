@@ -43,6 +43,7 @@ interface AuthenticationAware {
     try {
       ExecutionContext.set(ExecutionContext(
         getExecution().getApplication(),
+        currentUser.username,
         getExecution().javaClass.simpleName.toLowerCase(),
         getExecution().getId(),
         getExecution().getOrigin()
