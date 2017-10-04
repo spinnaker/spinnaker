@@ -206,7 +206,7 @@ class KubernetesClientApiAdapter {
         String value = entry.getValue()
         label = key + "=" + value
       }
-      coreApi.listNamespacedPod(namespace, null, null, label, null, API_CALL_TIMEOUT_SECONDS, null)
+      coreApi.listNamespacedPod(namespace, null, null, null, null, label, null, null, API_CALL_TIMEOUT_SECONDS, null)
     }
   }
 
