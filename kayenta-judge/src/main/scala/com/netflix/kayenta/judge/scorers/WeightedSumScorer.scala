@@ -40,7 +40,7 @@ class WeightedSumScorer(groupWeights: Map[String, Double]) extends BaseScorer{
     val numTotal = numHigh + numLow + numPass
 
     val hasNoData = if(numTotal == 0) true else false
-    val score = if(!hasNoData) (numPass/numTotal) * 100 else 0.0
+    val score = if(!hasNoData) (numPass/numTotal.toDouble) * 100 else 0.0
 
     GroupScore(groupName, score, hasNoData, labelCounts, numMetrics)
   }
