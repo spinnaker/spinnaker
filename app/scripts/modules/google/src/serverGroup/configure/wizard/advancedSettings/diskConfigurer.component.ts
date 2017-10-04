@@ -98,7 +98,7 @@ class GceDiskConfigurer implements IComponentOptions {
                ng-change="$ctrl.handleLocalSSDCountChange()"
                required
                min="0"
-               max="{{$ctrl.command.viewState.instanceTypeDetails.storage.localSSDSupported ? 4 : 0}}"
+               max="{{$ctrl.command.viewState.instanceTypeDetails.storage.localSSDSupported ? 8 : 0}}"
                ng-disabled="!$ctrl.command.viewState.instanceTypeDetails.storage.localSSDSupported"/>
       </div>
     </div>
