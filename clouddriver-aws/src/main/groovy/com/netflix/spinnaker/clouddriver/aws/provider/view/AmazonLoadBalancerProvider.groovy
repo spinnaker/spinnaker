@@ -93,11 +93,24 @@ class AmazonLoadBalancerProvider implements LoadBalancerProvider<AmazonLoadBalan
       }
     }
 
+    // Add load balancers that were created as a part of this application
     Collection<String> loadBalancerKeyMatches = allLoadBalancerKeys.findAll { applicationMatcher(it, applicationName) }
     loadBalancerKeys.addAll(loadBalancerKeyMatches)
 
+    // Add target groups that were created as a part of this application
     Collection<String> targetGroupKeyMatches = allTargetGroupKeys.findAll { applicationMatcher(it, applicationName) }
     targetGroupKeys.addAll(targetGroupKeyMatches)
+
+    // Add load balancer keys for all target groups that are associated with the application
+    Collection<CacheData> tgd = cacheView.getAll(TARGET_GROUPS.ns, targetGroupKeys)
+    tgd.each { targetGroup ->
+      Collection<String> targetGroupLoadBalancers = targetGroup.relationships[LOAD_BALANCERS.ns] ?: []
+      targetGroupLoadBalancers.each {
+        loadBalancerKeys.add(it)
+        String vpcKey = it + ':vpc-'
+        targetGroupKeys.addAll(allTargetGroupKeys.findAll { it.startsWith(vpcKey) })
+      }
+    }
 
     // Get all load balancers
     Collection<CacheData> loadBalancerData = cacheView.getAll(LOAD_BALANCERS.ns, loadBalancerKeys)
