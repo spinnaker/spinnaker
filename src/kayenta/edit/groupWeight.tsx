@@ -26,13 +26,15 @@ interface IGroupWeightDispatchProps {
 * Component for configuring a group weight.
 * */
 function GroupWeight({ group, config, handleInputChange }: IGroupWeightOwnProps & IGroupWeightStateProps & IGroupWeightDispatchProps) {
-  const groupWeight = getGroupWeights(config)[group] || 0;
+  const groupWeight = getGroupWeights(config)[group];
   return (
     <FormRow label={group}>
       <KayentaInput
         type="number"
         value={isNumber(groupWeight) ? groupWeight : ''}
         onChange={handleInputChange}
+        min={0}
+        max={100}
       />
     </FormRow>
   );

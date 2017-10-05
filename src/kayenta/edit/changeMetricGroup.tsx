@@ -55,8 +55,7 @@ function mapStateToProps(state: ICanaryState, { metric }: IChangeMetricGroupOwnP
   // If a metric belongs to more than one group, allow a move into one of those groups.
   // e.g., a [system, requests] -> [requests] move should be allowed, but
   // don't offer a [system] -> [system] move.
-  const groupNames = Object.keys(state.selectedConfig.group.groupWeights)
-    .filter(g => metric.groups.length > 1 || !metric.groups.includes(g));
+  const groupNames = state.selectedConfig.group.list.filter(g => metric.groups.length > 1 || !metric.groups.includes(g));
   const isGroupedMetric = !!metric.groups.length;
 
   let groups = groupNames.map(g => ({ label: g, value: g }));
