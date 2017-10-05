@@ -11,8 +11,8 @@ import { UrlParser } from 'core/navigation/urlParser';
 
 export const filterModelConfig: IFilterConfig[] = [
   { model: 'filter', param: 'q', clearValue: '', type: 'string', filterLabel: 'search', },
-  { model: 'pipeline', param: 'pipeline', type: 'trueKeyObject', },
-  { model: 'status', type: 'trueKeyObject', },
+  { model: 'pipeline', param: 'pipeline', type: 'trueKeyObject', clearValue: {}},
+  { model: 'status', type: 'trueKeyObject', clearValue: {}, },
 ];
 
 export interface IExecutionFilterModel extends IFilterModel {

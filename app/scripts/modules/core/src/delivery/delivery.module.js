@@ -8,6 +8,7 @@ import { EXECUTION_DETAILS_CONTROLLER } from './details/executionDetails.control
 import { BUILD_DISPLAY_NAME_FILTER } from './executionBuild/buildDisplayName.filter';
 import { EXECUTION_BUILD_NUMBER_COMPONENT } from './executionBuild/executionBuildNumber.component';
 import { EXECUTION_COMPONENT } from './executionGroup/execution/execution.component';
+import { EXECUTION_FILTERS_COMPONENT } from './filter/executionFilters.component';
 import { EXECUTION_GROUPS_COMPONENT } from './executionGroup/executionGroups.component';
 import { EXECUTIONS_COMPONENT } from './executions/executions.component';
 import { STAGE_FAILURE_MESSAGE_COMPONENT } from './stageFailureMessage/stageFailureMessage.component';
@@ -27,7 +28,7 @@ module.exports = angular.module('spinnaker.delivery', [
   BUILD_DISPLAY_NAME_FILTER,
   EXECUTION_BUILD_NUMBER_COMPONENT,
 
-  require('./filter/executionFilters.directive.js').name,
+  EXECUTION_FILTERS_COMPONENT,
 
   require('./manualExecution/manualPipelineExecution.controller.js').name,
 

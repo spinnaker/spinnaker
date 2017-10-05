@@ -1,11 +1,12 @@
-import {compact, uniq, map} from 'lodash';
-import {IScope, module} from 'angular';
-
-import {CLUSTER_FILTER_SERVICE, ClusterFilterService} from 'core/cluster/filter/clusterFilter.service';
-import {Application} from 'core/application/application.model';
-import { CLUSTER_FILTER_MODEL, ClusterFilterModel } from './clusterFilter.model';
+import { IScope, module } from 'angular';
+import { compact, uniq, map } from 'lodash';
 import { Subscription } from 'rxjs';
+
+import { Application } from 'core/application/application.model';
+import { CLUSTER_FILTER_MODEL, ClusterFilterModel } from './clusterFilter.model';
+import { CLUSTER_FILTER_SERVICE, ClusterFilterService } from 'core/cluster/filter/clusterFilter.service';
 import { IFilterTag } from 'core/filterModel/FilterTags';
+
 export const CLUSTER_FILTER = 'spinnaker.core.cluster.filter.component';
 
 const ngmodule = module(CLUSTER_FILTER, [

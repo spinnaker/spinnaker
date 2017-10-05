@@ -3,7 +3,7 @@ import { Ng1StateDeclaration, StateParams } from '@uirouter/angularjs';
 export interface IFilterConfig {
   model: string;
   param?: string;
-  clearValue?: string;
+  clearValue?: any;
   type?: string;
   filterLabel?: string;
   filterTranslator?: {[key: string]: string}
