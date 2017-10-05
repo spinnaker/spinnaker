@@ -61,7 +61,6 @@ class ExpressionTransform {
       } as T
     } else if ((source instanceof String || source instanceof GString) && source.toString().contains(parserContext.getExpressionPrefix())) {
       String literalExpression = source.toString()
-      log.debug("Processing expression {}", literalExpression)
       literalExpression = includeExecutionObjectForStageFunctions(literalExpression)
 
       T result

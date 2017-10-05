@@ -90,8 +90,8 @@ class ContextParameterProcessor {
       allowUnknownKeys,
     )
 
-    if (summary.totalEvaluated > 0) {
-      log.debug(summary.toString())
+    if (summary.totalEvaluated > 0 && context.execution) {
+      log.info("Evaluated {} in execution {}", summary, context.execution.id)
     }
 
     if (summary.failureCount > 0) {
@@ -103,7 +103,6 @@ class ContextParameterProcessor {
 
   Map<String, Object> process(Map<String, Object> parameters, Map<String, Object> context, boolean allowUnknownKeys) {
     if (PipelineExpressionEvaluator.shouldUseV2Evaluator(parameters) || PipelineExpressionEvaluator.shouldUseV2Evaluator(context)) {
-      log.debug("Using V2 expression evaluation")
       return processV2(parameters, context, allowUnknownKeys)
     }
 

@@ -69,7 +69,7 @@ public class ExpressionEvaluationSummary {
   public String toString() {
     String attempted = attempts.stream().collect(Collectors.joining(","));
     String failed = expressionResult.keySet().stream().collect(Collectors.joining(","));
-    return String.format("Evaluated %d expression(s) - (%s), %d failed - (%s)",
+    return String.format("%d expression(s) - (%s), %d failed - (%s)",
       getTotalEvaluated(),
       attempted,
       getFailureCount(),
