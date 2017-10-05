@@ -55,8 +55,10 @@ class MannWhitneyClassifier(fraction: Double=0.25, confLevel: Double=0.95, mw: M
     * @param testResult
     * @return
     */
-  def calculateBounds(testResult: MannWhitneyResult):  (Double, Double)={
-    val criticalValue = fraction * testResult.estimate
+  def calculateBounds(testResult: MannWhitneyResult):  (Double, Double) = {
+    val estimate = math.abs(testResult.estimate)
+    val criticalValue = fraction * estimate
+
     val lowerBound = -1 * criticalValue
     val upperBound = criticalValue
     (lowerBound, upperBound)
