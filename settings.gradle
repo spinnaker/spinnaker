@@ -33,7 +33,6 @@ include "orca-extensionpoint",
   "orca-applications",
   "orca-queue",
   "orca-queue-redis",
-  "orca-queue-sqs",
   "orca-pipelinetemplate",
   "orca-validation"
 
