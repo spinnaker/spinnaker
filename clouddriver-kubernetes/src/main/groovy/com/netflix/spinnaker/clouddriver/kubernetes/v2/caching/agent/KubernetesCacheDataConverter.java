@@ -23,10 +23,10 @@ import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.cats.cache.DefaultCacheData;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesApiVersion;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesAugmentedManifest.Metadata;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesManifestAnnotater;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesManifestMetadata;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesManifestSpinnakerRelationships;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.moniker.Moniker;
@@ -86,7 +86,7 @@ public class KubernetesCacheDataConverter {
     KubernetesManifestSpinnakerRelationships relationships = KubernetesManifestAnnotater.getManifestRelationships(manifest);
     Moniker moniker = KubernetesManifestAnnotater.getMoniker(manifest);
     Artifact artifact = KubernetesManifestAnnotater.getArtifact(manifest);
-    Metadata metadata = Metadata.builder()
+    KubernetesManifestMetadata metadata = KubernetesManifestMetadata.builder()
         .relationships(relationships)
         .moniker(moniker)
         .artifact(artifact)
@@ -112,7 +112,7 @@ public class KubernetesCacheDataConverter {
     return mapper.convertValue(cacheData.getAttributes().get("manifest"), KubernetesManifest.class);
   }
 
-  static Map<String, Collection<String>> annotatedRelationships(String account, String namespace, Metadata metadata) {
+  static Map<String, Collection<String>> annotatedRelationships(String account, String namespace, KubernetesManifestMetadata metadata) {
     KubernetesManifestSpinnakerRelationships relationships = metadata.getRelationships();
     Moniker moniker = metadata.getMoniker();
     Artifact artifact = metadata.getArtifact();

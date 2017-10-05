@@ -20,20 +20,23 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.op
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
+import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.KubernetesUnversionedArtifactConverter
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.KubernetesVersionedArtifactConverter
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesApiVersion
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesAugmentedManifest
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesKind
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesManifest
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesManifestOperationDescription
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesManifestSpinnakerRelationships
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesResourcePropertyRegistry
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.names.KubernetesManifestNamer
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.deployer.KubernetesReplicaSetDeployer
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials
+import com.netflix.spinnaker.clouddriver.names.NamerRegistry
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import com.netflix.spinnaker.moniker.Moniker
+import io.kubernetes.client.models.V1beta1ReplicaSet
 import org.yaml.snakeyaml.Yaml
 import spock.lang.Specification
 
@@ -41,6 +44,7 @@ class KubernetesManifestDeployerSpec extends Specification {
   def objectMapper = new ObjectMapper()
   def yaml = new Yaml()
 
+  def ACCOUNT = "account"
   def NAME = "my-name"
   def VERSION = "version"
   def NAMESPACE = "my-namespace"
@@ -72,18 +76,14 @@ metadata:
   }
 
   KubernetesManifestDeployer createMockDeployer(KubernetesV2Credentials credentials, String manifest) {
-    def metadata = new KubernetesAugmentedManifest.Metadata()
-    metadata.setRelationships(new KubernetesManifestSpinnakerRelationships())
-        .setMoniker(new Moniker())
-    def manifestPair = new KubernetesAugmentedManifest()
-        .setManifest(stringToManifest(manifest))
-        .setMetadata(metadata)
-
     def deployDescription = new KubernetesManifestOperationDescription()
-        .setManifests(Collections.singletonList(manifestPair))
+      .setManifest(stringToManifest(manifest))
+      .setMoniker(new Moniker())
+      .setRelationships(new KubernetesManifestSpinnakerRelationships())
 
     def namedCredentialsMock = Mock(KubernetesNamedAccountCredentials)
     namedCredentialsMock.getCredentials() >> credentials
+    namedCredentialsMock.getName() >> ACCOUNT
     deployDescription.setCredentials(namedCredentialsMock)
 
     def replicaSetDeployer = new KubernetesReplicaSetDeployer()
@@ -98,8 +98,11 @@ metadata:
         versionedArtifactConverterMock,
         new KubernetesUnversionedArtifactConverter())
 
-    def deployOp = new KubernetesManifestDeployer(deployDescription)
-    deployOp.registry = registry
+    NamerRegistry.lookup().withProvider(KubernetesCloudProvider.ID)
+      .withAccount(ACCOUNT)
+      .setNamer(V1beta1ReplicaSet.class, new KubernetesManifestNamer());
+    
+    def deployOp = new KubernetesManifestDeployer(deployDescription, registry)
 
     return deployOp
   }

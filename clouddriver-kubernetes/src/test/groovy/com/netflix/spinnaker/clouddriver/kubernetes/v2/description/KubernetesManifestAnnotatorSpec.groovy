@@ -43,9 +43,8 @@ class KubernetesManifestAnnotatorSpec extends Specification {
       .app(application)
       .build()
 
-    def metadata = new KubernetesAugmentedManifest.Metadata().setRelationships(relationships).setMoniker(moniker)
-
-    KubernetesManifestAnnotater.annotateManifest(manifest, metadata)
+    KubernetesManifestAnnotater.annotateManifest(manifest, relationships)
+    KubernetesManifestAnnotater.annotateManifest(manifest, moniker)
     relationships == KubernetesManifestAnnotater.getManifestRelationships(manifest)
     moniker == KubernetesManifestAnnotater.getMoniker(manifest)
 
@@ -71,9 +70,7 @@ class KubernetesManifestAnnotatorSpec extends Specification {
       .app(application)
       .build()
 
-    def metadata = new KubernetesAugmentedManifest.Metadata().setMoniker(moniker)
-
-    KubernetesManifestAnnotater.annotateManifest(manifest, metadata)
+    KubernetesManifestAnnotater.annotateManifest(manifest, moniker)
     manifest.getAnnotations().get(clusterKey) == '"' + cluster + '"'
     manifest.getAnnotations().get(applicationKey) == '"' + application + '"'
 

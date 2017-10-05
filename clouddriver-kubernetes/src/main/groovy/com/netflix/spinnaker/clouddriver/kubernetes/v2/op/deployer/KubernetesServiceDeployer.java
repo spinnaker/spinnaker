@@ -36,7 +36,7 @@ public class KubernetesServiceDeployer extends KubernetesDeployer<V1Service> {
   }
 
   @Override
-  Class<V1Service> getDeployedClass() {
+  public Class<V1Service> getDeployedClass() {
     return V1Service.class;
   }
 

@@ -21,10 +21,10 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesApiVersion
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesAugmentedManifest
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesKind
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesManifest
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesManifestAnnotater
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesManifestMetadata
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesManifestSpinnakerRelationships
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import com.netflix.spinnaker.moniker.Moniker
@@ -58,11 +58,9 @@ metadata:
         .app(application)
         .cluster(cluster)
         .build()
-    def metadata = new KubernetesAugmentedManifest.Metadata()
-        .setMoniker(moniker)
 
     def manifest = stringToManifest(rawManifest)
-    KubernetesManifestAnnotater.annotateManifest(manifest, metadata)
+    KubernetesManifestAnnotater.annotateManifest(manifest, moniker)
     V1beta1ReplicaSet resource = mapper.convertValue(manifest, V1beta1ReplicaSet.class)
 
     when:
@@ -161,7 +159,7 @@ metadata:
 
     def artifact = new Artifact()
 
-    def metadata = KubernetesAugmentedManifest.Metadata.builder()
+    def metadata = KubernetesManifestMetadata.builder()
       .relationships(spinnakerRelationships)
       .moniker(moniker)
       .artifact(artifact)

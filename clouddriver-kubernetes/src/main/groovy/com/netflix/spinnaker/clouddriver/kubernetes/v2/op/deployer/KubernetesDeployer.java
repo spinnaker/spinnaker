@@ -52,7 +52,7 @@ public abstract class KubernetesDeployer<T> {
     return result;
   }
 
-  abstract Class<T> getDeployedClass();
+  abstract public Class<T> getDeployedClass();
 
   abstract public KubernetesKind kind();
   abstract public KubernetesApiVersion apiVersion();

@@ -73,20 +73,32 @@ public class KubernetesManifestAnnotater {
     }
   }
 
-  public static void annotateManifest(KubernetesManifest manifest, KubernetesAugmentedManifest.Metadata metadata) {
+  public static void annotateManifest(KubernetesManifest manifest, KubernetesManifestSpinnakerRelationships relationships) {
     Map<String, String> annotations = manifest.getAnnotations();
-    annotateManifest(annotations, metadata.getRelationships());
-    annotateManifest(annotations, metadata.getArtifact());
-    annotateManifest(annotations, metadata.getMoniker());
+    storeAnnotations(annotations, relationships);
 
     manifest.getSpecTemplateAnnotations().flatMap(a -> {
-      annotateManifest(a, metadata.getRelationships());
-      annotateManifest(a, metadata.getMoniker());
+      storeAnnotations(a, relationships);
       return Optional.empty();
     });
   }
 
-  private static void annotateManifest(Map<String, String> annotations, Moniker moniker) {
+  public static void annotateManifest(KubernetesManifest manifest, Moniker moniker) {
+    Map<String, String> annotations = manifest.getAnnotations();
+    storeAnnotations(annotations, moniker);
+
+    manifest.getSpecTemplateAnnotations().flatMap(a -> {
+      storeAnnotations(a, moniker);
+      return Optional.empty();
+    });
+  }
+
+  public static void annotateManifest(KubernetesManifest manifest, Artifact artifact) {
+    Map<String, String> annotations = manifest.getAnnotations();
+    storeAnnotations(annotations, artifact);
+  }
+
+  private static void storeAnnotations(Map<String, String> annotations, Moniker moniker) {
     if (moniker == null) {
       throw new IllegalArgumentException("Every resource deployed via spinnaker must be assigned a moniker");
     }
@@ -98,7 +110,7 @@ public class KubernetesManifestAnnotater {
   }
 
 
-  private static void annotateManifest(Map<String, String> annotations, KubernetesManifestSpinnakerRelationships relationships) {
+  private static void storeAnnotations(Map<String, String> annotations, KubernetesManifestSpinnakerRelationships relationships) {
     if (relationships == null) {
       return;
     }
@@ -107,7 +119,7 @@ public class KubernetesManifestAnnotater {
     storeAnnotation(annotations, SECURITY_GROUPS, relationships.getSecurityGroups());
   }
 
-  private static void annotateManifest(Map<String, String> annotations, Artifact artifact) {
+  private static void storeAnnotations(Map<String, String> annotations, Artifact artifact) {
     if (artifact == null) {
       return;
     }

@@ -36,7 +36,7 @@ public class KubernetesIngressDeployer extends KubernetesDeployer<V1beta1Ingress
   }
 
   @Override
-  Class<V1beta1Ingress> getDeployedClass() {
+  public Class<V1beta1Ingress> getDeployedClass() {
     return V1beta1Ingress.class;
   }
 

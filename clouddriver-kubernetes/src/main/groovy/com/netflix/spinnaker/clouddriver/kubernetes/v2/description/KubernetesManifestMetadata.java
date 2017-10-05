@@ -25,17 +25,11 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-public class KubernetesAugmentedManifest {
-  KubernetesManifest manifest;
-  Metadata metadata;
-
-  @Data
-  @Builder
-  @NoArgsConstructor
-  @AllArgsConstructor
-  public static class Metadata {
-    KubernetesManifestSpinnakerRelationships relationships;
-    Artifact artifact;
-    Moniker moniker;
-  }
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class KubernetesManifestMetadata {
+  KubernetesManifestSpinnakerRelationships relationships;
+  Artifact artifact;
+  Moniker moniker;
 }

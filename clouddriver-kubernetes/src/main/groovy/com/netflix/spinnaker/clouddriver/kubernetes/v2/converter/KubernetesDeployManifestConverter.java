@@ -20,10 +20,12 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.converter;
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesOperation;
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.converters.KubernetesAtomicOperationConverterHelper;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesManifestOperationDescription;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesResourcePropertyRegistry;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.KubernetesManifestDeployer;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport;
 import com.netflix.spinnaker.clouddriver.security.ProviderVersion;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
@@ -33,9 +35,12 @@ import static com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations.D
 @KubernetesOperation(DEPLOY_MANIFEST)
 @Component
 public class KubernetesDeployManifestConverter extends AbstractAtomicOperationsCredentialsSupport {
+  @Autowired
+  private KubernetesResourcePropertyRegistry registry;
+
   @Override
   public AtomicOperation convertOperation(Map input) {
-    return new KubernetesManifestDeployer(convertDescription(input));
+    return new KubernetesManifestDeployer(convertDescription(input), registry);
   }
 
   @Override

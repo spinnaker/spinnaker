@@ -26,7 +26,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class KubernetesDeploymentDeployer extends KubernetesDeployer<AppsV1beta1Deployment> {
   @Override
-  Class<AppsV1beta1Deployment> getDeployedClass() {
+  public Class<AppsV1beta1Deployment> getDeployedClass() {
     return AppsV1beta1Deployment.class;
   }
 

@@ -36,7 +36,7 @@ public class KubernetesReplicaSetDeployer extends KubernetesDeployer<V1beta1Repl
   }
 
   @Override
-  Class<V1beta1ReplicaSet> getDeployedClass() {
+  public Class<V1beta1ReplicaSet> getDeployedClass() {
     return V1beta1ReplicaSet.class;
   }
 

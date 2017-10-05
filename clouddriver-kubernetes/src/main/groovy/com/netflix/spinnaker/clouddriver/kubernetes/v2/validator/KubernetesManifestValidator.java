@@ -41,10 +41,5 @@ public class KubernetesManifestValidator extends DescriptionValidator<Kubernetes
     if (!util.validateV2Credentials(provider, description.getAccount())) {
       return;
     }
-
-    // TODO(lwander): Temporary restriction
-    if (!util.validateSizeEquals("manifestMetadataPairs", description.getManifests(), 1)) {
-      return;
-    }
   }
 }

@@ -18,6 +18,7 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.description;
 
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.description.KubernetesAtomicOperationDescription;
+import com.netflix.spinnaker.moniker.Moniker;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -27,5 +28,7 @@ import java.util.List;
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class KubernetesManifestOperationDescription extends KubernetesAtomicOperationDescription {
-  List<KubernetesAugmentedManifest> manifests = new ArrayList<>();
+  KubernetesManifest manifest;
+  Moniker moniker;
+  KubernetesManifestSpinnakerRelationships relationships;
 }
