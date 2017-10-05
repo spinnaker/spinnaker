@@ -92,7 +92,7 @@ class TaskController {
       .toInstant()
       .toEpochMilli()
 
-    executionRepository
+    def orchestrations = executionRepository
       .retrieveOrchestrationsForApplication(application, executionCriteria)
       .filter({ Orchestration orchestration -> !orchestration.startTime || (orchestration.startTime > startTimeCutoff) })
       .map({ Orchestration orchestration -> convert(orchestration) })
@@ -101,6 +101,8 @@ class TaskController {
       .toBlocking()
       .single()
       .sort(startTimeOrId)
+
+    orchestrations.subList(0, Math.min(orchestrations.size(), limit))
   }
 
   @PreAuthorize("@fiatPermissionEvaluator.storeWholePermission()")
@@ -169,7 +171,7 @@ class TaskController {
       executionRepository.retrievePipelinesForPipelineConfigId(it, executionCriteria)
     }).subscribeOn(Schedulers.io()).toList().toBlocking().single().sort(startTimeOrId)
 
-    return filterPipelinesByHistoryCutoff(allPipelines)
+    return filterPipelinesByHistoryCutoff(allPipelines, limit)
   }
 
   @PostAuthorize("hasPermission(returnObject.application, 'APPLICATION', 'READ')")
@@ -322,10 +324,10 @@ class TaskController {
       executionRepository.retrievePipelinesForPipelineConfigId(it, executionCriteria)
     }).subscribeOn(Schedulers.io()).toList().toBlocking().single().sort(startTimeOrId)
 
-    return filterPipelinesByHistoryCutoff(allPipelines)
+    return filterPipelinesByHistoryCutoff(allPipelines, limit)
   }
 
-  private List<Pipeline> filterPipelinesByHistoryCutoff(List<Pipeline> pipelines) {
+  private List<Pipeline> filterPipelinesByHistoryCutoff(List<Pipeline> pipelines, int limit) {
     // TODO-AJ The eventual goal is to return `allPipelines` without the need to group + filter below (WIP)
     def cutoffTime = (new Date(clock.millis()) - daysOfExecutionHistory).time
 
@@ -343,7 +345,7 @@ class TaskController {
         recentPipelines = sortedPipelinesGroup[0..upperBounds]
       }
 
-      pipelinesSatisfyingCutoff.addAll(recentPipelines)
+      pipelinesSatisfyingCutoff.addAll(recentPipelines.subList(0, Math.min(recentPipelines.size(), limit)))
     }
 
     return pipelinesSatisfyingCutoff.sort(startTimeOrId)

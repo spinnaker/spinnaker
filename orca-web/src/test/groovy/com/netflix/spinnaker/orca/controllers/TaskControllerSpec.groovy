@@ -268,7 +268,7 @@ class TaskControllerSpec extends Specification {
     List results = new ObjectMapper().readValue(response.contentAsString, List)
 
     then:
-    results.id == ['not-started-2', 'not-started-1', 'newer-2', 'newer-1']
+    results.id == ['newer-2', 'newer-1']
   }
 
   void 'should update existing stage context'() {
