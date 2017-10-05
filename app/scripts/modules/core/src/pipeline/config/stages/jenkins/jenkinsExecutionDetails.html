@@ -48,10 +48,20 @@
     <div class="row" ng-if="stage.context.parameters">
       <div class="col-md-12">
       <h5 style="margin-bottom: 0; padding-bottom: 5px;">Parameters</h5>
-      <dl style="font-size:12px;">
+      <dl>
         <dt ng-repeat-start="(key, val) in stage.context.parameters">{{key}}</dt>
         <dd ng-repeat-end>{{val}}</dd>
       </dl>
+      </div>
+    </div>
+
+    <div class="row" ng-if="stage.context.propertyFileContents">
+      <div class="col-md-12">
+        <h5 style="margin-bottom: 0; padding-bottom: 5px;">Property File</h5>
+        <dl>
+          <dt ng-repeat-start="(key, val) in stage.context.propertyFileContents">{{key}}</dt>
+          <dd ng-repeat-end>{{val}}</dd>
+        </dl>
       </div>
     </div>
 

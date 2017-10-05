@@ -2,7 +2,7 @@
   <execution-details-section-nav sections="configSections"></execution-details-section-nav>
   <div class="step-section-details" ng-if="detailsSection === 'scriptConfig'">
     <div class="row">
-      <div class="col-md-9">
+      <div class="col-md-12">
         <h5>Script Stage Configuration</h5>
         <dl class="dl-narrow dl-horizontal">
           <dt ng-if="stage.context.repoUrl">Repository Url</dt>
@@ -15,6 +15,16 @@
           <dd>{{stage.context.command}}</dd>
           <dt ng-if="stage.context.propertyFile">Properties</dt>
           <dd ng-if="stage.context.propertyFile">{{stage.context.propertyFile}}</dd>
+        </dl>
+      </div>
+    </div>
+
+    <div class="row" ng-if="stage.context.propertyFileContents">
+      <div class="col-md-12">
+        <h5 style="margin-bottom: 0; padding-bottom: 5px;">Property File</h5>
+        <dl>
+          <dt ng-repeat-start="(key, val) in stage.context.propertyFileContents">{{key}}</dt>
+          <dd ng-repeat-end>{{val}}</dd>
         </dl>
       </div>
     </div>
