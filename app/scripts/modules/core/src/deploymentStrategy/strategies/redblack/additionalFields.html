@@ -6,9 +6,23 @@
     </label>
   </div>
   <div class="col-md-12 form-inline">
-    <label><input class="form-control input-sm" style="width:50px" type="number" ng-model="$ctrl.command.maxRemainingAsgs" min="2">
+    <label>
       Maximum number of server groups to leave
       <help-field key="strategy.redblack.maxRemainingAsgs"></help-field>
     </label>
+    <input class="form-control input-sm" style="width: 50px" type="number" ng-model="$ctrl.command.maxRemainingAsgs" min="2">
+  </div>
+  <div class="col-md-12 form-inline">
+    <label>Wait Before Disable
+      <help-field
+        content="Time to wait before disabling old server group"></help-field>
+    </label>
+    <input class="form-control input-sm"
+           style="width: 60px"
+           min="0"
+           type="number"
+           ng-model="$ctrl.command.delayBeforeDisableSec"
+           placeholder="0">
+    seconds
   </div>
 </div>

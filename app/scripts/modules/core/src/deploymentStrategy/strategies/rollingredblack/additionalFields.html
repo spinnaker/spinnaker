@@ -6,4 +6,17 @@
     </label>
     <number-list model="$ctrl.command.targetPercentages" label="percentage"/>
   </div>
+  <div class="col-md-12 form-inline">
+    <label>Wait Before Disable
+      <help-field
+        content="Time to wait before disabling instances in old server group"></help-field>
+    </label>
+    <input class="form-control input-sm"
+           style="width: 60px"
+           min="0"
+           type="number"
+           ng-model="$ctrl.command.delayBeforeDisableSec"
+           placeholder="0">
+    seconds
+  </div>
 </div>
