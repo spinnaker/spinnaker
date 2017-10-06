@@ -88,6 +88,7 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
     List<String> namespaces = new ArrayList<>();
     List<String> omitNamespaces = new ArrayList<>();
     Registry registry;
+    boolean debug;
 
     public Builder accountName(String accountName) {
       this.accountName = accountName;
@@ -124,6 +125,11 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
       return this;
     }
 
+    public Builder debug(boolean debug) {
+      this.debug = debug;
+      return this;
+    }
+
     public KubernetesV2Credentials build() {
       KubeConfig kubeconfig;
       try {
@@ -149,7 +155,7 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
       namespaces = namespaces == null ? new ArrayList<>() : namespaces;
       omitNamespaces = omitNamespaces == null ? new ArrayList<>() : omitNamespaces;
       
-      return new KubernetesV2Credentials(accountName, client, namespaces, omitNamespaces, registry);
+      return new KubernetesV2Credentials(accountName, client, namespaces, omitNamespaces, registry, debug);
     }
 
   }
@@ -158,15 +164,15 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
       @NotNull ApiClient client,
       @NotNull List<String> namespaces,
       @NotNull List<String> omitNamespaces,
-      @NotNull Registry registry) {
+      @NotNull Registry registry,
+      boolean debug) {
     this.registry = registry;
     this.clock = registry.clock();
     this.accountName = accountName;
     this.namespaces = namespaces;
     this.omitNamespaces = omitNamespaces;
     this.client = client;
-      // TODO(lwander) make debug mode configurable
-    this.client.setDebugging(true);
+    this.client.setDebugging(debug);
     this.coreV1Api = new CoreV1Api(this.client);
     this.extensionsV1beta1Api = new ExtensionsV1beta1Api(this.client);
     this.appsV1beta1Api = new AppsV1beta1Api(this.client);

@@ -170,6 +170,7 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials> 
     List<LinkedDockerRegistryConfiguration> dockerRegistries;
     Registry spectatorRegistry;
     AccountCredentialsRepository accountCredentialsRepository;
+    boolean debug;
 
     Builder name(String name) {
       this.name = name;
@@ -269,6 +270,11 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials> 
       return this;
     }
 
+    Builder debug(boolean debug) {
+      this.debug = debug;
+      return this;
+    }
+
     private C buildCredentials() {
       switch (providerVersion) {
         case v1:
@@ -299,6 +305,7 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials> 
               .namespaces(namespaces)
               .omitNamespaces(omitNamespaces)
               .registry(spectatorRegistry)
+              .debug(debug)
               .build();
         default:
           throw new IllegalArgumentException("Unknown provider type: " + providerVersion);

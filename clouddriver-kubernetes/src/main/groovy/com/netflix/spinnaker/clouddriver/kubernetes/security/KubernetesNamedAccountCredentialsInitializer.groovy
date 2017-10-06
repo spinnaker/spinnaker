@@ -92,6 +92,7 @@ class KubernetesNamedAccountCredentialsInitializer implements CredentialsInitial
           .requiredGroupMembership(managedAccount.requiredGroupMembership)
           .permissions(managedAccount.permissions.build())
           .spectatorRegistry(spectatorRegistry)
+          .debug(managedAccount.debug)
           .build()
 
         accountCredentialsRepository.save(managedAccount.name, kubernetesAccount)
