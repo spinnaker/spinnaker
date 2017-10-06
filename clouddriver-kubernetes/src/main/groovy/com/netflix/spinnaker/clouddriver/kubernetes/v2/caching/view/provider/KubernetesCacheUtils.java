@@ -43,8 +43,12 @@ public class KubernetesCacheUtils {
     return cleanupCollection(cache.getAll(type));
   }
 
-  public Collection<CacheData> getAllMatchingPattern(String type, String key) {
-    return cleanupCollection(cache.getAll(type, cleanupCollection(cache.filterIdentifiers(type, key))));
+  public Collection<String> getAllKeysMatchingPattern(String type, String key) {
+    return cleanupCollection(cache.filterIdentifiers(type, key));
+  }
+
+  public Collection<CacheData> getAllDataMatchingPattern(String type, String key) {
+    return cleanupCollection(cache.getAll(type, getAllKeysMatchingPattern(type, key)));
   }
 
   public Optional<CacheData> getSingleEntry(String type, String key) {
@@ -58,6 +62,7 @@ public class KubernetesCacheUtils {
         .map(CacheData::getRelationships)
         .filter(Objects::nonNull)
         .map(r -> r.get(to))
+        .filter(Objects::nonNull)
         .flatMap(Collection::stream)
         .collect(Collectors.toList()));
   }

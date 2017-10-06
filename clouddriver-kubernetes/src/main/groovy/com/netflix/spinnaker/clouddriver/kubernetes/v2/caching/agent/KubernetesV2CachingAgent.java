@@ -22,6 +22,7 @@ import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.agent.CacheResult;
 import com.netflix.spinnaker.cats.agent.DefaultCacheResult;
 import com.netflix.spinnaker.cats.cache.CacheData;
+import com.netflix.spinnaker.cats.cache.DefaultCacheData;
 import com.netflix.spinnaker.cats.provider.ProviderCache;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.KubernetesCachingAgent;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
@@ -59,19 +60,19 @@ public abstract class KubernetesV2CachingAgent<T> extends KubernetesCachingAgent
         .filter(Objects::nonNull)
         .collect(Collectors.toList());
 
-    resourceData.addAll(resources.stream()
-        .map(rs -> KubernetesCacheDataConverter.convertAsArtifact(accountName, objectMapper, rs))
-        .filter(Objects::nonNull)
-        .collect(Collectors.toList()));
-
     List<CacheData> invertedRelationships = resourceData.stream()
         .map(KubernetesCacheDataConverter::invertRelationships)
         .flatMap(Collection::stream)
         .collect(Collectors.toList());
 
+    resourceData.addAll(resources.stream()
+        .map(rs -> KubernetesCacheDataConverter.convertAsArtifact(accountName, objectMapper, rs))
+        .filter(Objects::nonNull)
+        .collect(Collectors.toList()));
+
     resourceData.addAll(invertedRelationships);
 
-    Map<String, Collection<CacheData>> entries = KubernetesCacheDataConverter.stratifyCacheDataByGroup(resourceData);
+    Map<String, Collection<CacheData>> entries = KubernetesCacheDataConverter.stratifyCacheDataByGroup(KubernetesCacheDataConverter.dedupCacheData(resourceData));
     KubernetesCacheDataConverter.logStratifiedCacheData(getAgentType(), entries);
 
     return new DefaultCacheResult(entries);

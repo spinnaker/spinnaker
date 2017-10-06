@@ -160,7 +160,7 @@ public abstract class KubernetesV2OnDemandCachingAgent<T> extends KubernetesV2Ca
         CacheData mergedEntry = currentByGroup.stream()
             .filter(cd -> cd.getId().equals(addedCacheData.getId()))
             .findFirst()
-            .flatMap(cd -> Optional.of(mergeCacheData(cd, addedCacheData)))
+            .flatMap(cd -> Optional.of(KubernetesCacheDataConverter.mergeCacheData(cd, addedCacheData)))
             .orElse(addedCacheData);
 
         currentByGroup.removeIf(cd -> cd.getId().equals(addedCacheData.getId()));
@@ -169,22 +169,6 @@ public abstract class KubernetesV2OnDemandCachingAgent<T> extends KubernetesV2Ca
 
       current.put(group, currentByGroup);
     }
-  }
-
-  protected CacheData mergeCacheData(CacheData current, CacheData added) {
-    String id = current.getId();
-    Map<String, Object> attributes = current.getAttributes();
-    Map<String, Collection<String>> relationships = current.getRelationships();
-    attributes.putAll(added.getAttributes());
-    added.getRelationships()
-        .entrySet()
-        .forEach(entry -> relationships.merge(entry.getKey(), entry.getValue(),
-            (a, b) -> {
-              a.addAll(b);
-              return a;
-            }));
-
-    return new DefaultCacheData(id, attributes, relationships);
   }
 
   private void processOnDemandEntry(CacheData onDemandEntry) {
@@ -310,7 +294,7 @@ public abstract class KubernetesV2OnDemandCachingAgent<T> extends KubernetesV2Ca
           Map<String, Object> attributes = cd.getAttributes();
           return new ImmutableMap.Builder<String, Object>()
               .put("details", details)
-              .put("moniker", attributes.get(MONIKER_KEY))
+              .put(MONIKER_KEY, attributes.get(MONIKER_KEY))
               .put(CACHE_TIME_KEY, attributes.get(CACHE_TIME_KEY))
               .put(PROCESSED_COUNT_KEY, attributes.get(PROCESSED_COUNT_KEY))
               .put(PROCESSED_TIME_KEY, attributes.get(PROCESSED_TIME_KEY))

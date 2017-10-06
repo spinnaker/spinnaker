@@ -38,8 +38,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 
 import static com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys.Kind.ARTIFACT;
 import static com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys.LogicalKind.APPLICATION;
@@ -51,9 +54,10 @@ public class KubernetesCacheDataConverter {
 
   public static CacheData convertAsArtifact(String account, ObjectMapper mapper, Object resource) {
     KubernetesManifest manifest = mapper.convertValue(resource, KubernetesManifest.class);
+    String namespace = manifest.getNamespace();
     Artifact artifact = KubernetesManifestAnnotater.getArtifact(manifest);
     if (artifact.getType() == null) {
-      log.info("No assigned artifact type for this resource.");
+      log.info("No assigned artifact type for resource " + namespace + ":" + manifest.getFullResourceName());
       return null;
     }
 
@@ -69,6 +73,39 @@ public class KubernetesCacheDataConverter {
     cacheRelationships.put(manifest.getKind().toString(), Collections.singletonList(owner));
 
     return new DefaultCacheData(key, attributes, cacheRelationships);
+  }
+
+  public static Collection<CacheData> dedupCacheData(Collection<CacheData> input) {
+    Map<String, CacheData> cacheDataById = new HashMap<>();
+    for (CacheData cd : input) {
+      String id = cd.getId();
+      if (cacheDataById.containsKey(id)) {
+        CacheData other = cacheDataById.get(id);
+        cd = mergeCacheData(cd, other);
+      }
+
+      cacheDataById.put(id, cd);
+    }
+
+    return cacheDataById.values();
+  }
+
+  public static CacheData mergeCacheData(CacheData current, CacheData added) {
+    String id = current.getId();
+    Map<String, Object> attributes = current.getAttributes();
+    Map<String, Collection<String>> relationships = current.getRelationships();
+    attributes.putAll(added.getAttributes());
+    added.getRelationships()
+        .entrySet()
+        .forEach(entry -> relationships.merge(entry.getKey(), entry.getValue(),
+            (a, b) -> {
+              Set<String> result = new HashSet<>();
+              result.addAll(a);
+              result.addAll(b);
+              return result;
+            }));
+
+    return new DefaultCacheData(id, attributes, relationships);
   }
 
   public static CacheData convertAsResource(String account, ObjectMapper mapper, Object resource) {
@@ -128,7 +165,7 @@ public class KubernetesCacheDataConverter {
 
     String cluster = moniker.getCluster();
     if (!StringUtils.isEmpty(cluster)) {
-      cacheRelationships.put(CLUSTER.toString(), Collections.singletonList(Keys.cluster(account, cluster)));
+      cacheRelationships.put(CLUSTER.toString(), Collections.singletonList(Keys.cluster(account, application, cluster)));
     }
 
     if (relationships.getLoadBalancers() != null) {
@@ -194,7 +231,10 @@ public class KubernetesCacheDataConverter {
 
     for (Collection<String> relationships : relationshipGroupings.values()) {
       for (String relationship : relationships) {
-        result.add(invertSingleRelationship(group, key, relationship));
+        invertSingleRelationship(group, key, relationship).flatMap(cd -> {
+          result.add(cd);
+          return Optional.empty();
+        });
       }
     }
 
@@ -207,7 +247,7 @@ public class KubernetesCacheDataConverter {
     }
   }
 
-  static Map<String, Collection<CacheData>> stratifyCacheDataByGroup(List<CacheData> ungroupedCacheData) {
+  static Map<String, Collection<CacheData>> stratifyCacheDataByGroup(Collection<CacheData> ungroupedCacheData) {
     Map<String, Collection<CacheData>> result = new HashMap<>();
     for (CacheData cacheData : ungroupedCacheData) {
       String key = cacheData.getId();
@@ -226,9 +266,14 @@ public class KubernetesCacheDataConverter {
     return result;
   }
 
-  private static CacheData invertSingleRelationship(String group, String key, String relationship) {
+  private static Optional<CacheData> invertSingleRelationship(String group, String key, String relationship) {
     Map<String, Collection<String>> relationships = new HashMap<>();
     relationships.put(group, Collections.singletonList(key));
-    return new DefaultCacheData(relationship, null, relationships);
+    return Keys.parseKey(relationship).flatMap(k -> {
+      Map<String, Object> attributes = new ImmutableMap.Builder<String, Object>()
+          .put("name", k.getName())
+          .build();
+      return Optional.of(new DefaultCacheData(relationship, attributes, relationships));
+    });
   }
 }

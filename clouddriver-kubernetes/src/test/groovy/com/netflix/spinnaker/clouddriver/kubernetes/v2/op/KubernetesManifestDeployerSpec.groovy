@@ -100,7 +100,7 @@ metadata:
 
     NamerRegistry.lookup().withProvider(KubernetesCloudProvider.ID)
       .withAccount(ACCOUNT)
-      .setNamer(V1beta1ReplicaSet.class, new KubernetesManifestNamer());
+      .setNamer(KubernetesManifest.class, new KubernetesManifestNamer())
     
     def deployOp = new KubernetesManifestDeployer(deployDescription, registry)
 

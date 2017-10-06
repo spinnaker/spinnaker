@@ -24,6 +24,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+// TODO(lwander) integrate with KubernetesResourcePropertiesRegistry
 @Component
 public class KubernetesSpinnakerKindMap {
   public enum SpinnakerKind {

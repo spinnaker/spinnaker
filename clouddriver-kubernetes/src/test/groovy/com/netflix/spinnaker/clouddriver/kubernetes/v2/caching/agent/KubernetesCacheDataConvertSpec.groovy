@@ -72,7 +72,7 @@ metadata:
     } else {
       cacheData.relationships.get(Keys.LogicalKind.APPLICATION.toString()) == [Keys.application(application)]
       if (cluster) {
-        cacheData.relationships.get(Keys.LogicalKind.CLUSTER.toString()) == [Keys.cluster(account, cluster)]
+        cacheData.relationships.get(Keys.LogicalKind.CLUSTER.toString()) == [Keys.cluster(account, application, cluster)]
       } else {
         cacheData.relationships.get(Keys.LogicalKind.CLUSTER.toString()) == null
       }
@@ -133,8 +133,8 @@ metadata:
     KubernetesKind.REPLICA_SET | KubernetesApiVersion.APPS_V1BETA1 | ["application": []]
     KubernetesKind.REPLICA_SET | KubernetesApiVersion.APPS_V1BETA1 | [:]
     KubernetesKind.REPLICA_SET | KubernetesApiVersion.APPS_V1BETA1 | ["deployment": [Keys.infrastructure(KubernetesApiVersion.APPS_V1BETA1, KubernetesKind.DEPLOYMENT, "account", "namespace", "a-name")]]
-    KubernetesKind.SERVICE     | KubernetesApiVersion.V1           | ["cluster": [Keys.cluster("account", "name")], "application": [Keys.application("blarg")]]
-    KubernetesKind.SERVICE     | KubernetesApiVersion.V1           | ["cluster": [Keys.cluster("account", "name")], "application": [Keys.application("blarg"), Keys.application("asdfasdf")]]
+    KubernetesKind.SERVICE     | KubernetesApiVersion.V1           | ["cluster": [Keys.cluster("account", "app", "name")], "application": [Keys.application("blarg")]]
+    KubernetesKind.SERVICE     | KubernetesApiVersion.V1           | ["cluster": [Keys.cluster("account", "app", "name")], "application": [Keys.application("blarg"), Keys.application("asdfasdf")]]
   }
 
   def filterRelationships(Collection<String> keys, List<Triple<KubernetesApiVersion, KubernetesKind, String>> existingResources) {
@@ -170,7 +170,7 @@ metadata:
     def parsedLbs = loadBalancers.collect { lb -> KubernetesManifest.fromFullResourceName(lb) }
 
     then:
-    relationships.get(Keys.LogicalKind.CLUSTER.toString()) == [Keys.cluster(ACCOUNT, cluster)]
+    relationships.get(Keys.LogicalKind.CLUSTER.toString()) == [Keys.cluster(ACCOUNT, application, cluster)]
     relationships.get(Keys.LogicalKind.APPLICATION.toString()) == [Keys.application(application)]
 
     def services = filterRelationships(relationships.get(KubernetesKind.SERVICE.toString()), parsedLbs)

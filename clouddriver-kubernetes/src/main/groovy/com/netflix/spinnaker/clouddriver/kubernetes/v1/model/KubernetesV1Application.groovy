@@ -23,13 +23,13 @@ import groovy.transform.EqualsAndHashCode
 
 @CompileStatic
 @EqualsAndHashCode(includes = ["name"])
-class KubernetesApplication implements Application, Serializable {
+class KubernetesV1Application implements Application, Serializable {
   public static final TypeReference<Map<String, String>> ATTRIBUTES = new TypeReference<Map<String, String>>() {}
   final String name
   final Map<String, String> attributes
   final Map<String, Set<String>> clusterNames
 
-  KubernetesApplication(String name, Map<String, String> attributes, Map<String, Set<String>> clusterNames) {
+  KubernetesV1Application(String name, Map<String, String> attributes, Map<String, Set<String>> clusterNames) {
     this.name = name
     this.attributes = attributes
     this.clusterNames = clusterNames

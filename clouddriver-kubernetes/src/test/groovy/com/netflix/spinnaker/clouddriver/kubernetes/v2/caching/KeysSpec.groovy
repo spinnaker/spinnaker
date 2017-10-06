@@ -42,12 +42,12 @@ class KeysSpec extends Specification {
   @Unroll
   def "produces correct cluster keys #key"() {
     expect:
-    Keys.cluster(account, cluster) == key
+    Keys.cluster(account, application, cluster) == key
 
     where:
     account | application | cluster   || key
-    "ac"    | "app"       | "cluster" || "kubernetes.v2:logical:cluster:ac:cluster"
-    ""      | ""          | ""        || "kubernetes.v2:logical:cluster::"
+    "ac"    | "app"       | "cluster" || "kubernetes.v2:logical:cluster:ac:app:cluster"
+    ""      | ""          | ""        || "kubernetes.v2:logical:cluster:::"
   }
 
   @Unroll
@@ -82,21 +82,22 @@ class KeysSpec extends Specification {
   @Unroll
   def "unpacks cluster key for '#name' and '#account'"() {
     when:
-    def key = "kubernetes.v2:logical:cluster:$account:$name"
+    def key = "kubernetes.v2:logical:cluster:$account:$application:$name"
     def parsed = Keys.parseKey(key).get()
 
     then:
     parsed instanceof Keys.ClusterCacheKey
     def parsedClusterKey = (Keys.ClusterCacheKey) parsed
     parsedClusterKey.account == account
+    parsedClusterKey.application == application
     parsedClusterKey.name == name
 
     where:
-    account | name
-    "ac"    | "name"
-    ""      | "sdf"
-    "ac"    | ""
-    ""      | ""
+    account | application | name
+    "ac"    | ""          | "name"
+    ""      | "asdf"      | "sdf"
+    "ac"    | "ll"        | ""
+    ""      | ""          | ""
   }
 
   @Unroll

@@ -44,7 +44,7 @@ import java.util.List;
 public class KubernetesManifestDeployer implements AtomicOperation<DeploymentResult> {
   private final KubernetesManifestOperationDescription description;
   private final KubernetesV2Credentials credentials;
-  private final NamerRegistry.ResourceLookup resourceLookup;
+  private final Namer namer;
   private final KubernetesResourcePropertyRegistry registry;
   private static final String OP_NAME = "DEPLOY_KUBERNETES_MANIFESTS";
 
@@ -52,9 +52,10 @@ public class KubernetesManifestDeployer implements AtomicOperation<DeploymentRes
     this.description = description;
     this.credentials = (KubernetesV2Credentials) description.getCredentials().getCredentials();
     this.registry = registry;
-    this.resourceLookup = NamerRegistry.lookup()
+    this.namer = NamerRegistry.lookup()
         .withProvider(KubernetesCloudProvider.getID())
-        .withAccount(description.getCredentials().getName());
+        .withAccount(description.getCredentials().getName())
+        .withResource(KubernetesManifest.class);
   }
 
   private static Task getTask() {
@@ -73,7 +74,6 @@ public class KubernetesManifestDeployer implements AtomicOperation<DeploymentRes
     KubernetesResourceProperties properties = findResourceProperties(manifest);
     KubernetesDeployer deployer = properties.getDeployer();
     KubernetesArtifactConverter converter = properties.getConverter();
-    Namer namer = resourceLookup.withResource(deployer.getDeployedClass());
 
     Artifact artifact = properties.getConverter().toArtifact(manifest);
     Moniker moniker = description.getMoniker();

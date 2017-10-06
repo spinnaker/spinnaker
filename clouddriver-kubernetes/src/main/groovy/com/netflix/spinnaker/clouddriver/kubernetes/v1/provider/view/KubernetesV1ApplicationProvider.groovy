@@ -22,8 +22,8 @@ import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider
-import com.netflix.spinnaker.clouddriver.kubernetes.v1.model.KubernetesApplication
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.caching.Keys
+import com.netflix.spinnaker.clouddriver.kubernetes.v1.model.KubernetesV1Application
 import com.netflix.spinnaker.clouddriver.model.Application
 import com.netflix.spinnaker.clouddriver.model.ApplicationProvider
 import org.springframework.beans.factory.annotation.Autowired
@@ -33,13 +33,13 @@ import static com.netflix.spinnaker.clouddriver.kubernetes.v1.caching.Keys.Names
 import static com.netflix.spinnaker.clouddriver.kubernetes.v1.caching.Keys.Namespace.CLUSTERS
 
 @Component
-class KubernetesApplicationProvider implements ApplicationProvider {
+class KubernetesV1ApplicationProvider implements ApplicationProvider {
   private final KubernetesCloudProvider kubernetesCloudProvider
   private final Cache cacheView
   private final ObjectMapper objectMapper
 
   @Autowired
-  KubernetesApplicationProvider(KubernetesCloudProvider kubernetesCloudProvider, Cache cacheView, ObjectMapper objectMapper) {
+  KubernetesV1ApplicationProvider(KubernetesCloudProvider kubernetesCloudProvider, Cache cacheView, ObjectMapper objectMapper) {
     this.kubernetesCloudProvider = kubernetesCloudProvider
     this.cacheView = cacheView
     this.objectMapper = objectMapper.enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
@@ -63,7 +63,7 @@ class KubernetesApplicationProvider implements ApplicationProvider {
     }
 
     String name = Keys.parse(cacheData.id).application
-    Map<String, String> attributes = objectMapper.convertValue(cacheData.attributes, KubernetesApplication.ATTRIBUTES)
+    Map<String, String> attributes = objectMapper.convertValue(cacheData.attributes, KubernetesV1Application.ATTRIBUTES)
     Map<String, Set<String>> clusterNames = [:].withDefault { new HashSet<String>() }
     for (String clusterId : cacheData.relationships[CLUSTERS.ns]) {
       Map<String, String> cluster = Keys.parse(clusterId)
@@ -72,6 +72,6 @@ class KubernetesApplicationProvider implements ApplicationProvider {
       }
     }
 
-    new KubernetesApplication(name, attributes, clusterNames)
+    new KubernetesV1Application(name, attributes, clusterNames)
   }
 }

@@ -76,9 +76,9 @@ class KubernetesReplicaSetCachingAgentSpec extends Specification {
     def result = cachingAgent.loadData(providerCacheMock)
 
     then:
-    result.cacheResults[KubernetesKind.REPLICA_SET.name].size() == 2
+    result.cacheResults[KubernetesKind.REPLICA_SET.name].size() == 1
     result.cacheResults[KubernetesKind.REPLICA_SET.name].find { cacheData ->
-      cacheData.relationships.get(Keys.LogicalKind.CLUSTER.toString()) == [Keys.cluster(ACCOUNT, CLUSTER)]
+      cacheData.relationships.get(Keys.LogicalKind.CLUSTER.toString()) == [Keys.cluster(ACCOUNT, APPLICATION, CLUSTER)]
       cacheData.relationships.get(Keys.LogicalKind.APPLICATION.toString()) == [Keys.application(APPLICATION)]
       cacheData.attributes.get("name") == NAME
       cacheData.attributes.get("namespace") == NAMESPACE
@@ -100,7 +100,7 @@ class KubernetesReplicaSetCachingAgentSpec extends Specification {
     def cachingAgent = new KubernetesReplicaSetCachingAgent(namedAccountCredentials, new ObjectMapper(), registryMock, 0, 1)
     def a = new DefaultCacheData("id", attrA, relA)
     def b = new DefaultCacheData("id", attrB, relB)
-    cachingAgent.mergeCacheData(a, b)
+    KubernetesCacheDataConverter.mergeCacheData(a, b)
 
     then:
     b.getAttributes().collect { k, v -> a.getAttributes().get(k) == v }.every()

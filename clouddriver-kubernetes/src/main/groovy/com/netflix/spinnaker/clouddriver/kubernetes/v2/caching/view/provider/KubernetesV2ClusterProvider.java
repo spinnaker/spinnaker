@@ -17,7 +17,6 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.provider;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys;
@@ -56,19 +55,13 @@ import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.Kubern
 @Component
 @Slf4j
 public class KubernetesV2ClusterProvider implements ClusterProvider<KubernetesV2Cluster> {
-  private final KubernetesCloudProvider kubernetesCloudProvider;
   private final KubernetesCacheUtils cacheUtils;
-  private final ObjectMapper objectMapper;
   private final KubernetesSpinnakerKindMap kindMap;
 
   @Autowired
-  KubernetesV2ClusterProvider(KubernetesCloudProvider kubernetesCloudProvider,
-      KubernetesCacheUtils cacheUtils,
-      ObjectMapper objectMapper,
+  KubernetesV2ClusterProvider(KubernetesCacheUtils cacheUtils,
       KubernetesSpinnakerKindMap kindMap) {
-    this.kubernetesCloudProvider = kubernetesCloudProvider;
     this.cacheUtils = cacheUtils;
-    this.objectMapper = objectMapper;
     this.kindMap = kindMap;
   }
 
@@ -101,16 +94,15 @@ public class KubernetesV2ClusterProvider implements ClusterProvider<KubernetesV2
 
   @Override
   public Set<KubernetesV2Cluster> getClusters(String application, String account) {
-    String applicationKey = Keys.application(application);
+    String globKey = Keys.cluster(account, application, "*");
     return translateClusters(
-        cacheUtils.getTransitiveRelationship(APPLICATION.toString(),
-            Collections.singletonList(applicationKey),
-            CLUSTER.toString()
-        ).stream()
-        .filter(cd -> {
-          Optional<Keys.CacheKey> optionalKey = Keys.parseKey(cd.getId());
-          return optionalKey.isPresent() && ((ClusterCacheKey) optionalKey.get()).getAccount().equals(account);
-        }).collect(Collectors.toList())
+        cacheUtils.getAllDataMatchingPattern(CLUSTER.toString(), globKey)
+            .stream()
+            .filter(cd -> {
+              Optional<Keys.CacheKey> optionalKey = Keys.parseKey(cd.getId());
+              return optionalKey.isPresent() && ((ClusterCacheKey) optionalKey.get()).getAccount().equals(account);
+            })
+            .collect(Collectors.toList())
     );
   }
 
@@ -121,7 +113,7 @@ public class KubernetesV2ClusterProvider implements ClusterProvider<KubernetesV2
 
   @Override
   public KubernetesV2Cluster getCluster(String application, String account, String name, boolean includeDetails) {
-    return cacheUtils.getSingleEntry(CLUSTER.toString(), Keys.cluster(account, name))
+    return cacheUtils.getSingleEntry(CLUSTER.toString(), Keys.cluster(account, application, name))
         .map(entry -> {
           Collection<CacheData> clusterData = Collections.singletonList(entry);
           Set<KubernetesV2Cluster> result = includeDetails ? translateClustersWithRelationships(clusterData) : translateClusters(clusterData);

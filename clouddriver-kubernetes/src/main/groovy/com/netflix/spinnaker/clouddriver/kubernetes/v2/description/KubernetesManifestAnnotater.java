@@ -96,6 +96,11 @@ public class KubernetesManifestAnnotater {
   public static void annotateManifest(KubernetesManifest manifest, Artifact artifact) {
     Map<String, String> annotations = manifest.getAnnotations();
     storeAnnotations(annotations, artifact);
+
+    manifest.getSpecTemplateAnnotations().flatMap(a -> {
+      storeAnnotations(a, artifact);
+      return Optional.empty();
+    });
   }
 
   private static void storeAnnotations(Map<String, String> annotations, Moniker moniker) {
