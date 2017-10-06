@@ -16,8 +16,13 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.appengine
 
+import com.netflix.spinnaker.kork.artifacts.model.Artifact
+import com.netflix.spinnaker.kork.artifacts.model.ExpectedArtifact
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCreator
+import com.netflix.spinnaker.orca.pipeline.model.Execution
+import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.util.ArtifactResolver
 import groovy.util.logging.Slf4j
 import org.springframework.stereotype.Component
 
@@ -38,6 +43,7 @@ class AppEngineServerGroupCreator implements ServerGroupCreator {
       operation.putAll(stage.context)
     }
 
+    resolveArtifacts(stage, operation)
     operation.branch = AppEngineBranchFinder.findInStage(operation, stage) ?: operation.branch
 
     return [[(OPERATION): operation]]
@@ -46,5 +52,44 @@ class AppEngineServerGroupCreator implements ServerGroupCreator {
   @Override
   Optional<String> getHealthProviderName() {
     return Optional.empty()
+  }
+
+  static private void resolveArtifacts(Stage stage, Map operation) {
+    if (operation.repositoryUrl) {
+      return
+    }
+
+    Map expectedArtifact = operation.expectedArtifact
+    if (operation.fromArtifact && expectedArtifact && expectedArtifact.fields) {
+      Execution execution = stage.getExecution()
+      Map<String, Object> trigger = [:]
+      if (execution instanceof Pipeline) {
+        trigger = ((Pipeline) execution).getTrigger()
+      }
+
+      List<Map> artifacts = (List<Map>) trigger.artifacts
+      Artifact artifact = (Artifact) artifacts.find { a -> ArtifactResolver.expectedMatch((ExpectedArtifact) expectedArtifact, (Artifact) a) }
+      if (artifact?.reference) {
+        String repositoryUrl = ''
+        switch (artifact.type) {
+          // TODO(jacobkiefer): These object types are pretty fragile, we need to harden this somehow.
+          case 'gcs/object':
+            if (!artifact.reference.startsWith('gs://')) {
+              repositoryUrl = "gs://${artifact.reference}"
+            } else {
+              repositoryUrl = artifact.reference
+            }
+            operation.repositoryUrl = repositoryUrl
+            break
+          default:
+            throw new ArtifactResolver.ArtifactResolutionException('Unknown artifact type')
+            break
+        }
+      } else {
+        throw new ArtifactResolver.ArtifactResolutionException('Missing artifact reference for artifact: ${artifact}')
+      }
+    } else {
+      throw new ArtifactResolver.ArtifactResolutionException('AppEngine Deploy description missing repositoryUrl but misconfigured for resolving Artifacts')
+    }
   }
 }

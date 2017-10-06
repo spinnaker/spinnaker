@@ -35,6 +35,7 @@ dependencies {
   compile spinnaker.dependency('spectatorApi')
   compile spinnaker.dependency('kork')
   compile spinnaker.dependency('korkExceptions')
+  compile spinnaker.dependency('korkArtifacts')
   compile "com.fasterxml.jackson.datatype:jackson-datatype-jdk8:${spinnaker.version('jackson')}"
   compile "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${spinnaker.version('jackson')}"
 
