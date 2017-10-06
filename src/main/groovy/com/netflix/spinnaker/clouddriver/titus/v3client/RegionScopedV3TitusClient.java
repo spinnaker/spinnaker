@@ -41,6 +41,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import com.netflix.eureka2.grpc.nameresolver.Eureka2NameResolverFactory;
+
 @Log
 public class RegionScopedV3TitusClient implements TitusClient {
   private static final Logger LOGGER = LoggerFactory.getLogger(TitusRestAdapter.class);
@@ -64,11 +66,13 @@ public class RegionScopedV3TitusClient implements TitusClient {
 
   private final List<TitusJobCustomizer> titusJobCustomizers;
 
+  private final String environment;
+
   private final JobManagementServiceGrpc.JobManagementServiceBlockingStub grpcBlockingStub;
 
 
-  public RegionScopedV3TitusClient(TitusRegion titusRegion, Registry registry, List<TitusJobCustomizer> titusJobCustomizers) {
-    this(titusRegion, DEFAULT_CONNECT_TIMEOUT, DEFAULT_READ_TIMEOUT, TitusClientObjectMapper.configure(), registry, titusJobCustomizers);
+  public RegionScopedV3TitusClient(TitusRegion titusRegion, Registry registry, List<TitusJobCustomizer> titusJobCustomizers, String environment, String eurekaName) {
+    this(titusRegion, DEFAULT_CONNECT_TIMEOUT, DEFAULT_READ_TIMEOUT, TitusClientObjectMapper.configure(), registry, titusJobCustomizers, environment, eurekaName);
   }
 
   public RegionScopedV3TitusClient(TitusRegion titusRegion,
@@ -76,10 +80,13 @@ public class RegionScopedV3TitusClient implements TitusClient {
                                    long readTimeoutMillis,
                                    ObjectMapper objectMapper,
                                    Registry registry,
-                                   List<TitusJobCustomizer> titusJobCustomizers) {
+                                   List<TitusJobCustomizer> titusJobCustomizers,
+                                   String environment,
+                                   String eurekaName) {
     this.titusRegion = titusRegion;
     this.registry = registry;
     this.titusJobCustomizers = titusJobCustomizers;
+    this.environment = environment;
 
     String titusHost = "";
     try {
@@ -89,10 +96,18 @@ public class RegionScopedV3TitusClient implements TitusClient {
 
     }
 
-    NettyChannelBuilder nettyChannelBuilder = (NettyChannelBuilder) ManagedChannelBuilder.forAddress(titusHost, 7104);
-    ManagedChannel channel = nettyChannelBuilder
+    ManagedChannel eurekaChannel = NettyChannelBuilder
+      .forTarget("eurekaproxy." + titusRegion.getName() + ".discovery" + environment + ".netflix.net:8980")
+      .loadBalancerFactory(RoundRobinLoadBalancerFactory.getInstance())
+      .usePlaintext(true)
+      .userAgent("spinnaker")
+      .build();
+
+    ManagedChannel channel = NettyChannelBuilder
+      .forTarget("eureka:///" + eurekaName + "?eureka.status=up")
       .sslContext(ClientAuthenticationUtils.newSslContext("titusapi"))
       .negotiationType(NegotiationType.TLS)
+      .nameResolverFactory(new Eureka2NameResolverFactory(eurekaChannel)) // This enables the client to resolve the Eureka URI above into a set of addressable service endpoints.
       .loadBalancerFactory(RoundRobinLoadBalancerFactory.getInstance())
       .intercept(new GrpcMetricsInterceptor(registry, titusRegion))
       .intercept(new GrpcRetryInterceptor(DEFAULT_CONNECT_TIMEOUT))

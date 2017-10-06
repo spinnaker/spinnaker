@@ -33,9 +33,9 @@ class RegionScopedV3TitusClientSpec extends Specification {
     setup:
     Logger logger = LoggerFactory.getLogger(TitusClient)
     TitusRegion titusRegion = new TitusRegion(
-      "us-east-1", "test", "http://titusapi.mainvpc.us-east-1.dyntest.netflix.net:7001/"
+      "us-east-1", "test", "http://titusapi.mainvpc.us-east-1.dyntest.netflix.net:7001/", "3"
     );
-    TitusClient titusClient = new RegionScopedV3TitusClient(titusRegion, new NoopRegistry(), Collections.emptyList());
+    TitusClient titusClient = new RegionScopedV3TitusClient(titusRegion, new NoopRegistry(), Collections.emptyList(), "test", "titusapigrpc-mcetest-mainvpc");
 
     // ******************************************************************************************************************
 

@@ -35,6 +35,7 @@ class NetflixTitusCredentials implements AccountCredentials<TitusCredentials> {
   final String awsVpc
   final boolean discoveryEnabled
   final String stack
+  final String eurekaName
 
   private final List<TitusRegion> regions
 
@@ -49,7 +50,8 @@ class NetflixTitusCredentials implements AccountCredentials<TitusCredentials> {
                           boolean discoveryEnabled,
                           String discovery,
                           String stack,
-                          List<String> requiredGroupMembership
+                          List<String> requiredGroupMembership,
+                          String eurekaName
   ) {
     this.name = name
     this.environment = environment
@@ -63,6 +65,7 @@ class NetflixTitusCredentials implements AccountCredentials<TitusCredentials> {
     this.discovery = discovery
     this.stack = stack
     this.requiredGroupMembership = requiredGroupMembership
+    this.eurekaName = eurekaName
   }
 
   @Override
@@ -105,6 +108,10 @@ class NetflixTitusCredentials implements AccountCredentials<TitusCredentials> {
 
   List<String> getRequiredGroupMembership() {
     return requiredGroupMembership
+  }
+
+  String getEurekaName(){
+    return eurekaName
   }
 
 }

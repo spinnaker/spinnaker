@@ -18,6 +18,7 @@ dependencies {
   compile "io.grpc:grpc-protobuf:$grpcVersion"
   compile "io.grpc:grpc-stub:$grpcVersion"
   compile "io.grpc:grpc-netty:$grpcVersion"
+  compile 'netflix:eureka2-grpc-client-guice:latest.release'
   compile "netflix:metatron-ipc-common:latest.release"
   compile "netflix:netty-handler-jettyalpn:latest.release"
   compile "com.netflix.spinnaker.clouddriver:clouddriver-core:${clouddriverVersion}"
