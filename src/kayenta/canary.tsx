@@ -50,7 +50,7 @@ export default class Canary extends React.Component<ICanaryProps, {}> {
 
   public render() {
     return (
-      <Styleguide>
+      <Styleguide className="kayenta-root">
         <Provider store={this.store}>
           <div>
             <CanaryHeader tabs={canaryTabs} title="Canary"/>

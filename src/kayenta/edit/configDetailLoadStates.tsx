@@ -31,7 +31,7 @@ function ConfigDetailLoadStates({ configLoadState }: IConfigLoadStatesProps) {
     case ConfigDetailLoadState.Error:
       return (
         <CenteredDetail>
-          <p>Could not load canary config.</p>
+          <h3 className="heading-3">Could not load canary config.</h3>
         </CenteredDetail>
       );
 

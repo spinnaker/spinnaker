@@ -7,6 +7,10 @@
     }
   }
 
+  &.kayenta-root {
+    overflow: hidden;
+  }
+
   .spinner {
     position: inherit;
   }
@@ -22,6 +26,12 @@
 
   .config-detail {
     padding: 1rem;
+    overflow-y: scroll;
+    
+    max-height: 82vh;
+    @media screen and (max-height: 1200px) {
+      max-height: 75vh;
+    }
 
     .config-detail-header {
       padding-right: 15px;
