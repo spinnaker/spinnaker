@@ -31,6 +31,7 @@
   <cluster-selector
     clusters="vm.clusterList"
     model="vm.component[vm.clusterField]"
-    toggled="vm.clusterSelectInputToggled(isToggled)">
+    toggled="vm.clusterSelectInputToggled(isToggled)"
+    on-change="vm.clusterChanged(clusterName)">
   </cluster-selector>
 </stage-config-field>

@@ -28,7 +28,8 @@
       <div class="col-sm-9">
         <cluster-selector
           clusters="clusterList"
-          model="precondition.context.cluster">
+          model="precondition.context.cluster"
+          on-change="preconditionCtrl.clusterChanged(clusterName)">
         </cluster-selector>
       </div>
     </div>

@@ -22,7 +22,8 @@
         class="form-control input-sm"
         ng-if="vm.freeFormClusterField"
         ng-required="vm.required"
-        ng-model="vm.model" />
+        ng-model="vm.model"
+        ng-blur="vm.clusterChanged()"/>
   </div>
 
   <div class="pull-right">

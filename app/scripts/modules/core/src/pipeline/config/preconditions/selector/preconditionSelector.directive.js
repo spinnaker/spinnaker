@@ -3,6 +3,7 @@
 const angular = require('angular');
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
 import {LIST_EXTRACTOR_SERVICE} from 'core/application/listExtractor/listExtractor.service';
+import { isNil, first } from 'lodash';
 
 module.exports = angular.module('spinnaker.core.pipeline.config.preconditions.selector', [
   ACCOUNT_SERVICE,
@@ -45,6 +46,16 @@ module.exports = angular.module('spinnaker.core.pipeline.config.preconditions.se
       return preconditionConfig ? preconditionConfig.contextTemplateUrl : '';
     };
 
+    this.clusterChanged = function (clusterName) {
+        let clusterFilter = appListExtractorService.monikerClusterNameFilter(clusterName);
+        let moniker = first(appListExtractorService.getMonikers([$scope.application], clusterFilter));
+        if (!isNil(moniker)) {
+          //cluster monikers dont have sequences
+          moniker.sequence = undefined;
+        }
+        $scope.precondition.context.moniker = moniker;
+    };
+
     let setClusterList = () => {
       let clusterFilter = appListExtractorService.clusterFilterForCredentialsAndRegion($scope.precondition.context.credentials, $scope.precondition.context.regions);
       $scope.clusterList = appListExtractorService.getClusters([$scope.application], clusterFilter);
@@ -52,6 +63,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.preconditions.se
 
     this.resetSelectedCluster = () => {
       $scope.precondition.context.cluster = undefined;
+      $scope.precondition.context.moniker = undefined;
       setClusterList();
     };
 

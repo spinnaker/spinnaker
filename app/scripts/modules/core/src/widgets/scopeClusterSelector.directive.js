@@ -14,12 +14,14 @@ module.exports = angular
         clusters: '=',
         required: '=?',
         toggled: '&?',
+        onChange: '&?'
       },
       controllerAs: 'vm',
       controller: function controller() {
         var vm = this;
 
         vm.toggled = vm.toggled || angular.noop;
+        vm.onChange = vm.onChange || angular.noop;
         vm.required = vm.required || false;
 
         let selectedNotInClusterList = () => {
@@ -28,6 +30,10 @@ module.exports = angular
 
         let modelIsSet = () => {
           return vm.model !== undefined || vm.model !== null || vm.model.trim() !== '';
+        };
+
+        vm.clusterChanged = function() {
+          vm.onChange({clusterName:vm.model});
         };
 
         vm.freeFormClusterField = modelIsSet() ? selectedNotInClusterList() : false;

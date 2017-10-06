@@ -87,6 +87,12 @@ export class AppListExtractor {
     };
   }
 
+  public monikerClusterNameFilter(clusterName: string): IServerGroupFilter {
+    return (serverGroup: IServerGroup) => {
+      return serverGroup.moniker.cluster === clusterName;
+    }
+  }
+
   public clusterFilterForCredentialsAndRegion(credentials: string, region: string | string[]): IServerGroupFilter {
     return (serverGroup: IServerGroup) => {
       const accountMatches = credentials ? serverGroup.account === credentials : true;

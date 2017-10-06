@@ -68,4 +68,3 @@ module.exports = angular.module('spinnaker.amazon.pipeline.stage.disableClusterS
     }
     stage.preferLargerOverNewer = stage.preferLargerOverNewer.toString();
   });
-

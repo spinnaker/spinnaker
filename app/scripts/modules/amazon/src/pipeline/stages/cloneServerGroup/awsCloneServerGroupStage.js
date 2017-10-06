@@ -60,7 +60,7 @@ module.exports = angular.module('spinnaker.amazon.pipeline.stage.cloneServerGrou
 
     this.targetClusterUpdated = () => {
       if (stage.targetCluster) {
-        const filterByCluster = (serverGroup) => serverGroup.moniker.cluster === stage.targetCluster;
+        const filterByCluster = appListExtractorService.monikerClusterNameFilter(stage.targetCluster);
         let moniker = _.first(appListExtractorService.getMonikers([$scope.application], filterByCluster));
         stage.stack = moniker.stack;
         stage.freeFormDetails = moniker.detail;

@@ -75,6 +75,19 @@ module.exports = angular
           isToggled ? setToggledState() : setUnToggledState();
         };
 
+        vm.clusterChanged = (clusterName) => {
+          const filterByCluster = appListExtractorService.monikerClusterNameFilter(clusterName);
+          let clusterMoniker = _.first(_.uniq(appListExtractorService.getMonikers([vm.application], filterByCluster)));
+          if(_.isNil(clusterMoniker)) {
+            //remove the moniker from the stage if one doesn't exist.
+            vm.component.moniker = undefined;
+          } else {
+            //clusters don't contain sequences, so null it out.
+            clusterMoniker.sequence = null;
+            vm.component.moniker = clusterMoniker;
+          }
+        };
+
         vm.accountUpdated = () => {
           vm.component[this.clusterField] = undefined;
           setRegionList();
