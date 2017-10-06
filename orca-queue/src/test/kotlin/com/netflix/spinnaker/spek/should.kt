@@ -16,9 +16,14 @@
 
 package com.netflix.spinnaker.spek
 
+import com.natpryce.hamkrest.allElements
 import com.natpryce.hamkrest.equalTo
 import com.natpryce.hamkrest.should.shouldMatch
 
 infix fun <T> T.shouldEqual(expected: T) {
   this shouldMatch equalTo(expected)
+}
+
+infix fun <E, T : Iterable<E>> T.shouldAllEqual(expected: E) {
+  this shouldMatch allElements(equalTo(expected))
 }

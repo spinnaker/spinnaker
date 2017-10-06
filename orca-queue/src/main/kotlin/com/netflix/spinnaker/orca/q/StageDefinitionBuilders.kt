@@ -73,7 +73,7 @@ private fun processTaskNode(
 fun StageDefinitionBuilder.buildSyntheticStages(
   stage: Stage<out Execution<*>>,
   callback: (Stage<*>) -> Unit = {}
-): Unit {
+) {
   val executionWindow = stage.buildExecutionWindow()
   syntheticStages(stage).apply {
     buildBeforeStages(stage, executionWindow, callback)
@@ -108,6 +108,7 @@ private fun SyntheticStages.buildBeforeStages(stage: Stage<out Execution<*>>, ex
     listOf(executionWindow) + this[STAGE_BEFORE].orEmpty()
   }
   beforeStages.forEachIndexed { i, it ->
+    it.sanitizeContext()
     it.setRefId("${stage.getRefId()}<${i + 1}")
     if (i > 0) {
       it.setRequisiteStageRefIds(setOf("${stage.getRefId()}<$i"))
@@ -124,6 +125,7 @@ private fun SyntheticStages.buildBeforeStages(stage: Stage<out Execution<*>>, ex
 private fun SyntheticStages.buildAfterStages(stage: Stage<out Execution<*>>, callback: (Stage<*>) -> Unit) {
   val afterStages = this[STAGE_AFTER].orEmpty()
   afterStages.forEachIndexed { i, it ->
+    it.sanitizeContext()
     it.setRefId("${stage.getRefId()}>${i + 1}")
     if (i > 0) {
       it.setRequisiteStageRefIds(setOf("${stage.getRefId()}>$i"))
@@ -143,6 +145,7 @@ private fun SyntheticStages.buildAfterStages(stage: Stage<out Execution<*>>, cal
 private fun StageDefinitionBuilder.buildParallelStages(stage: Stage<out Execution<*>>, executionWindow: Stage<out Execution<*>>?, callback: (Stage<*>) -> Unit) {
   parallelStages(stage)
     .forEachIndexed { i, it ->
+      it.sanitizeContext()
       it.setRefId("${stage.getRefId()}=${i + 1}")
       it.setRequisiteStageRefIds(if (executionWindow == null) emptySet() else setOf(executionWindow.getRefId()))
       stage.getExecution().apply {
@@ -182,9 +185,18 @@ private fun Stage<out Execution<*>>.buildExecutionWindow(): Stage<*>? {
 }
 
 @Suppress("UNCHECKED_CAST")
-private fun Execution<*>.injectStage(index: Int, it: Stage<*>) {
+private fun Execution<*>.injectStage(index: Int, stage: Stage<*>) {
   when (this) {
-    is Pipeline -> stages.add(index, it as Stage<Pipeline>)
-    is Orchestration -> stages.add(index, it as Stage<Orchestration>)
+    is Pipeline -> stages.add(index, stage as Stage<Pipeline>)
+    is Orchestration -> stages.add(index, stage as Stage<Orchestration>)
+  }
+}
+
+private fun Stage<*>.sanitizeContext() {
+  if (getType() != RestrictExecutionDuringTimeWindow.TYPE) {
+    getContext().apply {
+      remove("restrictExecutionDuringTimeWindow")
+      remove("restrictedExecutionWindow")
+    }
   }
 }

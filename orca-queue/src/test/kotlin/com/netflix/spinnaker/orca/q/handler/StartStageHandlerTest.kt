@@ -38,6 +38,7 @@ import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
 import com.netflix.spinnaker.orca.q.*
 import com.netflix.spinnaker.orca.time.fixedClock
 import com.netflix.spinnaker.spek.and
+import com.netflix.spinnaker.spek.shouldAllEqual
 import com.netflix.spinnaker.spek.shouldEqual
 import com.nhaarman.mockito_kotlin.*
 import org.jetbrains.spek.api.dsl.*
@@ -543,6 +544,7 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
             allValues[1..3].forEach {
               it.requisiteStageRefIds shouldEqual setOf(firstValue.refId)
             }
+            allValues[1..3].map { it.type } shouldAllEqual singleTaskStage.type
           }
         }
 

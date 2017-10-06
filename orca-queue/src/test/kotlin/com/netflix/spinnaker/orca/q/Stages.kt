@@ -53,8 +53,8 @@ val stageWithSyntheticBefore = object : StageDefinitionBuilder {
   }
 
   override fun <T : Execution<T>> aroundStages(stage: Stage<T>) = listOf(
-    newStage(stage.execution, singleTaskStage.type, "pre1", mutableMapOf(), stage, STAGE_BEFORE),
-    newStage(stage.execution, singleTaskStage.type, "pre2", mutableMapOf(), stage, STAGE_BEFORE)
+    newStage(stage.execution, singleTaskStage.type, "pre1", stage.context, stage, STAGE_BEFORE),
+    newStage(stage.execution, singleTaskStage.type, "pre2", stage.context, stage, STAGE_BEFORE)
   )
 }
 
@@ -62,7 +62,7 @@ val stageWithSyntheticBeforeAndNoTasks = object : StageDefinitionBuilder {
   override fun getType() = "stageWithSyntheticBeforeAndNoTasks"
 
   override fun <T : Execution<T>> aroundStages(stage: Stage<T>) = listOf(
-    newStage(stage.execution, singleTaskStage.type, "pre", mutableMapOf(), stage, STAGE_BEFORE)
+    newStage(stage.execution, singleTaskStage.type, "pre", stage.context, stage, STAGE_BEFORE)
   )
 }
 
@@ -70,8 +70,8 @@ val stageWithSyntheticBeforeAndAfterAndNoTasks = object : StageDefinitionBuilder
   override fun getType() = "stageWithSyntheticBeforeAndAfterAndNoTasks"
 
   override fun <T : Execution<T>> aroundStages(stage: Stage<T>) = listOf(
-    newStage(stage.execution, singleTaskStage.type, "pre", mutableMapOf(), stage, STAGE_BEFORE),
-    newStage(stage.execution, singleTaskStage.type, "post", mutableMapOf(), stage, STAGE_AFTER)
+    newStage(stage.execution, singleTaskStage.type, "pre", stage.context, stage, STAGE_BEFORE),
+    newStage(stage.execution, singleTaskStage.type, "post", stage.context, stage, STAGE_AFTER)
   )
 }
 
@@ -82,8 +82,8 @@ val stageWithSyntheticAfter = object : StageDefinitionBuilder {
   }
 
   override fun <T : Execution<T>> aroundStages(stage: Stage<T>) = listOf(
-    newStage(stage.execution, singleTaskStage.type, "post1", mutableMapOf(), stage, STAGE_AFTER),
-    newStage(stage.execution, singleTaskStage.type, "post2", mutableMapOf(), stage, STAGE_AFTER)
+    newStage(stage.execution, singleTaskStage.type, "post1", stage.context, stage, STAGE_AFTER),
+    newStage(stage.execution, singleTaskStage.type, "post2", stage.context, stage, STAGE_AFTER)
   )
 }
 
@@ -91,7 +91,7 @@ val stageWithSyntheticAfterAndNoTasks = object : StageDefinitionBuilder {
   override fun getType() = "stageWithSyntheticAfterAndNoTasks"
 
   override fun <T : Execution<T>> aroundStages(stage: Stage<T>) = listOf(
-    newStage(stage.execution, singleTaskStage.type, "post", mutableMapOf(), stage, STAGE_AFTER)
+    newStage(stage.execution, singleTaskStage.type, "post", stage.context, stage, STAGE_AFTER)
   )
 }
 
@@ -99,17 +99,16 @@ val stageWithNestedSynthetics = object : StageDefinitionBuilder {
   override fun getType() = "stageWithNestedSynthetics"
 
   override fun <T : Execution<T>> aroundStages(stage: Stage<T>) = listOf(
-    newStage(stage.execution, stageWithSyntheticBefore.type, "post", mutableMapOf(), stage, STAGE_AFTER)
+    newStage(stage.execution, stageWithSyntheticBefore.type, "post", stage.context, stage, STAGE_AFTER)
   )
 }
 
 val stageWithParallelBranches = object : StageDefinitionBuilder {
   override fun <T : Execution<T>> parallelStages(stage: Stage<T>) =
-    listOf(
-      newStage(stage.execution, "singleTaskStage", "run in us-east-1", mapOf("region" to "us-east-1"), stage, STAGE_BEFORE),
-      newStage(stage.execution, "singleTaskStage", "run in us-west-2", mapOf("region" to "us-west-2"), stage, STAGE_BEFORE),
-      newStage(stage.execution, "singleTaskStage", "run in eu-west-1", mapOf("region" to "eu-west-1"), stage, STAGE_BEFORE)
-    )
+    listOf("us-east-1", "us-west-2", "eu-west-1")
+      .map { region ->
+        newStage(stage.execution, singleTaskStage.type, "run in $region", stage.context + mapOf("region" to region), stage, STAGE_BEFORE)
+      }
 
   override fun <T : Execution<T>> taskGraph(stage: Stage<T>, builder: Builder) {
     builder.withTask("post-branch", DummyTask::class.java)

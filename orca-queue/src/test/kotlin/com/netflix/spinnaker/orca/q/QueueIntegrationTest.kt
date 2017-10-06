@@ -31,14 +31,17 @@ import com.netflix.spinnaker.orca.config.OrcaConfiguration
 import com.netflix.spinnaker.orca.exceptions.DefaultExceptionHandler
 import com.netflix.spinnaker.orca.pipeline.RestrictExecutionDuringTimeWindow
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
+import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder.newStage
 import com.netflix.spinnaker.orca.pipeline.TaskNode.Builder
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_BEFORE
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.persistence.jedis.JedisExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
 import com.netflix.spinnaker.orca.test.redis.EmbeddedRedisConfiguration
+import com.netflix.spinnaker.spek.shouldAllEqual
 import com.netflix.spinnaker.spek.shouldEqual
 import com.nhaarman.mockito_kotlin.*
 import org.junit.After
@@ -59,10 +62,10 @@ import java.time.Instant.now
 import java.time.ZoneId
 
 @SpringBootTest(classes = arrayOf(TestConfig::class), properties = arrayOf(
-  "queue.retry.delay.ms=10",
-  "logging.level.root=ERROR",
-  "logging.level.org.springframework.test=ERROR",
-  "logging.level.com.netflix.spinnaker=FATAL"
+  "queue.retry.delay.ms=10"//,
+//  "logging.level.root=ERROR",
+//  "logging.level.org.springframework.test=ERROR",
+//  "logging.level.com.netflix.spinnaker=FATAL"
 ))
 @RunWith(SpringRunner::class)
 open class QueueIntegrationTest {
@@ -422,6 +425,44 @@ open class QueueIntegrationTest {
     }
   }
 
+  @Test
+  fun `parallel stages do not duplicate execution windows`() {
+    val pipeline = pipeline {
+      application = "spinnaker"
+      stage {
+        refId = "1"
+        type = "parallel"
+        context = mapOf(
+          "restrictExecutionDuringTimeWindow" to true,
+          "restrictedExecutionWindow" to mapOf(
+            "days" to (1..7).toList(),
+            "whitelist" to listOf(mapOf(
+              "startHour" to now().atZone(timeZone).hour,
+              "startMin" to 0,
+              "endHour" to now().atZone(timeZone).hour + 1,
+              "endMin" to 0
+            ))
+          )
+        )
+      }
+    }
+    repository.store(pipeline)
+
+    whenever(dummyTask.timeout) doReturn 2000L
+    whenever(dummyTask.execute(any())) doReturn TaskResult.SUCCEEDED
+
+    context.runToCompletion(pipeline, runner::start, repository)
+
+    repository.retrievePipeline(pipeline.id).apply {
+      status shouldEqual SUCCEEDED
+      stages.size shouldEqual 5
+      stages.first().type shouldEqual RestrictExecutionDuringTimeWindow.TYPE
+      stages[1..3].map { it.type } shouldAllEqual "dummy"
+      stages.last().type shouldEqual "parallel"
+      stages.map { it.status } shouldMatch allElements(equalTo(SUCCEEDED))
+    }
+  }
+
   // TODO: this test is verifying a bunch of things at once, it would make sense to break it up
   @Test fun `can resolve expressions in stage contexts`() {
     val pipeline = pipeline {
@@ -614,12 +655,21 @@ open class TestConfig {
     on { timeout } doReturn Duration.ofMinutes(2).toMillis()
   }
 
-  @Bean open fun dummyStage(): StageDefinitionBuilder = object : StageDefinitionBuilder {
+  @Bean open fun dummyStage() = object : StageDefinitionBuilder {
     override fun <T : Execution<T>> taskGraph(stage: Stage<T>, builder: Builder) {
       builder.withTask("dummy", DummyTask::class.java)
     }
 
     override fun getType() = "dummy"
+  }
+
+  @Bean open fun parallelStage() = object : StageDefinitionBuilder {
+    override fun <T : Execution<T>> parallelStages(stage: Stage<T>) =
+      listOf("us-east-1", "us-west-2", "eu-west-1").map { region ->
+        newStage(stage.execution, "dummy", "dummy $region", stage.context + mapOf("region" to region), stage, STAGE_BEFORE)
+      }
+
+    override fun getType() = "parallel"
   }
 
   @Bean open fun currentInstanceId() = "localhost"
