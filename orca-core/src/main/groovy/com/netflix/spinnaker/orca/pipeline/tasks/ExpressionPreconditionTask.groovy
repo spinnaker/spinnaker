@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.pipeline.tasks
 
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.TaskResult
+import com.netflix.spinnaker.orca.pipeline.expressions.PipelineExpressionEvaluator
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import org.springframework.beans.factory.annotation.Autowired
@@ -49,12 +50,20 @@ class ExpressionPreconditionTask implements PreconditionTask {
       expression = matcher.group(1)
     }
 
+    ensureEvaluationSummaryIncluded(result, stage, expression)
     def status = Boolean.valueOf(expression) ? ExecutionStatus.SUCCEEDED : ExecutionStatus.TERMINAL
     return new TaskResult(status, [
       context: new HashMap(stage.context.context as Map) + [
           expressionResult: expression
       ]
     ])
+  }
+
+  private static void ensureEvaluationSummaryIncluded(Map<String, Object> result, Stage stage, String expression) {
+    if (!expression.trim().startsWith('$') && PipelineExpressionEvaluator.SUMMARY in result) {
+      stage.context[PipelineExpressionEvaluator.SUMMARY] = PipelineExpressionEvaluator.SUMMARY in stage.context ?
+        stage.context[PipelineExpressionEvaluator.SUMMARY] + result[PipelineExpressionEvaluator.SUMMARY] : result[PipelineExpressionEvaluator.SUMMARY]
+    }
   }
 
   static class StageData {
