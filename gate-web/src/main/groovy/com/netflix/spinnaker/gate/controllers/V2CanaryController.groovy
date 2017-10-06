@@ -20,6 +20,7 @@ import com.netflix.spinnaker.gate.services.internal.KayentaService
 import io.swagger.annotations.ApiOperation
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RestController
@@ -40,5 +41,17 @@ class V2CanaryController {
   @RequestMapping(value = "/v2/canaries/judges", method = RequestMethod.GET)
   List listJudges() {
     kayentaService.listJudges()
+  }
+
+  @ApiOperation(value = "Retrieve a list of canary judge results")
+  @RequestMapping(value = "/v2/canaries/canaryJudgeResult", method = RequestMethod.GET)
+  List listResults() {
+    kayentaService.listResults()
+  }
+
+  @ApiOperation(value = "Retrieve a canary judge result by id")
+  @RequestMapping(value = "/v2/canaries/canaryJudgeResult/{id}", method = RequestMethod.GET)
+  Map getResult(@PathVariable String id) {
+    kayentaService.getResult(id)
   }
 }

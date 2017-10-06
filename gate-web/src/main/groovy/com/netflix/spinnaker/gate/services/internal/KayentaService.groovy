@@ -40,4 +40,10 @@ interface KayentaService {
 
   @GET("/judges")
   List listJudges()
+
+  @GET("/canaryJudgeResult")
+  List listResults()
+
+  @GET("/canaryJudgeResult/{id}")
+  Map getResult(@Path("id") String id)
 }
