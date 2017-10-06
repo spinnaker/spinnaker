@@ -66,7 +66,7 @@ const deleteConfigSuccessEpic = (action$: Observable<Action & any>, store: Middl
     .filter(typeMatches(Actions.DELETE_CONFIG_SUCCESS))
     .concatMap(() =>
       Observable.forkJoin(
-        ReactInjector.$state.go('^.default'),
+        ReactInjector.$state.go('^.configDefault'),
         // TODO: handle config summary load failure (in general, not just here).
         store.getState().data.application.getDataSource('canaryConfigs').refresh(true),
       )

@@ -9,7 +9,7 @@ import { CANARY_COMPONENTS } from 'kayenta/components/components.module';
 import { CANARY_DATA_SOURCE } from 'kayenta/canary.dataSource';
 import { CANARY_HELP } from 'kayenta/canary.help';
 import { CANARY_STAGES } from 'kayenta/stages/stages.module';
-import { CANARY_STATES } from 'kayenta/canary.states';
+import { CANARY_STATES } from 'kayenta/navigation/canary.states';
 import 'kayenta/metricStore/index';
 
 // load all templates into the $templateCache

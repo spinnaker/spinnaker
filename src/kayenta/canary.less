@@ -14,7 +14,7 @@
   .config-list {
     position: fixed;
     ul {
-      max-height: 70vh;
+      max-height: calc(~"70vh - 44px"); // i.e., minus the footer.
       overflow: auto;
       width: 260px;
     }
@@ -22,6 +22,14 @@
 
   .config-detail {
     padding: 1rem;
+
+    .config-detail-header {
+      padding-right: 15px;
+      padding-bottom: 7px;
+      .heading-1 {
+        margin: 3px 0 0 0;
+      }
+    }
   }
 
   .group-tabs {

@@ -72,6 +72,7 @@ window.spinnakerSettings = {
     storageAccountName: 'my-google-account',
     defaultJudge: 'NetflixACAJudge-v1.0',
     metricStore: defaultMetricStore,
+    reportsEnabled: true,
     defaultServiceSettings: {
       atlas: {
         name: 'atlas',

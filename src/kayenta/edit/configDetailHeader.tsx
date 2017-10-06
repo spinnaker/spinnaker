@@ -16,9 +16,9 @@ interface IConfigDetailStateProps {
  */
 function ConfigDetailHeader({ selectedConfig }: IConfigDetailStateProps) {
   return (
-    <div className="horizontal">
+    <div className="horizontal config-detail-header">
       <div className="flex-4">
-        <h1 className="heading-1 color-text-primary" style={{marginTop: '10px'}}>Configuration{selectedConfig ? `: ${selectedConfig.name}` : ''}</h1>
+        <h1 className="heading-1 color-text-primary">Configuration{selectedConfig ? `: ${selectedConfig.name}` : ''}</h1>
       </div>
       <div className="flex-1">
         <h5 className="heading-5">

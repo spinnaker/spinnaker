@@ -13,6 +13,8 @@ import { INITIALIZE } from './actions/index';
 import { IJudge } from './domain/IJudge';
 import Styleguide from './layout/styleguide';
 import { CanarySettings } from './canary.settings';
+import { CanaryHeader } from './navigation/canaryHeader';
+import { canaryTabs } from './navigation/canaryTabs';
 
 export interface ICanaryProps {
   app: Application;
@@ -50,7 +52,10 @@ export default class Canary extends React.Component<ICanaryProps, {}> {
     return (
       <Styleguide>
         <Provider store={this.store}>
-          <CanaryConfigEdit/>
+          <div>
+            <CanaryHeader tabs={canaryTabs} title="Canary"/>
+            <CanaryConfigEdit/>
+          </div>
         </Provider>
       </Styleguide>
     );

@@ -4,7 +4,7 @@ import CenteredDetail from './layout/centeredDetail';
 export default function SelectConfig() {
   return (
     <CenteredDetail>
-      <p>Click a configuration to edit.</p>
+      <h3 className="heading-3">Click a configuration to edit.</h3>
     </CenteredDetail>
   );
 }
