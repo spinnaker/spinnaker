@@ -53,6 +53,7 @@ class DeployAppengineDescriptionValidator extends DescriptionValidator<DeployApp
     helper.validateStack(description.stack, "stack")
     helper.validateDetails(description.freeFormDetails, "freeFormDetails")
     helper.validateNotEmpty(description.repositoryUrl, "repositoryUrl")
+
     if (!(description.configFilepaths || description.configFiles)) {
       helper.validateNotEmpty(description.configFilepaths, "configFilepaths")
       helper.validateNotEmpty(description.configFiles, "configFiles")

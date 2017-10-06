@@ -17,13 +17,13 @@
 package com.netflix.spinnaker.clouddriver.appengine.deploy.ops
 
 import com.netflix.spinnaker.clouddriver.appengine.AppengineJobExecutor
-import com.netflix.spinnaker.clouddriver.appengine.gcsClient.AppengineGcsRepositoryClient
 import com.netflix.spinnaker.clouddriver.appengine.deploy.AppengineMutexRepository
 import com.netflix.spinnaker.clouddriver.appengine.deploy.AppengineServerGroupNameResolver
 import com.netflix.spinnaker.clouddriver.appengine.deploy.description.DeployAppengineDescription
 import com.netflix.spinnaker.clouddriver.appengine.deploy.exception.AppengineOperationException
-import com.netflix.spinnaker.clouddriver.appengine.storage.config.StorageConfigurationProperties
+import com.netflix.spinnaker.clouddriver.appengine.gcsClient.AppengineGcsRepositoryClient
 import com.netflix.spinnaker.clouddriver.appengine.storage.GcsStorageService
+import com.netflix.spinnaker.clouddriver.appengine.storage.config.StorageConfigurationProperties
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.deploy.DeploymentResult

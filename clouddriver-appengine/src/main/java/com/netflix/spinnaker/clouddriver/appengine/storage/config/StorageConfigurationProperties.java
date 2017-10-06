@@ -17,15 +17,17 @@
 package com.netflix.spinnaker.clouddriver.appengine.storage.config;
 
 import groovy.transform.ToString;
+import lombok.Data;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import retrofit.client.Response;
 import retrofit.mime.TypedByteArray;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 
-import lombok.Data;
-
 @Data
+@ConfigurationProperties("storage.gcs")
 public class StorageConfigurationProperties {
   @Data
   @ToString(includeNames = true)

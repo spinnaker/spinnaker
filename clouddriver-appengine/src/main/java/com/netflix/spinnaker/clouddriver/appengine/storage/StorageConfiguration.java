@@ -17,31 +17,24 @@
 package com.netflix.spinnaker.clouddriver.appengine.storage;
 
 import com.netflix.spinnaker.clouddriver.appengine.storage.config.StorageConfigurationProperties;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
 import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.beans.factory.annotation.Autowired;
+
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 
 
 @Configuration
-@EnableConfigurationProperties
-@EnableScheduling
 @ConditionalOnProperty("storage.gcs.enabled")
+@EnableConfigurationProperties(StorageConfigurationProperties.class)
+@EnableScheduling
 class StorageConfiguration {
   @Autowired
   StorageConfigurationProperties storageAccountInfo;
-
-  @Bean
-  @ConfigurationProperties("storage.gcs")
-  StorageConfigurationProperties storageConfigurationProperties() {
-    return new StorageConfigurationProperties();
-  }
 
   @Bean
   GcsStorageService.Factory storageServiceFactory(String clouddriverUserAgentApplicationName) {
