@@ -27,11 +27,14 @@ class ClusterCachingAgentSpec extends Specification {
   static int defaultMax = 1
   static int defaultDesired = 1
   static Collection<String> defaultSuspendedProcesses = ["Launch"]
+  static String vpc = "vpc-1"
 
   AutoScalingGroup defaultAsg = new AutoScalingGroup()
+    .withAutoScalingGroupName("test-v001")
     .withDesiredCapacity(defaultDesired)
     .withMinSize(defaultMin)
     .withMaxSize(defaultMax)
+    .withVPCZoneIdentifier("subnetId1,subnetId2")
     .withSuspendedProcesses(defaultSuspendedProcesses.collect { new SuspendedProcess().withProcessName(it) }
   )
 
@@ -55,6 +58,32 @@ class ClusterCachingAgentSpec extends Specification {
     defaultMin | 0          | defaultDesired | defaultSuspendedProcesses || false
     defaultMin | defaultMax | 0              | defaultSuspendedProcesses || false
     defaultMin | defaultMax | defaultDesired | []                        || false
+  }
+
+  @Unroll
+  def "should still index asg if VPCZoneIdentifier contains a deleted subnet"() {
+    when:
+    def asgData = new ClusterCachingAgent.AsgData(defaultAsg, null, null, "test", "us-west-1", subnetMap)
+
+    then:
+    asgData.vpcId == vpc
+
+    where:
+    subnetMap | _
+    [subnetId1: (vpc), subnetId2: (vpc)] | _
+    [subnetId2: (vpc)] | _
+  }
+
+  def "should throw exception if VPCZoneIdentifier contains subnets from multiple vpcs"() {
+    given:
+    def subnetMap = [subnetId1: (vpc), subnetId2: "otherVPC"]
+
+    when:
+    new ClusterCachingAgent.AsgData(defaultAsg, null, null, "test", "us-west-1", subnetMap)
+
+    then:
+    def e = thrown(RuntimeException)
+    e.message.startsWith("failed to resolve only one vpc")
   }
 
   private SuspendedProcess sP(String processName) {
