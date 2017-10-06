@@ -7,7 +7,7 @@ import { ACCOUNT_SERVICE, AccountService, Application } from 'core';
 
 export interface IKubernetesManifestCommand {
   account: string;
-  provider: string;
+  cloudProvider: string;
   manifest: any;
   manifestText: string;
   relationships: IKubernetesManifestSpinnakerRelationships;
@@ -69,7 +69,7 @@ export class KubernetesManifestCommandBuilder {
 
         const manifest = {};
         const manifestText = '';
-        const provider = 'kubernetes';
+        const cloudProvider = 'kubernetes';
         const moniker = {
           app: app.name,
         };
@@ -80,7 +80,7 @@ export class KubernetesManifestCommandBuilder {
 
         return {
           backingData,
-          provider,
+          cloudProvider,
           manifest,
           manifestText,
           relationships,
