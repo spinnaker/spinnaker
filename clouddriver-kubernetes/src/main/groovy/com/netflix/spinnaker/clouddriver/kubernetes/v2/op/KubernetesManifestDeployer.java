@@ -66,6 +66,10 @@ public class KubernetesManifestDeployer implements AtomicOperation<DeploymentRes
     getTask().updateStatus(OP_NAME, "Beginning deployment of manifest...");
 
     KubernetesManifest manifest = description.getManifest();
+    if (StringUtils.isEmpty(manifest.getNamespace())) {
+      manifest.setNamespace(credentials.getDefaultNamespace());
+    }
+
     KubernetesResourceProperties properties = findResourceProperties(manifest);
     KubernetesDeployer deployer = properties.getDeployer();
     KubernetesArtifactConverter converter = properties.getConverter();
@@ -74,10 +78,6 @@ public class KubernetesManifestDeployer implements AtomicOperation<DeploymentRes
     Artifact artifact = properties.getConverter().toArtifact(manifest);
     Moniker moniker = description.getMoniker();
     KubernetesManifestSpinnakerRelationships relationships = description.getRelationships();
-
-    if (StringUtils.isEmpty(manifest.getNamespace())) {
-      manifest.setNamespace(credentials.getDefaultNamespace());
-    }
 
     getTask().updateStatus(OP_NAME, "Annotating manifest with artifact, relationships & moniker...");
     KubernetesManifestAnnotater.annotateManifest(manifest, artifact);

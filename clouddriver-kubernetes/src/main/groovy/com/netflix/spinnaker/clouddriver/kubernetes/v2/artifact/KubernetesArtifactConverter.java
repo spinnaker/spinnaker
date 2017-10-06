@@ -34,7 +34,7 @@ public abstract class KubernetesArtifactConverter {
   protected String getType(KubernetesManifest manifest) {
     return String.join("/",
         KubernetesCloudProvider.getID(),
-        manifest.getApiVersion().toString() + ":" + manifest.getKind().toString()
+        manifest.getApiVersion().toString() + "|" + manifest.getKind().toString()
     );
   }
 
@@ -48,7 +48,7 @@ public abstract class KubernetesArtifactConverter {
       throw new IllegalArgumentException("Not a kubernetes artifact: " + artifact);
     }
 
-    split = String.join("/", Arrays.copyOfRange(split, 1, split.length)).split(":");
+    split = String.join("/", Arrays.copyOfRange(split, 1, split.length)).split("\\|");
 
     if (split.length != 2) {
       throw new IllegalArgumentException("Not a kubernetes artifact: " + artifact);

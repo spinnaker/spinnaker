@@ -28,7 +28,7 @@ class KubernetesVersionedArtifactConverterSpec extends Specification {
   @Unroll
   def "correctly infer versioned artifact properties"() {
     expect:
-    def type = "kubernetes/$apiVersion:$kind"
+    def type = "kubernetes/$apiVersion|$kind"
 
     def artifact = Artifact.builder()
       .type(type)

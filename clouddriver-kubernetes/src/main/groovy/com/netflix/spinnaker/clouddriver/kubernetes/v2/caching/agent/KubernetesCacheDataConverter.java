@@ -52,6 +52,10 @@ public class KubernetesCacheDataConverter {
   public static CacheData convertAsArtifact(String account, ObjectMapper mapper, Object resource) {
     KubernetesManifest manifest = mapper.convertValue(resource, KubernetesManifest.class);
     Artifact artifact = KubernetesManifestAnnotater.getArtifact(manifest);
+    if (artifact.getType() == null) {
+      log.info("No assigned artifact type for this resource.");
+      return null;
+    }
 
     Map<String, Object> attributes = new ImmutableMap.Builder<String, Object>()
         .put("artifact", artifact)
