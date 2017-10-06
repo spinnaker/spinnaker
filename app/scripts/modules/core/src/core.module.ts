@@ -50,6 +50,7 @@ import { SUBNET_MODULE } from './subnet/subnet.module';
 import { WHATS_NEW_MODULE } from './whatsNew/whatsNew.module';
 import { WIDGETS_MODULE } from './widgets/widgets.module';
 import { STYLEGUIDE_MODULE } from './styleguide/styleguide.module';
+import { MANIFEST_MODULE } from 'core/manifest/manifestWriter.module';
 
 
 // load all templates into the $templateCache
@@ -115,6 +116,7 @@ module(CORE_MODULE, [
   require('./securityGroup/securityGroup.module').name,
   SERVERGROUP_MODULE,
   SUBNET_MODULE,
+  MANIFEST_MODULE,
 
   require('./task/task.module').name,
 

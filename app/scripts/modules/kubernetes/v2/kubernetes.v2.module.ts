@@ -3,6 +3,11 @@ import { module } from 'angular';
 import { CLOUD_PROVIDER_REGISTRY, CloudProviderRegistry } from '@spinnaker/core';
 
 import '../logo/kubernetes.logo.less';
+import { KUBERNETES_MANIFEST_COMMAND_BUILDER } from './manifest/manifestCommandBuilder.service';
+import { KUBERNETES_MANIFEST_BASIC_SETTINGS } from './manifest/wizard/basicSettings.component';
+import { KUBERNETES_V2_SERVER_GROUP_COMMAND_BUILDER } from './serverGroup/serverGroupCommandBuilder.service';
+import { KUBERNETES_MANIFEST_CTRL } from './manifest/wizard/manifestWizard.controller';
+import { KUBERNETES_MANIFEST_ENTRY } from './manifest/wizard/manifestEntry.component';
 
 // load all templates into the $templateCache
 const templates = require.context('./', true, /\.html$/);
@@ -14,6 +19,11 @@ export const KUBERNETES_V2_MODULE = 'spinnaker.kubernetes.v2';
 
 module(KUBERNETES_V2_MODULE, [
   CLOUD_PROVIDER_REGISTRY,
+  KUBERNETES_V2_SERVER_GROUP_COMMAND_BUILDER,
+  KUBERNETES_MANIFEST_BASIC_SETTINGS,
+  KUBERNETES_MANIFEST_COMMAND_BUILDER,
+  KUBERNETES_MANIFEST_CTRL,
+  KUBERNETES_MANIFEST_ENTRY,
 ]).config((cloudProviderRegistryProvider: CloudProviderRegistry) => {
     cloudProviderRegistryProvider.registerProvider('kubernetes', {
       name: 'Kubernetes',
@@ -21,5 +31,10 @@ module(KUBERNETES_V2_MODULE, [
       logo: {
         path: require('../logo/kubernetes.icon.svg'),
       },
+      serverGroup: {
+        commandBuilder: 'kubernetesV2ServerGroupCommandBuilder',
+        cloneServerGroupController: 'kubernetesManifestWizardCtrl',
+        cloneServerGroupTemplateUrl: require('./manifest/wizard/manifestWizard.html'),
+      }
     });
   });
