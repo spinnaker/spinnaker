@@ -9,7 +9,7 @@ const stackdriverCanaryConfig = require('kayenta/scratch/stackdriver_canary_conf
 /*
 * For development only.
 */
-class LocalConfigCache {
+class LocalConfigStore {
 
   private configs = new Set<ICanaryConfig>();
 
@@ -80,4 +80,4 @@ class LocalConfigCache {
   }
 }
 
-export const localConfigCache = new LocalConfigCache(atlasCanaryConfig, stackdriverCanaryConfig);
+export const localConfigStore = new LocalConfigStore(atlasCanaryConfig, stackdriverCanaryConfig);
