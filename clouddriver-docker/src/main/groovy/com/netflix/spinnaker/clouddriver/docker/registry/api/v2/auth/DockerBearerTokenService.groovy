@@ -32,6 +32,7 @@ class DockerBearerTokenService {
   String username
   String password
   File passwordFile
+  String authWarning
 
   final static String userAgent = DockerUserAgent.getUserAgent()
 
@@ -70,11 +71,11 @@ class DockerBearerTokenService {
     if (resolvedPassword?.length() > 0) {
       def message = "Your registry password has %s whitespace, if this is unintentional authentication will fail."
       if (resolvedPassword.charAt(0).isWhitespace()) {
-        log.warn sprintf(message, ["leading"])
+        authWarning = sprintf(message, ["leading"])
       }
 
       if (resolvedPassword.charAt(resolvedPassword.length() - 1).isWhitespace()) {
-        log.warn sprintf(message, ["trailing"])
+        authWarning = sprintf(message, ["trailing"])
       }
     }
 
@@ -192,11 +193,18 @@ class DockerBearerTokenService {
 
     def tokenService = getTokenService(authenticateDetails.realm)
     def token
-    if (basicAuthHeader) {
-      token = tokenService.getToken(authenticateDetails.path, authenticateDetails.service, authenticateDetails.scope, basicAuthHeader, userAgent)
-    }
-    else {
-      token = tokenService.getToken(authenticateDetails.path, authenticateDetails.service, authenticateDetails.scope, userAgent)
+    try {
+      if (basicAuthHeader) {
+        token = tokenService.getToken(authenticateDetails.path, authenticateDetails.service, authenticateDetails.scope, basicAuthHeader, userAgent)
+      } else {
+        token = tokenService.getToken(authenticateDetails.path, authenticateDetails.service, authenticateDetails.scope, userAgent)
+      }
+    } catch (Exception e) {
+      if (authWarning) {
+        throw new DockerRegistryAuthenticationException("Authentication failed ($authWarning): ${e.getMessage()}", e)
+      } else {
+        throw new DockerRegistryAuthenticationException("Authentication failed: ${e.getMessage()}", e)
+      }
     }
 
     cachedTokens[repository] = token
