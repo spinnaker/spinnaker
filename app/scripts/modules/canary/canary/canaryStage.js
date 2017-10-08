@@ -412,7 +412,7 @@ module.exports = angular.module('spinnaker.canary.canaryStage', [
           cleanupClusterConfig(baselineCluster, 'baseline');
           cleanupClusterConfig(canaryCluster, 'canary');
           $scope.stage.clusterPairs.push({baseline: baselineCluster, canary: canaryCluster});
-        });
+        }).catch(() => {});
       });
     };
 
@@ -447,7 +447,7 @@ module.exports = angular.module('spinnaker.canary.canaryStage', [
         var stageCluster = awsServerGroupTransformer.convertServerGroupCommandToDeployConfiguration(command);
         cleanupClusterConfig(stageCluster, type);
         $scope.stage.clusterPairs[index][type.toLowerCase()] = stageCluster;
-      });
+      }).catch(() => {});
     };
 
     this.deleteClusterPair = function(index) {

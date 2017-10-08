@@ -69,7 +69,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.manualJudgmentSta
         } else {
           $scope.stage.notifications[$scope.stage.notifications.indexOf(notification)] = newNotification;
         }
-      });
+      }).catch(() => {});
 
     };
 

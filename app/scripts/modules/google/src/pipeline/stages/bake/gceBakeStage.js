@@ -105,7 +105,7 @@ module.exports = angular.module('spinnaker.gce.pipeline.stage..bakeStage', [
         }
       }).result.then(function(extendedAttribute) {
           $scope.stage.extendedAttributes[extendedAttribute.key] = extendedAttribute.value;
-      });
+      }).catch(() => {});
     };
 
     this.removeExtendedAttribute = function (key) {

@@ -53,7 +53,7 @@ export class ApplicationsController implements IController {
             templateUrl: this.overrideRegistry.getTemplate('createApplicationModal', require('./modal/newapplication.html')),
             controller: this.overrideRegistry.getController('CreateApplicationModalCtrl'),
             controllerAs: 'newAppModal'
-          }).result.then((app) => this.routeToApplication(app));
+          }).result.then((app) => this.routeToApplication(app)).catch(() => {});
         }
       }
     ];

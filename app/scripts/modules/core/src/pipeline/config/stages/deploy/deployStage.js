@@ -119,7 +119,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.deployStage', [
             var stageCluster = serverGroupTransformer.convertServerGroupCommandToDeployConfiguration(command);
             delete stageCluster.credentials;
             $scope.stage.clusters.push(stageCluster);
-          });
+          }).catch(() => {});
       });
     };
 
@@ -145,7 +145,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.deployStage', [
           var stageCluster = serverGroupTransformer.convertServerGroupCommandToDeployConfiguration(command);
           delete stageCluster.credentials;
           $scope.stage.clusters[index] = stageCluster;
-        });
+        }).catch(() => {});
     };
 
     this.copyCluster = function(index) {

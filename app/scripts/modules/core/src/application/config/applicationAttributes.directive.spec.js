@@ -34,13 +34,16 @@ describe('Controller: Config', function () {
 
     it('should copy attributes when edit application is successful', function() {
       var newAttributes = { foo: 'bar' };
-      spyOn($uibModal, 'open').and.returnValue({
+      const modalStub = {
         result: {
           then: function(method) {
             method(newAttributes);
-          }
+            return modalStub.result;
+          },
+          catch: () => {}
         }
-      });
+      };
+      spyOn($uibModal, 'open').and.returnValue(modalStub);
 
       configController.editApplication();
       expect(application.attributes).toBe(newAttributes);

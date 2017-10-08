@@ -25,7 +25,7 @@ class AppengineEditLoadBalancerStageCtrl implements IController {
       }
     }).result.then((newLoadBalancer: ILoadBalancer) => {
       this.$scope.stage.loadBalancers.push(newLoadBalancer);
-    });
+    }).catch(() => {});
   }
 
   public editLoadBalancer(index: number) {
@@ -42,7 +42,7 @@ class AppengineEditLoadBalancerStageCtrl implements IController {
       }
     }).result.then((updatedLoadBalancer: ILoadBalancer) => {
       this.$scope.stage.loadBalancers[index] = updatedLoadBalancer;
-    });
+    }).catch(() => {});
   }
 
   public removeLoadBalancer(index: number): void {

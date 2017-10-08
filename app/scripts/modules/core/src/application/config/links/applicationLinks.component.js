@@ -88,7 +88,7 @@ module.exports = angular
         }).result.then(newSections => {
           this.sections = newSections;
           this.configChanged();
-        });
+        }).catch(() => {});
       };
 
       this.sortOptions = {

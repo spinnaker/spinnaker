@@ -51,7 +51,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.preconditions.pr
             $scope.preconditions[$scope.preconditions.indexOf(precondition)] = newPrecondition;
           }
           vm.isPreconditionsDirty = true;
-        });
+        }).catch(() => {});
       };
 
       vm.addPrecondition = function (strategy) {

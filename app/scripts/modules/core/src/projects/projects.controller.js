@@ -48,7 +48,7 @@ module.exports = angular.module('spinnaker.projects.controller', [
             resolve: {
               projectConfig: () => { return {}; },
             }
-          }).result.then(routeToProject);
+          }).result.then(routeToProject).catch(() => {});
         }
       }
     ];

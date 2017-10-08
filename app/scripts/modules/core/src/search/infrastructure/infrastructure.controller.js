@@ -126,7 +126,7 @@ module.exports = angular.module('spinnaker.search.infrastructure.controller', [
         resolve: {
           projectConfig: () => { return {}; },
         }
-      }).result.then(routeToProject);
+      }).result.then(routeToProject).catch(() => {});
     };
 
     function routeToProject(project) {
@@ -143,7 +143,7 @@ module.exports = angular.module('spinnaker.search.infrastructure.controller', [
         templateUrl: overrideRegistry.getTemplate('createApplicationModal', require('../../application/modal/newapplication.html')),
         controller: overrideRegistry.getController('CreateApplicationModalCtrl'),
         controllerAs: 'newAppModal'
-      }).result.then(routeToApplication);
+      }).result.then(routeToApplication).catch(() => {});
     };
 
     function routeToApplication(app) {

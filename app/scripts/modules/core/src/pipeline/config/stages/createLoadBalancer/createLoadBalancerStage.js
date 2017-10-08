@@ -48,7 +48,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.createLoadBalance
           }
         }).result.then(function(newLoadBalancer) {
           $scope.stage.loadBalancers.push(newLoadBalancer);
-        });
+        }).catch(() => {});
 
       });
     };
@@ -69,7 +69,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.createLoadBalance
           }
         }).result.then(function(updatedLoadBalancer) {
           $scope.stage.loadBalancers[index] = updatedLoadBalancer;
-        });
+        }).catch(() => {});
 
       });
     };

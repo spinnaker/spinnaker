@@ -86,6 +86,6 @@ module.exports = angular
           this.application.attributes = newAttributes;
           setHealthMessage();
           setPermissions();
-        });
+        }).catch(() => {});
     };
   });

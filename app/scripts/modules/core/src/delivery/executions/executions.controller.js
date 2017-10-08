@@ -174,6 +174,6 @@ module.exports = angular.module('spinnaker.core.delivery.executions.controller',
           pipeline: () => null,
           application: () => this.application,
         }
-      }).result.then(startPipeline);
+      }).result.then(startPipeline).catch(() => {});
     };
   });

@@ -148,7 +148,7 @@ export class InfrastructureV2Ctrl implements IController {
           return {};
         },
       }
-    }).result.then(this.routeToProject);
+    }).result.then(this.routeToProject).catch(() => {});
   };
 
   private routeToProject(project: IProject) {
@@ -161,7 +161,7 @@ export class InfrastructureV2Ctrl implements IController {
       templateUrl: this.overrideRegistry.getTemplate('createApplicationModal', require('../../application/modal/newapplication.html')),
       controller: this.overrideRegistry.getController('CreateApplicationModalCtrl'),
       controllerAs: 'newAppModal'
-    }).result.then(this.routeToApplication);
+    }).result.then(this.routeToApplication).catch(() => {});
   };
 
   private routeToApplication(app: Application) {

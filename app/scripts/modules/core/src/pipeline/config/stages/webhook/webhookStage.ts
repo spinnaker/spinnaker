@@ -100,7 +100,7 @@ export class WebhookStage implements IController {
       controllerAs: 'addCustomHeader',
     }).result.then((customHeader: ICustomHeader) => {
       this.stage.customHeaders[customHeader.key] = customHeader.value;
-    });
+    }).catch(() => {});
   }
 
   public displayField(field: string): boolean {

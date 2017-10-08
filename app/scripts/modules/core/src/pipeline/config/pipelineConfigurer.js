@@ -116,7 +116,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.pipelineConfigur
           application: () => $scope.application,
           forStrategyConfig: () => $scope.pipeline.strategy,
         }
-      }).result.then(stageTemplate => ctrl.addStage(stageTemplate));
+      }).result.then(stageTemplate => ctrl.addStage(stageTemplate)).catch(() => {});
     };
 
     var ctrl = this;
@@ -163,7 +163,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.pipelineConfigur
       }).result.then(() => {
           setOriginal($scope.pipeline);
           markDirty();
-        });
+        }).catch(() => {});
     };
 
     this.editPipelineJson = () => {
@@ -178,7 +178,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.pipelineConfigur
       }).result.then(() => {
         $scope.$broadcast('pipeline-json-edited');
         this.updatePipeline();
-      });
+      }).catch(() => {});
     };
 
     // Enabling a pipeline simply toggles the disabled flag - it does not save any pending changes
@@ -189,7 +189,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.pipelineConfigur
         resolve: {
           pipeline: () => getOriginal()
         }
-      }).result.then(() => disableToggled(false));
+      }).result.then(() => disableToggled(false)).catch(() => {});
     };
 
     // Disabling a pipeline also just toggles the disabled flag - it does not save any pending changes
@@ -200,7 +200,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.pipelineConfigur
         resolve: {
           pipeline: () => getOriginal()
         }
-      }).result.then(() => disableToggled(true));
+      }).result.then(() => disableToggled(true)).catch(() => {});
     };
 
     function disableToggled(isDisabled) {
@@ -218,9 +218,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.pipelineConfigur
         resolve: {
           pipeline: () => $scope.pipeline
         }
-      }).result.then(function() {
-        setOriginal($scope.pipeline);
-      });
+      }).result.then(() => setOriginal($scope.pipeline)).catch(() => {});
     };
 
     this.unlockPipeline = () => {
@@ -233,7 +231,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.pipelineConfigur
       }).result.then(function () {
         delete $scope.pipeline.locked;
         setOriginal($scope.pipeline);
-      });
+      }).catch(() => {});
     };
 
     this.showHistory = () => {
@@ -249,7 +247,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.pipelineConfigur
       }).result.then(newConfig => {
         $scope.pipeline = newConfig;
         this.savePipeline();
-      });
+      }).catch(() => {});
     };
 
     // Poor react setState
@@ -339,6 +337,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.pipelineConfigur
         delete $scope.pipeline.isNew;
         $scope.renderablePipeline = plan;
       })
+      .catch(() => {})
       .finally(() => this.setViewState({ loading: false }));
     };
 

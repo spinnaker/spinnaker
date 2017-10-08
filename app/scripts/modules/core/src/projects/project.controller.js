@@ -97,7 +97,7 @@ module.exports = angular.module('spinnaker.core.projects.project.controller', [
               $state.go($state.current, {}, {reload: true});
             }
           }
-      });
+      }).catch(() => {});
     };
 
   });

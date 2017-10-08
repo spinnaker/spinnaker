@@ -103,7 +103,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.stage', [
         }
       }).result.then(() => {
         $scope.$broadcast('pipeline-json-edited');
-      });
+      }).catch(() => {});
     };
 
     this.selectStageType = stage => {

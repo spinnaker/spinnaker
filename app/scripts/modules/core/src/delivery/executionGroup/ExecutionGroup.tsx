@@ -113,7 +113,7 @@ export class ExecutionGroup extends React.Component<IExecutionGroupProps, IExecu
         application: () => this.props.application,
         currentlyRunningExecutions: () => this.props.group.runningExecutions,
       }
-    }).result.then((command) => this.startPipeline(command));
+    }).result.then((command) => this.startPipeline(command)).catch(() => {});
   }
 
   public componentDidMount(): void {
