@@ -75,7 +75,10 @@ public class PipelineStarterListener implements ExecutionListener {
     if (execution.getPipelineConfigId() != null) {
       List<String> queuedPipelines = startTracker.getQueuedPipelines(execution.getPipelineConfigId());
       if (!queuedPipelines.isEmpty()) {
-        String nextPipelineId = queuedPipelines.get(0);
+        // pipelines are stored in a stack...
+        // if we are keeping waiting pipelines, take the oldest one; otherwise, take the most recent
+        int nextIndex = execution.isKeepWaitingPipelines() ? queuedPipelines.size() - 1 : 0;
+        String nextPipelineId = queuedPipelines.get(nextIndex);
         queuedPipelines.forEach(id -> {
           if (Objects.equals(id, nextPipelineId)) {
             Pipeline queuedExecution = executionRepository.retrievePipeline(id);
