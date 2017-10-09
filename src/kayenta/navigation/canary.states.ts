@@ -7,10 +7,13 @@ import {
   ApplicationStateProvider
 } from '@spinnaker/core';
 
-import ConfigDetailLoader from '../edit/configDetailLoader';
-import CanaryConfigSave from '../edit/save';
-import Canary from '../canary';
-import SelectConfig from '../selectConfig';
+import ConfigDetailLoader from 'kayenta/edit/configDetailLoader';
+import CanaryConfigEdit from 'kayenta/edit/edit';
+import CanaryConfigSave from 'kayenta/edit/save';
+import Canary from 'kayenta/canary';
+import SelectConfig from 'kayenta/selectConfig';
+import Report from 'kayenta/report/report';
+import ReportDetailLoader from 'kayenta/report/detailLoader';
 
 export const CANARY_STATES = 'spinnaker.kayenta.canary.states';
 module(CANARY_STATES, [APPLICATION_STATE_PROVIDER])
@@ -39,7 +42,7 @@ module(CANARY_STATES, [APPLICATION_STATE_PROVIDER])
     ]
   };
 
-  const canaryDefault: INestedState = {
+  const configDefault: INestedState = {
     name: 'configDefault',
     url: '/config',
     views: {
@@ -49,7 +52,47 @@ module(CANARY_STATES, [APPLICATION_STATE_PROVIDER])
     }
   };
 
-  const canary: INestedState = {
+  const config: INestedState = {
+    name: 'canaryConfig',
+    abstract: true,
+    views: {
+      canary: {
+        component: CanaryConfigEdit, $type: 'react',
+      }
+    },
+    children: [configDefault, configDetail],
+  };
+
+  const reportDetail: INestedState = {
+    name: 'reportDetail',
+    url: '/:id',
+    views: {
+      detail: {
+        component: ReportDetailLoader, $type: 'react',
+      },
+    },
+    resolve: [
+      {
+        token: 'reportIdStream',
+        deps: [UIRouter],
+        resolveFn: (uiRouter: any) => uiRouter.globals.params$,
+      }
+    ],
+  };
+
+  const report: INestedState = {
+    name: 'report',
+    url: '/report',
+    abstract: true,
+    views: {
+      canary: {
+        component: Report, $type: 'react',
+      },
+    },
+    children: [reportDetail],
+  };
+
+  const canaryRoot: INestedState = {
     abstract: true,
     name: 'canary',
     url: '/canary',
@@ -63,8 +106,8 @@ module(CANARY_STATES, [APPLICATION_STATE_PROVIDER])
         title: 'Canary'
       }
     },
-    children: [canaryDefault, configDetail]
+    children: [config, report],
   };
 
-  applicationStateProvider.addChildState(canary);
+  applicationStateProvider.addChildState(canaryRoot);
 });

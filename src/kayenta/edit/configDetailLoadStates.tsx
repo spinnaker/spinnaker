@@ -4,13 +4,13 @@ import { connect } from 'react-redux';
 import { NgReact } from '@spinnaker/core';
 
 import { ICanaryState } from '../reducers/index';
-import { ConfigDetailLoadState } from './configDetailLoader';
 
 import ConfigDetail from './configDetail';
 import CenteredDetail from '../layout/centeredDetail';
+import { AsyncRequestState } from '../reducers/asyncRequest';
 
 interface IConfigLoadStatesProps {
-  configLoadState: ConfigDetailLoadState;
+  configLoadState: AsyncRequestState;
 }
 
 /*
@@ -18,17 +18,17 @@ interface IConfigLoadStatesProps {
  */
 function ConfigDetailLoadStates({ configLoadState }: IConfigLoadStatesProps) {
   switch (configLoadState) {
-    case ConfigDetailLoadState.Loading:
+    case AsyncRequestState.Requesting:
       return (
         <div className="spinner">
           <NgReact.Spinner radius={20} width={3} length={20}/>
         </div>
       );
 
-    case ConfigDetailLoadState.Loaded:
+    case AsyncRequestState.Fulfilled:
       return <ConfigDetail/>;
 
-    case ConfigDetailLoadState.Error:
+    case AsyncRequestState.Failed:
       return (
         <CenteredDetail>
           <h3 className="heading-3">Could not load canary config.</h3>

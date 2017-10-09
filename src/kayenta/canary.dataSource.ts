@@ -35,7 +35,7 @@ module(CANARY_DATA_SOURCE, [APPLICATION_DATA_SOURCE_REGISTRY])
       afterLoad: afterConfigsLoad,
       description: 'Canary analysis configuration and reporting',
       key: 'canaryConfigs',
-      sref: '.canary.configDefault',
+      sref: '.canary.canaryConfig.configDefault',
       activeState: '**.canary.**',
       label: 'Canary',
       icon: 'bar-chart'

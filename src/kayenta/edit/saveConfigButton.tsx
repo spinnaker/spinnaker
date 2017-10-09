@@ -5,10 +5,10 @@ import { SubmitButton } from '@spinnaker/core';
 
 import { ICanaryState } from '../reducers';
 import * as Creators from '../actions/creators';
-import { SaveConfigState } from './save';
+import { AsyncRequestState } from '../reducers/asyncRequest';
 
 interface ISaveButtonStateProps {
-  saveConfigState: SaveConfigState;
+  saveConfigState: AsyncRequestState;
   inSyncWithServer: boolean;
 }
 
@@ -31,7 +31,7 @@ function SaveConfigButton({ saveConfigState, inSyncWithServer, saveConfig }: ISa
       <SubmitButton
         label="Save Changes"
         onClick={saveConfig}
-        submitting={saveConfigState === SaveConfigState.Saving}
+        submitting={saveConfigState === AsyncRequestState.Requesting}
       />
     );
   }

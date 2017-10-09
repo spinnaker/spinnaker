@@ -3,9 +3,6 @@ import { combineActions, handleActions } from 'redux-actions';
 import { get, has, omit, chain, pick, fromPairs } from 'lodash';
 
 import * as Actions from '../actions';
-import { DeleteConfigState } from '../edit/deleteModal';
-import { SaveConfigState } from '../edit/save';
-import { ConfigDetailLoadState } from '../edit/configDetailLoader';
 import { IJudge } from '../domain/IJudge';
 import {
   GroupWeights,
@@ -18,19 +15,20 @@ import { CanarySettings } from '../canary.settings';
 import { IGroupState, group } from './group';
 import { JudgeSelectRenderState } from '../edit/judgeSelect';
 import { UNGROUPED, ALL } from '../edit/groupTabs';
+import { AsyncRequestState } from './asyncRequest';
 
 interface ILoadState {
-  state: ConfigDetailLoadState;
+  state: AsyncRequestState;
 }
 
 interface ISaveState {
-  state: SaveConfigState;
+  state: AsyncRequestState;
   error: string;
 }
 
 // Mixing destroy/delete here because delete is a JS keyword.
 interface IDestroyState {
-  state: DeleteConfigState;
+  state: AsyncRequestState;
   error: string;
 }
 
@@ -72,10 +70,10 @@ const config = handleActions({
 
 const load = combineReducers({
   state: handleActions({
-    [Actions.LOAD_CONFIG_REQUEST]: () => ConfigDetailLoadState.Loading,
-    [Actions.LOAD_CONFIG_FAILURE]: () => ConfigDetailLoadState.Error,
-    [Actions.SELECT_CONFIG]: () => ConfigDetailLoadState.Loaded,
-  }, ConfigDetailLoadState.Loading),
+    [Actions.LOAD_CONFIG_REQUEST]: () => AsyncRequestState.Requesting,
+    [Actions.LOAD_CONFIG_FAILURE]: () => AsyncRequestState.Failed,
+    [Actions.SELECT_CONFIG]: () => AsyncRequestState.Fulfilled,
+  }, AsyncRequestState.Requesting),
 });
 
 function idMetrics(metrics: ICanaryMetricConfig[] = []) {
@@ -97,11 +95,10 @@ const editingMetric = handleActions({
 
 const save = combineReducers<ISaveState>({
   state: handleActions({
-    [Actions.SAVE_CONFIG_REQUEST]: () => SaveConfigState.Saving,
-    [Actions.SAVE_CONFIG_SUCCESS]: () => SaveConfigState.Saved,
-    [Actions.SAVE_CONFIG_FAILURE]: () => SaveConfigState.Error,
-    [Actions.DISMISS_SAVE_CONFIG_ERROR]: () => SaveConfigState.Saved,
-  }, SaveConfigState.Saved),
+    [Actions.SAVE_CONFIG_REQUEST]: () => AsyncRequestState.Requesting,
+    [combineActions(Actions.SAVE_CONFIG_SUCCESS, Actions.DISMISS_SAVE_CONFIG_ERROR)]: () => AsyncRequestState.Fulfilled,
+    [Actions.SAVE_CONFIG_FAILURE]: () => AsyncRequestState.Failed,
+  }, AsyncRequestState.Fulfilled),
   error: handleActions({
     [Actions.SAVE_CONFIG_FAILURE]: (_state: string, action: Action & any) => get(action, 'payload.error.data.message', null),
   }, null),
@@ -109,10 +106,10 @@ const save = combineReducers<ISaveState>({
 
 const destroy = combineReducers<IDestroyState>({
   state: handleActions({
-    [Actions.DELETE_CONFIG_REQUEST]: () => DeleteConfigState.Deleting,
-    [Actions.DELETE_CONFIG_SUCCESS]: () => DeleteConfigState.Completed,
-    [Actions.DELETE_CONFIG_FAILURE]: () => DeleteConfigState.Error,
-  }, DeleteConfigState.Completed),
+    [Actions.DELETE_CONFIG_REQUEST]: () => AsyncRequestState.Requesting,
+    [Actions.DELETE_CONFIG_SUCCESS]: () => AsyncRequestState.Fulfilled,
+    [Actions.DELETE_CONFIG_FAILURE]: () => AsyncRequestState.Failed,
+  }, AsyncRequestState.Fulfilled),
   error: handleActions({
     [Actions.DELETE_CONFIG_FAILURE]: (_state: string, action: Action & any) => get(action, 'payload.error.data.message', null),
   }, null),

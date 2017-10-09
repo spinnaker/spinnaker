@@ -5,6 +5,7 @@ import { ConfigJsonModalTabState } from '../edit/configJsonModal';
 import { ICanaryConfig } from '../domain/ICanaryConfig';
 import { ICanaryConfigSummary } from '../domain/ICanaryConfigSummary';
 import { IJudge } from '../domain/IJudge';
+import { ICanaryJudgeResult } from '../domain/ICanaryJudgeResult';
 
 const typedPayloadCreator = <T>() => (payload: T): T => payload;
 
@@ -45,5 +46,8 @@ export const createNewConfig = createAction(Actions.CREATE_NEW_CONFIG);
 export const editGroupBegin = createAction(Actions.EDIT_GROUP_BEGIN, typedPayloadCreator<{group: string}>());
 export const editGroupUpdate = createAction(Actions.EDIT_GROUP_UPDATE, typedPayloadCreator<{edit: string}>());
 export const editGroupConfirm = createAction(Actions.EDIT_GROUP_CONFIRM, typedPayloadCreator<{group: string, edit: string}>());
-export const changeMetricGroupSelect = createAction(Actions.CHANGE_METRIC_GROUP_SELECT, typedPayloadCreator<{ group: string }>());
-export const changeMetricGroupConfirm = createAction(Actions.CHANGE_METRIC_GROUP_CONFIRM, typedPayloadCreator<{ metricId: string }>());
+export const changeMetricGroupSelect = createAction(Actions.CHANGE_METRIC_GROUP_SELECT, typedPayloadCreator<{group: string}>());
+export const changeMetricGroupConfirm = createAction(Actions.CHANGE_METRIC_GROUP_CONFIRM, typedPayloadCreator<{metricId: string}>());
+export const loadReportRequest = createAction(Actions.LOAD_REPORT_REQUEST, typedPayloadCreator<{id: string}>());
+export const loadReportSuccess = createAction(Actions.LOAD_REPORT_SUCCESS, typedPayloadCreator<{report: ICanaryJudgeResult}>());
+export const loadReportFailure = createAction(Actions.LOAD_REPORT_FAILURE, typedPayloadCreator<{error: Error}>());

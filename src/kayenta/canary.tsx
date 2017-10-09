@@ -1,13 +1,13 @@
 import * as React from 'react';
 import { createStore, applyMiddleware } from 'redux';
 import { logger } from 'redux-logger';
+import { UIView } from '@uirouter/react';
 
 import { Application } from '@spinnaker/core';
 
 import { Provider, Store } from 'react-redux';
 import { ICanaryState, rootReducer } from './reducers';
 import { actionInterceptingMiddleware, epicMiddleware } from './middleware';
-import CanaryConfigEdit from './edit/edit';
 import { ICanaryConfigSummary } from './domain/index';
 import { INITIALIZE } from './actions/index';
 import { IJudge } from './domain/IJudge';
@@ -29,7 +29,7 @@ export const canaryStore = createStore<ICanaryState>(
   )
 );
 
-export default class Canary extends React.Component<ICanaryProps, {}> {
+export default class Canary extends React.Component<ICanaryProps> {
 
   private store: Store<ICanaryState>;
 
@@ -49,12 +49,13 @@ export default class Canary extends React.Component<ICanaryProps, {}> {
   }
 
   public render() {
+    const noWrap = { wrap: false };
     return (
       <Styleguide className="kayenta-root">
         <Provider store={this.store}>
           <div>
             <CanaryHeader tabs={canaryTabs} title="Canary"/>
-            <CanaryConfigEdit/>
+            <UIView {...noWrap} name="canary"/>
           </div>
         </Provider>
       </Styleguide>

@@ -13,6 +13,7 @@ import * as Actions from '../actions/index';
 import * as Creators from '../actions/creators';
 import { ICanaryState } from '../reducers/index';
 import { ReactInjector } from '@spinnaker/core';
+import { getCanaryJudgeResultById } from '../service/canaryJudgeResult.service';
 
 const typeMatches = (...actions: string[]) => (action: Action & any) => actions.includes(action.type);
 
@@ -72,12 +73,22 @@ const deleteConfigSuccessEpic = (action$: Observable<Action & any>, store: Middl
       )
     ).mapTo(Creators.closeDeleteConfigModal());
 
+const loadReportRequestEpic = (action$: Observable<Action & any>) =>
+  action$
+    .filter(typeMatches(Actions.LOAD_REPORT_REQUEST))
+    .concatMap(action =>
+      Observable.fromPromise(getCanaryJudgeResultById(action.payload.id))
+        .map(report => Creators.loadReportSuccess({ report }))
+        .catch((error: Error) => Observable.of(Creators.loadReportFailure({ error })))
+    );
+
 const rootEpic = combineEpics(
   loadConfigEpic,
   selectConfigEpic,
   saveConfigEpic,
   deleteConfigRequestEpic,
   deleteConfigSuccessEpic,
+  loadReportRequestEpic,
 );
 
 export const epicMiddleware = createEpicMiddleware(rootEpic);

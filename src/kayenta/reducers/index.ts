@@ -13,17 +13,20 @@ import { JudgeSelectRenderState } from '../edit/judgeSelect';
 import { IJudge } from '../domain/IJudge';
 import { ICanaryJudgeConfig } from '../domain/ICanaryConfig';
 import { mapStateToConfig } from '../service/canaryConfig.service';
+import { ISelectedReportState, selectedReport } from './selectedReport';
 
 export interface ICanaryState {
+  app: IAppState;
   data: IDataState;
   selectedConfig: ISelectedConfigState;
-  app: IAppState;
+  selectedReport: ISelectedReportState;
 }
 
 const combined = combineReducers<ICanaryState>({
-  data,
   app,
+  data,
   selectedConfig,
+  selectedReport,
 });
 
 const judgeRenderStateReducer = handleActions({

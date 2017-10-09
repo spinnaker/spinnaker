@@ -10,13 +10,13 @@ export interface ICanaryHeaderTabConfig {
 export const canaryTabs: ICanaryHeaderTabConfig[] = [
   {
     title: 'configurations',
-    sref: 'home.applications.application.canary.configDefault',
+    sref: 'home.applications.application.canary.canaryConfig.configDefault',
     activeStates: ['**.configDefault', '**.configDetail'],
   },
   {
-    title: 'reports',
-    sref: 'home.applications.application.canary.reports',
-    activeStates: [],
+    title: 'report',
+    sref: 'home.applications.application.canary.report',
+    activeStates: ['**.report.**'],
     hide: !CanarySettings.reportsEnabled,
   },
 ];
