@@ -59,6 +59,7 @@ public class JobDescription {
   private String iamProfile;
   private String capacityGroup;
   private Efs efs;
+  private MigrationPolicy migrationPolicy;
 
   //Soft/Hard constraints
 
@@ -97,6 +98,7 @@ public class JobDescription {
     capacityGroup = request.getCapacityGroup();
     securityGroups = request.getSecurityGroups();
     inService = request.getInService();
+    migrationPolicy = request.getMigrationPolicy();
     efs = request.getEfs();
     gpu = request.getGpu();
     retries = request.getRetries();
@@ -344,6 +346,14 @@ public class JobDescription {
 
   public void setInService(Boolean inService) {
     this.inService = inService;
+  }
+
+  public MigrationPolicy getMigrationPolicy() {
+    return migrationPolicy;
+  }
+
+  public void setMigrationPolicy(MigrationPolicy migrationPolicy) {
+    this.migrationPolicy = migrationPolicy;
   }
 
   public List<String> getSecurityGroups() {

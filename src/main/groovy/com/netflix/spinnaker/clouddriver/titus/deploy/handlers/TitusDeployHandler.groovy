@@ -115,6 +115,7 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
         .withCapacityGroup(description.capacityGroup)
         .withLabels(description.labels)
         .withInService(description.inService)
+        .withMigrationPolicy(description.migrationPolicy)
         .withCredentials(description.credentials.name)
 
       Set<String> securityGroups = []

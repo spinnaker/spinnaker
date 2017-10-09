@@ -82,6 +82,7 @@ public class SubmitJobRequest {
     private List<Constraint> constraints = new ArrayList<>();
     private Map<String, String> labels = new HashMap<String, String>();
     private List<String> securityGroups = null;
+    private MigrationPolicy migrationPolicy = null;
 
     public SubmitJobRequest withJobType(String jobType) {
         this.jobType = jobType;
@@ -229,6 +230,11 @@ public class SubmitJobRequest {
       return this;
     }
 
+    public SubmitJobRequest withMigrationPolicy(MigrationPolicy migrationPolicy) {
+      this.migrationPolicy = migrationPolicy;
+      return this;
+    }
+
     public SubmitJobRequest withEfs(Efs efs) {
       this.efs = efs;
       return this;
@@ -345,5 +351,7 @@ public class SubmitJobRequest {
     public Efs getEfs() { return efs; }
 
     public String getCredentials() { return credentials; }
+
+    public MigrationPolicy getMigrationPolicy() { return migrationPolicy; }
 
 }

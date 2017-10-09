@@ -244,6 +244,7 @@ public class Job {
     private List<String> hardConstraints;
     private List<String> softConstraints;
     private Efs efs;
+    private MigrationPolicy migrationPolicy;
 
     public Job() {}
 
@@ -528,5 +529,9 @@ public class Job {
     public Set getSecurityGroupDetails() { return securityGroupDetails; }
 
     public void setSecurityGroupDetails(Set securityGroupDetails) { this.securityGroupDetails = securityGroupDetails; }
+
+    public MigrationPolicy getMigrationPolicy() { return migrationPolicy; }
+
+    public void setMigrationPolicy(MigrationPolicy migrationPolicy) { this.migrationPolicy  = migrationPolicy; }
 
 }

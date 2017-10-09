@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.titus.client
 
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.clouddriver.titus.client.model.Job
+import com.netflix.spinnaker.clouddriver.titus.client.model.MigrationPolicy
 import com.netflix.spinnaker.clouddriver.titus.client.model.ResizeJobRequest
 import com.netflix.spinnaker.clouddriver.titus.client.model.SubmitJobRequest
 import com.netflix.spinnaker.clouddriver.titus.client.model.TaskState
@@ -35,7 +36,7 @@ class RegionScopedTitusClientSpec extends Specification {
     setup:
     Logger logger = LoggerFactory.getLogger(TitusClient)
     TitusRegion titusRegion = new TitusRegion(
-      "us-east-1", "test", "http://titusapi.mainvpc.us-east-1.dyntest.netflix.net:7001/"
+      "us-east-1", "test", "http://titusapi.mainvpc.us-east-1.dyntest.netflix.net:7001/", "2"
     );
     TitusClient titusClient = new RegionScopedTitusClient(titusRegion, new NoopRegistry(), Collections.emptyList());
 
@@ -47,6 +48,8 @@ class RegionScopedTitusClientSpec extends Specification {
     Map<String, String> labels = new HashMap<>();
     labels.put("label1", "~3948");
     labels.put("lable2", "jksdljsfdl");
+
+    MigrationPolicy migrationPolicy = new MigrationPolicy(type: "selfManaged");
 
     SubmitJobRequest submitJobRequest = new SubmitJobRequest()
       .withJobName("helix_hello_world_server-main-test-v001")
@@ -69,6 +72,7 @@ class RegionScopedTitusClientSpec extends Specification {
         'sg-f0f19494',
         'sg-6321d91b'
       ])
+      .withMigrationPolicy(migrationPolicy)
       .withPorts([7001] as int[])
       .withEnv(env)
       .withLabels(labels)
@@ -98,15 +102,6 @@ class RegionScopedTitusClientSpec extends Specification {
     job != null
 
     // ******************************************************************************************************************
-
-
-    logger.info("Tasks request at {}", new Date());
-    List<Job.TaskSummary> tasks = titusClient.getAllTasks();
-    logger.info("Tasks response at {}", new Date());
-    logger.info("Tasks");
-    logger.info("-----------------------------------------------------------------------------------------------");
-    logger.info("Task count: {}", tasks.size());
-
     logger.info("Jobs request: {}", new Date());
     List<Job> jobs = titusClient.getAllJobs();
     logger.info("Jobs response: {}", new Date());
