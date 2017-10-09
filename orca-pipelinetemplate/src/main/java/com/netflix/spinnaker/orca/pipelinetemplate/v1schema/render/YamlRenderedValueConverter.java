@@ -42,6 +42,9 @@ public class YamlRenderedValueConverter implements RenderedValueConverter {
     if (containsEL(renderedValue) || isYamlKeyword(renderedValue)) {
       return renderedValue;
     }
+    if (containsNoExpandMarker(renderedValue)) {
+      return trimNoExpandMarker(renderedValue);
+    }
 
     try {
       Object converted = yaml.load(renderedValue);
@@ -66,5 +69,13 @@ public class YamlRenderedValueConverter implements RenderedValueConverter {
 
   private static boolean isYamlKeyword(String renderedValue) {
     return YAML_KEYWORDS.contains(renderedValue.toLowerCase());
+  }
+
+  private static boolean containsNoExpandMarker(String renderedValue) {
+    return renderedValue.startsWith("noexpand:");
+  }
+
+  private static String trimNoExpandMarker(String renderedValue) {
+    return renderedValue.substring("noexpand:".length(), renderedValue.length());
   }
 }
