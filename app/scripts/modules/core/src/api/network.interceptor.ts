@@ -1,7 +1,8 @@
 import {
   IDeferred, IHttpInterceptor, IHttpPromiseCallbackArg, IHttpProvider, IPromise, IQService, IRequestConfig,
-  IWindowService, module
+  ITimeoutService, IWindowService, module
 } from 'angular';
+import { Dictionary } from 'lodash';
 
 /**
  * Handles two scenarios:
@@ -12,10 +13,12 @@ import {
 export class NetworkInterceptor implements IHttpInterceptor {
 
   private networkAvailable: IDeferred<void>;
-  private retryQueue: IRequestConfig[] = [];
+  private retryQueue: Dictionary<number> = {};
+  private MAX_RETRIES = 4;
 
   constructor(private $q: IQService,
               private $window: IWindowService,
+              private $timeout: ITimeoutService,
               private $injector: any) {
     'ngInject';
     this.$window.addEventListener('offline', this.handleOffline);
@@ -38,7 +41,7 @@ export class NetworkInterceptor implements IHttpInterceptor {
   }
 
   private removeFromQueue(config: IRequestConfig): void {
-    this.retryQueue = this.retryQueue.filter(c => c !== config);
+    delete this.retryQueue[config.url];
   }
 
   // see http://www.couchcoder.com/angular-1-interceptors-using-typescript for more details on why we need to do this
@@ -47,11 +50,18 @@ export class NetworkInterceptor implements IHttpInterceptor {
   // the handlers"
   public responseError = <T>(response: IHttpPromiseCallbackArg<T>): IPromise<T> => {
     const { config, status } = response;
-    // status of -1 indicates the request was aborted, retry if we haven't already
-    if (status === -1 && !this.retryQueue.includes(config)) {
+    // status of -1 indicates the request was aborted, retry if we haven't already, with incremental backoff + jitter
+    const retryCount = this.retryQueue[config.url] || 0;
+    if (status === -1 && retryCount < this.MAX_RETRIES) {
+      this.retryQueue[config.url] = retryCount + 1;
       return this.networkAvailable.promise.then(() => {
-        return this.$q.resolve(this.$injector.get('$http')(config))
-          .finally(() => this.removeFromQueue(config));
+        return this.$timeout(() => {
+          return this.$q.resolve(this.$injector.get('$http')(config))
+            .then((result: any) => {
+              this.removeFromQueue(config);
+              return result;
+            });
+          }, (retryCount + 1 + Math.random()) * 1000);
       });
     }
     return this.$q.reject(response).finally(() => this.removeFromQueue(config));
