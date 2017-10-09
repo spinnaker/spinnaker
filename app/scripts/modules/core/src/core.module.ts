@@ -41,6 +41,9 @@ import { HELP_MODULE } from './help/help.module';
 import { INSIGHT_NGMODULE } from './insight/insight.module';
 import { INTERCEPTOR_MODULE } from './interceptor/interceptor.module';
 import { LOAD_BALANCER_MODULE } from './loadBalancer/loadBalancer.module';
+
+import { NETWORK_INTERCEPTOR } from './api/network.interceptor';
+
 import { PAGE_TITLE_MODULE } from './pageTitle/pageTitle.module';
 import { PIPELINE_TEMPLATE_MODULE } from './pipeline/config/templates/pipelineTemplate.module';
 import { REACT_MODULE } from './reactShims';
@@ -100,7 +103,11 @@ module(CORE_MODULE, [
 
   LOAD_BALANCER_MODULE,
 
+  MANIFEST_MODULE,
+
   require('./modal/modal.module').name,
+
+  NETWORK_INTERCEPTOR,
 
   require('./notification/notifications.module').name,
 
@@ -116,7 +123,6 @@ module(CORE_MODULE, [
   require('./securityGroup/securityGroup.module').name,
   SERVERGROUP_MODULE,
   SUBNET_MODULE,
-  MANIFEST_MODULE,
 
   require('./task/task.module').name,
 
