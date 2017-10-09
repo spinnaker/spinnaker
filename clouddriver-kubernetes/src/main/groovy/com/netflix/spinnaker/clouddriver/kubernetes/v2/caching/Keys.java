@@ -58,6 +58,10 @@ public class Keys {
     APPLICATION,
     CLUSTER;
 
+    public static boolean isLogicalGroup(String group) {
+      return group.equals(APPLICATION.toString()) || group.equals(CLUSTER.toString());
+    }
+
     @Override
     public String toString() {
       return name().toLowerCase();

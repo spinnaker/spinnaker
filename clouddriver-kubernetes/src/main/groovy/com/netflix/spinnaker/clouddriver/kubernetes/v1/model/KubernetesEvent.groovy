@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v1.model
 
+import com.netflix.spinnaker.clouddriver.kubernetes.provider.KubernetesModelUtil
 import groovy.util.logging.Slf4j
 import io.fabric8.kubernetes.api.model.Event
 

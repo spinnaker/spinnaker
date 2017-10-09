@@ -17,20 +17,27 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.model;
 
+import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesCacheDataConverter;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.model.Instance;
 import com.netflix.spinnaker.clouddriver.model.ServerGroup;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.extern.slf4j.Slf4j;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
+@Slf4j
 public class KubernetesV2ServerGroup extends ManifestBasedModel implements ServerGroup {
   Boolean disabled;
   Long createdTime;
@@ -51,8 +58,32 @@ public class KubernetesV2ServerGroup extends ManifestBasedModel implements Serve
     return disabled;
   }
 
-  public KubernetesV2ServerGroup(KubernetesManifest manifest, String key) {
+  private KubernetesV2ServerGroup(KubernetesManifest manifest, String key, List<KubernetesV2Instance> instances) {
     this.manifest = manifest;
     this.key = (Keys.InfrastructureCacheKey) Keys.parseKey(key).get();
+    this.instances = new HashSet<>(instances);
+  }
+
+  public static KubernetesV2ServerGroup fromCacheData(CacheData cd, List<CacheData> instanceData) {
+    if (cd == null) {
+      return null;
+    }
+
+    if (instanceData == null) {
+      instanceData = new ArrayList<>();
+    }
+
+    KubernetesManifest manifest = KubernetesCacheDataConverter.getManifest(cd);
+
+    if (manifest == null) {
+      log.warn("Cache data {} inserted without a manifest", cd.getId());
+      return null;
+    }
+
+    List<KubernetesV2Instance> instances = instanceData.stream()
+        .map(KubernetesV2Instance::fromCacheData)
+        .collect(Collectors.toList());
+
+    return new KubernetesV2ServerGroup(manifest, cd.getId(), instances);
   }
 }

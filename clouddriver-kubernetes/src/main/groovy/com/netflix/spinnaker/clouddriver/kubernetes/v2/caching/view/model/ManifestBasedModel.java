@@ -39,7 +39,7 @@ abstract public class ManifestBasedModel {
   }
 
   public String getType() {
-    return getManifest().getKind().toString();
+    return KubernetesCloudProvider.getID();
   }
 
   public String getCloudProvider() {

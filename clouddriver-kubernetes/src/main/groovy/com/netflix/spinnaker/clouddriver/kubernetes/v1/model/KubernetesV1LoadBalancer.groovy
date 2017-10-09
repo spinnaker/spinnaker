@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v1.model
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider
+import com.netflix.spinnaker.clouddriver.kubernetes.provider.KubernetesModelUtil
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.api.KubernetesApiConverter
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.description.loadbalancer.KubernetesLoadBalancerDescription
 import com.netflix.spinnaker.clouddriver.model.LoadBalancer

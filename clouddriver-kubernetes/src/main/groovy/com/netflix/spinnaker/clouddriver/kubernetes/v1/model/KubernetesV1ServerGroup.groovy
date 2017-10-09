@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v1.model
 
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider
+import com.netflix.spinnaker.clouddriver.kubernetes.provider.KubernetesModelUtil
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.api.KubernetesApiAdaptor
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.api.KubernetesApiConverter
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.api.KubernetesClientApiConverter

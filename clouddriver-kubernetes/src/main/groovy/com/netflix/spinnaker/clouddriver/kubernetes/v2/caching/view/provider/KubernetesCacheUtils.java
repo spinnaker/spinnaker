@@ -20,6 +20,9 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.provider;
 import com.netflix.spinnaker.cats.cache.Cache;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpinnakerKindMap;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpinnakerKindMap.SpinnakerKind;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -31,12 +34,15 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Component
+@Slf4j
 public class KubernetesCacheUtils {
   private final Cache cache;
+  private final KubernetesSpinnakerKindMap kindMap;
 
   @Autowired
-  public KubernetesCacheUtils(Cache cache) {
+  public KubernetesCacheUtils(Cache cache, KubernetesSpinnakerKindMap kindMap) {
     this.cache = cache;
+    this.kindMap = kindMap;
   }
 
   public Collection<CacheData> getAllKeys(String type) {
@@ -56,15 +62,30 @@ public class KubernetesCacheUtils {
     return result == null ? Optional.empty() : Optional.of(result);
   }
 
+  public Optional<CacheData> getSingleEntryWithRelationships(String type, String key, String... to) {
+    CacheData result = cache.get(type, key, RelationshipCacheFilter.include(to));
+    return Optional.ofNullable(result);
+  }
+
+  public Collection<String> aggregateRelationshipsBySpinnakerKind(CacheData source, SpinnakerKind kind) {
+    return kindMap.translateSpinnakerKind(kind)
+        .stream()
+        .map(g -> source.getRelationships().get(g.toString()))
+        .filter(Objects::nonNull)
+        .flatMap(Collection::stream)
+        .filter(Objects::nonNull)
+        .collect(Collectors.toList());
+  }
+
   public Collection<CacheData> getTransitiveRelationship(String from, List<String> sourceKeys, String to) {
     Collection<CacheData> sourceData = cleanupCollection(cache.getAll(from, sourceKeys, RelationshipCacheFilter.include(to)));
-    return cache.getAll(to, sourceData.stream()
+    return cleanupCollection(cache.getAll(to, sourceData.stream()
         .map(CacheData::getRelationships)
         .filter(Objects::nonNull)
         .map(r -> r.get(to))
         .filter(Objects::nonNull)
         .flatMap(Collection::stream)
-        .collect(Collectors.toList()));
+        .collect(Collectors.toList())));
   }
 
   public Collection<CacheData> loadRelationshipsFromCache(Collection<CacheData> sources, String relationshipType) {
@@ -72,6 +93,7 @@ public class KubernetesCacheUtils {
         .map(CacheData::getRelationships)
         .filter(Objects::nonNull)
         .map(r -> r.get(relationshipType))
+        .filter(Objects::nonNull)
         .flatMap(Collection::stream)
         .collect(Collectors.toList());
 

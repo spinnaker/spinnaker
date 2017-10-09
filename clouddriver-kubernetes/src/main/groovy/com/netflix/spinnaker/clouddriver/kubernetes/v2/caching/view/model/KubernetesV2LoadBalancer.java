@@ -17,26 +17,45 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.model;
 
+import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesCacheDataConverter;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.model.LoadBalancer;
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerServerGroup;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.HashSet;
 import java.util.Set;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
+@Slf4j
 public class KubernetesV2LoadBalancer extends ManifestBasedModel implements LoadBalancer {
   String account;
   Set<LoadBalancerServerGroup> serverGroups = new HashSet<>();
   KubernetesManifest manifest;
   Keys.InfrastructureCacheKey key;
 
-  public KubernetesV2LoadBalancer(KubernetesManifest manifest, String key) {
+  private KubernetesV2LoadBalancer(KubernetesManifest manifest, String key) {
     this.manifest = manifest;
     this.key = (Keys.InfrastructureCacheKey) Keys.parseKey(key).get();
+  }
+
+  public static KubernetesV2LoadBalancer fromCacheData(CacheData cd) {
+    if (cd == null) {
+      return null;
+    }
+
+    KubernetesManifest manifest = KubernetesCacheDataConverter.getManifest(cd);
+
+    if (manifest == null) {
+      log.warn("Cache data {} inserted without a manifest", cd.getId());
+      return null;
+    }
+
+    return new KubernetesV2LoadBalancer(manifest, cd.getId());
   }
 }

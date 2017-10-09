@@ -92,9 +92,12 @@ public class KubernetesCacheDataConverter {
 
   public static CacheData mergeCacheData(CacheData current, CacheData added) {
     String id = current.getId();
-    Map<String, Object> attributes = current.getAttributes();
-    Map<String, Collection<String>> relationships = current.getRelationships();
+    Map<String, Object> attributes = new HashMap<>();
     attributes.putAll(added.getAttributes());
+    attributes.putAll(current.getAttributes());
+
+    Map<String, Collection<String>> relationships = new HashMap<>();
+    relationships.putAll(current.getRelationships());
     added.getRelationships()
         .entrySet()
         .forEach(entry -> relationships.merge(entry.getKey(), entry.getValue(),
@@ -266,13 +269,24 @@ public class KubernetesCacheDataConverter {
     return result;
   }
 
+  /*
+   * Worth noting the strange behavior here. If we are inverting a relationship to create a cache data for
+   * either a cluster or an application we need to insert attributes to ensure the cache data gets entered into
+   * the cache. If we are caching anything else, we don't want competing agents to overrwrite attributes, so
+   * we leave them blank.
+   */
   private static Optional<CacheData> invertSingleRelationship(String group, String key, String relationship) {
     Map<String, Collection<String>> relationships = new HashMap<>();
     relationships.put(group, Collections.singletonList(key));
     return Keys.parseKey(relationship).flatMap(k -> {
-      Map<String, Object> attributes = new ImmutableMap.Builder<String, Object>()
-          .put("name", k.getName())
-          .build();
+      Map<String, Object> attributes;
+      if (Keys.LogicalKind.isLogicalGroup(k.getGroup())) {
+        attributes = new ImmutableMap.Builder<String, Object>()
+            .put("name", k.getName())
+            .build();
+      } else {
+        attributes = new HashMap<>();
+      }
       return Optional.of(new DefaultCacheData(relationship, attributes, relationships));
     });
   }

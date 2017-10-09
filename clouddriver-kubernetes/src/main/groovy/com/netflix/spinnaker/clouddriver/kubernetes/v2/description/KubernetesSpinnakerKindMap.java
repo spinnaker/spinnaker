@@ -28,6 +28,7 @@ import java.util.Map;
 @Component
 public class KubernetesSpinnakerKindMap {
   public enum SpinnakerKind {
+    INSTANCE,
     SERVER_GROUP,
     LOAD_BALANCER,
     SECURITY_GROUP
@@ -52,6 +53,7 @@ public class KubernetesSpinnakerKindMap {
     addRelationship(SpinnakerKind.LOAD_BALANCER, KubernetesKind.SERVICE);
     addRelationship(SpinnakerKind.LOAD_BALANCER, KubernetesKind.INGRESS);
     addRelationship(SpinnakerKind.SECURITY_GROUP, KubernetesKind.NETWORK_POLICY);
+    addRelationship(SpinnakerKind.INSTANCE, KubernetesKind.POD);
   }
 
   public SpinnakerKind translateKubernetesKind(KubernetesKind kubernetesKind) {

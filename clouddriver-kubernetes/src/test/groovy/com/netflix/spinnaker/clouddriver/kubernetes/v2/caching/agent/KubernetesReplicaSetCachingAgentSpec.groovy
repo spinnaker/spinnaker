@@ -100,11 +100,13 @@ class KubernetesReplicaSetCachingAgentSpec extends Specification {
     def cachingAgent = new KubernetesReplicaSetCachingAgent(namedAccountCredentials, new ObjectMapper(), registryMock, 0, 1)
     def a = new DefaultCacheData("id", attrA, relA)
     def b = new DefaultCacheData("id", attrB, relB)
-    KubernetesCacheDataConverter.mergeCacheData(a, b)
+    def res = KubernetesCacheDataConverter.mergeCacheData(a, b)
 
     then:
-    b.getAttributes().collect { k, v -> a.getAttributes().get(k) == v }.every()
-    b.getRelationships().collect { k, v -> v.collect { r -> b.getRelationships().get(k).contains(r) }.every() }.every()
+    a.getAttributes().collect { k, v -> res.getAttributes().get(k) == v }.every()
+    b.getAttributes().collect { k, v -> res.getAttributes().get(k) == v }.every()
+    a.getRelationships().collect { k, v -> v.collect { r -> res.getRelationships().get(k).contains(r) }.every() }.every()
+    b.getRelationships().collect { k, v -> v.collect { r -> res.getRelationships().get(k).contains(r) }.every() }.every()
 
     where:
     attrA      | attrB      | relA              | relB
