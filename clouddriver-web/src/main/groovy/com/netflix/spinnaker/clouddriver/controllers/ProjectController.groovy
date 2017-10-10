@@ -157,7 +157,7 @@ class ProjectController {
     String detail
     List<ApplicationClusterModel> applications = []
     InstanceCounts getInstanceCounts() {
-      Set<InstanceCounts> clusterCounts = applications.clusters.flatten().instanceCounts
+      List<InstanceCounts> clusterCounts = applications.clusters.flatten().instanceCounts
       new InstanceCounts(
           total: (Integer) clusterCounts.total.sum(),
           down: (Integer) clusterCounts.down.sum(),

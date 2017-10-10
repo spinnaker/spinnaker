@@ -17,10 +17,12 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.model;
 
+import com.google.common.primitives.Ints;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesCacheDataConverter;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesManifest;
+import com.netflix.spinnaker.clouddriver.model.HealthState;
 import com.netflix.spinnaker.clouddriver.model.Instance;
 import com.netflix.spinnaker.clouddriver.model.ServerGroup;
 import lombok.Data;
@@ -46,12 +48,23 @@ public class KubernetesV2ServerGroup extends ManifestBasedModel implements Serve
   Set<String> loadBalancers = new HashSet<>();
   Set<String> securityGroups = new HashSet<>();
   Map<String, Object> launchConfig = new HashMap<>();
-  InstanceCounts instanceCounts;
   Capacity capacity = new Capacity();
   ImageSummary imageSummary;
   ImagesSummary imagesSummary;
   KubernetesManifest manifest;
   Keys.InfrastructureCacheKey key;
+
+  @Override
+  public ServerGroup.InstanceCounts getInstanceCounts() {
+    return ServerGroup.InstanceCounts.builder()
+        .total(Ints.checkedCast(instances.size()))
+        .up(Ints.checkedCast(instances.stream().filter(i -> i.getHealthState().equals(HealthState.Up)).count()))
+        .down(Ints.checkedCast(instances.stream().filter(i -> i.getHealthState().equals(HealthState.Down)).count()))
+        .unknown(Ints.checkedCast(instances.stream().filter(i -> i.getHealthState().equals(HealthState.Unknown)).count()))
+        .outOfService(Ints.checkedCast(instances.stream().filter(i -> i.getHealthState().equals(HealthState.OutOfService)).count()))
+        .starting(Ints.checkedCast(instances.stream().filter(i -> i.getHealthState().equals(HealthState.Starting)).count()))
+        .build();
+  }
 
   @Override
   public Boolean isDisabled() {

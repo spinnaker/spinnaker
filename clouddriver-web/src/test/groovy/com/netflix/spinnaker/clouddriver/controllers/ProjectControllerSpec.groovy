@@ -219,7 +219,6 @@ class ProjectControllerSpec extends Specification {
     clusters[0].instanceCounts.up == 2
     clusters[0].instanceCounts.starting == 0
 
-
     1 * front50Service.getProject(projectName) >> projectConfig
     1 * clusterProvider.getClusterDetails("orca") >> [
         prod: [
@@ -261,7 +260,6 @@ class ProjectControllerSpec extends Specification {
     clusters[0].instanceCounts.total == 2
     clusters[0].instanceCounts.up == 2
     clusters[0].instanceCounts.starting == 0
-
 
     1 * front50Service.getProject(projectName) >> projectConfig
     1 * clusterProvider.getClusterDetails("orca") >> [
