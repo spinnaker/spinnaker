@@ -170,7 +170,7 @@ class ClusterController {
 
     serverGroups = shouldExpand ? serverGroups : serverGroups.collect {
       // server groups were minimally loaded initially and require expansion
-      serverGroupController.getServerGroup(application, account, it.region, it.name)
+      serverGroupController.getServerGroupByApplication(application, account, it.region, it.name)
     }
 
     region ? serverGroups?.getAt(0) : serverGroups
@@ -225,7 +225,7 @@ class ClusterController {
 
     if (!shouldExpand) {
       sortedServerGroups = sortedServerGroups.collect {
-        serverGroupController.getServerGroup(application, account, it.region, it.name)
+        serverGroupController.getServerGroupByApplication(application, account, it.region, it.name)
       }
     }
 
