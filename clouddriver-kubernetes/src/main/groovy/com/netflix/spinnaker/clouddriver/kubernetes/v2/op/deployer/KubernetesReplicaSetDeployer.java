@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.op.deployer;
 
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesApiVersion;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesKind;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpinnakerKindMap.SpinnakerKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
 import io.kubernetes.client.models.V1beta1ReplicaSet;
 import org.springframework.stereotype.Component;
@@ -48,5 +49,10 @@ public class KubernetesReplicaSetDeployer extends KubernetesDeployer<V1beta1Repl
   @Override
   public boolean versioned() {
     return true;
+  }
+
+  @Override
+  public SpinnakerKind spinnakerKind() {
+    return SpinnakerKind.SERVER_GROUP;
   }
 }
