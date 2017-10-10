@@ -5,31 +5,36 @@ import { ICanaryAnalysisResult } from '../domain/ICanaryJudgeResult';
 import ResultRow from './resultRow';
 import { ICanaryState } from '../reducers/index';
 import * as Creators from 'kayenta/actions/creators';
+import { resultsListColumns } from './resultsListColumns';
+import ResultsListHeader from './resultsListHeader';
 
 interface IResultsListOwnProps {
   results: ICanaryAnalysisResult[];
 }
 
 interface IResultsListDispatchProps {
-  select: (event: any) => void;
+  select: (metric: string) => void;
 }
 
 const ResultsList = ({ results, select }: IResultsListOwnProps & IResultsListDispatchProps) => (
-  <ul className="list-unstyled">
-    {results.map(r => (
-      <li key={r.name}>
-        <ResultRow onClick={select} result={r}/>
-      </li>
-    ))}
-  </ul>
+  <section className="vertical">
+    <ResultsListHeader columns={resultsListColumns}/>
+    <ul className="list-unstyled">
+      {results.map(r => (
+        <li key={r.name}>
+          <ResultRow columns={resultsListColumns} onClick={select} result={r}/>
+        </li>
+      ))}
+    </ul>
+  </section>
 );
 
 const mapDispatchToProps = (
   dispatch: Dispatch<ICanaryState>,
   ownProps: IResultsListOwnProps,
 ): IResultsListOwnProps & IResultsListDispatchProps => ({
-  select: (event: any) =>
-    dispatch(Creators.selectReportMetricResult({ metric: event.target.dataset.metric })),
+  select: (metric: string) =>
+    dispatch(Creators.selectReportMetricResult({ metric })),
   ...ownProps,
 });
 
