@@ -180,7 +180,7 @@ export class ExecutionService {
       return deferred.promise;
     }
 
-    public cancelExecution(application: Application, executionId: string, force: boolean, reason: string): IPromise<any> {
+    public cancelExecution(application: Application, executionId: string, force?: boolean, reason?: string): IPromise<any> {
       const deferred = this.$q.defer();
       this.$http({
         method: 'PUT',
