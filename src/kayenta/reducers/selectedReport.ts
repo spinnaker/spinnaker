@@ -8,6 +8,7 @@ import { ICanaryJudgeResult } from '../domain/ICanaryJudgeResult';
 export interface ISelectedReportState {
   report: ICanaryJudgeResult;
   load: AsyncRequestState;
+  selectedGroup: string;
 }
 
 const report = handleActions({
@@ -20,7 +21,12 @@ const load = handleActions({
   [Actions.LOAD_REPORT_FAILURE]: () => AsyncRequestState.Failed,
 }, AsyncRequestState.Requesting);
 
+const selectedGroup = handleActions({
+  [Actions.SELECT_REPORT_GROUP]: (_state: string, action: Action & any) => action.payload.group,
+}, null);
+
 export const selectedReport = combineReducers<ISelectedReportState>({
   report,
   load,
+  selectedGroup,
 });

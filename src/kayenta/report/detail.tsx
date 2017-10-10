@@ -1,6 +1,7 @@
 import * as React from 'react';
 
 import ReportDetailHeader from './header';
+import Results from './results';
 
 /*
 * Layout for report detail view.
@@ -8,5 +9,6 @@ import ReportDetailHeader from './header';
 export default () => (
   <div>
     <ReportDetailHeader/>
+    <Results/>
   </div>
 );

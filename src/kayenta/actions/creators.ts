@@ -51,3 +51,4 @@ export const changeMetricGroupConfirm = createAction(Actions.CHANGE_METRIC_GROUP
 export const loadReportRequest = createAction(Actions.LOAD_REPORT_REQUEST, typedPayloadCreator<{id: string}>());
 export const loadReportSuccess = createAction(Actions.LOAD_REPORT_SUCCESS, typedPayloadCreator<{report: ICanaryJudgeResult}>());
 export const loadReportFailure = createAction(Actions.LOAD_REPORT_FAILURE, typedPayloadCreator<{error: Error}>());
+export const selectReportGroup = createAction(Actions.SELECT_REPORT_GROUP, typedPayloadCreator<{group: string}>());

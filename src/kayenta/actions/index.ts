@@ -42,3 +42,4 @@ export const CHANGE_METRIC_GROUP_CONFIRM = 'change_metric_group_confirm';
 export const LOAD_REPORT_REQUEST = 'load_report_request';
 export const LOAD_REPORT_SUCCESS = 'load_report_success';
 export const LOAD_REPORT_FAILURE = 'load_report_failure';
+export const SELECT_REPORT_GROUP = 'select_report_group';
