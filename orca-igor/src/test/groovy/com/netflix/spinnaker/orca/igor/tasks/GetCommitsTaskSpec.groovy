@@ -207,7 +207,7 @@ class GetCommitsTaskSpec extends Specification {
     jobState = 'SUCCESS'
   }
 
-  Stage<Pipeline> setupGetCommits(Map contextMap, String account, String app, String sourceImage, String targetImage, String region, String cluster, String serverGroup, int serverGroupCalls = 1, int oortCalls = 1) {
+  Stage<Pipeline> setupGetCommits(Map contextMap, String account, String app, String sourceImage, String targetImage, String region, String cluster, String serverGroup, int serverGroupCalls = 1, int oortCalls = 1, Pipeline pipeline = this.pipeline) {
     def stage = new Stage<>(pipeline, "stash", contextMap)
 
     task.buildService = Stub(BuildService) {
@@ -628,5 +628,47 @@ class GetCommitsTaskSpec extends Specification {
 
     ancestorBuild | targetBuild
     "216"         | "217"
+  }
+
+  @Unroll
+  def "get commits from parent pipelines"() {
+    given:
+    Pipeline parentPipeline = new Pipeline("parentPipeline")
+    Pipeline childPipeline = new Pipeline("childPipeline")
+    String katoTasks = "[{\"resultObjects\": [" +
+      "{\"ancestorServerGroupNameByRegion\": { \"${region}\":\"${serverGroup}\"}}," +
+      "{\"messages\" : [ ], \"serverGroupNameByRegion\": {\"${region}\": \"${targetServerGroup}\"},\"serverGroupNames\": [\"${region}:${targetServerGroup}\"]}],\"status\": {\"completed\": true,\"failed\": false}}]"
+    def katoMap = getObjectMapper().readValue(katoTasks, List)
+    def contextMap = [application: app, account: account,
+      source     : [asgName: serverGroup, region: region, account: account], "deploy.server.groups": ["us-west-1": [targetServerGroup]], "kato.tasks" : katoMap]
+
+    parentPipeline.context = [deploymentDetails: [[imageId: "ami-foo", ami: "amiFooName", region: "us-east-1"], [imageId: targetImage, ami: targetImageName, region: region]]]
+    Stage<Pipeline> parentStage = setupGetCommits(contextMap, account, app, sourceImage, targetImage, region, cluster, serverGroup, 1, 1, parentPipeline)
+    Stage<Pipeline> childStage = new Stage<>(childPipeline, "stash", [application: app, account: account, source: [asgName: serverGroup, region: region, account: account], "deploy.server.groups": ["us-west-1": [targetServerGroup]], "kato.tasks" : katoMap])
+
+    parentPipeline.stages << parentStage
+    childStage.execution.trigger.put("parentPipelineId", parentStage.execution.id)
+    childStage.execution.trigger.put("parentExecution", parentStage.execution)
+
+    when:
+    def result = task.execute(childStage)
+
+    then:
+    assertResults(result, ExecutionStatus.SUCCEEDED)
+
+    where:
+    app = "myapp"
+    account = "test"
+    region = "us-west-1"
+    sourceImage = "ami-source"
+    targetImage = "ami-target"
+    targetImageName = "amiTargetName"
+    jobState = 'SUCCESS'
+
+    cluster              | serverGroup               | targetServerGroup
+    "myapp"              | "myapp"                   | "myapp-v000"
+    "myapp"              | "myapp-v001"              | "myapp-v002"
+    "myapp-stack"        | "myapp-stack-v002"        | "myapp-stack-v003"
+    "myapp-stack-detail" | "myapp-stack-detail-v002" | "myapp-stack-detail-v003"
   }
 }

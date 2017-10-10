@@ -92,6 +92,13 @@ class GetCommitsTask implements DiffTask {
 
       //figure out the new asg/ami/commit
       String targetAmi = getTargetAmi(stage.context, region)
+      if (!targetAmi) {
+        def parentPipeline = stage.execution.trigger?.parentExecution
+        while (!targetAmi && parentPipeline?.context) {
+          targetAmi = getTargetAmi(parentPipeline.context, region)
+          parentPipeline = parentPipeline.trigger?.parentExecution
+        }
+      }
 
       //get commits from igor
       sourceInfo = resolveInfoFromAmi(ancestorAmi, account, region)
@@ -203,7 +210,7 @@ class GetCommitsTask implements DiffTask {
     def globalAccount = front50Service.credentials.find { it.global }
     def applicationAccount = globalAccount?.name ?: account
     Application app = front50Service.get(application)
-    return [repoType : app?.details().repoType, projectKey : app?.details().repoProjectKey, repositorySlug : app?.details().repoSlug]
+    return [repoType : app?.details()?.repoType, projectKey : app?.details()?.repoProjectKey, repositorySlug : app?.details()?.repoSlug]
   }
 
   String getBuildFromAppVersion(String appVersion) {
