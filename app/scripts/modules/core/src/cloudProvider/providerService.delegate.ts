@@ -7,13 +7,13 @@ export class ProviderServiceDelegate {
 
   constructor(private $injector: IInjectorService, private cloudProviderRegistry: any) { 'ngInject'; }
 
-  public hasDelegate(provider: string, serviceKey: string): boolean {
-    const service: string = this.cloudProviderRegistry.getValue(provider, serviceKey);
+  public hasDelegate(provider: string, serviceKey: string, providerVersion?: string): boolean {
+    const service: string = this.cloudProviderRegistry.getValue(provider, serviceKey, providerVersion);
     return this.$injector.has(service);
   }
 
-  public getDelegate<T>(provider: string, serviceKey: string): T {
-    const service = this.cloudProviderRegistry.getValue(provider, serviceKey);
+  public getDelegate<T>(provider: string, serviceKey: string, providerVersion?: string): T {
+    const service = this.cloudProviderRegistry.getValue(provider, serviceKey, providerVersion);
     if (this.$injector.has(service)) {
       return this.$injector.get<T>(service, 'providerDelegate');
     } else {
