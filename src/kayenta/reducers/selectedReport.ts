@@ -9,6 +9,7 @@ export interface ISelectedReportState {
   report: ICanaryJudgeResult;
   load: AsyncRequestState;
   selectedGroup: string;
+  selectedMetric: string;
 }
 
 const report = handleActions({
@@ -25,8 +26,14 @@ const selectedGroup = handleActions({
   [Actions.SELECT_REPORT_GROUP]: (_state: string, action: Action & any) => action.payload.group,
 }, null);
 
+const selectedMetric = handleActions({
+  [Actions.SELECT_REPORT_METRIC_RESULT]: (_state: string, action: Action & any) => action.payload.metric,
+  [Actions.SELECT_REPORT_GROUP]: () => null,
+}, null);
+
 export const selectedReport = combineReducers<ISelectedReportState>({
   report,
   load,
   selectedGroup,
+  selectedMetric,
 });

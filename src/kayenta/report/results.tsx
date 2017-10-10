@@ -5,16 +5,16 @@ import ListDetail from '../layout/listDetail';
 import { ICanaryState } from '../reducers/index';
 import { ICanaryAnalysisResult } from '../domain/ICanaryJudgeResult';
 import ResultsList from './resultsList';
+import ResultDetail from './resultDetail';
 
 interface IResultsStateProps {
   results: ICanaryAnalysisResult[];
+  selectedMetricResult: ICanaryAnalysisResult;
 }
 
-const Results = ({ results }: IResultsStateProps) => {
+const Results = ({ results, selectedMetricResult }: IResultsStateProps) => {
   const list = <ResultsList results={results}/>;
-  const detail = (
-    <div>This is a placeholder for the graph.</div>
-  );
+  const detail = <ResultDetail result={selectedMetricResult}/>;
 
   return (
     <ListDetail
@@ -27,11 +27,15 @@ const Results = ({ results }: IResultsStateProps) => {
 };
 
 const mapStateToProps = (state: ICanaryState): IResultsStateProps => {
-  // Build list of metric results to render.
   const {
-    selectedReport: { report, selectedGroup }
+    selectedReport: {
+      report,
+      selectedGroup,
+      selectedMetric,
+    },
   } = state;
 
+  // Build list of metric results to render.
   let filter: (result: ICanaryAnalysisResult) => boolean;
   if (!selectedGroup) {
     filter = () => true;
@@ -41,6 +45,7 @@ const mapStateToProps = (state: ICanaryState): IResultsStateProps => {
 
   return {
     results: Object.values(report.results).filter(filter),
+    selectedMetricResult: Object.values(report.results).find(r => r.name === selectedMetric),
   };
 };
 

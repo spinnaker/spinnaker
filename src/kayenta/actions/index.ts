@@ -43,3 +43,4 @@ export const LOAD_REPORT_REQUEST = 'load_report_request';
 export const LOAD_REPORT_SUCCESS = 'load_report_success';
 export const LOAD_REPORT_FAILURE = 'load_report_failure';
 export const SELECT_REPORT_GROUP = 'select_report_group';
+export const SELECT_REPORT_METRIC_RESULT = 'select_report_metric_result';

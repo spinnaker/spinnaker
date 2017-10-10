@@ -3,14 +3,15 @@ import { ICanaryJudgeScore } from '../domain/ICanaryJudgeResult';
 
 interface ICanaryJudgeScoreProps {
   score: ICanaryJudgeScore;
+  onClick: () => void;
   className: string;
 }
 
 /*
 * Renders top-level canary report score.
 */
-export default ({ score, className }: ICanaryJudgeScoreProps) => (
-  <section className={className}>
+export default ({ score, className, onClick }: ICanaryJudgeScoreProps) => (
+  <section className={className} onClick={onClick}>
     {score.score}
   </section>
 );

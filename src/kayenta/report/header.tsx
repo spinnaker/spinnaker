@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { connect } from 'react-redux';
+import { connect, Dispatch } from 'react-redux';
 
 import { ICanaryState } from '../reducers/index';
 import {
@@ -8,18 +8,23 @@ import {
 } from '../domain/ICanaryJudgeResult';
 import CanaryJudgeScore from './score';
 import GroupScores from './groupScores';
+import * as Creators from 'kayenta/actions/creators';
 
 interface IReportDetailHeaderStateProps {
   groups: ICanaryJudgeGroupScore[];
   score: ICanaryJudgeScore;
 }
 
+interface IReportDetailDispatchProps {
+  clearSelectedGroup: () => void;
+}
+
 /*
 * Layout for the report detail header.
 * */
-const ReportDetailHeader = ({ groups, score }: IReportDetailHeaderStateProps) => (
+const ReportDetailHeader = ({ groups, score, clearSelectedGroup }: IReportDetailHeaderStateProps & IReportDetailDispatchProps) => (
   <section className="horizontal container">
-    <CanaryJudgeScore score={score} className="flex-1"/>
+    <CanaryJudgeScore score={score} onClick={clearSelectedGroup} className="flex-1"/>
     <GroupScores groups={groups} className="flex-6"/>
   </section>
 );
@@ -29,4 +34,8 @@ const mapStateToProps = (state: ICanaryState): IReportDetailHeaderStateProps => 
   score: state.selectedReport.report.score,
 });
 
-export default connect(mapStateToProps)(ReportDetailHeader);
+const mapDispatchToProps = (dispatch: Dispatch<ICanaryState>): IReportDetailDispatchProps => ({
+  clearSelectedGroup: () => dispatch(Creators.selectReportGroup({ group: null })),
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(ReportDetailHeader);

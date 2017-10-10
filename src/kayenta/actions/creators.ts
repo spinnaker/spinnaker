@@ -52,3 +52,4 @@ export const loadReportRequest = createAction(Actions.LOAD_REPORT_REQUEST, typed
 export const loadReportSuccess = createAction(Actions.LOAD_REPORT_SUCCESS, typedPayloadCreator<{report: ICanaryJudgeResult}>());
 export const loadReportFailure = createAction(Actions.LOAD_REPORT_FAILURE, typedPayloadCreator<{error: Error}>());
 export const selectReportGroup = createAction(Actions.SELECT_REPORT_GROUP, typedPayloadCreator<{group: string}>());
+export const selectReportMetricResult = createAction(Actions.SELECT_REPORT_METRIC_RESULT, typedPayloadCreator<{metric: string}>());
