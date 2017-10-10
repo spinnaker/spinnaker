@@ -121,8 +121,9 @@ class LoadBalancerV2UpsertHandler {
         .withHealthCheckPort(targetGroup.healthCheckPort)
         .withHealthCheckProtocol(targetGroup.healthCheckProtocol)
         .withHealthCheckTimeoutSeconds(targetGroup.healthCheckTimeout)
-        .withUnhealthyThresholdCount(targetGroup.unhealthyThreshold)
+        .withHealthyThresholdCount(targetGroup.healthyThreshold)
         .withMatcher(new Matcher().withHttpCode(targetGroup.healthCheckMatcher))
+        .withUnhealthyThresholdCount(targetGroup.unhealthyThreshold)
       )
       task.updateStatus BASE_PHASE, "Target group updated in ${loadBalancerName} (${awsTargetGroup.targetGroupName}:${awsTargetGroup.port}:${awsTargetGroup.protocol})."
 
