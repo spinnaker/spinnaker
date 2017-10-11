@@ -10,7 +10,7 @@ dependencies {
   compile "com.netflix.spinnaker.kork:kork-swagger:$korkVersion"
 
   // compile spinnaker.dependency('lombok')
-  compile "org.projectlombok:lombok:1.16.10"
+  compile "org.projectlombok:lombok:1.16.18"
 
   // TODO(duftler): Move these to spinnaker-dependencies.
   testCompile "com.netflix.spinnaker.orca:orca-queue:$orcaVersion"

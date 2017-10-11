@@ -15,7 +15,7 @@ dependencies {
   compile "com.netflix.spinnaker.kork:kork-web:$korkVersion"
 
   // compile spinnaker.dependency('lombok')
-  compile "org.projectlombok:lombok:1.16.10"
+  compile "org.projectlombok:lombok:1.16.18"
 
   // compile spinnaker.dependency('spectatorApi')
   compile "com.netflix.spectator:spectator-api:$spectatorVersion"

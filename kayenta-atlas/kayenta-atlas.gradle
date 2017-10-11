@@ -8,7 +8,7 @@ dependencies {
   compile "com.netflix.spinnaker.kork:kork-swagger:$korkVersion"
 
   // compile spinnaker.dependency('lombok')
-  compile "org.projectlombok:lombok:1.16.10"
+  compile "org.projectlombok:lombok:1.16.18"
 
   compile "com.netflix.spinnaker.orca:orca-core:$orcaVersion"
 

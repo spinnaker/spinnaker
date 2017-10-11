@@ -1,6 +1,6 @@
 dependencies {
   // compile spinnaker.dependency('lombok')
-  compile "org.projectlombok:lombok:1.16.10"
+  compile "org.projectlombok:lombok:1.16.18"
 
   // Rserve
   compile group: 'org.rosuda.REngine', name: 'Rserve', version: '1.8.1'
