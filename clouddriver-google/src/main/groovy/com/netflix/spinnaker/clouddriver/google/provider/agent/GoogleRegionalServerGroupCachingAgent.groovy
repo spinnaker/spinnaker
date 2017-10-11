@@ -35,7 +35,6 @@ import com.netflix.spinnaker.clouddriver.cache.OnDemandMetricsSupport
 import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
 import com.netflix.spinnaker.clouddriver.google.cache.CacheResultBuilder
 import com.netflix.spinnaker.clouddriver.google.cache.Keys
-import com.netflix.spinnaker.clouddriver.google.model.GoogleInstance
 import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
 import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
@@ -57,7 +56,6 @@ class GoogleRegionalServerGroupCachingAgent extends AbstractGoogleCachingAgent i
     AUTHORITATIVE.forType(SERVER_GROUPS.ns),
     AUTHORITATIVE.forType(APPLICATIONS.ns),
     INFORMATIVE.forType(CLUSTERS.ns),
-    INFORMATIVE.forType(INSTANCES.ns),
     INFORMATIVE.forType(LOAD_BALANCERS.ns),
   ] as Set
 
@@ -273,13 +271,6 @@ class GoogleRegionalServerGroupCachingAgent extends AbstractGoogleCachingAgent i
         relationships[SERVER_GROUPS.ns].add(serverGroupKey)
       }
 
-      serverGroup.instances.each { GoogleInstance partialInstance ->
-        def instanceKey = Keys.getInstanceKey(accountName, serverGroup.region, partialInstance.name)
-        instanceKeys << instanceKey
-        cacheResultBuilder.namespace(INSTANCES.ns).keep(instanceKey).relationships[SERVER_GROUPS.ns].add(serverGroupKey)
-      }
-      serverGroup.instances.clear()
-
       GoogleZonalServerGroupCachingAgent.populateLoadBalancerKeys(serverGroup, loadBalancerKeys, accountName, region)
 
       loadBalancerKeys.each { String loadBalancerKey ->
@@ -295,7 +286,6 @@ class GoogleRegionalServerGroupCachingAgent extends AbstractGoogleCachingAgent i
           attributes = objectMapper.convertValue(serverGroup, ATTRIBUTES)
           relationships[APPLICATIONS.ns].add(appKey)
           relationships[CLUSTERS.ns].add(clusterKey)
-          relationships[INSTANCES.ns].addAll(instanceKeys)
           relationships[LOAD_BALANCERS.ns].addAll(loadBalancerKeys)
         }
       }
@@ -304,7 +294,6 @@ class GoogleRegionalServerGroupCachingAgent extends AbstractGoogleCachingAgent i
     log.info("Caching ${cacheResultBuilder.namespace(APPLICATIONS.ns).keepSize()} applications in ${agentType}")
     log.info("Caching ${cacheResultBuilder.namespace(CLUSTERS.ns).keepSize()} clusters in ${agentType}")
     log.info("Caching ${cacheResultBuilder.namespace(SERVER_GROUPS.ns).keepSize()} server groups in ${agentType}")
-    log.info("Caching ${cacheResultBuilder.namespace(INSTANCES.ns).keepSize()} instance relationships in ${agentType}")
     log.info("Caching ${cacheResultBuilder.namespace(LOAD_BALANCERS.ns).keepSize()} load balancer relationships in ${agentType}")
     log.info("Caching ${cacheResultBuilder.onDemand.toKeep.size()} onDemand entries in ${agentType}")
     log.info("Evicting ${cacheResultBuilder.onDemand.toEvict.size()} onDemand entries in ${agentType}")
@@ -376,7 +365,7 @@ class GoogleRegionalServerGroupCachingAgent extends AbstractGoogleCachingAgent i
           GoogleServerGroup serverGroup = buildServerGroupFromInstanceGroupManager(instanceGroupManager)
           serverGroups << serverGroup
 
-          populateInstancesAndTemplate(providerCache, instanceGroupManager, serverGroup)
+          populateInstanceTemplate(providerCache, instanceGroupManager, serverGroup)
 
           def autoscalerCallback = new AutoscalerSingletonCallback(serverGroup: serverGroup)
           compute.regionAutoscalers().get(project, region, serverGroup.name).queue(autoscalerRequest, autoscalerCallback)
@@ -393,7 +382,7 @@ class GoogleRegionalServerGroupCachingAgent extends AbstractGoogleCachingAgent i
             GoogleServerGroup serverGroup = buildServerGroupFromInstanceGroupManager(instanceGroupManager)
             serverGroups << serverGroup
 
-            populateInstancesAndTemplate(providerCache, instanceGroupManager, serverGroup)
+            populateInstanceTemplate(providerCache, instanceGroupManager, serverGroup)
           }
         }
 
@@ -433,14 +422,7 @@ class GoogleRegionalServerGroupCachingAgent extends AbstractGoogleCachingAgent i
       )
     }
 
-    void populateInstancesAndTemplate(ProviderCache providerCache, InstanceGroupManager instanceGroupManager, GoogleServerGroup serverGroup) {
-      InstanceGroupsCallback instanceGroupsCallback = new InstanceGroupsCallback(serverGroup: serverGroup)
-      compute.regionInstanceGroups().listInstances(project,
-                                                   region,
-                                                   serverGroup.name,
-                                                   new RegionInstanceGroupsListInstancesRequest()).queue(instanceGroupsRequest,
-                                                                                                         instanceGroupsCallback)
-
+    void populateInstanceTemplate(ProviderCache providerCache, InstanceGroupManager instanceGroupManager, GoogleServerGroup serverGroup) {
       String instanceTemplateName = Utils.getLocalName(instanceGroupManager.instanceTemplate)
       List<String> loadBalancerNames =
         Utils.deriveNetworkLoadBalancerNamesFromTargetPoolUrls(instanceGroupManager.getTargetPools())
@@ -449,18 +431,6 @@ class GoogleRegionalServerGroupCachingAgent extends AbstractGoogleCachingAgent i
                                                                                           loadBalancerNames: loadBalancerNames)
       compute.instanceTemplates().get(project, instanceTemplateName).queue(instanceGroupsRequest,
                                                                            instanceTemplatesCallback)
-    }
-  }
-
-  class InstanceGroupsCallback<RegionInstanceGroupsListInstances> extends JsonBatchCallback<RegionInstanceGroupsListInstances> implements FailureLogger {
-
-    GoogleServerGroup serverGroup
-
-    @Override
-    void onSuccess(RegionInstanceGroupsListInstances instanceGroupsListInstances, HttpHeaders responseHeaders) throws IOException {
-      instanceGroupsListInstances?.items?.each { InstanceWithNamedPorts instance ->
-        serverGroup.instances << new GoogleInstance(name: Utils.getLocalName(instance.instance as String))
-      }
     }
   }
 

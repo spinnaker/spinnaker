@@ -63,15 +63,18 @@ class GoogleLoadBalancerProvider implements LoadBalancerProvider<GoogleLoadBalan
       identifiers.addAll(serverGroup.relationships[LOAD_BALANCERS.ns] ?: [])
     }
 
+    // TODO(duftler): De-frigga this.
+    def allApplicationInstanceKeys = cacheView.filterIdentifiers(INSTANCES.ns, Keys.getInstanceKey("*", "*", "$application-*"))
+
     cacheView.getAll(LOAD_BALANCERS.ns,
                      identifiers.unique(),
                      RelationshipCacheFilter.include(SERVER_GROUPS.ns)).collect { CacheData loadBalancerCacheData ->
-      loadBalancersFromCacheData(loadBalancerCacheData)
+      loadBalancersFromCacheData(loadBalancerCacheData, allApplicationInstanceKeys)
     } as Set
   }
 
-  GoogleLoadBalancerView loadBalancersFromCacheData(CacheData loadBalancerCacheData) {
-    def loadBalancer = null
+  GoogleLoadBalancerView loadBalancersFromCacheData(CacheData loadBalancerCacheData, Set<String> allApplicationInstanceKeys) {
+    GoogleLoadBalancer loadBalancer = null
     switch (GoogleLoadBalancerType.valueOf(loadBalancerCacheData.attributes?.type as String)) {
       case GoogleLoadBalancerType.INTERNAL:
         loadBalancer = objectMapper.convertValue(loadBalancerCacheData.attributes, GoogleInternalLoadBalancer)
@@ -99,9 +102,7 @@ class GoogleLoadBalancerProvider implements LoadBalancerProvider<GoogleLoadBalan
     if (!serverGroupKeys) {
       return loadBalancerView
     }
-    cacheView.getAll(SERVER_GROUPS.ns,
-                     serverGroupKeys,
-                     RelationshipCacheFilter.include(INSTANCES.ns))?.each { CacheData serverGroupCacheData ->
+    cacheView.getAll(SERVER_GROUPS.ns, serverGroupKeys)?.each { CacheData serverGroupCacheData ->
       if (!serverGroupCacheData) {
         return
       }
@@ -147,7 +148,10 @@ class GoogleLoadBalancerProvider implements LoadBalancerProvider<GoogleLoadBalan
           instances: [],
       )
 
-      def instanceNames = serverGroupCacheData.relationships[INSTANCES.ns]?.collect {
+      // TODO(duftler): De-frigga this.
+      def serverGroupInstancePattern = Keys.getInstanceKey(loadBalancer.account, serverGroup.region, "$serverGroup.name-.*")
+      def instanceKeys = allApplicationInstanceKeys.findAll { it ==~ serverGroupInstancePattern }
+      def instanceNames = instanceKeys.collect {
         Keys.parse(it)?.name
       }
 

@@ -64,7 +64,6 @@ class GoogleZonalServerGroupCachingAgent extends AbstractGoogleCachingAgent impl
     AUTHORITATIVE.forType(SERVER_GROUPS.ns),
     AUTHORITATIVE.forType(APPLICATIONS.ns),
     INFORMATIVE.forType(CLUSTERS.ns),
-    INFORMATIVE.forType(INSTANCES.ns),
     INFORMATIVE.forType(LOAD_BALANCERS.ns),
   ] as Set
 
@@ -282,13 +281,6 @@ class GoogleZonalServerGroupCachingAgent extends AbstractGoogleCachingAgent impl
         relationships[SERVER_GROUPS.ns].add(serverGroupKey)
       }
 
-      serverGroup.instances.each { GoogleInstance partialInstance ->
-        def instanceKey = Keys.getInstanceKey(accountName, serverGroup.region, partialInstance.name)
-        instanceKeys << instanceKey
-        cacheResultBuilder.namespace(INSTANCES.ns).keep(instanceKey).relationships[SERVER_GROUPS.ns].add(serverGroupKey)
-      }
-      serverGroup.instances.clear()
-
       populateLoadBalancerKeys(serverGroup, loadBalancerKeys, accountName, region)
 
       loadBalancerKeys.each { String loadBalancerKey ->
@@ -304,7 +296,6 @@ class GoogleZonalServerGroupCachingAgent extends AbstractGoogleCachingAgent impl
           attributes = objectMapper.convertValue(serverGroup, ATTRIBUTES)
           relationships[APPLICATIONS.ns].add(appKey)
           relationships[CLUSTERS.ns].add(clusterKey)
-          relationships[INSTANCES.ns].addAll(instanceKeys)
           relationships[LOAD_BALANCERS.ns].addAll(loadBalancerKeys)
         }
       }
@@ -313,7 +304,6 @@ class GoogleZonalServerGroupCachingAgent extends AbstractGoogleCachingAgent impl
     log.info("Caching ${cacheResultBuilder.namespace(APPLICATIONS.ns).keepSize()} applications in ${agentType}")
     log.info("Caching ${cacheResultBuilder.namespace(CLUSTERS.ns).keepSize()} clusters in ${agentType}")
     log.info("Caching ${cacheResultBuilder.namespace(SERVER_GROUPS.ns).keepSize()} server groups in ${agentType}")
-    log.info("Caching ${cacheResultBuilder.namespace(INSTANCES.ns).keepSize()} instance relationships in ${agentType}")
     log.info("Caching ${cacheResultBuilder.namespace(LOAD_BALANCERS.ns).keepSize()} load balancer relationships in ${agentType}")
     log.info("Caching ${cacheResultBuilder.onDemand.toKeep.size()} onDemand entries in ${agentType}")
     log.info("Evicting ${cacheResultBuilder.onDemand.toEvict.size()} onDemand entries in ${agentType}")
@@ -390,7 +380,7 @@ class GoogleZonalServerGroupCachingAgent extends AbstractGoogleCachingAgent impl
           GoogleServerGroup serverGroup = buildServerGroupFromInstanceGroupManager(instanceGroupManager)
           serverGroups << serverGroup
 
-          populateInstancesAndTemplate(providerCache, instanceGroupManager, serverGroup)
+          populateInstanceTemplate(providerCache, instanceGroupManager, serverGroup)
 
           def autoscalerCallback = new AutoscalerSingletonCallback(serverGroup: serverGroup)
           compute.autoscalers().get(project, zone, serverGroup.name).queue(autoscalerRequest, autoscalerCallback)
@@ -407,7 +397,7 @@ class GoogleZonalServerGroupCachingAgent extends AbstractGoogleCachingAgent impl
             GoogleServerGroup serverGroup = buildServerGroupFromInstanceGroupManager(instanceGroupManager)
             serverGroups << serverGroup
 
-            populateInstancesAndTemplate(providerCache, instanceGroupManager, serverGroup)
+            populateInstanceTemplate(providerCache, instanceGroupManager, serverGroup)
           }
         }
 
@@ -449,14 +439,7 @@ class GoogleZonalServerGroupCachingAgent extends AbstractGoogleCachingAgent impl
       )
     }
 
-    void populateInstancesAndTemplate(ProviderCache providerCache, InstanceGroupManager instanceGroupManager, GoogleServerGroup serverGroup) {
-      InstanceGroupsCallback instanceGroupsCallback = new InstanceGroupsCallback(serverGroup: serverGroup)
-      compute.instanceGroups().listInstances(project,
-                                             zone,
-                                             serverGroup.name,
-                                             new InstanceGroupsListInstancesRequest()).queue(instanceGroupsRequest,
-                                                                                             instanceGroupsCallback)
-
+    void populateInstanceTemplate(ProviderCache providerCache, InstanceGroupManager instanceGroupManager, GoogleServerGroup serverGroup) {
       String instanceTemplateName = Utils.getLocalName(instanceGroupManager.instanceTemplate)
       List<String> loadBalancerNames =
         Utils.deriveNetworkLoadBalancerNamesFromTargetPoolUrls(instanceGroupManager.getTargetPools())
@@ -465,30 +448,6 @@ class GoogleZonalServerGroupCachingAgent extends AbstractGoogleCachingAgent impl
                                                                                           loadBalancerNames: loadBalancerNames)
       compute.instanceTemplates().get(project, instanceTemplateName).queue(instanceGroupsRequest,
                                                                            instanceTemplatesCallback)
-    }
-  }
-
-  class InstanceGroupsCallback<InstanceGroupsListInstances> extends JsonBatchCallback<InstanceGroupsListInstances> {
-
-    GoogleServerGroup serverGroup
-
-    @Override
-    void onFailure(GoogleJsonError e, HttpHeaders responseHeaders) throws IOException {
-      // 404 is thrown if the managed instance group is regional and we try to retrieve its instance group via a zone argument.
-      if (e.code == 404) {
-        serverGroup.regional = true
-      } else {
-        def errorJson = new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(e)
-        log.error errorJson
-      }
-    }
-
-
-    @Override
-    void onSuccess(InstanceGroupsListInstances instanceGroupsListInstances, HttpHeaders responseHeaders) throws IOException {
-      instanceGroupsListInstances?.items?.each { InstanceWithNamedPorts instance ->
-        serverGroup.instances << new GoogleInstance(name: Utils.getLocalName(instance.instance as String))
-      }
     }
   }
 

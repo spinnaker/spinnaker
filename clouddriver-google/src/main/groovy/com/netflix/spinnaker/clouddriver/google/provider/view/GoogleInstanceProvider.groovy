@@ -22,6 +22,7 @@ import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
 import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
 import com.netflix.spinnaker.clouddriver.google.cache.Keys
+import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
 import com.netflix.spinnaker.clouddriver.google.model.GoogleInstance
 import com.netflix.spinnaker.clouddriver.google.model.GoogleSecurityGroup
 import com.netflix.spinnaker.clouddriver.google.model.health.GoogleLoadBalancerHealth
@@ -120,9 +121,10 @@ class GoogleInstanceProvider implements InstanceProvider<GoogleInstance.View> {
       }
     }
 
-    def serverGroupKey = cacheData.relationships[SERVER_GROUPS.ns]?.first()
-    if (serverGroupKey) {
-      instance.serverGroup = Keys.parse(serverGroupKey).serverGroup
+    // TODO(duftler): Replace this with whatever key we come up with to enable easier grouping via stackdriver.
+    def serverGroup = GCEUtil.getLocalName(cacheData.attributes.metadata?.items?.find { it.key == "created-by" }?.value)
+    if (serverGroup) {
+      instance.serverGroup = serverGroup
     }
 
     instance.securityGroups = GoogleSecurityGroupProvider.getMatchingServerGroupNames(
