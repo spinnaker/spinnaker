@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.kato.pipeline.support
 
 import com.netflix.frigga.autoscaling.AutoScalingGroupNameBuilder
+import com.netflix.spinnaker.moniker.Moniker
 
 class StageData {
   String strategy
@@ -27,6 +28,7 @@ class StageData {
   String freeFormDetails
   String application
   String stack
+  Moniker moniker
   @Deprecated String providerType = "aws"
   String cloudProvider = "aws"
   boolean scaleDown
@@ -38,11 +40,15 @@ class StageData {
   long delayBeforeDisableSec
 
   String getCluster() {
-    def builder = new AutoScalingGroupNameBuilder()
-    builder.appName = application
-    builder.stack = stack
-    builder.detail = freeFormDetails
-    return builder.buildGroupName()
+    if (moniker?.cluster) {
+      return moniker.cluster
+    } else {
+      def builder = new AutoScalingGroupNameBuilder()
+      builder.appName = application
+      builder.stack = stack
+      builder.detail = freeFormDetails
+      return builder.buildGroupName()
+    }
   }
 
   String getAccount() {

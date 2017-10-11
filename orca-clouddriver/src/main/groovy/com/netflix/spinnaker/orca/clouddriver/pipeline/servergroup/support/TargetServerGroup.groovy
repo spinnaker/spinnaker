@@ -20,6 +20,7 @@ import groovy.transform.InheritConstructors
 import groovy.transform.ToString
 import groovy.util.logging.Slf4j
 import com.netflix.frigga.Names
+import com.netflix.spinnaker.moniker.Moniker
 import com.netflix.spinnaker.orca.kato.pipeline.support.StageData
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 
@@ -195,6 +196,7 @@ class TargetServerGroup {
     // TODO(ttomsu): This feels dirty - consider structuring to enable an 'exact' Target that just specifies the exact
     // server group name to fetch?
     String serverGroupName
+    Moniker moniker
 
     // Alternatively to asgName, the combination of target and cluster can be used.
     Target target
@@ -205,11 +207,11 @@ class TargetServerGroup {
     String cloudProvider = "aws"
 
     String getApp() {
-      Names.parseName(serverGroupName ?: cluster)?.app
+      moniker?.app ?: Names.parseName(serverGroupName ?: cluster)?.app
     }
 
     String getCluster() {
-      cluster ?: Names.parseName(serverGroupName)?.cluster
+      moniker?.cluster ?: cluster ?: Names.parseName(serverGroupName)?.cluster
     }
 
     static Params fromStage(Stage stage) {
