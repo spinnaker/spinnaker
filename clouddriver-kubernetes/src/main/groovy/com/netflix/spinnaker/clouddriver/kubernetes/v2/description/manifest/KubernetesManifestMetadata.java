@@ -15,15 +15,21 @@
  *
  */
 
-package com.netflix.spinnaker.clouddriver.kubernetes.v2.description;
+package com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest;
 
+import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import com.netflix.spinnaker.moniker.Moniker;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
-
-import java.util.ArrayList;
-import java.util.List;
+import lombok.NoArgsConstructor;
 
 @Data
-public class KubernetesManifestSpinnakerRelationships {
-  List<String> loadBalancers = new ArrayList<>();
-  List<String> securityGroups = new ArrayList<>();
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class KubernetesManifestMetadata {
+  KubernetesManifestSpinnakerRelationships relationships;
+  Artifact artifact;
+  Moniker moniker;
 }

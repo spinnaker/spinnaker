@@ -18,6 +18,9 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.description
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesApiVersion
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest
 import org.yaml.snakeyaml.Yaml
 import spock.lang.Specification
 import spock.lang.Unroll

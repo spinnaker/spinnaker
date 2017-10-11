@@ -17,8 +17,8 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.security
 
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesApiVersion
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesKind
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesApiVersion
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind
 import io.kubernetes.client.models.V1Service
 import io.kubernetes.client.models.V1beta1Ingress
 import io.kubernetes.client.models.V1beta1ReplicaSet

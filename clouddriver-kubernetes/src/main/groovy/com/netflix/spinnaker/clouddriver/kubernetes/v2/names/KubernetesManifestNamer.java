@@ -17,8 +17,8 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.names;
 
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesManifest;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesManifestAnnotater;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifestAnnotater;
 import com.netflix.spinnaker.moniker.Moniker;
 import com.netflix.spinnaker.moniker.Namer;
 

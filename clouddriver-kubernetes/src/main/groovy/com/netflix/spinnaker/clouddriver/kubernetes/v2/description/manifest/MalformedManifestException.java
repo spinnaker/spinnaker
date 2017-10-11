@@ -15,21 +15,16 @@
  *
  */
 
-package com.netflix.spinnaker.clouddriver.kubernetes.v2.description;
+package com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest;
 
-import com.netflix.spinnaker.kork.artifacts.model.Artifact;
-import com.netflix.spinnaker.moniker.Moniker;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+public class MalformedManifestException extends IllegalStateException {
+  private MalformedManifestException(String msg) {
+    super(msg);
+  }
 
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class KubernetesManifestMetadata {
-  KubernetesManifestSpinnakerRelationships relationships;
-  Artifact artifact;
-  Moniker moniker;
+  public static MalformedManifestException missingField(KubernetesManifest manifest, String fieldName) {
+    return new MalformedManifestException(
+        String.format("Missing required field '%s' on manifest:\n%s", fieldName, manifest)
+    );
+  }
 }

@@ -15,21 +15,24 @@
  *
  */
 
-package com.netflix.spinnaker.clouddriver.kubernetes.v2.description;
+package com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
 import java.util.Arrays;
 
-public enum KubernetesApiVersion {
-  V1("v1"),
-  EXTENSIONS_V1BETA1("extensions/v1beta1"),
-  APPS_V1BETA1("apps/v1beta1");
+public enum KubernetesKind {
+  DEPLOYMENT("deployment"),
+  INGRESS("ingress"),
+  POD("pod"),
+  REPLICA_SET("replicaSet"),
+  NETWORK_POLICY("networkPolicy"),
+  SERVICE("service");
 
   private final String name;
 
-  KubernetesApiVersion(String name) {
+  KubernetesKind(String name) {
     this.name = name;
   }
 
@@ -40,10 +43,10 @@ public enum KubernetesApiVersion {
   }
 
   @JsonCreator
-  public static KubernetesApiVersion fromString(String name) {
+  public static KubernetesKind fromString(String name) {
     return Arrays.stream(values())
         .filter(v -> v.toString().equalsIgnoreCase(name))
         .findAny()
-        .orElseThrow(() -> new IllegalArgumentException("API version " + name + " is not yet supported."));
+        .orElseThrow(() -> new IllegalArgumentException("Kubernetes kind '" + name + "' is not supported."));
   }
 }

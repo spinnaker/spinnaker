@@ -17,6 +17,9 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.description
 
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifestAnnotater
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifestSpinnakerRelationships
 import com.netflix.spinnaker.moniker.Moniker
 import spock.lang.Specification
 import spock.lang.Unroll

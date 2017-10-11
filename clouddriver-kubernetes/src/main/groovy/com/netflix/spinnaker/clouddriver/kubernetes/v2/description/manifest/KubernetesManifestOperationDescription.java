@@ -15,16 +15,17 @@
  *
  */
 
-package com.netflix.spinnaker.clouddriver.kubernetes.v2.description;
+package com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest;
 
-public class MalformedManifestException extends IllegalStateException {
-  private MalformedManifestException(String msg) {
-    super(msg);
-  }
+import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.description.KubernetesAtomicOperationDescription;
+import com.netflix.spinnaker.moniker.Moniker;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
-  public static MalformedManifestException missingField(KubernetesManifest manifest, String fieldName) {
-    return new MalformedManifestException(
-        String.format("Missing required field '%s' on manifest:\n%s", fieldName, manifest)
-    );
-  }
+@Data
+@EqualsAndHashCode(callSuper = true)
+public class KubernetesManifestOperationDescription extends KubernetesAtomicOperationDescription {
+  KubernetesManifest manifest;
+  Moniker moniker;
+  KubernetesManifestSpinnakerRelationships relationships;
 }
