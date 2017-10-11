@@ -104,14 +104,14 @@ public class IntegrationTest {
 
         //   2.  Define scope for baseline and canary clusters
         AtlasCanaryScope experiment = new AtlasCanaryScope();
-        experiment.setType("application");
-        experiment.setScope("app_leo");
+        experiment.setType("asg");
+        experiment.setScope("kayenta-iep-v400");
         experiment.setStart("0");
         experiment.setEnd("600000");
         experiment.setStep("PT1M");
         AtlasCanaryScope control = new AtlasCanaryScope();
-        control.setType("application");
-        control.setScope("app_lep");
+        control.setType("asg");
+        control.setScope("kayenta-iep-v401");
         control.setStart("0");
         control.setEnd("600000");
         control.setStep("PT1M");
