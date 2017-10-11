@@ -1,0 +1,4 @@
+dependencies {
+  compile project(":kork-jedis")
+  compile spinnaker.dependency("dynomite")
+}

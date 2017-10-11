@@ -1,0 +1,3 @@
+dependencies {
+  compile spinnaker.dependency('jedis')
+}
