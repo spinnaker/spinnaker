@@ -146,5 +146,6 @@ window.spinnakerSettings = {
     infrastructureStages: false,
     snapshots: false,
     travis: false,
+    versionedProviders: true,
   },
 };
