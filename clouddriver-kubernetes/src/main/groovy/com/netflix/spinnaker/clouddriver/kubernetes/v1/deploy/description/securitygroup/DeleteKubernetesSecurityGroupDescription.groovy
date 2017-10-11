@@ -16,9 +16,9 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.description.securitygroup
 
-import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.description.KubernetesAtomicOperationDescription
+import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.description.KubernetesKindAtomicOperationDescription
 
-class DeleteKubernetesSecurityGroupDescription extends KubernetesAtomicOperationDescription {
+class DeleteKubernetesSecurityGroupDescription extends KubernetesKindAtomicOperationDescription {
   String securityGroupName
   String namespace
 }

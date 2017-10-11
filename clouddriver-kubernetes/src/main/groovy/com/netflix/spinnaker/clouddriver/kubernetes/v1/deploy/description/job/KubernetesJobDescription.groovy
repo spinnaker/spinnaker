@@ -16,9 +16,9 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.description.job
 
-import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.description.KubernetesAtomicOperationDescription
+import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.description.KubernetesKindAtomicOperationDescription
 
-class KubernetesJobDescription extends KubernetesAtomicOperationDescription {
+class KubernetesJobDescription extends KubernetesKindAtomicOperationDescription {
   String jobName
   String namespace
 }

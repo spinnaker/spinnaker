@@ -16,9 +16,9 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.description.servergroup
 
-import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.description.KubernetesAtomicOperationDescription
+import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.description.KubernetesKindAtomicOperationDescription
 
-class KubernetesServerGroupDescription extends KubernetesAtomicOperationDescription {
+class KubernetesServerGroupDescription extends KubernetesKindAtomicOperationDescription {
   String serverGroupName
   String namespace
 }

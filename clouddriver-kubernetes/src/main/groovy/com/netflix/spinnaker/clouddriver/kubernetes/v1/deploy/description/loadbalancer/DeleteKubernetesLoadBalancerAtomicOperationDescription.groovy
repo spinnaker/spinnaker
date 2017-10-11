@@ -16,9 +16,9 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.description.loadbalancer
 
-import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.description.KubernetesAtomicOperationDescription
+import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.description.KubernetesKindAtomicOperationDescription
 
-class DeleteKubernetesLoadBalancerAtomicOperationDescription extends KubernetesAtomicOperationDescription {
+class DeleteKubernetesLoadBalancerAtomicOperationDescription extends KubernetesKindAtomicOperationDescription {
   String loadBalancerName
   String namespace
 }

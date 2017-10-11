@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.description.job
 
-import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.description.KubernetesAtomicOperationDescription
+import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.description.KubernetesKindAtomicOperationDescription
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.description.servergroup.KubernetesContainerDescription
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.description.servergroup.KubernetesVolumeSource
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.description.servergroup.KubernetesDnsPolicy
@@ -25,7 +25,7 @@ import groovy.transform.Canonical
 
 @AutoClone
 @Canonical
-class RunKubernetesJobDescription extends KubernetesAtomicOperationDescription {
+class RunKubernetesJobDescription extends KubernetesKindAtomicOperationDescription {
   String application
   String stack
   String freeFormDetails

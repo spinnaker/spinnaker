@@ -19,13 +19,13 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.description.serve
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.netflix.spinnaker.clouddriver.deploy.DeployDescription
-import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.description.KubernetesAtomicOperationDescription
+import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.description.KubernetesKindAtomicOperationDescription
 import groovy.transform.AutoClone
 import groovy.transform.Canonical
 
 @AutoClone
 @Canonical
-class DeployKubernetesAtomicOperationDescription extends KubernetesAtomicOperationDescription implements DeployDescription {
+class DeployKubernetesAtomicOperationDescription extends KubernetesKindAtomicOperationDescription implements DeployDescription {
   String application
   String stack
   String freeFormDetails

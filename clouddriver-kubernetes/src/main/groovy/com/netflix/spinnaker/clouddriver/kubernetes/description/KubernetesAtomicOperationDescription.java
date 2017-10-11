@@ -15,17 +15,19 @@
  *
  */
 
-package com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest;
+package com.netflix.spinnaker.clouddriver.kubernetes.description;
 
-import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesAtomicOperationDescription;
-import com.netflix.spinnaker.moniker.Moniker;
+import com.netflix.spinnaker.clouddriver.deploy.DeployDescription;
+import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
+import com.netflix.spinnaker.clouddriver.security.resources.CredentialsNameable;
+import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
 @Data
-@EqualsAndHashCode(callSuper = true)
-public class KubernetesManifestOperationDescription extends KubernetesAtomicOperationDescription {
-  KubernetesManifest manifest;
-  Moniker moniker;
-  KubernetesManifestSpinnakerRelationships relationships;
+@AllArgsConstructor
+@NoArgsConstructor
+public class KubernetesAtomicOperationDescription implements DeployDescription, CredentialsNameable {
+  String account;
+  KubernetesNamedAccountCredentials credentials;
 }
