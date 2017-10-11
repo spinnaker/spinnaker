@@ -17,6 +17,8 @@
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer
 
 import com.amazonaws.AmazonServiceException
+import com.amazonaws.services.ec2.model.IpPermission
+import com.amazonaws.services.ec2.model.SecurityGroup
 import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancing
 import com.amazonaws.services.elasticloadbalancing.model.ApplySecurityGroupsToLoadBalancerRequest
 import com.amazonaws.services.elasticloadbalancing.model.ConfigureHealthCheckRequest
@@ -33,6 +35,7 @@ import com.amazonaws.services.elasticloadbalancing.model.ListenerDescription
 import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerAttributes
 import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerDescription
 import com.amazonaws.services.elasticloadbalancing.model.ModifyLoadBalancerAttributesRequest
+import com.netflix.spinnaker.clouddriver.aws.deploy.ops.securitygroup.SecurityGroupLookupFactory
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
@@ -45,6 +48,8 @@ import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactor
 import com.netflix.spinnaker.clouddriver.aws.services.SecurityGroupService
 import spock.lang.Specification
 import spock.lang.Subject
+
+import static com.netflix.spinnaker.clouddriver.aws.deploy.ops.securitygroup.SecurityGroupLookupFactory.*
 
 class UpsertAmazonLoadBalancerClassicAtomicOperationSpec extends Specification {
 
@@ -377,5 +382,167 @@ class UpsertAmazonLoadBalancerClassicAtomicOperationSpec extends Specification {
       listeners: [ new Listener(loadBalancerPort: 80, instancePort: 8501, protocol: "HTTP", instanceProtocol: "HTTP") ]
     ))
     0 * loadBalancing.createLoadBalancerListeners(_)
+  }
+
+  void "should not automatically ingress groups for a non application load balancer"() {
+    given:
+    def applicationName = "foo"
+    description.name = "random"
+    description.application = applicationName
+    description.securityGroups = []
+    description.vpcId = "vpcId"
+    description.listeners = [
+      new UpsertAmazonLoadBalancerClassicDescription.Listener(
+        externalPort: 80,
+        externalProtocol: "HTTP",
+        internalPort: 7001,
+        internalProtocol: "HTTP"
+      )
+    ]
+
+    and:
+    def securityGroupLookup = Mock(SecurityGroupLookup)
+    def securityGroupLookupFactory = Mock(SecurityGroupLookupFactory)
+    def appSecurityGroupUpdater = Mock(SecurityGroupUpdater)
+    securityGroupLookupFactory.getInstance("us-east-1") >> securityGroupLookup
+    operation.securityGroupLookupFactory = securityGroupLookupFactory
+
+    when:
+    operation.operate([])
+
+    then:
+    0 * appSecurityGroupUpdater.addIngress(_)
+    1 * loadBalancing.createLoadBalancer(_ as CreateLoadBalancerRequest) >> new CreateLoadBalancerResult(dNSName: 'dnsName1')
+  }
+
+  void "should permit ingress from application elb security group to application security group"() {
+    given: 'an application load balancer'
+    def applicationName = "foo"
+    description.name = applicationName
+    description.application = applicationName
+    description.securityGroups = []
+    description.vpcId = "vpcId"
+    description.listeners = [
+      new UpsertAmazonLoadBalancerClassicDescription.Listener(
+        externalPort: 80,
+        externalProtocol: "HTTP",
+        internalPort: 7001,
+        internalProtocol: "HTTP"
+      )
+    ]
+
+    and: "an app elb group and app security group already exist"
+    def securityGroupLookup = Mock(SecurityGroupLookup)
+    def securityGroupLookupFactory = Mock(SecurityGroupLookupFactory)
+
+    def elbSecurityGroup = new SecurityGroup()
+      .withVpcId(description.vpcId)
+      .withGroupId("sg-1234")
+      .withGroupName(applicationName + "-elb")
+
+    def applicationSecurityGroup = new SecurityGroup()
+      .withVpcId(description.vpcId)
+      .withGroupId("sg-1235")
+      .withGroupName(applicationName)
+
+    def elbSecurityGroupUpdater = Mock(SecurityGroupUpdater)
+    def appSecurityGroupUpdater = Mock(SecurityGroupUpdater)
+
+    securityGroupLookupFactory.getInstance("us-east-1") >> securityGroupLookup
+    operation.securityGroupLookupFactory = securityGroupLookupFactory
+    elbSecurityGroupUpdater.getSecurityGroup() >> elbSecurityGroup
+    appSecurityGroupUpdater.getSecurityGroup() >> applicationSecurityGroup
+    securityGroupLookup.getSecurityGroupByName(
+      description.credentialAccount,
+      applicationName + "-elb",
+      description.vpcId
+    ) >> Optional.of(elbSecurityGroupUpdater)
+
+    securityGroupLookup.getSecurityGroupByName(
+      description.credentialAccount,
+      applicationName,
+      description.vpcId
+    ) >> Optional.of(appSecurityGroupUpdater)
+
+    when:
+    operation.operate([])
+
+    then:
+    1 * appSecurityGroupUpdater.addIngress(_) >> {
+      def permissions = it[0] as List<IpPermission>
+      assert permissions.size() == 1
+      assert permissions[0].fromPort == 7001 && permissions[0].toPort == 7001
+      assert elbSecurityGroup.groupId in permissions[0].userIdGroupPairs*.groupId
+    }
+
+    1 * loadBalancing.createLoadBalancer(_ as CreateLoadBalancerRequest) >> new CreateLoadBalancerResult(dNSName: 'dnsName1')
+  }
+
+  void "should auto-create application load balancer security group"() {
+    given: "an elb with a healthCheck port"
+    def applicationName = "foo"
+    description.name = applicationName
+    description.application = applicationName
+    description.securityGroups = []
+    description.vpcId = "vpcId"
+    description.healthCheck = "HTTP:7002/health"
+    description.listeners = [
+      new UpsertAmazonLoadBalancerClassicDescription.Listener(
+        externalPort: 80,
+        externalProtocol: "HTTP",
+        internalPort: 7001,
+        internalProtocol: "HTTP"
+      )
+    ]
+
+    and:
+    def securityGroupLookup = Mock(SecurityGroupLookup)
+    def securityGroupLookupFactory = Mock(SecurityGroupLookupFactory)
+
+    def elbSecurityGroup = new SecurityGroup()
+      .withVpcId(description.vpcId)
+      .withGroupId("sg-1234")
+      .withGroupName(applicationName + "-elb")
+
+    def applicationSecurityGroup = new SecurityGroup()
+      .withVpcId(description.vpcId)
+      .withGroupId("sg-1235")
+      .withGroupName(applicationName)
+
+    def elbSecurityGroupUpdater = Mock(SecurityGroupUpdater)
+    def appSecurityGroupUpdater = Mock(SecurityGroupUpdater)
+
+    securityGroupLookupFactory.getInstance("us-east-1") >> securityGroupLookup
+    operation.securityGroupLookupFactory = securityGroupLookupFactory
+    elbSecurityGroupUpdater.getSecurityGroup() >> elbSecurityGroup
+    appSecurityGroupUpdater.getSecurityGroup() >> applicationSecurityGroup
+
+    and: "an application elb group doesn't exist"
+    securityGroupLookup.getSecurityGroupByName(
+      description.credentialAccount,
+      applicationName + "-elb",
+      description.vpcId
+    ) >> Optional.empty()
+
+    securityGroupLookup.getSecurityGroupByName(
+      description.credentialAccount,
+      applicationName,
+      description.vpcId
+    ) >> Optional.of(appSecurityGroupUpdater)
+
+    when:
+    operation.operate([])
+
+    then: "an application elb group should be created and ingressed properly"
+    1 * securityGroupLookup.createSecurityGroup(_) >> elbSecurityGroupUpdater
+    1 * appSecurityGroupUpdater.addIngress(_) >> {
+      def permissions = it[0] as List<IpPermission>
+      assert permissions.size() == 2
+      assert permissions*.fromPort == [7001, 7002] && permissions*.toPort == [7001, 7002]
+      assert elbSecurityGroup.groupId in permissions[0].userIdGroupPairs*.groupId
+      assert elbSecurityGroup.groupId in permissions[1].userIdGroupPairs*.groupId
+    }
+
+    1 * loadBalancing.createLoadBalancer(_ as CreateLoadBalancerRequest) >> new CreateLoadBalancerResult(dNSName: 'dnsName1')
   }
 }
