@@ -50,6 +50,12 @@ public class KubernetesResourcePropertyRegistry {
     return apiVersionLookup;
   }
 
+  public KubernetesResourceProperties lookup(KubernetesCoordinates coordinates) {
+    return lookup()
+        .withApiVersion(coordinates.getApiVersion())
+        .withKind(coordinates.getKind());
+  }
+
   private ApiVersionLookup apiVersionLookup = new ApiVersionLookup();
 
   public static class KindLookup {

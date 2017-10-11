@@ -25,6 +25,7 @@ import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesApiVersion;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
+import com.netflix.spinnaker.clouddriver.model.ServerGroup.Capacity;
 import io.kubernetes.client.ApiClient;
 import io.kubernetes.client.ApiException;
 import io.kubernetes.client.apis.AppsV1beta1Api;
@@ -229,6 +230,11 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
     });
   }
 
+  public void patchDeployment(String namespace, String name, AppsV1beta1Deployment desired) {
+    AppsV1beta1Deployment current = readDeployment(namespace, name);
+    patchDeployment(current, desired);
+  }
+
   public void patchDeployment(AppsV1beta1Deployment current, AppsV1beta1Deployment desired) {
     final String methodName = "deployments.patch";
     final String namespace = current.getMetadata().getNamespace();
@@ -259,6 +265,12 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
         throw new KubernetesApiException(methodName, e);
       }
     });
+  }
+
+  public void resizeDeployment(String namespace, String name, int replicas) {
+    AppsV1beta1Deployment deployment = readDeployment(namespace, name);
+    deployment.getSpec().setReplicas(replicas);
+    patchDeployment(namespace, name, deployment);
   }
 
   public void createIngress(V1beta1Ingress ingress) {
@@ -372,6 +384,25 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
     });
   }
 
+  public void patchReplicaSet(String namespace, String name, V1beta1ReplicaSet desired) {
+    V1beta1ReplicaSet current = readReplicaSet(namespace, name);
+    patchReplicaSet(current, desired);
+  }
+
+  public void patchReplicaSet(V1beta1ReplicaSet current, V1beta1ReplicaSet desired) {
+    final String methodName = "replicaSets.patch";
+    final String namespace = current.getMetadata().getNamespace();
+    final String name = current.getMetadata().getName();
+    final Map[] jsonPatch = determineJsonPatch(current, desired);
+    runAndRecordMetrics(methodName, namespace, () -> {
+      try {
+        return extensionsV1beta1Api.patchNamespacedReplicaSet(name, namespace, jsonPatch, null);
+      } catch (ApiException e) {
+        throw new KubernetesApiException(methodName, e);
+      }
+    });
+  }
+
   public V1beta1ReplicaSet readReplicaSet(String namespace, String name) {
     final String methodName = "replicaSets.read";
     final KubernetesApiVersion apiVersion = KubernetesApiVersion.EXTENSIONS_V1BETA1;
@@ -388,6 +419,12 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
         throw new KubernetesApiException(methodName, e);
       }
     });
+  }
+
+  public void resizeReplicaSet(String namespace, String name, int replicas) {
+    V1beta1ReplicaSet replicaSet = readReplicaSet(namespace, name);
+    replicaSet.getSpec().setReplicas(replicas);
+    patchReplicaSet(namespace, name, replicaSet);
   }
 
   public void createService(V1Service service) {

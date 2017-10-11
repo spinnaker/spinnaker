@@ -21,11 +21,13 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpi
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesApiVersion;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
+import com.netflix.spinnaker.clouddriver.model.ServerGroup;
+import com.netflix.spinnaker.clouddriver.model.ServerGroup.Capacity;
 import io.kubernetes.client.models.AppsV1beta1Deployment;
 import org.springframework.stereotype.Component;
 
 @Component
-public class KubernetesDeploymentDeployer extends KubernetesDeployer<AppsV1beta1Deployment> {
+public class KubernetesDeploymentDeployer extends KubernetesDeployer<AppsV1beta1Deployment> implements CanResize {
   @Override
   public Class<AppsV1beta1Deployment> getDeployedClass() {
     return AppsV1beta1Deployment.class;
@@ -61,5 +63,10 @@ public class KubernetesDeploymentDeployer extends KubernetesDeployer<AppsV1beta1
   @Override
   public KubernetesSpinnakerKindMap.SpinnakerKind spinnakerKind() {
     return KubernetesSpinnakerKindMap.SpinnakerKind.UNCLASSIFIED;
+  }
+
+  @Override
+  public void resize(KubernetesV2Credentials credentials, String namespace, String name, Capacity capacity) {
+    credentials.resizeDeployment(namespace, name, capacity.getDesired());
   }
 }

@@ -197,31 +197,11 @@ public interface ServerGroup {
     private Integer starting = 0;
   }
 
+  @Builder
+  @NoArgsConstructor
+  @AllArgsConstructor
+  @Data
   public static class Capacity {
-    public Integer getMin() {
-      return min;
-    }
-
-    public void setMin(Integer min) {
-      this.min = min;
-    }
-
-    public Integer getMax() {
-      return max;
-    }
-
-    public void setMax(Integer max) {
-      this.max = max;
-    }
-
-    public Integer getDesired() {
-      return desired;
-    }
-
-    public void setDesired(Integer desired) {
-      this.desired = desired;
-    }
-
     /**
      * Minimum number of instances required in this server group. If provider specific {@code ServerGroup} does not have
      * a notion of min then this should be same as {@code desired}
