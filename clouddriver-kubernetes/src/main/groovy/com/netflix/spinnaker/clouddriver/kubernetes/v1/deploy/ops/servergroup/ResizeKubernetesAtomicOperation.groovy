@@ -22,6 +22,7 @@ import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.KubernetesUtil
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.description.servergroup.ResizeKubernetesAtomicOperationDescription
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.exception.KubernetesOperationException
+import com.netflix.spinnaker.clouddriver.kubernetes.v1.security.KubernetesV1Credentials
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import io.fabric8.kubernetes.api.model.ReplicationController
 import io.fabric8.kubernetes.api.model.extensions.Deployment
@@ -56,6 +57,12 @@ class ResizeKubernetesAtomicOperation implements AtomicOperation<Void> {
     def name = description.serverGroupName
 
     task.updateStatus BASE_PHASE, "Setting size to $size..."
+
+    if (description.kind) {
+      if (description.kind == KubernetesUtil.CONTROLLERS_STATEFULSET_KIND || description.kind == KubernetesUtil.CONTROLLERS_DAEMONSET_KIND) {
+        return resizeController(credentials, namespace, name, size)
+      }
+    }
 
     def desired = null
     def getGeneration = null
@@ -98,6 +105,17 @@ class ResizeKubernetesAtomicOperation implements AtomicOperation<Void> {
 
     if (!credentials.apiAdaptor.blockUntilResourceConsistent(desired, getGeneration, getResource)) {
       throw new KubernetesOperationException("Failed waiting for server group to acknowledge its new size. This is likely a bug within Kubernetes itself.")
+    }
+
+    task.updateStatus BASE_PHASE, "Completed resize operation."
+  }
+
+  void resizeController(KubernetesV1Credentials credentials, String namespace, String serverGroupName, int size) {
+
+    if (description.kind == KubernetesUtil.CONTROLLERS_STATEFULSET_KIND) {
+      credentials.apiClientAdaptor.resizeStatefulSet(serverGroupName, namespace, size, false)
+    } else if (description.kind == KubernetesUtil.CONTROLLERS_DAEMONSET_KIND) {
+      throw new KubernetesOperationException("Resize DaemonSet is not support.")
     }
 
     task.updateStatus BASE_PHASE, "Completed resize operation."

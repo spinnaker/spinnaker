@@ -363,7 +363,7 @@ class KubernetesClientApiConverter {
 
     def metadata = new V1ObjectMeta()
     def selector = new V1LabelSelector()
-    metadata.labels = genericLabels(statefulSetName, description.namespace)
+    metadata.labels = genericLabels(description.application, statefulSetName, description.namespace)
     if (description.controllerAnnotations) {
       metadata.annotations = new HashMap<String, String>()
       description.controllerAnnotations.forEach({ k, v ->
@@ -381,10 +381,11 @@ class KubernetesClientApiConverter {
       spec.addVolumeClaimTemplatesItem(persistentVolumeClaim)
     })
 
+    //FIXME: Inlude updateStradegy when api model is available
     metadata = new V1ObjectMeta()
     metadata.name = statefulSetName
     metadata.namespace = description.namespace
-    metadata.labels = genericLabels(statefulSetName, description.namespace)
+    metadata.labels = genericLabels(description.application, statefulSetName, description.namespace)
 
     stateful.metadata = metadata
     stateful.spec = spec
@@ -877,9 +878,9 @@ class KubernetesClientApiConverter {
   /*
     TODO:Create some gneral purpose labels for helping identify a controller.  Feel free to expend or fix this function.
    */
-  static Map<String, String> genericLabels(String name, String namespace) {
+  static Map<String, String> genericLabels(String appName, String name, String namespace) {
     def labels = [
-      "app"      : name,
+      "app"      : appName,
       "cluster"  : name,
       "namespace": namespace,
     ]
@@ -893,12 +894,11 @@ class KubernetesClientApiConverter {
 
     def daemonset = new V1beta1DaemonSet()
     def spec = new V1beta1DaemonSetSpec()
-    def templateSpec = new V1PodTemplateSpec()
     spec.template = toPodTemplateSpec(description, daemonsetName)
 
     def metadata = new V1ObjectMeta()
     def selector = new V1LabelSelector()
-    metadata.labels = genericLabels(daemonsetName, description.namespace)
+    metadata.labels = genericLabels(description.application, daemonsetName, description.namespace)
     if (description.controllerAnnotations) {
       metadata.annotations = new HashMap<String, String>()
       description.controllerAnnotations.forEach({ k, v ->
@@ -911,23 +911,23 @@ class KubernetesClientApiConverter {
     spec.template.metadata = metadata
     spec.selector = selector
 
-    if (description.updateStrategy) {
+    if (description.updateController) {
+      def updateController = description.updateController
       def updateStrategy = new V1beta1DaemonSetUpdateStrategy()
+      def rollingUpdate = new V1beta1RollingUpdateDaemonSet()
 
-      if (description.updateStrategy.type.name() == "Recreate") {
-        //Note: Use 'Recreate' which is supported by validation code
-        updateStrategy.type = "OnDelete"
-      } else {
-        updateStrategy.type = description.updateStrategy.type
-        if (description.updateStrategy.rollingUpdate) {
-          def rollingUpdate = new V1beta1RollingUpdateDaemonSet()
-          rollingUpdate.maxUnavailable = description.updateStrategy.rollingUpdate.maxUnavailable
-          updateStrategy.rollingUpdate = rollingUpdate
+      if(updateController) {
+        //Note: Do nothandle OnDelete because it will cause Kubernete failed.
+        if (updateController.updateStrategy.type.name() != "Recreate") {
+          updateStrategy.type = updateController.updateStrategy.type
+          if (updateController.updateStrategy.rollingUpdate) {
+            rollingUpdate.maxUnavailable = updateController.updateStrategy.rollingUpdate.maxUnavailable
+            updateStrategy.rollingUpdate = rollingUpdate
+          }
+          spec.updateStrategy = updateStrategy
         }
       }
-      spec.updateStrategy = updateStrategy
     }
-
 
     metadata.name = daemonsetName
     metadata.namespace = description.namespace
@@ -937,5 +937,16 @@ class KubernetesClientApiConverter {
     daemonset.kind = description.kind
 
     return daemonset
+  }
+
+  static V1beta1DaemonSet toReplaceDaemonSet(V1beta1DaemonSet configurefDaemonSet, V1beta1DaemonSet deployedDaemonSet) {
+    deployedDaemonSet.spec.template = configurefDaemonSet.spec.template
+    deployedDaemonSet.spec.updateStrategy = configurefDaemonSet.spec.updateStrategy
+
+    return deployedDaemonSet
+  }
+
+  static boolean canUpdated(DeployKubernetesAtomicOperationDescription description) {
+    return description.updateController?.enabled
   }
 }
