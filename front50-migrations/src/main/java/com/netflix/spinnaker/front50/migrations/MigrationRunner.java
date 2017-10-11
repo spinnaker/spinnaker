@@ -25,6 +25,7 @@ import org.springframework.stereotype.Component;
 import java.util.Collection;
 
 import static java.lang.String.format;
+import static net.logstash.logback.argument.StructuredArguments.value;
 
 @Component
 public class MigrationRunner {
@@ -44,7 +45,9 @@ public class MigrationRunner {
           try {
             migration.run();
           } catch (Exception e) {
-            log.error(format("Migration failure (%s)", migration.getClass().getSimpleName()), e);
+            log.error("Migration failure ({}): {}",
+              value("class", migration.getClass().getSimpleName()),
+              value("exception", e));
           }
         });
   }

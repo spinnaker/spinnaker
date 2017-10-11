@@ -60,6 +60,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static net.logstash.logback.argument.StructuredArguments.value;
+
 
 public class GcsStorageService implements StorageService {
   private static final String DEFAULT_DATA_FILENAME = "specification.json";
@@ -104,7 +106,7 @@ public class GcsStorageService implements StorageService {
       FileInputStream stream = new FileInputStream(jsonPath);
       credential = GoogleCredential.fromStream(stream, transport, factory)
                       .createScoped(Collections.singleton(StorageScopes.DEVSTORAGE_FULL_CONTROL));
-      log.info("Loaded credentials from " + jsonPath);
+      log.info("Loaded credentials from {}", value("jsonPath", jsonPath));
     } else {
       log.info("spinnaker.gcs.enabled without spinnaker.gcs.jsonPath. " +
                    "Using default application credentials. Using default credentials.");
@@ -243,7 +245,8 @@ public class GcsStorageService implements StorageService {
     } catch (HttpResponseException e) {
       if (e.getStatusCode() == 404) {
         log.warn("Bucket {} does not exist. Creating it in project={}",
-                 bucketName, projectName);
+                 value("bucket", bucketName),
+                 value("project", projectName));
         Bucket.Versioning versioning = new Bucket.Versioning().setEnabled(true);
         Bucket bucket = new Bucket().setName(bucketName).setVersioning(versioning);
         if (StringUtils.isNotBlank(bucketLocation)) {
@@ -253,15 +256,17 @@ public class GcsStorageService implements StorageService {
             storage.buckets().insert(projectName, bucket).execute();
         } catch (IOException e2) {
             log.error("Could not create bucket={} in project={}: {}",
-                      bucketName, projectName, e2);
+                      value("bucket", bucketName),
+                      value("project", projectName),
+                      e2);
             throw new IllegalStateException(e2);
         }
       } else {
-          log.error("Could not get bucket={}: {}", bucketName, e);
+          log.error("Could not get bucket={}: {}", value("bucket", bucketName), e);
           throw new IllegalStateException(e);
       }
     } catch (IOException e) {
-        log.error("Could not get bucket={}: {}", bucketName, e);
+        log.error("Could not get bucket={}: {}", value("bucket", bucketName), e);
         throw new IllegalStateException(e);
     }
   }
@@ -295,13 +300,16 @@ public class GcsStorageService implements StorageService {
 
       T item = deserialize(storageObjectHolder[0], (Class<T>) objectType.clazz, true);
       item.setLastModified(storageObjectHolder[0].getUpdated().getValue());
-      log.debug("Loaded bucket={} path={}", bucketName, path);
+      log.debug("Loaded bucket={} path={}", value("bucket", bucketName), value("path", path));
       return item;
     } catch (IOException e) {
       if (e instanceof HttpResponseException) {
         HttpResponseException hre = (HttpResponseException)e;
         log.error("Failed to load {} {}: {} {}",
-                  objectType.group, objectKey, hre.getStatusCode(), hre.getStatusMessage());
+                  value("group", objectType.group),
+                  value("key", objectKey),
+                  value("responseStatus", hre.getStatusCode()),
+                  value("errorMsg", hre.getStatusMessage()));
         if (hre.getStatusCode() == 404) {
           throw new NotFoundException(String.format("No file at path=%s", path));
         }
@@ -315,7 +323,7 @@ public class GcsStorageService implements StorageService {
     String path = keyToPath(objectKey, objectType.group);
     try {
       timeExecute(deleteTimer, obj_api.delete(bucketName, path));
-      log.info("Deleted {} '{}'", objectType.group, objectKey);
+      log.info("Deleted {} '{}'", value("group", objectType.group), value("key", objectKey));
       writeLastModified(objectType.group);
     } catch (HttpResponseException e) {
       if (e.getStatusCode() == 404) {
@@ -323,7 +331,7 @@ public class GcsStorageService implements StorageService {
       }
       throw new IllegalStateException(e);
     } catch (IOException ioex) {
-        log.error("Failed to delete path={}: {}", path, ioex);
+        log.error("Failed to delete path={}", value("path", path), ioex);
       throw new IllegalStateException(ioex);
     }
   }
@@ -339,9 +347,9 @@ public class GcsStorageService implements StorageService {
       ByteArrayContent content = new ByteArrayContent("application/json", bytes);
       timeExecute(insertTimer, obj_api.insert(bucketName, object, content));
       writeLastModified(objectType.group);
-      log.info("Wrote {} '{}'", objectType.group, objectKey);
+      log.info("Wrote {} '{}'", value("group", objectType.group), value("key", objectKey));
     } catch (IOException e) {
-      log.error("Update failed on path={}: {}", path, e);
+      log.error("Update failed on path={}: {}", value("path", path), e);
       throw new IllegalStateException(e);
     }
   }
@@ -461,10 +469,12 @@ public class GcsStorageService implements StorageService {
         return objectMapper.readValue(json, clas);
       } catch (Exception ex) {
         if (current_version) {
-          log.error("Error reading {}: {}", object.getName(), ex);
+          log.error("Error reading {}: {}", value("object", object.getName()), ex);
         } else {
           log.error("Error reading {} generation={}: {}",
-                    object.getName(), object.getGeneration(), ex);
+                    value("object", object.getName()),
+                    value("generation", object.getGeneration()),
+                    ex);
         }
         return null;
     }
@@ -485,17 +495,17 @@ public class GcsStorageService implements StorageService {
               ByteArrayContent content = new ByteArrayContent("application/json", bytes);
 
               try {
-                log.info("Attempting to add {}", timestamp_path);
+                log.info("Attempting to add {}", value("path", timestamp_path));
                 timeExecute(insertTimer, obj_api.insert(bucketName, object, content));
               } catch (IOException ioex) {
                   log.error("writeLastModified failed to update {}\n{}",
-                            timestamp_path, e.toString());
-                  log.error("writeLastModified insert failed too: {}", ioex);
+                            value("path", timestamp_path), e.toString());
+                  log.error("writeLastModified insert failed too", ioex);
                 throw new IllegalStateException(e);
               }
           } else {
               log.error("writeLastModified failed to update {}\n{}",
-                        timestamp_path, e.toString());
+                        value("path", timestamp_path), value("exception", e.toString()));
               throw new IllegalStateException(e);
           }
       } catch (IOException e) {
@@ -510,7 +520,7 @@ public class GcsStorageService implements StorageService {
           purgeOldVersions(timestamp_path);
       } catch (Exception e) {
           log.warn("Failed to purge old versions of {}. Ignoring error.",
-                   timestamp_path);
+                   value("path", timestamp_path));
       }
   }
 
@@ -542,7 +552,7 @@ public class GcsStorageService implements StorageService {
         if (generation == generations.get(0)) {
             continue;
         }
-        log.debug("Remove {} generation {}", path, generation);
+        log.debug("Remove {} generation {}", value("path", path), value("generation", generation));
         timeExecute(purgeTimer, obj_api.delete(bucketName, path).setGeneration(generation));
       }
   }
@@ -566,14 +576,14 @@ public class GcsStorageService implements StorageService {
           HttpResponseException hre = (HttpResponseException)e;
           long now = System.currentTimeMillis();
           if (hre.getStatusCode() == 404) {
-              log.info("No timestamp file at {}. Creating a new one.", path);
+              log.info("No timestamp file at {}. Creating a new one.", value("path", path));
               writeLastModified(objectType.group);
               return now;
           }
-          log.error("Error writing timestamp file {}", e.toString());
+          log.error("Error writing timestamp file {}", e);
           return now;
         } else {
-          log.error("Error accessing timestamp file {}", e.toString());
+          log.error("Error accessing timestamp file {}", e);
           return System.currentTimeMillis();
         }
       }

@@ -30,6 +30,7 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static java.lang.String.format;
+import static net.logstash.logback.argument.StructuredArguments.value;
 
 @Component
 public class LinearToParallelMigration implements Migration {
@@ -68,7 +69,8 @@ public class LinearToParallelMigration implements Migration {
   }
 
   private void migrate(ItemDAO<Pipeline> dao, String type, Pipeline pipeline) {
-    log.info(format("Migrating %s '%s' from linear -> parallel", type, pipeline.getId()));
+    log.info(format("Migrating {} '{}' from linear -> parallel",
+      value("type", type), value("id", pipeline.getId())));
 
     AtomicInteger refId = new AtomicInteger(0);
     List<Map<String, Object>> stages = (List<Map<String, Object>>) pipeline.getOrDefault("stages", Collections.emptyList());
@@ -86,7 +88,8 @@ public class LinearToParallelMigration implements Migration {
     pipeline.put("parallel", true);
     dao.update(pipeline.getId(), pipeline);
 
-    log.info(format("Migrated %s '%s' from linear -> parallel", type, pipeline.getId()));
+    log.info(format("Migrated %s '%s' from linear -> parallel",
+      value("type", type), value("id", pipeline.getId())));
   }
 
 }

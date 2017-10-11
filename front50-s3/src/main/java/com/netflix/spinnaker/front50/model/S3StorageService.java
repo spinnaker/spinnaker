@@ -34,6 +34,8 @@ import java.time.Duration;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static net.logstash.logback.argument.StructuredArguments.value;
+
 public class S3StorageService implements StorageService {
   private static final Logger log = LoggerFactory.getLogger(S3StorageService.class);
 
@@ -69,15 +71,18 @@ public class S3StorageService implements StorageService {
     } catch (AmazonServiceException e) {
       if (e.getStatusCode() == 404) {
         if (StringUtils.isNullOrEmpty(region)) {
-          log.info("Creating bucket " + bucket + " in default region");
+          log.info("Creating bucket {} in default region", value("bucket", bucket));
           amazonS3.createBucket(bucket);
         } else {
-          log.info("Creating bucket " + bucket + " in region " + region + "...");
+          log.info("Creating bucket {} in region {}",
+            value("bucket", bucket),
+            value("region", region)
+          );
           amazonS3.createBucket(bucket, region);
         }
 
         if (versioning) {
-          log.info("Enabling versioning of the S3 bucket " + bucket);
+          log.info("Enabling versioning of the S3 bucket {}", value("bucket", bucket));
           BucketVersioningConfiguration configuration =
             new BucketVersioningConfiguration().withStatus("Enabled");
 
@@ -162,7 +167,10 @@ public class S3StorageService implements StorageService {
       summaries.addAll(bucketListing.getObjectSummaries());
     }
 
-    log.debug("Took {}ms to fetch {} object keys for {}", (System.currentTimeMillis() - startTime), summaries.size(), objectType);
+    log.debug("Took {}ms to fetch {} object keys for {}",
+      value("fetchTime", (System.currentTimeMillis() - startTime)),
+      summaries.size(),
+      value("type", objectType));
 
     return summaries
       .stream()

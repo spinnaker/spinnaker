@@ -35,6 +35,8 @@ import org.springframework.stereotype.Repository
 
 import javax.annotation.PostConstruct
 
+import static net.logstash.logback.argument.StructuredArguments.value;
+
 /**
  * Repository for presets
  */

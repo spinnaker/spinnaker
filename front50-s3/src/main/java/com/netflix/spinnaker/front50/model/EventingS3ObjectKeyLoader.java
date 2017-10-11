@@ -47,6 +47,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import static net.logstash.logback.argument.StructuredArguments.value;
+
 /**
  * An ObjectKeyLoader is responsible for returning a last modified timestamp for all objects of a particular type.
  *
@@ -102,7 +104,7 @@ public class EventingS3ObjectKeyLoader implements ObjectKeyLoader, Runnable {
         new CacheLoader<ObjectType, Map<String, Long>>() {
           @Override
           public Map<String, Long> load(ObjectType objectType) throws Exception {
-            log.debug("Loading object keys for {}", objectType);
+            log.debug("Loading object keys for {}", value("type", objectType));
             return s3StorageService.listObjectKeys(objectType);
           }
 
@@ -110,7 +112,7 @@ public class EventingS3ObjectKeyLoader implements ObjectKeyLoader, Runnable {
           public ListenableFuture<Map<String, Long>> reload(ObjectType objectType, Map<String, Long> previous) throws Exception {
             ListenableFutureTask<Map<String, Long>> task = ListenableFutureTask.create(
               () -> {
-                log.debug("Refreshing object keys for {} (asynchronous)", objectType);
+                log.debug("Refreshing object keys for {} (asynchronous)", value("type", objectType));
                 return s3StorageService.listObjectKeys(objectType);
               }
             );
@@ -150,19 +152,19 @@ public class EventingS3ObjectKeyLoader implements ObjectKeyLoader, Runnable {
             if (currentLastModifiedTime > previousLastModifiedTime) {
               log.info(
                 "Detected Recent Modification (type: {}, key: {}, previous: {}, current: {})",
-                objectType,
-                key,
-                new Date(previousLastModifiedTime),
-                new Date(e.getValue())
+                value("type", objectType),
+                value("key", key),
+                value("previousTime", new Date(previousLastModifiedTime)),
+                value("currentTime", new Date(e.getValue()))
               );
               objectKeys.put(key, currentLastModifiedTime);
             }
           } else {
             log.info(
               "Detected Recent Modification (type: {}, key: {}, current: {})",
-              objectType,
-              key,
-              new Date(e.getValue())
+              value("type", objectType),
+              value("key", key),
+              value("currentTime", new Date(e.getValue()))
             );
             objectKeys.put(key, e.getValue());
           }
@@ -210,10 +212,10 @@ public class EventingS3ObjectKeyLoader implements ObjectKeyLoader, Runnable {
 
       log.debug(
         "Received Event (objectType: {}, type: {}, key: {}, delta: {})",
-        keyWithObjectType.objectType,
-        eventType,
-        keyWithObjectType.key,
-        System.currentTimeMillis() - eventTime.getMillis()
+        value("objectType", keyWithObjectType.objectType),
+        value("type", eventType),
+        value("key", keyWithObjectType.key),
+        value("delta", System.currentTimeMillis() - eventTime.getMillis())
       );
 
       objectKeysByLastModifiedCache.put(keyWithObjectType, eventTime.getMillis());
@@ -250,14 +252,14 @@ public class EventingS3ObjectKeyLoader implements ObjectKeyLoader, Runnable {
     try {
       s3EventWrapper = objectMapper.readValue(messageBody, S3EventWrapper.class);
     } catch (IOException e) {
-      log.debug("Unable unmarshal S3EventWrapper (body: {})", messageBody, e);
+      log.debug("Unable unmarshal S3EventWrapper (body: {})", value("message", messageBody), e);
       return null;
     }
 
     try {
       return objectMapper.readValue(s3EventWrapper.message, S3Event.class);
     } catch (IOException e) {
-      log.debug("Unable unmarshal S3Event (body: {})", s3EventWrapper.message, e);
+      log.debug("Unable unmarshal S3Event (body: {})", value("body", s3EventWrapper.message), e);
       return null;
     }
   }

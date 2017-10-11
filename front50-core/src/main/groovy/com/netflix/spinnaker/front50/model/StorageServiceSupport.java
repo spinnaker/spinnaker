@@ -36,6 +36,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.ToDoubleFunction;
 import java.util.stream.Collectors;
 
+import static net.logstash.logback.argument.StructuredArguments.value;
 
 public abstract class StorageServiceSupport<T extends Timestamped> {
   private static final long HEALTH_MILLIS = TimeUnit.SECONDS.toMillis(90);
@@ -145,7 +146,9 @@ public abstract class StorageServiceSupport<T extends Timestamped> {
     long lastModified = readLastModified();
     if (lastModified > lastRefreshedTime.get() || allItemsCache.get() == null) {
       // only refresh if there was a modification since our last refresh cycle
-      log.debug("all() forcing refresh (lastModified: {}, lastRefreshed: {})", new Date(lastModified), new Date(lastRefreshedTime.get()));
+      log.debug("all() forcing refresh (lastModified: {}, lastRefreshed: {})",
+        value("lastModified", new Date(lastModified)),
+        value("lastRefreshed", new Date(lastRefreshedTime.get())));
       long startTime = System.nanoTime();
       refresh();
       long elapsed = System.nanoTime() - startTime;
@@ -273,7 +276,7 @@ public abstract class StorageServiceSupport<T extends Timestamped> {
     for (T item : existingItems) {
       if (keyUpdateTime.containsKey(buildObjectKey(item))) {
         if (resultMap.containsKey(item.getId())) {
-          log.error(String.format("Duplicate item id found, last-write wins: (id: %s)", item.getId()));
+          log.error("Duplicate item id found, last-write wins: (id: {})", value("id", item.getId()));
         }
         resultMap.put(item.getId(), item);
       }
@@ -299,7 +302,7 @@ public abstract class StorageServiceSupport<T extends Timestamped> {
 
     if (!existingItems.isEmpty() && !modifiedKeys.isEmpty()) {
       // only log keys that have been modified after initial cache load
-      log.debug("Modified object keys: {}", modifiedKeys);
+      log.debug("Modified object keys: {}", value("keys", modifiedKeys));
     }
 
     Observable
@@ -336,7 +339,9 @@ public abstract class StorageServiceSupport<T extends Timestamped> {
     removeCounter.increment(existingSize + numAdded.get() - resultSize);
     if (existingSize != resultSize) {
       log.info("{}={} delta={}",
-        objectType.group, resultSize, resultSize - existingSize);
+        value("objectType", objectType.group),
+        value("resultSize", resultSize),
+        value("delta", resultSize - existingSize));
     }
 
     return result;

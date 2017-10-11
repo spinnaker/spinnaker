@@ -31,6 +31,8 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.*;
 
+import static net.logstash.logback.argument.StructuredArguments.value;
+
 public class AzureStorageService implements StorageService {
   private static final Logger log = LoggerFactory.getLogger(AzureStorageService.class);
   private String containerName;
@@ -98,7 +100,10 @@ public class AzureStorageService implements StorageService {
       logStorageException(se, key);
     }
     catch (Exception e) {
-      log.error("Failed to retrieve {} object: {}: {}", objectType.group, key, e.getMessage());
+      log.error("Failed to retrieve {} object: {}: {}",
+        value("group", objectType.group),
+        value("key", key),
+        value("exception", e.getMessage()));
     }
     return null;
   }
@@ -109,13 +114,17 @@ public class AzureStorageService implements StorageService {
     try {
       CloudBlockBlob blob = getBlobContainer().getBlockBlobReference(key);
       if (blob.deleteIfExists(DeleteSnapshotsOption.INCLUDE_SNAPSHOTS, null, null, null)) {
-        log.info("{} object {} has been successfully deleted", objectType.group, key);
+        log.info("{} object {} has been successfully deleted",
+          value("group", objectType.group),
+          value("key", key));
       }
       writeLastModified(objectType.group);
     } catch (StorageException se) {
       logStorageException(se, key);
     } catch (Exception e) {
-      log.error("Error encountered attempting to delete {} from storage: {}", key, e.getMessage());
+      log.error("Error encountered attempting to delete {} from storage: {}",
+        value("key", key),
+        value("exception", e.getMessage()));
     }
   }
 
@@ -133,14 +142,18 @@ public class AzureStorageService implements StorageService {
       }
       blob.uploadFromByteArray(bytes, 0, bytes.length);
       writeLastModified(objectType.group);
-      log.info("{} object {} for  has been successfully uploaded.", objectType.group, key);
+      log.info("{} object {} for  has been successfully uploaded.",
+        value("group", objectType.group),
+        value("key", key));
     }
     catch (StorageException se) {
       logStorageException(se, key);
     }
     catch (Exception e)
     {
-      log.error("Error encountered attempting to store {}: {}", key, e.getMessage());
+      log.error("Error encountered attempting to store {}: {}",
+        value("key", key),
+        value("exception", e.getMessage()));
     }
   }
 
@@ -163,7 +176,9 @@ public class AzureStorageService implements StorageService {
     } catch (StorageException se) {
       logStorageException(se, "");
     } catch (Exception e) {
-      log.error("Failed to retrieve objects from {}: {}", objectType.group, e.getMessage());
+      log.error("Failed to retrieve objects from {}: {}",
+        value("group", objectType.group),
+        value("exception", e.getMessage()));
     }
     return objectKeys;
   }
@@ -191,7 +206,9 @@ public class AzureStorageService implements StorageService {
     } catch (StorageException se) {
       logStorageException(se,fullKey);
     } catch (Exception e) {
-      log.error("Error retrieving versions for {} object: {}", fullKey, e.getMessage());
+      log.error("Error retrieving versions for {} object: {}",
+        value("key", fullKey),
+        value("exception", e.getMessage()));
     }
     return results;
   }
@@ -207,7 +224,9 @@ public class AzureStorageService implements StorageService {
     } catch (StorageException se) {
       logStorageException(se, "");
     } catch (Exception e) {
-      log.error("Exception occurred retrieving last modifed for {}: {}", objectType.group, e.getMessage());
+      log.error("Exception occurred retrieving last modifed for {}: {}",
+        value("group", objectType.group),
+        value("exception", e.getMessage()));
     }
     return 0;
   }
@@ -225,7 +244,7 @@ public class AzureStorageService implements StorageService {
       logStorageException(se, "");
     }
     catch (Exception e) {
-      log.error("Exception occurred setting last modified date/time: {} ", e.getMessage());
+      log.error("Exception occurred setting last modified date/time: {} ", value("exception", e.getMessage()));
     }
   }
 
@@ -242,9 +261,16 @@ public class AzureStorageService implements StorageService {
     String errorMsg = storageException.getExtendedErrorInformation().getErrorMessage();
     String errorCode = storageException.getExtendedErrorInformation().getErrorCode();
     if (key.isEmpty()) {
-      log.error("Exception occurred accessing object(s) from storage: HTTPStatusCode {} ErrorCode: {} {}", storageException.getHttpStatusCode(), errorCode, errorMsg);
+      log.error("Exception occurred accessing object(s) from storage: HTTPStatusCode {} ErrorCode: {} {}",
+        value("responseStatus", storageException.getHttpStatusCode()),
+        value("errorCode", errorCode),
+        value("errorMsg", errorMsg));
     } else {
-      log.error("Exception occurred accessing object(s) from storage: Key {} HTTPStatusCode {} ErrorCode: {} {}", key, storageException.getHttpStatusCode(), errorCode, errorMsg);
+      log.error("Exception occurred accessing object(s) from storage: Key {} HTTPStatusCode {} ErrorCode: {} {}",
+        value("key", key),
+        value("responseStatus", storageException.getHttpStatusCode()),
+        value("errorCode", errorCode),
+        value("errorMsg", errorMsg));
     }
   }
 

@@ -39,6 +39,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
+import static net.logstash.logback.argument.StructuredArguments.value;
+
 /**
  * Encapsulates the lifecycle of a temporary queue.
  *
@@ -78,18 +80,18 @@ public class TemporarySQSQueue {
     try {
       amazonSQS.deleteMessage(temporaryQueue.sqsQueueUrl, receiptHandle);
     } catch (ReceiptHandleIsInvalidException e) {
-      log.warn("Error deleting message, reason: {} (receiptHandle: {})", e.getMessage(), receiptHandle);
+      log.warn("Error deleting message, reason: {} (receiptHandle: {})", e.getMessage(), value("receiptHandle", receiptHandle));
     }
   }
 
   @PreDestroy
   void shutdown() {
     try {
-      log.debug("Removing Temporary S3 Notification Queue: {}", temporaryQueue.sqsQueueUrl);
+      log.debug("Removing Temporary S3 Notification Queue: {}", value("queue", temporaryQueue.sqsQueueUrl));
       amazonSQS.deleteQueue(temporaryQueue.sqsQueueUrl);
-      log.debug("Removed Temporary S3 Notification Queue: {}", temporaryQueue.sqsQueueUrl);
+      log.debug("Removed Temporary S3 Notification Queue: {}", value("queue", temporaryQueue.sqsQueueUrl));
     } catch (Exception e) {
-      log.error("Unable to remove queue: {} (reason: {})", temporaryQueue.sqsQueueUrl, e.getMessage(), e);
+      log.error("Unable to remove queue: {} (reason: {})", value("queue", temporaryQueue.sqsQueueUrl), e.getMessage(), e);
     }
 
     try {
@@ -97,7 +99,7 @@ public class TemporarySQSQueue {
       amazonSNS.unsubscribe(temporaryQueue.snsTopicSubscriptionArn);
       log.debug("Removed S3 Notification Subscription: {}", temporaryQueue.snsTopicSubscriptionArn);
     } catch (Exception e) {
-      log.error("Unable to unsubscribe queue from topic: {} (reason: {})", temporaryQueue.snsTopicSubscriptionArn, e.getMessage(), e);
+      log.error("Unable to unsubscribe queue from topic: {} (reason: {})", value("topic", temporaryQueue.snsTopicSubscriptionArn), e.getMessage(), e);
     }
   }
 
@@ -126,7 +128,7 @@ public class TemporarySQSQueue {
         .withQueueName(sqsQueueName)
         .withAttributes(Collections.singletonMap("MessageRetentionPeriod", "60")) // 60s message retention
     ).getQueueUrl();
-    log.info("Created Temporary S3 Notification Queue: {}", sqsQueueUrl);
+    log.info("Created Temporary S3 Notification Queue: {}", value("queue", sqsQueueUrl));
 
     String snsTopicSubscriptionArn = amazonSNS.subscribe(snsTopicArn, "sqs", sqsQueueArn).getSubscriptionArn();
 
