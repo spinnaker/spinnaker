@@ -37,16 +37,15 @@ export class KayentaStageTransformer implements ITransformer {
   private calculateRunCanaryResults(runCanaryStages: IExecutionStage[]): void {
     runCanaryStages.forEach(run => {
       if (typeof run.getValueFor('canaryScore') === 'number') {
-        run.context.canaryScore = round(run.context.canaryScore, 2);
-        // TODO: Should we pass something back from Orca instead?
-        // A score in the marginal zone should not render as healthy green,
-        // but determining whether the score lies in that zone requires
-        // recreating a bunch of Orca logic.
         if (run.status === 'SUCCEEDED') {
-          run.result = 'success';
+          if (run.context.canaryScore >= run.context.scoreThresholds.pass) {
+            run.result = 'success';
+          }
         } else {
           run.health = 'unhealthy';
         }
+
+        run.context.canaryScore = round(run.context.canaryScore, 2);
       }
     });
   }
