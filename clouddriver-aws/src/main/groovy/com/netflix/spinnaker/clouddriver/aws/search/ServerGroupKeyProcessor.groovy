@@ -1,21 +1,20 @@
 package com.netflix.spinnaker.clouddriver.aws.search
 
+import com.netflix.spinnaker.cats.cache.Cache
+import com.netflix.spinnaker.cats.cache.CacheData
+import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
 import com.netflix.spinnaker.clouddriver.aws.data.Keys
-import com.netflix.spinnaker.clouddriver.aws.model.AmazonServerGroup
-import com.netflix.spinnaker.clouddriver.aws.provider.view.AmazonClusterProvider
 import com.netflix.spinnaker.clouddriver.cache.KeyProcessor
-import com.netflix.spinnaker.clouddriver.model.view.ServerGroupViewModelPostProcessor
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+
+import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.SERVER_GROUPS
 
 @Component("AmazonServerGroupKeyProcessor")
 class ServerGroupKeyProcessor implements KeyProcessor {
 
   @Autowired
-  AmazonClusterProvider amazonClusterProvider
-
-  @Autowired(required = false)
-  ServerGroupViewModelPostProcessor serverGroupViewModelPostProcessor
+  private final Cache cacheView
 
   @Override
   Boolean canProcess(String type) {
@@ -30,6 +29,9 @@ class ServerGroupKeyProcessor implements KeyProcessor {
     String region = parsed['region']
     String name = parsed['serverGroup']
 
-    return amazonClusterProvider.getServerGroup(account, region, name) != null
+    String serverGroupKey = Keys.getServerGroupKey(name, account, region)
+    CacheData serverGroupData = cacheView.get(SERVER_GROUPS.ns, serverGroupKey, RelationshipCacheFilter.none())
+
+    return serverGroupData != null;
   }
 }
