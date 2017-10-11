@@ -91,10 +91,10 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.deploy.details.co
         const serverGroupName = context['deploy.server.groups'][context.source.region][0];
         serverGroupReader.getServerGroup(context.application, context.account, context.source.region, serverGroupName)
           .then(serverGroup => {
-            if (serverGroup.buildInfo.jenkins) {
+            if (_.has(serverGroup, 'buildInfo.jenkins')) {
               $scope.changeConfig.buildInfo.jenkins = serverGroup.buildInfo.jenkins;
             }
-          });
+          }).catch(() => {});
       }
     };
 
