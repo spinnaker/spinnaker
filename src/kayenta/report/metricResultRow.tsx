@@ -6,20 +6,16 @@ import { IMetricResultsColumn } from './metricResultsColumns';
 interface IMetricResultRowProps {
   result: ICanaryAnalysisResult;
   columns: IMetricResultsColumn[];
-  onClick: (metric: string) => void;
 }
 
-export default ({ result, columns, onClick }: IMetricResultRowProps) => {
+export default ({ result, columns }: IMetricResultRowProps) => {
   return (
-    <ul
-      className="horizontal list-unstyled"
-      onClick={() => onClick(result.name)}
-    >
+    <section className="horizontal">
       {columns.map(c => (
-        <li key={c.name} className={`flex-${c.width}`}>
+        <div key={c.name} className={`flex-${c.width}`}>
           {c.pickValue(result)}
-        </li>
+        </div>
       ))}
-    </ul>
+    </section>
   );
 }

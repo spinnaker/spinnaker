@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { ICanaryJudgeScore } from '../domain/ICanaryJudgeResult';
+import * as classNames from 'classnames';
 
 interface ICanaryJudgeScoreProps {
   score: ICanaryJudgeScore;
@@ -11,7 +12,7 @@ interface ICanaryJudgeScoreProps {
 * Renders top-level canary result score.
 */
 export default ({ score, className, onClick }: ICanaryJudgeScoreProps) => (
-  <section className={className} onClick={onClick}>
+  <section className={classNames(className, 'clickable')} onClick={onClick}>
     {score.score}
   </section>
 );

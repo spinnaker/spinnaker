@@ -16,18 +16,30 @@ interface IResultsListDispatchProps {
   select: (metric: string) => void;
 }
 
-const ResultsList = ({ results, select }: IResultsListOwnProps & IResultsListDispatchProps) => (
+interface IResultsListStateProps {
+  selectedMetric: string;
+}
+
+const ResultsList = ({ results, select, selectedMetric }: IResultsListOwnProps & IResultsListDispatchProps & IResultsListStateProps) => (
   <section className="vertical">
-    <MetricResultsListHeader columns={metricResultsColumns}/>
-    <ul className="list-unstyled">
+    <ul className="list-unstyled tabs-vertical">
+      <MetricResultsListHeader columns={metricResultsColumns}/>
       {results.map(r => (
-        <li key={r.name}>
-          <MetricResultRow columns={metricResultsColumns} onClick={select} result={r}/>
+        <li
+          key={r.name}
+          onClick={() => select(r.name)}
+          className={r.name === selectedMetric ? 'selected' : ''}
+        >
+          <MetricResultRow columns={metricResultsColumns} result={r}/>
         </li>
       ))}
     </ul>
   </section>
 );
+
+const mapStateToProps = (state: ICanaryState): IResultsListStateProps => ({
+  selectedMetric: state.selectedResult.selectedMetric,
+});
 
 const mapDispatchToProps = (
   dispatch: Dispatch<ICanaryState>,
@@ -38,4 +50,4 @@ const mapDispatchToProps = (
   ...ownProps,
 });
 
-export default connect(null, mapDispatchToProps)(ResultsList);
+export default connect(mapStateToProps, mapDispatchToProps)(ResultsList);

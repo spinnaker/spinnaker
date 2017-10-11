@@ -7,9 +7,11 @@ interface IMetricResultsListHeaderProps {
 }
 
 export default ({ columns }: IMetricResultsListHeaderProps) => (
-  <ul className="list-unstyled list-inline horizontal">
+  <section className="horizontal">
     {columns.map(c => (
-      <li className={`flex-${c.width}`} key={c.name}>{c.name}</li>
+      <div className={`flex-${c.width}`} key={c.name}>
+        <span className="uppercase">{c.name}</span>
+      </div>
     ))}
-  </ul>
+  </section>
 );

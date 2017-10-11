@@ -14,6 +14,7 @@ export default ({ group, onClick }: IGroupScoreProps) => (
   <section
     data-group={group.name}
     onClick={onClick}
+    className="clickable"
   >
     {group.name} | {group.score}
   </section>
