@@ -56,10 +56,12 @@ class DynomiteConfigurationProperties {
     String datacenter = 'localrac'
 
     Long token = 1000000L
+
+    String hashtag
   }
 
   List<Host> getDynoHosts() {
-    return hosts.collect { new Host(it.hostname, it.ipAddress, it.port, it.rack, it.datacenter, it.status) }
+    return hosts.collect { new Host(it.hostname, it.ipAddress, it.port, it.rack, it.datacenter, it.status, it.hashtag) }
   }
 
   List<HostToken> getDynoHostTokens() {

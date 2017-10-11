@@ -15,14 +15,17 @@
  */
 package com.netflix.spinnaker.cats.dynomite;
 
+import com.netflix.dyno.connectionpool.exception.DynoException;
 import com.netflix.dyno.jedis.DynoJedisClient;
+import com.netflix.dyno.jedis.DynoJedisPipeline;
 import com.netflix.spinnaker.cats.redis.RedisClientDelegate;
 import redis.clients.jedis.BinaryJedisCommands;
 import redis.clients.jedis.JedisCommands;
 import redis.clients.jedis.MultiKeyCommands;
 import redis.clients.jedis.Pipeline;
+import redis.clients.jedis.RedisPipeline;
 import redis.clients.jedis.ScriptingCommands;
-import redis.clients.jedis.commands.RedisPipeline;
+import redis.clients.jedis.exceptions.JedisException;
 
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -67,12 +70,32 @@ public class DynomiteClientDelegate implements RedisClientDelegate {
 
   @Override
   public void withPipeline(Consumer<RedisPipeline> f) {
-    f.accept(client.pipelined());
+    DynoJedisPipeline p = client.pipelined();
+    try {
+      f.accept(p);
+    } catch (DynoException|JedisException e) {
+      try {
+        p.close();
+      } catch (Exception ne) {
+        throw new ClientDelegateException("Failed closing pipeline connection", ne);
+      }
+      throw new ClientDelegateException("Internal exception during pipelining", e);
+    }
   }
 
   @Override
   public <R> R withPipeline(Function<RedisPipeline, R> f) {
-    return f.apply(client.pipelined());
+    DynoJedisPipeline p = client.pipelined();
+    try {
+      return f.apply(p);
+    } catch (DynoException|JedisException e) {
+      try {
+        p.close();
+      } catch (Exception ne) {
+        throw new ClientDelegateException("Failed closing pipeline connection", ne);
+      }
+      throw new ClientDelegateException("Internal exception during pipelining", e);
+    }
   }
 
   @Override
@@ -103,5 +126,11 @@ public class DynomiteClientDelegate implements RedisClientDelegate {
   @Override
   public <R> R withScriptingClient(Function<ScriptingCommands, R> f) {
     throw new UnsupportedOperationException("Dynomite does not support scripting operations");
+  }
+
+  public class ClientDelegateException extends RuntimeException {
+    public ClientDelegateException(String message, Throwable cause) {
+      super(message, cause);
+    }
   }
 }

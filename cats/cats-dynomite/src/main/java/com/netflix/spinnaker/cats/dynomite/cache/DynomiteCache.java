@@ -20,15 +20,18 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import com.google.common.hash.Hashing;
 import com.netflix.dyno.connectionpool.exception.DynoException;
+import com.netflix.dyno.jedis.DynoJedisPipeline;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.cats.cache.DefaultCacheData;
 import com.netflix.spinnaker.cats.dynomite.DynomiteClientDelegate;
+import com.netflix.spinnaker.cats.dynomite.DynomiteClientDelegate.ClientDelegateException;
 import com.netflix.spinnaker.cats.redis.cache.AbstractRedisCache;
 import com.netflix.spinnaker.cats.redis.cache.RedisCacheOptions;
 import net.jodah.failsafe.Failsafe;
 import net.jodah.failsafe.RetryPolicy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import redis.clients.jedis.Response;
 import redis.clients.jedis.exceptions.JedisException;
 
 import java.io.IOException;
@@ -41,10 +44,12 @@ import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
@@ -86,8 +91,9 @@ public class DynomiteCache extends AbstractRedisCache {
 
   private final Logger log = LoggerFactory.getLogger(getClass());
 
+  // TODO rz - Make retry policy configurable
   private static final RetryPolicy redisRetryPolicy = new RetryPolicy()
-    .retryOn(Arrays.asList(JedisException.class, DynoException.class))
+    .retryOn(Arrays.asList(JedisException.class, DynoException.class, ClientDelegateException.class))
     .withDelay(500, TimeUnit.MILLISECONDS)
     .withMaxRetries(3);
 
@@ -112,53 +118,71 @@ public class DynomiteCache extends AbstractRedisCache {
     AtomicInteger skippedWrites = new AtomicInteger();
     AtomicInteger hashesUpdated = new AtomicInteger();
 
-    redisClientDelegate.withCommandsClient(client -> {
-      for (CacheData item : items) {
-        MergeOp op = buildHashedMergeOp(type, item);
-        skippedWrites.addAndGet(op.skippedWrites);
-
-        if (op.valuesToSet.isEmpty()) {
-          continue;
-        }
-
-        Failsafe
-          .with(redisRetryPolicy)
-          .onFailure(failure -> {
-            log.error("Encountered repeated failures while setting " + type + " cache data for " + item.getId(), failure);
-            client.del(itemHashesId(type, item.getId()));
-            delOperations.incrementAndGet();
-            throw new RuntimeException("Failed running caching agent", failure);
-          })
-          .run(() -> {
-            client.hmset(itemId(type, item.getId()), op.valuesToSet);
-            hmsetOperations.incrementAndGet();
-
-            if (!op.relNames.isEmpty()) {
-              client.sadd(allRelationshipsId(type), op.relNames.toArray(new String[op.relNames.size()]));
-              saddOperations.incrementAndGet();
-              relationships.addAndGet(op.relNames.size());
+    Map<CacheData, Map<String, String>> allHashes = getAllHashes(type, items);
+    Failsafe
+      .with(redisRetryPolicy)
+      .onFailure(failure -> {
+        log.error("Encountered repeated failures while caching " + prefix + ":" + type, failure);
+        try {
+          redisClientDelegate.withPipeline(pipeline -> {
+            DynoJedisPipeline p = (DynoJedisPipeline) pipeline;
+            for (CacheData item : items) {
+              p.del(itemHashesId(type, item.getId()));
+              delOperations.incrementAndGet();
             }
-
-            if (item.getTtlSeconds() > 0) {
-              client.expire(itemId(type, item.getId()), item.getTtlSeconds());
-              expireOperations.incrementAndGet();
-            }
-
-            client.sadd(allOfTypeReindex(type), item.getId());
-            saddOperations.incrementAndGet();
-            client.sadd(allOfTypeId(type), item.getId());
-            saddOperations.incrementAndGet();
-
-            if (!op.hashesToSet.isEmpty()) {
-              client.hmset(itemHashesId(type, item.getId()), op.hashesToSet);
-              hmsetOperations.incrementAndGet();
-              client.expire(itemHashesId(type, item.getId()), getHashExpiry());
-              expireOperations.incrementAndGet();
-              hashesUpdated.addAndGet(op.hashesToSet.size());
-            }
+            p.sync();
           });
-      }
-    });
+        } catch (JedisException|DynoException e) {
+          log.error("Failed cleaning up hashes in failure handler in " + prefix + ":" + type, e);
+        }
+        throw new RuntimeException("Failed running caching agents", failure);
+      })
+      .run(() -> redisClientDelegate.withPipeline(pipeline -> {
+        DynoJedisPipeline p = (DynoJedisPipeline) pipeline;
+
+        // https://github.com/xetorthio/jedis/issues/758
+        boolean pipelineHasOps = false;
+        for (CacheData item : items) {
+          MergeOp op = buildHashedMergeOp(type, item, allHashes.get(item));
+          skippedWrites.addAndGet(op.skippedWrites);
+
+          if (op.valuesToSet.isEmpty()) {
+            continue;
+          }
+
+          pipelineHasOps = true;
+
+          p.hmset(itemId(type, item.getId()), op.valuesToSet);
+          hmsetOperations.incrementAndGet();
+
+          if (!op.relNames.isEmpty()) {
+            p.sadd(allRelationshipsId(type), op.relNames.toArray(new String[op.relNames.size()]));
+            saddOperations.incrementAndGet();
+            relationships.addAndGet(op.relNames.size());
+          }
+
+          if (item.getTtlSeconds() > 0) {
+            p.expire(itemId(type, item.getId()), item.getTtlSeconds());
+            expireOperations.incrementAndGet();
+          }
+
+          p.sadd(allOfTypeReindex(type), item.getId());
+          saddOperations.incrementAndGet();
+          p.sadd(allOfTypeId(type), item.getId());
+          saddOperations.incrementAndGet();
+
+          if (!op.hashesToSet.isEmpty()) {
+            p.hmset(itemHashesId(type, item.getId()), op.hashesToSet);
+            hmsetOperations.incrementAndGet();
+            p.expire(itemHashesId(type, item.getId()), getHashExpiry());
+            expireOperations.incrementAndGet();
+            hashesUpdated.addAndGet(op.hashesToSet.size());
+          }
+        }
+        if (pipelineHasOps) {
+          p.sync();
+        }
+      }));
 
     cacheMetrics.merge(
       prefix,
@@ -181,20 +205,29 @@ public class DynomiteCache extends AbstractRedisCache {
 
     Failsafe
       .with(redisRetryPolicy)
-      .run(() -> redisClientDelegate.withCommandsClient(client -> {
+      .run(() -> redisClientDelegate.withPipeline(pipeline -> {
+        DynoJedisPipeline p = (DynoJedisPipeline) pipeline;
+
+        boolean pipelineHasOps = false;
         for (List<String> idPartition : Lists.partition(identifiers, options.getMaxDelSize())) {
+          pipelineHasOps = true;
           String[] ids = idPartition.toArray(new String[idPartition.size()]);
-          client.srem(allOfTypeId(type), ids);
+          pipeline.srem(allOfTypeId(type), ids);
           sremOperations.incrementAndGet();
-          client.srem(allOfTypeReindex(type), ids);
+          pipeline.srem(allOfTypeReindex(type), ids);
           sremOperations.incrementAndGet();
         }
 
         for (String id : identifiers) {
-          client.del(itemId(type, id));
+          pipelineHasOps = true;
+          pipeline.del(itemId(type, id));
           delOperations.incrementAndGet();
-          client.del(itemHashesId(type, id));
+          pipeline.del(itemHashesId(type, id));
           delOperations.incrementAndGet();
+        }
+
+        if (pipelineHasOps) {
+          p.sync();
         }
       }));
 
@@ -209,32 +242,40 @@ public class DynomiteCache extends AbstractRedisCache {
 
   @Override
   protected Collection<CacheData> getItems(String type, List<String> ids, List<String> knownRels) {
-    Map<String, Map<String, String>> rawItems = new HashMap<>();
-    int hmgetAllOperations = redisClientDelegate.withCommandsClient(c -> {
-      int ops = 0;
+    if (ids.isEmpty()) {
+      return Collections.emptyList();
+    }
+
+    AtomicInteger hmgetAllOperations = new AtomicInteger();
+    Map<String, Map<String, String>> rawItems = redisClientDelegate.withPipeline(pipeline -> {
+      DynoJedisPipeline p = (DynoJedisPipeline) pipeline;
+
+      Map<String, Response<Map<String, String>>> responses = new HashMap<>();
       for (String id : ids) {
-        Map<String, String> item = c.hgetAll(itemId(type, id));
-        if (item != null && !item.isEmpty()) {
-          rawItems.put(id, item);
-          ops++;
-        }
+        responses.put(id, pipeline.hgetAll(itemId(type, id)));
+        hmgetAllOperations.incrementAndGet();
       }
-      return ops;
+      p.sync();
+
+      return responses.entrySet().stream()
+        .filter(e -> !e.getValue().get().isEmpty())
+        .collect(Collectors.toMap(Entry::getKey, it -> it.getValue().get()));
     });
+
 
     Collection<CacheData> results = new ArrayList<>(ids.size());
     for (Map.Entry<String, Map<String, String>> rawItem : rawItems.entrySet()) {
-      CacheData item = extractHashedItem(rawItem.getKey(), rawItem.getValue(), knownRels);
+      CacheData item = extractHashedItem(type, rawItem.getKey(), rawItem.getValue(), knownRels);
       if (item != null) {
         results.add(item);
       }
     }
 
-    cacheMetrics.get(prefix, type, results.size(), ids.size(), knownRels.size(), hmgetAllOperations);
+    cacheMetrics.get(prefix, type, results.size(), ids.size(), knownRels.size(), hmgetAllOperations.get());
     return results;
   }
 
-  private CacheData extractHashedItem(String id, Map<String, String> values, List<String> knownRels) {
+  private CacheData extractHashedItem(String type, String id, Map<String, String> values, List<String> knownRels) {
     if (values == null) {
       return null;
     }
@@ -248,11 +289,17 @@ public class DynomiteCache extends AbstractRedisCache {
       }
       final Map<String, Collection<String>> relationships = new HashMap<>();
       for (Map.Entry<String, String> value : values.entrySet()) {
-        // TODO rz - Get relationships individually? Is this actually an optimization?
         if (value.getKey().equals("attributes") || value.getKey().equals("id") || !knownRels.contains(value.getKey())) {
           continue;
         }
-        Collection<String> deserializedRel = objectMapper.readValue(value.getValue(), RELATIONSHIPS);
+
+        Collection<String> deserializedRel;
+        try {
+          deserializedRel = objectMapper.readValue(value.getValue(), RELATIONSHIPS);
+        } catch (JsonProcessingException e) {
+          log.warn("Failed processing property '{}' on item '{}'", value.getKey(), itemId(type, id));
+          continue;
+        }
         relationships.put(value.getKey(), deserializedRel);
       }
       return new DefaultCacheData(id, attributes, relationships);
@@ -287,7 +334,7 @@ public class DynomiteCache extends AbstractRedisCache {
     return false;
   }
 
-  private MergeOp buildHashedMergeOp(String type, CacheData cacheData) {
+  private MergeOp buildHashedMergeOp(String type, CacheData cacheData, Map<String, String> hashes) {
     int skippedWrites = 0;
     final String serializedAttributes;
     try {
@@ -299,8 +346,6 @@ public class DynomiteCache extends AbstractRedisCache {
     } catch (JsonProcessingException serializationException) {
       throw new RuntimeException("Attribute serialization failed", serializationException);
     }
-
-    final Map<String, String> hashes = getHashes(type, cacheData);
 
     final Map<String, String> hashesToSet = new HashMap<>();
     final Map<String, String> valuesToSet = new HashMap<>();
@@ -329,13 +374,21 @@ public class DynomiteCache extends AbstractRedisCache {
     return new MergeOp(cacheData.getRelationships().keySet(), valuesToSet, hashesToSet, skippedWrites);
   }
 
-  private Map<String, String> getHashes(String type, CacheData item) {
+  private Map<CacheData, Map<String, String>> getAllHashes(String type, Collection<CacheData> items) {
     if (isHashingDisabled(type)) {
       return Collections.emptyMap();
     }
 
-    return redisClientDelegate.withCommandsClient(c -> {
-      return c.hgetAll(itemHashesId(type, item.getId()));
+    return redisClientDelegate.withPipeline(pipeline -> {
+      DynoJedisPipeline p = (DynoJedisPipeline) pipeline;
+
+      Map<CacheData, Response<Map<String, String>>> responses = new HashMap<>();
+      for (CacheData item : items) {
+        responses.put(item, p.hgetAll(itemHashesId(type, item.getId())));
+      }
+      p.sync();
+
+      return responses.entrySet().stream().collect(Collectors.toMap(Entry::getKey, it -> it.getValue().get()));
     });
   }
 
@@ -345,10 +398,35 @@ public class DynomiteCache extends AbstractRedisCache {
   }
 
   private String itemId(String type, String id) {
-    return String.format("%s:%s:item:%s", prefix, type, id);
+    return String.format("{%s:%s}:%s", prefix, type, id);
   }
 
   private String itemHashesId(String type, String id) {
-    return String.format("%s:%s:hashes:%s", prefix, type, id);
+    return String.format("{%s:%s}:hashes:%s", prefix, type, id);
+  }
+
+  @Override
+  protected String attributesId(String type, String id) {
+    return String.format("{%s:%s}:attributes:%s", prefix, type, id);
+  }
+
+  @Override
+  protected String relationshipId(String type, String id, String relationship) {
+    return String.format("{%s:%s}:relationships:%s:%s", prefix, type, id, relationship);
+  }
+
+  @Override
+  protected String allRelationshipsId(String type) {
+    return String.format("{%s:%s}:relationships", prefix, type);
+  }
+
+  @Override
+  protected String allOfTypeId(String type) {
+    return String.format("{%s:%s}:members", prefix, type);
+  }
+
+  @Override
+  protected String allOfTypeReindex(String type) {
+    return String.format("{%s:%s}:members.2", prefix, type);
   }
 }

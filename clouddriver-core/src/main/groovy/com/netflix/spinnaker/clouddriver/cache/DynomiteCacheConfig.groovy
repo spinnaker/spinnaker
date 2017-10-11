@@ -102,7 +102,7 @@ class DynomiteCacheConfig {
 
   @Bean
   NamedCacheFactory cacheFactory(
-    RedisClientDelegate dynomiteClientDelegate,
+    DynomiteClientDelegate dynomiteClientDelegate,
     ObjectMapper objectMapper,
     RedisCacheOptions redisCacheOptions,
     CacheMetrics cacheMetrics) {

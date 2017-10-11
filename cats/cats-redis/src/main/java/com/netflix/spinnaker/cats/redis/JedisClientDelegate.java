@@ -21,8 +21,8 @@ import redis.clients.jedis.JedisCommands;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.MultiKeyCommands;
 import redis.clients.jedis.Pipeline;
+import redis.clients.jedis.RedisPipeline;
 import redis.clients.jedis.ScriptingCommands;
-import redis.clients.jedis.commands.RedisPipeline;
 
 import java.util.function.Consumer;
 import java.util.function.Function;
