@@ -33,6 +33,7 @@ const helpContents: {[key: string]: string} = {
      <p>However, if your stack name needs to be longer (load balancer names are limited to 32 characters), consider changing it to "elb", or omit it altogether.</p>`,
   'aws.loadBalancer.internal': 'Controls the load balancer scheme, <strong>not</strong> the subnet. By default, load balancers are created with a DNS name that resolves to public IP addresses. Specify internal to create a load balancer with a DNS name that resolves to private IP addresses.',
   'aws.loadBalancer.stack': '(Optional) <b>Stack</b> is one of the core naming components of a cluster, used to create vertical stacks of dependent services for integration testing.',
+  'aws.loadBalancer.name': '<p>The load balancer name is formed by combining the application name, the <b>Stack</b> field, and the <b>Detail</b> field.</p>',
   'aws.loadBalancer.targetGroups': 'Add a target group if you want to associate this with an Application Load Balancer (ALB)',
   'aws.loadBalancer.loadBalancers': 'And a load balancer directly if you created a Classic Load Balancer (a classic load balancer does not have target groups)',
   'aws.loadBalancer.ruleCondition.host':
@@ -78,6 +79,7 @@ const helpContents: {[key: string]: string} = {
     <p>The VPC to which this security group will apply.</p>
     <p>If you wish to use VPC but are unsure which VPC to use, the most common one is "Main".</p>
     <p>If you do not wish to use VPC, select "None".</p>`,
+  'aws.securityGroup.name': '<p>The security group name is formed by combining the application name, the <b>Stack</b> field, and the <b>Detail</b> field.</p>',
   'aws.scalingPolicy.search.restricted':
     `<p>Resets dimensions to "AutoScalingGroupName: {name of the ASG}" and provides
         a simpler, combined input for the namespace and metric name fields.</p>`,

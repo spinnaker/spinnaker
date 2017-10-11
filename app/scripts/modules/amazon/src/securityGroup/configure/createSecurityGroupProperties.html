@@ -4,6 +4,7 @@
         <div class="col-md-12 well" ng-class="{'alert-danger': form.securityGroupName.$error.validateUnique, 'alert-info': !form.securityGroupName.$error.validateUnique}">
           <strong>Your security group will be named:</strong>
           <span ng-bind="namePreview"></span>
+          <help-field key="aws.securityGroup.name"></help-field>
           <input type="hidden" class="form-control input-sm"
                  ng-model="securityGroup.name"
                  validate-unique="existingSecurityGroupNames"
@@ -17,27 +18,13 @@
         </div>
       </div>
       <div class="form-group">
-        <div class="col-md-4 sm-label-right">Detail (optional)</div>
-        <div class="col-md-4">
-          <input type="text" class="form-control input-sm no-spel"
-                 ng-model="securityGroup.detail"
-                 ng-change="ctrl.updateName()"/>
-        </div>
-      </div>
-      <div class="form-group">
-        <div class="col-md-4 sm-label-right">Description</div>
-        <div class="col-md-8">
-          <input type="text" required class="form-control input-sm no-spel" ng-model="securityGroup.description" />
-        </div>
-      </div>
-      <div class="form-group">
-        <div class="col-md-4 sm-label-right">Account</div>
+        <div class="col-md-3 sm-label-right">Account</div>
         <div class="col-md-8">
           <account-select-field component="securityGroup" field="credentials" accounts="accounts" provider="'aws'" on-change="ctrl.accountUpdated()"></account-select-field>
         </div>
       </div>
       <div class="form-group">
-        <div class="col-md-4 sm-label-right">Regions</div>
+        <div class="col-md-3 sm-label-right">Regions</div>
         <div class="col-md-8">
           <input type="hidden" ng-model="securityGroup.regions[0]" required/>
           <checklist ng-if="securityGroup.credentials" items="regions" model="securityGroup.regions" inline="true" on-change="ctrl.regionUpdated()"></checklist>
@@ -45,7 +32,31 @@
         </div>
       </div>
       <div class="form-group">
-        <div class="col-md-4 sm-label-right">VPC <help-field key="aws.securityGroup.vpc"></help-field></div>
+        <div class="col-md-3 sm-label-right">Stack</div>
+        <div class="col-md-3">
+          <input type="text" class="form-control input-sm no-spel"
+                 ng-model="securityGroup.stack"
+                 ng-change="ctrl.updateName()"/>
+        </div>
+        <div class="col-md-2 sm-label-right">Detail</div>
+        <div class="col-md-3">
+          <input type="text" class="form-control input-sm no-spel"
+                 ng-model="securityGroup.detail"
+                 ng-change="ctrl.updateName()"/>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="col-md-3 sm-label-right">Description (required)</div>
+        <div class="col-md-8">
+          <textarea required
+                    cols=2
+                    class="form-control input-sm no-spel"
+                    ng-model="securityGroup.description">
+          </textarea>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="col-md-3 sm-label-right">VPC <help-field key="aws.securityGroup.vpc"></help-field></div>
         <div class="col-md-8">
           <select class="form-control input-sm" ng-model="securityGroup.vpcId"
                   ng-change="ctrl.vpcUpdated()"
