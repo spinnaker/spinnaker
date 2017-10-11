@@ -20,11 +20,13 @@ import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.orca.discovery.DiscoveryActivated
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory.getLogger
+import org.slf4j.MDC
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import java.util.concurrent.RejectedExecutionException
 import java.util.concurrent.atomic.AtomicBoolean
 import javax.annotation.PostConstruct
+import com.netflix.spinnaker.security.AuthenticatedRequest.SPINNAKER_EXECUTION_ID
 
 @Component
 class QueueProcessor(
@@ -55,6 +57,9 @@ class QueueProcessor(
           if (handler != null) {
             try {
               queueExecutor.executor.execute {
+                if (message is ExecutionLevel) {
+                  MDC.put(SPINNAKER_EXECUTION_ID, message.executionId)
+                }
                 handler.invoke(message)
                 ack.invoke()
               }
