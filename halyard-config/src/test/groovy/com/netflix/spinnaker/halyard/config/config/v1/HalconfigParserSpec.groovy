@@ -90,6 +90,44 @@ deploymentConfigurations:
     out.deploymentConfigurations[0].deploymentEnvironment.location == 'myLocation'
   }
 
+  void "parses deployment custom sizings"() {
+    setup:
+    String config = """
+deploymentConfigurations:
+- deploymentEnvironment:
+    customSizing:
+      clouddriver:
+        requests:
+          memory: 64Mi
+          cpu: 250m
+        limits:
+         memory: 128Mi
+         cpu: 500m
+      echo:
+        requests:
+         memory: 128Mi
+         cpu: 500m
+        limits:
+          memory: 64Mi
+          cpu: 250m
+"""
+    InputStream stream = new ByteArrayInputStream(config.getBytes(StandardCharsets.UTF_8))
+    Halconfig out = null
+
+    when:
+    out = parser.parseHalconfig(stream)
+
+    then:
+    out.deploymentConfigurations[0].deploymentEnvironment.customSizing['clouddriver'].requests.memory == '64Mi'
+    out.deploymentConfigurations[0].deploymentEnvironment.customSizing['clouddriver'].requests.cpu == '250m'
+    out.deploymentConfigurations[0].deploymentEnvironment.customSizing['clouddriver'].limits.memory == '128Mi'
+    out.deploymentConfigurations[0].deploymentEnvironment.customSizing['clouddriver'].limits.cpu == '500m'
+    out.deploymentConfigurations[0].deploymentEnvironment.customSizing['echo'].limits.memory == '64Mi'
+    out.deploymentConfigurations[0].deploymentEnvironment.customSizing['echo'].limits.cpu == '250m'
+    out.deploymentConfigurations[0].deploymentEnvironment.customSizing['echo'].requests.memory == '128Mi'
+    out.deploymentConfigurations[0].deploymentEnvironment.customSizing['echo'].requests.cpu == '500m'
+  }
+
   @Unroll("parses authn: #authnProvider:#propertyName value should be #propertyValue")
   void "parses all authn properties"() {
     setup:

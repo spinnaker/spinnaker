@@ -15,6 +15,12 @@ configurations.all {
   exclude group: "org.slf4j", module: "slf4j-log4j12"
 }
 
+tasks.withType(JavaExec) {
+  if (System.getProperty('DEBUG', 'false') == 'true') {
+    jvmArgs '-Xdebug', '-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=9099'
+  }
+}
+
 dependencies {
   compile spinnaker.dependency('bootActuator')
   compile spinnaker.dependency('bootWeb')

@@ -18,15 +18,28 @@
 
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.kubernetes;
 
+import com.netflix.spinnaker.halyard.config.model.v1.node.CustomSizing;
+import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentEnvironment;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ConfigSource;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceSettings;
-import io.fabric8.kubernetes.api.model.*;
+import io.fabric8.kubernetes.api.model.Container;
+import io.fabric8.kubernetes.api.model.ContainerBuilder;
+import io.fabric8.kubernetes.api.model.ContainerPortBuilder;
+import io.fabric8.kubernetes.api.model.EnvVar;
+import io.fabric8.kubernetes.api.model.EnvVarBuilder;
+import io.fabric8.kubernetes.api.model.ProbeBuilder;
+import io.fabric8.kubernetes.api.model.QuantityBuilder;
+import io.fabric8.kubernetes.api.model.ResourceRequirements;
+import io.fabric8.kubernetes.api.model.ResourceRequirementsBuilder;
+import io.fabric8.kubernetes.api.model.VolumeMount;
+import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 class ResourceBuilder {
-  static Container buildContainer(String name, ServiceSettings settings, List<ConfigSource> configSources) {
+  static Container buildContainer(String name, ServiceSettings settings, List<ConfigSource> configSources, DeploymentEnvironment deploymentEnvironment) {
     int port = settings.getPort();
     List<EnvVar> envVars = settings.getEnv().entrySet().stream().map(e -> {
       EnvVarBuilder envVarBuilder = new EnvVarBuilder();
@@ -62,16 +75,37 @@ class ResourceBuilder {
     List<VolumeMount> volumeMounts = configSources.stream().map(c -> {
       return new VolumeMountBuilder().withMountPath(c.getMountPath()).withName(c.getId()).build();
     }).collect(Collectors.toList());
-    ContainerBuilder containerBuilder = new ContainerBuilder();
 
+    ContainerBuilder containerBuilder = new ContainerBuilder();
     containerBuilder = containerBuilder
         .withName(name)
         .withImage(settings.getArtifactId())
         .withPorts(new ContainerPortBuilder().withContainerPort(port).build())
         .withVolumeMounts(volumeMounts)
         .withEnv(envVars)
-        .withReadinessProbe(probeBuilder.build());
+        .withReadinessProbe(probeBuilder.build())
+        .withResources(buildResourceRequirements(name, deploymentEnvironment));
 
     return containerBuilder.build();
+  }
+
+  static ResourceRequirements buildResourceRequirements(String serviceName, DeploymentEnvironment deploymentEnvironment) {
+    Map<String, Map> customSizing = deploymentEnvironment.getCustomSizing().get(serviceName);
+
+    if (customSizing == null) {
+      return null;
+    }
+
+    ResourceRequirementsBuilder resourceRequirementsBuilder = new ResourceRequirementsBuilder();
+    if (customSizing.get("requests") != null) {
+      resourceRequirementsBuilder.addToRequests("memory", new QuantityBuilder().withAmount(CustomSizing.stringOrNull(customSizing.get("requests").get("memory"))).build());
+      resourceRequirementsBuilder.addToRequests("cpu", new QuantityBuilder().withAmount(CustomSizing.stringOrNull(customSizing.get("requests").get("cpu"))).build());
+    }
+    if (customSizing.get("limits") != null) {
+      resourceRequirementsBuilder.addToLimits("memory", new QuantityBuilder().withAmount(CustomSizing.stringOrNull(customSizing.get("limits").get("memory"))).build());
+      resourceRequirementsBuilder.addToLimits("cpu", new QuantityBuilder().withAmount(CustomSizing.stringOrNull(customSizing.get("limits").get("cpu"))).build());
+    }
+
+    return resourceRequirementsBuilder.build();
   }
 }

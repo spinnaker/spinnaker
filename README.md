@@ -42,6 +42,16 @@ The __daemon__ validates and generates Spinnaker config using your
 __halconfig__. It must run on a machine that has any credentials needed by
 Spinnaker in order to validate your configuration.
 
+### debugging
+
+To run a daemon locally for JVM debugging, set the java system property ```DEBUG=true```. For example:
+```
+./gradlew halyard-web:run -DDEBUG=true
+``` 
+
+It listens for the debugger on port 9099, and does _not_ wait for the debugger before running
+halyard. To change these, check out the relevant bits in halyard-web/halyard-web.gradle
+
 ## hal
 
 __hal__ is a CLI for making changes to your __halconfig__ via the __daemon__.

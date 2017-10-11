@@ -95,6 +95,7 @@ public class DeploymentEnvironment extends Node {
   private Consul consul = new Consul();
   private Vault vault = new Vault();
   private String location;
+  private CustomSizing customSizing = new CustomSizing();
 
   @Data
   public static class Consul {
