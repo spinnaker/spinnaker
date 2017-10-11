@@ -30,6 +30,7 @@ public class AuthenticatedRequest {
   public static final String SPINNAKER_ACCOUNTS = "X-SPINNAKER-ACCOUNTS";
   public static final String SPINNAKER_USER_ORIGIN = "X-SPINNAKER-USER-ORIGIN";
   public static final String SPINNAKER_REQUEST_ID = "X-SPINNAKER-REQUEST-ID";
+  public static final String SPINNAKER_EXECUTION_ID = "X-SPINNAKER-EXECUTION-ID";
 
   public static <V> Callable<V> propagate(Callable<V> closure) {
     return propagate(closure, true, principal());
@@ -54,6 +55,7 @@ public class AuthenticatedRequest {
         MDC.remove(SPINNAKER_ACCOUNTS);
         MDC.remove(SPINNAKER_USER_ORIGIN);
         MDC.remove(SPINNAKER_REQUEST_ID);
+        MDC.remove(SPINNAKER_EXECUTION_ID);
         return closure.call();
       };
     }
@@ -64,6 +66,7 @@ public class AuthenticatedRequest {
       String originalSpinnakerUser = MDC.get(SPINNAKER_USER);
       String originalSpinnakerAccounts = MDC.get(SPINNAKER_ACCOUNTS);
       String originalSpinnakerRequestId = MDC.get(SPINNAKER_REQUEST_ID);
+      String originalSpinnakerExecutionId = MDC.get(SPINNAKER_EXECUTION_ID);
       try {
         MDC.put(SPINNAKER_USER, spinnakerUser);
         if (spinnakerAccounts != null) {
@@ -79,16 +82,22 @@ public class AuthenticatedRequest {
           log4jMDC.getDeclaredMethod("clear").invoke(null);
         } catch (Exception ignored) { }
 
-        if (originalSpinnakerUser != null && restoreOriginalContext) {
-          MDC.put(SPINNAKER_USER, originalSpinnakerUser);
-        }
+        if (restoreOriginalContext) {
+          if (originalSpinnakerUser != null) {
+            MDC.put(SPINNAKER_USER, originalSpinnakerUser);
+          }
 
-        if (originalSpinnakerAccounts != null && restoreOriginalContext) {
-          MDC.put(SPINNAKER_ACCOUNTS, originalSpinnakerAccounts);
-        }
+          if (originalSpinnakerAccounts != null) {
+            MDC.put(SPINNAKER_ACCOUNTS, originalSpinnakerAccounts);
+          }
 
-        if (originalSpinnakerRequestId != null && restoreOriginalContext) {
-          MDC.put(SPINNAKER_REQUEST_ID, originalSpinnakerRequestId);
+          if (originalSpinnakerRequestId != null) {
+            MDC.put(SPINNAKER_REQUEST_ID, originalSpinnakerRequestId);
+          }
+
+          if (originalSpinnakerExecutionId != null) {
+            MDC.put(SPINNAKER_EXECUTION_ID, originalSpinnakerExecutionId);
+          }
         }
       }
     };
@@ -100,6 +109,7 @@ public class AuthenticatedRequest {
     headers.put(SPINNAKER_ACCOUNTS, getSpinnakerAccounts());
     headers.put(SPINNAKER_USER_ORIGIN, getSpinnakerUserOrigin());
     headers.put(SPINNAKER_REQUEST_ID, getSpinnakerRequestId());
+    headers.put(SPINNAKER_EXECUTION_ID, getSpinnakerExecutionId());
     return headers;
   }
 
@@ -147,5 +157,9 @@ public class AuthenticatedRequest {
 
   private static Optional<String> getSpinnakerRequestId() {
     return Optional.ofNullable(MDC.get(SPINNAKER_REQUEST_ID));
+  }
+
+  private static Optional<String> getSpinnakerExecutionId() {
+    return Optional.ofNullable(MDC.get(SPINNAKER_EXECUTION_ID));
   }
 }

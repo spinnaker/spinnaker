@@ -71,6 +71,7 @@ class AuthenticatedRequestFilter implements Filter {
     def spinnakerAccounts = null
     def spinnakerUserOrigin = null
     def spinnakerRequestId = null
+    def spinnakerExecutionId = null
 
     try {
       if (request.isSecure()) {
@@ -105,6 +106,7 @@ class AuthenticatedRequestFilter implements Filter {
       spinnakerAccounts = spinnakerAccounts ?: httpServletRequest.getHeader(SPINNAKER_ACCOUNTS)
       spinnakerUserOrigin = httpServletRequest.getHeader(SPINNAKER_USER_ORIGIN)
       spinnakerRequestId = httpServletRequest.getHeader(SPINNAKER_REQUEST_ID)
+      spinnakerExecutionId = httpServletRequest.getHeader(SPINNAKER_EXECUTION_ID)
     }
     if (extractSpinnakerUserOriginHeader) {
       spinnakerUserOrigin = "deck".equalsIgnoreCase(((HttpServletRequest) request).getHeader("X-RateLimit-App")) ? "deck" : "api"
@@ -125,6 +127,9 @@ class AuthenticatedRequestFilter implements Filter {
       }
       if (spinnakerRequestId) {
         MDC.put(SPINNAKER_REQUEST_ID, spinnakerRequestId)
+      }
+      if (spinnakerExecutionId) {
+        MDC.put(SPINNAKER_EXECUTION_ID, spinnakerExecutionId)
       }
 
       chain.doFilter(request, response)
