@@ -141,6 +141,18 @@ public class AuthenticatedRequest {
     return Optional.ofNullable((String) spinnakerAccounts);
   }
 
+  public static Optional<String> getSpinnakerUserOrigin() {
+    return Optional.ofNullable(MDC.get(SPINNAKER_USER_ORIGIN));
+  }
+
+  public static Optional<String> getSpinnakerRequestId() {
+    return Optional.ofNullable(MDC.get(SPINNAKER_REQUEST_ID));
+  }
+
+  public static Optional<String> getSpinnakerExecutionId() {
+    return Optional.ofNullable(MDC.get(SPINNAKER_EXECUTION_ID));
+  }
+
   /**
    * @return the Spring Security principal or null if there is no authority.
    */
@@ -149,17 +161,5 @@ public class AuthenticatedRequest {
       .ofNullable(SecurityContextHolder.getContext().getAuthentication())
       .map(Authentication::getPrincipal)
       .orElse(null);
-  }
-
-  public static Optional<String> getSpinnakerUserOrigin() {
-    return Optional.ofNullable(MDC.get(SPINNAKER_USER_ORIGIN));
-  }
-
-  private static Optional<String> getSpinnakerRequestId() {
-    return Optional.ofNullable(MDC.get(SPINNAKER_REQUEST_ID));
-  }
-
-  private static Optional<String> getSpinnakerExecutionId() {
-    return Optional.ofNullable(MDC.get(SPINNAKER_EXECUTION_ID));
   }
 }
