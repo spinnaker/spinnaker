@@ -48,7 +48,7 @@ export class CreateScalingPolicyButton extends React.Component<ICreateScalingPol
         serverGroup: () => serverGroup,
         application: () => application,
       }
-    });
+    }).result.catch(() => {});
   }
 
   public createTargetTrackingPolicy(): void {
@@ -64,7 +64,7 @@ export class CreateScalingPolicyButton extends React.Component<ICreateScalingPol
         serverGroup: () => serverGroup,
         application: () => application,
       }
-    });
+    }).result.catch(() => {});
   }
 
   public typeSelected(typeSelection: string): void {

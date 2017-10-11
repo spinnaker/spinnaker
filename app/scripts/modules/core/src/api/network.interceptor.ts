@@ -3,6 +3,7 @@ import {
   ITimeoutService, IWindowService, module
 } from 'angular';
 import { Dictionary } from 'lodash';
+import { BindAll } from 'lodash-decorators';
 
 /**
  * Handles two scenarios:
@@ -10,6 +11,7 @@ import { Dictionary } from 'lodash';
  *   2. requests are aborted due to a network change (retries immediately)
  */
 
+@BindAll()
 export class NetworkInterceptor implements IHttpInterceptor {
 
   private networkAvailable: IDeferred<void>;

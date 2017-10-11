@@ -77,7 +77,7 @@ export class ApplicationComponent extends React.Component<IApplicationComponentP
       resolve: {
         application: () => this.props.app
       }
-    })
+    }).result.catch(() => {});
   }
 
   public handleRefresh(): void {

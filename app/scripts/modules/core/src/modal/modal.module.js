@@ -2,7 +2,6 @@
 
 const angular = require('angular');
 
-import { DISMISS_DECORATOR } from './dismiss.decorator';
 import { V2_MODAL_WIZARD_COMPONENT } from './wizard/v2modalWizard.component';
 import { V2_MODAL_WIZARD_SERVICE } from './wizard/v2modalWizard.service';
 import { MODAL_CLOSE_COMPONENT } from './buttons/modalClose.component';
@@ -16,7 +15,6 @@ module.exports = angular
     require('./modalPage.directive.js').name,
     require('./wizard/wizardSubFormValidation.service').name,
     require('./closeable/closeable.modal.controller').name,
-    DISMISS_DECORATOR,
     MODAL_CLOSE_COMPONENT,
     SUBMIT_BUTTON_COMPONENT,
     V2_MODAL_WIZARD_SERVICE,

@@ -96,7 +96,7 @@ export class LoadBalancers extends React.Component<ILoadBalancersProps, ILoadBal
           isNew: () => true,
           forPipelineConfig: () => false
         }
-      });
+      }).result.catch(() => {});
     });
   };
 
