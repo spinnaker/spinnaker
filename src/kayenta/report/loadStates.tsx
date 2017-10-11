@@ -6,13 +6,13 @@ import { NgReact } from '@spinnaker/core';
 import { ICanaryState } from '../reducers/index';
 import { AsyncRequestState } from '../reducers/asyncRequest';
 import CenteredDetail from '../layout/centeredDetail';
-import ReportDetail from './detail';
+import ResultDetail from './detail';
 
-interface IReportLoadStatesStateProps {
+interface IResultLoadStatesStateProps {
   loadState: AsyncRequestState;
 }
 
-const ReportLoadStates = ({ loadState }: IReportLoadStatesStateProps) => {
+const ResultLoadStates = ({ loadState }: IResultLoadStatesStateProps) => {
   switch (loadState) {
     case AsyncRequestState.Requesting:
       return (
@@ -22,7 +22,7 @@ const ReportLoadStates = ({ loadState }: IReportLoadStatesStateProps) => {
       );
 
     case AsyncRequestState.Fulfilled:
-      return <ReportDetail/>;
+      return <ResultDetail/>;
 
     case AsyncRequestState.Failed:
       return (
@@ -34,8 +34,8 @@ const ReportLoadStates = ({ loadState }: IReportLoadStatesStateProps) => {
 };
 
 const mapStateToProps = (state: ICanaryState) => ({
-  loadState: state.selectedReport.load,
+  loadState: state.selectedResult.load,
 });
 
-export default connect(mapStateToProps)(ReportLoadStates);
+export default connect(mapStateToProps)(ResultLoadStates);
 

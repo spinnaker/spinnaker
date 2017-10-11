@@ -7,28 +7,28 @@ import * as Creators from '../actions/creators';
 import ReportDetailLoadStates from './loadStates';
 import { ICanaryState } from '../reducers/index';
 
-interface IReportLoaderStateParamsProps {
-  reportIdStream: Observable<IReportLoaderStateParams>;
+interface IResultLoaderStateParamsProps {
+  resultIdStream: Observable<IResultLoaderStateParams>;
 }
 
-interface IReportLoaderDispatchProps {
-  loadReport: (stateParams: IReportLoaderStateParams) => void;
+interface IResultLoaderDispatchProps {
+  loadResult: (stateParams: IResultLoaderStateParams) => void;
 }
 
-interface IReportLoaderStateParams {
+interface IResultLoaderStateParams {
   id: string;
 }
 
 /*
  * Top-level .reportDetail state component.
- * Loads report details on changes to /report/:id path parameter, renders load states.
+ * Loads result details on changes to /report/:id path parameter, renders load states.
  */
-class ReportDetailLoader extends React.Component<IReportLoaderDispatchProps & IReportLoaderStateParamsProps> {
+class ResultDetailLoader extends React.Component<IResultLoaderDispatchProps & IResultLoaderStateParamsProps> {
   private subscription: Subscription;
 
-  constructor({ reportIdStream, loadReport }: IReportLoaderDispatchProps & IReportLoaderStateParamsProps) {
+  constructor({ resultIdStream, loadResult }: IResultLoaderDispatchProps & IResultLoaderStateParamsProps) {
     super();
-    this.subscription = reportIdStream.subscribe(loadReport);
+    this.subscription = resultIdStream.subscribe(loadResult);
   }
 
   public componentWillUnmount(): void {
@@ -41,9 +41,9 @@ class ReportDetailLoader extends React.Component<IReportLoaderDispatchProps & IR
 }
 
 
-const mapDispatchToProps = (dispatch: Dispatch<ICanaryState>): IReportLoaderDispatchProps => ({
-  loadReport: (stateParams: IReportLoaderStateParams) =>
-    dispatch(Creators.loadReportRequest({ id: stateParams.id })),
+const mapDispatchToProps = (dispatch: Dispatch<ICanaryState>): IResultLoaderDispatchProps => ({
+  loadResult: (stateParams: IResultLoaderStateParams) =>
+    dispatch(Creators.loadResultRequest({ id: stateParams.id })),
 });
 
-export default connect(null, mapDispatchToProps)(ReportDetailLoader);
+export default connect(null, mapDispatchToProps)(ResultDetailLoader);

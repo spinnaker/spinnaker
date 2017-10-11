@@ -2,11 +2,11 @@ import * as React from 'react';
 
 import { ICanaryAnalysisResult } from '../domain/ICanaryJudgeResult';
 
-interface IResultDetailProps {
+interface IMetricResultDetailProps {
   result: ICanaryAnalysisResult;
 }
 
-export default ({ result }: IResultDetailProps) => {
+export default ({ result }: IMetricResultDetailProps) => {
   if (result) {
     return (
       <pre>{JSON.stringify(result, null, 2)}</pre>

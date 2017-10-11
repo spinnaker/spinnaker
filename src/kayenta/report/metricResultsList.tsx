@@ -2,11 +2,11 @@ import * as React from 'react';
 import { connect, Dispatch } from 'react-redux';
 
 import { ICanaryAnalysisResult } from '../domain/ICanaryJudgeResult';
-import ResultRow from './resultRow';
+import MetricResultRow from './metricResultRow';
 import { ICanaryState } from '../reducers/index';
 import * as Creators from 'kayenta/actions/creators';
-import { resultsListColumns } from './resultsListColumns';
-import ResultsListHeader from './resultsListHeader';
+import { metricResultsColumns } from './metricResultsColumns';
+import MetricResultsListHeader from './metricResultsListHeader';
 
 interface IResultsListOwnProps {
   results: ICanaryAnalysisResult[];
@@ -18,11 +18,11 @@ interface IResultsListDispatchProps {
 
 const ResultsList = ({ results, select }: IResultsListOwnProps & IResultsListDispatchProps) => (
   <section className="vertical">
-    <ResultsListHeader columns={resultsListColumns}/>
+    <MetricResultsListHeader columns={metricResultsColumns}/>
     <ul className="list-unstyled">
       {results.map(r => (
         <li key={r.name}>
-          <ResultRow columns={resultsListColumns} onClick={select} result={r}/>
+          <MetricResultRow columns={metricResultsColumns} onClick={select} result={r}/>
         </li>
       ))}
     </ul>
@@ -34,7 +34,7 @@ const mapDispatchToProps = (
   ownProps: IResultsListOwnProps,
 ): IResultsListOwnProps & IResultsListDispatchProps => ({
   select: (metric: string) =>
-    dispatch(Creators.selectReportMetricResult({ metric })),
+    dispatch(Creators.selectResultMetric({ metric })),
   ...ownProps,
 });
 

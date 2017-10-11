@@ -75,11 +75,11 @@ const deleteConfigSuccessEpic = (action$: Observable<Action & any>, store: Middl
 
 const loadReportRequestEpic = (action$: Observable<Action & any>) =>
   action$
-    .filter(typeMatches(Actions.LOAD_REPORT_REQUEST))
+    .filter(typeMatches(Actions.LOAD_RESULT_REQUEST))
     .concatMap(action =>
       Observable.fromPromise(getCanaryJudgeResultById(action.payload.id))
-        .map(report => Creators.loadReportSuccess({ report }))
-        .catch((error: Error) => Observable.of(Creators.loadReportFailure({ error })))
+        .map(result => Creators.loadResultSuccess({ result }))
+        .catch((error: Error) => Observable.of(Creators.loadResultFailure({ error })))
     );
 
 const rootEpic = combineEpics(

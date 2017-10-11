@@ -13,7 +13,8 @@ import CanaryConfigSave from 'kayenta/edit/save';
 import Canary from 'kayenta/canary';
 import SelectConfig from 'kayenta/selectConfig';
 import Report from 'kayenta/report/report';
-import ReportDetailLoader from 'kayenta/report/detailLoader';
+import ResultDetailLoader from 'kayenta/report/detailLoader';
+import ResultList from 'kayenta/report/resultList';
 
 export const CANARY_STATES = 'spinnaker.kayenta.canary.states';
 module(CANARY_STATES, [APPLICATION_STATE_PROVIDER])
@@ -65,31 +66,40 @@ module(CANARY_STATES, [APPLICATION_STATE_PROVIDER])
 
   const reportDetail: INestedState = {
     name: 'reportDetail',
-    url: '/:id',
+    url: '/report/:id',
     views: {
       detail: {
-        component: ReportDetailLoader, $type: 'react',
+        component: ResultDetailLoader, $type: 'react',
       },
     },
     resolve: [
       {
-        token: 'reportIdStream',
+        token: 'resultIdStream',
         deps: [UIRouter],
         resolveFn: (uiRouter: any) => uiRouter.globals.params$,
       }
     ],
   };
 
+  const reportDefault: INestedState = {
+    name: 'reportDefault',
+    url: '/report',
+    views: {
+      detail: {
+        component: ResultList, $type: 'react',
+      }
+    },
+  };
+
   const report: INestedState = {
     name: 'report',
-    url: '/report',
     abstract: true,
     views: {
       canary: {
         component: Report, $type: 'react',
       },
     },
-    children: [reportDetail],
+    children: [reportDetail, reportDefault],
   };
 
   const canaryRoot: INestedState = {

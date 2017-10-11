@@ -1,19 +1,18 @@
 import * as React from 'react';
 
 import { ICanaryAnalysisResult } from '../domain/ICanaryJudgeResult';
-import { IResultsListColumn } from './resultsListColumns';
+import { IMetricResultsColumn } from './metricResultsColumns';
 
-interface IResultRowProps {
+interface IMetricResultRowProps {
   result: ICanaryAnalysisResult;
-  columns: IResultsListColumn[];
+  columns: IMetricResultsColumn[];
   onClick: (metric: string) => void;
 }
 
-export default ({ result, columns, onClick }: IResultRowProps) => {
+export default ({ result, columns, onClick }: IMetricResultRowProps) => {
   return (
     <ul
-      className="list-unstyled list-inline horizontal"
-      data-metric={result.name}
+      className="horizontal list-unstyled"
       onClick={() => onClick(result.name)}
     >
       {columns.map(c => (

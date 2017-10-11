@@ -20,7 +20,7 @@ interface IReportDetailDispatchProps {
 }
 
 /*
-* Layout for the report detail header.
+* Layout for the result detail header.
 * */
 const ReportDetailHeader = ({ groups, score, clearSelectedGroup }: IReportDetailHeaderStateProps & IReportDetailDispatchProps) => (
   <section className="horizontal container">
@@ -30,12 +30,12 @@ const ReportDetailHeader = ({ groups, score, clearSelectedGroup }: IReportDetail
 );
 
 const mapStateToProps = (state: ICanaryState): IReportDetailHeaderStateProps => ({
-  groups: state.selectedReport.report.groupScores,
-  score: state.selectedReport.report.score,
+  groups: state.selectedResult.result.groupScores,
+  score: state.selectedResult.result.score,
 });
 
 const mapDispatchToProps = (dispatch: Dispatch<ICanaryState>): IReportDetailDispatchProps => ({
-  clearSelectedGroup: () => dispatch(Creators.selectReportGroup({ group: null })),
+  clearSelectedGroup: () => dispatch(Creators.selectResultMetricGroup({ group: null })),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(ReportDetailHeader);
