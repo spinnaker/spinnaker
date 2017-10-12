@@ -134,6 +134,8 @@ class GoogleZonalServerGroupCachingAgent extends AbstractGoogleCachingAgent impl
     BatchRequest instanceGroupsRequest = buildBatchRequest()
     BatchRequest autoscalerRequest = buildBatchRequest()
 
+    List<InstanceTemplate> instanceTemplates = compute.instanceTemplates().list(project).execute().getItems()
+
     zones?.each { String zone ->
       InstanceGroupManagerCallbacks instanceGroupManagerCallbacks = new InstanceGroupManagerCallbacks(
         providerCache: providerCache,
@@ -143,11 +145,11 @@ class GoogleZonalServerGroupCachingAgent extends AbstractGoogleCachingAgent impl
         autoscalerRequest: autoscalerRequest)
       if (onDemandServerGroupName) {
         InstanceGroupManagerCallbacks.InstanceGroupManagerSingletonCallback igmCallback =
-          instanceGroupManagerCallbacks.newInstanceGroupManagerSingletonCallback()
+          instanceGroupManagerCallbacks.newInstanceGroupManagerSingletonCallback(instanceTemplates)
         compute.instanceGroupManagers().get(project, zone, onDemandServerGroupName).queue(igmRequest, igmCallback)
       } else {
         InstanceGroupManagerCallbacks.InstanceGroupManagerListCallback igmlCallback =
-          instanceGroupManagerCallbacks.newInstanceGroupManagerListCallback()
+          instanceGroupManagerCallbacks.newInstanceGroupManagerListCallback(instanceTemplates)
         compute.instanceGroupManagers().list(project, zone).setMaxResults(maxMIGPageSize).queue(igmRequest, igmlCallback)
       }
     }
@@ -355,15 +357,17 @@ class GoogleZonalServerGroupCachingAgent extends AbstractGoogleCachingAgent impl
     BatchRequest instanceGroupsRequest
     BatchRequest autoscalerRequest
 
-    InstanceGroupManagerSingletonCallback<InstanceGroupManager> newInstanceGroupManagerSingletonCallback() {
-      return new InstanceGroupManagerSingletonCallback<InstanceGroupManager>()
+    InstanceGroupManagerSingletonCallback<InstanceGroupManager> newInstanceGroupManagerSingletonCallback(List<InstanceTemplate> instanceTemplates) {
+      return new InstanceGroupManagerSingletonCallback<InstanceGroupManager>(instanceTemplates: instanceTemplates)
     }
 
-    InstanceGroupManagerListCallback<InstanceGroupManagerList> newInstanceGroupManagerListCallback() {
-      return new InstanceGroupManagerListCallback<InstanceGroupManagerList>()
+    InstanceGroupManagerListCallback<InstanceGroupManagerList> newInstanceGroupManagerListCallback(List<InstanceTemplate> instanceTemplates) {
+      return new InstanceGroupManagerListCallback<InstanceGroupManagerList>(instanceTemplates: instanceTemplates)
     }
 
     class InstanceGroupManagerSingletonCallback<InstanceGroupManager> extends JsonBatchCallback<InstanceGroupManager> {
+
+      List<InstanceTemplate> instanceTemplates
 
       @Override
       void onFailure(GoogleJsonError e, HttpHeaders responseHeaders) throws IOException {
@@ -380,7 +384,7 @@ class GoogleZonalServerGroupCachingAgent extends AbstractGoogleCachingAgent impl
           GoogleServerGroup serverGroup = buildServerGroupFromInstanceGroupManager(instanceGroupManager)
           serverGroups << serverGroup
 
-          populateInstanceTemplate(providerCache, instanceGroupManager, serverGroup)
+          populateInstanceTemplate(providerCache, instanceGroupManager, serverGroup, instanceTemplates)
 
           def autoscalerCallback = new AutoscalerSingletonCallback(serverGroup: serverGroup)
           compute.autoscalers().get(project, zone, serverGroup.name).queue(autoscalerRequest, autoscalerCallback)
@@ -390,6 +394,8 @@ class GoogleZonalServerGroupCachingAgent extends AbstractGoogleCachingAgent impl
 
     class InstanceGroupManagerListCallback<InstanceGroupManagerList> extends JsonBatchCallback<InstanceGroupManagerList> implements FailureLogger {
 
+      List<InstanceTemplate> instanceTemplates
+
       @Override
       void onSuccess(InstanceGroupManagerList instanceGroupManagerList, HttpHeaders responseHeaders) throws IOException {
         instanceGroupManagerList?.items?.each { InstanceGroupManager instanceGroupManager ->
@@ -397,7 +403,7 @@ class GoogleZonalServerGroupCachingAgent extends AbstractGoogleCachingAgent impl
             GoogleServerGroup serverGroup = buildServerGroupFromInstanceGroupManager(instanceGroupManager)
             serverGroups << serverGroup
 
-            populateInstanceTemplate(providerCache, instanceGroupManager, serverGroup)
+            populateInstanceTemplate(providerCache, instanceGroupManager, serverGroup, instanceTemplates)
           }
         }
 
@@ -439,58 +445,50 @@ class GoogleZonalServerGroupCachingAgent extends AbstractGoogleCachingAgent impl
       )
     }
 
-    void populateInstanceTemplate(ProviderCache providerCache, InstanceGroupManager instanceGroupManager, GoogleServerGroup serverGroup) {
+    void populateInstanceTemplate(ProviderCache providerCache, InstanceGroupManager instanceGroupManager,
+                                  GoogleServerGroup serverGroup, List<InstanceTemplate> instanceTemplates) {
       String instanceTemplateName = Utils.getLocalName(instanceGroupManager.instanceTemplate)
       List<String> loadBalancerNames =
         Utils.deriveNetworkLoadBalancerNamesFromTargetPoolUrls(instanceGroupManager.getTargetPools())
-      InstanceTemplatesCallback instanceTemplatesCallback = new InstanceTemplatesCallback(providerCache: providerCache,
-                                                                                          serverGroup: serverGroup,
-                                                                                          loadBalancerNames: loadBalancerNames)
-      compute.instanceTemplates().get(project, instanceTemplateName).queue(instanceGroupsRequest,
-                                                                           instanceTemplatesCallback)
+      InstanceTemplate template = instanceTemplates.find { it -> it.getName() == instanceTemplateName }
+      populateServerGroupWithTemplate(serverGroup, providerCache, loadBalancerNames, template, accountName, project, objectMapper)
     }
   }
 
-  class InstanceTemplatesCallback<InstanceTemplate> extends JsonBatchCallback<InstanceTemplate> implements FailureLogger {
-
-    ProviderCache providerCache
-    GoogleServerGroup serverGroup
-    List<String> loadBalancerNames
-
-    @Override
-    void onSuccess(InstanceTemplate instanceTemplate, HttpHeaders responseHeaders) throws IOException {
-      serverGroup.with {
-        networkName = Utils.decorateXpnResourceIdIfNeeded(project, instanceTemplate?.properties?.networkInterfaces?.getAt(0)?.network)
-        canIpForward = instanceTemplate?.properties?.canIpForward
-        instanceTemplateTags = instanceTemplate?.properties?.tags?.items
-        instanceTemplateLabels = instanceTemplate?.properties?.labels
-        launchConfig.with {
-          launchConfigurationName = instanceTemplate?.name
-          instanceType = instanceTemplate?.properties?.machineType
-          minCpuPlatform = instanceTemplate?.properties?.minCpuPlatform
-        }
+  static void populateServerGroupWithTemplate(GoogleServerGroup serverGroup, ProviderCache providerCache,
+                                              List<String> loadBalancerNames, InstanceTemplate instanceTemplate,
+                                              String accountName, String project, ObjectMapper objectMapper) {
+    serverGroup.with {
+      networkName = Utils.decorateXpnResourceIdIfNeeded(project, instanceTemplate?.properties?.networkInterfaces?.getAt(0)?.network)
+      canIpForward = instanceTemplate?.properties?.canIpForward
+      instanceTemplateTags = instanceTemplate?.properties?.tags?.items
+      instanceTemplateLabels = instanceTemplate?.properties?.labels
+      launchConfig.with {
+        launchConfigurationName = instanceTemplate?.name
+        instanceType = instanceTemplate?.properties?.machineType
+        minCpuPlatform = instanceTemplate?.properties?.minCpuPlatform
       }
-      // "instanceTemplate = instanceTemplate" in the above ".with{ }" blocks doesn't work because Groovy thinks it's
-      // assigning the same variable to itself, instead of to the "launchConfig" entry
-      serverGroup.launchConfig.instanceTemplate = instanceTemplate
-
-      sortWithBootDiskFirst(serverGroup)
-
-      def sourceImageUrl = instanceTemplate?.properties?.disks?.find { disk ->
-        disk.boot
-      }?.initializeParams?.sourceImage
-      if (sourceImageUrl) {
-        serverGroup.launchConfig.imageId = Utils.getLocalName(sourceImageUrl)
-
-        def imageKey = Keys.getImageKey(accountName, serverGroup.launchConfig.imageId)
-        def image = providerCache.get(IMAGES.ns, imageKey)
-
-        extractBuildInfo(image?.attributes?.image?.description, serverGroup)
-      }
-
-      def instanceMetadata = instanceTemplate?.properties?.metadata
-      setLoadBalancerMetadataOnInstance(loadBalancerNames, instanceMetadata, serverGroup, objectMapper)
     }
+    // "instanceTemplate = instanceTemplate" in the above ".with{ }" blocks doesn't work because Groovy thinks it's
+    // assigning the same variable to itself, instead of to the "launchConfig" entry
+    serverGroup.launchConfig.instanceTemplate = instanceTemplate
+
+    sortWithBootDiskFirst(serverGroup)
+
+    def sourceImageUrl = instanceTemplate?.properties?.disks?.find { disk ->
+      disk.boot
+    }?.initializeParams?.sourceImage
+    if (sourceImageUrl) {
+      serverGroup.launchConfig.imageId = Utils.getLocalName(sourceImageUrl)
+
+      def imageKey = Keys.getImageKey(accountName, serverGroup.launchConfig.imageId)
+      def image = providerCache.get(IMAGES.ns, imageKey)
+
+      extractBuildInfo(image?.attributes?.image?.description, serverGroup)
+    }
+
+    def instanceMetadata = instanceTemplate?.properties?.metadata
+    setLoadBalancerMetadataOnInstance(loadBalancerNames, instanceMetadata, serverGroup, objectMapper)
   }
 
   static void populateLoadBalancerKeys(GoogleServerGroup serverGroup, List<String> loadBalancerKeys, String accountName, String region) {
