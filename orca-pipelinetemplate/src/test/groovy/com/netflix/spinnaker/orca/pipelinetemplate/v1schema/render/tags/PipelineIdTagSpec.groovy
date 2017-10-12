@@ -21,6 +21,7 @@ import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.pipelinetemplate.exceptions.TemplateRenderException
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.DefaultRenderContext
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.JinjaRenderer
+import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.RenderContext
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.Renderer
 import spock.lang.Specification
 import spock.lang.Subject
@@ -77,7 +78,26 @@ class PipelineIdTagSpec extends Specification {
     '{% pipelineId name="Rob\'s great pipeline" %}'          || '1685429e-beb1-4d35-963c-123456789012'
   }
 
-  def 'should handle missing input params'() {
+  def 'should render pipeline id using variables defined in context'() {
+    given:
+    front50Service.getPipelines('myApp', false) >>  [
+      [
+        name: 'Bake and Tag',
+        application: 'myApp',
+        id: '9595429f-afa0-4c34-852b-01a9a01967f9',
+        stages: []
+      ]
+    ]
+
+    RenderContext context = new DefaultRenderContext('myApp', null, [:])
+    context.variables.put("pipelineName", "Bake and Tag")
+    context.variables.put("applicationName", "myApp")
+
+    expect:
+    renderer.render('{% pipelineId application=applicationName name=pipelineName %}', context) ==  '9595429f-afa0-4c34-852b-01a9a01967f9'
+  }
+
+    def 'should handle missing input params'() {
     given: 'a pipelineId tag with no app defined'
     def applicationInContext = 'myApp'
     def context = new DefaultRenderContext(applicationInContext,null, [:])

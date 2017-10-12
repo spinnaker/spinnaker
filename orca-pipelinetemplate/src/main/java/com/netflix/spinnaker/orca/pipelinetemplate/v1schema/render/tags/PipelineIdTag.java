@@ -59,27 +59,38 @@ public class PipelineIdTag implements Tag {
     });
 
     Context context = interpreter.getContext();
-    String application = paramPairs.getOrDefault(APPLICATION, (String) context.get(APPLICATION)).replaceAll("^[\"\']|[\"\']$", "");
-    String name = paramPairs.get(NAME).replaceAll("^[\"\']|[\"\']$", "");
 
-    if (name == null || application == null) {
-      throw new TemplateSyntaxException(tagNode.getMaster().getImage(), "Tag 'pipelineId' is missing required fields: " + helper, tagNode.getLineNumber());
-    }
+    String application = paramPairs.getOrDefault(APPLICATION, (String) context.get(APPLICATION)).replaceAll("^[\"\']|[\"\']$", "");
+    application = checkContext(application, context);
+
+    String name = paramPairs.get(NAME).replaceAll("^[\"\']|[\"\']$", "");
+    name = checkContext(name, context);
 
     List<Map<String, Object>> pipelines = Optional.ofNullable(front50Service.getPipelines(application, false)).orElse(Collections.emptyList());
-
-    Map<String, Object> result = pipelines
-      .stream()
-      .filter(p -> p.get(NAME).equals(name))
-      .findFirst()
-      .orElseThrow(
-        () -> TemplateRenderException.fromError(
-          new Error()
-            .withMessage(String.format("Failed to find pipeline ID with name '%s' in application '%s'", name, application)
-        ))
-      );
-
+    Map<String, Object> result = findPipeline(pipelines, application, name);
     return (String) result.get("id");
+  }
+
+  private String checkContext(String param, Context context) {
+    Object var = context.get(param);
+
+    if (var != null) {
+      return (String) var;
+    }
+
+    return param;
+  }
+
+  private Map<String, Object> findPipeline(List<Map<String, Object>> pipelines, String application, String pipelineName) {
+    return pipelines
+          .stream()
+          .filter(p -> p.get(NAME).equals(pipelineName))
+          .findFirst()
+          .orElseThrow(
+                  () -> TemplateRenderException.fromError(
+                          new Error()
+                                  .withMessage(String.format("Failed to find pipeline ID with name '%s' in application '%s'", pipelineName, application)
+                                  )));
   }
 
   @Override
