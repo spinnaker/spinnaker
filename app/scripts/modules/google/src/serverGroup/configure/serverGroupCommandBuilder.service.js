@@ -263,18 +263,12 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
     function attemptToSetValidCredentials(application, defaultCredentials, command) {
       return accountService.listAccounts('gce').then(function(gceAccounts) {
         var gceAccountNames = _.map(gceAccounts, 'name');
-        var firstGCEAccount = null;
-
-        if (application.accounts.length) {
-          firstGCEAccount = _.find(application.accounts, function (applicationAccount) {
-            return gceAccountNames.includes(applicationAccount);
-          });
-        }
+        var firstGCEAccount = gceAccountNames[0];
 
         var defaultCredentialsAreValid = defaultCredentials && gceAccountNames.includes(defaultCredentials);
 
         command.credentials =
-          defaultCredentialsAreValid ? defaultCredentials : (firstGCEAccount ? firstGCEAccount : 'my-account-name');
+          defaultCredentialsAreValid ? defaultCredentials : (firstGCEAccount || 'my-account-name');
       });
     }
 
