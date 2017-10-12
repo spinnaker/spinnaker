@@ -17,7 +17,7 @@ const ResultLoadStates = ({ loadState }: IResultLoadStatesStateProps) => {
     case AsyncRequestState.Requesting:
       return (
         <div className="spinner">
-          <NgReact.Spinner radius={20} width={3} length={20}/>
+          <NgReact.LegacySpinner radius={20} width={3} length={20}/>
         </div>
       );
 

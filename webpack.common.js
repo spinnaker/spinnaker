@@ -31,7 +31,6 @@ function configure(IS_TEST) {
       ],
       alias: {
         'coreImports': path.resolve(NODE_MODULE_PATH, '@spinnaker', 'core', 'src', 'presentation', 'less', 'imports', 'commonImports.less'),
-        'coreColors': path.resolve(NODE_MODULE_PATH, '@spinnaker', 'core', 'src', 'presentation', 'less', 'imports', 'colors.less'),
         'root': __dirname,
       }
     },
