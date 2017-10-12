@@ -26,15 +26,23 @@ import com.netflix.spinnaker.clouddriver.helpers.OperationPoller
 import com.netflix.spinnaker.clouddriver.orchestration.events.CreateServerGroupEvent
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
+import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.clouddriver.titus.TitusClientProvider
 import com.netflix.spinnaker.clouddriver.titus.TitusCloudProvider
 import com.netflix.spinnaker.clouddriver.titus.caching.utils.AwsLookupUtil
+import com.netflix.spinnaker.clouddriver.titus.client.TitusAutoscalingClient
 import com.netflix.spinnaker.clouddriver.titus.client.TitusClient
+import com.netflix.spinnaker.clouddriver.titus.client.model.Job
 import com.netflix.spinnaker.clouddriver.titus.client.model.SubmitJobRequest
 import com.netflix.spinnaker.clouddriver.titus.credentials.NetflixTitusCredentials
 import com.netflix.spinnaker.clouddriver.titus.deploy.TitusServerGroupNameResolver
 import com.netflix.spinnaker.clouddriver.titus.deploy.description.TitusDeployDescription
+import com.netflix.spinnaker.clouddriver.titus.deploy.description.TitusDeployDescription.Source
+import com.netflix.spinnaker.clouddriver.titus.deploy.description.UpsertTitusScalingPolicyDescription
 import com.netflix.spinnaker.clouddriver.titus.model.DockerImage
+import com.netflix.titus.grpc.protogen.PutPolicyRequest
+import com.netflix.titus.grpc.protogen.PutPolicyRequest.Builder
+import com.netflix.titus.grpc.protogen.ScalingPolicyResult
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -55,9 +63,11 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
   private static final String BASE_PHASE = "DEPLOY"
 
   private final TitusClientProvider titusClientProvider
+  private final AccountCredentialsRepository accountCredentialsRepository
 
-  TitusDeployHandler(TitusClientProvider titusClientProvider) {
+  TitusDeployHandler(TitusClientProvider titusClientProvider, AccountCredentialsRepository accountCredentialsRepository) {
     this.titusClientProvider = titusClientProvider
+    this.accountCredentialsRepository = accountCredentialsRepository
   }
 
   private static Task getTask() {
@@ -184,6 +194,8 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
         ])
       }
 
+      copyScalingPolicies(description, jobUri)
+
       deploymentResult.messages = task.history.collect { "${it.phase} : ${it.status}".toString() }
 
       description.events << new CreateServerGroupEvent(
@@ -197,6 +209,61 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
       logger.error("Deploy failed", t)
       throw t
     }
+  }
+
+  protected void copyScalingPolicies(TitusDeployDescription description, String jobUri) {
+    if (!description.copySourceScalingPolicies) {
+      return
+    }
+    task.updateStatus BASE_PHASE, "Copying scaling policies from source (Job URI: ${jobUri})"
+    Source source = description.source
+    TitusClient sourceClient = buildSourceTitusClient(source)
+    TitusAutoscalingClient autoscalingClient = titusClientProvider.getTitusAutoscalingClient(description.credentials, description.region)
+    if (!autoscalingClient) {
+      task.updateStatus BASE_PHASE, "Unable to create client in target account/region; policies will not be copied"
+      return
+    }
+    TitusAutoscalingClient sourceAutoscalingClient = buildSourceAutoscalingClient(source)
+    if (!sourceClient) {
+      task.updateStatus BASE_PHASE, "Unable to create client in source account/region; policies will not be copied"
+      return
+    }
+    if (sourceClient && sourceAutoscalingClient) {
+      Job sourceJob = sourceClient.findJobByName(source.asgName)
+      if (!sourceJob) {
+        task.updateStatus BASE_PHASE, "Unable to locate source (${source.account}:${source.region}:${source.asgName})"
+      } else {
+        List<ScalingPolicyResult> policies = sourceAutoscalingClient.getJobScalingPolicies(sourceJob.id) ?: []
+        task.updateStatus BASE_PHASE, "Found ${policies.size()} scaling policies for source (Job URI: ${jobUri})"
+        policies.each { policy ->
+          Builder requestBuilder = PutPolicyRequest.newBuilder()
+            .setJobId(jobUri)
+            .setScalingPolicy(UpsertTitusScalingPolicyDescription.fromScalingPolicyResult(description.region, policy).toScalingPolicyBuilder())
+          autoscalingClient.upsertScalingPolicy(requestBuilder.build())
+        }
+      }
+    }
+    task.updateStatus BASE_PHASE, "Copy scaling policies succeeded (Job URI: ${jobUri})"
+  }
+
+  private TitusClient buildSourceTitusClient(Source source) {
+    if (source.account && source.region && source.asgName) {
+      def sourceRegion = source.region
+      def sourceCredentials = accountCredentialsRepository.getOne(source.account) as NetflixTitusCredentials
+      return titusClientProvider.getTitusClient(sourceCredentials, sourceRegion)
+    }
+
+    return null
+  }
+
+  private TitusAutoscalingClient buildSourceAutoscalingClient(Source source) {
+    if (source.account && source.region && source.asgName) {
+      def sourceRegion = source.region
+      def sourceCredentials = accountCredentialsRepository.getOne(source.account) as NetflixTitusCredentials
+      return titusClientProvider.getTitusAutoscalingClient(sourceCredentials, sourceRegion)
+    }
+
+    return null
   }
 
   private String getAccountId(String credentials) {

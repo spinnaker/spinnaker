@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.titus.caching.agents
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.google.protobuf.util.JsonFormat
 import com.netflix.frigga.Names
 import com.netflix.frigga.autoscaling.AutoScalingGroupNameBuilder
 import com.netflix.spinnaker.cats.agent.AgentDataType
@@ -33,11 +34,15 @@ import com.netflix.spinnaker.clouddriver.titus.TitusClientProvider
 import com.netflix.spinnaker.clouddriver.titus.caching.Keys
 import com.netflix.spinnaker.clouddriver.titus.caching.TitusCachingProvider
 import com.netflix.spinnaker.clouddriver.titus.caching.utils.AwsLookupUtil
+import com.netflix.spinnaker.clouddriver.titus.client.TitusAutoscalingClient
 import com.netflix.spinnaker.clouddriver.titus.client.TitusClient
 import com.netflix.spinnaker.clouddriver.titus.client.model.Job
 import com.netflix.spinnaker.clouddriver.titus.client.model.TaskState
 import com.netflix.spinnaker.clouddriver.titus.credentials.NetflixTitusCredentials
 import com.netflix.spinnaker.clouddriver.titus.model.TitusSecurityGroup
+import com.netflix.titus.grpc.protogen.ScalingPolicy
+import com.netflix.titus.grpc.protogen.ScalingPolicyResult
+import com.netflix.titus.grpc.protogen.ScalingPolicyStatus.ScalingPolicyState
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -60,6 +65,7 @@ class TitusClusterCachingAgent implements CachingAgent, CustomScheduledAgent {
   ] as Set)
 
   private final TitusClient titusClient
+  private final TitusAutoscalingClient titusAutoscalingClient
   private final NetflixTitusCredentials account
   private final String region
   private final ObjectMapper objectMapper
@@ -79,6 +85,7 @@ class TitusClusterCachingAgent implements CachingAgent, CustomScheduledAgent {
     this.region = region
     this.objectMapper = objectMapper
     this.titusClient = titusClientProvider.getTitusClient(account, region)
+    this.titusAutoscalingClient = titusClientProvider.getTitusAutoscalingClient(account, region)
     this.awsLookupUtil = awsLookupUtil
     this.pollIntervalMillis = pollIntervalMillis
     this.timeoutMillis = timeoutMillis
@@ -134,18 +141,25 @@ class TitusClusterCachingAgent implements CachingAgent, CustomScheduledAgent {
     Map<String, CacheData> clusters = createCache()
     Map<String, CacheData> serverGroups = createCache()
     Map<String, CacheData> instances = createCache()
-
+    List<ScalingPolicyResult> allScalingPolicies = titusAutoscalingClient ? titusAutoscalingClient.getAllScalingPolicies() : []
+    // Ignore policies in a Deleted state (may need to revisit)
+    List cacheablePolicyStates = [ScalingPolicyState.Pending, ScalingPolicyState.Applied, ScalingPolicyState.Deleting]
     Map<String, TitusSecurityGroup> titusSecurityGroupCache = [:]
 
     for (Job job : jobs) {
-        try {
-          ServerGroupData data = new ServerGroupData(job, account.name, region, account.stack)
-          cacheApplication(data, applications)
-          cacheCluster(data, clusters)
-          cacheServerGroup(data, serverGroups, instances, titusSecurityGroupCache)
-        } catch (Exception ex) {
-          log.error("Failed to cache ${job.name} in ${account.name}", ex)
+      try {
+        List<ScalingPolicy> scalingPolicies = allScalingPolicies.findResults {
+          it.jobId == job.id && cacheablePolicyStates.contains(it.policyState.state) ?
+            it.scalingPolicy :
+            null
         }
+        ServerGroupData data = new ServerGroupData(job, scalingPolicies, account.name, region, account.stack)
+        cacheApplication(data, applications)
+        cacheCluster(data, clusters)
+        cacheServerGroup(data, serverGroups, instances, titusSecurityGroupCache)
+      } catch (Exception ex) {
+        log.error("Failed to cache ${job.name} in ${account.name}", ex)
+      }
     }
 
     new DefaultCacheResult(
@@ -178,7 +192,13 @@ class TitusClusterCachingAgent implements CachingAgent, CustomScheduledAgent {
     serverGroups[data.serverGroup].with {
       Job job = objectMapper.convertValue(data.job, Job.class)
       resolveAwsDetails(titusSecurityGroupCache, job)
+      List<Map> policies = data.scalingPolicies ? data.scalingPolicies.collect {
+        // There is probably a better way to convert a protobuf to a Map, but I don't know what it is
+        objectMapper.readValue(JsonFormat.printer().print(it), Map)
+      } : []
+
       attributes.job = job
+      attributes.scalingPolicies = policies
       attributes.tasks = data.job.tasks
       attributes.region = region
       attributes.account = account.name
@@ -212,6 +232,7 @@ class TitusClusterCachingAgent implements CachingAgent, CustomScheduledAgent {
   private class ServerGroupData {
 
     final Job job
+    List<ScalingPolicy> scalingPolicies
     final Names name
     final String appName
     final String cluster
@@ -220,8 +241,9 @@ class TitusClusterCachingAgent implements CachingAgent, CustomScheduledAgent {
     final String region
     final String account
 
-    public ServerGroupData(Job job, String account, String region, String stack) {
+    ServerGroupData(Job job, List<ScalingPolicy> scalingPolicies, String account, String region, String stack) {
       this.job = job
+      this.scalingPolicies = scalingPolicies
 
       String asgName = job.name
       if (job.labels && job.labels['name']) {

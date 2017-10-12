@@ -49,7 +49,14 @@ class TitusDeployDescription extends AbstractTitusCredentialsDescription impleme
   List<String> interestingHealthProviderNames
   MigrationPolicy migrationPolicy
 
+  /**
+   * If false, the newly created server group will not pick up scaling policies and actions from an ancestor group
+   */
+  boolean copySourceScalingPolicies = true
+
   Collection<OperationEvent> events = []
+
+  Source source = new Source()
 
   @Canonical
   static class Capacity {
@@ -67,6 +74,13 @@ class TitusDeployDescription extends AbstractTitusCredentialsDescription impleme
     int networkMbps
     int[] ports
     boolean allocateIpAddress
+  }
+
+  @Canonical
+  static class Source {
+    String account
+    String region
+    String asgName
   }
 
   Efs efs

@@ -45,6 +45,7 @@ class TitusServerGroup implements ServerGroup, Serializable {
   Long submittedAt
   String application
   Map<String, Object> image = [:]
+  List<Map> scalingPolicies = []
   Map labels
   Set<Instance> instances = [] as Set
   ServerGroup.Capacity capacity

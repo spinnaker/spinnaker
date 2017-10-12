@@ -23,7 +23,6 @@ import com.netflix.spinnaker.clouddriver.titus.TitusClientProvider
 import com.netflix.spinnaker.clouddriver.titus.client.TitusJobCustomizer
 import com.netflix.spinnaker.clouddriver.titus.credentials.NetflixTitusCredentials
 import com.netflix.spinnaker.clouddriver.titus.deploy.handlers.TitusDeployHandler
-import com.netflix.spinnaker.clouddriver.titus.client.RegionScopedTitusClient
 import com.netflix.spinnaker.clouddriver.titus.client.TitusRegion
 import com.netflix.spinnaker.clouddriver.titus.health.TitusHealthIndicator
 import groovy.util.logging.Slf4j
@@ -71,8 +70,8 @@ class TitusConfiguration {
   }
 
   @Bean
-  TitusDeployHandler titusDeployHandler(TitusClientProvider titusClientProvider) {
-    new TitusDeployHandler(titusClientProvider)
+  TitusDeployHandler titusDeployHandler(TitusClientProvider titusClientProvider, AccountCredentialsRepository accountCredentialsRepository) {
+    new TitusDeployHandler(titusClientProvider, accountCredentialsRepository)
   }
 
   @Bean

@@ -156,6 +156,7 @@ class TitusClusterProvider implements ClusterProvider<TitusCluster> {
     TitusServerGroup serverGroup = new TitusServerGroup(job, serverGroupData.attributes.account, serverGroupData.attributes.region)
     serverGroup.placement.account = account
     serverGroup.placement.region = region
+    serverGroup.scalingPolicies = serverGroupData.attributes.scalingPolicies
     serverGroup.instances = translateInstances(resolveRelationshipData(serverGroupData, INSTANCES.ns)).values()
     serverGroup
   }
