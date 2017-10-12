@@ -47,8 +47,8 @@ public abstract class KubernetesDeployer<T> {
     deploy(credentials, resource);
 
     DeploymentResult result = new DeploymentResult();
-    result.setServerGroupNames(new ArrayList<>(Collections.singleton(manifest.getNamespace() + ":" + manifest.getFullResourceName())));
-    result.setServerGroupNameByRegion(new HashMap<>(Collections.singletonMap(manifest.getNamespace(), manifest.getFullResourceName())));
+    result.setDeployedNames(new ArrayList<>(Collections.singleton(manifest.getNamespace() + ":" + manifest.getFullResourceName())));
+    result.setDeployedNamesByLocation(new HashMap<>(Collections.singletonMap(manifest.getNamespace(), Collections.singletonList(manifest.getFullResourceName()))));
 
     return result;
   }
