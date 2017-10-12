@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.q.handler
 
 import com.netflix.spinnaker.orca.ExecutionStatus.TERMINAL
 import com.netflix.spinnaker.orca.q.*
+import com.netflix.spinnaker.orca.q.Message.*
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 
@@ -40,7 +41,7 @@ import org.springframework.stereotype.Component
     }
     return when (message) {
       is TaskLevel -> CompleteTask(message, TERMINAL)
-      is StageLevel -> CompleteStage(message, TERMINAL)
+      is StageLevel -> AbortStage(message)
       is ExecutionLevel -> CompleteExecution(message)
       else -> {
         log.error("Unhandled message type ${message.javaClass}")

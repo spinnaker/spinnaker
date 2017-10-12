@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.orca.q.handler
 
 import com.netflix.spinnaker.orca.ExecutionStatus.NOT_STARTED
-import com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.q.*
@@ -40,12 +39,10 @@ class ContinueParentStageHandler(
   override fun handle(message: ContinueParentStage) {
     message.withStage { stage ->
       if (stage.allBeforeStagesComplete()) {
-        if (stage.hasTasks()) {
-          stage.runFirstTask()
-        } else if (stage.hasAfterStages()) {
-          stage.runAfterStages()
-        } else {
-          queue.push(CompleteStage(stage, SUCCEEDED))
+        when {
+          stage.hasTasks() -> stage.runFirstTask()
+          stage.hasAfterStages() -> stage.runAfterStages()
+          else -> queue.push(CompleteStage(stage))
         }
       } else if (!stage.anyBeforeStagesFailed()) {
         log.warn("Re-queuing $message as other BEFORE stages are still running")

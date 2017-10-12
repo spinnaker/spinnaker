@@ -44,11 +44,11 @@ class CompleteTaskHandler(
         repository.storeStage(stage)
 
         if (message.status != SUCCEEDED) {
-          queue.push(CompleteStage(message, message.status))
+          queue.push(CompleteStage(message))
         } else if (task.isStageEnd) {
           stage.firstAfterStages().let { afterStages ->
             if (afterStages.isEmpty()) {
-              queue.push(CompleteStage(message, message.status))
+              queue.push(CompleteStage(message))
             } else {
               afterStages.forEach {
                 queue.push(StartStage(message, it.getId()))

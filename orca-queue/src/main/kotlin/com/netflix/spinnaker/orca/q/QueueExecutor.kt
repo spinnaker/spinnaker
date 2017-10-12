@@ -18,7 +18,8 @@ package com.netflix.spinnaker.orca.q
 
 import java.util.concurrent.Executor
 
-interface QueueExecutor {
-  val executor: Executor
-  fun hasCapacity(): Boolean
+abstract class QueueExecutor<out T : Executor>(
+  protected val executor: T
+) : Executor by executor {
+  abstract fun hasCapacity(): Boolean
 }

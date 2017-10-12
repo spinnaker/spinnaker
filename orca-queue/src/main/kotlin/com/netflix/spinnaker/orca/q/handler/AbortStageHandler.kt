@@ -19,46 +19,35 @@ package com.netflix.spinnaker.orca.q.handler
 import com.netflix.spinnaker.orca.ExecutionStatus.*
 import com.netflix.spinnaker.orca.events.StageComplete
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
-import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import com.netflix.spinnaker.orca.q.*
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
 import java.time.Clock
 
 @Component
-class CompleteStageHandler(
+class AbortStageHandler(
   override val queue: Queue,
   override val repository: ExecutionRepository,
   private val publisher: ApplicationEventPublisher,
-  private val clock: Clock,
-  override val contextParameterProcessor: ContextParameterProcessor
-) : MessageHandler<CompleteStage>, ExpressionAware {
+  private val clock: Clock
+) : MessageHandler<AbortStage> {
 
-  override fun handle(message: CompleteStage) {
+  override fun handle(message: AbortStage) {
     message.withStage { stage ->
       if (stage.getStatus() in setOf(RUNNING, NOT_STARTED)) {
-        val status = stage.determineStatus()
-        stage.setStatus(status)
+        stage.setStatus(TERMINAL)
         stage.setEndTime(clock.millis())
-        stage.includeExpressionEvaluationSummary()
         repository.storeStage(stage)
-
-        if (status in listOf(SUCCEEDED, FAILED_CONTINUE)) {
-          stage.startNext()
+        queue.push(CancelStage(message))
+        if (stage.getParentStageId() == null) {
+          queue.push(CompleteExecution(message))
         } else {
-          queue.push(CancelStage(message))
-          if (stage.getSyntheticStageOwner() == null) {
-            log.debug("Stage has no synthetic owner, completing execution (original message: $message)")
-            queue.push(CompleteExecution(message))
-          } else {
-            queue.push(message.copy(stageId = stage.getParentStageId()!!))
-          }
+          queue.push(CompleteStage(stage.parent()))
         }
-
         publisher.publishEvent(StageComplete(this, stage))
       }
     }
   }
 
-  override val messageType = CompleteStage::class.java
+  override val messageType = AbortStage::class.java
 }

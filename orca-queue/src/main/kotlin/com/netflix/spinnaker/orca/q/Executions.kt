@@ -94,8 +94,11 @@ fun Stage<*>.allUpstreamStagesComplete(): Boolean =
 fun Stage<*>.anyUpstreamStagesFailed(): Boolean =
   upstreamStages().any { it.getStatus() in listOf(TERMINAL, STOPPED, CANCELED) || it.getStatus() == NOT_STARTED && it.anyUpstreamStagesFailed() }
 
+fun Stage<*>.syntheticStages(): List<Stage<*>> =
+  getExecution().getStages().filter { it.getParentStageId() == getId() }
+
 fun Stage<*>.beforeStages(): List<Stage<*>> =
-  getExecution().getStages().filter { it.getParentStageId() == getId() && it.getSyntheticStageOwner() == STAGE_BEFORE }
+  syntheticStages().filter { it.getSyntheticStageOwner() == STAGE_BEFORE }
 
 fun Stage<*>.allBeforeStagesComplete(): Boolean =
   beforeStages().all { it.getStatus() in listOf(SUCCEEDED, FAILED_CONTINUE, SKIPPED) }

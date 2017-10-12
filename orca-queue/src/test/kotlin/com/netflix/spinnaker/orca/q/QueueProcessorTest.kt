@@ -226,7 +226,6 @@ private class BlockingThreadExecutor : Executor {
   }
 }
 
-class BlockingQueueExecutor : QueueExecutor {
-  override val executor: Executor = BlockingThreadExecutor()
-  override fun hasCapacity(): Boolean = true
+class BlockingQueueExecutor : QueueExecutor<Executor>(BlockingThreadExecutor()) {
+  override fun hasCapacity() = true
 }

@@ -62,8 +62,8 @@ object DeadMessageHandlerTest : SubjectSpek<DeadMessageHandler>({
       subject.handle(queue, message)
     }
 
-    it("terminates the stage") {
-      verify(queue).push(CompleteStage(message, TERMINAL))
+    it("aborts the stage") {
+      verify(queue).push(AbortStage(message))
     }
   }
 

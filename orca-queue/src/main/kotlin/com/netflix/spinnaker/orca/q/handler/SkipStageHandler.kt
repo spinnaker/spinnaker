@@ -19,46 +19,31 @@ package com.netflix.spinnaker.orca.q.handler
 import com.netflix.spinnaker.orca.ExecutionStatus.*
 import com.netflix.spinnaker.orca.events.StageComplete
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
-import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
-import com.netflix.spinnaker.orca.q.*
+import com.netflix.spinnaker.orca.q.MessageHandler
+import com.netflix.spinnaker.orca.q.Queue
+import com.netflix.spinnaker.orca.q.SkipStage
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
 import java.time.Clock
 
 @Component
-class CompleteStageHandler(
+class SkipStageHandler(
   override val queue: Queue,
   override val repository: ExecutionRepository,
   private val publisher: ApplicationEventPublisher,
-  private val clock: Clock,
-  override val contextParameterProcessor: ContextParameterProcessor
-) : MessageHandler<CompleteStage>, ExpressionAware {
-
-  override fun handle(message: CompleteStage) {
+  private val clock: Clock
+) : MessageHandler<SkipStage> {
+  override fun handle(message: SkipStage) {
     message.withStage { stage ->
       if (stage.getStatus() in setOf(RUNNING, NOT_STARTED)) {
-        val status = stage.determineStatus()
-        stage.setStatus(status)
+        stage.setStatus(SKIPPED)
         stage.setEndTime(clock.millis())
-        stage.includeExpressionEvaluationSummary()
         repository.storeStage(stage)
-
-        if (status in listOf(SUCCEEDED, FAILED_CONTINUE)) {
-          stage.startNext()
-        } else {
-          queue.push(CancelStage(message))
-          if (stage.getSyntheticStageOwner() == null) {
-            log.debug("Stage has no synthetic owner, completing execution (original message: $message)")
-            queue.push(CompleteExecution(message))
-          } else {
-            queue.push(message.copy(stageId = stage.getParentStageId()!!))
-          }
-        }
-
+        stage.startNext()
         publisher.publishEvent(StageComplete(this, stage))
       }
     }
   }
 
-  override val messageType = CompleteStage::class.java
+  override val messageType = SkipStage::class.java
 }

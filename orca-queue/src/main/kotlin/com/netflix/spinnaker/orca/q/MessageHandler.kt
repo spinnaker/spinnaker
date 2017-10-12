@@ -83,4 +83,23 @@ interface MessageHandler<M : Message> : (Message) -> Unit {
     } catch(e: ExecutionNotFoundException) {
       queue.push(InvalidExecutionId(this))
     }
+
+  fun Stage<*>.startNext() {
+    getExecution().let { execution ->
+      val downstreamStages = downstreamStages()
+      if (downstreamStages.isNotEmpty()) {
+        downstreamStages.forEach {
+          queue.push(StartStage(it))
+        }
+      } else if (getSyntheticStageOwner() == SyntheticStageOwner.STAGE_BEFORE) {
+        queue.push(ContinueParentStage(parent()))
+      } else if (getSyntheticStageOwner() == SyntheticStageOwner.STAGE_AFTER) {
+        parent().let { parent ->
+          queue.push(CompleteStage(parent))
+        }
+      } else {
+        queue.push(CompleteExecution(execution))
+      }
+    }
+  }
 }

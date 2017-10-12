@@ -30,11 +30,9 @@ import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
  */
 
 @JsonTypeInfo(use = MINIMAL_CLASS, include = PROPERTY, property = "@class")
-interface Attribute {
-}
+interface Attribute
 
-data class MaxAttemptsAttribute(val maxAttempts: Int = -1) : Attribute {
-}
+data class MaxAttemptsAttribute(val maxAttempts: Int = -1) : Attribute
 
 data class TotalThrottleTimeAttribute(var totalThrottleTimeMs: Long = 0) : Attribute {
   fun add(throttleTimeMs: Long) {
@@ -52,14 +50,14 @@ data class AttemptsAttribute(var attempts: Int = 0) : Attribute {
 sealed class Message {
   val attributes: MutableList<Attribute> = mutableListOf()
 
-  fun <A: Attribute> setAttribute(attribute: A) : A {
+  fun <A : Attribute> setAttribute(attribute: A): A {
     removeAttribute(attribute)
     attributes.add(attribute)
 
     return attribute
   }
 
-  fun <A: Attribute> removeAttribute(attribute: A) {
+  fun <A : Attribute> removeAttribute(attribute: A) {
     attributes.removeIf { it.javaClass == attribute.javaClass }
   }
 
@@ -76,7 +74,7 @@ sealed class Message {
   inline fun <reified A : Attribute> hasAttribute() =
     attributes.any { it is A }
 
-  inline fun <reified A : Attribute> getAttribute(defaultValue : A): A {
+  inline fun <reified A : Attribute> getAttribute(defaultValue: A): A {
     return getAttribute<A>() ?: defaultValue
   }
 }
@@ -197,17 +195,42 @@ data class CompleteStage(
   override val executionType: Class<out Execution<*>>,
   override val executionId: String,
   override val application: String,
-  override val stageId: String,
-  val status: ExecutionStatus
+  override val stageId: String
 ) : Message(), StageLevel {
-  constructor(source: ExecutionLevel, stageId: String, status: ExecutionStatus) :
-    this(source.executionType, source.executionId, source.application, stageId, status)
+  constructor(source: ExecutionLevel, stageId: String) :
+    this(source.executionType, source.executionId, source.application, stageId)
 
-  constructor(source: StageLevel, status: ExecutionStatus) :
-    this(source, source.stageId, status)
+  constructor(source: StageLevel) :
+    this(source.executionType, source.executionId, source.application, source.stageId)
 
-  constructor(source: Stage<*>, status: ExecutionStatus) :
-    this(source.getExecution().javaClass, source.getExecution().getId(), source.getExecution().getApplication(), source.getId(), status)
+  constructor(source: Stage<*>) :
+    this(source.getExecution().javaClass, source.getExecution().getId(), source.getExecution().getApplication(), source.getId())
+}
+
+data class SkipStage(
+  override val executionType: Class<out Execution<*>>,
+  override val executionId: String,
+  override val application: String,
+  override val stageId: String
+) : Message(), StageLevel {
+  constructor(source: StageLevel) :
+    this(source.executionType, source.executionId, source.application, source.stageId)
+
+  constructor(source: Stage<*>) :
+    this(source.getExecution().javaClass, source.getExecution().getId(), source.getExecution().getApplication(), source.getId())
+}
+
+data class AbortStage(
+  override val executionType: Class<out Execution<*>>,
+  override val executionId: String,
+  override val application: String,
+  override val stageId: String
+) : Message(), StageLevel {
+  constructor(source: StageLevel) :
+    this(source.executionType, source.executionId, source.application, source.stageId)
+
+  constructor(source: Stage<*>) :
+    this(source.getExecution().javaClass, source.getExecution().getId(), source.getExecution().getApplication(), source.getId())
 }
 
 data class PauseStage(

@@ -170,7 +170,7 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
         }
 
         it("immediately completes the stage") {
-          verify(queue).push(CompleteStage(message, SUCCEEDED))
+          verify(queue).push(CompleteStage(message))
           verifyNoMoreInteractions(queue)
         }
 
@@ -631,10 +631,8 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
             subject.handle(message)
           }
 
-          it("marks the stage as terminal") {
-            verify(queue).push(check<CompleteStage> {
-              it.status shouldEqual TERMINAL
-            })
+          it("completes the stage") {
+            verify(queue).push(isA<CompleteStage>())
           }
 
           it("attaches the exception to the stage context") {
@@ -643,6 +641,7 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
             })
           }
         }
+
         and("only the branch should fail") {
           beforeGroup {
             pipeline.stageByRef("1").apply {
@@ -661,10 +660,8 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
             subject.handle(message)
           }
 
-          it("marks the stage as stopped") {
-            verify(queue).push(check<CompleteStage> {
-              it.status shouldEqual STOPPED
-            })
+          it("completes the stage") {
+            verify(queue).push(isA<CompleteStage>())
           }
 
           it("attaches the exception to the stage context") {
@@ -673,6 +670,7 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
             })
           }
         }
+
         and("the branch should be allowed to continue") {
           beforeGroup {
             pipeline.stageByRef("1").apply {
@@ -691,10 +689,8 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
             subject.handle(message)
           }
 
-          it("marks the stage as FAILED_CONTINUE") {
-            verify(queue).push(check<CompleteStage> {
-              it.status shouldEqual FAILED_CONTINUE
-            })
+          it("completes the stage") {
+            verify(queue).push(isA<CompleteStage>())
           }
 
           it("attaches the exception to the stage context") {
@@ -924,9 +920,7 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
       }
 
       it("skips the stage") {
-        verify(queue).push(check<CompleteStage> {
-          it.status shouldEqual SKIPPED
-        })
+        verify(queue).push(isA<SkipStage>())
       }
 
       it("doesn't build any tasks") {
@@ -1003,9 +997,7 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
         }
 
         it("skips the stage") {
-          verify(queue).push(check<CompleteStage> {
-            it.status shouldEqual SKIPPED
-          })
+          verify(queue).push(isA<SkipStage>())
         }
       }
     }

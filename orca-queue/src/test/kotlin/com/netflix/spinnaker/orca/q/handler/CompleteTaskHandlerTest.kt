@@ -136,8 +136,7 @@ object CompleteTaskHandlerTest : SubjectSpek<CompleteTaskHandler>({
             message.executionType,
             message.executionId,
             "foo",
-            message.stageId,
-            SUCCEEDED
+            message.stageId
           ))
       }
     }
@@ -267,8 +266,7 @@ object CompleteTaskHandlerTest : SubjectSpek<CompleteTaskHandler>({
           message.executionType,
           message.executionId,
           "foo",
-          message.stageId,
-          status
+          message.stageId
         ))
       }
 
