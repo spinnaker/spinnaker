@@ -22,7 +22,6 @@ import com.netflix.spinnaker.gate.services.PipelineTemplateService;
 import com.netflix.spinnaker.gate.services.TaskService;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import io.swagger.annotations.ApiOperation;
-import java.util.Base64;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -34,6 +33,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -103,7 +103,9 @@ public class PipelineTemplatesController {
 
   @RequestMapping(value = "/{id}", method = RequestMethod.POST)
   @ResponseStatus(value = HttpStatus.ACCEPTED)
-  public Map update(@PathVariable String id, @RequestBody Map<String, Object> pipelineTemplate) {
+  public Map update(@PathVariable String id,
+                    @RequestBody Map<String, Object> pipelineTemplate,
+                    @RequestParam(value = "skipPlanDependents", defaultValue = "false") boolean skipPlanDependents) {
     PipelineTemplate template;
     try {
       template = objectMapper.convertValue(pipelineTemplate, PipelineTemplate.class);
@@ -117,6 +119,7 @@ public class PipelineTemplatesController {
     job.put("id", id);
     job.put("pipelineTemplate", encodeAsBase64(pipelineTemplate));
     job.put("user", AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"));
+    job.put("skipPlanDependents", skipPlanDependents);
     jobs.add(job);
 
     Map<String, Object> operation = new HashMap<>();
