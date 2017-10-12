@@ -20,7 +20,7 @@ import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.ResizeServerG
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.DetermineTargetServerGroupStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroupResolver
-import com.netflix.spinnaker.orca.kato.pipeline.support.SourceResolver
+import com.netflix.spinnaker.orca.kato.pipeline.support.ResizeStrategy
 import com.netflix.spinnaker.orca.pipeline.WaitStage
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
@@ -65,24 +65,11 @@ class RollingRedBlackStrategy implements Strategy, ApplicationContextAware {
         cloudProvider                          : cleanupConfig.cloudProvider,
     ]
 
-    Map originalCapacity = stageData.originalCapacity ?: stageData.capacity
-    if (!originalCapacity) {
-      originalCapacity = [
-          min: stageData.targetSize,
-          max: stageData.targetSize,
-          desired: stageData.targetSize
-      ]
-    }
-
     if (stageData.targetSize) {
       stage.context.targetSize = 0
     }
 
     if (stage.context.useSourceCapacity) {
-      List<TargetServerGroup> target = targetServerGroupResolver.resolve(new Stage(null, null, null, baseContext + [target: TargetServerGroup.Params.Target.current_asg_dynamic]))
-      if (target.size() > 0) {
-        originalCapacity = target.get(0).capacity
-      }
       stage.context.useSourceCapacity = false
     }
 
@@ -116,8 +103,11 @@ class RollingRedBlackStrategy implements Strategy, ApplicationContextAware {
     targetPercentages.forEach({ p ->
       def resizeContext = baseContext + [
           target: TargetServerGroup.Params.Target.current_asg_dynamic,
+          action: ResizeStrategy.ResizeAction.scale_to_server_group,
+          source: getSource(targetServerGroupResolver, stageData, baseContext),
           targetLocation: cleanupConfig.location,
-          capacity: makeIncrementalCapacity(originalCapacity, p)
+          scalePct: p,
+          pinCapacity: p < 100 // if p = 100, capacity should be unpinned
       ]
 
       stages << newStage(
@@ -147,6 +137,7 @@ class RollingRedBlackStrategy implements Strategy, ApplicationContextAware {
         )
       }
 
+      // TODO-AJ this has questionable behavior w/ > 1 old server group
       stages << newStage(
           stage.execution,
           disableClusterStage.type,
@@ -161,18 +152,33 @@ class RollingRedBlackStrategy implements Strategy, ApplicationContextAware {
     return stages
   }
 
-  private Map makeIncrementalCapacity(Map originalCapacity, Integer p) {
-
-    if (p == 100) {
-      return originalCapacity
+  static ResizeStrategy.Source getSource(TargetServerGroupResolver targetServerGroupResolver,
+                                         RollingRedBlackStageData stageData,
+                                         Map baseContext) {
+    if (stageData.source) {
+      return new ResizeStrategy.Source(
+        region: stageData.source.region,
+        serverGroupName: stageData.source.serverGroupName ?: stageData.source.asgName,
+        credentials: stageData.credentials ?: stageData.account,
+        cloudProvider: stageData.cloudProvider
+      )
     }
 
-    def desired = (Integer) originalCapacity.desired * (p / 100d)
-    return [
-        min: desired,
-        max: desired,
-        desired: desired
-    ]
+    // no source server group specified, lookup current server group
+    TargetServerGroup target = targetServerGroupResolver.resolve(
+      new Stage(null, null, null, baseContext + [target: TargetServerGroup.Params.Target.current_asg_dynamic])
+    )?.get(0)
+
+    if (!target) {
+      throw new IllegalStateException("No target server groups found (${baseContext})")
+    }
+
+    return new ResizeStrategy.Source(
+      region: target.getLocation().value,
+      serverGroupName: target.getName(),
+      credentials: stageData.credentials ?: stageData.account,
+      cloudProvider: stageData.cloudProvider
+    )
   }
 
   ApplicationContext applicationContext

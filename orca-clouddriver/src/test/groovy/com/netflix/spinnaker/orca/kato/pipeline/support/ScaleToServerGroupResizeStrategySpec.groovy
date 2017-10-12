@@ -29,6 +29,8 @@ class ScaleToServerGroupResizeStrategySpec extends Specification {
   Stage stage = new Stage<>(new Pipeline("orca"), "Scale", [:])
   OortHelper oortHelper = Mock(OortHelper)
 
+  def resizeConfig = new ResizeStrategy.OptionalConfiguration()
+
   @Subject
   def strategy = new ScaleToServerGroupResizeStrategy(oortHelper: oortHelper)
 
@@ -71,6 +73,8 @@ class ScaleToServerGroupResizeStrategySpec extends Specification {
   @Unroll
   def "should return source server group capacity"() {
     given:
+    resizeConfig.scalePct = scalePct
+
     stage.context = [
       source            : [
         credentials    : "test",
@@ -78,11 +82,12 @@ class ScaleToServerGroupResizeStrategySpec extends Specification {
         region         : "us-west-1",
         cloudProvider  : "aws"
       ],
-      pinMinimumCapacity: pinMinimumCapacity
+      pinMinimumCapacity: pinMinimumCapacity,
+      pinCapacity       : pinCapacity
     ]
 
     when:
-    def capacity = strategy.capacityForOperation(stage, "test", "s-v001", "aws", null, null)
+    def capacity = strategy.capacityForOperation(stage, "test", "s-v001", "aws", null, resizeConfig)
 
     then:
     1 * oortHelper.getTargetServerGroup("test", "s-v001", "us-west-1", "aws") >> {
@@ -95,15 +100,24 @@ class ScaleToServerGroupResizeStrategySpec extends Specification {
       ))
     }
 
-    capacity.min == expectedMinimumCapacity
-    capacity.max == 3
-    capacity.desired == 3
+    capacity.min == expectedMin
+    capacity.desired == expectedDesired
+    capacity.max == expectedMax
 
     where:
-    pinMinimumCapacity || expectedMinimumCapacity
-    null               || 1
-    false              || 1
-    true               || 3
+    scalePct | pinCapacity | pinMinimumCapacity || expectedMin || expectedDesired || expectedMax
+    null     | null        | null               || 1           || 3               || 3
+    null     | null        | false              || 1           || 3               || 3
+    null     | null        | true               || 3           || 3               || 3
+    100      | null        | null               || 1           || 3               || 3
+    50       | null        | null               || 1           || 2               || 3
+    25       | null        | null               || 1           || 1               || 3
+    0        | null        | null               || 0           || 0               || 3
+    0        | false       | null               || 0           || 0               || 3
+    100      | true        | null               || 3           || 3               || 3
+    50       | true        | null               || 2           || 2               || 2
+    25       | true        | null               || 1           || 1               || 1
+    0        | true        | null               || 0           || 0               || 0
   }
 
   @Unroll

@@ -60,6 +60,25 @@ class ScaleToServerGroupResizeStrategy implements ResizeStrategy {
     def currentDesired = Integer.parseInt(tsg.capacity.desired.toString())
     def currentMax = Integer.parseInt(tsg.capacity.max.toString())
 
+    def scalePct = resizeConfig.scalePct
+    if (scalePct != null) {
+      double factor = scalePct / 100.0d
+
+      // scalePct only applies to the desired capacity
+      currentDesired = (Integer) Math.ceil(currentDesired * factor)
+
+      // min capacity may need adjusting iff scalePct pushed desired below current min
+      currentMin = Math.min(currentMin, currentDesired)
+    }
+
+    if (stageData.pinCapacity) {
+      return new ResizeStrategy.Capacity(
+        currentDesired,
+        currentDesired,
+        currentDesired
+      )
+    }
+
     return new ResizeStrategy.Capacity(
       currentMax,
       currentDesired,
@@ -72,5 +91,7 @@ class ScaleToServerGroupResizeStrategy implements ResizeStrategy {
 
     // whether or not `min` capacity should be set to `desired` capacity
     boolean pinMinimumCapacity
+
+    boolean pinCapacity
   }
 }
