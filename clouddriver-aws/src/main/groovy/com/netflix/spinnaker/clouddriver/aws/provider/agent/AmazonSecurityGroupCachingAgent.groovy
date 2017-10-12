@@ -155,6 +155,15 @@ class AmazonSecurityGroupCachingAgent implements CachingAgent, OnDemandAgent, Ac
   }
 
   @Override
+  Optional<Map<String, String>> getCacheKeyPatterns() {
+    return Optional.of(
+      Collections.singletonMap(
+        SECURITY_GROUPS.ns, Keys.getSecurityGroupKey('*', '*', region, account.name, '*')
+      )
+    )
+  }
+
+  @Override
   Collection<Map> pendingOnDemandRequests(ProviderCache providerCache) {
     return []
   }

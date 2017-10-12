@@ -144,7 +144,11 @@ class Keys implements KeyParser {
 
   static String getServerGroupKey(String autoScalingGroupName, String account, String region) {
     Names names = Names.parseName(autoScalingGroupName)
-    "${ID}:${Namespace.SERVER_GROUPS}:${names.cluster}:${account}:${region}:${names.group}"
+    return getServerGroupKey(names.cluster, names.group, account, region)
+  }
+
+  static String getServerGroupKey(String cluster, String autoScalingGroupName, String account, String region) {
+    "${ID}:${Namespace.SERVER_GROUPS}:${cluster}:${account}:${region}:${autoScalingGroupName}"
   }
 
   static String getInstanceKey(String instanceId, String account, String region) {

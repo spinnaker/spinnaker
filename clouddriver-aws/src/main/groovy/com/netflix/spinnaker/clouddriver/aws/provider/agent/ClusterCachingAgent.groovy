@@ -128,6 +128,13 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware, 
     types
   }
 
+  @Override
+  Optional<Map<String, String>> getCacheKeyPatterns() {
+    return [
+      (SERVER_GROUPS.ns): Keys.getServerGroupKey('*', '*', account.name, region)
+    ]
+  }
+
   static class AmazonClients {
     final AmazonAutoScaling autoScaling
     final AmazonEC2 amazonEC2

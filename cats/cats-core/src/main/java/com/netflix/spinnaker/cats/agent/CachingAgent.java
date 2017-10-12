@@ -16,15 +16,23 @@
 
 package com.netflix.spinnaker.cats.agent;
 
+import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.cats.provider.ProviderCache;
 import com.netflix.spinnaker.cats.provider.ProviderRegistry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * A CachingAgent loads one or more types of data.
- *
+ * <p>
  * The data set for a caching agent is scoped to the provider and agent type. For example
  * an agent might load clusters for the AWS provider, and be scoped to a particular account
  * and region.
@@ -44,11 +52,16 @@ public interface CachingAgent extends Agent {
    */
   CacheResult loadData(ProviderCache providerCache);
 
+  default Optional<Map<String, String>> getCacheKeyPatterns() {
+    return Optional.empty();
+  }
+
   default AgentExecution getAgentExecution(ProviderRegistry providerRegistry) {
     return new CacheExecution(providerRegistry);
   }
 
   class CacheExecution implements AgentExecution {
+    private final Logger log = LoggerFactory.getLogger(CacheExecution.class);
     private final ProviderRegistry providerRegistry;
 
     public CacheExecution(ProviderRegistry providerRegistry) {
@@ -74,6 +87,37 @@ public interface CachingAgent extends Agent {
       for (AgentDataType type : providedTypes) {
         if (type.getAuthority() == AgentDataType.Authority.AUTHORITATIVE) {
           authoritative.add(type.getTypeName());
+        }
+      }
+
+
+      Optional<Map<String, String>> cacheKeyPatterns = cachingAgent.getCacheKeyPatterns();
+      if (cacheKeyPatterns.isPresent()) {
+        for (String type : authoritative) {
+          String cacheKeyPatternForType = cacheKeyPatterns.get().get(type);
+          if (cacheKeyPatternForType != null) {
+            try {
+              Set<String> cachedIdentifiersForType = result.getCacheResults().get(type)
+                .stream()
+                .map(CacheData::getId)
+                .collect(Collectors.toSet());
+
+              Collection<String> evictableIdentifiers = cache.filterIdentifiers(type, cacheKeyPatternForType)
+                .stream()
+                .filter(i -> !cachedIdentifiersForType.contains(i))
+                .collect(Collectors.toSet());
+
+              // any key that existed previously but was not re-cached by this agent is considered evictable
+              if (!evictableIdentifiers.isEmpty()) {
+                Collection<String> evictionsForType = result.getEvictions().computeIfAbsent(type, evictableKeys -> new ArrayList<>());
+                evictionsForType.addAll(evictableIdentifiers);
+
+                log.info("Evicting stale identifiers: {}", evictableIdentifiers);
+              }
+            } catch (Exception e) {
+              log.error("Failed to check for stale identifiers (type: {}, pattern: {}, agent: {})", type, cacheKeyPatternForType, agent, e);
+            }
+          }
         }
       }
 
