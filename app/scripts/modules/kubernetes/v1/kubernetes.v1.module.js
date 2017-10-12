@@ -11,7 +11,7 @@ import { KUBERNETES_HELP } from '../help/kubernetes.help';
 import '../logo/kubernetes.logo.less';
 
 // load all templates into the $templateCache
-var templates = require.context('./', true, /\.html$/);
+var templates = require.context('kubernetes', true, /\.html$/);
 templates.keys().forEach(function(key) {
   templates(key);
 });

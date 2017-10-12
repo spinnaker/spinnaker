@@ -11,7 +11,7 @@ import { KUBERNETES_MANIFEST_ENTRY } from './manifest/wizard/manifestEntry.compo
 import { KUBERNETES_V2_SERVER_GROUP_TRANSFORMER } from './serverGroup/serverGroupTransformer.service';
 
 // load all templates into the $templateCache
-const templates = require.context('./', true, /\.html$/);
+const templates = require.context('kubernetes', true, /\.html$/);
 templates.keys().forEach(function (key) {
   templates(key);
 });
