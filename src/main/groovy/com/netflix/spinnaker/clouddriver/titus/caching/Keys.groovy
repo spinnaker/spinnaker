@@ -91,7 +91,11 @@ class Keys {
 
   static String getServerGroupKey(String serverGroupName, String account, String region) {
     Names names = Names.parseName(serverGroupName)
-    "${PROVIDER}:${Namespace.SERVER_GROUPS}:${names.cluster}:${account}:${region}:${names.group}"
+    return getServerGroupKey(names.cluster, names.group, account, region)
+  }
+
+  static String getServerGroupKey(String cluster, String autoScalingGroupName, String account, String region) {
+    "${PROVIDER}:${Namespace.SERVER_GROUPS}:${cluster}:${account}:${region}:${autoScalingGroupName}"
   }
 
   static String getInstanceKey(String id, String accountId, String stack, String region) {

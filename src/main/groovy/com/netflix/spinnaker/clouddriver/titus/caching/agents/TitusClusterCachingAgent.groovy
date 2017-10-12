@@ -106,6 +106,13 @@ class TitusClusterCachingAgent implements CachingAgent, CustomScheduledAgent {
     types
   }
 
+  @Override
+  Optional<Map<String, String>> getCacheKeyPatterns() {
+    return [
+      (SERVER_GROUPS.ns): Keys.getServerGroupKey('*', '*', account.name, region)
+    ]
+  }
+
   static class MutableCacheData implements CacheData {
     final String id
     int ttlSeconds = -1
