@@ -67,6 +67,8 @@ class QueueProcessor(
               log.warn("Executor at capacity, immediately re-queuing message", e)
               queue.push(message)
               registry.counter(pollRejectedMessage).increment()
+            } finally {
+              MDC.remove(SPINNAKER_EXECUTION_ID)
             }
           } else {
             registry.counter(pollErrorRateId).increment()
