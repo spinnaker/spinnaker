@@ -24,6 +24,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesC
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.model.HealthState;
 import com.netflix.spinnaker.clouddriver.model.Instance;
+import io.kubernetes.client.models.V1Pod;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -46,6 +47,9 @@ public class KubernetesV2Instance extends ManifestBasedModel implements Instance
   private KubernetesV2Instance(KubernetesManifest manifest, String key) {
     this.manifest = manifest;
     this.key = (Keys.InfrastructureCacheKey) Keys.parseKey(key).get();
+
+    V1Pod pod = KubernetesCacheDataConverter.getResource(this.manifest, V1Pod.class);
+    health.add(new KubernetesV2Health(pod).toMap());
   }
 
   public static KubernetesV2Instance fromCacheData(CacheData cd) {

@@ -156,6 +156,10 @@ public class KubernetesCacheDataConverter {
     return mapper.convertValue(cacheData.getAttributes().get("manifest"), KubernetesManifest.class);
   }
 
+  public static <T> T getResource(KubernetesManifest manifest, Class<T> clazz) {
+    return mapper.convertValue(manifest, clazz);
+  }
+
   static Map<String, Collection<String>> annotatedRelationships(String account, String namespace, KubernetesManifestMetadata metadata) {
     KubernetesManifestSpinnakerRelationships relationships = metadata.getRelationships();
     Moniker moniker = metadata.getMoniker();

@@ -87,13 +87,13 @@ class KubernetesInstanceSpec extends Specification {
 
   void "Should report state as Down"() {
     when:
-      def state = (new KubernetesHealth('', containerStatusAsTerminatedMock)).state
+      def state = (new KubernetesV1Health('', containerStatusAsTerminatedMock)).state
 
     then:
       state == HealthState.Down
 
     when:
-      state = (new KubernetesHealth('', containerStatusAsWaitingMock)).state
+      state = (new KubernetesV1Health('', containerStatusAsWaitingMock)).state
 
     then:
       state == HealthState.Down
@@ -101,7 +101,7 @@ class KubernetesInstanceSpec extends Specification {
 
   void "Should report state as Up"() {
     when:
-      def state = (new KubernetesHealth('', containerStatusAsRunningMock)).state
+      def state = (new KubernetesV1Health('', containerStatusAsRunningMock)).state
 
     then:
       state == HealthState.Up
@@ -109,7 +109,7 @@ class KubernetesInstanceSpec extends Specification {
 
   void "Should report state as Unknown"() {
     when:
-      def state = (new KubernetesHealth('', containerStatusAsNoneMock)).state
+      def state = (new KubernetesV1Health('', containerStatusAsNoneMock)).state
 
     then:
       state == HealthState.Unknown

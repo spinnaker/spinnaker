@@ -21,14 +21,14 @@ import com.netflix.spinnaker.clouddriver.model.HealthState
 import io.fabric8.kubernetes.api.model.ContainerStatus
 import io.fabric8.kubernetes.api.model.Pod
 
-class KubernetesHealth implements Health {
+class KubernetesV1Health implements Health {
   HealthState state
   final String source
   final String type
   final String healthClass = "platform"
   String description = ""
 
-  KubernetesHealth(Pod pod) {
+  KubernetesV1Health(Pod pod) {
     source = "Pod"
     type = "KubernetesPod"
     def phase = pod.status.phase
@@ -50,14 +50,14 @@ class KubernetesHealth implements Health {
     }
   }
 
-  KubernetesHealth(String service, String enabled) {
+  KubernetesV1Health(String service, String enabled) {
     source = "Service $service"
     type = "KubernetesService"
     state = enabled == "true" ? HealthState.Up :
       enabled == "false" ? HealthState.OutOfService : HealthState.Unknown
   }
 
-  KubernetesHealth(String name, ContainerStatus containerStatus) {
+  KubernetesV1Health(String name, ContainerStatus containerStatus) {
     source = "Container $name"
     type = "KubernetesContainer"
 

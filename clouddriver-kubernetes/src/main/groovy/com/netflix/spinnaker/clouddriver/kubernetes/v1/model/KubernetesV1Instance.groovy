@@ -67,14 +67,14 @@ class KubernetesV1Instance implements Instance, Serializable {
 
     def mapper = new ObjectMapper()
     this.health = pod.status?.containerStatuses?.collect {
-      (Map<String, String>) mapper.convertValue(new KubernetesHealth(it.image, it), new TypeReference<Map<String, String>>() {})
+      (Map<String, String>) mapper.convertValue(new KubernetesV1Health(it.image, it), new TypeReference<Map<String, String>>() {})
     } ?: []
 
     this.health.addAll(KubernetesUtil.getPodLoadBalancerStates(pod).collect { key, value ->
-      (Map<String, String>) mapper.convertValue(new KubernetesHealth(key, value), new TypeReference<Map<String, String>>() {})
+      (Map<String, String>) mapper.convertValue(new KubernetesV1Health(key, value), new TypeReference<Map<String, String>>() {})
     } ?: [])
 
-    this.health << (Map<String, String>) mapper.convertValue(new KubernetesHealth(pod), new TypeReference<Map<String, String>>() {})
+    this.health << (Map<String, String>) mapper.convertValue(new KubernetesV1Health(pod), new TypeReference<Map<String, String>>() {})
 
     if (pod.metadata?.ownerReferences) {
       this.controllerName = pod.metadata?.ownerReferences.get(0)?.getName()
