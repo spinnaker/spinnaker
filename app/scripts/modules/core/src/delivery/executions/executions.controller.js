@@ -16,7 +16,6 @@ module.exports = angular.module('spinnaker.core.delivery.executions.controller',
   INSIGHT_NGMODULE.name,
   EXECUTION_FILTER_MODEL,
   EXECUTION_FILTER_SERVICE,
-  require('../create/create.module.js').name,
 ])
   .controller('ExecutionsCtrl', function($scope, $state, $q, $uibModal, $stateParams,
                                          pipelineConfigService, scrollToService, $timeout,
