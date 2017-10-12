@@ -3,7 +3,7 @@ import * as React from 'react';
 import { ICanaryAnalysisResult } from '../domain/ICanaryJudgeResult';
 import { IMetricResultsColumn } from './metricResultsColumns';
 
-interface IMetricResultRowProps {
+export interface IMetricResultRowProps {
   result: ICanaryAnalysisResult;
   columns: IMetricResultsColumn[];
 }

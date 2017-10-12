@@ -1,4 +1,4 @@
-import { combineReducers, Action } from 'redux'
+import { combineReducers, Action, Reducer } from 'redux'
 import { handleActions } from 'redux-actions';
 
 import * as Actions from 'kayenta/actions/index';
@@ -31,7 +31,7 @@ const selectedMetric = handleActions({
   [Actions.SELECT_RESULT_METRIC_GROUP]: () => null,
 }, null);
 
-export const selectedResult = combineReducers<ISelectedResultState>({
+export const selectedResult: Reducer<ISelectedResultState> = combineReducers<ISelectedResultState>({
   result,
   load,
   selectedGroup,

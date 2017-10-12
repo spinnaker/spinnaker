@@ -1,4 +1,4 @@
-import { Action, combineReducers } from 'redux';
+import { Action, combineReducers, Reducer } from 'redux';
 import { combineActions, handleActions } from 'redux-actions';
 import { get } from 'lodash';
 
@@ -51,7 +51,7 @@ const edit = handleActions({
   [combineActions(Actions.SELECT_GROUP, Actions.EDIT_GROUP_CONFIRM)]: () => null,
 }, null);
 
-export const group = combineReducers<IGroupState>({
+export const group: Reducer<IGroupState> = combineReducers<IGroupState>({
   list,
   selected,
   groupWeights,

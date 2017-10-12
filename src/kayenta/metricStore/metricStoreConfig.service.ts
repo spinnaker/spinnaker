@@ -7,7 +7,7 @@ export interface IMetricStoreConfig {
   queryFinder: (metric: ICanaryMetricConfig) => string;
 }
 
-class MetricStoreConfigService {
+export class MetricStoreConfigService {
 
   private configs: IMetricStoreConfig[] = [];
 

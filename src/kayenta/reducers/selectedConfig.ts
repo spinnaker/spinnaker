@@ -17,32 +17,32 @@ import { JudgeSelectRenderState } from '../edit/judgeSelect';
 import { UNGROUPED, ALL } from '../edit/groupTabs';
 import { AsyncRequestState } from './asyncRequest';
 
-interface ILoadState {
+export interface ILoadState {
   state: AsyncRequestState;
 }
 
-interface ISaveState {
+export interface ISaveState {
   state: AsyncRequestState;
   error: string;
 }
 
 // Mixing destroy/delete here because delete is a JS keyword.
-interface IDestroyState {
+export interface IDestroyState {
   state: AsyncRequestState;
   error: string;
 }
 
-interface IJsonState {
+export interface IJsonState {
   configJson: string;
   error: string;
 }
 
-interface IJudgeState {
+export interface IJudgeState {
   judgeConfig: ICanaryJudgeConfig;
   renderState: JudgeSelectRenderState;
 }
 
-interface IChangeMetricGroupState {
+export interface IChangeMetricGroupState {
   toGroup: string;
 }
 

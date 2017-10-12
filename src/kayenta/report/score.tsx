@@ -2,7 +2,7 @@ import * as React from 'react';
 import { ICanaryJudgeScore } from '../domain/ICanaryJudgeResult';
 import * as classNames from 'classnames';
 
-interface ICanaryJudgeScoreProps {
+export interface ICanaryJudgeScoreProps {
   score: ICanaryJudgeScore;
   onClick: () => void;
   className: string;

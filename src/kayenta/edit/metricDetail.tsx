@@ -3,7 +3,7 @@ import { ICanaryMetricConfig } from '../domain/ICanaryConfig';
 import metricStoreConfigService from 'kayenta/metricStore/metricStoreConfig.service';
 import ChangeMetricGroup from './changeMetricGroup';
 
-interface IMetricDetailProps {
+export interface IMetricDetailProps {
   metric: ICanaryMetricConfig;
   showGroups: boolean;
   edit: (event: any) => void;

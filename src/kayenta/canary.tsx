@@ -23,7 +23,7 @@ export interface ICanaryProps {
 
 const middleware = [epicMiddleware, actionInterceptingMiddleware];
 
-export const canaryStore = createStore<ICanaryState>(
+export const canaryStore: Store<ICanaryState> = createStore<ICanaryState>(
   rootReducer,
   applyMiddleware(
     ...(CanarySettings.reduxLogger ? [...middleware, logger] : middleware)

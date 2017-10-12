@@ -4,7 +4,7 @@ import autoBindMethods from 'class-autobind-decorator';
 
 import { HelpField } from '@spinnaker/core';
 
-import KayentaInput from 'kayenta/layout/kayentaInput';
+import KayentaInput from '../layout/kayentaInput';
 
 import './canaryScores.less';
 

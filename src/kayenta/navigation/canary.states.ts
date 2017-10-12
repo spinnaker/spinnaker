@@ -11,7 +11,7 @@ import ConfigDetailLoader from 'kayenta/edit/configDetailLoader';
 import CanaryConfigEdit from 'kayenta/edit/edit';
 import CanaryConfigSave from 'kayenta/edit/save';
 import Canary from 'kayenta/canary';
-import SelectConfig from 'kayenta/selectConfig';
+import SelectConfig from 'kayenta/edit/selectConfig';
 import Report from 'kayenta/report/report';
 import ResultDetailLoader from 'kayenta/report/detailLoader';
 import ResultList from 'kayenta/report/resultList';

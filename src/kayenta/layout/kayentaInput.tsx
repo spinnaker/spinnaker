@@ -1,7 +1,7 @@
 import * as React from 'react';
 import * as classNames from 'classnames';
 
-interface IKayentaInputProps {
+export interface IKayentaInputProps {
   className?: string;
 }
 

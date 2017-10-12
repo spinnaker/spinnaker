@@ -2,7 +2,7 @@ import * as React from 'react';
 
 import { IMetricResultsColumn } from './metricResultsColumns';
 
-interface IMetricResultsListHeaderProps {
+export interface IMetricResultsListHeaderProps {
   columns: IMetricResultsColumn[];
 }
 

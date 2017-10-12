@@ -2,7 +2,7 @@ import * as React from 'react';
 
 import { ICanaryJudgeGroupScore } from '../domain/ICanaryJudgeResult';
 
-interface IGroupScoreProps {
+export interface IGroupScoreProps {
   group: ICanaryJudgeGroupScore;
   onClick: (event: any) => void;
 }

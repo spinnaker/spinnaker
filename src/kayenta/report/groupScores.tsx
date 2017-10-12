@@ -7,7 +7,7 @@ import GroupScore from './groupScore';
 import * as Creators from 'kayenta/actions/creators';
 import { ICanaryState } from '../reducers/index';
 
-interface IGroupScoresOwnProps {
+export interface IGroupScoresOwnProps {
   groups: ICanaryJudgeGroupScore[];
   className: string;
 }

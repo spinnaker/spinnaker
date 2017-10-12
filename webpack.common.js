@@ -133,6 +133,7 @@ function configure(IS_TEST) {
         LIVE_CALLS: false,
         METRIC_STORE: 'atlas',
         REDUX_LOGGER: false,
+        CANARY_REPORTS_ENABLED: false,
       }),
     ]);
   }

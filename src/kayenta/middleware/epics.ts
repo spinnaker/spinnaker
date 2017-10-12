@@ -1,7 +1,7 @@
 import { Observable } from 'rxjs/Observable';
 import 'rxjs/add/observable/concat';
 import { Action, MiddlewareAPI } from 'redux';
-import { createEpicMiddleware, combineEpics } from 'redux-observable';
+import { createEpicMiddleware, combineEpics, EpicMiddleware } from 'redux-observable';
 import {
   createCanaryConfig,
   deleteCanaryConfig,
@@ -91,4 +91,4 @@ const rootEpic = combineEpics(
   loadReportRequestEpic,
 );
 
-export const epicMiddleware = createEpicMiddleware(rootEpic);
+export const epicMiddleware: EpicMiddleware<Action & any, ICanaryState> = createEpicMiddleware(rootEpic);

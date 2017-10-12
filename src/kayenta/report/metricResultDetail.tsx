@@ -2,7 +2,7 @@ import * as React from 'react';
 
 import { ICanaryAnalysisResult } from '../domain/ICanaryJudgeResult';
 
-interface IMetricResultDetailProps {
+export interface IMetricResultDetailProps {
   result: ICanaryAnalysisResult;
 }
 

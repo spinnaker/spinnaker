@@ -9,7 +9,7 @@ const stackdriverCanaryConfig = require('kayenta/scratch/stackdriver_canary_conf
 /*
 * For development only.
 */
-class LocalConfigStore {
+export class LocalConfigStore {
 
   private configs = new Set<ICanaryConfig>();
 

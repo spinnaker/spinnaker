@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-interface ICenteredDetailProps {
+export interface ICenteredDetailProps {
   children: JSX.Element;
 }
 

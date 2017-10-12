@@ -8,7 +8,7 @@ const { CopyToClipboard } = NgReact;
 
 import './canaryRunSummaries.less';
 
-interface ICanarySummariesProps {
+export interface ICanarySummariesProps {
   canaryRuns: IStage[];
 }
 

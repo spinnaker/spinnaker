@@ -18,7 +18,7 @@ interface IChangeMetricGroupStateProps {
   toGroup: string;
 }
 
-interface IChangeMetricGroupOwnProps {
+export interface IChangeMetricGroupOwnProps {
   metric: ICanaryMetricConfig;
 }
 

@@ -8,7 +8,7 @@ import * as Creators from 'kayenta/actions/creators';
 import { metricResultsColumns } from './metricResultsColumns';
 import MetricResultsListHeader from './metricResultsListHeader';
 
-interface IResultsListOwnProps {
+export interface IResultsListOwnProps {
   results: ICanaryAnalysisResult[];
 }
 

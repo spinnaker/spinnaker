@@ -1,7 +1,7 @@
 import * as React from 'react';
 import * as classNames from 'classnames';
 
-interface IListDetailProps {
+export interface IListDetailProps {
   className?: string,
   list: JSX.Element,
   listWidth?: number;

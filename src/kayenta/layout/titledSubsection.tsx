@@ -2,7 +2,7 @@ import * as React from 'react';
 
 import './titledSubsection.less';
 
-interface ITitledSubsectionProps {
+export interface ITitledSubsectionProps {
   children: any;
   title: string;
 }

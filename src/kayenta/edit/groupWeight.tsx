@@ -10,7 +10,7 @@ import { ICanaryConfig } from '../domain/ICanaryConfig';
 import * as Creators from '../actions/creators';
 import { mapStateToConfig } from '../service/canaryConfig.service';
 
-interface IGroupWeightOwnProps {
+export interface IGroupWeightOwnProps {
   group: string;
 }
 

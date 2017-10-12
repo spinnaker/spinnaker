@@ -8,7 +8,7 @@ import { ICanaryHeaderTabConfig } from './canaryTabs';
 
 import './canaryHeader.less';
 
-interface ICanaryHeaderProps {
+export interface ICanaryHeaderProps {
   title: string;
   tabs: ICanaryHeaderTabConfig[];
 }

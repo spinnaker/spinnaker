@@ -16,7 +16,7 @@ interface IGroupNameDispatchProps {
   handleUpdate: (event: any) => void;
 }
 
-interface IGroupNameOwnProps {
+export interface IGroupNameOwnProps {
   group: string;
   editing: boolean;
   onClick: (event: React.SyntheticEvent<HTMLAnchorElement>) => void;

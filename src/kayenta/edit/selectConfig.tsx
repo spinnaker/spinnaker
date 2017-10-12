@@ -1,5 +1,5 @@
 import * as React from 'react';
-import CenteredDetail from './layout/centeredDetail';
+import CenteredDetail from '../layout/centeredDetail';
 
 export default function SelectConfig() {
   return (

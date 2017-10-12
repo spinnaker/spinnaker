@@ -1,4 +1,4 @@
-import { Action, combineReducers } from 'redux';
+import { Action, combineReducers, Reducer } from 'redux';
 import { handleActions } from 'redux-actions';
 import { without } from 'lodash';
 
@@ -50,7 +50,7 @@ const resultSummaries = handleActions({
   [Actions.UPDATE_RESULT_SUMMARIES]: (_state: ICanaryJudgeResultSummary[], action: Action & any) => action.payload.resultSummaries,
 }, []);
 
-export const data = combineReducers<IDataState>({
+export const data: Reducer<IDataState> = combineReducers<IDataState>({
   application,
   configSummaries,
   judges,
