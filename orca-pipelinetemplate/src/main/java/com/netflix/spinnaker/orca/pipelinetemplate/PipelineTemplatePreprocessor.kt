@@ -26,7 +26,7 @@ import org.springframework.stereotype.Component
 import javax.annotation.PostConstruct
 
 @Component("pipelineTemplatePreprocessor")
-class PipelineTemplatePreprocessor
+open class PipelineTemplatePreprocessor
 @Autowired constructor(
   private val pipelineTemplateObjectMapper: ObjectMapper,
   private val schemaVersionHandler: SchemaVersionHandler,

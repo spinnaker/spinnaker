@@ -17,6 +17,8 @@ package com.netflix.spinnaker.orca.pipelinetemplate
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.Clock
+import com.netflix.spectator.api.Counter
+import com.netflix.spectator.api.Id
 import com.netflix.spectator.api.Registry
 import com.netflix.spectator.api.Timer
 import com.netflix.spinnaker.orca.front50.Front50Service
@@ -25,11 +27,8 @@ import com.netflix.spinnaker.orca.pipelinetemplate.handler.SchemaVersionHandler
 import com.netflix.spinnaker.orca.pipelinetemplate.loader.FileTemplateSchemeLoader
 import com.netflix.spinnaker.orca.pipelinetemplate.loader.TemplateLoader
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.handler.V1SchemaHandlerGroup
-import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.StageDefinition
-import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.TemplateConfiguration
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.JinjaRenderer
-import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.RenderUtil
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.Renderer
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.YamlRenderedValueConverter
 import org.unitils.reflectionassert.ReflectionComparatorMode
@@ -55,6 +54,8 @@ class PipelineTemplatePipelinePreprocessorSpec extends Specification {
       monotonicTime() >> 0L
     }
     timer(_) >> Mock(Timer)
+    counter(_) >> Mock(Counter)
+    createId(_) >> Mock(Id)
   }
 
   @Subject
@@ -207,85 +208,6 @@ class PipelineTemplatePipelinePreprocessorSpec extends Specification {
     false       || ['wait']                   || ['wait', 'childOfConditionalStage']
   }
 
-  @Unroll
-  def 'should be able to set source using jinja'() {
-    when:
-    def result = subject.process(createInjectedTemplateRequest(template))
-
-    then:
-    result.stages*.name == expectedStageNames
-
-    where:
-    template        || expectedStageNames
-    'jinja-001.yml' || ['jinja1']
-    'jinja-002.yml' || ['jinja2']
-  }
-
-  def 'should allow inlined templates during plan'() {
-    when:
-    def result = subject.process(createInlinedTemplateRequest(true))
-
-    then:
-    noExceptionThrown()
-    result.stages*.name == ['wait']
-
-    when:
-    result = subject.process(createInlinedTemplateRequest(false))
-
-    then:
-    result.errors != null
-  }
-
-  def 'should load parent templates of inlined template during plan'() {
-    when:
-    def result = subject.process(createInlinedTemplateRequestWithParent(true, 'jinja-001.yml'))
-
-    then:
-    noExceptionThrown()
-    result.stages*.name == ['jinja1', 'childTemplateWait']
-
-    when:
-    result = subject.process(createInlinedTemplateRequestWithParent(false, 'jinja-001.yml'))
-
-    then:
-    result.errors != null
-  }
-
-  @Unroll
-  def 'should render jinja expressions contained within template variables'() {
-    given:
-    def pipelineTemplate = new PipelineTemplate(variables: templateVariables.collect {
-      new PipelineTemplate.Variable(name: it.key, defaultValue: it.value)
-    })
-
-    def templateConfig = new TemplateConfiguration(
-      pipeline: new TemplateConfiguration.PipelineDefinition(variables: configVariables)
-    )
-
-    def renderContext = RenderUtil.createDefaultRenderContext(
-      pipelineTemplate, templateConfig, [
-      parameters: [
-        "list"   : "us-west-2,us-east-1",
-        "boolean": "true",
-        "string" : "this is a string"
-      ]
-    ])
-
-    when:
-    subject.renderTemplateVariables(renderContext, pipelineTemplate)
-
-    then:
-    pipelineTemplate.variables*.defaultValue == expectedDefaultValues
-
-    where:
-    templateVariables                                                     | configVariables       || expectedDefaultValues
-    [key1: "string1", key2: "string2"]                                    | [:]                   || ["string1", "string2"]
-    [key1: "{{ trigger.parameters.string }}", key2: "string2"]            | [:]                   || ["this is a string", "string2"]
-    [key1: "{{ trigger.parameters.list | split(',') }}", key2: "string2"] | [:]                   || [["us-west-2", "us-east-1"], "string2"]
-    [key1: "string1", key2: "{{ key1 }}"]                                 | [:]                   || ["string1", "string1"]
-    [key2: "{{ key1 }}"]                                                  | [key1: "string1"]     || ["string1"]
-  }
-
   def "should include group for partials-generated stages"() {
     def pipeline = [
       type: 'templatedPipeline',
@@ -414,83 +336,6 @@ class PipelineTemplatePipelinePreprocessorSpec extends Specification {
         stages: stages
       ],
       plan: plan
-    ]
-  }
-
-  Map<String, Object> createInjectedTemplateRequest(String templatePath) {
-    return [
-      type: 'templatedPipeline',
-      trigger: [
-        parameters: [
-          template: getClass().getResource("/templates/${templatePath}").toURI()
-        ]
-      ],
-      config: [
-        schema: '1',
-        pipeline: [
-          application: 'myapp',
-          template: [
-            source: '{{trigger.parameters.template}}'
-          ],
-        ],
-      ],
-      plan: false
-    ]
-  }
-
-  Map<String, Object> createInlinedTemplateRequest(boolean plan) {
-    return [
-      type: 'templatedPipeline',
-      config: [
-        schema: '1',
-        pipeline: [
-          application: 'myapp'
-        ]
-      ],
-      template: [
-        schema: '1',
-        id: 'myTemplate',
-        stages: [
-          [
-            id: 'wait',
-            type: 'wait',
-            config: [
-              waitTime: 5
-            ]
-          ]
-        ]
-      ],
-      plan: plan
-    ]
-  }
-
-  Map<String, Object> createInlinedTemplateRequestWithParent(boolean plan, String templatePath) {
-    return [
-      type: 'templatedPipeline',
-      config: [
-        schema: '1',
-        pipeline: [
-          application: 'myapp'
-        ]
-      ],
-      template: [
-        schema: '1',
-        id: 'myTemplate',
-        stages: [
-          [
-            id: 'childTemplateWait',
-            type: 'wait',
-            config: [
-              waitTime: 5
-            ],
-            inject: [
-              last: true
-            ]
-          ]
-        ],
-        source: getClass().getResource("/templates/${templatePath}").toURI()
-      ],
-      plan: plan,
     ]
   }
 }

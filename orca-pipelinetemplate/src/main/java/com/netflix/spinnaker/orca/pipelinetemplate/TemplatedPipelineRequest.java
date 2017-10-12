@@ -17,13 +17,14 @@ package com.netflix.spinnaker.orca.pipelinetemplate;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public class TemplatedPipelineRequest {
   String id;
   String schema;
   String type;
-  Map<String, Object> trigger;
+  Map<String, Object> trigger = new HashMap<>();
   Map<String, Object> config;
   Map<String, Object> template;
   Boolean plan = false;

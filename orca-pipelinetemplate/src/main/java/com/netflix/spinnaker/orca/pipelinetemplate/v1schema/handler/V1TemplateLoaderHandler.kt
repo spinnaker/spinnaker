@@ -40,7 +40,8 @@ class V1TemplateLoaderHandler(
     // Allow template inlining to perform plans without publishing the template
     if (context.getRequest().plan && context.getRequest().template != null) {
       val template = objectMapper.convertValue(context.getRequest().template, PipelineTemplate::class.java)
-      context.setSchemaContext(V1PipelineTemplateContext(config, template))
+      val templates = templateLoader.load(template)
+      context.setSchemaContext(V1PipelineTemplateContext(config, TemplateMerge.merge(templates)))
       return
     }
 
@@ -88,7 +89,7 @@ class V1TemplateLoaderHandler(
   }
 
   private fun setTemplateSourceWithJinja(tc: TemplateConfiguration, trigger: MutableMap<String, Any>?) {
-    if (trigger == null) {
+    if (trigger == null || tc.pipeline.template == null) {
       return
     }
     val context = DefaultRenderContext(tc.pipeline.application, null, trigger)

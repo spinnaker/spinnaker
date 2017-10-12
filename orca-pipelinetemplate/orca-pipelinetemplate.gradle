@@ -1,5 +1,4 @@
 apply from: "$rootDir/gradle/kotlin.gradle"
-apply from: "$rootDir/gradle/spek.gradle"
 
 tasks.compileGroovy.enabled = false
 
