@@ -6,7 +6,6 @@ import { Subject } from 'rxjs';
 
 import {
   ACCOUNT_SERVICE,
-  NAMING_SERVICE,
   SECURITY_GROUP_READER,
   SECURITY_GROUP_WRITER,
   TASK_MONITOR_BUILDER,
