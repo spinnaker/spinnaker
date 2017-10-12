@@ -7,6 +7,7 @@ import { BindAll } from 'lodash-decorators';
 import * as classNames from 'classnames';
 
 import { Application } from 'core/application/application.model';
+import { ExecutionStatus } from 'core/delivery/status/ExecutionStatus';
 import { IExecution , IRestartDetails } from 'core/domain';
 import { IExecutionViewState, IPipelineGraphNode } from 'core/pipeline/config/graph/pipelineGraph.service';
 import { IScheduler } from 'core/scheduler/scheduler.factory';
@@ -245,7 +246,7 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
   }
 
   public render() {
-    const { AccountTag, ExecutionStatus, ExecutionDetails, CopyToClipboard } = NgReact;
+    const { AccountTag, ExecutionDetails, CopyToClipboard } = NgReact;
     const accountLabels = this.props.execution.deploymentTargets.map((account) => (
       <AccountTag key={account} account={account}/>
     ));

@@ -9,7 +9,6 @@ import { ButtonBusyIndicatorComponent } from '../forms/buttonBusyIndicator/butto
 import { CopyToClipboardComponent } from '../utils/clipboard/copyToClipboard.component';
 import { DiffViewProps } from '../pipeline/config/actions/history/DiffView';
 import { ExecutionDetailsComponent } from '../delivery/details/executionDetails.component';
-import { ExecutionStatusComponent } from '../delivery/status/executionStatus.component';
 import { HelpFieldWrapperComponent } from '../help/helpField.component';
 import { IAccountTagProps } from '../account/AccountTag';
 import { IApplicationNavProps } from 'core/application/nav/ApplicationNav';
@@ -17,7 +16,6 @@ import { IApplicationNavSecondaryProps } from 'core/application/nav/ApplicationN
 import { IButtonBusyIndicatorProps } from '../forms/buttonBusyIndicator/ButtonBusyIndicator';
 import { ICopyToClipboardProps } from '../utils/clipboard/CopyToClipboard';
 import { IExecutionDetailsProps } from '../delivery/details/ExecutionDetails';
-import { IExecutionStatusProps } from '../delivery/status/ExecutionStatus';
 import { IHelpFieldProps } from '../help/HelpField';
 import { IInsightLayoutProps } from 'core/insight/InsightLayout';
 import { IInstanceListProps, instanceListBindings } from '../instance/InstanceList';
@@ -42,7 +40,6 @@ export class NgReactInjector extends ReactInject {
   public CopyToClipboard: React.ComponentClass<ICopyToClipboardProps>                 = angular2react('copyToClipboard', new CopyToClipboardComponent(), this.$injectorProxy) as any;
   public DiffView: React.ComponentClass<DiffViewProps>                                = angular2react('diffView', diffViewComponent, this.$injectorProxy) as any;
   public ExecutionDetails: React.ComponentClass<IExecutionDetailsProps>               = angular2react('executionDetails', new ExecutionDetailsComponent(), this.$injectorProxy) as any;
-  public ExecutionStatus: React.ComponentClass<IExecutionStatusProps>                 = angular2react('executionStatus', new ExecutionStatusComponent(), this.$injectorProxy) as any;
   public HelpField: React.ComponentClass<IHelpFieldProps>                             = angular2react('helpFieldWrapper', new HelpFieldWrapperComponent(), this.$injectorProxy) as any;
   public InsightLayout: React.ComponentClass<IInsightLayoutProps>                     = angular2react('insightLayout', new InsightLayoutComponent(), this.$injectorProxy) as any;
   public InstanceList: React.ComponentClass<IInstanceListProps>                       = angular2react('instanceList', { bindings: instanceListBindings }, this.$injectorProxy) as any;

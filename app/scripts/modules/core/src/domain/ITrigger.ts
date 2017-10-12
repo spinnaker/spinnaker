@@ -21,6 +21,11 @@ export interface IBuildTrigger extends ITrigger {
   type: 'jenkins' | 'travis';
 }
 
+export interface IDockerTrigger extends ITrigger {
+  tag: string;
+  repository: string;
+}
+
 export interface IPipelineTrigger extends ITrigger {
   application: string;
   pipeline: string;
