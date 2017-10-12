@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.converters
 
 import com.fasterxml.jackson.databind.DeserializationFeature
-import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.description.KubernetesKindAtomicOperationDescription
+import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesAtomicOperationDescription
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport
 
@@ -32,7 +32,7 @@ class KubernetesAtomicOperationConverterHelper {
     // Save these to re-assign after ObjectMapper does its work.
     def credentials = (KubernetesNamedAccountCredentials) credentialsSupport.getCredentialsObject(account as String)
 
-    def converted = (KubernetesKindAtomicOperationDescription) credentialsSupport.objectMapper
+    def converted = (KubernetesAtomicOperationDescription) credentialsSupport.objectMapper
       .copy()
       .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
       .convertValue(input, targetDescriptionType)
