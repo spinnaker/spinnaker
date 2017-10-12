@@ -47,4 +47,3 @@ export interface IServerGroup {
   vpcId?: string;
   vpcName?: string;
 }
-

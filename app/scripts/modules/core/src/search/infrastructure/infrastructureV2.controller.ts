@@ -1,5 +1,5 @@
 import { BindAll } from 'lodash-decorators';
-import { flatten, isEmpty } from 'lodash';
+import { flatten, keyBy, isEmpty } from 'lodash';
 import { module, IController, ILocationService, IQService, IScope, IPromise } from 'angular';
 import { StateService } from '@uirouter/core';
 import { IModalService } from 'angular-ui-bootstrap';
@@ -135,7 +135,7 @@ export class InfrastructureV2Ctrl implements IController {
       // for any registered post search result searcher, take its registered type mapping,
       // retrieve that data from the search results from the search API above, and pass to the
       // appropriate post search result searcher.
-      const searchResultMap: ISearchResultSetMap = this.categorizeSearchResultSet(results);
+      const searchResultMap: ISearchResultSetMap = keyBy(results, 'id');
       const promises: IPromise<ISearchResultSet[]>[] = [];
       PostSearchResultSearcherRegistry.getRegisteredTypes().forEach((mapping: ITypeMapping) => {
         if (!searchResultMap[mapping.sourceType] && !isEmpty(searchResultMap[mapping.targetType]['results'])) {
@@ -144,7 +144,6 @@ export class InfrastructureV2Ctrl implements IController {
       });
 
       this.$q.all(promises).then((postSearchResults: ISearchResultSet[][]) => {
-
         results = results.concat(flatten(postSearchResults));
         const categories: ISearchResultSet[] =
           results.filter((category: ISearchResultSet) => category.category !== 'Projects' && category.results.length);
@@ -161,14 +160,6 @@ export class InfrastructureV2Ctrl implements IController {
         }
       });
     });
-  }
-
-  private categorizeSearchResultSet(results: ISearchResultSet[]): ISearchResultSetMap {
-
-    return results.reduce((map: ISearchResultSetMap, result: ISearchResultSet) => {
-      map[result.id] = result;
-      return map;
-    } , {});
   }
 
   private createProject() {

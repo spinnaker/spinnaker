@@ -73,7 +73,6 @@ export class InfrastructureSearchServiceV2 {
 
     return this.$q.all(promises).then((results: ISearchResults<ISearchResult>[]) => {
       // reduce results to map of category <-> ISearchResultSet
-      // types.forEach((type: string, index: number) => results[index].query = type);
       const searchResults: ISearchResultSet[] = results.map((result: ISearchResults<ISearchResult>, index: number) => {
         result.query = types[index];
         result.results.forEach((searchResult: ISearchResult) => {
@@ -164,7 +163,7 @@ export class InfrastructureSearchServiceV2 {
   }
 }
 
-export const INFRASTRUCTURE_SEARCH_SERVICE_V2 = 'spinnaker.infrastructure.search.service.v2';
+export const INFRASTRUCTURE_SEARCH_SERVICE_V2 = 'spinnaker.core.infrastructure.search.service.v2';
 module(INFRASTRUCTURE_SEARCH_SERVICE_V2, [
   SEARCH_SERVICE,
   URL_BUILDER_SERVICE
