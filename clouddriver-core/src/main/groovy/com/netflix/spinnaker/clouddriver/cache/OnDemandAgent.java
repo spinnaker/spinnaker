@@ -39,7 +39,8 @@ public interface OnDemandAgent {
     SecurityGroup,
     LoadBalancer,
     Job,
-    TargetGroup;
+    TargetGroup,
+    Manifest;
 
     static OnDemandType fromString(String s) {
       return Arrays.stream(values())

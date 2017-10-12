@@ -140,7 +140,11 @@ public class KubernetesManifest extends HashMap<String, Object> {
 
   @JsonIgnore
   public String getFullResourceName() {
-    return String.join("|", getApiVersion().toString(), getKind().toString(), getName());
+    return getFullResourceName(getApiVersion(), getKind(), getName());
+  }
+
+  public static String getFullResourceName(KubernetesApiVersion apiVersion, KubernetesKind kind, String name) {
+    return String.join("|", apiVersion.toString(), kind.toString(), name);
   }
 
   public static Triple<KubernetesApiVersion, KubernetesKind, String> fromFullResourceName(String fullResourceName) {

@@ -80,11 +80,6 @@ public class KubernetesNetworkPolicyCachingAgent extends KubernetesV2OnDemandCac
   }
 
   @Override
-  protected OnDemandType onDemandType() {
-    return OnDemandType.SecurityGroup;
-  }
-
-  @Override
   protected KubernetesKind primaryKind() {
     return KubernetesKind.NETWORK_POLICY;
   }
@@ -92,19 +87,5 @@ public class KubernetesNetworkPolicyCachingAgent extends KubernetesV2OnDemandCac
   @Override
   protected KubernetesApiVersion primaryApiVersion() {
     return KubernetesApiVersion.EXTENSIONS_V1BETA1;
-  }
-
-  @Override
-  protected Map<String, String> mapKeyToOnDemandResult(Keys.InfrastructureCacheKey key) {
-    return new ImmutableMap.Builder<String, String>()
-        .put("securityGroup", key.getName())
-        .put("account", key.getAccount())
-        .put("region", key.getNamespace())
-        .build();
-  }
-
-  @Override
-  protected Optional<String> getResourceNameFromOnDemandRequest(Map<String, ?> request) {
-    return request.containsKey("securityGroup") ? Optional.of((String) request.get("securityGroup")) : Optional.empty();
   }
 }

@@ -81,11 +81,6 @@ public class KubernetesReplicaSetCachingAgent extends KubernetesV2OnDemandCachin
   }
 
   @Override
-  protected OnDemandType onDemandType() {
-    return OnDemandType.ServerGroup;
-  }
-
-  @Override
   protected KubernetesKind primaryKind() {
     return KubernetesKind.REPLICA_SET;
   }
@@ -93,19 +88,5 @@ public class KubernetesReplicaSetCachingAgent extends KubernetesV2OnDemandCachin
   @Override
   protected KubernetesApiVersion primaryApiVersion() {
     return KubernetesApiVersion.EXTENSIONS_V1BETA1;
-  }
-
-  @Override
-  protected Map<String, String> mapKeyToOnDemandResult(Keys.InfrastructureCacheKey key) {
-    return new ImmutableMap.Builder<String, String>()
-        .put("serverGroup", key.getName())
-        .put("account", key.getAccount())
-        .put("region", key.getNamespace())
-        .build();
-  }
-
-  @Override
-  protected Optional<String> getResourceNameFromOnDemandRequest(Map<String, ?> request) {
-    return request.containsKey("serverGroup") ? Optional.of((String) request.get("serverGroup")) : Optional.empty();
   }
 }
