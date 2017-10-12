@@ -51,7 +51,12 @@ export class ConfirmationModalService {
     if (params.size) {
       modalArgs.size = params.size;
     }
-    return this.$uibModal.open(modalArgs).result;
+
+    const result = this.$uibModal.open(modalArgs).result;
+
+    result.catch(() => {});
+
+    return result;
   }
 
 }
