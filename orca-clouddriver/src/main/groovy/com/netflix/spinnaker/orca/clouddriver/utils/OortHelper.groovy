@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.orca.clouddriver.utils
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.frigga.Names
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup
 import org.springframework.beans.factory.annotation.Autowired
@@ -59,15 +58,7 @@ class OortHelper {
                                                    String serverGroupName,
                                                    String location,
                                                    String cloudProvider) {
-    def name = Names.parseName(serverGroupName)
-    return convertedResponse(List) { oortService.getServerGroupFromCluster(name.app, account, name.cluster, serverGroupName, null, cloudProvider) }
-    .map({ List<Map> serverGroups ->
-      serverGroups.find {
-        it.region == location || it.zones?.contains(location) || it.namespace == location
-      }
-    }).map({ Map serverGroup ->
-      new TargetServerGroup(serverGroup)
-    })
+    return new TargetServerGroup(convert(oortService.getServerGroup(account, location, serverGroupName) , Map))
   }
 
   public <T> Optional<T> convertedResponse(Class<T> type, Closure<Response> request) {

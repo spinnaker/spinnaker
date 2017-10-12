@@ -45,7 +45,6 @@ class WaitForNewUpInstancesLaunchTask implements RetryableTask {
 
     // similar check in `AbstractInstancesCheckTask`
     def response = oortService.getServerGroup(
-      stageData.application,
       stageData.account,
       stage.context.region as String,
       stage.context.asgName as String
