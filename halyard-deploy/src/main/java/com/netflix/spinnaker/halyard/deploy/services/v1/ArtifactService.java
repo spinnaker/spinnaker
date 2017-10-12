@@ -130,7 +130,6 @@ public class ArtifactService {
       throw new HalException(FATAL, "Version " + latestSpinnaker + " does not exist in the list of published versions");
     }
 
-    versionsCollection.setLatest(latestSpinnaker);
     versionsCollection.setLatestSpinnaker(latestSpinnaker);
 
     writeableProfileRegistry.writeVersions(yamlParser.dump(relaxedObjectMapper.convertValue(versionsCollection, Map.class)));

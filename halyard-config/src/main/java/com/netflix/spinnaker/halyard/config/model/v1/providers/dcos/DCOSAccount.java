@@ -53,6 +53,7 @@ public class DCOSAccount extends Account {
   }
 
   @Data
+  @EqualsAndHashCode(callSuper = false)
   public static class ClusterCredential extends Node implements Cloneable {
     private final String name;
     private final String uid;

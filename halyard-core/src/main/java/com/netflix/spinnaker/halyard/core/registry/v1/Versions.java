@@ -55,8 +55,6 @@ public class Versions {
     String reason; // Why is this version illegal
   }
 
-  @Deprecated
-  String latest;
   String latestHalyard;
   String latestSpinnaker;
   List<Version> versions = new ArrayList<>();
