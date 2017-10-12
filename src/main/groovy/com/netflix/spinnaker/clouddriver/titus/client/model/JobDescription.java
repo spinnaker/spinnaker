@@ -185,9 +185,9 @@ public class JobDescription {
     return gpu;
   }
 
-    public void setRetries() { this.retries = retries; }
+  public void setRetries() { this.retries = retries; }
 
-    public int getRetries() { return retries; }
+  public int getRetries() { return retries; }
 
   public int getRuntimeLimitSecs() {
     return runtimeLimitSecs;
@@ -405,7 +405,7 @@ public class JobDescription {
 
     SecurityProfile.Builder securityProfile = SecurityProfile.newBuilder();
 
-    if (securityGroups!= null && !securityGroups.isEmpty()) {
+    if (securityGroups != null && !securityGroups.isEmpty()) {
       securityGroups.forEach(sg ->
         {
           securityProfile.addSecurityGroups(sg);
@@ -441,7 +441,7 @@ public class JobDescription {
     Capacity.Builder jobCapacity = Capacity.newBuilder();
     jobCapacity.setMin(instancesMin).setMax(instancesMax).setDesired(instancesDesired);
 
-    if (type == "service") {
+    if (type.equals("service")) {
       JobGroupInfo.Builder jobGroupInfoBuilder = JobGroupInfo.newBuilder();
       if (jobGroupStack != null) {
         jobGroupInfoBuilder.setStack(jobGroupStack);
@@ -453,11 +453,11 @@ public class JobDescription {
       jobDescriptorBuilder.setJobGroupInfo(jobGroupInfoBuilder);
       jobDescriptorBuilder.setService(
         ServiceJobSpec.newBuilder().setEnabled(inService)
-        .setCapacity(jobCapacity)
-        .setRetryPolicy(RetryPolicy.newBuilder().setExponentialBackOff(RetryPolicy.ExponentialBackOff.newBuilder().setInitialDelayMs(5000).setMaxDelayIntervalMs(300000))));
+          .setCapacity(jobCapacity)
+          .setRetryPolicy(RetryPolicy.newBuilder().setExponentialBackOff(RetryPolicy.ExponentialBackOff.newBuilder().setInitialDelayMs(5000).setMaxDelayIntervalMs(300000))));
     }
 
-    if (type == "batch") {
+    if (type.equals("batch")) {
       BatchJobSpec.Builder batchJobSpec = BatchJobSpec.newBuilder();
       batchJobSpec.setSize(instancesDesired);
       if (runtimeLimitSecs != 0) {
@@ -465,6 +465,12 @@ public class JobDescription {
       }
       batchJobSpec.setRetryPolicy(RetryPolicy.newBuilder().setImmediate(RetryPolicy.Immediate.newBuilder().setRetries(retries)));
       jobDescriptorBuilder.setBatch(batchJobSpec);
+    }
+
+    if (capacityGroup == null || capacityGroup.isEmpty()) {
+      jobDescriptorBuilder.setCapacityGroup(jobDescriptorBuilder.getApplicationName());
+    } else {
+      jobDescriptorBuilder.setCapacityGroup(capacityGroup);
     }
 
     return jobDescriptorBuilder.build();

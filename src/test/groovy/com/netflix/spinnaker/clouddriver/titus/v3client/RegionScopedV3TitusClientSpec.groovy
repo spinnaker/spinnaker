@@ -94,6 +94,7 @@ class RegionScopedV3TitusClientSpec extends Specification {
     then:
     logger.info("job {}", job);
     job != null
+    job.capacityGroup == "helix_hello_world_server";
 
     when:
     job = titusClient.findJobByName(submitJobRequest.getJobName());
