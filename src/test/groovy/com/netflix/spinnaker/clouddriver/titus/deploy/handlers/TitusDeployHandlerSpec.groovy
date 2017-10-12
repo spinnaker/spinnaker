@@ -21,6 +21,7 @@ import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.deploy.DeploymentResult
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
+import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.clouddriver.titus.TitusClientProvider
 import com.netflix.spinnaker.clouddriver.titus.client.TitusClient
 import com.netflix.spinnaker.clouddriver.titus.client.TitusRegion
@@ -38,6 +39,12 @@ class TitusDeployHandlerSpec extends Specification {
     }
   }
 
+  def accountCredentialsRepository = Mock(AccountCredentialsRepository) {
+    getOne("test") >> {
+      return netflixTitusCredentials
+    }
+  }
+
   TitusClient titusClient = Mock(TitusClient)
 
   TitusClientProvider titusClientProvider = Stub(TitusClientProvider) {
@@ -49,7 +56,7 @@ class TitusDeployHandlerSpec extends Specification {
   )
 
   @Subject
-  TitusDeployHandler titusDeployHandler = new TitusDeployHandler(titusClientProvider)
+  TitusDeployHandler titusDeployHandler = new TitusDeployHandler(titusClientProvider, accountCredentialsRepository)
 
   def setup() {
     Task task = Mock(Task)
