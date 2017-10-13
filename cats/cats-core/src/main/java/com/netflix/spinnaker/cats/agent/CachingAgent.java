@@ -112,7 +112,7 @@ public interface CachingAgent extends Agent {
                 Collection<String> evictionsForType = result.getEvictions().computeIfAbsent(type, evictableKeys -> new ArrayList<>());
                 evictionsForType.addAll(evictableIdentifiers);
 
-                log.info("Evicting stale identifiers: {}", evictableIdentifiers);
+                log.debug("Evicting stale identifiers: {}", evictableIdentifiers);
               }
             } catch (Exception e) {
               log.error("Failed to check for stale identifiers (type: {}, pattern: {}, agent: {})", type, cacheKeyPatternForType, agent, e);

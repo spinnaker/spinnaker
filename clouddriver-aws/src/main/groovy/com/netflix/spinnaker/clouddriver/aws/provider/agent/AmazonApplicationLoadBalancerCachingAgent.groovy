@@ -67,6 +67,13 @@ class AmazonApplicationLoadBalancerCachingAgent extends AbstractAmazonLoadBalanc
   }
 
   @Override
+  Optional<Map<String, String>> getCacheKeyPatterns() {
+    return [
+      (LOAD_BALANCERS.ns): Keys.getLoadBalancerKey('*', account.name, region, 'vpc-????????', '*')
+    ]
+  }
+
+  @Override
   OnDemandAgent.OnDemandResult handle(ProviderCache providerCache, Map<String, ? extends Object> data) {
     if (!data.containsKey("loadBalancerName")) {
       return null
