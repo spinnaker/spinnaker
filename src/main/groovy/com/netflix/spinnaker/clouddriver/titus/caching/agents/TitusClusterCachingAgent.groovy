@@ -155,9 +155,9 @@ class TitusClusterCachingAgent implements CachingAgent, CustomScheduledAgent {
 
     for (Job job : jobs) {
       try {
-        List<ScalingPolicy> scalingPolicies = allScalingPolicies.findResults {
+        List<ScalingPolicyData> scalingPolicies = allScalingPolicies.findResults {
           it.jobId == job.id && cacheablePolicyStates.contains(it.policyState.state) ?
-            it.scalingPolicy :
+            new ScalingPolicyData(id: it.id.id, policy: it.scalingPolicy) :
             null
         }
         ServerGroupData data = new ServerGroupData(job, scalingPolicies, account.name, region, account.stack)
@@ -201,7 +201,7 @@ class TitusClusterCachingAgent implements CachingAgent, CustomScheduledAgent {
       resolveAwsDetails(titusSecurityGroupCache, job)
       List<Map> policies = data.scalingPolicies ? data.scalingPolicies.collect {
         // There is probably a better way to convert a protobuf to a Map, but I don't know what it is
-        objectMapper.readValue(JsonFormat.printer().print(it), Map)
+        [id: it.id, policy: objectMapper.readValue(JsonFormat.printer().print(it.policy), Map)]
       } : []
 
       attributes.job = job
@@ -236,10 +236,15 @@ class TitusClusterCachingAgent implements CachingAgent, CustomScheduledAgent {
     }
   }
 
+  private class ScalingPolicyData {
+    String id
+    ScalingPolicy policy
+  }
+
   private class ServerGroupData {
 
     final Job job
-    List<ScalingPolicy> scalingPolicies
+    List<ScalingPolicyData> scalingPolicies
     final Names name
     final String appName
     final String cluster
@@ -248,7 +253,7 @@ class TitusClusterCachingAgent implements CachingAgent, CustomScheduledAgent {
     final String region
     final String account
 
-    ServerGroupData(Job job, List<ScalingPolicy> scalingPolicies, String account, String region, String stack) {
+    ServerGroupData(Job job, List<ScalingPolicyData> scalingPolicies, String account, String region, String stack) {
       this.job = job
       this.scalingPolicies = scalingPolicies
 
