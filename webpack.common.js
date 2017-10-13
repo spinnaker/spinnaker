@@ -130,6 +130,7 @@ function configure(IS_TEST) {
         TIMEZONE: 'America/Los_Angeles',
         LIVE_CALLS: false,
         METRIC_STORE: 'atlas',
+        ATLAS_WEB_COMPONENTS_URL: '',
         REDUX_LOGGER: false,
         CANARY_REPORTS_ENABLED: false,
         CANARY_STAGES_ENABLED: true,
