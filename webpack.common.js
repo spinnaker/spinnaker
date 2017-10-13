@@ -31,7 +31,6 @@ function configure(IS_TEST) {
       ],
       alias: {
         'coreImports': path.resolve(NODE_MODULE_PATH, '@spinnaker', 'core', 'src', 'presentation', 'less', 'imports', 'commonImports.less'),
-        'coreColors': path.resolve(NODE_MODULE_PATH, '@spinnaker', 'core', 'src', 'presentation', 'less', 'imports', 'colors.less'),
         'root': __dirname,
       }
     },
@@ -48,7 +47,6 @@ function configure(IS_TEST) {
           use: [
             'cache-loader',
             'ng-annotate-loader',
-            'angular-loader',
             'babel-loader',
             'eslint-loader'
           ],
@@ -119,8 +117,8 @@ function configure(IS_TEST) {
       ),
       new HtmlWebpackPlugin({
         title: 'Spinnaker',
-        template: './src/index.deck',
-        favicon: 'src/favicon.ico',
+        template: './index.deck',
+        favicon: 'favicon.ico',
         inject: true,
       }),
       new webpack.EnvironmentPlugin({
@@ -134,6 +132,8 @@ function configure(IS_TEST) {
         METRIC_STORE: 'atlas',
         ATLAS_WEB_COMPONENTS_URL: '',
         REDUX_LOGGER: false,
+        CANARY_REPORTS_ENABLED: false,
+        CANARY_STAGES_ENABLED: true,
       }),
     ]);
   }

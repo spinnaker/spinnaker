@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-interface IMetricListHeaderProps {
+export interface IMetricListHeaderProps {
   showGroups: boolean;
 }
 

@@ -32,6 +32,7 @@ class KayentaStageExecutionDetailsController {
     this.executionDetailsSectionService.synchronizeSection(this.$scope.configSections, () => this.initialized());
     this.setCanaryRuns();
     this.resolveControlAndExperimentNames();
+    this.$scope.$watchCollection('stage.tasks', () => this.setCanaryRuns());
   }
 
   private setCanaryRuns(): void {

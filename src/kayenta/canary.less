@@ -1,9 +1,42 @@
-@import (reference) "~coreColors";
-
 .kayenta {
   button {
     &[disabled] {
       cursor: not-allowed;
+    }
+  }
+
+  &.kayenta-root {
+    overflow: hidden;
+  }
+
+  .spinner {
+    position: inherit;
+  }
+
+  .config-list {
+    position: fixed;
+    ul {
+      max-height: calc(~"70vh - 44px"); // i.e., minus the footer.
+      overflow: auto;
+      width: 260px;
+    }
+  }
+
+  .config-detail {
+    padding: 1rem;
+    overflow-y: scroll;
+
+    max-height: 82vh;
+    @media screen and (max-height: 1200px) {
+      max-height: 75vh;
+    }
+
+    .config-detail-header {
+      padding-right: 15px;
+      padding-bottom: 7px;
+      .heading-1 {
+        margin: 3px 0 0 0;
+      }
     }
   }
 
@@ -41,6 +74,12 @@
           margin-top: .1rem;
         }
       }
+    }
+
+    // This is the wrapper around the change metric group folder icon.
+    g {
+      margin-top: -.25rem;
+      margin-right: .1rem;
     }
   }
 

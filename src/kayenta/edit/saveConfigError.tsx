@@ -4,10 +4,10 @@ import * as classNames from 'classnames';
 
 import { ICanaryState } from '../reducers';
 import * as Creators from '../actions/creators';
-import { SaveConfigState } from './save';
+import { AsyncRequestState } from '../reducers/asyncRequest';
 
 interface ISaveErrorStateProps {
-  saveConfigState: SaveConfigState;
+  saveConfigState: AsyncRequestState;
   saveConfigErrorMessage: string;
 }
 
@@ -19,7 +19,7 @@ interface ISaveErrorDispatchProps {
  * Renders canary config save error.
  */
 function SaveConfigError({ saveConfigState, saveConfigErrorMessage, dismissError }: ISaveErrorStateProps & ISaveErrorDispatchProps) {
-  return saveConfigState === SaveConfigState.Error && (
+  return saveConfigState === AsyncRequestState.Failed && (
     <span className={classNames('alert', 'alert-danger')}>
       {buildErrorMessage(saveConfigErrorMessage)}
       <a

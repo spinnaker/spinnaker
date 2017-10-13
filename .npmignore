@@ -1,0 +1,50 @@
+# OS Generated Files #
+*.swp
+.DS_Store
+ehthumbs.db
+Icon?
+Thumbs.db
+
+# IDE Files
+*.ipr
+*.iws
+*.iml
+.idea/
+
+# Node Files #
+npm-debug.log
+
+# Build Files
+.cache-loader/
+.awcache/
+.gradle/
+.happypack/
+build/
+dist/
+transpiled/
+
+# Test Results
+test-results.xml
+
+#gradle wrapper symlinks
+/gradle
+/gradlew
+
+# Files having to do with running deck-kayenta as a standalone app (+misc).
+.babelrc
+.dockerignore
+.eslintrc
+.gitignore
+.npmrc
+.build.gradle
+Dockerfile
+Dockerfile.slim
+favicon.ico
+index.deck
+jsconfig.json
+karma.conf.js
+karma-shim.js
+settings.gradle
+webpack.common.js
+webpack.config.js
+test/

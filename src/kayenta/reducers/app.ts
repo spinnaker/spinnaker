@@ -1,4 +1,4 @@
-import { combineReducers, Action } from 'redux';
+import { combineReducers, Action, Reducer } from 'redux';
 import { handleActions, combineActions } from 'redux-actions';
 
 import * as Actions from '../actions';
@@ -25,7 +25,7 @@ const configJsonModalTabState = handleActions({
   [Actions.CONFIG_JSON_MODAL_OPEN]: () => ConfigJsonModalTabState.Edit,
 }, ConfigJsonModalTabState.Edit);
 
-export const app = combineReducers<IAppState>({
+export const app: Reducer<IAppState> = combineReducers<IAppState>({
   deleteConfigModalOpen,
   configJsonModalOpen,
   configJsonModalTabState,

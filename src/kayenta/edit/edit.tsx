@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { UIView } from '@uirouter/react';
 
-import ListDetail from './listDetail';
+import ListDetail from '../layout/listDetail';
 import ConfigList from './configList';
 import Footer from './footer';
 

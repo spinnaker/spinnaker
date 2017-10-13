@@ -3,19 +3,20 @@ import { ReactInjector } from '@spinnaker/core';
 
 import { CanarySettings } from 'kayenta/canary.settings';
 import { ICanaryState } from '../reducers/index';
-import { localConfigCache } from './localConfigCache.service';
+import { localConfigStore } from './localConfigStore.service';
 import {
   ICanaryMetricConfig,
   IJudge,
   ICanaryConfigSummary,
-  ICanaryConfig
+  ICanaryConfig,
+  IKayentaAccount
 } from '../domain/index';
 
 export function getCanaryConfigById(id: string): Promise<ICanaryConfig> {
   if (CanarySettings.liveCalls) {
     return ReactInjector.API.one('v2/canaryConfig').one(id).get();
   } else {
-    return localConfigCache.getCanaryConfigById(id);
+    return localConfigStore.getCanaryConfigById(id);
   }
 }
 
@@ -23,7 +24,7 @@ export function getCanaryConfigSummaries(): Promise<ICanaryConfigSummary[]> {
   if (CanarySettings.liveCalls) {
     return ReactInjector.API.one('v2/canaryConfig').get();
   } else {
-    return localConfigCache.getCanaryConfigSummaries();
+    return localConfigStore.getCanaryConfigSummaries();
   }
 }
 
@@ -31,7 +32,7 @@ export function updateCanaryConfig(config: ICanaryConfig): Promise<{id: string}>
   if (CanarySettings.liveCalls) {
     return ReactInjector.API.one('v2/canaryConfig').one(config.name).put(config);
   } else {
-    return localConfigCache.updateCanaryConfig(config);
+    return localConfigStore.updateCanaryConfig(config);
   }
 }
 
@@ -39,7 +40,7 @@ export function createCanaryConfig(config: ICanaryConfig): Promise<{id: string}>
   if (CanarySettings.liveCalls) {
     return ReactInjector.API.one('v2/canaryConfig').post(config);
   } else {
-    return localConfigCache.createCanaryConfig(config);
+    return localConfigStore.createCanaryConfig(config);
   }
 }
 
@@ -47,7 +48,7 @@ export function deleteCanaryConfig(id: string): Promise<void> {
   if (CanarySettings.liveCalls) {
     return ReactInjector.API.one('v2/canaryConfig').one(id).remove();
   } else {
-    return localConfigCache.deleteCanaryConfig(id);
+    return localConfigStore.deleteCanaryConfig(id);
   }
 }
 
@@ -56,9 +57,17 @@ export function listJudges(): Promise<IJudge[]> {
   if (CanarySettings.liveCalls) {
     allJudges = ReactInjector.API.one('v2/canaries/judges').get();
   } else {
-    allJudges = localConfigCache.listJudges();
+    allJudges = localConfigStore.listJudges();
   }
   return allJudges.then(judges => judges.filter(judge => judge.visible));
+}
+
+export function listKayentaAccounts(): Promise<IKayentaAccount[]> {
+  if (CanarySettings.liveCalls) {
+    return ReactInjector.API.one('v2/canaries/credentials').get();
+  } else {
+    return localConfigStore.listKayentaAccounts();
+  }
 }
 
 // Not sure if this is the right way to go about this. We have pieces of the config
@@ -95,7 +104,9 @@ export function buildNewConfig(state: ICanaryState): ICanaryConfig {
     isNew: true,
     metrics: [] as ICanaryMetricConfig[],
     configVersion: '1',
-    services: CanarySettings.defaultServiceSettings[CanarySettings.metricStore],
+    services: {
+      [CanarySettings.metricStore]: CanarySettings.defaultServiceSettings[CanarySettings.metricStore]
+    },
     classifier: {
       groupWeights: {} as {[key: string]: number},
       scoreThresholds: {

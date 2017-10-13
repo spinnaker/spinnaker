@@ -6,6 +6,7 @@ import { connect } from 'react-redux';
 import { ICanaryState } from '../reducers/index';
 import * as Creators from '../actions/creators';
 import FormRow from '../layout/formRow';
+import KayentaInput from '../layout/kayentaInput';
 
 interface IJudgeSelectStateProps {
   judgeOptions: Select.Option[];
@@ -30,7 +31,7 @@ function JudgeSelect({ judgeOptions, selectedJudge, handleJudgeSelect, renderSta
   switch (renderState) {
     case JudgeSelectRenderState.Multiple:
       return (
-        <FormRow label="Judge">
+        <FormRow>
           <Select
             value={selectedJudge}
             options={judgeOptions}
@@ -41,10 +42,9 @@ function JudgeSelect({ judgeOptions, selectedJudge, handleJudgeSelect, renderSta
       );
     case JudgeSelectRenderState.Single:
       return (
-        <FormRow label="Judge">
-          <input
+        <FormRow>
+          <KayentaInput
             type="text"
-            className="form-control"
             value={selectedJudge}
             disabled={true}
           />

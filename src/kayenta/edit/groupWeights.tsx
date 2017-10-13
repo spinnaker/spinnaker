@@ -5,7 +5,6 @@ import { flatMap, uniq } from 'lodash';
 import GroupWeight from './groupWeight';
 import { ICanaryState } from '../reducers/index';
 import { mapStateToConfig } from '../service/canaryConfig.service';
-import FormList from '../layout/formList';
 
 interface IGroupWeightsStateProps {
   groups: string[];
@@ -18,12 +17,10 @@ function GroupWeights({ groups }: IGroupWeightsStateProps) {
   const hasGroups = groups.length > 0;
   return (
     <section>
-      <FormList>
-        {hasGroups
-          ? groups.map(group => <GroupWeight key={group} group={group}/>)
-          : <p key="no-groups">You have not configured any grouped metrics.</p>
-        }
-      </FormList>
+      {hasGroups
+        ? groups.map(group => <GroupWeight key={group} group={group}/>)
+        : <p key="no-groups">You have not configured any grouped metrics.</p>
+      }
     </section>
   );
 }

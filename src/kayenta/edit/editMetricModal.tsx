@@ -7,6 +7,10 @@ import {ICanaryState} from '../reducers/index';
 import {ICanaryMetricConfig} from 'kayenta/domain';
 import MetricConfigurerDelegator from './metricConfigurerDelegator';
 import Styleguide from '../layout/styleguide';
+import FormRow from '../layout/formRow';
+import KayentaInput from '../layout/kayentaInput';
+
+import './editMetricModal.less';
 
 interface IEditMetricModalDispatchProps {
   rename: (event: any) => void;
@@ -26,19 +30,20 @@ function EditMetricModal({ metric, rename, confirm, cancel }: IEditMetricModalDi
     return null;
   }
   return (
-    <Modal show={true} onHide={noop}>
+    <Modal show={true} onHide={noop} className="kayenta-edit-metric-modal">
       <Styleguide>
         <Modal.Header>
           <Modal.Title>Configure Metric</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <label>Name:</label>
-          <input
-            type="text"
-            value={metric.name}
-            data-id={metric.id}
-            onChange={rename}
-          />
+          <FormRow label="Name">
+            <KayentaInput
+              type="text"
+              value={metric.name}
+              data-id={metric.id}
+              onChange={rename}
+            />
+          </FormRow>
           <MetricConfigurerDelegator/>
         </Modal.Body>
         <Modal.Footer>

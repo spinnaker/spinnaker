@@ -21,11 +21,6 @@ interface IConfigDetailStateParams {
   'new': boolean;
 }
 
-export enum ConfigDetailLoadState {
-  Loaded,
-  Loading,
-  Error
-}
 /*
  * Top-level .configDetail state component.
  * Loads config details on changes to /canary/:configName path parameter, renders load states.

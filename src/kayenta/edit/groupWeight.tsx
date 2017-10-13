@@ -4,12 +4,13 @@ import { Action } from 'redux';
 import { get, isNumber } from 'lodash';
 
 import FormRow from '../layout/formRow';
+import KayentaInput from '../layout/kayentaInput';
 import { ICanaryState } from '../reducers/index';
 import { ICanaryConfig } from '../domain/ICanaryConfig';
 import * as Creators from '../actions/creators';
 import { mapStateToConfig } from '../service/canaryConfig.service';
 
-interface IGroupWeightOwnProps {
+export interface IGroupWeightOwnProps {
   group: string;
 }
 
@@ -25,14 +26,15 @@ interface IGroupWeightDispatchProps {
 * Component for configuring a group weight.
 * */
 function GroupWeight({ group, config, handleInputChange }: IGroupWeightOwnProps & IGroupWeightStateProps & IGroupWeightDispatchProps) {
-  const groupWeight = getGroupWeights(config)[group] || 0;
+  const groupWeight = getGroupWeights(config)[group];
   return (
     <FormRow label={group}>
-      <input
+      <KayentaInput
         type="number"
-        className="input-sm form-control"
         value={isNumber(groupWeight) ? groupWeight : ''}
         onChange={handleInputChange}
+        min={0}
+        max={100}
       />
     </FormRow>
   );

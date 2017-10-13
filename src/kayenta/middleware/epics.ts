@@ -1,7 +1,7 @@
 import { Observable } from 'rxjs/Observable';
 import 'rxjs/add/observable/concat';
 import { Action, MiddlewareAPI } from 'redux';
-import { createEpicMiddleware, combineEpics } from 'redux-observable';
+import { createEpicMiddleware, combineEpics, EpicMiddleware } from 'redux-observable';
 import {
   createCanaryConfig,
   deleteCanaryConfig,
@@ -13,6 +13,7 @@ import * as Actions from '../actions/index';
 import * as Creators from '../actions/creators';
 import { ICanaryState } from '../reducers/index';
 import { ReactInjector } from '@spinnaker/core';
+import { getCanaryJudgeResultById } from '../service/canaryJudgeResult.service';
 
 const typeMatches = (...actions: string[]) => (action: Action & any) => actions.includes(action.type);
 
@@ -66,11 +67,20 @@ const deleteConfigSuccessEpic = (action$: Observable<Action & any>, store: Middl
     .filter(typeMatches(Actions.DELETE_CONFIG_SUCCESS))
     .concatMap(() =>
       Observable.forkJoin(
-        ReactInjector.$state.go('^.default'),
+        ReactInjector.$state.go('^.configDefault'),
         // TODO: handle config summary load failure (in general, not just here).
         store.getState().data.application.getDataSource('canaryConfigs').refresh(true),
       )
     ).mapTo(Creators.closeDeleteConfigModal());
+
+const loadReportRequestEpic = (action$: Observable<Action & any>) =>
+  action$
+    .filter(typeMatches(Actions.LOAD_RESULT_REQUEST))
+    .concatMap(action =>
+      Observable.fromPromise(getCanaryJudgeResultById(action.payload.id))
+        .map(result => Creators.loadResultSuccess({ result }))
+        .catch((error: Error) => Observable.of(Creators.loadResultFailure({ error })))
+    );
 
 const rootEpic = combineEpics(
   loadConfigEpic,
@@ -78,6 +88,7 @@ const rootEpic = combineEpics(
   saveConfigEpic,
   deleteConfigRequestEpic,
   deleteConfigSuccessEpic,
+  loadReportRequestEpic,
 );
 
-export const epicMiddleware = createEpicMiddleware(rootEpic);
+export const epicMiddleware: EpicMiddleware<Action & any, ICanaryState> = createEpicMiddleware(rootEpic);

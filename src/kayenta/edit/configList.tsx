@@ -1,5 +1,7 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
+import { sortBy } from 'lodash';
+
 import { ICanaryState } from '../reducers';
 import { ICanaryConfigSummary } from '../domain/ICanaryConfigSummary';
 import { UISref, UISrefActive } from '@uirouter/react';
@@ -16,7 +18,7 @@ interface IConfigListStateProps {
  */
 function ConfigList({ configs, selectedConfigName }: IConfigListStateProps) {
   return (
-    <section>
+    <section className="config-list">
       <ul className="tabs-vertical list-unstyled">
         {configs.map(config => (
           <li key={config.name} className={config.name === selectedConfigName ? 'selected' : ''}>
@@ -40,7 +42,7 @@ function mapStateToProps(state: ICanaryState): IConfigListStateProps {
   const selectedConfigName = state.selectedConfig.config ? state.selectedConfig.config.name : null;
   return {
     selectedConfigName,
-    configs: state.data.configSummaries
+    configs: sortBy(state.data.configSummaries, 'name'),
   };
 }
 

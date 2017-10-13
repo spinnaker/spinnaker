@@ -11,9 +11,10 @@ import {
 import { CanarySettings } from 'kayenta/canary.settings';
 import {
   getCanaryConfigById,
-  getCanaryConfigSummaries
+  getCanaryConfigSummaries,
+  listKayentaAccounts,
 } from 'kayenta/service/canaryConfig.service';
-import { ICanaryConfig } from 'kayenta/domain/ICanaryConfig';
+import { ICanaryConfig, ICanaryConfigSummary, IKayentaAccount, KayentaAccountType } from 'kayenta/domain/index';
 import { CANARY_SCORES_CONFIG_COMPONENT } from 'kayenta/components/canaryScores.component';
 import { KayentaStageTransformer, KAYENTA_STAGE_TRANSFORMER } from './kayentaStage.transformer';
 import { KAYENTA_STAGE_EXECUTION_DETAILS_CONTROLLER } from './kayentaStageExecutionDetails.controller';
@@ -54,11 +55,12 @@ class CanaryStage implements IComponentController {
 
   public state = {
     useLookback: false,
-    summariesLoading: false,
+    backingDataLoading: false,
     detailsLoading: false,
   };
   public canaryConfigNames: string[] = [];
   public selectedCanaryConfigDetails: ICanaryConfig;
+  public kayentaAccounts = new Map<KayentaAccountType, IKayentaAccount[]>();
 
   constructor(private $scope: IScope, public stage: IKayentaStage) {
     'ngInject';
@@ -115,7 +117,7 @@ class CanaryStage implements IComponentController {
       this.state.useLookback = true;
     }
 
-    this.loadCanaryConfigNames();
+    this.loadBackingData();
   }
 
   private loadCanaryConfigDetails(): void {
@@ -152,14 +154,40 @@ class CanaryStage implements IComponentController {
     ).toString();
   }
 
-  private loadCanaryConfigNames(): void {
-    this.state.summariesLoading = true;
-    getCanaryConfigSummaries().then(summaries => {
-      this.state.summariesLoading = false;
-      this.canaryConfigNames = summaries.map(summary => summary.name);
-    }).catch(() => {
-      this.state.summariesLoading = false;
+  private loadBackingData(): void {
+    this.state.backingDataLoading = true;
+    Promise.all([
+      getCanaryConfigSummaries().then(this.setCanaryConfigNames),
+      listKayentaAccounts().then(this.setKayentaAccounts).then(this.deleteConfigAccountsIfMissing),
+    ]).then(() => this.state.backingDataLoading = false)
+      .catch(() => this.state.backingDataLoading = false);
+  }
+
+  private setKayentaAccounts(accounts: IKayentaAccount[]): void {
+    accounts.forEach(account => {
+      account.supportedTypes.forEach(type => {
+        if (this.kayentaAccounts.has(type)) {
+          this.kayentaAccounts.set(type, this.kayentaAccounts.get(type).concat([account]));
+        } else {
+          this.kayentaAccounts.set(type, [account]);
+        }
+      });
     });
+  }
+
+  private deleteConfigAccountsIfMissing(): void {
+    if ((this.kayentaAccounts.get(KayentaAccountType.ObjectStore) || [])
+          .every(account => account.name !== this.stage.canaryConfig.storageAccountName)) {
+      delete this.stage.canaryConfig.storageAccountName;
+    }
+    if ((this.kayentaAccounts.get(KayentaAccountType.MetricsStore) || [])
+          .every(account => account.name !== this.stage.canaryConfig.metricsAccountName)) {
+      delete this.stage.canaryConfig.metricsAccountName;
+    }
+  }
+
+  private setCanaryConfigNames(summaries: ICanaryConfigSummary[]): void {
+    this.canaryConfigNames = summaries.map(summary => summary.name);
   }
 }
 
@@ -196,6 +224,8 @@ module(KAYENTA_CANARY_STAGE, [
         { type: 'requiredField', fieldName: 'canaryConfig.canaryConfigId', fieldLabel: 'Config Name' },
         { type: 'requiredField', fieldName: 'canaryConfig.controlScope', fieldLabel: 'Baseline Scope' },
         { type: 'requiredField', fieldName: 'canaryConfig.experimentScope', fieldLabel: 'Canary Scope' },
+        { type: 'requiredField', fieldName: 'canaryConfig.metricsAccountName', fieldLabel: 'Metrics Account'},
+        { type: 'requiredField', fieldName: 'canaryConfig.storageAccountName', fieldLabel: 'Storage Account'},
         { type: 'custom', validate: requiredForAnalysisType(KayentaAnalysisType.RealTime, 'canaryConfig.lifetimeHours', 'Lifetime')},
         { type: 'custom', validate: requiredForAnalysisType(KayentaAnalysisType.Retrospective, 'canaryConfig.startTimeIso', 'Start Time')},
         { type: 'custom', validate: requiredForAnalysisType(KayentaAnalysisType.Retrospective, 'canaryConfig.endTimeIso', 'End Time')},

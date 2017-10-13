@@ -1,8 +1,9 @@
 import * as React from 'react';
 import { ICanaryMetricConfig } from '../domain/ICanaryConfig';
 import metricStoreConfigService from 'kayenta/metricStore/metricStoreConfig.service';
+import ChangeMetricGroup from './changeMetricGroup';
 
-interface IMetricDetailProps {
+export interface IMetricDetailProps {
   metric: ICanaryMetricConfig;
   showGroups: boolean;
   edit: (event: any) => void;
@@ -33,6 +34,7 @@ export default function MetricDetail({ metric, showGroups, edit, remove }: IMetr
           data-id={metric.id}
           onClick={edit}
         />
+        <ChangeMetricGroup metric={metric}/>
         <i
           className="fa fa-trash"
           data-id={metric.id}

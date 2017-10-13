@@ -1,5 +1,4 @@
 @import (reference) "~coreImports";
-@import (reference) "~coreColors";
 
 .score.score-label {
   font-size: 110%;
@@ -9,27 +8,27 @@
   line-height: 14px;
   color: white;
   &.label-failing {
-    background-color: @unhealthy_orange;
+    background-color: var(--color-alert-light);
     &.inverse {
-      color: @unhealthy_orange;
+      color: var(--color-alert-light);
     }
   }
   &.label-healthy {
-    background-color: @healthy_green_border;
+    background-color: var(--color-success);
     &.inverse {
-      color: @healthy_green_border;
+      color: var(--color-success);
     }
   }
   &.label-unhealthy {
-    background-color: @unhealthy_red;
+    background-color: var(--color-danger);
     &.inverse {
-      color: @unhealthy_red;
+      color: var(--color-danger);
     }
   }
   &.label-unknown {
-    background-color: @unknown-label-color;
+    background-color: var(--color-text-caption);
     &.inverse {
-      color: @unknown-label-color;
+      color: var(--color-text-caption);
     }
   }
   &.inverse {

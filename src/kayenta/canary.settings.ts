@@ -8,6 +8,8 @@ export interface ICanarySettings {
   defaultJudge: string;
   metricStore: string;
   defaultServiceSettings: {[key: string]: any};
+  reportsEnabled: boolean;
+  stagesEnabled: boolean;
 }
 
 export const CanarySettings = <ICanarySettings>SETTINGS.canary;

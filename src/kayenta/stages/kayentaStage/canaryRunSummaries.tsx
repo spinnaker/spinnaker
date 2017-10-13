@@ -8,7 +8,7 @@ const { CopyToClipboard } = NgReact;
 
 import './canaryRunSummaries.less';
 
-interface ICanarySummariesProps {
+export interface ICanarySummariesProps {
   canaryRuns: IStage[];
 }
 
@@ -27,7 +27,7 @@ export default function CanaryRunSummaries({ canaryRuns }: ICanarySummariesProps
   return (
     <Styleguide>
       <div className="canary-run-summaries">
-        {rows.map(row => <div className="grey-border-bottom">{row}</div>)}
+        {rows.map((row, i) => <div className="grey-border-bottom" key={i}>{row}</div>)}
       </div>
     </Styleguide>
   );

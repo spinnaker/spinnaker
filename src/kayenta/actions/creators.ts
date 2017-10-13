@@ -5,6 +5,8 @@ import { ConfigJsonModalTabState } from '../edit/configJsonModal';
 import { ICanaryConfig } from '../domain/ICanaryConfig';
 import { ICanaryConfigSummary } from '../domain/ICanaryConfigSummary';
 import { IJudge } from '../domain/IJudge';
+import { ICanaryJudgeResult } from '../domain/ICanaryJudgeResult';
+import { ICanaryJudgeResultSummary } from '../domain/ICanaryJudgeResultSummary';
 
 const typedPayloadCreator = <T>() => (payload: T): T => payload;
 
@@ -24,6 +26,7 @@ export const deleteConfigSuccess = createAction(Actions.DELETE_CONFIG_SUCCESS);
 export const loadConfigRequest = createAction(Actions.LOAD_CONFIG_REQUEST, typedPayloadCreator<{configName: string}>());
 export const saveConfigSuccess = createAction(Actions.SAVE_CONFIG_SUCCESS, typedPayloadCreator<{configName: string}>());
 export const selectConfig = createAction(Actions.SELECT_CONFIG, typedPayloadCreator<{config: ICanaryConfig}>());
+export const clearSelectedConfig = createAction(Actions.CLEAR_SELECTED_CONFIG);
 export const renameMetric = createAction(Actions.RENAME_METRIC, typedPayloadCreator<{id: string, name: string}>());
 export const selectGroup = createAction(Actions.SELECT_GROUP, typedPayloadCreator<{name: string}>());
 export const updateGroupWeight = createAction(Actions.UPDATE_GROUP_WEIGHT, typedPayloadCreator<{group: string, weight: number}>());
@@ -45,3 +48,11 @@ export const createNewConfig = createAction(Actions.CREATE_NEW_CONFIG);
 export const editGroupBegin = createAction(Actions.EDIT_GROUP_BEGIN, typedPayloadCreator<{group: string}>());
 export const editGroupUpdate = createAction(Actions.EDIT_GROUP_UPDATE, typedPayloadCreator<{edit: string}>());
 export const editGroupConfirm = createAction(Actions.EDIT_GROUP_CONFIRM, typedPayloadCreator<{group: string, edit: string}>());
+export const changeMetricGroupSelect = createAction(Actions.CHANGE_METRIC_GROUP_SELECT, typedPayloadCreator<{group: string}>());
+export const changeMetricGroupConfirm = createAction(Actions.CHANGE_METRIC_GROUP_CONFIRM, typedPayloadCreator<{metricId: string}>());
+export const loadResultRequest = createAction(Actions.LOAD_RESULT_REQUEST, typedPayloadCreator<{id: string}>());
+export const loadResultSuccess = createAction(Actions.LOAD_RESULT_SUCCESS, typedPayloadCreator<{result: ICanaryJudgeResult}>());
+export const loadResultFailure = createAction(Actions.LOAD_RESULT_FAILURE, typedPayloadCreator<{error: Error}>());
+export const selectResultMetricGroup = createAction(Actions.SELECT_RESULT_METRIC_GROUP, typedPayloadCreator<{group: string}>());
+export const selectResultMetric = createAction(Actions.SELECT_RESULT_METRIC, typedPayloadCreator<{metric: string}>());
+export const updateResultSummaries = createAction(Actions.UPDATE_RESULT_SUMMARIES, typedPayloadCreator<{resultSummaries: ICanaryJudgeResultSummary[]}>());

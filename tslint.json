@@ -13,6 +13,7 @@
       true,
       "spaces"
     ],
+    "jsx-no-lambda": false,
     "label-position": true,
     "max-line-length": false,
     "member-access": true,

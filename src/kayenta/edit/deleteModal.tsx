@@ -7,6 +7,7 @@ import * as classNames from 'classnames';
 import * as Creators from 'kayenta/actions/creators';
 import { ICanaryState } from '../reducers/index';
 import Styleguide from '../layout/styleguide';
+import { AsyncRequestState } from '../reducers/asyncRequest';
 
 interface IDeleteModalDispatchProps {
   closeDeleteConfigModal: () => void;
@@ -16,14 +17,8 @@ interface IDeleteModalDispatchProps {
 interface IDeleteModalStateProps {
   show: boolean;
   selectedConfigName: string;
-  deleteConfigState: DeleteConfigState;
+  deleteConfigState: AsyncRequestState;
   deleteConfigErrorMessage: string;
-}
-
-export enum DeleteConfigState {
-  Deleting,
-  Completed,
-  Error,
 }
 
 /*
@@ -36,7 +31,7 @@ function DeleteConfigModal({ show, selectedConfigName, deleteConfigState, delete
         <Modal.Header>
           <Modal.Title>Really delete {selectedConfigName}?</Modal.Title>
         </Modal.Header>
-        { deleteConfigState === DeleteConfigState.Error && (
+        {deleteConfigState === AsyncRequestState.Failed && (
           <Modal.Body>
             {/*TODO: create generic error message component */}
             <span className={classNames('alert', 'alert-danger')}>

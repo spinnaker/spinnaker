@@ -1,12 +1,14 @@
 import * as React from 'react';
+import * as classNames from 'classnames';
 
 export interface ITabsProps {
   children: any;
+  className?: string;
 }
 
-export function Tabs({ children }: ITabsProps) {
+export function Tabs({ children, className }: ITabsProps) {
   return (
-    <ul className="tabs-basic list-unstyled">
+    <ul className={classNames('tabs-basic', 'list-unstyled', className)}>
       {children}
     </ul>
   );
@@ -15,11 +17,12 @@ export function Tabs({ children }: ITabsProps) {
 export interface ITabProps {
   selected: boolean;
   children: JSX.Element | JSX.Element[];
+  className?: string;
 }
 
-export function Tab({ selected = false, children }: ITabProps) {
+export function Tab({ selected = false, children, className }: ITabProps) {
   return (
-    <li className={selected ? 'selected' : ''}>
+    <li className={classNames(selected ? 'selected' : '', className)}>
       {children}
     </li>
   );

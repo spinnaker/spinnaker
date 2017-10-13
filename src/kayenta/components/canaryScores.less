@@ -1,5 +1,3 @@
-@import (reference) "~coreColors";
-
 div.canary-score {
   div.progress {
     border-radius: 0;
@@ -13,12 +11,12 @@ div.canary-score {
     -webkit-box-shadow: none;
   }
   div.progress-bar-danger {
-    background-color: @unhealthy_red;
+    background-color: var(--color-danger);
   }
   div.progress-bar.progress-bar-warning {
-    background-color: @mid_light_grey;
+    background-color: var(--color-alto);
   }
   div.progress-bar.progress-bar-success {
-    background-color: @healthy_green;
+    background-color: var(--color-success-light);
   }
 }

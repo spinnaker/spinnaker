@@ -1,15 +1,11 @@
 import { module } from 'angular';
 
-import {
-  APPLICATION_DATA_SOURCE_REGISTRY,
-  ApplicationDataSourceRegistry,
-} from '@spinnaker/core';
-
+import { CanarySettings } from 'kayenta/canary.settings';
 import { CANARY_COMPONENTS } from 'kayenta/components/components.module';
 import { CANARY_DATA_SOURCE } from 'kayenta/canary.dataSource';
 import { CANARY_HELP } from 'kayenta/canary.help';
 import { CANARY_STAGES } from 'kayenta/stages/stages.module';
-import { CANARY_STATES } from 'kayenta/canary.states';
+import { CANARY_STATES } from 'kayenta/navigation/canary.states';
 import 'kayenta/metricStore/index';
 
 // load all templates into the $templateCache
@@ -18,17 +14,17 @@ templates.keys().forEach(function (key) {
   templates(key);
 });
 
-export const KAYENTA_MODULE = 'spinnaker.kayenta';
-module(KAYENTA_MODULE, [
-  APPLICATION_DATA_SOURCE_REGISTRY,
+const modules = [
   CANARY_COMPONENTS,
   CANARY_DATA_SOURCE,
   CANARY_HELP,
-  CANARY_STAGES,
   CANARY_STATES,
-]).run((applicationDataSourceRegistry: ApplicationDataSourceRegistry) => {
-  // Should be dropped when deck-kayenta is a library (not running as its own app).
-  applicationDataSourceRegistry.setDataSourceOrder([
-    'executions', 'serverGroups', 'tasks', 'canary', 'loadBalancers', 'securityGroups', 'config'
-  ]);
-});
+];
+
+export const KAYENTA_MODULE = 'spinnaker.kayenta';
+module(
+  KAYENTA_MODULE,
+  CanarySettings.stagesEnabled
+    ? [CANARY_STAGES, ...modules]
+    : modules
+);

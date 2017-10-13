@@ -8,11 +8,12 @@ export const KAYENTA_CLASS = 'kayenta';
 
 export interface IStyleguideProps {
   children: JSX.Element | JSX.Element[];
+  className?: string;
 }
 
-export default function Styleguide({children}: IStyleguideProps) {
+export default function Styleguide({ children, className }: IStyleguideProps) {
   return (
-    <div className={classNames(STYLEGUIDE_CLASS, KAYENTA_CLASS)}>
+    <div className={classNames(STYLEGUIDE_CLASS, KAYENTA_CLASS, className)}>
       {children}
     </div>
   );

@@ -4,6 +4,8 @@ import autoBindMethods from 'class-autobind-decorator';
 
 import { HelpField } from '@spinnaker/core';
 
+import KayentaInput from '../layout/kayentaInput';
+
 import './canaryScores.less';
 
 export interface IScoreConfig {
@@ -55,12 +57,12 @@ export class CanaryScores extends React.Component<ICanaryScoresProps> {
                 <HelpField id={this.props.unhealthyHelpFieldId || 'pipeline.config.canary.unhealthyScore'}/>
               </div>
               <div className="col-md-2">
-                <input
+                <KayentaInput
                   type="number"
                   required={true}
                   value={Number.isNaN(unhealthy) ? '' : unhealthy}
                   onChange={this.handleUnhealthyChange}
-                  className={`form-control input-sm ${this.isUnhealthyScoreValid(successful, unhealthy) ? '' : 'ng-invalid ng-invalid-validate-min'}`}
+                  className={this.isUnhealthyScoreValid(successful, unhealthy) ? '' : 'ng-invalid ng-invalid-validate-min'}
                 />
               </div>
               <div className="col-md-2 col-md-offset-1 sm-label-right">
@@ -68,12 +70,12 @@ export class CanaryScores extends React.Component<ICanaryScoresProps> {
                 <HelpField id={this.props.successfulHelpFieldId || 'pipeline.config.canary.successfulScore'}/>
               </div>
               <div className="col-md-2">
-                <input
+                <KayentaInput
                   type="number"
                   required={true}
                   value={Number.isNaN(successful) ? '' : successful}
                   onChange={this.handleSuccessfulChange}
-                  className={`form-control input-sm ${this.isSuccessfulScoreValid(successful, unhealthy) ? '' : 'ng-invalid ng-invalid-validate-max'}`}
+                  className={this.isSuccessfulScoreValid(successful, unhealthy) ? '' : 'ng-invalid ng-invalid-validate-max'}
                 />
               </div>
             </div>

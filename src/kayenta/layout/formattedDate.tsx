@@ -3,7 +3,7 @@ import * as moment from 'moment-timezone';
 
 import { SETTINGS } from '@spinnaker/core';
 
-interface IDateLabelProps {
+export interface IDateLabelProps {
   dateIso: string;
   format?: string;
 }

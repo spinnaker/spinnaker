@@ -8,7 +8,9 @@ var fiatEnabled = process.env.FIAT_ENABLED === 'true' ? true : false;
 var entityTagsEnabled = process.env.ENTITY_TAGS_ENABLED === 'true' ? true : false;
 var liveCallsEnabled = process.env.LIVE_CALLS === 'true';
 var reduxLoggerEnabled = process.env.REDUX_LOGGER === 'true';
+var canaryReportsEnabled = process.env.CANARY_REPORTS_ENABLED === 'true';
 var defaultMetricStore = process.env.METRIC_STORE || 'atlas';
+var canaryStagesEnabled = process.env.CANARY_STAGES_ENABLED === 'true';
 
 window.spinnakerSettings = {
   checkForUpdates: true,
@@ -72,6 +74,8 @@ window.spinnakerSettings = {
     storageAccountName: 'my-google-account',
     defaultJudge: 'NetflixACAJudge-v1.0',
     metricStore: defaultMetricStore,
+    reportsEnabled: canaryReportsEnabled,
+    stagesEnabled: canaryStagesEnabled,
     defaultServiceSettings: {
       atlas: {
         name: 'atlas',

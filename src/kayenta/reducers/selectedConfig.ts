@@ -1,11 +1,8 @@
 import { Action, combineReducers } from 'redux';
 import { combineActions, handleActions } from 'redux-actions';
-import { get, has, omit } from 'lodash';
+import { get, has, omit, chain, pick, fromPairs } from 'lodash';
 
 import * as Actions from '../actions';
-import { DeleteConfigState } from '../edit/deleteModal';
-import { SaveConfigState } from '../edit/save';
-import { ConfigDetailLoadState } from '../edit/configDetailLoader';
 import { IJudge } from '../domain/IJudge';
 import {
   GroupWeights,
@@ -18,34 +15,40 @@ import { CanarySettings } from '../canary.settings';
 import { IGroupState, group } from './group';
 import { JudgeSelectRenderState } from '../edit/judgeSelect';
 import { UNGROUPED, ALL } from '../edit/groupTabs';
+import { AsyncRequestState } from './asyncRequest';
 
-interface ILoadState {
-  state: ConfigDetailLoadState;
+export interface ILoadState {
+  state: AsyncRequestState;
 }
 
-interface ISaveState {
-  state: SaveConfigState;
+export interface ISaveState {
+  state: AsyncRequestState;
   error: string;
 }
 
 // Mixing destroy/delete here because delete is a JS keyword.
-interface IDestroyState {
-  state: DeleteConfigState;
+export interface IDestroyState {
+  state: AsyncRequestState;
   error: string;
 }
 
-interface IJsonState {
+export interface IJsonState {
   configJson: string;
   error: string;
 }
 
-interface IJudgeState {
+export interface IJudgeState {
   judgeConfig: ICanaryJudgeConfig;
   renderState: JudgeSelectRenderState;
 }
 
+export interface IChangeMetricGroupState {
+  toGroup: string;
+}
+
 export interface ISelectedConfigState {
   config: ICanaryConfig;
+  isInSyncWithServer: boolean;
   metricList: ICanaryMetricConfig[];
   editingMetric: ICanaryMetricConfig;
   thresholds: ICanaryClassifierThresholdsConfig;
@@ -55,21 +58,22 @@ export interface ISelectedConfigState {
   save: ISaveState;
   destroy: IDestroyState;
   json: IJsonState;
+  changeMetricGroup: IChangeMetricGroupState;
 }
 
 const config = handleActions({
   [Actions.SELECT_CONFIG]: (_state: ICanaryConfig, action: Action & any) => action.payload.config,
   [Actions.UPDATE_CONFIG_NAME]: (state: ICanaryConfig, action: Action & any) => ({ ...state, name: action.payload.name }),
   [Actions.UPDATE_CONFIG_DESCRIPTION]: (state: ICanaryConfig, action: Action & any) => ({ ...state, description: action.payload.description }),
-  [Actions.DELETE_CONFIG_SUCCESS]: () => null,
+  [combineActions(Actions.DELETE_CONFIG_SUCCESS, Actions.CLEAR_SELECTED_CONFIG)]: () => null,
 }, null);
 
 const load = combineReducers({
   state: handleActions({
-    [Actions.LOAD_CONFIG_REQUEST]: () => ConfigDetailLoadState.Loading,
-    [Actions.LOAD_CONFIG_FAILURE]: () => ConfigDetailLoadState.Error,
-    [Actions.SELECT_CONFIG]: () => ConfigDetailLoadState.Loaded,
-  }, ConfigDetailLoadState.Loading),
+    [Actions.LOAD_CONFIG_REQUEST]: () => AsyncRequestState.Requesting,
+    [Actions.LOAD_CONFIG_FAILURE]: () => AsyncRequestState.Failed,
+    [Actions.SELECT_CONFIG]: () => AsyncRequestState.Fulfilled,
+  }, AsyncRequestState.Requesting),
 });
 
 function idMetrics(metrics: ICanaryMetricConfig[] = []) {
@@ -94,11 +98,10 @@ const editingMetric = handleActions({
 
 const save = combineReducers<ISaveState>({
   state: handleActions({
-    [Actions.SAVE_CONFIG_REQUEST]: () => SaveConfigState.Saving,
-    [Actions.SAVE_CONFIG_SUCCESS]: () => SaveConfigState.Saved,
-    [Actions.SAVE_CONFIG_FAILURE]: () => SaveConfigState.Error,
-    [Actions.DISMISS_SAVE_CONFIG_ERROR]: () => SaveConfigState.Saved,
-  }, SaveConfigState.Saved),
+    [Actions.SAVE_CONFIG_REQUEST]: () => AsyncRequestState.Requesting,
+    [combineActions(Actions.SAVE_CONFIG_SUCCESS, Actions.DISMISS_SAVE_CONFIG_ERROR)]: () => AsyncRequestState.Fulfilled,
+    [Actions.SAVE_CONFIG_FAILURE]: () => AsyncRequestState.Failed,
+  }, AsyncRequestState.Fulfilled),
   error: handleActions({
     [Actions.SAVE_CONFIG_FAILURE]: (_state: string, action: Action & any) => get(action, 'payload.error.data.message', null),
   }, null),
@@ -106,10 +109,10 @@ const save = combineReducers<ISaveState>({
 
 const destroy = combineReducers<IDestroyState>({
   state: handleActions({
-    [Actions.DELETE_CONFIG_REQUEST]: () => DeleteConfigState.Deleting,
-    [Actions.DELETE_CONFIG_SUCCESS]: () => DeleteConfigState.Completed,
-    [Actions.DELETE_CONFIG_FAILURE]: () => DeleteConfigState.Error,
-  }, DeleteConfigState.Completed),
+    [Actions.DELETE_CONFIG_REQUEST]: () => AsyncRequestState.Requesting,
+    [Actions.DELETE_CONFIG_SUCCESS]: () => AsyncRequestState.Fulfilled,
+    [Actions.DELETE_CONFIG_FAILURE]: () => AsyncRequestState.Failed,
+  }, AsyncRequestState.Fulfilled),
   error: handleActions({
     [Actions.DELETE_CONFIG_FAILURE]: (_state: string, action: Action & any) => get(action, 'payload.error.data.message', null),
   }, null),
@@ -157,6 +160,14 @@ const thresholds = handleActions({
   })
 }, null);
 
+const changeMetricGroup = combineReducers<IChangeMetricGroupState>({
+  toGroup: handleActions({
+    [Actions.CHANGE_METRIC_GROUP_SELECT]: (_state: string, action: Action & any) => action.payload.group,
+  }, null),
+});
+
+const isInSyncWithServer = handleActions({}, null);
+
 // This reducer needs to be able to access both metricList and editingMetric so it won't fit the combineReducers paradigm.
 function editingMetricReducer(state: ISelectedConfigState = null, action: Action & any): ISelectedConfigState {
   switch (action.type) {
@@ -195,7 +206,7 @@ function selectedJudgeReducer(state: ISelectedConfigState = null, action: Action
   }
 }
 
-export function editGroupConfirm(state: ISelectedConfigState = null, action: Action & any): ISelectedConfigState {
+export function editGroupConfirmReducer(state: ISelectedConfigState = null, action: Action & any): ISelectedConfigState {
   if (action.type !== Actions.EDIT_GROUP_CONFIRM) {
     return state;
   }
@@ -207,7 +218,7 @@ export function editGroupConfirm(state: ISelectedConfigState = null, action: Act
 
   const metricUpdator = (c: ICanaryMetricConfig): ICanaryMetricConfig => ({
     ...c,
-    groups: [edit].concat((c.groups || []).filter(g => g !== group)),
+    groups: (c.groups || []).includes(group) ? [edit].concat((c.groups || []).filter(g => g !== group)) : c.groups,
   });
 
   const weightsUpdator = (weights: GroupWeights): GroupWeights => {
@@ -232,6 +243,58 @@ export function editGroupConfirm(state: ISelectedConfigState = null, action: Act
   };
 }
 
+export function changeMetricGroupConfirmReducer(state: ISelectedConfigState, action: Action & any): ISelectedConfigState {
+  if (action.type !== Actions.CHANGE_METRIC_GROUP_CONFIRM) {
+    return state;
+  }
+
+  const { changeMetricGroup: { toGroup } } = state;
+  const { payload: { metricId } } = action;
+
+  const metricUpdator = (m: ICanaryMetricConfig): ICanaryMetricConfig => ({
+    ...m,
+    groups: m.id === metricId
+      ? (toGroup === UNGROUPED ? [] : [toGroup])
+      : m.groups,
+  });
+
+  return {
+    ...state,
+    metricList: state.metricList.map(metricUpdator),
+  };
+}
+
+export function updateGroupWeightsReducer(state: ISelectedConfigState, action: Action & any): ISelectedConfigState {
+  if (![Actions.SELECT_CONFIG,
+        Actions.CHANGE_METRIC_GROUP_CONFIRM,
+        Actions.ADD_METRIC,
+        Actions.REMOVE_METRIC].includes(action.type)) {
+    return state;
+  }
+
+  const groups = chain(state.metricList)
+    .flatMap(metric => metric.groups)
+    .uniq()
+    .value();
+
+  // Prune weights for groups that no longer exist.
+  let groupWeights: GroupWeights = pick(state.group.groupWeights, groups);
+
+  // Initialize weights for new groups.
+  groupWeights = {
+    ...fromPairs(groups.map(g => [g, 0])),
+    ...groupWeights,
+  };
+
+  return {
+    ...state,
+    group: {
+      ...state.group,
+      groupWeights,
+    }
+  };
+}
+
 const combined = combineReducers<ISelectedConfigState>({
   config,
   load,
@@ -243,6 +306,8 @@ const combined = combineReducers<ISelectedConfigState>({
   editingMetric,
   group,
   thresholds,
+  changeMetricGroup,
+  isInSyncWithServer,
 });
 
 // First combine all simple reducers, then apply more complex ones as needed.
@@ -251,6 +316,8 @@ export const selectedConfig = (state: ISelectedConfigState, action: Action & any
     combined,
     editingMetricReducer,
     selectedJudgeReducer,
-    editGroupConfirm,
+    editGroupConfirmReducer,
+    changeMetricGroupConfirmReducer,
+    updateGroupWeightsReducer,
   ].reduce((s, reducer) => reducer(s, action), state);
 };
