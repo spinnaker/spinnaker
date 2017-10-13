@@ -36,13 +36,9 @@ import org.springframework.stereotype.Component;
 import rx.Observable;
 import rx.functions.Action1;
 
-import java.lang.reflect.Field;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 /**
  * Triggers pipelines in _Orca_ when a trigger-enabled pubsub message arrives.
@@ -124,25 +120,8 @@ public class PubsubEventMonitor extends TriggerMonitor {
 
     Predicate<Artifact> expectedArtifactMatch = a -> trigger.getExpectedArtifacts()
         .stream()
-        .anyMatch(e -> expectedMatch(e, a));
+        .anyMatch(e -> e.matches(a));
     return messageArtifacts.stream().anyMatch(expectedArtifactMatch);
-  }
-
-  private Boolean expectedMatch(ExpectedArtifact e, Artifact a) {
-    return e.getFields().stream()
-        .filter(field -> field.getFieldType().equals(ExpectedArtifact.ArtifactField.FieldType.MUST_MATCH))
-        .allMatch(field -> { // Look up the field in the actual artifact and check that the values match.
-          try {
-            Field declaredField = a.getClass().getDeclaredField(field.getFieldName());
-            declaredField.setAccessible(true);
-            String actualValue = (String) declaredField.get(a); // Note: all fields we can match on are Strings.
-            declaredField.setAccessible(false);
-            return actualValue.equals(field.getValue());
-          } catch (IllegalAccessException | NoSuchFieldException ex) {
-            log.error(ex.getMessage());
-            return false;
-          }
-        });
   }
 
   @Override

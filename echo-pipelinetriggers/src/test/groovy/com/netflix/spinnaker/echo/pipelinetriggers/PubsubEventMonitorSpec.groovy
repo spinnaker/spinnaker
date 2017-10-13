@@ -45,18 +45,10 @@ class PubsubEventMonitorSpec extends Specification implements RetrofitStubs {
   @Shared def badArtifacts = [new Artifact(name: 'myBadArtifact', type: 'badArtifactType')]
 
   @Shared def goodExpectedArtifacts = [
-      new ExpectedArtifact(fields: [
-          new ExpectedArtifact.ArtifactField(
-              fieldName: 'name',
-              fieldType: ExpectedArtifact.ArtifactField.FieldType.MUST_MATCH,
-              value: 'myArtifact',
-          ),
-          new ExpectedArtifact.ArtifactField(
-              fieldName: 'type',
-              fieldType: ExpectedArtifact.ArtifactField.FieldType.MUST_MATCH,
-              value: 'artifactType',
-          ),
-      ])
+      new ExpectedArtifact(matchArtifact: new Artifact(
+          name: 'myArtifact',
+          type: 'artifactType'
+      ))
   ]
 
   @Subject
