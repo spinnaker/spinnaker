@@ -71,14 +71,14 @@ public class GooglePubsubSubscriber implements PubsubSubscriber {
     return String.format("projects/%s/subscriptions/%s", project, name);
   }
 
-  public static GooglePubsubSubscriber buildSubscriber(String name,
+  public static GooglePubsubSubscriber buildSubscriber(String subscriptionName,
                                                        String project,
                                                        String jsonPath,
                                                        Integer ackDeadlineSeconds,
                                                        PubsubMessageHandler pubsubMessageHandler,
                                                        String templatePath) {
     Subscriber subscriber;
-    GooglePubsubMessageReceiver messageReceiver = new GooglePubsubMessageReceiver(ackDeadlineSeconds, formatSubscriptionName(project, name), pubsubMessageHandler, templatePath);
+    GooglePubsubMessageReceiver messageReceiver = new GooglePubsubMessageReceiver(ackDeadlineSeconds, formatSubscriptionName(project, subscriptionName), pubsubMessageHandler, templatePath);
 
     if (jsonPath != null && !jsonPath.isEmpty()) {
       Credentials credentials = null;
@@ -88,17 +88,17 @@ public class GooglePubsubSubscriber implements PubsubSubscriber {
         log.error("Could not import Google Pubsub json credentials: {}", e.getMessage());
       }
       subscriber = Subscriber
-          .defaultBuilder(SubscriptionName.create(project, name), messageReceiver)
+          .defaultBuilder(SubscriptionName.create(project, subscriptionName), messageReceiver)
           .setCredentialsProvider(FixedCredentialsProvider.create(credentials))
           .setMaxAckExtensionPeriod(Duration.ofSeconds(0))
           .build();
     } else {
-      subscriber = Subscriber.defaultBuilder(SubscriptionName.create(project, name), messageReceiver).build();
+      subscriber = Subscriber.defaultBuilder(SubscriptionName.create(project, subscriptionName), messageReceiver).build();
     }
 
-    subscriber.addListener(new GooglePubsubFailureHandler(formatSubscriptionName(project, name)), MoreExecutors.directExecutor());
+    subscriber.addListener(new GooglePubsubFailureHandler(formatSubscriptionName(project, subscriptionName)), MoreExecutors.directExecutor());
 
-    return new GooglePubsubSubscriber(name, project, subscriber);
+    return new GooglePubsubSubscriber(subscriptionName, project, subscriber);
   }
 
 

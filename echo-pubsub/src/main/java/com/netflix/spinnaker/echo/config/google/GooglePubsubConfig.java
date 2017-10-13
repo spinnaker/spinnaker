@@ -52,16 +52,16 @@ public class GooglePubsubConfig {
     log.info("Creating Google Pubsub Subscribers");
     List<PubsubSubscriber> newSubscribers = new ArrayList<>();
     googlePubsubProperties.getSubscriptions().forEach((GooglePubsubProperties.GooglePubsubSubscription subscription) -> {
-      String name = subscription.getName();
+      String subscriptionName = subscription.getSubscriptionName();
       String project = subscription.getProject();
       String jsonPath = subscription.getJsonPath();
       String templatePath = subscription.getTemplatePath();
 
       log.info("Bootstrapping Google Pubsub Subscriber listening to subscription: {} in project: {}",
-          subscription.getName(),
+          subscription.getSubscriptionName(),
           subscription.getProject());
       GooglePubsubSubscriber subscriber = GooglePubsubSubscriber
-          .buildSubscriber(name, project, jsonPath, subscription.getAckDeadlineSeconds(), pubsubMessageHandler, templatePath);
+          .buildSubscriber(subscriptionName, project, jsonPath, subscription.getAckDeadlineSeconds(), pubsubMessageHandler, templatePath);
 
       newSubscribers.add(subscriber);
     });

@@ -40,7 +40,7 @@ public class GooglePubsubProperties {
     private String project;
 
     @NotEmpty
-    private String name;
+    private String subscriptionName;
 
     @NotNull
     private Integer ackDeadlineSeconds = 10;
