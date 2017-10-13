@@ -14,7 +14,7 @@ class PipelineInitiatorSpec extends Specification {
 
   def "calls Orca if enabled"() {
     given:
-    @Subject pipelineInitiator = new PipelineInitiator(counter, orca, true, false)
+    @Subject pipelineInitiator = new PipelineInitiator(counter, orca, true, false, 5, 5000)
 
     when:
     pipelineInitiator.call(pipeline)
@@ -28,7 +28,7 @@ class PipelineInitiatorSpec extends Specification {
 
   def "does not call Orca if disabled"() {
     given:
-    @Subject pipelineInitiator = new PipelineInitiator(counter, orca, false, false)
+    @Subject pipelineInitiator = new PipelineInitiator(counter, orca, false, false, 5, 5000)
 
     when:
     pipelineInitiator.call(pipeline)
