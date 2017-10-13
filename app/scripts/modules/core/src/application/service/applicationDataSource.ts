@@ -375,6 +375,7 @@ export class ApplicationDataSource implements IDataSourceConfig {
       this.refreshStream.take(1).subscribe(deferred.resolve);
       this.refreshFailureStream.take(1).subscribe(deferred.reject);
     }
+    deferred.promise.catch(() => {});
     return deferred.promise;
   }
 
