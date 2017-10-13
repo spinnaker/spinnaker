@@ -124,7 +124,10 @@ module(CANARY_STATES, [APPLICATION_STATE_PROVIDER])
 }).run(($uiRouter: UIRouter) => {
   // When leaving a config detail state, clear that config.
   $uiRouter.transitionService.onBefore(
-    { from: '**.configDetail.**' },
+    {
+      from: '**.configDetail.**',
+      to: state => !state.name.includes('configDetail'),
+    },
     () => { canaryStore.dispatch(Creators.clearSelectedConfig()); },
   );
 });
