@@ -50,7 +50,7 @@ class AppengineGcsRepositoryClient implements AppengineRepositoryClient {
 
     def fullPath = repositoryUrl.substring(gsPrefix.length())
     if (applicationDirectoryRoot) {
-      fullPath + '/' + applicationDirectoryRoot
+      fullPath += "/${applicationDirectoryRoot}"
     }
     def slash = fullPath.indexOf("/")
     def bucketName = fullPath.substring(0, slash)
