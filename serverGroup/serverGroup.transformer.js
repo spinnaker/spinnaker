@@ -33,9 +33,31 @@ module.exports = angular
       return command;
     }
 
+    function constructNewStepScalingPolicyTemplate(serverGroup) {
+      return {
+        alarms: [{
+          namespace: 'NFLX/EPIC',
+          metricName: 'CPUUtilization',
+          threshold: 50,
+          statistic: 'Average',
+          comparisonOperator: 'GreaterThanThreshold',
+          evaluationPeriods: 1,
+          dimensions: [{ name: 'AutoScalingGroupName', value: serverGroup.name}],
+          period: 60,
+        }],
+        adjustmentType: 'ChangeInCapacity',
+        stepAdjustments: [{
+          scalingAdjustment: 1,
+          metricIntervalLowerBound: 0,
+        }],
+        cooldown: 300,
+      };
+    }
+
     return {
-      convertServerGroupCommandToDeployConfiguration: convertServerGroupCommandToDeployConfiguration,
-      normalizeServerGroup: normalizeServerGroup,
+      convertServerGroupCommandToDeployConfiguration,
+      normalizeServerGroup,
+      constructNewStepScalingPolicyTemplate
     };
 
   });

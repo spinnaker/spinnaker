@@ -3,6 +3,9 @@
 const angular = require('angular');
 import _ from 'lodash';
 
+import { SCALING_POLICY_MODULE } from './scalingPolicy/scalingPolicy.module';
+import { TitusProviderSettings } from 'titus/titus.settings';
+
 import {
   ACCOUNT_SERVICE,
   CLUSTER_TARGET_BUILDER,
@@ -21,11 +24,13 @@ module.exports = angular.module('spinnaker.serverGroup.details.titus.controller'
   CONFIRMATION_MODAL_SERVICE,
   SERVER_GROUP_WRITER,
   require('./resize/resizeServerGroup.controller').name,
-  CLUSTER_TARGET_BUILDER
+  CLUSTER_TARGET_BUILDER,
+  SCALING_POLICY_MODULE,
 ])
   .controller('titusServerGroupDetailsCtrl', function ($scope, $state, $templateCache, $interpolate, app, serverGroup,
                                                        titusServerGroupCommandBuilder, serverGroupReader, $uibModal,
                                                        confirmationModalService, serverGroupWriter, clusterTargetBuilder,
+                                                       awsServerGroupTransformer,
                                                        serverGroupWarningMessageService, accountService) {
 
     let application = app;
@@ -65,6 +70,8 @@ module.exports = angular.module('spinnaker.serverGroup.details.titus.controller'
         delete labels['NETFLIX_APP_METADATA_SIG'];
         $scope.labels = labels;
 
+        transformScalingPolicies(details);
+
         if (!_.isEmpty($scope.serverGroup)) {
           if (details.securityGroups) {
             $scope.securityGroups = _.chain(details.securityGroups).map(function(id) {
@@ -79,6 +86,33 @@ module.exports = angular.module('spinnaker.serverGroup.details.titus.controller'
       },
         autoClose
       );
+    }
+
+    function transformScalingPolicies(serverGroup) {
+      serverGroup.scalingPolicies = (serverGroup.scalingPolicies || []).map(p => {
+        const { policy } = p;
+        const { stepPolicyDescriptor } = policy;
+        const policyType = stepPolicyDescriptor ? 'StepScaling' : 'TargetTrackingScaling';
+        if (stepPolicyDescriptor) {
+          const alarm = stepPolicyDescriptor.alarmConfig;
+          alarm.period = alarm.periodSec;
+          alarm.namespace = alarm.metricNamespace;
+          if (alarm.metricNamespace === 'NFLX/EPIC' && !alarm.dimensions) {
+            alarm.dimensions = [ { name: 'AutoScalingGroupName', value: serverGroup.name } ];
+          }
+          if (!alarm.dimensions) {
+            alarm.dimensions = [];
+          }
+          const policy = _.cloneDeep(stepPolicyDescriptor.scalingPolicy);
+          policy.cooldown = policy.cooldownSec;
+          policy.policyType = policyType;
+          policy.alarms = [alarm];
+          policy.id = p.id;
+          return policy;
+        }
+        return {};
+
+      }).map(p => awsServerGroupTransformer.transformScalingPolicy(p));
     }
 
     function autoClose() {
@@ -98,6 +132,12 @@ module.exports = angular.module('spinnaker.serverGroup.details.titus.controller'
       // do not bother subscribing to the refresh
       if (!$scope.$$destroyed) {
         app.serverGroups.onRefresh($scope, retrieveServerGroup);
+      }
+    });
+
+    accountService.getAccountDetails(serverGroup.accountId).then(details => {
+      if (details.eurekaName && TitusProviderSettings.autoScalingEnabled) {
+        this.scalingPoliciesEnabled = true;
       }
     });
 

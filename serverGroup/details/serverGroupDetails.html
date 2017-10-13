@@ -143,6 +143,18 @@
         </li>
       </ul>
     </collapsible-section>
+
+    <collapsible-section heading="Scaling Policies" ng-if="ctrl.scalingPoliciesEnabled">
+        <titus-scaling-policy-summary
+          ng-repeat="policy in serverGroup.scalingPolicies track by $index"
+          policy="policy"
+          server-group="serverGroup"
+          application="ctrl.application"></titus-scaling-policy-summary>
+        <titus-create-scaling-policy-button
+          server-group="serverGroup"
+          application="ctrl.application"></titus-create-scaling-policy-button>
+    </collapsible-section>
+
     <collapsible-section heading="Resources" expanded="true">
       <dl class="dl-horizontal dl-flex">
         <dt>CPU(s)</dt>

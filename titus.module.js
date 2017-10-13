@@ -7,6 +7,7 @@ import { CLOUD_PROVIDER_REGISTRY, DeploymentStrategyRegistry } from '@spinnaker/
 import { TITUS_MIGRATION_CONFIG_COMPONENT } from './migration/titusMigrationConfig.component';
 import { TITUS_APPLICATION_NAME_VALIDATOR } from './validation/applicationName.validator';
 import { TITUS_HELP } from './help/titus.help';
+import { TITUS_REACT_MODULE } from './reactShims/titus.react.module';
 
 import './logo/titus.logo.less';
 
@@ -39,6 +40,7 @@ module.exports = angular.module('spinnaker.titus', [
   require('./pipeline/stages/shrinkCluster/titusShrinkClusterStage.js').name,
   require('./pipeline/stages/scaleDownCluster/titusScaleDownClusterStage.js').name,
   TITUS_MIGRATION_CONFIG_COMPONENT,
+  TITUS_REACT_MODULE,
 ])
   .config(function(cloudProviderRegistryProvider) {
     cloudProviderRegistryProvider.registerProvider('titus', {

@@ -29,6 +29,21 @@ const helpContents: {[key: string]: string} = {
       <p>Will be automatically enabled when any non "custom" deployment strategy is selected.</p>`,
   'titus.deploy.securityGroups': 'AWS Security Groups to assign to this service. Security groups are set only if <samp>Allocate IP?</samp> has been selected and are assigned to the Titus AWS Elastic Network Interface.',
   'titus.job.securityGroups': 'AWS Security Groups to assign to this job',
+  'titus.autoscaling.cooldown': `
+      <p>The amount of time, in seconds, after a scaling activity completes where previous trigger-related scaling
+        activities can influence future scaling events.</p>
+      <p>For scale out policies, while the cooldown period is in effect, the capacity that has been added by the
+        previous scale out event that initiated the cooldown is calculated as part of the desired capacity for the next
+        scale out. The intention is to continuously (but not excessively) scale out. For example, an alarm triggers a
+        step scaling policy to scale out an Amazon ECS service by 2 tasks, the scaling activity completes successfully,
+        and a cooldown period of 5 minutes starts. During the Cooldown period, if the alarm triggers the same policy
+        again but at a more aggressive step adjustment to scale out the service by 3 tasks, the 2 tasks that were added
+        in the previous scale out event are considered part of that capacity and only 1 additional task is added to the desired count.</p>
+      <p>For scale in policies, the cooldown period is used to block subsequent scale in requests until it has expired.
+        The intention is to scale in conservatively to protect your application's availability. However, if another
+        alarm triggers a scale out policy during the cooldown period after a scale-in, Application Auto Scaling scales
+        out your scalable target immediately.</p>
+  `,
 
 };
 
