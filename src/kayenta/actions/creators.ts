@@ -26,6 +26,7 @@ export const deleteConfigSuccess = createAction(Actions.DELETE_CONFIG_SUCCESS);
 export const loadConfigRequest = createAction(Actions.LOAD_CONFIG_REQUEST, typedPayloadCreator<{configName: string}>());
 export const saveConfigSuccess = createAction(Actions.SAVE_CONFIG_SUCCESS, typedPayloadCreator<{configName: string}>());
 export const selectConfig = createAction(Actions.SELECT_CONFIG, typedPayloadCreator<{config: ICanaryConfig}>());
+export const clearSelectedConfig = createAction(Actions.CLEAR_SELECTED_CONFIG);
 export const renameMetric = createAction(Actions.RENAME_METRIC, typedPayloadCreator<{id: string, name: string}>());
 export const selectGroup = createAction(Actions.SELECT_GROUP, typedPayloadCreator<{name: string}>());
 export const updateGroupWeight = createAction(Actions.UPDATE_GROUP_WEIGHT, typedPayloadCreator<{group: string, weight: number}>());

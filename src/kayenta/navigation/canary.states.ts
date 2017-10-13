@@ -10,11 +10,12 @@ import {
 import ConfigDetailLoader from 'kayenta/edit/configDetailLoader';
 import CanaryConfigEdit from 'kayenta/edit/edit';
 import CanaryConfigSave from 'kayenta/edit/save';
-import Canary from 'kayenta/canary';
+import Canary, { canaryStore } from 'kayenta/canary';
 import SelectConfig from 'kayenta/edit/selectConfig';
 import Report from 'kayenta/report/report';
 import ResultDetailLoader from 'kayenta/report/detailLoader';
 import ResultList from 'kayenta/report/resultList';
+import * as Creators from 'kayenta/actions/creators';
 
 export const CANARY_STATES = 'spinnaker.kayenta.canary.states';
 module(CANARY_STATES, [APPLICATION_STATE_PROVIDER])
@@ -120,4 +121,10 @@ module(CANARY_STATES, [APPLICATION_STATE_PROVIDER])
   };
 
   applicationStateProvider.addChildState(canaryRoot);
+}).run(($uiRouter: UIRouter) => {
+  // When leaving a config detail state, clear that config.
+  $uiRouter.transitionService.onBefore(
+    { from: '**.configDetail.**' },
+    () => { canaryStore.dispatch(Creators.clearSelectedConfig()); },
+  );
 });

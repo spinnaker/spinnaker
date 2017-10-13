@@ -18,6 +18,7 @@ export const EDIT_METRIC_CONFIRM = 'edit_metric_modal_confirm';
 export const EDIT_METRIC_CANCEL = 'edit_metric_modal_cancel';
 export const REMOVE_METRIC = 'remove_metric';
 export const SELECT_CONFIG = 'select_config';
+export const CLEAR_SELECTED_CONFIG = 'clear_selected_config';
 export const UPDATE_CONFIG_SUMMARIES = 'update_config_summaries';
 export const ADD_GROUP = 'add_group';
 export const SELECT_GROUP = 'select_group';
