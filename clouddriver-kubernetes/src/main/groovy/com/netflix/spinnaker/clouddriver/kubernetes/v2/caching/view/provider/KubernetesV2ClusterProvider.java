@@ -133,12 +133,14 @@ public class KubernetesV2ClusterProvider implements ClusterProvider<KubernetesV2
     KubernetesKind kind = parsedName.getMiddle();
     String shortName = parsedName.getRight();
     String key = Keys.infrastructure(apiVersion, kind, account, namespace, shortName);
-    String[] instanceGroups = (String[]) kindMap.translateSpinnakerKind(INSTANCE)
+    List<String> instanceGroups = kindMap.translateSpinnakerKind(INSTANCE)
         .stream()
         .map(KubernetesKind::toString)
-        .toArray();
+        .collect(Collectors.toList());
 
-    Optional<CacheData> serverGroupData = cacheUtils.getSingleEntryWithRelationships(kind.toString(), key, instanceGroups);
+    Optional<CacheData> serverGroupData = cacheUtils.getSingleEntryWithRelationships(kind.toString(),
+        key,
+        instanceGroups.toArray(new String[instanceGroups.size()]));
 
     return serverGroupData.map(cd -> {
       List<CacheData> instanceData = kindMap.translateSpinnakerKind(INSTANCE)

@@ -24,8 +24,8 @@ import java.util.Arrays;
 
 public enum KubernetesApiVersion {
   V1("v1"),
-  EXTENSIONS_V1BETA1("extensions/v1beta1"),
-  APPS_V1BETA1("apps/v1beta1");
+  EXTENSIONS_V1BETA1("extensions.v1beta1"),
+  APPS_V1BETA1("apps.v1beta1");
 
   private final String name;
 
@@ -41,8 +41,9 @@ public enum KubernetesApiVersion {
 
   @JsonCreator
   public static KubernetesApiVersion fromString(String name) {
+    String replacedName = name.replace("/", ".");
     return Arrays.stream(values())
-        .filter(v -> v.toString().equalsIgnoreCase(name))
+        .filter(v -> v.toString().equalsIgnoreCase(replacedName))
         .findAny()
         .orElseThrow(() -> new IllegalArgumentException("API version " + name + " is not yet supported."));
   }

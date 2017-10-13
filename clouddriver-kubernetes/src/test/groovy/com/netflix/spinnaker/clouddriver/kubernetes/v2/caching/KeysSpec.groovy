@@ -57,9 +57,9 @@ class KeysSpec extends Specification {
 
     where:
     kind                       | apiVersion                              | account | namespace   | name      || key
-    KubernetesKind.REPLICA_SET | KubernetesApiVersion.EXTENSIONS_V1BETA1 | "ac"    | "namespace" | "v1-v000" || "kubernetes.v2:infrastructure:extensions/v1beta1:replicaSet:ac:namespace:v1-v000"
+    KubernetesKind.REPLICA_SET | KubernetesApiVersion.EXTENSIONS_V1BETA1 | "ac"    | "namespace" | "v1-v000" || "kubernetes.v2:infrastructure:extensions.v1beta1:replicaSet:ac:namespace:v1-v000"
     KubernetesKind.SERVICE     | KubernetesApiVersion.V1                 | "ac"    | "namespace" | "v1"      || "kubernetes.v2:infrastructure:v1:service:ac:namespace:v1"
-    KubernetesKind.DEPLOYMENT  | KubernetesApiVersion.APPS_V1BETA1       | "ac"    | "namespace" | "v1"      || "kubernetes.v2:infrastructure:apps/v1beta1:deployment:ac:namespace:v1"
+    KubernetesKind.DEPLOYMENT  | KubernetesApiVersion.APPS_V1BETA1       | "ac"    | "namespace" | "v1"      || "kubernetes.v2:infrastructure:apps.v1beta1:deployment:ac:namespace:v1"
   }
 
   @Unroll

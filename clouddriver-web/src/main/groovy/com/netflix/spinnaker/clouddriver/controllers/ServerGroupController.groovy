@@ -62,7 +62,7 @@ class ServerGroupController {
   ServerGroup getServerGroupByApplication(@PathVariable String application, // needed for @PreAuthorize
                                           @PathVariable String account,
                                           @PathVariable String region,
-                                          @PathVariable String name) {
+                                          @PathVariable() String name) {
     getServerGroup(account, region, name)
   }
 
