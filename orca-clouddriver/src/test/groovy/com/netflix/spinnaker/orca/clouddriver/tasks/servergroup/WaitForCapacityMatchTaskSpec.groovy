@@ -47,7 +47,7 @@ class WaitForCapacityMatchTaskSpec extends Specification {
   void "should properly wait for a scale up operation"() {
     setup:
       oort = Stub(OortService)
-      oort.getServerGroup("kato", "test", "us-east-1", "kato-main-v000") >> { new Response('kato', 200, 'ok', [], new TypedString(mapper.writeValueAsString(serverGroup))) }
+      oort.getServerGroup("test", "us-east-1", "kato-main-v000") >> { new Response('kato', 200, 'ok', [], new TypedString(mapper.writeValueAsString(serverGroup))) }
       task.oortService = oort
       def context = [account: "test", "deploy.server.groups": ["us-east-1": ["kato-main-v000"]]]
     def stage = new Stage<>(new Orchestration("orca"), "resizeAsg", context)
@@ -103,7 +103,7 @@ class WaitForCapacityMatchTaskSpec extends Specification {
           ]
         ]
 
-    oort.getServerGroup("kato", "test", "us-east-1", "kato-main-v000") >> { new Response('kato', 200, 'ok', [], new TypedString(mapper.writeValueAsString(serverGroup))) }
+    oort.getServerGroup("test", "us-east-1", "kato-main-v000") >> { new Response('kato', 200, 'ok', [], new TypedString(mapper.writeValueAsString(serverGroup))) }
     task.oortService = oort
     def context = [account: "test", "deploy.server.groups": ["us-east-1": ["kato-main-v000"]]]
     def stage = new Stage<>(new Orchestration("orca"), "resizeAsg", context)
@@ -136,7 +136,7 @@ class WaitForCapacityMatchTaskSpec extends Specification {
   void "should properly wait for a scale down operation"() {
     setup:
     oort = Stub(OortService)
-    oort.getServerGroup("kato", "test", "us-east-1", "kato-main-v000") >> { new Response('kato', 200, 'ok', [], new TypedString(mapper.writeValueAsString(serverGroup))) }
+    oort.getServerGroup("test", "us-east-1", "kato-main-v000") >> { new Response('kato', 200, 'ok', [], new TypedString(mapper.writeValueAsString(serverGroup))) }
     task.oortService = oort
     def context = [account: "test", "deploy.server.groups": ["us-east-1": ["kato-main-v000"]]]
     def stage = new Stage<>(new Orchestration("orca"), "resizeAsg", context)

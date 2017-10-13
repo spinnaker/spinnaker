@@ -16,10 +16,12 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.instance
 
+
 import java.time.Duration
 import java.util.concurrent.TimeUnit
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.frigga.Names
+import com.netflix.spinnaker.moniker.Moniker
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.OverridableTimeoutRetryableTask
 import com.netflix.spinnaker.orca.TaskResult
@@ -59,7 +61,8 @@ abstract class AbstractInstancesCheckTask extends AbstractCloudProviderAwareTask
    */
   abstract protected Map<String, List<String>> getServerGroups(Stage stage)
 
-  abstract protected boolean hasSucceeded(Stage stage, Map serverGroup, List<Map> instances, Collection<String> interestingHealthProviderNames)
+  abstract
+  protected boolean hasSucceeded(Stage stage, Map serverGroup, List<Map> instances, Collection<String> interestingHealthProviderNames)
 
   protected Map getAdditionalRunningStageContext(Stage stage, Map serverGroup) {
     [:]
@@ -95,7 +98,7 @@ abstract class AbstractInstancesCheckTask extends AbstractCloudProviderAwareTask
     }
 
     try {
-      def serverGroups = fetchServerGroups(account, getCloudProvider(stage), serverGroupsByRegion)
+      def serverGroups = fetchServerGroups(account, getCloudProvider(stage), serverGroupsByRegion, (Moniker) stage.context?.moniker)
       if (!serverGroups) {
         return new TaskResult(ExecutionStatus.RUNNING)
       }
@@ -120,9 +123,9 @@ abstract class AbstractInstancesCheckTask extends AbstractCloudProviderAwareTask
           if (seenServerGroup && !stage.context.capacitySnapshot) {
             newContext.zeroDesiredCapacityCount = 0
             newContext.capacitySnapshot = [
-                minSize        : serverGroup.capacity.min,
-                desiredCapacity: serverGroup.capacity.desired,
-                maxSize        : serverGroup.capacity.max
+              minSize        : serverGroup.capacity.min,
+              desiredCapacity: serverGroup.capacity.desired,
+              maxSize        : serverGroup.capacity.max
             ]
           }
           if (seenServerGroup) {
@@ -195,16 +198,18 @@ abstract class AbstractInstancesCheckTask extends AbstractCloudProviderAwareTask
     }
   }
 
-  private List<Map> fetchServerGroups(String account, String cloudProvider, Map<String, List<String>> serverGroupsByRegion) {
-    Names names = Names.parseName(serverGroupsByRegion.values().flatten()[0])
-
+  private List<Map> fetchServerGroups(String account, String cloudProvider, Map<String, List<String>> serverGroupsByRegion, Moniker moniker) {
     if (serverGroupsByRegion.values().flatten().size() > 1) {
-      def response = oortService.getCluster(names.app, account, names.cluster, cloudProvider)
+      Names names = Names.parseName(serverGroupsByRegion.values().flatten()[0])
+      def appName = moniker?.app ?: names.app
+      def clusterName = moniker?.cluster ?: names.cluster
+      def response = oortService.getCluster(appName, account, clusterName, cloudProvider)
       def cluster = objectMapper.readValue(response.body.in().text, Map)
       return cluster.serverGroups ?: []
     } else {
       def region = serverGroupsByRegion.keySet()[0]
-      def response = oortService.getServerGroup(names.app, account, region, names.group)
+      def serverGroupName = serverGroupsByRegion[region][0]
+      def response = oortService.getServerGroup(account, region, serverGroupName)
       def serverGroup = objectMapper.readValue(response.body.in().text, Map)
       return [serverGroup]
     }

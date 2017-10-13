@@ -87,7 +87,7 @@ class AbstractInstancesCheckTaskSpec extends Specification {
     task.execute(stage)
 
     then:
-    1 * task.oortService.getServerGroup("front50", "test", "us-west-1", "front50-v000") >> constructResponse(200, '''
+    1 * task.oortService.getServerGroup("test", "us-west-1", "front50-v000") >> constructResponse(200, '''
 {
     "name": "front50-v000",
     "region": "us-west-1",
@@ -133,7 +133,7 @@ class AbstractInstancesCheckTaskSpec extends Specification {
 
     then:
     result.context.zeroDesiredCapacityCount == expected
-    1 * task.oortService.getServerGroup("front50", "test", "us-west-1", "front50-v000") >> constructResponse(200, '''
+    1 * task.oortService.getServerGroup("test", "us-west-1", "front50-v000") >> constructResponse(200, '''
 {
     "name": "front50-v000",
     "region": "us-west-1",
@@ -179,7 +179,7 @@ class AbstractInstancesCheckTaskSpec extends Specification {
 
     then:
     result.context.zeroDesiredCapacityCount == 1
-    1 * task.oortService.getServerGroup("front50", "test", "us-west-1", "front50-v000") >> constructResponse(200, '''
+    1 * task.oortService.getServerGroup("test", "us-west-1", "front50-v000") >> constructResponse(200, '''
 {
     "name": "front50-v000",
     "region": "us-west-1",
