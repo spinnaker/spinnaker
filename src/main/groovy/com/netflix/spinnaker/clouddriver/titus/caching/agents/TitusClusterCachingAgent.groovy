@@ -42,6 +42,7 @@ import com.netflix.spinnaker.clouddriver.titus.credentials.NetflixTitusCredentia
 import com.netflix.spinnaker.clouddriver.titus.model.TitusSecurityGroup
 import com.netflix.titus.grpc.protogen.ScalingPolicy
 import com.netflix.titus.grpc.protogen.ScalingPolicyResult
+import com.netflix.titus.grpc.protogen.ScalingPolicyStatus
 import com.netflix.titus.grpc.protogen.ScalingPolicyStatus.ScalingPolicyState
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -157,7 +158,7 @@ class TitusClusterCachingAgent implements CachingAgent, CustomScheduledAgent {
       try {
         List<ScalingPolicyData> scalingPolicies = allScalingPolicies.findResults {
           it.jobId == job.id && cacheablePolicyStates.contains(it.policyState.state) ?
-            new ScalingPolicyData(id: it.id.id, policy: it.scalingPolicy) :
+            new ScalingPolicyData(id: it.id.id, policy: it.scalingPolicy, status: it.policyState) :
             null
         }
         ServerGroupData data = new ServerGroupData(job, scalingPolicies, account.name, region, account.stack)
@@ -201,7 +202,11 @@ class TitusClusterCachingAgent implements CachingAgent, CustomScheduledAgent {
       resolveAwsDetails(titusSecurityGroupCache, job)
       List<Map> policies = data.scalingPolicies ? data.scalingPolicies.collect {
         // There is probably a better way to convert a protobuf to a Map, but I don't know what it is
-        [id: it.id, policy: objectMapper.readValue(JsonFormat.printer().print(it.policy), Map)]
+        [
+          id: it.id,
+          status: [ state: it.status.state.name(), reason: it.status.pendingReason ],
+          policy: objectMapper.readValue(JsonFormat.printer().print(it.policy), Map)
+        ]
       } : []
 
       attributes.job = job
@@ -239,6 +244,7 @@ class TitusClusterCachingAgent implements CachingAgent, CustomScheduledAgent {
   private class ScalingPolicyData {
     String id
     ScalingPolicy policy
+    ScalingPolicyStatus status
   }
 
   private class ServerGroupData {
