@@ -21,11 +21,13 @@ import java.util.*;
 import java.util.stream.Collectors;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.frigga.Names;
+import com.netflix.spinnaker.moniker.Moniker;
 import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.RetryableTask;
 import com.netflix.spinnaker.orca.TaskResult;
 import com.netflix.spinnaker.orca.clouddriver.OortService;
 import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask;
+import com.netflix.spinnaker.orca.clouddriver.utils.MonikerHelper;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import com.netflix.spinnaker.orca.retrofit.exceptions.RetrofitExceptionHandler;
 import org.slf4j.Logger;
@@ -45,17 +47,19 @@ public class BulkWaitForDestroyedServerGroupTask extends AbstractCloudProviderAw
   @Autowired
   private ObjectMapper objectMapper;
 
+  @Autowired
+  private MonikerHelper monikerHelper;
+
   @Override
   public TaskResult execute(Stage stage) {
     String region = (String) stage.getContext().get("region");
     Map<String, List<String>> regionToServerGroups = (Map<String, List<String>>) stage.getContext().get("deploy.server.groups");
     List<String> serverGroupNames = regionToServerGroups.get(region);
-    Names names = Names.parseName(serverGroupNames.get(0));
     try {
       Response response = oortService.getCluster(
-        names.getApp(),
+        monikerHelper.getAppNameFromStage(stage, serverGroupNames.get(0)),
         getCredentials(stage),
-        names.getCluster(),
+        monikerHelper.getClusterNameFromStage(stage, serverGroupNames.get(0)),
         getCloudProvider(stage)
       );
 

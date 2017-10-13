@@ -3,6 +3,7 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup
 import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup
+import com.netflix.spinnaker.orca.clouddriver.utils.MonikerHelper
 import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
 import com.netflix.spinnaker.orca.clouddriver.utils.TrafficGuard
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
@@ -13,7 +14,7 @@ class BulkDestroyServerGroupTaskSpec extends Specification {
 
   def "should create multiple destroy operations on bulk destroy server group task"() {
     given:
-    def task = new BulkDestroyServerGroupTask(trafficGuard: Mock(TrafficGuard))
+    def task = new BulkDestroyServerGroupTask(trafficGuard: Mock(TrafficGuard), monikerHelper: new MonikerHelper())
     def stage = new Stage<>(new Pipeline("orca"), "")
     stage.context = [
       cloudProvider:  "titus",
@@ -87,4 +88,5 @@ class BulkDestroyServerGroupTaskSpec extends Specification {
     then:
     thrown(TargetServerGroup.NotFoundException)
   }
+
 }

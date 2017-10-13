@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup;
 import java.util.*;
 import java.util.stream.Collectors;
 import com.netflix.frigga.Names;
+import com.netflix.spinnaker.moniker.Moniker;
 import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.RetryableTask;
 import com.netflix.spinnaker.orca.TaskResult;
@@ -27,6 +28,7 @@ import com.netflix.spinnaker.orca.clouddriver.model.TaskId;
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Location;
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup;
 import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask;
+import com.netflix.spinnaker.orca.clouddriver.utils.MonikerHelper;
 import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import org.slf4j.Logger;
@@ -38,6 +40,9 @@ public abstract class AbstractBulkServerGroupTask extends AbstractCloudProviderA
 
   @Autowired
   protected OortHelper oortHelper;
+
+  @Autowired
+  protected MonikerHelper monikerHelper;
 
   @Autowired
   protected KatoService katoService;
@@ -62,21 +67,19 @@ public abstract class AbstractBulkServerGroupTask extends AbstractCloudProviderA
     if (request.getServerGroupNames() == null || request.getServerGroupNames().isEmpty()) {
       throw new IllegalArgumentException("Server group names must be provided");
     }
-
-    Names names = Names.parseName(request.getServerGroupNames().get(0));
-
+    String clusterName = monikerHelper.getClusterNameFromStage(stage, request.getServerGroupNames().get(0));
     Map cluster = oortHelper.getCluster(
-      names.getApp(),
+      monikerHelper.getAppNameFromStage(stage, request.getServerGroupNames().get(0)),
       request.getCredentials(),
-      names.getCluster(),
+      clusterName,
       request.getCloudProvider()
     ).orElseThrow(
-      () -> new IllegalArgumentException(String.format("No Cluster details found for %s", names.getCluster()))
+      () -> new IllegalArgumentException(String.format("No Cluster details found for %s", clusterName))
     );
 
     List<Map> serverGroups = Optional.ofNullable((List<Map>) cluster.get("serverGroups"))
       .orElseThrow(
-        () -> new IllegalArgumentException(String.format("No server groups found for cluster %s", names.getCluster()))
+        () -> new IllegalArgumentException(String.format("No server groups found for cluster %s", clusterName))
       );
 
     Location location = Optional.ofNullable(Location.region(request.getRegion()))

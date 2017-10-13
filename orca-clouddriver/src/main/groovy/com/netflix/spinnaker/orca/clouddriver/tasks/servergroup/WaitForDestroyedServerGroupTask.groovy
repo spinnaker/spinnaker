@@ -49,8 +49,10 @@ class WaitForDestroyedServerGroupTask extends AbstractCloudProviderAwareTask imp
     String serverGroupRegion = (stage.context.regions as Collection)?.getAt(0) ?: stage.context.region
     String serverGroupName = (stage.context.serverGroupName ?: stage.context.asgName) as String // TODO: Retire asgName
     Names names = Names.parseName(serverGroupName)
+    String appName = stage.context.moniker?.app ?: names.app
+    String clusterName = stage.context.moniker?.cluster ?: names.cluster
     try {
-      def response = oortService.getCluster(names.app, account, names.cluster, cloudProvider)
+      def response = oortService.getCluster(appName, account, clusterName, cloudProvider)
 
       if (response.status != 200) {
         return new TaskResult(ExecutionStatus.RUNNING)
