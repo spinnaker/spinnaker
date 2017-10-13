@@ -16,87 +16,61 @@
 
 package com.netflix.spinnaker.kork.artifacts.model;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.apache.commons.lang.StringUtils;
 
-import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class ExpectedArtifact {
-  private List<ArtifactField> fields = new ArrayList<>();
+  Artifact matchArtifact;
+  boolean usePriorArtifact;
+  Artifact defaultArtifact;
 
-  private static final Set<String> artifactFields = Arrays.stream(Artifact.class.getFields())
-      .filter(f -> f.getType().equals(String.class))
-      .map(Field::getName)
-      .collect(Collectors.toSet());
-
-  @Data
-  public static class ArtifactField {
-    String fieldName;
-    FieldType fieldType;
-    String value;
-    MissingPolicy missingPolicy;
-    String expression;
-
-    public enum FieldType {
-      MUST_MATCH,
-      FIND_IF_MISSING,
+  /**
+   * Decide if the "matchArtifact" matches the incoming artifact. Any fields not specified
+   * if the "matchArtifact" are not compared.
+   *
+   * @param other is the artifact to match against
+   * @return true i.f.f. the artifacts match
+   */
+  public boolean matches(Artifact other) {
+    String thisType = matchArtifact.getType();
+    String otherType = other.getType();
+    if (StringUtils.isNotEmpty(thisType) && !thisType.equals(otherType)) {
+      return false;
     }
 
-    public enum MissingPolicy {
-      FAIL_PIPELINE,
-      EXPRESSION,
-      PRIOR_PIPELINE,
-    }
-  }
-
-  public void validate() {
-    boolean matchCondition = false;
-    for (ArtifactField field : fields) {
-      if (!artifactFields.contains(field.getFieldName())) {
-        throw new IllegalStateException("Unknown field '" + field.getFieldName() + "' does exist in the artifact definition");
-      }
-
-      if (field.getFieldType() == null) {
-        throw new IllegalStateException("fieldType must be set.");
-      }
-
-      switch (field.getFieldType()) {
-        case MUST_MATCH:
-          matchCondition = true;
-          break;
-        case FIND_IF_MISSING:
-          if (field.getMissingPolicy() == null) {
-            throw new IllegalStateException("When fieldType == FIND_IF_MISSING, a policy must be provided");
-          }
-
-          switch (field.getMissingPolicy()) {
-            case EXPRESSION:
-              if (StringUtils.isEmpty(field.getExpression())) {
-                throw new IllegalStateException("When missingPolicy == EXPRESSION, a given expression must be provided");
-              }
-              break;
-            case FAIL_PIPELINE:
-              break;
-            case PRIOR_PIPELINE:
-              break;
-            default:
-              throw new IllegalStateException("Unknown missing policy: " + field.getMissingPolicy());
-          }
-
-          break;
-        default:
-          throw new IllegalStateException("Unknown field type: " + field.getFieldType());
-      }
+    String thisName = matchArtifact.getName();
+    String otherName = other.getName();
+    if (StringUtils.isNotEmpty(thisName) && !thisName.equals(otherName)) {
+      return false;
     }
 
-    if (!matchCondition) {
-      throw new IllegalStateException("At least one field must be required to match against incoming artifacts");
+    String thisVersion = matchArtifact.getVersion();
+    String otherVersion = other.getVersion();
+    if (StringUtils.isNotEmpty(thisVersion) && !thisVersion.equals(otherVersion)) {
+      return false;
     }
+
+    String thisLocation = matchArtifact.getLocation();
+    String otherLocation = other.getLocation();
+    if (StringUtils.isNotEmpty(thisLocation) && !thisLocation.equals(otherLocation)) {
+      return false;
+    }
+
+    String thisReference = matchArtifact.getReference();
+    String otherReference = other.getReference();
+    if (StringUtils.isNotEmpty(thisReference) && !thisReference.equals(otherReference)) {
+      return false;
+    }
+
+    // Explicitly avoid matching on UUID, provenance & artifactAccount
+
+    return true;
   }
 }
