@@ -133,6 +133,7 @@ function configure(IS_TEST) {
         METRIC_STORE: 'atlas',
         REDUX_LOGGER: false,
         CANARY_REPORTS_ENABLED: false,
+        CANARY_STAGES_ENABLED: true,
       }),
     ]);
   }

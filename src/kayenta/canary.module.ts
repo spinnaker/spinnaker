@@ -1,5 +1,6 @@
 import { module } from 'angular';
 
+import { CanarySettings } from 'kayenta/canary.settings';
 import { CANARY_COMPONENTS } from 'kayenta/components/components.module';
 import { CANARY_DATA_SOURCE } from 'kayenta/canary.dataSource';
 import { CANARY_HELP } from 'kayenta/canary.help';
@@ -13,11 +14,17 @@ templates.keys().forEach(function (key) {
   templates(key);
 });
 
-export const KAYENTA_MODULE = 'spinnaker.kayenta';
-module(KAYENTA_MODULE, [
+const modules = [
   CANARY_COMPONENTS,
   CANARY_DATA_SOURCE,
   CANARY_HELP,
-  CANARY_STAGES,
   CANARY_STATES,
-]);
+];
+
+export const KAYENTA_MODULE = 'spinnaker.kayenta';
+module(
+  KAYENTA_MODULE,
+  CanarySettings.stagesEnabled
+    ? [CANARY_STAGES, ...modules]
+    : modules
+);
