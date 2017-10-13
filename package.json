@@ -1,29 +1,26 @@
 {
-  "main": "./dist/bundle.js",
-  "name": "deck",
+  "main": "lib/lib.js",
+  "typings": "lib/kayenta/index.d.ts",
+  "name": "@spinnaker/kayenta",
   "version": "0.0.0",
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/spinnaker/deck.git"
-  },
-  "publishConfig": {
-    "registry": "http://artifacts.netflix.com/api/npm/npm-local"
+    "url": "https://github.com/spinnaker/deck-kayenta.git"
   },
   "engines": {
     "node": "7.0.0",
     "npm": "3.10.8",
-    "yarn": "0.21.3"
+    "yarn": "0.23.4"
   },
   "scripts": {
-    "clean": "rimraf .awcache .happypack build node_modules transpiled",
     "build": "webpack --bail",
     "eslint": "eslint -c .eslintrc app/scripts/modules",
     "start": "sh ./start.sh",
     "start-dev-server": "webpack-dev-server --inline --hot",
     "test": "karma start",
     "tslint": "tslint --type-check --project tsconfig.json",
-    "int": "protractor protractor.conf.js"
+    "lib": "rimraf lib && ./node_modules/typescript/bin/tsc --project ./build_scripts && node ./node_modules/webpack/bin/webpack.js --config ./build_scripts/webpack.build.js"
   },
   "dependencies": {
     "@spinnaker/amazon": "0.0.5",
@@ -129,12 +126,14 @@
     "cache-loader": "^1.0.3",
     "copy-webpack-plugin": "^4.0.1",
     "css-loader": "^0.28.1",
+    "envify-loader": "^0.1.0",
     "enzyme": "^2.8.2",
     "eslint": "^3.17.0",
     "eslint-loader": "^1.6.3",
     "exports-loader": "^0.6.3",
     "expose-loader": "^0.7.1",
     "file-loader": "^0.11.1",
+    "fork-ts-checker-webpack-plugin": "^0.2.8",
     "happypack": "^3.0.3",
     "html-loader": "0.4.5",
     "html-webpack-plugin": "^2.28.0",
@@ -162,12 +161,14 @@
     "react-test-renderer": "^15.5.4",
     "rimraf": "^2.5.4",
     "style-loader": "^0.17.0",
+    "ts-loader": "^2.3.7",
     "tslint": "^5.4.3",
     "tslint-loader": "^3.4.3",
     "tslint-react": "^3.0.0",
     "typescript": "^2.5.3",
     "url-loader": "^0.5.7",
     "webpack": "^2.5.1",
-    "webpack-dev-server": "^2.3.0"
+    "webpack-dev-server": "^2.3.0",
+    "webpack-node-externals": "^1.6.0"
   }
 }

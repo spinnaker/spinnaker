@@ -442,11 +442,11 @@ acorn@^4.0.3:
   version "4.0.11"
   resolved "https://registry.yarnpkg.com/acorn/-/acorn-4.0.11.tgz#edcda3bd937e7556410d42ed5860f67399c794c0"
 
-acorn@^5.0.0, acorn@^5.0.1:
+acorn@^5.0.0:
   version "5.0.3"
   resolved "https://registry.yarnpkg.com/acorn/-/acorn-5.0.3.tgz#c460df08491463f028ccb82eab3730bf01087b3d"
 
-acorn@^5.1.1:
+acorn@^5.0.1, acorn@^5.1.1:
   version "5.1.2"
   resolved "https://registry.yarnpkg.com/acorn/-/acorn-5.1.2.tgz#911cb53e036807cf0fa778dc5d370fbd864246d7"
 
@@ -584,6 +584,12 @@ ansi-regex@^2.0.0:
 ansi-styles@^2.2.1:
   version "2.2.1"
   resolved "https://registry.yarnpkg.com/ansi-styles/-/ansi-styles-2.2.1.tgz#b432dd3358b634cf75e1e4664368240533c1ddbe"
+
+ansi-styles@^3.1.0:
+  version "3.2.0"
+  resolved "https://registry.yarnpkg.com/ansi-styles/-/ansi-styles-3.2.0.tgz#c159b8d5be0f9e5a6f346dab94f16ce022161b88"
+  dependencies:
+    color-convert "^1.9.0"
 
 anymatch@^1.3.0:
   version "1.3.0"
@@ -1445,6 +1451,14 @@ chalk@1.1.3, chalk@^1.0.0, chalk@^1.1.0, chalk@^1.1.1, chalk@^1.1.3:
     strip-ansi "^3.0.0"
     supports-color "^2.0.0"
 
+chalk@^2.0.1:
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/chalk/-/chalk-2.1.0.tgz#ac5becf14fa21b99c6c92ca7a7d7cfd5b17e743e"
+  dependencies:
+    ansi-styles "^3.1.0"
+    escape-string-regexp "^1.0.5"
+    supports-color "^4.0.0"
+
 cheerio@^0.22.0:
   version "0.22.0"
   resolved "https://registry.yarnpkg.com/cheerio/-/cheerio-0.22.0.tgz#a9baa860a3f9b595a6b81b1a86873121ed3a269e"
@@ -1466,7 +1480,7 @@ cheerio@^0.22.0:
     lodash.reject "^4.4.0"
     lodash.some "^4.4.0"
 
-chokidar@^1.4.1, chokidar@^1.4.3, chokidar@^1.6.0:
+chokidar@^1.4.1, chokidar@^1.4.3, chokidar@^1.6.0, chokidar@^1.7.0:
   version "1.7.0"
   resolved "https://registry.yarnpkg.com/chokidar/-/chokidar-1.7.0.tgz#798e689778151c8076b4b360e5edd28cda2bb468"
   dependencies:
@@ -1567,7 +1581,7 @@ code-point-at@^1.0.0:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/code-point-at/-/code-point-at-1.1.0.tgz#0d070b4d043a5bea33a2f1a40e2edb3d9a4ccf77"
 
-color-convert@^1.3.0:
+color-convert@^1.3.0, color-convert@^1.9.0:
   version "1.9.0"
   resolved "https://registry.yarnpkg.com/color-convert/-/color-convert-1.9.0.tgz#1accf97dd739b983bf994d56fec8f95853641b7a"
   dependencies:
@@ -2313,6 +2327,10 @@ entities@^1.1.1, "entities@~ 1.1.1", entities@~1.1.1:
   version "1.1.1"
   resolved "https://registry.yarnpkg.com/entities/-/entities-1.1.1.tgz#6e5c2d0a5621b5dadaecef80b90edfb5cd7772f0"
 
+envify-loader@^0.1.0:
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/envify-loader/-/envify-loader-0.1.0.tgz#3ee11b3adbf4802cec4e5e12ef4938e757184f0c"
+
 envify@^3.0.0:
   version "3.4.1"
   resolved "https://registry.yarnpkg.com/envify/-/envify-3.4.1.tgz#d7122329e8df1688ba771b12501917c9ce5cbce8"
@@ -2847,6 +2865,18 @@ forever-agent@~0.6.1:
   version "0.6.1"
   resolved "https://registry.yarnpkg.com/forever-agent/-/forever-agent-0.6.1.tgz#fbc71f0c41adeb37f96c577ad1ed42d8fdacca91"
 
+fork-ts-checker-webpack-plugin@^0.2.8:
+  version "0.2.8"
+  resolved "https://registry.yarnpkg.com/fork-ts-checker-webpack-plugin/-/fork-ts-checker-webpack-plugin-0.2.8.tgz#66dc841c29ff8345e0a30755ddeb4ccc3213e210"
+  dependencies:
+    babel-code-frame "^6.22.0"
+    chalk "^1.1.3"
+    chokidar "^1.7.0"
+    lodash.endswith "^4.2.1"
+    lodash.isfunction "^3.0.8"
+    lodash.isstring "^4.0.1"
+    lodash.startswith "^4.2.1"
+
 form-data-to-object@^0.2.0:
   version "0.2.0"
   resolved "https://registry.yarnpkg.com/form-data-to-object/-/form-data-to-object-0.2.0.tgz#f7a8e68ddd910a1100a65e25ac6a484143ff8168"
@@ -3095,6 +3125,10 @@ has-cors@1.1.0:
 has-flag@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/has-flag/-/has-flag-1.0.0.tgz#9d9e793165ce017a00f00418c43f942a7b1d11fa"
+
+has-flag@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/has-flag/-/has-flag-2.0.0.tgz#e8207af1cc7b30d446cc70b734b5e8be18f88d51"
 
 has-unicode@^2.0.0:
   version "2.0.1"
@@ -3930,6 +3964,10 @@ lodash.defaults@^4.0.1:
   version "4.2.0"
   resolved "https://registry.yarnpkg.com/lodash.defaults/-/lodash.defaults-4.2.0.tgz#d09178716ffea4dde9e5fb7b37f6f0802274580c"
 
+lodash.endswith@^4.2.1:
+  version "4.2.1"
+  resolved "https://registry.yarnpkg.com/lodash.endswith/-/lodash.endswith-4.2.1.tgz#fed59ac1738ed3e236edd7064ec456448b37bc09"
+
 lodash.filter@^4.4.0:
   version "4.6.0"
   resolved "https://registry.yarnpkg.com/lodash.filter/-/lodash.filter-4.6.0.tgz#668b1d4981603ae1cc5a6fa760143e480b4c4ace"
@@ -3945,6 +3983,14 @@ lodash.foreach@^4.3.0:
 lodash.frompairs@^4.0.1:
   version "4.0.1"
   resolved "https://registry.yarnpkg.com/lodash.frompairs/-/lodash.frompairs-4.0.1.tgz#bc4e5207fa2757c136e573614e9664506b2b1bd2"
+
+lodash.isfunction@^3.0.8:
+  version "3.0.8"
+  resolved "https://registry.yarnpkg.com/lodash.isfunction/-/lodash.isfunction-3.0.8.tgz#4db709fc81bc4a8fd7127a458a5346c5cdce2c6b"
+
+lodash.isstring@^4.0.1:
+  version "4.0.1"
+  resolved "https://registry.yarnpkg.com/lodash.isstring/-/lodash.isstring-4.0.1.tgz#d527dfb5456eca7cc9bb95d5daeaf88ba54a5451"
 
 lodash.kebabcase@^4.1.1:
   version "4.1.1"
@@ -3977,6 +4023,10 @@ lodash.reject@^4.4.0:
 lodash.some@^4.4.0:
   version "4.6.0"
   resolved "https://registry.yarnpkg.com/lodash.some/-/lodash.some-4.6.0.tgz#1bb9f314ef6b8baded13b549169b2a945eb68e4d"
+
+lodash.startswith@^4.2.1:
+  version "4.2.1"
+  resolved "https://registry.yarnpkg.com/lodash.startswith/-/lodash.startswith-4.2.1.tgz#c598c4adce188a27e53145731cdc6c0e7177600c"
 
 lodash.uniq@^4.5.0:
   version "4.5.0"
@@ -5509,15 +5559,15 @@ resolve@1.1.7:
   version "1.1.7"
   resolved "https://registry.yarnpkg.com/resolve/-/resolve-1.1.7.tgz#203114d82ad2c5ed9e8e0411b3932875e889e97b"
 
-resolve@^1.1.6, resolve@^1.3.2:
-  version "1.3.3"
-  resolved "https://registry.yarnpkg.com/resolve/-/resolve-1.3.3.tgz#655907c3469a8680dc2de3a275a8fdd69691f0e5"
+resolve@^1.1.6, resolve@^1.4.0:
+  version "1.4.0"
+  resolved "https://registry.yarnpkg.com/resolve/-/resolve-1.4.0.tgz#a75be01c53da25d934a98ebd0e4c4a7312f92a86"
   dependencies:
     path-parse "^1.0.5"
 
-resolve@^1.4.0:
-  version "1.4.0"
-  resolved "https://registry.yarnpkg.com/resolve/-/resolve-1.4.0.tgz#a75be01c53da25d934a98ebd0e4c4a7312f92a86"
+resolve@^1.3.2:
+  version "1.3.3"
+  resolved "https://registry.yarnpkg.com/resolve/-/resolve-1.3.3.tgz#655907c3469a8680dc2de3a275a8fdd69691f0e5"
   dependencies:
     path-parse "^1.0.5"
 
@@ -5643,7 +5693,7 @@ select@^1.1.2:
   version "1.1.2"
   resolved "https://registry.yarnpkg.com/select/-/select-1.1.2.tgz#0e7350acdec80b1108528786ec1d4418d11b396d"
 
-"semver@2 || 3 || 4 || 5", semver@^5.3.0:
+"semver@2 || 3 || 4 || 5", semver@^5.0.1, semver@^5.3.0:
   version "5.3.0"
   resolved "https://registry.yarnpkg.com/semver/-/semver-5.3.0.tgz#9b2ce5d3de02d17c6012ad326aa6b4d0cf54f94f"
 
@@ -6042,6 +6092,12 @@ supports-color@^3.1.0, supports-color@^3.1.1, supports-color@^3.2.3:
   dependencies:
     has-flag "^1.0.0"
 
+supports-color@^4.0.0:
+  version "4.4.0"
+  resolved "https://registry.yarnpkg.com/supports-color/-/supports-color-4.4.0.tgz#883f7ddabc165142b2a61427f3352ded195d1a3e"
+  dependencies:
+    has-flag "^2.0.0"
+
 svgo@^0.7.0:
   version "0.7.2"
   resolved "https://registry.yarnpkg.com/svgo/-/svgo-0.7.2.tgz#9f5772413952135c6fefbf40afe6a4faa88b4bb5"
@@ -6155,6 +6211,15 @@ tryit@^1.0.1:
 tryor@~0.1.2:
   version "0.1.2"
   resolved "https://registry.yarnpkg.com/tryor/-/tryor-0.1.2.tgz#8145e4ca7caff40acde3ccf946e8b8bb75b4172b"
+
+ts-loader@^2.3.7:
+  version "2.3.7"
+  resolved "https://registry.yarnpkg.com/ts-loader/-/ts-loader-2.3.7.tgz#a9028ced473bee12f28a75f9c5b139979d33f2fc"
+  dependencies:
+    chalk "^2.0.1"
+    enhanced-resolve "^3.0.0"
+    loader-utils "^1.0.2"
+    semver "^5.0.1"
 
 tslib@^1.6.1, tslib@^1.7.1:
   version "1.7.1"
@@ -6464,6 +6529,10 @@ webpack-dev-server@^2.3.0:
     supports-color "^3.1.1"
     webpack-dev-middleware "^1.10.2"
     yargs "^6.0.0"
+
+webpack-node-externals@^1.6.0:
+  version "1.6.0"
+  resolved "https://registry.yarnpkg.com/webpack-node-externals/-/webpack-node-externals-1.6.0.tgz#232c62ec6092b100635a3d29d83c1747128df9bd"
 
 webpack-sources@^0.2.3:
   version "0.2.3"

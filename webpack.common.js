@@ -118,8 +118,8 @@ function configure(IS_TEST) {
       ),
       new HtmlWebpackPlugin({
         title: 'Spinnaker',
-        template: './src/index.deck',
-        favicon: 'src/favicon.ico',
+        template: './index.deck',
+        favicon: 'favicon.ico',
         inject: true,
       }),
       new webpack.EnvironmentPlugin({
