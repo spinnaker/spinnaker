@@ -57,18 +57,20 @@ class QueueProcessor(
           if (handler != null) {
             try {
               queueExecutor.execute {
-                if (message is ExecutionLevel) {
-                  MDC.put(SPINNAKER_EXECUTION_ID, message.executionId)
+                try {
+                  if (message is ExecutionLevel) {
+                    MDC.put(SPINNAKER_EXECUTION_ID, message.executionId)
+                  }
+                  handler.invoke(message)
+                  ack.invoke()
+                } finally {
+                  MDC.remove(SPINNAKER_EXECUTION_ID)
                 }
-                handler.invoke(message)
-                ack.invoke()
               }
             } catch (e: RejectedExecutionException) {
               log.warn("Executor at capacity, immediately re-queuing message", e)
               queue.push(message)
               registry.counter(pollRejectedMessage).increment()
-            } finally {
-              MDC.remove(SPINNAKER_EXECUTION_ID)
             }
           } else {
             registry.counter(pollErrorRateId).increment()
