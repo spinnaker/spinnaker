@@ -47,5 +47,4 @@ karma-shim.js
 settings.gradle
 webpack.common.js
 webpack.config.js
-angular-loader/
 test/

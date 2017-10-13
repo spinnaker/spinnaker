@@ -47,7 +47,6 @@ function configure(IS_TEST) {
           use: [
             'cache-loader',
             'ng-annotate-loader',
-            'angular-loader',
             'babel-loader',
             'eslint-loader'
           ],

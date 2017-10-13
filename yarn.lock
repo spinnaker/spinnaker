@@ -499,13 +499,6 @@ angular-cron-gen@0.0.21:
   version "0.0.21"
   resolved "https://registry.yarnpkg.com/angular-cron-gen/-/angular-cron-gen-0.0.21.tgz#faa2bb35252a77892244dc895255b34dd6f734bf"
 
-"angular-loader@file:./angular-loader":
-  version "1.0.0"
-  dependencies:
-    escodegen "^1.6.1"
-    esprima "^2.4.0"
-    esprima-walk "^0.1.0"
-
 angular-marked@0.0.17:
   version "0.0.17"
   resolved "https://registry.yarnpkg.com/angular-marked/-/angular-marked-0.0.17.tgz#c503e724297e550be4238ec598b01fd74f0200c7"
