@@ -70,7 +70,7 @@ public class LinearToParallelMigration implements Migration {
 
   private void migrate(ItemDAO<Pipeline> dao, String type, Pipeline pipeline) {
     log.info(format("Migrating {} '{}' from linear -> parallel",
-      value("type", type), value("id", pipeline.getId())));
+      value("type", type), value("pipelineId", pipeline.getId())));
 
     AtomicInteger refId = new AtomicInteger(0);
     List<Map<String, Object>> stages = (List<Map<String, Object>>) pipeline.getOrDefault("stages", Collections.emptyList());
@@ -89,7 +89,7 @@ public class LinearToParallelMigration implements Migration {
     dao.update(pipeline.getId(), pipeline);
 
     log.info(format("Migrated %s '%s' from linear -> parallel",
-      value("type", type), value("id", pipeline.getId())));
+      value("type", type), value("pipelineId", pipeline.getId())));
   }
 
 }
