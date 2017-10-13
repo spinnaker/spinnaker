@@ -9,6 +9,7 @@ import { KUBERNETES_V2_SERVER_GROUP_COMMAND_BUILDER } from './serverGroup/server
 import { KUBERNETES_MANIFEST_CTRL } from './manifest/wizard/manifestWizard.controller';
 import { KUBERNETES_MANIFEST_ENTRY } from './manifest/wizard/manifestEntry.component';
 import { KUBERNETES_V2_SERVER_GROUP_TRANSFORMER } from './serverGroup/serverGroupTransformer.service';
+import { KUBERNETES_V2_SERVER_GROUP_DETAILS_CTRL } from './serverGroup/details.controller';
 
 // load all templates into the $templateCache
 const templates = require.context('kubernetes', true, /\.html$/);
@@ -22,6 +23,7 @@ module(KUBERNETES_V2_MODULE, [
   CLOUD_PROVIDER_REGISTRY,
   KUBERNETES_V2_SERVER_GROUP_COMMAND_BUILDER,
   KUBERNETES_V2_SERVER_GROUP_TRANSFORMER,
+  KUBERNETES_V2_SERVER_GROUP_DETAILS_CTRL,
   KUBERNETES_MANIFEST_BASIC_SETTINGS,
   KUBERNETES_MANIFEST_COMMAND_BUILDER,
   KUBERNETES_MANIFEST_CTRL,
@@ -38,6 +40,8 @@ module(KUBERNETES_V2_MODULE, [
         cloneServerGroupController: 'kubernetesManifestWizardCtrl',
         cloneServerGroupTemplateUrl: require('./manifest/wizard/manifestWizard.html'),
         transformer: 'kubernetesV2ServerGroupTransformer',
+        detailsTemplateUrl: require('./serverGroup/details.html'),
+        detailsController: 'kubernetesV2ServerGroupDetailsCtrl',
       }
     });
   });

@@ -1,0 +1,90 @@
+<div class="details-panel"
+     ng-class="{disabled: ctrl.serverGroup.isDisabled || ctrl.serverGroup.disabled}">
+  <div class="header" ng-if="ctrl.state.loading">
+    <div class="close-button">
+      <a class="btn btn-link"
+         ui-sref="^">
+        <span class="glyphicon glyphicon-remove"></span>
+      </a>
+    </div>
+    <h4 class="text-center">
+      <span us-spinner="{radius:20, width:6, length: 12}"></span>
+    </h4>
+  </div>
+
+  <div class="header" ng-if="!ctrl.state.loading">
+    <div class="close-button">
+      <a class="btn btn-link"
+         ui-sref="^">
+        <span class="glyphicon glyphicon-remove"></span>
+      </a>
+    </div>
+    <div class="header-text">
+      <cloud-provider-logo provider="ctrl.serverGroup.cloudProvider" height="'36px'" width="'36px'"></cloud-provider-logo>
+      <h3 select-on-dbl-click>
+        {{ctrl.serverGroup.displayName}}
+      </h3>
+    </div>
+    <div class="actions">
+      <div class="dropdown" uib-dropdown dropdown-append-to-body>
+        <button type="button" class="btn btn-sm btn-primary dropdown-toggle" uib-dropdown-toggle>
+          Server Group Actions <span class="caret"></span>
+        </button>
+        <ul class="dropdown-menu" uib-dropdown-menu role="menu">
+          <li ng-if="ctrl.canResizeServerGroup()">
+            <a href ng-click="ctrl.resizeServerGroup()">
+              Resize
+            </a>
+          </li>
+        </ul>
+      </div>
+      <div class="clearfix"></div>
+    </div>
+  </div>
+
+  <div class="content" ng-if="!ctrl.state.loading">
+    <div class="band band-info" ng-if="ctrl.serverGroup.isDisabled || ctrl.serverGroup.disabled">Disabled</div>
+    <server-group-running-tasks-details server-group="ctrl.serverGroup" application="ctrl.serverGroup.moniker.app"></server-group-running-tasks-details>
+    <collapsible-section heading="Information" expanded="true">
+      <dl class="dl-horizontal dl-flex">
+        <dt>Created</dt>
+        <dd>{{ctrl.serverGroup.createdTime | timestamp}}</dd>
+        <dt>Account</dt>
+        <dd><account-tag account="ctrl.serverGroup.accountName"></account-tag></dd>
+        <dt>Namespace</dt>
+        <dd>{{ctrl.serverGroup.region}}</dd>
+        <dt>Api Version</dt>
+        <dd>{{ctrl.serverGroup.apiVersion}}</dd>
+        <dt>Kind</dt>
+        <dd>{{ctrl.serverGroup.kind}}</dd>
+      </dl>
+    </collapsible-section>
+    <collapsible-section heading="Size" expanded="true">
+      <dl class="dl-horizontal dl-flex"
+          ng-if="ctrl.serverGroup.capacity.min === ctrl.serverGroup.capacity.max">
+        <dt>Min/Max</dt>
+        <dd>{{ctrl.serverGroup.capacity.min}}</dd>
+        <dt>Current</dt>
+        <dd>{{ctrl.serverGroup.instances.length}}</dd>
+      </dl>
+      <dl class="dl-horizontal dl-flex"
+          ng-if="ctrl.serverGroup.capacity.min !== ctrl.serverGroup.capacity.max">
+        <dt>Min</dt>
+        <dd>{{ctrl.serverGroup.capacity.min}}</dd>
+        <dt>Max</dt>
+        <dd>{{ctrl.serverGroup.capacity.max}}</dd>
+        <dt>Current</dt>
+        <dd>{{ctrl.serverGroup.instances.length}}</dd>
+      </dl>
+    </collapsible-section>
+    <collapsible-section heading="Health" expanded="true">
+      <dl class="dl-horizontal dl-flex"
+          ng-if="ctrl.serverGroup">
+        <dt>Instances</dt>
+        <dd>
+          <health-counts container="ctrl.serverGroup.instanceCounts" class="pull-left"></health-counts>
+        </dd>
+      </dl>
+    </collapsible-section>
+  </div>
+</div>
