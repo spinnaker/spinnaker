@@ -43,6 +43,7 @@ import com.netflix.spinnaker.clouddriver.titus.model.DockerImage
 import com.netflix.titus.grpc.protogen.PutPolicyRequest
 import com.netflix.titus.grpc.protogen.PutPolicyRequest.Builder
 import com.netflix.titus.grpc.protogen.ScalingPolicyResult
+import com.netflix.titus.grpc.protogen.ScalingPolicyStatus.ScalingPolicyState
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -236,10 +237,13 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
         List<ScalingPolicyResult> policies = sourceAutoscalingClient.getJobScalingPolicies(sourceJob.id) ?: []
         task.updateStatus BASE_PHASE, "Found ${policies.size()} scaling policies for source (Job URI: ${jobUri})"
         policies.each { policy ->
-          Builder requestBuilder = PutPolicyRequest.newBuilder()
-            .setJobId(jobUri)
-            .setScalingPolicy(UpsertTitusScalingPolicyDescription.fromScalingPolicyResult(description.region, policy).toScalingPolicyBuilder())
-          autoscalingClient.upsertScalingPolicy(requestBuilder.build())
+          // Don't copy deleting or deleted policies
+          if (![ScalingPolicyState.Deleted, ScalingPolicyState.Deleting].contains(policy.policyState.state)) {
+            Builder requestBuilder = PutPolicyRequest.newBuilder()
+              .setJobId(jobUri)
+              .setScalingPolicy(UpsertTitusScalingPolicyDescription.fromScalingPolicyResult(description.region, policy).toScalingPolicyBuilder())
+            autoscalingClient.upsertScalingPolicy(requestBuilder.build())
+          }
         }
       }
     }
