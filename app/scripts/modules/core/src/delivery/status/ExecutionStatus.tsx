@@ -49,7 +49,7 @@ export class ExecutionStatus extends React.Component<IExecutionStatusProps, IExe
       parameters = Object.keys(execution.trigger.parameters).sort()
         .filter((paramKey) => execution.isStrategy ? !strategyExclusions.includes(paramKey) : true)
         .map((paramKey: string) => {
-          return { key: paramKey, value: execution.trigger.parameters[paramKey] };
+          return { key: paramKey, value: JSON.stringify(execution.trigger.parameters[paramKey]) };
         });
     }
 
