@@ -28,4 +28,6 @@ public class GitHubProperties {
   @Max(100L)
   @Min(1L)
   Integer paginationValue = 100;
+  @NotNull
+  Integer membershipCacheTTLSeconds = 60 * 1000;
 }
