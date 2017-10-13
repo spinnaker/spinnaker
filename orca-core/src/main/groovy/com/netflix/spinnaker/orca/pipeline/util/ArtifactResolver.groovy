@@ -26,77 +26,36 @@ import java.lang.reflect.Field
 class ArtifactResolver {
 
   static void resolveArtifacts(Map pipeline) {
-    List<Artifact> resolvedArtifacts = []
-    if (pipeline.trigger.expectedArtifacts) {
-      // Resolve artifacts based on expectedArtifacts.
-      List<Artifact> receivedArtifacts = pipeline.receivedArtifacts ?: []
+    Set<Artifact> resolvedArtifacts = []
+    List<Artifact> recievedArtifacts = pipeline.recievedArtifacts ?: []
+    List<ExpectedArtifact> expectedArtifacts = pipeline.trigger.expectedArtifacts ?: []
+    List<ExpectedArtifact> unresolvedExpectedArtifacts = []
 
-      // Split up expected artifacts on whether they're satisfied or not.
-      def (hasMatch, needsLookup) = pipeline.trigger.expectedArtifacts.split { e ->
-        receivedArtifacts.any { a -> expectedMatch((ExpectedArtifact) e, (Artifact) a) }
+    for (ExpectedArtifact expectedArtifact : expectedArtifacts) {
+      List<Artifact> matches = recievedArtifacts.findAll { a -> expectedArtifact.matches(a) }
+      switch (matches.size()) {
+        case 0:
+          unresolvedExpectedArtifacts.add(expectedArtifact)
+          continue
+        case 1:
+          resolvedArtifacts.add(matches[0])
+          continue
+        default:
+          throw new IllegalStateException("Expected artifact ${expectedArtifact} matches multiple incoming artifacts ${matches}")
       }
+    }
 
-      // If satisfied, just find the artifact that matched.
-      hasMatch?.each { e -> resolvedArtifacts << (receivedArtifacts.find { a -> expectedMatch((ExpectedArtifact) e, (Artifact) a) }) }
-
-      // Otherwise, resolve artifact based on the missing fieldType and missingPolicy.
-      needsLookup?.each { e ->
-        receivedArtifacts.each { a ->
-          e.fields?.each { field ->
-            if (!lookupField((ExpectedArtifact.ArtifactField) field, (Artifact) a)) {
-              switch (field.getFieldType()) {
-                case ExpectedArtifact.ArtifactField.FieldType.MUST_MATCH:
-                  throw new ArtifactResolutionException(
-                      "Received artifact value did not match expected artifact for fieldName: ${field.getFieldName()}")
-                  break
-                case ExpectedArtifact.ArtifactField.FieldType.FIND_IF_MISSING:
-                  switch (field.getMissingPolicy()) {
-                    case ExpectedArtifact.ArtifactField.MissingPolicy.FAIL_PIPELINE:
-                      throw new ArtifactResolutionException(
-                          "Received artifact value missing, failing pipeline")
-                      break
-                    case ExpectedArtifact.ArtifactField.MissingPolicy.EXPRESSION:
-                      throw new ArtifactResolutionException("Expression execution is not implemented yet")
-                      break
-                    case ExpectedArtifact.ArtifactField.MissingPolicy.PRIOR_PIPELINE:
-                      throw new ArtifactResolutionException("Prior pipeline lookup is not implemented yet")
-                      break
-                    default:
-                      throw new ArtifactResolutionException("Unrecognized expected artifact MissingPolicy, failing")
-                      break
-                  }
-                  break
-                default:
-                  throw new ArtifactResolutionException("Unrecognized expected artifact FieldType")
-                  break
-              }
-            }
-          }
-        }
+    for (ExpectedArtifact expectedArtifact : unresolvedExpectedArtifacts) {
+      if (expectedArtifact.usePriorArtifact) {
+        throw new UnsupportedOperationException("'usePriorArtifact' is not supported yet")
+      } else if (expectedArtifact.defaultArtifact) {
+        resolvedArtifacts.add(expectedArtifact.defaultArtifact)
+      } else {
+        throw new IllegalStateException("Unmatched expected artifact ${expectedArtifact} with no fallback behavior specified")
       }
-    } else if (pipeline.receivedArtifacts) {
-      // We received artifacts but didn't expect any in the trigger, just add them to the context.
-      resolvedArtifacts.addAll(pipeline.receivedArtifacts)
     }
-    pipeline.trigger.artifacts = resolvedArtifacts
-  }
 
-  static Boolean expectedMatch(ExpectedArtifact e, Artifact a) {
-    return e.getFields().every { field -> lookupField((ExpectedArtifact.ArtifactField) field, a) }
-  }
-
-  static private Boolean lookupField(ExpectedArtifact.ArtifactField field, Artifact a) {
-    // Look up the field in the actual artifact and check that the values match.
-    try {
-      Field declaredField = a.getClass().getDeclaredField(field.getFieldName())
-      declaredField.setAccessible(true)
-      String actualValue = (String) declaredField.get(a) // Note: all fields we can match on are Strings.
-      declaredField.setAccessible(false)
-      return actualValue && actualValue.equals(field.getValue())
-    } catch (IllegalAccessException | NoSuchFieldException ex) {
-      log.error(ex.getMessage())
-      return false
-    }
+    pipeline.trigger.artifacts = resolvedArtifacts as List
   }
 
   static class ArtifactResolutionException extends RuntimeException {

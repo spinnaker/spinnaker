@@ -147,6 +147,7 @@ class OperationsController {
         pipeline.trigger.parameters[it.name] = pipeline.trigger.parameters.containsKey(it.name) ? pipeline.trigger.parameters[it.name] : it.default
       }
     }
+    
     ArtifactResolver.resolveArtifacts(pipeline)
   }
 

@@ -68,7 +68,7 @@ class AppEngineServerGroupCreator implements ServerGroupCreator {
       }
 
       List<Map> artifacts = (List<Map>) trigger.artifacts
-      Artifact artifact = (Artifact) artifacts.find { a -> ArtifactResolver.expectedMatch((ExpectedArtifact) expectedArtifact, (Artifact) a) }
+      Artifact artifact = (Artifact) artifacts.find { a -> ((ExpectedArtifact) expectedArtifact).matches((Artifact) a) }
       if (artifact?.reference) {
         String repositoryUrl = ''
         switch (artifact.type) {
