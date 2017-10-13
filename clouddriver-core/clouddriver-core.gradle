@@ -12,6 +12,7 @@ dependencies {
   compile spinnaker.dependency("jedis")
   compile spinnaker.dependency("frigga")
   compile spinnaker.dependency("lombok")
+  compile spinnaker.dependency('logstashEncoder')
 
   compile project(':cats:cats-core')
   compile project(':cats:cats-redis')
