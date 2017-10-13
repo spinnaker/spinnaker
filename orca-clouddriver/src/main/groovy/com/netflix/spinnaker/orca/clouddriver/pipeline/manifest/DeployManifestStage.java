@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.clouddriver.pipeline.manifest;
 
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.DeployManifestTask;
+import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.ManifestForceCacheRefreshTask;
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder;
 import com.netflix.spinnaker.orca.pipeline.TaskNode;
 import com.netflix.spinnaker.orca.pipeline.model.Execution;
@@ -32,6 +33,7 @@ public class DeployManifestStage implements StageDefinitionBuilder {
   @Override
   public <T extends Execution<T>> void taskGraph(Stage<T> stage, TaskNode.Builder builder) {
     builder.withTask(DeployManifestTask.TASK_NAME, DeployManifestTask.class)
-        .withTask("monitorDeploy", MonitorKatoTask.class);
+        .withTask("monitorDeploy", MonitorKatoTask.class)
+        .withTask(ManifestForceCacheRefreshTask.TASK_NAME, ManifestForceCacheRefreshTask.class);
   }
 }
