@@ -69,9 +69,7 @@ module(LOAD_BALANCER_STATES, [
       'nav': {
         template: '<load-balancer-filter app="$resolve.app"></load-balancer-filter>',
       },
-      'master': {
-        component: LoadBalancers, $type: 'react'
-      }
+      'master': { component: LoadBalancers, $type: 'react' }
     },
     params: stateConfigProvider.buildDynamicParams(filterModelConfig),
     data: {

@@ -15,6 +15,12 @@ export class Tooltip extends React.Component<ITooltipProps> {
     value: ''
   };
 
+  public shouldComponentUpdate(nextProps: ITooltipProps) {
+    return !!nextProps.template
+      || nextProps.value !== this.props.value
+      || nextProps.placement !== this.props.placement;
+  }
+
   public render() {
     let tooltip = <BSTooltip id={this.props.value}>{this.props.value}</BSTooltip>;
     if (this.props.template) {

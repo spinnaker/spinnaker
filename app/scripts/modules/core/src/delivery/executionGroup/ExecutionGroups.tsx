@@ -26,12 +26,12 @@ export class ExecutionGroups extends React.Component<IExecutionGroupsProps, IExe
     super(props);
     const { executionFilterModel, executionFilterService, stateEvents } = ReactInjector;
     this.state = {
-      groups: executionFilterModel.asFilterModel.groups,
+      groups: executionFilterModel.asFilterModel.groups.slice(),
       showingDetails: this.showingDetails()
     };
 
     this.applicationRefreshUnsubscribe = this.props.application.executions.onRefresh(null, () => { this.forceUpdate(); });
-    this.groupsUpdatedSubscription = executionFilterService.groupsUpdatedStream.subscribe(() => { this.setState({groups: executionFilterModel.asFilterModel.groups}); });
+    this.groupsUpdatedSubscription = executionFilterService.groupsUpdatedStream.subscribe(() => { this.setState({groups: executionFilterModel.asFilterModel.groups.slice()}); });
     this.stateChangeSuccessSubscription = stateEvents.stateChangeSuccess.subscribe(() => {
       const detailsShown = this.showingDetails();
       if (detailsShown !== this.state.showingDetails) {
@@ -42,6 +42,10 @@ export class ExecutionGroups extends React.Component<IExecutionGroupsProps, IExe
 
   private showingDetails(): boolean {
     return ReactInjector.$state.includes('**.execution');
+  }
+
+  public shouldComponentUpdate(_nextProps_: IExecutionGroupsProps, nextState: IExecutionGroupsState): boolean {
+    return nextState.groups !== this.state.groups || nextState.showingDetails !== this.state.showingDetails;
   }
 
   public componentWillUnmount(): void {
@@ -63,15 +67,17 @@ export class ExecutionGroups extends React.Component<IExecutionGroupsProps, IExe
     const executionGroups = (this.state.groups || []).map((group: IExecutionGroup) => <ExecutionGroup key={group.heading} group={group} application={this.props.application}/>);
 
     return (
-      <div className={className}>
-          { !hasGroups && (
-            <div className="text-center">
-              <h4>No executions match the filters you've selected.</h4>
+      <div className="execution-groups-section">
+        <div className={className}>
+            { !hasGroups && (
+              <div className="text-center">
+                <h4>No executions match the filters you've selected.</h4>
+              </div>
+            )}
+            <div className="execution-groups all-execution-groups">
+              {executionGroups}
             </div>
-          )}
-          <div className="execution-groups all-execution-groups">
-            {executionGroups}
-          </div>
+        </div>
       </div>
     );
   }

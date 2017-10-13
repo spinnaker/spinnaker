@@ -1,5 +1,6 @@
 import * as React from 'react';
 import * as ReactGA from 'react-ga';
+import { get } from 'lodash';
 import { BindAll } from 'lodash-decorators';
 import { Dropdown } from 'react-bootstrap';
 
@@ -21,15 +22,17 @@ export class CreatePipeline extends React.Component<ICreatePipelineProps> {
 
   public render() {
     const { application } = this.props;
-    const header = !(application.pipelineConfigs.data.length || application.strategyConfigs.data.length) ? (
+    const hasPipelineConfigs = get(application, 'pipelineConfigs.data', []).length > 0;
+    const hasStrategyConfigs = get(application, 'strategyConfigs.data', []).length > 0;
+    const header = !(hasPipelineConfigs || hasStrategyConfigs) ? (
       <li
         className="dropdown-header"
         style={{marginTop: 0}}
       >
         None yet, click <span style={{marginLeft: '2px'}} className="glyphicon glyphicon-plus-sign"/> Create
       </li>
-    ) : application.pipelineConfigs.data.length ? <li className="dropdown-header" style={{marginTop: 0}}>PIPELINES</li>
-    : application.strategyConfigs.data.length ? <li className="dropdown-header" style={{marginTop: 0}}>DEPLOYMENT STRATEGIES</li>
+    ) : hasPipelineConfigs ? <li className="dropdown-header" style={{marginTop: 0}}>PIPELINES</li>
+    : hasStrategyConfigs ? <li className="dropdown-header" style={{marginTop: 0}}>DEPLOYMENT STRATEGIES</li>
     : null;
 
     return (
@@ -41,8 +44,8 @@ export class CreatePipeline extends React.Component<ICreatePipelineProps> {
         </Dropdown.Toggle>
         <Dropdown.Menu className="dropdown-menu">
           {header}
-          {application.pipelineConfigs.data.map((pipeline: any) => <Pipeline key={pipeline.id} pipeline={pipeline} type="pipeline"/>)}
-          {application.strategyConfigs.data.map((pipeline: any) => <Pipeline key={pipeline.id} pipeline={pipeline} type="strategy"/>)}
+          {hasPipelineConfigs && application.pipelineConfigs.data.map((pipeline: any) => <Pipeline key={pipeline.id} pipeline={pipeline} type="pipeline"/>)}
+          {hasStrategyConfigs && application.strategyConfigs.data.map((pipeline: any) => <Pipeline key={pipeline.id} pipeline={pipeline} type="strategy"/>)}
           </Dropdown.Menu>
       </Dropdown>
     );

@@ -22,6 +22,7 @@ import { ExecutionService } from '../delivery/service/execution.service';
 import { HelpContentsRegistry } from 'core/help';
 import { IHelpContents } from 'core/help';
 import { InfrastructureSearchService } from '../search/infrastructure/infrastructureSearch.service';
+import { InsightFilterStateModel } from '../insight/insightFilterState.model';
 import { LoadBalancerFilterModel } from '../loadBalancer/filter/loadBalancerFilter.model';
 import { LoadBalancerFilterService } from '../loadBalancer/filter/loadBalancer.filter.service';
 import { ManualJudgmentService } from '../pipeline/config/stages/manualJudgment/manualJudgment.service';
@@ -35,6 +36,7 @@ import { PipelineTemplateService } from '../pipeline/config/templates/pipelineTe
 import { ProviderSelectionService } from '../cloudProvider/providerSelection/providerSelection.service';
 import { RecentHistoryService } from 'core/history/recentHistory.service'
 import { SchedulerFactory } from '../scheduler/scheduler.factory';
+import { ScrollToService } from '../utils/scrollTo/scrollTo.service';
 import { StateEvents } from './state.events';
 import { TaskExecutor } from '../task/taskExecutor';
 import { TaskMonitorBuilder } from '../task/monitor/taskMonitor.builder';
@@ -84,6 +86,7 @@ export class CoreReactInject extends ReactInject {
   public get helpContents() { return this.$injector.get('helpContents') as IHelpContents }
   public get helpContentsRegistry() { return this.$injector.get('helpContentsRegistry') as HelpContentsRegistry; }
   public get infrastructureSearchService() { return this.$injector.get('infrastructureSearchService') as InfrastructureSearchService; }
+  public get insightFilterStateModel() { return this.$injector.get('insightFilterStateModel') as InsightFilterStateModel; }
   public get loadBalancerFilterModel() { return this.$injector.get('loadBalancerFilterModel') as LoadBalancerFilterModel; }
   public get loadBalancerFilterService() { return this.$injector.get('loadBalancerFilterService') as LoadBalancerFilterService; }
   public get manualJudgmentService() { return this.$injector.get('manualJudgmentService') as ManualJudgmentService; }
@@ -98,6 +101,7 @@ export class CoreReactInject extends ReactInject {
   public get pipelineTemplateService() { return this.$injector.get('pipelineTemplateService') as PipelineTemplateService; }
   public get providerSelectionService() { return this.$injector.get('providerSelectionService') as ProviderSelectionService; }
   public get schedulerFactory() { return this.$injector.get('schedulerFactory') as SchedulerFactory; }
+  public get scrollToService() { return this.$injector.get('scrollToService') as ScrollToService; }
   public get recentHistoryService() { return this.$injector.get('recentHistoryService') as RecentHistoryService; }
   public get stateEvents() { return this.$injector.get('stateEvents') as StateEvents; }
   public get taskExecutor() { return this.$injector.get('taskExecutor') as TaskExecutor; }

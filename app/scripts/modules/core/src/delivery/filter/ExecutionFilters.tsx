@@ -92,7 +92,7 @@ export class ExecutionFilters extends React.Component<IExecutionFiltersProps, IE
     if (application.pipelineConfigs.loadFailure) {
       return [];
     }
-    const configs = (application.pipelineConfigs.data || []).concat(application.strategyConfigs.data || []);
+    const configs = get(application, 'pipelineConfigs.data', []).concat(get(application, 'strategyConfigs.data', []));
     const allOptions = orderBy(configs, ['strategy', 'index'], ['desc', 'asc'])
       .concat(application.executions.data)
       .filter((option: any) => option && option.name)

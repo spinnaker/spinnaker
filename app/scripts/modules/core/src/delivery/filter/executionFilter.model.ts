@@ -27,6 +27,7 @@ export class ExecutionFilterModel {
   private showStageDuration: boolean;
 
   public asFilterModel: IExecutionFilterModel;
+  public mostRecentApplication: string;
 
   // This is definitely not the best way to do this, but already have a Subject in here, so just using the same
   // mechanism for now.
