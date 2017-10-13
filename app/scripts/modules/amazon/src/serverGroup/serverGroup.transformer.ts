@@ -37,7 +37,7 @@ export class AwsServerGroupTransformer {
     policyOrStepAdjustment.absAdjustment = Math.abs(policyOrStepAdjustment.scalingAdjustment);
   }
 
-  private transformScalingPolicy(policy: IScalingPolicy): IScalingPolicyView {
+  public transformScalingPolicy(policy: IScalingPolicy): IScalingPolicyView {
     const view: IScalingPolicyView = Object.assign({}, policy) as IScalingPolicyView;
     const upperBoundSorter = (a: IStepAdjustmentView, b: IStepAdjustmentView) => b.metricIntervalUpperBound - a.metricIntervalUpperBound,
           lowerBoundSorter = (a: IStepAdjustmentView, b: IStepAdjustmentView) => a.metricIntervalLowerBound - b.metricIntervalLowerBound;
