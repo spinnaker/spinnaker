@@ -30,6 +30,7 @@ dependencies {
   compile spinnaker.dependency("korkSwagger")
   compile spinnaker.dependency("korkWeb")
   compile spinnaker.dependency("frigga")
+  compile spinnaker.dependency("logstashEncoder")
   compile spinnaker.dependency('cglib')
 
   compile('org.springframework.session:spring-session-data-redis:1.1.1.RELEASE')

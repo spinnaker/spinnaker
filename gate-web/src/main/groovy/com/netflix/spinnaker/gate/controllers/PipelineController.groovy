@@ -209,8 +209,8 @@ class PipelineController {
     } catch (NotFoundException e) {
       throw e
     } catch (e) {
-      log.error("Unable to trigger pipeline (application: {}, pipelineName: {})",
-        value("application", application), value("pipelineName", pipelineNameOrId), e)
+      log.error("Unable to trigger pipeline (application: {}, pipelineId: {})",
+        value("application", application), value("pipelineId", pipelineNameOrId), e)
       new ResponseEntity([message: e.message], new HttpHeaders(), HttpStatus.UNPROCESSABLE_ENTITY)
     }
   }
