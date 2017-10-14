@@ -25,16 +25,17 @@ import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesApiVersion;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
-import com.netflix.spinnaker.clouddriver.model.ServerGroup.Capacity;
 import io.kubernetes.client.ApiClient;
 import io.kubernetes.client.ApiException;
 import io.kubernetes.client.apis.AppsV1beta1Api;
 import io.kubernetes.client.apis.CoreV1Api;
 import io.kubernetes.client.apis.ExtensionsV1beta1Api;
 import io.kubernetes.client.models.AppsV1beta1Deployment;
+import io.kubernetes.client.models.V1DeleteOptions;
 import io.kubernetes.client.models.V1Pod;
 import io.kubernetes.client.models.V1PodList;
 import io.kubernetes.client.models.V1Service;
+import io.kubernetes.client.models.V1Status;
 import io.kubernetes.client.models.V1beta1Ingress;
 import io.kubernetes.client.models.V1beta1NetworkPolicy;
 import io.kubernetes.client.models.V1beta1NetworkPolicyList;
@@ -230,6 +231,17 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
     });
   }
 
+  public V1Status deleteDeployment(String namespace, String name, V1DeleteOptions deleteOptions) {
+    final String methodName = "deployments.delete";
+    return runAndRecordMetrics(methodName, namespace, () -> {
+      try {
+        return appsV1beta1Api.deleteNamespacedDeployment(name, namespace, deleteOptions, PRETTY, null, null, null);
+      } catch (ApiException e) {
+        throw new KubernetesApiException(methodName, e);
+      }
+    });
+  }
+
   public void patchDeployment(String namespace, String name, AppsV1beta1Deployment desired) {
     AppsV1beta1Deployment current = readDeployment(namespace, name);
     patchDeployment(current, desired);
@@ -279,6 +291,40 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
     runAndRecordMetrics(methodName, namespace, () -> {
       try {
         return extensionsV1beta1Api.createNamespacedIngress(namespace, ingress, null);
+      } catch (ApiException e) {
+        throw new KubernetesApiException(methodName, e);
+      }
+    });
+  }
+
+  public V1Status deleteIngress(String namespace, String name, V1DeleteOptions deleteOptions) {
+    final String methodName = "ingresses.delete";
+    return runAndRecordMetrics(methodName, namespace, () -> {
+      try {
+        return extensionsV1beta1Api.deleteNamespacedIngress(name, namespace, deleteOptions, PRETTY, null, null, null);
+      } catch (ApiException e) {
+        throw new KubernetesApiException(methodName, e);
+      }
+    });
+  }
+
+  public void createNetworkPolicy(V1beta1NetworkPolicy networkPolicy) {
+    final String methodName = "networkPolicies.create";
+    final String namespace = networkPolicy.getMetadata().getNamespace();
+    runAndRecordMetrics(methodName, namespace, () -> {
+      try {
+        return extensionsV1beta1Api.createNamespacedNetworkPolicy(namespace, networkPolicy, null);
+      } catch (ApiException e) {
+        throw new KubernetesApiException(methodName, e);
+      }
+    });
+  }
+
+  public V1Status deleteNetworkPolicy(String namespace, String name, V1DeleteOptions deleteOptions) {
+    final String methodName = "networkPolicies.delete";
+    return runAndRecordMetrics(methodName, namespace, () -> {
+      try {
+        return extensionsV1beta1Api.deleteNamespacedNetworkPolicy(name, namespace, deleteOptions, PRETTY, null, null, null);
       } catch (ApiException e) {
         throw new KubernetesApiException(methodName, e);
       }
@@ -361,6 +407,17 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
     });
   }
 
+  public V1Status deleteReplicaSet(String namespace, String name, V1DeleteOptions deleteOptions) {
+    final String methodName = "replicaSets.delete";
+    return runAndRecordMetrics(methodName, namespace, () -> {
+      try {
+        return extensionsV1beta1Api.deleteNamespacedReplicaSet(name, namespace, deleteOptions, PRETTY, null, null, null);
+      } catch (ApiException e) {
+        throw new KubernetesApiException(methodName, e);
+      }
+    });
+  }
+
   public List<V1beta1ReplicaSet> listAllReplicaSets(String namespace) {
     return listReplicaSets(namespace, new KubernetesSelectorList(), new KubernetesSelectorList());
   }
@@ -433,6 +490,17 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
     runAndRecordMetrics(methodName, namespace, () -> {
       try {
         return coreV1Api.createNamespacedService(namespace, service, null);
+      } catch (ApiException e) {
+        throw new KubernetesApiException(methodName, e);
+      }
+    });
+  }
+
+  public V1Status deleteService(String namespace, String name) {
+    final String methodName = "services.delete";
+    return runAndRecordMetrics(methodName, namespace, () -> {
+      try {
+        return coreV1Api.deleteNamespacedService(name, namespace, PRETTY);
       } catch (ApiException e) {
         throw new KubernetesApiException(methodName, e);
       }

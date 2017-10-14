@@ -22,11 +22,12 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.Kube
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
 import com.netflix.spinnaker.clouddriver.model.ServerGroup.Capacity;
+import io.kubernetes.client.models.V1DeleteOptions;
 import io.kubernetes.client.models.V1beta1ReplicaSet;
 import org.springframework.stereotype.Component;
 
 @Component
-public class KubernetesReplicaSetDeployer extends KubernetesDeployer<V1beta1ReplicaSet> implements CanResize {
+public class KubernetesReplicaSetDeployer extends KubernetesDeployer<V1beta1ReplicaSet> implements CanResize, CanDelete<V1DeleteOptions> {
   @Override
   public KubernetesKind kind() {
     return KubernetesKind.REPLICA_SET;
@@ -40,6 +41,11 @@ public class KubernetesReplicaSetDeployer extends KubernetesDeployer<V1beta1Repl
   @Override
   public Class<V1beta1ReplicaSet> getDeployedClass() {
     return V1beta1ReplicaSet.class;
+  }
+
+  @Override
+  public Class<V1DeleteOptions> getDeleteOptionsClass() {
+    return V1DeleteOptions.class;
   }
 
   @Override
@@ -60,5 +66,10 @@ public class KubernetesReplicaSetDeployer extends KubernetesDeployer<V1beta1Repl
   @Override
   public void resize(KubernetesV2Credentials credentials, String namespace, String name, Capacity capacity) {
     credentials.resizeReplicaSet(namespace, name, capacity.getDesired());
+  }
+
+  @Override
+  public void delete(KubernetesV2Credentials credentials, String namespace, String name, V1DeleteOptions deleteOptions) {
+    credentials.deleteReplicaSet(namespace, name, deleteOptions);
   }
 }

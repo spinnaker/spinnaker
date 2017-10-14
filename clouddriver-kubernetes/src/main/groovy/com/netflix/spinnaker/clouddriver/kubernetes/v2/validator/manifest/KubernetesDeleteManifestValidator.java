@@ -19,7 +19,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.validator.manifest;
 
 import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator;
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesOperation;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesDeployManifestDescription;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesDeleteManifestDescription;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.validator.KubernetesValidationUtil;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,17 +28,17 @@ import org.springframework.validation.Errors;
 
 import java.util.List;
 
-import static com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations.DEPLOY_MANIFEST;
+import static com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations.DELETE_MANIFEST;
 
-@KubernetesOperation(DEPLOY_MANIFEST)
+@KubernetesOperation(DELETE_MANIFEST)
 @Component
-public class KubernetesDeployManifestValidator extends DescriptionValidator<KubernetesDeployManifestDescription> {
+public class KubernetesDeleteManifestValidator extends DescriptionValidator<KubernetesDeleteManifestDescription> {
   @Autowired
   AccountCredentialsProvider provider;
 
   @Override
-  public void validate(List priorDescriptions, KubernetesDeployManifestDescription description, Errors errors) {
-    KubernetesValidationUtil util = new KubernetesValidationUtil("deployKubernetesManifest", errors);
+  public void validate(List priorDescriptions, KubernetesDeleteManifestDescription description, Errors errors) {
+    KubernetesValidationUtil util = new KubernetesValidationUtil("deleteKubernetesManifest", errors);
     if (!util.validateV2Credentials(provider, description.getAccount())) {
       return;
     }

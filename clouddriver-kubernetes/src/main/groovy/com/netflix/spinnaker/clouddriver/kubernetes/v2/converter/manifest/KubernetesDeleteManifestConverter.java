@@ -15,14 +15,13 @@
  *
  */
 
-package com.netflix.spinnaker.clouddriver.kubernetes.v2.converter.servergroup;
+package com.netflix.spinnaker.clouddriver.kubernetes.v2.converter.manifest;
 
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesOperation;
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.converters.KubernetesAtomicOperationConverterHelper;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesResourcePropertyRegistry;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesDeployManifestDescription;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.servergroup.KubernetesResizeServerGroupDescription;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.servergroup.KubernetesResizeServerGroupOperation;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesDeleteManifestDescription;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.manifest.KubernetesDeleteManifestOperation;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport;
 import com.netflix.spinnaker.clouddriver.security.ProviderVersion;
@@ -31,23 +30,23 @@ import org.springframework.stereotype.Component;
 
 import java.util.Map;
 
-import static com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations.RESIZE_SERVER_GROUP;
+import static com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations.DELETE_MANIFEST;
 
-@KubernetesOperation(RESIZE_SERVER_GROUP)
+@KubernetesOperation(DELETE_MANIFEST)
 @Component
-public class KubernetesResizeServerGroupConverter extends AbstractAtomicOperationsCredentialsSupport {
+public class KubernetesDeleteManifestConverter extends AbstractAtomicOperationsCredentialsSupport {
   @Autowired
   private KubernetesResourcePropertyRegistry registry;
 
   @Override
   public AtomicOperation convertOperation(Map input) {
-    return new KubernetesResizeServerGroupOperation(convertDescription(input), registry);
+    return new KubernetesDeleteManifestOperation(convertDescription(input), registry);
   }
 
   @Override
-  public KubernetesResizeServerGroupDescription convertDescription(Map input) {
-    return (KubernetesResizeServerGroupDescription) KubernetesAtomicOperationConverterHelper
-        .convertDescription(input, this, KubernetesDeployManifestDescription.class);
+  public KubernetesDeleteManifestDescription convertDescription(Map input) {
+    return (KubernetesDeleteManifestDescription) KubernetesAtomicOperationConverterHelper
+        .convertDescription(input, this, KubernetesDeleteManifestDescription.class);
   }
 
   @Override
@@ -55,4 +54,3 @@ public class KubernetesResizeServerGroupConverter extends AbstractAtomicOperatio
     return version == ProviderVersion.v2;
   }
 }
-

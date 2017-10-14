@@ -28,7 +28,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.Kube
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifestAnnotater;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifestOperationDescription;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesDeployManifestDescription;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifestSpinnakerRelationships;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.deployer.KubernetesDeployer;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
@@ -41,14 +41,14 @@ import org.apache.commons.lang.StringUtils;
 
 import java.util.List;
 
-public class KubernetesManifestDeployer implements AtomicOperation<DeploymentResult> {
-  private final KubernetesManifestOperationDescription description;
+public class KubernetesDeployManifestOperation implements AtomicOperation<DeploymentResult> {
+  private final KubernetesDeployManifestDescription description;
   private final KubernetesV2Credentials credentials;
   private final Namer namer;
   private final KubernetesResourcePropertyRegistry registry;
   private static final String OP_NAME = "DEPLOY_KUBERNETES_MANIFEST";
 
-  public KubernetesManifestDeployer(KubernetesManifestOperationDescription description, KubernetesResourcePropertyRegistry registry) {
+  public KubernetesDeployManifestOperation(KubernetesDeployManifestDescription description, KubernetesResourcePropertyRegistry registry) {
     this.description = description;
     this.credentials = (KubernetesV2Credentials) description.getCredentials().getCredentials();
     this.registry = registry;

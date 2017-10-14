@@ -21,11 +21,12 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpi
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesApiVersion;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
+import io.kubernetes.client.models.V1DeleteOptions;
 import io.kubernetes.client.models.V1beta1Ingress;
 import org.springframework.stereotype.Component;
 
 @Component
-public class KubernetesIngressDeployer extends KubernetesDeployer<V1beta1Ingress> {
+public class KubernetesIngressDeployer extends KubernetesDeployer<V1beta1Ingress> implements CanDelete<V1DeleteOptions> {
   @Override
   public KubernetesKind kind() {
     return KubernetesKind.INGRESS;
@@ -54,5 +55,15 @@ public class KubernetesIngressDeployer extends KubernetesDeployer<V1beta1Ingress
   @Override
   public SpinnakerKind spinnakerKind() {
     return SpinnakerKind.LOAD_BALANCER;
+  }
+
+  @Override
+  public Class<V1DeleteOptions> getDeleteOptionsClass() {
+    return V1DeleteOptions.class;
+  }
+
+  @Override
+  public void delete(KubernetesV2Credentials credentials, String namespace, String name, V1DeleteOptions deleteOptions) {
+    credentials.deleteDeployment(namespace, name, deleteOptions);
   }
 }

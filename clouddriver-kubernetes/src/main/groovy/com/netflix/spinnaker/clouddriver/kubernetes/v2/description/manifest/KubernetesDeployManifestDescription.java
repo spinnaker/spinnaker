@@ -17,27 +17,15 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesAtomicOperationDescription;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesCoordinates;
+import com.netflix.spinnaker.moniker.Moniker;
 import lombok.Data;
-import org.apache.commons.lang3.tuple.Triple;
+import lombok.EqualsAndHashCode;
 
 @Data
-public class KubernetesManifestOperationDescription extends KubernetesAtomicOperationDescription {
-  private String name;
-  private String namespace;
-
-  @JsonIgnore
-  public KubernetesCoordinates getCoordinates() {
-    Triple<KubernetesApiVersion, KubernetesKind, String> parsedName = KubernetesManifest.fromFullResourceName(name);
-
-    return KubernetesCoordinates.builder()
-        .namespace(name)
-        .apiVersion(parsedName.getLeft())
-        .kind(parsedName.getMiddle())
-        .name(parsedName.getRight())
-        .build();
-  }
-
+@EqualsAndHashCode(callSuper = true)
+public class KubernetesDeployManifestDescription extends KubernetesAtomicOperationDescription {
+  KubernetesManifest manifest;
+  Moniker moniker;
+  KubernetesManifestSpinnakerRelationships relationships;
 }

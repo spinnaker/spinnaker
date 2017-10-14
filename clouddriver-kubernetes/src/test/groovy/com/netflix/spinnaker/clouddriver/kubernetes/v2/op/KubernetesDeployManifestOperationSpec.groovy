@@ -27,13 +27,13 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.KubernetesVersio
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesApiVersion
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifestOperationDescription
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesDeployManifestDescription
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifestSpinnakerRelationships
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesResourcePropertyRegistry
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpinnakerKindMap
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.names.KubernetesManifestNamer
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.deployer.KubernetesReplicaSetDeployer
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.manifest.KubernetesManifestDeployer
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.manifest.KubernetesDeployManifestOperation
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials
 import com.netflix.spinnaker.clouddriver.names.NamerRegistry
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
@@ -41,7 +41,7 @@ import com.netflix.spinnaker.moniker.Moniker
 import org.yaml.snakeyaml.Yaml
 import spock.lang.Specification
 
-class KubernetesManifestDeployerSpec extends Specification {
+class KubernetesDeployManifestOperationSpec extends Specification {
   def objectMapper = new ObjectMapper()
   def yaml = new Yaml()
 
@@ -76,8 +76,8 @@ metadata:
     return objectMapper.convertValue(yaml.load(input), KubernetesManifest)
   }
 
-  KubernetesManifestDeployer createMockDeployer(KubernetesV2Credentials credentials, String manifest) {
-    def deployDescription = new KubernetesManifestOperationDescription()
+  KubernetesDeployManifestOperation createMockDeployer(KubernetesV2Credentials credentials, String manifest) {
+    def deployDescription = new KubernetesDeployManifestDescription()
       .setManifest(stringToManifest(manifest))
       .setMoniker(new Moniker())
       .setRelationships(new KubernetesManifestSpinnakerRelationships())
@@ -104,7 +104,7 @@ metadata:
       .withAccount(ACCOUNT)
       .setNamer(KubernetesManifest.class, new KubernetesManifestNamer())
     
-    def deployOp = new KubernetesManifestDeployer(deployDescription, registry)
+    def deployOp = new KubernetesDeployManifestOperation(deployDescription, registry)
 
     return deployOp
   }
