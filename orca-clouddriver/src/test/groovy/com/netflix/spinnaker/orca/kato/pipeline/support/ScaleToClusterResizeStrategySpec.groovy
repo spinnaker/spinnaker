@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.orca.kato.pipeline.support
 
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Location
-import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup
 import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
 import com.netflix.spinnaker.orca.kato.pipeline.support.ResizeStrategy.Capacity
 import com.netflix.spinnaker.orca.pipeline.model.Stage
@@ -28,11 +27,14 @@ import java.util.concurrent.atomic.AtomicInteger
 
 class ScaleToClusterResizeStrategySpec extends Specification {
 
-  Stage stage = Mock(Stage)
+
   OortHelper oortHelper = Mock(OortHelper)
   @Subject ScaleToClusterResizeStrategy strategy = new ScaleToClusterResizeStrategy(oortHelper: oortHelper)
 
   def 'empty or missing cluster fails on scale_to_cluster'() {
+    given:
+    Stage stage = new Stage(null, "stage", [moniker: [app: application, cluster: clusterName]])
+
     when:
     strategy.capacityForOperation(stage, account, serverGroupName, cloudProvider, location, resizeConfig)
 
@@ -48,6 +50,9 @@ class ScaleToClusterResizeStrategySpec extends Specification {
   }
 
   def 'capacity is the maximum value of min/max/desired across the cluster for scale_to_cluster'() {
+    given:
+    Stage stage = new Stage(null, "stage", [moniker: [app: application, cluster: clusterName]])
+
     when:
     def cap = strategy.capacityForOperation(stage, account, serverGroupName, cloudProvider, location, resizeConfig)
 
@@ -69,6 +74,9 @@ class ScaleToClusterResizeStrategySpec extends Specification {
   }
 
   def 'desired capacity is increased by scalePct or scaleNum for scale_to_cluster within the min/max bounds'() {
+    given:
+    Stage stage = new Stage(null, "stage", [moniker: [app: application, cluster: clusterName]])
+
     when:
     def cap = strategy.capacityForOperation(stage, account, serverGroupName, cloudProvider, location, resizeConfig)
 

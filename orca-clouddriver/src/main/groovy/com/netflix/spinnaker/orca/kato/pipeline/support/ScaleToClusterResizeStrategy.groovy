@@ -41,8 +41,8 @@ class ScaleToClusterResizeStrategy implements ResizeStrategy{
   @Override
   Capacity capacityForOperation(Stage stage, String account, String serverGroupName, String cloudProvider, Location location, OptionalConfiguration resizeConfig) {
     def names = Names.parseName(serverGroupName)
-    def appName = names.app
-    def clusterName = names.cluster
+    def appName = stage?.context?.moniker?.app ?: names.app
+    def clusterName = stage?.context?.moniker?.cluster ?:names.cluster
 
     def cluster = oortHelper.getCluster(appName, account, clusterName, cloudProvider)
     List<TargetServerGroup> targetServerGroups = cluster
