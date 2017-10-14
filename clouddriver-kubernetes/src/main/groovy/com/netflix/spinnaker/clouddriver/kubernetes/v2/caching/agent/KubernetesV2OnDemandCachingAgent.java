@@ -217,7 +217,7 @@ public abstract class KubernetesV2OnDemandCachingAgent<T> extends KubernetesV2Ca
         .put(CACHE_TIME_KEY, System.currentTimeMillis())
         .put(CACHE_RESULTS_KEY, jsonResult)
         .put(PROCESSED_COUNT_KEY, 0)
-        .put(PROCESSED_TIME_KEY, null)
+        .put(PROCESSED_TIME_KEY, -1)
         .put(MONIKER_KEY, namer.deriveMoniker(manifest))
         .build();
 
@@ -230,7 +230,7 @@ public abstract class KubernetesV2OnDemandCachingAgent<T> extends KubernetesV2Ca
 
   @Override
   public OnDemandAgent.OnDemandResult handle(ProviderCache providerCache, Map<String, ?> data) {
-    String account = (String) data.get("accountName");
+    String account = (String) data.get("account");
     String namespace = (String) data.get("location");
     String fullName = (String) data.get("name");
     String name;
@@ -247,6 +247,8 @@ public abstract class KubernetesV2OnDemandCachingAgent<T> extends KubernetesV2Ca
       // This is OK - the cache controller tries (w/o much info) to get every cache agent to handle each request
       return null;
     }
+
+    reloadNamespaces();
     if (StringUtils.isEmpty(account)
         || StringUtils.isEmpty(name)
         || StringUtils.isEmpty(namespace)
@@ -254,7 +256,7 @@ public abstract class KubernetesV2OnDemandCachingAgent<T> extends KubernetesV2Ca
       return null;
     }
 
-    reloadNamespaces();
+    log.info("Accepted on demand refresh of '{}'", data);
     OnDemandAgent.OnDemandResult result;
     T resource = loadPrimaryResource(namespace, name);
     String resourceKey = Keys.infrastructure(primaryApiVersion(), primaryKind(), account, namespace, name);
