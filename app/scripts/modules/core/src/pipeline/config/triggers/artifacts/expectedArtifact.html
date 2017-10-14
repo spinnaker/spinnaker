@@ -1,0 +1,43 @@
+<div class="row">
+  <div class="col-md-12">
+    <div class="form-horizontal panel-pipeline-phase">
+      <div class="form-group row">
+        <div class="col-md-3">
+          Match against
+          <help-field key="pipeline.config.expectedArtifact.custom.matchArtifact"></help-field>
+        </div>
+        <div class="col-md-2 col-md-offset-7">
+          <button class="btn btn-sm btn-default" ng-click="ctrl.removeExpectedArtifact()">
+            <span class="glyphicon glyphicon-trash" uib-tooltip="Remove expected artifact"></span>
+            <span class="visible-xl-inline">Remove artifact</span>
+          </button>
+        </div>
+      </div>
+      <artifact artifact="ctrl.expectedArtifact.matchArtifact"></artifact>
+      If missing
+      <help-field key="pipeline.config.expectedArtifact.custom.ifMissing"></help-field>
+      <div class="form-group row">
+        <label class="col-md-3 sm-label-right">
+          Use Prior Execution
+        </label>
+        <input class="col-md-1" type="checkbox" ng-model="ctrl.expectedArtifact.usePriorExecution">
+      </div>
+      <div class="form-group row">
+        <label class="col-md-3 sm-label-right">
+          Use Default Artifact
+        </label>
+        <input class="col-md-1" type="checkbox" ng-model="ctrl.expectedArtifact.useDefaultArtifact">
+      </div>
+      <div ng-show="ctrl.expectedArtifact.useDefaultArtifact">
+        <div class="form-group row">
+          <div class="col-md-3">
+            Default artifact
+          </div>
+        </div>
+        <div class="form-group row">
+          <artifact artifact="ctrl.expectedArtifact.defaultArtifact"></artifact>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

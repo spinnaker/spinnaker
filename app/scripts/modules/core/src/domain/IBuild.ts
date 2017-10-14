@@ -1,4 +1,4 @@
-export interface IArtifact {
+export interface IBuildArtifact {
   displayPath: string;
   fileName: string;
   relativePath: string;
@@ -12,5 +12,5 @@ export interface IBuild {
   result: string;
   timestamp: Date;
   url: string;
-  artifacts: IArtifact[];
+  artifacts: IBuildArtifact[];
 }

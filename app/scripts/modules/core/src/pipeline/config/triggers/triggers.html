@@ -44,7 +44,7 @@
           <help-field key="pipeline.config.artifact.help"></help-field>
         </p>
       </div>
-      <artifact ng-repeat="artifact in pipeline.expectedArtifacts" artifact="artifact" pipeline="pipeline" application="application"></artifact>
+      <expected-artifact ng-repeat="expectedArtifact in pipeline.expectedArtifacts" expected-artifact="expectedArtifact" pipeline="pipeline" application="application"></expected-artifact>
       <hr/>
       <div class="row" ng-if="!pipeline.expectedArtifacts.length">
         <p class="col-md-12">

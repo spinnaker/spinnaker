@@ -34,7 +34,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.trigger.triggers
     };
 
     this.addArtifact = () => {
-      const newArtifact = {fields: []};
+      const newArtifact = {matchArtifact: {}, usePriorExecution: false, useDefaultArtifact: false, defaultArtifact: {}};
 
       if (!$scope.pipeline.expectedArtifacts) {
         $scope.pipeline.expectedArtifacts = [];
