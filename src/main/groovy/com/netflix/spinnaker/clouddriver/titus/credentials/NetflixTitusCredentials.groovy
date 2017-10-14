@@ -36,6 +36,7 @@ class NetflixTitusCredentials implements AccountCredentials<TitusCredentials> {
   final boolean discoveryEnabled
   final String stack
   final String eurekaName
+  final boolean autoscalingEnabled
 
   private final List<TitusRegion> regions
 
@@ -51,7 +52,8 @@ class NetflixTitusCredentials implements AccountCredentials<TitusCredentials> {
                           String discovery,
                           String stack,
                           List<String> requiredGroupMembership,
-                          String eurekaName
+                          String eurekaName,
+                          boolean autoscalingEnabled
   ) {
     this.name = name
     this.environment = environment
@@ -66,6 +68,7 @@ class NetflixTitusCredentials implements AccountCredentials<TitusCredentials> {
     this.stack = stack
     this.requiredGroupMembership = requiredGroupMembership
     this.eurekaName = eurekaName
+    this.autoscalingEnabled = autoscalingEnabled
   }
 
   @Override
@@ -112,6 +115,10 @@ class NetflixTitusCredentials implements AccountCredentials<TitusCredentials> {
 
   String getEurekaName(){
     return eurekaName
+  }
+
+  boolean getAutoscalingEnabled() {
+    return autoscalingEnabled
   }
 
 }

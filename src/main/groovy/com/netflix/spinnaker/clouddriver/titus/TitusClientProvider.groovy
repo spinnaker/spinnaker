@@ -49,7 +49,7 @@ class TitusClientProvider {
 
   TitusAutoscalingClient getTitusAutoscalingClient(NetflixTitusCredentials account, String region) {
     final TitusRegion titusRegion = Objects.requireNonNull(account.regions.find { it.name == region }, "region")
-    if (!account.eurekaName) {
+    if (!account.eurekaName || !account.autoscalingEnabled) {
       return null
     }
     final TitusClientKey key = new TitusClientKey(Objects.requireNonNull(account.name), titusRegion)

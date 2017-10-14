@@ -57,7 +57,7 @@ class TitusConfiguration {
       if (!account.bastionHost && titusCredentialsConfig.defaultBastionHostTemplate) {
         account.bastionHost = titusCredentialsConfig.defaultBastionHostTemplate.replaceAll(Pattern.quote('{{environment}}'), account.environment)
       }
-      NetflixTitusCredentials credentials = new NetflixTitusCredentials(account.name, account.environment, account.accountType, regions, account.bastionHost, account.registry, account.awsAccount, account.awsVpc ?: titusCredentialsConfig.awsVpc, account.discoveryEnabled, account.discovery, account.stack ?: 'mainvpc', account.requiredGroupMembership, account.eurekaName)
+      NetflixTitusCredentials credentials = new NetflixTitusCredentials(account.name, account.environment, account.accountType, regions, account.bastionHost, account.registry, account.awsAccount, account.awsVpc ?: titusCredentialsConfig.awsVpc, account.discoveryEnabled, account.discovery, account.stack ?: 'mainvpc', account.requiredGroupMembership, account.eurekaName, account.autoscalingEnabled ?: false)
       accounts.add(credentials)
       repository.save(account.name, credentials)
     }
@@ -97,6 +97,7 @@ class TitusConfiguration {
       String stack
       List<String> requiredGroupMembership
       String eurekaName
+      Boolean autoscalingEnabled
     }
 
     static class Region {
