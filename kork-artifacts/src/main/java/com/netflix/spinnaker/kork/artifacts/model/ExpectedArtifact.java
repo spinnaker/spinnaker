@@ -29,6 +29,7 @@ import org.apache.commons.lang.StringUtils;
 public class ExpectedArtifact {
   Artifact matchArtifact;
   boolean usePriorArtifact;
+  boolean useDefaultArtifact;
   Artifact defaultArtifact;
 
   /**
