@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.clouddriver.dcos.security
 
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.clouddriver.dcos.DcosClientCompositeKey
 import com.netflix.spinnaker.clouddriver.dcos.DcosConfigurationProperties
 import mesosphere.dcos.client.Config
@@ -30,6 +31,7 @@ class DcosClusterCredentials {
   final String secretStore
   final List<DcosConfigurationProperties.LinkedDockerRegistryConfiguration> dockerRegistries
   final Config dcosConfig
+  final Registry spectatorRegistry
 
   private DcosClusterCredentials(Builder builder) {
     name = builder.key.cluster
@@ -39,6 +41,7 @@ class DcosClusterCredentials {
     secretStore = builder.secretStore ? builder.secretStore : DEFAULT_SECRET_STORE
     dockerRegistries = builder.dockerRegistries
     dcosConfig = builder.dcosConfig
+    spectatorRegistry = builder.spectatorRegistry
   }
 
   public static Builder builder() {
@@ -51,6 +54,7 @@ class DcosClusterCredentials {
     private String secretStore
     private List<DcosConfigurationProperties.LinkedDockerRegistryConfiguration> dockerRegistries
     private Config dcosConfig
+    private Registry spectatorRegistry
 
     public Builder key(DcosClientCompositeKey key) {
       this.key = key
@@ -74,6 +78,12 @@ class DcosClusterCredentials {
 
     public Builder dcosConfig(Config dcosConfig) {
       this.dcosConfig = dcosConfig
+      this
+    }
+
+
+    public Builder spectatorRegistry(Registry spectatorRegistry) {
+      this.spectatorRegistry = spectatorRegistry
       this
     }
 
