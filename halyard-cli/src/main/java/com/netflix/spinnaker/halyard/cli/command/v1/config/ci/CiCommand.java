@@ -20,6 +20,7 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config.ci;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.ci.jenkins.JenkinsCommand;
+import com.netflix.spinnaker.halyard.cli.command.v1.config.ci.travis.TravisCommand;
 import lombok.AccessLevel;
 import lombok.Getter;
 
@@ -38,6 +39,7 @@ public class CiCommand extends NestableCommand {
 
   public CiCommand() {
     registerSubcommand(new JenkinsCommand());
+    registerSubcommand(new TravisCommand());
   }
 
   @Override
