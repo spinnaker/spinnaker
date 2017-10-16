@@ -1,5 +1,4 @@
 import { IPromise, IQService, module } from 'angular';
-import { intersection } from 'lodash';
 
 import {
   ACCOUNT_SERVICE,
