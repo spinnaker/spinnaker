@@ -1,6 +1,7 @@
 import {module} from 'angular';
 
 import { Application } from 'core/application/application.model';
+import { IMoniker } from 'core/naming/IMoniker';
 import { ILoadBalancer, ISecurityGroup, ISubnet, IEntityTags } from 'core/domain';
 import { ICapacity } from 'core/serverGroup/serverGroupWriter.service';
 import { IDeploymentStrategy } from 'core/deploymentStrategy';
@@ -95,6 +96,7 @@ export interface IServerGroupCommand extends IServerGroupCommandResult {
     asgName: string;
   };
   stack?: string;
+  moniker?: IMoniker;
   strategy: string;
   subnetType: string;
   suspendedProcesses: string[];

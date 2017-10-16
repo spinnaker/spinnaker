@@ -1,5 +1,5 @@
 import { module, IPromise, IQService } from 'angular';
-import { chain, clone, cloneDeep, extend, find, flatten, has, intersection, keys, map, some, xor } from 'lodash';
+import { chain, clone, cloneDeep, extend, find, flatten, has, intersection, isNil, keys, map, some, xor } from 'lodash';
 
 import {
   ACCOUNT_SERVICE,
@@ -29,6 +29,8 @@ import {
 
 import { IAmazonLoadBalancer, IKeyPair } from 'amazon/domain';
 import { KEY_PAIRS_READ_SERVICE, KeyPairsReader } from 'amazon/keyPairs/keyPairs.read.service';
+import { IMoniker } from 'core/naming/IMoniker';
+import { NamingService } from 'core/naming/naming.service';
 
 export type IBlockDeviceMappingSource = 'source' | 'ami' | 'default';
 
@@ -66,6 +68,7 @@ export interface IAmazonServerGroupCommand extends IServerGroupCommand {
   getBlockDeviceMappingsSource: () => IBlockDeviceMappingSource;
   selectBlockDeviceMappingsSource: (selection: string) => void;
   usePreferredZonesChanged: () => IAmazonServerGroupCommandResult;
+  clusterChanged: () => void;
 }
 
 export class AwsServerGroupConfigurationService {
@@ -82,6 +85,7 @@ export class AwsServerGroupConfigurationService {
               private subnetReader: SubnetReader,
               private keyPairsReader: KeyPairsReader,
               private loadBalancerReader: LoadBalancerReader,
+              private namingService: NamingService,
               private serverGroupCommandRegistry: ServerGroupCommandRegistry,
               private autoScalingProcessService: any) {
     'ngInject';
@@ -565,6 +569,17 @@ export class AwsServerGroupConfigurationService {
         }
 
         return result;
+      };
+
+      command.clusterChanged = (): void => {
+        const appName = isNil(command.application) ? undefined : command.application.name;
+        const moniker: IMoniker = {
+          app: appName,
+          stack: command.stack,
+          detail: command.freeFormDetails,
+          cluster: this.namingService.getClusterName(appName, command.stack, command.freeFormDetails)
+        };
+        command.moniker = moniker;
       };
 
       command.credentialsChanged = (): IServerGroupCommandResult => {
