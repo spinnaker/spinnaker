@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 
-import { NgReact } from '@spinnaker/core';
+import { Spinner } from '@spinnaker/core';
 
 import { ICanaryState } from '../reducers/index';
 
@@ -20,8 +20,8 @@ function ConfigDetailLoadStates({ configLoadState }: IConfigLoadStatesProps) {
   switch (configLoadState) {
     case AsyncRequestState.Requesting:
       return (
-        <div className="spinner">
-          <NgReact.LegacySpinner radius={20} width={3} length={20}/>
+        <div className="horizontal center middle spinner-container">
+          <Spinner/>
         </div>
       );
 

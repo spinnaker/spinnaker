@@ -19,10 +19,10 @@ export interface ICanaryHeaderProps {
 export const CanaryHeader = ({ title, tabs }: ICanaryHeaderProps) => {
   return (
     <nav className="horizontal">
-      <Tabs className="flex-3">
+      <Tabs className="flex-2">
         <CanaryTitle title={title}/>
       </Tabs>
-      <Tabs className="flex-11">
+      <Tabs className="flex-9">
         {tabs.filter(t => !t.hide).map(t => <CanaryTab key={t.title} tab={t}/>)}
       </Tabs>
     </nav>

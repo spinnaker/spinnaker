@@ -13,13 +13,13 @@ export interface IListDetailProps {
  * A composite view that combines a list view in one panel and a detail view in another.
  * The contents of the detail view are dependent on the user's selection in the list view.
  */
-export default function ListDetail({ className, list, listWidth = 1, detail, detailWidth = 4 }: IListDetailProps) {
+export default function ListDetail({ className, list, listWidth = 2, detail, detailWidth = 10 }: IListDetailProps) {
   return (
-    <div className={classNames('horizontal', 'container', className)}>
-      <div className={`flex-${listWidth}`}>
+    <div className={classNames('list-detail', 'horizontal', 'container', className)}>
+      <div className={`col-md-${listWidth}`}>
         {list}
       </div>
-      <div className={`flex-${detailWidth}`}>
+      <div className={`col-md-${detailWidth}`}>
         {detail}
       </div>
     </div>

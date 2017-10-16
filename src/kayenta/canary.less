@@ -13,12 +13,17 @@
     position: inherit;
   }
 
+  .list-detail {
+    > .col-md-2, .col-md-10 {
+      padding-left: 0;
+      padding-right: 0;
+    }
+  }
+
   .config-list {
-    position: fixed;
     ul {
       max-height: calc(~"70vh - 44px"); // i.e., minus the footer.
       overflow: auto;
-      width: 260px;
     }
   }
 
