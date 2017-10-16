@@ -44,6 +44,10 @@ public class CanaryAnalysisResult {
 
   @NotNull
   @Getter
+  private String id;
+
+  @NotNull
+  @Getter
   private String classification;
 
   @Getter

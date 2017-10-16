@@ -197,6 +197,7 @@ class NetflixACAJudge extends CanaryJudge with StrictLogging {
 
     CanaryAnalysisResult.builder()
       .name(metric.getName)
+      .id(metric.getId)
       .tags(metric.getTags)
       .classification(metricClassification.classification.toString)
       .classificationReason(metricClassification.reason.orNull)

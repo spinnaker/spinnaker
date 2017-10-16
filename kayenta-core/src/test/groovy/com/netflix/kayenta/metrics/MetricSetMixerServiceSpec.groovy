@@ -130,6 +130,17 @@ class MetricSetMixerServiceSpec extends Specification {
     metricSetPair.tags == [tagName: "tagValue"]
   }
 
+  void "Mixing sets should produce an id field"() {
+    setup:
+    MetricSetMixerService metricSetMixerService = new MetricSetMixerService()
+
+    when:
+    MetricSetPair metricSetPair = metricSetMixerService.mixOne(controlCpuMetricSet, experimentCpuMetricSet)
+
+    then:
+    !metricSetPair.id.empty
+  }
+
   void "missing values should be backfilled with trailing NaNs"() {
     setup:
     MetricSetMixerService metricSetMixerService = new MetricSetMixerService()

@@ -36,6 +36,10 @@ public class MetricSetPair {
   private String name;
 
   @NotNull
+  @Getter
+  private String id;
+
+  @NotNull
   @Singular
   @Getter
   private Map<String, String> tags;
@@ -46,9 +50,11 @@ public class MetricSetPair {
   private Map<String, List<Double>> values;
 
   public MetricSetPair(String name,
+                       String id,
                        Map<String, String> tags,
                        Map<String, List<Double>> values) {
     this.name = name;
+    this.id = id;
     this.tags = tags;
     this.values = values;
   }
