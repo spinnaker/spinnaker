@@ -252,7 +252,7 @@ public class ExpressionsSupport {
   /**
    * Finds a Stage by id
    * @param obj #root.execution
-   * @param id the name of the stage to find
+   * @param id the name or id of the stage to find
    * @return a stage specified by id
    */
   static Object stage(Object obj, String id) {
@@ -264,7 +264,7 @@ public class ExpressionsSupport {
 
       return stages
         .stream()
-        .filter(i -> id != null && id.equals(i.getName()))
+        .filter(i -> id != null && (id.equals(i.getName()) || id.equals(i.getId())))
         .findFirst()
         .orElseThrow(
           () -> new SpelHelperFunctionException(

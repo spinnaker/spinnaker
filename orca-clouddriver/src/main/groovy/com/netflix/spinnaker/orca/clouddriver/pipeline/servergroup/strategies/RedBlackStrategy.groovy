@@ -84,8 +84,8 @@ class RedBlackStrategy implements Strategy, ApplicationContextAware {
       )
     }
 
-    if(stageData?.delayBeforeDisableSec) {
-      def waitContext = [waitTime: stageData?.delayBeforeDisableSec]
+    if(stageData?.getDelayBeforeCleanup()) {
+      def waitContext = [waitTime: stageData?.getDelayBeforeCleanup()]
       stages << newStage(
         stage.execution,
         waitStage.type,

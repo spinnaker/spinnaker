@@ -20,6 +20,7 @@ import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.ResizeServerG
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.DetermineTargetServerGroupStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroupResolver
+import com.netflix.spinnaker.orca.front50.pipeline.PipelineStage
 import com.netflix.spinnaker.orca.kato.pipeline.support.ResizeStrategy
 import com.netflix.spinnaker.orca.pipeline.WaitStage
 import com.netflix.spinnaker.orca.pipeline.model.Execution
@@ -47,6 +48,9 @@ class RollingRedBlackStrategy implements Strategy, ApplicationContextAware {
   WaitStage waitStage
 
   @Autowired
+  PipelineStage pipelineStage
+
+  @Autowired
   DetermineTargetServerGroupStage determineTargetServerGroupStage
 
   @Autowired
@@ -59,10 +63,10 @@ class RollingRedBlackStrategy implements Strategy, ApplicationContextAware {
     def cleanupConfig = AbstractDeployStrategyStage.CleanupConfig.fromStage(stage)
 
     Map baseContext = [
-        (cleanupConfig.location.singularType()): cleanupConfig.location.value,
-        cluster                                : cleanupConfig.cluster,
-        credentials                            : cleanupConfig.account,
-        cloudProvider                          : cleanupConfig.cloudProvider,
+      (cleanupConfig.location.singularType()): cleanupConfig.location.value,
+      cluster                                : cleanupConfig.cluster,
+      credentials                            : cleanupConfig.account,
+      cloudProvider                          : cleanupConfig.cloudProvider,
     ]
 
     if (stageData.targetSize) {
@@ -86,68 +90,114 @@ class RollingRedBlackStrategy implements Strategy, ApplicationContextAware {
     }
 
     def findContext = baseContext + [
-        target: TargetServerGroup.Params.Target.current_asg_dynamic,
-        targetLocation: cleanupConfig.location,
+      target        : TargetServerGroup.Params.Target.current_asg_dynamic,
+      targetLocation: cleanupConfig.location,
     ]
 
     stages << newStage(
-        stage.execution,
-        determineTargetServerGroupStage.type,
-        "Determine Deployed Server Group",
-        findContext,
-        stage,
-        SyntheticStageOwner.STAGE_AFTER
+      stage.execution,
+      determineTargetServerGroupStage.type,
+      "Determine Deployed Server Group",
+      findContext,
+      stage,
+      SyntheticStageOwner.STAGE_AFTER
     )
 
     // java .forEach rather than groovy .each, since the nested .each closure sometimes omits parent context
     targetPercentages.forEach({ p ->
+      def source = getSource(targetServerGroupResolver, stageData, baseContext)
       def resizeContext = baseContext + [
-          target: TargetServerGroup.Params.Target.current_asg_dynamic,
-          action: ResizeStrategy.ResizeAction.scale_to_server_group,
-          source: getSource(targetServerGroupResolver, stageData, baseContext),
-          targetLocation: cleanupConfig.location,
-          scalePct: p,
-          pinCapacity: p < 100 // if p = 100, capacity should be unpinned
+        target        : TargetServerGroup.Params.Target.current_asg_dynamic,
+        action        : ResizeStrategy.ResizeAction.scale_to_server_group,
+        source        : source,
+        targetLocation: cleanupConfig.location,
+        scalePct      : p,
+        pinCapacity   : p < 100 // if p = 100, capacity should be unpinned
       ]
 
-      stages << newStage(
-          stage.execution,
-          resizeServerGroupStage.type,
-          "Grow to $p% Desired Size",
-          resizeContext,
-          stage,
-          SyntheticStageOwner.STAGE_AFTER
+      def resizeStage = newStage(
+        stage.execution,
+        resizeServerGroupStage.type,
+        "Grow to $p% Desired Size",
+        resizeContext,
+        stage,
+        SyntheticStageOwner.STAGE_AFTER
       )
+      stages << resizeStage
+
+      // an expression to grab newly deployed server group at runtime (ie. the server group being resized up)
+      def deployedServerGroupName = '${' + "#stage('${resizeStage.id}')['context']['asgName']" + '}'.toString()
+      stages.addAll(getBeforeCleanupStages(stage, stageData, source, deployedServerGroupName, p))
 
       def disableContext = baseContext + [
-          desiredPercentage           : p,
-          remainingEnabledServerGroups: 1,
-          preferLargerOverNewer       : false
+        desiredPercentage           : p,
+        remainingEnabledServerGroups: 1,
+        preferLargerOverNewer       : false
       ]
 
-      if(stageData?.delayBeforeDisableSec) {
-        def waitContext = [waitTime: stageData?.delayBeforeDisableSec]
-        stages << newStage(
-          stage.execution,
-          waitStage.type,
-          "wait",
-          waitContext,
-          stage,
-          SyntheticStageOwner.STAGE_AFTER
-        )
-      }
-
-      // TODO-AJ this has questionable behavior w/ > 1 old server group
       stages << newStage(
-          stage.execution,
-          disableClusterStage.type,
-          "Disable $p% of Traffic",
-          disableContext,
-          stage,
-          SyntheticStageOwner.STAGE_AFTER
+        stage.execution,
+        disableClusterStage.type,
+        "Disable $p% of Traffic",
+        disableContext,
+        stage,
+        SyntheticStageOwner.STAGE_AFTER
       )
-
     })
+
+    return stages
+  }
+
+  List<Stage> getBeforeCleanupStages(Stage parentStage,
+                                     RollingRedBlackStageData stageData,
+                                     ResizeStrategy.Source source,
+                                     String deployedServerGroupName,
+                                     int percentageComplete) {
+    def stages = []
+
+    if (stageData.getDelayBeforeCleanup()) {
+      def waitContext = [waitTime: stageData.getDelayBeforeCleanup()]
+      stages << newStage(
+        parentStage.execution,
+        waitStage.type,
+        "wait",
+        waitContext,
+        parentStage,
+        SyntheticStageOwner.STAGE_AFTER
+      )
+    }
+
+    if (stageData.pipelineBeforeCleanup) {
+      def serverGroupCoordinates = [
+        region         : source.region,
+        serverGroupName: source.serverGroupName,
+        account        : source.credentials,
+        cloudProvider  : source.cloudProvider
+      ]
+
+      def pipelineContext = [
+        pipelineApplication: stageData.pipelineBeforeCleanup.application,
+        pipelineId         : stageData.pipelineBeforeCleanup.pipelineId,
+        pipelineParameters : [
+          "deployedServerGroup": serverGroupCoordinates + [
+            serverGroupName: deployedServerGroupName
+          ],
+          "sourceServerGroup"  : serverGroupCoordinates + [
+            serverGroupName: source.serverGroupName
+          ],
+          "percentageComplete" : percentageComplete
+        ]
+      ]
+
+      stages << newStage(
+        parentStage.execution,
+        pipelineStage.type,
+        "Run Validation Pipeline",
+        pipelineContext,
+        parentStage,
+        SyntheticStageOwner.STAGE_AFTER
+      )
+    }
 
     return stages
   }

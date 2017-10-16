@@ -37,7 +37,12 @@ class StageData {
   Boolean useSourceCapacity
   Boolean preferSourceCapacity
   Source source
+
+  @Deprecated
   long delayBeforeDisableSec
+
+  long delayBeforeCleanup
+  PipelineBeforeCleanup pipelineBeforeCleanup
 
   String getCluster() {
     if (moniker?.cluster) {
@@ -56,6 +61,10 @@ class StageData {
       throw new IllegalStateException("Cannot specify different values for 'account' and 'credentials' (${application})")
     }
     return account ?: credentials
+  }
+
+  long getDelayBeforeCleanup() {
+    return this.delayBeforeCleanup ?: this.delayBeforeDisableSec
   }
 
   @Deprecated
@@ -92,4 +101,8 @@ class StageData {
     Boolean preferSourceCapacity
   }
 
+  static class PipelineBeforeCleanup {
+    String application
+    String pipelineId
+  }
 }
