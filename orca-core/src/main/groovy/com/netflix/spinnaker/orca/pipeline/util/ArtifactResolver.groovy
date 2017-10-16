@@ -48,7 +48,7 @@ class ArtifactResolver {
     for (ExpectedArtifact expectedArtifact : unresolvedExpectedArtifacts) {
       if (expectedArtifact.usePriorArtifact) {
         throw new UnsupportedOperationException("'usePriorArtifact' is not supported yet")
-      } else if (expectedArtifact.defaultArtifact) {
+      } else if (expectedArtifact.useDefaultArtifact && expectedArtifact.defaultArtifact) {
         resolvedArtifacts.add(expectedArtifact.defaultArtifact)
       } else {
         throw new IllegalStateException("Unmatched expected artifact ${expectedArtifact} with no fallback behavior specified")
