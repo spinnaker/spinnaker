@@ -91,11 +91,11 @@ module(HELP_CONTENTS, [])
         <p>Regex is accepted, so you could for example match on a filepath like so <b>name</b> = .*\\.yaml to match all incoming YAML files.</p>`,
     'pipeline.config.expectedArtifact.ifMissing': `
         <p>If no artifact was supplied by your trigger to match against this expected artifact, you have a few options:
-          <ul>
-            <li>1. Attempt to match against an artifact in the prior pipeline execution's context. This ensures that you will always be using the most recently supplied artifact to this pipeline, and is generally a safe choice.</li>
-            <li>2. If option 1 fails, or isn't specified, you can provide a default artifact with all required fields specified to use instead.</li>
-            <li>3. Fail the pipeline if options 1 or 2 fail or aren't selected.</li>
-          </ul>
+          <ol>
+            <li>Attempt to match against an artifact in the prior pipeline execution's context. This ensures that you will always be using the most recently supplied artifact to this pipeline, and is generally a safe choice.</li>
+            <li>If option 1 fails, or isn't specified, you can provide a default artifact with all required fields specified to use instead.</li>
+            <li>Fail the pipeline if options 1 or 2 fail or aren't selected.</li>
+          </ol>
         </p>`,
     'pipeline.config.expectedArtifact.defaultArtifact': `
         <p>If your artifact either wasn't supplied from a trigger, or it wasn't found in a prior execution, the artifact specified below will end up in your pipeline's execution context.</p>`,
