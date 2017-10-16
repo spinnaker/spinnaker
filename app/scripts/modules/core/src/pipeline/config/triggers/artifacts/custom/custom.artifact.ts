@@ -1,3 +1,26 @@
+import { IController, module } from 'angular';
+
+import { PIPELINE_CONFIG_PROVIDER } from 'core/pipeline/config/pipelineConfigProvider';
+import { IArtifact } from 'core/domain/IArtifact';
+import { PipelineConfigProvider } from 'core/pipeline';
+
+class CustomArtifactController implements IController {
+  constructor(public artifact: IArtifact) {
+    'ngInject';
+  }
+}
+
+export const CUSTOM_ARTIFACT = 'spinnaker.core.pipeline.trigger.custom.artifact';
+module(CUSTOM_ARTIFACT, [
+  PIPELINE_CONFIG_PROVIDER,
+]).config((pipelineConfigProvider: PipelineConfigProvider) => {
+  pipelineConfigProvider.registerArtifactKind({
+    label: 'Custom',
+    description: 'A custom-defined artifact.',
+    key: 'custom',
+    controller: 'customArtifactCtrl',
+    controllerAs: 'ctrl',
+    template: `
 <div class="col-md-12">
   <div class="form-group row">
     <label class="col-md-2 sm-label-right">
@@ -44,4 +67,8 @@
              class="form-control input-sm"
              ng-model="ctrl.artifact.reference"/>
     </div>
+  </div>
 </div>
+`
+  });
+}).controller('customArtifactCtrl', CustomArtifactController);

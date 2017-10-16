@@ -1,6 +1,7 @@
 export * from '../search/searchResult/model/IApplicationSearchResult';
 
 export * from './IArtifact'
+export * from './IArtifactKindConfig'
 
 export * from './IBuild';
 export * from './IBuildDiffInfo';

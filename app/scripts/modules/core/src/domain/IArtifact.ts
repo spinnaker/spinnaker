@@ -1,4 +1,5 @@
 export interface IArtifact {
+  kind: string; // json model only
   type: string;
   name: string;
   version: string;

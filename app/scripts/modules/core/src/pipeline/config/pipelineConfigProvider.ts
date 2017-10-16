@@ -3,9 +3,8 @@ import { cloneDeep, intersection, memoize } from 'lodash';
 import { $log } from 'ngimport';
 
 import { Application } from 'core/application/application.model';
-import { IExecution, IStage, ITriggerTypeConfig, IStageTypeConfig } from 'core/domain';
+import { IExecution, IStage, ITriggerTypeConfig, IStageTypeConfig, IArtifactKindConfig, IStageOrTriggerTypeConfig  } from 'core/domain';
 import { SETTINGS } from 'core/config/settings';
-import { IStageOrTriggerTypeConfig } from '@spinnaker/core';
 
 export interface ITransformer {
   transform: (application: Application, execution: IExecution) => void;
@@ -17,6 +16,7 @@ export class PipelineConfigProvider implements IServiceProvider {
   private triggerTypes: ITriggerTypeConfig[] = [];
   private stageTypes: IStageTypeConfig[] = [];
   private transformers: ITransformer[] = [];
+  private artifactKinds: IArtifactKindConfig[] = [];
 
   constructor() {
     this.getStageConfig = memoize(this.getStageConfig.bind(this),
@@ -58,6 +58,10 @@ export class PipelineConfigProvider implements IServiceProvider {
     this.normalizeStageTypes();
   }
 
+  public registerArtifactKind(artifactKindConfig: IArtifactKindConfig): void {
+    this.artifactKinds.push(artifactKindConfig);
+  }
+
   public getExecutionTransformers(): ITransformer[] {
     return this.transformers;
   }
@@ -68,6 +72,10 @@ export class PipelineConfigProvider implements IServiceProvider {
 
   public getStageTypes(): IStageTypeConfig[] {
     return cloneDeep(this.stageTypes);
+  }
+
+  public getArtifactKinds(): IArtifactKindConfig[] {
+    return cloneDeep(this.artifactKinds);
   }
 
   private getCloudProvidersForStage(type: IStageTypeConfig, allStageTypes: IStageTypeConfig[], providers: string[]): string[] {

@@ -85,10 +85,11 @@ module(HELP_CONTENTS, [])
         the configuration based on the newest server group in the cluster.</p>
         <p>If you want to start from scratch, select "None".</p>
         <p>You can always edit the cluster configuration after you've created it.</p>`,
-    'pipeline.config.expectedArtifact.custom.matchArtifact': `
+    'pipeline.config.expectedArtifact.matchArtifact': `
         <p>This specifies which fields in your incoming artifact to match against. Every field that you supply will be used to match against all incoming artifacts. If all fields specified match, the incoming artifact is bound to your pipeline context.</p>
-        <p>For example, if you want to match against any GCS object, only supply <b>type</b>=<b>gcs/object</b>. If you also want to restrict the matches by other fields, include those as well.</p>`,
-    'pipeline.config.expectedArtifact.custom.ifMissing': `
+        <p>For example, if you want to match against any GCS object, only supply <b>type</b> = gcs/object. If you also want to restrict the matches by other fields, include those as well.</p>
+        <p>Regex is accepted, so you could for example match on a filepath like so <b>name</b> = .*\\.yaml to match all incoming YAML files.</p>`,
+    'pipeline.config.expectedArtifact.ifMissing': `
         <p>If no artifact was supplied by your trigger to match against this expected artifact, you have a few options:
           <ul>
             <li>1. Attempt to match against an artifact in the prior pipeline execution's context. This ensures that you will always be using the most recently supplied artifact to this pipeline, and is generally a safe choice.</li>
@@ -96,6 +97,10 @@ module(HELP_CONTENTS, [])
             <li>3. Fail the pipeline if options 1 or 2 fail or aren't selected.</li>
           </ul>
         </p>`,
+    'pipeline.config.expectedArtifact.defaultArtifact': `
+        <p>If your artifact either wasn't supplied from a trigger, or it wasn't found in a prior execution, the artifact specified below will end up in your pipeline's execution context.</p>`,
+    'pipeline.config.expectedArtifact.gcs.name': `
+        <p>The GCS object name, in the form 'gs://bucket/path/to/file.yml.'</p>`,
     'loadBalancer.advancedSettings.healthTimeout': '<p>Configures the timeout, in seconds, for reaching the healthCheck target.  Must be less than the interval.</p><p> Default: <b>5</b></p>',
     'loadBalancer.advancedSettings.healthInterval': '<p>Configures the interval, in seconds, between ELB health checks.  Must be greater than the timeout.</p><p>Default: <b>10</b></p>',
     'loadBalancer.advancedSettings.healthyThreshold': '<p>Configures the number of healthy observations before reinstituting an instance into the ELB’s traffic rotation.</p><p>Default: <b>10</b></p>',
