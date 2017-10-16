@@ -22,8 +22,13 @@ import com.netflix.spinnaker.echo.model.Trigger;
 import com.netflix.spinnaker.echo.pipelinetriggers.orca.OrcaService;
 import com.netflix.spinnaker.echo.services.Front50Service;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.stereotype.Service;
+import static java.lang.String.format;
 
 @Slf4j
+@ConditionalOnProperty("dryRun.enabled")
+@Service
 public class DryRunNotificationAgent extends AbstractEventNotificationAgent {
 
   private final Front50Service front50;
@@ -53,8 +58,9 @@ public class DryRunNotificationAgent extends AbstractEventNotificationAgent {
       .filter(pipeline -> pipeline.getId().equals(pipelineConfigId))
       .first()
       .flatMap(pipeline -> {
+        log.warn("Triggering dry run of {} {}", pipeline.getApplication(), pipeline.getName());
         Trigger trigger = Trigger.builder().type(Trigger.Type.DRYRUN.toString()).lastSuccessfulExecution(execution).build();
-        return orca.trigger(pipeline.withTrigger(trigger));
+        return orca.trigger(pipeline.withName(format("%s (dry run)", pipeline.getName())).withTrigger(trigger));
       })
       .subscribe(response -> {
         log.info("Pipeline triggered: {}", response);

@@ -34,8 +34,8 @@ import static retrofit.Endpoints.newFixedEndpoint;
 public class DryRunConfig {
 
   @Bean
-  Endpoint dryRunEndpoint(@Value("dryRun.url") String url) {
-    return newFixedEndpoint(url);
+  Endpoint dryRunEndpoint(@Value("dryRun.baseUrl") String baseUrl) {
+    return newFixedEndpoint(baseUrl);
   }
 
   @Bean DryRunNotificationAgent dryRunNotificationAgent(

@@ -80,6 +80,7 @@ class DryRunNotificationAgentSpec extends Specification {
 
     then:
     with(captor.get()) {
+      name == "${pipeline.name} (dry run)"
       trigger.type == "dryrun"
       trigger.lastSuccessfulExecution == event.content.execution
     }
