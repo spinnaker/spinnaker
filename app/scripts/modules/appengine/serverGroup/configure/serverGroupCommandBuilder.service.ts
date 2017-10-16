@@ -79,13 +79,13 @@ export class AppengineServerGroupCommandBuilder {
     const viewState: IViewState = {
       mode: mode,
       submitButtonLabel: this.getSubmitButtonLabel(mode),
-      disableStrategySelection: mode === 'create' ? true : false,
+      disableStrategySelection: mode === 'create',
     };
 
     return this.$q.all(dataToFetch)
       .then((backingData: any) => {
-        const credentials: string = this.getCredentials(backingData.accounts, app);
-        const region: string = this.getRegion(backingData.accounts, credentials);
+        const credentials = this.getCredentials(backingData.accounts);
+        const region = this.getRegion(backingData.accounts, credentials);
 
         return {
           application: app.name,
@@ -126,14 +126,13 @@ export class AppengineServerGroupCommandBuilder {
       });
   }
 
-  private getCredentials(accounts: IAppengineAccount[], application: Application): string {
+  private getCredentials(accounts: IAppengineAccount[]): string {
     const accountNames: string[] = (accounts || []).map((account) => account.name);
     const defaultCredentials: string = AppengineProviderSettings.defaults.account;
-    const firstApplicationAccount: string = intersection(application.accounts || [], accountNames)[0];
 
-    return accountNames.includes(defaultCredentials) ?
-      defaultCredentials :
-      (firstApplicationAccount || 'my-appengine-account');
+    return accountNames.includes(defaultCredentials)
+      ? defaultCredentials
+      : accountNames[0];
   }
 
   private getRegion(accounts: IAppengineAccount[], credentials: string): string {

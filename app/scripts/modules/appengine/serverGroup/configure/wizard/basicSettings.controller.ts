@@ -46,8 +46,10 @@ class AppengineServerGroupBasicSettingsCtrl implements IController {
     const account = this.findAccountInBackingData();
     if (account) {
       this.$scope.command.gitCredentialType = account.supportedGitCredentialTypes[0];
+      this.$scope.command.region = account.region;
     } else {
       this.$scope.command.gitCredentialType = 'NONE';
+      delete this.$scope.command.region;
     }
   }
 
