@@ -28,6 +28,7 @@ import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.cats.cache.WriteableCache
 import com.netflix.spinnaker.cats.cache.WriteableCacheSpec
+import com.netflix.spinnaker.cats.compression.NoopCompression
 import com.netflix.spinnaker.cats.dynomite.DynomiteClientDelegate
 import com.netflix.spinnaker.cats.dynomite.cache.DynomiteCache
 import com.netflix.spinnaker.cats.dynomite.cache.DynomiteCache.CacheMetrics
@@ -67,7 +68,8 @@ class DynomiteCacheSpec extends WriteableCacheSpec {
       delegate,
       new ObjectMapper(),
       RedisCacheOptions.builder().maxMset(MAX_MSET_SIZE).maxMergeBatch(MAX_MERGE_COUNT).build(),
-      cacheMetrics
+      cacheMetrics,
+      new NoopCompression()
     )
   }
 
