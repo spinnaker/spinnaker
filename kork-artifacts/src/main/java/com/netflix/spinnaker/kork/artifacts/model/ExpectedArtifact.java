@@ -22,6 +22,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.apache.commons.lang.StringUtils;
 
+import java.util.regex.Pattern;
+
 @Data
 @Builder
 @NoArgsConstructor
@@ -42,36 +44,40 @@ public class ExpectedArtifact {
   public boolean matches(Artifact other) {
     String thisType = matchArtifact.getType();
     String otherType = other.getType();
-    if (StringUtils.isNotEmpty(thisType) && !thisType.equals(otherType)) {
+    if (StringUtils.isNotEmpty(thisType) && !matches(thisType, otherType)) {
       return false;
     }
 
     String thisName = matchArtifact.getName();
     String otherName = other.getName();
-    if (StringUtils.isNotEmpty(thisName) && !thisName.equals(otherName)) {
+    if (StringUtils.isNotEmpty(thisName) && !matches(thisName, otherName)) {
       return false;
     }
 
     String thisVersion = matchArtifact.getVersion();
     String otherVersion = other.getVersion();
-    if (StringUtils.isNotEmpty(thisVersion) && !thisVersion.equals(otherVersion)) {
+    if (StringUtils.isNotEmpty(thisVersion) && !matches(thisVersion, otherVersion)) {
       return false;
     }
 
     String thisLocation = matchArtifact.getLocation();
     String otherLocation = other.getLocation();
-    if (StringUtils.isNotEmpty(thisLocation) && !thisLocation.equals(otherLocation)) {
+    if (StringUtils.isNotEmpty(thisLocation) && !matches(thisLocation, otherLocation)) {
       return false;
     }
 
     String thisReference = matchArtifact.getReference();
     String otherReference = other.getReference();
-    if (StringUtils.isNotEmpty(thisReference) && !thisReference.equals(otherReference)) {
+    if (StringUtils.isNotEmpty(thisReference) && !matches(thisReference, otherReference)) {
       return false;
     }
 
     // Explicitly avoid matching on UUID, provenance & artifactAccount
 
     return true;
+  }
+
+  private boolean matches(String us, String other) {
+    return Pattern.compile(us).asPredicate().test(other);
   }
 }
