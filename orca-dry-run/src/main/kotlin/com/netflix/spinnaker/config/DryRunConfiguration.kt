@@ -22,12 +22,16 @@ import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilderFactory
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
+import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
 
 @Configuration
+@ConditionalOnExpression("\${dryrun.enabled:true}")
 @ComponentScan("com.netflix.spinnaker.orca.dryrun")
+@EnableConfigurationProperties(DryRunProperties::class)
 open class DryRunConfiguration {
   @Bean
   open fun dryRunStageDefinitionBuilderFactory(
