@@ -28,6 +28,15 @@
  * [**hal config ci jenkins master edit**](#hal-config-ci-jenkins-master-edit)
  * [**hal config ci jenkins master get**](#hal-config-ci-jenkins-master-get)
  * [**hal config ci jenkins master list**](#hal-config-ci-jenkins-master-list)
+ * [**hal config ci travis**](#hal-config-ci-travis)
+ * [**hal config ci travis disable**](#hal-config-ci-travis-disable)
+ * [**hal config ci travis enable**](#hal-config-ci-travis-enable)
+ * [**hal config ci travis master**](#hal-config-ci-travis-master)
+ * [**hal config ci travis master add**](#hal-config-ci-travis-master-add)
+ * [**hal config ci travis master delete**](#hal-config-ci-travis-master-delete)
+ * [**hal config ci travis master edit**](#hal-config-ci-travis-master-edit)
+ * [**hal config ci travis master get**](#hal-config-ci-travis-master-get)
+ * [**hal config ci travis master list**](#hal-config-ci-travis-master-list)
  * [**hal config deploy**](#hal-config-deploy)
  * [**hal config deploy edit**](#hal-config-deploy-edit)
  * [**hal config edit**](#hal-config-edit)
@@ -490,6 +499,7 @@ hal config ci [subcommands]
 
 #### Subcommands
  * `jenkins`: Manage and view Spinnaker configuration for the jenkins ci
+ * `travis`: Manage and view Spinnaker configuration for the travis ci
 
 ---
 ## hal config ci jenkins
@@ -640,6 +650,162 @@ List the master names for jenkins.
 #### Usage
 ```
 hal config ci jenkins master list [parameters]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config ci travis
+
+Manage and view Spinnaker configuration for the travis ci
+
+#### Usage
+```
+hal config ci travis [parameters] [subcommands]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+#### Subcommands
+ * `disable`: Set the travis ci as disabled
+ * `enable`: Set the travis ci as enabled
+ * `master`: Manage and view Spinnaker configuration for the travis Continuous Integration services's master
+
+---
+## hal config ci travis disable
+
+Set the travis ci as disabled
+
+#### Usage
+```
+hal config ci travis disable [parameters]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config ci travis enable
+
+Set the travis ci as enabled
+
+#### Usage
+```
+hal config ci travis enable [parameters]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config ci travis master
+
+Manage and view Spinnaker configuration for the travis Continuous Integration services's master
+
+#### Usage
+```
+hal config ci travis master MASTER [parameters] [subcommands]
+```
+
+#### Parameters
+`MASTER`: The name of the master to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+#### Subcommands
+ * `add`: Add a master for the travis Continuous Integration service.
+ * `delete`: Delete a specific travis master by name.
+ * `edit`: Edit a master for the travis Continuous Integration service.
+ * `get`: Get the specified master details for travis.
+ * `list`: List the master names for travis.
+
+---
+## hal config ci travis master add
+
+Add a master for the travis Continuous Integration service.
+
+#### Usage
+```
+hal config ci travis master add MASTER [parameters]
+```
+
+#### Parameters
+`MASTER`: The name of the master to operate on.
+ * `--address`: (*Required*) The address of the travis API (https://api.travis-ci.org).
+ * `--base-url`: The base URL to the travis UI (https://travis-ci.org).
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--github-token`: (*Sensitive data* - user will be prompted on standard input) The github token to authentiacte against travis with.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config ci travis master delete
+
+Delete a specific travis master by name.
+
+#### Usage
+```
+hal config ci travis master delete MASTER [parameters]
+```
+
+#### Parameters
+`MASTER`: The name of the master to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config ci travis master edit
+
+Edit a master for the travis Continuous Integration service.
+
+#### Usage
+```
+hal config ci travis master edit MASTER [parameters]
+```
+
+#### Parameters
+`MASTER`: The name of the master to operate on.
+ * `--address`: The address of the travis API (https://api.travis-ci.org).
+ * `--base-url`: The base URL to the travis UI (https://travis-ci.org).
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--github-token`: (*Sensitive data* - user will be prompted on standard input) The github token to authentiacte against travis with.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config ci travis master get
+
+Get the specified master details for travis.
+
+#### Usage
+```
+hal config ci travis master get MASTER [parameters]
+```
+
+#### Parameters
+`MASTER`: The name of the master to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config ci travis master list
+
+List the master names for travis.
+
+#### Usage
+```
+hal config ci travis master list [parameters]
 ```
 
 #### Parameters
