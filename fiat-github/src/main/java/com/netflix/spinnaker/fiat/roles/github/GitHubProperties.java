@@ -29,5 +29,5 @@ public class GitHubProperties {
   @Min(1L)
   Integer paginationValue = 100;
   @NotNull
-  Integer membershipCacheTTLSeconds = 60 * 1000;
+  Integer membershipCacheTTLSeconds = 60 * 60; // 1 hour
 }
