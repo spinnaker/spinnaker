@@ -10,7 +10,6 @@ GET /canary/:configName/:id -- get results for this specific run (id == pipeline
 GET /canary/:configName/:id/data -- get the data (the joined metric set) for this canary run
    This is used to validate the data from other scripts, not generally by the UI due to size.
 
-GET /canary/:configName/:id/data/:metricName -- get just the data for the experiment+control for this one metric
-   The UI can use this to display graphs for a specific metric.  Format is to extract just the given metric by name.
-   Tags should also be handled, how?  Can we allow a GET with a body here?  Should there be an UUID that is in the
-   results output that can be used here?
+GET /canary/:configName/:id/data/:metricUUID -- get just the data for the experiment+control for this one metric
+   The metricUUID is assigned in the "id" field of the MetricSetPair, and is in the
+   canary result object for that pair.
