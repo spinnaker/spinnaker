@@ -25,6 +25,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.Kube
 import com.netflix.spinnaker.clouddriver.model.HealthState;
 import com.netflix.spinnaker.clouddriver.model.Instance;
 import com.netflix.spinnaker.clouddriver.model.ServerGroup;
+import io.kubernetes.client.models.V1beta1ReplicaSet;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
@@ -75,6 +76,11 @@ public class KubernetesV2ServerGroup extends ManifestBasedModel implements Serve
     this.manifest = manifest;
     this.key = (Keys.InfrastructureCacheKey) Keys.parseKey(key).get();
     this.instances = new HashSet<>(instances);
+
+    V1beta1ReplicaSet replicaSet = KubernetesCacheDataConverter.getResource(manifest, V1beta1ReplicaSet.class);
+    this.capacity = Capacity.builder()
+        .desired(replicaSet.getSpec().getReplicas())
+        .build();
   }
 
   public static KubernetesV2ServerGroup fromCacheData(CacheData cd, List<CacheData> instanceData) {
