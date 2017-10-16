@@ -1,7 +1,6 @@
 import { IController, module } from 'angular';
 
-import { IStageStep } from 'core/domain/IStageStep';
-import { IExecutionStage } from 'core/domain/IExecutionStage';
+import { IExecutionStage, ITaskStep } from 'core/domain';
 
 interface IFailureOnChanges extends ng.IOnChangesObject {
   isFailed: ng.IChangesObject<boolean>;
@@ -14,7 +13,7 @@ class StageFailureMessageCtrl implements IController {
   public message: string;
   public messages: string[];
   public stage: IExecutionStage;
-  public failedTask: IStageStep;
+  public failedTask: ITaskStep;
 
   public $onInit(): void {
     if (this.stage && (this.stage.isFailed || this.stage.isStopped)) {

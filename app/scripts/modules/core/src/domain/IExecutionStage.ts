@@ -3,7 +3,7 @@ import { Application } from 'core/application/application.model';
 import { IExecution } from './IExecution';
 import { IOrchestratedItem } from './IOrchestratedItem';
 import { IStage } from './IStage';
-import { IStageStep } from './IStageStep';
+import { ITaskStep } from './ITaskStep';
 
 export interface IRestartDetails {
   restartedBy: string;
@@ -24,7 +24,7 @@ export interface IExecutionStage extends IOrchestratedItem, IStage {
   before?: IExecutionStage[];
   context: IExecutionContext;
   id: string;
-  tasks: IStageStep[];
+  tasks: ITaskStep[];
 }
 
 export interface IExecutionStageLabelComponentProps {

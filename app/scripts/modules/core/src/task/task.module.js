@@ -3,6 +3,7 @@
 const angular = require('angular');
 
 import { PLATFORM_HEALTH_OVERRIDE_MESSAGE } from './platformHealthOverrideMessage.component';
+import { STATUS_GLYPH_COMPONENT } from 'core/task/statusGlyph.component';
 import { TASK_STATES } from './task.states';
 
 import './tasks.less';
@@ -12,7 +13,7 @@ module.exports = angular
     require('./verification/userVerification.directive.js').name,
     require('./modal/reason.directive').name,
     require('./monitor/taskMonitor.module.js').name,
-    require('./statusGlyph.directive.js').name,
+    STATUS_GLYPH_COMPONENT,
     require('./tasks.controller.js').name,
     require('./task.dataSource').name,
     TASK_STATES,

@@ -4,6 +4,7 @@ const angular = require('angular');
 
 import { COPY_STAGE_MODAL_CONTROLLER } from './config/copyStage/copyStage.modal.controller';
 import { GROUP_STAGE_MODULE } from './config/stages/group/groupStage.module';
+import { STAGE_CORE_MODULE } from './config/stages/core/stage.core.module';
 import { TRAVIS_STAGE_MODULE } from './config/stages/travis/travisStage.module';
 import { UNMATCHED_STAGE_TYPE_STAGE } from './config/stages/unmatchedStageTypeStage/unmatchedStageTypeStage';
 import { WEBHOOK_STAGE_MODULE } from './config/stages/webhook/webhookStage.module';
@@ -22,7 +23,7 @@ module.exports = angular.module('spinnaker.core.pipeline', [
   require('./config/stages/bake/bakeStage.module').name,
   require('./config/stages/checkPreconditions/checkPreconditionsStage.module').name,
   require('./config/stages/cloneServerGroup/cloneServerGroupStage.module').name,
-  require('./config/stages/core/stage.core.module').name,
+  STAGE_CORE_MODULE,
   require('./config/stages/deploy/deployStage.module').name,
   require('./config/stages/destroyAsg/destroyAsgStage.module').name,
   require('./config/stages/disableAsg/disableAsgStage.module').name,

@@ -7,6 +7,7 @@ import { EXECUTION_DETAILS_COMPONENT } from './details/executionDetails.componen
 import { EXECUTION_DETAILS_CONTROLLER } from './details/executionDetails.controller';
 import { BUILD_DISPLAY_NAME_FILTER } from './executionBuild/buildDisplayName.filter';
 import { EXECUTION_COMPONENT } from './executionGroup/execution/execution.component';
+import { EXECUTION_DETAILS_SECTION_NAV } from './details/executionDetailsSectionNav.component';
 import { STAGE_FAILURE_MESSAGE_COMPONENT } from './stageFailureMessage/stageFailureMessage.component';
 import { CORE_DELIVERY_DETAILS_SINGLEEXECUTIONDETAILS } from './details/singleExecutionDetails.component';
 
@@ -16,7 +17,7 @@ module.exports = angular.module('spinnaker.delivery', [
   CORE_DELIVERY_DETAILS_SINGLEEXECUTIONDETAILS,
   EXECUTION_COMPONENT,
   EXECUTION_DETAILS_COMPONENT,
-  require('./details/executionDetailsSectionNav.directive.js').name,
+  EXECUTION_DETAILS_SECTION_NAV,
 
   BUILD_DISPLAY_NAME_FILTER,
 

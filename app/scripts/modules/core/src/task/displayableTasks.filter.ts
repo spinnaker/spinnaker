@@ -2,20 +2,20 @@ import { module } from 'angular';
 
 import { ITaskStep } from 'core/domain';
 
-export function displayableTaskFilter() {
+export function displayableTasks(input: ITaskStep[]): ITaskStep[] {
   const blacklist = [
     'stageStart', 'stageEnd', 'determineTargetServerGroup'
   ];
-  return function (input: ITaskStep[]): ITaskStep[] {
-    let result: ITaskStep[] = [];
-    if (input) {
-      result = input.filter((test: ITaskStep) => {
-        return !blacklist.includes(test.name) || test.status === 'TERMINAL';
-      });
-    }
 
-    return result;
-  };
+  let result: ITaskStep[] = [];
+  if (input) {
+    result = input.filter((test: ITaskStep) => !blacklist.includes(test.name) || test.status === 'TERMINAL');
+  }
+
+  return result;
+}
+export function displayableTaskFilter() {
+  return displayableTasks;
 }
 
 export const DISPLAYABLE_TASKS_FILTER = 'spinnaker.pipelines.stages.core.displayableTasks.filter';

@@ -43,7 +43,6 @@ export * from './IServerGroup';
 export * from './IStage';
 export * from './IStageContext';
 export * from './IStageOrTriggerTypeConfig';
-export * from './IStageStep';
 export * from './IStageTypeConfig';
 export * from './IStrategy'
 export * from './ISubnet';
