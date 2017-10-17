@@ -26,6 +26,7 @@ import com.netflix.kayenta.security.CredentialsHelper;
 import com.netflix.kayenta.storage.ObjectType;
 import com.netflix.kayenta.storage.StorageService;
 import com.netflix.kayenta.storage.StorageServiceRepository;
+import com.netflix.kayenta.util.ObjectMapperFactory;
 import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.RetryableTask;
 import com.netflix.spinnaker.orca.TaskResult;
@@ -44,8 +45,7 @@ import java.util.Map;
 @Slf4j
 public class StackdriverFetchTask implements RetryableTask {
 
-  @Autowired
-  ObjectMapper objectMapper;
+  ObjectMapper objectMapper = ObjectMapperFactory.getMapper();
 
   @Autowired
   AccountCredentialsRepository accountCredentialsRepository;
