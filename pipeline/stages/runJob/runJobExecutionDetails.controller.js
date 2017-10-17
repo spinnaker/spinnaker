@@ -1,6 +1,8 @@
 'use strict';
 
 import { get, has, filter } from 'lodash';
+import { SETTINGS, } from '@spinnaker/core';
+
 
 const angular = require('angular');
 
@@ -10,6 +12,7 @@ module.exports = angular.module('spinnaker.titus.pipeline.stage.runJob.execution
   .controller('titusRunJobExecutionDetailsCtrl', function ($scope, $stateParams, executionDetailsSectionService, accountService) {
 
     $scope.configSections = ['runJobConfig', 'taskStatus'];
+    $scope.gateUrl = SETTINGS.gateUrl;
 
     let initialized = () => {
       $scope.detailsSection = $stateParams.details;

@@ -14,10 +14,10 @@
           <dd ng-if="stage.context.cluster.entryPoint">{{stage.context.cluster.entryPoint}}</dd>
           <dt>Titus Job Id</dt>
           <dd>
-            <a target="_blank" href="{{apiEndpoint}}v2/jobs/{{job}}?taskState=ANY">{{job}}</a></dd>
+            <a target="_blank" href="{{gateUrl}}/titus/job/{{stage.context.credentials}}/{{stage.context.cluster.region}}/{{job}}">{{job}}</a></dd>
           <dt>Titus Task Id</dt>
           <dd>
-            <a target="_blank" href="{{apiEndpoint}}v2/tasks/{{task}}">{{task}}</a></dd>
+            <a target="_blank" href="{{gateUrl}}/titus/task/{{stage.context.credentials}}/{{stage.context.cluster.region}}/{{task}}">{{task}}</a></dd>
           </dd>
         </dl>
       </div>

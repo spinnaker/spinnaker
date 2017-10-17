@@ -12,7 +12,8 @@ import {
   CONFIRMATION_MODAL_SERVICE,
   SERVER_GROUP_READER,
   SERVER_GROUP_WARNING_MESSAGE_SERVICE,
-  SERVER_GROUP_WRITER
+  SERVER_GROUP_WRITER,
+  SETTINGS,
 } from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.serverGroup.details.titus.controller', [
@@ -35,6 +36,8 @@ module.exports = angular.module('spinnaker.serverGroup.details.titus.controller'
 
     let application = app;
     this.application = app;
+
+    $scope.gateUrl = SETTINGS.gateUrl;
 
     $scope.state = {
       loading: true

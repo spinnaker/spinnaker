@@ -9,7 +9,8 @@ import {
   CONFIRMATION_MODAL_SERVICE,
   INSTANCE_READ_SERVICE,
   INSTANCE_WRITE_SERVICE,
-  RECENT_HISTORY_SERVICE
+  RECENT_HISTORY_SERVICE,
+  SETTINGS,
 } from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.instance.detail.titus.controller', [
@@ -35,6 +36,7 @@ module.exports = angular.module('spinnaker.instance.detail.titus.controller', [
     };
 
     $scope.application = app;
+    $scope.gateUrl = SETTINGS.gateUrl;
 
     function extractHealthMetrics(instance, latest) {
       // do not backfill on standalone instances
