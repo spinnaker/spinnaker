@@ -29,6 +29,10 @@ class QueueExecutionRunner(
   override fun <T : Execution<T>> start(execution: T) =
     queue.push(StartExecution(execution))
 
+  override fun <T : Execution<T>> reschedule(execution: T) {
+    queue.push(RescheduleExecution(execution))
+  }
+
   override fun <T : Execution<T>> restart(execution: T, stageId: String) {
     queue.push(RestartStage(execution, stageId, AuthenticatedRequest.getSpinnakerUser().orElse(null)))
   }

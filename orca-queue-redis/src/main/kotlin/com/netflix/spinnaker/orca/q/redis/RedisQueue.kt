@@ -33,6 +33,7 @@ import org.springframework.scheduling.annotation.Scheduled
 import redis.clients.jedis.Jedis
 import redis.clients.jedis.JedisCommands
 import redis.clients.jedis.Transaction
+import redis.clients.jedis.params.sortedset.ZAddParams
 import redis.clients.util.Pool
 import java.io.IOException
 import java.nio.charset.Charset
@@ -106,6 +107,19 @@ class RedisQueue(
       } else {
         redis.queueMessage(message, delay)
         fire<MessagePushed>(message)
+      }
+    }
+  }
+
+  override fun reschedule(message: Message, delay: TemporalAmount) {
+    pool.resource.use { redis ->
+      val fingerprint = message.hash()
+      log.debug("Re-scheduling message: $message, fingerprint: $fingerprint to deliver in $delay")
+      val status: Long = redis.zadd(queueKey, score(delay), fingerprint, ZAddParams.zAddParams().xx())
+      if (status.toInt() == 1){
+        fire<MessageRescheduled>(message)
+      } else {
+        fire<MessageNotFound>(message)
       }
     }
   }

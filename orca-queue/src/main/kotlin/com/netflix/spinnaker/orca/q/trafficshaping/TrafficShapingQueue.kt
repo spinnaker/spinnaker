@@ -91,6 +91,8 @@ class TrafficShapingQueue(
 
   override fun push(message: Message, delay: TemporalAmount) = queueImpl.push(message, delay)
 
+  override fun reschedule(message: Message, delay: TemporalAmount) = queueImpl.reschedule(message, delay)
+
   override fun retry() {
     queueImpl.retry()
   }

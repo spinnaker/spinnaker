@@ -163,6 +163,9 @@ data class RunTask(
 
   constructor(message: TaskLevel, taskType: Class<out Task>) :
     this(message.executionType, message.executionId, message.application, message.stageId, message.taskId, taskType)
+
+  constructor(source: ExecutionLevel, stageId: String, taskId: String, taskType: Class<out Task>) :
+    this(source.executionType, source.executionId, source.application, stageId, taskId, taskType)
 }
 
 data class StartStage(
@@ -284,6 +287,15 @@ data class CancelStage(
 }
 
 data class StartExecution(
+  override val executionType: Class<out Execution<*>>,
+  override val executionId: String,
+  override val application: String
+) : Message(), ExecutionLevel {
+  constructor(source: Execution<*>) :
+    this(source.javaClass, source.getId(), source.getApplication())
+}
+
+data class RescheduleExecution(
   override val executionType: Class<out Execution<*>>,
   override val executionId: String,
   override val application: String

@@ -215,6 +215,8 @@ class TaskController {
   @ResponseStatus(HttpStatus.ACCEPTED)
   void pause(@PathVariable String id) {
     executionRepository.pause(id, AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"))
+    def pipeline = executionRepository.retrievePipeline(id)
+    executionRunner.reschedule(pipeline)
   }
 
   @PreAuthorize("hasPermission(this.getPipeline(#id)?.application, 'APPLICATION', 'WRITE')")

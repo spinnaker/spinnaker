@@ -29,6 +29,11 @@ public interface ExecutionRunner {
     throw new UnsupportedOperationException();
   }
 
+  default <T extends Execution<T>> void reschedule(
+    @Nonnull T execution) throws Exception {
+    throw new UnsupportedOperationException();
+  }
+
   default <T extends Execution<T>> void unpause(
     @Nonnull T execution) throws Exception {
     throw new UnsupportedOperationException();

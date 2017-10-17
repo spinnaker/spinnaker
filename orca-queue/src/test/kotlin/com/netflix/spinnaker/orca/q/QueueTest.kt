@@ -30,6 +30,7 @@ import org.threeten.extra.Hours
 import java.io.Closeable
 import java.time.Clock
 import java.time.Duration
+import java.time.Duration.ZERO
 
 abstract class QueueTest<out Q : Queue>(
   createQueue: (Clock, DeadMessageCallback) -> Q,
@@ -329,6 +330,53 @@ abstract class QueueTest<out Q : Queue>(
         it("does not hold on to the first message") {
           clock.incrementBy(delay)
           queue!!.poll(callback)
+          verifyNoMoreInteractions(callback)
+        }
+      }
+
+      and("the message delivery time is updated") {
+        val delay = Hours.of(1)
+
+        beforeGroup {
+          queue = createQueue(clock, deadLetterCallback).apply {
+            push(message, delay)
+            reschedule(message, ZERO)
+          }
+        }
+
+        afterGroup(::stopQueue)
+        afterGroup(::resetMocks)
+
+        on("polling the queue") {
+          queue!!.poll(callback)
+        }
+
+        it("delivers the message immediately and only once") {
+          verify(callback).invoke(eq(message), any())
+        }
+
+        it("does not deliver again"){
+          verifyNoMoreInteractions(callback)
+        }
+      }
+
+      and("the delivery time for a message that isn't on the queue isn't updated") {
+        val message2 = StartExecution(Pipeline::class.java, "2", "bar")
+
+        beforeGroup {
+          queue = createQueue(clock, deadLetterCallback).apply {
+            reschedule(message2, ZERO)
+          }
+        }
+
+        afterGroup(::stopQueue)
+        afterGroup(::resetMocks)
+
+        on("polling the queue") {
+          queue!!.poll(callback)
+        }
+
+        it("there are no messages on the queue"){
           verifyNoMoreInteractions(callback)
         }
       }

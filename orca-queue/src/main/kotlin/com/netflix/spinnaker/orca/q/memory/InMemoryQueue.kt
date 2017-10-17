@@ -71,6 +71,13 @@ class InMemoryQueue(
     }
   }
 
+  override fun reschedule(message: Message, delay: TemporalAmount) {
+    val existed = queue.removeIf { it.payload == message }
+    if (existed) {
+      queue.put(Envelope(message, clock.instant().plus(delay), clock))
+    }
+  }
+
   @Scheduled(fixedDelayString = "\${queue.retry.frequency.ms:10000}")
   override fun retry() {
     val now = clock.instant()

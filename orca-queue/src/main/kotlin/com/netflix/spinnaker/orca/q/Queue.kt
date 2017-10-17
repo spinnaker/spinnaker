@@ -50,6 +50,16 @@ interface Queue {
   fun push(message: Message, delay: TemporalAmount): Unit
 
   /**
+   * Update [message] if it exists for immediate delivery.
+   */
+  fun reschedule(message: Message): Unit = reschedule(message, ZERO)
+
+  /**
+   * Update [mesasge] if it exists for delivery after [delay].
+   */
+  fun reschedule(message: Message, delay: TemporalAmount): Unit
+
+  /**
    * Check for any un-acknowledged messages that are overdue and move them back
    * onto the queue.
    *

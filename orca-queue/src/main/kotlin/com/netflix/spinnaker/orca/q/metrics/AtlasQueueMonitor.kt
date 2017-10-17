@@ -57,6 +57,8 @@ open class AtlasQueueMonitor
       is MessageDead -> event.counter.increment()
       is MessageDuplicate -> event.counter.increment()
       is LockFailed -> event.counter.increment()
+      is MessageRescheduled -> event.counter.increment()
+      is MessageNotFound -> event.counter.increment()
     }
   }
 
@@ -155,4 +157,18 @@ open class AtlasQueueMonitor
    */
   private val LockFailed.counter: Counter
     get() = registry.counter("queue.lock.failed")
+
+  /**
+   * Count of attempted message rescheduling that succeeded (in other words,
+   * that message existed on the queue).
+   */
+  private val MessageRescheduled.counter: Counter
+    get() = registry.counter("queue.reschedule.succeeded")
+
+  /**
+   * Count of attempted message rescheduling that failed (in other words,
+   * that message did not exist on the queue).
+   */
+  private val MessageNotFound.counter: Counter
+    get() = registry.counter("queue.message.notfound")
 }

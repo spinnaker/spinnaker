@@ -38,4 +38,5 @@ class MessageRetried(source: MonitorableQueue) : QueueEvent(source)
 class MessageDead(source: MonitorableQueue) : QueueEvent(source)
 class MessageDuplicate(source: MonitorableQueue, payload: Message) : PayloadQueueEvent(source, payload)
 class LockFailed(source: MonitorableQueue) : QueueEvent(source)
-
+class MessageRescheduled(source: MonitorableQueue, payload: Message) : PayloadQueueEvent(source, payload)
+class MessageNotFound(source: MonitorableQueue, payload: Message) : PayloadQueueEvent(source, payload)
