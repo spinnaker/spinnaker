@@ -21,7 +21,7 @@ interface IAtlasMetricConfigurerState {
   webComponent: Element;
 }
 
-interface AtlasQuerySelector {
+export interface AtlasQuerySelector {
   'class': string;
   backends: string;
   q: string;
