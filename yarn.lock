@@ -355,34 +355,34 @@
     "@types/tapable" "*"
     "@types/uglify-js" "*"
 
-"@uirouter/angularjs@1.0.5-SNAPSHOT.20170711":
-  version "1.0.5-SNAPSHOT.20170711"
-  resolved "https://registry.yarnpkg.com/@uirouter/angularjs/-/angularjs-1.0.5-SNAPSHOT.20170711.tgz#6cb059062cc0c2aada6b85b820b9ef6c85eee878"
+"@uirouter/angularjs@1.0.9":
+  version "1.0.9"
+  resolved "https://registry.yarnpkg.com/@uirouter/angularjs/-/angularjs-1.0.9.tgz#9aa4259eb52e8006ba0e63e55ea5cbd6c03e63de"
   dependencies:
-    "@uirouter/core" "^5.0.5"
+    "@uirouter/core" "5.0.11"
 
-"@uirouter/core@5.0.5", "@uirouter/core@^5.0.5":
-  version "5.0.5"
-  resolved "https://registry.yarnpkg.com/@uirouter/core/-/core-5.0.5.tgz#4fafae8b89e1bee321b0ed32e69ab66547c055c6"
+"@uirouter/core@5.0.11":
+  version "5.0.11"
+  resolved "https://registry.yarnpkg.com/@uirouter/core/-/core-5.0.11.tgz#bec461fcda767d79c98f6647cc9313ef9e5de03a"
 
-"@uirouter/react-hybrid@^0.0.12":
-  version "0.0.12"
-  resolved "https://registry.yarnpkg.com/@uirouter/react-hybrid/-/react-hybrid-0.0.12.tgz#c090c3415a551b28a17dbc4b44d6ef38f9f038bf"
+"@uirouter/react-hybrid@0.0.14":
+  version "0.0.14"
+  resolved "https://registry.yarnpkg.com/@uirouter/react-hybrid/-/react-hybrid-0.0.14.tgz#6a12411133de9121b5cbb830ef448c2ff516df11"
   dependencies:
-    "@uirouter/angularjs" "1.0.5-SNAPSHOT.20170711"
-    "@uirouter/core" "5.0.5"
-    "@uirouter/react" "0.5.1-SNAPSHOT.20170711"
+    "@uirouter/angularjs" "1.0.9"
+    "@uirouter/core" "5.0.11"
+    "@uirouter/react" "0.5.4"
 
-"@uirouter/react@0.5.1-SNAPSHOT.20170711":
-  version "0.5.1-SNAPSHOT.20170711"
-  resolved "https://registry.yarnpkg.com/@uirouter/react/-/react-0.5.1-SNAPSHOT.20170711.tgz#fabfceaa52de5083043f50dbad138cdbf447e92e"
+"@uirouter/react@0.5.4":
+  version "0.5.4"
+  resolved "https://registry.yarnpkg.com/@uirouter/react/-/react-0.5.4.tgz#212c42179ab967261461c2f30efd8ddc74230d58"
   dependencies:
-    "@uirouter/core" "^5.0.5"
+    "@uirouter/core" "5.0.11"
     classnames "^2.2.5"
 
-"@uirouter/rx@^0.4.1":
-  version "0.4.1"
-  resolved "https://registry.yarnpkg.com/@uirouter/rx/-/rx-0.4.1.tgz#658c9e58e860ae3132faf4c71a6bed7e91de02f3"
+"@uirouter/rx@0.4.5":
+  version "0.4.5"
+  resolved "https://registry.yarnpkg.com/@uirouter/rx/-/rx-0.4.5.tgz#fb9eeb2cb011d98cc60f043b465551cdd236269b"
   dependencies:
     rollup "^0.41.6"
     rollup-plugin-commonjs "^8.0.2"
@@ -392,9 +392,9 @@
     rollup-plugin-uglify "^1.0.2"
     rollup-plugin-visualizer "^0.2.1"
 
-"@uirouter/visualizer@^4.0.0":
-  version "4.0.0"
-  resolved "https://registry.yarnpkg.com/@uirouter/visualizer/-/visualizer-4.0.0.tgz#9e71bc4fb19a6dd12d18d9e122c16aa4902363ce"
+"@uirouter/visualizer@4.0.2":
+  version "4.0.2"
+  resolved "https://registry.yarnpkg.com/@uirouter/visualizer/-/visualizer-4.0.2.tgz#c26784dd1f55c0e4540d571c95a2308f05812650"
   dependencies:
     d3-hierarchy "^1.0.3"
     d3-interpolate "^1.1.3"

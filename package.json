@@ -26,9 +26,9 @@
     "int": "protractor protractor.conf.js"
   },
   "dependencies": {
-    "@uirouter/react-hybrid": "^0.0.12",
-    "@uirouter/rx": "^0.4.1",
-    "@uirouter/visualizer": "^4.0.0",
+    "@uirouter/react-hybrid": "0.0.14",
+    "@uirouter/rx": "0.4.5",
+    "@uirouter/visualizer": "4.0.2",
     "Select2": "git://github.com/select2/select2.git#3.4.8",
     "angular": "~1.6.3",
     "angular-cache": "^4.6.0",
