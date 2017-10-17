@@ -20,6 +20,7 @@ import com.netflix.spinnaker.echo.notification.DryRunNotificationAgent;
 import com.netflix.spinnaker.echo.pipelinetriggers.orca.OrcaService;
 import com.netflix.spinnaker.echo.services.Front50Service;
 import com.squareup.okhttp.OkHttpClient;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
@@ -30,11 +31,12 @@ import retrofit.client.OkClient;
 import static retrofit.Endpoints.newFixedEndpoint;
 
 @Configuration
-@ConditionalOnProperty("dryRun.enabled:false")
+@ConditionalOnProperty("dryRun.enabled")
+@Slf4j
 public class DryRunConfig {
 
   @Bean
-  Endpoint dryRunEndpoint(@Value("dryRun.baseUrl") String baseUrl) {
+  Endpoint dryRunEndpoint(@Value("${dryRun.baseUrl}") String baseUrl) {
     return newFixedEndpoint(baseUrl);
   }
 
@@ -44,6 +46,7 @@ public class DryRunConfig {
     RestAdapter.LogLevel retrofitLogLevel,
     Endpoint dryRunEndpoint)
   {
+    log.info("Pipeline dry runs will execute at {}", dryRunEndpoint.getUrl());
     OrcaService orca = new RestAdapter.Builder()
       .setEndpoint(dryRunEndpoint)
       .setClient(new OkClient(okHttpClient))

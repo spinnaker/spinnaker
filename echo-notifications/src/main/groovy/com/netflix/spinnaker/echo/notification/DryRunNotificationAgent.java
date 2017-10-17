@@ -22,13 +22,9 @@ import com.netflix.spinnaker.echo.model.Trigger;
 import com.netflix.spinnaker.echo.pipelinetriggers.orca.OrcaService;
 import com.netflix.spinnaker.echo.services.Front50Service;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.stereotype.Service;
 import static java.lang.String.format;
 
 @Slf4j
-@ConditionalOnProperty("dryRun.enabled")
-@Service
 public class DryRunNotificationAgent extends AbstractEventNotificationAgent {
 
   private final Front50Service front50;
