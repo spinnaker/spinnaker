@@ -19,6 +19,8 @@ package com.netflix.spinnaker.gate.controllers
 
 import com.netflix.spinnaker.gate.services.commands.HystrixFactory
 import com.netflix.spinnaker.gate.services.internal.Front50Service
+import com.netflix.spinnaker.gate.services.internal.OrcaService
+import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
@@ -38,6 +40,9 @@ class PipelineConfigController {
   @Autowired
   Front50Service front50Service
 
+  @Autowired
+  OrcaService orcaService
+
   @RequestMapping(method = RequestMethod.GET)
   Collection<Map> getAllPipelineConfigs() {
     return HystrixFactory.newListCommand(HYSTRIX_GROUP, "getAllPipelineConfigs") {
@@ -51,5 +56,17 @@ class PipelineConfigController {
     return HystrixFactory.newListCommand(HYSTRIX_GROUP, "getPipelineConfigHistory") {
       front50Service.getPipelineConfigHistory(pipelineConfigId, limit)
     }.execute()
+  }
+
+  @RequestMapping(value = "/{pipelineConfigId}/convertToTemplate", method = RequestMethod.GET)
+  String convertPipelineConfigToPipelineTemplate(@PathVariable("pipelineConfigId") String pipelineConfigId) {
+    Map pipelineConfig = HystrixFactory.newMapCommand(HYSTRIX_GROUP, "getPipelineConfig") {
+      front50Service.getAllPipelineConfigs().find { (pipelineConfigId == it.get("id")) }
+    }.execute()
+    if (pipelineConfig == null) {
+      throw new NotFoundException("Pipeline config '${pipelineConfigId}' could not be found")
+    }
+    String template = orcaService.convertToPipelineTemplate(pipelineConfig).body.in().text
+    return template
   }
 }

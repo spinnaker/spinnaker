@@ -16,7 +16,16 @@
 
 package com.netflix.spinnaker.gate.services.internal
 
-import retrofit.http.*
+import retrofit.client.Response
+import retrofit.http.Body
+import retrofit.http.DELETE
+import retrofit.http.GET
+import retrofit.http.Headers
+import retrofit.http.PATCH
+import retrofit.http.POST
+import retrofit.http.PUT
+import retrofit.http.Path
+import retrofit.http.Query
 
 interface OrcaService {
 
@@ -107,4 +116,7 @@ interface OrcaService {
   @Headers("Accept: application/json")
   @GET("/pipelineTemplate")
   Map resolvePipelineTemplate(@Query("source") String source)
+
+  @POST("/convertPipelineToTemplate")
+  Response convertToPipelineTemplate(@Body Map<String, ? extends Object> pipelineConfig)
 }
