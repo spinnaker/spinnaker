@@ -19,9 +19,9 @@ const MetricResults = ({ metricResults, selectedMetricResult }: IMetricResultsSt
   return (
     <ListDetail
       list={list}
-      listWidth={1}
+      listWidth={6}
       detail={detail}
-      detailWidth={1}
+      detailWidth={6}
     />
   );
 };

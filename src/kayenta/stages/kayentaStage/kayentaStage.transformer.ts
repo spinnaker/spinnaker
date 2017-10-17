@@ -18,8 +18,8 @@ export class KayentaStageTransformer implements ITransformer {
         const syntheticCanaryStages = execution.stages.filter(s => s.parentStageId === stage.id);
         stagesToRenderAsTasks = stagesToRenderAsTasks.concat(syntheticCanaryStages);
 
-        stage.exceptions = this.getException(stage) ? [`Canary failure: ${this.getException(stage)}`] : [];
-        this.addExceptions(syntheticCanaryStages, stage.exceptions);
+        stage.exceptions = [];
+        this.addExceptions([stage, ...syntheticCanaryStages], stage.exceptions);
 
         const runCanaryStages = syntheticCanaryStages.filter(s => s.type === RUN_CANARY);
         this.calculateRunCanaryResults(runCanaryStages);
