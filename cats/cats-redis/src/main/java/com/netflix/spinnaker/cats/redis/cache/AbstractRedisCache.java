@@ -130,7 +130,7 @@ public abstract class AbstractRedisCache implements WriteableCache {
                                       Collection<String> identifiers,
                                       CacheFilter cacheFilter) {
     if (identifiers.isEmpty()) {
-      return Collections.emptySet();
+      return new ArrayList<>();
     }
     Collection<String> ids = new LinkedHashSet<>(identifiers);
     final List<String> knownRels;

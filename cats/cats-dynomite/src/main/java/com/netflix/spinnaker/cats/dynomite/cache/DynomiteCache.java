@@ -23,10 +23,10 @@ import com.netflix.dyno.connectionpool.exception.DynoException;
 import com.netflix.dyno.jedis.DynoJedisPipeline;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.cats.cache.DefaultCacheData;
-import com.netflix.spinnaker.cats.dynomite.DynomiteClientDelegate;
-import com.netflix.spinnaker.cats.dynomite.DynomiteClientDelegate.ClientDelegateException;
 import com.netflix.spinnaker.cats.compression.CompressionStrategy;
 import com.netflix.spinnaker.cats.compression.NoopCompression;
+import com.netflix.spinnaker.cats.dynomite.DynomiteClientDelegate;
+import com.netflix.spinnaker.cats.dynomite.DynomiteClientDelegate.ClientDelegateException;
 import com.netflix.spinnaker.cats.redis.cache.AbstractRedisCache;
 import com.netflix.spinnaker.cats.redis.cache.RedisCacheOptions;
 import net.jodah.failsafe.Failsafe;
@@ -41,7 +41,6 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -253,7 +252,7 @@ public class DynomiteCache extends AbstractRedisCache {
   @Override
   protected Collection<CacheData> getItems(String type, List<String> ids, List<String> knownRels) {
     if (ids.isEmpty()) {
-      return Collections.emptyList();
+      return new ArrayList<>();
     }
 
     AtomicInteger hmgetAllOperations = new AtomicInteger();
@@ -386,7 +385,7 @@ public class DynomiteCache extends AbstractRedisCache {
 
   private Map<CacheData, Map<String, String>> getAllHashes(String type, Collection<CacheData> items) {
     if (isHashingDisabled(type)) {
-      return Collections.emptyMap();
+      return new HashMap<>();
     }
 
     return redisClientDelegate.withPipeline(pipeline -> {
