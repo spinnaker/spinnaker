@@ -584,11 +584,12 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
   private <T> T runAndRecordMetrics(String methodName, String namespace, Supplier<T> op) {
     T result = null;
     Throwable failure = null;
+    KubernetesApiException apiException = null;
     long startTime = clock.monotonicTime();
     try {
       result = op.get();
     } catch (KubernetesApiException e) {
-      failure = e.getCause();
+      apiException = e;
     } catch (Exception e) {
       failure = e;
     } finally {
@@ -608,6 +609,8 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
 
       if (failure != null) {
         throw new KubernetesApiException(methodName, failure);
+      } else if (apiException != null) {
+        throw apiException;
       } else {
         return result;
       }

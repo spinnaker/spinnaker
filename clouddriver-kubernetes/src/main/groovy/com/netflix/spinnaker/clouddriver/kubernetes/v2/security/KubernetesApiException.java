@@ -17,8 +17,33 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.security;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.kubernetes.client.ApiException;
+import io.kubernetes.client.models.V1Status;
+import lombok.extern.slf4j.Slf4j;
+
+import java.io.IOException;
+
+@Slf4j
 public class KubernetesApiException extends RuntimeException {
+  private static final ObjectMapper mapper = new ObjectMapper();
+
   public KubernetesApiException(String operation, Throwable e) {
-    super(operation + " failed: " + e.getMessage(), e);
+    super(String.format("%s failed: %s", operation, e.getMessage()), e);
+  }
+
+  public KubernetesApiException(String operation, ApiException e) {
+    super(String.format("%s failed (%d %s): %s", operation, e.getCode(), e.getMessage(), message(e)), e);
+  }
+
+  private static String message(ApiException e) {
+    String responseBody = e.getResponseBody();
+    try {
+      V1Status status = mapper.readValue(responseBody, V1Status.class);
+      return status.getMessage();
+    } catch (IOException ioe) {
+      log.warn("ApiException encountered that can't be parsed into a V1Status", e);
+      return responseBody;
+    }
   }
 }
