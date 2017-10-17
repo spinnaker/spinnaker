@@ -1,4 +1,5 @@
 import { IController, module } from 'angular';
+import { IModalService } from 'angular-ui-bootstrap';
 
 import {
   Application,
@@ -24,6 +25,7 @@ class KubernetesServerGroupDetailsController implements IController {
 
   constructor(serverGroup: IServerGroupFromStateParams,
               public app: Application,
+              private $uibModal: IModalService,
               private serverGroupReader: ServerGroupReader) {
     'ngInject';
 
@@ -34,7 +36,19 @@ class KubernetesServerGroupDetailsController implements IController {
   }
 
   public canResizeServerGroup(): boolean {
-    return false; // will change with daemon set
+    return this.serverGroup.kind !== 'DaemonSet';
+  }
+
+  public resizeServerGroup(): void {
+    this.$uibModal.open({
+      templateUrl: require('./resize/resize.html'),
+      controller: 'kubernetesV2ServerGroupResizeCtrl',
+      controllerAs: 'ctrl',
+      resolve: {
+        serverGroup: this.serverGroup,
+        application: this.app
+      }
+    });
   }
 
   private autoClose(): void {
@@ -55,6 +69,7 @@ class KubernetesServerGroupDetailsController implements IController {
       .getServerGroup(this.app.name, fromParams.accountId, fromParams.region, fromParams.name)
       .then((serverGroupDetails: IServerGroup) => {
         this.serverGroup = this.transformServerGroup(serverGroupDetails);
+        this.serverGroup.account = fromParams.accountId;
         this.state.loading = false;
       });
   }

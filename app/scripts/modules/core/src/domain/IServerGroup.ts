@@ -4,6 +4,7 @@ import { IInstance } from './IInstance';
 import { IInstanceCounts } from './IInstanceCounts';
 import { ITask } from './ITask';
 import { IMoniker } from 'core/naming/IMoniker';
+import { ICapacity } from 'core/serverGroup';
 
 // remnant from legacy code
 export interface IAsg {
@@ -18,6 +19,7 @@ export interface IServerGroup {
   asg?: IAsg;
   buildInfo?: any;
   category?: string;
+  capacity?: ICapacity;
   cloudProvider: string;
   cluster: string;
   clusterEntityTags?: IEntityTags[];
