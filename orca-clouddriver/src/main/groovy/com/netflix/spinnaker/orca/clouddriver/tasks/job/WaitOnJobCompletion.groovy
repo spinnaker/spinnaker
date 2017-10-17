@@ -69,8 +69,9 @@ public class WaitOnJobCompletion extends AbstractCloudProviderAwareTask implemen
 
       def name = names[0]
       def parsedName = Names.parseName(name)
+      String appName = stage.context.moniker?.app ?: stage.context.applicaton ?: parsedName.app
 
-      Map job = objectMapper.readValue(katoRestService.collectJob(parsedName.app, account, location, name, "delete").body.in(), new TypeReference<Map>() {})
+      Map job = objectMapper.readValue(katoRestService.collectJob(appName, account, location, name, "delete").body.in(), new TypeReference<Map>() {})
       outputs.jobStatus = job
 
       switch ((String) job.jobState) {
@@ -80,7 +81,7 @@ public class WaitOnJobCompletion extends AbstractCloudProviderAwareTask implemen
 
           if (stage.context.propertyFile) {
             Map<String, Object> properties = [:]
-            properties = katoRestService.getFileContents(parsedName.app, account, location, name, stage.context.propertyFile)
+            properties = katoRestService.getFileContents(appName, account, location, name, stage.context.propertyFile)
             if (properties.size() == 0) {
               throw new IllegalStateException("expected properties file ${stage.context.propertyFile} but one was not found or was empty")
             }
