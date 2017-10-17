@@ -30,9 +30,11 @@ import com.netflix.spinnaker.orca.TaskResult;
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.InterestingHealthProviderNamesSupplier;
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCreator;
 import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware;
+import com.netflix.spinnaker.orca.clouddriver.utils.MonikerHelper;
 import com.netflix.spinnaker.orca.front50.Front50Service;
 import com.netflix.spinnaker.orca.front50.model.Application;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
+import com.thoughtworks.xstream.mapper.Mapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -98,7 +100,7 @@ public class DetermineHealthProvidersTask implements RetryableTask, CloudProvide
 
     try {
       String applicationName = (String) stage.getContext().get("application");
-      Moniker moniker = (Moniker) stage.getContext().get("moniker");
+      Moniker moniker = MonikerHelper.monikerFromStage(stage);
       if (applicationName == null && moniker != null && moniker.getApp() != null) {
         applicationName = moniker.getApp();
       } else if (applicationName == null && stage.getContext().containsKey("serverGroupName")) {

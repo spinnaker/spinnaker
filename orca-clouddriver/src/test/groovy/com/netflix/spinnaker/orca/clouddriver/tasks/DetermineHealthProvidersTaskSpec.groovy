@@ -66,6 +66,7 @@ class DetermineHealthProvidersTaskSpec extends Specification {
     [application: "app"]                          | bA("app", true, true)  || [:]                                           // no health provider names when platformHealthOnlyShowOverride is true
     [application: "app", cloudProvider: "random"] | null                   || [:]                                           // no health provider names when cloud provider is unsupported/unknown
     [application: "app"]                          | null                   || [:]                                           // no health provider names when an exception is raised
+    [moniker: [app: "app"]]                       | null                   || [:]
   }
 
   private static bA(String applicationName, Boolean platformHealthOnly, Boolean platformHealthOnlyShowOverride) {

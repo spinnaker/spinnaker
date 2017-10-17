@@ -29,7 +29,7 @@ import org.springframework.stereotype.Component;
 public class MonikerHelper {
   public String getAppNameFromStage(Stage stage, String fallbackFriggaName) {
     Names names = Names.parseName(fallbackFriggaName);
-    Moniker moniker = (Moniker) stage.getContext().get("moniker");
+    Moniker moniker = monikerFromStage(stage);
     String appName;
     if (moniker != null && moniker.getApp() != null) {
       appName = moniker.getApp();
@@ -41,7 +41,7 @@ public class MonikerHelper {
 
   public String getClusterNameFromStage(Stage stage, String fallbackFriggaName) {
     Names names = Names.parseName(fallbackFriggaName);
-    Moniker moniker = (Moniker) stage.getContext().get("moniker");
+    Moniker moniker = monikerFromStage(stage);
     String clusterName;
     if (moniker != null && moniker.getCluster() != null) {
       clusterName = moniker.getCluster();
@@ -49,5 +49,13 @@ public class MonikerHelper {
       clusterName = names.getCluster();
     }
     return clusterName;
+  }
+
+  static public Moniker monikerFromStage(Stage stage) {
+    if (stage.getContext().containsKey("moniker")) {
+      return (Moniker) stage.mapTo("/moniker", Moniker.class);
+    } else {
+      return null;
+    }
   }
 }

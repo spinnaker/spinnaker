@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.instance
 
+import com.netflix.spinnaker.orca.clouddriver.utils.MonikerHelper
 
 import java.time.Duration
 import java.util.concurrent.TimeUnit
@@ -98,7 +99,8 @@ abstract class AbstractInstancesCheckTask extends AbstractCloudProviderAwareTask
     }
 
     try {
-      def serverGroups = fetchServerGroups(account, getCloudProvider(stage), serverGroupsByRegion, (Moniker) stage.context?.moniker)
+      Moniker moniker = MonikerHelper.monikerFromStage(stage)
+      def serverGroups = fetchServerGroups(account, getCloudProvider(stage), serverGroupsByRegion, moniker)
       if (!serverGroups) {
         return new TaskResult(ExecutionStatus.RUNNING)
       }
