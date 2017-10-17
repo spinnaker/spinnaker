@@ -35,6 +35,7 @@ import io.kubernetes.client.models.V1DeleteOptions;
 import io.kubernetes.client.models.V1Pod;
 import io.kubernetes.client.models.V1PodList;
 import io.kubernetes.client.models.V1Service;
+import io.kubernetes.client.models.V1ServiceList;
 import io.kubernetes.client.models.V1Status;
 import io.kubernetes.client.models.V1beta1Ingress;
 import io.kubernetes.client.models.V1beta1NetworkPolicy;
@@ -544,6 +545,29 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
     });
   }
 
+  public List<V1Service> listAllServices(String namespace) {
+    return listServices(namespace, new KubernetesSelectorList(), new KubernetesSelectorList());
+  }
+
+  public List<V1Service> listServices(String namespace, KubernetesSelectorList fieldSelectors, KubernetesSelectorList labelSelectors) {
+    final String methodName = "services.list";
+    final String fieldSelectorString = fieldSelectors.toString();
+    final String labelSelectorString = labelSelectors.toString();
+    final KubernetesApiVersion apiVersion = KubernetesApiVersion.V1;
+    final KubernetesKind kind = KubernetesKind.SERVICE;
+    return runAndRecordMetrics(methodName, namespace, () -> {
+      try {
+        V1ServiceList list = coreV1Api.listNamespacedService(namespace, PRETTY, CONTINUE, fieldSelectorString, INCLUDE_UNINITIALIZED, labelSelectorString, LIMIT, DEFAULT_VERSION, TIMEOUT_SECONDS, WATCH);
+        return annotateMissingFields(list == null ? new ArrayList<>() : list.getItems(),
+            V1Service.class,
+            apiVersion,
+            kind);
+      } catch (ApiException e) {
+        throw new KubernetesApiException(methodName, e);
+      }
+    });
+  }
+
   public void patchService(String namespace, String name, V1Service desired) {
     V1Service current = readService(namespace, name);
     patchService(current, desired);
@@ -565,8 +589,8 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
 
   public V1Service readService(String namespace, String name) {
     final String methodName = "services.read";
-    final KubernetesApiVersion apiVersion = KubernetesApiVersion.EXTENSIONS_V1BETA1;
-    final KubernetesKind kind = KubernetesKind.REPLICA_SET;
+    final KubernetesApiVersion apiVersion = KubernetesApiVersion.V1;
+    final KubernetesKind kind = KubernetesKind.SERVICE;
     return runAndRecordMetrics(methodName, namespace, () -> {
       try {
         V1Service result = coreV1Api.readNamespacedService(name, namespace, PRETTY, EXACT, EXPORT);

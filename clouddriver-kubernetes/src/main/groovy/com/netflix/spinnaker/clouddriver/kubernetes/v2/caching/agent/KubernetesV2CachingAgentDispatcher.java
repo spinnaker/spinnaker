@@ -47,7 +47,8 @@ public class KubernetesV2CachingAgentDispatcher implements KubernetesCachingAgen
         .map(i -> new ArrayList<KubernetesCachingAgent>(Arrays.asList(
             new KubernetesNetworkPolicyCachingAgent(credentials, objectMapper, registry, i, credentials.getCacheThreads()),
             new KubernetesPodCachingAgent(credentials, objectMapper, registry, i, credentials.getCacheThreads()),
-            new KubernetesReplicaSetCachingAgent(credentials, objectMapper, registry, i, credentials.getCacheThreads())
+            new KubernetesReplicaSetCachingAgent(credentials, objectMapper, registry, i, credentials.getCacheThreads()),
+            new KubernetesServiceCachingAgent(credentials, objectMapper, registry, i, credentials.getCacheThreads())
         )))
         .flatMap(Collection::stream)
         .collect(Collectors.toList());
