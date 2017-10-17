@@ -17,6 +17,8 @@
 package com.netflix.spinnaker.clouddriver.titus.client;
 
 import com.netflix.spinnaker.clouddriver.titus.client.model.*;
+import com.squareup.okhttp.Response;
+import com.squareup.okhttp.ResponseBody;
 import okhttp3.RequestBody;
 import retrofit2.Call;
 import retrofit2.http.*;
@@ -29,6 +31,9 @@ public interface TitusRestAdapter {
     @GET("/api/v2/jobs/{jobId}")
     Call<Job> getJob(@Path("jobId") String jobId);
 
+    @GET("/api/v2/jobs/{jobId}")
+    Call<Object> getJobJson(@Path("jobId") String jobId);
+
     @POST("/api/v2/jobs")
     Call<SubmitJobResponse> submitJob(@Body JobDescription jobDescription);
 
@@ -40,6 +45,9 @@ public interface TitusRestAdapter {
 
     @GET("/api/v2/tasks/{taskId}")
     Call<Task> getTask(@Path("taskId") String taskId);
+
+    @GET("/api/v2/tasks/{taskId}")
+    Call<Object> getTaskJson(@Path("taskId") String taskId);
 
     @GET("/api/v2/jobs")
     Call<List<Job>> getJobsByType(@Query("type") String type);

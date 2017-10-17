@@ -212,6 +212,16 @@ public class RegionScopedTitusClient implements TitusClient {
     }
 
     @Override
+    public Object getJobJson(String jobId) {
+      return execute("getJobJson", titusRestAdapter.getJobJson(jobId));
+    }
+
+    @Override
+    public Object getTaskJson(String taskId) {
+      return execute("getTaskJson", titusRestAdapter.getTaskJson(taskId));
+    }
+
+    @Override
     public Task getTask(String taskId) {
         return execute("getTask", titusRestAdapter.getTask(taskId));
     }

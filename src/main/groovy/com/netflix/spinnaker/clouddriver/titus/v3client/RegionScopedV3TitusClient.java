@@ -17,6 +17,8 @@
 package com.netflix.spinnaker.clouddriver.titus.v3client;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.protobuf.Message;
+import com.google.protobuf.util.JsonFormat;
 import com.netflix.frigga.Names;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.titus.client.*;
@@ -68,6 +70,8 @@ public class RegionScopedV3TitusClient implements TitusClient {
 
   private final String environment;
 
+  private final ObjectMapper objectMapper;
+
   private final JobManagementServiceGrpc.JobManagementServiceBlockingStub grpcBlockingStub;
 
 
@@ -87,6 +91,7 @@ public class RegionScopedV3TitusClient implements TitusClient {
     this.registry = registry;
     this.titusJobCustomizers = titusJobCustomizers;
     this.environment = environment;
+    this.objectMapper = objectMapper;
 
     String titusHost = "";
     try {
@@ -257,6 +262,26 @@ public class RegionScopedV3TitusClient implements TitusClient {
       currentTaskPage++;
     } while (taskResults.getPagination().getHasMore());
     return tasks.stream().collect(Collectors.groupingBy(task -> task.getJobId()));
+  }
+
+  @Override
+  public Object getJobJson(String jobId) {
+    return toJson(grpcBlockingStub.findJob(JobId.newBuilder().setId(jobId).build()));
+  }
+
+  @Override
+  public Object getTaskJson(String taskId) {
+    return toJson(grpcBlockingStub.findTask(TaskId.newBuilder().setId(taskId).build()));
+  }
+
+  private Object toJson(Message message){
+    Object job =null;
+    try{
+      job = objectMapper.readValue(JsonFormat.printer().print(message), Object.class);
+    } catch(Exception e){
+
+    }
+    return job;
   }
 
 }
