@@ -145,6 +145,7 @@ class EchoNotifyingExecutionListener implements ExecutionListener {
   @CompileDynamic
   private void addDryRunNotifications(Pipeline pipeline) {
     if (pipeline.pipelineConfigId in dryRunPipelineIds) {
+      log.info("Sending dry run notification for $pipeline.application $pipeline.name")
       pipeline.notifications << [type: "dryrun"]
     }
   }
