@@ -55,7 +55,12 @@ export class CreatePipeline extends React.Component<ICreatePipelineProps> {
 const Pipeline = (props: { pipeline: any, type: 'pipeline' | 'strategy' }): JSX.Element => {
   const clicked = () => {
     ReactGA.event({category: 'Pipelines', action: `Configure ${props.type} (via top level)`});
-    ReactInjector.$state.go('^.pipelineConfig', {pipelineId: props.pipeline.id});
+    const { $state } = ReactInjector;
+    if (!$state.current.name.includes('.executions.execution')) {
+      $state.go('^.pipelineConfig', { pipelineId: props.pipeline.id });
+    } else {
+      $state.go('^.^.pipelineConfig', { pipelineId: props.pipeline.id });
+    }
   }
   return (
       <li>
