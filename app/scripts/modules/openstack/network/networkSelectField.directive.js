@@ -51,10 +51,12 @@ module.exports = angular.module('spinnaker.openstack.network.networkSelectField.
               scope.onChange({network: newValue});
             }
           }
-
         });
 
-        scope.$watch('filter', function() { scope.$broadcast('updateOptions'); });
+        scope.$watch('filter', function() {
+          scope.$broadcast('onValueChanged');
+          scope.updateOptions();
+        });
       }
     };
 });

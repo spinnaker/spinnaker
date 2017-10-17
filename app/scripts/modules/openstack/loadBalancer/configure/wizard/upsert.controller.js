@@ -58,6 +58,7 @@ module.exports = angular.module('spinnaker.loadBalancer.openstack.create.control
     $scope.allSecurityGroups = [];
     $scope.$watch('loadBalancer.account', updateSecurityGroups);
     $scope.$watch('loadBalancer.region', updateSecurityGroups);
+    $scope.updateSecurityGroups = updateSecurityGroups;
     updateSecurityGroups();
 
     // initialize controller
@@ -158,6 +159,9 @@ module.exports = angular.module('spinnaker.loadBalancer.openstack.create.control
     this.accountUpdated = function() {
       ctrl.updateName();
       $scope.subnetFilter = {type: 'openstack', account: $scope.loadBalancer.account, region: $scope.loadBalancer.region};
+      if ($scope.loadBalancer) {
+        $scope.loadBalancer.securityGroups = [];
+      }
       updateLoadBalancerNames();
     };
 
