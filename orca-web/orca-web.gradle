@@ -53,6 +53,7 @@ dependencies {
   compile spinnaker.dependency('korkExceptions')
   compile spinnaker.dependency("korkStackdriver")
   compile spinnaker.dependency("korkWeb")
+  compile spinnaker.dependency("logstashEncoder")
 
   spinnaker.group('test')
   testCompile project(":orca-test")
