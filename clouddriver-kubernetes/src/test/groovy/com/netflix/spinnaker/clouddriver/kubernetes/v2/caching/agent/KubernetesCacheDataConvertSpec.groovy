@@ -64,7 +64,7 @@ metadata:
     V1beta1ReplicaSet resource = mapper.convertValue(manifest, V1beta1ReplicaSet.class)
 
     when:
-    def cacheData = KubernetesCacheDataConverter.convertAsResource(account, mapper, resource)
+    def cacheData = KubernetesCacheDataConverter.convertAsResource(account, mapper, resource, [])
 
     then:
     if (application == null) {

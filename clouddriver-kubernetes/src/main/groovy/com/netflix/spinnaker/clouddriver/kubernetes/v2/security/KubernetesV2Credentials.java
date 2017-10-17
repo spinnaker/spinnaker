@@ -220,6 +220,15 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
     return mapper.convertValue(JsonDiff.asJson(currentNode, desiredNode), Map[].class);
   }
 
+  public KubernetesSelectorList labelSelectorList(V1Service service) {
+    KubernetesSelectorList list = new KubernetesSelectorList();
+    for (Map.Entry<String, String> e : service.getSpec().getSelector().entrySet()) {
+      list.addSelector(KubernetesSelector.equals(e.getKey(), e.getValue()));
+    }
+
+    return list;
+  }
+
   public void createDeployment(AppsV1beta1Deployment deployment) {
     final String methodName = "deployments.create";
     final String namespace = deployment.getMetadata().getNamespace();

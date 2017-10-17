@@ -111,7 +111,7 @@ public class KubernetesCacheDataConverter {
     return new DefaultCacheData(id, attributes, relationships);
   }
 
-  public static CacheData convertAsResource(String account, ObjectMapper mapper, Object resource) {
+  public static CacheData convertAsResource(String account, ObjectMapper mapper, Object resource, List<KubernetesManifest> resourceRelationships) {
     KubernetesManifest manifest = mapper.convertValue(resource, KubernetesManifest.class);
     KubernetesKind kind = manifest.getKind();
     KubernetesApiVersion apiVersion = manifest.getApiVersion();
@@ -144,9 +144,10 @@ public class KubernetesCacheDataConverter {
       return null;
     }
 
-    cacheRelationships.putAll(annotatedRelationships(account, namespace, metadata));
     // TODO(lwander) avoid overwriting keys here
+    cacheRelationships.putAll(annotatedRelationships(account, namespace, metadata));
     cacheRelationships.putAll(ownerReferenceRelationships(account, namespace, manifest.getOwnerReferences(mapper)));
+    cacheRelationships.putAll(implicitRelationships(account, namespace, resourceRelationships));
 
     String key = Keys.infrastructure(apiVersion, kind, account, namespace, name);
     return new DefaultCacheData(key, attributes, cacheRelationships);
@@ -154,6 +155,10 @@ public class KubernetesCacheDataConverter {
 
   public static KubernetesManifest getManifest(CacheData cacheData) {
     return mapper.convertValue(cacheData.getAttributes().get("manifest"), KubernetesManifest.class);
+  }
+
+  public static KubernetesManifest convertToManifest(Object o) {
+    return mapper.convertValue(o, KubernetesManifest.class);
   }
 
   public static <T> T getResource(KubernetesManifest manifest, Class<T> clazz) {
@@ -207,8 +212,28 @@ public class KubernetesCacheDataConverter {
     relationships.put(kind.toString(), keys);
   }
 
+  static Map<String, Collection<String>> implicitRelationships(String account, String namespace, List<KubernetesManifest> manifests) {
+    Map<String, Collection<String>> relationships = new HashMap<>();
+    manifests = manifests == null ? new ArrayList<>() : manifests;
+    for (KubernetesManifest manifest : manifests) {
+      KubernetesKind kind = manifest.getKind();
+      KubernetesApiVersion apiVersion = manifest.getApiVersion();
+      String name = manifest.getName();
+      Collection<String> keys = relationships.get(kind.toString());
+      if (keys == null) {
+        keys = new ArrayList<>();
+      }
+
+      keys.add(Keys.infrastructure(apiVersion, kind, account, namespace, name));
+      relationships.put(kind.toString(), keys);
+    }
+
+    return relationships;
+  }
+
   static Map<String, Collection<String>> ownerReferenceRelationships(String account, String namespace, List<KubernetesManifest.OwnerReference> references) {
     Map<String, Collection<String>> relationships = new HashMap<>();
+    references = references == null ? new ArrayList<>() : references;
     for (KubernetesManifest.OwnerReference reference : references) {
       KubernetesKind kind = reference.getKind();
       KubernetesApiVersion apiVersion = reference.getApiVersion();
