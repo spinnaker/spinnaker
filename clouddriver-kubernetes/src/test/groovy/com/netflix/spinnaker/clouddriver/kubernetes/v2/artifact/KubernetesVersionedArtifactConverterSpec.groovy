@@ -67,14 +67,15 @@ class KubernetesVersionedArtifactConverterSpec extends Specification {
 
     where:
     versions  | expected
-    [0, 1, 2] | "v3"
-    [0]       | "v1"
-    []        | "v0"
-    [1]       | "v0"
-    [1, 2, 3] | "v0"
-    [0, 2, 3] | "v1"
-    [2, 0, 1] | "v3"
-    [0, 1, 3] | "v2"
-    [1, 0, 3] | "v2"
+    [0, 1, 2] | "v003"
+    [0]       | "v001"
+    []        | "v000"
+    [1]       | "v002"
+    [1, 2, 3] | "v004"
+    [0, 2, 3] | "v004"
+    [2, 0, 1] | "v003"
+    [0, 1, 3] | "v004"
+    [1, 0, 3] | "v004"
+    [1000]    | "v1001"
   }
 }

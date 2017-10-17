@@ -308,6 +308,43 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
     });
   }
 
+  public void patchIngress(String namespace, String name, V1beta1Ingress desired) {
+    V1beta1Ingress current = readIngress(namespace, name);
+    patchIngress(current, desired);
+  }
+
+  public void patchIngress(V1beta1Ingress current, V1beta1Ingress desired) {
+    final String methodName = "ingresses.patch";
+    final String namespace = current.getMetadata().getNamespace();
+    final String name = current.getMetadata().getName();
+    final Map[] jsonPatch = determineJsonPatch(current, desired);
+    runAndRecordMetrics(methodName, namespace, () -> {
+      try {
+        return extensionsV1beta1Api.patchNamespacedIngress(name, namespace, jsonPatch, null);
+      } catch (ApiException e) {
+        throw new KubernetesApiException(methodName, e);
+      }
+    });
+  }
+
+  public V1beta1Ingress readIngress(String namespace, String name) {
+    final String methodName = "ingresses.read";
+    final KubernetesApiVersion apiVersion = KubernetesApiVersion.APPS_V1BETA1;
+    final KubernetesKind kind = KubernetesKind.DEPLOYMENT;
+    return runAndRecordMetrics(methodName, namespace, () -> {
+      try {
+        V1beta1Ingress result = extensionsV1beta1Api.readNamespacedIngress(name, namespace, PRETTY, EXACT, EXPORT);
+        return annotateMissingFields(result, V1beta1Ingress.class, apiVersion, kind);
+      } catch (ApiException e) {
+        if (notFound(e)) {
+          return null;
+        }
+
+        throw new KubernetesApiException(methodName, e);
+      }
+    });
+  }
+
   public void createNetworkPolicy(V1beta1NetworkPolicy networkPolicy) {
     final String methodName = "networkPolicies.create";
     final String namespace = networkPolicy.getMetadata().getNamespace();
@@ -502,6 +539,43 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
       try {
         return coreV1Api.deleteNamespacedService(name, namespace, PRETTY);
       } catch (ApiException e) {
+        throw new KubernetesApiException(methodName, e);
+      }
+    });
+  }
+
+  public void patchService(String namespace, String name, V1Service desired) {
+    V1Service current = readService(namespace, name);
+    patchService(current, desired);
+  }
+
+  public void patchService(V1Service current, V1Service desired) {
+    final String methodName = "services.patch";
+    final String namespace = current.getMetadata().getNamespace();
+    final String name = current.getMetadata().getName();
+    final Map[] jsonPatch = determineJsonPatch(current, desired);
+    runAndRecordMetrics(methodName, namespace, () -> {
+      try {
+        return coreV1Api.patchNamespacedService(name, namespace, jsonPatch, null);
+      } catch (ApiException e) {
+        throw new KubernetesApiException(methodName, e);
+      }
+    });
+  }
+
+  public V1Service readService(String namespace, String name) {
+    final String methodName = "services.read";
+    final KubernetesApiVersion apiVersion = KubernetesApiVersion.EXTENSIONS_V1BETA1;
+    final KubernetesKind kind = KubernetesKind.REPLICA_SET;
+    return runAndRecordMetrics(methodName, namespace, () -> {
+      try {
+        V1Service result = coreV1Api.readNamespacedService(name, namespace, PRETTY, EXACT, EXPORT);
+        return annotateMissingFields(result, V1Service.class, apiVersion, kind);
+      } catch (ApiException e) {
+        if (notFound(e)) {
+          return null;
+        }
+
         throw new KubernetesApiException(methodName, e);
       }
     });

@@ -82,17 +82,16 @@ public class KubernetesVersionedArtifactConverter extends KubernetesArtifactConv
         .collect(Collectors.toList());
 
     taken.sort(Integer::compareTo);
-
-    int attempt = 0;
-    for (Integer exists : taken) {
-      if (attempt == exists) {
-        attempt++;
-      } else {
-        break;
-      }
+    int sequence = 0;
+    if (!taken.isEmpty()) {
+      sequence = taken.get(taken.size() - 1)  + 1;
     }
 
-    // omit 1000 artifact restriction because it's silly (vNNN)
-    return String.format("v%d", attempt);
+    // Match vNNN pattern until impossible
+    if (sequence < 1000) {
+      return String.format("v%03d", sequence);
+    } else {
+      return String.format("v%d", sequence);
+    }
   }
 }
