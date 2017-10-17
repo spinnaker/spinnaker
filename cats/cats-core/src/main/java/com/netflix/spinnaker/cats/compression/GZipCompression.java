@@ -88,8 +88,8 @@ public class GZipCompression implements CompressionStrategy {
 
     byte[] bytes;
     try {
-      bytes = Base64.getDecoder().decode(compressed);
-    } catch (IllegalArgumentException e) {
+      bytes = Base64.getDecoder().decode(compressed.getBytes(CHARSET));
+    } catch (IllegalArgumentException|UnsupportedEncodingException e) {
       return compressed;
     }
 
