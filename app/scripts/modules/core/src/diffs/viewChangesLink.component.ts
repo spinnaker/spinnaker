@@ -97,7 +97,8 @@ class ViewChangesLinkController implements IController {
       // if the stage is still running, and we haven't found commits or changes, reload it on the next refresh cycle
       this.executionLoaded = stage.status !== 'RUNNING' || this.changesAvailable;
 
-    }).finally(() => this.loadingExecution = false);
+    }).catch(() => {})
+      .finally(() => this.loadingExecution = false);
   }
 
   public $onInit(): void {

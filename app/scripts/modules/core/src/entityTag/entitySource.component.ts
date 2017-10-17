@@ -31,9 +31,9 @@ class EntitySourceCtrl implements IController {
       this.executionType = 'Pipeline';
       this.loadingExecution = true;
       this.executionService.getExecution(this.metadata.value.executionId).then(
-        (execution: IExecution) => this.execution = execution,
-        () => this.executionNotFound = true
-      ).finally(() => this.loadingExecution = false);
+        (execution: IExecution) => this.execution = execution
+      ).catch(() => this.executionNotFound = true)
+      .finally(() => this.loadingExecution = false);
     }
   }
 
