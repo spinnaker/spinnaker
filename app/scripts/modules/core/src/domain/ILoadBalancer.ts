@@ -2,6 +2,7 @@ import { IInstance } from './IInstance';
 import { IInstanceCounts } from './IInstanceCounts';
 import { IServerGroup } from './IServerGroup';
 import { ITaggedEntity } from './ITaggedEntity';
+import { IMoniker } from 'core/naming/IMoniker';
 
 export interface ILoadBalancerSourceData {
   cloudProvider?: string;
@@ -20,6 +21,7 @@ export interface ILoadBalancer extends ITaggedEntity {
   listenerDescriptions?: any[];
   loadBalancerType?: string;
   name?: string;
+  moniker?: IMoniker;
   provider?: string;
   region?: string;
   searchField?: string;

@@ -1,7 +1,8 @@
 import { IScope, IPromise } from 'angular';
 import { IModalInstanceService } from 'angular-ui-bootstrap';
 import { StateService } from '@uirouter/angularjs';
-import { chain, clone, cloneDeep, find, filter, map, trimEnd, uniq, values } from 'lodash';
+import { chain, clone, cloneDeep, find, filter, isNil, map, trimEnd, uniq, values } from 'lodash';
+import { IMoniker } from 'core/naming/IMoniker';
 
 import {
   AccountService,
@@ -142,9 +143,14 @@ export abstract class CreateAmazonLoadBalancerCtrl {
   }
 
   protected buildName(): void {
-    const nameParts = this.namingService.parseLoadBalancerName(this.loadBalancerCommand.name);
-    this.loadBalancerCommand.stack = nameParts.stack;
-    this.loadBalancerCommand.detail = nameParts.freeFormDetails;
+    if (isNil(this.loadBalancerCommand.moniker)) {
+      const nameParts = this.namingService.parseLoadBalancerName(this.loadBalancerCommand.name);
+      this.loadBalancerCommand.stack = nameParts.stack;
+      this.loadBalancerCommand.detail = nameParts.freeFormDetails;
+    } else {
+      this.loadBalancerCommand.stack = this.loadBalancerCommand.moniker.stack;
+      this.loadBalancerCommand.detail = this.loadBalancerCommand.moniker.detail;
+    }
     delete this.loadBalancerCommand.name;
   }
 
@@ -356,6 +362,14 @@ export abstract class CreateAmazonLoadBalancerCtrl {
   }
 
   private updateName(): void {
+    const elb = this.loadBalancerCommand;
+    const moniker: IMoniker = {
+        app: this.application.name,
+        cluster: this.getName(),
+        stack: elb.stack,
+        detail: elb.detail
+    };
+    this.loadBalancerCommand.moniker = moniker;
     this.loadBalancerCommand.name = this.getName();
   };
 
@@ -419,7 +433,6 @@ export abstract class CreateAmazonLoadBalancerCtrl {
   public submit(): void {
     const descriptor = this.isNew ? 'Create' : 'Update';
     const loadBalancerCommandFormatted = cloneDeep(this.loadBalancerCommand);
-
     if (this.forPipelineConfig) {
       // don't submit to backend for creation. Just return the loadBalancerCommand object
       this.formatListeners(loadBalancerCommandFormatted).then(() => {

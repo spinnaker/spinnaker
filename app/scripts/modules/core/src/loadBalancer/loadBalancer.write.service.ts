@@ -4,6 +4,7 @@ import { Application } from 'core/application/application.model';
 import { INFRASTRUCTURE_CACHE_SERVICE, InfrastructureCacheService } from 'core/cache/infrastructureCaches.service';
 import { ITask } from 'core/domain';
 import { IJob, TASK_EXECUTOR, TaskExecutor } from 'core/task/taskExecutor';
+import { IMoniker } from 'core/naming/IMoniker';
 
 export interface ILoadBalancerUpsertCommand extends IJob {
   name: string;
@@ -14,6 +15,7 @@ export interface ILoadBalancerUpsertCommand extends IJob {
   healthCheck?: string;
   healthCheckPort?: number;
   healthCheckPath?: string;
+  moniker?: IMoniker;
   region: string;
   stack?: string;
 }
