@@ -33,9 +33,13 @@ import com.netflix.spinnaker.igor.jenkins.client.model.QueuedJob
 import com.netflix.spinnaker.igor.jenkins.client.model.ScmDetails
 import com.netflix.spinnaker.igor.model.BuildServiceProvider
 import com.netflix.spinnaker.igor.service.BuildService
+import groovy.util.logging.Slf4j
 import org.springframework.web.util.UriUtils
 import retrofit.client.Response
 
+import static net.logstash.logback.argument.StructuredArguments.kv
+
+@Slf4j
 class JenkinsService implements BuildService{
     final String groupKey
     final JenkinsClient jenkinsClient
@@ -111,7 +115,7 @@ class JenkinsService implements BuildService{
             throw new BuildController.BuildJobError("Received a non-201 status when submitting job '${job}' to master '${master}'")
         }
 
-        log.info("Submitted build job `${job}`")
+        log.info("Submitted build job '{}'", kv("job", job))
         def locationHeader = response.headers.find { it.name == "Location" }
         if (!locationHeader) {
             throw new BuildController.QueuedJobDeterminationError("Could not find Location header for job '${job}'")

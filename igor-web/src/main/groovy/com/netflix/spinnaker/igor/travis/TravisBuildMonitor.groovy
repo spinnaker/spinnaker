@@ -45,6 +45,8 @@ import rx.schedulers.Schedulers
 
 import java.util.concurrent.TimeUnit
 
+import static net.logstash.logback.argument.StructuredArguments.kv
+
 
 /**
  * Monitors new travis builds
@@ -127,7 +129,7 @@ class TravisBuildMonitor implements PollingMonitor{
     }
 
     List<Map> changedBuilds(String master) {
-        log.info('Checking for new builds for ' + master)
+        log.info('Checking for new builds for {}', kv("master", master))
         List<String> cachedRepoSlugs = buildCache.getJobNames(master)
         List<Map> results = []
 
@@ -136,7 +138,7 @@ class TravisBuildMonitor implements PollingMonitor{
         lastPoll = System.currentTimeMillis()
         def startTime = System.currentTimeMillis()
         List<Repo> repos = filterOutOldBuilds(travisService.getReposForAccounts())
-        log.info("Took ${System.currentTimeMillis() - startTime}ms to retrieve ${repos.size()} repositories (master: ${master})")
+        log.info("Took ${System.currentTimeMillis() - startTime}ms to retrieve ${repos.size()} repositories (master: {})", kv("master", master))
 
         Observable.from(repos).subscribe(
             { Repo repo ->
@@ -150,7 +152,7 @@ class TravisBuildMonitor implements PollingMonitor{
                         cachedBuild = buildCache.getLastBuild(master, branchedRepoSlug)
                         if (build.number > Integer.valueOf(cachedBuild.lastBuildLabel)) {
                             addToCache = true
-                            log.info "New build: ${master}: ${branchedRepoSlug} : ${build.number}"
+                            log.info("New build: {}: ${branchedRepoSlug} : ${build.number}", kv("master", master))
                         }
                         if (buildStateHasChanged(build, cachedBuild)) {
                             addToCache = true
@@ -169,14 +171,14 @@ class TravisBuildMonitor implements PollingMonitor{
                     }
                 }
             }, {
-            log.error("Error: ${it.message} (${master})")
+            log.error("Error: ${it.message} (master: {})", kv("master", master))
         }
         )
-        log.info("Last poll took ${System.currentTimeMillis() - lastPoll}ms (master: ${master})")
+        log.info("Last poll took ${System.currentTimeMillis() - lastPoll}ms (master: {})", kv("master", master))
         if (travisProperties.repositorySyncEnabled) {
             startTime = System.currentTimeMillis()
             travisService.syncRepos()
-            log.info("repositorySync: Took ${System.currentTimeMillis() - startTime}ms to sync repositories for ${master}")
+            log.info("repositorySync: Took ${System.currentTimeMillis() - startTime}ms to sync repositories for {}", kv("master", master))
         }
         results
 
@@ -189,12 +191,12 @@ class TravisBuildMonitor implements PollingMonitor{
 
     private void sendEventForBuild(V3Build build, String branchedSlug, String master, TravisService travisService) {
         if (echoService) {
-            log.info "pushing event for ${master}:${build.repository.slug}:${build.number}"
+            log.info("pushing event for {}:${build.repository.slug}:${build.number}", kv("master", master))
             GenericProject project = new GenericProject(build.repository.slug, TravisBuildConverter.genericBuild(build, travisService.baseUrl))
             echoService.postEvent(
                 new GenericBuildEvent(content: new GenericBuildContent(project: project, master: master, type: 'travis'))
             )
-            log.info "pushing event for ${master}:${branchedSlug}:${build.number}"
+            log.info("pushing event for {}:${branchedSlug}:${build.number}", kv("master", master))
             project = new GenericProject(branchedSlug, TravisBuildConverter.genericBuild(build, travisService.baseUrl))
             echoService.postEvent(
                 new GenericBuildEvent(content: new GenericBuildContent(project: project, master: master, type: 'travis'))
@@ -213,7 +215,7 @@ class TravisBuildMonitor implements PollingMonitor{
             buildCache.getJobNames(master).each { job ->
                 Long ttl = buildCache.getTTL(master, job)
                 if (ttl == -1L) {
-                    log.info "Found build without TTL: ${master}:${job}:${ttl} - Setting TTL to ${buildCacheJobTTLSeconds()}"
+                    log.info("Found build without TTL: {}:{}:${ttl} - Setting TTL to ${buildCacheJobTTLSeconds()}", kv("master", master), kv("job", job))
                     buildCache.setTTL(master, job, buildCacheJobTTLSeconds())
                 }
             }

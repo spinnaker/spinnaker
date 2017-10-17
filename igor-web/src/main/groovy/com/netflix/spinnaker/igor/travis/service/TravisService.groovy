@@ -49,6 +49,8 @@ import retrofit.RetrofitError
 import retrofit.client.Response
 import retrofit.mime.TypedByteArray
 
+import static net.logstash.logback.argument.StructuredArguments.kv
+
 @Slf4j
 class TravisService implements BuildService {
     public static final int TRAVIS_BUILD_RESULT_LIMIT = 25
@@ -107,9 +109,9 @@ class TravisService implements BuildService {
         repoRequest.config = new Config(queryParameters)
         TriggerResponse triggerResponse = travisClient.triggerBuild(getAccessToken(), repoSlug, repoRequest)
         if (triggerResponse.remainingRequests) {
-            log.debug "${groupKey}: remaining requests: ${triggerResponse.remainingRequests}"
-            log.debug "${groupKey}: request id: ${triggerResponse.request.id}"
-            log.debug "${groupKey}: repository id: ${triggerResponse.request.repository.id}"
+            log.debug("{}: remaining requests: ${triggerResponse.remainingRequests}", kv("group", groupKey))
+            log.debug("{}: request id: ${triggerResponse.request.id}", kv("group", groupKey))
+            log.debug("{}: repository id: ${triggerResponse.request.repository.id}", kv("group", groupKey))
         }
         return travisCache.setQueuedJob(groupKey, triggerResponse.request.repository.id, triggerResponse.request.id)
     }

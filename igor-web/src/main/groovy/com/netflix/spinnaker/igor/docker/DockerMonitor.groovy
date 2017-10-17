@@ -37,6 +37,8 @@ import rx.schedulers.Schedulers
 import javax.inject.Provider
 import java.util.concurrent.TimeUnit
 
+import static net.logstash.logback.argument.StructuredArguments.kv
+
 @Slf4j
 @Service
 @SuppressWarnings('CatchException')
@@ -84,7 +86,7 @@ class DockerMonitor implements PollingMonitor {
 
             def startTime = System.currentTimeMillis()
             List<TaggedImage> images = dockerRegistryAccounts.service.getImagesByAccount(account)
-            log.debug("Took ${System.currentTimeMillis() - startTime}ms to retrieve images (account: ${account})")
+            log.debug("Took ${System.currentTimeMillis() - startTime}ms to retrieve images (account: {})", kv("account", account))
 
             Map<String, TaggedImage> imageIds = images.collectEntries {
                 [(cache.makeKey(account, it.registry, it.repository, it.tag)): it]
@@ -111,13 +113,13 @@ class DockerMonitor implements PollingMonitor {
                         def lastDigest = cache.getLastDigest(image.account, image.registry, image.repository, image.tag)
 
                         if (lastDigest != image.digest) {
-                            log.info "Updated tagged image: ${image.account}: ${imageId}. Digest changed from [$lastDigest] -> [$image.digest]."
+                            log.info("Updated tagged image: {}: {}. Digest changed from [$lastDigest] -> [$image.digest].", kv("account", image.account), kv("image", imageId))
                             // If either is null, there was an error retrieving the manifest in this or the previous cache cycle.
                             updateCache = image.digest != null && lastDigest != null
                         }
                     }
                 } else {
-                    log.info "New tagged image: ${image.account}: ${imageId}. Digest is now [$image.digest]."
+                    log.info("New tagged image: {}: {}. Digest is now [$image.digest].", kv("account", image.account), kv("image", imageId))
                     updateCache = true
                 }
 
@@ -127,7 +129,7 @@ class DockerMonitor implements PollingMonitor {
                 }
             })
         } catch (Exception e) {
-            log.error "Failed to update account $account", e
+            log.error("Failed to update account {}", kv("account", account), e)
         }
     }
 
@@ -182,7 +184,7 @@ class DockerMonitor implements PollingMonitor {
             return
         }
 
-        log.info "Sending tagged image info to echo: ${image.account}: ${imageId}"
+        log.info("Sending tagged image info to echo: {}: {}", kv("account", image.account), kv("image", imageId))
         GenericArtifact dockerArtifact = new GenericArtifact("docker", image.repository, image.tag, "${image.registry}/${image.repository}:${image.tag}")
         dockerArtifact.metadata = [registry: image.registry]
 

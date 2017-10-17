@@ -41,6 +41,8 @@ import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 import java.util.concurrent.ExecutorService
 
+import static net.logstash.logback.argument.StructuredArguments.kv
+
 @Slf4j
 @RestController
 class BuildController {
@@ -66,7 +68,7 @@ class BuildController {
             try {
                 build.genericGitRevisions = buildMasters.map[master].getGenericGitRevisions(job, buildNumber)
             } catch (Exception e) {
-                log.error("could not get scm results for $master / $job / $buildNumber")
+                log.error("could not get scm results for {} / {} / {}", kv("master", master), kv("job", job), kv("buildNumber", buildNumber))
             }
 
             if (artifactDecorator) {
@@ -92,7 +94,7 @@ class BuildController {
                 throw e
             }
         } else if (buildMasters.filteredMap(BuildServiceProvider.TRAVIS).containsKey(master)) {
-            log.info "pretending that I have a queue in travis for ${master}:${item}"
+            log.info("pretending that I have a queue in travis for {}:{}", kv("master", master), kv("item", item))
             return buildMasters.map[master].queuedBuild(item)
         } else {
             throw new MasterNotFoundException("Master '${master}' not found, item: ${item}")
@@ -179,7 +181,7 @@ class BuildController {
                 throw new BuildJobError("Received a non-201 status when submitting job '${job}' to master '${master}'")
             }
 
-            log.info("Submitted build job `${job}`")
+            log.info("Submitted build job '{}'", kv("job", job))
             def locationHeader = response.headers.find { it.name == "Location" }
             if (!locationHeader) {
                 throw new QueuedJobDeterminationError("Could not find Location header for job '${job}'")
@@ -219,7 +221,7 @@ class BuildController {
                 }?.relativePath
 
                 if (path == null) {
-                    log.error("Unable to get properties: Could not find build artifact matching requested filename '${fileName}' on '${master}' build '${buildNumber}")
+                    log.error("Unable to get properties: Could not find build artifact matching requested filename '{}' on '{}' build '{}", kv("fileName", fileName), kv("master", master), kv("buildNumber", buildNumber))
                     return map
                 }
 
@@ -236,14 +238,14 @@ class BuildController {
                     map = map << properties
                 }
             } catch (e) {
-                log.error("Unable to get properties `${job}`", e)
+                log.error("Unable to get properties '{}'", kv("job", job), e)
             }
             map
         } else if (buildMasters.filteredMap(BuildServiceProvider.TRAVIS).containsKey(master)) {
             try {
                 buildMasters.map[master].getBuildProperties(job, buildNumber)
             } catch (e) {
-                log.error("Unable to get properties `${job}`", e)
+                log.error("Unable to get properties '{}'", kv("job", job), e)
             }
         } else {
             throw new MasterNotFoundException("Could not find master '${master}' to get properties")

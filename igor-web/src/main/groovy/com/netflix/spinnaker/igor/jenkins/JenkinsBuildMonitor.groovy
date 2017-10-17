@@ -43,6 +43,8 @@ import rx.schedulers.Schedulers
 import javax.annotation.PreDestroy
 import java.util.concurrent.TimeUnit
 
+import static net.logstash.logback.argument.StructuredArguments.kv
+
 /**
  * Monitors new jenkins builds
  */
@@ -154,7 +156,7 @@ class JenkinsBuildMonitor implements PollingMonitor {
             List<Project> jobs = jenkinsService.getProjects()?.getList() ?:[]
             for (Project job : jobs) {
                 if (!job.lastBuild) {
-                    log.debug("[${master}:${job.name}] has no builds skipping...")
+                    log.debug("[{}:{}] has no builds skipping...", kv("master", master), kv("job", job.name))
                     continue
                 }
 
@@ -193,17 +195,17 @@ class JenkinsBuildMonitor implements PollingMonitor {
 
                     // 3. advance cursor when all builds have completed in the interval
                     if (currentlyBuilding.isEmpty()) {
-                        log.info("[${master}:${job.name}] has no other builds between [${lowerBound} - ${upperBound}], advancing cursor to ${lastBuildStamp}")
+                        log.info("[{}:{}] has no other builds between [${lowerBound} - ${upperBound}], advancing cursor to ${lastBuildStamp}", kv("master", master), kv("job", job.name))
                         cache.pruneOldMarkers(master, job.name, cursor)
                         cache.setLastPollCycleTimestamp(master, job.name, lastBuildStamp)
                     }
                 }
             }
         } catch (e) {
-            log.error("Error processing builds for ${master}", e)
+            log.error("Error processing builds for {}", kv("master", master), e)
         }
 
-        log.debug("Took ${System.currentTimeMillis() - startTime}ms to retrieve projects (master: ${master})")
+        log.debug("Took ${System.currentTimeMillis() - startTime}ms to retrieve projects (master: {})", kv("master", master))
     }
 
     static void postEvent(EchoService echoService,  Project project, String master) {

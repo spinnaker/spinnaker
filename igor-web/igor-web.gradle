@@ -27,6 +27,7 @@ dependencies {
     compile spinnaker.dependency("eurekaClient")
     compile spinnaker.dependency("korkHystrix")
     compile spinnaker.dependency("okHttp")
+    compile spinnaker.dependency('logstashEncoder')
 
     compile 'org.yaml:snakeyaml:1.15'
     compile 'com.squareup.retrofit:converter-simplexml:1.9.0'
