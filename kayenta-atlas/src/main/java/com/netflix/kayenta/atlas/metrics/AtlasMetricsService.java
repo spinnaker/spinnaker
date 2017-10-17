@@ -35,11 +35,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.validation.constraints.NotNull;
 import java.io.IOException;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import static java.time.temporal.ChronoUnit.SECONDS;
 
 @Builder
 @Slf4j
@@ -76,13 +79,13 @@ public class AtlasMetricsService implements MetricsService {
       .getOne(accountName)
       .orElseThrow(() -> new IllegalArgumentException("Unable to resolve account " + accountName + "."));
     AtlasRemoteService atlasRemoteService = credentials.getAtlasRemoteService();
-    // TODO(mgraff): Is this how we decorate the base query?
     AtlasCanaryMetricSetQueryConfig atlasMetricSetQuery = (AtlasCanaryMetricSetQueryConfig)canaryMetricConfig.getQuery();
     String decoratedQuery = atlasMetricSetQuery.getQ() + "," + atlasCanaryScope.cq();
+    String isoStep = Duration.of(atlasCanaryScope.getStep(), SECONDS) + "";
     List<AtlasResults> atlasResultsList = atlasRemoteService.fetch(decoratedQuery,
                                                                    atlasCanaryScope.getStart(),
                                                                    atlasCanaryScope.getEnd(),
-                                                                   atlasCanaryScope.getStep());
+                                                                   isoStep);
     Map<String, AtlasResults> idToAtlasResultsMap = AtlasResultsHelper.merge(atlasResultsList);
     List<MetricSet> metricSetList = new ArrayList<>();
 

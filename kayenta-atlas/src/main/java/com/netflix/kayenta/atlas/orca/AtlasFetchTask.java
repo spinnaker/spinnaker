@@ -27,10 +27,12 @@ import com.netflix.kayenta.security.CredentialsHelper;
 import com.netflix.kayenta.storage.ObjectType;
 import com.netflix.kayenta.storage.StorageService;
 import com.netflix.kayenta.storage.StorageServiceRepository;
+import com.netflix.kayenta.util.ObjectMapperFactory;
 import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.RetryableTask;
 import com.netflix.spinnaker.orca.TaskResult;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -41,10 +43,10 @@ import java.util.List;
 import java.util.Map;
 
 @Component
+@Slf4j
 public class AtlasFetchTask implements RetryableTask {
 
-  @Autowired
-  ObjectMapper objectMapper;
+  private final ObjectMapper objectMapper = ObjectMapperFactory.getMapper();
 
   @Autowired
   AccountCredentialsRepository accountCredentialsRepository;
@@ -86,8 +88,14 @@ public class AtlasFetchTask implements RetryableTask {
     String storageAccountName = (String)context.get("storageAccountName");
     String configurationAccountName = (String)context.get("configurationAccountName");
     String canaryConfigId = (String)context.get("canaryConfigId");
-    AtlasCanaryScope atlasCanaryScope =
-      objectMapper.convertValue(stage.getContext().get("atlasCanaryScope"), AtlasCanaryScope.class);
+    String scopeJson = (String)stage.getContext().get("atlasCanaryScope");
+    AtlasCanaryScope atlasCanaryScope;
+    try {
+      atlasCanaryScope = objectMapper.readValue(scopeJson, AtlasCanaryScope.class);
+    } catch (IOException e) {
+      log.error("Unable to parse JSON scope: " + scopeJson, e);
+      throw new RuntimeException(e);
+    }
     String resolvedMetricsAccountName = CredentialsHelper.resolveAccountByNameOrType(metricsAccountName,
                                                                                      AccountCredentials.Type.METRICS_STORE,
                                                                                      accountCredentialsRepository);

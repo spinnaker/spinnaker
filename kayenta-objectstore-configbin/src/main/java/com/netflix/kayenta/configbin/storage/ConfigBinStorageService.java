@@ -23,6 +23,7 @@ import com.netflix.kayenta.configbin.service.ConfigBinRemoteService;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
 import com.netflix.kayenta.storage.ObjectType;
 import com.netflix.kayenta.storage.StorageService;
+import com.netflix.kayenta.util.ObjectMapperFactory;
 import com.squareup.okhttp.MediaType;
 import com.squareup.okhttp.RequestBody;
 import lombok.Builder;
@@ -44,7 +45,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class ConfigBinStorageService implements StorageService {
 
-  private final ObjectMapper objectMapper = new ObjectMapper();
+  private static final ObjectMapper objectMapper = ObjectMapperFactory.getMapper();
 
   @NotNull
   @Singular

@@ -16,20 +16,19 @@
 
 package com.netflix.kayenta.controllers;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
-import com.netflix.kayenta.canary.CanaryClassifierThresholdsConfig;
-import com.netflix.kayenta.canary.CanaryConfig;
-import com.netflix.kayenta.canary.CanaryScope;
-import com.netflix.kayenta.canary.CanaryScopeFactory;
-import com.netflix.kayenta.canary.CanaryServiceConfig;
+import com.netflix.kayenta.canary.*;
 import com.netflix.kayenta.security.AccountCredentials;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
 import com.netflix.kayenta.security.CredentialsHelper;
 import com.netflix.kayenta.storage.ObjectType;
 import com.netflix.kayenta.storage.StorageService;
 import com.netflix.kayenta.storage.StorageServiceRepository;
+import com.netflix.kayenta.util.ObjectMapperFactory;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.pipeline.PipelineLauncher;
@@ -40,12 +39,9 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+import java.io.StringWriter;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Collections;
@@ -67,6 +63,7 @@ public class CanaryController {
   private final StorageServiceRepository storageServiceRepository;
   private final List<CanaryScopeFactory> canaryScopeFactories;
   private final Registry registry;
+  private final ObjectMapper objectMapper = ObjectMapperFactory.getMapper();
 
   @Autowired
   public CanaryController(String currentInstanceId,
@@ -93,20 +90,12 @@ public class CanaryController {
 
   // TODO(duftler): Allow for user to be passed in.
   @ApiOperation(value = "Initiate a canary pipeline")
-  @RequestMapping(consumes = "application/json", method = RequestMethod.POST)
+  @RequestMapping(value = "/{canaryConfigId:.+}", consumes = "application/json", method = RequestMethod.POST)
   public String initiateCanary(@RequestParam(required = false) final String metricsAccountName,
                                @RequestParam(required = false) final String configurationAccountName,
                                @RequestParam(required = false) final String storageAccountName,
-                               @ApiParam(defaultValue = "MySampleStackdriverCanaryConfig") @RequestParam String canaryConfigId,
-                               @ApiParam(defaultValue = "myapp-v010-") @RequestParam String controlScope,
-                               @ApiParam(defaultValue = "myapp-v021-") @RequestParam String experimentScope,
-                               @ApiParam(defaultValue = "2017-07-01T15:13:00Z") @RequestParam String startTimeIso,
-                               @ApiParam(defaultValue = "2017-07-02T15:27:00Z") @RequestParam String endTimeIso,
-                               // TODO(duftler): Normalize this somehow. Stackdriver expects a number in seconds and Atlas expects a duration like PT10S.
-                               @ApiParam(value = "Stackdriver expects a number in seconds and Atlas expects a duration like PT10S.", defaultValue = "3600") @RequestParam String step,
-                               @ApiParam(value = "Atlas requires \"type\" to be set to asg, cluster, or query.") @RequestBody(required = false) Map<String, String> extendedScopeParams,
-                               @RequestParam(required = false) String scoreThresholdPass,
-                               @RequestParam(required = false) String scoreThresholdMarginal) {
+                               @ApiParam @RequestBody final CanaryExecutionRequest canaryExecutionRequest,
+                               @PathVariable String canaryConfigId) throws JsonProcessingException {
     String resolvedMetricsAccountName = CredentialsHelper.resolveAccountByNameOrType(metricsAccountName,
                                                                                      AccountCredentials.Type.METRICS_STORE,
                                                                                      accountCredentialsRepository);
@@ -144,12 +133,11 @@ public class CanaryController {
 
     registry.counter(registry.createId("canary.pipelines.initiated")).increment();
 
-    Instant startTimeInstant = Instant.parse(startTimeIso);
-    Instant endTimeInstant = Instant.parse(endTimeIso);
-    CanaryScope controlScopeModel =
-      canaryScopeFactory.buildCanaryScope(controlScope, startTimeInstant, endTimeInstant, step, extendedScopeParams);
-    CanaryScope experimentScopeModel =
-      canaryScopeFactory.buildCanaryScope(experimentScope, startTimeInstant, endTimeInstant, step, extendedScopeParams);
+    CanaryScope controlScopeModel = canaryScopeFactory.buildCanaryScope(canaryExecutionRequest.getControlScope());
+    CanaryScope experimentScopeModel = canaryScopeFactory.buildCanaryScope(canaryExecutionRequest.getExperimentScope());
+
+    String controlScopeJson = objectMapper.writeValueAsString(controlScopeModel);
+    String experimentScopeJson = objectMapper.writeValueAsString(experimentScopeModel);
 
     Map<String, Object> fetchControlContext =
       Maps.newHashMap(
@@ -161,7 +149,7 @@ public class CanaryController {
           .put("storageAccountName", resolvedStorageAccountName)
           .put("configurationAccountName", resolvedConfigurationAccountName)
           .put("canaryConfigId", canaryConfigId)
-          .put(serviceType + "CanaryScope", controlScopeModel)
+          .put(serviceType + "CanaryScope", controlScopeJson)
           .build());
 
     Map<String, Object> fetchExperimentContext =
@@ -173,7 +161,7 @@ public class CanaryController {
           .put("storageAccountName", resolvedStorageAccountName)
           .put("configurationAccountName", resolvedConfigurationAccountName)
           .put("canaryConfigId", canaryConfigId)
-          .put(serviceType + "CanaryScope", experimentScopeModel)
+          .put(serviceType + "CanaryScope", experimentScopeJson)
           .build());
 
     Map<String, Object> mixMetricSetsContext =
@@ -187,21 +175,13 @@ public class CanaryController {
           .put("experimentMetricSetListIds", "${ #stage('Fetch Experiment from " + serviceType + "')['context']['metricSetListIds']}")
           .build());
 
-    CanaryClassifierThresholdsConfig orchestratorScoreThresholds;
+    CanaryClassifierThresholdsConfig orchestratorScoreThresholds = canaryExecutionRequest.getThresholds();
 
-    if (scoreThresholdPass != null && scoreThresholdMarginal != null) {
-      orchestratorScoreThresholds =
-        CanaryClassifierThresholdsConfig
-          .builder()
-          .pass(Double.parseDouble(scoreThresholdPass))
-          .marginal(Double.parseDouble(scoreThresholdMarginal))
-          .build();
-    } else {
+    if (orchestratorScoreThresholds == null) {
       // The score thresholds were not explicitly passed in from the orchestrator (i.e. Spinnaker), so just use the canary config values.
       orchestratorScoreThresholds = canaryConfig.getClassifier().getScoreThresholds();
     }
 
-    Duration duration = Duration.between(startTimeInstant, endTimeInstant);
     Map<String, Object> canaryJudgeContext =
       Maps.newHashMap(
         new ImmutableMap.Builder<String, Object>()
@@ -212,7 +192,6 @@ public class CanaryController {
           .put("configurationAccountName", resolvedConfigurationAccountName)
           .put("canaryConfigId", canaryConfigId)
           .put("metricSetPairListId", "${ #stage('Mix Control and Experiment Results')['context']['metricSetPairListId']}")
-          .put("durationString", duration.toString())
           .put("orchestratorScoreThresholds", orchestratorScoreThresholds)
           .build());
 

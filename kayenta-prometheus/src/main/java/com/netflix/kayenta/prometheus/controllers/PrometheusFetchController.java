@@ -16,7 +16,7 @@
 
 package com.netflix.kayenta.prometheus.controllers;
 
-import com.netflix.kayenta.prometheus.canary.PrometheusCanaryScope;
+import com.netflix.kayenta.canary.CanaryScope;
 import com.netflix.kayenta.canary.CanaryMetricConfig;
 import com.netflix.kayenta.canary.providers.PrometheusCanaryMetricSetQueryConfig;
 import com.netflix.kayenta.metrics.SynchronousQueryProcessor;
@@ -32,6 +32,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
+import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
 
@@ -58,7 +59,7 @@ public class PrometheusFetchController {
                              @ApiParam(defaultValue = "cpu") @RequestParam String metricSetName,
                              @ApiParam(defaultValue = "2017-08-17T21:13:00Z") @RequestParam String start,
                              @ApiParam(defaultValue = "2017-08-17T21:30:00Z") @RequestParam String end,
-                             @ApiParam(defaultValue = "15s") @RequestParam String step) throws IOException {
+                             @ApiParam(defaultValue = "300") @RequestParam Long step) throws IOException {
     String resolvedMetricsAccountName = CredentialsHelper.resolveAccountByNameOrType(metricsAccountName,
                                                                                      AccountCredentials.Type.METRICS_STORE,
                                                                                      accountCredentialsRepository);
@@ -81,15 +82,13 @@ public class PrometheusFetchController {
         .query(prometheusCanaryMetricSetQueryConfig)
         .build();
 
-    PrometheusCanaryScope prometheusCanaryScope = new PrometheusCanaryScope();
-    prometheusCanaryScope.setScope(scope);
-    prometheusCanaryScope.setStart(start);
-    prometheusCanaryScope.setEnd(end);
-    prometheusCanaryScope.setStep(step);
+    Instant startInstant = Instant.parse(start);
+    Instant endInstant = Instant.parse(end);
+    CanaryScope canaryScope = new CanaryScope(scope, startInstant, endInstant, step, Collections.emptyMap());
 
     return synchronousQueryProcessor.processQuery(resolvedMetricsAccountName,
                                                   resolvedStorageAccountName,
                                                   Collections.singletonList(canaryMetricConfig),
-                                                  prometheusCanaryScope).get(0);
+                                                  canaryScope).get(0);
   }
 }

@@ -18,6 +18,7 @@ package com.netflix.kayenta.prometheus.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.kayenta.prometheus.model.PrometheusResults;
+import com.netflix.kayenta.util.ObjectMapperFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
@@ -42,9 +43,7 @@ import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKN
 @Slf4j
 public class PrometheusResponseConverter implements Converter {
 
-  private static final ObjectMapper objectMapper = new ObjectMapper()
-    .setSerializationInclusion(NON_NULL)
-    .disable(FAIL_ON_UNKNOWN_PROPERTIES);
+  private static final ObjectMapper objectMapper = ObjectMapperFactory.getMapper();
 
   @Override
   public List<PrometheusResults> fromBody(TypedInput body, Type type) throws ConversionException {

@@ -21,6 +21,7 @@ import com.netflix.kayenta.memory.security.MemoryNamedAccountCredentials;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
 import com.netflix.kayenta.storage.ObjectType;
 import com.netflix.kayenta.storage.StorageService;
+import com.netflix.kayenta.util.ObjectMapperFactory;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Singular;
@@ -50,7 +51,7 @@ public class MemoryStorageService implements StorageService {
     private Map<String, String> entries = new ConcurrentHashMap<String, String>();
   }
 
-  private final ObjectMapper objectMapper = new ObjectMapper();
+  private static final ObjectMapper objectMapper = ObjectMapperFactory.getMapper();
 
   @NotNull
   @Singular

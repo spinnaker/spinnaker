@@ -32,19 +32,7 @@ public class PrometheusCanaryScopeFactory implements CanaryScopeFactory {
   }
 
   @Override
-  public CanaryScope buildCanaryScope(String scope,
-                                      Instant startTimeInstant,
-                                      Instant endTimeInstant,
-                                      String step,
-                                      Map<String, String> extendedScopeParams) {
-    PrometheusCanaryScope prometheusCanaryScope = new PrometheusCanaryScope();
-    prometheusCanaryScope.setScope(scope);
-    prometheusCanaryScope.setStart(startTimeInstant.toEpochMilli() + "");
-    prometheusCanaryScope.setEnd(endTimeInstant.toEpochMilli() + "");
-    prometheusCanaryScope.setIntervalStartTimeIso(startTimeInstant + "");
-    prometheusCanaryScope.setIntervalEndTimeIso(endTimeInstant + "");
-    prometheusCanaryScope.setStep(step);
-
-    return prometheusCanaryScope;
+  public CanaryScope buildCanaryScope(CanaryScope scope) {
+    return scope;
   }
 }

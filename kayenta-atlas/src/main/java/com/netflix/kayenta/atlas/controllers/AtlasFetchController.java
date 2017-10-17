@@ -32,6 +32,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
+import java.time.Instant;
 import java.util.Collections;
 
 @RestController
@@ -52,9 +53,9 @@ public class AtlasFetchController {
                              @ApiParam(defaultValue = "cpu") @RequestParam String metricSetName,
                              @ApiParam(defaultValue = "cluster") @RequestParam String type,
                              @RequestParam String scope,
-                             @ApiParam(defaultValue = "0") @RequestParam String start,
-                             @ApiParam(defaultValue = "6000000") @RequestParam String end,
-                             @ApiParam(defaultValue = "PT1M") @RequestParam String step) throws IOException {
+                             @ApiParam(defaultValue = "2000-01-01T00:00:00Z") @RequestParam String start,
+                             @ApiParam(defaultValue = "2000-01-01T04:00:00Z") @RequestParam String end,
+                             @ApiParam(defaultValue = "300") @RequestParam Long step) throws IOException {
     String resolvedMetricsAccountName = CredentialsHelper.resolveAccountByNameOrType(metricsAccountName,
                                                                                      AccountCredentials.Type.METRICS_STORE,
                                                                                      accountCredentialsRepository);
@@ -77,8 +78,8 @@ public class AtlasFetchController {
     AtlasCanaryScope atlasCanaryScope = new AtlasCanaryScope();
     atlasCanaryScope.setType(type);
     atlasCanaryScope.setScope(scope);
-    atlasCanaryScope.setStart(start);
-    atlasCanaryScope.setEnd(end);
+    atlasCanaryScope.setStart(Instant.parse(start));
+    atlasCanaryScope.setEnd(Instant.parse(end));
     atlasCanaryScope.setStep(step);
 
     return synchronousQueryProcessor.processQuery(resolvedMetricsAccountName,

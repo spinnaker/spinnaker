@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Google, Inc.
+ * Copyright 2017 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -13,24 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.netflix.kayenta.canary;
 
-package com.netflix.kayenta.stackdriver.canary;
-
-import com.netflix.kayenta.canary.CanaryScope;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
-
 import javax.validation.constraints.NotNull;
 
 @Data
-@EqualsAndHashCode(callSuper = true)
-@ToString(callSuper = true)
-public class StackdriverCanaryScope extends CanaryScope {
+public class CanaryExecutionRequest {
 
   @NotNull
-  private String intervalStartTimeIso;
+  protected CanaryScope experimentScope;
 
   @NotNull
-  private String intervalEndTimeIso;
+  protected CanaryScope controlScope;
+
+  protected CanaryClassifierThresholdsConfig thresholds;
 }

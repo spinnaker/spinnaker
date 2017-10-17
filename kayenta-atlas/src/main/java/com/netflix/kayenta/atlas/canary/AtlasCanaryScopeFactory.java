@@ -20,7 +20,7 @@ import com.netflix.kayenta.canary.CanaryScope;
 import com.netflix.kayenta.canary.CanaryScopeFactory;
 import org.springframework.stereotype.Component;
 
-import java.time.Instant;
+import java.util.Collections;
 import java.util.Map;
 
 @Component
@@ -32,20 +32,19 @@ public class AtlasCanaryScopeFactory implements CanaryScopeFactory {
   }
 
   @Override
-  public CanaryScope buildCanaryScope(String scope,
-                                      Instant startTimeInstant,
-                                      Instant endTimeInstant,
-                                      String step,
-                                      Map<String, String> extendedScopeParams) {
+  public CanaryScope buildCanaryScope(CanaryScope canaryScope){
     AtlasCanaryScope atlasCanaryScope = new AtlasCanaryScope();
-    atlasCanaryScope.setScope(scope);
-    atlasCanaryScope.setStart(startTimeInstant.toEpochMilli() + "");
-    atlasCanaryScope.setEnd(endTimeInstant.toEpochMilli() + "");
-    atlasCanaryScope.setStep(step);
+    atlasCanaryScope.setScope(canaryScope.getScope());
+    atlasCanaryScope.setStart(canaryScope.getStart());
+    atlasCanaryScope.setEnd(canaryScope.getEnd());
+    atlasCanaryScope.setStep(canaryScope.getStep());
+    atlasCanaryScope.setExtendedScopeParams(canaryScope.getExtendedScopeParams());
 
-    if (extendedScopeParams != null && extendedScopeParams.containsKey("type")) {
-      atlasCanaryScope.setType(extendedScopeParams.get("type"));
+    Map<String, String> extendedScopeParams = atlasCanaryScope.getExtendedScopeParams();
+    if (extendedScopeParams == null) {
+      extendedScopeParams = Collections.emptyMap();
     }
+    atlasCanaryScope.setType(extendedScopeParams.getOrDefault("type", "cluster"));
 
     return atlasCanaryScope;
   }

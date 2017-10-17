@@ -17,6 +17,7 @@
 package com.netflix.kayenta.retrofit.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.kayenta.util.ObjectMapperFactory;
 import com.netflix.spinnaker.retrofit.Slf4jRetrofitLogger;
 import com.squareup.okhttp.OkHttpClient;
 import org.springframework.beans.factory.annotation.Value;
@@ -40,9 +41,7 @@ public class RetrofitClientFactory {
 
   @Bean
   JacksonConverter jacksonConverterWithMapper() {
-    ObjectMapper objectMapper = new ObjectMapper()
-      .setSerializationInclusion(NON_NULL)
-      .disable(FAIL_ON_UNKNOWN_PROPERTIES);
+    final ObjectMapper objectMapper = ObjectMapperFactory.getMapper();
 
     return new JacksonConverter(objectMapper);
   }

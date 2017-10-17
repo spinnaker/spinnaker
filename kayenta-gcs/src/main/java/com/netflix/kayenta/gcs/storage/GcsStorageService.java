@@ -28,6 +28,7 @@ import com.netflix.kayenta.google.security.GoogleNamedAccountCredentials;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
 import com.netflix.kayenta.storage.ObjectType;
 import com.netflix.kayenta.storage.StorageService;
+import com.netflix.kayenta.util.ObjectMapperFactory;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Singular;
@@ -48,7 +49,7 @@ import java.util.Map;
 @Slf4j
 public class GcsStorageService implements StorageService {
 
-  private final ObjectMapper objectMapper = new ObjectMapper();
+  private static final ObjectMapper objectMapper = ObjectMapperFactory.getMapper();
 
   @NotNull
   @Singular

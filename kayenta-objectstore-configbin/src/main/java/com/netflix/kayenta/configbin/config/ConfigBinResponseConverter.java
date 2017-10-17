@@ -18,6 +18,7 @@ package com.netflix.kayenta.configbin.config;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.kayenta.util.ObjectMapperFactory;
 import com.squareup.okhttp.RequestBody;
 import lombok.extern.slf4j.Slf4j;
 import okio.Buffer;
@@ -41,9 +42,7 @@ import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKN
 @Slf4j
 public class ConfigBinResponseConverter implements Converter {
 
-  private static final ObjectMapper objectMapper = new ObjectMapper()
-    .setSerializationInclusion(NON_NULL)
-    .disable(FAIL_ON_UNKNOWN_PROPERTIES);
+  private static final ObjectMapper objectMapper = ObjectMapperFactory.getMapper();
 
   @Override
   public String fromBody(TypedInput body, Type type) throws ConversionException {

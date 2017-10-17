@@ -8,6 +8,7 @@ import com.netflix.kayenta.atlas.model.TimeseriesData;
 import com.netflix.kayenta.canary.CanaryConfig;
 import com.netflix.kayenta.canary.CanaryMetricConfig;
 import com.netflix.kayenta.canary.providers.AtlasCanaryMetricSetQueryConfig;
+import com.netflix.kayenta.util.ObjectMapperFactory;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -27,6 +28,7 @@ import javax.validation.constraints.NotNull;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.Duration;
+import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -59,9 +61,7 @@ public class IntegrationTest {
     @Autowired
     private ResourceLoader resourceLoader;
 
-    private ObjectMapper objectMapper = new ObjectMapper()
-            .setSerializationInclusion(NON_NULL)
-            .disable(FAIL_ON_UNKNOWN_PROPERTIES);
+    private static final ObjectMapper objectMapper = ObjectMapperFactory.getMapper();
 
     private String getFileContent(String filename) throws IOException {
         try (InputStream inputStream = resourceLoader.getResource("classpath:" + filename).getInputStream()) {
@@ -75,9 +75,9 @@ public class IntegrationTest {
     }
 
     private CanaryMetricConfigWithResults queryMetric(CanaryMetricConfig metric, AtlasCanaryScope scope) {
-        long step = Duration.parse(scope.getStep()).toMillis();
-        long start = Long.parseLong(scope.getStart()) / step * step;
-        long end = Long.parseLong(scope.getEnd()) / step * step;
+        long step = Duration.ofSeconds(scope.getStep()).toMillis();
+        long start = scope.getStart().toEpochMilli() / step * step;
+        long end = scope.getEnd().toEpochMilli() / step * step;
         long count = (end - start) / step;
 
         AtlasCanaryMetricSetQueryConfig atlasMetricSetQuery = (AtlasCanaryMetricSetQueryConfig)metric.getQuery();
@@ -106,15 +106,15 @@ public class IntegrationTest {
         AtlasCanaryScope experiment = new AtlasCanaryScope();
         experiment.setType("asg");
         experiment.setScope("kayenta-iep-v400");
-        experiment.setStart("0");
-        experiment.setEnd("600000");
-        experiment.setStep("PT1M");
+        experiment.setStart(Instant.parse("2000-01-01T00:11:22Z"));
+        experiment.setEnd(Instant.parse("2000-01-01T04:11:22Z"));
+        experiment.setStep(300L);
         AtlasCanaryScope control = new AtlasCanaryScope();
         control.setType("asg");
         control.setScope("kayenta-iep-v401");
-        control.setStart("0");
-        control.setEnd("600000");
-        control.setStep("PT1M");
+        control.setStart(Instant.parse("2000-01-01T00:11:22Z"));
+        control.setEnd(Instant.parse("2000-01-01T04:11:22Z"));
+        control.setStep(300L);
 
         //   3.  for each metric in the config:
         //      a. issue an Atlas query for this metric, scoped to the canary

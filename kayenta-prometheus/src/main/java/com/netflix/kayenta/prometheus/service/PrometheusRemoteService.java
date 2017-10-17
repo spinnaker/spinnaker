@@ -29,5 +29,5 @@ public interface PrometheusRemoteService {
   List<PrometheusResults> fetch(@Query("query") String query,
                            @Query("start") String start,
                            @Query("end") String end,
-                           @Query("step") String step);
+                           @Query("step") Long step);
 }

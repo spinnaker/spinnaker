@@ -30,10 +30,11 @@ dependencies {
   compile "org.springframework.boot:spring-boot-starter-web:$springBootVersion"
   compile "org.springframework.boot:spring-boot-starter-data-rest:$springBootVersion"
 
-  // spinnaker.group('jackson')
-  compile "com.fasterxml.jackson.core:jackson-core:2.8.7"
-  compile "com.fasterxml.jackson.core:jackson-databind:2.8.7"
-  compile "com.fasterxml.jackson.core:jackson-databind:2.8.7"
+  compile "com.fasterxml.jackson.core:jackson-core:2.8.8"
+  compile "com.fasterxml.jackson.core:jackson-databind:2.8.8"
+  compile "com.fasterxml.jackson.module:jackson-module-parameter-names:2.8.8"
+  compile "com.fasterxml.jackson.datatype:jackson-datatype-jdk8:2.8.8"
+  compile "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.8.8"
 
   // spinnaker.group('retrofitDefault')
   compile "com.squareup.retrofit:retrofit:1.9.0"

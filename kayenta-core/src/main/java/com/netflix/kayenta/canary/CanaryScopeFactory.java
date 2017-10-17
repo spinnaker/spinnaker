@@ -23,9 +23,5 @@ public interface CanaryScopeFactory {
 
   boolean handles(String serviceType);
 
-  CanaryScope buildCanaryScope(String scope,
-                               Instant startTimeInstant,
-                               Instant endTimeInstant,
-                               String step,
-                               Map<String, String> extendedScopeParams);
+  CanaryScope buildCanaryScope(CanaryScope scope);
 }

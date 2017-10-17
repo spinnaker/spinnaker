@@ -106,7 +106,7 @@ class NetflixACAJudge extends CanaryJudge with StrictLogging {
       .build()
 
     //Construct the judge result object
-    val results = metricResults.map( metric => metric.getName -> metric).toMap.asJava
+    val results = metricResults.asJava;
     CanaryJudgeResult.builder()
       .judgeName(judgeName)
       .score(summaryScore)

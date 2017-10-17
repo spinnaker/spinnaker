@@ -32,19 +32,7 @@ public class StackdriverCanaryScopeFactory implements CanaryScopeFactory {
   }
 
   @Override
-  public CanaryScope buildCanaryScope(String scope,
-                                      Instant startTimeInstant,
-                                      Instant endTimeInstant,
-                                      String step,
-                                      Map<String, String> extendedScopeParams) {
-    StackdriverCanaryScope stackdriverCanaryScope = new StackdriverCanaryScope();
-    stackdriverCanaryScope.setScope(scope);
-    stackdriverCanaryScope.setStart(startTimeInstant.toEpochMilli() + "");
-    stackdriverCanaryScope.setEnd(endTimeInstant.toEpochMilli() + "");
-    stackdriverCanaryScope.setIntervalStartTimeIso(startTimeInstant + "");
-    stackdriverCanaryScope.setIntervalEndTimeIso(endTimeInstant + "");
-    stackdriverCanaryScope.setStep(step);
-
-    return stackdriverCanaryScope;
+  public CanaryScope buildCanaryScope(CanaryScope scope) {
+    return scope;
   }
 }

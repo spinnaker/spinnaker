@@ -40,7 +40,7 @@ public class CanaryJudgeResult {
 
   @NotNull
   @Getter
-  private Map<String, CanaryAnalysisResult> results;
+  private List<CanaryAnalysisResult> results;
 
   @NotNull
   @Getter

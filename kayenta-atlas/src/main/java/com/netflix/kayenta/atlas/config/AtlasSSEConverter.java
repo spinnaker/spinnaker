@@ -18,6 +18,7 @@ package com.netflix.kayenta.atlas.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.kayenta.atlas.model.AtlasResults;
+import com.netflix.kayenta.util.ObjectMapperFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
@@ -44,9 +45,7 @@ import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKN
 // We are not implementing full, proper SSE handling here.
 public class AtlasSSEConverter implements Converter {
 
-  private static final ObjectMapper objectMapper = new ObjectMapper()
-    .setSerializationInclusion(NON_NULL)
-    .disable(FAIL_ON_UNKNOWN_PROPERTIES);
+  private static final ObjectMapper objectMapper = ObjectMapperFactory.getMapper();
   private static final List<String> expectedResultsTypeList = Arrays.asList("timeseries", "close");
 
   @Override
