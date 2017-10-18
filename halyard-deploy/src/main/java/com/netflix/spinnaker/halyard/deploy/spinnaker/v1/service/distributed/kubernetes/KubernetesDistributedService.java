@@ -73,6 +73,7 @@ import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.extensions.ReplicaSet;
 import io.fabric8.kubernetes.api.model.extensions.ReplicaSetBuilder;
+import io.fabric8.kubernetes.api.model.LocalObjectReference;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.utils.Strings;
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -119,6 +120,16 @@ public interface KubernetesDistributedService<T> extends DistributedService<T, K
 
     KubernetesImageDescription image = new KubernetesImageDescription(artifactName, version, getDockerRegistry(deploymentName));
     return KubernetesUtil.getImageId(image);
+  }
+
+  default List<LocalObjectReference> getImagePullSecrets(ServiceSettings settings) {
+    List<LocalObjectReference> imagePullSecrets = new ArrayList<>();
+    if (settings.getKubernetes().getImagePullSecrets()!= null) {
+      for (String imagePullSecret : settings.getKubernetes().getImagePullSecrets()) {
+        imagePullSecrets.add(new LocalObjectReference(imagePullSecret));
+      }
+    }
+    return imagePullSecrets;
   }
 
   default Provider.ProviderType getProviderType() {
@@ -514,8 +525,11 @@ public interface KubernetesDistributedService<T> extends DistributedService<T, K
                   .build())
           .build();
     }).collect(Collectors.toList());
-    ReplicaSetBuilder replicaSetBuilder = new ReplicaSetBuilder();
 
+    ReplicaSetBuilder replicaSetBuilder = new ReplicaSetBuilder();
+    List<LocalObjectReference> imagePullSecrets = getImagePullSecrets(settings);
+
+    System.out.println("debug code: we hit this section - AB" + "\n" + imagePullSecrets);
     replicaSetBuilder = replicaSetBuilder
         .withNewMetadata()
         .withName(replicaSetName)
@@ -534,6 +548,7 @@ public interface KubernetesDistributedService<T> extends DistributedService<T, K
         .withContainers(containers)
         .withTerminationGracePeriodSeconds(5L)
         .withVolumes(volumes)
+        .withImagePullSecrets(imagePullSecrets)
         .endSpec()
         .endTemplate()
         .endSpec();

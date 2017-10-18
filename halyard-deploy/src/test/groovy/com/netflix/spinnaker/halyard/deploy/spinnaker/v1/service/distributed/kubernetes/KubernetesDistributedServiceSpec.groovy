@@ -30,6 +30,8 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceSettings
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerMonitoringDaemonService
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.DistributedService
+import io.fabric8.kubernetes.api.model.LocalObjectReference
+import io.fabric8.kubernetes.api.model.extensions.ReplicaSetBuilder
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -91,6 +93,38 @@ class KubernetesDistributedServiceSpec extends Specification {
         then:
         container.requests == null
         container.limits == null
+    }
+
+    @Unroll
+    def "imagePullSecret is set on a replicaset"() {
+        setup:
+        ServiceSettings serviceSettings = new ServiceSettings()
+        def kubernetesSettings = serviceSettings.kubernetes
+        def service = createServiceTestDouble()
+        ReplicaSetBuilder replicaSetBuilder = new ReplicaSetBuilder()
+
+        when:
+        kubernetesSettings.imagePullSecrets = pullSecrets
+        def imagePullSecrets = service.getImagePullSecrets(serviceSettings)
+        replicaSetBuilder = replicaSetBuilder
+                .withNewSpec()
+                .withNewTemplate()
+                .withNewSpec()
+                .withImagePullSecrets(imagePullSecrets)
+                .endSpec()
+                .endTemplate()
+                .endSpec()
+        def replicaSet = replicaSetBuilder.build()
+
+        then:
+        replicaSet.spec.template.spec.imagePullSecrets == compiledPullSecret
+
+        where:
+        description         | pullSecrets          | compiledPullSecret
+        "is null"           | null                 | []
+        "is empty"          | []                   | []
+        "is one item"       | ["item"]             | [new LocalObjectReference("item")]
+        "is multiple items" | ["item1", "item2"]   | [new LocalObjectReference("item1"), new LocalObjectReference("item2")]
     }
 
     private KubernetesDistributedService createServiceTestDouble() {
