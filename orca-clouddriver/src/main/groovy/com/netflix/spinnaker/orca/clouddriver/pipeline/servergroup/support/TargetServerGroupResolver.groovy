@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support
 
+import com.netflix.spinnaker.orca.RetrySupport
 import groovy.util.logging.Slf4j
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.clouddriver.OortService
@@ -36,6 +37,9 @@ class TargetServerGroupResolver {
 
   @Autowired
   ObjectMapper mapper
+
+  @Autowired
+  RetrySupport retrySupport
 
   List<TargetServerGroup> resolve(Stage stage) {
     resolveByParams(TargetServerGroup.Params.fromStage(stage))
@@ -159,38 +163,23 @@ class TargetServerGroupResolver {
   }
 
   private <T> T fetchWithRetries(Class<T> responseType, int maxRetries, long retryBackoff, Closure<Response> fetchClosure) {
-    def converter = new JacksonConverter(mapper)
+    return retrySupport.retry({
+      def converter = new JacksonConverter(mapper)
 
-    def lastException = null
-    for (int i = 1; i <= maxRetries; i++) {
+      Response response
       try {
-        Response response
-        try {
-          response = fetchClosure.call()
-        } catch (RetrofitError re) {
-          if (re.kind == RetrofitError.Kind.HTTP && re.response.status == 404) {
-            return null
-          }
-          throw re
-        }
-        try {
-          return (T) converter.fromBody(response.body, responseType)
-        } catch (ConversionException ce) {
-          throw RetrofitError.conversionError(response.url, response, converter, responseType, ce)
-        }
+        response = fetchClosure.call()
       } catch (RetrofitError re) {
-        lastException = re
-
-        if (re.kind == RetrofitError.Kind.NETWORK) {
-          Thread.sleep(retryBackoff)
-        } else if (re.kind == RetrofitError.Kind.HTTP && re.response.status == 429) {
-          Thread.sleep(retryBackoff)
-        } else {
-          throw re
+        if (re.kind == RetrofitError.Kind.HTTP && re.response.status == 404) {
+          return null
         }
+        throw re
       }
-    }
-
-    throw lastException
+      try {
+        return (T) converter.fromBody(response.body, responseType)
+      } catch (ConversionException ce) {
+        throw RetrofitError.conversionError(response.url, response, converter, responseType, ce)
+      }
+    }, maxRetries, retryBackoff, false)
   }
 }

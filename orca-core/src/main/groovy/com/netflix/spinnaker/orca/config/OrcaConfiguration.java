@@ -21,6 +21,7 @@ import java.util.Collection;
 import java.util.Map;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
+import com.netflix.spinnaker.orca.RetrySupport;
 import com.netflix.spinnaker.orca.events.ExecutionEvent;
 import com.netflix.spinnaker.orca.events.ExecutionListenerAdapter;
 import com.netflix.spinnaker.orca.exceptions.DefaultExceptionHandler;
@@ -153,6 +154,11 @@ public class OrcaConfiguration {
   @ConditionalOnMissingBean(StageDefinitionBuilderFactory.class)
   public StageDefinitionBuilderFactory stageDefinitionBuilderFactory(Collection<StageDefinitionBuilder> stageDefinitionBuilders) {
     return new DefaultStageDefinitionBuilderFactory(stageDefinitionBuilders);
+  }
+
+  @Bean
+  public RetrySupport retrySupport() {
+    return new RetrySupport();
   }
 
 }

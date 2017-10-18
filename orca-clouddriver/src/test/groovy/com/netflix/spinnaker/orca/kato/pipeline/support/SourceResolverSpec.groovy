@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.kato.pipeline.support
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.orca.RetrySupport
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroupResolver
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
@@ -94,10 +95,14 @@ class SourceResolverSpec extends Specification {
     given:
     OortService oort = Mock(OortService)
     ObjectMapper mapper = new ObjectMapper()
+    RetrySupport retrySupport = Spy(RetrySupport) {
+      _ * sleep(_) >> { /* do nothing */ }
+    }
+
     SourceResolver resolver = new SourceResolver(
       oortService: oort,
       mapper: mapper,
-      resolver: new TargetServerGroupResolver(oortService: oort, mapper: mapper)
+      resolver: new TargetServerGroupResolver(oortService: oort, mapper: mapper, retrySupport: retrySupport)
     )
 
     when:

@@ -17,27 +17,29 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup
 
 import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.orca.RetrySupport
 import com.netflix.spinnaker.orca.clouddriver.KatoService
-import com.netflix.spinnaker.orca.clouddriver.model.TaskId
-import com.netflix.spinnaker.orca.pipeline.model.Execution
+import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import retrofit.RetrofitError
+import retrofit.client.Response
 import spock.lang.Specification
 import spock.lang.Subject
-import spock.lang.Unroll
-import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.orchestration
-import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
+import static java.net.HttpURLConnection.HTTP_NOT_FOUND
 
 class AddServerGroupEntityTagsTaskSpec extends Specification {
 
-  KatoService katoService = Mock(KatoService)
+  def katoService = Mock(KatoService)
+  def oortService = Mock(OortService)
+  def retrySupport = Spy(RetrySupport) {
+    _ * sleep(_) >> { /* do nothing */ }
+  }
 
-  ServerGroupEntityTagGenerator tagGenerator = new SpinnakerMetadataServerGroupTagGenerator()
+  ServerGroupEntityTagGenerator tagGenerator = new SpinnakerMetadataServerGroupTagGenerator(oortService, retrySupport)
 
   @Subject
   AddServerGroupEntityTagsTask task = new AddServerGroupEntityTagsTask(kato: katoService, tagGenerators: [tagGenerator])
-
-  List<Map> taggingOps = null
 
   void "should return with failed/continue status if tagging operation fails"() {
     when:
@@ -51,97 +53,6 @@ class AddServerGroupEntityTagsTaskSpec extends Specification {
     then:
     result.status == ExecutionStatus.FAILED_CONTINUE
     1 * katoService.requestOperations(_) >> { throw new RuntimeException("something went wrong") }
-  }
-
-  void "sends tag with all relevant metadata for each server group"() {
-    given:
-    mockTaggingOperation()
-    List<Map> expectedTags = [
-      [
-        stageId: "x",
-        executionType: "pipeline",
-        description: "Deploy to us-east-1",
-        pipelineConfigId: "config-id",
-        application: "foo",
-        executionId: "ex-id",
-        user: "chris"
-      ],
-      [
-        stageId: "x",
-        executionType: "pipeline",
-        description: "Deploy to us-east-1",
-        pipelineConfigId: "config-id",
-        application: "foo",
-        executionId: "ex-id",
-        user: "chris"
-      ],
-      [
-        stageId: "x",
-        executionType: "pipeline",
-        description: "Deploy to us-east-1",
-        pipelineConfigId: "config-id",
-        application: "foo",
-        executionId: "ex-id",
-        user: "chris"
-      ]
-    ]
-
-    when:
-    def pipeline = pipeline {
-      pipelineConfigId = "config-id"
-      name = "Deploy to us-east-1"
-      application = "foo"
-      id = "ex-id"
-      authentication = new Execution.AuthenticationDetails("chris")
-    }
-    def stage = new Stage<>(pipeline, "whatever", [
-      "deploy.server.groups": [
-        "us-east-1": ["foo-v001"],
-        "us-west-1": ["foo-v001", "foo-v002"]
-      ]
-    ])
-    stage.id = "x"
-    def result = task.execute(stage)
-
-    then:
-    result.status == ExecutionStatus.SUCCEEDED
-    taggingOps == expectedTags
-  }
-
-  void "omits user if authentication not found"() {
-    given:
-    mockTaggingOperation()
-
-    when:
-    def stage = new Stage<>(new Pipeline("orca"), "whatever", [
-      "deploy.server.groups": [
-        "us-east-1": ["foo-v001"],
-      ]
-    ])
-    def result = task.execute(stage)
-
-    then:
-    result.status == ExecutionStatus.SUCCEEDED
-    taggingOps[0].user == null
-  }
-
-  void "includes description on tasks"() {
-    given:
-    mockTaggingOperation()
-
-    when:
-    def orchestration = orchestration {
-      description = "some description"
-    }
-    def stage = new Stage<>(orchestration, "zzz", [
-      "deploy.server.groups": [
-        "us-east-1": ["foo-v001"],
-      ]
-    ])
-    task.execute(stage)
-
-    then:
-    taggingOps[0].description == "some description"
   }
 
   void "skips tagging when no tag generators or generators do not produce any tags"() {
@@ -159,39 +70,5 @@ class AddServerGroupEntityTagsTaskSpec extends Specification {
     then:
     result.status == ExecutionStatus.SKIPPED
     0 * _
-  }
-
-  @Unroll
-  void "prefers comments to reason from context and applies as 'comments' field"() {
-    given:
-    mockTaggingOperation()
-
-    when:
-    def stage = new Stage<>(new Pipeline("orca"), "whatever", [
-      "deploy.server.groups": [
-        "us-east-1": ["foo-v001"],
-      ],
-      comments: comments,
-      reason: reason
-    ])
-    def result = task.execute(stage)
-
-    then:
-    result.status == ExecutionStatus.SUCCEEDED
-    taggingOps[0].comments == expected
-
-    where:
-    comments | reason || expected
-    null     | null   || null
-    null     | "r"    || "r"
-    "c"      | null   || "c"
-    "c"      | "r"    || "c"
-  }
-
-  private void mockTaggingOperation() {
-    1 * katoService.requestOperations({ ops ->
-      taggingOps = ops.collect { it.upsertEntityTags.tags[0].value }
-      true
-    }) >> rx.Observable.just(new TaskId("eh"))
   }
 }

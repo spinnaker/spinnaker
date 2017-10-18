@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.orca.RetrySupport
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import retrofit.RetrofitError
@@ -32,8 +33,16 @@ class TargetServerGroupResolverSpec extends Specification {
 
   OortService oort = Mock(OortService)
   ObjectMapper mapper = new ObjectMapper()
+  RetrySupport retrySupport = Spy(RetrySupport) {
+    _ * sleep(_) >> { /* do nothing */ }
+  }
+
   @Subject
-  TargetServerGroupResolver subject = new TargetServerGroupResolver(oortService: oort, mapper: mapper)
+  TargetServerGroupResolver subject = new TargetServerGroupResolver(
+    oortService: oort,
+    mapper: mapper,
+    retrySupport: retrySupport
+  )
 
   def "should resolve to target server groups"() {
     when:
@@ -131,7 +140,7 @@ class TargetServerGroupResolverSpec extends Specification {
   }
 
   @Unroll
-  def "should retry on network + 429 errors"() {
+  def "should retry on non 404 errors"() {
     given:
     def invocationCount = 0
     def capturedResult
@@ -152,9 +161,9 @@ class TargetServerGroupResolverSpec extends Specification {
 
     where:
     exception                                         || expectNull || expectedInvocationCount
-    new IllegalStateException("should not retry")     || false      || 1
-    retrofitError(RetrofitError.Kind.UNEXPECTED, 400) || false      || 1
-    retrofitError(RetrofitError.Kind.HTTP, 500)       || false      || 1
+    new IllegalStateException("should retry")         || false      || 10
+    retrofitError(RetrofitError.Kind.UNEXPECTED, 400) || false      || 10
+    retrofitError(RetrofitError.Kind.HTTP, 500)       || false      || 10
     retrofitError(RetrofitError.Kind.HTTP, 404)       || true       || 1      // a 404 should short-circuit and return null
     retrofitError(RetrofitError.Kind.NETWORK, 0)      || false      || 10
     retrofitError(RetrofitError.Kind.HTTP, 429)       || false      || 10
