@@ -1,0 +1,45 @@
+/*
+ * Copyright 2017 Netflix, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+apply plugin: 'org.springframework.boot'
+apply plugin: 'spinnaker.package'
+
+apply from: "$rootDir/gradle/kotlin.gradle"
+apply from: "$rootDir/gradle/spek.gradle"
+
+ext {
+  springConfigLocation = System.getProperty('spring.config.location', "${System.getProperty('user.home')}/.spinnaker/")
+  repackage = System.getProperty('springBoot.repackage', "false")
+}
+
+tasks.withType(org.springframework.boot.gradle.run.BootRunTask) {
+  systemProperty('spring.config.location', project.springConfigLocation)
+}
+
+springBoot {
+  mainClass = 'com.netflix.spinnaker.keel.Main'
+}
+
+dependencies {
+  spinnaker.group("bootWeb")
+
+  compile project(":keel-core")
+
+  compile spinnaker.dependency("logstashEncoder")
+
+  spinnaker.group('test')
+}
+
+tasks.bootRepackage.enabled = Boolean.valueOf(project.repackage)

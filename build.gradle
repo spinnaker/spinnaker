@@ -1,0 +1,106 @@
+/*
+ * Copyright 2017 Netflix, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+buildscript {
+  repositories {
+    jcenter()
+    maven { url "http://spinnaker.bintray.com/gradle" }
+    maven { url "https://plugins.gradle.org/m2/" }
+  }
+  dependencies {
+    classpath "com.netflix.spinnaker.gradle:spinnaker-gradle-project:3.16.0"
+    classpath "org.springframework.boot:spring-boot-gradle-plugin:1.5.4.RELEASE"
+    classpath "org.junit.platform:junit-platform-gradle-plugin:$junitVersion"
+    classpath "com.netflix.nebula:nebula-kotlin-plugin:$kotlinVersion"
+  }
+}
+
+allprojects {
+  apply plugin: "spinnaker.project"
+  group = "com.netflix.spinnaker.keel"
+
+  ext {
+    spinnakerDependenciesVersion = project.hasProperty('spinnakerDependenciesVersion') ? project.property('spinnakerDependenciesVersion') : '0.117.0'
+  }
+
+  def checkLocalVersions = [spinnakerDependenciesVersion: spinnakerDependenciesVersion]
+  if (ext.has('versions')) {
+    def extVers = ext.get('versions')
+    if (extVers instanceof Map) {
+      checkLocalVersions.putAll(extVers)
+    }
+  }
+
+  def localVersions = checkLocalVersions.findAll { it.value.endsWith('-SNAPSHOT') }
+  if (localVersions) {
+    logger.info("Enabling mavenLocal repo for $localVersions")
+    repositories {
+      mavenLocal()
+    }
+  }
+
+  spinnaker {
+    dependenciesVersion = spinnakerDependenciesVersion
+  }
+
+//  test {
+//    testLogging {
+//      exceptionFormat = 'full'
+//    }
+//  }
+
+  configurations.all {
+    exclude group: "javax.servlet", module: "servlet-api"
+    exclude group: "org.slf4j", module: "slf4j-log4j12"
+    exclude group: "org.slf4j", module: "slf4j-simple"
+    resolutionStrategy {
+      force "org.antlr:antlr-runtime:3.5.2"
+      eachDependency {
+        if (it.requested.group.startsWith("com.fasterxml.jackson")) {
+          it.useVersion spinnaker.version('jackson')
+        }
+        if (it.requested.group == "com.netflix.rxjava" && it.requested.name == "rxjava-core") {
+          it.useTarget group: "io.reactivex", name: "rxjava", version: "1.0.12"
+        }
+        if (it.requested.group == "asm" || it.requested.group == "org.ow2.asm") {
+          it.useTarget group: "org.ow2.asm", name: "asm-all", version: "5.0.3"
+        }
+        if (it.requested.group == "cglib" || it.requested.name == "cglib") {
+          it.useTarget group: "cglib", name: "cglib", version: "3.1"
+        }
+        if (it.requested.group == "antlr") {
+          it.useTarget group: "org.antlr", name: it.requested.name, version: "3.5.2"
+        }
+        if (it.requested.group == "org.apache.xbean") {
+          it.useVersion "4.1"
+        }
+      }
+    }
+  }
+}
+
+subprojects {
+  license {
+    exclude "**/*.json"
+    exclude "**/*.md"
+    exclude "**/*.yml"
+    mapping {
+      java = "SLASHSTAR_STYLE"
+      kt = "SLASHSTAR_STYLE"
+    }
+  }
+}
+
+defaultTasks ":keel-web:bootRun"
