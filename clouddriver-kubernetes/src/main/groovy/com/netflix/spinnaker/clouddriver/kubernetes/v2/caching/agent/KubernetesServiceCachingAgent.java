@@ -28,8 +28,10 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.Kube
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
 import io.kubernetes.client.models.V1Pod;
 import io.kubernetes.client.models.V1Service;
+import io.kubernetes.client.models.V1beta1ReplicaSet;
 import lombok.Getter;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -56,6 +58,8 @@ public class KubernetesServiceCachingAgent extends KubernetesV2OnDemandCachingAg
   final private Collection<AgentDataType> providedDataTypes = Collections.unmodifiableSet(
       new HashSet<>(Arrays.asList(
           INFORMATIVE.forType(Keys.LogicalKind.APPLICATION.toString()),
+          INFORMATIVE.forType(KubernetesKind.POD.toString()),
+          INFORMATIVE.forType(KubernetesKind.REPLICA_SET.toString()),
           AUTHORITATIVE.forType(KubernetesKind.SERVICE.toString())
       ))
   );
@@ -90,72 +94,87 @@ public class KubernetesServiceCachingAgent extends KubernetesV2OnDemandCachingAg
 
   @Override
   protected Map<V1Service, List<KubernetesManifest>> loadSecondaryResourceRelationships(List<V1Service> services) {
+    Map<String, Set<KubernetesManifest>> mapLabelToManifest = new HashMap<>();
+
     // TODO perf - this might be excessive when only a small number of services are specified. We could consider
     // reading from the cache here, or deciding how many pods to load ahead of time, or construct a fancy label
     // selector that merges all label selectors here.
-    List<V1Pod> pods = namespaces.stream()
+    namespaces.stream()
         .map(credentials::listAllPods)
         .flatMap(Collection::stream)
-        .collect(Collectors.toList());
+        .collect(Collectors.toList())
+        .forEach(p -> addAllPodLabels(mapLabelToManifest, p));
 
-    Map<String, Set<V1Pod>> mapLabelToPod = new HashMap<>();
+    namespaces.stream()
+        .map(credentials::listAllReplicaSets)
+        .flatMap(Collection::stream)
+        .collect(Collectors.toList())
+        .forEach(r -> addAllReplicaSetLabels(mapLabelToManifest, r));
+
     Map<V1Service, List<KubernetesManifest>> result = new HashMap<>();
 
-    for (V1Pod pod : pods) {
-      addAllPodLabels(mapLabelToPod, pod);
-    }
-
     for (V1Service service : services) {
-      result.put(service, getRelatedManifests(service, mapLabelToPod));
+      result.put(service, getRelatedManifests(service, mapLabelToManifest));
     }
 
     return result;
   }
 
-  private static List<KubernetesManifest> getRelatedManifests(V1Service service, Map<String, Set<V1Pod>> mapLabelToPod) {
-    return intersectLabels(service, mapLabelToPod).stream()
-        .map(KubernetesCacheDataConverter::convertToManifest)
-        .collect(Collectors.toList());
+  private static List<KubernetesManifest> getRelatedManifests(V1Service service, Map<String, Set<KubernetesManifest>> mapLabelToManifest) {
+    return new ArrayList<>(intersectLabels(service, mapLabelToManifest));
   }
 
-  private static Set<V1Pod> intersectLabels(V1Service service, Map<String, Set<V1Pod>> mapLabelToPod) {
+  private static Set<KubernetesManifest> intersectLabels(V1Service service, Map<String, Set<KubernetesManifest>> mapLabelToManifest) {
     Map<String, String> selector = service.getSpec().getSelector();
     if (selector == null || selector.isEmpty()) {
       return new HashSet<>();
     }
 
-    Set<V1Pod> result = null;
+    Set<KubernetesManifest> result = null;
     String namespace = service.getMetadata().getNamespace();
     for (Map.Entry<String, String> label : service.getSpec().getSelector().entrySet())  {
       String labelKey = podLabelKey(namespace, label);
-      Set<V1Pod> pods = mapLabelToPod.get(labelKey);
-      pods = pods == null ? new HashSet<>() : pods;
+      Set<KubernetesManifest> manifests = mapLabelToManifest.get(labelKey);
+      manifests = manifests == null ? new HashSet<>() : manifests;
 
       if (result == null) {
-        result = pods;
+        result = manifests;
       } else {
-        result.retainAll(pods);
+        result.retainAll(manifests);
       }
     }
 
     return result;
   }
 
-  private static void addAllPodLabels(Map<String, Set<V1Pod>> entries, V1Pod pod) {
-    String namespace = pod.getMetadata().getNamespace();
-    for (Map.Entry<String, String> label : pod.getMetadata().getLabels().entrySet()) {
+  private static void addAllReplicaSetLabels(Map<String, Set<KubernetesManifest>> entries, V1beta1ReplicaSet replicaSet) {
+    String namespace = replicaSet.getMetadata().getNamespace();
+    Map<String, String> podLabels = replicaSet.getSpec().getTemplate().getMetadata().getLabels();
+    if (podLabels == null) {
+      return;
+    }
+
+    for (Map.Entry<String, String> label : podLabels.entrySet()) {
       String labelKey = podLabelKey(namespace, label);
-      enterPod(entries, labelKey, pod);
+      enterManifest(entries, labelKey, KubernetesCacheDataConverter.convertToManifest(replicaSet));
     }
   }
 
-  private static void enterPod(Map<String, Set<V1Pod>> entries, String label, V1Pod pod) {
-    Set<V1Pod> pods = entries.get(label);
+  private static void addAllPodLabels(Map<String, Set<KubernetesManifest>> entries, V1Pod pod) {
+    String namespace = pod.getMetadata().getNamespace();
+    for (Map.Entry<String, String> label : pod.getMetadata().getLabels().entrySet()) {
+      String labelKey = podLabelKey(namespace, label);
+      enterManifest(entries, labelKey, KubernetesCacheDataConverter.convertToManifest(pod));
+    }
+  }
+
+  private static void enterManifest(Map<String, Set<KubernetesManifest>> entries, String label, KubernetesManifest manifest) {
+    Set<KubernetesManifest> pods = entries.get(label);
     if (pods == null) {
       pods = new HashSet<>();
     }
 
-    pods.add(pod);
+    pods.add(manifest);
 
     entries.put(label, pods);
   }
