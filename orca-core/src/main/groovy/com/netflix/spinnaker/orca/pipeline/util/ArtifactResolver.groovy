@@ -27,12 +27,12 @@ class ArtifactResolver {
 
   static void resolveArtifacts(Map pipeline) {
     Set<Artifact> resolvedArtifacts = []
-    List<Artifact> recievedArtifacts = pipeline.recievedArtifacts ?: []
+    List<Artifact> receivedArtifacts = pipeline.receivedArtifacts ?: []
     List<ExpectedArtifact> expectedArtifacts = pipeline.trigger.expectedArtifacts ?: []
     List<ExpectedArtifact> unresolvedExpectedArtifacts = []
 
     for (ExpectedArtifact expectedArtifact : expectedArtifacts) {
-      List<Artifact> matches = recievedArtifacts.findAll { a -> expectedArtifact.matches(a) }
+      List<Artifact> matches = receivedArtifacts.findAll { a -> expectedArtifact.matches((Artifact) a) }
       switch (matches.size()) {
         case 0:
           unresolvedExpectedArtifacts.add(expectedArtifact)
