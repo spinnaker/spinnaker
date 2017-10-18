@@ -2,9 +2,8 @@ import { IController, module } from 'angular';
 import { IModalService } from 'angular-ui-bootstrap';
 import { cloneDeep } from 'lodash';
 
-import { CloudProviderRegistry, ILoadBalancer } from '@spinnaker/core';
+import { CloudProviderRegistry, ILoadBalancer, PipelineConfigProvider } from '@spinnaker/core';
 
-import { AppengineProviderSettings } from 'appengine/appengine.settings';
 import { APPENGINE_LOAD_BALANCER_CHOICE_MODAL_CTRL } from './loadBalancerChoice.modal.controller';
 
 class AppengineEditLoadBalancerStageCtrl implements IController {
@@ -53,20 +52,18 @@ class AppengineEditLoadBalancerStageCtrl implements IController {
 export const APPENGINE_EDIT_LOAD_BALANCER_STAGE = 'spinnaker.appengine.pipeline.stage.editLoadBalancerStage';
 module(APPENGINE_EDIT_LOAD_BALANCER_STAGE, [
   APPENGINE_LOAD_BALANCER_CHOICE_MODAL_CTRL,
-]).config((pipelineConfigProvider: any) => {
-    if (AppengineProviderSettings.defaults.editLoadBalancerStageEnabled) {
-      pipelineConfigProvider.registerStage({
-        label: 'Edit Load Balancer',
-        description: 'Edits a load balancer',
-        key: 'upsertAppEngineLoadBalancers',
-        cloudProvider: 'appengine',
-        templateUrl: require('./editLoadBalancerStage.html'),
-        executionDetailsUrl: require('./editLoadBalancerExecutionDetails.html'),
-        executionConfigSections: ['editLoadBalancerConfig', 'taskStatus'],
-        controller: 'appengineEditLoadBalancerStageCtrl',
-        controllerAs: 'editLoadBalancerStageCtrl',
-        validators: [],
-      });
-    }
+]).config((pipelineConfigProvider: PipelineConfigProvider) => {
+    pipelineConfigProvider.registerStage({
+      label: 'Edit Load Balancer',
+      description: 'Edits a load balancer',
+      key: 'upsertAppEngineLoadBalancers',
+      cloudProvider: 'appengine',
+      templateUrl: require('./editLoadBalancerStage.html'),
+      executionDetailsUrl: require('./editLoadBalancerExecutionDetails.html'),
+      executionConfigSections: ['editLoadBalancerConfig', 'taskStatus'],
+      controller: 'appengineEditLoadBalancerStageCtrl',
+      controllerAs: 'editLoadBalancerStageCtrl',
+      validators: [],
+    });
   })
   .controller('appengineEditLoadBalancerStageCtrl', AppengineEditLoadBalancerStageCtrl);

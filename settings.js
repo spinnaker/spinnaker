@@ -100,7 +100,6 @@ window.spinnakerSettings = {
     appengine: {
       defaults: {
         account: 'my-appengine-account',
-        editLoadBalancerStageEnabled: false,
       }
     }
   },
