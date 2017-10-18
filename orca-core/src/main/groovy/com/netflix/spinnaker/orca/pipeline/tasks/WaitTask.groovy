@@ -38,8 +38,8 @@ class WaitTask implements RetryableTask {
   @Override
   long getDynamicBackoffPeriod(Duration taskDuration) {
     if (taskDuration <= Duration.ofMillis(waitTimeMs)) {
-      // wait until timeout is over to poll
-      return Duration.ofMillis(waitTimeMs).toMillis()
+      // task needs to run again right after it should be complete, so add half a second
+      return Duration.ofMillis(waitTimeMs).minus(taskDuration).plus(Duration.ofMillis(500)).toMillis()
     } else {
       // start polling normally after timeout to account for delays like throttling
       return backoffPeriod

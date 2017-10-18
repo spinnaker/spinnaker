@@ -64,8 +64,8 @@ class RestrictExecutionDuringTimeWindow implements StageDefinitionBuilder {
     @Override
     long getDynamicBackoffPeriod(Duration taskDuration) {
       if (taskDuration < Duration.ofMillis(timeout)) {
-        // wait until timeout is over to poll
-        return Duration.ofMillis(timeout).toMillis()
+        // task needs to run again right after it should be complete, so add half a second
+        return Duration.ofMillis(timeout).minus(taskDuration).plus(Duration.ofMillis(500)).toMillis()
       } else {
         //start polling normally after timeout to account for delays like throttling
         return backoffPeriod
