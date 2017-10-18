@@ -65,8 +65,8 @@ public class GrpcRetryInterceptor implements ClientInterceptor {
     private volatile AttemptListener latestResponse;
     private volatile ScheduledFuture<?> retryTask;
     private int retries = 0;
-    private long backOff = 100;
-    private int maxRetries = 8;
+    private long backOff = 150;
+    private int maxRetries = 12;
     private final Set<Status.Code> retryOnStatuses = new HashSet<>(Arrays.asList(Status.Code.UNAVAILABLE, Status.Code.RESOURCE_EXHAUSTED, Status.Code.DEADLINE_EXCEEDED));
 
     RetryingCall(MethodDescriptor<ReqT, RespT> method,
