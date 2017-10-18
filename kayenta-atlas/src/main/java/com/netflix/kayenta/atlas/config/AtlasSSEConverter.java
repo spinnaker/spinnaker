@@ -18,8 +18,8 @@ package com.netflix.kayenta.atlas.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.kayenta.atlas.model.AtlasResults;
-import com.netflix.kayenta.util.ObjectMapperFactory;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import retrofit.converter.ConversionException;
@@ -36,17 +36,16 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
-import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES;
-
 @Component
 @Slf4j
 // Atlas returns one json stanza per line; we rely on that here.
 // We are not implementing full, proper SSE handling here.
 public class AtlasSSEConverter implements Converter {
 
-  private static final ObjectMapper objectMapper = ObjectMapperFactory.getMapper();
-  private static final List<String> expectedResultsTypeList = Arrays.asList("timeseries", "close");
+  private static final List<String> EXPECTED_RESULTS_TYPE_LIST = Arrays.asList("timeseries", "close");
+
+  @Autowired
+  ObjectMapper kayentaObjectMapper;
 
   @Override
   public List<AtlasResults> fromBody(TypedInput body, Type type) throws ConversionException {
@@ -67,7 +66,7 @@ public class AtlasSSEConverter implements Converter {
       List<AtlasResults> atlasResultsList =
         tokenizedLines
           .stream()
-          .map(AtlasSSEConverter::convertTokenizedLineToAtlasResults)
+          .map(this::convertTokenizedLineToAtlasResults)
           .filter(Objects::nonNull)
           .collect(Collectors.toList());
 
@@ -91,12 +90,12 @@ public class AtlasSSEConverter implements Converter {
     return null;
   }
 
-  private static AtlasResults convertTokenizedLineToAtlasResults(String[] tokenizedLine) {
+  private AtlasResults convertTokenizedLineToAtlasResults(String[] tokenizedLine) {
     try {
-      AtlasResults atlasResults = objectMapper.readValue(tokenizedLine[1], AtlasResults.class);
+      AtlasResults atlasResults = kayentaObjectMapper.readValue(tokenizedLine[1], AtlasResults.class);
       String atlasResultsType = atlasResults.getType();
 
-      if (StringUtils.isEmpty(atlasResultsType) || !expectedResultsTypeList.contains(atlasResultsType)) {
+      if (StringUtils.isEmpty(atlasResultsType) || !EXPECTED_RESULTS_TYPE_LIST.contains(atlasResultsType)) {
         log.info("Received results of type other than 'timeseries' or 'close' from Atlas: {}", atlasResults);
 
         // TODO: Retry on type 'error'?

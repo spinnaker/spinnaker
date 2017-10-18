@@ -16,8 +16,8 @@
 
 package com.netflix.kayenta.prometheus.controllers;
 
-import com.netflix.kayenta.canary.CanaryScope;
 import com.netflix.kayenta.canary.CanaryMetricConfig;
+import com.netflix.kayenta.canary.CanaryScope;
 import com.netflix.kayenta.canary.providers.PrometheusCanaryMetricSetQueryConfig;
 import com.netflix.kayenta.metrics.SynchronousQueryProcessor;
 import com.netflix.kayenta.security.AccountCredentials;
@@ -57,8 +57,8 @@ public class PrometheusFetchController {
                              @RequestParam(required = false) List<String> sumByFields,
 
                              @ApiParam(defaultValue = "cpu") @RequestParam String metricSetName,
-                             @ApiParam(defaultValue = "2017-08-17T21:13:00Z") @RequestParam String start,
-                             @ApiParam(defaultValue = "2017-08-17T21:30:00Z") @RequestParam String end,
+                             @ApiParam(defaultValue = "2017-08-17T21:13:00Z") @RequestParam Instant start,
+                             @ApiParam(defaultValue = "2017-08-17T21:30:00Z") @RequestParam Instant end,
                              @ApiParam(defaultValue = "300") @RequestParam Long step) throws IOException {
     String resolvedMetricsAccountName = CredentialsHelper.resolveAccountByNameOrType(metricsAccountName,
                                                                                      AccountCredentials.Type.METRICS_STORE,
@@ -82,9 +82,7 @@ public class PrometheusFetchController {
         .query(prometheusCanaryMetricSetQueryConfig)
         .build();
 
-    Instant startInstant = Instant.parse(start);
-    Instant endInstant = Instant.parse(end);
-    CanaryScope canaryScope = new CanaryScope(scope, startInstant, endInstant, step, Collections.emptyMap());
+    CanaryScope canaryScope = new CanaryScope(scope, start, end, step, Collections.emptyMap());
 
     return synchronousQueryProcessor.processQuery(resolvedMetricsAccountName,
                                                   resolvedStorageAccountName,

@@ -16,6 +16,9 @@
 
 package com.netflix.kayenta.retrofit.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.netflix.spinnaker.config.OkHttpClientConfiguration;
 import com.netflix.spinnaker.orca.retrofit.exceptions.RetrofitExceptionHandler;
 import com.squareup.okhttp.ConnectionPool;
@@ -24,9 +27,13 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Scope;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
+
+import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
+import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES;
 
 @Configuration
 public class RetrofitClientConfiguration {
@@ -52,5 +59,19 @@ public class RetrofitClientConfiguration {
   @Bean @Order(Ordered.HIGHEST_PRECEDENCE)
   RetrofitExceptionHandler retrofitExceptionHandler() {
     return new RetrofitExceptionHandler();
+  }
+
+  @Bean
+  @Primary
+  ObjectMapper kayentaObjectMapper() {
+    ObjectMapper objectMapper = new ObjectMapper()
+      .setSerializationInclusion(NON_NULL)
+      .disable(FAIL_ON_UNKNOWN_PROPERTIES)
+      .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
+
+    JavaTimeModule module = new JavaTimeModule();
+    objectMapper.registerModule(module);
+
+    return objectMapper;
   }
 }

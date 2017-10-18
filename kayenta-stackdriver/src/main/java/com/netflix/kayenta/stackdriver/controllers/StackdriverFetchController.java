@@ -54,8 +54,8 @@ public class StackdriverFetchController {
                              @ApiParam(defaultValue = "compute.googleapis.com/instance/cpu/utilization") @RequestParam String metricType,
                              @RequestParam(required = false) List<String> groupByFields, // metric.label.instance_name
                              @ApiParam(defaultValue = "myapp-v010-") @RequestParam String scope,
-                             @ApiParam(defaultValue = "2017-07-01T15:13:00Z") @RequestParam String intervalStartTimeIso,
-                             @ApiParam(defaultValue = "2017-07-02T15:27:00Z") @RequestParam String intervalEndTimeIso,
+                             @ApiParam(defaultValue = "2017-10-01T15:13:00Z") @RequestParam Instant startTimeIso,
+                             @ApiParam(defaultValue = "2017-10-02T15:27:00Z") @RequestParam Instant endTimeIso,
                              @ApiParam(defaultValue = "3600") @RequestParam Long step) throws IOException {
     String resolvedMetricsAccountName = CredentialsHelper.resolveAccountByNameOrType(metricsAccountName,
                                                                                      AccountCredentials.Type.METRICS_STORE,
@@ -80,13 +80,10 @@ public class StackdriverFetchController {
         .query(stackdriverCanaryMetricSetQueryConfigBuilder.build())
         .build();
 
-    Instant startTimeInstant = Instant.parse(intervalStartTimeIso);
-    Instant endTimeInstant = Instant.parse(intervalEndTimeIso);
-
     CanaryScope canaryScope = new CanaryScope();
     canaryScope.setScope(scope);
-    canaryScope.setStart(startTimeInstant);
-    canaryScope.setEnd(endTimeInstant);
+    canaryScope.setStart(startTimeIso);
+    canaryScope.setEnd(endTimeIso);
     canaryScope.setStep(step);
 
     return synchronousQueryProcessor.processQuery(resolvedMetricsAccountName,

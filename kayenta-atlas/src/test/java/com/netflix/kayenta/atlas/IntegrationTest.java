@@ -8,7 +8,6 @@ import com.netflix.kayenta.atlas.model.TimeseriesData;
 import com.netflix.kayenta.canary.CanaryConfig;
 import com.netflix.kayenta.canary.CanaryMetricConfig;
 import com.netflix.kayenta.canary.providers.AtlasCanaryMetricSetQueryConfig;
-import com.netflix.kayenta.util.ObjectMapperFactory;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -19,6 +18,7 @@ import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.test.context.ContextConfiguration;
@@ -34,10 +34,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
-import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES;
-
 @Configuration
+@ComponentScan({
+  "com.netflix.kayenta.retrofit.config"
+})
 class TestConfig {}
 
 @Builder
@@ -58,10 +58,12 @@ class CanaryMetricConfigWithResults {
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = {TestConfig.class})
 public class IntegrationTest {
+
     @Autowired
     private ResourceLoader resourceLoader;
 
-    private static final ObjectMapper objectMapper = ObjectMapperFactory.getMapper();
+    @Autowired
+    ObjectMapper kayentaObjectMapper;
 
     private String getFileContent(String filename) throws IOException {
         try (InputStream inputStream = resourceLoader.getResource("classpath:" + filename).getInputStream()) {
@@ -71,7 +73,7 @@ public class IntegrationTest {
 
     private CanaryConfig getConfig(String filename) throws IOException {
         String contents = getFileContent(filename);
-        return objectMapper.readValue(contents, CanaryConfig.class);
+        return kayentaObjectMapper.readValue(contents, CanaryConfig.class);
     }
 
     private CanaryMetricConfigWithResults queryMetric(CanaryMetricConfig metric, AtlasCanaryScope scope) {

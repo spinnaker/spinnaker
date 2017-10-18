@@ -28,7 +28,6 @@ import com.netflix.kayenta.google.security.GoogleNamedAccountCredentials;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
 import com.netflix.kayenta.storage.ObjectType;
 import com.netflix.kayenta.storage.StorageService;
-import com.netflix.kayenta.util.ObjectMapperFactory;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Singular;
@@ -49,7 +48,8 @@ import java.util.Map;
 @Slf4j
 public class GcsStorageService implements StorageService {
 
-  private static final ObjectMapper objectMapper = ObjectMapperFactory.getMapper();
+  @Autowired
+  ObjectMapper kayentaObjectMapper;
 
   @NotNull
   @Singular
@@ -138,7 +138,7 @@ public class GcsStorageService implements StorageService {
     getter.executeMediaAndDownloadTo(output);
     String json = output.toString("UTF8");
 
-    return objectMapper.readValue(json, typeReference);
+    return kayentaObjectMapper.readValue(json, typeReference);
   }
 
   @Override
@@ -153,7 +153,7 @@ public class GcsStorageService implements StorageService {
     ensureBucketExists(accountName);
 
     try {
-      byte[] bytes = objectMapper.writeValueAsBytes(obj);
+      byte[] bytes = kayentaObjectMapper.writeValueAsBytes(obj);
       StorageObject object = new StorageObject().setBucket(bucketName).setName(path);
       ByteArrayContent content = new ByteArrayContent("application/json", bytes);
 

@@ -26,7 +26,6 @@ import com.netflix.kayenta.security.CredentialsHelper;
 import com.netflix.kayenta.storage.ObjectType;
 import com.netflix.kayenta.storage.StorageService;
 import com.netflix.kayenta.storage.StorageServiceRepository;
-import com.netflix.kayenta.util.ObjectMapperFactory;
 import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.RetryableTask;
 import com.netflix.spinnaker.orca.TaskResult;
@@ -45,7 +44,8 @@ import java.util.Map;
 @Slf4j
 public class PrometheusFetchTask implements RetryableTask {
 
-  ObjectMapper objectMapper = ObjectMapperFactory.getMapper();
+  @Autowired
+  ObjectMapper kayentaObjectMapper;
 
   @Autowired
   AccountCredentialsRepository accountCredentialsRepository;
@@ -79,7 +79,7 @@ public class PrometheusFetchTask implements RetryableTask {
     String canaryConfigId = (String)context.get("canaryConfigId");
     CanaryScope canaryScope;
     try {
-      canaryScope = objectMapper.readValue((String)stage.getContext().get("prometheusCanaryScope"), CanaryScope.class);
+      canaryScope = kayentaObjectMapper.readValue((String)stage.getContext().get("prometheusCanaryScope"), CanaryScope.class);
     } catch (IOException e) {
       log.warn("Unable to parse JSON scope", e);
       throw new RuntimeException(e);

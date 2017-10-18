@@ -23,7 +23,6 @@ import com.netflix.kayenta.configbin.service.ConfigBinRemoteService;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
 import com.netflix.kayenta.storage.ObjectType;
 import com.netflix.kayenta.storage.StorageService;
-import com.netflix.kayenta.util.ObjectMapperFactory;
 import com.squareup.okhttp.MediaType;
 import com.squareup.okhttp.RequestBody;
 import lombok.Builder;
@@ -45,7 +44,8 @@ import java.util.stream.Collectors;
 @Slf4j
 public class ConfigBinStorageService implements StorageService {
 
-  private static final ObjectMapper objectMapper = ObjectMapperFactory.getMapper();
+  @Autowired
+  ObjectMapper kayentaObjectMapper;
 
   @NotNull
   @Singular
@@ -75,7 +75,7 @@ public class ConfigBinStorageService implements StorageService {
       throw new IllegalArgumentException("No such object named " + objectKey);
     }
     try {
-      return objectMapper.readValue(json, objectType.getTypeReference());
+      return kayentaObjectMapper.readValue(json, objectType.getTypeReference());
     } catch (Throwable e) {
       log.error("Read failed on path {}: {}", objectKey, e);
       throw new IllegalStateException(e);
@@ -91,7 +91,7 @@ public class ConfigBinStorageService implements StorageService {
     String configType = credentials.getConfigType();
     ConfigBinRemoteService remoteService = credentials.getRemoteService();
     try {
-      String json = objectMapper.writeValueAsString(obj);
+      String json = kayentaObjectMapper.writeValueAsString(obj);
       RequestBody body = RequestBody.create(MediaType.parse("application/json"), json);
       remoteService.post(ownerApp, configType, objectKey, body);
     } catch (IOException e) {
@@ -121,7 +121,7 @@ public class ConfigBinStorageService implements StorageService {
     ConfigBinRemoteService remoteService = credentials.getRemoteService();
     String jsonBody = remoteService.list(ownerApp, configType);
     try {
-      List<String> names = objectMapper.readValue(jsonBody, new TypeReference<List<String>>(){});
+      List<String> names = kayentaObjectMapper.readValue(jsonBody, new TypeReference<List<String>>(){});
       Map<String, Object> objectlist = names
         .stream()
         .collect(Collectors.toMap(Function.identity(), this::metadataFor));

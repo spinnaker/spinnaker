@@ -17,18 +17,13 @@
 package com.netflix.kayenta.metrics
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.SerializationFeature
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.netflix.kayenta.canary.CanaryScope
-import com.netflix.kayenta.util.ObjectMapperFactory
+import com.netflix.kayenta.retrofit.config.RetrofitClientConfiguration
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
 
 import java.time.Instant
-
-import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL
-import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES
 
 class CanaryScopeSpec extends Specification {
 
@@ -59,7 +54,7 @@ class CanaryScopeSpec extends Specification {
   @Unroll
   void "should parse json"() {
     when:
-    ObjectMapper objectMapper = ObjectMapperFactory.getMapper()
+    ObjectMapper objectMapper = new RetrofitClientConfiguration().kayentaObjectMapper()
 
     CanaryScope scope = objectMapper.readValue(scope1Json, CanaryScope)
 
@@ -70,7 +65,7 @@ class CanaryScopeSpec extends Specification {
   @Unroll
   void "should render as json and come back again"() {
     when:
-    ObjectMapper objectMapper = ObjectMapperFactory.getMapper()
+    ObjectMapper objectMapper = new RetrofitClientConfiguration().kayentaObjectMapper()
 
     StringWriter jsonStream = new StringWriter()
     objectMapper.writeValue(jsonStream, scope1)

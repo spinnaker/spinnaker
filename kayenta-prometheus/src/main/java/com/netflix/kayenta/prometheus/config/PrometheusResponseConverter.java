@@ -18,10 +18,9 @@ package com.netflix.kayenta.prometheus.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.kayenta.prometheus.model.PrometheusResults;
-import com.netflix.kayenta.util.ObjectMapperFactory;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 import retrofit.converter.ConversionException;
 import retrofit.converter.Converter;
 import retrofit.mime.TypedInput;
@@ -35,21 +34,18 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-
-import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
-import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES;
-
 @Component
 @Slf4j
 public class PrometheusResponseConverter implements Converter {
 
-  private static final ObjectMapper objectMapper = ObjectMapperFactory.getMapper();
+  @Autowired
+  ObjectMapper kayentaObjectMapper;
 
   @Override
   public List<PrometheusResults> fromBody(TypedInput body, Type type) throws ConversionException {
     try (BufferedReader reader = new BufferedReader(new InputStreamReader(body.in()))) {
       String json = reader.readLine();
-      Map responseMap = objectMapper.readValue(json, Map.class);
+      Map responseMap = kayentaObjectMapper.readValue(json, Map.class);
       Map data = (Map)responseMap.get("data");
       List<Map> resultList = (List<Map>)data.get("result");
       if (resultList == null || resultList.isEmpty()) {

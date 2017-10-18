@@ -21,7 +21,6 @@ import com.netflix.kayenta.memory.security.MemoryNamedAccountCredentials;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
 import com.netflix.kayenta.storage.ObjectType;
 import com.netflix.kayenta.storage.StorageService;
-import com.netflix.kayenta.util.ObjectMapperFactory;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Singular;
@@ -51,7 +50,8 @@ public class MemoryStorageService implements StorageService {
     private Map<String, String> entries = new ConcurrentHashMap<String, String>();
   }
 
-  private static final ObjectMapper objectMapper = ObjectMapperFactory.getMapper();
+  @Autowired
+  ObjectMapper kayentaObjectMapper;
 
   @NotNull
   @Singular
@@ -78,7 +78,7 @@ public class MemoryStorageService implements StorageService {
     }
 
     try {
-      return objectMapper.readValue(json, objectType.getTypeReference());
+      return kayentaObjectMapper.readValue(json, objectType.getTypeReference());
     } catch (IOException e) {
       log.error("Read failed on path {}: {}", key, e);
       throw new IllegalStateException(e);
@@ -90,7 +90,7 @@ public class MemoryStorageService implements StorageService {
     String key = makeKey(accountName, objectType, objectKey);
     log.info("Writing key {}", key);
     try {
-      String json = objectMapper.writeValueAsString(obj);
+      String json = kayentaObjectMapper.writeValueAsString(obj);
       entries.put(key, json);
     } catch (IOException e) {
       log.error("Update failed on path {}: {}", key, e);

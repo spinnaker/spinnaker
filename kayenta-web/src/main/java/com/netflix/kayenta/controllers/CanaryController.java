@@ -21,14 +21,18 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
-import com.netflix.kayenta.canary.*;
+import com.netflix.kayenta.canary.CanaryClassifierThresholdsConfig;
+import com.netflix.kayenta.canary.CanaryConfig;
+import com.netflix.kayenta.canary.CanaryExecutionRequest;
+import com.netflix.kayenta.canary.CanaryScope;
+import com.netflix.kayenta.canary.CanaryScopeFactory;
+import com.netflix.kayenta.canary.CanaryServiceConfig;
 import com.netflix.kayenta.security.AccountCredentials;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
 import com.netflix.kayenta.security.CredentialsHelper;
 import com.netflix.kayenta.storage.ObjectType;
 import com.netflix.kayenta.storage.StorageService;
 import com.netflix.kayenta.storage.StorageServiceRepository;
-import com.netflix.kayenta.util.ObjectMapperFactory;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.pipeline.PipelineLauncher;
@@ -39,11 +43,13 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.io.StringWriter;
-import java.time.Duration;
-import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -63,7 +69,7 @@ public class CanaryController {
   private final StorageServiceRepository storageServiceRepository;
   private final List<CanaryScopeFactory> canaryScopeFactories;
   private final Registry registry;
-  private final ObjectMapper objectMapper = ObjectMapperFactory.getMapper();
+  private final ObjectMapper kayentaObjectMapper;
 
   @Autowired
   public CanaryController(String currentInstanceId,
@@ -72,7 +78,8 @@ public class CanaryController {
                           AccountCredentialsRepository accountCredentialsRepository,
                           StorageServiceRepository storageServiceRepository,
                           Optional<List<CanaryScopeFactory>> canaryScopeFactories,
-                          Registry registry) {
+                          Registry registry,
+                          ObjectMapper kayentaObjectMapper) {
     this.currentInstanceId = currentInstanceId;
     this.pipelineLauncher = pipelineLauncher;
     this.executionRepository = executionRepository;
@@ -86,6 +93,7 @@ public class CanaryController {
     }
 
     this.registry = registry;
+    this.kayentaObjectMapper = kayentaObjectMapper;
   }
 
   // TODO(duftler): Allow for user to be passed in.
@@ -136,8 +144,8 @@ public class CanaryController {
     CanaryScope controlScopeModel = canaryScopeFactory.buildCanaryScope(canaryExecutionRequest.getControlScope());
     CanaryScope experimentScopeModel = canaryScopeFactory.buildCanaryScope(canaryExecutionRequest.getExperimentScope());
 
-    String controlScopeJson = objectMapper.writeValueAsString(controlScopeModel);
-    String experimentScopeJson = objectMapper.writeValueAsString(experimentScopeModel);
+    String controlScopeJson = kayentaObjectMapper.writeValueAsString(controlScopeModel);
+    String experimentScopeJson = kayentaObjectMapper.writeValueAsString(experimentScopeModel);
 
     Map<String, Object> fetchControlContext =
       Maps.newHashMap(
