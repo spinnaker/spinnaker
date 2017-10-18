@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.echo.notification;
 
 import java.util.Map;
+import java.util.NoSuchElementException;
 import com.netflix.spinnaker.echo.model.Event;
 import com.netflix.spinnaker.echo.model.Trigger;
 import com.netflix.spinnaker.echo.pipelinetriggers.orca.OrcaService;
@@ -48,6 +49,10 @@ public class DryRunNotificationAgent extends AbstractEventNotificationAgent {
     String status) {
     Map<String, ?> execution = (Map<String, ?>) event.getContent().get("execution");
     String pipelineConfigId = (String) execution.get("pipelineConfigId");
+    if (pipelineConfigId == null) {
+      return;
+    }
+    log.info("Received dry run notification for {}", pipelineConfigId);
     front50
       .getPipelines(application)
       .flatMapIterable(pipelines -> pipelines)
@@ -55,8 +60,23 @@ public class DryRunNotificationAgent extends AbstractEventNotificationAgent {
       .first()
       .flatMap(pipeline -> {
         log.warn("Triggering dry run of {} {}", pipeline.getApplication(), pipeline.getName());
-        Trigger trigger = Trigger.builder().type(Trigger.Type.DRYRUN.toString()).lastSuccessfulExecution(execution).build();
-        return orca.trigger(pipeline.withName(format("%s (dry run)", pipeline.getName())).withTrigger(trigger));
+        Trigger trigger = Trigger
+          .builder()
+          .type(Trigger.Type.DRYRUN.toString())
+          .lastSuccessfulExecution(execution)
+          .build();
+        return orca.trigger(
+          pipeline
+            .withName(format("%s (dry run)", pipeline.getName()))
+            .withTrigger(trigger)
+        );
+      })
+      .doOnError(ex -> {
+        if (ex instanceof NoSuchElementException) {
+          log.error("No pipeline with config id {} found for {}", pipelineConfigId, application);
+        } else {
+          log.error(format("Error triggering dry run of %s", pipelineConfigId), ex);
+        }
       })
       .subscribe(response -> {
         log.info("Pipeline triggered: {}", response);
