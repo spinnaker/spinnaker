@@ -21,6 +21,7 @@ import java.util.List;
 public class UpsertAmazonLoadBalancerClassicDescription extends UpsertAmazonLoadBalancerDescription {
   private List<Listener> listeners;
   private String healthCheck;
+  private Integer healthCheckPort;
   private Integer healthInterval = 10;
   private Integer healthTimeout = 5;
   private Integer unhealthyThreshold = 2;
@@ -91,6 +92,14 @@ public class UpsertAmazonLoadBalancerClassicDescription extends UpsertAmazonLoad
 
   public void setApplication(String application) {
     this.application = application;
+  }
+
+  public Integer getHealthCheckPort() {
+    return healthCheckPort;
+  }
+
+  public void setHealthCheckPort(Integer healthCheckPort) {
+    this.healthCheckPort = healthCheckPort;
   }
 
   public static class Listener {
