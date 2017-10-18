@@ -58,7 +58,6 @@ class EchoNotifyingExecutionListener implements ExecutionListener {
       if (execution.status != ExecutionStatus.SUSPENDED) {
         if (execution instanceof Pipeline) {
           addApplicationNotifications(execution as Pipeline)
-          addDryRunNotifications(execution as Pipeline)
         }
         echoService.recordEvent(
           details: [
@@ -86,6 +85,7 @@ class EchoNotifyingExecutionListener implements ExecutionListener {
       if (execution.status != ExecutionStatus.SUSPENDED) {
         if (execution instanceof Pipeline) {
           addApplicationNotifications(execution as Pipeline)
+          addDryRunNotifications(execution as Pipeline)
         }
         echoService.recordEvent(
           details: [
@@ -146,7 +146,7 @@ class EchoNotifyingExecutionListener implements ExecutionListener {
   private void addDryRunNotifications(Pipeline pipeline) {
     if (pipeline.pipelineConfigId in dryRunPipelineIds) {
       log.info("Sending dry run notification for $pipeline.application $pipeline.name")
-      pipeline.notifications << [type: "dryrun"]
+      pipeline.notifications << [type: "dryrun", when: "pipeline.complete"]
     }
   }
 
