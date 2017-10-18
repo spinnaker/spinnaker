@@ -92,6 +92,8 @@ class UpsertTitusScalingPolicyDescription extends AbstractTitusCredentialsDescri
 
         if (metricSpecification.unit) {
           metricBuilder.setUnit(metricSpecification.unit)
+        } else {
+          metricBuilder.setUnit("None")
         }
 
         metricSpecification.dimensions.each {
