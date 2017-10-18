@@ -2,18 +2,25 @@ import { IController, IComponentOptions, module } from 'angular';
 
 import { Application, IServerGroup } from '@spinnaker/core';
 
-import { IScalingPolicy, ScalingPolicyTypeRegistry } from '@spinnaker/amazon';
+import { IScalingPolicy, ITargetTrackingConfiguration } from '@spinnaker/amazon';
+
+interface ITitusPolicy extends IScalingPolicy {
+  targetPolicyDescriptor?: ITargetTrackingConfiguration;
+}
 
 class ScalingPolicyDetailsSummaryController implements IController {
 
   public templateUrl: string;
-  public policy: IScalingPolicy;
+  public policy: ITitusPolicy;
   public serverGroup: IServerGroup;
   public application: Application;
 
   public $onInit() {
-    const config = ScalingPolicyTypeRegistry.getPolicyConfig(this.policy.policyType);
-    this.templateUrl = config ? config.summaryTemplateUrl : require('./alarmBasedSummary.template.html');
+    if (this.policy.targetPolicyDescriptor) {
+      this.templateUrl = require('./targetTracking/targetTrackingSummary.html');
+    } else {
+      this.templateUrl = require('./alarmBasedSummary.template.html');
+    }
   }
 }
 

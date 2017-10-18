@@ -41,9 +41,21 @@ const helpContents: {[key: string]: string} = {
         in the previous scale out event are considered part of that capacity and only 1 additional task is added to the desired count.</p>
       <p>For scale in policies, the cooldown period is used to block subsequent scale in requests until it has expired.
         The intention is to scale in conservatively to protect your application's availability. However, if another
-        alarm triggers a scale out policy during the cooldown period after a scale-in, Application Auto Scaling scales
+        alarm triggers a scale out policy during the cooldown period after a scale in, Application Auto Scaling scales
         out your scalable target immediately.</p>
   `,
+  'titus.autoscaling.scaleIn.cooldown': `
+    <p>The amount of time, in seconds, after a scale in activity completes before another scale in activity can start.</p>
+    <p>The cooldown period is used to block subsequent scale in requests until it has expired. The intention is to scale
+      in conservatively to protect your application's availability. However, if another alarm triggers a scale out policy
+      during the cooldown period after a scale in, Application Auto Scaling scales out your scalable target immediately.</p>
+  `,
+  'titus.autoscaling.scaleOut.cooldown': `
+    <p>The amount of time, in seconds, after a scale out activity completes before another scale out activity can start.</p>
+    <p>While the cooldown period is in effect, the capacity that has been added by the previous scale out event that
+      initiated the cooldown is calculated as part of the desired capacity for the next scale out. The intention is to
+      continuously (but not excessively) scale out.</p>
+  `
 
 };
 

@@ -54,10 +54,28 @@ module.exports = angular
       };
     }
 
+    function constructNewTargetTrackingPolicyTemplate(serverGroup) {
+      return {
+        alarms: [],
+        targetTrackingConfiguration: {
+          targetValue: null,
+          disableScaleIn: false,
+          customizedMetricSpecification: {
+            namespace: 'NFLX/EPIC',
+            metricName: 'CPUUtilization',
+            dimensions: [{ name: 'AutoScalingGroupName', value: serverGroup.name }],
+          },
+          scaleInCooldown: 300,
+          scaleOutCooldown: 300,
+        }
+      };
+    }
+
     return {
       convertServerGroupCommandToDeployConfiguration,
       normalizeServerGroup,
-      constructNewStepScalingPolicyTemplate
+      constructNewStepScalingPolicyTemplate,
+      constructNewTargetTrackingPolicyTemplate,
     };
 
   });

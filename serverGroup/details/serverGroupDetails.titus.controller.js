@@ -112,8 +112,13 @@ module.exports = angular.module('spinnaker.serverGroup.details.titus.controller'
           policy.alarms = [alarm];
           policy.id = p.id;
           return policy;
+        } else {
+          policy.id = p.id;
+          policy.targetTrackingConfiguration = policy.targetPolicyDescriptor;
+          policy.targetTrackingConfiguration.scaleOutCooldown = policy.targetTrackingConfiguration.scaleOutCooldownSec;
+          policy.targetTrackingConfiguration.scaleInCooldown = policy.targetTrackingConfiguration.scaleInCooldownSec;
+          return policy;
         }
-        return {};
 
       }).map(p => awsServerGroupTransformer.transformScalingPolicy(p));
     }

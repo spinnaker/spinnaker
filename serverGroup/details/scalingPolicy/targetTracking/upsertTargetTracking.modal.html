@@ -1,0 +1,166 @@
+<div modal-page class="scaling-policy-modal form-inline">
+  <task-monitor monitor="$ctrl.taskMonitor"></task-monitor>
+  <modal-close dismiss="$dismiss()"></modal-close>
+  <div class="modal-header">
+    <h3>{{$ctrl.policy.policyName ? "Update" : "Create"}} scaling policy</h3>
+  </div>
+  <div class="modal-body">
+    <form name="form" novalidate>
+      <h4 class="section-heading">Target Metric</h4>
+      <div class="section-body">
+        <p>With target tracking policies, Amazon will automatically adjust the size of your ASG to keep the selected
+          metric as close as possible to the selected value.</p>
+        <div class="row" style="margin-bottom: 10px;">
+          <div class="col-md-2 sm-label-right">Metric</div>
+          <div class="col-md-10 content-fields">
+            <div ng-if="$ctrl.state.metricType === 'predefined'">
+              <select class="input input-sm"
+                      ng-model="$ctrl.command.targetTrackingConfiguration.predefinedMetricSpecification.predefinedMetricType"
+                      ng-change="$ctrl.alarmUpdated.next()"
+                      ng-options="option for option in $ctrl.predefinedMetrics">
+              </select>
+              <div>
+                <a href ng-click="$ctrl.toggleMetricType()">Select a custom metric</a>
+              </div>
+            </div>
+
+            <div ng-if="$ctrl.state.metricType === 'custom'">
+              <aws-metric-selector alarm-updated="$ctrl.alarmUpdated"
+                                   alarm="$ctrl.command.targetTrackingConfiguration.customizedMetricSpecification"
+                                   server-group="$ctrl.alarmServerGroup"></aws-metric-selector>
+              <div>
+                <a href ng-click="$ctrl.toggleMetricType()">Use a predefined metric</a>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <div class="row" style="margin-bottom: 10px;">
+          <div class="col-md-2 sm-label-right">Target</div>
+          <div class="col-md-10 content-fields">
+            <div ng-if="$ctrl.state.metricType === 'custom'" style="display: inline-block">
+              <select class="form-control input-sm"
+                      required
+                      ng-model="$ctrl.command.targetTrackingConfiguration.customizedMetricSpecification.statistic"
+                      ng-change="$ctrl.alarmUpdated.next()"
+                      ng-options="stat for stat in $ctrl.statistics">
+              </select>
+              <span class="input-label" style="vertical-align: top; margin-top: 7px"> of </span>
+            </div>
+            <div style="display: inline-block">
+              <input type="number"
+                     class="form-control input-sm"
+                     style="width: 100px"
+                     ng-change="$ctrl.alarmUpdated.next()"
+                     ng-model="$ctrl.command.targetTrackingConfiguration.targetValue" />
+              <span class="input-label" ng-bind="$ctrl.state.unit" ng-if="$ctrl.state.unit !== 'None'"></span>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="row">
+          <div class="col-md-10 col-md-offset-1">
+            <div style="height: 220px">
+              <target-tracking-chart config="$ctrl.command.targetTrackingConfiguration"
+                                     alarm-updated="$ctrl.alarmUpdated"
+                                     state="$ctrl.state"
+                                     server-group="$ctrl.alarmServerGroup"></target-tracking-chart>
+              <div class="small help-contents" style="margin-left: 45px"><b>Note:</b> to zoom in, hold down the alt key and use your
+                mouse to select an area. Double-click to zoom back out.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <h4 class="section-heading">Additional Settings</h4>
+      <div class="section-body section-additional-settings">
+        <div class="row" ng-if="$ctrl.policy.policyName">
+          <div class="col-md-2 sm-label-right">Policy Name</div>
+          <div class="col-md-10 content-fields">
+            <span class="form-control-static select-placeholder" ng-bind="$ctrl.policy.policyName"></span>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-md-3   sm-label-right">Scale In</div>
+          <div class="col-md-9">
+            <div class="checkbox" style="margin-top: 5px">
+              <label>
+                <input type="checkbox" ng-model="$ctrl.command.targetTrackingConfiguration.disableScaleIn" ng-change="$ctrl.scaleInChanged()"/>
+                Disable Scale In Events
+              </label>
+              <div class="small" style="margin-top: 5px">
+                <p>
+                  This option disables scale in events for the target tracking policy, while keeping the scale out events.
+                  This means that ASG will not scale in unless you explicitly set up a separate step policy to scale it
+                  in.
+                </p>
+                <p>
+                  This is useful when you have special requirements, such as gradual or delayed scale in.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="row" ng-if="$ctrl.state.scaleInChanged">
+          <div class="col-md-10 col-md-offset-1 well">
+            <div ng-if="$ctrl.command.targetTrackingConfiguration.disableScaleIn">
+              This policy will not scale down. Make sure you have another policy (either TT or Step) that
+                will scale in this ASG.
+            </div>
+            <div ng-if="!$ctrl.command.targetTrackingConfiguration.disableScaleIn">
+              This policy will scale both in and out. Make sure you don't have other scaling policies, as they
+                will likely interfere with each other.
+            </div>
+
+          </div>
+        </div>
+
+        <div class="row" ng-if="!$ctrl.command.targetTrackingConfiguration.disableScaleIn">
+          <div class="col-md-3 sm-label-right">
+            Scale In Cooldown
+            <help-field key="titus.autoscaling.scaleIn.cooldown"></help-field>
+          </div>
+          <div class="col-md-9 content-fields">
+            <input type="number"
+                   style="width: 60px"
+                   class="form-control input-sm"
+                   required
+                   ng-model="$ctrl.command.targetTrackingConfiguration.scaleInCooldown"/>
+            <span class="input-label">
+              seconds
+            </span>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-md-3 sm-label-right">
+            Scale Out Cooldown
+            <help-field key="titus.autoscaling.scaleOut.cooldown"></help-field>
+          </div>
+          <div class="col-md-9 content-fields">
+            <input type="number"
+                   style="width: 60px"
+                   class="form-control input-sm"
+                   required
+                   ng-model="$ctrl.command.targetTrackingConfiguration.scaleOutCooldown"/>
+            <span class="input-label">
+              seconds
+            </span>
+          </div>
+        </div>
+
+      </div>
+    </form>
+  </div>
+
+  <div class="modal-footer">
+    <button class="btn btn-default" ng-click="$ctrl.cancel()">Cancel</button>
+    <submit-button is-disabled="!form.$valid || $ctrl.taskMonitor.submitting"
+                   submitting="$ctrl.taskMonitor.submitting"
+                   on-click="$ctrl.save()"
+                   is-new="!$ctrl.policy.policyName"></submit-button>
+  </div>
+</div>
