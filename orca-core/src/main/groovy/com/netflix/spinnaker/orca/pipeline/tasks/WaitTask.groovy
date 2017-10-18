@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.pipeline.tasks
 
+import java.time.Duration
 import java.util.concurrent.TimeUnit
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
@@ -30,14 +31,27 @@ import static com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED
 class WaitTask implements RetryableTask {
   long backoffPeriod = 15000
   long timeout = Integer.MAX_VALUE
+  long waitTimeMs
 
   TimeProvider timeProvider = new TimeProvider()
+
+  @Override
+  long getDynamicBackoffPeriod(Duration taskDuration) {
+    if (taskDuration <= Duration.ofMillis(waitTimeMs)) {
+      // wait until timeout is over to poll
+      return Duration.ofMillis(waitTimeMs).toMillis()
+    } else {
+      // start polling normally after timeout to account for delays like throttling
+      return backoffPeriod
+    }
+  }
+
 
   @Override
   TaskResult execute(Stage stage) {
     // wait time is specified in seconds
     long waitTime = stage.context.waitTime as long
-    def waitTimeMs = TimeUnit.MILLISECONDS.convert(waitTime, TimeUnit.SECONDS)
+    waitTimeMs = TimeUnit.MILLISECONDS.convert(waitTime, TimeUnit.SECONDS)
     def now = timeProvider.millis
 
     if (!stage.context.containsKey("waitTaskState") || !stage.context.waitTaskState instanceof Map) {

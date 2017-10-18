@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.echo.pipeline
 
+import java.time.Duration
 import java.util.concurrent.TimeUnit
 import com.google.common.annotations.VisibleForTesting
 import com.netflix.spinnaker.orca.*
@@ -65,11 +66,24 @@ class ManualJudgmentStage implements StageDefinitionBuilder, RestartableStage, A
     long backoffPeriod = 15000
     long timeout = TimeUnit.DAYS.toMillis(3)
 
+    @Override
+    long getDynamicBackoffPeriod(Duration taskDuration) {
+      if (taskDuration < Duration.ofMillis(timeout)) {
+        // wait until timeout is over to poll
+        return Duration.ofMillis(timeout).toMillis()
+      } else {
+        // start polling normally after timeout to account for delays like throttling
+        return backoffPeriod
+      }
+    }
+
     @Autowired(required = false)
     EchoService echoService
 
     @Override
     TaskResult execute(Stage stage) {
+      stage.getTopLevelTimeout().ifPresent({ timeout = it })
+
       StageData stageData = stage.mapTo(StageData)
       NotificationState notificationState
       ExecutionStatus executionStatus

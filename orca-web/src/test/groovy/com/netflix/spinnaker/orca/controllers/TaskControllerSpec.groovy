@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.orca.controllers
 
+import com.netflix.spinnaker.orca.pipeline.ExecutionRunner
+
 import java.time.Clock
 import java.time.Instant
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -45,6 +47,7 @@ class TaskControllerSpec extends Specification {
   def executionRepository = Mock(ExecutionRepository)
   def front50Service = Mock(Front50Service)
   def startTracker = Mock(PipelineStartTracker)
+  def executionRunner = Mock(ExecutionRunner)
 
   def clock = Clock.fixed(Instant.now(), UTC)
   int daysOfExecutionHistory = 14
@@ -57,6 +60,7 @@ class TaskControllerSpec extends Specification {
       new TaskController(
         front50Service: front50Service,
         executionRepository: executionRepository,
+        executionRunner: executionRunner,
         daysOfExecutionHistory: daysOfExecutionHistory,
         numberOfOldPipelineExecutionsToInclude: numberOfOldPipelineExecutionsToInclude,
         startTracker: startTracker,
@@ -293,6 +297,7 @@ class TaskControllerSpec extends Specification {
         judgmentStatus: "stop", value: "1", lastModifiedBy: "anonymous"
       ]
     } as Stage)
+    1 * executionRunner.reschedule(pipeline)
     0 * _
 
     and:

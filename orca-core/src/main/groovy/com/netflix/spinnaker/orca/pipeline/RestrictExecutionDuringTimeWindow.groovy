@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.pipeline
 
+import java.time.Duration
 import java.util.concurrent.TimeUnit
 import com.google.common.annotations.VisibleForTesting
 import com.netflix.spinnaker.orca.ExecutionStatus
@@ -61,7 +62,20 @@ class RestrictExecutionDuringTimeWindow implements StageDefinitionBuilder {
     String timeZoneId
 
     @Override
+    long getDynamicBackoffPeriod(Duration taskDuration) {
+      if (taskDuration < Duration.ofMillis(timeout)) {
+        // wait until timeout is over to poll
+        return Duration.ofMillis(timeout).toMillis()
+      } else {
+        //start polling normally after timeout to account for delays like throttling
+        return backoffPeriod
+      }
+    }
+
+    @Override
     TaskResult execute(Stage stage) {
+      stage.getTopLevelTimeout().ifPresent({ timeout = it })
+
       Date now = new Date()
       Date scheduledTime
       try {
