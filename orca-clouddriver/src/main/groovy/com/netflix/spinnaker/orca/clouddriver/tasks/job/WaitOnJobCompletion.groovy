@@ -83,7 +83,7 @@ public class WaitOnJobCompletion extends AbstractCloudProviderAwareTask implemen
             Map<String, Object> properties = [:]
             properties = katoRestService.getFileContents(appName, account, location, name, stage.context.propertyFile)
             if (properties.size() == 0) {
-              throw new IllegalStateException("expected properties file ${stage.context.propertyFile} but one was not found or was empty")
+              throw new IllegalStateException("Expected properties file ${stage.context.propertyFile} but it was either missing, empty or contained invalid syntax")
             }
             outputs << properties
             outputs.propertyFileContents = properties

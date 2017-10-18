@@ -175,7 +175,7 @@ class MonitorJenkinsJobTaskSpec extends Specification {
 
     then:
     IllegalStateException e = thrown IllegalStateException
-    e.message == 'expected properties file noexist.properties but one was not found or was empty'
+    e.message == 'Expected properties file noexist.properties but it was either missing, empty or contained invalid syntax'
   }
 
   def "marks 'unstable' results as successful if explicitly configured to do so"() {
