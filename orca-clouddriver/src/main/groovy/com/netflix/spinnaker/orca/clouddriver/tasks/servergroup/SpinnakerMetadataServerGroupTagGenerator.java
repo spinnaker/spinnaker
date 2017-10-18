@@ -105,6 +105,11 @@ public class SpinnakerMetadataServerGroupTagGenerator implements ServerGroupEnti
                                              String cluster,
                                              String cloudProvider,
                                              String location) {
+    if (cloudProvider.equals("titus")) {
+      // TODO-AJ titus does not force cache refresh so `ANCESTOR` will return inconsistent results
+      return null;
+    }
+
     return retrySupport.retry(() -> {
       try {
         Map<String, Object> targetServerGroup = oortService.getServerGroupSummary(
