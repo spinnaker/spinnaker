@@ -281,4 +281,7 @@ interface ClouddriverService {
   Response getAdhocData(@Path(value = 'groupId', encode = false) String groupId,
                         @Path(value = 'bucketId', encode = false) String bucketId,
                         @Path(value = 'objectId', encode = false) String objectId)
+
+  @GET('/storage')
+  List<String> getStorageAccounts()
 }
