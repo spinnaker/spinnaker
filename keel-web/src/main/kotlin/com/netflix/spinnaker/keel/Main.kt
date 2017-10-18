@@ -15,11 +15,13 @@
  */
 package com.netflix.spinnaker.keel
 
+import com.netflix.spinnaker.kork.PlatformComponents
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.builder.SpringApplicationBuilder
 import org.springframework.boot.web.support.SpringBootServletInitializer
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.Import
 import org.springframework.scheduling.annotation.EnableAsync
 
 object MainDefaults {
@@ -37,6 +39,7 @@ object MainDefaults {
 @Configuration
 @EnableAsync
 @EnableAutoConfiguration
+@Import(PlatformComponents::class)
 @ComponentScan("com.netflix.spinnaker.config")
 open class Main : SpringBootServletInitializer() {
 

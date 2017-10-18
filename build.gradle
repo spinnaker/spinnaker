@@ -29,6 +29,9 @@ buildscript {
 
 allprojects {
   apply plugin: "spinnaker.project"
+  apply from: "$rootDir/gradle/kotlin.gradle"
+  apply from: "$rootDir/gradle/spek.gradle"
+
   group = "com.netflix.spinnaker.keel"
 
   ext {
@@ -92,6 +95,10 @@ allprojects {
 }
 
 subprojects {
+  repositories {
+    jcenter()
+  }
+
   license {
     exclude "**/*.json"
     exclude "**/*.md"

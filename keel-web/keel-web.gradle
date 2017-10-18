@@ -16,9 +16,6 @@
 apply plugin: 'org.springframework.boot'
 apply plugin: 'spinnaker.package'
 
-apply from: "$rootDir/gradle/kotlin.gradle"
-apply from: "$rootDir/gradle/spek.gradle"
-
 ext {
   springConfigLocation = System.getProperty('spring.config.location', "${System.getProperty('user.home')}/.spinnaker/")
   repackage = System.getProperty('springBoot.repackage', "false")
@@ -36,6 +33,8 @@ dependencies {
   spinnaker.group("bootWeb")
 
   compile project(":keel-core")
+  compile project(":keel-front50")
+  compile project(":keel-orca")
 
   compile spinnaker.dependency("logstashEncoder")
 

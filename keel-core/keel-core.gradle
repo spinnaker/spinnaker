@@ -14,15 +14,13 @@
  * limitations under the License.
  */
 
-apply from: "$rootDir/gradle/kotlin.gradle"
-apply from: "$rootDir/gradle/spek.gradle"
-
-repositories {
-  jcenter()
-}
-
 dependencies {
   compile spinnaker.dependency('slf4jApi')
   compile spinnaker.dependency('kork')
   compile spinnaker.dependency('jedis')
+
+  spinnaker.group('jackson')
+
+  compile "com.fasterxml.jackson.module:jackson-module-kotlin:${spinnaker.version("jackson")}"
+  compile 'com.github.jonpeterson:jackson-module-model-versioning:1.2.2'
 }
