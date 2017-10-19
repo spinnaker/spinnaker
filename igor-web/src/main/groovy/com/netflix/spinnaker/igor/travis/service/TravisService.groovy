@@ -110,8 +110,7 @@ class TravisService implements BuildService {
         TriggerResponse triggerResponse = travisClient.triggerBuild(getAccessToken(), repoSlug, repoRequest)
         if (triggerResponse.remainingRequests) {
             log.debug("{}: remaining requests: ${triggerResponse.remainingRequests}", kv("group", groupKey))
-            log.debug("{}: request id: ${triggerResponse.request.id}", kv("group", groupKey))
-            log.debug("{}: repository id: ${triggerResponse.request.repository.id}", kv("group", groupKey))
+            log.info("{}: Triggered build of ${inputRepoSlug}, requestId: ${triggerResponse.request.id}", kv("group", groupKey))
         }
         return travisCache.setQueuedJob(groupKey, triggerResponse.request.repository.id, triggerResponse.request.id)
     }
@@ -307,7 +306,7 @@ class TravisService implements BuildService {
         Map queuedJob = travisCache.getQueuedJob(groupKey, queueId)
         Request requestResponse = travisClient.request(getAccessToken(), queuedJob.repositoryId, queuedJob.requestId)
         if (requestResponse.builds.size() > 0) {
-            log.info "removing ${queueId} from ${groupKey} travisCache"
+            log.info("{}: Build found: [${requestResponse.repository.slug}:${requestResponse.builds.first().number}] . Removing ${queueId} from ${groupKey} travisCache.", kv("group", groupKey))
             travisCache.remove(groupKey, queueId)
             return ["number":requestResponse.builds.first().number]
         }

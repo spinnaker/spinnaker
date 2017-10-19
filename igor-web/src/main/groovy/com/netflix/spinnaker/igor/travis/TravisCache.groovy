@@ -63,14 +63,10 @@ class TravisCache {
 
     int setQueuedJob(String master, int repositoryId, int requestId) {
         Jedis resource = jedisPool.getResource()
-        int queueId = (int) (long) TimeUnit.MILLISECONDS.toSeconds(new Date().getTime())
         resource.withCloseable {
-            while (resource.exists(makeKey(master, queueId))) {
-                queueId++;
-            }
-            resource.hset(makeKey(master, queueId), 'requestId', requestId as String)
-            resource.hset(makeKey(master, queueId), 'repositoryId', repositoryId as String)
-            return queueId
+            resource.hset(makeKey(master, requestId), 'requestId', requestId as String)
+            resource.hset(makeKey(master, requestId), 'repositoryId', repositoryId as String)
+            return requestId
         }
     }
 

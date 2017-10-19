@@ -94,7 +94,6 @@ class BuildController {
                 throw e
             }
         } else if (buildMasters.filteredMap(BuildServiceProvider.TRAVIS).containsKey(master)) {
-            log.info("pretending that I have a queue in travis for {}:{}", kv("master", master), kv("item", item))
             return buildMasters.map[master].queuedBuild(item)
         } else {
             throw new MasterNotFoundException("Master '${master}' not found, item: ${item}")
