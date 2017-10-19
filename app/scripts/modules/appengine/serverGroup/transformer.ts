@@ -1,9 +1,11 @@
 import { module } from 'angular';
 
-import { IServerGroup } from '@spinnaker/core';
+import { IExpectedArtifact, IServerGroup } from '@spinnaker/core';
 
 import { GitCredentialType, IAppengineGitTrigger, IAppengineJenkinsTrigger } from 'appengine/domain/index';
-import { IAppengineServerGroupCommand } from './configure/serverGroupCommandBuilder.service';
+import {
+  IAppengineServerGroupCommand
+} from './configure/serverGroupCommandBuilder.service';
 
 export class AppengineDeployDescription {
   public cloudProvider = 'appengine';
@@ -29,6 +31,10 @@ export class AppengineDeployDescription {
   public trigger?: IAppengineGitTrigger | IAppengineJenkinsTrigger;
   public gitCredentialType: GitCredentialType;
   public interestingHealthProviderNames: string[];
+  public expectedArtifact: IExpectedArtifact;
+  public fromArtifact: boolean;
+  public sourceType: string;
+  public storageAccountName?: string;
 
   constructor(command: IAppengineServerGroupCommand) {
     this.credentials = command.credentials;
@@ -52,6 +58,10 @@ export class AppengineDeployDescription {
     this.configFiles = command.configFiles;
     this.applicationDirectoryRoot = command.applicationDirectoryRoot;
     this.interestingHealthProviderNames = command.interestingHealthProviderNames || [];
+    this.expectedArtifact = command.expectedArtifact;
+    this.fromArtifact = command.fromArtifact;
+    this.sourceType = command.sourceType;
+    this.storageAccountName = command.storageAccountName;
   }
 }
 

@@ -3,8 +3,11 @@ import { IPromise, IQService, module } from 'angular';
 import {
   ACCOUNT_SERVICE,
   AccountService,
+  STORAGE_ACCOUNT_SERVICE,
+  StorageAccountService,
   Application,
   IBuildTrigger,
+  IExpectedArtifact,
   IGitTrigger,
   IPipeline,
   IStage
@@ -44,7 +47,17 @@ export interface IAppengineServerGroupCommand {
   fromTrigger?: boolean;
   trigger?: IAppengineGitTrigger | IAppengineJenkinsTrigger;
   gitCredentialType?: GitCredentialType;
+  storageAccountName?: string; // GCS only
   interestingHealthProviderNames: string[];
+  fromArtifact: boolean;
+  expectedArtifact: IExpectedArtifact;
+  sourceType: string;
+}
+
+export enum AppengineSourceType {
+  GCS = 'gcs',
+  GIT = 'git',
+  ARTIFACT = 'artifact'
 }
 
 interface IViewState {
@@ -66,13 +79,20 @@ export class AppengineServerGroupCommandBuilder {
       });
   }
 
-  constructor(private $q: IQService, private accountService: AccountService) { 'ngInject'; }
+  private static getExpectedArtifacts(pipeline: IPipeline): IExpectedArtifact[] {
+    return pipeline.expectedArtifacts || [];
+  }
+
+  constructor(private $q: IQService,
+              private accountService: AccountService,
+              private storageAccountService: StorageAccountService) { 'ngInject'; }
 
   public buildNewServerGroupCommand(app: Application,
                                     selectedProvider = 'appengine',
                                     mode = 'create'): IPromise<IAppengineServerGroupCommand> {
     const dataToFetch = {
       accounts: this.accountService.getAllAccountDetailsForProvider('appengine'),
+      storageAccounts: this.storageAccountService.getStorageAccounts()
     };
 
     const viewState: IViewState = {
@@ -90,6 +110,7 @@ export class AppengineServerGroupCommandBuilder {
           application: app.name,
           backingData,
           viewState,
+          fromArtifact: false,
           credentials,
           region,
           selectedProvider,
@@ -107,10 +128,16 @@ export class AppengineServerGroupCommandBuilder {
       });
   }
 
-  public buildNewServerGroupCommandForPipeline(_stage: IStage, pipeline: IPipeline): {backingData: {triggerOptions: Array<IAppengineGitTrigger | IAppengineJenkinsTrigger>}} {
+  public buildNewServerGroupCommandForPipeline(_stage: IStage, pipeline: IPipeline):
+  {backingData: {triggerOptions: Array<IAppengineGitTrigger | IAppengineJenkinsTrigger>, expectedArtifacts: IExpectedArtifact[]}} {
     // We can't copy server group configuration for App Engine, and can't build the full command here because we don't have
     // access to the application.
-    return {backingData: {triggerOptions: AppengineServerGroupCommandBuilder.getTriggerOptions(pipeline)}};
+    return {
+      backingData: {
+        triggerOptions: AppengineServerGroupCommandBuilder.getTriggerOptions(pipeline),
+        expectedArtifacts: AppengineServerGroupCommandBuilder.getExpectedArtifacts(pipeline)
+      }
+    };
   }
 
   public buildServerGroupCommandFromPipeline(app: Application,
@@ -119,8 +146,15 @@ export class AppengineServerGroupCommandBuilder {
                                              pipeline: IPipeline): ng.IPromise<IAppengineServerGroupCommand> {
     return this.buildNewServerGroupCommand(app, 'appengine', 'editPipeline')
       .then((command: IAppengineServerGroupCommand) => {
-        Object.assign(command, cluster);
-        command.backingData.triggerOptions = AppengineServerGroupCommandBuilder.getTriggerOptions(pipeline);
+        command = {
+          ...command,
+          ...cluster,
+          backingData: {
+            ...command.backingData,
+            triggerOptions: AppengineServerGroupCommandBuilder.getTriggerOptions(pipeline),
+            expectedArtifacts: AppengineServerGroupCommandBuilder.getExpectedArtifacts(pipeline)
+          }
+        } as IAppengineServerGroupCommand;
         return command;
       });
   }
@@ -157,4 +191,5 @@ export const APPENGINE_SERVER_GROUP_COMMAND_BUILDER = 'spinnaker.appengine.serve
 
 module(APPENGINE_SERVER_GROUP_COMMAND_BUILDER, [
   ACCOUNT_SERVICE,
+  STORAGE_ACCOUNT_SERVICE,
 ]).service('appengineServerGroupCommandBuilder', AppengineServerGroupCommandBuilder);

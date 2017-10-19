@@ -1,17 +1,18 @@
-import { extend, IController, IControllerService, IScope, module } from 'angular';
+import { copy, extend, IController, IControllerService, IScope, module } from 'angular';
 import { StateService } from '@uirouter/angularjs';
 import { set } from 'lodash';
 
-import { NamingService } from '@spinnaker/core';
+import { IArtifact, IExpectedArtifact, NamingService } from '@spinnaker/core';
 
 import { GitCredentialType, IAppengineAccount } from 'appengine/domain/index';
-import { IAppengineServerGroupCommand } from '../serverGroupCommandBuilder.service';
+import { AppengineSourceType, IAppengineServerGroupCommand } from '../serverGroupCommandBuilder.service';
 
 interface IAppengineBasicSettingsScope extends IScope {
   command: IAppengineServerGroupCommand;
 }
 
 class AppengineServerGroupBasicSettingsCtrl implements IController {
+
   constructor(public $scope: IAppengineBasicSettingsScope,
               $state: StateService,
               $controller: IControllerService,
@@ -31,6 +32,26 @@ class AppengineServerGroupBasicSettingsCtrl implements IController {
       this.onAccountChange();
     }
   }
+
+  public isGitSource(): boolean {
+    return this.$scope.command.sourceType === AppengineSourceType.GIT;
+  }
+
+  public isGcsSource(): boolean {
+    return this.$scope.command.sourceType === AppengineSourceType.GCS;
+  }
+
+  public summarizeExpectedArtifact(expected: IExpectedArtifact): string {
+    if (!expected) {
+      return '';
+    }
+
+    const artifact = copy(expected.matchArtifact);
+    return Object.keys(artifact)
+      .filter((k: keyof IArtifact) => artifact[k])
+      .map((k: keyof IArtifact) => (`${k}: ${artifact[k]}`))
+      .join(', ');
+  };
 
   public toggleResolveViaTrigger(): void {
     this.$scope.command.fromTrigger = !this.$scope.command.fromTrigger;

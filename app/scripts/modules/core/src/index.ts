@@ -54,6 +54,7 @@ export * from './search';
 export * from './securityGroup';
 export * from './serverGroup';
 export * from './serviceAccount';
+export * from './storage';
 export * from './subnet';
 
 export * from './task';

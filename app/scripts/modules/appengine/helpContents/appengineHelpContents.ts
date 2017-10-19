@@ -7,7 +7,12 @@ module(APPENGINE_HELP_CONTENTS_REGISTRY, [HELP_CONTENTS_REGISTRY])
   .run((helpContentsRegistry: HelpContentsRegistry) => {
     const helpContents = [
       {
-        key: 'appengine.serverGroup.repositoryUrl',
+        key: 'appengine.serverGroup.gcs.repositoryUrl',
+        value: `The full URL to the GCS bucket or TAR file containing the source files for this deployment,
+                including 'gs://'. For example, <b>gs://my-bucket/my-app</b> or <b>gs://my-bucket/app.tar</b>.`,
+      },
+      {
+        key: 'appengine.serverGroup.git.repositoryUrl',
         value: `The full URL to the git repository containing the source files for this deployment,
                 including protocol. For example, <b>https://github.com/spinnaker/deck.git<b/>`,
       },
