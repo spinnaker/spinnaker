@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.job
 
+import com.netflix.spinnaker.orca.RetrySupport
+
 import java.util.concurrent.TimeUnit
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -39,6 +41,9 @@ public class WaitOnJobCompletion extends AbstractCloudProviderAwareTask implemen
 
   @Autowired
   ObjectMapper objectMapper
+
+  @Autowired
+  RetrySupport retrySupport
 
   static final String REFRESH_TYPE = "Job"
 
@@ -81,10 +86,12 @@ public class WaitOnJobCompletion extends AbstractCloudProviderAwareTask implemen
 
           if (stage.context.propertyFile) {
             Map<String, Object> properties = [:]
-            properties = katoRestService.getFileContents(appName, account, location, name, stage.context.propertyFile)
-            if (properties.size() == 0) {
-              throw new IllegalStateException("Expected properties file ${stage.context.propertyFile} but it was either missing, empty or contained invalid syntax")
-            }
+            retrySupport.retry({
+              properties = katoRestService.getFileContents(appName, account, location, name, stage.context.propertyFile)
+              if (properties.size() == 0) {
+                throw new IllegalStateException("Expected properties file ${stage.context.propertyFile} but it was either missing, empty or contained invalid syntax")
+              }
+            }, 6, 5000, false) // retry for 30 seconds
             outputs << properties
             outputs.propertyFileContents = properties
           }
