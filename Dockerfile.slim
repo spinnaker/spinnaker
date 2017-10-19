@@ -9,9 +9,9 @@ COPY ./rosco-web/config/packer /opt/rosco/config/packer
 WORKDIR /packer
 
 RUN apk --nocache add --update bash wget  && \
-  wget https://releases.hashicorp.com/packer/0.12.1/packer_0.12.1_linux_amd64.zip && \
-  unzip packer_0.12.1_linux_amd64.zip && \
-  rm packer_0.12.1_linux_amd64.zip
+  wget https://releases.hashicorp.com/packer/1.1.0/packer_1.1.0_linux_amd64.zip && \
+  unzip packer_1.1.0_linux_amd64.zip && \
+  rm packer_1.1.0_linux_amd64.zip
 
 ENV PATH "/packer:$PATH"
 
