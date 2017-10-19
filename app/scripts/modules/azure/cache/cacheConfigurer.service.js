@@ -35,11 +35,11 @@ module.exports = angular.module('spinnaker.azure.cache.initializer', [
 
     config.subnets = {
       version: 2,
-      initializers: [subnetReader.listSubnets],
+      initializers: [() => subnetReader.listSubnets()],
     };
 
     config.keyPairs = {
-      initializers: [keyPairsReader.listKeyPairs]
+      initializers: [() => keyPairsReader.listKeyPairs()],
     };
 
     return config;
