@@ -221,7 +221,8 @@ class GateAgent(sk.SpinnakerAgent):
             'application': {
                 'name': application,
                 'description': description or 'Gate Testing Application',
-                'email': email
+                'email': email,
+                'platformHealthOnly': True
             },
             'user': '[anonymous]'
         }],
