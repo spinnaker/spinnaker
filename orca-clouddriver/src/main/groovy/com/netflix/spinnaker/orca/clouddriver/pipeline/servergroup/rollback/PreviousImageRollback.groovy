@@ -93,6 +93,11 @@ class PreviousImageRollback implements Rollback {
         useSourceCapacity: true
       ]
     ]
+
+    if (parentStageContext.containsKey("interestingHealthProviderNames")) {
+      cloneServerGroupContext.interestingHealthProviderNames = parentStageContext.interestingHealthProviderNames
+    }
+
     stages << newStage(
       parentStage.execution, cloneServerGroupStage.type, "clone", cloneServerGroupContext, parentStage, SyntheticStageOwner.STAGE_AFTER
     )

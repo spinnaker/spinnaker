@@ -111,6 +111,27 @@ class PreviousImageRollbackSpec extends Specification {
     null             | "image fetched from `spinnaker:metadata` entity tag" || "previous_image_from_entity_tags" || "previous_image_from_entity_tags_id"
   }
 
+  @Unroll
+  def "should include interestingHealthProviderNames in clone stage context when present in parent"() {
+    given:
+    rollback.imageName = "explicit_image"
+    stage.context.putAll(additionalContext)
+
+    when:
+    def allStages = rollback.buildStages(stage)
+
+    then:
+    allStages[0].context.containsKey("interestingHealthProviderNames") == hasInterestingHealthProviderNames
+
+    where:
+    additionalContext                            || hasInterestingHealthProviderNames
+    [:]                                          || false
+    [interestingHealthProviderNames: null]       || true
+    [interestingHealthProviderNames: ["Amazon"]] || true
+    [interestingHealthProviderNames: []]         || true
+
+  }
+
   def "should raise exception if multiple entity tags found"() {
     when:
     rollback.rollbackServerGroupName = "application-v002"
