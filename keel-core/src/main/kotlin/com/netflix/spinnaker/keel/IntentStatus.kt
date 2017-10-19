@@ -13,23 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.keel.front50
+package com.netflix.spinnaker.keel
 
-import com.netflix.spinnaker.keel.Intent
-import com.netflix.spinnaker.keel.IntentStatus
-import retrofit.http.Body
-import retrofit.http.GET
-import retrofit.http.PUT
-import retrofit.http.Query
-
-interface Front50Service {
-
-  @GET("/intents")
-  fun getIntents(): List<Intent<*>>
-
-  @GET("/intents")
-  fun getIntentsByStatuses(@Query("statuses") statuses: List<IntentStatus>): List<Intent<*>>
-
-  @PUT("/intents")
-  fun upsertIntent(@Body intent: Intent<*>)
+/**
+ * ACTIVE: An Intent is currently being enforced and will be regularly checked
+ * for any state to converge on.
+ *
+ * SUPERSEDED: An Intent that is no longer active, as it was superseded by
+ * a different Intent.
+ *
+ * CANCELED: An Intent that is no longer active because it has been canceled by
+ * an operator or via a FailureModeController.
+ *
+ * TERMINAL: An Intent that is no longer active because it encountered an fatal
+ * error.
+ */
+enum class IntentStatus {
+  ACTIVE,
+  SUPERSEDED,
+  CANCELED,
+  TERMINAL
 }

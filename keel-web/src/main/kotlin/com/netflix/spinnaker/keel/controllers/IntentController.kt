@@ -13,23 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.keel.front50
+package com.netflix.spinnaker.keel.controllers
 
-import com.netflix.spinnaker.keel.Intent
 import com.netflix.spinnaker.keel.IntentStatus
-import retrofit.http.Body
-import retrofit.http.GET
-import retrofit.http.PUT
-import retrofit.http.Query
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestMethod
+import org.springframework.web.bind.annotation.RestController
+import javax.ws.rs.QueryParam
 
-interface Front50Service {
+@RestController
+@RequestMapping("/intents")
+class IntentController {
 
-  @GET("/intents")
-  fun getIntents(): List<Intent<*>>
+  @RequestMapping(method = arrayOf(RequestMethod.PUT))
+  fun upsertIntent(@RequestBody intent: Map<String, Any>) {}
 
-  @GET("/intents")
-  fun getIntentsByStatuses(@Query("statuses") statuses: List<IntentStatus>): List<Intent<*>>
-
-  @PUT("/intents")
-  fun upsertIntent(@Body intent: Intent<*>)
+  @RequestMapping(method = arrayOf(RequestMethod.GET))
+  fun getIntents(@QueryParam("statuses") statuses: List<IntentStatus>) {}
 }

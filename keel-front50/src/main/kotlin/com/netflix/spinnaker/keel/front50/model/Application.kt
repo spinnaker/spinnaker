@@ -13,23 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.keel.front50
+package com.netflix.spinnaker.keel.front50.model
 
-import com.netflix.spinnaker.keel.Intent
-import com.netflix.spinnaker.keel.IntentStatus
-import retrofit.http.Body
-import retrofit.http.GET
-import retrofit.http.PUT
-import retrofit.http.Query
+import com.fasterxml.jackson.annotation.JsonAnyGetter
+import com.fasterxml.jackson.annotation.JsonAnySetter
 
-interface Front50Service {
+data class Application(
+  val name: String,
+  val description: String,
+  val email: String,
+  val updateTs: String,
+  val createTs: String,
+  val platformHealthOnly: Boolean,
+  val platformHealthOnlyShowOverride: Boolean
+) {
 
-  @GET("/intents")
-  fun getIntents(): List<Intent<*>>
+  private val details: MutableMap<String, Any> = mutableMapOf()
 
-  @GET("/intents")
-  fun getIntentsByStatuses(@Query("statuses") statuses: List<IntentStatus>): List<Intent<*>>
+  @JsonAnySetter
+  fun set(name: String, value: Any) {
+    details[name] = value
+  }
 
-  @PUT("/intents")
-  fun upsertIntent(@Body intent: Intent<*>)
+  @JsonAnyGetter
+  fun details() = details
 }
