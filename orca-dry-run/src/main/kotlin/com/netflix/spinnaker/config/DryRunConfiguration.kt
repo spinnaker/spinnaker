@@ -17,11 +17,15 @@
 package com.netflix.spinnaker.config
 
 import com.netflix.spinnaker.orca.dryrun.DryRunStage
+import com.netflix.spinnaker.orca.listeners.ExecutionListener
+import com.netflix.spinnaker.orca.listeners.Persister
 import com.netflix.spinnaker.orca.pipeline.DefaultStageDefinitionBuilderFactory
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilderFactory
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import org.slf4j.LoggerFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.EnableConfigurationProperties
@@ -50,6 +54,16 @@ open class DryRunConfiguration {
             }
           }
         }
+    }
+  }
+
+  @Bean
+  open fun dryRunPipelineInitializer(repository: ExecutionRepository) = object : ExecutionListener {
+    override fun beforeExecution(persister: Persister, execution: Execution<out Execution<*>>) {
+      if (execution is Pipeline && execution.trigger["type"] == "dryrun") {
+        execution.pipelineConfigId = null
+        repository.store(execution)
+      }
     }
   }
 
