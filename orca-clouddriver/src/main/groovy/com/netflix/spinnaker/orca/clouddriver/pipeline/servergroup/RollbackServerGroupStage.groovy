@@ -18,9 +18,13 @@
 package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup
 
 import com.fasterxml.jackson.annotation.JsonIgnore
-import com.netflix.spinnaker.orca.clouddriver.pipeline.providers.aws.ApplySourceServerGroupCapacityStage
-import com.netflix.spinnaker.orca.clouddriver.pipeline.providers.aws.CaptureSourceServerGroupCapacityStage
-import com.netflix.spinnaker.orca.kato.pipeline.support.ResizeStrategy
+import com.netflix.frigga.Names
+import com.netflix.spinnaker.orca.RetrySupport
+import com.netflix.spinnaker.orca.clouddriver.OortService
+import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.rollback.ExplicitRollback
+import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.rollback.PreviousImageRollback
+import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.rollback.Rollback
+import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.rollback.TestRollback
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
@@ -37,7 +41,7 @@ class RollbackServerGroupStage implements StageDefinitionBuilder {
   AutowireCapableBeanFactory autowireCapableBeanFactory
 
   @Override
-  def <T extends Execution<T>> List<Stage<T>> aroundStages(Stage<T> stage) {
+  <T extends Execution<T>> List<Stage<T>> aroundStages(Stage<T> stage) {
     def stageData = stage.mapTo(StageData)
 
     if (!stageData.rollbackType) {
@@ -50,7 +54,9 @@ class RollbackServerGroupStage implements StageDefinitionBuilder {
   }
 
   static enum RollbackType {
-    EXPLICIT(ExplicitRollback)
+    EXPLICIT(ExplicitRollback),
+    PREVIOUS_IMAGE(PreviousImageRollback),
+    TEST(TestRollback)
 
     final Class implementationClass
 
@@ -62,117 +68,4 @@ class RollbackServerGroupStage implements StageDefinitionBuilder {
   static class StageData {
     RollbackType rollbackType
   }
-
-  static interface Rollback {
-    def <T extends Execution<T>> List<Stage<T>> buildStages(Stage<T> parentStage)
-  }
-
-  static class ExplicitRollback implements Rollback {
-    String rollbackServerGroupName
-    String restoreServerGroupName
-    Integer targetHealthyRollbackPercentage
-
-    @Autowired
-    @JsonIgnore
-    EnableServerGroupStage enableServerGroupStage
-
-    @Autowired
-    @JsonIgnore
-    DisableServerGroupStage disableServerGroupStage
-
-    @Autowired
-    @JsonIgnore
-    ResizeServerGroupStage resizeServerGroupStage
-
-    @Autowired
-    @JsonIgnore
-    CaptureSourceServerGroupCapacityStage captureSourceServerGroupCapacityStage
-
-    @Autowired
-    @JsonIgnore
-    ApplySourceServerGroupCapacityStage applySourceServerGroupCapacityStage
-
-    @JsonIgnore
-    def <T extends Execution<T>> List<Stage<T>> buildStages(Stage<T> parentStage) {
-      def stages = []
-
-      Map enableServerGroupContext = new HashMap(parentStage.context)
-      enableServerGroupContext.targetHealthyDeployPercentage = targetHealthyRollbackPercentage
-      enableServerGroupContext.serverGroupName = restoreServerGroupName
-      stages << newStage(
-        parentStage.execution, enableServerGroupStage.type, "enable", enableServerGroupContext, parentStage, SyntheticStageOwner.STAGE_AFTER
-      )
-
-      stages << buildCaptureSourceServerGroupCapacityStage(parentStage, parentStage.mapTo(ResizeStrategy.Source))
-
-      Map resizeServerGroupContext = new HashMap(parentStage.context) + [
-        action            : ResizeStrategy.ResizeAction.scale_to_server_group.toString(),
-        source            : {
-          def source = parentStage.mapTo(ResizeStrategy.Source)
-          source.serverGroupName = rollbackServerGroupName
-          return source
-        }.call(),
-        asgName           : restoreServerGroupName,
-        pinMinimumCapacity: true,
-        targetHealthyDeployPercentage: targetHealthyRollbackPercentage
-      ]
-      stages << newStage(
-        parentStage.execution, resizeServerGroupStage.type, "resize", resizeServerGroupContext, parentStage, SyntheticStageOwner.STAGE_AFTER
-      )
-
-      Map disableServerGroupContext = new HashMap(parentStage.context)
-      disableServerGroupContext.serverGroupName = rollbackServerGroupName
-      stages << newStage(
-        parentStage.execution, disableServerGroupStage.type, "disable", disableServerGroupContext, parentStage, SyntheticStageOwner.STAGE_AFTER
-      )
-
-      stages << buildApplySourceServerGroupCapacityStage(parentStage, parentStage.mapTo(ResizeStrategy.Source))
-      return stages
-    }
-
-    Stage buildCaptureSourceServerGroupCapacityStage(Stage parentStage,
-                                                     ResizeStrategy.Source source) {
-      Map captureSourceServerGroupCapacityContext = [
-        useSourceCapacity: true,
-        source           : [
-          asgName        : rollbackServerGroupName,
-          serverGroupName: rollbackServerGroupName,
-          region         : source.region,
-          account        : source.credentials,
-          cloudProvider  : source.cloudProvider
-        ]
-      ]
-      return newStage(
-        parentStage.execution,
-        captureSourceServerGroupCapacityStage.type,
-        "snapshot",
-        captureSourceServerGroupCapacityContext,
-        parentStage,
-        SyntheticStageOwner.STAGE_AFTER
-      )
-    }
-
-    Stage buildApplySourceServerGroupCapacityStage(Stage parentStage,
-                                                   ResizeStrategy.Source source) {
-      Map applySourceServerGroupCapacityContext = [
-        credentials: source.credentials,
-        target     : [
-          asgName        : restoreServerGroupName,
-          serverGroupName: restoreServerGroupName,
-          region         : source.region,
-          account        : source.credentials,
-          cloudProvider  : source.cloudProvider
-        ]
-      ]
-      return newStage(
-        parentStage.execution,
-        applySourceServerGroupCapacityStage.type,
-        "apply",
-        applySourceServerGroupCapacityContext,
-        parentStage,
-        SyntheticStageOwner.STAGE_AFTER
-      )
-    }
-  }
-
 }

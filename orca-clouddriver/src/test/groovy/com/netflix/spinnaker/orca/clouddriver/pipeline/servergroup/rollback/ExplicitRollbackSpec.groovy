@@ -1,7 +1,7 @@
 /*
- * Copyright 2015 Netflix, Inc.
+ * Copyright 2017 Netflix, Inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License")
+ * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
@@ -14,23 +14,22 @@
  * limitations under the License.
  */
 
-
-package com.netflix.spinnaker.orca.clouddriver.pipeline
+package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.rollback
 
 import com.netflix.spinnaker.orca.clouddriver.pipeline.providers.aws.ApplySourceServerGroupCapacityStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.providers.aws.CaptureSourceServerGroupCapacityStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.DisableServerGroupStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.EnableServerGroupStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.ResizeServerGroupStage
-import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.RollbackServerGroupStage
 import com.netflix.spinnaker.orca.kato.pipeline.support.ResizeStrategy
 import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner
-import org.springframework.beans.factory.config.AutowireCapableBeanFactory
 import spock.lang.Shared
 import spock.lang.Specification
-import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
+import spock.lang.Subject
 
-class RollbackServerGroupStageSpec extends Specification {
+import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage;
+
+class ExplicitRollbackSpec extends Specification {
   @Shared
   def enableServerGroupStage = new EnableServerGroupStage()
 
@@ -46,45 +45,36 @@ class RollbackServerGroupStageSpec extends Specification {
   @Shared
   def applySourceServerGroupCapacityStage = new ApplySourceServerGroupCapacityStage()
 
+  @Subject
+  def rollback = new ExplicitRollback(
+    enableServerGroupStage: enableServerGroupStage,
+    disableServerGroupStage: disableServerGroupStage,
+    resizeServerGroupStage: resizeServerGroupStage,
+    captureSourceServerGroupCapacityStage: captureSourceServerGroupCapacityStage,
+    applySourceServerGroupCapacityStage: applySourceServerGroupCapacityStage
+  )
+
   def "should inject enable, resize and disable stages corresponding to the server group being restored and rollbacked"() {
     given:
-    def autowireCapableBeanFactory = Stub(AutowireCapableBeanFactory) {
-      autowireBean(_) >> { RollbackServerGroupStage.ExplicitRollback rollback ->
-        rollback.enableServerGroupStage = enableServerGroupStage
-        rollback.disableServerGroupStage = disableServerGroupStage
-        rollback.resizeServerGroupStage = resizeServerGroupStage
-        rollback.captureSourceServerGroupCapacityStage = captureSourceServerGroupCapacityStage
-        rollback.applySourceServerGroupCapacityStage = applySourceServerGroupCapacityStage
-      }
-    }
-
-    def rollbackServerGroupStage = new RollbackServerGroupStage()
-    rollbackServerGroupStage.autowireCapableBeanFactory = autowireCapableBeanFactory
+    rollback.rollbackServerGroupName = "servergroup-v002"
+    rollback.restoreServerGroupName = "servergroup-v001"
+    rollback.targetHealthyRollbackPercentage = 95
 
     def stage = stage {
       type = "rollbackServerGroup"
       context = [
-        rollbackType   : "EXPLICIT",
-        rollbackContext: [
-          restoreServerGroupName          : "servergroup-v001",
-          rollbackServerGroupName         : "servergroup-v002",
-          targetHealthyRollbackPercentage : 95
-        ],
-        credentials                     : "test",
-        cloudProvider                   : "aws",
-        "region"                        : "us-west-1",
-        "targetHealthyDeployPercentage" : 95
+        credentials                  : "test",
+        cloudProvider                : "aws",
+        "region"                     : "us-west-1"
       ]
     }
 
     when:
-    def tasks = rollbackServerGroupStage.buildTaskGraph(stage)
-    def allStages = rollbackServerGroupStage.aroundStages(stage)
+    def allStages = rollback.buildStages(stage)
     def beforeStages = allStages.findAll { it.syntheticStageOwner == SyntheticStageOwner.STAGE_BEFORE }
     def afterStages = allStages.findAll { it.syntheticStageOwner == SyntheticStageOwner.STAGE_AFTER }
 
     then:
-    tasks.iterator().size() == 0
     beforeStages.isEmpty()
     afterStages*.type == [
       "enableServerGroup",
@@ -94,7 +84,8 @@ class RollbackServerGroupStageSpec extends Specification {
       "applySourceServerGroupCapacity"
     ]
     afterStages[0].context == stage.context + [
-      serverGroupName: "servergroup-v001"
+      serverGroupName: "servergroup-v001",
+      targetHealthyDeployPercentage: 95
     ]
     afterStages[1].context == [
       source           : [
@@ -110,7 +101,8 @@ class RollbackServerGroupStageSpec extends Specification {
       action            : "scale_to_server_group",
       source            : new ResizeStrategy.Source(null, null, "us-west-1", null, "servergroup-v002", "test", "aws"),
       asgName           : "servergroup-v001",
-      pinMinimumCapacity: true
+      pinMinimumCapacity: true,
+      targetHealthyDeployPercentage: 95
     ]
     afterStages[3].context == stage.context + [
       serverGroupName: "servergroup-v002"

@@ -129,6 +129,10 @@ public class SpinnakerMetadataServerGroupTagGenerator implements ServerGroupEnti
         previousServerGroup.put("imageId", targetServerGroup.get("imageId"));
         previousServerGroup.put("cloudProvider", cloudProvider);
 
+        if (targetServerGroup.containsKey("buildInfo")) {
+          previousServerGroup.put("buildInfo", targetServerGroup.get("buildInfo"));
+        }
+
         return previousServerGroup;
       } catch (RetrofitError e) {
         if (e.getKind() == RetrofitError.Kind.HTTP && e.getResponse().getStatus() == 404) {
