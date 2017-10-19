@@ -160,7 +160,7 @@
             </tr>
             <tr ng-if="tasks.isExpanded(task.id) && task.getValueFor('reason')" class="task-reason">
               <td colspan="9">
-                <strong>Reason:</strong> {{task.getValueFor('reason')}}
+                <strong>Reason:</strong> <span ng-bind-html="task.getValueFor('reason')"></span>
               </td>
             </tr>
             <tr ng-if="tasks.isExpanded(task.id)" ng-repeat-end>
