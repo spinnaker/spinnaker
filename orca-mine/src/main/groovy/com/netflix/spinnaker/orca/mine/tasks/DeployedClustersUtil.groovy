@@ -28,4 +28,26 @@ class DeployedClustersUtil {
       }
     }.flatten()
   }
+
+  static List<Map> toKatoAsgOperations(String asgOperationDescription, Map stageContext, String selector) {
+    stageContext.deployedClusterPairs.findAll { it.canaryStage == stageContext.canaryStageId }.collect {
+      [it."$selector"].collect {
+        [
+          (asgOperationDescription): [
+            serverGroupName: it.serverGroup, asgName: it.serverGroup, regions: [it.region], region: it.region, credentials: it.clusterAccount ?: it.accountName, cloudProvider: it.type ?: 'aws'
+          ]
+        ]
+      }
+    }.flatten()
+  }
+
+  static Map<String, List<String>> getDeployServerGroups(Map stageContext) {
+    def dSG = [:]
+    stageContext.deployedClusterPairs.findAll { it.canaryStage == stageContext.canaryStageId }.findAll {
+      [it.canaryCluster, it.baselineCluster].findAll {
+        dSG."$it.region" = dSG."$it.region" ? dSG."$it.region" << it.serverGroup : [it.serverGroup]
+      }
+    }
+    return dSG
+  }
 }

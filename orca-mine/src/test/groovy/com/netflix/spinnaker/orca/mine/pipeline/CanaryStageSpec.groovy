@@ -17,11 +17,16 @@
 package com.netflix.spinnaker.orca.mine.pipeline
 
 import com.netflix.spinnaker.orca.CancellableStage.Result
+import com.netflix.spinnaker.orca.RetrySupport
+import com.netflix.spinnaker.orca.clouddriver.model.TaskId
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.DestroyServerGroupTask
+import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import rx.Observable
 import spock.lang.Specification
 import spock.lang.Unroll
+
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
 
 class CanaryStageSpec extends Specification {
@@ -30,6 +35,7 @@ class CanaryStageSpec extends Specification {
   void "cancel destroys canary/baseline if found and were deployed during canary stage"() {
     given:
     Map stageContext = [
+      clusterDisableWaitTime: 0,
       clusterPairs: [
         [
           baseline: [application: "app", stack: "stack1", freeFormDetails: "baseline", region: "us-east-1", account: "test"],
@@ -38,6 +44,23 @@ class CanaryStageSpec extends Specification {
       ]
     ]
 
+    def disableOperation = [
+      [disableServerGroup:
+         [
+           serverGroupName: "app-stack1-baseline-v003", region: "us-east-1", credentials: "test",
+           cloudProvider  : "aws", remainingEnabledServerGroups: 0, preferLargerOverNewer: false
+         ]
+      ],
+      [disableServerGroup:
+         [
+           serverGroupName: "app-stack1-canary-v003", region: "us-east-1", credentials: "test",
+           cloudProvider  : "aws", remainingEnabledServerGroups: 0, preferLargerOverNewer: false
+         ]
+      ]
+    ]
+
+    TaskId taskId = new TaskId(UUID.randomUUID().toString())
+
     Stage canceledStage = stage {
       context = stageContext
       startTime = 5
@@ -45,12 +68,20 @@ class CanaryStageSpec extends Specification {
     }
 
     OortHelper oortHelper = Mock(OortHelper)
+    KatoService katoService = Mock(KatoService)
     DestroyServerGroupTask destroyServerGroupTask = Mock(DestroyServerGroupTask)
 
-    CanaryStage canaryStage = new CanaryStage(oortHelper: oortHelper, destroyServerGroupTask: destroyServerGroupTask)
+    CanaryStage canaryStage = new CanaryStage(
+      oortHelper: oortHelper,
+      katoService: katoService,
+      destroyServerGroupTask: destroyServerGroupTask,
+      retrySupport: Spy(RetrySupport) {
+        _ * sleep(_) >> { /* do nothing */ }
+      }
+    )
 
     when:
-    Result result = canaryStage.cleanupCanary(canceledStage)
+    Result result = canaryStage.cancel(canceledStage)
 
     then:
     result.details.destroyContexts.size() == destroyedServerGroups
@@ -61,14 +92,16 @@ class CanaryStageSpec extends Specification {
       serverGroups: [[region: "us-east-1", createdTime: createdTime, name: "app-stack1-canary-v003"]]
     ]
 
+    disableOps * katoService.requestOperations("aws", disableOperation) >> { Observable.from(taskId) }
+
     where:
-    createdTime || destroyedServerGroups
-    4           || 0
-    5           || 0
-    6           || 2
-    10          || 2
-    5010        || 0
-    5011        || 0
+    createdTime | disableOps | destroyedServerGroups
+    4           | 0          | 0
+    5           | 0          | 0
+    6           | 1          | 2
+    10          | 1          | 2
+    5010        | 0          | 0
+    5011        | 0          | 0
 
   }
 

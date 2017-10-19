@@ -18,15 +18,18 @@ package com.netflix.spinnaker.orca.mine.pipeline
 
 import com.netflix.spinnaker.orca.CancellableStage
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
+import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCacheForceRefreshTask
 import com.netflix.spinnaker.orca.mine.MineService
 import com.netflix.spinnaker.orca.mine.tasks.CleanupCanaryTask
 import com.netflix.spinnaker.orca.mine.tasks.CompleteCanaryTask
+import com.netflix.spinnaker.orca.mine.tasks.DisableCanaryTask
 import com.netflix.spinnaker.orca.mine.tasks.MonitorCanaryTask
 import com.netflix.spinnaker.orca.mine.tasks.RegisterCanaryTask
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.TaskNode
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.tasks.WaitTask
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -43,6 +46,13 @@ class MonitorCanaryStage implements StageDefinitionBuilder, CancellableStage {
     builder
       .withTask("registerCanary", RegisterCanaryTask)
       .withTask("monitorCanary", MonitorCanaryTask)
+      .withTask("disableCanaryCluster", DisableCanaryTask)
+      .withTask("monitorDisable", MonitorKatoTask)
+      .withTask("waitBeforeCleanup", WaitTask)
+      .withTask("disableBaselineCluster", DisableCanaryTask)
+      .withTask("monitorDisable", MonitorKatoTask)
+      .withTask("waitBeforeCleanup", WaitTask)
+      .withTask("forceCacheRefresh", ServerGroupCacheForceRefreshTask)
       .withTask("cleanupCanary", CleanupCanaryTask)
       .withTask("monitorCleanup", MonitorKatoTask)
       .withTask("completeCanary", CompleteCanaryTask)

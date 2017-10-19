@@ -58,8 +58,14 @@ class RegisterCanaryTask implements Task {
     def outputs = [
       canary              : canary,
       stageTimeoutMs      : getMonitorTimeout(canary),
-      deployedClusterPairs: deployStage.context.deployedClusterPairs
+      deployedClusterPairs: deployStage.context.deployedClusterPairs,
+      application         : c.application
     ]
+
+    if (deployStage.context.deployedClusterPairs[0]?.canaryCluster?.accountName) {
+      outputs.account = deployStage.context.deployedClusterPairs[0].canaryCluster.accountName
+    }
+
     return new TaskResult(ExecutionStatus.SUCCEEDED, outputs)
   }
 
