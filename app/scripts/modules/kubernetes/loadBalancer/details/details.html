@@ -171,5 +171,11 @@
         </kubernetes-key-value-details>
       </dl>
     </collapsible-section>
+    <collapsible-section heading="Service Labels" ng-if="loadBalancer.description.serviceLabels">
+      <dl class="dl-horizontal dl-flex">
+        <kubernetes-key-value-details map="loadBalancer.service.metadata.labels">
+        </kubernetes-key-value-details>
+      </dl>
+    </collapsible-section>
   </div>
 </div>
