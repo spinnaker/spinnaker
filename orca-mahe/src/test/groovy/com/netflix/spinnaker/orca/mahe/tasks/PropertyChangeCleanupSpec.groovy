@@ -27,6 +27,8 @@ import retrofit.mime.TypedByteArray
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
+
+import static com.netflix.spinnaker.orca.mahe.PropertyAction.CREATE
 import static com.netflix.spinnaker.orca.mahe.PropertyAction.DELETE
 import static com.netflix.spinnaker.orca.mahe.pipeline.CreatePropertyStage.PIPELINE_CONFIG_TYPE
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
@@ -53,7 +55,6 @@ class PropertyChangeCleanupSpec extends Specification {
         name = PIPELINE_CONFIG_TYPE
         context = propertyContext
       }
-      context = propertyContext
     }
 
     repository.retrievePipeline(pipeline.id) >> pipeline
@@ -84,7 +85,6 @@ class PropertyChangeCleanupSpec extends Specification {
         name = PIPELINE_CONFIG_TYPE
         context = propertyContext
       }
-      context = propertyContext
     }
 
     repository.retrievePipeline(pipeline.id) >> pipeline
@@ -96,8 +96,6 @@ class PropertyChangeCleanupSpec extends Specification {
     1 * mahe.upsertProperty(_) >> { Map res ->
       new Response("http://mahe", 500, "OK", [], null)
     }
-
-    pipeline.context.rollbackActions == null
 
     IllegalStateException ex = thrown()
     assert ex.message.contains("Unable to rollback DELETE")
@@ -117,7 +115,6 @@ class PropertyChangeCleanupSpec extends Specification {
         type = PIPELINE_CONFIG_TYPE
         name = PIPELINE_CONFIG_TYPE
       }
-      context = [propertyIdList: [[propertyId: propertyId]], propertyAction: PropertyAction.UPDATE.toString()]
     }
 
     repository.retrievePipeline(pipeline.id) >> pipeline
@@ -135,6 +132,51 @@ class PropertyChangeCleanupSpec extends Specification {
     executionStatus << [ExecutionStatus.TERMINAL, ExecutionStatus.CANCELED]
   }
 
+  def "properties marked for rollback are rolled back on a successful execution"() {
+    def createStageContext = [rollback: true, propertyIdList: [[propertyId: propertyId]], originalProperties: [], propertyAction: PropertyAction.CREATE.toString()]
+    def deleteStageContext = [rollback: true, propertyIdList: [[propertyId: propertyId]], originalProperties: [[property: previous]], propertyAction: DELETE.toString()]
+    def retainedStageContext = [propertyIdList: [[propertyId: 'z' + propertyId]], originalProperties: [[property: previous]], propertyAction: CREATE.toString()]
+    def pipeline = pipeline {
+      stage {
+        type = PIPELINE_CONFIG_TYPE
+        name = PIPELINE_CONFIG_TYPE
+        context = createStageContext
+      }
+      stage {
+        type = PIPELINE_CONFIG_TYPE
+        name = PIPELINE_CONFIG_TYPE
+        context = deleteStageContext
+      }
+      stage {
+        type = PIPELINE_CONFIG_TYPE
+        name = PIPELINE_CONFIG_TYPE
+        context = retainedStageContext
+      }
+    }
+
+    when:
+    listener.afterExecution(null, pipeline, ExecutionStatus.SUCCEEDED, true)
+
+    then:
+
+    1 * mahe.deleteProperty(propertyId, 'spinnaker rollback', propertyEnv) >> { def res ->
+      def json = mapper.writeValueAsString([propertyId: propertyId])
+      new Response("http://mahe", 200, "OK", [], new TypedByteArray('application/json', json.bytes))
+    }
+
+    1 * mahe.upsertProperty(_) >> { Map res ->
+      String propId = "${res.property.key}|${res.property.value}"
+      def json = mapper.writeValueAsString([propertyId: propId])
+      new Response("http://mahe", 200, "OK", [], new TypedByteArray('application/json', json.bytes))
+    }
+    0 * _
+
+    where:
+    propertyId = "test_rfletcher|mahe|test|us-west-1||||asg=mahe-test-v010|cluster=mahe-test"
+    propertyEnv = "test"
+    previous =  createPropertyWithId(propertyId)
+  }
+
   @Unroll()
   def "a newly created property should be deleted if the pipeline status is #executionStatus and has matching original property"() {
     given:
@@ -145,7 +187,6 @@ class PropertyChangeCleanupSpec extends Specification {
         name = PIPELINE_CONFIG_TYPE
         context = propertyContext
       }
-      context = propertyContext
     }
 
     repository.retrievePipeline(pipeline.id) >> pipeline
@@ -174,7 +215,6 @@ class PropertyChangeCleanupSpec extends Specification {
         name = PIPELINE_CONFIG_TYPE
         context = propertyContext
       }
-      context = propertyContext
     }
 
     repository.retrievePipeline(pipeline.id) >> pipeline
@@ -186,8 +226,6 @@ class PropertyChangeCleanupSpec extends Specification {
     1 * mahe.deleteProperty(propertyId, 'spinnaker rollback', propertyEnv) >> { def res ->
       new Response("http://mahe", 500, "OK", [] , null)
     }
-
-    pipeline.context.rollbackActions == null
 
     IllegalStateException ex = thrown()
     assert ex.message.contains("Unable to rollback CREATE")
@@ -209,7 +247,6 @@ class PropertyChangeCleanupSpec extends Specification {
         name = PIPELINE_CONFIG_TYPE
         context = propertyContext
       }
-      context = propertyContext
     }
     repository.retrievePipeline(pipeline.id) >> pipeline
 
@@ -236,7 +273,6 @@ class PropertyChangeCleanupSpec extends Specification {
         name = PIPELINE_CONFIG_TYPE
         context = propertyContext
       }
-      context = propertyContext
     }
     repository.retrievePipeline(pipeline.id) >> pipeline
 
@@ -263,7 +299,6 @@ class PropertyChangeCleanupSpec extends Specification {
         type = PIPELINE_CONFIG_TYPE
         name = PIPELINE_CONFIG_TYPE
       }
-      context = [propertyIdList: [propertyId], originalProperties: [previous], rollbackProperties: false, propertyAction: DELETE]
     }
     repository.retrievePipeline(pipeline.id) >> pipeline
 

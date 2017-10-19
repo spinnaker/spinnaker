@@ -23,6 +23,7 @@ import com.netflix.spinnaker.orca.listeners.Persister
 import com.netflix.spinnaker.orca.mahe.MaheService
 import com.netflix.spinnaker.orca.mahe.PropertyAction
 import com.netflix.spinnaker.orca.pipeline.model.Execution
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -47,9 +48,11 @@ class FastPropertyCleanupListener implements ExecutionListener {
                       ExecutionStatus executionStatus,
                       boolean wasSuccessful) {
 
+    boolean rollbackBasedOnExecutionStatus = executionStatus in [ExecutionStatus.TERMINAL, ExecutionStatus.CANCELED]
+    List<Stage> rollbacks = rollbackBasedOnExecutionStatus ? execution.stages : execution.stages.findAll { it.context.rollback }
 
-    if (executionStatus in [ExecutionStatus.TERMINAL, ExecutionStatus.CANCELED] || execution.context.rollback) {
-      execution.stages.each { stage ->
+    if (!rollbacks.empty) {
+      rollbacks.each { stage ->
         switch (stage.context.propertyAction) {
           case PropertyAction.CREATE.toString():
             stage.context.propertyIdList.each { prop ->
@@ -64,10 +67,10 @@ class FastPropertyCleanupListener implements ExecutionListener {
               Response response = mahe.upsertProperty(prop)
               resolveRollbackResponse(response, stage.context.propertyAction.toString(), prop.property)
             }
-            break;
+            break
           case PropertyAction.DELETE.toString():
             stage.context.originalProperties.each { prop ->
-              if(prop.property.propertyId) {
+              if (prop.property.propertyId) {
                 prop.property.remove('propertyId')
               }
               log.info("Rolling back the ${stage.context.propertyAction} of: ${prop.property.key}|${prop.property.value} on execution ${execution.id} by re-creating")
