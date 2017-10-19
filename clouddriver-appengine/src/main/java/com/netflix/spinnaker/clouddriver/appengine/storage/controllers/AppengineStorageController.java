@@ -28,15 +28,17 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.List;
 
+// TODO(jacobkiefer): Refactor this Controller into a common controller with injected StorageService(s) when we
+// add another storage account service. Leaving this in Appengine's scope for now.
 @Slf4j
 @RestController
-@RequestMapping("/appengine/storage")
+@RequestMapping("/storage")
 class AppengineStorageController {
 
   @Autowired(required = false)
-  StorageConfigurationProperties storageAccountInfo;
+  private StorageConfigurationProperties storageAccountInfo;
 
-  @RequestMapping(value = "/list", method = RequestMethod.GET)
+  @RequestMapping(method = RequestMethod.GET)
   List<String> list() {
     if (storageAccountInfo == null) {
       return new ArrayList();
