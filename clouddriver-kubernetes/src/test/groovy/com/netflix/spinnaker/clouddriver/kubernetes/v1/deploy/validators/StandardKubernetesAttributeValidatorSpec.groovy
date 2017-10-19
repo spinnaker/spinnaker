@@ -359,6 +359,65 @@ class StandardKubernetesAttributeValidatorSpec extends Specification {
       0 * errorsMock._
   }
 
+  void "secretName accept"() {
+    setup:
+    def errorsMock = Mock(Errors)
+    def validator = new StandardKubernetesAttributeValidator(DECORATOR, errorsMock)
+    def label = "label"
+
+    when:
+    validator.validateSecretName("valid", label)
+    then:
+    0 * errorsMock._
+
+    when:
+    validator.validateSecretName("mega-valid-name", label)
+    then:
+    0 * errorsMock._
+
+    when:
+    validator.validateSecretName("call-me-123-456-7890", label)
+    then:
+    0 * errorsMock._
+
+    when:
+    validator.validateSecretName("dots.are.valid-too", label)
+    then:
+    0 * errorsMock._
+  }
+
+  void "secretName reject"() {
+    setup:
+    def errorsMock = Mock(Errors)
+    def validator = new StandardKubernetesAttributeValidator(DECORATOR, errorsMock)
+    def label = "label"
+
+    when:
+    validator.validateSecretName("-", label)
+    then:
+    1 * errorsMock.rejectValue("${DECORATOR}.${label}", "${DECORATOR}.${label}.invalid (Must match ${StandardKubernetesAttributeValidator.dnsSubdomainPattern})")
+    0 * errorsMock._
+
+    when:
+    validator.validateSecretName("an_underscore", label)
+    then:
+    1 * errorsMock.rejectValue("${DECORATOR}.${label}", "${DECORATOR}.${label}.invalid (Must match ${StandardKubernetesAttributeValidator.dnsSubdomainPattern})")
+    0 * errorsMock._
+
+    when:
+    validator.validateSecretName("?name", label)
+    then:
+    1 * errorsMock.rejectValue("${DECORATOR}.${label}", "${DECORATOR}.${label}.invalid (Must match ${StandardKubernetesAttributeValidator.dnsSubdomainPattern})")
+    0 * errorsMock._
+
+    when:
+    validator.validateSecretName("", label)
+    then:
+    1 * errorsMock.rejectValue("${DECORATOR}.${label}", "${DECORATOR}.${label}.empty")
+    0 * errorsMock._
+  }
+
+
   void "application accept"() {
     setup:
       def errorsMock = Mock(Errors)

@@ -48,7 +48,7 @@ class KubernetesVolumeSourceValidator {
         if (!helper.validateNotEmpty(source.secret, "${prefix}.secret")) {
           break
         }
-        helper.validateName(source.secret.secretName, "${prefix}.secret.secretName")
+        helper.validateSecretName(source.secret.secretName, "${prefix}.secret.secretName")
 
         break
 

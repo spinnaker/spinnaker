@@ -23,6 +23,7 @@ import org.springframework.validation.Errors
 
 class StandardKubernetesAttributeValidator {
   static final namePattern = /^[a-z0-9]+([-a-z0-9]*[a-z0-9])?$/
+  static final dnsSubdomainPattern = /^[a-z0-9]+([-\.a-z0-9]*[a-z0-9])?$/
   static final credentialsPattern = /^[a-z0-9]+([-a-z0-9_]*[a-z0-9])?$/
   static final prefixPattern = /^[a-z0-9]+$/
   static final pathPattern = /^\/.*$/
@@ -82,6 +83,14 @@ class StandardKubernetesAttributeValidator {
   def validateName(String value, String attribute) {
     if (validateNotEmpty(value, attribute)) {
       return validateByRegex(value, attribute, namePattern)
+    } else {
+      return false
+    }
+  }
+
+  def validateSecretName(String value, String attribute) {
+    if (validateNotEmpty(value, attribute)) {
+      return validateByRegex(value, attribute, dnsSubdomainPattern)
     } else {
       return false
     }
