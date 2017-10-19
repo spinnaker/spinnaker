@@ -41,6 +41,7 @@ class KubernetesLoadBalancerDescription extends KubernetesKindAtomicOperationDes
   String serviceType
 
   Map<String, String> serviceAnnotations
+  Map<String, String> serviceLabels
 }
 
 @AutoClone

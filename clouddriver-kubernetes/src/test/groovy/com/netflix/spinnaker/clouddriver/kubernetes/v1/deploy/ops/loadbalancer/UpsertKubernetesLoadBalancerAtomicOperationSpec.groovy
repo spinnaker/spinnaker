@@ -225,6 +225,32 @@ class UpsertKubernetesLoadBalancerAtomicOperationSpec extends Specification {
       resultServiceMock.getMetadata() >> [name: '', namespace: '']
   }
 
+  void "should upsert a new loadbalancer, and set labels"() {
+    setup:
+    def description = new KubernetesLoadBalancerDescription(
+      name: VALID_NAME1,
+      externalIps: [VALID_IP1],
+      credentials: namedAccountCredentials,
+      namespace: NAMESPACE,
+      serviceLabels: VALID_LABELS
+    )
+    def resultServiceMock = Mock(Service)
+    def mockMetaData = Mock(ObjectMeta)
+    resultServiceMock.metadata >> mockMetaData
+
+    @Subject def operation = new UpsertKubernetesLoadBalancerAtomicOperation(description)
+
+    when:
+    operation.operate([])
+
+    then:
+    1 * apiMock.getService(NAMESPACE, VALID_NAME1) >> null
+    1 * apiMock.createService(NAMESPACE, { service ->
+      service.metadata.name == description.name
+      service.metadata.labels == VALID_LABELS
+    }) >> resultServiceMock
+  }
+
   void "should upsert a new loadbalancer, and copy labels over"() {
     setup:
     def description = new KubernetesLoadBalancerDescription(

@@ -89,6 +89,7 @@ class KubernetesApiConverter {
     loadBalancerDescription.sessionAffinity = service.spec.sessionAffinity
     loadBalancerDescription.serviceType = service.spec.type
     loadBalancerDescription.serviceAnnotations = service.metadata.annotations
+    loadBalancerDescription.serviceLabels = service.metadata.labels
 
     loadBalancerDescription.externalIps = service.spec.externalIPs ?: []
     loadBalancerDescription.ports = service.spec.ports?.collect { port ->
