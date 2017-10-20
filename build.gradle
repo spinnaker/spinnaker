@@ -29,8 +29,10 @@ buildscript {
 
 allprojects {
   apply plugin: "spinnaker.project"
+  apply plugin: "groovy"
   apply from: "$rootDir/gradle/kotlin.gradle"
-  apply from: "$rootDir/gradle/spek.gradle"
+
+  tasks.compileGroovy.enabled = false
 
   group = "com.netflix.spinnaker.keel"
 
@@ -58,11 +60,11 @@ allprojects {
     dependenciesVersion = spinnakerDependenciesVersion
   }
 
-//  test {
-//    testLogging {
-//      exceptionFormat = 'full'
-//    }
-//  }
+  test {
+    testLogging {
+      exceptionFormat = 'full'
+    }
+  }
 
   configurations.all {
     exclude group: "javax.servlet", module: "servlet-api"
@@ -97,6 +99,13 @@ allprojects {
 subprojects {
   repositories {
     jcenter()
+  }
+
+  dependencies {
+    spinnaker.group('spockBase')
+    testCompile spinnaker.dependency('groovy')
+    testRuntime spinnaker.dependency('objenesis')
+    testRuntime spinnaker.dependency('cglib')
   }
 
   license {
