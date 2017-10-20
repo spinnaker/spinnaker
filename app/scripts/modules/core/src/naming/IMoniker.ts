@@ -1,4 +1,3 @@
-
 export interface IMoniker {
   app: string;
   cluster: string;

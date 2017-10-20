@@ -2,7 +2,6 @@ import { IScope, IPromise } from 'angular';
 import { IModalInstanceService } from 'angular-ui-bootstrap';
 import { StateService } from '@uirouter/angularjs';
 import { chain, clone, cloneDeep, find, filter, isNil, map, trimEnd, uniq, values } from 'lodash';
-import { IMoniker } from 'core/naming/IMoniker';
 
 import {
   AccountService,
@@ -11,6 +10,7 @@ import {
   IAccount,
   ISecurityGroupsByAccountSourceData,
   InfrastructureCacheService,
+  IMoniker,
   IRegion,
   ISecurityGroup,
   ISubnet,

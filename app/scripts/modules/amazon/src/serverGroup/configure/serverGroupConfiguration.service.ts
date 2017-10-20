@@ -9,6 +9,7 @@ import {
   CacheInitializerService,
   IAccountDetails,
   IDeploymentStrategy,
+  IMoniker,
   IRegion,
   ISecurityGroup,
   IServerGroupCommand,
@@ -19,6 +20,7 @@ import {
   ISubnet,
   LOAD_BALANCER_READ_SERVICE,
   LoadBalancerReader,
+  NamingService,
   SECURITY_GROUP_READER,
   SecurityGroupReader,
   SERVER_GROUP_COMMAND_REGISTRY_PROVIDER,
@@ -29,8 +31,6 @@ import {
 
 import { IAmazonLoadBalancer, IKeyPair } from 'amazon/domain';
 import { KEY_PAIRS_READ_SERVICE, KeyPairsReader } from 'amazon/keyPairs/keyPairs.read.service';
-import { IMoniker } from 'core/naming/IMoniker';
-import { NamingService } from 'core/naming/naming.service';
 
 export type IBlockDeviceMappingSource = 'source' | 'ami' | 'default';
 
