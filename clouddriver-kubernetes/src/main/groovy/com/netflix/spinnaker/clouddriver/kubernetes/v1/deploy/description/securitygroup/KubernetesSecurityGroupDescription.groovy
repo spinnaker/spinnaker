@@ -30,8 +30,11 @@ class KubernetesSecurityGroupDescription extends KubernetesKindAtomicOperationDe
   String namespace
 
   KubernetesIngressBackend ingress
-  List<KubernetesIngressTls> tls
+  List<KubernetesIngressTlS> tls
   List<KubernetesIngressRule> rules
+
+  Map<String,String> annotations
+  Map<String,String> labels
 }
 
 @AutoClone
@@ -43,7 +46,7 @@ class KubernetesIngressBackend {
 
 @AutoClone
 @Canonical
-class KubernetesIngressTls {
+class KubernetesIngressTlS {
   List<String> hosts
   String secretName
 }

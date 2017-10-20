@@ -21,11 +21,14 @@ import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.KubernetesUtil
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.description.securitygroup.KubernetesHttpIngressPath
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.description.securitygroup.KubernetesIngressRule
+import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.description.securitygroup.KubernetesIngressTlS
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.description.securitygroup.KubernetesSecurityGroupDescription
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import io.fabric8.kubernetes.api.model.extensions.HTTPIngressPathBuilder
 import io.fabric8.kubernetes.api.model.extensions.IngressBuilder
 import io.fabric8.kubernetes.api.model.extensions.IngressRuleBuilder
+import io.fabric8.kubernetes.api.model.extensions.IngressTLSBuilder
+import io.fabric8.openshift.api.model.TLSConfigBuilder
 
 class UpsertKubernetesSecurityGroupAtomicOperation implements AtomicOperation<Void> {
   private static final String BASE_PHASE = "UPSERT_SECURITY_GROUP"
@@ -55,7 +58,13 @@ class UpsertKubernetesSecurityGroupAtomicOperation implements AtomicOperation<Vo
 
     def oldIngress = credentials.apiAdaptor.getIngress(namespace, description.securityGroupName)
 
-    def ingress = new IngressBuilder().withNewMetadata().withName(description.securityGroupName).withNamespace(namespace).endMetadata().withNewSpec()
+    task.updateStatus BASE_PHASE, "Setting name, namespace, annotations & labels..."
+    def ingress = new IngressBuilder().withNewMetadata()
+                                      .withName(description.securityGroupName)
+                                      .withNamespace(namespace)
+                                      .withAnnotations(description.annotations)
+                                      .withLabels(description.labels)
+                                      .endMetadata().withNewSpec()
 
     task.updateStatus BASE_PHASE, "Attaching requested service..."
     if (description.ingress?.serviceName) {
@@ -75,13 +84,19 @@ class UpsertKubernetesSecurityGroupAtomicOperation implements AtomicOperation<Vo
             .endBackend()
             .build()
       }
-
+      
       res = res.withPaths(paths)
 
       return res.endHttp().build()
     }
 
+    def tls = description.tls?.collect{ KubernetesIngressTlS tlsEntry ->
+      return new IngressTLSBuilder().withHosts(tlsEntry.hosts).withSecretName(tlsEntry.secretName).build()
+    }
+
     ingress = ingress.withRules(rules)
+
+    ingress.withTls(tls)
 
     ingress = ingress.endSpec().build()
 

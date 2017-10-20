@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v1.model
 
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.api.KubernetesApiConverter
+import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.description.securitygroup.KubernetesIngressTlS
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.description.securitygroup.KubernetesSecurityGroupDescription
 import com.netflix.spinnaker.clouddriver.model.SecurityGroup
 import com.netflix.spinnaker.clouddriver.model.SecurityGroupSummary
@@ -41,10 +42,15 @@ class KubernetesSecurityGroup implements SecurityGroup, Serializable {
   String region
   String namespace
 
+  Map<String, String> annotations
+  Map<String, String> labels
+
   Set<Rule> inboundRules
   Set<Rule> outboundRules
 
   Set<String> loadBalancers = [] as Set
+
+  List<KubernetesIngressTlS> tls
 
   Ingress ingress
   KubernetesSecurityGroupDescription description
@@ -59,6 +65,9 @@ class KubernetesSecurityGroup implements SecurityGroup, Serializable {
     this.name = ingress.metadata.name
     this.id = this.name
     this.description = KubernetesApiConverter.fromIngress(ingress)
+
+    this.annotations = ingress.metadata.annotations
+    this.labels = ingress.metadata.labels
 
     if (ingress.spec?.backend?.serviceName) {
       loadBalancers.add(ingress.spec.backend.serviceName)
@@ -79,6 +88,10 @@ class KubernetesSecurityGroup implements SecurityGroup, Serializable {
                           paths: paths,
                           host: host)
     }) : []) as Set
+
+    tls = ingress.spec.tls?.collect{ tlsSpecEntry ->
+      return new KubernetesIngressTlS(hosts: tlsSpecEntry.hosts, secretName: tlsSpecEntry.secretName)
+    }
   }
 
   SecurityGroupSummary getSummary() {

@@ -40,6 +40,8 @@ class KubernetesApiConverter {
     securityGroupDescription.stack = parse.stack
     securityGroupDescription.detail = parse.detail
     securityGroupDescription.namespace = ingress.metadata.namespace
+    securityGroupDescription.annotations = ingress.metadata.annotations
+    securityGroupDescription.labels = ingress.metadata.labels
 
     securityGroupDescription.ingress = new KubernetesIngressBackend()
     securityGroupDescription.ingress.port = ingress.spec.backend?.servicePort?.intVal ?: 0
@@ -63,6 +65,10 @@ class KubernetesApiConverter {
       }
 
       return resRule
+    }
+
+    securityGroupDescription.tls = ingress.spec.tls?.collect{ tlsSpecEntry ->
+      return new KubernetesIngressTlS(hosts: tlsSpecEntry.hosts, secretName: tlsSpecEntry.secretName)
     }
 
     securityGroupDescription
