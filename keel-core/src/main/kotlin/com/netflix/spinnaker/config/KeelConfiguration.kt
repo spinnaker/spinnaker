@@ -22,6 +22,8 @@ import com.github.jonpeterson.jackson.module.versioning.VersioningModule
 import com.netflix.spinnaker.keel.Intent
 import com.netflix.spinnaker.keel.IntentRepository
 import com.netflix.spinnaker.keel.memory.MemoryIntentRepository
+import com.netflix.spinnaker.keel.memory.MemoryTraceRepository
+import com.netflix.spinnaker.keel.tracing.TraceRepository
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
@@ -31,6 +33,7 @@ import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.type.filter.AssignableTypeFilter
 import org.springframework.util.ClassUtils
+import java.time.Clock
 
 @Configuration
 @ComponentScan(basePackages = arrayOf(
@@ -65,4 +68,10 @@ open class KeelConfiguration {
   @Bean
   @ConditionalOnMissingBean(IntentRepository::class)
   open fun memoryIntentRepository(): IntentRepository = MemoryIntentRepository()
+
+  @Bean
+  @ConditionalOnMissingBean(TraceRepository::class)
+  open fun memoryTraceRepository(): TraceRepository = MemoryTraceRepository()
+
+  @Bean open fun clock(): Clock = Clock.systemDefaultZone()
 }

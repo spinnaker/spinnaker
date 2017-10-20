@@ -21,21 +21,32 @@ import com.netflix.spinnaker.keel.IntentSpec
 import com.netflix.spinnaker.keel.intents.ParrotIntent
 import com.netflix.spinnaker.keel.model.Job
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
+import com.netflix.spinnaker.keel.tracing.Trace
+import com.netflix.spinnaker.keel.tracing.TraceRepository
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+import java.time.Clock
 
 @Component
-class ParrotIntentProcessor : IntentProcessor<ParrotIntent> {
+class ParrotIntentProcessor
+@Autowired constructor(
+  private val traceRepository: TraceRepository,
+  private val clock: Clock
+) : IntentProcessor<ParrotIntent> {
 
   override fun supports(intent: Intent<IntentSpec>) = intent is ParrotIntent
 
-  override fun converge(intent: ParrotIntent) = listOf(
-    OrchestrationRequest(
-      name = "Squawk!",
-      application = intent.spec.application,
-      description = intent.spec.description,
-      job = listOf(
-        Job("wait", mutableMapOf("waitTime" to 1))
+  override fun converge(intent: ParrotIntent): List<OrchestrationRequest> {
+    traceRepository.record(Trace(mapOf(), intent, clock.millis()))
+    return listOf(
+      OrchestrationRequest(
+        name = "Squawk!",
+        application = intent.spec.application,
+        description = intent.spec.description,
+        job = listOf(
+          Job("wait", mutableMapOf("waitTime" to 1))
+        )
       )
     )
-  )
+  }
 }
