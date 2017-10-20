@@ -70,6 +70,17 @@
           </ul>
         </dd>
       </dl>
+      <dl class="horizontal-when-filters-collapsed">
+        <dt ng-if="ctrl.loadBalancer.dnsname">Load Balancer DNS Name</dt>
+        <dd ng-if="ctrl.loadBalancer.dnsname">
+          <a target=_blank href="{{ctrl.elbProtocol}}//{{ctrl.loadBalancer.dnsname}}">{{ctrl.loadBalancer.dnsname}}</a>
+          <copy-to-clipboard
+              class="copy-to-clipboard copy-to-clipboard-sm"
+              text="ctrl.loadBalancer.dnsname"
+              tool-tip="'Copy DNS Name to clipboard'">
+          </copy-to-clipboard>
+        </dd>
+      </dl>
       <dl ng-if="ctrl.targetGroup.serverGroups && ctrl.targetGroup.serverGroups.length" class="horizontal-when-filters-collapsed">
         <dt>Server Groups</dt>
         <dd>
