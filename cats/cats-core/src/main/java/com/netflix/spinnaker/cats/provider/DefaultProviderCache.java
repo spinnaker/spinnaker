@@ -189,11 +189,11 @@ public class DefaultProviderCache implements ProviderCache {
     private Collection<String> getExistingSourceIdentifiers(String type, String sourceAgentType) {
         CacheData all = backingStore.get(type, ALL_ID);
         if (all == null) {
-            return Collections.emptySet();
+            return new HashSet<>();
         }
         Collection<String> relationship = all.getRelationships().get(sourceAgentType);
         if (relationship == null) {
-            return Collections.emptySet();
+            return new HashSet<>();
         }
         return relationship;
     }

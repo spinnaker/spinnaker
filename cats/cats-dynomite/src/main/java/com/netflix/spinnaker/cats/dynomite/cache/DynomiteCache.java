@@ -217,9 +217,7 @@ public class DynomiteCache extends AbstractRedisCache {
       .run(() -> redisClientDelegate.withPipeline(pipeline -> {
         DynoJedisPipeline p = (DynoJedisPipeline) pipeline;
 
-        boolean pipelineHasOps = false;
         for (List<String> idPartition : Lists.partition(identifiers, options.getMaxDelSize())) {
-          pipelineHasOps = true;
           String[] ids = idPartition.toArray(new String[idPartition.size()]);
           pipeline.srem(allOfTypeId(type), ids);
           sremOperations.incrementAndGet();
@@ -228,14 +226,13 @@ public class DynomiteCache extends AbstractRedisCache {
         }
 
         for (String id : identifiers) {
-          pipelineHasOps = true;
           pipeline.del(itemId(type, id));
           delOperations.incrementAndGet();
           pipeline.del(itemHashesId(type, id));
           delOperations.incrementAndGet();
         }
 
-        if (pipelineHasOps) {
+        if (!identifiers.isEmpty()) {
           p.sync();
         }
       }));

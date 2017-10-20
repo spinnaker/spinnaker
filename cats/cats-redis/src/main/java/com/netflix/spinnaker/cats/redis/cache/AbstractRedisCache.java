@@ -29,7 +29,6 @@ import redis.clients.jedis.ScanResult;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -64,7 +63,7 @@ public abstract class AbstractRedisCache implements WriteableCache {
 
   @Override
   public void merge(String type, CacheData item) {
-    mergeAll(type, Collections.singletonList(item));
+    mergeAll(type, Arrays.asList(item));
   }
 
   @Override
@@ -76,7 +75,7 @@ public abstract class AbstractRedisCache implements WriteableCache {
 
   @Override
   public void evict(String type, String id) {
-    evictAll(type, Collections.singletonList(id));
+    evictAll(type, Arrays.asList(id));
   }
 
   @Override
@@ -97,7 +96,7 @@ public abstract class AbstractRedisCache implements WriteableCache {
 
   @Override
   public CacheData get(String type, String id, CacheFilter cacheFilter) {
-    Collection<CacheData> result = getAll(type, Collections.singletonList(id), cacheFilter);
+    Collection<CacheData> result = getAll(type, Arrays.asList(id), cacheFilter);
     if (result.isEmpty()) {
       return null;
     }
