@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-include 'keel-core', 'keel-retrofit', 'keel-front50', 'keel-orca', 'keel-web'
+include 'keel-core', 'keel-retrofit', 'keel-front50', 'keel-orca', 'keel-intents', 'keel-web'
 
 rootProject.name = 'keel'
 
