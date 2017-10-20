@@ -7,8 +7,9 @@ import sys
 import citest.gcp_testing as gcp
 import citest.json_predicate as jp
 import citest.service_testing as st
-from citest.json_contract import ObservationPredicateFactory
-ov_factory = ObservationPredicateFactory()
+import citest.json_contract as jc
+
+ov_factory = jc.ObservationPredicateFactory()
 
 # Spinnaker modules.
 import spinnaker_testing as sk
@@ -111,6 +112,24 @@ class GoogleServerGroupTestScenario(sk.SpinnakerTestScenario):
         app=self.TEST_APP, stack=self.TEST_STACK, version='v001')
     self.__lb_name = frigga.Naming.cluster(
         app=self.TEST_APP, stack=self.TEST_STACK, detail='fe')
+
+  def create_app(self):
+    """Creates OperationContract that creates a new Spinnaker Application."""
+    contract = jc.Contract()
+    return st.OperationContract(
+        self.agent.make_create_app_operation(
+            bindings=self.bindings, application=self.TEST_APP,
+            account_name=self.bindings['SPINNAKER_GOOGLE_ACCOUNT']),
+        contract=contract)
+
+  def delete_app(self):
+    """Creates OperationContract that deletes a new Spinnaker Application."""
+    contract = jc.Contract()
+    return st.OperationContract(
+        self.agent.make_delete_app_operation(
+            application=self.TEST_APP,
+            account_name=self.bindings['SPINNAKER_GOOGLE_ACCOUNT']),
+        contract=contract)
 
   def create_load_balancer(self):
     job = [{
@@ -461,17 +480,20 @@ class GoogleServerGroupTest(st.AgentTestCase):
     return citest.base.TestRunner.global_runner().get_shared_data(
         GoogleServerGroupTestScenario)
 
-  def test_a_create_load_balancer(self):
+  def test_a_create_app(self):
+    self.run_test_case(self.scenario.create_app())
+
+  def test_b_create_load_balancer(self):
     self.run_test_case(self.scenario.create_load_balancer())
 
-  def test_b_create_server_group(self):
+  def test_c_create_server_group(self):
     self.run_test_case(self.scenario.create_server_group(),
                        poll_every_secs=3)
 
-  def test_c_resize_server_group(self):
+  def test_d_resize_server_group(self):
     self.run_test_case(self.scenario.resize_server_group())
 
-  def test_d_clone_server_group(self):
+  def test_e_clone_server_group(self):
     self.run_test_case(self.scenario.clone_server_group(),
                        poll_every_secs=3,
                        # TODO(ewiseblatt): 20160314
@@ -479,22 +501,27 @@ class GoogleServerGroupTest(st.AgentTestCase):
                        # in clouddriver that causes intermittent failure.
                        max_retries=5)
 
-  def test_e_disable_server_group(self):
+  def test_f_disable_server_group(self):
     self.run_test_case(self.scenario.disable_server_group())
 
-  def test_f_enable_server_group(self):
+  def test_g_enable_server_group(self):
     self.run_test_case(self.scenario.enable_server_group())
 
-  def test_g_destroy_server_group_v000(self):
+  def test_w_destroy_server_group_v000(self):
     self.run_test_case(self.scenario.destroy_server_group('v000'),
                        poll_every_secs=5)
 
-  def test_h_destroy_server_group_v001(self):
+  def test_x_destroy_server_group_v001(self):
     self.run_test_case(self.scenario.destroy_server_group('v001'),
                        poll_every_secs=5)
 
-  def test_z_delete_load_balancer(self):
-    self.run_test_case(self.scenario.delete_load_balancer())
+  def test_y_delete_load_balancer(self):
+    self.run_test_case(self.scenario.delete_load_balancer(),
+                       poll_every_secs=5)
+
+  def test_z_delete_app(self):
+    self.run_test_case(self.scenario.delete_app(),
+                       retry_interval_secs=8, max_retries=8)
 
 
 def main():
