@@ -65,6 +65,10 @@ object CancelExecutionHandlerTest : SubjectSpek<CancelExecutionHandler>({
         verify(repository).cancel(pipeline.id, "fzlem@netflix.com", "because")
       }
 
+      it("it triggers a reevaluate") {
+        verify(queue).push(RescheduleExecution(pipeline))
+      }
+
       it("does not send any further messages") {
         verifyZeroInteractions(queue)
       }
