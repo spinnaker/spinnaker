@@ -1,14 +1,14 @@
 import * as React from 'react';
 
-import ResultDetailHeader from './header';
+import ReportDetailHeader from './header';
 import MetricResults from './metricResults';
 
 /*
-* Layout for result detail view.
+* Layout for report detail view.
 * */
 export default () => (
   <div>
-    <ResultDetailHeader/>
+    <ReportDetailHeader/>
     <MetricResults/>
   </div>
 );

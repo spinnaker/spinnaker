@@ -7,6 +7,7 @@ import { ConfigJsonModalTabState } from '../edit/configJsonModal';
 import { ICanaryConfig } from '../domain/ICanaryConfig';
 import { ICanaryConfigSummary } from '../domain/ICanaryConfigSummary';
 import { IJudge } from '../domain/IJudge';
+import { IMetricSetPair } from '../domain/IMetricSetPair';
 
 const typedPayloadCreator = <T>() => (payload: T): T => payload;
 
@@ -55,3 +56,6 @@ export const loadRunSuccess = createAction(Actions.LOAD_RUN_SUCCESS, typedPayloa
 export const loadRunFailure = createAction(Actions.LOAD_RUN_FAILURE, typedPayloadCreator<{error: Error}>());
 export const selectResultMetricGroup = createAction(Actions.SELECT_RESULT_METRIC_GROUP, typedPayloadCreator<{group: string}>());
 export const selectResultMetric = createAction(Actions.SELECT_RESULT_METRIC, typedPayloadCreator<{metric: string}>());
+export const loadMetricSetPairRequest = createAction(Actions.LOAD_METRIC_SET_PAIR_REQUEST, typedPayloadCreator<{configName: string, runId: string, pairId: string}>());
+export const loadMetricSetPairSuccess = createAction(Actions.LOAD_METRIC_SET_PAIR_SUCCESS, typedPayloadCreator<{metricSetPair: IMetricSetPair}>());
+export const loadMetricSetPairFailure = createAction(Actions.LOAD_METRIC_SET_PAIR_FAILURE, typedPayloadCreator<{error: Error}>());

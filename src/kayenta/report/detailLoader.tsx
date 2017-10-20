@@ -22,7 +22,7 @@ interface IResultLoaderStateParams {
 
 /*
  * Top-level .reportDetail state component.
- * Loads result details on changes to /report/:id path parameter, renders load states.
+ * Loads result details on changes to /report/:configName/:runId path parameter, renders load states.
  */
 class ResultDetailLoader extends React.Component<IResultLoaderDispatchProps & IResultLoaderStateParamsProps> {
   private subscription: Subscription;

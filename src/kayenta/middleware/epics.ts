@@ -13,7 +13,10 @@ import * as Actions from '../actions/index';
 import * as Creators from '../actions/creators';
 import { ICanaryState } from '../reducers/index';
 import { ReactInjector } from '@spinnaker/core';
-import { getCanaryRun } from '../service/run/canaryRun.service';
+import {
+  getCanaryRun,
+  getMetricSetPair
+} from '../service/run/canaryRun.service';
 
 const typeMatches = (...actions: string[]) => (action: Action & any) => actions.includes(action.type);
 
@@ -82,6 +85,15 @@ const loadReportRequestEpic = (action$: Observable<Action & any>) =>
         .catch((error: Error) => Observable.of(Creators.loadRunFailure({ error })))
     );
 
+const loadMetricSetPairEpic = (action$: Observable<Action & any>) =>
+  action$
+    .filter(typeMatches(Actions.LOAD_METRIC_SET_PAIR_REQUEST))
+    .concatMap(action =>
+      Observable.fromPromise(getMetricSetPair(action.configName, action.runId, action.pairId))
+        .map(metricSetPair => Creators.loadMetricSetPairSuccess({ metricSetPair }))
+        .catch((error: Error) => Observable.of(Creators.loadMetricSetPairFailure({ error })))
+    );
+
 const rootEpic = combineEpics(
   loadConfigEpic,
   selectConfigEpic,
@@ -89,6 +101,7 @@ const rootEpic = combineEpics(
   deleteConfigRequestEpic,
   deleteConfigSuccessEpic,
   loadReportRequestEpic,
+  loadMetricSetPairEpic,
 );
 
 export const epicMiddleware: EpicMiddleware<Action & any, ICanaryState> = createEpicMiddleware(rootEpic);

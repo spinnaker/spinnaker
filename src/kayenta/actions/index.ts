@@ -46,3 +46,6 @@ export const LOAD_RUN_SUCCESS = 'load_run_success';
 export const LOAD_RUN_FAILURE = 'load_run_failure';
 export const SELECT_RESULT_METRIC_GROUP = 'select_result_metric_group';
 export const SELECT_RESULT_METRIC = 'select_result_metric';
+export const LOAD_METRIC_SET_PAIR_REQUEST = 'load_metric_set_pair_request';
+export const LOAD_METRIC_SET_PAIR_SUCCESS = 'load_metric_set_pair_success';
+export const LOAD_METRIC_SET_PAIR_FAILURE = 'load_metric_set_pair_failure';

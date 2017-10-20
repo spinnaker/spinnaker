@@ -9,7 +9,7 @@ export interface ICanaryJudgeScoreProps {
 }
 
 /*
-* Renders top-level canary result score.
+* Renders top-level canary report score.
 */
 export default ({ score, className, onClick }: ICanaryJudgeScoreProps) => (
   <section className={classNames(className, 'clickable')} onClick={onClick}>
