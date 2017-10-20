@@ -7,7 +7,7 @@ import { Application } from '@spinnaker/core';
 
 import { Provider, Store } from 'react-redux';
 import { ICanaryState, rootReducer } from './reducers';
-import { actionInterceptingMiddleware, epicMiddleware } from './middleware';
+import { actionInterceptingMiddleware, epicMiddleware, asyncDispatchMiddleware } from './middleware';
 import { ICanaryConfigSummary } from './domain/index';
 import { INITIALIZE } from './actions/index';
 import { IJudge } from './domain/IJudge';
@@ -20,7 +20,7 @@ export interface ICanaryProps {
   app: Application;
 }
 
-const middleware = [epicMiddleware, actionInterceptingMiddleware];
+const middleware = [epicMiddleware, actionInterceptingMiddleware, asyncDispatchMiddleware];
 
 export const canaryStore: Store<ICanaryState> = createStore<ICanaryState>(
   rootReducer,

@@ -46,7 +46,7 @@ const mapDispatchToProps = (
   ownProps: IResultsListOwnProps,
 ): IResultsListOwnProps & IResultsListDispatchProps => ({
   select: (metric: string) =>
-    dispatch(Creators.selectResultMetric({ metric })),
+    dispatch(Creators.selectReportMetric({ metric })),
   ...ownProps,
 });
 

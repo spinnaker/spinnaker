@@ -18,3 +18,12 @@ export const judgeResultSelector = createSelector(
   (stage: ICanaryJudgeStage) => stage.context.result,
 );
 
+export const configNameSelector = createSelector(
+  canaryJudgeStageSelector,
+  (stage: ICanaryJudgeStage) => stage.context.canaryConfigId,
+);
+
+export const metricResultsSelector = createSelector(
+  canaryJudgeStageSelector,
+  (stage: ICanaryJudgeStage) => stage.context.result.results,
+);

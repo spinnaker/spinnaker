@@ -3,6 +3,7 @@ import { combineActions, handleActions } from 'redux-actions';
 import { isEqual } from 'lodash';
 
 import * as Actions from 'kayenta/actions/index';
+import * as Creators from 'kayenta/actions/creators';
 import { IDataState, data } from './data';
 import { app, IAppState } from './app';
 import {
@@ -14,6 +15,7 @@ import { IJudge } from '../domain/IJudge';
 import { ICanaryJudgeConfig } from '../domain/ICanaryConfig';
 import { mapStateToConfig } from '../service/canaryConfig.service';
 import { ISelectedRunState, selectedRun } from './selectedRun';
+import { metricResultsSelector } from '../selectors/index';
 
 export interface ICanaryState {
   app: IAppState;
@@ -85,10 +87,37 @@ const isInSyncWithServerReducer = (state: ICanaryState): ICanaryState => {
   }
 };
 
+const selectedMetricReducer = (state: ICanaryState, action: Action & any) => {
+  if (action.type !== Actions.SELECT_REPORT_METRIC) {
+    return state;
+  }
+
+  const { payload: { metric } } = action;
+
+  const results = metricResultsSelector(state)[metric];
+  if (!state.selectedRun.metricSetPair.pair || state.selectedRun.metricSetPair.pair.id !== results.metricSetPairId) {
+    // If we don't have the metric set pair loaded when we select the metric,
+    // schedule loading it now.
+    // TODO: cache metric set pairs.
+    action.asyncDispatch(Creators.loadMetricSetPairRequest({
+      pairId: results.metricSetPairId,
+    }));
+  }
+
+  return {
+    ...state,
+    selectedRun: {
+      ...state.selectedRun,
+      selectedMetric: metric,
+    },
+  };
+};
+
 export const rootReducer = (state: ICanaryState, action: Action & any): ICanaryState => {
   return [
     combined,
     judgeRenderStateReducer,
     isInSyncWithServerReducer,
+    selectedMetricReducer,
   ].reduce((s, reducer) => reducer(s, action), state);
 };

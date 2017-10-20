@@ -36,7 +36,7 @@ const mapStateToProps = (state: ICanaryState): IReportDetailHeaderStateProps => 
 });
 
 const mapDispatchToProps = (dispatch: Dispatch<ICanaryState>): IReportDetailDispatchProps => ({
-  clearSelectedGroup: () => dispatch(Creators.selectResultMetricGroup({ group: null })),
+  clearSelectedGroup: () => dispatch(Creators.selectReportMetricGroup({ group: null })),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(ReportDetailHeader);

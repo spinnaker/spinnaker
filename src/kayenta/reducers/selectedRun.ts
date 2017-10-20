@@ -30,12 +30,11 @@ const load = handleActions({
 }, AsyncRequestState.Requesting);
 
 const selectedGroup = handleActions({
-  [Actions.SELECT_RESULT_METRIC_GROUP]: (_state: string, action: Action & any) => action.payload.group,
+  [Actions.SELECT_REPORT_METRIC_GROUP]: (_state: string, action: Action & any) => action.payload.group,
 }, null);
 
 const selectedMetric = handleActions({
-  [Actions.SELECT_RESULT_METRIC]: (_state: string, action: Action & any) => action.payload.metric,
-  [Actions.SELECT_RESULT_METRIC_GROUP]: () => null,
+  [Actions.SELECT_REPORT_METRIC_GROUP]: () => null,
 }, null);
 
 const metricSetPair = combineReducers<IMetricSetPairState>({

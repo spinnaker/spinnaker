@@ -1,6 +1,7 @@
 import * as React from 'react';
 
 import { ICanaryAnalysisResult } from '../domain/ICanaryJudgeResult';
+import MetricSetPairLoadStates from './metricSetPairLoadStates';
 
 export interface IMetricResultDetailProps {
   result: ICanaryAnalysisResult;
@@ -9,7 +10,7 @@ export interface IMetricResultDetailProps {
 export default ({ result }: IMetricResultDetailProps) => {
   if (result) {
     return (
-      <pre>{JSON.stringify(result, null, 2)}</pre>
+      <MetricSetPairLoadStates/>
     );
   } else {
     return (

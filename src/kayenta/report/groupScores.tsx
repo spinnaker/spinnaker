@@ -37,7 +37,7 @@ const mapDispatchToProps = (
   ownProps: IGroupScoresOwnProps,
 ): IGroupScoresOwnProps & IGroupScoresDispatchProps => ({
   select: (event: any) =>
-    dispatch(Creators.selectResultMetricGroup({ group: event.target.dataset.group })),
+    dispatch(Creators.selectReportMetricGroup({ group: event.target.dataset.group })),
   ...ownProps,
 });
 

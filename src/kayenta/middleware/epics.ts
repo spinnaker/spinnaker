@@ -17,6 +17,7 @@ import {
   getCanaryRun,
   getMetricSetPair
 } from '../service/run/canaryRun.service';
+import { configNameSelector, runSelector } from '../selectors/index';
 
 const typeMatches = (...actions: string[]) => (action: Action & any) => actions.includes(action.type);
 
@@ -76,7 +77,7 @@ const deleteConfigSuccessEpic = (action$: Observable<Action & any>, store: Middl
       )
     ).mapTo(Creators.closeDeleteConfigModal());
 
-const loadReportRequestEpic = (action$: Observable<Action & any>) =>
+const loadCanaryRunRequestEpic = (action$: Observable<Action & any>) =>
   action$
     .filter(typeMatches(Actions.LOAD_RUN_REQUEST))
     .concatMap(action =>
@@ -85,14 +86,17 @@ const loadReportRequestEpic = (action$: Observable<Action & any>) =>
         .catch((error: Error) => Observable.of(Creators.loadRunFailure({ error })))
     );
 
-const loadMetricSetPairEpic = (action$: Observable<Action & any>) =>
+const loadMetricSetPairEpic = (action$: Observable<Action & any>, store: MiddlewareAPI<ICanaryState>) =>
   action$
     .filter(typeMatches(Actions.LOAD_METRIC_SET_PAIR_REQUEST))
-    .concatMap(action =>
-      Observable.fromPromise(getMetricSetPair(action.configName, action.runId, action.pairId))
+    .concatMap(action => {
+      const configName = configNameSelector(store.getState());
+      const runId = runSelector(store.getState()).id;
+
+      return Observable.fromPromise(getMetricSetPair(configName, runId, action.payload.pairId))
         .map(metricSetPair => Creators.loadMetricSetPairSuccess({ metricSetPair }))
         .catch((error: Error) => Observable.of(Creators.loadMetricSetPairFailure({ error })))
-    );
+    });
 
 const rootEpic = combineEpics(
   loadConfigEpic,
@@ -100,7 +104,7 @@ const rootEpic = combineEpics(
   saveConfigEpic,
   deleteConfigRequestEpic,
   deleteConfigSuccessEpic,
-  loadReportRequestEpic,
+  loadCanaryRunRequestEpic,
   loadMetricSetPairEpic,
 );
 
