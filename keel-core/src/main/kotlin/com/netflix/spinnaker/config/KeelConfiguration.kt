@@ -20,8 +20,12 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.github.jonpeterson.jackson.module.versioning.VersioningModule
 import com.netflix.spinnaker.keel.Intent
+import com.netflix.spinnaker.keel.IntentRepository
+import com.netflix.spinnaker.keel.memory.MemoryIntentRepository
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
+import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
@@ -30,9 +34,7 @@ import org.springframework.util.ClassUtils
 
 @Configuration
 @ComponentScan(basePackages = arrayOf(
-  "com.netflix.spinnaker.keel.dryrun",
-  "com.netflix.spinnaker.keel.intents",
-  "com.netflix.spinnaker.keel.intents.processors"
+  "com.netflix.spinnaker.keel.dryrun"
 ))
 open class KeelConfiguration {
 
@@ -59,4 +61,8 @@ open class KeelConfiguration {
         return@map cls
       }
   }
+
+  @Bean
+  @ConditionalOnMissingBean(IntentRepository::class)
+  open fun memoryIntentRepository(): IntentRepository = MemoryIntentRepository()
 }

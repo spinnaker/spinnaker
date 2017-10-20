@@ -34,16 +34,16 @@ class OrcaIntentLauncher
 
     val tasks = processor.converge(intent)
 
-    tasks.forEach {
-      log.info("Launching orchestration for intent (kind: ${intent.kind})")
-
-      // TODO rz - associate orchestration with intent
-      orcaService.orchestrate(it)
-    }
-
-    return OrcaLaunchedIntentResult()
+    return OrcaLaunchedIntentResult(
+      orchestrationIds = tasks.map {
+        log.info("Launching orchestration for intent (kind: ${intent.kind})")
+        orcaService.orchestrate(it).ref
+      }
+    )
   }
 }
 
 // TODO rz - Include orchestration ids?
-class OrcaLaunchedIntentResult : LaunchedIntentResult
+class OrcaLaunchedIntentResult(
+  val orchestrationIds: List<String>
+) : LaunchedIntentResult

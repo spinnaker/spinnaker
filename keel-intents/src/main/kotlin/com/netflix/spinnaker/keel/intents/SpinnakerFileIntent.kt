@@ -31,7 +31,10 @@ class SpinnakerFileIntent
   kind = KIND,
   schema = CURRENT_SCHEMA,
   spec = spec
-)
+) {
+
+  override fun getId() = "$KIND:TODO"
+}
 
 data class SpinnakerFileSpec(
   // TODO rz

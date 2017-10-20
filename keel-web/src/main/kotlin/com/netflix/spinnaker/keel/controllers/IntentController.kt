@@ -15,10 +15,11 @@
  */
 package com.netflix.spinnaker.keel.controllers
 
-import com.netflix.spinnaker.keel.Intent
-import com.netflix.spinnaker.keel.IntentLauncher
+import com.netflix.spinnaker.keel.IntentRepository
 import com.netflix.spinnaker.keel.IntentStatus
+import com.netflix.spinnaker.keel.dryrun.DryRunIntentLauncher
 import com.netflix.spinnaker.keel.model.UpsertIntentRequest
+import com.netflix.spinnaker.keel.orca.OrcaIntentLauncher
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
@@ -28,35 +29,42 @@ import javax.ws.rs.QueryParam
 @RequestMapping("/intents")
 class IntentController
 @Autowired constructor(
-  private val orcaIntentLauncher: IntentLauncher<*>,
-  private val dryRunIntentLauncher: IntentLauncher<*>
+  private val orcaIntentLauncher: OrcaIntentLauncher,
+  private val dryRunIntentLauncher: DryRunIntentLauncher,
+  private val intentRepository: IntentRepository
 ) {
 
   @RequestMapping(method = arrayOf(RequestMethod.PUT))
-  fun upsertIntent(@RequestBody intent: UpsertIntentRequest): Any {
+  fun upsertIntent(@RequestBody req: UpsertIntentRequest): Any {
     // TODO rz - validate intents
     // TODO rz - calculate graph
 
-    if (intent.dryRun) {
-      return intent.intents.map { dryRunIntentLauncher.launch(it) }
+    if (req.dryRun) {
+      return req.intents.map { dryRunIntentLauncher.launch(it) }
     }
-    // TODO rz - calculate graph, store into front50
 
-    intent.intents.forEach { orcaIntentLauncher.launch(it) }
+    req.intents.forEach { intent ->
+      intentRepository.upsertIntent(intent)
+      orcaIntentLauncher.launch(intent)?.also { result ->
+        intentRepository.addOrchestrations(intent, result.orchestrationIds)
+      }
+    }
 
-    return intent
+    // TODO rz - what to return here?
+    return req
   }
 
   @RequestMapping(method = arrayOf(RequestMethod.GET))
-  fun getIntents(@QueryParam("statuses") statuses: List<IntentStatus>): List<Intent<*>> = TODO()
+  fun getIntents(@QueryParam("statuses") statuses: List<IntentStatus>)
+    = if (statuses.isEmpty()) intentRepository.getIntents() else intentRepository.getIntents(statuses)
 
   @RequestMapping(value = "/{id}", method = arrayOf(RequestMethod.GET))
-  fun getIntent(@PathVariable("id") id: String): Intent<*>? = TODO()
+  fun getIntent(@PathVariable("id") id: String) = intentRepository.getIntent(id)
 
   @RequestMapping(value = "/{id}", method = arrayOf(RequestMethod.DELETE))
   @ResponseStatus(HttpStatus.NO_CONTENT)
   fun deleteIntent(@RequestParam("status", defaultValue = "CANCELED") status: IntentStatus): Nothing = TODO()
 
   @RequestMapping(value = "/{id}/history", method = arrayOf(RequestMethod.GET))
-  fun getIntentHistory(@PathVariable("id") id: String): List<Any> = TODO()
+  fun getIntentHistory(@PathVariable("id") id: String) = intentRepository.getHistory(id)
 }

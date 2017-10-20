@@ -13,18 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.keel.orca
+package com.netflix.spinnaker.config
 
-import com.netflix.spinnaker.keel.model.OrchestrationRequest
-import retrofit.http.Body
-import retrofit.http.POST
+import org.springframework.context.annotation.ComponentScan
+import org.springframework.context.annotation.Configuration
 
-interface OrcaService {
-
-  @POST("/orchestrate")
-  fun orchestrate(@Body request: OrchestrationRequest): TaskRefResponse
-}
-
-data class TaskRefResponse(
-  val ref: String
-)
+@Configuration
+@ComponentScan(basePackages = arrayOf(
+  "com.netflix.spinnaker.keel.intents",
+  "com.netflix.spinnaker.keel.intents.processors"
+))
+open class IntentConfiguration

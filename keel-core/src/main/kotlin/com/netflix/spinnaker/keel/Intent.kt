@@ -25,4 +25,9 @@ abstract class Intent<out S : IntentSpec>
   @JsonSerializeToVersion(defaultToSource = true) val schema: String,
   val kind: String,
   val spec: S
-)
+) {
+
+  val status: IntentStatus = IntentStatus.ACTIVE
+
+  abstract fun getId(): String
+}
