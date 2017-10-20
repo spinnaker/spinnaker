@@ -13,15 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.keel.orca
+package com.netflix.spinnaker.keel.model
 
-import com.netflix.spinnaker.keel.model.OrchestrationRequest
-import retrofit.client.Response
-import retrofit.http.Body
-import retrofit.http.POST
+data class OrchestrationRequest(
+  val application: String,
+  val description: String,
+  val job: List<Job>
+)
 
-interface OrcaService {
-
-  @POST("/orchestrate")
-  fun orchestrate(@Body request: OrchestrationRequest): Response
-}
+class Job(type: String, m: MutableMap<String, Any>): HashMap<String, Any>(m.apply { put("type", type) })

@@ -20,6 +20,7 @@ import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.retrofit.RetrofitConfiguration
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
 import retrofit.Endpoint
@@ -31,6 +32,7 @@ import retrofit.converter.JacksonConverter
 
 @Configuration
 @Import(RetrofitConfiguration::class)
+@ComponentScan("com.netflix.spinnaker.keel.orca")
 open class OrcaConfiguration {
 
   @Bean open fun orcaEndpoint(@Value("\${orca.baseUrl}") orcaBaseUrl: String)

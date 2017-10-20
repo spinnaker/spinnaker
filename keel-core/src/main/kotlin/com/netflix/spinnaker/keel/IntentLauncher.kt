@@ -13,15 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.keel.orca
+package com.netflix.spinnaker.keel
 
-import com.netflix.spinnaker.keel.model.OrchestrationRequest
-import retrofit.client.Response
-import retrofit.http.Body
-import retrofit.http.POST
+import com.netflix.spinnaker.keel.exceptions.DeclarativeException
 
-interface OrcaService {
+interface IntentLauncher {
 
-  @POST("/orchestrate")
-  fun orchestrate(@Body request: OrchestrationRequest): Response
+  fun launch(intent: Intent<IntentSpec>)
+
+  fun <I : Intent<IntentSpec>> intentProcessor(intentProcessors: List<IntentProcessor<*>>, intent: I)
+    = intentProcessors.find { it.supports(intent) }.let {
+    if (it == null) {
+      throw DeclarativeException("Could not find processor for intent ${intent.javaClass.simpleName}")
+    }
+    // TODO rz - GROSS AND WRONG
+    return@let it as IntentProcessor<I>
+  }
 }

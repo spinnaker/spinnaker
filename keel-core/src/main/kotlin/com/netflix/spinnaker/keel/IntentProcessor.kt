@@ -13,15 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.keel.orca
+package com.netflix.spinnaker.keel
 
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
-import retrofit.client.Response
-import retrofit.http.Body
-import retrofit.http.POST
 
-interface OrcaService {
+interface IntentProcessor<in I : Intent<IntentSpec>> {
 
-  @POST("/orchestrate")
-  fun orchestrate(@Body request: OrchestrationRequest): Response
+  fun supports(intent: Intent<IntentSpec>): Boolean
+
+  fun converge(intent: I): List<OrchestrationRequest>
 }

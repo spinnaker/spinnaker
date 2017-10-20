@@ -13,15 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.keel.orca
+package com.netflix.spinnaker.keel.model
 
-import com.netflix.spinnaker.keel.model.OrchestrationRequest
-import retrofit.client.Response
-import retrofit.http.Body
-import retrofit.http.POST
+import spock.lang.Specification
 
-interface OrcaService {
+class OrchestrationRequestSpec extends Specification {
 
-  @POST("/orchestrate")
-  fun orchestrate(@Body request: OrchestrationRequest): Response
+  def 'should build job request'() {
+    given:
+    def req = new OrchestrationRequest("keel", "my orchestration", [
+      new Job("wait", [waitTime: 30])
+    ])
+
+    expect:
+    req.application == "keel"
+    req.description == "my orchestration"
+    req.job[0].type == "wait"
+    req.job[0].waitTime == 30
+  }
 }

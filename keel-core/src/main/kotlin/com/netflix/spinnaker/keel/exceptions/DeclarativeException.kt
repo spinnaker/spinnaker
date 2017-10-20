@@ -13,15 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.keel.orca
+package com.netflix.spinnaker.keel.exceptions
 
-import com.netflix.spinnaker.keel.model.OrchestrationRequest
-import retrofit.client.Response
-import retrofit.http.Body
-import retrofit.http.POST
-
-interface OrcaService {
-
-  @POST("/orchestrate")
-  fun orchestrate(@Body request: OrchestrationRequest): Response
+class DeclarativeException : RuntimeException {
+  constructor(message: String?) : super(message)
+  constructor(message: String?, cause: Throwable?) : super(message, cause)
 }

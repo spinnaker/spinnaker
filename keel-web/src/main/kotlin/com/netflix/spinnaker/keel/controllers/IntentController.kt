@@ -15,20 +15,46 @@
  */
 package com.netflix.spinnaker.keel.controllers
 
+import com.netflix.spinnaker.keel.Intent
+import com.netflix.spinnaker.keel.IntentLauncher
 import com.netflix.spinnaker.keel.IntentStatus
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestMethod
-import org.springframework.web.bind.annotation.RestController
+import com.netflix.spinnaker.keel.model.UpsertIntentRequest
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.HttpStatus
+import org.springframework.web.bind.annotation.*
 import javax.ws.rs.QueryParam
 
 @RestController
 @RequestMapping("/intents")
-class IntentController {
+class IntentController
+@Autowired constructor(
+  private val orcaIntentLauncher: IntentLauncher
+) {
 
   @RequestMapping(method = arrayOf(RequestMethod.PUT))
-  fun upsertIntent(@RequestBody intent: Map<String, Any>) {}
+  fun upsertIntent(@RequestBody intent: UpsertIntentRequest): UpsertIntentRequest {
+    // TODO rz - validate intents
+
+    if (intent.dryRun) {
+      // TODO rz - calculate graph; return summary
+    }
+    // TODO rz - calculate graph, store into front50
+
+    intent.intents.forEach { orcaIntentLauncher.launch(it) }
+
+    return intent
+  }
 
   @RequestMapping(method = arrayOf(RequestMethod.GET))
-  fun getIntents(@QueryParam("statuses") statuses: List<IntentStatus>) {}
+  fun getIntents(@QueryParam("statuses") statuses: List<IntentStatus>): List<Intent<*>> = TODO()
+
+  @RequestMapping(value = "/{id}", method = arrayOf(RequestMethod.GET))
+  fun getIntent(@PathVariable("id") id: String): Intent<*>? = TODO()
+
+  @RequestMapping(value = "/{id}", method = arrayOf(RequestMethod.DELETE))
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  fun deleteIntent(@RequestParam("status", defaultValue = "CANCELED") status: IntentStatus): Nothing = TODO()
+
+  @RequestMapping(value = "/{id}/history", method = arrayOf(RequestMethod.GET))
+  fun getIntentHistory(@PathVariable("id") id: String): List<Any> = TODO()
 }

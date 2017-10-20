@@ -21,7 +21,7 @@ import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.github.jonpeterson.jackson.module.versioning.VersioningModule
 import com.netflix.spinnaker.keel.Intent
 import org.slf4j.LoggerFactory
-import org.springframework.context.annotation.Bean
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
@@ -30,19 +30,22 @@ import org.springframework.util.ClassUtils
 
 @Configuration
 @ComponentScan(basePackages = arrayOf(
-  "com.netflix.spinnaker.keel.intents"
+  "com.netflix.spinnaker.keel.intents",
+  "com.netflix.spinnaker.keel.intents.processors"
 ))
 open class KeelConfiguration {
 
   private val log = LoggerFactory.getLogger(javaClass)
 
-  @Bean open fun objectMapper(): ObjectMapper
-    = ObjectMapper().apply {
-        registerSubtypes(*findAllIntentSubtypes().toTypedArray())
-      }
-        .registerModule(KotlinModule())
-        .registerModule(VersioningModule())
-        .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+  @Autowired
+  open fun configureObjectMapper(objectMapper: ObjectMapper) {
+    objectMapper.apply {
+      registerSubtypes(*findAllIntentSubtypes().toTypedArray())
+    }
+      .registerModule(KotlinModule())
+      .registerModule(VersioningModule())
+      .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+  }
 
   private fun findAllIntentSubtypes(): List<Class<*>> {
     return ClassPathScanningCandidateComponentProvider(false).apply {

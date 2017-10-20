@@ -21,19 +21,22 @@ import com.github.jonpeterson.jackson.module.versioning.JsonVersionedModel
 import com.netflix.spinnaker.keel.Intent
 import com.netflix.spinnaker.keel.IntentSpec
 
-private const val KIND = "SpinnakerFile"
-private const val CURRENT_SCHEMA = "-1"
+private const val KIND = "Parrot"
+private const val CURRENT_SCHEMA = "1"
 
+/**
+ * The Parrot intent is just intended for early scaffolding purposes. It shouldn't be long-lived.
+ */
 @JsonTypeName(KIND)
 @JsonVersionedModel(currentVersion = CURRENT_SCHEMA, propertyName = "schema")
-class SpinnakerFileIntent
-@JsonCreator constructor(spec: SpinnakerFileSpec): Intent<SpinnakerFileSpec>(
+class ParrotIntent
+@JsonCreator constructor(spec: ParrotSpec): Intent<ParrotSpec>(
   kind = KIND,
   schema = CURRENT_SCHEMA,
   spec = spec
 )
 
-data class SpinnakerFileSpec(
-  // TODO rz
-  val todo: String
+data class ParrotSpec(
+  val application: String,
+  val description: String
 ) : IntentSpec
