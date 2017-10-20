@@ -7,7 +7,7 @@ import { BUILD_DISPLAY_NAME_FILTER } from './executionBuild/buildDisplayName.fil
 import { EXECUTION_COMPONENT } from './executionGroup/execution/execution.component';
 import { EXECUTION_DETAILS_SECTION_NAV } from './details/executionDetailsSectionNav.component';
 import { EXECUTION_FILTER_SERVICE } from 'core/delivery/filter/executionFilter.service';
-import { STAGE_FAILURE_MESSAGE_COMPONENT } from './stageFailureMessage/stageFailureMessage.component';
+import { STAGE_FAILURE_MESSAGE_COMPONENT } from './details/stageFailureMessage.component';
 import { CORE_DELIVERY_DETAILS_SINGLEEXECUTIONDETAILS } from './details/singleExecutionDetails.component';
 import { STAGE_DETAILS_COMPONENT } from './details/stageDetails.component';
 import { STAGE_SUMMARY_COMPONENT } from './details/stageSummary.component';
