@@ -13,13 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.keel.model
+package com.netflix.spinnaker.keel.dryrun
 
-data class OrchestrationRequest(
+data class DryRunStep(
   val name: String,
-  val application: String,
-  val description: String,
-  val job: List<Job>
+  val description: String?,
+  val operations: List<String>
 )
-
-class Job(type: String, m: MutableMap<String, Any>): HashMap<String, Any>(m.apply { put("type", type) })

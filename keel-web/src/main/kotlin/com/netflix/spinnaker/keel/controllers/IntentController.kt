@@ -28,15 +28,17 @@ import javax.ws.rs.QueryParam
 @RequestMapping("/intents")
 class IntentController
 @Autowired constructor(
-  private val orcaIntentLauncher: IntentLauncher
+  private val orcaIntentLauncher: IntentLauncher<*>,
+  private val dryRunIntentLauncher: IntentLauncher<*>
 ) {
 
   @RequestMapping(method = arrayOf(RequestMethod.PUT))
-  fun upsertIntent(@RequestBody intent: UpsertIntentRequest): UpsertIntentRequest {
+  fun upsertIntent(@RequestBody intent: UpsertIntentRequest): Any {
     // TODO rz - validate intents
+    // TODO rz - calculate graph
 
     if (intent.dryRun) {
-      // TODO rz - calculate graph; return summary
+      return intent.intents.map { dryRunIntentLauncher.launch(it) }
     }
     // TODO rz - calculate graph, store into front50
 

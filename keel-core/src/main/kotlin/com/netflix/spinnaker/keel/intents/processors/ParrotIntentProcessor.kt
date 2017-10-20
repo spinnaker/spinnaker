@@ -30,6 +30,7 @@ class ParrotIntentProcessor : IntentProcessor<ParrotIntent> {
 
   override fun converge(intent: ParrotIntent) = listOf(
     OrchestrationRequest(
+      name = "Squawk!",
       application = intent.spec.application,
       description = intent.spec.description,
       job = listOf(

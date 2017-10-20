@@ -30,6 +30,7 @@ import org.springframework.util.ClassUtils
 
 @Configuration
 @ComponentScan(basePackages = arrayOf(
+  "com.netflix.spinnaker.keel.dryrun",
   "com.netflix.spinnaker.keel.intents",
   "com.netflix.spinnaker.keel.intents.processors"
 ))

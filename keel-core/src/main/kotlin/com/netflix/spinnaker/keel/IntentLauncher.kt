@@ -17,9 +17,9 @@ package com.netflix.spinnaker.keel
 
 import com.netflix.spinnaker.keel.exceptions.DeclarativeException
 
-interface IntentLauncher {
+interface IntentLauncher<out R : LaunchedIntentResult> {
 
-  fun launch(intent: Intent<IntentSpec>)
+  fun launch(intent: Intent<IntentSpec>): R?
 
   fun <I : Intent<IntentSpec>> intentProcessor(intentProcessors: List<IntentProcessor<*>>, intent: I)
     = intentProcessors.find { it.supports(intent) }.let {
@@ -30,3 +30,8 @@ interface IntentLauncher {
     return@let it as IntentProcessor<I>
   }
 }
+
+interface LaunchedIntentResult
+
+// TODO rz - This actually shouldn't be used, but still riffing on the interface
+class StubIntentResult : LaunchedIntentResult

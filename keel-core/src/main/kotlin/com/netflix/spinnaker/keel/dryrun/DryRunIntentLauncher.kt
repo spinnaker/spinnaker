@@ -13,37 +13,39 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.keel.orca
+package com.netflix.spinnaker.keel.dryrun
 
 import com.netflix.spinnaker.keel.*
-import org.slf4j.LoggerFactory
+import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
-@Component(value = "orcaIntentLauncher")
-class OrcaIntentLauncher
+@Component(value = "dryRunIntentLauncher")
+class DryRunIntentLauncher
 @Autowired constructor(
-  private val intentProcessors: List<IntentProcessor<*>>,
-  private val orcaService: OrcaService
-) : IntentLauncher<OrcaLaunchedIntentResult> {
+  private val intentProcessors: List<IntentProcessor<*>>
+): IntentLauncher<DryRunLaunchedIntentResult> {
 
-  private val log = LoggerFactory.getLogger(javaClass)
-
-  override fun launch(intent: Intent<IntentSpec>): OrcaLaunchedIntentResult? {
+  override fun launch(intent: Intent<IntentSpec>): DryRunLaunchedIntentResult? {
     val processor = intentProcessor(intentProcessors, intent)
 
     val tasks = processor.converge(intent)
 
-    tasks.forEach {
-      log.info("Launching orchestration for intent (kind: ${intent.kind})")
-
-      // TODO rz - associate orchestration with intent
-      orcaService.orchestrate(it)
-    }
-
-    return OrcaLaunchedIntentResult()
+    return DryRunLaunchedIntentResult(
+      steps = collectSteps(tasks)
+    )
   }
+
+  private fun collectSteps(orchestrations: List<OrchestrationRequest>): List<DryRunStep>
+    = orchestrations.map { (name, _, description, job) ->
+        DryRunStep(
+          name = name,
+          description = description,
+          operations = job.map { s -> (s["name"] ?: s["type"]).toString() }
+        )
+      }
 }
 
-// TODO rz - Include orchestration ids?
-class OrcaLaunchedIntentResult : LaunchedIntentResult
+data class DryRunLaunchedIntentResult(
+  val steps: List<DryRunStep>
+) : LaunchedIntentResult
