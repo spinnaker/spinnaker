@@ -79,6 +79,7 @@
     "redux-logger": "^3.0.6",
     "redux-observable": "^0.14.1",
     "reflect-metadata": "^0.1.9",
+    "reselect": "^3.0.1",
     "rxjs": "^5.1.0",
     "select2-bootstrap-css": "git://github.com/t0m/select2-bootstrap-css.git#v1.3.1",
     "source-map": "^0.4.4",

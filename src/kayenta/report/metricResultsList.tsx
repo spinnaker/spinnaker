@@ -38,7 +38,7 @@ const ResultsList = ({ results, select, selectedMetric }: IResultsListOwnProps &
 );
 
 const mapStateToProps = (state: ICanaryState): IResultsListStateProps => ({
-  selectedMetric: state.selectedResult.selectedMetric,
+  selectedMetric: state.selectedRun.selectedMetric,
 });
 
 const mapDispatchToProps = (

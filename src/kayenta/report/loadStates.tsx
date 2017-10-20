@@ -34,7 +34,7 @@ const ResultLoadStates = ({ loadState }: IResultLoadStatesStateProps) => {
 };
 
 const mapStateToProps = (state: ICanaryState) => ({
-  loadState: state.selectedResult.load,
+  loadState: state.selectedRun.load,
 });
 
 export default connect(mapStateToProps)(ResultLoadStates);

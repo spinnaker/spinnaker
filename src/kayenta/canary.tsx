@@ -15,7 +15,6 @@ import Styleguide from './layout/styleguide';
 import { CanarySettings } from './canary.settings';
 import { CanaryHeader } from './navigation/canaryHeader';
 import { canaryTabs } from './navigation/canaryTabs';
-import { ICanaryJudgeResultSummary } from './domain/ICanaryJudgeResultSummary';
 
 export interface ICanaryProps {
   app: Application;
@@ -44,7 +43,6 @@ export default class Canary extends React.Component<ICanaryProps> {
           application: props.app,
           configSummaries: props.app.getDataSource('canaryConfigs').data as ICanaryConfigSummary[],
           judges: props.app.getDataSource('canaryJudges').data as IJudge[],
-          resultSummaries: props.app.getDataSource('canaryJudgeResults').data as ICanaryJudgeResultSummary[],
         },
       },
     });

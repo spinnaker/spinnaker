@@ -1,12 +1,12 @@
 import { createAction } from 'redux-actions';
 
+import { IExecution } from '@spinnaker/core';
+
 import * as Actions from './index';
 import { ConfigJsonModalTabState } from '../edit/configJsonModal';
 import { ICanaryConfig } from '../domain/ICanaryConfig';
 import { ICanaryConfigSummary } from '../domain/ICanaryConfigSummary';
 import { IJudge } from '../domain/IJudge';
-import { ICanaryJudgeResult } from '../domain/ICanaryJudgeResult';
-import { ICanaryJudgeResultSummary } from '../domain/ICanaryJudgeResultSummary';
 
 const typedPayloadCreator = <T>() => (payload: T): T => payload;
 
@@ -50,9 +50,8 @@ export const editGroupUpdate = createAction(Actions.EDIT_GROUP_UPDATE, typedPayl
 export const editGroupConfirm = createAction(Actions.EDIT_GROUP_CONFIRM, typedPayloadCreator<{group: string, edit: string}>());
 export const changeMetricGroupSelect = createAction(Actions.CHANGE_METRIC_GROUP_SELECT, typedPayloadCreator<{group: string}>());
 export const changeMetricGroupConfirm = createAction(Actions.CHANGE_METRIC_GROUP_CONFIRM, typedPayloadCreator<{metricId: string}>());
-export const loadResultRequest = createAction(Actions.LOAD_RESULT_REQUEST, typedPayloadCreator<{id: string}>());
-export const loadResultSuccess = createAction(Actions.LOAD_RESULT_SUCCESS, typedPayloadCreator<{result: ICanaryJudgeResult}>());
-export const loadResultFailure = createAction(Actions.LOAD_RESULT_FAILURE, typedPayloadCreator<{error: Error}>());
+export const loadRunRequest = createAction(Actions.LOAD_RUN_REQUEST, typedPayloadCreator<{configName: string, runId: string}>());
+export const loadRunSuccess = createAction(Actions.LOAD_RUN_SUCCESS, typedPayloadCreator<{run: IExecution}>());
+export const loadRunFailure = createAction(Actions.LOAD_RUN_FAILURE, typedPayloadCreator<{error: Error}>());
 export const selectResultMetricGroup = createAction(Actions.SELECT_RESULT_METRIC_GROUP, typedPayloadCreator<{group: string}>());
 export const selectResultMetric = createAction(Actions.SELECT_RESULT_METRIC, typedPayloadCreator<{metric: string}>());
-export const updateResultSummaries = createAction(Actions.UPDATE_RESULT_SUMMARIES, typedPayloadCreator<{resultSummaries: ICanaryJudgeResultSummary[]}>());

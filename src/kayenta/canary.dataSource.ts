@@ -10,8 +10,6 @@ import { getCanaryConfigSummaries, listJudges } from './service/canaryConfig.ser
 import { ICanaryConfigSummary, IJudge } from './domain/index';
 import { canaryStore } from './canary';
 import * as Creators from './actions/creators';
-import { getCanaryJudgeResultSummaries } from './service/canaryJudgeResult.service';
-import { ICanaryJudgeResultSummary } from './domain/ICanaryJudgeResultSummary';
 
 export const CANARY_DATA_SOURCE = 'spinnaker.kayenta.canary.dataSource';
 module(CANARY_DATA_SOURCE, [APPLICATION_DATA_SOURCE_REGISTRY])
@@ -60,25 +58,6 @@ module(CANARY_DATA_SOURCE, [APPLICATION_DATA_SOURCE_REGISTRY])
       loader: loadCanaryJudges,
       onLoad: judgesLoaded,
       afterLoad: afterJudgesLoad,
-      lazy: false,
-      visible: false,
-    });
-
-    const loadJudgeResults = () => $q.resolve(getCanaryJudgeResultSummaries());
-
-    const resultsLoaded = (_application: Application, summaries: ICanaryJudgeResultSummary[]) =>
-      $q.resolve(summaries);
-
-    const afterResultsLoaded = (application: Application) =>
-      canaryStore.dispatch(Creators.updateResultSummaries({
-        resultSummaries: application.getDataSource('canaryJudgeResults').data as ICanaryJudgeResultSummary[],
-      }));
-
-    applicationDataSourceRegistry.registerDataSource({
-      key: 'canaryJudgeResults',
-      loader: loadJudgeResults,
-      onLoad: resultsLoaded,
-      afterLoad: afterResultsLoaded,
       lazy: false,
       visible: false,
     });

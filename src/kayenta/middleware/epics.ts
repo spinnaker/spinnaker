@@ -13,7 +13,7 @@ import * as Actions from '../actions/index';
 import * as Creators from '../actions/creators';
 import { ICanaryState } from '../reducers/index';
 import { ReactInjector } from '@spinnaker/core';
-import { getCanaryJudgeResultById } from '../service/canaryJudgeResult.service';
+import { getCanaryRun } from '../service/run/canaryRun.service';
 
 const typeMatches = (...actions: string[]) => (action: Action & any) => actions.includes(action.type);
 
@@ -75,11 +75,11 @@ const deleteConfigSuccessEpic = (action$: Observable<Action & any>, store: Middl
 
 const loadReportRequestEpic = (action$: Observable<Action & any>) =>
   action$
-    .filter(typeMatches(Actions.LOAD_RESULT_REQUEST))
+    .filter(typeMatches(Actions.LOAD_RUN_REQUEST))
     .concatMap(action =>
-      Observable.fromPromise(getCanaryJudgeResultById(action.payload.id))
-        .map(result => Creators.loadResultSuccess({ result }))
-        .catch((error: Error) => Observable.of(Creators.loadResultFailure({ error })))
+      Observable.fromPromise(getCanaryRun(action.payload.configName, action.payload.runId))
+        .map(run => Creators.loadRunSuccess({ run }))
+        .catch((error: Error) => Observable.of(Creators.loadRunFailure({ error })))
     );
 
 const rootEpic = combineEpics(

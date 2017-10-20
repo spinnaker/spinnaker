@@ -16,7 +16,8 @@ interface IResultLoaderDispatchProps {
 }
 
 interface IResultLoaderStateParams {
-  id: string;
+  configName: string;
+  runId: string;
 }
 
 /*
@@ -43,7 +44,10 @@ class ResultDetailLoader extends React.Component<IResultLoaderDispatchProps & IR
 
 const mapDispatchToProps = (dispatch: Dispatch<ICanaryState>): IResultLoaderDispatchProps => ({
   loadResult: (stateParams: IResultLoaderStateParams) =>
-    dispatch(Creators.loadResultRequest({ id: stateParams.id })),
+    dispatch(Creators.loadRunRequest({
+      configName: stateParams.configName,
+      runId: stateParams.runId,
+    })),
 });
 
 export default connect(null, mapDispatchToProps)(ResultDetailLoader);

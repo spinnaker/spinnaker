@@ -6,6 +6,7 @@ import { ICanaryState } from '../reducers/index';
 import { ICanaryAnalysisResult } from '../domain/ICanaryJudgeResult';
 import MetricResultsList from './metricResultsList';
 import MetricResultDetail from './metricResultDetail';
+import { judgeResultSelector } from '../selectors/index';
 
 interface IMetricResultsStateProps {
   metricResults: ICanaryAnalysisResult[];
@@ -28,12 +29,12 @@ const MetricResults = ({ metricResults, selectedMetricResult }: IMetricResultsSt
 
 const mapStateToProps = (state: ICanaryState): IMetricResultsStateProps => {
   const {
-    selectedResult: {
-      result,
+    selectedRun: {
       selectedGroup,
       selectedMetric,
     },
   } = state;
+  const result = judgeResultSelector(state);
 
   // Build list of metric results to render.
   let filter: (r: ICanaryAnalysisResult) => boolean;

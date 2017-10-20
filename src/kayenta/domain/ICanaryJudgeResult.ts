@@ -7,6 +7,7 @@ export interface ICanaryJudgeResult {
 
 export interface ICanaryAnalysisResult {
   name: string;
+  metricSetPairId: string; // Not yet defined on the Kayenta model.
   tags: {[key: string]: string};
   classification: string;
   classificationReason: string;

@@ -9,6 +9,7 @@ import {
 import CanaryJudgeScore from './score';
 import GroupScores from './groupScores';
 import * as Creators from 'kayenta/actions/creators';
+import { judgeResultSelector } from '../selectors/index';
 
 interface IReportDetailHeaderStateProps {
   groups: ICanaryJudgeGroupScore[];
@@ -30,8 +31,8 @@ const ReportDetailHeader = ({ groups, score, clearSelectedGroup }: IReportDetail
 );
 
 const mapStateToProps = (state: ICanaryState): IReportDetailHeaderStateProps => ({
-  groups: state.selectedResult.result.groupScores,
-  score: state.selectedResult.result.score,
+  groups: judgeResultSelector(state).groupScores,
+  score: judgeResultSelector(state).score,
 });
 
 const mapDispatchToProps = (dispatch: Dispatch<ICanaryState>): IReportDetailDispatchProps => ({

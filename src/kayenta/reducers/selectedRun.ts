@@ -3,23 +3,23 @@ import { handleActions } from 'redux-actions';
 
 import * as Actions from 'kayenta/actions/index';
 import { AsyncRequestState } from './asyncRequest';
-import { ICanaryJudgeResult } from '../domain/ICanaryJudgeResult';
+import { IExecution } from '@spinnaker/core';
 
-export interface ISelectedResultState {
-  result: ICanaryJudgeResult;
+export interface ISelectedRunState {
+  run: IExecution;
   load: AsyncRequestState;
   selectedGroup: string;
   selectedMetric: string;
 }
 
-const result = handleActions({
-  [Actions.LOAD_RESULT_SUCCESS]: (_state: ICanaryJudgeResult, action: Action & any) => action.payload.result,
+const run = handleActions({
+  [Actions.LOAD_RUN_SUCCESS]: (_state: IExecution, action: Action & any) => action.payload.run,
 }, null);
 
 const load = handleActions({
-  [Actions.LOAD_RESULT_REQUEST]: () => AsyncRequestState.Requesting,
-  [Actions.LOAD_RESULT_SUCCESS]: () => AsyncRequestState.Fulfilled,
-  [Actions.LOAD_RESULT_FAILURE]: () => AsyncRequestState.Failed,
+  [Actions.LOAD_RUN_REQUEST]: () => AsyncRequestState.Requesting,
+  [Actions.LOAD_RUN_SUCCESS]: () => AsyncRequestState.Fulfilled,
+  [Actions.LOAD_RUN_FAILURE]: () => AsyncRequestState.Failed,
 }, AsyncRequestState.Requesting);
 
 const selectedGroup = handleActions({
@@ -31,8 +31,8 @@ const selectedMetric = handleActions({
   [Actions.SELECT_RESULT_METRIC_GROUP]: () => null,
 }, null);
 
-export const selectedResult: Reducer<ISelectedResultState> = combineReducers<ISelectedResultState>({
-  result,
+export const selectedRun: Reducer<ISelectedRunState> = combineReducers<ISelectedRunState>({
+  run,
   load,
   selectedGroup,
   selectedMetric,

@@ -67,7 +67,7 @@ module(CANARY_STATES, [APPLICATION_STATE_PROVIDER])
 
   const reportDetail: INestedState = {
     name: 'reportDetail',
-    url: '/report/:id',
+    url: '/report/:configName/:runId',
     views: {
       detail: {
         component: ResultDetailLoader, $type: 'react',
