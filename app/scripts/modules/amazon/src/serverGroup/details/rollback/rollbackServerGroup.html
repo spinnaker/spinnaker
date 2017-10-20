@@ -10,13 +10,25 @@
         <div class="col-sm-3 sm-label-right">
           Restore to
         </div>
-        <div class="col-sm-6">
-          <ui-select ng-model="command.rollbackContext.restoreServerGroupName" class="form-control input-sm">
+        <div class="col-sm-8">
+          <ui-select ng-model="command.rollbackContext.restoreServerGroupName"
+                     class="form-control input-sm"
+                     ng-if="command.rollbackType === 'EXPLICIT'">
             <ui-select-match placeholder="Select...">{{ctrl.label($select.selected)}}</ui-select-match>
             <ui-select-choices group-by="ctrl.group" repeat="serverGroup.name as serverGroup in allServerGroups">
               <span ng-bind-html="ctrl.label(serverGroup)"></span>
             </ui-select-choices>
           </ui-select>
+          <div ng-if="command.rollbackType === 'PREVIOUS_IMAGE'" style="margin-top: 5px">
+            {{ previousServerGroup.name }} <span class="small">(no longer deployed)</span><br/>
+            <span class="small">
+              <strong>Image</strong>: {{ previousServerGroup.imageName}}
+              <span ng-if="previousServerGroup.imageId">({{ previousServerGroup.imageId }})</span><br/>
+            </span>
+            <span class="small" ng-if="previousServerGroup.buildNumber">
+              <strong>Build</strong> #{{ previousServerGroup.buildNumber }}
+            </span>
+          </div>
         </div>
       </div>
 
@@ -52,7 +64,7 @@
           Rollback Operations
         </div>
       </div>
-      <div class="row">
+      <div class="row" ng-if="command.rollbackType === 'EXPLICIT'">
         <div class="col-sm-11 col-sm-offset-1">
           <ol>
             <li>Enable <em>{{ command.rollbackContext.restoreServerGroupName || 'previous server group' }}</em></li>
@@ -70,6 +82,29 @@
             <li>Restore minimum capacity of <em>{{ command.rollbackContext.restoreServerGroupName || 'previous server group' }}</em> [
               <strong>min</strong>: {{ serverGroup.capacity.min }}
             ]</li>
+          </ol>
+          <p>
+            This rollback will affect server groups in {{ serverGroup.account }} ({{ serverGroup.region }}).
+          </p>
+        </div>
+      </div>
+      <div class="row" ng-if="command.rollbackType === 'PREVIOUS_IMAGE'">
+        <div class="col-sm-11 col-sm-offset-1">
+          <ol>
+            <li>Deploy <em>{{ previousServerGroup.imageId }}</em> [
+              <strong>min</strong>: {{serverGroup.capacity.desired}},
+              <strong>max</strong>: {{ serverGroup.capacity.max }},
+              <strong>desired</strong>: {{ serverGroup.capacity.desired }}
+              ]<br/>(minimum capacity pinned at {{serverGroup.capacity.desired}} to prevent autoscaling down during deploy)
+              <li ng-if="command.rollbackContext.targetHealthyRollbackPercentage < 100">
+                Wait for at least {{minHealthy(command.rollbackContext.targetHealthyRollbackPercentage)}}
+                instances to report as healthy
+              </li>
+            </li>
+            <li>Disable {{ serverGroup.name }}</li>
+            <li>Restore minimum capacity of <em>new server group</em> [
+              <strong>min</strong>: {{ serverGroup.capacity.min }}
+              ]</li>
           </ol>
           <p>
             This rollback will affect server groups in {{ serverGroup.account }} ({{ serverGroup.region }}).

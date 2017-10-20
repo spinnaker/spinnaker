@@ -2,6 +2,7 @@
 
 const angular = require('angular');
 
+import { get } from 'lodash';
 import { SERVER_GROUP_WRITER, TASK_MONITOR_BUILDER } from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.amazon.serverGroup.details.rollback.controller', [
@@ -18,6 +19,28 @@ module.exports = angular.module('spinnaker.amazon.serverGroup.details.rollback.c
 
       var desired = serverGroup.capacity.desired;
 
+      var rollbackType = 'EXPLICIT';
+
+      if (allServerGroups.length === 0 && serverGroup.entityTags) {
+        const previousServerGroup = get(serverGroup, 'entityTags.creationMetadata.value.previousServerGroup');
+        if (previousServerGroup) {
+          rollbackType = 'PREVIOUS_IMAGE';
+          $scope.previousServerGroup = {
+            name: previousServerGroup.name,
+            imageName: previousServerGroup.imageName
+          };
+
+          if (previousServerGroup.imageId && previousServerGroup.imageId !== previousServerGroup.imageName) {
+            $scope.previousServerGroup.imageId = previousServerGroup.imageId;
+          }
+
+          const buildNumber = get(previousServerGroup, 'buildInfo.jenkins.number');
+          if (buildNumber) {
+            $scope.previousServerGroup.buildNumber = buildNumber;
+          }
+        }
+      }
+
       if (desired < 10) {
         var healthyPercent = 100;
       } else if (desired < 20) {
@@ -28,7 +51,7 @@ module.exports = angular.module('spinnaker.amazon.serverGroup.details.rollback.c
       }
 
       $scope.command = {
-        rollbackType: 'EXPLICIT',
+        rollbackType: rollbackType,
         rollbackContext: {
           rollbackServerGroupName: serverGroup.name,
           targetHealthyRollbackPercentage: healthyPercent
@@ -51,6 +74,11 @@ module.exports = angular.module('spinnaker.amazon.serverGroup.details.rollback.c
         var command = $scope.command;
         if (!$scope.verification.verified) {
           return false;
+        }
+
+        if (rollbackType === 'PREVIOUS_IMAGE') {
+          // no need to validate when using an explicit image
+          return true;
         }
 
         return command.rollbackContext.restoreServerGroupName !== undefined;
