@@ -1,5 +1,5 @@
 import { module, IPromise, IQService } from 'angular';
-import { chain, clone, cloneDeep, extend, find, flatten, has, intersection, isNil, keys, map, some, xor } from 'lodash';
+import { chain, clone, cloneDeep, extend, find, flatten, has, intersection, keys, map, some, xor } from 'lodash';
 
 import {
   ACCOUNT_SERVICE,
@@ -572,7 +572,7 @@ export class AwsServerGroupConfigurationService {
       };
 
       command.clusterChanged = (): void => {
-        const appName = isNil(command.application) ? undefined : command.application.name;
+        const appName = command.application;
         const moniker: IMoniker = {
           app: appName,
           stack: command.stack,

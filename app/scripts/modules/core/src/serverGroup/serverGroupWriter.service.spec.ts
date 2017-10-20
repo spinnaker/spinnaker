@@ -88,7 +88,7 @@ describe('serverGroupWriter', function () {
         viewState: {
           mode: 'create',
         },
-        application
+        application: application.name,
       } as IServerGroupCommand;
     });
 

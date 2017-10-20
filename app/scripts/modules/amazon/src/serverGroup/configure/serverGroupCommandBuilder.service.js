@@ -45,7 +45,7 @@ module.exports = angular.module('spinnaker.amazon.serverGroupCommandBuilder.serv
           var useAmiBlockDeviceMappings = applicationAwsSettings.useAmiBlockDeviceMappings || false;
 
           var command = {
-            application: application,
+            application: application.name,
             credentials: defaultCredentials,
             region: defaultRegion,
             strategy: '',
@@ -189,7 +189,7 @@ module.exports = angular.module('spinnaker.amazon.serverGroupCommandBuilder.serv
         var useAmiBlockDeviceMappings = applicationAwsSettings.useAmiBlockDeviceMappings || false;
 
         var command = {
-          application: application,
+          application: application.name,
           strategy: '',
           stack: serverGroupName.stack,
           freeFormDetails: serverGroupName.freeFormDetails,

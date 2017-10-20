@@ -76,7 +76,7 @@ export interface IServerGroupCommandBackingData {
 
 export interface IServerGroupCommand extends IServerGroupCommandResult {
   amiName?: string;
-  application: Application;
+  application: string;
   availabilityZones: string[];
   backingData: IServerGroupCommandBackingData;
   capacity: ICapacity;
