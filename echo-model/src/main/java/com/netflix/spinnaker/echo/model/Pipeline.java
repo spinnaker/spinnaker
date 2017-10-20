@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.echo.model;
 
+import java.util.List;
+import java.util.Map;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
@@ -25,9 +27,6 @@ import lombok.NonNull;
 import lombok.ToString;
 import lombok.Value;
 import lombok.experimental.Wither;
-
-import java.util.List;
-import java.util.Map;
 
 @JsonDeserialize(builder = Pipeline.PipelineBuilder.class)
 @Builder
@@ -44,7 +43,7 @@ import java.util.Map;
   @NonNull String name;
 
   @JsonProperty
-  @NonNull String id;
+  String id;
 
   @JsonProperty
   String executionEngine;

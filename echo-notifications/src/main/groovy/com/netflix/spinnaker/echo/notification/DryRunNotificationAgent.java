@@ -68,6 +68,7 @@ public class DryRunNotificationAgent extends AbstractEventNotificationAgent {
         return orca.trigger(
           pipeline
             .withName(format("%s (dry run)", pipeline.getName()))
+            .withId(null)
             .withTrigger(trigger)
         );
       })
