@@ -33,6 +33,7 @@ import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.cache.OnDemandAgent
 import com.netflix.spinnaker.clouddriver.cache.OnDemandMetricsSupport
 import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
+import com.netflix.spinnaker.clouddriver.google.GoogleExecutorTraits
 import com.netflix.spinnaker.clouddriver.google.cache.CacheResultBuilder
 import com.netflix.spinnaker.clouddriver.google.cache.Keys
 import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
@@ -48,7 +49,7 @@ import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.INFORMATI
 import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.*
 
 @Slf4j
-class GoogleRegionalServerGroupCachingAgent extends AbstractGoogleCachingAgent implements OnDemandAgent {
+class GoogleRegionalServerGroupCachingAgent extends AbstractGoogleCachingAgent implements OnDemandAgent, GoogleExecutorTraits {
   final String region
   final long maxMIGPageSize
 
@@ -132,7 +133,11 @@ class GoogleRegionalServerGroupCachingAgent extends AbstractGoogleCachingAgent i
     BatchRequest instanceGroupsRequest = buildBatchRequest()
     BatchRequest autoscalerRequest = buildBatchRequest()
 
-    List<InstanceTemplate> instanceTemplates = compute.instanceTemplates().list(project).execute().getItems()
+    List<InstanceTemplate> instanceTemplates = timeExecute(
+        compute.instanceTemplates().list(project),
+        "compute.instanceTemplates.list",
+        TAG_SCOPE, SCOPE_GLOBAL)
+        .getItems()
 
     InstanceGroupManagerCallbacks instanceGroupManagerCallbacks = new InstanceGroupManagerCallbacks(
       providerCache: providerCache,

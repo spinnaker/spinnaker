@@ -91,7 +91,11 @@ class GoogleInstanceProvider implements InstanceProvider<GoogleInstance.View> {
     def googleInstance = getInstance(account, region, id)
 
     if (googleInstance) {
-      return compute.instances().getSerialPortOutput(project, googleInstance.zone, id).execute().contents
+      return timeExecute(
+          compute.instances().getSerialPortOutput(project, googleInstance.zone, id),
+          "compute.instances.getSerialPortOutput",
+          TAG_SCOPE, SCOPE_ZONAL, TAG_ZONE, googleInstance.zone
+          ).contents
     }
 
     return null

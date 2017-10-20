@@ -28,6 +28,7 @@ import com.netflix.spinnaker.clouddriver.google.ComputeVersion
 import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
 import com.netflix.spinnaker.clouddriver.google.model.GoogleInstanceTypeDisk
+import com.netflix.spinnaker.clouddriver.googlecommon.GoogleExecutor
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials
 import com.netflix.spinnaker.fiat.model.resources.Permissions
 import groovy.transform.TupleConstructor
@@ -219,7 +220,13 @@ class GoogleNamedAccountCredentials implements AccountCredentials<GoogleCredenti
       }
 
       if (liveLookupsEnabled) {
-        xpnHostProject = compute.projects().getXpnHost(project).execute()?.getName()
+        xpnHostProject = GoogleExecutor.timeExecute(
+            GoogleExecutor.getRegistry(),
+            compute.projects().getXpnHost(project),
+            "google.api",
+            "compute.projects.getXpnHost",
+            GoogleExecutor.TAG_SCOPE, GoogleExecutor.SCOPE_GLOBAL
+            )?.getName()
         regionToZonesMap = queryRegions(compute, project)
         locationToInstanceTypesMap = queryInstanceTypes(compute, project, regionToZonesMap)
         locationToCpuPlatformsMap = queryCpuPlatforms(compute, project, regionToZonesMap)
@@ -301,7 +308,12 @@ class GoogleNamedAccountCredentials implements AccountCredentials<GoogleCredenti
 
   private static RegionList fetchRegions(Compute compute, String project) {
     try {
-      return compute.regions().list(project).execute()
+      return GoogleExecutor.timeExecute(
+          GoogleExecutor.getRegistry(),
+          compute.regions().list(project),
+          "google.api",
+          "compute.regions.list",
+          GoogleExecutor.TAG_SCOPE, GoogleExecutor.SCOPE_GLOBAL)
     } catch (IOException ioe) {
       throw new RuntimeException("Failed loading regions for " + project, ioe)
     }
@@ -310,12 +322,22 @@ class GoogleNamedAccountCredentials implements AccountCredentials<GoogleCredenti
   private static Map<String, Map> queryInstanceTypes(Compute compute,
                                                      String project,
                                                      Map<String, List<String>> regionToZonesMap) {
-    MachineTypeAggregatedList instanceTypeList = compute.machineTypes().aggregatedList(project).execute()
+    MachineTypeAggregatedList instanceTypeList = GoogleExecutor.timeExecute(
+        GoogleExecutor.getRegistry(),
+        compute.machineTypes().aggregatedList(project),
+        "google.api",
+        "compute.machineTypes.aggregatedList",
+        GoogleExecutor.TAG_SCOPE, GoogleExecutor.SCOPE_GLOBAL)
     String nextPageToken = instanceTypeList.getNextPageToken()
     Map<String, Map> zoneToInstanceTypesMap = convertInstanceTypeListToMap(instanceTypeList)
 
     while (nextPageToken) {
-      instanceTypeList = compute.machineTypes().aggregatedList(project).setPageToken(nextPageToken).execute()
+      instanceTypeList = GoogleExecutor.timeExecute(
+          GoogleExecutor.getRegistry(),
+          compute.machineTypes().aggregatedList(project).setPageToken(nextPageToken),
+          "google.api",
+          "compute.machineTypes.aggregatedList",
+          GoogleExecutor.TAG_SCOPE, GoogleExecutor.SCOPE_GLOBAL)
       nextPageToken = instanceTypeList.getNextPageToken()
 
       Map<String, Map> subsequentZoneToInstanceTypesMap = convertInstanceTypeListToMap(instanceTypeList)
@@ -389,13 +411,23 @@ class GoogleNamedAccountCredentials implements AccountCredentials<GoogleCredenti
                                                      String project,
                                                      Map<String, List<String>> regionToZonesMap) {
     Map<String, List<String>> locationToCpuPlatformsMap = new HashMap<>()
-    ZoneList zoneList = compute.zones().list(project).execute()
+    ZoneList zoneList = GoogleExecutor.timeExecute(
+        GoogleExecutor.getRegistry(),
+        compute.zones().list(project),
+        "google.api",
+        "compute.zones.list",
+        GoogleExecutor.TAG_SCOPE, GoogleExecutor.SCOPE_GLOBAL)
     String nextPageToken = zoneList.getNextPageToken()
 
     populateLocationToCpuPlatformsMap(zoneList, locationToCpuPlatformsMap)
 
     while (nextPageToken) {
-      zoneList = compute.zones().list(project).setPageToken(nextPageToken).execute()
+      zoneList = GoogleExecutor.timeExecute(
+          GoogleExecutor.getRegistry(),
+          compute.zones().list(project).setPageToken(nextPageToken),
+          "google.api",
+          "compute.zones.list",
+          GoogleExecutor.TAG_SCOPE, GoogleExecutor.SCOPE_GLOBAL)
       nextPageToken = zoneList.getNextPageToken()
 
       populateLocationToCpuPlatformsMap(zoneList, locationToCpuPlatformsMap)

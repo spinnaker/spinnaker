@@ -26,11 +26,12 @@ import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProperties
 import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleOperationException
 import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleOperationTimedOutException
+import com.netflix.spinnaker.clouddriver.google.GoogleExecutorTraits
 import org.springframework.beans.factory.annotation.Autowired
 import java.util.concurrent.TimeUnit;
 
 
-class GoogleOperationPoller {
+class GoogleOperationPoller implements GoogleExecutorTraits {
   static final String METRIC_NAME = "google.operationWaits"  // Timer
   static final String STARTED_METRIC_NAME = "google.operationWaitRequests"  // Counter
 
@@ -58,28 +59,42 @@ class GoogleOperationPoller {
   // either state is DONE or |timeoutSeconds| is reached.
   Operation waitForZonalOperation(Compute compute, String projectName, String zone, String operationName,
                                   Long timeoutSeconds, Task task, String resourceString, String basePhase) {
-    def tags = [basePhase: basePhase, scope: "zonal", zone:zone]
+    def tags = [basePhase: basePhase, scope: SCOPE_ZONAL, zone:zone]
     return handleFinishedAsyncOperation(
-        waitForOperation({compute.zoneOperations().get(projectName, zone, operationName).execute()},
-                         tags, basePhase, getTimeout(timeoutSeconds)),
+        waitForOperation({
+            timeExecute(
+                compute.zoneOperations().get(projectName, zone, operationName),
+                "compute.zoneOperations.get",
+                TAG_SCOPE, SCOPE_ZONAL, TAG_ZONE, zone)
+            },
+            tags, basePhase, getTimeout(timeoutSeconds)),
         task, resourceString, basePhase)
   }
 
   Operation waitForRegionalOperation(Compute compute, String projectName, String region, String operationName,
                                      Long timeoutSeconds, Task task, String resourceString, String basePhase) {
-    def tags = [basePhase: basePhase, scope: "regional", region: region]
+    def tags = [basePhase: basePhase, scope: SCOPE_REGIONAL, region: region]
     return handleFinishedAsyncOperation(
-        waitForOperation({compute.regionOperations().get(projectName, region, operationName).execute()},
-                         tags, basePhase, getTimeout(timeoutSeconds)),
+        waitForOperation({
+            timeExecute(
+                compute.regionOperations().get(projectName, region, operationName),
+                "compute.regionOperations.get",
+                TAG_SCOPE, SCOPE_REGIONAL, TAG_REGION, region)
+            },
+            tags, basePhase, getTimeout(timeoutSeconds)),
         task, resourceString, basePhase)
   }
 
   Operation waitForGlobalOperation(Compute compute, String projectName, String operationName,
                                    Long timeoutSeconds, Task task, String resourceString, String basePhase) {
-    def tags = [basePhase: basePhase, scope: "global"]
+    def tags = [basePhase: basePhase, scope: SCOPE_GLOBAL]
     return handleFinishedAsyncOperation(
-        waitForOperation({compute.globalOperations().get(projectName, operationName).execute()},
-                         tags, basePhase, getTimeout(timeoutSeconds)),
+        waitForOperation({
+            timeExecute(
+                compute.globalOperations().get(projectName, operationName),
+                "compute.globalOperations.get",
+                TAG_SCOPE, SCOPE_GLOBAL)},
+            tags, basePhase, getTimeout(timeoutSeconds)),
         task, resourceString, basePhase)
   }
 

@@ -21,11 +21,13 @@ import com.netflix.spinnaker.cats.provider.ProviderSynchronizerTypeWrapper
 import com.netflix.spinnaker.clouddriver.google.ComputeVersion
 import com.netflix.spinnaker.clouddriver.google.GoogleConfiguration.DeployDefaults
 import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProperties
+import com.netflix.spinnaker.clouddriver.googlecommon.GoogleExecutor
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.clouddriver.security.CredentialsInitializerSynchronizable
 import com.netflix.spinnaker.clouddriver.security.ProviderUtils
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.config.ConfigurableBeanFactory
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -34,6 +36,14 @@ import org.springframework.context.annotation.Scope
 @Slf4j
 @Configuration
 class GoogleCredentialsInitializer implements CredentialsInitializerSynchronizable {
+
+  @Autowired
+  GoogleExecutor _googleExecutor  // Not used, just here to force initialization ordering
+
+  @Bean
+  GoogleExecutor initGoogleExecutor() {  // This is to satisfy the autowiring
+    return new GoogleExecutor()
+  }
 
   @Bean
   List<? extends GoogleNamedAccountCredentials> googleNamedAccountCredentials(String clouddriverUserAgentApplicationName,

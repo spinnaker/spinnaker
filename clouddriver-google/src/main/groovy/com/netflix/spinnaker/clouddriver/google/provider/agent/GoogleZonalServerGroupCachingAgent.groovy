@@ -34,6 +34,7 @@ import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.cache.OnDemandAgent
 import com.netflix.spinnaker.clouddriver.cache.OnDemandMetricsSupport
 import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
+import com.netflix.spinnaker.clouddriver.google.GoogleExecutorTraits
 import com.netflix.spinnaker.clouddriver.google.cache.CacheResultBuilder
 import com.netflix.spinnaker.clouddriver.google.cache.Keys
 import com.netflix.spinnaker.clouddriver.google.model.GoogleInstance
@@ -51,7 +52,7 @@ import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.INFORMATI
 import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.*
 
 @Slf4j
-class GoogleZonalServerGroupCachingAgent extends AbstractGoogleCachingAgent implements OnDemandAgent {
+class GoogleZonalServerGroupCachingAgent extends AbstractGoogleCachingAgent implements OnDemandAgent, GoogleExecutorTraits {
 
   static final String GLOBAL_LOAD_BALANCER_NAMES = GoogleServerGroup.View.GLOBAL_LOAD_BALANCER_NAMES
   static final String REGIONAL_LOAD_BALANCER_NAMES = GoogleServerGroup.View.REGIONAL_LOAD_BALANCER_NAMES
@@ -134,7 +135,11 @@ class GoogleZonalServerGroupCachingAgent extends AbstractGoogleCachingAgent impl
     BatchRequest instanceGroupsRequest = buildBatchRequest()
     BatchRequest autoscalerRequest = buildBatchRequest()
 
-    List<InstanceTemplate> instanceTemplates = compute.instanceTemplates().list(project).execute().getItems()
+    List<InstanceTemplate> instanceTemplates = timeExecute(
+        compute.instanceTemplates().list(project),
+        "compute.instanceTemplates.list",
+        TAG_SCOPE, SCOPE_GLOBAL)
+        .getItems()
 
     zones?.each { String zone ->
       InstanceGroupManagerCallbacks instanceGroupManagerCallbacks = new InstanceGroupManagerCallbacks(
