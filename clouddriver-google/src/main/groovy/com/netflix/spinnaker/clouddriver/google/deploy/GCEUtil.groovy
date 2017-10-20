@@ -1072,6 +1072,15 @@ class GCEUtil {
     )
   }
 
+  static void updateMetadataWithLoadBalancingPolicy(GoogleHttpLoadBalancingPolicy policy, Map instanceMetadata, ObjectMapper objectMapper) {
+    if (policy.listeningPort) {
+      log.warn("Translated old load balancer instance metadata entry to new format")
+      policy.setNamedPorts([new NamedPort(name: GoogleHttpLoadBalancingPolicy.HTTP_DEFAULT_PORT_NAME, port: policy.listeningPort)])
+      policy.listeningPort = null // Deprecated.
+    }
+    instanceMetadata[(GoogleServerGroup.View.LOAD_BALANCING_POLICY)] = objectMapper.writeValueAsString(policy)
+  }
+
   // Note: namedPorts are not set in this method.
   static GoogleHttpLoadBalancingPolicy loadBalancingPolicyFromBackend(Backend backend) {
     def backendBalancingMode = GoogleLoadBalancingPolicy.BalancingMode.valueOf(backend.balancingMode)

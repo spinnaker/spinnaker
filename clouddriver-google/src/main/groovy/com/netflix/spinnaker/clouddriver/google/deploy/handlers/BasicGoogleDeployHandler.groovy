@@ -234,32 +234,22 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
             TAG_SCOPE, SCOPE_GLOBAL)
 
         Backend backendToAdd
+        GoogleHttpLoadBalancingPolicy policy
         if (loadBalancingPolicy?.balancingMode) {
-          instanceMetadata[(GoogleServerGroup.View.LOAD_BALANCING_POLICY)] = objectMapper.writeValueAsString(loadBalancingPolicy)
-          backendToAdd = GCEUtil.backendFromLoadBalancingPolicy(loadBalancingPolicy)
+          policy = loadBalancingPolicy
         } else if (sourcePolicyJson) {
-          GoogleHttpLoadBalancingPolicy newPolicy = objectMapper.readValue(sourcePolicyJson, GoogleHttpLoadBalancingPolicy)
-          if (newPolicy.listeningPort) {
-            log.warn("Translated old load balancer instance metadata entry to new format")
-            newPolicy.setNamedPorts([new NamedPort(name: GoogleHttpLoadBalancingPolicy.HTTP_DEFAULT_PORT_NAME, port: newPolicy.listeningPort)])
-            newPolicy.listeningPort = null // Deprecated.
-            // Note: For backwards compatibility with old metadata formats, we need to re-set the instance metadata field.
-            instanceMetadata[(GoogleServerGroup.View.LOAD_BALANCING_POLICY)] = objectMapper.writeValueAsString(newPolicy)
-          }
-          backendToAdd = GCEUtil.backendFromLoadBalancingPolicy(newPolicy)
+          policy = objectMapper.readValue(sourcePolicyJson, GoogleHttpLoadBalancingPolicy)
         } else {
           log.warn("No load balancing policy found in the operation description or the source server group, adding defaults")
-          instanceMetadata[(GoogleServerGroup.View.LOAD_BALANCING_POLICY)] = objectMapper.writeValueAsString(
-            // Sane defaults in case of a create with no LoadBalancingPolicy specified.
-            new GoogleHttpLoadBalancingPolicy(
+          policy = new GoogleHttpLoadBalancingPolicy(
               balancingMode: GoogleLoadBalancingPolicy.BalancingMode.UTILIZATION,
               maxUtilization: 0.80,
               capacityScaler: 1.0,
               namedPorts: [new NamedPort(name: GoogleHttpLoadBalancingPolicy.HTTP_DEFAULT_PORT_NAME, port: GoogleHttpLoadBalancingPolicy.HTTP_DEFAULT_PORT)]
-            )
           )
-          backendToAdd = new Backend()
         }
+        GCEUtil.updateMetadataWithLoadBalancingPolicy(policy, instanceMetadata, objectMapper)
+        backendToAdd = GCEUtil.backendFromLoadBalancingPolicy(policy)
 
         if (isRegional) {
           backendToAdd.setGroup(GCEUtil.buildRegionalServerGroupUrl(project, region, serverGroupName))
@@ -425,7 +415,13 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
         }
         namedPorts = sourceServerGroup?.namedPorts?.collect { name, port -> new NamedPort(name: name, port: port) }
       } else {
-        namedPorts = description?.loadBalancingPolicy?.namedPorts
+        def loadBalancingPolicy = description?.loadBalancingPolicy
+        if (loadBalancingPolicy?.namedPorts != null)  {
+          namedPorts = description?.loadBalancingPolicy?.namedPorts
+        } else if (loadBalancingPolicy?.listeningPort) {
+          log.warn("Deriving named ports from deprecated 'listeningPort' attribute. Please update your deploy description to use 'namedPorts'.")
+          namedPorts = [new NamedPort(name: GoogleHttpLoadBalancingPolicy.HTTP_DEFAULT_PORT_NAME, port: loadBalancingPolicy?.listeningPort)]
+        }
       }
 
       if (!namedPorts) {
