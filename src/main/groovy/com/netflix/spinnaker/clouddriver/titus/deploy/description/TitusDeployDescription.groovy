@@ -81,6 +81,7 @@ class TitusDeployDescription extends AbstractTitusCredentialsDescription impleme
     String account
     String region
     String asgName
+    Boolean useSourceCapacity
   }
 
   Efs efs

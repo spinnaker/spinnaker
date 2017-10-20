@@ -100,6 +100,27 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
         description.labels.put("interestingHealthProviderNames", description.interestingHealthProviderNames.join(",") )
       }
 
+      if (description.source.useSourceCapacity) {
+        Source source = description.source
+
+        task.updateStatus BASE_PHASE, "Use source capacity specified: trying to resolve capacity from ${source.asgName}"
+
+        TitusClient sourceClient = buildSourceTitusClient(source)
+        if (!sourceClient) {
+          throw new RuntimeException("Unable to locate source (${source.account}:${source.region}:${source.asgName})")
+        }
+        Job sourceJob = sourceClient.findJobByName(source.asgName)
+        if (!sourceJob) {
+          throw new RuntimeException("Unable to locate source (${source.account}:${source.region}:${source.asgName})" )
+        }
+
+        task.updateStatus BASE_PHASE, "Use source capacity specified: found ${source.asgName}"
+
+        description.capacity.min = sourceJob.instancesMin
+        description.capacity.max = sourceJob.instancesMax
+        description.capacity.desired = sourceJob.instancesDesired
+      }
+
       SubmitJobRequest submitJobRequest = new SubmitJobRequest()
         .withJobName(nextServerGroupName)
         .withApplication(description.application)
@@ -216,7 +237,6 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
     if (!description.copySourceScalingPolicies) {
       return
     }
-    task.updateStatus BASE_PHASE, "Copying scaling policies from source (Job URI: ${jobUri})"
     Source source = description.source
     TitusClient sourceClient = buildSourceTitusClient(source)
     TitusAutoscalingClient autoscalingClient = titusClientProvider.getTitusAutoscalingClient(description.credentials, description.region)
@@ -234,6 +254,7 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
       if (!sourceJob) {
         task.updateStatus BASE_PHASE, "Unable to locate source (${source.account}:${source.region}:${source.asgName})"
       } else {
+        task.updateStatus BASE_PHASE, "Copying scaling policies from source (Job URI: ${sourceJob.id})"
         List<ScalingPolicyResult> policies = sourceAutoscalingClient.getJobScalingPolicies(sourceJob.id) ?: []
         task.updateStatus BASE_PHASE, "Found ${policies.size()} scaling policies for source (Job URI: ${jobUri})"
         policies.each { policy ->
