@@ -1,13 +1,11 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 
-import { Spinner } from '@spinnaker/core';
-
 import { ICanaryState } from '../reducers/index';
-
 import ConfigDetail from './configDetail';
 import CenteredDetail from '../layout/centeredDetail';
 import { AsyncRequestState } from '../reducers/asyncRequest';
+import LoadStatesBuilder from 'kayenta/components/loadStates';
 
 interface IConfigLoadStatesProps {
   configLoadState: AsyncRequestState;
@@ -17,27 +15,15 @@ interface IConfigLoadStatesProps {
  * Renders appropriate view given the configuration detail's load state.
  */
 function ConfigDetailLoadStates({ configLoadState }: IConfigLoadStatesProps) {
-  switch (configLoadState) {
-    case AsyncRequestState.Requesting:
-      return (
-        <div className="horizontal center middle spinner-container">
-          <Spinner/>
-        </div>
-      );
+  const LoadStates = new LoadStatesBuilder()
+    .onFulfilled(<ConfigDetail/>)
+    .onFailed(
+      <CenteredDetail>
+        <h3 className="heading-3">Could not load canary config.</h3>
+      </CenteredDetail>
+    ).build();
 
-    case AsyncRequestState.Fulfilled:
-      return <ConfigDetail/>;
-
-    case AsyncRequestState.Failed:
-      return (
-        <CenteredDetail>
-          <h3 className="heading-3">Could not load canary config.</h3>
-        </CenteredDetail>
-      );
-
-    default:
-      return null;
-  }
+  return <LoadStates state={configLoadState}/>;
 }
 
 function mapStateToProps(state: ICanaryState): IConfigLoadStatesProps {
