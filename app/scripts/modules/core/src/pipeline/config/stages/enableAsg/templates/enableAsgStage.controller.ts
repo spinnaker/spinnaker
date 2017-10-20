@@ -1,10 +1,8 @@
-import {module} from 'angular';
-import {StateParams} from '@uirouter/angularjs';
+import { module } from 'angular';
+import { StateParams } from '@uirouter/angularjs';
 
-import {EXECUTION_DETAILS_SECTION_SERVICE,
-        ExecutionDetailsSectionService} from 'core/delivery/details/executionDetailsSection.service';
-import {BaseExecutionDetailsCtrl,
-        IExecutionDetailsScope} from '../../core/baseExecutionDetails.controller';
+import { EXECUTION_DETAILS_SECTION_SERVICE, ExecutionDetailsSectionService } from 'core/delivery/details/executionDetailsSection.service';
+import { BaseExecutionDetailsCtrl, IExecutionDetailsScope } from '../../core/baseExecutionDetails.controller';
 
 class EnableAsgExecutionDetailsCtrl extends BaseExecutionDetailsCtrl {
   constructor ($scope: IExecutionDetailsScope,

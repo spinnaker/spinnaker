@@ -1,9 +1,11 @@
-'use strict';
+import { IScope, module } from 'angular';
 
-const angular = require('angular');
+import { PIPELINE_CONFIG_PROVIDER, PipelineConfigProvider } from 'core/pipeline/config/pipelineConfigProvider';
 
-module.exports = angular.module('spinnaker.pipelines.stage.checkPreconditionsStage', [])
-  .config(function (pipelineConfigProvider) {
+export const CHECK_PRECONDITIONS_STAGE = 'spinnaker.pipelines.stage.checkPreconditionsStage';
+
+module(CHECK_PRECONDITIONS_STAGE, [PIPELINE_CONFIG_PROVIDER])
+  .config((pipelineConfigProvider: PipelineConfigProvider) => {
     pipelineConfigProvider.registerStage({
       label: 'Check Preconditions',
       description: 'Checks for preconditions before continuing',
@@ -17,6 +19,6 @@ module.exports = angular.module('spinnaker.pipelines.stage.checkPreconditionsSta
       strategy: true,
     });
   })
-  .controller('CheckPreconditionsStageCtrl', function($scope) {
+  .controller('CheckPreconditionsStageCtrl', ($scope: IScope) => {
     $scope.stage.preconditions = $scope.stage.preconditions || [];
   });

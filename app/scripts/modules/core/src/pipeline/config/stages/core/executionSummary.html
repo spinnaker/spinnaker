@@ -2,7 +2,7 @@
   <h5 class="execution-details-title">
     Stage details: {{stageSummary.name || stageSummary.type }}
 
-    <div ng-if="(!stage.isRunning && !stage.isCompleted) && ctrl.isRestartable(stage)" uib-dropdown class="btn-group pull-right">
+    <div ng-if="(!stage.isRunning && !stage.isCompleted) && $ctrl.isRestartable(stage)" uib-dropdown class="btn-group pull-right">
       <button type="button"
               class="btn btn-default btn-sm dropdown-toggle"
               analytics-on="click"
@@ -38,11 +38,11 @@
         analytics-on="click"
         analytics-category="Pipeline"
         analytics-event="Execution step selected"
-        analytics-label="ctrl.getStepLabel(step)"
+        analytics-label="$ctrl.getStepLabel(step)"
         ng-repeat="step in stageSummary.stages"
-        ng-class="{ info: ctrl.isStepCurrent($index) }"
-        ng-click="ctrl.toggleDetails($index)">
-      <td><span ng-include="ctrl.getStepLabel(step)"></span></td>
+        ng-class="{ info: $ctrl.isStepCurrent($index) }"
+        ng-click="$ctrl.toggleDetails($index)">
+      <td><span ng-include="$ctrl.getStepLabel(step)"></span></td>
       <td>{{ step.startTime | timestamp }}</td>
       <td>{{ step.runningTimeInMs | duration }}</td>
       <td>

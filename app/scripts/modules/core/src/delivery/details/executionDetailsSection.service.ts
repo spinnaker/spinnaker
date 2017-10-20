@@ -1,13 +1,13 @@
-import { module } from 'angular';
+import { IPromise, ITimeoutService, module } from 'angular';
 import { StateParams, StateService } from '@uirouter/angularjs';
 
 export class ExecutionDetailsSectionService {
 
-  private pendingOnComplete: ng.IPromise<any>;
+  private pendingOnComplete: IPromise<any>;
 
   public constructor(private $stateParams: StateParams,
                      private $state: StateService,
-                     private $timeout: ng.ITimeoutService) {
+                     private $timeout: ITimeoutService) {
     'ngInject';
   }
 

@@ -7,7 +7,7 @@ import { duration } from 'core/utils/timeFormatters';
 import { robotToHuman } from 'core/presentation/robotToHumanFilter/robotToHuman.filter';
 
 export interface IExecutionStepDetailsProps {
-  stage: IExecutionStage;
+  item: IExecutionStage;
 }
 
 export class ExecutionStepDetails extends React.Component<IExecutionStepDetailsProps> {
@@ -22,8 +22,8 @@ export class ExecutionStepDetails extends React.Component<IExecutionStepDetailsP
             <strong>Duration</strong>
           </div>
         </div>
-        { displayableTasks(this.props.stage.tasks).map((task) => (
-          <div className="row">
+        { displayableTasks((this.props.item.tasks || [])).map((task, index) => (
+          <div key={index} className="row">
             <div className="col-md-9">
               <span className="small"><StatusGlyph item={task}/></span> {robotToHuman(task.name)}
             </div>

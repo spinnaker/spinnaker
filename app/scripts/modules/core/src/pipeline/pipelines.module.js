@@ -2,7 +2,14 @@
 
 const angular = require('angular');
 
+import { APPLY_SOURCE_SERVER_GROUP_CAPACITY_STAGE } from './config/stages/applySourceServerGroupCapacity/applySourceServerGroupCapacityStage.module';
+import { CHECK_PRECONDITIONS_STAGE_MODULE } from './config/stages/checkPreconditions/checkPreconditionsStage.module';
+import { CLONE_SERVER_GROUP_STAGE } from './config/stages/cloneServerGroup/cloneServerGroupStage.module';
 import { COPY_STAGE_MODAL_CONTROLLER } from './config/copyStage/copyStage.modal.controller';
+import { CREATE_LOAD_BALANCER_STAGE } from './config/stages/createLoadBalancer/createLoadBalancerStage.module';
+import { DESTROY_ASG_STAGE } from './config/stages/destroyAsg/destroyAsgStage.module';
+import { DISABLE_ASG_STAGE_MODULE } from './config/stages/disableAsg/disableAsgStage.module';
+import { ENABLE_ASG_STAGE_MODULE } from './config/stages/enableAsg/enableAsgStage.module';
 import { GROUP_STAGE_MODULE } from './config/stages/group/groupStage.module';
 import { STAGE_CORE_MODULE } from './config/stages/core/stage.core.module';
 import { TRAVIS_STAGE_MODULE } from './config/stages/travis/travisStage.module';
@@ -21,14 +28,14 @@ module.exports = angular.module('spinnaker.core.pipeline', [
   WEBHOOK_STAGE_MODULE,
   UNMATCHED_STAGE_TYPE_STAGE,
   require('./config/stages/bake/bakeStage.module').name,
-  require('./config/stages/checkPreconditions/checkPreconditionsStage.module').name,
-  require('./config/stages/cloneServerGroup/cloneServerGroupStage.module').name,
+  CHECK_PRECONDITIONS_STAGE_MODULE,
+  CLONE_SERVER_GROUP_STAGE,
   STAGE_CORE_MODULE,
   require('./config/stages/deploy/deployStage.module').name,
-  require('./config/stages/destroyAsg/destroyAsgStage.module').name,
-  require('./config/stages/disableAsg/disableAsgStage.module').name,
+  DESTROY_ASG_STAGE,
+  DISABLE_ASG_STAGE_MODULE,
   require('./config/stages/disableCluster/disableClusterStage.module').name,
-  require('./config/stages/enableAsg/enableAsgStage.module').name,
+  ENABLE_ASG_STAGE_MODULE,
   require('./config/stages/executionWindows/executionWindowsStage.module').name,
   require('./config/stages/findAmi/findAmiStage.module').name,
   require('./config/stages/findImageFromTags/findImageFromTagsStage.module').name,
@@ -43,8 +50,8 @@ module.exports = angular.module('spinnaker.core.pipeline', [
   require('./config/stages/shrinkCluster/shrinkClusterStage.module').name,
   require('./config/stages/wait/waitStage.module').name,
   require('./config/stages/waitForParentTasks/waitForParentTasks').name,
-  require('./config/stages/createLoadBalancer/createLoadBalancerStage.module').name,
-  require('./config/stages/applySourceServerGroupCapacity/applySourceServerGroupCapacityStage.module').name,
+  CREATE_LOAD_BALANCER_STAGE,
+  APPLY_SOURCE_SERVER_GROUP_CAPACITY_STAGE,
   require('./config/preconditions/preconditions.module').name,
   require('./config/preconditions/types/clusterSize/clusterSize.precondition.type.module').name,
   require('./config/preconditions/types/expression/expression.precondition.type.module').name,

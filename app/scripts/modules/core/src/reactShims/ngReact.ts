@@ -8,14 +8,12 @@ import { ApplicationsComponent } from 'core/application/applications.component';
 import { ButtonBusyIndicatorComponent } from '../forms/buttonBusyIndicator/buttonBusyIndicator.component';
 import { CopyToClipboardComponent } from '../utils/clipboard/copyToClipboard.component';
 import { DiffViewProps } from '../pipeline/config/actions/history/DiffView';
-import { ExecutionDetailsComponent } from '../delivery/details/executionDetails.component';
 import { HelpFieldWrapperComponent } from '../help/helpField.component';
 import { IAccountTagProps } from '../account/AccountTag';
 import { IApplicationNavProps } from 'core/application/nav/ApplicationNav';
 import { IApplicationNavSecondaryProps } from 'core/application/nav/ApplicationNavSecondary';
 import { IButtonBusyIndicatorProps } from '../forms/buttonBusyIndicator/ButtonBusyIndicator';
 import { ICopyToClipboardProps } from '../utils/clipboard/CopyToClipboard';
-import { IExecutionDetailsProps } from '../delivery/details/ExecutionDetails';
 import { IHelpFieldProps } from '../help/HelpField';
 import { IInsightLayoutProps } from 'core/insight/InsightLayout';
 import { IInstanceListProps, instanceListBindings } from '../instance/InstanceList';
@@ -26,6 +24,10 @@ import { ITaskMonitorProps } from 'core/task/monitor/TaskMonitor';
 import { ReactInject } from './react.injector';
 import { TaskMonitorWrapperComponent } from 'core/task/monitor/taskMonitor.directive';
 import { diffViewComponent } from '../pipeline/config/actions/history/diffView.component';
+import { IStageSummaryWrapperProps } from 'core/delivery/details/StageSummaryWrapper';
+import { IStageDetailsWrapperProps } from 'core/delivery/details/StageDetailsWrapper';
+import { StageSummaryComponent } from 'core/delivery/details/stageSummary.component';
+import { StageDetailsComponent } from 'core/delivery/details/stageDetails.component';
 
 export class NgReactInjector extends ReactInject {
 
@@ -39,7 +41,6 @@ export class NgReactInjector extends ReactInject {
   public ButtonBusyIndicator: React.ComponentClass<IButtonBusyIndicatorProps>         = angular2react('buttonBusyIndicator', new ButtonBusyIndicatorComponent(), this.$injectorProxy) as any;
   public CopyToClipboard: React.ComponentClass<ICopyToClipboardProps>                 = angular2react('copyToClipboard', new CopyToClipboardComponent(), this.$injectorProxy) as any;
   public DiffView: React.ComponentClass<DiffViewProps>                                = angular2react('diffView', diffViewComponent, this.$injectorProxy) as any;
-  public ExecutionDetails: React.ComponentClass<IExecutionDetailsProps>               = angular2react('executionDetails', new ExecutionDetailsComponent(), this.$injectorProxy) as any;
   public HelpField: React.ComponentClass<IHelpFieldProps>                             = angular2react('helpFieldWrapper', new HelpFieldWrapperComponent(), this.$injectorProxy) as any;
   public InsightLayout: React.ComponentClass<IInsightLayoutProps>                     = angular2react('insightLayout', new InsightLayoutComponent(), this.$injectorProxy) as any;
   public InstanceList: React.ComponentClass<IInstanceListProps>                       = angular2react('instanceList', { bindings: instanceListBindings }, this.$injectorProxy) as any;
@@ -49,6 +50,8 @@ export class NgReactInjector extends ReactInject {
   public UserMenu: React.ComponentClass<{}>                                           = angular2react('userMenu', {}, this.$injectorProxy) as any;
   public GlobalSearch: React.ComponentClass<{}>                                       = angular2react('globalSearch', {}, this.$injectorProxy) as any;
   public WhatsNew: React.ComponentClass<{}>                                           = angular2react('whatsNew', {}, this.$injectorProxy) as any;
+  public StageSummaryWrapper: React.ComponentClass<IStageSummaryWrapperProps>         = angular2react('stageSummary', new StageSummaryComponent(), this.$injectorProxy) as any;
+  public StageDetailsWrapper: React.ComponentClass<IStageDetailsWrapperProps>         = angular2react('stageDetails', new StageDetailsComponent(), this.$injectorProxy) as any;
 
   public initialize($injector: IInjectorService) {
     const realInjector: { [key: string]: Function } = $injector as any;

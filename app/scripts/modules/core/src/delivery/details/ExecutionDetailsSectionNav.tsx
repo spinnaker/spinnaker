@@ -28,7 +28,7 @@ const Section = (props: { section: string }): JSX.Element => {
     <li>
       <UISrefActive class="active">
         <UISref to=".execution" params={{details: props.section}}>
-          <span onClick={clicked}>{robotToHuman(props.section)}</span>
+          <a onClick={clicked}>{robotToHuman(props.section)}</a>
         </UISref>
       </UISrefActive>
     </li>

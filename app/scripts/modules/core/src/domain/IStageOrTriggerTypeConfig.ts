@@ -2,11 +2,11 @@ import { IValidatorConfig } from '../pipeline/config/validation/pipelineConfig.v
 
 export interface IStageOrTriggerTypeConfig {
   manualExecutionHandler?: string;
-  label: string;
-  description: string;
+  label?: string;
+  description?: string;
   key: string;
-  templateUrl: string;
-  controller: string;
+  templateUrl?: string;
+  controller?: string;
   controllerAs?: string;
-  validators: IValidatorConfig[];
+  validators?: IValidatorConfig[];
 }
