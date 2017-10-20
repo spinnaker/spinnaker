@@ -113,6 +113,64 @@ object DryRunTaskTest : Spek({
       }
     }
 
+    given("a mismatch in context values in a blacklisted key") {
+      val realPipeline = pipeline {
+        stage {
+          refId = "1"
+          type = singleTaskStage.type
+          context["amiSuffix"] = "1234"
+          status = SUCCEEDED
+        }
+      }
+
+      val testPipeline = pipeline {
+        stage {
+          refId = "1"
+          type = singleTaskStage.type
+          context["amiSuffix"] = "5678"
+        }
+        trigger["lastSuccessfulExecution"] = realPipeline
+      }
+      val stage = testPipeline.stageByRef("1")
+
+      on("running the stage") {
+        val result = subject.execute(stage)
+
+        it("succeeds") {
+          result.status shouldEqual SUCCEEDED
+        }
+      }
+    }
+
+    given("a mismatch in context values in a key matching a blacklisted pattern") {
+      val realPipeline = pipeline {
+        stage {
+          refId = "1"
+          type = singleTaskStage.type
+          context["kato.whatever"] = "1234"
+          status = SUCCEEDED
+        }
+      }
+
+      val testPipeline = pipeline {
+        stage {
+          refId = "1"
+          type = singleTaskStage.type
+          context["kato.whatever"] = "5678"
+        }
+        trigger["lastSuccessfulExecution"] = realPipeline
+      }
+      val stage = testPipeline.stageByRef("1")
+
+      on("running the stage") {
+        val result = subject.execute(stage)
+
+        it("succeeds") {
+          result.status shouldEqual SUCCEEDED
+        }
+      }
+    }
+
     given("a stage that was skipped previously") {
       val realPipeline = pipeline {
         stage {

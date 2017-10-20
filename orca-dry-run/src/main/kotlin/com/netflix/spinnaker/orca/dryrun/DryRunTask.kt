@@ -31,6 +31,14 @@ import org.springframework.stereotype.Component
 
 @Component
 class DryRunTask : Task {
+  private val blacklistKeyPatterns =
+    setOf(
+      "amiSuffix",
+      "kato\\..*",
+      "stageDetails"
+    )
+      .map(String::toRegex)
+
   override fun execute(stage: Stage<out Execution<*>>): TaskResult =
     stage
       .getExecution()
@@ -54,6 +62,7 @@ class DryRunTask : Task {
     var status: ExecutionStatus? = null
 
     val mismatchedKeys = getContext()
+      .filterKeys { key -> blacklistKeyPatterns.none { key.matches(it) } }
       .filter { (key, value) ->
         value != realStage.context[key]
       }
