@@ -268,8 +268,10 @@
       </dl>
     </collapsible-section>
     <collapsible-section heading="Port Name Mapping" ng-if="ctrl.serverGroup.loadBalancingPolicy">
-      <dl class="horizontal-when-filters-collapsed" ng-if="ctrl.serverGroup.loadBalancingPolicy.listeningPort">
-        <dd>http &rarr; {{ ctrl.serverGroup.loadBalancingPolicy.listeningPort }}</dd>
+      <dl class="horizontal-when-filters-collapsed" ng-if="ctrl.serverGroup.loadBalancingPolicy.namedPorts.length">
+        <dd ng-repeat="namedPort in ctrl.serverGroup.loadBalancingPolicy.namedPorts">
+          {{ namedPort.name }} &rarr; {{ namedPort.port }}
+        </dd>
       </dl>
     </collapsible-section>
     <collapsible-section heading="Capacity Metrics" ng-if="ctrl.serverGroup.loadBalancingPolicy">
