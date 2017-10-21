@@ -231,26 +231,11 @@ class UpsertAmazonLoadBalancerClassicAtomicOperationSpec extends Specification {
         internalPort: 8080
       ))
 
-    description.vpcId = "vpcId"
-
     when:
     operation.operate([])
 
-    then:
-    1 * securityGroupLookup.getSecurityGroupByName('bar', 'kato-elb', 'vpcId') >> Optional.of(elbSecurityGroupUpdater)
-    1 * securityGroupLookup.getSecurityGroupByName('bar', 'kato', 'vpcId') >> Optional.of(appSecurityGroupUpdater)
-    1 * elbSecurityGroupUpdater.getSecurityGroup() >> elbSecurityGroup
-    1 * appSecurityGroupUpdater.getSecurityGroup() >> applicationSecurityGroup
-    1 * appSecurityGroupUpdater.addIngress(_) >> {
-      def permissions = it[0] as List<IpPermission>
-      assert permissions.size() == 3
-      assert 7001 in permissions*.fromPort && 8501 in permissions*.fromPort
-      assert 7001 in permissions*.toPort && 8501 in permissions*.toPort
-      assert 8080 in permissions*.fromPort && 8080 in permissions*.fromPort
-      assert elbSecurityGroup.groupId in permissions[0].userIdGroupPairs*.groupId
-      assert elbSecurityGroup.groupId in permissions[1].userIdGroupPairs*.groupId
-      assert elbSecurityGroup.groupId in permissions[2].userIdGroupPairs*.groupId
-    }
+    then: 'should not auto create elb sg on update'
+    0 * appSecurityGroupUpdater.addIngress(_)
 
     and:
     1 * loadBalancing.describeLoadBalancers(new DescribeLoadBalancersRequest(loadBalancerNames: ["kato-main-frontend"])) >>
@@ -292,7 +277,6 @@ class UpsertAmazonLoadBalancerClassicAtomicOperationSpec extends Specification {
       )
     ]
     description.listeners.clear()
-    description.vpcId = "vpcId"
     description.listeners.add(
       new UpsertAmazonLoadBalancerClassicDescription.Listener(
         externalProtocol: UpsertAmazonLoadBalancerClassicDescription.Listener.ListenerType.TCP,
@@ -310,16 +294,6 @@ class UpsertAmazonLoadBalancerClassicAtomicOperationSpec extends Specification {
     operation.operate([])
 
     then:
-    1 * securityGroupLookup.getSecurityGroupByName('bar', 'kato-elb', 'vpcId') >> Optional.of(elbSecurityGroupUpdater)
-    1 * securityGroupLookup.getSecurityGroupByName('bar', 'kato', 'vpcId') >> Optional.of(appSecurityGroupUpdater)
-    1 * elbSecurityGroupUpdater.getSecurityGroup() >> elbSecurityGroup
-    1 * appSecurityGroupUpdater.getSecurityGroup() >> applicationSecurityGroup
-    1 * appSecurityGroupUpdater.addIngress(_) >> {
-      def permissions = it[0] as List<IpPermission>
-      assert permissions.size() == 3
-    }
-
-    and:
     thrown(AtomicOperationException)
 
     1 * loadBalancing.describeLoadBalancers(new DescribeLoadBalancersRequest(loadBalancerNames: ["kato-main-frontend"])) >>
@@ -357,13 +331,6 @@ class UpsertAmazonLoadBalancerClassicAtomicOperationSpec extends Specification {
     operation.operate([])
 
     then:
-    1 * securityGroupLookup.getSecurityGroupByName('bar', 'kato-elb', 'vpcId') >> Optional.of(elbSecurityGroupUpdater)
-    1 * securityGroupLookup.getSecurityGroupByName('bar', 'kato', 'vpcId') >> Optional.of(appSecurityGroupUpdater)
-    1 * elbSecurityGroupUpdater.getSecurityGroup() >> elbSecurityGroup
-    1 * appSecurityGroupUpdater.getSecurityGroup() >> applicationSecurityGroup
-    1 * appSecurityGroupUpdater.addIngress(_)
-
-    and:
     1 * loadBalancing.describeLoadBalancers(new DescribeLoadBalancersRequest(loadBalancerNames: ["kato-main-frontend"])) >>
             new DescribeLoadBalancersResult(loadBalancerDescriptions: [loadBalancer])
     1 * loadBalancing.modifyLoadBalancerAttributes(_) >> {  ModifyLoadBalancerAttributesRequest request ->
@@ -467,13 +434,6 @@ class UpsertAmazonLoadBalancerClassicAtomicOperationSpec extends Specification {
     operation.operate([])
 
     then:
-    1 * securityGroupLookup.getSecurityGroupByName('bar', 'kato-elb', 'vpcId') >> Optional.of(elbSecurityGroupUpdater)
-    1 * securityGroupLookup.getSecurityGroupByName('bar', 'kato', 'vpcId') >> Optional.of(appSecurityGroupUpdater)
-    1 * elbSecurityGroupUpdater.getSecurityGroup() >> elbSecurityGroup
-    1 * appSecurityGroupUpdater.getSecurityGroup() >> applicationSecurityGroup
-    1 * appSecurityGroupUpdater.addIngress(_)
-
-    and:
     1 * loadBalancing.describeLoadBalancers(_) >> new DescribeLoadBalancersResult(loadBalancerDescriptions: [loadBalancer])
     1 * loadBalancing.deleteLoadBalancerListeners(new DeleteLoadBalancerListenersRequest(loadBalancerPorts: [111]))
     1 * loadBalancing.createLoadBalancerListeners(new CreateLoadBalancerListenersRequest(
@@ -492,13 +452,6 @@ class UpsertAmazonLoadBalancerClassicAtomicOperationSpec extends Specification {
     operation.operate([])
 
     then:
-    1 * securityGroupLookup.getSecurityGroupByName('bar', 'kato-elb', 'vpcId') >> Optional.of(elbSecurityGroupUpdater)
-    1 * securityGroupLookup.getSecurityGroupByName('bar', 'kato', 'vpcId') >> Optional.of(appSecurityGroupUpdater)
-    1 * elbSecurityGroupUpdater.getSecurityGroup() >> elbSecurityGroup
-    1 * appSecurityGroupUpdater.getSecurityGroup() >> applicationSecurityGroup
-    1 * appSecurityGroupUpdater.addIngress(_)
-
-    and:
     1 * loadBalancing.describeLoadBalancers(_) >> new DescribeLoadBalancersResult(loadBalancerDescriptions: [loadBalancer])
     1 * loadBalancing.deleteLoadBalancerListeners(new DeleteLoadBalancerListenersRequest(loadBalancerPorts: [111]))
     0 * loadBalancing.deleteLoadBalancerListeners(_)

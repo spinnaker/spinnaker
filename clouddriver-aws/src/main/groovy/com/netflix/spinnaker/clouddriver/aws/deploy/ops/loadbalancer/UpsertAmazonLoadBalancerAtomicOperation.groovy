@@ -127,24 +127,6 @@ class UpsertAmazonLoadBalancerAtomicOperation implements AtomicOperation<UpsertA
       }
 
       def securityGroupNamesToIds = regionScopedProvider.securityGroupService.getSecurityGroupIds(description.securityGroups, description.vpcId)
-      String application = null
-      try {
-        application = Names.parseName(description.name).getApp() ?: Names.parseName(description.clusterName).getApp()
-        IngressLoadBalancerGroupResult ingressLoadBalancerResult = ingressApplicationLoadBalancerGroup(
-          description,
-          application,
-          region,
-          listeners,
-          securityGroupLookupFactory
-        )
-
-        securityGroupNamesToIds.put(ingressLoadBalancerResult.groupName, ingressLoadBalancerResult.groupId)
-        task.updateStatus BASE_PHASE, "Authorized app ELB Security Group ${ingressLoadBalancerResult}"
-      } catch (Exception e) {
-        log.error("Failed to authorize app ELB security group {}-elb on application security group", application,  e)
-        task.updateStatus BASE_PHASE, "Failed to authorize app ELB security group ${application}-elb on application security group"
-      }
-
       def securityGroups = securityGroupNamesToIds.values()
       log.info("security groups on {} {}", description.name, securityGroups)
       String dnsName
@@ -155,6 +137,25 @@ class UpsertAmazonLoadBalancerAtomicOperation implements AtomicOperation<UpsertA
           subnetIds = regionScopedProvider.subnetAnalyzer.getSubnetIdsForZones(availabilityZones,
                   description.subnetType, SubnetTarget.ELB, 1)
         }
+
+        String application = null
+        try {
+          application = Names.parseName(description.name).getApp() ?: Names.parseName(description.clusterName).getApp()
+          IngressLoadBalancerGroupResult ingressLoadBalancerResult = ingressApplicationLoadBalancerGroup(
+            description,
+            application,
+            region,
+            listeners,
+            securityGroupLookupFactory
+          )
+
+          securityGroupNamesToIds.put(ingressLoadBalancerResult.groupName, ingressLoadBalancerResult.groupId)
+          task.updateStatus BASE_PHASE, "Authorized app ELB Security Group ${ingressLoadBalancerResult}"
+        } catch (Exception e) {
+          log.error("Failed to authorize app ELB security group {}-elb on application security group", application,  e)
+          task.updateStatus BASE_PHASE, "Failed to authorize app ELB security group ${application}-elb on application security group"
+        }
+
         dnsName = LoadBalancerUpsertHandler.createLoadBalancer(loadBalancing, loadBalancerName, isInternal, availabilityZones, subnetIds, listeners, securityGroups)
       } else {
         dnsName = loadBalancer.DNSName
