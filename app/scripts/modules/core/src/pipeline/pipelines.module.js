@@ -14,6 +14,7 @@ import { GROUP_STAGE_MODULE } from './config/stages/group/groupStage.module';
 import { STAGE_CORE_MODULE } from './config/stages/core/stage.core.module';
 import { TRAVIS_STAGE_MODULE } from './config/stages/travis/travisStage.module';
 import { UNMATCHED_STAGE_TYPE_STAGE } from './config/stages/unmatchedStageTypeStage/unmatchedStageTypeStage';
+import { WAIT_STAGE_MODULE } from './config/stages/wait/waitStage.module';
 import { WEBHOOK_STAGE_MODULE } from './config/stages/webhook/webhookStage.module';
 
 import './pipelines.less';
@@ -48,7 +49,7 @@ module.exports = angular.module('spinnaker.core.pipeline', [
   require('./config/stages/scaleDownCluster/scaleDownClusterStage.module').name,
   require('./config/stages/script/scriptStage.module').name,
   require('./config/stages/shrinkCluster/shrinkClusterStage.module').name,
-  require('./config/stages/wait/waitStage.module').name,
+  WAIT_STAGE_MODULE,
   require('./config/stages/waitForParentTasks/waitForParentTasks').name,
   CREATE_LOAD_BALANCER_STAGE,
   APPLY_SOURCE_SERVER_GROUP_CAPACITY_STAGE,

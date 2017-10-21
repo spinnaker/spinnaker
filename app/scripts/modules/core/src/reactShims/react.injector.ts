@@ -16,6 +16,7 @@ import { ClusterFilterService } from '../cluster/filter/clusterFilter.service';
 import { CollapsibleSectionStateCache } from '../cache/collapsibleSectionStateCache';
 import { ConfirmationModalService } from '../confirmationModal/confirmationModal.service';
 import { EntityTagWriter} from '../entityTag';
+import { ExecutionDetailsSectionService } from 'core/delivery/details/executionDetailsSection.service';
 import { ExecutionFilterModel } from '../delivery/filter/executionFilter.model';
 import { ExecutionFilterService } from '../delivery/filter/executionFilter.service';
 import { ExecutionService } from '../delivery/service/execution.service';
@@ -80,6 +81,7 @@ export class CoreReactInject extends ReactInject {
   public get collapsibleSectionStateCache() { return this.$injector.get('collapsibleSectionStateCache') as CollapsibleSectionStateCache; }
   public get confirmationModalService() { return this.$injector.get('confirmationModalService') as ConfirmationModalService; }
   public get entityTagWriter() { return this.$injector.get('entityTagWriter') as EntityTagWriter; }
+  public get executionDetailsSectionService() { return this.$injector.get('executionDetailsSectionService') as ExecutionDetailsSectionService; }
   public get executionFilterModel() { return this.$injector.get('executionFilterModel') as ExecutionFilterModel; }
   public get executionFilterService() { return this.$injector.get('executionFilterService') as ExecutionFilterService; }
   public get executionService() { return this.$injector.get('executionService') as ExecutionService; }

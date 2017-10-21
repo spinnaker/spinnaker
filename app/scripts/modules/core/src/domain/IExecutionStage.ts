@@ -34,6 +34,18 @@ export interface IExecutionStageLabelComponentProps {
   stage: IExecutionStageSummary;
 }
 
+export interface IExecutionDetailsComponentProps {
+  application: Application;
+  configSections: string[];
+  detailsSection?: string;
+  execution: IExecution;
+  stage: IExecutionStage;
+}
+
+export interface IExecutionDetailsComponentState {
+  detailsSection: string;
+}
+
 export interface IExecutionStageSummary extends IOrchestratedItem {
   activeStageType?: string,
   after: IExecutionStage[];

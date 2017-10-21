@@ -2,7 +2,7 @@ import * as React from 'react';
 import { BindAll } from 'lodash-decorators';
 
 import { Application } from 'core/application';
-import { IExecution, IExecutionStage, IStageTypeConfig } from 'core/domain';
+import { IExecution, IExecutionDetailsComponentProps, IExecutionStage, IStageTypeConfig } from 'core/domain';
 import { NgReact } from 'core/reactShims';
 import { StatusGlyph } from 'core/task/StatusGlyph';
 import { robotToHuman } from 'core/presentation/robotToHumanFilter/robotToHuman.filter';
@@ -15,8 +15,9 @@ export interface IStageDetailsProps {
 }
 
 export interface IStageDetailsState {
-  sourceUrl?: string;
   configSections?: string[];
+  ReactComponent?: React.ComponentClass<IExecutionDetailsComponentProps>;
+  sourceUrl?: string;
 }
 
 @BindAll()
@@ -28,18 +29,23 @@ export class StageDetails extends React.Component<IStageDetailsProps, IStageDeta
 
   private getState(): IStageDetailsState {
     let configSections: string[] = [];
-    let sourceUrl = require('./defaultExecutionDetails.html');
+    let sourceUrl: string;
+    let ReactComponent: React.ComponentClass<IExecutionDetailsComponentProps>;
 
     const stageConfig = this.props.config;
     if (stageConfig) {
       if (stageConfig.executionConfigSections) {
         configSections = stageConfig.executionConfigSections;
       }
-      if (stageConfig.executionDetailsUrl) {
-        sourceUrl = stageConfig.executionDetailsUrl;
+      if (stageConfig.executionDetailsComponent) {
+        // React execution details
+        ReactComponent = stageConfig.executionDetailsComponent;
+      } else {
+        // Angular execution details
+        sourceUrl = stageConfig.executionDetailsUrl || require('./defaultExecutionDetails.html');
       }
     }
-    return { configSections, sourceUrl };
+    return { configSections, ReactComponent, sourceUrl };
   }
 
   public componentWillReceiveProps() {
@@ -48,23 +54,21 @@ export class StageDetails extends React.Component<IStageDetailsProps, IStageDeta
 
   public render(): React.ReactElement<StageDetails> {
     const { application, execution, stage } = this.props;
-    const { sourceUrl, configSections } = this.state;
-
+    const { ReactComponent, sourceUrl, configSections } = this.state;
     const { StageDetailsWrapper } = NgReact;
+    const detailsProps = { application, execution, stage, configSections };
 
-    if ( sourceUrl ) {
-      return (
-        <div className="stage-details">
-          <div className="stage-details-heading">
-            <h5>
-              <StatusGlyph item={stage} />
-              {robotToHuman(stage.name || stage.type)}
-            </h5>
-          </div>
-          <StageDetailsWrapper application={application} execution={execution} sourceUrl={sourceUrl} configSections={configSections} stage={stage} />
+    return (
+      <div className="stage-details">
+        <div className="stage-details-heading">
+          <h5>
+            <StatusGlyph item={stage} />
+            {robotToHuman(stage.name || stage.type)}
+          </h5>
         </div>
-      );
-    }
-    return null;
+        {sourceUrl && <StageDetailsWrapper {...detailsProps} sourceUrl={sourceUrl} />}
+        {ReactComponent && <ReactComponent {...detailsProps} />}
+      </div>
+    );
   }
 }

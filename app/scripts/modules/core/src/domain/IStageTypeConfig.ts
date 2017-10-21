@@ -1,5 +1,5 @@
 import { IStage } from './IStage';
-import { IExecutionStageLabelComponentProps, IExecutionStageSummary } from './IExecutionStage';
+import { IExecutionDetailsComponentProps, IExecutionStageLabelComponentProps, IExecutionStageSummary } from './IExecutionStage';
 import { IStageOrTriggerTypeConfig } from './IStageOrTriggerTypeConfig';
 
 export interface IStageTypeConfig extends IStageOrTriggerTypeConfig {
@@ -12,6 +12,7 @@ export interface IStageTypeConfig extends IStageOrTriggerTypeConfig {
   configuration?: any;
   defaultTimeoutMs?: number;
   executionConfigSections?: string[];
+  executionDetailsComponent?: React.ComponentClass<IExecutionDetailsComponentProps>;
   executionDetailsUrl?: string;
   executionLabelComponent?: React.ComponentClass<IExecutionStageLabelComponentProps>;
   executionStepLabelUrl?: string;
