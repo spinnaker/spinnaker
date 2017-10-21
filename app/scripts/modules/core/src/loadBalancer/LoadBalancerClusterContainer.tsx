@@ -16,7 +16,7 @@ export interface ILoadBalancerClusterContainerProps {
 export class LoadBalancerClusterContainer extends React.Component<ILoadBalancerClusterContainerProps> {
   public shouldComponentUpdate(nextProps: ILoadBalancerClusterContainerProps) {
     const serverGroupsEqual = () => isEqual((nextProps.serverGroups || []).map(g => g.name), (this.props.serverGroups || []).map(g => g.name));
-    return nextProps.showInstances !== this.props.showInstances || nextProps.showInstances !== this.props.showInstances || nextProps.loadBalancer !== this.props.loadBalancer || !serverGroupsEqual();
+    return nextProps.showInstances !== this.props.showInstances || nextProps.showServerGroups !== this.props.showServerGroups || nextProps.loadBalancer !== this.props.loadBalancer || !serverGroupsEqual();
   }
 
   public render(): React.ReactElement<LoadBalancerClusterContainer> {
