@@ -1,6 +1,4 @@
 import * as React from 'react';
-import { BindAll } from 'lodash-decorators';
-import { isEqual, zip } from 'lodash';
 
 import { NgReact } from 'core/reactShims';
 import { Application } from 'core/application/application.model';
@@ -17,8 +15,6 @@ export interface ILoadBalancerPodProps {
   showInstances: boolean
 }
 
-
-@BindAll()
 export class LoadBalancerPod extends React.Component<ILoadBalancerPodProps> {
   public render(): React.ReactElement<LoadBalancerPod> {
     const { grouping, application, parentHeading, showServerGroups, showInstances } = this.props;
