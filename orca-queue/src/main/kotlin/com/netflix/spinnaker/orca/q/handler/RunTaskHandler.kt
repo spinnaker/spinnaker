@@ -182,12 +182,13 @@ class RunTaskHandler(
         else
           timeout.toDuration()
       )
-        if (elapsedTime.minus(pausedDuration).minusMillis(throttleTime) > actualTimeout) {
+      if (elapsedTime.minus(pausedDuration).minusMillis(throttleTime) > actualTimeout) {
         val durationString = formatTimeout(elapsedTime.toMillis())
         val msg = StringBuilder("${javaClass.simpleName} of stage ${stage.getName()} timed out after $durationString. ")
         msg.append("pausedDuration: ${formatTimeout(pausedDuration.toMillis())}, ")
         msg.append("throttleTime: ${formatTimeout(throttleTime)}, ")
-        msg.append("elapsedTime: ${formatTimeout(elapsedTime.toMillis())}")
+        msg.append("elapsedTime: ${formatTimeout(elapsedTime.toMillis())},")
+        msg.append("timeoutValue: ${formatTimeout(actualTimeout.toMillis())}")
 
         log.warn(msg.toString())
         throw TimeoutException(msg.toString())
