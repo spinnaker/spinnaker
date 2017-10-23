@@ -21,4 +21,5 @@ import com.netflix.spinnaker.echo.model.pubsub.PubsubSystem;
 public interface PubsubSubscriber {
   PubsubSystem pubsubSystem();
   String subscriptionName();
+  String getName();
 }

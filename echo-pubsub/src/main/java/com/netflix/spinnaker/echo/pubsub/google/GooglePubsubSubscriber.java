@@ -26,6 +26,7 @@ import com.google.cloud.pubsub.v1.Subscriber;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.pubsub.v1.PubsubMessage;
 import com.google.pubsub.v1.SubscriptionName;
+import com.netflix.spinnaker.echo.config.google.GooglePubsubProperties;
 import com.netflix.spinnaker.echo.model.pubsub.MessageDescription;
 import com.netflix.spinnaker.echo.model.pubsub.PubsubSystem;
 import com.netflix.spinnaker.echo.pubsub.PubsubMessageHandler;
@@ -46,14 +47,17 @@ public class GooglePubsubSubscriber implements PubsubSubscriber {
 
   private String subscriptionName;
 
+  private String name;
+
   @Getter
   private Subscriber subscriber;
 
   static private final PubsubSystem pubsubSystem = PubsubSystem.GOOGLE;
 
 
-  public GooglePubsubSubscriber(String name, String project, Subscriber subscriber) {
-    this.subscriptionName = formatSubscriptionName(project, name);
+  public GooglePubsubSubscriber(String name, String subscriptionName, String project, Subscriber subscriber) {
+    this.name = name;
+    this.subscriptionName = formatSubscriptionName(project, subscriptionName);
     this.subscriber = subscriber;
   }
 
@@ -67,18 +71,26 @@ public class GooglePubsubSubscriber implements PubsubSubscriber {
     return subscriptionName;
   }
 
+  @Override
+  public String getName() {
+    return name;
+  }
+
   private static String formatSubscriptionName(String project, String name) {
     return String.format("projects/%s/subscriptions/%s", project, name);
   }
 
-  public static GooglePubsubSubscriber buildSubscriber(String subscriptionName,
-                                                       String project,
-                                                       String jsonPath,
-                                                       Integer ackDeadlineSeconds,
-                                                       PubsubMessageHandler pubsubMessageHandler,
-                                                       String templatePath) {
+  public static GooglePubsubSubscriber buildSubscriber(GooglePubsubProperties.GooglePubsubSubscription subscription,
+                                                       PubsubMessageHandler pubsubMessageHandler) {
     Subscriber subscriber;
-    GooglePubsubMessageReceiver messageReceiver = new GooglePubsubMessageReceiver(ackDeadlineSeconds, formatSubscriptionName(project, subscriptionName), pubsubMessageHandler, templatePath);
+    String subscriptionName = subscription.getSubscriptionName();
+    String project = subscription.getProject();
+    String jsonPath = subscription.getJsonPath();
+
+    GooglePubsubMessageReceiver messageReceiver = new GooglePubsubMessageReceiver(subscription.getAckDeadlineSeconds(),
+        formatSubscriptionName(project, subscriptionName),
+        pubsubMessageHandler,
+        subscription.getTemplatePath());
 
     if (jsonPath != null && !jsonPath.isEmpty()) {
       Credentials credentials = null;
@@ -98,7 +110,7 @@ public class GooglePubsubSubscriber implements PubsubSubscriber {
 
     subscriber.addListener(new GooglePubsubFailureHandler(formatSubscriptionName(project, subscriptionName)), MoreExecutors.directExecutor());
 
-    return new GooglePubsubSubscriber(subscriptionName, project, subscriber);
+    return new GooglePubsubSubscriber(subscription.getName(), subscriptionName, project, subscriber);
   }
 
 

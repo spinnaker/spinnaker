@@ -37,6 +37,9 @@ public class GooglePubsubProperties {
   public static class GooglePubsubSubscription {
 
     @NotEmpty
+    private String name;
+
+    @NotEmpty
     private String project;
 
     @NotEmpty
@@ -48,6 +51,7 @@ public class GooglePubsubProperties {
     // Not required since subscriptions can be public.
     private String jsonPath;
 
+    @NotEmpty
     private String templatePath;
   }
 }

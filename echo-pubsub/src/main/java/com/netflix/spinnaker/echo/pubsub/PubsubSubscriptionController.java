@@ -16,28 +16,25 @@
 
 package com.netflix.spinnaker.echo.pubsub;
 
-import com.netflix.spinnaker.echo.model.pubsub.PubsubSystem;
-import com.netflix.spinnaker.echo.pubsub.model.PubsubSubscriber;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class PubsubSubscribers {
-  private List<PubsubSubscriber> subscribers = new ArrayList<>();
+/**
+ * Controller for configured pub/sub subscriptions.
+ */
+@RestController
+public class PubsubSubscriptionController {
 
-  public void putAll(List< PubsubSubscriber> newEntries) {
-    subscribers.addAll(newEntries);
-  }
+  @Autowired
+  private PubsubSubscribers pubsubSubscribers;
 
-  public List<PubsubSubscriber> getAll() {
-    return subscribers;
-  }
-
-  public List<PubsubSubscriber> subscribersMatchingType(PubsubSystem pubsubSystem) {
-    return subscribers
-        .stream()
-        .filter(subscriber -> subscriber.pubsubSystem().equals(pubsubSystem))
-        .collect(Collectors.toList());
+  @RequestMapping(value = "/pubsub/subscriptions", method = RequestMethod.GET)
+  List<String> getSubscriptions() {
+    return pubsubSubscribers.getAll().stream().map(s -> s.getName()).collect(Collectors.toList());
   }
 }
