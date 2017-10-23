@@ -76,6 +76,7 @@ window.spinnakerSettings = {
     metricStore: defaultMetricStore,
     reportsEnabled: canaryReportsEnabled,
     stagesEnabled: canaryStagesEnabled,
+    graphImplementation: 'chartjs',
     defaultServiceSettings: {
       atlas: {
         name: 'atlas',

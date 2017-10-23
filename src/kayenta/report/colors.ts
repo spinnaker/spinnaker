@@ -1,5 +1,5 @@
 import { MetricClassificationLabel } from 'kayenta/domain/MetricClassificationLabel';
-import { ScoreClassificationLabel } from '../domain/ScoreClassificationLabel';
+import { ScoreClassificationLabel } from 'kayenta/domain/ScoreClassificationLabel';
 
 // Standard Spinnaker styleguide colors.
 const GREEN = 'var(--color-success)';

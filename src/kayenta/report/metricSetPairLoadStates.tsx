@@ -4,11 +4,11 @@ import { connect } from 'react-redux';
 import LoadStatesBuilder from 'kayenta/components/loadStates';
 import { ICanaryState } from '../reducers/index';
 import { AsyncRequestState } from '../reducers/asyncRequest';
-import MetricSetPair from './metricSetPair';
+import MetricResultDetailLayout from './metricResultDetailLayout';
 
 const MetricSetPairLoadStates = ({ state }: { state: AsyncRequestState }) => {
   const LoadStates = new LoadStatesBuilder()
-    .onFulfilled(<MetricSetPair/>)
+    .onFulfilled(<MetricResultDetailLayout/>)
     .onFailed(
       <h3 className="heading-3">Could not load metrics.</h3>
     ).build();

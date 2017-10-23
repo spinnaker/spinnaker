@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { ICanaryMetricConfig } from 'kayenta/domain/ICanaryConfig';
+import { buildDelegateService } from 'kayenta/service/delegateFactory';
 
 export interface IMetricStoreConfig {
   name: string;
@@ -7,17 +8,4 @@ export interface IMetricStoreConfig {
   queryFinder: (metric: ICanaryMetricConfig) => string;
 }
 
-export class MetricStoreConfigService {
-
-  private configs: IMetricStoreConfig[] = [];
-
-  public register(config: IMetricStoreConfig): void {
-    this.configs.push(config);
-  }
-
-  public getConfig(storeName: string): IMetricStoreConfig {
-    return this.configs.find(config => config.name === storeName);
-  }
-}
-
-export default new MetricStoreConfigService();
+export default buildDelegateService<IMetricStoreConfig>();

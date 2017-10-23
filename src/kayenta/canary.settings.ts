@@ -10,6 +10,7 @@ export interface ICanarySettings {
   defaultServiceSettings: {[key: string]: any};
   reportsEnabled: boolean;
   stagesEnabled: boolean;
+  graphImplementation: string;
 }
 
 export const CanarySettings = <ICanarySettings>SETTINGS.canary;

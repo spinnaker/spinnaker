@@ -30,6 +30,10 @@
   version "1.6.24"
   resolved "https://registry.yarnpkg.com/@types/angular/-/angular-1.6.24.tgz#f19510cf4efa5816158fa01b1aa2df94eb7bcde8"
 
+"@types/chartjs@^0.0.31":
+  version "0.0.31"
+  resolved "https://registry.yarnpkg.com/@types/chartjs/-/chartjs-0.0.31.tgz#b16a687eaad3ea3e5cd3e961aee5a28e47b57949"
+
 "@types/cheerio@*":
   version "0.22.1"
   resolved "https://registry.yarnpkg.com/@types/cheerio/-/cheerio-0.22.1.tgz#740c4cd8c4d3f3074f83b9ab62e711eac2c764ce"
@@ -1451,6 +1455,10 @@ chalk@^2.0.1:
     ansi-styles "^3.1.0"
     escape-string-regexp "^1.0.5"
     supports-color "^4.0.0"
+
+chartjs@^0.3.24:
+  version "0.3.24"
+  resolved "https://registry.yarnpkg.com/chartjs/-/chartjs-0.3.24.tgz#3addeb5ae3606b3e89e346c27d52ca158416e93d"
 
 cheerio@^0.22.0:
   version "0.22.0"
