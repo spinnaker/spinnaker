@@ -63,7 +63,7 @@ export class ExecutionStatus extends React.Component<IExecutionStatusProps, IExe
   private validateTimestamp(): void {
     const newTimestamp = relativeTime(this.props.execution.startTime);
     if (newTimestamp !== this.state.timestamp) {
-      this.setState({timestamp: newTimestamp});
+      this.setState({ timestamp: newTimestamp });
     }
   }
 
@@ -100,7 +100,7 @@ export class ExecutionStatus extends React.Component<IExecutionStatusProps, IExe
   }
 
   private toggleDetails(): void {
-    ReactGA.event({category: 'Pipeline', action: 'Execution details toggled (Details link)'});
+    ReactGA.event({ category: 'Pipeline', action: 'Execution details toggled (Details link)' });
     this.props.toggleDetails();
   }
 

@@ -1,6 +1,6 @@
 import * as React from 'react';
 import * as Select from 'react-select';
-import {IPipelineTemplate} from 'core/pipeline/config/templates/pipelineTemplate.service';
+import { IPipelineTemplate } from 'core/pipeline/config/templates/pipelineTemplate.service';
 import { BindAll } from 'lodash-decorators';
 
 export interface IManagedTemplateSelectorProps {
@@ -20,7 +20,7 @@ export class ManagedTemplateSelector extends React.Component<IManagedTemplateSel
           <Select
             options={this.createOptionsFromTemplates()}
             clearable={true}
-            value={selected ? {label: selected.metadata.name, value: selected.id} : null}
+            value={selected ? { label: selected.metadata.name, value: selected.id } : null}
             onChange={this.handleTemplateSelect}
             optionRenderer={this.templateOptionRenderer}
           />
@@ -30,7 +30,7 @@ export class ManagedTemplateSelector extends React.Component<IManagedTemplateSel
   }
 
   private createOptionsFromTemplates(): Select.Option[] {
-    return this.props.templates.map(t => ({label: t.metadata.name, value: t.id}));
+    return this.props.templates.map(t => ({ label: t.metadata.name, value: t.id }));
   }
 
   private handleTemplateSelect(option: Select.Option): void {
@@ -45,7 +45,7 @@ export class ManagedTemplateSelector extends React.Component<IManagedTemplateSel
     const template = this.props.templates.find(t => t.id === option.value);
     return (
       <div>
-        <h5 style={{marginBottom: '0'}}>{template.metadata.name}</h5>
+        <h5 style={{ marginBottom: '0' }}>{template.metadata.name}</h5>
         {template.selfLink && (<p className="small">{template.selfLink}</p>)}
         {template.metadata.owner && (<p className="small">{template.metadata.owner}</p>)}
         {template.metadata.description && (<p className="small">{template.metadata.description}</p>)}

@@ -12,7 +12,7 @@ class RenderIfFeatureController implements ng.IController {
 }
 
 class RenderIfFeatureComponent implements IComponentOptions {
-  public bindings: any = {feature: '@'};
+  public bindings: any = { feature: '@' };
   public controller: any = RenderIfFeatureController;
   public transclude = true;
   public template = `<ng-transclude ng-if="$ctrl.featureEnabled"></ng-transclude>`;

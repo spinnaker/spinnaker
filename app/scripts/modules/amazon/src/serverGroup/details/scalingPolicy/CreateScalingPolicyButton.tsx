@@ -32,7 +32,7 @@ export class CreateScalingPolicyButton extends React.Component<ICreateScalingPol
   }
 
   public handleClick(): void {
-    this.setState({showSelection: true});
+    this.setState({ showSelection: true });
   }
 
   public createStepPolicy(): void {
@@ -68,7 +68,7 @@ export class CreateScalingPolicyButton extends React.Component<ICreateScalingPol
   }
 
   public typeSelected(typeSelection: string): void {
-    this.setState({typeSelection, showSelection: false, showModal: true});
+    this.setState({ typeSelection, showSelection: false, showModal: true });
     if (typeSelection === 'step') {
       this.createStepPolicy();
     }
@@ -78,7 +78,7 @@ export class CreateScalingPolicyButton extends React.Component<ICreateScalingPol
   }
 
   public showModalCallback(): void {
-    this.setState({showSelection: false, showModal: false, typeSelection: null});
+    this.setState({ showSelection: false, showModal: false, typeSelection: null });
   }
 
   public render() {

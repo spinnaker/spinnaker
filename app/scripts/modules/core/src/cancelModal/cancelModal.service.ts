@@ -1,6 +1,6 @@
-import {module} from 'angular';
-import {IModalService, IModalSettings} from 'angular-ui-bootstrap';
-import {CANCEL_MODAL_CONTROLLER} from './cancelModal.controller';
+import { module } from 'angular';
+import { IModalService, IModalSettings } from 'angular-ui-bootstrap';
+import { CANCEL_MODAL_CONTROLLER } from './cancelModal.controller';
 
 export interface ICancelModalParams {
   body?: string;

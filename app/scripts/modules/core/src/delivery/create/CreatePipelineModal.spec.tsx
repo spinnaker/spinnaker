@@ -1,18 +1,18 @@
-import {mock, IQService, IScope} from 'angular';
+import { mock, IQService, IScope } from 'angular';
 import * as React from 'react';
-import {shallow} from 'enzyme';
+import { shallow } from 'enzyme';
 
-import {CreatePipelineModal, ICreatePipelineModalProps} from './CreatePipelineModal';
+import { CreatePipelineModal, ICreatePipelineModalProps } from './CreatePipelineModal';
 import { PIPELINE_CONFIG_SERVICE, PipelineConfigService } from 'core/pipeline/config/services/pipelineConfig.service';
 import {
   PIPELINE_TEMPLATE_SERVICE,
   PipelineTemplateService
 } from 'core/pipeline/config/templates/pipelineTemplate.service';
 import { ReactInjector, REACT_MODULE } from 'core/reactShims';
-import {Application} from 'core/application/application.model';
-import {APPLICATION_MODEL_BUILDER, ApplicationModelBuilder} from 'core/application/applicationModel.builder';
-import {IPipeline} from 'core/domain';
-import {SETTINGS} from 'core/config/settings';
+import { Application } from 'core/application/application.model';
+import { APPLICATION_MODEL_BUILDER, ApplicationModelBuilder } from 'core/application/applicationModel.builder';
+import { IPipeline } from 'core/domain';
+import { SETTINGS } from 'core/config/settings';
 
 describe('CreatePipelineModal', () => {
   let $q: IQService;
@@ -78,7 +78,7 @@ describe('CreatePipelineModal', () => {
     });
 
     it('includes the default value when configs exist', () => {
-      initializeComponent([{name: 'some pipeline'}]);
+      initializeComponent([{ name: 'some pipeline' }]);
       expect(component.state.configs.length).toBe(2);
       expect(component.state.configs[0].name).toBe('None');
       expect(component.state.configs[1].name).toBe('some pipeline');
@@ -93,7 +93,7 @@ describe('CreatePipelineModal', () => {
     });
 
     it(`includes all config names in the component's state to be used to determine if a name is unique`, () => {
-      initializeComponent([{ name: 'a'}, {name: 'b'}]);
+      initializeComponent([{ name: 'a' }, { name: 'b' }]);
       expect(component.state.configs.length).toBe(3);
       expect(component.state.existingNames).toEqual(['None', 'a', 'b']);
     });
@@ -139,7 +139,7 @@ describe('CreatePipelineModal', () => {
 
   describe('pipeline name validation', () => {
     const setPipelineName = (_component: CreatePipelineModal, name: string): void => {
-      _component.setState({command: Object.assign({}, _component.state.command, {name})});
+      _component.setState({ command: Object.assign({}, _component.state.command, { name }) });
     };
 
     it('verifies that the pipeline name does not contain invalid characters', () => {
@@ -159,7 +159,7 @@ describe('CreatePipelineModal', () => {
     });
 
     it('verifies that the pipeline name is unique', () => {
-      initializeComponent([{ name: 'a'}, {name: 'b'}]);
+      initializeComponent([{ name: 'a' }, { name: 'b' }]);
       setPipelineName(component, 'a');
       expect(component.validateNameIsUnique()).toEqual(false);
       setPipelineName(component, 'b');
@@ -176,7 +176,7 @@ describe('CreatePipelineModal', () => {
 
       spyOn(application.pipelineConfigs, 'refresh').and.callFake(() => {
         application.pipelineConfigs.data = [
-          {name: 'new pipeline', id: '1234-5678'}
+          { name: 'new pipeline', id: '1234-5678' }
         ];
         return $q.when(null);
       });
@@ -185,7 +185,7 @@ describe('CreatePipelineModal', () => {
         return $q.when(null);
       });
 
-      component.setState({command: Object.assign({}, component.state.command, {name: 'new pipeline'})});
+      component.setState({ command: Object.assign({}, component.state.command, { name: 'new pipeline' }) });
 
       component.submit();
       $scope.$digest();
@@ -201,12 +201,12 @@ describe('CreatePipelineModal', () => {
       const  toCopy = {
         application: 'the_app',
         name: 'old_name',
-        triggers: [{name: 'the_trigger', enabled: true, type: 'git'}]
+        triggers: [{ name: 'the_trigger', enabled: true, type: 'git' }]
       };
       initializeComponent([toCopy]);
 
       spyOn(application.pipelineConfigs, 'refresh').and.callFake(() => {
-        application.pipelineConfigs.data = [{name: 'new pipeline', id: '1234-5678'}];
+        application.pipelineConfigs.data = [{ name: 'new pipeline', id: '1234-5678' }];
         return $q.when(null);
       });
       spyOn(pipelineConfigService, 'savePipeline').and.callFake((pipeline: IPipeline) => {
@@ -227,10 +227,10 @@ describe('CreatePipelineModal', () => {
 
     it('should insert new pipeline as last one in application and set its index', () => {
       let submitted: IPipeline = null;
-      initializeComponent([{name: 'x'}]);
+      initializeComponent([{ name: 'x' }]);
 
       spyOn(application.pipelineConfigs, 'refresh').and.callFake(() => {
-        application.pipelineConfigs.data = [{name: 'new pipeline', id: '1234-5678'}];
+        application.pipelineConfigs.data = [{ name: 'new pipeline', id: '1234-5678' }];
         return $q.when(null);
       });
       spyOn(pipelineConfigService, 'savePipeline').and.callFake((pipeline: IPipeline) => {
@@ -249,7 +249,7 @@ describe('CreatePipelineModal', () => {
     it('sets error flag, message when save is rejected', () => {
       initializeComponent();
       spyOn(pipelineConfigService, 'savePipeline').and.callFake(() => {
-        return $q.reject({data: {message: 'something went wrong'}});
+        return $q.reject({ data: { message: 'something went wrong' } });
       });
 
       component.submit();

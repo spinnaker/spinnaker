@@ -1,4 +1,4 @@
-import {module} from 'angular';
+import { module } from 'angular';
 
 export interface INavigationPage {
   key: string;

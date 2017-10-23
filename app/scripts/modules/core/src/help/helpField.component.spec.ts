@@ -1,7 +1,7 @@
-import {mock, element} from 'angular';
+import { mock, element } from 'angular';
 
-import {HELP_FIELD_COMPONENT} from './helpField.component';
-import {HelpContentsRegistry} from './helpContents.registry';
+import { HELP_FIELD_COMPONENT } from './helpField.component';
+import { HelpContentsRegistry } from './helpContents.registry';
 import IProvideService = angular.auto.IProvideService;
 
 describe('Component: helpField', () => {
@@ -26,7 +26,7 @@ describe('Component: helpField', () => {
     mock.module(
       HELP_FIELD_COMPONENT,
       ($provide: IProvideService) => {
-        $provide.constant('helpContents', {'aws.serverGroup.stack': 'expected stack help'});
+        $provide.constant('helpContents', { 'aws.serverGroup.stack': 'expected stack help' });
       });
   });
 

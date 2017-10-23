@@ -227,7 +227,7 @@ export abstract class CreateAmazonLoadBalancerCtrl {
       const existingNames = this.defaultSecurityGroups.filter((name) => this.existingSecurityGroupNames.includes(name));
       this.loadBalancerCommand.securityGroups.forEach((securityGroup) => {
         if (!this.existingSecurityGroupNames.includes(securityGroup)) {
-          const matches = filter(this.availableSecurityGroups, {id: securityGroup});
+          const matches = filter(this.availableSecurityGroups, { id: securityGroup });
           if (matches.length) {
             existingNames.push(matches[0].name);
           } else {
@@ -270,8 +270,8 @@ export abstract class CreateAmazonLoadBalancerCtrl {
           region = this.loadBalancerCommand.region;
     return this.subnetReader.listSubnets().then((subnets) => {
       return chain(subnets)
-        .filter({account: account, region: region})
-        .reject({target: 'ec2'})
+        .filter({ account: account, region: region })
+        .reject({ target: 'ec2' })
         .value();
     });
   }

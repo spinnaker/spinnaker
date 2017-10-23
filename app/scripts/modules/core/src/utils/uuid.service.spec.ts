@@ -1,5 +1,5 @@
-import {isString, range} from 'lodash';
-import {UUIDGenerator} from './uuid.service';
+import { isString, range } from 'lodash';
+import { UUIDGenerator } from './uuid.service';
 
 describe('UUID Service', () => {
 

@@ -1,9 +1,9 @@
 import Spy = jasmine.Spy;
-import {mock, IScope, IQService, IControllerService, IRootScopeService} from 'angular';
+import { mock, IScope, IQService, IControllerService, IRootScopeService } from 'angular';
 
-import {IgorService} from 'core/ci/igor.service';
-import {IJobConfig, ParameterDefinitionList} from 'core/domain';
-import {TRAVIS_STAGE, TravisStage} from './travisStage';
+import { IgorService } from 'core/ci/igor.service';
+import { IJobConfig, ParameterDefinitionList } from 'core/domain';
+import { TRAVIS_STAGE, TravisStage } from './travisStage';
 
 describe('Travis Stage Controller', () => {
   let $scope: IScope,
@@ -124,9 +124,9 @@ describe('Travis Stage Controller', () => {
 
     it('gets job config and adds parameters to scope, setting defaults if present and not overridden', () => {
       const params: ParameterDefinitionList[] = [
-        {name: 'overridden', defaultValue: 'z'},
-        {name: 'notSet', defaultValue: 'a'},
-        {name: 'noDefault', defaultValue: null}
+        { name: 'overridden', defaultValue: 'z' },
+        { name: 'notSet', defaultValue: 'a' },
+        { name: 'noDefault', defaultValue: null }
       ];
       const jobConfig = <IJobConfig>{
         parameterDefinitionList: params

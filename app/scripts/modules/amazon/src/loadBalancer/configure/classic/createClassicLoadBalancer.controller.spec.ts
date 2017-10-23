@@ -47,15 +47,15 @@ describe('Controller: awsCreateClassicLoadBalancerCtrl', () => {
     accountService = _accountService_;
     subnetReader = _subnetReader_;
     amazonCertificateReader = _amazonCertificateReader_;
-    const app = applicationModelBuilder.createApplication('app', {key: 'loadBalancers', lazy: true});
+    const app = applicationModelBuilder.createApplication('app', { key: 'loadBalancers', lazy: true });
     initialize = (loadBalancer: IAmazonClassicLoadBalancer = null) => {
       if (loadBalancer) {
         spyOn(awsLoadBalancerTransformer, 'convertClassicLoadBalancerForEditing').and.returnValue(loadBalancer);
       }
       controller = $controller<CreateClassicLoadBalancerCtrl>('awsCreateClassicLoadBalancerCtrl', {
         $scope: $scope,
-        $uibModalInstance: {dismiss: noop, result: {then: noop}},
-        infrastructureCaches: { get: () => { return {getStats: () => {return {}; } }; } },
+        $uibModalInstance: { dismiss: noop, result: { then: noop } },
+        infrastructureCaches: { get: () => { return { getStats: () => {return {}; } }; } },
         application: app,
         loadBalancer: loadBalancer,
         isNew: loadBalancer === null,
@@ -112,7 +112,7 @@ describe('Controller: awsCreateClassicLoadBalancerCtrl', () => {
     loadBalancer.listeners.push({ externalProtocol: 'SSL', internalProtocol: 'SSL', internalPort: 80, externalPort: 80 });
     expect(controller.showSslCertificateNameField()).toBe(true);
 
-    loadBalancer.listeners = [{externalProtocol: 'HTTP', internalProtocol: 'HTTP', internalPort: 80, externalPort: 80 }];
+    loadBalancer.listeners = [{ externalProtocol: 'HTTP', internalProtocol: 'HTTP', internalPort: 80, externalPort: 80 }];
     loadBalancer.listeners.push({ externalProtocol: 'HTTPS', internalProtocol: 'HTTPS', internalPort: 80, externalPort: 80 });
     expect(controller.showSslCertificateNameField()).toBe(true);
 
@@ -234,10 +234,10 @@ describe('Controller: awsCreateClassicLoadBalancerCtrl', () => {
         test: {
           aws: {
             'us-east-1': [
-              {name: 'a', id: '1', vpcId: 'vpc-1'},
-              {name: 'b', id: '2', vpcId: 'vpc-1'},
-              {name: 'c', id: '3', vpcId: 'vpc-1'},
-              {name: 'd', id: '4', vpcId: 'vpc-1'}]
+              { name: 'a', id: '1', vpcId: 'vpc-1' },
+              { name: 'b', id: '2', vpcId: 'vpc-1' },
+              { name: 'c', id: '3', vpcId: 'vpc-1' },
+              { name: 'd', id: '4', vpcId: 'vpc-1' }]
           }
         }
       };
@@ -250,8 +250,8 @@ describe('Controller: awsCreateClassicLoadBalancerCtrl', () => {
         listeners: [],
       } as IAmazonClassicLoadBalancer;
       spyOn(securityGroupReader, 'getAllSecurityGroups').and.returnValue($q.when(availableSecurityGroups));
-      spyOn(accountService, 'getAccountDetails').and.returnValue($q.when([{name: 'test'}]));
-      spyOn(subnetReader, 'listSubnets').and.returnValue($q.when([{account: 'test', region: 'us-east-1', vpcId: 'vpc-1'}]));
+      spyOn(accountService, 'getAccountDetails').and.returnValue($q.when([{ name: 'test' }]));
+      spyOn(subnetReader, 'listSubnets').and.returnValue($q.when([{ account: 'test', region: 'us-east-1', vpcId: 'vpc-1' }]));
       spyOn(amazonCertificateReader, 'listCertificates').and.returnValue($q.when([]));
       initialize(existingLoadBalancer);
       $scope.$digest();
@@ -265,20 +265,20 @@ describe('Controller: awsCreateClassicLoadBalancerCtrl', () => {
         test: {
           aws: {
             'us-east-1': [
-              {name: 'a', id: '1', vpcId: 'vpc-1'},
-              {name: 'b', id: '2', vpcId: 'vpc-1'},
-              {name: 'c', id: '3', vpcId: 'vpc-1'},
-              {name: 'd', id: '4', vpcId: 'vpc-1'},
-              {name: 'sg-a', id: '5', vpcId: 'vpc-1'}]
+              { name: 'a', id: '1', vpcId: 'vpc-1' },
+              { name: 'b', id: '2', vpcId: 'vpc-1' },
+              { name: 'c', id: '3', vpcId: 'vpc-1' },
+              { name: 'd', id: '4', vpcId: 'vpc-1' },
+              { name: 'sg-a', id: '5', vpcId: 'vpc-1' }]
           }
         }
       };
 
       spyOn(securityGroupReader, 'getAllSecurityGroups').and.returnValue($q.when(availableSecurityGroups));
-      spyOn(accountService, 'listAccounts').and.returnValue($q.when([{name: 'test'}]));
-      spyOn(accountService, 'getAccountDetails').and.returnValue($q.when([{name: 'test'}]));
+      spyOn(accountService, 'listAccounts').and.returnValue($q.when([{ name: 'test' }]));
+      spyOn(accountService, 'getAccountDetails').and.returnValue($q.when([{ name: 'test' }]));
       spyOn(subnetReader, 'listSubnets').and.returnValue($q.when([
-        {account: 'test', region: 'us-east-1', vpcId: 'vpc-1', purpose: 'external'}
+        { account: 'test', region: 'us-east-1', vpcId: 'vpc-1', purpose: 'external' }
       ]));
       spyOn(amazonCertificateReader, 'listCertificates').and.returnValue($q.when([]));
       initialize();

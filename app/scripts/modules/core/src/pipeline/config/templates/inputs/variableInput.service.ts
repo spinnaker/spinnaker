@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {module} from 'angular';
+import { module } from 'angular';
 
 export interface IVariable {
   name: string;

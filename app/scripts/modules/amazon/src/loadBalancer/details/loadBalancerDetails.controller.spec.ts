@@ -32,7 +32,7 @@ describe('Controller: LoadBalancerDetailsCtrl', function () {
                  applicationModelBuilder: ApplicationModelBuilder) => {
         $scope = $rootScope.$new();
         $state = _$state_;
-        const app = applicationModelBuilder.createApplication('app', {key: 'loadBalancers', lazy: true});
+        const app = applicationModelBuilder.createApplication('app', { key: 'loadBalancers', lazy: true });
         app.loadBalancers.data.push(loadBalancer);
         controller = $controller(AwsLoadBalancerDetailsController, {
           $scope: $scope,
@@ -67,13 +67,13 @@ describe('Controller: LoadBalancerDetailsCtrl', function () {
     });
 
     it('should return the first purpose of subnetDetail if there is only one', function () {
-      const subnetDetails = [{purpose: 'internal(vpc0)'}] as ISubnet[];
+      const subnetDetails = [{ purpose: 'internal(vpc0)' }] as ISubnet[];
       const result = controller.getFirstSubnetPurpose(subnetDetails);
       expect(result).toEqual('internal(vpc0)');
     });
 
     it('should return the first purpose of subnetDetail if there are multiple', function () {
-      const subnetDetails = [{purpose: 'internal(vpc0)'}, {purpose: 'internal(vpc1)'}] as ISubnet[];
+      const subnetDetails = [{ purpose: 'internal(vpc0)' }, { purpose: 'internal(vpc1)' }] as ISubnet[];
       const result = controller.getFirstSubnetPurpose(subnetDetails);
       expect(result).toEqual('internal(vpc0)');
     });

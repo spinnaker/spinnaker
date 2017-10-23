@@ -78,10 +78,10 @@ export class CanaryScores extends React.Component<ICanaryScoresProps> {
             <div className="row">
               <div className="col-md-offset-1 col-md-10">
                 <div className="progress">
-                  <div className="progress-bar progress-bar-danger" style={{width: `${invalid ? 0 : unhealthy}%`}}/>
-                  <div className="progress-bar progress-bar-warning" style={{width: `${invalid ? 0 : 100 - (unhealthy + (100 - successful))}%`}}/>
-                  <div className="progress-bar progress-bar-success" style={{width: `${invalid ? 0 : 100 - successful}%`}}/>
-                  <div className="progress-bar progress-bar-warning" style={{width: `${invalid ? 100 : 0}%`}}/>
+                  <div className="progress-bar progress-bar-danger" style={{ width: `${invalid ? 0 : unhealthy}%` }}/>
+                  <div className="progress-bar progress-bar-warning" style={{ width: `${invalid ? 0 : 100 - (unhealthy + (100 - successful))}%` }}/>
+                  <div className="progress-bar progress-bar-success" style={{ width: `${invalid ? 0 : 100 - successful}%` }}/>
+                  <div className="progress-bar progress-bar-warning" style={{ width: `${invalid ? 100 : 0}%` }}/>
                 </div>
               </div>
             </div>

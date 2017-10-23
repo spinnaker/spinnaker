@@ -1,6 +1,6 @@
-import {mock} from 'angular';
+import { mock } from 'angular';
 
-import {AUTHENTICATION_SERVICE, AuthenticationService, IUser} from './authentication.service';
+import { AUTHENTICATION_SERVICE, AuthenticationService, IUser } from './authentication.service';
 
 describe('authenticationService', function () {
 
@@ -18,7 +18,7 @@ describe('authenticationService', function () {
       expect(user.name).toBe('[anonymous]');
       expect(user.authenticated).toBe(false);
 
-      authenticationService.setAuthenticatedUser({name: 'kato@example.com', authenticated: false});
+      authenticationService.setAuthenticatedUser({ name: 'kato@example.com', authenticated: false });
       user = authenticationService.getAuthenticatedUser();
       expect(user.name).toBe('kato@example.com');
       expect(user.authenticated).toBe(true);
@@ -34,7 +34,7 @@ describe('authenticationService', function () {
       expect(user.name).toBe('[anonymous]');
       expect(user.authenticated).toBe(false);
 
-      authenticationService.setAuthenticatedUser({name: '', authenticated: false});
+      authenticationService.setAuthenticatedUser({ name: '', authenticated: false });
       expect(user.name).toBe('[anonymous]');
       expect(user.authenticated).toBe(false);
     });
@@ -45,7 +45,7 @@ describe('authenticationService', function () {
       let firedEvents = 0;
       authenticationService.onAuthentication(() => firedEvents++);
       authenticationService.onAuthentication(() => firedEvents++);
-      authenticationService.setAuthenticatedUser({name: 'foo@bar.com', authenticated: false});
+      authenticationService.setAuthenticatedUser({ name: 'foo@bar.com', authenticated: false });
       expect(authenticationService.getAuthenticatedUser().name).toBe('foo@bar.com');
       expect(firedEvents).toBe(2);
     });

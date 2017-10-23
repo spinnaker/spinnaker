@@ -153,8 +153,8 @@ describe('providerSelectionService: API', () => {
     let provider = '';
     hasValue = true;
     providers = ['aws', 'titus', 'testProvider'];
-    cloudProvider.registerProvider('aws', {securityGroup: {}});
-    cloudProvider.registerProvider('titus', {securityGroup: {useProvider: 'aws'}});
+    cloudProvider.registerProvider('aws', { securityGroup: {} });
+    cloudProvider.registerProvider('titus', { securityGroup: { useProvider: 'aws' } });
     cloudProvider.registerProvider('testProvider', config);
 
     providerService.selectProvider(application, 'securityGroup').then((_provider) => {

@@ -1,6 +1,6 @@
-import {module} from 'angular';
-import {CLOUD_PROVIDER_REGISTRY, CloudProviderRegistry} from 'core/cloudProvider/cloudProvider.registry';
-import {ACCOUNT_SERVICE, AccountService} from 'core/account/account.service';
+import { module } from 'angular';
+import { CLOUD_PROVIDER_REGISTRY, CloudProviderRegistry } from 'core/cloudProvider/cloudProvider.registry';
+import { ACCOUNT_SERVICE, AccountService } from 'core/account/account.service';
 
 export interface IApplicationNameValidationMessage {
   cloudProvider?: string;

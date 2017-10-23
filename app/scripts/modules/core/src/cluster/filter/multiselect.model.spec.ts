@@ -1,4 +1,4 @@
-import {mock} from 'angular';
+import { mock } from 'angular';
 import { StateService } from '@uirouter/core';
 
 import { ClusterFilterModel } from './clusterFilter.model';
@@ -43,7 +43,7 @@ describe('Multiselect Model', () => {
         let instanceGroup: any;
         beforeEach(() => {
           instanceGroup = MultiselectModel.getOrCreateInstanceGroup(
-            {name: 'a', account: 'prod', region: 'us-east-1', type: 'aws'});
+            { name: 'a', account: 'prod', region: 'us-east-1', type: 'aws' });
         });
 
         it('navigates to multipleInstances child view when not already there and instances are selected', () => {
@@ -87,7 +87,7 @@ describe('Multiselect Model', () => {
       describe('server group selection', () => {
         let serverGroup: any;
         beforeEach(() => {
-          serverGroup = {name: 'a', account: 'prod', region: 'us-east-1', type: 'aws', category: 'serverGroup'};
+          serverGroup = { name: 'a', account: 'prod', region: 'us-east-1', type: 'aws', category: 'serverGroup' };
         });
 
         it('navigates to multipleServerGroups child view when not already there and group is selected', () => {

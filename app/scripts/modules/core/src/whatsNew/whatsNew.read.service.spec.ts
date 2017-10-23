@@ -1,6 +1,6 @@
-import {mock, IHttpBackendService} from 'angular';
-import {SETTINGS} from 'core/config/settings';
-import {WHATS_NEW_READ_SERVICE, WhatsNewReader, IGistApiResponse, IWhatsNewContents} from './whatsNew.read.service';
+import { mock, IHttpBackendService } from 'angular';
+import { SETTINGS } from 'core/config/settings';
+import { WHATS_NEW_READ_SERVICE, WhatsNewReader, IGistApiResponse, IWhatsNewContents } from './whatsNew.read.service';
 
 describe('Service: whatsNew reader ', () => {
   let reader: WhatsNewReader;
@@ -50,7 +50,7 @@ describe('Service: whatsNew reader ', () => {
     });
 
     it('returns null when gist fetch fails', () => {
-      let result: IWhatsNewContents = {contents: 'fail', lastUpdated: 'never'};
+      let result: IWhatsNewContents = { contents: 'fail', lastUpdated: 'never' };
       $http.expectGET(url).respond(404, {});
       reader.getWhatsNewContents().then(function(data) {
         result = data;

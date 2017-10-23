@@ -1,6 +1,6 @@
-import {module} from 'angular';
+import { module } from 'angular';
 
-import {DEBUG_INTERCEPTOR} from './debug.interceptor';
+import { DEBUG_INTERCEPTOR } from './debug.interceptor';
 
 export const INTERCEPTOR_MODULE = 'spinnaker.core.interceptor.module';
 module(INTERCEPTOR_MODULE, [

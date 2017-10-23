@@ -1,12 +1,12 @@
-import {IPromise, IQService, module} from 'angular';
-import {sortBy, uniq} from 'lodash';
+import { IPromise, IQService, module } from 'angular';
+import { sortBy, uniq } from 'lodash';
 
-import {API_SERVICE, Api} from 'core/api/api.service';
-import {AUTHENTICATION_SERVICE, AuthenticationService} from 'core/authentication/authentication.service';
-import {VIEW_STATE_CACHE_SERVICE, ViewStateCacheService} from 'core/cache/viewStateCache.service';
-import {ICache} from 'core/cache/deckCache.service';
-import {IStage} from 'core/domain/IStage';
-import {IPipeline} from 'core/domain/IPipeline';
+import { API_SERVICE, Api } from 'core/api/api.service';
+import { AUTHENTICATION_SERVICE, AuthenticationService } from 'core/authentication/authentication.service';
+import { VIEW_STATE_CACHE_SERVICE, ViewStateCacheService } from 'core/cache/viewStateCache.service';
+import { ICache } from 'core/cache/deckCache.service';
+import { IStage } from 'core/domain/IStage';
+import { IPipeline } from 'core/domain/IPipeline';
 
 export interface ITriggerPipelineResponse {
   ref: string;
@@ -44,7 +44,7 @@ export class PipelineConfigService {
   }
 
   public getHistory(id: string, count = 20): IPromise<IPipeline[]> {
-    return this.API.one('pipelineConfigs', id).all('history').withParams({count: count}).getList();
+    return this.API.one('pipelineConfigs', id).all('history').withParams({ count: count }).getList();
   }
 
   public deletePipeline(applicationName: string, pipeline: IPipeline, pipelineName: string): IPromise<void> {

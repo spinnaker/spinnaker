@@ -125,8 +125,8 @@ module(WEBHOOK_STAGE, [
     templateUrl: require('./webhookStage.html'),
     executionDetailsUrl: require('./webhookExecutionDetails.html'),
     validators: [
-      {type: 'requiredField', fieldName: 'url'},
-      {type: 'requiredField', fieldName: 'method'}
+      { type: 'requiredField', fieldName: 'url' },
+      { type: 'requiredField', fieldName: 'method' }
     ]
   });
 }).run((pipelineConfig: PipelineConfigProvider, API: Api) => {

@@ -50,12 +50,12 @@ export class ExecutionMarker extends React.Component<IExecutionMarkerProps, IExe
   }
 
   private handleStageClick(): void {
-    ReactGA.event({category: 'Pipeline', action: 'Stage clicked (bar)'});
+    ReactGA.event({ category: 'Pipeline', action: 'Stage clicked (bar)' });
     this.props.onClick(this.props.stage.index);
   }
 
   public render() {
-    const {stage, application, execution, active, previousStageActive, width} = this.props;
+    const { stage, application, execution, active, previousStageActive, width } = this.props;
     const stageType = (stage.activeStageType || stage.type).toLowerCase(); // support groups
     const markerClassName = [
       stage.type !== 'group' ? 'clickable' : '',
@@ -73,7 +73,7 @@ export class ExecutionMarker extends React.Component<IExecutionMarkerProps, IExe
     const stageContents = (
       <div
         className={markerClassName}
-        style={{width: width, backgroundColor: stage.color}}
+        style={{ width: width, backgroundColor: stage.color }}
         onClick={this.handleStageClick}
       >
         <MarkerIcon stage={stage}/>

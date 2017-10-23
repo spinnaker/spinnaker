@@ -1,6 +1,6 @@
-import {module} from 'angular';
-import {uniq} from 'lodash';
-import {IGceLoadBalancer, IGceHttpLoadBalancer} from 'google/domain/loadBalancer';
+import { module } from 'angular';
+import { uniq } from 'lodash';
+import { IGceLoadBalancer, IGceHttpLoadBalancer } from 'google/domain/loadBalancer';
 
 
 export class GceHttpLoadBalancerUtils {

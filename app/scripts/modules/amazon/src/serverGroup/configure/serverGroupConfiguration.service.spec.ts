@@ -158,7 +158,7 @@ describe('Service: awsServerGroupConfiguration', function () {
       spyOn(keyPairsReader, 'listKeyPairs').and.returnValue($q.when([]));
       const getAllTypesByRegionSpy = spyOn(awsInstanceTypeService, 'getAllTypesByRegion').and.returnValue($q.when(
         { 'us-east-1': [
-          {name: 'm4.tiny'}
+          { name: 'm4.tiny' }
         ] }
       ));
       const refreshCacheSpy = spyOn(cacheInitializer, 'refreshCache').and.returnValue($q.when(null));
@@ -206,7 +206,7 @@ describe('Service: awsServerGroupConfiguration', function () {
 
       expect(this.command.loadBalancers).toEqual([]);
       expect(this.command.vpcLoadBalancers).toEqual(['elb-1']);
-      expect(result).toEqual({ dirty: { }});
+      expect(result).toEqual({ dirty: { } });
     });
 
     it('matches existing load balancers based on name - VPC', function() {
@@ -214,7 +214,7 @@ describe('Service: awsServerGroupConfiguration', function () {
       const result = service.configureLoadBalancerOptions(this.command);
 
       expect(this.command.loadBalancers).toEqual(['elb-1']);
-      expect(result).toEqual({ dirty: { }});
+      expect(result).toEqual({ dirty: { } });
     });
 
     it('sets dirty all unmatched load balancers - no VPC', function () {
@@ -223,7 +223,7 @@ describe('Service: awsServerGroupConfiguration', function () {
       const result = service.configureLoadBalancerOptions(this.command);
 
       expect(this.command.loadBalancers).toEqual(['elb-2']);
-      expect(result).toEqual({ dirty: { loadBalancers: ['elb-1']}});
+      expect(result).toEqual({ dirty: { loadBalancers: ['elb-1'] } });
     });
 
     it('moves load balancers to vpcLoadBalancers when vpc is de-selected', function () {
@@ -247,13 +247,13 @@ describe('Service: awsServerGroupConfiguration', function () {
       let result = service.configureLoadBalancerOptions(this.command);
 
       expect(this.command.loadBalancers).toEqual(['elb-1']);
-      expect(result).toEqual({ dirty: { loadBalancers: ['elb-2']}});
+      expect(result).toEqual({ dirty: { loadBalancers: ['elb-2'] } });
 
       this.command.vpcId = 'vpc-2';
       result = service.configureLoadBalancerOptions(this.command);
 
       expect(this.command.loadBalancers).toEqual([]);
-      expect(result).toEqual({ dirty: { loadBalancers: ['elb-1']}});
+      expect(result).toEqual({ dirty: { loadBalancers: ['elb-1'] } });
     });
 
     it('updates filteredData to new region - no VPC', function() {
@@ -275,18 +275,18 @@ describe('Service: awsServerGroupConfiguration', function () {
         test: {
           aws: {
             'us-west-1': [
-              { name: 'sg1', id: 'sg-1a', vpcId: null},
-              { name: 'sg2', id: 'sg-2a', vpcId: null},
-              { name: 'sg3', id: 'sg-3a', vpcId: null},
-              { name: 'sg1', id: 'sg-1va', vpcId: 'vpc-1'},
-              { name: 'sg2', id: 'sg-2va', vpcId: 'vpc-1'},
-              { name: 'sg3', id: 'sg-3va', vpcId: 'vpc-2'}
+              { name: 'sg1', id: 'sg-1a', vpcId: null },
+              { name: 'sg2', id: 'sg-2a', vpcId: null },
+              { name: 'sg3', id: 'sg-3a', vpcId: null },
+              { name: 'sg1', id: 'sg-1va', vpcId: 'vpc-1' },
+              { name: 'sg2', id: 'sg-2va', vpcId: 'vpc-1' },
+              { name: 'sg3', id: 'sg-3va', vpcId: 'vpc-2' }
             ],
             'us-east-1': [
-              { name: 'sg1', id: 'sg-1c', vpcId: null},
-              { name: 'sg2', id: 'sg-2c', vpcId: null},
-              { name: 'sg1', id: 'sg-1vc', vpcId: 'vpc-3'},
-              { name: 'sg2', id: 'sg-2vc', vpcId: 'vpc-4'}
+              { name: 'sg1', id: 'sg-1c', vpcId: null },
+              { name: 'sg2', id: 'sg-2c', vpcId: null },
+              { name: 'sg1', id: 'sg-1vc', vpcId: 'vpc-3' },
+              { name: 'sg2', id: 'sg-2vc', vpcId: 'vpc-4' }
             ]
           }
         }
@@ -316,7 +316,7 @@ describe('Service: awsServerGroupConfiguration', function () {
       this.command.vpcId = 'vpc-1';
       const result = service.configureSecurityGroupOptions(this.command);
       expect(this.command.securityGroups).toEqual(['sg-1va', 'sg-2va']);
-      expect(result).toEqual({ dirty: { }});
+      expect(result).toEqual({ dirty: { } });
     });
 
     it('matches on name or id, converting to id when name encountered', function() {
@@ -324,7 +324,7 @@ describe('Service: awsServerGroupConfiguration', function () {
       this.command.region = 'us-east-1';
       const result = service.configureSecurityGroupOptions(this.command);
       expect(this.command.securityGroups).toEqual(['sg-1c', 'sg-2c']);
-      expect(result).toEqual({ dirty: {}});
+      expect(result).toEqual({ dirty: {} });
     });
 
     it('sets dirty all unmatched security groups - no VPC', function () {
@@ -332,7 +332,7 @@ describe('Service: awsServerGroupConfiguration', function () {
       this.command.region = 'us-east-1';
       const result = service.configureSecurityGroupOptions(this.command);
       expect(this.command.securityGroups).toEqual(['sg-1c', 'sg-2c']);
-      expect(result).toEqual({ dirty: { securityGroups: ['sg3'] }});
+      expect(result).toEqual({ dirty: { securityGroups: ['sg3'] } });
     });
 
     it('sets dirty all unmatched security groups - VPC', function () {
@@ -340,7 +340,7 @@ describe('Service: awsServerGroupConfiguration', function () {
       this.command.vpcId = 'vpc-2';
       const result = service.configureSecurityGroupOptions(this.command);
       expect(this.command.securityGroups).toEqual(['sg-3va']);
-      expect(result).toEqual({ dirty: { securityGroups: ['sg1', 'sg2'] }});
+      expect(result).toEqual({ dirty: { securityGroups: ['sg1', 'sg2'] } });
     });
 
     it('updates filteredData to new region - no VPC', function() {

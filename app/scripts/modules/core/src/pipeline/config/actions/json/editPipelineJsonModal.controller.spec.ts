@@ -1,7 +1,7 @@
 import { mock, IControllerService } from 'angular';
 
 import { EditPipelineJsonModalCtrl } from './editPipelineJsonModal.controller';
-import { IPipeline} from 'core/domain';
+import { IPipeline } from 'core/domain';
 
 describe('Controller: editPipelineJsonModal', () => {
 
@@ -11,8 +11,8 @@ describe('Controller: editPipelineJsonModal', () => {
   beforeEach(mock.inject(($controller: IControllerService) =>  $ctrl = $controller));
 
   function initializeController(pipeline: IPipeline) {
-    $uibModalInstance = {close: () => {}};
-    controller = $ctrl(EditPipelineJsonModalCtrl, {$uibModalInstance, pipeline});
+    $uibModalInstance = { close: () => {} };
+    controller = $ctrl(EditPipelineJsonModalCtrl, { $uibModalInstance, pipeline });
   }
 
   it('controller removes name, application, appConfig, all fields and hash keys', () => {
@@ -68,7 +68,7 @@ describe('Controller: editPipelineJsonModal', () => {
     const converted: any = JSON.parse(controller.command.pipelineJSON);
     converted.application = 'someOtherApp';
     converted.name = 'replacedName';
-    converted.bar = {updated: true};
+    converted.bar = { updated: true };
     controller.command.pipelineJSON = JSON.stringify(converted);
     controller.updatePipeline();
 
@@ -82,7 +82,7 @@ describe('Controller: editPipelineJsonModal', () => {
     const pipeline: any = {};
     initializeController(pipeline);
 
-    controller.command = {pipelineJSON: 'This is not very good JSON', locked: false};
+    controller.command = { pipelineJSON: 'This is not very good JSON', locked: false };
     controller.updatePipeline();
 
     expect(controller.command.invalid).toBe(true);

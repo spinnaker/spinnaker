@@ -41,16 +41,16 @@ describe('Service: executionService', () => {
       const executionId = 'abc';
       const cancelUrl = [ SETTINGS.gateUrl, 'pipelines', executionId, 'cancel' ].join('/');
       const checkUrl = [ SETTINGS.gateUrl, 'pipelines', executionId ].join('/');
-      const application: Application = { name: 'deck', executions: { refresh: () => $q.when(null) }} as any;
+      const application: Application = { name: 'deck', executions: { refresh: () => $q.when(null) } } as any;
 
       $httpBackend.expectPUT(cancelUrl).respond(200, []);
-      $httpBackend.expectGET(checkUrl).respond(200, {id: executionId, status: 'RUNNING'});
+      $httpBackend.expectGET(checkUrl).respond(200, { id: executionId, status: 'RUNNING' });
 
       executionService.cancelExecution(application, executionId).then(() => completed = true);
       $httpBackend.flush();
       expect(completed).toBe(false);
 
-      $httpBackend.expectGET(checkUrl).respond(200, {id: executionId, status: 'CANCELED'});
+      $httpBackend.expectGET(checkUrl).respond(200, { id: executionId, status: 'CANCELED' });
       timeout.flush();
       $httpBackend.flush();
       expect(completed).toBe(true);
@@ -79,7 +79,7 @@ describe('Service: executionService', () => {
       const application: Application = { name: 'deck', executions: { refresh: () => $q.when(null) } } as any;
 
       $httpBackend.expectDELETE(deleteUrl).respond(200, []);
-      $httpBackend.expectGET(checkUrl).respond(200, {id: executionId});
+      $httpBackend.expectGET(checkUrl).respond(200, { id: executionId });
 
       executionService.deleteExecution(application, executionId).then(() => completed = true);
       $httpBackend.flush();
@@ -114,13 +114,13 @@ describe('Service: executionService', () => {
       const application: Application = { name: 'deck', executions: { refresh: () => $q.when(null) } } as any;
 
       $httpBackend.expectPUT(pauseUrl).respond(200, []);
-      $httpBackend.expectGET(singleExecutionUrl).respond(200, {id: executionId, status: 'RUNNING'});
+      $httpBackend.expectGET(singleExecutionUrl).respond(200, { id: executionId, status: 'RUNNING' });
 
       executionService.pauseExecution(application, executionId).then(() => completed = true);
       $httpBackend.flush();
       expect(completed).toBe(false);
 
-      $httpBackend.expectGET(singleExecutionUrl).respond(200, {id: executionId, status: 'PAUSED'});
+      $httpBackend.expectGET(singleExecutionUrl).respond(200, { id: executionId, status: 'PAUSED' });
       timeout.flush();
       $httpBackend.flush();
 
@@ -137,13 +137,13 @@ describe('Service: executionService', () => {
       const application: Application = { name: 'deck', executions: { refresh: () => $q.when(null) } } as any;
 
       $httpBackend.expectPUT(pauseUrl).respond(200, []);
-      $httpBackend.expectGET(singleExecutionUrl).respond(200, {id: executionId, status: 'PAUSED'});
+      $httpBackend.expectGET(singleExecutionUrl).respond(200, { id: executionId, status: 'PAUSED' });
 
       executionService.resumeExecution(application, executionId).then(() => completed = true);
       $httpBackend.flush();
       expect(completed).toBe(false);
 
-      $httpBackend.expectGET(singleExecutionUrl).respond(200, {id: executionId, status: 'RUNNING'});
+      $httpBackend.expectGET(singleExecutionUrl).respond(200, { id: executionId, status: 'RUNNING' });
       timeout.flush();
       $httpBackend.flush();
 
@@ -289,8 +289,8 @@ describe('Service: executionService', () => {
 
     describe('removeCompletedExecutionsFromRunningData', () => {
       it('should remove executions that have completed', () => {
-        application.executions.data = [ {id: 0, isActive: false}, {id: 1, isActive: false}, {id: 2, isActive: true} ];
-        application.runningExecutions.data = [ {id: 1, isActive: true}, {id: 2, isActive: true} ];
+        application.executions.data = [ { id: 0, isActive: false }, { id: 1, isActive: false }, { id: 2, isActive: true } ];
+        application.runningExecutions.data = [ { id: 1, isActive: true }, { id: 2, isActive: true } ];
         executionService.removeCompletedExecutionsFromRunningData(application);
         expect(application.runningExecutions.data.map((d: any) => d.id)).toEqual([2]);
         expect(dataUpdated).toBe(true);
@@ -299,16 +299,16 @@ describe('Service: executionService', () => {
 
     describe('mergeRunningExecutionsIntoExecutions', () => {
       it('should add running executions to executions, and update if stringVal changed', () => {
-        application.executions.data = [ {id: 0, isActive: false, stringVal: 'a'}, {id: 2, isActive: true, stringVal: 'b'} ];
-        application.runningExecutions.data = [ {id: 1, isActive: true, stringVal: 'c'}, {id: 2, isActive: true, stringVal: 'd'} ];
+        application.executions.data = [ { id: 0, isActive: false, stringVal: 'a' }, { id: 2, isActive: true, stringVal: 'b' } ];
+        application.runningExecutions.data = [ { id: 1, isActive: true, stringVal: 'c' }, { id: 2, isActive: true, stringVal: 'd' } ];
         executionService.mergeRunningExecutionsIntoExecutions(application);
         expect(application.executions.data.map((d: any) => `${d.id}:${d.stringVal}`)).toEqual(['0:a', '2:d', '1:c']);
         expect(dataUpdated).toBe(true);
       });
 
       it('should only call dataUpdated if actual updates occurred', () => {
-        application.executions.data = [ {id: 0, isActive: false, stringVal: 'a'}, {id: 2, isActive: true, stringVal: 'b'} ];
-        application.runningExecutions.data = [ {id: 2, isActive: true, stringVal: 'b'} ];
+        application.executions.data = [ { id: 0, isActive: false, stringVal: 'a' }, { id: 2, isActive: true, stringVal: 'b' } ];
+        application.runningExecutions.data = [ { id: 2, isActive: true, stringVal: 'b' } ];
         executionService.mergeRunningExecutionsIntoExecutions(application);
         expect(application.executions.data.map((d: any) => `${d.id}:${d.stringVal}`)).toEqual(['0:a', '2:b']);
         expect(dataUpdated).toBe(false);
@@ -320,18 +320,18 @@ describe('Service: executionService', () => {
   describe('adding executions to applications', () => {
     let application: Application;
     beforeEach(() => {
-      application = { executions: { data: [] }, runningExecutions: { data: [] }} as any;
+      application = { executions: { data: [] }, runningExecutions: { data: [] } } as any;
     });
     it('should add all executions if there are none on application', () => {
-      const execs: IExecution[] = [{a: 1}] as any;
+      const execs: IExecution[] = [{ a: 1 }] as any;
       const data = executionService.addExecutionsToApplication(application, execs);
 
       expect(data).toBe(execs);
     });
 
     it('should add new executions', () => {
-      const original = {id: 1, stringVal: 'ac'};
-      const newOne = {id: 2, stringVal: 'ab'};
+      const original = { id: 1, stringVal: 'ac' };
+      const newOne = { id: 2, stringVal: 'ab' };
       const execs: IExecution[] = [original, newOne] as any;
       application.executions.data = [original];
 
@@ -384,8 +384,8 @@ describe('Service: executionService', () => {
     });
 
     it('should replace an existing execution if status changes', () => {
-      const original = {id: 1, stringVal: 'ac', status: 'RUNNING'};
-      const updated = {id: 1, stringVal: 'ab', status: 'COMPLETED'};
+      const original = { id: 1, stringVal: 'ac', status: 'RUNNING' };
+      const updated = { id: 1, stringVal: 'ab', status: 'COMPLETED' };
       const execs: IExecution[] = [updated] as any;
       application.executions.data = [original];
 
@@ -395,8 +395,8 @@ describe('Service: executionService', () => {
     });
 
     it('should remove an execution if it is not in the new set', () => {
-      const transient = {id: 1, stringVal: 'ac'};
-      const persistent = {id: 2, stringVal: 'ab'};
+      const transient = { id: 1, stringVal: 'ac' };
+      const persistent = { id: 2, stringVal: 'ab' };
       const execs: IExecution[] = [persistent] as any;
       application.executions.data = [transient];
 
@@ -406,7 +406,7 @@ describe('Service: executionService', () => {
     });
 
     it('should retain running executions, even if they are not in the new set', () => {
-      const running = {id: 3};
+      const running = { id: 3 };
       application.executions.data = [running];
       application.runningExecutions.data = [running];
 
@@ -415,9 +415,9 @@ describe('Service: executionService', () => {
     });
 
     it('should remove multiple executions if not in the new set', () => {
-      const transient1 = {id: 1, stringVal: 'ac'};
-      const persistent = {id: 2, stringVal: 'ab'};
-      const transient3 = {id: 3, stringVal: 'ac'};
+      const transient1 = { id: 1, stringVal: 'ac' };
+      const persistent = { id: 2, stringVal: 'ab' };
+      const transient3 = { id: 3, stringVal: 'ac' };
       const execs: IExecution[] = [persistent] as any;
       application.executions.data = [transient1, persistent, transient3];
 
@@ -428,7 +428,7 @@ describe('Service: executionService', () => {
 
     it('should replace the existing executions if application has executions comes back empty', () => {
       const execs: IExecution[] = [];
-      application.executions.data = [{a: 1}];
+      application.executions.data = [{ a: 1 }];
 
       const data = executionService.addExecutionsToApplication(application, execs);
 

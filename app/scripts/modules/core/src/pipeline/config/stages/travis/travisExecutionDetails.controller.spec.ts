@@ -1,6 +1,6 @@
-import {IScope, IControllerService, IRootScopeService, mock} from 'angular';
+import { IScope, IControllerService, IRootScopeService, mock } from 'angular';
 
-import {TRAVIS_EXECUTION_DETAILS_CONTROLLER, TravisExecutionDetailsCtrl} from './travisExecutionDetails.controller';
+import { TRAVIS_EXECUTION_DETAILS_CONTROLLER, TravisExecutionDetailsCtrl } from './travisExecutionDetails.controller';
 
 describe('Travis Execution Details Controller:', () => {
   let $scope: IScope,

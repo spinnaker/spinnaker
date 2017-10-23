@@ -1,5 +1,5 @@
-import {module} from 'angular';
-import {isPlainObject, isArray, isNumber, isString} from 'lodash';
+import { module } from 'angular';
+import { isPlainObject, isArray, isNumber, isString } from 'lodash';
 
 const DiffMatchPatch = require('expose-loader?diff_match_patch!diff-match-patch');
 
@@ -100,17 +100,17 @@ export class JsonUtilityService {
       if (diff[0] === 1) {
         type = 'add';
         additions += lines.length;
-        changeBlocks.push({type: type, lines: lines.length, start: total, height: null, top: null});
+        changeBlocks.push({ type: type, lines: lines.length, start: total, height: null, top: null });
       }
       if (diff[0] === -1) {
         type = 'remove';
         removals += lines.length;
-        changeBlocks.push({type: type, lines: lines.length, start: total, height: null, top: null});
+        changeBlocks.push({ type: type, lines: lines.length, start: total, height: null, top: null });
       }
       if (diff[0] === 0) {
         unchanged += lines.length;
       }
-      lines.forEach((l: string) => diffLines.push({type: type, text: l}));
+      lines.forEach((l: string) => diffLines.push({ type: type, text: l }));
       total += lines.length;
     });
     changeBlocks.forEach(b => {

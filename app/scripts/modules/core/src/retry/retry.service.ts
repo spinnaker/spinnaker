@@ -1,4 +1,4 @@
-import {module} from 'angular';
+import { module } from 'angular';
 
 export class RetryService {
   constructor(private $timeout: ng.ITimeoutService, private $q: ng.IQService) { 'ngInject'; }

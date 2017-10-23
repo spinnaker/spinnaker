@@ -1,9 +1,9 @@
-import {cloneDeep} from 'lodash';
-import {module} from 'angular';
+import { cloneDeep } from 'lodash';
+import { module } from 'angular';
 
-import {Application} from '../application.model';
-import {TASK_EXECUTOR, IJob, TaskExecutor} from 'core/task/taskExecutor';
-import {RECENT_HISTORY_SERVICE, RecentHistoryService} from 'core/history/recentHistory.service';
+import { Application } from '../application.model';
+import { TASK_EXECUTOR, IJob, TaskExecutor } from 'core/task/taskExecutor';
+import { RECENT_HISTORY_SERVICE, RecentHistoryService } from 'core/history/recentHistory.service';
 
 export interface IApplicationAttributes {
   name: string;

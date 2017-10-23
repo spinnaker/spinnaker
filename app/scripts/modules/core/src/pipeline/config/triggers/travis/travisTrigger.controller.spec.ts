@@ -1,9 +1,9 @@
-import {mock, IScope, IQService, IControllerService, IRootScopeService} from 'angular';
-import {find} from 'lodash';
+import { mock, IScope, IQService, IControllerService, IRootScopeService } from 'angular';
+import { find } from 'lodash';
 
-import {IgorService} from 'core/ci/igor.service';
-import {IBuildTrigger} from 'core/domain/ITrigger';
-import {TRAVIS_TRIGGER, TravisTrigger} from './travisTrigger.module';
+import { IgorService } from 'core/ci/igor.service';
+import { IBuildTrigger } from 'core/domain/ITrigger';
+import { TRAVIS_TRIGGER, TravisTrigger } from './travisTrigger.module';
 
 describe('Controller: travisTrigger', () => {
   let $scope: IScope,
@@ -32,7 +32,7 @@ describe('Controller: travisTrigger', () => {
   describe('updateJobsList', () => {
     it('gets list of jobs when initialized with a trigger with a master and sets loading states', () => {
       const jobs = ['some_job', 'some_other_job'],
-        trigger = <IBuildTrigger>{master: 'travis', job: 'some_job'};
+        trigger = <IBuildTrigger>{ master: 'travis', job: 'some_job' };
 
       spyOn(igorService, 'listJobsForMaster').and.returnValue($q.when(jobs));
       spyOn(igorService, 'listMasters').and.returnValue($q.when(['travis']));
@@ -61,7 +61,7 @@ describe('Controller: travisTrigger', () => {
         };
 
       spyOn(igorService, 'listJobsForMaster').and.callFake((master: string) => {
-        return $q.when(find([masterA, masterB], {name: master}).jobs);
+        return $q.when(find([masterA, masterB], { name: master }).jobs);
       });
       spyOn(igorService, 'listMasters').and.returnValue($q.when(['masterA', 'masterB']));
 

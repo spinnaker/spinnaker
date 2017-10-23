@@ -63,7 +63,7 @@ describe('serverGroupWriter', function () {
       $httpBackend.expectPOST(`${API.baseUrl}/applications/app/tasks`, (body: string) => {
         submitted = <ITaskCommand>JSON.parse(body);
         return true;
-      }).respond(200, {ref: '/1'});
+      }).respond(200, { ref: '/1' });
 
       const application: TestApplication =
         <TestApplication>applicationModelBuilder.createApplication('app', applicationDataSourceRegistry.getDataSources());

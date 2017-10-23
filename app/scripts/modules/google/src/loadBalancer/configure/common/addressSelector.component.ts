@@ -1,5 +1,5 @@
-import {module, IComponentOptions, IController} from 'angular';
-import {IGceAddress} from 'google/address/address.reader';
+import { module, IComponentOptions, IController } from 'angular';
+import { IGceAddress } from 'google/address/address.reader';
 
 class GceAddressSelectorCtrl implements IController {
   public selectedAddress: IGceAddress;
@@ -12,7 +12,7 @@ class GceAddressSelectorCtrl implements IController {
   public $onInit(): void {
     this.selectedAddress = this.addressList.find(address => address.address === this.initialIpAddress);
     if (!this.selectedAddress) {
-      this.selectedAddress = {address: this.initialIpAddress, account: this.account};
+      this.selectedAddress = { address: this.initialIpAddress, account: this.account };
     }
   }
 }

@@ -65,7 +65,7 @@ export class InfrastructureV2Ctrl implements IController {
     };
 
     // just set the page title - don't try to get fancy w/ the search terms
-    pageTitleService.handleRoutingSuccess({ pageTitleMain: { field: undefined, label: 'Infrastructure' }});
+    pageTitleService.handleRoutingSuccess({ pageTitleMain: { field: undefined, label: 'Infrastructure' } });
 
     this.query = UrlParser.parseLocationHash(window.location.hash);
     if (this.query.length) {

@@ -16,7 +16,7 @@ class AppengineApplicationNameValidator implements IApplicationNameValidator {
       this.validateSpecialCharacters(name, errors);
       this.validateLength(name, warnings, errors);
     }
-    return {warnings, errors};
+    return { warnings, errors };
   }
 
   private validateSpecialCharacters(name: string, errors: string[]): void {

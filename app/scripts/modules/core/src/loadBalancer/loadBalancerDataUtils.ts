@@ -10,7 +10,7 @@ export class LoadBalancerDataUtils {
     }
 
     const loadBalancer: ILoadBalancer = { name: match.name, vpcId: match.vpcId, cloudProvider: match.cloudProvider };
-    loadBalancer.instanceCounts = {up: 0, down: 0, succeeded: 0, failed: 0, outOfService: 0, unknown: 0, starting: 0};
+    loadBalancer.instanceCounts = { up: 0, down: 0, succeeded: 0, failed: 0, outOfService: 0, unknown: 0, starting: 0 };
 
     serverGroup.instances.forEach(instance => {
       const lbHealth: IHealth = instance.health.find(h => h.type === 'LoadBalancer');

@@ -77,7 +77,7 @@ export class AwsServerGroupTransformer {
 
   public convertServerGroupCommandToDeployConfiguration(base: any): any {
     // use _.defaults to avoid copying the backingData, which is huge and expensive to copy over
-    const command = defaults({backingData: [], viewState: []}, base);
+    const command = defaults({ backingData: [], viewState: [] }, base);
     command.cloudProvider = 'aws';
     command.availabilityZones = {};
     command.availabilityZones[command.region] = base.availabilityZones;
@@ -111,7 +111,7 @@ export class AwsServerGroupTransformer {
         statistic: 'Average',
         comparisonOperator: 'GreaterThanThreshold',
         evaluationPeriods: 1,
-        dimensions: [{ name: 'AutoScalingGroupName', value: serverGroup.name}],
+        dimensions: [{ name: 'AutoScalingGroupName', value: serverGroup.name }],
         period: 60,
       }],
       adjustmentType: 'ChangeInCapacity',

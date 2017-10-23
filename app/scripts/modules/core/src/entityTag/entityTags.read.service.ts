@@ -1,10 +1,10 @@
-import {module, IQService, IPromise, IDeferred} from 'angular';
-import {countBy, get, uniq} from 'lodash';
+import { module, IQService, IPromise, IDeferred } from 'angular';
+import { countBy, get, uniq } from 'lodash';
 
-import {API_SERVICE, Api} from 'core/api/api.service';
-import {IEntityTags, IEntityTag, ICreationMetadataTag} from '../domain/IEntityTags';
-import {RETRY_SERVICE, RetryService} from 'core/retry/retry.service';
-import {SETTINGS} from 'core/config/settings';
+import { API_SERVICE, Api } from 'core/api/api.service';
+import { IEntityTags, IEntityTag, ICreationMetadataTag } from '../domain/IEntityTags';
+import { RETRY_SERVICE, RetryService } from 'core/retry/retry.service';
+import { SETTINGS } from 'core/config/settings';
 
 interface ICollatedIdGroup {
   entityId: string;

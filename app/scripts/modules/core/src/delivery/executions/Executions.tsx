@@ -117,12 +117,12 @@ export class Executions extends React.Component<IExecutionsProps, IExecutionsSta
   }
 
   private expand(): void {
-    ReactGA.event({category: 'Pipelines', action: 'Expand All'});
+    ReactGA.event({ category: 'Pipelines', action: 'Expand All' });
     ReactInjector.executionFilterModel.expandSubject.next(true);
   }
 
   private collapse(): void {
-    ReactGA.event({category: 'Pipelines', action: 'Collapse All'});
+    ReactGA.event({ category: 'Pipelines', action: 'Collapse All' });
     ReactInjector.executionFilterModel.expandSubject.next(false);
   }
 
@@ -138,7 +138,7 @@ export class Executions extends React.Component<IExecutionsProps, IExecutionsSta
   };
 
   private triggerPipeline(): void {
-    ReactGA.event({category: 'Pipelines', action: 'Trigger Pipeline (top level)'});
+    ReactGA.event({ category: 'Pipelines', action: 'Trigger Pipeline (top level)' });
     // TODO: Convert the modal to react
     ReactInjector.modalService.open({
       templateUrl: require('../manualExecution/manualPipelineExecution.html'),
@@ -219,7 +219,7 @@ export class Executions extends React.Component<IExecutionsProps, IExecutionsSta
 
   private groupByChanged(event: React.ChangeEvent<HTMLSelectElement>): void {
     const value = event.target.value;
-    ReactGA.event({category: 'Pipelines', action: 'Group By', label: value});
+    ReactGA.event({ category: 'Pipelines', action: 'Group By', label: value });
     this.state.sortFilter.groupBy = value;
     this.updateExecutionGroups();
   }
@@ -227,7 +227,7 @@ export class Executions extends React.Component<IExecutionsProps, IExecutionsSta
   private showCountChanged(event: React.ChangeEvent<HTMLSelectElement>): void {
     const value = event.target.value;
     this.state.sortFilter.count = value;
-    ReactGA.event({category: 'Pipelines', action: 'Change Count', label: value});
+    ReactGA.event({ category: 'Pipelines', action: 'Change Count', label: value });
     this.updateExecutionGroups(true);
   }
 
@@ -237,8 +237,8 @@ export class Executions extends React.Component<IExecutionsProps, IExecutionsSta
     //       but we should eventually convert all the sortFilters to be a valid redux
     //       (or similar) store.
     this.state.sortFilter.showStageDuration = checked;
-    this.setState({sortFilter: this.state.sortFilter});
-    ReactGA.event({category: 'Pipelines', action: 'Toggle Durations', label: checked.toString()});
+    this.setState({ sortFilter: this.state.sortFilter });
+    ReactGA.event({ category: 'Pipelines', action: 'Toggle Durations', label: checked.toString() });
   }
 
   public render(): React.ReactElement<Executions> {
@@ -261,7 +261,7 @@ export class Executions extends React.Component<IExecutionsProps, IExecutionsSta
               </h3>
               <a
                 className="btn btn-xs btn-default pull-right unpin clickable"
-                style={{display: insightFilterStateModel.filtersExpanded ? '' : 'none'}}
+                style={{ display: insightFilterStateModel.filtersExpanded ? '' : 'none' }}
                 onClick={this.hideFilters}
               >
                 <Tooltip value="Hide filters">
@@ -278,7 +278,7 @@ export class Executions extends React.Component<IExecutionsProps, IExecutionsSta
                   <a
                     className="btn btn-sm btn-primary clickable"
                     onClick={this.triggerPipeline}
-                    style={{pointerEvents: triggeringExecution ? 'none' : 'auto'}}
+                    style={{ pointerEvents: triggeringExecution ? 'none' : 'auto' }}
                   >
                     {triggeringExecution && (
                       <span className="pulsing">
@@ -299,9 +299,9 @@ export class Executions extends React.Component<IExecutionsProps, IExecutionsSta
                 <div className="pull-right">
                   <CreatePipeline application={app}/>
                 </div>
-                <form className="form-inline" style={{marginBottom: '5px'}}>
+                <form className="form-inline" style={{ marginBottom: '5px' }}>
                   {sortFilter.groupBy && (
-                    <div className="form-group" style={{marginRight: '20px'}}>
+                    <div className="form-group" style={{ marginRight: '20px' }}>
                       <Tooltip value="expand all">
                         <a className="btn btn-xs btn-default clickable" onClick={this.expand}>
                           <span className="glyphicon glyphicon-plus"/>
@@ -351,7 +351,7 @@ export class Executions extends React.Component<IExecutionsProps, IExecutionsSta
               </div>
               )}
               {loading && <div className="horizontal center middle spinner-container"><Spinner size="medium"/></div>}
-              {app.executions.reloadingForFilters && <div className="text-center transition-overlay" style={{marginLeft: '-25px'}} />}
+              {app.executions.reloadingForFilters && <div className="text-center transition-overlay" style={{ marginLeft: '-25px' }} />}
               {!loading && !hasPipelines && (
                 <div className="text-center">
                   <h4>No pipelines configured for this application.</h4>

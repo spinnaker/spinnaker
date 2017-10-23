@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-import {IExecutionStageSummary} from 'core/domain';
+import { IExecutionStageSummary } from 'core/domain';
 
 export class JenkinsExecutionLabel extends React.Component<{ stage: IExecutionStageSummary }> {
   public render() {

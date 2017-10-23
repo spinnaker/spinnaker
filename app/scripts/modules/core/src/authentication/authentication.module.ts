@@ -1,9 +1,9 @@
-import {AUTHENTICATION_INTERCEPTOR_SERVICE} from './authentication.interceptor.service';
-import {AUTHENTICATION_INITIALIZER_SERVICE, AuthenticationInitializer} from './authentication.initializer.service';
-import {REDIRECT_SERVICE} from './redirect.service';
-import {AUTHENTICATION_SERVICE} from './authentication.service';
-import {SCHEDULER_FACTORY, SchedulerFactory} from 'core/scheduler/scheduler.factory';
-import {SETTINGS} from 'core/config/settings';
+import { AUTHENTICATION_INTERCEPTOR_SERVICE } from './authentication.interceptor.service';
+import { AUTHENTICATION_INITIALIZER_SERVICE, AuthenticationInitializer } from './authentication.initializer.service';
+import { REDIRECT_SERVICE } from './redirect.service';
+import { AUTHENTICATION_SERVICE } from './authentication.service';
+import { SCHEDULER_FACTORY, SchedulerFactory } from 'core/scheduler/scheduler.factory';
+import { SETTINGS } from 'core/config/settings';
 
 const angular = require('angular');
 

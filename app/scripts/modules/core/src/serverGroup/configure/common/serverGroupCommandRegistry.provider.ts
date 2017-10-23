@@ -1,5 +1,5 @@
-import {cloneDeep} from 'lodash';
-import {module} from 'angular';
+import { cloneDeep } from 'lodash';
+import { module } from 'angular';
 
 export interface IWatchConfig {
   property: string;

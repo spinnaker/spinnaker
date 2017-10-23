@@ -1,13 +1,13 @@
-import {flatten} from 'lodash';
+import { flatten } from 'lodash';
 
-import {mock} from 'angular';
-import {CACHE_INITIALIZER_SERVICE, CacheInitializerService} from './cacheInitializer.service';
-import {ACCOUNT_SERVICE, AccountService} from 'core/account/account.service';
-import {APPLICATION_READ_SERVICE, ApplicationReader} from 'core/application/service/application.read.service';
-import {INFRASTRUCTURE_CACHE_SERVICE, InfrastructureCacheService} from 'core/cache/infrastructureCaches.service';
-import {ICache} from 'core/cache/deckCache.service';
-import {SECURITY_GROUP_READER, SecurityGroupReader} from 'core/securityGroup/securityGroupReader.service';
-import {IGOR_SERVICE, IgorService} from 'core/ci/igor.service';
+import { mock } from 'angular';
+import { CACHE_INITIALIZER_SERVICE, CacheInitializerService } from './cacheInitializer.service';
+import { ACCOUNT_SERVICE, AccountService } from 'core/account/account.service';
+import { APPLICATION_READ_SERVICE, ApplicationReader } from 'core/application/service/application.read.service';
+import { INFRASTRUCTURE_CACHE_SERVICE, InfrastructureCacheService } from 'core/cache/infrastructureCaches.service';
+import { ICache } from 'core/cache/deckCache.service';
+import { SECURITY_GROUP_READER, SecurityGroupReader } from 'core/securityGroup/securityGroupReader.service';
+import { IGOR_SERVICE, IgorService } from 'core/ci/igor.service';
 
 interface IKeys {
   [key: string]: string[];

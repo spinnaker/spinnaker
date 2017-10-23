@@ -1,4 +1,4 @@
-import {IExecution} from './IExecution';
+import { IExecution } from './IExecution';
 
 export interface IExecutionTrigger {
   buildInfo?: any;

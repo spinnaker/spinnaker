@@ -33,7 +33,7 @@ export class ConfigurePipelineTemplateModalController implements IController {
   public pipelineName: string;
   public variableMetadataGroups: IVariableMetadataGroup[];
   public variables: IVariable[];
-  public state: IState = {loading: true, error: false, planErrors: null, loadingError: false, noVariables: false};
+  public state: IState = { loading: true, error: false, planErrors: null, loadingError: false, noVariables: false };
   private template: IPipelineTemplate;
   private source: string;
 
@@ -60,7 +60,7 @@ export class ConfigurePipelineTemplateModalController implements IController {
       })
       .then(() => this.state.loading = false)
       .catch(() => {
-        Object.assign(this.state, {loading: false, error: false, planErrors: null, loadingError: true});
+        Object.assign(this.state, { loading: false, error: false, planErrors: null, loadingError: true });
       });
   }
 
@@ -76,15 +76,15 @@ export class ConfigurePipelineTemplateModalController implements IController {
     const config = this.buildConfig();
     return ReactInjector.pipelineTemplateService.getPipelinePlan(config)
       .then(plan => {
-        this.$uibModalInstance.close({plan, config});
+        this.$uibModalInstance.close({ plan, config });
       })
       .catch((response: IHttpPromiseCallbackArg<IPipelineTemplatePlanResponse>) => {
-        Object.assign(this.state, {loading: false, error: true, planErrors: response.data && response.data.errors});
+        Object.assign(this.state, { loading: false, error: true, planErrors: response.data && response.data.errors });
       });
   }
 
   public dismissError(): void {
-    Object.assign(this.state, {error: false, planErrors: null, loadingError: false});
+    Object.assign(this.state, { error: false, planErrors: null, loadingError: false });
   }
 
   public buildConfig(): IPipelineTemplateConfig {
@@ -100,7 +100,7 @@ export class ConfigurePipelineTemplateModalController implements IController {
             name: this.pipelineName,
             application: this.application.name,
             pipelineConfigId: this.pipelineId,
-            template: {source: this.source},
+            template: { source: this.source },
             variables: this.transformVariablesForPipelinePlan(),
           }
         }
@@ -159,7 +159,7 @@ export class ConfigurePipelineTemplateModalController implements IController {
     if (group) {
       group.variableMetadata.push(metadata);
     } else {
-      this.variableMetadataGroups.push({name: groupName, variableMetadata: [metadata]});
+      this.variableMetadataGroups.push({ name: groupName, variableMetadata: [metadata] });
     }
   }
 

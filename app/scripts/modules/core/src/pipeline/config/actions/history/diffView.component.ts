@@ -14,7 +14,7 @@ class DiffViewController implements IController {
     } else {
       line = e.offsetY / currentTarget.clientHeight * this.diff.summary.total;
     }
-    $('pre.history').animate({scrollTop: (line - 3) * 15}, 200);
+    $('pre.history').animate({ scrollTop: (line - 3) * 15 }, 200);
   }
 }
 

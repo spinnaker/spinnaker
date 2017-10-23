@@ -43,7 +43,7 @@ export class AwsTargetGroupDetailsController implements IController {
       return;
     }
     this.$state.params.allowModalToStayOpen = true;
-    this.$state.go('^', null, {location: 'replace'});
+    this.$state.go('^', null, { location: 'replace' });
   }
 
   public extractTargetGroup(): IPromise<void> {

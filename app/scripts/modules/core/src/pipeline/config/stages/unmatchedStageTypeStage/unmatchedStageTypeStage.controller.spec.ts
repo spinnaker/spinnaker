@@ -1,7 +1,7 @@
-import {mock} from 'angular';
+import { mock } from 'angular';
 
-import {UNMATCHED_STAGE_TYPE_STAGE_CTRL, UnmatchedStageTypeStageCtrl} from './unmatchedStageTypeStage.controller';
-import {JsonUtilityService} from 'core/utils/json/json.utility.service';
+import { UNMATCHED_STAGE_TYPE_STAGE_CTRL, UnmatchedStageTypeStageCtrl } from './unmatchedStageTypeStage.controller';
+import { JsonUtilityService } from 'core/utils/json/json.utility.service';
 
 describe('Controller: UnmatchedStageTypeStageCtrl', () => {
   let ctrl: UnmatchedStageTypeStageCtrl;

@@ -19,7 +19,7 @@ export class Instance extends React.Component<IInstanceProps> {
   }
 
   public onMouseOver(event: React.MouseEvent<any>) {
-    $(event.target).tooltip({animation: false} as JQueryUI.TooltipOptions).tooltip('show');
+    $(event.target).tooltip({ animation: false } as JQueryUI.TooltipOptions).tooltip('show');
   }
 
   public shouldComponentUpdate(nextProps: IInstanceProps) {

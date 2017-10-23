@@ -42,7 +42,7 @@ export class CloudProviderLogo extends React.Component<ICloudProviderLogoProps, 
       <span className="cloud-provider-logo">
         <span
           className={`icon icon-${this.props.provider}`}
-          style={{height: this.props.height, width: this.props.width}}
+          style={{ height: this.props.height, width: this.props.width }}
         />
       </span>);
 

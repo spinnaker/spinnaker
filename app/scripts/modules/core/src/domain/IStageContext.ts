@@ -1,4 +1,4 @@
-import {IBuildDiffInfo} from './IBuildDiffInfo';
+import { IBuildDiffInfo } from './IBuildDiffInfo';
 
 export interface IStageContext {
   buildInfo?: IBuildDiffInfo;

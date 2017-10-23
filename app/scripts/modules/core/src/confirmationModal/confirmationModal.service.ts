@@ -1,5 +1,5 @@
-import {module} from 'angular';
-import {IModalService, IModalSettings} from 'angular-ui-bootstrap';
+import { module } from 'angular';
+import { IModalService, IModalSettings } from 'angular-ui-bootstrap';
 
 export interface IConfirmationModalParams {
   account?: string;

@@ -1,7 +1,7 @@
-import {module} from 'angular';
+import { module } from 'angular';
 
-import {INFRASTRUCTURE_CACHE_SERVICE, InfrastructureCacheService} from 'core/cache/infrastructureCaches.service';
-import {API_SERVICE, Api} from 'core/api/api.service';
+import { INFRASTRUCTURE_CACHE_SERVICE, InfrastructureCacheService } from 'core/cache/infrastructureCaches.service';
+import { API_SERVICE, Api } from 'core/api/api.service';
 
 export interface INetwork {
   cloudProvider: string;

@@ -1,7 +1,7 @@
-import {module} from 'angular';
+import { module } from 'angular';
 
 class AppengineLoadBalancerMessageComponent implements ng.IComponentOptions {
-  public bindings: any = {showCreateMessage: '<', columnOffset: '@', columns: '@'};
+  public bindings: any = { showCreateMessage: '<', columnOffset: '@', columns: '@' };
   public templateUrl: string = require('./loadBalancerMessage.component.html');
 }
 

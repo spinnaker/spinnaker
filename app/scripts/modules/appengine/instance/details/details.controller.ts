@@ -28,7 +28,7 @@ interface InstanceContainer {
 }
 
 class AppengineInstanceDetailsController implements IController {
-  public state = {loading: true};
+  public state = { loading: true };
   public instance: IAppengineInstance;
   public instanceIdNotFound: string;
   public upToolTip = 'An App Engine instance is \'Up\' if a load balancer is directing traffic to its server group.';
@@ -66,14 +66,14 @@ class AppengineInstanceDetailsController implements IController {
       application: this.app,
       title: 'Terminating ' + shortName,
       onTaskComplete: function() {
-        if (this.$state.includes('**.instanceDetails', {instanceId: instance.name})) {
+        if (this.$state.includes('**.instanceDetails', { instanceId: instance.name })) {
           this.$state.go('^');
         }
       }
     };
 
     const submitMethod = () => {
-      return this.instanceWriter.terminateInstance(instance, this.app, {cloudProvider: 'appengine'});
+      return this.instanceWriter.terminateInstance(instance, this.app, { cloudProvider: 'appengine' });
     };
 
     this.confirmationModalService.confirm({

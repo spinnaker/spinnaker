@@ -1,6 +1,6 @@
-import {mock} from 'angular';
+import { mock } from 'angular';
 
-import {HELP_CONTENTS_REGISTRY, HelpContentsRegistry} from './helpContents.registry';
+import { HELP_CONTENTS_REGISTRY, HelpContentsRegistry } from './helpContents.registry';
 
 describe('Help contents registry', () => {
 

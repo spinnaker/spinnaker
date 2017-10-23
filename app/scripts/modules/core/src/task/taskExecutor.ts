@@ -30,7 +30,7 @@ export class TaskExecutor {
   }
 
   public executeTask(taskCommand: ITaskCommand): IPromise<ITask> {
-    const owner: any = taskCommand.application || taskCommand.project || { name: 'ad-hoc'};
+    const owner: any = taskCommand.application || taskCommand.project || { name: 'ad-hoc' };
     if (taskCommand.application && taskCommand.application.name) {
       taskCommand.application = taskCommand.application.name;
     }

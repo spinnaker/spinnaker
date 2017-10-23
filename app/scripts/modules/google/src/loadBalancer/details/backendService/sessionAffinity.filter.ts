@@ -1,5 +1,5 @@
-import {module} from 'angular';
-import {sessionAffinityModelToViewMap} from '../../configure/common/sessionAffinityNameMaps';
+import { module } from 'angular';
+import { sessionAffinityModelToViewMap } from '../../configure/common/sessionAffinityNameMaps';
 
 function gceSessionAffinityFilter() {
   return function (modelValue: string): string {

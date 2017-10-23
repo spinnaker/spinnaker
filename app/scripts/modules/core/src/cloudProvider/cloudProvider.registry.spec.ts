@@ -1,6 +1,6 @@
-import {mock} from 'angular';
+import { mock } from 'angular';
 
-import {CLOUD_PROVIDER_REGISTRY, CloudProviderRegistry} from './cloudProvider.registry';
+import { CLOUD_PROVIDER_REGISTRY, CloudProviderRegistry } from './cloudProvider.registry';
 
 describe('cloudProviderRegistry: API', function() {
   let configurer: CloudProviderRegistry;
@@ -105,8 +105,8 @@ describe('cloudProviderRegistry: API', function() {
 
   describe('versioned provider configs', () => {
     it('returns a value from a versioned provider config when providerVersion is specified', () => {
-      configurer.registerProvider('kubernetes', { name: 'kubernetes', providerVersion: 'v1'});
-      configurer.registerProvider('kubernetes', { name: 'kubernetes', providerVersion: 'v2'});
+      configurer.registerProvider('kubernetes', { name: 'kubernetes', providerVersion: 'v1' });
+      configurer.registerProvider('kubernetes', { name: 'kubernetes', providerVersion: 'v2' });
 
       expect(configurer.$get().getValue('kubernetes', 'providerVersion', 'v1')).toBe('v1');
       expect(configurer.$get().getValue('kubernetes', 'providerVersion', 'v2')).toBe('v2');

@@ -1,4 +1,4 @@
-import {module} from 'angular';
+import { module } from 'angular';
 
 export class HelpContentsRegistry {
   private helpFields: Map<string, string> = new Map<string, string>();

@@ -21,7 +21,7 @@ import {
 import './wizard.less';
 
 class AppengineLoadBalancerWizardController implements IController {
-  public state = {loading: true};
+  public state = { loading: true };
   public loadBalancer: AppengineLoadBalancerUpsertDescription;
   public heading: string;
   public submitButtonLabel: string;
@@ -94,7 +94,7 @@ class AppengineLoadBalancerWizardController implements IController {
   }
 
   private initializeFormValidation(): void {
-    this.wizardSubFormValidation.config({form: 'form', scope: this.$scope})
+    this.wizardSubFormValidation.config({ form: 'form', scope: this.$scope })
       .register({
         page: 'basic-settings',
         subForm: 'basicSettingsForm',
@@ -108,7 +108,7 @@ class AppengineLoadBalancerWizardController implements IController {
           }
         ]
       })
-      .register({page: 'advanced-settings', subForm: 'advancedSettingsForm'});
+      .register({ page: 'advanced-settings', subForm: 'advancedSettingsForm' });
   }
 
   private onTaskComplete(): void {

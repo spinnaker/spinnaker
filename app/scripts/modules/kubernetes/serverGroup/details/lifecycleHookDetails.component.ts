@@ -1,7 +1,7 @@
-import {module} from 'angular';
+import { module } from 'angular';
 
 class KubernetesLifecycleHookDetails implements ng.IComponentOptions {
-  public bindings: any = {handler: '<'};
+  public bindings: any = { handler: '<' };
   public template = `
     <dt>Type</dt>
     <dd>{{$ctrl.handler.type === 'EXEC' ? 'exec' : 'httpGet'}}</dd>

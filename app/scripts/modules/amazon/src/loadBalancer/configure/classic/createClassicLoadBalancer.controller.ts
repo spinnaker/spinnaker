@@ -100,7 +100,7 @@ export class CreateClassicLoadBalancerCtrl extends CreateAmazonLoadBalancerCtrl 
   }
 
   public addListener(): void {
-    this.loadBalancerCommand.listeners.push({internalProtocol: 'HTTP', externalProtocol: 'HTTP', externalPort: 80, internalPort: undefined});
+    this.loadBalancerCommand.listeners.push({ internalProtocol: 'HTTP', externalProtocol: 'HTTP', externalPort: 80, internalPort: undefined });
   }
 
   public listenerProtocolChanged(listener: IClassicListenerDescription): void {

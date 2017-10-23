@@ -15,7 +15,7 @@ import { ClusterFilterModel } from 'core/cluster/filter/clusterFilter.model';
 import { ClusterFilterService } from '../cluster/filter/clusterFilter.service';
 import { CollapsibleSectionStateCache } from '../cache/collapsibleSectionStateCache';
 import { ConfirmationModalService } from '../confirmationModal/confirmationModal.service';
-import { EntityTagWriter} from '../entityTag';
+import { EntityTagWriter } from '../entityTag';
 import { ExecutionDetailsSectionService } from 'core/delivery/details/executionDetailsSection.service';
 import { ExecutionFilterModel } from '../delivery/filter/executionFilter.model';
 import { ExecutionFilterService } from '../delivery/filter/executionFilter.service';

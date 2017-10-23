@@ -40,7 +40,7 @@ class ArtifactCtrl implements IController {
       this.description = config.description;
 
       const ctrl = config.controller;
-      const controller = this.$controller(ctrl, {artifact: this.artifact});
+      const controller = this.$controller(ctrl, { artifact: this.artifact });
       const scope = this.$rootScope.$new();
       const controllerAs = config.controllerAs;
       if (controllerAs) {
@@ -56,7 +56,7 @@ class ArtifactCtrl implements IController {
 }
 
 class ArtifactComponent implements IComponentOptions {
-  public bindings: any = {artifact: '='};
+  public bindings: any = { artifact: '=' };
   public controller: any = ArtifactCtrl;
   public controllerAs = 'ctrl';
   public template = `

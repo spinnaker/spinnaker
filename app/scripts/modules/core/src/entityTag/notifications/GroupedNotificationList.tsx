@@ -107,7 +107,7 @@ class AlertsForMessage extends React.Component<IAlertsForMessageProps, IAlertsFo
 
   private renderServerGroupName(notification: INotification): JSX.Element {
     const { entityTags } = notification;
-    const { entityRef: { region, entityId }} = entityTags;
+    const { entityRef: { region, entityId } } = entityTags;
     const alertKey = `${region}+${entityId}`;
     return <EntityName key={alertKey} tag={entityTags}/>;
   }

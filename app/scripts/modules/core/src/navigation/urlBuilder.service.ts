@@ -107,8 +107,8 @@ class ApplicationsUrlBuilder implements IUrlBuilder {
     if (input.project) {
       result = $state.href(
         'home.project.application.insight.clusters',
-        {application: input.application, project: input.project},
-        {inherit: false}
+        { application: input.application, project: input.project },
+        { inherit: false }
       );
     } else {
       result = $state.href(
@@ -116,7 +116,7 @@ class ApplicationsUrlBuilder implements IUrlBuilder {
         {
           application: input.application,
         },
-        {inherit: false}
+        { inherit: false }
       );
     }
 
@@ -151,7 +151,7 @@ class ClustersUrlBuilder implements IUrlBuilder {
           application: input.application,
           project: input.project,
         },
-        {inherit: false}
+        { inherit: false }
       );
     } else {
       href = $state.href(
@@ -159,7 +159,7 @@ class ClustersUrlBuilder implements IUrlBuilder {
         {
           application: input.application,
         },
-        {inherit: false}
+        { inherit: false }
       );
     }
 
@@ -189,9 +189,9 @@ class InstancesUrlBuilder implements IUrlBuilder {
           instanceId: input.instanceId,
           provider: input.provider,
         },
-        {inherit: false}
+        { inherit: false }
       );
-      result = UrlBuilderUtils.buildUrl(href, {q: input.serverGroup, acct: input.account, reg: input.region});
+      result = UrlBuilderUtils.buildUrl(href, { q: input.serverGroup, acct: input.account, reg: input.region });
     }
 
     return result;
@@ -212,17 +212,17 @@ class LoadBalancersUrlBuilder implements IUrlBuilder {
         vpcId: input.vpcId,
         provider: input.provider,
       },
-      {inherit: false}
+      { inherit: false }
     );
 
-    return UrlBuilderUtils.buildUrl(href, {q: input.loadBalancer, reg: input.region, acct: input.account});
+    return UrlBuilderUtils.buildUrl(href, { q: input.loadBalancer, reg: input.region, acct: input.account });
   }
 }
 
 class ProjectsUrlBuilder implements IUrlBuilder {
 
   public build(input: IUrlBuilderInput, $state: StateService) {
-    return $state.href('home.project.dashboard', {project: input.name}, {inherit: false});
+    return $state.href('home.project.dashboard', { project: input.name }, { inherit: false });
   }
 }
 
@@ -258,10 +258,10 @@ class ServerGroupsUrlBuilder implements IUrlBuilder {
         provider: input.provider,
         project: input.project,
       },
-      {inherit: false}
+      { inherit: false }
     );
 
-    return UrlBuilderUtils.buildUrl(href, {q: input.serverGroup, acct: input.account, reg: input.region});
+    return UrlBuilderUtils.buildUrl(href, { q: input.serverGroup, acct: input.account, reg: input.region });
   }
 }
 
@@ -274,7 +274,7 @@ class TaskUrlBuilder implements IUrlBuilder {
         application: input.application,
         taskId: input.taskId
       },
-      {inherit: false}
+      { inherit: false }
     );
   }
 }
@@ -287,7 +287,7 @@ class TasksUrlBuilder implements IUrlBuilder {
       {
         application: input.application,
       },
-      {inherit: false}
+      { inherit: false }
     );
   }
 }

@@ -1,5 +1,5 @@
-import {uniq} from 'lodash';
-import {module} from 'angular';
+import { uniq } from 'lodash';
+import { module } from 'angular';
 
 import {
   ACCOUNT_SERVICE, AccountService, IAccountDetails, IRegion,

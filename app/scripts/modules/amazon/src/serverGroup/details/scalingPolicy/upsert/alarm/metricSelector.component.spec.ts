@@ -139,7 +139,7 @@ describe('Component: metric selector', () => {
         {
           namespace: 'AWS/EC2',
           name: 'NetworkIn',
-          dimensions: [ { name: 'AutoScalingGroupName', value: 'asg-v000' }, { name: 'sr', value: '71'} ]
+          dimensions: [ { name: 'AutoScalingGroupName', value: 'asg-v000' }, { name: 'sr', value: '71' } ]
         }
       ]));
       initialize();
@@ -196,7 +196,7 @@ describe('Component: metric selector', () => {
         {
           namespace: 'AWS/EC2',
           name: 'NetworkIn',
-          dimensions: [ { name: 'AutoScalingGroupName', value: 'asg-v000' }, { name: 'sr', value: '71'} ]
+          dimensions: [ { name: 'AutoScalingGroupName', value: 'asg-v000' }, { name: 'sr', value: '71' } ]
         },
         {
           namespace: 'AWS/EBS',

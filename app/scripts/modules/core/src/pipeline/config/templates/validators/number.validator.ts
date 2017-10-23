@@ -1,6 +1,6 @@
-import {module} from 'angular';
-import {IVariableValidator, VariableValidatorService} from './variableValidator.service';
-import {IVariable, IVariableError} from '../inputs/variableInput.service';
+import { module } from 'angular';
+import { IVariableValidator, VariableValidatorService } from './variableValidator.service';
+import { IVariable, IVariableError } from '../inputs/variableInput.service';
 
 class NumberValidator implements IVariableValidator {
 
@@ -10,11 +10,11 @@ class NumberValidator implements IVariableValidator {
 
   public validate(variable: IVariable, errors: IVariableError[]): void {
     if (!variable.value) {
-      errors.push({message: 'Field is required.'});
+      errors.push({ message: 'Field is required.' });
     }
 
     if (variable.type === 'int' && typeof variable.value === 'string' && variable.value.split('.').length > 1) {
-      errors.push({message: 'Must be an integer.'});
+      errors.push({ message: 'Must be an integer.' });
     }
   }
 }

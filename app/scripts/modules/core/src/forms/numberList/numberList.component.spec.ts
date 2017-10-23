@@ -1,5 +1,5 @@
-import {mock} from 'angular';
-import {NUMBER_LIST_COMPONENT, NumberListConstraints} from './numberList.component';
+import { mock } from 'angular';
+import { NUMBER_LIST_COMPONENT, NumberListConstraints } from './numberList.component';
 
 describe('Component: numberList', () => {
 

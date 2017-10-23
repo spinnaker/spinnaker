@@ -101,7 +101,7 @@ export class AwsLoadBalancerTransformer {
   private normalizeTargetGroup(targetGroup: ITargetGroup): IPromise<ITargetGroup> {
     this.normalizeServerGroups(targetGroup.serverGroups, targetGroup, 'targetGroups', 'TargetGroup');
 
-    const activeServerGroups = filter(targetGroup.serverGroups, {isDisabled: false});
+    const activeServerGroups = filter(targetGroup.serverGroups, { isDisabled: false });
     targetGroup.provider = targetGroup.type;
     targetGroup.instances = chain(activeServerGroups).map('instances').flatten<IInstance>().value();
     targetGroup.detachedInstances = chain(activeServerGroups).map('detachedInstances').flatten<IInstance>().value();
@@ -120,7 +120,7 @@ export class AwsLoadBalancerTransformer {
       serverGroups = flatten<IServerGroup>(map(appLoadBalancer.targetGroups, 'serverGroups'));
     }
 
-    const activeServerGroups = filter(serverGroups, {isDisabled: false});
+    const activeServerGroups = filter(serverGroups, { isDisabled: false });
     loadBalancer.provider = loadBalancer.type;
     loadBalancer.instances = chain(activeServerGroups).map('instances').flatten<IInstance>().value();
     loadBalancer.detachedInstances = chain(activeServerGroups).map('detachedInstances').flatten<IInstance>().value();

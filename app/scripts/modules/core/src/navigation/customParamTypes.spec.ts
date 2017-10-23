@@ -4,14 +4,14 @@ describe('custom param types', () => {
 
   describe('trueKeyObject', () => {
     it('decodes with or without commas', () => {
-      expect(trueKeyObjectParamType.decode('a,b')).toEqual({a: true, b: true});
-      expect(trueKeyObjectParamType.decode('a')).toEqual({a: true});
+      expect(trueKeyObjectParamType.decode('a,b')).toEqual({ a: true, b: true });
+      expect(trueKeyObjectParamType.decode('a')).toEqual({ a: true });
     });
     it('encodes alphabetically, omitting false values', () => {
-      expect(trueKeyObjectParamType.encode({a: false, c: true, b: true})).toEqual('b,c');
+      expect(trueKeyObjectParamType.encode({ a: false, c: true, b: true })).toEqual('b,c');
     });
     it('encodes to null if no true keys found', () => {
-      expect(trueKeyObjectParamType.encode({a: false})).toBeNull();
+      expect(trueKeyObjectParamType.encode({ a: false })).toBeNull();
     })
   });
 
@@ -39,10 +39,10 @@ describe('custom param types', () => {
 
   describe('sortKey', () => {
     it('encodes key', () => {
-      expect(sortKeyParamType.encode({key: 'a'})).toBe('a');
+      expect(sortKeyParamType.encode({ key: 'a' })).toBe('a');
     });
     it('decodes to key object', () => {
-      expect(sortKeyParamType.decode('-a')).toEqual({key: '-a'});
+      expect(sortKeyParamType.decode('-a')).toEqual({ key: '-a' });
     });
   });
 });

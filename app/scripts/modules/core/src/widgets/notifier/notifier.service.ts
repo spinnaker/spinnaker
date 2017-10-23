@@ -24,7 +24,7 @@ export class NotifierService {
   }
 
   public clear(key: string): void {
-    this.stream.next({action: 'remove', key});
+    this.stream.next({ action: 'remove', key });
   }
 }
 

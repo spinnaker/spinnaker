@@ -1,7 +1,7 @@
-import {IPromise, module} from 'angular';
+import { IPromise, module } from 'angular';
 
-import {EXECUTION_SERVICE, ExecutionService} from 'core/delivery/service/execution.service';
-import {IExecution, IExecutionStage} from 'core/domain';
+import { EXECUTION_SERVICE, ExecutionService } from 'core/delivery/service/execution.service';
+import { IExecution, IExecutionStage } from 'core/domain';
 
 export class ManualJudgmentService {
   constructor(private executionService: ExecutionService) { 'ngInject'; }
@@ -11,7 +11,7 @@ export class ManualJudgmentService {
         const match = result.stages.find((test) => test.id === stage.id);
         return match && match.status !== 'RUNNING';
       };
-      return this.executionService.patchExecution(execution.id, stage.id, {judgmentStatus, judgmentInput})
+      return this.executionService.patchExecution(execution.id, stage.id, { judgmentStatus, judgmentInput })
         .then(() => this.executionService.waitUntilExecutionMatches(execution.id, matcher));
   }
 }

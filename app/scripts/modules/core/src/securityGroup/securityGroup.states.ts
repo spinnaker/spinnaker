@@ -1,15 +1,15 @@
-import {module} from 'angular';
+import { module } from 'angular';
 
-import {StateParams} from '@uirouter/angularjs';
-import {INestedState, STATE_CONFIG_PROVIDER, StateConfigProvider} from 'core/navigation/state.provider';
+import { StateParams } from '@uirouter/angularjs';
+import { INestedState, STATE_CONFIG_PROVIDER, StateConfigProvider } from 'core/navigation/state.provider';
 import {
   APPLICATION_STATE_PROVIDER, ApplicationStateProvider,
 } from 'core/application/application.state.provider';
-import {CloudProviderRegistry} from 'core/cloudProvider/cloudProvider.registry';
-import {SecurityGroupReader} from './securityGroupReader.service';
-import {APPLICATION_MODEL_BUILDER, ApplicationModelBuilder} from 'core/application/applicationModel.builder';
-import {Application} from 'core/application/application.model';
-import {filterModelConfig} from './filter/securityGroupFilter.model';
+import { CloudProviderRegistry } from 'core/cloudProvider/cloudProvider.registry';
+import { SecurityGroupReader } from './securityGroupReader.service';
+import { APPLICATION_MODEL_BUILDER, ApplicationModelBuilder } from 'core/application/applicationModel.builder';
+import { Application } from 'core/application/application.model';
+import { filterModelConfig } from './filter/securityGroupFilter.model';
 
 export const SECURITY_GROUP_STATES = 'spinnaker.core.securityGroup.states';
 module(SECURITY_GROUP_STATES, [

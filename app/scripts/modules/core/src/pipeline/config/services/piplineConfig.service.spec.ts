@@ -1,11 +1,11 @@
-import {mock} from 'angular';
+import { mock } from 'angular';
 
-import {API_SERVICE, Api} from 'core/api/api.service';
+import { API_SERVICE, Api } from 'core/api/api.service';
 import {
   PIPELINE_CONFIG_SERVICE, PipelineConfigService
 } from 'core/pipeline/config/services/pipelineConfig.service';
-import {IStage} from 'core/domain/IStage';
-import {IPipeline} from 'core/domain/IPipeline';
+import { IStage } from 'core/domain/IStage';
+import { IPipeline } from 'core/domain/IPipeline';
 
 describe('pipelineConfigService', () => {
 
@@ -69,9 +69,9 @@ describe('pipelineConfigService', () => {
     it('clears isNew flags, stage name if not present', () => {
       const pipeline: IPipeline = buildPipeline({
         stages: [
-          { name: 'explicit name', type: 'bake', isNew: true},
-          { name: null, type: 'bake', isNew: true},
-          { name: '', type: 'bake', isNew: true}
+          { name: 'explicit name', type: 'bake', isNew: true },
+          { name: null, type: 'bake', isNew: true },
+          { name: '', type: 'bake', isNew: true }
         ]
       });
 
@@ -94,10 +94,10 @@ describe('pipelineConfigService', () => {
     it('should return pipelines sorted by index', () => {
       let result: IPipeline[] = null;
       const fromServer: IPipeline[] = [
-        buildPipeline({ id: 'a', name: 'second', application: 'app', index: 1, stages: [], triggers: []}),
-        buildPipeline({ id: 'b', name: 'last', application: 'app', index: 3, stages: [], triggers: []}),
-        buildPipeline({ id: 'c', name: 'first', application: 'app', index: 0, stages: []}),
-        buildPipeline({ id: 'd', name: 'third', application: 'app', index: 2, stages: []}),
+        buildPipeline({ id: 'a', name: 'second', application: 'app', index: 1, stages: [], triggers: [] }),
+        buildPipeline({ id: 'b', name: 'last', application: 'app', index: 3, stages: [], triggers: [] }),
+        buildPipeline({ id: 'c', name: 'first', application: 'app', index: 0, stages: [] }),
+        buildPipeline({ id: 'd', name: 'third', application: 'app', index: 2, stages: [] }),
       ];
       $http.expectGET(API.baseUrl + '/applications/app/pipelineConfigs').respond(200, fromServer);
 
@@ -112,17 +112,17 @@ describe('pipelineConfigService', () => {
 
     it('should fix sort order of pipelines on initialization: 0..n, index collisions sorted alphabetically', () => {
       const fromServer: IPipeline[] = [
-        buildPipeline({ name: 'second', index: 1, stages: []}),
-        buildPipeline({ name: 'last', index: 5, stages: []}),
-        buildPipeline({ name: 'first', index: -3, stages: []}),
-        buildPipeline({ name: 'duplicateIndex', index: 5, stages: []}),
+        buildPipeline({ name: 'second', index: 1, stages: [] }),
+        buildPipeline({ name: 'last', index: 5, stages: [] }),
+        buildPipeline({ name: 'first', index: -3, stages: [] }),
+        buildPipeline({ name: 'duplicateIndex', index: 5, stages: [] }),
       ];
 
       const posted: any[] = [];
       $http.expectGET(API.baseUrl + '/applications/app/pipelineConfigs').respond(200, fromServer);
       $http.whenPOST(API.baseUrl + '/pipelines', (data: string) => {
         const json: any = JSON.parse(data);
-        posted.push({index: json.index, name: json.name});
+        posted.push({ index: json.index, name: json.name });
         return true;
       }).respond(200, {});
 
@@ -155,10 +155,10 @@ describe('pipelineConfigService', () => {
     };
 
     beforeEach(() => {
-      a = buildStage({refId: 1});
-      b = buildStage({refId: 2});
-      c = buildStage({refId: 3});
-      d = buildStage({refId: 4});
+      a = buildStage({ refId: 1 });
+      b = buildStage({ refId: 2 });
+      c = buildStage({ refId: 3 });
+      d = buildStage({ refId: 4 });
 
       pipeline = buildPipeline({});
       pipeline.stages = [a, b, c, d];

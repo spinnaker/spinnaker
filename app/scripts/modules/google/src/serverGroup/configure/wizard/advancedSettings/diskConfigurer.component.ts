@@ -21,7 +21,7 @@ class GceDiskConfigurerController implements IComponentController {
     this.setPersistentDisks();
 
     if (this.getLocalSSDDisks().length && !get(this.command, 'viewState.instanceTypeDetails.storage.localSSDSupported')) {
-      this.updateDisks({disks: this.sortDisks(this.getPersistentDisks())});
+      this.updateDisks({ disks: this.sortDisks(this.getPersistentDisks()) });
     }
   }
 
@@ -41,13 +41,13 @@ class GceDiskConfigurerController implements IComponentController {
     }
 
     disks = this.sortDisks(disks);
-    this.updateDisks({disks});
+    this.updateDisks({ disks });
   }
 
   public handlePersistentDiskChange(): void {
     let disks = this.persistentDisks.concat(this.getLocalSSDDisks());
     disks = this.sortDisks(disks);
-    this.updateDisks({disks});
+    this.updateDisks({ disks });
   }
 
   public addPersistentDisk(): void {

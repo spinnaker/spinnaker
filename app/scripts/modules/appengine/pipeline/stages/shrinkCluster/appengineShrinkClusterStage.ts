@@ -52,8 +52,8 @@ module(APPENGINE_SHRINK_CLUSTER_STAGE, [ACCOUNT_SERVICE])
       executionDetailsUrl: PipelineTemplates.shrinkClusterExecutionDetails,
       validators: [
         { type: 'requiredField', fieldName: 'cluster' },
-        { type: 'requiredField', fieldName: 'shrinkToSize', fieldLabel: 'shrink to [X] Server Groups'},
-        { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account'},
+        { type: 'requiredField', fieldName: 'shrinkToSize', fieldLabel: 'shrink to [X] Server Groups' },
+        { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account' },
       ],
     });
   }).controller('appengineShrinkClusterStageCtrl', AppengineShrinkClusterStageCtrl);

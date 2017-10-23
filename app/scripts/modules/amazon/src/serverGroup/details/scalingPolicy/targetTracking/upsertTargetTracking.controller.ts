@@ -60,7 +60,7 @@ export class UpsertTargetTrackingController implements IComponentController {
       config.customizedMetricSpecification = {
         metricName: 'CPUUtilization',
         namespace: 'AWS/EC2',
-        dimensions: [{ name: 'AutoScalingGroupName', value: this.serverGroup.name}],
+        dimensions: [{ name: 'AutoScalingGroupName', value: this.serverGroup.name }],
         statistic: 'Average',
       };
       this.state.metricType = 'custom';

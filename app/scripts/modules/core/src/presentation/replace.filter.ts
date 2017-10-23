@@ -1,4 +1,4 @@
-import {module, isDefined, ILogService} from 'angular';
+import { module, isDefined, ILogService } from 'angular';
 
 function replace($log: ILogService): Function {
   return (str: string, regExStr: string, replaceValue: string) => {

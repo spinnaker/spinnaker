@@ -1,8 +1,8 @@
-import {mock} from 'angular';
-import {API_SERVICE, Api} from 'core/api/api.service';
-import {ACCOUNT_SERVICE, AccountService, IAccount} from 'core/account/account.service';
-import {CloudProviderRegistry} from '../cloudProvider/cloudProvider.registry';
-import {SETTINGS} from 'core/config/settings';
+import { mock } from 'angular';
+import { API_SERVICE, Api } from 'core/api/api.service';
+import { ACCOUNT_SERVICE, AccountService, IAccount } from 'core/account/account.service';
+import { CloudProviderRegistry } from '../cloudProvider/cloudProvider.registry';
+import { SETTINGS } from 'core/config/settings';
 
 describe('Service: accountService', () => {
 
@@ -29,10 +29,10 @@ describe('Service: accountService', () => {
 
   it('should filter the list of accounts by provider when supplied', () => {
     $http.expectGET(`${API.baseUrl}/credentials`).respond(200, [
-      {name: 'test', type: 'aws'},
-      {name: 'prod', type: 'aws'},
-      {name: 'prod', type: 'gce'},
-      {name: 'gce-test', type: 'gce'},
+      { name: 'test', type: 'aws' },
+      { name: 'prod', type: 'aws' },
+      { name: 'prod', type: 'gce' },
+      { name: 'gce-test', type: 'gce' },
     ]);
 
     let accounts: IAccount[] = null;
@@ -47,12 +47,12 @@ describe('Service: accountService', () => {
 
     it('should return details for each account', function () {
       $http.expectGET(API.baseUrl + '/credentials').respond(200, [
-        {name: 'test', type: 'aws'},
-        {name: 'prod', type: 'aws'},
+        { name: 'test', type: 'aws' },
+        { name: 'prod', type: 'aws' },
       ]);
 
-      $http.expectGET(API.baseUrl + '/credentials/test').respond(200, {a: 1});
-      $http.expectGET(API.baseUrl + '/credentials/prod').respond(200, {a: 2});
+      $http.expectGET(API.baseUrl + '/credentials/test').respond(200, { a: 1 });
+      $http.expectGET(API.baseUrl + '/credentials/prod').respond(200, { a: 2 });
 
       let details: any = null;
       accountService.getAllAccountDetailsForProvider('aws').then((results: any) => {
@@ -79,12 +79,12 @@ describe('Service: accountService', () => {
 
     it('should fall back to an empty array if an exception occurs when getting details for an account', () => {
       $http.expectGET(`${API.baseUrl}/credentials`).respond(200, [
-        {name: 'test', type: 'aws'},
-        {name: 'prod', type: 'aws'},
+        { name: 'test', type: 'aws' },
+        { name: 'prod', type: 'aws' },
       ]);
 
       $http.expectGET(API.baseUrl + '/credentials/test').respond(500, null);
-      $http.expectGET(API.baseUrl + '/credentials/prod').respond(200, {a: 2});
+      $http.expectGET(API.baseUrl + '/credentials/prod').respond(200, { a: 2 });
 
       let details: any = null;
       accountService.getAllAccountDetailsForProvider('aws').then((results: any) => {
@@ -103,7 +103,7 @@ describe('Service: accountService', () => {
     beforeEach(() => {
       registeredProviders = ['aws', 'gce', 'cf'];
       $http.whenGET(`${API.baseUrl}/credentials`).respond(200,
-        [{type: 'aws'}, {type: 'gce'}, {type: 'cf'}]
+        [{ type: 'aws' }, { type: 'gce' }, { type: 'cf' }]
       );
 
       spyOn(cloudProviderRegistry, 'listRegisteredProviders').and.returnValue(registeredProviders);
@@ -126,7 +126,7 @@ describe('Service: accountService', () => {
 
     it('should fall back to the defaultProviders if none configured for the application', () => {
 
-      const application: any = {attributes: { cloudProviders: [] }};
+      const application: any = { attributes: { cloudProviders: [] } };
       const test: any = (result: string[]) => expect(result).toEqual(['cf', 'gce']);
       SETTINGS.defaultProviders = ['gce', 'cf'];
       accountService.listProviders(application).then(test);
@@ -135,7 +135,7 @@ describe('Service: accountService', () => {
 
     it('should return the intersection of those configured for the application and those available from the server', () => {
 
-      const application: any = {attributes: {cloudProviders: ['gce', 'cf', 'unicron']}};
+      const application: any = { attributes: { cloudProviders: ['gce', 'cf', 'unicron'] } };
       const test: any = (result: string[]) => expect(result).toEqual(['cf', 'gce']);
       SETTINGS.defaultProviders = ['aws'];
       accountService.listProviders(application).then(test);
@@ -144,7 +144,7 @@ describe('Service: accountService', () => {
 
     it('should return an empty array if none of the app providers are available from the server', () => {
 
-      const application: any = {attributes: {cloudProviders: ['lamp', 'ceiling', 'fan']}};
+      const application: any = { attributes: { cloudProviders: ['lamp', 'ceiling', 'fan'] } };
       const test: any = (result: string[]) => expect(result).toEqual([]);
       SETTINGS.defaultProviders = ['foo'];
       accountService.listProviders(application).then(test);
@@ -153,7 +153,7 @@ describe('Service: accountService', () => {
 
     it('should fall back to all registered available providers if no defaults configured and none configured on app', () => {
 
-      const application: any = {attributes: { cloudProviders: [] }};
+      const application: any = { attributes: { cloudProviders: [] } };
       const test: any = (result: string[]) => expect(result).toEqual(['aws', 'cf', 'gce']);
       delete SETTINGS.defaultProviders;
       accountService.listProviders(application).then(test);

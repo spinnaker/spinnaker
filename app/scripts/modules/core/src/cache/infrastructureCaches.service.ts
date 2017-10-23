@@ -1,7 +1,7 @@
-import {module} from 'angular';
+import { module } from 'angular';
 
-import {AbstractBaseCacheService} from './abstractBaseCache.service';
-import {DECK_CACHE_SERVICE, DeckCacheService, ICache, ICacheConfig} from './deckCache.service';
+import { AbstractBaseCacheService } from './abstractBaseCache.service';
+import { DECK_CACHE_SERVICE, DeckCacheService, ICache, ICacheConfig } from './deckCache.service';
 
 export class InfrastructureCacheService extends AbstractBaseCacheService {
 

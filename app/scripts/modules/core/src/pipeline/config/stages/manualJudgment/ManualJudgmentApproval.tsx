@@ -37,7 +37,7 @@ export class ManualJudgmentApproval extends React.Component<IManualJudgmentAppro
 
   private provideJudgment(judgmentDecision: string): IPromise<void> {
     const judgmentInput: string = this.state.judgmentInput ? this.state.judgmentInput.value : null;
-    this.setState({submitting: true, error: false, judgmentDecision});
+    this.setState({ submitting: true, error: false, judgmentDecision });
     return ReactInjector.manualJudgmentService.provideJudgment(this.props.execution, this.props.stage, judgmentDecision, judgmentInput)
       .then(() => this.judgmentMade())
       .catch(() => this.judgmentFailure());
@@ -50,7 +50,7 @@ export class ManualJudgmentApproval extends React.Component<IManualJudgmentAppro
   }
 
   private judgmentFailure(): void {
-    this.setState({submitting: false, error: true});
+    this.setState({ submitting: false, error: true });
   }
 
   private isSubmitting(decision: string): boolean {
@@ -75,7 +75,7 @@ export class ManualJudgmentApproval extends React.Component<IManualJudgmentAppro
           status: string = stage.status;
 
     const options: Select.Option[] = (stage.context.judgmentInputs || [])
-      .map((o: {value: string}) => { return {value: o.value, label: o.value}; });
+      .map((o: {value: string}) => { return { value: o.value, label: o.value }; });
 
     const showOptions = !['SKIPPED', 'SUCCEEDED'].includes(status) && (!stage.context.judgmentStatus || status === 'RUNNING');
 

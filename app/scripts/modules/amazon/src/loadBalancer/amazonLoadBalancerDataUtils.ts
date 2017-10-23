@@ -12,7 +12,7 @@ export class AmazonLoadBalancerDataUtils {
     }
 
     const targetGroup: ITargetGroup = { name: match.name, vpcId: match.vpcId, cloudProvider: match.cloudProvider, account: match.account, region: match.region, loadBalancerNames: match.loadBalancerNames } as ITargetGroup;
-    targetGroup.instanceCounts = {up: 0, down: 0, succeeded: 0, failed: 0, outOfService: 0, unknown: 0, starting: 0};
+    targetGroup.instanceCounts = { up: 0, down: 0, succeeded: 0, failed: 0, outOfService: 0, unknown: 0, starting: 0 };
 
     serverGroup.instances.forEach(instance => {
       const tgHealth: IAmazonHealth = instance.health.find(h => h.type === 'TargetGroup') as IAmazonHealth;

@@ -1,4 +1,4 @@
-import {cloneDeep, merge} from 'lodash';
+import { cloneDeep, merge } from 'lodash';
 
 export interface IProviderSettings {
   defaults: {};

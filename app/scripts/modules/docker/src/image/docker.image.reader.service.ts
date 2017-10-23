@@ -28,7 +28,7 @@ export class DockerImageReaderService implements IImageReader {
     return this.API.all('images').one(credentials)
         .one(region)
         .one(imageName)
-        .withParams({provider: 'docker'})
+        .withParams({ provider: 'docker' })
         .get()
         .then((results: IDockerImage[]) => results && results.length ? results[0] : null)
         .catch((): IDockerImage => null);

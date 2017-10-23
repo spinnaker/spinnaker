@@ -62,12 +62,12 @@ export class ExecutionFilters extends React.Component<IExecutionFiltersProps, IE
 
   private enablePipelineReorder(): void {
     this.setState({ pipelineReorderEnabled: true });
-    ReactGA.event({category: 'Pipelines', action: 'Filter: reorder'});
+    ReactGA.event({ category: 'Pipelines', action: 'Filter: reorder' });
   };
 
   private disablePipelineReorder(): void {
     this.setState({ pipelineReorderEnabled: false });
-    ReactGA.event({category: 'Pipelines', action: 'Filter: stop reorder'});
+    ReactGA.event({ category: 'Pipelines', action: 'Filter: stop reorder' });
   };
 
   private updateExecutionGroups(): void {
@@ -82,7 +82,7 @@ export class ExecutionFilters extends React.Component<IExecutionFiltersProps, IE
   }
 
   private clearFilters(): void {
-    ReactGA.event({category: 'Pipelines', action: `Filter: clear all (side nav)`});
+    ReactGA.event({ category: 'Pipelines', action: `Filter: clear all (side nav)` });
     ReactInjector.executionFilterService.clearFilters();
     ReactInjector.executionFilterService.updateExecutionGroups(this.props.application);
   }
@@ -125,7 +125,7 @@ export class ExecutionFilters extends React.Component<IExecutionFiltersProps, IE
   private updateFilterSearch(searchString: string): void {
     const sortFilter = ReactInjector.executionFilterModel.asFilterModel.sortFilter;
     sortFilter.filter = searchString;
-    ReactGA.event({category: 'Pipelines', action: 'Filter: search', label: sortFilter.filter});
+    ReactGA.event({ category: 'Pipelines', action: 'Filter: search', label: sortFilter.filter });
     this.updateExecutionGroups();
   }
 
@@ -140,7 +140,7 @@ export class ExecutionFilters extends React.Component<IExecutionFiltersProps, IE
   private handleSortEnd(sortEnd: SortEnd): void {
     const pipelineNames = arrayMove(this.state.pipelineNames, sortEnd.oldIndex, sortEnd.newIndex);
     const { application } = this.props;
-    ReactGA.event({category: 'Pipelines', action: 'Reordered pipeline'});
+    ReactGA.event({ category: 'Pipelines', action: 'Reordered pipeline' });
     const dirty: IPipeline[] = [];
     application.pipelineConfigs.data.concat(application.strategyConfigs.data).forEach((pipeline: IPipeline) => {
       const newIndex = pipelineNames.indexOf(pipeline.name);
@@ -163,7 +163,7 @@ export class ExecutionFilters extends React.Component<IExecutionFiltersProps, IE
             <span
               onClick={this.clearFilters}
               className="btn btn-default btn-xs"
-              style={{visibility: tags.length > 0 ? 'visible' : 'hidden'}}
+              style={{ visibility: tags.length > 0 ? 'visible' : 'hidden' }}
             >
               Clear All
             </span>
@@ -176,7 +176,7 @@ export class ExecutionFilters extends React.Component<IExecutionFiltersProps, IE
                     className="form-control input-sm"
                     onBlur={this.searchFieldUpdated}
                     onChange={this.searchFieldUpdated}
-                    style={{width: '85%', display: 'inline-block'}}
+                    style={{ width: '85%', display: 'inline-block' }}
                   />
                 </div>
               </form>
@@ -234,14 +234,14 @@ const FilterCheckbox = (props: { pipeline: string, visible: boolean, update: () 
   const { pipeline, visible, update } = props;
   const sortFilter = ReactInjector.executionFilterModel.asFilterModel.sortFilter;
   const changeHandler = () => {
-    ReactGA.event({category: 'Pipelines', action: 'Filter: pipeline', label: pipeline});
+    ReactGA.event({ category: 'Pipelines', action: 'Filter: pipeline', label: pipeline });
     sortFilter.pipeline[pipeline] = !sortFilter.pipeline[pipeline];
     update();
   };
   return (
     <input
       type="checkbox"
-      style={{visibility: visible ? 'visible' : 'hidden'}}
+      style={{ visibility: visible ? 'visible' : 'hidden' }}
       disabled={!visible}
       checked={get(sortFilter, ['pipeline', pipeline], false)}
       onChange={changeHandler}
@@ -270,7 +270,7 @@ const Pipelines = SortableContainer((props: { names: string[], dragEnabled: bool
 const FilterStatus = (props: { status: string, label: string, refresh: () => void }): JSX.Element => {
   const sortFilter = ReactInjector.executionFilterModel.asFilterModel.sortFilter;
   const changed = () => {
-    ReactGA.event({category: 'Pipelines', action: 'Filter: status', label: props.label.toUpperCase()});
+    ReactGA.event({ category: 'Pipelines', action: 'Filter: status', label: props.label.toUpperCase() });
     sortFilter.status[props.status] = !sortFilter.status[props.status];
     props.refresh();
   }

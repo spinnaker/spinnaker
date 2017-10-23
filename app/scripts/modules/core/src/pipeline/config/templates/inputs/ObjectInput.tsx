@@ -1,8 +1,8 @@
-import {module} from 'angular';
+import { module } from 'angular';
 import * as React from 'react';
-import {IVariableInputBuilder, VariableInputService, IVariable, IVariableProps, IVariableState} from './variableInput.service';
+import { IVariableInputBuilder, VariableInputService, IVariable, IVariableProps, IVariableState } from './variableInput.service';
 import { BindAll } from 'lodash-decorators';
-import {VariableError} from '../VariableError';
+import { VariableError } from '../VariableError';
 
 @BindAll()
 class ObjectInput extends React.Component<IVariableProps, IVariableState> {
@@ -23,7 +23,7 @@ class ObjectInput extends React.Component<IVariableProps, IVariableState> {
   }
 
   private extractValue(e: React.ChangeEvent<HTMLTextAreaElement>): void {
-    this.props.onChange({value: e.target.value, type: this.props.variable.type, name: this.props.variable.name});
+    this.props.onChange({ value: e.target.value, type: this.props.variable.type, name: this.props.variable.name });
   }
 }
 

@@ -155,7 +155,7 @@ export class PipelineGraphNode extends React.Component<IPipelineGraphNodeProps> 
       <g
         onMouseEnter={this.highlight}
         onMouseLeave={this.removeHighlight}
-        style={{pointerEvents: 'bounding-box'}}
+        style={{ pointerEvents: 'bounding-box' }}
       >
         {GraphNode}
         {GraphLabel}

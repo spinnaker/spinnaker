@@ -211,39 +211,39 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
   }
 
   private handleSourceNoStagesClick(): void {
-    ReactGA.event({category: 'Pipeline', action: 'Execution source clicked (no stages found)'});
+    ReactGA.event({ category: 'Pipeline', action: 'Execution source clicked (no stages found)' });
   }
 
   private handlePauseClick(event: React.MouseEvent<HTMLElement>): void {
-    ReactGA.event({category: 'Pipeline', action: 'Execution pause clicked'});
+    ReactGA.event({ category: 'Pipeline', action: 'Execution pause clicked' });
     this.pauseExecution();
     event.stopPropagation();
   }
 
   private handleResumeClick(event: React.MouseEvent<HTMLElement>): void {
-    ReactGA.event({category: 'Pipeline', action: 'Execution resume clicked'});
+    ReactGA.event({ category: 'Pipeline', action: 'Execution resume clicked' });
     this.resumeExecution();
     event.stopPropagation();
   }
 
   private handleDeleteClick(event: React.MouseEvent<HTMLElement>): void {
-    ReactGA.event({category: 'Pipeline', action: 'Execution delete clicked'});
+    ReactGA.event({ category: 'Pipeline', action: 'Execution delete clicked' });
     this.deleteExecution();
     event.stopPropagation();
   }
 
   private handleCancelClick(event: React.MouseEvent<HTMLElement>): void {
-    ReactGA.event({category: 'Pipeline', action: 'Execution cancel clicked'});
+    ReactGA.event({ category: 'Pipeline', action: 'Execution cancel clicked' });
     this.cancelExecution();
     event.stopPropagation();
   }
 
   private handleSourceClick(): void {
-    ReactGA.event({category: 'Pipeline', action: 'Execution source clicked'});
+    ReactGA.event({ category: 'Pipeline', action: 'Execution source clicked' });
   }
 
   private handlePermalinkClick(): void {
-    ReactGA.event({category: 'Pipeline', action: 'Permalink clicked'});
+    ReactGA.event({ category: 'Pipeline', action: 'Permalink clicked' });
   }
 
   public render() {

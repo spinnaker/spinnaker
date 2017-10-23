@@ -1,5 +1,5 @@
-import {ITimeoutService, mock} from 'angular';
-import {SCHEDULER_FACTORY, SchedulerFactory} from './scheduler.factory';
+import { ITimeoutService, mock } from 'angular';
+import { SCHEDULER_FACTORY, SchedulerFactory } from './scheduler.factory';
 
 describe('scheduler', function() {
   const angular = require('angular');

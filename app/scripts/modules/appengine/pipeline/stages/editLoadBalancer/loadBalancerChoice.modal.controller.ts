@@ -5,7 +5,7 @@ import { cloneDeep } from 'lodash';
 import { Application, CloudProviderRegistry, ILoadBalancer } from '@spinnaker/core';
 
 class AppengineLoadBalancerChoiceModalCtrl implements IController {
-  public state = {loading: true};
+  public state = { loading: true };
   public loadBalancers: ILoadBalancer[];
   public selectedLoadBalancer: ILoadBalancer;
 

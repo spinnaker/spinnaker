@@ -1,7 +1,7 @@
-import {module} from 'angular';
-import {load} from 'js-yaml';
-import {IVariableValidator, VariableValidatorService} from './variableValidator.service';
-import {IVariable, IVariableError} from '../inputs/variableInput.service';
+import { module } from 'angular';
+import { load } from 'js-yaml';
+import { IVariableValidator, VariableValidatorService } from './variableValidator.service';
+import { IVariable, IVariableError } from '../inputs/variableInput.service';
 
 class ObjectValidator implements IVariableValidator {
 
@@ -11,12 +11,12 @@ class ObjectValidator implements IVariableValidator {
 
   public validate(variable: IVariable, errors: IVariableError[]): void {
     if (!variable.value) {
-      errors.push({message: 'Field is required.'});
+      errors.push({ message: 'Field is required.' });
     }
     try {
       load(variable.value);
     } catch (e) {
-      errors.push({message: e.message});
+      errors.push({ message: e.message });
     }
   }
 }

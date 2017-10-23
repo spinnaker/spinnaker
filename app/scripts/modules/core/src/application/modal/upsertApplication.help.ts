@@ -1,5 +1,5 @@
-import {module} from 'angular';
-import {HELP_CONTENTS_REGISTRY, HelpContentsRegistry} from 'core/help/helpContents.registry';
+import { module } from 'angular';
+import { HELP_CONTENTS_REGISTRY, HelpContentsRegistry } from 'core/help/helpContents.registry';
 
 const helpContents: {[key: string]: string} = {
   'application.platformHealthOnly': `

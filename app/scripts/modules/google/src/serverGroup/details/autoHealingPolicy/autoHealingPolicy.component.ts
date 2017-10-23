@@ -45,7 +45,7 @@ class GceAutoHealingPolicyDetailsCtrl implements IController {
 }
 
 class GceAutoHealingPolicyDetails implements IComponentOptions {
-  public bindings: any = {serverGroup: '<', application: '<'};
+  public bindings: any = { serverGroup: '<', application: '<' };
   public template = `
     <dt>
       Health Check

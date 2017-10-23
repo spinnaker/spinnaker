@@ -1,6 +1,6 @@
-import {module} from 'angular';
-import {AUTHENTICATION_SERVICE, AuthenticationService} from './authentication.service';
-import {SETTINGS} from 'core/config/settings';
+import { module } from 'angular';
+import { AUTHENTICATION_SERVICE, AuthenticationService } from './authentication.service';
+import { SETTINGS } from 'core/config/settings';
 
 export class AuthenticationInterceptor implements ng.IHttpInterceptor {
 

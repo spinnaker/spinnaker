@@ -167,7 +167,7 @@ module(TRAVIS_STAGE, [
       },
       defaultTimeoutMs: moment.duration(2, 'hours').asMilliseconds(),
       validators: [
-        {type: 'requiredField', fieldName: 'job'},
+        { type: 'requiredField', fieldName: 'job' },
       ],
       strategy: true,
     });

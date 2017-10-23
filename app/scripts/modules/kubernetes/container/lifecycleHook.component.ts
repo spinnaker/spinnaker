@@ -43,7 +43,7 @@ class KubernetesLifecycleHookConfigurerCtrl implements IController {
     } else {
       this.handler = null;
       this.execActionCommandsViewValue = null;
-      this.onHandlerChange({handler: null});
+      this.onHandlerChange({ handler: null });
     }
   }
 
@@ -63,11 +63,11 @@ class KubernetesLifecycleHookConfigurerCtrl implements IController {
   public onHandlerTypeChange(): void {
     switch (this.handler.type) {
       case 'EXEC':
-        this.handler.execAction = {commands: []};
+        this.handler.execAction = { commands: [] };
         delete this.handler.httpGetAction;
         break;
       case 'HTTP':
-        this.handler.httpGetAction = {path: '/', port: null, host: null, uriScheme: 'HTTP', httpHeaders: []};
+        this.handler.httpGetAction = { path: '/', port: null, host: null, uriScheme: 'HTTP', httpHeaders: [] };
         delete this.handler.execAction;
         delete this.execActionCommandsViewValue;
         break;
@@ -75,7 +75,7 @@ class KubernetesLifecycleHookConfigurerCtrl implements IController {
   }
 
   public addHttpHeader(): void {
-    this.handler.httpGetAction.httpHeaders.push({name: '', value: ''});
+    this.handler.httpGetAction.httpHeaders.push({ name: '', value: '' });
   }
 
   public deleteHttpHeader(index: number): void {
@@ -87,8 +87,8 @@ class KubernetesLifecycleHookConfigurerCtrl implements IController {
 
   private initializeHandler(): void {
     if (!this.handler) {
-      this.handler = {type: 'EXEC', execAction: {commands: []}};
-      this.onHandlerChange({handler: this.handler});
+      this.handler = { type: 'EXEC', execAction: { commands: [] } };
+      this.onHandlerChange({ handler: this.handler });
     } else if (this.handler.type === 'EXEC') {
       this.execActionCommandsViewValue = this.handler.execAction.commands.join(' ');
     }

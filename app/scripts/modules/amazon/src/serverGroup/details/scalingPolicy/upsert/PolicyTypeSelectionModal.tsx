@@ -26,7 +26,7 @@ export class PolicyTypeSelectionModal extends React.Component<IPolicyTypeSelecti
   }
 
   public selectType(e: React.MouseEvent<HTMLElement>): void {
-    this.setState({typeSelection: e.currentTarget.id});
+    this.setState({ typeSelection: e.currentTarget.id });
   }
 
   public confirmTypeSelection(): void {

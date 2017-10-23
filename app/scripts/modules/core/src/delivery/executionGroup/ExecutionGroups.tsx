@@ -31,11 +31,11 @@ export class ExecutionGroups extends React.Component<IExecutionGroupsProps, IExe
     };
 
     this.applicationRefreshUnsubscribe = this.props.application.executions.onRefresh(null, () => { this.forceUpdate(); });
-    this.groupsUpdatedSubscription = executionFilterService.groupsUpdatedStream.subscribe(() => { this.setState({groups: executionFilterModel.asFilterModel.groups.slice()}); });
+    this.groupsUpdatedSubscription = executionFilterService.groupsUpdatedStream.subscribe(() => { this.setState({ groups: executionFilterModel.asFilterModel.groups.slice() }); });
     this.stateChangeSuccessSubscription = stateEvents.stateChangeSuccess.subscribe(() => {
       const detailsShown = this.showingDetails();
       if (detailsShown !== this.state.showingDetails) {
-        this.setState({showingDetails: detailsShown});
+        this.setState({ showingDetails: detailsShown });
       }
     });
   }

@@ -1,6 +1,6 @@
-import {mock} from 'angular';
+import { mock } from 'angular';
 
-import {CONFIG_SECTION_FOOTER, ConfigSectionFooterController} from './configSectionFooter.component';
+import { CONFIG_SECTION_FOOTER, ConfigSectionFooterController } from './configSectionFooter.component';
 
 describe('Component: ConfigSectionFooter', () => {
 
@@ -39,7 +39,7 @@ describe('Component: ConfigSectionFooter', () => {
           originalConfig: { exceptions: ([] as any), enabled: false }
         },
         config: {
-          exceptions: [ {account: 'prod', region: 'us-east-1'} ],
+          exceptions: [ { account: 'prod', region: 'us-east-1' } ],
           enabled: true,
           grouping: 'app'
         }
@@ -59,7 +59,7 @@ describe('Component: ConfigSectionFooter', () => {
     let data: any;
     beforeEach(() => {
       data = {
-        application: { name: 'deck', attributes: { accounts: ['prod']}},
+        application: { name: 'deck', attributes: { accounts: ['prod'] } },
         viewState: {
           originalConfig: { exceptions: [], enabled: false },
           originalStringVal: 'original',
@@ -68,7 +68,7 @@ describe('Component: ConfigSectionFooter', () => {
           isDirty: true,
         },
         config: {
-          exceptions: [ {account: 'prod', region: 'us-east-1'} ],
+          exceptions: [ { account: 'prod', region: 'us-east-1' } ],
           enabled: true,
           grouping: 'app'
         }

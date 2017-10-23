@@ -37,23 +37,23 @@ describe('Service: Cluster', function () {
 
     application = applicationModelBuilder.createApplication(
       'app',
-      {key: 'serverGroups'},
-      {key: 'runningExecutions'},
-      {key: 'runningTasks'}
+      { key: 'serverGroups' },
+      { key: 'runningExecutions' },
+      { key: 'runningTasks' }
     );
     application.getDataSource('serverGroups').data = [
-        {name: 'the-target', account: 'not-the-target', region: 'us-east-1'},
-        {name: 'the-target', account: 'test', region: 'not-the-target'},
-        {name: 'the-target', account: 'test', region: 'us-east-1'},
-        {name: 'not-the-target', account: 'test', region: 'us-east-1'},
-        {name: 'the-source', account: 'test', region: 'us-east-1'}
+        { name: 'the-target', account: 'not-the-target', region: 'us-east-1' },
+        { name: 'the-target', account: 'test', region: 'not-the-target' },
+        { name: 'the-target', account: 'test', region: 'us-east-1' },
+        { name: 'not-the-target', account: 'test', region: 'us-east-1' },
+        { name: 'the-source', account: 'test', region: 'us-east-1' }
       ];
   }));
 
   describe('lazy cluster fetching', () => {
     it('switches to lazy cluster fetching if there are more than 250 clusters', () => {
       const clusters = Array(251);
-      $http.expectGET(API.baseUrl + '/applications/app/clusters').respond(200, {test: clusters});
+      $http.expectGET(API.baseUrl + '/applications/app/clusters').respond(200, { test: clusters });
       $http.expectGET(API.baseUrl + '/applications/app/serverGroups?clusters=').respond(200, []);
       let serverGroups: IServerGroup[] = null;
       clusterService.loadServerGroups(application).then((result: IServerGroup[]) => serverGroups = result);
@@ -64,7 +64,7 @@ describe('Service: Cluster', function () {
 
     it('does boring regular fetching when there are less than 251 clusters', () => {
       const clusters = Array(250);
-      $http.expectGET(API.baseUrl + '/applications/app/clusters').respond(200, {test: clusters});
+      $http.expectGET(API.baseUrl + '/applications/app/clusters').respond(200, { test: clusters });
       $http.expectGET(API.baseUrl + '/applications/app/serverGroups').respond(200, []);
       let serverGroups: IServerGroup[] = null;
       clusterService.loadServerGroups(application).then((result: IServerGroup[]) => serverGroups = result);
@@ -76,8 +76,8 @@ describe('Service: Cluster', function () {
     it('converts clusters parameter to q and account params when there are fewer than 251 clusters', () => {
       spyOn(clusterFilterModel.asFilterModel, 'applyParamsToUrl').and.callFake(() => {});
       const clusters = Array(250);
-      clusterFilterModel.asFilterModel.sortFilter.clusters = {'test:myapp': true};
-      $http.expectGET(API.baseUrl + '/applications/app/clusters').respond(200, {test: clusters});
+      clusterFilterModel.asFilterModel.sortFilter.clusters = { 'test:myapp': true };
+      $http.expectGET(API.baseUrl + '/applications/app/clusters').respond(200, { test: clusters });
       $http.expectGET(API.baseUrl + '/applications/app/serverGroups').respond(200, []);
       let serverGroups: IServerGroup[] = null;
       clusterService.loadServerGroups(application).then((result: IServerGroup[]) => serverGroups = result);
@@ -91,11 +91,11 @@ describe('Service: Cluster', function () {
   describe('health count rollups', () => {
     it('aggregates health counts from server groups', () => {
       application.serverGroups.data = [
-          {cluster: 'cluster-a', name: 'cluster-a-v001', account: 'test', region: 'us-east-1', instances: [], instanceCounts: {total: 1, up: 1} },
-          {cluster: 'cluster-a', name: 'cluster-a-v001', account: 'test', region: 'us-west-1', instances: [], instanceCounts: {total: 2, down: 2} },
-          {cluster: 'cluster-b', name: 'cluster-b-v001', account: 'test', region: 'us-east-1', instances: [], instanceCounts: {total: 1, starting: 1} },
-          {cluster: 'cluster-b', name: 'cluster-b-v001', account: 'test', region: 'us-west-1', instances: [], instanceCounts: {total: 1, outOfService: 1} },
-          {cluster: 'cluster-b', name: 'cluster-b-v002', account: 'test', region: 'us-west-1', instances: [], instanceCounts: {total: 2, unknown: 1, outOfService: 1} },
+          { cluster: 'cluster-a', name: 'cluster-a-v001', account: 'test', region: 'us-east-1', instances: [], instanceCounts: { total: 1, up: 1 } },
+          { cluster: 'cluster-a', name: 'cluster-a-v001', account: 'test', region: 'us-west-1', instances: [], instanceCounts: { total: 2, down: 2 } },
+          { cluster: 'cluster-b', name: 'cluster-b-v001', account: 'test', region: 'us-east-1', instances: [], instanceCounts: { total: 1, starting: 1 } },
+          { cluster: 'cluster-b', name: 'cluster-b-v001', account: 'test', region: 'us-west-1', instances: [], instanceCounts: { total: 1, outOfService: 1 } },
+          { cluster: 'cluster-b', name: 'cluster-b-v002', account: 'test', region: 'us-west-1', instances: [], instanceCounts: { total: 2, unknown: 1, outOfService: 1 } },
         ];
 
       const clusters = clusterService.createServerGroupClusters(application.serverGroups.data);
@@ -131,7 +131,7 @@ describe('Service: Cluster', function () {
           ]})
         ];
 
-        application.runningTasks.data[0].execution = {stages: [ { type: 'rollbackServerGroup', context: {} }] };
+        application.runningTasks.data[0].execution = { stages: [ { type: 'rollbackServerGroup', context: {} }] };
         clusterService.addTasksToServerGroups(application);
         const serverGroups: IServerGroup[] = application.serverGroups.data;
         expect(serverGroups[0].runningTasks.length).toBe(0);
@@ -146,11 +146,11 @@ describe('Service: Cluster', function () {
       it('attaches to source and target', () => {
         application.runningTasks.data = [
           buildTask({status: 'RUNNING', variables: [
-            { key: 'notification.type', value: 'createcopylastasg'},
-            { key: 'deploy.account.name', value: 'test'},
-            { key: 'availabilityZones', value: {'us-east-1': ['a']}},
-            { key: 'deploy.server.groups', value: {'us-east-1': ['the-target']}},
-            { key: 'source', value: { asgName: 'the-source', account: 'test', region: 'us-east-1'}}
+            { key: 'notification.type', value: 'createcopylastasg' },
+            { key: 'deploy.account.name', value: 'test' },
+            { key: 'availabilityZones', value: { 'us-east-1': ['a'] } },
+            { key: 'deploy.server.groups', value: { 'us-east-1': ['the-target'] } },
+            { key: 'source', value: { asgName: 'the-source', account: 'test', region: 'us-east-1' } }
           ]})
         ];
 
@@ -166,11 +166,11 @@ describe('Service: Cluster', function () {
       it('still attaches to source when target not found', () => {
         application.runningTasks.data = [
           buildTask({status: 'RUNNING', variables: [
-            { key: 'notification.type', value: 'createcopylastasg'},
-            { key: 'deploy.account.name', value: 'test'},
-            { key: 'availabilityZones', value: {'us-east-1': ['a']}},
-            { key: 'deploy.server.groups', value: {'us-east-1': ['not-found-target']}},
-            { key: 'source', value: { asgName: 'the-source', account: 'test', region: 'us-east-1'}}
+            { key: 'notification.type', value: 'createcopylastasg' },
+            { key: 'deploy.account.name', value: 'test' },
+            { key: 'availabilityZones', value: { 'us-east-1': ['a'] } },
+            { key: 'deploy.server.groups', value: { 'us-east-1': ['not-found-target'] } },
+            { key: 'source', value: { asgName: 'the-source', account: 'test', region: 'us-east-1' } }
           ]})
         ];
 
@@ -188,9 +188,9 @@ describe('Service: Cluster', function () {
       it('attaches to deployed server group', () => {
         application.runningTasks.data = [
           buildTask({status: 'RUNNING', variables: [
-            { key: 'notification.type', value: 'createdeploy'},
-            { key: 'deploy.account.name', value: 'test'},
-            { key: 'deploy.server.groups', value: {'us-east-1': ['the-target']}},
+            { key: 'notification.type', value: 'createdeploy' },
+            { key: 'deploy.account.name', value: 'test' },
+            { key: 'deploy.server.groups', value: { 'us-east-1': ['the-target'] } },
           ]})
         ];
 
@@ -206,9 +206,9 @@ describe('Service: Cluster', function () {
       it('does nothing when target not found', () => {
         application.runningTasks.data = [
           buildTask({status: 'RUNNING', variables: [
-            { key: 'notification.type', value: 'createdeploy'},
-            { key: 'deploy.account.name', value: 'test'},
-            { key: 'deploy.server.groups', value: {'us-east-1': ['not-found-target']}},
+            { key: 'notification.type', value: 'createdeploy' },
+            { key: 'deploy.account.name', value: 'test' },
+            { key: 'deploy.server.groups', value: { 'us-east-1': ['not-found-target'] } },
           ]})
         ];
 
@@ -236,15 +236,15 @@ describe('Service: Cluster', function () {
               { id: 'in-2', health: null, launchTime: 1, zone: null },
             ];
             serverGroups[4].instances = [
-              { id: 'in-3', health: null, launchTime: 1, zone: null},
-              { id: 'in-2', health: null, launchTime: 1, zone: null},
+              { id: 'in-3', health: null, launchTime: 1, zone: null },
+              { id: 'in-2', health: null, launchTime: 1, zone: null },
             ];
             application.runningTasks.data = [
               buildTask({status: 'RUNNING', variables: [
-                { key: 'notification.type', value: name},
-                { key: 'credentials', value: 'test'},
-                { key: 'region', value: 'us-east-1'},
-                { key: 'instanceIds', value: ['in-2']}
+                { key: 'notification.type', value: name },
+                { key: 'credentials', value: 'test' },
+                { key: 'region', value: 'us-east-1' },
+                { key: 'instanceIds', value: ['in-2'] }
               ]})
             ];
 
@@ -274,10 +274,10 @@ describe('Service: Cluster', function () {
         this.buildCommonTask = (type: string) => {
           application.runningTasks = {data: [
             buildTask({status: 'RUNNING', variables: [
-              { key: 'notification.type', value: type},
-              { key: 'credentials', value: 'test'},
-              { key: 'regions', value: ['us-east-1']},
-              { key: 'asgName', value: 'the-target'},
+              { key: 'notification.type', value: type },
+              { key: 'credentials', value: 'test' },
+              { key: 'regions', value: ['us-east-1'] },
+              { key: 'asgName', value: 'the-target' },
             ]})
           ]};
         };

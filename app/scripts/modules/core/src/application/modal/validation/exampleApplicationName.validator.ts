@@ -1,10 +1,10 @@
-import {module} from 'angular';
+import { module } from 'angular';
 import {
   APPLICATION_NAME_VALIDATOR, IApplicationNameValidator,
   ApplicationNameValidator, IValidationResult
 } from './applicationName.validator';
-import {CLOUD_PROVIDER_REGISTRY, CloudProviderRegistry} from 'core/cloudProvider/cloudProvider.registry';
-import {SETTINGS} from 'core/config/settings';
+import { CLOUD_PROVIDER_REGISTRY, CloudProviderRegistry } from 'core/cloudProvider/cloudProvider.registry';
+import { SETTINGS } from 'core/config/settings';
 
 export class ExampleApplicationNameValidator implements IApplicationNameValidator {
 
@@ -93,6 +93,6 @@ module(EXAMPLE_APPLICATION_NAME_VALIDATOR, [
   .config((cloudProviderRegistryProvider: CloudProviderRegistry) => {
     SETTINGS.providers.example = { defaults: { account: 'test' }, resetToOriginal: () => {} };
     SETTINGS.providers.example2 = { defaults: { account: 'test' }, resetToOriginal: () => {} };
-    cloudProviderRegistryProvider.registerProvider('example', {name: 'example'});
-    cloudProviderRegistryProvider.registerProvider('example2', {name: 'example2'});
+    cloudProviderRegistryProvider.registerProvider('example', { name: 'example' });
+    cloudProviderRegistryProvider.registerProvider('example2', { name: 'example2' });
   });

@@ -20,8 +20,8 @@ export interface ICustomInstanceConfigurerProps {
 @BindAll()
 export class CustomInstanceConfigurer extends React.Component<ICustomInstanceConfigurerProps> {
   public render() {
-    const vCpuOptions: Select.Option[] = (this.props.vCpuList || []).map(vCpu => ({label: vCpu + '', value: vCpu}));
-    const memoryOptions: Select.Option[] = (this.props.memoryList || []).map(memory => ({label: memory + '', value: memory}));
+    const vCpuOptions: Select.Option[] = (this.props.vCpuList || []).map(vCpu => ({ label: vCpu + '', value: vCpu }));
+    const memoryOptions: Select.Option[] = (this.props.memoryList || []).map(memory => ({ label: memory + '', value: memory }));
     const selectedVCpuCountLabel = this.props.selectedVCpuCount ? this.props.selectedVCpuCount + '' : null;
     const selectedMemoryLabel = this.props.selectedMemory ? this.props.selectedMemory + '' : null;
 
@@ -36,12 +36,12 @@ export class CustomInstanceConfigurer extends React.Component<ICustomInstanceCon
             <Select
               options={vCpuOptions}
               clearable={false}
-              value={{label: selectedVCpuCountLabel, value: this.props.selectedVCpuCount}}
+              value={{ label: selectedVCpuCountLabel, value: this.props.selectedVCpuCount }}
               onChange={this.handleVCpuChange}
             />
           </div>
         </div>
-        <div className="row" style={{marginTop: '5px'}}>
+        <div className="row" style={{ marginTop: '5px' }}>
           <div className="col-md-5 sm-label-right">
             <b>Memory (Gb) </b>
             <HelpField id="gce.instance.customInstance.memory"/>
@@ -50,7 +50,7 @@ export class CustomInstanceConfigurer extends React.Component<ICustomInstanceCon
             <Select
               options={memoryOptions}
               clearable={false}
-              value={{label: selectedMemoryLabel, value: this.props.selectedMemory}}
+              value={{ label: selectedMemoryLabel, value: this.props.selectedMemory }}
               onChange={this.handleMemoryChange}
             />
           </div>
@@ -61,11 +61,11 @@ export class CustomInstanceConfigurer extends React.Component<ICustomInstanceCon
 
   private handleVCpuChange(option: Select.Option) {
     const value = (option ? option.value : null) as number;
-    this.props.onChange({vCpuCount: value, memory: this.props.selectedMemory});
+    this.props.onChange({ vCpuCount: value, memory: this.props.selectedMemory });
   }
 
   private handleMemoryChange(option: Select.Option) {
     const value = (option ? option.value : null) as number;
-    this.props.onChange({vCpuCount: this.props.selectedVCpuCount, memory: value});
+    this.props.onChange({ vCpuCount: this.props.selectedVCpuCount, memory: value });
   }
 }

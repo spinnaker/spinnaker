@@ -1,6 +1,6 @@
-import {module} from 'angular';
-import {react2angular} from 'react2angular';
-import {Variable} from './Variable';
+import { module } from 'angular';
+import { react2angular } from 'react2angular';
+import { Variable } from './Variable';
 
 export const VARIABLE = 'spinnaker.core.pipelineTemplate.variable.component';
 module(VARIABLE, [])

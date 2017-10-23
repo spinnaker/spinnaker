@@ -13,7 +13,7 @@ describe('Component: deployInitializer', () => {
     ctrl = <DeployInitializerController> $componentController(
       'deployInitializer',
       {},
-      {application, command: { viewState: {} }, cloudProvider: 'aws' }
+      { application, command: { viewState: {} }, cloudProvider: 'aws' }
     );
     ctrl.$onInit();
   };
@@ -33,7 +33,7 @@ describe('Component: deployInitializer', () => {
 
   describe('template initialization', () => {
     it('creates separate template options for each account and region of a cluster', () => {
-      application = applicationModelBuilder.createApplication('app', {key: 'serverGroups', lazy: true});
+      application = applicationModelBuilder.createApplication('app', { key: 'serverGroups', lazy: true });
       application.getDataSource('serverGroups').data = [
         {
           name: 'sg1',

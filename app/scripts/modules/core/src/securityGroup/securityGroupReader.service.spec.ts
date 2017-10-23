@@ -1,14 +1,14 @@
-import {mock} from 'angular';
+import { mock } from 'angular';
 
-import {API_SERVICE, Api} from 'core/api/api.service';
-import {SECURITY_GROUP_TRANSFORMER_SERVICE, SecurityGroupTransformerService} from './securityGroupTransformer.service';
+import { API_SERVICE, Api } from 'core/api/api.service';
+import { SECURITY_GROUP_TRANSFORMER_SERVICE, SecurityGroupTransformerService } from './securityGroupTransformer.service';
 import {
   SECURITY_GROUP_READER, SecurityGroupReader,
   ISecurityGroupDetail
 } from './securityGroupReader.service';
-import {ISecurityGroup} from 'core/domain';
-import {APPLICATION_MODEL_BUILDER, ApplicationModelBuilder} from 'core/application/applicationModel.builder';
-import {Application} from 'core/application/application.model';
+import { ISecurityGroup } from 'core/domain';
+import { APPLICATION_MODEL_BUILDER, ApplicationModelBuilder } from 'core/application/applicationModel.builder';
+import { Application } from 'core/application/application.model';
 
 describe('Service: securityGroupReader', function () {
 
@@ -87,7 +87,7 @@ describe('Service: securityGroupReader', function () {
       .respond(200, {
         test: {
             aws: {
-              'us-east-1': [{name: 'not-cached'}]
+              'us-east-1': [{ name: 'not-cached' }]
             }
         }
       });
@@ -96,22 +96,22 @@ describe('Service: securityGroupReader', function () {
     $scope.$digest();
     const group: ISecurityGroup = data[0];
     expect(group.name).toBe('not-cached');
-    expect(group.usages.loadBalancers[0]).toEqual({name: application.getDataSource('loadBalancers').data[0].name});
+    expect(group.usages.loadBalancers[0]).toEqual({ name: application.getDataSource('loadBalancers').data[0].name });
   });
 
   it('adds security group names across accounts, falling back to the ID if none found', function () {
     let details: ISecurityGroupDetail = null;
     const application: Application = applicationModelBuilder.createApplication('app');
     application['securityGroupsIndex'] = {
-      test: {'us-east-1': {'sg-2': {name: 'matched'}}},
-      prod: {'us-east-1': {'sg-2': {name: 'matched-prod'}}}
+      test: { 'us-east-1': { 'sg-2': { name: 'matched' } } },
+      prod: { 'us-east-1': { 'sg-2': { name: 'matched-prod' } } }
     };
 
     $http.expectGET(`${API.baseUrl}/securityGroups/test/us-east-1/sg-123?provider=aws&vpcId=vpc-1`).respond(200, {
       inboundRules: [
-        {securityGroup: {accountName: 'test', id: 'sg-345'}},
-        {securityGroup: {accountName: 'test', id: 'sg-2'}},
-        {securityGroup: {accountName: 'prod', id: 'sg-2'}},
+        { securityGroup: { accountName: 'test', id: 'sg-345' } },
+        { securityGroup: { accountName: 'test', id: 'sg-2' } },
+        { securityGroup: { accountName: 'prod', id: 'sg-2' } },
       ],
       region: 'us-east-1',
     });
@@ -166,7 +166,7 @@ describe('Service: securityGroupReader', function () {
       test: {
         aws: {
           'us-east-1': [
-            {name: 'not-cached', id: 'not-cached-id', vpcId: null}
+            { name: 'not-cached', id: 'not-cached-id', vpcId: null }
           ]
         }
       }
@@ -176,7 +176,7 @@ describe('Service: securityGroupReader', function () {
     $http.flush();
     const group: ISecurityGroup = data[0];
     expect(group.name).toBe('not-cached');
-    expect(group.usages.loadBalancers[0]).toEqual({name: application.getDataSource('loadBalancers').data[0].name});
+    expect(group.usages.loadBalancers[0]).toEqual({ name: application.getDataSource('loadBalancers').data[0].name });
   });
 });
 

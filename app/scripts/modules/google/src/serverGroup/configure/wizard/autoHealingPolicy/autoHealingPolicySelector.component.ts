@@ -12,19 +12,19 @@ class GceAutoHealingPolicySelector implements IController {
   public $onInit(): void {
     if (this.autoHealingPolicy && this.autoHealingPolicy.maxUnavailable) {
       if (typeof this.autoHealingPolicy.maxUnavailable.fixed === 'number') {
-        this.viewState = {maxUnavailableMetric: 'fixed'};
+        this.viewState = { maxUnavailableMetric: 'fixed' };
       } else if (typeof this.autoHealingPolicy.maxUnavailable.percent === 'number') {
-        this.viewState = {maxUnavailableMetric: 'percent'};
+        this.viewState = { maxUnavailableMetric: 'percent' };
       }
     }
 
     if (!this.autoHealingPolicy) {
-      this.setAutoHealingPolicy({autoHealingPolicy: {initialDelaySec: 300}});
+      this.setAutoHealingPolicy({ autoHealingPolicy: { initialDelaySec: 300 } });
     }
   }
 
   public $onDestroy(): void {
-    this.setAutoHealingPolicy({autoHealingPolicy: null});
+    this.setAutoHealingPolicy({ autoHealingPolicy: null });
   }
 
   public manageMaxUnavailableMetric(selectedMetric: string): void {

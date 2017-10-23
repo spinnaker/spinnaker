@@ -16,7 +16,7 @@ export function stageExecutionDetails(WrappedStageExecutionDetails: React.Compon
     public updateDetailsSection(): void {
       const detailsSection = ReactInjector.$stateParams.details;
       if (this.state.detailsSection !== detailsSection) {
-        this.setState({detailsSection});
+        this.setState({ detailsSection });
       }
     }
 

@@ -1,6 +1,6 @@
-import {module} from 'angular';
+import { module } from 'angular';
 
-import {SPINNER_WRAPPER} from './Spinner';
+import { SPINNER_WRAPPER } from './Spinner';
 
 export const WIDGETS_MODULE = 'spinnaker.core.widgets';
 module(WIDGETS_MODULE, [

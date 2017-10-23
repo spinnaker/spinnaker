@@ -148,7 +148,7 @@ class AppengineLoadBalancerDetailsController implements IController {
       return;
     } else {
       this.$state.params.allowModalToStayOpen = true;
-      this.$state.go('^', null, {location: 'replace'});
+      this.$state.go('^', null, { location: 'replace' });
     }
   }
 }

@@ -95,7 +95,7 @@ class ExecutionWindowAtlasGraphController implements IController {
       return;
     }
     this.chartData.loading = true;
-    this.$http({ method: 'GET', url: this.getAtlasUrl(), cache: true})
+    this.$http({ method: 'GET', url: this.getAtlasUrl(), cache: true })
       .then(resp => resp.data)
       .then((data: any) => {
         this.maxCount = 0;
@@ -191,10 +191,10 @@ class ExecutionWindowAtlasGraphController implements IController {
         }
       ],
       axes: {
-        x: {key: 'timestamp', type: 'date', ticks: 6},
-        y: {ticks: 3, padding: {min: 0, max: 4}},
-        x2: {ticks: 0},
-        y2: {ticks: 0}
+        x: { key: 'timestamp', type: 'date', ticks: 6 },
+        y: { ticks: 3, padding: { min: 0, max: 4 } },
+        x2: { ticks: 0 },
+        y2: { ticks: 0 }
       },
       zoom: {
         x: true,
@@ -267,7 +267,7 @@ class ExecutionWindowAtlasGraphController implements IController {
         .milliseconds(window.displayEnd.getMilliseconds())
         .subtract(dayOffset, 'days').toDate().getTime();
 
-    return {start, end};
+    return { start, end };
   }
 
   private getAtlasUrl(): string {

@@ -17,7 +17,7 @@ export interface ICreatePipelineProps {
 @BindAll()
 export class CreatePipeline extends React.Component<ICreatePipelineProps> {
   private dropdownToggled(): void {
-    ReactGA.event({category: 'Pipelines', action: 'Configure (top level)'});
+    ReactGA.event({ category: 'Pipelines', action: 'Configure (top level)' });
   }
 
   public render() {
@@ -27,16 +27,16 @@ export class CreatePipeline extends React.Component<ICreatePipelineProps> {
     const header = !(hasPipelineConfigs || hasStrategyConfigs) ? (
       <li
         className="dropdown-header"
-        style={{marginTop: 0}}
+        style={{ marginTop: 0 }}
       >
-        None yet, click <span style={{marginLeft: '2px'}} className="glyphicon glyphicon-plus-sign"/> Create
+        None yet, click <span style={{ marginLeft: '2px' }} className="glyphicon glyphicon-plus-sign"/> Create
       </li>
-    ) : hasPipelineConfigs ? <li className="dropdown-header" style={{marginTop: 0}}>PIPELINES</li>
-    : hasStrategyConfigs ? <li className="dropdown-header" style={{marginTop: 0}}>DEPLOYMENT STRATEGIES</li>
+    ) : hasPipelineConfigs ? <li className="dropdown-header" style={{ marginTop: 0 }}>PIPELINES</li>
+    : hasStrategyConfigs ? <li className="dropdown-header" style={{ marginTop: 0 }}>DEPLOYMENT STRATEGIES</li>
     : null;
 
     return (
-      <Dropdown className="dropdown" id="create-pipeline-dropdown" style={{marginRight: '5px'}} onToggle={this.dropdownToggled}>
+      <Dropdown className="dropdown" id="create-pipeline-dropdown" style={{ marginRight: '5px' }} onToggle={this.dropdownToggled}>
         <CreatePipelineButton application={this.props.application}/>
         <Dropdown.Toggle className="btn btn-sm btn-default dropdown-toggle">
           <span className="visible-xl-inline"><span className="glyphicon glyphicon-cog"/> Configure</span>
@@ -54,7 +54,7 @@ export class CreatePipeline extends React.Component<ICreatePipelineProps> {
 
 const Pipeline = (props: { pipeline: any, type: 'pipeline' | 'strategy' }): JSX.Element => {
   const clicked = () => {
-    ReactGA.event({category: 'Pipelines', action: `Configure ${props.type} (via top level)`});
+    ReactGA.event({ category: 'Pipelines', action: `Configure ${props.type} (via top level)` });
     const { $state } = ReactInjector;
     if (!$state.current.name.includes('.executions.execution')) {
       $state.go('^.pipelineConfig', { pipelineId: props.pipeline.id });

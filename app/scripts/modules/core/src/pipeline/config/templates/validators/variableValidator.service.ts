@@ -1,5 +1,5 @@
-import {module} from 'angular';
-import {IVariable, IVariableError} from '../inputs/variableInput.service';
+import { module } from 'angular';
+import { IVariable, IVariableError } from '../inputs/variableInput.service';
 
 export interface IVariableValidator {
   handles: (type: string) => boolean;

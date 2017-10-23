@@ -1,4 +1,4 @@
-import {IEntityTags} from './IEntityTags';
+import { IEntityTags } from './IEntityTags';
 
 export interface ILoadBalancerUsage {
   name: string;

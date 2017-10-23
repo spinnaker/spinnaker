@@ -56,7 +56,7 @@ export class ScalingActivitiesCtrl implements IController {
           } catch (e) {
             // I don't imagine this would happen but let's not blow up the world if it does.
           }
-          events.push({description: entry.description, availabilityZone: availabilityZone});
+          events.push({ description: entry.description, availabilityZone: availabilityZone });
         });
         results.push({
           cause: group[0].cause,

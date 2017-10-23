@@ -1,4 +1,4 @@
-import {IJenkinsInfo} from './IJenkinsInfo';
+import { IJenkinsInfo } from './IJenkinsInfo';
 
 export interface IBuildDiffInfo {
   ancestor: string,

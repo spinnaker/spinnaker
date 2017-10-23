@@ -79,7 +79,7 @@ describe('Controller: ConfigurePipelineTemplateModalCtrl', () => {
       ctrl = $controller('ConfigurePipelineTemplateModalCtrl', {
         $scope,
         application,
-        $uibModalInstance: {close: $q.resolve(null)},
+        $uibModalInstance: { close: $q.resolve(null) },
         pipelineTemplateConfig: {
           config: {
             pipeline: {
@@ -126,7 +126,7 @@ describe('Controller: ConfigurePipelineTemplateModalCtrl', () => {
       const variables = {
         credentials: 'my-credentials',
         cloudProvider: 'gce',
-        someObject: {key: 'value'},
+        someObject: { key: 'value' },
         someList: ['a'],
         someInt: 123,
       };
@@ -277,23 +277,23 @@ describe('Controller: ConfigurePipelineTemplateModalCtrl', () => {
 
       let v = createVariable('string', '');
       ctrl.handleVariableChange(v);
-      expect(v.errors).toEqual([{message: 'Field is required.'}]);
+      expect(v.errors).toEqual([{ message: 'Field is required.' }]);
 
       v = createVariable('object', '');
       ctrl.handleVariableChange(v);
-      expect(v.errors).toEqual([{message: 'Field is required.'}]);
+      expect(v.errors).toEqual([{ message: 'Field is required.' }]);
 
       v = createVariable('float', '');
       ctrl.handleVariableChange(v);
-      expect(v.errors).toEqual([{message: 'Field is required.'}]);
+      expect(v.errors).toEqual([{ message: 'Field is required.' }]);
 
       v = createVariable('int', '');
       ctrl.handleVariableChange(v);
-      expect(v.errors).toEqual([{message: 'Field is required.'}]);
+      expect(v.errors).toEqual([{ message: 'Field is required.' }]);
 
       v = createVariable('list', ['']);
       ctrl.handleVariableChange(v);
-      expect(v.errors).toEqual([{message: 'Field is required.', key: 0}]);
+      expect(v.errors).toEqual([{ message: 'Field is required.', key: 0 }]);
     });
 
     it('validates yaml', () => {

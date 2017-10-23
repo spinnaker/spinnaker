@@ -15,7 +15,7 @@ export class TaskReader {
 
   public getTasks(applicationName: string, statuses: string[] = []): ng.IPromise<ITask[]> {
     return this.API.one('applications', applicationName).all('tasks')
-      .getList({statuses: statuses.join(',')})
+      .getList({ statuses: statuses.join(',') })
       .then((tasks: ITask[]) => {
         tasks.forEach(task => this.setTaskProperties(task));
         return tasks.filter(task => !task.getValueFor('dryRun'));

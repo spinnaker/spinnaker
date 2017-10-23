@@ -1,9 +1,9 @@
-import {get, has} from 'lodash';
-import {module} from 'angular';
+import { get, has } from 'lodash';
+import { module } from 'angular';
 
-import {ACCOUNT_SERVICE, AccountService} from 'core/account/account.service';
-import {API_SERVICE, Api} from 'core/api/api.service';
-import {SETTINGS} from 'core/config/settings';
+import { ACCOUNT_SERVICE, AccountService } from 'core/account/account.service';
+import { API_SERVICE, Api } from 'core/api/api.service';
+import { SETTINGS } from 'core/config/settings';
 
 export interface IBaseImage {
   id: string;

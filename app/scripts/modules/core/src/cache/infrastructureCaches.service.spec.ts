@@ -1,7 +1,7 @@
-import {mock, noop} from 'angular';
+import { mock, noop } from 'angular';
 
-import {INFRASTRUCTURE_CACHE_SERVICE, InfrastructureCacheService} from './infrastructureCaches.service';
-import {DeckCacheService, ICacheFactory, ICacheConfig, ICache, ICacheConfigOptions} from './deckCache.service';
+import { INFRASTRUCTURE_CACHE_SERVICE, InfrastructureCacheService } from './infrastructureCaches.service';
+import { DeckCacheService, ICacheFactory, ICacheConfig, ICache, ICacheConfigOptions } from './deckCache.service';
 
 interface ICacheInstantiation {
   cacheId: string;

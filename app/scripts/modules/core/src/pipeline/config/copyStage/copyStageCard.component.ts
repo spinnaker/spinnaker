@@ -1,4 +1,4 @@
-import {module} from 'angular';
+import { module } from 'angular';
 
 
 class CopyStageCardComponent implements ng.IComponentOptions {

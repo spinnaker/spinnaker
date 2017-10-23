@@ -1,9 +1,9 @@
 import * as $ from 'jquery';
-import {mock} from 'angular';
+import { mock } from 'angular';
 
-import {PAGE_NAVIGATOR_COMPONENT} from './pageNavigator.component';
-import {INavigationPage} from './pageNavigationState';
-import {ScrollToService} from '../../utils/scrollTo/scrollTo.service';
+import { PAGE_NAVIGATOR_COMPONENT } from './pageNavigator.component';
+import { INavigationPage } from './pageNavigationState';
+import { ScrollToService } from '../../utils/scrollTo/scrollTo.service';
 
 describe('Component: Page Navigator', () => {
 
@@ -56,7 +56,7 @@ describe('Component: Page Navigator', () => {
 
     it('renders pages conditionally based on visible flag', () => {
       const pages = [
-        { key: '1', label: 'Page 1', visible: true},
+        { key: '1', label: 'Page 1', visible: true },
         { key: '2', label: 'Page 2', visible: false }
       ];
       initialize(pages);

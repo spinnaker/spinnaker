@@ -22,12 +22,12 @@ export class ExecutionDetailsSectionNav extends React.Component<IExecutionDetail
 
 const Section = (props: { section: string }): JSX.Element => {
   const clicked = () => {
-    ReactGA.event({category: 'Pipeline', action: 'Execution details section selected', label: props.section});
+    ReactGA.event({ category: 'Pipeline', action: 'Execution details section selected', label: props.section });
   }
   return (
     <li>
       <UISrefActive class="active">
-        <UISref to=".execution" params={{details: props.section}}>
+        <UISref to=".execution" params={{ details: props.section }}>
           <a onClick={clicked}>{robotToHuman(props.section)}</a>
         </UISref>
       </UISrefActive>

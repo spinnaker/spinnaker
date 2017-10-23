@@ -16,7 +16,7 @@ export class ScrollToService {
         const content: JQuery = scrollableContainer ? elem.closest(scrollableContainer) : $('body');
         if (content.length) {
           const top: number = content.scrollTop() + elem.offset().top - offset;
-          content.animate({scrollTop: top + 'px'}, 200);
+          content.animate({ scrollTop: top + 'px' }, 200);
         }
       }
     }, delay);

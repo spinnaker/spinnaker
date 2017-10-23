@@ -46,7 +46,7 @@ class GceUpsertAutoHealingPolicyModalCtrl implements IController {
     this.gceHealthCheckReader.listHealthChecks('HTTP')
       .then((healthChecks) => {
         this.httpHealthChecks = chain(healthChecks)
-          .filter({account: this.serverGroup.account})
+          .filter({ account: this.serverGroup.account })
           .map('name')
           .value() as string[];
       });

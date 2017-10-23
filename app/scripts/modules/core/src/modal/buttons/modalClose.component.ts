@@ -1,4 +1,4 @@
-import {module, IComponentOptions} from 'angular';
+import { module, IComponentOptions } from 'angular';
 
 const modalCloseComponent: IComponentOptions = {
   bindings: {

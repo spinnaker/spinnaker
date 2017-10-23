@@ -42,7 +42,7 @@ module(APPENGINE_START_SERVER_GROUP_STAGE, [ACCOUNT_SERVICE])
       validators: [
         { type: 'requiredField', fieldName: 'cluster' },
         { type: 'requiredField', fieldName: 'target' },
-        { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account'},
+        { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account' },
       ],
       cloudProvider: 'appengine',
     });

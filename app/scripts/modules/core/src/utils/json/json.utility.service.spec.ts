@@ -1,5 +1,5 @@
-import {mock} from 'angular';
-import {JSON_UTILITY_SERVICE, JsonUtilityService, IJsonDiff} from './json.utility.service';
+import { mock } from 'angular';
+import { JSON_UTILITY_SERVICE, JsonUtilityService, IJsonDiff } from './json.utility.service';
 
 describe('jsonUtilityService', () => {
 
@@ -16,7 +16,7 @@ describe('jsonUtilityService', () => {
     const right = `{"num": 2, "str": "a", "arr": ["b", "c"], "obj": {"a": 1, "c": 4, "b": 2, "arr": [1, 3, 2, 4]}}`;
 
     const result: IJsonDiff = jsonService.diff(left, right, true);
-    expect(result.summary).toEqual({additions: 5, removals: 4, unchanged: 14, total: 23});
+    expect(result.summary).toEqual({ additions: 5, removals: 4, unchanged: 14, total: 23 });
     expect(result.changeBlocks.length).toBe(8);
     expect(result.details.length).toBe(23);
     expect(result.details.map(d => d.text)).toEqual([

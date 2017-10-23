@@ -69,7 +69,7 @@ export class HelpFieldCtrl implements IController {
     // only track the event if the popover was on the screen for a little while, i.e. it wasn't accidentally
     // moused over
     if (Date.now() - this.popoverShownStart > 500) {
-      this.$analytics.eventTrack('Help contents viewed', {category: 'Help', label: this.key || this.content});
+      this.$analytics.eventTrack('Help contents viewed', { category: 'Help', label: this.key || this.content });
     }
     this.popoverShownStart = null;
   }

@@ -1,10 +1,10 @@
-import {mock} from 'angular';
+import { mock } from 'angular';
 
-import {IDeckRootScope} from 'core/domain';
-import {RedirectService} from './redirect.service';
-import {AuthenticationService} from './authentication.service';
-import {AUTHENTICATION_MODULE} from './authentication.module';
-import {SETTINGS} from 'core/config/settings';
+import { IDeckRootScope } from 'core/domain';
+import { RedirectService } from './redirect.service';
+import { AuthenticationService } from './authentication.service';
+import { AUTHENTICATION_MODULE } from './authentication.module';
+import { SETTINGS } from 'core/config/settings';
 
 declare const window: any;
 describe('authenticationProvider: application startup', function () {
@@ -49,7 +49,7 @@ describe('authenticationProvider: application startup', function () {
   describe('authenticateUser', () => {
     it('requests authentication from gate, then sets authentication name field', function () {
 
-      $http.whenGET(SETTINGS.authEndpoint).respond(200, {username: 'joe!'});
+      $http.whenGET(SETTINGS.authEndpoint).respond(200, { username: 'joe!' });
       $timeout.flush();
       $http.flush();
 
@@ -61,7 +61,7 @@ describe('authenticationProvider: application startup', function () {
     it('requests authentication from gate, then opens modal and redirects on 401', function () {
       let redirectUrl = 'abc';
       spyOn(redirectService, 'redirect').and.callFake((url: string) => redirectUrl = url);
-      $http.whenGET(SETTINGS.authEndpoint).respond(401, null, {'X-AUTH-REDIRECT-URL': '/authUp'});
+      $http.whenGET(SETTINGS.authEndpoint).respond(401, null, { 'X-AUTH-REDIRECT-URL': '/authUp' });
       $rootScope.$digest();
       $http.flush();
 

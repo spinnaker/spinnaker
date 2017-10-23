@@ -1,9 +1,9 @@
-import {ILogService, IPromise, IQService, IScope} from 'angular';
-import {map, union, uniq} from 'lodash';
-import {Subject, Subscription} from 'rxjs';
+import { ILogService, IPromise, IQService, IScope } from 'angular';
+import { map, union, uniq } from 'lodash';
+import { Subject, Subscription } from 'rxjs';
 
-import {ApplicationDataSource} from './service/applicationDataSource';
-import {ICluster} from '../domain/ICluster';
+import { ApplicationDataSource } from './service/applicationDataSource';
+import { ICluster } from '../domain/ICluster';
 
 export class Application {
 

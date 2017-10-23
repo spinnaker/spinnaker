@@ -1,8 +1,8 @@
-import { IController, IComponentOptions, module} from 'angular';
-import { AppengineLoadBalancerUpsertDescription} from 'appengine/loadBalancer/transformer';
+import { IController, IComponentOptions, module } from 'angular';
+import { AppengineLoadBalancerUpsertDescription } from 'appengine/loadBalancer/transformer';
 
 class AppengineLoadBalancerAdvancedSettingsCtrl implements IController {
-  public state = {error: false};
+  public state = { error: false };
   public loadBalancer: AppengineLoadBalancerUpsertDescription;
 
   public disableMigrateTraffic(): boolean {
@@ -24,7 +24,7 @@ class AppengineLoadBalancerAdvancedSettingsCtrl implements IController {
 }
 
 class AppengineLoadBalancerAdvancedSettingsComponent implements IComponentOptions {
-  public bindings: any = {loadBalancer: '=', application: '<'};
+  public bindings: any = { loadBalancer: '=', application: '<' };
   public template = `
     <ng-form name="advancedSettingsForm">
       <div class="row">

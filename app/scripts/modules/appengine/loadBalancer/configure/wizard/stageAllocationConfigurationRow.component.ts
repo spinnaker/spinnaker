@@ -46,7 +46,7 @@ class AppengineStageAllocationLabelCtrl implements IController {
 }
 
 class AppengineStageAllocationLabel implements IComponentOptions {
-  public bindings: any = {allocationDescription: '<'};
+  public bindings: any = { allocationDescription: '<' };
   public controller: any = AppengineStageAllocationLabelCtrl;
   public template = `<input ng-model="$ctrl.inputViewValue" type="text" class="form-control input-sm" readonly/>`;
 }

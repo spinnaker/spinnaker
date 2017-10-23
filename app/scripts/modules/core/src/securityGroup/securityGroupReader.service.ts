@@ -132,7 +132,7 @@ export class SecurityGroupReader {
               this.resolve(application['securityGroupsIndex'], loadBalancer, securityGroupId);
             SecurityGroupReader.attachUsageFields(securityGroup);
             if (!securityGroup.usages.loadBalancers.some(lb => lb.name === loadBalancer.name)) {
-              securityGroup.usages.loadBalancers.push({name: loadBalancer.name});
+              securityGroup.usages.loadBalancers.push({ name: loadBalancer.name });
             }
             securityGroups.push(securityGroup);
           } catch (e) {
@@ -143,7 +143,7 @@ export class SecurityGroupReader {
       }
     });
 
-    return {notFoundCaught, securityGroups};
+    return { notFoundCaught, securityGroups };
   }
 
   private addNameBasedSecurityGroups(application: Application,
@@ -161,7 +161,7 @@ export class SecurityGroupReader {
       }
     });
 
-    return {notFoundCaught, securityGroups};
+    return { notFoundCaught, securityGroups };
   }
 
   private addServerGroupSecurityGroups(application: Application): ISecurityGroupProcessorResult {
@@ -189,7 +189,7 @@ export class SecurityGroupReader {
       }
     });
 
-    return {notFoundCaught, securityGroups};
+    return { notFoundCaught, securityGroups };
   }
 
   private clearCacheAndRetryAttachingSecurityGroups(application: Application,
@@ -324,7 +324,7 @@ export class SecurityGroupReader {
       .one(account)
       .one(region)
       .one(id)
-      .withParams({provider, vpcId})
+      .withParams({ provider, vpcId })
       .get()
       .then((details: ISecurityGroupDetail) => {
 
@@ -366,7 +366,7 @@ export class SecurityGroupReader {
               group.account = account;
             });
           });
-          securityGroups.push({account, provider, securityGroups: groupsByProvider[provider]});
+          securityGroups.push({ account, provider, securityGroups: groupsByProvider[provider] });
         });
       });
 
@@ -385,7 +385,7 @@ export class SecurityGroupReader {
       if (!searchResults || !searchResults.results) {
         this.$log.warn('WARNING: Gate security group endpoint appears to be down.');
       } else {
-        result = filter(searchResults.results, {application: applicationName});
+        result = filter(searchResults.results, { application: applicationName });
       }
 
       return result;

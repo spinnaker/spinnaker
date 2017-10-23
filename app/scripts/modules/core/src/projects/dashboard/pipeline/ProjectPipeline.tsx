@@ -34,11 +34,11 @@ export class ProjectPipeline extends React.Component<IProjectPipelineProps, IPro
   }
 
   private handleExecutionTitleClick(): void {
-    ReactInjector.$state.go('^.application.pipelines.executions.execution', {application: this.props.execution.application, executionId: this.props.execution.id});
+    ReactInjector.$state.go('^.application.pipelines.executions.execution', { application: this.props.execution.application, executionId: this.props.execution.id });
   }
 
   private handleStageClick(stageIndex: number) {
-    ReactInjector.$state.go('^.application.pipelines.executionDetails.execution', {application: this.props.execution.application, executionId: this.props.execution.id, stage: stageIndex})
+    ReactInjector.$state.go('^.application.pipelines.executionDetails.execution', { application: this.props.execution.application, executionId: this.props.execution.id, stage: stageIndex })
   }
 
   public render() {

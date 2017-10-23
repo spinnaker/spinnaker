@@ -1,5 +1,5 @@
-import {module} from 'angular';
-import {HELP_CONTENTS_REGISTRY, HelpContentsRegistry} from '@spinnaker/core';
+import { module } from 'angular';
+import { HELP_CONTENTS_REGISTRY, HelpContentsRegistry } from '@spinnaker/core';
 
 const helpContents: {[key: string]: string} = {
   'kubernetes.serverGroup.stack': '(Optional) One of the core naming components of a cluster, used to create vertical stacks of dependent services for integration testing.',

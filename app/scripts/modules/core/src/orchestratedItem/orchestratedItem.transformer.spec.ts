@@ -14,11 +14,11 @@ describe('orchestratedItem transformer', () => {
     });
 
     it('returns null when no kato.tasks field in stage context', () => {
-      expect(getMessage({context: {}})).toBe(null);
+      expect(getMessage({ context: {} })).toBe(null);
     });
 
     it('returns null when kato.tasks field in stage context is empty', () => {
-      expect(getMessage({context: { 'kato.tasks': []}})).toBe(null);
+      expect(getMessage({ context: { 'kato.tasks': [] } })).toBe(null);
     });
 
     it('returns null when last kato task has no exception', () => {
@@ -40,9 +40,9 @@ describe('orchestratedItem transformer', () => {
     });
 
     it('returns general exception if present', () => {
-      expect(getMessage({context: { 'exception': { 'details' : { 'errors': ['E1', 'E2']}}}})).toBe('E1, E2');
-      expect(getMessage({context: { 'exception': { 'details' : { 'errors': []}}}})).toBe(null);
-      expect(getMessage({context: { }})).toBe(null);
+      expect(getMessage({ context: { 'exception': { 'details' : { 'errors': ['E1', 'E2'] } } } })).toBe('E1, E2');
+      expect(getMessage({ context: { 'exception': { 'details' : { 'errors': [] } } } })).toBe(null);
+      expect(getMessage({ context: { } })).toBe(null);
     });
 
     it('returns general exception even if a kato task is present', () => {

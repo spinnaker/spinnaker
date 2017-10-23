@@ -140,11 +140,11 @@ class TcpLoadBalancerCtrl extends CommonGceLoadBalancerCtrl implements ng.ICompo
 
         this.accountUpdated();
 
-        this.wizardSubFormValidation.config({scope: this.$scope, form: 'form'})
-          .register({page: 'location', subForm: 'locationForm'})
-          .register({page: 'listener', subForm: 'listenerForm'})
-          .register({page: 'healthCheck', subForm: 'healthCheckForm'})
-          .register({page: 'advancedSettings', subForm: 'advancedSettingsForm'});
+        this.wizardSubFormValidation.config({ scope: this.$scope, form: 'form' })
+          .register({ page: 'location', subForm: 'locationForm' })
+          .register({ page: 'listener', subForm: 'listenerForm' })
+          .register({ page: 'healthCheck', subForm: 'healthCheckForm' })
+          .register({ page: 'advancedSettings', subForm: 'advancedSettingsForm' });
 
         this.taskMonitor = this.taskMonitorBuilder.buildTaskMonitor({
           application: this.application,

@@ -44,7 +44,7 @@ export class ConfigSectionFooter extends React.Component<IConfigSectionFooterPro
     return (
       <div className="row footer">
         <div className="col-md-3">
-          <button className="btn btn-default" onClick={onRevertClicked} style={{visibility: 'visible'}}>
+          <button className="btn btn-default" onClick={onRevertClicked} style={{ visibility: 'visible' }}>
             <span className="glyphicon glyphicon-flash"/> Revert
           </button>
         </div>

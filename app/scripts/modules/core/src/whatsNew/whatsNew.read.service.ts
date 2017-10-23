@@ -1,5 +1,5 @@
-import {module, IHttpService, ILogService, IPromise, IHttpPromiseCallbackArg, IQService} from 'angular';
-import {SETTINGS} from 'core/config/settings';
+import { module, IHttpService, ILogService, IPromise, IHttpPromiseCallbackArg, IQService } from 'angular';
+import { SETTINGS } from 'core/config/settings';
 
 export interface IGistApiResponse {
   // There are many other fields in the real response object.

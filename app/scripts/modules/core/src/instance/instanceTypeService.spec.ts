@@ -1,6 +1,6 @@
-import {mock} from 'angular';
+import { mock } from 'angular';
 
-import {INSTANCE_TYPE_SERVICE, InstanceTypeService, IInstanceTypeCategory} from 'core/instance/instanceType.service';
+import { INSTANCE_TYPE_SERVICE, InstanceTypeService, IInstanceTypeCategory } from 'core/instance/instanceType.service';
 
 describe('Service: instanceTypeService', function () {
 
@@ -13,10 +13,10 @@ describe('Service: instanceTypeService', function () {
     families: [{
       type: 'm3',
       instanceTypes: [
-        {name: 'm3.medium'},
-        {name: 'm3.large'},
-        {name: 'm3.xlarge'},
-        {name: 'm3.2xlarge'}
+        { name: 'm3.medium' },
+        { name: 'm3.large' },
+        { name: 'm3.xlarge' },
+        { name: 'm3.2xlarge' }
       ]
     }]
   };
@@ -26,10 +26,10 @@ describe('Service: instanceTypeService', function () {
     families: [{
       type: 'r3',
       instanceTypes: [
-        {name: 'r3.large'},
-        {name: 'r3.xlarge'},
-        {name: 'r3.2xlarge'},
-        {name: 'r3.4xlarge'},
+        { name: 'r3.large' },
+        { name: 'r3.xlarge' },
+        { name: 'r3.2xlarge' },
+        { name: 'r3.4xlarge' },
       ]
     }]
   };
@@ -39,8 +39,8 @@ describe('Service: instanceTypeService', function () {
     families: [{
       type: 't2',
       instanceTypes: [
-        {name: 't2.small'},
-        {name: 't2.medium'},
+        { name: 't2.small' },
+        { name: 't2.medium' },
       ]
     }]
   };
@@ -49,7 +49,7 @@ describe('Service: instanceTypeService', function () {
     type: 'buildCustom',
     families: [{
       type: 'buildCustom',
-      instanceTypes: [{name: 'buildCustom', nameRegex: /custom-\d{1,2}-\d{4,6}/}]
+      instanceTypes: [{ name: 'buildCustom', nameRegex: /custom-\d{1,2}-\d{4,6}/ }]
     }]
   };
 

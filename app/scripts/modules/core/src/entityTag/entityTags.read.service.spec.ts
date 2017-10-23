@@ -1,7 +1,7 @@
 import { IHttpBackendService, IQService, ITimeoutService, mock } from 'angular';
 
-import {EntityTagsReader, ENTITY_TAGS_READ_SERVICE} from './entityTags.read.service';
-import {SETTINGS} from 'core/config/settings';
+import { EntityTagsReader, ENTITY_TAGS_READ_SERVICE } from './entityTags.read.service';
+import { SETTINGS } from 'core/config/settings';
 
 describe('entityTags reader', () => {
 

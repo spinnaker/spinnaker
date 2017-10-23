@@ -1,4 +1,4 @@
-import {module} from 'angular';
+import { module } from 'angular';
 
 import { Application } from 'core/application/application.model';
 import { IMoniker } from 'core/naming/IMoniker';

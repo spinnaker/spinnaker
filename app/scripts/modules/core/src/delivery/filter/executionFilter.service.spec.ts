@@ -1,8 +1,8 @@
-import {mock} from 'angular';
+import { mock } from 'angular';
 
-import {APPLICATION_MODEL_BUILDER, ApplicationModelBuilder} from 'core/application/applicationModel.builder';
-import {EXECUTION_FILTER_MODEL, ExecutionFilterModel} from 'core/delivery/filter/executionFilter.model';
-import {EXECUTION_FILTER_SERVICE, ExecutionFilterService} from './executionFilter.service';
+import { APPLICATION_MODEL_BUILDER, ApplicationModelBuilder } from 'core/application/applicationModel.builder';
+import { EXECUTION_FILTER_MODEL, ExecutionFilterModel } from 'core/delivery/filter/executionFilter.model';
+import { EXECUTION_FILTER_SERVICE, ExecutionFilterService } from './executionFilter.service';
 
 describe('Service: executionFilterService', function () {
 
@@ -29,8 +29,8 @@ describe('Service: executionFilterService', function () {
 
   describe('Sorting', () => {
     it('sorts pipeline groups by index, always putting strategies at the end, followed by ad-hoc pipelines', () => {
-      const firstGroup = { config: { index: 1} };
-      const secondGroup = { config: { index: 2} };
+      const firstGroup = { config: { index: 1 } };
+      const secondGroup = { config: { index: 2 } };
       const strategy = { config: { index: 0, strategy: true } };
       const adHocA = { heading: 'a' };
       const adHocB = { heading: 'b' };

@@ -31,13 +31,13 @@ export class LoadBalancerReader {
   }
 
   public getLoadBalancerDetails(cloudProvider: string, account: string, region: string, name: string): IPromise<ILoadBalancerSourceData[]> {
-    return this.API.all('loadBalancers').all(account).all(region).all(name).withParams({'provider': cloudProvider}).get();
+    return this.API.all('loadBalancers').all(account).all(region).all(name).withParams({ 'provider': cloudProvider }).get();
   }
 
   public listLoadBalancers(cloudProvider: string): IPromise<ILoadBalancersByAccount[]> {
     return this.API.all('loadBalancers')
       .useCache(this.infrastructureCaches.get('loadBalancers'))
-      .withParams({provider: cloudProvider})
+      .withParams({ provider: cloudProvider })
       .getList();
   }
 

@@ -41,14 +41,14 @@ export class FilterTags extends React.Component<IFilterTagsProps, IFilterTagsSta
 
   private clearAllFilters(): void {
     this.props.clearFilters();
-    ReactGA.event({category: 'Filter Tags', action: 'Clear All clicked'});
+    ReactGA.event({ category: 'Filter Tags', action: 'Clear All clicked' });
   }
 
   private generateTag(tag: IFilterTag) {
     const clearFilter = (): void => {
       tag.clear();
       this.props.tagCleared();
-      ReactGA.event({category: 'Filter Tags', action: 'Individual tag removed'});
+      ReactGA.event({ category: 'Filter Tags', action: 'Individual tag removed' });
     };
     return (
       <span className="filter-tag" key={[tag.label, tag.value].join(':')}>

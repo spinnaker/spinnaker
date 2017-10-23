@@ -1,6 +1,6 @@
-import {mock, IScope, IRootScopeService} from 'angular';
+import { mock, IScope, IRootScopeService } from 'angular';
 
-import {TRAVIS_TRIGGER} from './travisTrigger.module';
+import { TRAVIS_TRIGGER } from './travisTrigger.module';
 
 describe('Travis Trigger: ExecutionHandler', () => {
 
@@ -15,7 +15,7 @@ describe('Travis Trigger: ExecutionHandler', () => {
 
   it('returns job and master as label', () => {
     let label: string = null;
-    handler.formatLabel({job: 'a', master: 'b'}).then((result: string) => label = result);
+    handler.formatLabel({ job: 'a', master: 'b' }).then((result: string) => label = result);
     $scope.$digest();
     expect(label).toBe('(Travis) b: a');
   });

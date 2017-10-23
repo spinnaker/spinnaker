@@ -1,4 +1,4 @@
-import {DeckCacheService, ICache, ICacheConfig, ICacheMap, ICacheFactory} from './deckCache.service';
+import { DeckCacheService, ICache, ICacheConfig, ICacheMap, ICacheFactory } from './deckCache.service';
 
 export abstract class AbstractBaseCacheService implements ICacheFactory {
 

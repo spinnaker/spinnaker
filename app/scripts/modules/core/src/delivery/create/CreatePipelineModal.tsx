@@ -81,7 +81,7 @@ export class CreatePipelineModal extends React.Component<ICreatePipelineModalPro
     const defaultConfig = this.getDefaultConfig();
     const { application } = this.props;
     const configs: Partial<IPipeline>[] = [defaultConfig].concat(get(application, 'pipelineConfigs.data', []));
-    const configOptions: Select.Option[] = configs.map(config => ({value: config.name, label: config.name}));
+    const configOptions: Select.Option[] = configs.map(config => ({ value: config.name, label: config.name }));
     const existingNames: string[] = [defaultConfig]
       .concat(get(application, 'pipelineConfigs.data', []))
       .concat(get(application, 'strategyConfigs.data', []))
@@ -98,7 +98,7 @@ export class CreatePipelineModal extends React.Component<ICreatePipelineModalPro
       configOptions: configOptions,
       templates: [],
       existingNames: existingNames,
-      command: {strategy: false, name: '', config: defaultConfig, template: null},
+      command: { strategy: false, name: '', config: defaultConfig, template: null },
       useTemplate: false,
       useManagedTemplate: true,
       loadingTemplateFromSource: false,
@@ -124,7 +124,7 @@ export class CreatePipelineModal extends React.Component<ICreatePipelineModalPro
       pipelineConfig.config.pipeline.name = command.name;
     }
 
-    this.setState({submitting: true});
+    this.setState({ submitting: true });
     ReactInjector.pipelineConfigService.savePipeline(pipelineConfig as IPipeline)
       .then(() => this.onSaveSuccess(pipelineConfig), this.onSaveFailure);
   }
@@ -142,11 +142,11 @@ export class CreatePipelineModal extends React.Component<ICreatePipelineModalPro
         pipeline: {
           name: this.state.command.name,
           application: this.props.application.name,
-          template: {source: this.state.command.template.selfLink},
+          template: { source: this.state.command.template.selfLink },
         }
       }
     };
-    this.setState({submitting: true});
+    this.setState({ submitting: true });
     ReactInjector.pipelineConfigService.savePipeline(config as IPipeline)
       .then(() => this.onSaveSuccess(config), this.onSaveFailure);
   }
@@ -187,32 +187,32 @@ export class CreatePipelineModal extends React.Component<ICreatePipelineModalPro
   }
 
   private handleTypeChange(option: Select.Option): void {
-    this.setState({command: Object.assign({}, this.state.command, {strategy: option.value})});
+    this.setState({ command: Object.assign({}, this.state.command, { strategy: option.value }) });
   }
 
   private handleNameChange(e: React.ChangeEvent<HTMLInputElement>): void {
-    this.setState({command: Object.assign({}, this.state.command, {name: e.target.value})});
+    this.setState({ command: Object.assign({}, this.state.command, { name: e.target.value }) });
   }
 
   private handleConfigChange(option: Select.Option): void {
     const config = this.state.configs.find(t => t.name === option.value);
-    this.setState({command: Object.assign({}, this.state.command, {config})});
+    this.setState({ command: Object.assign({}, this.state.command, { config }) });
   }
 
   private handleSaveErrorDismiss(): void {
-    this.setState({saveError: false});
+    this.setState({ saveError: false });
   }
 
   private handleLoadErrorDismiss(): void {
-    this.setState({loadError: false});
+    this.setState({ loadError: false });
   }
 
   private handleTemplateSelection(template: IPipelineTemplate): void {
-    this.setState({command: Object.assign({}, this.state.command, {template})});
+    this.setState({ command: Object.assign({}, this.state.command, { template }) });
   }
 
   private handleUseTemplateSelection(useTemplate: boolean): () => void {
-    return () => this.setState({useTemplate});
+    return () => this.setState({ useTemplate });
   }
 
   private handleUseManagedTemplateSelection(useManagedTemplate: boolean): () => void {
@@ -221,14 +221,14 @@ export class CreatePipelineModal extends React.Component<ICreatePipelineModalPro
         useManagedTemplate,
         templateSourceUrl: '',
         loadingTemplateFromSourceError: false,
-        command: Object.assign({}, this.state.command, {template: null}),
+        command: Object.assign({}, this.state.command, { template: null }),
       });
     };
   }
 
   public handleSourceUrlChange(e: React.ChangeEvent<HTMLInputElement>): void {
     const templateSourceUrl = e.target.value;
-    this.setState({templateSourceUrl});
+    this.setState({ templateSourceUrl });
     this.loadPipelineTemplateFromSource(templateSourceUrl);
   }
 
@@ -259,11 +259,11 @@ export class CreatePipelineModal extends React.Component<ICreatePipelineModalPro
 
   public loadPipelineTemplates(): void {
     if (SETTINGS.feature.pipelineTemplates) {
-      this.setState({loading: true});
+      this.setState({ loading: true });
       ReactInjector.pipelineTemplateService.getPipelineTemplatesByScopes([this.props.application.name, 'global'])
         .then(templates => {
           templates = uniqBy(templates, 'id');
-          this.setState({templates, loading: false});
+          this.setState({ templates, loading: false });
         })
         .catch((response: IHttpPromiseCallbackArg<{message: string}>) => {
           this.setState({
@@ -274,7 +274,7 @@ export class CreatePipelineModal extends React.Component<ICreatePipelineModalPro
         })
         .finally(() => {
           if (!this.state.templates.length) {
-            this.setState({useManagedTemplate: false});
+            this.setState({ useManagedTemplate: false });
           }
         })
     }
@@ -283,11 +283,11 @@ export class CreatePipelineModal extends React.Component<ICreatePipelineModalPro
   @Debounce(200)
   private loadPipelineTemplateFromSource(sourceUrl: string): void {
     if (sourceUrl) {
-      this.setState({loadingTemplateFromSource: true, loadingTemplateFromSourceError: false});
+      this.setState({ loadingTemplateFromSource: true, loadingTemplateFromSourceError: false });
       ReactInjector.pipelineTemplateService.getPipelineTemplateFromSourceUrl(sourceUrl)
         .then(template => this.state.command.template = template)
-        .catch(() => this.setState({loadingTemplateFromSourceError: true}))
-        .finally(() => this.setState({loadingTemplateFromSource: false}));
+        .catch(() => this.setState({ loadingTemplateFromSourceError: true }))
+        .finally(() => this.setState({ loadingTemplateFromSource: false }));
     }
   }
 
@@ -306,7 +306,7 @@ export class CreatePipelineModal extends React.Component<ICreatePipelineModalPro
           <Modal.Title>Create New {this.state.command.strategy ? 'Strategy' : 'Pipeline'}</Modal.Title>
         </Modal.Header>
         {this.state.loading && (
-          <Modal.Body style={{height: '200px'}}><LegacySpinner radius={25} width={6} length={16} /></Modal.Body>
+          <Modal.Body style={{ height: '200px' }}><LegacySpinner radius={25} width={6} length={16} /></Modal.Body>
         )}
         {!this.state.loading && (
           <Modal.Body>
@@ -332,9 +332,9 @@ export class CreatePipelineModal extends React.Component<ICreatePipelineModalPro
                   </div>
                   <div className="col-md-7">
                     <Select
-                      options={[{label: 'Pipeline', value: false}, {label: 'Strategy', value: true}]}
+                      options={[{ label: 'Pipeline', value: false }, { label: 'Strategy', value: true }]}
                       clearable={false}
-                      value={this.state.command.strategy ? {label: 'Strategy'} : {label: 'Pipeline'}}
+                      value={this.state.command.strategy ? { label: 'Strategy' } : { label: 'Pipeline' }}
                       onChange={this.handleTypeChange}
                     />
                   </div>
@@ -399,7 +399,7 @@ export class CreatePipelineModal extends React.Component<ICreatePipelineModalPro
                         <Select
                           options={this.state.configOptions}
                           clearable={false}
-                          value={{value: this.state.command.config.name, label: this.state.command.config.name}}
+                          value={{ value: this.state.command.config.name, label: this.state.command.config.name }}
                           optionRenderer={this.configOptionRenderer}
                           onChange={this.handleConfigChange}
                         />

@@ -1,9 +1,9 @@
-import {module, IHttpService, IPromise, IQResolveReject, IQService, IRequestConfig} from 'angular';
+import { module, IHttpService, IPromise, IQResolveReject, IQService, IRequestConfig } from 'angular';
 import {
   AUTHENTICATION_INITIALIZER_SERVICE,
   AuthenticationInitializer
 } from '../authentication/authentication.initializer.service';
-import {SETTINGS} from 'core/config/settings';
+import { SETTINGS } from 'core/config/settings';
 
 interface DefaultParams {
   timeout: number;

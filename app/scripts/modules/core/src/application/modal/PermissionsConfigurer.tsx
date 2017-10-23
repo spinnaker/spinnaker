@@ -33,8 +33,8 @@ export interface IPermissionsConfigurerState {
 export class PermissionsConfigurer extends React.Component<IPermissionsConfigurerProps, IPermissionsConfigurerState> {
 
   private static accessTypes: Select.Option[] = [
-    {value: 'READ', label: 'Read only'},
-    {value: 'READ,WRITE', label: 'Read and write'},
+    { value: 'READ', label: 'Read only' },
+    { value: 'READ,WRITE', label: 'Read and write' },
   ];
 
   constructor(props: IPermissionsConfigurerProps) {
@@ -63,7 +63,7 @@ export class PermissionsConfigurer extends React.Component<IPermissionsConfigure
     }
 
     permissions.READ.forEach(group => {
-      permissionRows.push({group, access: 'READ'});
+      permissionRows.push({ group, access: 'READ' });
     });
 
     permissions.WRITE.forEach(group => {
@@ -72,7 +72,7 @@ export class PermissionsConfigurer extends React.Component<IPermissionsConfigure
         matchingRow.access += ',WRITE';
       } else {
         // WRITE only permissions aren't supported in the UI, but they could be.
-        permissionRows.push({group, access: 'WRITE'});
+        permissionRows.push({ group, access: 'WRITE' });
       }
     });
 
@@ -84,7 +84,7 @@ export class PermissionsConfigurer extends React.Component<IPermissionsConfigure
     return without(
       availableRoles || [],
       ...(permissions ? (permissions.READ || []).concat(permissions.WRITE || []) : [])
-    ).map(role => ({value: role, label: role}));
+    ).map(role => ({ value: role, label: role }));
   }
 
   private convertRequiredGroupMembershipToPermissions(): IPermissions {
@@ -103,11 +103,11 @@ export class PermissionsConfigurer extends React.Component<IPermissionsConfigure
 
     READ = uniq(READ);
     WRITE = uniq(WRITE);
-    return {READ, WRITE};
+    return { READ, WRITE };
   }
 
   private buildPermissions(permissionRows: IPermissionRow[]): IPermissions {
-    const permissions: IPermissions = {READ: [], WRITE: []};
+    const permissions: IPermissions = { READ: [], WRITE: [] };
     permissionRows.forEach(row => {
       const accessTypes = row.access.split(',');
       accessTypes.forEach(type => {
@@ -165,7 +165,7 @@ export class PermissionsConfigurer extends React.Component<IPermissionsConfigure
 
   private handleAddPermission(): void {
     const permissionRows = cloneDeep(this.state.permissionRows);
-    permissionRows.push({group: null, access: 'READ'});
+    permissionRows.push({ group: null, access: 'READ' });
     this.props.onPermissionsChange(this.buildPermissions(permissionRows));
   }
 
@@ -182,14 +182,14 @@ export class PermissionsConfigurer extends React.Component<IPermissionsConfigure
                 <div className="col-md-5 permissions-group">
                   <Select.Creatable
                     clearable={false}
-                    value={{value: row.group, label: row.group}}
+                    value={{ value: row.group, label: row.group }}
                     options={this.state.roleOptions}
                     onChange={this.handleRoleSelect(i)}
                   />
                 </div>
                 <div className="col-md-5">
                   <Select
-                    value={{value: row.access, label: permissionTypeLabel}}
+                    value={{ value: row.access, label: permissionTypeLabel }}
                     options={PermissionsConfigurer.accessTypes}
                     onChange={this.handleAccessTypeSelect(i)}
                     clearable={false}

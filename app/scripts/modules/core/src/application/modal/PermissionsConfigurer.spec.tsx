@@ -24,7 +24,7 @@ describe('PermissionsConfigurer', () => {
   beforeEach(mock.inject(() => {
     const authenticationService = ReactInjector.authenticationService;
     spyOn(authenticationService, 'getAuthenticatedUser').and.callFake(() => {
-      return {roles: ['groupA', 'groupB', 'groupC']};
+      return { roles: ['groupA', 'groupB', 'groupC'] };
     });
   }));
 
@@ -46,7 +46,7 @@ describe('PermissionsConfigurer', () => {
 
   it(`populates the 'roleOptions' list with a user's roles minus the roles already used in the permissions object`, () => {
     const component = createComponent({
-      permissions: {READ: ['groupA', 'groupB'], WRITE: ['groupB']},
+      permissions: { READ: ['groupA', 'groupB'], WRITE: ['groupB'] },
       requiredGroupMembership: null,
       onPermissionsChange: () => null,
     });

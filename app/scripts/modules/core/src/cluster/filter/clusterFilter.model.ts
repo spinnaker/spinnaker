@@ -11,9 +11,9 @@ export const filterModelConfig: IFilterConfig[] = [
   { model: 'region', param: 'reg', type: 'trueKeyObject', },
   { model: 'stack', param: 'stack', type: 'trueKeyObject', },
   { model: 'category', param: 'category', type: 'trueKeyObject', },
-  { model: 'status', type: 'trueKeyObject', filterTranslator: {Up: 'Healthy', Down: 'Unhealthy', OutOfService: 'Out of Service'}},
+  { model: 'status', type: 'trueKeyObject', filterTranslator: { Up: 'Healthy', Down: 'Unhealthy', OutOfService: 'Out of Service' } },
   { model: 'availabilityZone', param: 'zone', type: 'trueKeyObject', filterLabel: 'availability zone' },
-  { model: 'instanceType', type: 'trueKeyObject', filterLabel: 'instance type'},
+  { model: 'instanceType', type: 'trueKeyObject', filterLabel: 'instance type' },
   { model: 'providerType', type: 'trueKeyObject', filterLabel: 'provider', },
   { model: 'minInstances', type: 'int', filterLabel: 'instance count (min)', },
   { model: 'maxInstances', type: 'int', filterLabel: 'instance count (max)', },
@@ -21,7 +21,7 @@ export const filterModelConfig: IFilterConfig[] = [
   { model: 'listInstances', displayOption: true, type: 'boolean', },
   { model: 'instanceSort', displayOption: true, type: 'sortKey', defaultValue: 'launchTime' },
   { model: 'multiselect', displayOption: true, type: 'boolean', },
-  { model: 'clusters', type: 'trueKeyObject'},
+  { model: 'clusters', type: 'trueKeyObject' },
 ];
 
 export class ClusterFilterModel {

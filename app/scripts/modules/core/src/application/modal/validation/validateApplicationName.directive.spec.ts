@@ -1,11 +1,11 @@
-import {mock} from 'angular';
+import { mock } from 'angular';
 
 import {
   EXAMPLE_APPLICATION_NAME_VALIDATOR, ExampleApplicationNameValidator,
   ExampleApplicationNameValidator2
 } from './exampleApplicationName.validator';
-import {VALIDATE_APPLICATION_NAME} from './validateApplicationName.directive';
-import {AccountService} from 'core/account/account.service';
+import { VALIDATE_APPLICATION_NAME } from './validateApplicationName.directive';
+import { AccountService } from 'core/account/account.service';
 
 describe('Validator: validateApplicationName', function () {
 

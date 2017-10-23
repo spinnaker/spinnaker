@@ -27,12 +27,12 @@ export class CreatePipelineButton extends React.Component<ICreatePipelineButtonP
   }
 
   private showCallBack(showCreatePipelineModal: boolean) {
-    this.setState({showCreatePipelineModal});
+    this.setState({ showCreatePipelineModal });
   }
 
   private createPipeline() {
-    ReactGA.event({category: 'Pipelines', action: 'Create Pipeline'});
-    this.setState({showCreatePipelineModal: true});
+    ReactGA.event({ category: 'Pipelines', action: 'Create Pipeline' });
+    this.setState({ showCreatePipelineModal: true });
   }
 
   private goToPipelineConfig(id: string) {
@@ -48,7 +48,7 @@ export class CreatePipelineButton extends React.Component<ICreatePipelineButtonP
     return (
       <button
         className="btn btn-sm btn-default"
-        style={{marginRight: '5px'}}
+        style={{ marginRight: '5px' }}
         onClick={this.createPipeline}
       >
         <span className="glyphicon glyphicon-plus-sign visible-xl-inline"/>

@@ -39,10 +39,10 @@ export class AppengineLoadBalancerUpsertDescription implements ILoadBalancerUpse
 
   public static convertTrafficSplitToTrafficSplitDescription(split: IAppengineTrafficSplit): IAppengineTrafficSplitDescription {
     const allocationDescriptions = reduce(split.allocations, (acc: IAppengineAllocationDescription[], allocation: number, serverGroupName: string) => {
-       return acc.concat({serverGroupName, allocation, locatorType: 'fromExisting'});
+       return acc.concat({ serverGroupName, allocation, locatorType: 'fromExisting' });
     }, []);
 
-    return {shardBy: split.shardBy, allocationDescriptions};
+    return { shardBy: split.shardBy, allocationDescriptions };
   }
 
   constructor(loadBalancer: IAppengineLoadBalancer) {
@@ -82,14 +82,14 @@ export class AppengineLoadBalancerTransformer {
       serverGroup.region = loadBalancer.region;
 
       if (serverGroup.detachedInstances) {
-        serverGroup.detachedInstances = (serverGroup.detachedInstances as any).map((id: string) => ({id}));
+        serverGroup.detachedInstances = (serverGroup.detachedInstances as any).map((id: string) => ({ id }));
       }
       serverGroup.instances = serverGroup.instances
         .concat(serverGroup.detachedInstances || [])
         .map((instance: any) => this.transformInstance(instance, loadBalancer));
     });
 
-    const activeServerGroups = filter(loadBalancer.serverGroups, {isDisabled: false});
+    const activeServerGroups = filter(loadBalancer.serverGroups, { isDisabled: false });
     loadBalancer.instances = chain(activeServerGroups).map('instances').flatten().value() as IInstance[];
     return this.$q.resolve(loadBalancer);
   }
@@ -122,7 +122,7 @@ export class AppengineLoadBalancerTransformer {
           acc[camelCase(instance.health.state)]++;
         }
         return acc;
-      }, {up: 0, down: 0, outOfService: 0, succeeded: 0, failed: 0, starting: 0, unknown: 0}).value();
+      }, { up: 0, down: 0, outOfService: 0, succeeded: 0, failed: 0, starting: 0, unknown: 0 }).value();
 
     instanceCounts.outOfService += chain(serverGroups).map('detachedInstances').flatten().value().length;
     return instanceCounts;

@@ -37,7 +37,7 @@ export class ApplicationModelBuilder {
 
   public createNotFoundApplication(name: string): Application {
     const application = new Application(name, this.schedulerFactory.createScheduler(), this.$q, this.$log);
-    this.addDataSource({key: 'serverGroups', lazy: true}, application);
+    this.addDataSource({ key: 'serverGroups', lazy: true }, application);
     application.notFound = true;
     return application;
   }

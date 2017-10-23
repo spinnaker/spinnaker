@@ -7,7 +7,7 @@ class KubernetesManifestBasicSettingsCtrl implements IController {
 }
 
 class KubernetesManifestBasicSettingsComponent implements IComponentOptions {
-  public bindings: any = {command: '='};
+  public bindings: any = { command: '=' };
   public controller: any = KubernetesManifestBasicSettingsCtrl;
   public controllerAs = 'ctrl';
   public template = `

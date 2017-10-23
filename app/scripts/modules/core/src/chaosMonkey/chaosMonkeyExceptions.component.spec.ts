@@ -1,9 +1,9 @@
-import {mock, IComponentControllerService, IScope, IQService, IRootScopeService, IPromise} from 'angular';
+import { mock, IComponentControllerService, IScope, IQService, IRootScopeService, IPromise } from 'angular';
 
-import {CHAOS_MONKEY_EXCEPTIONS_COMPONENT, ChaosMonkeyExceptionsController} from './chaosMonkeyExceptions.component';
-import {AccountService} from 'core/account/account.service';
-import {APPLICATION_MODEL_BUILDER, ApplicationModelBuilder} from 'core/application/applicationModel.builder';
-import {ChaosMonkeyConfig} from 'core/chaosMonkey/chaosMonkeyConfig.component';
+import { CHAOS_MONKEY_EXCEPTIONS_COMPONENT, ChaosMonkeyExceptionsController } from './chaosMonkeyExceptions.component';
+import { AccountService } from 'core/account/account.service';
+import { APPLICATION_MODEL_BUILDER, ApplicationModelBuilder } from 'core/application/applicationModel.builder';
+import { ChaosMonkeyConfig } from 'core/chaosMonkey/chaosMonkeyConfig.component';
 
 describe('Controller: ChaosMonkeyExceptions', () => {
 
@@ -40,10 +40,10 @@ describe('Controller: ChaosMonkeyExceptions', () => {
   describe('data initialization', () => {
 
     it('gets all accounts, then adds wildcard and regions per account to vm', () => {
-      const accounts = [ {name: 'prod'}, {name: 'test'} ];
+      const accounts = [ { name: 'prod' }, { name: 'test' } ];
       const details: any = {
-        prod: { name: 'prod', regions: [ {name: 'us-east-1'}, {name: 'us-west-1'}] },
-        test: { name: 'test', regions: [ {name: 'us-west-2'}, {name: 'eu-west-1'}] }
+        prod: { name: 'prod', regions: [ { name: 'us-east-1' }, { name: 'us-west-1' }] },
+        test: { name: 'test', regions: [ { name: 'us-west-2' }, { name: 'eu-west-1' }] }
       };
 
       spyOn(accountService, 'listAccounts').and.returnValue($q.when(accounts));
@@ -53,7 +53,7 @@ describe('Controller: ChaosMonkeyExceptions', () => {
 
       initializeController(null);
       $ctrl.application =
-        applicationBuilder.createApplication('app', {key: 'serverGroups', data: [], ready: () => $q.when(null), loaded: true});
+        applicationBuilder.createApplication('app', { key: 'serverGroups', data: [], ready: () => $q.when(null), loaded: true });
       $ctrl.config = new ChaosMonkeyConfig($ctrl.application.attributes.chaosMonkey || {});
 
       $ctrl.$onInit();

@@ -89,7 +89,7 @@ class GceLoadBalancingPolicySelectorController implements IController {
       this.command.loadBalancingPolicy.namedPorts = [];
     }
 
-    this.command.loadBalancingPolicy.namedPorts.push({name: '', port: 80});
+    this.command.loadBalancingPolicy.namedPorts.push({ name: '', port: 80 });
   }
 
   public removeNamedPort(index: number) {

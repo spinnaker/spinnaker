@@ -1,8 +1,8 @@
-import { IController, IComponentOptions, module} from 'angular';
+import { IController, IComponentOptions, module } from 'angular';
 
 import './securityContextSelector.component.less';
-import {KUBERNETES_SE_LINUX_OPTIONS_SELECTOR} from './seLinuxOptionsSelector.component';
-import {KUBERNETES_CAPABILITIES_SELECTOR} from './capabilitiesSelector.component';
+import { KUBERNETES_SE_LINUX_OPTIONS_SELECTOR } from './seLinuxOptionsSelector.component';
+import { KUBERNETES_CAPABILITIES_SELECTOR } from './capabilitiesSelector.component';
 
 interface ISecurityContextField {
   label: string;

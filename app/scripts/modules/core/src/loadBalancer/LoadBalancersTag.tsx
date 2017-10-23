@@ -69,7 +69,7 @@ export class LoadBalancersTag extends React.Component<ILoadBalancersTagProps, IL
       loadBalancers: [],
     };
 
-    LoadBalancerDataUtils.populateLoadBalancers(props.application, props.serverGroup).then(loadBalancers => this.setState({loadBalancers}))
+    LoadBalancerDataUtils.populateLoadBalancers(props.application, props.serverGroup).then(loadBalancers => this.setState({ loadBalancers }))
 
     this.loadBalancersRefreshUnsubscribe = props.application.getDataSource('loadBalancers').onRefresh(null, () => { this.forceUpdate(); });
   }
@@ -77,13 +77,13 @@ export class LoadBalancersTag extends React.Component<ILoadBalancersTagProps, IL
   private showLoadBalancerDetails(loadBalancer: ILoadBalancer): void {
     const { $state } = ReactInjector;
     const serverGroup = this.props.serverGroup;
-    ReactGA.event({category: 'Cluster Pod', action: `Load Load Balancer Details (multiple menu)`});
+    ReactGA.event({ category: 'Cluster Pod', action: `Load Load Balancer Details (multiple menu)` });
     const nextState = $state.current.name.endsWith('.clusters') ? '.loadBalancerDetails' : '^.loadBalancerDetails';
-    $state.go(nextState, {region: serverGroup.region, accountId: serverGroup.account, name: loadBalancer.name, provider: serverGroup.type});
+    $state.go(nextState, { region: serverGroup.region, accountId: serverGroup.account, name: loadBalancer.name, provider: serverGroup.type });
   }
 
   private handleShowPopover() {
-    ReactGA.event({category: 'Cluster Pod', action: `Show Load Balancers Menu`});
+    ReactGA.event({ category: 'Cluster Pod', action: `Show Load Balancers Menu` });
   }
 
   private handleClick(e: React.MouseEvent<HTMLElement>): void {

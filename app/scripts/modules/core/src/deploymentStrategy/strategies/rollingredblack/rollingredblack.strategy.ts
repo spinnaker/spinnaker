@@ -1,4 +1,4 @@
-import {DeploymentStrategyRegistry} from 'core/deploymentStrategy/deploymentStrategy.registry';
+import { DeploymentStrategyRegistry } from 'core/deploymentStrategy/deploymentStrategy.registry';
 
 DeploymentStrategyRegistry.registerStrategy({
   label: 'Rolling Red/Black (Experimental)',

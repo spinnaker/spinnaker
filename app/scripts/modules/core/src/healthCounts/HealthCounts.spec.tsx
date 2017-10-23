@@ -139,12 +139,12 @@ describe('<HealthCounts />', () => {
     expect(component.find('.glyphicon-Up-triangle').length).toBe(1);
     expect(component.find('.glyphicon-Down-triangle').length).toBe(1);
     container = { up: 3, down: 1 } as IInstanceCounts;
-    component.setProps({container});
+    component.setProps({ container });
     expect(component.find('span.unhealthy').text().trim()).toBe('75%');
     expect(component.find('.glyphicon-Up-triangle').length).toBe(1);
     expect(component.find('.glyphicon-Down-triangle').length).toBe(1);
     container = { up: 4, down: 0 } as IInstanceCounts;
-    component.setProps({container});
+    component.setProps({ container });
     expect(component.find('span.healthy').at(1).text().trim()).toBe('100%');
     expect(component.find('.glyphicon-Up-triangle').length).toBe(1);
     expect(component.find('.glyphicon-Down-triangle').length).toBe(0);

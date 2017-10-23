@@ -43,7 +43,7 @@ module(APPENGINE_ENABLE_ASG_STAGE, [
       validators: [
         { type: 'requiredField', fieldName: 'cluster' },
         { type: 'requiredField', fieldName: 'target' },
-        { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account'},
+        { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account' },
       ]
     });
   }).controller('appengineEnableAsgStageCtrl', AppengineEnableAsgStageCtrl);

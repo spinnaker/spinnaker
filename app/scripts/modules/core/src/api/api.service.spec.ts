@@ -1,8 +1,8 @@
 import Spy = jasmine.Spy;
-import {mock, noop} from 'angular';
-import {AuthenticationInitializer} from '../authentication/authentication.initializer.service';
-import {API_SERVICE, Api} from './api.service';
-import {SETTINGS} from 'core/config/settings';
+import { mock, noop } from 'angular';
+import { AuthenticationInitializer } from '../authentication/authentication.initializer.service';
+import { API_SERVICE, Api } from './api.service';
+import { SETTINGS } from 'core/config/settings';
 
 describe('API Service', function () {
   let API: Api;
@@ -35,7 +35,7 @@ describe('API Service', function () {
   describe('validate response content-type header', function () {
     it('responses with non-"application/json" content types should trigger a reauthentication request and reject', function () {
       spyOn(authenticationInitializer, 'reauthenticateUser').and.callFake(noop);
-      $httpBackend.expectGET(`${baseUrl}/bad`).respond(200, '<html>this is the authentication page</html>', {'content-type': 'text/html'});
+      $httpBackend.expectGET(`${baseUrl}/bad`).respond(200, '<html>this is the authentication page</html>', { 'content-type': 'text/html' });
 
       let rejected = false;
       API.one('bad').get().then(noop, () => rejected = true);
@@ -173,8 +173,8 @@ describe('API Service', function () {
         const first = API.one('bar');
         const second = API.one('foo');
 
-        expect(first.config).toEqual({method: '', url: `${baseUrl}/bar`});
-        expect(second.config).toEqual({method: '', url: `${baseUrl}/foo`});
+        expect(first.config).toEqual({ method: '', url: `${baseUrl}/bar` });
+        expect(second.config).toEqual({ method: '', url: `${baseUrl}/foo` });
       });
     });
 
@@ -186,7 +186,7 @@ describe('API Service', function () {
       });
 
       it('should add data to the config if data object passed', function () {
-        const data = {bar: 'baz'};
+        const data = { bar: 'baz' };
         const result = API.one('foo').data(data);
         expected.url = `${baseUrl}/foo`;
         expected.data = data;
@@ -198,12 +198,12 @@ describe('API Service', function () {
   describe('create a config with params', function () {
     it('when no params are provided do not alter config', function () {
       const result = API.one('foo').withParams();
-      expect(result.config).toEqual({method: '', url: `${baseUrl}/foo`});
+      expect(result.config).toEqual({ method: '', url: `${baseUrl}/foo` });
     });
 
     it('when params are provided', function () {
-      const result = API.one('foo').withParams({one: 1});
-      expect(result.config).toEqual({method: '', url: `${baseUrl}/foo`, params: {one: 1} });
+      const result = API.one('foo').withParams({ one: 1 });
+      expect(result.config).toEqual({ method: '', url: `${baseUrl}/foo`, params: { one: 1 } });
     });
   });
 
@@ -219,7 +219,7 @@ describe('API Service', function () {
     });
 
     it('should set cache to cache object if explicitly set', function () {
-      const cacheObj = {count: 1};
+      const cacheObj = { count: 1 };
       const result = API.one('foo').useCache(cacheObj);
       expect(result.config.cache).toBe(cacheObj);
     });
@@ -246,7 +246,7 @@ describe('API Service', function () {
     it('should take a param object with one param', function () {
       $httpBackend.expectGET(`${baseUrl}/foo/bar?param1=2`).respond(200);
 
-      API.one('foo', 'bar').get({param1: 2});
+      API.one('foo', 'bar').get({ param1: 2 });
 
       $httpBackend.flush();
     });
@@ -254,7 +254,7 @@ describe('API Service', function () {
     it('should take a param object with multiple params', function () {
       $httpBackend.expectGET(`${baseUrl}/foo/bar?param1=2&param2=foo`).respond(200);
 
-      API.one('foo', 'bar').get({param1: 2, param2: 'foo'});
+      API.one('foo', 'bar').get({ param1: 2, param2: 'foo' });
 
       $httpBackend.flush();
     });
@@ -280,7 +280,7 @@ describe('API Service', function () {
     it('should take a param object with one param', function () {
       $httpBackend.expectGET(`${baseUrl}/foo/bar?param1=2`).respond(200);
 
-      API.one('foo', 'bar').getList({param1: 2});
+      API.one('foo', 'bar').getList({ param1: 2 });
 
       $httpBackend.flush();
     });
@@ -288,7 +288,7 @@ describe('API Service', function () {
     it('should take a param object with multiple params', function () {
       $httpBackend.expectGET(`${baseUrl}/foo/bar?param1=2&param2=foo`).respond(200);
 
-      API.one('foo', 'bar').getList({param1: 2, param2: 'foo'});
+      API.one('foo', 'bar').getList({ param1: 2, param2: 'foo' });
 
       $httpBackend.flush();
     });
@@ -304,7 +304,7 @@ describe('API Service', function () {
     });
 
     it('should create the url and POST with data', function () {
-      const data = {bar: 7};
+      const data = { bar: 7 };
       $httpBackend.expectPOST(`${baseUrl}/foo`, data).respond(200);
 
       API.one('foo').post(data);
@@ -323,7 +323,7 @@ describe('API Service', function () {
     });
 
     it('should create the url and PUT with data', function () {
-      const data = {bar: 7};
+      const data = { bar: 7 };
       $httpBackend.expectPUT(`${baseUrl}/foo`, data).respond(200);
 
       API.one('foo').put(data);
@@ -342,7 +342,7 @@ describe('API Service', function () {
     });
 
     it('should create the url with params and  make a DELETE call', function () {
-      const params = {bar: 7};
+      const params = { bar: 7 };
       $httpBackend.expectDELETE(`${baseUrl}/foo?bar=7`).respond(200);
 
       API.one('foo').remove(params);

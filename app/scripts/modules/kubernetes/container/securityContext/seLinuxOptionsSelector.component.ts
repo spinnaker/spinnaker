@@ -1,4 +1,4 @@
-import {IController, IComponentOptions, module} from 'angular';
+import { IController, IComponentOptions, module } from 'angular';
 
 interface ISeLinuxField {
   label: string;

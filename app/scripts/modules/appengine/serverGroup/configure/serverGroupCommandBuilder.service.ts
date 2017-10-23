@@ -72,9 +72,9 @@ export class AppengineServerGroupCommandBuilder {
       .filter(trigger => trigger.type === 'git' || trigger.type === 'jenkins' || trigger.type === 'travis')
       .map((trigger: IGitTrigger | IBuildTrigger) => {
         if (trigger.type === 'git') {
-          return {source: trigger.source, project: trigger.project, slug: trigger.slug, branch: trigger.branch, type: 'git'};
+          return { source: trigger.source, project: trigger.project, slug: trigger.slug, branch: trigger.branch, type: 'git' };
         } else {
-          return {master: trigger.master, job: trigger.job, type: trigger.type};
+          return { master: trigger.master, job: trigger.job, type: trigger.type };
         }
       });
   }

@@ -1,7 +1,7 @@
-import {module} from 'angular';
+import { module } from 'angular';
 
-import {API_SERVICE, Api} from 'core/api/api.service';
-import {SETTINGS} from 'core/config/settings';
+import { API_SERVICE, Api } from 'core/api/api.service';
+import { SETTINGS } from 'core/config/settings';
 
 export class ServiceAccountService {
   constructor(private $q: ng.IQService, private API: Api) { 'ngInject'; }

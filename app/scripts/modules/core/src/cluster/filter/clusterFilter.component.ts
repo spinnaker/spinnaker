@@ -90,7 +90,7 @@ class ClusterFilterCtrl {
   }
 
   public clearFilters(): void {
-    const {clusterFilterService, app} = this;
+    const { clusterFilterService, app } = this;
     clusterFilterService.clearFilters();
     clusterFilterService.updateClusterGroups(app);
     this.updateClusterGroups(false);

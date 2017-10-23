@@ -1,10 +1,10 @@
-import {chain, intersection, zipObject} from 'lodash';
-import {module} from 'angular';
+import { chain, intersection, zipObject } from 'lodash';
+import { module } from 'angular';
 
-import {Application} from 'core/application/application.model';
-import {API_SERVICE, Api} from 'core/api/api.service';
-import {CLOUD_PROVIDER_REGISTRY, CloudProviderRegistry} from '../cloudProvider/cloudProvider.registry';
-import {SETTINGS} from 'core/config/settings';
+import { Application } from 'core/application/application.model';
+import { API_SERVICE, Api } from 'core/api/api.service';
+import { CLOUD_PROVIDER_REGISTRY, CloudProviderRegistry } from '../cloudProvider/cloudProvider.registry';
+import { SETTINGS } from 'core/config/settings';
 
 export interface IRegion {
   account?: string;

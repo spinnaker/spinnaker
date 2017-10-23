@@ -1,6 +1,6 @@
-import {module} from 'angular';
-import {INFRASTRUCTURE_CACHE_SERVICE, InfrastructureCacheService} from 'core/cache/infrastructureCaches.service';
-import {API_SERVICE, Api} from 'core/api/api.service';
+import { module } from 'angular';
+import { INFRASTRUCTURE_CACHE_SERVICE, InfrastructureCacheService } from 'core/cache/infrastructureCaches.service';
+import { API_SERVICE, Api } from 'core/api/api.service';
 import { ISubnet } from 'core/domain';
 
 export class SubnetReader {

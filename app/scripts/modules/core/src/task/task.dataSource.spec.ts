@@ -1,9 +1,9 @@
-import {mock} from 'angular';
+import { mock } from 'angular';
 
-import {Application} from 'core/application/application.model';
-import {APPLICATION_MODEL_BUILDER} from 'core/application/applicationModel.builder';
-import {APPLICATION_DATA_SOURCE_REGISTRY} from '../application/service/applicationDataSource.registry';
-import {TASK_READ_SERVICE, TaskReader} from 'core/task/task.read.service';
+import { Application } from 'core/application/application.model';
+import { APPLICATION_MODEL_BUILDER } from 'core/application/applicationModel.builder';
+import { APPLICATION_DATA_SOURCE_REGISTRY } from '../application/service/applicationDataSource.registry';
+import { TASK_READ_SERVICE, TaskReader } from 'core/task/task.read.service';
 
 describe('Task Data Source', function () {
 
@@ -35,7 +35,7 @@ describe('Task Data Source', function () {
 
 
   function configureApplication() {
-    applicationDataSourceRegistry.registerDataSource({key: 'serverGroups'});
+    applicationDataSourceRegistry.registerDataSource({ key: 'serverGroups' });
     application = applicationModelBuilder.createApplication('app', applicationDataSourceRegistry.getDataSources());
     application.refresh();
     application.getDataSource('tasks').activate();

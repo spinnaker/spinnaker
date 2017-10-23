@@ -15,7 +15,7 @@ export class InstanceReader {
   }
 
   public getConsoleOutput(account: string, region: string, id: string, cloudProvider: string): ng.IPromise<IInstanceConsoleOutput> {
-    return this.API.one('instances').all(account).all(region).one(id, 'console').withParams({provider: cloudProvider}).get();
+    return this.API.one('instances').all(account).all(region).one(id, 'console').withParams({ provider: cloudProvider }).get();
   }
 }
 

@@ -1,8 +1,8 @@
-import {IDeferred, IHttpBackendService, IQService, IRootScopeService, IScope, mock} from 'angular';
+import { IDeferred, IHttpBackendService, IQService, IRootScopeService, IScope, mock } from 'angular';
 
-import {SETTINGS} from 'core/config/settings';
-import {MANUAL_JUDGMENT_SERVICE, ManualJudgmentService} from './manualJudgment.service';
-import {ExecutionService} from 'core/delivery/service/execution.service';
+import { SETTINGS } from 'core/config/settings';
+import { MANUAL_JUDGMENT_SERVICE, ManualJudgmentService } from './manualJudgment.service';
+import { ExecutionService } from 'core/delivery/service/execution.service';
 
 describe('Service: manualJudgment', () => {
 

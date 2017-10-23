@@ -9,7 +9,7 @@ class KubernetesManifestCtrl implements IController {
 }
 
 class KubernetesManifestEntryComponent implements IComponentOptions {
-  public bindings: any = {command: '='};
+  public bindings: any = { command: '=' };
   public controller: any = KubernetesManifestCtrl;
   public controllerAs = 'ctrl';
   public template = `

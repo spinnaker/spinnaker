@@ -15,13 +15,13 @@ class AppengineLoadBalancerSettingsController implements IController {
   public addAllocation(): void {
     const remainingServerGroups = this.serverGroupsWithoutAllocation();
     if (remainingServerGroups.length) {
-      this.loadBalancer.splitDescription.allocationDescriptions.push({serverGroupName: remainingServerGroups[0], allocation: 0, locatorType: 'fromExisting'});
+      this.loadBalancer.splitDescription.allocationDescriptions.push({ serverGroupName: remainingServerGroups[0], allocation: 0, locatorType: 'fromExisting' });
       if (this.loadBalancer.splitDescription.allocationDescriptions.length > 1 && !this.loadBalancer.splitDescription.shardBy) {
         this.loadBalancer.splitDescription.shardBy = 'IP';
       }
       this.updateServerGroupOptions();
     } else if (this.forPipelineConfig) {
-      this.loadBalancer.splitDescription.allocationDescriptions.push({allocation: 0, locatorType: 'text', serverGroupName: ''});
+      this.loadBalancer.splitDescription.allocationDescriptions.push({ allocation: 0, locatorType: 'text', serverGroupName: '' });
     }
   }
 
@@ -67,7 +67,7 @@ class AppengineLoadBalancerSettingsController implements IController {
 }
 
 class AppengineLoadBalancerSettingsComponent implements ng.IComponentOptions {
-  public bindings: any = {loadBalancer: '=', forPipelineConfig: '<', application: '<'};
+  public bindings: any = { loadBalancer: '=', forPipelineConfig: '<', application: '<' };
   public controller: any = AppengineLoadBalancerSettingsController;
   public templateUrl: string = require('./basicSettings.component.html');
 }

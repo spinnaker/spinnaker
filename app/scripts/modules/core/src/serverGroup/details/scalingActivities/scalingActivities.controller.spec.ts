@@ -1,4 +1,4 @@
-import {mock} from 'angular';
+import { mock } from 'angular';
 
 import {
   SCALING_ACTIVITIES_CTRL, ScalingActivitiesCtrl, IScalingEventSummary,

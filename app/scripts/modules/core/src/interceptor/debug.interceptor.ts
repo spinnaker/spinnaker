@@ -1,6 +1,6 @@
-import {module, IRequestConfig, IHttpInterceptor, IHttpProvider} from 'angular';
-import {$log, $location} from 'ngimport';
-import {JSON_UTILITY_SERVICE, JsonUtilityService} from 'core/utils/json/json.utility.service';
+import { module, IRequestConfig, IHttpInterceptor, IHttpProvider } from 'angular';
+import { $log, $location } from 'ngimport';
+import { JSON_UTILITY_SERVICE, JsonUtilityService } from 'core/utils/json/json.utility.service';
 import { BindAll } from 'lodash-decorators';
 
 @BindAll()

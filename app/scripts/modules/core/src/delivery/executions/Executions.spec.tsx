@@ -48,7 +48,7 @@ describe('<Executions/>', () => {
   beforeEach(mock.inject((_$timeout_: ITimeoutService, $rootScope: IScope, applicationModelBuilder: ApplicationModelBuilder) => {
     scope = $rootScope.$new();
     $timeout = _$timeout_;
-    application = applicationModelBuilder.createApplication('app', {key: 'executions', lazy: true}, {key: 'pipelineConfigs', lazy: true});
+    application = applicationModelBuilder.createApplication('app', { key: 'executions', lazy: true }, { key: 'pipelineConfigs', lazy: true });
   }));
 
   it('should not set loading flag to false until executions and pipeline configs have been loaded', function () {
@@ -71,7 +71,7 @@ describe('<Executions/>', () => {
     it('should scroll execution into view on initialization if an execution is present in state params', function () {
       ReactInjector.$stateParams.executionId = 'a';
 
-      initializeApplication({ pipelineConfigs: [], executions: []});
+      initializeApplication({ pipelineConfigs: [], executions: [] });
       scope.$digest();
 
       expect((ReactInjector.scrollToService.scrollTo as any).calls.count()).toBe(1);

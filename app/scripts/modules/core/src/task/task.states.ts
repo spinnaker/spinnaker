@@ -1,6 +1,6 @@
-import {module} from 'angular';
+import { module } from 'angular';
 
-import {INestedState} from 'core/navigation/state.provider';
+import { INestedState } from 'core/navigation/state.provider';
 import {
   APPLICATION_STATE_PROVIDER, ApplicationStateProvider,
 } from 'core/application/application.state.provider';

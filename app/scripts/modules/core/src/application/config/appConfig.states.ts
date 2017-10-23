@@ -1,7 +1,7 @@
-import {module} from 'angular';
-import {OverrideRegistry} from 'core/overrideRegistry/override.registry';
-import {INestedState} from 'core/navigation/state.provider';
-import {ApplicationStateProvider, APPLICATION_STATE_PROVIDER} from '../application.state.provider';
+import { module } from 'angular';
+import { OverrideRegistry } from 'core/overrideRegistry/override.registry';
+import { INestedState } from 'core/navigation/state.provider';
+import { ApplicationStateProvider, APPLICATION_STATE_PROVIDER } from '../application.state.provider';
 
 export const APP_CONFIG_STATES = 'spinnaker.core.application.states';
 module(APP_CONFIG_STATES, [

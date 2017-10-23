@@ -1,5 +1,5 @@
-import {mock} from 'angular';
-import {RETRY_SERVICE, RetryService} from './retry.service';
+import { mock } from 'angular';
+import { RETRY_SERVICE, RetryService } from './retry.service';
 
 describe('Service: Retry', function () {
 

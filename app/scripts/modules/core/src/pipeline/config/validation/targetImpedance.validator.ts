@@ -1,4 +1,4 @@
-import {module} from 'angular';
+import { module } from 'angular';
 
 import {
   PIPELINE_CONFIG_SERVICE,
@@ -8,8 +8,8 @@ import {
   IStageOrTriggerValidator, IValidatorConfig,
   PipelineConfigValidator, PIPELINE_CONFIG_VALIDATOR
 } from './pipelineConfig.validator';
-import {NAMING_SERVICE, NamingService} from 'core/naming/naming.service';
-import {IPipeline, IStage, IStageOrTriggerTypeConfig} from 'core/domain';
+import { NAMING_SERVICE, NamingService } from 'core/naming/naming.service';
+import { IPipeline, IStage, IStageOrTriggerTypeConfig } from 'core/domain';
 
 export interface ITargetImpedanceValidationConfig extends IValidatorConfig {
   stageTypes?: string[];

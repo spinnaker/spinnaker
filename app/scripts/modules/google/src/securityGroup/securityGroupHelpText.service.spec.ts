@@ -1,5 +1,5 @@
-import {mock} from 'angular';
-import {GCE_SECURITY_GROUP_HELP_TEXT_SERVICE, GceSecurityGroupHelpTextService} from './securityGroupHelpText.service';
+import { mock } from 'angular';
+import { GCE_SECURITY_GROUP_HELP_TEXT_SERVICE, GceSecurityGroupHelpTextService } from './securityGroupHelpText.service';
 
 describe('Service: gceSecurityGroupHelpTextService', () => {
 

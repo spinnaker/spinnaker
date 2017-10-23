@@ -109,7 +109,7 @@ export class PipelineGraphService {
           phase: 0,
           root: true,
           section: 'triggers',
-          warnings: configWarnings.length ? {messages: configWarnings} : null,
+          warnings: configWarnings.length ? { messages: configWarnings } : null,
         };
     nodes.push(configNode);
 

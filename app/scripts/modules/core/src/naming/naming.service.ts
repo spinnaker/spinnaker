@@ -1,4 +1,4 @@
-import {module} from 'angular';
+import { module } from 'angular';
 import { padStart, isNil } from 'lodash';
 
 export interface IComponentName {

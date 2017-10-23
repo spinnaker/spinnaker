@@ -57,7 +57,7 @@ describe('executionDetailsSectionService', function() {
       service.synchronizeSection(['a', 'b']);
 
       expect($state.includes).toHaveBeenCalledWith('**.execution');
-      expect($state.go).toHaveBeenCalledWith('.', { details: 'a'}, {location: 'replace'});
+      expect($state.go).toHaveBeenCalledWith('.', { details: 'a' }, { location: 'replace' });
     });
 
 
@@ -70,7 +70,7 @@ describe('executionDetailsSectionService', function() {
       service.synchronizeSection(['a', 'b']);
 
       expect($state.includes).toHaveBeenCalledWith('**.execution');
-      expect($state.go).toHaveBeenCalledWith('.', { details: 'a'}, {location: 'replace'});
+      expect($state.go).toHaveBeenCalledWith('.', { details: 'a' }, { location: 'replace' });
     });
 
     it('calls initialization after timeout', function() {

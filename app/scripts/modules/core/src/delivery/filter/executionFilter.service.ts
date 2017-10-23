@@ -119,12 +119,12 @@ export class ExecutionFilterService {
       !this.executionFilterModel.asFilterModel.sortFilter.filter) {
       configs
         .filter((config: any) => !groups[config.name])
-        .forEach((config: any) => groups.push({heading: config.name, config: config, executions: [], targetAccounts: this.extractAccounts(config)}));
+        .forEach((config: any) => groups.push({ heading: config.name, config: config, executions: [], targetAccounts: this.extractAccounts(config) }));
     } else {
       configs
         .filter((config: any) => !groups[config.name] && this.executionFilterModel.asFilterModel.sortFilter.pipeline[config.name])
         .forEach((config: any) => {
-          groups.push({heading: config.name, config: config, executions: [], targetAccounts: this.extractAccounts(config)});
+          groups.push({ heading: config.name, config: config, executions: [], targetAccounts: this.extractAccounts(config) });
         });
     }
   }

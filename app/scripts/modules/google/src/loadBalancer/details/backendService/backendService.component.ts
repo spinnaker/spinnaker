@@ -1,4 +1,4 @@
-import {module} from 'angular';
+import { module } from 'angular';
 
 class GceBackendServiceDetailsComponent implements ng.IComponentOptions {
   public bindings: any = {

@@ -38,7 +38,7 @@ module(APPENGINE_DESTROY_ASG_STAGE, [ACCOUNT_SERVICE])
         },
         { type: 'requiredField', fieldName: 'cluster' },
         { type: 'requiredField', fieldName: 'target', },
-        { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account'},
+        { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account' },
       ],
     });
   }).controller('appengineDestroyAsgStageCtrl', AppengineDestroyAsgStageCtrl);

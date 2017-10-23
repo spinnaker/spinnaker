@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {IVariableError} from './inputs/variableInput.service'
+import { IVariableError } from './inputs/variableInput.service'
 
 export interface IVariableErrorProps {
   errors: IVariableError[]
@@ -14,7 +14,7 @@ export class VariableError extends React.Component<IVariableErrorProps, IVariabl
       <div className="form-group row slide-in">
         {this.props.errors.length > 0 && (
           <div className="error-message">
-            <ul style={{listStyle: 'none'}}>
+            <ul style={{ listStyle: 'none' }}>
               {this.renderErrors()}
             </ul>
           </div>

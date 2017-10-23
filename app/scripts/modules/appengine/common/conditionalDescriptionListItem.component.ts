@@ -1,4 +1,4 @@
-import {module, IComponentOptions, IFilterService, IController} from 'angular';
+import { module, IComponentOptions, IFilterService, IController } from 'angular';
 
 class AppengineConditionalDescriptionListItemCtrl implements IController {
   public label: string;
@@ -15,7 +15,7 @@ class AppengineConditionalDescriptionListItemCtrl implements IController {
 }
 
 class AppengineConditionalDescriptionListItem implements IComponentOptions {
-  public bindings: any = {label: '@', key: '@', component: '<'};
+  public bindings: any = { label: '@', key: '@', component: '<' };
   public transclude: any = {
     keyLabel: '?keyText',
     valueLabel: '?valueLabel',

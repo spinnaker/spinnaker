@@ -1,7 +1,7 @@
-import {module, IScope, IComponentOptions} from 'angular';
+import { module, IScope, IComponentOptions } from 'angular';
 
-import {IGOR_SERVICE, IgorService} from 'core/ci/igor.service';
-import {IBuild} from 'core/domain/IBuild';
+import { IGOR_SERVICE, IgorService } from 'core/ci/igor.service';
+import { IBuild } from 'core/domain/IBuild';
 
 export interface ITravisTriggerOptionsViewState {
   buildsLoading: boolean;

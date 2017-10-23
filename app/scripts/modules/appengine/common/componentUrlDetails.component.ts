@@ -1,7 +1,7 @@
-import {module, IComponentOptions} from 'angular';
+import { module, IComponentOptions } from 'angular';
 
 class AppengineComponentUrlDetailsComponent implements IComponentOptions {
-  public bindings: any = {component: '<'};
+  public bindings: any = { component: '<' };
   public template = `
     <dt>HTTPS</dt>
     <dl class="small">

@@ -1,4 +1,4 @@
-import {module} from 'angular';
+import { module } from 'angular';
 import 'ngimport';
 import { STATE_EVENTS } from './state.events';
 import { REACT_UIROUTER } from './react.uirouter';

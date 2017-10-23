@@ -1,7 +1,7 @@
 import * as moment from 'moment';
-import {module} from 'angular';
+import { module } from 'angular';
 
-import {SETTINGS} from 'core/config/settings';
+import { SETTINGS } from 'core/config/settings';
 
 export interface ILocalStorage {
   getItem: (key: string) => void;

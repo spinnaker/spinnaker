@@ -28,7 +28,7 @@ describe('awsServerGroupTransformer', () => {
   describe('normalize server group', () => {
     beforeEach(() => {
       spyOn(vpcReader, 'listVpcs').and.returnValue($q.when([
-        {account: 'test', region: 'us-east-1', id: 'vpc-1', name: 'main'}
+        { account: 'test', region: 'us-east-1', id: 'vpc-1', name: 'main' }
       ]));
     });
 
@@ -66,7 +66,7 @@ describe('awsServerGroupTransformer', () => {
           allImageSelection: 'something-packagebase',
         },
         subnetType: null,
-        application: { name: 'theApp'}
+        application: { name: 'theApp' }
       };
 
       let transformed = transformer.convertServerGroupCommandToDeployConfiguration(command);
@@ -149,9 +149,9 @@ describe('awsServerGroupTransformer', () => {
       it('reverse sorts step adjustments by lower bound when none have an upper bound defined', function() {
         this.test(
           [
-            {scalingAdjustment: 10, metricIntervalLowerBound: 3},
-            {scalingAdjustment: 0, metricIntervalLowerBound: 5},
-            {scalingAdjustment: -5, metricIntervalLowerBound: 1}
+            { scalingAdjustment: 10, metricIntervalLowerBound: 3 },
+            { scalingAdjustment: 0, metricIntervalLowerBound: 5 },
+            { scalingAdjustment: -5, metricIntervalLowerBound: 1 }
           ],
           [-5, 10, 0]
         );
@@ -160,9 +160,9 @@ describe('awsServerGroupTransformer', () => {
       it('reverse sorts step adjustments by lower bound when some do not have an upper bound defined', function() {
         this.test(
           [
-            {id: 1, scalingAdjustment: 10, metricIntervalLowerBound: 3, metricIntervalUpperBound: 5},
-            {id: 2, scalingAdjustment: 0, metricIntervalLowerBound: 5},
-            {id: 3, scalingAdjustment: -5, metricIntervalLowerBound: 1, metricIntervalUpperBound: 3}
+            { id: 1, scalingAdjustment: 10, metricIntervalLowerBound: 3, metricIntervalUpperBound: 5 },
+            { id: 2, scalingAdjustment: 0, metricIntervalLowerBound: 5 },
+            { id: 3, scalingAdjustment: -5, metricIntervalLowerBound: 1, metricIntervalUpperBound: 3 }
           ],
           [-5, 10, 0]
         );
@@ -171,9 +171,9 @@ describe('awsServerGroupTransformer', () => {
       it('reverse sorts step adjustments by upper bound when all have an upper bound defined', function() {
         this.test(
           [
-            {id: 1, scalingAdjustment: 10, metricIntervalLowerBound: 3, metricIntervalUpperBound: 5},
-            {id: 2, scalingAdjustment: 0, metricIntervalLowerBound: 5, metricIntervalUpperBound: 9},
-            {id: 3, scalingAdjustment: -5, metricIntervalLowerBound: 1, metricIntervalUpperBound: 0}
+            { id: 1, scalingAdjustment: 10, metricIntervalLowerBound: 3, metricIntervalUpperBound: 5 },
+            { id: 2, scalingAdjustment: 0, metricIntervalLowerBound: 5, metricIntervalUpperBound: 9 },
+            { id: 3, scalingAdjustment: -5, metricIntervalLowerBound: 1, metricIntervalUpperBound: 0 }
           ],
           [0, 10, -5]
         );

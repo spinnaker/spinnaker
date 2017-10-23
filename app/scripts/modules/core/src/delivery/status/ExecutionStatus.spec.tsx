@@ -39,9 +39,9 @@ describe('<ExecutionStatus/>', () => {
     } as any;
     component = getNewExecutionStatus(execution);
     expect(component.state().parameters).toEqual([
-      {key: 'a', value: '"b"'},
-      {key: 'b', value: '"c"'},
-      {key: 'd', value: '"a"'}
+      { key: 'a', value: '"b"' },
+      { key: 'b', value: '"c"' },
+      { key: 'd', value: '"a"' }
     ]);
   });
 
@@ -67,7 +67,7 @@ describe('<ExecutionStatus/>', () => {
     } as any;
     component = getNewExecutionStatus(execution);
     expect(component.state().parameters).toEqual([
-      {key: 'included', value: '"a"'}
+      { key: 'included', value: '"a"' }
     ]);
   });
 });

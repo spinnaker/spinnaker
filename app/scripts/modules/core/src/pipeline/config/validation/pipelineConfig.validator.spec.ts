@@ -217,8 +217,8 @@ describe('pipelineConfigValidator', () => {
         });
         pipeline = buildPipeline(
           [
-            {type: 'withValidation', refId: 1, requisiteStageRefIds: []},
-            {type: 'no-validation', refId: 2, requisiteStageRefIds: []}
+            { type: 'withValidation', refId: 1, requisiteStageRefIds: [] },
+            { type: 'no-validation', refId: 2, requisiteStageRefIds: [] }
           ]
         );
       });
@@ -229,8 +229,8 @@ describe('pipelineConfigValidator', () => {
         expect(validationResults.stages[0].messages).toEqual(['need a prereq']);
 
         pipeline.stages = [
-          {name: 'a', type: 'wrongType', refId: 1, requisiteStageRefIds: []},
-          {name: 'b', type: 'withValidation', refId: 2, requisiteStageRefIds: [1]}
+          { name: 'a', type: 'wrongType', refId: 1, requisiteStageRefIds: [] },
+          { name: 'b', type: 'withValidation', refId: 2, requisiteStageRefIds: [1] }
         ];
 
         validate();
@@ -244,9 +244,9 @@ describe('pipelineConfigValidator', () => {
         expect(validationResults.hasWarnings).toBe(false);
 
         pipeline.stages = [
-          {name: 'a', type: 'prereq', refId: 1, requisiteStageRefIds: []},
-          {name: 'b', type: 'somethingElse', refId: 2, requisiteStageRefIds: [1]},
-          {name: 'c', type: 'withValidation', refId: 3, requisiteStageRefIds: [2]}
+          { name: 'a', type: 'prereq', refId: 1, requisiteStageRefIds: [] },
+          { name: 'b', type: 'somethingElse', refId: 2, requisiteStageRefIds: [1] },
+          { name: 'c', type: 'withValidation', refId: 3, requisiteStageRefIds: [2] }
         ];
 
         validate();
@@ -259,10 +259,10 @@ describe('pipelineConfigValidator', () => {
         expect(validationResults.hasWarnings).toBe(false);
 
         pipeline.stages = [
-          {name: 'a', type: 'withValidation', refId: 1, requisiteStageRefIds: []}
+          { name: 'a', type: 'withValidation', refId: 1, requisiteStageRefIds: [] }
         ];
         pipeline.triggers = [
-          {type: 'prereq', enabled: true}
+          { type: 'prereq', enabled: true }
         ];
 
         validate();
@@ -275,11 +275,11 @@ describe('pipelineConfigValidator', () => {
         expect(validationResults.hasWarnings).toBe(false);
 
         pipeline.stages = [
-          {name: 'a', type: 'noValidation', refId: 1, requisiteStageRefIds: []},
-          {name: 'b', type: 'withValidation', refId: 2, requisiteStageRefIds: [1]}
+          { name: 'a', type: 'noValidation', refId: 1, requisiteStageRefIds: [] },
+          { name: 'b', type: 'withValidation', refId: 2, requisiteStageRefIds: [1] }
         ];
         pipeline.triggers = [
-          {type: 'alsoNotValidation', enabled: true}
+          { type: 'alsoNotValidation', enabled: true }
         ];
 
         validate();
@@ -372,8 +372,8 @@ describe('pipelineConfigValidator', () => {
 
         pipeline = buildPipeline(
           [
-            {type: 'withValidation', refId: 1, requisiteStageRefIds: []},
-            {type: 'no-validation', refId: 2, requisiteStageRefIds: []}
+            { type: 'withValidation', refId: 1, requisiteStageRefIds: [] },
+            { type: 'no-validation', refId: 2, requisiteStageRefIds: [] }
           ]
         );
 
@@ -383,8 +383,8 @@ describe('pipelineConfigValidator', () => {
 
         pipeline = buildPipeline(
           [
-            {type: 'wrongType', refId: 1, requisiteStageRefIds: []},
-            {type: 'withValidation', refId: 2, requisiteStageRefIds: [1]}
+            { type: 'wrongType', refId: 1, requisiteStageRefIds: [] },
+            { type: 'withValidation', refId: 2, requisiteStageRefIds: [1] }
             ]
         );
 
@@ -398,9 +398,9 @@ describe('pipelineConfigValidator', () => {
 
         pipeline = buildPipeline(
           [
-            {type: 'prereq', refId: 1, requisiteStageRefIds: []},
-            {type: 'somethingElse', refId: 2, requisiteStageRefIds: [1]},
-            {type: 'withValidation', refId: 3, requisiteStageRefIds: [2]}
+            { type: 'prereq', refId: 1, requisiteStageRefIds: [] },
+            { type: 'somethingElse', refId: 2, requisiteStageRefIds: [1] },
+            { type: 'withValidation', refId: 3, requisiteStageRefIds: [2] }
           ]
         );
 
@@ -425,8 +425,8 @@ describe('pipelineConfigValidator', () => {
 
         pipeline = buildPipeline(
           [
-            {type: 'three', refId: 1, requisiteStageRefIds: []},
-            {type: 'withValidation', refId: 2, requisiteStageRefIds: [1]}
+            { type: 'three', refId: 1, requisiteStageRefIds: [] },
+            { type: 'withValidation', refId: 2, requisiteStageRefIds: [1] }
           ]
         );
 
@@ -440,9 +440,9 @@ describe('pipelineConfigValidator', () => {
 
         pipeline = buildPipeline(
           [
-            {type: 'two', refId: 1, requisiteStageRefIds: []},
-            {type: 'somethingElse', refId: 2, requisiteStageRefIds: [1]},
-            {type: 'withValidation', refId: 3, requisiteStageRefIds: [2]}
+            { type: 'two', refId: 1, requisiteStageRefIds: [] },
+            { type: 'somethingElse', refId: 2, requisiteStageRefIds: [1] },
+            { type: 'withValidation', refId: 3, requisiteStageRefIds: [2] }
           ]
         );
 
@@ -515,19 +515,19 @@ describe('pipelineConfigValidator', () => {
         validate();
         expect(validationResults.stages.length).toBe(1);
 
-        pipeline.stages[0]['foo'] = { bar: { baz: null }};
+        pipeline.stages[0]['foo'] = { bar: { baz: null } };
         validate();
         expect(validationResults.stages.length).toBe(1);
 
-        pipeline.stages[0]['foo'] = { bar: { baz: '' }};
+        pipeline.stages[0]['foo'] = { bar: { baz: '' } };
         validate();
         expect(validationResults.stages.length).toBe(1);
 
-        pipeline.stages[0]['foo'] = { bar: { baz: 0 }};
+        pipeline.stages[0]['foo'] = { bar: { baz: 0 } };
         validate();
         expect(validationResults.hasWarnings).toBe(false);
 
-        pipeline.stages[0]['foo'] = { bar: { baz: 'ok' }};
+        pipeline.stages[0]['foo'] = { bar: { baz: 'ok' } };
         validate();
         expect(validationResults.hasWarnings).toBe(false);
       });
@@ -575,7 +575,7 @@ describe('pipelineConfigValidator', () => {
             type: 'deploy',
             refId: 1,
             clusters: [
-              { application: 'deck', account: 'test', availabilityZones: { 'us-east-1': [] }}
+              { application: 'deck', account: 'test', availabilityZones: { 'us-east-1': [] } }
             ]
           },
           {
@@ -597,7 +597,7 @@ describe('pipelineConfigValidator', () => {
             type: 'deploy',
             refId: 1,
             clusters: [
-              { application: 'deck', account: 'test', stack: 'main', availabilityZones: { 'us-east-1': [] }}
+              { application: 'deck', account: 'test', stack: 'main', availabilityZones: { 'us-east-1': [] } }
             ]
           },
           {
@@ -619,7 +619,7 @@ describe('pipelineConfigValidator', () => {
             type: 'deploy',
             refId: 1,
             clusters: [
-              { application: 'deck', account: 'test', freeFormDetails: 'main', availabilityZones: { 'us-east-1': [] }}
+              { application: 'deck', account: 'test', freeFormDetails: 'main', availabilityZones: { 'us-east-1': [] } }
             ]
           },
           {
@@ -641,7 +641,7 @@ describe('pipelineConfigValidator', () => {
             type: 'deploy',
             refId: 1,
             clusters: [
-              { application: 'deck', account: 'test', stack: 'main', freeFormDetails: 'foo', availabilityZones: { 'us-east-1': [] }}
+              { application: 'deck', account: 'test', stack: 'main', freeFormDetails: 'foo', availabilityZones: { 'us-east-1': [] } }
             ]
           },
           {
@@ -663,7 +663,7 @@ describe('pipelineConfigValidator', () => {
             type: 'deploy',
             refId: 1,
             clusters: [
-              { application: 'deck', account: 'test', stack: 'main', availabilityZones: { 'us-east-1': [] }}
+              { application: 'deck', account: 'test', stack: 'main', availabilityZones: { 'us-east-1': [] } }
             ]
           },
           {
@@ -685,8 +685,8 @@ describe('pipelineConfigValidator', () => {
             type: 'deploy',
             refId: 1,
             clusters: [
-              { application: 'deck', account: 'test', stack: 'main', availabilityZones: { 'us-east-1': [] }},
-              { application: 'deck', account: 'test', stack: 'main', availabilityZones: { 'us-west-1': [] }}
+              { application: 'deck', account: 'test', stack: 'main', availabilityZones: { 'us-east-1': [] } },
+              { application: 'deck', account: 'test', stack: 'main', availabilityZones: { 'us-west-1': [] } }
             ]
           },
           {
@@ -708,14 +708,14 @@ describe('pipelineConfigValidator', () => {
             type: 'deploy',
             refId: 1,
             clusters: [
-              { application: 'deck', account: 'test', stack: 'main', availabilityZones: { 'us-east-1': [] }}
+              { application: 'deck', account: 'test', stack: 'main', availabilityZones: { 'us-east-1': [] } }
             ]
           },
           {
             type: 'deploy',
             refId: 2,
             clusters: [
-              { application: 'deck', account: 'test', stack: 'main', availabilityZones: { 'us-west-1': [] }}
+              { application: 'deck', account: 'test', stack: 'main', availabilityZones: { 'us-west-1': [] } }
             ]
           },
           {
@@ -737,7 +737,7 @@ describe('pipelineConfigValidator', () => {
             type: 'deploy',
             refId: 1,
             clusters: [
-              { application: 'deck', account: 'prod', stack: 'main', availabilityZones: { 'us-east-1': [] }}
+              { application: 'deck', account: 'prod', stack: 'main', availabilityZones: { 'us-east-1': [] } }
             ]
           },
           {
@@ -760,7 +760,7 @@ describe('pipelineConfigValidator', () => {
             type: 'deploy',
             refId: 1,
             clusters: [
-              { application: 'deck', account: 'test', stack: 'main', availabilityZones: { 'us-west-1': [] }}
+              { application: 'deck', account: 'test', stack: 'main', availabilityZones: { 'us-west-1': [] } }
             ]
           },
           {
@@ -783,7 +783,7 @@ describe('pipelineConfigValidator', () => {
             type: 'deploy',
             refId: 1,
             clusters: [
-              { application: 'deck', account: 'test', availabilityZones: { 'us-east-1': [] }}
+              { application: 'deck', account: 'test', availabilityZones: { 'us-east-1': [] } }
             ]
           },
           {
@@ -806,7 +806,7 @@ describe('pipelineConfigValidator', () => {
             type: 'deploy',
             refId: 1,
             clusters: [
-              { application: 'deck', account: 'test', stack: 'staging', availabilityZones: { 'us-east-1': [] }}
+              { application: 'deck', account: 'test', stack: 'staging', availabilityZones: { 'us-east-1': [] } }
             ]
           },
           {
@@ -829,7 +829,7 @@ describe('pipelineConfigValidator', () => {
             type: 'deploy',
             refId: 1,
             clusters: [
-              { application: 'deck', account: 'test', freeFormDetails: 'foo', availabilityZones: { 'us-east-1': [] }}
+              { application: 'deck', account: 'test', freeFormDetails: 'foo', availabilityZones: { 'us-east-1': [] } }
             ]
           },
           {

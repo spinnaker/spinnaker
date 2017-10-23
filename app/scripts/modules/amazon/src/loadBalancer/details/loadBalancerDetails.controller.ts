@@ -124,7 +124,7 @@ export class AwsLoadBalancerDetailsController implements IController {
       return;
     }
     this.$state.params.allowModalToStayOpen = true;
-    this.$state.go('^', null, {location: 'replace'});
+    this.$state.go('^', null, { location: 'replace' });
   }
 
   public extractLoadBalancer(): IPromise<void> {

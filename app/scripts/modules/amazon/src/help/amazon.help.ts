@@ -1,5 +1,5 @@
-import {module} from 'angular';
-import {HELP_CONTENTS_REGISTRY, HelpContentsRegistry} from '@spinnaker/core';
+import { module } from 'angular';
+import { HELP_CONTENTS_REGISTRY, HelpContentsRegistry } from '@spinnaker/core';
 
 const helpContents: {[key: string]: string} = {
   'aws.associateElasticIp.elasticIp':

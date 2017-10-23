@@ -29,7 +29,7 @@ class AppengineConfigFileConfigurerCtrl implements IController {
 }
 
 class AppengineConfigFileConfigurerComponent implements ng.IComponentOptions {
-  public bindings: any = {command: '='};
+  public bindings: any = { command: '=' };
   public controller: any = AppengineConfigFileConfigurerCtrl;
   public template = `
     <div class="form-horizontal container-fluid">

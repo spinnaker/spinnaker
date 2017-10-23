@@ -1,10 +1,10 @@
 import * as React from 'react';
 
-import {IExecution, IExecutionStage} from 'core/domain';
-import {Application} from 'core/application/application.model';
-import {ReactInjector} from 'core/reactShims';
-import {duration} from 'core/utils/timeFormatters';
-import {OrchestratedItemRunningTime} from 'core/delivery/executionGroup/execution/OrchestratedItemRunningTime';
+import { IExecution, IExecutionStage } from 'core/domain';
+import { Application } from 'core/application/application.model';
+import { ReactInjector } from 'core/reactShims';
+import { duration } from 'core/utils/timeFormatters';
+import { OrchestratedItemRunningTime } from 'core/delivery/executionGroup/execution/OrchestratedItemRunningTime';
 
 export interface ISkipWaitProps {
   execution: IExecution;
@@ -27,7 +27,7 @@ export class SkipWait extends React.Component<ISkipWaitProps, ISkipWaitState> {
   }
 
   private setRemainingWait = (time: number): void => {
-    this.setState({remainingWait: duration(this.props.stage.context.waitTime * 1000 - time) });
+    this.setState({ remainingWait: duration(this.props.stage.context.waitTime * 1000 - time) });
   };
 
   private skipRemainingWait = (e: React.MouseEvent<HTMLElement>): void => {
@@ -82,7 +82,7 @@ export class SkipWait extends React.Component<ISkipWaitProps, ISkipWaitState> {
             </div>
             <div className="action-buttons">
               <button className="btn btn-xs btn-primary" onClick={this.skipRemainingWait}>
-                <span style={{marginRight: '5px'}} className="small glyphicon glyphicon-fast-forward"/>
+                <span style={{ marginRight: '5px' }} className="small glyphicon glyphicon-fast-forward"/>
                 Skip remaining wait
               </button>
             </div>

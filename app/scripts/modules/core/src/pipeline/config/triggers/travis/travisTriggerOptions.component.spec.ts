@@ -1,9 +1,9 @@
-import {mock, IScope, IQProvider, IQService, IControllerService, IRootScopeService} from 'angular';
+import { mock, IScope, IQProvider, IQService, IControllerService, IRootScopeService } from 'angular';
 
-import {IgorService} from 'core/ci/igor.service';
-import {IBuild} from 'core/domain/IBuild';
-import {IBuildTrigger} from 'core/domain/ITrigger';
-import {TRAVIS_TRIGGER_OPTIONS_COMPONENT, TravisTriggerOptionsController} from './travisTriggerOptions.component';
+import { IgorService } from 'core/ci/igor.service';
+import { IBuild } from 'core/domain/IBuild';
+import { IBuildTrigger } from 'core/domain/ITrigger';
+import { TRAVIS_TRIGGER_OPTIONS_COMPONENT, TravisTriggerOptionsController } from './travisTriggerOptions.component';
 
 interface ICommand {
   trigger: IBuildTrigger;
@@ -45,7 +45,7 @@ describe('Travis Trigger: TravisTriggerOptionsCtrl', () => {
     const ctrl = $ctrl(TravisTriggerOptionsController, {
       igorService: igorService,
       $scope: $scope,
-    }, {command: command});
+    }, { command: command });
     ctrl.$onInit();
     return ctrl;
   };
@@ -64,7 +64,7 @@ describe('Travis Trigger: TravisTriggerOptionsCtrl', () => {
   });
 
   it('sets build to first one available when returned on initialization', function () {
-    const build: IBuild = {number: 1, result: 'SUCCESS', building: null, duration: null, name: null, timestamp: null, url: null, artifacts: null};
+    const build: IBuild = { number: 1, result: 'SUCCESS', building: null, duration: null, name: null, timestamp: null, url: null, artifacts: null };
     spyOn(igorService, 'listBuildsForJob').and.returnValue($q.when([build]));
 
     const controller = initialize();
@@ -91,9 +91,9 @@ describe('Travis Trigger: TravisTriggerOptionsCtrl', () => {
   });
 
   it('re-initializes when trigger changes', function () {
-    const firstBuild: IBuild = <any>{number: '1', result: 'SUCCESS'},
-      secondBuild: IBuild = <any>{number: '3', result: 'SUCCESS'},
-      secondTrigger: IBuildTrigger = <IBuildTrigger>{type: 'travis', master: 'b', job: 'c'};
+    const firstBuild: IBuild = <any>{ number: '1', result: 'SUCCESS' },
+      secondBuild: IBuild = <any>{ number: '3', result: 'SUCCESS' },
+      secondTrigger: IBuildTrigger = <IBuildTrigger>{ type: 'travis', master: 'b', job: 'c' };
 
     spyOn(igorService, 'listBuildsForJob').and.callFake((_master: string, job: string) => {
       let builds: IBuild[] = [];

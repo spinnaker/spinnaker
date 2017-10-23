@@ -47,7 +47,7 @@ module(APPENGINE_DISABLE_ASG_STAGE, [
         },
         { type: 'requiredField', fieldName: 'cluster' },
         { type: 'requiredField', fieldName: 'target', },
-        { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account'},
+        { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account' },
       ],
     });
   }).controller('appengineDisableAsgStageCtrl', AppengineDisableAsgStageCtrl);

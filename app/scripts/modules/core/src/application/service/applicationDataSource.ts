@@ -160,24 +160,24 @@ export interface IDataSourceConfig {
 export class DataSourceConfig implements IDataSourceConfig {
   public activeState: string;
   public afterLoad: (application: Application) => void;
-  public autoActivate: boolean = false;
+  public autoActivate = false;
   public badge: string;
   public credentialsField: string;
   public description: string;
   public icon: string;
   public key: string;
   public label: string;
-  public lazy: boolean = false;
+  public lazy = false;
   public loader: (application: Application) => IPromise<any>;
   public onLoad: (application: Application, result: any) => IPromise<any>;
-  public optIn: boolean = false;
-  public optional: boolean = false;
-  public primary: boolean = false;
+  public optIn = false;
+  public optional = false;
+  public primary = false;
   public providerField: string;
   public regionField: string;
-  public requireConfiguredApp: boolean = false;
+  public requireConfiguredApp = false;
   public sref: string;
-  public visible: boolean = true;
+  public visible = true;
 
   constructor(config: IDataSourceConfig) {
     Object.assign(this, config);
@@ -190,24 +190,24 @@ export class ApplicationDataSource implements IDataSourceConfig {
 
   public activeState: string;
   public afterLoad: (application: Application) => void;
-  public autoActivate: boolean = false;
+  public autoActivate = false;
   public badge: string;
   public credentialsField: string;
   public description: string;
   public icon: string;
   public key: string;
   public label: string;
-  public lazy: boolean = false;
+  public lazy = false;
   public loader: (application: Application) => IPromise<any>;
   public onLoad: (application: Application, result: any) => IPromise<any>;
-  public optIn: boolean = false;
-  public optional: boolean = false;
-  public primary: boolean = false;
+  public optIn = false;
+  public optional = false;
+  public primary = false;
   public providerField: string;
   public regionField: string;
-  public requireConfiguredApp: boolean = false;
+  public requireConfiguredApp = false;
   public sref: string;
-  public visible: boolean = true;
+  public visible = true;
 
   /**
    * State flag that indicates whether the data source has been loaded. If the data source does not have a declared

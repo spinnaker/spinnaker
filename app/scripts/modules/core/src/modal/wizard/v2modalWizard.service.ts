@@ -1,5 +1,5 @@
-import {module} from 'angular';
-import {SCROLL_TO_SERVICE, ScrollToService} from 'core/utils/scrollTo/scrollTo.service';
+import { module } from 'angular';
+import { SCROLL_TO_SERVICE, ScrollToService } from 'core/utils/scrollTo/scrollTo.service';
 
 export interface WizardPageState {
   done: boolean;
@@ -75,7 +75,7 @@ export class V2ModalWizardService {
         markCompleteOnView: false,
         required: false,
       };
-    this.pageRegistry.push({key: key, label: label, state: state});
+    this.pageRegistry.push({ key: key, label: label, state: state });
     this.renderPages();
   }
 

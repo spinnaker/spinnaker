@@ -54,7 +54,7 @@ describe('Service: applicationReader', function () {
     let application: Application = null;
 
     function loadApplication(dataSources?: IApplicationDataSourceAttribute) {
-      const response = {applicationName: 'deck', attributes: {} as any};
+      const response = { applicationName: 'deck', attributes: {} as any };
       if (dataSources !== undefined) {
         response.attributes['dataSources'] = dataSources;
       }
@@ -82,7 +82,7 @@ describe('Service: applicationReader', function () {
     });
 
     it ('loads all data sources if disabled dataSource attribute is an empty array', function () {
-      loadApplication({ enabled: [], disabled: []});
+      loadApplication({ enabled: [], disabled: [] });
       expect((<Spy>clusterService.loadServerGroups).calls.count()).toBe(1);
       expect((<Spy>securityGroupReader.getApplicationSecurityGroups).calls.count()).toBe(1);
       expect(loadBalancerReader.loadLoadBalancers.calls.count()).toBe(1);
@@ -111,12 +111,12 @@ describe('Service: applicationReader', function () {
       });
 
       it('disables opt-in data sources when nothing configured on application dataSources.disabled attribute', function () {
-        loadApplication({enabled: [], disabled: []});
+        loadApplication({ enabled: [], disabled: [] });
         expect(application.getDataSource('optInSource').disabled).toBe(true);
       });
 
       it('enables opt-in data source when configured on application dataSources.disabled attribute', function () {
-        loadApplication({enabled: ['optInSource'], disabled: []});
+        loadApplication({ enabled: ['optInSource'], disabled: [] });
         expect(application.getDataSource('optInSource').disabled).toBe(false);
       });
     });

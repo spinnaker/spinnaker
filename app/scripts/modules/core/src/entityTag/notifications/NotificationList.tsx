@@ -68,7 +68,7 @@ class NotificationActions extends React.Component<IActionsProps> {
 
   public render() {
     return (
-      <div className="flex-nogrow actions actions-popover" style={{position: 'relative'}}>
+      <div className="flex-nogrow actions actions-popover" style={{ position: 'relative' }}>
         <a onClick={this.editTag}><span className="glyphicon glyphicon-cog clickable" /></a>
         <a onClick={this.deleteTag}><span className="glyphicon glyphicon-trash clickable" /></a>
       </div>
