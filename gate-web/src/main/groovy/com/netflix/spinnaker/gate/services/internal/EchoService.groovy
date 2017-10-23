@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.gate.services.internal
 
-import retrofit.http.*
 import retrofit.client.Response
+import retrofit.http.*
 
 interface EchoService {
 
@@ -38,4 +38,6 @@ interface EchoService {
   @GET("/validateCronExpression")
   Map validateCronExpression(@Query("cronExpression") String cronExpression)
 
+  @GET("/pubsub/subscriptions")
+  List<String> getPubsubSubscriptions()
 }
