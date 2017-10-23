@@ -54,9 +54,8 @@ open class KeelConfiguration {
   }
 
   private fun findAllIntentSubtypes(): List<Class<*>> {
-    return ClassPathScanningCandidateComponentProvider(false).apply {
-      addIncludeFilter(AssignableTypeFilter(Intent::class.java))
-    }
+    return ClassPathScanningCandidateComponentProvider(false)
+      .apply { addIncludeFilter(AssignableTypeFilter(Intent::class.java)) }
       .findCandidateComponents("com.netflix.spinnaker.keel.intents")
       .map {
         val cls = ClassUtils.resolveClassName(it.beanClassName, ClassUtils.getDefaultClassLoader())

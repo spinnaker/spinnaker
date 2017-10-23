@@ -28,7 +28,7 @@ private const val CURRENT_SCHEMA = "1"
  * The Parrot intent is just intended for early scaffolding purposes. It shouldn't be long-lived.
  */
 @JsonTypeName(KIND)
-@JsonVersionedModel(currentVersion = CURRENT_SCHEMA, propertyName = "schema")
+@JsonVersionedModel(currentVersion = CURRENT_SCHEMA, propertyName = SCHEMA_PROPERTY)
 class ParrotIntent
 @JsonCreator constructor(spec: ParrotSpec): Intent<ParrotSpec>(
   kind = KIND,

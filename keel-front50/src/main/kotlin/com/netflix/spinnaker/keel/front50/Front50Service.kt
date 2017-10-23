@@ -17,10 +17,8 @@ package com.netflix.spinnaker.keel.front50
 
 import com.netflix.spinnaker.keel.Intent
 import com.netflix.spinnaker.keel.IntentStatus
-import retrofit.http.Body
-import retrofit.http.GET
-import retrofit.http.PUT
-import retrofit.http.Query
+import com.netflix.spinnaker.keel.front50.model.Application
+import retrofit.http.*
 
 interface Front50Service {
 
@@ -32,4 +30,13 @@ interface Front50Service {
 
   @PUT("/intents")
   fun upsertIntent(@Body intent: Intent<*>)
+
+  @GET("/v2/applications/{applicationName}")
+  fun getApplication(applicationName: String): Application
+
+  @POST("/v2/applications")
+  fun createApplication(application: Application): Application
+
+  @PATCH("/v2/applications/{applicationName}")
+  fun updateApplication(applicationName: String, application: Application): Application
 }
