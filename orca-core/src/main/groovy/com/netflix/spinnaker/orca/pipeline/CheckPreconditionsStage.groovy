@@ -31,7 +31,7 @@ import static java.util.Collections.emptyList
 @CompileStatic
 class CheckPreconditionsStage implements StageDefinitionBuilder {
 
-  static final String PIPELINE_CONFIG_TYPE = "checkPreconditions"
+  public static final String PIPELINE_CONFIG_TYPE = "checkPreconditions"
 
   private final List<? extends PreconditionTask> preconditionTasks
 

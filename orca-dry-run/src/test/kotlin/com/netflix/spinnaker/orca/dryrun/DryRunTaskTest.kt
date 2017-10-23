@@ -171,6 +171,64 @@ object DryRunTaskTest : Spek({
       }
     }
 
+    given("a mismatch between a null and a missing key") {
+      val realPipeline = pipeline {
+        stage {
+          refId = "1"
+          type = singleTaskStage.type
+          context["whatever"] = mapOf("foo" to "bar", "baz" to null)
+          status = SUCCEEDED
+        }
+      }
+
+      val testPipeline = pipeline {
+        stage {
+          refId = "1"
+          type = singleTaskStage.type
+          context["whatever"] = mapOf("foo" to "bar")
+        }
+        trigger["lastSuccessfulExecution"] = realPipeline
+      }
+      val stage = testPipeline.stageByRef("1")
+
+      on("running the stage") {
+        val result = subject.execute(stage)
+
+        it("succeeds") {
+          result.status shouldEqual SUCCEEDED
+        }
+      }
+    }
+
+    given("a mismatch between a deeply nested null and a missing key") {
+      val realPipeline = pipeline {
+        stage {
+          refId = "1"
+          type = singleTaskStage.type
+          context["whatever"] = listOf(mapOf("foo" to "bar", "baz" to null))
+          status = SUCCEEDED
+        }
+      }
+
+      val testPipeline = pipeline {
+        stage {
+          refId = "1"
+          type = singleTaskStage.type
+          context["whatever"] = listOf(mapOf("foo" to "bar"))
+        }
+        trigger["lastSuccessfulExecution"] = realPipeline
+      }
+      val stage = testPipeline.stageByRef("1")
+
+      on("running the stage") {
+        val result = subject.execute(stage)
+
+        it("succeeds") {
+          result.status shouldEqual SUCCEEDED
+        }
+      }
+    }
+
     given("a stage that was skipped previously") {
       val realPipeline = pipeline {
         stage {

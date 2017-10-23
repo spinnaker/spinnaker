@@ -16,12 +16,9 @@
 
 package com.netflix.spinnaker.config
 
-import com.netflix.spinnaker.orca.dryrun.DryRunStage
-import com.netflix.spinnaker.orca.pipeline.DefaultStageDefinitionBuilderFactory
+import com.netflix.spinnaker.orca.dryrun.DryRunStageDefinitionBuilderFactory
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilderFactory
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
-import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.slf4j.LoggerFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.EnableConfigurationProperties
@@ -39,18 +36,7 @@ open class DryRunConfiguration {
     stageDefinitionBuilders: Collection<StageDefinitionBuilder>
   ): StageDefinitionBuilderFactory {
     log.info("Dry run trigger support enabled")
-    return object : DefaultStageDefinitionBuilderFactory(stageDefinitionBuilders) {
-      override fun builderFor(stage: Stage<*>): StageDefinitionBuilder =
-        stage.getExecution().let { execution ->
-          super.builderFor(stage).let {
-            if (execution is Pipeline && execution.trigger["type"] == "dryrun") {
-              DryRunStage(it)
-            } else {
-              it
-            }
-          }
-        }
-    }
+    return DryRunStageDefinitionBuilderFactory(stageDefinitionBuilders)
   }
 
   private val log = LoggerFactory.getLogger(javaClass)
