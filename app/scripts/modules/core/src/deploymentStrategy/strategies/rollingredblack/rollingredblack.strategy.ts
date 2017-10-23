@@ -11,5 +11,11 @@ DeploymentStrategyRegistry.registerStrategy({
     if (!command.targetPercentages) {
       command.targetPercentages = [50, 100];
     }
+
+    if (!command.pipelineBeforeCleanup) {
+      command.beforeCleanupPipeline = {
+        application: command.application
+      }
+    }
   }
 });

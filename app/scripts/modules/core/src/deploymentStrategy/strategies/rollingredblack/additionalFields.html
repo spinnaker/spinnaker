@@ -1,13 +1,18 @@
 <div class="form-group">
-  <div class="col-md-6">
-    <label>
+  <div class="col-md-6" style="margin-top: 15px">
+    <h4>
       Percentages
       <help-field key="strategy.rollingRedBlack.targetPercentages"></help-field>
-    </label>
+    </h4>
     <number-list model="$ctrl.command.targetPercentages" label="percentage"/>
   </div>
+
+  <div class="col-md-12" style="margin-top: 15px">
+      <h4>Before Disable</h4>
+  </div>
+
   <div class="col-md-12 form-inline">
-    <label>Wait Before Disable
+    <label>Wait
       <help-field
         content="Time to wait before disabling instances in old server group"></help-field>
     </label>
@@ -18,5 +23,12 @@
            ng-model="$ctrl.command.delayBeforeDisableSec"
            placeholder="0">
     seconds
+  </div>
+  <div class="col-md-12" style="margin-top: 5px">
+    <label>Run a Pipeline
+      <help-field
+        content="Pipeline to run before disabling instances in old server group"></help-field>
+    </label>
+    <pipeline-selector command="$ctrl.command.pipelineBeforeCleanup"></pipeline-selector>
   </div>
 </div>
