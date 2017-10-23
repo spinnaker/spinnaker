@@ -15,6 +15,8 @@
  */
 package com.netflix.spinnaker.keel.dryrun
 
+import com.netflix.spectator.api.BasicTag
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.keel.*
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import org.springframework.beans.factory.annotation.Autowired
@@ -23,10 +25,15 @@ import org.springframework.stereotype.Component
 @Component(value = "dryRunIntentLauncher")
 class DryRunIntentLauncher
 @Autowired constructor(
-  private val intentProcessors: List<IntentProcessor<*>>
+  private val intentProcessors: List<IntentProcessor<*>>,
+  private val registry: Registry
 ): IntentLauncher<DryRunLaunchedIntentResult> {
 
+  private val invocationsId = registry.createId("intent.invocations", listOf(BasicTag("launcher", "dryRun")))
+
   override fun launch(intent: Intent<IntentSpec>): DryRunLaunchedIntentResult {
+    registry.counter(invocationsId).increment()
+
     val processor = intentProcessor(intentProcessors, intent)
 
     val tasks = processor.converge(intent)

@@ -15,6 +15,8 @@
  */
 package com.netflix.spinnaker.keel.orca
 
+import com.netflix.spectator.api.BasicTag
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.keel.*
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -24,12 +26,16 @@ import org.springframework.stereotype.Component
 class OrcaIntentLauncher
 @Autowired constructor(
   private val intentProcessors: List<IntentProcessor<*>>,
-  private val orcaService: OrcaService
+  private val orcaService: OrcaService,
+  private val registry: Registry
 ) : IntentLauncher<OrcaLaunchedIntentResult> {
 
   private val log = LoggerFactory.getLogger(javaClass)
+  private val invocationsId = registry.createId("intent.invocations", listOf(BasicTag("launcher", "orca")))
 
   override fun launch(intent: Intent<IntentSpec>): OrcaLaunchedIntentResult {
+    registry.counter(invocationsId).increment()
+
     val processor = intentProcessor(intentProcessors, intent)
 
     val tasks = processor.converge(intent)
@@ -43,7 +49,6 @@ class OrcaIntentLauncher
   }
 }
 
-// TODO rz - Include orchestration ids?
 class OrcaLaunchedIntentResult(
   val orchestrationIds: List<String>
 ) : LaunchedIntentResult

@@ -27,7 +27,7 @@ private const val CURRENT_SCHEMA = "1"
 @JsonTypeName(KIND)
 @JsonVersionedModel(currentVersion = CURRENT_SCHEMA, propertyName = SCHEMA_PROPERTY)
 class ApplicationIntent
-@JsonCreator constructor(spec: ApplicationSpec) : Intent<ApplicationSpec>(
+@JsonCreator constructor(spec: BaseApplicationSpec) : Intent<BaseApplicationSpec>(
   kind = KIND,
   schema = CURRENT_SCHEMA,
   spec = spec
@@ -35,29 +35,26 @@ class ApplicationIntent
   override fun getId() = "$KIND:${spec.name}"
 }
 
-// TODO rz - Not sure what keys are Netflix-only and what aren't. Also not exactly sure what is required and isn't.
-data class ApplicationSpec(
-  val name: String,
-  val description: String?,
-  val email: String?,
-  val lastModifiedBy: String,
-  val repoSlug: String?,
-  val repoProjectKey: String?,
-  val repoType: String?,
-  val owner: String,
-  val pdApiKey: String,
-  val chaosMonkey: ChaosMonkeySpec,
-  val enableRestartRunningExecutions: Boolean,
-  val instanceLinks: List<InstanceLinkSpec> = listOf(),
-  val instancePort: Int,
-  val appGroup: String?,
-  val cloudProviders: String?,
-  val accounts: String?,
-  val user: String?,
-  val dataSources: Map<String, List<String>> = mapOf(),
-  val requiredGroupMembership: List<String> = listOf(),
-  val group: String?
-) : IntentSpec
+// Using an abstract class here so that we can override the spec with Netflix-specific values and continue to use the
+// same intent & processor.
+abstract class BaseApplicationSpec : IntentSpec {
+  abstract val name: String
+  abstract val description: String?
+  abstract val email: String?
+  abstract val lastModifiedBy: String?
+  abstract val owner: String
+  abstract val chaosMonkey: ChaosMonkeySpec
+  abstract val enableRestartRunningExecutions: Boolean
+  abstract val instanceLinks: List<InstanceLinkSpec>
+  abstract val instancePort: Int
+  abstract val appGroup: String?
+  abstract val cloudProviders: String?
+  abstract val accounts: String?
+  abstract val user: String?
+  abstract val dataSources: Map<String, List<String>>
+  abstract val requiredGroupMembership: List<String>
+  abstract val group: String?
+}
 
 data class ChaosMonkeySpec(
   val enabled: Boolean,
@@ -85,6 +82,44 @@ data class LinkSpec(
   val path: String
 )
 
-// TODO rz - All the Netflix extension attributes. Need to come up with a good strategy for
-// switching out the spec model in the cases of Netflix extensions to the data models.
-//data class NetflixApplicationSpec() : ApplicationSpec()
+data class ApplicationSpec(
+  override val name: String,
+  override val description: String?,
+  override val email: String?,
+  override val lastModifiedBy: String?,
+  override val owner: String,
+  override val chaosMonkey: ChaosMonkeySpec,
+  override val enableRestartRunningExecutions: Boolean,
+  override val instanceLinks: List<InstanceLinkSpec>,
+  override val instancePort: Int,
+  override val appGroup: String?,
+  override val cloudProviders: String?,
+  override val accounts: String?,
+  override val user: String?,
+  override val dataSources: Map<String, List<String>>,
+  override val requiredGroupMembership: List<String>,
+  override val group: String?
+) : BaseApplicationSpec()
+
+data class NetflixApplicationSpec(
+  override val name: String,
+  override val description: String?,
+  override val email: String?,
+  override val lastModifiedBy: String?,
+  override val owner: String,
+  override val chaosMonkey: ChaosMonkeySpec,
+  override val enableRestartRunningExecutions: Boolean,
+  override val instanceLinks: List<InstanceLinkSpec> = listOf(),
+  override val instancePort: Int,
+  override val appGroup: String?,
+  override val cloudProviders: String?,
+  override val accounts: String?,
+  override val user: String?,
+  override val dataSources: Map<String, List<String>> = mapOf(),
+  override val requiredGroupMembership: List<String> = listOf(),
+  override val group: String?,
+  val repoSlug: String?,
+  val repoProjectKey: String?,
+  val repoType: String?,
+  val pdApiKey: String
+) : BaseApplicationSpec()

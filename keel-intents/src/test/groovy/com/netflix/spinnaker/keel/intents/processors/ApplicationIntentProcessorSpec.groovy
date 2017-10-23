@@ -20,8 +20,10 @@ import com.netflix.spinnaker.keel.front50.Front50Service
 import com.netflix.spinnaker.keel.front50.model.Application
 import com.netflix.spinnaker.keel.intents.ApplicationIntent
 import com.netflix.spinnaker.keel.intents.ApplicationSpec
+import com.netflix.spinnaker.keel.intents.BaseApplicationSpec
 import com.netflix.spinnaker.keel.intents.ChaosMonkeySpec
 import com.netflix.spinnaker.keel.intents.ParrotIntent
+import com.netflix.spinnaker.keel.intents.ParrotSpec
 import com.netflix.spinnaker.keel.tracing.TraceRepository
 import retrofit.RetrofitError
 import retrofit.client.Response
@@ -41,8 +43,8 @@ class ApplicationIntentProcessorSpec extends Specification {
 
   def 'should support ApplicationIntents'() {
     expect:
-    !subject.supports(new ParrotIntent(null))
-    subject.supports(new ApplicationIntent(null))
+    !subject.supports(new ParrotIntent(new ParrotSpec("hello", "world")))
+    subject.supports(new ApplicationIntent(Mock(BaseApplicationSpec)))
   }
 
   def 'should create application when app is missing'() {
@@ -84,11 +86,7 @@ class ApplicationIntentProcessorSpec extends Specification {
       description ?: "declarartive service for spinnaker",
       "email@example.com",
       "lastModifiedBy@example.com",
-      null,
-      null,
-      null,
       "owner",
-      "pagerdutyKey",
       new ChaosMonkeySpec(
         true,
         2,

@@ -20,6 +20,7 @@ import com.netflix.spinnaker.keel.IntentStatus
 import com.netflix.spinnaker.keel.dryrun.DryRunIntentLauncher
 import com.netflix.spinnaker.keel.model.UpsertIntentRequest
 import com.netflix.spinnaker.keel.orca.OrcaIntentLauncher
+import com.netflix.spinnaker.keel.tracing.TraceRepository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
@@ -31,7 +32,8 @@ class IntentController
 @Autowired constructor(
   private val orcaIntentLauncher: OrcaIntentLauncher,
   private val dryRunIntentLauncher: DryRunIntentLauncher,
-  private val intentRepository: IntentRepository
+  private val intentRepository: IntentRepository,
+  private val traceRepository: TraceRepository
 ) {
 
   @RequestMapping(method = arrayOf(RequestMethod.PUT))
@@ -45,7 +47,7 @@ class IntentController
 
     req.intents.forEach { intent ->
       intentRepository.upsertIntent(intent)
-      orcaIntentLauncher.launch(intent)?.also { result ->
+      orcaIntentLauncher.launch(intent).also { result ->
         intentRepository.addOrchestrations(intent, result.orchestrationIds)
       }
     }
@@ -67,4 +69,7 @@ class IntentController
 
   @RequestMapping(value = "/{id}/history", method = arrayOf(RequestMethod.GET))
   fun getIntentHistory(@PathVariable("id") id: String) = intentRepository.getHistory(id)
+
+  @RequestMapping(value = "/{id}/traces", method = arrayOf(RequestMethod.GET))
+  fun getIntentTrace(@PathVariable("id") id: String) = traceRepository.getForIntent(id)
 }
