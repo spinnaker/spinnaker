@@ -46,7 +46,9 @@ import com.netflix.spinnaker.clouddriver.aws.deploy.userdata.NullOpUserDataProvi
 import com.netflix.spinnaker.clouddriver.aws.deploy.userdata.UserDataProvider
 import com.netflix.spinnaker.clouddriver.aws.deploy.validators.BasicAmazonDeployDescriptionValidator
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonBlockDevice
+import com.netflix.spinnaker.clouddriver.aws.model.AmazonServerGroup
 import com.netflix.spinnaker.clouddriver.aws.provider.AwsCleanupProvider
+import com.netflix.spinnaker.clouddriver.aws.provider.view.AmazonClusterProvider
 import com.netflix.spinnaker.clouddriver.aws.security.AWSProxy
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentialsInitializer
@@ -63,6 +65,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.EnableConfigurationProperties
+import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
@@ -215,8 +218,16 @@ class AwsConfiguration {
                                                     AccountCredentialsRepository accountCredentialsRepository,
                                                     DeployDefaults deployDefaults,
                                                     ScalingPolicyCopier scalingPolicyCopier,
-                                                    BlockDeviceConfig blockDeviceConfig) {
-    new BasicAmazonDeployHandler(regionScopedProviderFactory, accountCredentialsRepository, deployDefaults, scalingPolicyCopier, blockDeviceConfig)
+                                                    BlockDeviceConfig blockDeviceConfig,
+                                                    AmazonServerGroupProvider amazonServerGroupProvider) {
+    new BasicAmazonDeployHandler(
+      regionScopedProviderFactory,
+      accountCredentialsRepository,
+      amazonServerGroupProvider,
+      deployDefaults,
+      scalingPolicyCopier,
+      blockDeviceConfig
+    )
   }
 
   @Bean
@@ -288,5 +299,22 @@ class AwsConfiguration {
     awsCleanupProvider.agents.addAll(newlyAddedAgents)
 
     new AwsCleanupProviderSynchronizer()
+  }
+
+  @Bean
+  AmazonServerGroupProvider amazonServerGroupProvider(ApplicationContext applicationContext) {
+    return new AmazonServerGroupProvider(applicationContext)
+  }
+
+  class AmazonServerGroupProvider {
+    ApplicationContext applicationContext
+
+    AmazonServerGroupProvider(ApplicationContext applicationContext) {
+      this.applicationContext = applicationContext
+    }
+
+    AmazonServerGroup getServerGroup(String account, String region, String serverGroupName) {
+      return applicationContext.getBean(AmazonClusterProvider).getServerGroup(account, region, serverGroupName)
+    }
   }
 }

@@ -48,6 +48,7 @@ import com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer.UpsertAmazo
 import com.netflix.spinnaker.clouddriver.aws.deploy.scalingpolicy.ScalingPolicyCopier
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonAsgLifecycleHook
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonBlockDevice
+import com.netflix.spinnaker.clouddriver.aws.model.AmazonServerGroup
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentials
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.aws.services.AsgService
@@ -60,6 +61,8 @@ import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
+
+import static BasicAmazonDeployHandler.SUBNET_ID_OVERRIDE_TAG
 
 class BasicAmazonDeployHandlerUnitSpec extends Specification {
 
@@ -83,6 +86,7 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
   AmazonEC2 amazonEC2 = Mock(AmazonEC2)
   AmazonElasticLoadBalancing elbV2 = Mock(AmazonElasticLoadBalancing)
   AmazonELBV1 elbV1 = Mock(AmazonELBV1)
+  AwsConfiguration.AmazonServerGroupProvider amazonServerGroupProvider = Mock(AwsConfiguration.AmazonServerGroupProvider)
 
   List<AmazonBlockDevice> blockDevices
 
@@ -102,7 +106,9 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
     def defaults = new AwsConfiguration.DeployDefaults(iamRole: 'IamRole')
     def credsRepo = new MapBackedAccountCredentialsRepository()
     credsRepo.save('baz', TestCredential.named('baz'))
-    this.handler = new BasicAmazonDeployHandler(rspf, credsRepo, defaults, scalingPolicyCopier, blockDeviceConfig) {
+    this.handler = new BasicAmazonDeployHandler(
+      rspf, credsRepo, amazonServerGroupProvider, defaults, scalingPolicyCopier, blockDeviceConfig
+    ) {
       @Override
       LoadBalancerLookupHelper loadBalancerLookupHelper() {
         return new LoadBalancerLookupHelper()
@@ -411,6 +417,39 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
   }
 
   @Unroll
+  void "should copy subnet ids from source when available and not explicitly specified"() {
+    given:
+    def regionScopedProvider = new RegionScopedProviderFactory().forRegion(testCredentials, "us-west-2")
+    def description = new BasicAmazonDeployDescription(
+      subnetIds: subnetIds,
+      copySourceCustomBlockDeviceMappings: false,
+      tags: [:]
+    )
+
+    when:
+    handler.copySourceAttributes(regionScopedProvider, "application-v002", false, description)
+
+    then:
+    (subnetIds ? 0 : 1) * amazonServerGroupProvider.getServerGroup("test", "us-west-2", "application-v002") >> {
+      def sourceServerGroup = new AmazonServerGroup(asg: [:])
+      if (tagValue) {
+        sourceServerGroup.asg.tags = [[key: SUBNET_ID_OVERRIDE_TAG, value: tagValue]]
+      }
+      return sourceServerGroup
+    }
+    0 * _
+
+    description.subnetIds == expectedSubnetIds
+    description.tags == (expectedSubnetIds ? [(SUBNET_ID_OVERRIDE_TAG): expectedSubnetIds.join(",")] : [:])
+
+    where:
+    subnetIds    | tagValue            || expectedSubnetIds
+    null         | null                || null
+    null         | "subnet-1,subnet-2" || ["subnet-1", "subnet-2"]
+    ["subnet-1"] | "subnet-1,subnet-2" || ["subnet-1"]               // description takes precedence over source asg tag
+  }
+
+  @Unroll
   void "copy source block devices #copySourceBlockDevices feature flags"() {
     given:
     if (copySourceBlockDevices != null) {
@@ -709,10 +748,10 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
     BasicAmazonDeployHandler.getDefaultEbsOptimizedFlag(instanceType) == expectedFlag
 
     where:
-    instanceType  || expectedFlag
-    'invalid'     || false
-    'm3.medium'   || false
-    'm4.large'    || true
+    instanceType || expectedFlag
+    'invalid'    || false
+    'm3.medium'  || false
+    'm4.large'   || true
   }
 
   private Collection<AmazonBlockDevice> bD(String instanceType) {

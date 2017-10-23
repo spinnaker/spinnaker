@@ -18,6 +18,8 @@ package com.netflix.spinnaker.clouddriver.aws.deploy
 
 import com.amazonaws.services.autoscaling.AmazonAutoScaling
 import com.amazonaws.services.autoscaling.model.AutoScalingGroup
+import com.amazonaws.services.ec2.AmazonEC2
+import com.amazonaws.services.ec2.model.Subnet
 import com.netflix.spinnaker.clouddriver.data.task.DefaultTask
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
@@ -40,6 +42,7 @@ class AutoScalingWorkerUnitSpec extends Specification {
   def asgService = Mock(AsgService)
   def autoScaling = Mock(AmazonAutoScaling)
   def clusterProvider = Mock(ClusterProvider)
+  def amazonEC2 = Mock(AmazonEC2)
   def awsServerGroupNameResolver = new AWSServerGroupNameResolver('test', 'us-east-1', asgService, [clusterProvider])
   def credential = TestCredential.named('foo')
   def regionScopedProvider = Stub(RegionScopedProviderFactory.RegionScopedProvider) {
@@ -47,6 +50,7 @@ class AutoScalingWorkerUnitSpec extends Specification {
     getLaunchConfigurationBuilder() >> lcBuilder
     getAsgService() >> asgService
     getAWSServerGroupNameResolver() >> awsServerGroupNameResolver
+    getAmazonEC2() >> amazonEC2
   }
 
   def setup() {
@@ -87,10 +91,10 @@ class AutoScalingWorkerUnitSpec extends Specification {
   void "deploy derives name from ancestor asg and sets the ancestor asg name in the task result"() {
     setup:
     def autoScalingWorker = new AutoScalingWorker(
-      regionScopedProvider : regionScopedProvider,
+      regionScopedProvider: regionScopedProvider,
       credentials: credential,
-      application : "myasg",
-      region : "us-east-1"
+      application: "myasg",
+      region: "us-east-1"
     )
 
     when:
@@ -119,10 +123,10 @@ class AutoScalingWorkerUnitSpec extends Specification {
     def autoScalingWorker = new AutoScalingWorker(
       enabledMetrics: [],
       instanceMonitoring: true,
-      regionScopedProvider : regionScopedProvider,
+      regionScopedProvider: regionScopedProvider,
       credentials: credential,
-      application : "myasg",
-      region : "us-east-1"
+      application: "myasg",
+      region: "us-east-1"
     )
 
     when:
@@ -137,10 +141,10 @@ class AutoScalingWorkerUnitSpec extends Specification {
     def autoScalingWorker = new AutoScalingWorker(
       enabledMetrics: ['GroupMinSize', 'GroupMaxSize'],
       instanceMonitoring: false,
-      regionScopedProvider : regionScopedProvider,
+      regionScopedProvider: regionScopedProvider,
       credentials: credential,
-      application : "myasg",
-      region : "us-east-1"
+      application: "myasg",
+      region: "us-east-1"
     )
 
     when:
@@ -156,10 +160,10 @@ class AutoScalingWorkerUnitSpec extends Specification {
     def autoScalingWorker = new AutoScalingWorker(
       enabledMetrics: ['GroupMinSize', 'GroupMaxSize'],
       instanceMonitoring: true,
-      regionScopedProvider : regionScopedProvider,
+      regionScopedProvider: regionScopedProvider,
       credentials: credential,
-      application : "myasg",
-      region : "us-east-1"
+      application: "myasg",
+      region: "us-east-1"
     )
 
     when:
@@ -167,6 +171,39 @@ class AutoScalingWorkerUnitSpec extends Specification {
 
     then:
     1 * autoScaling.enableMetricsCollection({ it.metrics == ['GroupMinSize', 'GroupMaxSize'] })
+  }
+
+  @Unroll
+  void "should validate provided subnet ids against those available for subnet type"() {
+    given:
+    def autoScalingWorker = new AutoScalingWorker(
+      subnetIds: subnetIds
+    )
+
+    when:
+    def filteredSubnetIds = autoScalingWorker.getSubnetIds(allSubnets)
+
+    then:
+    filteredSubnetIds == expectedSubnetIds
+
+    when:
+    autoScalingWorker = new AutoScalingWorker(
+      subnetIds: ["invalid-subnet-id"]
+    )
+    autoScalingWorker.getSubnetIds(allSubnets)
+
+    then:
+    def e = thrown(IllegalStateException)
+    e.message.startsWith("One or more subnet ids are not valid (invalidSubnetIds: invalid-subnet-id")
+
+    where:
+    subnetIds    | allSubnets                               || expectedSubnetIds
+    ["subnet-1"] | [subnet("subnet-1"), subnet("subnet-2")] || ["subnet-1"]
+    null         | [subnet("subnet-1"), subnet("subnet-2")] || ["subnet-1", "subnet-2"]
+  }
+
+  static Subnet subnet(String subnetId) {
+    return new Subnet().withSubnetId(subnetId)
   }
 
   static ServerGroup sG(String name, Long createdTime, String region) {

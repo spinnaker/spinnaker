@@ -53,6 +53,8 @@ import java.util.regex.Pattern
 @Slf4j
 class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescription> {
   private static final String BASE_PHASE = "DEPLOY"
+  private static final String SUBNET_ID_OVERRIDE_TAG = "SPINNAKER_SUBNET_ID_OVERRIDE"
+
 
   private static final KNOWN_VIRTUALIZATION_FAMILIES = [
     paravirtual: ['c1', 'c3', 'hi1', 'hs1', 'm1', 'm2', 'm3', 't1'],
@@ -70,6 +72,7 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
 
   private final RegionScopedProviderFactory regionScopedProviderFactory
   private final AccountCredentialsRepository accountCredentialsRepository
+  private final AwsConfiguration.AmazonServerGroupProvider amazonServerGroupProvider
   private final AwsConfiguration.DeployDefaults deployDefaults
   private final ScalingPolicyCopier scalingPolicyCopier
   private final BlockDeviceConfig blockDeviceConfig
@@ -78,11 +81,13 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
 
   BasicAmazonDeployHandler(RegionScopedProviderFactory regionScopedProviderFactory,
                            AccountCredentialsRepository accountCredentialsRepository,
+                           AwsConfiguration.AmazonServerGroupProvider amazonServerGroupProvider,
                            AwsConfiguration.DeployDefaults deployDefaults,
                            ScalingPolicyCopier scalingPolicyCopier,
                            BlockDeviceConfig blockDeviceConfig) {
     this.regionScopedProviderFactory = regionScopedProviderFactory
     this.accountCredentialsRepository = accountCredentialsRepository
+    this.amazonServerGroupProvider = amazonServerGroupProvider
     this.deployDefaults = deployDefaults
     this.scalingPolicyCopier = scalingPolicyCopier
     this.blockDeviceConfig = blockDeviceConfig
@@ -269,6 +274,7 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
         instanceType: description.instanceType,
         availabilityZones: availabilityZones,
         subnetType: subnetType,
+        subnetIds: description.subnetIds,
         classicLoadBalancers: loadBalancers.classicLoadBalancers,
         targetGroupArns: targetGroups.targetGroupARNs,
         cooldown: description.cooldown,
@@ -328,6 +334,35 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
   BasicAmazonDeployDescription copySourceAttributes(RegionScopedProviderFactory.RegionScopedProvider sourceRegionScopedProvider,
                                                     String sourceAsgName, Boolean useSourceCapacity,
                                                     BasicAmazonDeployDescription description) {
+
+    def copySourceSubnetIdOverrides = description.copySourceSubnetIdOverrides && !description.subnetIds
+    if (copySourceSubnetIdOverrides && sourceRegionScopedProvider && sourceAsgName) {
+      // avoid unnecessary AWS calls by fetching a cached copy of the source server group
+      def serverGroup = amazonServerGroupProvider.getServerGroup(
+        sourceRegionScopedProvider.amazonCredentials?.name,
+        sourceRegionScopedProvider.region,
+        sourceAsgName
+      )
+
+      if (serverGroup) {
+        String subnetIdTag = serverGroup.asg.tags.find { it.key == SUBNET_ID_OVERRIDE_TAG }?.value
+        if (subnetIdTag) {
+          // source server group had subnet id overrides, propagate them forward
+          description.subnetIds = subnetIdTag.split(",")
+        }
+      }
+    }
+
+    if (description.subnetIds) {
+      /*
+       * Ensure the new server group receives the subnet id override tag.
+       *
+       * These subnet ids will be validated against the region / availability zones and provided subnet type.
+       *
+       * The deploy will fail (and tag discarded!) if any of the ids are invalid.
+       */
+      description.tags[SUBNET_ID_OVERRIDE_TAG] = description.subnetIds.join(",")
+    }
 
     //skip a couple of AWS calls if we won't use any of the data
     if (!(useSourceCapacity || description.copySourceCustomBlockDeviceMappings)) {

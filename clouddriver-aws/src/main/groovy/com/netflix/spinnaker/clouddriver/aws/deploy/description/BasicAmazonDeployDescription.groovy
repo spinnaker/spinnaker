@@ -32,6 +32,7 @@ class BasicAmazonDeployDescription extends AbstractAmazonCredentialsDescription 
   String freeFormDetails
   String instanceType
   String subnetType
+  List<String> subnetIds
   String iamRole
   String keyPair
   Boolean associatePublicIpAddress
@@ -64,6 +65,11 @@ class BasicAmazonDeployDescription extends AbstractAmazonCredentialsDescription 
    * If false, the newly created server group will not pick up block device mapping customizations from an ancestor group
    */
   boolean copySourceCustomBlockDeviceMappings = true
+
+  /**
+   * If false, the newly created server group will not pick up overridden subnet ids from an ancestor group
+   */
+  boolean copySourceSubnetIdOverrides = true
 
   String classicLinkVpcId
   List<String> classicLinkVpcSecurityGroups
