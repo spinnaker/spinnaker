@@ -6,7 +6,7 @@
     </div>
   </div>
 
-  <div class="form-group" ng-if="!$ctrl.command.viewState.readOnlyFields.useSourceCapacity">
+  <div class="form-group" ng-if="!$ctrl.command.viewState.readOnlyFields.useSourceCapacity && $ctrl.command.viewState.mode !== 'create'">
     <div class="col-md-3 sm-label-right">Capacity</div>
     <div class="col-md-9 radio">
       <label>
