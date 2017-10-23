@@ -26,7 +26,7 @@ class DryRunIntentLauncher
   private val intentProcessors: List<IntentProcessor<*>>
 ): IntentLauncher<DryRunLaunchedIntentResult> {
 
-  override fun launch(intent: Intent<IntentSpec>): DryRunLaunchedIntentResult? {
+  override fun launch(intent: Intent<IntentSpec>): DryRunLaunchedIntentResult {
     val processor = intentProcessor(intentProcessors, intent)
 
     val tasks = processor.converge(intent)

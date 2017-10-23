@@ -29,7 +29,7 @@ class OrcaIntentLauncher
 
   private val log = LoggerFactory.getLogger(javaClass)
 
-  override fun launch(intent: Intent<IntentSpec>): OrcaLaunchedIntentResult? {
+  override fun launch(intent: Intent<IntentSpec>): OrcaLaunchedIntentResult {
     val processor = intentProcessor(intentProcessors, intent)
 
     val tasks = processor.converge(intent)

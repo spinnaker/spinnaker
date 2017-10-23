@@ -19,7 +19,7 @@ import com.netflix.spinnaker.keel.exceptions.DeclarativeException
 
 interface IntentLauncher<out R : LaunchedIntentResult> {
 
-  fun launch(intent: Intent<IntentSpec>): R?
+  fun launch(intent: Intent<IntentSpec>): R
 
   fun <I : Intent<IntentSpec>> intentProcessor(intentProcessors: List<IntentProcessor<*>>, intent: I)
     = intentProcessors.find { it.supports(intent) }.let {
