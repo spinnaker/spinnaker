@@ -167,7 +167,7 @@ class RollingRedBlackStrategy implements Strategy, ApplicationContextAware {
       )
     }
 
-    if (stageData.pipelineBeforeCleanup) {
+    if (stageData.pipelineBeforeCleanup?.application && stageData.pipelineBeforeCleanup?.pipelineId) {
       def serverGroupCoordinates = [
         region         : source.region,
         serverGroupName: source.serverGroupName,
