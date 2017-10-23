@@ -127,6 +127,8 @@ const helpContents: {[key: string]: string} = {
   'kubernetes.ingress.rules.host': 'The fully qualified domain name of a network host. Any traffic routed to this host matches this rule. May not be an IP address, or contain port information.',
   'kubernetes.ingress.rules.path': 'POSIX regex (IEE Std 1003.1) matched against the path of an incoming request.',
   'kubernetes.ingress.rules.port': 'The port on the specifed load balancer to route traffic to.',
+  'kubernetes.ingress.tls.host': 'The fully qualified domain name of a network host. Any traffic routed to this host can be secured with TLS. May not be an IP address, or contain port information.',
+  'kubernetes.ingress.tls.secret': '(Optional) Name of the Kubernetes secret that will be used to secure TLS connections to the security group. Note that Spinnaker will not create any secrets, they are assumed to exist.',
 };
 
 export const KUBERNETES_HELP = 'spinnaker.kubernetes.help.contents';

@@ -25,6 +25,7 @@ module.exports = angular.module('spinnaker.kubernetes.securityGroup.transformer'
         },
 
         rules: [],
+        tls: [],
       };
     }
 
@@ -49,10 +50,18 @@ module.exports = angular.module('spinnaker.kubernetes.securityGroup.transformer'
       };
     }
 
+    function constructNewIngressTLS() {
+      return {
+        hosts : [],
+        secretName: '',
+      };
+    }
+
     return {
       normalizeSecurityGroup: normalizeSecurityGroup,
       constructNewSecurityGroupTemplate: constructNewSecurityGroupTemplate,
       constructNewIngressRule: constructNewIngressRule,
       constructNewIngressPath: constructNewIngressPath,
+      constructNewIngressTLS: constructNewIngressTLS,
     };
   });

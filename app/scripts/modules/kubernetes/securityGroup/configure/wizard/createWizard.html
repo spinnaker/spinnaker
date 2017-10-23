@@ -8,6 +8,12 @@
   <v2-wizard-page key="rules" label="Rules">
     <ng-include src="pages.rules"></ng-include>
   </v2-wizard-page>
+  <v2-wizard-page key="tls" label="TLS">
+    <ng-include src="pages.tls"></ng-include>
+  </v2-wizard-page>
+  <v2-wizard-page key="Advanced Settings" label="Advanced Settings">
+    <ng-include src="pages.advancedSettings"></ng-include>
+  </v2-wizard-page>
 </v2-modal-wizard>
 <div class="modal-footer">
   <button ng-disabled="taskMonitor.submitting" class="btn btn-default"

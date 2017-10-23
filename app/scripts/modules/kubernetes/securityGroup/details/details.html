@@ -75,11 +75,34 @@
         No rules created
       </dl>
     </collapsible-section>
+    <collapsible-section heading="TLS">
+      <dl ng-class="insightCtrl.vm.filtersExpanded ? '' : 'dl-horizontal dl-medium'"
+          ng-repeat="tls in securityGroup.ingress.spec.tls"
+          ng-if="securityGroup.ingress.spec.tls.length">
+        <dt>Host</dt>
+        <dd>{{tls.hosts[0]}}</dd>
+      </dl>
+      <dl ng-if="!securityGroup.ingress.spec.tls.length">
+        No TLS entries created
+      </dl>
+    </collapsible-section>
     <collapsible-section heading="Status">
       <dl ng-class="insightCtrl.vm.filtersExpanded ? '' : 'dl-horizontal dl-medium'"
           ng-repeat="ingress in securityGroup.ingress.status.loadBalancer.ingress">
         <dt>IP</dt>
         <dd>{{ingress.ip}}</dd>
+      </dl>
+    </collapsible-section>
+    <collapsible-section heading="Annotations" ng-if="securityGroup.ingress.metadata.annotations">
+      <dl class="dl-horizontal dl-flex">
+        <kubernetes-key-value-details map="securityGroup.ingress.metadata.annotations">
+        </kubernetes-key-value-details>
+      </dl>
+    </collapsible-section>
+    <collapsible-section heading="Labels" ng-if="securityGroup.ingress.metadata.labels">
+      <dl class="dl-horizontal dl-flex">
+        <kubernetes-key-value-details map="securityGroup.ingress.metadata.labels">
+        </kubernetes-key-value-details>
       </dl>
     </collapsible-section>
   </div>

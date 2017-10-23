@@ -43,6 +43,12 @@ module.exports = angular.module('spinnaker.securityGroup.kubernetes.details.cont
           autoClose();
         } else {
           $scope.securityGroup = details;
+
+          // Change TLS hosts from array to string for the UI
+          for (let idx in $scope.securityGroup.tls) {
+            const tls = $scope.securityGroup.tls[idx];
+            tls.hosts = tls.hosts[0];
+          }
         }
       },
         autoClose
