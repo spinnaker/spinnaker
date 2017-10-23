@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { get } from 'lodash';
 import { BindAll } from 'lodash-decorators';
 
 import { Application } from 'core/application';
@@ -20,7 +21,7 @@ export interface IStageSummaryState {
 export class StageSummary extends React.Component<IStageSummaryProps, IStageSummaryState> {
 
   private getSourceUrl(): string {
-    return this.props.config.executionSummaryUrl || require('../../pipeline/config/stages/core/executionSummary.html');
+    return get(this.props, 'config.executionSummaryUrl', require('../../pipeline/config/stages/core/executionSummary.html'));
   }
 
   public render(): React.ReactElement<StageSummary> {

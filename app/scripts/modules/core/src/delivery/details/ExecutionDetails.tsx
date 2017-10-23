@@ -99,6 +99,24 @@ export class ExecutionDetails extends React.Component<IExecutionDetailsProps, IE
     return { refId: null };
   }
 
+  private validateStageExists(summaries: IExecutionStageSummary[], stage: number, subStage: number): { stage: number, subStage: number } {
+    if (isNaN(subStage)) { subStage = undefined; }
+    const foundStage = summaries[stage];
+    let foundSubStage;
+
+    if (foundStage) {
+      if (foundStage.groupStages) {
+        foundSubStage = foundStage.groupStages[subStage];
+        subStage = foundSubStage ? subStage : 0;
+      } else {
+        subStage = undefined;
+      }
+    } else {
+      stage = 0;
+    }
+    return { stage, subStage };
+  }
+
   private getCurrentStage(summaries: IExecutionStageSummary[]): { stage: number, subStage: number } {
     const { $state, $stateParams } = ReactInjector;
     if ($stateParams.stageId) {
@@ -116,7 +134,14 @@ export class ExecutionDetails extends React.Component<IExecutionDetailsProps, IE
       }
     }
 
-    return { stage: parseInt($stateParams.stage, 10), subStage: parseInt($stateParams.subStage, 10) };
+    const stateStage = parseInt($stateParams.stage, 10);
+    const stateSubStage = parseInt($stateParams.subStage, 10);
+    const { stage, subStage } = this.validateStageExists(summaries, stateStage, stateSubStage);
+    if (stage !== stateStage || subStage !== stateSubStage) {
+      $state.go('.', { stage, subStage }, { location: 'replace' });
+    }
+
+    return { stage, subStage };
   }
 
   private getCurrentStep() {
