@@ -1,15 +1,18 @@
+import { ScoreClassificationLabel } from './ScoreClassificationLabel';
+import { MetricClassificationLabel } from './MetricClassificationLabel';
+
 export interface ICanaryJudgeResult {
   judgeName: string;
   results: {[metricName: string]: ICanaryAnalysisResult};
   groupScores: ICanaryJudgeGroupScore[];
-  score: ICanaryJudgeGroupScore;
+  score: ICanaryJudgeScore;
 }
 
 export interface ICanaryAnalysisResult {
   name: string;
   metricSetPairId: string; // Not yet defined on the Kayenta model.
   tags: {[key: string]: string};
-  classification: string;
+  classification: MetricClassificationLabel;
   classificationReason: string;
   groups: string[];
   experimentMetadata: {[key: string]: any};
@@ -26,6 +29,6 @@ export interface ICanaryJudgeGroupScore {
 
 export interface ICanaryJudgeScore {
   score: number;
-  classification: string;
+  classification: ScoreClassificationLabel;
   classificationReason: string;
 }
