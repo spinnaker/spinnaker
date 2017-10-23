@@ -42,8 +42,6 @@ Usage:
 """
 
 import argparse
-import base64
-import collections
 import datetime
 import fnmatch
 import glob
@@ -58,8 +56,6 @@ import subprocess
 import sys
 import tempfile
 import time
-import urllib2
-from urllib2 import HTTPError
 
 import refresh_source
 
@@ -222,6 +218,8 @@ class Builder(object):
       '-PbintrayUser="{user}"'.format(user=bintray_user)
     ]
 
+    if options.maven_custom_init_file:
+      extra_args.append('-I {}'.format(options.maven_custom_init_file))
 
     if options.info_gradle:
       extra_args.append('--info')
@@ -648,6 +646,11 @@ class Builder(object):
       parser.add_argument(
           '--do_jar_build', type=bool, default=True,
           help='Build & publish jars independently to GCS.')
+      parser.add_argument('--maven_custom_init_file', default=os.path.join(os.path.dirname(__file__), 'maven-init.gradle'),
+          help='Path to a gradle init file to add to the debian builds.'
+               'Used to specify any custom behavior in the gradle builds.'
+               'Argument is a file path relative to the directory this script is executed in.'
+               'The default value assumes we run this script from the parent directory of spinnaker/spinnaker.')
 
   def __verify_bintray(self):
     if not os.environ.get('BINTRAY_KEY', None):
