@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { isEqual } from 'lodash';
 
 import { IExecutionDetailsComponentProps, IExecutionDetailsComponentState } from 'core/domain';
 import { ReactInjector } from 'core/reactShims';
