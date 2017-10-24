@@ -66,17 +66,6 @@ class ManualJudgmentStage implements StageDefinitionBuilder, RestartableStage, A
     final long backoffPeriod = 15000
     final long timeout = TimeUnit.DAYS.toMillis(3)
 
-    @Override
-    long getDynamicBackoffPeriod(Duration taskDuration) {
-      if (taskDuration < Duration.ofMillis(timeout)) {
-        // task needs to run again right after it should be complete, so add half a second
-        return Duration.ofMillis(timeout).minus(taskDuration).plus(Duration.ofMillis(500)).toMillis()
-      } else {
-        // start polling normally after timeout to account for delays like throttling
-        return backoffPeriod
-      }
-    }
-
     @Autowired(required = false)
     EchoService echoService
 
