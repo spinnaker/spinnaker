@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.pipeline
 
-import java.time.Duration
 import java.util.concurrent.TimeUnit
 import com.google.common.annotations.VisibleForTesting
 import com.netflix.spinnaker.orca.ExecutionStatus
@@ -63,8 +62,6 @@ class RestrictExecutionDuringTimeWindow implements StageDefinitionBuilder {
 
     @Override
     TaskResult execute(Stage stage) {
-      stage.getTopLevelTimeout().ifPresent({ timeout = it })
-
       Date now = new Date()
       Date scheduledTime
       try {
