@@ -63,8 +63,8 @@ class ManualJudgmentStage implements StageDefinitionBuilder, RestartableStage, A
   @Component
   @VisibleForTesting
   public static class WaitForManualJudgmentTask implements RetryableTask {
-    long backoffPeriod = 15000
-    long timeout = TimeUnit.DAYS.toMillis(3)
+    final long backoffPeriod = 15000
+    final long timeout = TimeUnit.DAYS.toMillis(3)
 
     @Override
     long getDynamicBackoffPeriod(Duration taskDuration) {
@@ -82,8 +82,6 @@ class ManualJudgmentStage implements StageDefinitionBuilder, RestartableStage, A
 
     @Override
     TaskResult execute(Stage stage) {
-      stage.getTopLevelTimeout().ifPresent({ timeout = it })
-
       StageData stageData = stage.mapTo(StageData)
       NotificationState notificationState
       ExecutionStatus executionStatus
