@@ -70,7 +70,8 @@ class EurekaInstance extends DiscoveryHealth {
                                              @JsonProperty('secureVipAddress') String secureVipAddress,
                                              @JsonProperty('lastUpdatedTimestamp') long lastUpdatedTimestamp,
                                              @JsonProperty('asgName') String asgName,
-                                             @JsonProperty('metadata') Metadata metadata) {
+                                             @JsonProperty('metadata') Metadata metadata,
+                                             @JsonProperty('instanceId') String registrationInstanceId) {
     def meta = dataCenterInfo.metadata
     final HealthState healthState
     if ('UP' == status) {
@@ -84,6 +85,17 @@ class EurekaInstance extends DiscoveryHealth {
     } else {
       healthState = HealthState.Down
     }
+
+
+    //the preferred instanceId value comes from DataCenterInfo Metadata
+    // Jackson was doing some shenanigans whereby the top level registration
+    // instanceId would overwrite the value from DataCenterInfo because it
+    // was not defined as a @JsonProperty on this @JsonCreator
+    //
+    //This will now prefer and use the instanceId from metadata if present
+    // but fall back to the registration level instance id for anyone who
+    // was possibly never registering with a DataCenterInfo Metadata entry.
+    String instanceId = meta?.instanceId ?: registrationInstanceId
     new EurekaInstance(
       hostName,
       app,
@@ -94,7 +106,7 @@ class EurekaInstance extends DiscoveryHealth {
       status,
       meta?.accountId,
       meta?.availabilityZone,
-      meta?.instanceId,
+      instanceId,
       meta?.amiId,
       meta?.instanceType,
       statusPageUrl,
