@@ -9,7 +9,6 @@ module.exports = angular.module('spinnaker.titus.pipeline.stage.disableClusterSt
       provides: 'disableCluster',
       cloudProvider: 'titus',
       templateUrl: require('./disableClusterStage.html'),
-      executionDetailsUrl: require('./disableClusterExecutionDetails.html'),
       executionConfigSections: ['disableClusterConfig', 'taskStatus'],
       validators: [
         { type: 'requiredField', fieldName: 'cluster' },
