@@ -51,6 +51,14 @@
       </div>
     </filter-section>
 
+    <filter-section heading="Detail" expanded="true">
+      <div class="checkbox" ng-repeat="heading in $ctrl.detailHeadings | orderBy: 'toString()' ">
+        <label>
+          <input type="checkbox" ng-model="$ctrl.sortFilter.detail[heading]" ng-change="$ctrl.updateLoadBalancerGroups()"/>{{heading}}
+        </label>
+      </div>
+    </filter-section>
+
     <filter-section heading="Instance Status" expanded="true">
       <div class="form">
         <div class="checkbox">

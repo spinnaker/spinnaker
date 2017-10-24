@@ -22,6 +22,7 @@ export class SecurityGroupFilterCtrl {
   public regionHeadings: string[];
   public sortFilter: any;
   public stackHeadings: string[];
+  public detailHeadings: string[];
   public tags: IFilterTag[];
   private groupsUpdatedSubscription: Subscription;
   private locationChangeUnsubscribe: () => void;
@@ -97,6 +98,7 @@ export class SecurityGroupFilterCtrl {
 
   private initialize(): void {
     this.stackHeadings = ['(none)'].concat(this.getHeadingsForOption('stack'));
+    this.detailHeadings = ['(none)'].concat(this.getHeadingsForOption('detail'));
     this.providerTypeHeadings = this.getHeadingsForOption('provider');
     this.updateSecurityGroups();
   }

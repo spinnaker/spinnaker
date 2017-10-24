@@ -22,6 +22,7 @@ export interface ISecurityGroup {
   application?: string;
   cloudProvider?: string;
   credentials?: string;
+  detail?: string;
   entityTags?: IEntityTags;
   id?: string;
   inferredName?: boolean;

@@ -53,6 +53,7 @@ module.exports = angular
         .filter(filterModelService.checkAccountFilters(securityGroupFilterModel))
         .filter(filterModelService.checkRegionFilters(securityGroupFilterModel))
         .filter(filterModelService.checkStackFilters(securityGroupFilterModel))
+        .filter(filterModelService.checkDetailFilters(securityGroupFilterModel))
         .filter(filterModelService.checkProviderFilters(securityGroupFilterModel))
         .value();
     }

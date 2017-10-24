@@ -190,6 +190,7 @@ export class ClusterFilterService {
       .filter(g => this.filterModelService.checkAccountFilters(this.clusterFilterModel)(g))
       .filter(g => this.filterModelService.checkRegionFilters(this.clusterFilterModel)(g))
       .filter(g => this.filterModelService.checkStackFilters(this.clusterFilterModel)(g))
+      .filter(g => this.filterModelService.checkDetailFilters(this.clusterFilterModel)(g))
       .filter(g => this.filterModelService.checkStatusFilters(this.clusterFilterModel)(g))
       .filter(g => this.filterModelService.checkProviderFilters(this.clusterFilterModel)(g))
       .filter(g => this.instanceTypeFilters(g))

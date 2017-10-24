@@ -10,6 +10,7 @@ export const filterModelConfig: IFilterConfig[] = [
   { model: 'account', param: 'acct', type: 'trueKeyObject', },
   { model: 'region', param: 'reg', type: 'trueKeyObject', },
   { model: 'stack', param: 'stack', type: 'trueKeyObject', },
+  { model: 'detail', param: 'detail', type: 'trueKeyObject', },
   { model: 'category', param: 'category', type: 'trueKeyObject', },
   { model: 'status', type: 'trueKeyObject', filterTranslator: { Up: 'Healthy', Down: 'Unhealthy', OutOfService: 'Out of Service' } },
   { model: 'availabilityZone', param: 'zone', type: 'trueKeyObject', filterLabel: 'availability zone' },

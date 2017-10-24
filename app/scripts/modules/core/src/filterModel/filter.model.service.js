@@ -59,6 +59,20 @@ module.exports = angular
       };
     }
 
+    function checkDetailFilters(model) {
+      return function(target) {
+        if (isFilterable(model.sortFilter.detail)) {
+          var checkedDetails = getCheckValues(model.sortFilter.detail);
+          if (checkedDetails.includes('(none)')) {
+            checkedDetails.push('');
+          }
+          return _.includes(checkedDetails, target.detail);
+        } else {
+          return true;
+        }
+      };
+    }
+
     function checkStatusFilters(model) {
       return function(target) {
         if (isFilterable(model.sortFilter.status)) {
@@ -319,15 +333,16 @@ module.exports = angular
     }
 
     return {
-      configureFilterModel: configureFilterModel,
-      isFilterable: isFilterable,
-      getCheckValues: getCheckValues,
-      checkAccountFilters: checkAccountFilters,
-      checkRegionFilters: checkRegionFilters,
-      checkStackFilters: checkStackFilters,
-      checkStatusFilters: checkStatusFilters,
-      checkProviderFilters: checkProviderFilters,
-      checkCategoryFilters: checkCategoryFilters,
+      configureFilterModel,
+      isFilterable,
+      getCheckValues,
+      checkAccountFilters,
+      checkRegionFilters,
+      checkStackFilters,
+      checkDetailFilters,
+      checkStatusFilters,
+      checkProviderFilters,
+      checkCategoryFilters,
     };
 
   });

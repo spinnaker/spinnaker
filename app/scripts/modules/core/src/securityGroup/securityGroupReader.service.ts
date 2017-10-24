@@ -203,9 +203,10 @@ export class SecurityGroupReader {
     });
   }
 
-  private addStackToSecurityGroup(securityGroup: ISecurityGroup): void {
+  private addNamePartsToSecurityGroup(securityGroup: ISecurityGroup): void {
     const nameParts: IComponentName = this.namingService.parseSecurityGroupName(securityGroup.name);
     securityGroup.stack = nameParts.stack;
+    securityGroup.detail = nameParts.freeFormDetails;
   }
 
   private attachSecurityGroups(application: Application,
@@ -252,7 +253,7 @@ export class SecurityGroupReader {
       return this.clearCacheAndRetryAttachingSecurityGroups(application, nameBasedSecurityGroups);
 
     } else {
-      data.forEach((sg: ISecurityGroup) => this.addStackToSecurityGroup(sg));
+      data.forEach((sg: ISecurityGroup) => this.addNamePartsToSecurityGroup(sg));
       return this.$q.all(data.map((sg: ISecurityGroup) => this.securityGroupTransformer.normalizeSecurityGroup(sg)))
         .then(() => this.addEntityTags(data));
     }

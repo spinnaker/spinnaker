@@ -60,6 +60,7 @@ export class LoadBalancerFilterService {
       .filter((lb) => this.filterModelService.checkAccountFilters(this.loadBalancerFilterModel)(lb))
       .filter((lb) => this.filterModelService.checkRegionFilters(this.loadBalancerFilterModel)(lb))
       .filter((lb) => this.filterModelService.checkStackFilters(this.loadBalancerFilterModel)(lb))
+      .filter((lb) => this.filterModelService.checkDetailFilters(this.loadBalancerFilterModel)(lb))
       .filter((lb) => this.filterModelService.checkStatusFilters(this.loadBalancerFilterModel)(lb))
       .filter((lb) => this.filterModelService.checkProviderFilters(this.loadBalancerFilterModel)(lb))
       .filter((lb) => this.instanceFilters(lb))
