@@ -133,11 +133,7 @@ class GoogleRegionalServerGroupCachingAgent extends AbstractGoogleCachingAgent i
     BatchRequest instanceGroupsRequest = buildBatchRequest()
     BatchRequest autoscalerRequest = buildBatchRequest()
 
-    List<InstanceTemplate> instanceTemplates = timeExecute(
-        compute.instanceTemplates().list(project),
-        "compute.instanceTemplates.list",
-        TAG_SCOPE, SCOPE_GLOBAL)
-        .getItems()
+    List<InstanceTemplate> instanceTemplates = GoogleZonalServerGroupCachingAgent.fetchInstanceTemplates(compute, project)
 
     InstanceGroupManagerCallbacks instanceGroupManagerCallbacks = new InstanceGroupManagerCallbacks(
       providerCache: providerCache,

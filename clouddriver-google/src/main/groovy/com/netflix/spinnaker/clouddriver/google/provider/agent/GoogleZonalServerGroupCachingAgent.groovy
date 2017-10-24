@@ -22,6 +22,7 @@ import com.google.api.client.googleapis.batch.BatchRequest
 import com.google.api.client.googleapis.batch.json.JsonBatchCallback
 import com.google.api.client.googleapis.json.GoogleJsonError
 import com.google.api.client.http.HttpHeaders
+import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.*
 import com.netflix.frigga.Names
 import com.netflix.frigga.ami.AppVersion
@@ -42,6 +43,7 @@ import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
 import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleHttpLoadBalancingPolicy
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
+import com.netflix.spinnaker.clouddriver.googlecommon.GoogleExecutor
 import groovy.transform.Canonical
 import groovy.util.logging.Slf4j
 
@@ -135,11 +137,7 @@ class GoogleZonalServerGroupCachingAgent extends AbstractGoogleCachingAgent impl
     BatchRequest instanceGroupsRequest = buildBatchRequest()
     BatchRequest autoscalerRequest = buildBatchRequest()
 
-    List<InstanceTemplate> instanceTemplates = timeExecute(
-        compute.instanceTemplates().list(project),
-        "compute.instanceTemplates.list",
-        TAG_SCOPE, SCOPE_GLOBAL)
-        .getItems()
+    List<InstanceTemplate> instanceTemplates = fetchInstanceTemplates(compute, project)
 
     zones?.each { String zone ->
       InstanceGroupManagerCallbacks instanceGroupManagerCallbacks = new InstanceGroupManagerCallbacks(
@@ -163,6 +161,25 @@ class GoogleZonalServerGroupCachingAgent extends AbstractGoogleCachingAgent impl
     executeIfRequestsAreQueued(autoscalerRequest, "ZonalServerGroupCaching.autoscaler")
 
     serverGroups
+  }
+
+  static List<InstanceTemplate> fetchInstanceTemplates(Compute compute, String project) {
+    Boolean executedAtLeastOnce = false
+    String nextPageToken = null
+    List<InstanceTemplate> instanceTemplates = []
+    while (!executedAtLeastOnce || nextPageToken) {
+      InstanceTemplateList instanceTemplateList = GoogleExecutor.timeExecute(
+          GoogleExecutor.getRegistry(),
+          compute.instanceTemplates().list(project).setPageToken(nextPageToken),
+          "google.api",
+          "compute.instanceTemplates.list",
+          GoogleExecutor.TAG_SCOPE, GoogleExecutor.SCOPE_GLOBAL)
+
+      executedAtLeastOnce = true
+      nextPageToken = instanceTemplateList.getNextPageToken()
+      instanceTemplates.addAll(instanceTemplateList.getItems())
+    }
+    return instanceTemplates
   }
 
   @Override
