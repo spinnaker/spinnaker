@@ -40,20 +40,24 @@ class ApplicationIntent
 abstract class BaseApplicationSpec : IntentSpec {
   abstract val name: String
   abstract val description: String?
-  abstract val email: String?
+  abstract val email: String
   abstract val lastModifiedBy: String?
   abstract val owner: String
   abstract val chaosMonkey: ChaosMonkeySpec
   abstract val enableRestartRunningExecutions: Boolean
   abstract val instanceLinks: List<InstanceLinkSpec>
-  abstract val instancePort: Int
+  abstract val instancePort: Int?
   abstract val appGroup: String?
   abstract val cloudProviders: String?
   abstract val accounts: String?
   abstract val user: String?
-  abstract val dataSources: Map<String, List<String>>
+  abstract val dataSources: DataSourcesSpec
   abstract val requiredGroupMembership: List<String>
   abstract val group: String?
+  abstract val providerSettings: Map<String, Map<String, Any>>
+  abstract val trafficGuards: List<TrafficGuardSpec>
+  abstract val platformHealthOnlyShowOverride: Boolean
+  abstract val platformHealthOnly: Boolean
 }
 
 data class ChaosMonkeySpec(
@@ -82,44 +86,90 @@ data class LinkSpec(
   val path: String
 )
 
+data class DataSourcesSpec(
+  val enabled: List<String>,
+  val disabled: List<String>
+)
+
+data class TrafficGuardSpec(
+  val account: String?,
+  val location: String?,
+  val stack: String?,
+  val detail: String?
+)
+
 data class ApplicationSpec(
   override val name: String,
   override val description: String?,
-  override val email: String?,
-  override val lastModifiedBy: String?,
-  override val owner: String,
-  override val chaosMonkey: ChaosMonkeySpec,
-  override val enableRestartRunningExecutions: Boolean,
-  override val instanceLinks: List<InstanceLinkSpec>,
-  override val instancePort: Int,
-  override val appGroup: String?,
-  override val cloudProviders: String?,
-  override val accounts: String?,
-  override val user: String?,
-  override val dataSources: Map<String, List<String>>,
-  override val requiredGroupMembership: List<String>,
-  override val group: String?
-) : BaseApplicationSpec()
-
-data class NetflixApplicationSpec(
-  override val name: String,
-  override val description: String?,
-  override val email: String?,
+  override val email: String,
   override val lastModifiedBy: String?,
   override val owner: String,
   override val chaosMonkey: ChaosMonkeySpec,
   override val enableRestartRunningExecutions: Boolean,
   override val instanceLinks: List<InstanceLinkSpec> = listOf(),
-  override val instancePort: Int,
+  override val instancePort: Int?,
   override val appGroup: String?,
   override val cloudProviders: String?,
   override val accounts: String?,
   override val user: String?,
-  override val dataSources: Map<String, List<String>> = mapOf(),
+  override val dataSources: DataSourcesSpec = DataSourcesSpec(listOf(), listOf()),
   override val requiredGroupMembership: List<String> = listOf(),
   override val group: String?,
+  override val providerSettings: Map<String, Map<String, Any>>,
+  override val trafficGuards: List<TrafficGuardSpec>,
+  override val platformHealthOnlyShowOverride: Boolean,
+  override val platformHealthOnly: Boolean
+) : BaseApplicationSpec()
+
+// TODO rz - Move to -nflx, figure out a better wiring strategy?
+data class NetflixApplicationSpec(
+  override val name: String,
+  override val description: String?,
+  override val email: String,
+  override val lastModifiedBy: String?,
+  override val owner: String,
+  override val chaosMonkey: ChaosMonkeySpec,
+  override val enableRestartRunningExecutions: Boolean,
+  override val instanceLinks: List<InstanceLinkSpec> = listOf(),
+  override val instancePort: Int?,
+  override val appGroup: String?,
+  override val cloudProviders: String?,
+  override val accounts: String?,
+  override val user: String?,
+  override val dataSources: DataSourcesSpec = DataSourcesSpec(listOf(), listOf()),
+  override val requiredGroupMembership: List<String> = listOf(),
+  override val group: String?,
+  override val providerSettings: Map<String, Map<String, Any>>,
+  override val trafficGuards: List<TrafficGuardSpec>,
+  override val platformHealthOnlyShowOverride: Boolean,
+  override val platformHealthOnly: Boolean,
   val repoSlug: String?,
   val repoProjectKey: String?,
   val repoType: String?,
-  val pdApiKey: String
+  val pdApiKey: String,
+  val propertyRolloutConfigId: String?,
+  val legacyUdf: Boolean,
+  val monitorBucketType: String,
+  val criticalityRules: List<CriticalityRuleSpec>,
+  val ccpService: String,
+  val timelines: List<TimelineSpec>
 ) : BaseApplicationSpec()
+
+data class CriticalityRuleSpec(
+  val account: String,
+  val location: String,
+  val stack: String,
+  val detail: String,
+  val priority: Int
+)
+
+data class TimelineSpec(
+  val name: String,
+  val description: String,
+  val url: String,
+  val rowLabel: String,
+  val startEvent: String,
+  val endEvent: String,
+  val rowLabelRegex: String,
+  val rowLabelReplacement: String
+)
