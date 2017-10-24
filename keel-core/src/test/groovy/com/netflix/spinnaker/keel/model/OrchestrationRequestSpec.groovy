@@ -21,11 +21,12 @@ class OrchestrationRequestSpec extends Specification {
 
   def 'should build job request'() {
     given:
-    def req = new OrchestrationRequest("keel", "my orchestration", [
+    def req = new OrchestrationRequest("wait for nothing", "keel", "my orchestration", [
       new Job("wait", [waitTime: 30])
     ])
 
     expect:
+    req.name == "wait for nothing"
     req.application == "keel"
     req.description == "my orchestration"
     req.job[0].type == "wait"

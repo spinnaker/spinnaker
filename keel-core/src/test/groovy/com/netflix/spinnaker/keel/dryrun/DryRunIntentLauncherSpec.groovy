@@ -15,6 +15,9 @@
  */
 package com.netflix.spinnaker.keel.dryrun
 
+import com.netflix.spectator.api.Counter
+import com.netflix.spectator.api.Id
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.keel.Intent
 import com.netflix.spinnaker.keel.IntentProcessor
 import com.netflix.spinnaker.keel.IntentSpec
@@ -28,7 +31,12 @@ class DryRunIntentLauncherSpec extends Specification {
 
   IntentProcessor<Intent> processor = Mock()
 
-  @Subject subject = new DryRunIntentLauncher([processor])
+  Registry registry = Mock() {
+    createId(_, _) >> { Mock(Id) }
+    counter(_) >> { Mock(Counter) }
+  }
+
+  @Subject subject = new DryRunIntentLauncher([processor], registry)
 
   def 'should output human friendly summary of operations'() {
     given:
