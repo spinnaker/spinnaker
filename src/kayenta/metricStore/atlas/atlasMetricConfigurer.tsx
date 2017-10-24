@@ -2,6 +2,7 @@ import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import { Action } from 'redux';
 import { connect } from 'react-redux';
+import { get } from 'lodash';
 import { ICanaryState } from '../../reducers/index';
 import { ICanaryMetricConfig } from '../../domain/ICanaryConfig';
 import { UPDATE_ATLAS_QUERY } from '../../actions/index';
@@ -54,6 +55,8 @@ declare global {
   }
 }
 
+const queryFinder = (metric: ICanaryMetricConfig) => get(metric, 'query.q', '');
+
 /*
  * Component for configuring an Atlas metric via the <atlas-query-selector> web component.
  */
@@ -76,13 +79,14 @@ class AtlasMetricConfigurer extends React.Component<IAtlasMetricConfigurerProps,
 
   public render() {
     const editingMetric = this.props.editingMetric;
+    const query = queryFinder(editingMetric);
     // TODO: select correct Atlas backend for app
     const atlasBackend = 'https://atlas-global.prod.netflix.net';
     return (
       <atlas-query-selector
         class="spinnaker-theme"
         backends={atlasBackend}
-        q={editingMetric.query.q}
+        q={query}
         ref={this.bindComponent}
       />
     );
@@ -108,3 +112,5 @@ function mapDispatchToProps(dispatch: (action: Action & any) => void): IAtlasMet
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(AtlasMetricConfigurer);
+
+export { queryFinder };
