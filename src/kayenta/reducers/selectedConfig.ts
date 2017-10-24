@@ -171,6 +171,11 @@ const isInSyncWithServer = handleActions({}, null);
 // This reducer needs to be able to access both metricList and editingMetric so it won't fit the combineReducers paradigm.
 function editingMetricReducer(state: ISelectedConfigState = null, action: Action & any): ISelectedConfigState {
   switch (action.type) {
+    case Actions.ADD_METRIC:
+      return Object.assign({}, state, {
+        editingMetric: state.metricList[state.metricList.length - 1]
+      });
+
     case Actions.EDIT_METRIC_BEGIN:
       return Object.assign({}, state, {
         editingMetric: state.metricList.find(metric => metric.id === action.payload.id)
