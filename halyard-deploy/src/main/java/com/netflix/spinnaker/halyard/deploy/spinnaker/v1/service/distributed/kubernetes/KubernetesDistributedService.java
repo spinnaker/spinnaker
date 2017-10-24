@@ -347,13 +347,13 @@ public interface KubernetesDistributedService<T> extends DistributedService<T, K
 
     List<KubernetesContainerDescription> containers = new ArrayList<>();
     ServiceSettings serviceSettings = runtimeSettings.getServiceSettings(getService());
-    KubernetesContainerDescription container = buildContainer(name, serviceSettings, configSources, deploymentEnvironment);
+    KubernetesContainerDescription container = buildContainer(name, serviceSettings, configSources, deploymentEnvironment, description);
     containers.add(container);
 
     ServiceSettings monitoringSettings = runtimeSettings.getServiceSettings(monitoringService);
     if (monitoringSettings.getEnabled() && serviceSettings.getMonitored()) {
       serviceSettings = runtimeSettings.getServiceSettings(monitoringService);
-      container = buildContainer(monitoringService.getServiceName(), serviceSettings, configSources, deploymentEnvironment);
+      container = buildContainer(monitoringService.getServiceName(), serviceSettings, configSources, deploymentEnvironment, description);
       containers.add(container);
     }
 
@@ -362,7 +362,7 @@ public interface KubernetesDistributedService<T> extends DistributedService<T, K
     return getObjectMapper().convertValue(description, new TypeReference<Map<String, Object>>() { });
   }
 
-  default KubernetesContainerDescription buildContainer(String name, ServiceSettings settings, List<ConfigSource> configSources, DeploymentEnvironment deploymentEnvironment) {
+  default KubernetesContainerDescription buildContainer(String name, ServiceSettings settings, List<ConfigSource> configSources, DeploymentEnvironment deploymentEnvironment, DeployKubernetesAtomicOperationDescription description) {
     KubernetesContainerDescription container = new KubernetesContainerDescription();
     KubernetesProbe readinessProbe = new KubernetesProbe();
     KubernetesHandler handler = new KubernetesHandler();
@@ -385,7 +385,7 @@ public interface KubernetesDistributedService<T> extends DistributedService<T, K
     readinessProbe.setHandler(handler);
     container.setReadinessProbe(readinessProbe);
 
-    applyCustomSize(container, deploymentEnvironment, name);
+    applyCustomSize(container, deploymentEnvironment, name, description);
 
     KubernetesImageDescription imageDescription = KubernetesUtil.buildImageDescription(settings.getArtifactId());
     container.setImageDescription(imageDescription);
@@ -431,7 +431,7 @@ public interface KubernetesDistributedService<T> extends DistributedService<T, K
     return container;
   }
 
-  default void applyCustomSize(KubernetesContainerDescription container, DeploymentEnvironment deploymentEnvironment, String componentName) {
+  default void applyCustomSize(KubernetesContainerDescription container, DeploymentEnvironment deploymentEnvironment, String componentName, DeployKubernetesAtomicOperationDescription description) {
     Map<String, Map> componentSizing = deploymentEnvironment.getCustomSizing().get(componentName);
 
     if (componentSizing != null) {
@@ -442,6 +442,10 @@ public interface KubernetesDistributedService<T> extends DistributedService<T, K
 
       if (componentSizing.get("limits") != null) {
         container.setLimits(retrieveKubernetesResourceDescription(componentSizing, "limits"));
+      }
+
+      if (componentSizing.get("replicas") != null) {
+        description.setTargetSize(retrieveKubernetesTargetSize(componentSizing));
       }
     }
 
@@ -455,6 +459,11 @@ public interface KubernetesDistributedService<T> extends DistributedService<T, K
     requests.setCpu(CustomSizing.stringOrNull(componentSizing.get(resourceType).get("cpu")));
     requests.setMemory(CustomSizing.stringOrNull(componentSizing.get(resourceType).get("memory")));
     return requests;
+  }
+
+  default Integer retrieveKubernetesTargetSize(Map componentSizing){
+    return (componentSizing != null && componentSizing.get("replicas") != null) ?
+        (Integer) componentSizing.get("replicas") : 1;
   }
 
   default void ensureRunning(
@@ -528,6 +537,7 @@ public interface KubernetesDistributedService<T> extends DistributedService<T, K
 
     ReplicaSetBuilder replicaSetBuilder = new ReplicaSetBuilder();
     List<LocalObjectReference> imagePullSecrets = getImagePullSecrets(settings);
+    Map componentSizing = deploymentEnvironment.getCustomSizing().get(serviceName);
 
     System.out.println("debug code: we hit this section - AB" + "\n" + imagePullSecrets);
     replicaSetBuilder = replicaSetBuilder
@@ -536,7 +546,7 @@ public interface KubernetesDistributedService<T> extends DistributedService<T, K
         .withNamespace(namespace)
         .endMetadata()
         .withNewSpec()
-        .withReplicas(1)
+        .withReplicas(retrieveKubernetesTargetSize(componentSizing))
         .withNewSelector()
         .withMatchLabels(replicaSetSelector)
         .endSelector()
