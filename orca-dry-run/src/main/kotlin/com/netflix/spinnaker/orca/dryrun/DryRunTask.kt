@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.dryrun
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.module.SimpleModule
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.ExecutionStatus.SKIPPED
 import com.netflix.spinnaker.orca.ExecutionStatus.TERMINAL
@@ -113,7 +114,15 @@ class DryRunTask : Task {
       .stageByRef(stage.getRefId())
   }
 
-  private val mapper = OrcaObjectMapper.newInstance()
+  private val mapper = OrcaObjectMapper
+    .newInstance()
+    .apply {
+      SimpleModule()
+        .addSerializer(RoundingFloatSerializer())
+        .addSerializer(RoundingDoubleSerializer())
+        .let(this::registerModule)
+    }
+
   private val log = LoggerFactory.getLogger(javaClass)
 
   private inline fun <reified T> ObjectMapper.convertValue(fromValue: Any): T =
