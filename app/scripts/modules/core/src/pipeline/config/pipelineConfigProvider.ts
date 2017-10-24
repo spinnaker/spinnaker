@@ -35,6 +35,14 @@ export class PipelineConfigProvider implements IServiceProvider {
           stageType.description = stageType.description || parent.description;
           stageType.key = stageType.key || parent.key;
           stageType.manualExecutionHandler = stageType.manualExecutionHandler || parent.manualExecutionHandler;
+
+          // Optional parameters
+          if (parent.executionDetailsComponent && !stageType.executionDetailsComponent) {
+            stageType.executionDetailsComponent = parent.executionDetailsComponent;
+          }
+          if (parent.executionDetailsUrl && !stageType.executionDetailsUrl) {
+            stageType.executionDetailsUrl = parent.executionDetailsUrl;
+          }
         }
       });
   }

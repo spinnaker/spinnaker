@@ -2,7 +2,7 @@
 
 const angular = require('angular');
 
-import { ACCOUNT_SERVICE, PipelineTemplates, StageConstants } from '@spinnaker/core';
+import { ACCOUNT_SERVICE, StageConstants } from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.cf.pipeline.stage.disableAsgStage', [
   ACCOUNT_SERVICE,
@@ -12,7 +12,6 @@ module.exports = angular.module('spinnaker.cf.pipeline.stage.disableAsgStage', [
       provides: 'disableServerGroup',
       cloudProvider: 'cf',
       templateUrl: require('./disableAsgStage.html'),
-      executionDetailsUrl: PipelineTemplates.disableAsgExecutionDetails,
       executionStepLabelUrl: require('./disableAsgStepLabel.html'),
       validators: [
         {

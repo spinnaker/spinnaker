@@ -2,8 +2,6 @@
 
 const angular = require('angular');
 
-import { PipelineTemplates } from '@spinnaker/core';
-
 module.exports = angular.module('spinnaker.dcos.pipeline.stage.shrinkClusterStage', [
 ])
   .config(function(pipelineConfigProvider) {
@@ -11,7 +9,6 @@ module.exports = angular.module('spinnaker.dcos.pipeline.stage.shrinkClusterStag
       provides: 'shrinkCluster',
       cloudProvider: 'dcos',
       templateUrl: require('./shrinkClusterStage.html'),
-      executionDetailsUrl: PipelineTemplates.shrinkClusterExecutionDetails,
       validators: [
         { type: 'requiredField', fieldName: 'cluster' },
         { type: 'requiredField', fieldName: 'shrinkToSize', fieldLabel: 'shrink to [X] Server Groups'},

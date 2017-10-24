@@ -4,7 +4,6 @@ const angular = require('angular');
 
 import {
   ACCOUNT_SERVICE,
-  PipelineTemplates,
   StageConstants
 } from '@spinnaker/core';
 
@@ -16,7 +15,6 @@ module.exports = angular.module('spinnaker.oraclebmcs.pipeline.stage.disableAsgS
       provides: 'disableServerGroup',
       cloudProvider: 'oraclebmcs',
       templateUrl: require('./disableAsgStage.html'),
-      executionDetailsUrl: PipelineTemplates.disableAsgExecutionDetails,
       executionStepLabelUrl: require('./disableAsgStepLabel.html'),
       validators: [
         {

@@ -8,7 +8,6 @@ module.exports = angular.module('spinnaker.dcos.pipeline.stage.disableClusterSta
       provides: 'disableCluster',
       cloudProvider: 'dcos',
       templateUrl: require('./disableClusterStage.html'),
-      executionDetailsUrl: require('./disableClusterExecutionDetails.html'),
       validators: [
         { type: 'requiredField', fieldName: 'cluster' },
         { type: 'requiredField', fieldName: 'remainingEnabledServerGroups', fieldLabel: 'Keep [X] enabled Server Groups'},

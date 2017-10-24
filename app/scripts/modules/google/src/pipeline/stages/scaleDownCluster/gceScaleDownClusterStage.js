@@ -12,7 +12,6 @@ module.exports = angular.module('spinnaker.gce.pipeline.stage..scaleDownClusterS
       provides: 'scaleDownCluster',
       cloudProvider: 'gce',
       templateUrl: require('./scaleDownClusterStage.html'),
-      executionDetailsUrl: require('./scaleDownClusterExecutionDetails.html'),
       executionConfigSections: ['scaleDownClusterConfig', 'taskStatus'],
       accountExtractor: (stage) => [stage.context.credentials],
       configAccountExtractor: (stage) => [stage.credentials],

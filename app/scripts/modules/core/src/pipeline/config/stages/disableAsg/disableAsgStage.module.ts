@@ -12,6 +12,7 @@ module(DISABLE_ASG_STAGE_MODULE, [
 .config((pipelineConfigProvider: PipelineConfigProvider) => {
   pipelineConfigProvider.registerStage({
     useBaseProvider: true,
+    executionDetailsUrl: require('./templates/disableAsgExecutionDetails.template.html'),
     key: 'disableServerGroup',
     label: 'Disable Server Group',
     description: 'Disables a server group',

@@ -9,6 +9,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.scaleDownClusterS
 ])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
+      executionDetailsUrl: require('./scaleDownClusterExecutionDetails.html'),
       useBaseProvider: true,
       key: 'scaleDownCluster',
       label: 'Scale Down Cluster',

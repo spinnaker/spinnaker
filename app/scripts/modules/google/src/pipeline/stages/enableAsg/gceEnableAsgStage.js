@@ -2,7 +2,7 @@
 
 const angular = require('angular');
 
-import { PIPELINE_CONFIG_PROVIDER, PipelineTemplates, StageConstants } from '@spinnaker/core';
+import { PIPELINE_CONFIG_PROVIDER, StageConstants } from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.gce.pipeline.stage..enableAsgStage', [
   PIPELINE_CONFIG_PROVIDER,
@@ -12,7 +12,6 @@ module.exports = angular.module('spinnaker.gce.pipeline.stage..enableAsgStage', 
       provides: 'enableServerGroup',
       cloudProvider: 'gce',
       templateUrl: require('./enableAsgStage.html'),
-      executionDetailsUrl: PipelineTemplates.enableAsgExecutionDetails,
       executionStepLabelUrl: require('./enableAsgStepLabel.html'),
       validators: [
         { type: 'requiredField', fieldName: 'cluster' },

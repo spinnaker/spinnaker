@@ -12,7 +12,6 @@ module.exports = angular.module('spinnaker.openstack.pipeline.stage.resizeAsgSta
       alias: 'resizeAsg',
       cloudProvider: 'openstack',
       templateUrl: require('./resizeAsgStage.html'),
-      executionDetailsUrl: require('./resizeAsgExecutionDetails.html'),
       executionConfigSections: ['resizeServerGroupConfig', 'taskStatus'],
       executionStepLabelUrl: require('./resizeAsgStepLabel.html'),
       accountExtractor: (stage) => [stage.context.credentials],

@@ -2,7 +2,7 @@
 
 const angular = require('angular');
 
-import { PipelineTemplates, StageConstants } from '@spinnaker/core';
+import { StageConstants } from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.dcos.pipeline.stage.disableAsgStage', [])
   .config(function(pipelineConfigProvider) {
@@ -11,7 +11,6 @@ module.exports = angular.module('spinnaker.dcos.pipeline.stage.disableAsgStage',
       alias: 'disableAsg',
       cloudProvider: 'dcos',
       templateUrl: require('./disableAsgStage.html'),
-      executionDetailsUrl: PipelineTemplates.disableAsgExecutionDetails,
       executionStepLabelUrl: require('./disableAsgStepLabel.html'),
       validators: [
         {

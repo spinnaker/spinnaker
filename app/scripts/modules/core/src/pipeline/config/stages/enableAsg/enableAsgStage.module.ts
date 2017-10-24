@@ -11,6 +11,7 @@ module(ENABLE_ASG_STAGE_MODULE, [
 ]).config((pipelineConfigProvider: PipelineConfigProvider) => {
   pipelineConfigProvider.registerStage({
     useBaseProvider: true,
+    executionDetailsUrl: require('./templates/enableAsgExecutionDetails.template.html'),
     key: 'enableServerGroup',
     label: 'Enable Server Group',
     description: 'Enables a server group',

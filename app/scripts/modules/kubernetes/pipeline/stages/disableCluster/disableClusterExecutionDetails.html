@@ -5,7 +5,9 @@
       <div class="col-md-9">
         <dl class="dl-narrow dl-horizontal">
           <dt>Account</dt>
-          <dd><account-tag account="stage.context.credentials"></account-tag></dd>
+          <dd>
+            <account-tag account="stage.context.credentials"></account-tag>
+          </dd>
           <dt>Namespaces</dt>
           <dd>{{stage.context.namespaces.join(', ')}}</dd>
           <dt>Cluster</dt>
@@ -19,7 +21,8 @@
     <div class="row" ng-if="stage.context['deploy.server.groups']">
       <div class="col-md-11">
         <dl class="dl-narrow dl-horizontal">
-          <dt>Disabled</dt><dd></dd>
+          <dt>Disabled</dt>
+          <dd></dd>
           <dt ng-repeat-start="(namespace, servergroups) in stage.context['deploy.server.groups']">{{namespace}}</dt>
           <dd ng-repeat-end>{{servergroups.join(', ')}}</dd>
         </dl>

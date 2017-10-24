@@ -2,7 +2,7 @@
 
 const angular = require('angular');
 
-import { PipelineTemplates, StageConstants } from '@spinnaker/core';
+import { StageConstants } from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.azure.pipeline.stage.enableAsgStage', [
 ])
@@ -12,7 +12,6 @@ module.exports = angular.module('spinnaker.azure.pipeline.stage.enableAsgStage',
       alias: 'enableAsg',
       cloudProvider: 'azure',
       templateUrl: require('./enableAsgStage.html'),
-      executionDetailsUrl: PipelineTemplates.enableAsgExecutionDetails,
       executionStepLabelUrl: require('./enableAsgStepLabel.html'),
       validators: [
         { type: 'requiredField', fieldName: 'cluster' },

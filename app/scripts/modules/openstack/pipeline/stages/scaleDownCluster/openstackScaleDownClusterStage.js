@@ -9,7 +9,6 @@ module.exports = angular.module('spinnaker.openstack.pipeline.stage.scaleDownClu
       provides: 'scaleDownCluster',
       cloudProvider: 'openstack',
       templateUrl: require('./scaleDownClusterStage.html'),
-      executionDetailsUrl: require('./scaleDownClusterExecutionDetails.html'),
       executionConfigSections: ['scaleDownClusterConfig', 'taskStatus'],
       accountExtractor: (stage) => [stage.context.credentials],
       configAccountExtractor: (stage) => [stage.credentials],

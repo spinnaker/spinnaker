@@ -2,10 +2,7 @@
 
 const angular = require('angular');
 
-import {
-  StageConstants,
-  PipelineTemplates
-} from '@spinnaker/core';
+import { StageConstants } from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.oraclebmcs.pipeline.stage.destroyAsgStage', [])
   .config(function(pipelineConfigProvider) {
@@ -13,7 +10,6 @@ module.exports = angular.module('spinnaker.oraclebmcs.pipeline.stage.destroyAsgS
       provides: 'destroyServerGroup',
       cloudProvider: 'oraclebmcs',
       templateUrl: require('./destroyAsgStage.html'),
-      executionDetailsUrl: PipelineTemplates.destroyAsgExecutionDetails,
       executionStepLabelUrl: require('./destroyAsgStepLabel.html'),
       validators: [
         {

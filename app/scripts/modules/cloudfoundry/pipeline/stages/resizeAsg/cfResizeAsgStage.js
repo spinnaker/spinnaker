@@ -13,7 +13,6 @@ module.exports = angular.module('spinnaker.cf.pipeline.stage.resizeAsgStage', [
       alias: 'resizeAsg',
       cloudProvider: 'cf',
       templateUrl: require('./resizeAsgStage.html'),
-      executionDetailsUrl: require('./resizeAsgExecutionDetails.html'),
       executionConfigSections: ['resizeServerGroupConfig', 'taskStatus'],
       executionStepLabelUrl: require('./resizeAsgStepLabel.html'),
       validators: [

@@ -1,6 +1,6 @@
 import { module } from 'angular';
 
-import { ACCOUNT_SERVICE, AccountService, PipelineTemplates } from '@spinnaker/core';
+import { ACCOUNT_SERVICE, AccountService } from '@spinnaker/core';
 
 import { AppengineHealth } from 'appengine/common/appengineHealth';
 import { IAppengineStageScope } from 'appengine/domain/index';
@@ -38,7 +38,6 @@ module(APPENGINE_ENABLE_ASG_STAGE, [
       provides: 'enableServerGroup',
       cloudProvider: 'appengine',
       templateUrl: require('./enableAsgStage.html'),
-      executionDetailsUrl: PipelineTemplates.enableAsgExecutionDetails,
       executionStepLabelUrl: require('./enableAsgStepLabel.html'),
       validators: [
         { type: 'requiredField', fieldName: 'cluster' },

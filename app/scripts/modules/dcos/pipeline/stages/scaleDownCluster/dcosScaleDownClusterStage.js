@@ -8,7 +8,6 @@ module.exports = angular.module('spinnaker.dcos.pipeline.stage.scaleDownClusterS
       provides: 'scaleDownCluster',
       cloudProvider: 'dcos',
       templateUrl: require('./scaleDownClusterStage.html'),
-      executionDetailsUrl: require('./scaleDownClusterExecutionDetails.html'),
       validators: [
         { type: 'requiredField', fieldName: 'cluster' },
         { type: 'requiredField', fieldName: 'remainingFullSizeServerGroups', fieldLabel: 'Keep [X] full size Server Groups'},

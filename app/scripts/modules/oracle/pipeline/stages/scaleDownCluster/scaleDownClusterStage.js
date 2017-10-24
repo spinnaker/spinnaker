@@ -14,7 +14,6 @@ module.exports = angular.module('spinnaker.oraclebmcs.pipeline.stage.scaleDownCl
       provides: 'scaleDownCluster',
       cloudProvider: 'oraclebmcs',
       templateUrl: require('./scaleDownClusterStage.html'),
-      executionDetailsUrl: require('./scaleDownClusterExecutionDetails.html'),
       executionConfigSections: ['scaleDownClusterConfig', 'taskStatus'],
       validators: [
         { type: 'requiredField', fieldName: 'cluster' },

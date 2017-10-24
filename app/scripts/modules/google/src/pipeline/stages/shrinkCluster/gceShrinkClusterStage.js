@@ -2,7 +2,7 @@
 
 const angular = require('angular');
 
-import { ACCOUNT_SERVICE, PipelineTemplates } from '@spinnaker/core';
+import { ACCOUNT_SERVICE } from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.gce.pipeline.stage..shrinkClusterStage', [
   ACCOUNT_SERVICE,
@@ -12,7 +12,6 @@ module.exports = angular.module('spinnaker.gce.pipeline.stage..shrinkClusterStag
       provides: 'shrinkCluster',
       cloudProvider: 'gce',
       templateUrl: require('./shrinkClusterStage.html'),
-      executionDetailsUrl: PipelineTemplates.shrinkClusterExecutionDetails,
       accountExtractor: (stage) => [stage.context.credentials],
       configAccountExtractor: (stage) => [stage.credentials],
       validators: [

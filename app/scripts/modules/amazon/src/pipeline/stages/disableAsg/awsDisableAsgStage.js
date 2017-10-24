@@ -2,7 +2,7 @@
 
 const angular = require('angular');
 
-import { PipelineTemplates, StageConstants } from '@spinnaker/core';
+import { StageConstants } from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.amazon.pipeline.stage.disableAsgStage', [
 ])
@@ -12,7 +12,6 @@ module.exports = angular.module('spinnaker.amazon.pipeline.stage.disableAsgStage
       alias: 'disableAsg',
       cloudProvider: 'aws',
       templateUrl: require('./disableAsgStage.html'),
-      executionDetailsUrl: PipelineTemplates.disableAsgExecutionDetails,
       executionStepLabelUrl: require('./disableAsgStepLabel.html'),
       validators: [
         {

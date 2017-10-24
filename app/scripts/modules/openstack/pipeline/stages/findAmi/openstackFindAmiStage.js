@@ -9,7 +9,6 @@ module.exports = angular.module('spinnaker.openstack.pipeline.stage.findAmiStage
       provides: 'findImage',
       cloudProvider: 'openstack',
       templateUrl: require('./findAmiStage.html'),
-      executionDetailsUrl: require('./findAmiExecutionDetails.html'),
       executionConfigSections: ['findImageConfig', 'taskStatus'],
       validators: [
         { type: 'requiredField', fieldName: 'cluster' },

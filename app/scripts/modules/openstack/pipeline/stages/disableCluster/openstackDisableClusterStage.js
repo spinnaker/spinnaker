@@ -9,7 +9,6 @@ module.exports = angular.module('spinnaker.openstack.pipeline.stage.disableClust
       provides: 'disableCluster',
       cloudProvider: 'openstack',
       templateUrl: require('./disableClusterStage.html'),
-      executionDetailsUrl: require('./disableClusterExecutionDetails.html'),
       executionConfigSections: ['disableClusterConfig', 'taskStatus'],
       validators: [
         { type: 'requiredField', fieldName: 'cluster' },

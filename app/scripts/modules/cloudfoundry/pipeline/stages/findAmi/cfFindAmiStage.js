@@ -15,7 +15,6 @@ module.exports = angular.module('spinnaker.cf.pipeline.stage.findAmiStage', [
       provides: 'findImage',
       cloudProvider: 'cf',
       templateUrl: require('./findAmiStage.html'),
-      executionDetailsUrl: require('./findAmiExecutionDetails.html'),
       executionConfigSections: ['findImageConfig', 'taskStatus'],
       validators: [
         { type: 'requiredField', fieldName: 'cluster' },

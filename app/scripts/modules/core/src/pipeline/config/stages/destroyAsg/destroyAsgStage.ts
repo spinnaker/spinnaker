@@ -11,6 +11,7 @@ module(DESTROY_ASG_STAGE, [
 ])
   .config((pipelineConfigProvider: PipelineConfigProvider) => {
     pipelineConfigProvider.registerStage({
+      executionDetailsUrl: require('./templates/destroyAsgExecutionDetails.template.html'),
       useBaseProvider: true,
       key: 'destroyServerGroup',
       label: 'Destroy Server Group',

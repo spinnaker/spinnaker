@@ -2,7 +2,7 @@
 
 const angular = require('angular');
 
-import {ACCOUNT_SERVICE, PipelineTemplates} from '@spinnaker/core';
+import { ACCOUNT_SERVICE } from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.oraclebmcs.shrinkClusterStage', [
   ACCOUNT_SERVICE,
@@ -12,7 +12,6 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.oraclebmcs.shrink
       provides: 'shrinkCluster',
       cloudProvider: 'oraclebmcs',
       templateUrl: require('./shrinkClusterStage.html'),
-      executionDetailsUrl: PipelineTemplates.shrinkClusterExecutionDetails,
       validators: [
         { type: 'requiredField', fieldName: 'cluster' },
         { type: 'requiredField', fieldName: 'shrinkToSize', fieldLabel: 'shrink to [X] Server Groups'},

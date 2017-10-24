@@ -13,7 +13,6 @@ module.exports = angular.module('spinnaker.oraclebmcs.pipeline.stage.disableAsgS
       provides: 'disableServerGroup',
       cloudProvider: 'oraclebmcs',
       templateUrl: require('./disableAsgStage.html'),
-      executionDetailsUrl: require('core/pipeline/config/stages/disableAsg/templates/disableAsgExecutionDetails.template.html'),
       executionStepLabelUrl: require('./disableAsgStepLabel.html'),
       validators: [
         {
