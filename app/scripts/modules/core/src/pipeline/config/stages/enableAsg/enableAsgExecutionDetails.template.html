@@ -1,6 +1,6 @@
-<div ng-controller="destroyAsgExecutionDetailsCtrl">
+<div ng-controller="BaseExecutionDetailsCtrl">
   <execution-details-section-nav sections="configSections"></execution-details-section-nav>
-  <div class="step-section-details" ng-if="detailsSection === 'destroyServerGroupConfig'">
+  <div class="step-section-details" ng-if="detailsSection === 'enableServerGroupConfig'">
     <div class="row">
       <div class="col-md-9">
         <dl class="dl-narrow dl-horizontal">
@@ -16,15 +16,6 @@
       </div>
     </div>
     <stage-failure-message stage="stage" message="stage.failureMessage"></stage-failure-message>
-
-    <div class="row" ng-if="stage.isCompleted && stage.context.serverGroupName">
-      <div class="col-md-12">
-        <div class="well alert alert-info">
-          <strong>Destroyed:</strong>
-          {{stage.context.serverGroupName}}
-        </div>
-      </div>
-    </div>
 
     <div class="row" ng-if="stage.context.execution.logs">
       <div class="col-md-12">

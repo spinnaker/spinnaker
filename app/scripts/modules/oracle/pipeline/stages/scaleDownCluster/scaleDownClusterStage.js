@@ -14,7 +14,6 @@ module.exports = angular.module('spinnaker.oraclebmcs.pipeline.stage.scaleDownCl
       provides: 'scaleDownCluster',
       cloudProvider: 'oraclebmcs',
       templateUrl: require('./scaleDownClusterStage.html'),
-      executionConfigSections: ['scaleDownClusterConfig', 'taskStatus'],
       validators: [
         { type: 'requiredField', fieldName: 'cluster' },
         { type: 'requiredField', fieldName: 'remainingFullSizeServerGroups', fieldLabel: 'Keep [X] full size Server Groups'},

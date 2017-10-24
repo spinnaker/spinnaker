@@ -9,6 +9,7 @@ module(RESIZE_ASG_STAGE, [
 ])
   .config((pipelineConfigProvider: PipelineConfigProvider) => {
     pipelineConfigProvider.registerStage({
+      executionConfigSections: ['resizeServerGroupConfig', 'taskStatus'],
       executionDetailsUrl: require('./resizeAsgExecutionDetails.html'),
       useBaseProvider: true,
       key: 'resizeServerGroup',

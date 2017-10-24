@@ -1,6 +1,6 @@
-<div ng-controller="shrinkClusterExecutionDetailsCtrl">
+<div ng-controller="BaseExecutionDetailsCtrl">
   <execution-details-section-nav sections="configSections"></execution-details-section-nav>
-  <div class="step-section-details" ng-if="detailsSection === 'shrinkClusterConfig'">
+  <div class="step-section-details" ng-if="detailsSection === 'disableServerGroupConfig'">
     <div class="row">
       <div class="col-md-9">
         <dl class="dl-narrow dl-horizontal">
@@ -9,28 +9,22 @@
             <account-tag account="stage.context.credentials"></account-tag>
           </dd>
           <dt>Region</dt>
-          <dd>{{stage.context.regions.join(', ')}}</dd>
-          <dt>Cluster</dt>
-          <dd>{{stage.context.cluster}}</dd>
-          <dt>Shrink to Size</dt>
-          <dd>{{stage.context.shrinkToSize}}</dd>
-          <dt>Delete Active?</dt>
-          <dd>{{stage.context.allowDeleteActive}}</dd>
+          <dd>{{stage.context.region}}</dd>
+          <dt>Server Group</dt>
+          <dd>{{stage.context.serverGroupName}}</dd>
         </dl>
       </div>
     </div>
-
-    <div class="row" ng-if="stage.context['deploy.server.groups']">
-      <div class="col-md-11">
-        <dl class="dl-narrow dl-horizontal">
-          <dt>Destroyed</dt><dd></dd>
-          <dt ng-repeat-start="(region, servergroups) in stage.context['deploy.server.groups']">{{region}}</dt>
-          <dd ng-repeat-end>{{servergroups.join(', ')}}</dd>
-        </dl>
-      </div>
-    </div>
-
     <stage-failure-message stage="stage" message="stage.failureMessage"></stage-failure-message>
+
+    <div class="row" ng-if="stage.isCompleted && stage.context.serverGroupName">
+      <div class="col-md-12">
+        <div class="well alert alert-info">
+          <strong>Disabled:</strong>
+          {{stage.context.serverGroupName}}
+        </div>
+      </div>
+    </div>
 
     <div class="row" ng-if="stage.context.execution.logs">
       <div class="col-md-12">

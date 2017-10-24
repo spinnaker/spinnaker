@@ -9,7 +9,8 @@ module(SHRINK_CLUSTER_STAGE, [
 ])
   .config((pipelineConfigProvider: PipelineConfigProvider) => {
     pipelineConfigProvider.registerStage({
-      executionDetailsUrl: require('./templates/shrinkClusterExecutionDetails.template.html'),
+      executionConfigSections: ['shrinkClusterConfig', 'taskStatus'],
+      executionDetailsUrl: require('./shrinkClusterExecutionDetails.template.html'),
       useBaseProvider: true,
       key: 'shrinkCluster',
       label: 'Shrink Cluster',

@@ -12,7 +12,6 @@ module.exports = angular.module('spinnaker.amazon.pipeline.stage.aws.resizeAsgSt
       alias: 'resizeAsg',
       cloudProvider: 'aws',
       templateUrl: require('./resizeAsgStage.html'),
-      executionConfigSections: ['resizeServerGroupConfig', 'taskStatus'],
       executionStepLabelUrl: require('./resizeAsgStepLabel.html'),
       accountExtractor: (stage) => [stage.context.credentials],
       configAccountExtractor: (stage) => [stage.credentials],

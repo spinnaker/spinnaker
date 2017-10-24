@@ -15,7 +15,6 @@ module.exports = angular.module('spinnaker.kubernetes.pipeline.stage.resizeStage
       cloudProvider: 'kubernetes',
       templateUrl: require('./resizeStage.html'),
       executionDetailsUrl: require('./resizeExecutionDetails.html'),
-      executionConfigSections: ['resizeServerGroupConfig', 'taskStatus'],
       executionStepLabelUrl: require('./resizeStepLabel.html'),
       validators: [
         {

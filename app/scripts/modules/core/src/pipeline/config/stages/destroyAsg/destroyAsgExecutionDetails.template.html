@@ -1,6 +1,6 @@
-<div ng-controller="disableAsgExecutionDetailsCtrl">
+<div ng-controller="BaseExecutionDetailsCtrl">
   <execution-details-section-nav sections="configSections"></execution-details-section-nav>
-  <div class="step-section-details" ng-if="detailsSection === 'disableServerGroupConfig'">
+  <div class="step-section-details" ng-if="detailsSection === 'destroyServerGroupConfig'">
     <div class="row">
       <div class="col-md-9">
         <dl class="dl-narrow dl-horizontal">
@@ -20,7 +20,7 @@
     <div class="row" ng-if="stage.isCompleted && stage.context.serverGroupName">
       <div class="col-md-12">
         <div class="well alert alert-info">
-          <strong>Disabled:</strong>
+          <strong>Destroyed:</strong>
           {{stage.context.serverGroupName}}
         </div>
       </div>

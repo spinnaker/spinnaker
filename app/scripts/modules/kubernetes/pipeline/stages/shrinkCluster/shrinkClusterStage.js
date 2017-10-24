@@ -13,7 +13,6 @@ module.exports = angular.module('spinnaker.kubernetes.pipeline.stage.shrinkClust
       cloudProvider: 'kubernetes',
       templateUrl: require('./shrinkClusterStage.html'),
       executionDetailsUrl: require('./shrinkClusterExecutionDetails.html'),
-      executionConfigSections: ['shrinkClusterConfig', 'taskStatus'],
       accountExtractor: (stage) => [stage.context.credentials],
       configAccountExtractor: (stage) => [stage.credentials],
       validators: [

@@ -43,6 +43,9 @@ export class PipelineConfigProvider implements IServiceProvider {
           if (parent.executionDetailsUrl && !stageType.executionDetailsUrl) {
             stageType.executionDetailsUrl = parent.executionDetailsUrl;
           }
+          if (parent.executionConfigSections && !stageType.executionConfigSections) {
+            stageType.executionConfigSections = parent.executionConfigSections;
+          }
         }
       });
   }

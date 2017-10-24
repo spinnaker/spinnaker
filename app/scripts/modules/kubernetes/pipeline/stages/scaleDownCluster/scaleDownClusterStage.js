@@ -13,7 +13,6 @@ module.exports = angular.module('spinnaker.kubernetes.pipeline.stage.scaleDownCl
       cloudProvider: 'kubernetes',
       templateUrl: require('./scaleDownClusterStage.html'),
       executionDetailsUrl: require('./scaleDownClusterExecutionDetails.html'),
-      executionConfigSections: ['scaleDownClusterConfig', 'taskStatus'],
       validators: [
         { type: 'requiredField', fieldName: 'cluster' },
         { type: 'requiredField', fieldName: 'remainingFullSizeServerGroups', fieldLabel: 'Keep [X] full size Server Groups'},

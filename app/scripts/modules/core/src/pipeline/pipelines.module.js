@@ -9,11 +9,13 @@ import { COPY_STAGE_MODAL_CONTROLLER } from './config/copyStage/copyStage.modal.
 import { CREATE_LOAD_BALANCER_STAGE } from './config/stages/createLoadBalancer/createLoadBalancerStage.module';
 import { DESTROY_ASG_STAGE } from './config/stages/destroyAsg/destroyAsgStage';
 import { DISABLE_ASG_STAGE_MODULE } from './config/stages/disableAsg/disableAsgStage.module';
-import { ENABLE_ASG_STAGE_MODULE } from './config/stages/enableAsg/enableAsgStage.module';
+import { ENABLE_ASG_STAGE } from './config/stages/enableAsg/enableAsgStage';
 import { FIND_AMI_STAGE } from './config/stages/findAmi/findAmiStage';
 import { GROUP_STAGE_MODULE } from './config/stages/group/groupStage.module';
 import { RESIZE_ASG_STAGE } from './config/stages/resizeAsg/resizeAsgStage';
-import { SHRINK_CLUSTER_STAGE_MODULE } from './config/stages/shrinkCluster/shrinkClusterStage.module';
+import { SCALE_DOWN_CLUSTER_STAGE } from './config/stages/scaleDownCluster/scaleDownClusterStage';
+import { SCRIPT_STAGE_MODULE } from './config/stages/script/scriptStage.module';
+import { SHRINK_CLUSTER_STAGE } from './config/stages/shrinkCluster/shrinkClusterStage';
 import { STAGE_CORE_MODULE } from './config/stages/core/stage.core.module';
 import { TRAVIS_STAGE_MODULE } from './config/stages/travis/travisStage.module';
 import { UNMATCHED_STAGE_TYPE_STAGE } from './config/stages/unmatchedStageTypeStage/unmatchedStageTypeStage';
@@ -39,7 +41,7 @@ module.exports = angular.module('spinnaker.core.pipeline', [
   DESTROY_ASG_STAGE,
   DISABLE_ASG_STAGE_MODULE,
   require('./config/stages/disableCluster/disableClusterStage.module').name,
-  ENABLE_ASG_STAGE_MODULE,
+  ENABLE_ASG_STAGE,
   require('./config/stages/executionWindows/executionWindowsStage.module').name,
   FIND_AMI_STAGE,
   require('./config/stages/findImageFromTags/findImageFromTagsStage.module').name,
@@ -49,9 +51,9 @@ module.exports = angular.module('spinnaker.core.pipeline', [
   require('./config/stages/pipeline/pipelineStage.module').name,
   RESIZE_ASG_STAGE,
   require('./config/stages/runJob/runJobStage.module').name,
-  require('./config/stages/scaleDownCluster/scaleDownClusterStage.module').name,
-  require('./config/stages/script/scriptStage.module').name,
-  SHRINK_CLUSTER_STAGE_MODULE,
+  SCALE_DOWN_CLUSTER_STAGE,
+  SCRIPT_STAGE_MODULE,
+  SHRINK_CLUSTER_STAGE,
   WAIT_STAGE_MODULE,
   require('./config/stages/waitForParentTasks/waitForParentTasks').name,
   CREATE_LOAD_BALANCER_STAGE,

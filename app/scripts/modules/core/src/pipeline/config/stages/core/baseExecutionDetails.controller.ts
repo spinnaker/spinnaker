@@ -21,10 +21,6 @@ export class BaseExecutionDetailsCtrl {
     this.initialize();
   }
 
-  protected setScopeConfigSections(sections: string[]): void {
-    this.$scope.configSections = sections;
-  }
-
   protected initialize(): void {
     this.executionDetailsSectionService.synchronizeSection(this.$scope.configSections, () => this.initialized());
   }
