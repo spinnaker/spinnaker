@@ -185,7 +185,7 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
             executionService.removeCompletedExecutionsFromRunningData(application);
           }
           refreshing = false;
-        });
+        }).catch(() => refreshing = false);
       });
     }
   }
