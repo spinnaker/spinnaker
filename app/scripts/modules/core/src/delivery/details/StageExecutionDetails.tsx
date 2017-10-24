@@ -29,9 +29,7 @@ export function stageExecutionDetails(WrappedStageExecutionDetails: React.Compon
     }
 
     public componentWillReceiveProps(nextProps: IExecutionDetailsComponentProps): void {
-      if (!isEqual(nextProps.configSections, this.props.configSections)) {
-        this.syncDetails(nextProps);
-      }
+      this.syncDetails(nextProps);
     }
 
     public render() {
