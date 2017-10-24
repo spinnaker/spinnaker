@@ -49,13 +49,37 @@ public class MetricSetPair {
   @Getter
   private Map<String, List<Double>> values;
 
+  @NotNull
+  @Singular
+  @Getter
+  private Map<String, MetricSetScope> scopes;
+
   public MetricSetPair(String name,
                        String id,
                        Map<String, String> tags,
-                       Map<String, List<Double>> values) {
+                       Map<String, List<Double>> values,
+                       Map<String, MetricSetScope> scopes) {
     this.name = name;
     this.id = id;
     this.tags = tags;
     this.values = values;
+    this.scopes = scopes;
+  }
+
+  @Builder
+  @ToString
+  static class MetricSetScope {
+
+    @NotNull
+    @Getter
+    private String startTimeIso;
+
+    @NotNull
+    @Getter
+    private long startTimeMillis;
+
+    @NotNull
+    @Getter
+    private long stepMillis;
   }
 }

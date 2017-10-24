@@ -30,6 +30,18 @@ public class MetricSetMixerService {
     Map<String, String> experimentTags = experimentMetricSet.getTags();
     List<Double> controlValues = controlMetricSet.getValues();
     List<Double> experimentValues = experimentMetricSet.getValues();
+    MetricSetPair.MetricSetScope controlScope =
+      MetricSetPair.MetricSetScope.builder()
+        .startTimeIso(controlMetricSet.getStartTimeIso())
+        .startTimeMillis(controlMetricSet.getStartTimeMillis())
+        .stepMillis(controlMetricSet.getStepMillis())
+        .build();
+    MetricSetPair.MetricSetScope experimentScope =
+      MetricSetPair.MetricSetScope.builder()
+        .startTimeIso(experimentMetricSet.getStartTimeIso())
+        .startTimeMillis(experimentMetricSet.getStartTimeMillis())
+        .stepMillis(experimentMetricSet.getStepMillis())
+        .build();
 
     if (StringUtils.isEmpty(controlName)) {
       throw new IllegalArgumentException("Control metric set name was not set.");
@@ -68,7 +80,9 @@ public class MetricSetMixerService {
         .id(UUID.randomUUID().toString())
         .tags(controlMetricSet.getTags())
         .value("control", controlValues)
-        .value("experiment", experimentValues);
+        .value("experiment", experimentValues)
+        .scope("control", controlScope)
+        .scope("experiment", experimentScope);
 
     return metricSetPairBuilder.build();
   }
