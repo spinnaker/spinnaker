@@ -191,7 +191,7 @@ function configure(IS_TEST) {
         // settings.js is put at the end of the <script> blocks
         // which breaks the booting of the app.
         chunksSortMode: (a, b) => {
-          const chunks = ['init', 'vendor', 'settings', 'settingsLocal', 'app'];
+          const chunks = ['init', 'vendor', 'halconfig', 'settings', 'settingsLocal', 'app'];
           return chunks.indexOf(a.names[0]) - chunks.indexOf(b.names[0]);
         }
       })
