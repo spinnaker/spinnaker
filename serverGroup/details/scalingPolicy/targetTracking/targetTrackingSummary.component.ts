@@ -61,7 +61,7 @@ class TargetTrackingSummaryController implements IComponentController {
         serverGroup: () => this.serverGroup,
         application: () => this.application,
       }
-    });
+    }).result.catch(() => {});
   }
 
   public deletePolicy(): void {
