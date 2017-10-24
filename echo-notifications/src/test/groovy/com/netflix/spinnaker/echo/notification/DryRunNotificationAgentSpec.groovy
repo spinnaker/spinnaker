@@ -25,12 +25,14 @@ import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
 import spock.util.concurrent.BlockingVariable
+import static com.netflix.spinnaker.echo.config.DryRunConfig.DryRunProperties
 
 class DryRunNotificationAgentSpec extends Specification {
 
   def front50 = Mock(Front50Service)
   def orca = Mock(OrcaService)
-  @Subject def agent = new DryRunNotificationAgent(front50, orca)
+  def properties = new DryRunProperties()
+  @Subject def agent = new DryRunNotificationAgent(front50, orca, properties)
 
   @Unroll
   def "ignores #type:#status notifications"() {
@@ -83,6 +85,61 @@ class DryRunNotificationAgentSpec extends Specification {
       name == "${pipeline.name} (dry run)"
       trigger.type == "dryrun"
       trigger.lastSuccessfulExecution == event.content.execution
+    }
+
+    where:
+    pipelineConfigId = "1"
+    application = "covfefe"
+    pipeline = new Pipeline.PipelineBuilder()
+      .application(application)
+      .name("a-pipeline")
+      .id(pipelineConfigId)
+      .build()
+    event = new Event(
+      details: [
+        type       : "orca:pipeline:complete",
+        application: application
+      ],
+      content: [
+        execution: [
+          name            : pipeline.name,
+          notifications   : [
+            [
+              type: "dryrun",
+              when: ["pipeline.complete"]
+            ]
+          ],
+          pipelineConfigId: pipelineConfigId,
+          status          : "SUCCEEDED"
+        ]
+      ]
+    )
+  }
+
+  def "adds notifications to triggered pipeline"() {
+    given:
+    front50.getPipelines(application) >> Observable.just([pipeline])
+
+    and:
+    properties.notifications = [
+      [
+        type   : "slack",
+        address: "#a-slack-channel",
+        level  : "pipeline",
+        when   : ["pipeline.failed"]
+      ]
+    ]
+
+    and:
+    def captor = new BlockingVariable<Pipeline>()
+    orca.trigger(_) >> { captor.set(it[0]) }
+
+    when:
+    agent.processEvent(event)
+
+    then:
+    with(captor.get()) {
+      notifications == properties.notifications
     }
 
     where:

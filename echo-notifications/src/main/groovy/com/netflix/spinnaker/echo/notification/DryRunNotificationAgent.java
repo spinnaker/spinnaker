@@ -16,8 +16,11 @@
 
 package com.netflix.spinnaker.echo.notification;
 
+import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.echo.config.DryRunConfig;
 import com.netflix.spinnaker.echo.model.Event;
 import com.netflix.spinnaker.echo.model.Trigger;
 import com.netflix.spinnaker.echo.pipelinetriggers.orca.OrcaService;
@@ -30,10 +33,16 @@ public class DryRunNotificationAgent extends AbstractEventNotificationAgent {
 
   private final Front50Service front50;
   private final OrcaService orca;
+  private final DryRunConfig.DryRunProperties properties;
 
-  public DryRunNotificationAgent(Front50Service front50, OrcaService orca) {
+  public DryRunNotificationAgent(
+    Front50Service front50,
+    OrcaService orca,
+    DryRunConfig.DryRunProperties properties
+  ) {
     this.front50 = front50;
     this.orca = orca;
+    this.properties = properties;
   }
 
   @Override public String getNotificationType() {
@@ -70,6 +79,7 @@ public class DryRunNotificationAgent extends AbstractEventNotificationAgent {
             .withName(format("%s (dry run)", pipeline.getName()))
             .withId(null)
             .withTrigger(trigger)
+            .withNotifications(mapper.convertValue(properties.getNotifications(), List.class))
         );
       })
       .doOnError(ex -> {
@@ -79,8 +89,8 @@ public class DryRunNotificationAgent extends AbstractEventNotificationAgent {
           log.error(format("Error triggering dry run of %s", pipelineConfigId), ex);
         }
       })
-      .subscribe(response -> {
-        log.info("Pipeline triggered: {}", response);
-      });
+      .subscribe(response -> log.info("Pipeline triggered: {}", response));
   }
+
+  private final ObjectMapper mapper = new ObjectMapper();
 }
