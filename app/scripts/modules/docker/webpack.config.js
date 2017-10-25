@@ -3,9 +3,6 @@
 const path = require('path');
 const basePath = path.join(__dirname, '..', '..', '..', '..');
 const NODE_MODULE_PATH = path.join(basePath, 'node_modules');
-const HappyPack = require('happypack');
-const HAPPY_PACK_POOL_SIZE = process.env.HAPPY_PACK_POOL_SIZE || 3;
-const happyThreadPool = HappyPack.ThreadPool({size: HAPPY_PACK_POOL_SIZE});
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 const nodeExternals = require('webpack-node-externals');
 const webpack = require('webpack');
@@ -13,6 +10,8 @@ const exclusionPattern = /(node_modules|\.\.\/deck)/;
 
 module.exports = {
   context: basePath,
+  stats: 'errors-only',
+  devtool: 'source-map',
   entry: {
     lib: path.join(__dirname, 'src', 'index.ts'),
   },
@@ -38,37 +37,75 @@ module.exports = {
       'docker': path.join(__dirname, 'src')
     }
   },
-  devtool: 'source-map',
   watch:  process.env.WATCH === 'true',
   module: {
     rules: [
-      {test: /\.js$/, use: ['happypack/loader?id=js'], exclude: exclusionPattern},
-      {test: /\.tsx?$/, use: ['happypack/loader?id=ts'], exclude: exclusionPattern},
-      {test: /\.json$/, loader: 'json-loader'},
-      {test: /\.(woff|otf|ttf|eot|svg|png|gif|ico)(.*)?$/, use: 'file-loader'},
       {
-        test: require.resolve('jquery'),
+        test: /\.js$/,
         use: [
-          'expose-loader?$',
-          'expose-loader?jQuery'
-        ]
+          { loader: 'cache-loader' },
+          { loader: 'thread-loader', options: { workers: 3 } },
+          { loader: 'babel-loader' },
+          { loader: 'envify-loader' },
+          { loader: 'eslint-loader' } ,
+        ],
+        exclude: exclusionPattern
+      },
+      {
+        test: /\.tsx?$/,
+        use: [
+          { loader: 'cache-loader' },
+          { loader: 'thread-loader', options: { workers: 3 } },
+          { loader: 'babel-loader' },
+          { loader: 'ts-loader', options: { happyPackMode: true } },
+          { loader: 'tslint-loader' },
+        ],
+        exclude: exclusionPattern
       },
       {
         test: /\.less$/,
-        use: ['happypack/loader?id=less']
+        use: [
+          { loader: 'style-loader' },
+          { loader: 'css-loader' },
+          { loader: 'postcss-loader' },
+          { loader: 'less-loader' },
+        ],
       },
       {
         test: /\.css$/,
         use: [
-          'style-loader',
-          'css-loader'
+          { loader: 'style-loader' },
+          { loader: 'css-loader' },
+          { loader: 'postcss-loader' },
         ]
       },
       {
         test: /\.html$/,
-        use: ['happypack/loader?id=lib-html'],
         exclude: exclusionPattern,
-      }
+        use: [
+          { loader: 'ngtemplate-loader?relativeTo=' + (path.resolve(__dirname)) + '&prefix=docker' },
+          { loader: 'html-loader' },
+        ]
+      },
+      {
+        test: /\.json$/,
+        use: [
+          { loader: 'json-loader' },
+        ],
+      },
+      {
+        test: /\.(woff|woff2|otf|ttf|eot|png|gif|ico|svg)$/,
+        use: [
+          { loader: 'file-loader', options: { name: '[name].[hash:5].[ext]'} },
+        ],
+      },
+      {
+        test: require.resolve('jquery'),
+        use: [
+          { loader: 'expose-loader?$' },
+          { loader: 'expose-loader?jQuery' },
+        ],
+      },
     ],
   },
   plugins: [
@@ -78,41 +115,6 @@ module.exports = {
       beautify: true,
       comments: false,
       sourceMap: true,
-    }),
-    new HappyPack({
-      id: 'lib-html',
-      loaders: [
-        'ngtemplate-loader?relativeTo=' + (path.resolve(__dirname)) + '&prefix=docker',
-        'html-loader'
-      ],
-      threadPool: happyThreadPool
-    }),
-    new HappyPack({
-      id: 'js',
-      loaders: [
-        'babel-loader',
-        'envify-loader',
-        'eslint-loader'
-      ],
-      threadPool: happyThreadPool,
-  }),
-    new HappyPack({
-      id: 'ts',
-      loaders: [
-        'babel-loader',
-        { path: 'ts-loader', query: { happyPackMode: true } },
-        'tslint-loader',
-      ],
-      threadPool: happyThreadPool,
-    }),
-    new HappyPack({
-      id: 'less',
-      loaders: [
-        'style-loader',
-        'css-loader',
-        'less-loader'
-      ],
-      threadPool: happyThreadPool
     }),
   ],
 };

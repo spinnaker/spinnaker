@@ -21,6 +21,7 @@ test/google/node_modules/
 .awcache/
 .gradle/
 .happypack/
+**/.cache-loader
 .yalc
 yalc.lock
 build/

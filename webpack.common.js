@@ -1,44 +1,48 @@
 const webpack = require('webpack');
-const HappyPack = require('happypack');
-const HAPPY_PACK_POOL_SIZE = process.env.HAPPY_PACK_POOL_SIZE || 3;
-const happyThreadPool = HappyPack.ThreadPool({size: HAPPY_PACK_POOL_SIZE});
-const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
-const lodash = require('lodash');
-const HAPPY_PACK_ENV_INVALIDATE = lodash.pick(process.env, [
-  'FEEDBACK_URL',
-  'API_HOST',
-  'BAKERY_DETAIL_URL',
-  'AUTH_ENDPOINT',
-  'AUTH_ENABLED',
-  'NETFLIX_MODE',
-  'CHAOS_ENABLED',
-  'FIAT_ENABLED',
-  'ENTITY_TAGS_ENABLED',
-  'DEBUG_ENABLED',
-  'CANARY_ENABLED',
-  'INF_SEARCH_ENABLED',
-  'INFRA_ENABLED',
-]);
-const HtmlWebpackPlugin = require('html-webpack-plugin');
-
-const path = require('path');
-const NODE_MODULE_PATH = path.join(__dirname, 'node_modules');
 const fs = require('fs');
+const path = require('path');
+const md5 = require('md5');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
+
+// invalidate webpack cache when webpack config is changed, cache-loader is updated,
+// or any of these environment variables are changed
+const CACHE_INVALIDATE = JSON.stringify({
+  API_HOST:            process.env.API_HOST,
+  AUTH_ENABLED:        process.env.AUTH_ENABLED,
+  AUTH_ENDPOINT:       process.env.AUTH_ENDPOINT,
+  BAKERY_DETAIL_URL:   process.env.BAKERY_DETAIL_URL,
+  CANARY_ENABLED:      process.env.CANARY_ENABLED,
+  CHAOS_ENABLED:       process.env.CHAOS_ENABLED,
+  DEBUG_ENABLED:       process.env.DEBUG_ENABLED,
+  ENTITY_TAGS_ENABLED: process.env.ENTITY_TAGS_ENABLED,
+  FEEDBACK_URL:        process.env.FEEDBACK_URL,
+  FIAT_ENABLED:        process.env.FIAT_ENABLED,
+  INFRA_ENABLED:       process.env.INFRA_ENABLED,
+  INF_SEARCH_ENABLED:  process.env.INF_SEARCH_ENABLED,
+  NETFLIX_MODE:        process.env.NETFLIX_MODE,
+  THREAD_LOADER:       require('cache-loader/package.json').version,
+  WEBPACK_CONFIG:      md5(fs.readFileSync(__filename)),
+});
+
+const NODE_MODULE_PATH = path.join(__dirname, 'node_modules');
 function configure(IS_TEST) {
 
   const config = {
     context: __dirname, // to automatically find tsconfig.json,
+    stats: 'errors-only',
+    devtool: 'source-map',
     plugins: [],
     output: IS_TEST ? undefined : {
-        path: path.join(__dirname, 'build', 'webpack', process.env.SPINNAKER_ENV || ''),
-        filename: '[name].js',
-      },
+      path: path.join(__dirname, 'build', 'webpack', process.env.SPINNAKER_ENV || ''),
+      filename: '[name].js',
+    },
     resolveLoader: IS_TEST ? {} : {
-        modules: [
-          NODE_MODULE_PATH
-        ],
-        moduleExtensions: ['-loader']
-      },
+      modules: [
+        NODE_MODULE_PATH
+      ],
+      moduleExtensions: ['-loader']
+    },
     resolve: {
       extensions: ['.json', '.ts', '.tsx', '.js', '.jsx', '.css', '.less', '.html'],
       modules: [
@@ -58,48 +62,84 @@ function configure(IS_TEST) {
         'coreImports': path.resolve(__dirname, 'app', 'scripts', 'modules', 'core', 'src', 'presentation', 'less', 'imports', 'commonImports.less'),
       }
     },
-    devtool: 'source-map',
     module: {
       rules: [
-        {test: /\.js$/, use: ['happypack/loader?id=js'], exclude: /node_modules(?!\/clipboard)/},
-        {test: /\.tsx?$/, use: ['happypack/loader?id=ts'], exclude: /node_modules/},
-        {test: /\.json$/, loader: 'json-loader'},
         {
-          test: /\.(woff|woff2|otf|ttf|eot|png|gif|ico|svg)$/,
-          loader: 'file-loader',
-          options: { name: '[name].[hash:5].[ext]'}
+          test: /\.js$/,
+          use: [
+            { loader: 'cache-loader', options: { cacheIdentifier: CACHE_INVALIDATE } },
+            { loader: 'thread-loader', options: { workers: 3 } },
+            { loader: 'babel-loader' },
+            { loader: 'envify-loader' },
+            { loader: 'eslint-loader' } ,
+          ],
+          exclude: /node_modules(?!\/clipboard)/
         },
         {
-          test: require.resolve('jquery'),
+          test: /\.tsx?$/,
           use: [
-            'expose-loader?$',
-            'expose-loader?jQuery'
-          ]
+            { loader: 'cache-loader', options: { cacheIdentifier: CACHE_INVALIDATE } },
+            { loader: 'thread-loader', options: { workers: 3 } },
+            { loader: 'babel-loader' },
+            { loader: 'ts-loader', options: { happyPackMode: true } },
+            { loader: 'tslint-loader' },
+          ],
+          exclude: /node_modules/
         },
         {
           test: /\.less$/,
-          use: IS_TEST ? ['style-loader', 'css-loader', 'postcss-loader', 'less-loader'] : ['happypack/loader?id=less']
+          use: [
+            { loader: 'style-loader' },
+            { loader: 'css-loader' },
+            { loader: 'postcss-loader' },
+            { loader: 'less-loader' },
+          ],
         },
         {
           test: /\.css$/,
           use: [
-            'style-loader',
-            'css-loader',
-            'postcss-loader'
+            { loader: 'style-loader' },
+            { loader: 'css-loader' },
+            { loader: 'postcss-loader' },
           ]
         },
         {
           test: /\.html$/,
-          use: ['happypack/loader?id=html']
-        }
+          use: [
+            { loader: 'ngtemplate-loader?relativeTo=' + (path.resolve(__dirname)) + '/' },
+            { loader: 'html-loader' },
+          ]
+        },
+        {
+          test: /\.json$/,
+          use: [
+            { loader: 'json-loader' },
+          ],
+        },
+        {
+          test: /\.(woff|woff2|otf|ttf|eot|png|gif|ico|svg)$/,
+          use: [
+            { loader: 'file-loader', options: { name: '[name].[hash:5].[ext]'} },
+          ],
+        },
+        {
+          test: require.resolve('jquery'),
+          use: [
+            { loader: 'expose-loader?$' },
+            { loader: 'expose-loader?jQuery' },
+          ],
+        },
       ],
     },
-    devServer: IS_TEST ? {} : {
-        port: process.env.DECK_PORT || 9000,
-        host: process.env.DECK_HOST || 'localhost',
-        https: process.env.DECK_HTTPS === 'true'
-      },
     watch: IS_TEST,
+    devServer: IS_TEST ? {
+      stats: 'none',
+    } : {
+      port: process.env.DECK_PORT || 9000,
+      host: process.env.DECK_HOST || 'localhost',
+      https: process.env.DECK_HTTPS === 'true',
+      stats: 'none',
+    },
     externals: {
       'cheerio': 'window',
       'react/addons': 'react',
@@ -117,39 +157,7 @@ function configure(IS_TEST) {
   }
 
   config.plugins = [
-    new ForkTsCheckerWebpackPlugin({ checkSyntacticErrors: true }),
-    new HappyPack({
-      id: 'html',
-      loaders: [
-        'ngtemplate-loader?relativeTo=' + (path.resolve(__dirname)) + '/',
-        'html-loader'
-      ],
-      threadPool: happyThreadPool
-    }),
-    new HappyPack({
-      id: 'js',
-      loaders: [
-        'babel-loader',
-        'envify-loader',
-        'eslint-loader'
-      ],
-      threadPool: happyThreadPool,
-      cacheContext: {
-        env: HAPPY_PACK_ENV_INVALIDATE
-      }
-    }),
-    new HappyPack({
-      id: 'ts',
-      loaders: [
-        'babel-loader',
-        { path: 'ts-loader', query: { happyPackMode: true } },
-        'tslint-loader',
-      ],
-      threadPool: happyThreadPool,
-      cacheContext: {
-        env: HAPPY_PACK_ENV_INVALIDATE
-      }
-    }),
+    new ForkTsCheckerWebpackPlugin({ checkSyntacticErrors: true, tslint: true }),
   ];
 
   if (!IS_TEST) {
@@ -168,16 +176,6 @@ function configure(IS_TEST) {
     };
 
     config.plugins.push(...[
-      new HappyPack({
-        id: 'less',
-        loaders: [
-          'style-loader',
-          'css-loader',
-          'postcss-loader',
-          'less-loader'
-        ],
-        threadPool: happyThreadPool
-      }),
       new webpack.optimize.CommonsChunkPlugin({name: 'vendor', filename: 'vendor.bundle.js'}),
       new webpack.optimize.CommonsChunkPlugin('init'),
       new HtmlWebpackPlugin({
