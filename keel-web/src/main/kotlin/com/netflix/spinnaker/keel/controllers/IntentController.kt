@@ -52,7 +52,7 @@ class IntentController
       intentRepository.upsertIntent(intent)
       orcaIntentLauncher.launch(intent)
         .takeIf { it.orchestrationIds.isNotEmpty() }
-        .also { result ->
+        ?.also { result ->
           intentActivityRepository.addOrchestrations(intent.getId(), result.orchestrationIds)
         }
     }
