@@ -58,6 +58,7 @@ abstract class BaseApplicationSpec : IntentSpec {
   abstract val trafficGuards: List<TrafficGuardSpec>
   abstract val platformHealthOnlyShowOverride: Boolean
   abstract val platformHealthOnly: Boolean
+  abstract val notifications: NotificationSpec
 }
 
 data class ChaosMonkeySpec(
@@ -98,6 +99,34 @@ data class TrafficGuardSpec(
   val detail: String?
 )
 
+data class NotificationSpec(
+  val slack: List<SlackNotificationSpec>?,
+  val email: List<EmailNotificationSpec>?,
+  val sms: List<SmsNotificationSpec>?
+)
+
+data class SlackNotificationSpec(
+  val type: String = "slack",
+  val address: String,
+  val level: String,
+  val `when`: List<String> = listOf()
+)
+
+data class EmailNotificationSpec(
+  val type: String = "email",
+  val address: String,
+  val cc: String,
+  val level: String,
+  val `when`: List<String> = listOf()
+)
+
+data class SmsNotificationSpec(
+  val type: String = "sms",
+  val sms: String,
+  val level: String,
+  val `when`: List<String> = listOf()
+)
+
 data class ApplicationSpec(
   override val name: String,
   override val description: String?,
@@ -118,7 +147,8 @@ data class ApplicationSpec(
   override val providerSettings: Map<String, Map<String, Any>>,
   override val trafficGuards: List<TrafficGuardSpec>,
   override val platformHealthOnlyShowOverride: Boolean,
-  override val platformHealthOnly: Boolean
+  override val platformHealthOnly: Boolean,
+  override val notifications: NotificationSpec
 ) : BaseApplicationSpec()
 
 // TODO rz - Move to -nflx, figure out a better wiring strategy?
@@ -143,6 +173,7 @@ data class NetflixApplicationSpec(
   override val trafficGuards: List<TrafficGuardSpec>,
   override val platformHealthOnlyShowOverride: Boolean,
   override val platformHealthOnly: Boolean,
+  override val notifications: NotificationSpec,
   val repoSlug: String?,
   val repoProjectKey: String?,
   val repoType: String?,

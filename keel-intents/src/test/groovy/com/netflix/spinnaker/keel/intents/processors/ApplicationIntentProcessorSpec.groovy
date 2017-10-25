@@ -23,6 +23,7 @@ import com.netflix.spinnaker.keel.intents.ApplicationSpec
 import com.netflix.spinnaker.keel.intents.BaseApplicationSpec
 import com.netflix.spinnaker.keel.intents.ChaosMonkeySpec
 import com.netflix.spinnaker.keel.intents.DataSourcesSpec
+import com.netflix.spinnaker.keel.intents.NotificationSpec
 import com.netflix.spinnaker.keel.intents.ParrotIntent
 import com.netflix.spinnaker.keel.intents.ParrotSpec
 import com.netflix.spinnaker.keel.tracing.TraceRepository
@@ -106,7 +107,8 @@ class ApplicationIntentProcessorSpec extends Specification {
       [:],
       [],
       false,
-      false
+      false,
+      new NotificationSpec(null, null, null)
     )
   }
 }
