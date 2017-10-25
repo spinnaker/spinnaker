@@ -21,7 +21,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.frigga.Names;
 import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.RetryableTask;
 import com.netflix.spinnaker.orca.TaskResult;
@@ -29,6 +28,7 @@ import com.netflix.spinnaker.orca.clouddriver.KatoService;
 import com.netflix.spinnaker.orca.clouddriver.OortService;
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId;
 import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask;
+import com.netflix.spinnaker.orca.clouddriver.utils.MonikerHelper;
 import com.netflix.spinnaker.orca.kato.pipeline.support.SourceResolver;
 import com.netflix.spinnaker.orca.kato.pipeline.support.StageData;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
@@ -55,18 +55,20 @@ public class CleanUpTagsTask extends AbstractCloudProviderAwareTask implements R
   @Autowired
   ObjectMapper objectMapper;
 
+  @Autowired
+  MonikerHelper monikerHelper;
+
   @Override
   public TaskResult execute(Stage stage) {
     try {
       StageData.Source source = sourceResolver.getSource(stage);
       String serverGroupName =  Optional.ofNullable(source.getServerGroupName()).orElse(source.getAsgName());
-      Names name = Names.parseName(serverGroupName);
       String cloudProvider = getCloudProvider(stage);
 
       Response serverGroupResponse = oortService.getServerGroupFromCluster(
-        name.getApp(),
+        monikerHelper.getAppNameFromStage(stage, serverGroupName),
         source.getAccount(),
-        name.getCluster(),
+        monikerHelper.getClusterNameFromStage(stage, serverGroupName),
         serverGroupName,
         source.getRegion(),
         cloudProvider

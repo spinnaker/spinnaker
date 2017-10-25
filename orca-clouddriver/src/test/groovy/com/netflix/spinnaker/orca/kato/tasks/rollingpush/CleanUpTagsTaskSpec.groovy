@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId
+import com.netflix.spinnaker.orca.clouddriver.utils.MonikerHelper
 import com.netflix.spinnaker.orca.kato.pipeline.support.SourceResolver
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
@@ -70,6 +71,15 @@ class CleanUpTagsTaskSpec extends Specification {
 
     List<Map> operations = []
     task.objectMapper = new ObjectMapper();
+    task.monikerHelper = Mock(MonikerHelper) {
+      1* getAppNameFromStage(stage, "app-v00") >> {
+        "app"
+      }
+      1* getClusterNameFromStage(stage, "app-v00") >> {
+        "app"
+      }
+      0 * _
+    }
     task.oortService = Mock(OortService) {
       1* getServerGroupFromCluster("app","test", "app", "app-v00", "us-east-1", "aws") >> {
         oortResponse
