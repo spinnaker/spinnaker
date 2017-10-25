@@ -34,12 +34,12 @@ fi
 if [ "$DISTRO" = "Ubuntu" ]; then
   if [ "${DISTRIB_RELEASE%%.*}" -lt "14" ]; then
     echo "Not a supported version of Ubuntu"
-    echo "Version is $DISTRIB_RELEASE we require 14.04 or higher"
+    echo "Version is $DISTRIB_RELEASE we require 14.04"
     exit 1
   fi
 else
   echo "Not a supported operating system: " $DISTRO
-  echo "It's recommended you use Ubuntu 14.04 or higher."
+  echo "It's recommended you use Ubuntu 14.04."
   echo ""
   echo "Please file an issue against https://github.com/spinnaker/spinnaker/issues"
   echo "if you'd like to see support for your OS and version"

@@ -44,12 +44,12 @@ fi
 if [ "$DISTRO" = "Ubuntu" ]; then
   if [ "${DISTRIB_RELEASE%%.*}" -lt "14" ]; then
     echo_err "Not a supported version of Ubuntu"
-    echo_err "Version is $DISTRIB_RELEASE we require 14.04 or higher"
+    echo_err "Version is $DISTRIB_RELEASE we require 14.04"
     exit 1
   fi
 else
   echo_err "Not a supported operating system: " $DISTRO
-  echo_err "It's recommended you use Ubuntu 14.04 or higher."
+  echo_err "It's recommended you use Ubuntu 14.04."
   echo_err ""
   echo_err "Please file an issue against https://github.com/spinnaker/spinnaker/issues"
   echo_err "if you'd like to see support for your OS and version"
