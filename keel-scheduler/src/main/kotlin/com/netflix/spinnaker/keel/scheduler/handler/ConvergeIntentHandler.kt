@@ -17,6 +17,7 @@ package com.netflix.spinnaker.keel.scheduler.handler
 
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.keel.Intent
+import com.netflix.spinnaker.keel.IntentActivityRepository
 import com.netflix.spinnaker.keel.IntentRepository
 import com.netflix.spinnaker.keel.IntentSpec
 import com.netflix.spinnaker.keel.orca.OrcaIntentLauncher
@@ -36,6 +37,7 @@ class ConvergeIntentHandler
 @Autowired constructor(
   override val queue: Queue,
   private val intentRepository: IntentRepository,
+  private val intentActivityRepository: IntentActivityRepository,
   private val orcaIntentLauncher: OrcaIntentLauncher,
   private val clock: Clock,
   private val registry: Registry
@@ -64,7 +66,9 @@ class ConvergeIntentHandler
     }
 
     try {
-      orcaIntentLauncher.launch(intent)
+      orcaIntentLauncher.launch(intent).also { result ->
+        intentActivityRepository.addOrchestrations(intent.getId(), result.orchestrationIds)
+      }
     } catch (t: Throwable) {
       log.error("Failed launching intent: ${intent.getId()}", t)
     }
