@@ -48,8 +48,10 @@ abstract class AbstractWaitForAppEngineServerGroupStopStartTask extends Abstract
     String account = getCredentials(stage)
     String serverGroupName = (stage.context.serverGroupName ?: stage.context.asgName) as String
     Names names = Names.parseName(serverGroupName)
+    String appName = stage.context.moniker?.app ?: names.app
+    String clusterName = stage.context.moniker?.cluster ?: names.cluster
     try {
-      def response = oortService.getCluster(names.app, account, names.cluster, cloudProvider)
+      def response = oortService.getCluster(appName, account, clusterName, cloudProvider)
       Map cluster = objectMapper.readValue(response.body.in().text, Map)
 
       def serverGroup = cluster.serverGroups.find { it.name == serverGroupName }
