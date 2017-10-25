@@ -237,12 +237,9 @@ module.exports = angular.module('spinnaker.amazon.serverGroupCommandBuilder.serv
           command.interestingHealthProviderNames = ['Amazon'];
         }
 
-        if (mode === 'clone' || mode === 'editPipeline') {
+        if (mode === 'editPipeline') {
           command.useSourceCapacity = true;
           command.viewState.useSimpleCapacity = false;
-        }
-
-        if (mode === 'editPipeline') {
           command.strategy = 'redblack';
           command.suspendedProcesses = [];
         }
