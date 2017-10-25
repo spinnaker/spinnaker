@@ -22,6 +22,7 @@ dependencies {
     spinnaker.group("retrofitDefault")
     compile spinnaker.dependency("groovy")
     compile spinnaker.dependency("kork")
+    compile spinnaker.dependency('korkWeb')
     compile spinnaker.dependency("rxJava")
     compile "javax.mail:mail:1.4.1"
     compile "org.springframework.boot:spring-boot-starter-mail:${spinnaker.version('springBoot')}"

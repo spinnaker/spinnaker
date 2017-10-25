@@ -18,6 +18,7 @@ package com.netflix.spinnaker.echo.config
 
 import com.netflix.spinnaker.echo.events.RestClientFactory
 import com.netflix.spinnaker.echo.rest.RestService
+import com.netflix.spinnaker.retrofit.Slf4jRetrofitLogger
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import org.apache.commons.codec.binary.Base64
@@ -99,6 +100,7 @@ class RestConfig {
         .setEndpoint(newFixedEndpoint(endpoint.url as String))
         .setClient(clientFactory.getClient(endpoint.insecure))
         .setLogLevel(retrofitLogLevel)
+        .setLog(new Slf4jRetrofitLogger(RestService.class))
         .setConverter(new JacksonConverter())
 
       Map<String, String> headers = new HashMap<>()

@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.echo.config;
 
 import com.netflix.spinnaker.echo.pagerduty.PagerDutyService;
+import com.netflix.spinnaker.retrofit.Slf4jRetrofitLogger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -48,6 +49,7 @@ public class PagerDutyConfig {
       .setEndpoint(pagerDutyEndpoint)
       .setClient(retrofitClient)
       .setLogLevel(retrofitLogLevel)
+      .setLog(new Slf4jRetrofitLogger(PagerDutyService.class))
       .build()
       .create(PagerDutyService.class);
   }

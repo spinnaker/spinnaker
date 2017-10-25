@@ -2,6 +2,7 @@ package com.netflix.spinnaker.echo.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.echo.pipelinetriggers.orca.OrcaService;
+import com.netflix.spinnaker.retrofit.Slf4jRetrofitLogger;
 import com.squareup.okhttp.OkHttpClient;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,6 +54,7 @@ public class PipelineTriggerConfiguration {
     return new RestAdapter.Builder().setClient(retrofitClient)
                                     .setConverter(new JacksonConverter(new ObjectMapper()))
                                     .setEndpoint(endpoint)
+                                    .setLog(new Slf4jRetrofitLogger(type))
                                     .build()
                                     .create(type);
   }

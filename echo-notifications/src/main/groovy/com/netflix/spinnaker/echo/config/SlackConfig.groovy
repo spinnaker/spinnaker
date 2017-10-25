@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.echo.config
 import com.netflix.spinnaker.echo.slack.SlackService
+import com.netflix.spinnaker.retrofit.Slf4jRetrofitLogger
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
@@ -48,8 +49,9 @@ class SlackConfig {
         .setEndpoint(slackEndpoint)
         .setClient(retrofitClient)
         .setLogLevel(retrofitLogLevel)
+        .setLog(new Slf4jRetrofitLogger(SlackService.class))
         .build()
-        .create(SlackService)
+        .create(SlackService.class)
   }
 
 }

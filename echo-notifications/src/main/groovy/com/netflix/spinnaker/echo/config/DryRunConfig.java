@@ -20,6 +20,7 @@ import java.util.List;
 import com.netflix.spinnaker.echo.notification.DryRunNotificationAgent;
 import com.netflix.spinnaker.echo.pipelinetriggers.orca.OrcaService;
 import com.netflix.spinnaker.echo.services.Front50Service;
+import com.netflix.spinnaker.retrofit.Slf4jRetrofitLogger;
 import com.squareup.okhttp.OkHttpClient;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -56,6 +57,7 @@ public class DryRunConfig {
       .setEndpoint(dryRunEndpoint)
       .setClient(new OkClient(okHttpClient))
       .setLogLevel(retrofitLogLevel)
+      .setLog(new Slf4jRetrofitLogger(OrcaService.class))
       .build()
       .create(OrcaService.class);
     return new DryRunNotificationAgent(front50, orca, properties);

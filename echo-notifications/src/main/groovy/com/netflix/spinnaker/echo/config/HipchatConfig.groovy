@@ -21,6 +21,7 @@ package com.netflix.spinnaker.echo.config
 import static retrofit.Endpoints.newFixedEndpoint
 
 import com.netflix.spinnaker.echo.hipchat.HipchatService
+import com.netflix.spinnaker.retrofit.Slf4jRetrofitLogger
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Value
@@ -51,8 +52,9 @@ class HipchatConfig {
                 .setEndpoint(hipchatEndpoint)
                 .setClient(retrofitClient)
                 .setLogLevel(retrofitLogLevel)
+                .setLog(new Slf4jRetrofitLogger(HipchatService.class))
                 .build()
-                .create(HipchatService)
+                .create(HipchatService.class)
     }
 
 }

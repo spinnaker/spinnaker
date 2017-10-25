@@ -20,6 +20,7 @@ dependencies {
   spinnaker.group("retrofitDefault")
 
   compile project(':echo-core')
+  compile spinnaker.dependency('korkWeb')
   compile spinnaker.dependency("bootWeb")
   compile spinnaker.dependency("bootActuator")
   compile spinnaker.dependency("rxJava")

@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.echo.config
 
+import com.netflix.spinnaker.retrofit.Slf4jRetrofitLogger
+
 import static retrofit.Endpoints.newFixedEndpoint
 
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -69,9 +71,10 @@ class TwilioConfig {
                 .setRequestInterceptor(authInterceptor)
                 .setClient(retrofitClient)
                 .setLogLevel(retrofitLogLevel)
+                .setLog(new Slf4jRetrofitLogger(TwilioService.class))
                 .setConverter(converter)
                 .build()
-                .create(TwilioService)
+                .create(TwilioService.class)
     }
 
 }

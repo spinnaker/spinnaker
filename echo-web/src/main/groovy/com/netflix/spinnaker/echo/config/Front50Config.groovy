@@ -19,6 +19,7 @@
 package com.netflix.spinnaker.echo.config
 
 import com.netflix.spinnaker.config.OkHttpClientConfiguration
+import com.netflix.spinnaker.retrofit.Slf4jRetrofitLogger
 import com.squareup.okhttp.ConnectionPool
 import com.squareup.okhttp.OkHttpClient
 import org.springframework.beans.factory.annotation.Autowired
@@ -77,8 +78,9 @@ class Front50Config {
       .setEndpoint(front50Endpoint)
       .setClient(new OkClient(okHttpClient))
       .setLogLevel(retrofitLogLevel)
+      .setLog(new Slf4jRetrofitLogger(Front50Service.class))
       .build()
-      .create(Front50Service)
+      .create(Front50Service.class)
   }
 
 }
