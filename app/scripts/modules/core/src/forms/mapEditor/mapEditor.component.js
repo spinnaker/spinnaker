@@ -1,6 +1,7 @@
 'use strict';
 
 const angular = require('angular');
+import { isString } from 'lodash';
 
 import './mapEditor.component.less';
 
@@ -32,6 +33,7 @@ module.exports = angular
       this.tableClass = (this.label ? '' : 'no-border-top');
       this.columnCount = (this.labelsLeft ? 5 : 3);
       this.model = this.model || {};
+      this.isParameterized = isString(this.model);
 
       let modelKeys = () => Object.keys(this.model);
 
@@ -48,6 +50,9 @@ module.exports = angular
 
       // Clears existing values from model, then replaces them
       this.synchronize = () => {
+        if (this.isParameterized) {
+          return;
+        }
         let modelStart = JSON.stringify(this.model);
         let allKeys = this.backingModel.map((pair) => pair.key);
         modelKeys().forEach((key) => delete this.model[key]);
@@ -63,9 +68,8 @@ module.exports = angular
         }
       };
 
-      // if defined, the $onInit method will automatically be called when components are initialized
       this.$onInit = () => {
-        if (this.model) {
+        if (this.model && !this.isParameterized) {
           modelKeys().forEach((key) => {
             this.backingModel.push({key: key, value: this.model[key]});
           });

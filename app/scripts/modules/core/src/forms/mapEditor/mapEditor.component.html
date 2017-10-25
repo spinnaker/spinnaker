@@ -2,7 +2,10 @@
   <div class="sm-label-left" ng-if="$ctrl.label">
     <b>{{$ctrl.label}}</b>
   </div>
-  <table class="table table-condensed packed tags {{$ctrl.tableClass}}">
+  <input class="form-control input-sm"
+         ng-model="$ctrl.model"
+         ng-if="$ctrl.isParameterized"/>
+  <table class="table table-condensed packed tags {{$ctrl.tableClass}}" ng-if="!$ctrl.isParameterized">
     <thead>
     <tr ng-if="!$ctrl.labelsLeft">
       <th ng-bind="$ctrl.keyLabel"></th>
