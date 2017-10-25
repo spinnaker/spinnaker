@@ -59,6 +59,7 @@ class RedBlackStrategy implements Strategy, ApplicationContextAware {
       (cleanupConfig.location.singularType()): cleanupConfig.location.value,
       cluster                                : cleanupConfig.cluster,
       credentials                            : cleanupConfig.account,
+      moniker                                : cleanupConfig.moniker,
       cloudProvider                          : cleanupConfig.cloudProvider,
     ]
 

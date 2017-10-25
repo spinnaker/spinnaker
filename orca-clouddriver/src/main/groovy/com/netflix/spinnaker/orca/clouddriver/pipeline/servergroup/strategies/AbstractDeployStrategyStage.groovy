@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.strategies
 
+import com.netflix.spinnaker.moniker.Moniker
 import com.netflix.spinnaker.orca.clouddriver.pipeline.AbstractCloudProviderAwareStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Location
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup
@@ -153,10 +154,10 @@ abstract class AbstractDeployStrategyStage extends AbstractCloudProviderAwareSta
     return className
   }
 
-  @Immutable
   static class CleanupConfig {
     String account
     String cluster
+    Moniker moniker
     String cloudProvider
     Location location
 
@@ -166,6 +167,7 @@ abstract class AbstractDeployStrategyStage extends AbstractCloudProviderAwareSta
       new CleanupConfig(
         account: stageData.account,
         cluster: stageData.cluster,
+        moniker: stageData.moniker,
         cloudProvider: stageData.cloudProvider,
         location: loc
       )

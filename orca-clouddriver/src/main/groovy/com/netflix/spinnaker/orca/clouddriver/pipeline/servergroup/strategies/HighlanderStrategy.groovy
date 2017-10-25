@@ -44,6 +44,7 @@ class HighlanderStrategy implements Strategy, ApplicationContextAware {
     Map shrinkContext = [
         (cleanupConfig.location.singularType()): cleanupConfig.location.value,
         cluster                                : cleanupConfig.cluster,
+        moniker                                : cleanupConfig.moniker,
         credentials                            : cleanupConfig.account,
         cloudProvider                          : cleanupConfig.cloudProvider,
         shrinkToSize                           : 1,

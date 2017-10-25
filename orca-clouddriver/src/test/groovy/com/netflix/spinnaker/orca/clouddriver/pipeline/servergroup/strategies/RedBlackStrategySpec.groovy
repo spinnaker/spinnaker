@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.strategies
 
+import com.netflix.spinnaker.moniker.Moniker
 import com.netflix.spinnaker.orca.clouddriver.pipeline.cluster.DisableClusterStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.cluster.ScaleDownClusterStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.cluster.ShrinkClusterStage
@@ -32,10 +33,12 @@ class RedBlackStrategySpec extends Specification {
 
   def "should compose flow"() {
     given:
+      Moniker moniker = new Moniker(app: "unit", stack: "test");
       def ctx = [
           account          : "testAccount",
           application      : "unit",
           stack            : "tests",
+          moniker          : moniker,
           cloudProvider    : "aws",
           region           : "north",
           availabilityZones: [
@@ -60,6 +63,7 @@ class RedBlackStrategySpec extends Specification {
           credentials                   : "testAccount",
           cloudProvider                 : "aws",
           cluster                       : "unit-tests",
+          moniker                       : moniker,
           region                        : "north",
           remainingEnabledServerGroups  : 1,
           preferLargerOverNewer         : false,

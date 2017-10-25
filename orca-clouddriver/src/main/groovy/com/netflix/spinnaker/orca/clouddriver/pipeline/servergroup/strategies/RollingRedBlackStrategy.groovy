@@ -65,6 +65,7 @@ class RollingRedBlackStrategy implements Strategy, ApplicationContextAware {
     Map baseContext = [
       (cleanupConfig.location.singularType()): cleanupConfig.location.value,
       cluster                                : cleanupConfig.cluster,
+      moniker                                : cleanupConfig.moniker,
       credentials                            : cleanupConfig.account,
       cloudProvider                          : cleanupConfig.cloudProvider,
     ]

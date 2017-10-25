@@ -46,6 +46,7 @@ class CustomStrategy implements Strategy, ApplicationContextAware {
       application                            : stage.context.application,
       credentials                            : cleanupConfig.account,
       cluster                                : cleanupConfig.cluster,
+      moniker                                : cleanupConfig.moniker,
       (cleanupConfig.location.singularType()): cleanupConfig.location.value,
       cloudProvider                          : cleanupConfig.cloudProvider,
       strategy                               : true,
