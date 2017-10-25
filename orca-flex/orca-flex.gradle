@@ -16,6 +16,7 @@
 
 dependencies {
   compile spinnaker.dependency('frigga')
+  compile 'com.netflix.spinnaker.moniker:moniker:0.2.0'
   compile project(":orca-retrofit")
   testCompile project(":orca-test")
 }

@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.flex.tasks
 
 import com.netflix.frigga.Names
+import com.netflix.spinnaker.moniker.Moniker
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
@@ -49,11 +50,12 @@ abstract class AbstractElasticIpTask implements Task {
   static class StageData {
     String account
     String cluster
+    Moniker moniker
     String region
     ElasticIpRequest elasticIp
 
     String getApplication() {
-      return cluster ? Names.parseName(cluster).app : null
+      return moniker ? moniker.getApp() : cluster ? Names.parseName(cluster).app : null
     }
   }
 }
