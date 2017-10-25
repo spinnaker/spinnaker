@@ -391,28 +391,33 @@ export class ExecutionsTransformerService {
       return groupedStages;
     }, [] as IExecutionStageSummary[]);
 
-    stageSummaries.forEach((summary) => {
-      if (summary.type === 'group' && summary.groupStages.length > 1) {
-        const subComments: string[] = [];
-        // Find the earliest startTime and latest endTime
-        summary.groupStages.forEach((subStage) => {
-          if (subStage.comments) { subComments.push(subStage.comments); }
-        });
+    stageSummaries.forEach((summary, index) => {
+      if (summary.type === 'group') {
+        if (summary.groupStages.length === 1) {
+          // If there's only one stage, get rid of the group.
+          stageSummaries[index] = summary.groupStages[0];
+        } else if (summary.groupStages.length > 1) {
+          const subComments: string[] = [];
+          // Find the earliest startTime and latest endTime
+          summary.groupStages.forEach((subStage) => {
+            if (subStage.comments) { subComments.push(subStage.comments); }
+          });
 
-        // Assuming the last stage in the group has the "output" stages
-        summary.after = summary.groupStages[summary.groupStages.length - 1].after;
+          // Assuming the last stage in the group has the "output" stages
+          summary.after = summary.groupStages[summary.groupStages.length - 1].after;
 
-        const currentStage = this.getCurrentStage(summary.groupStages);
-        summary.activeStageType = currentStage.type;
-        summary.status = currentStage.status;
-        this.styleStage(summary, currentStage);
+          const currentStage = this.getCurrentStage(summary.groupStages);
+          summary.activeStageType = currentStage.type;
+          summary.status = currentStage.status;
+          this.styleStage(summary, currentStage);
 
-        // Set the group comment as a concatenation of all the stage summary comments
-        summary.comments = subComments.join(', ');
+          // Set the group comment as a concatenation of all the stage summary comments
+          summary.comments = subComments.join(', ');
+
+          // Make sure the requisite ids that were pointing at stages within a group are now pointing at the group
+          summary.requisiteStageRefIds = uniq(summary.requisiteStageRefIds.map((id) => idToGroupIdMap[id] || id));
+        }
       }
-
-      // Make sure the requisite ids that were pointing at stages within a group are now pointing at the group
-      summary.requisiteStageRefIds = uniq(summary.requisiteStageRefIds.map((id) => idToGroupIdMap[id] || id));
     });
 
     stageSummaries.forEach((summary, index) => this.transformStageSummary(summary, index));
