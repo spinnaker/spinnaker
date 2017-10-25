@@ -23,9 +23,13 @@ const modules = [
 ];
 
 export const KAYENTA_MODULE = 'spinnaker.kayenta';
-module(
-  KAYENTA_MODULE,
-  CanarySettings.stagesEnabled
-    ? [CANARY_STAGES, ...modules]
-    : modules
-);
+if (CanarySettings.featureDisabled) {
+  module(KAYENTA_MODULE, []);
+} else {
+  module(
+    KAYENTA_MODULE,
+    CanarySettings.stagesEnabled
+      ? [CANARY_STAGES, ...modules]
+      : modules
+  );
+}

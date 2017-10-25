@@ -11,6 +11,7 @@ export interface ICanarySettings {
   reportsEnabled: boolean;
   stagesEnabled: boolean;
   graphImplementation: string;
+  featureDisabled: boolean;
 }
 
-export const CanarySettings = <ICanarySettings>SETTINGS.canary;
+export const CanarySettings = SETTINGS.canary || { featureDisabled: true };
