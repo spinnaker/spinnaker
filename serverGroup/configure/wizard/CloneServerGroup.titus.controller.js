@@ -15,7 +15,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.titus.cloneServ
       templateSelection: require('./templateSelection.html'),
       basicSettings: require('./basicSettings.html'),
       resources: require('./resources.html'),
-      capacity: require('./capacity.html'),
+      capacity: require('./capacity/capacity.html'),
       securityGroups: require('./securityGroups.html'),
       parameters: require('./parameters.html'),
     };
