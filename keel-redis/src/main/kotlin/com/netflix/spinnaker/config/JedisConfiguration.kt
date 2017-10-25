@@ -79,7 +79,7 @@ open class JedisConfiguration {
     val db = Integer.parseInt(
       (if (redisConnection.path == "") "/${Protocol.DEFAULT_DATABASE}" else redisConnection.path).split("/")[1]
     )
-    val password = if (redisConnection.userInfo == "") null else redisConnection.userInfo.split(":")[1]
+    val password = if (redisConnection.userInfo == null) null else redisConnection.userInfo.split(":")[1]
 
     return JedisPool(redisPoolConfig ?: GenericObjectPoolConfig(), host, port, timeout, password, db, null)
   }

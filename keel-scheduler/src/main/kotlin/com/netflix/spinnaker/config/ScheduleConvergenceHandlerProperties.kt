@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Netflix, Inc.
+ * Copyright 2017 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,26 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.netflix.spinnaker.config
 
-include 'keel-core',
-  'keel-test',
-  'keel-retrofit',
-  'keel-front50',
-  'keel-orca',
-  'keel-intents',
-  'keel-scheduler',
-  'keel-redis',
-  'keel-web'
+import org.springframework.boot.context.properties.ConfigurationProperties
+import java.time.Duration
 
-rootProject.name = 'keel'
-
-def setBuildFile(project) {
-  project.buildFileName = "${project.name}.gradle"
-  project.children.each {
-    setBuildFile(it)
-  }
-}
-
-rootProject.children.each {
-  setBuildFile it
-}
+@ConfigurationProperties("handlers.scheduleConvergence")
+data class ScheduleConvergeHandlerProperties(
+  val stalenessTtl: Long = Duration.ofMinutes(1).toMillis(),
+  val timeoutTtl: Long = Duration.ofHours(1).toMillis(),
+  val rescheduleTtl: Long = Duration.ofSeconds(30).toMillis()
+)
