@@ -15,31 +15,33 @@
  */
 package com.netflix.spinnaker.keel.memory
 
-import com.netflix.spinnaker.keel.Intent
-import com.netflix.spinnaker.keel.IntentRepository
-import com.netflix.spinnaker.keel.IntentSpec
-import com.netflix.spinnaker.keel.IntentStatus
+import com.netflix.spinnaker.keel.IntentActivityRepository
 import org.slf4j.LoggerFactory
 import javax.annotation.PostConstruct
 
-class MemoryIntentRepository : IntentRepository {
+class MemoryIntentActivityRepository : IntentActivityRepository {
 
   private val log = LoggerFactory.getLogger(javaClass)
 
-  private val intents: MutableMap<String, Intent<IntentSpec>> = mutableMapOf()
+  private val orchestrations: MutableMap<String, MutableList<String>> = mutableMapOf()
 
-  @PostConstruct fun init() {
+  @PostConstruct
+  fun init() {
     log.info("Using ${javaClass.simpleName}")
   }
 
-  override fun upsertIntent(intent: Intent<IntentSpec>) {
-    intents.put(intent.getId(), intent)
+  override fun addOrchestration(intentId: String, orchestrationId: String) {
+    if (!orchestrations.containsKey(intentId)) {
+      orchestrations[intentId] = mutableListOf()
+    }
+    if (orchestrations[intentId]?.contains(orchestrationId) == false) {
+      orchestrations[intentId]?.add(orchestrationId)
+    }
   }
 
-  override fun getIntents() = intents.values.toList()
+  override fun addOrchestrations(intentId: String, orchestrations: List<String>) {
+    orchestrations.forEach { addOrchestration(intentId, it) }
+  }
 
-  override fun getIntents(statuses: List<IntentStatus>)
-    = intents.values.filter { statuses.contains(it.status) }.toList()
-
-  override fun getIntent(id: String) = intents[id]
+  override fun getHistory(intentId: String) = orchestrations.getOrDefault(intentId, listOf<String>()).toList()
 }

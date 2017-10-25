@@ -13,15 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.keel
+package com.netflix.spinnaker.config
 
-interface IntentRepository {
+import org.springframework.context.annotation.ComponentScan
+import org.springframework.context.annotation.Configuration
 
-  fun upsertIntent(intent: Intent<IntentSpec>)
-
-  fun getIntents(): List<Intent<IntentSpec>>
-
-  fun getIntents(statuses: List<IntentStatus>): List<Intent<IntentSpec>>
-
-  fun getIntent(id: String): Intent<IntentSpec>?
-}
+@Configuration
+@ComponentScan("com.netflix.spinnaker.keel.redis")
+open class RedisConfiguration

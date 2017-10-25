@@ -25,19 +25,17 @@ import com.netflix.spinnaker.keel.tracing.Trace
 import com.netflix.spinnaker.keel.tracing.TraceRepository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import java.time.Clock
 
 @Component
 class ParrotIntentProcessor
 @Autowired constructor(
-  private val traceRepository: TraceRepository,
-  private val clock: Clock
+  private val traceRepository: TraceRepository
 ) : IntentProcessor<ParrotIntent> {
 
   override fun supports(intent: Intent<IntentSpec>) = intent is ParrotIntent
 
   override fun converge(intent: ParrotIntent): List<OrchestrationRequest> {
-    traceRepository.record(Trace(mapOf(), intent, clock.millis()))
+    traceRepository.record(Trace(mapOf(), intent))
     return listOf(
       OrchestrationRequest(
         name = "Squawk!",

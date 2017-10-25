@@ -27,6 +27,7 @@ import com.netflix.spinnaker.keel.model.Job
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.tracing.Trace
 import com.netflix.spinnaker.keel.tracing.TraceRepository
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Component
@@ -38,19 +39,21 @@ class ApplicationIntentProcessor
 @Autowired constructor(
   private val traceRepository: TraceRepository,
   private val front50Service: Front50Service,
-  private val objectMapper: ObjectMapper,
-  private val clock: Clock
+  private val objectMapper: ObjectMapper
 ): IntentProcessor<ApplicationIntent> {
+
+  private val log = LoggerFactory.getLogger(javaClass)
 
   override fun supports(intent: Intent<IntentSpec>) = intent is ApplicationIntent
 
   override fun converge(intent: ApplicationIntent): List<OrchestrationRequest> {
+    log.info("Converging state for ${intent.spec.name}")
+
     val currentState = getApplication(intent.spec.name)
 
     traceRepository.record(Trace(
       startingState = if (currentState == null) mapOf() else objectMapper.convertValue(currentState, ANY_MAP_TYPE),
-      intent = intent,
-      createTs = clock.millis()
+      intent = intent
     ))
 
     return listOf(

@@ -31,16 +31,13 @@ import retrofit.client.Response
 import spock.lang.Specification
 import spock.lang.Subject
 
-import java.time.Clock
-
 class ApplicationIntentProcessorSpec extends Specification {
 
   TraceRepository traceRepository = Mock()
   Front50Service front50Service = Mock()
   ObjectMapper objectMapper = new ObjectMapper()
-  Clock clock = Mock()
 
-  @Subject subject = new ApplicationIntentProcessor(traceRepository, front50Service, objectMapper, clock)
+  @Subject subject = new ApplicationIntentProcessor(traceRepository, front50Service, objectMapper)
 
   def 'should support ApplicationIntents'() {
     expect:

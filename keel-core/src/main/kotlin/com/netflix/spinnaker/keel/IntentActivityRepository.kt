@@ -15,13 +15,11 @@
  */
 package com.netflix.spinnaker.keel
 
-interface IntentRepository {
+interface IntentActivityRepository {
 
-  fun upsertIntent(intent: Intent<IntentSpec>)
+  fun addOrchestration(intentId: String, orchestrationId: String)
 
-  fun getIntents(): List<Intent<IntentSpec>>
+  fun addOrchestrations(intentId: String, orchestrations: List<String>)
 
-  fun getIntents(statuses: List<IntentStatus>): List<Intent<IntentSpec>>
-
-  fun getIntent(id: String): Intent<IntentSpec>?
+  fun getHistory(intentId: String): List<String>
 }

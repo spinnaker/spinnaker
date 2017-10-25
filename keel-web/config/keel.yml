@@ -5,3 +5,14 @@ front50:
   baseUrl: http://localhost:8080
 orca:
   baseUrl: http://localhost:8083
+
+redis:
+  enabled: true
+  connection: redis://localhost:6379
+#  connectionPrevious: null
+
+dynomite:
+  enabled: false
+  main:
+    clusterName: keel
+#    hosts: []

@@ -13,15 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.keel
+package com.netflix.spinnaker.config
 
-interface IntentRepository {
+import org.springframework.boot.context.properties.ConfigurationProperties
 
-  fun upsertIntent(intent: Intent<IntentSpec>)
+@ConfigurationProperties("redis")
+open class JedisConfigurationProperties {
 
-  fun getIntents(): List<Intent<IntentSpec>>
-
-  fun getIntents(statuses: List<IntentStatus>): List<Intent<IntentSpec>>
-
-  fun getIntent(id: String): Intent<IntentSpec>?
+  var connection: String? = "redis://localhost:6379"
+  var connectionPrevious: String? = null
+  var timeout: Int = 1000
 }

@@ -13,15 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.keel
+package com.netflix.spinnaker.keel.redis
 
-interface IntentRepository {
+import com.fasterxml.jackson.core.type.TypeReference
 
-  fun upsertIntent(intent: Intent<IntentSpec>)
-
-  fun getIntents(): List<Intent<IntentSpec>>
-
-  fun getIntents(statuses: List<IntentStatus>): List<Intent<IntentSpec>>
-
-  fun getIntent(id: String): Intent<IntentSpec>?
-}
+internal val ANY_MAP_TYPE = object : TypeReference<MutableMap<String, Any>>(){}

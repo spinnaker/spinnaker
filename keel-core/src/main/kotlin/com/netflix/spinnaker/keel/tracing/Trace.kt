@@ -21,5 +21,5 @@ import com.netflix.spinnaker.keel.IntentSpec
 data class Trace(
   val startingState: Map<String, Any>,
   val intent: Intent<IntentSpec>,
-  val createTs: Long
+  val createTs: Long? = null
 )

@@ -15,6 +15,7 @@
  */
 package com.netflix.spinnaker.keel.controllers
 
+import com.netflix.spinnaker.keel.IntentActivityRepository
 import com.netflix.spinnaker.keel.IntentRepository
 import com.netflix.spinnaker.keel.IntentStatus
 import com.netflix.spinnaker.keel.dryrun.DryRunIntentLauncher
@@ -33,10 +34,12 @@ class IntentController
   private val orcaIntentLauncher: OrcaIntentLauncher,
   private val dryRunIntentLauncher: DryRunIntentLauncher,
   private val intentRepository: IntentRepository,
+  private val intentActivityRepository: IntentActivityRepository,
   private val traceRepository: TraceRepository
 ) {
 
   @RequestMapping(method = arrayOf(RequestMethod.PUT))
+  @ResponseStatus(HttpStatus.ACCEPTED)
   fun upsertIntent(@RequestBody req: UpsertIntentRequest): Any {
     // TODO rz - validate intents
     // TODO rz - calculate graph
@@ -48,7 +51,7 @@ class IntentController
     req.intents.forEach { intent ->
       intentRepository.upsertIntent(intent)
       orcaIntentLauncher.launch(intent).also { result ->
-        intentRepository.addOrchestrations(intent, result.orchestrationIds)
+        intentActivityRepository.addOrchestrations(intent.getId(), result.orchestrationIds)
       }
     }
 
@@ -68,7 +71,7 @@ class IntentController
   fun deleteIntent(@RequestParam("status", defaultValue = "CANCELED") status: IntentStatus): Nothing = TODO()
 
   @RequestMapping(value = "/{id}/history", method = arrayOf(RequestMethod.GET))
-  fun getIntentHistory(@PathVariable("id") id: String) = intentRepository.getHistory(id)
+  fun getIntentHistory(@PathVariable("id") id: String) = intentActivityRepository.getHistory(id)
 
   @RequestMapping(value = "/{id}/traces", method = arrayOf(RequestMethod.GET))
   fun getIntentTrace(@PathVariable("id") id: String) = traceRepository.getForIntent(id)

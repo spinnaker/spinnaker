@@ -13,23 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.keel
+package com.netflix.spinnaker.keel.test
 
 import com.fasterxml.jackson.annotation.JsonCreator
-import com.fasterxml.jackson.annotation.JsonIgnore
-import com.fasterxml.jackson.annotation.JsonTypeInfo
-import com.github.jonpeterson.jackson.module.versioning.JsonSerializeToVersion
+import com.fasterxml.jackson.annotation.JsonTypeName
+import com.github.jonpeterson.jackson.module.versioning.JsonVersionedModel
+import com.netflix.spinnaker.keel.Intent
+import com.netflix.spinnaker.keel.IntentSpec
 
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "kind")
-abstract class Intent<out S : IntentSpec>
-@JsonCreator constructor(
-  @JsonSerializeToVersion(defaultToSource = true) val schema: String,
-  val kind: String,
-  val spec: S
-) {
-
-  val status: IntentStatus = IntentStatus.ACTIVE
-
-  @JsonIgnore
-  abstract fun getId(): String
+@JsonTypeName("Test")
+@JsonVersionedModel(currentVersion = "1", propertyName = "schema")
+class TestIntent
+@JsonCreator constructor(spec: TestIntentSpec) : Intent<TestIntentSpec>("1", "Test", spec) {
+  override fun getId() = "test:${spec.id}"
 }
+
+data class TestIntentSpec(
+  val id: String,
+  val data: Map<String, Any> = mapOf()
+) : IntentSpec

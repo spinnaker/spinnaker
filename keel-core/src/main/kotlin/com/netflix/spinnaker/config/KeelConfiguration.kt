@@ -20,7 +20,9 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.github.jonpeterson.jackson.module.versioning.VersioningModule
 import com.netflix.spinnaker.keel.Intent
+import com.netflix.spinnaker.keel.IntentActivityRepository
 import com.netflix.spinnaker.keel.IntentRepository
+import com.netflix.spinnaker.keel.memory.MemoryIntentActivityRepository
 import com.netflix.spinnaker.keel.memory.MemoryIntentRepository
 import com.netflix.spinnaker.keel.memory.MemoryTraceRepository
 import com.netflix.spinnaker.keel.tracing.TraceRepository
@@ -67,6 +69,10 @@ open class KeelConfiguration {
   @Bean
   @ConditionalOnMissingBean(IntentRepository::class)
   open fun memoryIntentRepository(): IntentRepository = MemoryIntentRepository()
+
+  @Bean
+  @ConditionalOnMissingBean(IntentActivityRepository::class)
+  open fun memoryIntentActivityRepository(): IntentActivityRepository = MemoryIntentActivityRepository()
 
   @Bean
   @ConditionalOnMissingBean(TraceRepository::class)

@@ -13,15 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.keel
+dependencies {
+  compile project(":keel-core")
+  compile spinnaker.dependency("korkJedis")
+  compile spinnaker.dependency("korkDynomite")
 
-interface IntentRepository {
-
-  fun upsertIntent(intent: Intent<IntentSpec>)
-
-  fun getIntents(): List<Intent<IntentSpec>>
-
-  fun getIntents(statuses: List<IntentStatus>): List<Intent<IntentSpec>>
-
-  fun getIntent(id: String): Intent<IntentSpec>?
+  testCompile spinnaker.dependency("korkJedisTest")
+  testCompile project(":keel-test")
 }
