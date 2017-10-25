@@ -45,6 +45,7 @@ export * from './overrideRegistry';
 export * from './pageTitle';
 export * from './pipeline';
 export * from './presentation';
+export * from './pubsub';
 
 export * from './reactShims';
 export * from './retry';

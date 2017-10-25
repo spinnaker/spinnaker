@@ -1,25 +1,30 @@
 <ng-form name="pubsubTriggerForm">
-
-    <div class="form-group">
-        <label class="col-md-3 sm-label-right">
-            Pub/Sub System Type
-        </label>
-        <div class="col-md-6">
-            <select class="form-control input-sm"
-                    ng-options="pubsubSystem for pubsubSystem in vm.pubsubSystems"
-                    ng-model="vm.trigger.pubsubSystem">
-                <option value="">Select Pub/Sub System</option>
-            </select>
-        </div>
+  <div class="form-group" ng-if="vm.subscriptionsLoaded">
+    <label class="col-md-3 sm-label-right">
+      Pub/Sub System Type
+    </label>
+    <div class="col-md-6">
+      <select class="form-control input-sm"
+              ng-options="pubsubSystem for pubsubSystem in vm.pubsubSystems"
+              ng-model="vm.trigger.pubsubSystem">
+        <option value="">Select Pub/Sub System</option>
+      </select>
     </div>
+  </div>
 
-    <div class="form-group">
-        <div class="col-md-3 sm-label-right">
-            Subscription Name
-        </div>
-        <div class="col-md-9">
-            <input type="text" class="form-control input-sm" ng-model="vm.trigger.subscriptionName"/>
-        </div>
+  <div class="form-group">
+    <div class="col-md-3 sm-label-right">
+      Subscription Name
     </div>
-
+    <div class="col-md-6">
+      <select class="form-control input-sm"
+              ng-options="pubsubSystem for pubsubSystem in vm.pubsubSubscriptions"
+              ng-model="vm.trigger.subscriptionName">
+        <option value="">Select Pub/Sub Subscription</option>
+      </select>
+    </div>
+  </div>
+  <div ng-if="!vm.subscriptionsLoaded">
+    <span class="fa fa-cog fa-spin"></span>
+  </div>
 </ng-form>
