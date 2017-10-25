@@ -131,6 +131,9 @@ public class CanaryController {
         .findFirst()
         .orElseThrow(() -> new IllegalArgumentException("No metrics store service was specified in canary config."))
         .getValue();
+    // TODO(duftler/dpeach): serviceType could change between here and the setupCanary stage
+    // (which resolves the canary config for the remaining stages in this pipeline).
+    // Should synthetically add the metric fetch stages inside setupCanary.
     String serviceType = canaryConfigService.getType();
 
     CanaryScopeFactory canaryScopeFactory =
@@ -147,36 +150,42 @@ public class CanaryController {
     String controlScopeJson = kayentaObjectMapper.writeValueAsString(controlScopeModel);
     String experimentScopeJson = kayentaObjectMapper.writeValueAsString(experimentScopeModel);
 
-    Map<String, Object> fetchControlContext =
+    Map<String, Object> setupCanaryContext =
       Maps.newHashMap(
         new ImmutableMap.Builder<String, Object>()
           // TODO(duftler): Experiment with using descriptive names for refId.
           .put("refId", "1")
           .put("user", "[anonymous]")
+          .put("canaryConfigId", canaryConfigId)
+          .build());
+
+    Map<String, Object> fetchControlContext =
+      Maps.newHashMap(
+        new ImmutableMap.Builder<String, Object>()
+          .put("refId", "2")
+          .put("requisiteStageRefIds", Collections.singletonList("1"))
+          .put("user", "[anonymous]")
           .put("metricsAccountName", resolvedMetricsAccountName)
           .put("storageAccountName", resolvedStorageAccountName)
-          .put("configurationAccountName", resolvedConfigurationAccountName)
-          .put("canaryConfigId", canaryConfigId)
           .put(serviceType + "CanaryScope", controlScopeJson)
           .build());
 
     Map<String, Object> fetchExperimentContext =
       Maps.newHashMap(
         new ImmutableMap.Builder<String, Object>()
-          .put("refId", "2")
+          .put("refId", "3")
+          .put("requisiteStageRefIds", Collections.singletonList("1"))
           .put("user", "[anonymous]")
           .put("metricsAccountName", resolvedMetricsAccountName)
           .put("storageAccountName", resolvedStorageAccountName)
-          .put("configurationAccountName", resolvedConfigurationAccountName)
-          .put("canaryConfigId", canaryConfigId)
           .put(serviceType + "CanaryScope", experimentScopeJson)
           .build());
 
     Map<String, Object> mixMetricSetsContext =
       Maps.newHashMap(
         new ImmutableMap.Builder<String, Object>()
-          .put("refId", "3")
-          .put("requisiteStageRefIds", new ImmutableList.Builder().add("1").add("2").build())
+          .put("refId", "4")
+          .put("requisiteStageRefIds", new ImmutableList.Builder().add("2").add("3").build())
           .put("user", "[anonymous]")
           .put("storageAccountName", resolvedStorageAccountName)
           .put("controlMetricSetListIds", "${ #stage('Fetch Control from " + serviceType + "')['context']['metricSetListIds']}")
@@ -193,12 +202,10 @@ public class CanaryController {
     Map<String, Object> canaryJudgeContext =
       Maps.newHashMap(
         new ImmutableMap.Builder<String, Object>()
-          .put("refId", "4")
-          .put("requisiteStageRefIds", Collections.singletonList("3"))
+          .put("refId", "5")
+          .put("requisiteStageRefIds", Collections.singletonList("4"))
           .put("user", "[anonymous]")
           .put("storageAccountName", resolvedStorageAccountName)
-          .put("configurationAccountName", resolvedConfigurationAccountName)
-          .put("canaryConfigId", canaryConfigId)
           .put("metricSetPairListId", "${ #stage('Mix Control and Experiment Results')['context']['metricSetPairListId']}")
           .put("orchestratorScoreThresholds", orchestratorScoreThresholds)
           .build());
@@ -208,6 +215,7 @@ public class CanaryController {
         .builder("kayenta-" + currentInstanceId)
         .withName("Standard Canary Pipeline")
         .withPipelineConfigId(UUID.randomUUID() + "")
+        .withStage("setupCanary", "Setup Canary", setupCanaryContext)
         .withStage(serviceType + "Fetch", "Fetch Control from " + serviceType, fetchControlContext)
         .withStage(serviceType + "Fetch", "Fetch Experiment from " + serviceType, fetchExperimentContext)
         .withStage("metricSetMixer", "Mix Control and Experiment Results", mixMetricSetsContext)

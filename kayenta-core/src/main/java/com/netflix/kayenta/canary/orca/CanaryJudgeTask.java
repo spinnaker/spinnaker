@@ -78,11 +78,6 @@ public class CanaryJudgeTask implements RetryableTask {
     String resolvedStorageAccountName = CredentialsHelper.resolveAccountByNameOrType(storageAccountName,
                                                                                      AccountCredentials.Type.OBJECT_STORE,
                                                                                      accountCredentialsRepository);
-    String configurationAccountName = (String)context.get("configurationAccountName");
-    String resolvedConfigurationAccountName = CredentialsHelper.resolveAccountByNameOrType(configurationAccountName,
-                                                                                           AccountCredentials.Type.CONFIGURATION_STORE,
-                                                                                           accountCredentialsRepository);
-    String canaryConfigId = (String)context.get("canaryConfigId");
     String metricSetPairListId = (String)context.get("metricSetPairListId");
     Map<String, String> orchestratorScoreThresholdsMap = (Map<String, String>)context.get("orchestratorScoreThresholds");
     CanaryClassifierThresholdsConfig orchestratorScoreThresholds = objectMapper.convertValue(orchestratorScoreThresholdsMap,
@@ -97,7 +92,8 @@ public class CanaryJudgeTask implements RetryableTask {
         .getOne(resolvedStorageAccountName)
         .orElseThrow(() -> new IllegalArgumentException("No configuration service was configured; unable to load configurations."));
 
-    CanaryConfig canaryConfig = configurationService.loadObject(resolvedConfigurationAccountName, ObjectType.CANARY_CONFIG, canaryConfigId.toLowerCase());
+    Map<String, Object> canaryConfigMap = (Map<String, Object>)context.get("canaryConfig");
+    CanaryConfig canaryConfig = objectMapper.convertValue(canaryConfigMap, CanaryConfig.class);
     List<MetricSetPair> metricSetPairList = storageService.loadObject(resolvedStorageAccountName, ObjectType.METRIC_SET_PAIR_LIST, metricSetPairListId);
     CanaryJudgeConfig canaryJudgeConfig = canaryConfig.getJudge();
     CanaryJudge canaryJudge = null;

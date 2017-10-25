@@ -31,6 +31,7 @@ import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.RetryableTask;
 import com.netflix.spinnaker.orca.TaskResult;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
+import com.netflix.spinnaker.orca.pipeline.model.StageContext;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -83,11 +84,11 @@ public class AtlasFetchTask implements RetryableTask {
 
   @Override
   public TaskResult execute(Stage stage) {
-    Map<String, Object> context = stage.getContext();
+    StageContext context = new StageContext(stage);
     String metricsAccountName = (String)context.get("metricsAccountName");
     String storageAccountName = (String)context.get("storageAccountName");
-    String configurationAccountName = (String)context.get("configurationAccountName");
-    String canaryConfigId = (String)context.get("canaryConfigId");
+    Map<String, Object> canaryConfigMap = (Map<String, Object>)context.get("canaryConfig");
+    CanaryConfig canaryConfig = kayentaObjectMapper.convertValue(canaryConfigMap, CanaryConfig.class);
     String scopeJson = (String)stage.getContext().get("atlasCanaryScope");
     AtlasCanaryScope atlasCanaryScope;
     try {
@@ -102,18 +103,7 @@ public class AtlasFetchTask implements RetryableTask {
     String resolvedStorageAccountName = CredentialsHelper.resolveAccountByNameOrType(storageAccountName,
                                                                                      AccountCredentials.Type.OBJECT_STORE,
                                                                                      accountCredentialsRepository);
-    String resolvedConfigurationAccountName = CredentialsHelper.resolveAccountByNameOrType(configurationAccountName,
-                                                                                           AccountCredentials.Type.CONFIGURATION_STORE,
-                                                                                           accountCredentialsRepository);
-    StorageService configurationService =
-      storageServiceRepository
-        .getOne(resolvedConfigurationAccountName)
-        .orElseThrow(() -> new IllegalArgumentException("No configuration service was configured; unable to load canary config."));
-
     try {
-      CanaryConfig canaryConfig =
-        configurationService.loadObject(resolvedConfigurationAccountName, ObjectType.CANARY_CONFIG, canaryConfigId.toLowerCase());
-
       List<String> metricSetListIds = synchronousQueryProcessor.processQuery(resolvedMetricsAccountName,
                                                                              resolvedStorageAccountName,
                                                                              canaryConfig.getMetrics(),
