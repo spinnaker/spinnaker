@@ -41,8 +41,7 @@ class QueueBackedSchedulerAgent(
 
   @Scheduled(fixedDelayString = "\${scheduler.retry.frequency.ms:30000}")
   override fun run() {
-    // TODO rz - check if queue already has message, otherwise no-op.
-    // TODO rz - this is running twice every tick???
+    // TODO rz / keiko - add `ensure`, make sure the message is on the queue, but no-op (no schedule change) if present
     log.info("TODO: Rescheduling convergence task")
 //    queue.reschedule(ScheduleConvergence())
   }

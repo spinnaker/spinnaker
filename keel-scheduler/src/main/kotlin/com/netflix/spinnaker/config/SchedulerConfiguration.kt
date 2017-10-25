@@ -15,15 +15,9 @@
  */
 package com.netflix.spinnaker.config
 
-import com.netflix.spinnaker.keel.scheduler.QueueBackedSchedulerAgent
-import com.netflix.spinnaker.keel.scheduler.SchedulerAgent
-import com.netflix.spinnaker.q.Queue
 import org.springframework.boot.context.properties.EnableConfigurationProperties
-import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
-import org.springframework.scheduling.annotation.EnableScheduling
-import java.time.Duration
 
 @Configuration
 @ComponentScan(basePackages = arrayOf(
@@ -31,9 +25,4 @@ import java.time.Duration
   "com.netflix.spinnaker.keel.scheduler.handler"
 ))
 @EnableConfigurationProperties(ScheduleConvergeHandlerProperties::class)
-@EnableScheduling
-open class SchedulerConfiguration {
-
-  @Bean open fun schedulerAgent(queue: Queue): SchedulerAgent
-    = QueueBackedSchedulerAgent(queue)
-}
+open class SchedulerConfiguration

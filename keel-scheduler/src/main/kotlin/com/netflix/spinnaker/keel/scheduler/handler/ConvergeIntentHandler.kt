@@ -66,9 +66,11 @@ class ConvergeIntentHandler
     }
 
     try {
-      orcaIntentLauncher.launch(intent).also { result ->
-        intentActivityRepository.addOrchestrations(intent.getId(), result.orchestrationIds)
-      }
+      orcaIntentLauncher.launch(intent)
+        .takeIf { it.orchestrationIds.isNotEmpty() }
+        ?.also { result ->
+          intentActivityRepository.addOrchestrations(intent.getId(), result.orchestrationIds)
+        }
     } catch (t: Throwable) {
       log.error("Failed launching intent: ${intent.getId()}", t)
     }
