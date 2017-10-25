@@ -73,6 +73,11 @@ public class Trigger {
   String branch;
   String runAsUser;
   String secret;
+
+  /**
+   * Logical name given to the subscription by the user, not the locator
+   * the pub/sub system uses.
+   */
   String subscriptionName;
   String pubsubSystem;
   List<ExpectedArtifact> expectedArtifacts;

@@ -88,7 +88,7 @@ public class GooglePubsubSubscriber implements PubsubSubscriber {
     String jsonPath = subscription.getJsonPath();
 
     GooglePubsubMessageReceiver messageReceiver = new GooglePubsubMessageReceiver(subscription.getAckDeadlineSeconds(),
-        formatSubscriptionName(project, subscriptionName),
+        subscription.getName(),
         pubsubMessageHandler,
         subscription.getTemplatePath());
 
@@ -120,6 +120,10 @@ public class GooglePubsubSubscriber implements PubsubSubscriber {
 
     private PubsubMessageHandler pubsubMessageHandler;
 
+    /**
+     * Logical name given to the subscription by the user, not the locator
+     * the pub/sub system uses.
+     */
     private String subscriptionName;
 
     private NodeIdentity identity = new NodeIdentity();

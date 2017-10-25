@@ -29,6 +29,10 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class MessageDescription {
+  /**
+   * Logical name given to the subscription by the user, not the locator
+   * the pub/sub system uses.
+   */
   private String subscriptionName;
 
   private String messagePayload;
