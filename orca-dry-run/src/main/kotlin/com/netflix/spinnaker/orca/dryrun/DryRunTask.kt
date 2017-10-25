@@ -36,6 +36,7 @@ class DryRunTask : Task {
     setOf(
       "amiSuffix",
       "kato\\..*",
+      "spelEvaluator",
       "stageDetails",
       "useSourceCapacity"
     )
