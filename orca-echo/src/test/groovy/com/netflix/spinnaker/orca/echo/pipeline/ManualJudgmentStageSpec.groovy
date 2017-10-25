@@ -62,7 +62,7 @@ class ManualJudgmentStageSpec extends Specification {
     then:
     result.status == ExecutionStatus.RUNNING
     result.context.notifications.findAll {
-      it.lastNotifiedByNotificationState[NotificationState.manualJudgment]
+      it.lastNotifiedByNotificationState["manualJudgment"]
     }*.type == ["email", "hipchat", "sms"]
   }
 
@@ -85,13 +85,13 @@ class ManualJudgmentStageSpec extends Specification {
     if (sent) result.context.notifications?.getAt(0)?.lastNotifiedByNotificationState?.containsKey(notificationState)
 
     where:
-    sendNotifications | notificationState                        | judgmentStatus | executionStatus           || sent
-    true              | NotificationState.manualJudgment         | null           | ExecutionStatus.RUNNING   || true
-    false             | NotificationState.manualJudgment         | null           | ExecutionStatus.RUNNING   || true
-    true              | NotificationState.manualJudgmentContinue | "continue"     | ExecutionStatus.SUCCEEDED || true
-    false             | NotificationState.manualJudgmentContinue | "continue"     | ExecutionStatus.SUCCEEDED || false
-    true              | NotificationState.manualJudgmentStop     | "stop"         | ExecutionStatus.TERMINAL  || true
-    false             | NotificationState.manualJudgmentStop     | "stop"         | ExecutionStatus.TERMINAL  || false
+    sendNotifications | notificationState        | judgmentStatus | executionStatus           || sent
+    true              | "manualJudgment"         | null           | ExecutionStatus.RUNNING   || true
+    false             | "manualJudgment"         | null           | ExecutionStatus.RUNNING   || true
+    true              | "manualJudgmentContinue" | "continue"     | ExecutionStatus.SUCCEEDED || true
+    false             | "manualJudgmentContinue" | "continue"     | ExecutionStatus.SUCCEEDED || false
+    true              | "manualJudgmentStop"     | "stop"         | ExecutionStatus.TERMINAL  || true
+    false             | "manualJudgmentStop"     | "stop"         | ExecutionStatus.TERMINAL  || false
   }
 
   @Unroll
@@ -100,18 +100,18 @@ class ManualJudgmentStageSpec extends Specification {
     notification.shouldNotify(notificationState, now) == shouldNotify
 
     where:
-    notification                                                                                  | notificationState                        | now             || shouldNotify
-    new Notification()                                                                            | NotificationState.manualJudgment         | new Date()      || true
+    notification                                                                  | notificationState        | now             || shouldNotify
+    new Notification()                                                            | "manualJudgment"         | new Date()      || true
     new Notification(
-      lastNotifiedByNotificationState: [(NotificationState.manualJudgment): new Date(1)])         | NotificationState.manualJudgment         | new Date()      || false
+      lastNotifiedByNotificationState: [("manualJudgment"): new Date(1)])         | "manualJudgment"         | new Date()      || false
     new Notification(
-      lastNotifiedByNotificationState: [(NotificationState.manualJudgment): new Date(1)])         | NotificationState.manualJudgmentContinue | new Date()      || true
+      lastNotifiedByNotificationState: [("manualJudgment"): new Date(1)])         | "manualJudgmentContinue" | new Date()      || true
     new Notification(
-      lastNotifiedByNotificationState: [(NotificationState.manualJudgment): new Date(1),
-                                        (NotificationState.manualJudgmentContinue): new Date(1)]) | NotificationState.manualJudgmentContinue | new Date()      || false
+      lastNotifiedByNotificationState: [("manualJudgment"): new Date(1),
+                                        ("manualJudgmentContinue"): new Date(1)]) | "manualJudgmentContinue" | new Date()      || false
     new Notification(
-      lastNotifiedByNotificationState: [(NotificationState.manualJudgment): new Date(1)],
-      notifyEveryMs: 60000)                                                                       | NotificationState.manualJudgment         | new Date(60001) || true
+      lastNotifiedByNotificationState: [("manualJudgment"): new Date(1)],
+      notifyEveryMs: 60000)                                                       | "manualJudgment"         | new Date(60001) || true
   }
 
   @Unroll
@@ -144,11 +144,7 @@ class ManualJudgmentStageSpec extends Specification {
     0 * _
 
     where:
-    notificationState << [
-                           NotificationState.manualJudgment,
-                           NotificationState.manualJudgmentContinue,
-                           NotificationState.manualJudgmentStop
-                         ]
+    notificationState << [ "manualJudgment", "manualJudgmentContinue", "manualJudgmentStop" ]
   }
 
   @Unroll
