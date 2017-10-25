@@ -27,7 +27,7 @@ import spock.util.concurrent.BlockingVariable
 class SlackNotificationAgentSpec extends Specification {
 
   def slack = Mock(SlackService)
-  @Subject def agent = new SlackNotificationAgent(slackService: slack)
+  @Subject def agent = new SlackNotificationAgent(slackService: slack, spinnakerUrl: 'http://spinnaker')
 
   @Unroll
   def "sends correct message for #status status"() {
@@ -82,5 +82,32 @@ class SlackNotificationAgentSpec extends Specification {
     message = ["completed", "starting", "failed"].collectEntries {
       [("$type.$it".toString()): [text: "Custom $it message"]]
     }
+  }
+
+  @Unroll
+  def "sends entirely custom message if customMessage field is present, performing text replacement if needed"() {
+    given:
+    def actualMessage = new BlockingVariable<String>()
+    slack.sendMessage(*_) >> { token, message, channel, asUser ->
+      actualMessage.set(message)
+    }
+
+    when:
+    agent.sendNotifications([address: channel], application, event, [type: type], "etc")
+
+    then:
+    new JsonSlurper().parseText(actualMessage.get()).text[0] == expectedMessage
+
+    where:
+    customMessage        || expectedMessage
+    "a b c"              || "a b c"
+    "a {{executionId}}!" || "a 1!"
+    "b <{{link}}|link>?" || "b <http://spinnaker/#/applications/whatever/executions/details/1|link>?"
+
+    channel = "bluespar"
+    application = "whatever"
+    event = new Event(content: [execution: [id: "1", name: "foo-pipeline"],
+                                context: [ customMessage: customMessage, stageDetails: [ name: 'a stage' ]]])
+    type = "stage"
   }
 }

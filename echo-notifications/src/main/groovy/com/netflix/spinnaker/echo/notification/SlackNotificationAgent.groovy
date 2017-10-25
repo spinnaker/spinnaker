@@ -73,12 +73,10 @@ class SlackNotificationAgent extends AbstractEventNotificationAgent {
         body = """Stage ${event.content?.context?.stageDetails.name} for """
       }
 
+      String link = "${spinnakerUrl}/#/applications/${application}/${config.type == 'stage' ? 'executions/details' : config.link }/${event.content?.execution?.id}"
+
       body +=
-        """${WordUtils.capitalize(application)}'s <${
-          spinnakerUrl
-        }/#/applications/${application}/${
-          config.type == 'stage' ? 'executions/details' : config.link
-        }/${event.content?.execution?.id}|${
+        """${WordUtils.capitalize(application)}'s <${link}|${
           event.content?.execution?.name ?: event.content?.execution?.description
         }>${buildInfo}${config.type == 'task' ? 'task' : 'pipeline'} ${status == 'starting' ? 'is' : 'has'} ${
           status == 'complete' ? 'completed successfully' : status
@@ -86,6 +84,13 @@ class SlackNotificationAgent extends AbstractEventNotificationAgent {
 
       if (preference.message?."$config.type.$status"?.text) {
         body += "\n\n" + preference.message."$config.type.$status".text
+      }
+
+      String customMessage = event.content?.context?.customMessage
+      if (customMessage && event.content?.execution?.id) {
+        body = customMessage
+          .replace("{{executionId}}", (String) event.content.execution.id)
+          .replace("{{link}}", link)
       }
 
       String address = preference.address.startsWith('#') ? preference.address : "#${preference.address}"
