@@ -35,6 +35,7 @@ import com.netflix.spinnaker.clouddriver.model.InstanceProvider
 import com.netflix.spinnaker.clouddriver.model.InstanceTypeProvider
 import com.netflix.spinnaker.clouddriver.model.KeyPairProvider
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerProvider
+import com.netflix.spinnaker.clouddriver.model.ManifestProvider
 import com.netflix.spinnaker.clouddriver.model.NetworkProvider
 import com.netflix.spinnaker.clouddriver.model.NoopApplicationProvider
 import com.netflix.spinnaker.clouddriver.model.NoopCloudMetricProvider
@@ -44,6 +45,7 @@ import com.netflix.spinnaker.clouddriver.model.NoopInstanceProvider
 import com.netflix.spinnaker.clouddriver.model.NoopInstanceTypeProvider
 import com.netflix.spinnaker.clouddriver.model.NoopKeyPairProvider
 import com.netflix.spinnaker.clouddriver.model.NoopLoadBalancerProvider
+import com.netflix.spinnaker.clouddriver.model.NoopManifestProvider
 import com.netflix.spinnaker.clouddriver.model.NoopNetworkProvider
 import com.netflix.spinnaker.clouddriver.model.NoopReservationReportProvider
 import com.netflix.spinnaker.clouddriver.model.NoopSecurityGroupProvider
@@ -159,6 +161,12 @@ class CloudDriverConfig {
   @ConditionalOnMissingBean(LoadBalancerProvider)
   LoadBalancerProvider noopLoadBalancerProvider() {
     new NoopLoadBalancerProvider()
+  }
+
+  @Bean
+  @ConditionalOnMissingBean(ManifestProvider)
+  ManifestProvider noopManifestProvider() {
+    new NoopManifestProvider()
   }
 
   @Bean
