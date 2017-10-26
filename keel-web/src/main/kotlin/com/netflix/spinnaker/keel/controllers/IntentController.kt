@@ -20,7 +20,6 @@ import com.netflix.spinnaker.keel.IntentRepository
 import com.netflix.spinnaker.keel.IntentStatus
 import com.netflix.spinnaker.keel.dryrun.DryRunIntentLauncher
 import com.netflix.spinnaker.keel.model.UpsertIntentRequest
-import com.netflix.spinnaker.keel.orca.OrcaIntentLauncher
 import com.netflix.spinnaker.keel.tracing.TraceRepository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus

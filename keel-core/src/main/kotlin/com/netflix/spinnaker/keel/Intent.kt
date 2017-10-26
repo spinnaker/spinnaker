@@ -19,6 +19,7 @@ import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.github.jonpeterson.jackson.module.versioning.JsonSerializeToVersion
+import com.netflix.spectator.api.BasicTag
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "kind")
 abstract class Intent<out S : IntentSpec>
@@ -32,4 +33,7 @@ abstract class Intent<out S : IntentSpec>
 
   @JsonIgnore
   abstract fun getId(): String
+
+  @JsonIgnore
+  fun getMetricTags() = listOf(BasicTag("kind", kind), BasicTag("schema", schema))
 }

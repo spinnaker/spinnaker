@@ -32,20 +32,19 @@ class OrcaIntentLauncher
 
   private val log = LoggerFactory.getLogger(javaClass)
   private val invocationsId = registry.createId("intent.invocations", listOf(BasicTag("launcher", "orca")))
+  private val invocationTimeId = registry.createId("intent.invocationTime", listOf(BasicTag("launcher", "orca")))
 
   override fun launch(intent: Intent<IntentSpec>): OrcaLaunchedIntentResult {
-    registry.counter(invocationsId).increment()
+    registry.counter(invocationsId.withTags(intent.getMetricTags())).increment()
 
-    val processor = intentProcessor(intentProcessors, intent)
-
-    val tasks = processor.converge(intent)
-
-    return OrcaLaunchedIntentResult(
-      orchestrationIds = tasks.map {
-        log.info("Launching orchestration for intent (kind: ${intent.kind})")
-        orcaService.orchestrate(it).ref
-      }
-    )
+    return registry.timer(invocationTimeId.withTags(intent.getMetricTags())).record<OrcaLaunchedIntentResult> {
+      OrcaLaunchedIntentResult(
+        orchestrationIds = intentProcessor(intentProcessors, intent).converge(intent).map {
+          log.info("Launching orchestration for intent (kind: ${intent.kind})")
+          orcaService.orchestrate(it).ref
+        }
+      )
+    }
   }
 }
 
