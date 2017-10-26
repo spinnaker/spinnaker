@@ -157,6 +157,7 @@ public class CanaryController {
           .put("refId", "1")
           .put("user", "[anonymous]")
           .put("canaryConfigId", canaryConfigId)
+          .put("configurationAccountName", resolvedConfigurationAccountName)
           .build());
 
     Map<String, Object> fetchControlContext =

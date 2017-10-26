@@ -73,7 +73,7 @@ public class PrometheusFetchTask implements RetryableTask {
 
   @Override
   public TaskResult execute(Stage stage) {
-    StageContext context = new StageContext(stage);
+    Map<String, Object> context = stage.getContext();
     String metricsAccountName = (String)context.get("metricsAccountName");
     String storageAccountName = (String)context.get("storageAccountName");
     Map<String, Object> canaryConfigMap = (Map<String, Object>)context.get("canaryConfig");
