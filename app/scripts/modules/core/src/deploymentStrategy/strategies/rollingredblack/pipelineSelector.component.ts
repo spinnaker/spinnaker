@@ -52,7 +52,6 @@ class PipelineSelectorController implements IController {
     if (this.command.application) {
       this.pipelineConfigService.getPipelinesForApplication(this.command.application).then((pipelines) => {
         this.state.pipelines = pipelines;
-        console.log(pipelines);
         if (pipelines.every(p => p.id !== this.command.pipelineId)) {
           this.command.pipelineId = null;
         }
