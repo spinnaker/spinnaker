@@ -23,7 +23,7 @@ class OrchestrationRequestSpec extends Specification {
     given:
     def req = new OrchestrationRequest("wait for nothing", "keel", "my orchestration", [
       new Job("wait", [waitTime: 30])
-    ])
+    ], new Trigger("1", "keel", "keel"))
 
     expect:
     req.name == "wait for nothing"

@@ -23,6 +23,7 @@ import com.netflix.spinnaker.keel.IntentProcessor
 import com.netflix.spinnaker.keel.IntentSpec
 import com.netflix.spinnaker.keel.model.Job
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
+import com.netflix.spinnaker.keel.model.Trigger
 import org.jetbrains.annotations.NotNull
 import spock.lang.Specification
 import spock.lang.Subject
@@ -52,7 +53,7 @@ class DryRunIntentLauncherSpec extends Specification {
         new OrchestrationRequest("my orchestration", "keel", "testing dry-runs", [
           new Job("wait", [waitTime: 5]),
           new Job("wait", [name: "wait for more time", waitTime: 5])
-        ])
+        ], new Trigger("1", "keel", "keel"))
       ]
     }
     result instanceof DryRunLaunchedIntentResult
