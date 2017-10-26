@@ -48,7 +48,6 @@ import citest.kube_testing as kube
 import citest.json_contract as jc
 import citest.json_predicate as jp
 import citest.service_testing as st
-import json as jso
 # Spinnaker modules.
 import spinnaker_testing as sk
 import spinnaker_testing.gate as gate
