@@ -15,7 +15,9 @@ Spinnaker's declarative service.
 			"spec": {
 				"application": "keel",
 				"description": "hello"
-			}
+			},
+			"status": "ACTIVE",
+			"id": "$KIND:${spec.name}"
 		}
 	],
 	"dryRun": true
