@@ -21,12 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
-import com.netflix.kayenta.canary.CanaryClassifierThresholdsConfig;
-import com.netflix.kayenta.canary.CanaryConfig;
-import com.netflix.kayenta.canary.CanaryExecutionRequest;
-import com.netflix.kayenta.canary.CanaryScope;
-import com.netflix.kayenta.canary.CanaryScopeFactory;
-import com.netflix.kayenta.canary.CanaryServiceConfig;
+import com.netflix.kayenta.canary.*;
 import com.netflix.kayenta.security.AccountCredentials;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
 import com.netflix.kayenta.security.CredentialsHelper;
@@ -38,6 +33,7 @@ import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.pipeline.PipelineLauncher;
 import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline;
+import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -50,17 +46,20 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/canary")
 @Slf4j
 public class CanaryController {
+
+  private final String REFID_SET_CONTEXT = "setupContext";
+  private final String REFID_FETCH_CONTROL = "fetchControl";
+  private final String REFID_FETCH_EXPERIMENT = "fetchExperiment";
+  private final String REFID_MIX_METRICS = "mixMetrics";
+  private final String REFID_JUDGE = "judge";
 
   private final String currentInstanceId;
   private final PipelineLauncher pipelineLauncher;
@@ -96,14 +95,17 @@ public class CanaryController {
     this.kayentaObjectMapper = kayentaObjectMapper;
   }
 
+  //
+  // Initiate a new canary run.
+  //
   // TODO(duftler): Allow for user to be passed in.
   @ApiOperation(value = "Initiate a canary pipeline")
   @RequestMapping(value = "/{canaryConfigId:.+}", consumes = "application/json", method = RequestMethod.POST)
-  public String initiateCanary(@RequestParam(required = false) final String metricsAccountName,
-                               @RequestParam(required = false) final String configurationAccountName,
-                               @RequestParam(required = false) final String storageAccountName,
-                               @ApiParam @RequestBody final CanaryExecutionRequest canaryExecutionRequest,
-                               @PathVariable String canaryConfigId) throws JsonProcessingException {
+  public CanaryExecutionResponse initiateCanary(@RequestParam(required = false) final String metricsAccountName,
+                                                @RequestParam(required = false) final String configurationAccountName,
+                                                @RequestParam(required = false) final String storageAccountName,
+                                                @ApiParam @RequestBody final CanaryExecutionRequest canaryExecutionRequest,
+                                                @PathVariable String canaryConfigId) throws JsonProcessingException {
     String resolvedMetricsAccountName = CredentialsHelper.resolveAccountByNameOrType(metricsAccountName,
                                                                                      AccountCredentials.Type.METRICS_STORE,
                                                                                      accountCredentialsRepository);
@@ -153,8 +155,7 @@ public class CanaryController {
     Map<String, Object> setupCanaryContext =
       Maps.newHashMap(
         new ImmutableMap.Builder<String, Object>()
-          // TODO(duftler): Experiment with using descriptive names for refId.
-          .put("refId", "1")
+          .put("refId", REFID_SET_CONTEXT)
           .put("user", "[anonymous]")
           .put("canaryConfigId", canaryConfigId)
           .put("configurationAccountName", resolvedConfigurationAccountName)
@@ -163,8 +164,8 @@ public class CanaryController {
     Map<String, Object> fetchControlContext =
       Maps.newHashMap(
         new ImmutableMap.Builder<String, Object>()
-          .put("refId", "2")
-          .put("requisiteStageRefIds", Collections.singletonList("1"))
+          .put("refId", REFID_FETCH_CONTROL)
+          .put("requisiteStageRefIds", Collections.singletonList(REFID_SET_CONTEXT))
           .put("user", "[anonymous]")
           .put("metricsAccountName", resolvedMetricsAccountName)
           .put("storageAccountName", resolvedStorageAccountName)
@@ -174,8 +175,8 @@ public class CanaryController {
     Map<String, Object> fetchExperimentContext =
       Maps.newHashMap(
         new ImmutableMap.Builder<String, Object>()
-          .put("refId", "3")
-          .put("requisiteStageRefIds", Collections.singletonList("1"))
+          .put("refId", REFID_FETCH_EXPERIMENT)
+          .put("requisiteStageRefIds", Collections.singletonList(REFID_SET_CONTEXT))
           .put("user", "[anonymous]")
           .put("metricsAccountName", resolvedMetricsAccountName)
           .put("storageAccountName", resolvedStorageAccountName)
@@ -185,8 +186,8 @@ public class CanaryController {
     Map<String, Object> mixMetricSetsContext =
       Maps.newHashMap(
         new ImmutableMap.Builder<String, Object>()
-          .put("refId", "4")
-          .put("requisiteStageRefIds", new ImmutableList.Builder().add("2").add("3").build())
+          .put("refId", REFID_MIX_METRICS)
+          .put("requisiteStageRefIds", new ImmutableList.Builder().add(REFID_FETCH_CONTROL).add(REFID_FETCH_EXPERIMENT).build())
           .put("user", "[anonymous]")
           .put("storageAccountName", resolvedStorageAccountName)
           .put("controlMetricSetListIds", "${ #stage('Fetch Control from " + serviceType + "')['context']['metricSetListIds']}")
@@ -203,8 +204,8 @@ public class CanaryController {
     Map<String, Object> canaryJudgeContext =
       Maps.newHashMap(
         new ImmutableMap.Builder<String, Object>()
-          .put("refId", "5")
-          .put("requisiteStageRefIds", Collections.singletonList("4"))
+          .put("refId", REFID_JUDGE)
+          .put("requisiteStageRefIds", Collections.singletonList(REFID_MIX_METRICS))
           .put("user", "[anonymous]")
           .put("storageAccountName", resolvedStorageAccountName)
           .put("metricSetPairListId", "${ #stage('Mix Control and Experiment Results')['context']['metricSetPairListId']}")
@@ -233,7 +234,67 @@ public class CanaryController {
       handleStartupFailure(pipeline, t);
     }
 
-    return pipeline.getId();
+    return CanaryExecutionResponse.builder().canaryExecutionId(pipeline.getId()).build();
+  }
+
+  //
+  // Get the results of a canary run by ID
+  //
+  @ApiOperation(value = "Retrieve status and results for a canary run")
+  @RequestMapping(value = "/{canaryConfigId:.+}/{canaryExecutionId:.+}", method = RequestMethod.GET)
+  public CanaryExecutionStatusResponse getCanaryResults(@RequestParam(required = false) final String storageAccountName,
+                                                        @PathVariable String canaryConfigId,
+                                                        @PathVariable String canaryExecutionId) throws JsonProcessingException {
+    String resolvedStorageAccountName = CredentialsHelper.resolveAccountByNameOrType(storageAccountName,
+                                                                                     AccountCredentials.Type.OBJECT_STORE,
+                                                                                     accountCredentialsRepository);
+
+    StorageService storageService =
+      storageServiceRepository
+        .getOne(resolvedStorageAccountName)
+        .orElseThrow(() -> new IllegalArgumentException("No storage service was configured; unable to retrieve results."));
+
+    Pipeline pipeline = executionRepository.retrievePipeline(canaryExecutionId);
+    Stage judgeStage = pipeline.getStages().stream()
+      .filter(stage -> stage.getRefId().equals(REFID_JUDGE))
+      .findFirst()
+      .orElseThrow(() -> new IllegalArgumentException("Unable to find stage '" + REFID_JUDGE + "' in pipeline ID '" + canaryExecutionId + "'"));
+    Map<String, Object> judgeContext = judgeStage.getContext();
+
+    Stage contextStage = pipeline.getStages().stream()
+      .filter(stage -> stage.getRefId().equals(REFID_SET_CONTEXT))
+      .findFirst()
+      .orElseThrow(() -> new IllegalArgumentException("Unable to find stage '" + REFID_JUDGE + "' in pipeline ID '" + canaryExecutionId + "'"));
+    Map<String, Object> contextContext = contextStage.getContext();
+
+    if (!contextContext.containsKey("canaryConfigId")) {
+      throw new IllegalArgumentException("The judge stage does not contain a canaryConfigId reference");
+    }
+    String contextCanaryConfigId = (String)contextContext.get("canaryConfigId");
+    if (!contextCanaryConfigId.equalsIgnoreCase(canaryConfigId)) {
+      throw new IllegalArgumentException("Execution ID does not belong to this configuration ('" + contextCanaryConfigId + "' vs '" + canaryConfigId + "')");
+    }
+
+    CanaryExecutionStatusResponse.CanaryExecutionStatusResponseBuilder canaryExecutionStatusResponseBuilder = CanaryExecutionStatusResponse.builder();
+
+    Map<String, String> stageStatus = pipeline.getStages()
+      .stream()
+      .collect(Collectors.toMap(Stage::getRefId, s -> s.getStatus().toString().toLowerCase()));
+
+    Boolean isComplete = pipeline.getStatus().isComplete();
+    String pipelineStatus = pipeline.getStatus().toString().toLowerCase();
+    canaryExecutionStatusResponseBuilder.stageStatus(stageStatus);
+    canaryExecutionStatusResponseBuilder.complete(isComplete);
+    canaryExecutionStatusResponseBuilder.status(pipelineStatus);
+
+    if (isComplete && pipelineStatus.equals("succeeded")) {
+      if (judgeContext.containsKey("canaryJudgeResultId")) {
+        String canaryJudgeResultId = (String)judgeContext.get("canaryJudgeResultId");
+        canaryExecutionStatusResponseBuilder.result(storageService.loadObject(resolvedStorageAccountName, ObjectType.CANARY_JUDGE_RESULT, canaryJudgeResultId));
+      }
+    }
+
+    return canaryExecutionStatusResponseBuilder.build();
   }
 
   private Pipeline handleStartupFailure(Pipeline pipeline, Throwable failure) {

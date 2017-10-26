@@ -60,6 +60,7 @@ queue:
     enabled: false
     queueName: kayenta.orca.task.queue
     deadLetterQueueName: kayenta.orca.task.deadLetterQueue
+    ackTimeoutSeconds: 600
 
 executionLog.redis.enabled: false
 

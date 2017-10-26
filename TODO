@@ -3,10 +3,6 @@ TODO:  Implement /canary endpoints
 GET /canary/:configName -- get "recent" runs for this config.  Augment with params to allow pagination later.
     Future to allow selection of date range, and pagination.
 
-GET /canary/:configName/:id -- get results for this specific run (id == pipeline id returned from POST /canary/:config
-   This should have a basic structure to indicate if it's running or not, completed, etc.
-   { status: completed, result: <extracted from pipeline or storage result object> }
-
 GET /canary/:configName/:id/data -- get the data (the joined metric set) for this canary run
    This is used to validate the data from other scripts, not generally by the UI due to size.
 
