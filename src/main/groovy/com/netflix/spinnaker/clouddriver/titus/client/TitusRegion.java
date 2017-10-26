@@ -23,6 +23,7 @@ public class TitusRegion {
     private final String name;
     private final String account;
     private final String endpoint;
+    private final Boolean autoscalingEnabled;
     private final List<TitusFaultDomain> faultDomains;
     private final String apiVersion;
 
@@ -36,17 +37,19 @@ public class TitusRegion {
     public TitusRegion(String name,
                        String account,
                        String endpoint,
+                       Boolean autoscalingEnabled,
                        List<TitusFaultDomain> faultDomains,
                        String apiVersion) {
         this.name = notNull(name, "name");
         this.account = notNull(account, "account");
         this.endpoint = EndpointValidator.validateEndpoint(endpoint);
+        this.autoscalingEnabled = autoscalingEnabled;
         this.faultDomains = faultDomains == null ? Collections.emptyList() : Collections.unmodifiableList(faultDomains);
         this.apiVersion = apiVersion;
     }
 
-    public TitusRegion(String name, String account, String endpoint, String apiVersion) {
-        this(name, account, endpoint, Collections.emptyList(), apiVersion);
+    public TitusRegion(String name, String account, String endpoint, Boolean autoscalingEnabled, String apiVersion) {
+        this(name, account, endpoint, autoscalingEnabled, Collections.emptyList(), apiVersion);
     }
 
     public String getAccount() {
@@ -65,7 +68,11 @@ public class TitusRegion {
     return apiVersion;
   }
 
-    public List<TitusFaultDomain> getFaultDomains() {
+    public Boolean isAutoscalingEnabled() {
+      return autoscalingEnabled;
+    }
+
+  public List<TitusFaultDomain> getFaultDomains() {
         return faultDomains;
     }
 
