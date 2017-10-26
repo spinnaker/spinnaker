@@ -20,7 +20,7 @@ import java.util
 
 import com.netflix.kayenta.canary.results._
 import com.netflix.kayenta.canary.{CanaryClassifierThresholdsConfig, CanaryConfig, CanaryJudge}
-import com.netflix.kayenta.judge.classifiers.metric.MannWhitneyClassifier
+import com.netflix.kayenta.judge.classifiers.metric._
 import com.netflix.kayenta.judge.classifiers.score.{ScoreClassification, ThresholdScoreClassifier}
 import com.netflix.kayenta.judge.detectors.IQRDetector
 import com.netflix.kayenta.judge.scorers.{ScoreResult, WeightedSumScorer}
@@ -193,7 +193,8 @@ class NetflixACAJudge extends CanaryJudge with StrictLogging {
     // ============================================
     //Use the Mann-Whitney algorithm to compare the experiment and control populations
     val mannWhitney = new MannWhitneyClassifier(fraction = 0.25, confLevel = 0.98, mw)
-    val metricClassification = mannWhitney.classify(transformedControl, transformedExperiment)
+
+    val metricClassification = mannWhitney.classify(transformedControl, transformedExperiment, MetricDirection.Either)
 
     CanaryAnalysisResult.builder()
       .name(metric.getName)

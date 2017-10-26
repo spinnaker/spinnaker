@@ -25,9 +25,16 @@ case object Low extends MetricClassificationLabel
 case object Nodata extends MetricClassificationLabel
 case object Error extends MetricClassificationLabel
 
+sealed trait MetricDirection
+object MetricDirection{
+  case object Increase extends MetricDirection
+  case object Decrease extends MetricDirection
+  case object Either extends MetricDirection
+}
+
 //todo (csanden): report deviation instead of ratio?
 case class MetricClassification(classification: MetricClassificationLabel, reason: Option[String], ratio: Double)
 
 abstract class BaseMetricClassifier {
-  def classify(control: Metric, experiment: Metric): MetricClassification
+  def classify(control: Metric, experiment: Metric, direction: MetricDirection): MetricClassification
 }

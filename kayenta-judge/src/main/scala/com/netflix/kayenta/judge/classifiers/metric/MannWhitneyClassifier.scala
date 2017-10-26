@@ -55,7 +55,7 @@ class MannWhitneyClassifier(fraction: Double=0.25, confLevel: Double=0.95, mw: M
     * @param testResult
     * @return
     */
-  def calculateBounds(testResult: MannWhitneyResult):  (Double, Double) = {
+  def calculateBounds(testResult: MannWhitneyResult): (Double, Double) = {
     val estimate = math.abs(testResult.estimate)
     val criticalValue = fraction * estimate
 
@@ -64,8 +64,8 @@ class MannWhitneyClassifier(fraction: Double=0.25, confLevel: Double=0.95, mw: M
     (lowerBound, upperBound)
   }
 
-  override def classify(control: Metric, experiment: Metric): MetricClassification = {
-    //todo(csanden): classification label should not be a string
+
+  override def classify(control: Metric, experiment: Metric, direction: MetricDirection): MetricClassification = {
 
     //Check if there is no-data for the experiment or control
     if(experiment.values.isEmpty || control.values.isEmpty){
@@ -82,18 +82,15 @@ class MannWhitneyClassifier(fraction: Double=0.25, confLevel: Double=0.95, mw: M
     val ratio = StatUtils.mean(experiment.values)/StatUtils.mean(control.values)
     val (lowerBound, upperBound) = calculateBounds(mwResult)
 
-    //todo(csanden): improve the reason
-    if(mwResult.lowerConfidence > upperBound){
-      val reason = "The metric was classified as High"
+    if((direction == MetricDirection.Increase || direction == MetricDirection.Either) && mwResult.lowerConfidence > upperBound){
+      val reason = s"The metric was classified as $High"
       return MetricClassification(High, Some(reason), ratio)
 
-    }else if(mwResult.upperConfidence < lowerBound){
-      val reason = "The metric was classified as Low"
+    }else if((direction == MetricDirection.Decrease || direction == MetricDirection.Either) && mwResult.upperConfidence < lowerBound){
+      val reason = s"The metric was classified as $Low"
       return MetricClassification(Low, Some(reason), ratio)
     }
-
     MetricClassification(Pass, None, ratio)
-
   }
 
 }
