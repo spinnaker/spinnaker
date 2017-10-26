@@ -31,7 +31,6 @@ import javax.ws.rs.QueryParam
 @RequestMapping("/intents")
 class IntentController
 @Autowired constructor(
-  private val orcaIntentLauncher: OrcaIntentLauncher,
   private val dryRunIntentLauncher: DryRunIntentLauncher,
   private val intentRepository: IntentRepository,
   private val intentActivityRepository: IntentActivityRepository,
