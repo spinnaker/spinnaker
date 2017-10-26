@@ -21,6 +21,7 @@ import com.netflix.spinnaker.keel.IntentSpec
 import com.netflix.spinnaker.keel.intents.ParrotIntent
 import com.netflix.spinnaker.keel.model.Job
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
+import com.netflix.spinnaker.keel.model.Trigger
 import com.netflix.spinnaker.keel.tracing.Trace
 import com.netflix.spinnaker.keel.tracing.TraceRepository
 import org.springframework.beans.factory.annotation.Autowired
@@ -43,7 +44,8 @@ class ParrotIntentProcessor
         description = intent.spec.description,
         job = listOf(
           Job("wait", mutableMapOf("waitTime" to 1))
-        )
+        ),
+        trigger = Trigger(intent.getId())
       )
     )
   }

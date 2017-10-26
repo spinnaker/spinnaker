@@ -25,6 +25,7 @@ import com.netflix.spinnaker.keel.intents.ANY_MAP_TYPE
 import com.netflix.spinnaker.keel.intents.ApplicationIntent
 import com.netflix.spinnaker.keel.model.Job
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
+import com.netflix.spinnaker.keel.model.Trigger
 import com.netflix.spinnaker.keel.tracing.Trace
 import com.netflix.spinnaker.keel.tracing.TraceRepository
 import org.slf4j.LoggerFactory
@@ -65,7 +66,8 @@ class ApplicationIntentProcessor
             type = "upsertApplication",
             m = objectMapper.convertValue(intent.spec, ANY_MAP_TYPE)
           )
-        )
+        ),
+        trigger = Trigger(intent.getId())
       )
     )
   }

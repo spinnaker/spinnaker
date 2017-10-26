@@ -50,11 +50,6 @@ class IntentController
 
     req.intents.forEach { intent ->
       intentRepository.upsertIntent(intent)
-      orcaIntentLauncher.launch(intent)
-        .takeIf { it.orchestrationIds.isNotEmpty() }
-        ?.also { result ->
-          intentActivityRepository.addOrchestrations(intent.getId(), result.orchestrationIds)
-        }
     }
 
     // TODO rz - what to return here?

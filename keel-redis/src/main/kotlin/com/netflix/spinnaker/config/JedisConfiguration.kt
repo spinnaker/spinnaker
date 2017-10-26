@@ -103,4 +103,3 @@ open class JedisConfiguration {
       health?.build()
     }
 }
-
