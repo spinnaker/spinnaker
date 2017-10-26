@@ -80,6 +80,14 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
   private final String DEFAULT_VERSION = "0";
   private final int TIMEOUT_SECONDS = 10; // TODO(lwander) make configurable
 
+  // remove when kubectl is no longer a dependency
+  @Getter
+  private final String kubeconfigFile;
+
+  // remove when kubectl is no longer a dependency
+  @Getter
+  private final String context;
+
   @Getter
   private final String defaultNamespace = "default";
 
@@ -158,7 +166,7 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
       namespaces = namespaces == null ? new ArrayList<>() : namespaces;
       omitNamespaces = omitNamespaces == null ? new ArrayList<>() : omitNamespaces;
       
-      return new KubernetesV2Credentials(accountName, client, namespaces, omitNamespaces, registry, debug);
+      return new KubernetesV2Credentials(accountName, client, namespaces, omitNamespaces, registry, kubeconfigFile, context, debug);
     }
 
   }
@@ -168,6 +176,8 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
       @NotNull List<String> namespaces,
       @NotNull List<String> omitNamespaces,
       @NotNull Registry registry,
+      String kubeconfigFile,
+      String context,
       boolean debug) {
     this.registry = registry;
     this.clock = registry.clock();
@@ -179,6 +189,9 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
     this.coreV1Api = new CoreV1Api(this.client);
     this.extensionsV1beta1Api = new ExtensionsV1beta1Api(this.client);
     this.appsV1beta1Api = new AppsV1beta1Api(this.client);
+
+    this.kubeconfigFile = kubeconfigFile;
+    this.context = context;
   }
 
   @Override

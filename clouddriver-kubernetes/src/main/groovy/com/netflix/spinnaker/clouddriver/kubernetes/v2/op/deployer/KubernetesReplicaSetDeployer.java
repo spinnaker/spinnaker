@@ -49,18 +49,6 @@ public class KubernetesReplicaSetDeployer extends KubernetesDeployer<V1beta1Repl
   }
 
   @Override
-  void deploy(KubernetesV2Credentials credentials, V1beta1ReplicaSet resource) {
-    String namespace = resource.getMetadata().getNamespace();
-    String name = resource.getMetadata().getName();
-    V1beta1ReplicaSet current = credentials.readReplicaSet(namespace, name);
-    if (current != null) {
-      credentials.patchReplicaSet(current, resource);
-    } else {
-      credentials.createReplicaSet(resource);
-    }
-  }
-
-  @Override
   public boolean versioned() {
     return true;
   }

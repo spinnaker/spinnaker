@@ -42,18 +42,6 @@ public class KubernetesServiceDeployer extends KubernetesDeployer<V1Service> imp
   }
 
   @Override
-  void deploy(KubernetesV2Credentials credentials, V1Service resource) {
-    String namespace = resource.getMetadata().getNamespace();
-    String name = resource.getMetadata().getName();
-    V1Service current = credentials.readService(namespace, name);
-    if (current != null) {
-      credentials.patchService(current, resource);
-    } else {
-      credentials.createService(resource);
-    }
-  }
-
-  @Override
   public boolean versioned() {
     return false;
   }

@@ -45,18 +45,6 @@ public class KubernetesDeploymentDeployer extends KubernetesDeployer<AppsV1beta1
   }
 
   @Override
-  void deploy(KubernetesV2Credentials credentials, AppsV1beta1Deployment resource) {
-    String namespace = resource.getMetadata().getNamespace();
-    String name = resource.getMetadata().getName();
-    AppsV1beta1Deployment current = credentials.readDeployment(namespace, name);
-    if (current != null) {
-      credentials.patchDeployment(current, resource);
-    } else {
-      credentials.createDeployment(resource);
-    }
-  }
-
-  @Override
   public boolean versioned() {
     return false;
   }

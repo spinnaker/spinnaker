@@ -24,6 +24,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpi
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesApiVersion;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.job.KubectlJobExecutor;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -37,6 +38,9 @@ public abstract class KubernetesDeployer<T> {
 
   @Autowired
   private KubernetesCacheUtils cacheUtils;
+
+  @Autowired
+  protected KubectlJobExecutor jobExecutor;
 
   private T convertManifest(KubernetesManifest manifest) {
     return objectMapper.convertValue(manifest, getDeployedClass());
@@ -60,5 +64,7 @@ public abstract class KubernetesDeployer<T> {
   abstract public boolean versioned();
   abstract public SpinnakerKind spinnakerKind();
 
-  abstract void deploy(KubernetesV2Credentials credentials, T resource);
+  void deploy(KubernetesV2Credentials credentials, T resource) {
+    jobExecutor.deployManifest(credentials, objectMapper.convertValue(resource, KubernetesManifest.class));
+  }
 }

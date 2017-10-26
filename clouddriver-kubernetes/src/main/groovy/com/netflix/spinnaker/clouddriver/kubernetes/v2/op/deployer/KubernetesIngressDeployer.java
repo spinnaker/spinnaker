@@ -43,18 +43,6 @@ public class KubernetesIngressDeployer extends KubernetesDeployer<V1beta1Ingress
   }
 
   @Override
-  void deploy(KubernetesV2Credentials credentials, V1beta1Ingress resource) {
-    String namespace = resource.getMetadata().getNamespace();
-    String name = resource.getMetadata().getName();
-    V1beta1Ingress current = credentials.readIngress(namespace, name);
-    if (current != null) {
-      credentials.patchIngress(current, resource);
-    } else {
-      credentials.createIngress(resource);
-    }
-  }
-
-  @Override
   public boolean versioned() {
     return false;
   }
