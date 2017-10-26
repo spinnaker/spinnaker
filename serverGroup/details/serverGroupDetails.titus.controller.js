@@ -144,7 +144,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.titus.controller'
     });
 
     accountService.getAccountDetails(serverGroup.accountId).then(details => {
-      if (details.eurekaName && TitusProviderSettings.autoScalingEnabled) {
+      if (details.autoscalingEnabled && details.regions.some(r => r.name === serverGroup.region && r.autoscalingEnabled)) {
         this.scalingPoliciesEnabled = true;
       }
     });
