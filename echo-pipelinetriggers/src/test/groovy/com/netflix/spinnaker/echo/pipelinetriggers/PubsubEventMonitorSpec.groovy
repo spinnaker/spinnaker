@@ -51,6 +51,13 @@ class PubsubEventMonitorSpec extends Specification implements RetrofitStubs {
       ))
   ]
 
+  @Shared def goodRegexExpectedArtifacts = [
+      new ExpectedArtifact(matchArtifact: new Artifact(
+          name: 'myArtifact',
+          type: 'artifact.*'
+      ))
+  ]
+
   @Subject
   def monitor = new PubsubEventMonitor(pipelineCache, subscriber, registry)
 
@@ -73,6 +80,7 @@ class PubsubEventMonitorSpec extends Specification implements RetrofitStubs {
     createPubsubEvent(PubsubSystem.GOOGLE, "projects/project/subscriptions/subscription", null)          | enabledGooglePubsubTrigger
     createPubsubEvent(PubsubSystem.GOOGLE, "projects/project/subscriptions/subscription", [])            | enabledGooglePubsubTrigger
     createPubsubEvent(PubsubSystem.GOOGLE, "projects/project/subscriptions/subscription", goodArtifacts) | enabledGooglePubsubTrigger.withExpectedArtifacts(goodExpectedArtifacts)
+    createPubsubEvent(PubsubSystem.GOOGLE, "projects/project/subscriptions/subscription", goodArtifacts) | enabledGooglePubsubTrigger.withExpectedArtifacts(goodRegexExpectedArtifacts)
     createPubsubEvent(PubsubSystem.GOOGLE, "projects/project/subscriptions/subscription", goodArtifacts) | enabledGooglePubsubTrigger // Trigger doesn't care about artifacts.
     // TODO(jacobkiefer): Add Kafka cases when that is implemented.
   }
