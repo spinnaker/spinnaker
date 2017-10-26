@@ -16,23 +16,23 @@
 
 package com.netflix.spinnaker.orca.pipeline.model;
 
-import com.google.common.collect.ForwardingMap;
-
-import javax.annotation.Nullable;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
+import javax.annotation.Nullable;
+import com.google.common.collect.ForwardingMap;
 
 public class StageContext extends ForwardingMap<String, Object> {
 
   private final Stage<?> stage;
-  private final Map<String, Object> delegate = new HashMap<>();
+  private final Map<String, Object> delegate;
 
   public StageContext(Stage<?> stage) {
+    this(stage, new HashMap<>());
+  }
+
+  public StageContext(Stage<?> stage, Map<String, Object> delegate) {
     this.stage = stage;
+    this.delegate = delegate;
   }
 
   @Override protected Map<String, Object> delegate() {

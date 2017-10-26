@@ -49,7 +49,7 @@ interface ExpressionAware {
           }
         }
 
-        val result = processed[key] ?: execution.getContext()[key]
+        val result = processed[key]
 
         if (result is String && ContextParameterProcessor.containsExpression(result)) {
           val augmentedContext = processed.augmentContext(execution)
