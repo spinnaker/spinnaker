@@ -139,10 +139,8 @@ class TravisBuildMonitor implements PollingMonitor{
         def startTime = System.currentTimeMillis()
         List<Repo> repos = filterOutOldBuilds(travisService.getReposForAccounts())
         log.info("Took ${System.currentTimeMillis() - startTime}ms to retrieve ${repos.size()} repositories (master: {})", kv("master", master))
-
         Observable.from(repos).subscribe(
             { Repo repo ->
-
                 List<V3Build> builds = travisService.getBuilds(repo, 5)
                 for (V3Build build : builds) {
                     boolean addToCache = false
@@ -164,7 +162,7 @@ class TravisBuildMonitor implements PollingMonitor{
                         log.info("Build update [${branchedRepoSlug}:${build.number}] [status:${build.state}] [running:${TravisResultConverter.running(build.state)}]")
                         buildCache.setLastBuild(master, branchedRepoSlug, build.number, TravisResultConverter.running(build.state), buildCacheJobTTLSeconds())
                         buildCache.setLastBuild(master, build.repository.slug, build.number, TravisResultConverter.running(build.state), buildCacheJobTTLSeconds())
-                        if(!build.spinnakerTriggered()) {
+                        if (!build.spinnakerTriggered()) {
                             sendEventForBuild(build, branchedRepoSlug, master, travisService)
                         }
                         results << [previous: cachedBuild, current: repo]

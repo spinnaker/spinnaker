@@ -30,6 +30,9 @@ endpoints.health.sensitive: false
 #      baseUrl: https://travis-ci.org
 #      address: https://api.travis-ci.org
 #      githubToken: XXXXXX
+#      numberOfRepositories: 25 # How many repositories the travis integration should fetch from the api each time the
+#                               # poller runs. Should be set a bit higher than the expected maximum number of
+#                               # repositories built within the poll interval.
 #
 #  Additional regexes to use when parsing build logs in search for uploaded
 #  artifacts, besides the default regexes which match on the output of the

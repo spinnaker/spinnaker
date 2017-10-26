@@ -38,7 +38,7 @@ class TravisServiceSpec extends Specification{
 
     void setup() {
         client = Mock(TravisClient)
-        service = new TravisService('travis-ci', 'http://my.travis.ci', 'someToken', client, null, Collections.emptyList())
+        service = new TravisService('travis-ci', 'http://my.travis.ci', 'someToken', 25, client, null, [])
 
         AccessToken accessToken = new AccessToken()
         accessToken.accessToken = "someToken"
@@ -178,6 +178,21 @@ class TravisServiceSpec extends Specification{
 
         then:
         branchedRepoSlug == "my/slug"
+    }
+
+    @Unroll
+    def "calculate pagination correctly"() {
+        expect:
+        service.calculatePagination(buildsToTrack) == pages
+
+        where:
+        buildsToTrack || pages
+        75            || 3
+        79            || 4
+        2             || 1
+        15            || 1
+        26            || 2
+        25            || 1
     }
 
     @Unroll

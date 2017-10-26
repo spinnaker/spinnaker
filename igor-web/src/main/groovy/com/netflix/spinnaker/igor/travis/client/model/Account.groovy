@@ -33,4 +33,8 @@ class Account {
     String type
     int id
     String login
+
+    boolean isUser() {
+        return type == "user"
+    }
 }

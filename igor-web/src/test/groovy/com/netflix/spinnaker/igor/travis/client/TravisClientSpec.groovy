@@ -117,7 +117,7 @@ class TravisClientSpec extends Specification {
         setResponse '''{"repos":[{"id":8059977,"slug":"gardalize/travistest","description":"testing travis stuff","last_build_id":118583435,"last_build_number":"5","last_build_state":"passed","last_build_duration":39,"last_build_language":null,"last_build_started_at":"2016-03-25T22:29:44Z","last_build_finished_at":"2016-03-25T22:30:23Z","active":true,"github_language":"Ruby"}]}'''
 
         when:
-        Repos repos = client.repos("someToken", "gardalize")
+        Repos repos = client.repos("someToken", "gardalize", true, 25, 0)
 
         then:
         repos.repos.first().id   == 8059977

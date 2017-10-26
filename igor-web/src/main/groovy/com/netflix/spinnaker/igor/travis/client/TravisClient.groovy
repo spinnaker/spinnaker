@@ -68,10 +68,7 @@ interface TravisClient {
     Builds builds(@Header("Authorization") String accessToken, @Query('slug') String repoSlug, @Query('number') int buildNumber)
 
     @GET('/repos')
-    Repos repos(@Header("Authorization") String accessToken)
-
-    @GET('/repos')
-    Repos repos(@Header("Authorization") String accessToken , @Query('member') String login)
+    Repos repos(@Header("Authorization") String accessToken , @Query('member') String login, @Query('active') boolean active,  @Query('limit') int limit, @Query('offset') int offset)
 
     @GET('/repos/{repositoryId}')
     Repo repo(@Header("Authorization") String accessToken, @Path('repositoryId') int repositoryId)

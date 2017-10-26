@@ -46,5 +46,7 @@ class TravisProperties {
 
         @NotEmpty
         String githubToken
+
+        int numberOfRepositories = 25
     }
 }
