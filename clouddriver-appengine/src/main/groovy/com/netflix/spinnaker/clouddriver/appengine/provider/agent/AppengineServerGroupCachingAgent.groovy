@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.api.client.googleapis.batch.BatchRequest
 import com.google.api.client.googleapis.json.GoogleJsonError
 import com.google.api.client.http.HttpHeaders
+import com.google.api.client.http.HttpResponseException
 import com.google.api.services.appengine.v1.model.*
 import com.netflix.frigga.Names
 import com.netflix.spectator.api.Registry
@@ -304,61 +305,39 @@ class AppengineServerGroupCachingAgent extends AbstractAppengineCachingAgent imp
   Map<Service, List<Version>> loadServerGroups() {
     def project = credentials.project
     def loadBalancers = credentials.appengine.apps().services().list(project).execute().getServices() ?: []
-    BatchRequest batch = credentials.appengine.batch()
     Map<Service, List<Version>> serverGroupsByLoadBalancer = [:].withDefault { [] }
 
     loadBalancers.each { loadBalancer ->
       def loadBalancerName = loadBalancer.getId()
-      def callback = new AppengineCallback<ListVersionsResponse>()
-        .success { ListVersionsResponse versionsResponse, HttpHeaders responseHeaders ->
-          def versions = versionsResponse.getVersions()
-          if (versions) {
-            serverGroupsByLoadBalancer[loadBalancer].addAll(versions)
-          }
-        }
-
-      credentials.appengine.apps().services().versions().list(project, loadBalancerName).queue(batch, callback)
+      def versions = credentials.appengine.apps().services().versions().list(project, loadBalancerName).execute().getVersions() ?: []
+      serverGroupsByLoadBalancer[loadBalancer].addAll(versions)
     }
-
-    executeIfRequestsAreQueued(batch)
     return serverGroupsByLoadBalancer
   }
 
   Map loadServerGroupAndLoadBalancer(String serverGroupName) {
     def project = credentials.project
     def loadBalancers = credentials.appengine.apps().services().list(project).execute().getServices() ?: []
-    BatchRequest batch = credentials.appengine.batch()
-    Service loadBalancer
-    Version serverGroup
 
     // We don't know where our server group is, so we have to check all of the load balancers.
-    loadBalancers.each { Service lb ->
+    return loadBalancers.findResult { Service lb ->
       def loadBalancerName = lb.getId()
-      def callback = new AppengineCallback<Version>()
-        .success { Version version, HttpHeaders responseHeaders ->
-          if (version) {
-            serverGroup = version
-            loadBalancer = lb
-          }
+      try {
+        def serverGroup = credentials
+            .appengine
+            .apps()
+            .services()
+            .versions()
+            .get(credentials.project, loadBalancerName, serverGroupName)
+            .execute()
+        return [serverGroup: serverGroup, loadBalancer: lb]
+      } catch (HttpResponseException e) {
+        if (e.statusCode != 404) {
+          log.error(objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(e))
         }
-        .failure { GoogleJsonError e, HttpHeaders responseHeaders ->
-          if (e.code != 404) {
-            def errorJson = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(e)
-            log.error errorJson
-          }
-        }
-
-        credentials
-          .appengine
-          .apps()
-          .services()
-          .versions()
-          .get(credentials.project, loadBalancerName, serverGroupName)
-          .queue(batch, callback)
+        return null
+      }
     }
-
-    executeIfRequestsAreQueued(batch)
-    return [serverGroup: serverGroup, loadBalancer: loadBalancer]
   }
 
   Map<Version, List<Instance>> loadInstances(Map<Service, List<Version>> serverGroupsByLoadBalancer) {
@@ -368,22 +347,16 @@ class AppengineServerGroupCachingAgent extends AbstractAppengineCachingAgent imp
     serverGroupsByLoadBalancer.each { Service loadBalancer, List<Version> serverGroups ->
       serverGroups.each { Version serverGroup ->
         def serverGroupName = serverGroup.getId()
-        def callback = new AppengineCallback<ListInstancesResponse>()
-          .success { ListInstancesResponse instancesResponse, HttpHeaders httpHeaders ->
-            def instances = instancesResponse.getInstances()
-            if (instances) {
-              instancesByServerGroup[serverGroup].addAll(instances)
-            }
-          }
-
-        credentials
+        def instances = credentials
           .appengine
           .apps()
           .services()
           .versions()
           .instances()
           .list(credentials.project, loadBalancer.getId(), serverGroupName)
-          .queue(batch, callback)
+          .execute()
+          .getInstances() ?: []
+        instancesByServerGroup[serverGroup].addAll(instances)
       }
     }
 

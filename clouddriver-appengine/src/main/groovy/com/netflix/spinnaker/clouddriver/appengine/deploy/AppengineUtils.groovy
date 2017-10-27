@@ -32,26 +32,9 @@ class AppengineUtils {
                                         String phase) {
     task.updateStatus phase, "Querying all versions for project $project..."
     def services = queryAllServices(project, credentials, task, phase)
-
-    BatchRequest batch = credentials.appengine.batch()
-    def allVersions = []
-
-    services.each { service ->
-      def callback = new AppengineCallback<ListVersionsResponse>()
-        .success { ListVersionsResponse versionsResponse, HttpHeaders responseHeaders ->
-          def versions = versionsResponse.getVersions()
-          if (versions) {
-            allVersions << versions
-          }
-        }
-
-      credentials.appengine.apps().services().versions().list(project, service.getId()).queue(batch, callback)
+    def allVersions = services.collect { service ->
+      credentials.appengine.apps().services().versions().list(project, service.getId()).execute().getVersions() ?: []
     }
-
-    if (batch.size() > 0) {
-      batch.execute()
-    }
-
     return allVersions.flatten()
   }
 

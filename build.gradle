@@ -108,7 +108,6 @@ subprojects { project ->
             it.useVersion '4.3'
           }
         }
-        force 'com.google.api-client:google-api-client:1.22.0'
       }
     }
   }
