@@ -58,10 +58,9 @@ public class PipelineTemplatesController {
     this.objectMapper = objectMapper;
   }
 
-  @ApiOperation(value = "Returns a list of pipeline templates by scope",
-                notes = "If no scope is provided, 'global' will be defaulted")
+  @ApiOperation(value = "Returns a list of pipeline templates by scope")
   @RequestMapping(method = RequestMethod.GET)
-  public Collection<Map> list(@RequestParam(defaultValue = "global") List<String> scopes) {
+  public Collection<Map> list(@RequestParam(required = false) List<String> scopes) {
     return pipelineTemplateService.findByScope(scopes);
   }
 
