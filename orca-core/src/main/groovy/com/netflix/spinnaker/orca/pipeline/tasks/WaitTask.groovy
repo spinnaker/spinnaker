@@ -35,6 +35,9 @@ class WaitTask implements RetryableTask {
 
   @Override
   TaskResult execute(Stage stage) {
+    if (stage.context.waitTime == null) {
+      return new TaskResult(SUCCEEDED)
+    }
     // wait time is specified in seconds
     long waitTime = stage.context.waitTime as long
     def waitTimeMs = TimeUnit.MILLISECONDS.convert(waitTime, TimeUnit.SECONDS)

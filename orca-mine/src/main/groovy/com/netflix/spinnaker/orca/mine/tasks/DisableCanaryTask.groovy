@@ -27,9 +27,12 @@ class DisableCanaryTask extends AbstractCloudProviderAwareTask implements Task {
 
     try {
       def canary = mineService.getCanary(stage.context.canary.id)
-      if (canary.health?.health == 'UNHEALTHY') {
+      if (canary.health?.health == 'UNHEALTHY' || stage.context.unhealthy != null) {
         // If unhealthy, already disabled in MonitorCanaryTask
-        return TaskResult.SUCCEEDED
+        return new TaskResult(ExecutionStatus.SUCCEEDED, [
+          waitTime  : waitTime,
+          unhealthy : true
+        ])
       }
     } catch (RetrofitError e) {
       log.error("Exception occurred while getting canary status with id {} from mine, continuing with disable",
