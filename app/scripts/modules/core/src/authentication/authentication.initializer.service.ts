@@ -40,7 +40,8 @@ export class AuthenticationInitializer {
           this.$uibModalStack.dismissAll();
           this.visibilityWatch.unsubscribe();
         }
-      });
+      })
+      .catch(() => {});
   }
 
   private loginNotification(): void {
