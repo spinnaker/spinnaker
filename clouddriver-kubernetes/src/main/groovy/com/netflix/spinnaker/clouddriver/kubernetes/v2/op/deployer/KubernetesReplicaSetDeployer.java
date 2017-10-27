@@ -59,6 +59,11 @@ public class KubernetesReplicaSetDeployer extends KubernetesDeployer<V1beta1Repl
   }
 
   @Override
+  public boolean isStable(V1beta1ReplicaSet resource) {
+    return false;
+  }
+
+  @Override
   public void resize(KubernetesV2Credentials credentials, String namespace, String name, Capacity capacity) {
     credentials.resizeReplicaSet(namespace, name, capacity.getDesired());
   }

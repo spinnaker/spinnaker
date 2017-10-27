@@ -63,6 +63,7 @@ public abstract class KubernetesDeployer<T> {
   abstract public KubernetesApiVersion apiVersion();
   abstract public boolean versioned();
   abstract public SpinnakerKind spinnakerKind();
+  abstract public boolean isStable(T resource);
 
   void deploy(KubernetesV2Credentials credentials, T resource) {
     jobExecutor.deployManifest(credentials, objectMapper.convertValue(resource, KubernetesManifest.class));

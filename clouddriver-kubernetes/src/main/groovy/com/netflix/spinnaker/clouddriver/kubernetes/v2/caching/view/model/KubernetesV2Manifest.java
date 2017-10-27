@@ -15,10 +15,22 @@
  *
  */
 
-package com.netflix.spinnaker.clouddriver.model;
+package com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.model;
 
-public interface Manifest {
-  boolean isStable();
-  String getAccount();
-  String getLocation();
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
+import com.netflix.spinnaker.clouddriver.model.Manifest;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class KubernetesV2Manifest implements Manifest {
+  private boolean stable;
+  private String account;
+  private String location;
+  private KubernetesManifest manifest;
 }

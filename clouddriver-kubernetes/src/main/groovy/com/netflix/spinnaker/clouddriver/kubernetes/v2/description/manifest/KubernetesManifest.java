@@ -61,38 +61,38 @@ public class KubernetesManifest extends HashMap<String, Object> {
   }
 
   @JsonIgnore
-  private Map<String, Object> getMetatdata() {
+  private Map<String, Object> getMetadata() {
     return getRequiredField(this, "metadata");
   }
 
   @JsonIgnore
   public String getName() {
-    return (String) getMetatdata().get("name");
+    return (String) getMetadata().get("name");
   }
 
   @JsonIgnore
   public void setName(String name) {
-    getMetatdata().put("name", name);
+    getMetadata().put("name", name);
   }
 
   @JsonIgnore
   public String getNamespace() {
-    return (String) getMetatdata().get("namespace");
+    return (String) getMetadata().get("namespace");
   }
 
   @JsonIgnore
   public void setNamespace(String namespace) {
-    getMetatdata().put("namespace", namespace);
+    getMetadata().put("namespace", namespace);
   }
 
   @JsonIgnore
   public String getCreationTimestamp() {
-    return getMetatdata().get("creationTimestamp").toString();
+    return getMetadata().get("creationTimestamp").toString();
   }
 
   @JsonIgnore
   public List<OwnerReference> getOwnerReferences(ObjectMapper mapper) {
-    Map<String, Object> metadata = getMetatdata();
+    Map<String, Object> metadata = getMetadata();
     Object ownerReferences = metadata.get("ownerReferences");
     if (ownerReferences == null) {
       return new ArrayList<>();
@@ -103,10 +103,10 @@ public class KubernetesManifest extends HashMap<String, Object> {
 
   @JsonIgnore
   public Map<String, String> getAnnotations() {
-    Map<String, String> result = (Map<String, String>) getMetatdata().get("annotations");
+    Map<String, String> result = (Map<String, String>) getMetadata().get("annotations");
     if (result == null) {
       result = new HashMap<>();
-      getMetatdata().put("annotations", result);
+      getMetadata().put("annotations", result);
     }
 
     return result;
@@ -136,6 +136,11 @@ public class KubernetesManifest extends HashMap<String, Object> {
     }
 
     return Optional.of(result);
+  }
+
+  @JsonIgnore
+  public Object getStatus() {
+    return get("status");
   }
 
   @JsonIgnore

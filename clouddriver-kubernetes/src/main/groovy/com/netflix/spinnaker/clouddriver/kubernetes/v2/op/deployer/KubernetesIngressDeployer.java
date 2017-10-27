@@ -53,6 +53,11 @@ public class KubernetesIngressDeployer extends KubernetesDeployer<V1beta1Ingress
   }
 
   @Override
+  public boolean isStable(V1beta1Ingress resource) {
+    return false;
+  }
+
+  @Override
   public Class<V1DeleteOptions> getDeleteOptionsClass() {
     return V1DeleteOptions.class;
   }

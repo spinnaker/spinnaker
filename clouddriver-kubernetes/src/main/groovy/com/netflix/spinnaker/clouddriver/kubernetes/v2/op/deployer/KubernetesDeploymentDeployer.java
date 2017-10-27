@@ -55,6 +55,11 @@ public class KubernetesDeploymentDeployer extends KubernetesDeployer<AppsV1beta1
   }
 
   @Override
+  public boolean isStable(AppsV1beta1Deployment resource) {
+    return false;
+  }
+
+  @Override
   public void resize(KubernetesV2Credentials credentials, String namespace, String name, Capacity capacity) {
     credentials.resizeDeployment(namespace, name, capacity.getDesired());
   }

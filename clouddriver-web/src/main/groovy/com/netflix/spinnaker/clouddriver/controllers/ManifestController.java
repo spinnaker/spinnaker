@@ -23,15 +23,14 @@ import com.netflix.spinnaker.clouddriver.requestqueue.RequestQueue;
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -48,13 +47,13 @@ public class ManifestController {
     this.requestQueue = requestQueue;
   }
 
-  @PreAuthorize("hasPermission(#application, 'APPLICATION', 'READ') && hasPermission(#account, 'ACCOUNT', 'READ')")
+ // @PreAuthorize("hasPermission(#application, 'APPLICATION', 'READ') && hasPermission(#account, 'ACCOUNT', 'READ')")
   @RequestMapping(value = "/{account:.+}/{location:.+}/{name:.+}", method = RequestMethod.GET)
-  Set<Manifest> getForAccountLocationAndName(@PathVariable String application,
+  Collection<Manifest> getForAccountLocationAndName(@PathVariable String application,
       @PathVariable String account,
       @PathVariable String location,
       @PathVariable String name) {
-    Set<Manifest> manifests = manifestProviders.stream()
+    Collection<Manifest> manifests = manifestProviders.stream()
         .map(provider -> {
           try {
             return requestQueue.execute(application, () -> provider.getManifest(account, location, name));
@@ -64,7 +63,7 @@ public class ManifestController {
           }
         })
         .filter(Objects::nonNull)
-        .collect(Collectors.toSet());
+        .collect(Collectors.toList());
 
     if (manifests.isEmpty()) {
       throw new NotFoundException(String.format("Manifest not found (application: %s, account: %s, location: %s, name: %s)",

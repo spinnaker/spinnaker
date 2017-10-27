@@ -52,6 +52,11 @@ public class KubernetesServiceDeployer extends KubernetesDeployer<V1Service> imp
   }
 
   @Override
+  public boolean isStable(V1Service resource) {
+    return false;
+  }
+
+  @Override
   public Class<Void> getDeleteOptionsClass() {
     return Void.class;
   }
