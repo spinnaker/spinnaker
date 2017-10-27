@@ -21,7 +21,7 @@ import retrofit.http.POST
 
 interface OrcaService {
 
-  @POST("/orchestrate")
+  @POST("/ops")
   fun orchestrate(@Body request: OrchestrationRequest): TaskRefResponse
 }
 
