@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.dryrun
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.SerializationFeature.WRITE_NULL_MAP_VALUES
 import com.fasterxml.jackson.databind.module.SimpleModule
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.ExecutionStatus.SKIPPED
@@ -118,6 +119,7 @@ class DryRunTask : Task {
   private val mapper = OrcaObjectMapper
     .newInstance()
     .apply {
+      disable(WRITE_NULL_MAP_VALUES)
       SimpleModule()
         .addSerializer(RoundingFloatSerializer())
         .addSerializer(RoundingDoubleSerializer())

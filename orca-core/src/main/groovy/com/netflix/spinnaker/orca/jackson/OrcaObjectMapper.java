@@ -20,7 +20,6 @@ import com.fasterxml.jackson.datatype.guava.GuavaModule;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES;
-import static com.fasterxml.jackson.databind.SerializationFeature.WRITE_NULL_MAP_VALUES;
 
 public class OrcaObjectMapper {
   private OrcaObjectMapper() {}
@@ -30,7 +29,6 @@ public class OrcaObjectMapper {
     instance.registerModule(new Jdk8Module());
     instance.registerModule(new GuavaModule());
     instance.disable(FAIL_ON_UNKNOWN_PROPERTIES);
-    instance.disable(WRITE_NULL_MAP_VALUES);
     instance.setSerializationInclusion(NON_NULL);
     return instance;
   }
