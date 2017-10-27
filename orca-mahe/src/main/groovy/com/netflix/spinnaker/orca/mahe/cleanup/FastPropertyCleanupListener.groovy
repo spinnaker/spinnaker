@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.mahe.cleanup
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.orca.RetrySupport
 import com.netflix.spinnaker.orca.listeners.ExecutionListener
 import com.netflix.spinnaker.orca.listeners.Persister
 import com.netflix.spinnaker.orca.mahe.MaheService
@@ -27,6 +28,7 @@ import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+import retrofit.RetrofitError
 import retrofit.client.Response
 
 @Slf4j
@@ -41,6 +43,7 @@ class FastPropertyCleanupListener implements ExecutionListener {
   }
 
   @Autowired ObjectMapper mapper
+  @Autowired RetrySupport retrySupport
 
   @Override
   void afterExecution(Persister persister,
@@ -55,31 +58,79 @@ class FastPropertyCleanupListener implements ExecutionListener {
       rollbacks.each { stage ->
         switch (stage.context.propertyAction) {
           case PropertyAction.CREATE.toString():
-            stage.context.propertyIdList.each { prop ->
-              log.info("Rolling back the creation of: ${prop.propertyId} on execution ${execution.id} by deleting")
-              Response response = mahe.deleteProperty(prop.propertyId, "spinnaker rollback", extractEnvironment(prop.propertyId))
-              resolveRollbackResponse(response, stage.context.propertyAction.toString(), prop)
+            stage.context.persistedProperties.each { Map prop ->
+              String propertyId = prop.propertyId
+              if (shouldRollback(prop)) {
+                log.info("Rolling back the creation of: ${propertyId} on execution ${execution.id} by deleting")
+                Response response = mahe.deleteProperty(propertyId, "spinnaker rollback", extractEnvironment(propertyId))
+                resolveRollbackResponse(response, stage.context.propertyAction.toString(), prop)
+              } else {
+                log.info("Property has been updated since this execution; not rolling back")
+              }
             }
             break
           case PropertyAction.UPDATE.toString():
-            stage.context.originalProperties.each { prop ->
-              log.info("Rolling back the ${stage.context.propertyAction} of: ${prop.property.propertyId} on execution ${execution.id} by upserting")
-              Response response = mahe.upsertProperty(prop)
-              resolveRollbackResponse(response, stage.context.propertyAction.toString(), prop.property)
+            stage.context.originalProperties.each { Map originalProp ->
+              Map property = originalProp.property
+              Map updatedProperty = (Map) stage.context.persistedProperties.find { it.propertyId == property.propertyId }
+              String propertyId = property.propertyId
+              if (shouldRollback(updatedProperty)) {
+                log.info("Rolling back the update of: ${propertyId} on execution ${execution.id} by upserting")
+                Response response = mahe.upsertProperty(originalProp)
+                resolveRollbackResponse(response, stage.context.propertyAction.toString(), property)
+              } else {
+                log.info("Property has been updated since this execution; not rolling back")
+              }
             }
             break
           case PropertyAction.DELETE.toString():
-            stage.context.originalProperties.each { prop ->
-              if (prop.property.propertyId) {
-                prop.property.remove('propertyId')
-              }
-              log.info("Rolling back the ${stage.context.propertyAction} of: ${prop.property.key}|${prop.property.value} on execution ${execution.id} by re-creating")
+            stage.context.originalProperties.each { Map prop ->
+              Map property = prop.property
+              if (propertyExists(property)) {
+               log.info("Property exists, not restoring to original state after delete.")
+              } else {
+                if (property.propertyId) {
+                  property.remove('propertyId')
+                }
+                log.info("Rolling back the delete of: ${property.key}|${property.value} on execution ${execution.id} by re-creating")
 
-              Response response = mahe.upsertProperty(prop)
-              resolveRollbackResponse(response, stage.context.propertyAction.toString(), prop.property)
+                Response response = mahe.upsertProperty(prop)
+                resolveRollbackResponse(response, stage.context.propertyAction.toString(), property)
+              }
             }
         }
       }
+    }
+  }
+
+  private boolean shouldRollback(Map property) {
+    String propertyId = property.propertyId
+    String env = extractEnvironment(propertyId)
+    try {
+      return retrySupport.retry({
+        Response propertyResponse = mahe.getPropertyById(propertyId, env)
+        Map currentProperty = mapper.readValue(propertyResponse.body.in().text, Map)
+        return currentProperty.ts == property.ts
+      }, 3, 2, false)
+    } catch (RetrofitError error) {
+      if (error.response.status == 404) {
+        return false
+      }
+      throw error
+    }
+  }
+
+  private boolean propertyExists(Map<String, String> property) {
+    try {
+      return retrySupport.retry({
+        mahe.getPropertyById(property.propertyId, property.env)
+        return true
+      }, 3, 2, false)
+    } catch (RetrofitError error) {
+      if (error.kind == RetrofitError.Kind.HTTP && error.response.status == 404) {
+        return false
+      }
+      throw error
     }
   }
 

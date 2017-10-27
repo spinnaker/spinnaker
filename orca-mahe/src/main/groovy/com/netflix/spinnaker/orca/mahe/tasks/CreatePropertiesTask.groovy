@@ -26,6 +26,7 @@ import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+import retrofit.RetrofitError
 import retrofit.client.Response
 import static com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED
 
@@ -44,7 +45,10 @@ class CreatePropertiesTask implements Task {
       context = overrides.find { it.refId == stage.refId } ?: context
     }
     List properties = assemblePersistedPropertyListFromContext(context, context.persistedProperties)
-    List originalProperties = assemblePersistedPropertyListFromContext(context, context.originalProperties)
+    // originalProperties field is only present on ad-hoc property pipelines - not as part of a createProperty stage,
+    // so we'll need to add the original property if found
+    boolean hasOriginalProperties = context.originalProperties
+    List originalProperties = assemblePersistedPropertyListFromContext(context, context.originalProperties ?: [])
     List propertyIdList = []
     PropertyAction propertyAction = PropertyAction.UNKNOWN
 
@@ -56,8 +60,13 @@ class CreatePropertiesTask implements Task {
         propertyAction = PropertyAction.DELETE
       } else {
         log.info("Upserting Property: ${prop} on execution ${stage.execution.id}")
+        Map existingProperty = getExistingProperty(prop)
+        log.info("Property ${prop.key} ${existingProperty ? 'exists' : 'does not exist'}")
         response = maheService.upsertProperty(prop)
-        propertyAction = prop.property.propertyId ? PropertyAction.UPDATE : PropertyAction.CREATE
+        propertyAction = existingProperty ? PropertyAction.UPDATE : PropertyAction.CREATE
+        if (existingProperty && !hasOriginalProperties) {
+          originalProperties << existingProperty
+        }
       }
 
       if (response.status == 200) {
@@ -82,6 +91,16 @@ class CreatePropertiesTask implements Task {
 
   }
 
+  private Map getExistingProperty(Map prop) {
+    try {
+      return mapper.readValue(maheService.findProperty(prop).body.in().text, Map)
+    } catch (RetrofitError error) {
+      if (error.kind == RetrofitError.Kind.HTTP && error.response.status == 404) {
+        return null
+      }
+      throw error
+    }
+  }
 
 
   List assemblePersistedPropertyListFromContext(Map<String, Object> context, List propertyList) {

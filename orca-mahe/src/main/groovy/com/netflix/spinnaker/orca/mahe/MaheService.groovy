@@ -26,6 +26,9 @@ interface MaheService {
   @POST('/properties/upsert')
   Response upsertProperty(@Body Map property)
 
+  @GET('/properties/find')
+  Response findProperty(@QueryMap Map<String, String> property)
+
   @GET('/properties/prop')
   Response getPropertyById(@Query('propId') String propId, @Query('env') String env)
 
