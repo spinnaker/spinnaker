@@ -25,6 +25,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v1.api.KubernetesApiConverte
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.api.KubernetesClientApiConverter
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.description.autoscaler.KubernetesAutoscalerDescription
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.description.servergroup.DeployKubernetesAtomicOperationDescription
+import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.exception.KubernetesOperationException
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.exception.KubernetesResourceNotFoundException
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.security.KubernetesV1Credentials
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
@@ -92,7 +93,8 @@ class DeployKubernetesAtomicOperation implements AtomicOperation<DeploymentResul
     def clusterName = serverGroupNameResolver.combineAppStackDetail(description.application, description.stack, description.freeFormDetails)
 
     if (description.kind) {
-      return deployController(credentials, clusterName, namespace)
+      def controllerName = description.sequence ? serverGroupNameResolver.generateServerGroupName(description.application, description.stack, description.freeFormDetails, description.sequence, false) : clusterName
+      return deployController(credentials, controllerName, clusterName, namespace)
     }
 
     task.updateStatus BASE_PHASE, "Looking up next sequence index for cluster ${clusterName}..."
@@ -170,35 +172,76 @@ class DeployKubernetesAtomicOperation implements AtomicOperation<DeploymentResul
     return replicaSet
   }
 
-  HasMetadata deployController(KubernetesV1Credentials credentials, String controllerName, String namespace) {
+  HasMetadata deployController(KubernetesV1Credentials credentials, String controllerName, String clusterName, String namespace) {
     def controllerSet
-    if (description.kind == KubernetesUtil.CONTROLLERS_STATEFULSET_KIND) {
-      task.updateStatus BASE_PHASE, "Building stateful set..."
-      controllerSet = KubernetesClientApiConverter.toStatefulSet(description, controllerName)
+    def canUpdated = KubernetesClientApiConverter.canUpdated(description)
 
-      task.updateStatus BASE_PHASE, "Deployed stateful set ${controllerSet.metadata.name}"
-      controllerSet = credentials.clientApiAdaptor.createStatfulSet(namespace, controllerSet)
-
-      if (description.scalingPolicy) {
-        task.updateStatus BASE_PHASE, "Attaching a horizontal pod autoscaler..."
-
-        def autoscaler = KubernetesClientApiConverter.toAutoscaler(new KubernetesAutoscalerDescription(controllerName, description), controllerName, description.kind)
-
-        if (credentials.clientApiAdaptor.getAutoscaler(namespace, controllerName)) {
-          credentials.clientApiAdaptor.deleteAutoscaler(namespace, controllerName)
-        }
-
-        credentials.clientApiAdaptor.createAutoscaler(namespace, autoscaler)
-      }
-    }
-    else if (description.kind == KubernetesUtil.CONTROLLERS_DAEMONSET_KIND) {
-      task.updateStatus BASE_PHASE, "Building daemonset set..."
-      controllerSet = KubernetesClientApiConverter.toDaemonSet(description, controllerName)
-
-      task.updateStatus BASE_PHASE, "Deployed daemonset set ${controllerSet.metadata.name}"
-      controllerSet = credentials.clientApiAdaptor.createDaemonSet(namespace, controllerSet)
+    switch(description.kind) {
+      case KubernetesUtil.CONTROLLERS_STATEFULSET_KIND:
+        controllerSet = deployStatefulSet(credentials, controllerName, clusterName, namespace, canUpdated)
+        break
+      case KubernetesUtil.CONTROLLERS_DAEMONSET_KIND:
+        controllerSet = deployDaemonSet(credentials, controllerName, clusterName, namespace, canUpdated)
+        break
+      default:
+        throw new KubernetesOperationException("Controller type $description.kind is not support.")
     }
 
     return KubernetesClientApiConverter.toKubernetesController(controllerSet)
+  }
+
+  def deployStatefulSet(KubernetesV1Credentials credentials, String controllerName, String clusterName, String namespace,  Boolean canUpdated) {
+    task.updateStatus BASE_PHASE, "Building stateful set..."
+    def controllerSet = KubernetesClientApiConverter.toStatefulSet(description, controllerName)
+    if (canUpdated) {
+      def deployedControllerSet = credentials.clientApiAdaptor.getStatefulSet(controllerName, namespace)
+      if (deployedControllerSet) {
+        task.updateStatus BASE_PHASE, "Update stateful set ${controllerName}"
+        controllerSet = credentials.clientApiAdaptor.replaceStatfulSet(controllerName, namespace, controllerSet)
+      } else {
+        task.updateStatus BASE_PHASE, "Deployed stateful set ${controllerName}"
+        controllerSet = credentials.clientApiAdaptor.createStatfulSet(namespace, controllerSet)
+      }
+    } else {
+      task.updateStatus BASE_PHASE, "Deployed stateful set ${controllerName}"
+      controllerSet = credentials.clientApiAdaptor.createStatfulSet(namespace, controllerSet)
+    }
+
+    if (description.scalingPolicy) {
+      task.updateStatus BASE_PHASE, "Attaching a horizontal pod autoscaler..."
+
+      def autoscaler = KubernetesClientApiConverter.toAutoscaler(new KubernetesAutoscalerDescription(controllerName, description), controllerName, description.kind)
+
+      if (credentials.clientApiAdaptor.getAutoscaler(namespace, controllerName)) {
+        credentials.clientApiAdaptor.deleteAutoscaler(namespace, controllerName,null,null,null)
+      }
+      credentials.clientApiAdaptor.createAutoscaler(namespace, autoscaler)
+    }
+
+    return controllerSet
+  }
+
+  def deployDaemonSet(KubernetesV1Credentials credentials, String controllerName, String clusterName, String namespace, boolean canUpdated) {
+    task.updateStatus BASE_PHASE, "Building daemon set..."
+    def controllerSet = KubernetesClientApiConverter.toDaemonSet(description, controllerName)
+
+    if (canUpdated) {
+      def deployedControllerSet = credentials.clientApiAdaptor.getDaemonSet(controllerName, namespace)
+      if (deployedControllerSet) {
+        task.updateStatus BASE_PHASE, "Update daemon set ${controllerName}"
+        if (description.updateController?.updateStrategy?.type.name() == "Recreate") {
+          deployedControllerSet = credentials.clientApiAdaptor.deleteDaemonSetPod(controllerName, namespace, deployedControllerSet)
+        }
+        controllerSet = credentials.clientApiAdaptor.replaceDaemonSet(controllerName, namespace, controllerSet)
+      } else {
+        task.updateStatus BASE_PHASE, "Deployed daemon set ${controllerName}"
+        controllerSet = credentials.clientApiAdaptor.createDaemonSet(namespace, controllerSet)
+      }
+    } else {
+      task.updateStatus BASE_PHASE, "Deployed daemon set ${controllerName}"
+      controllerSet = credentials.clientApiAdaptor.createDaemonSet(namespace, controllerSet)
+    }
+
+    return controllerSet
   }
 }

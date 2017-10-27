@@ -22,6 +22,7 @@ import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.KubernetesUtil
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.description.servergroup.KubernetesServerGroupDescription
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.exception.KubernetesOperationException
+import com.netflix.spinnaker.clouddriver.kubernetes.v1.security.KubernetesV1Credentials
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 
 class DestroyKubernetesAtomicOperation implements AtomicOperation<Void> {
@@ -50,6 +51,13 @@ class DestroyKubernetesAtomicOperation implements AtomicOperation<Void> {
 
     def autoscalerName = description.serverGroupName
     def parsedName = Names.parseName(description.serverGroupName)
+
+    if (description.kind) {
+      if (description.kind == KubernetesUtil.CONTROLLERS_STATEFULSET_KIND || description.kind == KubernetesUtil.CONTROLLERS_DAEMONSET_KIND) {
+        return destroyController(credentials, namespace, description.serverGroupName, autoscalerName)
+      }
+    }
+
     def deploymentName = parsedName.cluster
     def deployment = credentials.apiAdaptor.getDeployment(namespace, deploymentName)
     def replicaSet = credentials.apiAdaptor.getReplicaSet(namespace, description.serverGroupName)
@@ -87,6 +95,28 @@ class DestroyKubernetesAtomicOperation implements AtomicOperation<Void> {
     } else if (replicaSet) {
       task.updateStatus BASE_PHASE, "Underlying kind is 'ReplicaSet'..."
       credentials.apiAdaptor.hardDestroyReplicaSet(namespace, description.serverGroupName)
+    }
+
+    task.updateStatus BASE_PHASE, "Successfully destroyed server group $description.serverGroupName."
+  }
+
+  void destroyController(KubernetesV1Credentials credentials, String namespace, String serverGroupName, String autoscalerName) {
+    switch(description.kind) {
+      case KubernetesUtil.CONTROLLERS_STATEFULSET_KIND:
+        if (credentials.apiClientAdaptor.getAutoscaler(namespace, autoscalerName)) {
+          task.updateStatus BASE_PHASE, "Destroying autoscaler..."
+          if (!credentials.clientApiAdaptor.deleteAutoscaler(namespace, autoscalerName, null, null, null)) {
+            throw new KubernetesOperationException("Failed to delete associated autoscaler $autoscalerName in $namespace.")
+          }
+        }
+        credentials.apiClientAdaptor.deleteStatefulSetNotCascade(serverGroupName, namespace, null, null, null)
+        break
+      case KubernetesUtil.CONTROLLERS_DAEMONSET_KIND:
+        credentials.apiClientAdaptor.hardDestroyDaemonSet(serverGroupName, namespace, null, null, null)
+        break
+      default:
+        throw new KubernetesOperationException("Controller type $description.kind is not support.")
+        break
     }
 
     task.updateStatus BASE_PHASE, "Successfully destroyed server group $description.serverGroupName."

@@ -51,6 +51,7 @@ class DeployKubernetesAtomicOperationDescription extends KubernetesKindAtomicOpe
   String serviceAccountName
   Integer sequence
   KubernetesPodSpecDescription podSpec
+  String podManagementPolicy
   KubernetesDnsPolicy dnsPolicy
   Source source
   List<KubernetesPersistentVolumeClaimDescription> volumeClaims
@@ -144,6 +145,7 @@ class KubernetesStrategy {
 class KubernetesRollingUpdate {
   String maxUnavailable
   String maxSurge
+  Integer partition
 }
 
 enum KubernetesStrategyType {
