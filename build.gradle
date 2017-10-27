@@ -35,7 +35,7 @@ allprojects {
   apply plugin: 'groovy'
 
   ext {
-    spinnakerDependenciesVersion = project.hasProperty('spinnakerDependenciesVersion') ? project.property('spinnakerDependenciesVersion') : '0.115.0'
+    spinnakerDependenciesVersion = project.hasProperty('spinnakerDependenciesVersion') ? project.property('spinnakerDependenciesVersion') : '0.119.0'
   }
 
   def checkLocalVersions = [spinnakerDependenciesVersion: spinnakerDependenciesVersion]
@@ -108,6 +108,7 @@ subprojects { project ->
             it.useVersion '4.3'
           }
         }
+        force 'com.google.api-client:google-api-client:1.22.0'
       }
     }
   }
