@@ -413,11 +413,11 @@ export class ExecutionsTransformerService {
 
           // Set the group comment as a concatenation of all the stage summary comments
           summary.comments = subComments.join(', ');
-
-          // Make sure the requisite ids that were pointing at stages within a group are now pointing at the group
-          summary.requisiteStageRefIds = uniq(summary.requisiteStageRefIds.map((id) => idToGroupIdMap[id] || id));
         }
       }
+
+      // Make sure the requisite ids that were pointing at stages within a group are now pointing at the group
+      summary.requisiteStageRefIds = uniq(summary.requisiteStageRefIds.map((id) => idToGroupIdMap[id] || id));
     });
 
     stageSummaries.forEach((summary, index) => this.transformStageSummary(summary, index));
