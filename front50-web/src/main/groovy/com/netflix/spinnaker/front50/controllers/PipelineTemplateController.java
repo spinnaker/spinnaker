@@ -56,7 +56,7 @@ public class PipelineTemplateController {
   // TODO rz - Add fiat authz
 
   @RequestMapping(value = "", method = RequestMethod.GET)
-  List<PipelineTemplate> list(@RequestParam(required = false, value = "scopes", defaultValue = "global") List<String> scopes) {
+  List<PipelineTemplate> list(@RequestParam(required = false, value = "scopes") List<String> scopes) {
     return (List<PipelineTemplate>) getPipelineTemplateDAO().getPipelineTemplatesByScope(scopes);
   }
 

@@ -40,6 +40,9 @@ public class DefaultPipelineTemplateDAO extends StorageServiceSupport<PipelineTe
 
   @Override
   public Collection<PipelineTemplate> getPipelineTemplatesByScope(List<String> scope) {
+    if (scope == null || scope.isEmpty()) {
+      return all();
+    }
     return all()
       .stream()
       .filter(pt -> pt.containsAnyScope(scope))
