@@ -4,7 +4,6 @@ const angular = require('angular');
 import _ from 'lodash';
 
 import { SCALING_POLICY_MODULE } from './scalingPolicy/scalingPolicy.module';
-import { TitusProviderSettings } from 'titus/titus.settings';
 
 import {
   ACCOUNT_SERVICE,
