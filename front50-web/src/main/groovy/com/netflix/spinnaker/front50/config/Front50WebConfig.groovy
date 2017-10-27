@@ -23,6 +23,7 @@ import com.netflix.spinnaker.filters.AuthenticatedRequestFilter
 import com.netflix.spinnaker.front50.exceptions.AccessDeniedExceptionHandler
 import com.netflix.spinnaker.front50.model.application.ApplicationDAO
 import com.netflix.spinnaker.front50.model.application.ApplicationPermissionDAO
+import com.netflix.spinnaker.front50.model.intent.IntentDAO
 import com.netflix.spinnaker.front50.model.pipeline.PipelineDAO
 import com.netflix.spinnaker.front50.model.pipeline.PipelineStrategyDAO
 import com.netflix.spinnaker.front50.model.pipeline.PipelineTemplateDAO
@@ -35,6 +36,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.web.servlet.FilterRegistrationBean
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
+import org.springframework.context.annotation.Conditional
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.Ordered
 import org.springframework.http.HttpStatus
@@ -118,6 +120,12 @@ public class Front50WebConfig extends WebMvcConfigurerAdapter {
   @ConditionalOnBean(ServiceAccountDAO)
   ItemDAOHealthIndicator serviceAccountDAOHealthIndicator(ServiceAccountDAO serviceAccountDAO, TaskScheduler taskScheduler) {
     return new ItemDAOHealthIndicator(serviceAccountDAO, taskScheduler)
+  }
+
+  @Bean
+  @ConditionalOnBean(IntentDAO)
+  ItemDAOHealthIndicator intentDAOHealthIndicator(IntentDAO intentDAO, TaskScheduler taskScheduler) {
+    return new ItemDAOHealthIndicator(intentDAO, taskScheduler)
   }
 
   @Bean

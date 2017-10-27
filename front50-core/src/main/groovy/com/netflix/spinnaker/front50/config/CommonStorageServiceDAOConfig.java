@@ -24,6 +24,8 @@ import com.netflix.spinnaker.front50.model.application.ApplicationDAO;
 import com.netflix.spinnaker.front50.model.application.ApplicationPermissionDAO;
 import com.netflix.spinnaker.front50.model.application.DefaultApplicationDAO;
 import com.netflix.spinnaker.front50.model.application.DefaultApplicationPermissionDAO;
+import com.netflix.spinnaker.front50.model.intent.DefaultIntentDAO;
+import com.netflix.spinnaker.front50.model.intent.IntentDAO;
 import com.netflix.spinnaker.front50.model.notification.DefaultNotificationDAO;
 import com.netflix.spinnaker.front50.model.notification.NotificationDAO;
 import com.netflix.spinnaker.front50.model.pipeline.DefaultPipelineDAO;
@@ -199,6 +201,21 @@ public class CommonStorageServiceDAOConfig {
       objectKeyLoader,
       storageServiceConfigurationProperties.getEntityTags().getRefreshMs(),
       storageServiceConfigurationProperties.getEntityTags().getShouldWarmCache(),
+      registry
+    );
+  }
+
+  @Bean
+  IntentDAO intentDAO(StorageService storageService,
+                      StorageServiceConfigurationProperties storageServiceConfigurationProperties,
+                      ObjectKeyLoader objectKeyLoader,
+                      Registry registry) {
+    return new DefaultIntentDAO(
+      storageService,
+      Schedulers.from(Executors.newFixedThreadPool(storageServiceConfigurationProperties.getEntityTags().getThreadPool())),
+      objectKeyLoader,
+      storageServiceConfigurationProperties.getIntent().getRefreshMs(),
+      storageServiceConfigurationProperties.getIntent().getShouldWarmCache(),
       registry
     );
   }

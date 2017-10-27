@@ -31,6 +31,7 @@ class StorageServiceConfigurationProperties {
   PerObjectType pipeline = new PerObjectType(20, TimeUnit.MINUTES.toMillis(1))
   PerObjectType pipelineTemplate = new PerObjectType(20, TimeUnit.MINUTES.toMillis(1))
   PerObjectType snapshot = new PerObjectType(2, TimeUnit.MINUTES.toMillis(1))
+  PerObjectType intent = new PerObjectType(20, TimeUnit.MINUTES.toMillis(1))
 
   // not commonly used outside of Netflix
   PerObjectType entityTags = new PerObjectType(2, TimeUnit.MINUTES.toMillis(5), false)
