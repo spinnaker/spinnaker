@@ -18,15 +18,9 @@ package com.netflix.spinnaker.keel.front50
 import com.netflix.spinnaker.keel.Intent
 import com.netflix.spinnaker.keel.IntentStatus
 import com.netflix.spinnaker.keel.front50.model.Application
-import retrofit.http.Body
-import retrofit.http.GET
-import retrofit.http.PUT
-import retrofit.http.Query
+import retrofit.http.*
 
 interface Front50Service {
-
-  @GET("/intents")
-  fun getIntents(): List<Intent<*>>
 
   @GET("/intents")
   fun getIntentsByStatuses(@Query("statuses") statuses: List<IntentStatus>): List<Intent<*>>
@@ -35,5 +29,5 @@ interface Front50Service {
   fun upsertIntent(@Body intent: Intent<*>)
 
   @GET("/v2/applications/{applicationName}")
-  fun getApplication(applicationName: String): Application
+  fun getApplication(@Path("applicationName") applicationName: String): Application
 }

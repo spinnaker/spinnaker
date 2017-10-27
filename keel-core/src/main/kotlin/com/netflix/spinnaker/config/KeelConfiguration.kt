@@ -17,11 +17,13 @@ package com.netflix.spinnaker.config
 
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.util.ClassUtil
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.github.jonpeterson.jackson.module.versioning.VersioningModule
 import com.netflix.spinnaker.keel.Intent
 import com.netflix.spinnaker.keel.IntentActivityRepository
 import com.netflix.spinnaker.keel.IntentRepository
+import com.netflix.spinnaker.keel.IntentSpec
 import com.netflix.spinnaker.keel.memory.MemoryIntentActivityRepository
 import com.netflix.spinnaker.keel.memory.MemoryIntentRepository
 import com.netflix.spinnaker.keel.memory.MemoryTraceRepository
@@ -49,6 +51,7 @@ open class KeelConfiguration {
   open fun configureObjectMapper(objectMapper: ObjectMapper) {
     objectMapper.apply {
       registerSubtypes(*findAllIntentSubtypes().toTypedArray())
+      registerSubtypes(*findAllIntentSpecSubtypes().toTypedArray())
     }
       .registerModule(KotlinModule())
       .registerModule(VersioningModule())
@@ -62,6 +65,17 @@ open class KeelConfiguration {
       .map {
         val cls = ClassUtils.resolveClassName(it.beanClassName, ClassUtils.getDefaultClassLoader())
         log.info("Registering Intent: ${cls.simpleName}")
+        return@map cls
+      }
+  }
+
+  private fun findAllIntentSpecSubtypes(): List<Class<*>> {
+    return ClassPathScanningCandidateComponentProvider(false)
+      .apply { addIncludeFilter(AssignableTypeFilter(IntentSpec::class.java)) }
+      .findCandidateComponents("com.netflix.spinnaker.keel.intents")
+      .map {
+        val cls = ClassUtils.resolveClassName(it.beanClassName, ClassUtils.getDefaultClassLoader())
+        log.info("Registering IntentSpec: ${cls.simpleName}")
         return@map cls
       }
   }

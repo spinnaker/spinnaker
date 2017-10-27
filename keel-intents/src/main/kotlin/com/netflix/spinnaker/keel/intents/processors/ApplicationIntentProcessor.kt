@@ -76,7 +76,7 @@ class ApplicationIntentProcessor
     try {
       return front50Service.getApplication(name)
     } catch (e: RetrofitError) {
-      if (e.response.status == HttpStatus.NOT_FOUND.value()) {
+      if (e.response != null && e.response.status == HttpStatus.NOT_FOUND.value()) {
         return null
       }
       throw e

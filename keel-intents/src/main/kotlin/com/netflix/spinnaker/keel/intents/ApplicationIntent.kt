@@ -16,6 +16,7 @@
 package com.netflix.spinnaker.keel.intents
 
 import com.fasterxml.jackson.annotation.JsonCreator
+import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.fasterxml.jackson.annotation.JsonTypeName
 import com.github.jonpeterson.jackson.module.versioning.JsonVersionedModel
 import com.netflix.spinnaker.keel.Intent
@@ -37,13 +38,15 @@ class ApplicationIntent
 
 // Using an abstract class here so that we can override the spec with Netflix-specific values and continue to use the
 // same intent & processor.
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "kind")
 abstract class BaseApplicationSpec : IntentSpec {
+  abstract val kind: String
   abstract val name: String
   abstract val description: String?
   abstract val email: String
   abstract val lastModifiedBy: String?
   abstract val owner: String
-  abstract val chaosMonkey: ChaosMonkeySpec
+  abstract val chaosMonkey: ChaosMonkeySpec?
   abstract val enableRestartRunningExecutions: Boolean
   abstract val instanceLinks: List<InstanceLinkSpec>
   abstract val instancePort: Int?
@@ -58,7 +61,7 @@ abstract class BaseApplicationSpec : IntentSpec {
   abstract val trafficGuards: List<TrafficGuardSpec>
   abstract val platformHealthOnlyShowOverride: Boolean
   abstract val platformHealthOnly: Boolean
-  abstract val notifications: NotificationSpec
+  abstract val notifications: NotificationSpec?
 }
 
 data class ChaosMonkeySpec(
@@ -127,13 +130,14 @@ data class SmsNotificationSpec(
   val `when`: List<String> = listOf()
 )
 
+@JsonTypeName("Application")
 data class ApplicationSpec(
   override val name: String,
   override val description: String?,
   override val email: String,
   override val lastModifiedBy: String?,
   override val owner: String,
-  override val chaosMonkey: ChaosMonkeySpec,
+  override val chaosMonkey: ChaosMonkeySpec?,
   override val enableRestartRunningExecutions: Boolean,
   override val instanceLinks: List<InstanceLinkSpec> = listOf(),
   override val instancePort: Int?,
@@ -148,17 +152,20 @@ data class ApplicationSpec(
   override val trafficGuards: List<TrafficGuardSpec>,
   override val platformHealthOnlyShowOverride: Boolean,
   override val platformHealthOnly: Boolean,
-  override val notifications: NotificationSpec
-) : BaseApplicationSpec()
+  override val notifications: NotificationSpec?
+) : BaseApplicationSpec() {
+  override val kind = "Application"
+}
 
 // TODO rz - Move to -nflx, figure out a better wiring strategy?
+@JsonTypeName("NetflixApplication")
 data class NetflixApplicationSpec(
   override val name: String,
   override val description: String?,
   override val email: String,
   override val lastModifiedBy: String?,
   override val owner: String,
-  override val chaosMonkey: ChaosMonkeySpec,
+  override val chaosMonkey: ChaosMonkeySpec?,
   override val enableRestartRunningExecutions: Boolean,
   override val instanceLinks: List<InstanceLinkSpec> = listOf(),
   override val instancePort: Int?,
@@ -173,7 +180,7 @@ data class NetflixApplicationSpec(
   override val trafficGuards: List<TrafficGuardSpec>,
   override val platformHealthOnlyShowOverride: Boolean,
   override val platformHealthOnly: Boolean,
-  override val notifications: NotificationSpec,
+  override val notifications: NotificationSpec?,
   val repoSlug: String?,
   val repoProjectKey: String?,
   val repoType: String?,
@@ -184,7 +191,9 @@ data class NetflixApplicationSpec(
   val criticalityRules: List<CriticalityRuleSpec>,
   val ccpService: String,
   val timelines: List<TimelineSpec>
-) : BaseApplicationSpec()
+) : BaseApplicationSpec() {
+  override val kind = "NetflixApplication"
+}
 
 data class CriticalityRuleSpec(
   val account: String,
