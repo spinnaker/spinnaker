@@ -44,7 +44,7 @@ class PipelineTemplateService {
   }
 
   List<Map> findByScope(List<String> scopes) {
-    front50Service.getPipelineTemplates((String[]) scopes.toArray())
+    front50Service.getPipelineTemplates((String[]) scopes?.toArray())
   }
 
   Map resolve(String source) {
