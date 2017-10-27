@@ -77,11 +77,13 @@ class DeployCanaryStage extends ParallelDeployStage implements CloudProviderAwar
     List<Map> canaryDeployments = defaultStageContext.clusterPairs
 
     return canaryDeployments.collect { Map canaryDeployment ->
-      def canary = canaryDeployment.canary
+      Map canary = canaryDeployment.canary
       canary.strategy = "highlander"
+      canary.remove('moniker')
 
-      def baseline = canaryDeployment.baseline
+      Map baseline = canaryDeployment.baseline
       baseline.strategy = "highlander"
+      baseline.remove('moniker')
       def baselineAmi = baselineAmis.find {
         it.region == (baseline.region ?: baseline.availabilityZones.keySet()[0])
       }
