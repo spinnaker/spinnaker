@@ -157,6 +157,7 @@ class EmailNotificationAgentSpec extends Specification {
     stageName = "foo-stage"
     event = new Event(content: [context: [customSubject: customSubject,
                                           customBody: customBody,
-                                          stageDetails: [name: "foo-stage"]], execution: [name: "foo-pipeline"]])
+                                          stageDetails: [name: "foo-stage"]],
+                                execution: [id: "abc", name: "foo-pipeline"]])
   }
 }

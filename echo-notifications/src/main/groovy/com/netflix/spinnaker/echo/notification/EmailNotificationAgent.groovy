@@ -99,7 +99,10 @@ class EmailNotificationAgent extends AbstractEventNotificationAgent {
   private void sendMessage(String[] email, String[] cc, Event event, String title, String type, String status, String link, String customMessage, String customBody) {
     String body
     if (customBody) {
-      body = new MarkdownToHtmlFormatter().convert(customBody)
+      String interpolated = customBody
+        .replace("{{executionId}}", (String) event.content?.execution?.id ?: "")
+        .replace("{{link}}", link ?: "")
+      body = new MarkdownToHtmlFormatter().convert(interpolated)
     } else {
       Template template = configuration.getTemplate(type == 'stage' ? 'stage.ftl' : 'pipeline.ftl', "UTF-8")
       body = FreeMarkerTemplateUtils.processTemplateIntoString(

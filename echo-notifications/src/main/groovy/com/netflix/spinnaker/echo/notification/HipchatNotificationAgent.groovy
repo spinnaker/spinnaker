@@ -86,10 +86,10 @@ class HipchatNotificationAgent extends AbstractEventNotificationAgent {
         }"""
 
       String customMessage = event.content?.context?.customMessage
-      if (customMessage && event.content?.execution?.id) {
+      if (customMessage) {
         message = customMessage
-          .replace("{{executionId}}", (String) event.content.execution.id)
-          .replace("{{link}}", link)
+          .replace("{{executionId}}", (String) event.content.execution?.id ?: "")
+          .replace("{{link}}", link ?: "")
       }
 
       hipchatService.sendMessage(

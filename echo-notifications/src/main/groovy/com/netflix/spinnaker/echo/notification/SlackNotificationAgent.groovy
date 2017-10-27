@@ -87,10 +87,10 @@ class SlackNotificationAgent extends AbstractEventNotificationAgent {
       }
 
       String customMessage = event.content?.context?.customMessage
-      if (customMessage && event.content?.execution?.id) {
+      if (customMessage) {
         body = customMessage
-          .replace("{{executionId}}", (String) event.content.execution.id)
-          .replace("{{link}}", link)
+          .replace("{{executionId}}", (String) event.content.execution?.id ?: "")
+          .replace("{{link}}", link ?: "")
       }
 
       String address = preference.address.startsWith('#') ? preference.address : "#${preference.address}"
