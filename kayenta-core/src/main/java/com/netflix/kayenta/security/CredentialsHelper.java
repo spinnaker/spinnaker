@@ -18,6 +18,9 @@ package com.netflix.kayenta.security;
 
 import org.springframework.util.StringUtils;
 
+import java.util.Set;
+import java.util.stream.Collectors;
+
 public class CredentialsHelper {
 
   public static String resolveAccountByNameOrType(String accountName,
@@ -36,5 +39,14 @@ public class CredentialsHelper {
     }
 
     return credentials.getName();
+  }
+
+  public static Set<AccountCredentials> getAllAccountsOfType(AccountCredentials.Type accountType,
+                                                             AccountCredentialsRepository accountCredentialsRepository) {
+    return accountCredentialsRepository
+      .getAll()
+      .stream()
+      .filter(credentials -> credentials.getSupportedTypes().contains(accountType))
+      .collect(Collectors.toSet());
   }
 }

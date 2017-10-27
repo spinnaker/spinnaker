@@ -44,9 +44,6 @@ kayenta:
   stackdriver:
     enabled: false
 
-  redis:
-    enabled: false
-
   memory:
     enabled: false
 

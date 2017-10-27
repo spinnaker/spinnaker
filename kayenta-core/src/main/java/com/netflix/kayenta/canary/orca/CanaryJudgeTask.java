@@ -39,7 +39,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -86,11 +85,6 @@ public class CanaryJudgeTask implements RetryableTask {
       storageServiceRepository
         .getOne(resolvedStorageAccountName)
         .orElseThrow(() -> new IllegalArgumentException("No storage service was configured; unable to load metric set lists."));
-
-    StorageService configurationService =
-      storageServiceRepository
-        .getOne(resolvedStorageAccountName)
-        .orElseThrow(() -> new IllegalArgumentException("No configuration service was configured; unable to load configurations."));
 
     Map<String, Object> canaryConfigMap = (Map<String, Object>)context.get("canaryConfig");
     CanaryConfig canaryConfig = objectMapper.convertValue(canaryConfigMap, CanaryConfig.class);

@@ -120,9 +120,6 @@ public class CanaryController {
       storageServiceRepository
         .getOne(resolvedConfigurationAccountName)
         .orElseThrow(() -> new IllegalArgumentException("No configuration service was configured."));
-
-    canaryConfigId = canaryConfigId.toLowerCase();
-
     CanaryConfig canaryConfig = configurationService.loadObject(resolvedConfigurationAccountName, ObjectType.CANARY_CONFIG, canaryConfigId);
 
     CanaryServiceConfig canaryConfigService =

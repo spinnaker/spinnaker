@@ -16,10 +16,16 @@
 
 package com.netflix.kayenta.configbin.storage;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
+import com.netflix.kayenta.canary.CanaryConfig;
 import com.netflix.kayenta.configbin.security.ConfigBinNamedAccountCredentials;
 import com.netflix.kayenta.configbin.service.ConfigBinRemoteService;
+import com.netflix.kayenta.index.CanaryConfigIndex;
+import com.netflix.kayenta.index.config.CanaryConfigIndexAction;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
 import com.netflix.kayenta.storage.ObjectType;
 import com.netflix.kayenta.storage.StorageService;
@@ -30,14 +36,17 @@ import lombok.Getter;
 import lombok.Singular;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.StringUtils;
 import retrofit.RetrofitError;
 
 import javax.validation.constraints.NotNull;
 import java.io.IOException;
+import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
+import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Builder
@@ -55,6 +64,9 @@ public class ConfigBinStorageService implements StorageService {
   @Autowired
   AccountCredentialsRepository accountCredentialsRepository;
 
+  @Autowired
+  CanaryConfigIndex canaryConfigIndex;
+
   @Override
   public boolean servicesAccount(String accountName) {
     return accountNames.contains(accountName);
@@ -69,11 +81,13 @@ public class ConfigBinStorageService implements StorageService {
     String configType = credentials.getConfigType();
     ConfigBinRemoteService remoteService = credentials.getRemoteService();
     String json;
+
     try {
        json = remoteService.get(ownerApp, configType, objectKey);
     } catch (RetrofitError e) {
       throw new IllegalArgumentException("No such object named " + objectKey);
     }
+
     try {
       return kayentaObjectMapper.readValue(json, objectType.getTypeReference());
     } catch (Throwable e) {
@@ -83,20 +97,83 @@ public class ConfigBinStorageService implements StorageService {
   }
 
   @Override
-  public <T> void storeObject(String accountName, ObjectType objectType, String objectKey, T obj) {
+  public <T> void storeObject(String accountName, ObjectType objectType, String objectKey, T obj, String filename, boolean isAnUpdate) {
     ConfigBinNamedAccountCredentials credentials = (ConfigBinNamedAccountCredentials) accountCredentialsRepository
       .getOne(accountName)
       .orElseThrow(() -> new IllegalArgumentException("Unable to resolve account " + accountName + "."));
     String ownerApp = credentials.getOwnerApp();
     String configType = credentials.getConfigType();
     ConfigBinRemoteService remoteService = credentials.getRemoteService();
+
+    long updatedTimestamp = -1;
+    String correlationId = null;
+    String canaryConfigSummaryJson = null;
+
+    if (objectType == ObjectType.CANARY_CONFIG) {
+      updatedTimestamp = canaryConfigIndex.getRedisTime();
+
+      CanaryConfig canaryConfig = (CanaryConfig)obj;
+
+      checkForDuplicateCanaryConfig(canaryConfig, objectKey, credentials);
+
+      correlationId = UUID.randomUUID().toString();
+
+      Map<String, Object> canaryConfigSummary = new ImmutableMap.Builder<String, Object>()
+        .put("id", objectKey)
+        .put("name", canaryConfig.getName())
+        .put("updatedTimestamp", updatedTimestamp)
+        .put("updatedTimestampIso", Instant.ofEpochMilli(updatedTimestamp).toString())
+        .put("applications", canaryConfig.getApplications())
+        .build();
+
+      try {
+        canaryConfigSummaryJson = kayentaObjectMapper.writeValueAsString(canaryConfigSummary);
+      } catch (JsonProcessingException e) {
+        throw new IllegalArgumentException("Problem serializing canaryConfigSummary -> " + canaryConfigSummary, e);
+      }
+
+      canaryConfigIndex.startPendingUpdate(
+        credentials,
+        updatedTimestamp + "",
+        CanaryConfigIndexAction.UPDATE,
+        correlationId,
+        canaryConfigSummaryJson
+      );
+    }
+
     try {
       String json = kayentaObjectMapper.writeValueAsString(obj);
       RequestBody body = RequestBody.create(MediaType.parse("application/json"), json);
       remoteService.post(ownerApp, configType, objectKey, body);
-    } catch (IOException e) {
+
+      if (objectType == ObjectType.CANARY_CONFIG) {
+        canaryConfigIndex.finishPendingUpdate(credentials, CanaryConfigIndexAction.UPDATE, correlationId);
+      }
+    } catch (Exception e) {
       log.error("Update failed on path {}: {}", objectKey, e);
-      throw new IllegalStateException(e);
+
+      if (objectType == ObjectType.CANARY_CONFIG) {
+        canaryConfigIndex.removeFailedPendingUpdate(
+          credentials,
+          updatedTimestamp + "",
+          CanaryConfigIndexAction.UPDATE,
+          correlationId,
+          canaryConfigSummaryJson
+        );
+      }
+
+      throw new IllegalArgumentException(e);
+    }
+  }
+
+  private void checkForDuplicateCanaryConfig(CanaryConfig canaryConfig, String canaryConfigId, ConfigBinNamedAccountCredentials credentials) {
+    String canaryConfigName = canaryConfig.getName();
+    List<String> applications = canaryConfig.getApplications();
+    String existingCanaryConfigId = canaryConfigIndex.getIdFromName(credentials, canaryConfigName, applications);
+
+    // We want to avoid creating a naming collision due to the renaming of an existing canary config.
+    if (!StringUtils.isEmpty(existingCanaryConfigId) && !existingCanaryConfigId.equals(canaryConfigId)) {
+      throw new IllegalArgumentException("Canary config with name '" + canaryConfigName + "' already exists in the scope of applications " + applications + ".");
     }
   }
 
@@ -107,39 +184,95 @@ public class ConfigBinStorageService implements StorageService {
       .orElseThrow(() -> new IllegalArgumentException("Unable to resolve account " + accountName + "."));
     String ownerApp = credentials.getOwnerApp();
     String configType = credentials.getConfigType();
+
+    long updatedTimestamp = -1;
+    String correlationId = null;
+    String canaryConfigSummaryJson = null;
+
+    if (objectType == ObjectType.CANARY_CONFIG) {
+      updatedTimestamp = canaryConfigIndex.getRedisTime();
+
+      Map<String, Object> existingCanaryConfigSummary = canaryConfigIndex.getSummaryFromId(credentials, objectKey);
+
+      if (existingCanaryConfigSummary != null) {
+        String canaryConfigName = (String)existingCanaryConfigSummary.get("name");
+        List<String> applications = (List<String>)existingCanaryConfigSummary.get("applications");
+
+        correlationId = UUID.randomUUID().toString();
+
+        Map<String, Object> canaryConfigSummary = new ImmutableMap.Builder<String, Object>()
+          .put("id", objectKey)
+          .put("name", canaryConfigName)
+          .put("updatedTimestamp", updatedTimestamp)
+          .put("updatedTimestampIso", Instant.ofEpochMilli(updatedTimestamp).toString())
+          .put("applications", applications)
+          .build();
+
+        try {
+          canaryConfigSummaryJson = kayentaObjectMapper.writeValueAsString(canaryConfigSummary);
+        } catch (JsonProcessingException e) {
+          throw new IllegalArgumentException("Problem serializing canaryConfigSummary -> " + canaryConfigSummary, e);
+        }
+
+        canaryConfigIndex.startPendingUpdate(
+          credentials,
+          updatedTimestamp + "",
+          CanaryConfigIndexAction.DELETE,
+          correlationId,
+          canaryConfigSummaryJson
+        );
+      }
+    }
+
     ConfigBinRemoteService remoteService = credentials.getRemoteService();
+
+    // TODO(mgraff): If remoteService.delete() throws an exception when the target config does not exist, we should
+    // try/catch it here and then call canaryConfigIndex.removeFailedPendingUpdate() like the other storage service
+    // implementations do.
     remoteService.delete(ownerApp, configType, objectKey);
+
+    if (correlationId != null) {
+      canaryConfigIndex.finishPendingUpdate(credentials, CanaryConfigIndexAction.DELETE, correlationId);
+    }
   }
 
   @Override
-  public List<Map<String, Object>> listObjectKeys(String accountName, ObjectType objectType) {
+  public List<Map<String, Object>> listObjectKeys(String accountName, ObjectType objectType, List<String> applications, boolean skipIndex) {
     ConfigBinNamedAccountCredentials credentials = (ConfigBinNamedAccountCredentials) accountCredentialsRepository
       .getOne(accountName)
       .orElseThrow(() -> new IllegalArgumentException("Unable to resolve account " + accountName + "."));
-    String ownerApp = credentials.getOwnerApp();
-    String configType = credentials.getConfigType();
-    ConfigBinRemoteService remoteService = credentials.getRemoteService();
-    String jsonBody = remoteService.list(ownerApp, configType);
-    try {
-      List<String> names = kayentaObjectMapper.readValue(jsonBody, new TypeReference<List<String>>(){});
-      Map<String, Object> objectlist = names
-        .stream()
-        .collect(Collectors.toMap(Function.identity(), this::metadataFor));
-      return Collections.singletonList(objectlist);
-    } catch (IOException e) {
-      e.printStackTrace();
+
+    if (!skipIndex && objectType == ObjectType.CANARY_CONFIG) {
+      Set<Map<String, Object>> canaryConfigSet = canaryConfigIndex.getCanaryConfigSummarySet(credentials, applications);
+
+      return Lists.newArrayList(canaryConfigSet);
+    } else {
+      String ownerApp = credentials.getOwnerApp();
+      String configType = credentials.getConfigType();
+      ConfigBinRemoteService remoteService = credentials.getRemoteService();
+      String jsonBody = remoteService.list(ownerApp, configType);
+
+      try {
+        List<String> ids = kayentaObjectMapper.readValue(jsonBody, new TypeReference<List<String>>() {});
+
+        if (ids.size() > 0) {
+          return ids
+            .stream()
+            .map(this::metadataFor)
+            .collect(Collectors.toList());
+        }
+      } catch (IOException e) {
+        log.error("List failed on path {}: {}", ownerApp, e);
+      }
+
       return Collections.emptyList();
     }
   }
 
-  private ObjectMetadata metadataFor(String key) {
-    return ObjectMetadata.builder().name(key).build();
+  private Map<String, Object> metadataFor(String id) {
+    return new ImmutableMap.Builder<String, Object>()
+      .put("id", id)
+      .put("name", id)
+      .build();
   }
-}
-
-@Builder
-class ObjectMetadata {
-
-  @NotNull
-  public final String name;
 }

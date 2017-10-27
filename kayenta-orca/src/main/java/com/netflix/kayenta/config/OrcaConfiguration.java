@@ -38,6 +38,7 @@ import java.util.UUID;
 @Configuration
 @Import({
   JedisExecutionRepository.class,
+  com.netflix.spinnaker.orca.config.OrcaConfiguration.class,
   OrcaPersistenceConfiguration.class,
   PropertyPlaceholderAutoConfiguration.class,
   QueueConfiguration.class,

@@ -71,6 +71,12 @@ public class CanaryConfig {
 
   @NotNull
   @Getter
+  @Setter
+  @Singular
+  private List<String> applications;
+
+  @NotNull
+  @Getter
   private CanaryJudgeConfig judge;
 
   @NotNull

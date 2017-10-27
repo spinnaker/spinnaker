@@ -28,7 +28,12 @@ import com.amazonaws.services.s3.model.S3ObjectSummary;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 import com.netflix.kayenta.aws.security.AwsNamedAccountCredentials;
+import com.netflix.kayenta.canary.CanaryConfig;
+import com.netflix.kayenta.index.CanaryConfigIndex;
+import com.netflix.kayenta.index.config.CanaryConfigIndexAction;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
 import com.netflix.kayenta.storage.ObjectType;
 import com.netflix.kayenta.storage.StorageService;
@@ -38,6 +43,7 @@ import lombok.Singular;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.StringUtils;
 
 import javax.validation.constraints.NotNull;
 import java.io.ByteArrayInputStream;
@@ -47,6 +53,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 
 @Builder
 @Slf4j
@@ -63,6 +71,9 @@ public class S3StorageService implements StorageService {
   @Autowired
   AccountCredentialsRepository accountCredentialsRepository;
 
+  @Autowired
+  CanaryConfigIndex canaryConfigIndex;
+
   @Override
   public boolean servicesAccount(String accountName) {
     return accountNames.contains(accountName);
@@ -72,7 +83,7 @@ public class S3StorageService implements StorageService {
    * Check to see if the bucket exists, creating it if it is not there.
    */
   public void ensureBucketExists(String accountName) {
-    AwsNamedAccountCredentials credentials = (AwsNamedAccountCredentials) accountCredentialsRepository
+    AwsNamedAccountCredentials credentials = (AwsNamedAccountCredentials)accountCredentialsRepository
       .getOne(accountName)
       .orElseThrow(() -> new IllegalArgumentException("Unable to resolve account " + accountName + "."));
 
@@ -102,14 +113,12 @@ public class S3StorageService implements StorageService {
 
   @Override
   public <T> T loadObject(String accountName, ObjectType objectType, String objectKey) throws IllegalArgumentException {
-    AwsNamedAccountCredentials credentials = (AwsNamedAccountCredentials) accountCredentialsRepository
+    AwsNamedAccountCredentials credentials = (AwsNamedAccountCredentials)accountCredentialsRepository
       .getOne(accountName)
       .orElseThrow(() -> new IllegalArgumentException("Unable to resolve account " + accountName + "."));
     AmazonS3 amazonS3 = credentials.getAmazonS3();
     String bucket = credentials.getBucket();
-    String rootFolder = credentials.getRootFolder();
-    String group = objectType.getGroup();
-    String path = buildS3Key(rootFolder, group, objectKey, objectType.getDefaultFilename());
+    String path = resolveSingularPath(objectType, objectKey, credentials, amazonS3, bucket);
 
     try {
       S3Object s3Object = amazonS3.getObject(bucket, path);
@@ -126,117 +135,275 @@ public class S3StorageService implements StorageService {
     }
   }
 
+  private String resolveSingularPath(ObjectType objectType, String objectKey, AwsNamedAccountCredentials credentials, AmazonS3 amazonS3, String bucket) {
+    String rootFolder = daoRoot(credentials, objectType.getGroup()) + "/" + objectKey;
+    ObjectListing bucketListing = amazonS3.listObjects(
+      new ListObjectsRequest(bucket, rootFolder, null, null, 10000)
+    );
+    List<S3ObjectSummary> summaries = bucketListing.getObjectSummaries();
+
+    if (summaries != null && summaries.size() == 1) {
+      return summaries.get(0).getKey();
+    } else {
+      throw new IllegalArgumentException("Unable to resolve singular " + objectType + " at " + daoRoot(credentials, objectType.getGroup()) + '/' + objectKey + ".");
+    }
+  }
+
   private <T> T deserialize(S3Object s3Object, TypeReference typeReference) throws IOException {
     return objectMapper.readValue(s3Object.getObjectContent(), typeReference);
   }
 
   @Override
-  public <T> void storeObject(String accountName, ObjectType objectType, String objectKey, T obj) {
+  public <T> void storeObject(String accountName, ObjectType objectType, String objectKey, T obj, String filename, boolean isAnUpdate) {
     AwsNamedAccountCredentials credentials = (AwsNamedAccountCredentials) accountCredentialsRepository
       .getOne(accountName)
       .orElseThrow(() -> new IllegalArgumentException("Unable to resolve account " + accountName + "."));
     AmazonS3 amazonS3 = credentials.getAmazonS3();
     String bucket = credentials.getBucket();
-    String rootFolder = credentials.getRootFolder();
     String group = objectType.getGroup();
+    String path = buildS3Key(credentials, objectType, group, objectKey, filename);
 
     ensureBucketExists(accountName);
 
+    long updatedTimestamp = -1;
+    String correlationId = null;
+    String canaryConfigSummaryJson = null;
+    String originalPath = null;
+
+    if (objectType == ObjectType.CANARY_CONFIG) {
+      updatedTimestamp = canaryConfigIndex.getRedisTime();
+
+      CanaryConfig canaryConfig = (CanaryConfig)obj;
+
+      checkForDuplicateCanaryConfig(canaryConfig, objectKey, credentials);
+
+      if (isAnUpdate) {
+        // Storing a canary config while not checking for naming collisions can only be a PUT (i.e. an update to an existing config).
+        originalPath = resolveSingularPath(objectType, objectKey, credentials, amazonS3, bucket);
+      }
+
+      correlationId = UUID.randomUUID().toString();
+
+      Map<String, Object> canaryConfigSummary = new ImmutableMap.Builder<String, Object>()
+        .put("id", objectKey)
+        .put("name", canaryConfig.getName())
+        .put("updatedTimestamp", updatedTimestamp)
+        .put("updatedTimestampIso", Instant.ofEpochMilli(updatedTimestamp).toString())
+        .put("applications", canaryConfig.getApplications())
+        .build();
+
+      try {
+        canaryConfigSummaryJson = objectMapper.writeValueAsString(canaryConfigSummary);
+      } catch (JsonProcessingException e) {
+        throw new IllegalArgumentException("Problem serializing canaryConfigSummary -> " + canaryConfigSummary, e);
+      }
+
+      canaryConfigIndex.startPendingUpdate(
+        credentials,
+        updatedTimestamp + "",
+        CanaryConfigIndexAction.UPDATE,
+        correlationId,
+        canaryConfigSummaryJson
+      );
+    }
+
     try {
       byte[] bytes = objectMapper.writeValueAsBytes(obj);
-
       ObjectMetadata objectMetadata = new ObjectMetadata();
       objectMetadata.setContentLength(bytes.length);
       objectMetadata.setContentMD5(new String(org.apache.commons.codec.binary.Base64.encodeBase64(DigestUtils.md5(bytes))));
 
       amazonS3.putObject(
         bucket,
-        buildS3Key(rootFolder, group, objectKey, objectType.getDefaultFilename()),
+        path,
         new ByteArrayInputStream(bytes),
         objectMetadata
       );
-    } catch (JsonProcessingException e) {
-      log.error("Update failed on path {}: {}", buildTypedFolder(rootFolder, group), e);
-      throw new IllegalStateException(e);
+
+      if (objectType == ObjectType.CANARY_CONFIG) {
+        // This will be true if the canary config is renamed.
+        if (originalPath != null && !originalPath.equals(path)) {
+          amazonS3.deleteObject(bucket, originalPath);
+        }
+
+        canaryConfigIndex.finishPendingUpdate(credentials, CanaryConfigIndexAction.UPDATE, correlationId);
+      }
+    } catch (Exception e) {
+      log.error("Update failed on path {}: {}", buildTypedFolder(credentials, group), e);
+
+      if (objectType == ObjectType.CANARY_CONFIG) {
+        canaryConfigIndex.removeFailedPendingUpdate(
+          credentials,
+          updatedTimestamp + "",
+          CanaryConfigIndexAction.UPDATE,
+          correlationId,
+          canaryConfigSummaryJson
+        );
+      }
+
+      throw new IllegalArgumentException(e);
+    }
+  }
+
+  private void checkForDuplicateCanaryConfig(CanaryConfig canaryConfig, String canaryConfigId, AwsNamedAccountCredentials credentials) {
+    String canaryConfigName = canaryConfig.getName();
+    List<String> applications = canaryConfig.getApplications();
+    String existingCanaryConfigId = canaryConfigIndex.getIdFromName(credentials, canaryConfigName, applications);
+
+    // We want to avoid creating a naming collision due to the renaming of an existing canary config.
+    if (!StringUtils.isEmpty(existingCanaryConfigId) && !existingCanaryConfigId.equals(canaryConfigId)) {
+      throw new IllegalArgumentException("Canary config with name '" + canaryConfigName + "' already exists in the scope of applications " + applications + ".");
     }
   }
 
   @Override
   public void deleteObject(String accountName, ObjectType objectType, String objectKey) {
-    AwsNamedAccountCredentials credentials = (AwsNamedAccountCredentials) accountCredentialsRepository
+    AwsNamedAccountCredentials credentials = (AwsNamedAccountCredentials)accountCredentialsRepository
       .getOne(accountName)
       .orElseThrow(() -> new IllegalArgumentException("Unable to resolve account " + accountName + "."));
     AmazonS3 amazonS3 = credentials.getAmazonS3();
     String bucket = credentials.getBucket();
-    String rootFolder = credentials.getRootFolder();
-    String group = objectType.getGroup();
-    String path = buildS3Key(rootFolder, group, objectKey, objectType.getDefaultFilename());
+    String path = resolveSingularPath(objectType, objectKey, credentials, amazonS3, bucket);
 
-    amazonS3.deleteObject(bucket, path);
-  }
+    long updatedTimestamp = -1;
+    String correlationId = null;
+    String canaryConfigSummaryJson = null;
 
-  @Override
-  public List<Map<String, Object>> listObjectKeys(String accountName, ObjectType objectType) {
-    AwsNamedAccountCredentials credentials = (AwsNamedAccountCredentials) accountCredentialsRepository
-      .getOne(accountName)
-      .orElseThrow(() -> new IllegalArgumentException("Unable to resolve account " + accountName + "."));
-    AmazonS3 amazonS3 = credentials.getAmazonS3();
-    String bucket = credentials.getBucket();
-    String rootFolder = credentials.getRootFolder();
-    String group = objectType.getGroup();
-    String prefix = buildTypedFolder(rootFolder, group);
-    String filename = objectType.getDefaultFilename();
+    if (objectType == ObjectType.CANARY_CONFIG) {
+      updatedTimestamp = canaryConfigIndex.getRedisTime();
 
-    List<Map<String, Object>> result = new ArrayList<>();
+      Map<String, Object> existingCanaryConfigSummary = canaryConfigIndex.getSummaryFromId(credentials, objectKey);
 
-    log.debug("Listing {}", group);
+      if (existingCanaryConfigSummary != null) {
+        String canaryConfigName = (String)existingCanaryConfigSummary.get("name");
+        List<String> applications = (List<String>)existingCanaryConfigSummary.get("applications");
 
-    ObjectListing bucketListing = amazonS3.listObjects(
-      new ListObjectsRequest(bucket, prefix, null, null, 10000)
-    );
+        correlationId = UUID.randomUUID().toString();
 
-    List<S3ObjectSummary> summaries = bucketListing.getObjectSummaries();
+        Map<String, Object> canaryConfigSummary = new ImmutableMap.Builder<String, Object>()
+          .put("id", objectKey)
+          .put("name", canaryConfigName)
+          .put("updatedTimestamp", updatedTimestamp)
+          .put("updatedTimestampIso", Instant.ofEpochMilli(updatedTimestamp).toString())
+          .put("applications", applications)
+          .build();
 
-    while (bucketListing.isTruncated()) {
-      bucketListing = amazonS3.listNextBatchOfObjects(bucketListing);
-      summaries.addAll(bucketListing.getObjectSummaries());
-    }
-
-    if (summaries != null) {
-      for (S3ObjectSummary summary : summaries) {
-        String name = summary.getKey();
-
-        if (name.endsWith(filename)) {
-          String localName = buildObjectKey(rootFolder, objectType, name);
-          Map<String, Object> objectMetadataMap = new HashMap<String, Object>();
-          long updatedTimestamp = summary.getLastModified().getTime();
-
-          objectMetadataMap.put("name", localName);
-          objectMetadataMap.put("updatedTimestamp", updatedTimestamp);
-          objectMetadataMap.put("updatedTimestampIso", Instant.ofEpochMilli(updatedTimestamp).toString());
-          result.add(objectMetadataMap);
+        try {
+          canaryConfigSummaryJson = objectMapper.writeValueAsString(canaryConfigSummary);
+        } catch (JsonProcessingException e) {
+          throw new IllegalArgumentException("Problem serializing canaryConfigSummary -> " + canaryConfigSummary, e);
         }
+
+        canaryConfigIndex.startPendingUpdate(
+          credentials,
+          updatedTimestamp + "",
+          CanaryConfigIndexAction.DELETE,
+          correlationId,
+          canaryConfigSummaryJson
+        );
       }
     }
 
-    return result;
+    try {
+      amazonS3.deleteObject(bucket, path);
+
+      if (correlationId != null) {
+        canaryConfigIndex.finishPendingUpdate(credentials, CanaryConfigIndexAction.DELETE, correlationId);
+      }
+    } catch (Exception e) {
+      log.error("Failed to delete path {}: {}", path, e);
+
+      if (correlationId != null) {
+        canaryConfigIndex.removeFailedPendingUpdate(
+          credentials,
+          updatedTimestamp + "",
+          CanaryConfigIndexAction.DELETE,
+          correlationId,
+          canaryConfigSummaryJson
+        );
+      }
+
+      throw new IllegalArgumentException(e);
+    }
   }
 
-  private String buildS3Key(String rootFolder, String group, String objectKey, String metadataFilename) {
+  @Override
+  public List<Map<String, Object>> listObjectKeys(String accountName, ObjectType objectType, List<String> applications, boolean skipIndex) {
+    AwsNamedAccountCredentials credentials = (AwsNamedAccountCredentials)accountCredentialsRepository
+      .getOne(accountName)
+      .orElseThrow(() -> new IllegalArgumentException("Unable to resolve account " + accountName + "."));
+
+    if (!skipIndex && objectType == ObjectType.CANARY_CONFIG) {
+      Set<Map<String, Object>> canaryConfigSet = canaryConfigIndex.getCanaryConfigSummarySet(credentials, applications);
+
+      return Lists.newArrayList(canaryConfigSet);
+    } else {
+      AmazonS3 amazonS3 = credentials.getAmazonS3();
+      String bucket = credentials.getBucket();
+      String group = objectType.getGroup();
+      String prefix = buildTypedFolder(credentials, group);
+      int skipToOffset = prefix.length() + 1;  // + Trailing slash
+      List<Map<String, Object>> result = new ArrayList<>();
+
+      log.debug("Listing {}", group);
+
+      ObjectListing bucketListing = amazonS3.listObjects(
+        new ListObjectsRequest(bucket, prefix, null, null, 10000)
+      );
+
+      List<S3ObjectSummary> summaries = bucketListing.getObjectSummaries();
+
+      while (bucketListing.isTruncated()) {
+        bucketListing = amazonS3.listNextBatchOfObjects(bucketListing);
+        summaries.addAll(bucketListing.getObjectSummaries());
+      }
+
+      if (summaries != null) {
+        for (S3ObjectSummary summary : summaries) {
+          String itemName = summary.getKey();
+          int indexOfLastSlash = itemName.lastIndexOf("/");
+          Map<String, Object> objectMetadataMap = new HashMap<>();
+          long updatedTimestamp = summary.getLastModified().getTime();
+
+          objectMetadataMap.put("id", itemName.substring(skipToOffset, indexOfLastSlash));
+          objectMetadataMap.put("updatedTimestamp", updatedTimestamp);
+          objectMetadataMap.put("updatedTimestampIso", Instant.ofEpochMilli(updatedTimestamp).toString());
+
+          if (objectType == ObjectType.CANARY_CONFIG) {
+            String name = itemName.substring(indexOfLastSlash + 1);
+
+            if (name.endsWith(".json")) {
+              name = name.substring(0, name.length() - 5);
+            }
+
+            objectMetadataMap.put("name", name);
+          }
+
+          result.add(objectMetadataMap);
+        }
+      }
+
+      return result;
+    }
+  }
+
+  private String daoRoot(AwsNamedAccountCredentials credentials, String daoTypeName) {
+    return credentials.getRootFolder() + '/' + daoTypeName;
+  }
+
+  private String buildS3Key(AwsNamedAccountCredentials credentials, ObjectType objectType, String group, String objectKey, String metadataFilename) {
+    if (metadataFilename == null) {
+      metadataFilename = objectType.getDefaultFilename();
+    }
+
     if (objectKey.endsWith(metadataFilename)) {
       return objectKey;
     }
 
-    return (buildTypedFolder(rootFolder, group) + "/" + objectKey.toLowerCase() + "/" + metadataFilename).replace("//", "/");
+    return (buildTypedFolder(credentials, group) + "/" + objectKey + "/" + metadataFilename).replace("//", "/");
   }
 
-  private String buildObjectKey(String rootFolder, ObjectType objectType, String s3Key) {
-    return s3Key
-      .replaceAll(buildTypedFolder(rootFolder, objectType.getGroup()) + "/", "")
-      .replaceAll("/" + objectType.getDefaultFilename(), "");
-  }
-
-  private String buildTypedFolder(String rootFolder, String type) {
-    return (rootFolder + "/" + type).replaceAll("//", "/");
+  private String buildTypedFolder(AwsNamedAccountCredentials credentials, String type) {
+    return daoRoot(credentials, type).replaceAll("//", "/");
   }
 }

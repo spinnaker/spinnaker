@@ -16,7 +16,8 @@
 
 package com.netflix.kayenta.memory.storage;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.kayenta.canary.CanaryConfig;
+import com.netflix.kayenta.index.CanaryConfigIndex;
 import com.netflix.kayenta.memory.security.MemoryNamedAccountCredentials;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
 import com.netflix.kayenta.storage.ObjectType;
@@ -28,30 +29,21 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.validation.constraints.NotNull;
-import java.io.IOException;
+import java.time.Instant;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
-
-@Builder
-class ObjectMetadata {
-
-  @NotNull
-  public final String name;
-}
 
 @Builder
 @Slf4j
 public class MemoryStorageService implements StorageService {
 
   public static class MemoryStorageServiceBuilder {
-    private Map<String, String> entries = new ConcurrentHashMap<String, String>();
+    private Map<String, Object> entries = new ConcurrentHashMap<>();
+    private Map<String, Map<String, Object>> entryMetadata = new ConcurrentHashMap<>();
   }
-
-  @Autowired
-  ObjectMapper kayentaObjectMapper;
 
   @NotNull
   @Singular
@@ -61,7 +53,8 @@ public class MemoryStorageService implements StorageService {
   @Autowired
   AccountCredentialsRepository accountCredentialsRepository;
 
-  private Map<String, String> entries;
+  private Map<String, Object> entries;
+  private Map<String, Map<String, Object>> entryMetadata;
 
   @Override
   public boolean servicesAccount(String accountName) {
@@ -72,29 +65,52 @@ public class MemoryStorageService implements StorageService {
   public <T> T loadObject(String accountName, ObjectType objectType, String objectKey) throws IllegalArgumentException {
     String key = makeKey(accountName, objectType, objectKey);
     log.info("Getting object type {}, key {}", objectType.toString(), key);
-    String json = entries.get(key);
-    if (json == null) {
+    Object entry = entries.get(key);
+
+    if (entry == null) {
       throw new IllegalArgumentException("No such object named " + key);
     }
 
-    try {
-      return kayentaObjectMapper.readValue(json, objectType.getTypeReference());
-    } catch (IOException e) {
-      log.error("Read failed on path {}: {}", key, e);
-      throw new IllegalStateException(e);
-    }
+    return (T)entry;
   }
 
   @Override
-  public <T> void storeObject(String accountName, ObjectType objectType, String objectKey, T obj) {
+  public <T> void storeObject(String accountName, ObjectType objectType, String objectKey, T obj, String filename, boolean isAnUpdate) {
     String key = makeKey(accountName, objectType, objectKey);
     log.info("Writing key {}", key);
-    try {
-      String json = kayentaObjectMapper.writeValueAsString(obj);
-      entries.put(key, json);
-    } catch (IOException e) {
-      log.error("Update failed on path {}: {}", key, e);
-      throw new IllegalStateException(e);
+
+    long currentTimestamp = System.currentTimeMillis();
+    Map<String, Object> objectMetadataMap = new HashMap<>();
+    objectMetadataMap.put("id", objectKey);
+    objectMetadataMap.put("updatedTimestamp", currentTimestamp);
+    objectMetadataMap.put("updatedTimestampIso", Instant.ofEpochMilli(currentTimestamp).toString());
+
+    if (objectType == ObjectType.CANARY_CONFIG) {
+      CanaryConfig canaryConfig = (CanaryConfig)obj;
+
+      checkForDuplicateCanaryConfig(accountName, objectType, canaryConfig, objectKey);
+
+      objectMetadataMap.put("name", canaryConfig.getName());
+      objectMetadataMap.put("applications", canaryConfig.getApplications());
+    }
+
+    entries.put(key, obj);
+    entryMetadata.put(key, objectMetadataMap);
+  }
+
+  private void checkForDuplicateCanaryConfig(String accountName, ObjectType objectType, CanaryConfig canaryConfig, String canaryConfigId) {
+    String canaryConfigName = canaryConfig.getName();
+    List<String> applications = canaryConfig.getApplications();
+    List<Map<String, Object>> canaryConfigSummaries = listObjectKeys(accountName, objectType, applications, false);
+    Map<String, Object> existingCanaryConfigSummary = canaryConfigSummaries
+      .stream()
+      .filter(it -> it.get("name").equals(canaryConfigName))
+      .findFirst()
+      .orElse(null);
+
+    // We want to avoid creating a naming collision due to the renaming of an existing canary config.
+    if (existingCanaryConfigSummary != null && !existingCanaryConfigSummary.get("id").equals(canaryConfigId)) {
+      throw new IllegalArgumentException("Canary config with name '" + canaryConfigName + "' already exists in the scope of applications " + applications + ".");
     }
   }
 
@@ -102,43 +118,43 @@ public class MemoryStorageService implements StorageService {
   public void deleteObject(String accountName, ObjectType objectType, String objectKey) {
     String key = makeKey(accountName, objectType, objectKey);
     log.info("Deleting key {}", key);
-    String oldValue = entries.remove(key);
+    Object oldValue = entries.remove(key);
+    entryMetadata.remove(key);
+
     if (oldValue == null) {
       log.error("Object named {} does not exist", key);
-      throw new IllegalStateException("Does not exist");
+      throw new IllegalArgumentException("Does not exist");
     }
   }
 
   @Override
-  public List<Map<String, Object>> listObjectKeys(String accountName, ObjectType objectType) {
-    String prefix = makePrefix(accountName, objectType);
+  public List<Map<String, Object>> listObjectKeys(String accountName, ObjectType objectType, List<String> applications, boolean skipIndex) {
+    boolean filterOnApplications = applications != null && applications.size() > 0;
+    List<Map<String, Object>> result = new ArrayList<>();
 
-    return entries
-            .entrySet()
-            .parallelStream()
-            .filter(e -> e.getKey().startsWith(prefix))
-            .map(e -> mapFrom(e.getKey()))
-            .collect(Collectors.toList());
-  }
+    for (Map.Entry<String, Object> entry : entries.entrySet()) {
+      if (objectType == ObjectType.CANARY_CONFIG) {
+        if (filterOnApplications) {
+          CanaryConfig canaryConfig = (CanaryConfig)entry.getValue();
 
-  private Map<String, Object> mapFrom(String key) {
-    Map<String, Object> ret = new HashMap<String, Object>();
-    ret.put(nameFromKey(key), metadataFor(key));
-    return ret;
-  }
+          if (CanaryConfigIndex.haveCommonElements(applications, canaryConfig.getApplications())) {
+            result.add(entryMetadata.get(entry.getKey()));
+          }
+        } else {
+          result.add(entryMetadata.get(entry.getKey()));
+        }
+      } else {
+        result.add(entryMetadata.get(entry.getKey()));
+      }
+    }
 
-  private String nameFromKey(String key) {
-    return key.split(":", 3)[2];
-  }
-
-  private ObjectMetadata metadataFor(String key) {
-    return ObjectMetadata.builder().name(nameFromKey(key)).build();
+    return result;
   }
 
   private String makePrefix(String accountName, ObjectType objectType) {
     MemoryNamedAccountCredentials credentials = (MemoryNamedAccountCredentials) accountCredentialsRepository
-            .getOne(accountName)
-            .orElseThrow(() -> new IllegalArgumentException("Unable to resolve account " + accountName + "."));
+      .getOne(accountName)
+      .orElseThrow(() -> new IllegalArgumentException("Unable to resolve account " + accountName + "."));
     String namespace = credentials.getNamespace();
     String typename = objectType.toString();
     return namespace + ":" + typename + ":";

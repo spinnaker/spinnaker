@@ -58,7 +58,7 @@ public class PipelineController {
   ExecutionLogRepository executionLogRepository;
 
   @Autowired
-  ObjectMapper objectMapper;
+  ObjectMapper kayentaObjectMapper;
 
   @Autowired
   ConfigurableApplicationContext context;
@@ -106,7 +106,7 @@ public class PipelineController {
   }
 
   private String startPipeline(Map config) throws Exception {
-    String json = objectMapper.writeValueAsString(config);
+    String json = kayentaObjectMapper.writeValueAsString(config);
 
     log.info("Requested pipeline: {}", json);
 

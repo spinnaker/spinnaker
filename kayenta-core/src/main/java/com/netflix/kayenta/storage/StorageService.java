@@ -22,7 +22,15 @@ import java.util.Map;
 public interface StorageService {
   boolean servicesAccount(String accountName);
   <T> T loadObject(String accountName, ObjectType objectType, String objectKey) throws IllegalArgumentException;
-  <T> void storeObject(String accountName, ObjectType objectType, String objectKey, T obj);
+  <T> void storeObject(String accountName, ObjectType objectType, String objectKey, T obj, String filename, boolean isAnUpdate);
   void deleteObject(String accountName, ObjectType objectType, String objectKey);
-  List<Map<String, Object>> listObjectKeys(String accountName, ObjectType objectType);
+  List<Map<String, Object>> listObjectKeys(String accountName, ObjectType objectType, List<String> applications, boolean skipIndex);
+
+  default <T> void storeObject(String accountName, ObjectType objectType, String objectKey, T obj) {
+    storeObject(accountName, objectType, objectKey, obj, null, true);
+  }
+
+  default List<Map<String, Object>> listObjectKeys(String accountName, ObjectType objectType) {
+    return listObjectKeys(accountName, objectType, null, false);
+  }
 }

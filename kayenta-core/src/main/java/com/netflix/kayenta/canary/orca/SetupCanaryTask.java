@@ -67,7 +67,7 @@ public class SetupCanaryTask implements RetryableTask {
         storageServiceRepository
             .getOne(resolvedConfigurationAccountName)
             .orElseThrow(() -> new IllegalArgumentException("No configuration service was configured; unable to load configurations."));
-    CanaryConfig canaryConfig = configurationService.loadObject(resolvedConfigurationAccountName, ObjectType.CANARY_CONFIG, canaryConfigId.toLowerCase());
+    CanaryConfig canaryConfig = configurationService.loadObject(resolvedConfigurationAccountName, ObjectType.CANARY_CONFIG, canaryConfigId);
 
     Map outputs = Collections.singletonMap("canaryConfig", canaryConfig);
 
