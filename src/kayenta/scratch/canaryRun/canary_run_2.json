@@ -11,8 +11,126 @@
   "context": {},
   "stages": [
     {
-      "id": "e9f69648-d211-4014-89bf-5ee596b2fde9",
+      "id": "c2d317c9-0879-41a7-aaf4-b574c4dc37c2",
       "refId": "1",
+      "type": "setupCanary",
+      "name": "Setup Canary",
+      "startTime": 1508948554168,
+      "endTime": 1508948554434,
+      "status": "SUCCEEDED",
+      "context": {
+        "user": "[anonymous]",
+        "canaryConfigId": "my-canary-config-2"
+      },
+      "outputs": {
+        "canaryConfig": {
+          "createdTimestamp": 1507152181248,
+          "updatedTimestamp": 1508425989713,
+          "createdTimestampIso": "2017-10-04T21:23:01.248Z",
+          "updatedTimestampIso": "2017-10-19T15:13:09.713Z",
+          "name": "my-canary-config-2",
+          "description": "One of the best canary configs out there.",
+          "configVersion": "1",
+          "judge": {
+            "name": "NetflixACAJudge-v1.0",
+            "judgeConfigurations": {}
+          },
+          "metrics": [
+            {
+              "name": "metric F",
+              "serviceName": "stackdriver",
+              "query": {
+                "type": "stackdriver",
+                "metricType": "compute.googleapis.com/instance/cpu/utilization"
+              },
+              "groups": [
+                "group A"
+              ]
+            },
+            {
+              "name": "metric A",
+              "serviceName": "stackdriver",
+              "query": {
+                "type": "stackdriver",
+                "metricType": "compute.googleapis.com/firewall/dropped_bytes_count"
+              },
+              "groups": [
+                "group B",
+                "group A"
+              ]
+            },
+            {
+              "name": "metric B",
+              "serviceName": "stackdriver",
+              "query": {
+                "type": "stackdriver",
+                "metricType": "compute.googleapis.com/instance/cpu/usage_time"
+              },
+              "groups": [
+                "group B"
+              ]
+            },
+            {
+              "name": "metric C",
+              "serviceName": "stackdriver",
+              "query": {
+                "type": "stackdriver",
+                "metricType": "compute.googleapis.com/instance/disk/write_ops_count"
+              },
+              "groups": [
+                "group B"
+              ]
+            },
+            {
+              "name": "metric D",
+              "serviceName": "stackdriver",
+              "query": {
+                "type": "stackdriver",
+                "metricType": "compute.googleapis.com/instance/network/received_bytes_count"
+              },
+              "groups": [
+                "group C"
+              ]
+            }
+          ],
+          "services": {
+            "stackdriver": {
+              "name": "stackdriver",
+              "type": "stackdriver"
+            }
+          },
+          "classifier": {
+            "groupWeights": {
+              "group A": 40,
+              "group B": 40,
+              "group C": 20
+            },
+            "scoreThresholds": {
+              "pass": 60,
+              "marginal": 30
+            }
+          }
+        }
+      },
+      "tasks": [
+        {
+          "id": "1",
+          "implementingClass": "com.netflix.kayenta.canary.orca.SetupCanaryTask",
+          "name": "setupCanary",
+          "startTime": 1508948554198,
+          "endTime": 1508948554420,
+          "status": "SUCCEEDED",
+          "stageStart": true,
+          "stageEnd": true,
+          "loopStart": false,
+          "loopEnd": false
+        }
+      ],
+      "requisiteStageRefIds": []
+    },
+    {
+      "id": "e9f69648-d211-4014-89bf-5ee596b2fde9",
+      "refId": "2",
       "type": "stackdriverFetch",
       "name": "Fetch Control from stackdriver",
       "startTime": 1508425994543,
@@ -57,13 +175,13 @@
       ],
       "syntheticStageOwner": null,
       "parentStageId": null,
-      "requisiteStageRefIds": [],
+      "requisiteStageRefIds": ["1"],
       "scheduledTime": null,
       "lastModified": null
     },
     {
       "id": "80125cb2-535c-4836-8e15-695a5a726146",
-      "refId": "2",
+      "refId": "3",
       "type": "stackdriverFetch",
       "name": "Fetch Experiment from stackdriver",
       "startTime": 1508425994553,
@@ -108,13 +226,13 @@
       ],
       "syntheticStageOwner": null,
       "parentStageId": null,
-      "requisiteStageRefIds": [],
+      "requisiteStageRefIds": ["1"],
       "scheduledTime": null,
       "lastModified": null
     },
     {
       "id": "703c9726-27de-4f83-b00e-d47501b3eb8d",
-      "refId": "3",
+      "refId": "4",
       "type": "metricSetMixer",
       "name": "Mix Control and Experiment Results",
       "startTime": 1508426001095,
@@ -157,15 +275,15 @@
       "syntheticStageOwner": null,
       "parentStageId": null,
       "requisiteStageRefIds": [
-        "1",
-        "2"
+        "2",
+        "3"
       ],
       "scheduledTime": null,
       "lastModified": null
     },
     {
       "id": "76a36f77-ac76-4ab0-ad90-da372082b4a3",
-      "refId": "4",
+      "refId": "5",
       "type": "canaryJudge",
       "name": "Perform Analysis",
       "startTime": 1508426003787,
@@ -188,7 +306,7 @@
           "results": {
             "metric B": {
               "name": "metric B",
-              "metricSetPairId": "2",
+              "id": "2",
               "tags": {},
               "classification": "Pass",
               "groups": [
@@ -218,7 +336,7 @@
             },
             "metric F": {
               "name": "metric F",
-              "metricSetPairId": "0",
+              "id": "0",
               "tags": {},
               "classification": "Pass",
               "groups": [
@@ -248,7 +366,7 @@
             },
             "metric C": {
               "name": "metric C",
-              "metricSetPairId": "3",
+              "id": "3",
               "tags": {},
               "classification": "High",
               "classificationReason": "The metric was classified as High",
@@ -279,7 +397,7 @@
             },
             "metric D": {
               "name": "metric D",
-              "metricSetPairId": "4",
+              "id": "4",
               "tags": {},
               "classification": "Pass",
               "groups": [
@@ -309,7 +427,7 @@
             },
             "metric A": {
               "name": "metric A",
-              "metricSetPairId": "1",
+              "id": "1",
               "tags": {},
               "classification": "Pass",
               "groups": [
@@ -384,7 +502,7 @@
       "syntheticStageOwner": null,
       "parentStageId": null,
       "requisiteStageRefIds": [
-        "3"
+        "4"
       ],
       "scheduledTime": null,
       "lastModified": null

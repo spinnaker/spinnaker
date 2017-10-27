@@ -95,12 +95,12 @@ const selectedMetricReducer = (state: ICanaryState, action: Action & any) => {
   const { payload: { metric } } = action;
 
   const results = metricResultsSelector(state)[metric];
-  if (!state.selectedRun.metricSetPair.pair || state.selectedRun.metricSetPair.pair.id !== results.metricSetPairId) {
+  if (!state.selectedRun.metricSetPair.pair || state.selectedRun.metricSetPair.pair.id !== results.id) {
     // If we don't have the metric set pair loaded when we select the metric,
     // schedule loading it now.
     // TODO: cache metric set pairs.
     action.asyncDispatch(Creators.loadMetricSetPairRequest({
-      pairId: results.metricSetPairId,
+      pairId: results.id,
     }));
   }
 

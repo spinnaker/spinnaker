@@ -68,6 +68,18 @@
         0.04545500185508603,
         0.04433265026372091
       ]
+    },
+    "scopes": {
+      "control": {
+        "startTimeMillis": 1507138669149,
+        "startTimeIso": "2017-10-04T17:37:49.149Z",
+        "stepMillis": 60000
+      },
+      "experiment": {
+        "startTimeMillis": 1507138669149,
+        "startTimeIso": "2017-10-04T17:37:49.149Z",
+        "stepMillis": 60000
+      }
     }
   },
   {
@@ -139,6 +151,18 @@
         0,
         0
       ]
+    },
+    "scopes": {
+      "control": {
+        "startTimeMillis": 1507138669149,
+        "startTimeIso": "2017-10-04T17:37:49.149Z",
+        "stepMillis": 60000
+      },
+      "experiment": {
+        "startTimeMillis": 1507138669149,
+        "startTimeIso": "2017-10-04T17:37:49.149Z",
+        "stepMillis": 60000
+      }
     }
   },
   {
@@ -210,6 +234,18 @@
         0.559598943912647,
         0.539748315861118
       ]
+    },
+    "scopes": {
+      "control": {
+        "startTimeMillis": 1507138669149,
+        "startTimeIso": "2017-10-04T17:37:49.149Z",
+        "stepMillis": 60000
+      },
+      "experiment": {
+        "startTimeMillis": 1507138669149,
+        "startTimeIso": "2017-10-04T17:37:49.149Z",
+        "stepMillis": 60000
+      }
     }
   },
   {
@@ -281,6 +317,18 @@
         11,
         27
       ]
+    },
+    "scopes": {
+      "control": {
+        "startTimeMillis": 1507138669149,
+        "startTimeIso": "2017-10-04T17:37:49.149Z",
+        "stepMillis": 60000
+      },
+      "experiment": {
+        "startTimeMillis": 1507138669149,
+        "startTimeIso": "2017-10-04T17:37:49.149Z",
+        "stepMillis": 60000
+      }
     }
   },
   {
@@ -352,6 +400,18 @@
         79583.5,
         79430
       ]
+    },
+    "scopes": {
+      "control": {
+        "startTimeMillis": 1507138669149,
+        "startTimeIso": "2017-10-04T17:37:49.149Z",
+        "stepMillis": 60000
+      },
+      "experiment": {
+        "startTimeMillis": 1507138669149,
+        "startTimeIso": "2017-10-04T17:37:49.149Z",
+        "stepMillis": 60000
+      }
     }
   }
 ]
