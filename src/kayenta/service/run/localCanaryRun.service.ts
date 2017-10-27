@@ -18,7 +18,7 @@ const metricSetPairLists: {runId: string, list: IMetricSetPair[]}[] =
       return {
         runId,
         list: require(`kayenta/scratch/canaryRun/${listPath.slice(2)}`),
-      }
+      };
     });
 
 /*
