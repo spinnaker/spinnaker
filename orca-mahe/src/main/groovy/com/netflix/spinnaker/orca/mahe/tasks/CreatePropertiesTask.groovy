@@ -60,7 +60,7 @@ class CreatePropertiesTask implements Task {
         propertyAction = PropertyAction.DELETE
       } else {
         log.info("Upserting Property: ${prop} on execution ${stage.execution.id}")
-        Map existingProperty = getExistingProperty(prop)
+        Map existingProperty = getExistingProperty(prop.property)
         log.info("Property ${prop.key} ${existingProperty ? 'exists' : 'does not exist'}")
         response = maheService.upsertProperty(prop)
         propertyAction = existingProperty ? PropertyAction.UPDATE : PropertyAction.CREATE
