@@ -121,4 +121,42 @@ class EmailNotificationAgentSpec extends Specification {
     }
   }
 
+  def "favors custom subject and body"() {
+    given:
+    def email = new BlockingVariables()
+    mailService.send(*_) >> { to, cc, subject, text ->
+      email.to = to
+      email.cc = cc
+      email.subject = subject
+      email.text = text
+    }
+
+    when:
+    agent.sendNotifications(
+      [address: address],
+      application,
+      event,
+      [type: "stage"],
+      status
+    )
+
+    then:
+    email.subject == customSubject
+    email.text == "<p>A <strong>custom</strong> body</p>\n"
+
+    and:
+    0 * _
+
+    where:
+    customSubject = "A custom subject"
+    customBody = "A **custom** body"
+    application = "whatever"
+    address = "whoever@netflix.com"
+    status = "complete"
+    pipelineName = "foo-pipeline"
+    stageName = "foo-stage"
+    event = new Event(content: [context: [customSubject: customSubject,
+                                          customBody: customBody,
+                                          stageDetails: [name: "foo-stage"]], execution: [name: "foo-pipeline"]])
+  }
 }

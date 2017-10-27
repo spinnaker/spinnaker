@@ -76,16 +76,21 @@ class HipchatNotificationAgent extends AbstractEventNotificationAgent {
         message = """Stage ${event.content?.context?.stageDetails.name} for """
       }
 
+      String link = "${spinnakerUrl}/#/applications/${application}/${config.type == 'stage' ? 'executions/details' : config.link }/${event.content?.execution?.id}"
+
       message +=
-        """${WordUtils.capitalize(application)}'s <a href="${
-          spinnakerUrl
-        }/#/applications/${application}/${
-          config.type == 'stage' ? 'executions/details' : config.link
-        }/${event.content?.execution?.id}">${
+        """${WordUtils.capitalize(application)}'s <a href="${link}">${
           event.content?.execution?.name ?: event.content?.execution?.description
         }</a> ${buildInfo} ${config.type == 'task' ? 'task' : 'pipeline'} ${status == 'starting' ? 'is' : 'has'} ${
           status == 'complete' ? 'completed successfully' : status
         }"""
+
+      String customMessage = event.content?.context?.customMessage
+      if (customMessage && event.content?.execution?.id) {
+        message = customMessage
+          .replace("{{executionId}}", (String) event.content.execution.id)
+          .replace("{{link}}", link)
+      }
 
       hipchatService.sendMessage(
         token,

@@ -45,6 +45,7 @@ class EmailNotificationAgent extends AbstractEventNotificationAgent {
 
   @Override
   void sendNotifications(Map preference, String application, Event event, Map config, String status) {
+    Map context = event.content?.context ?: [:]
     String buildInfo = ''
 
     if (config.type == 'pipeline' || config.type == 'stage') {
@@ -55,12 +56,10 @@ class EmailNotificationAgent extends AbstractEventNotificationAgent {
       }
     }
 
-    String subject = '[Spinnaker] '
-
-    def customMessage = preference.message?."$status"
+    String subject
 
     if (config.type == 'stage') {
-      subject = """Stage ${event.content.context.stageDetails.name} for ${
+      subject = """Stage ${context.stageDetails.name} for ${
         application
       }'s ${event.content?.execution?.name} pipeline ${buildInfo}"""
     } else if (config.type == 'pipeline') {
@@ -75,6 +74,8 @@ class EmailNotificationAgent extends AbstractEventNotificationAgent {
       status == 'complete' ? 'completed successfully' : status
     }"""
 
+    subject = context.customSubject ?: subject
+
     log.info('Sending email {} for {} {} {} {}', kv('address', preference.address), kv('application', application), kv('type', config.type), kv('status', status), kv('executionId', event.content?.execution?.id))
 
     sendMessage(
@@ -85,7 +86,8 @@ class EmailNotificationAgent extends AbstractEventNotificationAgent {
       config.type,
       status,
       config.link,
-      preference.message?."$config.type.$status"?.text
+      preference.message?."$config.type.$status"?.text,
+      context.customBody
     )
   }
 
@@ -94,24 +96,29 @@ class EmailNotificationAgent extends AbstractEventNotificationAgent {
     'email'
   }
 
-  private void sendMessage(String[] email, String[] cc, Event event, String title, String type, String status, String link, String customMessage) {
-    Template template = configuration.getTemplate(type == 'stage' ? 'stage.ftl' : 'pipeline.ftl', "UTF-8")
-    def body = FreeMarkerTemplateUtils.processTemplateIntoString(
-      template,
-      [
-        event          : prettyPrint(toJson(event.content)),
-        url            : spinnakerUrl,
-        htmlToText     : new HtmlToPlainTextFormatter(),
-        markdownToHtml : new MarkdownToHtmlFormatter(),
-        application    : event.details?.application,
-        executionId    : event.content?.execution?.id,
-        type           : type,
-        status         : status,
-        link           : link,
-        name           : event.content?.execution?.name ?: event.content?.execution?.description,
-        message        : customMessage
-      ]
-    )
+  private void sendMessage(String[] email, String[] cc, Event event, String title, String type, String status, String link, String customMessage, String customBody) {
+    String body
+    if (customBody) {
+      body = new MarkdownToHtmlFormatter().convert(customBody)
+    } else {
+      Template template = configuration.getTemplate(type == 'stage' ? 'stage.ftl' : 'pipeline.ftl', "UTF-8")
+      body = FreeMarkerTemplateUtils.processTemplateIntoString(
+        template,
+        [
+          event         : prettyPrint(toJson(event.content)),
+          url           : spinnakerUrl,
+          htmlToText    : new HtmlToPlainTextFormatter(),
+          markdownToHtml: new MarkdownToHtmlFormatter(),
+          application   : event.details?.application,
+          executionId   : event.content?.execution?.id,
+          type          : type,
+          status        : status,
+          link          : link,
+          name          : event.content?.execution?.name ?: event.content?.execution?.description,
+          message       : customMessage
+        ]
+      )
+    }
 
     mailService.send(email, cc, title, body)
   }
