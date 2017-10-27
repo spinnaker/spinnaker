@@ -30,6 +30,15 @@ import org.springframework.web.client.RestTemplate
 @Service
 class WebhookService {
 
+  // These headers create a security vulnerability.
+  static final List<String> headerBlacklist = [
+    "X-SPINNAKER-USER",
+    "X-SPINNAKER-ACCOUNT",
+    "X-SPINNAKER-USER-ORIGIN",
+    "X-SPINNAKER-REQUEST-ID",
+    "X-SPINNAKER-EXECUTION-ID"
+  ];
+
   @Autowired
   private RestTemplate restTemplate
 
@@ -60,6 +69,9 @@ class WebhookService {
   private static HttpHeaders buildHttpHeaders(Object customHeaders) {
     HttpHeaders headers = new HttpHeaders()
     customHeaders?.each { key, value ->
+      if (headerBlacklist.contains(key.toUpperCase())) {
+        return;
+      }
       if (value instanceof List<String>) {
         headers.put(key as String, value as List<String>)
       } else {
