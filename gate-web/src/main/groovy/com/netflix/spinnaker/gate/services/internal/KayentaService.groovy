@@ -24,7 +24,7 @@ interface KayentaService {
   List getCredentials()
 
   @GET("/canaryConfig")
-  List getCanaryConfigs()
+  List getCanaryConfigs(@Query("application") String application)
 
   @GET("/canaryConfig/{id}")
   Map getCanaryConfig(@Path("id") String id)

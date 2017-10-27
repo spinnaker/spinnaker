@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.gate.services
 
 interface CanaryConfigService {
-  List getCanaryConfigs()
+  List getCanaryConfigs(String application)
   Map getCanaryConfig(String id)
   String createCanaryConfig(Map config)
   String updateCanaryConfig(String id, Map config)

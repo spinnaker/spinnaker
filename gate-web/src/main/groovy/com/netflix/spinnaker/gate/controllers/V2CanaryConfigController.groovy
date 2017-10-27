@@ -24,6 +24,7 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
@@ -36,8 +37,8 @@ class V2CanaryConfigController {
 
   @ApiOperation(value = "Retrieve a list of canary configurations")
   @RequestMapping(method = RequestMethod.GET)
-  List getCanaryConfigs() {
-    canaryConfigService.getCanaryConfigs()
+  List getCanaryConfigs(@RequestParam(value = "application", required = false) String application) {
+    canaryConfigService.getCanaryConfigs(application)
   }
 
   @ApiOperation(value = "Retrieve a canary configuration by id")

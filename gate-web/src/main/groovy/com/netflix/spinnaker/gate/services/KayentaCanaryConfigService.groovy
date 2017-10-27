@@ -37,9 +37,9 @@ class KayentaCanaryConfigService implements CanaryConfigService {
   @Autowired
   KayentaService kayentaService
 
-  List getCanaryConfigs() {
+  List getCanaryConfigs(String application) {
     HystrixFactory.newListCommand(GROUP, "getCanaryConfigs") {
-      kayentaService.getCanaryConfigs()
+      kayentaService.getCanaryConfigs(application)
     } execute()
   }
 
