@@ -170,7 +170,7 @@ class PropertyChangeCleanupSpec extends Specification {
 
     then:
 
-    1 * mahe.getPropertyById(createPropertyId, _) >> new Response('', 200, 'OK', [], new TypedString(mapper.writeValueAsString([:])))
+    1 * mahe.getPropertyById(createPropertyId, _) >> new Response('', 200, 'OK', [], new TypedString(mapper.writeValueAsString([property:[:]])))
     3 * mahe.getPropertyById(deletePropertyId, _) >> { throw NOT_FOUND }
 
     1 * mahe.deleteProperty(createPropertyId, 'spinnaker rollback', propertyEnv) >> { def res ->
@@ -212,7 +212,7 @@ class PropertyChangeCleanupSpec extends Specification {
     listener.afterExecution(null, pipeline, executionStatus, false)
 
     then:
-    1 * mahe.getPropertyById(propertyId, _) >> new Response('', 200, 'OK', [], new TypedString(mapper.writeValueAsString([:])))
+    1 * mahe.getPropertyById(propertyId, _) >> new Response('', 200, 'OK', [], new TypedString(mapper.writeValueAsString([property:[:]])))
     1 * mahe.deleteProperty(propertyId, 'spinnaker rollback', propertyEnv) >> { def res ->
       new Response("http://mahe", 200, "OK", [], null)
     }
@@ -241,7 +241,7 @@ class PropertyChangeCleanupSpec extends Specification {
     listener.afterExecution(null, pipeline, executionStatus, false)
 
     then:
-    1 * mahe.getPropertyById(propertyId, _) >> new Response('', 200, 'OK', [], new TypedString(mapper.writeValueAsString([:])))
+    1 * mahe.getPropertyById(propertyId, _) >> new Response('', 200, 'OK', [], new TypedString(mapper.writeValueAsString([property:[:]])))
     1 * mahe.deleteProperty(propertyId, 'spinnaker rollback', propertyEnv) >> { def res ->
       new Response("http://mahe", 500, "OK", [] , null)
     }
@@ -273,7 +273,7 @@ class PropertyChangeCleanupSpec extends Specification {
     listener.afterExecution(null, pipeline, null, true)
 
     then:
-    1 * mahe.getPropertyById(propertyId, _) >> new Response('', 200, 'OK', [], new TypedString(mapper.writeValueAsString([:])))
+    1 * mahe.getPropertyById(propertyId, _) >> new Response('', 200, 'OK', [], new TypedString(mapper.writeValueAsString([property:[:]])))
     1 * mahe.deleteProperty(propertyId, 'spinnaker rollback', propertyEnv) >> { def res ->
       def json = mapper.writeValueAsString([propertyId: propertyId])
       new Response("http://mahe", 200, "OK", [], new TypedByteArray('application/json', json.bytes))
@@ -300,7 +300,7 @@ class PropertyChangeCleanupSpec extends Specification {
     listener.afterExecution(null, pipeline, null, true)
 
     then:
-    1 * mahe.getPropertyById(propertyId, _) >> new Response('', 200, 'OK', [], new TypedString(mapper.writeValueAsString([:])))
+    1 * mahe.getPropertyById(propertyId, _) >> new Response('', 200, 'OK', [], new TypedString(mapper.writeValueAsString([property:[:]])))
     1 * mahe.upsertProperty(previous) >> { Map res ->
       String propId = "${res.property.key}|${res.property.value}"
       def json = mapper.writeValueAsString([propertyId: propId])
@@ -354,7 +354,7 @@ class PropertyChangeCleanupSpec extends Specification {
     listener.afterExecution(null, pipeline, ExecutionStatus.TERMINAL, true)
 
     then:
-    3 * mahe.getPropertyById(propertyId, _) >> new Response('', 200, 'OK', [], new TypedString(mapper.writeValueAsString([:])))
+    3 * mahe.getPropertyById(propertyId, _) >> new Response('', 200, 'OK', [], new TypedString(mapper.writeValueAsString([property:[:]])))
     3 * mahe.deleteProperty(propertyId, 'spinnaker rollback', propertyEnv) >> { def res ->
       def json = mapper.writeValueAsString([propertyId: propertyId])
       new Response("http://mahe", 200, "OK", [], new TypedByteArray('application/json', json.bytes))
@@ -388,7 +388,7 @@ class PropertyChangeCleanupSpec extends Specification {
     listener.afterExecution(null, pipeline, ExecutionStatus.TERMINAL, true)
 
     then:
-    1 * mahe.getPropertyById(propertyId, _) >> new Response('', 200, 'OK', [], new TypedString(mapper.writeValueAsString([:])))
+    1 * mahe.getPropertyById(propertyId, _) >> new Response('', 200, 'OK', [], new TypedString(mapper.writeValueAsString([property:[:]])))
     3 * mahe.getPropertyById(deletedPropertyId, _) >> { throw NOT_FOUND }
     1 * mahe.deleteProperty(propertyId, 'spinnaker rollback', propertyEnv) >> { def res ->
       def json = mapper.writeValueAsString([propertyId: propertyId])
@@ -448,7 +448,7 @@ class PropertyChangeCleanupSpec extends Specification {
 
     then:
 
-    1 * mahe.getPropertyById(propertyId, _) >> new Response('', 200, 'OK', [], new TypedString(mapper.writeValueAsString([ts: "2018"])))
+    1 * mahe.getPropertyById(propertyId, _) >> new Response('', 200, 'OK', [], new TypedString(mapper.writeValueAsString([property:[ts:"2018"]])))
     0 * _
 
     where:
@@ -472,7 +472,7 @@ class PropertyChangeCleanupSpec extends Specification {
 
     then:
 
-    1 * mahe.getPropertyById(propertyId, _) >> new Response('', 200, 'OK', [], new TypedString(mapper.writeValueAsString([ts: "2018"])))
+    1 * mahe.getPropertyById(propertyId, _) >> new Response('', 200, 'OK', [], new TypedString(mapper.writeValueAsString([property:[ts:"2018"]])))
     0 * _
 
     where:

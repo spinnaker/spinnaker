@@ -65,7 +65,7 @@ class FastPropertyCleanupListener implements ExecutionListener {
                 Response response = mahe.deleteProperty(propertyId, "spinnaker rollback", extractEnvironment(propertyId))
                 resolveRollbackResponse(response, stage.context.propertyAction.toString(), prop)
               } else {
-                log.info("Property has been updated since this execution; not rolling back")
+                log.info("Property ${propertyId} has been updated since this execution (${execution.id}); not rolling back create")
               }
             }
             break
@@ -79,7 +79,7 @@ class FastPropertyCleanupListener implements ExecutionListener {
                 Response response = mahe.upsertProperty(originalProp)
                 resolveRollbackResponse(response, stage.context.propertyAction.toString(), property)
               } else {
-                log.info("Property has been updated since this execution; not rolling back")
+                log.info("Property ${propertyId} has been updated since this execution (${execution.id}); not rolling back update")
               }
             }
             break
@@ -87,7 +87,7 @@ class FastPropertyCleanupListener implements ExecutionListener {
             stage.context.originalProperties.each { Map prop ->
               Map property = prop.property
               if (propertyExists(property)) {
-               log.info("Property exists, not restoring to original state after delete.")
+               log.info("Property ${property.propertyId} exists, not restoring to original state after delete.")
               } else {
                 if (property.propertyId) {
                   property.remove('propertyId')
@@ -110,7 +110,7 @@ class FastPropertyCleanupListener implements ExecutionListener {
       return retrySupport.retry({
         Response propertyResponse = mahe.getPropertyById(propertyId, env)
         Map currentProperty = mapper.readValue(propertyResponse.body.in().text, Map)
-        return currentProperty.ts == property.ts
+        return currentProperty.property.ts == property.ts
       }, 3, 2, false)
     } catch (RetrofitError error) {
       if (error.response.status == 404) {
