@@ -9,7 +9,6 @@ import {
   CacheInitializerService,
   IAccountDetails,
   IDeploymentStrategy,
-  IMoniker,
   IRegion,
   ISecurityGroup,
   IServerGroupCommand,
@@ -572,14 +571,7 @@ export class AwsServerGroupConfigurationService {
       };
 
       command.clusterChanged = (): void => {
-        const appName = command.application;
-        const moniker: IMoniker = {
-          app: appName,
-          stack: command.stack,
-          detail: command.freeFormDetails,
-          cluster: this.namingService.getClusterName(appName, command.stack, command.freeFormDetails)
-        };
-        command.moniker = moniker;
+        command.moniker = this.namingService.getMoniker(command.application, command.stack, command.freeFormDetails);
       };
 
       command.credentialsChanged = (): IServerGroupCommandResult => {

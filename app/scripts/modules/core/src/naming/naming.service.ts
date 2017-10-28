@@ -1,5 +1,6 @@
 import { module } from 'angular';
 import { padStart, isNil } from 'lodash';
+import { IMoniker } from './IMoniker';
 
 export interface IComponentName {
   application: string;
@@ -99,6 +100,11 @@ export class NamingService {
 
   public parseSecurityGroupName(securityGroupName: string): IComponentName {
     return this.parseLoadBalancerName(securityGroupName);
+  }
+
+  public getMoniker(app: string, stack: string, detail: string): IMoniker {
+    const cluster = this.getClusterName(app, stack, detail);
+    return { app, stack, detail, cluster };
   }
 }
 
