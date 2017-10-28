@@ -18,28 +18,17 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.op.deployer;
 
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpinnakerKindMap.SpinnakerKind;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesApiVersion;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
 import io.kubernetes.client.models.V1DeleteOptions;
-import io.kubernetes.client.models.V1beta1Ingress;
 import org.springframework.stereotype.Component;
 
 @Component
-public class KubernetesIngressDeployer extends KubernetesDeployer<V1beta1Ingress> implements CanDelete<V1DeleteOptions> {
+public class KubernetesIngressDeployer extends KubernetesDeployer implements CanDelete<V1DeleteOptions> {
   @Override
   public KubernetesKind kind() {
     return KubernetesKind.INGRESS;
-  }
-
-  @Override
-  public KubernetesApiVersion apiVersion() {
-    return KubernetesApiVersion.EXTENSIONS_V1BETA1;
-  }
-
-  @Override
-  public Class<V1beta1Ingress> getDeployedClass() {
-    return V1beta1Ingress.class;
   }
 
   @Override
@@ -53,7 +42,7 @@ public class KubernetesIngressDeployer extends KubernetesDeployer<V1beta1Ingress
   }
 
   @Override
-  public boolean isStable(V1beta1Ingress resource) {
+  public boolean isStable(KubernetesManifest manifest) {
     return false;
   }
 

@@ -19,7 +19,9 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.description.servergroup;
 
 import com.netflix.spinnaker.clouddriver.model.ServerGroup.Capacity;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
+@EqualsAndHashCode(callSuper = true)
 @Data
 public class KubernetesResizeServerGroupDescription extends KubernetesServerGroupOperationDescription {
   Capacity capacity;

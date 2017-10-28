@@ -35,13 +35,14 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesApiVersion;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.job.KubectlJobExecutor;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
 import com.netflix.spinnaker.clouddriver.names.NamerRegistry;
 import com.netflix.spinnaker.moniker.Namer;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.Triple;
+import org.apache.commons.lang3.tuple.Pair;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -58,7 +59,7 @@ import java.util.stream.Stream;
 import static com.netflix.spinnaker.clouddriver.cache.OnDemandAgent.OnDemandType.Manifest;
 
 @Slf4j
-public abstract class KubernetesV2OnDemandCachingAgent<T> extends KubernetesV2CachingAgent<T> implements OnDemandAgent {
+public abstract class KubernetesV2OnDemandCachingAgent extends KubernetesV2CachingAgent implements OnDemandAgent {
   @Getter
   protected final OnDemandMetricsSupport metricsSupport;
 
@@ -71,22 +72,17 @@ public abstract class KubernetesV2OnDemandCachingAgent<T> extends KubernetesV2Ca
   private final static String DETAILS_KEY = "details";
   private final Namer<KubernetesManifest> namer;
 
-  protected abstract List<T> loadPrimaryResourceList();
-  protected abstract T loadPrimaryResource(String namespace, String name);
-  protected abstract Class<T> primaryResourceClass();
-  protected abstract KubernetesKind primaryKind();
-  protected abstract KubernetesApiVersion primaryApiVersion();
-
   protected KubernetesV2OnDemandCachingAgent(KubernetesNamedAccountCredentials<KubernetesV2Credentials> namedAccountCredentials,
+      KubectlJobExecutor jobExecutor,
       ObjectMapper objectMapper,
       Registry registry,
       int agentIndex,
       int agentCount) {
-    super(namedAccountCredentials, objectMapper, registry, agentIndex, agentCount);
+    super(namedAccountCredentials, jobExecutor, objectMapper, registry, agentIndex, agentCount);
     namer = NamerRegistry.lookup()
         .withProvider(KubernetesCloudProvider.getID())
         .withAccount(namedAccountCredentials.getName())
-        .withResource(primaryResourceClass());
+        .withResource(KubernetesManifest.class);
 
     metricsSupport = new OnDemandMetricsSupport(registry, this, KubernetesCloudProvider.getID() + ":" + Manifest);
   }
@@ -96,7 +92,7 @@ public abstract class KubernetesV2OnDemandCachingAgent<T> extends KubernetesV2Ca
     reloadNamespaces();
 
     Long start = System.currentTimeMillis();
-    List<T> primaryResource = loadPrimaryResourceList();
+    List<KubernetesManifest> primaryResource = loadPrimaryResourceList();
 
     List<String> primaryKeys = primaryResource.stream()
         .map(rs -> objectMapper.convertValue(rs, KubernetesManifest.class))
@@ -204,13 +200,12 @@ public abstract class KubernetesV2OnDemandCachingAgent<T> extends KubernetesV2Ca
     return new OnDemandAgent.OnDemandResult(getOnDemandAgentType(), cacheResult, evictions);
   }
 
-  private OnDemandAgent.OnDemandResult addEntry(ProviderCache providerCache, String key, T resource) throws JsonProcessingException {
+  private OnDemandAgent.OnDemandResult addEntry(ProviderCache providerCache, String key, KubernetesManifest manifest) throws JsonProcessingException {
     Map<String, Collection<String>> evictions = new HashMap<>();
     CacheResult cacheResult;
 
     log.info("Storing on demand '{}'", key);
-    cacheResult = buildCacheResult(resource);
-    KubernetesManifest manifest = objectMapper.convertValue(resource, KubernetesManifest.class);
+    cacheResult = buildCacheResult(manifest);
     String jsonResult = objectMapper.writeValueAsString(cacheResult.getCacheResults());
 
     Map<String, Object> attributes = new ImmutableMap.Builder<String, Object>()
@@ -236,9 +231,8 @@ public abstract class KubernetesV2OnDemandCachingAgent<T> extends KubernetesV2Ca
     String name;
 
     try {
-      Triple<KubernetesApiVersion, KubernetesKind, String> parsedName = KubernetesManifest.fromFullResourceName(fullName);
-      if (parsedName.getLeft() != primaryApiVersion()
-          || parsedName.getMiddle() != primaryKind()) {
+      Pair<KubernetesKind, String> parsedName = KubernetesManifest.fromFullResourceName(fullName);
+      if (parsedName.getLeft() != primaryKind()) {
         return null;
       }
 
@@ -258,10 +252,10 @@ public abstract class KubernetesV2OnDemandCachingAgent<T> extends KubernetesV2Ca
 
     log.info("Accepted on demand refresh of '{}'", data);
     OnDemandAgent.OnDemandResult result;
-    T resource = loadPrimaryResource(namespace, name);
-    String resourceKey = Keys.infrastructure(primaryApiVersion(), primaryKind(), account, namespace, name);
+    KubernetesManifest manifest = loadPrimaryResource(namespace, name);
+    String resourceKey = Keys.infrastructure(primaryKind(), account, namespace, name);
     try {
-      result = resource == null ? evictEntry(providerCache, resourceKey) : addEntry(providerCache, resourceKey, resource);
+      result = manifest == null ? evictEntry(providerCache, resourceKey) : addEntry(providerCache, resourceKey, manifest);
     } catch (Exception e) {
       log.error("Failed to process update of '{}'", resourceKey, e);
       return null;
@@ -317,7 +311,6 @@ public abstract class KubernetesV2OnDemandCachingAgent<T> extends KubernetesV2Ca
   private Map<String, String> mapKeyToOnDemandResult(Keys.InfrastructureCacheKey key) {
     return new ImmutableMap.Builder<String, String>()
         .put("name", KubernetesManifest.getFullResourceName(
-            key.getKubernetesApiVersion(),
             key.getKubernetesKind(),
             key.getName()
         ))

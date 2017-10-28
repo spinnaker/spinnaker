@@ -24,13 +24,12 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys.ClusterCache
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.model.KubernetesV2Cluster;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.model.KubernetesV2LoadBalancer;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.model.KubernetesV2ServerGroup;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesApiVersion;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpinnakerKindMap;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpinnakerKindMap;
 import com.netflix.spinnaker.clouddriver.model.ClusterProvider;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.tuple.Triple;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -122,17 +121,16 @@ public class KubernetesV2ClusterProvider implements ClusterProvider<KubernetesV2
 
   @Override
   public KubernetesV2ServerGroup getServerGroup(String account, String namespace, String name) {
-    Triple<KubernetesApiVersion, KubernetesKind, String> parsedName;
+    Pair<KubernetesKind, String> parsedName;
     try {
       parsedName = KubernetesManifest.fromFullResourceName(name);
     } catch (IllegalArgumentException e) {
       return null;
     }
 
-    KubernetesApiVersion apiVersion = parsedName.getLeft();
-    KubernetesKind kind = parsedName.getMiddle();
+    KubernetesKind kind = parsedName.getLeft();
     String shortName = parsedName.getRight();
-    String key = Keys.infrastructure(apiVersion, kind, account, namespace, shortName);
+    String key = Keys.infrastructure(kind, account, namespace, shortName);
     List<String> instanceGroups = kindMap.translateSpinnakerKind(INSTANCE)
         .stream()
         .map(KubernetesKind::toString)

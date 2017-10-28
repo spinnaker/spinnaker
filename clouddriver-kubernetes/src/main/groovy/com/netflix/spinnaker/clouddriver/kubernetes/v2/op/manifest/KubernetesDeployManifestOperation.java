@@ -24,11 +24,10 @@ import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.KubernetesArtifactConverter;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesResourceProperties;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesResourcePropertyRegistry;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesApiVersion;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesDeployManifestDescription;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifestAnnotater;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesDeployManifestDescription;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifestSpinnakerRelationships;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.deployer.KubernetesDeployer;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
@@ -91,9 +90,8 @@ public class KubernetesDeployManifestOperation implements AtomicOperation<Deploy
   }
 
   private KubernetesResourceProperties findResourceProperties(KubernetesManifest manifest) {
-    KubernetesApiVersion apiVersion = manifest.getApiVersion();
     KubernetesKind kind = manifest.getKind();
-    getTask().updateStatus(OP_NAME, "Finding deployer for " + apiVersion + "/" + kind + "...");
-    return registry.lookup().withApiVersion(apiVersion).withKind(kind);
+    getTask().updateStatus(OP_NAME, "Finding deployer for " + kind + "...");
+    return registry.lookup().withKind(kind);
   }
 }

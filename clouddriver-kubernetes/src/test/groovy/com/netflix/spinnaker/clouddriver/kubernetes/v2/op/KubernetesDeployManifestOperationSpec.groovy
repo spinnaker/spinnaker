@@ -89,12 +89,11 @@ metadata:
     deployDescription.setCredentials(namedCredentialsMock)
 
     def jobExecutorMock = Mock(KubectlJobExecutor)
-    jobExecutorMock.deployManifest(_, _) >> null
+    jobExecutorMock.deploy(_, _) >> null
 
     def replicaSetDeployer = new KubernetesReplicaSetDeployer()
     replicaSetDeployer.objectMapper = new ObjectMapper()
     replicaSetDeployer.versioned() >> true
-    replicaSetDeployer.apiVersion() >> API_VERSION
     replicaSetDeployer.kind() >> KIND
     replicaSetDeployer.jobExecutor = jobExecutorMock
     def versionedArtifactConverterMock = Mock(KubernetesVersionedArtifactConverter)
@@ -124,7 +123,7 @@ metadata:
     def result = deployOp.operate([])
     then:
     result.deployedNames.size == 1
-    result.deployedNames[0] == "$NAMESPACE:$API_VERSION|$KIND|$NAME-$VERSION"
+    result.deployedNames[0] == "$NAMESPACE:$KIND $NAME-$VERSION"
   }
 
   void "replica set deployer uses backup namespace"() {
@@ -138,6 +137,6 @@ metadata:
 
     then:
     result.deployedNames.size == 1
-    result.deployedNames[0] == "$BACKUP_NAMESPACE:$API_VERSION|$KIND|$NAME-$VERSION"
+    result.deployedNames[0] == "$BACKUP_NAMESPACE:$KIND $NAME-$VERSION"
   }
 }

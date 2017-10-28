@@ -45,7 +45,7 @@ class JobExecutorLocal implements JobExecutor {
 
   @Override
   String startJob(JobRequest jobRequest, Map<String, String> environment, InputStream inputStream) {
-    log.info("Starting job: $jobRequest.tokenizedCommand...")
+    log.info("Starting job: '${String.join(' ', jobRequest.tokenizedCommand)}'...")
 
     String jobId = UUID.randomUUID().toString()
 
@@ -59,7 +59,7 @@ class JobExecutorLocal implements JobExecutor {
           CommandLine commandLine
 
           if (jobRequest.tokenizedCommand) {
-            log.info("Executing $jobId with tokenized command: $jobRequest.tokenizedCommand")
+            log.debug("Executing $jobId with tokenized command: $jobRequest.tokenizedCommand")
 
             // Grab the first element as the command.
             commandLine = new CommandLine(jobRequest.tokenizedCommand[0])
@@ -130,7 +130,7 @@ class JobExecutorLocal implements JobExecutor {
   @Override
   JobStatus updateJob(String jobId) {
     try {
-      log.info("Polling state for $jobId...")
+      log.debug("Polling state for $jobId...")
 
       if (jobIdToHandlerMap[jobId]) {
         JobStatus jobStatus = new JobStatus(id: jobId)

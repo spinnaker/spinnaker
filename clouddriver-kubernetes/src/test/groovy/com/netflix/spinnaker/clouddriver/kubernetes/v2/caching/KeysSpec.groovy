@@ -53,13 +53,13 @@ class KeysSpec extends Specification {
   @Unroll
   def "produces correct infra keys #key"() {
     expect:
-    Keys.infrastructure(apiVersion, kind, account, namespace, name) == key
+    Keys.infrastructure(kind, account, namespace, name) == key
 
     where:
     kind                       | apiVersion                              | account | namespace   | name      || key
-    KubernetesKind.REPLICA_SET | KubernetesApiVersion.EXTENSIONS_V1BETA1 | "ac"    | "namespace" | "v1-v000" || "kubernetes.v2:infrastructure:extensions.v1beta1:replicaSet:ac:namespace:v1-v000"
-    KubernetesKind.SERVICE     | KubernetesApiVersion.V1                 | "ac"    | "namespace" | "v1"      || "kubernetes.v2:infrastructure:v1:service:ac:namespace:v1"
-    KubernetesKind.DEPLOYMENT  | KubernetesApiVersion.APPS_V1BETA1       | "ac"    | "namespace" | "v1"      || "kubernetes.v2:infrastructure:apps.v1beta1:deployment:ac:namespace:v1"
+    KubernetesKind.REPLICA_SET | KubernetesApiVersion.EXTENSIONS_V1BETA1 | "ac"    | "namespace" | "v1-v000" || "kubernetes.v2:infrastructure:replicaSet:ac:namespace:v1-v000"
+    KubernetesKind.SERVICE     | KubernetesApiVersion.V1                 | "ac"    | "namespace" | "v1"      || "kubernetes.v2:infrastructure:service:ac:namespace:v1"
+    KubernetesKind.DEPLOYMENT  | KubernetesApiVersion.APPS_V1BETA1       | "ac"    | "namespace" | "v1"      || "kubernetes.v2:infrastructure:deployment:ac:namespace:v1"
   }
 
   @Unroll
@@ -103,14 +103,13 @@ class KeysSpec extends Specification {
   @Unroll
   def "unpacks infrastructure key for '#kind' and '#version'"() {
     when:
-    def key = "kubernetes.v2:infrastructure:$version:$kind:$account:$namespace:$name"
+    def key = "kubernetes.v2:infrastructure:$kind:$account:$namespace:$name"
     def parsed = Keys.parseKey(key).get()
 
     then:
     parsed instanceof Keys.InfrastructureCacheKey
     def parsedInfrastructureKey = (Keys.InfrastructureCacheKey) parsed
     parsedInfrastructureKey.kubernetesKind == kind
-    parsedInfrastructureKey.kubernetesApiVersion == version
     parsedInfrastructureKey.account == account
     parsedInfrastructureKey.namespace == namespace
     parsedInfrastructureKey.name == name

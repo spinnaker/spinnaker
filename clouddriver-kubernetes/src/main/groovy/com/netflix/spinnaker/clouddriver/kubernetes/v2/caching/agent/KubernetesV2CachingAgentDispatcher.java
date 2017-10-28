@@ -22,6 +22,7 @@ import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.KubernetesCachingAgent;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.KubernetesCachingAgentDispatcher;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.job.KubectlJobExecutor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -40,15 +41,18 @@ public class KubernetesV2CachingAgentDispatcher implements KubernetesCachingAgen
   @Autowired
   private Registry registry;
 
+  @Autowired
+  private KubectlJobExecutor jobExecutor;
+
   @Override
   public List<KubernetesCachingAgent> buildAllCachingAgents(KubernetesNamedAccountCredentials credentials) {
     return IntStream.range(0, credentials.getCacheThreads())
         .boxed()
         .map(i -> new ArrayList<KubernetesCachingAgent>(Arrays.asList(
-            new KubernetesNetworkPolicyCachingAgent(credentials, objectMapper, registry, i, credentials.getCacheThreads()),
-            new KubernetesPodCachingAgent(credentials, objectMapper, registry, i, credentials.getCacheThreads()),
-            new KubernetesReplicaSetCachingAgent(credentials, objectMapper, registry, i, credentials.getCacheThreads()),
-            new KubernetesServiceCachingAgent(credentials, objectMapper, registry, i, credentials.getCacheThreads())
+            new KubernetesNetworkPolicyCachingAgent(credentials, jobExecutor, objectMapper, registry, i, credentials.getCacheThreads()),
+            new KubernetesPodCachingAgent(credentials, jobExecutor, objectMapper, registry, i, credentials.getCacheThreads()),
+            new KubernetesReplicaSetCachingAgent(credentials, jobExecutor, objectMapper, registry, i, credentials.getCacheThreads()),
+            new KubernetesServiceCachingAgent(credentials, jobExecutor, objectMapper, registry, i, credentials.getCacheThreads())
         )))
         .flatMap(Collection::stream)
         .collect(Collectors.toList());

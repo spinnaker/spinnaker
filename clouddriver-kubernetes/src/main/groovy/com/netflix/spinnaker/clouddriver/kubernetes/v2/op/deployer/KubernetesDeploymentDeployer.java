@@ -18,30 +18,18 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.op.deployer;
 
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpinnakerKindMap;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesApiVersion;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
-import com.netflix.spinnaker.clouddriver.model.ServerGroup;
 import com.netflix.spinnaker.clouddriver.model.ServerGroup.Capacity;
-import io.kubernetes.client.models.AppsV1beta1Deployment;
 import io.kubernetes.client.models.V1DeleteOptions;
 import org.springframework.stereotype.Component;
 
 @Component
-public class KubernetesDeploymentDeployer extends KubernetesDeployer<AppsV1beta1Deployment> implements CanResize, CanDelete<V1DeleteOptions> {
-  @Override
-  public Class<AppsV1beta1Deployment> getDeployedClass() {
-    return AppsV1beta1Deployment.class;
-  }
-
+public class KubernetesDeploymentDeployer extends KubernetesDeployer implements CanResize, CanDelete<V1DeleteOptions> {
   @Override
   public KubernetesKind kind() {
     return KubernetesKind.DEPLOYMENT;
-  }
-
-  @Override
-  public KubernetesApiVersion apiVersion() {
-    return KubernetesApiVersion.APPS_V1BETA1;
   }
 
   @Override
@@ -55,7 +43,7 @@ public class KubernetesDeploymentDeployer extends KubernetesDeployer<AppsV1beta1
   }
 
   @Override
-  public boolean isStable(AppsV1beta1Deployment resource) {
+  public boolean isStable(KubernetesManifest manifest) {
     return false;
   }
 

@@ -23,12 +23,11 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesCacheDataConverter;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.model.KubernetesV2Manifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesResourcePropertyRegistry;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesApiVersion;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.deployer.KubernetesDeployer;
 import com.netflix.spinnaker.clouddriver.model.ManifestProvider;
-import org.apache.commons.lang3.tuple.Triple;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -49,11 +48,9 @@ public class KubernetesV2ManifestProvider implements ManifestProvider<Kubernetes
 
   @Override
   public KubernetesV2Manifest getManifest(String account, String location, String name) {
-    Triple<KubernetesApiVersion, KubernetesKind, String> parsedName = KubernetesManifest.fromFullResourceName(name);
-    KubernetesApiVersion apiVersion = parsedName.getLeft();
-    KubernetesKind kind = parsedName.getMiddle();
+    Pair<KubernetesKind, String> parsedName = KubernetesManifest.fromFullResourceName(name);
+    KubernetesKind kind = parsedName.getLeft();
     String key = Keys.infrastructure(
-        apiVersion,
         kind,
         account,
         location,
@@ -67,7 +64,6 @@ public class KubernetesV2ManifestProvider implements ManifestProvider<Kubernetes
 
     CacheData data = dataOptional.get();
     KubernetesDeployer deployer = registry.lookup()
-        .withApiVersion(apiVersion)
         .withKind(kind)
         .getDeployer();
 
@@ -77,7 +73,7 @@ public class KubernetesV2ManifestProvider implements ManifestProvider<Kubernetes
         .account(account)
         .location(location)
         .manifest(manifest)
-        .stable(deployer.isStable(mapper.convertValue(manifest, deployer.getDeployedClass())))
+        .stable(deployer.isStable(manifest))
         .build();
   }
 }

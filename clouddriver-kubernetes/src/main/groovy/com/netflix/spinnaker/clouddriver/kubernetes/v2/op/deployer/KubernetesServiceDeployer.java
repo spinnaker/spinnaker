@@ -17,28 +17,21 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.op.deployer;
 
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesCacheDataConverter;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpinnakerKindMap.SpinnakerKind;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesApiVersion;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
 import io.kubernetes.client.models.V1Service;
 import org.springframework.stereotype.Component;
 
+import java.util.Map;
+
 @Component
-public class KubernetesServiceDeployer extends KubernetesDeployer<V1Service> implements CanDelete<Void> {
+public class KubernetesServiceDeployer extends KubernetesDeployer implements CanDelete<Void> {
   @Override
   public KubernetesKind kind() {
     return KubernetesKind.SERVICE;
-  }
-
-  @Override
-  public KubernetesApiVersion apiVersion() {
-    return KubernetesApiVersion.V1;
-  }
-
-  @Override
-  public Class<V1Service> getDeployedClass() {
-    return V1Service.class;
   }
 
   @Override
@@ -52,7 +45,7 @@ public class KubernetesServiceDeployer extends KubernetesDeployer<V1Service> imp
   }
 
   @Override
-  public boolean isStable(V1Service resource) {
+  public boolean isStable(KubernetesManifest manifest) {
     return false;
   }
 
@@ -64,5 +57,15 @@ public class KubernetesServiceDeployer extends KubernetesDeployer<V1Service> imp
   @Override
   public void delete(KubernetesV2Credentials credentials, String namespace, String name, Void deleteOptions) {
     credentials.deleteService(namespace, name);
+  }
+
+  public static Map<String, String> getSelector(KubernetesManifest manifest) {
+    switch (manifest.getApiVersion()) {
+      case V1:
+        V1Service v1Service = KubernetesCacheDataConverter.getResource(manifest, V1Service.class);
+        return v1Service.getSpec().getSelector();
+      default:
+        throw new IllegalArgumentException("No services with version " + manifest.getApiVersion() + " supported");
+    }
   }
 }

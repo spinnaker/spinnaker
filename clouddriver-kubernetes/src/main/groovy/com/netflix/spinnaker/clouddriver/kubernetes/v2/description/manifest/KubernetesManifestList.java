@@ -18,12 +18,10 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest;
 
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 
-import java.util.Map;
+import java.util.List;
 
-@EqualsAndHashCode(callSuper = true)
 @Data
-public class KubernetesDeleteManifestDescription extends KubernetesManifestOperationDescription {
-  Map deleteOptions;
+public class KubernetesManifestList {
+  private List<KubernetesManifest> items;
 }

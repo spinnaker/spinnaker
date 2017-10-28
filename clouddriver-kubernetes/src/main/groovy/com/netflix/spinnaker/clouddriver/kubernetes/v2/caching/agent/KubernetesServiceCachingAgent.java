@@ -22,13 +22,12 @@ import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.agent.AgentDataType;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesApiVersion;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.deployer.KubernetesReplicaSetDeployer;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.deployer.KubernetesServiceDeployer;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.job.KubectlJobExecutor;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
-import io.kubernetes.client.models.V1Pod;
-import io.kubernetes.client.models.V1Service;
-import io.kubernetes.client.models.V1beta1ReplicaSet;
 import lombok.Getter;
 
 import java.util.ArrayList;
@@ -45,13 +44,14 @@ import java.util.stream.Collectors;
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE;
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.INFORMATIVE;
 
-public class KubernetesServiceCachingAgent extends KubernetesV2OnDemandCachingAgent<V1Service> {
+public class KubernetesServiceCachingAgent extends KubernetesV2OnDemandCachingAgent {
   protected KubernetesServiceCachingAgent(KubernetesNamedAccountCredentials<KubernetesV2Credentials> namedAccountCredentials,
+      KubectlJobExecutor jobExecutor,
       ObjectMapper objectMapper,
       Registry registry,
       int agentIndex,
       int agentCount) {
-    super(namedAccountCredentials, objectMapper, registry, agentIndex, agentCount);
+    super(namedAccountCredentials, jobExecutor, objectMapper, registry, agentIndex, agentCount);
   }
 
   @Getter
@@ -65,74 +65,45 @@ public class KubernetesServiceCachingAgent extends KubernetesV2OnDemandCachingAg
   );
 
   @Override
-  protected List<V1Service> loadPrimaryResourceList() {
-    return namespaces.stream()
-        .map(credentials::listAllServices)
-        .flatMap(Collection::stream)
-        .collect(Collectors.toList());
-  }
-
-  @Override
-  protected V1Service loadPrimaryResource(String namespace, String name) {
-    return credentials.readService(namespace, name);
-  }
-
-  @Override
-  protected Class<V1Service> primaryResourceClass() {
-    return V1Service.class;
-  }
-
-  @Override
   protected KubernetesKind primaryKind() {
     return KubernetesKind.SERVICE;
   }
 
   @Override
-  protected KubernetesApiVersion primaryApiVersion() {
-    return KubernetesApiVersion.V1;
-  }
-
-  @Override
-  protected Map<V1Service, List<KubernetesManifest>> loadSecondaryResourceRelationships(List<V1Service> services) {
+  protected Map<KubernetesManifest, List<KubernetesManifest>> loadSecondaryResourceRelationships(List<KubernetesManifest> services) {
     Map<String, Set<KubernetesManifest>> mapLabelToManifest = new HashMap<>();
 
     // TODO perf - this might be excessive when only a small number of services are specified. We could consider
     // reading from the cache here, or deciding how many pods to load ahead of time, or construct a fancy label
     // selector that merges all label selectors here.
     namespaces.stream()
-        .map(credentials::listAllPods)
-        .flatMap(Collection::stream)
-        .collect(Collectors.toList())
-        .forEach(p -> addAllPodLabels(mapLabelToManifest, p));
-
-    namespaces.stream()
-        .map(credentials::listAllReplicaSets)
+        .map(n -> jobExecutor.getAll(credentials, KubernetesKind.REPLICA_SET, n))
         .flatMap(Collection::stream)
         .collect(Collectors.toList())
         .forEach(r -> addAllReplicaSetLabels(mapLabelToManifest, r));
 
-    Map<V1Service, List<KubernetesManifest>> result = new HashMap<>();
+    Map<KubernetesManifest, List<KubernetesManifest>> result = new HashMap<>();
 
-    for (V1Service service : services) {
+    for (KubernetesManifest service : services) {
       result.put(service, getRelatedManifests(service, mapLabelToManifest));
     }
 
     return result;
   }
 
-  private static List<KubernetesManifest> getRelatedManifests(V1Service service, Map<String, Set<KubernetesManifest>> mapLabelToManifest) {
+  private static List<KubernetesManifest> getRelatedManifests(KubernetesManifest service, Map<String, Set<KubernetesManifest>> mapLabelToManifest) {
     return new ArrayList<>(intersectLabels(service, mapLabelToManifest));
   }
 
-  private static Set<KubernetesManifest> intersectLabels(V1Service service, Map<String, Set<KubernetesManifest>> mapLabelToManifest) {
-    Map<String, String> selector = service.getSpec().getSelector();
+  private static Set<KubernetesManifest> intersectLabels(KubernetesManifest service, Map<String, Set<KubernetesManifest>> mapLabelToManifest) {
+    Map<String, String> selector = KubernetesServiceDeployer.getSelector(service);
     if (selector == null || selector.isEmpty()) {
       return new HashSet<>();
     }
 
     Set<KubernetesManifest> result = null;
-    String namespace = service.getMetadata().getNamespace();
-    for (Map.Entry<String, String> label : service.getSpec().getSelector().entrySet())  {
+    String namespace = service.getNamespace();
+    for (Map.Entry<String, String> label : selector.entrySet())  {
       String labelKey = podLabelKey(namespace, label);
       Set<KubernetesManifest> manifests = mapLabelToManifest.get(labelKey);
       manifests = manifests == null ? new HashSet<>() : manifests;
@@ -147,9 +118,9 @@ public class KubernetesServiceCachingAgent extends KubernetesV2OnDemandCachingAg
     return result;
   }
 
-  private static void addAllReplicaSetLabels(Map<String, Set<KubernetesManifest>> entries, V1beta1ReplicaSet replicaSet) {
-    String namespace = replicaSet.getMetadata().getNamespace();
-    Map<String, String> podLabels = replicaSet.getSpec().getTemplate().getMetadata().getLabels();
+  private static void addAllReplicaSetLabels(Map<String, Set<KubernetesManifest>> entries, KubernetesManifest replicaSet) {
+    String namespace = replicaSet.getNamespace();
+    Map<String, String> podLabels = KubernetesReplicaSetDeployer.getPodTemplateLabels(replicaSet);
     if (podLabels == null) {
       return;
     }
@@ -157,14 +128,6 @@ public class KubernetesServiceCachingAgent extends KubernetesV2OnDemandCachingAg
     for (Map.Entry<String, String> label : podLabels.entrySet()) {
       String labelKey = podLabelKey(namespace, label);
       enterManifest(entries, labelKey, KubernetesCacheDataConverter.convertToManifest(replicaSet));
-    }
-  }
-
-  private static void addAllPodLabels(Map<String, Set<KubernetesManifest>> entries, V1Pod pod) {
-    String namespace = pod.getMetadata().getNamespace();
-    for (Map.Entry<String, String> label : pod.getMetadata().getLabels().entrySet()) {
-      String labelKey = podLabelKey(namespace, label);
-      enterManifest(entries, labelKey, KubernetesCacheDataConverter.convertToManifest(pod));
     }
   }
 

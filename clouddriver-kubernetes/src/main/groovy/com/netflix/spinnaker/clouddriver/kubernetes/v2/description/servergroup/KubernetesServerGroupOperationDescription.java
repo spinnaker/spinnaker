@@ -20,12 +20,13 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.description.servergroup;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesAtomicOperationDescription;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesCoordinates;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesApiVersion;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import lombok.Data;
-import org.apache.commons.lang3.tuple.Triple;
+import lombok.EqualsAndHashCode;
+import org.apache.commons.lang3.tuple.Pair;
 
+@EqualsAndHashCode(callSuper = true)
 @Data
 public class KubernetesServerGroupOperationDescription extends KubernetesAtomicOperationDescription {
   private String serverGroupName;
@@ -33,12 +34,11 @@ public class KubernetesServerGroupOperationDescription extends KubernetesAtomicO
 
   @JsonIgnore
   public KubernetesCoordinates getCoordinates() {
-    Triple<KubernetesApiVersion, KubernetesKind, String> parsedName = KubernetesManifest.fromFullResourceName(serverGroupName);
+    Pair<KubernetesKind, String> parsedName = KubernetesManifest.fromFullResourceName(serverGroupName);
 
     return KubernetesCoordinates.builder()
         .namespace(region)
-        .apiVersion(parsedName.getLeft())
-        .kind(parsedName.getMiddle())
+        .kind(parsedName.getLeft())
         .name(parsedName.getRight())
         .build();
   }

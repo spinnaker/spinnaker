@@ -19,7 +19,6 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.description;
 
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.KubernetesUnversionedArtifactConverter;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.KubernetesVersionedArtifactConverter;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesApiVersion;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.deployer.KubernetesDeployer;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,21 +41,20 @@ public class KubernetesResourcePropertyRegistry {
           .build();
 
       kindMap.addRelationship(deployer.spinnakerKind(), deployer.kind());
-      apiVersionLookup.withApiVersion(deployer.apiVersion()).setProperties(deployer.kind(), properties);
+      kindLookup.setProperties(deployer.kind(), properties);
     }
   }
 
-  public ApiVersionLookup lookup() {
-    return apiVersionLookup;
+  public KindLookup lookup() {
+    return kindLookup;
   }
+
+  private static KindLookup kindLookup = new KindLookup();
 
   public KubernetesResourceProperties lookup(KubernetesCoordinates coordinates) {
     return lookup()
-        .withApiVersion(coordinates.getApiVersion())
         .withKind(coordinates.getKind());
   }
-
-  private ApiVersionLookup apiVersionLookup = new ApiVersionLookup();
 
   public static class KindLookup {
     private ConcurrentHashMap<KubernetesKind, KubernetesResourceProperties> map = new ConcurrentHashMap<>();
@@ -71,20 +69,6 @@ public class KubernetesResourcePropertyRegistry {
 
     public void setProperties(KubernetesKind kind, KubernetesResourceProperties properties) {
       map.put(kind, properties);
-    }
-  }
-
-  public static class ApiVersionLookup {
-    private ConcurrentHashMap<KubernetesApiVersion, KindLookup> map = new ConcurrentHashMap<>();
-
-    public KindLookup withApiVersion(KubernetesApiVersion apiVersion) {
-      if (!map.containsKey(apiVersion)) {
-        KindLookup result = new KindLookup();
-        map.put(apiVersion, result);
-        return result;
-      } else {
-        return map.get(apiVersion);
-      }
     }
   }
 }

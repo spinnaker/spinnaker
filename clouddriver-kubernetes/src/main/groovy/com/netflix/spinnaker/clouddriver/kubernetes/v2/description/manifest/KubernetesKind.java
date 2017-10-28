@@ -23,17 +23,24 @@ import com.fasterxml.jackson.annotation.JsonValue;
 import java.util.Arrays;
 
 public enum KubernetesKind {
-  DEPLOYMENT("deployment"),
-  INGRESS("ingress"),
-  POD("pod"),
-  REPLICA_SET("replicaSet"),
-  NETWORK_POLICY("networkPolicy"),
-  SERVICE("service");
+  DEPLOYMENT("deployment", "deploy"),
+  INGRESS("ingress", "ing"),
+  POD("pod", "po"),
+  REPLICA_SET("replicaSet", "rs"),
+  NETWORK_POLICY("networkPolicy", "netpol"),
+  SERVICE("service", "svc");
 
   private final String name;
+  private final String alias;
+
+  KubernetesKind(String name, String alias) {
+    this.name = name;
+    this.alias = alias;
+  }
 
   KubernetesKind(String name) {
     this.name = name;
+    this.alias = null;
   }
 
   @Override
@@ -45,7 +52,7 @@ public enum KubernetesKind {
   @JsonCreator
   public static KubernetesKind fromString(String name) {
     return Arrays.stream(values())
-        .filter(v -> v.toString().equalsIgnoreCase(name))
+        .filter(v -> v.name.equalsIgnoreCase(name) || (v.alias != null && v.alias.equalsIgnoreCase(name)))
         .findAny()
         .orElseThrow(() -> new IllegalArgumentException("Kubernetes kind '" + name + "' is not supported."));
   }

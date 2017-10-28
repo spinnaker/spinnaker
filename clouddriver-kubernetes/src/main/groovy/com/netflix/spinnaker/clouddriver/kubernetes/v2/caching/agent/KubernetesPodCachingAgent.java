@@ -23,8 +23,8 @@ import com.netflix.spinnaker.cats.agent.AgentDataType;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.job.KubectlJobExecutor;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
-import io.kubernetes.client.models.V1Pod;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -32,20 +32,24 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.List;
-import java.util.stream.Collectors;
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE;
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.INFORMATIVE;
 
 @Slf4j
-public class KubernetesPodCachingAgent extends KubernetesV2CachingAgent<V1Pod> {
+public class KubernetesPodCachingAgent extends KubernetesV2CachingAgent {
   KubernetesPodCachingAgent(KubernetesNamedAccountCredentials<KubernetesV2Credentials> namedAccountCredentials,
+      KubectlJobExecutor jobExecutor,
       ObjectMapper objectMapper,
       Registry registry,
       int agentIndex,
       int agentCount) {
-    super(namedAccountCredentials, objectMapper, registry, agentIndex, agentCount);
+    super(namedAccountCredentials, jobExecutor, objectMapper, registry, agentIndex, agentCount);
+  }
+
+  @Override
+  protected KubernetesKind primaryKind() {
+    return KubernetesKind.POD;
   }
 
   @Getter
@@ -58,12 +62,4 @@ public class KubernetesPodCachingAgent extends KubernetesV2CachingAgent<V1Pod> {
           AUTHORITATIVE.forType(KubernetesKind.POD.toString())
       ))
   );
-
-  @Override
-  protected List<V1Pod> loadPrimaryResourceList() {
-    return namespaces.stream()
-        .map(credentials::listAllPods)
-        .flatMap(Collection::stream)
-        .collect(Collectors.toList());
-  }
 }

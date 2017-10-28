@@ -30,9 +30,10 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.Kube
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifestSpinnakerRelationships;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.moniker.Moniker;
+import io.kubernetes.client.JSON;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.Triple;
+import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -51,9 +52,10 @@ import static com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys.Logic
 @Slf4j
 public class KubernetesCacheDataConverter {
   private static ObjectMapper mapper = new ObjectMapper();
+  private static final JSON json = new JSON();
 
-  public static CacheData convertAsArtifact(String account, ObjectMapper mapper, Object resource) {
-    KubernetesManifest manifest = mapper.convertValue(resource, KubernetesManifest.class);
+
+  public static CacheData convertAsArtifact(String account, KubernetesManifest manifest) {
     String namespace = manifest.getNamespace();
     Artifact artifact = KubernetesManifestAnnotater.getArtifact(manifest);
     if (artifact.getType() == null) {
@@ -111,8 +113,7 @@ public class KubernetesCacheDataConverter {
     return new DefaultCacheData(id, attributes, relationships);
   }
 
-  public static CacheData convertAsResource(String account, ObjectMapper mapper, Object resource, List<KubernetesManifest> resourceRelationships) {
-    KubernetesManifest manifest = mapper.convertValue(resource, KubernetesManifest.class);
+  public static CacheData convertAsResource(String account, KubernetesManifest manifest, List<KubernetesManifest> resourceRelationships) {
     KubernetesKind kind = manifest.getKind();
     KubernetesApiVersion apiVersion = manifest.getApiVersion();
     String name = manifest.getName();
@@ -146,10 +147,10 @@ public class KubernetesCacheDataConverter {
 
     // TODO(lwander) avoid overwriting keys here
     cacheRelationships.putAll(annotatedRelationships(account, namespace, metadata));
-    cacheRelationships.putAll(ownerReferenceRelationships(account, namespace, manifest.getOwnerReferences(mapper)));
+    cacheRelationships.putAll(ownerReferenceRelationships(account, namespace, manifest.getOwnerReferences()));
     cacheRelationships.putAll(implicitRelationships(account, namespace, resourceRelationships));
 
-    String key = Keys.infrastructure(apiVersion, kind, account, namespace, name);
+    String key = Keys.infrastructure(kind, account, namespace, name);
     return new DefaultCacheData(key, attributes, cacheRelationships);
   }
 
@@ -162,7 +163,8 @@ public class KubernetesCacheDataConverter {
   }
 
   public static <T> T getResource(KubernetesManifest manifest, Class<T> clazz) {
-    return mapper.convertValue(manifest, clazz);
+    // A little hacky, but the only way to deserialize any timestamps using string constructors
+    return json.deserialize(json.serialize(manifest), clazz);
   }
 
   static Map<String, Collection<String>> annotatedRelationships(String account, String namespace, KubernetesManifestMetadata metadata) {
@@ -196,9 +198,8 @@ public class KubernetesCacheDataConverter {
   }
 
   static void addSingleRelationship(Map<String, Collection<String>> relationships, String account, String namespace, String fullName) {
-    Triple<KubernetesApiVersion, KubernetesKind, String> triple = KubernetesManifest.fromFullResourceName(fullName);
-    KubernetesKind kind = triple.getMiddle();
-    KubernetesApiVersion apiVersion = triple.getLeft();
+    Pair<KubernetesKind, String> triple = KubernetesManifest.fromFullResourceName(fullName);
+    KubernetesKind kind = triple.getLeft();
     String name = triple.getRight();
 
     Collection<String> keys = relationships.get(kind.toString());
@@ -207,7 +208,7 @@ public class KubernetesCacheDataConverter {
       keys = new ArrayList<>();
     }
 
-    keys.add(Keys.infrastructure(apiVersion, kind, account, namespace, name));
+    keys.add(Keys.infrastructure(kind, account, namespace, name));
 
     relationships.put(kind.toString(), keys);
   }
@@ -217,14 +218,13 @@ public class KubernetesCacheDataConverter {
     manifests = manifests == null ? new ArrayList<>() : manifests;
     for (KubernetesManifest manifest : manifests) {
       KubernetesKind kind = manifest.getKind();
-      KubernetesApiVersion apiVersion = manifest.getApiVersion();
       String name = manifest.getName();
       Collection<String> keys = relationships.get(kind.toString());
       if (keys == null) {
         keys = new ArrayList<>();
       }
 
-      keys.add(Keys.infrastructure(apiVersion, kind, account, namespace, name));
+      keys.add(Keys.infrastructure(kind, account, namespace, name));
       relationships.put(kind.toString(), keys);
     }
 
@@ -236,14 +236,13 @@ public class KubernetesCacheDataConverter {
     references = references == null ? new ArrayList<>() : references;
     for (KubernetesManifest.OwnerReference reference : references) {
       KubernetesKind kind = reference.getKind();
-      KubernetesApiVersion apiVersion = reference.getApiVersion();
       String name = reference.getName();
       Collection<String> keys = relationships.get(kind.toString());
       if (keys == null) {
         keys = new ArrayList<>();
       }
 
-      keys.add(Keys.infrastructure(apiVersion, kind, account, namespace, name));
+      keys.add(Keys.infrastructure(kind, account, namespace, name));
       relationships.put(kind.toString(), keys);
     }
 

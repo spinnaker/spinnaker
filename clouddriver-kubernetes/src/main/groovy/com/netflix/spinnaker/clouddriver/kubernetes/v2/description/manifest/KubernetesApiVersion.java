@@ -25,7 +25,8 @@ import java.util.Arrays;
 public enum KubernetesApiVersion {
   V1("v1"),
   EXTENSIONS_V1BETA1("extensions.v1beta1"),
-  APPS_V1BETA1("apps.v1beta1");
+  APPS_V1BETA1("apps.v1beta1"),
+  APPS_V1BETA2("apps.v1beta2");
 
   private final String name;
 

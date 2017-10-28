@@ -17,7 +17,6 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.caching;
 
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesApiVersion;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import lombok.Data;
@@ -97,12 +96,12 @@ public class Keys {
     return createKey(Kind.LOGICAL, LogicalKind.CLUSTER, account, application, name);
   }
 
-  public static String infrastructure(KubernetesApiVersion version, KubernetesKind kind, String account, String namespace, String name) {
-    return createKey(Kind.INFRASTRUCTURE, version, kind, account, namespace, name);
+  public static String infrastructure(KubernetesKind kind, String account, String namespace, String name) {
+    return createKey(Kind.INFRASTRUCTURE, kind, account, namespace, name);
   }
 
   public static String infrastructure(KubernetesManifest manifest, String account) {
-    return infrastructure(manifest.getApiVersion(), manifest.getKind(), account, manifest.getNamespace(), manifest.getName());
+    return infrastructure(manifest.getKind(), account, manifest.getNamespace(), manifest.getName());
   }
 
   public static Optional<CacheKey> parseKey(String key) {
@@ -244,26 +243,24 @@ public class Keys {
   public static class InfrastructureCacheKey extends CacheKey {
     private Kind kind = Kind.INFRASTRUCTURE;
     private KubernetesKind kubernetesKind;
-    private KubernetesApiVersion kubernetesApiVersion;
     private String account;
     private String namespace;
     private String name;
 
     public InfrastructureCacheKey(String[] parts) {
-      if (parts.length != 7) {
+      if (parts.length != 6) {
         throw new IllegalArgumentException("Malformed infrastructure key " + Arrays.toString(parts));
       }
 
-      kubernetesApiVersion = KubernetesApiVersion.fromString(parts[2]);
-      kubernetesKind = KubernetesKind.fromString(parts[3]);
-      account = parts[4];
-      namespace = parts[5];
-      name = parts[6];
+      kubernetesKind = KubernetesKind.fromString(parts[2]);
+      account = parts[3];
+      namespace = parts[4];
+      name = parts[5];
     }
 
     @Override
     public String toString() {
-      return createKey(kind, kubernetesKind, kubernetesApiVersion, account, namespace, name);
+      return createKey(kind, kubernetesKind, account, namespace, name);
     }
 
     @Override

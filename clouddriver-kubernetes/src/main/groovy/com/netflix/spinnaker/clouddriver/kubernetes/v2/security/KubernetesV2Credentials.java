@@ -28,6 +28,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.Kube
 import io.kubernetes.client.ApiClient;
 import io.kubernetes.client.ApiException;
 import io.kubernetes.client.apis.AppsV1beta1Api;
+import io.kubernetes.client.apis.AppsV1beta2Api;
 import io.kubernetes.client.apis.CoreV1Api;
 import io.kubernetes.client.apis.ExtensionsV1beta1Api;
 import io.kubernetes.client.models.AppsV1beta1Deployment;
@@ -64,6 +65,7 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
   private final CoreV1Api coreV1Api;
   private final ExtensionsV1beta1Api extensionsV1beta1Api;
   private final AppsV1beta1Api appsV1beta1Api;
+  private final AppsV1beta2Api appsV1beta2Api;
   private final Registry registry;
   private final Clock clock;
   private final String accountName;
@@ -90,6 +92,9 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
 
   @Getter
   private final String defaultNamespace = "default";
+
+  @Getter
+  private final boolean debug;
 
   public static class Builder {
     String accountName;
@@ -166,9 +171,17 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
       namespaces = namespaces == null ? new ArrayList<>() : namespaces;
       omitNamespaces = omitNamespaces == null ? new ArrayList<>() : omitNamespaces;
       
-      return new KubernetesV2Credentials(accountName, client, namespaces, omitNamespaces, registry, kubeconfigFile, context, debug);
+      return new KubernetesV2Credentials(
+          accountName,
+          client,
+          namespaces,
+          omitNamespaces,
+          registry,
+          kubeconfigFile,
+          context,
+          debug
+      );
     }
-
   }
 
   private KubernetesV2Credentials(@NotNull String accountName,
@@ -186,9 +199,12 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
     this.omitNamespaces = omitNamespaces;
     this.client = client;
     this.client.setDebugging(debug);
+    this.debug = debug;
+
     this.coreV1Api = new CoreV1Api(this.client);
     this.extensionsV1beta1Api = new ExtensionsV1beta1Api(this.client);
     this.appsV1beta1Api = new AppsV1beta1Api(this.client);
+    this.appsV1beta2Api = new AppsV1beta2Api(this.client);
 
     this.kubeconfigFile = kubeconfigFile;
     this.context = context;
