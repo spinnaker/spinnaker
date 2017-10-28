@@ -2,6 +2,8 @@
 
 Spinnaker's declarative service.
 
+_**IMPORTANT:** This service is currently under development and is not ready for production._
+
 ## test payload
 
 `PUT https://localhost:8087/intents`
