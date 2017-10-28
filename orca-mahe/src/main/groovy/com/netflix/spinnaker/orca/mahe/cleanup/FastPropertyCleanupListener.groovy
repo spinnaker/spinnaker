@@ -71,7 +71,7 @@ class FastPropertyCleanupListener implements ExecutionListener {
             break
           case PropertyAction.UPDATE.toString():
             stage.context.originalProperties.each { Map originalProp ->
-              Map property = originalProp.property
+              Map property = originalProp.property ?: originalProp
               Map updatedProperty = (Map) stage.context.persistedProperties.find { it.propertyId == property.propertyId }
               String propertyId = property.propertyId
               if (shouldRollback(updatedProperty)) {
@@ -84,8 +84,8 @@ class FastPropertyCleanupListener implements ExecutionListener {
             }
             break
           case PropertyAction.DELETE.toString():
-            stage.context.originalProperties.each { Map prop ->
-              Map property = prop.property
+            stage.context.originalProperties.each { Map originalProp ->
+              Map property = originalProp.property ?: originalProp
               if (propertyExists(property)) {
                log.info("Property ${property.propertyId} exists, not restoring to original state after delete.")
               } else {
@@ -94,7 +94,7 @@ class FastPropertyCleanupListener implements ExecutionListener {
                 }
                 log.info("Rolling back the delete of: ${property.key}|${property.value} on execution ${execution.id} by re-creating")
 
-                Response response = mahe.upsertProperty(prop)
+                Response response = mahe.upsertProperty(originalProp)
                 resolveRollbackResponse(response, stage.context.propertyAction.toString(), property)
               }
             }
@@ -111,7 +111,7 @@ class FastPropertyCleanupListener implements ExecutionListener {
         Response propertyResponse = mahe.getPropertyById(propertyId, env)
         Map currentProperty = mapper.readValue(propertyResponse.body.in().text, Map)
         return currentProperty.property.ts == property.ts
-      }, 3, 2, false)
+      }, 3, 2000, false)
     } catch (RetrofitError error) {
       if (error.response.status == 404) {
         return false
