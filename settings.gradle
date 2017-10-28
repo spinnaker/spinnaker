@@ -17,6 +17,7 @@
 include 'keel-core',
   'keel-test',
   'keel-retrofit',
+  'keel-eureka',
   'keel-front50',
   'keel-orca',
   'keel-intents',
