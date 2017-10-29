@@ -23,6 +23,7 @@ import com.netflix.spinnaker.orca.mahe.MaheService
 import com.netflix.spinnaker.orca.mahe.PropertyAction
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -36,6 +37,7 @@ class CreatePropertiesTask implements Task {
 
   @Autowired MaheService maheService
   @Autowired ObjectMapper mapper
+  @Autowired ContextParameterProcessor contextParameterProcessor
 
   @Override
   TaskResult execute(Stage stage) {
@@ -43,6 +45,7 @@ class CreatePropertiesTask implements Task {
     if (stage.execution instanceof Pipeline) {
       List<Map> overrides = ((Pipeline) stage.execution).trigger.stageOverrides ?: []
       context = overrides.find { it.refId == stage.refId } ?: context
+      context = contextParameterProcessor.process(context, [execution: stage.execution], true)
     }
     List properties = assemblePersistedPropertyListFromContext(context, context.persistedProperties)
     // originalProperties field is only present on ad-hoc property pipelines - not as part of a createProperty stage,
@@ -105,7 +108,7 @@ class CreatePropertiesTask implements Task {
 
   List assemblePersistedPropertyListFromContext(Map<String, Object> context, List propertyList) {
     Map scope = context.scope
-    scope.appId = scope.appIdList.join(',')
+    scope.appId = scope.appIdList?.join(',')
     String email = context.email
     String cmcTicket = context.cmcTicket
 

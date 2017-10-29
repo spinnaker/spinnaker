@@ -17,13 +17,13 @@
 package com.netflix.spinnaker.orca.mahe.tasks
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.orca.RetrySupport
 import com.netflix.spinnaker.orca.mahe.MaheService
 import com.netflix.spinnaker.orca.mahe.pipeline.CreatePropertyStage
 import com.netflix.spinnaker.orca.mahe.pipeline.MonitorCreatePropertyStage
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineBuilder
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import retrofit.RetrofitError
 import retrofit.client.Response
 import retrofit.mime.TypedByteArray
@@ -36,7 +36,7 @@ class CreatePropertiesTaskSpec extends Specification {
   MaheService maheService = Mock(MaheService)
   ObjectMapper mapper = new ObjectMapper()
 
-  CreatePropertiesTask task = new CreatePropertiesTask(maheService: maheService, mapper: mapper)
+  CreatePropertiesTask task = new CreatePropertiesTask(maheService: maheService, mapper: mapper, contextParameterProcessor: new ContextParameterProcessor())
 
   RetrofitError NOT_FOUND = new RetrofitError(null, null, new Response("http://clouddriver", 404, "null", [], null), null, null, RetrofitError.Kind.HTTP, null)
 
@@ -121,6 +121,47 @@ class CreatePropertiesTaskSpec extends Specification {
     then:
     1 * maheService.findProperty(_) >> { throw NOT_FOUND }
     1 * maheService.upsertProperty(_) >> { Map res ->
+      def json = mapper.writeValueAsString([propertyId: 'other'])
+      new Response("http://mahe", 200, "OK", [], new TypedByteArray('application/json', json.bytes))
+    }
+
+    then:
+
+    with(results.context) {
+      propertyIdList.size() == 1
+      propertyIdList.contains(propertyId: 'other')
+    }
+  }
+
+  def "should handle expressions in stage override"() {
+    given: "an override property containing an expression"
+    def trigger = [ stageOverrides: [] ]
+    def pipeline = new PipelineBuilder("foo").withTrigger(trigger).build()
+    def stageOverride = createPropertiesStage(
+      pipeline,
+      createScope(),
+      createProperty([key: "foo", value: '${"hello world".split(" ") }'], "other"),
+      null
+    )
+
+    stageOverride.context.refId = "a"
+    def property = createProperty()
+    def createPropertiesStage = createPropertiesStage(pipeline, createScope(), property, null)
+    createPropertiesStage.refId = "a"
+    pipeline.stages.addAll([createPropertiesStage, createMonitorStage(pipeline)])
+
+    and:
+    pipeline.trigger.stageOverrides << stageOverride.context
+
+    when:
+    def results = task.execute(createPropertiesStage)
+
+    then: "the expression value should be evaluated "
+    1 * maheService.findProperty(_) >> { throw NOT_FOUND }
+    1 * maheService.upsertProperty(_) >> { Map res ->
+      assert res.property.key == "foo"
+      assert res.property.value[0] == "hello"
+      assert res.property.value[1] == "world"
       def json = mapper.writeValueAsString([propertyId: 'other'])
       new Response("http://mahe", 200, "OK", [], new TypedByteArray('application/json', json.bytes))
     }
@@ -329,6 +370,11 @@ class CreatePropertiesTaskSpec extends Specification {
 
   def createProperty(propertyId = null) {
     def property = [key: "foo", value: 'bar', constraints: 'none']
+    property['propertyId'] = propertyId
+    property
+  }
+
+  def createProperty(Map property, propertyId = null) {
     property['propertyId'] = propertyId
     property
   }
