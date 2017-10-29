@@ -17,14 +17,18 @@
 package com.netflix.spinnaker.orca.q.handler
 
 import com.netflix.spinnaker.orca.ExecutionStatus.PAUSED
+import com.netflix.spinnaker.orca.ExecutionStatus.CANCELED
+import com.netflix.spinnaker.orca.events.ExecutionComplete
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.q.*
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
 
 @Component
 class CancelExecutionHandler(
   override val queue: Queue,
-  override val repository: ExecutionRepository
+  override val repository: ExecutionRepository,
+  private val publisher: ApplicationEventPublisher
 ) : MessageHandler<CancelExecution> {
   override val messageType = CancelExecution::class.java
 
@@ -43,6 +47,8 @@ class CancelExecutionHandler(
 
       // then, make sure those runTask messages get run right away
       queue.push(RescheduleExecution(execution))
+
+      publisher.publishEvent(ExecutionComplete(this, message.executionType, message.executionId, CANCELED))
     }
   }
 }
