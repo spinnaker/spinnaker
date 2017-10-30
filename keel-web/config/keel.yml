@@ -1,6 +1,8 @@
 server:
   port: 8087
 
+clouddriver:
+  baseUrl: http://localhost:8081
 front50:
   baseUrl: http://localhost:8080
 orca:

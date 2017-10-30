@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Netflix, Inc.
+ * Copyright 2017 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,28 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.netflix.spinnaker.keel.clouddriver.model
 
-include 'keel-core',
-  'keel-test',
-  'keel-retrofit',
-  'keel-eureka',
-  'keel-front50',
-  'keel-orca',
-  'keel-clouddriver',
-  'keel-intents',
-  'keel-scheduler',
-  'keel-redis',
-  'keel-web'
+data class SecurityGroup(
+  val type: String,
+  val id: String,
+  val name: String,
+  val description: String,
+  val accountName: String,
+  val region: String,
+  val vpcId: String?,
+  // TODO rz - Gross.
+  val inboundRules: List<Map<String, String>>
+)
 
-rootProject.name = 'keel'
-
-def setBuildFile(project) {
-  project.buildFileName = "${project.name}.gradle"
-  project.children.each {
-    setBuildFile(it)
-  }
-}
-
-rootProject.children.each {
-  setBuildFile it
-}
+data class SecurityGroupIngress(
+  val name: String,
+  val startPort: Int,
+  val endPort: Int,
+  val type: String
+)

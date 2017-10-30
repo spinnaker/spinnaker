@@ -26,7 +26,7 @@ tasks.withType(org.springframework.boot.gradle.run.BootRunTask) {
 }
 
 springBoot {
-  mainClass = 'com.netflix.spinnaker.keel.Main'
+  mainClass = 'com.netflix.spinnaker.keel.MainKt'
 }
 
 dependencies {
@@ -36,6 +36,7 @@ dependencies {
   compile project(":keel-eureka")
   compile project(":keel-front50")
   compile project(":keel-orca")
+  compile project(":keel-clouddriver")
   compile project(":keel-intents")
   compile project(":keel-redis")
   compile project(":keel-scheduler")
