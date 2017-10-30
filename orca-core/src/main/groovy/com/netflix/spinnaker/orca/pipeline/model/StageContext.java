@@ -62,7 +62,7 @@ public class StageContext extends ForwardingMap<String, Object> {
           Optional
             .ofNullable(stage.getExecution())
             .map(execution -> execution.getContext().get(key))
-            .orElse(getTrigger().get(key))
+            .orElse(null)
         );
     }
   }
@@ -73,11 +73,11 @@ public class StageContext extends ForwardingMap<String, Object> {
    */
   public List<Object> getAll(Object key) {
     List<Object> result = stage
-        .ancestors()
-        .stream()
-        .filter(it -> it.getOutputs().containsKey(key))
-        .map(it -> it.getOutputs().get(key))
-        .collect(Collectors.toList());
+      .ancestors()
+      .stream()
+      .filter(it -> it.getOutputs().containsKey(key))
+      .map(it -> it.getOutputs().get(key))
+      .collect(Collectors.toList());
 
     if (delegate.containsKey(key)) {
       result.add(0, delegate.get(key));
