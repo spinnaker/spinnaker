@@ -23,7 +23,6 @@
     "lib": "rimraf lib && ./node_modules/typescript/bin/tsc --project ./build_scripts && node ./node_modules/webpack/bin/webpack.js --config ./build_scripts/webpack.build.js"
   },
   "dependencies": {
-    "@spinnaker/core": "^0.0.93",
     "@types/chartjs": "^0.0.31",
     "@uirouter/angularjs": "^1.0.4",
     "@uirouter/react-hybrid": "^0.0.12",
@@ -57,7 +56,6 @@
     "react-select": "^1.0.0-rc.4",
     "react-sortable-hoc": "^0.6.8",
     "react-virtualized-select": "3.1.0",
-    "react2angular": "^1.1.3",
     "redux": "^3.7.2",
     "redux-actions": "^2.2.1",
     "redux-logger": "^3.0.6",
@@ -75,6 +73,7 @@
   },
   "devDependencies": {
     "@spinnaker/amazon": "0.0.46",
+    "@spinnaker/core": "^0.0.93",
     "@spinnaker/google": "^0.0.1",
     "@types/angular": "^1.6.26",
     "@types/angular-mocks": "^1.5.10",
@@ -159,6 +158,7 @@
     "phantomjs-prebuilt": "^2.1.14",
     "react-addons-test-utils": "^15.5.1",
     "react-test-renderer": "^15.5.4",
+    "react2angular": "^1.1.3",
     "rimraf": "^2.5.4",
     "style-loader": "^0.17.0",
     "ts-loader": "^2.3.7",
