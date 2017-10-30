@@ -118,6 +118,7 @@ public class KubernetesCacheDataConverter {
     KubernetesApiVersion apiVersion = manifest.getApiVersion();
     String name = manifest.getName();
     String namespace = manifest.getNamespace();
+    Moniker moniker = KubernetesManifestAnnotater.getMoniker(manifest);
 
     Map<String, Object> attributes = new ImmutableMap.Builder<String, Object>()
         .put("kind", kind)
@@ -126,10 +127,10 @@ public class KubernetesCacheDataConverter {
         .put("namespace", namespace)
         .put("fullResourceName", manifest.getFullResourceName())
         .put("manifest", manifest)
+        .put("moniker", moniker)
         .build();
 
     KubernetesManifestSpinnakerRelationships relationships = KubernetesManifestAnnotater.getManifestRelationships(manifest);
-    Moniker moniker = KubernetesManifestAnnotater.getMoniker(manifest);
     Artifact artifact = KubernetesManifestAnnotater.getArtifact(manifest);
     KubernetesManifestMetadata metadata = KubernetesManifestMetadata.builder()
         .relationships(relationships)
@@ -156,6 +157,10 @@ public class KubernetesCacheDataConverter {
 
   public static KubernetesManifest getManifest(CacheData cacheData) {
     return mapper.convertValue(cacheData.getAttributes().get("manifest"), KubernetesManifest.class);
+  }
+
+  public static Moniker getMoniker(CacheData cacheData) {
+    return mapper.convertValue(cacheData.getAttributes().get("moniker"), Moniker.class);
   }
 
   public static KubernetesManifest convertToManifest(Object o) {

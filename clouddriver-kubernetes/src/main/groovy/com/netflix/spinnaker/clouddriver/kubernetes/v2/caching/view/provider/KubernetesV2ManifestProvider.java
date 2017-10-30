@@ -27,6 +27,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.Kube
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.deployer.KubernetesDeployer;
 import com.netflix.spinnaker.clouddriver.model.ManifestProvider;
+import com.netflix.spinnaker.moniker.Moniker;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -68,12 +69,14 @@ public class KubernetesV2ManifestProvider implements ManifestProvider<Kubernetes
         .getDeployer();
 
     KubernetesManifest manifest = KubernetesCacheDataConverter.getManifest(data);
+    Moniker moniker = KubernetesCacheDataConverter.getMoniker(data);
 
     return new KubernetesV2Manifest().builder()
         .account(account)
         .location(location)
         .manifest(manifest)
-        .stable(deployer.isStable(manifest))
+        .moniker(moniker)
+        .status(deployer.status(manifest))
         .build();
   }
 }

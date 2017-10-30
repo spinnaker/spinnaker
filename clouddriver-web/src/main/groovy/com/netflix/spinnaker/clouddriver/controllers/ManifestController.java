@@ -23,19 +23,20 @@ import com.netflix.spinnaker.clouddriver.requestqueue.RequestQueue;
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PostAuthorize;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Slf4j
 @RestController
-@RequestMapping("/applications/{application:.+}/manifests")
+@RequestMapping("/manifests")
 public class ManifestController {
   final List<ManifestProvider> manifestProviders;
 
@@ -47,16 +48,16 @@ public class ManifestController {
     this.requestQueue = requestQueue;
   }
 
- // @PreAuthorize("hasPermission(#application, 'APPLICATION', 'READ') && hasPermission(#account, 'ACCOUNT', 'READ')")
+  @PreAuthorize("hasPermission(#account, 'ACCOUNT', 'READ')")
+  @PostAuthorize("hasPermission(returnObject?.moniker?.app, 'APPLICATION', 'READ')")
   @RequestMapping(value = "/{account:.+}/{location:.+}/{name:.+}", method = RequestMethod.GET)
-  Collection<Manifest> getForAccountLocationAndName(@PathVariable String application,
-      @PathVariable String account,
+  Manifest getForAccountLocationAndName(@PathVariable String account,
       @PathVariable String location,
       @PathVariable String name) {
-    Collection<Manifest> manifests = manifestProviders.stream()
+    List<Manifest> manifests = manifestProviders.stream()
         .map(provider -> {
           try {
-            return requestQueue.execute(application, () -> provider.getManifest(account, location, name));
+            return requestQueue.execute(account, () -> provider.getManifest(account, location, name));
           } catch (Throwable t) {
             log.warn("Failed to read manifest " , t);
             return null;
@@ -65,11 +66,14 @@ public class ManifestController {
         .filter(Objects::nonNull)
         .collect(Collectors.toList());
 
+    String request = String.format("(account: %s, location: %s, name: %s)", account, location, name);
     if (manifests.isEmpty()) {
-      throw new NotFoundException(String.format("Manifest not found (application: %s, account: %s, location: %s, name: %s)",
-          application, account, location, name));
+      throw new NotFoundException("Manifest " + request + " not found");
+    } else if (manifests.size() > 1) {
+      log.error("Duplicate manifests " + manifests);
+      throw new IllegalStateException("Multiple manifests matching " + request + " found");
     }
 
-    return manifests;
+    return manifests.get(0);
   }
 }

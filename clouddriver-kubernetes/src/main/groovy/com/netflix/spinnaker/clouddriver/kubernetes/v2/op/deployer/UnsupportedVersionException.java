@@ -15,31 +15,12 @@
  *
  */
 
-package com.netflix.spinnaker.clouddriver.model;
+package com.netflix.spinnaker.clouddriver.kubernetes.v2.op.deployer;
 
-import com.netflix.spinnaker.moniker.Moniker;
-import lombok.Data;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 
-public interface Manifest {
-  Moniker getMoniker();
-  String getAccount();
-  String getLocation();
-  Status getStatus();
-
-  @Data
-  class Status {
-    boolean stable;
-    String message;
-
-    public static Status unstable(String message) {
-      return new Status()
-          .setMessage(message)
-          .setStable(false);
-    }
-
-    public static Status stable() {
-      return new Status()
-          .setStable(true);
-    }
+public class UnsupportedVersionException extends IllegalArgumentException {
+  public UnsupportedVersionException(KubernetesManifest manifest) {
+    super("No " + manifest.getKind() + " is supported at api version " + manifest.getApiVersion());
   }
 }

@@ -25,6 +25,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.Kube
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.job.KubectlJobExecutor;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
+import com.netflix.spinnaker.clouddriver.model.Manifest.Status;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
@@ -54,7 +55,7 @@ public abstract class KubernetesDeployer {
   abstract public KubernetesKind kind();
   abstract public boolean versioned();
   abstract public SpinnakerKind spinnakerKind();
-  abstract public boolean isStable(KubernetesManifest manifest);
+  abstract public Status status(KubernetesManifest manifest);
 
   void deploy(KubernetesV2Credentials credentials, KubernetesManifest manifest) {
     jobExecutor.deploy(credentials, manifest);

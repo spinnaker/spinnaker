@@ -17,12 +17,18 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.op.deployer;
 
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesCacheDataConverter;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpinnakerKindMap;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
+import com.netflix.spinnaker.clouddriver.model.Manifest.Status;
 import com.netflix.spinnaker.clouddriver.model.ServerGroup.Capacity;
+import io.kubernetes.client.models.AppsV1beta1Deployment;
+import io.kubernetes.client.models.AppsV1beta1DeploymentStatus;
 import io.kubernetes.client.models.V1DeleteOptions;
+import io.kubernetes.client.models.V1beta2Deployment;
+import io.kubernetes.client.models.V1beta2DeploymentStatus;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -43,8 +49,67 @@ public class KubernetesDeploymentDeployer extends KubernetesDeployer implements 
   }
 
   @Override
-  public boolean isStable(KubernetesManifest manifest) {
-    return false;
+  public Status status(KubernetesManifest manifest) {
+    switch (manifest.getApiVersion()) {
+      case APPS_V1BETA1:
+        AppsV1beta1Deployment appsV1beta1Deployment = KubernetesCacheDataConverter.getResource(manifest, AppsV1beta1Deployment.class);
+        return status(appsV1beta1Deployment);
+      case APPS_V1BETA2:
+        V1beta2Deployment appsV1beta2Deployment = KubernetesCacheDataConverter.getResource(manifest, V1beta2Deployment.class);
+        return status(appsV1beta2Deployment);
+      default:
+        throw new UnsupportedVersionException(manifest);
+    }
+  }
+
+  private Status status(AppsV1beta1Deployment deployment) {
+    AppsV1beta1DeploymentStatus status = deployment.getStatus();
+    int desiredReplicas = deployment.getSpec().getReplicas();
+    if (status == null) {
+      return Status.unstable("No status reported yet");
+    }
+
+    Integer existing = status.getUpdatedReplicas();
+    if (existing == null || desiredReplicas > existing) {
+      return Status.unstable("Waiting for all replicas to be updated");
+    }
+
+    existing = status.getAvailableReplicas();
+    if (existing == null || desiredReplicas > existing) {
+      return Status.unstable("Waiting for all replicas to be available");
+    }
+
+    existing = status.getReadyReplicas();
+    if (existing == null || desiredReplicas > existing) {
+      return Status.unstable("Waiting for all replicas to be ready");
+    }
+
+    return Status.stable();
+  }
+
+  private Status status(V1beta2Deployment deployment) {
+    V1beta2DeploymentStatus status = deployment.getStatus();
+    int desiredReplicas = deployment.getSpec().getReplicas();
+    if (status == null) {
+      return Status.unstable("No status reported yet");
+    }
+
+    Integer existing = status.getUpdatedReplicas();
+    if (existing == null || desiredReplicas > existing) {
+      return Status.unstable("Waiting for all replicas to be updated");
+    }
+
+    existing = status.getAvailableReplicas();
+    if (existing == null || desiredReplicas > existing) {
+      return Status.unstable("Waiting for all replicas to be available");
+    }
+
+    existing = status.getReadyReplicas();
+    if (existing == null || desiredReplicas > existing) {
+      return Status.unstable("Waiting for all replicas to be ready");
+    }
+
+    return Status.stable();
   }
 
   @Override

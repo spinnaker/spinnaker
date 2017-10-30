@@ -21,6 +21,8 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpi
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
+import com.netflix.spinnaker.clouddriver.model.Manifest;
+import com.netflix.spinnaker.clouddriver.model.Manifest.Status;
 import io.kubernetes.client.models.V1DeleteOptions;
 import org.springframework.stereotype.Component;
 
@@ -42,8 +44,8 @@ public class KubernetesIngressDeployer extends KubernetesDeployer implements Can
   }
 
   @Override
-  public boolean isStable(KubernetesManifest manifest) {
-    return false;
+  public Status status(KubernetesManifest manifest) {
+    return Status.stable();
   }
 
   @Override
