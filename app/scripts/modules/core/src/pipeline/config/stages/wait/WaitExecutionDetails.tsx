@@ -1,35 +1,19 @@
 import * as React from 'react';
 
-import { IExecutionDetailsComponentProps } from 'core/domain';
-import { ExecutionDetailsSectionNav, StageExecutionLogs, StageFailureMessage } from 'core/delivery/details';
-import { ExecutionStepDetails } from 'core/pipeline/config/stages/core/ExecutionStepDetails';
+import { StageExecutionLogs, StageFailureMessage } from 'core/delivery/details';
+import { ExecutionDetailsSection, IExecutionDetailsSectionProps } from 'core/pipeline/config/stages/core';
 import { SkipWait } from './SkipWait';
-import { stageExecutionDetails } from 'core/delivery/details';
 
-class ExecutionDetails extends React.Component<IExecutionDetailsComponentProps> {
-  public render() {
-    const { application, configSections, detailsSection, execution, stage } = this.props;
-    return (
-      <div>
-        <ExecutionDetailsSectionNav sections={configSections} />
-        {detailsSection === 'waitConfig' && (
-          <div className="step-section-details">
-            <SkipWait application={application} execution={execution} stage={stage} />
-            <StageFailureMessage stage={stage} message={stage.failureMessage} />
-            <StageExecutionLogs stage={stage} />
-          </div>
-        )}
+export function WaitExecutionDetails(props: IExecutionDetailsSectionProps) {
+  return (
+    <ExecutionDetailsSection name={props.name} current={props.current}>
+      <SkipWait application={props.application} execution={props.execution} stage={props.stage} />
+      <StageFailureMessage stage={props.stage} message={props.stage.failureMessage} />
+      <StageExecutionLogs stage={props.stage} />
+    </ExecutionDetailsSection>
+  );
+};
 
-        {detailsSection === 'taskStatus' && (
-          <div className="step-section-details">
-            <div className="row">
-              <ExecutionStepDetails item={stage} />
-            </div>
-          </div>
-        )}
-      </div>
-    );
-  }
+export namespace WaitExecutionDetails {
+  export const title = 'waitConfig';
 }
-
-export const WaitExecutionDetails = stageExecutionDetails(ExecutionDetails);

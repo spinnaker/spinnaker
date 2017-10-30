@@ -1,6 +1,7 @@
 import { Application } from 'core/application/application.model';
 
 import { IExecution } from './IExecution';
+import { IExecutionDetailsSection } from './IStageTypeConfig';
 import { IOrchestratedItem } from './IOrchestratedItem';
 import { IStage } from './IStage';
 import { ITaskStep } from './ITaskStep';
@@ -36,14 +37,14 @@ export interface IExecutionStageLabelComponentProps {
 
 export interface IExecutionDetailsComponentProps {
   application: Application;
-  configSections: string[];
-  detailsSection?: string;
+  detailsSections: IExecutionDetailsSection[];
   execution: IExecution;
   stage: IExecutionStage;
 }
 
 export interface IExecutionDetailsComponentState {
-  detailsSection: string;
+  configSections: string[];
+  currentSection: string;
 }
 
 export interface IExecutionStageSummary extends IOrchestratedItem {

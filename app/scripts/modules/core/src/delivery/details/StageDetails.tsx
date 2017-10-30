@@ -2,8 +2,9 @@ import * as React from 'react';
 import { BindAll } from 'lodash-decorators';
 
 import { Application } from 'core/application';
-import { IExecution, IExecutionDetailsComponentProps, IExecutionStage, IStageTypeConfig } from 'core/domain';
+import { IExecution, IExecutionDetailsSection, IExecutionStage, IStageTypeConfig } from 'core/domain';
 import { NgReact } from 'core/reactShims';
+import { StageExecutionDetails } from 'core/pipeline/config/stages/core/StageExecutionDetails';
 import { StatusGlyph } from 'core/task/StatusGlyph';
 import { robotToHuman } from 'core/presentation/robotToHumanFilter/robotToHuman.filter';
 
@@ -16,7 +17,7 @@ export interface IStageDetailsProps {
 
 export interface IStageDetailsState {
   configSections?: string[];
-  ReactComponent?: React.ComponentClass<IExecutionDetailsComponentProps>;
+  executionDetailsSections?: IExecutionDetailsSection[];
   sourceUrl?: string;
 }
 
@@ -30,22 +31,22 @@ export class StageDetails extends React.Component<IStageDetailsProps, IStageDeta
   private getState(): IStageDetailsState {
     let configSections: string[] = [];
     let sourceUrl: string;
-    let ReactComponent: React.ComponentClass<IExecutionDetailsComponentProps>;
+    let executionDetailsSections: IExecutionDetailsSection[];
 
     const stageConfig = this.props.config;
     if (stageConfig) {
       if (stageConfig.executionConfigSections) {
         configSections = stageConfig.executionConfigSections;
       }
-      if (stageConfig.executionDetailsComponent) {
+      if (stageConfig.executionDetailsSections) {
         // React execution details
-        ReactComponent = stageConfig.executionDetailsComponent;
+        executionDetailsSections = stageConfig.executionDetailsSections;
       } else {
         // Angular execution details
         sourceUrl = stageConfig.executionDetailsUrl || require('./defaultExecutionDetails.html');
       }
     }
-    return { configSections, ReactComponent, sourceUrl };
+    return { configSections, executionDetailsSections, sourceUrl };
   }
 
   public componentWillReceiveProps() {
@@ -54,9 +55,9 @@ export class StageDetails extends React.Component<IStageDetailsProps, IStageDeta
 
   public render(): React.ReactElement<StageDetails> {
     const { application, execution, stage } = this.props;
-    const { ReactComponent, sourceUrl, configSections } = this.state;
+    const { executionDetailsSections, sourceUrl, configSections } = this.state;
     const { StageDetailsWrapper } = NgReact;
-    const detailsProps = { application, execution, stage, configSections };
+    const detailsProps = { application, execution, stage };
 
     return (
       <div className="stage-details">
@@ -66,8 +67,8 @@ export class StageDetails extends React.Component<IStageDetailsProps, IStageDeta
             {robotToHuman(stage.name || stage.type)}
           </h5>
         </div>
-        {sourceUrl && <StageDetailsWrapper {...detailsProps} sourceUrl={sourceUrl} />}
-        {ReactComponent && <ReactComponent {...detailsProps} />}
+        {sourceUrl && <StageDetailsWrapper {...detailsProps} sourceUrl={sourceUrl} configSections={configSections} />}
+        {executionDetailsSections && <StageExecutionDetails {...detailsProps} detailsSections={executionDetailsSections} />}
       </div>
     );
   }

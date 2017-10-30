@@ -1,6 +1,9 @@
 import { IStage } from './IStage';
-import { IExecutionDetailsComponentProps, IExecutionStageLabelComponentProps, IExecutionStageSummary } from './IExecutionStage';
+import { IExecutionDetailsSectionProps } from 'core/pipeline/config/stages/core';
+import { IExecutionStageLabelComponentProps, IExecutionStageSummary } from './IExecutionStage';
 import { IStageOrTriggerTypeConfig } from './IStageOrTriggerTypeConfig';
+
+export type IExecutionDetailsSection = (React.ComponentClass<IExecutionDetailsSectionProps> | React.SFC<IExecutionDetailsSectionProps>) & { title: string };
 
 export interface IStageTypeConfig extends IStageOrTriggerTypeConfig {
   accountExtractor?: (stage: IStage) => string;
@@ -11,9 +14,9 @@ export interface IStageTypeConfig extends IStageOrTriggerTypeConfig {
   configAccountExtractor?: any;
   configuration?: any;
   defaultTimeoutMs?: number;
-  executionConfigSections?: string[];
-  executionDetailsComponent?: React.ComponentClass<IExecutionDetailsComponentProps>;
-  executionDetailsUrl?: string;
+  executionConfigSections?: string[]; // angular only
+  executionDetailsSections?: IExecutionDetailsSection[]; // react only
+  executionDetailsUrl?: string; // angular only
   executionLabelComponent?: React.ComponentClass<IExecutionStageLabelComponentProps>;
   executionStepLabelUrl?: string;
   executionSummaryUrl?: string;

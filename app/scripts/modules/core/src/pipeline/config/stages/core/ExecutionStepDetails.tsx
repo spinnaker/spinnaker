@@ -10,9 +10,9 @@ export interface IExecutionStepDetailsProps {
   item: IExecutionStage;
 }
 
-export class ExecutionStepDetails extends React.Component<IExecutionStepDetailsProps> {
-  public render() {
-    return (
+export function ExecutionStepDetails(props: IExecutionStepDetailsProps) {
+  return (
+    <div className="row">
       <div className="col-md-9">
         <div className="row">
           <div className="col-md-9">
@@ -22,7 +22,7 @@ export class ExecutionStepDetails extends React.Component<IExecutionStepDetailsP
             <strong>Duration</strong>
           </div>
         </div>
-        { displayableTasks((this.props.item.tasks || [])).map((task, index) => (
+        { displayableTasks((props.item.tasks || [])).map((task, index) => (
           <div key={index} className="row">
             <div className="col-md-9">
               <span className="small"><StatusGlyph item={task}/></span> {robotToHuman(task.name)}
@@ -33,6 +33,6 @@ export class ExecutionStepDetails extends React.Component<IExecutionStepDetailsP
           </div>
         ))}
       </div>
-    );
-  }
+    </div>
+  );
 }
