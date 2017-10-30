@@ -14,7 +14,7 @@ export const canaryTabs: ICanaryHeaderTabConfig[] = [
     activeStates: ['**.configDefault', '**.configDetail'],
   },
   {
-    title: 'report',
+    title: 'reports',
     sref: 'home.applications.application.canary.report.reportDefault',
     activeStates: ['**.report.**'],
     hide: !CanarySettings.reportsEnabled,
