@@ -17,7 +17,6 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.provider;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesCacheDataConverter;
@@ -38,13 +37,11 @@ import java.util.Optional;
 public class KubernetesV2ManifestProvider implements ManifestProvider<KubernetesV2Manifest> {
   private final KubernetesResourcePropertyRegistry registry;
   private final KubernetesCacheUtils cacheUtils;
-  private final ObjectMapper mapper;
 
   @Autowired
-  public KubernetesV2ManifestProvider(KubernetesResourcePropertyRegistry registry, KubernetesCacheUtils cacheUtils, ObjectMapper mapper) {
+  public KubernetesV2ManifestProvider(KubernetesResourcePropertyRegistry registry, KubernetesCacheUtils cacheUtils) {
     this.registry = registry;
     this.cacheUtils = cacheUtils;
-    this.mapper = mapper;
   }
 
   @Override
