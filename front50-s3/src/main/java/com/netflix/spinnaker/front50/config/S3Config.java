@@ -77,6 +77,7 @@ public class S3Config extends CommonStorageServiceDAOConfig {
   }
 
   @Bean
+  @ConditionalOnExpression("${spinnaker.s3.eventing.enabled:false}")
   public AmazonSQS awsSQSClient(AWSCredentialsProvider awsCredentialsProvider, S3Properties s3Properties) {
     return AmazonSQSClientBuilder
       .standard()
@@ -87,6 +88,7 @@ public class S3Config extends CommonStorageServiceDAOConfig {
   }
 
   @Bean
+  @ConditionalOnExpression("${spinnaker.s3.eventing.enabled:false}")
   public AmazonSNS awsSNSClient(AWSCredentialsProvider awsCredentialsProvider, S3Properties s3Properties) {
     return AmazonSNSClientBuilder
       .standard()
