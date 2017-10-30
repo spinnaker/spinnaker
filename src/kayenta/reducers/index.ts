@@ -79,7 +79,7 @@ const isInSyncWithServerReducer = (state: ICanaryState): ICanaryState => {
         if (!editedConfig) {
           return true;
         } else {
-          const originalConfig = state.data.configs.find(c => c.name === editedConfig.name);
+          const originalConfig = state.data.configs.find(c => c.id === editedConfig.id);
           return isEqual(editedConfig, originalConfig);
         }
       })(),

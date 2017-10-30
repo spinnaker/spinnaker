@@ -2,6 +2,7 @@ import { ICanaryConfig } from '../domain/ICanaryConfig';
 import { ICanaryConfigSummary } from '../domain/ICanaryConfigSummary';
 import { IJudge } from '../domain/IJudge';
 import { IKayentaAccount, KayentaAccountType } from '../domain/IKayentaAccount';
+import { UUIDGenerator } from '@spinnaker/core';
 
 const atlasCanaryConfig = require('kayenta/scratch/atlas_canary_config.json');
 const stackdriverCanaryConfig = require('kayenta/scratch/stackdriver_canary_config.json');
@@ -20,7 +21,7 @@ export class LocalConfigStore {
   }
 
   public getCanaryConfigById(id: string): Promise<ICanaryConfig> {
-    const config = Array.from(this.configs).find(c => c.name === id);
+    const config = Array.from(this.configs).find(c => c.id === id);
     if (config) {
       return Promise.resolve(config);
     } else {
@@ -30,6 +31,7 @@ export class LocalConfigStore {
 
   public getCanaryConfigSummaries(): Promise<ICanaryConfigSummary[]> {
     const summaries = Array.from(this.configs).map(config => ({
+      id: config.id,
       updatedTimestamp: config.updatedTimestamp,
       updatedTimestampIso: config.updatedTimestampIso,
       name: config.name,
@@ -38,17 +40,21 @@ export class LocalConfigStore {
   }
 
   public createCanaryConfig(config: ICanaryConfig): Promise<{id: string}> {
-    this.configs.add(config);
-    return Promise.resolve({id: config.name});
+    const id = UUIDGenerator.generateUuid();
+    this.configs.add({
+      ...config,
+      id,
+    });
+    return Promise.resolve({ id });
   }
 
   public updateCanaryConfig(config: ICanaryConfig): Promise<{id: string}> {
-    return this.deleteCanaryConfig(config.name)
+    return this.deleteCanaryConfig(config.id)
       .then(() => this.createCanaryConfig(config));
   }
 
   public deleteCanaryConfig(id: string): Promise<void> {
-    const config = Array.from(this.configs).find(c => c.name === id);
+    const config = Array.from(this.configs).find(c => c.id === id);
     this.configs.delete(config);
     return Promise.resolve(null);
   }

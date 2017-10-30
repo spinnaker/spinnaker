@@ -15,7 +15,7 @@ export const CANARY_DATA_SOURCE = 'spinnaker.kayenta.canary.dataSource';
 module(CANARY_DATA_SOURCE, [APPLICATION_DATA_SOURCE_REGISTRY])
   .run(($q: IQService, applicationDataSourceRegistry: ApplicationDataSourceRegistry) => {
     // TODO: IDataSourceConfig expects an IPromise (not a Promise) from the loaders in this function, which is why we're using $q.resolve(...).
-    const loadCanaryConfigs = () => $q.resolve(getCanaryConfigSummaries());
+    const loadCanaryConfigs = (application: Application) => $q.resolve(getCanaryConfigSummaries(application.name));
 
     const configsLoaded = (_application: Application, summaries: ICanaryConfigSummary[]) => {
       return $q.resolve(summaries);

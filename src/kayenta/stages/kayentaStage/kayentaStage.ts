@@ -11,7 +11,6 @@ import {
 import { CanarySettings } from 'kayenta/canary.settings';
 import {
   getCanaryConfigById,
-  getCanaryConfigSummaries,
   listKayentaAccounts,
 } from 'kayenta/service/canaryConfig.service';
 import { ICanaryConfig, ICanaryConfigSummary, IKayentaAccount, KayentaAccountType } from 'kayenta/domain/index';
@@ -58,7 +57,7 @@ class CanaryStage implements IComponentController {
     backingDataLoading: false,
     detailsLoading: false,
   };
-  public canaryConfigNames: string[] = [];
+  public canaryConfigSummaries: ICanaryConfigSummary[] = [];
   public selectedCanaryConfigDetails: ICanaryConfig;
   public kayentaAccounts = new Map<KayentaAccountType, IKayentaAccount[]>();
 
@@ -157,7 +156,10 @@ class CanaryStage implements IComponentController {
   private loadBackingData(): void {
     this.state.backingDataLoading = true;
     Promise.all([
-      getCanaryConfigSummaries().then(this.setCanaryConfigNames),
+      this.$scope.application.ready().then(() => {
+        this.setCanaryConfigSummaries(this.$scope.application.getDataSource('canaryConfigs').data);
+        this.deleteCanaryConfigIdIfMissing();
+      }),
       listKayentaAccounts().then(this.setKayentaAccounts).then(this.deleteConfigAccountsIfMissing),
     ]).then(() => this.state.backingDataLoading = false)
       .catch(() => this.state.backingDataLoading = false);
@@ -186,8 +188,14 @@ class CanaryStage implements IComponentController {
     }
   }
 
-  private setCanaryConfigNames(summaries: ICanaryConfigSummary[]): void {
-    this.canaryConfigNames = summaries.map(summary => summary.name);
+  private setCanaryConfigSummaries(summaries: ICanaryConfigSummary[]): void {
+    this.canaryConfigSummaries = summaries;
+  }
+
+  private deleteCanaryConfigIdIfMissing(): void {
+    if (this.canaryConfigSummaries.every(s => s.id !== this.stage.canaryConfig.canaryConfigId)) {
+      delete this.stage.canaryConfig.canaryConfigId;
+    }
   }
 }
 

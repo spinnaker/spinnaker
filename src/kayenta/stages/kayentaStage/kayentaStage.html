@@ -38,9 +38,9 @@
                    on-select="kayentaCanaryStageCtrl.onCanaryConfigSelect()"
                    class="visible-sm-inline-block visible-md-inline-block visible-lg-inline-block"
                    style="width:300px">
-          <ui-select-match>{{$select.selected}}</ui-select-match>
-          <ui-select-choices repeat="name in kayentaCanaryStageCtrl.canaryConfigNames | filter: $select.search">
-            {{name}}
+          <ui-select-match>{{$select.selected.name}}</ui-select-match>
+          <ui-select-choices repeat="summary.id as summary in kayentaCanaryStageCtrl.canaryConfigSummaries | filter: $select.search">
+            {{summary.name}}
           </ui-select-choices>
         </ui-select>
       </div>

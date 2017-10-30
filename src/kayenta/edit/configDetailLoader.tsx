@@ -16,7 +16,7 @@ interface IConfigLoaderDispatchProps {
 }
 
 interface IConfigDetailStateParams {
-  configName: string;
+  id: string;
   copy: boolean;
   'new': boolean;
 }
@@ -50,8 +50,8 @@ function mapDispatchToProps(dispatch: (action: Action & any) => void): IConfigLo
         dispatch(Creators.copySelectedConfig());
       } else if (stateParams.new) {
         dispatch(Creators.createNewConfig());
-      } else if (stateParams.configName) {
-        dispatch(Creators.loadConfigRequest({ configName: stateParams.configName }));
+      } else if (stateParams.id) {
+        dispatch(Creators.loadConfigRequest({ id: stateParams.id }));
       }
     }
   };
