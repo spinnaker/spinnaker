@@ -373,7 +373,6 @@ class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
         'cloudProvider': 'gce',
         'provider': 'gce',
         'instanceType': 'f1-micro',
-        'image': None,
         'targetSize': 1,
         'account': self.bindings['SPINNAKER_GOOGLE_ACCOUNT']
       }]
