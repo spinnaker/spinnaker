@@ -23,7 +23,7 @@
     "lib": "rimraf lib && ./node_modules/typescript/bin/tsc --project ./build_scripts && node ./node_modules/webpack/bin/webpack.js --config ./build_scripts/webpack.build.js"
   },
   "dependencies": {
-    "@types/chartjs": "^0.0.31",
+    "@types/chart.js": "^2.6.10",
     "@uirouter/angularjs": "^1.0.4",
     "@uirouter/react-hybrid": "^0.0.12",
     "@uirouter/rx": "^0.4.5",
@@ -35,7 +35,7 @@
     "angular-ui-sortable": "^0.17.0",
     "angular2react": "^2.0.0",
     "bootstrap": "3.3.7",
-    "chartjs": "^0.3.24",
+    "chart.js": "^2.7.0",
     "class-autobind-decorator": "^2.2.1",
     "classnames": "^2.2.5",
     "diff-match-patch": "^1.0.0",

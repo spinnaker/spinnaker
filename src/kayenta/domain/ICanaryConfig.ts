@@ -1,4 +1,6 @@
 export interface ICanaryConfig {
+  applications: string[];
+  id?: string;
   createdTimestamp?: number;
   updatedTimestamp?: number;
   createdTimestampIso?: string;

@@ -14,15 +14,19 @@ import {
 
 export function getCanaryConfigById(id: string): Promise<ICanaryConfig> {
   if (CanarySettings.liveCalls) {
-    return ReactInjector.API.one('v2/canaryConfig').one(id).get();
+    return ReactInjector.API.one('v2/canaryConfig').one(id).get()
+      .then((config: ICanaryConfig) => ({
+        ...config,
+        id,
+      }));
   } else {
     return localConfigStore.getCanaryConfigById(id);
   }
 }
 
-export function getCanaryConfigSummaries(): Promise<ICanaryConfigSummary[]> {
+export function getCanaryConfigSummaries(...application: string[]): Promise<ICanaryConfigSummary[]> {
   if (CanarySettings.liveCalls) {
-    return ReactInjector.API.one('v2/canaryConfig').get();
+    return ReactInjector.API.one('v2/canaryConfig').withParams({ application }).get();
   } else {
     return localConfigStore.getCanaryConfigSummaries();
   }
@@ -30,7 +34,7 @@ export function getCanaryConfigSummaries(): Promise<ICanaryConfigSummary[]> {
 
 export function updateCanaryConfig(config: ICanaryConfig): Promise<{id: string}> {
   if (CanarySettings.liveCalls) {
-    return ReactInjector.API.one('v2/canaryConfig').one(config.name).put(config);
+    return ReactInjector.API.one('v2/canaryConfig').one(config.id).put(config);
   } else {
     return localConfigStore.updateCanaryConfig(config);
   }
@@ -100,6 +104,7 @@ export function buildNewConfig(state: ICanaryState): ICanaryConfig {
 
   return {
     name: configName,
+    applications: [state.data.application.name],
     description: '',
     isNew: true,
     metrics: [] as ICanaryMetricConfig[],

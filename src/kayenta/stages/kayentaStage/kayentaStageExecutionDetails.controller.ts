@@ -7,12 +7,14 @@ import {
 } from '@spinnaker/core';
 import { RUN_CANARY } from './stageTypes';
 import { CANARY_RUN_SUMMARIES_COMPONENT } from './canaryRunSummaries.component';
+import { ICanaryConfigSummary } from 'kayenta/domain/ICanaryConfigSummary';
 
 import './kayentaStageExecutionDetails.less';
 
 class KayentaStageExecutionDetailsController {
 
   public canaryRuns: IExecutionStage[];
+  public canaryConfigName: string;
   public resolvedControl: string;
   public resolvedExperiment: string;
 
@@ -22,6 +24,15 @@ class KayentaStageExecutionDetailsController {
     'ngInject';
     this.$scope.configSections = ['canarySummary', 'canaryConfig', 'taskStatus'];
     this.$scope.$on('$stateChangeSuccess', () => this.initialize());
+    this.$scope.application.ready().then(() => {
+      const canaryConfigSummary =
+        this.$scope.application.getDataSource('canaryConfigs').data.find(
+          (config: ICanaryConfigSummary) => config.id === this.$scope.stage.context.canaryConfig.canaryConfigId
+        );
+      if (canaryConfigSummary) {
+        this.canaryConfigName = canaryConfigSummary.name;
+      }
+    });
   }
 
   public $onInit(): void {

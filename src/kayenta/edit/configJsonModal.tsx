@@ -2,7 +2,7 @@ import * as React from 'react';
 import { Action } from 'redux';
 import { connect } from 'react-redux';
 import { Modal } from 'react-bootstrap';
-import { get } from 'lodash';
+import { get, omit } from 'lodash';
 
 import * as Creators from 'kayenta/actions/creators';
 import { ICanaryState } from '../reducers/index';
@@ -25,6 +25,7 @@ interface IConfigJsonDispatchProps {
 interface IConfigJsonStateProps {
   show: boolean;
   configJson: string;
+  id: string;
   deserializationError: string;
   tabState: ConfigJsonModalTabState;
   diff: IJsonDiff;
@@ -38,7 +39,7 @@ export enum ConfigJsonModalTabState {
 /*
  * Modal for viewing canary config JSON.
  */
-function ConfigJsonModal({ show, configJson, deserializationError, closeModal, setConfigJson, updateConfig, setTabState, tabState, diff }: IConfigJsonDispatchProps & IConfigJsonStateProps) {
+function ConfigJsonModal({ show, configJson, id, deserializationError, closeModal, setConfigJson, updateConfig, setTabState, tabState, diff }: IConfigJsonDispatchProps & IConfigJsonStateProps) {
   return (
     <Modal show={show} onHide={onHide} bsSize="large">
       <Styleguide>
@@ -88,6 +89,7 @@ function ConfigJsonModal({ show, configJson, deserializationError, closeModal, s
             <li>
               <button
                 className="primary"
+                data-id={id}
                 data-serialized={configJson}
                 onClick={updateConfig}
                 disabled={!!deserializationError}
@@ -107,20 +109,28 @@ function mapDispatchToProps(dispatch: (action: Action & any) => void): IConfigJs
     setTabState: (state: ConfigJsonModalTabState) => () => dispatch(Creators.setConfigJsonModalTabState({ state })),
     setConfigJson: (event: React.ChangeEvent<HTMLTextAreaElement>) => dispatch(Creators.setConfigJson({ json: event.target.value })),
     updateConfig: (event: any) => {
-      dispatch(Creators.selectConfig({ config: JSON.parse(event.target.dataset.serialized) }));
+      dispatch(Creators.selectConfig({
+        config: {
+          id: event.target.dataset.id,
+          ...JSON.parse(event.target.dataset.serialized)
+        },
+      }));
     }
   };
 }
 
 function mapStateToProps(state: ICanaryState): IConfigJsonStateProps {
+  const id: string = get(state, 'selectedConfig.config.id');
   const persistedConfig = jsonUtilityService.makeSortedStringFromObject(
-    state.data.configs.find(c => c.name === get(state, 'selectedConfig.config.name')) || {}
+    omit(state.data.configs.find(c => c.id === id) || {}, 'id'),
   );
 
-  const configJson = state.selectedConfig.json.configJson || jsonUtilityService.makeSortedStringFromObject(mapStateToConfig(state) || {});
+  const configJson = state.selectedConfig.json.configJson
+    || jsonUtilityService.makeSortedStringFromObject(omit(mapStateToConfig(state) || {}, 'id'));
 
   return {
     configJson,
+    id,
     show: state.app.configJsonModalOpen,
     deserializationError: state.selectedConfig.json.error,
     tabState: state.app.configJsonModalTabState,

@@ -25,7 +25,7 @@ const loadConfigEpic = (action$: Observable<Action & any>) =>
   action$
     .filter(typeMatches(Actions.LOAD_CONFIG_REQUEST, Actions.SAVE_CONFIG_SUCCESS))
     .concatMap(action =>
-      Observable.fromPromise(getCanaryConfigById(action.payload.configName))
+      Observable.fromPromise(getCanaryConfigById(action.payload.id))
         .map(config => Creators.loadConfigSuccess({ config }))
         .catch(error => Observable.of(Creators.loadConfigFailure({ error })))
     );
@@ -49,11 +49,12 @@ const saveConfigEpic = (action$: Observable<Action & any>, store: MiddlewareAPI<
       }
 
       return Observable.fromPromise(saveAction)
-        .map(() => Observable.forkJoin(
-          ReactInjector.$state.go('^.configDetail', {configName: config.name, copy: false, 'new': false}),
-          store.getState().data.application.getDataSource('canaryConfigs').refresh(true)
-        ))
-        .mapTo(Creators.saveConfigSuccess({ configName: config.name }))
+        .concatMap(({ id }) =>
+          Observable.forkJoin(
+            ReactInjector.$state.go('^.configDetail', { id, copy: false, 'new': false }),
+            store.getState().data.application.getDataSource('canaryConfigs').refresh(true)
+          ).mapTo(Creators.saveConfigSuccess({ id }))
+        )
         .catch((error: Error) => Observable.of(Creators.saveConfigFailure({ error })));
     });
 
@@ -61,7 +62,7 @@ const deleteConfigRequestEpic = (action$: Observable<Action & any>, store: Middl
   action$
     .filter(typeMatches(Actions.DELETE_CONFIG_REQUEST))
     .concatMap(() =>
-      Observable.fromPromise(deleteCanaryConfig(store.getState().selectedConfig.config.name))
+      Observable.fromPromise(deleteCanaryConfig(store.getState().selectedConfig.config.id))
         .mapTo(Creators.deleteConfigSuccess())
         .catch((error: Error) => Observable.of(Creators.deleteConfigFailure({ error })))
     );
