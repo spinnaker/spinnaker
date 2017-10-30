@@ -41,6 +41,11 @@ interface OortService {
                                      @Query("region") String region,
                                      @Path("cloudProvider") String cloudProvider)
 
+  @GET("/manifests/{account}/{location}/{manifest}")
+  Response getManifest(@Path("account") String account,
+                       @Path("location") String location,
+                       @Path("manifest") String manifest)
+
   @Deprecated
   @GET("/applications/{app}/serverGroups/{account}/{region}/{serverGroup}")
   Response getServerGroup(@Path("app") String app,

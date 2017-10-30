@@ -36,6 +36,11 @@ public class DelegatingOortService
   }
 
   @Override
+  public Response getManifest(String account, String location, String name) {
+    return getService().getManifest(account, location, name);
+  }
+
+  @Override
   public Response getServerGroupFromCluster(String app, String account, String cluster, String serverGroup, String region, String cloudProvider) {
     return getService().getServerGroupFromCluster(app, account, cluster, serverGroup, region, cloudProvider);
   }
