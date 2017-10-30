@@ -30,7 +30,11 @@
   version "1.6.24"
   resolved "https://registry.yarnpkg.com/@types/angular/-/angular-1.6.24.tgz#f19510cf4efa5816158fa01b1aa2df94eb7bcde8"
 
-"@types/angular@^1.6.26", "@types/angular@^1.6.28", "@types/angular@^1.6.32":
+"@types/angular@1.6.26":
+  version "1.6.26"
+  resolved "https://registry.yarnpkg.com/@types/angular/-/angular-1.6.26.tgz#a96cccef648de0bf7435f3b9bad13f2430719305"
+
+"@types/angular@^1.6.28", "@types/angular@^1.6.32":
   version "1.6.36"
   resolved "https://registry.yarnpkg.com/@types/angular/-/angular-1.6.36.tgz#15e73d632274b5655a391470844863548c7755f4"
 
