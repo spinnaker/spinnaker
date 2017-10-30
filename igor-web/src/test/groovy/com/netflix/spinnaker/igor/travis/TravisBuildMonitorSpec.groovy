@@ -62,16 +62,16 @@ class TravisBuildMonitorSpec extends Specification {
         1 * travisService.getBuilds(repo, 5) >> [ build ]
         build.branchedRepoSlug() >> "test-org/test-repo/master"
         build.getNumber() >> 4
-        1 * buildCache.getLastBuild(MASTER, 'test-org/test-repo/master') >> [lastBuildLabel: 3]
+        1 * buildCache.getLastBuild(MASTER, 'test-org/test-repo/master', false) >> 3
         1 * buildCache.setLastBuild(MASTER, 'test-org/test-repo/master', 4, false, CACHED_JOB_TTL_SECONDS)
         1 * buildCache.setLastBuild(MASTER, 'test-org/test-repo', 4, false, CACHED_JOB_TTL_SECONDS)
 
         build.repository >> repository
         repository.slug >> 'test-org/test-repo'
         receivedBuilds.size() == 1
-        receivedBuilds[0].current.slug == 'test-org/test-repo'
-        receivedBuilds[0].current.lastBuildNumber == 4
-        receivedBuilds[0].previous.lastBuildLabel == 3
+        receivedBuilds[0].slug == 'test-org/test-repo/master'
+        receivedBuilds[0].current == 4
+        receivedBuilds[0].previous == 3
     }
 
     void 'ignore old build not found in the cache'() {
@@ -103,7 +103,7 @@ class TravisBuildMonitorSpec extends Specification {
         build.getNumber() >> 4
 
 
-        1 * buildCache.getLastBuild(MASTER, 'test-org/test-repo/master') >> [lastBuildLabel: 3]
+        1 * buildCache.getLastBuild(MASTER, 'test-org/test-repo/master', false) >> 3
         1 * buildCache.setLastBuild(MASTER, 'test-org/test-repo/master', 4, false, CACHED_JOB_TTL_SECONDS)
         1 * buildCache.setLastBuild(MASTER, 'test-org/test-repo', 4, false, CACHED_JOB_TTL_SECONDS)
 
@@ -112,9 +112,9 @@ class TravisBuildMonitorSpec extends Specification {
 
         expect:
         builds.size() == 1
-        builds[0].current.slug == 'test-org/test-repo'
-        builds[0].current.lastBuildNumber == 4
-        builds[0].previous.lastBuildLabel == 3
+        builds[0].slug == 'test-org/test-repo/master'
+        builds[0].current == 4
+        builds[0].previous == 3
     }
 
     void 'send events for build both on branch and on repository'() {
@@ -141,7 +141,7 @@ class TravisBuildMonitorSpec extends Specification {
         build.branchedRepoSlug() >> "test-org/test-repo/my_branch"
         build.getNumber() >> 4
 
-        1 * buildCache.getLastBuild(MASTER, 'test-org/test-repo/my_branch') >> [lastBuildLabel: 3]
+        1 * buildCache.getLastBuild(MASTER, 'test-org/test-repo/my_branch', false) >> 3
         1 * buildCache.setLastBuild(MASTER, 'test-org/test-repo/my_branch', 4, false, CACHED_JOB_TTL_SECONDS)
         1 * buildCache.setLastBuild(MASTER, 'test-org/test-repo', 4, false, CACHED_JOB_TTL_SECONDS)
 
@@ -187,12 +187,12 @@ class TravisBuildMonitorSpec extends Specification {
         build.getNumber() >> 4
         buildDifferentBranch.branchedRepoSlug() >> "test-org/test-repo/different_branch"
         buildDifferentBranch.getNumber() >> 3
-        1 * buildCache.getLastBuild(MASTER, 'test-org/test-repo/my_branch') >> [lastBuildLabel: 2]
+        1 * buildCache.getLastBuild(MASTER, 'test-org/test-repo/my_branch', false) >> 2
         1 * buildCache.setLastBuild(MASTER, 'test-org/test-repo/my_branch', 4, false, CACHED_JOB_TTL_SECONDS)
         1 * buildCache.setLastBuild(MASTER, 'test-org/test-repo', 4, false, CACHED_JOB_TTL_SECONDS)
         1 * buildCache.setLastBuild(MASTER, 'test-org/test-repo', 3, false, CACHED_JOB_TTL_SECONDS)
 
-        1 * buildCache.getLastBuild(MASTER, 'test-org/test-repo/different_branch') >> [lastBuildLabel: 1]
+        1 * buildCache.getLastBuild(MASTER, 'test-org/test-repo/different_branch', false) >> 1
         1 * buildCache.setLastBuild(MASTER, 'test-org/test-repo/different_branch', 3, false, CACHED_JOB_TTL_SECONDS)
 
         build.repository >> repository

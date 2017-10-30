@@ -87,6 +87,7 @@ class TravisBuildMonitor implements PollingMonitor{
     void onApplicationEvent(ContextRefreshedEvent event) {
         log.info('Started')
         setBuildCacheTTL()
+        migrateToNewBuildCache()
         worker.schedulePeriodically(
             {
                 if (isInService()) {
@@ -132,6 +133,7 @@ class TravisBuildMonitor implements PollingMonitor{
         log.info('Checking for new builds for {}', kv("master", master))
         List<String> cachedRepoSlugs = buildCache.getJobNames(master)
         List<Map> results = []
+        int updatedBuilds = 0
 
         TravisService travisService = buildMasters.map[master]
 
@@ -144,34 +146,35 @@ class TravisBuildMonitor implements PollingMonitor{
                 List<V3Build> builds = travisService.getBuilds(repo, 5)
                 for (V3Build build : builds) {
                     boolean addToCache = false
-                    Map cachedBuild = null
+                    def cachedBuild = null
                     String branchedRepoSlug = build.branchedRepoSlug()
                     if (cachedRepoSlugs.contains(branchedRepoSlug)) {
-                        cachedBuild = buildCache.getLastBuild(master, branchedRepoSlug)
-                        if (build.number > Integer.valueOf(cachedBuild.lastBuildLabel)) {
+                        cachedBuild = buildCache.getLastBuild(master, branchedRepoSlug, TravisResultConverter.running(build.state))
+                        if (build.number > cachedBuild) {
                             addToCache = true
                             log.info("New build: {}: ${branchedRepoSlug} : ${build.number}", kv("master", master))
-                        }
-                        if (buildStateHasChanged(build, cachedBuild)) {
-                            addToCache = true
                         }
                     } else {
                         addToCache = true
                     }
                     if (addToCache) {
+                        updatedBuilds += 1
                         log.info("Build update [${branchedRepoSlug}:${build.number}] [status:${build.state}] [running:${TravisResultConverter.running(build.state)}]")
                         buildCache.setLastBuild(master, branchedRepoSlug, build.number, TravisResultConverter.running(build.state), buildCacheJobTTLSeconds())
                         buildCache.setLastBuild(master, build.repository.slug, build.number, TravisResultConverter.running(build.state), buildCacheJobTTLSeconds())
                         if (!build.spinnakerTriggered()) {
                             sendEventForBuild(build, branchedRepoSlug, master, travisService)
                         }
-                        results << [previous: cachedBuild, current: repo]
+                        results << [slug: branchedRepoSlug, previous: cachedBuild, current: build.number]
                     }
                 }
             }, {
             log.error("Error: ${it.message} (master: {})", kv("master", master))
         }
         )
+        if (updatedBuilds) {
+            log.info("Found {} new builds (master: {})", updatedBuilds, kv("master", master))
+        }
         log.info("Last poll took ${System.currentTimeMillis() - lastPoll}ms (master: {})", kv("master", master))
         if (travisProperties.repositorySyncEnabled) {
             startTime = System.currentTimeMillis()
@@ -180,11 +183,6 @@ class TravisBuildMonitor implements PollingMonitor{
         }
         results
 
-    }
-
-    private boolean buildStateHasChanged(V3Build build, Map cachedBuild) {
-        (TravisResultConverter.running(build.state) != cachedBuild.lastBuildBuilding) &&
-            (build.number == Integer.valueOf(cachedBuild.lastBuildLabel))
     }
 
     private void sendEventForBuild(V3Build build, String branchedSlug, String master, TravisService travisService) {
@@ -216,6 +214,26 @@ class TravisBuildMonitor implements PollingMonitor{
                     log.info("Found build without TTL: {}:{}:${ttl} - Setting TTL to ${buildCacheJobTTLSeconds()}", kv("master", master), kv("job", job))
                     buildCache.setTTL(master, job, buildCacheJobTTLSeconds())
                 }
+            }
+        }
+    }
+
+    private void migrateToNewBuildCache(){
+        buildMasters.filteredMap(BuildServiceProvider.TRAVIS).keySet().each { master ->
+            log.info "Getting all builds from old cache representation"
+            buildCache.getDeprecatedJobNames(master).each { job ->
+                Map oldBuild = buildCache.getDeprecatedLastBuild(master, job)
+                if (oldBuild) {
+                    int oldBuildNumber = (int) oldBuild.get("lastBuildLabel")
+
+                    boolean oldBuildBuilding = (boolean) oldBuild.get("lastBuildBuilding")
+                    int currentBuild = buildCache.getLastBuild(master, job, oldBuildBuilding)
+                    if (currentBuild < oldBuildNumber) {
+                        log.info("BuildCache migration {}:{}:{}:{}", kv("master", master), kv("job", job), kv("building", oldBuildBuilding), kv("buildNumber", oldBuildNumber))
+                        buildCache.setLastBuild(master, job, oldBuildNumber, oldBuildBuilding, buildCacheJobTTLSeconds())
+                    }
+                }
+
             }
         }
     }

@@ -39,21 +39,64 @@ class BuildCache {
 
     List<String> getJobNames(String master) {
         Jedis resource = jedisPool.resource
-        List<String> jobs = resource.keys("${baseKey()}:${master}:*").collect { extractJobName(it) }.sort()
+        List<String> jobs = resource.keys("${baseKey()}:completed:${master}:*").collect { extractJobName(it) }
+        jobs.addAll(resource.keys("${baseKey()}:running:${master}:*").collect { extractJobName(it) })
+
         jedisPool.returnResource(resource)
-        jobs
+        jobs.sort().unique()
     }
 
     List<String> getTypeaheadResults(String search) {
         Jedis resource = jedisPool.resource
-        List<String> results = resource.keys("${baseKey()}:*:*${search.toUpperCase()}*:*").collect {
+        List<String> results = resource.keys("${baseKey()}:*:*:*${search.toUpperCase()}*:*").collect {
             extractTypeaheadResult(it)
         }.sort()
         jedisPool.returnResource(resource)
         results
     }
 
-    Map getLastBuild(String master, String job) {
+    int getLastBuild(String master, String job, boolean running) {
+        Jedis resource = jedisPool.resource
+        def key = makeKey(master, job, running)
+        if (!resource.exists(key)) {
+            jedisPool.returnResource(resource)
+            return -1
+        }
+        int buildNumber = resource.get(key) as Integer
+
+        jedisPool.returnResource(resource)
+        buildNumber
+    }
+
+    Long getTTL(String master, String job) {
+        Jedis resource = jedisPool.resource
+        Long ttl = resource.ttl(makeKey(master, job))
+        jedisPool.returnResource(resource)
+        return ttl
+    }
+
+    void setTTL(String key, int ttl) {
+        Jedis resource = jedisPool.resource
+        resource.expire(key, ttl)
+        jedisPool.returnResource(resource)
+    }
+
+    void setLastBuild(String master, String job, int lastBuild, boolean building, int ttl) {
+        if(!building) {
+            // This is here to support rollback to igor versions
+            setBuild(makeKey(master, job), lastBuild, building, master, job, ttl)
+        }
+        storeLastBuild(makeKey(master, job, building), lastBuild, ttl)
+    }
+
+    List<String> getDeprecatedJobNames(String master) {
+        Jedis resource = jedisPool.resource
+        List<String> jobs = resource.keys("${baseKey()}:${master}:*").collect { extractDeprecatedJobName(it) }.sort()
+        jedisPool.returnResource(resource)
+        jobs
+    }
+
+    Map getDeprecatedLastBuild(String master, String job) {
         Jedis resource = jedisPool.resource
         if (!resource.exists(makeKey(master, job))) {
             jedisPool.returnResource(resource)
@@ -68,50 +111,43 @@ class BuildCache {
         convertedResult
     }
 
-    Long getTTL(String master, String job) {
-        Jedis resource = jedisPool.resource
-        Long ttl = resource.ttl(makeKey(master, job))
-        jedisPool.returnResource(resource)
-        return ttl
-    }
-
-    void setTTL(String master, String job, int ttl) {
-        Jedis resource = jedisPool.resource
-        resource.expire(makeKey(master, job), ttl)
-        jedisPool.returnResource(resource)
-    }
 
 
-    void setLastBuild(String master, String job, int lastBuild, boolean building) {
+    private void setBuild(String key, int lastBuild, boolean building, String master, String job, int ttl) {
         Jedis resource = jedisPool.resource
-        String key = makeKey(master, job)
         resource.hset(key, 'lastBuildLabel', lastBuild as String)
         resource.hset(key, 'lastBuildBuilding', building as String)
         jedisPool.returnResource(resource)
+        setTTL(key, ttl)
     }
 
-    void setLastBuild(String master, String job, int lastBuild, boolean building, int ttl) {
-        setLastBuild(master, job, lastBuild, building)
-        setTTL(master, job, ttl)
-    }
-
-    void remove(String master, String job) {
+    private void storeLastBuild(String key, int lastBuild, int ttl) {
         Jedis resource = jedisPool.resource
-        resource.del(makeKey(master, job))
+        resource.set(key, lastBuild as String)
         jedisPool.returnResource(resource)
+        setTTL(key, ttl)
     }
 
-    private String makeKey(String master, String job) {
+    protected String makeKey(String master, String job) {
         "${baseKey()}:${master}:${job.toUpperCase()}:${job}"
     }
 
+    protected String makeKey(String master, String job, boolean running) {
+        def buildState = running ? "running" : "completed"
+        "${baseKey()}:${buildState}:${master}:${job.toUpperCase()}:${job}"
+    }
+
     private static String extractJobName(String key) {
+        key.split(':')[5]
+    }
+
+    private static String extractDeprecatedJobName(String key) {
         key.split(':')[4]
     }
 
     private static String extractTypeaheadResult(String key) {
         def parts = key.split(':')
-        "${parts[2]}:${parts[4]}"
+        "${parts[3]}:${parts[5]}"
     }
 
     private String baseKey() {
