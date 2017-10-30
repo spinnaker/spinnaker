@@ -2,13 +2,13 @@
 # yarn lockfile v1
 
 
-"@spinnaker/amazon@0.0.5":
-  version "0.0.5"
-  resolved "https://registry.yarnpkg.com/@spinnaker/amazon/-/amazon-0.0.5.tgz#0121bf83ef28e68ee938ccae5e66c996420a675d"
+"@spinnaker/amazon@0.0.46":
+  version "0.0.46"
+  resolved "https://registry.yarnpkg.com/@spinnaker/amazon/-/amazon-0.0.46.tgz#188ea7fa75a7e166a77f1eaa7079342fcedd6dfd"
 
-"@spinnaker/core@^0.0.81":
-  version "0.0.81"
-  resolved "https://registry.yarnpkg.com/@spinnaker/core/-/core-0.0.81.tgz#973c578fcd083621e4102062469b36ac54e78060"
+"@spinnaker/core@^0.0.93":
+  version "0.0.93"
+  resolved "https://registry.yarnpkg.com/@spinnaker/core/-/core-0.0.93.tgz#f0345b2bc0a60e1622b372d0a7ee688ef25b92f0"
 
 "@spinnaker/google@^0.0.1":
   version "0.0.1"
@@ -26,9 +26,13 @@
   dependencies:
     "@types/angular" "*"
 
-"@types/angular@*", "@types/angular@^1.6.15", "@types/angular@^1.6.16", "@types/angular@^1.6.24", "@types/angular@^1.6.7", "@types/angular@^1.6.9":
+"@types/angular@*", "@types/angular@^1.6.15", "@types/angular@^1.6.16":
   version "1.6.24"
   resolved "https://registry.yarnpkg.com/@types/angular/-/angular-1.6.24.tgz#f19510cf4efa5816158fa01b1aa2df94eb7bcde8"
+
+"@types/angular@^1.6.26", "@types/angular@^1.6.28", "@types/angular@^1.6.32":
+  version "1.6.36"
+  resolved "https://registry.yarnpkg.com/@types/angular/-/angular-1.6.36.tgz#15e73d632274b5655a391470844863548c7755f4"
 
 "@types/chart.js@^2.6.10":
   version "2.6.10"
@@ -249,13 +253,31 @@
   version "3.5.30"
   resolved "https://registry.yarnpkg.com/@types/js-yaml/-/js-yaml-3.5.30.tgz#f555118c022318e57e36d803379cb8ee38ee20a7"
 
-"@types/lodash.frompairs@^4.0.1":
-  version "4.0.2"
-  resolved "https://registry.yarnpkg.com/@types/lodash.frompairs/-/lodash.frompairs-4.0.2.tgz#f04e4e8e96864fc5929d1775c91c93a6a1c9b0aa"
+"@types/lodash.assign@^4.2.2":
+  version "4.2.3"
+  resolved "https://registry.yarnpkg.com/@types/lodash.assign/-/lodash.assign-4.2.3.tgz#3f2262d8a6e7205490a6d9f3a7c031715edab945"
   dependencies:
     "@types/lodash" "*"
 
-"@types/lodash@*", "@types/lodash@^4.14.55", "@types/lodash@^4.14.64":
+"@types/lodash.frompairs@^4.0.2":
+  version "4.0.3"
+  resolved "https://registry.yarnpkg.com/@types/lodash.frompairs/-/lodash.frompairs-4.0.3.tgz#4c2f1653e9648a3644daa958e82e77cbdcc064c9"
+  dependencies:
+    "@types/lodash" "*"
+
+"@types/lodash.mapvalues@^4.6.3":
+  version "4.6.3"
+  resolved "https://registry.yarnpkg.com/@types/lodash.mapvalues/-/lodash.mapvalues-4.6.3.tgz#71208ea7b08d7fc939b37c1922b8c7cc07af89b3"
+  dependencies:
+    "@types/lodash" "*"
+
+"@types/lodash.some@^4.6.3":
+  version "4.6.3"
+  resolved "https://registry.yarnpkg.com/@types/lodash.some/-/lodash.some-4.6.3.tgz#700f3ba9552c1e8ee1f304566985d1bb0399df75"
+  dependencies:
+    "@types/lodash" "*"
+
+"@types/lodash@*", "@types/lodash@^4.14.64":
   version "4.14.64"
   resolved "https://registry.yarnpkg.com/@types/lodash/-/lodash-4.14.64.tgz#979cf3a3d4a368670840bf9b3e448dc33ffe84ee"
 
@@ -283,17 +305,17 @@
   dependencies:
     "@types/react" "*"
 
-"@types/react-dom@^0.14.23":
-  version "0.14.23"
-  resolved "https://registry.yarnpkg.com/@types/react-dom/-/react-dom-0.14.23.tgz#cecfcfad754b4c2765fe5d29b81b301889ad6c2e"
-  dependencies:
-    "@types/react" "*"
-
 "@types/react-dom@^15.5.0":
   version "15.5.0"
   resolved "https://registry.yarnpkg.com/@types/react-dom/-/react-dom-15.5.0.tgz#7f4fb9613d4051141773242f7b6b5f1a46b34bd9"
   dependencies:
     "@types/react" "*"
+
+"@types/react-dom@^15.5.1":
+  version "15.5.6"
+  resolved "https://registry.yarnpkg.com/@types/react-dom/-/react-dom-15.5.6.tgz#7794ff7822882b59b899c30294e1b1e62e97757e"
+  dependencies:
+    "@types/react" "^15"
 
 "@types/react-ga@^2.1.1":
   version "2.1.1"
@@ -312,9 +334,17 @@
   dependencies:
     "@types/react" "*"
 
-"@types/react@*", "@types/react@^15.0.12", "@types/react@^15.0.22", "@types/react@^15.0.33":
+"@types/react@*", "@types/react@^15.0.22", "@types/react@^15.0.33":
   version "15.0.33"
   resolved "https://registry.yarnpkg.com/@types/react/-/react-15.0.33.tgz#442b025b3ee7d65f25c5cf495b7bd773855c079b"
+
+"@types/react@^15":
+  version "15.6.5"
+  resolved "https://registry.yarnpkg.com/@types/react/-/react-15.6.5.tgz#fb23b8d8b7226313b645b6e84fb178976bbfe587"
+
+"@types/react@^16.0.0":
+  version "16.0.18"
+  resolved "https://registry.yarnpkg.com/@types/react/-/react-16.0.18.tgz#c08eea79ada55bf10b5353e18c21797dd17afa23"
 
 "@types/redux-actions@^2.2.0":
   version "2.2.0"
@@ -391,9 +421,9 @@
     "@uirouter/core" "^5.0.5"
     classnames "^2.2.5"
 
-"@uirouter/rx@^0.4.1":
-  version "0.4.1"
-  resolved "https://registry.yarnpkg.com/@uirouter/rx/-/rx-0.4.1.tgz#658c9e58e860ae3132faf4c71a6bed7e91de02f3"
+"@uirouter/rx@^0.4.5":
+  version "0.4.5"
+  resolved "https://registry.yarnpkg.com/@uirouter/rx/-/rx-0.4.5.tgz#fb9eeb2cb011d98cc60f043b465551cdd236269b"
   dependencies:
     rollup "^0.41.6"
     rollup-plugin-commonjs "^8.0.2"
@@ -403,9 +433,9 @@
     rollup-plugin-uglify "^1.0.2"
     rollup-plugin-visualizer "^0.2.1"
 
-"@uirouter/visualizer@^4.0.0":
-  version "4.0.0"
-  resolved "https://registry.yarnpkg.com/@uirouter/visualizer/-/visualizer-4.0.0.tgz#9e71bc4fb19a6dd12d18d9e122c16aa4902363ce"
+"@uirouter/visualizer@^4.0.2":
+  version "4.0.2"
+  resolved "https://registry.yarnpkg.com/@uirouter/visualizer/-/visualizer-4.0.2.tgz#c26784dd1f55c0e4540d571c95a2308f05812650"
   dependencies:
     d3-hierarchy "^1.0.3"
     d3-interpolate "^1.1.3"
@@ -503,12 +533,6 @@ angular-cron-gen@0.0.21:
   version "0.0.21"
   resolved "https://registry.yarnpkg.com/angular-cron-gen/-/angular-cron-gen-0.0.21.tgz#faa2bb35252a77892244dc895255b34dd6f734bf"
 
-angular-marked@0.0.17:
-  version "0.0.17"
-  resolved "https://registry.yarnpkg.com/angular-marked/-/angular-marked-0.0.17.tgz#c503e724297e550be4238ec598b01fd74f0200c7"
-  dependencies:
-    marked "^0.3.3"
-
 angular-messages@~1.6.3:
   version "1.6.4"
   resolved "https://registry.yarnpkg.com/angular-messages/-/angular-messages-1.6.4.tgz#9ec9c1393293b14de54161d2f849776489e980fe"
@@ -554,9 +578,13 @@ angular2react@^2.0.0:
     react "^15.4.2"
     react-dom "^15.4.2"
 
-angular@>=1.5.0, angular@^1.4.0, angular@^1.6.2, angular@^1.6.3, angular@~1.6.3:
+angular@>=1.5.0, angular@^1.4.0, angular@^1.6.3, angular@~1.6.3:
   version "1.6.4"
   resolved "https://registry.yarnpkg.com/angular/-/angular-1.6.4.tgz#03b7b15c01a0802d7e2cf593240e604054dc77fb"
+
+angular@>=1.6.5:
+  version "1.6.6"
+  resolved "https://registry.yarnpkg.com/angular/-/angular-1.6.6.tgz#fd5a3cfb437ce382d854ee01120797978527cb64"
 
 angulartics-google-analytics@^0.2.0:
   version "0.2.1"
@@ -1838,6 +1866,14 @@ create-hmac@^1.1.0, create-hmac@^1.1.2:
 create-react-class@^15.5.2, create-react-class@^15.5.3:
   version "15.5.3"
   resolved "https://registry.yarnpkg.com/create-react-class/-/create-react-class-15.5.3.tgz#fb0f7cae79339e9a179e194ef466efa3923820fe"
+  dependencies:
+    fbjs "^0.8.9"
+    loose-envify "^1.3.1"
+    object-assign "^4.1.1"
+
+create-react-class@^15.6.0:
+  version "15.6.2"
+  resolved "https://registry.yarnpkg.com/create-react-class/-/create-react-class-15.6.2.tgz#cf1ed15f12aad7f14ef5f2dfe05e6c42f91ef02a"
   dependencies:
     fbjs "^0.8.9"
     loose-envify "^1.3.1"
@@ -3950,6 +3986,10 @@ lodash-es@^4.17.4, lodash-es@^4.2.0, lodash-es@^4.2.1:
   version "4.17.4"
   resolved "https://registry.yarnpkg.com/lodash-es/-/lodash-es-4.17.4.tgz#dcc1d7552e150a0640073ba9cb31d70f032950e7"
 
+lodash.assign@^4.2.0:
+  version "4.2.0"
+  resolved "https://registry.yarnpkg.com/lodash.assign/-/lodash.assign-4.2.0.tgz#0d99f3ccd7a6d261d19bdaeb9245005d285808e7"
+
 lodash.assignin@^4.0.9:
   version "4.2.0"
   resolved "https://registry.yarnpkg.com/lodash.assignin/-/lodash.assignin-4.2.0.tgz#ba8df5fb841eb0a3e8044232b0e263a8dc6a28a2"
@@ -4002,6 +4042,10 @@ lodash.map@^4.4.0:
   version "4.6.0"
   resolved "https://registry.yarnpkg.com/lodash.map/-/lodash.map-4.6.0.tgz#771ec7839e3473d9c4cde28b19394c3562f4f6d3"
 
+lodash.mapvalues@^4.6.0:
+  version "4.6.0"
+  resolved "https://registry.yarnpkg.com/lodash.mapvalues/-/lodash.mapvalues-4.6.0.tgz#1bafa5005de9dd6f4f26668c30ca37230cc9689c"
+
 lodash.memoize@^4.1.2:
   version "4.1.2"
   resolved "https://registry.yarnpkg.com/lodash.memoize/-/lodash.memoize-4.1.2.tgz#bcc6c49a42a2840ed997f323eada5ecd182e0bfe"
@@ -4022,7 +4066,7 @@ lodash.reject@^4.4.0:
   version "4.6.0"
   resolved "https://registry.yarnpkg.com/lodash.reject/-/lodash.reject-4.6.0.tgz#80d6492dc1470864bbf583533b651f42a9f52415"
 
-lodash.some@^4.4.0:
+lodash.some@^4.4.0, lodash.some@^4.6.0:
   version "4.6.0"
   resolved "https://registry.yarnpkg.com/lodash.some/-/lodash.some-4.6.0.tgz#1bb9f314ef6b8baded13b549169b2a945eb68e4d"
 
@@ -4076,10 +4120,6 @@ magic-string@^0.22.4:
   resolved "https://registry.yarnpkg.com/magic-string/-/magic-string-0.22.4.tgz#31039b4e40366395618c1d6cf8193c53917475ff"
   dependencies:
     vlq "^0.2.1"
-
-marked@^0.3.3, marked@^0.3.6:
-  version "0.3.6"
-  resolved "https://registry.yarnpkg.com/marked/-/marked-0.3.6.tgz#b2c6c618fccece4ef86c4fc6cb8a7cbf5aeda8d7"
 
 math-expression-evaluator@^1.2.14:
   version "1.2.17"
@@ -4267,14 +4307,18 @@ ng-annotate@1.2.1, ng-annotate@^1.2.1:
     stringset "~0.2.1"
     tryor "~0.1.2"
 
-ngcomponent@^2.0.4:
-  version "2.0.5"
-  resolved "https://registry.yarnpkg.com/ngcomponent/-/ngcomponent-2.0.5.tgz#ca0a66ae068b2febd3a005a43017451d2a904889"
+ngcomponent@^3.0.2:
+  version "3.0.3"
+  resolved "https://registry.yarnpkg.com/ngcomponent/-/ngcomponent-3.0.3.tgz#1dce5f1fb4372243335540535e3dec5bc7786393"
   dependencies:
-    "@types/angular" "^1.6.9"
-    "@types/lodash" "^4.14.55"
-    angular "^1.6.3"
-    lodash "^4.17.4"
+    "@types/angular" "^1.6.32"
+    "@types/lodash.assign" "^4.2.2"
+    "@types/lodash.mapvalues" "^4.6.3"
+    "@types/lodash.some" "^4.6.3"
+    angular ">=1.5.0"
+    lodash.assign "^4.2.0"
+    lodash.mapvalues "^4.6.0"
+    lodash.some "^4.6.0"
 
 ngimport@^0.6.0:
   version "0.6.1"
@@ -5146,6 +5190,15 @@ react-dom@^15.4.2, react-dom@~15.4.2:
     loose-envify "^1.1.0"
     object-assign "^4.1.0"
 
+react-dom@^15.6.1:
+  version "15.6.2"
+  resolved "https://registry.yarnpkg.com/react-dom/-/react-dom-15.6.2.tgz#41cfadf693b757faf2708443a1d1fd5a02bef730"
+  dependencies:
+    fbjs "^0.8.9"
+    loose-envify "^1.1.0"
+    object-assign "^4.1.0"
+    prop-types "^15.5.10"
+
 react-ga@^2.1.2:
   version "2.2.0"
   resolved "https://registry.yarnpkg.com/react-ga/-/react-ga-2.2.0.tgz#45235de1356e4d988d9b82214d615a08489c9291"
@@ -5233,19 +5286,19 @@ react-virtualized@^9.0.0:
     loose-envify "^1.3.0"
     prop-types "^15.5.4"
 
-react2angular@1.1.2:
-  version "1.1.2"
-  resolved "https://registry.yarnpkg.com/react2angular/-/react2angular-1.1.2.tgz#52ecd3c961c999df957c805aeae7c2fa30c88197"
+react2angular@^1.1.3:
+  version "1.1.4"
+  resolved "https://registry.yarnpkg.com/react2angular/-/react2angular-1.1.4.tgz#38666258d72b3d32345d258109c1c45ecbc3db49"
   dependencies:
-    "@types/angular" "^1.6.7"
-    "@types/lodash.frompairs" "^4.0.1"
-    "@types/react" "^15.0.12"
-    "@types/react-dom" "^0.14.23"
-    angular "^1.6.2"
+    "@types/angular" "^1.6.28"
+    "@types/lodash.frompairs" "^4.0.2"
+    "@types/react" "^16.0.0"
+    "@types/react-dom" "^15.5.1"
+    angular ">=1.6.5"
     lodash.frompairs "^4.0.1"
-    ngcomponent "^2.0.4"
-    react "^15.4.2"
-    react-dom "^15.4.2"
+    ngcomponent "^3.0.2"
+    react "^15.6.1"
+    react-dom "^15.6.1"
 
 react@^0.14.8:
   version "0.14.9"
@@ -5261,6 +5314,16 @@ react@^15.4.2, react@~15.4.2:
     fbjs "^0.8.4"
     loose-envify "^1.1.0"
     object-assign "^4.1.0"
+
+react@^15.6.1:
+  version "15.6.2"
+  resolved "https://registry.yarnpkg.com/react/-/react-15.6.2.tgz#dba0434ab439cfe82f108f0f511663908179aa72"
+  dependencies:
+    create-react-class "^15.6.0"
+    fbjs "^0.8.9"
+    loose-envify "^1.1.0"
+    object-assign "^4.1.0"
+    prop-types "^15.5.10"
 
 read-pkg-up@^1.0.1:
   version "1.0.1"
@@ -5673,9 +5736,9 @@ rx-lite@^3.1.2:
   version "3.1.2"
   resolved "https://registry.yarnpkg.com/rx-lite/-/rx-lite-3.1.2.tgz#19ce502ca572665f3b647b10939f97fd1615f102"
 
-rxjs@^5.1.0:
-  version "5.4.0"
-  resolved "https://registry.yarnpkg.com/rxjs/-/rxjs-5.4.0.tgz#a7db14ab157f9d7aac6a56e655e7a3860d39bf26"
+rxjs@^5.4.2:
+  version "5.5.2"
+  resolved "https://registry.yarnpkg.com/rxjs/-/rxjs-5.5.2.tgz#28d403f0071121967f18ad665563255d54236ac3"
   dependencies:
     symbol-observable "^1.0.1"
 
