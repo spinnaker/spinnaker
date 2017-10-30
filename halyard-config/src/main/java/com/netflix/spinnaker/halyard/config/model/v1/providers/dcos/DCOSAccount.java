@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.halyard.config.model.v1.providers.dcos;
 
+import com.netflix.spinnaker.halyard.config.model.v1.providers.containers.ContainerAccount;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -13,14 +14,12 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.dockerRegistry.DockerRegistryProvider;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class DCOSAccount extends Account {
-  private List<DockerRegistryReference> dockerRegistries = new ArrayList<>();
+public class DCOSAccount extends ContainerAccount {
   private List<ClusterCredential> clusters;
 
   @Override

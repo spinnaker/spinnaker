@@ -19,6 +19,7 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.account.AccountCommandProperties;
 import com.netflix.spinnaker.halyard.cli.command.v1.converter.DeploymentTypeConverter;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
@@ -42,6 +43,13 @@ public class EditDeploymentEnvironmentCommand extends AbstractConfigCommand {
           + "a deployment of Spinnaker that requires an active cloud provider."
   )
   private String accountName;
+
+  @Parameter(
+      names = "--bootstrap-only",
+      description = "A bootstrap-only account is the account in which Spinnaker itself is deployed. " +
+          "When true, this account will not be included the accounts managed by Spinnaker."
+  )
+  Boolean bootstrapOnly;
 
   @Parameter(
       names = "--type",
@@ -107,6 +115,7 @@ public class EditDeploymentEnvironmentCommand extends AbstractConfigCommand {
     }
 
     deploymentEnvironment.setAccountName(isSet(accountName) ? accountName : deploymentEnvironment.getAccountName());
+    deploymentEnvironment.setBootstrapOnly(isSet(bootstrapOnly) ? bootstrapOnly : deploymentEnvironment.getBootstrapOnly());
     deploymentEnvironment.setType(type != null ? type : deploymentEnvironment.getType());
 
     consul.setAddress(isSet(consulAddress) ? consulAddress : consul.getAddress());

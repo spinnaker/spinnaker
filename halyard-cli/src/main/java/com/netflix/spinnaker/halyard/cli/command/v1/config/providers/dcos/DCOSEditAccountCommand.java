@@ -5,8 +5,8 @@ import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.account.AbstractEditAccountCommand;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Provider;
+import com.netflix.spinnaker.halyard.config.model.v1.providers.containers.DockerRegistryReference;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.dcos.DCOSAccount;
-import com.netflix.spinnaker.halyard.config.model.v1.providers.dcos.DockerRegistryReference;
 
 import java.util.ArrayList;
 import java.util.List;

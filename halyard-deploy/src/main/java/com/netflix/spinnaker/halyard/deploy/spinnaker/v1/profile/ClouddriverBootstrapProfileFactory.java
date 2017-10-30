@@ -18,21 +18,39 @@
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile;
 
 import com.netflix.spinnaker.halyard.config.config.v1.ArtifactSourcesConfig;
-import com.netflix.spinnaker.halyard.config.model.v1.node.*;
+import com.netflix.spinnaker.halyard.config.error.v1.ConfigNotFoundException;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
+import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
+import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentEnvironment;
+import com.netflix.spinnaker.halyard.config.model.v1.node.NodeIterator;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Provider;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Providers;
+import com.netflix.spinnaker.halyard.config.model.v1.providers.containers.ContainerAccount;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.consul.ConsulConfig;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.consul.SupportsConsul;
+import com.netflix.spinnaker.halyard.config.model.v1.providers.dockerRegistry.DockerRegistryAccount;
+import com.netflix.spinnaker.halyard.config.model.v1.providers.dockerRegistry.DockerRegistryProvider;
+import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemBuilder;
 import com.netflix.spinnaker.halyard.config.services.v1.AccountService;
+import com.netflix.spinnaker.halyard.config.services.v1.ProviderService;
+import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Component
 @Slf4j
 public class ClouddriverBootstrapProfileFactory extends SpringProfileFactory {
+
+  private final String DOCKER_REGISTRY = Provider.ProviderType.DOCKERREGISTRY.getName();
+
   @Autowired
   AccountService accountService;
 
@@ -45,6 +63,7 @@ public class ClouddriverBootstrapProfileFactory extends SpringProfileFactory {
   }
 
   @Override
+  @SuppressWarnings("unchecked")
   protected void setProfile(Profile profile, DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
     super.setProfile(profile, deploymentConfiguration, endpoints);
 
@@ -53,29 +72,39 @@ public class ClouddriverBootstrapProfileFactory extends SpringProfileFactory {
       throw new IllegalStateException("There is no need to produce a bootstrapping clouddriver for a non-remote deployment of Spinnaker. This is a bug.");
     }
 
-    Account account = accountService.getAnyProviderAccount(deploymentConfiguration.getName(), deploymentEnvironment.getAccountName());
+    // We need to make modifications to this deployment configuration, but can't use helpful objects
+    // like the accountService on a clone. Therefore, we'll make the modifications in place and
+    // restore to the original state when the modifications are written out.
+    Providers originalProviders = deploymentConfiguration.getProviders().cloneNode(Providers.class);
+    Providers modifiedProviders = deploymentConfiguration.getProviders();
 
-    // We make a clone to modify a provider account only within the bootstrapping instance
-    Providers providers = deploymentConfiguration.getProviders();
-    Providers clonedProviders = providers.cloneNode(Providers.class);
-    deploymentConfiguration.setProviders(clonedProviders);
+    String deploymentName = deploymentConfiguration.getName();
+    String bootstrapAccountName = deploymentEnvironment.getAccountName();
 
-    account.makeBootstrappingAccount(artifactSourcesConfig);
+    Account bootstrapAccount = accountService.getAnyProviderAccount(deploymentName, bootstrapAccountName);
+    bootstrapAccount.makeBootstrappingAccount(artifactSourcesConfig);
 
-    NodeIterator children = providers.getChildren();
-    Provider child = (Provider) children.getNext();
-    while (child != null) {
-      boolean isBootstrappingAccount = child.getAccounts().stream().anyMatch(a -> ((Account) a).getName().equals(account.getName()));
-      // ugly check for docker registry here since it can be depended on by the bootstrapping account, meaning it's not safe to disable
-      if (child.providerType() != Provider.ProviderType.DOCKERREGISTRY && !isBootstrappingAccount) {
-        child.setEnabled(false);
-      }
+    Provider bootstrapProvider = (Provider) bootstrapAccount.getParent();
+    disableAllProviders(modifiedProviders);
 
-      child = (Provider) children.getNext();
+    bootstrapProvider.setEnabled(true);
+    bootstrapProvider.setAccounts(Collections.singletonList(bootstrapAccount));
+
+    if (bootstrapAccount instanceof ContainerAccount) {
+      ContainerAccount containerAccount = (ContainerAccount) bootstrapAccount;
+
+      List<DockerRegistryAccount> bootstrapRegistries = containerAccount.getDockerRegistries()
+          .stream()
+          .map(ref -> (DockerRegistryAccount) accountService.getProviderAccount(deploymentName, DOCKER_REGISTRY, ref.getAccountName()))
+          .collect(Collectors.toList());
+
+      DockerRegistryProvider dockerProvider = modifiedProviders.getDockerRegistry();
+      dockerProvider.setEnabled(true);
+      dockerProvider.setAccounts(bootstrapRegistries);
     }
 
-    if (account instanceof SupportsConsul) {
-      SupportsConsul consulAccount = (SupportsConsul) account;
+    if (bootstrapAccount instanceof SupportsConsul) {
+      SupportsConsul consulAccount = (SupportsConsul) bootstrapAccount;
       ConsulConfig config = consulAccount.getConsul();
       if (config == null) {
         config = new ConsulConfig();
@@ -84,13 +113,23 @@ public class ClouddriverBootstrapProfileFactory extends SpringProfileFactory {
 
       consulAccount.getConsul().setEnabled(true);
     } else {
-      log.warn("Attempting to perform a distributed deployment to account \"" + account.getName() + "\" without a discovery mechanism");
+      log.warn("Attempting to perform a distributed deployment to account \"" + bootstrapAccount.getName() + "\" without a discovery mechanism");
     }
 
-    List<String> files = backupRequiredFiles(providers, deploymentConfiguration.getName());
-    profile.appendContents(yamlToString(providers))
+    List<String> files = backupRequiredFiles(modifiedProviders, deploymentConfiguration.getName());
+    profile.appendContents(yamlToString(modifiedProviders))
         .appendContents("services.fiat.enabled: false")
         .appendContents(profile.getBaseContents())
         .setRequiredFiles(files);
+
+    deploymentConfiguration.setProviders(originalProviders);
+  }
+
+  private void disableAllProviders(Providers providers) {
+    NodeIterator providerNodes = providers.getChildren();
+    Provider provider;
+    while ((provider = (Provider) providerNodes.getNext()) != null) {
+      provider.setEnabled(false);
+    }
   }
 }

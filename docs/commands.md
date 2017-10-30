@@ -842,6 +842,7 @@ hal config deploy edit [parameters]
 
 #### Parameters
  * `--account-name`: The Spinnaker account that Spinnaker will be deployed to, assuming you are runninga deployment of Spinnaker that requires an active cloud provider.
+ * `--bootstrap-only`: A bootstrap-only account is the account in which Spinnaker itself is deployed. When true, this account will not be included the accounts managed by Spinnaker.
  * `--consul-address`: The address of a running Consul cluster. See https://www.consul.io/.
 This is only required when Spinnaker is being deployed in non-Kubernetes clustered configuration.
  * `--consul-enabled`: Whether or not to use Consul as a service discovery mechanism to deploy Spinnaker.
