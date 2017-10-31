@@ -60,7 +60,7 @@ public class ClouddriverProfileFactory extends SpringProfileFactory {
     Providers modifiedProviders = deploymentConfiguration.getProviders();
 
     DeploymentEnvironment deploymentEnvironment = deploymentConfiguration.getDeploymentEnvironment();
-    if (deploymentEnvironment.getBootstrapOnly()) {
+    if (deploymentEnvironment.getBootstrapOnly() != null && deploymentEnvironment.getBootstrapOnly()) {
       String bootstrapAccountName = deploymentEnvironment.getAccountName();
       removeBootstrapOnlyAccount(modifiedProviders, deploymentConfiguration.getName(), bootstrapAccountName);
     }
