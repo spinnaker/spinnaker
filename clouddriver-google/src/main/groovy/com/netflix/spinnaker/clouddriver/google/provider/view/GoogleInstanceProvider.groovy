@@ -17,10 +17,12 @@
 package com.netflix.spinnaker.clouddriver.google.provider.view
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
 import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
+import com.netflix.spinnaker.clouddriver.google.GoogleExecutorTraits
 import com.netflix.spinnaker.clouddriver.google.cache.Keys
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
 import com.netflix.spinnaker.clouddriver.google.model.GoogleInstance
@@ -37,7 +39,7 @@ import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.*
 
 @Component
 @Slf4j
-class GoogleInstanceProvider implements InstanceProvider<GoogleInstance.View> {
+class GoogleInstanceProvider implements InstanceProvider<GoogleInstance.View>, GoogleExecutorTraits {
 
   @Autowired
   final Cache cacheView
@@ -50,6 +52,9 @@ class GoogleInstanceProvider implements InstanceProvider<GoogleInstance.View> {
 
   @Autowired
   GoogleSecurityGroupProvider securityGroupProvider
+
+  @Autowired
+  Registry registry
 
   final String cloudProvider = GoogleCloudProvider.ID
 
