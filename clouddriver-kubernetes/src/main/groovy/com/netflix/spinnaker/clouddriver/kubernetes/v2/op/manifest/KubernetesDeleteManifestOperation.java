@@ -65,12 +65,10 @@ public class KubernetesDeleteManifestOperation implements AtomicOperation<Void> 
     CanDelete canDelete = (CanDelete) deployer;
 
     getTask().updateStatus(OP_NAME, "Calling delete operation...");
-    Map deleteOptions = description.getDeleteOptions();
-    Object convertedDeleteOptions = deleteOptions == null ? null : mapper.convertValue(deleteOptions, (canDelete).getDeleteOptionsClass());
     canDelete.delete(credentials,
         coordinates.getNamespace(),
         coordinates.getName(),
-        convertedDeleteOptions);
+        description.getOptions());
 
     return null;
   }

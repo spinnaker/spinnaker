@@ -26,6 +26,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.Kube
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifestList;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
+import io.kubernetes.client.models.V1DeleteOptions;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,10 +43,10 @@ public class KubectlJobExecutor {
   @Value("${kubernetes.kubectl.poll.minSleepMillis:100}")
   Long minSleepMillis;
 
-  @Value("${kubernetes.kubectl.poll.maxSleepMillis:1000}")
+  @Value("${kubernetes.kubectl.poll.maxSleepMillis:2000}")
   Long maxSleepMillis;
 
-  @Value("${kubernetes.kubectl.poll.timeout:10000}")
+  @Value("${kubernetes.kubectl.poll.timeoutMillis:100000}")
   Long timeoutMillis;
 
   @Value("${kubernetes.kubectl.poll.maxInterruptRetries:10}")
@@ -63,6 +64,57 @@ public class KubectlJobExecutor {
     this.jobExecutor = jobExecutor;
   }
 
+  public void delete(KubernetesV2Credentials credentials, KubernetesKind kind, String namespace, String name, V1DeleteOptions deleteOptions) {
+    List<String> command = kubectlNamespacedAuthPrefix(credentials, namespace);
+
+    command.add("delete");
+    command.add(kind.toString());
+    command.add(name);
+
+    // spinnaker generally accepts deletes of resources that don't exist
+    command.add("--ignore-not-found=true");
+
+    if (deleteOptions.isOrphanDependents() != null) {
+      command.add("--cascade=" + !deleteOptions.isOrphanDependents());
+    }
+
+    if (deleteOptions.getGracePeriodSeconds() != null) {
+      command.add("--grace-period=" + deleteOptions.getGracePeriodSeconds());
+    }
+
+    if (StringUtils.isNotEmpty(deleteOptions.getPropagationPolicy())) {
+      throw new IllegalArgumentException("Propagation policy is not yet supported as a delete option");
+    }
+
+    String jobId = jobExecutor.startJob(new JobRequest(command),
+        System.getenv(),
+        new ByteArrayInputStream(new byte[0]));
+
+    JobStatus status = backoffWait(jobId, credentials.isDebug());
+
+    if (status.getResult() != JobStatus.Result.SUCCESS) {
+      throw new KubectlException("Failed to delete " + kind + "/" + name + " from " + namespace + ": " + status.getStdErr());
+    }
+  }
+
+  public void scale(KubernetesV2Credentials credentials, KubernetesKind kind, String namespace, String name, int replicas) {
+    List<String> command = kubectlNamespacedAuthPrefix(credentials, namespace);
+
+    command.add("scale");
+    command.add(kind.toString() + "/" + name);
+    command.add("--replicas=" + replicas);
+
+    String jobId = jobExecutor.startJob(new JobRequest(command),
+        System.getenv(),
+        new ByteArrayInputStream(new byte[0]));
+
+    JobStatus status = backoffWait(jobId, credentials.isDebug());
+
+    if (status.getResult() != JobStatus.Result.SUCCESS) {
+      throw new KubectlException("Failed to scale " + kind + "/" + name + " from " + namespace + ": " + status.getStdErr());
+    }
+  }
+
   public KubernetesManifest get(KubernetesV2Credentials credentials, KubernetesKind kind, String namespace, String name) {
     List<String> command = kubectlNamespacedGet(credentials, kind, namespace);
     command.add(name);
@@ -74,6 +126,10 @@ public class KubectlJobExecutor {
     JobStatus status = backoffWait(jobId, credentials.isDebug());
 
     if (status.getResult() != JobStatus.Result.SUCCESS) {
+      if (status.getStdErr().contains("(NotFound)")) {
+        return null;
+      }
+
       throw new KubectlException("Failed to read " + kind + " from " + namespace + ": " + status.getStdErr());
     }
 
@@ -180,14 +236,12 @@ public class KubectlJobExecutor {
 
     String kubeconfigFile = credentials.getKubeconfigFile();
     if (StringUtils.isNotEmpty(kubeconfigFile)) {
-      command.add("--kubeconfig");
-      command.add(kubeconfigFile);
+      command.add("--kubeconfig=" + kubeconfigFile);
     }
 
     String context = credentials.getContext();
     if (StringUtils.isNotEmpty(context)) {
-      command.add("--context");
-      command.add(context);
+      command.add("--context=" + context);
     }
 
     return command;
@@ -199,8 +253,7 @@ public class KubectlJobExecutor {
       namespace = credentials.getDefaultNamespace();
     }
 
-    command.add("--namespace");
-    command.add(namespace);
+    command.add("--namespace=" + namespace);
 
     return command;
   }

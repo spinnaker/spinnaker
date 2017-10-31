@@ -32,7 +32,7 @@ import io.kubernetes.client.models.V1beta2DeploymentStatus;
 import org.springframework.stereotype.Component;
 
 @Component
-public class KubernetesDeploymentDeployer extends KubernetesDeployer implements CanResize, CanDelete<V1DeleteOptions> {
+public class KubernetesDeploymentDeployer extends KubernetesDeployer implements CanResize, CanDelete {
   @Override
   public KubernetesKind kind() {
     return KubernetesKind.DEPLOYMENT;
@@ -114,16 +114,6 @@ public class KubernetesDeploymentDeployer extends KubernetesDeployer implements 
 
   @Override
   public void resize(KubernetesV2Credentials credentials, String namespace, String name, Capacity capacity) {
-    credentials.resizeDeployment(namespace, name, capacity.getDesired());
-  }
-
-  @Override
-  public Class<V1DeleteOptions> getDeleteOptionsClass() {
-    return V1DeleteOptions.class;
-  }
-
-  @Override
-  public void delete(KubernetesV2Credentials credentials, String namespace, String name, V1DeleteOptions deleteOptions) {
-    credentials.deleteDeployment(namespace, name, deleteOptions);
+    jobExecutor.scale(credentials, kind(), namespace, name, capacity.getDesired());
   }
 }

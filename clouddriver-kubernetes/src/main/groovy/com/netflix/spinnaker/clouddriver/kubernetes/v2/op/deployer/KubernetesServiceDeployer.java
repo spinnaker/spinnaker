@@ -29,7 +29,7 @@ import org.springframework.stereotype.Component;
 import java.util.Map;
 
 @Component
-public class KubernetesServiceDeployer extends KubernetesDeployer implements CanDelete<Void> {
+public class KubernetesServiceDeployer extends KubernetesDeployer implements CanDelete {
   @Override
   public KubernetesKind kind() {
     return KubernetesKind.SERVICE;
@@ -48,16 +48,6 @@ public class KubernetesServiceDeployer extends KubernetesDeployer implements Can
   @Override
   public Status status(KubernetesManifest manifest) {
     return Status.stable();
-  }
-
-  @Override
-  public Class<Void> getDeleteOptionsClass() {
-    return Void.class;
-  }
-
-  @Override
-  public void delete(KubernetesV2Credentials credentials, String namespace, String name, Void deleteOptions) {
-    credentials.deleteService(namespace, name);
   }
 
   public static Map<String, String> getSelector(KubernetesManifest manifest) {
