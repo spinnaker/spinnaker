@@ -24,6 +24,7 @@ buildscript {
     classpath "org.springframework.boot:spring-boot-gradle-plugin:1.5.4.RELEASE"
     classpath "org.junit.platform:junit-platform-gradle-plugin:$junitVersion"
     classpath "com.netflix.nebula:nebula-kotlin-plugin:$kotlinVersion"
+    classpath "org.jetbrains.dokka:dokka-gradle-plugin:0.9.15"
   }
 }
 
@@ -100,7 +101,6 @@ subprojects {
   repositories {
     jcenter()
   }
-
   dependencies {
     spinnaker.group('spockBase')
     testCompile spinnaker.dependency('groovy')
@@ -117,6 +117,14 @@ subprojects {
       kt = "SLASHSTAR_STYLE"
     }
   }
+
+  dokka {
+    outputFormat = "html"
+    outputDirectory = "$buildDir/javadoc"
+    jdkVersion = 8
+  }
 }
 
 defaultTasks ":keel-web:bootRun"
+
+tasks.getByName("build").doLast { dokka }
