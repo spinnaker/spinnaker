@@ -21,6 +21,8 @@ import com.google.api.services.compute.model.ForwardingRuleList
 import com.google.api.services.compute.model.InstanceGroupManager
 import com.google.api.services.compute.model.InstanceGroupManagersSetTargetPoolsRequest
 import com.google.api.services.compute.model.TargetPool
+import com.google.api.services.compute.model.TargetSslProxyList
+import com.google.api.services.compute.model.TargetTcpProxyList
 import com.netflix.spectator.api.DefaultRegistry
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
@@ -108,6 +110,10 @@ class DisableGoogleServerGroupAtomicOperationUnitSpec extends Specification {
       def forwardingRulesList = Mock(Compute.ForwardingRules.List)
       def globalForwardingRules = Mock(Compute.GlobalForwardingRules)
       def globalForwardingRulesList = Mock(Compute.GlobalForwardingRules.List)
+      def targetSslProxies = Mock(Compute.TargetSslProxies)
+      def targetSslProxiesList = Mock(Compute.TargetSslProxies.List)
+      def targetTcpProxies = Mock(Compute.TargetTcpProxies)
+      def targetTcpProxiesList = Mock(Compute.TargetTcpProxies.List)
       @Subject def operation = new DisableGoogleServerGroupAtomicOperation(description)
       operation.registry = registry
       operation.googleClusterProvider = googleClusterProviderMock
@@ -143,6 +149,14 @@ class DisableGoogleServerGroupAtomicOperationUnitSpec extends Specification {
           SERVER_GROUP_NAME,
           new InstanceGroupManagersSetTargetPoolsRequest(targetPools: [])) >> instanceGroupManagersSetTargetPoolsMock
       1 * instanceGroupManagersSetTargetPoolsMock.execute()
+
+      1 * computeMock.targetSslProxies() >> targetSslProxies
+      1 * targetSslProxies.list(PROJECT_NAME) >> targetSslProxiesList
+      1 * targetSslProxiesList.execute() >> new TargetSslProxyList(items: [])
+
+      1 * computeMock.targetTcpProxies() >> targetTcpProxies
+      1 * targetTcpProxies.list(PROJECT_NAME) >> targetTcpProxiesList
+      1 * targetTcpProxiesList.execute() >> new TargetTcpProxyList(items: [])
 
       3 * computeMock.globalForwardingRules() >> globalForwardingRules
       3 * globalForwardingRules.list(PROJECT_NAME) >> globalForwardingRulesList

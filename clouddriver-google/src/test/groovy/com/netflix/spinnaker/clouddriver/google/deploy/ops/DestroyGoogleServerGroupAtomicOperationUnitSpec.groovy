@@ -91,6 +91,10 @@ class DestroyGoogleServerGroupAtomicOperationUnitSpec extends Specification {
       def forwardingRulesList = Mock(Compute.ForwardingRules.List)
       def globalForwardingRules = Mock(Compute.GlobalForwardingRules)
       def globalForwardingRulesList = Mock(Compute.GlobalForwardingRules.List)
+      def targetSslProxies = Mock(Compute.TargetSslProxies)
+      def targetSslProxiesList = Mock(Compute.TargetSslProxies.List)
+      def targetTcpProxies = Mock(Compute.TargetTcpProxies)
+      def targetTcpProxiesList = Mock(Compute.TargetTcpProxies.List)
 
       googleLoadBalancerProviderMock.getApplicationLoadBalancers(APPLICATION_NAME) >> []
       def credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).compute(computeMock).build()
@@ -128,6 +132,14 @@ class DestroyGoogleServerGroupAtomicOperationUnitSpec extends Specification {
       1 * computeMock.instanceTemplates() >> instanceTemplatesMock
       1 * instanceTemplatesMock.delete(PROJECT_NAME, INSTANCE_TEMPLATE_NAME) >> instanceTemplatesDeleteMock
       1 * instanceTemplatesDeleteMock.execute()
+
+      1 * computeMock.targetSslProxies() >> targetSslProxies
+      1 * targetSslProxies.list(PROJECT_NAME) >> targetSslProxiesList
+      1 * targetSslProxiesList.execute() >> new TargetSslProxyList(items: [])
+
+      1 * computeMock.targetTcpProxies() >> targetTcpProxies
+      1 * targetTcpProxies.list(PROJECT_NAME) >> targetTcpProxiesList
+      1 * targetTcpProxiesList.execute() >> new TargetTcpProxyList(items: [])
 
       3 * computeMock.globalForwardingRules() >> globalForwardingRules
       3 * globalForwardingRules.list(PROJECT_NAME) >> globalForwardingRulesList
@@ -186,6 +198,10 @@ class DestroyGoogleServerGroupAtomicOperationUnitSpec extends Specification {
       def forwardingRulesList = Mock(Compute.ForwardingRules.List)
       def globalForwardingRules = Mock(Compute.GlobalForwardingRules)
       def globalForwardingRulesList = Mock(Compute.GlobalForwardingRules.List)
+      def targetSslProxies = Mock(Compute.TargetSslProxies)
+      def targetSslProxiesList = Mock(Compute.TargetSslProxies.List)
+      def targetTcpProxies = Mock(Compute.TargetTcpProxies)
+      def targetTcpProxiesList = Mock(Compute.TargetTcpProxies.List)
 
       def credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).compute(computeMock).build()
       def description = new DestroyGoogleServerGroupDescription(serverGroupName: SERVER_GROUP_NAME,
@@ -216,6 +232,14 @@ class DestroyGoogleServerGroupAtomicOperationUnitSpec extends Specification {
       3 * computeMock.globalForwardingRules() >> globalForwardingRules
       3 * globalForwardingRules.list(PROJECT_NAME) >> globalForwardingRulesList
       3 * globalForwardingRulesList.execute() >> new ForwardingRuleList(items: [])
+
+      1 * computeMock.targetSslProxies() >> targetSslProxies
+      1 * targetSslProxies.list(PROJECT_NAME) >> targetSslProxiesList
+      1 * targetSslProxiesList.execute() >> new TargetSslProxyList(items: [])
+
+      1 * computeMock.targetTcpProxies() >> targetTcpProxies
+      1 * targetTcpProxies.list(PROJECT_NAME) >> targetTcpProxiesList
+      1 * targetTcpProxiesList.execute() >> new TargetTcpProxyList(items: [])
 
       1 * computeMock.forwardingRules() >> forwardingRules
       1 * forwardingRules.list(PROJECT_NAME, _) >> forwardingRulesList

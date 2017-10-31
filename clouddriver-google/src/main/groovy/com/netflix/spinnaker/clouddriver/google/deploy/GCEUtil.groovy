@@ -1108,38 +1108,46 @@ class GCEUtil {
     def foundSslLoadBalancers = googleLoadBalancerProvider.getApplicationLoadBalancers("").findAll {
       it.name in serverGroup.loadBalancers && it.loadBalancerType == GoogleLoadBalancerType.SSL
     }
-    if (!foundSslLoadBalancers) {
+    List<String> backendServicesToDeleteFrom = []
+    if (foundSslLoadBalancers) {
+      backendServicesToDeleteFrom = foundSslLoadBalancers.collect { lb -> lb.backendService.name }
+    } else {
       log.warn("Cache call missed for ssl load balancer, making a call to GCP")
       List<ForwardingRule> projectGlobalForwardingRules = executor.timeExecute(
         compute.globalForwardingRules().list(project),
         "compute.globalForwardingRules.list",
         executor.TAG_SCOPE, executor.SCOPE_GLOBAL
       ).getItems()
-      foundSslLoadBalancers = projectGlobalForwardingRules.findAll { ForwardingRule forwardingRule ->
+      List<TargetSslProxy> projectSslProxies = executor.timeExecute(
+        compute.targetSslProxies().list(project),
+        "compute.targetSslProxies.list",
+        executor.TAG_SCOPE, executor.SCOPE_GLOBAL
+      ).getItems()
+      def matchingSslProxyNames = projectGlobalForwardingRules.findAll { ForwardingRule forwardingRule ->
         forwardingRule.target && Utils.getTargetProxyType(forwardingRule.target) == GoogleTargetProxyType.SSL &&
           forwardingRule.name in serverGroup.loadBalancers
-      }
-    }
-    log.debug("Attempting to delete backends for ${serverGroup.name} from the following global load balancers: ${foundSslLoadBalancers.collect { it.name }}")
+      }.collect { ForwardingRule forwardingRule -> getLocalName(forwardingRule.target) }
 
-    if (foundSslLoadBalancers) {
-      foundSslLoadBalancers.each { GoogleLoadBalancerView loadBalancerView ->
-        def sslView = loadBalancerView as GoogleSslLoadBalancer.View
-        String backendServiceName = sslView.backendService.name
-        BackendService backendService = executor.timeExecute(
-          compute.backendServices().get(project, backendServiceName),
-          "compute.backendServices.get",
-          executor.TAG_SCOPE, executor.SCOPE_GLOBAL)
-        backendService?.backends?.removeAll { Backend backend ->
-          (getLocalName(backend.group) == serverGroupName) &&
-            (Utils.getRegionFromGroupUrl(backend.group) == region)
-        }
-        executor.timeExecute(
-            compute.backendServices().update(project, backendServiceName, backendService),
-            "compute.backendServices.update",
-            executor.TAG_SCOPE, executor.SCOPE_GLOBAL)
-        task.updateStatus phase, "Deleted backend for server group ${serverGroupName} from ssl load balancer backend service ${backendServiceName}."
+      backendServicesToDeleteFrom = projectSslProxies.findAll { TargetSslProxy proxy ->
+        proxy.getName() in matchingSslProxyNames
+      }.collect { TargetSslProxy proxy -> getLocalName(proxy.getService()) }
+    }
+
+    log.debug("Attempting to delete backends for ${serverGroup.name} from the following global load balancers: ${foundSslLoadBalancers.collect { it.name }}")
+    backendServicesToDeleteFrom?.each { backendServiceName ->
+      BackendService backendService = executor.timeExecute(
+        compute.backendServices().get(project, backendServiceName),
+        "compute.backendServices.get",
+        executor.TAG_SCOPE, executor.SCOPE_GLOBAL)
+      backendService?.backends?.removeAll { Backend backend ->
+        (getLocalName(backend.group) == serverGroupName) &&
+          (Utils.getRegionFromGroupUrl(backend.group) == region)
       }
+      executor.timeExecute(
+        compute.backendServices().update(project, backendServiceName, backendService),
+        "compute.backendServices.update",
+        executor.TAG_SCOPE, executor.SCOPE_GLOBAL)
+      task.updateStatus phase, "Deleted backend for server group ${serverGroupName} from ssl load balancer backend service ${backendServiceName}."
     }
   }
 
@@ -1155,38 +1163,46 @@ class GCEUtil {
     def foundTcpLoadBalancers = googleLoadBalancerProvider.getApplicationLoadBalancers("").findAll {
       it.name in serverGroup.loadBalancers && it.loadBalancerType == GoogleLoadBalancerType.TCP
     }
-    if (!foundTcpLoadBalancers) {
+    List<String> backendServicesToDeleteFrom = []
+    if (foundTcpLoadBalancers) {
+      backendServicesToDeleteFrom = foundTcpLoadBalancers.collect { lb -> lb.backendService.name }
+    } else {
       log.warn("Cache call missed for tcp load balancer, making a call to GCP")
       List<ForwardingRule> projectGlobalForwardingRules = executor.timeExecute(
         compute.globalForwardingRules().list(project),
         "compute.globalForwardingRules.list",
         executor.TAG_SCOPE, executor.SCOPE_GLOBAL
       ).getItems()
-      foundTcpLoadBalancers = projectGlobalForwardingRules.findAll { ForwardingRule forwardingRule ->
+      List<TargetTcpProxy> projectTcpProxies = executor.timeExecute(
+        compute.targetTcpProxies().list(project),
+        "compute.targetTcpProxies.list",
+        executor.TAG_SCOPE, executor.SCOPE_GLOBAL
+      ).getItems()
+
+      def matchingTcpProxyNames = projectGlobalForwardingRules.findAll { ForwardingRule forwardingRule ->
         forwardingRule.target && Utils.getTargetProxyType(forwardingRule.target) == GoogleTargetProxyType.TCP &&
           forwardingRule.name in serverGroup.loadBalancers
-      }
+      }.collect { ForwardingRule forwardingRule -> getLocalName(forwardingRule.target) }
+      backendServicesToDeleteFrom = projectTcpProxies.findAll { TargetTcpProxy proxy ->
+        proxy.getName() in matchingTcpProxyNames
+      }.collect { TargetTcpProxy proxy -> getLocalName(proxy.getService()) }
     }
-    log.debug("Attempting to delete backends for ${serverGroup.name} from the following global load balancers: ${foundTcpLoadBalancers.collect { it.name }}")
 
-    if (foundTcpLoadBalancers) {
-      foundTcpLoadBalancers.each { GoogleLoadBalancerView loadBalancerView ->
-        def tcpView = loadBalancerView as GoogleTcpLoadBalancer.View
-        String backendServiceName = tcpView.backendService.name
-        BackendService backendService = executor.timeExecute(
-          compute.backendServices().get(project, backendServiceName),
-          "compute.backendServices.get",
-          executor.TAG_SCOPE, executor.SCOPE_GLOBAL)
-        backendService?.backends?.removeAll { Backend backend ->
-          (getLocalName(backend.group) == serverGroupName) &&
-            (Utils.getRegionFromGroupUrl(backend.group) == region)
-        }
-        executor.timeExecute(
-            compute.backendServices().update(project, backendServiceName, backendService),
-            "compute.backendServices.update",
-            executor.TAG_SCOPE, executor.SCOPE_GLOBAL)
-        task.updateStatus phase, "Deleted backend for server group ${serverGroupName} from tcp load balancer backend service ${backendServiceName}."
+    log.debug("Attempting to delete backends for ${serverGroup.name} from the following global load balancers: ${foundTcpLoadBalancers.collect { it.name }}")
+    backendServicesToDeleteFrom?.each { String backendServiceName ->
+      BackendService backendService = executor.timeExecute(
+        compute.backendServices().get(project, backendServiceName),
+        "compute.backendServices.get",
+        executor.TAG_SCOPE, executor.SCOPE_GLOBAL)
+      backendService?.backends?.removeAll { Backend backend ->
+        (getLocalName(backend.group) == serverGroupName) &&
+          (Utils.getRegionFromGroupUrl(backend.group) == region)
       }
+      executor.timeExecute(
+        compute.backendServices().update(project, backendServiceName, backendService),
+        "compute.backendServices.update",
+        executor.TAG_SCOPE, executor.SCOPE_GLOBAL)
+      task.updateStatus phase, "Deleted backend for server group ${serverGroupName} from tcp load balancer backend service ${backendServiceName}."
     }
   }
 
@@ -1202,38 +1218,42 @@ class GCEUtil {
     def foundInternalLoadBalancers = googleLoadBalancerProvider.getApplicationLoadBalancers("").findAll {
       it.name in serverGroup.loadBalancers && it.loadBalancerType == GoogleLoadBalancerType.INTERNAL
     }
-    if (!foundInternalLoadBalancers) {
+
+    List<String> backendServicesToDeleteFrom = []
+    if (foundInternalLoadBalancers) {
+      backendServicesToDeleteFrom = foundInternalLoadBalancers.collect { lb -> lb.backendService.name }
+    } else {
       log.warn("Cache call missed for internal load balancer, making a call to GCP")
-      List<ForwardingRule> projectRegionalForwardingRules = executor.timeExecute(
+      List<ForwardingRule> projectForwardingRules = executor.timeExecute(
         compute.forwardingRules().list(project, region),
         "compute.forwardingRules.list",
         executor.TAG_SCOPE, executor.SCOPE_REGIONAL, executor.TAG_REGION, region
       ).getItems()
-      foundInternalLoadBalancers = projectRegionalForwardingRules.findAll {
+
+      def matchingForwardingRules = projectForwardingRules.findAll { ForwardingRule forwardingRule ->
         // TODO(jacobkiefer): Update this check if any other types of loadbalancers support backend services from regional forwarding rules.
-        it.backendService && it.name in serverGroup.loadBalancers
+        forwardingRule.backendService && forwardingRule.name in serverGroup.loadBalancers
+      }
+      backendServicesToDeleteFrom = matchingForwardingRules.collect { ForwardingRule forwardingRule ->
+        getLocalName(forwardingRule.getBackendService())
       }
     }
-    log.debug("Attempting to delete backends for ${serverGroup.name} from the following regional load balancers: ${foundInternalLoadBalancers.collect { it.name }}")
 
-    if (foundInternalLoadBalancers) {
-      foundInternalLoadBalancers.each { GoogleLoadBalancerView loadBalancerView ->
-        def ilbView = loadBalancerView as GoogleInternalLoadBalancer.View
-        String backendServiceName = ilbView.backendService.name
-        BackendService backendService = executor.timeExecute(
-          compute.regionBackendServices().get(project, region, backendServiceName),
-          "compute.regionBackendServices.get",
-          executor.TAG_SCOPE, executor.SCOPE_REGIONAL, executor.TAG_REGION, region)
-        backendService?.backends?.removeAll { Backend backend ->
-          (getLocalName(backend.group) == serverGroupName) &&
-            (Utils.getRegionFromGroupUrl(backend.group) == region)
-        }
-        executor.timeExecute(
-            compute.regionBackendServices().update(project, region, backendServiceName, backendService),
-            "compute.backendServices.update",
-            executor.TAG_SCOPE, executor.SCOPE_GLOBAL)
-        task.updateStatus phase, "Deleted backend for server group ${serverGroupName} from internal load balancer backend service ${backendServiceName}."
+    log.debug("Attempting to delete backends for ${serverGroup.name} from the following backend services: ${backendServicesToDeleteFrom}")
+    backendServicesToDeleteFrom?.each { String backendServiceName ->
+      BackendService backendService = executor.timeExecute(
+        compute.regionBackendServices().get(project, region, backendServiceName),
+        "compute.regionBackendServices.get",
+        executor.TAG_SCOPE, executor.SCOPE_REGIONAL, executor.TAG_REGION, region)
+      backendService?.backends?.removeAll { Backend backend ->
+        (getLocalName(backend.group) == serverGroupName) &&
+          (Utils.getRegionFromGroupUrl(backend.group) == region)
       }
+      executor.timeExecute(
+        compute.regionBackendServices().update(project, region, backendServiceName, backendService),
+        "compute.backendServices.update",
+        executor.TAG_SCOPE, executor.SCOPE_GLOBAL)
+      task.updateStatus phase, "Deleted backend for server group ${serverGroupName} from internal load balancer backend service ${backendServiceName}."
     }
   }
 
