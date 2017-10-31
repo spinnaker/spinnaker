@@ -89,7 +89,8 @@ class GoogleHttpLoadBalancerTestScenario(sk.SpinnakerTestScenario):
       'checkIntervalSec': 2,
       'timeoutSec': 1,
       'healthyThreshold': 3,
-      'unhealthyThreshold': 4
+      'unhealthyThreshold': 4,
+      'healthCheckType': 'HTTP'
     }
     self.__proto_delete = {
       'type': 'deleteLoadBalancer',
