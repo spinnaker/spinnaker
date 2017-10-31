@@ -5,6 +5,7 @@ import { CLOUD_PROVIDER_REGISTRY, CloudProviderRegistry, DeploymentStrategyRegis
 import { KUBERNETES_KEY_VALUE_DETAILS } from '../common/keyValueDetails.component';
 import { KUBERNETES_SECURITY_CONTEXT_SELECTOR } from '../container/securityContext/securityContextSelector.component';
 import { KUBERNETES_HELP } from '../help/kubernetes.help';
+import { KubernetesProviderSettings } from '../kubernetes.settings';
 
 import '../logo/kubernetes.logo.less';
 
@@ -104,4 +105,9 @@ module(KUBERNETES_V1_MODULE, [
     });
   });
 
-DeploymentStrategyRegistry.registerProvider('kubernetes', ['custom', 'redblack']);
+const strategies = ['custom', 'redblack'];
+if (KubernetesProviderSettings.defaults.rrb) {
+  strategies.push('rollingredblack');
+}
+
+DeploymentStrategyRegistry.registerProvider('kubernetes', strategies);
