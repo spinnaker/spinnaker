@@ -20,10 +20,14 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.client.googleapis.batch.BatchRequest;
 import com.google.api.client.googleapis.batch.json.JsonBatchCallback;
 import com.google.api.client.googleapis.json.GoogleJsonError;
+import com.google.api.client.googleapis.json.GoogleJsonErrorContainer;
+import com.google.api.client.http.HttpBackOffUnsuccessfulResponseHandler;
 import com.google.api.client.http.HttpHeaders;
+import com.google.api.client.http.HttpRequest;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.jackson2.JacksonFactory;
+import com.google.api.client.util.ExponentialBackOff;
 import com.google.api.services.admin.directory.Directory;
 import com.google.api.services.admin.directory.DirectoryScopes;
 import com.google.api.services.admin.directory.model.Group;
@@ -114,11 +118,14 @@ public class GoogleDirectoryUserRolesProvider implements UserRolesProvider, Init
       try {
         GroupBatchCallback callback = new GroupBatchCallback().setEmailGroupsMap(emailGroupsMap)
                                                               .setEmail(email);
-        service.groups()
+        HttpRequest request = service.groups()
                .list()
                .setDomain(config.getDomain())
                .setUserKey(email)
-               .queue(batch, callback);
+               .buildHttpRequest();
+        request.setUnsuccessfulResponseHandler(new HttpBackOffUnsuccessfulResponseHandler(new ExponentialBackOff()));
+        batch.queue(request, Groups.class, GoogleJsonErrorContainer.class, callback);
+
       } catch (IOException ioe) {
         throw new RuntimeException(ioe);
       }
