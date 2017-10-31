@@ -30,7 +30,6 @@ module(CANARY_DATA_SOURCE, [APPLICATION_DATA_SOURCE_REGISTRY])
     applicationDataSourceRegistry.registerDataSource({
       optIn: true,
       optional: true,
-      primary: true,
       loader: loadCanaryConfigs,
       onLoad: configsLoaded,
       afterLoad: afterConfigsLoad,
@@ -38,8 +37,7 @@ module(CANARY_DATA_SOURCE, [APPLICATION_DATA_SOURCE_REGISTRY])
       key: 'canaryConfigs',
       sref: '.canary.canaryConfig.configDefault',
       activeState: '**.canary.**',
-      label: 'Canary',
-      icon: 'bar-chart'
+      label: 'Canary'
     });
 
     const loadCanaryJudges = () => $q.resolve(listJudges());
