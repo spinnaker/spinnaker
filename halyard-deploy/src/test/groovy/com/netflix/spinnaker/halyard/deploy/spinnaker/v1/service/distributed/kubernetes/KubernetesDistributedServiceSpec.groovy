@@ -249,6 +249,11 @@ class KubernetesDistributedServiceSpec extends Specification {
             }
 
             @Override
+            String getCanonicalName() {
+                return null
+            }
+
+            @Override
             SpinnakerMonitoringDaemonService getMonitoringDaemonService() {
                 return null
             }

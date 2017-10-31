@@ -63,6 +63,7 @@ public interface DistributedService<T, A extends Account> extends HasServiceSett
   Provider.ProviderType getProviderType();
   RunningServiceDetails getRunningServiceDetails(AccountDeploymentDetails<A> details, SpinnakerRuntimeSettings runtimeSettings);
   String getServiceName();
+  String getCanonicalName();
   SpinnakerMonitoringDaemonService getMonitoringDaemonService();
   <S> S connectToService(AccountDeploymentDetails<A> details, SpinnakerRuntimeSettings runtimeSettings, SpinnakerService<S> sidecar);
   <S> S connectToInstance(AccountDeploymentDetails<A> details, SpinnakerRuntimeSettings runtimeSettings, SpinnakerService<S> sidecar, String instanceId);

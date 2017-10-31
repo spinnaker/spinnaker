@@ -199,8 +199,15 @@ public interface KubernetesDistributedService<T> extends DistributedService<T, K
     servicePort.setName("http");
     servicePort.setProtocol("TCP");
 
+    KubernetesNamedServicePort monitoringPort = new KubernetesNamedServicePort();
+    monitoringPort.setPort(8008);
+    monitoringPort.setTargetPort(8008);
+    monitoringPort.setName("monitoring");
+    monitoringPort.setProtocol("TCP");
+
     List<KubernetesNamedServicePort> servicePorts = new ArrayList<>();
     servicePorts.add(servicePort);
+    servicePorts.add(monitoringPort);
     description.setPorts(servicePorts);
 
     return getObjectMapper().convertValue(description, new TypeReference<Map<String, Object>>() { });
@@ -478,6 +485,9 @@ public interface KubernetesDistributedService<T> extends DistributedService<T, K
     String replicaSetName = serviceName + "-v000";
     int port = settings.getPort();
 
+    SpinnakerMonitoringDaemonService monitoringService = getMonitoringDaemonService();
+    ServiceSettings monitoringSettings = runtimeSettings.getServiceSettings(monitoringService);
+
     KubernetesClient client = KubernetesProviderUtils.getClient(details);
     KubernetesProviderUtils.createNamespace(details, namespace);
 
@@ -491,15 +501,21 @@ public interface KubernetesDistributedService<T> extends DistributedService<T, K
     podLabels.putAll(replicaSetSelector);
     podLabels.putAll(serviceSelector);
 
+    Map<String, String> serviceLabels = new HashMap<>();
+    serviceLabels.put("app", "spin");
+    serviceLabels.put("stack", getCanonicalName());
+
     ServiceBuilder serviceBuilder = new ServiceBuilder();
     serviceBuilder = serviceBuilder
         .withNewMetadata()
         .withName(serviceName)
         .withNamespace(namespace)
+        .withLabels(serviceLabels)
         .endMetadata()
         .withNewSpec()
         .withSelector(serviceSelector)
-        .withPorts(new ServicePortBuilder().withPort(port).build())
+        .withPorts(new ServicePortBuilder().withPort(port).withName("http").build(),
+                   new ServicePortBuilder().withPort(monitoringSettings.getPort()).withName("monitoring").build())
         .endSpec();
 
     boolean create = true;
