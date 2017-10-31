@@ -65,6 +65,11 @@ public class JinjaRenderer implements Renderer {
   }
 
   public JinjaRenderer(RenderedValueConverter renderedValueConverter, ObjectMapper pipelineTemplateObjectMapper, Front50Service front50Service, List<Tag> jinjaTags) {
+    if (front50Service == null) {
+      log.error("Pipeline templates require front50 to enabled. Set 'front50.enabled: true' in your orca config.");
+      return;
+    }
+
     this.renderedValueConverter = renderedValueConverter;
 
     jinja = new Jinjava(buildJinjavaConfig());

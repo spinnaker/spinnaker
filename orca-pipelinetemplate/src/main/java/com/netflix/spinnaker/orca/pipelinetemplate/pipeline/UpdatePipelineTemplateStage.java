@@ -48,7 +48,7 @@ public class UpdatePipelineTemplateStage implements StageDefinitionBuilder {
   @Autowired
   private ObjectMapper pipelineTemplateObjectMapper;
 
-  @Autowired
+  @Autowired(required = false)
   private UpdatePipelineStage updatePipelineStage;
 
   @Override

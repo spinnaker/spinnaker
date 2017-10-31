@@ -37,6 +37,7 @@ import org.springframework.context.annotation.ComponentScan;
 import org.yaml.snakeyaml.Yaml;
 
 import java.util.List;
+import java.util.Optional;
 
 @ConditionalOnExpression("${pipelineTemplates.enabled:true}")
 @ComponentScan(
@@ -69,8 +70,8 @@ public class PipelineTemplateConfiguration {
   @Bean
   Renderer jinjaRenderer(RenderedValueConverter renderedValueConverter,
                          ObjectMapper pipelineTemplateObjectMapper,
-                         Front50Service front50Service) {
-    return new JinjaRenderer(renderedValueConverter, pipelineTemplateObjectMapper, front50Service, additionalJinjaTags);
+                         Optional<Front50Service> front50Service) {
+    return new JinjaRenderer(renderedValueConverter, pipelineTemplateObjectMapper, front50Service.orElse(null), additionalJinjaTags);
   }
 
   @Bean

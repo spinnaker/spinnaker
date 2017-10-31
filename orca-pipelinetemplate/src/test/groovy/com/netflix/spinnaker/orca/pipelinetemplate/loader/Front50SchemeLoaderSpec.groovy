@@ -28,7 +28,7 @@ class Front50SchemeLoaderSpec extends Specification {
   Front50Service front50Service = Mock()
 
   @Subject
-  def schemeLoader = new Front50SchemeLoader(front50Service, new ObjectMapper())
+  def schemeLoader = new Front50SchemeLoader(Optional.of(front50Service), new ObjectMapper())
 
   @Unroll
   void 'should support spinnaker scheme'() {

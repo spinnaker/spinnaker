@@ -31,6 +31,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
 import org.springframework.context.ApplicationContextAware
 import org.springframework.stereotype.Component
+
 import static com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder.newStage
 
 @Slf4j
@@ -47,7 +48,7 @@ class RollingRedBlackStrategy implements Strategy, ApplicationContextAware {
   @Autowired
   WaitStage waitStage
 
-  @Autowired
+  @Autowired(required = false)
   PipelineStage pipelineStage
 
   @Autowired
@@ -58,6 +59,10 @@ class RollingRedBlackStrategy implements Strategy, ApplicationContextAware {
 
   @Override
   <T extends Execution<T>> List<Stage<T>> composeFlow(Stage<T> stage) {
+    if (!pipelineStage) {
+      throw new IllegalStateException("Rolling red/black cannot be run without front50 enabled. Please set 'front50.enabled: true' in your orca config.")
+    }
+
     def stages = []
     def stageData = stage.mapTo(RollingRedBlackStageData)
     def cleanupConfig = AbstractDeployStrategyStage.CleanupConfig.fromStage(stage)
