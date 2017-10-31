@@ -49,18 +49,31 @@ class RunCanaryTask implements Task {
     String step = (String)context.get("step")
     Map<String, String> extendedScopeParams = (Map<String, String>)context.get("extendedScopeParams")
     Map<String, String> scoreThresholds = (Map<String, String>)context.get("scoreThresholds")
-    Response response = kayentaService.create(metricsAccountName,
-                                              storageAccountName,
-                                              canaryConfigId,
-                                              controlScope,
-                                              experimentScope,
-                                              startTimeIso,
-                                              endTimeIso,
-                                              step,
-                                              extendedScopeParams,
-                                              scoreThresholds?.pass,
-                                              scoreThresholds?.marginal)
-    String canaryPipelineExecutionId = new String(((TypedByteArray)response.getBody()).getBytes())
+    Map<String, String> canaryExecutionRequest = [
+      controlScope: [
+        scope: controlScope,
+        start: startTimeIso,
+        end: endTimeIso,
+        step: step,
+        extendedScopeParams: extendedScopeParams
+      ],
+      experimentScope: [
+        scope: experimentScope,
+        start: startTimeIso,
+        end: endTimeIso,
+        step: step,
+        extendedScopeParams: extendedScopeParams
+      ],
+      thresholds: [
+        pass: scoreThresholds?.pass,
+        marginal: scoreThresholds?.marginal
+      ]
+    ]
+    String canaryPipelineExecutionId = kayentaService.create(canaryConfigId,
+                                                             metricsAccountName,
+                                                             storageAccountName /* configurationAccountName */, // TODO(duftler): Propagate configurationAccountName properly.
+                                                             storageAccountName,
+                                                             canaryExecutionRequest).canaryExecutionId
 
     return new TaskResult(ExecutionStatus.SUCCEEDED, [canaryPipelineExecutionId: canaryPipelineExecutionId])
   }

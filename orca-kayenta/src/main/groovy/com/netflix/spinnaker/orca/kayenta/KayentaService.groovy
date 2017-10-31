@@ -22,18 +22,12 @@ import retrofit.http.*
 
 interface KayentaService {
 
-  @POST("/canary")
-  Response create(@Query("metricsAccountName") String metricsAccountName,
-                  @Query("storageAccountName") String storageAccountName,
-                  @Query("canaryConfigId") String canaryConfigId,
-                  @Query("controlScope") String controlScope,
-                  @Query("experimentScope") String experimentScope,
-                  @Query("startTimeIso") String startTimeIso,
-                  @Query("endTimeIso") String endTimeIso,
-                  @Query("step") String step,
-                  @Body Map<String, String> extendedScopeParams,
-                  @Query("scoreThresholdPass") String scoreThresholdPass,
-                  @Query("scoreThresholdMarginal") String scoreThresholdMarginal)
+  @POST("/canary/{canaryConfigId}")
+  Map create(@Path("canaryConfigId") String canaryConfigId,
+             @Query("metricsAccountName") String metricsAccountName,
+             @Query("configurationAccountName") String configurationAccountName,
+             @Query("storageAccountName") String storageAccountName,
+             @Body Map<String, String> canaryExecutionRequest)
 
   @GET("/pipelines/{executionId}")
   Pipeline getPipelineExecution(@Path("executionId") String executionId)
