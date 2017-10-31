@@ -218,38 +218,16 @@ running-tasks-tag {
   }
 }
 
-.menu-running-tasks {
-  text-align: left;
-  position: absolute;
-  z-index: 99999;
-  top: 20px;
-  right: -12px;
-  background-color: var(--color-white);
-  margin-top: 12px;
+.popover.menu-running-tasks {
   border: 1px solid var(--color-dovegray);
-  padding: 5px 10px;
-  box-shadow: 0 0 2px 1px var(--color-cirrus);
   text-transform: none;
   color: var(--color-mineshaft);
   font-weight: 400;
   font-size: 80%;
   width: 350px;
+  border-radius: 0;
 
-  &::before, &::after {
-    width: 0;
-    height: 0;
-    content: ' ';
-    right: 12px;
-    position: absolute;
-    border: 10px solid transparent;
-    border-top-width: 0;
-  }
-  &::after {
-    top: -10px;
-    border-bottom-color: var(--color-white);
-  }
-  &::before {
-    top: -11px;
+  &.bottom .arrow {
     border-bottom-color: var(--color-dovegray);
   }
 }

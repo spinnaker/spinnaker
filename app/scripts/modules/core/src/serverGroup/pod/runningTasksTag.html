@@ -1,43 +1,9 @@
 <span ng-if="tasks.length || runningExecutions().length">
-  <span ng-mouseenter="popover.show = true" ng-mouseleave="popover.show = false">
+  <span uib-popover-template="popoverTemplate"
+        popover-class="menu-running-tasks"
+        popover-trigger="'mouseenter'"
+        popover-placement="bottom"
+  >
     <span class="icon"><span class="glyphicon icon-spinner fa-spin-slow"></span></span>
   </span>
-  <div class="menu-running-tasks" ng-if="popover.show">
-    <div class="container-fluid" ng-repeat="task in tasks | orderBy:'-startTime'">
-      <div class="row">
-        <div class="col-md-12">
-          <strong>
-            {{task.name}}
-          </strong>
-        </div>
-      </div>
-      <div class="row" ng-repeat="step in task.steps | displayableTasks">
-        <div class="col-md-7 col-md-offset-0">
-          <span class="small"><status-glyph item="step"></status-glyph></span> {{step.name | robotToHuman }}
-        </div>
-        <div class="col-md-4 text-right">
-          {{step.runningTimeInMs | duration }}
-        </div>
-      </div>
-    </div>
-
-    <div class="container-fluid" ng-repeat="execution in runningExecutions() track by $index">
-      <div class="row">
-        <div class="col-md-12">
-          <strong>
-            Pipeline: {{execution.name}}
-          </strong>
-        </div>
-      </div>
-      <div class="row" ng-repeat="stage in execution.stages track by $index">
-        <div class="col-md-7 col-md-offset-0">
-          <span class="small"><status-glyph item="stage"></status-glyph></span> {{stage.name}}
-        </div>
-        <div class="col-md-4 text-right">
-          {{stage.runningTimeInMs | duration }}
-        </div>
-      </div>
-    </div>
-
-  </div>
 </span>
