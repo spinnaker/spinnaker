@@ -46,6 +46,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.Duration;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -208,6 +209,13 @@ public class CanaryController {
           .put("metricSetPairListId", "${ #stage('Mix Control and Experiment Results')['context']['metricSetPairListId']}")
           .put("orchestratorScoreThresholds", orchestratorScoreThresholds)
           .build());
+
+    Duration controlDuration = Duration.between(controlScopeModel.getStart(), controlScopeModel.getEnd());
+    Duration experimentDuration = Duration.between(experimentScopeModel.getStart(), experimentScopeModel.getEnd());
+
+    if (controlDuration.equals(experimentDuration)) {
+      canaryJudgeContext.put("durationString", controlDuration.toString());
+    }
 
     Pipeline pipeline =
       Pipeline
