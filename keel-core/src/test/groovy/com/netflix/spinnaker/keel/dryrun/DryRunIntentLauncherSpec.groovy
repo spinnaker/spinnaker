@@ -18,6 +18,7 @@ package com.netflix.spinnaker.keel.dryrun
 import com.netflix.spectator.api.Counter
 import com.netflix.spectator.api.Id
 import com.netflix.spectator.api.Registry
+import com.netflix.spinnaker.keel.ConvergeResult
 import com.netflix.spinnaker.keel.Intent
 import com.netflix.spinnaker.keel.IntentProcessor
 import com.netflix.spinnaker.keel.IntentSpec
@@ -49,12 +50,12 @@ class DryRunIntentLauncherSpec extends Specification {
     then:
     1 * processor.supports(_) >> { true }
     1 * processor.converge(_) >> {
-      [
+      new ConvergeResult([
         new OrchestrationRequest("my orchestration", "keel", "testing dry-runs", [
           new Job("wait", [waitTime: 5]),
           new Job("wait", [name: "wait for more time", waitTime: 5])
         ], new Trigger("1", "keel", "keel"))
-      ]
+      ], null)
     }
     result instanceof DryRunLaunchedIntentResult
     result.steps.size() == 1

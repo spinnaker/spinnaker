@@ -21,5 +21,14 @@ interface IntentProcessor<in I : Intent<IntentSpec>> {
 
   fun supports(intent: Intent<IntentSpec>): Boolean
 
-  fun converge(intent: I): List<OrchestrationRequest>
+  fun converge(intent: I): ConvergeResult
 }
+
+enum class ConvergeReason(val reason: String) {
+  UNCHANGED("System state matches desired state")
+}
+
+data class ConvergeResult(
+  val orchestrations: List<OrchestrationRequest>,
+  val reason: String? = null
+)

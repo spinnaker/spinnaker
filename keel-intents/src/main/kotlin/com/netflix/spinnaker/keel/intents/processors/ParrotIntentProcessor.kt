@@ -15,6 +15,7 @@
  */
 package com.netflix.spinnaker.keel.intents.processors
 
+import com.netflix.spinnaker.keel.ConvergeResult
 import com.netflix.spinnaker.keel.Intent
 import com.netflix.spinnaker.keel.IntentProcessor
 import com.netflix.spinnaker.keel.IntentSpec
@@ -35,9 +36,9 @@ class ParrotIntentProcessor
 
   override fun supports(intent: Intent<IntentSpec>) = intent is ParrotIntent
 
-  override fun converge(intent: ParrotIntent): List<OrchestrationRequest> {
+  override fun converge(intent: ParrotIntent): ConvergeResult {
     traceRepository.record(Trace(mapOf(), intent))
-    return listOf(
+    return ConvergeResult(listOf(
       OrchestrationRequest(
         name = "Squawk!",
         application = intent.spec.application,
@@ -47,6 +48,6 @@ class ParrotIntentProcessor
         ),
         trigger = Trigger(intent.getId())
       )
-    )
+    ))
   }
 }

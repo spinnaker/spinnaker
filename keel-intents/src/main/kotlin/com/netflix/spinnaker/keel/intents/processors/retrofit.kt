@@ -13,15 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.config
+package com.netflix.spinnaker.keel.intents.processors
 
-import org.springframework.context.annotation.ComponentScan
-import org.springframework.context.annotation.Configuration
+import org.springframework.http.HttpStatus
+import retrofit.RetrofitError
 
-@Configuration
-@ComponentScan(basePackages = arrayOf(
-  "com.netflix.spinnaker.keel.intents",
-  "com.netflix.spinnaker.keel.intents.processors",
-  "com.netflix.spinnaker.keel.intents.processors.converters.securitygroups"
-))
-open class IntentConfiguration
+fun RetrofitError.notFound(): Boolean {
+  return response != null && response.status == HttpStatus.NOT_FOUND.value()
+}

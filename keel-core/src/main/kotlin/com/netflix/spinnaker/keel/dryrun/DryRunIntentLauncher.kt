@@ -39,7 +39,8 @@ class DryRunIntentLauncher
     val tasks = processor.converge(intent)
 
     return DryRunLaunchedIntentResult(
-      steps = collectSteps(tasks)
+      reason = tasks.reason,
+      steps = collectSteps(tasks.orchestrations)
     )
   }
 
@@ -54,5 +55,6 @@ class DryRunIntentLauncher
 }
 
 data class DryRunLaunchedIntentResult(
+  val reason: String?,
   val steps: List<DryRunStep>
 ) : LaunchedIntentResult

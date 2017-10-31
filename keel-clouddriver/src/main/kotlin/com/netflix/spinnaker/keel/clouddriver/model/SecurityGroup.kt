@@ -17,19 +17,20 @@ package com.netflix.spinnaker.keel.clouddriver.model
 
 data class SecurityGroup(
   val type: String,
-  val id: String,
+  val id: String?,
   val name: String,
-  val description: String,
+  val description: String?,
   val accountName: String,
   val region: String,
   val vpcId: String?,
-  // TODO rz - Gross.
-  val inboundRules: List<Map<String, String>>
+  // TODO rz - This isn't fully representative of the rules that are allowed.
+  val inboundRules: List<SecurityGroupIngress>
 )
 
 data class SecurityGroupIngress(
   val name: String,
   val startPort: Int,
   val endPort: Int,
-  val type: String
+  val type: String,
+  val securityGroup: SecurityGroup?
 )

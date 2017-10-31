@@ -13,15 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.config
+package com.netflix.spinnaker.keel.intents.processors.converters
 
-import org.springframework.context.annotation.ComponentScan
-import org.springframework.context.annotation.Configuration
+import com.netflix.spinnaker.keel.IntentSpec
 
-@Configuration
-@ComponentScan(basePackages = arrayOf(
-  "com.netflix.spinnaker.keel.intents",
-  "com.netflix.spinnaker.keel.intents.processors",
-  "com.netflix.spinnaker.keel.intents.processors.converters.securitygroups"
-))
-open class IntentConfiguration
+interface SpecConverter<I : IntentSpec, S : Any> {
+
+  fun convertToJob(spec: I): S
+  fun convertFromState(state: S): I
+}

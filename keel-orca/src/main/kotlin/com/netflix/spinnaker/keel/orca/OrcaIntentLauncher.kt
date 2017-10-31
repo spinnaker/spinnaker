@@ -39,7 +39,7 @@ class OrcaIntentLauncher
 
     return registry.timer(invocationTimeId.withTags(intent.getMetricTags())).record<OrcaLaunchedIntentResult> {
       OrcaLaunchedIntentResult(
-        orchestrationIds = intentProcessor(intentProcessors, intent).converge(intent).map {
+        orchestrationIds = intentProcessor(intentProcessors, intent).converge(intent).orchestrations.map {
           log.info("Launching orchestration for intent (kind: ${intent.kind})")
           orcaService.orchestrate(it).ref
         }

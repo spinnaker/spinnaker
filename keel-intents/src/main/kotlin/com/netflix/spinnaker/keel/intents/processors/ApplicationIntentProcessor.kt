@@ -16,6 +16,7 @@
 package com.netflix.spinnaker.keel.intents.processors
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.keel.ConvergeResult
 import com.netflix.spinnaker.keel.Intent
 import com.netflix.spinnaker.keel.IntentProcessor
 import com.netflix.spinnaker.keel.IntentSpec
@@ -30,7 +31,6 @@ import com.netflix.spinnaker.keel.tracing.Trace
 import com.netflix.spinnaker.keel.tracing.TraceRepository
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Component
 import retrofit.RetrofitError
 
@@ -46,7 +46,7 @@ class ApplicationIntentProcessor
 
   override fun supports(intent: Intent<IntentSpec>) = intent is ApplicationIntent
 
-  override fun converge(intent: ApplicationIntent): List<OrchestrationRequest> {
+  override fun converge(intent: ApplicationIntent): ConvergeResult {
     log.info("Converging state for ${intent.spec.name}")
 
     val currentState = getApplication(intent.spec.name)
@@ -56,7 +56,7 @@ class ApplicationIntentProcessor
       intent = intent
     ))
 
-    return listOf(
+    return ConvergeResult(listOf(
       OrchestrationRequest(
         name = if (currentState == null) "Create application" else "Update application",
         application = intent.spec.name,
@@ -69,14 +69,14 @@ class ApplicationIntentProcessor
         ),
         trigger = Trigger(intent.getId())
       )
-    )
+    ))
   }
 
   private fun getApplication(name: String): Application? {
     try {
       return front50Service.getApplication(name)
     } catch (e: RetrofitError) {
-      if (e.response != null && e.response.status == HttpStatus.NOT_FOUND.value()) {
+      if (e.notFound()) {
         return null
       }
       throw e
