@@ -555,7 +555,6 @@ public interface KubernetesDistributedService<T> extends DistributedService<T, K
     List<LocalObjectReference> imagePullSecrets = getImagePullSecrets(settings);
     Map componentSizing = deploymentEnvironment.getCustomSizing().get(serviceName);
 
-    System.out.println("debug code: we hit this section - AB" + "\n" + imagePullSecrets);
     replicaSetBuilder = replicaSetBuilder
         .withNewMetadata()
         .withName(replicaSetName)
