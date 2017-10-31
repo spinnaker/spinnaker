@@ -120,9 +120,16 @@ class UpsertGoogleHttpLoadBalancerAtomicOperation extends UpsertGoogleLoadBalanc
     String urlMapName = httpLoadBalancer?.urlMapName ?: httpLoadBalancerName // An L7 load balancer is identified by its UrlMap name in Google Cloud Console.
 
     // Get all the existing infrastructure.
-    Set<HttpHealthCheck> existingHealthChecks = timeExecute(
+
+    // Look up the legacy health checks so we can do the work to transition smoothly to the UHCs.
+    Set<HttpHealthCheck> legacyHealthChecks = timeExecute(
         compute.httpHealthChecks().list(project),
         "compute.httpHealthChecks.list",
+        TAG_SCOPE, SCOPE_GLOBAL)
+        .getItems() as Set
+    Set<HealthCheck> existingHealthChecks = timeExecute(
+        compute.healthChecks().list(project),
+        "compute.healthChecks.list",
         TAG_SCOPE, SCOPE_GLOBAL)
         .getItems() as Set
     Set<BackendService> existingServices = timeExecute(
@@ -198,7 +205,7 @@ class UpsertGoogleHttpLoadBalancerAtomicOperation extends UpsertGoogleLoadBalanc
       }
     }
 
-    // HttpHealthChecks
+    // HealthChecks
     if (healthChecksFromDescription.size() != healthChecksFromDescription.unique(false) { it.name }.size()) {
       throw new GoogleOperationException("Duplicate health checks with different attributes in the description. " +
         "Please specify one object per named health check.")
@@ -210,12 +217,7 @@ class UpsertGoogleHttpLoadBalancerAtomicOperation extends UpsertGoogleLoadBalanc
       def existingHealthCheck = existingHealthChecks.find { it.name == healthCheckName }
       if (existingHealthCheck) {
         healthCheckExistsSet.add(healthCheck.name)
-        if (healthCheck.port != existingHealthCheck.getPort() ||
-            healthCheck.requestPath != existingHealthCheck.getRequestPath() ||
-            healthCheck.checkIntervalSec != existingHealthCheck.getCheckIntervalSec() ||
-            healthCheck.healthyThreshold != existingHealthCheck.getHealthyThreshold() ||
-            healthCheck.unhealthyThreshold != existingHealthCheck.getUnhealthyThreshold() ||
-            healthCheck.timeoutSec != existingHealthCheck.getTimeoutSec()) {
+        if (GCEUtil.healthCheckShouldBeUpdated(existingHealthCheck, healthCheck)) {
           healthCheckNeedsUpdatedSet.add(healthCheck.name)
         }
       }
@@ -227,6 +229,7 @@ class UpsertGoogleHttpLoadBalancerAtomicOperation extends UpsertGoogleLoadBalanc
         "Please specify one object per named backend service.")
     }
 
+    List<String> legacyHealthCheckNames = legacyHealthChecks*.name
     backendServicesFromDescription.each { GoogleBackendService backendService ->
       String backendServiceName = backendService.name
 
@@ -235,12 +238,13 @@ class UpsertGoogleHttpLoadBalancerAtomicOperation extends UpsertGoogleLoadBalanc
         serviceExistsSet.add(backendService.name)
 
         Boolean differentHealthChecks = existingService.getHealthChecks().collect { GCEUtil.getLocalName(it) } != [backendService.healthCheck.name]
+        Boolean updateFromLegacyHealthCheck = legacyHealthCheckNames.contains(backendService.healthCheck.name)
         Boolean differentSessionAffinity = GoogleSessionAffinity.valueOf(existingService.getSessionAffinity()) != backendService.sessionAffinity
         Boolean differentSessionCookieTtl = existingService.getAffinityCookieTtlSec() != backendService.affinityCookieTtlSec
         Boolean differentCDN = existingService.getEnableCDN() != backendService.enableCDN
         Boolean differentPortName = existingService.getPortName() != backendService.portName
         Boolean differentConnectionDraining = existingService.getConnectionDraining()?.getDrainingTimeoutSec() != backendService?.connectionDrainingTimeoutSec
-        if (differentHealthChecks || differentSessionAffinity || differentSessionCookieTtl || differentCDN || differentPortName || differentConnectionDraining) {
+        if (differentHealthChecks || differentSessionAffinity || differentSessionCookieTtl || differentCDN || differentPortName || differentConnectionDraining || updateFromLegacyHealthCheck) {
           serviceNeedsUpdatedSet.add(backendService.name)
         }
       }
@@ -255,18 +259,10 @@ class UpsertGoogleHttpLoadBalancerAtomicOperation extends UpsertGoogleLoadBalanc
 
       if (!healthCheckExistsSet.contains(healthCheck.name)) {
         task.updateStatus BASE_PHASE, "Creating health check $healthCheckName..."
-        HttpHealthCheck newHealthCheck = new HttpHealthCheck(
-          name: healthCheckName,
-          port: healthCheck.port,
-          requestPath: healthCheck.requestPath,
-          checkIntervalSec: healthCheck.checkIntervalSec,
-          healthyThreshold: healthCheck.healthyThreshold,
-          unhealthyThreshold: healthCheck.unhealthyThreshold,
-          timeoutSec: healthCheck.timeoutSec,
-        )
+        HealthCheck newHealthCheck = GCEUtil.createNewHealthCheck(healthCheck)
         def insertHealthCheckOperation = timeExecute(
-              compute.httpHealthChecks().insert(project, newHealthCheck),
-              "compute.httpHealthChecks.insert",
+              compute.healthChecks().insert(project, newHealthCheck),
+              "compute.healthChecks.insert",
               TAG_SCOPE, SCOPE_GLOBAL)
         googleOperationPoller.waitForGlobalOperation(compute, project, insertHealthCheckOperation.getName(),
           null, task, "health check " + healthCheckName, BASE_PHASE)
@@ -274,18 +270,10 @@ class UpsertGoogleHttpLoadBalancerAtomicOperation extends UpsertGoogleLoadBalanc
                  healthCheckNeedsUpdatedSet.contains(healthCheck.name)) {
         task.updateStatus BASE_PHASE, "Updating health check $healthCheckName..."
         def hcToUpdate = existingHealthChecks.find { it.name == healthCheckName }
-        hcToUpdate.with {
-          name = healthCheckName
-          port = healthCheck.port
-          requestPath = healthCheck.requestPath
-          checkIntervalSec = healthCheck.checkIntervalSec
-          healthyThreshold = healthCheck.healthyThreshold
-          unhealthyThreshold = healthCheck.unhealthyThreshold
-          timeoutSec = healthCheck.timeoutSec
-        }
+        GCEUtil.updateExistingHealthCheck(hcToUpdate, healthCheck)
         def updateHealthCheckOperation = timeExecute(
-           compute.httpHealthChecks().update(project, healthCheckName, hcToUpdate),
-           "compute.httpHealthChecks.update",
+           compute.healthChecks().update(project, healthCheckName, hcToUpdate),
+           "compute.healthChecks.update",
            TAG_SCOPE, SCOPE_GLOBAL)
         googleOperationPoller.waitForGlobalOperation(compute, project, updateHealthCheckOperation.getName(),
           null, task, "health check $healthCheckName", BASE_PHASE)
@@ -303,7 +291,7 @@ class UpsertGoogleHttpLoadBalancerAtomicOperation extends UpsertGoogleLoadBalanc
           name: backendServiceName,
           portName: backendService.portName ?: GoogleHttpLoadBalancingPolicy.HTTP_DEFAULT_PORT_NAME,
           connectionDraining: new ConnectionDraining().setDrainingTimeoutSec(backendService.connectionDrainingTimeoutSec),
-          healthChecks: [GCEUtil.buildHttpHealthCheckUrl(project, backendService.healthCheck.name)],
+          healthChecks: [GCEUtil.buildHealthCheckUrl(project, backendService.healthCheck.name)],
           sessionAffinity: sessionAffinity,
           enableCDN: backendService.enableCDN,
           affinityCookieTtlSec: backendService.affinityCookieTtlSec
@@ -322,7 +310,7 @@ class UpsertGoogleHttpLoadBalancerAtomicOperation extends UpsertGoogleLoadBalanc
           def hcName = backendService.healthCheck.name
           bsToUpdate.portName = backendService.portName ?: GoogleHttpLoadBalancingPolicy.HTTP_DEFAULT_PORT_NAME
           bsToUpdate.connectionDraining = new ConnectionDraining().setDrainingTimeoutSec(backendService.connectionDrainingTimeoutSec)
-          bsToUpdate.healthChecks = [GCEUtil.buildHttpHealthCheckUrl(project, hcName)]
+          bsToUpdate.healthChecks = [GCEUtil.buildHealthCheckUrl(project, hcName)]
           bsToUpdate.sessionAffinity = sessionAffinity
           bsToUpdate.enableCDN = backendService.enableCDN
           bsToUpdate.affinityCookieTtlSec = backendService.affinityCookieTtlSec

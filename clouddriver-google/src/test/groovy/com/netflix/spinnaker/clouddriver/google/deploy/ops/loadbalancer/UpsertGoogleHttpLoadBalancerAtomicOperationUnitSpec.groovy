@@ -55,6 +55,7 @@ class UpsertGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
     hc = [
         "name"              : "basic-check",
         "requestPath"       : "/",
+        "healthCheckType"   : "HTTP",
         "port"              : 80,
         "checkIntervalSec"  : 1,
         "timeoutSec"        : 1,
@@ -86,9 +87,12 @@ class UpsertGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
 
       def httpHealthChecks = Mock(Compute.HttpHealthChecks)
       def httpHealthChecksList = Mock(Compute.HttpHealthChecks.List)
-      def healthCheckListReal = new HttpHealthCheckList(items: [])
-      def httpHealthChecksInsert = Mock(Compute.HttpHealthChecks.Insert)
-      def httpHealthChecksInsertOp = new Operation(
+
+      def healthChecks = Mock(Compute.HealthChecks)
+      def healthChecksList = Mock(Compute.HealthChecks.List)
+      def healthCheckListReal = new HealthCheckList(items: [])
+      def healthChecksInsert = Mock(Compute.HealthChecks.Insert)
+      def healthChecksInsertOp = new Operation(
           targetLink: "health-check",
           name: HEALTH_CHECK_OP_NAME,
           status: DONE)
@@ -183,11 +187,15 @@ class UpsertGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
      operation.operate([])
 
     then:
-      2 * computeMock.httpHealthChecks() >> httpHealthChecks
+      2 * computeMock.healthChecks() >> healthChecks
+      1 * healthChecks.list(PROJECT_NAME) >> healthChecksList
+      1 * healthChecksList.execute() >> healthCheckListReal
+      1 * healthChecks.insert(PROJECT_NAME, _) >> healthChecksInsert
+      1 * healthChecksInsert.execute() >> healthChecksInsertOp
+
+      1 * computeMock.httpHealthChecks() >> httpHealthChecks
       1 * httpHealthChecks.list(PROJECT_NAME) >> httpHealthChecksList
       1 * httpHealthChecksList.execute() >> healthCheckListReal
-      1 * httpHealthChecks.insert(PROJECT_NAME, _) >> httpHealthChecksInsert
-      1 * httpHealthChecksInsert.execute() >> httpHealthChecksInsertOp
 
       4 * computeMock.backendServices() >> backendServices
       1 * backendServices.list(PROJECT_NAME) >> backendServicesList
@@ -213,13 +221,13 @@ class UpsertGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
 
       7 * computeMock.globalOperations() >> globalOperations
       1 * globalOperations.get(PROJECT_NAME, HEALTH_CHECK_OP_NAME) >> globalHealthCheckOperationGet
-      1 * globalHealthCheckOperationGet.execute() >> httpHealthChecksInsertOp
+      1 * globalHealthCheckOperationGet.execute() >> healthChecksInsertOp
       3 * globalOperations.get(PROJECT_NAME, BACKEND_SERVICE_OP_NAME) >> globalBackendServiceOperationGet
-      3 * globalBackendServiceOperationGet.execute() >> httpHealthChecksInsertOp
+      3 * globalBackendServiceOperationGet.execute() >> healthChecksInsertOp
       1 * globalOperations.get(PROJECT_NAME, URL_MAP_OP_NAME) >> globalUrlMapOperationGet
-      1 * globalUrlMapOperationGet.execute() >> httpHealthChecksInsertOp
+      1 * globalUrlMapOperationGet.execute() >> healthChecksInsertOp
       1 * globalOperations.get(PROJECT_NAME, TARGET_HTTP_PROXY_OP_NAME) >> globalTargetHttpProxyOperationGet
-      1 * globalTargetHttpProxyOperationGet.execute() >> httpHealthChecksInsertOp
+      1 * globalTargetHttpProxyOperationGet.execute() >> healthChecksInsertOp
       1 * globalOperations.get(PROJECT_NAME, LOAD_BALANCER_NAME) >> globalForwardingRuleOperationGet
       1 * globalForwardingRuleOperationGet.execute() >> forwardingRuleInsertOp
   }
@@ -246,9 +254,12 @@ class UpsertGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
 
       def httpHealthChecks = Mock(Compute.HttpHealthChecks)
       def httpHealthChecksList = Mock(Compute.HttpHealthChecks.List)
-      def healthCheckListReal = new HttpHealthCheckList(items: [])
-      def httpHealthChecksInsert = Mock(Compute.HttpHealthChecks.Insert)
-      def httpHealthChecksInsertOp = new Operation(
+
+      def healthChecks = Mock(Compute.HealthChecks)
+      def healthChecksList = Mock(Compute.HealthChecks.List)
+      def healthCheckListReal = new HealthCheckList(items: [])
+      def healthChecksInsert = Mock(Compute.HealthChecks.Insert)
+      def healthChecksInsertOp = new Operation(
           targetLink: "health-check",
           name: HEALTH_CHECK_OP_NAME,
           status: DONE)
@@ -313,11 +324,15 @@ class UpsertGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       operation.operate([])
 
     then:
-      2 * computeMock.httpHealthChecks() >> httpHealthChecks
+      2 * computeMock.healthChecks() >> healthChecks
+      1 * healthChecks.list(PROJECT_NAME) >> healthChecksList
+      1 * healthChecksList.execute() >> healthCheckListReal
+      1 * healthChecks.insert(PROJECT_NAME, _) >> healthChecksInsert
+      1 * healthChecksInsert.execute() >> healthChecksInsertOp
+
+      1 * computeMock.httpHealthChecks() >> httpHealthChecks
       1 * httpHealthChecks.list(PROJECT_NAME) >> httpHealthChecksList
       1 * httpHealthChecksList.execute() >> healthCheckListReal
-      1 * httpHealthChecks.insert(PROJECT_NAME, _) >> httpHealthChecksInsert
-      1 * httpHealthChecksInsert.execute() >> httpHealthChecksInsertOp
 
       2 * computeMock.backendServices() >> backendServices
       1 * backendServices.list(PROJECT_NAME) >> backendServicesList
@@ -343,13 +358,13 @@ class UpsertGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
 
       5 * computeMock.globalOperations() >> globalOperations
       1 * globalOperations.get(PROJECT_NAME, HEALTH_CHECK_OP_NAME) >> globalHealthCheckOperationGet
-      1 * globalHealthCheckOperationGet.execute() >> httpHealthChecksInsertOp
+      1 * globalHealthCheckOperationGet.execute() >> healthChecksInsertOp
       1 * globalOperations.get(PROJECT_NAME, BACKEND_SERVICE_OP_NAME) >> globalBackendServiceOperationGet
-      1 * globalBackendServiceOperationGet.execute() >> httpHealthChecksInsertOp
+      1 * globalBackendServiceOperationGet.execute() >> healthChecksInsertOp
       1 * globalOperations.get(PROJECT_NAME, URL_MAP_OP_NAME) >> globalUrlMapOperationGet
-      1 * globalUrlMapOperationGet.execute() >> httpHealthChecksInsertOp
+      1 * globalUrlMapOperationGet.execute() >> healthChecksInsertOp
       1 * globalOperations.get(PROJECT_NAME, TARGET_HTTP_PROXY_OP_NAME) >> globalTargetHttpProxyOperationGet
-      1 * globalTargetHttpProxyOperationGet.execute() >> httpHealthChecksInsertOp
+      1 * globalTargetHttpProxyOperationGet.execute() >> healthChecksInsertOp
       1 * globalOperations.get(PROJECT_NAME, LOAD_BALANCER_NAME) >> globalForwardingRuleOperationGet
       1 * globalForwardingRuleOperationGet.execute() >> forwardingRuleInsertOp
   }
@@ -376,9 +391,12 @@ class UpsertGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
 
       def httpHealthChecks = Mock(Compute.HttpHealthChecks)
       def httpHealthChecksList = Mock(Compute.HttpHealthChecks.List)
-      def healthCheckListReal = new HttpHealthCheckList(items: [])
-      def httpHealthChecksInsert = Mock(Compute.HttpHealthChecks.Insert)
-      def httpHealthChecksInsertOp = new Operation(
+
+      def healthChecks = Mock(Compute.HealthChecks)
+      def healthChecksList = Mock(Compute.HealthChecks.List)
+      def healthCheckListReal = new HealthCheckList(items: [])
+      def healthChecksInsert = Mock(Compute.HealthChecks.Insert)
+      def healthChecksInsertOp = new Operation(
           targetLink: "health-check",
           name: HEALTH_CHECK_OP_NAME,
           status: DONE)
@@ -443,11 +461,15 @@ class UpsertGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       operation.operate([])
 
     then:
-      2 * computeMock.httpHealthChecks() >> httpHealthChecks
+      2 * computeMock.healthChecks() >> healthChecks
+      1 * healthChecks.list(PROJECT_NAME) >> healthChecksList
+      1 * healthChecksList.execute() >> healthCheckListReal
+      1 * healthChecks.insert(PROJECT_NAME, _) >> healthChecksInsert
+      1 * healthChecksInsert.execute() >> healthChecksInsertOp
+
+      1 * computeMock.httpHealthChecks() >> httpHealthChecks
       1 * httpHealthChecks.list(PROJECT_NAME) >> httpHealthChecksList
       1 * httpHealthChecksList.execute() >> healthCheckListReal
-      1 * httpHealthChecks.insert(PROJECT_NAME, _) >> httpHealthChecksInsert
-      1 * httpHealthChecksInsert.execute() >> httpHealthChecksInsertOp
 
       2 * computeMock.backendServices() >> backendServices
       1 * backendServices.list(PROJECT_NAME) >> backendServicesList
@@ -473,13 +495,13 @@ class UpsertGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
 
       5 * computeMock.globalOperations() >> globalOperations
       1 * globalOperations.get(PROJECT_NAME, HEALTH_CHECK_OP_NAME) >> globalHealthCheckOperationGet
-      1 * globalHealthCheckOperationGet.execute() >> httpHealthChecksInsertOp
+      1 * globalHealthCheckOperationGet.execute() >> healthChecksInsertOp
       1 * globalOperations.get(PROJECT_NAME, BACKEND_SERVICE_OP_NAME) >> globalBackendServiceOperationGet
-      1 * globalBackendServiceOperationGet.execute() >> httpHealthChecksInsertOp
+      1 * globalBackendServiceOperationGet.execute() >> healthChecksInsertOp
       1 * globalOperations.get(PROJECT_NAME, URL_MAP_OP_NAME) >> globalUrlMapOperationGet
-      1 * globalUrlMapOperationGet.execute() >> httpHealthChecksInsertOp
+      1 * globalUrlMapOperationGet.execute() >> healthChecksInsertOp
       1 * globalOperations.get(PROJECT_NAME, TARGET_HTTP_PROXY_OP_NAME) >> globalTargetHttpsProxyOperationGet
-      1 * globalTargetHttpsProxyOperationGet.execute() >> httpHealthChecksInsertOp
+      1 * globalTargetHttpsProxyOperationGet.execute() >> healthChecksInsertOp
       1 * globalOperations.get(PROJECT_NAME, LOAD_BALANCER_NAME) >> globalForwardingRuleOperationGet
       1 * globalForwardingRuleOperationGet.execute() >> forwardingRuleInsertOp
   }
@@ -506,12 +528,19 @@ class UpsertGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
 
       def httpHealthChecks = Mock(Compute.HttpHealthChecks)
       def httpHealthChecksList = Mock(Compute.HttpHealthChecks.List)
-      def healthCheckListReal = new HttpHealthCheckList(items: [new HttpHealthCheck(name: hc.name)])
-      def httpHealthChecksUpdate = Mock(Compute.HttpHealthChecks.Update)
-      def httpHealthChecksUpdateOp = new Operation(
-        targetLink: hc.name,
-        name: HEALTH_CHECK_OP_NAME,
-        status: DONE)
+
+      def healthChecks = Mock(Compute.HealthChecks)
+      def healthChecksList = Mock(Compute.HealthChecks.List)
+      def healthCheckListReal = new HealthCheckList(items: [])
+      def healthChecksInsert = Mock(Compute.HealthChecks.Insert)
+      def healthChecksInsertOp = new Operation(
+          targetLink: "health-check",
+          name: HEALTH_CHECK_OP_NAME,
+          status: DONE)
+      def healthChecksUpdateOp = new Operation(
+          targetLink: "health-check",
+          name: HEALTH_CHECK_OP_NAME,
+          status: DONE)
 
       def backendServices = Mock(Compute.BackendServices)
       def backendServicesList = Mock(Compute.BackendServices.List)
@@ -603,11 +632,15 @@ class UpsertGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       operation.operate([])
 
     then:
-      2 * computeMock.httpHealthChecks() >> httpHealthChecks
+      2 * computeMock.healthChecks() >> healthChecks
+      1 * healthChecks.list(PROJECT_NAME) >> healthChecksList
+      1 * healthChecksList.execute() >> healthCheckListReal
+      1 * healthChecks.insert(PROJECT_NAME, _) >> healthChecksInsert
+      1 * healthChecksInsert.execute() >> healthChecksInsertOp
+
+      1 * computeMock.httpHealthChecks() >> httpHealthChecks
       1 * httpHealthChecks.list(PROJECT_NAME) >> httpHealthChecksList
       1 * httpHealthChecksList.execute() >> healthCheckListReal
-      1 * httpHealthChecks.update(PROJECT_NAME, hc.name, _) >> httpHealthChecksUpdate
-      1 * httpHealthChecksUpdate.execute() >> httpHealthChecksUpdateOp
 
       4 * computeMock.backendServices() >> backendServices
       1 * backendServices.list(PROJECT_NAME) >> backendServicesList
@@ -633,7 +666,7 @@ class UpsertGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
 
       7 * computeMock.globalOperations() >> globalOperations
       1 * globalOperations.get(PROJECT_NAME, HEALTH_CHECK_OP_NAME) >> globalHealthCheckOperationGet
-      1 * globalHealthCheckOperationGet.execute() >> httpHealthChecksUpdateOp
+      1 * globalHealthCheckOperationGet.execute() >> healthChecksUpdateOp
       3 * globalOperations.get(PROJECT_NAME, BACKEND_SERVICE_OP_NAME) >> globalBackendServiceOperationGet
       3 * globalBackendServiceOperationGet.execute() >> backendServicesInsertOp
       1 * globalOperations.get(PROJECT_NAME, URL_MAP_OP_NAME) >> globalUrlMapOperationGet
@@ -666,12 +699,19 @@ class UpsertGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
 
       def httpHealthChecks = Mock(Compute.HttpHealthChecks)
       def httpHealthChecksList = Mock(Compute.HttpHealthChecks.List)
-      def healthCheckListReal = new HttpHealthCheckList(items: [new HttpHealthCheck(name: hc.name)])
-      def httpHealthChecksUpdate = Mock(Compute.HttpHealthChecks.Update)
-      def httpHealthChecksUpdateOp = new Operation(
-        targetLink: hc.name,
-        name: HEALTH_CHECK_OP_NAME,
-        status: DONE)
+
+      def healthChecks = Mock(Compute.HealthChecks)
+      def healthChecksList = Mock(Compute.HealthChecks.List)
+      def healthCheckListReal = new HealthCheckList(items: [])
+      def healthChecksInsert = Mock(Compute.HealthChecks.Insert)
+      def healthChecksInsertOp = new Operation(
+          targetLink: "health-check",
+          name: HEALTH_CHECK_OP_NAME,
+          status: DONE)
+      def healthChecksUpdateOp = new Operation(
+          targetLink: "health-check",
+          name: HEALTH_CHECK_OP_NAME,
+          status: DONE)
 
       def backendServices = Mock(Compute.BackendServices)
       def backendServicesList = Mock(Compute.BackendServices.List)
@@ -768,11 +808,15 @@ class UpsertGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       operation.operate([])
 
     then:
-      2 * computeMock.httpHealthChecks() >> httpHealthChecks
+      2 * computeMock.healthChecks() >> healthChecks
+      1 * healthChecks.list(PROJECT_NAME) >> healthChecksList
+      1 * healthChecksList.execute() >> healthCheckListReal
+      1 * healthChecks.insert(PROJECT_NAME, _) >> healthChecksInsert
+      1 * healthChecksInsert.execute() >> healthChecksInsertOp
+
+      1 * computeMock.httpHealthChecks() >> httpHealthChecks
       1 * httpHealthChecks.list(PROJECT_NAME) >> httpHealthChecksList
       1 * httpHealthChecksList.execute() >> healthCheckListReal
-      1 * httpHealthChecks.update(PROJECT_NAME, hc.name, _) >> httpHealthChecksUpdate
-      1 * httpHealthChecksUpdate.execute() >> httpHealthChecksUpdateOp
 
       4 * computeMock.backendServices() >> backendServices
       1 * backendServices.list(PROJECT_NAME) >> backendServicesList
@@ -800,7 +844,7 @@ class UpsertGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
 
       7 * computeMock.globalOperations() >> globalOperations
       1 * globalOperations.get(PROJECT_NAME, HEALTH_CHECK_OP_NAME) >> globalHealthCheckOperationGet
-      1 * globalHealthCheckOperationGet.execute() >> httpHealthChecksUpdateOp
+      1 * globalHealthCheckOperationGet.execute() >> healthChecksUpdateOp
       2 * globalOperations.get(PROJECT_NAME, BACKEND_SERVICE_OP_NAME) >> globalBackendServiceOperationGet
       2 * globalBackendServiceOperationGet.execute() >> backendServicesInsertOp
       1 * globalOperations.get(PROJECT_NAME, BACKEND_SERVICE_OP_NAME + "update") >> globalBackendServiceOperationGet
@@ -835,12 +879,19 @@ class UpsertGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
 
       def httpHealthChecks = Mock(Compute.HttpHealthChecks)
       def httpHealthChecksList = Mock(Compute.HttpHealthChecks.List)
-      def healthCheckListReal = new HttpHealthCheckList(items: [new HttpHealthCheck(name: hc.name)])
-      def httpHealthChecksUpdate = Mock(Compute.HttpHealthChecks.Update)
-      def httpHealthChecksUpdateOp = new Operation(
-        targetLink: hc.name,
-        name: HEALTH_CHECK_OP_NAME,
-        status: DONE)
+
+      def healthChecks = Mock(Compute.HealthChecks)
+      def healthChecksList = Mock(Compute.HealthChecks.List)
+      def healthCheckListReal = new HealthCheckList(items: [])
+      def healthChecksInsert = Mock(Compute.HealthChecks.Insert)
+      def healthChecksInsertOp = new Operation(
+          targetLink: "health-check",
+          name: HEALTH_CHECK_OP_NAME,
+          status: DONE)
+      def healthChecksUpdateOp = new Operation(
+          targetLink: "health-check",
+          name: HEALTH_CHECK_OP_NAME,
+          status: DONE)
 
       def backendServices = Mock(Compute.BackendServices)
       def backendServicesList = Mock(Compute.BackendServices.List)
@@ -938,11 +989,15 @@ class UpsertGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       operation.operate([])
 
     then:
-      2 * computeMock.httpHealthChecks() >> httpHealthChecks
+      2 * computeMock.healthChecks() >> healthChecks
+      1 * healthChecks.list(PROJECT_NAME) >> healthChecksList
+      1 * healthChecksList.execute() >> healthCheckListReal
+      1 * healthChecks.insert(PROJECT_NAME, _) >> healthChecksInsert
+      1 * healthChecksInsert.execute() >> healthChecksInsertOp
+
+      1 * computeMock.httpHealthChecks() >> httpHealthChecks
       1 * httpHealthChecks.list(PROJECT_NAME) >> httpHealthChecksList
       1 * httpHealthChecksList.execute() >> healthCheckListReal
-      1 * httpHealthChecks.update(PROJECT_NAME, hc.name, _) >> httpHealthChecksUpdate
-      1 * httpHealthChecksUpdate.execute() >> httpHealthChecksUpdateOp
 
       4 * computeMock.backendServices() >> backendServices
       1 * backendServices.list(PROJECT_NAME) >> backendServicesList
@@ -970,7 +1025,7 @@ class UpsertGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
 
       7 * computeMock.globalOperations() >> globalOperations
       1 * globalOperations.get(PROJECT_NAME, HEALTH_CHECK_OP_NAME) >> globalHealthCheckOperationGet
-      1 * globalHealthCheckOperationGet.execute() >> httpHealthChecksUpdateOp
+      1 * globalHealthCheckOperationGet.execute() >> healthChecksUpdateOp
       2 * globalOperations.get(PROJECT_NAME, BACKEND_SERVICE_OP_NAME) >> globalBackendServiceOperationGet
       2 * globalBackendServiceOperationGet.execute() >> backendServicesInsertOp
       1 * globalOperations.get(PROJECT_NAME, BACKEND_SERVICE_OP_NAME + "update") >> globalBackendServiceOperationGet

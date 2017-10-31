@@ -382,20 +382,35 @@ class GoogleHttpLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerCachi
 
       backendService.healthChecks?.each { String healthCheckURL ->
         def healthCheckName = Utils.getLocalName(healthCheckURL)
-        if (isHttps) {
-          def healthCheckCallback = new HttpsHealthCheckCallback(
+        def healthCheckType = Utils.getHealthCheckType(healthCheckURL)
+        switch (healthCheckType) {
+          case "httpHealthChecks":
+            def healthCheckCallback = new HttpHealthCheckCallback(
               subject: googleLoadBalancer.name,
               failedSubjects: failedLoadBalancers,
               googleBackendServices: backendServicesToUpdate
-          )
-          compute.httpsHealthChecks().get(project, healthCheckName).queue(httpHealthCheckRequest, healthCheckCallback)
-        } else {
-          def healthCheckCallback = new HttpHealthCheckCallback(
+            )
+            compute.httpHealthChecks().get(project, healthCheckName).queue(httpHealthCheckRequest, healthCheckCallback)
+            break
+          case "httpsHealthChecks":
+            def healthCheckCallback = new HttpsHealthCheckCallback(
               subject: googleLoadBalancer.name,
               failedSubjects: failedLoadBalancers,
               googleBackendServices: backendServicesToUpdate
-          )
-          compute.httpHealthChecks().get(project, healthCheckName).queue(httpHealthCheckRequest, healthCheckCallback)
+            )
+            compute.httpsHealthChecks().get(project, healthCheckName).queue(httpHealthCheckRequest, healthCheckCallback)
+            break
+          case "healthChecks":
+            def healthCheckCallback = new HealthCheckCallback(
+              subject: googleLoadBalancer.name,
+              failedSubjects: failedLoadBalancers,
+              googleBackendServices: backendServicesToUpdate
+            )
+            compute.healthChecks().get(project, healthCheckName).queue(httpHealthCheckRequest, healthCheckCallback)
+            break
+          default:
+            log.warn("Unknown health check type for health check named: ${healthCheckName}. Not queueing any batch requests.")
+            break
         }
       }
     }
@@ -437,6 +452,50 @@ class GoogleHttpLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerCachi
             unhealthyThreshold: httpHealthCheck.unhealthyThreshold,
             healthyThreshold: httpHealthCheck.healthyThreshold,
         )
+      }
+    }
+  }
+
+  class HealthCheckCallback<HealthCheck> extends JsonBatchCallback<HealthCheck> implements FailedSubjectChronicler {
+    List<GoogleBackendService> googleBackendServices
+
+    @Override
+    void onSuccess(HealthCheck healthCheck, HttpHeaders responseHeaders) throws IOException {
+      def port = null
+      def hcType = null
+      def requestPath = null
+      if (healthCheck.tcpHealthCheck) {
+        port = healthCheck.tcpHealthCheck.port
+        hcType = GoogleHealthCheck.HealthCheckType.TCP
+      } else if (healthCheck.sslHealthCheck) {
+        port = healthCheck.sslHealthCheck.port
+        hcType = GoogleHealthCheck.HealthCheckType.SSL
+      } else if (healthCheck.httpHealthCheck) {
+        port = healthCheck.httpHealthCheck.port
+        requestPath = healthCheck.httpHealthCheck.requestPath
+        hcType = GoogleHealthCheck.HealthCheckType.HTTP
+      } else if (healthCheck.httpsHealthCheck) {
+        port = healthCheck.httpsHealthCheck.port
+        requestPath = healthCheck.httpsHealthCheck.requestPath
+        hcType = GoogleHealthCheck.HealthCheckType.HTTPS
+      } else if (healthCheck.udpHealthCheck) {
+        port = healthCheck.udpHealthCheck.port
+        hcType = GoogleHealthCheck.HealthCheckType.UDP
+      }
+
+      if (port && hcType) {
+        googleBackendServices?.each { googleBackendService ->
+          googleBackendService.healthCheck = new GoogleHealthCheck(
+            name: healthCheck.name,
+            healthCheckType: hcType,
+            port: port,
+            requestPath: requestPath ?: "",
+            checkIntervalSec: healthCheck.checkIntervalSec,
+            timeoutSec: healthCheck.timeoutSec,
+            unhealthyThreshold: healthCheck.unhealthyThreshold,
+            healthyThreshold: healthCheck.healthyThreshold,
+          )
+        }
       }
     }
   }

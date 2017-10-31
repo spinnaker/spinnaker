@@ -170,7 +170,7 @@ class UpsertGoogleSslLoadBalancerAtomicOperation extends UpsertGoogleLoadBalance
         task,
         [400, 403, 412],
         [],
-        [action: "insert", phase: BASE_PHASE, operation: "copmute.healthChecks.insert", (TAG_SCOPE): SCOPE_GLOBAL],
+        [action: "insert", phase: BASE_PHASE, operation: "compute.healthChecks.insert", (TAG_SCOPE): SCOPE_GLOBAL],
         registry
       )
     } else if (existingHealthCheck && needToUpdateHealthCheck) {
