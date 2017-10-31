@@ -46,24 +46,21 @@ public class AlertOnAccessMap<E extends Execution<E>> extends ForwardingMap<Stri
   @Override protected Map<String, Object> delegate() { return delegate; }
 
   @Override public Object get(@Nullable Object key) {
-    Object value = super.get(key);
-    if (value != null) {
-      log.warn(
-        "Global context key \"{}\" accessed by {} {}[{}] \"{}\"",
-        key,
-        execution.getApplication(),
-        execution.getClass().getSimpleName(),
-        execution.getId(),
-        execution.getName()
-      );
-      Id counterId = registry
-        .createId("global.context.access")
-        .withTag("application", execution.getApplication())
-        .withTag("key", String.valueOf(key));
-      registry
-        .counter(counterId)
-        .increment();
-    }
-    return value;
+    log.warn(
+      "Global context key \"{}\" accessed by {} {}[{}] \"{}\"",
+      key,
+      execution.getApplication(),
+      execution.getClass().getSimpleName(),
+      execution.getId(),
+      execution.getName()
+    );
+    Id counterId = registry
+      .createId("global.context.access")
+      .withTag("application", execution.getApplication())
+      .withTag("key", String.valueOf(key));
+    registry
+      .counter(counterId)
+      .increment();
+    return super.get(key);
   }
 }

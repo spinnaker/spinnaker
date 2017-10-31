@@ -20,7 +20,6 @@ import com.netflix.spinnaker.orca.pipeline.model.Orchestration
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.CompileStatic
-import static com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_BEFORE
 import static groovy.lang.Closure.DELEGATE_FIRST
 import static java.lang.System.currentTimeMillis
 
@@ -81,12 +80,6 @@ class ExecutionBuilder {
     stage.execution = execution
     execution.stages << stage
 
-    def parentStage = findParentStage(builder)
-    if (parentStage) {
-      stage.parentStageId = parentStage.id
-      stage.syntheticStageOwner = STAGE_BEFORE
-    }
-
     builder.delegate = stage
     builder.resolveStrategy = DELEGATE_FIRST
     builder()
@@ -101,19 +94,6 @@ class ExecutionBuilder {
         return enclosingClosure.delegate as Pipeline
       } else {
         return findExecution(enclosingClosure)
-      }
-    } else {
-      return null
-    }
-  }
-
-  private static Stage<Pipeline> findParentStage(Closure closure) {
-    if (closure.owner instanceof Closure) {
-      def enclosingClosure = (closure.owner as Closure)
-      if (enclosingClosure.delegate instanceof Stage) {
-        return enclosingClosure.delegate as Stage
-      } else {
-        return findParentStage(enclosingClosure)
       }
     } else {
       return null
