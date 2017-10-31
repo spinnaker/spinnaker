@@ -30,7 +30,7 @@ import javax.servlet.*
 import javax.servlet.http.HttpServletResponse
 
 @Configuration
-@ComponentScan(basePackages = arrayOf("com.netflix.spinnaker.keel.controllers"))
+@ComponentScan(basePackages = arrayOf("com.netflix.spinnaker.keel.controllers.v1"))
 open class WebConfiguration
 @Autowired constructor(
   private val registry: Registry

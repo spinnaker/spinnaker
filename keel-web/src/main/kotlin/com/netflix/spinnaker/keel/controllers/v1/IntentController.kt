@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.keel.controllers
+package com.netflix.spinnaker.keel.controllers.v1
 
 import com.netflix.spinnaker.keel.IntentActivityRepository
 import com.netflix.spinnaker.keel.IntentRepository
@@ -27,7 +27,7 @@ import org.springframework.web.bind.annotation.*
 import javax.ws.rs.QueryParam
 
 @RestController
-@RequestMapping("/intents")
+@RequestMapping("/v1/intents")
 class IntentController
 @Autowired constructor(
   private val dryRunIntentLauncher: DryRunIntentLauncher,
