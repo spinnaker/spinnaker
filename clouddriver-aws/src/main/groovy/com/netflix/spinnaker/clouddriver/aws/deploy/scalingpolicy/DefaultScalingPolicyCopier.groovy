@@ -105,6 +105,27 @@ class DefaultScalingPolicyCopier implements ScalingPolicyCopier {
     )
   }
 
+  Collection<String> replacePolicyArnActions(String sourceRegion,
+                                             String targetRegion,
+                                             NetflixAmazonCredentials sourceCredentials,
+                                             NetflixAmazonCredentials targetCredentials,
+                                             Map<String, String> replacements,
+                                             Collection<String> actions) {
+    replacements.each { sourcePolicyArn, targetPolicyArn ->
+      if (sourcePolicyArn in actions) {
+        actions = (actions - sourcePolicyArn) + targetPolicyArn
+      }
+    }
+    // if we are copying across accounts or region, do not copy over unrelated alarms, e.g. sns queues
+    if (sourceRegion != targetRegion) {
+      actions = actions.findAll { !it.contains(sourceRegion) }
+    }
+    if (sourceCredentials.accountId != targetCredentials.accountId) {
+      actions = actions.findAll { !it.contains(sourceCredentials.accountId) }
+    }
+    actions
+  }
+
   private void copyAlarmsForAsg(String newAutoScalingGroupName,
                                 Collection<String> sourceAlarmNames,
                                 Map<String, String> sourcePolicyArnToTargetPolicyArn,
@@ -115,14 +136,6 @@ class DefaultScalingPolicyCopier implements ScalingPolicyCopier {
     AmazonCloudWatch sourceCloudWatch = amazonClientProvider.getCloudWatch(sourceCredentials, sourceRegion, true)
     AmazonCloudWatch targetCloudWatch = amazonClientProvider.getCloudWatch(targetCredentials, targetRegion, true)
     List<MetricAlarm> sourceAlarms = new AlarmRetriever(sourceCloudWatch).retrieve(new DescribeAlarmsRequest(alarmNames: sourceAlarmNames))
-    def replacePolicyArnActions = { Collection<String> actions ->
-      sourcePolicyArnToTargetPolicyArn.each { sourcePolicyArn, targetPolicyArn ->
-        if (sourcePolicyArn in actions) {
-          actions = (actions - sourcePolicyArn) + targetPolicyArn
-        }
-      }
-      actions
-    }
     sourceAlarms.findAll{ shouldCopySourceAlarm(it) }.each { alarm ->
       List<Dimension> newDimensions = Lists.newArrayList(alarm.dimensions)
       Dimension asgDimension = newDimensions.find { it.name == DIMENSION_NAME_FOR_ASG }
@@ -135,9 +148,9 @@ class DefaultScalingPolicyCopier implements ScalingPolicyCopier {
         alarmName: newAlarmName,
         alarmDescription: alarm.alarmDescription,
         actionsEnabled: alarm.actionsEnabled,
-        oKActions: replacePolicyArnActions(alarm.oKActions),
-        alarmActions: replacePolicyArnActions(alarm.alarmActions),
-        insufficientDataActions: replacePolicyArnActions(alarm.insufficientDataActions),
+        oKActions: replacePolicyArnActions(sourceRegion, targetRegion, sourceCredentials, targetCredentials, sourcePolicyArnToTargetPolicyArn, alarm.oKActions),
+        alarmActions: replacePolicyArnActions(sourceRegion, targetRegion, sourceCredentials, targetCredentials, sourcePolicyArnToTargetPolicyArn, alarm.alarmActions),
+        insufficientDataActions: replacePolicyArnActions(sourceRegion, targetRegion, sourceCredentials, targetCredentials, sourcePolicyArnToTargetPolicyArn, alarm.insufficientDataActions),
         metricName: alarm.metricName,
         namespace: alarm.namespace,
         statistic: alarm.statistic,

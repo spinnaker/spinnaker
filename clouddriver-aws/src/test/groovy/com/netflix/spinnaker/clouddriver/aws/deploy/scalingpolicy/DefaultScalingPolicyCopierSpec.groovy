@@ -32,6 +32,7 @@ import com.amazonaws.services.cloudwatch.model.MetricAlarm
 import com.amazonaws.services.cloudwatch.model.PutMetricAlarmRequest
 import com.netflix.spinnaker.clouddriver.aws.deploy.AsgReferenceCopier
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
+import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.aws.services.IdGenerator
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import spock.lang.Specification
@@ -41,6 +42,12 @@ class DefaultScalingPolicyCopierSpec extends Specification {
 
   def sourceAutoScaling = Mock(AmazonAutoScaling)
   def targetAutoScaling = Mock(AmazonAutoScaling)
+  def sourceCredentials = Stub(NetflixAmazonCredentials) {
+    getAccountId() >> 'abc'
+  }
+  def targetCredentials = Stub(NetflixAmazonCredentials) {
+    getAccountId() >> 'def'
+  }
   def sourceCloudWatch = Mock(AmazonCloudWatch)
   def targetCloudWatch = Mock(AmazonCloudWatch)
   def amazonClientProvider = Stub(AmazonClientProvider) {
@@ -49,8 +56,6 @@ class DefaultScalingPolicyCopierSpec extends Specification {
     getCloudWatch(_, 'us-east-1', true) >> sourceCloudWatch
     getCloudWatch(_, 'us-west-1', true) >> targetCloudWatch
   }
-
-  long now = System.currentTimeMillis()
 
   int count = 0
   def idGenerator = Stub(IdGenerator) {
@@ -62,7 +67,7 @@ class DefaultScalingPolicyCopierSpec extends Specification {
 
   void 'should copy nothing when there are no scaling policies'() {
     when:
-    scalingPolicyCopier.copyScalingPolicies(Mock(Task), 'asgard-v000', 'asgard-v001', null, null, 'us-east-1', 'us-west-1')
+    scalingPolicyCopier.copyScalingPolicies(Mock(Task), 'asgard-v000', 'asgard-v001', sourceCredentials, targetCredentials, 'us-east-1', 'us-west-1')
 
     then:
     1 * sourceAutoScaling.describePolicies(new DescribePoliciesRequest(autoScalingGroupName: 'asgard-v000')) >>
@@ -72,9 +77,21 @@ class DefaultScalingPolicyCopierSpec extends Specification {
     0 * targetCloudWatch.putMetricAlarm(_)
   }
 
+  void 'should omit actions that are specific to the source account/region when they differ'() {
+    given:
+    def replacements = ['oldPolicyARN': 'newPolicyARN']
+    def actions = ['oldPolicyARN', 'sns:us-east-1', "sns:${sourceCredentials.accountId}:someQueue", 'ok-one']
+
+    when:
+    def replacedActions = scalingPolicyCopier.replacePolicyArnActions('us-east-1', 'us-west-1', sourceCredentials, targetCredentials, replacements, actions)
+
+    then:
+    replacedActions == ['ok-one', 'newPolicyARN']
+  }
+
   void 'should copy scaling policies and alarms'() {
     when:
-    scalingPolicyCopier.copyScalingPolicies(Mock(Task), 'asgard-v000', 'asgard-v001', null, null, 'us-east-1', 'us-west-1')
+    scalingPolicyCopier.copyScalingPolicies(Mock(Task), 'asgard-v000', 'asgard-v001', sourceCredentials, targetCredentials, 'us-east-1', 'us-west-1')
 
     then:
     1 * sourceAutoScaling.describePolicies(new DescribePoliciesRequest(autoScalingGroupName: 'asgard-v000')) >>
