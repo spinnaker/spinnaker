@@ -26,7 +26,7 @@ import org.apache.commons.lang3.StringUtils
 import org.yaml.snakeyaml.Yaml
 import org.yaml.snakeyaml.constructor.SafeConstructor
 
-import javax.net.ssl.KeyManager;
+import java.nio.file.Files;
 
 @Slf4j
 public class KubernetesApiClientConfig extends Config {
@@ -35,15 +35,53 @@ public class KubernetesApiClientConfig extends Config {
   String cluster
   String user
   String userAgent
+  Boolean serviceAccount
 
-  public KubernetesApiClientConfig(String kubeconfigFile, String context, String cluster, String user, String userAgent) {
+  public KubernetesApiClientConfig(String kubeconfigFile, String context, String cluster, String user, String userAgent, Boolean serviceAccount) {
     this.kubeconfigFile = kubeconfigFile
     this.context = context
     this.user = user
     this.userAgent = userAgent
+    this.serviceAccount = serviceAccount
   }
 
   public ApiClient getApiCient() throws Exception {
+    if (serviceAccount) {
+      return withServiceAccount()
+    } else {
+      return withKubeConfig()
+    }
+  }
+
+  ApiClient withServiceAccount() {
+    ApiClient client = new ApiClient()
+
+    try {
+      boolean serviceAccountCaCertExists = Files.isRegularFile(new File(io.fabric8.kubernetes.client.Config.KUBERNETES_SERVICE_ACCOUNT_CA_CRT_PATH).toPath())
+      if (serviceAccountCaCertExists) {
+        client.setSslCaCert(new FileInputStream(io.fabric8.kubernetes.client.Config.KUBERNETES_SERVICE_ACCOUNT_CA_CRT_PATH))
+      } else {
+        throw new IllegalStateException("Could not find CA cert for service account at $io.fabric8.kubernetes.client.Config.KUBERNETES_SERVICE_ACCOUNT_CA_CRT_PATH")
+      }
+    } catch(IOException e) {
+      throw new IllegalStateException("Could not find CA cert for service account at $io.fabric8.kubernetes.client.Config.KUBERNETES_SERVICE_ACCOUNT_CA_CRT_PATH", e)
+    }
+
+    try {
+      String serviceTokenCandidate = new String(Files.readAllBytes(new File(io.fabric8.kubernetes.client.Config.KUBERNETES_SERVICE_ACCOUNT_TOKEN_PATH).toPath()))
+      if (serviceTokenCandidate != null) {
+        client.setAccessToken(serviceTokenCandidate)
+      } else {
+        throw new IllegalStateException("Did not find service account token at $io.fabric8.kubernetes.client.Config.KUBERNETES_SERVICE_ACCOUNT_TOKEN_PATH")
+      }
+    } catch (IOException e) {
+      throw new IllegalStateException("Could not read service account token at $io.fabric8.kubernetes.client.Config.KUBERNETES_SERVICE_ACCOUNT_TOKEN_PATH", e)
+    }
+
+    return client
+  }
+
+  ApiClient withKubeConfig() {
     KubeConfig kubeconfig
 
     try {
