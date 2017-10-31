@@ -2,7 +2,7 @@
   "main": "lib/lib.js",
   "typings": "lib/kayenta/index.d.ts",
   "name": "@spinnaker/kayenta",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
