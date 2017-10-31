@@ -16,6 +16,7 @@ export class DeploymentStrategySelectorController implements IController {
   public strategies: IDeploymentStrategy[];
   public currentStrategy: string;
   public additionalFieldsTemplateUrl: string;
+  public onStrategyChange: Function;
 
   public $onInit() {
     this.strategies = DeploymentStrategyRegistry.listStrategies(this.command.selectedProvider || this.command.cloudProvider);
@@ -44,13 +45,17 @@ export class DeploymentStrategySelectorController implements IController {
     }
 
     this.currentStrategy = this.command.strategy;
-  }
 
+    if (this.onStrategyChange && newStrategy) {
+      this.onStrategyChange(newStrategy);
+    }
+  }
 }
 
 const deploymentStrategySelector: IComponentOptions = {
   bindings: {
     command: '<',
+    onStrategyChange: '<',
     labelColumns: '@',
     fieldColumns: '@',
   },
