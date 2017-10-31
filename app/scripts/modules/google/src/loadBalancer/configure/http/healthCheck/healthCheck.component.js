@@ -46,8 +46,16 @@ module.exports = angular.module('spinnaker.deck.httpLoadBalancer.healthCheck.com
         return _.get(this, 'healthCheck.name');
       };
 
+      this.onProtocolChange = () => {
+        if (this.healthCheck.healthCheckType !== this.healthCheckType) {
+          assign(Object.assign({}, new HealthCheckTemplate(), { healthCheckType: this.healthCheckType }));
+        }
+      };
+
       if (healthChecksByName[getHealthCheckName()]) {
         this.editExisting = true;
       }
+
+      this.healthCheckType = this.healthCheck.healthCheckType;
     }
   });

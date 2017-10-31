@@ -117,6 +117,9 @@ module.exports = angular.module('spinnaker.gce.deck.httpLoadBalancer.transformer
       }
 
       let healthChecks = _.chain(backendServices).map('healthCheck').uniqBy('name').cloneDeep().value();
+      healthChecks.forEach(hc => {
+        hc.account = loadBalancer.account || loadBalancer.credentials;
+      });
       backendServices = _.uniqBy(backendServices, 'name');
 
       backendServices.forEach((service) => {

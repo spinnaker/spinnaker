@@ -100,22 +100,6 @@ module.exports = angular.module('spinnaker.deck.gce.loadBalancer.createHttp.cont
       this.taskMonitor.submit(() => gceHttpLoadBalancerWriter.upsertLoadBalancers(serializedCommands, application, descriptor));
     };
 
-    this.preview = () => {
-      let [preview] = gceHttpLoadBalancerTransformer.serialize(this.command, loadBalancer);
-
-      $uibModal.open({
-        templateUrl: require('../../details/hostAndPathRules/hostAndPathRules.modal.html'),
-        controller: 'gceHostAndPathRulesCtrl',
-        controllerAs: 'ctrl',
-        size: 'lg',
-        resolve: {
-          hostRules: () => preview.hostRules,
-          defaultService: () => preview.defaultService,
-          loadBalancerName: () => preview.urlMapName,
-        }
-      });
-    };
-
     gceHttpLoadBalancerCommandBuilder.buildCommand({ isNew, originalLoadBalancer: loadBalancer})
       .then((command) => {
         this.command = command;
