@@ -28,6 +28,7 @@ module(CANARY_DATA_SOURCE, [APPLICATION_DATA_SOURCE_REGISTRY])
     };
 
     applicationDataSourceRegistry.registerDataSource({
+      optIn: true,
       optional: true,
       primary: true,
       loader: loadCanaryConfigs,
