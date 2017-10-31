@@ -49,7 +49,7 @@ class SpinnakerMetadataServerGroupTagGeneratorSpec extends Specification {
   def "should build spinnaker:metadata tag for pipeline"() {
     given:
     def tagGenerator = Spy(SpinnakerMetadataServerGroupTagGenerator, constructorArgs: [oortService, retrySupport]) {
-      1 * getPreviousServerGroup(_, _, _, _, _) >> { return previousServerGroup }
+      1 * getPreviousServerGroupFromClusterByTarget(_, _, _, _, _, "ANCESTOR") >> { return previousServerGroup }
     }
 
     def pipeline = pipeline {
@@ -93,7 +93,7 @@ class SpinnakerMetadataServerGroupTagGeneratorSpec extends Specification {
   def "should build spinnaker:metadata tag for orchestration"() {
     given:
     def tagGenerator = Spy(SpinnakerMetadataServerGroupTagGenerator, constructorArgs: [oortService, retrySupport]) {
-      1 * getPreviousServerGroup(_, _, _, _, _) >> { return previousServerGroup }
+      1 * getPreviousServerGroupFromClusterByTarget(_, _, _, _, _, "ANCESTOR") >> { return previousServerGroup }
     }
 
     def orchestration = orchestration {
@@ -133,8 +133,8 @@ class SpinnakerMetadataServerGroupTagGeneratorSpec extends Specification {
     def tagGenerator = new SpinnakerMetadataServerGroupTagGenerator(oortService, retrySupport)
 
     when: "previous server does exist"
-    def previousServerGroupMetadata = tagGenerator.getPreviousServerGroup(
-      "application", "account", "cluster", "aws", "us-west-2"
+    def previousServerGroupMetadata = tagGenerator.getPreviousServerGroupFromCluster(
+      "application", "account", "cluster", "aws", "us-west-2", "application-v002"
     )
 
     then: "metadata should be returned"
@@ -145,6 +145,7 @@ class SpinnakerMetadataServerGroupTagGeneratorSpec extends Specification {
         imageName      : "my_image"
       ]
     }
+    0 * oortService._
     previousServerGroupMetadata == [
       name         : "application-v001",
       imageId      : "ami-1234567",
@@ -153,14 +154,69 @@ class SpinnakerMetadataServerGroupTagGeneratorSpec extends Specification {
     ]
 
     when: "previous server group does NOT exist"
-    previousServerGroupMetadata = tagGenerator.getPreviousServerGroup(
-      "application", "account", "cluster", "aws", "us-west-2"
+    previousServerGroupMetadata = tagGenerator.getPreviousServerGroupFromCluster(
+      "application", "account", "cluster", "aws", "us-west-2", "application-v002"
     )
 
     then: "no metadata should be returned"
     1 * oortService.getServerGroupSummary("application", "account", "cluster", "aws", "us-west-2", "ANCESTOR", "image", "true") >> {
       throw notFoundError
     }
+    0 * oortService._
     previousServerGroupMetadata == null
+  }
+
+  def "should check NEWEST and ANCESTOR when constructing previous server group metadata for titus"() {
+    given:
+    def tagGenerator = new SpinnakerMetadataServerGroupTagGenerator(oortService, retrySupport)
+
+    when: "NEWEST != just created server group"
+    def previousServerGroupMetadata = tagGenerator.getPreviousServerGroupFromCluster(
+      "application", "account", "cluster", "titus", "us-west-2", "application-v002"
+    )
+
+    then: "previous server group == NEWEST"
+    1 * oortService.getServerGroupSummary("application", "account", "cluster", "titus", "us-west-2", "NEWEST", "image", "true") >> {
+      return [
+        serverGroupName: "application-v001",
+        imageId        : "1234567",
+        imageName      : "my_image"
+      ]
+    }
+    0 * oortService._
+    previousServerGroupMetadata == [
+      name         : "application-v001",
+      imageId      : "1234567",
+      imageName    : "my_image",
+      cloudProvider: "titus"
+    ]
+
+    when: "NEWEST == just created server group"
+    previousServerGroupMetadata = tagGenerator.getPreviousServerGroupFromCluster(
+      "application", "account", "cluster", "titus", "us-west-2", "application-v002"
+    )
+
+    then: "previous server group == ANCESTOR"
+    1 * oortService.getServerGroupSummary("application", "account", "cluster", "titus", "us-west-2", "NEWEST", "image", "true") >> {
+      return [
+        serverGroupName: "application-v002",
+        imageId        : "1234567",
+        imageName      : "my_image"
+      ]
+    }
+    1 * oortService.getServerGroupSummary("application", "account", "cluster", "titus", "us-west-2", "ANCESTOR", "image", "true") >> {
+      return [
+        serverGroupName: "application-v001",
+        imageId        : "1234567",
+        imageName      : "my_image"
+      ]
+    }
+    0 * oortService._
+    previousServerGroupMetadata == [
+      name         : "application-v001",
+      imageId      : "1234567",
+      imageName    : "my_image",
+      cloudProvider: "titus"
+    ]
   }
 }
