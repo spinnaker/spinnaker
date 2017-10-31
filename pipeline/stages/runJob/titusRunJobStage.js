@@ -20,6 +20,7 @@ module.exports = angular.module('spinnaker.titus.pipeline.stage.runJobStage', [
         {type: 'requiredField', fieldName: 'credentials'},
         {type: 'requiredField', fieldName: 'cluster.region'},
         {type: 'requiredField', fieldName: 'cluster.resources.cpu'},
+        {type: 'requiredField', fieldName: 'cluster.resources.gpu'},
         {type: 'requiredField', fieldName: 'cluster.resources.memory'},
         {type: 'requiredField', fieldName: 'cluster.resources.disk'},
         {type: 'requiredField', fieldName: 'cluster.runtimeLimitSecs'}
@@ -123,6 +124,10 @@ module.exports = angular.module('spinnaker.titus.pipeline.stage.runJobStage', [
       stage.cluster.securityGroups = [];
     }
 
+    if (!stage.cluster.resources) {
+      stage.cluster.resources = {};
+    }
+
     if (!stage.cluster.capacity) {
       stage.cluster.capacity = {
         min: 1,
@@ -132,6 +137,11 @@ module.exports = angular.module('spinnaker.titus.pipeline.stage.runJobStage', [
     }
 
     stage.cluster.runtimeLimitSecs = stage.cluster.runtimeLimitSecs || 3600;
+    stage.cluster.resources.gpu = stage.cluster.resources.gpu || 0;
+    stage.cluster.resources.cpu = stage.cluster.resources.cpu || 1;
+    stage.cluster.resources.disk = stage.cluster.resources.disk || 512;
+    stage.cluster.resources.memory = stage.cluster.resources.memory || 512;
+    stage.cluster.resources.networkMbps = stage.cluster.resources.networkMbps || 128;
 
     stage.deferredInitialization = true;
     $q.all({

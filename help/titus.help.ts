@@ -8,6 +8,7 @@ const helpContents: {[key: string]: string} = {
   'titus.deploy.iamProfile': 'AWS IAM instance profile to assign to this service',
   'titus.deploy.capacityGroup': 'Used by Titus to ensure capacity guarantees, defaults to the application name if not provided',
   'titus.deploy.network': 'Amount of networking bandwidth to allocate in Mbps',
+  'titus.deploy.gpu': 'Number of GPUs to use. WARNING: only use if directed by Titus team, otherwise leave at 0',
   'titus.deploy.allocateIP': 'If selected, specifies an IP to be allocated for each of your job’s containers',
   'titus.deploy.softConstraints': 'Soft constraints are enforced on a best efforts basis. For example, if tasks can’t be perfectly balanced across zones, the best available balance is achieved without keeping the tasks pending for execution.',
   'titus.deploy.hardConstraints': 'Constraints must be met and tasks will not be launched if constraint can’t be perfectly met',

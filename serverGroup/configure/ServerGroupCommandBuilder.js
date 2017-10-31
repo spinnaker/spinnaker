@@ -32,7 +32,8 @@ module.exports = angular.module('spinnaker.titus.serverGroupCommandBuilder.servi
           cpu: 1,
           networkMbps: 128,
           disk: 512,
-          memory: 512
+          memory: 512,
+          gpu: 0,
         },
         efs: {
           mountPerm: 'RW'
@@ -99,6 +100,7 @@ module.exports = angular.module('spinnaker.titus.serverGroupCommandBuilder.servi
         },
         resources: {
           cpu: serverGroup.resources.cpu,
+          gpu: serverGroup.resources.gpu,
           memory: serverGroup.resources.memory,
           disk: serverGroup.resources.disk,
           networkMbps: serverGroup.resources.networkMbps,

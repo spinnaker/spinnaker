@@ -47,6 +47,10 @@
     <input type="number" class="form-control input-sm" name="networkMbps" ng-model="stage.cluster.resources.networkMbps" required/>
   </stage-config-field>
 
+  <stage-config-field label="GPU(s)" help-key="titus.deploy.gpu">
+    <input type="number" class="form-control input-sm" name="cpu" ng-model="stage.cluster.resources.gpu" required/>
+  </stage-config-field>
+
   <stage-config-field label="Entrypoint">
     <input type="text" class="form-control input-sm" name="command" ng-model="stage.cluster.entryPoint"
            required/>
