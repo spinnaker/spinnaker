@@ -2,8 +2,7 @@ import { copy, IPromise, IQService, module } from 'angular';
 
 import { load } from 'js-yaml'
 
-import { IMoniker } from 'core/naming/IMoniker';
-import { ACCOUNT_SERVICE, AccountService, Application } from 'core';
+import { ACCOUNT_SERVICE, AccountService, Application, IMoniker } from '@spinnaker/core';
 
 export interface IKubernetesManifestCommand {
   account: string;

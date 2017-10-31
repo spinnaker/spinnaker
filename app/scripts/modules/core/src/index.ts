@@ -34,6 +34,8 @@ export * from './loadBalancer';
 
 export * from './modal';
 
+export * from './manifest';
+
 export * from './naming';
 
 export * from './navigation';
@@ -65,3 +67,4 @@ export * from './utils';
 export * from './widgets';
 
 export * from './core.module';
+

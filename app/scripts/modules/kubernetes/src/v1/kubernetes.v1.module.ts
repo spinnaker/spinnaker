@@ -1,8 +1,6 @@
-'use strict';
+import { module } from 'angular';
 
-const angular = require('angular');
-
-import { CLOUD_PROVIDER_REGISTRY, DeploymentStrategyRegistry } from '@spinnaker/core';
+import { CLOUD_PROVIDER_REGISTRY, CloudProviderRegistry, DeploymentStrategyRegistry } from '@spinnaker/core';
 
 import { KUBERNETES_KEY_VALUE_DETAILS } from '../common/keyValueDetails.component';
 import { KUBERNETES_SECURITY_CONTEXT_SELECTOR } from '../container/securityContext/securityContextSelector.component';
@@ -11,12 +9,13 @@ import { KUBERNETES_HELP } from '../help/kubernetes.help';
 import '../logo/kubernetes.logo.less';
 
 // load all templates into the $templateCache
-var templates = require.context('kubernetes', true, /\.html$/);
+const templates = require.context('kubernetes', true, /\.html$/);
 templates.keys().forEach(function(key) {
-  templates(key);
+    templates(key);
 });
 
-module.exports = angular.module('spinnaker.kubernetes.v1', [
+export const KUBERNETES_V1_MODULE = 'spinnaker.kubernetes.v1';
+module(KUBERNETES_V1_MODULE, [
   require('../autoscaler/autoscaler.write.service.js').name,
   require('../cache/configurer.service.js').name,
   require('../cluster/cluster.kubernetes.module.js').name,
@@ -55,7 +54,7 @@ module.exports = angular.module('spinnaker.kubernetes.v1', [
   require('../serverGroup/transformer.js').name,
   require('../validation/applicationName.validator.js').name,
 ])
-  .config(function(cloudProviderRegistryProvider) {
+  .config((cloudProviderRegistryProvider: CloudProviderRegistry) => {
     cloudProviderRegistryProvider.registerProvider('kubernetes', {
       name: 'Kubernetes',
       providerVersion: 'v1',

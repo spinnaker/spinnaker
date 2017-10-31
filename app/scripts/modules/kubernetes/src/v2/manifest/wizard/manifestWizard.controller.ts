@@ -6,7 +6,8 @@ import {
   SERVER_GROUP_WRITER,
   TASK_MONITOR_BUILDER,
   TaskMonitor,
-  TaskMonitorBuilder
+  TaskMonitorBuilder,
+  ManifestWriter
 } from '@spinnaker/core';
 
 import {
@@ -14,7 +15,6 @@ import {
   KUBERNETES_MANIFEST_COMMAND_BUILDER,
   KubernetesManifestCommandBuilder
 } from '../manifestCommandBuilder.service';
-import { ManifestWriter } from 'core/manifest/manifestWriter.service';
 
 class KubernetesManifestWizardCtrl implements IController {
   public state = {
