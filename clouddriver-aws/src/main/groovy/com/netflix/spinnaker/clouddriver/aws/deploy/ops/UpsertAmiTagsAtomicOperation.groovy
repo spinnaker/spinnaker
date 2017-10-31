@@ -86,6 +86,12 @@ class UpsertAmiTagsAtomicOperation implements AtomicOperation<Void> {
         .withResources(amiId)
         .withTags(tags)
 
+      if (!tags) {
+        // createTags expects at least one tag to have been provided
+        task.updateStatus BASE_PHASE, "Skipping empty tags update for ${amiId} in ${region}"
+        return true
+      }
+
       task.updateStatus BASE_PHASE, "Updating tags for ${amiId} in ${region}..."
       amazonEC2.createTags(createTagsRequest)
       task.updateStatus BASE_PHASE, "Tags updated for ${amiId} in ${region}..."
