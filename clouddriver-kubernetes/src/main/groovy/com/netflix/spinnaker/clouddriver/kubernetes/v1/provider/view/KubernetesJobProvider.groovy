@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v1.provider.view
 
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.model.KubernetesJobStatus
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials
+import com.netflix.spinnaker.clouddriver.kubernetes.v1.security.KubernetesV1Credentials
 import com.netflix.spinnaker.clouddriver.model.JobProvider
 import com.netflix.spinnaker.clouddriver.model.JobState
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
@@ -34,11 +35,11 @@ class KubernetesJobProvider implements JobProvider<KubernetesJobStatus> {
 
   @Override
   KubernetesJobStatus collectJob(String account, String location, String id) {
-    def credentials = accountCredentialsProvider.getCredentials(account).credentials
-    if (!credentials instanceof KubernetesNamedAccountCredentials) {
+    def credentials = accountCredentialsProvider.getCredentials(account)
+    if (!(credentials?.credentials instanceof KubernetesV1Credentials)) {
       return null
     }
-    def trueCredentials = credentials as KubernetesNamedAccountCredentials
+    def trueCredentials = (credentials as KubernetesNamedAccountCredentials).credentials
     def status = new KubernetesJobStatus(trueCredentials.apiAdaptor.getPod(location, id), account)
     if (status.jobState in [JobState.Failed, JobState.Succeeded]) {
       trueCredentials.apiAdaptor.deletePod(location, id)
