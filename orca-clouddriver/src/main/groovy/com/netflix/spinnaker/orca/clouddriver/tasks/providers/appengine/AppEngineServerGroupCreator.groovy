@@ -64,16 +64,20 @@ class AppEngineServerGroupCreator implements ServerGroupCreator {
       return
     }
 
-    Map expectedArtifact = operation.expectedArtifact
+    String expectedArtifactId = operation.expectedArtifactId
+    Execution execution = stage.getExecution()
+
+    Map expectedArtifact = [:]
+    Map<String, Object> trigger = [:]
+    if (execution instanceof Pipeline) {
+      // TODO(jacobkiefer): Use stage context input/output lookup.
+      trigger = ((Pipeline) execution).getTrigger()
+      expectedArtifact = trigger.resolvedExpectedArtifacts.find { e -> e.id == expectedArtifactId } as Map
+    }
+
     // NOTE: expectedArtifact is a Map, and fragile to field changes in the underlying data structures.
     // If a field changes in the ExpectedArtifact model, change it here.
     if (operation.fromArtifact && expectedArtifact && expectedArtifact.matchArtifact) {
-      Execution execution = stage.getExecution()
-      Map<String, Object> trigger = [:]
-      if (execution instanceof Pipeline) {
-        trigger = ((Pipeline) execution).getTrigger()
-      }
-
       List<Map> artifacts = (List<Map>) trigger.artifacts
       def foundArtifact = artifacts.find { a ->
         ExpectedArtifact e = objectMapper.convertValue(expectedArtifact, ExpectedArtifact)

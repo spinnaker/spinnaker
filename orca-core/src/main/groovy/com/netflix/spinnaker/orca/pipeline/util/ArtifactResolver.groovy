@@ -28,7 +28,7 @@ class ArtifactResolver {
   static void resolveArtifacts(Map pipeline) {
     Set<Artifact> resolvedArtifacts = []
     List<Artifact> receivedArtifacts = pipeline.receivedArtifacts ?: []
-    List<ExpectedArtifact> expectedArtifacts = pipeline.trigger.expectedArtifacts ?: []
+    List<ExpectedArtifact> expectedArtifacts = pipeline.expectedArtifacts.findAll { e -> e.id in pipeline.trigger.expectedArtifactIds } ?: []
     List<ExpectedArtifact> unresolvedExpectedArtifacts = []
 
     for (ExpectedArtifact expectedArtifact : expectedArtifacts) {
@@ -56,12 +56,12 @@ class ArtifactResolver {
     }
 
     pipeline.trigger.artifacts = resolvedArtifacts as List
+    pipeline.trigger.resolvedExpectedArtifacts = expectedArtifacts // Add the actual expectedArtifacts we included in the ids.
   }
 
   static class ArtifactResolutionException extends RuntimeException {
     ArtifactResolutionException(String message) {
       super(message)
     }
-
   }
 }
