@@ -4,5 +4,5 @@ export interface IExpectedArtifact {
   matchArtifact: IArtifact;
   usePriorArtifact: boolean;
   defaultArtifact: IArtifact;
+  id: string;
 }
-

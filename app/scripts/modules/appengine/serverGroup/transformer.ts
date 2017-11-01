@@ -1,6 +1,6 @@
 import { module } from 'angular';
 
-import { IExpectedArtifact, IServerGroup } from '@spinnaker/core';
+import { IServerGroup } from '@spinnaker/core';
 
 import { GitCredentialType, IAppengineGitTrigger, IAppengineJenkinsTrigger } from 'appengine/domain/index';
 import {
@@ -31,7 +31,7 @@ export class AppengineDeployDescription {
   public trigger?: IAppengineGitTrigger | IAppengineJenkinsTrigger;
   public gitCredentialType: GitCredentialType;
   public interestingHealthProviderNames: string[];
-  public expectedArtifact: IExpectedArtifact;
+  public expectedArtifactId: string;
   public fromArtifact: boolean;
   public sourceType: string;
   public storageAccountName?: string;
@@ -58,7 +58,7 @@ export class AppengineDeployDescription {
     this.configFiles = command.configFiles;
     this.applicationDirectoryRoot = command.applicationDirectoryRoot;
     this.interestingHealthProviderNames = command.interestingHealthProviderNames || [];
-    this.expectedArtifact = command.expectedArtifact;
+    this.expectedArtifactId = command.expectedArtifactId;
     this.fromArtifact = command.fromArtifact;
     this.sourceType = command.sourceType;
     this.storageAccountName = command.storageAccountName;

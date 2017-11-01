@@ -17,8 +17,8 @@ class ExpectedArtifactController implements IComponentController {
       .filter(a => !ExpectedArtifactController.expectedArtifactEquals(a, this.expectedArtifact));
 
     this.pipeline.triggers
-      .forEach(t => t.expectedArtifacts = t.expectedArtifacts
-        .filter(a => !ExpectedArtifactController.expectedArtifactEquals(a, this.expectedArtifact)));
+      .forEach(t => t.expectedArtifactIds = t.expectedArtifactIds
+        .filter(eid => this.expectedArtifact.id !== eid));
   }
 }
 

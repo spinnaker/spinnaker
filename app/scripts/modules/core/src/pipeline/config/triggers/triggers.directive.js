@@ -1,6 +1,7 @@
 'use strict';
 
 import { PIPELINE_CONFIG_PROVIDER } from 'core/pipeline/config/pipelineConfigProvider';
+import { UUIDGenerator } from 'core/utils/uuid.service';
 
 const angular = require('angular');
 
@@ -38,7 +39,13 @@ module.exports = angular.module('spinnaker.core.pipeline.config.trigger.triggers
     });
 
     this.addArtifact = () => {
-      const newArtifact = {matchArtifact: this.defaultArtifact(), usePriorExecution: false, useDefaultArtifact: false, defaultArtifact: this.defaultArtifact()};
+      const newArtifact = {
+        matchArtifact: this.defaultArtifact(),
+        usePriorExecution: false,
+        useDefaultArtifact: false,
+        defaultArtifact: this.defaultArtifact(),
+        id: UUIDGenerator.generateUuid()
+      };
 
       if (!$scope.pipeline.expectedArtifacts) {
         $scope.pipeline.expectedArtifacts = [];

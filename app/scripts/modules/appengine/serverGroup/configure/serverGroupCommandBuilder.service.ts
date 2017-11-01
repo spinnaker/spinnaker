@@ -50,7 +50,7 @@ export interface IAppengineServerGroupCommand {
   storageAccountName?: string; // GCS only
   interestingHealthProviderNames: string[];
   fromArtifact: boolean;
-  expectedArtifact: IExpectedArtifact;
+  expectedArtifactId: string;
   sourceType: string;
 }
 

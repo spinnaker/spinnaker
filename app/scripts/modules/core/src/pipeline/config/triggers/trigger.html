@@ -36,10 +36,10 @@
               <div class="col-md-9">
                 <ui-select ng-if="pipeline.expectedArtifacts.length"
                            multiple
-                           ng-model="trigger.expectedArtifacts"
+                           ng-model="trigger.expectedArtifactIds"
                            class="form-control input-sm">
                   <ui-select-match>{{ triggerCtrl.summarizeExpectedArtifact($item) }}</ui-select-match>
-                  <ui-select-choices repeat="expected in pipeline.expectedArtifacts">
+                  <ui-select-choices repeat="expected.id as expected in pipeline.expectedArtifacts">
                     <span>{{ triggerCtrl.summarizeExpectedArtifact(expected) }}</span>
                   </ui-select-choices>
                 </ui-select>
