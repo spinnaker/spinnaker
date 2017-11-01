@@ -44,6 +44,8 @@ class TitusInstance implements Instance {
   final String providerType = TitusCloudProvider.ID
   final String cloudProvider = TitusCloudProvider.ID
 
+  TitusInstance() {}
+
   TitusInstance(Job job, Job.TaskSummary task) {
     id = task.id
     instanceId = task.instanceId

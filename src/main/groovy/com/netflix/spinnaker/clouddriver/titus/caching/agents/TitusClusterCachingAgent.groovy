@@ -209,15 +209,19 @@ class TitusClusterCachingAgent implements CachingAgent, CustomScheduledAgent {
         ]
       } : []
 
+      // tasks are cached independently as instances so avoid the overhead of also storing on the serialized job
+      def jobTasks = job.tasks
+      job.tasks = []
+
       attributes.job = job
       attributes.scalingPolicies = policies
-      attributes.tasks = data.job.tasks
+      attributes.tasks = jobTasks.collect { [ id: it.id, instanceId: it.instanceId ] }
       attributes.region = region
       attributes.account = account.name
       relationships[APPLICATIONS.ns].add(data.appName)
       relationships[CLUSTERS.ns].add(data.cluster)
       relationships[INSTANCES.ns].addAll(data.instanceIds)
-      for (Job.TaskSummary task : job.tasks) {
+      for (Job.TaskSummary task : jobTasks) {
         def instanceData = new InstanceData(job, task, account.name, region, account.stack)
         cacheInstance(instanceData, instances)
       }

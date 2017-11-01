@@ -168,7 +168,7 @@ class TitusClusterProvider implements ClusterProvider<TitusCluster> {
 
   @Override
   boolean supportsMinimalClusters() {
-    return false
+    return true
   }
 
   // Private methods
@@ -183,29 +183,16 @@ class TitusClusterProvider implements ClusterProvider<TitusCluster> {
    * Translate clusters
    */
   private Collection<TitusCluster> translateClusters(Collection<CacheData> clusterData, boolean includeDetails) {
-    Map<String, TitusServerGroup> serverGroups
-    if (includeDetails) {
-      Collection<CacheData> allServerGroups = resolveRelationshipDataForCollection(clusterData, SERVER_GROUPS.ns, RelationshipCacheFilter.include(INSTANCES.ns))
-      serverGroups = translateServerGroups(allServerGroups)
-    }
+    def relationshipFilter = includeDetails ? RelationshipCacheFilter.include(INSTANCES.ns) : RelationshipCacheFilter.none()
+    Collection<CacheData> allServerGroups = resolveRelationshipDataForCollection(clusterData, SERVER_GROUPS.ns, relationshipFilter)
+    Map<String, TitusServerGroup> serverGroups = translateServerGroups(allServerGroups)
+
     Collection<TitusCluster> clusters = clusterData.collect { CacheData clusterDataEntry ->
       Map<String, String> clusterKey = Keys.parse(clusterDataEntry.id)
       TitusCluster cluster = new TitusCluster()
       cluster.accountName = clusterKey.account
       cluster.name = clusterKey.cluster
-      if (includeDetails) {
-        cluster.serverGroups = clusterDataEntry.relationships[SERVER_GROUPS.ns]?.findResults { serverGroups.get(it) }
-      } else {
-        cluster.serverGroups = clusterDataEntry.relationships[SERVER_GROUPS.ns]?.collect { serverGroupKey ->
-          Map<String, String> keyParts = Keys.parse(serverGroupKey)
-          TitusServerGroup titusServerGroup = new TitusServerGroup()
-          titusServerGroup.placement.account = keyParts.account
-          titusServerGroup.placement.region = keyParts.region
-          titusServerGroup.application = keyParts.application
-          titusServerGroup.name = keyParts.serverGroup
-          titusServerGroup
-        }
-      }
+      cluster.serverGroups = clusterDataEntry.relationships[SERVER_GROUPS.ns]?.findResults { serverGroups.get(it) }
       cluster
     }
     clusters
@@ -223,6 +210,14 @@ class TitusClusterProvider implements ClusterProvider<TitusCluster> {
       Job job = objectMapper.readValue(json, Job)
       TitusServerGroup serverGroup = new TitusServerGroup(job, serverGroupEntry.attributes.account, serverGroupEntry.attributes.region)
       serverGroup.instances = serverGroupEntry.relationships[INSTANCES.ns]?.findResults { instances.get(it) } as Set
+
+      if (!serverGroup.instances && serverGroupEntry.attributes.tasks) {
+        // has no direct instance relationships but we can partially populate instances based on attributes.tasks
+        serverGroup.instances = serverGroupEntry.attributes.tasks.collect {
+          new TitusInstance(it as Map)
+        }
+      }
+
       [(serverGroupEntry.id): serverGroup]
     }
     serverGroups
