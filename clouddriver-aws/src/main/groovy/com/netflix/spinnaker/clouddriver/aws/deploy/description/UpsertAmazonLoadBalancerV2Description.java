@@ -222,9 +222,30 @@ public class UpsertAmazonLoadBalancerV2Description extends UpsertAmazonLoadBalan
         rules = new ArrayList<>();
       }
 
+      Boolean rulesSame = existingRules.size() == rules.size() + 1; // existing rules has the default rule, rules does not
+      if (rulesSame) {
+        for (com.amazonaws.services.elasticloadbalancingv2.model.Rule existingRule : existingRules) {
+          boolean match = true;
+          if (!existingRule.isDefault()) {
+            match = false;
+            for (com.amazonaws.services.elasticloadbalancingv2.model.Rule rule : rules) {
+              if (existingRule.getActions().equals(rule.getActions())
+                && existingRule.getConditions().equals(rule.getConditions())
+                && existingRule.getPriority().equals(rule.getPriority())) {
+                match = true;
+                break;
+              }
+            }
+          }
+          rulesSame = match;
+          if (!rulesSame) {
+            break;
+          }
+        }
+      }
+
       Boolean actionsSame = awsListener.getDefaultActions().containsAll(actions) &&
         actions.containsAll(awsListener.getDefaultActions());
-      Boolean rulesSame = existingRules.containsAll(rules) && rules.containsAll(existingRules);
       Boolean sslPolicySame = (this.sslPolicy == null && awsListener.getSslPolicy() == null) ||
         (this.sslPolicy != null && this.sslPolicy.equals(awsListener.getSslPolicy()));
 
