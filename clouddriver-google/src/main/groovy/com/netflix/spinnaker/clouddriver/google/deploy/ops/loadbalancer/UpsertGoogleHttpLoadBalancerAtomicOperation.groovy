@@ -229,7 +229,7 @@ class UpsertGoogleHttpLoadBalancerAtomicOperation extends UpsertGoogleLoadBalanc
         "Please specify one object per named backend service.")
     }
 
-    List<String> legacyHealthCheckNames = legacyHealthChecks*.name
+    List<String> legacyHealthCheckNames = legacyHealthChecks*.name ?: []
     backendServicesFromDescription.each { GoogleBackendService backendService ->
       String backendServiceName = backendService.name
 
