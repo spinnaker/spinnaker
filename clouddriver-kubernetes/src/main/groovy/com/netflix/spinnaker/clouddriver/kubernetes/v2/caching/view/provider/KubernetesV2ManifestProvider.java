@@ -46,7 +46,13 @@ public class KubernetesV2ManifestProvider implements ManifestProvider<Kubernetes
 
   @Override
   public KubernetesV2Manifest getManifest(String account, String location, String name) {
-    Pair<KubernetesKind, String> parsedName = KubernetesManifest.fromFullResourceName(name);
+    Pair<KubernetesKind, String> parsedName;
+    try {
+      parsedName = KubernetesManifest.fromFullResourceName(name);
+    } catch (Exception e) {
+      return null;
+    }
+
     KubernetesKind kind = parsedName.getLeft();
     String key = Keys.infrastructure(
         kind,

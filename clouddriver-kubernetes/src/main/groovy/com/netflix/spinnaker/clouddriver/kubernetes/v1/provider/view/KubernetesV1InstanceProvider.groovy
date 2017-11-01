@@ -27,12 +27,12 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component
-class KubernetesInstanceProvider implements InstanceProvider<KubernetesV1Instance> {
+class KubernetesV1InstanceProvider implements InstanceProvider<KubernetesV1Instance> {
   private final Cache cacheView
   private final ObjectMapper objectMapper
 
   @Autowired
-  KubernetesInstanceProvider(Cache cacheView, ObjectMapper objectMapper) {
+  KubernetesV1InstanceProvider(Cache cacheView, ObjectMapper objectMapper) {
     this.cacheView = cacheView
     this.objectMapper = objectMapper
   }

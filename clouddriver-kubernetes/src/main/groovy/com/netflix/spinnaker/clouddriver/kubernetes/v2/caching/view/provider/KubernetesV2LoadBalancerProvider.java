@@ -76,7 +76,12 @@ public class KubernetesV2LoadBalancerProvider implements LoadBalancerProvider<Ku
 
   @Override
   public List<LoadBalancerProvider.Details> byAccountAndRegionAndName(String account, String namespace, String fullName) {
-    Pair<KubernetesKind, String> parsedName = KubernetesManifest.fromFullResourceName(fullName);
+    Pair<KubernetesKind, String> parsedName;
+    try {
+      parsedName = KubernetesManifest.fromFullResourceName(fullName);
+    } catch (Exception e) {
+      return null;
+    }
 
     KubernetesKind kind = parsedName.getLeft();
     String name = parsedName.getRight();
