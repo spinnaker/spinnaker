@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup
 
 import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.orca.RetrySupport
 import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup
@@ -28,9 +29,13 @@ import spock.lang.Specification
 import spock.lang.Subject
 
 class DestroyServerGroupTaskSpec extends Specification {
-  def trafficGuard = Stub(TrafficGuard)
   @Subject
-    task = new DestroyServerGroupTask(trafficGuard: trafficGuard)
+    task = new DestroyServerGroupTask(
+      trafficGuard: Stub(TrafficGuard),
+      retrySupport: Spy(RetrySupport) {
+        _ * sleep(_) >> { /* do nothing */ }
+      }
+    )
   def stage = new Stage<>(new Pipeline("orca"), "whatever")
   def taskId = new TaskId(UUID.randomUUID().toString())
 

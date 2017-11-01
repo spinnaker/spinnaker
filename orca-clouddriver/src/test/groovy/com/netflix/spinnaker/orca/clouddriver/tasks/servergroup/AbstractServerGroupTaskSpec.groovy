@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup
 
 import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.orca.RetrySupport
 import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup
@@ -35,7 +36,11 @@ class AbstractServerGroupTaskSpec extends Specification {
   }
 
   @Subject
-    task = new TestServerGroupTask()
+    task = new TestServerGroupTask(
+      retrySupport: Spy(RetrySupport) {
+        _ * sleep(_) >> { /* do nothing */ }
+      }
+    )
   def stage = new Stage<>(new Pipeline("orca"), "whatever")
   def taskId = new TaskId(UUID.randomUUID().toString())
 

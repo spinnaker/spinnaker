@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup
 
 import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.orca.RetrySupport
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.KatoService
@@ -37,11 +38,14 @@ abstract class AbstractServerGroupTask extends AbstractCloudProviderAwareTask im
 
   @Override
   long getTimeout() {
-    return 60000
+    return 90000
   }
 
   @Autowired
   KatoService kato
+
+  @Autowired
+  RetrySupport retrySupport
 
   protected boolean isAddTargetOpOutputs() {
     false
@@ -60,7 +64,9 @@ abstract class AbstractServerGroupTask extends AbstractCloudProviderAwareTask im
     String account = getCredentials(stage)
 
     def operation = convert(stage)
-    validateClusterStatus(operation)
+    retrySupport.retry({
+      validateClusterStatus(operation)
+    }, 6, 5000, false) // retry for up to 30 seconds
     if (!operation) {
       // nothing to do but succeed
       return new TaskResult(ExecutionStatus.SUCCEEDED)
