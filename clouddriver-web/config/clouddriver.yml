@@ -182,47 +182,47 @@ google:
       disks:
       - type: pd-standard
         sizeGb: 10
-    - instance-type: n1-highmem-2
+    - instanceType: n1-highmem-2
       disks:
       - type: pd-ssd
         sizeGb: 10
-    - instance-type: n1-highmem-4
+    - instanceType: n1-highmem-4
       disks:
       - type: pd-ssd
         sizeGb: 10
-    - instance-type: n1-highmem-8
+    - instanceType: n1-highmem-8
       disks:
       - type: pd-ssd
         sizeGb: 10
-    - instance-type: n1-highmem-16
+    - instanceType: n1-highmem-16
       disks:
       - type: pd-ssd
         sizeGb: 10
-    - instance-type: n1-highmem-32
+    - instanceType: n1-highmem-32
       disks:
       - type: pd-ssd
         sizeGb: 10
-    - instance-type: n1-highcpu-2
+    - instanceType: n1-highcpu-2
       disks:
       - type: pd-ssd
         sizeGb: 10
-    - instance-type: n1-highcpu-4
+    - instanceType: n1-highcpu-4
       disks:
       - type: pd-ssd
         sizeGb: 10
-    - instance-type: n1-highcpu-8
+    - instanceType: n1-highcpu-8
       disks:
       - type: pd-ssd
         sizeGb: 10
-    - instance-type: n1-highcpu-16
+    - instanceType: n1-highcpu-16
       disks:
       - type: pd-ssd
         sizeGb: 10
-    - instance-type: n1-highcpu-32
+    - instanceType: n1-highcpu-32
       disks:
       - type: pd-ssd
         sizeGb: 10
-    - instance-type: default
+    - instanceType: default
       disks:
       - type: pd-standard
         sizeGb: 10
