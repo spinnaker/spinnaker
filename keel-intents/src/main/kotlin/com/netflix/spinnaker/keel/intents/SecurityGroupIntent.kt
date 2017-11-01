@@ -21,7 +21,6 @@ import com.fasterxml.jackson.annotation.JsonTypeName
 import com.github.jonpeterson.jackson.module.versioning.JsonVersionedModel
 import com.netflix.spinnaker.keel.Intent
 import com.netflix.spinnaker.keel.IntentSpec
-import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroup
 import java.util.*
 
 private const val KIND = "SecurityGroup"
@@ -35,7 +34,7 @@ class SecurityGroupIntent
   schema = CURRENT_SCHEMA,
   spec = spec
 ) {
-  override fun getId() = "$KIND:${spec.cloudProvider}:${spec.accountName}:${spec.region}:${spec.name}"
+  override fun getId() = "$KIND:${spec.cloudProvider}:${spec.accountName}:${spec.regions.joinToString { "," }}:${spec.name}"
 }
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "kind")
@@ -44,22 +43,30 @@ abstract class SecurityGroupSpec : IntentSpec {
   abstract val name: String
   abstract val cloudProvider: String
   abstract val accountName: String
-  abstract val region: String
+  abstract val regions: Set<String>
   abstract val inboundRules: Set<SecurityGroupRule>
 }
 
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "kind")
-abstract class SecurityGroupRule {
-  abstract val portRanges: SortedSet<SecurityGroupPortRange>
-  abstract val protocol: String
-  abstract val securityGroup: SecurityGroupSpec
-}
+@JsonTypeName("amazon")
+data class AmazonSecurityGroupSpec(
+  override val application: String,
+  override val name: String,
+  override val cloudProvider: String,
+  override val accountName: String,
+  override val regions: Set<String>,
+  override val inboundRules: Set<SecurityGroupRule>,
+  val outboundRules: Set<SecurityGroupRule>,
+  val vpcName: String?,
+  val description: String
+) : SecurityGroupSpec()
 
-@JsonTypeName("standardRule")
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "kind")
+abstract class SecurityGroupRule
+
+@JsonTypeName("standard")
 data class StandardSecurityGroupRule(
-  override val portRanges: SortedSet<SecurityGroupPortRange>,
-  override val protocol: String,
-  override val securityGroup: SecurityGroupSpec
+  val portRanges: SortedSet<SecurityGroupPortRange>,
+  val protocol: String
 ) : SecurityGroupRule()
 
 data class SecurityGroupPortRange(
@@ -67,34 +74,19 @@ data class SecurityGroupPortRange(
   val endPort: Int
 )
 
-@JsonTypeName("httpRule")
+@JsonTypeName("ref")
+data class ReferenceSecurityGroupRule(
+  val securityGroup: SecurityGroupSpec
+) : SecurityGroupRule()
+
+@JsonTypeName("http")
 data class HttpSecurityGroupRule(
-  override val portRanges: SortedSet<SecurityGroupPortRange>,
-  override val protocol: String,
-  override val securityGroup: SecurityGroupSpec,
   val paths: List<String>,
   val host: String
 ) : SecurityGroupRule()
 
-@JsonTypeName("ipRangeRule")
+@JsonTypeName("ipRange")
 data class IpRangeSecurityGroupRule(
-  override val portRanges: SortedSet<SecurityGroupPortRange>,
-  override val protocol: String,
-  override val securityGroup: SecurityGroupSpec,
-  val paths: List<String>,
-  val host: String
+  val portRanges: SortedSet<SecurityGroupPortRange>,
+  val protocol: String
 ) : SecurityGroupRule()
-
-@JsonTypeName("amazonSecurityGroup")
-data class AmazonSecurityGroupSpec(
-  override val application: String,
-  override val name: String,
-  override val cloudProvider: String,
-  override val accountName: String,
-  override val region: String,
-  override val inboundRules: Set<SecurityGroupRule>,
-  val outboundRules: Set<SecurityGroupRule>,
-  val vpcId: String?, // TODO rz - Exposing vpc id to the end user would kinda suck
-  val description: String,
-  val accountId: String?
-) : SecurityGroupSpec()

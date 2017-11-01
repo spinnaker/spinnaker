@@ -19,4 +19,6 @@ import com.fasterxml.jackson.core.type.TypeReference
 
 const val SCHEMA_PROPERTY = "schema"
 
-val ANY_MAP_TYPE = object : TypeReference<MutableMap<String, Any>>(){}
+val ANY_MAP_TYPE = object : TypeReference<MutableMap<String, Any?>>(){}
+
+val LIST_OF_ANY_MAP_TYPE = object : TypeReference<MutableList<MutableMap<String, Any?>>>(){}

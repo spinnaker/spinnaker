@@ -55,7 +55,7 @@ class IntentController
   }
 
   @RequestMapping(method = arrayOf(RequestMethod.GET))
-  fun getIntents(@QueryParam("statuses") statuses: List<IntentStatus>)
+  fun getIntent(@QueryParam("statuses") statuses: ArrayList<IntentStatus>)
     = if (statuses.isEmpty()) intentRepository.getIntents() else intentRepository.getIntents(statuses)
 
   @RequestMapping(value = "/{id}", method = arrayOf(RequestMethod.GET))

@@ -40,7 +40,6 @@ class ApplicationIntent
 // same intent & processor.
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "kind")
 abstract class BaseApplicationSpec : IntentSpec {
-  abstract val kind: String
   abstract val name: String
   abstract val description: String?
   abstract val email: String
@@ -153,9 +152,7 @@ data class ApplicationSpec(
   override val platformHealthOnlyShowOverride: Boolean,
   override val platformHealthOnly: Boolean,
   override val notifications: NotificationSpec?
-) : BaseApplicationSpec() {
-  override val kind = "Application"
-}
+) : BaseApplicationSpec()
 
 // TODO rz - Move to -nflx, figure out a better wiring strategy?
 @JsonTypeName("NetflixApplication")
@@ -191,9 +188,7 @@ data class NetflixApplicationSpec(
   val criticalityRules: List<CriticalityRuleSpec>,
   val ccpService: String,
   val timelines: List<TimelineSpec>
-) : BaseApplicationSpec() {
-  override val kind = "NetflixApplication"
-}
+) : BaseApplicationSpec()
 
 data class CriticalityRuleSpec(
   val account: String,

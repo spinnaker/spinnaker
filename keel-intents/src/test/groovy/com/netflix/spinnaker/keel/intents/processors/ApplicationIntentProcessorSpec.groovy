@@ -54,12 +54,12 @@ class ApplicationIntentProcessorSpec extends Specification {
     def result = subject.converge(intent)
 
     then:
-    result.size() == 1
+    result.orchestrations.size() == 1
     1 * front50Service.getApplication("keel") >> {
       throw new RetrofitError(null, null, new Response("http://stash.com", 404, "test reason", [], null), null, null, null, null)
     }
     1 * traceRepository.record(_)
-    result[0].name == "Create application"
+    result.orchestrations[0].name == "Create application"
   }
 
   def 'should update application when app is present'() {
@@ -70,13 +70,13 @@ class ApplicationIntentProcessorSpec extends Specification {
     def result = subject.converge(new ApplicationIntent(updated))
 
     then:
-    result.size() == 1
+    result.orchestrations.size() == 1
     1 * front50Service.getApplication("keel") >> {
       new Application("keel", "my original description", "example@example.com", "1", "1", false, false)
     }
     1 * traceRepository.record(_)
-    result[0].name == "Update application"
-    result[0].job[0]["description"] == "my updated description"
+    result.orchestrations[0].name == "Update application"
+    result.orchestrations[0].job[0]["description"] == "my updated description"
   }
 
   static ApplicationSpec createApplicationSpec(String description) {

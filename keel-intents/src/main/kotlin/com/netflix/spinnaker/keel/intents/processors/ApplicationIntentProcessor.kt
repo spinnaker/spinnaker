@@ -47,7 +47,7 @@ class ApplicationIntentProcessor
   override fun supports(intent: Intent<IntentSpec>) = intent is ApplicationIntent
 
   override fun converge(intent: ApplicationIntent): ConvergeResult {
-    log.info("Converging state for ${intent.spec.name}")
+    log.info("Converging state for ${intent.getId()}")
 
     val currentState = getApplication(intent.spec.name)
 

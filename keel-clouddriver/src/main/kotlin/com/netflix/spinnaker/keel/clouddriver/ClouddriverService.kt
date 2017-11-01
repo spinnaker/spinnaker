@@ -15,6 +15,7 @@
  */
 package com.netflix.spinnaker.keel.clouddriver
 
+import com.netflix.spinnaker.keel.clouddriver.model.Network
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroup
 import retrofit.http.GET
 import retrofit.http.Path
@@ -35,4 +36,9 @@ interface ClouddriverService {
                        @Path("region") region: String,
                        @Query("vpcId") vpcId: String): SecurityGroup
 
+  @GET("/networks")
+  fun listNetworks(): Map<String, Set<Network>>
+
+  @GET("/networks/{cloudProvider}")
+  fun listNetworksByCloudProvider(@Path("cloudProvider") cloudProvider: String): Set<Network>
 }

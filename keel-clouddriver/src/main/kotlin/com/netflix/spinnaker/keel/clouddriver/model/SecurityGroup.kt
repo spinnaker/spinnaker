@@ -23,14 +23,6 @@ data class SecurityGroup(
   val accountName: String,
   val region: String,
   val vpcId: String?,
-  // TODO rz - This isn't fully representative of the rules that are allowed.
-  val inboundRules: List<SecurityGroupIngress>
-)
-
-data class SecurityGroupIngress(
-  val name: String,
-  val startPort: Int,
-  val endPort: Int,
-  val type: String,
-  val securityGroup: SecurityGroup?
+  val inboundRules: List<Map<String, Any>>,
+  val moniker: Moniker
 )

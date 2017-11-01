@@ -19,11 +19,11 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.*
 import com.netflix.spinnaker.keel.clouddriver.ClouddriverService
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroup
-import com.netflix.spinnaker.keel.intents.ANY_MAP_TYPE
 import com.netflix.spinnaker.keel.intents.AmazonSecurityGroupSpec
+import com.netflix.spinnaker.keel.intents.LIST_OF_ANY_MAP_TYPE
 import com.netflix.spinnaker.keel.intents.SecurityGroupIntent
 import com.netflix.spinnaker.keel.intents.SecurityGroupSpec
-import com.netflix.spinnaker.keel.intents.processors.converters.securitygroups.SecurityGroupConverter
+import com.netflix.spinnaker.keel.intents.processors.converters.SecurityGroupConverter
 import com.netflix.spinnaker.keel.model.Job
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.model.Trigger
@@ -48,33 +48,24 @@ class SecurityGroupIntentProcessor
   override fun supports(intent: Intent<IntentSpec>) = intent is SecurityGroupIntent
 
   override fun converge(intent: SecurityGroupIntent): ConvergeResult {
-    log.info("Converging state for ${intent.spec.accountName}:${intent.spec.region}:${intent.spec.name}")
+    log.info("Converging state for ${intent.getId()}")
 
-    val currentState = getSecurityGroup(intent.spec)
+    val currentState = getSecurityGroups(intent.spec)
 
     traceRepository.record(Trace(
-      startingState = if (currentState == null) mapOf() else objectMapper.convertValue(currentState, ANY_MAP_TYPE),
+      startingState = objectMapper.convertValue(currentState, LIST_OF_ANY_MAP_TYPE),
       intent = intent
     ))
 
-    // TODO rz - Need a way to communicate reasons for no-ops in the case of a dry-run. Perhaps the signature of
-    // converge should be changed to use a ConvergeResult(orchestrations, currentState, reason) or something?
-    val securityGroup = securityGroupConverter.convertToJob(intent.spec)
-    if (currentState != null) {
-      if (securityGroup == currentState) {
-        return ConvergeResult(listOf(), ConvergeReason.UNCHANGED.reason)
-      }
+    val desiredState = securityGroupConverter.convertToState(intent.spec)
 
-      // If any upstream security groups don't exist, don't try to converge on this state yet.
-      val missingUpstreamGroups = currentState.inboundRules
-        .filter { it.securityGroup != null }
-        .map { securityGroupConverter.convertFromState(it.securityGroup!!) }
-        .map { getSecurityGroup(it) }
-        .count { it == null }
+    if (currentStateUpToDate(currentState, desiredState)) {
+      return ConvergeResult(listOf(), ConvergeReason.UNCHANGED.reason)
+    }
 
-      if (missingUpstreamGroups > 0) {
-        return ConvergeResult(listOf(), "Some upstream security groups are missing")
-      }
+    if (missingUpstreamGroups(currentState)) {
+      // TODO rz - Should return _what_ security groups are missing
+      return ConvergeResult(listOf(), "Some upstream security groups are missing")
     }
 
     return ConvergeResult(listOf(
@@ -85,7 +76,7 @@ class SecurityGroupIntentProcessor
         job = listOf(
           Job(
             type = "upsertSecurityGroup",
-            m = objectMapper.convertValue(securityGroup, ANY_MAP_TYPE)
+            m = securityGroupConverter.convertToJob(intent.spec)
           )
         ),
         trigger = Trigger(intent.getId())
@@ -93,22 +84,44 @@ class SecurityGroupIntentProcessor
     ))
   }
 
-  private fun getSecurityGroup(spec: SecurityGroupSpec): SecurityGroup? {
+  private fun getSecurityGroups(spec: SecurityGroupSpec): Set<SecurityGroup> {
     // TODO rz - Quite dislike that any new cloudprovider would need to edit keel for declarative support... how to fix?
+    // Maybe this is the sacrifice we need to make to start statically typing all of our models?
     if (spec is AmazonSecurityGroupSpec) {
-      try {
-        return if (spec.vpcId == null) {
-          clouddriverService.getSecurityGroup(spec.accountName, "aws", spec.name, spec.region)
-        } else {
-          clouddriverService.getSecurityGroup(spec.accountName, "aws", spec.name, spec.region, spec.vpcId)
+      return spec.regions
+        .map { region ->
+          try {
+            return@map if (spec.vpcName == null) {
+              clouddriverService.getSecurityGroup(spec.accountName, "aws", spec.name, region)
+            } else {
+              // TODO rz - vpc name work with vpc id?
+              clouddriverService.getSecurityGroup(spec.accountName, "aws", spec.name, region, spec.vpcName)
+            }
+          } catch (e: RetrofitError) {
+            if (e.notFound()) {
+              return@map null
+            }
+            throw e
+          }
         }
-      } catch (e: RetrofitError) {
-        if (e.notFound()) {
-          return null
-        }
-        throw e
-      }
+        .filterNotNull()
+        .toSet()
     }
     throw NotImplementedError("Only amazon security groups are supported at the moment")
+  }
+
+  private fun currentStateUpToDate(currentState: Set<SecurityGroup>, desiredState: Set<SecurityGroup>): Boolean {
+    log.warn("Current state update check is not implemented")
+    return false
+  }
+
+  private fun missingUpstreamGroups(currentState: Set<SecurityGroup>): Boolean {
+    // TODO rz - optimize
+    return currentState
+      .flatMap { it.inboundRules }
+      .filter { it.containsKey("securityGroup") && it["securityGroup"] != null }
+      .map { securityGroupConverter.convertFromState(setOf(it["securityGroup"]!! as SecurityGroup)) }
+      .map { getSecurityGroups(it!!) }
+      .count { it.isEmpty() } > 0
   }
 }
