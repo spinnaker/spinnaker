@@ -129,6 +129,21 @@ const helpContents: {[key: string]: string} = {
   'kubernetes.ingress.rules.port': 'The port on the specifed load balancer to route traffic to.',
   'kubernetes.ingress.tls.host': 'The fully qualified domain name of a network host. Any traffic routed to this host can be secured with TLS. May not be an IP address, or contain port information.',
   'kubernetes.ingress.tls.secret': '(Optional) Name of the Kubernetes secret that will be used to secure TLS connections to the security group. Note that Spinnaker will not create any secrets, they are assumed to exist.',
+  'kubernetes.manifest.account': `
+      <p>A Spinnaker account corresponds to a physical Kubernetes cluster. If you are unsure which account to use, talk to your Spinnaker admin.</p>
+  `,
+  'kubernetes.manifest.application': `
+      <p>This is the Spinnaker application that your manifest will be deployed to. An application is generally used to group resources that belong to a single service.</p>
+  `,
+  'kubernetes.manifest.cluster': `
+      <p>A cluster is a grouping of resources (often across multiple versions of a resource) within an application.</p>
+  `,
+  'kubernetes.manifest.stack': `
+      <p><i>(Optional)</i> A naming component used to optionally group manifests within Spinnaker. Typically used to create vertical stacks of resources that can be aggregated/filtered later.</p>
+  `,
+  'kubernetes.manifest.detail': `
+      <p><i>(Optional)</i> A naming component used to store free-form text about your manifest, and can be used to aggregate/filter resources later.</p>
+  `,
 };
 
 export const KUBERNETES_HELP = 'spinnaker.kubernetes.help.contents';

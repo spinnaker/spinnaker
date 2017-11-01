@@ -16,6 +16,7 @@ class KubernetesManifestBasicSettingsComponent implements IComponentOptions {
         <div class="form-group">
           <div class="col-md-3 sm-label-right">
             Account
+            <help-field key="kubernetes.manifest.account"></help-field>
           </div>
           <div class="col-md-7">
             <account-select-field component="ctrl.command"
@@ -28,6 +29,7 @@ class KubernetesManifestBasicSettingsComponent implements IComponentOptions {
         <div class="form-group">
           <div class="col-md-3 sm-label-right">
             Application
+            <help-field key="kubernetes.manifest.application"></help-field>
           </div>
           <div class="col-md-7"><input readonly="true"
                                        type="text"
@@ -39,12 +41,37 @@ class KubernetesManifestBasicSettingsComponent implements IComponentOptions {
         <div class="form-group">
           <div class="col-md-3 sm-label-right">
             Cluster
+            <help-field key="kubernetes.manifest.cluster"></help-field>
           </div>
           <div class="col-md-7"><input required
                                        type="text"
                                        class="form-control input-sm"
                                        name="cluster"
                                        ng-model="ctrl.command.moniker.cluster"/></div>
+        </div>
+
+        <div class="form-group">
+          <div class="col-md-3 sm-label-right">
+            Stack
+            <help-field key="kubernetes.manifest.stack"></help-field>
+          </div>
+          <div class="col-md-7"><input required
+                                       type="text"
+                                       class="form-control input-sm"
+                                       name="stack"
+                                       ng-model="ctrl.command.moniker.stack"/></div>
+        </div>
+
+        <div class="form-group">
+          <div class="col-md-3 sm-label-right">
+            Detail
+            <help-field key="kubernetes.manifest.detail"></help-field>
+          </div>
+          <div class="col-md-7"><input required
+                                       type="text"
+                                       class="form-control input-sm"
+                                       name="detail"
+                                       ng-model="ctrl.command.moniker.detail"/></div>
         </div>
       </ng-form>
     </div>
