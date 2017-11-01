@@ -92,7 +92,7 @@ public class BuildEventMonitor extends TriggerMonitor {
   }
 
   @Override
-  protected Predicate<Trigger> matchTriggerFor(final TriggerEvent event) {
+  protected Predicate<Trigger> matchTriggerFor(final TriggerEvent event, final Pipeline pipeline) {
     BuildEvent buildEvent = (BuildEvent) event;
     String jobName = buildEvent.getContent().getProject().getName();
     String master = buildEvent.getContent().getMaster();

@@ -88,7 +88,6 @@ abstract class TriggerMonitor implements EchoEventListener {
   }
 
   protected Func1<Pipeline, Optional<Pipeline>> withMatchingTrigger(final TriggerEvent event) {
-    val triggerPredicate = matchTriggerFor(event);
     return pipeline -> {
       if (pipeline.getTriggers() == null || pipeline.isDisabled()) {
         return Optional.empty();
@@ -96,7 +95,7 @@ abstract class TriggerMonitor implements EchoEventListener {
         return pipeline.getTriggers()
           .stream()
           .filter(this::isValidTrigger)
-          .filter(triggerPredicate)
+          .filter(matchTriggerFor(event, pipeline))
           .findFirst()
           .map(buildTrigger(pipeline, event));
       }
@@ -105,7 +104,7 @@ abstract class TriggerMonitor implements EchoEventListener {
 
   protected abstract boolean isSuccessfulTriggerEvent(TriggerEvent event);
 
-  protected abstract Predicate<Trigger> matchTriggerFor(final TriggerEvent event);
+  protected abstract Predicate<Trigger> matchTriggerFor(final TriggerEvent event, final Pipeline pipeline);
 
   protected abstract Function<Trigger, Pipeline> buildTrigger(Pipeline pipeline, TriggerEvent event);
 

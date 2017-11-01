@@ -7,6 +7,7 @@ import com.netflix.spinnaker.echo.model.pubsub.MessageDescription
 import com.netflix.spinnaker.echo.model.pubsub.PubsubSystem
 import com.netflix.spinnaker.echo.model.trigger.*
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
+import com.netflix.spinnaker.kork.artifacts.model.ExpectedArtifact
 import retrofit.RetrofitError
 import retrofit.client.Response
 
@@ -42,9 +43,9 @@ trait RetrofitStubs {
   final Trigger teamcityTriggerWithoutConstraints = Trigger.builder().enabled(true).type('teamcity').constraints().build()
 
   final Trigger enabledGooglePubsubTrigger = Trigger.builder()
-      .enabled(true).type('pubsub').pubsubSystem('google').subscriptionName('projects/project/subscriptions/subscription').build()
+      .enabled(true).type('pubsub').pubsubSystem('google').subscriptionName('projects/project/subscriptions/subscription').expectedArtifactIds([]).build()
   final Trigger disabledGooglePubsubTrigger = Trigger.builder()
-      .enabled(false).type('pubsub').pubsubSystem('google').subscriptionName('projects/project/subscriptions/subscription').build()
+      .enabled(false).type('pubsub').pubsubSystem('google').subscriptionName('projects/project/subscriptions/subscription').expectedArtifactIds([]).build()
 
   private nextId = new AtomicInteger(1)
 
@@ -109,6 +110,16 @@ trait RetrofitStubs {
       .name("name")
       .id("${nextId.getAndIncrement()}")
       .triggers(triggers.toList())
+      .build()
+  }
+
+  Pipeline createPipelineWith(List<ExpectedArtifact> expectedArtifacts, Trigger... triggers) {
+    Pipeline.builder()
+      .application("application")
+      .name("name")
+      .id("${nextId.getAndIncrement()}")
+      .triggers(triggers.toList())
+      .expectedArtifacts(expectedArtifacts)
       .build()
   }
 }

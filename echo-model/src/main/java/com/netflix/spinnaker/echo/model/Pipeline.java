@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.echo.model;
 
+import com.netflix.spinnaker.kork.artifacts.model.ExpectedArtifact;
 import java.util.List;
 import java.util.Map;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -71,6 +72,9 @@ import lombok.experimental.Wither;
 
   @JsonProperty
   List<Artifact> receivedArtifacts;
+
+  @JsonProperty
+  List<ExpectedArtifact> expectedArtifacts;
 
   @JsonProperty
   List<Map<String, Object>> parameterConfig;

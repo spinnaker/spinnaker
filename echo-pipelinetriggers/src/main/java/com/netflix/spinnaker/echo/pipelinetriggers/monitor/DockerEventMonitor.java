@@ -100,7 +100,7 @@ public class DockerEventMonitor extends TriggerMonitor {
   }
 
   @Override
-  protected Predicate<Trigger> matchTriggerFor(final TriggerEvent event) {
+  protected Predicate<Trigger> matchTriggerFor(final TriggerEvent event, final Pipeline pipeline) {
     return trigger -> isMatchingTrigger((DockerEvent)event, trigger);
   }
 

@@ -27,6 +27,7 @@ import com.netflix.spinnaker.echo.model.trigger.TriggerEvent;
 import com.netflix.spinnaker.echo.pipelinetriggers.PipelineCache;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.artifacts.model.ExpectedArtifact;
+import java.util.stream.Collectors;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
@@ -97,28 +98,32 @@ public class PubsubEventMonitor extends TriggerMonitor {
   }
 
   @Override
-  protected Predicate<Trigger> matchTriggerFor(final TriggerEvent event) {
+  protected Predicate<Trigger> matchTriggerFor(final TriggerEvent event, final Pipeline pipeline) {
     PubsubEvent pubsubEvent = (PubsubEvent) event;
     MessageDescription description = pubsubEvent.getContent().getMessageDescription();
 
     return trigger -> trigger.getType().equalsIgnoreCase(PUBSUB_TRIGGER_TYPE)
         && trigger.getPubsubSystem().equalsIgnoreCase(description.getPubsubSystem().toString())
         && trigger.getSubscriptionName().equalsIgnoreCase(description.getSubscriptionName())
-        && anyArtifactsMatchExpected(description.getArtifacts(), trigger);
+        && anyArtifactsMatchExpected(description.getArtifacts(), trigger, pipeline);
   }
 
-  private Boolean anyArtifactsMatchExpected(List<Artifact> messageArtifacts, Trigger trigger) {
-    List<ExpectedArtifact> expectedArtifacts = trigger.getExpectedArtifacts();
+  private Boolean anyArtifactsMatchExpected(List<Artifact> messageArtifacts, Trigger trigger, Pipeline pipeline) {
+    List<String> expectedArtifactIds = trigger.getExpectedArtifactIds();
+    List<ExpectedArtifact> expectedArtifacts = pipeline.getExpectedArtifacts()
+      .stream()
+      .filter(e -> expectedArtifactIds.contains(e.getId()))
+      .collect(Collectors.toList());
 
-    if (expectedArtifacts == null || expectedArtifacts.isEmpty()) {
+    if (expectedArtifactIds == null || expectedArtifactIds.isEmpty()) {
       return true;
     }
 
-    if (messageArtifacts.size() > expectedArtifacts.size()) {
-      log.warn("Parsed message artifacts (size {}) greater than expected artifacts (size {}), continuing trigger anyway", messageArtifacts.size(), expectedArtifacts.size());
+    if (messageArtifacts.size() > expectedArtifactIds.size()) {
+      log.warn("Parsed message artifacts (size {}) greater than expected artifacts (size {}), continuing trigger anyway", messageArtifacts.size(), expectedArtifactIds.size());
     }
 
-    Predicate<Artifact> expectedArtifactMatch = a -> trigger.getExpectedArtifacts()
+    Predicate<Artifact> expectedArtifactMatch = a -> expectedArtifacts
         .stream()
         .anyMatch(e -> e.matches(a));
     return messageArtifacts.stream().anyMatch(expectedArtifactMatch);

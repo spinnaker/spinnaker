@@ -29,7 +29,7 @@ import lombok.experimental.Wither;
 @JsonDeserialize(builder = Trigger.TriggerBuilder.class)
 @Builder(toBuilder = true)
 @Wither
-@ToString(of = {"type", "master", "job", "cronExpression", "source", "project", "slug", "account", "repository", "tag", "constraints", "branch", "runAsUser", "subscriptionName", "pubsubSystem", "expectedArtifacts"}, includeFieldNames = false)
+@ToString(of = {"type", "master", "job", "cronExpression", "source", "project", "slug", "account", "repository", "tag", "constraints", "branch", "runAsUser", "subscriptionName", "pubsubSystem", "expectedArtifactIds"}, includeFieldNames = false)
 @Value
 public class Trigger {
   public enum Type {
@@ -80,7 +80,7 @@ public class Trigger {
    */
   String subscriptionName;
   String pubsubSystem;
-  List<ExpectedArtifact> expectedArtifacts;
+  List<String> expectedArtifactIds;
   Map<String, ?> lastSuccessfulExecution;
 
   public Trigger atBuildNumber(final int buildNumber) {

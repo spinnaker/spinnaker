@@ -90,7 +90,7 @@ public class GitEventMonitor extends TriggerMonitor {
   }
 
   @Override
-  protected Predicate<Trigger> matchTriggerFor(final TriggerEvent event) {
+  protected Predicate<Trigger> matchTriggerFor(final TriggerEvent event, final Pipeline pipeline) {
     GitEvent gitEvent = (GitEvent) event;
     String source = gitEvent.getDetails().getSource();
     String project = gitEvent.getContent().getRepoProject();

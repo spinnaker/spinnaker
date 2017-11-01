@@ -89,7 +89,7 @@ public class WebhookEventMonitor extends TriggerMonitor {
   }
 
   @Override
-  protected Predicate<Trigger> matchTriggerFor(final TriggerEvent event) {
+  protected Predicate<Trigger> matchTriggerFor(final TriggerEvent event, final Pipeline pipeline) {
     String type = event.getDetails().getType();
 
     return trigger ->
