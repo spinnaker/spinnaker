@@ -48,8 +48,8 @@ public class ServiceSettings {
   String host;
   String scheme;
   String healthEndpoint;
-  @JsonIgnore String username;
-  @JsonIgnore String password;
+  String username;
+  String password;
   Map<String, String> env;
   String artifactId;
   String overrideBaseUrl;
