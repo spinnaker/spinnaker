@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.appengine.storage.config;
+package com.netflix.spinnaker.clouddriver.appengine.artifacts.config;
 
 import groovy.transform.ToString;
 import lombok.Data;
@@ -27,7 +27,7 @@ import java.util.List;
 import java.util.NoSuchElementException;
 
 @Data
-@ConfigurationProperties("storage.gcs")
+@ConfigurationProperties("artifacts.gcs")
 public class StorageConfigurationProperties {
   @Data
   @ToString(includeNames = true)

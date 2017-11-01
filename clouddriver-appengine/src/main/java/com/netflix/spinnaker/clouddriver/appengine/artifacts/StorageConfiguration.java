@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.appengine.storage;
+package com.netflix.spinnaker.clouddriver.appengine.artifacts;
 
-import com.netflix.spinnaker.clouddriver.appengine.storage.config.StorageConfigurationProperties;
+import com.netflix.spinnaker.clouddriver.appengine.artifacts.config.StorageConfigurationProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -29,7 +29,7 @@ import java.security.GeneralSecurityException;
 
 
 @Configuration
-@ConditionalOnProperty("storage.gcs.enabled")
+@ConditionalOnProperty("artifacts.gcs.enabled")
 @EnableConfigurationProperties(StorageConfigurationProperties.class)
 @EnableScheduling
 class StorageConfiguration {

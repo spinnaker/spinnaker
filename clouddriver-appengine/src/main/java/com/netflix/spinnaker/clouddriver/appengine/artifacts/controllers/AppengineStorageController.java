@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.appengine.storage.controllers;
+package com.netflix.spinnaker.clouddriver.appengine.artifacts.controllers;
 
-import com.netflix.spinnaker.clouddriver.appengine.storage.config.StorageConfigurationProperties;
+import com.netflix.spinnaker.clouddriver.appengine.artifacts.config.StorageConfigurationProperties;
 
 import groovy.util.logging.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,7 +24,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.List;
 
