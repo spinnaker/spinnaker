@@ -451,6 +451,11 @@ public class JobDescription {
       }
       jobGroupInfoBuilder.setSequence(jobGroupSequence);
       jobDescriptorBuilder.setJobGroupInfo(jobGroupInfoBuilder);
+
+      if (inService == null) {
+        inService = true;
+      }
+
       jobDescriptorBuilder.setService(
         ServiceJobSpec.newBuilder().setEnabled(inService)
           .setCapacity(jobCapacity)
