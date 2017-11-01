@@ -133,6 +133,11 @@ public class GoogleImageFinder implements ImageFinder {
     }
 
     @Override
+    public String getRegion() {
+      return (String) super.get("region");
+    }
+
+    @Override
     public JenkinsDetails getJenkins() {
       return (JenkinsDetails) super.get("jenkins");
     }

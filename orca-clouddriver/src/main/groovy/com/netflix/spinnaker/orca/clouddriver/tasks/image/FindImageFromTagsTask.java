@@ -16,12 +16,17 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.image;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.RetryableTask;
 import com.netflix.spinnaker.orca.TaskResult;
@@ -53,13 +58,40 @@ public class FindImageFromTagsTask extends AbstractCloudProviderAwareTask implem
       throw new IllegalStateException("Could not find tagged image for package: " + stageData.packageName + " and tags: " + stageData.tags);
     }
 
+    List<Artifact> artifacts = new ArrayList<>();
+    imageDetails.forEach(imageDetail -> artifacts.add(generateArtifactFrom(imageDetail, cloudProvider)));
+
+    Map<String, Object> stageOutputs = new HashMap<>();
+    stageOutputs.put("amiDetails", imageDetails);
+    stageOutputs.put("artifacts", artifacts);
+
     return new TaskResult(
       ExecutionStatus.SUCCEEDED,
-      Collections.singletonMap("amiDetails", imageDetails),
+      stageOutputs,
       Collections.singletonMap("deploymentDetails", imageDetails)
     );
 
+  }
 
+  private Artifact generateArtifactFrom(ImageFinder.ImageDetails imageDetails, String cloudProvider) {
+    Map<String, String> metadata = new HashMap<>();
+    try {
+        ImageFinder.JenkinsDetails jenkinsDetails = imageDetails.getJenkins();
+        metadata.put("build_info_url", jenkinsDetails.get("host"));
+        metadata.put("build_number", jenkinsDetails.get("number"));
+    } catch (Exception e) {
+      // This is either all or nothing
+    }
+
+    Artifact artifact = new Artifact();
+    artifact.setName(imageDetails.getImageName());
+    artifact.setReference(imageDetails.getImageId());
+    artifact.setLocation(imageDetails.getRegion());
+    artifact.setType(cloudProvider + "/image");
+    artifact.setMetadata(metadata);
+    artifact.setUuid(UUID.randomUUID().toString());
+
+    return artifact;
   }
 
   @Override

@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.cluster
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.frigga.Names
+import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import com.netflix.spinnaker.moniker.Moniker
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.RetryableTask
@@ -229,8 +230,45 @@ class FindImageFromClusterTask extends AbstractCloudProviderAwareTask implements
       }
     }.flatten()
 
+    List<Artifact> artifacts = imageSummaries.collect { placement, summaries ->
+      Artifact artifact = new Artifact()
+      summaries.findResults { summary ->
+        if (config.imageNamePattern && !(summary.imageName ==~ config.imageNamePattern)) {
+          return null
+        }
+        def location = "global"
+
+        if (placement.type == Location.Type.REGION) {
+          location = placement.value
+        } else if (placement.type == Location.Type.ZONE) {
+          location = placement.value
+        }
+
+        def metadata = [
+          sourceServerGroup: summary.serverGroupName,
+          refId: stage.refId
+        ]
+
+        try {
+          metadata.putAll(summary.image ?: [:])
+          metadata.putAll(summary.buildInfo ?: [:])
+        } catch (Exception e) {
+          log.error("Unable to merge server group image/build info (summary: ${summary})", e)
+        }
+
+        artifact.metadata = metadata
+        artifact.name = summary.imageName
+        artifact.location = location
+        artifact.type = "${cloudProvider}/image"
+        artifact.reference = "${summary.imageId}"
+        artifact.uuid = UUID.randomUUID().toString()
+      }
+      return artifact
+    }.flatten()
+
     return new TaskResult(ExecutionStatus.SUCCEEDED, [
-      amiDetails: deploymentDetails
+      amiDetails: deploymentDetails,
+      artifacts: artifacts
     ], [
       deploymentDetails: deploymentDetails
     ])

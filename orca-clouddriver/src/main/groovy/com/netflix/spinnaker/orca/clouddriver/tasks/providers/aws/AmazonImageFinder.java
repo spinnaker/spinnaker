@@ -145,6 +145,11 @@ public class AmazonImageFinder implements ImageFinder {
     }
 
     @Override
+    public String getRegion() {
+      return (String) super.get("region");
+    }
+
+    @Override
     public JenkinsDetails getJenkins() {
       return (JenkinsDetails) super.get("jenkins");
     }

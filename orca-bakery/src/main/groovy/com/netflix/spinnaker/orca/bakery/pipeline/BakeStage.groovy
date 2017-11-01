@@ -127,10 +127,12 @@ class BakeStage implements StageDefinitionBuilder, RestartableStage {
         it.parentStageId == stage.parentStageId && it.status == ExecutionStatus.RUNNING
       }
 
+      def relatedBakeStages = stage.execution.stages.findAll {
+        it.type == PIPELINE_CONFIG_TYPE && bakeInitializationStages*.id.contains(it.parentStageId)
+      }
+
       def globalContext = [
-        deploymentDetails: stage.execution.stages.findAll {
-          it.type == PIPELINE_CONFIG_TYPE && bakeInitializationStages*.id.contains(it.parentStageId) && (it.context.ami || it.context.imageId)
-        }.collect { Stage bakeStage ->
+        deploymentDetails: relatedBakeStages.findAll{it.context.ami || it.context.imageId}.collect { Stage bakeStage ->
           def deploymentDetails = [:]
           ["ami", "imageId", "amiSuffix", "baseLabel", "baseOs", "refId", "storeType", "vmType", "region", "package", "cloudProviderType", "cloudProvider"].each {
             if (bakeStage.context.containsKey(it)) {

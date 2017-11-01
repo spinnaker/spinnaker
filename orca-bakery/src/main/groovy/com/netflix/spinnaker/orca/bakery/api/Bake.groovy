@@ -18,6 +18,7 @@
 
 package com.netflix.spinnaker.orca.bakery.api
 
+import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import groovy.transform.CompileStatic
 import groovy.transform.EqualsAndHashCode
 import groovy.transform.ToString
@@ -35,5 +36,6 @@ class Bake {
   String ami
   String amiName
   String imageName
+  Artifact artifact
   // TODO(duftler): Add a cloudProviderType property here? Will be straightforward once rosco is backed by redis.
 }

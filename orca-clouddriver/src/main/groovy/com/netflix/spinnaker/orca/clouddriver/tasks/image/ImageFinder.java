@@ -29,6 +29,7 @@ public interface ImageFinder {
   interface ImageDetails {
     String getImageId();
     String getImageName();
+    String getRegion();
     JenkinsDetails getJenkins();
   }
 

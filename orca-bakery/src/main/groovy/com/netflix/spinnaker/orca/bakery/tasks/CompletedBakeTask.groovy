@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.bakery.tasks
 
+import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
@@ -39,7 +40,7 @@ class CompletedBakeTask implements Task {
     def bakeStatus = stage.context.status as BakeStatus
     def bake = bakery.lookupBake(region, bakeStatus.resourceId).toBlocking().first()
     // This treatment of ami allows both the aws and gce bake results to be propagated.
-    def results = [ami: bake.ami ?: bake.imageName, imageId: bake.ami ?: bake.imageName]
+    def results = [ami: bake.ami ?: bake.imageName, imageId: bake.ami ?: bake.imageName, artifact: bake.artifact ?: new Artifact()]
     /**
      * TODO:
      * It would be good to standardize on the key here. "imageId" works for all providers.
@@ -49,6 +50,7 @@ class CompletedBakeTask implements Task {
     if (bake.imageName || bake.amiName) {
       results.imageName = bake.imageName ?: bake.amiName
     }
+
     new TaskResult(ExecutionStatus.SUCCEEDED, results)
   }
 }
