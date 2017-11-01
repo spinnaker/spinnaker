@@ -23,4 +23,8 @@ public class TravisCommandProperties {
 
   static final String GITHUB_TOKEN_DESCRIPTION = "The github token to authentiacte against travis with.";
 
+  static final String NUMBER_OF_REPOSITORIES_DESCRIPTION = "How many repositories the travis integration should" +
+    " fetch from the api each time the poller runs. Should be set a bit higher than the expected maximum number of" +
+    " repositories built within the poll interval.";
+
 }

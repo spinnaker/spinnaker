@@ -37,6 +37,7 @@ public class TravisAddMasterCommand extends AbstractAddMasterCommand {
 
   @Parameter(
     names = "--base-url",
+    required = true,
     description = TravisCommandProperties.BASE_URL_DESCRIPTION
   )
   public String baseUrl;
@@ -48,12 +49,19 @@ public class TravisAddMasterCommand extends AbstractAddMasterCommand {
   )
   public String githubToken;
 
+  @Parameter(
+    names = "--number-of-repositories",
+    description = TravisCommandProperties.NUMBER_OF_REPOSITORIES_DESCRIPTION
+  )
+  public Integer numberOfRepositories;
+
   @Override
   protected Master buildMaster(String masterName) {
     TravisMaster master = (TravisMaster) new TravisMaster().setName(masterName);
     master.setAddress(address)
       .setBaseUrl(baseUrl)
-      .setGithubToken(githubToken);
+      .setGithubToken(githubToken)
+      .setNumberOfRepositories(numberOfRepositories);
 
     return master;
   }

@@ -741,10 +741,11 @@ hal config ci travis master add MASTER [parameters]
 #### Parameters
 `MASTER`: The name of the master to operate on.
  * `--address`: (*Required*) The address of the travis API (https://api.travis-ci.org).
- * `--base-url`: The base URL to the travis UI (https://travis-ci.org).
+ * `--base-url`: (*Required*) The base URL to the travis UI (https://travis-ci.org).
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--github-token`: (*Sensitive data* - user will be prompted on standard input) The github token to authentiacte against travis with.
  * `--no-validate`: (*Default*: `false`) Skip validation.
+ * `--number-of-repositories`: How many repositories the travis integration should fetch from the api each time the poller runs. Should be set a bit higher than the expected maximum number of repositories built within the poll interval.
 
 
 ---
@@ -780,6 +781,7 @@ hal config ci travis master edit MASTER [parameters]
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--github-token`: (*Sensitive data* - user will be prompted on standard input) The github token to authentiacte against travis with.
  * `--no-validate`: (*Default*: `false`) Skip validation.
+ * `--number-of-repositories`: How many repositories the travis integration should fetch from the api each time the poller runs. Should be set a bit higher than the expected maximum number of repositories built within the poll interval.
 
 
 ---

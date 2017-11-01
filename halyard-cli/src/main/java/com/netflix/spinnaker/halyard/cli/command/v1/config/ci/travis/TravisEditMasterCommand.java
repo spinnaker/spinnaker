@@ -47,11 +47,18 @@ public class TravisEditMasterCommand extends AbstractEditMasterCommand<TravisMas
   )
   public String githubToken;
 
+  @Parameter(
+    names = "--number-of-repositories",
+    description = TravisCommandProperties.NUMBER_OF_REPOSITORIES_DESCRIPTION
+  )
+  public Integer numberOfRepositories;
+
   @Override
   protected Master editMaster(TravisMaster master) {
     master.setAddress(isSet(address) ? address : master.getAddress());
     master.setGithubToken(isSet(githubToken) ? githubToken : master.getGithubToken());
     master.setBaseUrl(isSet(baseUrl) ? baseUrl : master.getBaseUrl());
+    master.setNumberOfRepositories(isSet(numberOfRepositories) ? numberOfRepositories : master.getNumberOfRepositories());
 
     return master;
   }

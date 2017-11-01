@@ -41,4 +41,5 @@ public class TravisMaster extends Master {
   private String address;
   private String baseUrl;
   private String githubToken;
+  private Integer numberOfRepositories;
 }
