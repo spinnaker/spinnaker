@@ -30,7 +30,7 @@ import java.util.Set;
  * Each cloud provider-specific controller will implement this interface (it already does
  * implicitly, this interface just makes it explicit). Then, this interface will be merged into the
  * LoadBalancerProvider interface while each controller will merge with its
- * <Cloud>LoadBalancerProvider.
+ * &lt;Cloud &gt;LoadBalancerProvider.
  */
 public interface LoadBalancerProvider<T extends LoadBalancer> {
   String getCloudProvider();
