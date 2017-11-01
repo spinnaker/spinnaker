@@ -32,7 +32,7 @@ import java.util.concurrent.TimeUnit
 
 @Slf4j
 @Component
-class MonitorCanaryTask implements OverridableTimeoutRetryableTask {
+class MonitorKayentaCanaryTask implements OverridableTimeoutRetryableTask {
 
   long backoffPeriod = 1000
   long timeout = TimeUnit.HOURS.toMillis(12)

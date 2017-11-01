@@ -31,7 +31,7 @@ import javax.annotation.Nonnull
 
 @Component
 @Slf4j
-class RunCanaryTask implements Task {
+class RunKayentaCanaryTask implements Task {
 
   @Autowired
   KayentaService kayentaService
