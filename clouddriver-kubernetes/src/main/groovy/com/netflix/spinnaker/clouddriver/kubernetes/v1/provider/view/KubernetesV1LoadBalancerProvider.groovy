@@ -32,7 +32,7 @@ import org.springframework.stereotype.Component
 import javax.naming.OperationNotSupportedException
 
 @Component
-class KubernetesLoadBalancerProvider implements LoadBalancerProvider<KubernetesV1LoadBalancer> {
+class KubernetesV1LoadBalancerProvider implements LoadBalancerProvider<KubernetesV1LoadBalancer> {
 
   final String cloudProvider = KubernetesCloudProvider.ID
 
@@ -40,7 +40,7 @@ class KubernetesLoadBalancerProvider implements LoadBalancerProvider<KubernetesV
   private final ObjectMapper objectMapper
 
   @Autowired
-  KubernetesLoadBalancerProvider(Cache cacheView, ObjectMapper objectMapper) {
+  KubernetesV1LoadBalancerProvider(Cache cacheView, ObjectMapper objectMapper) {
     this.cacheView = cacheView
     this.objectMapper = objectMapper
   }

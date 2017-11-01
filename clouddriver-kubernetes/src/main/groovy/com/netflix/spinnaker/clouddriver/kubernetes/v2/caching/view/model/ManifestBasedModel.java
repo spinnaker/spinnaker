@@ -62,6 +62,10 @@ abstract public class ManifestBasedModel {
     return getKey().getAccount();
   }
 
+  public String getAccount() {
+    return getAccountName();
+  }
+
   abstract protected KubernetesManifest getManifest();
   abstract protected Keys.InfrastructureCacheKey getKey();
 }

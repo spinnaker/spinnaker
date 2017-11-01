@@ -14,10 +14,13 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.model
+package com.netflix.spinnaker.clouddriver.model;
 
-import com.fasterxml.jackson.annotation.JsonProperty
-import com.netflix.spinnaker.clouddriver.documentation.Empty
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.netflix.spinnaker.clouddriver.documentation.Empty;
+
+import java.util.List;
+import java.util.Set;
 
 /**
  * A loadBalancerProvider is an interface for the application to retrieve {@link LoadBalancer} objects. The interface provides a common contract for which one or many providers can be queried for
@@ -29,15 +32,14 @@ import com.netflix.spinnaker.clouddriver.documentation.Empty
  * LoadBalancerProvider interface while each controller will merge with its
  * <Cloud>LoadBalancerProvider.
  */
-interface LoadBalancerProvider<T extends LoadBalancer> {
+public interface LoadBalancerProvider<T extends LoadBalancer> {
+  String getCloudProvider();
 
-  String getCloudProvider()
+  List<Item> list();
 
-  List<Item> list()
+  Item get(String name);
 
-  Item get(String name)
-
-  List<Details> byAccountAndRegionAndName(String account, String region, String name)
+  List<Details> byAccountAndRegionAndName(String account, String region, String name);
 
   /**
    * Returns all load balancers related to an application based on one of the following criteria:
@@ -49,30 +51,30 @@ interface LoadBalancerProvider<T extends LoadBalancer> {
    *         The instances will have a minimal amount of data, as well: name, zone, and health related to any load balancers
    */
   @Empty
-  Set<T> getApplicationLoadBalancers(String application)
+  Set<T> getApplicationLoadBalancers(String application);
 
   // Some providers call this a "Summary", which I think is semantically different from what it is:
   // a details view object, grouped by account, then region.
   interface Item {
-    String getName()
+    String getName();
 
     @JsonProperty("accounts")
-    List<ByAccount> getByAccounts()
+    List<ByAccount> getByAccounts();
   }
 
   interface ByAccount {
-    String getName()
+    String getName();
 
     @JsonProperty("regions")
-    List<ByRegion> getByRegions()
+    List<ByRegion> getByRegions();
   }
 
   interface ByRegion {
     @JsonProperty("name")
-    String getName()
+    String getName();
 
     @JsonProperty("loadBalancers")
-    List<Details> getLoadBalancers()
+    List<Details> getLoadBalancers();
   }
 
   interface Details { }

@@ -28,7 +28,9 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -108,5 +110,24 @@ public class KubernetesCacheUtils {
     return items.stream()
         .filter(Objects::nonNull)
         .collect(Collectors.toList());
+  }
+
+  /*
+   * Builds a map of all keys belonging to `sourceKind` that are related to any entries in `targetData`
+   */
+  public Map<String, List<CacheData>> mapByRelationship(List<CacheData> targetData, SpinnakerKind sourceKind) {
+    Map<String, List<CacheData>> result = new HashMap<>();
+
+    for (CacheData datum : targetData) {
+      Collection<String> sourceKeys = aggregateRelationshipsBySpinnakerKind(datum, sourceKind);
+
+      for (String sourceKey : sourceKeys) {
+        List<CacheData> storedData = result.getOrDefault(sourceKey, new ArrayList<>());
+        storedData.add(datum);
+        result.put(sourceKey, storedData);
+      }
+    }
+
+    return result;
   }
 }

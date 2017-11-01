@@ -24,6 +24,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesC
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.model.HealthState;
 import com.netflix.spinnaker.clouddriver.model.Instance;
+import com.netflix.spinnaker.clouddriver.model.LoadBalancerInstance;
 import io.kubernetes.client.models.V1Pod;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -31,6 +32,7 @@ import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -65,6 +67,19 @@ public class KubernetesV2Instance extends ManifestBasedModel implements Instance
     }
 
     return new KubernetesV2Instance(manifest, cd.getId());
+  }
+
+  public LoadBalancerInstance toLoadBalancerInstance() {
+    return LoadBalancerInstance.builder()
+        .health(health.stream().reduce(new HashMap<>(), (a, b) -> {
+          Map<String, String> result = new HashMap<>();
+          result.putAll(a);
+          result.putAll(b);
+          return result;
+        }))
+        .id(getName())
+        .zone(getZone())
+        .build();
   }
 
   public HealthState getHealthState() {
