@@ -44,16 +44,20 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import static com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys.Kind.ARTIFACT;
 import static com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys.LogicalKind.APPLICATION;
 import static com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys.LogicalKind.CLUSTER;
+import static java.lang.Math.toIntExact;
 
 @Slf4j
 public class KubernetesCacheDataConverter {
   private static ObjectMapper mapper = new ObjectMapper();
   private static final JSON json = new JSON();
-
+  // TODO(lwander): make configurable
+  private static final int logicalTtlSeconds = toIntExact(TimeUnit.MINUTES.toSeconds(10));
+  private static final int infrastructureTtlSeconds = -1;
 
   public static CacheData convertAsArtifact(String account, KubernetesManifest manifest) {
     String namespace = manifest.getNamespace();
@@ -74,7 +78,7 @@ public class KubernetesCacheDataConverter {
     String owner = Keys.infrastructure(manifest, account);
     cacheRelationships.put(manifest.getKind().toString(), Collections.singletonList(owner));
 
-    return new DefaultCacheData(key, attributes, cacheRelationships);
+    return new DefaultCacheData(key, logicalTtlSeconds, attributes, cacheRelationships);
   }
 
   public static Collection<CacheData> dedupCacheData(Collection<CacheData> input) {
@@ -97,6 +101,8 @@ public class KubernetesCacheDataConverter {
     Map<String, Object> attributes = new HashMap<>();
     attributes.putAll(added.getAttributes());
     attributes.putAll(current.getAttributes());
+    // Behavior is: if no ttl is set on either, the merged key won't expire
+    int ttl = Math.min(current.getTtlSeconds(), added.getTtlSeconds());
 
     Map<String, Collection<String>> relationships = new HashMap<>();
     relationships.putAll(current.getRelationships());
@@ -110,7 +116,7 @@ public class KubernetesCacheDataConverter {
               return result;
             }));
 
-    return new DefaultCacheData(id, attributes, relationships);
+    return new DefaultCacheData(id, ttl, attributes, relationships);
   }
 
   public static CacheData convertAsResource(String account, KubernetesManifest manifest, List<KubernetesManifest> resourceRelationships) {
@@ -152,7 +158,7 @@ public class KubernetesCacheDataConverter {
     cacheRelationships.putAll(implicitRelationships(account, namespace, resourceRelationships));
 
     String key = Keys.infrastructure(kind, account, namespace, name);
-    return new DefaultCacheData(key, attributes, cacheRelationships);
+    return new DefaultCacheData(key, infrastructureTtlSeconds, attributes, cacheRelationships);
   }
 
   public static KubernetesManifest getManifest(CacheData cacheData) {
@@ -311,16 +317,19 @@ public class KubernetesCacheDataConverter {
   private static Optional<CacheData> invertSingleRelationship(String group, String key, String relationship) {
     Map<String, Collection<String>> relationships = new HashMap<>();
     relationships.put(group, Collections.singletonList(key));
-    return Keys.parseKey(relationship).flatMap(k -> {
+    return Keys.parseKey(relationship).map(k -> {
       Map<String, Object> attributes;
+      int ttl;
       if (Keys.LogicalKind.isLogicalGroup(k.getGroup())) {
+        ttl = logicalTtlSeconds;
         attributes = new ImmutableMap.Builder<String, Object>()
             .put("name", k.getName())
             .build();
       } else {
+        ttl = infrastructureTtlSeconds;
         attributes = new HashMap<>();
       }
-      return Optional.of(new DefaultCacheData(relationship, attributes, relationships));
+      return new DefaultCacheData(relationship, ttl, attributes, relationships);
     });
   }
 }
