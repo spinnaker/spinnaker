@@ -30,6 +30,7 @@ import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerDescription
 import com.amazonaws.services.elasticloadbalancing.model.ModifyLoadBalancerAttributesRequest
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.frigga.Names
+import com.netflix.spinnaker.clouddriver.aws.AwsConfiguration.DeployDefaults
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertAmazonLoadBalancerClassicDescription
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertAmazonLoadBalancerDescription
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertSecurityGroupDescription
@@ -47,6 +48,7 @@ import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import groovy.transform.InheritConstructors
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
+
 import static com.netflix.spinnaker.clouddriver.aws.deploy.ops.securitygroup.SecurityGroupLookupFactory.*
 
 /**
@@ -70,6 +72,9 @@ class UpsertAmazonLoadBalancerAtomicOperation implements AtomicOperation<UpsertA
 
   @Autowired
   SecurityGroupLookupFactory securityGroupLookupFactory
+
+  @Autowired
+  DeployDefaults deployDefaults
 
   private final UpsertAmazonLoadBalancerClassicDescription description
   ObjectMapper objectMapper = new ObjectMapper()
@@ -138,22 +143,27 @@ class UpsertAmazonLoadBalancerAtomicOperation implements AtomicOperation<UpsertA
                   description.subnetType, SubnetTarget.ELB, 1)
         }
 
-        String application = null
-        try {
-          application = Names.parseName(description.name).getApp() ?: Names.parseName(description.clusterName).getApp()
-          IngressLoadBalancerGroupResult ingressLoadBalancerResult = ingressApplicationLoadBalancerGroup(
-            description,
-            application,
-            region,
-            listeners,
-            securityGroupLookupFactory
-          )
+        //require that we have addAppGroupToServerGroup as well as createLoadBalancerIngressPermissions
+        // set since the load balancer ingress assumes that application group is the target of those
+        // permissions
+        if (deployDefaults.createLoadBalancerIngressPermissions && deployDefaults.addAppGroupToServerGroup) {
+          String application = null
+          try {
+            application = Names.parseName(description.name).getApp() ?: Names.parseName(description.clusterName).getApp()
+            IngressLoadBalancerGroupResult ingressLoadBalancerResult = ingressApplicationLoadBalancerGroup(
+              description,
+              application,
+              region,
+              listeners,
+              securityGroupLookupFactory
+            )
 
-          securityGroupNamesToIds.put(ingressLoadBalancerResult.groupName, ingressLoadBalancerResult.groupId)
-          task.updateStatus BASE_PHASE, "Authorized app ELB Security Group ${ingressLoadBalancerResult}"
-        } catch (Exception e) {
-          log.error("Failed to authorize app ELB security group {}-elb on application security group", application,  e)
-          task.updateStatus BASE_PHASE, "Failed to authorize app ELB security group ${application}-elb on application security group"
+            securityGroupNamesToIds.put(ingressLoadBalancerResult.groupName, ingressLoadBalancerResult.groupId)
+            task.updateStatus BASE_PHASE, "Authorized app ELB Security Group ${ingressLoadBalancerResult}"
+          } catch (Exception e) {
+            log.error("Failed to authorize app ELB security group {}-elb on application security group", application,  e)
+            task.updateStatus BASE_PHASE, "Failed to authorize app ELB security group ${application}-elb on application security group"
+          }
         }
 
         dnsName = LoadBalancerUpsertHandler.createLoadBalancer(loadBalancing, loadBalancerName, isInternal, availabilityZones, subnetIds, listeners, securityGroups)

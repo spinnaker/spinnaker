@@ -35,6 +35,7 @@ import com.amazonaws.services.elasticloadbalancing.model.ListenerDescription
 import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerAttributes
 import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerDescription
 import com.amazonaws.services.elasticloadbalancing.model.ModifyLoadBalancerAttributesRequest
+import com.netflix.spinnaker.clouddriver.aws.AwsConfiguration
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.securitygroup.SecurityGroupLookupFactory
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.data.task.Task
@@ -109,6 +110,7 @@ class UpsertAmazonLoadBalancerClassicAtomicOperationSpec extends Specification {
   @Subject operation = new UpsertAmazonLoadBalancerAtomicOperation(description)
 
   def setup() {
+    operation.deployDefaults = new AwsConfiguration.DeployDefaults(addAppGroupToServerGroup: true, createLoadBalancerIngressPermissions: true)
     operation.amazonClientProvider = mockAmazonClientProvider
     operation.regionScopedProviderFactory = regionScopedProviderFactory
     operation.securityGroupLookupFactory = securityGroupLookupFactory
