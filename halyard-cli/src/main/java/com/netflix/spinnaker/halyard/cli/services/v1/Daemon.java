@@ -20,6 +20,9 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.halyard.cli.command.v1.GlobalOptions;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
+import com.netflix.spinnaker.halyard.config.model.v1.node.ArtifactAccount;
+import com.netflix.spinnaker.halyard.config.model.v1.node.ArtifactProvider;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Artifacts;
 import com.netflix.spinnaker.halyard.config.model.v1.node.BakeryDefaults;
 import com.netflix.spinnaker.halyard.config.model.v1.node.BaseImage;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Ci;
@@ -233,6 +236,34 @@ public class Daemon {
     };
   }
 
+  public static Supplier<ArtifactAccount> getArtifactAccount(String deploymentName, String providerName, String accountName, boolean validate) {
+    return () -> {
+      Object rawArtifactAccount = ResponseUnwrapper.get(getService().getArtifactAccount(deploymentName, providerName, accountName, validate));
+      return getObjectMapper().convertValue(rawArtifactAccount, Artifacts.translateArtifactAccountType(providerName));
+    };
+  }
+
+  public static Supplier<Void> addArtifactAccount(String deploymentName, String providerName, boolean validate, ArtifactAccount account) {
+    return () -> {
+      ResponseUnwrapper.get(getService().addArtifactAccount(deploymentName, providerName, validate, account));
+      return null;
+    };
+  }
+
+  public static Supplier<Void> setArtifactAccount(String deploymentName, String providerName, String accountName, boolean validate, ArtifactAccount account) {
+    return () -> {
+      ResponseUnwrapper.get(getService().setArtifactAccount(deploymentName, providerName, accountName, validate, account));
+      return null;
+    };
+  }
+
+  public static Supplier<Void> deleteArtifactAccount(String deploymentName, String providerName, String accountName, boolean validate) {
+    return () -> {
+      ResponseUnwrapper.get(getService().deleteArtifactAccount(deploymentName, providerName, accountName, validate));
+      return null;
+    };
+  }
+
   public static Supplier<List<String>> getNewAccountOptions(String deploymentName, String providerName, String fieldName, Account account) {
     return () -> {
       DaemonOptions<Account> accountOptions = new DaemonOptions<Account>().setField(fieldName).setResource(account);
@@ -292,6 +323,27 @@ public class Daemon {
   public static Supplier<Void> setProviderEnableDisable(String deploymentName, String providerName, boolean validate, boolean enable) {
     return () -> {
       ResponseUnwrapper.get(getService().setProviderEnabled(deploymentName, providerName, validate, enable));
+      return null;
+    };
+  }
+
+  public static Supplier<Void> setArtifactProvider(String deploymentName, String providerName, boolean validate, ArtifactProvider provider) {
+    return () -> {
+      ResponseUnwrapper.get(getService().setArtifactProvider(deploymentName, providerName, validate, provider));
+      return null;
+    };
+  }
+
+  public static Supplier<ArtifactProvider> getArtifactProvider(String deploymentName, String providerName, boolean validate) {
+    return () -> {
+      Object provider = ResponseUnwrapper.get(getService().getArtifactProvider(deploymentName, providerName, validate));
+      return getObjectMapper().convertValue(provider, Artifacts.translateArtifactProviderType(providerName));
+    };
+  }
+
+  public static Supplier<Void> setArtifactProviderEnableDisable(String deploymentName, String providerName, boolean validate, boolean enable) {
+    return () -> {
+      ResponseUnwrapper.get(getService().setArtifactProviderEnabled(deploymentName, providerName, validate, enable));
       return null;
     };
   }

@@ -89,6 +89,11 @@ public class DeploymentConfiguration extends Node {
    */
   Security security = new Security();
 
+  /**
+   * Artifact configuration (how to talk to git, gcs, s3, etc...)
+   */
+  Artifacts artifacts = new Artifacts();
+
   @Override
   public String getNodeName() {
     return name;

@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Artifacts;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentEnvironment;
 import com.netflix.spinnaker.halyard.config.model.v1.node.NodeIterator;
@@ -65,8 +66,13 @@ public class ClouddriverProfileFactory extends SpringProfileFactory {
       removeBootstrapOnlyAccount(modifiedProviders, deploymentConfiguration.getName(), bootstrapAccountName);
     }
 
+    Artifacts artifacts = deploymentConfiguration.getArtifacts();
+
     List<String> files = backupRequiredFiles(modifiedProviders, deploymentConfiguration.getName());
+    files.addAll(backupRequiredFiles(artifacts, deploymentConfiguration.getName()));
+
     profile.appendContents(yamlToString(modifiedProviders))
+        .appendContents(yamlToString(artifacts))
         .appendContents(profile.getBaseContents())
         .setRequiredFiles(files);
 

@@ -18,6 +18,16 @@
  * [**hal backup create**](#hal-backup-create)
  * [**hal backup restore**](#hal-backup-restore)
  * [**hal config**](#hal-config)
+ * [**hal config artifact**](#hal-config-artifact)
+ * [**hal config artifact gcs**](#hal-config-artifact-gcs)
+ * [**hal config artifact gcs account**](#hal-config-artifact-gcs-account)
+ * [**hal config artifact gcs account add**](#hal-config-artifact-gcs-account-add)
+ * [**hal config artifact gcs account delete**](#hal-config-artifact-gcs-account-delete)
+ * [**hal config artifact gcs account edit**](#hal-config-artifact-gcs-account-edit)
+ * [**hal config artifact gcs account get**](#hal-config-artifact-gcs-account-get)
+ * [**hal config artifact gcs account list**](#hal-config-artifact-gcs-account-list)
+ * [**hal config artifact gcs disable**](#hal-config-artifact-gcs-disable)
+ * [**hal config artifact gcs enable**](#hal-config-artifact-gcs-enable)
  * [**hal config ci**](#hal-config-ci)
  * [**hal config ci jenkins**](#hal-config-ci-jenkins)
  * [**hal config ci jenkins disable**](#hal-config-ci-jenkins-disable)
@@ -475,6 +485,7 @@ hal config [parameters] [subcommands]
  * `--set-current-deployment`: If supplied, set the current active deployment to the supplied value, creating it if need-be.
 
 #### Subcommands
+ * `artifact`: Configure, validate, and view the specified artifact provider.
  * `ci`: Configure, validate, and view the specified Continuous Integration service.
  * `deploy`: Display the configured Spinnaker deployment.
  * `edit`: Configure top-level, global configuration parameters.
@@ -486,6 +497,171 @@ hal config [parameters] [subcommands]
  * `security`: Configure Spinnaker's security. This includes external SSL, authentication mechanisms, and authorization policies.
  * `storage`: Show Spinnaker's persistent storage configuration.
  * `version`: Configure & view the current deployment of Spinnaker's version.
+
+---
+## hal config artifact
+
+Configure, validate, and view the specified artifact provider.
+
+#### Usage
+```
+hal config artifact [subcommands]
+```
+
+#### Subcommands
+ * `gcs`: Manage and view Spinnaker configuration for the gcs provider
+
+---
+## hal config artifact gcs
+
+Manage and view Spinnaker configuration for the gcs provider
+
+#### Usage
+```
+hal config artifact gcs [parameters] [subcommands]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+#### Subcommands
+ * `account`: Manage and view Spinnaker configuration for the gcs artifact provider's account
+ * `disable`: Set the gcs artifact provider as disabled
+ * `enable`: Set the gcs artifact provider as enabled
+
+---
+## hal config artifact gcs account
+
+Manage and view Spinnaker configuration for the gcs artifact provider's account
+
+#### Usage
+```
+hal config artifact gcs account ACCOUNT [parameters] [subcommands]
+```
+
+#### Parameters
+`ACCOUNT`: The name of the account to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+#### Subcommands
+ * `add`: Add an artifact account to the gcs artifact provider.
+ * `delete`: Delete a specific gcs artifact account by name.
+ * `edit`: Edit an artifact account in the gcs artifact provider.
+ * `get`: Get the specified account details for the gcs provider.
+ * `list`: List the artifact account names for the gcs artifact provider.
+
+---
+## hal config artifact gcs account add
+
+Add an artifact account to the gcs artifact provider.
+
+#### Usage
+```
+hal config artifact gcs account add ACCOUNT [parameters]
+```
+
+#### Parameters
+`ACCOUNT`: The name of the account to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--json-path`: The path to a JSON service account that Spinnaker will use as credentials. This is only needed if Spinnaker is not deployed on a Google Compute Engine VM, or needs permissions not afforded to the VM it is running on. See https://cloud.google.com/compute/docs/access/service-accounts for more information.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config artifact gcs account delete
+
+Delete a specific gcs artifact account by name.
+
+#### Usage
+```
+hal config artifact gcs account delete ACCOUNT [parameters]
+```
+
+#### Parameters
+`ACCOUNT`: The name of the account to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config artifact gcs account edit
+
+Edit an artifact account in the gcs artifact provider.
+
+#### Usage
+```
+hal config artifact gcs account edit ACCOUNT [parameters]
+```
+
+#### Parameters
+`ACCOUNT`: The name of the account to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--json-path`: The path to a JSON service account that Spinnaker will use as credentials. This is only needed if Spinnaker is not deployed on a Google Compute Engine VM, or needs permissions not afforded to the VM it is running on. See https://cloud.google.com/compute/docs/access/service-accounts for more information.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config artifact gcs account get
+
+Get the specified account details for the gcs provider.
+
+#### Usage
+```
+hal config artifact gcs account get ACCOUNT [parameters]
+```
+
+#### Parameters
+`ACCOUNT`: The name of the account to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config artifact gcs account list
+
+List the artifact account names for the gcs artifact provider.
+
+#### Usage
+```
+hal config artifact gcs account list [parameters]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config artifact gcs disable
+
+Set the gcs artifact provider as disabled
+
+#### Usage
+```
+hal config artifact gcs disable [parameters]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config artifact gcs enable
+
+Set the gcs artifact provider as enabled
+
+#### Usage
+```
+hal config artifact gcs enable [parameters]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
 
 ---
 ## hal config ci

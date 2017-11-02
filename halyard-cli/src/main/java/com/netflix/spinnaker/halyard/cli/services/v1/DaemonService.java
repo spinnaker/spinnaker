@@ -16,8 +16,30 @@
 
 package com.netflix.spinnaker.halyard.cli.services.v1;
 
-import com.netflix.spinnaker.halyard.config.model.v1.node.*;
-import com.netflix.spinnaker.halyard.config.model.v1.security.*;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
+import com.netflix.spinnaker.halyard.config.model.v1.node.ArtifactAccount;
+import com.netflix.spinnaker.halyard.config.model.v1.node.ArtifactProvider;
+import com.netflix.spinnaker.halyard.config.model.v1.node.BakeryDefaults;
+import com.netflix.spinnaker.halyard.config.model.v1.node.BaseImage;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Cluster;
+import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
+import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentEnvironment;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Features;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Halconfig;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Master;
+import com.netflix.spinnaker.halyard.config.model.v1.node.MetricStores;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Notification;
+import com.netflix.spinnaker.halyard.config.model.v1.node.PersistentStorage;
+import com.netflix.spinnaker.halyard.config.model.v1.node.PersistentStore;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Provider;
+import com.netflix.spinnaker.halyard.config.model.v1.security.ApacheSsl;
+import com.netflix.spinnaker.halyard.config.model.v1.security.ApiSecurity;
+import com.netflix.spinnaker.halyard.config.model.v1.security.AuthnMethod;
+import com.netflix.spinnaker.halyard.config.model.v1.security.GroupMembership;
+import com.netflix.spinnaker.halyard.config.model.v1.security.RoleProvider;
+import com.netflix.spinnaker.halyard.config.model.v1.security.Security;
+import com.netflix.spinnaker.halyard.config.model.v1.security.SpringSsl;
+import com.netflix.spinnaker.halyard.config.model.v1.security.UiSecurity;
 import com.netflix.spinnaker.halyard.core.DaemonOptions;
 import com.netflix.spinnaker.halyard.core.StringBodyRequest;
 import com.netflix.spinnaker.halyard.core.registry.v1.Versions;
@@ -25,7 +47,13 @@ import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
 import com.netflix.spinnaker.halyard.core.tasks.v1.ShallowTaskList;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.DeployOption;
 import retrofit.client.Response;
-import retrofit.http.*;
+import retrofit.http.Body;
+import retrofit.http.DELETE;
+import retrofit.http.GET;
+import retrofit.http.POST;
+import retrofit.http.PUT;
+import retrofit.http.Path;
+import retrofit.http.Query;
 
 import java.util.List;
 import java.util.Map;
@@ -175,6 +203,26 @@ public interface DaemonService {
       @Query("validate") boolean validate,
       @Body boolean enabled);
 
+  @GET("/v1/config/deployments/{deploymentName}/artifactProviders/{providerName}/")
+  DaemonTask<Halconfig, Object> getArtifactProvider(
+      @Path("deploymentName") String deploymentName,
+      @Path("providerName") String providerName,
+      @Query("validate") boolean validate);
+
+  @PUT("/v1/config/deployments/{deploymentName}/artifactProviders/{providerName}/")
+  DaemonTask<Halconfig, Object> setArtifactProvider(
+      @Path("deploymentName") String deploymentName,
+      @Path("providerName") String providerName,
+      @Query("validate") boolean validate,
+      @Body ArtifactProvider provider);
+
+  @PUT("/v1/config/deployments/{deploymentName}/artifactProviders/{providerName}/enabled/")
+  DaemonTask<Halconfig, Void> setArtifactProviderEnabled(
+      @Path("deploymentName") String deploymentName,
+      @Path("providerName") String providerName,
+      @Query("validate") boolean validate,
+      @Body boolean enabled);
+
   @POST("/v1/config/deployments/{deploymentName}/providers/{providerName}/accounts/")
   DaemonTask<Halconfig, Void> addAccount(
       @Path("deploymentName") String deploymentName,
@@ -199,6 +247,35 @@ public interface DaemonService {
 
   @DELETE("/v1/config/deployments/{deploymentName}/providers/{providerName}/accounts/account/{accountName}/")
   DaemonTask<Halconfig, Void> deleteAccount(
+      @Path("deploymentName") String deploymentName,
+      @Path("providerName") String providerName,
+      @Path("accountName") String accountName,
+      @Query("validate") boolean validate);
+
+  @POST("/v1/config/deployments/{deploymentName}/artifactProviders/{providerName}/artifactAccounts/")
+  DaemonTask<Halconfig, Void> addArtifactAccount(
+      @Path("deploymentName") String deploymentName,
+      @Path("providerName") String providerName,
+      @Query("validate") boolean validate,
+      @Body ArtifactAccount account);
+
+  @GET("/v1/config/deployments/{deploymentName}/artifactProviders/{providerName}/artifactAccounts/account/{accountName}/")
+  DaemonTask<Halconfig, Object> getArtifactAccount(
+      @Path("deploymentName") String deploymentName,
+      @Path("providerName") String providerName,
+      @Path("accountName") String accountName,
+      @Query("validate") boolean validate);
+
+  @PUT("/v1/config/deployments/{deploymentName}/artifactProviders/{providerName}/artifactAccounts/account/{accountName}/")
+  DaemonTask<Halconfig, Void> setArtifactAccount(
+      @Path("deploymentName") String deploymentName,
+      @Path("providerName") String providerName,
+      @Path("accountName") String accountName,
+      @Query("validate") boolean validate,
+      @Body ArtifactAccount account);
+
+  @DELETE("/v1/config/deployments/{deploymentName}/artifactProviders/{providerName}/artifactAccounts/account/{accountName}/")
+  DaemonTask<Halconfig, Void> deleteArtifactAccount(
       @Path("deploymentName") String deploymentName,
       @Path("providerName") String providerName,
       @Path("accountName") String accountName,
