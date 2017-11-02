@@ -1,4 +1,5 @@
 import { module, IQService } from 'angular';
+import { CanarySettings } from 'kayenta/canary.settings';
 
 import {
   APPLICATION_DATA_SOURCE_REGISTRY,
@@ -28,7 +29,7 @@ module(CANARY_DATA_SOURCE, [APPLICATION_DATA_SOURCE_REGISTRY])
     };
 
     applicationDataSourceRegistry.registerDataSource({
-      optIn: true,
+      optIn: !CanarySettings.optInAll,
       optional: true,
       loader: loadCanaryConfigs,
       onLoad: configsLoaded,

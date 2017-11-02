@@ -12,6 +12,7 @@ export interface ICanarySettings {
   stagesEnabled: boolean;
   graphImplementation: string;
   featureDisabled: boolean;
+  optInAll: boolean;
 }
 
 export const CanarySettings = SETTINGS.canary || { featureDisabled: true };
