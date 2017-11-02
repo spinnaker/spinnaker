@@ -47,7 +47,7 @@ abstract class SecurityGroupSpec : IntentSpec {
   abstract val inboundRules: Set<SecurityGroupRule>
 }
 
-@JsonTypeName("amazon")
+@JsonTypeName("aws")
 data class AmazonSecurityGroupSpec(
   override val application: String,
   override val name: String,
