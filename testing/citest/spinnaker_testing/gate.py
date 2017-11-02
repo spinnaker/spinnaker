@@ -168,7 +168,7 @@ class GatePipelineStatus(sk.SpinnakerStatus):
       self.current_state = 'CITEST_INTERNAL_ERROR'
 
     # It can take a while for the running pipelines to show up.
-    if len(doc) == 0:
+    if len(doc) == 0 and !isinstance(doc, list):
       return
 
     if not self.__saw_pipeline:
