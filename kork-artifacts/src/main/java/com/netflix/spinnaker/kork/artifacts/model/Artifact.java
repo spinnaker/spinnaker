@@ -33,7 +33,7 @@ public class Artifact {
   private String version;
   private String location;
   private String reference;
-  private Map<String, String> metadata;
+  private Map<String, Object> metadata;
   private String artifactAccount;
   private String provenance;
   private String uuid;
