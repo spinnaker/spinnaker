@@ -45,14 +45,15 @@ class DependentPipelineExecutionListener implements ExecutionListener {
     }
 
     def pipelineExecution = (Pipeline) execution
+    def status = convertStatus(pipelineExecution)
 
-    front50Service.getAllPipelines().each {
+    front50Service.getAllPipelines().findAll { !it.disabled }.each {
       it.triggers.each { trigger ->
         if (trigger.enabled &&
           trigger.type == 'pipeline' &&
           trigger.pipeline &&
           trigger.pipeline == pipelineExecution.pipelineConfigId &&
-          trigger.status.contains(convertStatus(pipelineExecution))
+          trigger.status.contains(status)
         ) {
           dependentPipelineStarter.trigger(it, pipelineExecution.trigger?.user as String, pipelineExecution, [:], null)
         }
