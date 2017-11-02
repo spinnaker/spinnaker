@@ -48,24 +48,19 @@ public class IntentController {
   }
 
   @RequestMapping(value = "", method = RequestMethod.POST)
-  void save(@RequestBody Intent intent) {
-    checkForDuplicateIntents(intent.getId());
-    intentDAO.create(intent.getId(), intent);
-  }
-
-  @RequestMapping(value = "{id}", method = RequestMethod.PUT)
-  Intent update(@PathVariable String id, @RequestBody Intent intent) {
-    Intent existingIntent = intentDAO.findById(id);
-    if (!intent.getId().equals(existingIntent.getId())) {
-      throw new InvalidRequestException("The provided id " + id + " doesn't match the intent id " + intent.getId());
+  Intent upsert(@RequestBody Intent intent) {
+    intent.setLastModified(System.currentTimeMillis());
+    try {
+      Intent existingIntent = intentDAO.findById(intent.getId());
+    } catch (NotFoundException e){
+      intentDAO.create(intent.getId(), intent);
+      return intent;
     }
 
-    intent.setLastModified(System.currentTimeMillis());
-    intentDAO.update(id, intent);
-
+    intentDAO.update(intent.getId(), intent);
     return intent;
   }
-
+  
   @RequestMapping(value = "{id}", method = RequestMethod.DELETE)
   void delete(@PathVariable String id) {
     intentDAO.delete(id);

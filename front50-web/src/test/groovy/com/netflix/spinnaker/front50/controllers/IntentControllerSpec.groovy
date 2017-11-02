@@ -34,42 +34,10 @@ class IntentControllerSpec extends Specification {
     objectMapper:  new ObjectMapper(),
   )
 
-  def "should reject creation of intent with the same id"() {
+  def "should update intent if exists"() {
     given:
     def intent = new Intent(
       id: "ahoymatey",
-      kind: "Parrot",
-      schema: "1",
-      spec: [
-          application: "keel",
-          deescription: "hello"
-      ],
-      status: "ACTIVE"
-    )
-    def oldIntent = new Intent(
-      id: "ahoymatey",
-      kind: "Parrot",
-      schema: "1",
-      spec: [
-        application: "keel",
-        deescription: "ahoy"
-      ],
-      status: "ACTIVE"
-    )
-
-    when:
-    intentDAO.all() >> { [oldIntent] }
-    controller.save(intent)
-
-    then:
-    thrown(DuplicateEntityException)
-  }
-
-  def "should reject update of intent where id is different"() {
-    given:
-    def id = "ahoymatey"
-    def intent = new Intent(
-      id: "arr arr",
       kind: "Parrot",
       schema: "1",
       spec: [
@@ -90,10 +58,34 @@ class IntentControllerSpec extends Specification {
     )
 
     when:
-    intentDAO.findById(id) >> { [oldIntent] }
-    controller.update(id, intent)
+    intentDAO.all() >> { [oldIntent] }
+    Intent updatedIntent = controller.upsert(intent)
 
     then:
-    thrown(InvalidRequestException)
+    noExceptionThrown()
+    updatedIntent == intent
+
+  }
+
+  def "should create intent if it doesn't exist"() {
+    given:
+    def intent = new Intent(
+      id: "ahoymatey",
+      kind: "Parrot",
+      schema: "1",
+      spec: [
+        application: "keel",
+        deescription: "hello"
+      ],
+      status: "ACTIVE"
+    )
+
+    when:
+    intentDAO.all() >> { }
+    Intent createdIntent = controller.upsert(intent)
+
+    then:
+    noExceptionThrown()
+    createdIntent == intent
   }
 }
