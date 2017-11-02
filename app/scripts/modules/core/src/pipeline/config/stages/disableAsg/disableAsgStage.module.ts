@@ -1,6 +1,8 @@
 import { module } from 'angular';
 
 import { PIPELINE_CONFIG_PROVIDER, PipelineConfigProvider } from 'core/pipeline/config/pipelineConfigProvider';
+import { DisableAsgExecutionDetails } from './DisableAsgExecutionDetails';
+import { ExecutionDetailsTasks } from '../core';
 
 export const DISABLE_ASG_STAGE_MODULE = 'spinnaker.core.pipeline.stage.disableAsg';
 
@@ -10,8 +12,7 @@ module(DISABLE_ASG_STAGE_MODULE, [
 .config((pipelineConfigProvider: PipelineConfigProvider) => {
   pipelineConfigProvider.registerStage({
     useBaseProvider: true,
-    executionConfigSections: ['disableServerGroupConfig', 'taskStatus'],
-    executionDetailsUrl: require('./disableAsgExecutionDetails.template.html'),
+    executionDetailsSections: [DisableAsgExecutionDetails, ExecutionDetailsTasks],
     key: 'disableServerGroup',
     label: 'Disable Server Group',
     description: 'Disables a server group',
