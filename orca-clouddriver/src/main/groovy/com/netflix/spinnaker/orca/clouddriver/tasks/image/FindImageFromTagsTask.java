@@ -74,7 +74,7 @@ public class FindImageFromTagsTask extends AbstractCloudProviderAwareTask implem
   }
 
   private Artifact generateArtifactFrom(ImageFinder.ImageDetails imageDetails, String cloudProvider) {
-    Map<String, String> metadata = new HashMap<>();
+    Map<String, Object> metadata = new HashMap<>();
     try {
         ImageFinder.JenkinsDetails jenkinsDetails = imageDetails.getJenkins();
         metadata.put("build_info_url", jenkinsDetails.get("host"));
