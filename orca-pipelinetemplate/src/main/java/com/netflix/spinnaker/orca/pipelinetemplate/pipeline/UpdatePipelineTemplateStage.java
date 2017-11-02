@@ -27,7 +27,6 @@ import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner;
 import com.netflix.spinnaker.orca.pipelinetemplate.tasks.PlanTemplateDependentsTask;
 import com.netflix.spinnaker.orca.pipelinetemplate.tasks.UpdatePipelineTemplateTask;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate;
-import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.TemplateConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -85,11 +84,6 @@ public class UpdatePipelineTemplateStage implements StageDefinitionBuilder {
     List<Map<String, Object>> dependentPipelines = front50Service.getPipelineTemplateDependents(pipelineTemplate.getId(), true);
 
     return dependentPipelines.stream()
-      .filter(pipeline -> {
-        // We only need to re-save pipelines that actually inherit configurations.
-        TemplateConfiguration config = pipelineTemplateObjectMapper.convertValue(pipeline.get("config"), TemplateConfiguration.class);
-        return !config.getConfiguration().getInherit().isEmpty();
-      })
       .map(pipeline -> configureSavePipelineStage(stage, pipeline))
       .collect(Collectors.toList());
   }

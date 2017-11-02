@@ -94,8 +94,7 @@ class UpdatePipelineTemplateStageSpec extends Specification {
       [pipeline1, pipeline2, pipeline3]
     }
 
-    afterStages.size() == 2
-    afterStages*.name == ['updateDependentPipeline', 'updateDependentPipeline']
+    afterStages.size() == 3
     beforeStages.size() == 0
   }
 }
