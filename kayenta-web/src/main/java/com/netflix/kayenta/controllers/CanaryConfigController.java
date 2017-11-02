@@ -17,6 +17,7 @@
 package com.netflix.kayenta.controllers;
 
 import com.netflix.kayenta.canary.CanaryConfig;
+import com.netflix.kayenta.canary.CanaryConfigUpdateResponse;
 import com.netflix.kayenta.security.AccountCredentials;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
 import com.netflix.kayenta.security.CredentialsHelper;
@@ -38,6 +39,7 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.time.Instant;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -73,8 +75,8 @@ public class CanaryConfigController {
 
   @ApiOperation(value = "Write a canary config to object storage")
   @RequestMapping(consumes = "application/json", method = RequestMethod.POST)
-  public String storeCanaryConfig(@RequestParam(required = false) final String configurationAccountName,
-                                  @RequestBody CanaryConfig canaryConfig) throws IOException {
+  public CanaryConfigUpdateResponse storeCanaryConfig(@RequestParam(required = false) final String configurationAccountName,
+                                                      @RequestBody CanaryConfig canaryConfig) throws IOException {
     String resolvedConfigurationAccountName = CredentialsHelper.resolveAccountByNameOrType(configurationAccountName,
                                                                                            AccountCredentials.Type.CONFIGURATION_STORE,
                                                                                            accountCredentialsRepository);
@@ -119,7 +121,7 @@ public class CanaryConfigController {
     } catch (IllegalArgumentException e) {
       configurationService.storeObject(resolvedConfigurationAccountName, ObjectType.CANARY_CONFIG, canaryConfigId, canaryConfig, canaryConfig.getName() + ".json", false);
 
-      return canaryConfigId;
+      return CanaryConfigUpdateResponse.builder().canaryConfigId(canaryConfigId).build();
     }
 
     throw new IllegalArgumentException("Canary config '" + canaryConfigId + "' already exists.");
@@ -127,9 +129,9 @@ public class CanaryConfigController {
 
   @ApiOperation(value = "Update a canary config")
   @RequestMapping(value = "/{canaryConfigId:.+}", consumes = "application/json", method = RequestMethod.PUT)
-  public String updateCanaryConfig(@RequestParam(required = false) final String configurationAccountName,
-                                   @PathVariable String canaryConfigId,
-                                   @RequestBody CanaryConfig canaryConfig) throws IOException {
+  public CanaryConfigUpdateResponse updateCanaryConfig(@RequestParam(required = false) final String configurationAccountName,
+                                                       @PathVariable String canaryConfigId,
+                                                       @RequestBody CanaryConfig canaryConfig) throws IOException {
     String resolvedConfigurationAccountName = CredentialsHelper.resolveAccountByNameOrType(configurationAccountName,
                                                                                            AccountCredentials.Type.CONFIGURATION_STORE,
                                                                                            accountCredentialsRepository);
@@ -153,7 +155,7 @@ public class CanaryConfigController {
 
     configurationService.storeObject(resolvedConfigurationAccountName, ObjectType.CANARY_CONFIG, canaryConfigId, canaryConfig, canaryConfig.getName() + ".json", true);
 
-    return canaryConfigId;
+    return CanaryConfigUpdateResponse.builder().canaryConfigId(canaryConfigId).build();
   }
 
   @ApiOperation(value = "Delete a canary config")
