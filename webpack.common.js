@@ -2,30 +2,18 @@ const webpack = require('webpack');
 const fs = require('fs');
 const path = require('path');
 const md5 = require('md5');
+
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 
-// invalidate webpack cache when webpack config is changed, cache-loader is updated,
-// or any of these environment variables are changed
+// invalidate webpack cache when webpack config is changed or cache-loader is updated,
 const CACHE_INVALIDATE = JSON.stringify({
-  API_HOST:            process.env.API_HOST,
-  AUTH_ENABLED:        process.env.AUTH_ENABLED,
-  AUTH_ENDPOINT:       process.env.AUTH_ENDPOINT,
-  BAKERY_DETAIL_URL:   process.env.BAKERY_DETAIL_URL,
-  CANARY_ENABLED:      process.env.CANARY_ENABLED,
-  CHAOS_ENABLED:       process.env.CHAOS_ENABLED,
-  DEBUG_ENABLED:       process.env.DEBUG_ENABLED,
-  ENTITY_TAGS_ENABLED: process.env.ENTITY_TAGS_ENABLED,
-  FEEDBACK_URL:        process.env.FEEDBACK_URL,
-  FIAT_ENABLED:        process.env.FIAT_ENABLED,
-  INFRA_ENABLED:       process.env.INFRA_ENABLED,
-  INF_SEARCH_ENABLED:  process.env.INF_SEARCH_ENABLED,
-  NETFLIX_MODE:        process.env.NETFLIX_MODE,
   THREAD_LOADER:       require('cache-loader/package.json').version,
   WEBPACK_CONFIG:      md5(fs.readFileSync(__filename)),
 });
 
 const NODE_MODULE_PATH = path.join(__dirname, 'node_modules');
+
 function configure(IS_TEST) {
 
   const config = {
@@ -75,7 +63,7 @@ function configure(IS_TEST) {
             { loader: 'envify-loader' },
             { loader: 'eslint-loader' } ,
           ],
-          exclude: /node_modules(?!\/clipboard)/
+          exclude: /(node_modules(?!\/clipboard)|settings[^/]*.js)/
         },
         {
           test: /\.tsx?$/,
@@ -135,12 +123,12 @@ function configure(IS_TEST) {
     },
     watch: IS_TEST,
     devServer: IS_TEST ? {
-      stats: 'none',
+      stats: 'errors-only',
     } : {
       port: process.env.DECK_PORT || 9000,
       host: process.env.DECK_HOST || 'localhost',
       https: process.env.DECK_HTTPS === 'true',
-      stats: 'none',
+      stats: 'errors-only',
     },
     externals: {
       'cheerio': 'window',
