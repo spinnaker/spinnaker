@@ -32,7 +32,6 @@ import com.netflix.spinnaker.clouddriver.cache.OnDemandMetricsSupport;
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesApiVersion;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.job.KubectlJobExecutor;
@@ -126,7 +125,7 @@ public abstract class KubernetesV2OnDemandCachingAgent extends KubernetesV2Cachi
       String onDemandResultsJson = (String) onDemandData.getAttributes().get(CACHE_RESULTS_KEY);
       Map<String, Collection<CacheData>> onDemandResults;
       try {
-        onDemandResults = objectMapper.readValue(onDemandResultsJson, new TypeReference<Map<String, List<CacheData>>>() { });
+        onDemandResults = objectMapper.readValue(onDemandResultsJson, new TypeReference<Map<String, List<DefaultCacheData>>>() { });
       } catch (IOException e) {
         log.error("Failure parsing stored on demand data for '{}'", onDemandKey, e);
         continue;

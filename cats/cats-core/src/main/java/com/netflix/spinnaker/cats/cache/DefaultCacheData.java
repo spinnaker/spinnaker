@@ -16,11 +16,12 @@
 
 package com.netflix.spinnaker.cats.cache;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.Clock;
 import java.util.Collection;
-import java.util.Map;
 import java.util.HashMap;
-import java.util.Optional;
+import java.util.Map;
 
 /**
  * An immutable CacheData.
@@ -35,7 +36,11 @@ public class DefaultCacheData implements CacheData {
         this(id, -1, attributes, relationships);
     }
 
-    public DefaultCacheData(String id, int ttlSeconds, Map<String, Object> attributes, Map<String, Collection<String>> relationships) {
+    @JsonCreator
+    public DefaultCacheData(@JsonProperty("id") String id,
+                            @JsonProperty("ttlSeconds") int ttlSeconds,
+                            @JsonProperty("attributes") Map<String, Object> attributes,
+                            @JsonProperty("relationships") Map<String, Collection<String>> relationships) {
         this(id, ttlSeconds, attributes, relationships, Clock.systemDefaultZone());
     }
 

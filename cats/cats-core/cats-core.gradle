@@ -1,5 +1,6 @@
 dependencies {
   compile spinnaker.dependency('slf4jApi')
+  compile spinnaker.dependency('jacksonAnnotations')
 
   testCompile project(":cats:cats-test")
 }
