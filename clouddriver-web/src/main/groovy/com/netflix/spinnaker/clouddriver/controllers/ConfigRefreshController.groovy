@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.controllers
 import com.netflix.spinnaker.clouddriver.Main
 import com.netflix.spinnaker.clouddriver.events.ConfigRefreshedEvent
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.Banner
 import org.springframework.boot.builder.SpringApplicationBuilder
 import org.springframework.context.ApplicationContext
 import org.springframework.context.ApplicationEventPublisher
@@ -51,7 +52,7 @@ class ConfigRefreshController {
       .sources(NoBeans)
       .web(false)
       .headless(true)
-      .showBanner(false)
+      .bannerMode(Banner.Mode.OFF)
       .addCommandLineProperties(true)
       .logStartupInfo(false)
       .environment(env)
