@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.rosco.providers
 
-import com.netflix.spinnaker.rosco.api.Artifact
+import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import com.netflix.spinnaker.rosco.api.Bake
 import com.netflix.spinnaker.rosco.api.BakeOptions
 import com.netflix.spinnaker.rosco.api.BakeOptions.BaseImage
@@ -110,16 +110,18 @@ abstract class CloudProviderBakeHandler {
    * Returns a decorated artifact for a given bake. Right now this is a generic approach
    * but it could be useful to override this method for specific providers.
    */
-  def Artifact produceArtifactDecorationFrom(BakeRequest bakeRequest, BakeRecipe bakeRecipe, Bake bakeDetails, String cloudProvider) {
+  def Artifact produceArtifactDecorationFrom(BakeRequest bakeRequest, BakeRecipe bakeRecipe, Bake bakeDetails, String cloudProvider, String region) {
     Artifact bakedArtifact = new Artifact(
       name: bakeRecipe?.name,
       version: bakeRecipe?.version,
-      type: cloudProvider,
+      type: "${cloudProvider}/image",
+      location: region,
       reference: bakeDetails.ami ?: bakeDetails.image_name,
       metadata: [
         build_info_url: bakeRequest?.build_info_url,
         build_number: bakeRequest?.build_number
-      ]
+      ],
+      uuid: bakeDetails.id
     )
 
     return bakedArtifact

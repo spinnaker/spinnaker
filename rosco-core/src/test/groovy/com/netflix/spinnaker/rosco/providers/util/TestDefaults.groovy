@@ -26,6 +26,7 @@ trait TestDefaults {
   static final String SOME_AMI_ID = "ami-3cf4a854"
   static final String SOME_IMAGE_NAME = "ubuntu/trusty"
   static final String SOME_CLOUD_PROVIDER = "aws"
+  static final String SOME_REGION = "eu-west-1"
 
   static final Bake SOME_BAKE_DETAILS = new Bake(id: SOME_JOB_ID, ami: SOME_AMI_ID, image_name: SOME_IMAGE_NAME)
   static final BakeRequest SOME_BAKE_REQUEST = new BakeRequest(build_info_url: SOME_BUILD_INFO_URL, build_number: SOME_BUILD_NR)

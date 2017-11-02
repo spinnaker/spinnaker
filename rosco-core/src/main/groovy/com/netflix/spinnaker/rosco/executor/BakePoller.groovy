@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.rosco.executor
 
 import com.netflix.spectator.api.Registry
-import com.netflix.spinnaker.rosco.api.Artifact
 import com.netflix.spinnaker.rosco.api.Bake
 import com.netflix.spinnaker.rosco.api.BakeRequest
 import com.netflix.spinnaker.rosco.api.BakeStatus
@@ -218,7 +217,7 @@ class BakePoller implements ApplicationListener<ContextRefreshedEvent> {
               BakeRequest bakeRequest = bakeStore.retrieveBakeRequestById(bakeId)
               BakeRecipe bakeRecipe = bakeStore.retrieveBakeRecipeById(bakeId)
               bakeDetails.artifact = cloudProviderBakeHandler.produceArtifactDecorationFrom(
-                bakeRequest, bakeRecipe, bakeDetails, cloudProvider
+                bakeRequest, bakeRecipe, bakeDetails, cloudProvider, region
               )
             }
 

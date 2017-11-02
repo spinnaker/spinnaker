@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.rosco.executor
 
 import com.netflix.spectator.api.DefaultRegistry
-import com.netflix.spinnaker.rosco.api.Artifact
+import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import com.netflix.spinnaker.rosco.api.Bake
 import com.netflix.spinnaker.rosco.api.BakeRequest
 import com.netflix.spinnaker.rosco.api.BakeStatus
@@ -33,7 +33,6 @@ import spock.lang.Unroll
 
 class BakePollerSpec extends Specification implements TestDefaults {
 
-  private static final String REGION = "some-region"
   private static final String JOB_ID = "123"
   private static final String AMI_ID = "ami-3cf4a854"
   private static final String IMAGE_NAME = "some-image"
@@ -63,7 +62,7 @@ class BakePollerSpec extends Specification implements TestDefaults {
     then:
       1 * jobExecutorMock.updateJob(JOB_ID) >> incompleteBakeStatus
       1 * bakeStoreMock.updateBakeStatus(incompleteBakeStatus)
-      numStatusLookups * bakeStoreMock.retrieveRegionById(JOB_ID) >> REGION
+      numStatusLookups * bakeStoreMock.retrieveRegionById(JOB_ID) >> SOME_REGION
       numStatusLookups * bakeStoreMock.retrieveBakeStatusById(JOB_ID) >> incompleteBakeStatus
 
     where:
@@ -100,8 +99,8 @@ class BakePollerSpec extends Specification implements TestDefaults {
       1 * jobExecutorMock.updateJob(JOB_ID) >> completeBakeStatus
       1 * bakeStoreMock.retrieveCloudProviderById(JOB_ID) >> BakeRequest.CloudProviderType.gce.toString()
       1 * cloudProviderBakeHandlerRegistryMock.lookup(BakeRequest.CloudProviderType.gce) >> cloudProviderBakeHandlerMock
-      2 * bakeStoreMock.retrieveRegionById(JOB_ID) >> REGION  // 1 for metrics
-      1 * cloudProviderBakeHandlerMock.scrapeCompletedBakeResults(REGION, JOB_ID, "$LOGS_CONTENT\n$LOGS_CONTENT") >> bakeDetails
+      2 * bakeStoreMock.retrieveRegionById(JOB_ID) >> SOME_REGION  // 1 for metrics
+      1 * cloudProviderBakeHandlerMock.scrapeCompletedBakeResults(SOME_REGION, JOB_ID, "$LOGS_CONTENT\n$LOGS_CONTENT") >> bakeDetails
       1 * bakeStoreMock.retrieveBakeRequestById(JOB_ID) >> bakeRequest
       1 * bakeStoreMock.retrieveBakeRecipeById(JOB_ID) >> bakeRecipe
       1 * bakeStoreMock.updateBakeDetails(bakeDetails)
@@ -132,7 +131,7 @@ class BakePollerSpec extends Specification implements TestDefaults {
       1 * jobExecutorMock.updateJob(JOB_ID) >> null
       1 * bakeStoreMock.storeBakeError(JOB_ID, "Unable to retrieve status for '$JOB_ID'.")
       1 * bakeStoreMock.cancelBakeById(JOB_ID)
-      1 * bakeStoreMock.retrieveRegionById(JOB_ID) >> REGION
+      1 * bakeStoreMock.retrieveRegionById(JOB_ID) >> SOME_REGION
       1 * bakeStoreMock.retrieveBakeStatusById(JOB_ID) >> new BakeStatus()
   }
 
@@ -147,7 +146,7 @@ class BakePollerSpec extends Specification implements TestDefaults {
       def bakedArtifact = new Artifact(
         name: bakeRecipe.name,
         version: bakeRecipe.version,
-        type: DOCKER_CLOUD_PROVIDER,
+        type: "${DOCKER_CLOUD_PROVIDER}/image",
         reference: AMI_ID,
         metadata: [
           build_info_url: bakeRequest.build_info_url,
@@ -170,9 +169,9 @@ class BakePollerSpec extends Specification implements TestDefaults {
     then:
       1 * bakeStoreMock.retrieveCloudProviderById(JOB_ID) >> DOCKER_CLOUD_PROVIDER.toString()
       1 * cloudProviderBakeHandlerRegistryMock.lookup(DOCKER_CLOUD_PROVIDER) >> cloudProviderBakeHandlerMock
-      1 * bakeStoreMock.retrieveRegionById(JOB_ID) >> REGION
-      1 * cloudProviderBakeHandlerMock.scrapeCompletedBakeResults(REGION, JOB_ID, LOGS_CONTENT) >> bakeDetails
-      1 * cloudProviderBakeHandlerMock.produceArtifactDecorationFrom(bakeRequest, bakeRecipe, bakeDetails, DOCKER_CLOUD_PROVIDER.toString()) >> bakedArtifact
+      1 * bakeStoreMock.retrieveRegionById(JOB_ID) >> SOME_REGION
+      1 * cloudProviderBakeHandlerMock.scrapeCompletedBakeResults(SOME_REGION, JOB_ID, LOGS_CONTENT) >> bakeDetails
+      1 * cloudProviderBakeHandlerMock.produceArtifactDecorationFrom(bakeRequest, bakeRecipe, bakeDetails, DOCKER_CLOUD_PROVIDER.toString(), SOME_REGION) >> bakedArtifact
       1 * bakeStoreMock.retrieveBakeRequestById(JOB_ID) >> bakeRequest
       1 * bakeStoreMock.retrieveBakeRecipeById(JOB_ID) >> bakeRecipe
       1 * bakeStoreMock.updateBakeDetails(decoratedBakeDetails)

@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.rosco.providers
 
-import com.netflix.spinnaker.rosco.api.Artifact
+import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import com.netflix.spinnaker.rosco.providers.util.TestDefaults
 import spock.lang.Specification
 import spock.lang.Subject
@@ -30,19 +30,21 @@ class CloudProviderBakeHandlerSpec extends Specification implements TestDefaults
       def expectedArtifact = new Artifact (
         name: SOME_BAKE_RECIPE.name,
         version: SOME_BAKE_RECIPE.version,
-        type: SOME_CLOUD_PROVIDER,
+        location: SOME_REGION,
+        type: "${SOME_CLOUD_PROVIDER}/image",
         reference: SOME_BAKE_DETAILS.ami,
         metadata: [
           build_info_url: SOME_BAKE_REQUEST.build_info_url,
           build_number: SOME_BAKE_REQUEST.build_number
-        ]
+        ],
+        uuid: SOME_BAKE_DETAILS.id
       )
 
       @Subject
       CloudProviderBakeHandler bakeHandler = Spy(CloudProviderBakeHandler)
 
     when:
-      Artifact producedArtifact = bakeHandler.produceArtifactDecorationFrom(SOME_BAKE_REQUEST, SOME_BAKE_RECIPE, SOME_BAKE_DETAILS, SOME_CLOUD_PROVIDER)
+      Artifact producedArtifact = bakeHandler.produceArtifactDecorationFrom(SOME_BAKE_REQUEST, SOME_BAKE_RECIPE, SOME_BAKE_DETAILS, SOME_CLOUD_PROVIDER, SOME_REGION)
 
     then:
       producedArtifact == expectedArtifact
@@ -53,7 +55,7 @@ class CloudProviderBakeHandlerSpec extends Specification implements TestDefaults
     expect:
       @Subject
       CloudProviderBakeHandler bakeHandler = Spy(CloudProviderBakeHandler)
-      def decoratedArtifact = bakeHandler.produceArtifactDecorationFrom(bakeRequest, bakeRecipe, SOME_BAKE_DETAILS, SOME_CLOUD_PROVIDER)
+      def decoratedArtifact = bakeHandler.produceArtifactDecorationFrom(bakeRequest, bakeRecipe, SOME_BAKE_DETAILS, SOME_CLOUD_PROVIDER, SOME_REGION)
       decoratedArtifact.name == expectedName
       decoratedArtifact.version == expectedVersion
       decoratedArtifact.reference == expectedReference

@@ -20,6 +20,7 @@ import groovy.transform.CompileStatic
 import groovy.transform.EqualsAndHashCode
 import groovy.transform.ToString
 import io.swagger.annotations.ApiModelProperty
+import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 
 /**
  * The details of a completed bake.
