@@ -103,6 +103,28 @@ public class NodeFilter implements Cloneable {
     return this;
   }
 
+  public NodeFilter withAnyPubsub() {
+    matchers.add(Node.thisNodeAcceptor(Pubsubs.class));
+    matchers.add(Node.thisNodeAcceptor(Pubsub.class));
+    return this;
+  }
+
+  public NodeFilter setPubsub(String name) {
+    matchers.add(Node.thisNodeAcceptor(Pubsubs.class));
+    matchers.add(Node.namedNodeAcceptor(Pubsub.class, name));
+    return this;
+  }
+
+  public NodeFilter withAnySubscription() {
+    matchers.add(Node.thisNodeAcceptor(Subscription.class));
+    return this;
+  }
+
+  public NodeFilter setSubscription(String name) {
+    matchers.add(Node.namedNodeAcceptor(Subscription.class, name));
+    return this;
+  }
+
   public NodeFilter withAnyArtifactProvider() {
     matchers.add(Node.thisNodeAcceptor(Artifacts.class));
     matchers.add(Node.thisNodeAcceptor(ArtifactProvider.class));

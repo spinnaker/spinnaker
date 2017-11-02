@@ -41,6 +41,9 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.PersistentStorage;
 import com.netflix.spinnaker.halyard.config.model.v1.node.PersistentStore;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Provider;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Providers;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Pubsub;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Pubsubs;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Subscription;
 import com.netflix.spinnaker.halyard.config.model.v1.security.ApacheSsl;
 import com.netflix.spinnaker.halyard.config.model.v1.security.ApiSecurity;
 import com.netflix.spinnaker.halyard.config.model.v1.security.AuthnMethod;
@@ -208,6 +211,34 @@ public class Daemon {
     };
   }
 
+  public static Supplier<Subscription> getSubscription(String deploymentName, String pubsubName, String subscriptionName, boolean validate) {
+    return () -> {
+      Object rawSubscription = ResponseUnwrapper.get(getService().getSubscription(deploymentName, pubsubName, subscriptionName, validate));
+      return getObjectMapper().convertValue(rawSubscription, Pubsubs.translateSubscriptionType(pubsubName));
+    };
+  }
+
+  public static Supplier<Void> addSubscription(String deploymentName, String pubsubName, boolean validate, Subscription subscription) {
+    return () -> {
+      ResponseUnwrapper.get(getService().addSubscription(deploymentName, pubsubName, validate, subscription));
+      return null;
+    };
+  }
+
+  public static Supplier<Void> setSubscription(String deploymentName, String pubsubName, String subscriptionName, boolean validate, Subscription subscription) {
+    return () -> {
+      ResponseUnwrapper.get(getService().setSubscription(deploymentName, pubsubName, subscriptionName, validate, subscription));
+      return null;
+    };
+  }
+
+  public static Supplier<Void> deleteSubscription(String deploymentName, String pubsubName, String subscriptionName, boolean validate) {
+    return () -> {
+      ResponseUnwrapper.get(getService().deleteSubscription(deploymentName, pubsubName, subscriptionName, validate));
+      return null;
+    };
+  }
+
   public static Supplier<Account> getAccount(String deploymentName, String providerName, String accountName, boolean validate) {
     return () -> {
       Object rawAccount = ResponseUnwrapper.get(getService().getAccount(deploymentName, providerName, accountName, validate));
@@ -302,6 +333,27 @@ public class Daemon {
   public static Supplier<Void> deleteCluster(String deploymentName, String providerName, String clusterName, boolean validate) {
     return () -> {
       ResponseUnwrapper.get(getService().deleteCluster(deploymentName, providerName, clusterName, validate));
+      return null;
+    };
+  }
+
+  public static Supplier<Void> setPubsub(String deploymentName, String pubsubName, boolean validate, Pubsub pubsub) {
+    return () -> {
+      ResponseUnwrapper.get(getService().setPubsub(deploymentName, pubsubName, validate, pubsub));
+      return null;
+    };
+  }
+
+  public static Supplier<Pubsub> getPubsub(String deploymentName, String pubsubName, boolean validate) {
+    return () -> {
+      Object pubsub = ResponseUnwrapper.get(getService().getPubsub(deploymentName, pubsubName, validate));
+      return getObjectMapper().convertValue(pubsub, Pubsubs.translatePubsubType(pubsubName));
+    };
+  }
+
+  public static Supplier<Void> setPubsubEnableDisable(String deploymentName, String pubsubName, boolean validate, boolean enable) {
+    return () -> {
+      ResponseUnwrapper.get(getService().setPubsubEnabled(deploymentName, pubsubName, validate, enable));
       return null;
     };
   }

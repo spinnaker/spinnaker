@@ -32,6 +32,8 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.Notification;
 import com.netflix.spinnaker.halyard.config.model.v1.node.PersistentStorage;
 import com.netflix.spinnaker.halyard.config.model.v1.node.PersistentStore;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Provider;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Pubsub;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Subscription;
 import com.netflix.spinnaker.halyard.config.model.v1.security.ApacheSsl;
 import com.netflix.spinnaker.halyard.config.model.v1.security.ApiSecurity;
 import com.netflix.spinnaker.halyard.config.model.v1.security.AuthnMethod;
@@ -183,6 +185,26 @@ public interface DaemonService {
       @Query("validate") boolean validate,
       @Body PersistentStore persistentStore);
 
+  @GET("/v1/config/deployments/{deploymentName}/pubsubs/{pubsubName}/")
+  DaemonTask<Halconfig, Object> getPubsub(
+      @Path("deploymentName") String deploymentName,
+      @Path("pubsubName") String pubsubName,
+      @Query("validate") boolean validate);
+
+  @PUT("/v1/config/deployments/{deploymentName}/pubsubs/{pubsubName}/")
+  DaemonTask<Halconfig, Object> setPubsub(
+      @Path("deploymentName") String deploymentName,
+      @Path("pubsubName") String pubsubName,
+      @Query("validate") boolean validate,
+      @Body Pubsub pubsub);
+
+  @PUT("/v1/config/deployments/{deploymentName}/pubsubs/{pubsubName}/enabled/")
+  DaemonTask<Halconfig, Void> setPubsubEnabled(
+      @Path("deploymentName") String deploymentName,
+      @Path("pubsubName") String pubsubName,
+      @Query("validate") boolean validate,
+      @Body boolean enabled);
+
   @GET("/v1/config/deployments/{deploymentName}/providers/{providerName}/")
   DaemonTask<Halconfig, Object> getProvider(
       @Path("deploymentName") String deploymentName,
@@ -222,6 +244,35 @@ public interface DaemonService {
       @Path("providerName") String providerName,
       @Query("validate") boolean validate,
       @Body boolean enabled);
+
+  @POST("/v1/config/deployments/{deploymentName}/pubsubs/{pubsubName}/subscriptions/")
+  DaemonTask<Halconfig, Void> addSubscription(
+      @Path("deploymentName") String deploymentName,
+      @Path("pubsubName") String pubsubName,
+      @Query("validate") boolean validate,
+      @Body Subscription subscription);
+
+  @GET("/v1/config/deployments/{deploymentName}/pubsubs/{pubsubName}/subscriptions/subscription/{subscriptionName}/")
+  DaemonTask<Halconfig, Object> getSubscription(
+      @Path("deploymentName") String deploymentName,
+      @Path("pubsubName") String pubsubName,
+      @Path("subscriptionName") String subscriptionName,
+      @Query("validate") boolean validate);
+
+  @PUT("/v1/config/deployments/{deploymentName}/pubsubs/{pubsubName}/subscriptions/subscription/{subscriptionName}/")
+  DaemonTask<Halconfig, Void> setSubscription(
+      @Path("deploymentName") String deploymentName,
+      @Path("pubsubName") String pubsubName,
+      @Path("subscriptionName") String subscriptionName,
+      @Query("validate") boolean validate,
+      @Body Subscription subscription);
+
+  @DELETE("/v1/config/deployments/{deploymentName}/pubsubs/{pubsubName}/subscriptions/subscription/{subscriptionName}/")
+  DaemonTask<Halconfig, Void> deleteSubscription(
+      @Path("deploymentName") String deploymentName,
+      @Path("pubsubName") String pubsubName,
+      @Path("subscriptionName") String subscriptionName,
+      @Query("validate") boolean validate);
 
   @POST("/v1/config/deployments/{deploymentName}/providers/{providerName}/accounts/")
   DaemonTask<Halconfig, Void> addAccount(

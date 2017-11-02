@@ -187,6 +187,16 @@
  * [**hal config provider oraclebmcs account list**](#hal-config-provider-oraclebmcs-account-list)
  * [**hal config provider oraclebmcs disable**](#hal-config-provider-oraclebmcs-disable)
  * [**hal config provider oraclebmcs enable**](#hal-config-provider-oraclebmcs-enable)
+ * [**hal config pubsub**](#hal-config-pubsub)
+ * [**hal config pubsub google**](#hal-config-pubsub-google)
+ * [**hal config pubsub google disable**](#hal-config-pubsub-google-disable)
+ * [**hal config pubsub google enable**](#hal-config-pubsub-google-enable)
+ * [**hal config pubsub google subscription**](#hal-config-pubsub-google-subscription)
+ * [**hal config pubsub google subscription add**](#hal-config-pubsub-google-subscription-add)
+ * [**hal config pubsub google subscription delete**](#hal-config-pubsub-google-subscription-delete)
+ * [**hal config pubsub google subscription edit**](#hal-config-pubsub-google-subscription-edit)
+ * [**hal config pubsub google subscription get**](#hal-config-pubsub-google-subscription-get)
+ * [**hal config pubsub google subscription list**](#hal-config-pubsub-google-subscription-list)
  * [**hal config security**](#hal-config-security)
  * [**hal config security api**](#hal-config-security-api)
  * [**hal config security api edit**](#hal-config-security-api-edit)
@@ -494,6 +504,7 @@ hal config [parameters] [subcommands]
  * `metric-stores`: Configure Spinnaker's metric stores. This configuration only affects the publishing of metrics against whichever metric stores you enable (it can be more than one).
  * `notification`: Display the state of Spinnaker's notification settings.
  * `provider`: Configure, validate, and view the specified provider.
+ * `pubsub`: Configure, validate, and view the specified pubsub.
  * `security`: Configure Spinnaker's security. This includes external SSL, authentication mechanisms, and authorization policies.
  * `storage`: Show Spinnaker's persistent storage configuration.
  * `version`: Configure & view the current deployment of Spinnaker's version.
@@ -3637,6 +3648,177 @@ Set the oraclebmcs provider as enabled
 #### Usage
 ```
 hal config provider oraclebmcs enable [parameters]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config pubsub
+
+Configure, validate, and view the specified pubsub.
+
+#### Usage
+```
+hal config pubsub [subcommands]
+```
+
+#### Subcommands
+ * `google`: Manage and view Spinnaker configuration for the google pubsub
+
+---
+## hal config pubsub google
+
+Manage and view Spinnaker configuration for the google pubsub
+
+#### Usage
+```
+hal config pubsub google [parameters] [subcommands]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+#### Subcommands
+ * `disable`: Set the google pubsub as disabled
+ * `enable`: Set the google pubsub as enabled
+ * `subscription`: Manage and view Spinnaker configuration for the google pubsub's subscription
+
+---
+## hal config pubsub google disable
+
+Set the google pubsub as disabled
+
+#### Usage
+```
+hal config pubsub google disable [parameters]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config pubsub google enable
+
+Set the google pubsub as enabled
+
+#### Usage
+```
+hal config pubsub google enable [parameters]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config pubsub google subscription
+
+Manage and view Spinnaker configuration for the google pubsub's subscription
+
+#### Usage
+```
+hal config pubsub google subscription SUBSCRIPTION [parameters] [subcommands]
+```
+
+#### Parameters
+`SUBSCRIPTION`: The name of the subscription to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+#### Subcommands
+ * `add`: Add an subscription to the google pubsub.
+ * `delete`: Delete a specific google subscription by name.
+ * `edit`: Edit an subscription in the google pubsub.
+ * `get`: Get the specified subscription details for the google pubsub.
+ * `list`: List the subscription names for the google pubsub.
+
+---
+## hal config pubsub google subscription add
+
+Add an subscription to the google pubsub.
+
+#### Usage
+```
+hal config pubsub google subscription add SUBSCRIPTION [parameters]
+```
+
+#### Parameters
+`SUBSCRIPTION`: The name of the subscription to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--json-path`: The path to a JSON service account that Spinnaker will use as credentials. This is only needed if Spinnaker is not deployed on a Google Compute Engine VM, or needs permissions not afforded to the VM it is running on. See https://cloud.google.com/compute/docs/access/service-accounts for more information.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+ * `--project`: The name of the GCP project your subscription lives in.
+ * `--subscription-name`: The name of the subscription to listen to. This identifier does not include the name of the project, and must already be configured for Spinnaker to work.
+ * `--template-path`: A path to a jinja template that specifies how artifacts from this pubsub system are interpreted and transformed into Spinnaker artifacts. See spinnaker.io/reference/artifacts for more information.
+
+
+---
+## hal config pubsub google subscription delete
+
+Delete a specific google subscription by name.
+
+#### Usage
+```
+hal config pubsub google subscription delete SUBSCRIPTION [parameters]
+```
+
+#### Parameters
+`SUBSCRIPTION`: The name of the subscription to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config pubsub google subscription edit
+
+Edit an subscription in the google pubsub.
+
+#### Usage
+```
+hal config pubsub google subscription edit SUBSCRIPTION [parameters]
+```
+
+#### Parameters
+`SUBSCRIPTION`: The name of the subscription to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--json-path`: The path to a JSON service account that Spinnaker will use as credentials. This is only needed if Spinnaker is not deployed on a Google Compute Engine VM, or needs permissions not afforded to the VM it is running on. See https://cloud.google.com/compute/docs/access/service-accounts for more information.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+ * `--project`: The name of the GCP project your subscription lives in.
+ * `--subscription-name`: The name of the subscription to listen to. This identifier does not include the name of the project, and must already be configured for Spinnaker to work.
+ * `--template-path`: A path to a jinja template that specifies how artifacts from this pubsub system are interpreted and transformed into Spinnaker artifacts. See spinnaker.io/reference/artifacts for more information.
+
+
+---
+## hal config pubsub google subscription get
+
+Get the specified subscription details for the google pubsub.
+
+#### Usage
+```
+hal config pubsub google subscription get SUBSCRIPTION [parameters]
+```
+
+#### Parameters
+`SUBSCRIPTION`: The name of the subscription to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config pubsub google subscription list
+
+List the subscription names for the google pubsub.
+
+#### Usage
+```
+hal config pubsub google subscription list [parameters]
 ```
 
 #### Parameters

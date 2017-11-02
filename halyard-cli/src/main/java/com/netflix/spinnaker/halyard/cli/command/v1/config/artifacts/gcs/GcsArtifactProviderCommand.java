@@ -18,8 +18,10 @@
 
 package com.netflix.spinnaker.halyard.cli.command.v1.config.artifacts.gcs;
 
+import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.artifacts.AbstractNamedArtifactProviderCommand;
 
+@Parameters(separators =  "=")
 public class GcsArtifactProviderCommand extends AbstractNamedArtifactProviderCommand {
   @Override
   protected String getArtifactProviderName() {

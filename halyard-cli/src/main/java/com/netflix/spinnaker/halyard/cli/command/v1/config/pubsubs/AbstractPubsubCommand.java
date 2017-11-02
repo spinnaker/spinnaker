@@ -16,20 +16,12 @@
  *
  */
 
-package com.netflix.spinnaker.halyard.cli.command.v1.config.artifacts.gcs;
+package com.netflix.spinnaker.halyard.cli.command.v1.config.pubsubs;
 
 import com.beust.jcommander.Parameters;
-import com.netflix.spinnaker.halyard.cli.command.v1.config.artifacts.AbstractArtifactAccountCommand;
+import com.netflix.spinnaker.halyard.cli.command.v1.config.AbstractConfigCommand;
 
-@Parameters(separators =  "=")
-public class GcsArtifactAccountCommand extends AbstractArtifactAccountCommand {
-  @Override
-  protected String getArtifactProviderName() {
-    return "gcs";
-  }
-
-  public GcsArtifactAccountCommand() {
-    registerSubcommand(new GcsAddArtifactAccountCommand());
-    registerSubcommand(new GcsEditArtifactAccountCommand());
-  }
+@Parameters(separators = "=")
+public abstract class AbstractPubsubCommand extends AbstractConfigCommand {
+  abstract protected String getPubsubName();
 }

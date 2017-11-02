@@ -16,20 +16,29 @@
  *
  */
 
-package com.netflix.spinnaker.halyard.cli.command.v1.config.artifacts.gcs;
+package com.netflix.spinnaker.halyard.config.model.v1.node;
 
-import com.beust.jcommander.Parameters;
-import com.netflix.spinnaker.halyard.cli.command.v1.config.artifacts.AbstractArtifactAccountCommand;
+import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
-@Parameters(separators =  "=")
-public class GcsArtifactAccountCommand extends AbstractArtifactAccountCommand {
+@Data
+@EqualsAndHashCode(callSuper = false)
+public abstract class Subscription extends Node implements Cloneable {
+  String name;
+
   @Override
-  protected String getArtifactProviderName() {
-    return "gcs";
+  public void accept(ConfigProblemSetBuilder psBuilder, Validator v) {
+    v.validate(psBuilder, this);
   }
 
-  public GcsArtifactAccountCommand() {
-    registerSubcommand(new GcsAddArtifactAccountCommand());
-    registerSubcommand(new GcsEditArtifactAccountCommand());
+  @Override
+  public String getNodeName() {
+    return name;
+  }
+
+  @Override
+  public NodeIterator getChildren() {
+    return NodeIteratorFactory.makeEmptyIterator();
   }
 }

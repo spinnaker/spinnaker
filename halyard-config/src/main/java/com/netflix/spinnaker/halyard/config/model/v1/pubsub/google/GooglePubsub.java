@@ -16,20 +16,24 @@
  *
  */
 
-package com.netflix.spinnaker.halyard.cli.command.v1.config.artifacts.gcs;
+package com.netflix.spinnaker.halyard.config.model.v1.pubsub.google;
 
-import com.beust.jcommander.Parameters;
-import com.netflix.spinnaker.halyard.cli.command.v1.config.artifacts.AbstractArtifactAccountCommand;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Pubsub;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
+import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
-@Parameters(separators =  "=")
-public class GcsArtifactAccountCommand extends AbstractArtifactAccountCommand {
+@EqualsAndHashCode(callSuper = true)
+@Data
+public class GooglePubsub extends Pubsub<GoogleSubscription> {
   @Override
-  protected String getArtifactProviderName() {
-    return "gcs";
+  public PubsubType pubsubType() {
+    return PubsubType.GOOGLE;
   }
 
-  public GcsArtifactAccountCommand() {
-    registerSubcommand(new GcsAddArtifactAccountCommand());
-    registerSubcommand(new GcsEditArtifactAccountCommand());
+  @Override
+  public void accept(ConfigProblemSetBuilder psBuilder, Validator v) {
+    v.validate(psBuilder, this);
   }
 }

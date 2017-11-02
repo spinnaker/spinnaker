@@ -94,6 +94,8 @@ public class DeploymentConfiguration extends Node {
    */
   Artifacts artifacts = new Artifacts();
 
+  Pubsubs pubsub = new Pubsubs();
+
   @Override
   public String getNodeName() {
     return name;

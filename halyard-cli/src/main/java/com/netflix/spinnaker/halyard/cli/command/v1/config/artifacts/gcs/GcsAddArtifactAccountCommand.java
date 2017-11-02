@@ -19,12 +19,14 @@
 package com.netflix.spinnaker.halyard.cli.command.v1.config.artifacts.gcs;
 
 import com.beust.jcommander.Parameter;
+import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.artifacts.account.AbstractAddArtifactAccountCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.google.CommonGoogleCommandProperties;
 import com.netflix.spinnaker.halyard.cli.command.v1.converter.PathExpandingConverter;
 import com.netflix.spinnaker.halyard.config.model.v1.artifacts.gcs.GcsArtifactAccount;
 import com.netflix.spinnaker.halyard.config.model.v1.node.ArtifactAccount;
 
+@Parameters(separators =  "=")
 public class GcsAddArtifactAccountCommand extends AbstractAddArtifactAccountCommand {
   @Parameter(
       names = "--json-path",
