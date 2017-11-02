@@ -234,10 +234,6 @@ class ClusterController {
       )
     }
 
-    def expandServerGroups = { List<ServerGroup> serverGroups ->
-      return sortedServerGroups.collect { expandServerGroup(it) }
-    }
-
     switch (tsg) {
       case TargetServerGroup.CURRENT:
         return expandServerGroup(sortedServerGroups.get(0))
@@ -254,10 +250,10 @@ class ClusterController {
         return expandServerGroup(sortedServerGroups.last())
       case TargetServerGroup.LARGEST:
         // Choose the server group with the most instances, falling back to newest in the case of a tie.
-        return expandServerGroups(sortedServerGroups).sort { lhs, rhs ->
+        return expandServerGroup(sortedServerGroups.sort { lhs, rhs ->
           rhs.instances.size() <=> lhs.instances.size() ?:
-              rhs.createdTime <=> lhs.createdTime
-        }.get(0)
+            rhs.createdTime <=> lhs.createdTime
+        }.get(0))
       case TargetServerGroup.FAIL:
         if (sortedServerGroups.size() > 1) {
           throw new NotFoundException("More than one target found (scope: ${scope}, serverGroups: ${sortedServerGroups*.name})")

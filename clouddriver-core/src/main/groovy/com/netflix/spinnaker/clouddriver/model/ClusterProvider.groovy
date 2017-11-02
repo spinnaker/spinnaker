@@ -100,6 +100,12 @@ interface ClusterProvider<T extends Cluster> {
    * Determines whether or not optimizations can be made by retrieving minimal or unexpanded clusters.
    *
    * This primarily affects how server groups are loaded for a cluster (@see com.netflix.spinnaker.clouddriver.controllers.ClusterController}.
+   *
+   * Minimal cluster support requires that server groups contained within a cluster be populated with:
+   * - creation time stamps
+   * - region / zone details
+   * - disabled status
+   * - instance counts (fully populated instances are not necessary)
    */
   boolean supportsMinimalClusters()
 }

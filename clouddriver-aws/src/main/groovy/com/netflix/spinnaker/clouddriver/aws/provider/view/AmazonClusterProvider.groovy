@@ -209,6 +209,14 @@ class AmazonClusterProvider implements ClusterProvider<AmazonCluster> {
         }
         instances.get(it)
       } ?: []
+
+      if (!serverGroup.instances && serverGroupEntry.attributes.instances) {
+        // has no direct instance relationships but we can partially populate instances based on attributes.instances
+        serverGroup.instances = serverGroupEntry.attributes.instances.collect {
+          new AmazonInstance(((Map) it) + [name: it.instanceId])
+        }
+      }
+
       [(serverGroupEntry.id) : serverGroup]
     }
 
