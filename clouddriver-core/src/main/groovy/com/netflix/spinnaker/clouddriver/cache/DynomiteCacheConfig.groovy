@@ -41,6 +41,7 @@ import com.netflix.spinnaker.cats.redis.cluster.DefaultNodeIdentity
 import com.netflix.spinnaker.cats.redis.cluster.DefaultNodeStatusProvider
 import com.netflix.spinnaker.cats.redis.cluster.NodeStatusProvider
 import com.netflix.spinnaker.clouddriver.core.RedisConfigurationProperties
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
@@ -118,12 +119,13 @@ class DynomiteCacheConfig {
 
   @Bean
   NamedCacheFactory cacheFactory(
+    @Value('${dynomite.keyspace:#{null}}') String keyspace,
     DynomiteClientDelegate dynomiteClientDelegate,
     ObjectMapper objectMapper,
     RedisCacheOptions redisCacheOptions,
     CacheMetrics cacheMetrics,
     CompressionStrategy compressionStrategy) {
-    new DynomiteNamedCacheFactory(dynomiteClientDelegate, objectMapper, redisCacheOptions, cacheMetrics, compressionStrategy)
+    new DynomiteNamedCacheFactory(Optional.ofNullable(keyspace), dynomiteClientDelegate, objectMapper, redisCacheOptions, cacheMetrics, compressionStrategy)
   }
 
   @Bean

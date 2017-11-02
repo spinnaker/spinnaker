@@ -23,19 +23,24 @@ import com.netflix.spinnaker.cats.dynomite.DynomiteClientDelegate;
 import com.netflix.spinnaker.cats.dynomite.cache.DynomiteCache.CacheMetrics;
 import com.netflix.spinnaker.cats.redis.cache.RedisCacheOptions;
 
+import java.util.Optional;
+
 public class DynomiteNamedCacheFactory implements NamedCacheFactory {
 
+  private final Optional<String> keyspace;
   private final DynomiteClientDelegate dynomiteClientDelegate;
   private final ObjectMapper objectMapper;
   private final RedisCacheOptions options;
   private final CacheMetrics cacheMetrics;
   private final CompressionStrategy compressionStrategy;
 
-  public DynomiteNamedCacheFactory(DynomiteClientDelegate dynomiteClientDelegate,
+  public DynomiteNamedCacheFactory(Optional<String> keyspace,
+                                   DynomiteClientDelegate dynomiteClientDelegate,
                                    ObjectMapper objectMapper,
                                    RedisCacheOptions options,
                                    CacheMetrics cacheMetrics,
                                    CompressionStrategy compressionStrategy) {
+    this.keyspace = keyspace;
     this.dynomiteClientDelegate = dynomiteClientDelegate;
     this.objectMapper = objectMapper;
     this.options = options;
@@ -45,6 +50,10 @@ public class DynomiteNamedCacheFactory implements NamedCacheFactory {
 
   @Override
   public WriteableCache getCache(String name) {
-    return new DynomiteCache(name, dynomiteClientDelegate, objectMapper, options, cacheMetrics, compressionStrategy);
+    return new DynomiteCache(getPrefix(name), dynomiteClientDelegate, objectMapper, options, cacheMetrics, compressionStrategy);
+  }
+
+  private String getPrefix(String name) {
+    return keyspace.map(k -> name + "-" + k).orElse(name);
   }
 }
