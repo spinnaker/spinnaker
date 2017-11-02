@@ -14,6 +14,7 @@ export interface IStageTypeConfig extends IStageOrTriggerTypeConfig {
   configAccountExtractor?: any;
   configuration?: any;
   defaultTimeoutMs?: number;
+  disableNotifications?: boolean;
   executionConfigSections?: string[]; // angular only
   executionDetailsSections?: IExecutionDetailsSection[]; // react only
   executionDetailsUrl?: string; // angular only

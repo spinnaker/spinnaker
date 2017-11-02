@@ -1,12 +1,15 @@
 'use strict';
 
-import {SETTINGS} from 'core/config/settings';
-import {ManualJudgmentExecutionLabel} from './ManualJudgmentExecutionLabel';
-import {ManualJudgmentMarkerIcon} from './ManualJudgmentMarkerIcon';
+import { ManualJudgmentExecutionDetails } from './ManualJudgmentExecutionDetails';
+import { ManualJudgmentExecutionLabel } from './ManualJudgmentExecutionLabel';
+import { ManualJudgmentMarkerIcon } from './ManualJudgmentMarkerIcon';
+import { PIPELINE_CONFIG_PROVIDER } from 'core/pipeline';
+import { SETTINGS } from 'core/config/settings';
+import { ExecutionDetailsTasks } from '../core/ExecutionDetailsTasks';
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.core.pipeline.stage.manualJudgmentStage', [])
+module.exports = angular.module('spinnaker.core.pipeline.stage.manualJudgmentStage', [PIPELINE_CONFIG_PROVIDER])
   .config(function (pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       label: 'Manual Judgment',
@@ -16,7 +19,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.manualJudgmentSta
       controller: 'ManualJudgmentStageCtrl',
       controllerAs: 'manualJudgmentStageCtrl',
       templateUrl: require('./manualJudgmentStage.html'),
-      executionDetailsUrl: require('./manualJudgmentExecutionDetails.html'),
+      executionDetailsSections: [ManualJudgmentExecutionDetails, ExecutionDetailsTasks],
       executionLabelComponent: ManualJudgmentExecutionLabel,
       useCustomTooltip: true,
       markerIcon: ManualJudgmentMarkerIcon,
