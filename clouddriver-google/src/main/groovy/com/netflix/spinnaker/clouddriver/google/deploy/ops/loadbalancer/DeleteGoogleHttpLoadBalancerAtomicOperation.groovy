@@ -224,13 +224,13 @@ class DeleteGoogleHttpLoadBalancerAtomicOperation extends DeleteGoogleLoadBalanc
         def healthCheckName = GCEUtil.getLocalName(healthCheckUrl)
         Operation deleteHealthCheckOp = GCEUtil.deleteIfNotInUse(
           { timeExecute(
-                compute.httpHealthChecks().delete(project, healthCheckName),
-                "compute.httpHealthChecks.delete",
+                compute.healthChecks().delete(project, healthCheckName),
+                "compute.healthChecks.delete",
                 TAG_SCOPE, SCOPE_GLOBAL) },
           "Http health check $healthCheckName",
           project,
           task,
-          [action: 'delete', operation: 'compute.httpHealthChecks.delete', phase: BASE_PHASE, (TAG_SCOPE): SCOPE_GLOBAL],
+          [action: 'delete', operation: 'compute.healthChecks.delete', phase: BASE_PHASE, (TAG_SCOPE): SCOPE_GLOBAL],
           safeRetry,
           this
         )

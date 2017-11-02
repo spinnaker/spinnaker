@@ -83,7 +83,7 @@ class DeleteGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       def backendServices = Mock(Compute.BackendServices)
       def backendServicesGet = Mock(Compute.BackendServices.Get)
       def backendService = new BackendService(healthChecks: [HEALTH_CHECK_URL])
-      def healthChecks = Mock(Compute.HttpHealthChecks)
+      def healthChecks = Mock(Compute.HealthChecks)
 
       def globalForwardingRulesDelete = Mock(Compute.GlobalForwardingRules.Delete)
       def globalForwardingRulesDeleteOp = new Operation(
@@ -101,7 +101,7 @@ class DeleteGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       def backendServicesDeleteOp = new Operation(
           name: BACKEND_SERVICE_DELETE_OP_NAME,
           status: DONE)
-      def healthChecksDelete = Mock(Compute.HttpHealthChecks.Delete)
+      def healthChecksDelete = Mock(Compute.HealthChecks.Delete)
       def healthChecksDeleteOp = new Operation(
           name: HEALTH_CHECK_DELETE_OP_NAME,
           status: DONE)
@@ -155,7 +155,7 @@ class DeleteGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       1 * urlMapsDelete.execute() >> urlMapsDeleteOp
       1 * backendServices.delete(PROJECT_NAME, BACKEND_SERVICE_NAME) >> backendServicesDelete
       1 * backendServicesDelete.execute() >> backendServicesDeleteOp
-      1 * computeMock.httpHealthChecks() >> healthChecks
+      1 * computeMock.healthChecks() >> healthChecks
       1 * healthChecks.delete(PROJECT_NAME, HEALTH_CHECK_NAME) >> healthChecksDelete
       1 * healthChecksDelete.execute() >> healthChecksDeleteOp
 
@@ -198,7 +198,7 @@ class DeleteGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       def backendService = new BackendService(healthChecks: [HEALTH_CHECK_URL])
       def backendService2 = new BackendService(healthChecks: [HEALTH_CHECK_URL+"2"])
       def backendService3 = new BackendService(healthChecks: [HEALTH_CHECK_URL])
-      def healthChecks = Mock(Compute.HttpHealthChecks)
+      def healthChecks = Mock(Compute.HealthChecks)
 
       def globalForwardingRulesDelete = Mock(Compute.GlobalForwardingRules.Delete)
       def globalForwardingRulesDeleteOp = new Operation(
@@ -224,11 +224,11 @@ class DeleteGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       def backendServicesDeleteOp3 = new Operation(
           name: BACKEND_SERVICE_DELETE_OP_NAME+"3",
           status: DONE)
-      def healthChecksDelete = Mock(Compute.HttpHealthChecks.Delete)
+      def healthChecksDelete = Mock(Compute.HealthChecks.Delete)
       def healthChecksDeleteOp = new Operation(
           name: HEALTH_CHECK_DELETE_OP_NAME,
           status: DONE)
-      def healthChecksDelete2 = Mock(Compute.HttpHealthChecks.Delete)
+      def healthChecksDelete2 = Mock(Compute.HealthChecks.Delete)
       def healthChecksDeleteOp2 = new Operation(
           name: HEALTH_CHECK_DELETE_OP_NAME+"2",
           status: DONE)
@@ -295,7 +295,7 @@ class DeleteGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       1 * backendServicesDelete2.execute() >> backendServicesDeleteOp2
       1 * backendServices.delete(PROJECT_NAME, BACKEND_SERVICE_NAME+"3") >> backendServicesDelete3
       1 * backendServicesDelete3.execute() >> backendServicesDeleteOp3
-      2 * computeMock.httpHealthChecks() >> healthChecks
+      2 * computeMock.healthChecks() >> healthChecks
       1 * healthChecks.delete(PROJECT_NAME, HEALTH_CHECK_NAME) >> healthChecksDelete
       1 * healthChecksDelete.execute() >> healthChecksDeleteOp
       1 * healthChecks.delete(PROJECT_NAME, HEALTH_CHECK_NAME+"2") >> healthChecksDelete2
@@ -359,7 +359,7 @@ class DeleteGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       def backendServices = Mock(Compute.BackendServices)
       def backendServicesGet = Mock(Compute.BackendServices.Get)
       def backendService = new BackendService(healthChecks: [HEALTH_CHECK_URL])
-      def healthChecks = Mock(Compute.HttpHealthChecks)
+      def healthChecks = Mock(Compute.HealthChecks)
 
       def globalForwardingRulesDelete = Mock(Compute.GlobalForwardingRules.Delete)
       def globalForwardingRulesDeleteOp = new Operation(
@@ -377,7 +377,7 @@ class DeleteGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       def backendServicesDeleteOp = new Operation(
           name: BACKEND_SERVICE_DELETE_OP_NAME,
           status: DONE)
-      def healthChecksDelete = Mock(Compute.HttpHealthChecks.Delete)
+      def healthChecksDelete = Mock(Compute.HealthChecks.Delete)
       def healthChecksPendingDeleteOp = new Operation(
           name: HEALTH_CHECK_DELETE_OP_NAME,
           status: PENDING)
@@ -435,7 +435,7 @@ class DeleteGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       1 * urlMapsDelete.execute() >> urlMapsDeleteOp
       1 * backendServices.delete(PROJECT_NAME, BACKEND_SERVICE_NAME) >> backendServicesDelete
       1 * backendServicesDelete.execute() >> backendServicesDeleteOp
-      1 * computeMock.httpHealthChecks() >> healthChecks
+      1 * computeMock.healthChecks() >> healthChecks
       1 * healthChecks.delete(PROJECT_NAME, HEALTH_CHECK_NAME) >> healthChecksDelete
       1 * healthChecksDelete.execute() >> healthChecksPendingDeleteOp
 
@@ -540,7 +540,7 @@ class DeleteGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       def backendServices = Mock(Compute.BackendServices)
       def backendServicesGet = Mock(Compute.BackendServices.Get)
       def backendService = new BackendService(healthChecks: [HEALTH_CHECK_URL])
-      def healthChecks = Mock(Compute.HttpHealthChecks)
+      def healthChecks = Mock(Compute.HealthChecks)
 
       def globalForwardingRulesDelete = Mock(Compute.GlobalForwardingRules.Delete)
       def globalForwardingRulesDeleteOp = new Operation(
@@ -561,7 +561,7 @@ class DeleteGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       def backendServicesDeleteOp = new Operation(
           name: BACKEND_SERVICE_DELETE_OP_NAME,
           status: DONE)
-      def healthChecksDelete = Mock(Compute.HttpHealthChecks.Delete)
+      def healthChecksDelete = Mock(Compute.HealthChecks.Delete)
       def healthChecksDeleteOp = new Operation(
           name: HEALTH_CHECK_DELETE_OP_NAME,
           status: DONE)
@@ -615,7 +615,7 @@ class DeleteGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       1 * urlMapsDelete.execute() >> urlMapsDeleteOp
       1 * backendServices.delete(PROJECT_NAME, BACKEND_SERVICE_NAME) >> backendServicesDelete
       1 * backendServicesDelete.execute() >> backendServicesDeleteOp
-      1 * computeMock.httpHealthChecks() >> healthChecks
+      1 * computeMock.healthChecks() >> healthChecks
       1 * healthChecks.delete(PROJECT_NAME, HEALTH_CHECK_NAME) >> healthChecksDelete
       1 * healthChecksDelete.execute() >> healthChecksDeleteOp
 
@@ -647,7 +647,7 @@ class DeleteGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       def backendServices = Mock(Compute.BackendServices)
       def backendServicesGet = Mock(Compute.BackendServices.Get)
       def backendService = new BackendService(healthChecks: [HEALTH_CHECK_URL])
-      def healthChecks = Mock(Compute.HttpHealthChecks)
+      def healthChecks = Mock(Compute.HealthChecks)
 
       def globalForwardingRulesDelete = Mock(Compute.GlobalForwardingRules.Delete)
       def globalForwardingRulesDeleteOp = new Operation(
@@ -662,7 +662,7 @@ class DeleteGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
         name: URL_MAP_DELETE_OP_NAME,
         status: DONE)
       def backendServicesDelete = Mock(Compute.BackendServices.Delete)
-      def healthChecksDelete = Mock(Compute.HttpHealthChecks.Delete)
+      def healthChecksDelete = Mock(Compute.HealthChecks.Delete)
       def healthChecksDeleteOp = new Operation(
         name: HEALTH_CHECK_DELETE_OP_NAME,
         status: DONE)
@@ -716,7 +716,7 @@ class DeleteGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       1 * urlMapsDelete.execute() >> urlMapsDeleteOp
       1 * backendServices.delete(PROJECT_NAME, BACKEND_SERVICE_NAME) >> backendServicesDelete
       1 * backendServicesDelete.execute() >> null
-      1 * computeMock.httpHealthChecks() >> healthChecks
+      1 * computeMock.healthChecks() >> healthChecks
       1 * healthChecks.delete(PROJECT_NAME, HEALTH_CHECK_NAME) >> healthChecksDelete
       1 * healthChecksDelete.execute() >> healthChecksDeleteOp
 
