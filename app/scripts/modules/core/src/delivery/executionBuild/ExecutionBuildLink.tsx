@@ -4,16 +4,17 @@ import { BindAll } from 'lodash-decorators';
 
 import { IExecution } from 'core/domain';
 import { ReactInjector } from 'core/reactShims';
+import { ExecutionBuildTitle } from './ExecutionBuildTitle';
 
-import './ExecutionBuildNumber.less';
+import './ExecutionBuildLink.less';
 
-export interface IExecutionBuildNumberProps {
+export interface IExecutionBuildLinkProps {
   execution: IExecution;
 }
 
 @BindAll()
-export class ExecutionBuildNumber extends React.Component<IExecutionBuildNumberProps, {}> {
-  constructor(props: IExecutionBuildNumberProps) {
+export class ExecutionBuildLink extends React.Component<IExecutionBuildLinkProps, {}> {
+  constructor(props: IExecutionBuildLinkProps) {
     super(props);
   }
 
@@ -39,7 +40,7 @@ export class ExecutionBuildNumber extends React.Component<IExecutionBuildNumberP
             className="execution-build-number clickable"
             onClick={this.handleParentPipelineClick}
           >
-            {this.props.execution.trigger.parentPipelineName}
+            <ExecutionBuildTitle execution={this.props.execution}/>
           </a>
         )}
         { this.props.execution.buildInfo && this.props.execution.buildInfo.number && (
@@ -49,7 +50,7 @@ export class ExecutionBuildNumber extends React.Component<IExecutionBuildNumberP
             href={this.props.execution.buildInfo.url}
             target="_blank"
           >
-            <span className="build-label">Build</span> #{this.props.execution.buildInfo.number}
+            <ExecutionBuildTitle execution={this.props.execution}/>
           </a>
         )}
       </span>

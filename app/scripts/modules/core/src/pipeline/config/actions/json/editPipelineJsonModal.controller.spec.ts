@@ -12,7 +12,7 @@ describe('Controller: editPipelineJsonModal', () => {
 
   function initializeController(pipeline: IPipeline) {
     $uibModalInstance = { close: () => {} };
-    controller = $ctrl(EditPipelineJsonModalCtrl, { $uibModalInstance, pipeline });
+    controller = $ctrl(EditPipelineJsonModalCtrl, { $uibModalInstance, pipeline, plan: null });
   }
 
   it('controller removes name, application, appConfig, all fields and hash keys', () => {

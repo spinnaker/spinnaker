@@ -9,7 +9,7 @@ import { ReactInjector } from 'core/reactShims';
 import { relativeTime, timestamp } from 'core/utils';
 
 import { buildDisplayName } from '../executionBuild/buildDisplayName.filter';
-import { ExecutionBuildNumber } from '../executionBuild/ExecutionBuildNumber';
+import { ExecutionBuildLink } from '../executionBuild/ExecutionBuildLink';
 
 import './executionStatus.less';
 
@@ -109,7 +109,7 @@ export class ExecutionStatus extends React.Component<IExecutionStatusProps, IExe
     return (
       <div className="execution-status-section">
         <span className={`trigger-type ${this.state.sortFilter.groupBy !== name ? 'subheading' : ''}`}>
-          <h5 className="build-number"><ExecutionBuildNumber execution={execution}/></h5>
+          <h5 className="build-number"><ExecutionBuildLink execution={execution}/></h5>
           <h5 className="execution-type">{this.getExecutionTypeDisplay()}</h5>
         </span>
         <ul className="trigger-details">
