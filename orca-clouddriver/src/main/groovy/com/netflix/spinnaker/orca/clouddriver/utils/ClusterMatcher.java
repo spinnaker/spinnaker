@@ -16,23 +16,21 @@
 
 package com.netflix.spinnaker.orca.clouddriver.utils;
 
-import com.netflix.frigga.Names;
+import com.netflix.spinnaker.moniker.Moniker;
 
-import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class ClusterMatcher {
 
-  public static ClusterMatchRule getMatchingRule(String account, String location, String clusterName, List<ClusterMatchRule> rules) {
+  public static ClusterMatchRule getMatchingRule(String account, String location, Moniker clusterMoniker, List<ClusterMatchRule> rules) {
     if (!Optional.ofNullable(rules).isPresent()) {
       return null;
     }
-    Names nameParts = Names.parseName(clusterName);
 
-    String stack = nameParts.getStack() == null ? "" : nameParts.getStack();
-    String detail = nameParts.getDetail() == null ? "" : nameParts.getDetail();
+    String stack = clusterMoniker.getStack() == null ? "" : clusterMoniker.getStack();
+    String detail = clusterMoniker.getDetail() == null ? "" : clusterMoniker.getDetail();
 
     List<ClusterMatchRule> candidates = rules.stream().filter(rule -> {
       String ruleAccount = rule.getAccount();

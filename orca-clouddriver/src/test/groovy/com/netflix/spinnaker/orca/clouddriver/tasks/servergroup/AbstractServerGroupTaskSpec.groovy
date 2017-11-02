@@ -106,7 +106,7 @@ class AbstractServerGroupTaskSpec extends Specification {
     def result = task.execute(stage)
 
     then:
-      1 * TargetServerGroupResolver.fromPreviousStage(stage) >> new TargetServerGroup(
+      2 * TargetServerGroupResolver.fromPreviousStage(stage) >> new TargetServerGroup(
         name: "foo-v001", region: "us-east-1"
       )
     result.context.asgName == "foo-v001"

@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup
 
+import com.netflix.spinnaker.moniker.Moniker
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.DestroyServerGroupStage
 import com.netflix.spinnaker.orca.clouddriver.utils.TrafficGuard
 import org.springframework.beans.factory.annotation.Autowired
@@ -29,8 +30,9 @@ class DestroyServerGroupTask extends AbstractServerGroupTask {
   TrafficGuard trafficGuard
 
   @Override
-  void validateClusterStatus(Map operation) {
+  void validateClusterStatus(Map operation, Moniker moniker) {
     trafficGuard.verifyTrafficRemoval(operation.serverGroupName as String,
+      moniker,
       getCredentials(operation),
       getLocation(operation),
       getCloudProvider(operation), "Destroying")

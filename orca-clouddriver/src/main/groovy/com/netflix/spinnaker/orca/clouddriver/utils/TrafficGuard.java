@@ -18,12 +18,11 @@ package com.netflix.spinnaker.orca.clouddriver.utils;
 
 import java.util.*;
 import java.util.stream.Collectors;
-import com.netflix.frigga.Names;
+import com.netflix.spinnaker.moniker.Moniker;
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Location;
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup;
 import com.netflix.spinnaker.orca.front50.Front50Service;
 import com.netflix.spinnaker.orca.front50.model.Application;
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,6 +46,7 @@ public class TrafficGuard {
   }
 
   public void verifyInstanceTermination(String serverGroupNameFromStage,
+                                        Moniker serverGroupMonikerFromStage,
                                         List<String> instanceIds,
                                         String account,
                                         Location location,
@@ -67,8 +67,7 @@ public class TrafficGuard {
 
     instancesPerServerGroup.entrySet().forEach(entry -> {
       String serverGroupName = entry.getKey();
-      Names names = Names.parseName(serverGroupName);
-      if (hasDisableLock(names.getCluster(), account, location)) {
+      if (hasDisableLock(serverGroupMonikerFromStage, account, location)) {
         Optional<TargetServerGroup> targetServerGroup = oortHelper.getTargetServerGroup(account, serverGroupName, location.getValue(), cloudProvider);
 
         targetServerGroup.ifPresent(serverGroup -> {
@@ -76,7 +75,7 @@ public class TrafficGuard {
           if (thisInstance.isPresent() && "Up".equals(thisInstance.get().get("healthState"))) {
             long otherActiveInstances = serverGroup.getInstances().stream().filter(i -> "Up".equals(i.get("healthState")) && !entry.getValue().contains(i.get("name"))).count();
             if (otherActiveInstances == 0) {
-              verifyOtherServerGroupsAreTakingTraffic(serverGroupName, location, account, cloudProvider, operationDescriptor);
+              verifyOtherServerGroupsAreTakingTraffic(serverGroupName, serverGroup.getMoniker(), location, account, cloudProvider, operationDescriptor);
             }
           }
         });
@@ -91,22 +90,19 @@ public class TrafficGuard {
     return Optional.ofNullable((String) instance.orElse(new HashMap<>()).get("serverGroup"));
   }
 
-  public void verifyTrafficRemoval(String serverGroupName, String account, Location location, String cloudProvider, String operationDescriptor) {
-    Names names = Names.parseName(serverGroupName);
-
-    if (!hasDisableLock(names.getCluster(), account, location)) {
+  public void verifyTrafficRemoval(String serverGroupName, Moniker serverGroupMoniker, String account, Location location, String cloudProvider, String operationDescriptor) {
+    if (!hasDisableLock(serverGroupMoniker, account, location)) {
       return;
     }
 
-    verifyOtherServerGroupsAreTakingTraffic(serverGroupName, location, account, cloudProvider, operationDescriptor);
+    verifyOtherServerGroupsAreTakingTraffic(serverGroupName, serverGroupMoniker, location, account, cloudProvider, operationDescriptor);
   }
 
-  private void verifyOtherServerGroupsAreTakingTraffic(String serverGroupName, Location location, String account, String cloudProvider, String operationDescriptor) {
-    Names names = Names.parseName(serverGroupName);
-    Optional<Map> cluster = oortHelper.getCluster(names.getApp(), account, names.getCluster(), cloudProvider);
+  private void verifyOtherServerGroupsAreTakingTraffic(String serverGroupName, Moniker serverGroupMoniker, Location location, String account, String cloudProvider, String operationDescriptor) {
+    Optional<Map> cluster = oortHelper.getCluster(serverGroupMoniker.getApp(), account, serverGroupMoniker.getCluster(), cloudProvider);
 
     if (!cluster.isPresent()) {
-      throw new IllegalStateException(format("Could not find cluster '%s' in %s/%s with traffic guard configured.", names.getCluster(), account, location.getValue()));
+      throw new IllegalStateException(format("Could not find cluster '%s' in %s/%s with traffic guard configured.", serverGroupMoniker.getCluster(), account, location.getValue()));
     }
     List<TargetServerGroup> targetServerGroups = ((List<Map<String, Object>>) cluster.get().get("serverGroups"))
       .stream()
@@ -120,19 +116,18 @@ public class TrafficGuard {
     );
     if (!otherEnabledServerGroupFound) {
       throw new IllegalStateException(format("This cluster ('%s' in %s/%s) has traffic guards enabled. " +
-        "%s %s would leave the cluster with no instances taking traffic.", names.getCluster(), account, location.getValue(), operationDescriptor, serverGroupName));
+        "%s %s would leave the cluster with no instances taking traffic.", serverGroupMoniker.getCluster(), account, location.getValue(), operationDescriptor, serverGroupName));
     }
   }
 
-  public boolean hasDisableLock(String cluster, String account, Location location) {
+  public boolean hasDisableLock(Moniker clusterMoniker, String account, Location location) {
     if (front50Service == null) {
       log.warn("Front50 has not been configured, no way to check disable lock. Fix this by setting front50.enabled: true");
       return false;
     }
-    Names names = Names.parseName(cluster);
     Application application;
     try {
-      application = front50Service.get(names.getApp());
+      application = front50Service.get(clusterMoniker.getApp());
     } catch (RetrofitError e) {
       if (e.getResponse() != null && e.getResponse().getStatus() == 404) {
         application = null;
@@ -147,6 +142,6 @@ public class TrafficGuard {
     List<ClusterMatchRule> rules = trafficGuards.stream().map(guard ->
       new ClusterMatchRule(guard.get("account"), guard.get("location"), guard.get("stack"), guard.get("detail"), 1)
     ).collect(Collectors.toList());
-    return ClusterMatcher.getMatchingRule(account, location.getValue(), cluster, rules) != null;
+    return ClusterMatcher.getMatchingRule(account, location.getValue(), clusterMoniker, rules) != null;
   }
 }

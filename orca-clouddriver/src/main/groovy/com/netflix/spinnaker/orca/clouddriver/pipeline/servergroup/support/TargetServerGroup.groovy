@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import groovy.transform.InheritConstructors
 import groovy.transform.ToString
 import groovy.util.logging.Slf4j
@@ -28,8 +29,12 @@ import com.netflix.spinnaker.orca.pipeline.model.Stage
  * A TargetServerGroup is a ServerGroup that is dynamically resolved using a target like "current" or "oldest".
  */
 class TargetServerGroup {
+
+  final static ObjectMapper objectMapper = new ObjectMapper()
+
   // Delegates all Map interface calls to this object.
-  @Delegate private final Map<String, Object> serverGroup
+  @Delegate
+  private final Map<String, Object> serverGroup
 
   TargetServerGroup(Map<String, Object> serverGroupData) {
     if (serverGroupData.instances && serverGroupData.instances instanceof Collection) {
@@ -71,6 +76,13 @@ class TargetServerGroup {
    */
   List<Map> getInstances() {
     return (serverGroup.instances ?: []) as List<Map>
+  }
+
+  /**
+   * Used in TrafficGuard, which is Java, which doesn't play nice with @Delegate
+   */
+  Moniker getMoniker() {
+    return serverGroup?.moniker ? objectMapper.convertValue(serverGroup?.moniker, Moniker) : null
   }
 
   Map toClouddriverOperationPayload(String account) {
@@ -173,19 +185,21 @@ class TargetServerGroup {
       /**
        * "Previous Server Group"
        */
-      ancestor_asg_dynamic,
+        ancestor_asg_dynamic,
       /**
        * "Oldest Server Group"
        */
-      oldest_asg_dynamic,
+        oldest_asg_dynamic,
       /**
        * "(Deprecated) Current Server Group"
        */
-      @Deprecated current_asg,
+        @Deprecated
+        current_asg,
       /**
        * "(Deprecated) Last Server Group"
        */
-      @Deprecated ancestor_asg,
+        @Deprecated
+        ancestor_asg,
 
       boolean isDynamic() {
         return this.name().endsWith("dynamic")

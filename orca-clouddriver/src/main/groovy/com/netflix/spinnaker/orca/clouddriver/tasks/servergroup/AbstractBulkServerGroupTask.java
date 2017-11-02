@@ -47,7 +47,7 @@ public abstract class AbstractBulkServerGroupTask extends AbstractCloudProviderA
   @Autowired
   protected KatoService katoService;
 
-  abstract void validateClusterStatus(Map<String, Object> operation);
+  abstract void validateClusterStatus(Map<String, Object> operation, Moniker moniker);
 
   abstract String getClouddriverOperation();
 
@@ -104,8 +104,11 @@ public abstract class AbstractBulkServerGroupTask extends AbstractCloudProviderA
     targetServerGroups.forEach( targetServerGroup -> {
       Map<String , Map> tmp = new HashMap<>();
       Map operation = targetServerGroup.toClouddriverOperationPayload(request.getCredentials());
-
-      validateClusterStatus(operation);
+      Moniker moniker = targetServerGroup.getMoniker();
+      if (moniker == null) {
+        moniker = MonikerHelper.friggaToMoniker(targetServerGroup.getName());
+      }
+      validateClusterStatus(operation, moniker);
       tmp.put(getClouddriverOperation(), operation);
       operations.add(tmp);
     });

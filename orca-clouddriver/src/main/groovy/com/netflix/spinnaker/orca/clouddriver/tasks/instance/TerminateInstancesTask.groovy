@@ -25,6 +25,7 @@ import com.netflix.spinnaker.orca.clouddriver.pipeline.instance.TerminatingInsta
 import com.netflix.spinnaker.orca.clouddriver.pipeline.instance.TerminatingInstanceSupport
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Location
 import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask
+import com.netflix.spinnaker.orca.clouddriver.utils.MonikerHelper
 import com.netflix.spinnaker.orca.clouddriver.utils.TrafficGuard
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
@@ -53,6 +54,7 @@ class TerminateInstancesTask extends AbstractCloudProviderAwareTask implements T
 
     trafficGuard.verifyInstanceTermination(
       serverGroupName,
+      MonikerHelper.monikerFromStage(stage, serverGroupName),
       stage.context.instanceIds as List<String>,
       account,
       Location.region(stage.context.region as String),

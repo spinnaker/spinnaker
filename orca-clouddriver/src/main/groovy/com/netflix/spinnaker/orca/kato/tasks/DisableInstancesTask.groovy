@@ -23,6 +23,7 @@ import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Location
 import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware
 import com.netflix.spinnaker.orca.clouddriver.utils.HealthHelper
+import com.netflix.spinnaker.orca.clouddriver.utils.MonikerHelper
 import com.netflix.spinnaker.orca.clouddriver.utils.TrafficGuard
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
@@ -46,6 +47,7 @@ class DisableInstancesTask implements CloudProviderAware, Task {
 
     trafficGuard.verifyInstanceTermination(
       serverGroupName,
+      MonikerHelper.monikerFromStage(stage, serverGroupName),
       stage.context.instanceIds as List<String>,
       account,
       Location.region(stage.context.region as String),

@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver.utils
 
+import com.netflix.spinnaker.moniker.Moniker
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -25,11 +26,11 @@ class ClusterMatcherSpec extends Specification {
   String location = "us-east-1"
   String stack = "stack"
   String detail = "detail"
-  String clusterName = "myapp-stack-detail"
+  Moniker moniker = new Moniker(null, "myapp-stack-detail", detail, stack, null);
 
   void "returns null when no rules provided"() {
     expect:
-    ClusterMatcher.getMatchingRule(account, location, clusterName, null) == null
+    ClusterMatcher.getMatchingRule(account, location, moniker, null) == null
   }
 
   void "returns null when no rules match on account, location, or stack/detail"() {
@@ -39,7 +40,7 @@ class ClusterMatcherSpec extends Specification {
     ]
 
     expect:
-    ClusterMatcher.getMatchingRule("prod", location, clusterName, rules) == null
+    ClusterMatcher.getMatchingRule("prod", location, moniker, rules) == null
   }
 
   void "returns rule based on location if accounts are identical"() {
@@ -51,7 +52,7 @@ class ClusterMatcherSpec extends Specification {
     ]
 
     expect:
-    ClusterMatcher.getMatchingRule(account, location, clusterName, rules) == expected
+    ClusterMatcher.getMatchingRule(account, location, moniker, rules) == expected
   }
 
   void "returns rule based on stack if account and location are identical"() {
@@ -63,7 +64,7 @@ class ClusterMatcherSpec extends Specification {
     ]
 
     expect:
-    ClusterMatcher.getMatchingRule(account, location, clusterName, rules) == expected
+    ClusterMatcher.getMatchingRule(account, location, moniker, rules) == expected
   }
 
   void "returns rule based on detail if account, location, and stack are identical"() {
@@ -75,7 +76,7 @@ class ClusterMatcherSpec extends Specification {
     ]
 
     expect:
-    ClusterMatcher.getMatchingRule(account, location, clusterName, rules) == expected
+    ClusterMatcher.getMatchingRule(account, location, moniker, rules) == expected
   }
 
   void "returns rule based on priority if all other fields match"() {
@@ -87,7 +88,7 @@ class ClusterMatcherSpec extends Specification {
     ]
 
     expect:
-    ClusterMatcher.getMatchingRule(account, location, clusterName, rules) == expected
+    ClusterMatcher.getMatchingRule(account, location, moniker, rules) == expected
   }
 
   void "specific account takes priority over all other wildcard fields"() {
@@ -99,7 +100,7 @@ class ClusterMatcherSpec extends Specification {
     ]
 
     expect:
-    ClusterMatcher.getMatchingRule(account, location, clusterName, rules) == expected
+    ClusterMatcher.getMatchingRule(account, location, moniker, rules) == expected
   }
 
   void "specific location takes priority over wildcard stack, detail"() {
@@ -111,7 +112,7 @@ class ClusterMatcherSpec extends Specification {
     ]
 
     expect:
-    ClusterMatcher.getMatchingRule(account, location, clusterName, rules) == expected
+    ClusterMatcher.getMatchingRule(account, location, moniker, rules) == expected
   }
 
   void "specific stack takes priority over wildcard detail"() {
@@ -123,7 +124,7 @@ class ClusterMatcherSpec extends Specification {
     ]
 
     expect:
-    ClusterMatcher.getMatchingRule(account, location, clusterName, rules) == expected
+    ClusterMatcher.getMatchingRule(account, location, moniker, rules) == expected
   }
 
   void "specific detail takes priority over priority"() {
@@ -135,7 +136,7 @@ class ClusterMatcherSpec extends Specification {
     ]
 
     expect:
-    ClusterMatcher.getMatchingRule(account, location, clusterName, rules) == expected
+    ClusterMatcher.getMatchingRule(account, location, moniker, rules) == expected
   }
 
   void "handles clusters without account or details values"() {
@@ -146,7 +147,7 @@ class ClusterMatcherSpec extends Specification {
     ]
 
     expect:
-    ClusterMatcher.getMatchingRule(account, location, "myapp", rules) == expected
+    ClusterMatcher.getMatchingRule(account, location, new Moniker("myapp", null, null, null, null),rules) == expected
   }
 
   @Unroll
@@ -158,7 +159,7 @@ class ClusterMatcherSpec extends Specification {
     ]
 
     expect:
-    ClusterMatcher.getMatchingRule(account, location, "myapp", rules) == expected
+    ClusterMatcher.getMatchingRule(account, location, new Moniker("myapp", null, null, null, null), rules) == expected
 
     where:
     expected << [
