@@ -160,7 +160,7 @@ class GoogleHttpLoadBalancerTestScenario(sk.SpinnakerTestScenario):
     '''
     return (GCE_URL_PREFIX
             + self.bindings['GOOGLE_PRIMARY_MANAGED_PROJECT_ID']
-            + '/global/httpHealthChecks/' + hc)
+            + '/global/healthChecks/' + hc)
 
 
   def _set_all_hcs(self, upsert, hc):
@@ -190,13 +190,16 @@ class GoogleHttpLoadBalancerTestScenario(sk.SpinnakerTestScenario):
     hc_clause_builder = (contract_builder
                          .new_clause_builder('Health Checks Created',
                                              retryable_for_secs=30)
-                         .list_resource('httpHealthChecks'))
+                         .list_resource('healthChecks'))
     for hc in health_checks:
       hc_clause_builder.AND(
           ov_factory.value_list_contains(jp.DICT_MATCHES({
               'name': jp.STR_EQ(hc['name']),
-              'requestPath': jp.STR_EQ(hc['requestPath']),
-              'port': jp.NUM_EQ(hc['port'])})))
+              'httpHealthCheck': jp.DICT_MATCHES({
+                  'requestPath': jp.STR_EQ(hc['requestPath']),
+                  'port': jp.NUM_EQ(hc['port']),
+              })
+          })))
 
     bs_clause_builder = (contract_builder.
                          new_clause_builder('Backend Services Created',
@@ -345,7 +348,7 @@ class GoogleHttpLoadBalancerTestScenario(sk.SpinnakerTestScenario):
     contract_builder = gcp.GcpContractBuilder(self.gcp_observer)
     (contract_builder.new_clause_builder('Health Check Removed',
                                          retryable_for_secs=30)
-     .list_resource('httpHealthChecks')
+     .list_resource('healthChecks')
      .EXPECT(ov_factory.value_list_path_excludes(
          'name', jp.STR_SUBSTR(self.__proto_hc['name'])))
     )
