@@ -8,7 +8,7 @@ import './project.less';
 module.exports = angular.module('spinnaker.core.projects.project.controller', [
   require('./configure/configureProject.modal.controller.js').name,
 ])
-  .controller('ProjectCtrl', function ($scope, $uibModal, $timeout, $state, projectConfiguration) {
+  .controller('ProjectCtrl', function ($scope, $uibModal, $timeout, $state, $stateParams, projectConfiguration) {
 
     this.project = projectConfiguration;
 
@@ -29,7 +29,7 @@ module.exports = angular.module('spinnaker.core.projects.project.controller', [
     let initialize = () => {
       projectConfiguration.config.applications = projectConfiguration.config.applications || [];
 
-      let selectedApplication = null;
+      let selectedApplication = $stateParams.application;
 
       // $stateParams is scoped to parent state, so if an application is selected, it will not be visible
       $scope.$on('$stateChangeSuccess', (event, toState, toParams) => {
