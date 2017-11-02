@@ -43,7 +43,7 @@ export class ManualJudgmentExecutionDetails extends React.Component<IExecutionDe
 
         </dl>
         <ManualJudgmentApproval application={application} execution={execution} stage={stage}/>
-        <StageFailureMessage stage={stage} message={stage.failureMessage} />
+        {stage.context.judgmentInput && <StageFailureMessage stage={stage} message={stage.failureMessage} />}
       </ExecutionDetailsSection>
     )
   }
