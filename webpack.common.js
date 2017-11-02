@@ -55,15 +55,20 @@ function configure(IS_TEST) {
     module: {
       rules: [
         {
+          test: /settings\.js/,
+          use: [
+            { loader: 'envify-loader' },
+          ],
+        },
+        {
           test: /\.js$/,
           use: [
             { loader: 'cache-loader', options: { cacheIdentifier: CACHE_INVALIDATE } },
             { loader: 'thread-loader', options: { workers: 3 } },
             { loader: 'babel-loader' },
-            { loader: 'envify-loader' },
             { loader: 'eslint-loader' } ,
           ],
-          exclude: /(node_modules(?!\/clipboard)|settings[^/]*.js)/
+          exclude: /(node_modules(?!\/clipboard)|settings\.js)/
         },
         {
           test: /\.tsx?$/,
