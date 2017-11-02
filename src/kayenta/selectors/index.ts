@@ -3,8 +3,8 @@ import { createSelector } from 'reselect';
 import { IExecution } from '@spinnaker/core';
 
 import { ICanaryState } from '../reducers/index';
-import { CANARY_JUDGE } from '../service/run/canaryRunStages';
-import { ICanaryJudgeStage } from '../domain/ICanaryJudgeStage';
+import { CANARY_JUDGE, SETUP_CANARY } from '../service/run/canaryRunStages';
+import { ICanaryJudgeStage, ISetupCanaryStage } from 'kayenta/domain/index';
 
 export const runSelector = (state: ICanaryState): IExecution => state.selectedRun.run;
 
@@ -26,4 +26,14 @@ export const configNameSelector = createSelector(
 export const metricResultsSelector = createSelector(
   canaryJudgeStageSelector,
   (stage: ICanaryJudgeStage) => stage.context.result.results,
+);
+
+export const setupCanaryStageSelector = createSelector(
+  runSelector,
+  (run: IExecution) => run.stages.find(s => s.type === SETUP_CANARY) as ISetupCanaryStage,
+);
+
+export const serializedCanaryConfigSelector = createSelector(
+  setupCanaryStageSelector,
+  (stage: ISetupCanaryStage) => stage.outputs.canaryConfig,
 );

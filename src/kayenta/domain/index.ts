@@ -6,3 +6,4 @@ export * from './IJudge';
 export * from './IKayentaAccount';
 export * from './IMetricSetPair';
 export * from './ICanaryJudgeStage';
+export * from './ISetupCanaryStage';

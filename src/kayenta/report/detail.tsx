@@ -1,6 +1,7 @@
 import * as React from 'react';
 
-import ReportDetailHeader from './header';
+import ReportHeader from './header';
+import ReportScores from './reportScores';
 import MetricResults from './metricResults';
 
 /*
@@ -8,7 +9,8 @@ import MetricResults from './metricResults';
 * */
 export default () => (
   <div>
-    <ReportDetailHeader/>
+    <ReportHeader/>
+    <ReportScores/>
     <MetricResults/>
   </div>
 );

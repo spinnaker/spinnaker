@@ -1,42 +1,27 @@
 import * as React from 'react';
-import { connect, Dispatch } from 'react-redux';
+import { connect } from 'react-redux';
+import { UISref } from '@uirouter/react';
 
 import { ICanaryState } from '../reducers/index';
-import {
-  ICanaryJudgeGroupScore,
-  ICanaryJudgeScore
-} from '../domain/ICanaryJudgeResult';
-import CanaryJudgeScore from './score';
-import GroupScores from './groupScores';
-import * as Creators from 'kayenta/actions/creators';
-import { judgeResultSelector } from '../selectors/index';
+import { setupCanaryStageSelector, serializedCanaryConfigSelector } from 'kayenta/selectors';
 
-interface IReportDetailHeaderStateProps {
-  groups: ICanaryJudgeGroupScore[];
-  score: ICanaryJudgeScore;
+export interface IReportHeaderStateProps {
+  id: string;
+  name: string
 }
 
-interface IReportDetailDispatchProps {
-  clearSelectedGroup: () => void;
-}
-
-/*
-* Layout for the result detail header.
-* */
-const ReportDetailHeader = ({ groups, score, clearSelectedGroup }: IReportDetailHeaderStateProps & IReportDetailDispatchProps) => (
-  <section className="horizontal container">
-    <CanaryJudgeScore score={score} onClick={clearSelectedGroup} className="flex-1"/>
-    <GroupScores groups={groups} className="flex-6"/>
-  </section>
+const ReportHeader = ({ id, name }: IReportHeaderStateProps) => (
+  <h1 className="heading-1 color-text-primary">
+    Report:
+    <UISref to="^.^.canaryConfig.configDetail" params={{ id }}>
+      <a className="clickable color-text-primary"> {name}</a>
+    </UISref>
+  </h1>
 );
 
-const mapStateToProps = (state: ICanaryState): IReportDetailHeaderStateProps => ({
-  groups: judgeResultSelector(state).groupScores,
-  score: judgeResultSelector(state).score,
+const mapStateToProps = (state: ICanaryState): IReportHeaderStateProps => ({
+  id: setupCanaryStageSelector(state).context.canaryConfigId,
+  name: serializedCanaryConfigSelector(state).name,
 });
 
-const mapDispatchToProps = (dispatch: Dispatch<ICanaryState>): IReportDetailDispatchProps => ({
-  clearSelectedGroup: () => dispatch(Creators.selectReportMetricGroup({ group: null })),
-});
-
-export default connect(mapStateToProps, mapDispatchToProps)(ReportDetailHeader);
+export default connect(mapStateToProps)(ReportHeader);

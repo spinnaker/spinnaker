@@ -26,11 +26,7 @@
   dependencies:
     "@types/angular" "*"
 
-"@types/angular@*", "@types/angular@^1.6.15", "@types/angular@^1.6.16":
-  version "1.6.24"
-  resolved "https://registry.yarnpkg.com/@types/angular/-/angular-1.6.24.tgz#f19510cf4efa5816158fa01b1aa2df94eb7bcde8"
-
-"@types/angular@1.6.26":
+"@types/angular@*", "@types/angular@1.6.26", "@types/angular@^1.6.15", "@types/angular@^1.6.16":
   version "1.6.26"
   resolved "https://registry.yarnpkg.com/@types/angular/-/angular-1.6.26.tgz#a96cccef648de0bf7435f3b9bad13f2430719305"
 
@@ -338,13 +334,9 @@
   dependencies:
     "@types/react" "*"
 
-"@types/react@*", "@types/react@^15.0.22", "@types/react@^15.0.33":
+"@types/react@*", "@types/react@^15", "@types/react@^15.0.22", "@types/react@^15.0.33":
   version "15.0.33"
   resolved "https://registry.yarnpkg.com/@types/react/-/react-15.0.33.tgz#442b025b3ee7d65f25c5cf495b7bd773855c079b"
-
-"@types/react@^15":
-  version "15.6.5"
-  resolved "https://registry.yarnpkg.com/@types/react/-/react-15.6.5.tgz#fb23b8d8b7226313b645b6e84fb178976bbfe587"
 
 "@types/react@^16.0.0":
   version "16.0.18"
