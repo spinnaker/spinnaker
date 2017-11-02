@@ -34,7 +34,7 @@ class SecurityGroupIntent
   schema = CURRENT_SCHEMA,
   spec = spec
 ) {
-  override fun getId() = "$KIND:${spec.cloudProvider}:${spec.accountName}:${spec.regions.joinToString { "," }}:${spec.name}"
+  override fun getId() = "$KIND:${spec.cloudProvider}:${spec.accountName}:${spec.regions}:${spec.name}"
 }
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "kind")
@@ -76,7 +76,9 @@ data class SecurityGroupPortRange(
 
 @JsonTypeName("ref")
 data class ReferenceSecurityGroupRule(
-  val securityGroup: SecurityGroupSpec
+  val portRanges: SortedSet<SecurityGroupPortRange>,
+  val protocol: String,
+  val name: String
 ) : SecurityGroupRule()
 
 @JsonTypeName("http")

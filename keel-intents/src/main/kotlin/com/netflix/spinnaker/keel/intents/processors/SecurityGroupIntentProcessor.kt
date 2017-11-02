@@ -19,10 +19,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.*
 import com.netflix.spinnaker.keel.clouddriver.ClouddriverService
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroup
-import com.netflix.spinnaker.keel.intents.AmazonSecurityGroupSpec
-import com.netflix.spinnaker.keel.intents.LIST_OF_ANY_MAP_TYPE
-import com.netflix.spinnaker.keel.intents.SecurityGroupIntent
-import com.netflix.spinnaker.keel.intents.SecurityGroupSpec
+import com.netflix.spinnaker.keel.intents.*
 import com.netflix.spinnaker.keel.intents.processors.converters.SecurityGroupConverter
 import com.netflix.spinnaker.keel.model.Job
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
@@ -53,7 +50,7 @@ class SecurityGroupIntentProcessor
     val currentState = getSecurityGroups(intent.spec)
 
     traceRepository.record(Trace(
-      startingState = objectMapper.convertValue(currentState, LIST_OF_ANY_MAP_TYPE),
+      startingState = objectMapper.convertValue(mapOf("state" to currentState), ANY_MAP_TYPE),
       intent = intent
     ))
 
@@ -63,7 +60,7 @@ class SecurityGroupIntentProcessor
       return ConvergeResult(listOf(), ConvergeReason.UNCHANGED.reason)
     }
 
-    if (missingUpstreamGroups(currentState)) {
+    if (missingUpstreamGroups(intent.spec)) {
       // TODO rz - Should return _what_ security groups are missing
       return ConvergeResult(listOf(), "Some upstream security groups are missing")
     }
@@ -115,13 +112,14 @@ class SecurityGroupIntentProcessor
     return false
   }
 
-  private fun missingUpstreamGroups(currentState: Set<SecurityGroup>): Boolean {
-    // TODO rz - optimize
-    return currentState
-      .flatMap { it.inboundRules }
-      .filter { it.containsKey("securityGroup") && it["securityGroup"] != null }
-      .map { securityGroupConverter.convertFromState(setOf(it["securityGroup"]!! as SecurityGroup)) }
-      .map { getSecurityGroups(it!!) }
-      .count { it.isEmpty() } > 0
+  private fun missingUpstreamGroups(spec: SecurityGroupSpec): Boolean {
+    spec.inboundRules
+      .filterIsInstance<ReferenceSecurityGroupRule>()
+      .forEach {
+        spec.regions.forEach { region ->
+          clouddriverService.getSecurityGroup(spec.accountName, "aws", it.name, region) ?: return true
+        }
+      }
+    return false
   }
 }

@@ -27,14 +27,14 @@ interface ClouddriverService {
   fun getSecurityGroup(@Path("account") account: String,
                        @Path("type") type: String,
                        @Path("securityGroupName") securityGroupName: String,
-                       @Path("region") region: String): SecurityGroup
+                       @Path("region") region: String): SecurityGroup?
 
   @GET("/securityGroups/{account}/{type}/{region}/{securityGroupName}")
   fun getSecurityGroup(@Path("account") account: String,
                        @Path("type") type: String,
                        @Path("securityGroupName") securityGroupName: String,
                        @Path("region") region: String,
-                       @Query("vpcId") vpcId: String): SecurityGroup
+                       @Query("vpcId") vpcId: String): SecurityGroup?
 
   @GET("/networks")
   fun listNetworks(): Map<String, Set<Network>>
