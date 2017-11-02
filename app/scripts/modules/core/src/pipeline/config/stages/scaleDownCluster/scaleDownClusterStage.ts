@@ -1,6 +1,8 @@
 import { module } from 'angular';
 
 import { PIPELINE_CONFIG_PROVIDER, PipelineConfigProvider } from 'core/pipeline/config/pipelineConfigProvider';
+import { ScaleDownClusterExecutionDetails } from './ScaleDownClusterExecutionDetails';
+import { ExecutionDetailsTasks } from '../core/ExecutionDetailsTasks';
 
 export const SCALE_DOWN_CLUSTER_STAGE = 'spinnaker.core.pipeline.stage.scaleDownClusterStage';
 module(SCALE_DOWN_CLUSTER_STAGE, [
@@ -8,8 +10,7 @@ module(SCALE_DOWN_CLUSTER_STAGE, [
 ])
   .config((pipelineConfigProvider: PipelineConfigProvider) => {
     pipelineConfigProvider.registerStage({
-      executionConfigSections: ['scaleDownClusterConfig', 'taskStatus'],
-      executionDetailsUrl: require('./scaleDownClusterExecutionDetails.html'),
+      executionDetailsSections: [ScaleDownClusterExecutionDetails, ExecutionDetailsTasks],
       useBaseProvider: true,
       key: 'scaleDownCluster',
       label: 'Scale Down Cluster',

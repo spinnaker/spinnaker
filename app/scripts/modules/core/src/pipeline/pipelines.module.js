@@ -9,6 +9,7 @@ import { COPY_STAGE_MODAL_CONTROLLER } from './config/copyStage/copyStage.modal.
 import { CREATE_LOAD_BALANCER_STAGE } from './config/stages/createLoadBalancer/createLoadBalancerStage.module';
 import { DESTROY_ASG_STAGE } from './config/stages/destroyAsg/destroyAsgStage';
 import { DISABLE_ASG_STAGE_MODULE } from './config/stages/disableAsg/disableAsgStage.module';
+import { DISABLE_CLUSTER_STAGE } from './config/stages/disableCluster/disableClusterStage';
 import { ENABLE_ASG_STAGE } from './config/stages/enableAsg/enableAsgStage';
 import { FIND_AMI_STAGE } from './config/stages/findAmi/findAmiStage';
 import { GROUP_STAGE_MODULE } from './config/stages/group/groupStage.module';
@@ -40,7 +41,7 @@ module.exports = angular.module('spinnaker.core.pipeline', [
   require('./config/stages/deploy/deployStage.module').name,
   DESTROY_ASG_STAGE,
   DISABLE_ASG_STAGE_MODULE,
-  require('./config/stages/disableCluster/disableClusterStage.module').name,
+  DISABLE_CLUSTER_STAGE,
   ENABLE_ASG_STAGE,
   require('./config/stages/executionWindows/executionWindowsStage.module').name,
   FIND_AMI_STAGE,
