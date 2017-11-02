@@ -134,9 +134,9 @@ class GoogleHttpLoadBalancerTest(st.AgentTestCase):
     # Delete the orphaned, updated health check.
     compute_agent.invoke_resource(context,
                                   'delete',
-                                  resource_type='httpHealthChecks',
+                                  resource_type='healthChecks',
                                   project=bindings['GOOGLE_PRIMARY_MANAGED_PROJECT_ID'],
-                                  httpHealthCheck=cls.UPDATED_HC)
+                                  healthCheck=cls.UPDATED_HC)
 
 
   @property
