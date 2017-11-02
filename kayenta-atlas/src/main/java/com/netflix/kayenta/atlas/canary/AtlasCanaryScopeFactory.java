@@ -18,6 +18,7 @@ package com.netflix.kayenta.atlas.canary;
 
 import com.netflix.kayenta.canary.CanaryScope;
 import com.netflix.kayenta.canary.CanaryScopeFactory;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Component;
 
 import java.util.Collections;
@@ -44,7 +45,12 @@ public class AtlasCanaryScopeFactory implements CanaryScopeFactory {
     if (extendedScopeParams == null) {
       extendedScopeParams = Collections.emptyMap();
     }
+
     atlasCanaryScope.setType(extendedScopeParams.getOrDefault("type", "cluster"));
+    atlasCanaryScope.setDeployment(extendedScopeParams.getOrDefault("deployment", "main"));
+    atlasCanaryScope.setDataset(extendedScopeParams.getOrDefault("dataset", "regional"));
+    atlasCanaryScope.setRegion(extendedScopeParams.getOrDefault("region", "us-east-1"));
+    atlasCanaryScope.setEnvironment(extendedScopeParams.getOrDefault("environment", "test"));
 
     return atlasCanaryScope;
   }

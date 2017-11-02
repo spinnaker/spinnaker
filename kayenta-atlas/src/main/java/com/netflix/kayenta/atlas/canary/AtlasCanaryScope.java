@@ -31,6 +31,18 @@ public class AtlasCanaryScope extends CanaryScope {
   @NotNull
   private String type;
 
+  @NotNull
+  private String deployment;
+
+  @NotNull
+  private String dataset;
+
+  @NotNull
+  private String region;
+
+  @NotNull
+  private String environment;
+
   public String cq() {
     if (type == null) {
       throw new IllegalArgumentException("Atlas canary scope requires 'type' to be asg, cluster, or query.");

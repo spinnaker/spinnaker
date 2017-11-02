@@ -20,7 +20,9 @@ import lombok.*;
 
 import javax.validation.constraints.NotNull;
 
+import java.time.Duration;
 import java.util.List;
+import java.util.regex.Pattern;
 
 @Builder
 @ToString
@@ -29,31 +31,47 @@ import java.util.List;
 @AllArgsConstructor
 public class Backend {
 
-    @NotNull
-    @Getter
-    private String cname;
+  @NotNull
+  @Getter
+  private String cname;
 
-    @NotNull
-    @Getter
-    private String deployment;
+  @NotNull
+  @Getter
+  private String deployment;
 
-    @NotNull
-    @Getter
-    private String dataset;
+  @NotNull
+  @Getter
+  private String dataset;
 
-    @NotNull
-    @Getter
-    private int port;
+  @NotNull
+  @Getter
+  private int port;
 
-    @NotNull
-    @Getter
-    private List<String> environments;
+  @NotNull
+  @Getter
+  private List<String> environments;
 
-    @NotNull
-    @Getter
-    private List<Long> accounts;
+  @NotNull
+  @Getter
+  private List<String> regions;
 
-    @NotNull
-    @Getter
-    private List<String> regions;
+  // TODO: Should be a Duration (but that can't parse the minute format PT1M)
+  @NotNull
+  @Getter
+  private String step;
+
+  @NotNull
+  @Getter
+  private String description;
+
+  public String getUri(String method, String deployment, String dataset, String region, String environment) {
+    String ret = cname
+      .replace("$(deployment)", deployment)
+      .replace("$(dataset)", dataset)
+      .replace("$(region)", region)
+      .replace("$(env)", environment);
+    if ((method.equals("http") && port != 80) || (method.equals("https") && port != 443))
+      ret += ":" + port;
+    return method + "://" + ret;
+  }
 }

@@ -34,6 +34,8 @@ import org.springframework.boot.web.support.SpringBootServletInitializer;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -58,6 +60,8 @@ import java.util.Map;
   "com.netflix.spinnaker.config",
 })
 @EnableAutoConfiguration
+@EnableAsync
+@EnableScheduling
 class Main extends SpringBootServletInitializer {
   private static final Map<String, Object> DEFAULT_PROPS = buildDefaults();
 

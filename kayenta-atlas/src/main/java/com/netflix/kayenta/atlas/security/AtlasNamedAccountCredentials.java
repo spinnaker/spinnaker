@@ -17,6 +17,8 @@
 package com.netflix.kayenta.atlas.security;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.netflix.kayenta.atlas.backends.BackendDatabase;
+import com.netflix.kayenta.atlas.backends.BackendUpdater;
 import com.netflix.kayenta.atlas.service.AtlasRemoteService;
 import com.netflix.kayenta.security.AccountCredentials;
 import lombok.Builder;
@@ -40,16 +42,11 @@ public class AtlasNamedAccountCredentials implements AccountCredentials<AtlasCre
   @NotNull
   private AtlasCredentials credentials;
 
-  // Any required fields to use in identifying a project space or something similar in Atlas would go here.
-  // This one is just an example/placeholder.
-  @NotNull
-  private String namespace;
-
   @Override
   public String getType() {
     return "atlas";
   }
 
   @JsonIgnore
-  AtlasRemoteService atlasRemoteService;
+  private BackendUpdater backendUpdater;
 }
