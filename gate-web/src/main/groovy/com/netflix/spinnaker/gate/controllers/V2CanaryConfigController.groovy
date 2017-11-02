@@ -50,13 +50,13 @@ class V2CanaryConfigController {
   @ApiOperation(value = "Create a canary configuration")
   @RequestMapping(method = RequestMethod.POST)
   Map createCanaryConfig(@RequestBody Map config) {
-    [id: canaryConfigService.createCanaryConfig(config)]
+    canaryConfigService.createCanaryConfig(config)
   }
 
   @ApiOperation(value = "Update a canary configuration")
   @RequestMapping(value = "/{id}", method = RequestMethod.PUT)
   Map updateCanaryConfig(@PathVariable String id, @RequestBody Map config) {
-    [id: canaryConfigService.updateCanaryConfig(id, config)]
+    canaryConfigService.updateCanaryConfig(id, config)
   }
 
   @ApiOperation(value = "Delete a canary configuration")

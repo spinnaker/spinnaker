@@ -49,17 +49,15 @@ class KayentaCanaryConfigService implements CanaryConfigService {
     } execute()
   }
 
-  String createCanaryConfig(Map config) {
+  Map createCanaryConfig(Map config) {
     HystrixFactory.newMapCommand(GROUP, "createCanaryConfig") {
-      Response response = kayentaService.createCanaryConfig(config)
-      return new String(((TypedByteArray)response.getBody()).getBytes())
+      kayentaService.createCanaryConfig(config)
     } execute()
   }
 
-  String updateCanaryConfig(String id, Map config) {
+  Map updateCanaryConfig(String id, Map config) {
     HystrixFactory.newMapCommand(GROUP, "updateCanaryConfig") {
-      Response response = kayentaService.updateCanaryConfig(id, config)
-      return new String(((TypedByteArray)response.getBody()).getBytes())
+      kayentaService.updateCanaryConfig(id, config)
     } execute()
   }
 
