@@ -76,30 +76,6 @@ class RedisTraceRepository
            createTs = it["createTs"]?.toLong()
          )
        }
-
-  // TODO rz - actually use this
-  private fun getClientForId(id: String?): RedisClientDelegate {
-    if (id == null) {
-      return mainRedisClientDelegate
-    }
-
-    var client: RedisClientDelegate? = null
-    mainRedisClientDelegate.withCommandsClient {
-      if (it.exists(id)) {
-        client = mainRedisClientDelegate
-      }
-    }
-
-    if (client == null && previousRedisClientDelegate != null) {
-      previousRedisClientDelegate.withCommandsClient {
-        if (it.exists(id)) {
-          client = previousRedisClientDelegate
-        }
-      }
-    }
-
-    return client ?: mainRedisClientDelegate
-  }
 }
 
 internal fun intentTracesKey(intentId: String) = "traces:$intentId"
