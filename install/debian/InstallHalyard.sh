@@ -199,8 +199,8 @@ function install_halyard() {
 
   groupadd halyard || true
   groupadd spinnaker || true
-  usermod -G halyard $HAL_USER || true
-  usermod -G spinnaker $HAL_USER || true
+  usermod -G halyard -a $HAL_USER || true
+  usermod -G spinnaker -a $HAL_USER || true
   chown $HAL_USER:halyard /opt/halyard
 
   mv /opt/hal /usr/local/bin
