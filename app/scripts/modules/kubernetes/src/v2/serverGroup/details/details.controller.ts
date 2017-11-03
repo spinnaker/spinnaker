@@ -57,10 +57,9 @@ class KubernetesServerGroupDetailsController implements IController {
 
   private transformServerGroup(serverGroupDetails: IServerGroup): IKubernetesServerGroup {
     const serverGroup = serverGroupDetails as IKubernetesServerGroup;
-    const [apiVersion, kind, name] = serverGroup.name.split('|');
+    const [kind, name] = serverGroup.name.split(' ');
     serverGroup.displayName = name;
     serverGroup.kind = kind;
-    serverGroup.apiVersion = apiVersion.replace(/\./g, '/');
     return serverGroup;
   }
 
