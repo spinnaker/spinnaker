@@ -18,6 +18,7 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.op.deployer;
 
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesCacheDataConverter;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesDeploymentCachingAgent;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesV2CachingAgent;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpinnakerKindMap;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
@@ -27,6 +28,8 @@ import com.netflix.spinnaker.clouddriver.model.Manifest.Status;
 import com.netflix.spinnaker.clouddriver.model.ServerGroup.Capacity;
 import io.kubernetes.client.models.AppsV1beta1Deployment;
 import io.kubernetes.client.models.AppsV1beta1DeploymentStatus;
+import io.kubernetes.client.models.ExtensionsV1beta1Deployment;
+import io.kubernetes.client.models.ExtensionsV1beta1DeploymentStatus;
 import io.kubernetes.client.models.V1beta2Deployment;
 import io.kubernetes.client.models.V1beta2DeploymentStatus;
 import org.springframework.stereotype.Component;
@@ -45,12 +48,15 @@ public class KubernetesDeploymentHandler extends KubernetesHandler implements Ca
 
   @Override
   public KubernetesSpinnakerKindMap.SpinnakerKind spinnakerKind() {
-    return KubernetesSpinnakerKindMap.SpinnakerKind.UNCLASSIFIED;
+    return KubernetesSpinnakerKindMap.SpinnakerKind.SUBCLUSTER;
   }
 
   @Override
   public Status status(KubernetesManifest manifest) {
     switch (manifest.getApiVersion()) {
+      case EXTENSIONS_V1BETA1:
+        ExtensionsV1beta1Deployment extensionsV1beta1Deployment = KubernetesCacheDataConverter.getResource(manifest, ExtensionsV1beta1Deployment.class);
+        return status(extensionsV1beta1Deployment);
       case APPS_V1BETA1:
         AppsV1beta1Deployment appsV1beta1Deployment = KubernetesCacheDataConverter.getResource(manifest, AppsV1beta1Deployment.class);
         return status(appsV1beta1Deployment);
@@ -64,7 +70,32 @@ public class KubernetesDeploymentHandler extends KubernetesHandler implements Ca
 
   @Override
   public Class<? extends KubernetesV2CachingAgent> cachingAgentClass() {
-    return null;
+    return KubernetesDeploymentCachingAgent.class;
+  }
+
+  private Status status(ExtensionsV1beta1Deployment deployment) {
+    ExtensionsV1beta1DeploymentStatus status = deployment.getStatus();
+    int desiredReplicas = deployment.getSpec().getReplicas();
+    if (status == null) {
+      return Status.unstable("No status reported yet");
+    }
+
+    Integer existing = status.getUpdatedReplicas();
+    if (existing == null || desiredReplicas > existing) {
+      return Status.unstable("Waiting for all replicas to be updated");
+    }
+
+    existing = status.getAvailableReplicas();
+    if (existing == null || desiredReplicas > existing) {
+      return Status.unstable("Waiting for all replicas to be available");
+    }
+
+    existing = status.getReadyReplicas();
+    if (existing == null || desiredReplicas > existing) {
+      return Status.unstable("Waiting for all replicas to be ready");
+    }
+
+    return Status.stable();
   }
 
   private Status status(AppsV1beta1Deployment deployment) {

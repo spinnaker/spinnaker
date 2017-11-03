@@ -151,6 +151,10 @@ public class KubectlJobExecutor {
       throw new KubectlException("Failed to read " + kind + " from " + namespace + ": " + status.getStdErr());
     }
 
+    if (status.getStdErr().contains("No resources found")) {
+      return new ArrayList<>();
+    }
+
     try {
       KubernetesManifestList list = gson.fromJson(status.getStdOut(), KubernetesManifestList.class);
       return list.getItems();

@@ -32,6 +32,7 @@ public class KubernetesSpinnakerKindMap {
     SERVER_GROUP,
     LOAD_BALANCER,
     SECURITY_GROUP,
+    SUBCLUSTER,
     UNCLASSIFIED
   }
 
