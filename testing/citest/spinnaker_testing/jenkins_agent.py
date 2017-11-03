@@ -59,7 +59,7 @@ class JenkinsOperationStatus(base_agent.AgentOperationStatus):
   def timed_out(self):
     return self.__trigger_status.timed_out
 
-  def refresh(self, trace=True):
+  def refresh(self):
     return self.__trigger_status.refresh()
 
   def __init__(self, operation, status_class, path, http_response):
@@ -124,7 +124,7 @@ class JenkinsAgent(base_agent.BaseAgent):
 
     self.__http_agent.add_basic_auth_header(auth_info[0], auth_info[1])
 
-  def get(self, path, trace=True):
+  def get(self, path):
     return self.__owner_agent.get(path)
 
   def _trigger_jenkins_build(self, job, token):
@@ -195,7 +195,7 @@ class BaseJenkinsOperation(base_agent.AgentOperation):
         entity, 'Payload Data', self.__data, format='json')
     super(BaseJenkinsOperation, self).export_to_json_snapshot(snapshot, entity)
 
-  def execute(self, agent=None, trace=True):
+  def execute(self, agent=None):
     if not self.agent:
       if not isinstance(agent, JenkinsAgent):
         raise TypeError('agent not a JenkinsAgent: '
@@ -206,7 +206,7 @@ class BaseJenkinsOperation(base_agent.AgentOperation):
     agent.logger.debug('Returning status %s', status)
     return status
 
-  def _do_execute(self, agent, trace=True):
+  def _do_execute(self, agent):
     raise UnimplementedError('{0}._do_execute'.format(type(self)))
 
 
@@ -236,7 +236,7 @@ class JenkinsTriggerOperation(BaseJenkinsOperation):
     self.__status_class = status_class
     self.__status_path = status_path
 
-  def _do_execute(self, agent, trace=True):
+  def _do_execute(self, agent):
     http_response = self.agent._trigger_jenkins_build(job=self.__job,
                                                       token=self.__token)
     agent.logger.debug(
