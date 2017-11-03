@@ -17,8 +17,7 @@
     "package_type": "",
     "packages": "",
     "upgrade": "",
-    "configDir": null,
-    "pause_before": "30s"
+    "configDir": null
   },
   "builders": [{
     "type": "amazon-ebs",
@@ -50,6 +49,6 @@
       "packages={{user `packages`}}",
       "upgrade={{user `upgrade`}}"
     ],
-    "pause_before": "{{user `pause_before`}}"
+    "pause_before": "30s"
   }]
 }
