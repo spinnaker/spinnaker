@@ -15,10 +15,7 @@
  */
 package com.netflix.spinnaker.keel.intents.processors
 
-import com.netflix.spinnaker.keel.ConvergeResult
-import com.netflix.spinnaker.keel.Intent
-import com.netflix.spinnaker.keel.IntentProcessor
-import com.netflix.spinnaker.keel.IntentSpec
+import com.netflix.spinnaker.keel.*
 import com.netflix.spinnaker.keel.intents.ParrotIntent
 import com.netflix.spinnaker.keel.model.Job
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
@@ -48,6 +45,6 @@ class ParrotIntentProcessor
         ),
         trigger = Trigger(intent.getId())
       )
-    ))
+    ), ConvergeReason.CHANGED.reason)
   }
 }

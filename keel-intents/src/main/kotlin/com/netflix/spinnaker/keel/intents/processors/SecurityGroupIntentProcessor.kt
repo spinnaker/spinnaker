@@ -66,19 +66,21 @@ class SecurityGroupIntentProcessor
     }
 
     return ConvergeResult(listOf(
-      OrchestrationRequest(
-        name = "Upsert security group",
-        application = intent.spec.application,
-        description = "Converging on desired security group state",
-        job = listOf(
-          Job(
-            type = "upsertSecurityGroup",
-            m = securityGroupConverter.convertToJob(intent.spec)
-          )
-        ),
-        trigger = Trigger(intent.getId())
-      )
-    ))
+        OrchestrationRequest(
+          name = "Upsert security group",
+          application = intent.spec.application,
+          description = "Converging on desired security group state",
+          job = listOf(
+            Job(
+              type = "upsertSecurityGroup",
+              m = securityGroupConverter.convertToJob(intent.spec)
+            )
+          ),
+          trigger = Trigger(intent.getId())
+        )
+      ),
+      ConvergeReason.CHANGED.reason
+    )
   }
 
   private fun getSecurityGroups(spec: SecurityGroupSpec): Set<SecurityGroup> {

@@ -25,10 +25,11 @@ interface IntentProcessor<in I : Intent<IntentSpec>> {
 }
 
 enum class ConvergeReason(val reason: String) {
-  UNCHANGED("System state matches desired state")
+  UNCHANGED("System state matches desired state"),
+  CHANGED("System state does not match desired state")
 }
 
 data class ConvergeResult(
   val orchestrations: List<OrchestrationRequest>,
-  val reason: String? = null
+  val reason: String
 )

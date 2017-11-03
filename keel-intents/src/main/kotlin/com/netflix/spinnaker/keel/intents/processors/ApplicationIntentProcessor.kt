@@ -57,19 +57,21 @@ class ApplicationIntentProcessor
     ))
 
     return ConvergeResult(listOf(
-      OrchestrationRequest(
-        name = if (currentState == null) "Create application" else "Update application",
-        application = intent.spec.name,
-        description = "Converging on desired application state",
-        job = listOf(
-          Job(
-            type = "upsertApplication",
-            m = objectMapper.convertValue(intent.spec, ANY_MAP_TYPE)
-          )
-        ),
-        trigger = Trigger(intent.getId())
-      )
-    ))
+        OrchestrationRequest(
+          name = if (currentState == null) "Create application" else "Update application",
+          application = intent.spec.name,
+          description = "Converging on desired application state",
+          job = listOf(
+            Job(
+              type = "upsertApplication",
+              m = objectMapper.convertValue(intent.spec, ANY_MAP_TYPE)
+            )
+          ),
+          trigger = Trigger(intent.getId())
+        )
+      ),
+      if (currentState == null) "Application does not exist" else "Application has been updated"
+    )
   }
 
   private fun getApplication(name: String): Application? {

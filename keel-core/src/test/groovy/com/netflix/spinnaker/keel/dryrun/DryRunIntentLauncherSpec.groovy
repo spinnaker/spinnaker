@@ -55,9 +55,10 @@ class DryRunIntentLauncherSpec extends Specification {
           new Job("wait", [waitTime: 5]),
           new Job("wait", [name: "wait for more time", waitTime: 5])
         ], new Trigger("1", "keel", "keel"))
-      ], null)
+      ], "Raisins")
     }
     result instanceof DryRunLaunchedIntentResult
+    result.reason == "Raisins"
     result.steps.size() == 1
     result.steps[0].name == "my orchestration"
     result.steps[0].description == "testing dry-runs"
