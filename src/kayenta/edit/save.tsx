@@ -1,6 +1,7 @@
 import * as React from 'react';
 import * as classNames from 'classnames';
 
+import ValidationErrors from './validationErrors';
 import SaveConfigButton from './saveConfigButton';
 import SaveConfigError from './saveConfigError';
 
@@ -10,6 +11,7 @@ import SaveConfigError from './saveConfigError';
 export default function Save() {
   return (
     <div className={classNames('col-sm-12', 'text-right')}>
+      <ValidationErrors/>
       <SaveConfigError/>
       <SaveConfigButton/>
     </div>

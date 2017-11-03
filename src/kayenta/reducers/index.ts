@@ -16,9 +16,11 @@ import { ICanaryJudgeConfig } from '../domain/ICanaryConfig';
 import { mapStateToConfig } from '../service/canaryConfig.service';
 import { ISelectedRunState, selectedRun } from './selectedRun';
 import { metricResultsSelector } from '../selectors/index';
+import { validationErrorsReducer } from './validators';
 
 export interface ICanaryState {
   app: IAppState;
+  configValidationErrors: string[];
   data: IDataState;
   selectedConfig: ISelectedConfigState;
   selectedRun: ISelectedRunState;
@@ -26,6 +28,7 @@ export interface ICanaryState {
 
 const combined = combineReducers<ICanaryState>({
   app,
+  configValidationErrors: () => null,
   data,
   selectedConfig,
   selectedRun,
@@ -119,5 +122,6 @@ export const rootReducer = (state: ICanaryState, action: Action & any): ICanaryS
     judgeRenderStateReducer,
     isInSyncWithServerReducer,
     selectedMetricReducer,
+    validationErrorsReducer,
   ].reduce((s, reducer) => reducer(s, action), state);
 };
