@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.titus.v3client;
 
 import com.google.common.base.Stopwatch;
+import com.netflix.grpc.metrics.MetricsContext;
 import com.netflix.spectator.api.Id;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.titus.client.TitusRegion;
@@ -47,6 +48,8 @@ public class GrpcMetricsInterceptor implements ClientInterceptor {
     Stopwatch startTime = Stopwatch.createStarted();
     String methodName = extractSimpleMethodName(method.getFullMethodName());
 
+    final MetricsContext metricsContext = callOptions.getOption(MetricsContext.CALL_OPTIONS_KEY);
+
     ClientCall<ReqT, RespT> call = next.newCall(method, callOptions);
 
     return new ForwardingClientCall.SimpleForwardingClientCall<ReqT, RespT>(call) {
@@ -56,6 +59,10 @@ public class GrpcMetricsInterceptor implements ClientInterceptor {
           @Override
           public void onClose(Status status, Metadata trailers) {
             callEnded(status, methodName, startTime, status.getDescription());
+            if (metricsContext != null) {
+              metricsContext.putTag("titusAccount",titusRegion.getAccount());
+              metricsContext.putTag("titusRegion",titusRegion.getName());
+            }
             super.onClose(status, trailers);
           }
         }, headers);
