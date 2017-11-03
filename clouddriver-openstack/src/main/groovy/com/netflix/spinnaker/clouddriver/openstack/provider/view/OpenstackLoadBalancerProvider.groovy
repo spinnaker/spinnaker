@@ -216,25 +216,25 @@ class OpenstackLoadBalancerProvider implements LoadBalancerProvider<OpenstackLoa
   }
 
   static class OpenstackLoadBalancerAccount implements LoadBalancerProvider.ByAccount {
-    private Map<String, OpenstackLoadBalancerAccountRegion> mappedRegions = [:]
+    private Map<String, OpenstackLoadBalancerByRegion> mappedRegions = [:]
     String name
 
-    OpenstackLoadBalancerAccountRegion getOrCreateRegion(String name) {
+    OpenstackLoadBalancerByRegion getOrCreateRegion(String name) {
       if (!mappedRegions.containsKey(name)) {
-        mappedRegions.put(name, new OpenstackLoadBalancerAccountRegion(name: name, loadBalancers: []))
+        mappedRegions.put(name, new OpenstackLoadBalancerByRegion(name: name, loadBalancers: []))
       }
       mappedRegions[name]
     }
 
     @JsonProperty("regions")
-    List<OpenstackLoadBalancerAccountRegion> getByRegions() {
+    List<OpenstackLoadBalancerByRegion> getByRegions() {
       mappedRegions.values() as List
     }
   }
 
-  static class OpenstackLoadBalancerAccountRegion implements LoadBalancerProvider.ByRegion {
+  static class OpenstackLoadBalancerByRegion implements LoadBalancerProvider.ByRegion {
     String name
-    List<OpenstackLoadBalancerSummary> loadBalancers
+    List<OpenstackLoadBalancerDetail> loadBalancers
   }
 
   static class OpenstackLoadBalancerDetail implements LoadBalancerProvider.Details {
