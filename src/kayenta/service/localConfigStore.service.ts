@@ -3,6 +3,7 @@ import { ICanaryConfigSummary } from '../domain/ICanaryConfigSummary';
 import { IJudge } from '../domain/IJudge';
 import { IKayentaAccount, KayentaAccountType } from '../domain/IKayentaAccount';
 import { UUIDGenerator } from '@spinnaker/core';
+import { ICanaryConfigUpdateResponse } from '../domain/ICanaryConfigUpdateResponse';
 
 const atlasCanaryConfig = require('kayenta/scratch/atlas_canary_config.json');
 const stackdriverCanaryConfig = require('kayenta/scratch/stackdriver_canary_config.json');
@@ -39,16 +40,16 @@ export class LocalConfigStore {
     return Promise.resolve(summaries);
   }
 
-  public createCanaryConfig(config: ICanaryConfig): Promise<{id: string}> {
+  public createCanaryConfig(config: ICanaryConfig): Promise<ICanaryConfigUpdateResponse> {
     const id = UUIDGenerator.generateUuid();
     this.configs.add({
       ...config,
       id,
     });
-    return Promise.resolve({ id });
+    return Promise.resolve({ canaryConfigId: id });
   }
 
-  public updateCanaryConfig(config: ICanaryConfig): Promise<{id: string}> {
+  public updateCanaryConfig(config: ICanaryConfig): Promise<ICanaryConfigUpdateResponse> {
     return this.deleteCanaryConfig(config.id)
       .then(() => this.createCanaryConfig(config));
   }

@@ -11,6 +11,7 @@ import {
   ICanaryConfig,
   IKayentaAccount
 } from '../domain/index';
+import { ICanaryConfigUpdateResponse } from '../domain/ICanaryConfigUpdateResponse';
 
 export function getCanaryConfigById(id: string): Promise<ICanaryConfig> {
   if (CanarySettings.liveCalls) {
@@ -32,7 +33,7 @@ export function getCanaryConfigSummaries(...application: string[]): Promise<ICan
   }
 }
 
-export function updateCanaryConfig(config: ICanaryConfig): Promise<{id: string}> {
+export function updateCanaryConfig(config: ICanaryConfig): Promise<ICanaryConfigUpdateResponse> {
   if (CanarySettings.liveCalls) {
     return ReactInjector.API.one('v2/canaryConfig').one(config.id).put(config);
   } else {
@@ -40,7 +41,7 @@ export function updateCanaryConfig(config: ICanaryConfig): Promise<{id: string}>
   }
 }
 
-export function createCanaryConfig(config: ICanaryConfig): Promise<{id: string}> {
+export function createCanaryConfig(config: ICanaryConfig): Promise<ICanaryConfigUpdateResponse> {
   if (CanarySettings.liveCalls) {
     return ReactInjector.API.one('v2/canaryConfig').post(config);
   } else {

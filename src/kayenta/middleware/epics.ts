@@ -18,6 +18,7 @@ import {
   getMetricSetPair
 } from '../service/run/canaryRun.service';
 import { configNameSelector, runSelector } from '../selectors/index';
+import { ICanaryConfigUpdateResponse } from '../domain/ICanaryConfigUpdateResponse';
 
 const typeMatches = (...actions: string[]) => (action: Action & any) => actions.includes(action.type);
 
@@ -40,7 +41,7 @@ const saveConfigEpic = (action$: Observable<Action & any>, store: MiddlewareAPI<
     .filter(typeMatches(Actions.SAVE_CONFIG_REQUEST))
     .concatMap(() => {
       const config = mapStateToConfig(store.getState());
-      let saveAction: Promise<{id: string}>;
+      let saveAction: Promise<ICanaryConfigUpdateResponse>;
       if (config.isNew) {
         delete config.isNew;
         saveAction = createCanaryConfig(config);
@@ -49,11 +50,11 @@ const saveConfigEpic = (action$: Observable<Action & any>, store: MiddlewareAPI<
       }
 
       return Observable.fromPromise(saveAction)
-        .concatMap(({ id }) =>
+        .concatMap(({ canaryConfigId }) =>
           Observable.forkJoin(
-            ReactInjector.$state.go('^.configDetail', { id, copy: false, 'new': false }),
+            ReactInjector.$state.go('^.configDetail', { id: canaryConfigId, copy: false, 'new': false }),
             store.getState().data.application.getDataSource('canaryConfigs').refresh(true)
-          ).mapTo(Creators.saveConfigSuccess({ id }))
+          ).mapTo(Creators.saveConfigSuccess({ id: canaryConfigId }))
         )
         .catch((error: Error) => Observable.of(Creators.saveConfigFailure({ error })));
     });
