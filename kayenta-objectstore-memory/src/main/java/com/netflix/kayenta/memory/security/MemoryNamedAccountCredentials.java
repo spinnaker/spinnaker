@@ -17,12 +17,14 @@
 package com.netflix.kayenta.memory.security;
 
 import com.netflix.kayenta.security.AccountCredentials;
+import com.netflix.kayenta.storage.ObjectType;
 import lombok.Builder;
 import lombok.Data;
 import lombok.Singular;
 
 import javax.validation.constraints.NotNull;
 import java.util.List;
+import java.util.Map;
 
 @Builder
 @Data
@@ -39,7 +41,10 @@ public class MemoryNamedAccountCredentials implements AccountCredentials<MemoryA
   private MemoryAccountCredentials credentials;
 
   @NotNull
-  private String namespace;
+  private Map<ObjectType, Map<String, Object>> objects;
+
+  @NotNull
+  private Map<ObjectType, Map<String, Map<String, Object>>> metadata;
 
   @Override
   public String getType() {

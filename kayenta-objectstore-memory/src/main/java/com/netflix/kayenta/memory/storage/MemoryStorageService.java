@@ -25,7 +25,6 @@ import com.netflix.kayenta.storage.StorageService;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Singular;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.validation.constraints.NotNull;
@@ -37,14 +36,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Builder
-@Slf4j
 public class MemoryStorageService implements StorageService {
-
-  public static class MemoryStorageServiceBuilder {
-    private Map<String, Object> entries = new ConcurrentHashMap<>();
-    private Map<String, Map<String, Object>> entryMetadata = new ConcurrentHashMap<>();
-  }
-
   @NotNull
   @Singular
   @Getter
@@ -53,22 +45,27 @@ public class MemoryStorageService implements StorageService {
   @Autowired
   AccountCredentialsRepository accountCredentialsRepository;
 
-  private Map<String, Object> entries;
-  private Map<String, Map<String, Object>> entryMetadata;
-
   @Override
   public boolean servicesAccount(String accountName) {
     return accountNames.contains(accountName);
   }
 
+  private MemoryNamedAccountCredentials getCredentials(String accountName, ObjectType objectType) {
+    MemoryNamedAccountCredentials credentials = (MemoryNamedAccountCredentials)accountCredentialsRepository
+      .getOne(accountName)
+      .orElseThrow(() -> new IllegalArgumentException("Unable to resolve account " + accountName + "."));
+    credentials.getObjects().putIfAbsent(objectType, new ConcurrentHashMap<>());
+    credentials.getMetadata().putIfAbsent(objectType, new ConcurrentHashMap<>());
+    return credentials;
+  }
+
   @Override
   public <T> T loadObject(String accountName, ObjectType objectType, String objectKey) throws IllegalArgumentException {
-    String key = makeKey(accountName, objectType, objectKey);
-    log.info("Getting object type {}, key {}", objectType.toString(), key);
-    Object entry = entries.get(key);
+    MemoryNamedAccountCredentials credentials = getCredentials(accountName, objectType);
+    Object entry = credentials.getObjects().get(objectType).get(objectKey);
 
     if (entry == null) {
-      throw new IllegalArgumentException("No such object named " + key);
+      throw new IllegalArgumentException("No such object named " + objectKey);
     }
 
     return (T)entry;
@@ -76,8 +73,7 @@ public class MemoryStorageService implements StorageService {
 
   @Override
   public <T> void storeObject(String accountName, ObjectType objectType, String objectKey, T obj, String filename, boolean isAnUpdate) {
-    String key = makeKey(accountName, objectType, objectKey);
-    log.info("Writing key {}", key);
+    MemoryNamedAccountCredentials credentials = getCredentials(accountName, objectType);
 
     long currentTimestamp = System.currentTimeMillis();
     Map<String, Object> objectMetadataMap = new HashMap<>();
@@ -94,8 +90,8 @@ public class MemoryStorageService implements StorageService {
       objectMetadataMap.put("applications", canaryConfig.getApplications());
     }
 
-    entries.put(key, obj);
-    entryMetadata.put(key, objectMetadataMap);
+    credentials.getObjects().get(objectType).put(objectKey, obj);
+    credentials.getMetadata().get(objectType).put(objectKey, objectMetadataMap);
   }
 
   private void checkForDuplicateCanaryConfig(String accountName, ObjectType objectType, CanaryConfig canaryConfig, String canaryConfigId) {
@@ -116,51 +112,40 @@ public class MemoryStorageService implements StorageService {
 
   @Override
   public void deleteObject(String accountName, ObjectType objectType, String objectKey) {
-    String key = makeKey(accountName, objectType, objectKey);
-    log.info("Deleting key {}", key);
-    Object oldValue = entries.remove(key);
-    entryMetadata.remove(key);
+    MemoryNamedAccountCredentials credentials = getCredentials(accountName, objectType);
+
+    Object oldValue = credentials.getObjects().get(objectType).remove(objectKey);
+    credentials.getMetadata().get(objectType).remove(objectKey);
 
     if (oldValue == null) {
-      log.error("Object named {} does not exist", key);
       throw new IllegalArgumentException("Does not exist");
     }
   }
 
   @Override
   public List<Map<String, Object>> listObjectKeys(String accountName, ObjectType objectType, List<String> applications, boolean skipIndex) {
+    MemoryNamedAccountCredentials credentials = getCredentials(accountName, objectType);
+
     boolean filterOnApplications = applications != null && applications.size() > 0;
     List<Map<String, Object>> result = new ArrayList<>();
 
-    for (Map.Entry<String, Object> entry : entries.entrySet()) {
+    for (Map.Entry<String, Object> entry : credentials.getObjects().get(objectType).entrySet()) {
+      String entryKey = entry.getKey();
       if (objectType == ObjectType.CANARY_CONFIG) {
         if (filterOnApplications) {
           CanaryConfig canaryConfig = (CanaryConfig)entry.getValue();
 
           if (CanaryConfigIndex.haveCommonElements(applications, canaryConfig.getApplications())) {
-            result.add(entryMetadata.get(entry.getKey()));
+            result.add(credentials.getMetadata().get(objectType).get(entryKey));
           }
         } else {
-          result.add(entryMetadata.get(entry.getKey()));
+          result.add(credentials.getMetadata().get(objectType).get(entryKey));
         }
       } else {
-        result.add(entryMetadata.get(entry.getKey()));
+        result.add(credentials.getMetadata().get(objectType).get(entryKey));
       }
     }
 
     return result;
-  }
-
-  private String makePrefix(String accountName, ObjectType objectType) {
-    MemoryNamedAccountCredentials credentials = (MemoryNamedAccountCredentials) accountCredentialsRepository
-      .getOne(accountName)
-      .orElseThrow(() -> new IllegalArgumentException("Unable to resolve account " + accountName + "."));
-    String namespace = credentials.getNamespace();
-    String typename = objectType.toString();
-    return namespace + ":" + typename + ":";
-  }
-
-  private String makeKey(String accountName, ObjectType objectType, String objectKey) {
-    return makePrefix(accountName, objectType) + objectKey;
   }
 }

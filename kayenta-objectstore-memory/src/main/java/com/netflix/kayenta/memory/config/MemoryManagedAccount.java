@@ -28,7 +28,5 @@ public class MemoryManagedAccount {
   @NotNull
   private String name;
 
-  private String namespace;
-
   private List<AccountCredentials.Type> supportedTypes;
 }
