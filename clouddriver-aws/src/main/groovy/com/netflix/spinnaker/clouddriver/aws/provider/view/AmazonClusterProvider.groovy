@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.aws.provider.view
 
+import com.amazonaws.services.autoscaling.model.LifecycleState
+import com.amazonaws.services.ec2.model.InstanceStateName
 import com.netflix.frigga.ami.AppVersion
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
@@ -212,7 +214,14 @@ class AmazonClusterProvider implements ClusterProvider<AmazonCluster> {
 
       if (!serverGroup.instances && serverGroupEntry.attributes.instances) {
         // has no direct instance relationships but we can partially populate instances based on attributes.instances
-        serverGroup.instances = serverGroupEntry.attributes.instances.collect {
+        def validStates = [
+          LifecycleState.Pending.name(),
+          LifecycleState.InService.name()
+        ]
+
+        serverGroup.instances = (serverGroupEntry.attributes.instances as List<Map>).findAll {
+          validStates.contains(it.lifecycleState)
+        }.collect {
           new AmazonInstance(((Map) it) + [name: it.instanceId])
         }
       }
