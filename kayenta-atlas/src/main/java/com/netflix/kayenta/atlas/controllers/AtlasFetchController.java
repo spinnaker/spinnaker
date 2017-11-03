@@ -34,6 +34,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.Collections;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/fetch/atlas")
@@ -47,15 +48,15 @@ public class AtlasFetchController {
   SynchronousQueryProcessor synchronousQueryProcessor;
 
   @RequestMapping(value = "/query", method = RequestMethod.POST)
-  public String queryMetrics(@RequestParam(required = false) final String metricsAccountName,
-                             @RequestParam(required = false) final String storageAccountName,
-                             @ApiParam(defaultValue = "name,CpuRawUser,:eq,:sum") @RequestParam String q,
-                             @ApiParam(defaultValue = "cpu") @RequestParam String metricSetName,
-                             @ApiParam(defaultValue = "cluster") @RequestParam String type,
-                             @RequestParam String scope,
-                             @ApiParam(defaultValue = "2000-01-01T00:00:00Z") @RequestParam Instant start,
-                             @ApiParam(defaultValue = "2000-01-01T04:00:00Z") @RequestParam Instant end,
-                             @ApiParam(defaultValue = "300") @RequestParam Long step) throws IOException {
+  public Map queryMetrics(@RequestParam(required = false) final String metricsAccountName,
+                          @RequestParam(required = false) final String storageAccountName,
+                          @ApiParam(defaultValue = "name,CpuRawUser,:eq,:sum") @RequestParam String q,
+                          @ApiParam(defaultValue = "cpu") @RequestParam String metricSetName,
+                          @ApiParam(defaultValue = "cluster") @RequestParam String type,
+                          @RequestParam String scope,
+                          @ApiParam(defaultValue = "2000-01-01T00:00:00Z") @RequestParam Instant start,
+                          @ApiParam(defaultValue = "2000-01-01T04:00:00Z") @RequestParam Instant end,
+                          @ApiParam(defaultValue = "300") @RequestParam Long step) throws IOException {
     String resolvedMetricsAccountName = CredentialsHelper.resolveAccountByNameOrType(metricsAccountName,
                                                                                      AccountCredentials.Type.METRICS_STORE,
                                                                                      accountCredentialsRepository);
@@ -82,9 +83,11 @@ public class AtlasFetchController {
     atlasCanaryScope.setEnd(end);
     atlasCanaryScope.setStep(step);
 
-    return synchronousQueryProcessor.processQuery(resolvedMetricsAccountName,
-                                                  resolvedStorageAccountName,
-                                                  Collections.singletonList(canaryMetricConfig),
-                                                  atlasCanaryScope).get(0);
+    String metricSetListId = synchronousQueryProcessor.processQuery(resolvedMetricsAccountName,
+                                                                    resolvedStorageAccountName,
+                                                                    Collections.singletonList(canaryMetricConfig),
+                                                                    atlasCanaryScope).get(0);
+
+    return Collections.singletonMap("metricSetListId", metricSetListId);
   }
 }

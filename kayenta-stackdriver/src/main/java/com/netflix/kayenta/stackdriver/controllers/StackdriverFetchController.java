@@ -35,6 +35,7 @@ import java.io.IOException;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/fetch/stackdriver")
@@ -48,15 +49,15 @@ public class StackdriverFetchController {
   SynchronousQueryProcessor synchronousQueryProcessor;
 
   @RequestMapping(value = "/query", method = RequestMethod.POST)
-  public String queryMetrics(@RequestParam(required = false) final String metricsAccountName,
-                             @RequestParam(required = false) final String storageAccountName,
-                             @ApiParam(defaultValue = "cpu") @RequestParam String metricSetName,
-                             @ApiParam(defaultValue = "compute.googleapis.com/instance/cpu/utilization") @RequestParam String metricType,
-                             @RequestParam(required = false) List<String> groupByFields, // metric.label.instance_name
-                             @ApiParam(defaultValue = "myapp-v010-") @RequestParam String scope,
-                             @ApiParam(defaultValue = "2017-10-01T15:13:00Z") @RequestParam Instant startTimeIso,
-                             @ApiParam(defaultValue = "2017-10-02T15:27:00Z") @RequestParam Instant endTimeIso,
-                             @ApiParam(defaultValue = "3600") @RequestParam Long step) throws IOException {
+  public Map queryMetrics(@RequestParam(required = false) final String metricsAccountName,
+                          @RequestParam(required = false) final String storageAccountName,
+                          @ApiParam(defaultValue = "cpu") @RequestParam String metricSetName,
+                          @ApiParam(defaultValue = "compute.googleapis.com/instance/cpu/utilization") @RequestParam String metricType,
+                          @RequestParam(required = false) List<String> groupByFields, // metric.label.instance_name
+                          @ApiParam(defaultValue = "myapp-v010-") @RequestParam String scope,
+                          @ApiParam(defaultValue = "2017-10-01T15:13:00Z") @RequestParam Instant startTimeIso,
+                          @ApiParam(defaultValue = "2017-10-02T15:27:00Z") @RequestParam Instant endTimeIso,
+                          @ApiParam(defaultValue = "3600") @RequestParam Long step) throws IOException {
     String resolvedMetricsAccountName = CredentialsHelper.resolveAccountByNameOrType(metricsAccountName,
                                                                                      AccountCredentials.Type.METRICS_STORE,
                                                                                      accountCredentialsRepository);
@@ -86,9 +87,11 @@ public class StackdriverFetchController {
     canaryScope.setEnd(endTimeIso);
     canaryScope.setStep(step);
 
-    return synchronousQueryProcessor.processQuery(resolvedMetricsAccountName,
-                                                  resolvedStorageAccountName,
-                                                  Collections.singletonList(canaryMetricConfig),
-                                                  canaryScope).get(0);
+    String metricSetListId = synchronousQueryProcessor.processQuery(resolvedMetricsAccountName,
+                                                                    resolvedStorageAccountName,
+                                                                    Collections.singletonList(canaryMetricConfig),
+                                                                    canaryScope).get(0);
+
+    return Collections.singletonMap("metricSetListId", metricSetListId);
   }
 }

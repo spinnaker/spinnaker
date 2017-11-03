@@ -37,6 +37,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -70,8 +71,8 @@ public class MetricSetPairListController {
 
   @ApiOperation(value = "Write a metric set pair list to object storage")
   @RequestMapping(consumes = "application/json", method = RequestMethod.POST)
-  public String storeMetricSetPairList(@RequestParam(required = false) final String accountName,
-                                       @RequestBody List<MetricSetPair> metricSetPairList) throws IOException {
+  public Map storeMetricSetPairList(@RequestParam(required = false) final String accountName,
+                                    @RequestBody List<MetricSetPair> metricSetPairList) throws IOException {
     String resolvedAccountName = CredentialsHelper.resolveAccountByNameOrType(accountName,
                                                                               AccountCredentials.Type.OBJECT_STORE,
                                                                               accountCredentialsRepository);
@@ -83,7 +84,7 @@ public class MetricSetPairListController {
 
     storageService.storeObject(resolvedAccountName, ObjectType.METRIC_SET_PAIR_LIST, metricSetPairListId, metricSetPairList);
 
-    return metricSetPairListId;
+    return Collections.singletonMap("metricSetPairListId", metricSetPairListId);
   }
 
   @ApiOperation(value = "Delete a metric set pair list")

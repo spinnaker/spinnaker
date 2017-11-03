@@ -35,6 +35,7 @@ import java.io.IOException;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/fetch/prometheus")
@@ -48,18 +49,18 @@ public class PrometheusFetchController {
   SynchronousQueryProcessor synchronousQueryProcessor;
 
   @RequestMapping(value = "/query", method = RequestMethod.POST)
-  public String queryMetrics(@RequestParam(required = false) final String metricsAccountName,
-                             @RequestParam(required = false) final String storageAccountName,
-                             @ApiParam(defaultValue = "node_cpu") @RequestParam String metricName,
-                             @RequestParam(required = false, defaultValue = "60s") String aggregationPeriod,
-                             @RequestParam(required = false, defaultValue = "localhost:9100") String scope,
-                             @RequestParam(required = false, defaultValue = "mode=~\"user|system\"\njob=\"node\"") List<String> labelBindings,
-                             @RequestParam(required = false) List<String> sumByFields,
+  public Map queryMetrics(@RequestParam(required = false) final String metricsAccountName,
+                          @RequestParam(required = false) final String storageAccountName,
+                          @ApiParam(defaultValue = "node_cpu") @RequestParam String metricName,
+                          @RequestParam(required = false, defaultValue = "60s") String aggregationPeriod,
+                          @RequestParam(required = false, defaultValue = "localhost:9100") String scope,
+                          @RequestParam(required = false, defaultValue = "mode=~\"user|system\"\njob=\"node\"") List<String> labelBindings,
+                          @RequestParam(required = false) List<String> sumByFields,
 
-                             @ApiParam(defaultValue = "cpu") @RequestParam String metricSetName,
-                             @ApiParam(defaultValue = "2017-08-17T21:13:00Z") @RequestParam Instant start,
-                             @ApiParam(defaultValue = "2017-08-17T21:30:00Z") @RequestParam Instant end,
-                             @ApiParam(defaultValue = "300") @RequestParam Long step) throws IOException {
+                          @ApiParam(defaultValue = "cpu") @RequestParam String metricSetName,
+                          @ApiParam(defaultValue = "2017-08-17T21:13:00Z") @RequestParam Instant start,
+                          @ApiParam(defaultValue = "2017-08-17T21:30:00Z") @RequestParam Instant end,
+                          @ApiParam(defaultValue = "300") @RequestParam Long step) throws IOException {
     String resolvedMetricsAccountName = CredentialsHelper.resolveAccountByNameOrType(metricsAccountName,
                                                                                      AccountCredentials.Type.METRICS_STORE,
                                                                                      accountCredentialsRepository);
@@ -84,9 +85,11 @@ public class PrometheusFetchController {
 
     CanaryScope canaryScope = new CanaryScope(scope, start, end, step, Collections.emptyMap());
 
-    return synchronousQueryProcessor.processQuery(resolvedMetricsAccountName,
-                                                  resolvedStorageAccountName,
-                                                  Collections.singletonList(canaryMetricConfig),
-                                                  canaryScope).get(0);
+    String metricSetListId = synchronousQueryProcessor.processQuery(resolvedMetricsAccountName,
+                                                                    resolvedStorageAccountName,
+                                                                    Collections.singletonList(canaryMetricConfig),
+                                                                    canaryScope).get(0);
+
+    return Collections.singletonMap("metricSetListId", metricSetListId);
   }
 }

@@ -36,6 +36,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -68,8 +69,8 @@ public class CanaryJudgeResultController {
 
   @ApiOperation(value = "Write a canary judge result to object storage")
   @RequestMapping(consumes = "application/json", method = RequestMethod.POST)
-  public String storeCanaryJudgeResult(@RequestParam(required = false) final String accountName,
-                                       @RequestBody CanaryJudgeResult canaryJudgeResult) throws IOException {
+  public Map storeCanaryJudgeResult(@RequestParam(required = false) final String accountName,
+                                    @RequestBody CanaryJudgeResult canaryJudgeResult) throws IOException {
     String resolvedAccountName = CredentialsHelper.resolveAccountByNameOrType(accountName,
                                                                               AccountCredentials.Type.OBJECT_STORE,
                                                                               accountCredentialsRepository);
@@ -81,7 +82,7 @@ public class CanaryJudgeResultController {
 
     storageService.storeObject(resolvedAccountName, ObjectType.CANARY_JUDGE_RESULT, canaryJudgeResultId, canaryJudgeResult);
 
-    return canaryJudgeResultId;
+    return Collections.singletonMap("canaryJudgeResultId", canaryJudgeResultId);
   }
 
   @ApiOperation(value = "Delete a canary judge result")
