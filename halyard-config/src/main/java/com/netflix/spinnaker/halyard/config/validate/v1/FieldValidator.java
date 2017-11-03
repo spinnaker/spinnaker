@@ -16,7 +16,10 @@
 
 package com.netflix.spinnaker.halyard.config.validate.v1;
 
-import com.netflix.spinnaker.halyard.config.model.v1.node.*;
+import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Node;
+import com.netflix.spinnaker.halyard.config.model.v1.node.ValidForSpinnakerVersion;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import com.netflix.spinnaker.halyard.core.registry.v1.Versions;
@@ -64,7 +67,9 @@ public class FieldValidator extends Validator<Node> {
                     "Field " + finalClazz.getSimpleName() + "." + field.getName() + " not supported for Spinnaker version " + spinnakerVersion + ": " + annotation.message()
                 ).setRemediation("Use at least " + annotation.lowerBound() + " (It may not have been released yet).");
               }
-            } catch (IllegalArgumentException /* Probably using nightly build */ | IllegalAccessException /* Probably shouldn't happen */ e) {
+            } catch (NumberFormatException /* Probably using nightly build */ e) {
+              log.info("Nightly builds do not contain version information.");
+            } catch (IllegalAccessException /* Probably shouldn't happen */ e) {
               log.warn("Error validating field " + finalClazz.getSimpleName() + "." + field.getName() + ": ", e);
             }
           });

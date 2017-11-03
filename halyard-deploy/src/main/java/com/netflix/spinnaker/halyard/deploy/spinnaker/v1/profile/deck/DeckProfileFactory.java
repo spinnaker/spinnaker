@@ -93,6 +93,7 @@ public class DeckProfileFactory extends RegistryBackedProfileFactory {
     bindings.put("features.jobs", Boolean.toString(features.isJobs()));
     bindings.put("features.fiat", Boolean.toString(deploymentConfiguration.getSecurity().getAuthz().isEnabled()));
     bindings.put("features.pipelineTemplates", Boolean.toString(features.getPipelineTemplates() != null ? features.getPipelineTemplates() : false));
+    bindings.put("features.artifacts", Boolean.toString(features.getArtifacts() != null ? features.getArtifacts() : false));
 
     // Configure Kubernetes
     KubernetesProvider kubernetesProvider = deploymentConfiguration.getProviders().getKubernetes();

@@ -1088,6 +1088,7 @@ hal config features edit [parameters]
 ```
 
 #### Parameters
+ * `--artifacts`: Enable artifact support. Read more at spinnaker.io/reference/artifacts
  * `--chaos`: Enable Chaos Monkey support. For this to work, you'll need a running Chaos Monkey deployment. Currently, Halyard doesn't configure Chaos Monkey for you; read more instructions here https://github.com/Netflix/chaosmonkey/wiki.
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--jobs`: Allow Spinnaker to run containers in Kubernetes and Titus as Job stages in pipelines.
