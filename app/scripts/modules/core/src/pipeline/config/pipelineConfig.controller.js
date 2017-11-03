@@ -17,17 +17,14 @@ module.exports = angular.module('spinnaker.core.pipeline.config.controller', [
       pipelinesLoaded: false,
     };
 
-    this.containsJinja = source => source && (source.includes('{{') || source.includes('{%'));
-
     this.initialize = () => {
       this.pipelineConfig = _.find(app.pipelineConfigs.data, { id: $stateParams.pipelineId });
       if (this.pipelineConfig && this.pipelineConfig.type === 'templatedPipeline') {
         this.isTemplatedPipeline = true;
-        this.hasDynamicSource = this.containsJinja(this.pipelineConfig.config.pipeline.template.source);
         if (!this.pipelineConfig.isNew) {
-          return pipelineTemplateService.getPipelinePlan(this.pipelineConfig, $stateParams.executionId)
+          return pipelineTemplateService.getPipelinePlan(this.pipelineConfig)
             .then(plan => this.pipelinePlan = plan)
-            .catch(error => this.templateError = error);
+            .catch(() => this.pipelineConfig.isNew = true);
         }
       } else if (!this.pipelineConfig) {
         this.pipelineConfig = _.find(app.strategyConfigs.data, { id: $stateParams.pipelineId });

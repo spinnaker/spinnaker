@@ -79,16 +79,16 @@ export class PipelineTemplateService {
     'ngInject';
   }
 
-  public getPipelineTemplateFromSourceUrl(source: string, executionId?: String, pipelineConfigId?: string): IPromise<IPipelineTemplate> {
-    return this.API.one('pipelineTemplates').one('resolve').withParams({ source, executionId, pipelineConfigId }).get()
+  public getPipelineTemplateFromSourceUrl(source: string): IPromise<IPipelineTemplate> {
+    return this.API.one('pipelineTemplates').one('resolve').withParams({ source }).get()
       .then((template: IPipelineTemplate) => {
         template.selfLink = source;
         return template;
       });
   }
 
-  public getPipelinePlan(config: IPipelineTemplateConfig, executionId?: String): IPromise<IPipeline> {
-    return this.API.one('pipelines').one('start').post(Object.assign({}, config, { plan: true, executionId }));
+  public getPipelinePlan(config: IPipelineTemplateConfig): IPromise<IPipeline> {
+    return this.API.one('pipelines').one('start').post(Object.assign({}, config, { plan: true }));
   }
 
   public getPipelineTemplatesByScope(scope: string): IPromise<IPipelineTemplate[]> {

@@ -3,12 +3,7 @@
   <div class="modal-header">
     <h3><span ng-if="!command.locked">Edit </span>{{$ctrl.isStrategy === true ? 'Strategy' : 'Pipeline'}} JSON</h3>
   </div>
-  <!-- TODO: remove inline styling below when tabs-basic class has been updated to include list-style: none -->
-  <ul class="tabs-basic" style="list-style: none" ng-if="$ctrl.command.pipelinePlanJSON">
-    <li role="presentation" ng-class="{selected: $ctrl.mode === 'pipeline'}"><a ng-click="$ctrl.mode = 'pipeline'">Configuration</a></li>
-    <li role="presentation" ng-class="{selected: $ctrl.mode === 'renderedPipeline'}"><a ng-click="$ctrl.mode = 'renderedPipeline'">Rendered pipeline</a></li>
-  </ul>
-  <div class="modal-body flex-fill" ng-if="$ctrl.mode == 'pipeline'">
+  <div class="modal-body flex-fill">
     <div class="row">
       <div class="col-md-12">
         <p>
@@ -38,20 +33,6 @@
         Error: {{$ctrl.command.errorMessage}}
       </div>
     </div>
-  </div>
-  <div class="modal-body flex-fill" ng-if="$ctrl.mode === 'renderedPipeline'">
-    <div class="row">
-      <div class="col-md-12">
-        <p>
-          This pipeline is based on a template. The JSON below represents the rendered pipeline.
-        </p>
-      </div>
-    </div>
-    <form role="form" name="form" class="form-horizontal flex-fill">
-      <div class="form-group flex-fill">
-        <textarea class="code form-control flex-fill" ng-model="$ctrl.command.pipelinePlanJSON" disabled></textarea>
-      </div>
-    </form>
   </div>
   <div class="modal-footer">
     <button class="btn btn-default" ng-click="$dismiss()">Cancel</button>

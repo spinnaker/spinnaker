@@ -39,7 +39,7 @@ export class ConfigurePipelineTemplateModalController implements IController {
 
   constructor(private $scope: IScope, private $uibModalInstance: IModalInstanceService,
               private application: Application, public pipelineTemplateConfig: IPipelineTemplateConfig,
-              public isNew: boolean, private pipelineId: string, private executionId: string) {
+              public isNew: boolean, private pipelineId: string) {
     'ngInject';
   }
 
@@ -109,7 +109,7 @@ export class ConfigurePipelineTemplateModalController implements IController {
   }
 
   private loadTemplate(): IPromise<void> {
-    return ReactInjector.pipelineTemplateService.getPipelineTemplateFromSourceUrl(this.source, this.executionId, this.pipelineId)
+    return ReactInjector.pipelineTemplateService.getPipelineTemplateFromSourceUrl(this.source)
       .then(template => { this.template = template });
   }
 
