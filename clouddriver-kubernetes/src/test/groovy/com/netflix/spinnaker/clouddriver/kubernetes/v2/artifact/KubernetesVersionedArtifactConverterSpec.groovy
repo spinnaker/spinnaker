@@ -60,10 +60,9 @@ class KubernetesVersionedArtifactConverterSpec extends Specification {
     artifactProvider.getArtifacts(type, name, location) >> artifacts
 
     def converter = new KubernetesVersionedArtifactConverter()
-    converter.artifactProvider = artifactProvider
 
     then:
-    converter.getVersion(type, name, location) == expected
+    converter.getVersion(artifactProvider, type, name, location) == expected
 
     where:
     versions  | expected

@@ -18,6 +18,7 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.op.deployer;
 
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesCacheDataConverter;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesV2CachingAgent;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpinnakerKindMap;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
@@ -26,13 +27,12 @@ import com.netflix.spinnaker.clouddriver.model.Manifest.Status;
 import com.netflix.spinnaker.clouddriver.model.ServerGroup.Capacity;
 import io.kubernetes.client.models.AppsV1beta1Deployment;
 import io.kubernetes.client.models.AppsV1beta1DeploymentStatus;
-import io.kubernetes.client.models.V1DeleteOptions;
 import io.kubernetes.client.models.V1beta2Deployment;
 import io.kubernetes.client.models.V1beta2DeploymentStatus;
 import org.springframework.stereotype.Component;
 
 @Component
-public class KubernetesDeploymentDeployer extends KubernetesDeployer implements CanResize, CanDelete {
+public class KubernetesDeploymentHandler extends KubernetesHandler implements CanResize, CanDelete {
   @Override
   public KubernetesKind kind() {
     return KubernetesKind.DEPLOYMENT;
@@ -60,6 +60,11 @@ public class KubernetesDeploymentDeployer extends KubernetesDeployer implements 
       default:
         throw new UnsupportedVersionException(manifest);
     }
+  }
+
+  @Override
+  public Class<? extends KubernetesV2CachingAgent> cachingAgentClass() {
+    return null;
   }
 
   private Status status(AppsV1beta1Deployment deployment) {

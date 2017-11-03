@@ -24,8 +24,8 @@ import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAcco
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.deployer.KubernetesReplicaSetDeployer;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.deployer.KubernetesServiceDeployer;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.deployer.KubernetesReplicaSetHandler;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.deployer.KubernetesServiceHandler;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.job.KubectlJobExecutor;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
 import lombok.Getter;
@@ -96,7 +96,7 @@ public class KubernetesServiceCachingAgent extends KubernetesV2OnDemandCachingAg
   }
 
   private static Set<KubernetesManifest> intersectLabels(KubernetesManifest service, Map<String, Set<KubernetesManifest>> mapLabelToManifest) {
-    Map<String, String> selector = KubernetesServiceDeployer.getSelector(service);
+    Map<String, String> selector = KubernetesServiceHandler.getSelector(service);
     if (selector == null || selector.isEmpty()) {
       return new HashSet<>();
     }
@@ -120,7 +120,7 @@ public class KubernetesServiceCachingAgent extends KubernetesV2OnDemandCachingAg
 
   private static void addAllReplicaSetLabels(Map<String, Set<KubernetesManifest>> entries, KubernetesManifest replicaSet) {
     String namespace = replicaSet.getNamespace();
-    Map<String, String> podLabels = KubernetesReplicaSetDeployer.getPodTemplateLabels(replicaSet);
+    Map<String, String> podLabels = KubernetesReplicaSetHandler.getPodTemplateLabels(replicaSet);
     if (podLabels == null) {
       return;
     }

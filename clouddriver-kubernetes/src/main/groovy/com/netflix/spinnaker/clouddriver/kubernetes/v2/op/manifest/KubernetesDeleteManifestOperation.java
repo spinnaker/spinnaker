@@ -25,12 +25,11 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesRes
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesResourcePropertyRegistry;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesDeleteManifestDescription;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.deployer.CanDelete;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.deployer.KubernetesDeployer;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.deployer.KubernetesHandler;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 
 import java.util.List;
-import java.util.Map;
 
 public class KubernetesDeleteManifestOperation implements AtomicOperation<Void> {
   private final KubernetesDeleteManifestDescription description;
@@ -55,8 +54,8 @@ public class KubernetesDeleteManifestOperation implements AtomicOperation<Void> 
     KubernetesCoordinates coordinates = description.getCoordinates();
 
     getTask().updateStatus(OP_NAME, "Looking up resource properties...");
-    KubernetesResourceProperties properties = registry.lookup(coordinates);
-    KubernetesDeployer deployer = properties.getDeployer();
+    KubernetesResourceProperties properties = registry.get(coordinates.getKind());
+    KubernetesHandler deployer = properties.getHandler();
 
     if (!(deployer instanceof CanDelete)) {
       throw new IllegalArgumentException("Resource with " + coordinates + " does not support delete");

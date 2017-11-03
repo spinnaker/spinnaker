@@ -24,7 +24,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesRes
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesResourcePropertyRegistry;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.servergroup.KubernetesResizeServerGroupDescription;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.deployer.CanResize;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.deployer.KubernetesDeployer;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.deployer.KubernetesHandler;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 
@@ -52,8 +52,8 @@ public class KubernetesResizeServerGroupOperation implements AtomicOperation<Voi
     KubernetesCoordinates coordinates = description.getCoordinates();
 
     getTask().updateStatus(OP_NAME, "Looking up resource properties...");
-    KubernetesResourceProperties properties = registry.lookup(coordinates);
-    KubernetesDeployer deployer = properties.getDeployer();
+    KubernetesResourceProperties properties = registry.get(coordinates.getKind());
+    KubernetesHandler deployer = properties.getHandler();
 
     if (!(deployer instanceof CanResize)) {
       throw new IllegalArgumentException("Resource with " + coordinates + " does not support resize");

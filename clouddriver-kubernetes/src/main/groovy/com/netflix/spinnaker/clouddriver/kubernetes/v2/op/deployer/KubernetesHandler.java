@@ -19,7 +19,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.op.deployer;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.clouddriver.deploy.DeploymentResult;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.provider.KubernetesCacheUtils;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesV2CachingAgent;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpinnakerKindMap.SpinnakerKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
@@ -33,12 +33,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 
-public abstract class KubernetesDeployer {
+public abstract class KubernetesHandler {
   @Autowired
   protected ObjectMapper objectMapper;
-
-  @Autowired
-  private KubernetesCacheUtils cacheUtils;
 
   @Getter
   @Autowired
@@ -58,6 +55,7 @@ public abstract class KubernetesDeployer {
   abstract public boolean versioned();
   abstract public SpinnakerKind spinnakerKind();
   abstract public Status status(KubernetesManifest manifest);
+  abstract public Class<? extends KubernetesV2CachingAgent> cachingAgentClass();
 
   void deploy(KubernetesV2Credentials credentials, KubernetesManifest manifest) {
     jobExecutor.deploy(credentials, manifest);

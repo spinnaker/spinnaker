@@ -32,7 +32,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.Kube
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifestSpinnakerRelationships
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.names.KubernetesManifestNamer
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.deployer.KubernetesReplicaSetDeployer
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.deployer.KubernetesReplicaSetHandler
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.job.KubectlJobExecutor
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.manifest.KubernetesDeployManifestOperation
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials
@@ -91,14 +91,14 @@ metadata:
     def jobExecutorMock = Mock(KubectlJobExecutor)
     jobExecutorMock.deploy(_, _) >> null
 
-    def replicaSetDeployer = new KubernetesReplicaSetDeployer()
+    def replicaSetDeployer = new KubernetesReplicaSetHandler()
     replicaSetDeployer.objectMapper = new ObjectMapper()
     replicaSetDeployer.versioned() >> true
     replicaSetDeployer.kind() >> KIND
     replicaSetDeployer.jobExecutor = jobExecutorMock
     def versionedArtifactConverterMock = Mock(KubernetesVersionedArtifactConverter)
     versionedArtifactConverterMock.getDeployedName(_) >> "$NAME-$VERSION"
-    versionedArtifactConverterMock.toArtifact(_) >> new Artifact()
+    versionedArtifactConverterMock.toArtifact(_, _) >> new Artifact()
     def registry = new KubernetesResourcePropertyRegistry(Collections.singletonList(replicaSetDeployer),
         new KubernetesSpinnakerKindMap(),
         versionedArtifactConverterMock,
@@ -108,7 +108,7 @@ metadata:
       .withAccount(ACCOUNT)
       .setNamer(KubernetesManifest.class, new KubernetesManifestNamer())
     
-    def deployOp = new KubernetesDeployManifestOperation(deployDescription, registry)
+    def deployOp = new KubernetesDeployManifestOperation(deployDescription, registry, null)
 
     return deployOp
   }

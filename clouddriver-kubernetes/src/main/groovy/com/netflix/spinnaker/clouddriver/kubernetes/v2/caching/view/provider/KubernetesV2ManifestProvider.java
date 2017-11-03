@@ -24,7 +24,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.model.Kubern
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesResourcePropertyRegistry;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.deployer.KubernetesDeployer;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.deployer.KubernetesHandler;
 import com.netflix.spinnaker.clouddriver.model.ManifestProvider;
 import com.netflix.spinnaker.moniker.Moniker;
 import org.apache.commons.lang3.tuple.Pair;
@@ -67,9 +67,7 @@ public class KubernetesV2ManifestProvider implements ManifestProvider<Kubernetes
     }
 
     CacheData data = dataOptional.get();
-    KubernetesDeployer deployer = registry.lookup()
-        .withKind(kind)
-        .getDeployer();
+    KubernetesHandler deployer = registry.get(kind).getHandler();
 
     KubernetesManifest manifest = KubernetesCacheDataConverter.getManifest(data);
     Moniker moniker = KubernetesCacheDataConverter.getMoniker(data);

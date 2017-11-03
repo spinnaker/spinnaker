@@ -18,6 +18,8 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.op.deployer;
 
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesCacheDataConverter;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesReplicaSetCachingAgent;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesV2CachingAgent;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpinnakerKindMap.SpinnakerKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
@@ -33,7 +35,7 @@ import org.springframework.stereotype.Component;
 import java.util.Map;
 
 @Component
-public class KubernetesReplicaSetDeployer extends KubernetesDeployer implements CanResize, CanDelete {
+public class KubernetesReplicaSetHandler extends KubernetesHandler implements CanResize, CanDelete {
   @Override
   public KubernetesKind kind() {
     return KubernetesKind.REPLICA_SET;
@@ -47,6 +49,11 @@ public class KubernetesReplicaSetDeployer extends KubernetesDeployer implements 
   @Override
   public SpinnakerKind spinnakerKind() {
     return SpinnakerKind.SERVER_GROUP;
+  }
+
+  @Override
+  public Class<? extends KubernetesV2CachingAgent> cachingAgentClass() {
+    return KubernetesReplicaSetCachingAgent.class;
   }
 
   @Override

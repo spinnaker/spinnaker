@@ -17,11 +17,10 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact;
 
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.provider.KubernetesV2ArtifactProvider;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesCoordinates;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
+import com.netflix.spinnaker.clouddriver.model.ArtifactProvider;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -30,15 +29,12 @@ import java.util.stream.Collectors;
 
 @Component
 public class KubernetesVersionedArtifactConverter extends KubernetesArtifactConverter {
-  @Autowired
-  KubernetesV2ArtifactProvider artifactProvider;
-
   @Override
-  public Artifact toArtifact(KubernetesManifest manifest) {
+  public Artifact toArtifact(ArtifactProvider provider, KubernetesManifest manifest) {
     String type = getType(manifest);
     String name = manifest.getName();
     String location = manifest.getNamespace();
-    String version = getVersion(type, name, location);
+    String version = getVersion(provider, type, name, location);
     return Artifact.builder()
         .type(type)
         .name(name)
@@ -62,8 +58,8 @@ public class KubernetesVersionedArtifactConverter extends KubernetesArtifactConv
     return artifact.getName() + "-" + artifact.getVersion();
   }
 
-  private String getVersion(String type, String name, String location) {
-    List<Artifact> priorVersions = artifactProvider.getArtifacts(type, name, location);
+  private String getVersion(ArtifactProvider provider, String type, String name, String location) {
+    List<Artifact> priorVersions = provider.getArtifacts(type, name, location);
 
     List<Integer> taken = priorVersions.stream()
         .map(Artifact::getVersion)

@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.converter.manifest;
 
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesOperation;
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.converters.KubernetesAtomicOperationConverterHelper;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.provider.KubernetesV2ArtifactProvider;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesResourcePropertyRegistry;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesDeployManifestDescription;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.manifest.KubernetesDeployManifestOperation;
@@ -38,9 +39,12 @@ public class KubernetesDeployManifestConverter extends AbstractAtomicOperationsC
   @Autowired
   private KubernetesResourcePropertyRegistry registry;
 
+  @Autowired
+  private KubernetesV2ArtifactProvider artifactProvider;
+
   @Override
   public AtomicOperation convertOperation(Map input) {
-    return new KubernetesDeployManifestOperation(convertDescription(input), registry);
+    return new KubernetesDeployManifestOperation(convertDescription(input), registry, artifactProvider);
   }
 
   @Override
