@@ -16,9 +16,7 @@
 
 package com.netflix.kayenta.judge
 
-import com.netflix.kayenta.judge.classifiers.metric.MetricDirection
-import com.netflix.kayenta.judge.classifiers.metric.{Pass, High, Low}
-import com.netflix.kayenta.judge.classifiers.metric.MannWhitneyClassifier
+import com.netflix.kayenta.judge.classifiers.metric._
 import com.netflix.kayenta.r.MannWhitney
 import org.scalatest.FunSuite
 

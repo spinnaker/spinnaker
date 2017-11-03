@@ -106,7 +106,7 @@ class NetflixACAJudge extends CanaryJudge with StrictLogging {
       .build()
 
     //Construct the judge result object
-    val results = metricResults.asJava;
+    val results = metricResults.asJava
     CanaryJudgeResult.builder()
       .judgeName(judgeName)
       .score(summaryScore)
@@ -164,6 +164,11 @@ class NetflixACAJudge extends CanaryJudge with StrictLogging {
     val experiment = Metric(metric.getName, experimentValues, label="Canary")
     val control = Metric(metric.getName, controlValues, label="Baseline")
 
+    val directionalityOption = MapUtils.get(metricConfig.getAnalysisConfigurations, "canary", "directionality")
+    val directionalityString = if (directionalityOption.isDefined) directionalityOption.get.toString else "default"
+    val directionality = MetricDirection.parse(directionalityString)
+
+    logger.debug("Metric " + metric.getName + " Directionality " + directionality + " string=" + directionalityOption)
     logger.debug("Metric " + metric.getName + " Experiment data point count: " + experimentValues.length)
     logger.debug("Metric " + metric.getName + " Control data point count: " + controlValues.length)
 
@@ -194,7 +199,7 @@ class NetflixACAJudge extends CanaryJudge with StrictLogging {
     //Use the Mann-Whitney algorithm to compare the experiment and control populations
     val mannWhitney = new MannWhitneyClassifier(fraction = 0.25, confLevel = 0.98, mw)
 
-    val metricClassification = mannWhitney.classify(transformedControl, transformedExperiment, MetricDirection.Either)
+    val metricClassification = mannWhitney.classify(transformedControl, transformedExperiment, directionality)
 
     CanaryAnalysisResult.builder()
       .name(metric.getName)

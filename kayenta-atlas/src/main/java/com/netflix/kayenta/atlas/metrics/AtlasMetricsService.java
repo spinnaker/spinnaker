@@ -66,6 +66,9 @@ public class AtlasMetricsService implements MetricsService {
   @Autowired
   RetrofitClientFactory retrofitClientFactory;
 
+  @Autowired
+  AtlasSSEConverter atlasSSEConverter;
+
   @Override
   public String getType() {
     return "atlas";
@@ -81,7 +84,6 @@ public class AtlasMetricsService implements MetricsService {
                                       CanaryMetricConfig canaryMetricConfig,
                                       CanaryScope canaryScope) throws IOException {
 
-    AtlasSSEConverter atlasSSEConverter = new AtlasSSEConverter();
     OkHttpClient okHttpClient = new OkHttpClient();
 
     if (!(canaryScope instanceof AtlasCanaryScope)) {
@@ -97,7 +99,11 @@ public class AtlasMetricsService implements MetricsService {
                                                                                             atlasCanaryScope.getRegion(),
                                                                                             atlasCanaryScope.getEnvironment());
     if (!backend.isPresent()) {
-      throw new IllegalArgumentException("Unable to find an appropriate Atlas cluster");
+      throw new IllegalArgumentException("Unable to find an appropriate Atlas cluster for" +
+                                          " region=" + atlasCanaryScope.getRegion() +
+                                          " dataset=" + atlasCanaryScope.getDataset() +
+                                          " deployment=" + atlasCanaryScope.getDeployment() +
+                                          " environment=" + atlasCanaryScope.getEnvironment());
     }
 
     String uri = backend.get().getUri("http",

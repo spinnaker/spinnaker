@@ -16,8 +16,8 @@
 
 package com.netflix.kayenta.judge
 
-import com.netflix.kayenta.judge.stats.{DescriptiveStatistics, MetricStatistics}
 import com.netflix.kayenta.judge.stats.DescriptiveStatistics.percentile
+import com.netflix.kayenta.judge.stats.{DescriptiveStatistics, MetricStatistics}
 import org.scalatest.FunSuite
 import org.scalatest.Matchers._
 

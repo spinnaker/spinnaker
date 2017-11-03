@@ -30,6 +30,15 @@ object MetricDirection{
   case object Increase extends MetricDirection
   case object Decrease extends MetricDirection
   case object Either extends MetricDirection
+
+  def parse(directionalityString: String): MetricDirection = {
+    directionalityString match {
+      case "increase" => MetricDirection.Increase
+      case "decrease" => MetricDirection.Decrease
+      case "either" => MetricDirection.Either
+      case _ =>  MetricDirection.Either
+    }
+  }
 }
 
 //todo (csanden): report deviation instead of ratio?
