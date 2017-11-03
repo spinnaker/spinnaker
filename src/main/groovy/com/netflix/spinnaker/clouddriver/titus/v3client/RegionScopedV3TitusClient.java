@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.protobuf.Message;
 import com.google.protobuf.util.JsonFormat;
 import com.netflix.frigga.Names;
+import com.netflix.grpc.interceptor.spectator.SpectatorMetricsClientInterceptor;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.titus.client.*;
 import com.netflix.spinnaker.clouddriver.titus.client.model.*;
@@ -116,6 +117,7 @@ public class RegionScopedV3TitusClient implements TitusClient {
       .loadBalancerFactory(RoundRobinLoadBalancerFactory.getInstance())
       .intercept(new GrpcMetricsInterceptor(registry, titusRegion))
       .intercept(new GrpcRetryInterceptor(DEFAULT_CONNECT_TIMEOUT))
+      .intercept(new SpectatorMetricsClientInterceptor(registry))
       .build();
 
     this.grpcBlockingStub = JobManagementServiceGrpc.newBlockingStub(channel);
