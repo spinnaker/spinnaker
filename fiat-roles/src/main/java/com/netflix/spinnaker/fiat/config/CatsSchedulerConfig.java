@@ -54,6 +54,9 @@ public class CatsSchedulerConfig {
   @Value("${fiat.writeMode.syncDelayMs:600000}")
   String syncDelayMs;
 
+  @Value("${fiat.writeMode.syncDelayTimeoutMs:30000}")
+  String syncDelayTimeoutMs;
+
   @Bean
   NodeIdentity nodeIdentity() {
     return new DefaultNodeIdentity();
@@ -61,7 +64,9 @@ public class CatsSchedulerConfig {
 
   @Bean
   AgentIntervalProvider agentIntervalProvider() {
-    return new DefaultAgentIntervalProvider(Long.parseLong(syncDelayMs), 10000);
+    Long pollInterval = Long.parseLong(syncDelayMs);
+    Long timeout = Long.parseLong(syncDelayTimeoutMs);
+    return new DefaultAgentIntervalProvider(pollInterval, pollInterval + timeout);
   }
 
   @Bean
