@@ -28,7 +28,8 @@ public enum KubernetesKind {
   POD("pod", "po"),
   REPLICA_SET("replicaSet", "rs"),
   NETWORK_POLICY("networkPolicy", "netpol"),
-  SERVICE("service", "svc");
+  SERVICE("service", "svc"),
+  STATEFUL_SET("statefulset");
 
   private final String name;
   private final String alias;
