@@ -20,10 +20,10 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.description;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 @Component
 public class KubernetesSpinnakerKindMap {
@@ -36,13 +36,13 @@ public class KubernetesSpinnakerKindMap {
     UNCLASSIFIED
   }
 
-  private Map<SpinnakerKind, List<KubernetesKind>> spinnakerToKubernetes = new HashMap<>();
+  private Map<SpinnakerKind, Set<KubernetesKind>> spinnakerToKubernetes = new HashMap<>();
   private Map<KubernetesKind, SpinnakerKind> kubernetesToSpinnaker = new HashMap<>();
 
   void addRelationship(SpinnakerKind spinnakerKind, KubernetesKind kubernetesKind) {
-    List<KubernetesKind> kinds = spinnakerToKubernetes.get(spinnakerKind);
+    Set<KubernetesKind> kinds = spinnakerToKubernetes.get(spinnakerKind);
     if (kinds == null) {
-      kinds = new ArrayList<>();
+      kinds = new HashSet<>();
     }
 
     kinds.add(kubernetesKind);
@@ -50,15 +50,11 @@ public class KubernetesSpinnakerKindMap {
     kubernetesToSpinnaker.put(kubernetesKind, spinnakerKind);
   }
 
-  public KubernetesSpinnakerKindMap() {
-    addRelationship(SpinnakerKind.INSTANCE, KubernetesKind.POD);
-  }
-
   public SpinnakerKind translateKubernetesKind(KubernetesKind kubernetesKind) {
     return kubernetesToSpinnaker.get(kubernetesKind);
   }
 
-  public List<KubernetesKind> translateSpinnakerKind(SpinnakerKind spinnakerKind) {
+  public Set<KubernetesKind> translateSpinnakerKind(SpinnakerKind spinnakerKind) {
     return spinnakerToKubernetes.get(spinnakerKind);
   }
 }
