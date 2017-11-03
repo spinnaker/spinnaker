@@ -186,12 +186,8 @@ class SpinnakerStatus(service_testing.HttpOperationStatus):
                 id=self.id, current=self.__current_state,
                 error=self.error, detail=self.detail)
 
-  def refresh(self, trace=True):
-    """Refresh the status with the current data from spinnaker.
-
-    Args:
-      trace: [bool] Whether or not to log the call into spinnaker.
-    """
+  def refresh(self):
+    """Refresh the status with the current data from spinnaker."""
     if self.finished:
       return
 

@@ -69,12 +69,12 @@ class BaseGcsPubsubTriggerOperation(base_agent.AgentOperation):
     snapshot.edge_builder.make_mechanism(entity, 'Gcs Pubsub Agent', self.agent)
     super(BaseGcsPubsubTriggerOperation, self).export_to_json_snapshot(snapshot, entity)
 
-  def execute(self, agent=None, trace=True):
+  def execute(self, agent=None):
     status = self._do_execute(self.agent)
     self.agent.logger.debug('Returning status %s', status)
     return status
 
-  def _do_execute(self, agent, trace=True):
+  def _do_execute(self, agent):
     raise UnimplementedError('{0}._do_execute'.format(type(self)))
 
 
@@ -91,7 +91,7 @@ class GcsPubsubUploadTriggerOperation(BaseGcsPubsubTriggerOperation):
     self.__status_class = status_class
     self.__status_path = status_path
 
-  def _do_execute(self, agent, trace=True):
+  def _do_execute(self, agent):
     # self.agent is the gcs_pubsub_agent
     self.agent.upload_file(self.__bucket_name, self.__upload_path, self.__local_filename)
 
@@ -124,7 +124,7 @@ class GcsPubsubTriggerOperationStatus(base_agent.AgentOperationStatus):
     resp = self.__trigger_response
     return resp and resp.http_code == 504
 
-  def refresh(self, trace=True):
+  def refresh(self):
     self.__trigger_response = self.__gate_agent.get(self.__status_path)
 
   def __init__(self, operation, gate_agent, status_class, status_path):
