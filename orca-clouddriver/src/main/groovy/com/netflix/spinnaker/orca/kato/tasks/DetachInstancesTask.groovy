@@ -21,7 +21,10 @@ import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.KatoService
+import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Location
 import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware
+import com.netflix.spinnaker.orca.clouddriver.utils.MonikerHelper
+import com.netflix.spinnaker.orca.clouddriver.utils.TrafficGuard
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -36,9 +39,25 @@ class DetachInstancesTask implements RetryableTask, CloudProviderAware {
   @Autowired
   KatoService kato
 
+  @Autowired
+  TrafficGuard trafficGuard
+
   @Override
   TaskResult execute(Stage stage) {
-    def taskId = kato.requestOperations(getCloudProvider(stage), [[detachInstances: stage.context]])
+    String cloudProvider = getCloudProvider(stage)
+    String account = getCredentials(stage)
+    String serverGroupName = stage.context.serverGroupName ?: stage.context.asgName
+
+    trafficGuard.verifyInstanceTermination(
+      serverGroupName,
+      MonikerHelper.monikerFromStage(stage, serverGroupName),
+      stage.context.instanceIds as List<String>,
+      account,
+      Location.region(stage.context.region as String),
+      cloudProvider,
+      "Terminating the requested instances in ")
+
+    def taskId = kato.requestOperations(cloudProvider, [[detachInstances: stage.context]])
       .toBlocking()
       .first()
 
