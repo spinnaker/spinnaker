@@ -8,14 +8,12 @@ import { ACCOUNT_SERVICE, NAMING_SERVICE, StageConstants } from '@spinnaker/core
 module.exports = angular.module('spinnaker.gce.pipeline.stage..cloneServerGroupStage', [
   ACCOUNT_SERVICE,
   NAMING_SERVICE,
-  require('./cloneServerGroupExecutionDetails.controller.js').name,
 ])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       provides: 'cloneServerGroup',
       cloudProvider: 'gce',
       templateUrl: require('./cloneServerGroupStage.html'),
-      executionDetailsUrl: require('./cloneServerGroupExecutionDetails.html'),
       executionStepLabelUrl: require('./cloneServerGroupStepLabel.html'),
       validators: [
         { type: 'requiredField', fieldName: 'targetCluster', fieldLabel: 'cluster' },

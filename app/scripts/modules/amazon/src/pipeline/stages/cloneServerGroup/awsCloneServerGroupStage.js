@@ -8,14 +8,12 @@ import { ACCOUNT_SERVICE, LIST_EXTRACTOR_SERVICE, StageConstants } from '@spinna
 module.exports = angular.module('spinnaker.amazon.pipeline.stage.cloneServerGroupStage', [
   ACCOUNT_SERVICE,
   LIST_EXTRACTOR_SERVICE,
-  require('./cloneServerGroupExecutionDetails.controller.js').name,
 ])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       provides: 'cloneServerGroup',
       cloudProvider: 'aws',
       templateUrl: require('./cloneServerGroupStage.html'),
-      executionDetailsUrl: require('./cloneServerGroupExecutionDetails.html'),
       executionStepLabelUrl: require('./cloneServerGroupStepLabel.html'),
       accountExtractor: (stage) => stage.context.credentials,
       validators: [

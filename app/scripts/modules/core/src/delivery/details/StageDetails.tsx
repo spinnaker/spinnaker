@@ -18,6 +18,7 @@ export interface IStageDetailsProps {
 export interface IStageDetailsState {
   configSections?: string[];
   executionDetailsSections?: IExecutionDetailsSection[];
+  provider: string;
   sourceUrl?: string;
 }
 
@@ -46,7 +47,7 @@ export class StageDetails extends React.Component<IStageDetailsProps, IStageDeta
         sourceUrl = stageConfig.executionDetailsUrl || require('./defaultExecutionDetails.html');
       }
     }
-    return { configSections, executionDetailsSections, sourceUrl };
+    return { configSections, executionDetailsSections, provider: stageConfig.cloudProvider, sourceUrl };
   }
 
   public componentWillReceiveProps() {
@@ -55,9 +56,9 @@ export class StageDetails extends React.Component<IStageDetailsProps, IStageDeta
 
   public render(): React.ReactElement<StageDetails> {
     const { application, execution, stage } = this.props;
-    const { executionDetailsSections, sourceUrl, configSections } = this.state;
+    const { executionDetailsSections, provider, sourceUrl, configSections } = this.state;
     const { StageDetailsWrapper } = NgReact;
-    const detailsProps = { application, execution, stage };
+    const detailsProps = { application, execution, provider, stage };
 
     return (
       <div className="stage-details">

@@ -55,4 +55,3 @@ module.exports = angular.module('spinnaker.openstack.pipeline.stage.disableAsgSt
     }
 
   });
-

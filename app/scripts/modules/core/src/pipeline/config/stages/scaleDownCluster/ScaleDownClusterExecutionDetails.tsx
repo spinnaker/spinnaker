@@ -23,7 +23,7 @@ export function ScaleDownClusterExecutionDetails(props: IExecutionDetailsSection
             <dd>{stage.context.remainingFullSizeServerGroups}</dd>
             <dt>Scale Active?</dt>
             <dd>{String(!!stage.context.allowScaleDownActive)}</dd>
-            </dl>
+          </dl>
         </div>
       </div>
       <ServerGroupStageContext serverGroups={stage.context['deploy.server.groups']} />

@@ -39,6 +39,7 @@ export interface IExecutionDetailsComponentProps {
   application: Application;
   detailsSections: IExecutionDetailsSection[];
   execution: IExecution;
+  provider: string;
   stage: IExecutionStage;
 }
 
