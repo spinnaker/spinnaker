@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { get } from 'lodash'
 import { BindAll } from 'lodash-decorators';
 
 import { IExecution, IExecutionStage } from 'core/domain';
@@ -68,13 +69,13 @@ export class ExecutionWindowActions extends React.Component<IExecutionWindowActi
   }
 
   public render() {
-    const stage = this.props.stage;
+    const { stage } = this.props;
     return (
       <div>
         <h5>Execution Windows Configuration</h5>
         <strong>Stage execution can only run:</strong>
         <dl className="dl-narrow dl-horizontal">
-          {stage.context.restrictedExecutionWindow.whitelist.map((entry: IExecutionWindowWhitelistEntry, index: number) => {
+          {get(stage, 'context.restrictedExecutionWindow.whitelist', []).map((entry: IExecutionWindowWhitelistEntry, index: number) => {
             return (
               <div key={index}>
                 <dt>From</dt>
