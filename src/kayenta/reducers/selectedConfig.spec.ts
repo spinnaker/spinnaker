@@ -4,7 +4,7 @@ import {
   editGroupConfirmReducer,
   ISelectedConfigState, updateGroupWeightsReducer
 } from './selectedConfig';
-import { GroupWeights, ICanaryMetricConfig } from '../domain/ICanaryConfig';
+import { IGroupWeights, ICanaryMetricConfig } from '../domain/ICanaryConfig';
 import { IGroupState } from './group';
 
 describe('Reducer: editGroupConfirmReducer', () => {
@@ -149,7 +149,7 @@ describe('Reducer: updateGroupWeightsReducer', () => {
         groups: ['c'],
       }
     ] as ICanaryMetricConfig[];
-    const weights: GroupWeights = { a: 25, b: 25, c: 25, d: 25 };
+    const weights: IGroupWeights = { a: 25, b: 25, c: 25, d: 25 };
 
     const state = createSelectedConfigState(metrics, weights);
     const action = createAction();
@@ -169,7 +169,7 @@ describe('Reducer: updateGroupWeightsReducer', () => {
         groups: ['b', 'c'],
       }
     ] as ICanaryMetricConfig[];
-    const weights: GroupWeights = { a: 50, b: 50 };
+    const weights: IGroupWeights = { a: 50, b: 50 };
 
     const state = createSelectedConfigState(metrics, weights);
     const action = createAction();
@@ -180,7 +180,7 @@ describe('Reducer: updateGroupWeightsReducer', () => {
 
   const createAction = () => ({ type: Actions.SELECT_CONFIG });
 
-  const createSelectedConfigState = (metricList: ICanaryMetricConfig[], groupWeights: GroupWeights): ISelectedConfigState => ({
+  const createSelectedConfigState = (metricList: ICanaryMetricConfig[], groupWeights: IGroupWeights): ISelectedConfigState => ({
     metricList,
     group: {
       groupWeights,

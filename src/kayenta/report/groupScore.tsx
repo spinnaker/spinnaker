@@ -1,21 +1,24 @@
 import * as React from 'react';
+import * as classNames from 'classnames';
 
 import { ICanaryJudgeGroupScore } from '../domain/ICanaryJudgeResult';
 
 export interface IGroupScoreProps {
   group: ICanaryJudgeGroupScore;
+  style?: {[key: string]: string };
   onClick: (event: any) => void;
+  className: string;
 }
 
 /*
 * Renders an individual group score.
 * */
-export default ({ group, onClick }: IGroupScoreProps) => (
+export default ({ group, onClick, style, className }: IGroupScoreProps) => (
   <section
-    data-group={group.name}
-    onClick={onClick}
-    className="clickable"
+    style={style}
+    onClick={() => onClick(group.name)}
+    className={classNames('clickable', 'text-center', 'group-score', className)}
   >
-    {group.name} | {group.score}
+    <h3 className="heading-3 uppercase label">{group.name}</h3>
   </section>
 );

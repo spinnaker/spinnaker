@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
+import { sortBy } from 'lodash';
 
 import ListDetail from '../layout/listDetail';
 import { ICanaryState } from '../reducers/index';
@@ -45,7 +46,7 @@ const mapStateToProps = (state: ICanaryState): IMetricResultsStateProps => {
   }
 
   return {
-    metricResults: Object.values(result.results).filter(filter),
+    metricResults: sortBy(Object.values(result.results).filter(filter), 'name'),
     selectedMetricResult: Object.values(result.results).find(r => r.name === selectedMetric),
   };
 };

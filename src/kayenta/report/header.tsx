@@ -11,12 +11,14 @@ export interface IReportHeaderStateProps {
 }
 
 const ReportHeader = ({ id, name }: IReportHeaderStateProps) => (
-  <h1 className="heading-1 color-text-primary">
-    Report:
-    <UISref to="^.^.canaryConfig.configDetail" params={{ id }}>
-      <a className="clickable color-text-primary"> {name}</a>
-    </UISref>
-  </h1>
+  <section>
+    <h1 className="heading-1 color-text-primary">
+      Report:
+      <UISref to="^.^.canaryConfig.configDetail" params={{ id }}>
+        <a className="clickable color-text-primary"> {name}</a>
+      </UISref>
+    </h1>
+  </section>
 );
 
 const mapStateToProps = (state: ICanaryState): IReportHeaderStateProps => ({

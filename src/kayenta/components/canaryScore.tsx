@@ -1,4 +1,5 @@
 import * as React from 'react';
+import * as classNames from 'classnames';
 
 import './canaryScore.component.less';
 
@@ -7,6 +8,7 @@ export interface ICanaryScoreProps {
   health?: string;
   result: string;
   inverse: boolean;
+  className?: string;
 }
 
 export interface ICanaryScoreState {
@@ -53,7 +55,7 @@ export class CanaryScore extends React.Component<ICanaryScoreProps, ICanaryScore
       `label-${this.state.healthLabel}`
     ].join(' ');
     return (
-      <span className={className}>{this.state.score}</span>
+      <span className={classNames(className, this.props.className)}>{this.state.score}</span>
     );
   }
 }

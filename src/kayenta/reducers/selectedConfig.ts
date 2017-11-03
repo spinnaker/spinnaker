@@ -5,7 +5,7 @@ import { get, has, omit, chain, pick, fromPairs } from 'lodash';
 import * as Actions from '../actions';
 import { IJudge } from '../domain/IJudge';
 import {
-  GroupWeights,
+  IGroupWeights,
   ICanaryClassifierThresholdsConfig,
   ICanaryConfig,
   ICanaryJudgeConfig,
@@ -226,7 +226,7 @@ export function editGroupConfirmReducer(state: ISelectedConfigState = null, acti
     groups: (c.groups || []).includes(group) ? [edit].concat((c.groups || []).filter(g => g !== group)) : c.groups,
   });
 
-  const weightsUpdator = (weights: GroupWeights): GroupWeights => {
+  const weightsUpdator = (weights: IGroupWeights): IGroupWeights => {
     const weight = weights[group];
     weights = omit(weights, group);
     return {
@@ -283,7 +283,7 @@ export function updateGroupWeightsReducer(state: ISelectedConfigState, action: A
     .value();
 
   // Prune weights for groups that no longer exist.
-  let groupWeights: GroupWeights = pick(state.group.groupWeights, groups);
+  let groupWeights: IGroupWeights = pick(state.group.groupWeights, groups);
 
   // Initialize weights for new groups.
   groupWeights = {

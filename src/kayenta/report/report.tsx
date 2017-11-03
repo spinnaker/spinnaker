@@ -6,7 +6,7 @@ import { UIView } from '@uirouter/react';
 export default () => {
   const noWrap = { wrap: false };
   return (
-    <div className="container">
+    <div>
       <UIView {...noWrap} name="detail"/>
     </div>
   );

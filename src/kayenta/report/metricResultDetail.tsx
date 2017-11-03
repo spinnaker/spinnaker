@@ -18,7 +18,7 @@ export default ({ result }: IMetricResultDetailProps) => {
     );
   } else {
     return (
-      <h3 className="heading-3">Select a metric result.</h3>
+      <h3 className="heading-3 text-center">Select a metric result.</h3>
     );
   }
 };

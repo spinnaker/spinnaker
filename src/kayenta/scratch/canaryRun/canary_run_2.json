@@ -291,8 +291,8 @@
       "status": "SUCCEEDED",
       "context": {
         "orchestratorScoreThresholds": {
-          "pass": 60,
-          "marginal": 30
+          "pass": 90,
+          "marginal": 80
         },
         "storageAccountName": "my-google-account",
         "configurationAccountName": "my-google-account",

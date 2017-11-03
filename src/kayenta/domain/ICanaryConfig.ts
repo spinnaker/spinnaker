@@ -38,10 +38,10 @@ export interface ICanaryServiceConfig {
   environment: string;
 }
 
-export type GroupWeights = {[group: string]: number};
+export type IGroupWeights = {[group: string]: number};
 
 export interface ICanaryClassifierConfig {
-  groupWeights: GroupWeights;
+  groupWeights: IGroupWeights;
   scoreThresholds: ICanaryClassifierThresholdsConfig;
 }
 

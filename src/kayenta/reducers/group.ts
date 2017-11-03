@@ -3,7 +3,7 @@ import { combineActions, handleActions } from 'redux-actions';
 import { get } from 'lodash';
 
 import * as Actions from '../actions';
-import { GroupWeights, ICanaryMetricConfig } from '../domain/ICanaryConfig';
+import { IGroupWeights, ICanaryMetricConfig } from '../domain/ICanaryConfig';
 
 export interface IGroupState {
   list: string[];
@@ -41,8 +41,8 @@ const selected = handleActions({
 }, '');
 
 const groupWeights = handleActions({
-  [Actions.SELECT_CONFIG]: (_state: GroupWeights, action: Action & any) => get(action, 'payload.config.classifier.groupWeights', {}),
-  [Actions.UPDATE_GROUP_WEIGHT]: (state: GroupWeights, action: Action & any) => ({ ...state, [action.payload.group]: action.payload.weight }),
+  [Actions.SELECT_CONFIG]: (_state: IGroupWeights, action: Action & any) => get(action, 'payload.config.classifier.groupWeights', {}),
+  [Actions.UPDATE_GROUP_WEIGHT]: (state: IGroupWeights, action: Action & any) => ({ ...state, [action.payload.group]: action.payload.weight }),
 }, {});
 
 const edit = handleActions({
