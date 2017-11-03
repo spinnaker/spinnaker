@@ -124,7 +124,7 @@ public class AWSBakeHandler extends CloudProviderBakeHandler {
     }
 
     if (bakeRequest.enhanced_networking) {
-      parameterMap.aws_enhanced_networking = true
+      parameterMap.aws_ena_support = true
     }
 
     if (bakeRequest.build_info_url) {

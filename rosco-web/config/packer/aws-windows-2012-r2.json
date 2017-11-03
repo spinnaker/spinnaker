@@ -11,7 +11,7 @@
     "aws_target_ami": null,
     "aws_security_group": "",
     "aws_associate_public_ip_address": "false",
-    "aws_enhanced_networking": "false",
+    "aws_ena_support": "false",
     "aws_userdata_file": "scripts/aws-windows.userdata",
     "appversion": "",
     "build_host": "",

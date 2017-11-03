@@ -10,7 +10,7 @@
     "aws_source_ami": null,
     "aws_target_ami": null,
     "aws_associate_public_ip_address": "true",
-    "aws_enhanced_networking": "false",
+    "aws_ena_support": "false",
     "appversion": "",
     "build_host": "",
     "repository": "",
