@@ -1,10 +1,11 @@
-import { module } from 'angular';
+import { module, IWindowService } from 'angular';
 import { UIRouter } from '@uirouter/angularjs';
 
 import {
   INestedState,
   APPLICATION_STATE_PROVIDER,
-  ApplicationStateProvider
+  ApplicationStateProvider,
+  IDeckRootScope
 } from '@spinnaker/core';
 
 import ConfigDetailLoader from 'kayenta/edit/configDetailLoader';
@@ -121,7 +122,7 @@ module(CANARY_STATES, [APPLICATION_STATE_PROVIDER])
   };
 
   applicationStateProvider.addChildState(canaryRoot);
-}).run(($uiRouter: UIRouter) => {
+}).run(($uiRouter: UIRouter, $window: IWindowService, $rootScope: IDeckRootScope) => {
   // When leaving a config detail state, clear that config.
   $uiRouter.transitionService.onBefore(
     {
@@ -129,5 +130,35 @@ module(CANARY_STATES, [APPLICATION_STATE_PROVIDER])
       to: state => !state.name.includes('configDetail'),
     },
     () => { canaryStore.dispatch(Creators.clearSelectedConfig()); },
+  );
+
+  // Prompts confirmation for page navigation if config hasn't been saved.
+  // Should be possible with a $uiRouter transition hook, but it's not.
+  $rootScope.$on('$stateChangeStart', event => {
+    const state = canaryStore.getState();
+    const warningMessage = 'You have unsaved changes.\nAre you sure you want to navigate away from this page?';
+    if (state.selectedConfig && !state.selectedConfig.isInSyncWithServer) {
+      if (!$window.confirm(warningMessage)) {
+        event.preventDefault();
+      }
+    }
+  });
+
+  // Prompts confirmation for page reload if config hasn't been saved.
+  $uiRouter.transitionService.onEnter(
+    { to: '**.configDetail.**' },
+    () => {
+      $window.onbeforeunload = () => {
+        const state = canaryStore.getState();
+        // Must return `null` if reload should be allowed.
+        return (state.selectedConfig && !state.selectedConfig.isInSyncWithServer) || null;
+      };
+    }
+  );
+
+  // Clears reload hook when leaving canary config view.
+  $uiRouter.transitionService.onExit(
+    { from: '**.configDetail.**' },
+    () => { $window.onbeforeunload = undefined; }
   );
 });

@@ -12,6 +12,6 @@ module('netflix.spinnaker', [
   KAYENTA_MODULE,
 ]).run((applicationDataSourceRegistry: ApplicationDataSourceRegistry) => {
   applicationDataSourceRegistry.setDataSourceOrder([
-    'executions', 'serverGroups', 'tasks', 'canary', 'loadBalancers', 'securityGroups', 'config'
+    'executions', 'serverGroups', 'tasks', 'loadBalancers', 'securityGroups', 'canaryConfigs', 'config'
   ]);
 });
