@@ -62,7 +62,7 @@ class RegisterCanaryTask implements Task {
       application         : c.application
     ]
 
-    if (deployStage.context.deployedClusterPairs[0]?.canaryCluster?.accountName) {
+    if (deployStage.context.deployedClusterPairs?.getAt(0)?.canaryCluster?.accountName) {
       outputs.account = deployStage.context.deployedClusterPairs[0].canaryCluster.accountName
     }
 
