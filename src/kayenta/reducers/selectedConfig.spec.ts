@@ -46,13 +46,25 @@ describe('Reducer: editGroupConfirmReducer', () => {
     });
   });
 
+  it('ignores the updated group name if the group already exists', () => {
+    const action = {
+      type: Actions.EDIT_GROUP_CONFIRM,
+      payload: {
+        group: 'groupA',
+        edit: 'groupC',
+      },
+    };
+
+    expect(editGroupConfirmReducer(state, action)).toEqual(createSelectedConfigState('groupA'));
+  });
+
   const createSelectedConfigState = (groupName: string): ISelectedConfigState => ({
     metricList: [{
       name: 'metricA',
-      groups: [groupName, 'otherGroupName'],
+      groups: [groupName, 'groupC'],
     }] as ICanaryMetricConfig[],
     group: {
-      list: [groupName, 'otherGroupName'],
+      list: [groupName, 'groupC'],
       groupWeights: {
         [groupName]: 50,
         otherGroupName: 50,

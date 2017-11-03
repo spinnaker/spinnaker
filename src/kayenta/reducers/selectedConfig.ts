@@ -1,6 +1,6 @@
 import { Action, combineReducers } from 'redux';
 import { combineActions, handleActions } from 'redux-actions';
-import { get, has, omit, chain, pick, fromPairs } from 'lodash';
+import { get, has, omit, chain, pick, fromPairs, flatMap } from 'lodash';
 
 import * as Actions from '../actions';
 import { IJudge } from '../domain/IJudge';
@@ -217,7 +217,8 @@ export function editGroupConfirmReducer(state: ISelectedConfigState = null, acti
   }
 
   const { payload: { group, edit } } = action;
-  if (!edit || edit === UNGROUPED || edit === ALL) {
+  const allGroups = flatMap(state.metricList, metric => metric.groups);
+  if (!edit || edit === UNGROUPED || edit === ALL || allGroups.includes(edit)) {
     return state;
   }
 
