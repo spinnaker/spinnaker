@@ -28,14 +28,14 @@ import org.apache.commons.lang3.tuple.Pair;
 @Data
 public class KubernetesManifestOperationDescription extends KubernetesAtomicOperationDescription {
   private String name;
-  private String namespace;
+  private String location;
 
   @JsonIgnore
   public KubernetesCoordinates getCoordinates() {
     Pair<KubernetesKind, String> parsedName = KubernetesManifest.fromFullResourceName(name);
 
     return KubernetesCoordinates.builder()
-        .namespace(name)
+        .namespace(location)
         .kind(parsedName.getLeft())
         .name(parsedName.getRight())
         .build();
