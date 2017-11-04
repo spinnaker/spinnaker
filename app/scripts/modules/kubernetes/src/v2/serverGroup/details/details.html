@@ -36,6 +36,11 @@
               Resize
             </a>
           </li>
+          <li>
+            <a href ng-click="ctrl.deleteServerGroup()">
+              Delete
+            </a>
+          <li>
         </ul>
       </div>
       <div class="clearfix"></div>
@@ -52,7 +57,7 @@
         <dt>Account</dt>
         <dd><account-tag account="ctrl.serverGroup.accountName"></account-tag></dd>
         <dt>Namespace</dt>
-        <dd>{{ctrl.serverGroup.region}}</dd>
+        <dd>{{ctrl.serverGroup.namespace}}</dd>
         <dt>Kind</dt>
         <dd>{{ctrl.serverGroup.kind}}</dd>
       </dl>

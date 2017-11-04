@@ -6,4 +6,5 @@ export interface IKubernetesServerGroup extends IServerGroup {
   apiVersion: string;
   disabled: boolean;
   manifest: any;
+  namespace: string;
 }

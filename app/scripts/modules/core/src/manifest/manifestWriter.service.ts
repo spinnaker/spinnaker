@@ -18,6 +18,16 @@ export class ManifestWriter {
       description
     });
   }
+
+  public deleteManifest(command: any, application: Application): IPromise<ITask> {
+    const description = 'Delete manifest';
+    command.type = 'deleteManifest';
+    return this.taskExecutor.executeTask({
+      job: [command],
+      application,
+      description
+    });
+  }
 }
 
 export const MANIFEST_WRITER = 'spinnaker.core.manifest.write.service';

@@ -144,6 +144,12 @@ const helpContents: {[key: string]: string} = {
   'kubernetes.manifest.detail': `
       <p><i>(Optional)</i> A naming component used to store free-form text about your manifest, and can be used to aggregate/filter resources later.</p>
   `,
+  'kubernetes.manifest.delete.gracePeriod': `
+      <p><i>(Optional)</i>The number of seconds given to the resource to terminate gracefully. Overrides what's set on the manifest if applicable.</p>
+  `,
+  'kubernetes.manifest.delete.cascading': `
+      <p>When set, delete all resources managed by this resource as well (all pods owned by a replica set). When unset, this may orphan resources.</p>
+  `,
 };
 
 export const KUBERNETES_HELP = 'spinnaker.kubernetes.help.contents';
