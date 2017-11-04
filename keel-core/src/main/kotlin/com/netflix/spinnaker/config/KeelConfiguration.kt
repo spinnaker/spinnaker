@@ -48,7 +48,7 @@ open class KeelConfiguration {
   private val log = LoggerFactory.getLogger(javaClass)
 
   @Autowired
-  open fun configureObjectMapper(objectMapper: ObjectMapper) {
+  open fun objectMapper(objectMapper: ObjectMapper) {
     objectMapper.apply {
       registerSubtypes(*findAllIntentSubtypes().toTypedArray())
       registerSubtypes(*findAllIntentSpecSubtypes().toTypedArray())

@@ -34,9 +34,9 @@ class QueueBackedSchedulerAgent(
   private val log = LoggerFactory.getLogger(javaClass)
 
   @PostConstruct fun ensureSchedule() {
-    // TODO rz - Not super nice, but works
+    // TODO rz - Not super nice, but works: A deploy may push out a convergence.
     log.info("Ensuring scheduler convergence task exists")
-    queue.reschedule(ScheduleConvergence(), Duration.ofSeconds(3))
+    queue.push(ScheduleConvergence(), Duration.ofSeconds(10))
   }
 
   @Scheduled(fixedDelayString = "\${scheduler.retry.frequency.ms:30000}")

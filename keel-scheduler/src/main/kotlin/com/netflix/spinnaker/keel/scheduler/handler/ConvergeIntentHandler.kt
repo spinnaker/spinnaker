@@ -50,7 +50,6 @@ class ConvergeIntentHandler
 
   override fun handle(message: ConvergeIntent) {
     log.info("Converging intent ${message.intent.getId()}")
-    registry.counter(invocationsId.withTags("kind", message.intent.kind, "schema", message.intent.schema))
 
     if (clock.millis() > message.timeoutTtl) {
       log.warn("Intent timed out, canceling converge: ${message.intent.getId()}")
@@ -71,8 +70,10 @@ class ConvergeIntentHandler
         ?.also { result ->
           intentActivityRepository.addOrchestrations(intent.getId(), result.orchestrationIds)
         }
+      registry.counter(invocationsId.withTags("kind", message.intent.kind, "schema", message.intent.schema, "result", "success"))
     } catch (t: Throwable) {
       log.error("Failed launching intent: ${intent.getId()}", t)
+      registry.counter(invocationsId.withTags("kind", message.intent.kind, "schema", message.intent.schema, "result", "failed"))
     }
   }
 

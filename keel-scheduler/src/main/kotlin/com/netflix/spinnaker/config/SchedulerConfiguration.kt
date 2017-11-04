@@ -15,7 +15,9 @@
  */
 package com.netflix.spinnaker.config
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import org.springframework.boot.context.properties.EnableConfigurationProperties
+import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
 
@@ -25,4 +27,7 @@ import org.springframework.context.annotation.Configuration
   "com.netflix.spinnaker.keel.scheduler.handler"
 ))
 @EnableConfigurationProperties(ScheduleConvergeHandlerProperties::class)
-open class SchedulerConfiguration
+open class SchedulerConfiguration {
+
+  @Bean open fun redisQueueObjectMapper(objectMapper: ObjectMapper) = objectMapper
+}

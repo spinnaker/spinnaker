@@ -23,7 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component(value = "orcaIntentLauncher")
-class OrcaIntentLauncher
+open class OrcaIntentLauncher
 @Autowired constructor(
   private val intentProcessors: List<IntentProcessor<*>>,
   private val orcaService: OrcaService,

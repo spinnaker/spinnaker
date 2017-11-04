@@ -27,6 +27,7 @@ import com.netflix.spinnaker.q.Queue
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+import java.time.Clock
 import java.time.Duration
 
 @Component
@@ -35,7 +36,8 @@ class ScheduleConvergeHandler
   override val queue: Queue,
   private val properties: ScheduleConvergeHandlerProperties,
   private val intentRepository: IntentRepository,
-  private val registry: Registry
+  private val registry: Registry,
+  private val clock: Clock
 ) : MessageHandler<ScheduleConvergence> {
 
   private val log = LoggerFactory.getLogger(javaClass)
@@ -44,16 +46,24 @@ class ScheduleConvergeHandler
 
   override fun handle(message: ScheduleConvergence) {
     log.info("Scheduling intent convergence work")
-    registry.counter(invocations).increment()
 
     try {
       intentRepository.getIntents(statuses = listOf(IntentStatus.ACTIVE))
-        .also { log.info("Scheduling ${it.size}} active intents") }
+        .also { log.info("Scheduling ${it.size} active intents") }
         .forEach {
-          queue.push(ConvergeIntent(it, properties.stalenessTtl, properties.timeoutTtl))
+          queue.push(ConvergeIntent(
+            it,
+            clock.instant().plusMillis(properties.stalenessTtl).toEpochMilli(),
+            clock.instant().plusMillis(properties.timeoutTtl).toEpochMilli()
+          ))
         }
+      registry.counter(invocations.withTag("result", "success")).increment()
+    } catch (e: Exception) {
+      log.error("Failed scheduling convergence", e)
+      registry.counter(invocations.withTag("result", "failed")).increment()
     } finally {
-      queue.reschedule(message, Duration.ofMillis(properties.rescheduleTtl))
+      log.info("Re-scheduling convergence")
+      queue.push(message, Duration.ofMillis(properties.rescheduleTtl))
     }
   }
 
