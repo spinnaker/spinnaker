@@ -314,6 +314,7 @@ public class RedisCache extends AbstractRedisCache {
   private MergeOp buildMergeOp(String type, CacheData cacheData, Map<String, String> hashes) {
     int skippedWrites = 0;
     final String serializedAttributes;
+    boolean hasTtl = cacheData.getTtlSeconds() > 0;
     try {
       if (cacheData.getAttributes().isEmpty()) {
         serializedAttributes = null;
@@ -327,7 +328,7 @@ public class RedisCache extends AbstractRedisCache {
     final Map<String, String> hashesToSet = new HashMap<>();
     final List<String> keysToSet = new ArrayList<>((cacheData.getRelationships().size() + 1) * 2);
     if (serializedAttributes != null &&
-      hashCheck(hashes, attributesId(type, cacheData.getId()), serializedAttributes, keysToSet, hashesToSet)) {
+      hashCheck(hashes, attributesId(type, cacheData.getId()), serializedAttributes, keysToSet, hashesToSet, hasTtl)) {
       skippedWrites++;
     }
 
@@ -339,7 +340,7 @@ public class RedisCache extends AbstractRedisCache {
         } catch (JsonProcessingException serializationException) {
           throw new RuntimeException("Relationship serialization failed", serializationException);
         }
-        if (hashCheck(hashes, relationshipId(type, cacheData.getId(), relationship.getKey()), relationshipValue, keysToSet, hashesToSet)) {
+        if (hashCheck(hashes, relationshipId(type, cacheData.getId(), relationship.getKey()), relationshipValue, keysToSet, hashesToSet, hasTtl)) {
           skippedWrites++;
         }
       }
@@ -382,10 +383,11 @@ public class RedisCache extends AbstractRedisCache {
    * @param serializedValue the serialized value
    * @param keys            values to persist - if the hash does not match id and serializedValue are appended
    * @param updatedHashes   hashes to persist - if the hash does not match adds an entry of id -> computed hash
+   * @param hasTtl          if the key has a ttl - generally this means the key should not be hashed due to consistency issues between the hash key, and the key itself
    * @return true if the hash matched, false otherwise
    */
-  private boolean hashCheck(Map<String, String> hashes, String id, String serializedValue, List<String> keys, Map<String, String> updatedHashes) {
-    if (options.isHashingEnabled()) {
+  private boolean hashCheck(Map<String, String> hashes, String id, String serializedValue, List<String> keys, Map<String, String> updatedHashes, boolean hasTtl) {
+    if (options.isHashingEnabled() && !hasTtl) {
       final String hash = Hashing.sha1().newHasher().putString(serializedValue, UTF_8).hash().toString();
       final String existingHash = hashes.get(id);
       if (hash.equals(existingHash)) {
