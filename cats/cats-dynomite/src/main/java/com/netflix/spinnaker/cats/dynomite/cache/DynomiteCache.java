@@ -328,8 +328,8 @@ public class DynomiteCache extends AbstractRedisCache {
     }
   }
 
-  private boolean hashCheck(Map<String, String> hashes, String id, String serializedValue, Map<String, String> updatedHashes) {
-    if (options.isHashingEnabled()) {
+  private boolean hashCheck(Map<String, String> hashes, String id, String serializedValue, Map<String, String> updatedHashes, boolean hasTtl) {
+    if (options.isHashingEnabled() && !hasTtl) {
       final String hash = Hashing.sha1().newHasher().putString(serializedValue, UTF_8).hash().toString();
       final String existingHash = hashes.get(id);
       if (hash.equals(existingHash)) {
@@ -342,6 +342,7 @@ public class DynomiteCache extends AbstractRedisCache {
 
   private MergeOp buildHashedMergeOp(String type, CacheData cacheData, Map<String, String> hashes) {
     int skippedWrites = 0;
+    final boolean hasTtl = cacheData.getTtlSeconds() > 0;
     final String serializedAttributes;
     try {
       if (cacheData.getAttributes().isEmpty()) {
@@ -355,7 +356,7 @@ public class DynomiteCache extends AbstractRedisCache {
 
     final Map<String, String> hashesToSet = new HashMap<>();
     final Map<String, String> valuesToSet = new HashMap<>();
-    if (serializedAttributes != null && hashCheck(hashes, attributesId(type, cacheData.getId()), serializedAttributes, hashesToSet)) {
+    if (serializedAttributes != null && hashCheck(hashes, attributesId(type, cacheData.getId()), serializedAttributes, hashesToSet, hasTtl)) {
       skippedWrites++;
     } else if (serializedAttributes != null) {
       valuesToSet.put("attributes", compressionStrategy.compress(serializedAttributes));
@@ -369,7 +370,7 @@ public class DynomiteCache extends AbstractRedisCache {
         } catch (JsonProcessingException serializationException) {
           throw new RuntimeException("Relationship serialization failed", serializationException);
         }
-        if (hashCheck(hashes, relationshipId(type, cacheData.getId(), relationship.getKey()), relationshipValue, hashesToSet)) {
+        if (hashCheck(hashes, relationshipId(type, cacheData.getId(), relationship.getKey()), relationshipValue, hashesToSet, hasTtl)) {
           skippedWrites++;
         } else {
           valuesToSet.put(relationship.getKey(), compressionStrategy.compress(relationshipValue));
