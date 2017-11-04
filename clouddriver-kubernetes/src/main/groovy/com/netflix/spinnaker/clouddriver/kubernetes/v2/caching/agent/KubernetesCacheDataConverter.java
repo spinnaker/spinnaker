@@ -63,7 +63,7 @@ public class KubernetesCacheDataConverter {
     String namespace = manifest.getNamespace();
     Artifact artifact = KubernetesManifestAnnotater.getArtifact(manifest);
     if (artifact.getType() == null) {
-      log.info("No assigned artifact type for resource " + namespace + ":" + manifest.getFullResourceName());
+      log.debug("No assigned artifact type for resource " + namespace + ":" + manifest.getFullResourceName());
       return null;
     }
 
@@ -148,7 +148,7 @@ public class KubernetesCacheDataConverter {
 
     String application = moniker.getApp();
     if (StringUtils.isEmpty(application)) {
-      log.info("Skipping not-spinnaker-owned resource " + namespace + ":" + manifest.getFullResourceName());
+      log.debug("Skipping not-spinnaker-owned resource " + namespace + ":" + manifest.getFullResourceName());
       return null;
     }
 
@@ -285,8 +285,21 @@ public class KubernetesCacheDataConverter {
 
   static void logStratifiedCacheData(String agentType, Map<String, Collection<CacheData>> stratifiedCacheData) {
     for (Map.Entry<String, Collection<CacheData>> entry : stratifiedCacheData.entrySet()) {
-      log.info(agentType + ": grouping " + entry.getKey() + " has " + entry.getValue().size() + " entries");
+      log.info(agentType + ": grouping " + entry.getKey() + " has " + entry.getValue().size() + " entries and " + relationshipCount(entry.getValue()) + " relationships");
     }
+  }
+
+  static int relationshipCount(Collection<CacheData> data) {
+    return data.stream()
+      .map(d -> relationshipCount(d))
+        .reduce(0, (a, b) -> a + b);
+  }
+
+  static int relationshipCount(CacheData data) {
+    return data.getRelationships().values()
+        .stream()
+        .map(Collection::size)
+        .reduce(0, (a, b) -> a + b);
   }
 
   static Map<String, Collection<CacheData>> stratifyCacheDataByGroup(Collection<CacheData> ungroupedCacheData) {

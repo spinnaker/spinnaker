@@ -88,6 +88,7 @@ public abstract class KubernetesV2OnDemandCachingAgent extends KubernetesV2Cachi
 
   @Override
   public CacheResult loadData(ProviderCache providerCache) {
+    log.info(getAgentType() + " is starting");
     reloadNamespaces();
 
     Long start = System.currentTimeMillis();

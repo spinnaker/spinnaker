@@ -29,6 +29,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.Kube
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.job.KubectlJobExecutor;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -38,6 +39,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+@Slf4j
 public abstract class KubernetesV2CachingAgent extends KubernetesCachingAgent<KubernetesV2Credentials> {
   protected KubectlJobExecutor jobExecutor;
 
@@ -66,6 +68,7 @@ public abstract class KubernetesV2CachingAgent extends KubernetesCachingAgent<Ku
 
   @Override
   public CacheResult loadData(ProviderCache providerCache) {
+    log.info(getAgentType() + " is starting");
     reloadNamespaces();
     return buildCacheResult(loadPrimaryResourceList());
   }
