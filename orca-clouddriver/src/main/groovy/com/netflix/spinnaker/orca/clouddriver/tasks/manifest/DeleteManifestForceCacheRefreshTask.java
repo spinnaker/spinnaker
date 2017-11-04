@@ -21,43 +21,38 @@ import com.google.common.collect.ImmutableMap;
 import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.Task;
 import com.netflix.spinnaker.orca.TaskResult;
-import com.netflix.spinnaker.orca.clouddriver.KatoService;
-import com.netflix.spinnaker.orca.clouddriver.model.TaskId;
+import com.netflix.spinnaker.orca.clouddriver.CloudDriverCacheService;
 import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.Nonnull;
-import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 @Component
-public class DeleteManifestTask extends AbstractCloudProviderAwareTask implements Task {
+public class DeleteManifestForceCacheRefreshTask extends AbstractCloudProviderAwareTask implements Task {
+  private final static String REFRESH_TYPE = "Manifest";
+  public final static String TASK_NAME = "forceCacheRefresh";
+
   @Autowired
-  KatoService kato;
+  CloudDriverCacheService cacheService;
 
-  public static final String TASK_NAME = "deleteManifest";
-
-  @Nonnull
   @Override
-  public TaskResult execute(@Nonnull Stage stage) {
-    String credentials = getCredentials(stage);
+  public TaskResult execute(Stage stage) {
     String cloudProvider = getCloudProvider(stage);
-    Map<String, Map> operation = new ImmutableMap.Builder<String, Map>()
-        .put(TASK_NAME, stage.getContext())
+    String account = getCredentials(stage);
+    String name = (String) stage.getContext().get("delete.name");
+    String location = (String) stage.getContext().get("delete.location");
+
+    Map<String, String> request = new ImmutableMap.Builder<String, String>()
+        .put("account", account)
+        .put("name", name)
+        .put("location", location)
         .build();
 
-    TaskId taskId = kato.requestOperations(cloudProvider, Collections.singletonList(operation)).toBlocking().first();
+    cacheService.forceCacheUpdate(cloudProvider, REFRESH_TYPE, request);
 
-    Map<String, Object> outputs = new ImmutableMap.Builder<String, Object>()
-        .put("kato.result.expected", false)
-        .put("kato.last.task.id", taskId)
-        .put("delete.account.name", credentials)
-        .put("delete.name", stage.getContext().get("name"))
-        .put("delete.location", stage.getContext().get("location"))
-        .build();
-
-    return new TaskResult(ExecutionStatus.SUCCEEDED, outputs);
+    return new TaskResult(ExecutionStatus.SUCCEEDED);
   }
 }
