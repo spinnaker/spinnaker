@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.titus.client;
 
 import com.google.protobuf.Empty;
 import com.netflix.eureka2.grpc.nameresolver.Eureka2NameResolverFactory;
+import com.netflix.grpc.interceptor.spectator.SpectatorMetricsClientInterceptor;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.titus.v3client.ClientAuthenticationUtils;
 import com.netflix.spinnaker.clouddriver.titus.v3client.GrpcMetricsInterceptor;
@@ -59,6 +60,7 @@ public class RegionScopedTitusAutoscalingClient implements TitusAutoscalingClien
       .loadBalancerFactory(RoundRobinLoadBalancerFactory.getInstance())
       .intercept(new GrpcMetricsInterceptor(registry, titusRegion))
       .intercept(new GrpcRetryInterceptor(DEFAULT_CONNECT_TIMEOUT))
+      .intercept(new SpectatorMetricsClientInterceptor(registry))
       .build();
 
     this.autoScalingServiceBlockingStub = AutoScalingServiceGrpc.newBlockingStub(channel);
