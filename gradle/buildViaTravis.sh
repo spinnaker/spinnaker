@@ -6,17 +6,17 @@ if [ "$TRAVIS_PULL_REQUEST" != "false" ]; then
   ./gradlew -Prelease.useLastTag=true -Pskip.loadtest=true build
 elif [ "$TRAVIS_PULL_REQUEST" == "false" ] && [ "$TRAVIS_TAG" == "" ]; then
   echo -e 'Build Branch with Snapshot => Branch ['$TRAVIS_BRANCH']'
-  ./gradlew -Prelease.travisci=true -PbintrayUser="${bintrayUser}" -PbintrayKey="${bintrayKey}" -Pskip.loadtest=true build snapshot --stacktrace
+  ./gradlew -Prelease.travisci=true -PbintrayUser="${bintrayUser}" -PbintrayKey="${bintrayKey}" -Pskip.loadtest=true -x test build snapshot --stacktrace
 elif [ "$TRAVIS_PULL_REQUEST" == "false" ] && [ "$TRAVIS_TAG" != "" ]; then
   echo -e 'Build Branch for Release => Branch ['$TRAVIS_BRANCH']  Tag ['$TRAVIS_TAG']'
   case "$TRAVIS_TAG" in
   version-*)
     ;; # Ignore Spinnaker product release tags.
   *-rc\.*)
-    ./gradlew -Prelease.travisci=true -Prelease.useLastTag=true -PbintrayUser="${bintrayUser}" -PbintrayKey="${bintrayKey}" -Pskip.loadtest=true candidate --stacktrace
+    ./gradlew -Prelease.travisci=true -Prelease.useLastTag=true -PbintrayUser="${bintrayUser}" -PbintrayKey="${bintrayKey}" -Pskip.loadtest=true -x test candidate --stacktrace
     ;;
   *)
-    ./gradlew -Prelease.travisci=true -Prelease.useLastTag=true -PbintrayUser="${bintrayUser}" -PbintrayKey="${bintrayKey}" -Pskip.loadtest=true final --stacktrace
+    ./gradlew -Prelease.travisci=true -Prelease.useLastTag=true -PbintrayUser="${bintrayUser}" -PbintrayKey="${bintrayKey}" -Pskip.loadtest=true -x test final --stacktrace
     ;;
   esac
 else
