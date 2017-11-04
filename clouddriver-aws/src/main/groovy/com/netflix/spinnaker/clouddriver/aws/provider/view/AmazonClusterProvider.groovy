@@ -151,7 +151,7 @@ class AmazonClusterProvider implements ClusterProvider<AmazonCluster> {
 
       loadBalancers = translateLoadBalancers(allLoadBalancers)
       targetGroups = translateTargetGroups(allTargetGroups)
-      serverGroups = translateServerGroups(allServerGroups, false)
+      serverGroups = translateServerGroups(allServerGroups, false) // instance relationships were expanded so no need to consider partial instances
     } else {
       Collection<CacheData> allServerGroups = resolveRelationshipDataForCollection(clusterData, SERVER_GROUPS.ns, RelationshipCacheFilter.none())
       serverGroups = translateServerGroups(allServerGroups, true)
