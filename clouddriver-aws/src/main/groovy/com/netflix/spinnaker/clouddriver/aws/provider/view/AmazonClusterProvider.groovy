@@ -151,10 +151,10 @@ class AmazonClusterProvider implements ClusterProvider<AmazonCluster> {
 
       loadBalancers = translateLoadBalancers(allLoadBalancers)
       targetGroups = translateTargetGroups(allTargetGroups)
-      serverGroups = translateServerGroups(allServerGroups)
+      serverGroups = translateServerGroups(allServerGroups, false)
     } else {
       Collection<CacheData> allServerGroups = resolveRelationshipDataForCollection(clusterData, SERVER_GROUPS.ns, RelationshipCacheFilter.none())
-      serverGroups = translateServerGroups(allServerGroups)
+      serverGroups = translateServerGroups(allServerGroups, true)
     }
 
     Collection<AmazonCluster> clusters = clusterData.collect { CacheData clusterDataEntry ->
@@ -193,7 +193,8 @@ class AmazonClusterProvider implements ClusterProvider<AmazonCluster> {
     mapResponse(clusters)
   }
 
-  private Map<String, AmazonServerGroup> translateServerGroups(Collection<CacheData> serverGroupData) {
+  private Map<String, AmazonServerGroup> translateServerGroups(Collection<CacheData> serverGroupData,
+                                                               boolean includePartialInstances) {
     Collection<CacheData> allInstances = resolveRelationshipDataForCollection(serverGroupData, INSTANCES.ns, RelationshipCacheFilter.none())
 
     Map<String, AmazonInstance> instances = translateInstances(allInstances)
@@ -212,17 +213,18 @@ class AmazonClusterProvider implements ClusterProvider<AmazonCluster> {
         instances.get(it)
       } ?: []
 
-      if (!serverGroup.instances && serverGroupEntry.attributes.instances) {
-        // has no direct instance relationships but we can partially populate instances based on attributes.instances
-        def validStates = [
-          LifecycleState.Pending.name(),
-          LifecycleState.InService.name()
-        ]
+      if (includePartialInstances) {
+        if (!serverGroup.instances && serverGroupEntry.attributes.instances) {
+          // has no direct instance relationships but we can partially populate instances based on attributes.instances
+          def validStates = [
+            LifecycleState.InService.name()
+          ]
 
-        serverGroup.instances = (serverGroupEntry.attributes.instances as List<Map>).findAll {
-          validStates.contains(it.lifecycleState)
-        }.collect {
-          new AmazonInstance(((Map) it) + [name: it.instanceId])
+          serverGroup.instances = (serverGroupEntry.attributes.instances as List<Map>).findAll {
+            validStates.contains(it.lifecycleState)
+          }.collect {
+            new AmazonInstance(((Map) it) + [name: it.instanceId])
+          }
         }
       }
 
