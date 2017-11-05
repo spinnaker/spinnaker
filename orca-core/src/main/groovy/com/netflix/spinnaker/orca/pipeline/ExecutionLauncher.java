@@ -16,10 +16,6 @@
 
 package com.netflix.spinnaker.orca.pipeline;
 
-import java.io.IOException;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.pipeline.model.Execution;
@@ -28,6 +24,12 @@ import com.netflix.spinnaker.orca.pipeline.model.Pipeline;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+
 import static java.lang.Boolean.parseBoolean;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
@@ -51,6 +53,11 @@ public abstract class ExecutionLauncher<T extends Execution<T>> {
 
   public T start(String configJson) throws Exception {
     final T execution = parse(configJson);
+
+    final T existingExecution = checkForCorrelatedExecution(execution);
+    if (existingExecution != null) {
+      return existingExecution;
+    }
 
     checkRunnable(execution);
 
@@ -77,6 +84,12 @@ public abstract class ExecutionLauncher<T extends Execution<T>> {
       onExecutionStarted(execution);
     }
     return execution;
+  }
+
+  protected T checkForCorrelatedExecution(T execution) {
+    // Correlated executions currently only supported by Orchestrations. Just lazy, and a carrot to
+    // refactoring out distinction between Pipeline / Orchestration.
+    return null;
   }
 
   protected T handleStartupFailure(T execution, Throwable failure) {

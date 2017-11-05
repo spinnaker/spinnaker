@@ -16,16 +16,17 @@
 
 package com.netflix.spinnaker.orca.pipeline.model;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.netflix.spectator.api.Registry;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.netflix.spectator.api.Registry;
 
 public class Pipeline extends Execution<Pipeline> {
 
@@ -48,12 +49,6 @@ public class Pipeline extends Execution<Pipeline> {
 
   public void setPipelineConfigId(@Nullable String pipelineConfigId) {
     this.pipelineConfigId = pipelineConfigId;
-  }
-
-  private final Map<String, Object> trigger = new HashMap<>();
-
-  public @Nonnull Map<String, Object> getTrigger() {
-    return trigger;
   }
 
   private final List<Map<String, Object>> notifications = new ArrayList<>();

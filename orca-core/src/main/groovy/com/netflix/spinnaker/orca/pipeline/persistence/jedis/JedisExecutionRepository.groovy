@@ -16,14 +16,18 @@
 
 package com.netflix.spinnaker.orca.pipeline.persistence.jedis
 
-import java.util.concurrent.Executors
-import java.util.function.Function
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
-import com.netflix.spinnaker.orca.pipeline.model.*
+import com.netflix.spinnaker.orca.pipeline.model.AlertOnAccessMap
+import com.netflix.spinnaker.orca.pipeline.model.Execution
+import com.netflix.spinnaker.orca.pipeline.model.Orchestration
+import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner
+import com.netflix.spinnaker.orca.pipeline.model.Task
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionCriteria
@@ -41,12 +45,19 @@ import rx.Observable
 import rx.Scheduler
 import rx.functions.Func1
 import rx.schedulers.Schedulers
+
+import javax.annotation.Nonnull
+import java.util.concurrent.Executors
+import java.util.function.Function
+
 import static com.google.common.base.Predicates.notNull
 import static com.google.common.collect.Maps.filterValues
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.DEFAULT_EXECUTION_ENGINE
 import static com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_BEFORE
 import static java.lang.System.currentTimeMillis
-import static java.util.Collections.*
+import static java.util.Collections.emptyList
+import static java.util.Collections.emptyMap
+import static java.util.Collections.emptySet
 import static redis.clients.jedis.BinaryClient.LIST_POSITION.AFTER
 import static redis.clients.jedis.BinaryClient.LIST_POSITION.BEFORE
 
@@ -509,6 +520,25 @@ class JedisExecutionRepository implements ExecutionRepository {
     return currentObservable
   }
 
+  @Override
+  Orchestration retrieveOrchestrationForCorrelationId(@Nonnull String correlationId) throws ExecutionNotFoundException {
+    String key = "correlation:$correlationId"
+    withJedis(getJedisPoolForId(key)) { Jedis correlationJedis ->
+      def orchestrationId = correlationJedis.get(key)
+
+      if (orchestrationId != null) {
+        def orchestration = withJedis(getJedisPoolForId(orchestrationId)) { Jedis jedis ->
+          retrieveInternal(jedis, Orchestration, orchestrationId)
+        }
+        if (!orchestration.status.isComplete()) {
+          return orchestration
+        }
+        correlationJedis.del(key)
+      }
+      throw new ExecutionNotFoundException("No Orchestration found for correlation ID $correlationId")
+    }
+  }
+
   private void storeExecutionInternal(Transaction tx, Execution execution) {
     def prefix = execution.getClass().simpleName.toLowerCase()
 
@@ -529,7 +559,8 @@ class JedisExecutionRepository implements ExecutionRepository {
       paused              : mapper.writeValueAsString(execution.paused),
       keepWaitingPipelines: String.valueOf(execution.keepWaitingPipelines),
       executionEngine     : execution.executionEngine?.name() ?: DEFAULT_EXECUTION_ENGINE.name(),
-      origin              : execution.origin?.toString()
+      origin              : execution.origin?.toString(),
+      trigger             : mapper.writeValueAsString(execution.trigger)
     ]
     map.stageIndex = execution.stages.id.join(",")
     // TODO: remove this and only use the list
@@ -543,11 +574,13 @@ class JedisExecutionRepository implements ExecutionRepository {
     if (execution instanceof Pipeline) {
       map.name = execution.name
       map.pipelineConfigId = execution.pipelineConfigId
-      map.trigger = mapper.writeValueAsString(execution.trigger)
       map.notifications = mapper.writeValueAsString(execution.notifications)
       map.initialConfig = mapper.writeValueAsString(execution.initialConfig)
     } else if (execution instanceof Orchestration) {
       map.description = execution.description
+    }
+    if (execution.trigger.containsKey("correlationId")) {
+      tx.set("correlation:${execution.trigger['correlationId']}", execution.id)
     }
 
     tx.hdel(key, "config")
@@ -620,6 +653,8 @@ class JedisExecutionRepository implements ExecutionRepository {
       execution.paused = map.paused ? mapper.readValue(map.paused, Execution.PausedDetails) : null
       execution.keepWaitingPipelines = Boolean.parseBoolean(map.keepWaitingPipelines)
       execution.origin = map.origin
+      execution.trigger.putAll(map.trigger ? mapper.readValue(map.trigger, Map) : [:])
+
       try {
         execution.executionEngine = map.executionEngine == null ? DEFAULT_EXECUTION_ENGINE : Execution.ExecutionEngine.valueOf(map.executionEngine)
       } catch (IllegalArgumentException e) {
@@ -651,7 +686,6 @@ class JedisExecutionRepository implements ExecutionRepository {
       if (execution instanceof Pipeline) {
         execution.name = map.name
         execution.pipelineConfigId = map.pipelineConfigId
-        execution.trigger.putAll(mapper.readValue(map.trigger, Map))
         execution.notifications.addAll(mapper.readValue(map.notifications, List))
         execution.initialConfig.putAll(mapper.readValue(map.initialConfig, Map))
       } else if (execution instanceof Orchestration) {

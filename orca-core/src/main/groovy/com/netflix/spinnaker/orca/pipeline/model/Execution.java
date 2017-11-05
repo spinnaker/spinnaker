@@ -227,6 +227,12 @@ public abstract class Execution<T extends Execution<T>> implements Serializable 
     this.origin = origin;
   }
 
+  private final Map<String, Object> trigger = new HashMap<>();
+
+  public @Nonnull Map<String, Object> getTrigger() {
+    return trigger;
+  }
+
   @Nullable
   public Stage<T> namedStage(String type) {
     return stages

@@ -83,6 +83,9 @@ public interface ExecutionRepository {
   @Nonnull Observable<Orchestration> retrieveOrchestrationsForApplication(
     @Nonnull String application, @Nonnull ExecutionCriteria criteria);
 
+  @Nonnull Orchestration retrieveOrchestrationForCorrelationId(
+    @Nonnull String correlationId) throws ExecutionNotFoundException;
+
   class ExecutionCriteria {
     public int getLimit() {
       return limit;

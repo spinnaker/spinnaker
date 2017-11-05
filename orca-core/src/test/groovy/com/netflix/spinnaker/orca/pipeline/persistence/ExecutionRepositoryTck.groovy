@@ -443,6 +443,27 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
     where:
     status << ExecutionStatus.values()
   }
+
+  def "should return task ref for currently running orchestration by correlation id"() {
+    given:
+    def execution = orchestration()
+    execution.trigger['correlationId'] = 'covfefe'
+    repository.store(execution)
+    repository.updateStatus(execution.id, RUNNING)
+
+    when:
+    def result = repository.retrieveOrchestrationForCorrelationId('covfefe')
+
+    then:
+    result.id == execution.id
+
+    when:
+    repository.updateStatus(execution.id, SUCCEEDED)
+    repository.retrieveOrchestrationForCorrelationId('covfefe')
+
+    then:
+    thrown(ExecutionNotFoundException)
+  }
 }
 
 class JedisExecutionRepositorySpec extends ExecutionRepositoryTck<JedisExecutionRepository> {

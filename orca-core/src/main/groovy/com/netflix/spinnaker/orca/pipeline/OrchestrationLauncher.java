@@ -16,22 +16,29 @@
 
 package com.netflix.spinnaker.orca.pipeline;
 
-import java.io.IOException;
-import java.io.Serializable;
-import java.time.Clock;
-import java.util.Map;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.orca.pipeline.model.Execution.AuthenticationDetails;
 import com.netflix.spinnaker.orca.pipeline.model.Orchestration;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
+import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.io.IOException;
+import java.io.Serializable;
+import java.time.Clock;
+import java.util.Map;
+
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionEngine.v3;
 import static java.lang.String.format;
 
 @Component
 public class OrchestrationLauncher extends ExecutionLauncher<Orchestration> {
+
+  private final static Logger log = LoggerFactory.getLogger(OrchestrationLauncher.class);
 
   private final Clock clock;
 
@@ -72,6 +79,10 @@ public class OrchestrationLauncher extends ExecutionLauncher<Orchestration> {
       orchestration.getStages().add(stage);
     }
 
+    if (config.get("trigger") != null) {
+      orchestration.getTrigger().putAll((Map<String, Object>) config.get("trigger"));
+    }
+
     orchestration.setBuildTime(clock.millis());
     orchestration.setAuthentication(AuthenticationDetails.build().orElse(new AuthenticationDetails()));
     orchestration.setOrigin((String) config.getOrDefault("origin", "unknown"));
@@ -81,5 +92,26 @@ public class OrchestrationLauncher extends ExecutionLauncher<Orchestration> {
 
   @Override protected void persistExecution(Orchestration execution) {
     executionRepository.store(execution);
+  }
+
+  @Override
+  protected Orchestration checkForCorrelatedExecution(Orchestration execution) {
+    if (!execution.getTrigger().containsKey("correlationId")) {
+      return null;
+    }
+
+    try {
+      Orchestration o = executionRepository.retrieveOrchestrationForCorrelationId(
+        execution.getTrigger().get("correlationId").toString()
+      );
+      log.info("Found pre-existing Orchestration by correlation id (id: " +
+        o.getId() + ", correlationId: " +
+        execution.getTrigger().get("correlationId") +
+      ")");
+      return o;
+    } catch (ExecutionNotFoundException e) {
+      // Swallow
+    }
+    return null;
   }
 }

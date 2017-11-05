@@ -16,9 +16,6 @@
 
 package com.netflix.spinnaker.orca.controllers
 
-import com.netflix.spinnaker.orca.pipeline.util.ArtifactResolver
-
-import javax.servlet.http.HttpServletResponse
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException
 import com.netflix.spinnaker.kork.web.exceptions.ValidationException
@@ -29,6 +26,7 @@ import com.netflix.spinnaker.orca.pipeline.OrchestrationLauncher
 import com.netflix.spinnaker.orca.pipeline.PipelineLauncher
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
+import com.netflix.spinnaker.orca.pipeline.util.ArtifactResolver
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import com.netflix.spinnaker.orca.webhook.service.WebhookService
 import com.netflix.spinnaker.security.AuthenticatedRequest
@@ -38,6 +36,9 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RestController
+
+import javax.servlet.http.HttpServletResponse
+
 import static net.logstash.logback.argument.StructuredArguments.value
 
 @RestController
@@ -148,7 +149,7 @@ class OperationsController {
         pipeline.trigger.parameters[it.name] = pipeline.trigger.parameters.containsKey(it.name) ? pipeline.trigger.parameters[it.name] : it.default
       }
     }
-    
+
     ArtifactResolver.resolveArtifacts(pipeline)
   }
 
@@ -181,12 +182,16 @@ class OperationsController {
 
   @RequestMapping(value = "/ops", method = RequestMethod.POST)
   Map<String, String> ops(@RequestBody List<Map> input) {
-    startTask([application: null, name: null, appConfig: null, stages: input])
+    def execution = [application: null, name: null, appConfig: null, stages: input]
+    parsePipelineTrigger(executionRepository, buildService, execution)
+    startTask(execution)
   }
 
   @RequestMapping(value = "/ops", consumes = "application/context+json", method = RequestMethod.POST)
   Map<String, String> ops(@RequestBody Map input) {
-    startTask([application: input.application, name: input.description, appConfig: input.appConfig, stages: input.job])
+    def execution = [application: input.application, name: input.description, appConfig: input.appConfig, stages: input.job, trigger: input.trigger ?: Collections.emptyMap()]
+    parsePipelineTrigger(executionRepository, buildService, execution)
+    startTask(execution)
   }
 
   @RequestMapping(value = "/webhooks/preconfigured")
