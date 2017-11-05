@@ -76,7 +76,7 @@ class ApplicationIntentProcessorSpec extends Specification {
     }
     1 * traceRepository.record(_)
     result.orchestrations[0].name == "Update application"
-    result.orchestrations[0].job[0]["description"] == "my updated description"
+    result.orchestrations[0].job[0]['application']["description"] == "my updated description"
   }
 
   static ApplicationSpec createApplicationSpec(String description) {

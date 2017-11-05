@@ -17,11 +17,14 @@ package com.netflix.spinnaker.keel.orca
 
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import retrofit.http.Body
+import retrofit.http.Headers
 import retrofit.http.POST
 
+// TODO Origin needs to be set on executions
 interface OrcaService {
 
   @POST("/ops")
+  @Headers("Content-Type: application/context+json")
   fun orchestrate(@Body request: OrchestrationRequest): TaskRefResponse
 }
 

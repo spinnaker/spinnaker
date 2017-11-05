@@ -16,14 +16,12 @@
 package com.netflix.spinnaker.keel.intents.processors
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.keel.ConvergeResult
-import com.netflix.spinnaker.keel.Intent
-import com.netflix.spinnaker.keel.IntentProcessor
-import com.netflix.spinnaker.keel.IntentSpec
+import com.netflix.spinnaker.keel.*
 import com.netflix.spinnaker.keel.front50.Front50Service
 import com.netflix.spinnaker.keel.front50.model.Application
 import com.netflix.spinnaker.keel.intents.ANY_MAP_TYPE
 import com.netflix.spinnaker.keel.intents.ApplicationIntent
+import com.netflix.spinnaker.keel.intents.BaseApplicationSpec
 import com.netflix.spinnaker.keel.model.Job
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.model.Trigger
@@ -51,6 +49,10 @@ class ApplicationIntentProcessor
 
     val currentState = getApplication(intent.spec.name)
 
+    if (currentStateUpToDate(currentState, intent.spec)) {
+      return ConvergeResult(listOf(), ConvergeReason.UNCHANGED.reason)
+    }
+
     traceRepository.record(Trace(
       startingState = if (currentState == null) mapOf() else objectMapper.convertValue(currentState, ANY_MAP_TYPE),
       intent = intent
@@ -64,7 +66,9 @@ class ApplicationIntentProcessor
           job = listOf(
             Job(
               type = "upsertApplication",
-              m = objectMapper.convertValue(intent.spec, ANY_MAP_TYPE)
+              m = mutableMapOf(
+                "application" to objectMapper.convertValue(intent.spec, ANY_MAP_TYPE)
+              )
             )
           ),
           trigger = Trigger(intent.getId())
@@ -72,6 +76,11 @@ class ApplicationIntentProcessor
       ),
       if (currentState == null) "Application does not exist" else "Application has been updated"
     )
+  }
+
+  private fun currentStateUpToDate(currentState: Application?, desiredState: BaseApplicationSpec): Boolean {
+    log.warn("Current state update check is not implemented")
+    return false
   }
 
   private fun getApplication(name: String): Application? {

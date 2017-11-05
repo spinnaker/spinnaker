@@ -28,10 +28,10 @@ data class Application(
   val platformHealthOnlyShowOverride: Boolean
 ) {
 
-  private val details: MutableMap<String, Any> = mutableMapOf()
+  private val details: MutableMap<String, Any?> = mutableMapOf()
 
   @JsonAnySetter
-  fun set(name: String, value: Any) {
+  fun set(name: String, value: Any?) {
     details[name] = value
   }
 

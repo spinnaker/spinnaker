@@ -184,10 +184,10 @@ data class NetflixApplicationSpec(
   val pdApiKey: String,
   val propertyRolloutConfigId: String?,
   val legacyUdf: Boolean,
-  val monitorBucketType: String,
+  val monitorBucketType: String?,
   val criticalityRules: List<CriticalityRuleSpec>,
-  val ccpService: String,
-  val timelines: List<TimelineSpec>
+  val ccpService: String?,
+  val timelines: List<TimelineSpec>?
 ) : BaseApplicationSpec()
 
 data class CriticalityRuleSpec(

@@ -38,12 +38,16 @@ open class OrcaIntentLauncher
     registry.counter(invocationsId.withTags(intent.getMetricTags())).increment()
 
     return registry.timer(invocationTimeId.withTags(intent.getMetricTags())).record<OrcaLaunchedIntentResult> {
-      OrcaLaunchedIntentResult(
-        orchestrationIds = intentProcessor(intentProcessors, intent).converge(intent).orchestrations.map {
-          log.info("Launching orchestration for intent (kind: ${intent.kind})")
-          orcaService.orchestrate(it).ref
-        }
-      )
+      val orchestrationIds = intentProcessor(intentProcessors, intent).converge(intent).orchestrations.map {
+        log.info("Launching orchestration for intent (kind: ${intent.kind})")
+        orcaService.orchestrate(it).ref
+      }
+
+      log.info("Launched orchestrations for intent (" +
+        "kind: ${intent.kind}, " +
+        "tasks: $orchestrationIds" +
+        ")")
+      OrcaLaunchedIntentResult(orchestrationIds)
     }
   }
 }
