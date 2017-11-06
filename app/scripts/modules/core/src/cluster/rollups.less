@@ -90,7 +90,7 @@ table.instances {
     &.health-status-Up {
       background-color: var(--color-success-light);
     }
-    &.health-status-Down {
+    &.health-status-Down, &.health-status-Failed {
       background-color: var(--color-danger);
     }
     &.health-status-OutOfService {
@@ -119,7 +119,7 @@ table.instances {
       &.health-status-Up {
         background-color: var(--color-success);
       }
-      &.health-status-Down {
+      &.health-status-Down, &.health-status-Failed {
         background-color: var(--color-danger);
       }
       &.health-status-OutOfService {
