@@ -40,7 +40,6 @@ public class KubernetesUnversionedArtifactConverter extends KubernetesArtifactCo
   @Override
   public KubernetesCoordinates toCoordinates(Artifact artifact) {
     return KubernetesCoordinates.builder()
-        .apiVersion(getApiVersion(artifact))
         .kind(getKind(artifact))
         .namespace(getNamespace(artifact))
         .name(artifact.getName())

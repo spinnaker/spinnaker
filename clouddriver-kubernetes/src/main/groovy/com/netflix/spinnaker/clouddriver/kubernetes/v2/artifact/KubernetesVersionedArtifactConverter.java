@@ -46,7 +46,6 @@ public class KubernetesVersionedArtifactConverter extends KubernetesArtifactConv
   @Override
   public KubernetesCoordinates toCoordinates(Artifact artifact) {
     return KubernetesCoordinates.builder()
-        .apiVersion(getApiVersion(artifact))
         .kind(getKind(artifact))
         .name(getDeployedName(artifact))
         .namespace(getNamespace(artifact))

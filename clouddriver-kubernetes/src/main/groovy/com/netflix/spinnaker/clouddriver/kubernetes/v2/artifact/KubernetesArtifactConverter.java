@@ -18,14 +18,11 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact;
 
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesApiVersion;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesCoordinates;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.model.ArtifactProvider;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
-
-import java.util.Arrays;
 
 public abstract class KubernetesArtifactConverter {
   abstract public Artifact toArtifact(ArtifactProvider artifactProvider, KubernetesManifest manifest);
@@ -35,13 +32,13 @@ public abstract class KubernetesArtifactConverter {
   protected String getType(KubernetesManifest manifest) {
     return String.join("/",
         KubernetesCloudProvider.getID(),
-        manifest.getApiVersion().toString() + "|" + manifest.getKind().toString()
+        manifest.getKind().toString()
     );
   }
 
-  private String[] getLatterType(Artifact artifact) {
+  protected KubernetesKind getKind(Artifact artifact) {
     String[] split = artifact.getType().split("/", -1);
-    if (split.length < 2) {
+    if (split.length != 2) {
       throw new IllegalArgumentException("Not a kubernetes artifact: " + artifact);
     }
 
@@ -49,21 +46,7 @@ public abstract class KubernetesArtifactConverter {
       throw new IllegalArgumentException("Not a kubernetes artifact: " + artifact);
     }
 
-    split = String.join("/", Arrays.copyOfRange(split, 1, split.length)).split("\\|");
-
-    if (split.length != 2) {
-      throw new IllegalArgumentException("Not a kubernetes artifact: " + artifact);
-    }
-
-    return split;
-  }
-
-  protected KubernetesApiVersion getApiVersion(Artifact artifact) {
-    return KubernetesApiVersion.fromString(getLatterType(artifact)[0]);
-  }
-
-  protected KubernetesKind getKind(Artifact artifact) {
-    return KubernetesKind.fromString(getLatterType(artifact)[1]);
+    return KubernetesKind.fromString(split[1]);
   }
 
   protected String getNamespace(Artifact artifact) {

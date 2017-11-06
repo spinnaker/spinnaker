@@ -17,7 +17,6 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.description;
 
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesApiVersion;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -29,7 +28,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Data
 public class KubernetesCoordinates {
-  KubernetesApiVersion apiVersion;
   KubernetesKind kind;
   String namespace;
   String name;
