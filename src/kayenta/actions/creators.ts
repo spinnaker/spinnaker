@@ -18,6 +18,7 @@ export const closeConfigJsonModal = createAction(Actions.CONFIG_JSON_MODAL_CLOSE
 export const openConfigJsonModal = createAction(Actions.CONFIG_JSON_MODAL_OPEN);
 export const editMetricCancel = createAction(Actions.EDIT_METRIC_CANCEL);
 export const editMetricConfirm = createAction(Actions.EDIT_METRIC_CONFIRM);
+export const updateMetricDirection = createAction(Actions.UPDATE_METRIC_DIRECTION, typedPayloadCreator<{id: string, direction: string}>());
 export const addGroup = createAction(Actions.ADD_GROUP);
 export const saveConfig = createAction(Actions.SAVE_CONFIG_REQUEST);
 export const dismissSaveConfigError = createAction(Actions.DISMISS_SAVE_CONFIG_ERROR);

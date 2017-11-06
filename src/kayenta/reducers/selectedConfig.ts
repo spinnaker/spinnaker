@@ -87,7 +87,12 @@ const metricList = handleActions({
 }, []);
 
 const editingMetric = handleActions({
-  [Actions.RENAME_METRIC]: (state: ICanaryMetricConfig, action: Action & any) => ({ ...state, name: action.payload.name }),
+  [Actions.RENAME_METRIC]: (state: ICanaryMetricConfig, action: Action & any) => ({
+    ...state, name: action.payload.name
+  }),
+  [Actions.UPDATE_METRIC_DIRECTION]: (state: ICanaryMetricConfig, action: Action & any) => ({
+    ...state, classificationDirection: action.payload.direction
+  }),
   [Actions.UPDATE_STACKDRIVER_METRIC_TYPE]: (state: ICanaryMetricConfig, action: Action & any) => ({
     ...state, query: { ...state.query, metricType: action.metricType, type: 'stackdriver' },
   }),

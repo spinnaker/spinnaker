@@ -14,6 +14,7 @@ import './editMetricModal.less';
 
 interface IEditMetricModalDispatchProps {
   rename: (event: any) => void;
+  updateDirection: (event: any) => void;
   confirm: () => void;
   cancel: () => void;
 }
@@ -22,10 +23,18 @@ interface IEditMetricModalStateProps {
   metric: ICanaryMetricConfig
 }
 
+function DirectionChoice({ value, label, action }: { value: string, label: string, action: (event: any) => void }) {
+  return (
+    <label style={{fontWeight: 'normal'}}>
+      <input name="direction" type="radio" value={value} onClick={action}/> {label} &nbsp;
+    </label>
+  );
+}
+
 /*
  * Modal to edit metric details.
  */
-function EditMetricModal({ metric, rename, confirm, cancel }: IEditMetricModalDispatchProps & IEditMetricModalStateProps) {
+function EditMetricModal({ metric, rename, confirm, cancel, updateDirection }: IEditMetricModalDispatchProps & IEditMetricModalStateProps) {
   if (!metric) {
     return null;
   }
@@ -43,6 +52,11 @@ function EditMetricModal({ metric, rename, confirm, cancel }: IEditMetricModalDi
               data-id={metric.id}
               onChange={rename}
             />
+          </FormRow>
+          <FormRow label="Fail on">
+            <DirectionChoice value="Increase" label="increase" action={updateDirection}/>
+            <DirectionChoice value="Decrease" label="decrease" action={updateDirection}/>
+            <DirectionChoice value="Either" label="either" action={updateDirection}/>
           </FormRow>
           <MetricConfigurerDelegator/>
         </Modal.Body>
@@ -67,6 +81,9 @@ function mapDispatchToProps(dispatch: any): IEditMetricModalDispatchProps {
     },
     confirm: () => {
       dispatch(Creators.editMetricConfirm());
+    },
+    updateDirection: (event: any) => {
+      dispatch(Creators.updateMetricDirection({ id: event.target.dataset.id, direction: event.target.value }))
     },
   };
 }
