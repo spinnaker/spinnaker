@@ -39,7 +39,7 @@ abstract class AbstractListMastersCommand extends AbstractCiCommand {
 
   private Ci getCi() {
     String currentDeployment = getCurrentDeployment();
-    String ciName = getCurrentDeployment();
+    String ciName = getCiName();
     return new OperationHandler<Ci>()
         .setOperation(Daemon.getCi(currentDeployment, ciName, !noValidate))
         .setFailureMesssage("Failed to get " + ciName + " wehbook.")

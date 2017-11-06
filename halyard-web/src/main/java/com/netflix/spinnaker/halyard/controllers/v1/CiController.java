@@ -28,7 +28,12 @@ import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 import java.util.function.Supplier;
@@ -48,8 +53,7 @@ public class CiController {
       @PathVariable String ciName,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity) {
-    StaticRequestBuilder<Ci> builder = new StaticRequestBuilder<>(
-            () -> ciService.getCi(deploymentName, ciName));
+    StaticRequestBuilder<Ci> builder = new StaticRequestBuilder<>(() -> ciService.getCi(deploymentName, ciName));
     builder.setSeverity(severity);
 
     if (validate) {
