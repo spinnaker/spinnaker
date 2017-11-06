@@ -30,6 +30,8 @@ import com.netflix.spinnaker.halyard.config.model.v1.providers.dockerRegistry.Do
 import com.netflix.spinnaker.halyard.config.services.v1.AccountService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -72,7 +74,7 @@ public class ClouddriverProfileFactory extends SpringProfileFactory {
     files.addAll(backupRequiredFiles(artifacts, deploymentConfiguration.getName()));
 
     profile.appendContents(yamlToString(modifiedProviders))
-        .appendContents(yamlToString(artifacts))
+        .appendContents(yamlToString(new ArtifactWrapper(artifacts)))
         .appendContents(profile.getBaseContents())
         .setRequiredFiles(files);
 
@@ -127,6 +129,16 @@ public class ClouddriverProfileFactory extends SpringProfileFactory {
           }
         }
       }
+    }
+  }
+
+  @Data
+  @NoArgsConstructor
+  private static class ArtifactWrapper {
+    private Artifacts artifacts;
+
+    ArtifactWrapper(Artifacts artifacts) {
+      this.artifacts = artifacts;
     }
   }
 }
