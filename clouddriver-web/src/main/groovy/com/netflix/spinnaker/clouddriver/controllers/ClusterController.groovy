@@ -251,7 +251,7 @@ class ClusterController {
       case TargetServerGroup.LARGEST:
         // Choose the server group with the most instances, falling back to newest in the case of a tie.
         return expandServerGroup(sortedServerGroups.sort { lhs, rhs ->
-          rhs.instances.size() <=> lhs.instances.size() ?:
+          (rhs.instances?.size() ?: 0) <=> (lhs.instances?.size() ?: 0) ?:
             rhs.createdTime <=> lhs.createdTime
         }.get(0))
       case TargetServerGroup.FAIL:
