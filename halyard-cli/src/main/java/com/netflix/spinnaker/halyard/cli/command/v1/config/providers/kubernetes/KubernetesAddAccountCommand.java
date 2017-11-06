@@ -67,6 +67,13 @@ public class KubernetesAddAccountCommand extends AbstractAddAccountCommand {
   )
   public List<String> dockerRegistries = new ArrayList<>();
 
+  @Parameter(
+      names = "--configure-image-pull-secrets",
+      arity = 1,
+      description = KubernetesCommandProperties.CONFIGURE_IMAGE_PULL_SECRETS_DESCRIPTION
+  )
+  public Boolean configureImagePullSecrets = true;
+
   @Override
   protected Account buildAccount(String accountName) {
     KubernetesAccount account = (KubernetesAccount) new KubernetesAccount().setName(accountName);
@@ -74,6 +81,7 @@ public class KubernetesAddAccountCommand extends AbstractAddAccountCommand {
     account.setKubeconfigFile(kubeconfigFile);
     account.setNamespaces(namespaces);
     account.setOmitNamespaces(omitNamespaces);
+    account.setConfigureImagePullSecrets(configureImagePullSecrets);
     dockerRegistries.forEach(registryName -> account.getDockerRegistries().add(new DockerRegistryReference().setAccountName(registryName)));
     return account;
   }

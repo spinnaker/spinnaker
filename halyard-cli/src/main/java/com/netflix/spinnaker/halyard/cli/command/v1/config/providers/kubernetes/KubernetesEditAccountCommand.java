@@ -117,6 +117,13 @@ public class KubernetesEditAccountCommand extends AbstractEditAccountCommand<Kub
   )
   private String removeDockerRegistry;
 
+  @Parameter(
+      names = "--configure-image-pull-secrets",
+      arity = 1,
+      description = KubernetesCommandProperties.CONFIGURE_IMAGE_PULL_SECRETS_DESCRIPTION
+  )
+  public Boolean configureImagePullSecrets;
+
   @Override
   protected Account editAccount(KubernetesAccount account) {
     boolean contextSet = context != null && !context.isEmpty();
@@ -129,6 +136,7 @@ public class KubernetesEditAccountCommand extends AbstractEditAccountCommand<Kub
     }
 
     account.setKubeconfigFile(isSet(kubeconfigFile) ? kubeconfigFile : account.getKubeconfigFile());
+    account.setConfigureImagePullSecrets(isSet(configureImagePullSecrets) ? configureImagePullSecrets : account.getConfigureImagePullSecrets());
 
     try {
       account.setNamespaces(

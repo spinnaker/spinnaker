@@ -32,4 +32,7 @@ public class KubernetesCommandProperties {
 
   static final String KUBECONFIG_DESCRIPTION = "The path to your kubeconfig file. By default, it will be under the Spinnaker user's home directory in the typical "
       + ".kube/config location.";
+
+  static final String CONFIGURE_IMAGE_PULL_SECRETS_DESCRIPTION = "(Only applicable to the v1 provider). When true, Spinnaker will create & manage your image pull "
+      + "secrets for you; when false, you will have to create and attach them to your pod specs by hand.";
 }
