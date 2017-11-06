@@ -54,6 +54,12 @@ public class GoogleAddSubscriptionCommand extends AbstractAddSubscriptionCommand
   )
   private String subscriptionName;
 
+  @Parameter(
+      names = "--ack-deadline-seconds",
+      description = GooglePubsubCommandProperties.ACK_DEADLINE_SECONDS_DESCRIPTION
+  )
+  private Integer ackDeadlineSeconds = 10;
+
   @Override
   protected Subscription buildSubscription(String name) {
     return new GoogleSubscription()
@@ -61,6 +67,7 @@ public class GoogleAddSubscriptionCommand extends AbstractAddSubscriptionCommand
         .setTemplatePath(templatePath)
         .setProject(project)
         .setSubscriptionName(subscriptionName)
+        .setAckDeadlineSeconds(ackDeadlineSeconds)
         .setName(name);
   }
 

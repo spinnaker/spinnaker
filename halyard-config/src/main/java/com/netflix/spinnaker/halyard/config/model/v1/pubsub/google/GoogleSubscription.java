@@ -34,6 +34,7 @@ public class GoogleSubscription extends Subscription {
   private String subscriptionName;
   @LocalFile private String jsonPath;
   @LocalFile private String templatePath;
+  private Integer ackDeadlineSeconds;
 
   @Override
   public void accept(ConfigProblemSetBuilder psBuilder, Validator v) {

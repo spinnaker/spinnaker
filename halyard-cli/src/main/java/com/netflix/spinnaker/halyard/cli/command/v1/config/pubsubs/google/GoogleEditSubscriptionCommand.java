@@ -54,12 +54,19 @@ public class GoogleEditSubscriptionCommand extends AbstractEditSubscriptionComma
   )
   private String subscriptionName;
 
+  @Parameter(
+      names = "--ack-deadline-seconds",
+      description = GooglePubsubCommandProperties.ACK_DEADLINE_SECONDS_DESCRIPTION
+  )
+  private Integer ackDeadlineSeconds;
+
   @Override
   protected Subscription editSubscription(GoogleSubscription subscription) {
     subscription.setJsonPath(isSet(jsonPath) ? jsonPath : subscription.getJsonPath());
     subscription.setTemplatePath(isSet(templatePath) ? templatePath : subscription.getTemplatePath());
     subscription.setProject(isSet(project) ? project : subscription.getProject());
     subscription.setSubscriptionName(isSet(subscriptionName) ? subscriptionName : subscription.getSubscriptionName());
+    subscription.setAckDeadlineSeconds(isSet(ackDeadlineSeconds) ? ackDeadlineSeconds : subscription.getAckDeadlineSeconds());
 
     return subscription;
   }

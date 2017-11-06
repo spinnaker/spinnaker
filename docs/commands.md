@@ -3752,6 +3752,8 @@ hal config pubsub google subscription add SUBSCRIPTION [parameters]
 
 #### Parameters
 `SUBSCRIPTION`: The name of the subscription to operate on.
+ * `--ack-deadline-seconds`: (*Default*: `10`) Time in seconds before an outstanding message is considered unacknowledged and is re-sent.
+Configurable in your Google Cloud Pubsub subscription. See the docs here: https://cloud.google.com/pubsub/docs/subscriber
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--json-path`: The path to a JSON service account that Spinnaker will use as credentials. This is only needed if Spinnaker is not deployed on a Google Compute Engine VM, or needs permissions not afforded to the VM it is running on. See https://cloud.google.com/compute/docs/access/service-accounts for more information.
  * `--no-validate`: (*Default*: `false`) Skip validation.
@@ -3788,6 +3790,8 @@ hal config pubsub google subscription edit SUBSCRIPTION [parameters]
 
 #### Parameters
 `SUBSCRIPTION`: The name of the subscription to operate on.
+ * `--ack-deadline-seconds`: Time in seconds before an outstanding message is considered unacknowledged and is re-sent.
+Configurable in your Google Cloud Pubsub subscription. See the docs here: https://cloud.google.com/pubsub/docs/subscriber
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--json-path`: The path to a JSON service account that Spinnaker will use as credentials. This is only needed if Spinnaker is not deployed on a Google Compute Engine VM, or needs permissions not afforded to the VM it is running on. See https://cloud.google.com/compute/docs/access/service-accounts for more information.
  * `--no-validate`: (*Default*: `false`) Skip validation.
