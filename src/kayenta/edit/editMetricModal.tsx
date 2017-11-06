@@ -25,8 +25,8 @@ interface IEditMetricModalStateProps {
 
 function DirectionChoice({ value, label, current, action }: { value: string, label: string, current: string, action: (event: any) => void }) {
   return (
-    <label style={{fontWeight: 'normal'}}>
-      <input name="direction" type="radio" value={value} onClick={action} checked={value === current}/> {label} &nbsp;
+    <label style={{fontWeight: 'normal', marginRight: '1em'}}>
+      <input name="direction" type="radio" value={value} onClick={action} checked={value === current}/> {label}
     </label>
   );
 }
