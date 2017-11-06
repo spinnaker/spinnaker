@@ -213,10 +213,14 @@ export class ClusterService {
 
   private addNameParts(serverGroup: IServerGroup): void {
     const nameParts = this.namingService.parseServerGroupName(serverGroup.name);
-    serverGroup.app = nameParts.application;
-    serverGroup.stack = nameParts.stack;
-    serverGroup.detail = nameParts.freeFormDetails;
-    serverGroup.cluster = nameParts.cluster;
+    if (serverGroup.moniker) {
+      Object.assign(serverGroup, serverGroup.moniker);
+    } else {
+      serverGroup.app = nameParts.application;
+      serverGroup.stack = nameParts.stack;
+      serverGroup.detail = nameParts.freeFormDetails;
+      serverGroup.cluster = nameParts.cluster;
+    }
     serverGroup.category = 'serverGroup';
   }
 
