@@ -189,7 +189,7 @@ class OperationsController {
 
   @RequestMapping(value = "/ops", consumes = "application/context+json", method = RequestMethod.POST)
   Map<String, String> ops(@RequestBody Map input) {
-    def execution = [application: input.application, name: input.description, appConfig: input.appConfig, stages: input.job, trigger: input.trigger ?: Collections.emptyMap()]
+    def execution = [application: input.application, name: input.description, appConfig: input.appConfig, stages: input.job, trigger: input.trigger ?: [:]]
     parsePipelineTrigger(executionRepository, buildService, execution)
     startTask(execution)
   }
