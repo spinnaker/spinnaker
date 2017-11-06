@@ -33,6 +33,7 @@ class KubernetesConfigurationProperties {
     String user
     String kubeconfigFile
     Boolean serviceAccount
+    Boolean configureImagePullSecrets
     List<String> namespaces
     List<String> omitNamespaces
     Integer cacheThreads

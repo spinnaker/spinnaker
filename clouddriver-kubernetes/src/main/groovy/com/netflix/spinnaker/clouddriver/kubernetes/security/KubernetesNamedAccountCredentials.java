@@ -161,6 +161,7 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials> 
     String userAgent;
     String kubeconfigFile;
     Boolean serviceAccount;
+    Boolean configureImagePullSecrets;
     List<String> namespaces;
     List<String> omitNamespaces;
     int cacheThreads;
@@ -219,6 +220,11 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials> 
 
     Builder serviceAccount(Boolean serviceAccount) {
       this.serviceAccount = serviceAccount;;
+      return this;
+    }
+
+    Builder configureImagePullSecrets(Boolean configureImagePullSecrets) {
+      this.configureImagePullSecrets = configureImagePullSecrets;
       return this;
     }
 
@@ -286,6 +292,7 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials> 
               user,
               userAgent,
               serviceAccount,
+              configureImagePullSecrets,
               namespaces,
               omitNamespaces,
               dockerRegistries,
@@ -337,6 +344,10 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials> 
         requiredGroupMembership = Collections.unmodifiableList(requiredGroupMembership);
       } else {
         requiredGroupMembership = Collections.emptyList();
+      }
+
+      if (configureImagePullSecrets == null) {
+        configureImagePullSecrets = true;
       }
 
       if (credentials == null) {

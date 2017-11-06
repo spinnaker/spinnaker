@@ -55,6 +55,7 @@ public class KubernetesV1Credentials implements KubernetesCredentials {
   private final Logger LOG;
   private final AccountCredentialsRepository repository;
   private final HashSet<String> dynamicRegistries = new HashSet<>();
+  private final boolean configureImagePullSecrets;
   private List<String> oldNamespaces;
 
   public KubernetesV1Credentials(
@@ -65,6 +66,7 @@ public class KubernetesV1Credentials implements KubernetesCredentials {
       String user,
       String userAgent,
       Boolean serviceAccount,
+      boolean configureImagePullSecrets,
       List<String> namespaces,
       List<String> omitNamespaces,
       List<LinkedDockerRegistryConfiguration> dockerRegistries,
@@ -86,6 +88,7 @@ public class KubernetesV1Credentials implements KubernetesCredentials {
     this.dockerRegistries = dockerRegistries;
     this.repository = accountCredentialsRepository;
     this.LOG = LoggerFactory.getLogger(KubernetesV1Credentials.class);
+    this.configureImagePullSecrets = configureImagePullSecrets;
 
     configureDockerRegistries();
   }
@@ -103,6 +106,7 @@ public class KubernetesV1Credentials implements KubernetesCredentials {
     this.dockerRegistries = dockerRegistries;
     this.repository = repository;
     this.LOG = LoggerFactory.getLogger(KubernetesV1Credentials.class);
+    this.configureImagePullSecrets = true;
 
     configureDockerRegistries();
   }
@@ -151,6 +155,10 @@ public class KubernetesV1Credentials implements KubernetesCredentials {
   }
 
   private void reconfigureRegistries(List<String> affectedNamespaces, List<String> allNamespaces) {
+    if (!configureImagePullSecrets) {
+      return;
+    }
+
     for (int i = 0; i < dockerRegistries.size(); i++) {
       LinkedDockerRegistryConfiguration registry = dockerRegistries.get(i);
       List<String> registryNamespaces = registry.getNamespaces();
