@@ -1720,4 +1720,62 @@ class GCEUtil {
     }
     return newHealthCheck
   }
+
+  static List<BackendService> fetchBackendServices(GoogleExecutorTraits agent, Compute compute, String project) {
+    return agent.timeExecute(
+      compute.backendServices().list(project),
+      "compute.backendServices.list",
+      agent.TAG_SCOPE, agent.SCOPE_GLOBAL).getItems()
+  }
+
+  static List<HttpHealthCheck> fetchHttpHealthChecks(GoogleExecutorTraits agent, Compute compute, String project) {
+    Boolean executedAtLeastOnce = false
+    String nextPageToken = null
+    List<HttpHealthCheck> httpHealthChecks = []
+    while (!executedAtLeastOnce || nextPageToken) {
+      HttpHealthCheckList httpHealthCheckList = agent.timeExecute(
+        compute.httpHealthChecks().list(project).setPageToken(nextPageToken),
+        "compute.httpHealthChecks.list",
+        agent.TAG_SCOPE, agent.SCOPE_GLOBAL)
+
+      executedAtLeastOnce = true
+      nextPageToken = httpHealthCheckList.getNextPageToken()
+      httpHealthChecks.addAll(httpHealthCheckList.getItems() ?: [])
+    }
+    return httpHealthChecks
+  }
+
+  static List<HttpsHealthCheck> fetchHttpsHealthChecks(GoogleExecutorTraits agent, Compute compute, String project) {
+    Boolean executedAtLeastOnce = false
+    String nextPageToken = null
+    List<HttpsHealthCheck> httpsHealthChecks = []
+    while (!executedAtLeastOnce || nextPageToken) {
+      HttpsHealthCheckList httpsHealthCheckList = agent.timeExecute(
+        compute.httpsHealthChecks().list(project).setPageToken(nextPageToken),
+        "compute.httpsHealtchChecks.list",
+        agent.TAG_SCOPE, agent.SCOPE_GLOBAL)
+
+      executedAtLeastOnce = true
+      nextPageToken = httpsHealthCheckList.getNextPageToken()
+      httpsHealthChecks.addAll(httpsHealthCheckList.getItems() ?: [])
+    }
+    return httpsHealthChecks
+  }
+
+  static List<HealthCheck> fetchHealthChecks(GoogleExecutorTraits agent, Compute compute, String project) {
+    Boolean executedAtLeastOnce = false
+    String nextPageToken = null
+    List<HealthCheck> healthChecks = []
+    while (!executedAtLeastOnce || nextPageToken) {
+      HealthCheckList healthCheckList = agent.timeExecute(
+        compute.healthChecks().list(project).setPageToken(nextPageToken),
+        "compute.healtchChecks.list",
+        agent.TAG_SCOPE, agent.SCOPE_GLOBAL)
+
+      executedAtLeastOnce = true
+      nextPageToken = healthCheckList.getNextPageToken()
+      healthChecks.addAll(healthCheckList.getItems() ?: [])
+    }
+    return healthChecks
+  }
 }
