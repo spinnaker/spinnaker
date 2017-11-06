@@ -40,7 +40,7 @@ import groovy.transform.EqualsAndHashCode
 class GoogleInstance {
 
   String name
-  String id
+  String gceId
   String instanceType
   String cpuPlatform
   Long launchTime
@@ -76,7 +76,7 @@ class GoogleInstance {
     final String cloudProvider = GoogleCloudProvider.ID
 
     String name = GoogleInstance.this.name
-    String id = GoogleInstance.this.id
+    String gceId = GoogleInstance.this.gceId
     String instanceId = GoogleInstance.this.name
     String instanceType = GoogleInstance.this.instanceType
     String cpuPlatform = GoogleInstance.this.cpuPlatform

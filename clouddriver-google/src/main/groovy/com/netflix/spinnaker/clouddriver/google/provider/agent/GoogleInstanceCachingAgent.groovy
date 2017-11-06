@@ -104,7 +104,7 @@ class GoogleInstanceCachingAgent extends AbstractGoogleCachingAgent {
         String instanceName = Utils.getLocalName(instance.name)
         def googleInstance = new GoogleInstance(
             name: instanceName,
-            id: instance.id,
+            gceId: instance.id,
             instanceType: Utils.getLocalName(instance.machineType),
             cpuPlatform: instance.cpuPlatform,
             launchTime: instanceTimestamp,
