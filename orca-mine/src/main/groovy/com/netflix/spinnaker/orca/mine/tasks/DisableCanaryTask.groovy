@@ -47,7 +47,6 @@ class DisableCanaryTask extends AbstractCloudProviderAwareTask implements Task {
     String cloudProvider = ops && !ops.empty ? ops.first()?.values().first()?.cloudProvider : getCloudProvider(stage) ?: 'aws'
     def taskId = katoService.requestOperations(cloudProvider, ops).toBlocking().first()
 
-    stage.context.remove('waitTaskState')
     return new TaskResult(ExecutionStatus.SUCCEEDED, [
       'kato.last.task.id'    : taskId,
       'deploy.server.groups' : dSG,

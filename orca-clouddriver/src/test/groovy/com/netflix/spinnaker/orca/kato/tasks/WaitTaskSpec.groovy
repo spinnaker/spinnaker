@@ -38,7 +38,8 @@ class WaitTaskSpec extends Specification {
 
     then:
       result.status == ExecutionStatus.RUNNING
-    stage.context.putAll(result.context)
+      result.context.waitTaskState.startTime > 1
+      stage.context.putAll(result.context)
 
     when:
       timeProvider.millis = System.currentTimeMillis() + 10000
@@ -48,6 +49,7 @@ class WaitTaskSpec extends Specification {
 
     then:
       result.status == ExecutionStatus.SUCCEEDED
+      result.context.waitTaskState.size() == 0
 
   }
 
