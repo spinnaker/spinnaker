@@ -23,10 +23,10 @@ interface IEditMetricModalStateProps {
   metric: ICanaryMetricConfig
 }
 
-function DirectionChoice({ value, label, action }: { value: string, label: string, action: (event: any) => void }) {
+function DirectionChoice({ value, label, current, action }: { value: string, label: string, current: string, action: (event: any) => void }) {
   return (
     <label style={{fontWeight: 'normal'}}>
-      <input name="direction" type="radio" value={value} onClick={action}/> {label} &nbsp;
+      <input name="direction" type="radio" value={value} onClick={action} checked={value === current}/> {label} &nbsp;
     </label>
   );
 }
@@ -38,6 +38,8 @@ function EditMetricModal({ metric, rename, confirm, cancel, updateDirection }: I
   if (!metric) {
     return null;
   }
+
+  const direction = metric.classificationDirection || 'Either';
   return (
     <Modal show={true} onHide={noop} className="kayenta-edit-metric-modal">
       <Styleguide>
@@ -54,9 +56,9 @@ function EditMetricModal({ metric, rename, confirm, cancel, updateDirection }: I
             />
           </FormRow>
           <FormRow label="Fail on">
-            <DirectionChoice value="Increase" label="increase" action={updateDirection}/>
-            <DirectionChoice value="Decrease" label="decrease" action={updateDirection}/>
-            <DirectionChoice value="Either" label="either" action={updateDirection}/>
+            <DirectionChoice value="Increase" label="increase" current={direction} action={updateDirection}/>
+            <DirectionChoice value="Decrease" label="decrease" current={direction} action={updateDirection}/>
+            <DirectionChoice value="Either"   label="either"   current={direction} action={updateDirection}/>
           </FormRow>
           <MetricConfigurerDelegator/>
         </Modal.Body>
