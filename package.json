@@ -2,7 +2,7 @@
   "main": "lib/lib.js",
   "typings": "lib/kayenta/index.d.ts",
   "name": "@spinnaker/kayenta",
-  "version": "0.0.11",
+  "version": "0.0.12",
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
@@ -20,7 +20,8 @@
     "start-dev-server": "webpack-dev-server --inline --hot",
     "test": "karma start",
     "tslint": "tslint --type-check --project tsconfig.json",
-    "lib": "rimraf lib && ./node_modules/typescript/bin/tsc --project ./build_scripts && node ./node_modules/webpack/bin/webpack.js --config ./build_scripts/webpack.build.js"
+    "prepublishOnly": "npm run lib",
+    "lib": "rimraf lib && node ./node_modules/webpack/bin/webpack.js --config ./build_scripts/webpack.build.js"
   },
   "dependencies": {
     "@types/chart.js": "^2.6.10",
