@@ -90,9 +90,8 @@ public class PipelineTemplatesController {
   }
 
   @RequestMapping(value = "/resolve", method = RequestMethod.GET)
-  public Map resolveTemplates(@RequestParam("source") String source) {
-    Map template = pipelineTemplateService.resolve(source);
-    return template;
+  public Map resolveTemplates(@RequestParam String source, @RequestParam(required = false) String executionId, @RequestParam(required = false) String pipelineConfigId) {
+    return pipelineTemplateService.resolve(source, executionId, pipelineConfigId);
   }
 
   @RequestMapping(value = "/{id}", method = RequestMethod.GET)

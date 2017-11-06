@@ -47,7 +47,7 @@ class PipelineTemplateService {
     front50Service.getPipelineTemplates((String[]) scopes?.toArray())
   }
 
-  Map resolve(String source) {
-    orcaService.resolvePipelineTemplate(source)
+  Map resolve(String source, String executionId, String pipelineConfigId) {
+    orcaService.resolvePipelineTemplate(source, executionId, pipelineConfigId)
   }
 }
