@@ -42,6 +42,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 public class ModuleTag implements Tag {
 
@@ -60,7 +61,9 @@ public class ModuleTag implements Tag {
 
   @Override
   public String interpret(TagNode tagNode, JinjavaInterpreter interpreter) {
-    List<String> helper = new HelperStringTokenizer(tagNode.getHelpers()).splitComma(true).allTokens();
+    List<String> helper = collapseWhitespaceInTokenPairs(
+      new HelperStringTokenizer(tagNode.getHelpers()).allTokens()
+    );
     if (helper.isEmpty()) {
       throw new TemplateSyntaxException(tagNode.getMaster().getImage(), "Tag 'module' expects ID as first parameter: " + helper, tagNode.getLineNumber());
     }
@@ -163,5 +166,52 @@ public class ModuleTag implements Tag {
   @Override
   public String getEndTagName() {
     return null;
+  }
+
+  /**
+   * Look at this ungodly code. It's gross. Thanks to poor foresight, we tokenize on
+   * whitespace, which can break concatenation, and definitely breaks usage of filters.
+   * Sooo, we take the tokenized module definition and best-guess our way through collapsing
+   * whitespace to arrive at the real key/value pairs that we later parse for populating
+   * the module's internal context.
+   */
+  private static List<String> collapseWhitespaceInTokenPairs(List<String> tokens) {
+    List<String> combinedTokens = new ArrayList<>();
+    combinedTokens.add(tokens.get(0));
+
+    StringBuilder buffer = new StringBuilder();
+    // idx 0 is `moduleName`. Skip that guy.
+    for (int i = 1; i < tokens.size(); i++) {
+      String token = tokens.get(i);
+      if (token.contains("=")) {
+        if (buffer.length() > 0) {
+          combinedTokens.add(buffer.toString());
+        }
+        buffer = new StringBuilder();
+        combinedTokens.add(token);
+      } else {
+        String lastToken = combinedTokens.get(combinedTokens.size() - 1);
+        if (lastToken.contains("=") && !lastToken.endsWith(",")) {
+          buffer.append(combinedTokens.remove(combinedTokens.size() - 1));
+        }
+        buffer.append(token);
+      }
+    }
+
+    if (buffer.length() > 0) {
+      int i = combinedTokens.size() - 1;
+      combinedTokens.set(i, combinedTokens.get(i) + buffer.toString());
+    }
+
+    return combinedTokens.stream()
+      .map(ModuleTag::removeTrailingCommas)
+      .collect(Collectors.toList());
+  }
+
+  private static String removeTrailingCommas(String token) {
+    if (token.endsWith(",")) {
+      return token.substring(0, token.length()-1);
+    }
+    return token;
   }
 }

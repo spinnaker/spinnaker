@@ -46,18 +46,21 @@ class ModuleTagSpec extends Specification {
             [name: 'myStringVar', defaultValue: 'hello'] as NamedHashMap,
             [name: 'myOtherVar'] as NamedHashMap,
             [name: 'subject'] as NamedHashMap,
-            [name: 'job'] as NamedHashMap
+            [name: 'job'] as NamedHashMap,
+            [name: 'concat', type: 'object'] as NamedHashMap,
+            [name: 'filtered'] as NamedHashMap
           ],
-          definition: '{{myStringVar}} {{myOtherVar}}, {{subject}}. You triggered {{job}}')
+          definition: '{{myStringVar}} {{myOtherVar}}, {{subject}}. You triggered {{job}} {{concat}} {{filtered}}')
       ]
     )
     RenderContext context = new DefaultRenderContext('myApp', pipelineTemplate, [job: 'myJob', buildNumber: 1234])
     context.variables.put("testerName", "Mr. Tester Testington")
+    context.variables.put("m", [myKey: 'myValue'])
 
     when:
-    def result = renderer.render('{% module myModule myOtherVar=world, subject=testerName, job=trigger.job %}', context)
+    def result = renderer.render("{% module myModule myOtherVar=world, subject=testerName, job=trigger.job, concat=m['my' + 'Key'], filtered=trigger.nonExist|default('hello', True) %}", context)
 
     then:
-    result == 'hello world, Mr. Tester Testington. You triggered myJob'
+    result == 'hello world, Mr. Tester Testington. You triggered myJob myValue hello'
   }
 }
