@@ -27,16 +27,16 @@ module(INSTANCE_STATES, [
            cloudProviderRegistry: CloudProviderRegistry,
            versionedCloudProviderService: VersionedCloudProviderService,
            app: Application) => {
-            return versionedCloudProviderService.getInstanceProviderVersion($stateParams.provider, $stateParams.instanceId, app).then(providerVersion =>
+            return versionedCloudProviderService.getInstanceProviderVersion($stateParams.provider, $stateParams.instanceId, app).then((providerVersion: string) =>
               $templateCache.get(cloudProviderRegistry.getValue($stateParams.provider, 'instance.detailsTemplateUrl', providerVersion))
             );
         }],
         controllerProvider: ['$stateParams', 'cloudProviderRegistry', 'versionedCloudProviderService', 'app',
           ($stateParams: StateParams,
            cloudProviderRegistry: CloudProviderRegistry,
-           versionedCloudProviderService,
+           versionedCloudProviderService: VersionedCloudProviderService,
            app: Application) => {
-            return versionedCloudProviderService.getInstanceProviderVersion($stateParams.provider, $stateParams.instanceId, app).then(providerVersion =>
+            return versionedCloudProviderService.getInstanceProviderVersion($stateParams.provider, $stateParams.instanceId, app).then((providerVersion: string) =>
               cloudProviderRegistry.getValue($stateParams.provider, 'instance.detailsController', providerVersion)
             );
         }],
