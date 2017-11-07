@@ -90,6 +90,14 @@ public class KubernetesCacheUtils {
         .collect(Collectors.toList())));
   }
 
+  public Collection<CacheData> getAllRelationshipsOfSpinnakerKind(Collection<CacheData> cacheData, SpinnakerKind spinnakerKind) {
+    return kindMap.translateSpinnakerKind(spinnakerKind)
+        .stream()
+        .map(kind -> loadRelationshipsFromCache(cacheData, kind.toString()))
+        .flatMap(Collection::stream)
+        .collect(Collectors.toList());
+  }
+
   public Collection<CacheData> loadRelationshipsFromCache(Collection<CacheData> sources, String relationshipType) {
     List<String> keys = cleanupCollection(sources).stream()
         .map(CacheData::getRelationships)
@@ -115,7 +123,7 @@ public class KubernetesCacheUtils {
   /*
    * Builds a map of all keys belonging to `sourceKind` that are related to any entries in `targetData`
    */
-  public Map<String, List<CacheData>> mapByRelationship(List<CacheData> targetData, SpinnakerKind sourceKind) {
+  public Map<String, List<CacheData>> mapByRelationship(Collection<CacheData> targetData, SpinnakerKind sourceKind) {
     Map<String, List<CacheData>> result = new HashMap<>();
 
     for (CacheData datum : targetData) {

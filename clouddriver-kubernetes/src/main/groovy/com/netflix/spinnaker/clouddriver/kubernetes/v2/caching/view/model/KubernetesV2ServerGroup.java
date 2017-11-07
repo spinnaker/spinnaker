@@ -27,6 +27,7 @@ import com.netflix.spinnaker.clouddriver.model.HealthState;
 import com.netflix.spinnaker.clouddriver.model.Instance;
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerServerGroup;
 import com.netflix.spinnaker.clouddriver.model.ServerGroup;
+import com.netflix.spinnaker.clouddriver.model.ServerGroupSummary;
 import io.kubernetes.client.models.V1beta1ReplicaSet;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -88,6 +89,10 @@ public class KubernetesV2ServerGroup extends ManifestBasedModel implements Serve
         .build();
   }
 
+  public static KubernetesV2ServerGroup fromCacheData(CacheData cd) {
+    return fromCacheData(cd, new ArrayList<>(), new ArrayList<>());
+  }
+
   public static KubernetesV2ServerGroup fromCacheData(CacheData cd, List<CacheData> instanceData) {
     return fromCacheData(cd, instanceData, new ArrayList<>());
   }
@@ -123,6 +128,15 @@ public class KubernetesV2ServerGroup extends ManifestBasedModel implements Serve
         .collect(Collectors.toSet());
 
     return new KubernetesV2ServerGroup(manifest, cd.getId(), instances, loadBalancers);
+  }
+
+  public ServerGroupSummary toServerGroupSummary() {
+    return KubernetesV2ServerGroupSummary.builder()
+        .name(getName())
+        .account(getAccount())
+        .namespace(getRegion())
+        .moniker(getMoniker())
+        .build();
   }
 
   public LoadBalancerServerGroup toLoadBalancerServerGroup() {

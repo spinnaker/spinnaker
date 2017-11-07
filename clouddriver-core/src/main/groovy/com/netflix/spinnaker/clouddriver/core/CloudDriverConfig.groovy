@@ -49,9 +49,12 @@ import com.netflix.spinnaker.clouddriver.model.NoopManifestProvider
 import com.netflix.spinnaker.clouddriver.model.NoopNetworkProvider
 import com.netflix.spinnaker.clouddriver.model.NoopReservationReportProvider
 import com.netflix.spinnaker.clouddriver.model.NoopSecurityGroupProvider
+import com.netflix.spinnaker.clouddriver.model.NoopServerGroupManagerProvider
 import com.netflix.spinnaker.clouddriver.model.NoopSubnetProvider
 import com.netflix.spinnaker.clouddriver.model.ReservationReportProvider
 import com.netflix.spinnaker.clouddriver.model.SecurityGroupProvider
+import com.netflix.spinnaker.clouddriver.model.ServerGroupManager
+import com.netflix.spinnaker.clouddriver.model.ServerGroupManagerProvider
 import com.netflix.spinnaker.clouddriver.model.SubnetProvider
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperationConverter
 import com.netflix.spinnaker.clouddriver.search.ApplicationSearchProvider
@@ -209,6 +212,12 @@ class CloudDriverConfig {
   @ConditionalOnMissingBean(SecurityGroupProvider)
   SecurityGroupProvider noopSecurityGroupProvider() {
     new NoopSecurityGroupProvider()
+  }
+
+  @Bean
+  @ConditionalOnMissingBean(ServerGroupManager)
+  ServerGroupManagerProvider noopServerGroupManagerProvider() {
+    new NoopServerGroupManagerProvider()
   }
 
   @Bean
