@@ -71,7 +71,7 @@ module.exports = angular.module('spinnaker.canary.acaTaskStage', [
       accountService.listAccounts(p)
         .then(a => $scope.accounts = $scope.accounts.concat(a));
       accountService.getUniqueAttributeForAllAccounts(p, 'regions')
-        ..then(r=> $scope.regions = $scope.regions.concat(r));
+        .then(r=> $scope.regions = $scope.regions.concat(r));
     });
 
     //TODO: Extract to be reusable with canaryStage [zkt]
