@@ -1062,7 +1062,7 @@ class GCEUtil {
     def balancingMode = policy.balancingMode
     return new Backend(
       balancingMode: balancingMode,
-      maxRatePerInstance: balancingMode == GoogleLoadBalancingPolicy.BalancingMode.RATE ?
+      maxRatePerInstance: balancingMode == GoogleLoadBalancingPolicy.BalancingMode.RATE || balancingMode == GoogleLoadBalancingPolicy.BalancingMode.UTILIZATION ?
         policy.maxRatePerInstance : null,
       maxUtilization: balancingMode == GoogleLoadBalancingPolicy.BalancingMode.UTILIZATION ?
         policy.maxUtilization : null,
@@ -1086,7 +1086,7 @@ class GCEUtil {
     def backendBalancingMode = GoogleLoadBalancingPolicy.BalancingMode.valueOf(backend.balancingMode)
     return new GoogleHttpLoadBalancingPolicy(
       balancingMode: backendBalancingMode,
-      maxRatePerInstance: backendBalancingMode == GoogleLoadBalancingPolicy.BalancingMode.RATE ?
+      maxRatePerInstance: backendBalancingMode == GoogleLoadBalancingPolicy.BalancingMode.RATE || backendBalancingMode == GoogleLoadBalancingPolicy.BalancingMode.UTILIZATION ?
         backend.maxRatePerInstance : null,
       maxUtilization: backendBalancingMode == GoogleLoadBalancingPolicy.BalancingMode.UTILIZATION ?
         backend.maxUtilization : null,
