@@ -28,11 +28,11 @@ public class Intent extends HashMap<String, Object> implements Timestamped {
 
   @Override
   public String getId() {
-    return (String) super.get("id");
+    return ((String) super.get("id")).toLowerCase();
   }
 
   public void setId(String id) {
-    super.put("id", id);
+    super.put("id", id.toLowerCase());
   }
 
   @Override

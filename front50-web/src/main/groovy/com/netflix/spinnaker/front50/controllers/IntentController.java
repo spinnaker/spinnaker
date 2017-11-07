@@ -44,35 +44,42 @@ public class IntentController {
 
   @RequestMapping(value = "{id}", method = RequestMethod.GET)
   Intent get(@PathVariable String id) {
-    return intentDAO.findById(id);
+    return intentDAO.findById(id.toLowerCase());
   }
 
   @RequestMapping(value = "", method = RequestMethod.POST)
   Intent upsert(@RequestBody Intent intent) {
     intent.setLastModified(System.currentTimeMillis());
-    try {
-      Intent existingIntent = intentDAO.findById(intent.getId());
-    } catch (NotFoundException e){
+
+    if (intentExists(intent.getId())){
+      intentDAO.update(intent.getId(), intent);
+    } else {
       intentDAO.create(intent.getId(), intent);
-      return intent;
     }
 
-    intentDAO.update(intent.getId(), intent);
-    return intent;
+    return intentDAO.findById(intent.getId());
   }
-  
+
   @RequestMapping(value = "{id}", method = RequestMethod.DELETE)
   void delete(@PathVariable String id) {
-    intentDAO.delete(id);
+    intentDAO.delete(id.toLowerCase());
   }
 
   private void checkForDuplicateIntents(String id) {
     try {
-      intentDAO.findById(id);
+      intentDAO.findById(id.toLowerCase());
     } catch (NotFoundException e) {
       return;
     }
     throw new DuplicateEntityException("An intent with the id " + id + " already exists");
   }
 
+  private boolean intentExists(String id) {
+    try {
+      intentDAO.findById(id.toLowerCase());
+    } catch (NotFoundException e) {
+      return false;
+    }
+    return true;
+  }
 }

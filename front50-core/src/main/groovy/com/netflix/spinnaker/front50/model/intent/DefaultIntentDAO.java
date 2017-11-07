@@ -69,7 +69,7 @@ public class DefaultIntentDAO extends StorageServiceSupport<Intent> implements I
       item.setStatus("ACTIVE");
     }
 
-    update(id, item);
-    return findById(id);
+    update(id.toLowerCase(), item);
+    return findById(id.toLowerCase());
   }
 }

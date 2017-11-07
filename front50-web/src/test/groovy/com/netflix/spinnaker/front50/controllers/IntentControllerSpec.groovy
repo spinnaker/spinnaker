@@ -34,6 +34,28 @@ class IntentControllerSpec extends Specification {
     objectMapper:  new ObjectMapper(),
   )
 
+  def "should create intent if it doesn't exist"() {
+    given:
+    def intent = new Intent(
+      id: "ahoymatey",
+      kind: "Parrot",
+      schema: "1",
+      spec: [
+        application: "keel",
+        deescription: "hello"
+      ],
+      status: "ACTIVE"
+    )
+
+    when:
+    intentDAO.findById("ahoymatey") >> { intent }
+    Intent createdIntent = controller.upsert(intent)
+
+    then:
+    noExceptionThrown()
+    createdIntent == intent
+  }
+
   def "should update intent if exists"() {
     given:
     def intent = new Intent(
@@ -54,22 +76,10 @@ class IntentControllerSpec extends Specification {
         application: "keel",
         deescription: "ahoy"
       ],
-      status: "ACTIVE"
+      status: "ACTIVE",
+      updatedTs: 1509656072777
     )
-
-    when:
-    intentDAO.all() >> { [oldIntent] }
-    Intent updatedIntent = controller.upsert(intent)
-
-    then:
-    noExceptionThrown()
-    updatedIntent == intent
-
-  }
-
-  def "should create intent if it doesn't exist"() {
-    given:
-    def intent = new Intent(
+    def newIntent = new Intent(
       id: "ahoymatey",
       kind: "Parrot",
       schema: "1",
@@ -77,15 +87,19 @@ class IntentControllerSpec extends Specification {
         application: "keel",
         deescription: "hello"
       ],
-      status: "ACTIVE"
+      status: "ACTIVE",
+      updatedTs: 1509656072801
     )
 
     when:
-    intentDAO.all() >> { }
-    Intent createdIntent = controller.upsert(intent)
+    intentDAO.all() >> { [oldIntent] }
+    intentDAO.findById("ahoymatey") >> { oldIntent } >> { newIntent }
+    Intent updatedIntent = controller.upsert(intent)
+    System.currentTimeMillis() >> 1509656072801
 
     then:
     noExceptionThrown()
-    createdIntent == intent
+    updatedIntent == newIntent
+
   }
 }
