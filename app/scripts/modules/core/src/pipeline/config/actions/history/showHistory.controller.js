@@ -16,7 +16,7 @@ module.exports = angular
     DIFF_VIEW_COMPONENT,
   ])
   .controller('ShowHistoryCtrl', function ($window, pipelineConfigService, jsonUtilityService,
-                                           pipelineConfigId, currentConfig,
+                                           pipelineConfigId, currentConfig, isStrategy,
                                            $uibModalInstance, $filter) {
     this.state = {
       loading: true,
@@ -74,7 +74,7 @@ module.exports = angular
       $uibModalInstance.close(this.history[this.version].json);
     };
 
-    pipelineConfigService.getHistory(pipelineConfigId, 100).then(
+    pipelineConfigService.getHistory(pipelineConfigId, isStrategy, 100).then(
       historyLoaded,
       loadError
     );

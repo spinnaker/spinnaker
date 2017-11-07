@@ -41,7 +41,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.pipelineConfigur
 
     this.warningsPopover = require('./warnings.popover.html');
 
-    pipelineConfigService.getHistory($scope.pipeline.id, 2).then(history => {
+    pipelineConfigService.getHistory($scope.pipeline.id, $scope.pipeline.strategy, 2).then(history => {
       if (history && history.length > 1) {
         $scope.viewState.hasHistory = true;
         this.setViewState({ hasHistory: true, loadingHistory: false });
@@ -242,6 +242,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.pipelineConfigur
         size: 'lg modal-fullscreen',
         resolve: {
           pipelineConfigId: () => $scope.pipeline.id,
+          isStrategy: $scope.pipeline.strategy,
           currentConfig: () => $scope.viewState.isDirty ? JSON.parse(angular.toJson($scope.pipeline)) : null,
         }
       }).result.then(newConfig => {

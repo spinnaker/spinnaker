@@ -43,8 +43,9 @@ export class PipelineConfigService {
     });
   }
 
-  public getHistory(id: string, count = 20): IPromise<IPipeline[]> {
-    return this.API.one('pipelineConfigs', id).all('history').withParams({ count: count }).getList();
+  public getHistory(id: string, isStrategy: boolean, count = 20): IPromise<IPipeline[]> {
+    const endpoint = isStrategy ? 'strategyConfigs' : 'pipelineConfigs';
+    return this.API.one(endpoint, id).all('history').withParams({ count: count }).getList();
   }
 
   public deletePipeline(applicationName: string, pipeline: IPipeline, pipelineName: string): IPromise<void> {
