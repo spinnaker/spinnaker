@@ -16,19 +16,13 @@
 
 package com.netflix.spinnaker.clouddriver.google.provider.agent
 
-import com.google.api.services.compute.model.Instance
-import com.google.api.services.compute.model.InstanceAggregatedList
-import com.google.api.services.compute.model.InstancesScopedList
 import com.netflix.spinnaker.cats.agent.AgentDataType
 import com.netflix.spinnaker.cats.agent.CacheResult
 import com.netflix.spinnaker.cats.provider.ProviderCache
-import com.netflix.spinnaker.clouddriver.consul.model.ConsulHealth
-import com.netflix.spinnaker.clouddriver.consul.provider.ConsulProviderUtils
 import com.netflix.spinnaker.clouddriver.google.cache.CacheResultBuilder
 import com.netflix.spinnaker.clouddriver.google.cache.Keys
+import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
 import com.netflix.spinnaker.clouddriver.google.model.GoogleInstance
-import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
-import com.netflix.spinnaker.clouddriver.google.model.health.GoogleInstanceHealth
 import groovy.transform.InheritConstructors
 import groovy.util.logging.Slf4j
 
@@ -49,29 +43,8 @@ class GoogleInstanceCachingAgent extends AbstractGoogleCachingAgent {
 
   @Override
   CacheResult loadData(ProviderCache providerCache) {
-    List<GoogleInstance> instances = getInstances()
+    List<GoogleInstance> instances = GCEUtil.fetchInstances(this, credentials)
     buildCacheResults(providerCache, instances)
-  }
-
-  List<GoogleInstance> getInstances() {
-    List<GoogleInstance> instances = new ArrayList<GoogleInstance>()
-    String pageToken = null
-
-    while (true) {
-      InstanceAggregatedList instanceAggregatedList = timeExecute(
-          compute.instances().aggregatedList(project).setPageToken(pageToken),
-          "compute.instances.aggregatedList",
-          TAG_SCOPE, SCOPE_GLOBAL)
-
-      instances += transformInstances(instanceAggregatedList)
-      pageToken = instanceAggregatedList.getNextPageToken()
-
-      if (!pageToken) {
-        break
-      }
-    }
-
-    return instances
   }
 
   CacheResult buildCacheResults(ProviderCache providerCache, List<GoogleInstance> googleInstances) {
@@ -88,45 +61,4 @@ class GoogleInstanceCachingAgent extends AbstractGoogleCachingAgent {
 
     cacheResultBuilder.build()
   }
-
-  List<GoogleInstance> transformInstances(InstanceAggregatedList instanceAggregatedList) throws IOException {
-    List<GoogleInstance> instances = []
-
-    instanceAggregatedList?.items?.each { String zone, InstancesScopedList instancesScopedList ->
-      def localZoneName = Utils.getLocalName(zone)
-      instancesScopedList?.instances?.each { Instance instance ->
-        def consulNode = credentials.consulConfig?.enabled ?
-          ConsulProviderUtils.getHealths(credentials.consulConfig, instance.getName())
-          : null
-        long instanceTimestamp = instance.creationTimestamp ?
-            Utils.getTimeFromTimestamp(instance.creationTimestamp) :
-            Long.MAX_VALUE
-        String instanceName = Utils.getLocalName(instance.name)
-        def googleInstance = new GoogleInstance(
-            name: instanceName,
-            gceId: instance.id,
-            instanceType: Utils.getLocalName(instance.machineType),
-            cpuPlatform: instance.cpuPlatform,
-            launchTime: instanceTimestamp,
-            zone: localZoneName,
-            region: credentials.regionFromZone(localZoneName),
-            networkInterfaces: instance.networkInterfaces,
-            networkName: Utils.decorateXpnResourceIdIfNeeded(project, instance.networkInterfaces?.getAt(0)?.network),
-            metadata: instance.metadata,
-            disks: instance.disks,
-            serviceAccounts: instance.serviceAccounts,
-            selfLink: instance.selfLink,
-            tags: instance.tags,
-            labels: instance.labels,
-            consulNode: consulNode,
-            instanceHealth: new GoogleInstanceHealth(
-                status: GoogleInstanceHealth.Status.valueOf(instance.getStatus())
-            ))
-        instances << googleInstance
-      }
-    }
-
-    return instances
-  }
-
 }

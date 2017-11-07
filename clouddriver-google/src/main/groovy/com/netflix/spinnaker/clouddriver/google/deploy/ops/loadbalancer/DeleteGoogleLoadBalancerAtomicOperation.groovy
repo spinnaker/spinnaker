@@ -31,6 +31,7 @@ import org.springframework.beans.factory.annotation.Autowired
 
 class DeleteGoogleLoadBalancerAtomicOperation extends GoogleAtomicOperation<Void> {
   private static final String BASE_PHASE = "DELETE_LOAD_BALANCER"
+  private static final Boolean INSTANCE_REMOVAL_WORKAROUND = true
 
   static class HealthCheckAsyncDeleteOperation {
     String healthCheckName
@@ -113,9 +114,25 @@ class DeleteGoogleLoadBalancerAtomicOperation extends GoogleAtomicOperation<Void
       GCEUtil.updateStatusAndThrowNotFoundException("Target pool $targetPoolName not found in $region for $project",
           task, BASE_PHASE)
     }
-    if (targetPool?.instances?.size > 0) {
-      task.updateStatus BASE_PHASE, "Server groups still associated with network load balancer ${description.loadBalancerName}. Failing..."
-      throw new IllegalStateException("Server groups still associated with network load balancer: ${description.loadBalancerName}.")
+
+    if (targetPool.instances) {
+      // GCP has an intermittent issue where removing an instance in a target pool 'succeeds',
+      // but the target pool still contains a URL reference to the instance. Spinnaker will fail
+      // if a user attempts to delete any GCP load balancer with server groups/instance still attached,
+      // but due to the GCP flakiness, we have to double check the state for Network LBs.
+      // We use the constant INSTANCE_REMOVAL_WORKAROUND to mark that this workaround is still in use
+      // so it will be simple to revert later.
+      if (INSTANCE_REMOVAL_WORKAROUND) {
+        List<String> projectInstanceNames = GCEUtil.fetchInstances(this, description.credentials)*.name
+        List<String> existingReferencedInstances = targetPool.instance.findAll { String instanceUrl -> GCEUtil.getLocalName(instanceUrl) in projectInstanceNames }
+        if (existingReferencedInstances) {
+          task.updateStatus BASE_PHASE, "Instances ${existingReferencedInstances} still associated with network load balancer ${description.loadBalancerName}. Failing..."
+          throw new IllegalStateException("Instances ${existingReferencedInstances} still associated with network load balancer ${description.loadBalancerName}. Failing...")
+        }
+      } else {
+        task.updateStatus BASE_PHASE, "Instances ${targetPool.instances} still associated with network load balancer ${description.loadBalancerName}. Failing..."
+        throw new IllegalStateException("Instances ${targetPool.instances} still associated with network load balancer ${description.loadBalancerName}. Failing...")
+      }
     }
 
     def healthCheckUrls = targetPool.getHealthChecks()
