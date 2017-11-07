@@ -50,7 +50,7 @@ class KubernetesDeployManifestOperationSpec extends Specification {
   def NAME = "my-name"
   def VERSION = "version"
   def NAMESPACE = "my-namespace"
-  def BACKUP_NAMESPACE = "my-backup-namespace"
+  def DEFAULT_NAMESPACE = "default"
   def KIND = KubernetesKind.REPLICA_SET
   def API_VERSION = KubernetesApiVersion.EXTENSIONS_V1BETA1
 
@@ -129,7 +129,7 @@ metadata:
   void "replica set deployer uses backup namespace"() {
     setup:
     def credentialsMock = Mock(KubernetesV2Credentials)
-    credentialsMock.getDefaultNamespace() >> BACKUP_NAMESPACE
+    credentialsMock.getDefaultNamespace() >> DEFAULT_NAMESPACE
     def deployOp = createMockDeployer(credentialsMock, BASIC_REPLICA_SET_NO_NAMESPACE)
 
     when:
@@ -137,6 +137,6 @@ metadata:
 
     then:
     result.deployedNames.size == 1
-    result.deployedNames[0] == "$BACKUP_NAMESPACE:$KIND $NAME-$VERSION"
+    result.deployedNames[0] == "$DEFAULT_NAMESPACE:$KIND $NAME-$VERSION"
   }
 }

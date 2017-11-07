@@ -21,6 +21,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -79,7 +80,8 @@ public class KubernetesManifest extends HashMap<String, Object> {
 
   @JsonIgnore
   public String getNamespace() {
-    return (String) getMetadata().get("namespace");
+    String namespace = (String) getMetadata().get("namespace");
+    return StringUtils.isEmpty(namespace) ? "default" : namespace;
   }
 
   @JsonIgnore

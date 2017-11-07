@@ -23,13 +23,15 @@ import com.fasterxml.jackson.annotation.JsonValue;
 import java.util.Arrays;
 
 public enum KubernetesKind {
+  DAEMON_SET("daemonSet", "ds"),
   DEPLOYMENT("deployment", "deploy"),
   INGRESS("ingress", "ing"),
   POD("pod", "po"),
   REPLICA_SET("replicaSet", "rs"),
+  NAMESPACE("namespace", "ns"),
   NETWORK_POLICY("networkPolicy", "netpol"),
   SERVICE("service", "svc"),
-  STATEFUL_SET("statefulset");
+  STATEFUL_SET("statefulSet");
 
   private final String name;
   private final String alias;

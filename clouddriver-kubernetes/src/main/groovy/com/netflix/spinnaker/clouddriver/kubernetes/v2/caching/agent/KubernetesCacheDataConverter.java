@@ -49,6 +49,7 @@ import java.util.concurrent.TimeUnit;
 import static com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys.Kind.ARTIFACT;
 import static com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys.LogicalKind.APPLICATION;
 import static com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys.LogicalKind.CLUSTER;
+import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind.NAMESPACE;
 import static java.lang.Math.toIntExact;
 
 @Slf4j
@@ -148,14 +149,19 @@ public class KubernetesCacheDataConverter {
 
     String application = moniker.getApp();
     if (StringUtils.isEmpty(application)) {
-      log.debug("Skipping not-spinnaker-owned resource " + namespace + ":" + manifest.getFullResourceName());
-      return null;
+      log.debug("Encountered not-spinnaker-owned resource " + namespace + ":" + manifest.getFullResourceName());
+    } else {
+      cacheRelationships.putAll(annotatedRelationships(account, namespace, metadata));
     }
 
     // TODO(lwander) avoid overwriting keys here
-    cacheRelationships.putAll(annotatedRelationships(account, namespace, metadata));
     cacheRelationships.putAll(ownerReferenceRelationships(account, namespace, manifest.getOwnerReferences()));
     cacheRelationships.putAll(implicitRelationships(account, namespace, resourceRelationships));
+
+    // Namespaces aren't namespaced
+    if (kind != NAMESPACE) {
+      cacheRelationships.putAll(namespaceRelationship(account, namespace));
+    }
 
     String key = Keys.infrastructure(kind, account, namespace, name);
     return new DefaultCacheData(key, infrastructureTtlSeconds, attributes, cacheRelationships);
@@ -256,6 +262,17 @@ public class KubernetesCacheDataConverter {
       keys.add(Keys.infrastructure(kind, account, namespace, name));
       relationships.put(kind.toString(), keys);
     }
+
+    return relationships;
+  }
+
+  static Map<String, Collection<String>> namespaceRelationship(String account, String namespace) {
+    Map<String, Collection<String>> relationships = new HashMap<>();
+    relationships.put(NAMESPACE.toString(),
+        Collections.singletonList(
+            Keys.infrastructure(NAMESPACE, account, namespace, namespace)
+        )
+    );
 
     return relationships;
   }
