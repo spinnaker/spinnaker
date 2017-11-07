@@ -59,16 +59,20 @@ module.exports = angular.module('spinnaker.canary.acaTaskStage', [
         : $scope.stage.canary.watchers //if it is not an array it is probably a SpEL
       : '';
 
-    accountService.getUniqueAttributeForAllAccounts('aws', 'regions')
-      .then( (regions) => {
-        $scope.regions = regions.sort();
-      });
+    let applicationProviders = $scope.application.attributes.cloudProviders;
+    $scope.accounts = [];
+    $scope.regions = [];
 
+    if (applicationProviders.length === 0) {
+      applicationProviders[0] = 'aws'; // default to AWS if no provider is set
+    }
 
-    accountService.listAccounts('aws').then(function(accounts) {
-      $scope.accounts = accounts;
+    applicationProviders.forEach(p => {
+      accountService.listAccounts(p)
+        .then(a => $scope.accounts = $scope.accounts.concat(a));
+      accountService.getUniqueAttributeForAllAccounts(p, 'regions')
+        ..then(r=> $scope.regions = $scope.regions.concat(r));
     });
-
 
     //TODO: Extract to be reusable with canaryStage [zkt]
     this.updateWatchersList = () => {
