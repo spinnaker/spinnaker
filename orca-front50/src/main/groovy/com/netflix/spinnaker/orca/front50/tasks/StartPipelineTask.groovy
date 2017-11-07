@@ -50,7 +50,7 @@ class StartPipelineTask implements Task {
     Map<String, Object> pipelineConfig = pipelines.find { it.id == pipelineId }
 
     if (!pipelineConfig) {
-      throw new IllegalArgumentException("Unable to locate referenced pipeline $pipelineId.")
+      throw new IllegalArgumentException("The referenced ${isStrategy ? 'custom strategy' : 'pipeline'} cannot be located (${pipelineId}")
     }
 
     def parameters = stage.context.pipelineParameters ?: [:]
