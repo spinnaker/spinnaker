@@ -16,7 +16,7 @@ export function DisableClusterExecutionDetails(props: IExecutionDetailsSectionPr
             <dt>Account</dt>
             <dd><AccountTag account={stage.context.credentials}/></dd>
             <dt>Region</dt>
-            <dd>{stage.context.region || stage.context.regions.join(', ')}</dd>
+            <dd>{stage.context.region || (stage.context.regions || []).join(', ')}</dd>
             <dt>Cluster</dt>
             <dd>{stage.context.cluster}</dd>
             <dt>Keep Enabled</dt>
