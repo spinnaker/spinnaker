@@ -1,6 +1,6 @@
 import { Action, combineReducers } from 'redux';
 import { combineActions, handleActions } from 'redux-actions';
-import { get, has, omit, chain, pick, fromPairs, flatMap } from 'lodash';
+import { get, set, has, omit, chain, pick, fromPairs, flatMap, cloneDeep } from 'lodash';
 
 import * as Actions from '../actions';
 import { IJudge } from '../domain/IJudge';
@@ -90,9 +90,9 @@ const editingMetric = handleActions({
   [Actions.RENAME_METRIC]: (state: ICanaryMetricConfig, action: Action & any) => ({
     ...state, name: action.payload.name
   }),
-  [Actions.UPDATE_METRIC_DIRECTION]: (state: ICanaryMetricConfig, action: Action & any) => ({
-    ...state, classificationDirection: action.payload.direction
-  }),
+  [Actions.UPDATE_METRIC_DIRECTION]: (state: ICanaryMetricConfig, action: Action & any) => (
+    set(cloneDeep(state), ['analysisConfigurations', 'canary', 'direction'], action.payload.direction)
+  ),
   [Actions.UPDATE_STACKDRIVER_METRIC_TYPE]: (state: ICanaryMetricConfig, action: Action & any) => ({
     ...state, query: { ...state.query, metricType: action.metricType, type: 'stackdriver' },
   }),

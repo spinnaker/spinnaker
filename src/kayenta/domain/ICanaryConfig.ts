@@ -20,7 +20,6 @@ export interface ICanaryMetricConfig {
   name: string;
   serviceName: string;
   query: ICanaryMetricSetQueryConfig;
-  classificationDirection?: string;
   groups: string[];
   analysisConfigurations: {
     [key: string]: any;

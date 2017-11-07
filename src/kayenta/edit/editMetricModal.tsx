@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { Modal } from 'react-bootstrap';
+import { get } from 'lodash';
 
 import * as Creators from '../actions/creators';
 import {ICanaryState} from '../reducers/index';
@@ -39,7 +40,7 @@ function EditMetricModal({ metric, rename, confirm, cancel, updateDirection }: I
     return null;
   }
 
-  const direction = metric.classificationDirection || 'Either';
+  const direction = get(metric, ['analysisConfigurations', 'canary', 'direction'], 'either');
   return (
     <Modal show={true} onHide={noop} className="kayenta-edit-metric-modal">
       <Styleguide>
@@ -56,9 +57,9 @@ function EditMetricModal({ metric, rename, confirm, cancel, updateDirection }: I
             />
           </FormRow>
           <FormRow label="Fail on">
-            <DirectionChoice value="Increase" label="increase" current={direction} action={updateDirection}/>
-            <DirectionChoice value="Decrease" label="decrease" current={direction} action={updateDirection}/>
-            <DirectionChoice value="Either"   label="either"   current={direction} action={updateDirection}/>
+            <DirectionChoice value="increase" label="increase" current={direction} action={updateDirection}/>
+            <DirectionChoice value="decrease" label="decrease" current={direction} action={updateDirection}/>
+            <DirectionChoice value="either"   label="either"   current={direction} action={updateDirection}/>
           </FormRow>
           <MetricConfigurerDelegator/>
         </Modal.Body>
