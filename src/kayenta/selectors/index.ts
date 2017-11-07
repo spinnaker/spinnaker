@@ -42,3 +42,12 @@ export const serializedGroupWeightsSelector = createSelector(
   serializedCanaryConfigSelector,
   (config: ICanaryConfig) => config.classifier.groupWeights,
 );
+
+export const selectedMetricNameSelector =
+  (state: ICanaryState): string => state.selectedRun.selectedMetric;
+
+export const selectedMetricConfigSelector = createSelector(
+  selectedMetricNameSelector,
+  serializedCanaryConfigSelector,
+  (metricName, config) => config.metrics.find(m => m.name === metricName),
+);

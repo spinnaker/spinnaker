@@ -4,8 +4,6 @@ import { Chart } from 'chart.js';
 import { IMetricSetPairGraphProps } from '../metricSetPairGraph.service';
 import { buildChartConfig } from './chartConfigFactory';
 
-
-
 export default class ChartJSGraph extends React.Component<IMetricSetPairGraphProps> {
   private canvas: HTMLCanvasElement;
   private chart: Chart;
