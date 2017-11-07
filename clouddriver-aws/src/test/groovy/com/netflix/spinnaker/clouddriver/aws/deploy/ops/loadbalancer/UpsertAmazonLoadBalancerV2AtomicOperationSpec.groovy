@@ -18,6 +18,8 @@ package com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer
 
 import com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancing
 import com.amazonaws.services.elasticloadbalancingv2.model.*
+import com.amazonaws.services.shield.AWSShield
+import com.amazonaws.services.shield.model.CreateProtectionRequest
 import com.netflix.spinnaker.clouddriver.aws.TestCredential
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertAmazonLoadBalancerV2Description
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonLoadBalancerType
@@ -80,10 +82,11 @@ class UpsertAmazonLoadBalancerV2AtomicOperationSpec extends Specification {
   def loadBalancerOld = new LoadBalancer(loadBalancerName: "foo-main-frontend", loadBalancerArn: loadBalancerArn)
 
 
-
+  AWSShield awsShield = Mock(AWSShield)
   AmazonElasticLoadBalancing loadBalancing = Mock(AmazonElasticLoadBalancing)
   def mockAmazonClientProvider = Stub(AmazonClientProvider) {
     getAmazonElasticLoadBalancingV2(_, _, true) >> loadBalancing
+    getAmazonShield(_, _) >> awsShield
   }
   def mockSecurityGroupService = Stub(SecurityGroupService) {
     getSecurityGroupIds(["foo"], null) >> ["foo": "sg-1234"]
@@ -256,6 +259,43 @@ class UpsertAmazonLoadBalancerV2AtomicOperationSpec extends Specification {
     1 * loadBalancing.describeRules(new DescribeRulesRequest(listenerArn: listenerArn)) >> new DescribeRulesResult(rules: [])
     1 * loadBalancing.deleteListener(new DeleteListenerRequest(listenerArn: listenerArn))
     1 * loadBalancing.createListener(new CreateListenerRequest(loadBalancerArn: loadBalancerArn, port: 80, protocol: "HTTP", defaultActions: [new Action(targetGroupArn: targetGroupArn, type: ActionTypeEnum.Forward)]))
+    0 * _
+  }
+
+  void "should attach shield protection to external loadbalancer"() {
+    setup:
+    description.credentials = TestCredential.named('bar', [shieldEnabled: true])
+    description.isInternal = false
+    description.subnetType = 'internet-facing'
+    def existingLoadBalancers = []
+    def existingTargetGroups = []
+    def existingListeners = []
+
+    when:
+    operation.operate([])
+
+    then:
+    1 * mockSubnetAnalyzer.getSubnetIdsForZones(['us-east-1a'], 'internet-facing', SubnetTarget.ELB, 1) >> ["subnet-1"]
+    1 * loadBalancing.describeLoadBalancers(new DescribeLoadBalancersRequest(names: ["foo-main-frontend"])) >>
+      new DescribeLoadBalancersResult(loadBalancers: existingLoadBalancers)
+    1 * loadBalancing.createLoadBalancer(new CreateLoadBalancerRequest(
+      name: "foo-main-frontend",
+      subnets: ["subnet-1"],
+      securityGroups: ["sg-1234"]
+    )) >> new CreateLoadBalancerResult(loadBalancers: [new LoadBalancer(dNSName: "dnsName1", loadBalancerArn: loadBalancerArn)])
+    1 * loadBalancing.setSecurityGroups(new SetSecurityGroupsRequest(
+      loadBalancerArn: loadBalancerArn,
+      securityGroups: ["sg-1234"]
+    ))
+    1 * loadBalancing.describeTargetGroups(new DescribeTargetGroupsRequest(names: [targetGroupName])) >> new DescribeTargetGroupsResult(targetGroups: existingTargetGroups)
+    1 * loadBalancing.createTargetGroup(_ as CreateTargetGroupRequest) >> new CreateTargetGroupResult(targetGroups: [targetGroup])
+    1 * loadBalancing.modifyTargetGroupAttributes(_ as ModifyTargetGroupAttributesRequest)
+    1 * loadBalancing.describeListeners(new DescribeListenersRequest(loadBalancerArn: loadBalancerArn)) >> new DescribeListenersResult(listeners: existingListeners)
+    1 * loadBalancing.createListener(new CreateListenerRequest(loadBalancerArn: loadBalancerArn, port: 80, protocol: "HTTP", defaultActions: [new Action(targetGroupArn: targetGroupArn, type: ActionTypeEnum.Forward)]))
+    1 * awsShield.createProtection(new CreateProtectionRequest(
+      name: 'foo-main-frontend',
+      resourceArn: loadBalancerArn
+    ))
     0 * _
   }
 }

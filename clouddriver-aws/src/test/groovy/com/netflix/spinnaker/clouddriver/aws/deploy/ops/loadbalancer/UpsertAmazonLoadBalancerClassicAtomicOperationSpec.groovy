@@ -35,6 +35,8 @@ import com.amazonaws.services.elasticloadbalancing.model.ListenerDescription
 import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerAttributes
 import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerDescription
 import com.amazonaws.services.elasticloadbalancing.model.ModifyLoadBalancerAttributesRequest
+import com.amazonaws.services.shield.AWSShield
+import com.amazonaws.services.shield.model.CreateProtectionRequest
 import com.netflix.spinnaker.clouddriver.aws.AwsConfiguration
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.securitygroup.SecurityGroupLookupFactory
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
@@ -49,6 +51,7 @@ import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactor
 import com.netflix.spinnaker.clouddriver.aws.services.SecurityGroupService
 import spock.lang.Specification
 import spock.lang.Subject
+import spock.lang.Unroll
 
 import static com.netflix.spinnaker.clouddriver.aws.deploy.ops.securitygroup.SecurityGroupLookupFactory.*
 
@@ -74,8 +77,10 @@ class UpsertAmazonLoadBalancerClassicAtomicOperationSpec extends Specification {
           healthCheckPort: 7001
   )
   AmazonElasticLoadBalancing loadBalancing = Mock(AmazonElasticLoadBalancing)
+  AWSShield awsShield = Mock(AWSShield)
   def mockAmazonClientProvider = Stub(AmazonClientProvider) {
     getAmazonElasticLoadBalancing(_, _, true) >> loadBalancing
+    getAmazonShield(_, _) >> awsShield
   }
   def mockSecurityGroupService = Stub(SecurityGroupService) {
     getSecurityGroupIds(["foo"], null) >> ["foo": "sg-1234"]
@@ -556,5 +561,35 @@ class UpsertAmazonLoadBalancerClassicAtomicOperationSpec extends Specification {
     }
 
     1 * loadBalancing.createLoadBalancer(_ as CreateLoadBalancerRequest) >> new CreateLoadBalancerResult(dNSName: 'dnsName1')
+  }
+
+  @Unroll
+  void "should enable AWS Shield protection if external ELB"() {
+    given:
+    description.credentials = TestCredential.named('bar', [shieldEnabled: shieldEnabled])
+    description.shieldProtectionEnabled = descriptionOverride
+    description.vpcId = "vpcId"
+
+    when:
+    operation.operate([])
+
+    then:
+    1 * securityGroupLookup.getSecurityGroupByName('bar', 'kato-elb', 'vpcId') >> Optional.of(elbSecurityGroupUpdater)
+    1 * securityGroupLookup.getSecurityGroupByName('bar', 'kato', 'vpcId') >> Optional.of(appSecurityGroupUpdater)
+    1 * elbSecurityGroupUpdater.getSecurityGroup() >> elbSecurityGroup
+    1 * appSecurityGroupUpdater.getSecurityGroup() >> applicationSecurityGroup
+
+    1 * loadBalancing.createLoadBalancer(_ as CreateLoadBalancerRequest) >> new CreateLoadBalancerResult(dNSName: 'dnsName1')
+    (shouldProtect ? 1 : 0) * awsShield.createProtection(new CreateProtectionRequest(
+      name: 'kato-main-frontend',
+      resourceArn: 'arn:aws:elasticloadbalancing:123456789012bar:us-east-1:loadbalancer/kato-main-frontend'
+    ))
+
+    where:
+    shieldEnabled | descriptionOverride || shouldProtect
+    false         | false               || false
+    false         | true                || false
+    true          | false               || false
+    true          | true                || true
   }
 }

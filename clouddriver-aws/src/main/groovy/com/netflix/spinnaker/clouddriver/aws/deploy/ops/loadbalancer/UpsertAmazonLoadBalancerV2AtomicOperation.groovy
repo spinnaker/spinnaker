@@ -18,6 +18,8 @@ package com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer
 
 import com.amazonaws.AmazonServiceException
 import com.amazonaws.services.elasticloadbalancingv2.model.*
+import com.amazonaws.services.shield.AWSShield
+import com.amazonaws.services.shield.model.CreateProtectionRequest
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertAmazonLoadBalancerDescription
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertAmazonLoadBalancerV2Description
@@ -94,7 +96,26 @@ class UpsertAmazonLoadBalancerV2AtomicOperation implements AtomicOperation<Upser
           subnetIds = regionScopedProvider.subnetAnalyzer.getSubnetIdsForZones(availabilityZones,
                   description.subnetType, SubnetTarget.ELB, 1)
         }
-        dnsName = LoadBalancerV2UpsertHandler.createLoadBalancer(loadBalancing, loadBalancerName, isInternal, subnetIds, securityGroups, description.targetGroups, description.listeners)
+        loadBalancer = LoadBalancerV2UpsertHandler.createLoadBalancer(loadBalancing, loadBalancerName, isInternal, subnetIds, securityGroups, description.targetGroups, description.listeners)
+        dnsName = loadBalancer.DNSName
+
+        // Enable AWS shield. We only do this on creation. The ELB must be external, the account must be enabled with
+        // AWS Shield Protection and the description must not opt out of protection.
+        if (!description.isInternal && description.credentials.shieldEnabled && description.shieldProtectionEnabled) {
+          task.updateStatus BASE_PHASE, "Configuring AWS Shield for ${loadBalancerName} in ${region}..."
+          try {
+            AWSShield shieldClient = amazonClientProvider.getAmazonShield(description.credentials, region)
+            shieldClient.createProtection(
+              new CreateProtectionRequest()
+                .withName(loadBalancerName)
+                .withResourceArn(loadBalancer.getLoadBalancerArn())
+            )
+            task.updateStatus BASE_PHASE, "AWS Shield configured for ${loadBalancerName} in ${region}."
+          } catch (Exception e) {
+            log.error("Failed to enable AWS Shield protection on $loadBalancerName", e)
+            task.updateStatus BASE_PHASE, "Failed to configure AWS Shield for ${loadBalancerName} in ${region}."
+          }
+        }
       } else {
         task.updateStatus BASE_PHASE, "Found existing load balancer named ${loadBalancerName} in ${region}... Using that."
         dnsName = loadBalancer.DNSName

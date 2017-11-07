@@ -28,6 +28,8 @@ import com.amazonaws.services.elasticloadbalancing.model.Listener
 import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerAttributes
 import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerDescription
 import com.amazonaws.services.elasticloadbalancing.model.ModifyLoadBalancerAttributesRequest
+import com.amazonaws.services.shield.AWSShield
+import com.amazonaws.services.shield.model.CreateProtectionRequest
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.aws.AwsConfiguration.DeployDefaults
@@ -49,8 +51,8 @@ import groovy.transform.InheritConstructors
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 
-import static com.netflix.spinnaker.clouddriver.aws.deploy.ops.securitygroup.SecurityGroupLookupFactory.*
-
+import static com.netflix.spinnaker.clouddriver.aws.deploy.ops.securitygroup.SecurityGroupLookupFactory.SecurityGroupLookup
+import static com.netflix.spinnaker.clouddriver.aws.deploy.ops.securitygroup.SecurityGroupLookupFactory.SecurityGroupUpdater
 /**
  * An AtomicOperation for creating an Elastic Load Balancer from the description of {@link UpsertAmazonLoadBalancerClassicDescription}.
  *
@@ -167,6 +169,24 @@ class UpsertAmazonLoadBalancerAtomicOperation implements AtomicOperation<UpsertA
         }
 
         dnsName = LoadBalancerUpsertHandler.createLoadBalancer(loadBalancing, loadBalancerName, isInternal, availabilityZones, subnetIds, listeners, securityGroups)
+
+        // Enable AWS shield. We only do this on creation. The ELB must be external, the account must be enabled with
+        // AWS Shield Protection and the description must not opt out of protection.
+        if (!description.isInternal && description.credentials.shieldEnabled && description.shieldProtectionEnabled) {
+          task.updateStatus BASE_PHASE, "Configuring AWS Shield for ${loadBalancerName} in ${region}..."
+          try {
+            AWSShield shieldClient = amazonClientProvider.getAmazonShield(description.credentials, region)
+            shieldClient.createProtection(
+              new CreateProtectionRequest()
+                .withName(loadBalancerName)
+                .withResourceArn(loadBalancerArn(description.credentials.accountId, region, loadBalancerName))
+            )
+            task.updateStatus BASE_PHASE, "AWS Shield configured for ${loadBalancerName} in ${region}."
+          } catch (Exception e) {
+            log.error("Failed to enable AWS Shield protection on $loadBalancerName", e)
+            task.updateStatus BASE_PHASE, "Failed to configure AWS Shield for ${loadBalancerName} in ${region}."
+          }
+        }
       } else {
         dnsName = loadBalancer.DNSName
         LoadBalancerUpsertHandler.updateLoadBalancer(loadBalancing, loadBalancer, listeners, securityGroups)
@@ -345,6 +365,10 @@ class UpsertAmazonLoadBalancerAtomicOperation implements AtomicOperation<UpsertA
     }
 
     permissionsToAdd.removeIf { permission -> !permission.userIdGroupPairs }
+  }
+
+  private static String loadBalancerArn(String accountId, String region, String name) {
+    return "arn:aws:elasticloadbalancing:$accountId:$region:loadbalancer/$name"
   }
 
   @InheritConstructors

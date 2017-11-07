@@ -33,6 +33,8 @@ public class UpsertAmazonLoadBalancerDescription extends AbstractAmazonCredentia
   private List<String> securityGroups;
   private Map<String, List<String>> availabilityZones;
 
+  private boolean shieldProtectionEnabled = true;
+
   public AmazonLoadBalancerType getLoadBalancerType() {
     return loadBalancerType;
   }
@@ -95,5 +97,13 @@ public class UpsertAmazonLoadBalancerDescription extends AbstractAmazonCredentia
 
   public void setAvailabilityZones(Map<String, List<String>> availabilityZones) {
     this.availabilityZones = availabilityZones;
+  }
+
+  public boolean getShieldProtectionEnabled() {
+    return shieldProtectionEnabled;
+  }
+
+  public void setShieldProtectionEnabled(boolean shieldProtectionEnabled) {
+    this.shieldProtectionEnabled = shieldProtectionEnabled;
   }
 }

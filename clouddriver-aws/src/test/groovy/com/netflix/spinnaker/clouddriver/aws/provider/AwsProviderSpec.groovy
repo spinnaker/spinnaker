@@ -48,6 +48,7 @@ class AwsProviderSpec extends Specification {
             null,
             false,
             null,
+            false,
             false)
     def eurekaAccount2 = new NetflixAmazonCredentials("my-qa-account",
             "qa",
@@ -67,6 +68,7 @@ class AwsProviderSpec extends Specification {
             null,
             false,
             null,
+            false,
             false)
 
     def eurekaAccounts = [ eurekaAccount1, eurekaAccount2 ]
@@ -95,6 +97,7 @@ class AwsProviderSpec extends Specification {
             null,
             false,
             null,
+            false,
             false)
     def account2 = new NetflixAmazonCredentials("my-qa-account",
             "qa",
@@ -114,6 +117,7 @@ class AwsProviderSpec extends Specification {
             null,
             false,
             null,
+            false,
             false)
 
     def accounts = [ account1, account2 ]

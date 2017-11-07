@@ -53,6 +53,7 @@ public class NetflixAssumeRoleAmazonCredentials extends NetflixAmazonCredentials
                                               @JsonProperty("front50Enabled") Boolean front50Enabled,
                                               @JsonProperty("bastionHost") String bastionHost,
                                               @JsonProperty("bastionEnabled") Boolean bastionEnabled,
+                                              @JsonProperty("shieldEnabled") Boolean shieldEnabled,
                                               @JsonProperty("assumeRole") String assumeRole,
                                               @JsonProperty("sessionName") String sessionName) {
 
@@ -76,6 +77,7 @@ public class NetflixAssumeRoleAmazonCredentials extends NetflixAmazonCredentials
              front50Enabled,
              bastionHost,
              bastionEnabled,
+             shieldEnabled,
              assumeRole,
              sessionName);
     }
@@ -101,6 +103,7 @@ public class NetflixAssumeRoleAmazonCredentials extends NetflixAmazonCredentials
              copy.getFront50Enabled(),
              copy.getBastionHost(),
              copy.getBastionEnabled(),
+             copy.getShieldEnabled(),
              copy.getAssumeRole(),
              copy.getSessionName());
     }
@@ -125,6 +128,7 @@ public class NetflixAssumeRoleAmazonCredentials extends NetflixAmazonCredentials
                                        Boolean front50Enabled,
                                        String bastionHost,
                                        Boolean bastionEnabled,
+                                       Boolean shieldEnabled,
                                        String assumeRole,
                                        String sessionName) {
         super(name,
@@ -149,7 +153,8 @@ public class NetflixAssumeRoleAmazonCredentials extends NetflixAmazonCredentials
               front50,
               front50Enabled,
               bastionHost,
-              bastionEnabled);
+              bastionEnabled,
+              shieldEnabled);
         this.assumeRole = assumeRole;
         this.sessionName = sessionName == null ? AssumeRoleAmazonCredentials.DEFAULT_SESSION_NAME : sessionName;
     }

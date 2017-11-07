@@ -18,8 +18,31 @@ package com.netflix.spinnaker.clouddriver.aws.deploy.handlers
 
 import com.amazonaws.AmazonServiceException
 import com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancing
-import com.amazonaws.services.elasticloadbalancingv2.model.*
-import com.netflix.spinnaker.clouddriver.aws.data.ArnUtils
+import com.amazonaws.services.elasticloadbalancingv2.model.Action
+import com.amazonaws.services.elasticloadbalancingv2.model.CreateListenerRequest
+import com.amazonaws.services.elasticloadbalancingv2.model.CreateListenerResult
+import com.amazonaws.services.elasticloadbalancingv2.model.CreateLoadBalancerRequest
+import com.amazonaws.services.elasticloadbalancingv2.model.CreateRuleRequest
+import com.amazonaws.services.elasticloadbalancingv2.model.CreateTargetGroupRequest
+import com.amazonaws.services.elasticloadbalancingv2.model.CreateTargetGroupResult
+import com.amazonaws.services.elasticloadbalancingv2.model.DeleteListenerRequest
+import com.amazonaws.services.elasticloadbalancingv2.model.DeleteTargetGroupRequest
+import com.amazonaws.services.elasticloadbalancingv2.model.DescribeListenersRequest
+import com.amazonaws.services.elasticloadbalancingv2.model.DescribeRulesRequest
+import com.amazonaws.services.elasticloadbalancingv2.model.DescribeTargetGroupsRequest
+import com.amazonaws.services.elasticloadbalancingv2.model.Listener
+import com.amazonaws.services.elasticloadbalancingv2.model.ListenerNotFoundException
+import com.amazonaws.services.elasticloadbalancingv2.model.LoadBalancer
+import com.amazonaws.services.elasticloadbalancingv2.model.Matcher
+import com.amazonaws.services.elasticloadbalancingv2.model.ModifyTargetGroupAttributesRequest
+import com.amazonaws.services.elasticloadbalancingv2.model.ModifyTargetGroupRequest
+import com.amazonaws.services.elasticloadbalancingv2.model.ResourceInUseException
+import com.amazonaws.services.elasticloadbalancingv2.model.Rule
+import com.amazonaws.services.elasticloadbalancingv2.model.RuleCondition
+import com.amazonaws.services.elasticloadbalancingv2.model.SetSecurityGroupsRequest
+import com.amazonaws.services.elasticloadbalancingv2.model.TargetGroup
+import com.amazonaws.services.elasticloadbalancingv2.model.TargetGroupAttribute
+import com.amazonaws.services.elasticloadbalancingv2.model.TargetGroupNotFoundException
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertAmazonLoadBalancerV2Description
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
@@ -326,7 +349,7 @@ class LoadBalancerV2UpsertHandler {
     }
   }
 
-  static String createLoadBalancer(AmazonElasticLoadBalancing loadBalancing, String loadBalancerName, boolean isInternal,
+  static LoadBalancer createLoadBalancer(AmazonElasticLoadBalancing loadBalancing, String loadBalancerName, boolean isInternal,
                                           Collection<String> subnetIds, Collection<String> securityGroups,
                                           List<UpsertAmazonLoadBalancerV2Description.TargetGroup> targetGroups,
                                           List<UpsertAmazonLoadBalancerV2Description.Listener> listeners) {

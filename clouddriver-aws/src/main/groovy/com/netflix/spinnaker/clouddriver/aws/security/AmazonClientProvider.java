@@ -40,6 +40,8 @@ import com.amazonaws.services.route53.AmazonRoute53;
 import com.amazonaws.services.route53.AmazonRoute53ClientBuilder;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
+import com.amazonaws.services.shield.AWSShield;
+import com.amazonaws.services.shield.AWSShieldClientBuilder;
 import com.amazonaws.services.simpleworkflow.AmazonSimpleWorkflow;
 import com.amazonaws.services.simpleworkflow.AmazonSimpleWorkflowClientBuilder;
 import com.amazonaws.services.sns.AmazonSNS;
@@ -416,5 +418,13 @@ public class AmazonClientProvider {
 
   public AmazonIdentityManagement getAmazonIdentityManagement(String accountName, AWSCredentialsProvider awsCredentialsProvider, String region) {
     return awsSdkClientSupplier.getClient(AmazonIdentityManagementClientBuilder.class, AmazonIdentityManagement.class, accountName, awsCredentialsProvider, region);
+  }
+
+  public AWSShield getAmazonShield(NetflixAmazonCredentials amazonCredentials, String region) {
+    return proxyHandlerBuilder.getProxyHandler(AWSShield.class, AWSShieldClientBuilder.class, amazonCredentials, region, true);
+  }
+
+  public AWSShield getAmazonShield(String accountName, AWSCredentialsProvider awsCredentialsProvider, String region) {
+    return awsSdkClientSupplier.getClient(AWSShieldClientBuilder.class, AWSShield.class, accountName, awsCredentialsProvider, region);
   }
 }
