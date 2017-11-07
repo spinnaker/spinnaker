@@ -15,20 +15,9 @@
  */
 package com.netflix.spinnaker.keel
 
-import com.netflix.spinnaker.keel.matcher.Matcher
+interface PolicyRepository {
 
-interface IntentRepository {
-
-  fun upsertIntent(intent: Intent<IntentSpec>): Intent<IntentSpec>
-
-  fun getIntents(): List<Intent<IntentSpec>>
-
-  fun getIntents(status: List<IntentStatus>): List<Intent<IntentSpec>>
-
-  fun getIntent(id: String): Intent<IntentSpec>?
-
-  fun findByMatch(matchers: List<Matcher>)
-    = getIntents().filter { i ->
-        matchers.any { m -> m.match(i) }
-      }
+  fun findAll(): List<Policy>
+  fun upsert(policy: Policy)
+  fun delete(id: String)
 }

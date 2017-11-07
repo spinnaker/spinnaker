@@ -19,3 +19,7 @@ package com.netflix.spinnaker.keel
  * A typed model of an Intent's configuration.
  */
 interface IntentSpec
+
+abstract class ApplicationAwareIntentSpec : IntentSpec {
+  abstract val application: String
+}

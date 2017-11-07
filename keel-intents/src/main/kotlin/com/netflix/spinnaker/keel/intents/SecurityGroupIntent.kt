@@ -19,8 +19,8 @@ import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.fasterxml.jackson.annotation.JsonTypeName
 import com.github.jonpeterson.jackson.module.versioning.JsonVersionedModel
+import com.netflix.spinnaker.keel.ApplicationAwareIntentSpec
 import com.netflix.spinnaker.keel.Intent
-import com.netflix.spinnaker.keel.IntentSpec
 import java.util.*
 
 private const val KIND = "SecurityGroup"
@@ -38,8 +38,7 @@ class SecurityGroupIntent
 }
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "kind")
-abstract class SecurityGroupSpec : IntentSpec {
-  abstract val application: String
+abstract class SecurityGroupSpec : ApplicationAwareIntentSpec() {
   abstract val name: String
   abstract val cloudProvider: String
   abstract val accountName: String

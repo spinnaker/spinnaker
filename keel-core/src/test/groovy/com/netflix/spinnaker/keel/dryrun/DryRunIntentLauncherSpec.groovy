@@ -22,6 +22,7 @@ import com.netflix.spinnaker.keel.ConvergeResult
 import com.netflix.spinnaker.keel.Intent
 import com.netflix.spinnaker.keel.IntentProcessor
 import com.netflix.spinnaker.keel.IntentSpec
+import com.netflix.spinnaker.keel.IntentStatus
 import com.netflix.spinnaker.keel.model.Job
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.model.Trigger
@@ -71,7 +72,7 @@ class DryRunIntentLauncherSpec extends Specification {
       @NotNull String schema,
       @NotNull String kind,
       @NotNull TestIntentSpec spec) {
-      super(schema, kind, spec)
+      super(schema, kind, spec, IntentStatus.ACTIVE, [])
     }
 
     @Override

@@ -42,7 +42,7 @@ class ApplicationIntentProcessorSpec extends Specification {
 
   def 'should support ApplicationIntents'() {
     expect:
-    !subject.supports(new ParrotIntent(new ParrotSpec("hello", "world")))
+    !subject.supports(new ParrotIntent(new ParrotSpec("hello", "world", 5)))
     subject.supports(new ApplicationIntent(Mock(BaseApplicationSpec)))
   }
 

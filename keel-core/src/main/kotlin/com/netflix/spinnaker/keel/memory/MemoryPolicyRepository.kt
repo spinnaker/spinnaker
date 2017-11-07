@@ -13,22 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.keel
+package com.netflix.spinnaker.keel.memory
 
-import com.netflix.spinnaker.keel.matcher.Matcher
+import com.netflix.spinnaker.keel.Policy
+import com.netflix.spinnaker.keel.PolicyRepository
 
-interface IntentRepository {
+class MemoryPolicyRepository : PolicyRepository {
 
-  fun upsertIntent(intent: Intent<IntentSpec>): Intent<IntentSpec>
+  private val policies: MutableMap<String, Policy> = mutableMapOf()
 
-  fun getIntents(): List<Intent<IntentSpec>>
+  override fun findAll() = policies.entries.map { it.value }
 
-  fun getIntents(status: List<IntentStatus>): List<Intent<IntentSpec>>
+  override fun upsert(policy: Policy) {
+    policies.put(policy.getId(), policy)
+  }
 
-  fun getIntent(id: String): Intent<IntentSpec>?
-
-  fun findByMatch(matchers: List<Matcher>)
-    = getIntents().filter { i ->
-        matchers.any { m -> m.match(i) }
-      }
+  override fun delete(id: String) {
+    policies.remove(id)
+  }
 }

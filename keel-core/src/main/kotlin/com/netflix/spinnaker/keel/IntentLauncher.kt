@@ -32,6 +32,3 @@ interface IntentLauncher<out R : LaunchedIntentResult> {
 }
 
 interface LaunchedIntentResult
-
-// TODO rz - This actually shouldn't be used, but still riffing on the interface
-class StubIntentResult : LaunchedIntentResult

@@ -41,5 +41,6 @@ class ParrotIntent
 
 data class ParrotSpec(
   val application: String,
-  val description: String
+  val description: String,
+  val waitTime: Int = 5
 ) : IntentSpec

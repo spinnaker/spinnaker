@@ -26,10 +26,10 @@ abstract class Intent<out S : IntentSpec>
 @JsonCreator constructor(
   @JsonSerializeToVersion(defaultToSource = true) val schema: String,
   val kind: String,
-  val spec: S
+  val spec: S,
+  val status: IntentStatus = IntentStatus.ACTIVE,
+  val policies: List<Policy> = listOf()
 ) {
-
-  val status: IntentStatus = IntentStatus.ACTIVE
 
   abstract fun getId(): String
 

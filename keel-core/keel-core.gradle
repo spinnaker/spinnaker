@@ -23,4 +23,6 @@ dependencies {
 
   compile "com.fasterxml.jackson.module:jackson-module-kotlin:${spinnaker.version("jackson")}"
   compile 'com.github.jonpeterson:jackson-module-model-versioning:1.2.2'
+
+  testCompile project(":keel-test")
 }
