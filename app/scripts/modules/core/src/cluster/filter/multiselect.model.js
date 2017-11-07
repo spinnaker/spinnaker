@@ -152,6 +152,7 @@ module.exports = angular
           region: serverGroup.region,
           provider: serverGroup.type,
           name: serverGroup.name,
+          moniker: serverGroup.moniker,
         });
       }
       this.serverGroupsStream.next();
