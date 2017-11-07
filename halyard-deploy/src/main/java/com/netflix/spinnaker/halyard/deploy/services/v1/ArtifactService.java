@@ -76,6 +76,10 @@ public class ArtifactService {
     return getBillOfMaterials(deploymentName).getArtifactVersion(artifact.getName());
   }
 
+  public String getArtifactCommit(String deploymentName, SpinnakerArtifact artifact) {
+    return getBillOfMaterials(deploymentName).getArtifactCommit(artifact.getName());
+  }
+
   private void deleteVersion(Versions versionsCollection, String version) {
     versionsCollection.setVersions(versionsCollection.getVersions()
         .stream()

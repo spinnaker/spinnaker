@@ -51,8 +51,23 @@ public class DeploymentEnvironmentValidator extends Validator<DeploymentEnvironm
       case Distributed:
         validateDistributedDeployment(p, n);
         break;
+      case LocalGit:
+        validateGitDeployment(p, n);
+        break;
       default:
         throw new RuntimeException("Unknown deployment environment type " + type);
+    }
+  }
+
+  private void validateGitDeployment(ConfigProblemSetBuilder p, DeploymentEnvironment n) {
+    if (StringUtils.isEmpty(n.getGitConfig().getOriginUser())) {
+      p.addProblem(Problem.Severity.FATAL, "A git origin user must be supplied when deploying from git.")
+        .setRemediation("Your github username is recommended.");
+    }
+
+    if (StringUtils.isEmpty(n.getGitConfig().getUpstreamUser())) {
+      p.addProblem(Problem.Severity.FATAL, "A git upstream user must be supplied when deploying from git.")
+        .setRemediation("The user 'spinnaker' is recommended (unless you have a fork maintained by the org you develop under).");
     }
   }
 

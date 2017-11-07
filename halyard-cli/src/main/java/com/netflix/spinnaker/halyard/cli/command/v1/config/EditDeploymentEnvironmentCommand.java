@@ -19,7 +19,6 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
-import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.account.AccountCommandProperties;
 import com.netflix.spinnaker.halyard.cli.command.v1.converter.DeploymentTypeConverter;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
@@ -53,8 +52,9 @@ public class EditDeploymentEnvironmentCommand extends AbstractConfigCommand {
 
   @Parameter(
       names = "--type",
-      description = "Flotilla: Deploy Spinnaker with one server group per microservice, and a single shared Redis.\n"
-          + "LocalhostDebian: Download and run the Spinnaker debians on the machine running the Daemon.",
+      description = "Distributed: Deploy Spinnaker with one server group per microservice, and a single shared Redis.\n"
+          + "LocalDebian: Download and run the Spinnaker debians on the machine running the Daemon.\n"
+          + "LocalGit: Download and run the Spinnaker git repos on the machine running the Daemon.",
       converter = DeploymentTypeConverter.class
   )
   private DeploymentType type;
@@ -93,6 +93,18 @@ public class EditDeploymentEnvironmentCommand extends AbstractConfigCommand {
   )
   private String location;
 
+  @Parameter(
+      names = "--git-upstream-user",
+      description = "This is the upstream git user you are configuring to pull changes from & push PRs to."
+  )
+  private String gitUpstreamUser;
+
+  @Parameter(
+      names = "--git-origin-user",
+      description = "This is the git user your github fork exists under."
+  )
+  private String gitOriginUser;
+
   @Override
   protected void executeThis() {
     String currentDeployment = getCurrentDeployment();
@@ -103,6 +115,15 @@ public class EditDeploymentEnvironmentCommand extends AbstractConfigCommand {
         .get();
 
     int originalHash = deploymentEnvironment.hashCode();
+
+    DeploymentEnvironment.GitConfig gitConfig = deploymentEnvironment.getGitConfig();
+    if (gitConfig == null) {
+      gitConfig = new DeploymentEnvironment.GitConfig();
+    }
+
+    gitConfig.setOriginUser(isSet(gitOriginUser) ? gitOriginUser : gitConfig.getOriginUser());
+    gitConfig.setUpstreamUser(isSet(gitUpstreamUser) ? gitUpstreamUser : gitConfig.getUpstreamUser());
+    deploymentEnvironment.setGitConfig(gitConfig);
 
     DeploymentEnvironment.Consul consul = deploymentEnvironment.getConsul();
     if (consul == null) {

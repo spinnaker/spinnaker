@@ -1036,10 +1036,13 @@ hal config deploy edit [parameters]
 This is only required when Spinnaker is being deployed in non-Kubernetes clustered configuration.
  * `--consul-enabled`: Whether or not to use Consul as a service discovery mechanism to deploy Spinnaker.
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--git-origin-user`: This is the git user your github fork exists under.
+ * `--git-upstream-user`: This is the upstream git user you are configuring to pull changes from & push PRs to.
  * `--location`: This is the location spinnaker will be deployed to.
  * `--no-validate`: (*Default*: `false`) Skip validation.
- * `--type`: Flotilla: Deploy Spinnaker with one server group per microservice, and a single shared Redis.
-LocalhostDebian: Download and run the Spinnaker debians on the machine running the Daemon.
+ * `--type`: Distributed: Deploy Spinnaker with one server group per microservice, and a single shared Redis.
+LocalDebian: Download and run the Spinnaker debians on the machine running the Daemon.
+LocalGit: Download and run the Spinnaker git repos on the machine running the Daemon.
  * `--vault-address`: The address of a running Vault datastore. See https://www.vaultproject.io/.This is only required when Spinnaker is being deployed in non-Kubernetes clustered configuration.
  * `--vault-enabled`: Whether or not to use Vault as a secret storage mechanism to deploy Spinnaker.
 

@@ -27,9 +27,15 @@ import com.netflix.spinnaker.halyard.config.services.v1.DeploymentService;
 import com.netflix.spinnaker.halyard.core.RemoteAction;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.registry.v1.BillOfMaterials;
-import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
 import com.netflix.spinnaker.halyard.deploy.config.v1.ConfigParser;
-import com.netflix.spinnaker.halyard.deploy.deployment.v1.*;
+import com.netflix.spinnaker.halyard.deploy.deployment.v1.AccountDeploymentDetails;
+import com.netflix.spinnaker.halyard.deploy.deployment.v1.BakeDeployer;
+import com.netflix.spinnaker.halyard.deploy.deployment.v1.DeployOption;
+import com.netflix.spinnaker.halyard.deploy.deployment.v1.Deployer;
+import com.netflix.spinnaker.halyard.deploy.deployment.v1.DeploymentDetails;
+import com.netflix.spinnaker.halyard.deploy.deployment.v1.DistributedDeployer;
+import com.netflix.spinnaker.halyard.deploy.deployment.v1.LocalDeployer;
+import com.netflix.spinnaker.halyard.deploy.deployment.v1.ServiceProviderFactory;
 import com.netflix.spinnaker.halyard.deploy.services.v1.GenerateService.ResolvedConfiguration;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService;
@@ -221,6 +227,7 @@ public class DeployService {
     switch (type) {
       case BakeDebian:
         return bakeDeployer;
+      case LocalGit:
       case LocalDebian:
         return localDeployer;
       case Distributed:
@@ -237,6 +244,7 @@ public class DeployService {
     switch (type) {
       case BakeDebian:
       case LocalDebian:
+      case LocalGit:
         return new DeploymentDetails()
             .setDeploymentConfiguration(deploymentConfiguration)
             .setDeploymentName(deploymentName)

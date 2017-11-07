@@ -60,4 +60,3 @@ abstract public class LocalServiceProvider extends SpinnakerServiceProvider<Depl
         .collect(Collectors.toList());
   }
 }
-

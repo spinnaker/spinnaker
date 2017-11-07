@@ -50,6 +50,8 @@ public class DeploymentEnvironment extends Node {
         + "Spinnaker's cache layer. This requires a cloud provider to deploy to."),
     LocalDebian("Deploy Spinnaker locally (on the machine running the daemon) "
         + "using `apt-get` to fetch all the service's debian packages."),
+    LocalGit("Deploy Spinnaker locally (on the machine running the daemon) "
+        + "using `git` to fetch all the service's code to be built & run."),
     BakeDebian("Deploy Spinnaker locally but only with the necessary config "
         + "to be baked into a VM image later.");
 
@@ -97,6 +99,7 @@ public class DeploymentEnvironment extends Node {
   private Vault vault = new Vault();
   private String location;
   private CustomSizing customSizing = new CustomSizing();
+  private GitConfig gitConfig = new GitConfig();
 
   @Data
   public static class Consul {
@@ -108,5 +111,11 @@ public class DeploymentEnvironment extends Node {
   public static class Vault {
     String address;
     boolean enabled;
+  }
+
+  @Data
+  public static class GitConfig {
+    String upstreamUser = "spinnaker";
+    String originUser;
   }
 }

@@ -30,6 +30,7 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.Dis
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.google.GoogleDistributedServiceProvider;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.kubernetes.KubernetesDistributedServiceProvider;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.local.debian.LocalDebianServiceProvider;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.local.git.LocalGitServiceProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -48,6 +49,9 @@ public class ServiceProviderFactory {
   LocalDebianServiceProvider localDebianServiceProvider;
 
   @Autowired
+  LocalGitServiceProvider localGitServiceProvider;
+
+  @Autowired
   BakeDebianServiceProvider bakeDebianServiceProvider;
 
   public SpinnakerServiceProvider create(DeploymentConfiguration deploymentConfiguration) {
@@ -58,6 +62,8 @@ public class ServiceProviderFactory {
         return bakeDebianServiceProvider;
       case LocalDebian:
         return localDebianServiceProvider;
+      case LocalGit:
+        return localGitServiceProvider;
       case Distributed:
         return createDeployableServiceProvider(deploymentConfiguration);
       default:

@@ -73,7 +73,7 @@ public class LocalDeployer implements Deployer<LocalServiceProvider, DeploymentD
       DeploymentDetails deploymentDetails,
       SpinnakerRuntimeSettings runtimeSettings,
       List<SpinnakerService.Type> serviceTypes) {
-    throw new HalException(Problem.Severity.FATAL, "No support for rolling back debian deployments yet.");
+    throw new HalException(Problem.Severity.FATAL, "No support for rolling back local deployments yet.");
   }
 
   @Override
