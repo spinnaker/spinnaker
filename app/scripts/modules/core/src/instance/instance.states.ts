@@ -85,10 +85,10 @@ module(INSTANCE_STATES, [
     views: {
       'main@': {
         templateUrl: require('../presentation/standalone.view.html'),
-        controllerProvider: ['$stateParams', 'cloudProviderRegistry',
+        controllerProvider: ['$stateParams', 'versionedCloudProviderService',
           ($stateParams: StateParams,
-           cloudProviderRegistry: CloudProviderRegistry) => {
-            return cloudProviderRegistry.getValue($stateParams.provider, 'instance.detailsController');
+           versionedCloudProviderService: VersionedCloudProviderService) => {
+            return versionedCloudProviderService.getValue($stateParams.provider, $stateParams.account, 'instance.detailsController');
         }],
         controllerAs: 'ctrl'
       }
