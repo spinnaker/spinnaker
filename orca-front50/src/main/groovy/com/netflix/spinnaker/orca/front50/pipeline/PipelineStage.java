@@ -22,6 +22,7 @@ import com.netflix.spinnaker.orca.front50.tasks.StartPipelineTask;
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder;
 import com.netflix.spinnaker.orca.pipeline.TaskNode;
 import com.netflix.spinnaker.orca.pipeline.model.Execution;
+import com.netflix.spinnaker.orca.pipeline.model.Pipeline;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import com.netflix.spinnaker.orca.pipeline.model.Task;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
@@ -84,8 +85,11 @@ public class PipelineStage implements StageDefinitionBuilder, RestartableStage, 
         if (executionRepository == null) {
           log.error(format("Stage %s could not be canceled w/o front50 enabled. Please set 'front50.enabled: true' in your orca config.", readableStageDetails));
         } else {
-          // flag the child pipeline as canceled (actual cancellation will happen asynchronously)
-          executionRepository.cancel(executionId, "parent pipeline", null);
+          Pipeline childPipeline = executionRepository.retrievePipeline(executionId);
+          if (!childPipeline.isCanceled()) {
+            // flag the child pipeline as canceled (actual cancellation will happen asynchronously)
+            executionRepository.cancel(executionId, "parent pipeline", null);
+          }
         }
       }
     } catch (Exception e) {

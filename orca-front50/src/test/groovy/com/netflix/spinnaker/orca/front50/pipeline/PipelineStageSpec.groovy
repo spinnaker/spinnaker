@@ -30,19 +30,27 @@ class PipelineStageSpec extends Specification {
   def pipelineStage = new PipelineStage(executionRepository: executionRepository)
 
   @Unroll
-  def "should cancel child pipeline (if started)"() {
+  def "should cancel child pipeline (if started and not already canceled)"() {
     given:
+    def childPipeline = new Pipeline("childPipeline")
+    childPipeline.canceled = childPipelineIsCanceled
+
     def stage = new Stage<>(new Pipeline("orca"), "pipeline", stageContext)
 
     when:
     pipelineStage.cancel(stage)
 
     then:
-    invocations * executionRepository.cancel(stageContext.executionId, "parent pipeline", null)
+    (shouldCancel ? 1 : 0) * executionRepository.cancel(stageContext.executionId, "parent pipeline", null)
+    (stageContext.executionId ? 1 : 0) * executionRepository.retrievePipeline(stageContext.executionId) >> {
+      return childPipeline
+    }
+    0 * _
 
     where:
-    stageContext                     || invocations
-    [:]                              || 0            // child pipeline has not started
-    [executionId: "sub-pipeline-id"] || 1            // child pipeline has started and should cancel
+    stageContext || childPipelineIsCanceled   || shouldCancel
+    [:] || false                              || false            // child pipeline has not started
+    [executionId: "sub-pipeline-id"] || false || true            // child pipeline has started and should cancel
+    [executionId: "sub-pipeline-id"] || true  || false            // child pipeline has already been canceled
   }
 }

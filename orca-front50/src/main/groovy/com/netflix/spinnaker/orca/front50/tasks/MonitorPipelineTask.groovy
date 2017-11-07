@@ -48,8 +48,8 @@ class MonitorPipelineTask implements OverridableTimeoutRetryableTask {
 
     if (childPipeline.status.halt) {
       // indicates a failure of some sort
-      List<String> errors = childPipeline.stages
-        .findAll { s -> s.status == ExecutionStatus.TERMINAL }
+      def terminalStages = childPipeline.stages.findAll { s -> s.status == ExecutionStatus.TERMINAL }
+      List<String> errors = terminalStages
         .findResults { s ->
           if (s.context["exception"]?.details) {
             return [(s.context["exception"].details.errors ?: s.context["exception"].details.error)]
@@ -66,11 +66,28 @@ class MonitorPipelineTask implements OverridableTimeoutRetryableTask {
           }
         }
         .flatten()
-      Map context = [status: childPipeline.status]
+
+      def exceptionDetails = [:]
       if (errors) {
-        context.exception = [details: [errors: errors]]
+        exceptionDetails.details = [
+            errors: errors
+        ]
       }
-      return new TaskResult(ExecutionStatus.TERMINAL, context)
+
+      def haltingStage = terminalStages.find { it.status.halt }
+      if (haltingStage) {
+        exceptionDetails.source = [
+          executionId: childPipeline.id,
+          stageId    : haltingStage.id,
+          stageName  : haltingStage.name,
+          stageIndex : childPipeline.stages.indexOf(haltingStage)
+        ]
+      }
+
+      return new TaskResult(ExecutionStatus.TERMINAL, [
+        status   : childPipeline.status,
+        exception: exceptionDetails
+      ])
     }
 
     return new TaskResult(ExecutionStatus.RUNNING, [status: childPipeline.status])

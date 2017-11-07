@@ -118,13 +118,14 @@ class RollingRedBlackStrategy implements Strategy, ApplicationContextAware {
         source        : source,
         targetLocation: cleanupConfig.location,
         scalePct      : p,
-        pinCapacity   : p < 100 // if p = 100, capacity should be unpinned
+        pinCapacity   : p < 100, // if p = 100, capacity should be unpinned,
+        useNameAsLabel: true     // hint to deck that it should _not_ override the name
       ]
 
       def resizeStage = newStage(
         stage.execution,
         resizeServerGroupStage.type,
-        "Grow to $p% Desired Size",
+        "Grow to $p% of Desired Size",
         resizeContext,
         stage,
         SyntheticStageOwner.STAGE_AFTER
@@ -182,6 +183,7 @@ class RollingRedBlackStrategy implements Strategy, ApplicationContextAware {
       ]
 
       def pipelineContext = [
+        application        : stageData.pipelineBeforeCleanup.application,
         pipelineApplication: stageData.pipelineBeforeCleanup.application,
         pipelineId         : stageData.pipelineBeforeCleanup.pipelineId,
         pipelineParameters : [
