@@ -47,11 +47,13 @@ class AcaTaskStageSpec extends Specification {
     and: "preserve the canary config"
     stage.context.canary.canaryConfig == canary.canaryConfig
 
+    and: "the deployment details"
+    stage.context.canary.canaryDeployments == canary.canaryDeployments
+
     and: "clean up the canary"
     stage.context.canary.id == null
     stage.context.canary.launchDate == null
     stage.context.canary.endDate == null
-    stage.context.canary.canaryDeployments == null
     stage.context.canary.canaryResult == null
     stage.context.canary.status == null
     stage.context.canary.health == null
@@ -90,11 +92,13 @@ class AcaTaskStageSpec extends Specification {
     and: "preserve the canary config"
     stage.context.canary.canaryConfig == canary.canaryConfig
 
+    and: "the deployment details"
+    stage.context.canary.canaryDeployments == canary.canaryDeployments
+
     and: "clean up the canary"
     stage.context.canary.id == null
     stage.context.canary.launchDate == null
     stage.context.canary.endDate == null
-    stage.context.canary.canaryDeployments == null
     stage.context.canary.canaryResult == null
     stage.context.canary.status == null
     stage.context.canary.health == null

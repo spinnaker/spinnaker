@@ -30,6 +30,9 @@ import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+import retrofit.RetrofitError
+import static org.springframework.http.HttpStatus.CONFLICT
+import static retrofit.RetrofitError.Kind.HTTP
 
 @Slf4j
 @Component
@@ -59,7 +62,6 @@ class AcaTaskStage implements StageDefinitionBuilder, CancellableStage, Restarta
       stage.context.canary.remove("id")
       stage.context.canary.remove("launchDate")
       stage.context.canary.remove("endDate")
-      stage.context.canary.remove("canaryDeployments")
       stage.context.canary.remove("canaryResult")
       stage.context.canary.remove("status")
       stage.context.canary.remove("health")
@@ -86,10 +88,18 @@ class AcaTaskStage implements StageDefinitionBuilder, CancellableStage, Restarta
 
   Map cancelCanary(Stage stage, String reason)  {
     if(stage?.context?.canary?.id) {
-      def cancelCanaryResults = mineService.cancelCanary(stage.context.canary.id as String, reason)
-      log.info("Canceled canary in mine (canaryId: ${stage.context.canary.id}, stageId: ${stage.id}, executionId: ${stage.execution.id}): ${reason}")
-      return cancelCanaryResults
+      try {
+        def cancelCanaryResults = mineService.cancelCanary(stage.context.canary.id as String, reason)
+        log.info("Canceled canary in mine (canaryId: ${stage.context.canary.id}, stageId: ${stage.id}, executionId: ${stage.execution.id}): ${reason}")
+        return cancelCanaryResults
+      } catch (RetrofitError e) {
+        if (e.kind == HTTP && e.response.status == CONFLICT.value()) {
+          log.info("Canary (canaryId: ${stage.context.canary.id}, stageId: ${stage.id}, executionId: ${stage.execution.id}) has already ended")
+          return [:]
+        } else {
+          throw e
+        }
+      }
     }
   }
-
 }
