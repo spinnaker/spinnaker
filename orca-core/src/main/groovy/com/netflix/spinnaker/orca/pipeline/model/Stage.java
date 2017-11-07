@@ -175,7 +175,11 @@ public class Stage<T extends Execution<T>> implements Serializable {
   }
 
   public void setContext(@Nonnull Map<String, Object> context) {
-    this.context = context;
+    if (context instanceof StageContext) {
+      this.context = context;
+    } else {
+      this.context = new StageContext(this, context);
+    }
   }
 
   /**

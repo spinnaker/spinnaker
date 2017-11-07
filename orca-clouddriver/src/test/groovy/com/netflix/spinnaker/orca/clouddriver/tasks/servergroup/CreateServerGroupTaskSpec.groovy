@@ -21,6 +21,7 @@ import com.netflix.spinnaker.orca.clouddriver.MortService
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId
 import com.netflix.spinnaker.orca.clouddriver.tasks.providers.aws.AmazonServerGroupCreator
 import com.netflix.spinnaker.orca.clouddriver.tasks.providers.gce.GoogleServerGroupCreator
+import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import rx.Observable
@@ -28,6 +29,7 @@ import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
+import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
 
 class CreateServerGroupTaskSpec extends Specification {
 
@@ -58,6 +60,8 @@ class CreateServerGroupTaskSpec extends Specification {
     "kato.last.task.id"  : taskId,
     "deploy.account.name": "abc"
   ]
+
+  @Shared mapper = OrcaObjectMapper.newInstance()
 
   @Unroll
   def "should have cloud provider-specific outputs"() {
@@ -210,22 +214,20 @@ class CreateServerGroupTaskSpec extends Specification {
     // Building these as maps instead of using the pipeline model objects since this configuration was observed in testing.
     def parentTrigger = [
       isPipeline     : true,
-      parentExecution: [
-        name   : "grandparent",
-        context: grandparentGlobalContext,
-        stages : [
-          [type: "someStage1"],
-          [type: "someStage2"]
-        ]
-      ]
+      parentExecution: mapper.convertValue(pipeline {
+        name = "grandparent"
+        context = grandparentGlobalContext
+        stage { type = "someStage1" }
+        stage { type = "someStage2" }
+      }, Map)
     ]
 
     def childTrigger = [
       isPipeline     : true,
-      parentExecution: [
-        name   : "parent",
-        trigger: parentTrigger
-      ]
+      parentExecution: pipeline {
+        name = "parent"
+        trigger.putAll(parentTrigger)
+      }
     ]
     def childPipeline = pipeline {
       name = "child"

@@ -26,8 +26,8 @@ import org.springframework.expression.spel.SpelEvaluationException
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
-
-import static com.netflix.spinnaker.orca.pipeline.expressions.ExpressionEvaluationSummary.Result.*
+import static com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED
+import static com.netflix.spinnaker.orca.pipeline.expressions.ExpressionEvaluationSummary.Result.Level
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
 
@@ -37,7 +37,8 @@ import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
  */
 class ContextParameterProcessorSpec extends Specification {
 
-  @Subject ContextParameterProcessor contextParameterProcessor = new ContextParameterProcessor()
+  @Subject
+  ContextParameterProcessor contextParameterProcessor = new ContextParameterProcessor()
 
   @Unroll
   def "should #processAttributes"() {
@@ -162,9 +163,9 @@ class ContextParameterProcessorSpec extends Specification {
     summary[escapedExpression][0].exceptionType == SpelEvaluationException
 
     where:
-    testCase                                                            | desc
-    '${ new java.lang.Integer(1).wait(100000) }'                        | 'wait'
-    '${ new java.lang.Integer(1).getClass().getSimpleName() }'          | 'getClass'
+    testCase                                                   | desc
+    '${ new java.lang.Integer(1).wait(100000) }'               | 'wait'
+    '${ new java.lang.Integer(1).getClass().getSimpleName() }' | 'getClass'
   }
 
   def "should deny access to groovy metaclass methods via #desc"() {
@@ -182,13 +183,12 @@ class ContextParameterProcessorSpec extends Specification {
     summary[escapedExpression][0].level as String == Level.ERROR.name()
 
     where:
-    testCase  | desc
+    testCase                          | desc
     '${status.getMetaClass()}'        | 'method'
     '${status.metaClass}'             | 'propertyAccessor'
     '${nested.status.metaClass}'      | 'nested accessor'
     '${nested.status.getMetaClass()}' | 'nested method'
   }
-
 
   @Unroll
   def "when allowUnknownKeys is #allowUnknownKeys it #desc"() {
@@ -345,141 +345,139 @@ class ContextParameterProcessorSpec extends Specification {
   }
 
   def "is able to parse deployment details correctly from execution"() {
-
     given:
     def source = ['deployed': '${deployedServerGroups}']
-    def context = [execution: execution]
 
     when:
-    def result = contextParameterProcessor.processV2(source, context, true)
+    def result = contextParameterProcessor.processV2(source, [execution: execution], true)
 
     then:
     result.deployed.size == 2
-    result.deployed.serverGroup == ['flex-test-v043', 'flex-prestaging-v011']
-    result.deployed.region == ['us-east-1', 'us-west-1']
-    result.deployed[0].ami == 'ami-06362b6e'
+    result.deployed.serverGroup == ["flex-test-v043", "flex-prestaging-v011"]
+    result.deployed.region == ["us-east-1", "us-west-1"]
+    result.deployed.ami == ["ami-06362b6e", "ami-f759b7b3"]
 
     where:
-    execution = [
-      "context": [
-        "deploymentDetails": [
-          [
-            "ami"      : "ami-06362b6e",
-            "amiSuffix": "201505150627",
-            "baseLabel": "candidate",
-            "baseOs"   : "ubuntu",
-            "package"  : "flex",
-            "region"   : "us-east-1",
-            "storeType": "ebs",
-            "vmType"   : "pv"
-          ],
-          [
-            "ami"      : "ami-f759b7b3",
-            "amiSuffix": "201505150627",
-            "baseLabel": "candidate",
-            "baseOs"   : "ubuntu",
-            "package"  : "flex",
-            "region"   : "us-west-1",
-            "storeType": "ebs",
-            "vmType"   : "pv"
+    execution = pipeline {
+      stage {
+        type = "bake"
+        name = "Bake"
+        refId = "1"
+        status = SUCCEEDED
+        outputs.putAll(
+          deploymentDetails: [
+            [
+              ami      : "ami-06362b6e",
+              amiSuffix: "201505150627",
+              baseLabel: "candidate",
+              baseOs   : "ubuntu",
+              package  : "flex",
+              region   : "us-east-1",
+              storeType: "ebs",
+              vmType   : "pv"
+            ],
+            [
+              ami      : "ami-f759b7b3",
+              amiSuffix: "201505150627",
+              baseLabel: "candidate",
+              baseOs   : "ubuntu",
+              package  : "flex",
+              region   : "us-west-1",
+              storeType: "ebs",
+              vmType   : "pv"
+            ]
           ]
-        ]
-      ],
-      "stages" : [
-        [
-          "status"       : ExecutionStatus.SUCCEEDED,
-          "type"         : "deploy",
-          "name"         : "Deploy in us-east-1",
-          "context"      : [
-            "account"             : "test",
-            "application"         : "flex",
-            "availabilityZones"   : [
+        )
+      }
+      stage {
+        type = "deploy"
+        name = "Deploy"
+        refId = "2"
+        requisiteStageRefIds = ["1"]
+        status = SUCCEEDED
+        stage {
+          status = SUCCEEDED
+          type = "createServerGroup"
+          name = "Deploy in us-east-1"
+          context.putAll(
+            "account": "test",
+            "application": "flex",
+            "availabilityZones": [
               "us-east-1": [
                 "us-east-1c",
                 "us-east-1d",
                 "us-east-1e"
               ]
             ],
-            "capacity"            : [
+            "capacity": [
               "desired": 1,
               "max"    : 1,
               "min"    : 1
             ],
-            "deploy.account.name" : "test",
+            "deploy.account.name": "test",
             "deploy.server.groups": [
               "us-east-1": [
                 "flex-test-v043"
               ]
             ],
-            "stack"               : "test",
-            "strategy"            : "highlander",
-            "subnetType"          : "internal",
-            "suspendedProcesses"  : [],
-            "terminationPolicies" : [
+            "stack": "test",
+            "strategy": "highlander",
+            "subnetType": "internal",
+            "suspendedProcesses": [],
+            "terminationPolicies": [
               "Default"
-            ],
-            "type"                : "linearDeploy"
-          ],
-          "parentStageId": "dca27ddd-ce7d-42a0-a1db-5b43c6b2f0c7",
-        ],
-        [
-          "id"     : "dca27ddd-ce7d-42a0-a1db-5b43c6b2f0c7-2-destroyAsg",
-          "type"   : "destroyAsg",
-          "name"   : "destroyAsg",
-          "context": [
-          ]
-        ],
-        [
-          "id"           : "68ad3566-4857-4c76-839e-f4afc14410c5-1-Deployinuswest1",
-          "type"         : "deploy",
-          "name"         : "Deploy in us-west-1",
-          "startTime"    : 1431672074613,
-          "endTime"      : 1431672487124,
-          "status"       : ExecutionStatus.SUCCEEDED,
-          "context"      : [
-            "account"             : "prod",
-            "application"         : "flex",
-            "availabilityZones"   : [
+            ]
+          )
+        }
+        stage {
+          type = "destroyAsg"
+          name = "destroyAsg"
+        }
+        stage {
+          type = "createServerGroup"
+          name = "Deploy in us-west-1"
+          status = SUCCEEDED
+          context.putAll(
+            account: "prod",
+            application: "flex",
+            availabilityZones: [
               "us-west-1": [
                 "us-west-1a",
                 "us-west-1c"
               ]
             ],
-            "capacity"            : [
-              "desired": 1,
-              "max"    : 1,
-              "min"    : 1
+            capacity: [
+              desired: 1,
+              max    : 1,
+              min    : 1
             ],
-            "cooldown"            : 10,
-            "deploy.account.name" : "prod",
+            cooldown: 10,
+            "deploy.account.name": "prod",
             "deploy.server.groups": [
               "us-west-1": [
                 "flex-prestaging-v011"
               ]
             ],
-            "keyPair"             : "nf-prod-keypair-a",
-            "loadBalancers"       : [
+            keyPair: "nf-prod-keypair-a",
+            loadBalancers: [
               "flex-prestaging-frontend"
             ],
-            "provider"            : "aws",
-            "securityGroups"      : [
+            provider: "aws",
+            securityGroups: [
               "sg-d2c3dfbe",
               "sg-d3c3dfbf"
             ],
-            "stack"               : "prestaging",
-            "strategy"            : "highlander",
-            "subnetType"          : "internal",
-            "suspendedProcesses"  : [],
-            "terminationPolicies" : [
+            stack: "prestaging",
+            strategy: "highlander",
+            subnetType: "internal",
+            suspendedProcesses: [],
+            terminationPolicies: [
               "Default"
-            ],
-            "type"                : "linearDeploy"
-          ],
-          "parentStageId": "68ad3566-4857-4c76-839e-f4afc14410c5",
-          "scheduledTime": 0
-        ]
-      ]
-    ]
+            ]
+          )
+        }
+      }
+    }
   }
 
   def 'helper method to convert objects into json'() {
@@ -498,7 +496,7 @@ class ContextParameterProcessorSpec extends Specification {
   def 'can operate on List from json'() {
     given:
     def source = [
-        'expression': '${#toJson(parameters["regions"].split(",")).contains("us-west-2")}',
+      'expression': '${#toJson(parameters["regions"].split(",")).contains("us-west-2")}',
     ]
     def context = [parameters: [regions: regions]]
 
@@ -553,7 +551,6 @@ class ContextParameterProcessorSpec extends Specification {
     '7'   | 7f
     '7.5' | 7.5f
   }
-
 
   @Unroll
   def 'helper method to convert Strings into Booleans'() {

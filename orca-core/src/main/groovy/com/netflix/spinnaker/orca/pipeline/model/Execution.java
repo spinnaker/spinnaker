@@ -16,23 +16,16 @@
 
 package com.netflix.spinnaker.orca.pipeline.model;
 
+import java.io.Serializable;
+import java.util.*;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.google.common.collect.ImmutableSet;
 import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import com.netflix.spinnaker.security.User;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
-
 import static com.netflix.spinnaker.orca.ExecutionStatus.NOT_STARTED;
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionEngine.v3;
 import static java.util.Arrays.asList;
@@ -152,6 +145,7 @@ public abstract class Execution<T extends Execution<T>> implements Serializable 
 
   private final List<Stage<T>> stages = new ArrayList<>();
 
+  @JsonManagedReference
   public @Nonnull List<Stage<T>> getStages() {
     return stages;
   }
