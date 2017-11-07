@@ -21,6 +21,8 @@ export * from './entityTag';
 // is found by the TS compiler, but not at runtime)
 export * from './entityTag/notifications/EntityNotifications';
 
+export * from './event/EventBus';
+
 export * from './filterModel';
 
 export * from './healthCounts';

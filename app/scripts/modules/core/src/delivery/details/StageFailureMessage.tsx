@@ -1,14 +1,16 @@
 import * as React from 'react';
 
-import { IExecutionStage, ITaskStep } from 'core/domain';
+import { get } from 'lodash';
 
-import { robotToHuman } from 'core/presentation/robotToHumanFilter/robotToHuman.filter';
 import { UISref } from '@uirouter/react';
 import { UIRouterContext } from '@uirouter/react-hybrid';
 
-import { ReactInjector } from 'core';
+import { IExecutionStage, ITaskStep } from 'core/domain';
 
-import { get } from 'lodash';
+import { robotToHuman } from 'core/presentation/robotToHumanFilter/robotToHuman.filter';
+import { EventBus } from 'core/event/EventBus';
+
+import { ReactInjector } from 'core';
 
 export interface IStageFailureMessageProps {
   message?: string;
@@ -114,6 +116,8 @@ export class StageFailureMessage extends React.Component<IStageFailureMessagePro
           </div>
         );
       }
+
+      EventBus.publish('stage-failure-message:no-reason', { params: Object.assign({}, ReactInjector.$state.params) });
     }
 
     return null;
