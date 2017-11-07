@@ -162,7 +162,7 @@ public class KubernetesV2ClusterProvider implements ClusterProvider<KubernetesV2
 
   @Override
   public boolean supportsMinimalClusters() {
-    return false;
+    return true;
   }
 
   private Map<String, Set<KubernetesV2Cluster>> groupByAccountName(Collection<KubernetesV2Cluster> clusters) {
