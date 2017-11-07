@@ -17,11 +17,11 @@ package com.netflix.spinnaker.keel
 
 interface IntentRepository {
 
-  fun upsertIntent(intent: Intent<IntentSpec>)
+  fun upsertIntent(intent: Intent<IntentSpec>): Intent<IntentSpec>
 
   fun getIntents(): List<Intent<IntentSpec>>
 
-  fun getIntents(statuses: List<IntentStatus>): List<Intent<IntentSpec>>
+  fun getIntents(status: List<IntentStatus>): List<Intent<IntentSpec>>
 
   fun getIntent(id: String): Intent<IntentSpec>?
 }

@@ -15,15 +15,16 @@
  */
 package com.netflix.spinnaker.keel.controllers.v1
 
-import com.netflix.spinnaker.keel.IntentActivityRepository
-import com.netflix.spinnaker.keel.IntentRepository
-import com.netflix.spinnaker.keel.IntentStatus
+import com.netflix.spinnaker.keel.*
 import com.netflix.spinnaker.keel.dryrun.DryRunIntentLauncher
 import com.netflix.spinnaker.keel.model.UpsertIntentRequest
 import com.netflix.spinnaker.keel.tracing.TraceRepository
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
+import javax.ws.rs.Consumes
+import javax.ws.rs.Produces
 import javax.ws.rs.QueryParam
 
 @RestController
@@ -36,7 +37,20 @@ class IntentController
   private val traceRepository: TraceRepository
 ) {
 
-  @RequestMapping(method = arrayOf(RequestMethod.PUT))
+  private val log = LoggerFactory.getLogger(javaClass)
+
+  @RequestMapping(method = arrayOf(RequestMethod.GET))
+  fun getIntents(@QueryParam("status") status: Array<IntentStatus>? ): List<Intent<IntentSpec>> {
+    status?.let {
+      return intentRepository.getIntents(status.toList())
+    }
+    return intentRepository.getIntents()
+  }
+
+  @RequestMapping(value = "/{id}", method = arrayOf(RequestMethod.GET))
+  fun getIntent(@PathVariable("id") id: String) = intentRepository.getIntent(id)
+
+  @RequestMapping(value = "", method = arrayOf(RequestMethod.POST))
   @ResponseStatus(HttpStatus.ACCEPTED)
   fun upsertIntent(@RequestBody req: UpsertIntentRequest): Any {
     // TODO rz - validate intents
@@ -54,13 +68,6 @@ class IntentController
     return req
   }
 
-  @RequestMapping(method = arrayOf(RequestMethod.GET))
-  fun getIntent(@QueryParam("statuses") statuses: ArrayList<IntentStatus>)
-    = if (statuses.isEmpty()) intentRepository.getIntents() else intentRepository.getIntents(statuses)
-
-  @RequestMapping(value = "/{id}", method = arrayOf(RequestMethod.GET))
-  fun getIntent(@PathVariable("id") id: String) = intentRepository.getIntent(id)
-
   @RequestMapping(value = "/{id}", method = arrayOf(RequestMethod.DELETE))
   @ResponseStatus(HttpStatus.NO_CONTENT)
   fun deleteIntent(@RequestParam("status", defaultValue = "CANCELED") status: IntentStatus): Nothing = TODO()
@@ -71,3 +78,4 @@ class IntentController
   @RequestMapping(value = "/{id}/traces", method = arrayOf(RequestMethod.GET))
   fun getIntentTrace(@PathVariable("id") id: String) = traceRepository.getForIntent(id)
 }
+

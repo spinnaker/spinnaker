@@ -55,7 +55,7 @@ open class WebConfiguration
             response.setHeader("Access-Control-Max-Age", "3600")
             response.setHeader("Access-Control-Allow-Headers", "x-requested-with, content-type")
           }
-          chain.doFilter(request, response);
+          chain.doFilter(request, response)
         }
 
         override fun init(filterConfig: FilterConfig?) {}

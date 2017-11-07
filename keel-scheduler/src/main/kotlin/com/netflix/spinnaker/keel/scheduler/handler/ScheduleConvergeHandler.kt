@@ -48,7 +48,7 @@ class ScheduleConvergeHandler
     log.info("Scheduling intent convergence work")
 
     try {
-      intentRepository.getIntents(statuses = listOf(IntentStatus.ACTIVE))
+      intentRepository.getIntents(status = listOf(IntentStatus.ACTIVE))
         .also { log.info("Scheduling ${it.size} active intents") }
         .forEach {
           queue.push(ConvergeIntent(

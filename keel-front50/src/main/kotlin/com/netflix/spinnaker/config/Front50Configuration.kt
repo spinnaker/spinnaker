@@ -20,6 +20,7 @@ import com.netflix.spinnaker.keel.front50.Front50Service
 import com.netflix.spinnaker.keel.retrofit.RetrofitConfiguration
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
 import retrofit.Endpoint
@@ -30,6 +31,9 @@ import retrofit.client.Client
 import retrofit.converter.JacksonConverter
 
 @Configuration
+@ComponentScan(
+  basePackages = arrayOf("com.netflix.spinnaker.keel.front50")
+)
 @Import(RetrofitConfiguration::class)
 open class Front50Configuration {
 

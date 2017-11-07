@@ -31,7 +31,6 @@ abstract class Intent<out S : IntentSpec>
 
   val status: IntentStatus = IntentStatus.ACTIVE
 
-  @JsonIgnore
   abstract fun getId(): String
 
   @JsonIgnore

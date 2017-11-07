@@ -16,6 +16,7 @@
 package com.netflix.spinnaker.keel.test
 
 import com.fasterxml.jackson.annotation.JsonCreator
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonTypeName
 import com.github.jonpeterson.jackson.module.versioning.JsonVersionedModel
 import com.netflix.spinnaker.keel.Intent
@@ -25,6 +26,7 @@ import com.netflix.spinnaker.keel.IntentSpec
 @JsonVersionedModel(currentVersion = "1", propertyName = "schema")
 class TestIntent
 @JsonCreator constructor(spec: TestIntentSpec) : Intent<TestIntentSpec>("1", "Test", spec) {
+  @JsonIgnore
   override fun getId() = "test:${spec.id}"
 }
 

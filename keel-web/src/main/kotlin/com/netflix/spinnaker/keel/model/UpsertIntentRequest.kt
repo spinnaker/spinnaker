@@ -16,8 +16,9 @@
 package com.netflix.spinnaker.keel.model
 
 import com.netflix.spinnaker.keel.Intent
+import com.netflix.spinnaker.keel.IntentSpec
 
 data class UpsertIntentRequest(
-  val intents: List<Intent<*>>,
+  val intents: List<Intent<IntentSpec>>,
   val dryRun: Boolean = false
 )
