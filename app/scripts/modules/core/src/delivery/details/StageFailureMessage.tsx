@@ -20,8 +20,7 @@ export interface IStageFailureMessageState {
   failedTask?: ITaskStep;
   failedExecutionId?: number;
   failedStageName?: string;
-  failedStageIndex?: number;
-  failedStepIndex?: number;
+  failedStageId?: number;
   isFailed?: boolean;
 }
 
@@ -42,26 +41,24 @@ export class StageFailureMessage extends React.Component<IStageFailureMessagePro
       const failedTask = (stage.tasks || []).find(t => t.status === 'TERMINAL' || t.status === 'STOPPED');
       let failedStageName = stage.name;
       let failedExecutionId;
-      let failedStageIndex;
-      let failedStepIndex;
+      let failedStageId;
 
       if (!failedTask || (!props.message && props.messages.length === 0)) {
         const exceptionSource: any = get(stage.context, 'exception.source');
         if (exceptionSource) {
           failedStageName = exceptionSource.stageName;
           failedExecutionId = exceptionSource.executionId;
-          failedStageIndex = exceptionSource.stageIndex;
-          failedStepIndex = 0;
+          failedStageId = exceptionSource.stageId;
         } else if (stage.after) {
           const failedStage = stage.after.find(s => s.status === 'TERMINAL' || s.status === 'STOPPED');
           if (failedStage) {
             failedStageName = robotToHuman(failedStage.name);
-            failedStepIndex = stage.after.indexOf(failedStage);
+            failedStageId = failedStage.id;
           }
         }
       }
 
-      return { isFailed: true, failedTask, failedExecutionId, failedStageName, failedStageIndex, failedStepIndex };
+      return { isFailed: true, failedTask, failedExecutionId, failedStageName, failedStageId };
     }
     return { failedTask: undefined, isFailed: false };
   }
@@ -72,7 +69,7 @@ export class StageFailureMessage extends React.Component<IStageFailureMessagePro
 
   public render() {
     const { message, messages } = this.props;
-    const { isFailed, failedTask, failedExecutionId, failedStageName, failedStageIndex, failedStepIndex } = this.state;
+    const { isFailed, failedTask, failedExecutionId, failedStageName, failedStageId } = this.state;
     if (isFailed || failedTask || message || messages.length) {
       const exceptionTitle = messages.length ? 'Exceptions' : 'Exception';
       const displayMessages = message || !messages.length ?
@@ -94,16 +91,13 @@ export class StageFailureMessage extends React.Component<IStageFailureMessagePro
         );
       }
 
-      if (failedStepIndex !== undefined) {
+      if (failedStageId !== undefined) {
         const currentState = ReactInjector.$state.current;
         const params: any = {
-          step: failedStepIndex
+          stageId: failedStageId
         };
         if (failedExecutionId !== undefined) {
           params.executionId = failedExecutionId;
-        }
-        if (failedStageIndex !== undefined) {
-          params.stage = failedStageIndex;
         }
 
         return (
