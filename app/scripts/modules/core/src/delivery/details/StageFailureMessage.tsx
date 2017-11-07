@@ -55,7 +55,7 @@ export class StageFailureMessage extends React.Component<IStageFailureMessagePro
         } else if (stage.after) {
           const failedStage = stage.after.find(s => s.status === 'TERMINAL' || s.status === 'STOPPED');
           if (failedStage) {
-            failedStageName = stage.name;
+            failedStageName = robotToHuman(failedStage.name);
             failedStepIndex = stage.after.indexOf(failedStage);
           }
         }
