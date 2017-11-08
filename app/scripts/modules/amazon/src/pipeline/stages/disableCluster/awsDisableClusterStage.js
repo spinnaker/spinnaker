@@ -9,7 +9,6 @@ module.exports = angular.module('spinnaker.amazon.pipeline.stage.disableClusterS
       provides: 'disableCluster',
       cloudProvider: 'aws',
       templateUrl: require('./disableClusterStage.html'),
-      executionConfigSections: ['disableClusterConfig', 'taskStatus'],
       validators: [
         { type: 'requiredField', fieldName: 'cluster' },
         { type: 'requiredField', fieldName: 'remainingEnabledServerGroups', fieldLabel: 'Keep [X] enabled Server Groups'},

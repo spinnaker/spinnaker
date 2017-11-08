@@ -12,7 +12,6 @@ module.exports = angular.module('spinnaker.cf.pipeline.stage.disableClusterStage
       provides: 'disableCluster',
       cloudProvider: 'cf',
       templateUrl: require('./disableClusterStage.html'),
-      executionConfigSections: ['disableClusterConfig', 'taskStatus'],
       validators: [
         { type: 'requiredField', fieldName: 'cluster' },
         { type: 'requiredField', fieldName: 'remainingEnabledServerGroups', fieldLabel: 'Keep [X] enabled Server Groups'},
