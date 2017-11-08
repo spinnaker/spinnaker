@@ -8,6 +8,7 @@ import { KUBERNETES_MANIFEST_BASIC_SETTINGS } from './manifest/wizard/basicSetti
 import { KUBERNETES_MANIFEST_CTRL } from './manifest/wizard/manifestWizard.controller';
 import { KUBERNETES_MANIFEST_DELETE_CTRL } from './manifest/delete/delete.controller';
 import { KUBERNETES_MANIFEST_ENTRY } from './manifest/wizard/manifestEntry.component';
+import { KUBERNETES_V2_INSTANCE_DETAILS_CTRL } from './instance/details/details.controller';
 import { KUBERNETES_V2_LOAD_BALANCER_DETAILS_CTRL } from './loadBalancer/details/details.controller';
 import { KUBERNETES_V2_SERVER_GROUP_TRANSFORMER } from './serverGroup/serverGroupTransformer.service';
 import { KUBERNETES_V2_SERVER_GROUP_DETAILS_CTRL } from './serverGroup/details/details.controller';
@@ -24,6 +25,7 @@ export const KUBERNETES_V2_MODULE = 'spinnaker.kubernetes.v2';
 
 module(KUBERNETES_V2_MODULE, [
   CLOUD_PROVIDER_REGISTRY,
+  KUBERNETES_V2_INSTANCE_DETAILS_CTRL,
   KUBERNETES_V2_LOAD_BALANCER_DETAILS_CTRL,
   KUBERNETES_V2_SERVER_GROUP_COMMAND_BUILDER,
   KUBERNETES_V2_SERVER_GROUP_TRANSFORMER,
@@ -52,6 +54,10 @@ module(KUBERNETES_V2_MODULE, [
       loadBalancer: {
         detailsTemplateUrl: require('./loadBalancer/details/details.html'),
         detailsController: 'kubernetesV2LoadBalancerDetailsCtrl',
+      },
+      instance: {
+        detailsTemplateUrl: require('./instance/details/details.html'),
+        detailsController: 'kubernetesV2InstanceDetailsCtrl',
       }
     });
   });
