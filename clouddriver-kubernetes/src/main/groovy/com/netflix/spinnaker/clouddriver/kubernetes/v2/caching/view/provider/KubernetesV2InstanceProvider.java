@@ -58,7 +58,7 @@ public class KubernetesV2InstanceProvider implements InstanceProvider<Kubernetes
 
     KubernetesKind kind = parsedName.getLeft();
     String name = parsedName.getRight();
-    String key = Keys.infrastructure(kind, account, name, name);
+    String key = Keys.infrastructure(kind, account, location, name);
 
     Optional<CacheData> optionalInstanceData = cacheUtils.getSingleEntry(kind.toString(), key);
     if (!optionalInstanceData.isPresent()) {
