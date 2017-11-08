@@ -33,6 +33,7 @@ class WebhookController {
   @Autowired
   WebhookService webhookService
 
+  @ApiOperation(value = "Endpoint for posting webhooks to Spinnaker's webhook service")
   @RequestMapping(value = "/{type}/{source}", method = RequestMethod.POST)
   void webhooks(@PathVariable("type") String type,
                 @PathVariable("source") String source,
