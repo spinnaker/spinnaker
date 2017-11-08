@@ -67,7 +67,13 @@ public class TrafficGuard {
 
     instancesPerServerGroup.entrySet().forEach(entry -> {
       String serverGroupName = entry.getKey();
-      if (hasDisableLock(serverGroupMonikerFromStage, account, location)) {
+      Moniker moniker = serverGroupMonikerFromStage;
+      if (moniker.getApp() == null) {
+        // handle scenarios where the stage moniker is invalid (ie. stage had no server group details provided)
+        moniker = MonikerHelper.friggaToMoniker(serverGroupName);
+      }
+
+      if (hasDisableLock(moniker, account, location)) {
         Optional<TargetServerGroup> targetServerGroup = oortHelper.getTargetServerGroup(account, serverGroupName, location.getValue(), cloudProvider);
 
         targetServerGroup.ifPresent(serverGroup -> {

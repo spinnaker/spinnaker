@@ -257,7 +257,7 @@ class TrafficGuardSpec extends Specification {
     otherServerGroup.instances = [[name: "i-1", healthState: "Down"]]
 
     when:
-    trafficGuard.verifyInstanceTermination(null, moniker, ["i-1"], "test", location, "aws", "x")
+    trafficGuard.verifyInstanceTermination(null, MonikerHelper.friggaToMoniker(null), ["i-1"], "test", location, "aws", "x")
 
     then:
     thrown(IllegalStateException)
