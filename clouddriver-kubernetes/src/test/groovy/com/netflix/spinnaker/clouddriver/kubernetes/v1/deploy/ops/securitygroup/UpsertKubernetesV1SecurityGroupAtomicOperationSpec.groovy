@@ -31,7 +31,7 @@ import io.fabric8.kubernetes.api.model.extensions.IngressTLS
 import spock.lang.Specification
 import spock.lang.Subject
 
-class UpsertKubernetesSecurityGroupAtomicOperationSpec extends Specification {
+class UpsertKubernetesV1SecurityGroupAtomicOperationSpec extends Specification {
   final static List<String> NAMESPACES = ['default', 'prod']
   final static String NAMESPACE = 'prod'
   final static String INGRESS_NAME = "fooingress"

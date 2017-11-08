@@ -41,8 +41,8 @@ public interface Rule {
 
   @Data
   class PortRange implements Comparable<PortRange> {
-    Integer startPort;
-    Integer endPort;
+    protected Integer startPort;
+    protected Integer endPort;
 
     @Override
     public int compareTo(PortRange o) {

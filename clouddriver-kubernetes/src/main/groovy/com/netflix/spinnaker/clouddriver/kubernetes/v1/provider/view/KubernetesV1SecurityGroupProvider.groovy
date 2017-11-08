@@ -20,7 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider
-import com.netflix.spinnaker.clouddriver.kubernetes.v1.model.KubernetesSecurityGroup
+import com.netflix.spinnaker.clouddriver.kubernetes.v1.model.KubernetesV1SecurityGroup
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.caching.Keys
 import com.netflix.spinnaker.clouddriver.model.SecurityGroupProvider
 import io.fabric8.kubernetes.api.model.extensions.Ingress
@@ -28,58 +28,58 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component
-class KubernetesSecurityGroupProvider implements SecurityGroupProvider<KubernetesSecurityGroup> {
+class KubernetesV1SecurityGroupProvider implements SecurityGroupProvider<KubernetesV1SecurityGroup> {
 
   final String cloudProvider = KubernetesCloudProvider.ID
   private final Cache cacheView
   private final ObjectMapper objectMapper
 
   @Autowired
-  KubernetesSecurityGroupProvider(Cache cacheView, ObjectMapper objectMapper) {
+  KubernetesV1SecurityGroupProvider(Cache cacheView, ObjectMapper objectMapper) {
     this.cacheView = cacheView
     this.objectMapper = objectMapper
   }
 
   @Override
-  Set<KubernetesSecurityGroup> getAll(boolean includeRules) {
+  Set<KubernetesV1SecurityGroup> getAll(boolean includeRules) {
     lookup("*", "*", "*", includeRules)
   }
 
   @Override
-  Set<KubernetesSecurityGroup> getAllByRegion(boolean includeRules, String namespace) {
+  Set<KubernetesV1SecurityGroup> getAllByRegion(boolean includeRules, String namespace) {
     lookup("*", namespace, "*", includeRules)
   }
 
   @Override
-  Set<KubernetesSecurityGroup> getAllByAccount(boolean includeRules, String account) {
+  Set<KubernetesV1SecurityGroup> getAllByAccount(boolean includeRules, String account) {
     lookup(account, "*", "*", includeRules)
   }
 
   @Override
-  Set<KubernetesSecurityGroup> getAllByAccountAndName(boolean includeRules, String account, String name) {
+  Set<KubernetesV1SecurityGroup> getAllByAccountAndName(boolean includeRules, String account, String name) {
     lookup(account, "*", name, includeRules)
   }
 
   @Override
-  Set<KubernetesSecurityGroup> getAllByAccountAndRegion(boolean includeRules, String account, String namespace) {
+  Set<KubernetesV1SecurityGroup> getAllByAccountAndRegion(boolean includeRules, String account, String namespace) {
     lookup(account, namespace, "*", includeRules)
   }
 
   @Override
-  KubernetesSecurityGroup get(String account, String namespace, String name, String vpcId) {
+  KubernetesV1SecurityGroup get(String account, String namespace, String name, String vpcId) {
     lookup(account, namespace, name, true).getAt(0)
   }
 
-  Set<KubernetesSecurityGroup> lookup(String account, String namespace, String name, boolean includeRule) {
+  Set<KubernetesV1SecurityGroup> lookup(String account, String namespace, String name, boolean includeRule) {
     def keys = cacheView.filterIdentifiers(Keys.Namespace.SECURITY_GROUPS.ns, Keys.getSecurityGroupKey(account, namespace, name))
     cacheView.getAll(Keys.Namespace.SECURITY_GROUPS.ns, keys).collect {
       translateSecurityGroup(it, includeRule)
     }
   }
 
-  public KubernetesSecurityGroup translateSecurityGroup(CacheData securityGroupEntry, boolean includeRule) {
+  public KubernetesV1SecurityGroup translateSecurityGroup(CacheData securityGroupEntry, boolean includeRule) {
     def parts = Keys.parse(securityGroupEntry.id)
     Ingress ingress = objectMapper.convertValue(securityGroupEntry.attributes.ingress, Ingress)
-    return new KubernetesSecurityGroup(parts.application, parts.account, ingress, includeRule)
+    return new KubernetesV1SecurityGroup(parts.application, parts.account, ingress, includeRule)
   }
 }

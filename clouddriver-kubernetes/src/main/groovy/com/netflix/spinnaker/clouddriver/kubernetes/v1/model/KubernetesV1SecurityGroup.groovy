@@ -28,7 +28,7 @@ import groovy.transform.EqualsAndHashCode
 import io.fabric8.kubernetes.api.model.extensions.Ingress
 
 @EqualsAndHashCode(includes = ["name", "namespace", "accountName"])
-class KubernetesSecurityGroup implements SecurityGroup, Serializable {
+class KubernetesV1SecurityGroup implements SecurityGroup, Serializable {
   final String type = KubernetesCloudProvider.ID
   final String cloudProvider = KubernetesCloudProvider.ID
 
@@ -55,7 +55,7 @@ class KubernetesSecurityGroup implements SecurityGroup, Serializable {
   Ingress ingress
   KubernetesSecurityGroupDescription description
 
-  KubernetesSecurityGroup(String application, String account, Ingress ingress, boolean includeRules) {
+  KubernetesV1SecurityGroup(String application, String account, Ingress ingress, boolean includeRules) {
     this.ingress = ingress
 
     this.application = application
@@ -95,6 +95,6 @@ class KubernetesSecurityGroup implements SecurityGroup, Serializable {
   }
 
   SecurityGroupSummary getSummary() {
-    return new KubernetesSecurityGroupSummary(name: name, id: id)
+    return new KubernetesV1SecurityGroupSummary(name: name, id: id)
   }
 }

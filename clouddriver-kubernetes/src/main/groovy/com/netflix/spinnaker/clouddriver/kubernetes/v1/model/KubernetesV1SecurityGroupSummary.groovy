@@ -18,7 +18,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v1.model
 
 import com.netflix.spinnaker.clouddriver.model.SecurityGroupSummary
 
-class KubernetesSecurityGroupSummary implements SecurityGroupSummary, Serializable {
+class KubernetesV1SecurityGroupSummary implements SecurityGroupSummary, Serializable {
   String name
   String id
 }

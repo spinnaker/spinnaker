@@ -28,7 +28,7 @@ import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import spock.lang.Specification
 import spock.lang.Unroll
 
-class KubernetesSecurityGroupCachingAgentSpec extends Specification {
+class KubernetesV1SecurityGroupCachingAgentSpec extends Specification {
   static final private String NAMESPACE = "default"
   static final private String ACCOUNT_NAME = "account1"
 

@@ -41,7 +41,7 @@ class KubernetesV1ClusterProvider implements ClusterProvider<KubernetesV1Cluster
   private final ObjectMapper objectMapper
 
   @Autowired
-  KubernetesSecurityGroupProvider securityGroupProvider
+  KubernetesV1SecurityGroupProvider securityGroupProvider
 
   @Autowired
   KubernetesV1ClusterProvider(KubernetesCloudProvider kubernetesCloudProvider,
@@ -191,7 +191,7 @@ class KubernetesV1ClusterProvider implements ClusterProvider<KubernetesV1Cluster
     clusters.groupBy { it.accountName }.collectEntries { k, v -> [k, new HashSet(v)] }
   }
 
-  static loadBalancerToSecurityGroupMap(KubernetesSecurityGroupProvider securityGroupProvider, Cache cacheView, Collection<CacheData> loadBalancers) {
+  static loadBalancerToSecurityGroupMap(KubernetesV1SecurityGroupProvider securityGroupProvider, Cache cacheView, Collection<CacheData> loadBalancers) {
     Collection<CacheData> allSecurityGroups = resolveRelationshipDataForCollection(cacheView, loadBalancers, Keys.Namespace.SECURITY_GROUPS.ns, RelationshipCacheFilter.none())
 
     Map<String, Set<String>> securityGroups = [:].withDefault { _ -> [] as Set }
