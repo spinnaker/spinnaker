@@ -1,0 +1,88 @@
+<div ng-controller="ecsResizeAsgStageCtrl as resizeAsgStageCtrl">
+  <div ng-if="!pipeline.strategy">
+    <div ng-if="!viewState.accountsLoaded">
+      <h4 class="text-center">
+        <span us-spinner="{radius:20, width:6, length: 12}"></span>
+      </h4>
+    </div>
+    <div ng-if="viewState.accountsLoaded">
+
+      <account-region-cluster-selector
+        application="application"
+        component="stage"
+        accounts="accounts" >
+      </account-region-cluster-selector>
+
+    </div>
+  </div>
+  <stage-config-field label="Target">
+    <target-select model="stage" options="resizeTargets"></target-select>
+  </stage-config-field>
+  <stage-config-field label="Action" help-key="pipeline.config.resizeAsg.action">
+    <select class="form-control input-sm"
+            required
+            ng-model="stage.action"
+            ng-change="resizeAsgStageCtrl.updateResizeType()"
+            ng-options="a.val as a.label for a in scaleActions">
+      <option>Select an action...</option>
+    </select>
+  </stage-config-field>
+  <div ng-if="stage.action !== 'scale_exact'">
+    <stage-config-field label="{{stage.action === 'scale_to_cluster' ? 'Additional Capacity' : 'Type'}}">
+      <select class="form-control input-sm"
+              required
+              ng-model="stage.resizeType"
+              ng-change="resizeAsgStageCtrl.updateResizeType()"
+              ng-options="t.val as t.label for t in resizeTypes">
+        <option>Select an action...</option>
+      </select>
+    </stage-config-field>
+    <div ng-if="stage.resizeType === 'pct'">
+      <stage-config-field label="Resize Percentage">
+        <input type="number" min="0" ng-model="stage.scalePct" class="form-control input-sm" style="width: 80px"/>
+        <div>
+          <em class="subinput-note">This is the percentage by which the target server group's capacity will be
+            increased</em>
+        </div>
+      </stage-config-field>
+    </div>
+    <div ng-if="stage.resizeType === 'incr'">
+      <stage-config-field label="Resize-by Amount">
+        <input type="number" min="0" ng-model="stage.scaleNum" class="form-control input-sm" style="width: 80px"/>
+        <div>
+          <em class="subinput-note">This is the exact amount by which the target server group's capacity will be
+            increased</em>
+        </div>
+      </stage-config-field>
+    </div>
+  </div>
+  <div ng-if="stage.action === 'scale_exact'">
+    <stage-config-field class="small">
+      <div class="row">
+        <div class="col-md-3">Min</div>
+        <div class="col-md-3">Max</div>
+        <div class="col-md-3">Desired</div>
+      </div>
+    </stage-config-field>
+    <stage-config-field label="Match Capacity">
+      <div class="row">
+        <div class="col-md-3">
+          <input type="number" ng-model="stage.capacity.min" class="form-control input-sm"/>
+        </div>
+        <div class="col-md-3">
+          <input type="number" ng-model="stage.capacity.max" class="form-control input-sm"/>
+        </div>
+        <div class="col-md-3">
+          <input type="number" ng-model="stage.capacity.desired" class="form-control input-sm"/>
+        </div>
+      </div>
+    </stage-config-field>
+    <stage-config-field>
+      <em class="subinput-note">This is the exact amount to which the target server group will be scaled</em>
+    </stage-config-field>
+  </div>
+  <stage-platform-health-override application="application"
+                                  stage="stage"
+                                  platform-health-type="'Ecs'">
+  </stage-platform-health-override>
+</div>
