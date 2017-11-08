@@ -9,6 +9,7 @@ export interface IEditPipelineJsonModalCommand {
   errorMessage?: string;
   invalid?: boolean;
   pipelineJSON: string;
+  pipelinePlanJSON?: string;
   locked: boolean;
 }
 
@@ -16,10 +17,11 @@ export class EditPipelineJsonModalCtrl implements IController {
 
   public isStrategy: boolean;
   public command: IEditPipelineJsonModalCommand;
+  public mode = 'pipeline'
   private immutableFields = ['name', 'application', 'index', 'id', '$$hashKey'];
 
   constructor(private $uibModalInstance: IModalServiceInstance,
-              private pipeline: IPipeline) {
+              private pipeline: IPipeline, private plan?: IPipeline) {
     'ngInject';
   }
 
@@ -47,19 +49,29 @@ export class EditPipelineJsonModalCtrl implements IController {
   }
 
   public $onInit(): void {
-    const copy = cloneDeepWith<IPipeline>(this.pipeline, (value: any) => {
+    const copy = this.clone(this.pipeline);
+    let copyPlan: IPipeline;
+    if (this.plan) {
+      copyPlan = this.clone(this.plan);
+    }
+
+    this.isStrategy = this.pipeline.strategy || false;
+    this.command = {
+      pipelineJSON: jsonUtilityService.makeSortedStringFromObject(copy),
+      pipelinePlanJSON: copyPlan ? jsonUtilityService.makeSortedStringFromObject(copyPlan) : null,
+      locked: copy.locked
+    };
+  }
+
+  private clone(pipeline: IPipeline): IPipeline {
+    const copy = cloneDeepWith<IPipeline>(pipeline, (value: any) => {
       if (value && value.$$hashKey) {
         delete value.$$hashKey;
       }
       return undefined; // required for clone operation and typescript happiness
     });
     this.removeImmutableFields(copy);
-
-    this.isStrategy = this.pipeline.strategy || false;
-    this.command = {
-      pipelineJSON: jsonUtilityService.makeSortedStringFromObject(copy),
-      locked: copy.locked
-    };
+    return copy;
   }
 
   public updatePipeline(): void {

@@ -20,6 +20,7 @@ import { ExecutionDetailsSectionService } from 'core/delivery/details/executionD
 import { ExecutionFilterModel } from '../delivery/filter/executionFilter.model';
 import { ExecutionFilterService } from '../delivery/filter/executionFilter.service';
 import { ExecutionService } from '../delivery/service/execution.service';
+import { ExecutionsTransformerService } from '../delivery/service/executions.transformer.service';
 import { HelpContentsRegistry } from 'core/help';
 import { IHelpContents } from 'core/help';
 import { InfrastructureSearchService } from '../search/infrastructure/infrastructureSearch.service';
@@ -86,6 +87,7 @@ export class CoreReactInject extends ReactInject {
   public get executionFilterModel() { return this.$injector.get('executionFilterModel') as ExecutionFilterModel; }
   public get executionFilterService() { return this.$injector.get('executionFilterService') as ExecutionFilterService; }
   public get executionService() { return this.$injector.get('executionService') as ExecutionService; }
+  public get executionsTransformer() { return this.$injector.get('executionsTransformer') as ExecutionsTransformerService; }
   public get helpContents() { return this.$injector.get('helpContents') as IHelpContents }
   public get helpContentsRegistry() { return this.$injector.get('helpContentsRegistry') as HelpContentsRegistry; }
   public get infrastructureSearchService() { return this.$injector.get('infrastructureSearchService') as InfrastructureSearchService; }

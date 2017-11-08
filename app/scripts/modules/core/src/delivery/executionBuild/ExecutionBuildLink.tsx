@@ -5,15 +5,15 @@ import { BindAll } from 'lodash-decorators';
 import { IExecution } from 'core/domain';
 import { ReactInjector } from 'core/reactShims';
 
-import './ExecutionBuildNumber.less';
+import './ExecutionBuildLink.less';
 
-export interface IExecutionBuildNumberProps {
+export interface IExecutionBuildLinkProps {
   execution: IExecution;
 }
 
 @BindAll()
-export class ExecutionBuildNumber extends React.Component<IExecutionBuildNumberProps, {}> {
-  constructor(props: IExecutionBuildNumberProps) {
+export class ExecutionBuildLink extends React.Component<IExecutionBuildLinkProps, {}> {
+  constructor(props: IExecutionBuildLinkProps) {
     super(props);
   }
 

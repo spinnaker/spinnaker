@@ -193,7 +193,7 @@ export class ExecutionsTransformerService {
     return null;
   }
 
-  private addBuildInfo(execution: IExecution): void {
+  public addBuildInfo(execution: IExecution): void {
     execution.buildInfo = this.findNearestBuildInfo(execution);
 
     if (has(execution, 'trigger.buildInfo.lastBuild.number')) {

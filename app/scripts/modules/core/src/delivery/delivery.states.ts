@@ -13,7 +13,7 @@ module(DELIVERY_STATES, [
 
   const pipelineConfig: INestedState = {
     name: 'pipelineConfig',
-    url: '/configure/:pipelineId',
+    url: '/configure/:pipelineId?executionId',
     views: {
       'pipelines': {
         templateUrl: require('../pipeline/config/pipelineConfig.html'),

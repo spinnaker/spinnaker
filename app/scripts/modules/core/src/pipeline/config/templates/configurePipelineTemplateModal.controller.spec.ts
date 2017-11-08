@@ -91,6 +91,7 @@ describe('Controller: ConfigurePipelineTemplateModalCtrl', () => {
           }
         },
         pipelineId: '1234',
+        executionId: null,
         isNew: true,
       }) as ConfigurePipelineTemplateModalController;
     });

@@ -35,7 +35,32 @@
     <div class="band band-info" ng-if="isTemplatedPipeline && !pipeline.locked">
       <span class="glyphicon glyphicon small glyphicon-lock"></span> Manual edits are not allowed on templated pipelines
     </div>
-
+    <div class="band band-info" ng-if="hasDynamicSource && pipelineExecutions.length">
+      <span class="glyphicon glyphicon small glyphicon-wrench"></span> This template has a dynamic source. The
+      configuration is currently rendered using
+      <span ng-if="pipelineExecutions.length > 1" class="dropdown" uib-dropdown>
+        &nbsp;&nbsp;<button type="button" class="btn btn-xs btn-default dropdown-toggle" uib-dropdown-toggle>
+          <execution-build-title execution="currentExecution" default-to-timestamp="true" ></execution-build-title> <span class="caret"></span>
+        </button>
+        <ul class="dropdown-menu" role="menu" uib-dropdown-menu>
+          <li ng-repeat="p in pipelineExecutions" ng-class="{disabled: p.id == currentExecution.id}">
+            <a title="{{p.startTime | timestamp}}" ui-sref="{ executionId: p.id }"><execution-build-title execution="p" default-to-timestamp="true" ></execution-build-title>
+              <span class="text-muted small">({{p.startTime | relativeTime}})</span>
+              <span class="glyphicon small glyphicon-ok" ng-if="p.id == currentExecution.id"></span>
+            </a>
+          </li>
+        </ul>
+      </span>
+      <span ng-if="pipelineExecutions.length === 1"><execution-build-title execution="currentExecution" default-to-timestamp="true" ></execution-build-title></span>
+    </div>
+    <div class="band band-warning" ng-if="pipelineExecutions && !pipelineExecutions.length">
+      <span class="glyphicon glyphicon small glyphicon-alert"></span> This template has a dynamic source. The
+      configuration cannot be rendered before the pipeline has executed at least once.
+    </div>
+    <div class="band band-warning" ng-if="templateError && pipelineExecutions.length && isTemplatedPipeline">
+      <span class="glyphicon glyphicon small glyphicon-alert"></span> Could not render the pipeline configuration because
+        of an error: {{ templateError.data.message }} {{ templateError.data.error }}
+    </div>
     <div class="config-heading-body">
       <div class="pipeline-graph-container pipeline-config-graph">
         <pipeline-graph view-state="viewState"
