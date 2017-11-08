@@ -73,7 +73,7 @@ class OperationsController {
 
   @RequestMapping(value = "/orchestrate", method = RequestMethod.POST)
   Map<String, Object> orchestrate(@RequestBody Map pipeline, HttpServletResponse response) {
-    parsePipelineTrigger(executionRepository, buildService, pipelineTemplateService, pipeline)
+    parsePipelineTrigger(executionRepository, buildService, pipeline)
     Map trigger = pipeline.trigger
 
     boolean plan = pipeline.plan ?: false
@@ -113,7 +113,7 @@ class OperationsController {
     startPipeline(processedPipeline)
   }
 
-  private void parsePipelineTrigger(ExecutionRepository executionRepository, BuildService buildService, PipelineTemplateService pipelineTemplateService, Map pipeline) {
+  private void parsePipelineTrigger(ExecutionRepository executionRepository, BuildService buildService, Map pipeline) {
     if (!(pipeline.trigger instanceof Map)) {
       pipeline.trigger = [:]
       if (pipeline.plan && pipeline.type == "templatedPipeline") {
