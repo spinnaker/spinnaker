@@ -23,7 +23,6 @@ import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.bakery.api.BakeRequest
 import com.netflix.spinnaker.orca.bakery.api.BakeStatus
 import com.netflix.spinnaker.orca.bakery.api.BakeryService
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.util.OperatingSystem
 import com.netflix.spinnaker.orca.pipeline.util.PackageInfo
@@ -34,6 +33,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import retrofit.RetrofitError
+import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
 
 @Component
 @CompileStatic
@@ -114,8 +114,8 @@ class CreateBakeTask implements RetryableTask {
     if (stage.context.rebake == true) {
       return true
     }
-    if (stage.execution instanceof Pipeline) {
-      Map trigger = ((Pipeline) stage.execution).trigger
+    if (stage.execution.type == PIPELINE) {
+      Map trigger = stage.execution.trigger
       return trigger?.rebake == true
     }
     return false

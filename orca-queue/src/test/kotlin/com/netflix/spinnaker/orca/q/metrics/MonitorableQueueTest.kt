@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.orca.q.metrics
 
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
 import com.netflix.spinnaker.orca.q.DeadMessageCallback
 import com.netflix.spinnaker.orca.q.Queue
 import com.netflix.spinnaker.orca.q.StartExecution
@@ -79,7 +79,7 @@ abstract class MonitorableQueueTest<out Q : MonitorableQueue>(
     afterGroup(::resetMocks)
 
     on("pushing a message") {
-      queue!!.push(StartExecution(Pipeline::class.java, "1", "spinnaker"))
+      queue!!.push(StartExecution(PIPELINE, "1", "spinnaker"))
     }
 
     it("fires an event to report the push") {
@@ -102,11 +102,11 @@ abstract class MonitorableQueueTest<out Q : MonitorableQueue>(
     afterGroup(::resetMocks)
 
     beforeGroup {
-      queue!!.push(StartExecution(Pipeline::class.java, "1", "spinnaker"))
+      queue!!.push(StartExecution(PIPELINE, "1", "spinnaker"))
     }
 
     on("pushing a duplicate message") {
-      queue!!.push(StartExecution(Pipeline::class.java, "1", "spinnaker"))
+      queue!!.push(StartExecution(PIPELINE, "1", "spinnaker"))
     }
 
     it("fires an event to report the push") {
@@ -128,7 +128,7 @@ abstract class MonitorableQueueTest<out Q : MonitorableQueue>(
     afterGroup(::resetMocks)
 
     on("pushing a message with a delay") {
-      queue!!.push(StartExecution(Pipeline::class.java, "1", "spinnaker"), Duration.ofMinutes(1))
+      queue!!.push(StartExecution(PIPELINE, "1", "spinnaker"), Duration.ofMinutes(1))
     }
 
     it("fires an event to report the push") {
@@ -151,7 +151,7 @@ abstract class MonitorableQueueTest<out Q : MonitorableQueue>(
     afterGroup(::resetMocks)
 
     beforeGroup {
-      queue!!.push(StartExecution(Pipeline::class.java, "1", "spinnaker"))
+      queue!!.push(StartExecution(PIPELINE, "1", "spinnaker"))
     }
 
     on("processing the message") {
@@ -178,7 +178,7 @@ abstract class MonitorableQueueTest<out Q : MonitorableQueue>(
     afterGroup(::resetMocks)
 
     beforeGroup {
-      queue!!.push(StartExecution(Pipeline::class.java, "1", "spinnaker"))
+      queue!!.push(StartExecution(PIPELINE, "1", "spinnaker"))
     }
 
     on("successfully processing a message") {
@@ -208,7 +208,7 @@ abstract class MonitorableQueueTest<out Q : MonitorableQueue>(
       afterGroup(::resetMocks)
 
       beforeGroup {
-        queue!!.push(StartExecution(Pipeline::class.java, "1", "spinnaker"))
+        queue!!.push(StartExecution(PIPELINE, "1", "spinnaker"))
         queue!!.poll { _, ack ->
           ack.invoke()
         }
@@ -232,7 +232,7 @@ abstract class MonitorableQueueTest<out Q : MonitorableQueue>(
       afterGroup(::resetMocks)
 
       beforeGroup {
-        queue!!.push(StartExecution(Pipeline::class.java, "1", "spinnaker"))
+        queue!!.push(StartExecution(PIPELINE, "1", "spinnaker"))
         queue!!.poll { _, _ -> }
       }
 
@@ -264,7 +264,7 @@ abstract class MonitorableQueueTest<out Q : MonitorableQueue>(
 
       beforeGroup {
         with(queue!!) {
-          push(StartExecution(Pipeline::class.java, "1", "spinnaker"))
+          push(StartExecution(PIPELINE, "1", "spinnaker"))
           poll { message, _ ->
             push(message)
           }
@@ -297,7 +297,7 @@ abstract class MonitorableQueueTest<out Q : MonitorableQueue>(
       afterGroup(::resetMocks)
 
       beforeGroup {
-        queue!!.push(StartExecution(Pipeline::class.java, "1", "spinnaker"))
+        queue!!.push(StartExecution(PIPELINE, "1", "spinnaker"))
       }
 
       on("failing to acknowledge the message ${Queue.maxRetries} times") {

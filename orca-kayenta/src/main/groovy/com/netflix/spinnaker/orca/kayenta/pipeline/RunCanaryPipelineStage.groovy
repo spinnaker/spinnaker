@@ -22,7 +22,6 @@ import com.netflix.spinnaker.orca.kayenta.tasks.MonitorKayentaCanaryTask
 import com.netflix.spinnaker.orca.kayenta.tasks.RunKayentaCanaryTask
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.TaskNode
-import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
@@ -38,7 +37,7 @@ class RunCanaryPipelineStage implements StageDefinitionBuilder, CancellableStage
   KayentaService kayentaService
 
   @Override
-  <T extends Execution<T>> void taskGraph(Stage<T> stage, TaskNode.Builder builder) {
+  void taskGraph(Stage stage, TaskNode.Builder builder) {
     builder
       .withTask("runCanary", RunKayentaCanaryTask)
       .withTask("monitorCanary", MonitorKayentaCanaryTask)

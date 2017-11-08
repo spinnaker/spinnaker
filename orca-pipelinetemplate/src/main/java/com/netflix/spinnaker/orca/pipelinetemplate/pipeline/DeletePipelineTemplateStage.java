@@ -18,7 +18,6 @@ package com.netflix.spinnaker.orca.pipelinetemplate.pipeline;
 
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder;
 import com.netflix.spinnaker.orca.pipeline.TaskNode.Builder;
-import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import com.netflix.spinnaker.orca.pipelinetemplate.tasks.DeletePipelineTemplateTask;
 import org.springframework.stereotype.Component;
@@ -27,7 +26,7 @@ import org.springframework.stereotype.Component;
 public class DeletePipelineTemplateStage implements StageDefinitionBuilder {
 
   @Override
-  public <T extends Execution<T>> void taskGraph(Stage<T> stage, Builder builder) {
+  public void taskGraph(Stage stage, Builder builder) {
     builder
       .withTask("deletePipelineTemplate", DeletePipelineTemplateTask.class);
   }

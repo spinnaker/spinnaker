@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.strategies
 
 import com.netflix.spinnaker.orca.clouddriver.pipeline.cluster.ShrinkClusterStage
-import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner
 import groovy.util.logging.Slf4j
@@ -39,7 +38,7 @@ class HighlanderStrategy implements Strategy, ApplicationContextAware {
   ApplicationContext applicationContext
 
   @Override
-  <T extends Execution<T>> List<Stage<T>> composeFlow(Stage<T> stage) {
+  List<Stage> composeFlow(Stage stage) {
     def cleanupConfig = AbstractDeployStrategyStage.CleanupConfig.fromStage(stage)
     Map shrinkContext = [
         (cleanupConfig.location.singularType()): cleanupConfig.location.value,

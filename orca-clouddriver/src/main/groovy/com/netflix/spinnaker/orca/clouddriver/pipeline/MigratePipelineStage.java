@@ -21,7 +21,6 @@ import com.netflix.spinnaker.orca.clouddriver.tasks.pipeline.MigratePipelineClus
 import com.netflix.spinnaker.orca.clouddriver.tasks.pipeline.UpdateMigratedPipelineTask;
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder;
 import com.netflix.spinnaker.orca.pipeline.TaskNode;
-import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import org.springframework.stereotype.Component;
 
@@ -31,7 +30,7 @@ public class MigratePipelineStage implements StageDefinitionBuilder {
   public static final String PIPELINE_CONFIG_TYPE = "migratePipeline";
 
   @Override
-  public <T extends Execution<T>> void taskGraph(Stage<T> stage, TaskNode.Builder builder) {
+  public void taskGraph(Stage stage, TaskNode.Builder builder) {
     builder
       .withTask("migratePipelineClusters", MigratePipelineClustersTask.class)
       .withTask("monitorMigration", MonitorKatoTask.class);

@@ -19,14 +19,13 @@ package com.netflix.spinnaker.orca.echo.pipeline;
 import com.netflix.spinnaker.orca.echo.tasks.PageApplicationOwnerTask;
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder;
 import com.netflix.spinnaker.orca.pipeline.TaskNode;
-import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import org.springframework.stereotype.Component;
 
 @Component
 class PageApplicationOwnerStage implements StageDefinitionBuilder {
   @Override
-  public <T extends Execution<T>> void taskGraph(Stage<T> stage, TaskNode.Builder builder) {
+  public void taskGraph(Stage stage, TaskNode.Builder builder) {
     builder
       .withTask("pageApplicationOwner", PageApplicationOwnerTask.class);
   }

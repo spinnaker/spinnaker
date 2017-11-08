@@ -22,13 +22,13 @@ import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.listeners.ExecutionListener;
 import com.netflix.spinnaker.orca.listeners.Persister;
 import com.netflix.spinnaker.orca.pipeline.model.Execution;
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE;
 
 /**
  * Reacts to pipelines finishing and schedules the next job waiting
@@ -57,7 +57,7 @@ public class PipelineStarterListener implements ExecutionListener {
                              boolean wasSuccessful) {
     startTracker.getAllStartedExecutions().forEach(startedExecutionId -> {
       try {
-        Pipeline e = executionRepository.retrievePipeline(startedExecutionId);
+        Execution e = executionRepository.retrieve(PIPELINE, startedExecutionId);
         if (e.getStatus().isComplete()) {
           processPipelines(e);
         }
@@ -69,7 +69,7 @@ public class PipelineStarterListener implements ExecutionListener {
     });
   }
 
-  private void processPipelines(Pipeline execution) {
+  private void processPipelines(Execution execution) {
     log.info("marking pipeline finished {}", execution.getId());
     startTracker.markAsFinished(execution.getPipelineConfigId(), execution.getId());
     if (execution.getPipelineConfigId() != null) {
@@ -81,10 +81,10 @@ public class PipelineStarterListener implements ExecutionListener {
         String nextPipelineId = queuedPipelines.get(nextIndex);
         queuedPipelines.forEach(id -> {
           if (Objects.equals(id, nextPipelineId)) {
-            Pipeline queuedExecution = executionRepository.retrievePipeline(id);
+            Execution queuedExecution = executionRepository.retrieve(PIPELINE, id);
             log.info("starting pipeline {} due to {} ending", nextPipelineId, execution.getId());
             try {
-              getPipelineLauncher().start(queuedExecution);
+              getExecutionLauncher().start(queuedExecution);
             } catch (Exception e) {
               throw new RuntimeException(e);
             }
@@ -101,7 +101,7 @@ public class PipelineStarterListener implements ExecutionListener {
 
   // break circular dependency
 
-  protected ExecutionLauncher<Pipeline> getPipelineLauncher() {
-    return applicationContext.getBean(PipelineLauncher.class);
+  protected ExecutionLauncher getExecutionLauncher() {
+    return applicationContext.getBean(ExecutionLauncher.class);
   }
 }

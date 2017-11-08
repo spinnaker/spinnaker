@@ -17,7 +17,7 @@ package com.netflix.spinnaker.orca.pipeline.util
 
 import java.util.regex.Pattern
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
 import spock.lang.Specification
@@ -55,7 +55,7 @@ class PackageInfoSpec extends Specification {
   def "If no artifacts in current build info or ancestor stages, code should execute as normal"() {
 
     given:
-    def quipStage = new Stage<>(
+    def quipStage = new Stage(
       execution: pipeline {
         trigger.putAll("buildInfo": ["artifacts": [["fileName": "testFileName"]]])
       },
@@ -77,9 +77,9 @@ class PackageInfoSpec extends Specification {
   @Unroll
   def "If no artifacts in current build info, find from first ancestor that does"() {
     given:
-    def pipeline = new Pipeline("orca")
+    def pipeline = Execution.newPipeline("orca")
     def ancestorStages = inputFileNames.collect {
-      new Stage<>(
+      new Stage(
         execution: pipeline,
         refId: it,
         context: [
@@ -96,7 +96,7 @@ class PackageInfoSpec extends Specification {
         ]
       )
     }
-    Stage quipStage = new Stage<>(pipeline, "type", "name", [buildInfo: [name: "someName"], package: "testPackageName"]).with {
+    Stage quipStage = new Stage(pipeline, "type", "name", [buildInfo: [name: "someName"], package: "testPackageName"]).with {
       it.requisiteStageRefIds = ancestorStages.refId
       return it
     }
@@ -129,7 +129,7 @@ class PackageInfoSpec extends Specification {
   @Unroll("#filename -> #result")
   def "All the matching packages get replaced with the build ones, while others just pass-through"() {
     given:
-    Stage bakeStage = new Stage<>()
+    Stage bakeStage = new Stage()
     PackageType packageType = DEB
     boolean extractBuildDetails = false
     PackageInfo packageInfo = new PackageInfo(bakeStage,
@@ -167,7 +167,7 @@ class PackageInfoSpec extends Specification {
   @Unroll
   def "Find the right package, don't be dependant on artifact order"() {
     given:
-    Stage bakeStage = new Stage<>()
+    Stage bakeStage = new Stage()
     boolean extractBuildDetails = false
     def allowMissingPackageInstallation = true
 
@@ -214,8 +214,8 @@ class PackageInfoSpec extends Specification {
 
   def "findTargetPackage: bake execution with only a package set and jenkins stage artifacts"() {
     given:
-    Stage bakeStage = new Stage<>()
-    Pipeline pipeline = new Pipeline("orca")
+    Stage bakeStage = new Stage()
+    def pipeline = Execution.newPipeline("orca")
     pipeline.context << [buildInfo: [artifacts: [[fileName: "api_1.1.1-h02.sha123_all.deb"]]]]
     bakeStage.execution = pipeline
     bakeStage.context = [package: 'api']
@@ -234,8 +234,8 @@ class PackageInfoSpec extends Specification {
 
   def "findTargetPackage: bake execution with empty package set and jenkins stage artifacts sho"() {
     given:
-    Stage bakeStage = new Stage<>()
-    Pipeline pipeline = new Pipeline("orca")
+    Stage bakeStage = new Stage()
+    def pipeline = Execution.newPipeline("orca")
     pipeline.context << [buildInfo: [artifacts: [[fileName: "api_1.1.1-h03.sha123_all.deb"]]]]
     bakeStage.execution = pipeline
     bakeStage.context = [package: '']
@@ -254,8 +254,8 @@ class PackageInfoSpec extends Specification {
 
   def "findTargetPackage: stage execution instance of Pipeline with no trigger"() {
     given:
-    Stage quipStage = new Stage<>()
-    Pipeline pipeline = new Pipeline("orca")
+    Stage quipStage = new Stage()
+    def pipeline = Execution.newPipeline("orca")
     pipeline.context << [buildInfo: [artifacts: [[fileName: "api_1.1.1-h01.sha123_all.deb"]]]]
     quipStage.execution = pipeline
     quipStage.context = [package: 'api']
@@ -274,8 +274,8 @@ class PackageInfoSpec extends Specification {
   @Unroll
   def "findTargetPackage: matched packages are always allowed"() {
     given:
-    Stage quipStage = new Stage<>()
-    Pipeline pipeline = new Pipeline("orca")
+    Stage quipStage = new Stage()
+    def pipeline = Execution.newPipeline("orca")
     pipeline.context << [buildInfo: [artifacts: [[fileName: "api_1.1.1-h01.sha123_all.deb"]]]]
     quipStage.execution = pipeline
     quipStage.context = ['package': "api"]
@@ -299,8 +299,8 @@ class PackageInfoSpec extends Specification {
   @Unroll
   def "findTargetPackage: allowing unmatched packages is guarded by the allowMissingPackageInstallation flag"() {
     given:
-    Stage quipStage = new Stage<>()
-    Pipeline pipeline = new Pipeline("orca")
+    Stage quipStage = new Stage()
+    def pipeline = Execution.newPipeline("orca")
     pipeline.context << [buildInfo: [artifacts: [[fileName: "api_1.1.1-h01.sha123_all.deb"]]]]
     quipStage.execution = pipeline
     quipStage.context = ['package': "another_package"]
@@ -331,8 +331,8 @@ class PackageInfoSpec extends Specification {
 
   def "findTargetPackage: stage execution instance of Pipeline with trigger and no buildInfo"() {
     given:
-    Stage quipStage = new Stage<>()
-    Pipeline pipeline = new Pipeline("orca")
+    Stage quipStage = new Stage()
+    def pipeline = Execution.newPipeline("orca")
     pipeline.trigger << [buildInfo: [artifacts: [[fileName: "api_2.2.2-h02.sha321_all.deb"]]]]
     quipStage.execution = pipeline
     quipStage.context = [package: 'api']
@@ -350,7 +350,7 @@ class PackageInfoSpec extends Specification {
 
   def "Raise an exception if allowMissingPackageInstallation is false and there's no match"() {
     given:
-    Stage bakeStage = new Stage<>()
+    Stage bakeStage = new Stage()
     PackageType packageType = DEB
     boolean extractBuildDetails = false
     PackageInfo packageInfo = new PackageInfo(bakeStage,
@@ -376,7 +376,7 @@ class PackageInfoSpec extends Specification {
   @Unroll
   def "getArtifactSourceBuildInfo: get buildInfo from nearest trigger with artifact"() {
     given:
-    Stage stage = new Stage<>(context: [package: "package"])
+    Stage stage = new Stage(context: [package: "package"])
     PackageInfo packageInfo = new PackageInfo(stage, null, null, true, true, null)
 
     when:
@@ -417,8 +417,8 @@ class PackageInfoSpec extends Specification {
   @Unroll
   def "findTargetPackage: get packageVersion from trigger and parentExecution.trigger"() {
     given:
-    Stage quipStage = new Stage<>()
-    Pipeline pipeline = new Pipeline("orca")
+    Stage quipStage = new Stage()
+    def pipeline = Execution.newPipeline("orca")
     pipeline.trigger << trigger
     quipStage.execution = pipeline
     quipStage.context = ['package': "api"]

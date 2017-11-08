@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.pipeline;
 
-import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import com.netflix.spinnaker.orca.pipeline.tasks.WaitTask;
 import org.springframework.stereotype.Component;
@@ -24,7 +23,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class WaitStage implements StageDefinitionBuilder {
   @Override
-  public <T extends Execution<T>> void taskGraph(Stage<T> stage, TaskNode.Builder builder) {
+  public void taskGraph(Stage stage, TaskNode.Builder builder) {
     builder.withTask("wait", WaitTask.class);
   }
 }

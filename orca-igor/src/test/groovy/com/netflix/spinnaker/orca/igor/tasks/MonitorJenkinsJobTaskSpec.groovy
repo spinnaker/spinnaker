@@ -20,7 +20,7 @@ import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.igor.BuildArtifactFilter
 import com.netflix.spinnaker.orca.igor.BuildService
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.mock.env.MockEnvironment
 import retrofit.RetrofitError
@@ -38,12 +38,12 @@ class MonitorJenkinsJobTaskSpec extends Specification {
   MonitorJenkinsJobTask task = new MonitorJenkinsJobTask(buildArtifactFilter: buildArtifactFilter)
 
   @Shared
-  Pipeline pipeline = new Pipeline("orca")
+  def pipeline = Execution.newPipeline("orca")
 
   @Unroll
   def "should return #taskStatus if job is #jobState"() {
     given:
-    def stage = new Stage<>(pipeline, "jenkins", [master: "builds", job: "orca", buildNumber: 4])
+    def stage = new Stage(pipeline, "jenkins", [master: "builds", job: "orca", buildNumber: 4])
 
     and:
     task.buildService = Stub(BuildService) {
@@ -66,7 +66,7 @@ class MonitorJenkinsJobTaskSpec extends Specification {
   @Unroll
   def "should ignore job state when build is running"() {
     given:
-    def stage = new Stage<>(pipeline, "jenkins", [master: "builds", job: "orca", buildNumber: 4])
+    def stage = new Stage(pipeline, "jenkins", [master: "builds", job: "orca", buildNumber: 4])
 
     and:
     task.buildService = Stub(BuildService) {
@@ -88,7 +88,7 @@ class MonitorJenkinsJobTaskSpec extends Specification {
   @Unroll
   def "should ignore job state when build is building"() {
     given:
-    def stage = new Stage<>(pipeline, "jenkins", [master: "builds", job: "orca", buildNumber: 4])
+    def stage = new Stage(pipeline, "jenkins", [master: "builds", job: "orca", buildNumber: 4])
 
     and:
     task.buildService = Stub(BuildService) {
@@ -109,7 +109,7 @@ class MonitorJenkinsJobTaskSpec extends Specification {
 
   def "should return running status if igor call 404/500/503's"() {
     given:
-    def stage = new Stage<>(pipeline, "jenkins", [master: "builds", job: "orca", buildNumber: 4])
+    def stage = new Stage(pipeline, "jenkins", [master: "builds", job: "orca", buildNumber: 4])
 
     and:
     def exception = Stub(RetrofitError) {
@@ -143,7 +143,7 @@ class MonitorJenkinsJobTaskSpec extends Specification {
   def "retrieves values from a property file if specified"() {
 
     given:
-    def stage = new Stage<>(pipeline, "jenkins", [master: "builds", job: "orca", buildNumber: 4, propertyFile: "sample.properties"])
+    def stage = new Stage(pipeline, "jenkins", [master: "builds", job: "orca", buildNumber: 4, propertyFile: "sample.properties"])
 
     and:
     task.buildService = Stub(BuildService) {
@@ -162,7 +162,7 @@ class MonitorJenkinsJobTaskSpec extends Specification {
 
   def "fails stage if property file is expected but not returned from jenkins and build passed"() {
     given:
-    def stage = new Stage<>(pipeline, "jenkins", [master: 'builds', job: 'orca', buildNumber: 4, propertyFile: 'noexist.properties'])
+    def stage = new Stage(pipeline, "jenkins", [master: 'builds', job: 'orca', buildNumber: 4, propertyFile: 'noexist.properties'])
 
     and:
     task.buildService = Stub(BuildService) {
@@ -180,7 +180,7 @@ class MonitorJenkinsJobTaskSpec extends Specification {
 
   def "marks 'unstable' results as successful if explicitly configured to do so"() {
     given:
-    def stage = new Stage<>(pipeline, "jenkins",
+    def stage = new Stage(pipeline, "jenkins",
       [master: "builds", job: "orca", buildNumber: 4, markUnstableAsSuccessful: markUnstableAsSuccessful])
 
 
@@ -206,7 +206,7 @@ class MonitorJenkinsJobTaskSpec extends Specification {
     environment.withProperty(BuildArtifactFilter.PREFERRED_ARTIFACTS_PROP, preferredArtifacts)
 
     and:
-    def stage = new Stage<>(pipeline, "jenkins", [master: "builds", job: "orca", buildNumber: 4])
+    def stage = new Stage(pipeline, "jenkins", [master: "builds", job: "orca", buildNumber: 4])
 
     and:
     task.buildService = Stub(BuildService) {

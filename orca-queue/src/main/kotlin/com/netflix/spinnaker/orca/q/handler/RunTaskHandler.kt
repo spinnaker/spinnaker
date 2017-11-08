@@ -53,11 +53,11 @@ class RunTaskHandler(
 
   override fun handle(message: RunTask) {
     message.withTask { stage, taskModel, task ->
-      val execution = stage.getExecution()
+      val execution = stage.execution
       try {
-        if (execution.isCanceled() || execution.getStatus().isComplete) {
+        if (execution.isCanceled || execution.status.isComplete) {
           queue.push(CompleteTask(message, CANCELED))
-        } else if (execution.getStatus() == PAUSED) {
+        } else if (execution.status == PAUSED) {
           queue.push(PauseTask(message))
         } else {
           task.checkForTimeout(stage, taskModel, message)
@@ -88,15 +88,15 @@ class RunTaskHandler(
         }
       } catch (e: Exception) {
         val exceptionDetails = exceptionHandlers.shouldRetry(e, taskModel.name)
-        if (exceptionDetails?.shouldRetry ?: false) {
-          log.warn("Error running ${message.taskType.simpleName} for ${message.executionType.simpleName}[${message.executionId}]")
+        if (exceptionDetails?.shouldRetry == true) {
+          log.warn("Error running ${message.taskType.simpleName} for ${message.executionType}[${message.executionId}]")
           queue.push(message, task.backoffPeriod(taskModel))
           trackResult(stage, taskModel, RUNNING)
-        } else if (e is TimeoutException && stage.getContext()["markSuccessfulOnTimeout"] == true) {
+        } else if (e is TimeoutException && stage.context["markSuccessfulOnTimeout"] == true) {
           queue.push(CompleteTask(message, SUCCEEDED))
         } else {
-          log.error("Error running ${message.taskType.simpleName} for ${message.executionType.simpleName}[${message.executionId}]", e)
-          stage.getContext()["exception"] = exceptionDetails
+          log.error("Error running ${message.taskType.simpleName} for ${message.executionType}[${message.executionId}]", e)
+          stage.context["exception"] = exceptionDetails
           repository.storeStage(stage)
           queue.push(CompleteTask(message, stage.failureStatus()))
           trackResult(stage, taskModel, stage.failureStatus())
@@ -105,14 +105,14 @@ class RunTaskHandler(
     }
   }
 
-  private fun trackResult(stage: Stage<*>, taskModel: com.netflix.spinnaker.orca.pipeline.model.Task, status: ExecutionStatus) {
+  private fun trackResult(stage: Stage, taskModel: com.netflix.spinnaker.orca.pipeline.model.Task, status: ExecutionStatus) {
     val id = registry.createId("task.invocations")
       .withTag("status", status.toString())
-      .withTag("executionType", stage.getExecution().javaClass.simpleName)
+      .withTag("executionType", stage.execution.javaClass.simpleName)
       .withTag("isComplete", status.isComplete.toString())
-      .withTag("application", stage.getExecution().getApplication())
+      .withTag("application", stage.execution.application)
       .let { id ->
-        stage.getContext()["cloudProvider"]?.let {
+        stage.context["cloudProvider"]?.let {
           id.withTag("cloudProvider", it.toString())
         } ?: id
       }
@@ -140,7 +140,7 @@ class RunTaskHandler(
 
   override val messageType = RunTask::class.java
 
-  private fun RunTask.withTask(block: (Stage<*>, com.netflix.spinnaker.orca.pipeline.model.Task, Task) -> Unit) =
+  private fun RunTask.withTask(block: (Stage, com.netflix.spinnaker.orca.pipeline.model.Task, Task) -> Unit) =
     withTask { stage, taskModel ->
       tasks
         .find { taskType.isAssignableFrom(it.javaClass) }
@@ -165,26 +165,26 @@ class RunTaskHandler(
     return DurationFormatUtils.formatDurationWords(timeout, true, true)
   }
 
-  private fun Task.checkForTimeout(stage: Stage<*>, taskModel: com.netflix.spinnaker.orca.pipeline.model.Task, message: Message) {
+  private fun Task.checkForTimeout(stage: Stage, taskModel: com.netflix.spinnaker.orca.pipeline.model.Task, message: Message) {
     checkForStageTimeout(stage)
     checkForTaskTimeout(taskModel, stage, message)
   }
 
-  private fun Task.checkForTaskTimeout(taskModel: com.netflix.spinnaker.orca.pipeline.model.Task, stage: Stage<*>, message: Message) {
+  private fun Task.checkForTaskTimeout(taskModel: com.netflix.spinnaker.orca.pipeline.model.Task, stage: Stage, message: Message) {
     if (this is RetryableTask) {
       val startTime = taskModel.startTime.toInstant()
-      val pausedDuration = stage.getExecution().pausedDurationRelativeTo(startTime)
+      val pausedDuration = stage.execution.pausedDurationRelativeTo(startTime)
       val elapsedTime = Duration.between(startTime, clock.instant())
       val throttleTime = message.getAttribute<TotalThrottleTimeAttribute>()?.totalThrottleTimeMs ?: 0
       val actualTimeout = (
-        if (this is OverridableTimeoutRetryableTask && stage.getTopLevelTimeout().isPresent)
-          stage.getTopLevelTimeout().get().toDuration()
+        if (this is OverridableTimeoutRetryableTask && stage.topLevelTimeout.isPresent)
+          stage.topLevelTimeout.get().toDuration()
         else
           timeout.toDuration()
       )
       if (elapsedTime.minus(pausedDuration).minusMillis(throttleTime) > actualTimeout) {
         val durationString = formatTimeout(elapsedTime.toMillis())
-        val msg = StringBuilder("${javaClass.simpleName} of stage ${stage.getName()} timed out after $durationString. ")
+        val msg = StringBuilder("${javaClass.simpleName} of stage ${stage.name} timed out after $durationString. ")
         msg.append("pausedDuration: ${formatTimeout(pausedDuration.toMillis())}, ")
         msg.append("throttleTime: ${formatTimeout(throttleTime)}, ")
         msg.append("elapsedTime: ${formatTimeout(elapsedTime.toMillis())},")
@@ -196,36 +196,36 @@ class RunTaskHandler(
     }
   }
 
-  private fun checkForStageTimeout(stage: Stage<*>) {
-    stage.getTopLevelTimeout().map(Duration::ofMillis).ifPresent({
-      val startTime = stage.getTopLevelStage().getStartTime().toInstant()
+  private fun checkForStageTimeout(stage: Stage) {
+    stage.topLevelTimeout.map(Duration::ofMillis).ifPresent({
+      val startTime = stage.topLevelStage.startTime.toInstant()
       val elapsedTime = Duration.between(startTime, clock.instant())
-      val pausedDuration = stage.getExecution().pausedDurationRelativeTo(startTime)
+      val pausedDuration = stage.execution.pausedDurationRelativeTo(startTime)
       if (elapsedTime.minus(pausedDuration) > it) {
-        throw TimeoutException("Stage ${stage.getName()} timed out after ${formatTimeout(elapsedTime.toMillis())}")
+        throw TimeoutException("Stage ${stage.name} timed out after ${formatTimeout(elapsedTime.toMillis())}")
       }
     })
   }
 
 
-  private fun Execution<*>.pausedDurationRelativeTo(instant: Instant?): Duration {
-    val pausedDetails = getPaused()
+  private fun Execution.pausedDurationRelativeTo(instant: Instant?): Duration {
+    val pausedDetails = paused
     if (pausedDetails != null) {
-      return if (pausedDetails.pauseTime.toInstant()?.isAfter(instant) ?: false) {
+      return if (pausedDetails.pauseTime.toInstant()?.isAfter(instant) == true) {
         Duration.ofMillis(pausedDetails.pausedMs)
       } else ZERO
     } else return ZERO
   }
 
-  private fun Stage<*>.processTaskOutput(result: TaskResult) {
+  private fun Stage.processTaskOutput(result: TaskResult) {
     if (result.context.isNotEmpty() || result.outputs.isNotEmpty()) {
-      getContext().putAll(result.context)
-      getOutputs().putAll(result.outputs)
+      context.putAll(result.context)
+      outputs.putAll(result.outputs)
       repository.storeStage(this)
     }
     if (result.outputs.isNotEmpty()) {
       repository.storeExecutionContext(
-        getExecution().getId(),
+        execution.id,
         result.outputs
       )
     }

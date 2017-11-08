@@ -22,7 +22,6 @@ import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
 import com.netflix.spinnaker.orca.kato.tasks.quip.ResolveQuipVersionTask
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.TaskNode
-import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner
 import groovy.transform.CompileStatic
@@ -57,12 +56,12 @@ class QuickPatchStage implements StageDefinitionBuilder {
   private static INSTANCE_VERSION_SLEEP = 10000
 
   @Override
-  def <T extends Execution<T>> void taskGraph(Stage<T> stage, TaskNode.Builder builder) {
+  def void taskGraph(Stage stage, TaskNode.Builder builder) {
     builder.withTask("resolveQuipVersion", ResolveQuipVersionTask)
   }
 
   @Override
-  def <T extends Execution<T>> List<Stage<T>> aroundStages(Stage<T> stage) {
+  def List<Stage> aroundStages(Stage stage) {
     def stages = []
 
     def instances = getInstancesForCluster(stage)

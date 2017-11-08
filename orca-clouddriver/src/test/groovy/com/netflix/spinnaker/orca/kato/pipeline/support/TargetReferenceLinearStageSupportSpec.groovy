@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.orca.kato.pipeline.support
 
 import com.netflix.spinnaker.orca.kato.pipeline.DetermineTargetReferenceStage
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner
 import spock.lang.Specification
@@ -30,7 +30,7 @@ class TargetReferenceLinearStageSupportSpec extends Specification {
     given:
     def targetReferenceSupport = Mock(TargetReferenceSupport)
     def supportStage = new TargetReferenceLinearStageSupportStage()
-    def stage = new Stage<>(new Pipeline("orca"), "test", [regions: ["us-east-1"]])
+    def stage = new Stage(Execution.newPipeline("orca"), "test", [regions: ["us-east-1"]])
     stage.parentStageId = parentStageId
     supportStage.targetReferenceSupport = targetReferenceSupport
 
@@ -55,7 +55,7 @@ class TargetReferenceLinearStageSupportSpec extends Specification {
     given:
     def targetReferenceSupport = Mock(TargetReferenceSupport)
     def supportStage = new TargetReferenceLinearStageSupportStage()
-    def stage = new Stage<>(new Pipeline("orca"), "test", [regions: ["us-east-1", "us-west-1", "us-west-2", "eu-west-2"]])
+    def stage = new Stage(Execution.newPipeline("orca"), "test", [regions: ["us-east-1", "us-west-1", "us-west-2", "eu-west-2"]])
     supportStage.targetReferenceSupport = targetReferenceSupport
 
     when:
@@ -76,7 +76,7 @@ class TargetReferenceLinearStageSupportSpec extends Specification {
     given:
     def targetReferenceSupport = Mock(TargetReferenceSupport)
     def supportStage = new TargetReferenceLinearStageSupportStage()
-    def stage = new Stage<>(new Pipeline("orca"), "test", [:])
+    def stage = new Stage(Execution.newPipeline("orca"), "test", [:])
     supportStage.targetReferenceSupport = targetReferenceSupport
 
     when:
@@ -101,7 +101,7 @@ class TargetReferenceLinearStageSupportSpec extends Specification {
     given:
     def targetReferenceSupport = Mock(TargetReferenceSupport)
     def supportStage = new TargetReferenceLinearStageSupportStage()
-    def stage = new Stage<>(new Pipeline("orca"), "test", [:])
+    def stage = new Stage(Execution.newPipeline("orca"), "test", [:])
     supportStage.targetReferenceSupport = targetReferenceSupport
 
     when:
@@ -117,7 +117,7 @@ class TargetReferenceLinearStageSupportSpec extends Specification {
     given:
     def targetReferenceSupport = Mock(TargetReferenceSupport)
     def supportStage = new TargetReferenceLinearStageSupportStage()
-    def stage = new Stage<>(new Pipeline("orca"), "test", [:])
+    def stage = new Stage(Execution.newPipeline("orca"), "test", [:])
     supportStage.targetReferenceSupport = targetReferenceSupport
 
     stage.execution.trigger.parameters = [

@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.orca.q.handler
 
-import com.netflix.spinnaker.orca.ExecutionStatus.PAUSED
 import com.netflix.spinnaker.orca.ExecutionStatus.CANCELED
+import com.netflix.spinnaker.orca.ExecutionStatus.PAUSED
 import com.netflix.spinnaker.orca.events.ExecutionComplete
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.q.*
@@ -34,13 +34,13 @@ class CancelExecutionHandler(
 
   override fun handle(message: CancelExecution) {
     message.withExecution { execution ->
-      repository.cancel(execution.getId(), message.user, message.reason)
+      repository.cancel(execution.id, message.user, message.reason)
 
       // Resume any paused stages so that their RunTaskHandler gets executed
       // and handles the `canceled` flag.
       execution
-        .getStages()
-        .filter { it.getStatus() == PAUSED }
+        .stages
+        .filter { it.status == PAUSED }
         .forEach { stage ->
           queue.push(ResumeStage(stage))
         }

@@ -24,6 +24,6 @@ interface StageBuilderAware {
 
   val stageDefinitionBuilderFactory: StageDefinitionBuilderFactory
 
-  fun Stage<*>.builder(): StageDefinitionBuilder =
+  fun Stage.builder(): StageDefinitionBuilder =
     stageDefinitionBuilderFactory.builderFor(this)
 }

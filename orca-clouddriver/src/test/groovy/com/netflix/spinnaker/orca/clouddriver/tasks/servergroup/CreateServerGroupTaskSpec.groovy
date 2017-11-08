@@ -22,7 +22,7 @@ import com.netflix.spinnaker.orca.clouddriver.model.TaskId
 import com.netflix.spinnaker.orca.clouddriver.tasks.providers.aws.AmazonServerGroupCreator
 import com.netflix.spinnaker.orca.clouddriver.tasks.providers.gce.GoogleServerGroupCreator
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import rx.Observable
 import spock.lang.Shared
@@ -68,7 +68,7 @@ class CreateServerGroupTaskSpec extends Specification {
     given:
     KatoService katoService = Mock(KatoService)
     def task = new CreateServerGroupTask(kato: katoService, serverGroupCreators: [aCreator, bCreator, cCreator])
-    def stage = new Stage<>(new Pipeline("orca"), "whatever", [credentials: "abc", cloudProvider: cloudProvider])
+    def stage = new Stage(Execution.newPipeline("orca"), "whatever", [credentials: "abc", cloudProvider: cloudProvider])
 
     when:
     def result = task.execute(stage)
@@ -96,7 +96,7 @@ class CreateServerGroupTaskSpec extends Specification {
     KatoService katoService = Mock(KatoService)
     MortService mortService = Mock(MortService)
     def deployRegion = "us-east-1"
-    def pipeline = new Pipeline("orca")
+    def pipeline = Execution.newPipeline("orca")
 
     def bakeStage1 = buildStageForPipeline(pipeline, "bake")
 
@@ -585,14 +585,14 @@ class CreateServerGroupTaskSpec extends Specification {
 
   private def buildStageForPipeline(
     def pipeline, String stageType, def context = [:]) {
-    def stage = new Stage<>(pipeline, stageType, context)
+    def stage = new Stage(pipeline, stageType, context)
 
     pipeline.stages << stage
 
     return stage
   }
 
-  private void makeDependentOn(Stage<Pipeline> dependent, Stage<Pipeline> dependency) {
+  private void makeDependentOn(Stage dependent, Stage dependency) {
     if (!dependency.refId) {
       dependency.refId = UUID.randomUUID()
     }
@@ -600,7 +600,7 @@ class CreateServerGroupTaskSpec extends Specification {
     dependent.requisiteStageRefIds = [dependency.refId]
   }
 
-  private void makeChildOf(Stage<Pipeline> child, Stage<Pipeline> parent) {
+  private void makeChildOf(Stage child, Stage parent) {
     child.parentStageId = parent.id
   }
 

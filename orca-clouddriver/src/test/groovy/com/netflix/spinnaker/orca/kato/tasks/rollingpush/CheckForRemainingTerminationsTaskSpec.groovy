@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.orca.kato.tasks.rollingpush
 
 import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.pipeline.model.Orchestration
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import spock.lang.Specification
 
@@ -29,7 +29,7 @@ class CheckForRemainingTerminationsTaskSpec extends Specification {
     def context = [
       terminationInstanceIds: terminationInstanceIds
     ]
-    def stage = new Stage<>(new Orchestration("orca"), 'check', context)
+    def stage = new Stage(Execution.newOrchestration("orca"), 'check', context)
 
 
     when:

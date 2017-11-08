@@ -23,8 +23,8 @@ import com.netflix.spinnaker.orca.events.StageStarted
 import com.netflix.spinnaker.orca.exceptions.ExceptionHandler
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilderFactory
 import com.netflix.spinnaker.orca.pipeline.expressions.PipelineExpressionEvaluator
+import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
 import com.netflix.spinnaker.orca.pipeline.model.OptionalStageSupport
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
@@ -57,11 +57,11 @@ class StartStageHandler(
     message.withStage { stage ->
       if (stage.anyUpstreamStagesFailed()) {
         // this only happens in restart scenarios
-        log.warn("Tried to start stage ${stage.getId()} but something upstream had failed (executionId: ${message.executionId})")
+        log.warn("Tried to start stage ${stage.id} but something upstream had failed (executionId: ${message.executionId})")
         queue.push(CompleteExecution(message))
       } else if (stage.allUpstreamStagesComplete()) {
-        if (stage.getStatus() != NOT_STARTED) {
-          log.warn("Ignoring $message as stage is already ${stage.getStatus()}")
+        if (stage.status != NOT_STARTED) {
+          log.warn("Ignoring $message as stage is already ${stage.status}")
         } else if (stage.shouldSkip()) {
           queue.push(SkipStage(message))
         } else {
@@ -70,24 +70,24 @@ class StartStageHandler(
               stage.plan()
             }
 
-            stage.setStatus(RUNNING)
-            stage.setStartTime(clock.millis())
+            stage.status = RUNNING
+            stage.startTime = clock.millis()
             repository.storeStage(stage)
 
             stage.start()
 
             publisher.publishEvent(StageStarted(this, stage))
           } catch(e: Exception) {
-            val exceptionDetails = exceptionHandlers.shouldRetry(e, stage.getName())
-            if (exceptionDetails?.shouldRetry ?: false) {
+            val exceptionDetails = exceptionHandlers.shouldRetry(e, stage.name)
+            if (exceptionDetails?.shouldRetry == true) {
               val attempts = message.getAttribute<AttemptsAttribute>()?.attempts ?: 0
-              log.warn("Error planning ${stage.getType()} stage for ${message.executionType.simpleName}[${message.executionId}] (attempts: $attempts)")
+              log.warn("Error planning ${stage.type} stage for ${message.executionType}[${message.executionId}] (attempts: $attempts)")
 
               message.setAttribute(MaxAttemptsAttribute(40))
               queue.push(message, retryDelay)
             } else {
-              log.error("Error running ${stage.getType()} stage for ${message.executionType.simpleName}[${message.executionId}]", e)
-              stage.getContext()["exception"] = exceptionDetails
+              log.error("Error running ${stage.type} stage for ${message.executionType}[${message.executionId}]", e)
+              stage.context["exception"] = exceptionDetails
               repository.storeStage(stage)
               queue.push(CompleteStage(message))
             }
@@ -102,16 +102,16 @@ class StartStageHandler(
 
   override val messageType = StartStage::class.java
 
-  private fun Stage<*>.plan() {
+  private fun Stage.plan() {
     builder().let { builder ->
       builder.buildTasks(this)
-      builder.buildSyntheticStages(this) { it: Stage<*> ->
+      builder.buildSyntheticStages(this) { it: Stage ->
         repository.addStage(it)
       }
     }
   }
 
-  private fun Stage<*>.start() {
+  private fun Stage.start() {
     val beforeStages = firstBeforeStages()
     if (beforeStages.isEmpty()) {
       val task = firstTask()
@@ -134,15 +134,15 @@ class StartStageHandler(
     }
   }
 
-  private fun Stage<*>.shouldSkip(): Boolean {
-    if (this.getExecution() !is Pipeline) {
+  private fun Stage.shouldSkip(): Boolean {
+    if (this.execution.type != PIPELINE) {
       return false
     }
 
-    val clonedContext = objectMapper.convertValue(this.getContext(), Map::class.java) as Map<String, Any>
-    val clonedStage = Stage<Pipeline>(this.getExecution() as Pipeline, this.getType(), clonedContext)
+    val clonedContext = objectMapper.convertValue(this.context, Map::class.java) as Map<String, Any>
+    val clonedStage = Stage(this.execution, this.type, clonedContext)
     if (clonedStage.context.containsKey(PipelineExpressionEvaluator.SUMMARY)) {
-      this.getContext().put(PipelineExpressionEvaluator.SUMMARY, clonedStage.context[PipelineExpressionEvaluator.SUMMARY])
+      this.context.put(PipelineExpressionEvaluator.SUMMARY, clonedStage.context[PipelineExpressionEvaluator.SUMMARY])
     }
 
     return OptionalStageSupport.isOptional(clonedStage.withMergedContext(), contextParameterProcessor)

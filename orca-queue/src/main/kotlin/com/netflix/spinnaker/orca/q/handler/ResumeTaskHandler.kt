@@ -37,7 +37,7 @@ class ResumeTaskHandler(
   override fun handle(message: ResumeTask) {
     message.withStage { stage ->
       stage
-        .getTasks()
+        .tasks
         .filter { it.status == PAUSED }
         .forEach {
           it.status = RUNNING

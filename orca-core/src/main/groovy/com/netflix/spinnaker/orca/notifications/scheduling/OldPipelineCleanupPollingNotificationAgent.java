@@ -15,11 +15,18 @@
  */
 package com.netflix.spinnaker.orca.notifications.scheduling;
 
+import java.time.Clock;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import javax.annotation.PreDestroy;
 import com.netflix.appinfo.InstanceInfo.InstanceStatus;
 import com.netflix.spinnaker.kork.eureka.RemoteStatusChangedEvent;
 import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.pipeline.model.Execution;
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,19 +44,7 @@ import rx.Scheduler;
 import rx.Subscription;
 import rx.functions.Func1;
 import rx.schedulers.Schedulers;
-
-import javax.annotation.PreDestroy;
-import java.time.Clock;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
-import java.util.stream.Collectors;
+import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE;
 
 @Component
 @ConditionalOnExpression("${pollers.oldPipelineCleanup.enabled:false}")
@@ -73,7 +68,7 @@ public class OldPipelineCleanupPollingNotificationAgent implements ApplicationLi
     }
   };
 
-  private Func1<Pipeline, PipelineExecutionDetails> mapper = execution -> new PipelineExecutionDetails(
+  private Func1<Execution, PipelineExecutionDetails> mapper = execution -> new PipelineExecutionDetails(
     execution.getId(),
     execution.getApplication(),
     execution.getPipelineConfigId() == null ? "ungrouped" : execution.getPipelineConfigId(),
@@ -162,7 +157,7 @@ public class OldPipelineCleanupPollingNotificationAgent implements ApplicationLi
     }
   }
 
-  private void cleanupApp(Observable<Pipeline> observable) {
+  private void cleanupApp(Observable<Execution> observable) {
     List<PipelineExecutionDetails> allPipelines = observable.filter(filter).map(mapper).toList().toBlocking().single();
 
     Map<String, List<PipelineExecutionDetails>> groupedPipelines = new HashMap<>();
@@ -187,7 +182,7 @@ public class OldPipelineCleanupPollingNotificationAgent implements ApplicationLi
       long days = ChronoUnit.DAYS.between(Instant.ofEpochMilli(startTime), Instant.ofEpochMilli(clock.millis()));
       if (days > thresholdDays && !hasEntityTags(p.id)) {
         log.info("Deleting pipeline execution " + p.id + ": " + p.toString());
-        executionRepository.deletePipeline(p.id);
+        executionRepository.delete(PIPELINE, p.id);
       }
     });
   }

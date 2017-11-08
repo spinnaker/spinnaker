@@ -28,7 +28,6 @@ import com.netflix.spinnaker.orca.kato.pipeline.RollingPushStage
 import com.netflix.spinnaker.orca.kato.pipeline.support.SourceResolver
 import com.netflix.spinnaker.orca.kato.pipeline.support.StageData
 import com.netflix.spinnaker.orca.pipeline.TaskNode
-import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner
 import groovy.transform.CompileDynamic
@@ -81,7 +80,7 @@ abstract class DeployStrategyStage extends AbstractCloudProviderAwareStage {
   }
 
   @Override
-  <T extends Execution<T>> void taskGraph(Stage<T> stage, TaskNode.Builder builder) {
+  void taskGraph(Stage stage, TaskNode.Builder builder) {
     correctContext(stage)
     def strategy = strategy(stage)
 
@@ -95,7 +94,7 @@ abstract class DeployStrategyStage extends AbstractCloudProviderAwareStage {
   }
 
   @Override
-  <T extends Execution<T>> List<Stage<T>> aroundStages(Stage<T> stage) {
+  List<Stage> aroundStages(Stage stage) {
     correctContext(stage)
     def strategy = strategy(stage)
     return strategy.composeFlow(this, stage)
@@ -116,7 +115,7 @@ abstract class DeployStrategyStage extends AbstractCloudProviderAwareStage {
 
   @VisibleForTesting
   @CompileDynamic
-  protected <T extends Execution<T>> List<Stage<T>> composeRedBlackFlow(Stage<T> stage) {
+  protected List<Stage> composeRedBlackFlow(Stage stage) {
     def stages = []
     def stageData = stage.mapTo(StageData)
     def cleanupConfig = determineClusterForCleanup(stage)
@@ -168,7 +167,7 @@ abstract class DeployStrategyStage extends AbstractCloudProviderAwareStage {
     return stages
   }
 
-  protected <T extends Execution<T>> List<Stage<T>> composeRollingPushFlow(Stage<T> stage) {
+  protected List<Stage> composeRollingPushFlow(Stage stage) {
     def stages = []
     def source = sourceResolver.getSource(stage)
 
@@ -211,7 +210,7 @@ abstract class DeployStrategyStage extends AbstractCloudProviderAwareStage {
     return stages
   }
 
-  protected <T extends Execution<T>> List<Stage<T>> composeCustomFlow(Stage stage) {
+  protected List<Stage> composeCustomFlow(Stage stage) {
     def stages = []
     def cleanupConfig = determineClusterForCleanup(stage)
 
@@ -250,7 +249,7 @@ abstract class DeployStrategyStage extends AbstractCloudProviderAwareStage {
   }
 
   @CompileDynamic
-  protected <T extends Execution<T>> List<Stage<T>> composeHighlanderFlow(Stage stage) {
+  protected List<Stage> composeHighlanderFlow(Stage stage) {
     def cleanupConfig = determineClusterForCleanup(stage)
     Map shrinkContext = [
       regions              : [cleanupConfig.region],

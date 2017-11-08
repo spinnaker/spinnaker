@@ -27,7 +27,7 @@ import spock.lang.Subject
 
 class ResizeAsgTaskSpec extends Specification {
   @Subject task = new ResizeAsgTask()
-  def stage = new Stage<>(type: "pipeline")
+  def stage = new Stage(type: "pipeline")
   def taskId = new TaskId(UUID.randomUUID().toString())
 
   def resizeASGConfig = [

@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.orca.pipeline
 
 import java.text.SimpleDateFormat
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -197,7 +197,7 @@ class RestrictExecutionDuringTimeWindowSpec extends Specification {
   private Stage stage(List<Map> windows) {
     Map restrictedExecutionWindow = [whitelist: windows]
     Map context = [restrictedExecutionWindow: restrictedExecutionWindow]
-    Pipeline pipeline = new Pipeline("orca")
-    return new Stage<>(pipeline, "testRestrictExecution", context)
+    def pipeline = Execution.newPipeline("orca")
+    return new Stage(pipeline, "testRestrictExecution", context)
   }
 }

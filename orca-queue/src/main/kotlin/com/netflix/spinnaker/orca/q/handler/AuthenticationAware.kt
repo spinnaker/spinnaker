@@ -18,7 +18,6 @@ package com.netflix.spinnaker.orca.q.handler
 
 import com.netflix.spinnaker.orca.AuthenticatedStage
 import com.netflix.spinnaker.orca.ExecutionContext
-import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
 import com.netflix.spinnaker.security.AuthenticatedRequest
@@ -28,25 +27,24 @@ interface AuthenticationAware {
 
   val stageNavigator: StageNavigator
 
-  fun Stage<out Execution<*>>.withAuth(block: () -> Unit) {
+  fun Stage.withAuth(block: () -> Unit) {
     val authenticatedUser = stageNavigator
       .ancestors(this)
-      .filter { it.stageBuilder is AuthenticatedStage }
-      .firstOrNull()
+      .firstOrNull { it.stageBuilder is AuthenticatedStage }
       ?.let { (it.stageBuilder as AuthenticatedStage).authenticatedUser(it.stage).orElse(null) }
 
     val currentUser = authenticatedUser ?: User().apply {
-      email = getExecution().getAuthentication()?.user
-      allowedAccounts = getExecution().getAuthentication()?.allowedAccounts
+      email = execution.authentication?.user
+      allowedAccounts = execution.authentication?.allowedAccounts
     }
 
     try {
       ExecutionContext.set(ExecutionContext(
-        getExecution().getApplication(),
+        execution.application,
         currentUser.username,
-        getExecution().javaClass.simpleName.toLowerCase(),
-        getExecution().getId(),
-        getExecution().getOrigin()
+        execution.javaClass.simpleName.toLowerCase(),
+        execution.id,
+        execution.origin
       ))
       AuthenticatedRequest.propagate(block, false, currentUser).call()
     } finally {

@@ -27,7 +27,6 @@ import com.netflix.spinnaker.orca.clouddriver.tasks.providers.aws.scalingprocess
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCacheForceRefreshTask
 import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
 import com.netflix.spinnaker.orca.pipeline.TaskNode
-import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
@@ -42,7 +41,7 @@ class ModifyAwsScalingProcessStage extends TargetServerGroupLinearStageSupport {
   }
 
   @Override
-  <T extends Execution<T>> void taskGraph(Stage<T> stage, TaskNode.Builder builder) {
+  void taskGraph(Stage stage, TaskNode.Builder builder) {
     def data = stage.mapTo(StageData)
     switch (data.action) {
       case StageAction.suspend:

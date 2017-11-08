@@ -24,17 +24,17 @@ object TotalThrottleTimeAttributeSpec : Spek({
 
   describe("defaults to zero") {
     val attr = TotalThrottleTimeAttribute()
-    Assert.assertEquals(0, attr.totalThrottleTimeMs);
+    Assert.assertEquals(0, attr.totalThrottleTimeMs)
   }
 
   describe("uses default") {
     val attr = TotalThrottleTimeAttribute(3)
-    Assert.assertEquals(3, attr.totalThrottleTimeMs);
+    Assert.assertEquals(3, attr.totalThrottleTimeMs)
   }
 
   describe("add is additive") {
     val attr = TotalThrottleTimeAttribute(4)
     attr.add(5)
-    Assert.assertEquals(9, attr.totalThrottleTimeMs);
+    Assert.assertEquals(9, attr.totalThrottleTimeMs)
   }
 })

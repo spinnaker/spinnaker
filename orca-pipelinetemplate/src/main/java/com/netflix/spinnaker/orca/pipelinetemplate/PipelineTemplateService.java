@@ -15,7 +15,10 @@
  */
 package com.netflix.spinnaker.orca.pipelinetemplate;
 
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline;
+import java.util.List;
+import java.util.NoSuchElementException;
+import javax.annotation.Nullable;
+import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 import com.netflix.spinnaker.orca.pipelinetemplate.loader.TemplateLoader;
@@ -27,10 +30,7 @@ import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.Renderer;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import javax.annotation.Nullable;
-import java.util.List;
-import java.util.NoSuchElementException;
+import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE;
 
 @Component
 public class PipelineTemplateService {
@@ -51,7 +51,7 @@ public class PipelineTemplateService {
   public PipelineTemplate resolveTemplate(TemplateSource templateSource, @Nullable String executionId, @Nullable String pipelineConfigId) {
     if (containsJinja(templateSource.getSource()) && !(executionId == null && pipelineConfigId == null)) {
       try {
-        Pipeline pipeline = retrievePipelineOrNewestExecution(executionId, pipelineConfigId);
+        Execution pipeline = retrievePipelineOrNewestExecution(executionId, pipelineConfigId);
         String renderedSource = render(templateSource.getSource(), pipeline);
         if (StringUtils.isNotBlank(renderedSource)) {
           templateSource.setSource(renderedSource);
@@ -73,10 +73,10 @@ public class PipelineTemplateService {
    * @throws IllegalArgumentException if neither executionId or pipelineConfigId are provided
    * @throws ExecutionNotFoundException if no execution could be found
    */
-  public Pipeline retrievePipelineOrNewestExecution(@Nullable String executionId, @Nullable String pipelineConfigId) throws ExecutionNotFoundException {
+  public Execution retrievePipelineOrNewestExecution(@Nullable String executionId, @Nullable String pipelineConfigId) throws ExecutionNotFoundException {
     if (executionId != null) {
       // Use an explicit execution
-      return executionRepository.retrievePipeline(executionId);
+      return executionRepository.retrieve(PIPELINE, executionId);
     } else if (pipelineConfigId != null) {
       // No executionId set - use last execution
       ExecutionRepository.ExecutionCriteria criteria = new ExecutionRepository.ExecutionCriteria().setLimit(1);
@@ -94,7 +94,7 @@ public class PipelineTemplateService {
     }
   }
 
-  private String render(String templateString, Pipeline pipeline) {
+  private String render(String templateString, Execution pipeline) {
     DefaultRenderContext rc = new DefaultRenderContext(pipeline.getApplication(), null, pipeline.getTrigger());
     return renderer.render(templateString, rc);
   }

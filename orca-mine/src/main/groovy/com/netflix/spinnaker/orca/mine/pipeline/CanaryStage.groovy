@@ -16,17 +16,15 @@
 
 package com.netflix.spinnaker.orca.mine.pipeline
 
-import com.netflix.spinnaker.orca.CancellableStage.Result
-import com.netflix.spinnaker.orca.RetrySupport
-import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.DestroyServerGroupTask
-import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
-import com.netflix.spinnaker.orca.clouddriver.KatoService
-
 import java.util.concurrent.TimeUnit
 import com.netflix.frigga.autoscaling.AutoScalingGroupNameBuilder
 import com.netflix.spinnaker.orca.CancellableStage
+import com.netflix.spinnaker.orca.CancellableStage.Result
+import com.netflix.spinnaker.orca.RetrySupport
+import com.netflix.spinnaker.orca.clouddriver.KatoService
+import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.DestroyServerGroupTask
+import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
-import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner
 import groovy.util.logging.Slf4j
@@ -46,7 +44,7 @@ class CanaryStage implements StageDefinitionBuilder, CancellableStage {
   @Autowired RetrySupport retrySupport
 
   @Override
-  def <T extends Execution<T>> List<Stage<T>> aroundStages(Stage<T> stage) {
+  def List<Stage> aroundStages(Stage stage) {
     Map canaryStageId = [
       canaryStageId: stage.id,
       failPipeline: stage.context.failPipeline,
@@ -134,7 +132,7 @@ class CanaryStage implements StageDefinitionBuilder, CancellableStage {
     }
 
     def destroyResults = destroyContexts.collect {
-      def destroyStage = new Stage<>()
+      def destroyStage = new Stage()
       destroyStage.execution = stage.execution
       destroyStage.context.putAll(it)
       destroyServerGroupTask.execute(destroyStage)

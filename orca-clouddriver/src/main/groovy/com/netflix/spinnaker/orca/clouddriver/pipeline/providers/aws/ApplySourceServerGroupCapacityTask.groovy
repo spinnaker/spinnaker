@@ -30,6 +30,7 @@ import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import static com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder.getType
+import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
 
 @Slf4j
 @Component
@@ -133,7 +134,7 @@ class ApplySourceServerGroupCapacityTask extends AbstractServerGroupTask {
       def pipelineStage = stage.execution.stages.find {
         it.type == "pipeline" && it.parentStageId == deployStage.id
       }
-      def pipeline = executionRepository.retrievePipeline(pipelineStage.context.executionId as String)
+      def pipeline = executionRepository.retrieve(PIPELINE, pipelineStage.context.executionId as String)
       deployStage = pipeline.stages.find {
         it.context.type == "createServerGroup" && it.context.containsKey("deploy.server.groups")
       }

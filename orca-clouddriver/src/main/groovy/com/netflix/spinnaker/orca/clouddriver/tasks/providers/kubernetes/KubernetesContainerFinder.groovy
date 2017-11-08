@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.kubernetes
 
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
 
 class KubernetesContainerFinder {
   static Map parseContainerPartsFrom(String containerName) {
@@ -81,8 +81,8 @@ class KubernetesContainerFinder {
       }
 
       if (container.imageDescription.fromTrigger) {
-        if (stage.execution instanceof Pipeline) {
-          Map trigger = ((Pipeline) stage.execution).trigger
+        if (stage.execution.type == PIPELINE) {
+          Map trigger = stage.execution.trigger
 
           if (trigger?.account == container.imageDescription.account && trigger?.repository == container.imageDescription.repository) {
             container.imageDescription.tag = trigger.tag

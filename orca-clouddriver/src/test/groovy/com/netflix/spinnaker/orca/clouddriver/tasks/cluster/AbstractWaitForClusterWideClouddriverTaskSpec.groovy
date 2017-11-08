@@ -20,7 +20,7 @@ import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup
 import com.netflix.spinnaker.orca.clouddriver.tasks.cluster.AbstractWaitForClusterWideClouddriverTask.DeployServerGroup
 import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import spock.lang.Specification
 import spock.lang.Subject
@@ -124,6 +124,6 @@ class AbstractWaitForClusterWideClouddriverTaskSpec extends Specification {
       cloudProvider: cloudProvider,
       regions: [region]
     ]
-    new Stage<>(new Pipeline("orca"), 'shrinkCluster', base + context)
+    new Stage(Execution.newPipeline("orca"), 'shrinkCluster', base + context)
   }
 }

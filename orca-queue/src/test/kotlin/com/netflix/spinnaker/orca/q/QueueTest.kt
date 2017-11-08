@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.orca.q
 
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
 import com.netflix.spinnaker.orca.q.Queue.Companion.maxRetries
 import com.netflix.spinnaker.orca.time.MutableClock
 import com.netflix.spinnaker.spek.and
@@ -72,7 +72,7 @@ abstract class QueueTest<out Q : Queue>(
     }
 
     given("there is a single message") {
-      val message = StartExecution(Pipeline::class.java, "1", "foo")
+      val message = StartExecution(PIPELINE, "1", "foo")
 
       beforeGroup {
         queue = createQueue(clock, deadLetterCallback)
@@ -92,8 +92,8 @@ abstract class QueueTest<out Q : Queue>(
     }
 
     given("there are multiple messages") {
-      val message1 = StartExecution(Pipeline::class.java, "1", "foo")
-      val message2 = StartExecution(Pipeline::class.java, "2", "foo")
+      val message1 = StartExecution(PIPELINE, "1", "foo")
+      val message2 = StartExecution(PIPELINE, "2", "foo")
 
       beforeGroup {
         queue = createQueue(clock, deadLetterCallback).apply {
@@ -123,7 +123,7 @@ abstract class QueueTest<out Q : Queue>(
       val delay = Duration.ofHours(1)
 
       and("its delay has not expired") {
-        val message = StartExecution(Pipeline::class.java, "1", "foo")
+        val message = StartExecution(PIPELINE, "1", "foo")
 
         beforeGroup {
           queue = createQueue(clock, deadLetterCallback)
@@ -143,7 +143,7 @@ abstract class QueueTest<out Q : Queue>(
       }
 
       and("its delay has expired") {
-        val message = StartExecution(Pipeline::class.java, "1", "foo")
+        val message = StartExecution(PIPELINE, "1", "foo")
 
         beforeGroup {
           queue = createQueue(clock, deadLetterCallback)
@@ -167,7 +167,7 @@ abstract class QueueTest<out Q : Queue>(
 
   describe("message redelivery") {
     given("a message was acknowledged") {
-      val message = StartExecution(Pipeline::class.java, "1", "foo")
+      val message = StartExecution(PIPELINE, "1", "foo")
 
       beforeGroup {
         queue = createQueue(clock, deadLetterCallback)
@@ -196,7 +196,7 @@ abstract class QueueTest<out Q : Queue>(
     }
 
     given("a message was not acknowledged") {
-      val message = StartExecution(Pipeline::class.java, "1", "foo")
+      val message = StartExecution(PIPELINE, "1", "foo")
 
       beforeGroup {
         queue = createQueue(clock, deadLetterCallback)
@@ -223,7 +223,7 @@ abstract class QueueTest<out Q : Queue>(
     }
 
     given("a message was not acknowledged more than once") {
-      val message = StartExecution(Pipeline::class.java, "1", "foo")
+      val message = StartExecution(PIPELINE, "1", "foo")
 
       beforeGroup {
         queue = createQueue(clock, deadLetterCallback)
@@ -252,7 +252,7 @@ abstract class QueueTest<out Q : Queue>(
     }
 
     given("a message was not acknowledged more than $maxRetries times") {
-      val message = StartExecution(Pipeline::class.java, "1", "foo")
+      val message = StartExecution(PIPELINE, "1", "foo")
 
       beforeGroup {
         queue = createQueue(clock, deadLetterCallback)
@@ -304,7 +304,7 @@ abstract class QueueTest<out Q : Queue>(
 
   describe("message hashing") {
     given("a message was pushed") {
-      val message = StartExecution(Pipeline::class.java, "1", "foo")
+      val message = StartExecution(PIPELINE, "1", "foo")
 
       and("a duplicate is pushed with a newer delivery time") {
         val delay = Hours.of(1)
@@ -361,7 +361,7 @@ abstract class QueueTest<out Q : Queue>(
       }
 
       and("the delivery time for a message that isn't on the queue isn't updated") {
-        val message2 = StartExecution(Pipeline::class.java, "2", "bar")
+        val message2 = StartExecution(PIPELINE, "2", "bar")
 
         beforeGroup {
           queue = createQueue(clock, deadLetterCallback).apply {

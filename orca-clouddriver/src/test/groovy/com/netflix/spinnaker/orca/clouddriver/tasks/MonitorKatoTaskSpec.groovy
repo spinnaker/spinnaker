@@ -24,7 +24,7 @@ import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.clouddriver.model.Task
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import retrofit.RetrofitError
 import retrofit.client.Response
@@ -47,7 +47,7 @@ class MonitorKatoTaskSpec extends Specification {
     }
 
     and:
-    def stage = new Stage<>(new Pipeline("orca"), "whatever", [
+    def stage = new Stage(Execution.newPipeline("orca"), "whatever", [
       "kato.last.task.id": new TaskId(taskId)
     ])
 
@@ -72,7 +72,7 @@ class MonitorKatoTaskSpec extends Specification {
     }
 
     and:
-    def stage = new Stage<>(new Pipeline("orca"), "whatever", [
+    def stage = new Stage(Execution.newPipeline("orca"), "whatever", [
         "kato.last.task.id": new TaskId(taskId),
         "kato.result.expected": katoResultExpected,
         "deploy.server.groups": [:]
@@ -96,7 +96,7 @@ class MonitorKatoTaskSpec extends Specification {
   @Unroll
   def "should automatically succeed if task id does not exist"() {
     given:
-    def stage = new Stage<>(new Pipeline("orca"), "whatever", context)
+    def stage = new Stage(Execution.newPipeline("orca"), "whatever", context)
 
     when:
     def result = task.execute(stage)
@@ -125,7 +125,7 @@ class MonitorKatoTaskSpec extends Specification {
         ctx.put('kato.task.firstNotFoundRetry', previousRetryFlag)
       }
     }
-    def stage = new Stage<>(new Pipeline("orca"), "whatever", ctx)
+    def stage = new Stage(Execution.newPipeline("orca"), "whatever", ctx)
     task.kato = Stub(KatoService) {
       lookupTask(taskId) >> { retrofit404() }
     }
@@ -152,7 +152,7 @@ class MonitorKatoTaskSpec extends Specification {
       "kato.last.task.id": new TaskId(taskId)
     ]
     ctx.put('kato.task.firstNotFoundRetry', now.minusMillis(elapsed).toEpochMilli())
-    def stage = new Stage<>(new Pipeline("orca"), "whatever", ctx)
+    def stage = new Stage(Execution.newPipeline("orca"), "whatever", ctx)
     task.kato = Stub(KatoService) {
       lookupTask(taskId) >> { retrofit404() }
     }

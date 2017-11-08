@@ -35,9 +35,9 @@ class ResumeExecutionHandler(
   override fun handle(message: ResumeExecution) {
     message.withExecution { execution ->
       execution
-        .getStages()
-        .filter { it.getStatus() == PAUSED }
-        .forEach { queue.push(ResumeStage(message, it.getId())) }
+        .stages
+        .filter { it.status == PAUSED }
+        .forEach { queue.push(ResumeStage(message, it.id)) }
     }
   }
 }

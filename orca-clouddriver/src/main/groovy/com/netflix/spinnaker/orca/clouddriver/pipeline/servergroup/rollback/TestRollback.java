@@ -16,18 +16,14 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.rollback;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.EnableServerGroupStage;
-import com.netflix.spinnaker.orca.pipeline.WaitStage;
-import com.netflix.spinnaker.orca.pipeline.model.Execution;
-import com.netflix.spinnaker.orca.pipeline.model.Stage;
-import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner;
-import org.springframework.beans.factory.annotation.Autowired;
-
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.netflix.spinnaker.orca.pipeline.WaitStage;
+import com.netflix.spinnaker.orca.pipeline.model.Stage;
+import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner;
+import org.springframework.beans.factory.annotation.Autowired;
 import static com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder.newStage;
 
 public class TestRollback implements Rollback {
@@ -38,7 +34,7 @@ public class TestRollback implements Rollback {
   WaitStage waitStage;
 
   @Override
-  public <T extends Execution<T>> List<Stage<T>> buildStages(Stage<T> parentStage) {
+  public List<Stage> buildStages(Stage parentStage) {
     Map<String, Object> waitContext = Collections.singletonMap("waitTime", waitTime);
 
     return Collections.singletonList(

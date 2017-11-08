@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline.support
 
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -26,8 +26,8 @@ class StageDataSpec extends Specification {
   @Unroll
   void "should include freeFormDetails when building cluster name"() {
     given:
-      def stage = new Stage<>(
-        new Pipeline("orca"),
+      def stage = new Stage(
+        Execution.newPipeline("orca"),
           "whatever",
           [
               application    : application,
@@ -50,8 +50,8 @@ class StageDataSpec extends Specification {
   @Unroll
   void "stage data should favor account over credentials"() {
     given:
-      def stage = new Stage<>(
-        new Pipeline("orca"),
+      def stage = new Stage(
+        Execution.newPipeline("orca"),
           "whatever",
           [
               account    : account,

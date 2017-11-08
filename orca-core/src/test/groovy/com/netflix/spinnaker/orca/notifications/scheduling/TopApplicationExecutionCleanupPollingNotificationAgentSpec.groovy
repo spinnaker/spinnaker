@@ -27,6 +27,7 @@ import redis.clients.jedis.ScanResult
 import redis.clients.util.Pool
 import spock.lang.Specification
 import spock.lang.Unroll
+import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.ORCHESTRATION
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
 
@@ -92,7 +93,7 @@ class TopApplicationExecutionCleanupPollingNotificationAgentSpec extends Specifi
     agent.tick()
 
     then:
-    1 * agent.executionRepository.deleteOrchestration(orchestrations[0].id)
+    1 * agent.executionRepository.delete(ORCHESTRATION, orchestrations[0].id)
   }
 
   private

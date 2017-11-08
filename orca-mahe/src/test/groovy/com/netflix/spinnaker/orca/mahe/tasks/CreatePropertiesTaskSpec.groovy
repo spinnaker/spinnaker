@@ -20,7 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.mahe.MaheService
 import com.netflix.spinnaker.orca.mahe.pipeline.CreatePropertyStage
 import com.netflix.spinnaker.orca.mahe.pipeline.MonitorCreatePropertyStage
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.PipelineBuilder
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
@@ -42,7 +42,7 @@ class CreatePropertiesTaskSpec extends Specification {
 
   def "assemble the changed property list and original from the context"() {
     given:
-    def pipeline = new Pipeline('foo')
+    def pipeline = Execution.newPipeline('foo')
     def scope = createScope()
     def property = createProperty()
     def originalProperty = createProperty()
@@ -77,7 +77,7 @@ class CreatePropertiesTaskSpec extends Specification {
 
   def "adds original property to outputs if none present in stage context"() {
     given:
-    def pipeline = new Pipeline('foo')
+    def pipeline = Execution.newPipeline('foo')
     def scope = createScope()
     def property = createProperty()
     def originalProperty = createProperty()
@@ -177,7 +177,7 @@ class CreatePropertiesTaskSpec extends Specification {
   @Unroll("appIdList to appId:  #appIdList -> #expectedAppId")
   def "assemblePersistedPropertyListFromContext with one application in scope list"() {
     given:
-    def pipeline = new Pipeline('foo')
+    def pipeline = Execution.newPipeline('foo')
     def scope = createScope()
     def property = createProperty()
     scope.appIdList = appIdList
@@ -202,7 +202,7 @@ class CreatePropertiesTaskSpec extends Specification {
 
   def "assemble the changed property list if list is null for a new property"() {
     given:
-    def pipeline = new Pipeline('foo')
+    def pipeline = Execution.newPipeline('foo')
     def scope = createScope()
     def property = createProperty()
     def originalProperty = []
@@ -220,7 +220,7 @@ class CreatePropertiesTaskSpec extends Specification {
 
   def "create a single new persistent property"() {
     given:
-    def pipeline = new Pipeline('foo')
+    def pipeline = Execution.newPipeline('foo')
     def property = createProperty()
     def createPropertiesStage = createPropertiesStage(pipeline, createScope(), property, null)
     pipeline.stages.addAll([createPropertiesStage, createMonitorStage(pipeline)])
@@ -246,7 +246,7 @@ class CreatePropertiesTaskSpec extends Specification {
 
   def "successfully delete single persisted properties"() {
     given:
-    def pipeline = new Pipeline('foo')
+    def pipeline = Execution.newPipeline('foo')
     def scope = createScope()
     def propertyId = '123propertyId'
     def property = createProperty(propertyId)
@@ -272,7 +272,7 @@ class CreatePropertiesTaskSpec extends Specification {
 
   def "delete a persisted properties that doen't exist"() {
     given:
-    def pipeline = new Pipeline('foo')
+    def pipeline = Execution.newPipeline('foo')
     def scope = createScope()
     def propertyId = 'invalid_id'
     def property = createProperty(propertyId)
@@ -297,7 +297,7 @@ class CreatePropertiesTaskSpec extends Specification {
 
   def "create multiple new persistent properties"() {
     given:
-    def pipeline = new Pipeline('foo')
+    def pipeline = Execution.newPipeline('foo')
     def parentStageId = UUID.randomUUID().toString()
 
 
@@ -306,7 +306,7 @@ class CreatePropertiesTaskSpec extends Specification {
       [key: "foo1", value: 'baz']
     ]
 
-    def createPropertiesStage = new Stage<>(pipeline, CreatePropertyStage.PIPELINE_CONFIG_TYPE, [
+    def createPropertiesStage = new Stage(pipeline, CreatePropertyStage.PIPELINE_CONFIG_TYPE, [
       scope              : createScope(),
       persistedProperties: properties,
       email              : 'foo@netflix.com',
@@ -314,7 +314,7 @@ class CreatePropertiesTaskSpec extends Specification {
     ])
 
     createPropertiesStage.parentStageId = parentStageId
-    def monitorCreatePropertyStage = new Stage<>(pipeline, MonitorCreatePropertyStage.PIPELINE_CONFIG_TYPE)
+    def monitorCreatePropertyStage = new Stage(pipeline, MonitorCreatePropertyStage.PIPELINE_CONFIG_TYPE)
 
     pipeline.stages.addAll([createPropertiesStage, monitorCreatePropertyStage])
 
@@ -351,11 +351,11 @@ class CreatePropertiesTaskSpec extends Specification {
       email              : 'test@netflix.com',
       cmcTicket          : 'cmcTicket'
     ]
-    new Stage<>(pipeline, CreatePropertyStage.PIPELINE_CONFIG_TYPE, context)
+    new Stage(pipeline, CreatePropertyStage.PIPELINE_CONFIG_TYPE, context)
   }
 
   def createMonitorStage(pipeline) {
-    new Stage<>(pipeline, MonitorCreatePropertyStage.PIPELINE_CONFIG_TYPE)
+    new Stage(pipeline, MonitorCreatePropertyStage.PIPELINE_CONFIG_TYPE)
   }
 
   def createScope() {

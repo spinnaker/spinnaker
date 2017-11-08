@@ -20,26 +20,41 @@ import java.io.Serializable;
 import java.util.*;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.ImmutableSet;
 import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import com.netflix.spinnaker.security.User;
 import static com.netflix.spinnaker.orca.ExecutionStatus.NOT_STARTED;
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionEngine.v3;
+import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.ORCHESTRATION;
+import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptySet;
 
-public abstract class Execution<T extends Execution<T>> implements Serializable {
+public class Execution implements Serializable {
 
-  protected Execution(String application) {
-    this(UUID.randomUUID().toString(), application);
+  public Execution(ExecutionType type, String application) {
+    this(type, UUID.randomUUID().toString(), application);
   }
 
-  protected Execution(String id, String application) {
+  @JsonCreator
+  public Execution(
+    @JsonProperty("type") ExecutionType type,
+    @JsonProperty("id") String id,
+    @JsonProperty("application") String application) {
+    this.type = type;
     this.id = id;
     this.application = application;
+  }
+
+  private final ExecutionType type;
+
+  public @Nonnull ExecutionType getType() {
+    return type;
   }
 
   private String id;
@@ -143,10 +158,10 @@ public abstract class Execution<T extends Execution<T>> implements Serializable 
     this.context = context;
   }
 
-  private final List<Stage<T>> stages = new ArrayList<>();
+  private final List<Stage> stages = new ArrayList<>();
 
   @JsonManagedReference
-  public @Nonnull List<Stage<T>> getStages() {
+  public @Nonnull List<Stage> getStages() {
     return stages;
   }
 
@@ -227,8 +242,40 @@ public abstract class Execution<T extends Execution<T>> implements Serializable 
     return trigger;
   }
 
+  private String description;
+
+  public @Nullable String getDescription() {
+    return description;
+  }
+
+  public void setDescription(@Nullable String description) {
+    this.description = description;
+  }
+
+  private String pipelineConfigId;
+
+  public @Nullable String getPipelineConfigId() {
+    return pipelineConfigId;
+  }
+
+  public void setPipelineConfigId(@Nullable String pipelineConfigId) {
+    this.pipelineConfigId = pipelineConfigId;
+  }
+
+  private final List<Map<String, Object>> notifications = new ArrayList<>();
+
+  public @Nonnull List<Map<String, Object>> getNotifications() {
+    return notifications;
+  }
+
+  private final Map<String, Serializable> initialConfig = new HashMap<>();
+
+  public @Nonnull Map<String, Serializable> getInitialConfig() {
+    return initialConfig;
+  }
+
   @Nullable
-  public Stage<T> namedStage(String type) {
+  public Stage namedStage(String type) {
     return stages
       .stream()
       .filter(it -> it.getType().equals(type))
@@ -237,7 +284,7 @@ public abstract class Execution<T extends Execution<T>> implements Serializable 
   }
 
   @Nonnull
-  public Stage<T> stageById(String stageId) {
+  public Stage stageById(String stageId) {
     return stages
       .stream()
       .filter(it -> it.getId().equals(stageId))
@@ -246,7 +293,7 @@ public abstract class Execution<T extends Execution<T>> implements Serializable 
   }
 
   @Nonnull
-  public Stage<T> stageByRef(String refId) {
+  public Stage stageByRef(String refId) {
     return stages
       .stream()
       .filter(it -> it.getRefId().equals(refId))
@@ -259,7 +306,7 @@ public abstract class Execution<T extends Execution<T>> implements Serializable 
     if (o == null || getClass() != o.getClass()) return false;
     if (!super.equals(o)) return false;
 
-    Execution<?> execution = (Execution<?>) o;
+    Execution execution = (Execution) o;
 
     return id.equals(execution.id);
   }
@@ -268,6 +315,14 @@ public abstract class Execution<T extends Execution<T>> implements Serializable 
     int result = super.hashCode();
     result = 31 * result + id.hashCode();
     return result;
+  }
+
+  public static Execution newOrchestration(String application) {
+    return new Execution(ORCHESTRATION, application);
+  }
+
+  public static Execution newPipeline(String application) {
+    return new Execution(PIPELINE, application);
   }
 
   public static class AuthenticationDetails implements Serializable {
@@ -373,6 +428,14 @@ public abstract class Execution<T extends Execution<T>> implements Serializable 
     @JsonIgnore
     public long getPausedMs() {
       return (pauseTime != null && resumeTime != null) ? resumeTime - pauseTime : 0;
+    }
+  }
+
+  public enum ExecutionType {
+    PIPELINE, ORCHESTRATION;
+
+    @Override public String toString() {
+      return name().toLowerCase();
     }
   }
 

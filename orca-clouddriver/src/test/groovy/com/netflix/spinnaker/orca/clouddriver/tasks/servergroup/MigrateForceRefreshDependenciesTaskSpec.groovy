@@ -18,7 +18,7 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup
 
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverCacheService
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import spock.lang.Specification
 import spock.lang.Subject
@@ -27,7 +27,7 @@ class MigrateForceRefreshDependenciesTaskSpec extends Specification {
 
   @Subject
   def task = new MigrateForceRefreshDependenciesTask()
-  def stage = new Stage<>(new Pipeline("orca"), "refreshTask")
+  def stage = new Stage(Execution.newPipeline("orca"), "refreshTask")
   def taskId = new TaskId(UUID.randomUUID().toString())
 
   CloudDriverCacheService cacheService = Mock(CloudDriverCacheService)

@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.aws
 
 import com.google.common.collect.Maps
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import spock.lang.Specification
 import spock.lang.Subject
@@ -27,7 +27,7 @@ class AmazonServerGroupCreatorSpec extends Specification {
 
   @Subject
   def creator = new AmazonServerGroupCreator()
-  def stage = new Stage<>(new Pipeline("orca"), "whatever")
+  def stage = new Stage(Execution.newPipeline("orca"), "whatever")
 
   def deployConfig = [
       application      : "hodor",
@@ -205,12 +205,12 @@ class AmazonServerGroupCreatorSpec extends Specification {
 
     and:
     def findImageStage =
-      new Stage<>(stage.execution, "findImage", [regions: [deployRegion], amiDetails: [[ami: amiName]], cloudProvider: cloudProvider])
+      new Stage(stage.execution, "findImage", [regions: [deployRegion], amiDetails: [[ami: amiName]], cloudProvider: cloudProvider])
     findImageStage.id = UUID.randomUUID()
     findImageStage.refId = "1a"
     stage.execution.stages << findImageStage
 
-    def intermediateStage = new Stage<>(stage.execution, "whatever")
+    def intermediateStage = new Stage(stage.execution, "whatever")
     intermediateStage.id = UUID.randomUUID()
     intermediateStage.refId = "1b"
     stage.execution.stages << intermediateStage

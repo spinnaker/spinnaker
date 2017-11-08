@@ -16,13 +16,12 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.snapshot
 
-import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.snapshot.SaveSnapshotTask
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.TaskNode
-import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import groovy.transform.CompileStatic
 import org.springframework.stereotype.Component
 
 @Component
@@ -32,7 +31,7 @@ class SaveSnapshotStage implements StageDefinitionBuilder {
   public static final String PIPELINE_CONFIG_TYPE = "saveSnapshot"
 
   @Override
-  <T extends Execution<T>> void taskGraph(Stage<T> stage, TaskNode.Builder builder) {
+  void taskGraph(Stage stage, TaskNode.Builder builder) {
     builder
       .withTask("saveSnapshot", SaveSnapshotTask)
       .withTask("monitorSnapshot", MonitorKatoTask)

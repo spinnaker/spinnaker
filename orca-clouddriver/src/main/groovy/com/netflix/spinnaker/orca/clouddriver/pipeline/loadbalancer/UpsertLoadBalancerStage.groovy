@@ -22,7 +22,6 @@ import com.netflix.spinnaker.orca.clouddriver.tasks.loadbalancer.UpsertLoadBalan
 import com.netflix.spinnaker.orca.clouddriver.tasks.loadbalancer.UpsertLoadBalancerTask
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.TaskNode
-import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.CompileStatic
 import org.springframework.stereotype.Component
@@ -34,7 +33,7 @@ class UpsertLoadBalancerStage implements StageDefinitionBuilder {
   final String PIPELINE_CONFIG_TYPE = getType(UpsertLoadBalancerStage)
 
   @Override
-  <T extends Execution<T>> void taskGraph(Stage<T> stage, TaskNode.Builder builder) {
+  void taskGraph(Stage stage, TaskNode.Builder builder) {
       builder
         .withTask("upsertLoadBalancer", UpsertLoadBalancerTask)
         .withTask("monitorUpsert", MonitorKatoTask)

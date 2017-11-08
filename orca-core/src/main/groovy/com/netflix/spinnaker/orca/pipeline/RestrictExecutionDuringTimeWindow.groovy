@@ -21,7 +21,6 @@ import com.google.common.annotations.VisibleForTesting
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
-import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.Canonical
 import groovy.transform.CompileStatic
@@ -42,7 +41,7 @@ class RestrictExecutionDuringTimeWindow implements StageDefinitionBuilder {
   public static final String TYPE = "restrictExecutionDuringTimeWindow"
 
   @Override
-  def <T extends Execution<T>> void taskGraph(Stage<T> stage, TaskNode.Builder builder) {
+  void taskGraph(Stage stage, TaskNode.Builder builder) {
     builder.withTask("suspendExecutionDuringTimeWindow", SuspendExecutionDuringTimeWindowTask)
   }
 

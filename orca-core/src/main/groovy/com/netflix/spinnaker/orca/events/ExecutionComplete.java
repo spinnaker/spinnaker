@@ -18,14 +18,14 @@ package com.netflix.spinnaker.orca.events;
 
 import javax.annotation.Nonnull;
 import com.netflix.spinnaker.orca.ExecutionStatus;
-import com.netflix.spinnaker.orca.pipeline.model.Execution;
+import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType;
 
 public final class ExecutionComplete extends ExecutionEvent {
   private final ExecutionStatus status;
 
   public ExecutionComplete(
     @Nonnull Object source,
-    @Nonnull Class<? extends Execution<?>> executionType,
+    @Nonnull ExecutionType executionType,
     @Nonnull String executionId,
     @Nonnull ExecutionStatus status
   ) {

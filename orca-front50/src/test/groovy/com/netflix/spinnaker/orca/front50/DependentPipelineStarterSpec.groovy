@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.orca.front50
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.orca.pipeline.PipelineLauncher
+import com.netflix.spinnaker.orca.pipeline.ExecutionLauncher
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import com.netflix.spinnaker.security.AuthenticatedRequest
@@ -42,10 +42,10 @@ class DependentPipelineStarterSpec extends Specification {
       authentication = new Execution.AuthenticationDetails("parentUser", "acct1", "acct2")
     }
     def gotMDC = [:]
-    def executionLauncher = Stub(PipelineLauncher) {
+    def executionLauncher = Stub(ExecutionLauncher) {
       start(*_) >> {
         gotMDC.putAll(MDC.copyOfContextMap)
-        def p = mapper.readValue(it[0], Map)
+        def p = mapper.readValue(it[1], Map)
         return pipeline {
           name = p.name
           id = p.name
@@ -89,10 +89,10 @@ class DependentPipelineStarterSpec extends Specification {
       authentication = new Execution.AuthenticationDetails("parentUser", "acct1", "acct2")
     }
     def gotMDC = [:]
-    def executionLauncher = Stub(PipelineLauncher) {
+    def executionLauncher = Stub(ExecutionLauncher) {
       start(*_) >> {
         gotMDC.putAll(MDC.copyOfContextMap)
-        def p = mapper.readValue(it[0], Map)
+        def p = mapper.readValue(it[1], Map)
         return pipeline {
           name = p.name
           id = p.name

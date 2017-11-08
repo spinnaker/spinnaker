@@ -16,13 +16,12 @@
 
 package com.netflix.spinnaker.orca.listeners;
 
+import java.util.concurrent.TimeUnit;
 import com.netflix.spectator.api.Id;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.pipeline.model.Execution;
-import com.netflix.spinnaker.orca.pipeline.model.Orchestration;
-
-import java.util.concurrent.TimeUnit;
+import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.ORCHESTRATION;
 
 public class MetricsExecutionListener implements ExecutionListener {
   private final Registry registry;
@@ -50,8 +49,8 @@ public class MetricsExecutionListener implements ExecutionListener {
                              Execution execution,
                              ExecutionStatus executionStatus,
                              boolean wasSuccessful) {
-    if (!(execution instanceof Orchestration)) {
-      // not concerned with pipelines right now (pipelines can have wait stages / manual judgmenets which skew execution time)
+    if (execution.getType() != ORCHESTRATION) {
+      // not concerned with pipelines right now (pipelines can have wait stages / manual judgments which skew execution time)
       return;
     }
 

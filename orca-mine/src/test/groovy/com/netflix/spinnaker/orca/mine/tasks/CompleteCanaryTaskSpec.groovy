@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.orca.mine.tasks
 
 import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -28,7 +28,7 @@ class CompleteCanaryTaskSpec extends Specification {
 
   def "Canary canceled should report canceled"() {
     given:
-    def stage = new Stage<>(new Pipeline("orca"), "ACATask", "ACATask", [
+    def stage = new Stage(Execution.newPipeline("orca"), "ACATask", "ACATask", [
       canary: [
         status: [
           status: "CANCELED"
@@ -45,7 +45,7 @@ class CompleteCanaryTaskSpec extends Specification {
 
   def "Canaries overall result is successful return ExecutionStatus.SUCCEEDED"() {
     given:
-    def stage = new Stage<>(new Pipeline("orca"), "ACATask", "ACATask", [
+    def stage = new Stage(Execution.newPipeline("orca"), "ACATask", "ACATask", [
         canary: [
           canaryResult: [
               overallResult: "SUCCESS"
@@ -63,7 +63,7 @@ class CompleteCanaryTaskSpec extends Specification {
   @Unroll
   def "Canary is marked with continueOnUnhealthy and canary heath is #health then return ExecutionStatus.FAILED_CONTINUE"() {
     given:
-    def stage = new Stage<>(new Pipeline("orca"), "ACATask", "ACATask", [
+    def stage = new Stage(Execution.newPipeline("orca"), "ACATask", "ACATask", [
       canary: [
         health: [
             health: health
@@ -89,7 +89,7 @@ class CompleteCanaryTaskSpec extends Specification {
   @Unroll
   def "Canary is marked with continueOnUnhealthy: #continueOnUnhealthy and canary has a status of #overallResult then return #expectedStatus"() {
     given:
-    def stage = new Stage<>(new Pipeline("orca"), "ACATask", "ACATask", [
+    def stage = new Stage(Execution.newPipeline("orca"), "ACATask", "ACATask", [
       canary: [
         canaryResult: [
           overallResult: overallResult
@@ -113,7 +113,7 @@ class CompleteCanaryTaskSpec extends Specification {
 
   def "Canaries NOT marked with continueOnUnhealthy and canary IS unhealthy should be TERMINAL"() {
     given:
-    def stage = new Stage<>(new Pipeline("orca"), "ACATask", "ACATask", [
+    def stage = new Stage(Execution.newPipeline("orca"), "ACATask", "ACATask", [
       canary: [
         health: [
           health: "UNHEALTHY"
@@ -131,7 +131,7 @@ class CompleteCanaryTaskSpec extends Specification {
 
   def "Canary with NO continueOnUnhealthy on context and canary IS unhealthy then should be terminal"() {
     given:
-    def stage = new Stage<>(new Pipeline("orca"), "ACATask", "ACATask", [
+    def stage = new Stage(Execution.newPipeline("orca"), "ACATask", "ACATask", [
       canary: [
         health: [
           health: "UNHEALTHY"
@@ -148,7 +148,7 @@ class CompleteCanaryTaskSpec extends Specification {
 
   def "Canary with is in an unhandeled state then throw and error"() {
     given:
-    def stage = new Stage<>(new Pipeline("orca"), "ACATask", "ACATask", [
+    def stage = new Stage(Execution.newPipeline("orca"), "ACATask", "ACATask", [
       canary: [
         status: [status: ""],
         health: [

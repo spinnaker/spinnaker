@@ -46,7 +46,7 @@ class MonitorQuipTaskSpec extends Specification {
     def pipe = pipeline {
       application = "foo"
     }
-    def stage = new Stage<>(pipe, 'monitorQuip', [:])
+    def stage = new Stage(pipe, 'monitorQuip', [:])
     stage.context.instances = instances
     stage.context.taskIds = taskIds
 
@@ -83,7 +83,7 @@ class MonitorQuipTaskSpec extends Specification {
     def pipe = pipeline {
       application = "foo"
     }
-    def stage = new Stage<>(pipe, 'monitorQuip', [:])
+    def stage = new Stage(pipe, 'monitorQuip', [:])
     stage.context.instances = instances
     stage.context.taskIds = taskIds
 
@@ -115,7 +115,7 @@ class MonitorQuipTaskSpec extends Specification {
     def pipe = pipeline {
       application = "foo"
     }
-    def stage = new Stage<>(pipe, 'monitorQuip', [:])
+    def stage = new Stage(pipe, 'monitorQuip', [:])
     stage.context.instances = instances
     stage.context.taskIds = taskIds
 
@@ -141,7 +141,7 @@ class MonitorQuipTaskSpec extends Specification {
     def pipe = pipeline {
       application = "foo"
     }
-    def stage = new Stage<>(pipe, 'monitorQuip', [:])
+    def stage = new Stage(pipe, 'monitorQuip', [:])
     stage.context.instances = instances
     stage.context.taskIds = taskIds
 
@@ -168,7 +168,7 @@ class MonitorQuipTaskSpec extends Specification {
     def pipe = pipeline {
       application = "foo"
     }
-    def stage = new Stage<>(pipe, 'monitorQuip', [:])
+    def stage = new Stage(pipe, 'monitorQuip', [:])
     stage.context.instances = instances
     stage.context.taskIds = taskIds
 

@@ -36,10 +36,10 @@ class CompleteStageHandler(
 
   override fun handle(message: CompleteStage) {
     message.withStage { stage ->
-      if (stage.getStatus() in setOf(RUNNING, NOT_STARTED)) {
+      if (stage.status in setOf(RUNNING, NOT_STARTED)) {
         val status = stage.determineStatus()
-        stage.setStatus(status)
-        stage.setEndTime(clock.millis())
+        stage.status = status
+        stage.endTime = clock.millis()
         stage.includeExpressionEvaluationSummary()
         repository.storeStage(stage)
 
@@ -47,11 +47,11 @@ class CompleteStageHandler(
           stage.startNext()
         } else {
           queue.push(CancelStage(message))
-          if (stage.getSyntheticStageOwner() == null) {
+          if (stage.syntheticStageOwner == null) {
             log.debug("Stage has no synthetic owner, completing execution (original message: $message)")
             queue.push(CompleteExecution(message))
           } else {
-            queue.push(message.copy(stageId = stage.getParentStageId()!!))
+            queue.push(message.copy(stageId = stage.parentStageId!!))
           }
         }
 

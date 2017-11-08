@@ -23,11 +23,11 @@ import com.netflix.spinnaker.orca.front50.model.ApplicationNotifications
 import com.netflix.spinnaker.orca.listeners.ExecutionListener
 import com.netflix.spinnaker.orca.listeners.Persister
 import com.netflix.spinnaker.orca.pipeline.model.Execution
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
+import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
 
 @Slf4j
 @CompileStatic
@@ -56,8 +56,8 @@ class EchoNotifyingExecutionListener implements ExecutionListener {
   void beforeExecution(Persister persister, Execution execution) {
     try {
       if (execution.status != ExecutionStatus.SUSPENDED) {
-        if (execution instanceof Pipeline) {
-          addApplicationNotifications(execution as Pipeline)
+        if (execution.type == PIPELINE) {
+          addApplicationNotifications(execution)
         }
         echoService.recordEvent(
           details: [
@@ -83,9 +83,9 @@ class EchoNotifyingExecutionListener implements ExecutionListener {
                       boolean wasSuccessful) {
     try {
       if (execution.status != ExecutionStatus.SUSPENDED) {
-        if (execution instanceof Pipeline) {
-          addApplicationNotifications(execution as Pipeline)
-          addDryRunNotifications(execution as Pipeline)
+        if (execution.type == PIPELINE) {
+          addApplicationNotifications(execution)
+          addDryRunNotifications(execution)
         }
         echoService.recordEvent(
           details: [
@@ -112,7 +112,7 @@ class EchoNotifyingExecutionListener implements ExecutionListener {
    *
    * @param pipeline
    */
-  private void addApplicationNotifications(Pipeline pipeline) {
+  private void addApplicationNotifications(Execution pipeline) {
     ApplicationNotifications notifications = front50Service.getApplicationNotifications(pipeline.application)
 
     if (notifications) {
@@ -143,7 +143,7 @@ class EchoNotifyingExecutionListener implements ExecutionListener {
    * @param pipeline
    */
   @CompileDynamic
-  private void addDryRunNotifications(Pipeline pipeline) {
+  private void addDryRunNotifications(Execution pipeline) {
     if (pipeline.pipelineConfigId in dryRunPipelineIds) {
       log.info("Sending dry run notification for $pipeline.application $pipeline.name")
       pipeline.notifications << [type: "dryrun", when: "pipeline.complete"]

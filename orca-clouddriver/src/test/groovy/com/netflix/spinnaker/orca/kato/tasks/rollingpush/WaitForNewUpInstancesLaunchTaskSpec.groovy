@@ -19,7 +19,7 @@ package com.netflix.spinnaker.orca.kato.tasks.rollingpush
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.clouddriver.OortService
-import com.netflix.spinnaker.orca.pipeline.model.Orchestration
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import retrofit.client.Response
 import retrofit.mime.TypedByteArray
@@ -44,7 +44,7 @@ class WaitForNewUpInstancesLaunchTaskSpec extends Specification {
       instanceIds     : terminatedInstanceIds
     ]
 
-    def stage = new Stage<>(new Orchestration("orca"), 'test', context)
+    def stage = new Stage(Execution.newOrchestration("orca"), 'test', context)
 
     def oortResponse = oortResponse([
       instances: currentInstances.collect { [instanceId: it, health: [ [type: 'Discovery', state: healthState] ] ] }

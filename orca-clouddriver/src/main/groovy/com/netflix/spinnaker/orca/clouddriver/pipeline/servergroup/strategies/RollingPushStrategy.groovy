@@ -19,7 +19,6 @@ package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.strategies
 import com.netflix.spinnaker.orca.kato.pipeline.ModifyAsgLaunchConfigurationStage
 import com.netflix.spinnaker.orca.kato.pipeline.RollingPushStage
 import com.netflix.spinnaker.orca.kato.pipeline.support.SourceResolver
-import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner
 import groovy.transform.Immutable
@@ -43,7 +42,7 @@ class RollingPushStrategy implements Strategy {
   SourceResolver sourceResolver
 
   @Override
-  <T extends Execution<T>> List<Stage<T>> composeFlow(Stage<T> stage) {
+  List<Stage> composeFlow(Stage stage) {
     def stages = []
     def source = sourceResolver.getSource(stage)
 

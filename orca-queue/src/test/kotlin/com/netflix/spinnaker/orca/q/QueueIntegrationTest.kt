@@ -33,7 +33,7 @@ import com.netflix.spinnaker.orca.pipeline.RestrictExecutionDuringTimeWindow
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder.newStage
 import com.netflix.spinnaker.orca.pipeline.TaskNode.Builder
-import com.netflix.spinnaker.orca.pipeline.model.Execution
+import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_BEFORE
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
@@ -105,7 +105,7 @@ open class QueueIntegrationTest {
 
     context.runToCompletion(pipeline, runner::start, repository)
 
-    repository.retrievePipeline(pipeline.id).status shouldEqual SUCCEEDED
+    repository.retrieve(PIPELINE, pipeline.id).status shouldEqual SUCCEEDED
   }
 
   @Test fun `will run tasks to completion`() {
@@ -123,7 +123,7 @@ open class QueueIntegrationTest {
 
     context.runToCompletion(pipeline, runner::start, repository)
 
-    repository.retrievePipeline(pipeline.id).status shouldEqual SUCCEEDED
+    repository.retrieve(PIPELINE, pipeline.id).status shouldEqual SUCCEEDED
   }
 
   @Test fun `can run a fork join pipeline`() {
@@ -156,7 +156,7 @@ open class QueueIntegrationTest {
 
     context.runToCompletion(pipeline, runner::start, repository)
 
-    repository.retrievePipeline(pipeline.id).apply {
+    repository.retrieve(PIPELINE, pipeline.id).apply {
       status shouldEqual SUCCEEDED
       stageByRef("1").status shouldEqual SUCCEEDED
       stageByRef("2a").status shouldEqual SUCCEEDED
@@ -195,7 +195,7 @@ open class QueueIntegrationTest {
 
     context.runToCompletion(pipeline, runner::start, repository)
 
-    repository.retrievePipeline(pipeline.id).apply {
+    repository.retrieve(PIPELINE, pipeline.id).apply {
       status shouldEqual SUCCEEDED
       stageByRef("1").status shouldEqual SUCCEEDED
       stageByRef("2a").status shouldEqual SUCCEEDED
@@ -220,7 +220,7 @@ open class QueueIntegrationTest {
 
     context.runToCompletion(pipeline, runner::start, repository)
 
-    repository.retrievePipeline(pipeline.id).status shouldEqual SUCCEEDED
+    repository.retrieve(PIPELINE, pipeline.id).status shouldEqual SUCCEEDED
 
     verify(dummyTask, never()).execute(any())
   }
@@ -239,7 +239,7 @@ open class QueueIntegrationTest {
 
     context.runToCompletion(pipeline, runner::start, repository)
 
-    repository.retrievePipeline(pipeline.id).status shouldEqual TERMINAL
+    repository.retrieve(PIPELINE, pipeline.id).status shouldEqual TERMINAL
   }
 
   @Test fun `parallel stages that fail cancel other branches`() {
@@ -273,12 +273,12 @@ open class QueueIntegrationTest {
     repository.store(pipeline)
 
     whenever(dummyTask.timeout) doReturn 2000L
-    whenever(dummyTask.execute(argThat { getRefId() == "2a1" })) doReturn TaskResult(TERMINAL)
-    whenever(dummyTask.execute(argThat { getRefId() != "2a1" })) doReturn TaskResult.SUCCEEDED
+    whenever(dummyTask.execute(argThat { refId == "2a1" })) doReturn TaskResult(TERMINAL)
+    whenever(dummyTask.execute(argThat { refId != "2a1" })) doReturn TaskResult.SUCCEEDED
 
     context.runToCompletion(pipeline, runner::start, repository)
 
-    repository.retrievePipeline(pipeline.id).apply {
+    repository.retrieve(PIPELINE, pipeline.id).apply {
       status shouldEqual TERMINAL
       stageByRef("1").status shouldEqual SUCCEEDED
       stageByRef("2a1").status shouldEqual TERMINAL
@@ -320,12 +320,12 @@ open class QueueIntegrationTest {
     repository.store(pipeline)
 
     whenever(dummyTask.timeout) doReturn 2000L
-    whenever(dummyTask.execute(argThat { getRefId() == "2a1" })) doReturn TaskResult(TERMINAL)
-    whenever(dummyTask.execute(argThat { getRefId() != "2a1" })) doReturn TaskResult.SUCCEEDED
+    whenever(dummyTask.execute(argThat { refId == "2a1" })) doReturn TaskResult(TERMINAL)
+    whenever(dummyTask.execute(argThat { refId != "2a1" })) doReturn TaskResult.SUCCEEDED
 
     context.runToCompletion(pipeline, runner::start, repository)
 
-    repository.retrievePipeline(pipeline.id).apply {
+    repository.retrieve(PIPELINE, pipeline.id).apply {
       status shouldEqual SUCCEEDED
       stageByRef("1").status shouldEqual SUCCEEDED
       stageByRef("2a1").status shouldEqual FAILED_CONTINUE
@@ -374,12 +374,12 @@ open class QueueIntegrationTest {
     repository.store(pipeline)
 
     whenever(dummyTask.timeout) doReturn 2000L
-    whenever(dummyTask.execute(argThat { getRefId() == "2a1" })) doReturn TaskResult(TERMINAL)
-    whenever(dummyTask.execute(argThat { getRefId() != "2a1" })) doReturn TaskResult.SUCCEEDED
+    whenever(dummyTask.execute(argThat { refId == "2a1" })) doReturn TaskResult(TERMINAL)
+    whenever(dummyTask.execute(argThat { refId != "2a1" })) doReturn TaskResult.SUCCEEDED
 
     context.runToCompletion(pipeline, runner::start, repository)
 
-    repository.retrievePipeline(pipeline.id).apply {
+    repository.retrieve(PIPELINE, pipeline.id).apply {
       status shouldEqual TERMINAL
       stageByRef("1").status shouldEqual SUCCEEDED
       stageByRef("2a1").status shouldEqual STOPPED
@@ -417,7 +417,7 @@ open class QueueIntegrationTest {
 
     context.runToCompletion(pipeline, runner::start, repository)
 
-    repository.retrievePipeline(pipeline.id).apply {
+    repository.retrieve(PIPELINE, pipeline.id).apply {
       status shouldEqual SUCCEEDED
       stages.size shouldEqual 2
       stages.first().type shouldEqual RestrictExecutionDuringTimeWindow.TYPE
@@ -453,7 +453,7 @@ open class QueueIntegrationTest {
 
     context.runToCompletion(pipeline, runner::start, repository)
 
-    repository.retrievePipeline(pipeline.id).apply {
+    repository.retrieve(PIPELINE, pipeline.id).apply {
       status shouldEqual SUCCEEDED
       stages.size shouldEqual 5
       stages.first().type shouldEqual RestrictExecutionDuringTimeWindow.TYPE
@@ -489,11 +489,11 @@ open class QueueIntegrationTest {
 
     verify(dummyTask).execute(check {
       // expressions should be resolved in the stage passes to tasks
-      it.getContext()["expr"] shouldEqual true
-      (it.getContext()["key"] as Map<String, Any>)["expr"] shouldEqual true
+      it.context["expr"] shouldEqual true
+      (it.context["key"] as Map<String, Any>)["expr"] shouldEqual true
     })
 
-    repository.retrievePipeline(pipeline.id).apply {
+    repository.retrieve(PIPELINE, pipeline.id).apply {
       status shouldEqual SUCCEEDED
       // resolved expressions should be persisted
       stages.first().context["expr"] shouldEqual true
@@ -535,7 +535,7 @@ open class QueueIntegrationTest {
 
     context.restartAndRunToCompletion(pipeline.stageByRef("1"), runner::restart, repository)
 
-    repository.retrievePipeline(pipeline.id).apply {
+    repository.retrieve(PIPELINE, pipeline.id).apply {
       status shouldEqual CANCELED
       stageByRef("1").status shouldEqual SUCCEEDED
       stageByRef("2").status shouldEqual CANCELED
@@ -580,7 +580,7 @@ open class QueueIntegrationTest {
 
     context.runToCompletion(pipeline, runner::start, repository)
 
-    repository.retrievePipeline(pipeline.id).apply {
+    repository.retrieve(PIPELINE, pipeline.id).apply {
       status shouldEqual SUCCEEDED
       stageByRef("1").status shouldEqual SUCCEEDED
       stageByRef("2a").status shouldEqual SKIPPED
@@ -630,7 +630,7 @@ open class QueueIntegrationTest {
 
     context.restartAndRunToCompletion(pipeline.stageByRef("1"), runner::restart, repository)
 
-    repository.retrievePipeline(pipeline.id).apply {
+    repository.retrieve(PIPELINE, pipeline.id).apply {
       status shouldEqual SUCCEEDED
       stageByRef("2a").status shouldEqual SKIPPED
       stageByRef("2b").status shouldEqual SUCCEEDED
@@ -656,7 +656,7 @@ open class TestConfig {
   }
 
   @Bean open fun dummyStage() = object : StageDefinitionBuilder {
-    override fun <T : Execution<T>> taskGraph(stage: Stage<T>, builder: Builder) {
+    override fun  taskGraph(stage: Stage, builder: Builder) {
       builder.withTask("dummy", DummyTask::class.java)
     }
 
@@ -664,7 +664,7 @@ open class TestConfig {
   }
 
   @Bean open fun parallelStage() = object : StageDefinitionBuilder {
-    override fun <T : Execution<T>> parallelStages(stage: Stage<T>) =
+    override fun  parallelStages(stage: Stage) =
       listOf("us-east-1", "us-west-2", "eu-west-1").map { region ->
         newStage(stage.execution, "dummy", "dummy $region", stage.context + mapOf("region" to region), stage, STAGE_BEFORE)
       }

@@ -18,7 +18,6 @@ package com.netflix.spinnaker.orca.pipeline
 
 import javax.annotation.Nonnull
 import com.netflix.spinnaker.orca.Task
-import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.tasks.PreconditionTask
 import groovy.transform.CompileStatic
@@ -41,7 +40,7 @@ class CheckPreconditionsStage implements StageDefinitionBuilder {
   }
 
   @Override
-  def <T extends Execution<T>> void taskGraph(Stage<T> stage, TaskNode.Builder builder) {
+  void taskGraph(Stage stage, TaskNode.Builder builder) {
     if (!isTopLevelStage(stage)) {
       String preconditionType = stage.context.preconditionType
       if (!preconditionType) {
@@ -58,8 +57,8 @@ class CheckPreconditionsStage implements StageDefinitionBuilder {
   }
 
   @Nonnull
-  <T extends Execution<T>> List<Stage<T>> parallelStages(
-    @Nonnull Stage<T> stage) {
+  List<Stage> parallelStages(
+    @Nonnull Stage stage) {
     if (isTopLevelStage(stage)) {
       return parallelContexts(stage).collect { context ->
         newStage(stage.execution, type, "Check precondition (${context.preconditionType})", context, stage, STAGE_BEFORE)
@@ -73,7 +72,7 @@ class CheckPreconditionsStage implements StageDefinitionBuilder {
     return stage.parentStageId == null
   }
 
-  private <T extends Execution<T>> Collection<Map<String, Object>> parallelContexts(Stage<T> stage) {
+  private Collection<Map<String, Object>> parallelContexts(Stage stage) {
     stage.resolveStrategyParams()
     def baseContext = new HashMap(stage.context)
     List<Map> preconditions = baseContext.remove('preconditions') as List<Map>

@@ -66,7 +66,7 @@ class ApplicationRateLimitQueueInterceptor(
             )
           )
         } catch (e: Exception) {
-          log.error("Rate limiting backend threw exception, disabling interceptor for message", e);
+          log.error("Rate limiting backend threw exception, disabling interceptor for message", e)
           return null
         }
         if (rateLimit.limiting) {

@@ -34,12 +34,12 @@ class AbortStageHandler(
 
   override fun handle(message: AbortStage) {
     message.withStage { stage ->
-      if (stage.getStatus() in setOf(RUNNING, NOT_STARTED)) {
-        stage.setStatus(TERMINAL)
-        stage.setEndTime(clock.millis())
+      if (stage.status in setOf(RUNNING, NOT_STARTED)) {
+        stage.status = TERMINAL
+        stage.endTime = clock.millis()
         repository.storeStage(stage)
         queue.push(CancelStage(message))
-        if (stage.getParentStageId() == null) {
+        if (stage.parentStageId == null) {
           queue.push(CompleteExecution(message))
         } else {
           queue.push(CompleteStage(stage.parent()))

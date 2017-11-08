@@ -22,7 +22,6 @@ import com.netflix.spinnaker.orca.listeners.DefaultPersister;
 import com.netflix.spinnaker.orca.listeners.Persister;
 import com.netflix.spinnaker.orca.listeners.StageListener;
 import com.netflix.spinnaker.orca.pipeline.model.Execution;
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,7 +62,7 @@ public final class StageListenerAdapter implements ApplicationListener<Execution
 
   private void onStageStarted(StageStarted event) {
     Execution execution = retrieve(event);
-    List<Stage<?>> stages = execution.getStages();
+    List<Stage> stages = execution.getStages();
     stages
       .stream()
       .filter(it -> it.getId().equals(event.getStageId()))
@@ -73,7 +72,7 @@ public final class StageListenerAdapter implements ApplicationListener<Execution
 
   private void onStageComplete(StageComplete event) {
     Execution execution = retrieve(event);
-    List<Stage<?>> stages = execution.getStages();
+    List<Stage> stages = execution.getStages();
     stages
       .stream()
       .filter(it -> it.getId().equals(event.getStageId()))
@@ -83,7 +82,7 @@ public final class StageListenerAdapter implements ApplicationListener<Execution
 
   private void onTaskStarted(TaskStarted event) {
     Execution execution = retrieve(event);
-    List<Stage<?>> stages = execution.getStages();
+    List<Stage> stages = execution.getStages();
     stages
       .stream()
       .filter(it -> it.getId().equals(event.getStageId()))
@@ -99,7 +98,7 @@ public final class StageListenerAdapter implements ApplicationListener<Execution
 
   private void onTaskComplete(TaskComplete event) {
     Execution execution = retrieve(event);
-    List<Stage<?>> stages = execution.getStages();
+    List<Stage> stages = execution.getStages();
     ExecutionStatus status = event.getStatus();
     stages
       .stream()
@@ -117,10 +116,6 @@ public final class StageListenerAdapter implements ApplicationListener<Execution
   }
 
   private Execution retrieve(ExecutionEvent event) {
-    if (Pipeline.class.equals(event.getExecutionType())) {
-      return repository.retrievePipeline(event.getExecutionId());
-    } else {
-      return repository.retrieveOrchestration(event.getExecutionId());
-    }
+    return repository.retrieve(event.getExecutionType(), event.getExecutionId());
   }
 }

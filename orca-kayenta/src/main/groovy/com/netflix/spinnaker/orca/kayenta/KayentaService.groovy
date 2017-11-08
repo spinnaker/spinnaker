@@ -16,8 +16,7 @@
 
 package com.netflix.spinnaker.orca.kayenta
 
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
-import retrofit.client.Response
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import retrofit.http.*
 
 interface KayentaService {
@@ -30,7 +29,7 @@ interface KayentaService {
              @Body Map<String, String> canaryExecutionRequest)
 
   @GET("/pipelines/{executionId}")
-  Pipeline getPipelineExecution(@Path("executionId") String executionId)
+  Execution getPipelineExecution(@Path("executionId") String executionId)
 
   @PUT("/pipelines/{executionId}/cancel")
   Map cancelPipelineExecution(@Path("executionId") String executionId, @Body String ignored)

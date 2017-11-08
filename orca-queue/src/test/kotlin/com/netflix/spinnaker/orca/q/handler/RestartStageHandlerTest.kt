@@ -24,7 +24,7 @@ import com.netflix.spinnaker.orca.ExecutionStatus.*
 import com.netflix.spinnaker.orca.pipeline.DefaultStageDefinitionBuilderFactory
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.model.Execution
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.q.*
@@ -77,10 +77,10 @@ object RestartStageHandlerTest : SubjectSpek<RestartStageHandler>({
             startTime = clock.instant().minus(1, HOURS).toEpochMilli()
           }
         }
-        val message = RestartStage(Pipeline::class.java, pipeline.id, "foo", pipeline.stageByRef("1").id, "fzlem@netflix.com")
+        val message = RestartStage(pipeline.type, pipeline.id, "foo", pipeline.stageByRef("1").id, "fzlem@netflix.com")
 
         beforeGroup {
-          whenever(repository.retrievePipeline(message.executionId)) doReturn pipeline
+          whenever(repository.retrieve(message.executionType, message.executionId)) doReturn pipeline
         }
 
         afterGroup(::resetMocks)
@@ -90,7 +90,7 @@ object RestartStageHandlerTest : SubjectSpek<RestartStageHandler>({
         }
 
         it("does not modify the stage status") {
-          verify(repository, never()).store(any<Pipeline>())
+          verify(repository, never()).store(any<Execution>())
         }
 
         it("does not run the stage") {
@@ -125,12 +125,12 @@ object RestartStageHandlerTest : SubjectSpek<RestartStageHandler>({
           context["exception"] = "o noes"
         }
       }
-      val message = RestartStage(Pipeline::class.java, pipeline.id, "foo", pipeline.stageByRef("2").id, "fzlem@netflix.com")
+      val message = RestartStage(pipeline.type, pipeline.id, "foo", pipeline.stageByRef("2").id, "fzlem@netflix.com")
 
       beforeGroup {
         stageWithSyntheticBefore.plan(pipeline.stageByRef("2>1"))
 
-        whenever(repository.retrievePipeline(message.executionId)) doReturn pipeline
+        whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
       }
 
       afterGroup(::resetMocks)
@@ -141,23 +141,23 @@ object RestartStageHandlerTest : SubjectSpek<RestartStageHandler>({
 
       it("resets the stage's status") {
         verify(repository).storeStage(check {
-          it.getId() shouldEqual message.stageId
-          it.getStatus() shouldEqual NOT_STARTED
-          it.getStartTime() shouldMatch absent()
-          it.getEndTime() shouldMatch absent()
+          it.id shouldEqual message.stageId
+          it.status shouldEqual NOT_STARTED
+          it.startTime shouldMatch absent()
+          it.endTime shouldMatch absent()
         })
       }
 
       it("removes the stage's tasks") {
         verify(repository).storeStage(check {
-          it.getTasks() shouldMatch isEmpty
+          it.tasks shouldMatch isEmpty
         })
       }
 
       it("adds restart details to the stage context") {
         verify(repository).storeStage(check {
-          it.getContext().keys shouldNotMatch hasElement("exception")
-          it.getContext()["restartDetails"] shouldEqual mapOf(
+          it.context.keys shouldNotMatch hasElement("exception")
+          it.context["restartDetails"] shouldEqual mapOf(
             "restartedBy" to "fzlem@netflix.com",
             "restartTime" to clock.millis(),
             "previousException" to "o noes"
@@ -169,7 +169,7 @@ object RestartStageHandlerTest : SubjectSpek<RestartStageHandler>({
         pipeline
           .stages
           .filter { it.parentStageId == message.stageId }
-          .map(Stage<*>::getId)
+          .map(Stage::getId)
           .forEach {
             verify(repository).removeStage(pipeline, it)
           }
@@ -178,14 +178,14 @@ object RestartStageHandlerTest : SubjectSpek<RestartStageHandler>({
       val nestedSyntheticStageIds = pipeline
         .stages
         .filter { it.parentStageId == message.stageId }
-        .map(Stage<*>::getId)
+        .map(Stage::getId)
 
       it("removes the nested synthetic stages") {
         nestedSyntheticStageIds shouldMatch !isEmpty
         pipeline
           .stages
           .filter { it.parentStageId in nestedSyntheticStageIds }
-          .map(Stage<*>::getId)
+          .map(Stage::getId)
           .forEach {
             verify(repository).removeStage(pipeline, it)
           }
@@ -245,10 +245,10 @@ object RestartStageHandlerTest : SubjectSpek<RestartStageHandler>({
         endTime = clock.instant().minus(57, MINUTES).toEpochMilli()
       }
     }
-    val message = RestartStage(Pipeline::class.java, pipeline.id, "foo", pipeline.stageByRef("1").id, "fzlem@netflix.com")
+    val message = RestartStage(pipeline.type, pipeline.id, "foo", pipeline.stageByRef("1").id, "fzlem@netflix.com")
 
     beforeGroup {
-      whenever(repository.retrievePipeline(message.executionId)) doReturn pipeline
+      whenever(repository.retrieve(message.executionType, message.executionId)) doReturn pipeline
     }
 
     afterGroup(::resetMocks)
@@ -259,7 +259,7 @@ object RestartStageHandlerTest : SubjectSpek<RestartStageHandler>({
 
     it("removes downstream stages' tasks") {
       val downstreamStageIds = setOf("2", "3").map { pipeline.stageByRef(it).id }
-      argumentCaptor<Stage<Pipeline>>().apply {
+      argumentCaptor<Stage>().apply {
         verify(repository, atLeast(2)).storeStage(capture())
         downstreamStageIds.forEach {
           allValues.map { it.id } shouldMatch anyElement(equalTo(it))
@@ -318,10 +318,10 @@ object RestartStageHandlerTest : SubjectSpek<RestartStageHandler>({
         endTime = clock.instant().minus(57, MINUTES).toEpochMilli()
       }
     }
-    val message = RestartStage(Pipeline::class.java, pipeline.id, "foo", pipeline.stageByRef("1").id, "fzlem@netflix.com")
+    val message = RestartStage(pipeline.type, pipeline.id, "foo", pipeline.stageByRef("1").id, "fzlem@netflix.com")
 
     beforeGroup {
-      whenever(repository.retrievePipeline(message.executionId)) doReturn pipeline
+      whenever(repository.retrieve(message.executionType, message.executionId)) doReturn pipeline
     }
 
     afterGroup(::resetMocks)
@@ -332,7 +332,7 @@ object RestartStageHandlerTest : SubjectSpek<RestartStageHandler>({
 
     it("removes join stages' tasks") {
       val downstreamStageIds = setOf("1", "3", "4").map { pipeline.stageByRef(it).id }
-      argumentCaptor<Stage<Pipeline>>().apply {
+      argumentCaptor<Stage>().apply {
         verify(repository, times(3)).storeStage(capture())
         allValues.map { it.id } shouldEqual downstreamStageIds
         allValues.forEach {
@@ -353,7 +353,7 @@ object RestartStageHandlerTest : SubjectSpek<RestartStageHandler>({
   }
 })
 
-fun <T : Execution<T>> StageDefinitionBuilder.plan(stage: Stage<T>) {
+fun  StageDefinitionBuilder.plan(stage: Stage) {
   stage.type = type
   buildTasks(stage)
   buildSyntheticStages(stage)

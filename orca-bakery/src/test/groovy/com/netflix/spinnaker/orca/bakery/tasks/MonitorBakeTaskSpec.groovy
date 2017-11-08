@@ -20,7 +20,6 @@ import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.bakery.api.BakeStatus
 import com.netflix.spinnaker.orca.bakery.api.BakeryService
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import rx.Observable
 import spock.lang.Shared
@@ -33,16 +32,16 @@ import static java.util.UUID.randomUUID
 class MonitorBakeTaskSpec extends Specification {
 
   @Subject
-  MonitorBakeTask task = new MonitorBakeTask()
+  def task = new MonitorBakeTask()
 
   @Shared
-  Pipeline pipeline = pipeline()
+  def pipeline = pipeline()
 
   @Unroll
   def "should return #taskStatus if bake is #bakeState"() {
     given:
     def previousStatus = new BakeStatus(id: id, state: BakeStatus.State.PENDING)
-    def stage = new Stage<>(pipeline, "bake", [region: "us-west-1", status: previousStatus])
+    def stage = new Stage(pipeline, "bake", [region: "us-west-1", status: previousStatus])
 
     and:
     task.bakery = Stub(BakeryService) {
@@ -69,7 +68,7 @@ class MonitorBakeTaskSpec extends Specification {
     given:
     def id = randomUUID().toString()
     def previousStatus = new BakeStatus(id: id, state: BakeStatus.State.PENDING)
-    def stage = new Stage<>(pipeline, "bake", [region: "us-west-1", status: previousStatus])
+    def stage = new Stage(pipeline, "bake", [region: "us-west-1", status: previousStatus])
 
     and:
     task.bakery = Stub(BakeryService) {
@@ -96,7 +95,7 @@ class MonitorBakeTaskSpec extends Specification {
   def "outputs the updated bake status"() {
     given:
     def previousStatus = new BakeStatus(id: id, state: BakeStatus.State.PENDING)
-    def stage = new Stage<>(pipeline, "bake", [region: "us-west-1", status: previousStatus])
+    def stage = new Stage(pipeline, "bake", [region: "us-west-1", status: previousStatus])
 
     and:
     task.bakery = Stub(BakeryService) {

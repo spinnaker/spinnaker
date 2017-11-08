@@ -20,7 +20,7 @@ import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroupResolver
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -35,7 +35,7 @@ class AbstractAwsScalingProcessTaskSpec extends Specification {
   @Unroll
   def "should only resume/suspend scaling processes that are not already in the target state"() {
     given:
-    def stage = new Stage<>(new Pipeline("orca"), null, context)
+    def stage = new Stage(Execution.newPipeline("orca"), null, context)
       def targetServerGroupResolver = Mock(TargetServerGroupResolver) {
         1 * resolve(_) >> {
           return targetServerGroups
@@ -94,7 +94,7 @@ class AbstractAwsScalingProcessTaskSpec extends Specification {
       def resolver = GroovySpy(TargetServerGroupResolver, global: true)
       GroovySpy(TargetServerGroup, global: true, constructorArgs: [tsg])
 
-    def stage = new Stage<>(new Pipeline("orca"), null, sD("targetAsg", ["Launch"]))
+    def stage = new Stage(Execution.newPipeline("orca"), null, sD("targetAsg", ["Launch"]))
       def task = new ResumeAwsScalingProcessTask(resolver: resolver, katoService: katoService)
 
     when:
@@ -114,7 +114,7 @@ class AbstractAwsScalingProcessTaskSpec extends Specification {
 
       def ctx = sD("targetAsg", ["Launch"])
       ctx.cloudProvider = "abc"
-    def stage = new Stage<>(new Pipeline("orca"), null, ctx)
+    def stage = new Stage(Execution.newPipeline("orca"), null, ctx)
       def task = new ResumeAwsScalingProcessTask(resolver: resolver, katoService: katoService)
 
     when:

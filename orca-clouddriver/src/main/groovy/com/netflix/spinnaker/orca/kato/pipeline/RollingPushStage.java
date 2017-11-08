@@ -28,7 +28,6 @@ import com.netflix.spinnaker.orca.kato.tasks.DisableInstancesTask;
 import com.netflix.spinnaker.orca.kato.tasks.rollingpush.*;
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder;
 import com.netflix.spinnaker.orca.pipeline.TaskNode;
-import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import com.netflix.spinnaker.orca.pipeline.tasks.WaitTask;
 import org.slf4j.Logger;
@@ -46,7 +45,7 @@ public class RollingPushStage implements StageDefinitionBuilder {
   private FeaturesService featuresService;
 
   @Override
-  public <T extends Execution<T>> void taskGraph(Stage<T> stage, TaskNode.Builder builder) {
+  public void taskGraph(Stage stage, TaskNode.Builder builder) {
     boolean taggingEnabled = featuresService.isStageAvailable("upsertEntityTags");
     builder
       .withTask("captureParentInterestingHealthProviderNames", CaptureParentInterestingHealthProviderNamesTask.class)
@@ -80,7 +79,7 @@ public class RollingPushStage implements StageDefinitionBuilder {
     builder.withTask("pushComplete", PushCompleteTask.class);
   }
 
-  private <T extends Execution<T>> boolean shouldWaitForTermination(Stage<T> stage) {
+  private boolean shouldWaitForTermination(Stage stage) {
     Map termination = (Map) stage.getContext().get("termination");
     return termination != null && termination.containsKey("waitTime");
   }

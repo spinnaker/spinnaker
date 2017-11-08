@@ -30,23 +30,23 @@ import static java.util.Collections.emptyList;
 
 public interface StageDefinitionBuilder {
 
-  default @Nonnull TaskGraph buildTaskGraph(@Nonnull Stage<?> stage) {
+  default @Nonnull TaskGraph buildTaskGraph(@Nonnull Stage stage) {
     Builder graphBuilder = Builder(FULL);
     taskGraph(stage, graphBuilder);
     return graphBuilder.build();
   }
 
-  default <T extends Execution<T>> void taskGraph(
-    @Nonnull Stage<T> stage, @Nonnull Builder builder) {
+  default void taskGraph(
+    @Nonnull Stage stage, @Nonnull Builder builder) {
   }
 
-  default @Nonnull <T extends Execution<T>> List<Stage<T>> aroundStages(
-    @Nonnull Stage<T> stage) {
+  default @Nonnull List<Stage> aroundStages(
+    @Nonnull Stage stage) {
     return emptyList();
   }
 
-  default @Nonnull <T extends Execution<T>> List<Stage<T>> parallelStages(
-    @Nonnull Stage<T> stage) {
+  default @Nonnull List<Stage> parallelStages(
+    @Nonnull Stage stage) {
     return emptyList();
   }
 
@@ -68,15 +68,15 @@ public interface StageDefinitionBuilder {
     return className.substring(0, 1).toLowerCase() + className.substring(1).replaceFirst("StageDefinitionBuilder$", "").replaceFirst("Stage$", "");
   }
 
-  static @Nonnull <E extends Execution<E>> Stage<E> newStage(
-    @Nonnull E execution,
+  static @Nonnull Stage newStage(
+    @Nonnull Execution execution,
     @Nonnull String type,
     @Nullable String name,
     @Nonnull Map<String, Object> context,
-    @Nullable Stage<E> parent,
+    @Nullable Stage parent,
     @Nullable SyntheticStageOwner stageOwner
   ) {
-    Stage<E> stage = new Stage<>(execution, type, name, context);
+    Stage stage = new Stage(execution, type, name, context);
     if (parent != null) {
       stage.setParentStageId(parent.getId());
     }

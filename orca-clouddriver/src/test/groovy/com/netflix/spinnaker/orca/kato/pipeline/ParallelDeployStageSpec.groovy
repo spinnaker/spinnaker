@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline
 
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -25,7 +25,7 @@ class ParallelDeployStageSpec extends Specification {
   @Unroll
   def "should build contexts corresponding to cluster configuration(s)"() {
     given:
-    def bakeStage = new Stage<>(new Pipeline("orca"), "deploy", "Deploy!", stageContext)
+    def bakeStage = new Stage(Execution.newPipeline("orca"), "deploy", "Deploy!", stageContext)
     def builder = new ParallelDeployStage()
 
     when:

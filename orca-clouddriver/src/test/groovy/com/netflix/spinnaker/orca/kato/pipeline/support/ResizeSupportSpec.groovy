@@ -16,12 +16,11 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline.support
 
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
-
 
 class ResizeSupportSpec extends Specification {
 
@@ -61,7 +60,7 @@ class ResizeSupportSpec extends Specification {
     setup:
     context[method] = value
     context.action = direction
-    def stage = new Stage<>(new Pipeline("orca"), "resizeAsg", context)
+    def stage = new Stage(Execution.newPipeline("orca"), "resizeAsg", context)
 
     when:
     def descriptors = resizeSupport.createResizeStageDescriptors(stage, targetRefs)
@@ -88,7 +87,7 @@ class ResizeSupportSpec extends Specification {
 
     setup:
       context.capacity = specifiedCap
-    def stage = new Stage<>(new Pipeline("orca"), "resizeAsg", context)
+    def stage = new Stage(Execution.newPipeline("orca"), "resizeAsg", context)
       targetRefs[0].asg.asg = current
 
     when:

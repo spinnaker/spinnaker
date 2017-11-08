@@ -19,7 +19,7 @@ package com.netflix.spinnaker.orca.q.handler
 import com.netflix.spinnaker.orca.exceptions.ExceptionHandler
 import com.netflix.spinnaker.orca.pipeline.expressions.PipelineExpressionEvaluator
 import com.netflix.spinnaker.orca.pipeline.model.Execution
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import org.slf4j.Logger
@@ -34,12 +34,12 @@ interface ExpressionAware {
   val log: Logger
     get() = LoggerFactory.getLogger(javaClass)
 
-  fun Stage<*>.withMergedContext(): Stage<*> {
+  fun Stage.withMergedContext(): Stage {
     val processed = processEntries(this)
-    val execution = getExecution()
-    this.setContext(object : MutableMap<String, Any?> by processed {
+    val execution = execution
+    this.context = object : MutableMap<String, Any?> by processed {
       override fun get(key: String): Any? {
-        if (execution is Pipeline) {
+        if (execution.type == PIPELINE) {
           if (key == "trigger") {
             return execution.trigger
           }
@@ -58,17 +58,17 @@ interface ExpressionAware {
 
         return result
       }
-    })
+    }
     return this
   }
 
-  fun Stage<*>.includeExpressionEvaluationSummary() {
+  fun Stage.includeExpressionEvaluationSummary() {
     when {
-      PipelineExpressionEvaluator.SUMMARY in this.getContext() ->
+      PipelineExpressionEvaluator.SUMMARY in this.context ->
         try {
-          val expressionEvaluationSummary = this.getContext()[PipelineExpressionEvaluator.SUMMARY] as Map<*, *>
+          val expressionEvaluationSummary = this.context[PipelineExpressionEvaluator.SUMMARY] as Map<*, *>
           val evaluationErrors: List<String> = expressionEvaluationSummary.values.flatMap { (it as List<*>).map { (it as Map<*, *>)["description"] as String } }
-          this.getContext()["exception"] = mergedExceptionErrors(this.getContext()["exception"] as Map<*, *>?, evaluationErrors)
+          this.context["exception"] = mergedExceptionErrors(this.context["exception"] as Map<*, *>?, evaluationErrors)
         } catch (e: Exception) {
           log.error("failed to include expression evaluation error in context", e)
         }
@@ -84,15 +84,15 @@ interface ExpressionAware {
       mapOf("details" to mapOf("errors" to mergedErrors))
     }
 
-  private fun processEntries(stage: Stage<*>) =
+  private fun processEntries(stage: Stage) =
     contextParameterProcessor.process(
-      stage.getContext(),
-      stage.getContext().augmentContext(stage.getExecution()),
+      stage.context,
+      stage.context.augmentContext(stage.execution),
       true
     )
 
-  private fun Map<String, Any?>.augmentContext(execution: Execution<*>) =
-    if (execution is Pipeline) {
+  private fun Map<String, Any?>.augmentContext(execution: Execution) =
+    if (execution.type == PIPELINE) {
       this + execution.context + mapOf("trigger" to execution.trigger, "execution" to execution)
     } else {
       this

@@ -21,7 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.clouddriver.pipeline.providers.aws.CaptureSourceServerGroupCapacityTask
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup
 import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import spock.lang.Specification
 import spock.lang.Subject
@@ -36,7 +36,7 @@ class CaptureSourceServerGroupCapacityTaskSpec extends Specification {
   @Unroll
   void "should no-op if useSourceCapacity is false"() {
     given:
-    def stage = new Stage<>(new Pipeline("orca"), "", stageContext)
+    def stage = new Stage(Execution.newPipeline("orca"), "", stageContext)
 
     when:
     def result = task.execute(stage)
@@ -54,7 +54,7 @@ class CaptureSourceServerGroupCapacityTaskSpec extends Specification {
 
   void "should set useSourceCapacity to false if no source found and preferSourceCapacity is true"() {
     given:
-    def stage = new Stage<>(new Pipeline("orca"), "", [useSourceCapacity: true, preferSourceCapacity: true])
+    def stage = new Stage(Execution.newPipeline("orca"), "", [useSourceCapacity: true, preferSourceCapacity: true])
 
     when:
     def result = task.execute(stage)
@@ -65,7 +65,7 @@ class CaptureSourceServerGroupCapacityTaskSpec extends Specification {
 
   void "should capture source server group capacity and update target capacity"() {
     given:
-    def stage = new Stage<>(new Pipeline("orca"), "", [
+    def stage = new Stage(Execution.newPipeline("orca"), "", [
       useSourceCapacity: true,
       capacity         : [
         min    : 0,

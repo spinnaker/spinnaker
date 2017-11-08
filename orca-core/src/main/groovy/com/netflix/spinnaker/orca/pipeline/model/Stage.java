@@ -32,16 +32,17 @@ import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper;
 import com.netflix.spinnaker.orca.listeners.StageTaskPropagationListener;
 import static com.netflix.spinnaker.orca.ExecutionStatus.NOT_STARTED;
+import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE;
 import static java.lang.String.format;
 import static java.util.Collections.*;
 import static java.util.stream.Collectors.toList;
 
-public class Stage<T extends Execution<T>> implements Serializable {
+public class Stage implements Serializable {
 
   public Stage() {}
 
   @SuppressWarnings("unchecked")
-  public Stage(T execution, String type, String name, Map<String, Object> context) {
+  public Stage(Execution execution, String type, String name, Map<String, Object> context) {
     this.execution = execution;
     this.type = type;
     this.name = name;
@@ -53,11 +54,11 @@ public class Stage<T extends Execution<T>> implements Serializable {
       .orElse(emptySet());
   }
 
-  public Stage(T execution, String type, Map<String, Object> context) {
+  public Stage(Execution execution, String type, Map<String, Object> context) {
     this(execution, type, null, context);
   }
 
-  public Stage(T execution, String type) {
+  public Stage(Execution execution, String type) {
     this(execution, type, emptyMap());
   }
 
@@ -115,14 +116,14 @@ public class Stage<T extends Execution<T>> implements Serializable {
   /**
    * Gets the execution object for this stage
    */
-  private T execution;
+  private Execution execution;
 
   @JsonBackReference
-  public @Nonnull T getExecution() {
+  public @Nonnull Execution getExecution() {
     return execution;
   }
 
-  public void setExecution(@Nonnull T execution) {
+  public void setExecution(@Nonnull Execution execution) {
     this.execution = execution;
   }
 
@@ -280,7 +281,7 @@ public class Stage<T extends Execution<T>> implements Serializable {
     if (o == null || getClass() != o.getClass()) return false;
     if (!super.equals(o)) return false;
 
-    Stage<?> stage = (Stage<?>) o;
+    Stage stage = (Stage) o;
 
     return id.equals(stage.id);
   }
@@ -302,32 +303,32 @@ public class Stage<T extends Execution<T>> implements Serializable {
   /**
    * Gets all ancestor stages, including the current stage.
    */
-  public List<Stage<T>> ancestors() {
+  public List<Stage> ancestors() {
     return ImmutableList
-      .<Stage<T>>builder()
+      .<Stage>builder()
       .add(this)
       .addAll(ancestorsOnly())
       .build();
   }
 
-  private List<Stage<T>> ancestorsOnly() {
+  private List<Stage> ancestorsOnly() {
     if (!requisiteStageRefIds.isEmpty()) {
-      List<Stage<T>> previousStages = execution.getStages().stream().filter(it ->
+      List<Stage> previousStages = execution.getStages().stream().filter(it ->
         requisiteStageRefIds.contains(it.refId)
       ).collect(toList());
-      List<Stage<T>> syntheticStages = execution.getStages().stream().filter(s ->
+      List<Stage> syntheticStages = execution.getStages().stream().filter(s ->
         previousStages.stream().map(Stage::getId).anyMatch(id -> id.equals(s.parentStageId))
       ).collect(toList());
       return ImmutableList
-        .<Stage<T>>builder()
+        .<Stage>builder()
         .addAll(previousStages)
         .addAll(syntheticStages)
         .addAll(previousStages.stream().flatMap(it -> it.ancestorsOnly().stream()).collect(toList()))
         .build();
     } else if (parentStageId != null) {
       return execution.getStages().stream().filter(it -> it.id.equals(parentStageId)).findFirst()
-        .<List<Stage<T>>>map(parent -> ImmutableList
-        .<Stage<T>>builder()
+        .<List<Stage>>map(parent -> ImmutableList
+        .<Stage>builder()
         .add(parent)
         .addAll(parent.ancestorsOnly())
           .build())
@@ -393,9 +394,8 @@ public class Stage<T extends Execution<T>> implements Serializable {
    */
   @SuppressWarnings("unchecked")
   public void resolveStrategyParams() {
-    if (execution instanceof Pipeline) {
-      Pipeline pipeline = (Pipeline) execution;
-      Map<String, Object> parameters = (Map<String, Object>) pipeline.getTrigger().get("parameters");
+    if (execution.getType() == PIPELINE) {
+      Map<String, Object> parameters = (Map<String, Object>) execution.getTrigger().get("parameters");
       boolean strategy = false;
       if (parameters != null && parameters.get("strategy") != null) {
         strategy = (boolean) parameters.get("strategy");
@@ -416,11 +416,11 @@ public class Stage<T extends Execution<T>> implements Serializable {
   /**
    * Returns the top-most stage.
    */
-  @JsonIgnore public Stage<T> getTopLevelStage() {
-    Stage<T> topLevelStage = this;
+  @JsonIgnore public Stage getTopLevelStage() {
+    Stage topLevelStage = this;
     while (topLevelStage.parentStageId != null) {
       String sid = topLevelStage.parentStageId;
-      Optional<Stage<T>> stage = execution.getStages().stream().filter(s -> s.id.equals(sid)).findFirst();
+      Optional<Stage> stage = execution.getStages().stream().filter(s -> s.id.equals(sid)).findFirst();
       if (stage.isPresent()) {
         topLevelStage = stage.get();
       } else {
@@ -434,7 +434,7 @@ public class Stage<T extends Execution<T>> implements Serializable {
    * Returns the top-most stage timeout value if present.
    */
   @JsonIgnore public Optional<Long> getTopLevelTimeout() {
-    Stage<T> topLevelStage = getTopLevelStage();
+    Stage topLevelStage = getTopLevelStage();
     Object timeout = topLevelStage.getContext().get("stageTimeoutMs");
     if (timeout instanceof Integer) {
       return Optional.of((Integer) timeout).map(Long::new);
@@ -483,7 +483,7 @@ public class Stage<T extends Execution<T>> implements Serializable {
     return getRequisiteStageRefIds().size() > 1;
   }
 
-  @JsonIgnore public List<Stage<T>> downstreamStages() {
+  @JsonIgnore public List<Stage> downstreamStages() {
     return getExecution()
       .getStages()
       .stream()

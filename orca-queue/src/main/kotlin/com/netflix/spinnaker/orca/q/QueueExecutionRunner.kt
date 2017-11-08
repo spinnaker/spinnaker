@@ -26,22 +26,22 @@ class QueueExecutionRunner(
   private val queue: Queue
 ) : ExecutionRunner {
 
-  override fun <T : Execution<T>> start(execution: T) =
+  override fun  start(execution: Execution) =
     queue.push(StartExecution(execution))
 
-  override fun <T : Execution<T>> reschedule(execution: T) {
+  override fun  reschedule(execution: Execution) {
     queue.push(RescheduleExecution(execution))
   }
 
-  override fun <T : Execution<T>> restart(execution: T, stageId: String) {
+  override fun restart(execution: Execution, stageId: String) {
     queue.push(RestartStage(execution, stageId, AuthenticatedRequest.getSpinnakerUser().orElse(null)))
   }
 
-  override fun <T : Execution<T>> unpause(execution: T) {
+  override fun unpause(execution: Execution) {
     queue.push(ResumeExecution(execution))
   }
 
-  override fun <T : Execution<T>> cancel(execution: T, user: String, reason: String?) {
+  override fun cancel(execution: Execution, user: String, reason: String?) {
     queue.push(CancelExecution(execution, user, reason))
   }
 }

@@ -38,7 +38,7 @@ class BakeStageSpec extends Specification {
       }
     }
 
-    def bakeStage = new Stage<>(pipeline, "bake", "Bake!", bakeStageContext)
+    def bakeStage = new Stage(pipeline, "bake", "Bake!", bakeStageContext)
     def builder = Spy(BakeStage, {
       (0..1) * now() >> {
         use([TimeCategory]) {

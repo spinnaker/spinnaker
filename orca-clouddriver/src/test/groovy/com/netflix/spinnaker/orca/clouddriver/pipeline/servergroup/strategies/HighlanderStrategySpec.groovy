@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.strategies
 
 import com.netflix.spinnaker.orca.clouddriver.pipeline.cluster.ShrinkClusterStage
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner
 import spock.lang.Specification
@@ -45,7 +45,7 @@ class HighlanderStrategySpec extends Specification {
         ctx.interestingHealthProviderNames = interestingHealthProviderNames
       }
 
-    def stage = new Stage<>(new Pipeline("orca"), "whatever", ctx)
+    def stage = new Stage(Execution.newPipeline("orca"), "whatever", ctx)
       def strat = new HighlanderStrategy(shrinkClusterStage: shrinkClusterStage)
 
     when:

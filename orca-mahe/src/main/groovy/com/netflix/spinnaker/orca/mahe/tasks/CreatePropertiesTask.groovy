@@ -21,7 +21,6 @@ import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.mahe.MaheService
 import com.netflix.spinnaker.orca.mahe.PropertyAction
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import groovy.util.logging.Slf4j
@@ -30,6 +29,7 @@ import org.springframework.stereotype.Component
 import retrofit.RetrofitError
 import retrofit.client.Response
 import static com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED
+import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
 
 @Slf4j
 @Component
@@ -42,8 +42,8 @@ class CreatePropertiesTask implements Task {
   @Override
   TaskResult execute(Stage stage) {
     Map<String, Object> context = stage.context
-    if (stage.execution instanceof Pipeline) {
-      List<Map> overrides = ((Pipeline) stage.execution).trigger.stageOverrides ?: []
+    if (stage.execution.type == PIPELINE) {
+      List<Map> overrides = stage.execution.trigger.stageOverrides ?: []
       context = overrides.find { it.refId == stage.refId } ?: context
       context = contextParameterProcessor.process(context, [execution: stage.execution], true)
     }

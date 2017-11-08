@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support
 
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.ResizeServerGroupStage
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner
 import spock.lang.Specification
@@ -35,7 +35,7 @@ class TargetServerGroupLinearStageSupportSpec extends Specification {
   @Unroll
   void "#description determineTargetReferences stage when target is dynamic and parentStageId is #parentStageId"() {
     given:
-    def stage = new Stage<>(new Pipeline("orca"), "test", [regions: ["us-east-1"], target: "current_asg_dynamic"])
+    def stage = new Stage(Execution.newPipeline("orca"), "test", [regions: ["us-east-1"], target: "current_asg_dynamic"])
     stage.parentStageId = parentStageId
 
     when:
@@ -54,7 +54,7 @@ class TargetServerGroupLinearStageSupportSpec extends Specification {
   @Unroll
   void "should inject a stage for each extra region when the target is dynamically bound"() {
     given:
-    def stage = new Stage<>(new Pipeline("orca"), "test", [
+    def stage = new Stage(Execution.newPipeline("orca"), "test", [
         (locationType + 's'): ["us-east-1", "us-west-1", "us-west-2", "eu-west-2"],
         target              : "current_asg_dynamic",
         cloudProvider       : cloudProvider
@@ -79,7 +79,7 @@ class TargetServerGroupLinearStageSupportSpec extends Specification {
 
   void "should inject a stage after for each extra target when target is not dynamically bound"() {
     given:
-    def stage = new Stage<>(new Pipeline("orca"), "test", ['region': 'should be overridden'])
+    def stage = new Stage(Execution.newPipeline("orca"), "test", ['region': 'should be overridden'])
 
     when:
     def syntheticStages = supportStage.composeTargets(stage).groupBy { it.syntheticStageOwner }
@@ -100,7 +100,7 @@ class TargetServerGroupLinearStageSupportSpec extends Specification {
   @Unroll
   def "#target should inject stages correctly before and after each location stage"() {
     given:
-    def stage = new Stage<>(new Pipeline("orca"), "test", [target: target, regions: ["us-east-1", "us-west-1"]])
+    def stage = new Stage(Execution.newPipeline("orca"), "test", [target: target, regions: ["us-east-1", "us-west-1"]])
     def arbitraryStageBuilder = new ResizeServerGroupStage()
     supportStage.preInjectables = [new TargetServerGroupLinearStageSupport.Injectable(
       name: "testPreInjectable",

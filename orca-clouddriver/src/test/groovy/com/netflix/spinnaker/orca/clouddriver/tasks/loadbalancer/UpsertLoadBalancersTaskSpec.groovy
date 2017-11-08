@@ -28,7 +28,7 @@ class UpsertLoadBalancersTaskSpec extends Specification {
   @Subject
   def task = new UpsertLoadBalancersTask()
 
-  def stage = new Stage<>(type: "")
+  def stage = new Stage(type: "")
   def taskId = new TaskId(UUID.randomUUID().toString())
 
   def insertLoadBalancerConfig = [

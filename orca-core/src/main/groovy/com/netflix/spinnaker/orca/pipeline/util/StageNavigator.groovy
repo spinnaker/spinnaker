@@ -43,7 +43,7 @@ class StageNavigator {
    * As per `Stage.ancestors` except this method returns tuples of the stages
    * and their `StageDefinitionBuilder`.
    */
-  List<Result> ancestors(Stage<?> startingStage) {
+  List<Result> ancestors(Stage startingStage) {
     startingStage.ancestors().collect {
       new Result(it, stageDefinitionBuilders[it.type])
     }
@@ -51,7 +51,7 @@ class StageNavigator {
 
   @Canonical
   static class Result {
-    Stage<?> stage
+    Stage stage
     StageDefinitionBuilder stageBuilder
   }
 }

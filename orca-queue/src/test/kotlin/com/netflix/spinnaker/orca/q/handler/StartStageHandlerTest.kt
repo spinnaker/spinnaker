@@ -27,7 +27,7 @@ import com.netflix.spinnaker.orca.events.StageStarted
 import com.netflix.spinnaker.orca.exceptions.ExceptionHandler
 import com.netflix.spinnaker.orca.pipeline.DefaultStageDefinitionBuilderFactory
 import com.netflix.spinnaker.orca.pipeline.RestrictExecutionDuringTimeWindow
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_AFTER
 import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_BEFORE
@@ -96,10 +96,10 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
           type = singleTaskStage.type
         }
       }
-      val message = StartStage(Pipeline::class.java, pipeline.id, "foo", pipeline.stages.first().id)
+      val message = StartStage(pipeline.type, pipeline.id, "foo", pipeline.stages.first().id)
 
       beforeGroup {
-        whenever(repository.retrievePipeline(message.executionId)) doReturn pipeline
+        whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
       }
 
       afterGroup(::resetMocks)
@@ -110,15 +110,15 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
 
       it("updates the stage status") {
         verify(repository).storeStage(check {
-          it.getStatus() shouldEqual RUNNING
-          it.getStartTime() shouldEqual clock.millis()
+          it.status shouldEqual RUNNING
+          it.startTime shouldEqual clock.millis()
         })
       }
 
       it("attaches tasks to the stage") {
         verify(repository).storeStage(check {
-          it.getTasks().size shouldEqual 1
-          it.getTasks().first().apply {
+          it.tasks.size shouldEqual 1
+          it.tasks.first().apply {
             id shouldEqual "1"
             name shouldEqual "dummy"
             implementingClass shouldEqual DummyTask::class.java.name
@@ -134,7 +134,7 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
 
       it("publishes an event") {
         verify(publisher).publishEvent(check<StageStarted> {
-          it.executionType shouldEqual pipeline.javaClass
+          it.executionType shouldEqual pipeline.type
           it.executionId shouldEqual pipeline.id
           it.stageId shouldEqual message.stageId
         })
@@ -153,7 +153,7 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
         val message = StartStage(pipeline.stageByRef("1"))
 
         beforeGroup {
-          whenever(repository.retrievePipeline(message.executionId)) doReturn pipeline
+          whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
         }
 
         afterGroup(::resetMocks)
@@ -164,8 +164,8 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
 
         it("updates the stage status") {
           verify(repository).storeStage(check {
-            it.getStatus() shouldEqual RUNNING
-            it.getStartTime() shouldEqual clock.millis()
+            it.status shouldEqual RUNNING
+            it.startTime shouldEqual clock.millis()
           })
         }
 
@@ -176,7 +176,7 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
 
         it("publishes an event") {
           verify(publisher).publishEvent(check<StageStarted> {
-            it.executionType shouldEqual pipeline.javaClass
+            it.executionType shouldEqual pipeline.type
             it.executionId shouldEqual pipeline.id
             it.stageId shouldEqual message.stageId
           })
@@ -194,7 +194,7 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
         val message = StartStage(pipeline.stageByRef("1"))
 
         beforeGroup {
-          whenever(repository.retrievePipeline(message.executionId)) doReturn pipeline
+          whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
         }
 
         afterGroup(::resetMocks)
@@ -205,8 +205,8 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
 
         it("updates the stage status") {
           verify(repository).storeStage(check {
-            it.getStatus() shouldEqual RUNNING
-            it.getStartTime() shouldEqual clock.millis()
+            it.status shouldEqual RUNNING
+            it.startTime shouldEqual clock.millis()
           })
         }
 
@@ -217,7 +217,7 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
 
         it("publishes an event") {
           verify(publisher).publishEvent(check<StageStarted> {
-            it.executionType shouldEqual pipeline.javaClass
+            it.executionType shouldEqual pipeline.type
             it.executionId shouldEqual pipeline.id
             it.stageId shouldEqual message.stageId
           })
@@ -232,10 +232,10 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
           type = multiTaskStage.type
         }
       }
-      val message = StartStage(Pipeline::class.java, pipeline.id, "foo", pipeline.stages.first().id)
+      val message = StartStage(pipeline.type, pipeline.id, "foo", pipeline.stages.first().id)
 
       beforeGroup {
-        whenever(repository.retrievePipeline(message.executionId)) doReturn pipeline
+        whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
       }
 
       on("receiving a message") {
@@ -246,22 +246,22 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
 
       it("attaches tasks to the stage") {
         verify(repository).storeStage(check {
-          it.getTasks().size shouldEqual 3
-          it.getTasks()[0].apply {
+          it.tasks.size shouldEqual 3
+          it.tasks[0].apply {
             id shouldEqual "1"
             name shouldEqual "dummy1"
             implementingClass shouldEqual DummyTask::class.java.name
             isStageStart shouldEqual true
             isStageEnd shouldEqual false
           }
-          it.getTasks()[1].apply {
+          it.tasks[1].apply {
             id shouldEqual "2"
             name shouldEqual "dummy2"
             implementingClass shouldEqual DummyTask::class.java.name
             isStageStart shouldEqual false
             isStageEnd shouldEqual false
           }
-          it.getTasks()[2].apply {
+          it.tasks[2].apply {
             id shouldEqual "3"
             name shouldEqual "dummy3"
             implementingClass shouldEqual DummyTask::class.java.name
@@ -290,10 +290,10 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
             type = stageWithSyntheticBefore.type
           }
         }
-        val message = StartStage(Pipeline::class.java, pipeline.id, "foo", pipeline.stages.first().id)
+        val message = StartStage(pipeline.type, pipeline.id, "foo", pipeline.stages.first().id)
 
         beforeGroup {
-          whenever(repository.retrievePipeline(message.executionId)) doReturn pipeline
+          whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
         }
 
         on("receiving a message") {
@@ -304,8 +304,8 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
 
         it("attaches the synthetic stage to the pipeline") {
           verify(repository, times(2)).addStage(check {
-            it.getParentStageId() shouldEqual message.stageId
-            it.getSyntheticStageOwner() shouldEqual STAGE_BEFORE
+            it.parentStageId shouldEqual message.stageId
+            it.syntheticStageOwner shouldEqual STAGE_BEFORE
           })
         }
 
@@ -326,10 +326,10 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
             type = stageWithSyntheticAfter.type
           }
         }
-        val message = StartStage(Pipeline::class.java, pipeline.id, "foo", pipeline.stages.first().id)
+        val message = StartStage(pipeline.type, pipeline.id, "foo", pipeline.stages.first().id)
 
         beforeGroup {
-          whenever(repository.retrievePipeline(message.executionId)) doReturn pipeline
+          whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
         }
 
         afterGroup(::resetMocks)
@@ -340,8 +340,8 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
 
         it("attaches the synthetic stage to the pipeline") {
           verify(repository, times(2)).addStage(check {
-            it.getParentStageId() shouldEqual message.stageId
-            it.getSyntheticStageOwner() shouldEqual STAGE_AFTER
+            it.parentStageId shouldEqual message.stageId
+            it.syntheticStageOwner shouldEqual STAGE_AFTER
           })
         }
 
@@ -374,13 +374,13 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
           type = singleTaskStage.type
         }
       }
-      val message = StartStage(Pipeline::class.java, pipeline.id, "foo", pipeline.stageByRef("3").id)
+      val message = StartStage(pipeline.type, pipeline.id, "foo", pipeline.stageByRef("3").id)
 
       and("at least one is incomplete") {
         beforeGroup {
           pipeline.stageByRef("1").status = SUCCEEDED
           pipeline.stageByRef("2").status = RUNNING
-          whenever(repository.retrievePipeline(message.executionId)) doReturn pipeline
+          whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
         }
 
         afterGroup(::resetMocks)
@@ -410,7 +410,7 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
         beforeGroup {
           pipeline.stageByRef("1").status = SUCCEEDED
           pipeline.stageByRef("2").status = SUCCEEDED
-          whenever(repository.retrievePipeline(message.executionId)) doReturn pipeline
+          whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
         }
 
         afterGroup(::resetMocks)
@@ -432,7 +432,7 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
         beforeGroup {
           pipeline.stageByRef("1").status = SUCCEEDED
           pipeline.stageByRef("2").status = TERMINAL
-          whenever(repository.retrievePipeline(message.executionId)) doReturn pipeline
+          whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
         }
 
         afterGroup(::resetMocks)
@@ -456,7 +456,7 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
           pipeline.stageByRef("1").status = SUCCEEDED
           pipeline.stageByRef("2").status = SUCCEEDED
           pipeline.stageByRef("3").status = RUNNING
-          whenever(repository.retrievePipeline(message.executionId)) doReturn pipeline
+          whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
         }
 
         afterGroup(::resetMocks)
@@ -485,10 +485,10 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
             context["restrictExecutionDuringTimeWindow"] = true
           }
         }
-        val message = StartStage(Pipeline::class.java, pipeline.id, "foo", pipeline.stages.first().id)
+        val message = StartStage(pipeline.type, pipeline.id, "foo", pipeline.stages.first().id)
 
         beforeGroup {
-          whenever(repository.retrievePipeline(message.executionId)) doReturn pipeline
+          whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
         }
 
         afterGroup(::resetMocks)
@@ -498,7 +498,7 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
         }
 
         it("injects a 'wait for execution window' stage before any other synthetic stages") {
-          argumentCaptor<Stage<Pipeline>>().apply {
+          argumentCaptor<Stage>().apply {
             verify(repository, times(3)).addStage(capture())
             firstValue.type shouldEqual RestrictExecutionDuringTimeWindow.TYPE
             firstValue.parentStageId shouldEqual message.stageId
@@ -524,10 +524,10 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
             context["restrictExecutionDuringTimeWindow"] = true
           }
         }
-        val message = StartStage(Pipeline::class.java, pipeline.id, "foo", pipeline.stages.first().id)
+        val message = StartStage(pipeline.type, pipeline.id, "foo", pipeline.stages.first().id)
 
         beforeGroup {
-          whenever(repository.retrievePipeline(message.executionId)) doReturn pipeline
+          whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
         }
 
         afterGroup(::resetMocks)
@@ -537,7 +537,7 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
         }
 
         it("injects a 'wait for execution window' stage before any other synthetic stages") {
-          argumentCaptor<Stage<Pipeline>>().apply {
+          argumentCaptor<Stage>().apply {
             verify(repository, times(4)).addStage(capture())
             firstValue.type shouldEqual RestrictExecutionDuringTimeWindow.TYPE
             firstValue.parentStageId shouldEqual message.stageId
@@ -566,10 +566,10 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
           context["alias"] = webhookStage.type
         }
       }
-      val message = StartStage(Pipeline::class.java, pipeline.id, "foo", pipeline.stages.first().id)
+      val message = StartStage(pipeline.type, pipeline.id, "foo", pipeline.stages.first().id)
 
       beforeGroup {
-        whenever(repository.retrievePipeline(message.executionId)) doReturn pipeline
+        whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
       }
 
       afterGroup(::resetMocks)
@@ -580,16 +580,16 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
 
       it("starts the stage") {
         verify(repository).storeStage(check {
-          it.getType() shouldEqual "bar"
-          it.getStatus() shouldEqual RUNNING
-          it.getStartTime() shouldEqual clock.millis()
+          it.type shouldEqual "bar"
+          it.status shouldEqual RUNNING
+          it.startTime shouldEqual clock.millis()
         })
       }
 
       it("attaches a task to the stage") {
         verify(repository).storeStage(check {
-          it.getTasks().size shouldEqual 1
-          it.getTasks().first().apply {
+          it.tasks.size shouldEqual 1
+          it.tasks.first().apply {
             id shouldEqual "1"
             name shouldEqual "createWebhook"
             implementingClass shouldEqual DummyTask::class.java.name
@@ -620,7 +620,7 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
 
         and("the pipeline should fail") {
           beforeGroup {
-            whenever(repository.retrievePipeline(message.executionId)) doReturn pipeline
+            whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
             whenever(exceptionHandler.handles(any())) doReturn true
             whenever(exceptionHandler.handle(anyOrNull(), any())) doReturn exceptionDetails
           }
@@ -637,7 +637,7 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
 
           it("attaches the exception to the stage context") {
             verify(repository).storeStage(check {
-              it.getContext()["exception"] shouldEqual exceptionDetails
+              it.context["exception"] shouldEqual exceptionDetails
             })
           }
         }
@@ -649,7 +649,7 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
               context["continuePipeline"] = false
             }
 
-            whenever(repository.retrievePipeline(message.executionId)) doReturn pipeline
+            whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
             whenever(exceptionHandler.handles(any())) doReturn true
             whenever(exceptionHandler.handle(anyOrNull(), any())) doReturn exceptionDetails
           }
@@ -666,7 +666,7 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
 
           it("attaches the exception to the stage context") {
             verify(repository).storeStage(check {
-              it.getContext()["exception"] shouldEqual exceptionDetails
+              it.context["exception"] shouldEqual exceptionDetails
             })
           }
         }
@@ -678,7 +678,7 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
               context["continuePipeline"] = true
             }
 
-            whenever(repository.retrievePipeline(message.executionId)) doReturn pipeline
+            whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
             whenever(exceptionHandler.handles(any())) doReturn true
             whenever(exceptionHandler.handle(anyOrNull(), any())) doReturn exceptionDetails
           }
@@ -695,7 +695,7 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
 
           it("attaches the exception to the stage context") {
             verify(repository).storeStage(check {
-              it.getContext()["exception"] shouldEqual exceptionDetails
+              it.context["exception"] shouldEqual exceptionDetails
             })
           }
         }
@@ -710,7 +710,7 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
         )
 
         beforeGroup {
-          whenever(repository.retrievePipeline(message.executionId)) doReturn pipeline
+          whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
           whenever(exceptionHandler.handles(any())) doReturn true
           whenever(exceptionHandler.handle(anyOrNull(), any())) doReturn exceptionDetails
         }
@@ -738,10 +738,10 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
           type = stageWithParallelBranches.type
         }
       }
-      val message = StartStage(Pipeline::class.java, pipeline.id, "foo", pipeline.stageByRef("1").id)
+      val message = StartStage(pipeline.type, pipeline.id, "foo", pipeline.stageByRef("1").id)
 
       beforeGroup {
-        whenever(repository.retrievePipeline(pipeline.id)) doReturn pipeline
+        whenever(repository.retrieve(PIPELINE, pipeline.id)) doReturn pipeline
       }
 
       afterGroup(::resetMocks)
@@ -794,10 +794,10 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
           stageWithParallelBranches.buildTasks(this)
         }
       }
-      val message = StartStage(Pipeline::class.java, pipeline.id, "foo", pipeline.stages[0].id)
+      val message = StartStage(pipeline.type, pipeline.id, "foo", pipeline.stages[0].id)
 
       beforeGroup {
-        whenever(repository.retrievePipeline(pipeline.id)) doReturn pipeline
+        whenever(repository.retrieve(PIPELINE, pipeline.id)) doReturn pipeline
       }
 
       afterGroup(::resetMocks)
@@ -814,7 +814,7 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
 
       it("does not build more synthetic stages") {
         val stage = pipeline.stageById(message.stageId)
-        pipeline.stages.mapNotNull(Stage<Pipeline>::getParentStageId) shouldMatch !hasElement(stage.id)
+        pipeline.stages.mapNotNull(Stage::getParentStageId) shouldMatch !hasElement(stage.id)
       }
     }
   }
@@ -829,10 +829,10 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
     }
 
     context("when the stage starts") {
-      val message = StartStage(Pipeline::class.java, pipeline.id, "foo", pipeline.stageByRef("1").id)
+      val message = StartStage(pipeline.type, pipeline.id, "foo", pipeline.stageByRef("1").id)
 
       beforeGroup {
-        whenever(repository.retrievePipeline(pipeline.id)) doReturn pipeline
+        whenever(repository.retrieve(PIPELINE, pipeline.id)) doReturn pipeline
       }
 
       afterGroup(::resetMocks)
@@ -881,7 +881,7 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
       val message = StartStage(pipeline.stages.first())
 
       beforeGroup {
-        whenever(repository.retrievePipeline(pipeline.id)) doReturn pipeline
+        whenever(repository.retrieve(PIPELINE, pipeline.id)) doReturn pipeline
       }
 
       afterGroup(::resetMocks)
@@ -910,7 +910,7 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
       val message = StartStage(pipeline.stages.first())
 
       beforeGroup {
-        whenever(repository.retrievePipeline(pipeline.id)) doReturn pipeline
+        whenever(repository.retrieve(PIPELINE, pipeline.id)) doReturn pipeline
       }
 
       afterGroup(::resetMocks)
@@ -953,7 +953,7 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
 
       and("the stage should be run") {
         beforeGroup {
-          whenever(repository.retrievePipeline(pipeline.id)) doReturn pipeline
+          whenever(repository.retrieve(PIPELINE, pipeline.id)) doReturn pipeline
         }
 
         afterGroup(::resetMocks)
@@ -987,7 +987,7 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
         val message = StartStage(pipeline.stageByRef("2"))
 
         beforeGroup {
-          whenever(repository.retrievePipeline(pipeline.id)) doReturn pipeline
+          whenever(repository.retrieve(PIPELINE, pipeline.id)) doReturn pipeline
         }
 
         afterGroup(::resetMocks)
@@ -1005,11 +1005,11 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
 
   describe("invalid commands") {
 
-    val message = StartStage(Pipeline::class.java, "1", "foo", "1")
+    val message = StartStage(PIPELINE, "1", "foo", "1")
 
     given("no such execution") {
       beforeGroup {
-        whenever(repository.retrievePipeline(message.executionId)) doThrow ExecutionNotFoundException("No Pipeline found for ${message.executionId}")
+        whenever(repository.retrieve(PIPELINE, message.executionId)) doThrow ExecutionNotFoundException("No Pipeline found for ${message.executionId}")
       }
 
       afterGroup(::resetMocks)
@@ -1030,7 +1030,7 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
       }
 
       beforeGroup {
-        whenever(repository.retrievePipeline(message.executionId)) doReturn pipeline
+        whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
       }
 
       afterGroup(::resetMocks)

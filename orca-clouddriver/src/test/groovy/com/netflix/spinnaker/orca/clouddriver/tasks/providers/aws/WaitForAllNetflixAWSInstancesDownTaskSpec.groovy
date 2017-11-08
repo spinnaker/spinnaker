@@ -20,7 +20,7 @@ import java.util.concurrent.TimeUnit
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import retrofit.client.Response
 import retrofit.mime.TypedString
@@ -47,7 +47,7 @@ class WaitForAllNetflixAWSInstancesDownTaskSpec extends Specification {
 
   void "should fetch server group"() {
     given:
-    def pipeline = new Pipeline("orca")
+    def pipeline = Execution.newPipeline("orca")
     task.objectMapper = mapper
     def response = mapper.writeValueAsString([
       region   : "us-west-1",
@@ -68,7 +68,7 @@ class WaitForAllNetflixAWSInstancesDownTaskSpec extends Specification {
     }
 
     and:
-    def stage = new Stage<>(pipeline, "asgActionWaitForDownInstances", [
+    def stage = new Stage(pipeline, "asgActionWaitForDownInstances", [
       "targetop.asg.enableAsg.name"   : "front50-v000",
       "targetop.asg.enableAsg.regions": ['us-west-1'],
       "account.name"                  : "test"
@@ -82,7 +82,7 @@ class WaitForAllNetflixAWSInstancesDownTaskSpec extends Specification {
   @Unroll
   void 'should succeed as #hasSucceeded based on instance providers #healthProviderNames for instances #instances'() {
     given:
-    def stage = new Stage<>(new Pipeline("orca"), "")
+    def stage = new Stage(Execution.newPipeline("orca"), "")
 
     expect:
     hasSucceeded == task.hasSucceeded(stage, [minSize: 0], instances, healthProviderNames)

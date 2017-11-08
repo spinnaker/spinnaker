@@ -22,25 +22,25 @@ import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import static java.lang.String.format;
 
 public interface ExecutionRunner {
-  <T extends Execution<T>> void start(@Nonnull T execution) throws Exception;
+  void start(@Nonnull Execution execution) throws Exception;
 
-  default <T extends Execution<T>> void restart(
-    @Nonnull T execution, @Nonnull String stageId) throws Exception {
+  default void restart(
+    @Nonnull Execution execution, @Nonnull String stageId) throws Exception {
     throw new UnsupportedOperationException();
   }
 
-  default <T extends Execution<T>> void reschedule(
-    @Nonnull T execution) throws Exception {
+  default void reschedule(
+    @Nonnull Execution execution) throws Exception {
     throw new UnsupportedOperationException();
   }
 
-  default <T extends Execution<T>> void unpause(
-    @Nonnull T execution) throws Exception {
+  default void unpause(
+    @Nonnull Execution execution) throws Exception {
     throw new UnsupportedOperationException();
   }
 
-  default <T extends Execution<T>> void cancel(
-    @Nonnull T execution,
+  default void cancel(
+    @Nonnull Execution execution,
     @Nonnull String user, @Nullable String reason) throws Exception {
     throw new UnsupportedOperationException();
   }

@@ -16,14 +16,12 @@
 
 package com.netflix.spinnaker.orca.echo.pipeline
 
-import java.time.Duration
 import java.util.concurrent.TimeUnit
 import com.google.common.annotations.VisibleForTesting
 import com.netflix.spinnaker.orca.*
 import com.netflix.spinnaker.orca.echo.EchoService
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.TaskNode
-import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.security.User
 import groovy.util.logging.Slf4j
@@ -34,7 +32,7 @@ import org.springframework.stereotype.Component
 class ManualJudgmentStage implements StageDefinitionBuilder, RestartableStage, AuthenticatedStage {
 
   @Override
-  <T extends Execution<T>> void taskGraph(Stage<T> stage, TaskNode.Builder builder) {
+  void taskGraph(Stage stage, TaskNode.Builder builder) {
     builder
       .withTask("waitForJudgment", WaitForManualJudgmentTask.class)
   }
@@ -180,7 +178,7 @@ class ManualJudgmentStage implements StageDefinitionBuilder, RestartableStage, A
         templateGroup: notificationState,
         severity: EchoService.Notification.Severity.HIGH,
         source: new EchoService.Notification.Source(
-          executionType: stage.execution.class.simpleName.toLowerCase(),
+          executionType: stage.execution.type.toString(),
           executionId: stage.execution.id,
           application: stage.execution.application
         ),

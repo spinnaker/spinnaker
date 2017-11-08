@@ -19,7 +19,7 @@ import java.time.Clock
 import java.time.Duration
 import java.util.concurrent.atomic.AtomicInteger
 import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Task
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import redis.clients.jedis.Jedis
@@ -27,6 +27,7 @@ import redis.clients.jedis.ScanParams
 import redis.clients.jedis.ScanResult
 import redis.clients.util.Pool
 import spock.lang.Specification
+import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
 
@@ -111,12 +112,12 @@ class OldPipelineCleanupPollingNotificationAgentSpec extends Specification {
     agent.tick()
 
     then:
-    1 * executionRepository.deletePipeline('1')
-    1 * executionRepository.deletePipeline('2')
+    1 * executionRepository.delete(PIPELINE, '1')
+    1 * executionRepository.delete(PIPELINE, '2')
   }
 
   private
-  static Collection<Pipeline> buildPipelines(AtomicInteger stageStartTime, int count, String configId) {
+  static Collection<Execution> buildPipelines(AtomicInteger stageStartTime, int count, String configId) {
     (1..count).collect {
       def time = stageStartTime.incrementAndGet()
       pipeline {

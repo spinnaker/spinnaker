@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.strategies
 
 import com.netflix.spinnaker.orca.pipeline.TaskNode
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import spock.lang.Shared
 import spock.lang.Specification
@@ -49,7 +49,7 @@ class AbstractDeployStrategyStageSpec extends Specification {
       noStrategy = noStrat
     }
 
-    Stage stage = new Stage<>(new Pipeline("orca"), "whatever", [strategy: specifiedStrategy])
+    Stage stage = new Stage(Execution.newPipeline("orca"), "whatever", [strategy: specifiedStrategy])
 
     when:
     def tasks = testStage.buildTaskGraph(stage)

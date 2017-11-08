@@ -20,14 +20,9 @@ import com.netflix.spinnaker.orca.CancellableStage
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCacheForceRefreshTask
 import com.netflix.spinnaker.orca.mine.MineService
-import com.netflix.spinnaker.orca.mine.tasks.CleanupCanaryTask
-import com.netflix.spinnaker.orca.mine.tasks.CompleteCanaryTask
-import com.netflix.spinnaker.orca.mine.tasks.DisableCanaryTask
-import com.netflix.spinnaker.orca.mine.tasks.MonitorCanaryTask
-import com.netflix.spinnaker.orca.mine.tasks.RegisterCanaryTask
+import com.netflix.spinnaker.orca.mine.tasks.*
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.TaskNode
-import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.tasks.WaitTask
 import groovy.util.logging.Slf4j
@@ -42,7 +37,7 @@ class MonitorCanaryStage implements StageDefinitionBuilder, CancellableStage {
   @Autowired CanaryStage canaryStage
 
   @Override
-  <T extends Execution<T>> void taskGraph(Stage<T> stage, TaskNode.Builder builder) {
+  void taskGraph(Stage stage, TaskNode.Builder builder) {
     builder
       .withTask("registerCanary", RegisterCanaryTask)
       .withTask("monitorCanary", MonitorCanaryTask)

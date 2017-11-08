@@ -16,7 +16,7 @@
 package com.netflix.spinnaker.orca.q
 
 import com.netflix.spectator.api.NoopRegistry
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
 import com.nhaarman.mockito_kotlin.*
 import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.it
@@ -35,7 +35,7 @@ class QueueShovelTest : SubjectSpek<QueueShovel>({
   }
 
   describe("polling the previous queue") {
-    val message = StartExecution(Pipeline::class.java, "1", "spinnaker")
+    val message = StartExecution(PIPELINE, "1", "spinnaker")
 
     beforeGroup {
       subject.enabled.set(true)

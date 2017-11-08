@@ -24,13 +24,12 @@ import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.CloneServerGr
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.CreateServerGroupStage
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.TaskNode
-import com.netflix.spinnaker.orca.pipeline.model.Execution
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import org.springframework.stereotype.Component
+import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
 import static com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_BEFORE
 
 @Component
@@ -47,12 +46,12 @@ class ParallelDeployStage implements StageDefinitionBuilder {
   }
 
   @Override
-  <T extends Execution<T>> void taskGraph(Stage<T> stage, TaskNode.Builder builder) {
+  void taskGraph(Stage stage, TaskNode.Builder builder) {
     builder.withTask("completeParallelDeploy", CompleteParallelDeployTask)
   }
 
-  @Nonnull <T extends Execution<T>> List<Stage<T>> parallelStages(
-    @Nonnull Stage<T> stage) {
+  @Nonnull List<Stage> parallelStages(
+    @Nonnull Stage stage) {
     parallelContexts(stage).collect { context ->
       def type = isClone(stage) ? CloneServerGroupStage.PIPELINE_CONFIG_TYPE : CreateServerGroupStage.PIPELINE_CONFIG_TYPE
       newStage(stage.execution, type, context.name as String, context, stage, STAGE_BEFORE)
@@ -79,9 +78,9 @@ class ParallelDeployStage implements StageDefinitionBuilder {
   }
 
   @CompileDynamic
-  protected <T extends Execution<T>> Collection<Map<String, Object>> parallelContexts(Stage<T> stage) {
-    if (stage.execution instanceof Pipeline) {
-      Map trigger = ((Pipeline) stage.execution).trigger
+  protected Collection<Map<String, Object>> parallelContexts(Stage stage) {
+    if (stage.execution.type == PIPELINE) {
+      Map trigger = stage.execution.trigger
       if (trigger.parameters?.strategy == true) {
         Map parentStage = trigger.parentExecution.stages.find {
           it.id == trigger.parameters.parentStageId
@@ -146,9 +145,9 @@ class ParallelDeployStage implements StageDefinitionBuilder {
   }
 
   @CompileDynamic
-  private <T extends Execution<T>> boolean isClone(Stage<T> stage) {
-    if (stage.execution instanceof Pipeline) {
-      Map trigger = ((Pipeline) stage.execution).trigger
+  private boolean isClone(Stage stage) {
+    if (stage.execution.type == PIPELINE) {
+      Map trigger = stage.execution.trigger
 
       if (trigger.parameters?.clone == true) {
         return true

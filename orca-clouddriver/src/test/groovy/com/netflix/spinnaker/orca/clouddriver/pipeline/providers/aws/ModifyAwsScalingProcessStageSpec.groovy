@@ -20,7 +20,7 @@ package com.netflix.spinnaker.orca.clouddriver.pipeline.providers.aws
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup
 import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -34,7 +34,7 @@ class ModifyAwsScalingProcessStageSpec extends Specification {
     def task = new ModifyAwsScalingProcessStage.WaitForScalingProcess(oortHelper: oortHelper)
 
     when:
-    def taskResult = task.execute(new Stage<>(new Pipeline("orca"), "", "", [
+    def taskResult = task.execute(new Stage(Execution.newPipeline("orca"), "", "", [
       credentials: "test",
       region     : "us-east-1",
       asgName    : "test-asg",
@@ -94,7 +94,7 @@ class ModifyAwsScalingProcessStageSpec extends Specification {
     ]
 
     when:
-    def stageData = new Stage<>(new Pipeline("orca"), "", "", context).mapTo(
+    def stageData = new Stage(Execution.newPipeline("orca"), "", "", context).mapTo(
       ModifyAwsScalingProcessStage.WaitForScalingProcess.StageData
     )
 

@@ -15,11 +15,10 @@
  */
 package com.netflix.spinnaker.orca.q.redis
 
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
 import com.netflix.spinnaker.orca.q.CompleteExecution
 import com.netflix.spinnaker.orca.q.Queue
 import com.netflix.spinnaker.orca.q.StartExecution
-import com.netflix.spinnaker.spek.and
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.reset
 import com.nhaarman.mockito_kotlin.verify
@@ -49,7 +48,7 @@ object RedisDeadMessageHandlerTest : SubjectSpek<RedisDeadMessageHandler>({
   fun resetMocks() = reset(queue, redis)
 
   describe("handling a message") {
-    val message = StartExecution(Pipeline::class.java, "1", "spinnaker")
+    val message = StartExecution(PIPELINE, "1", "spinnaker")
 
     afterGroup(::resetMocks)
 
@@ -62,7 +61,7 @@ object RedisDeadMessageHandlerTest : SubjectSpek<RedisDeadMessageHandler>({
     }
 
     it("puts the message onto the DLQ") {
-      verify(redis).zadd("dlq.messages", 0.0, "{\"@class\":\".StartExecution\",\"executionType\":\"com.netflix.spinnaker.orca.pipeline.model.Pipeline\",\"executionId\":\"1\",\"application\":\"spinnaker\",\"attributes\":[]}")
+      verify(redis).zadd("dlq.messages", 0.0, "{\"@class\":\".StartExecution\",\"executionType\":\"PIPELINE\",\"executionId\":\"1\",\"application\":\"spinnaker\",\"attributes\":[]}")
     }
   }
 })

@@ -21,14 +21,13 @@ import com.netflix.spinnaker.orca.clouddriver.tasks.instance.TerminateInstanceAn
 import com.netflix.spinnaker.orca.clouddriver.tasks.instance.WaitForTerminatedInstancesTask
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.TaskNode
-import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.stereotype.Component
 
 @Component
 class TerminateInstanceAndDecrementServerGroupStage implements StageDefinitionBuilder {
   @Override
-  <T extends Execution<T>> void taskGraph(Stage<T> stage, TaskNode.Builder builder) {
+  void taskGraph(Stage stage, TaskNode.Builder builder) {
     builder
       .withTask("terminateInstanceAndDecrementServerGroup", TerminateInstanceAndDecrementServerGroupTask)
       .withTask("monitorTermination", MonitorKatoTask)

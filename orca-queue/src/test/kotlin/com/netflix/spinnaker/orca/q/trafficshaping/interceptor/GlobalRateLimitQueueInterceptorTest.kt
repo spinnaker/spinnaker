@@ -18,7 +18,7 @@ package com.netflix.spinnaker.orca.q.trafficshaping.interceptor
 import com.netflix.spectator.api.Id
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.config.TrafficShapingProperties
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
 import com.netflix.spinnaker.orca.q.Message
 import com.netflix.spinnaker.orca.q.Queue
 import com.netflix.spinnaker.orca.q.StartStage
@@ -30,11 +30,9 @@ import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.whenever
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNotNull
-import org.junit.Assert.assertNull
 import org.jetbrains.spek.api.Spek
 import org.jetbrains.spek.api.dsl.describe
+import org.junit.Assert.*
 import java.time.Clock
 import java.time.Duration
 
@@ -45,7 +43,7 @@ object GlobalRateLimitQueueInterceptorTest : Spek({
   val timeShapedId: Id = mock()
 
   describe("an application rate limit queue interceptor") {
-    val message = StartStage(Pipeline::class.java, "1", "foo", "1")
+    val message = StartStage(PIPELINE, "1", "foo", "1")
     val subject = GlobalRateLimitQueueInterceptor(backend, registry, props, timeShapedId)
 
     describe("when learning") {
@@ -71,21 +69,21 @@ object GlobalRateLimitQueueInterceptorTest : Spek({
         }
 
         describe("callback message contains throttle time") {
-          val msg: Message = StartStage(Pipeline::class.java, "1", "foo", "1")
+          val msg: Message = StartStage(PIPELINE, "1", "foo", "1")
           whenever(backend.incrementAndGet(any(), any())) doReturn RateLimit(limiting = true, duration = Duration.ZERO, enforcing = true)
           subject.interceptMessage(msg)?.invoke(queueImpl, msg, {})
           assertNotNull(msg.getAttribute<TotalThrottleTimeAttribute>())
         }
 
         describe("throttle time is being set") {
-          val msg: Message = StartStage(Pipeline::class.java, "1", "foo", "1")
+          val msg: Message = StartStage(PIPELINE, "1", "foo", "1")
           whenever(backend.incrementAndGet(any(), any())) doReturn RateLimit(limiting = true, duration = Duration.ofMillis(5), enforcing = true)
           subject.interceptMessage(msg)?.invoke(queueImpl, msg, {})
           assertEquals(5L, msg.getAttribute<TotalThrottleTimeAttribute>()?.totalThrottleTimeMs)
         }
 
         describe("throttle time is being added") {
-          val msg: Message = StartStage(Pipeline::class.java, "1", "foo", "1")
+          val msg: Message = StartStage(PIPELINE, "1", "foo", "1")
           whenever(backend.incrementAndGet(any(), any())) doReturn RateLimit(limiting = true, duration = Duration.ofMillis(5), enforcing = true)
           subject.interceptMessage(msg)?.invoke(queueImpl, msg, {})
           subject.interceptMessage(msg)?.invoke(queueImpl, msg, {})

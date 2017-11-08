@@ -35,9 +35,9 @@ class SkipStageHandler(
 ) : MessageHandler<SkipStage> {
   override fun handle(message: SkipStage) {
     message.withStage { stage ->
-      if (stage.getStatus() in setOf(RUNNING, NOT_STARTED)) {
-        stage.setStatus(SKIPPED)
-        stage.setEndTime(clock.millis())
+      if (stage.status in setOf(RUNNING, NOT_STARTED)) {
+        stage.status = SKIPPED
+        stage.endTime = clock.millis()
         repository.storeStage(stage)
         stage.startNext()
         publisher.publishEvent(StageComplete(this, stage))

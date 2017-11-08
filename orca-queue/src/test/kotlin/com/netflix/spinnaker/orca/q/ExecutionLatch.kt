@@ -22,7 +22,7 @@ import com.natpryce.hamkrest.has
 import com.netflix.spinnaker.orca.ExecutionStatus.NOT_STARTED
 import com.netflix.spinnaker.orca.events.ExecutionComplete
 import com.netflix.spinnaker.orca.pipeline.model.Execution
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import org.springframework.context.ApplicationListener
@@ -49,7 +49,7 @@ class ExecutionLatch(matcher: Matcher<ExecutionComplete>)
   fun await() = latch.await(1, TimeUnit.SECONDS)
 }
 
-fun <E : Execution<E>> ConfigurableApplicationContext.runToCompletion(execution: E, launcher: (E) -> Unit, repository: ExecutionRepository) {
+fun ConfigurableApplicationContext.runToCompletion(execution: Execution, launcher: (Execution) -> Unit, repository: ExecutionRepository) {
   val latch = ExecutionLatch(
     has(ExecutionComplete::getExecutionId, equalTo(execution.id))
   )
@@ -60,7 +60,7 @@ fun <E : Execution<E>> ConfigurableApplicationContext.runToCompletion(execution:
   repository.waitForAllStagesToComplete(execution)
 }
 
-fun <E : Execution<E>> ConfigurableApplicationContext.restartAndRunToCompletion(stage: Stage<E>, launcher: (E, String) -> Unit, repository: ExecutionRepository) {
+fun ConfigurableApplicationContext.restartAndRunToCompletion(stage: Stage, launcher: (Execution, String) -> Unit, repository: ExecutionRepository) {
   val execution = stage.execution
   val latch = ExecutionLatch(
     has(ExecutionComplete::getExecutionId, equalTo(execution.id))
@@ -72,16 +72,14 @@ fun <E : Execution<E>> ConfigurableApplicationContext.restartAndRunToCompletion(
   repository.waitForAllStagesToComplete(execution)
 }
 
-private fun <E : Execution<E>> ExecutionRepository.waitForAllStagesToComplete(execution: E) {
+private fun ExecutionRepository.waitForAllStagesToComplete(execution: Execution) {
   var complete = false
   while (!complete) {
     Thread.sleep(100)
-    complete = when (execution) {
-      is Pipeline -> retrievePipeline(execution.id)
-      else -> retrieveOrchestration(execution.id)
-    }.run {
-      getStatus().isComplete && getStages()
-        .map(Stage<*>::getStatus)
+    complete = retrieve(PIPELINE, execution.id)
+    .run {
+      status.isComplete && stages
+        .map(Stage::getStatus)
         .all { it.isComplete || it == NOT_STARTED }
     }
   }

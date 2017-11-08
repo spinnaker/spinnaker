@@ -16,15 +16,15 @@
 
 package com.netflix.spinnaker.orca.front50.spring
 
-import groovy.transform.CompileDynamic
-import groovy.util.logging.Slf4j
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.front50.DependentPipelineStarter
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.listeners.ExecutionListener
 import com.netflix.spinnaker.orca.listeners.Persister
 import com.netflix.spinnaker.orca.pipeline.model.Execution
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import groovy.transform.CompileDynamic
+import groovy.util.logging.Slf4j
+import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
 
 @Slf4j
 @CompileDynamic
@@ -40,22 +40,21 @@ class DependentPipelineExecutionListener implements ExecutionListener {
 
   @Override
   void afterExecution(Persister persister, Execution execution, ExecutionStatus executionStatus, boolean wasSuccessful) {
-    if (!execution || !(execution instanceof Pipeline)) {
+    if (!execution || !(execution.type == PIPELINE)) {
       return
     }
 
-    def pipelineExecution = (Pipeline) execution
-    def status = convertStatus(pipelineExecution)
+    def status = convertStatus(execution)
 
     front50Service.getAllPipelines().findAll { !it.disabled }.each {
       it.triggers.each { trigger ->
         if (trigger.enabled &&
           trigger.type == 'pipeline' &&
           trigger.pipeline &&
-          trigger.pipeline == pipelineExecution.pipelineConfigId &&
+          trigger.pipeline == execution.pipelineConfigId &&
           trigger.status.contains(status)
         ) {
-          dependentPipelineStarter.trigger(it, pipelineExecution.trigger?.user as String, pipelineExecution, [:], null)
+          dependentPipelineStarter.trigger(it, execution.trigger?.user as String, execution, [:], null)
         }
       }
     }

@@ -26,7 +26,6 @@ import com.netflix.spinnaker.orca.kato.pipeline.support.TargetReferenceSupport
 import com.netflix.spinnaker.orca.kato.tasks.ResizeAsgTask
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.TaskNode
-import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner
 import groovy.transform.CompileDynamic
@@ -54,7 +53,7 @@ class ResizeAsgStage implements StageDefinitionBuilder {
   DetermineTargetReferenceStage determineTargetReferenceStage
 
   @Override
-  <T extends Execution<T>> void taskGraph(Stage<T> stage, TaskNode.Builder builder) {
+  void taskGraph(Stage stage, TaskNode.Builder builder) {
     if (!stage.parentStageId || stage.execution.stages.find {
       it.id == stage.parentStageId
     }.type != stage.type) {
@@ -72,7 +71,7 @@ class ResizeAsgStage implements StageDefinitionBuilder {
   }
 
   @Override
-  <T extends Execution> List<Stage<T>> aroundStages(Stage<T> parentStage) {
+  List<Stage> aroundStages(Stage parentStage) {
     if (!parentStage.parentStageId || parentStage.execution.stages.find {
       it.id == parentStage.parentStageId
     }.type != parentStage.type) {

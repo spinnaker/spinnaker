@@ -16,9 +16,9 @@
 
 package com.netflix.spinnaker.orca.pipeline
 
+import java.time.Clock
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.orca.pipeline.model.Execution
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.test.TestConfiguration
 import org.springframework.context.annotation.AnnotationConfigApplicationContext
@@ -29,35 +29,37 @@ import spock.lang.Unroll
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.DEFAULT_EXECUTION_ENGINE
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionEngine.v2
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionEngine.v3
+import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
 
-abstract class ExecutionLauncherSpec<T extends Execution, L extends ExecutionLauncher<T>> extends Specification {
-
-  abstract L create()
+class ExecutionLauncherSpec extends Specification {
 
   @Shared def objectMapper = new ObjectMapper()
   def executionRunner = Mock(ExecutionRunner) {
     engine() >> v3
   }
   def executionRepository = Mock(ExecutionRepository)
-
-}
-
-class PipelineLauncherSpec extends ExecutionLauncherSpec<Pipeline, PipelineLauncher> {
-
   def startTracker = Mock(PipelineStartTracker)
   def pipelineValidator = Stub(PipelineValidator)
 
-  @Override
-  PipelineLauncher create() {
-    return new PipelineLauncher(objectMapper, executionRepository, executionRunner, Optional.of(startTracker), Optional.of(pipelineValidator), Optional.empty())
+  ExecutionLauncher create() {
+    return new ExecutionLauncher(
+      objectMapper,
+      executionRepository,
+      executionRunner,
+      Clock.systemDefaultZone(),
+      Optional.of(pipelineValidator),
+      Optional.of(startTracker),
+      Optional.<Registry>empty()
+    )
   }
 
-  def "can autowire pipeline launcher with optional dependencies"() {
+  def "can autowire execution launcher with optional dependencies"() {
     given:
     def context = new AnnotationConfigApplicationContext()
     context.with {
       beanFactory.with {
         register(TestConfiguration)
+        registerSingleton("clock", Clock.systemDefaultZone())
         registerSingleton("objectMapper", objectMapper)
         registerSingleton("executionRepository", executionRepository)
         registerSingleton("executionRunner", executionRunner)
@@ -69,20 +71,21 @@ class PipelineLauncherSpec extends ExecutionLauncherSpec<Pipeline, PipelineLaunc
         })
         registerSingleton("pipelineStartTracker", startTracker)
       }
-      register(PipelineLauncher)
+      register(ExecutionLauncher)
       refresh()
     }
 
     expect:
-    context.getBean(PipelineLauncher)
+    context.getBean(ExecutionLauncher)
   }
 
-  def "can autowire pipeline launcher without optional dependencies"() {
+  def "can autowire execution launcher without optional dependencies"() {
     given:
     def context = new AnnotationConfigApplicationContext()
     context.with {
       beanFactory.with {
         register(TestConfiguration)
+        registerSingleton("clock", Clock.systemDefaultZone())
         registerSingleton("objectMapper", objectMapper)
         registerSingleton("executionRepository", executionRepository)
         registerSingleton("executionRunner", executionRunner)
@@ -93,12 +96,12 @@ class PipelineLauncherSpec extends ExecutionLauncherSpec<Pipeline, PipelineLaunc
           }
         })
       }
-      register(PipelineLauncher)
+      register(ExecutionLauncher)
       refresh()
     }
 
     expect:
-    context.getBean(PipelineLauncher)
+    context.getBean(ExecutionLauncher)
   }
 
   def "does not start pipeline if it should be queued"() {
@@ -109,7 +112,7 @@ class PipelineLauncherSpec extends ExecutionLauncherSpec<Pipeline, PipelineLaunc
     @Subject def launcher = create()
 
     when:
-    launcher.start(json)
+    launcher.start(PIPELINE, json)
 
     then:
     1 * executionRepository.store(_)
@@ -128,7 +131,7 @@ class PipelineLauncherSpec extends ExecutionLauncherSpec<Pipeline, PipelineLaunc
     @Subject def launcher = create()
 
     when:
-    launcher.start(json)
+    launcher.start(PIPELINE, json)
 
     then:
     1 * executionRunner.start(_)
@@ -145,7 +148,7 @@ class PipelineLauncherSpec extends ExecutionLauncherSpec<Pipeline, PipelineLaunc
     @Subject def launcher = create()
 
     when:
-    launcher.start(json)
+    launcher.start(PIPELINE, json)
 
     then:
     1 * executionRepository.store({

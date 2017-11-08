@@ -22,7 +22,6 @@ import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.DeleteManifestForce
 import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.DeleteManifestTask;
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder;
 import com.netflix.spinnaker.orca.pipeline.TaskNode;
-import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import org.springframework.stereotype.Component;
 
@@ -31,7 +30,7 @@ public class DeleteManifestStage implements StageDefinitionBuilder {
   public static final String PIPELINE_CONFIG_TYPE = "deleteManifest";
 
   @Override
-  public <T extends Execution<T>> void taskGraph(Stage<T> stage, TaskNode.Builder builder) {
+  public void taskGraph(Stage stage, TaskNode.Builder builder) {
     builder.withTask(DeleteManifestTask.TASK_NAME, DeleteManifestTask.class)
         .withTask("monitorDelete", MonitorKatoTask.class)
         .withTask(DeleteManifestForceCacheRefreshTask.TASK_NAME, DeleteManifestForceCacheRefreshTask.class);

@@ -21,7 +21,7 @@ import com.natpryce.hamkrest.equalTo
 import com.natpryce.hamkrest.should.shouldMatch
 import com.netflix.spinnaker.orca.ExecutionStatus.*
 import com.netflix.spinnaker.orca.events.TaskComplete
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
 import com.netflix.spinnaker.orca.pipeline.model.Task
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.q.*
@@ -58,10 +58,10 @@ object CompleteTaskHandlerTest : SubjectSpek<CompleteTaskHandler>({
           multiTaskStage.buildTasks(this)
         }
       }
-      val message = CompleteTask(Pipeline::class.java, pipeline.id, "foo", pipeline.stages.first().id, "1", SUCCEEDED)
+      val message = CompleteTask(pipeline.type, pipeline.id, "foo", pipeline.stages.first().id, "1", SUCCEEDED)
 
       beforeGroup {
-        whenever(repository.retrievePipeline(message.executionId)) doReturn pipeline
+        whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
       }
 
       afterGroup(::resetMocks)
@@ -72,7 +72,7 @@ object CompleteTaskHandlerTest : SubjectSpek<CompleteTaskHandler>({
 
       it("updates the task state in the stage") {
         verify(repository).storeStage(check {
-          it.getTasks().first().apply {
+          it.tasks.first().apply {
             status shouldEqual SUCCEEDED
             endTime shouldEqual clock.millis()
           }
@@ -82,7 +82,7 @@ object CompleteTaskHandlerTest : SubjectSpek<CompleteTaskHandler>({
       it("runs the next task") {
         verify(queue)
           .push(StartTask(
-            Pipeline::class.java,
+            message.executionType,
             message.executionId,
             "foo",
             message.stageId,
@@ -92,7 +92,7 @@ object CompleteTaskHandlerTest : SubjectSpek<CompleteTaskHandler>({
 
       it("publishes an event") {
         verify(publisher).publishEvent(check<TaskComplete> {
-          it.executionType shouldEqual pipeline.javaClass
+          it.executionType shouldEqual pipeline.type
           it.executionId shouldEqual pipeline.id
           it.stageId shouldEqual message.stageId
           it.taskId shouldEqual message.taskId
@@ -109,10 +109,10 @@ object CompleteTaskHandlerTest : SubjectSpek<CompleteTaskHandler>({
           singleTaskStage.buildTasks(this)
         }
       }
-      val message = CompleteTask(Pipeline::class.java, pipeline.id, "foo", pipeline.stages.first().id, "1", SUCCEEDED)
+      val message = CompleteTask(pipeline.type, pipeline.id, "foo", pipeline.stages.first().id, "1", SUCCEEDED)
 
       beforeGroup {
-        whenever(repository.retrievePipeline(message.executionId)) doReturn pipeline
+        whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
       }
 
       afterGroup(::resetMocks)
@@ -123,7 +123,7 @@ object CompleteTaskHandlerTest : SubjectSpek<CompleteTaskHandler>({
 
       it("updates the task state in the stage") {
         verify(repository).storeStage(check {
-          it.getTasks().last().apply {
+          it.tasks.last().apply {
             status shouldEqual SUCCEEDED
             endTime shouldEqual clock.millis()
           }
@@ -150,10 +150,10 @@ object CompleteTaskHandlerTest : SubjectSpek<CompleteTaskHandler>({
           stageWithSyntheticAfter.buildSyntheticStages(this)
         }
       }
-      val message = CompleteTask(Pipeline::class.java, pipeline.id, "foo", pipeline.stages.first().id, "1", SUCCEEDED)
+      val message = CompleteTask(pipeline.type, pipeline.id, "foo", pipeline.stages.first().id, "1", SUCCEEDED)
 
       beforeGroup {
-        whenever(repository.retrievePipeline(message.executionId)) doReturn pipeline
+        whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
       }
 
       afterGroup(::resetMocks)
@@ -164,7 +164,7 @@ object CompleteTaskHandlerTest : SubjectSpek<CompleteTaskHandler>({
 
       it("updates the task state in the stage") {
         verify(repository).storeStage(check {
-          it.getTasks().last().apply {
+          it.tasks.last().apply {
             status shouldEqual SUCCEEDED
             endTime shouldEqual clock.millis()
           }
@@ -193,7 +193,7 @@ object CompleteTaskHandlerTest : SubjectSpek<CompleteTaskHandler>({
       }
 
       and("when the task returns REDIRECT") {
-        val message = CompleteTask(Pipeline::class.java, pipeline.id, "foo", pipeline.stageByRef("1").id, "4", REDIRECT)
+        val message = CompleteTask(pipeline.type, pipeline.id, "foo", pipeline.stageByRef("1").id, "4", REDIRECT)
 
         beforeGroup {
           pipeline.stageByRef("1").apply {
@@ -202,7 +202,7 @@ object CompleteTaskHandlerTest : SubjectSpek<CompleteTaskHandler>({
             tasks[2].status = SUCCEEDED
           }
 
-          whenever(repository.retrievePipeline(pipeline.id)) doReturn pipeline
+          whenever(repository.retrieve(PIPELINE, pipeline.id)) doReturn pipeline
         }
 
         afterGroup(::resetMocks)
@@ -219,7 +219,7 @@ object CompleteTaskHandlerTest : SubjectSpek<CompleteTaskHandler>({
 
         it("resets the status of the loop tasks") {
           verify(repository).storeStage(check {
-            it.getTasks()[1..3].map(Task::getStatus) shouldMatch allElements(equalTo(NOT_STARTED))
+            it.tasks[1..3].map(Task::getStatus) shouldMatch allElements(equalTo(NOT_STARTED))
           })
         }
 
@@ -240,10 +240,10 @@ object CompleteTaskHandlerTest : SubjectSpek<CompleteTaskHandler>({
           multiTaskStage.buildTasks(this)
         }
       }
-      val message = CompleteTask(Pipeline::class.java, pipeline.id, "foo", pipeline.stages.first().id, "1", status)
+      val message = CompleteTask(pipeline.type, pipeline.id, "foo", pipeline.stages.first().id, "1", status)
 
       beforeGroup {
-        whenever(repository.retrievePipeline(message.executionId)) doReturn pipeline
+        whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
       }
 
       afterGroup(::resetMocks)
@@ -254,7 +254,7 @@ object CompleteTaskHandlerTest : SubjectSpek<CompleteTaskHandler>({
 
       it("updates the task state in the stage") {
         verify(repository).storeStage(check {
-          it.getTasks().first().apply {
+          it.tasks.first().apply {
             status shouldEqual status
             endTime shouldEqual clock.millis()
           }
@@ -276,7 +276,7 @@ object CompleteTaskHandlerTest : SubjectSpek<CompleteTaskHandler>({
 
       it("publishes an event") {
         verify(publisher).publishEvent(check<TaskComplete> {
-          it.executionType shouldEqual pipeline.javaClass
+          it.executionType shouldEqual pipeline.type
           it.executionId shouldEqual pipeline.id
           it.stageId shouldEqual message.stageId
           it.taskId shouldEqual message.taskId

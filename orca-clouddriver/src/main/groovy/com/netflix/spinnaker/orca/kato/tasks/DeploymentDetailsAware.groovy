@@ -19,9 +19,9 @@ package com.netflix.spinnaker.orca.kato.tasks
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.model.Execution
-import com.netflix.spinnaker.orca.pipeline.model.Orchestration
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.ORCHESTRATION
+import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
 
 /**
  * Tasks may implement this trait to get convention-based access to deployment details that should come from in order of preference:
@@ -57,7 +57,7 @@ trait DeploymentDetailsAware {
   }
 
   Stage getPreviousStageWithImage(Stage stage, String targetRegion, String targetCloudProvider) {
-    if (stage.execution instanceof Orchestration) {
+    if (stage.execution.type == ORCHESTRATION) {
       return null
     }
 
@@ -73,7 +73,7 @@ trait DeploymentDetailsAware {
   }
 
   List<Execution> getPipelineExecutions(Execution execution) {
-    if (execution instanceof Pipeline) {
+    if (execution?.type == PIPELINE) {
       return [execution] + getPipelineExecutions(getParentPipelineExecution(execution))
     } else {
       return []
@@ -92,8 +92,8 @@ trait DeploymentDetailsAware {
     } else if (stage?.parentStageId) {
       def parent = execution.stages.find { it.id == stage.parentStageId }
       return ([parent] + getAncestors(parent, execution)).flatten()
-    } else if (execution instanceof Pipeline) {
-      Pipeline parentPipelineExecution = getParentPipelineExecution(execution)
+    } else if (execution.type == PIPELINE) {
+      def parentPipelineExecution = getParentPipelineExecution(execution)
 
       if (parentPipelineExecution) {
         String parentPipelineStageId = execution.trigger?.parentPipelineStageId
@@ -126,13 +126,13 @@ trait DeploymentDetailsAware {
     }
   }
 
-  private Pipeline getParentPipelineExecution(Execution execution) {
+  private Execution getParentPipelineExecution(Execution execution) {
     // The initial stage execution is a Pipeline, and the ancestor executions are Maps.
-    if (execution instanceof Pipeline) {
-      if (execution.trigger.parentExecution instanceof Pipeline) {
+    if (execution.type == PIPELINE) {
+      if (execution.trigger.parentExecution instanceof Execution) {
         return execution.trigger.parentExecution
       } else if (execution.trigger?.isPipeline) {
-        return pipelineObjectMapper.convertValue(execution.trigger.parentExecution, Pipeline)
+        return pipelineObjectMapper.convertValue(execution.trigger.parentExecution, Execution)
       }
     }
 

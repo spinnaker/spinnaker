@@ -47,7 +47,7 @@ class InstanceHealthCheckTaskSpec extends Specification {
     def pipe = pipeline {
       application = "foo"
     }
-    def stage = new Stage<>(pipe, 'instanceHealthCheck', [:])
+    def stage = new Stage(pipe, 'instanceHealthCheck', [:])
     stage.context.instances = instances
 
     def responses = []
@@ -87,7 +87,7 @@ class InstanceHealthCheckTaskSpec extends Specification {
     def pipe = pipeline {
       application = "foo"
     }
-    def stage = new Stage<>(pipe, 'instanceHealthCheck', [:])
+    def stage = new Stage(pipe, 'instanceHealthCheck', [:])
     stage.context.instances = instances
 
     when:
@@ -112,7 +112,7 @@ class InstanceHealthCheckTaskSpec extends Specification {
     def pipe = pipeline {
       application = "foo"
     }
-    def stage = new Stage<>(pipe, 'instanceHealthCheck', [:])
+    def stage = new Stage(pipe, 'instanceHealthCheck', [:])
     stage.context.instances = instances
     task.oortHelper = oortHelper
     when:

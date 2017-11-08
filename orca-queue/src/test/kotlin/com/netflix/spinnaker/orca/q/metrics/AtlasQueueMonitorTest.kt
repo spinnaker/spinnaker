@@ -18,7 +18,7 @@ package com.netflix.spinnaker.orca.q.metrics
 
 import com.netflix.spectator.api.Counter
 import com.netflix.spectator.api.Registry
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
 import com.netflix.spinnaker.orca.q.StartExecution
 import com.netflix.spinnaker.orca.time.fixedClock
 import com.netflix.spinnaker.spek.shouldEqual
@@ -98,7 +98,7 @@ object AtlasQueueMonitorTest : SubjectSpek<AtlasQueueMonitor>({
     describe("when a message is pushed") {
       afterGroup(::resetMocks)
 
-      val event = MessagePushed(queue, StartExecution(Pipeline::class.java, "1", "covfefe"))
+      val event = MessagePushed(queue, StartExecution(PIPELINE, "1", "covfefe"))
 
       on("receiving a ${event.javaClass.simpleName} event") {
         subject.onApplicationEvent(event)
@@ -154,7 +154,7 @@ object AtlasQueueMonitorTest : SubjectSpek<AtlasQueueMonitor>({
     describe("when a duplicate message is pushed") {
       afterGroup(::resetMocks)
 
-      val event = MessageDuplicate(queue, StartExecution(Pipeline::class.java, "1", "covfefe"))
+      val event = MessageDuplicate(queue, StartExecution(PIPELINE, "1", "covfefe"))
 
       on("receiving a ${event.javaClass.simpleName} event") {
         subject.onApplicationEvent(event)

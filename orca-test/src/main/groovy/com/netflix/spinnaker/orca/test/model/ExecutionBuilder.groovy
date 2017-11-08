@@ -16,8 +16,7 @@
 
 package com.netflix.spinnaker.orca.test.model
 
-import com.netflix.spinnaker.orca.pipeline.model.Orchestration
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.CompileStatic
 import static com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_BEFORE
@@ -28,15 +27,15 @@ import static java.lang.System.currentTimeMillis
 class ExecutionBuilder {
 
   /**
-   * Constructs and returns a {@link Pipeline} instance.
+   * Constructs and returns a {@link Execution} instance.
    *
    * @param builder used for customizing the pipeline.
    * @return a pipeline.
    */
-  static Pipeline pipeline(
-    @DelegatesTo(value = Pipeline, strategy = DELEGATE_FIRST)
+  static Execution pipeline(
+    @DelegatesTo(value = Execution, strategy = DELEGATE_FIRST)
       Closure builder = {}) {
-    def pipeline = new Pipeline("covfefe")
+    def pipeline = Execution.newPipeline("covfefe")
     pipeline.buildTime = currentTimeMillis()
 
     builder.delegate = pipeline
@@ -47,15 +46,15 @@ class ExecutionBuilder {
   }
 
   /**
-   * Constructs and returns a {@link Orchestration} instance.
+   * Constructs and returns a {@link Execution} instance.
    *
    * @param builder used for customizing the orchestration.
    * @return an orchestration.
    */
-  static Orchestration orchestration(
-    @DelegatesTo(value = Orchestration, strategy = DELEGATE_FIRST)
+  static Execution orchestration(
+    @DelegatesTo(value = Execution, strategy = DELEGATE_FIRST)
       Closure builder = {}) {
-    def orchestration = new Orchestration("covfefe")
+    def orchestration = Execution.newOrchestration("covfefe")
     orchestration.buildTime = currentTimeMillis()
 
     builder.delegate = orchestration
@@ -71,10 +70,10 @@ class ExecutionBuilder {
    * @param builder used for customizing the stage.
    * @return a stage.
    */
-  static Stage<Pipeline> stage(
+  static Stage stage(
     @DelegatesTo(value = Stage, strategy = DELEGATE_FIRST)
       Closure builder = {}) {
-    def stage = new Stage<>()
+    def stage = new Stage()
     stage.type = "test"
 
     def execution = findExecution(builder) ?: pipeline()
@@ -94,11 +93,11 @@ class ExecutionBuilder {
     return stage
   }
 
-  private static Pipeline findExecution(Closure closure) {
+  private static Execution findExecution(Closure closure) {
     if (closure.owner instanceof Closure) {
       def enclosingClosure = (closure.owner as Closure)
-      if (enclosingClosure.delegate instanceof Pipeline) {
-        return enclosingClosure.delegate as Pipeline
+      if (enclosingClosure.delegate instanceof Execution) {
+        return enclosingClosure.delegate as Execution
       } else {
         return findExecution(enclosingClosure)
       }
@@ -107,7 +106,7 @@ class ExecutionBuilder {
     }
   }
 
-  private static Stage<Pipeline> findParentStage(Closure closure) {
+  private static Stage findParentStage(Closure closure) {
     if (closure.owner instanceof Closure) {
       def enclosingClosure = (closure.owner as Closure)
       if (enclosingClosure.delegate instanceof Stage) {

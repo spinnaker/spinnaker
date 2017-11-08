@@ -19,7 +19,7 @@ package com.netflix.spinnaker.orca.q.handler
 import com.natpryce.hamkrest.absent
 import com.natpryce.hamkrest.should.shouldMatch
 import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.q.*
 import com.netflix.spinnaker.spek.shouldEqual
@@ -54,10 +54,10 @@ object PauseStageHandlerTest : SubjectSpek<PauseStageHandler>({
         type = singleTaskStage.type
       }
     }
-    val message = PauseStage(Pipeline::class.java, pipeline.id, "foo", pipeline.stages.first().id)
+    val message = PauseStage(PIPELINE, pipeline.id, "foo", pipeline.stages.first().id)
 
     beforeGroup {
-      whenever(repository.retrievePipeline(message.executionId)) doReturn pipeline
+      whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
     }
 
     afterGroup(::resetMocks)
@@ -68,8 +68,8 @@ object PauseStageHandlerTest : SubjectSpek<PauseStageHandler>({
 
     it("updates the stage state") {
       verify(repository).storeStage(check {
-        it.getStatus() shouldEqual ExecutionStatus.PAUSED
-        it.getEndTime() shouldMatch absent()
+        it.status shouldEqual ExecutionStatus.PAUSED
+        it.endTime shouldMatch absent()
       })
     }
 
@@ -87,10 +87,10 @@ object PauseStageHandlerTest : SubjectSpek<PauseStageHandler>({
         stageWithSyntheticBefore.buildSyntheticStages(this)
       }
     }
-    val message = PauseStage(Pipeline::class.java, pipeline.id, "foo", pipeline.stageByRef("1<1").id)
+    val message = PauseStage(pipeline.type, pipeline.id, "foo", pipeline.stageByRef("1<1").id)
 
     beforeGroup {
-      whenever(repository.retrievePipeline(message.executionId)) doReturn pipeline
+      whenever(repository.retrieve(pipeline.type, message.executionId)) doReturn pipeline
     }
 
     action("the handler receives a message") {

@@ -20,7 +20,7 @@ import com.netflix.spinnaker.orca.bakery.api.BakeRequest
 import com.netflix.spinnaker.orca.bakery.api.BakeStatus
 import com.netflix.spinnaker.orca.bakery.api.BakeryService
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import retrofit.RetrofitError
 import retrofit.client.Response
@@ -58,7 +58,7 @@ class CreateBakeTaskSpec extends Specification {
     baseLabel: BakeRequest.Label.release.name()
   ]
 
-  Pipeline pipeline = pipeline {
+  Execution pipeline = pipeline {
     stage {
       type = "bake"
       context = bakeConfig
@@ -246,7 +246,7 @@ class CreateBakeTaskSpec extends Specification {
   def "finds package details from context and trigger"() {
     given:
     bakeConfig.buildInfo = contextInfo
-    Pipeline pipelineWithTrigger = pipeline {
+    def pipelineWithTrigger = pipeline {
       trigger.putAll(buildInfo: triggerInfo)
       stage {
         type = "bake"
@@ -282,7 +282,7 @@ class CreateBakeTaskSpec extends Specification {
   def "fails if pipeline trigger or context includes artifacts but no artifact for the bake package"() {
     given:
     bakeConfig.buildInfo = contextInfo
-    Pipeline pipelineWithTrigger = pipeline {
+    def pipelineWithTrigger = pipeline {
       trigger.putAll(buildInfo: triggerInfo)
       stage {
         type = "bake"
@@ -317,7 +317,7 @@ class CreateBakeTaskSpec extends Specification {
         [fileName: 'hodor.1.2.nupkg']
       ]
     ]
-    Pipeline pipelineWithTrigger = pipeline {
+    def pipelineWithTrigger = pipeline {
       trigger.putAll(buildInfo: buildInfo)
       stage {
         type = "bake"
@@ -367,7 +367,7 @@ class CreateBakeTaskSpec extends Specification {
   def "build info with url yields bake stage output containing build host, job and build number"() {
     given:
     bakeConfig.buildInfo = contextInfo
-    Pipeline pipelineWithTrigger = pipeline {
+    def pipelineWithTrigger = pipeline {
       trigger.putAll(buildInfo: triggerInfo)
       stage {
         type = "bake"
@@ -402,7 +402,7 @@ class CreateBakeTaskSpec extends Specification {
   def "build info with url and scm yields bake stage output containing build host, job, build number and commit hash"() {
     given:
     bakeConfig.buildInfo = contextInfo
-    Pipeline pipelineWithTrigger = pipeline {
+    def pipelineWithTrigger = pipeline {
       trigger.putAll(buildInfo: triggerInfo)
       stage {
         type = "bake"
@@ -435,7 +435,7 @@ class CreateBakeTaskSpec extends Specification {
   def "build info with url and two scms yields bake stage output containing build host, job, build number and correctly-chosen commit hash"() {
     given:
     bakeConfig.buildInfo = contextInfo
-    Pipeline pipelineWithTrigger = pipeline {
+    def pipelineWithTrigger = pipeline {
       trigger.putAll(buildInfo: triggerInfo)
       stage {
         type = "bake"
@@ -468,7 +468,7 @@ class CreateBakeTaskSpec extends Specification {
   def "build info with url and master and develop scms yields bake stage output containing build host, job, build number and first commit hash"() {
     given:
     bakeConfig.buildInfo = contextInfo
-    Pipeline pipelineWithTrigger = pipeline {
+    def pipelineWithTrigger = pipeline {
       trigger.putAll(buildInfo: triggerInfo)
       stage {
         type = "bake"
@@ -501,7 +501,7 @@ class CreateBakeTaskSpec extends Specification {
   def "build info without url yields bake stage output without build host, job, build number and commit hash"() {
     given:
     bakeConfig.buildInfo = contextInfo
-    Pipeline pipelineWithTrigger = pipeline {
+    def pipelineWithTrigger = pipeline {
       trigger.putAll(buildInfo: triggerInfo)
       stage {
         type = "bake"
@@ -536,7 +536,7 @@ class CreateBakeTaskSpec extends Specification {
   def "build info with url yields bake request containing build host, job and build number"() {
     given:
     bakeConfig.buildInfo = contextInfo
-    Pipeline pipelineWithTrigger = pipeline {
+    def pipelineWithTrigger = pipeline {
       trigger.putAll(buildInfo: triggerInfo)
       stage {
         type = "bake"
@@ -574,7 +574,7 @@ class CreateBakeTaskSpec extends Specification {
   def "build info with url but without extractBuildDetails yields bake request without build host, job, build number, and commit hash"() {
     given:
     bakeConfig.buildInfo = contextInfo
-    Pipeline pipelineWithTrigger = pipeline {
+    def pipelineWithTrigger = pipeline {
       trigger.putAll(buildInfo: triggerInfo)
       stage {
         type = "bake"
@@ -611,7 +611,7 @@ class CreateBakeTaskSpec extends Specification {
   def "build info without url yields bake request without build host, job, build number and commit hash"() {
     given:
     bakeConfig.buildInfo = contextInfo
-    Pipeline pipelineWithTrigger = pipeline {
+    def pipelineWithTrigger = pipeline {
       trigger.putAll(buildInfo: triggerInfo)
       stage {
         type = "bake"
@@ -717,7 +717,7 @@ class CreateBakeTaskSpec extends Specification {
   @Unroll
   def "sets rebake query parameter to #queryParameter when trigger is #trigger"() {
     given:
-    Pipeline pipeline = pipeline {
+    def pipeline = pipeline {
       if (triggerConfig) {
         trigger.putAll(triggerConfig)
       }

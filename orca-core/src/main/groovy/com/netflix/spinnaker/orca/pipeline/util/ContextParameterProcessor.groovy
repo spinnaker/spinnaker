@@ -27,8 +27,6 @@ import com.netflix.spinnaker.orca.pipeline.expressions.ExpressionEvaluationSumma
 import com.netflix.spinnaker.orca.pipeline.expressions.ExpressionEvaluator
 import com.netflix.spinnaker.orca.pipeline.expressions.PipelineExpressionEvaluator
 import com.netflix.spinnaker.orca.pipeline.model.Execution
-import com.netflix.spinnaker.orca.pipeline.model.Orchestration
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.CompileStatic
 import groovy.transform.PackageScope
@@ -44,6 +42,9 @@ import org.springframework.expression.spel.support.ReflectivePropertyAccessor
 import org.springframework.expression.spel.support.StandardEvaluationContext
 import org.springframework.expression.spel.support.StandardTypeLocator
 import static com.netflix.spinnaker.orca.pipeline.expressions.PipelineExpressionEvaluator.ExpressionEvaluationVersion.V1
+import static com.netflix.spinnaker.orca.pipeline.model.Execution.AuthenticationDetails
+import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
+import static com.netflix.spinnaker.orca.pipeline.model.Execution.PausedDetails
 
 /**
  * Common methods for dealing with passing context parameters used by both Script and Jenkins stages
@@ -113,8 +114,8 @@ class ContextParameterProcessor {
 
   Map<String, Object> buildExecutionContext(Stage stage, boolean includeStageContext) {
     def augmentedContext = [:] + (includeStageContext ? stage.context : [:])
-    if (stage.execution instanceof Pipeline) {
-      augmentedContext.put('trigger', ((Pipeline) stage.execution).trigger)
+    if (stage.execution.type == PIPELINE) {
+      augmentedContext.put('trigger', stage.execution.trigger)
       augmentedContext.put('execution', stage.execution)
     }
 
@@ -255,12 +256,10 @@ class ContextParameterProcessor {
         TreeSet,
         // spinnaker model types
         Execution,
-        Pipeline,
-        Orchestration,
         Stage,
         ExecutionStatus,
-        Execution.AuthenticationDetails,
-        Execution.PausedDetails
+        AuthenticationDetails,
+        PausedDetails
     ] as Set)
 
     static boolean isAllowedForInstantiation(Class<?> type) {

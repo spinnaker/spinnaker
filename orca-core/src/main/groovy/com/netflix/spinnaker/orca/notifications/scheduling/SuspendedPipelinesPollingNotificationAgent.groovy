@@ -21,7 +21,6 @@ import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.notifications.AbstractPollingNotificationAgent
 import com.netflix.spinnaker.orca.notifications.NotificationHandler
 import com.netflix.spinnaker.orca.pipeline.model.Execution
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import groovy.util.logging.Slf4j
@@ -32,6 +31,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.stereotype.Component
 import rx.Observable
 import rx.functions.Func1
+import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
 
 @Slf4j
 @Component
@@ -73,7 +73,7 @@ class SuspendedPipelinesPollingNotificationAgent extends AbstractPollingNotifica
   @Override
   protected Observable<Execution> getEvents() {
     log.info("Starting Suspended Pipelines Polling Cycle")
-    return executionRepository.retrievePipelines().doOnCompleted({
+    return executionRepository.retrieve(PIPELINE).doOnCompleted({
       log.info("Finished Suspended Pipelines Polling Cycle")
     })
   }
@@ -83,7 +83,7 @@ class SuspendedPipelinesPollingNotificationAgent extends AbstractPollingNotifica
     return SuspendedPipelinesNotificationHandler
   }
 
-  private static long extractScheduledTime(Stage<Pipeline> stage) {
+  private static long extractScheduledTime(Stage stage) {
     long scheduledTime = Long.MAX_VALUE
     try {
       scheduledTime = stage.scheduledTime != null && stage.scheduledTime as long != 0L ?

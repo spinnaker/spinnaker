@@ -70,7 +70,7 @@ class TargetServerGroupSpec extends Specification {
   def "dynamically bound stage"() {
 
     when:
-      def stage = new Stage<>(context: context)
+      def stage = new Stage(context: context)
 
     then:
       TargetServerGroup.isDynamicallyBound(stage) == want
@@ -95,7 +95,7 @@ class TargetServerGroupSpec extends Specification {
         target         : target,
         zones          : zones,
       ]
-      def stage = new Stage<>(context: context)
+      def stage = new Stage(context: context)
       def p = TargetServerGroup.Params.fromStage(stage)
 
     then:

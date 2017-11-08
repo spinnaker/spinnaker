@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.orca.q.handler
 
 import com.netflix.spinnaker.orca.ExecutionStatus.*
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.q.*
 import com.netflix.spinnaker.spek.shouldEqual
@@ -59,10 +59,10 @@ object ResumeStageHandlerTest : SubjectSpek<ResumeStageHandler>({
         }
       }
     }
-    val message = ResumeStage(Pipeline::class.java, pipeline.id, pipeline.application, pipeline.stages.first().id)
+    val message = ResumeStage(pipeline.type, pipeline.id, pipeline.application, pipeline.stages.first().id)
 
     beforeGroup {
-      whenever(repository.retrievePipeline(pipeline.id)) doReturn pipeline
+      whenever(repository.retrieve(PIPELINE, pipeline.id)) doReturn pipeline
     }
 
     afterGroup(::resetMocks)
@@ -73,8 +73,8 @@ object ResumeStageHandlerTest : SubjectSpek<ResumeStageHandler>({
 
     it("sets the stage status to running") {
       verify(repository).storeStage(check {
-        it.getId() shouldEqual message.stageId
-        it.getStatus() shouldEqual RUNNING
+        it.id shouldEqual message.stageId
+        it.status shouldEqual RUNNING
       })
     }
 

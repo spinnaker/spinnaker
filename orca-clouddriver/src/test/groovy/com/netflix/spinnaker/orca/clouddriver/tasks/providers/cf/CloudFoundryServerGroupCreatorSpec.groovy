@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.cf
 
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import spock.lang.Specification
 
@@ -29,7 +29,7 @@ class CloudFoundryServerGroupCreatorSpec extends Specification {
         zone             : "north-pole-1",
         deploymentDetails: [[imageId: "testImageId", zone: "north-pole-1"]],
     ]
-    def stage = new Stage<>(new Pipeline("orca"), "whatever", ctx)
+    def stage = new Stage(Execution.newPipeline("orca"), "whatever", ctx)
 
     when:
     def ops = new CloudFoundryServerGroupCreator().getOperations(stage)
@@ -50,7 +50,7 @@ class CloudFoundryServerGroupCreatorSpec extends Specification {
 
     when: "fallback to non-zone matching image"
     ctx.zone = "south-pole-1"
-    stage = new Stage<>(new Pipeline("orca"), "whatever", ctx)
+    stage = new Stage(Execution.newPipeline("orca"), "whatever", ctx)
     ops = new CloudFoundryServerGroupCreator().getOperations(stage)
 
     then:
@@ -70,7 +70,7 @@ class CloudFoundryServerGroupCreatorSpec extends Specification {
     when: "throw error if >1 image"
     ctx.deploymentDetails = [[imageId: "testImageId-1", zone: "east-pole-1"],
                              [imageId: "testImageId-2", zone: "west-pole-1"]]
-    stage = new Stage<>(new Pipeline("orca"), "whatever", ctx)
+    stage = new Stage(Execution.newPipeline("orca"), "whatever", ctx)
     ops = new CloudFoundryServerGroupCreator().getOperations(stage)
 
     then:
@@ -79,7 +79,7 @@ class CloudFoundryServerGroupCreatorSpec extends Specification {
 
     when: "throw error if no image found"
     ctx.deploymentDetails = []
-    stage = new Stage<>(new Pipeline("orca"), "whatever", ctx)
+    stage = new Stage(Execution.newPipeline("orca"), "whatever", ctx)
     ops = new CloudFoundryServerGroupCreator().getOperations(stage)
 
     then:

@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.q.handler
 
 import com.netflix.spinnaker.orca.ExecutionStatus.*
+import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.q.*
 import com.netflix.spinnaker.spek.and
@@ -59,7 +60,7 @@ object ContinueParentStageHandlerTest : SubjectSpek<ContinueParentStageHandler>(
         beforeGroup {
           pipeline.stageByRef("1<1").status = status
           pipeline.stageByRef("1<2").status = RUNNING
-          whenever(repository.retrievePipeline(pipeline.id)) doReturn pipeline
+          whenever(repository.retrieve(PIPELINE, pipeline.id)) doReturn pipeline
         }
 
         afterGroup(::resetMocks)
@@ -89,7 +90,7 @@ object ContinueParentStageHandlerTest : SubjectSpek<ContinueParentStageHandler>(
         beforeGroup {
           pipeline.stageByRef("1<1").status = status
           pipeline.stageByRef("1<2").status = TERMINAL
-          whenever(repository.retrievePipeline(pipeline.id)) doReturn pipeline
+          whenever(repository.retrieve(PIPELINE, pipeline.id)) doReturn pipeline
         }
 
         afterGroup(::resetMocks)
@@ -117,12 +118,12 @@ object ContinueParentStageHandlerTest : SubjectSpek<ContinueParentStageHandler>(
         val message = ContinueParentStage(pipeline.stageByRef("1"))
 
         beforeGroup {
-          pipeline.stageByRef("1").beforeStages().forEach { it.setStatus(status) }
+          pipeline.stageByRef("1").beforeStages().forEach { it.status = status }
         }
 
         and("they have not started yet") {
           beforeGroup {
-            whenever(repository.retrievePipeline(pipeline.id)) doReturn pipeline
+            whenever(repository.retrieve(PIPELINE, pipeline.id)) doReturn pipeline
           }
 
           afterGroup(::resetMocks)
@@ -139,7 +140,7 @@ object ContinueParentStageHandlerTest : SubjectSpek<ContinueParentStageHandler>(
         and("they have already started") {
           beforeGroup {
             pipeline.stageByRef("1").tasks.first().status = RUNNING
-            whenever(repository.retrievePipeline(pipeline.id)) doReturn pipeline
+            whenever(repository.retrieve(PIPELINE, pipeline.id)) doReturn pipeline
           }
 
           afterGroup(::resetMocks)
@@ -168,8 +169,8 @@ object ContinueParentStageHandlerTest : SubjectSpek<ContinueParentStageHandler>(
         val message = ContinueParentStage(pipeline.stageByRef("1"))
 
         beforeGroup {
-          pipeline.stageByRef("1").beforeStages().forEach { it.setStatus(status) }
-          whenever(repository.retrievePipeline(pipeline.id)) doReturn pipeline
+          pipeline.stageByRef("1").beforeStages().forEach { it.status = status }
+          whenever(repository.retrieve(PIPELINE, pipeline.id)) doReturn pipeline
         }
 
         afterGroup(::resetMocks)
@@ -198,12 +199,12 @@ object ContinueParentStageHandlerTest : SubjectSpek<ContinueParentStageHandler>(
       val message = ContinueParentStage(pipeline.stageByRef("1"))
 
       beforeGroup {
-        pipeline.stageByRef("1").beforeStages().forEach { it.setStatus(SUCCEEDED) }
+        pipeline.stageByRef("1").beforeStages().forEach { it.status = SUCCEEDED }
       }
 
       and("they didn't start yet") {
         beforeGroup {
-          whenever(repository.retrievePipeline(pipeline.id)) doReturn pipeline
+          whenever(repository.retrieve(PIPELINE, pipeline.id)) doReturn pipeline
         }
 
         afterGroup(::resetMocks)
@@ -220,7 +221,7 @@ object ContinueParentStageHandlerTest : SubjectSpek<ContinueParentStageHandler>(
       and("they already started") {
         beforeGroup {
           pipeline.stageByRef("1>1").status = RUNNING
-          whenever(repository.retrievePipeline(pipeline.id)) doReturn pipeline
+          whenever(repository.retrieve(PIPELINE, pipeline.id)) doReturn pipeline
         }
 
         afterGroup(::resetMocks)

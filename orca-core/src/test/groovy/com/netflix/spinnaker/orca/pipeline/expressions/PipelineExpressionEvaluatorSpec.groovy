@@ -16,12 +16,12 @@
 
 package com.netflix.spinnaker.orca.pipeline.expressions
 
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import spock.lang.Specification
 import spock.lang.Unroll
-
-import static com.netflix.spinnaker.orca.pipeline.expressions.PipelineExpressionEvaluator.ExpressionEvaluationVersion.*
+import static com.netflix.spinnaker.orca.pipeline.expressions.PipelineExpressionEvaluator.ExpressionEvaluationVersion.V1
+import static com.netflix.spinnaker.orca.pipeline.expressions.PipelineExpressionEvaluator.ExpressionEvaluationVersion.V2
 
 class PipelineExpressionEvaluatorSpec extends Specification {
 
@@ -58,7 +58,7 @@ class PipelineExpressionEvaluatorSpec extends Specification {
   @Unroll
   def "should be able to get version from a stage"() {
     given:
-    def stage = new Stage<>(new Pipeline("orca"), "type", stageContext)
+    def stage = new Stage(Execution.newPipeline("orca"), "type", stageContext)
 
     expect:
     PipelineExpressionEvaluator.shouldUseV2Evaluator(stage) == useV2

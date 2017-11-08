@@ -18,7 +18,6 @@ package com.netflix.spinnaker.orca.q.handler
 
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.q.*
 import com.nhaarman.mockito_kotlin.*
@@ -70,10 +69,10 @@ object RescheduleExecutionHandlerTest : SubjectSpek<RescheduleExecutionHandler>(
         status = ExecutionStatus.NOT_STARTED
       }
     }
-    val message = RescheduleExecution(Pipeline::class.java, pipeline.id, pipeline.application)
+    val message = RescheduleExecution(pipeline.type, pipeline.id, pipeline.application)
 
     beforeGroup {
-      whenever(repository.retrievePipeline(pipeline.id)) doReturn pipeline
+      whenever(repository.retrieve(pipeline.type, pipeline.id)) doReturn pipeline
     }
 
     afterGroup(::resetMocks)

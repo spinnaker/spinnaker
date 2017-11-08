@@ -23,7 +23,7 @@ import com.netflix.spinnaker.orca.clouddriver.model.TaskId
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.kato.pipeline.support.TargetReferenceConfiguration
 import com.netflix.spinnaker.orca.kato.pipeline.support.TargetReferenceSupport
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import spock.lang.Specification
 import spock.lang.Subject
@@ -34,7 +34,7 @@ import spock.lang.Subject
 class EnableAsgTaskSpec extends Specification {
 
   @Subject task = new EnableAsgTask()
-  def stage = new Stage<>(new Pipeline("orca"), "whatever")
+  def stage = new Stage(Execution.newPipeline("orca"), "whatever")
   def mapper = OrcaObjectMapper.newInstance()
   def taskId = new TaskId(UUID.randomUUID().toString())
 

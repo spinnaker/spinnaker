@@ -16,14 +16,13 @@
 
 package com.netflix.spinnaker.orca.controllers
 
-import com.netflix.spinnaker.orca.pipeline.ExecutionRunner
-
 import java.time.Clock
 import java.time.Instant
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.front50.Front50Service
+import com.netflix.spinnaker.orca.pipeline.ExecutionRunner
 import com.netflix.spinnaker.orca.pipeline.PipelineStartTracker
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.model.Task
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
@@ -33,6 +32,7 @@ import org.springframework.mock.web.MockHttpServletResponse
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import spock.lang.Specification
+import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.ORCHESTRATION
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.orchestration
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
 import static java.time.ZoneOffset.UTC
@@ -74,7 +74,7 @@ class TaskControllerSpec extends Specification {
     mockMvc.perform(get('/tasks')).andReturn().response
 
     then:
-    1 * executionRepository.retrieveOrchestrations() >> {
+    1 * executionRepository.retrieve(ORCHESTRATION) >> {
       return rx.Observable.empty()
     }
   }
@@ -93,10 +93,10 @@ class TaskControllerSpec extends Specification {
 
   void 'step names are properly translated'() {
     given:
-    executionRepository.retrieveOrchestrations() >> rx.Observable.from([orchestration {
+    executionRepository.retrieve(ORCHESTRATION) >> rx.Observable.from([orchestration {
       id = "1"
       application = "covfefe"
-      stages << new Stage<>(delegate, "test")
+      stages << new Stage(delegate, "test")
       stages.first().tasks = [new Task(name: 'jobOne'), new Task(name: 'jobTwo')]
     }])
 
@@ -114,7 +114,7 @@ class TaskControllerSpec extends Specification {
     def orchestration = orchestration {
       id = "1"
       application = "covfefe"
-      stages << new Stage<>(delegate, "OrchestratedType")
+      stages << new Stage(delegate, "OrchestratedType")
       stages.first().context = [customOutput: "variable"]
     }
 
@@ -122,7 +122,7 @@ class TaskControllerSpec extends Specification {
     def response = mockMvc.perform(get('/tasks/1')).andReturn().response
 
     then:
-    executionRepository.retrieveOrchestration(orchestration.id) >> orchestration
+    executionRepository.retrieve(orchestration.type, orchestration.id) >> orchestration
 
     new JsonSlurper().parseText(response.contentAsString).variables == [
       [key: "customOutput", value: "variable"]
@@ -134,7 +134,7 @@ class TaskControllerSpec extends Specification {
     MockHttpServletResponse response = mockMvc.perform(get('/tasks')).andReturn().response
 
     then:
-    1 * executionRepository.retrieveOrchestrations() >> rx.Observable.from([])
+    1 * executionRepository.retrieve(ORCHESTRATION) >> rx.Observable.from([])
     response.status == 200
     response.contentAsString == '[]'
   }
@@ -277,8 +277,8 @@ class TaskControllerSpec extends Specification {
 
   void 'should update existing stage context'() {
     given:
-    def pipeline = new Pipeline("1", "covfefe")
-    def pipelineStage = new Stage<>(pipeline, "test", [value: "1"])
+    def pipeline = Execution.newPipeline("covfefe")
+    def pipelineStage = new Stage(pipeline, "test", [value: "1"])
     pipelineStage.id = "s1"
     pipeline.stages.add(pipelineStage)
 
@@ -288,7 +288,7 @@ class TaskControllerSpec extends Specification {
     ).contentType(MediaType.APPLICATION_JSON)).andReturn().response
 
     then:
-    1 * executionRepository.retrievePipeline(pipeline.id) >> pipeline
+    1 * executionRepository.retrieve(pipeline.type, pipeline.id) >> pipeline
     1 * executionRepository.storeStage({ stage ->
       stage.id == "s1" &&
         stage.lastModified.allowedAccounts.isEmpty() &&

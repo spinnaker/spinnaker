@@ -31,18 +31,18 @@ class OptionalStageSupportSpec extends Specification {
   @Unroll
   def "should support expression-based optionality #desc"() {
     given:
-    def pipeline = new Pipeline("orca")
+    def pipeline = Execution.newPipeline("orca")
     pipeline.trigger.parameters = [
         "p1": "v1"
     ]
-    pipeline.stages << new Stage<>(pipeline, "", "Test1", [:])
+    pipeline.stages << new Stage(pipeline, "", "Test1", [:])
     pipeline.stages[0].status = ExecutionStatus.FAILED_CONTINUE
 
-    pipeline.stages << new Stage<>(pipeline, "", "Test2", [:])
+    pipeline.stages << new Stage(pipeline, "", "Test2", [:])
     pipeline.stages[1].status = ExecutionStatus.SUCCEEDED
 
     and:
-    def stage = new Stage<>(pipeline, "", [
+    def stage = new Stage(pipeline, "", [
         stageEnabled: optionalConfig
     ])
 
@@ -66,16 +66,16 @@ class OptionalStageSupportSpec extends Specification {
   @Unroll
   def "should check optionality of parent stages"() {
     given:
-    def pipeline = new Pipeline("orca")
+    def pipeline = Execution.newPipeline("orca")
     pipeline.trigger.parameters = [
         "p1": "v1"
     ]
-    pipeline.stages << new Stage<>(pipeline, "", "Test1", [
+    pipeline.stages << new Stage(pipeline, "", "Test1", [
         stageEnabled: optionalConfig
     ])
     pipeline.stages[0].status = ExecutionStatus.FAILED_CONTINUE
 
-    pipeline.stages << new Stage<>(pipeline, "", "Test2", [:])
+    pipeline.stages << new Stage(pipeline, "", "Test2", [:])
     pipeline.stages[1].status = ExecutionStatus.SUCCEEDED
     pipeline.stages[1].syntheticStageOwner = SyntheticStageOwner.STAGE_AFTER
     pipeline.stages[1].parentStageId = pipeline.stages[0].id

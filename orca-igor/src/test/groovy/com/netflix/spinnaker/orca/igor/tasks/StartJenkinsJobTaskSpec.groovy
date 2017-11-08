@@ -19,7 +19,7 @@ package com.netflix.spinnaker.orca.igor.tasks
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.igor.BuildService
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import retrofit.RetrofitError
 import spock.lang.Shared
@@ -38,11 +38,11 @@ class StartJenkinsJobTaskSpec extends Specification {
   }
 
   @Shared
-  Pipeline pipeline = new Pipeline("orca")
+  def pipeline = Execution.newPipeline("orca")
 
     def "should trigger build without parameters"() {
         given:
-        def stage = new Stage<>(pipeline, "jenkins", [master: "builds", job: "orca"])
+        def stage = new Stage(pipeline, "jenkins", [master: "builds", job: "orca"])
 
         and:
         task.buildService = Stub(BuildService) {
@@ -58,7 +58,7 @@ class StartJenkinsJobTaskSpec extends Specification {
 
   def "should trigger build with parameters"() {
       given:
-      def stage = new Stage<>(pipeline, "jenkins", [master: "builds", job: "orca", parameters: [foo: "bar", version: "12345"]])
+      def stage = new Stage(pipeline, "jenkins", [master: "builds", job: "orca", parameters: [foo: "bar", version: "12345"]])
 
       and:
       task.buildService = Stub(BuildService) {
@@ -74,7 +74,7 @@ class StartJenkinsJobTaskSpec extends Specification {
 
     def "throw exception when you can't trigger a build"() {
         given:
-        def stage = new Stage<>(pipeline, "jenkins", [master: "builds", job: "orca", parameters: [foo: "bar", version: "12345"]])
+        def stage = new Stage(pipeline, "jenkins", [master: "builds", job: "orca", parameters: [foo: "bar", version: "12345"]])
 
         and:
         task.buildService = Stub(BuildService) {

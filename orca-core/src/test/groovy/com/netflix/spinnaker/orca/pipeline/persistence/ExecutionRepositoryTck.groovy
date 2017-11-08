@@ -20,8 +20,6 @@ import java.util.concurrent.CountDownLatch
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
 import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.pipeline.model.Orchestration
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionCriteria
 import com.netflix.spinnaker.orca.pipeline.persistence.jedis.JedisExecutionRepository
@@ -31,6 +29,8 @@ import rx.schedulers.Schedulers
 import spock.lang.*
 import static com.netflix.spinnaker.orca.ExecutionStatus.*
 import static com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder.newStage
+import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType
+import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
 import static com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_AFTER
 import static com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_BEFORE
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.*
@@ -55,7 +55,7 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
 
     when:
     repository.storeExecutionContext(execution.id, ["value": execution.class.simpleName])
-    def storedExecution = (execution instanceof Pipeline) ? repository.retrievePipeline(execution.id) : repository.retrieveOrchestration(execution.id)
+    def storedExecution = repository.retrieve(execution.type, execution.id)
 
     then:
     storedExecution.id == execution.id
@@ -164,9 +164,9 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
     repository.store(pipeline)
 
     expect:
-    repository.retrievePipelines().toBlocking().first().id == pipeline.id
+    repository.retrieve(PIPELINE).toBlocking().first().id == pipeline.id
 
-    with(repository.retrievePipeline(pipeline.id)) {
+    with(repository.retrieve(pipeline.type, pipeline.id)) {
       id == pipeline.id
       application == pipeline.application
       name == pipeline.name
@@ -183,24 +183,24 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
 
   def "trying to retrieve an invalid #type.simpleName id throws an exception"() {
     when:
-    repository."retrieve${type.simpleName}"("invalid")
+    repository.retrieve(type, "invalid")
 
     then:
     thrown ExecutionNotFoundException
 
     where:
-    type << [Pipeline, Orchestration]
+    type << ExecutionType.values()
   }
 
   def "trying to delete a non-existent #type.simpleName id does not throw an exception"() {
     when:
-    repository."delete${type.simpleName}"("invalid")
+    repository.delete(type, "invalid")
 
     then:
     notThrown ExecutionNotFoundException
 
     where:
-    type << [Pipeline, Orchestration]
+    type << ExecutionType.values()
   }
 
   def "deleting a pipeline removes pipeline and stages"() {
@@ -224,16 +224,16 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
 
     and:
     repository.store(pipeline)
-    repository.deletePipeline(pipeline.id)
+    repository.delete(PIPELINE, pipeline.id)
 
     when:
-    repository.retrievePipeline(pipeline.id)
+    repository.retrieve(PIPELINE, pipeline.id)
 
     then:
     thrown ExecutionNotFoundException
 
     and:
-    repository.retrievePipelines().toList().toBlocking().first() == []
+    repository.retrieve(PIPELINE).toList().toBlocking().first() == []
   }
 
   def "updateStatus sets startTime to current time if new status is RUNNING"() {
@@ -241,7 +241,7 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
     repository.store(execution)
 
     expect:
-    with(repository."retrieve$type"(execution.id)) {
+    with(repository.retrieve(execution.type, execution.id)) {
       startTime == null
     }
 
@@ -249,14 +249,13 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
     repository.updateStatus(execution.id, RUNNING)
 
     then:
-    with(repository."retrieve$type"(execution.id)) {
+    with(repository.retrieve(execution.type, execution.id)) {
       status == RUNNING
       startTime != null
     }
 
     where:
     execution << [pipeline(), orchestration()]
-    type = execution.getClass().simpleName
   }
 
   def "updateStatus sets endTime to current time if new status is #status"() {
@@ -264,7 +263,7 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
     repository.store(execution)
 
     expect:
-    with(repository."retrieve$type"(execution.id)) {
+    with(repository.retrieve(execution.type, execution.id)) {
       endTime == null
     }
 
@@ -272,7 +271,7 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
     repository.updateStatus(execution.id, status)
 
     then:
-    with(repository."retrieve$type"(execution.id)) {
+    with(repository.retrieve(execution.type, execution.id)) {
       status == status
       endTime != null
     }
@@ -282,8 +281,6 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
     pipeline()      | CANCELED
     orchestration() | SUCCEEDED
     orchestration() | TERMINAL
-
-    type = execution.getClass().simpleName
   }
 
   def "cancelling a not-yet-started execution updates the status immediately"() {
@@ -292,7 +289,7 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
     repository.store(execution)
 
     expect:
-    with(repository.retrievePipeline(execution.id)) {
+    with(repository.retrieve(execution.type, execution.id)) {
       status == NOT_STARTED
     }
 
@@ -301,7 +298,7 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
 
 
     then:
-    with(repository.retrievePipeline(execution.id)) {
+    with(repository.retrieve(execution.type, execution.id)) {
       canceled
       status == CANCELED
     }
@@ -314,7 +311,7 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
     repository.updateStatus(execution.id, RUNNING)
 
     expect:
-    with(repository.retrievePipeline(execution.id)) {
+    with(repository.retrieve(execution.type, execution.id)) {
       status == RUNNING
     }
 
@@ -323,7 +320,7 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
 
 
     then:
-    with(repository.retrievePipeline(execution.id)) {
+    with(repository.retrieve(execution.type, execution.id)) {
       canceled
       status == RUNNING
     }
@@ -338,7 +335,7 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
     repository.updateStatus(execution.id, RUNNING)
 
     expect:
-    with(repository.retrievePipeline(execution.id)) {
+    with(repository.retrieve(execution.type, execution.id)) {
       status == RUNNING
     }
 
@@ -347,7 +344,7 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
 
 
     then:
-    with(repository.retrievePipeline(execution.id)) {
+    with(repository.retrieve(execution.type, execution.id)) {
       canceled
       canceledBy == user
       status == RUNNING
@@ -371,7 +368,7 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
     repository.pause(execution.id, "user@netflix.com")
 
     then:
-    with(repository.retrievePipeline(execution.id)) {
+    with(repository.retrieve(execution.type, execution.id)) {
       status == PAUSED
       paused.pauseTime != null
       paused.resumeTime == null
@@ -384,7 +381,7 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
     repository.resume(execution.id, "another@netflix.com")
 
     then:
-    with(repository.retrievePipeline(execution.id)) {
+    with(repository.retrieve(execution.type, execution.id)) {
       status == RUNNING
       paused.pauseTime != null
       paused.resumeTime != null
@@ -426,7 +423,7 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
 
     when:
     repository.pause(execution.id, "user@netflix.com")
-    execution = repository.retrievePipeline(execution.id)
+    execution = repository.retrieve(execution.type, execution.id)
 
     then:
     execution.paused.isPaused()
@@ -434,7 +431,7 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
     when:
     repository.updateStatus(execution.id, status)
     repository.resume(execution.id, "user@netflix.com", true)
-    execution = repository.retrievePipeline(execution.id)
+    execution = repository.retrieve(execution.type, execution.id)
 
     then:
     execution.status == RUNNING
@@ -502,7 +499,7 @@ class JedisExecutionRepositorySpec extends ExecutionRepositoryTck<JedisExecution
     jedis.sadd("allJobs:pipeline", id)
 
     when:
-    def result = repository.retrievePipelines().toList().toBlocking().first()
+    def result = repository.retrieve(PIPELINE).toList().toBlocking().first()
 
     then:
     result.isEmpty()
@@ -532,14 +529,14 @@ class JedisExecutionRepositorySpec extends ExecutionRepositoryTck<JedisExecution
     ] as Set<String>
 
     when:
-    repository.deletePipeline(pipeline.id)
-    repository.retrievePipeline(pipeline.id)
+    repository.delete(pipeline.type, pipeline.id)
+    repository.retrieve(pipeline.type, pipeline.id)
 
     then:
     thrown ExecutionNotFoundException
 
     and:
-    repository.retrievePipelines().toList().toBlocking().first() == []
+    repository.retrieve(PIPELINE).toList().toBlocking().first() == []
     jedis.zrange(JedisExecutionRepository.executionsByPipelineKey(pipeline.pipelineConfigId), 0, 1).isEmpty()
   }
 
@@ -599,7 +596,7 @@ class JedisExecutionRepositorySpec extends ExecutionRepositoryTck<JedisExecution
     previousRepository.store(orchestration2)
 
     when:
-    repository.deleteOrchestration(orchestration1.id)
+    repository.delete(orchestration1.type, orchestration1.id)
     def retrieved = repository.retrieveOrchestrationsForApplication("orca", new ExecutionCriteria(limit: 2))
       .toList().toBlocking().first()
 
@@ -607,7 +604,7 @@ class JedisExecutionRepositorySpec extends ExecutionRepositoryTck<JedisExecution
     retrieved*.id == [orchestration2.id]
 
     when:
-    repository.deleteOrchestration(orchestration2.id)
+    repository.delete(orchestration2.type, orchestration2.id)
     retrieved = repository.retrieveOrchestrationsForApplication("orca", new ExecutionCriteria(limit: 2))
       .toList().toBlocking().first()
 
@@ -680,7 +677,7 @@ class JedisExecutionRepositorySpec extends ExecutionRepositoryTck<JedisExecution
     previousRepository.store(pipeline2)
 
     when:
-    repository.deletePipeline(pipeline1.id)
+    repository.delete(pipeline1.type, pipeline1.id)
     def retrieved = repository.retrievePipelinesForPipelineConfigId("pipeline-1", new ExecutionCriteria(limit: 2))
       .toList().toBlocking().first()
 
@@ -688,7 +685,7 @@ class JedisExecutionRepositorySpec extends ExecutionRepositoryTck<JedisExecution
     retrieved*.id == [pipeline2.id]
 
     when:
-    repository.deletePipeline(pipeline2.id)
+    repository.delete(pipeline2.type, pipeline2.id)
     retrieved = repository.retrievePipelinesForPipelineConfigId("pipeline-1", new ExecutionCriteria(limit: 2))
       .toList().toBlocking().first()
 
@@ -711,7 +708,7 @@ class JedisExecutionRepositorySpec extends ExecutionRepositoryTck<JedisExecution
     repository.store(pipeline)
 
     when:
-    def fetchedPipeline = repository.retrievePipeline(pipeline.id)
+    def fetchedPipeline = repository.retrieve(pipeline.type, pipeline.id)
 
     then:
     fetchedPipeline.stages[0].startTime == 100
@@ -722,7 +719,7 @@ class JedisExecutionRepositorySpec extends ExecutionRepositoryTck<JedisExecution
     fetchedPipeline.stages[0].endTime = null
     repository.storeStage(fetchedPipeline.stages[0])
 
-    fetchedPipeline = repository.retrievePipeline(pipeline.id)
+    fetchedPipeline = repository.retrieve(pipeline.type, pipeline.id)
 
     then:
     fetchedPipeline.stages[0].startTime == null
@@ -742,13 +739,13 @@ class JedisExecutionRepositorySpec extends ExecutionRepositoryTck<JedisExecution
     repository.store(pipeline)
 
     expect:
-    repository.retrievePipeline(pipeline.id).stages.size() == 3
+    repository.retrieve(pipeline.type, pipeline.id).stages.size() == 3
 
     when:
     repository.removeStage(pipeline, pipeline.namedStage("two").id)
 
     then:
-    with(repository.retrievePipeline(pipeline.id)) {
+    with(repository.retrieve(pipeline.type, pipeline.id)) {
       stages.size() == 2
       stages.type == ["one", "three"]
     }
@@ -768,14 +765,14 @@ class JedisExecutionRepositorySpec extends ExecutionRepositoryTck<JedisExecution
     repository.store(pipeline)
 
     expect:
-    repository.retrievePipeline(pipeline.id).stages.size() == 3
+    repository.retrieve(pipeline.type, pipeline.id).stages.size() == 3
 
     when:
     def stage = newStage(pipeline, "whatever", "two-whatever", [:], pipeline.namedStage("two"), position)
     repository.addStage(stage)
 
     then:
-    with(repository.retrievePipeline(pipeline.id)) {
+    with(repository.retrieve(pipeline.type, pipeline.id)) {
       stages.size() == 4
       stages.name == expectedStageNames
     }
@@ -799,7 +796,7 @@ class JedisExecutionRepositorySpec extends ExecutionRepositoryTck<JedisExecution
     repository.store(pipeline)
 
     expect:
-    repository.retrievePipeline(pipeline.id).stages.size() == 3
+    repository.retrieve(pipeline.type, pipeline.id).stages.size() == 3
 
     when:
     def stage1 = newStage(pipeline, "whatever", "one-whatever", [:], pipeline.namedStage("one"), STAGE_BEFORE)
@@ -820,7 +817,7 @@ class JedisExecutionRepositorySpec extends ExecutionRepositoryTck<JedisExecution
     doneLatch.await(1, SECONDS)
 
     and:
-    with(repository.retrievePipeline(pipeline.id)) {
+    with(repository.retrieve(pipeline.type, pipeline.id)) {
       stages.size() == 6
       stages.name == ["one-whatever", "one", "two-whatever", "two", "three-whatever", "three"]
     }

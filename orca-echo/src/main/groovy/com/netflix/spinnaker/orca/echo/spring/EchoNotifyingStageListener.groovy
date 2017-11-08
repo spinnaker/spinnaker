@@ -19,13 +19,15 @@ import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.echo.EchoService
 import com.netflix.spinnaker.orca.listeners.Persister
 import com.netflix.spinnaker.orca.listeners.StageListener
-import com.netflix.spinnaker.orca.pipeline.model.*
+import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.Task
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import static com.netflix.spinnaker.orca.ExecutionStatus.*
+import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.ORCHESTRATION
 import static java.lang.System.currentTimeMillis
 
 /**
@@ -45,16 +47,16 @@ class EchoNotifyingStageListener implements StageListener {
   }
 
   @Override
-  <T extends Execution<T>> void beforeTask(Persister persister,
-                                           Stage<T> stage,
+  void beforeTask(Persister persister,
+                                           Stage stage,
                                            Task task) {
     recordEvent('task', 'starting', stage, task)
   }
 
   @Override
   @CompileDynamic
-  <T extends Execution<T>> void beforeStage(Persister persister,
-                                            Stage<T> stage) {
+  void beforeStage(Persister persister,
+                                            Stage stage) {
     def details = [
       name       : stage.name,
       type       : stage.type,
@@ -70,8 +72,8 @@ class EchoNotifyingStageListener implements StageListener {
   }
 
   @Override
-  <T extends Execution<T>> void afterTask(Persister persister,
-                                          Stage<T> stage,
+  void afterTask(Persister persister,
+                                          Stage stage,
                                           Task task,
                                           ExecutionStatus executionStatus,
                                           boolean wasSuccessful) {
@@ -84,8 +86,8 @@ class EchoNotifyingStageListener implements StageListener {
 
   @Override
   @CompileDynamic
-  <T extends Execution<T>> void afterStage(Persister persister,
-                                           Stage<T> stage) {
+  void afterStage(Persister persister,
+                                           Stage stage) {
     if (stage.endTime) {
       if (stage.context.stageDetails == null) {
         stage.context.stageDetails = [:]
@@ -123,7 +125,7 @@ class EchoNotifyingStageListener implements StageListener {
           application: stage.execution.application
         ],
         content: [
-          standalone : stage.execution instanceof Orchestration,
+          standalone : stage.execution.type == ORCHESTRATION,
           canceled   : stage.execution.canceled,
           context    : stage.context,
           startTime  : stage.startTime,

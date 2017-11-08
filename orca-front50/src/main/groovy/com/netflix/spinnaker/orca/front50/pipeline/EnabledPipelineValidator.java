@@ -21,7 +21,7 @@ import java.util.Map;
 import java.util.Optional;
 import com.netflix.spinnaker.orca.front50.Front50Service;
 import com.netflix.spinnaker.orca.pipeline.PipelineValidator;
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline;
+import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,7 +42,7 @@ public class EnabledPipelineValidator implements PipelineValidator {
   }
 
 
-  @Override public void checkRunnable(Pipeline pipeline) {
+  @Override public void checkRunnable(Execution pipeline) {
     if (front50Service == null) {
       throw new UnsupportedOperationException("Front50 not enabled, no way to validate pipeline. Fix this by setting front50.enabled: true");
     }
@@ -58,7 +58,7 @@ public class EnabledPipelineValidator implements PipelineValidator {
       });
   }
 
-  private boolean isStrategy(Pipeline pipeline) {
+  private boolean isStrategy(Execution pipeline) {
     Map<String, Object> trigger = pipeline.getTrigger();
     Object strategy = ((Map<String, Object>) trigger.getOrDefault("parameters", emptyMap()))
       .getOrDefault("strategy", false);

@@ -35,11 +35,11 @@ class ResumeStageHandler(
 
   override fun handle(message: ResumeStage) {
     message.withStage { stage ->
-      stage.setStatus(RUNNING)
+      stage.status = RUNNING
       repository.storeStage(stage)
 
       stage
-        .getTasks()
+        .tasks
         .filter { it.status == PAUSED }
         .forEach { queue.push(ResumeTask(message, it.id)) }
     }

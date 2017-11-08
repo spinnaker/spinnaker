@@ -17,7 +17,7 @@ package com.netflix.spinnaker.orca.q.trafficshaping
 
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spectator.api.Registry
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
 import com.netflix.spinnaker.orca.q.Queue
 import com.netflix.spinnaker.orca.q.QueueCallback
 import com.netflix.spinnaker.orca.q.StartStage
@@ -49,7 +49,7 @@ object TrafficShapingQueueTest : SubjectSpek<TrafficShapingQueue>({
       whenever(interceptor.interceptPoll()) doReturn false
       whenever(interceptor.interceptMessage(any())).doReturn(null as TrafficShapingInterceptorCallback?)
 
-      subject.push(StartStage(Pipeline::class.java, "1", "foo", "1"))
+      subject.push(StartStage(PIPELINE, "1", "foo", "1"))
     }
 
     action("when the queue is polled") {
@@ -65,7 +65,7 @@ object TrafficShapingQueueTest : SubjectSpek<TrafficShapingQueue>({
     beforeGroup {
       whenever(interceptor.interceptPoll()) doReturn true
 
-      subject.push(StartStage(Pipeline::class.java, "1", "foo", "1"))
+      subject.push(StartStage(PIPELINE, "1", "foo", "1"))
     }
 
     action("when the queue is polled") {
@@ -84,7 +84,7 @@ object TrafficShapingQueueTest : SubjectSpek<TrafficShapingQueue>({
       whenever(interceptor.interceptPoll()) doReturn false
       whenever(interceptor.interceptMessage(any())) doReturn interceptorCallback
 
-      subject.push(StartStage(Pipeline::class.java, "1", "foo", "1"))
+      subject.push(StartStage(PIPELINE, "1", "foo", "1"))
     }
 
     action("when the queue is polled") {

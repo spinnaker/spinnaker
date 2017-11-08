@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.orca.q.handler
 
 import com.netflix.spinnaker.orca.ExecutionStatus.TERMINAL
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.q.*
 import com.nhaarman.mockito_kotlin.mock
@@ -41,7 +41,7 @@ object ConfigurationErrorHandlerTest : SubjectSpek<ConfigurationErrorHandler>({
 
   fun resetMocks() = reset(queue, repository)
 
-  InvalidExecutionId(Pipeline::class.java, "1", "foo").let { message ->
+  InvalidExecutionId(PIPELINE, "1", "foo").let { message ->
     describe("handing a ${message.javaClass.simpleName} event") {
       afterGroup(::resetMocks)
 
@@ -60,10 +60,10 @@ object ConfigurationErrorHandlerTest : SubjectSpek<ConfigurationErrorHandler>({
   }
 
   setOf<ConfigurationError>(
-    InvalidStageId(Pipeline::class.java, "1", "foo", "1"),
-    InvalidTaskId(Pipeline::class.java, "1", "foo", "1", "1"),
-    InvalidTaskType(Pipeline::class.java, "1", "foo", "1", InvalidTask::class.java.name),
-    NoDownstreamTasks(Pipeline::class.java, "1", "foo", "1", "1")
+    InvalidStageId(PIPELINE, "1", "foo", "1"),
+    InvalidTaskId(PIPELINE, "1", "foo", "1", "1"),
+    InvalidTaskType(PIPELINE, "1", "foo", "1", InvalidTask::class.java.name),
+    NoDownstreamTasks(PIPELINE, "1", "foo", "1", "1")
   ).forEach { message ->
     describe("handing a ${message.javaClass.simpleName} event") {
       afterGroup(::resetMocks)

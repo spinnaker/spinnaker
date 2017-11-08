@@ -19,7 +19,7 @@ package com.netflix.spinnaker.orca.mine.pipeline
 
 import com.netflix.spinnaker.orca.CancellableStage
 import com.netflix.spinnaker.orca.mine.MineService
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.PipelineBuilder
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import spock.lang.Specification
@@ -30,7 +30,7 @@ class MonitorCanaryStageSpec extends Specification {
   def "should short-circuit if canary registered but execution not explicitly canceled"() {
     given:
     def monitorCanaryStage = new MonitorCanaryStage(mineService: mineService)
-    def stage = new Stage<>(new Pipeline("orca"), "pipelineStage", [
+    def stage = new Stage(Execution.newPipeline("orca"), "pipelineStage", [
       canary: [id: "canaryId"]
     ])
 
@@ -50,7 +50,7 @@ class MonitorCanaryStageSpec extends Specification {
     canaryStage.setRefId("1")
     def canaryStageBuilder = Mock(CanaryStage)
     def monitorCanaryStage = new MonitorCanaryStage(mineService: mineService, canaryStage: canaryStageBuilder)
-    def stage = new Stage<Pipeline>(pipeline, "pipelineStage", [
+    def stage = new Stage(pipeline, "pipelineStage", [
       canary: [id: "canaryId"]
     ])
     stage.setRequisiteStageRefIds(["1"])
@@ -69,7 +69,7 @@ class MonitorCanaryStageSpec extends Specification {
 
   def "should raise exception if no upstream canary stage found"() {
     def monitorCanaryStage = new MonitorCanaryStage(mineService: mineService)
-    def stage = new Stage<>(new Pipeline("orca"), "pipelineStage", [
+    def stage = new Stage(Execution.newPipeline("orca"), "pipelineStage", [
       canary: [id: "canaryId"]
     ])
 

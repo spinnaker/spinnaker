@@ -16,22 +16,21 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup;
 
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import com.netflix.frigga.Names;
 import com.netflix.spinnaker.orca.RetrySupport;
 import com.netflix.spinnaker.orca.clouddriver.OortService;
 import com.netflix.spinnaker.orca.pipeline.model.Execution;
-import com.netflix.spinnaker.orca.pipeline.model.Orchestration;
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import retrofit.RetrofitError;
-
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.ORCHESTRATION;
+import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE;
 
 @Component
 public class SpinnakerMetadataServerGroupTagGenerator implements ServerGroupEntityTagGenerator {
@@ -56,18 +55,18 @@ public class SpinnakerMetadataServerGroupTagGenerator implements ServerGroupEnti
     Map<String, Object> value = new HashMap<>();
     value.put("stageId", stage.getId());
     value.put("executionId", execution.getId());
-    value.put("executionType", execution.getClass().getSimpleName().toLowerCase());
+    value.put("executionType", execution.getType().toString());
     value.put("application", execution.getApplication());
 
     if (execution.getAuthentication() != null) {
       value.put("user", execution.getAuthentication().getUser());
     }
 
-    if (execution instanceof Orchestration) {
-      value.put("description", ((Orchestration) execution).getDescription());
-    } else if (execution instanceof Pipeline) {
+    if (execution.getType() == ORCHESTRATION) {
+      value.put("description", execution.getDescription());
+    } else if (execution.getType() == PIPELINE) {
       value.put("description", execution.getName());
-      value.put("pipelineConfigId", ((Pipeline) execution).getPipelineConfigId());
+      value.put("pipelineConfigId", execution.getPipelineConfigId());
     }
 
     if (context.containsKey("reason") && context.get("reason") != null) {

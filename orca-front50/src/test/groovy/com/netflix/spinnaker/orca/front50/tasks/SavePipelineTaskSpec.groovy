@@ -20,7 +20,7 @@ import com.google.common.collect.ImmutableMap
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.front50.PipelineModelMutator
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import retrofit.client.Response
 import spock.lang.Specification
@@ -44,7 +44,7 @@ class SavePipelineTaskSpec extends Specification {
       name: 'my pipeline',
       stages: []
     ]
-    def stage = new Stage<>(new Pipeline("orca"), "whatever", [
+    def stage = new Stage(Execution.newPipeline("orca"), "whatever", [
       pipeline: Base64.encoder.encodeToString(objectMapper.writeValueAsString(pipeline).bytes)
     ])
 

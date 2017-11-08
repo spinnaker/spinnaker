@@ -17,18 +17,12 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup
 
-import com.fasterxml.jackson.annotation.JsonIgnore
-import com.netflix.frigga.Names
-import com.netflix.spinnaker.orca.RetrySupport
-import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.rollback.ExplicitRollback
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.rollback.PreviousImageRollback
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.rollback.Rollback
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.rollback.TestRollback
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
-import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
-import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory
 import org.springframework.stereotype.Component
@@ -41,7 +35,7 @@ class RollbackServerGroupStage implements StageDefinitionBuilder {
   AutowireCapableBeanFactory autowireCapableBeanFactory
 
   @Override
-  <T extends Execution<T>> List<Stage<T>> aroundStages(Stage<T> stage) {
+  List<Stage> aroundStages(Stage stage) {
     def stageData = stage.mapTo(StageData)
 
     if (!stageData.rollbackType) {

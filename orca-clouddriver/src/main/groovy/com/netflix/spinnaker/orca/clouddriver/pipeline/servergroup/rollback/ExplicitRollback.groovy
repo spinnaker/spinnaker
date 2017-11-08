@@ -23,11 +23,9 @@ import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.DisableServer
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.EnableServerGroupStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.ResizeServerGroupStage
 import com.netflix.spinnaker.orca.kato.pipeline.support.ResizeStrategy
-import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner
-import org.springframework.beans.factory.annotation.Autowired;
-
+import org.springframework.beans.factory.annotation.Autowired
 import static com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder.newStage
 
 class ExplicitRollback implements Rollback {
@@ -56,7 +54,7 @@ class ExplicitRollback implements Rollback {
   ApplySourceServerGroupCapacityStage applySourceServerGroupCapacityStage
 
   @JsonIgnore
-  def <T extends Execution<T>> List<Stage<T>> buildStages(Stage<T> parentStage) {
+  def List<Stage> buildStages(Stage parentStage) {
     def stages = []
 
     Map enableServerGroupContext = new HashMap(parentStage.context)

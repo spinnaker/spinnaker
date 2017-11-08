@@ -21,11 +21,9 @@ import com.netflix.frigga.Names
 import com.netflix.spinnaker.orca.RetrySupport
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.CloneServerGroupStage
-import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner
-import org.springframework.beans.factory.annotation.Autowired;
-
+import org.springframework.beans.factory.annotation.Autowired
 import static com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder.newStage
 
 class PreviousImageRollback implements Rollback {
@@ -47,7 +45,7 @@ class PreviousImageRollback implements Rollback {
   RetrySupport retrySupport
 
   @Override
-  <T extends Execution<T>> List<Stage<T>> buildStages(Stage<T> parentStage) {
+  List<Stage> buildStages(Stage parentStage) {
     def stages = []
 
     def parentStageContext = parentStage.context

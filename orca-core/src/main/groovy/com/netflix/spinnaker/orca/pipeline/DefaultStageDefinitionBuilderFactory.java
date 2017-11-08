@@ -35,7 +35,7 @@ public class DefaultStageDefinitionBuilderFactory implements StageDefinitionBuil
 
   @Override
   public @Nonnull StageDefinitionBuilder builderFor(
-    @Nonnull Stage<?> stage) throws NoSuchStageDefinitionBuilder {
+    @Nonnull Stage stage) throws NoSuchStageDefinitionBuilder {
     return stageDefinitionBuilders
       .stream()
       .filter((it) -> it.getType().equals(stage.getType()) || it.getType().equals(stage.getContext().get("alias")))

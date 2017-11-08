@@ -18,7 +18,7 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.instance
 
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import retrofit.client.Response
 import retrofit.mime.TypedInput
@@ -75,8 +75,8 @@ class AbstractInstancesCheckTaskSpec extends Specification {
     task.objectMapper = OrcaObjectMapper.newInstance()
     task.hasSucceededSpy = Mock(HasSucceededSpy)
 
-    def pipeline = new Pipeline("orca")
-    def stage = new Stage<>(pipeline, "whatever", [
+    def pipeline = Execution.newPipeline("orca")
+    def stage = new Stage(pipeline, "whatever", [
       "account.name"                  : "test",
       "targetop.asg.enableAsg.name"   : "front50-v000",
       "targetop.asg.enableAsg.regions": ["us-west-1"]
@@ -115,8 +115,8 @@ class AbstractInstancesCheckTaskSpec extends Specification {
     task.objectMapper = OrcaObjectMapper.newInstance()
     task.hasSucceededSpy = Mock(HasSucceededSpy)
 
-    def pipeline = new Pipeline("orca")
-    def stage = new Stage<>(pipeline, "whatever", [
+    def pipeline = Execution.newPipeline("orca")
+    def stage = new Stage(pipeline, "whatever", [
       "account.name"                  : "test",
       "targetop.asg.enableAsg.name"   : "front50-v000",
       "targetop.asg.enableAsg.regions": ["us-west-1"],
@@ -167,8 +167,8 @@ class AbstractInstancesCheckTaskSpec extends Specification {
     task.objectMapper = OrcaObjectMapper.newInstance()
     task.hasSucceededSpy = Mock(HasSucceededSpy)
 
-    def pipeline = new Pipeline("orca")
-    def stage = new Stage<>(pipeline, "whatever", [
+    def pipeline = Execution.newPipeline("orca")
+    def stage = new Stage(pipeline, "whatever", [
       "account.name"                  : "test",
       "targetop.asg.enableAsg.name"   : "front50-v000",
       "targetop.asg.enableAsg.regions": ["us-west-1"],

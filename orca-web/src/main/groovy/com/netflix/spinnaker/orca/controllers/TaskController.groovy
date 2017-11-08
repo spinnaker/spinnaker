@@ -16,9 +16,6 @@
 
 package com.netflix.spinnaker.orca.controllers
 
-import com.netflix.spinnaker.orca.pipeline.OrchestrationLauncher
-import com.netflix.spinnaker.orca.pipeline.model.Task
-
 import java.time.Clock
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.front50.Front50Service
@@ -28,8 +25,7 @@ import com.netflix.spinnaker.orca.model.OrchestrationViewModel
 import com.netflix.spinnaker.orca.pipeline.ExecutionRunner
 import com.netflix.spinnaker.orca.pipeline.PipelineStartTracker
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
-import com.netflix.spinnaker.orca.pipeline.model.Orchestration
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
@@ -44,6 +40,8 @@ import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.access.prepost.PreFilter
 import org.springframework.web.bind.annotation.*
 import rx.schedulers.Schedulers
+import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.ORCHESTRATION
+import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
 import static java.time.ZoneOffset.UTC
 
 @RestController
@@ -79,7 +77,7 @@ class TaskController {
 
   @PreAuthorize("hasPermission(#application, 'APPLICATION', 'READ')")
   @RequestMapping(value = "/applications/{application}/tasks", method = RequestMethod.GET)
-  List<Orchestration> list(@PathVariable String application,
+  List<Execution> list(@PathVariable String application,
                            @RequestParam(value = "limit", defaultValue = "3500") int limit,
                            @RequestParam(value = "statuses", required = false) String statuses) {
     statuses = statuses ?: ExecutionStatus.values()*.toString().join(",")
@@ -97,8 +95,8 @@ class TaskController {
 
     def orchestrations = executionRepository
       .retrieveOrchestrationsForApplication(application, executionCriteria)
-      .filter({ Orchestration orchestration -> !orchestration.startTime || (orchestration.startTime > startTimeCutoff) })
-      .map({ Orchestration orchestration -> convert(orchestration) })
+      .filter({ Execution orchestration -> !orchestration.startTime || (orchestration.startTime > startTimeCutoff) })
+      .map({ Execution orchestration -> convert(orchestration) })
       .subscribeOn(Schedulers.io())
       .toList()
       .toBlocking()
@@ -112,7 +110,7 @@ class TaskController {
   @PostFilter("hasPermission(filterObject.application, 'APPLICATION', 'READ')")
   @RequestMapping(value = "/tasks", method = RequestMethod.GET)
   List<OrchestrationViewModel> list() {
-    executionRepository.retrieveOrchestrations().toBlocking().iterator.collect {
+    executionRepository.retrieve(ORCHESTRATION).toBlocking().iterator.collect {
       convert it
     }
   }
@@ -125,17 +123,17 @@ class TaskController {
   // GUID, it's unlikely than an attacker would be able to guess the identifier for any task.
   @RequestMapping(value = "/tasks/{id}", method = RequestMethod.GET)
   OrchestrationViewModel getTask(@PathVariable String id) {
-    convert executionRepository.retrieveOrchestration(id)
+    convert executionRepository.retrieve(ORCHESTRATION, id)
   }
 
-  Orchestration getOrchestration(String id) {
-    executionRepository.retrieveOrchestration(id)
+  Execution getOrchestration(String id) {
+    executionRepository.retrieve(ORCHESTRATION, id)
   }
 
   @PreAuthorize("hasPermission(this.getOrchestration(#id)?.application, 'APPLICATION', 'WRITE')")
   @RequestMapping(value = "/tasks/{id}", method = RequestMethod.DELETE)
   void deleteTask(@PathVariable String id) {
-    executionRepository.deleteOrchestration(id)
+    executionRepository.delete(ORCHESTRATION, id)
   }
 
   @PreAuthorize("hasPermission(this.getOrchestration(#id)?.application, 'APPLICATION', 'WRITE')")
@@ -157,7 +155,7 @@ class TaskController {
   }
 
   @RequestMapping(value = "/pipelines", method = RequestMethod.GET)
-  List<Pipeline> listLatestPipelines(
+  List<Execution> listLatestPipelines(
     @RequestParam(value = "pipelineConfigIds") String pipelineConfigIds,
     @RequestParam(value = "limit", required = false) Integer limit,
     @RequestParam(value = "statuses", required = false) String statuses) {
@@ -179,14 +177,14 @@ class TaskController {
 
   @PostAuthorize("hasPermission(returnObject.application, 'APPLICATION', 'READ')")
   @RequestMapping(value = "/pipelines/{id}", method = RequestMethod.GET)
-  Pipeline getPipeline(@PathVariable String id) {
-    executionRepository.retrievePipeline(id)
+  Execution getPipeline(@PathVariable String id) {
+    executionRepository.retrieve(PIPELINE, id)
   }
 
   @PreAuthorize("hasPermission(this.getPipeline(#id)?.application, 'APPLICATION', 'WRITE')")
   @RequestMapping(value = "/pipelines/{id}", method = RequestMethod.DELETE)
   void deletePipeline(@PathVariable String id) {
-    executionRepository.deletePipeline(id)
+    executionRepository.delete(PIPELINE, id)
   }
 
   @PreAuthorize("hasPermission(this.getPipeline(#id)?.application, 'APPLICATION', 'READ')")
@@ -203,7 +201,7 @@ class TaskController {
   @ResponseStatus(HttpStatus.ACCEPTED)
   void cancel(@PathVariable String id, @RequestParam(required = false) String reason,
               @RequestParam(defaultValue = "false") boolean force) {
-    executionRepository.retrievePipeline(id).with { pipeline ->
+    executionRepository.retrieve(PIPELINE, id).with { pipeline ->
       executionRunner.cancel(
         pipeline,
         AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"),
@@ -218,7 +216,7 @@ class TaskController {
   @ResponseStatus(HttpStatus.ACCEPTED)
   void pause(@PathVariable String id) {
     executionRepository.pause(id, AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"))
-    def pipeline = executionRepository.retrievePipeline(id)
+    def pipeline = executionRepository.retrieve(PIPELINE, id)
     executionRunner.reschedule(pipeline)
   }
 
@@ -227,7 +225,7 @@ class TaskController {
   @ResponseStatus(HttpStatus.ACCEPTED)
   void resume(@PathVariable String id) {
     executionRepository.resume(id, AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"))
-    def pipeline = executionRepository.retrievePipeline(id)
+    def pipeline = executionRepository.retrieve(PIPELINE, id)
     executionRunner.unpause(pipeline)
   }
 
@@ -247,10 +245,10 @@ class TaskController {
 
   @PreAuthorize("hasPermission(this.getPipeline(#id)?.application, 'APPLICATION', 'WRITE')")
   @RequestMapping(value = "/pipelines/{id}/stages/{stageId}", method = RequestMethod.PATCH)
-  Pipeline updatePipelineStage(
+  Execution updatePipelineStage(
     @PathVariable String id,
     @PathVariable String stageId, @RequestBody Map context) {
-    def pipeline = executionRepository.retrievePipeline(id)
+    def pipeline = executionRepository.retrieve(PIPELINE, id)
     def stage = pipeline.stages.find { it.id == stageId }
     if (stage) {
       stage.context.putAll(context)
@@ -273,9 +271,9 @@ class TaskController {
 
   @PreAuthorize("hasPermission(this.getPipeline(#id)?.application, 'APPLICATION', 'WRITE')")
   @RequestMapping(value = "/pipelines/{id}/stages/{stageId}/restart", method = RequestMethod.PUT)
-  Pipeline retryPipelineStage(
+  Execution retryPipelineStage(
     @PathVariable String id, @PathVariable String stageId) {
-    def pipeline = executionRepository.retrievePipeline(id)
+    def pipeline = executionRepository.retrieve(PIPELINE, id)
     executionRunner.restart(pipeline, stageId)
     if (pipeline.pipelineConfigId) {
       startTracker.addToStarted(pipeline.pipelineConfigId, pipeline.id)
@@ -287,7 +285,7 @@ class TaskController {
   @RequestMapping(value = "/pipelines/{id}/evaluateExpression", method = RequestMethod.GET)
   Map evaluateExpressionForExecution(@PathVariable("id") String id,
                                      @RequestParam("expression") String expression){
-    def execution = executionRepository.retrievePipeline(id)
+    def execution = executionRepository.retrieve(PIPELINE, id)
     def evaluated = contextParameterProcessor.process(
       [expression: expression],
       [execution: execution],
@@ -298,7 +296,7 @@ class TaskController {
 
   @PreAuthorize("hasPermission(#application, 'APPLICATION', 'READ')")
   @RequestMapping(value = "/v2/applications/{application}/pipelines", method = RequestMethod.GET)
-  List<Pipeline> getApplicationPipelines(@PathVariable String application,
+  List<Execution> getApplicationPipelines(@PathVariable String application,
                                          @RequestParam(value = "limit", defaultValue = "5") int limit,
                                          @RequestParam(value = "statuses", required = false) String statuses) {
     return getPipelinesForApplication(application, limit, statuses)
@@ -306,7 +304,7 @@ class TaskController {
 
   @PreAuthorize("hasPermission(#application, 'APPLICATION', 'READ')")
   @RequestMapping(value = "/applications/{application}/pipelines", method = RequestMethod.GET)
-  List<Pipeline> getPipelinesForApplication(@PathVariable String application,
+  List<Execution> getPipelinesForApplication(@PathVariable String application,
                                             @RequestParam(value = "limit", defaultValue = "5") int limit,
                                             @RequestParam(value = "statuses", required = false) String statuses) {
     if (!front50Service) {
@@ -334,14 +332,14 @@ class TaskController {
     return filterPipelinesByHistoryCutoff(allPipelines, limit)
   }
 
-  private List<Pipeline> filterPipelinesByHistoryCutoff(List<Pipeline> pipelines, int limit) {
+  private List<Execution> filterPipelinesByHistoryCutoff(List<Execution> pipelines, int limit) {
     // TODO-AJ The eventual goal is to return `allPipelines` without the need to group + filter below (WIP)
     def cutoffTime = (new Date(clock.millis()) - daysOfExecutionHistory).time
 
     def pipelinesSatisfyingCutoff = []
     pipelines.groupBy {
       it.pipelineConfigId
-    }.values().each { List<Pipeline> pipelinesGroup ->
+    }.values().each { List<Execution> pipelinesGroup ->
       def sortedPipelinesGroup = pipelinesGroup.sort(startTimeOrId).reverse()
       def recentPipelines = sortedPipelinesGroup.findAll {
         !it.startTime || it.startTime > cutoffTime
@@ -365,7 +363,7 @@ class TaskController {
     return aStartTime <=> bStartTime ?: b.id <=> a.id
   }
 
-  private OrchestrationViewModel convert(Orchestration orchestration) {
+  private OrchestrationViewModel convert(Execution orchestration) {
     def variables = [:]
     for (stage in orchestration.stages) {
       for (entry in stage.context.entrySet()) {

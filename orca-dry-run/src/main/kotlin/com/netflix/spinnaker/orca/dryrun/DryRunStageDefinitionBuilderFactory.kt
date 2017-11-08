@@ -19,19 +19,18 @@ package com.netflix.spinnaker.orca.dryrun
 import com.netflix.spinnaker.orca.pipeline.CheckPreconditionsStage
 import com.netflix.spinnaker.orca.pipeline.DefaultStageDefinitionBuilderFactory
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 
 class DryRunStageDefinitionBuilderFactory(
   stageDefinitionBuilders: Collection<StageDefinitionBuilder>
 ) : DefaultStageDefinitionBuilderFactory(stageDefinitionBuilders) {
 
-  override fun builderFor(stage: Stage<*>): StageDefinitionBuilder =
-    stage.getExecution().let { execution ->
+  override fun builderFor(stage: Stage): StageDefinitionBuilder =
+    stage.execution.let { execution ->
       super.builderFor(stage).let {
         if (stage.isExpressionPreconditionStage()) {
           it
-        } else if (execution is Pipeline && execution.trigger["type"] == "dryrun") {
+        } else if (execution.trigger["type"] == "dryrun") {
           DryRunStage(it)
         } else {
           it
@@ -39,18 +38,18 @@ class DryRunStageDefinitionBuilderFactory(
       }
     }
 
-  private fun Stage<*>.isExpressionPreconditionStage() =
+  private fun Stage.isExpressionPreconditionStage() =
     isPreconditionStage() && (isExpressionChild() || isExpressionParent())
 
-  private fun Stage<*>.isPreconditionStage() =
-    getType() == CheckPreconditionsStage.PIPELINE_CONFIG_TYPE
+  private fun Stage.isPreconditionStage() =
+    type == CheckPreconditionsStage.PIPELINE_CONFIG_TYPE
 
-  private fun Stage<*>.isExpressionChild() =
-    getContext()["preconditionType"] == "expression"
+  private fun Stage.isExpressionChild() =
+    context["preconditionType"] == "expression"
 
   @Suppress("UNCHECKED_CAST")
-  private fun Stage<*>.isExpressionParent() =
-    (getContext()["preconditions"] as Iterable<Map<String, Any>>?)?.run {
+  private fun Stage.isExpressionParent() =
+    (context["preconditions"] as Iterable<Map<String, Any>>?)?.run {
       all { it["type"] == "expression" }
     } == true
 }

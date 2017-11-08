@@ -18,11 +18,10 @@ package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.strategies;
 
 import java.util.List;
 import com.netflix.spinnaker.orca.kato.pipeline.Nameable;
-import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 
 public interface Strategy extends Nameable {
-  <T extends Execution<T>> List<Stage<T>> composeFlow(Stage<T> stage);
+  List<Stage> composeFlow(Stage stage);
 
   default boolean replacesBasicSteps() {
     return false;

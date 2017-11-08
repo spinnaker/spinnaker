@@ -18,7 +18,7 @@ package com.netflix.spinnaker.orca.pipelinetemplate.pipeline
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.front50.pipeline.UpdatePipelineStage
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate
@@ -82,7 +82,7 @@ class UpdatePipelineTemplateStageSpec extends Specification {
 
     and:
     def config = [pipelineTemplate: Base64.encoder.encodeToString(new ObjectMapper().writeValueAsString(pipelineTemplate).bytes)]
-    def stage = new Stage<>(new Pipeline("orca"), "updatePipelineTemplate", config)
+    def stage = new Stage(Execution.newPipeline("orca"), "updatePipelineTemplate", config)
 
     when:
     def syntheticStages = stageBuilder.aroundStages(stage)

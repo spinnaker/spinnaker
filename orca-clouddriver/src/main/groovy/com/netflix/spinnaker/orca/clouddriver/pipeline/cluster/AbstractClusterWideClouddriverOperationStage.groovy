@@ -16,15 +16,14 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.cluster
 
-import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
 import java.beans.Introspector
 import com.netflix.spinnaker.orca.clouddriver.tasks.DetermineHealthProvidersTask
+import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.cluster.AbstractClusterWideClouddriverTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.cluster.AbstractWaitForClusterWideClouddriverTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCacheForceRefreshTask
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.TaskNode
-import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 
 abstract class AbstractClusterWideClouddriverOperationStage implements StageDefinitionBuilder {
@@ -40,7 +39,7 @@ abstract class AbstractClusterWideClouddriverOperationStage implements StageDefi
   }
 
   @Override
-  <T extends Execution<T>> void taskGraph(Stage<T> stage, TaskNode.Builder builder) {
+  void taskGraph(Stage stage, TaskNode.Builder builder) {
     stage.resolveStrategyParams()
     def operationTask = clusterOperationTask
     String name = getStepName(operationTask.simpleName)

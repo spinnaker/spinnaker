@@ -19,7 +19,7 @@ package com.netflix.spinnaker.orca.kato.tasks
 import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.clouddriver.MortService
 import com.netflix.spinnaker.orca.clouddriver.OortService
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import spock.lang.Specification
 import spock.lang.Subject
@@ -36,7 +36,7 @@ class CopyAmazonLoadBalancerTaskSpec extends Specification {
     }
 
     when:
-    task.execute(new Stage<>(new Pipeline("orca"), "", [
+    task.execute(new Stage(Execution.newPipeline("orca"), "", [
       credentials: "test", region: "us-west-1", name: "example-frontend"
     ]))
 
@@ -53,7 +53,7 @@ class CopyAmazonLoadBalancerTaskSpec extends Specification {
     }
 
     when:
-    task.execute(new Stage<>(new Pipeline("orca"), "", [
+    task.execute(new Stage(Execution.newPipeline("orca"), "", [
       credentials: "test", region: "us-west-1", name: "example-frontend",
       targets    : [
         [
@@ -82,7 +82,7 @@ class CopyAmazonLoadBalancerTaskSpec extends Specification {
     }
 
     when:
-    def result = task.execute(new Stage<>(new Pipeline("orca"), "", [
+    def result = task.execute(new Stage(Execution.newPipeline("orca"), "", [
       credentials: "test", region: "us-west-1", name: currentLoadBalancer.loadBalancerName, targets: targets
     ]))
 

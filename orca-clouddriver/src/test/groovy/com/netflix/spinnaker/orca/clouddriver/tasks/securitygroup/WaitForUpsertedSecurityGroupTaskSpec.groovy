@@ -18,7 +18,7 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.securitygroup
 
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.clouddriver.MortService
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import spock.lang.Specification
 
@@ -35,7 +35,7 @@ class WaitForUpsertedSecurityGroupTaskSpec extends Specification {
         }
       }
       def task = new WaitForUpsertedSecurityGroupTask(securityGroupUpserters: [aUpserter])
-    def stage = new Stage<>(new Pipeline("orca"), "whatever", [
+    def stage = new Stage(Execution.newPipeline("orca"), "whatever", [
           credentials  : "abc",
           cloudProvider: "aCloud",
           targets      : [new MortService.SecurityGroup(name: "abc")]
@@ -63,7 +63,7 @@ class WaitForUpsertedSecurityGroupTaskSpec extends Specification {
       cloudProvider: "aCloud",
       targets      : [new MortService.SecurityGroup(name: "abc")]
     ]
-    def stage = new Stage<>(new Pipeline("orca"), "whatever", ctx)
+    def stage = new Stage(Execution.newPipeline("orca"), "whatever", ctx)
 
     when:
     def result = task.execute(stage)
@@ -89,7 +89,7 @@ class WaitForUpsertedSecurityGroupTaskSpec extends Specification {
       cloudProvider: "bCloud",
       targets      : [new MortService.SecurityGroup(name: "abc")]
     ]
-    def stage = new Stage<>(new Pipeline("orca"), "whatever", ctx)
+    def stage = new Stage(Execution.newPipeline("orca"), "whatever", ctx)
 
     when:
       task.execute(stage)

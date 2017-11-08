@@ -19,20 +19,19 @@ package com.netflix.spinnaker.orca.dryrun
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.TaskNode.Builder
-import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import kotlin.reflect.KClass
 
 class DryRunStage(private val delegate: StageDefinitionBuilder) : StageDefinitionBuilder {
 
-  override fun <T : Execution<T>> taskGraph(stage: Stage<T>, builder: Builder) {
+  override fun taskGraph(stage: Stage, builder: Builder) {
     builder.withTask("dry run", DryRunTask::class)
   }
 
-  override fun <T : Execution<T>> aroundStages(stage: Stage<T>): List<Stage<T>>
+  override fun aroundStages(stage: Stage): List<Stage>
     = delegate.aroundStages(stage)
 
-  override fun <T : Execution<T>> parallelStages(stage: Stage<T>): List<Stage<T>>
+  override fun parallelStages(stage: Stage): List<Stage>
     = delegate.parallelStages(stage)
 
   override fun getType() = delegate.type

@@ -20,13 +20,10 @@ import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.RetrySupport
 import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.clouddriver.OortService
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
-import retrofit.RetrofitError
-import retrofit.client.Response
 import spock.lang.Specification
 import spock.lang.Subject
-import static java.net.HttpURLConnection.HTTP_NOT_FOUND
 
 class AddServerGroupEntityTagsTaskSpec extends Specification {
 
@@ -43,7 +40,7 @@ class AddServerGroupEntityTagsTaskSpec extends Specification {
 
   void "should return with failed/continue status if tagging operation fails"() {
     when:
-    def stage = new Stage<>(new Pipeline("orca"), "whatever", [
+    def stage = new Stage(Execution.newPipeline("orca"), "whatever", [
       "deploy.server.groups": [
         "us-east-1": ["foo-v001"]
       ]
@@ -60,7 +57,7 @@ class AddServerGroupEntityTagsTaskSpec extends Specification {
     AddServerGroupEntityTagsTask emptyTask = new AddServerGroupEntityTagsTask(kato: katoService, tagGenerators: [])
 
     when:
-    def stage = new Stage<>(new Pipeline("orca"), "whatever", [
+    def stage = new Stage(Execution.newPipeline("orca"), "whatever", [
       "deploy.server.groups": [
         "us-east-1": ["foo-v001"],
       ]

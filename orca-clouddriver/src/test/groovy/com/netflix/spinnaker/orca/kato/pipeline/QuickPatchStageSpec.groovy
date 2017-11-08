@@ -19,7 +19,7 @@ package com.netflix.spinnaker.orca.kato.pipeline
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import spock.lang.Specification
 import spock.lang.Subject
@@ -35,7 +35,7 @@ class QuickPatchStageSpec extends Specification {
 
   def "no-ops if there are no instances"() {
     given:
-    def stage = new Stage<>(new Pipeline("orca"), "quickPatch", context)
+    def stage = new Stage(Execution.newPipeline("orca"), "quickPatch", context)
 
     and:
     oortHelper.getInstancesForCluster(_, null, true, false) >> [:]
@@ -61,7 +61,7 @@ class QuickPatchStageSpec extends Specification {
     ]
 
     and:
-    def stage = new Stage<>(new Pipeline("orca"), "quickPatch", config)
+    def stage = new Stage(Execution.newPipeline("orca"), "quickPatch", config)
 
     and:
     oortHelper.getInstancesForCluster(config, null, true, false) >> {
@@ -91,7 +91,7 @@ class QuickPatchStageSpec extends Specification {
     and:
     oortHelper.getInstancesForCluster(config, null, true, false) >> expectedInstances
 
-    def stage = new Stage<>(new Pipeline("orca"), "quickPatch", config)
+    def stage = new Stage(Execution.newPipeline("orca"), "quickPatch", config)
 
     when:
     def syntheticStages = quickPatchStage.aroundStages(stage)
@@ -123,7 +123,7 @@ class QuickPatchStageSpec extends Specification {
 
   def "configures rolling quickpatch"() {
     given:
-    def stage = new Stage<>(new Pipeline("orca"), "quickPatch", config)
+    def stage = new Stage(Execution.newPipeline("orca"), "quickPatch", config)
 
     when:
     def syntheticStages = quickPatchStage.aroundStages(stage)

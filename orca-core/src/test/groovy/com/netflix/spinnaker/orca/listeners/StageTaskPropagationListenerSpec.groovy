@@ -18,7 +18,7 @@
 package com.netflix.spinnaker.orca.listeners
 
 import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.model.Task
 import spock.lang.Specification
@@ -33,7 +33,7 @@ class StageTaskPropagationListenerSpec extends Specification {
     given:
     def listener = new StageTaskPropagationListener()
     def task = new Task(startTime: startTime)
-    def stage = new Stage<>(new Pipeline("orca"), "test")
+    def stage = new Stage(Execution.newPipeline("orca"), "test")
     stage.tasks = [task]
 
     when:
@@ -57,7 +57,7 @@ class StageTaskPropagationListenerSpec extends Specification {
     given:
     def listener = new StageTaskPropagationListener()
     def task = new Task()
-    def stage = new Stage<>(new Pipeline("orca"), "test")
+    def stage = new Stage(Execution.newPipeline("orca"), "test")
     stage.tasks = [task]
 
     when:

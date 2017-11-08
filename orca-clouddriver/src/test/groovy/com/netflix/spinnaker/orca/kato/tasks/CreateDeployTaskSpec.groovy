@@ -22,7 +22,7 @@ import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import rx.Observable
 import spock.lang.Specification
@@ -32,7 +32,7 @@ class CreateDeployTaskSpec extends Specification {
 
   @Subject
   def task = new CreateDeployTask()
-  def stage = new Stage<>(new Pipeline("orca"), "deploy")
+  def stage = new Stage(Execution.newPipeline("orca"), "deploy")
   def mapper = OrcaObjectMapper.newInstance()
   def taskId = new TaskId(UUID.randomUUID().toString())
 
@@ -263,29 +263,29 @@ class CreateDeployTaskSpec extends Specification {
     ]
 
     and:
-    def bakeStage1 = new Stage<>(stage.execution, "bake")
+    def bakeStage1 = new Stage(stage.execution, "bake")
     bakeStage1.id = UUID.randomUUID()
     bakeStage1.refId = "1a"
     stage.execution.stages << bakeStage1
 
     def bakeSynthetic1 =
-      new Stage<>(stage.execution, "bake in $deployRegion", [ami: amiName, region: deployRegion, cloudProvider: "aws"])
+      new Stage(stage.execution, "bake in $deployRegion", [ami: amiName, region: deployRegion, cloudProvider: "aws"])
     bakeSynthetic1.id = UUID.randomUUID()
     bakeSynthetic1.parentStageId = bakeStage1.id
     stage.execution.stages << bakeSynthetic1
 
-    def bakeStage2 = new Stage<>(stage.execution, "bake")
+    def bakeStage2 = new Stage(stage.execution, "bake")
     bakeStage2.id = UUID.randomUUID()
     bakeStage2.refId = "2a"
     stage.execution.stages << bakeStage2
 
     def bakeSynthetic2 =
-      new Stage<>(stage.execution, "bake in $deployRegion", [ami: "parallel-branch-ami", region: deployRegion, cloudProvider: "aws"])
+      new Stage(stage.execution, "bake in $deployRegion", [ami: "parallel-branch-ami", region: deployRegion, cloudProvider: "aws"])
     bakeSynthetic2.id = UUID.randomUUID()
     bakeSynthetic2.parentStageId = bakeStage2.id
     stage.execution.stages << bakeSynthetic2
 
-    def intermediateStage = new Stage<>(stage.execution, "whatever")
+    def intermediateStage = new Stage(stage.execution, "whatever")
     intermediateStage.id = UUID.randomUUID()
     intermediateStage.refId = "1b"
     stage.execution.stages << intermediateStage
@@ -322,12 +322,12 @@ class CreateDeployTaskSpec extends Specification {
     ]
 
     and:
-    def findImageStage = new Stage<>(stage.execution, "findImage", [regions: [deployRegion], amiDetails: [[ami: amiName]], cloudProvider: "aws"])
+    def findImageStage = new Stage(stage.execution, "findImage", [regions: [deployRegion], amiDetails: [[ami: amiName]], cloudProvider: "aws"])
     findImageStage.id = UUID.randomUUID()
     findImageStage.refId = "1a"
     stage.execution.stages << findImageStage
 
-    def intermediateStage = new Stage<>(stage.execution, "whatever")
+    def intermediateStage = new Stage(stage.execution, "whatever")
     intermediateStage.id = UUID.randomUUID()
     intermediateStage.refId = "1b"
     stage.execution.stages << intermediateStage
@@ -360,22 +360,22 @@ class CreateDeployTaskSpec extends Specification {
     }
 
     and:
-    def bakeStage1 = new Stage<>(stage.execution, "bake")
+    def bakeStage1 = new Stage(stage.execution, "bake")
     bakeStage1.id = UUID.randomUUID()
     bakeStage1.refId = "1a"
     stage.execution.stages << bakeStage1
 
-    def bakeSynthetic1 = new Stage<>(stage.execution, "bake in $deployRegion", [ami: amiName, region: deployRegion, cloudProvider: "aws"])
+    def bakeSynthetic1 = new Stage(stage.execution, "bake in $deployRegion", [ami: amiName, region: deployRegion, cloudProvider: "aws"])
     bakeSynthetic1.id = UUID.randomUUID()
     bakeSynthetic1.parentStageId = bakeStage1.id
     stage.execution.stages << bakeSynthetic1
 
-    def bakeStage2 = new Stage<>(stage.execution, "bake")
+    def bakeStage2 = new Stage(stage.execution, "bake")
     bakeStage2.id = UUID.randomUUID()
     bakeStage2.refId = "2a"
     stage.execution.stages << bakeStage2
 
-    def bakeSynthetic2 = new Stage<>(stage.execution, "bake in $deployRegion", [ami: "different-image", region: deployRegion, cloudProvider: "gce"])
+    def bakeSynthetic2 = new Stage(stage.execution, "bake in $deployRegion", [ami: "different-image", region: deployRegion, cloudProvider: "gce"])
     bakeSynthetic2.id = UUID.randomUUID()
     bakeSynthetic2.parentStageId = bakeStage2.id
     stage.execution.stages << bakeSynthetic2

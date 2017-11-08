@@ -16,13 +16,10 @@
 
 package com.netflix.spinnaker.orca.pipeline.expressions.whitelisting;
 
+import java.util.*;
 import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.pipeline.model.Execution;
-import com.netflix.spinnaker.orca.pipeline.model.Orchestration;
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
-
-import java.util.*;
 
 public interface ReturnTypeRestrictor extends InstantiationTypeRestrictor {
   Set<Class<?>> allowedReturnTypes = Collections.unmodifiableSet(
@@ -43,8 +40,6 @@ public interface ReturnTypeRestrictor extends InstantiationTypeRestrictor {
         TreeMap.class,
         TreeSet.class,
         Execution.class,
-        Pipeline.class,
-        Orchestration.class,
         Stage.class,
         ExecutionStatus.class,
         Execution.AuthenticationDetails.class,

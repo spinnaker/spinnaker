@@ -17,7 +17,10 @@
 package com.netflix.spinnaker.orca.q
 
 import com.netflix.spinnaker.orca.exceptions.ExceptionHandler
-import com.netflix.spinnaker.orca.pipeline.model.*
+import com.netflix.spinnaker.orca.pipeline.model.Execution
+import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner
+import com.netflix.spinnaker.orca.pipeline.model.Task
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 
@@ -45,7 +48,7 @@ interface MessageHandler<M : Message> : (Message) -> Unit {
 
   fun handle(message: M): Unit
 
-  fun TaskLevel.withTask(block: (Stage<*>, Task) -> Unit) =
+  fun TaskLevel.withTask(block: (Stage, Task) -> Unit) =
     withStage { stage ->
       stage
         .taskById(taskId)
@@ -58,7 +61,7 @@ interface MessageHandler<M : Message> : (Message) -> Unit {
         }
     }
 
-  fun StageLevel.withStage(block: (Stage<*>) -> Unit) =
+  fun StageLevel.withStage(block: (Stage) -> Unit) =
     withExecution { execution ->
       try {
         execution
@@ -69,31 +72,24 @@ interface MessageHandler<M : Message> : (Message) -> Unit {
       }
     }
 
-  fun ExecutionLevel.withExecution(block: (Execution<*>) -> Unit) =
+  fun ExecutionLevel.withExecution(block: (Execution) -> Unit) =
     try {
-      val execution = when (executionType) {
-        Pipeline::class.java ->
-          repository.retrievePipeline(executionId)
-        Orchestration::class.java ->
-          repository.retrieveOrchestration(executionId)
-        else ->
-          throw IllegalArgumentException("Unknown execution type $executionType")
-      }
+      val execution = repository.retrieve(executionType, executionId)
       block.invoke(execution)
-    } catch(e: ExecutionNotFoundException) {
+    } catch (e: ExecutionNotFoundException) {
       queue.push(InvalidExecutionId(this))
     }
 
-  fun Stage<*>.startNext() {
-    getExecution().let { execution ->
+  fun Stage.startNext() {
+    execution.let { execution ->
       val downstreamStages = downstreamStages()
       if (downstreamStages.isNotEmpty()) {
         downstreamStages.forEach {
           queue.push(StartStage(it))
         }
-      } else if (getSyntheticStageOwner() == SyntheticStageOwner.STAGE_BEFORE) {
+      } else if (syntheticStageOwner == SyntheticStageOwner.STAGE_BEFORE) {
         queue.push(ContinueParentStage(parent()))
-      } else if (getSyntheticStageOwner() == SyntheticStageOwner.STAGE_AFTER) {
+      } else if (syntheticStageOwner == SyntheticStageOwner.STAGE_AFTER) {
         parent().let { parent ->
           queue.push(CompleteStage(parent))
         }

@@ -8,7 +8,7 @@
  */
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.oraclebmcs
 
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import spock.lang.Specification
 
@@ -22,7 +22,7 @@ class OracleBMCSServerGroupCreatorSpec extends Specification {
       zone             : "north-pole-1",
       deploymentDetails: [[imageId: "testImageId", region: "north-pole"]],
     ]
-    def stage = new Stage(new Pipeline("orca"), "whatever", ctx)
+    def stage = new Stage(Execution.newPipeline("orca"), "whatever", ctx)
 
     when:
     def ops = new OracleBMCSServerGroupCreator().getOperations(stage)
@@ -44,7 +44,7 @@ class OracleBMCSServerGroupCreatorSpec extends Specification {
     when: "fallback to non-region matching image"
     ctx.region = "south-pole"
     ctx.zone = "south-pole-1"
-    stage = new Stage(new Pipeline("orca"), "whatever", ctx)
+    stage = new Stage(Execution.newPipeline("orca"), "whatever", ctx)
     ops = new OracleBMCSServerGroupCreator().getOperations(stage)
 
     then:
@@ -63,7 +63,7 @@ class OracleBMCSServerGroupCreatorSpec extends Specification {
 
     when: "throw error if no image found"
     ctx.deploymentDetails = []
-    stage = new Stage(new Pipeline("orca"), "whatever", ctx)
+    stage = new Stage(Execution.newPipeline("orca"), "whatever", ctx)
     new OracleBMCSServerGroupCreator().getOperations(stage)
 
     then:

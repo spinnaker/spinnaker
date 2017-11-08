@@ -33,9 +33,9 @@ class PauseStageHandler(
 
   override fun handle(message: PauseStage) {
     message.withStage { stage ->
-      stage.setStatus(PAUSED)
+      stage.status = PAUSED
       repository.storeStage(stage)
-      stage.getParentStageId()?.let { parentStageId ->
+      stage.parentStageId?.let { parentStageId ->
         queue.push(PauseStage(message, parentStageId))
       }
     }

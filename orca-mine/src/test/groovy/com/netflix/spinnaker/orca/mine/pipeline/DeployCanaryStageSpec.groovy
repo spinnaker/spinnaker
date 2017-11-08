@@ -18,7 +18,6 @@ package com.netflix.spinnaker.orca.mine.pipeline
 
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.mine.pipeline.DeployCanaryStage.CompleteDeployCanaryTask
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import spock.lang.Specification
 import static com.netflix.spinnaker.orca.ExecutionStatus.FAILED_CONTINUE
 import static com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED
@@ -29,7 +28,7 @@ class DeployCanaryStageSpec extends Specification {
 
   def "should short-circuit and return in a TERMINAL status if any deploy stages are not successful"() {
     setup:
-    Pipeline pipeline = pipeline {
+    def pipeline = pipeline {
       stage {
         id = "a"
         type = "the stage"

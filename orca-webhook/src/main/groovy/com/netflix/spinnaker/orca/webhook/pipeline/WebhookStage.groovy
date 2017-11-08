@@ -21,7 +21,6 @@ import com.netflix.spinnaker.orca.CancellableStage
 import com.netflix.spinnaker.orca.RestartableStage
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.TaskNode
-import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.webhook.tasks.CreateWebhookTask
 import com.netflix.spinnaker.orca.webhook.tasks.MonitorWebhookTask
@@ -33,7 +32,7 @@ import org.springframework.stereotype.Component
 class WebhookStage implements StageDefinitionBuilder, RestartableStage, CancellableStage {
 
   @Override
-  <T extends Execution<T>> void taskGraph(Stage<T> stage, TaskNode.Builder builder) {
+  void taskGraph(Stage stage, TaskNode.Builder builder) {
     String waitForCompletion = stage.context.waitForCompletion
 
     builder.withTask("createWebhook", CreateWebhookTask)

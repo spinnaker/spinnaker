@@ -20,7 +20,6 @@ import com.netflix.spinnaker.orca.clouddriver.tasks.cluster.AbstractClusterWideC
 import com.netflix.spinnaker.orca.clouddriver.tasks.cluster.AbstractWaitForClusterWideClouddriverTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.cluster.ShrinkClusterTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.cluster.WaitForClusterShrinkTask
-import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner
 import org.springframework.beans.factory.annotation.Autowired
@@ -42,7 +41,7 @@ class ShrinkClusterStage extends AbstractClusterWideClouddriverOperationStage {
   }
 
   @Override
-  def <T extends Execution<T>> List<Stage<T>> aroundStages(Stage<T> stage) {
+  def List<Stage> aroundStages(Stage stage) {
     if (stage.context.allowDeleteActive == true) {
       def context = stage.context + [
         remainingEnabledServerGroups  : stage.context.shrinkToSize,

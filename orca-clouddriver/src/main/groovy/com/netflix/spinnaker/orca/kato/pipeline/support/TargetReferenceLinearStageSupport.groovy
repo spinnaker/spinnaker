@@ -19,7 +19,6 @@ package com.netflix.spinnaker.orca.kato.pipeline.support
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.kato.pipeline.DetermineTargetReferenceStage
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
-import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner
 import org.springframework.beans.factory.annotation.Autowired
@@ -37,7 +36,7 @@ abstract class TargetReferenceLinearStageSupport implements StageDefinitionBuild
   DetermineTargetReferenceStage determineTargetReferenceStage
 
   @Override
-  def <T extends Execution> List<Stage<T>> aroundStages(Stage<T> parentStage) {
+  def List<Stage> aroundStages(Stage parentStage) {
     return composeTargets(parentStage)
   }
 

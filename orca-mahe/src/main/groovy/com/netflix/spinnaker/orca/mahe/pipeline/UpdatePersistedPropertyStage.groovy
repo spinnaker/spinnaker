@@ -19,7 +19,6 @@ package com.netflix.spinnaker.orca.mahe.pipeline
 import com.netflix.spinnaker.orca.CancellableStage
 import com.netflix.spinnaker.orca.mahe.tasks.RollbackPropertyTask
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
-import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner
 import groovy.util.logging.Slf4j
@@ -33,7 +32,7 @@ class UpdatePersistedPropertyStage implements StageDefinitionBuilder, Cancellabl
   @Autowired RollbackPropertyTask rollbackPropertyTask
 
   @Override
-  def <T extends Execution> List<Stage<T>> aroundStages(Stage<T> parentStage) {
+  def List<Stage> aroundStages(Stage parentStage) {
     return [
       newStage(
         parentStage.execution,

@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.image
 
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import spock.lang.Specification
 import spock.lang.Subject
@@ -35,10 +35,10 @@ abstract class ImageTaggerSpec<T extends ImageTagger> extends Specification {
   @Unroll
   def "should extract imageId from upstream stages"() {
     given:
-    def pipeline = new Pipeline("orca")
-    def stage1 = new Stage<>(pipeline, "stage1", stage1Context + [cloudProvider: cloudProvider])
-    def stage2 = new Stage<>(pipeline, "stage2", stage2Context + [cloudProviderType: cloudProvider])
-    def stage3 = new Stage<>(pipeline, "stage3", [:])
+    def pipeline = Execution.newPipeline("orca")
+    def stage1 = new Stage(pipeline, "stage1", stage1Context + [cloudProvider: cloudProvider])
+    def stage2 = new Stage(pipeline, "stage2", stage2Context + [cloudProviderType: cloudProvider])
+    def stage3 = new Stage(pipeline, "stage3", [:])
 
     stage3.requisiteStageRefIds = [stage2.id.toString()]
     stage2.requisiteStageRefIds = [stage1.id.toString()]

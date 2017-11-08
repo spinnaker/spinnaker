@@ -19,7 +19,7 @@ package com.netflix.spinnaker.orca.kato.tasks
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.WaitForDestroyedServerGroupTask
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import retrofit.RetrofitError
 import retrofit.client.Response
@@ -59,7 +59,7 @@ class WaitForDestroyedAsgTaskSpec extends Specification {
     task.objectMapper = objectMapper
 
     and:
-    def stage = new Stage<>(new Pipeline("orca"), "", [
+    def stage = new Stage(Execution.newPipeline("orca"), "", [
       "regions": [region],
       "asgName": asgName,
     ])
@@ -100,7 +100,7 @@ class WaitForDestroyedAsgTaskSpec extends Specification {
     task.objectMapper = objectMapper
 
     and:
-    def stage = new Stage<>(new Pipeline("orca"), "", [
+    def stage = new Stage(Execution.newPipeline("orca"), "", [
         "regions": ["us-east-1"],
         "asgName": "app-test-v000",
         "remainingInstances": ["i-123"]
@@ -127,7 +127,7 @@ class WaitForDestroyedAsgTaskSpec extends Specification {
     task.objectMapper = objectMapper
 
     and:
-    def stage = new Stage<>(new Pipeline("orca"), "", [
+    def stage = new Stage(Execution.newPipeline("orca"), "", [
         "regions": ["us-east-1"],
         "asgName": "app-test-v000",
         "remainingInstances": ['i-123', 'i-234', 'i-345']

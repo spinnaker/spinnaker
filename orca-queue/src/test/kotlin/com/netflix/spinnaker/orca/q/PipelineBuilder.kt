@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.orca.q
 
 import com.netflix.spinnaker.orca.pipeline.model.Execution
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_BEFORE
 import com.netflix.spinnaker.orca.pipeline.model.Task
@@ -27,8 +27,8 @@ import kotlin.reflect.jvm.jvmName
 /**
  * Build a pipeline.
  */
-fun pipeline(init: Pipeline.() -> Unit = {}): Pipeline {
-  val pipeline = Pipeline("covfefe")
+fun pipeline(init: Execution.() -> Unit = {}): Execution {
+  val pipeline = Execution(PIPELINE, "covfefe")
   pipeline.buildTime = currentTimeMillis()
   pipeline.init()
   return pipeline
@@ -39,8 +39,8 @@ fun pipeline(init: Pipeline.() -> Unit = {}): Pipeline {
  *
  * Automatically hooks up execution.
  */
-fun <T : Execution<T>> T.stage(init: Stage<T>.() -> Unit): Stage<T> {
-  val stage = Stage<T>()
+fun Execution.stage(init: Stage.() -> Unit): Stage {
+  val stage = Stage()
   stage.execution = this
   stage.type = "test"
   stage.refId = "1"
@@ -54,8 +54,8 @@ fun <T : Execution<T>> T.stage(init: Stage<T>.() -> Unit): Stage<T> {
  *
  * Automatically hooks up execution and parent stage.
  */
-fun <T : Execution<T>> Stage<T>.stage(init: Stage<T>.() -> Unit): Stage<T> {
-  val stage = Stage<T>()
+fun Stage.stage(init: Stage.() -> Unit): Stage {
+  val stage = Stage()
   stage.execution = execution
   stage.type = "test"
   stage.refId = "$refId<1"
@@ -69,7 +69,7 @@ fun <T : Execution<T>> Stage<T>.stage(init: Stage<T>.() -> Unit): Stage<T> {
 /**
  * Build a task. Use in the context of [#stage].
  */
-fun <T : Execution<T>> Stage<T>.task(init: Task.() -> Unit): Task {
+fun Stage.task(init: Task.() -> Unit): Task {
   val task = Task()
   task.implementingClass = DummyTask::class.jvmName
   task.name = "dummy"

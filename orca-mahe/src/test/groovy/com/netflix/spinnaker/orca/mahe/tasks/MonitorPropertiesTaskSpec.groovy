@@ -20,7 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.mahe.MaheService
 import com.netflix.spinnaker.orca.mahe.pipeline.MonitorCreatePropertyStage
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.json.JsonOutput
 import retrofit.client.Response
@@ -52,11 +52,11 @@ class MonitorPropertiesTaskSpec extends Specification {
 
   def "monitor newly created persisted property still running"() {
     given:
-    def pipeline = new Pipeline('foo')
+    def pipeline = Execution.newPipeline('foo')
     List propertyIds = [[propertyId: propId]]
     List persistedProperty = [[key: 'foo', value:'bar']]
     Map context = [propertyIdList: propertyIds, persistedProperties: persistedProperty, scope: scope]
-    def stage = new Stage<>(pipeline, MonitorCreatePropertyStage.PIPELINE_CONFIG_TYPE, context)
+    def stage = new Stage(pipeline, MonitorCreatePropertyStage.PIPELINE_CONFIG_TYPE, context)
 
     when:
     TaskResult result = task.execute(stage)

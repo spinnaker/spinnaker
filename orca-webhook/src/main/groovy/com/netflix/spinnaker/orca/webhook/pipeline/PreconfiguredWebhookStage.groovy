@@ -18,7 +18,6 @@
 package com.netflix.spinnaker.orca.webhook.pipeline
 
 import com.netflix.spinnaker.orca.pipeline.TaskNode
-import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.webhook.config.PreconfiguredWebhookProperties.PreconfiguredWebhook
 import com.netflix.spinnaker.orca.webhook.exception.PreconfiguredWebhookNotFoundException
@@ -37,7 +36,7 @@ class PreconfiguredWebhookStage extends WebhookStage {
   }.collect { it.name }
 
   @Override
-  <T extends Execution<T>> void taskGraph(Stage<T> stage, TaskNode.Builder builder) {
+  void taskGraph(Stage stage, TaskNode.Builder builder) {
     def preconfiguredWebhook = webhookService.getPreconfiguredWebhooks().find { stage.type == it.type }
 
     if (!preconfiguredWebhook) {

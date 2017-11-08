@@ -18,7 +18,7 @@
 package com.netflix.spinnaker.orca.pipeline.tasks
 
 import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import spock.lang.Specification
@@ -29,7 +29,7 @@ class ExpressionPreconditionTaskSpec extends Specification {
   def "should evaluate expression precondition against stage context at execution time"() {
     given:
     def task = new ExpressionPreconditionTask(new ContextParameterProcessor())
-    def stage = new Stage<>(new Pipeline("orca"), "Expression", [
+    def stage = new Stage(Execution.newPipeline("orca"), "Expression", [
       param1 : param1,
       context: [
         expression: expression

@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.orca.validation
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.orca.pipeline.model.Orchestration
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import spock.lang.Specification
 import spock.lang.Subject
@@ -32,7 +32,7 @@ class StageValidatorSpec extends Specification {
   @Unroll
   void "should not raise an exception if schema does not exist"() {
     expect:
-    stageValidator.loadSchema(new Stage<>(new Orchestration("orca"), type, [:])).isPresent() == expectedIsPresent
+    stageValidator.loadSchema(new Stage(Execution.newOrchestration("orca"), type, [:])).isPresent() == expectedIsPresent
 
     where:
     type             || expectedIsPresent
@@ -46,7 +46,7 @@ class StageValidatorSpec extends Specification {
 
     when:
     def awsSchema = stageValidator.loadSchema(
-      new Stage<>(new Orchestration("orca"), "dummy", [cloudProvider: "aws"])
+      new Stage(Execution.newOrchestration("orca"), "dummy", [cloudProvider: "aws"])
     ).get()
 
     def awsSchemaMap = objectMapper.readValue(
@@ -73,7 +73,7 @@ class StageValidatorSpec extends Specification {
 
     when:
     def nonAwsSchema = stageValidator.loadSchema(
-      new Stage<>(new Orchestration("orca"), "dummy", [cloudProvider: "nonAws"])
+      new Stage(Execution.newOrchestration("orca"), "dummy", [cloudProvider: "nonAws"])
     ).get()
 
     then: "all fields should have been filtered out as cloudProvider != 'aws'"
@@ -83,7 +83,7 @@ class StageValidatorSpec extends Specification {
 
   void "should validate bake request against schema"() {
     expect:
-    stageValidator.isValid(new Stage<>(new Orchestration("orca"), "bake", [
+    stageValidator.isValid(new Stage(Execution.newOrchestration("orca"), "bake", [
       package           : "mypackage",
       cloudProviderType : "aws",
       baseOs            : "ubuntu",
@@ -92,7 +92,7 @@ class StageValidatorSpec extends Specification {
       regions           : ["us-west-1"]
     ]))
 
-    stageValidator.isValid(new Stage<>(new Orchestration("orca"), "bake", [
+    stageValidator.isValid(new Stage(Execution.newOrchestration("orca"), "bake", [
       package          : "mypackage",
       cloudProviderType: "notAws",
       baseOs           : "ubuntu",
@@ -103,7 +103,7 @@ class StageValidatorSpec extends Specification {
   @Unroll
   void "should determine cloud provider for Stage"() {
     given:
-    def stage = new Stage<>(new Orchestration("orca"), "bake", context)
+    def stage = new Stage(Execution.newOrchestration("orca"), "bake", context)
 
     expect:
     stageValidator.getCloudProvider(stage).orElse(null) == expectedCloudProvider

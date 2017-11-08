@@ -38,9 +38,9 @@ class ConfigurationErrorHandler(
   override fun handle(message: ConfigurationError) {
     when (message) {
       is InvalidExecutionId ->
-        log.error("No such ${message.executionType.simpleName} ${message.executionId} for ${message.application}")
+        log.error("No such ${message.executionType} ${message.executionId} for ${message.application}")
       else -> {
-        log.error("${message.javaClass.simpleName} for ${message.executionType.simpleName} ${message.executionId} for ${message.application}")
+        log.error("${message.javaClass.simpleName} for ${message.executionType} ${message.executionId} for ${message.application}")
         repository.updateStatus(message.executionId, TERMINAL)
       }
     }

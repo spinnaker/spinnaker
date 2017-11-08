@@ -20,7 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
-import com.netflix.spinnaker.orca.pipeline.model.Orchestration
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import retrofit.client.Response
 import retrofit.mime.TypedString
@@ -50,7 +50,7 @@ class WaitForCapacityMatchTaskSpec extends Specification {
       oort.getServerGroup("test", "us-east-1", "kato-main-v000") >> { new Response('kato', 200, 'ok', [], new TypedString(mapper.writeValueAsString(serverGroup))) }
       task.oortService = oort
       def context = [account: "test", "deploy.server.groups": ["us-east-1": ["kato-main-v000"]]]
-    def stage = new Stage<>(new Orchestration("orca"), "resizeAsg", context)
+    def stage = new Stage(Execution.newOrchestration("orca"), "resizeAsg", context)
 
     when:
       def result = task.execute(stage)
@@ -106,7 +106,7 @@ class WaitForCapacityMatchTaskSpec extends Specification {
     oort.getServerGroup("test", "us-east-1", "kato-main-v000") >> { new Response('kato', 200, 'ok', [], new TypedString(mapper.writeValueAsString(serverGroup))) }
     task.oortService = oort
     def context = [account: "test", "deploy.server.groups": ["us-east-1": ["kato-main-v000"]]]
-    def stage = new Stage<>(new Orchestration("orca"), "resizeAsg", context)
+    def stage = new Stage(Execution.newOrchestration("orca"), "resizeAsg", context)
 
     when:
     def result = task.execute(stage)
@@ -139,7 +139,7 @@ class WaitForCapacityMatchTaskSpec extends Specification {
     oort.getServerGroup("test", "us-east-1", "kato-main-v000") >> { new Response('kato', 200, 'ok', [], new TypedString(mapper.writeValueAsString(serverGroup))) }
     task.oortService = oort
     def context = [account: "test", "deploy.server.groups": ["us-east-1": ["kato-main-v000"]]]
-    def stage = new Stage<>(new Orchestration("orca"), "resizeAsg", context)
+    def stage = new Stage(Execution.newOrchestration("orca"), "resizeAsg", context)
 
     when:
     def result = task.execute(stage)

@@ -40,29 +40,29 @@ class RestartStageHandler(
 
   override fun handle(message: RestartStage) {
     message.withStage { stage ->
-      if (stage.getStatus().isComplete) {
+      if (stage.status.isComplete) {
         stage.addRestartDetails(message.user)
         stage.reset()
-        repository.updateStatus(stage.getExecution().getId(), RUNNING)
+        repository.updateStatus(stage.execution.id, RUNNING)
         queue.push(StartStage(message))
       }
     }
   }
 
-  private fun Stage<*>.addRestartDetails(user: String?) {
-    getContext()["restartDetails"] = mapOf(
+  private fun Stage.addRestartDetails(user: String?) {
+    context["restartDetails"] = mapOf(
       "restartedBy" to (user ?: "anonymous"),
       "restartTime" to clock.millis(),
-      "previousException" to getContext().remove("exception")
+      "previousException" to context.remove("exception")
     )
   }
 
-  private fun Stage<*>.reset() {
-    if (getStatus().isComplete) {
-      setStatus(NOT_STARTED)
-      setStartTime(null)
-      setEndTime(null)
-      setTasks(emptyList())
+  private fun Stage.reset() {
+    if (status.isComplete) {
+      status = NOT_STARTED
+      startTime = null
+      endTime = null
+      tasks = emptyList()
       builder().prepareStageForRestart(this)
       repository.storeStage(this)
 
@@ -72,13 +72,13 @@ class RestartStageHandler(
     downstreamStages().forEach { it.reset() }
   }
 
-  private fun Stage<*>.removeSynthetics() {
-    getExecution()
-      .getStages()
-      .filter { it.getParentStageId() == getId() }
+  private fun Stage.removeSynthetics() {
+    execution
+      .stages
+      .filter { it.parentStageId == id }
       .forEach {
         it.removeSynthetics()
-        repository.removeStage(getExecution(), it.getId())
+        repository.removeStage(execution, it.id)
       }
   }
 }

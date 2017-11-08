@@ -18,7 +18,7 @@
 package com.netflix.spinnaker.orca.pipeline.util
 
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import spock.lang.Shared
 import spock.lang.Specification
@@ -37,7 +37,7 @@ class StageNavigatorSpec extends Specification {
   @Subject
   def stageNavigator = new StageNavigator(stageBuilders)
 
-  def execution = new Pipeline("orca")
+  def execution = Execution.newPipeline("orca")
 
   def "traverses up the synthetic stage hierarchy"() {
     given:
@@ -157,7 +157,7 @@ class StageNavigatorSpec extends Specification {
   }
 
   private Stage buildStage(String type) {
-    def pipelineStage = new Stage<>(execution, type)
+    def pipelineStage = new Stage(execution, type)
 
     execution.stages << pipelineStage
 

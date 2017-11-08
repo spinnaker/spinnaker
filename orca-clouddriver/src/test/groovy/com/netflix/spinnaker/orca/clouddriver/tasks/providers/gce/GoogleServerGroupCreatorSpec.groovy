@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.gce
 
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import spock.lang.Specification
 
@@ -30,7 +30,7 @@ class GoogleServerGroupCreatorSpec extends Specification {
           zone             : "north-pole-1",
           deploymentDetails: [[imageId: "testImageId", region: "north-pole"]],
       ]
-    def stage = new Stage<>(new Pipeline("orca"), "whatever", ctx)
+    def stage = new Stage(Execution.newPipeline("orca"), "whatever", ctx)
 
     when:
       def ops = new GoogleServerGroupCreator().getOperations(stage)
@@ -52,7 +52,7 @@ class GoogleServerGroupCreatorSpec extends Specification {
     when: "fallback to non-region matching image"
       ctx.region = "south-pole"
       ctx.zone = "south-pole-1"
-    stage = new Stage<>(new Pipeline("orca"), "whatever", ctx)
+    stage = new Stage(Execution.newPipeline("orca"), "whatever", ctx)
       ops = new GoogleServerGroupCreator().getOperations(stage)
 
     then:
@@ -71,7 +71,7 @@ class GoogleServerGroupCreatorSpec extends Specification {
 
     when: "throw error if no image found"
       ctx.deploymentDetails = []
-    stage = new Stage<>(new Pipeline("orca"), "whatever", ctx)
+    stage = new Stage(Execution.newPipeline("orca"), "whatever", ctx)
       new GoogleServerGroupCreator().getOperations(stage)
 
     then:

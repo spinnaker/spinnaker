@@ -18,7 +18,7 @@ package com.netflix.spinnaker.orca.mine.tasks
 
 import com.netflix.spinnaker.orca.mine.MineService
 import com.netflix.spinnaker.orca.mine.pipeline.DeployCanaryStage
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import retrofit.client.Response
 import retrofit.mime.TypedString
@@ -34,11 +34,11 @@ class RegisterCanaryTaskSpec extends Specification {
 
   def 'canary registration'() {
     setup:
-    def pipeline = new Pipeline('foo')
+    def pipeline = Execution.newPipeline('foo')
 
     def canaryStageId = UUID.randomUUID().toString()
     def parentStageId = UUID.randomUUID().toString()
-    def deployCanaryStage = new Stage<>(pipeline, DeployCanaryStage.PIPELINE_CONFIG_TYPE, [
+    def deployCanaryStage = new Stage(pipeline, DeployCanaryStage.PIPELINE_CONFIG_TYPE, [
       canaryStageId       : canaryStageId,
       account             : 'test',
       canary              : [
@@ -96,7 +96,7 @@ class RegisterCanaryTaskSpec extends Specification {
                              ]]
     ])
     deployCanaryStage.parentStageId = parentStageId
-    def monitorCanaryStage = new Stage<>(pipeline, "monitorCanary", [:])
+    def monitorCanaryStage = new Stage(pipeline, "monitorCanary", [:])
 
     pipeline.stages.addAll([deployCanaryStage, monitorCanaryStage])
 
@@ -131,11 +131,11 @@ class RegisterCanaryTaskSpec extends Specification {
   void "should set stage timeout to #expectedTimeoutHours hours based on a lifetime of #lifetimeHours hours and warmup of #warmupMinutes minutes"() {
 
     given:
-    def pipeline = new Pipeline('foo')
-    def deployCanaryStage = new Stage<>(pipeline, DeployCanaryStage.PIPELINE_CONFIG_TYPE, [canary: canary, deployedClusterPairs: [:]])
+    def pipeline = Execution.newPipeline('foo')
+    def deployCanaryStage = new Stage(pipeline, DeployCanaryStage.PIPELINE_CONFIG_TYPE, [canary: canary, deployedClusterPairs: [:]])
     def parentStageId = UUID.randomUUID().toString()
     deployCanaryStage.parentStageId = parentStageId
-    def monitorCanaryStage = new Stage<>(pipeline, "monitorCanary", [:])
+    def monitorCanaryStage = new Stage(pipeline, "monitorCanary", [:])
 
     pipeline.stages.addAll([deployCanaryStage, monitorCanaryStage])
 

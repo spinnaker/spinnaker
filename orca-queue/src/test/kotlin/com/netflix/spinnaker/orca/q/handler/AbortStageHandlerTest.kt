@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.q.handler
 
 import com.netflix.spinnaker.orca.ExecutionStatus.*
 import com.netflix.spinnaker.orca.events.StageComplete
+import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
 import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_BEFORE
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.q.*
@@ -62,7 +63,7 @@ object AbortStageHandlerTest : SubjectSpek<AbortStageHandler>({
       val message = AbortStage(pipeline.stageByRef("1"))
 
       beforeGroup {
-        whenever(repository.retrievePipeline(pipeline.id)) doReturn pipeline
+        whenever(repository.retrieve(PIPELINE, pipeline.id)) doReturn pipeline
       }
 
       afterGroup(::resetMocks)
@@ -91,7 +92,7 @@ object AbortStageHandlerTest : SubjectSpek<AbortStageHandler>({
       val message = AbortStage(pipeline.stageByRef("1"))
 
       beforeGroup {
-        whenever(repository.retrievePipeline(pipeline.id)) doReturn pipeline
+        whenever(repository.retrieve(PIPELINE, pipeline.id)) doReturn pipeline
       }
 
       afterGroup(::resetMocks)
@@ -102,8 +103,8 @@ object AbortStageHandlerTest : SubjectSpek<AbortStageHandler>({
 
       it("marks the stage as TERMINAL") {
         verify(repository).storeStage(check {
-          it.getStatus() shouldEqual TERMINAL
-          it.getEndTime().toInstant() shouldEqual clock.instant()
+          it.status shouldEqual TERMINAL
+          it.endTime.toInstant() shouldEqual clock.instant()
         })
       }
 
@@ -141,7 +142,7 @@ object AbortStageHandlerTest : SubjectSpek<AbortStageHandler>({
       val message = AbortStage(pipeline.stageByRef("1<1"))
 
       beforeGroup {
-        whenever(repository.retrievePipeline(pipeline.id)) doReturn pipeline
+        whenever(repository.retrieve(PIPELINE, pipeline.id)) doReturn pipeline
       }
 
       afterGroup(::resetMocks)
@@ -152,8 +153,8 @@ object AbortStageHandlerTest : SubjectSpek<AbortStageHandler>({
 
       it("marks the stage as TERMINAL") {
         verify(repository).storeStage(check {
-          it.getStatus() shouldEqual TERMINAL
-          it.getEndTime().toInstant() shouldEqual clock.instant()
+          it.status shouldEqual TERMINAL
+          it.endTime.toInstant() shouldEqual clock.instant()
         })
       }
 

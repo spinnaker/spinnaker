@@ -20,7 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Location
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import retrofit.RetrofitError
 import retrofit.client.Response
@@ -47,7 +47,7 @@ class FindImageFromClusterTaskSpec extends Specification {
     def pipe = pipeline {
       application = "contextAppName" // Should be ignored.
     }
-    def stage = new Stage<>(pipe, "findImage", [
+    def stage = new Stage(pipe, "findImage", [
       cloudProvider    : "cloudProvider",
       cluster          : "foo-test",
       account          : "test",
@@ -98,7 +98,7 @@ class FindImageFromClusterTaskSpec extends Specification {
 
   def "should be RUNNING if summary does not include imageId"() {
     given:
-    def stage = new Stage<>(new Pipeline("orca"), "findImage", [
+    def stage = new Stage(Execution.newPipeline("orca"), "findImage", [
       cloudProvider    : "cloudProvider",
       cluster          : "foo-test",
       account          : "test",
@@ -179,7 +179,7 @@ class FindImageFromClusterTaskSpec extends Specification {
     def pipe = pipeline {
       application = "contextAppName" // Should be ignored.
     }
-    def stage = new Stage<>(pipe, "findImage", [
+    def stage = new Stage(pipe, "findImage", [
       resolveMissingLocations: true,
       cloudProvider          : "cloudProvider",
       cluster                : "foo-test",
@@ -242,7 +242,7 @@ class FindImageFromClusterTaskSpec extends Specification {
     def pipe = pipeline {
       application = "contextAppName" // Should be ignored.
     }
-    def stage = new Stage<>(pipe, "findImage", [
+    def stage = new Stage(pipe, "findImage", [
       resolveMissingLocations: true,
       cloudProvider          : "cloudProvider",
       cluster                : "foo-test",
@@ -305,7 +305,7 @@ class FindImageFromClusterTaskSpec extends Specification {
     def pipe = pipeline {
       application = "contextAppName" // Should be ignored.
     }
-    def stage = new Stage<>(pipe, "findImage", [
+    def stage = new Stage(pipe, "findImage", [
       resolveMissingLocations: true,
       cloudProvider          : "aws",
       cluster                : "foo-test",
@@ -366,7 +366,7 @@ class FindImageFromClusterTaskSpec extends Specification {
 
   def "should parse fail strategy error message"() {
     given:
-    def stage = new Stage<>(new Pipeline("orca"), "whatever", [
+    def stage = new Stage(Execution.newPipeline("orca"), "whatever", [
       cloudProvider    : "cloudProvider",
       cluster          : "foo-test",
       account          : "test",
@@ -402,7 +402,7 @@ class FindImageFromClusterTaskSpec extends Specification {
   @Unroll
   'cluster with name "#cluster" and moniker "#moniker" should have application name "#expected"'() {
     given:
-    def stage = new Stage<>(new Pipeline("orca"), 'findImageFromCluster', [
+    def stage = new Stage(Execution.newPipeline("orca"), 'findImageFromCluster', [
       cluster: cluster,
       moniker: moniker,
     ])

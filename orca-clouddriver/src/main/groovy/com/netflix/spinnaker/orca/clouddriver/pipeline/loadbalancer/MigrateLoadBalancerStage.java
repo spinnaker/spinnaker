@@ -20,7 +20,6 @@ import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.loadbalancer.MigrateLoadBalancerTask;
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder;
 import com.netflix.spinnaker.orca.pipeline.TaskNode;
-import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import org.springframework.stereotype.Component;
 
@@ -30,7 +29,7 @@ public class MigrateLoadBalancerStage implements StageDefinitionBuilder {
   public static final String PIPELINE_CONFIG_TYPE = "migrateLoadBalancer";
 
   @Override
-  public <T extends Execution<T>> void taskGraph(Stage<T> stage, TaskNode.Builder builder) {
+  public void taskGraph(Stage stage, TaskNode.Builder builder) {
     builder
       .withTask("migrateLoadBalancer", MigrateLoadBalancerTask.class)
       .withTask("monitorMigration", MonitorKatoTask.class);

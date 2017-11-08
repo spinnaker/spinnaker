@@ -19,7 +19,10 @@ package com.netflix.spinnaker.orca.q.handler
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
-import com.netflix.spinnaker.orca.q.*
+import com.netflix.spinnaker.orca.q.MessageHandler
+import com.netflix.spinnaker.orca.q.Queue
+import com.netflix.spinnaker.orca.q.RescheduleExecution
+import com.netflix.spinnaker.orca.q.RunTask
 import org.springframework.stereotype.Component
 
 @Component
@@ -34,14 +37,14 @@ class RescheduleExecutionHandler(
   override fun handle(message: RescheduleExecution) {
     message.withExecution { execution ->
       execution
-        .getStages()
-        .filter { it.getStatus() == ExecutionStatus.RUNNING }
+        .stages
+        .filter { it.status == ExecutionStatus.RUNNING }
         .forEach { stage ->
-          stage.getTasks()
+          stage.tasks
             .filter { it.status == ExecutionStatus.RUNNING }
             .forEach {
               queue.reschedule(RunTask(message,
-                stage.getId(),
+                stage.id,
                 it.id,
                 Class.forName(it.implementingClass) as Class<out Task>
               ))

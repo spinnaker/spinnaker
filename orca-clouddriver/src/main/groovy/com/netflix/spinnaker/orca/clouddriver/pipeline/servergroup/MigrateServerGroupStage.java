@@ -22,7 +22,6 @@ import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.MigrateServerGro
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCacheForceRefreshTask;
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder;
 import com.netflix.spinnaker.orca.pipeline.TaskNode;
-import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import org.springframework.stereotype.Component;
 
@@ -32,7 +31,7 @@ public class MigrateServerGroupStage implements StageDefinitionBuilder {
   public static final String PIPELINE_CONFIG_TYPE = "migrateServerGroup";
 
   @Override
-  public <T extends Execution<T>> void taskGraph(Stage<T> stage, TaskNode.Builder builder) {
+  public void taskGraph(Stage stage, TaskNode.Builder builder) {
     builder
       .withTask("migrateServerGroup", MigrateServerGroupTask.class)
       .withTask("monitorMigration", MonitorKatoTask.class);

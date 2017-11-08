@@ -23,7 +23,7 @@ import com.netflix.spinnaker.orca.clouddriver.InstanceService
 import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
 import com.netflix.spinnaker.orca.libdiffs.DefaultComparableLooseVersion
 import com.netflix.spinnaker.orca.libdiffs.Library
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import retrofit.RetrofitError
 import retrofit.client.Response
@@ -41,7 +41,7 @@ class JarDiffsTaskSpec extends Specification {
   InstanceService instanceService = Mock(InstanceService)
 
   @Shared
-  Pipeline pipeline = new Pipeline("orca")
+  Execution pipeline = Execution.newPipeline("orca")
 
   def setup() {
     GroovyMock(OortHelper, global: true)
@@ -168,7 +168,7 @@ class JarDiffsTaskSpec extends Specification {
     def pipe = pipeline {
       application = "app"
     }
-    def stage = new Stage<>(pipe, 'jarDiff', config)
+    def stage = new Stage(pipe, 'jarDiff', config)
 
     stage.context << deployContext
 
@@ -206,7 +206,7 @@ class JarDiffsTaskSpec extends Specification {
     def pipe = pipeline {
       application = "app"
     }
-    def stage = new Stage<>(pipe, 'jarDiff', config)
+    def stage = new Stage(pipe, 'jarDiff', config)
 
     stage.context << deployContext
 
@@ -236,7 +236,7 @@ class JarDiffsTaskSpec extends Specification {
 
   def "return success if retries limit hit"() {
     given:
-    def stage = new Stage<>(pipeline, "jarDiffs", [jarDiffsRetriesRemaining: 0])
+    def stage = new Stage(pipeline, "jarDiffs", [jarDiffsRetriesRemaining: 0])
 
     when:
     def result = task.execute(stage)

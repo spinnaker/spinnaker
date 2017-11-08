@@ -20,8 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.clouddriver.tasks.image.ImageTagger
 import com.netflix.spinnaker.orca.clouddriver.tasks.image.ImageTaggerSpec
-import com.netflix.spinnaker.orca.pipeline.model.Orchestration
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import spock.lang.Unroll
 
@@ -39,12 +38,12 @@ class AmazonImageTaggerSpec extends ImageTaggerSpec<AmazonImageTagger> {
   @Unroll
   def "should throw exception if image does not exist"() {
     given:
-    def pipeline = new Pipeline("orca")
-    def stage1 = new Stage<>(pipeline, "", [
+    def pipeline = Execution.newPipeline("orca")
+    def stage1 = new Stage(pipeline, "", [
       imageId      : imageId,
       cloudProvider: "aws"
     ])
-    def stage2 = new Stage<>(pipeline, "", [
+    def stage2 = new Stage(pipeline, "", [
       imageNames   : imageName ? [imageName] : null,
       cloudProvider: "aws"
     ])
@@ -72,7 +71,7 @@ class AmazonImageTaggerSpec extends ImageTaggerSpec<AmazonImageTagger> {
 
   def "should build upsertMachineImageTags and allowLaunchDescription operations"() {
     given:
-    def stage = new Stage<>(new Orchestration("orca"), "", [
+    def stage = new Stage(Execution.newOrchestration("orca"), "", [
       imageNames: ["my-ami"],
       tags      : [
         "tag1"      : "value1",

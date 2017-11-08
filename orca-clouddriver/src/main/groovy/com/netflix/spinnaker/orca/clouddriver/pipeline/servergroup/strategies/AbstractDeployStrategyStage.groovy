@@ -25,10 +25,8 @@ import com.netflix.spinnaker.orca.kato.pipeline.strategy.DetermineSourceServerGr
 import com.netflix.spinnaker.orca.kato.pipeline.support.StageData
 import com.netflix.spinnaker.orca.kato.tasks.DiffTask
 import com.netflix.spinnaker.orca.pipeline.TaskNode
-import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner
-import groovy.transform.Immutable
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import static com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder.newStage
@@ -60,7 +58,7 @@ abstract class AbstractDeployStrategyStage extends AbstractCloudProviderAwareSta
   abstract List<TaskNode.TaskDefinition> basicTasks(Stage stage)
 
   @Override
-  <T extends Execution<T>> void taskGraph(Stage<T> stage, TaskNode.Builder builder) {
+  void taskGraph(Stage stage, TaskNode.Builder builder) {
     builder
     // TODO(ttomsu): This is currently an AWS-only stage. I need to add and support the "useSourceCapacity" option.
       .withTask("determineSourceServerGroup", DetermineSourceServerGroupTask)
@@ -94,7 +92,7 @@ abstract class AbstractDeployStrategyStage extends AbstractCloudProviderAwareSta
   }
 
   @Override
-  def <T extends Execution<T>> List<Stage<T>> aroundStages(Stage<T> stage) {
+  def List<Stage> aroundStages(Stage stage) {
     correctContext(stage)
     Strategy strategy = (Strategy) strategies.findResult(noStrategy, {
       it.name.equalsIgnoreCase(stage.context.strategy) ? it : null

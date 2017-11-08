@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.orca.listeners
 
 import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.model.Task
 import spock.lang.Specification
@@ -31,7 +31,7 @@ class StageStatusPropagationListenerSpec extends Specification {
   void "beforeTask #action as RUNNING when stage status is #stageStatus"() {
     given:
     def listener = new StageStatusPropagationListener()
-    def stage = new Stage<>(new Pipeline("orca"), "test")
+    def stage = new Stage(Execution.newPipeline("orca"), "test")
     def task = new Task()
 
     and:
@@ -66,7 +66,7 @@ class StageStatusPropagationListenerSpec extends Specification {
 
     and:
     def listener = new StageStatusPropagationListener()
-    def stage = new Stage<>(new Pipeline("orca"), "test")
+    def stage = new Stage(Execution.newPipeline("orca"), "test")
     stage.tasks = tasks
 
     when:

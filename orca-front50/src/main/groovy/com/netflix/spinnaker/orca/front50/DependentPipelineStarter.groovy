@@ -16,11 +16,11 @@
 
 package com.netflix.spinnaker.orca.front50
 
+import java.util.concurrent.Callable
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.extensionpoint.pipeline.PipelinePreprocessor
-import com.netflix.spinnaker.orca.pipeline.PipelineLauncher
+import com.netflix.spinnaker.orca.pipeline.ExecutionLauncher
 import com.netflix.spinnaker.orca.pipeline.model.Execution
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import com.netflix.spinnaker.security.User
@@ -30,8 +30,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
 import org.springframework.context.ApplicationContextAware
 import org.springframework.stereotype.Component
-
-import java.util.concurrent.Callable
+import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
 
 @Component
 @Slf4j
@@ -47,7 +46,7 @@ class DependentPipelineStarter implements ApplicationContextAware {
   @Autowired(required = false)
   List<PipelinePreprocessor> pipelinePreprocessors
 
-  Pipeline trigger(Map pipelineConfig, String user, Execution parentPipeline, Map suppliedParameters, String parentPipelineStageId) {
+  Execution trigger(Map pipelineConfig, String user, Execution parentPipeline, Map suppliedParameters, String parentPipelineStageId) {
     def json = objectMapper.writeValueAsString(pipelineConfig)
     log.info('triggering dependent pipeline {}:{}', pipelineConfig.id, json)
 
@@ -67,7 +66,7 @@ class DependentPipelineStarter implements ApplicationContextAware {
       pipelineConfig.trigger.parentPipelineStageId = parentPipelineStageId
     }
 
-    if( parentPipeline instanceof Pipeline){
+    if (parentPipeline?.type == PIPELINE) {
       pipelineConfig.trigger.parentPipelineName = parentPipeline.name
       pipelineConfig.trigger.isPipeline = true
     }
@@ -104,7 +103,7 @@ class DependentPipelineStarter implements ApplicationContextAware {
                   ", principal: " + principal?.toString())
     def callable = AuthenticatedRequest.propagate({
       log.debug("Destination thread user: " + AuthenticatedRequest.getAuthenticationHeaders())
-      pipeline = pipelineLauncher().start(json)
+      pipeline = executionLauncher().start(PIPELINE, json)
     } as Callable<Void>, true, principal)
 
     //This needs to run in a separate thread to not bork the batch TransactionManager
@@ -145,10 +144,10 @@ class DependentPipelineStarter implements ApplicationContextAware {
 
   /**
    * There is a circular dependency between DependentPipelineStarter <-> DependentPipelineExecutionListener <->
-   * SpringBatchExecutionListener that prevents a PipelineLauncher from being @Autowired.
+   * SpringBatchExecutionListener that prevents a ExecutionLauncher from being @Autowired.
    */
-  PipelineLauncher pipelineLauncher() {
-    return applicationContext.getBean(PipelineLauncher)
+  ExecutionLauncher executionLauncher() {
+    return applicationContext.getBean(ExecutionLauncher)
   }
 
   @Override

@@ -25,7 +25,7 @@ import com.netflix.spectator.api.Counter
 import com.netflix.spectator.api.Id
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.kork.eureka.RemoteStatusChangedEvent
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
 import com.nhaarman.mockito_kotlin.*
 import org.jetbrains.spek.api.dsl.context
 import org.jetbrains.spek.api.dsl.describe
@@ -83,7 +83,7 @@ object QueueProcessorTest : SubjectSpek<QueueProcessor>({
 
       describe("when a message is on the queue") {
         context("it is a supported message type") {
-          val message = StartExecution(Pipeline::class.java, "1", "foo")
+          val message = StartExecution(PIPELINE, "1", "foo")
 
           beforeGroup {
             whenever(startExecutionHandler.messageType) doReturn StartExecution::class.java
@@ -116,7 +116,7 @@ object QueueProcessorTest : SubjectSpek<QueueProcessor>({
         }
 
         context("it is a subclass of a supported message type") {
-          val message = InvalidExecutionId(Pipeline::class.java, "1", "foo")
+          val message = InvalidExecutionId(PIPELINE, "1", "foo")
 
           beforeGroup {
             whenever(startExecutionHandler.messageType) doReturn StartExecution::class.java
@@ -149,7 +149,7 @@ object QueueProcessorTest : SubjectSpek<QueueProcessor>({
         }
 
         context("it is an unsupported message type") {
-          val message = StartStage(Pipeline::class.java, "1", "foo", "1")
+          val message = StartStage(PIPELINE, "1", "foo", "1")
 
           beforeGroup {
             whenever(startExecutionHandler.messageType) doReturn StartExecution::class.java
@@ -179,7 +179,7 @@ object QueueProcessorTest : SubjectSpek<QueueProcessor>({
         }
 
         context("the handler throws an exception") {
-          val message = StartExecution(Pipeline::class.java, "1", "foo")
+          val message = StartExecution(PIPELINE, "1", "foo")
 
           beforeGroup {
             whenever(startExecutionHandler.messageType) doReturn StartExecution::class.java

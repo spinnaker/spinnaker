@@ -31,8 +31,6 @@ import com.netflix.spinnaker.orca.mine.MineService
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.TaskNode
 import com.netflix.spinnaker.orca.pipeline.model.Execution
-import com.netflix.spinnaker.orca.pipeline.model.Orchestration
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
@@ -65,13 +63,13 @@ class DeployCanaryStage extends ParallelDeployStage implements CloudProviderAwar
   }
 
   @Override
-  <T extends Execution<T>> void taskGraph(Stage<T> stage, TaskNode.Builder builder) {
+  void taskGraph(Stage stage, TaskNode.Builder builder) {
     builder.withTask("completeDeployCanary", CompleteDeployCanaryTask)
   }
 
   @Override
   @CompileDynamic
-  protected <T extends Execution<T>> Collection<Map<String, Object>> parallelContexts(Stage<T> stage) {
+  protected Collection<Map<String, Object>> parallelContexts(Stage stage) {
     List<Map> baselineAmis = findBaselineAmis(stage)
     Map defaultStageContext = stage.context
     List<Map> canaryDeployments = defaultStageContext.clusterPairs
@@ -111,7 +109,7 @@ class DeployCanaryStage extends ParallelDeployStage implements CloudProviderAwar
     }.flatten()
 
     def findImageCtx = [application: stage.execution.application, account: stage.context.baseline.account, cluster: stage.context.baseline.cluster, regions: regions, cloudProvider: stage.context.baseline.cloudProvider ?: 'aws']
-    Stage s = new Stage<>(new Orchestration(stage.execution.application), "findImage", findImageCtx)
+    Stage s = new Stage(Execution.newOrchestration(stage.execution.application), "findImage", findImageCtx)
     TaskResult result = findImage.execute(s)
     try {
       return result.context.amiDetails
@@ -187,7 +185,7 @@ class DeployCanaryStage extends ParallelDeployStage implements CloudProviderAwar
             }
 
             cluster.amiName = ami?.ami
-            cluster.buildUrl = createBuildUrl(ami) ?: ((Pipeline) stage.execution).trigger?.buildInfo?.url
+            cluster.buildUrl = createBuildUrl(ami) ?: stage.execution.trigger?.buildInfo?.url
           }
 
           def accountDetails = mortService.getAccountDetails(cluster.account)

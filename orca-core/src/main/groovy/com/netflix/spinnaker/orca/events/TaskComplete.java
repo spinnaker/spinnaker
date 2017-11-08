@@ -33,7 +33,7 @@ public class TaskComplete extends ExecutionEvent {
 
   public TaskComplete(
     @Nonnull Object source,
-    @Nonnull Class<? extends Execution> executionType,
+    @Nonnull Execution.ExecutionType executionType,
     @Nonnull String executionId,
     @Nonnull String stageId,
     @Nonnull String stageType,
@@ -55,12 +55,12 @@ public class TaskComplete extends ExecutionEvent {
 
   public TaskComplete(
     @Nonnull Object source,
-    @Nonnull Stage<? extends Execution<?>> stage,
+    @Nonnull Stage stage,
     @Nonnull Task task
   ) {
     this(
       source,
-      stage.getExecution().getClass(),
+      stage.getExecution().getType(),
       stage.getExecution().getId(),
       stage.getId(),
       stage.getType(),

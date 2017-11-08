@@ -19,7 +19,7 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.instance
 
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.commands.InstanceUptimeCommand
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import spock.lang.Specification
 
@@ -27,7 +27,7 @@ class CaptureInstanceUptimeTaskSpec extends Specification {
   def "should noop if `instanceUptimeCommand` is not available"() {
     given:
     def task = new CaptureInstanceUptimeTask(instanceUptimeCommand: null)
-    def stage = new Stage<>()
+    def stage = new Stage()
 
     when:
     def result = task.execute(stage)
@@ -48,7 +48,7 @@ class CaptureInstanceUptimeTaskSpec extends Specification {
       }
     }
     task.instanceUptimeCommand = Mock(InstanceUptimeCommand)
-    def stage = new Stage<>(new Pipeline("orca"), "", [instanceIds: ["1", "2", "3"]])
+    def stage = new Stage(Execution.newPipeline("orca"), "", [instanceIds: ["1", "2", "3"]])
 
     when:
     def result = task.execute(stage)

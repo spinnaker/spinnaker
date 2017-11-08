@@ -16,19 +16,18 @@
 
 package com.netflix.spinnaker.orca.kayenta.tasks
 
+import java.time.Instant
+import java.util.concurrent.TimeUnit
+import javax.annotation.Nonnull
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.OverridableTimeoutRetryableTask
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.kayenta.KayentaService
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-
-import javax.annotation.Nonnull
-import java.time.Instant
-import java.util.concurrent.TimeUnit
 
 @Slf4j
 @Component
@@ -44,7 +43,7 @@ class MonitorKayentaCanaryTask implements OverridableTimeoutRetryableTask {
   TaskResult execute(@Nonnull Stage stage) {
     Map<String, Object> context = stage.getContext()
     String canaryPipelineExecutionId = (String)context.get("canaryPipelineExecutionId")
-    Pipeline canaryPipelineExecution = kayentaService.getPipelineExecution(canaryPipelineExecutionId)
+    Execution canaryPipelineExecution = kayentaService.getPipelineExecution(canaryPipelineExecutionId)
 
     if (canaryPipelineExecution.status == ExecutionStatus.SUCCEEDED) {
       Map<String, String> scoreThresholds = context.get("scoreThresholds")

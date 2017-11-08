@@ -21,7 +21,6 @@ import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCacheForceRefreshTask
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.TaskNode
-import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.stereotype.Component
 
@@ -36,7 +35,7 @@ import org.springframework.stereotype.Component
 @Component
 class ApplySourceServerGroupCapacityStage implements StageDefinitionBuilder {
   @Override
-  <T extends Execution<T>> void taskGraph(Stage<T> stage, TaskNode.Builder builder) {
+  void taskGraph(Stage stage, TaskNode.Builder builder) {
     builder
       .withTask("restoreMinCapacity", ApplySourceServerGroupCapacityTask)
       .withTask("waitForCapacityMatch", MonitorKatoTask)

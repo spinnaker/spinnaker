@@ -21,7 +21,6 @@ import com.netflix.spinnaker.orca.mahe.tasks.CreatePropertiesTask
 import com.netflix.spinnaker.orca.mahe.tasks.MonitorPropertiesTask
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.TaskNode
-import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
@@ -35,7 +34,7 @@ class CreatePropertyStage implements StageDefinitionBuilder, CancellableStage {
   @Autowired MonitorCreatePropertyStage monitorCreatePropertyStage
 
   @Override
-  <T extends Execution<T>> void taskGraph(Stage<T> stage, TaskNode.Builder builder) {
+  void taskGraph(Stage stage, TaskNode.Builder builder) {
     builder
       .withTask("createProperties", CreatePropertiesTask)
       .withTask("monitorProperties", MonitorPropertiesTask)

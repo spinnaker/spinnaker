@@ -16,12 +16,13 @@
 
 package com.netflix.spinnaker.orca.front50.pipeline
 
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
+import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
 
 class PipelineStageSpec extends Specification {
   def executionRepository = Mock(ExecutionRepository)
@@ -32,25 +33,24 @@ class PipelineStageSpec extends Specification {
   @Unroll
   def "should cancel child pipeline (if started and not already canceled)"() {
     given:
-    def childPipeline = new Pipeline("childPipeline")
+    def childPipeline = Execution.newPipeline("childPipeline")
     childPipeline.canceled = childPipelineIsCanceled
 
-    def stage = new Stage<>(new Pipeline("orca"), "pipeline", stageContext)
+    def stage = new Stage(Execution.newPipeline("orca"), "pipeline", stageContext)
+
+    and:
+    executionRepository.retrieve(PIPELINE, stageContext.executionId) >> childPipeline
 
     when:
     pipelineStage.cancel(stage)
 
     then:
     (shouldCancel ? 1 : 0) * executionRepository.cancel(stageContext.executionId, "parent pipeline", null)
-    (stageContext.executionId ? 1 : 0) * executionRepository.retrievePipeline(stageContext.executionId) >> {
-      return childPipeline
-    }
-    0 * _
 
     where:
-    stageContext || childPipelineIsCanceled   || shouldCancel
-    [:] || false                              || false            // child pipeline has not started
-    [executionId: "sub-pipeline-id"] || false || true            // child pipeline has started and should cancel
-    [executionId: "sub-pipeline-id"] || true  || false            // child pipeline has already been canceled
+    stageContext                     || childPipelineIsCanceled || shouldCancel
+    [:]                              || false                   || false            // child pipeline has not started
+    [executionId: "sub-pipeline-id"] || false                   || true            // child pipeline has started and should cancel
+    [executionId: "sub-pipeline-id"] || true                    || false            // child pipeline has already been canceled
   }
 }

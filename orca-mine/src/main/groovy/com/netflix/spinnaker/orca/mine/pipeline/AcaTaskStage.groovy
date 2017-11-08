@@ -25,7 +25,6 @@ import com.netflix.spinnaker.orca.mine.tasks.MonitorAcaTaskTask
 import com.netflix.spinnaker.orca.mine.tasks.RegisterAcaTaskTask
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.TaskNode
-import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
@@ -41,7 +40,7 @@ class AcaTaskStage implements StageDefinitionBuilder, CancellableStage, Restarta
   MineService mineService
 
   @Override
-  <T extends Execution<T>> void taskGraph(Stage<T> stage, TaskNode.Builder builder) {
+  void taskGraph(Stage stage, TaskNode.Builder builder) {
     builder
       .withTask("registerGenericCanary", RegisterAcaTaskTask)
       .withTask("monitorGenericCanary", MonitorAcaTaskTask)

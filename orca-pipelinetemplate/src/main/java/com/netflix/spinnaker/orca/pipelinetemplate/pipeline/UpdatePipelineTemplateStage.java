@@ -15,13 +15,15 @@
  */
 package com.netflix.spinnaker.orca.pipelinetemplate.pipeline;
 
+import java.util.*;
+import java.util.stream.Collectors;
+import javax.annotation.Nonnull;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.orca.front50.Front50Service;
 import com.netflix.spinnaker.orca.front50.pipeline.UpdatePipelineStage;
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder;
 import com.netflix.spinnaker.orca.pipeline.TaskNode.Builder;
-import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner;
 import com.netflix.spinnaker.orca.pipelinetemplate.tasks.PlanTemplateDependentsTask;
@@ -29,14 +31,6 @@ import com.netflix.spinnaker.orca.pipelinetemplate.tasks.UpdatePipelineTemplateT
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import javax.annotation.Nonnull;
-import java.util.Base64;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 @Component
 public class UpdatePipelineTemplateStage implements StageDefinitionBuilder {
@@ -51,7 +45,7 @@ public class UpdatePipelineTemplateStage implements StageDefinitionBuilder {
   private UpdatePipelineStage updatePipelineStage;
 
   @Override
-  public <T extends Execution<T>> void taskGraph(Stage<T> stage, Builder builder) {
+  public void taskGraph(Stage stage, Builder builder) {
     if (!Boolean.valueOf(stage.getContext().getOrDefault("skipPlanDependents", "false").toString())) {
       builder.withTask("planDependentPipelines", PlanTemplateDependentsTask.class);
     }
@@ -62,7 +56,7 @@ public class UpdatePipelineTemplateStage implements StageDefinitionBuilder {
 
   @Nonnull
   @Override
-  public <T extends Execution<T>> List<Stage<T>> aroundStages(@Nonnull Stage<T> stage) {
+  public List<Stage> aroundStages(@Nonnull Stage stage) {
     if (front50Service == null) {
       return Collections.emptyList();
     }
@@ -88,7 +82,7 @@ public class UpdatePipelineTemplateStage implements StageDefinitionBuilder {
       .collect(Collectors.toList());
   }
 
-  private <T extends Execution<T>> Stage<T> configureSavePipelineStage(Stage<T> stage, Map<String, Object> pipeline) {
+  private Stage configureSavePipelineStage(Stage stage, Map<String, Object> pipeline) {
     Map<String, Object> context = new HashMap<>();
 
     try {

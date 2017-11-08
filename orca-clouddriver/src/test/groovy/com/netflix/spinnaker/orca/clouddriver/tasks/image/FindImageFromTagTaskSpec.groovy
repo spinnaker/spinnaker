@@ -1,7 +1,7 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.image
 
 import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import spock.lang.Specification
 import spock.lang.Subject
@@ -10,7 +10,7 @@ class FindImageFromTagTaskSpec extends Specification {
 
   def imageFinder = Mock(ImageFinder)
   def imageDetails = Mock(ImageFinder.ImageDetails)
-  Stage stage = new Stage<>(new Pipeline("orca"), "", [packageName: 'myPackage', tags: ['foo': 'bar']])
+  Stage stage = new Stage(Execution.newPipeline("orca"), "", [packageName: 'myPackage', tags: ['foo': 'bar']])
 
   @Subject
   def task = new FindImageFromTagsTask(imageFinders: [imageFinder])

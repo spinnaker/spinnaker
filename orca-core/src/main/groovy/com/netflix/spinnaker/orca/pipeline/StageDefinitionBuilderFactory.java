@@ -24,6 +24,6 @@ import com.netflix.spinnaker.orca.pipeline.model.Stage;
 public interface StageDefinitionBuilderFactory {
 
   @Nonnull StageDefinitionBuilder builderFor(
-    @Nonnull Stage<?> stage) throws NoSuchStageDefinitionBuilder;
+    @Nonnull Stage stage) throws NoSuchStageDefinitionBuilder;
 
 }

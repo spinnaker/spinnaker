@@ -24,7 +24,6 @@ import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ResizeServerGrou
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCacheForceRefreshTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.WaitForCapacityMatchTask
 import com.netflix.spinnaker.orca.pipeline.TaskNode
-import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
@@ -44,7 +43,7 @@ class ResizeServerGroupStage extends TargetServerGroupLinearStageSupport {
   ModifyAwsScalingProcessStage modifyAwsScalingProcessStage
 
   @Override
-  <T extends Execution<T>> void taskGraph(Stage<T> stage, TaskNode.Builder builder) {
+  void taskGraph(Stage stage, TaskNode.Builder builder) {
     builder
       .withTask("determineHealthProviders", DetermineHealthProvidersTask)
       .withTask("resizeServerGroup", ResizeServerGroupTask)

@@ -18,7 +18,6 @@ package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support
 
 import com.netflix.spinnaker.orca.kato.pipeline.Nameable
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
-import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.Memoized
 import groovy.util.logging.Slf4j
@@ -39,7 +38,7 @@ abstract class TargetServerGroupLinearStageSupport implements StageDefinitionBui
   String name = this.type
 
   @Override
-  def <T extends Execution<T>> List<Stage<T>> aroundStages(Stage<T> parentStage) {
+  def List<Stage> aroundStages(Stage parentStage) {
     return composeTargets(parentStage)
   }
 

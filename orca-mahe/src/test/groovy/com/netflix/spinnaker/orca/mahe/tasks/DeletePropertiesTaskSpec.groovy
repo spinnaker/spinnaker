@@ -18,7 +18,7 @@ package com.netflix.spinnaker.orca.mahe.tasks
 
 import com.netflix.spinnaker.orca.mahe.MaheService
 import com.netflix.spinnaker.orca.mahe.pipeline.CreatePropertyStage
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import retrofit.client.Response
 import retrofit.mime.TypedString
@@ -50,7 +50,7 @@ class DeletePropertiesTaskSpec extends Specification {
   @IgnoreRest
   def "delete a single new persistent property"() {
     given:
-    def pipeline = new Pipeline('foo')
+    def pipeline = Execution.newPipeline('foo')
     def scope = [
       env: "test",
       appIdList: ["foo"],
@@ -63,7 +63,7 @@ class DeletePropertiesTaskSpec extends Specification {
 
     def propertyIdList = ['foo|bar']
 
-    def createPropertiesStage = new Stage<>(pipeline, CreatePropertyStage.PIPELINE_CONFIG_TYPE, [
+    def createPropertiesStage = new Stage(pipeline, CreatePropertyStage.PIPELINE_CONFIG_TYPE, [
       scope: scope,
       persistedProperties:[ property ],
       email: 'zthrash@netflix.com',

@@ -82,7 +82,7 @@ class VerifyQuipTaskSpec extends Specification {
     def pipe = pipeline {
       application = app
     }
-    def stage = new Stage<>(pipe, 'verifyQuip', [
+    def stage = new Stage(pipe, 'verifyQuip', [
       "clusterName"    : cluster,
       "account"        : account,
       "region"         : region,
@@ -109,7 +109,7 @@ class VerifyQuipTaskSpec extends Specification {
     def pipe = pipeline {
       application = app
     }
-    def stage = new Stage<>(pipe, 'verifyQuip', [
+    def stage = new Stage(pipe, 'verifyQuip', [
       "clusterName"    : cluster,
       "account"        : account,
       "region"         : region,
@@ -137,7 +137,7 @@ class VerifyQuipTaskSpec extends Specification {
     def pipe = pipeline {
       application = app
     }
-    def stage = new Stage<>(pipe, 'verifyQuip', [
+    def stage = new Stage(pipe, 'verifyQuip', [
       "clusterName"    : cluster,
       "account"        : account,
       "region"         : region,
@@ -165,7 +165,7 @@ class VerifyQuipTaskSpec extends Specification {
     def pipe = pipeline {
       application = app
     }
-    def stage = new Stage<>(pipe, 'verifyQuip', [
+    def stage = new Stage(pipe, 'verifyQuip', [
       "clusterName"    : cluster,
       "account"        : account,
       "region"         : region,
@@ -196,7 +196,7 @@ class VerifyQuipTaskSpec extends Specification {
     def pipe = pipeline {
       application = app
     }
-    def stage = new Stage<>(pipe, 'verifyQuip', [
+    def stage = new Stage(pipe, 'verifyQuip', [
       "clusterName"    : cluster,
       "account"        : account,
       "region"         : region,
@@ -227,7 +227,7 @@ class VerifyQuipTaskSpec extends Specification {
     def pipe = pipeline {
       application = app
     }
-    def stage = new Stage<>(pipe, 'verifyQuip', [
+    def stage = new Stage(pipe, 'verifyQuip', [
       "clusterName"    : cluster,
       "account"        : account,
       "region"         : region,
@@ -266,7 +266,7 @@ class VerifyQuipTaskSpec extends Specification {
     def pipe = pipeline {
       application = app
     }
-    def stage = new Stage<>(pipe, 'verifyQuip', [
+    def stage = new Stage(pipe, 'verifyQuip', [
       "clusterName"    : cluster,
       "account"        : account,
       "region"         : region,

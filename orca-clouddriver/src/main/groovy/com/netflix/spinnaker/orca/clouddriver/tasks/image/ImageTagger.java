@@ -22,7 +22,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
 import com.netflix.spinnaker.orca.clouddriver.OortService;
-import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -97,8 +96,8 @@ public abstract class ImageTagger {
   }
 
   @VisibleForTesting
-  <T extends Execution<T>> Collection<String> upstreamImageIds(Stage<T> sourceStage, String cloudProviderType) {
-    Collection<Stage<T>> imageProvidingAncestorStages = sourceStage.ancestors().stream().filter((Stage<T> stage) -> {
+  Collection<String> upstreamImageIds(Stage sourceStage, String cloudProviderType) {
+    Collection<Stage> imageProvidingAncestorStages = sourceStage.ancestors().stream().filter((Stage stage) -> {
       String cloudProvider = (String) stage.getContext().getOrDefault("cloudProvider", stage.getContext().get("cloudProviderType"));
       return (stage.getContext().containsKey("imageId") || stage.getContext().containsKey("amiDetails")) && cloudProviderType.equals(cloudProvider);
     }).collect(toList());

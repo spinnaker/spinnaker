@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.openstack
 
 import com.netflix.spinnaker.orca.clouddriver.MortService
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import retrofit.RetrofitError
 import retrofit.client.Response
@@ -37,7 +37,7 @@ class OpenstackSecurityGroupUpserterSpec extends Specification {
       region     : 'west',
       credentials: 'cred'
     ]
-    def stage = new Stage<>(new Pipeline("orca"), 'whatever', context)
+    def stage = new Stage(Execution.newPipeline("orca"), 'whatever', context)
 
     when:
     def results = upserter.getOperationContext(stage)

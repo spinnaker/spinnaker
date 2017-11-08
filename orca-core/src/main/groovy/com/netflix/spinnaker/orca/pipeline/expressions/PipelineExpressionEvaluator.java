@@ -16,19 +16,17 @@
 
 package com.netflix.spinnaker.orca.pipeline.expressions;
 
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline;
+import java.util.*;
+import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import com.netflix.spinnaker.orca.pipeline.util.ContextFunctionConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.expression.*;
-import org.springframework.expression.spel.standard.SpelExpressionParser;;
+import org.springframework.expression.ExpressionParser;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
-
-import java.util.*;
-
-import static com.netflix.spinnaker.orca.pipeline.expressions.PipelineExpressionEvaluator.ExpressionEvaluationVersion.V2;
 import static com.netflix.spinnaker.orca.pipeline.expressions.PipelineExpressionEvaluator.ExpressionEvaluationVersion.V1;
+import static com.netflix.spinnaker.orca.pipeline.expressions.PipelineExpressionEvaluator.ExpressionEvaluationVersion.V2;
 
 public class PipelineExpressionEvaluator extends ExpressionsSupport implements ExpressionEvaluator {
   private static final Logger LOGGER = LoggerFactory.getLogger(PipelineExpressionEvaluator.class);
@@ -88,8 +86,8 @@ public class PipelineExpressionEvaluator extends ExpressionsSupport implements E
         .orElse(null);
 
       return (stage != null) ? (String) stage.get(SPEL_EVALUATOR) : null;
-    } else if (obj instanceof Pipeline) {
-      Pipeline pipeline = (Pipeline) obj;
+    } else if (obj instanceof Execution) {
+      Execution pipeline = (Execution) obj;
       Stage stage = pipeline.getStages()
         .stream()
         .filter(PipelineExpressionEvaluator::hasVersionInContext)

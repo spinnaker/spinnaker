@@ -16,45 +16,67 @@
 
 package com.netflix.spinnaker.orca.pipeline;
 
+import java.io.IOException;
+import java.io.Serializable;
+import java.time.Clock;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.pipeline.model.Execution;
-import com.netflix.spinnaker.orca.pipeline.model.Orchestration;
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline;
+import com.netflix.spinnaker.orca.pipeline.model.PipelineBuilder;
+import com.netflix.spinnaker.orca.pipeline.model.Stage;
+import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.IOException;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
-
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import static com.netflix.spinnaker.orca.pipeline.model.Execution.*;
+import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionEngine.v3;
+import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.ORCHESTRATION;
+import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE;
 import static java.lang.Boolean.parseBoolean;
+import static java.lang.String.format;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 
-public abstract class ExecutionLauncher<T extends Execution<T>> {
+@Component
+public class ExecutionLauncher {
 
   private final Logger log = LoggerFactory.getLogger(getClass());
 
-  protected final ObjectMapper objectMapper;
-  protected final ExecutionRepository executionRepository;
-
+  private final ObjectMapper objectMapper;
+  private final ExecutionRepository executionRepository;
   private final ExecutionRunner executionRunner;
+  private final Clock clock;
+  private final Optional<PipelineStartTracker> startTracker;
+  private final Optional<PipelineValidator> pipelineValidator;
+  private final Optional<Registry> registry;
 
-  protected ExecutionLauncher(ObjectMapper objectMapper,
-                              ExecutionRepository executionRepository,
-                              ExecutionRunner executionRunner) {
+  @Autowired
+  public ExecutionLauncher(ObjectMapper objectMapper,
+                           ExecutionRepository executionRepository,
+                           ExecutionRunner executionRunner,
+                           Clock clock,
+                           Optional<PipelineValidator> pipelineValidator,
+                           Optional<PipelineStartTracker> startTracker,
+                           Optional<Registry> registry) {
     this.objectMapper = objectMapper;
     this.executionRepository = executionRepository;
     this.executionRunner = executionRunner;
+    this.clock = clock;
+    this.pipelineValidator = pipelineValidator;
+    this.startTracker = startTracker;
+    this.registry = registry;
   }
 
-  public T start(String configJson) throws Exception {
-    final T execution = parse(configJson);
+  public Execution start(ExecutionType type, String configJson) throws Exception {
+    final Execution execution = parse(type, configJson);
 
-    final T existingExecution = checkForCorrelatedExecution(execution);
+    final Execution existingExecution = checkForCorrelatedExecution(execution);
     if (existingExecution != null) {
       return existingExecution;
     }
@@ -72,11 +94,13 @@ public abstract class ExecutionLauncher<T extends Execution<T>> {
     return execution;
   }
 
-  protected void checkRunnable(T execution) {
-    // no-op by default
+  private void checkRunnable(Execution execution) {
+    if (execution.getType() == PIPELINE) {
+      pipelineValidator.ifPresent(it -> it.checkRunnable(execution));
+    }
   }
 
-  public T start(T execution) throws Exception {
+  public Execution start(Execution execution) throws Exception {
     if (shouldQueue(execution)) {
       log.info("Queueing {}", execution.getId());
     } else {
@@ -86,84 +110,162 @@ public abstract class ExecutionLauncher<T extends Execution<T>> {
     return execution;
   }
 
-  protected T checkForCorrelatedExecution(T execution) {
-    // Correlated executions currently only supported by Orchestrations. Just lazy, and a carrot to
-    // refactoring out distinction between Pipeline / Orchestration.
+  private Execution checkForCorrelatedExecution(Execution execution) {
+    if (execution.getType() != ORCHESTRATION) {
+      return null;
+    }
+
+    if (!execution.getTrigger().containsKey("correlationId")) {
+      return null;
+    }
+
+    try {
+      Execution o = executionRepository.retrieveOrchestrationForCorrelationId(
+        execution.getTrigger().get("correlationId").toString()
+      );
+      log.info("Found pre-existing Orchestration by correlation id (id: " +
+        o.getId() + ", correlationId: " +
+        execution.getTrigger().get("correlationId") +
+        ")");
+      return o;
+    } catch (ExecutionNotFoundException e) {
+      // Swallow
+    }
     return null;
   }
 
-  protected T handleStartupFailure(T execution, Throwable failure) {
+  private Execution handleStartupFailure(Execution execution, Throwable failure) {
     final String canceledBy = "system";
     final String reason = "Failed on startup: " + failure.getMessage();
     final ExecutionStatus status = ExecutionStatus.TERMINAL;
-    final Function<Execution, Execution> reloader;
-    final String executionType;
-    if (execution instanceof Pipeline) {
-      executionType = "pipeline";
-      reloader = (e) -> executionRepository.retrievePipeline(e.getId());
-    } else if (execution instanceof Orchestration) {
-      executionType = "orchestration";
-      reloader = (e) -> executionRepository.retrieveOrchestration(e.getId());
-    } else {
-      //This should really never happen. If it does, git-blame whoever added the third
-      // type of Execution and yell at them...
-      log.error("Unknown execution type: " + execution.getClass().getSimpleName());
-      executionType = "unknown";
-      reloader = (e) -> {
-        e.setCancellationReason(reason);
-        e.setCanceled(true);
-        e.setCanceledBy(canceledBy);
-        e.setStatus(status);
-        return e;
-      };
-    }
 
-    log.error("Failed to start " + executionType + " " + execution.getId(), failure);
+    log.error("Failed to start {} {}", execution.getType(), execution.getId(), failure);
     executionRepository.updateStatus(execution.getId(), status);
     executionRepository.cancel(execution.getId(), canceledBy, reason);
-    return (T) reloader.apply(execution);
+    if (execution.getType() == PIPELINE) {
+      startTracker.ifPresent(tracker -> {
+        if (execution.getPipelineConfigId() != null) {
+          tracker.removeFromQueue(execution.getPipelineConfigId(), execution.getId());
+        }
+        tracker.markAsFinished(execution.getPipelineConfigId(), execution.getId());
+      });
+    }
+    return executionRepository.retrieve(execution.getType(), execution.getId());
   }
 
-  protected void onExecutionStarted(T execution) {
+  private void onExecutionStarted(Execution execution) {
+    if (execution.getPipelineConfigId() != null) {
+      startTracker
+        .ifPresent(tracker -> {
+          tracker.addToStarted(execution.getPipelineConfigId(), execution.getId());
+        });
+    }
   }
 
-  protected abstract T parse(String configJson) throws IOException;
+  private Execution parse(ExecutionType type, String configJson) throws IOException {
+    if (type == PIPELINE) {
+      return parsePipeline(configJson);
+    } else {
+      return parseOrchestration(configJson);
+    }
+  }
+
+  private Execution parsePipeline(String configJson) throws IOException {
+    // TODO: can we not just annotate the class properly to avoid all this?
+    Map<String, Serializable> config = objectMapper.readValue(configJson, Map.class);
+    return registry
+      .map(it -> new PipelineBuilder(getString(config, "application"), it))
+      .orElseGet(() -> new PipelineBuilder(getString(config, "application")))
+      .withName(getString(config, "name"))
+      .withPipelineConfigId(getString(config, "id"))
+      .withTrigger((Map<String, Object>) config.get("trigger"))
+      .withStages((List<Map<String, Object>>) config.get("stages"))
+      .withLimitConcurrent(getBoolean(config, "limitConcurrent"))
+      .withKeepWaitingPipelines(getBoolean(config, "keepWaitingPipelines"))
+      .withNotifications((List<Map<String, Object>>) config.get("notifications"))
+      .withExecutionEngine(getEnum(config, "executionEngine", ExecutionEngine.class))
+      .withOrigin(getString(config, "origin"))
+      .build();
+  }
+
+  private Execution parseOrchestration(String configJson) throws IOException {
+    @SuppressWarnings("unchecked")
+    Map<String, Serializable> config = objectMapper.readValue(configJson, Map.class);
+    Execution orchestration = Execution.newOrchestration(getString(config, "application"));
+    if (config.containsKey("name")) {
+      orchestration.setDescription(getString(config, "name"));
+    }
+    if (config.containsKey("description")) {
+      orchestration.setDescription(getString(config, "description"));
+    }
+    orchestration.setExecutionEngine(v3);
+
+    for (Map<String, Object> context : getList(config, "stages")) {
+      String type = context.remove("type").toString();
+
+      String providerType = getString(context, "providerType");
+      if (providerType != null && !providerType.equals("aws") && !providerType.equals("titus")) {
+        type += format("_%s", providerType);
+      }
+
+      // TODO: need to check it's valid?
+      Stage stage = new Stage(orchestration, type, context);
+      orchestration.getStages().add(stage);
+    }
+
+    if (config.get("trigger") != null) {
+      orchestration.getTrigger().putAll((Map<String, Object>) config.get("trigger"));
+    }
+
+    orchestration.setBuildTime(clock.millis());
+    orchestration.setAuthentication(AuthenticationDetails.build().orElse(new AuthenticationDetails()));
+    orchestration.setOrigin((String) config.getOrDefault("origin", "unknown"));
+
+    return orchestration;
+  }
 
   /**
    * Persist the initial execution configuration.
    */
-  protected abstract void persistExecution(T execution);
+  private void persistExecution(Execution execution) {
+    executionRepository.store(execution);
+  }
 
-  protected final boolean getBoolean(Map<String, ?> map, String key) {
+  private final boolean getBoolean(Map<String, ?> map, String key) {
     return parseBoolean(getString(map, key));
   }
 
-  protected final String getString(Map<String, ?> map, String key) {
+  private final String getString(Map<String, ?> map, String key) {
     return map.containsKey(key) ? map.get(key).toString() : null;
   }
 
-  protected final <K, V> Map<K, V> getMap(Map<String, ?> map, String key) {
+  private final <K, V> Map<K, V> getMap(Map<String, ?> map, String key) {
     Map<K, V> result = (Map<K, V>) map.get(key);
     return result == null ? emptyMap() : result;
   }
 
-  protected final List<Map<String, Object>> getList(Map<String, ?> map, String key) {
+  private final List<Map<String, Object>> getList(Map<String, ?> map, String key) {
     List<Map<String, Object>> result = (List<Map<String, Object>>) map.get(key);
     return result == null ? emptyList() : result;
   }
 
-  protected final <E extends Enum<E>> E getEnum(Map<String, ?> map, String key, Class<E> type) {
+  private final <E extends Enum<E>> E getEnum(Map<String, ?> map, String key, Class<E> type) {
     String value = (String) map.get(key);
     return value != null ? Enum.valueOf(type, value) : null;
   }
 
   /**
-   * Hook for subclasses to decide if this execution should be queued or start immediately.
+   * Decide if this execution should be queued or start immediately.
    *
    * @return true if the stage should be queued.
    */
-  protected boolean shouldQueue(T execution) {
-    return false;
+  private boolean shouldQueue(Execution execution) {
+    if (execution.getPipelineConfigId() == null || !execution.isLimitConcurrent()) {
+      return false;
+    }
+    return startTracker
+      .map(tracker ->
+        tracker.queueIfNotStarted(execution.getPipelineConfigId(), execution.getId()))
+      .orElse(false);
   }
-
 }

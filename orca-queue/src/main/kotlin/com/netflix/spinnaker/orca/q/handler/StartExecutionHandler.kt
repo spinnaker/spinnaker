@@ -39,7 +39,7 @@ class StartExecutionHandler(
       execution
         .initialStages()
         .forEach {
-          queue.push(StartStage(message, it.getId()))
+          queue.push(StartStage(message, it.id))
         }
     }
 

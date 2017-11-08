@@ -42,8 +42,8 @@ class CompleteExecutionHandler(
 
   override fun handle(message: CompleteExecution) {
     message.withExecution { execution ->
-      if (execution.getStatus().isComplete) {
-        log.info("Execution ${execution.getId()} already completed with ${execution.getStatus()} status")
+      if (execution.status.isComplete) {
+        log.info("Execution ${execution.id} already completed with ${execution.status} status")
       } else {
         message.determineFinalStatus(execution) { status ->
           repository.updateStatus(message.executionId, status)
@@ -51,7 +51,7 @@ class CompleteExecutionHandler(
             ExecutionComplete(this, message.executionType, message.executionId, status)
           )
           if (status != SUCCEEDED) {
-            execution.topLevelStages.filter { it.getStatus() == RUNNING }.forEach {
+            execution.topLevelStages.filter { it.status == RUNNING }.forEach {
               queue.push(CancelStage(it))
             }
           }
@@ -61,17 +61,17 @@ class CompleteExecutionHandler(
   }
 
   private fun CompleteExecution.determineFinalStatus(
-    execution: Execution<*>,
+    execution: Execution,
     block: (ExecutionStatus) -> Unit
   ) {
     execution.topLevelStages.let { stages ->
-      if (stages.map { it.getStatus() }.all { it in setOf(SUCCEEDED, SKIPPED, FAILED_CONTINUE) }) {
+      if (stages.map { it.status }.all { it in setOf(SUCCEEDED, SKIPPED, FAILED_CONTINUE) }) {
         block.invoke(SUCCEEDED)
-      } else if (stages.any { it.getStatus() == TERMINAL }) {
+      } else if (stages.any { it.status == TERMINAL }) {
         block.invoke(TERMINAL)
-      } else if (stages.any { it.getStatus() == CANCELED }) {
+      } else if (stages.any { it.status == CANCELED }) {
         block.invoke(CANCELED)
-      } else if (stages.any { it.getStatus() == STOPPED } && !stages.otherBranchesIncomplete()) {
+      } else if (stages.any { it.status == STOPPED } && !stages.otherBranchesIncomplete()) {
         block.invoke(if (execution.shouldOverrideSuccess()) TERMINAL else SUCCEEDED)
       } else {
         val attempts = getAttribute<AttemptsAttribute>()?.attempts ?: 0
@@ -88,17 +88,17 @@ class CompleteExecutionHandler(
     }
   }
 
-  private val Execution<*>.topLevelStages
-    get(): List<Stage<*>> = getStages().filter { it.getParentStageId() == null }
+  private val Execution.topLevelStages
+    get(): List<Stage> = stages.filter { it.parentStageId == null }
 
-  private fun Execution<*>.shouldOverrideSuccess(): Boolean =
-    getStages()
-      .filter { it.getStatus() == STOPPED }
-      .any { it.getContext()["completeOtherBranchesThenFail"] == true }
+  private fun Execution.shouldOverrideSuccess(): Boolean =
+    stages
+      .filter { it.status == STOPPED }
+      .any { it.context["completeOtherBranchesThenFail"] == true }
 
-  private fun List<Stage<*>>.otherBranchesIncomplete() =
-    any { it.getStatus() == RUNNING } ||
-      any { it.getStatus() == NOT_STARTED && it.allUpstreamStagesComplete() }
+  private fun List<Stage>.otherBranchesIncomplete() =
+    any { it.status == RUNNING } ||
+      any { it.status == NOT_STARTED && it.allUpstreamStagesComplete() }
 
   override val messageType = CompleteExecution::class.java
 }

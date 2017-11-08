@@ -17,11 +17,10 @@
 package com.netflix.spinnaker.orca.listeners;
 
 import com.netflix.spinnaker.orca.ExecutionStatus;
-import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 
 public interface Persister {
-  <T extends Execution<T>> void save(Stage<T> stage);
+  void save(Stage stage);
 
   boolean isCanceled(String executionId);
 

@@ -30,10 +30,7 @@ import retrofit.mime.TypedString
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
-
-import static com.netflix.spinnaker.orca.mahe.PropertyAction.CREATE
-import static com.netflix.spinnaker.orca.mahe.PropertyAction.DELETE
-import static com.netflix.spinnaker.orca.mahe.PropertyAction.UPDATE
+import static com.netflix.spinnaker.orca.mahe.PropertyAction.*
 import static com.netflix.spinnaker.orca.mahe.pipeline.CreatePropertyStage.PIPELINE_CONFIG_TYPE
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
@@ -65,7 +62,7 @@ class PropertyChangeCleanupSpec extends Specification {
       }
     }
 
-    repository.retrievePipeline(pipeline.id) >> pipeline
+    repository.retrieve(pipeline.type, pipeline.id) >> pipeline
 
     when:
     listener.afterExecution(null, pipeline, executionStatus, false)
@@ -96,7 +93,7 @@ class PropertyChangeCleanupSpec extends Specification {
       }
     }
 
-    repository.retrievePipeline(pipeline.id) >> pipeline
+    repository.retrieve(pipeline.type, pipeline.id) >> pipeline
 
     when:
     listener.afterExecution(null, pipeline, executionStatus, false)
@@ -128,7 +125,7 @@ class PropertyChangeCleanupSpec extends Specification {
       }
     }
 
-    repository.retrievePipeline(pipeline.id) >> pipeline
+    repository.retrieve(pipeline.type, pipeline.id) >> pipeline
 
     when:
     listener.afterExecution(null, pipeline, executionStatus, false)
@@ -206,7 +203,7 @@ class PropertyChangeCleanupSpec extends Specification {
       }
     }
 
-    repository.retrievePipeline(pipeline.id) >> pipeline
+    repository.retrieve(pipeline.type, pipeline.id) >> pipeline
 
     when:
     listener.afterExecution(null, pipeline, executionStatus, false)
@@ -235,7 +232,7 @@ class PropertyChangeCleanupSpec extends Specification {
       }
     }
 
-    repository.retrievePipeline(pipeline.id) >> pipeline
+    repository.retrieve(pipeline.type, pipeline.id) >> pipeline
 
     when:
     listener.afterExecution(null, pipeline, executionStatus, false)
@@ -267,7 +264,7 @@ class PropertyChangeCleanupSpec extends Specification {
         context = propertyContext
       }
     }
-    repository.retrievePipeline(pipeline.id) >> pipeline
+    repository.retrieve(pipeline.type, pipeline.id) >> pipeline
 
     when:
     listener.afterExecution(null, pipeline, null, true)
@@ -294,7 +291,7 @@ class PropertyChangeCleanupSpec extends Specification {
         context = propertyContext
       }
     }
-    repository.retrievePipeline(pipeline.id) >> pipeline
+    repository.retrieve(pipeline.type, pipeline.id) >> pipeline
 
     when:
     listener.afterExecution(null, pipeline, null, true)
@@ -321,7 +318,7 @@ class PropertyChangeCleanupSpec extends Specification {
         name = PIPELINE_CONFIG_TYPE
       }
     }
-    repository.retrievePipeline(pipeline.id) >> pipeline
+    repository.retrieve(pipeline.type, pipeline.id) >> pipeline
 
     when:
     listener.afterExecution(null, pipeline, null, true)
