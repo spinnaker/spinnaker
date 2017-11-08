@@ -90,7 +90,7 @@ module.exports = angular.module('spinnaker.securityGroup.kubernetes.details.cont
         resolve: {
           securityGroup: function() {
             var securityGroup = angular.copy($scope.securityGroup.description);
-            securityGroup.account = $scope.securityGroup.account;
+            securityGroup.account = $scope.securityGroup.accountName;
             securityGroup.edit = true;
             return securityGroup;
           },

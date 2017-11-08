@@ -87,6 +87,12 @@ module.exports = angular.module('spinnaker.securityGroup.kubernetes.create.contr
         .value();
     }
 
+    function initializeEditMode() {
+      $scope.state.accountsLoaded = true;
+      return loadBalancerReader.listLoadBalancers('kubernetes')
+        .then(loadBalancers => $scope.loadBalancers = getLoadBalancerNames(loadBalancers));
+    }
+
     function initializeCreateMode() {
       return $q.all({
         accounts: accountService.listAccounts('kubernetes'),
@@ -141,10 +147,11 @@ module.exports = angular.module('spinnaker.securityGroup.kubernetes.create.contr
 
     if ($scope.isNew) {
       $scope.securityGroup = kubernetesSecurityGroupTransformer.constructNewSecurityGroupTemplate();
+      updateSecurityGroupNames();
+      initializeCreateMode();
+    } else {
+      initializeEditMode();
     }
-
-    initializeSecurityGroupNames();
-    initializeCreateMode();
 
     // Controller API
     this.updateName = function() {
