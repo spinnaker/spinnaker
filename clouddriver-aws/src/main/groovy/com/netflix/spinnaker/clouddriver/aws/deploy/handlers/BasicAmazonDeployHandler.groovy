@@ -291,7 +291,8 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
         regionScopedProvider: regionScopedProvider,
         base64UserData: description.base64UserData,
         legacyUdf: description.legacyUdf,
-        tags: description.tags)
+        tags: applyAppStackDetailTags(deployDefaults, description).tags
+      )
 
       def asgName = autoScalingWorker.deploy()
 
@@ -569,5 +570,32 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
     }
 
     return convertBlockDevices(sourceLaunchConfiguration.blockDeviceMappings)
+  }
+
+  /**
+   * Add tags for application/stack/details iff `deployDefaults.addAppStackDetailTags` is true.
+   */
+  @VisibleForTesting
+  @PackageScope
+  static BasicAmazonDeployDescription applyAppStackDetailTags(DeployDefaults deployDefaults,
+                                                              BasicAmazonDeployDescription description) {
+    if (!deployDefaults.addAppStackDetailTags) {
+      return description
+    }
+
+    description = description.clone()
+    description.tags = description.tags ?: [:]
+
+    if (description.application) {
+      description.tags["spinnaker:application"] = description.application
+    }
+    if (description.stack) {
+      description.tags["spinnaker:stack"] = description.stack
+    }
+    if (description.freeFormDetails) {
+      description.tags["spinnaker:details"] = description.freeFormDetails
+    }
+
+    return description
   }
 }

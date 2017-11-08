@@ -754,6 +754,53 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
     'm4.large'   || true
   }
 
+  @Unroll
+  void "should apply app/stack/detail tags when `addAppStackDetailTags` is enabled"() {
+    given:
+    def deployDefaults = new DeployDefaults(addAppStackDetailTags: addAppStackDetailTags)
+    def description = new BasicAmazonDeployDescription(
+      application: application,
+      stack: stack,
+      freeFormDetails: details,
+      tags: initialTags
+    )
+
+    expect:
+    buildTags("1", "2", "3") == ["spinnaker:application": "1", "spinnaker:stack": "2", "spinnaker:details": "3"]
+    buildTags("1", null, "3") == ["spinnaker:application": "1", "spinnaker:details": "3"]
+    buildTags("1", null, null) == ["spinnaker:application": "1"]
+    buildTags(null, null, null) == [:]
+
+    when:
+    def updatedDescription = BasicAmazonDeployHandler.applyAppStackDetailTags(deployDefaults, description)
+
+    then:
+    updatedDescription.tags == expectedTags
+
+    where:
+    addAppStackDetailTags | application | stack   | details   | initialTags              || expectedTags
+    false                 | "app"       | "stack" | "details" | [foo: "bar"]             || ["foo": "bar"]
+    true                  | "app"       | "stack" | "details" | [foo: "bar"]             || [foo: "bar"] + buildTags("app", "stack", "details")
+    true                  | "app"       | "stack" | "details" | buildTags("1", "2", "3") || buildTags("app", "stack", "details")    // override any previous app/stack/details tags
+    true                  | "app"       | null    | "details" | [:]                      || buildTags("app", null, "details")       // avoid creating tags with null values
+    true                  | "app"       | null    | null      | [:]                      || buildTags("app", null, null)
+    true                  | null        | null    | null      | null                     || buildTags(null, null, null)
+  }
+
+  private static Map buildTags(String application, String stack, String details) {
+    def tags = [:]
+    if (application) {
+      tags["spinnaker:application"] = application
+    }
+    if (stack) {
+      tags["spinnaker:stack"] = stack
+    }
+    if (details) {
+      tags["spinnaker:details"] = details
+    }
+    return tags
+  }
+
   private Collection<AmazonBlockDevice> bD(String instanceType) {
     return blockDeviceConfig.getBlockDevicesForInstanceType(instanceType)
   }
