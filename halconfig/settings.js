@@ -131,7 +131,7 @@ window.spinnakerSettings = {
   authEnabled: authEnabled,
   authTtl: 600000,
   gitSources: ['stash', 'github', 'bitbucket'],
-  triggerTypes: ['git', 'pipeline', 'docker', 'cron', 'jenkins', 'travis'],
+  triggerTypes: ['git', 'pipeline', 'docker', 'cron', 'jenkins', 'travis', 'pubsub'],
   feature: {
     entityTags: entityTagsEnabled,
     fiatEnabled: fiatEnabled,
