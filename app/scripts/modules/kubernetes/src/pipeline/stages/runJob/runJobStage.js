@@ -1,6 +1,8 @@
 'use strict';
 
 import _ from 'lodash';
+import { PIPELINE_CONFIG_SERVICE } from '@spinnaker/core';
+import { KUBERNETES_IMAGE_ID_FILTER } from 'kubernetes/presentation/imageId.filter';
 
 const angular = require('angular');
 
@@ -9,7 +11,10 @@ module.exports = angular.module('spinnaker.kubernetes.pipeline.stage.runJobStage
   require('kubernetes/container/arguments.component.js').name,
   require('kubernetes/container/environmentVariables.component.js').name,
   require('kubernetes/container/volumes.component.js').name,
-  require('./runJobExecutionDetails.controller.js').name
+  require('kubernetes/image/image.reader.js').name,
+  require('./runJobExecutionDetails.controller.js').name,
+  PIPELINE_CONFIG_SERVICE,
+  KUBERNETES_IMAGE_ID_FILTER,
 ])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
@@ -21,50 +26,53 @@ module.exports = angular.module('spinnaker.kubernetes.pipeline.stage.runJobStage
       validators: [
         { type: 'requiredField', fieldName: 'account' },
         { type: 'requiredField', fieldName: 'namespace' },
-        { type: 'custom', validate: (_pipeline, stage) => {
-          let response = null;
-
-          if (stage.container.imageDescription.fromTrigger === false && !stage.container.imageDescription.tag) {
-            response = '<strong>Tag</strong> is a required field for Run Job stages.';
-          } else if (stage.container.imageDescription.fromTrigger === true && !stage.container.imageDescription.registry) {
-            response = '<strong>Trigger</strong> is a required field for Run Job stages.';
-          }
-
-          return response;
-        }},
       ]
     });
-  }).controller('kubernetesRunJobStageCtrl', function($scope, accountService) {
+  }).controller('kubernetesRunJobStageCtrl', function($scope, accountService, kubernetesImageReader, pipelineConfigService, $filter) {
 
     this.stage = $scope.stage;
     this.pipeline = $scope.pipeline;
-    this.container = null;
-
+    this.stage.cloudProvider = 'kubernetes';
+    this.stage.application = $scope.application.name;
     this.policies = ['ClusterFirst', 'Default', 'ClusterFirstWithHostNet'];
-
-    const buildImageDescriptor = (image) => {
-      let descriptor = `${image.account}/${image.repository}`;
-      if (image.tag) {
-        descriptor += `:${image.tag}`;
-      }
-      return descriptor;
-    };
+    this.containers = [];
 
     if (!_.has(this.stage, 'container.name')) {
       _.set(this.stage, 'container.name', 'job');
-    }
-
-    if (!_.has(this.stage, 'container.imageDescription.fromTrigger')) {
-      _.set(this.stage, 'container.imageDescription.fromTrigger', false);
     }
 
     if (!this.stage.dnsPolicy) {
       this.stage.dnsPolicy = 'ClusterFirst';
     }
 
-    if (this.stage.container.imageDescription.fromTrigger === true) {
-      this.container = buildImageDescriptor(this.stage.container.imageDescription);
+    if (!this.stage.credentials && $scope.application.defaultCredentials.kubernetes) {
+      this.stage.credentials = $scope.application.defaultCredentials.kubernetes;
     }
+
+    this.contextImages = pipelineConfigService.getAllUpstreamDependencies(this.pipeline, this.stage).map((stage) => {
+      if (stage.type !== 'findImage' && stage.type !== 'bake') {
+        return;
+      }
+
+      if (stage.type === 'findImage') {
+        return {
+          fromContext: true,
+          fromFindImage: true,
+          cluster: stage.cluster,
+          pattern: stage.imageNamePattern,
+          repository: stage.name,
+          stageId: stage.refId
+        };
+      }
+
+      return {
+        fromContext: true,
+        fromBake: true,
+        repository: stage.ami_name,
+        organization: stage.organization,
+        stageId: stage.refId
+      };
+    }).filter(image => !!image);
 
     accountService.getUniqueAttributeForAllAccounts('kubernetes', 'namespaces')
       .then((namespaces) => {
@@ -76,47 +84,78 @@ module.exports = angular.module('spinnaker.kubernetes.pipeline.stage.runJobStage
         this.accounts = accounts;
       });
 
-    this.stage.cloudProvider = 'kubernetes';
-    this.stage.application = $scope.application.name;
 
-    if (!this.stage.credentials && $scope.application.defaultCredentials.kubernetes) {
-      this.stage.credentials = $scope.application.defaultCredentials.kubernetes;
-    }
+    this.searchImages = (query) => {
+      kubernetesImageReader.findImages({
+        provider: 'dockerRegistry',
+        count: 50,
+        q: query
+      }).then((data) => {
 
-    this.onChange = (changes) => {
-      this.stage.container.imageDescription.registry = changes.registry;
-    };
+        if (this.pipeline.triggers) {
+          data = data.concat(this.pipeline.triggers.map((image) => {
+            image.fromTrigger = true;
+            return image;
+          }));
+        }
 
-    this.triggerImages = () => {
+        if (this.contextImages) {
+          data = data.concat(this.contextImages);
+        }
 
-      if (this.pipeline.triggers.length <= 0) {
-        return [];
-      }
+        this.containers = _.map(data, (image) => {
+          return {
+            name: image.repository.replace(/_/g, '').replace(/[\/ ]/g, '-').toLowerCase(),
+            imageDescription: {
+              repository: image.repository,
+              tag: image.tag,
+              registry: image.registry,
+              fromContext: image.fromContext,
+              fromTrigger: image.fromTrigger,
+              fromFindImage: image.fromFindImage,
+              cluster: image.cluster,
+              account: image.account,
+              pattern: image.pattern,
+              stageId: image.stageId,
+              imageId: $filter('kubernetesImageId')(image),
+            },
+            imagePullPolicy: 'IFNOTPRESENT',
+            account: image.accountName,
+            requests: {
+              memory: null,
+              cpu: null,
+            },
+            limits: {
+              memory: null,
+              cpu: null,
+            },
+            ports: [{
+              name: 'http',
+              containerPort: 80,
+              protocol: 'TCP',
+              hostPort: null,
+              hostIp: null,
+            }],
+            livenessProbe: null,
+            readinessProbe: null,
+            envVars: [],
+            command: [],
+            args: [],
+            volumeMounts: [],
+          };
+        });
 
-      return this.pipeline.triggers.filter((trigger) => {
-        return trigger.type === 'docker';
-      }).map((trigger) => {
-        return buildImageDescriptor(trigger);
       });
     };
 
-    this.hasDockerPipelineTriggers = () => {
-      return this.triggerImages().length > 0;
-    };
-
-    this.updateContainerImage = () => {
-
-      const trigger = this.pipeline.triggers.find((trigger) => buildImageDescriptor(trigger) === this.container);
-
-      if (trigger) {
-        this.stage.container.imageDescription.account = trigger.account;
-        this.stage.container.imageDescription.organization = trigger.organization;
-        this.stage.container.imageDescription.repository = trigger.repository;
-        this.stage.container.imageDescription.registry = trigger.registry;
-        if (trigger.tag) {
-          this.stage.container.imageDescription.tag = trigger.tag;
+    this.groupByRegistry = (container) => {
+      if (container.imageDescription) {
+        if (container.imageDescription.fromContext) {
+          return 'Find Image Result(s)';
+        } else if (container.imageDescription.fromTrigger) {
+          return 'Images from Trigger(s)';
         } else {
-          this.stage.container.imageDescription.tag = null;
+          return container.imageDescription.registry;
         }
       }
     };
