@@ -19,7 +19,7 @@ interface InstanceFromStateParams {
   instanceId: string;
 }
 
-interface InstanceContainer {
+interface InstanceManager {
   account: string;
   region: string;
   category: string; // e.g., serverGroup, loadBalancer.
@@ -86,33 +86,33 @@ class AppengineInstanceDetailsController implements IController {
   }
 
   private retrieveInstance(instance: InstanceFromStateParams): IPromise<IAppengineInstance> {
-    const instanceLocatorPredicate = (dataSource: InstanceContainer) => {
+    const instanceLocatorPredicate = (dataSource: InstanceManager) => {
       return dataSource.instances.some((possibleMatch) => possibleMatch.id === instance.instanceId);
     };
 
-    const dataSources: InstanceContainer[] = flattenDeep([
+    const dataSources: InstanceManager[] = flattenDeep([
       this.app.getDataSource('serverGroups').data,
       this.app.getDataSource('loadBalancers').data,
       this.app.getDataSource('loadBalancers').data.map((loadBalancer) => loadBalancer.serverGroups),
     ]);
 
-    const instanceContainer = dataSources.find(instanceLocatorPredicate);
+    const instanceManager = dataSources.find(instanceLocatorPredicate);
 
-    if (instanceContainer) {
+    if (instanceManager) {
       const recentHistoryExtraData: {[key: string]: string} = {
-        region: instanceContainer.region,
-        account: instanceContainer.account,
+        region: instanceManager.region,
+        account: instanceManager.account,
       };
-      if (instanceContainer.category === 'serverGroup') {
-        recentHistoryExtraData.serverGroup = instanceContainer.name;
+      if (instanceManager.category === 'serverGroup') {
+        recentHistoryExtraData.serverGroup = instanceManager.name;
       }
       this.recentHistoryService.addExtraDataToLatest('instances', recentHistoryExtraData);
 
       return this.instanceReader
-        .getInstanceDetails(instanceContainer.account, instanceContainer.region, instance.instanceId)
+        .getInstanceDetails(instanceManager.account, instanceManager.region, instance.instanceId)
         .then((instanceDetails: IAppengineInstance) => {
-          instanceDetails.account = instanceContainer.account;
-          instanceDetails.region = instanceContainer.region;
+          instanceDetails.account = instanceManager.account;
+          instanceDetails.region = instanceManager.region;
           return instanceDetails;
         });
     } else {
