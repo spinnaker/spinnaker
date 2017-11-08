@@ -35,6 +35,12 @@ public class V1SchemaExecutionGenerator implements ExecutionGenerator {
     Map<String, Object> pipeline = new HashMap<>();
     pipeline.put("id", Optional.ofNullable(request.getId()).orElse(Optional.ofNullable(configuration.getPipeline().getPipelineConfigId()).orElse("unknown")));
     pipeline.put("application", configuration.getPipeline().getApplication());
+    if (template.getSource() != null) {
+      pipeline.put("source", template.getSource());
+    }
+    if (request.getExecutionId() != null) {
+      pipeline.put("executionId", request.getExecutionId());
+    }
     pipeline.put("name", Optional.ofNullable(configuration.getPipeline().getName()).orElse("Unnamed Execution"));
 
     if (configuration.getPipeline().getExecutionEngine() != null) {

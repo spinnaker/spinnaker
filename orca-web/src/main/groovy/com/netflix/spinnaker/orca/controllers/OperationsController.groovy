@@ -25,9 +25,11 @@ import com.netflix.spinnaker.orca.igor.BuildService
 import com.netflix.spinnaker.orca.pipeline.OrchestrationLauncher
 import com.netflix.spinnaker.orca.pipeline.PipelineLauncher
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.util.ArtifactResolver
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
+import com.netflix.spinnaker.orca.pipelinetemplate.PipelineTemplateService
 import com.netflix.spinnaker.orca.webhook.service.WebhookService
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import groovy.util.logging.Slf4j
@@ -40,6 +42,8 @@ import org.springframework.web.bind.annotation.RestController
 import javax.servlet.http.HttpServletResponse
 
 import static net.logstash.logback.argument.StructuredArguments.value
+
+import javax.servlet.http.HttpServletResponse
 
 @RestController
 @Slf4j
@@ -60,6 +64,9 @@ class OperationsController {
   ExecutionRepository executionRepository
 
   @Autowired
+  PipelineTemplateService pipelineTemplateService
+
+  @Autowired
   ContextParameterProcessor contextParameterProcessor
 
   @Autowired(required = false)
@@ -73,7 +80,7 @@ class OperationsController {
 
   @RequestMapping(value = "/orchestrate", method = RequestMethod.POST)
   Map<String, Object> orchestrate(@RequestBody Map pipeline, HttpServletResponse response) {
-    parsePipelineTrigger(executionRepository, buildService, pipeline)
+    parsePipelineTrigger(executionRepository, buildService, pipelineTemplateService, pipeline)
     Map trigger = pipeline.trigger
 
     boolean plan = pipeline.plan ?: false
@@ -113,9 +120,20 @@ class OperationsController {
     startPipeline(processedPipeline)
   }
 
-  private void parsePipelineTrigger(ExecutionRepository executionRepository, BuildService buildService, Map pipeline) {
+  private void parsePipelineTrigger(ExecutionRepository executionRepository, BuildService buildService, PipelineTemplateService pipelineTemplateService, Map pipeline) {
     if (!(pipeline.trigger instanceof Map)) {
       pipeline.trigger = [:]
+      if (pipeline.plan && pipeline.type == "templatedPipeline") {
+        // If possible, initialize the config with a previous execution trigger context, to be able to resolve
+        // dynamic parameters in jinja expressions
+        try {
+          def previousExecution = pipelineTemplateService.retrievePipelineOrNewestExecution(pipeline.executionId, pipeline.id)
+          pipeline.trigger = previousExecution.trigger
+          pipeline.executionId = previousExecution.id
+        } catch (ExecutionNotFoundException ignore) {
+          // Do nothing
+        }
+      }
     }
 
     if (!pipeline.trigger.type) {

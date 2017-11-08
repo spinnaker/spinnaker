@@ -16,15 +16,16 @@
 
 package com.netflix.spinnaker.orca.controllers
 
-import javax.servlet.http.HttpServletResponse
 import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException
 import com.netflix.spinnaker.orca.igor.BuildArtifactFilter
 import com.netflix.spinnaker.orca.igor.BuildService
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.PipelineLauncher
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
+import com.netflix.spinnaker.orca.pipelinetemplate.PipelineTemplateService
 import com.netflix.spinnaker.orca.webhook.config.PreconfiguredWebhookProperties
 import com.netflix.spinnaker.orca.webhook.service.WebhookService
 import com.netflix.spinnaker.security.AuthenticatedRequest
@@ -38,7 +39,11 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
+
+import javax.servlet.http.HttpServletResponse
+
 import static com.netflix.spinnaker.orca.ExecutionStatus.CANCELED
+import static com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 
@@ -52,6 +57,7 @@ class OperationsControllerSpec extends Specification {
   def buildService = Stub(BuildService)
   def mapper = OrcaObjectMapper.newInstance()
   def executionRepository = Mock(ExecutionRepository)
+  def pipelineTemplateService = Mock(PipelineTemplateService)
   def webhookService = Mock(WebhookService)
 
   def env = new MockEnvironment()
@@ -63,6 +69,7 @@ class OperationsControllerSpec extends Specification {
       buildService: buildService,
       buildArtifactFilter: buildArtifactFilter,
       executionRepository: executionRepository,
+      pipelineTemplateService: pipelineTemplateService,
       pipelineLauncher: pipelineLauncher,
       contextParameterProcessor: new ContextParameterProcessor(),
       webhookService: webhookService
@@ -194,6 +201,41 @@ class OperationsControllerSpec extends Specification {
         type            : "manual",
         parentPipelineId: "12345"
       ]
+    ]
+  }
+
+  def "should get pipeline execution context from a previous execution if not provided and attribute plan is truthy"() {
+    given:
+    Pipeline startedPipeline = null
+    pipelineLauncher.start(_) >> { String json ->
+      startedPipeline = mapper.readValue(json, Pipeline)
+      startedPipeline.id = UUID.randomUUID().toString()
+      startedPipeline
+    }
+
+    Pipeline previousExecution = pipeline {
+      name = "Last executed pipeline"
+      status = SUCCEEDED
+      id = "12345"
+      application = "covfefe"
+      trigger << [
+        type: "travis"
+      ]
+    }
+
+    when:
+    def orchestration = controller.orchestrate(requestedPipeline, Mock(HttpServletResponse))
+
+    then:
+    1 * pipelineTemplateService.retrievePipelineOrNewestExecution("12345", _) >> previousExecution
+    orchestration.trigger.type == "travis"
+
+    where:
+    requestedPipeline = [
+      id: "54321",
+      plan: true,
+      type: "templatedPipeline",
+      executionId: "12345"
     ]
   }
 
@@ -492,6 +534,8 @@ class OperationsControllerSpec extends Specification {
     given:
     def pipelineConfig = [
       plan  : true,
+      type  : "templatedPipeline",
+      executionId: "12345",
       errors: [
         'things broke': 'because of the way it is'
       ]
@@ -503,6 +547,7 @@ class OperationsControllerSpec extends Specification {
 
     then:
     thrown(InvalidRequestException)
+    1 * pipelineTemplateService.retrievePipelineOrNewestExecution("12345", null) >> { throw new ExecutionNotFoundException("Not found") }
     0 * pipelineLauncher.start(_)
   }
 

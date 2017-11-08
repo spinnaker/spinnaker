@@ -3,6 +3,7 @@
   "limitConcurrent": true,
   "application": "myApp",
   "name": "My super awesome pipeline",
+  "source": "example-root.yml,example-child.yml",
   "stages": [
     {
       "requisiteStageRefIds": [],
