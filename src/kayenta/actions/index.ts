@@ -16,6 +16,7 @@ export const RENAME_METRIC = 'rename_metric';
 export const EDIT_METRIC_BEGIN = 'edit_metric_begin';
 export const EDIT_METRIC_CONFIRM = 'edit_metric_modal_confirm';
 export const EDIT_METRIC_CANCEL = 'edit_metric_modal_cancel';
+export const UPDATE_METRIC_DIRECTION = 'update_metric_direction';
 export const REMOVE_METRIC = 'remove_metric';
 export const SELECT_CONFIG = 'select_config';
 export const CLEAR_SELECTED_CONFIG = 'clear_selected_config';

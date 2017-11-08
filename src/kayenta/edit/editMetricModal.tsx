@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { Modal } from 'react-bootstrap';
+import { get } from 'lodash';
 
 import * as Creators from '../actions/creators';
 import {ICanaryState} from '../reducers/index';
@@ -14,6 +15,7 @@ import './editMetricModal.less';
 
 interface IEditMetricModalDispatchProps {
   rename: (event: any) => void;
+  updateDirection: (event: any) => void;
   confirm: () => void;
   cancel: () => void;
 }
@@ -22,13 +24,23 @@ interface IEditMetricModalStateProps {
   metric: ICanaryMetricConfig
 }
 
+function DirectionChoice({ value, label, current, action }: { value: string, label: string, current: string, action: (event: any) => void }) {
+  return (
+    <label style={{fontWeight: 'normal', marginRight: '1em'}}>
+      <input name="direction" type="radio" value={value} onClick={action} checked={value === current}/> {label}
+    </label>
+  );
+}
+
 /*
  * Modal to edit metric details.
  */
-function EditMetricModal({ metric, rename, confirm, cancel }: IEditMetricModalDispatchProps & IEditMetricModalStateProps) {
+function EditMetricModal({ metric, rename, confirm, cancel, updateDirection }: IEditMetricModalDispatchProps & IEditMetricModalStateProps) {
   if (!metric) {
     return null;
   }
+
+  const direction = get(metric, ['analysisConfigurations', 'canary', 'direction'], 'either');
   return (
     <Modal show={true} onHide={noop} className="kayenta-edit-metric-modal">
       <Styleguide>
@@ -43,6 +55,11 @@ function EditMetricModal({ metric, rename, confirm, cancel }: IEditMetricModalDi
               data-id={metric.id}
               onChange={rename}
             />
+          </FormRow>
+          <FormRow label="Fail on">
+            <DirectionChoice value="increase" label="increase" current={direction} action={updateDirection}/>
+            <DirectionChoice value="decrease" label="decrease" current={direction} action={updateDirection}/>
+            <DirectionChoice value="either"   label="either"   current={direction} action={updateDirection}/>
           </FormRow>
           <MetricConfigurerDelegator/>
         </Modal.Body>
@@ -67,6 +84,9 @@ function mapDispatchToProps(dispatch: any): IEditMetricModalDispatchProps {
     },
     confirm: () => {
       dispatch(Creators.editMetricConfirm());
+    },
+    updateDirection: (event: any) => {
+      dispatch(Creators.updateMetricDirection({ id: event.target.dataset.id, direction: event.target.value }))
     },
   };
 }
