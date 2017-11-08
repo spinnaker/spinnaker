@@ -116,7 +116,7 @@ class BuildCacheSpec extends Specification {
         cache.setLastBuild(master, 'blurb', 1, false, TTL)
 
         then:
-        cache.getJobNames(master) == ['blurb', 'job1', 'job2']
+        cache.getJobNames(master) == ['blurb', 'job2']
     }
 
     @Unroll

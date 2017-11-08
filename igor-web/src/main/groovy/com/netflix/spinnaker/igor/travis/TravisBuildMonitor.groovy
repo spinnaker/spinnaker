@@ -155,7 +155,7 @@ class TravisBuildMonitor implements PollingMonitor{
                             log.info("New build: {}: ${branchedRepoSlug} : ${build.number}", kv("master", master))
                         }
                     } else {
-                        addToCache = true
+                        addToCache = !TravisResultConverter.running(build.state)
                     }
                     if (addToCache) {
                         updatedBuilds += 1

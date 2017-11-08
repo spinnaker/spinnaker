@@ -40,10 +40,9 @@ class BuildCache {
     List<String> getJobNames(String master) {
         Jedis resource = jedisPool.resource
         List<String> jobs = resource.keys("${baseKey()}:completed:${master}:*").collect { extractJobName(it) }
-        jobs.addAll(resource.keys("${baseKey()}:running:${master}:*").collect { extractJobName(it) })
 
         jedisPool.returnResource(resource)
-        jobs.sort().unique()
+        jobs.sort()
     }
 
     List<String> getTypeaheadResults(String search) {
