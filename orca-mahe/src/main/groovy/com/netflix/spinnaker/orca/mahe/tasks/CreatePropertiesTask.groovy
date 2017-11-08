@@ -96,7 +96,8 @@ class CreatePropertiesTask implements Task {
 
   private Map getExistingProperty(Map prop) {
     try {
-      return mapper.readValue(maheService.findProperty(prop).body.in().text, Map)
+      Map propertyToFind = prop.findAll { it.key != 'value' }
+      return mapper.readValue(maheService.findProperty(propertyToFind).body.in().text, Map)
     } catch (RetrofitError error) {
       if (error.kind == RetrofitError.Kind.HTTP && error.response.status == 404) {
         return null
