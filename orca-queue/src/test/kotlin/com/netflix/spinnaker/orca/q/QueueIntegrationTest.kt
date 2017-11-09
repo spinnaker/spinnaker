@@ -62,10 +62,7 @@ import java.time.Instant.now
 import java.time.ZoneId
 
 @SpringBootTest(classes = arrayOf(TestConfig::class), properties = arrayOf(
-  "queue.retry.delay.ms=10"//,
-//  "logging.level.root=ERROR",
-//  "logging.level.org.springframework.test=ERROR",
-//  "logging.level.com.netflix.spinnaker=FATAL"
+  "queue.retry.delay.ms=10"
 ))
 @RunWith(SpringRunner::class)
 open class QueueIntegrationTest {
