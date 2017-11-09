@@ -108,7 +108,7 @@ class RunTaskHandler(
   private fun trackResult(stage: Stage, taskModel: com.netflix.spinnaker.orca.pipeline.model.Task, status: ExecutionStatus) {
     val id = registry.createId("task.invocations")
       .withTag("status", status.toString())
-      .withTag("executionType", stage.execution.javaClass.simpleName)
+      .withTag("executionType", stage.execution.type.name.capitalize())
       .withTag("isComplete", status.isComplete.toString())
       .withTag("application", stage.execution.application)
       .let { id ->
