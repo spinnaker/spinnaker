@@ -77,6 +77,38 @@ class DockerRegistryAddAccountCommand extends AbstractAddAccountCommand {
   )
   private Long cacheIntervalSeconds = 30L;
 
+  @Parameter(
+      names = "--client-timeout-millis",
+      description = DockerRegistryCommandProperties.CLIENT_TIMEOUT_MILLIS_DESCRIPTION
+  )
+  private Long clientTimeoutMillis = 60_000L;
+
+  @Parameter(
+      names = "--cache-threads",
+      description = DockerRegistryCommandProperties.CACHE_THREADS_DESCRIPTION
+  )
+  private int cacheThreads = 1;
+
+  @Parameter(
+      names = "--paginate-size",
+      description = DockerRegistryCommandProperties.PAGINATE_SIZE_DESCRIPTION
+  )
+  private int paginateSize = 100;
+
+  @Parameter(
+      names = "--sort-tags-by-date",
+      arity = 1,
+      description = DockerRegistryCommandProperties.SORT_TAGS_BY_DATE_DESCRIPTION
+  )
+  private Boolean sortTagsByDate = false;
+
+  @Parameter(
+      names = "--track-digests",
+      arity = 1,
+      description = DockerRegistryCommandProperties.TRACK_DIGESTS_DESCRIPTION
+  )
+  private Boolean trackDigests = false;
+
   @Override
   protected Account buildAccount(String accountName) {
     DockerRegistryAccount account = (DockerRegistryAccount) new DockerRegistryAccount().setName(accountName);
@@ -87,7 +119,12 @@ class DockerRegistryAddAccountCommand extends AbstractAddAccountCommand {
         .setPasswordFile(passwordFile)
         .setUsername(username)
         .setEmail(email)
-        .setCacheIntervalSeconds(cacheIntervalSeconds);
+        .setCacheIntervalSeconds(cacheIntervalSeconds)
+        .setClientTimeoutMillis(clientTimeoutMillis)
+        .setCacheThreads(cacheThreads)
+        .setPaginateSize(paginateSize)
+        .setSortTagsByDate(sortTagsByDate)
+        .setTrackDigests(trackDigests);
 
     return account;
   }

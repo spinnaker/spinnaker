@@ -2489,13 +2489,18 @@ hal config provider docker-registry account add ACCOUNT [parameters]
   [us|eu|asia].gcr.io - Regional GCR
   localhost           - Locally deployed registry
  * `--cache-interval-seconds`: (*Default*: `30`) How many seconds elapse between polling your docker registry. Certain registries are sensitive to over-polling, and larger intervals (e.g. 10 minutes = 600 seconds) are desirable if you're seeing rate limiting.
+ * `--cache-threads`: (*Default*: `1`)  How many threads to cache all provided repos on. Really only useful if you have a ton of repos.
+ * `--client-timeout-millis`: (*Default*: `60000`) Paginate size for the docker repository _catalog endpoint.
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--email`: (*Default*: `fake.email@spinnaker.io`) Your docker registry email (often this only needs to be well-formed, rather than be a real address)
  * `--no-validate`: (*Default*: `false`) Skip validation.
+ * `--paginate-size`: (*Default*: `100`) Paginate size for the docker repository _catalog endpoint.
  * `--password`: (*Sensitive data* - user will be prompted on standard input) Your docker registry password
  * `--password-file`: The path to a file containing your docker password in plaintext (not a docker/config.json file)
  * `--repositories`: (*Default*: `[]`) An optional list of repositories to cache images from. If not provided, Spinnaker will attempt to read accessible repositories from the registries _catalog endpoint
  * `--required-group-membership`: (*Default*: `[]`) A user must be a member of at least one specified group in order to make changes to this account's cloud resources.
+ * `--sort-tags-by-date`: (*Default*: `false`) Sort tags by creation date.
+ * `--track-digests`: (*Default*: `false`) Track digest changes. This is not recommended as it consumes a high QPM, and most registries are flaky.
  * `--username`: Your docker registry username
 
 
@@ -2537,17 +2542,21 @@ hal config provider docker-registry account edit ACCOUNT [parameters]
   [us|eu|asia].gcr.io - Regional GCR
   localhost           - Locally deployed registry
  * `--cache-interval-seconds`: How many seconds elapse between polling your docker registry. Certain registries are sensitive to over-polling, and larger intervals (e.g. 10 minutes = 600 seconds) are desirable if you're seeing rate limiting.
+ * `--cache-threads`: How many threads to cache all provided repos on. Really only useful if you have a ton of repos.
+ * `--client-timeout-millis`: Paginate size for the docker repository _catalog endpoint.
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--email`: Your docker registry email (often this only needs to be well-formed, rather than be a real address)
  * `--no-validate`: (*Default*: `false`) Skip validation.
+ * `--paginate-size`: Paginate size for the docker repository _catalog endpoint.
  * `--password`: (*Sensitive data* - user will be prompted on standard input) Your docker registry password
  * `--password-file`: The path to a file containing your docker password in plaintext (not a docker/config.json file)
  * `--remove-repository`: Remove this repository to the list of repositories to cache images from.
  * `--remove-required-group-membership`: Remove this group from the list of required group memberships.
  * `--repositories`: (*Default*: `[]`) An optional list of repositories to cache images from. If not provided, Spinnaker will attempt to read accessible repositories from the registries _catalog endpoint
  * `--required-group-membership`: A user must be a member of at least one specified group in order to make changes to this account's cloud resources.
+ * `--sort-tags-by-date`: Sort tags by creation date.
+ * `--track-digests`: Track digest changes. This is not recommended as it consumes a high QPM, and most registries are flaky.
  * `--username`: Your docker registry username
-
 
 ---
 ## hal config provider docker-registry account get

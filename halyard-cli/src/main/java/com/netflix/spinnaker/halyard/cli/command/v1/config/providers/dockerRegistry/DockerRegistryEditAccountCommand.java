@@ -88,6 +88,38 @@ public class DockerRegistryEditAccountCommand extends AbstractEditAccountCommand
   )
   private Long cacheIntervalSeconds;
 
+  @Parameter(
+          names = "--client-timeout-millis",
+          description = DockerRegistryCommandProperties.CLIENT_TIMEOUT_MILLIS_DESCRIPTION
+  )
+  private Long clientTimeoutMillis;
+
+  @Parameter(
+          names = "--cache-threads",
+          description = DockerRegistryCommandProperties.CACHE_THREADS_DESCRIPTION
+  )
+  private Integer cacheThreads;
+
+  @Parameter(
+          names = "--paginate-size",
+          description = DockerRegistryCommandProperties.PAGINATE_SIZE_DESCRIPTION
+  )
+  private Integer paginateSize;
+
+  @Parameter(
+          names = "--sort-tags-by-date",
+          arity = 1,
+          description = DockerRegistryCommandProperties.SORT_TAGS_BY_DATE_DESCRIPTION
+  )
+  private Boolean sortTagsByDate;
+
+  @Parameter(
+          names = "--track-digests",
+          arity = 1,
+          description = DockerRegistryCommandProperties.TRACK_DIGESTS_DESCRIPTION
+  )
+  private Boolean trackDigests;
+
   @Override
   protected Account editAccount(DockerRegistryAccount account) {
     account.setAddress(isSet(address) ? address : account.getAddress());
@@ -115,6 +147,11 @@ public class DockerRegistryEditAccountCommand extends AbstractEditAccountCommand
     account.setUsername(isSet(username) ? username : account.getUsername());
     account.setEmail(isSet(email) ? email : account.getEmail());
     account.setCacheIntervalSeconds(isSet(cacheIntervalSeconds) ? cacheIntervalSeconds : account.getCacheIntervalSeconds());
+    account.setClientTimeoutMillis(isSet(clientTimeoutMillis) ? clientTimeoutMillis : account.getClientTimeoutMillis());
+    account.setCacheThreads(isSet(cacheThreads) ? cacheThreads : account.getCacheThreads());
+    account.setPaginateSize(isSet(paginateSize) ? paginateSize : account.getPaginateSize());
+    account.setSortTagsByDate(isSet(sortTagsByDate) ? sortTagsByDate : account.getSortTagsByDate());
+    account.setTrackDigests(isSet(trackDigests) ? trackDigests : account.getTrackDigests());
 
     return account;
   }

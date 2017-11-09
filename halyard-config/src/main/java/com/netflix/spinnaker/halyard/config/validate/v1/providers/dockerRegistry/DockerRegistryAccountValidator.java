@@ -79,6 +79,11 @@ public class DockerRegistryAccountValidator extends Validator<DockerRegistryAcco
           .passwordFile(n.getPasswordFile())
           .dockerconfigFile(n.getDockerconfigFile())
           .username(n.getUsername())
+          .clientTimeoutMillis(n.getClientTimeoutMillis())
+          .cacheThreads(n.getCacheThreads())
+          .paginateSize(n.getPaginateSize())
+          .sortTagsByDate(n.getSortTagsByDate())
+          .trackDigests(n.getTrackDigests())
           .build();
     } catch (Exception e) {
       p.addProblem(Severity.ERROR, "Failed to instantiate docker credentials for account \"" + n.getName() + "\".");

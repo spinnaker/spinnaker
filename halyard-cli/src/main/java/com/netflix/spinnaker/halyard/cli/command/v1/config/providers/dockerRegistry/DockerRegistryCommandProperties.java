@@ -45,4 +45,19 @@ class DockerRegistryCommandProperties {
   static final String CACHE_INTERVAL_SECONDS_DESCRIPTION =
       "How many seconds elapse between polling your docker registry. Certain registries are sensitive to over-polling, and "
           + "larger intervals (e.g. 10 minutes = 600 seconds) are desirable if you're seeing rate limiting.";
+
+  static final String CLIENT_TIMEOUT_MILLIS_DESCRIPTION =
+      "Timeout time in milliseconds for this repository.";
+
+  static final String CACHE_THREADS_DESCRIPTION =
+      "How many threads to cache all provided repos on. Really only useful if you have a ton of repos.";
+
+  static final String PAGINATE_SIZE_DESCRIPTION =
+      "Paginate size for the docker repository _catalog endpoint.";
+
+  static final String SORT_TAGS_BY_DATE_DESCRIPTION =
+      "Sort tags by creation date.";
+
+  static final String TRACK_DIGESTS_DESCRIPTION =
+      "Track digest changes. This is not recommended as it consumes a high QPM, and most registries are flaky.";
 }
