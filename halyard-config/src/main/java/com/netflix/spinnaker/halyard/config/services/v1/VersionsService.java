@@ -53,10 +53,7 @@ public class VersionsService {
 
   public Versions getVersions() {
     try {
-      return relaxedObjectMapper.convertValue(
-          yamlParser.load(profileRegistry.getObjectContents("versions.yml")),
-          Versions.class
-      );
+      return profileRegistry.readVersions();
     } catch (IOException e) {
       throw new HalException(
           new ConfigProblemBuilder(FATAL, "Could not load \"versions.yml\" from config bucket: " + e.getMessage() + ".").build());
@@ -73,14 +70,7 @@ public class VersionsService {
     }
 
     try {
-      String bomName = ProfileRegistry.bomPath(version);
-
-      BillOfMaterials bom = relaxedObjectMapper.convertValue(
-          yamlParser.load(profileRegistry.getObjectContents(bomName)),
-          BillOfMaterials.class
-      );
-
-      return bom;
+      return profileRegistry.readBom(version);
     } catch (RetrofitError | IOException e) {
       throw new HalException(
           new ConfigProblemBuilder(FATAL,

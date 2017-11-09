@@ -49,13 +49,12 @@ public class RegistryBackedArchiveProfileBuilder {
 
   public List<Profile> build(DeploymentConfiguration deploymentConfiguration, String baseOutputPath, SpinnakerArtifact artifact, String archiveName) {
     String version = artifactService.getArtifactVersion(deploymentConfiguration.getName(), artifact);
-    String archiveObjectName = ProfileRegistry.profilePath(artifact.getName(), version, archiveName + ".tar.gz");
 
     InputStream is;
     try {
-      is = profileRegistry.getObjectContents(archiveObjectName);
+      is = profileRegistry.readArchiveProfile(artifact.getName(), version, archiveName);
     } catch (IOException e) {
-      throw new HalException(Problem.Severity.FATAL, "Error retrieving contents of archive " + archiveObjectName, e);
+      throw new HalException(Problem.Severity.FATAL, "Error retrieving contents of archive " + archiveName + ".tar.gz", e);
     }
 
     TarArchiveInputStream tis;

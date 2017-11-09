@@ -37,14 +37,17 @@ import java.io.IOException;
 import java.util.Collections;
 
 @Slf4j
-public class WriteableProfileRegistry {
+public class GoogleWriteableProfileRegistry {
   private Storage storage;
   private WriteableProfileRegistryProperties properties;
 
   @Autowired
   String spinconfigBucket;
 
-  WriteableProfileRegistry(WriteableProfileRegistryProperties properties) {
+  @Autowired
+  GoogleProfileRegistry googleProfileRegistry;
+
+  GoogleWriteableProfileRegistry(WriteableProfileRegistryProperties properties) {
     HttpTransport httpTransport = GoogleCredentials.buildHttpTransport();
     JsonFactory jsonFactory = JacksonFactory.getDefaultInstance();
     GoogleCredential credential;
@@ -75,13 +78,13 @@ public class WriteableProfileRegistry {
   }
 
   public void writeBom(String version, String contents) {
-    String name = ProfileRegistry.bomPath(version);
+    String name = googleProfileRegistry.bomPath(version);
     writeTextObject(name, contents);
   }
 
   public void writeArtifactConfig(BillOfMaterials bom, String artifactName, String profileName, String contents) {
     String version = bom.getArtifactVersion(artifactName);
-    String name = ProfileRegistry.profilePath(artifactName, version, profileName);
+    String name = googleProfileRegistry.profilePath(artifactName, version, profileName);
     writeTextObject(name, contents);
   }
 

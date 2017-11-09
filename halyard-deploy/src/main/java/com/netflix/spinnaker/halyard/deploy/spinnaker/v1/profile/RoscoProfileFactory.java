@@ -17,7 +17,12 @@
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spinnaker.halyard.config.model.v1.node.*;
+import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
+import com.netflix.spinnaker.halyard.config.model.v1.node.HasImageProvider;
+import com.netflix.spinnaker.halyard.config.model.v1.node.NodeFilter;
+import com.netflix.spinnaker.halyard.config.model.v1.node.NodeIterator;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Provider;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Providers;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import com.netflix.spinnaker.halyard.core.registry.v1.ProfileRegistry;
@@ -52,7 +57,7 @@ public class RoscoProfileFactory extends SpringProfileFactory {
   protected Providers getImageProviders(String version) {
     InputStream is;
     try {
-      is = profileRegistry.getObjectContents(ProfileRegistry.profilePath(getArtifact().getName(), version, "images.yml"));
+      is = profileRegistry.readProfile(getArtifact().getName(), version, "images.yml");
     } catch (IOException e) {
       throw new HalException(Problem.Severity.FATAL, "Unable to read images.yml for rosco: " + e.getMessage(), e);
     }

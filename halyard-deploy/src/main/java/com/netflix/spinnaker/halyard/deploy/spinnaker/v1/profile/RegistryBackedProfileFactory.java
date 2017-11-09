@@ -34,18 +34,18 @@ abstract public class RegistryBackedProfileFactory extends ProfileFactory {
 
   @Override
   protected Profile getBaseProfile(String name, String version, String outputFile) {
-    String path = ProfileRegistry.profilePath(getArtifact().getName(), version, name);
     try {
       return new Profile(name,
           version,
           outputFile,
-          IOUtils.toString(profileRegistry.getObjectContents(path))
+          IOUtils.toString(profileRegistry.readProfile(getArtifact().getName(), version, name))
       );
     } catch (RetrofitError | IOException e) {
       throw new HalException(
           new ConfigProblemBuilder(FATAL,
-              "Unable to retrieve profile \"" + path + "\": " + e.getMessage())
-              .build()
+              "Unable to retrieve profile \"" + name + "\": " + e.getMessage())
+              .build(),
+          e
       );
     }
   }

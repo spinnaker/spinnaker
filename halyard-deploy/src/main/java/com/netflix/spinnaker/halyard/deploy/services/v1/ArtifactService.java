@@ -26,7 +26,7 @@ import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.registry.v1.BillOfMaterials;
 import com.netflix.spinnaker.halyard.core.registry.v1.Versions;
 import com.netflix.spinnaker.halyard.core.registry.v1.Versions.Version;
-import com.netflix.spinnaker.halyard.core.registry.v1.WriteableProfileRegistry;
+import com.netflix.spinnaker.halyard.core.registry.v1.GoogleWriteableProfileRegistry;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,7 +47,7 @@ import static com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity.FAT
 @Component
 public class ArtifactService {
   @Autowired(required = false)
-  WriteableProfileRegistry writeableProfileRegistry;
+  GoogleWriteableProfileRegistry googleWriteableProfileRegistry;
 
   @Autowired
   Yaml yamlParser;
@@ -88,7 +88,7 @@ public class ArtifactService {
   }
 
   public void deprecateVersion(Version version, String illegalReason) {
-    if (writeableProfileRegistry == null) {
+    if (googleWriteableProfileRegistry == null) {
       throw new HalException(new ConfigProblemBuilder(FATAL,
           "You need to set the \"spinnaker.config.input.writerEnabled\" property to \"true\" to modify your halconfig bucket contents.").build());
     }
@@ -106,11 +106,11 @@ public class ArtifactService {
       versionsCollection.setIllegalVersions(illegalVersions);
     }
 
-    writeableProfileRegistry.writeVersions(yamlParser.dump(relaxedObjectMapper.convertValue(versionsCollection, Map.class)));
+    googleWriteableProfileRegistry.writeVersions(yamlParser.dump(relaxedObjectMapper.convertValue(versionsCollection, Map.class)));
   }
 
   public void publishVersion(Version version) {
-    if (writeableProfileRegistry == null) {
+    if (googleWriteableProfileRegistry == null) {
       throw new HalException(new ConfigProblemBuilder(FATAL,
           "You need to set the \"spinnaker.config.input.writerEnabled\" property to \"true\" to modify your halconfig bucket contents.").build());
     }
@@ -119,11 +119,11 @@ public class ArtifactService {
     deleteVersion(versionsCollection, version.getVersion());
     versionsCollection.getVersions().add(version);
 
-    writeableProfileRegistry.writeVersions(yamlParser.dump(relaxedObjectMapper.convertValue(versionsCollection, Map.class)));
+    googleWriteableProfileRegistry.writeVersions(yamlParser.dump(relaxedObjectMapper.convertValue(versionsCollection, Map.class)));
   }
 
   public void publishLatestSpinnaker(String latestSpinnaker) {
-    if (writeableProfileRegistry == null) {
+    if (googleWriteableProfileRegistry == null) {
       throw new HalException(new ConfigProblemBuilder(FATAL,
           "You need to set the \"spinnaker.config.input.writerEnabled\" property to \"true\" to modify BOM contents.").build());
     }
@@ -136,11 +136,11 @@ public class ArtifactService {
 
     versionsCollection.setLatestSpinnaker(latestSpinnaker);
 
-    writeableProfileRegistry.writeVersions(yamlParser.dump(relaxedObjectMapper.convertValue(versionsCollection, Map.class)));
+    googleWriteableProfileRegistry.writeVersions(yamlParser.dump(relaxedObjectMapper.convertValue(versionsCollection, Map.class)));
   }
 
   public void publishLatestHalyard(String latestHalyard) {
-    if (writeableProfileRegistry == null) {
+    if (googleWriteableProfileRegistry == null) {
       throw new HalException(new ConfigProblemBuilder(FATAL,
           "You need to set the \"spinnaker.config.input.writerEnabled\" property to \"true\" to modify BOM contents.").build());
     }
@@ -149,11 +149,11 @@ public class ArtifactService {
 
     versionsCollection.setLatestHalyard(latestHalyard);
 
-    writeableProfileRegistry.writeVersions(yamlParser.dump(relaxedObjectMapper.convertValue(versionsCollection, Map.class)));
+    googleWriteableProfileRegistry.writeVersions(yamlParser.dump(relaxedObjectMapper.convertValue(versionsCollection, Map.class)));
   }
 
   public void writeBom(String bomPath) {
-    if (writeableProfileRegistry == null) {
+    if (googleWriteableProfileRegistry == null) {
       throw new HalException(new ConfigProblemBuilder(FATAL,
           "You need to set the \"spinnaker.config.input.writerEnabled\" property to \"true\" to modify BOM contents.").build());
     }
@@ -178,11 +178,11 @@ public class ArtifactService {
       throw new HalException(new ConfigProblemBuilder(FATAL, "No version was supplied in this BOM.").build());
     }
 
-    writeableProfileRegistry.writeBom(bom.getVersion(), bomContents);
+    googleWriteableProfileRegistry.writeBom(bom.getVersion(), bomContents);
   }
 
   public void writeArtifactConfig(String bomPath, String artifactName, String profilePath) {
-    if (writeableProfileRegistry == null) {
+    if (googleWriteableProfileRegistry == null) {
       throw new HalException(new ConfigProblemBuilder(FATAL,
           "You need to set the \"spinnaker.config.input.writerEnabled\" property to \"true\" to modify base-profiles.").build());
     }
@@ -209,6 +209,6 @@ public class ArtifactService {
       );
     }
 
-    writeableProfileRegistry.writeArtifactConfig(bom, artifactName, profileFile.getName(), profileContents);
+    googleWriteableProfileRegistry.writeArtifactConfig(bom, artifactName, profileFile.getName(), profileContents);
   }
 }
