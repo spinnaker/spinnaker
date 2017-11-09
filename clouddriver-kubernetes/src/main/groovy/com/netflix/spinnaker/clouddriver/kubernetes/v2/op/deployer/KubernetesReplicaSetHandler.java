@@ -17,6 +17,8 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.op.deployer;
 
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.ArtifactReplacer.Replacer;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.ArtifactTypes;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesCacheDataConverter;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesReplicaSetCachingAgent;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesV2CachingAgent;
@@ -36,6 +38,16 @@ import java.util.Map;
 
 @Component
 public class KubernetesReplicaSetHandler extends KubernetesHandler implements CanResize, CanDelete {
+  public KubernetesReplicaSetHandler() {
+    registerReplacer(
+        Replacer.builder()
+            .path("$.spec.template.spec.containers.[?( @.image == \"{%name%}\" )].image")
+            .type(ArtifactTypes.DOCKER_IMAGE)
+            .build()
+    );
+  }
+
+
   @Override
   public KubernetesKind kind() {
     return KubernetesKind.REPLICA_SET;

@@ -18,9 +18,12 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest;
 
 import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesAtomicOperationDescription;
+import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.moniker.Moniker;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+
+import java.util.List;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -28,4 +31,5 @@ public class KubernetesDeployManifestDescription extends KubernetesAtomicOperati
   KubernetesManifest manifest;
   Moniker moniker;
   KubernetesManifestSpinnakerRelationships relationships;
+  List<Artifact> artifacts;
 }

@@ -12,4 +12,5 @@ dependencies {
   compile 'io.kubernetes:client-java:1.0.0-beta1'
   compile 'com.github.fge:json-patch:1.9'
   compile 'com.netflix.spinnaker.moniker:moniker:0.2.0'
+  compile 'com.jayway.jsonpath:json-path:2.3.0'
 }
