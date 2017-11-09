@@ -132,7 +132,13 @@ trait DeploymentDetailsAware {
       if (execution.trigger.parentExecution instanceof Execution) {
         return execution.trigger.parentExecution
       } else if (execution.trigger?.isPipeline) {
-        return pipelineObjectMapper.convertValue(execution.trigger.parentExecution, Execution)
+        def parent = execution.trigger.parentExecution
+        if (parent.type == null) {
+          // crazily, Jackson requires this to be the first field in the hash or parsing blows up!
+          parent = [type: PIPELINE.name()]
+          parent.putAll(execution.trigger.parentExecution)
+        }
+        return pipelineObjectMapper.convertValue(parent, Execution)
       }
     }
 
