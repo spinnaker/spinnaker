@@ -87,7 +87,7 @@ module.exports = angular.module('spinnaker.loadBalancer.openstack.details.contro
         const command = {
           cloudProvider: 'openstack',
           loadBalancerName: $scope.loadBalancer.name,
-          id: $scope.loadBalancer.name,
+          id: $scope.loadBalancer.id,
           region: $scope.loadBalancer.region,
           account: $scope.loadBalancer.account,
           credentials: $scope.loadBalancer.account,
