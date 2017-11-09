@@ -16,8 +16,10 @@
 package com.netflix.spinnaker.orca.pipelinetemplate.v1schema.converter
 
 import groovy.json.JsonSlurper
+import spock.lang.Ignore
 import spock.lang.Specification
 
+@Ignore
 class PipelineTemplateConverterSpec extends Specification {
 
   def "should convert a pipeline to an ordered pipeline template yaml document"() {

@@ -36,12 +36,8 @@ class PipelineTriggerParsingSpec extends Specification {
     parent.id == "84099610-f292-4cab-bd5a-49ecf8570ffe"
 
     when:
-    def trigger = parent.trigger.parentExecution
-    if (!trigger.containsKey("type")) {
-      trigger = [type: PIPELINE.name()]
-      trigger.putAll(parent.trigger.parentExecution)
-    }
-    def grandpa = mapper.convertValue(trigger, Execution)
+    parent.trigger.parentExecution.type = PIPELINE.name()
+    def grandpa = mapper.convertValue(parent.trigger.parentExecution, Execution)
 
     then:
     grandpa.id == "eecce10e-2a99-41e4-b6aa-db2aa73c63db"

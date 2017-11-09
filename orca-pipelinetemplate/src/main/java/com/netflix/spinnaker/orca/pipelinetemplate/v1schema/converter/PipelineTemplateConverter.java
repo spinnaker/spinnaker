@@ -15,6 +15,11 @@
  */
 package com.netflix.spinnaker.orca.pipelinetemplate.v1schema.converter;
 
+import java.io.File;
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.util.*;
+import java.util.stream.Collectors;
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
 import com.google.common.io.Resources;
@@ -23,17 +28,6 @@ import org.slf4j.LoggerFactory;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.representer.Representer;
-
-import java.io.File;
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 // Who needs type-checking anyway?
 @SuppressWarnings("unchecked")
@@ -55,6 +49,7 @@ public class PipelineTemplateConverter {
     DumperOptions options = new DumperOptions();
     options.setIndent(2);
     options.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
+    options.setSplitLines(false);
     Yaml yaml = new Yaml(representer, options);
 
     String output = yaml.dump(p);
