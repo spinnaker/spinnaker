@@ -20,7 +20,6 @@ import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.orca.config.RedisConfiguration
 import com.netflix.spinnaker.orca.q.redis.RedisDeadMessageHandler
 import com.netflix.spinnaker.orca.q.redis.RedisQueue
-import com.netflix.spinnaker.orca.q.redis.migration.QueueDataMigrator
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
@@ -29,7 +28,6 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.context.annotation.DependsOn
 import redis.clients.jedis.Jedis
 import redis.clients.util.Pool
 import java.time.Clock
@@ -57,14 +55,7 @@ open class RedisQueueConfiguration {
       clock = clock
     )
 
-  @Bean
-  open fun redisDataMigrator(
-    @Qualifier("queueJedisPool") redisPool: Pool<Jedis>,
-    redisQueueProperties: RedisQueueProperties
-  ) = QueueDataMigrator(redisPool, redisQueueProperties)
-
   @Bean(name = arrayOf("queueImpl"))
-  @DependsOn("redisDataMigrator")
   open fun redisQueue(
     @Qualifier("queueJedisPool") redisPool: Pool<Jedis>,
     redisQueueProperties: RedisQueueProperties,

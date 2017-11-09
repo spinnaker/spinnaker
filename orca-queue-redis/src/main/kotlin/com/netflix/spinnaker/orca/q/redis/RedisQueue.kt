@@ -18,13 +18,17 @@ package com.netflix.spinnaker.orca.q.redis
 
 import com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.google.common.hash.Hashing
+import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType
 import com.netflix.spinnaker.orca.q.AttemptsAttribute
 import com.netflix.spinnaker.orca.q.MaxAttemptsAttribute
 import com.netflix.spinnaker.orca.q.Message
 import com.netflix.spinnaker.orca.q.Queue
 import com.netflix.spinnaker.orca.q.metrics.*
+import com.netflix.spinnaker.orca.q.redis.migration.ExecutionTypeDeserializer
+import com.netflix.spinnaker.orca.q.redis.migration.ExecutionTypeSerializer
 import org.funktionale.partials.partially1
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -55,6 +59,11 @@ class RedisQueue(
   private val mapper = ObjectMapper()
     .registerModule(KotlinModule())
     .disable(FAIL_ON_UNKNOWN_PROPERTIES)
+    .registerModule(
+      SimpleModule()
+        .addSerializer(ExecutionTypeSerializer())
+        .addDeserializer(ExecutionType::class.java, ExecutionTypeDeserializer())
+    )
 
   private val log: Logger = LoggerFactory.getLogger(javaClass)
 
