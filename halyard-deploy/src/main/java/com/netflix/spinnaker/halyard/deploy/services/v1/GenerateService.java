@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.halyard.deploy.services.v1;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.netflix.spinnaker.halyard.config.config.v1.HalconfigDirectoryStructure;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemBuilder;
@@ -195,10 +196,12 @@ public class GenerateService {
     private Map<SpinnakerService.Type, Map<String, Profile>> serviceProfiles = new HashMap<>();
     SpinnakerRuntimeSettings runtimeSettings;
 
+    @JsonIgnore
     public ServiceSettings getServiceSettings(SpinnakerService service) {
       return runtimeSettings.getServiceSettings(service);
     }
 
+    @JsonIgnore
     public Map<String, Profile> getProfilesForService(SpinnakerService.Type type) {
       return serviceProfiles.getOrDefault(type, new HashMap<>());
     }

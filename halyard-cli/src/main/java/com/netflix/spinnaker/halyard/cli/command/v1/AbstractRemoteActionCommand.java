@@ -46,10 +46,9 @@ abstract public class AbstractRemoteActionCommand extends AbstractConfigCommand 
 
   abstract protected OperationHandler<RemoteAction> getRemoteAction();
 
-  @Override
-  protected void executeThis() {
-    RemoteAction result = getRemoteAction().get();
-    String scriptPath = result.getScriptPath();
+  protected void runRemoteAction(OperationHandler<RemoteAction> operation) {
+    RemoteAction action = operation.get();
+    String scriptPath = action.getScriptPath();
 
     if (StringUtils.isEmpty(scriptPath)) {
       return;
@@ -57,16 +56,16 @@ abstract public class AbstractRemoteActionCommand extends AbstractConfigCommand 
 
     boolean shouldRun;
     if (autoRun == null) {
-      shouldRun = result.isAutoRun();
+      shouldRun = action.isAutoRun();
     } else {
-      shouldRun = result.isAutoRun() && autoRun;
+      shouldRun = action.isAutoRun() && autoRun;
     }
 
     if (!shouldRun) {
       AnsiStoryBuilder storyBuilder = new AnsiStoryBuilder();
 
       AnsiParagraphBuilder paragraphBuilder = storyBuilder.addParagraph();
-      paragraphBuilder.addSnippet(result.getScriptDescription());
+      paragraphBuilder.addSnippet(action.getScriptDescription());
       storyBuilder.addNewline();
 
       paragraphBuilder = storyBuilder.addParagraph();
@@ -74,7 +73,7 @@ abstract public class AbstractRemoteActionCommand extends AbstractConfigCommand 
       storyBuilder.addNewline();
 
       paragraphBuilder = storyBuilder.addParagraph();
-      paragraphBuilder.addSnippet(result.getScriptPath()).addStyle(AnsiStyle.UNDERLINE);
+      paragraphBuilder.addSnippet(action.getScriptPath()).addStyle(AnsiStyle.UNDERLINE);
 
       AnsiUi.raw(storyBuilder.toString());
     } else {
@@ -97,5 +96,10 @@ abstract public class AbstractRemoteActionCommand extends AbstractConfigCommand 
         System.exit(1);
       }
     }
+  }
+
+  @Override
+  protected void executeThis() {
+    runRemoteAction(getRemoteAction());
   }
 }

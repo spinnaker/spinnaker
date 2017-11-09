@@ -125,6 +125,13 @@ public interface DaemonService {
       @Query("serviceNames") List<String> serviceNames,
       @Body String _ignore);
 
+  @POST("/v1/config/deployments/{deploymentName}/prep/")
+  DaemonTask<Halconfig, Object> prepDeployment(
+      @Path("deploymentName") String deploymentName,
+      @Query("validate") boolean validate,
+      @Query("serviceNames") List<String> serviceNames,
+      @Body String _ignore);
+
   @POST("/v1/config/deployments/{deploymentName}/rollback/")
   DaemonTask<Halconfig, Object> rollbackDeployment(
       @Path("deploymentName") String deploymentName,

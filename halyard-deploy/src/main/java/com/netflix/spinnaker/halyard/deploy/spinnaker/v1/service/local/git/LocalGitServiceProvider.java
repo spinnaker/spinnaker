@@ -46,6 +46,18 @@ public class LocalGitServiceProvider extends LocalServiceProvider {
   LocalGitClouddriverService clouddriverService;
 
   @Override
+  public String getPrepCommand(DeploymentDetails deploymentDetails, List<String> prepCommands) {
+    String servicePrep = String.join("\n", prepCommands);
+
+    TemplatedResource resource = new JarResource("/git/prep.sh");
+    
+    Map<String, String> bindings = new HashMap<>();
+    bindings.put("prep-commands", servicePrep);
+
+    return resource.setBindings(bindings).toString();
+  }
+
+  @Override
   public String getInstallCommand(DeploymentDetails deploymentDetails, GenerateService.ResolvedConfiguration resolvedConfiguration, Map<String, String> installCommands) {
     Map<String, String> bindings;
     List<SpinnakerService.Type> serviceTypes = new ArrayList<>(installCommands.keySet()).stream()
@@ -66,5 +78,12 @@ public class LocalGitServiceProvider extends LocalServiceProvider {
   @Override
   public RemoteAction clean(DeploymentDetails details, SpinnakerRuntimeSettings runtimeSettings) {
     throw new NotImplementedException();
+  }
+
+  public List<LocalGitService> getLocalGitServices(List<SpinnakerService.Type> serviceTypes) {
+    return getFieldsOfType(LocalGitService.class)
+        .stream()
+        .filter(s -> serviceTypes.contains(s.getService().getType()))
+        .collect(Collectors.toList());
   }
 }

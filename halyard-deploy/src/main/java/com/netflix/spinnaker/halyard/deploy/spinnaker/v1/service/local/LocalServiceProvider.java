@@ -53,6 +53,10 @@ abstract public class LocalServiceProvider extends SpinnakerServiceProvider<Depl
   // TODO(lwander) move from string to something like RemoteAction
   abstract public String getInstallCommand(DeploymentDetails deploymentDetails, GenerateService.ResolvedConfiguration resolvedConfiguration, Map<String, String> installCommands);
 
+  public String getPrepCommand(DeploymentDetails deploymentDetails, List<String> prepCommands) {
+    return "";
+  }
+
   public List<LocalService> getLocalServices(List<SpinnakerService.Type> serviceTypes) {
     return getFieldsOfType(LocalService.class)
         .stream()

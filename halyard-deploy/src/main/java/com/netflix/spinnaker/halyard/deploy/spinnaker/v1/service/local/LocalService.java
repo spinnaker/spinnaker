@@ -31,6 +31,9 @@ import java.util.Map;
 public interface LocalService<T> extends HasServiceSettings<T>, LogCollector<T, DeploymentDetails> {
   String getSpinnakerStagingPath(String deploymentName);
   String installArtifactCommand(DeploymentDetails deploymentDetails);
+  default String prepArtifactCommand(DeploymentDetails deploymentDetails) {
+    return "";
+  }
 
   default String stageProfilesCommand(DeploymentDetails details, GenerateService.ResolvedConfiguration resolvedConfiguration) {
     Map<String, Profile> profiles = resolvedConfiguration.getProfilesForService(getService().getType());

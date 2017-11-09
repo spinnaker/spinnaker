@@ -67,4 +67,8 @@ public interface LocalGitService<T> extends LocalService<T> {
 
     return installResource.toString();
   }
+
+  default String prepArtifactCommand(DeploymentDetails deploymentDetails) {
+    return "echo 'TODO'";
+  }
 }

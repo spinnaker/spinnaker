@@ -22,7 +22,6 @@ import com.netflix.spinnaker.halyard.deploy.services.v1.GenerateService.Resolved
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerServiceProvider;
-import redis.clients.jedis.Jedis;
 
 import java.util.List;
 
@@ -64,4 +63,15 @@ public interface Deployer<S extends SpinnakerServiceProvider<D>, D extends Deplo
       D deploymentDetails,
       SpinnakerRuntimeSettings runtimeSettings
   );
+
+  default RemoteAction prep(
+      S serviceProvider,
+      D deploymentDetails,
+      List<SpinnakerService.Type> serviceTypes
+  ) {
+    RemoteAction result = new RemoteAction();
+    result.setAutoRun(true);
+    result.setScript("");
+    return result;
+  }
 }

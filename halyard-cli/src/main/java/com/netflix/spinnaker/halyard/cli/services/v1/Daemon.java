@@ -484,6 +484,13 @@ public class Daemon {
     };
   }
 
+  public static Supplier<RemoteAction> prepDeployment(String deploymentName, boolean validate, List<String> serviceNames) {
+    return () -> {
+      Object rawDeployResult = ResponseUnwrapper.get(getService().prepDeployment(deploymentName, validate, serviceNames, ""));
+      return getObjectMapper().convertValue(rawDeployResult, RemoteAction.class);
+    };
+  }
+
   public static Supplier<RemoteAction> deployDeployment(String deploymentName, boolean validate, List<DeployOption> deployOptions, List<String> serviceNames) {
     return () -> {
       Object rawDeployResult = ResponseUnwrapper.get(getService().deployDeployment(deploymentName, validate, deployOptions, serviceNames, ""));

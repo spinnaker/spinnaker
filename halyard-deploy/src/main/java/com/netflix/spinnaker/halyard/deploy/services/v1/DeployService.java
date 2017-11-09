@@ -35,6 +35,7 @@ import com.netflix.spinnaker.halyard.deploy.deployment.v1.Deployer;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.DeploymentDetails;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.DistributedDeployer;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.LocalDeployer;
+import com.netflix.spinnaker.halyard.deploy.deployment.v1.LocalGitDeployer;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.ServiceProviderFactory;
 import com.netflix.spinnaker.halyard.deploy.services.v1.GenerateService.ResolvedConfiguration;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
@@ -65,6 +66,9 @@ public class DeployService {
 
   @Autowired
   LocalDeployer localDeployer;
+
+  @Autowired
+  LocalGitDeployer localGitDeployer;
 
   @Autowired
   BakeDeployer bakeDeployer;
@@ -176,6 +180,33 @@ public class DeployService {
     deployer.rollback(serviceProvider, deploymentDetails, runtimeSettings, serviceTypes);
   }
 
+  public RemoteAction prep(String deploymentName, List<String> serviceNames) {
+    DeploymentConfiguration deploymentConfiguration = deploymentService.getDeploymentConfiguration(deploymentName);
+    DeploymentDetails deploymentDetails = getDeploymentDetails(deploymentConfiguration);
+    Deployer deployer = getDeployer(deploymentConfiguration);
+    SpinnakerServiceProvider<DeploymentDetails> serviceProvider = serviceProviderFactory.create(deploymentConfiguration);
+
+    List<SpinnakerService.Type> serviceTypes = serviceNames.stream()
+        .map(SpinnakerService.Type::fromCanonicalName)
+        .collect(Collectors.toList());
+
+    if (serviceTypes.isEmpty()) {
+      serviceTypes = serviceProvider
+          .getServices()
+          .stream()
+          .map(SpinnakerService::getType)
+          .collect(Collectors.toList());
+    }
+
+    RemoteAction action = deployer.prep(serviceProvider, deploymentDetails, serviceTypes);
+
+    if (!action.getScript().isEmpty()) {
+      action.commitScript(halconfigDirectoryStructure.getPrepScriptPath(deploymentName));
+    }
+
+    return action;
+  }
+
   public RemoteAction deploy(String deploymentName, List<DeployOption> deployOptions, List<String> serviceNames) {
     DeploymentConfiguration deploymentConfiguration = deploymentService.getDeploymentConfiguration(deploymentName);
     SpinnakerServiceProvider<DeploymentDetails> serviceProvider = serviceProviderFactory.create(deploymentConfiguration);
@@ -228,6 +259,7 @@ public class DeployService {
       case BakeDebian:
         return bakeDeployer;
       case LocalGit:
+        return localGitDeployer;
       case LocalDebian:
         return localDeployer;
       case Distributed:

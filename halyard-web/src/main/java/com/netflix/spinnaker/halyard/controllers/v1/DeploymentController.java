@@ -36,7 +36,12 @@ import com.netflix.spinnaker.halyard.deploy.services.v1.GenerateService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.RunningServiceDetails;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -192,6 +197,22 @@ public class DeploymentController {
     }
 
     return DaemonTaskHandler.submitTask(builder::build, "Rollback Spinnaker", TimeUnit.MINUTES.toMillis(30));
+  }
+
+  @RequestMapping(value = "/{deploymentName:.+}/prep/", method = RequestMethod.POST)
+  DaemonTask<Halconfig, RemoteAction> prep(@PathVariable String deploymentName,
+      @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
+      @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity,
+      @RequestParam(required = false) List<String> serviceNames) {
+    List<String> finalServiceNames = serviceNames != null ? serviceNames : Collections.emptyList();
+    StaticRequestBuilder<RemoteAction> builder = new StaticRequestBuilder<>(() -> deployService.prep(deploymentName, finalServiceNames));
+    builder.setSeverity(severity);
+
+    if (validate) {
+      builder.setValidateResponse(() -> deploymentService.validateDeployment(deploymentName));
+    }
+
+    return DaemonTaskHandler.submitTask(builder::build, "Prep deployment", TimeUnit.MINUTES.toMillis(5));
   }
 
   @RequestMapping(value = "/{deploymentName:.+}/deploy/", method = RequestMethod.POST)
