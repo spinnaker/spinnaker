@@ -101,8 +101,25 @@ export class ExecutionsTransformerService {
     return lastRunningStage || lastFailedStage || lastStoppedStage || lastCanceledStage || lastNotStartedStage || lastStage;
   }
 
+  private cleanupLockStages(stages: IExecutionStage[]): IExecutionStage[] {
+    const retainFirstOfType = (type: string, toRetain: IExecutionStage[]) => {
+      let foundType = false;
+      return toRetain.filter(s => {
+        if (s.type === type) {
+          if (foundType) {
+            return false;
+          }
+          foundType = true;
+        }
+        return true;
+      })
+    };
+
+    return retainFirstOfType('releaseLock', retainFirstOfType('acquireLock', stages).reverse()).reverse();
+  }
+
   private transformStage(stage: IExecutionStageSummary): void {
-    const stages = this.flattenAndFilter(stage);
+    const stages = this.cleanupLockStages(this.flattenAndFilter(stage));
     if (!stages.length) {
       return;
     }

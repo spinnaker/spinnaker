@@ -2,6 +2,7 @@ import { duration } from 'moment';
 import { $log } from 'ngimport';
 
 import { IOrchestratedItem, IOrchestratedItemVariable, ITask, ITaskStep } from 'core/domain';
+import { ReactInjector } from 'core';
 
 export class OrchestratedItemTransformer {
   public static addRunningTime(item: any): void {
@@ -40,7 +41,7 @@ export class OrchestratedItemTransformer {
 
     Object.defineProperties(item, {
       failureMessage: {
-        get: (): string => this.getGeneralException(item) || this.getOrchestrationException(item) || null
+        get: (): string => this.getCustomException(item) || this.getGeneralException(item) || this.getOrchestrationException(item) || null
       },
       isCompleted: {
         get: (): boolean => ['SUCCEEDED', 'SKIPPED'].includes(item.status)
@@ -102,6 +103,44 @@ export class OrchestratedItemTransformer {
       }
       if (steps && steps.length) {
         return steps[steps.length - 1].status;
+      }
+    }
+    return null;
+  }
+
+  private static getLockFailureException(task: ITask): string {
+    const generalException: any = task.getValueFor('exception');
+    if (generalException) {
+      const details: any = generalException.details;
+      if (details && details.currentLockValueApplication && details.currentLockValueType && details.currentLockValue) {
+        let typeDisplay: string;
+        let linkUrl: string;
+
+        if (details.currentLockValueType === 'orchestration') {
+          typeDisplay = 'task';
+          linkUrl = ReactInjector.$state.href('home.applications.application.tasks.taskDetails', {
+            application: details.currentLockValueApplication,
+            taskId: details.currentLockValue
+          });
+        } else {
+          typeDisplay = 'pipeline';
+          linkUrl = ReactInjector.$state.href('home.applications.application.pipelines.executionDetails.execution', {
+            application: details.currentLockValueApplication,
+            executionId: details.currentLockValue
+          });
+        }
+
+        return `Failed to acquire lock. An <a href="${linkUrl}">existing ${typeDisplay}</a> is currently operating on the cluster.`;
+      }
+    }
+    return null;
+  }
+
+  private static getCustomException(task: ITask): string {
+    const generalException: any = task.getValueFor('exception');
+    if (generalException) {
+      if (generalException.exceptionType && generalException.exceptionType === 'LockFailureException') {
+        return this.getLockFailureException(task);
       }
     }
     return null;

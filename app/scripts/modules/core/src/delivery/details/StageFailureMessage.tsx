@@ -10,7 +10,7 @@ import { IExecutionStage, ITaskStep } from 'core/domain';
 import { robotToHuman } from 'core/presentation/robotToHumanFilter/robotToHuman.filter';
 import { EventBus } from 'core/event/EventBus';
 
-import { ReactInjector } from 'core';
+import { Markdown, ReactInjector } from 'core';
 
 export interface IStageFailureMessageProps {
   message?: string;
@@ -75,8 +75,8 @@ export class StageFailureMessage extends React.Component<IStageFailureMessagePro
     if (isFailed || failedTask || message || messages.length) {
       const exceptionTitle = messages.length ? 'Exceptions' : 'Exception';
       const displayMessages = message || !messages.length ?
-        <p>{message || 'No reason provided.'}</p> :
-        messages.map((m, i) => <p key={i}>{m || 'No reason provided.'}</p>);
+        <Markdown message={message || 'No reason provided.'} /> :
+        messages.map((m, i) => <Markdown key={i} message={m || 'No reason provided.'} />);
 
       if (message || messages.length) {
         return (

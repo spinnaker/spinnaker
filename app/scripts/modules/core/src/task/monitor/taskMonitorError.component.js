@@ -1,5 +1,4 @@
 'use strict';
-
 const angular = require('angular');
 
 module.exports = angular
@@ -12,7 +11,7 @@ module.exports = angular
         <alert type="danger">
           <h4><i class="fa fa-exclamation-triangle"></i> Error:</h4>
 
-          <p>{{$ctrl.monitor.errorMessage}}</p>
+          <p ng-bind-html="$ctrl.monitor.errorMessage"></p>
         </alert>
         <p ng-if="$ctrl.monitor.task.id">
           <a
