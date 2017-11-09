@@ -126,7 +126,10 @@ class AuthController {
       return matcher.matches()
     }
 
+    def toURLPort = (toURL.port == -1 && toURL.protocol == 'https') ? 443 : toURL.port
+    def deckBaseUrlPort = (deckBaseUrl.port == -1 && deckBaseUrl.protocol == 'https') ? 443 : deckBaseUrl.port
+
     return toURL.host == deckBaseUrl.host &&
-        toURL.port == deckBaseUrl.port
+        toURLPort == deckBaseUrlPort
   }
 }
