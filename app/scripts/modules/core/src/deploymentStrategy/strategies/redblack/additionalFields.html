@@ -25,4 +25,17 @@
            placeholder="0">
     seconds
   </div>
+  <div class="col-md-12 form-inline" ng-if="$ctrl.command.scaleDown" style="margin-top: 5px">
+    <label>Wait Before Scale Down
+      <help-field
+        content="Time to wait before scaling down old server groups"></help-field>
+    </label>
+    <input class="form-control input-sm"
+           style="width: 60px"
+           min="0"
+           type="number"
+           ng-model="$ctrl.command.delayBeforeScaleDownSec"
+           placeholder="0">
+    seconds
+  </div>
 </div>
