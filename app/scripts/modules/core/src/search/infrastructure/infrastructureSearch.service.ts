@@ -6,15 +6,14 @@ import { ProviderServiceDelegate, PROVIDER_SERVICE_DELEGATE } from 'core/cloudPr
 import { getFallbackResults, ISearchResult, ISearchResults, SearchService, SEARCH_SERVICE } from '../search.service';
 import {
   IResultDisplayFormatter,
-  ISearchResultFormatter,
-  searchResultFormatterRegistry
-} from '../searchResult/searchResultFormatter.registry';
+  ISearchResultType,
+  searchResultTypeRegistry
+} from '../searchResult/searchResultsType.registry';
 import { externalSearchRegistry } from '../externalSearch.registry';
 
 export interface ISearchResultSet {
   id: string,
   category: string,
-  icon: string,
   iconClass: string,
   order: number,
   results: ISearchResult[]
@@ -36,7 +35,7 @@ export class InfrastructureSearcher {
           return Observable.of(getFallbackResults());
         }
         return Observable.zip(
-          searchService.search({ q: query, type: searchResultFormatterRegistry.getSearchCategories() }),
+          searchService.search({ q: query, type: searchResultTypeRegistry.getSearchCategories() }),
           externalSearchRegistry.search(query),
           (s1, s2) => {
             s1.results = s1.results.concat(s2);
@@ -55,13 +54,12 @@ export class InfrastructureSearcher {
           return categories;
         }, {});
         this.deferred.resolve(Object.keys(categorizedSearchResults)
-          .filter(c => searchResultFormatterRegistry.get(c))
+          .filter(c => searchResultTypeRegistry.get(c))
           .map(category => {
-            const config = searchResultFormatterRegistry.get(category);
+            const config = searchResultTypeRegistry.get(category);
             return {
               id: category,
               category: config.displayName,
-              icon: config.icon,
               iconClass: config.iconClass,
               order: config.order,
               hideIfEmpty: config.hideIfEmpty,
@@ -78,8 +76,8 @@ export class InfrastructureSearcher {
     return this.deferred.promise;
   }
 
-  public getCategoryConfig(category: string): ISearchResultFormatter {
-    return searchResultFormatterRegistry.get(category);
+  public getCategoryConfig(category: string): ISearchResultType {
+    return searchResultTypeRegistry.get(category);
   }
 
   public formatRouteResult(category: string, entry: ISearchResult): IPromise<string> {
@@ -87,7 +85,7 @@ export class InfrastructureSearcher {
   }
 
   private formatResult(category: string, entry: ISearchResult, fromRoute = false): IPromise<string> {
-    const config = searchResultFormatterRegistry.get(category);
+    const config = searchResultTypeRegistry.get(category);
     if (!config) {
       return this.$q.when('');
     }
@@ -99,7 +97,7 @@ export class InfrastructureSearcher {
         formatter = providerFormatter[category];
       }
     }
-    return formatter(entry, fromRoute);
+    return this.$q.when(formatter(entry, fromRoute));
   }
 }
 

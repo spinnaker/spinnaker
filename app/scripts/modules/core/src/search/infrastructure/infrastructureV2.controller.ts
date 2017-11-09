@@ -21,6 +21,7 @@ import {
   ITypeMapping,
   PostSearchResultSearcherRegistry
 } from 'core/search/searchResult/PostSearchResultSearcherRegistry';
+import { searchResultTypeRegistry } from 'core';
 
 export interface IViewState {
   status: SearchStatus;
@@ -57,6 +58,7 @@ export class InfrastructureV2Ctrl implements IController {
               private overrideRegistry: OverrideRegistry,
               pageTitleService: PageTitleService) {
     'ngInject';
+    this.$scope.searchResultTypes = searchResultTypeRegistry.getAll();
     this.$scope.categories = [];
     this.$scope.projects = [];
 

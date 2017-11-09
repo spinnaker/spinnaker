@@ -1,5 +1,3 @@
-@import (reference) "~core/search/searchResult/baseTable.less";
-
 .spinnaker-container .spinnaker-content {
   .project-header.page-header {
     height: 50px;
@@ -72,12 +70,9 @@
   }
 }
 
-@table-name: project;
-.generate-table(@table-name);
-
-.@{table-name}-table {
-  .table-header, .@{table-name}-row {
-    .@{table-name}-name {
+.table-search-results-project {
+  .table-header, .table-row {
+    .col-name {
       width: 250px;
     }
   }

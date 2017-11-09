@@ -2,7 +2,7 @@ import { module } from 'angular';
 
 import { SERVER_GROUP_CONFIGURATION_SERVICE } from 'core/serverGroup/configure/common/serverGroupConfiguration.service';
 import { SERVER_GROUP_STATES } from './serverGroup.states';
-import './ServerGroupSearchResultFormatter';
+import './serverGroupSearchResultType';
 import { VIEW_SCALING_ACTIVITIES_LINK } from './details/scalingActivities/viewScalingActivitiesLink.component';
 import { DEPLOY_INITIALIZER_COMPONENT } from './configure/common/deployInitializer.component';
 import { SearchResultHydratorRegistry } from 'core/search/searchResult/SearchResultHydratorRegistry';

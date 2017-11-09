@@ -4,12 +4,12 @@ import { StateService } from '@uirouter/angularjs';
 
 import { urlBuilderRegistry } from 'core/navigation/urlBuilder.registry';
 import {
-  ISearchResultFormatter,
-  searchResultFormatterRegistry
-} from 'core/search/searchResult/searchResultFormatter.registry';
+  ISearchResultType,
+  searchResultTypeRegistry
+} from 'core/search/searchResult/searchResultsType.registry';
 import { ISearchResultSet } from 'core/search/infrastructure/infrastructureSearch.service';
-import { IClusterSearchResult } from 'core/search/searchResult/model/IClusterSearchResult';
-import { IServerGroupSearchResult } from 'core/search/searchResult/model/IServerGroupSearchResult';
+import { IServerGroupSearchResult } from 'core/serverGroup/serverGroupSearchResultType';
+import { IClusterSearchResult } from './clusterSearchResultType';
 import { IPostSearchResultSearcher } from 'core/search/searchResult/PostSearchResultSearcherRegistry';
 
 export class ClusterPostSearchResultSearcher implements IPostSearchResultSearcher<IServerGroupSearchResult> {
@@ -29,13 +29,12 @@ export class ClusterPostSearchResultSearcher implements IPostSearchResultSearche
     });
 
     const clusters: IClusterSearchResult[] = uniqBy(serverGroups, sg => `${sg.account}-${sg.cluster}`);
-    const formatter: ISearchResultFormatter = searchResultFormatterRegistry.get(type);
+    const formatter: ISearchResultType = searchResultTypeRegistry.get(type);
 
     return this.$q.when([{
       id: type,
       category: type,
-      icon: formatter.icon,
-      iconClass: '',
+      iconClass: formatter.iconClass,
       order: formatter.order,
       results: clusters
     }]);

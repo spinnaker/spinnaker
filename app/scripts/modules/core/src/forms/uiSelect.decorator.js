@@ -47,7 +47,12 @@ module.exports = function($provide) {
       if (exception && exception.message === 'IGNORE') {
         return;
       }
-      $delegate(exception, cause);
+
+      if (Array.isArray(exception) && exception.length && exception[0] instanceof Error) {
+        exception.forEach(e => $delegate(e, cause));
+      } else {
+        $delegate(exception, cause);
+      }
     };
   });
 

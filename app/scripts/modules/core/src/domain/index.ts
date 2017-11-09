@@ -1,5 +1,3 @@
-export * from '../search/searchResult/model/IApplicationSearchResult';
-
 export * from './IArtifact'
 export * from './IArtifactKindConfig'
 

@@ -1,7 +1,7 @@
 import { IQService, module } from 'angular';
 import { StateService } from '@uirouter/angularjs';
 
-import './ClusterSearchResultFormatter';
+import './clusterSearchResultType';
 import { CLUSTER_ALLCLUSTERSGROUPINGS } from './allClustersGroupings.component';
 import { ON_DEMAND_CLUSTER_PICKER_COMPONENT } from './onDemand/onDemandClusterPicker.component';
 import { PostSearchResultSearcherRegistry } from 'core/search/searchResult/PostSearchResultSearcherRegistry';

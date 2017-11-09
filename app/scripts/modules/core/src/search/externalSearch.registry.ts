@@ -3,9 +3,9 @@ import { $q, $log } from 'ngimport';
 
 import { urlBuilderRegistry } from 'core/navigation/urlBuilder.registry';
 import { IUrlBuilder } from 'core/navigation/urlBuilder.service';
-import { searchResultFormatterRegistry } from './searchResult/searchResultFormatter.registry';
+import { searchResultTypeRegistry } from './searchResult/searchResultsType.registry';
 import { ISearchResult } from './search.service';
-import { ISearchResultFormatter } from './searchResult/searchResultFormatter.registry';
+import { ISearchResultType } from './searchResult/searchResultsType.registry';
 
 /**
  * External search registry entries add a section to the infrastructure search
@@ -15,7 +15,7 @@ export interface IExternalSearchConfig {
   /**
    * Provides the display text of the search entry. Can include HTML
    */
-  formatter: ISearchResultFormatter;
+  searchResultType: ISearchResultType;
 
   /**
    * Method to fetch search results
@@ -32,10 +32,11 @@ export interface IExternalSearchConfig {
 export class ExternalSearchRegistry {
   private registry: {[key: string]: IExternalSearchConfig} = {};
 
-  public register(key: string, searchConfig: IExternalSearchConfig) {
-    searchResultFormatterRegistry.register(key, searchConfig.formatter);
-    urlBuilderRegistry.register(key, searchConfig.urlBuilder);
-    this.registry[key] = searchConfig;
+  public register(searchConfig: IExternalSearchConfig) {
+    const type = searchConfig.searchResultType;
+    searchResultTypeRegistry.register(type);
+    urlBuilderRegistry.register(type.id, searchConfig.urlBuilder);
+    this.registry[type.id] = searchConfig;
   }
 
   public search(query: string): IPromise<ISearchResult[]> {

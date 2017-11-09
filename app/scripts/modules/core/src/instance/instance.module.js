@@ -3,7 +3,7 @@
 const angular = require('angular');
 
 import {INSTANCE_STATES} from './instance.states';
-import './InstanceSearchResultFormatter';
+import './instanceSearchResultType';
 import './instanceSelection.less';
 
 module.exports = angular

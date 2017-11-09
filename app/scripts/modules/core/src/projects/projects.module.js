@@ -3,7 +3,7 @@
 const angular = require('angular');
 
 import {PROJECTS_STATES_CONFIG} from './projects.states';
-import './ProjectSearchResultFormatter';
+import './projectSearchResultType';
 
 module.exports = angular
   .module('spinnaker.projects', [

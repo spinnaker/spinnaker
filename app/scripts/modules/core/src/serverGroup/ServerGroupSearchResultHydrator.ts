@@ -1,7 +1,7 @@
 import { get } from 'lodash';
 
 import { ApplicationReader, IApplicationSummary } from 'core/application/service/application.read.service';
-import { IServerGroupSearchResult } from 'core/search/searchResult/model/IServerGroupSearchResult';
+import { IServerGroupSearchResult } from 'core/serverGroup/serverGroupSearchResultType';
 import { ISearchResultHydrator } from 'core/search/searchResult/SearchResultHydratorRegistry';
 
 export class ServerGroupSearchResultHydrator implements ISearchResultHydrator<IServerGroupSearchResult> {

@@ -164,18 +164,15 @@ input[type="checkbox"], input[type="radio"] {
   cursor: pointer;
 }
 
-@table-name: application;
-.generate-table(@table-name);
-
-.@{table-name}-table {
-  .table-header, .@{table-name}-row {
-    .@{table-name}-application {
+.table-search-results-application {
+  .table-header, .table-row {
+    .col-application {
       width: 200px;
     }
-    .@{table-name}-account, .@{table-name}-accounts {
+    .col-account, .col-accounts {
       width: 250px;
     }
-    .@{table-name}-email {
+    .col-email {
       width: 250px;
     }
   }

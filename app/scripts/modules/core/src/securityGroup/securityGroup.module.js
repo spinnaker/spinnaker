@@ -4,7 +4,7 @@ const angular = require('angular');
 
 import {SECURITY_GROUP_STATES} from './securityGroup.states';
 import {SECURITY_GROUP_FILTER} from './filter/securityGroup.filter.component';
-import './SecurityGroupSearchResultFormatter';
+import './securityGroupSearchResultType';
 
 module.exports = angular
   .module('spinnaker.core.securityGroup', [

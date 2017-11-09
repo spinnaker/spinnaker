@@ -5,9 +5,9 @@ import { urlBuilderRegistry } from 'core/navigation/urlBuilder.registry';
 import { ApplicationReader, IApplicationSummary } from './service/application.read.service';
 import { IPostSearchResultSearcher } from 'core/search/searchResult/PostSearchResultSearcherRegistry';
 import { ISearchResult } from 'core/search/search.service';
-import { ISearchResultFormatter, searchResultFormatterRegistry } from 'core/search/searchResult/searchResultFormatter.registry';
+import { ISearchResultType, searchResultTypeRegistry } from 'core/search/searchResult/searchResultsType.registry';
 import { ISearchResultSet } from 'core/search/infrastructure/infrastructureSearch.service';
-import { IServerGroupSearchResult } from 'core/search/searchResult/model/IServerGroupSearchResult';
+import { IServerGroupSearchResult } from 'core/serverGroup/serverGroupSearchResultType';
 
 export class ApplicationPostSearchResultSearcher implements IPostSearchResultSearcher<IServerGroupSearchResult> {
 
@@ -35,13 +35,12 @@ export class ApplicationPostSearchResultSearcher implements IPostSearchResultSea
             type: ApplicationPostSearchResultSearcher.TYPE
           };
         });
-      const formatter: ISearchResultFormatter = searchResultFormatterRegistry.get(ApplicationPostSearchResultSearcher.TYPE);
+      const formatter: ISearchResultType = searchResultTypeRegistry.get(ApplicationPostSearchResultSearcher.TYPE);
 
       return [{
         id: ApplicationPostSearchResultSearcher.TYPE,
         category: ApplicationPostSearchResultSearcher.TYPE,
-        icon: formatter.icon,
-        iconClass: '',
+        iconClass: formatter.iconClass,
         order: formatter.order,
         results
       }];

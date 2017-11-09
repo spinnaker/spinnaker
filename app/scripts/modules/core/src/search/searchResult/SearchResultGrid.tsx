@@ -1,58 +1,53 @@
 import * as React from 'react';
 import { BindAll } from 'lodash-decorators';
 
-import { ISearchResultFormatter } from './searchResultFormatter.registry';
+import { ISearchResultType } from './searchResultsType.registry';
 import { SearchStatus } from './SearchResults';
+import { Spinner } from 'core/widgets';
 
 export interface ISearchResultGridProps {
   searchStatus: SearchStatus;
-  searchResultFormatter: ISearchResultFormatter;
+  searchResultsType: ISearchResultType;
   searchResults: any[];
 }
 
+const NoQuery = () => (
+  <div className="flex-fill vertical center middle">
+    <h2>Please enter a search query to get started</h2>
+  </div>
+);
+
+const NoResults = () => (
+  <div className="flex-fill vertical center middle">
+    <h2>No results found for the specified search query</h2>
+  </div>
+);
+
 @BindAll()
 export class SearchResultGrid extends React.Component<ISearchResultGridProps> {
-
-  public componentDidUpdate(): void {
-    const { searchResultFormatter } = this.props;
-    if (searchResultFormatter) {
-      searchResultFormatter.displayRenderer.scrollToTop();
-    }
-  }
-
   public render(): React.ReactElement<SearchResultGrid> {
+    const { searchStatus, searchResults, searchResultsType } = this.props;
 
-    const { searchStatus, searchResultFormatter, searchResults } = this.props;
     switch (searchStatus) {
       case SearchStatus.INITIAL:
-        return (
-          <div className="flex-center">
-            <h2>Please enter a search query to get started</h2>
-          </div>
-        );
+        return <NoQuery/>;
       case SearchStatus.SEARCHING:
         return (
-          <div className="load large flex-center">
-            <div className="message">Fetching search results...</div>
-            <div className="bars">
-              <div className="bar full"/>
-              <div className="bar"/>
-              <div className="bar"/>
-              <div className="bar"/>
-              <div className="bar"/>
-            </div>
+          <div className="flex-fill vertical center middle">
+            <Spinner size="large" message="Fetching search results ..."/>
           </div>
         );
       case SearchStatus.NO_RESULTS:
-        return (
-          <div className="flex-center">
-            <h2>No results found for the specified search query</h2>
-          </div>
-        );
+        return <NoResults/>;
       case SearchStatus.FINISHED:
+        const { SearchResultsHeader, SearchResultsData } = searchResultsType.components;
+
         return (
           <div className="search-result-grid flex-fill" style={{ height: 'initial' }}>
-            {searchResultFormatter.displayRenderer.render(searchResults)}
+            <div className={`table table-search-results table-search-results-${searchResultsType.id}`}>
+              <SearchResultsHeader type={searchResultsType} />
+              <SearchResultsData type={searchResultsType} results={searchResults} />
+            </div>
           </div>
         );
       default:

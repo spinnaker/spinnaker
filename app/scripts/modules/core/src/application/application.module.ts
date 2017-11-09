@@ -1,7 +1,7 @@
 import { module } from 'angular';
 import { StateService } from '@uirouter/angularjs';
 
-import './ApplicationSearchResultFormatter';
+import './applicationSearchResultType';
 import { APPLICATION_NAV_COMPONENT } from './nav/applicationNav.component';
 import { APPLICATION_NAV_SECONDARY_COMPONENT } from './nav/applicationNavSecondary.component';
 import { APPLICATION_STATE_PROVIDER } from './application.state.provider';

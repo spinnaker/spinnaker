@@ -10,7 +10,7 @@ import { SECURITY_GROUP_TRANSFORMER_SERVICE, SecurityGroupTransformerService } f
 import { ENTITY_TAGS_READ_SERVICE, EntityTagsReader } from 'core/entityTag/entityTags.read.service';
 import { SETTINGS } from 'core/config/settings';
 import { SEARCH_SERVICE, SearchService, ISearchResults } from 'core/search/search.service';
-import { ISecurityGroupSearchResult } from './SecurityGroupSearchResultFormatter';
+import { ISecurityGroupSearchResult } from './securityGroupSearchResultType';
 import { ProviderServiceDelegate, PROVIDER_SERVICE_DELEGATE } from 'core/cloudProvider/providerService.delegate';
 
 export interface ISecurityGroupsByAccount {
