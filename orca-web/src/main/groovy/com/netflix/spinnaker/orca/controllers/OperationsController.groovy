@@ -56,7 +56,7 @@ class OperationsController {
   @Autowired
   ExecutionRepository executionRepository
 
-  @Autowired
+  @Autowired(required = false)
   PipelineTemplateService pipelineTemplateService
 
   @Autowired
@@ -116,7 +116,7 @@ class OperationsController {
   private void parsePipelineTrigger(ExecutionRepository executionRepository, BuildService buildService, Map pipeline) {
     if (!(pipeline.trigger instanceof Map)) {
       pipeline.trigger = [:]
-      if (pipeline.plan && pipeline.type == "templatedPipeline") {
+      if (pipeline.plan && pipeline.type == "templatedPipeline" && pipelineTemplateService != null) {
         // If possible, initialize the config with a previous execution trigger context, to be able to resolve
         // dynamic parameters in jinja expressions
         try {
