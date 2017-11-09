@@ -249,7 +249,7 @@ class OperationsController {
     injectPipelineOrigin(config)
     def json = objectMapper.writeValueAsString(config)
     log.info('requested task:{}', json)
-    def pipeline = orchestrationLauncher.start(ORCHESTRATION, json)
+    def pipeline = executionLauncher.start(ORCHESTRATION, json)
     [ref: "/tasks/${pipeline.id}".toString()]
   }
 
