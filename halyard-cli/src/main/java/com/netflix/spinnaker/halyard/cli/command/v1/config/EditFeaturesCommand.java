@@ -63,6 +63,14 @@ public class EditFeaturesCommand extends AbstractConfigCommand {
   )
   private Boolean artifacts = null;
 
+  @Parameter(
+      names = "--mine-canary",
+      description = "Enable canary support. For this to work, you'll need a canary judge configured. " 
+           + "Currently, Halyard does not configure canary judge for you.",
+      arity = 1
+  )
+  private Boolean mineCanary = null;
+
   @Override
   protected void executeThis() {
     String currentDeployment = getCurrentDeployment();
@@ -78,6 +86,7 @@ public class EditFeaturesCommand extends AbstractConfigCommand {
     features.setJobs(jobs != null ? jobs : features.isJobs());
     features.setPipelineTemplates(pipelineTemplates != null ? pipelineTemplates : features.getPipelineTemplates());
     features.setArtifacts(artifacts != null ? artifacts : features.getArtifacts());
+    features.setMineCanary(mineCanary != null ? mineCanary : features.getMineCanary());
 
     if (originalHash == features.hashCode()) {
       AnsiUi.failure("No changes supplied.");
