@@ -33,29 +33,36 @@ class CleanUpTagsTaskSpec extends Specification {
       [
         tags: [
           [
-            name: "tagName",
-            value: [
+            namespace: "astrid_rules",
+            name     : "tagName",
+            value    : [
               imageId: "imageId"
-            ]
+            ],
+            valueType: "object"
           ],
           [
-            name: "tagName2",
-            value: [
+            namespace: "astrid_rules",
+            name     : "tagName2",
+            value    : [
               imageId: "imageId1"
-            ]
+            ],
+            valueType: "object"
           ]
         ]
       ],
       [
         tags: [
           [
-            name: "tagName3",
-            value: [
+            namespace: "astrid_rules",
+            name     : "tagName3",
+            value    : [
               imageId: "imageId1"
-            ]
+            ],
+            valueType: "object"
           ],
           [
-            name: "tagName3"
+            namespace: "astrid_rules",
+            name     : "tagName3"
           ]
         ]
       ]
