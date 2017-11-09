@@ -20,6 +20,7 @@ import com.netflix.spinnaker.moniker.Moniker
 import com.netflix.spinnaker.orca.clouddriver.pipeline.cluster.DisableClusterStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.cluster.ScaleDownClusterStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.cluster.ShrinkClusterStage
+import com.netflix.spinnaker.orca.pipeline.WaitStage
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner
@@ -30,25 +31,29 @@ class RedBlackStrategySpec extends Specification {
   def ShrinkClusterStage shrinkClusterStage = new ShrinkClusterStage()
   def ScaleDownClusterStage scaleDownClusterStage = new ScaleDownClusterStage()
   def DisableClusterStage disableClusterStage = new DisableClusterStage()
+  def WaitStage waitStage = new WaitStage()
 
   def "should compose flow"() {
     given:
-      Moniker moniker = new Moniker(app: "unit", stack: "test");
+      Moniker moniker = new Moniker(app: "unit", stack: "tests");
       def ctx = [
-          account          : "testAccount",
-          application      : "unit",
-          stack            : "tests",
-          moniker          : moniker,
-          cloudProvider    : "aws",
-          region           : "north",
-          availabilityZones: [
-              north: ["pole-1a"]
-          ]
+        account               : "testAccount",
+        application           : "unit",
+        stack                 : "tests",
+        moniker               : moniker,
+        cloudProvider         : "aws",
+        region                : "north",
+        availabilityZones     : [
+          north: ["pole-1a"]
+        ]
       ]
-    def stage = new Stage(Execution.newPipeline("orca"), "whatever", ctx)
-      def strat = new RedBlackStrategy(shrinkClusterStage: shrinkClusterStage,
-                                       scaleDownClusterStage: scaleDownClusterStage,
-                                       disableClusterStage: disableClusterStage)
+      def stage = new Stage(Execution.newPipeline("orca"), "whatever", ctx)
+      def strat = new RedBlackStrategy(
+        shrinkClusterStage: shrinkClusterStage,
+        scaleDownClusterStage: scaleDownClusterStage,
+        disableClusterStage: disableClusterStage,
+        waitStage: waitStage
+      )
 
     when:
       def syntheticStages = strat.composeFlow(stage)
@@ -71,7 +76,7 @@ class RedBlackStrategySpec extends Specification {
 
     when:
       ctx.maxRemainingAsgs = 10
-    stage = new Stage(Execution.newPipeline("orca"), "whatever", ctx)
+      stage = new Stage(Execution.newPipeline("orca"), "whatever", ctx)
       syntheticStages = strat.composeFlow(stage)
       beforeStages = syntheticStages.findAll { it.syntheticStageOwner == SyntheticStageOwner.STAGE_BEFORE }
       afterStages = syntheticStages.findAll { it.syntheticStageOwner == SyntheticStageOwner.STAGE_AFTER }
@@ -85,7 +90,7 @@ class RedBlackStrategySpec extends Specification {
 
     when:
       ctx.scaleDown = true
-    stage = new Stage(Execution.newPipeline("orca"), "whatever", ctx)
+      stage = new Stage(Execution.newPipeline("orca"), "whatever", ctx)
       syntheticStages = strat.composeFlow(stage)
       beforeStages = syntheticStages.findAll { it.syntheticStageOwner == SyntheticStageOwner.STAGE_BEFORE }
       afterStages = syntheticStages.findAll { it.syntheticStageOwner == SyntheticStageOwner.STAGE_AFTER }
@@ -100,7 +105,7 @@ class RedBlackStrategySpec extends Specification {
 
     when:
       ctx.interestingHealthProviderNames = ["Google"]
-    stage = new Stage(Execution.newPipeline("orca"), "whatever", ctx)
+      stage = new Stage(Execution.newPipeline("orca"), "whatever", ctx)
       syntheticStages = strat.composeFlow(stage)
       beforeStages = syntheticStages.findAll { it.syntheticStageOwner == SyntheticStageOwner.STAGE_BEFORE }
       afterStages = syntheticStages.findAll { it.syntheticStageOwner == SyntheticStageOwner.STAGE_AFTER }
@@ -110,5 +115,23 @@ class RedBlackStrategySpec extends Specification {
       afterStages.size() == 3
       afterStages.first().type == shrinkClusterStage.type
       afterStages.first().context.interestingHealthProviderNames == ["Google"]
+
+    when:
+      ctx.delayBeforeDisableSec = 5
+      ctx.delayBeforeScaleDownSec = 10
+      stage = new Stage(Execution.newPipeline("orca"), "resize", ctx)
+      syntheticStages = strat.composeFlow(stage)
+      beforeStages = syntheticStages.findAll { it.syntheticStageOwner == SyntheticStageOwner.STAGE_BEFORE }
+      afterStages = syntheticStages.findAll { it.syntheticStageOwner == SyntheticStageOwner.STAGE_AFTER }
+
+    then:
+      beforeStages.isEmpty()
+      afterStages[0].type == shrinkClusterStage.type
+      afterStages[1].type == waitStage.type
+      afterStages[1].context.waitTime == 5
+      afterStages[2].type == disableClusterStage.type
+      afterStages[3].type == waitStage.type
+      afterStages[3].context.waitTime == 10
+      afterStages[4].type == scaleDownClusterStage.type
   }
 }

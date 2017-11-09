@@ -40,6 +40,7 @@ class StageData {
 
   @Deprecated
   long delayBeforeDisableSec
+  long delayBeforeScaleDownSec
 
   long delayBeforeCleanup
   PipelineBeforeCleanup pipelineBeforeCleanup
@@ -65,6 +66,10 @@ class StageData {
 
   long getDelayBeforeCleanup() {
     return this.delayBeforeCleanup ?: this.delayBeforeDisableSec
+  }
+
+  long getDelayBeforeScaleDown() {
+    return this.delayBeforeScaleDownSec
   }
 
   @Deprecated
