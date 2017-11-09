@@ -83,7 +83,7 @@ abstract public class SpinnakerService<T> implements HasServiceSettings<T> {
         getCanonicalName() + ".yml"
     );
 
-    if (userSettingsFile.exists()) {
+    if (userSettingsFile.exists() && userSettingsFile.length() != 0) {
       try {
         log.info("Reading user provided service settings from " + userSettingsFile);
         return objectMapper.convertValue(
