@@ -26,6 +26,7 @@ import com.netflix.spinnaker.clouddriver.model.securitygroups.HttpRule
 import com.netflix.spinnaker.clouddriver.model.securitygroups.Rule
 import groovy.transform.EqualsAndHashCode
 import io.fabric8.kubernetes.api.model.extensions.Ingress
+import io.fabric8.kubernetes.client.internal.SerializationUtils
 
 @EqualsAndHashCode(includes = ["name", "namespace", "accountName"])
 class KubernetesV1SecurityGroup implements SecurityGroup, Serializable {
@@ -41,6 +42,7 @@ class KubernetesV1SecurityGroup implements SecurityGroup, Serializable {
   String accountName
   String region
   String namespace
+  String yaml
 
   Map<String, String> annotations
   Map<String, String> labels
@@ -65,6 +67,7 @@ class KubernetesV1SecurityGroup implements SecurityGroup, Serializable {
     this.name = ingress.metadata.name
     this.id = this.name
     this.description = KubernetesApiConverter.fromIngress(ingress)
+    this.yaml = SerializationUtils.dumpWithoutRuntimeStateAsYaml(ingress)
 
     this.annotations = ingress.metadata.annotations
     this.labels = ingress.metadata.labels
