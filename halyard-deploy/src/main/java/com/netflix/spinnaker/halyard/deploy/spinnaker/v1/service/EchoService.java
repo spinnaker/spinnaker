@@ -61,7 +61,7 @@ abstract public class EchoService extends SpringService<EchoService.Echo> {
     List<Profile> profiles = super.getProfiles(deploymentConfiguration, endpoints);
     String filename = "echo.yml";
 
-    String path = Paths.get(OUTPUT_PATH, filename).toString();
+    String path = Paths.get(getConfigOutputPath(), filename).toString();
     Profile profile = echoProfileFactory.getProfile(filename, path, deploymentConfiguration, endpoints);
 
     profiles.add(profile);

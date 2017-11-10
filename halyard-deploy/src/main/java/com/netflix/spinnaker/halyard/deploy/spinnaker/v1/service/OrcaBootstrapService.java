@@ -50,7 +50,7 @@ abstract public class OrcaBootstrapService extends OrcaService {
     List<Profile> profiles = super.getProfiles(deploymentConfiguration, endpoints);
 
     String filename = "orca-bootstrap.yml";
-    String path = Paths.get(OUTPUT_PATH, filename).toString();
+    String path = Paths.get(getConfigOutputPath(), filename).toString();
     Profile profile = orcaBootstrapProfileFactory.getProfile(filename, path, deploymentConfiguration, endpoints);
 
     profiles.add(profile);

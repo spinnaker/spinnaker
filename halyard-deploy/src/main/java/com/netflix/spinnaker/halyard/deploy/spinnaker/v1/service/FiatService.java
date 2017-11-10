@@ -61,7 +61,7 @@ abstract public class FiatService extends SpringService<FiatService.Fiat> {
     List<Profile> profiles = super.getProfiles(deploymentConfiguration, endpoints);
     String filename = "fiat.yml";
 
-    String path = Paths.get(OUTPUT_PATH, filename).toString();
+    String path = Paths.get(getConfigOutputPath(), filename).toString();
     Profile profile = fiatProfileFactory.getProfile(filename, path, deploymentConfiguration, endpoints);
 
     profiles.add(profile);

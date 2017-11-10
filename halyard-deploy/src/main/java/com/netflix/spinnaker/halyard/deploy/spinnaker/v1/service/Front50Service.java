@@ -69,7 +69,7 @@ abstract public class Front50Service extends SpringService<Front50Service.Front5
     List<Profile> profiles = super.getProfiles(deploymentConfiguration, endpoints);
     String filename = "front50.yml";
 
-    String path = Paths.get(OUTPUT_PATH, filename).toString();
+    String path = Paths.get(getConfigOutputPath(), filename).toString();
     Profile profile = front50ProfileFactory.getProfile(filename, path, deploymentConfiguration, endpoints);
 
     profiles.add(profile);

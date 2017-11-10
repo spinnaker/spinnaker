@@ -74,7 +74,7 @@ abstract public class ClouddriverService extends SpringService<ClouddriverServic
     List<Profile> profiles = super.getProfiles(deploymentConfiguration, endpoints);
     String filename = "clouddriver.yml";
 
-    String path = Paths.get(OUTPUT_PATH, filename).toString();
+    String path = Paths.get(getConfigOutputPath(), filename).toString();
     Profile profile = clouddriverProfileFactory.getProfile(filename, path, deploymentConfiguration, endpoints);
 
     profiles.add(profile);

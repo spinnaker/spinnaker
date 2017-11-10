@@ -31,7 +31,9 @@ import java.util.Optional;
 
 @Component
 abstract public class SpringService<T> extends SpinnakerService<T> {
-  protected final String OUTPUT_PATH = "/opt/spinnaker/config/";
+  protected String getConfigOutputPath() {
+    return "/opt/spinnaker/config/";
+  }
 
   @Autowired
   SpinnakerProfileFactory spinnakerProfileFactory;
@@ -39,7 +41,7 @@ abstract public class SpringService<T> extends SpinnakerService<T> {
   @Override
   public List<Profile> getProfiles(DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
     String filename = "spinnaker.yml";
-    String path = Paths.get(OUTPUT_PATH, filename).toString();
+    String path = Paths.get(getConfigOutputPath(), filename).toString();
     List<Profile> result = new ArrayList<>();
     result.add(spinnakerProfileFactory.getProfile(filename, path, deploymentConfiguration, endpoints));
     return result;
@@ -48,7 +50,7 @@ abstract public class SpringService<T> extends SpinnakerService<T> {
   @Override
   protected Optional<String> customProfileOutputPath(String profileName) {
     if (profileName.equals(getCanonicalName() + ".yml") || profileName.startsWith(getCanonicalName() + "-") || profileName.startsWith("spinnaker")) {
-      return Optional.of(OUTPUT_PATH + profileName);
+      return Optional.of(getConfigOutputPath() + profileName);
     } else {
       return Optional.empty();
     }

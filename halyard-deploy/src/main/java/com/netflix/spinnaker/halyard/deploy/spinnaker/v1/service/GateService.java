@@ -74,7 +74,7 @@ abstract public class GateService extends SpringService<GateService.Gate> {
     List<Profile> profiles = super.getProfiles(deploymentConfiguration, endpoints);
     String filename = "gate.yml";
 
-    String path = Paths.get(OUTPUT_PATH, filename).toString();
+    String path = Paths.get(getConfigOutputPath(), filename).toString();
     GateProfileFactory gateProfileFactory = getGateProfileFactory(deploymentConfiguration.getName());
     Profile profile = gateProfileFactory.getProfile(filename, path, deploymentConfiguration, endpoints);
 

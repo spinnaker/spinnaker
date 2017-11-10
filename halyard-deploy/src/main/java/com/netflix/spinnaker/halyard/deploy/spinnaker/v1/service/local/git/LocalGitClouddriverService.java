@@ -40,6 +40,11 @@ public class LocalGitClouddriverService extends ClouddriverService implements Lo
   @Autowired
   ArtifactService artifactService;
 
+  @Override
+  protected String getConfigOutputPath() {
+    return "~/.spinnaker";
+  }
+
   @Autowired
   String gitRoot;
 

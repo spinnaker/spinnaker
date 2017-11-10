@@ -30,7 +30,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import retrofit.http.GET;
 
-import javax.swing.text.html.Option;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
@@ -81,7 +80,7 @@ abstract public class RoscoService extends SpringService<RoscoService.Rosco> {
     List<Profile> profiles = super.getProfiles(deploymentConfiguration, endpoints);
     String filename = "rosco.yml";
 
-    String path = Paths.get(OUTPUT_PATH, filename).toString();
+    String path = Paths.get(getConfigOutputPath(), filename).toString();
     Profile profile = roscoProfileFactory.getProfile(filename, path, deploymentConfiguration, endpoints);
 
     profiles.add(profile);
