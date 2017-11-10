@@ -133,7 +133,7 @@ trait DeploymentDetailsAware {
         return execution.trigger.parentExecution
       } else if (execution.trigger?.isPipeline) {
         if (execution.trigger.parentExecution.type == null) {
-          execution.trigger.parentExecution = [type: PIPELINE.name()]
+          execution.trigger.parentExecution.type = PIPELINE.name()
         }
         return pipelineObjectMapper.convertValue(execution.trigger.parentExecution, Execution)
       }
