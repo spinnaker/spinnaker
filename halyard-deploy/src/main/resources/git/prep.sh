@@ -9,4 +9,14 @@ if [ $? -ne 0 ]; then
   exit 1;
 fi
 
+function git_changes {
+  git diff --shortstat 2> /dev/null | tail -n1
+}
+
+FAILED_STASHES=()
+
+function failed_stash {
+  FAILED_STASHES+=($1)
+}
+
 {%prep-commands%}

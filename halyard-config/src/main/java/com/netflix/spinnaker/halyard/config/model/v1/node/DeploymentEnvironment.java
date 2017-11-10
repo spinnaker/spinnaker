@@ -95,11 +95,17 @@ public class DeploymentEnvironment extends Node {
   private DeploymentType type = DeploymentType.LocalDebian;
   private String accountName;
   private Boolean bootstrapOnly;
+  private Boolean updateVersions = true;
   private Consul consul = new Consul();
   private Vault vault = new Vault();
   private String location;
   private CustomSizing customSizing = new CustomSizing();
   private GitConfig gitConfig = new GitConfig();
+
+  public Boolean getUpdateVersions() {
+    // default is true, even when unset
+    return updateVersions == null ? true : updateVersions;
+  }
 
   @Data
   public static class Consul {

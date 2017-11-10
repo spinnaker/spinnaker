@@ -1043,6 +1043,7 @@ This is only required when Spinnaker is being deployed in non-Kubernetes cluster
  * `--type`: Distributed: Deploy Spinnaker with one server group per microservice, and a single shared Redis.
 LocalDebian: Download and run the Spinnaker debians on the machine running the Daemon.
 LocalGit: Download and run the Spinnaker git repos on the machine running the Daemon.
+ * `--update-versions`: When set to "false", any *local* version of Spinnaker components will be used instead of attempting to update. This does not work for distributed installations of Spinnaker, where no *local* version exists.
  * `--vault-address`: The address of a running Vault datastore. See https://www.vaultproject.io/.This is only required when Spinnaker is being deployed in non-Kubernetes clustered configuration.
  * `--vault-enabled`: Whether or not to use Vault as a secret storage mechanism to deploy Spinnaker.
 
@@ -2489,8 +2490,8 @@ hal config provider docker-registry account add ACCOUNT [parameters]
   [us|eu|asia].gcr.io - Regional GCR
   localhost           - Locally deployed registry
  * `--cache-interval-seconds`: (*Default*: `30`) How many seconds elapse between polling your docker registry. Certain registries are sensitive to over-polling, and larger intervals (e.g. 10 minutes = 600 seconds) are desirable if you're seeing rate limiting.
- * `--cache-threads`: (*Default*: `1`)  How many threads to cache all provided repos on. Really only useful if you have a ton of repos.
- * `--client-timeout-millis`: (*Default*: `60000`) Paginate size for the docker repository _catalog endpoint.
+ * `--cache-threads`: (*Default*: `1`) How many threads to cache all provided repos on. Really only useful if you have a ton of repos.
+ * `--client-timeout-millis`: (*Default*: `60000`) Timeout time in milliseconds for this repository.
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--email`: (*Default*: `fake.email@spinnaker.io`) Your docker registry email (often this only needs to be well-formed, rather than be a real address)
  * `--no-validate`: (*Default*: `false`) Skip validation.
@@ -2543,7 +2544,7 @@ hal config provider docker-registry account edit ACCOUNT [parameters]
   localhost           - Locally deployed registry
  * `--cache-interval-seconds`: How many seconds elapse between polling your docker registry. Certain registries are sensitive to over-polling, and larger intervals (e.g. 10 minutes = 600 seconds) are desirable if you're seeing rate limiting.
  * `--cache-threads`: How many threads to cache all provided repos on. Really only useful if you have a ton of repos.
- * `--client-timeout-millis`: Paginate size for the docker repository _catalog endpoint.
+ * `--client-timeout-millis`: Timeout time in milliseconds for this repository.
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--email`: Your docker registry email (often this only needs to be well-formed, rather than be a real address)
  * `--no-validate`: (*Default*: `false`) Skip validation.
@@ -2557,6 +2558,7 @@ hal config provider docker-registry account edit ACCOUNT [parameters]
  * `--sort-tags-by-date`: Sort tags by creation date.
  * `--track-digests`: Track digest changes. This is not recommended as it consumes a high QPM, and most registries are flaky.
  * `--username`: Your docker registry username
+
 
 ---
 ## hal config provider docker-registry account get

@@ -17,10 +17,11 @@
 
 package com.netflix.spinnaker.halyard.core.resource.v1;
 
+import lombok.Setter;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
-import lombok.Setter;
 
 /**
  * Given a key/value set of bindings, and a resource that has "bindable" sites matching

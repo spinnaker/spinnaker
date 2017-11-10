@@ -51,6 +51,13 @@ public class EditDeploymentEnvironmentCommand extends AbstractConfigCommand {
   Boolean bootstrapOnly;
 
   @Parameter(
+      names = "--update-versions",
+      description = "When set to \"false\", any *local* version of Spinnaker components will be used instead of attempting " +
+          "to update. This does not work for distributed installations of Spinnaker, where no *local* version exists."
+  )
+  Boolean updateVersions;
+
+  @Parameter(
       names = "--type",
       description = "Distributed: Deploy Spinnaker with one server group per microservice, and a single shared Redis.\n"
           + "LocalDebian: Download and run the Spinnaker debians on the machine running the Daemon.\n"
@@ -137,6 +144,7 @@ public class EditDeploymentEnvironmentCommand extends AbstractConfigCommand {
 
     deploymentEnvironment.setAccountName(isSet(accountName) ? accountName : deploymentEnvironment.getAccountName());
     deploymentEnvironment.setBootstrapOnly(isSet(bootstrapOnly) ? bootstrapOnly : deploymentEnvironment.getBootstrapOnly());
+    deploymentEnvironment.setUpdateVersions(isSet(updateVersions) ? updateVersions : deploymentEnvironment.getUpdateVersions());
     deploymentEnvironment.setType(type != null ? type : deploymentEnvironment.getType());
 
     consul.setAddress(isSet(consulAddress) ? consulAddress : consul.getAddress());

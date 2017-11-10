@@ -50,25 +50,31 @@ public interface LocalGitService<T> extends LocalService<T> {
 
   default String installArtifactCommand(DeploymentDetails deploymentDetails) {
     Map<String, String> bindings = new HashMap<>();
-    String artifactName = getArtifact().getName();
-    bindings.put("artifact", artifactName);
-    bindings.put("version", getArtifactCommit(deploymentDetails.getDeploymentName()));
-
-    DeploymentEnvironment.GitConfig gitConfig = deploymentDetails.getDeploymentConfiguration()
-        .getDeploymentEnvironment()
-        .getGitConfig();
-
-    bindings.put("origin", gitConfig.getOriginUser());
-    bindings.put("upstream", gitConfig.getUpstreamUser());
-
     TemplatedResource installResource = new JarResource("/git/install-component.sh");
-
     installResource.setBindings(bindings);
-
     return installResource.toString();
   }
 
   default String prepArtifactCommand(DeploymentDetails deploymentDetails) {
-    return "echo 'TODO'";
+    Map<String, String> bindings = new HashMap<>();
+    String artifactName = getArtifact().getName();
+    bindings.put("artifact", artifactName);
+    bindings.put("repo", artifactName); // TODO(lwander): make configurable
+    bindings.put("version", getArtifactCommit(deploymentDetails.getDeploymentName()));
+
+    DeploymentEnvironment env = deploymentDetails.getDeploymentConfiguration()
+        .getDeploymentEnvironment();
+    DeploymentEnvironment.GitConfig gitConfig = env.getGitConfig();
+    boolean update = env.getUpdateVersions();
+
+    bindings.put("update", update ? "true" : "");
+    bindings.put("origin", gitConfig.getOriginUser());
+    bindings.put("upstream", gitConfig.getUpstreamUser());
+
+    TemplatedResource prepResource = new JarResource("/git/prep-component.sh");
+
+    prepResource.setBindings(bindings);
+
+    return prepResource.toString();
   }
 }
