@@ -50,7 +50,7 @@ public class S3Configuration {
       .map(c -> c.getName())
       .forEach(s3StorageServiceBuilder::accountName);
 
-    S3StorageService s3StorageService = s3StorageServiceBuilder.objectMapper(awsObjectMapper).build();
+    S3StorageService s3StorageService = s3StorageServiceBuilder.kayentaObjectMapper(awsObjectMapper).build();
 
     log.info("Populated S3StorageService with {} AWS accounts.", s3StorageService.getAccountNames().size());
 
