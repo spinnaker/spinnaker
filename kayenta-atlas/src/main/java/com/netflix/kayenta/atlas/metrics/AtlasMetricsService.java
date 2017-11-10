@@ -121,8 +121,8 @@ public class AtlasMetricsService implements MetricsService {
     String decoratedQuery = atlasMetricSetQuery.getQ() + "," + atlasCanaryScope.cq();
     String isoStep = Duration.of(atlasCanaryScope.getStep(), SECONDS) + "";
     List<AtlasResults> atlasResultsList = atlasRemoteService.fetch(decoratedQuery,
-                                                                   atlasCanaryScope.getStart(),
-                                                                   atlasCanaryScope.getEnd(),
+                                                                   atlasCanaryScope.getStart().toEpochMilli(),
+                                                                   atlasCanaryScope.getEnd().toEpochMilli(),
                                                                    isoStep);
     Map<String, AtlasResults> idToAtlasResultsMap = AtlasResultsHelper.merge(atlasResultsList);
     List<MetricSet> metricSetList = new ArrayList<>();
