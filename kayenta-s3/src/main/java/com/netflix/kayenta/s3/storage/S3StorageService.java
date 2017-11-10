@@ -50,7 +50,7 @@ import java.util.*;
 public class S3StorageService implements StorageService {
 
   @NotNull
-  private ObjectMapper objectMapper;
+  private ObjectMapper kayentaObjectMapper;
 
   @NotNull
   @Singular
@@ -139,7 +139,7 @@ public class S3StorageService implements StorageService {
   }
 
   private <T> T deserialize(S3Object s3Object, TypeReference typeReference) throws IOException {
-    return objectMapper.readValue(s3Object.getObjectContent(), typeReference);
+    return kayentaObjectMapper.readValue(s3Object.getObjectContent(), typeReference);
   }
 
   @Override
@@ -182,7 +182,7 @@ public class S3StorageService implements StorageService {
         .build();
 
       try {
-        canaryConfigSummaryJson = objectMapper.writeValueAsString(canaryConfigSummary);
+        canaryConfigSummaryJson = kayentaObjectMapper.writeValueAsString(canaryConfigSummary);
       } catch (JsonProcessingException e) {
         throw new IllegalArgumentException("Problem serializing canaryConfigSummary -> " + canaryConfigSummary, e);
       }
@@ -197,7 +197,7 @@ public class S3StorageService implements StorageService {
     }
 
     try {
-      byte[] bytes = objectMapper.writeValueAsBytes(obj);
+      byte[] bytes = kayentaObjectMapper.writeValueAsBytes(obj);
       ObjectMetadata objectMetadata = new ObjectMetadata();
       objectMetadata.setContentLength(bytes.length);
       objectMetadata.setContentMD5(new String(org.apache.commons.codec.binary.Base64.encodeBase64(DigestUtils.md5(bytes))));
@@ -278,7 +278,7 @@ public class S3StorageService implements StorageService {
           .build();
 
         try {
-          canaryConfigSummaryJson = objectMapper.writeValueAsString(canaryConfigSummary);
+          canaryConfigSummaryJson = kayentaObjectMapper.writeValueAsString(canaryConfigSummary);
         } catch (JsonProcessingException e) {
           throw new IllegalArgumentException("Problem serializing canaryConfigSummary -> " + canaryConfigSummary, e);
         }
