@@ -24,6 +24,7 @@ import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Provider;
 import lombok.AccessLevel;
 import lombok.Getter;
 
@@ -57,6 +58,12 @@ public abstract class AbstractEditAccountCommand<T extends Account> extends Abst
       description = AccountCommandProperties.REQUIRED_GROUP_MEMBERSHIP_DESCRIPTION
   )
   List<String> requiredGroupMembership;
+
+  @Parameter(
+      names = "--provider-version",
+      description = AccountCommandProperties.PROVIDER_VERSION_DESCRIPTION
+  )
+  private Provider.ProviderVersion providerVersion;
 
   protected abstract Account editAccount(T account);
 
@@ -93,6 +100,8 @@ public abstract class AbstractEditAccountCommand<T extends Account> extends Abst
 
     account.setRequiredGroupMembership(
         updateStringList(account.getRequiredGroupMembership(), requiredGroupMembership, addRequiredGroupMembership, removeRequiredGroupMembership));
+
+    account.setProviderVersion(isSet(providerVersion) ? providerVersion : account.getProviderVersion());
 
     if (originaHash == account.hashCode()) {
       AnsiUi.failure("No changes supplied.");

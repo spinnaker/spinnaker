@@ -23,6 +23,7 @@ import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Provider;
 import lombok.AccessLevel;
 import lombok.Getter;
 
@@ -45,6 +46,12 @@ public abstract class AbstractAddAccountCommand extends AbstractHasAccountComman
       description = AccountCommandProperties.REQUIRED_GROUP_MEMBERSHIP_DESCRIPTION
   )
   List<String> requiredGroupMembership = new ArrayList<>();
+
+  @Parameter(
+      names = "--provider-version",
+      description = AccountCommandProperties.PROVIDER_VERSION_DESCRIPTION
+  )
+  private Provider.ProviderVersion providerVersion;
 
   protected abstract Account buildAccount(String accountName);
 
@@ -72,6 +79,7 @@ public abstract class AbstractAddAccountCommand extends AbstractHasAccountComman
     String accountName = getAccountName();
     Account account = buildAccount(accountName);
     account.setRequiredGroupMembership(requiredGroupMembership);
+    account.setProviderVersion(providerVersion);
     String providerName = getProviderName();
 
     String currentDeployment = getCurrentDeployment();

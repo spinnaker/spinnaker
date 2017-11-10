@@ -29,6 +29,7 @@ import java.util.List;
 public abstract class Account extends Node implements Cloneable {
   String name;
   List<String> requiredGroupMembership = new ArrayList<>();
+  Provider.ProviderVersion providerVersion = Provider.ProviderVersion.V1;
 
   @Override
   public void accept(ConfigProblemSetBuilder psBuilder, Validator v) {

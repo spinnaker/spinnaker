@@ -57,6 +57,22 @@ public abstract class Provider<A extends Account> extends Node implements Clonea
 
   abstract public ProviderType providerType();
 
+  public enum ProviderVersion {
+    V1("v1"),
+    V2("v2");
+
+    private final String name;
+
+    ProviderVersion(String name) {
+      this.name = name;
+    }
+
+    @Override
+    public String toString() {
+      return this.name;
+    }
+  }
+
   public enum ProviderType {
     APPENGINE("appengine"),
     AWS("aws"),

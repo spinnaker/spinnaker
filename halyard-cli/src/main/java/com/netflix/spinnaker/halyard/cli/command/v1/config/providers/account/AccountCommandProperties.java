@@ -19,4 +19,6 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config.providers.account;
 
 public class AccountCommandProperties {
   public static final String REQUIRED_GROUP_MEMBERSHIP_DESCRIPTION = "A user must be a member of at least one specified group in order to make changes to this account's cloud resources.";
+
+  public static final String PROVIDER_VERSION_DESCRIPTION = "Some providers support multiple versions/release tracks. This allows you to pick the version of the provider (not the resources it manages) to run within Spinnaker.";
 }
