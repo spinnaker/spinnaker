@@ -1,8 +1,9 @@
 import * as React from 'react';
 
 import {
-  AccountCell, BasicCell, HrefCell, searchResultTypeRegistry, ISearchResult,
-  HeaderCell, TableBody, TableHeader, TableRow, SearchResultTab, ISearchColumn,
+  AccountCell, BasicCell, HrefCell, searchResultTypeRegistry, ISearchResult, ISearchResultType,
+  SearchResultTabComponent, SearchResultsHeaderComponent, SearchResultsDataComponent, DefaultSearchResultTab,
+  HeaderCell, TableBody, TableHeader, TableRow, ISearchColumn,
 } from 'core/search';
 
 export interface IApplicationSearchResult extends ISearchResult {
@@ -36,35 +37,41 @@ const itemKeyFn = (item: IApplicationSearchResult) => item.application;
 const itemSortFn = (a: IApplicationSearchResult, b: IApplicationSearchResult) =>
   a.application.localeCompare(b.application);
 
-searchResultTypeRegistry.register({
+const SearchResultTab: SearchResultTabComponent = ({ ...props }) => (
+  <DefaultSearchResultTab {...props} iconClass={iconClass} label={displayName} />
+);
+
+const SearchResultsHeader: SearchResultsHeaderComponent = () => (
+  <TableHeader>
+    <HeaderCell col={cols.APPLICATION}/>
+    <HeaderCell col={cols.ACCOUNT}/>
+    <HeaderCell col={cols.EMAIL}/>
+  </TableHeader>
+);
+
+const SearchResultsData: SearchResultsDataComponent = ({ results }) => (
+  <TableBody>
+    { results.slice().sort(itemSortFn).map(item => (
+      <TableRow key={itemKeyFn(item)}>
+        <HrefCell item={item} col={cols.APPLICATION} />
+        <AccountCell item={item} col={cols.ACCOUNT} />
+        <BasicCell item={item} col={cols.EMAIL} />
+      </TableRow>
+    ))}
+  </TableBody>
+);
+
+const applicationSearchResultType: ISearchResultType = {
   id: 'applications',
   order: 1,
   displayName,
   iconClass,
   displayFormatter: (searchResult: IApplicationSearchResult) => searchResult.application,
   components: {
-    SearchResultTab: ({ ...props }) => (
-      <SearchResultTab {...props} iconClass={iconClass} label={displayName} />
-    ),
+    SearchResultTab,
+    SearchResultsHeader,
+    SearchResultsData,
+  },
+};
 
-    SearchResultsHeader: () => (
-      <TableHeader>
-        <HeaderCell col={cols.APPLICATION}/>
-        <HeaderCell col={cols.ACCOUNT}/>
-        <HeaderCell col={cols.EMAIL}/>
-      </TableHeader>
-    ),
-
-    SearchResultsData: ({ results }) => (
-      <TableBody>
-        { results.slice().sort(itemSortFn).map(item => (
-          <TableRow key={itemKeyFn(item)}>
-            <HrefCell item={item} col={cols.APPLICATION} />
-            <AccountCell item={item} col={cols.ACCOUNT} />
-            <BasicCell item={item} col={cols.EMAIL} />
-          </TableRow>
-        ))}
-      </TableBody>
-    )
-  }
-});
+searchResultTypeRegistry.register(applicationSearchResultType);

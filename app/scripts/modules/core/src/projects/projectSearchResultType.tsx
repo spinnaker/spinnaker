@@ -1,8 +1,9 @@
 import * as React from 'react';
 
 import {
-  searchResultTypeRegistry, BasicCell, HrefCell, ISearchResult, HeaderCell,
-  TableBody, TableHeader, TableRow, SearchResultTab, ISearchColumn,
+  searchResultTypeRegistry, BasicCell, HrefCell, ISearchResult, HeaderCell, ISearchResultType,
+  SearchResultTabComponent, SearchResultsHeaderComponent, SearchResultsDataComponent, DefaultSearchResultTab,
+  TableBody, TableHeader, TableRow, ISearchColumn,
 } from 'core/search';
 import { IProjectConfig } from 'core/domain';
 
@@ -36,7 +37,29 @@ const itemKeyFn = (item: IProjectSearchResult) => item.id;
 const itemSortFn = (a: IProjectSearchResult, b: IProjectSearchResult) =>
   a.name.localeCompare(b.name);
 
-searchResultTypeRegistry.register({
+const SearchResultTab: SearchResultTabComponent = ({ ...props }) => (
+  <DefaultSearchResultTab {...props} iconClass={iconClass} label={displayName} />
+);
+
+const SearchResultsHeader: SearchResultsHeaderComponent = () => (
+  <TableHeader>
+    <HeaderCell col={cols.NAME}/>
+    <HeaderCell col={cols.EMAIL}/>
+  </TableHeader>
+);
+
+const SearchResultsData: SearchResultsDataComponent = ({ results }) => (
+  <TableBody>
+    {results.slice().sort(itemSortFn).map(item => (
+      <TableRow key={itemKeyFn(item)}>
+        <HrefCell item={item} col={cols.NAME} />
+        <BasicCell item={item} col={cols.EMAIL} />
+      </TableRow>
+    ))}
+  </TableBody>
+);
+
+const projectsSearchResultType: ISearchResultType = {
   id: 'projects',
   order: 0,
   iconClass,
@@ -49,27 +72,10 @@ searchResultTypeRegistry.register({
     return project + applications;
   },
   components: {
-    SearchResultTab: ({ ...props }) => (
-      <SearchResultTab {...props} iconClass={iconClass} label={displayName} />
-    ),
+    SearchResultTab,
+    SearchResultsHeader,
+    SearchResultsData,
+  },
+};
 
-    SearchResultsHeader: () => (
-      <TableHeader>
-        <HeaderCell col={cols.NAME}/>
-        <HeaderCell col={cols.EMAIL}/>
-      </TableHeader>
-    ),
-
-    SearchResultsData: ({ results }) => (
-      <TableBody>
-        {results.slice().sort(itemSortFn).map(item => (
-          <TableRow key={itemKeyFn(item)}>
-            <HrefCell item={item} col={cols.NAME} />
-            <BasicCell item={item} col={cols.EMAIL} />
-          </TableRow>
-        ))}
-      </TableBody>
-    )
-  }
-
-});
+searchResultTypeRegistry.register(projectsSearchResultType);

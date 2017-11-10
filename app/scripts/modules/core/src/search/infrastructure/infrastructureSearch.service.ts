@@ -4,11 +4,7 @@ import { Observable, Subject } from 'rxjs';
 import { UrlBuilderService, URL_BUILDER_SERVICE } from 'core/navigation/urlBuilder.service';
 import { ProviderServiceDelegate, PROVIDER_SERVICE_DELEGATE } from 'core/cloudProvider/providerService.delegate';
 import { getFallbackResults, ISearchResult, ISearchResults, SearchService, SEARCH_SERVICE } from '../search.service';
-import {
-  IResultDisplayFormatter,
-  ISearchResultType,
-  searchResultTypeRegistry
-} from '../searchResult/searchResultsType.registry';
+import { IResultDisplayFormatter, ISearchResultType, searchResultTypeRegistry, } from '../searchResult/searchResultsType.registry';
 import { externalSearchRegistry } from '../externalSearch.registry';
 
 export interface ISearchResultSet {

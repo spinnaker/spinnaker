@@ -15,7 +15,7 @@ export interface ISearchResultTabProps {
 }
 
 @BindAll()
-export class SearchResultTab extends React.Component<ISearchResultTabProps> {
+export class DefaultSearchResultTab extends React.Component<ISearchResultTabProps> {
   private handleClick(): void {
     const { type, resultsCount, onClick } = this.props;
     resultsCount && onClick && onClick(type);

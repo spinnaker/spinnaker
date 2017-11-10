@@ -1,8 +1,9 @@
 import * as React from 'react';
 
 import {
-  AccountCell, BasicCell, HrefCell, searchResultTypeRegistry, ISearchColumn,
-  ISearchResult, HeaderCell, TableBody, TableHeader, TableRow, SearchResultTab,
+  AccountCell, BasicCell, HrefCell, searchResultTypeRegistry, ISearchColumn, ISearchResultType,
+  SearchResultTabComponent, SearchResultsHeaderComponent, SearchResultsDataComponent, DefaultSearchResultTab,
+  ISearchResult, HeaderCell, TableBody, TableHeader, TableRow,
 } from 'core/search';
 
 export interface ISecurityGroupSearchResult extends ISearchResult {
@@ -34,35 +35,41 @@ const itemSortFn = (a: ISecurityGroupSearchResult, b: ISecurityGroupSearchResult
   return order !== 0 ? order : a.region.localeCompare(b.region);
 };
 
-searchResultTypeRegistry.register({
+const SearchResultTab: SearchResultTabComponent = ({ ...props }) => (
+  <DefaultSearchResultTab {...props} iconClass={iconClass} label={displayName} />
+);
+
+const SearchResultsHeader: SearchResultsHeaderComponent = () => (
+  <TableHeader>
+    <HeaderCell col={cols.NAME}/>
+    <HeaderCell col={cols.ACCOUNT}/>
+    <HeaderCell col={cols.REGION}/>
+  </TableHeader>
+);
+
+const SearchResultsData: SearchResultsDataComponent = ({ results }) => (
+  <TableBody>
+    {results.slice().sort(itemSortFn).map(item => (
+      <TableRow key={itemKeyFn(item)}>
+        <HrefCell item={item} col={cols.NAME} />
+        <AccountCell item={item} col={cols.ACCOUNT} />
+        <BasicCell item={item} col={cols.REGION} />
+      </TableRow>
+    ))}
+  </TableBody>
+);
+
+const securityGroupsSearchResultType: ISearchResultType = {
   id: 'securityGroups',
   iconClass,
   displayName,
   order: 6,
   displayFormatter: (searchResult: ISecurityGroupSearchResult) => `${searchResult.name} (${searchResult.region})`,
   components: {
-    SearchResultTab: ({ ...props }) => (
-      <SearchResultTab {...props} iconClass={iconClass} label={displayName} />
-    ),
+    SearchResultTab,
+    SearchResultsHeader,
+    SearchResultsData,
+  },
+};
 
-    SearchResultsHeader: () => (
-      <TableHeader>
-        <HeaderCell col={cols.NAME}/>
-        <HeaderCell col={cols.ACCOUNT}/>
-        <HeaderCell col={cols.REGION}/>
-      </TableHeader>
-    ),
-
-    SearchResultsData: ({ results }) => (
-      <TableBody>
-        {results.slice().sort(itemSortFn).map(item => (
-          <TableRow key={itemKeyFn(item)}>
-            <HrefCell item={item} col={cols.NAME} />
-            <AccountCell item={item} col={cols.ACCOUNT} />
-            <BasicCell item={item} col={cols.REGION} />
-          </TableRow>
-        ))}
-      </TableBody>
-    )
-  }
-});
+searchResultTypeRegistry.register(securityGroupsSearchResultType);

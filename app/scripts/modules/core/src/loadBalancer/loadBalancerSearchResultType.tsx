@@ -1,8 +1,9 @@
 import * as React from 'react';
 
 import {
-  AccountCell, BasicCell, HrefCell, searchResultTypeRegistry, ISearchColumn,
-  ISearchResult, HeaderCell, TableBody, TableHeader, TableRow, SearchResultTab,
+  AccountCell, BasicCell, HrefCell, searchResultTypeRegistry, ISearchColumn, ISearchResultType,
+  SearchResultTabComponent, SearchResultsHeaderComponent, SearchResultsDataComponent, DefaultSearchResultTab,
+  ISearchResult, HeaderCell, TableBody, TableHeader, TableRow,
 } from 'core/search';
 
 export interface ILoadBalancerSearchResult extends ISearchResult {
@@ -38,7 +39,33 @@ const itemSortFn = (a: ILoadBalancerSearchResult, b: ILoadBalancerSearchResult) 
   return order !== 0 ? order : a.region.localeCompare(b.region);
 };
 
-searchResultTypeRegistry.register({
+const SearchResultTab: SearchResultTabComponent = ({ ...props }) => (
+  <DefaultSearchResultTab {...props} iconClass={iconClass} label={displayName} />
+);
+
+const SearchResultsHeader: SearchResultsHeaderComponent = () => (
+  <TableHeader>
+    <HeaderCell col={cols.LOADBALANCER}/>
+    <HeaderCell col={cols.ACCOUNT}/>
+    <HeaderCell col={cols.REGION}/>
+    <HeaderCell col={cols.TYPE}/>
+  </TableHeader>
+);
+
+const SearchResultsData: SearchResultsDataComponent = ({ results }) => (
+  <TableBody>
+    {results.slice().sort(itemSortFn).map(item => (
+      <TableRow key={itemKeyFn(item)}>
+        <HrefCell item={item} col={cols.LOADBALANCER} />
+        <AccountCell item={item} col={cols.ACCOUNT} />
+        <BasicCell item={item} col={cols.REGION} />
+        <BasicCell item={item} col={cols.TYPE} />
+      </TableRow>
+    ))}
+  </TableBody>
+);
+
+const loadBalancersSearchResultType: ISearchResultType = {
   id: 'loadBalancers',
   iconClass,
   displayName,
@@ -48,32 +75,11 @@ searchResultTypeRegistry.register({
     const name = fromRoute ? (searchResult as any).name : searchResult.loadBalancer;
     return `${name} (${searchResult.region})`;
   },
-
   components: {
-    SearchResultTab: ({ ...props }) => (
-      <SearchResultTab {...props} iconClass={iconClass} label={displayName} />
-    ),
+    SearchResultTab,
+    SearchResultsHeader,
+    SearchResultsData,
+  },
+};
 
-    SearchResultsHeader: () => (
-      <TableHeader>
-        <HeaderCell col={cols.LOADBALANCER}/>
-        <HeaderCell col={cols.ACCOUNT}/>
-        <HeaderCell col={cols.REGION}/>
-        <HeaderCell col={cols.TYPE}/>
-      </TableHeader>
-    ),
-
-    SearchResultsData: ({ results }) => (
-      <TableBody>
-        {results.slice().sort(itemSortFn).map(item => (
-          <TableRow key={itemKeyFn(item)}>
-            <HrefCell item={item} col={cols.LOADBALANCER} />
-            <AccountCell item={item} col={cols.ACCOUNT} />
-            <BasicCell item={item} col={cols.REGION} />
-            <BasicCell item={item} col={cols.TYPE} />
-          </TableRow>
-        ))}
-      </TableBody>
-    )
-  }
-});
+searchResultTypeRegistry.register(loadBalancersSearchResultType);

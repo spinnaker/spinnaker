@@ -1,3 +1,3 @@
 export * from './Renderers';
-export * from './SearchResultTab';
+export * from './DefaultSearchResultTab';
 export * from './searchResultsType.registry';

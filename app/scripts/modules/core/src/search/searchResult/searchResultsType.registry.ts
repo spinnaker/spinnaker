@@ -1,9 +1,13 @@
 import { ISearchResult } from 'core/search';
-import { ISearchResultTabProps } from 'core/search/searchResult/SearchResultTab';
+import { ISearchResultTabProps } from './DefaultSearchResultTab';
 
 export interface IResultDisplayFormatter {
   (entry: ISearchResult, fromRoute?: boolean): string;
 }
+
+export type SearchResultTabComponent = React.ComponentType<ISearchResultTabProps>;
+export type SearchResultsHeaderComponent = React.ComponentType<{ type: ISearchResultType }>;
+export type SearchResultsDataComponent = React.ComponentType<{ type: ISearchResultType, results: any[] }>;
 
 export interface ISearchResultType {
   /** The unique key for the type, i.e., 'applications', 'serverGroup' */
@@ -20,11 +24,11 @@ export interface ISearchResultType {
 
   components?: {
     /** renders the tab button used to activate the search results for this ISearchResultType */
-    SearchResultTab: React.ComponentType<ISearchResultTabProps>;
+    SearchResultTab: SearchResultTabComponent;
     /** renders the faux-table column headers */
-    SearchResultsHeader: React.ComponentType<{ type: ISearchResultType }>;
+    SearchResultsHeader: SearchResultsHeaderComponent;
     /** renders the faux-table search result data rows and cells */
-    SearchResultsData: React.ComponentType<{ type: ISearchResultType, results: any[] }>;
+    SearchResultsData: SearchResultsDataComponent;
   }
 }
 

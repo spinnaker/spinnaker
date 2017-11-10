@@ -2,7 +2,8 @@ import * as React from 'react';
 
 import {
   AccountCell, BasicCell, HrefCell, searchResultTypeRegistry, SearchFilterTypeRegistry,
-  ISearchResult, HeaderCell, TableBody, TableHeader, TableRow, SearchResultTab, ISearchColumn,
+  SearchResultTabComponent, SearchResultsHeaderComponent, SearchResultsDataComponent, DefaultSearchResultTab,
+  ISearchResultType, ISearchResult, HeaderCell, TableBody, TableHeader, TableRow, ISearchColumn,
 } from 'core/search';
 
 export interface IInstanceSearchResult extends ISearchResult {
@@ -32,7 +33,33 @@ const itemKeyFn = (item: IInstanceSearchResult) => item.instanceId;
 const itemSortFn = (a: IInstanceSearchResult, b: IInstanceSearchResult) =>
   a.instanceId.localeCompare(b.instanceId);
 
-searchResultTypeRegistry.register({
+const SearchResultTab: SearchResultTabComponent = ({ ...props }) => (
+  <DefaultSearchResultTab {...props} iconClass={iconClass} label={displayName} />
+);
+
+const SearchResultsHeader: SearchResultsHeaderComponent = () => (
+  <TableHeader>
+    <HeaderCell col={cols.INSTANCE}/>
+    <HeaderCell col={cols.ACCOUNT}/>
+    <HeaderCell col={cols.REGION}/>
+    <HeaderCell col={cols.SERVERGROUP}/>
+  </TableHeader>
+);
+
+const SearchResultsData: SearchResultsDataComponent = ({ results }) => (
+  <TableBody>
+    {results.slice().sort(itemSortFn).map(item => (
+      <TableRow key={itemKeyFn(item)}>
+        <HrefCell item={item} col={cols.INSTANCE} />
+        <AccountCell item={item} col={cols.ACCOUNT} />
+        <BasicCell item={item} col={cols.REGION} />
+        <BasicCell item={item} col={cols.SERVERGROUP} defaultValue="Standalone Instance" />
+      </TableRow>
+    ))}
+  </TableBody>
+);
+
+const instancesSearchResultType: ISearchResultType = {
   id: 'instances',
   order: 4,
   iconClass,
@@ -44,31 +71,10 @@ searchResultTypeRegistry.register({
     return `${searchResult.instanceId} (${serverGroup} - ${searchResult.region})`;
   },
   components: {
-    SearchResultTab: ({ ...props }) => (
-      <SearchResultTab {...props} iconClass={iconClass} label={displayName} />
-    ),
+    SearchResultTab,
+    SearchResultsHeader,
+    SearchResultsData,
+  },
+};
 
-    SearchResultsHeader: () => (
-      <TableHeader>
-        <HeaderCell col={cols.INSTANCE}/>
-        <HeaderCell col={cols.ACCOUNT}/>
-        <HeaderCell col={cols.REGION}/>
-        <HeaderCell col={cols.SERVERGROUP}/>
-      </TableHeader>
-    ),
-
-    SearchResultsData: ({ results }) => (
-      <TableBody>
-        {results.slice().sort(itemSortFn).map(item => (
-          <TableRow key={itemKeyFn(item)}>
-            <HrefCell item={item} col={cols.INSTANCE} />
-            <AccountCell item={item} col={cols.ACCOUNT} />
-            <BasicCell item={item} col={cols.REGION} />
-            <BasicCell item={item} col={cols.SERVERGROUP} defaultValue="Standalone Instance" />
-          </TableRow>
-        ))}
-      </TableBody>
-    )
-  }
-
-});
+searchResultTypeRegistry.register(instancesSearchResultType);

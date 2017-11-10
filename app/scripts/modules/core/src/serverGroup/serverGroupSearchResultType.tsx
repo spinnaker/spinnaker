@@ -1,8 +1,9 @@
 import * as React from 'react';
 
 import {
-  AccountCell, BasicCell, HrefCell, searchResultTypeRegistry, ISearchColumn,
-  ISearchResult, HeaderCell, TableBody, TableHeader, TableRow, SearchResultTab,
+  AccountCell, BasicCell, HrefCell, searchResultTypeRegistry, ISearchColumn, ISearchResultType,
+  SearchResultTabComponent, SearchResultsHeaderComponent, SearchResultsDataComponent, DefaultSearchResultTab,
+  ISearchResult, HeaderCell, TableBody, TableHeader, TableRow,
 } from 'core/search';
 
 export interface IServerGroupSearchResult extends ISearchResult {
@@ -35,37 +36,43 @@ const itemSortFn = (a: IServerGroupSearchResult, b: IServerGroupSearchResult) =>
   return order !== 0 ? order : a.region.localeCompare(b.region);
 };
 
-searchResultTypeRegistry.register({
+const SearchResultTab: SearchResultTabComponent = ({ ...props }) => (
+  <DefaultSearchResultTab {...props} iconClass={iconClass} label={displayName} />
+);
+
+const SearchResultsHeader: SearchResultsHeaderComponent = () => (
+  <TableHeader>
+    <HeaderCell col={cols.SERVERGROUP}/>
+    <HeaderCell col={cols.ACCOUNT}/>
+    <HeaderCell col={cols.REGION}/>
+    <HeaderCell col={cols.EMAIL}/>
+  </TableHeader>
+);
+
+const SearchResultsData: SearchResultsDataComponent = ({ results }) => (
+  <TableBody>
+    {results.slice().sort(itemSortFn).map(item => (
+      <TableRow key={itemKeyFn(item)}>
+        <HrefCell item={item} col={cols.SERVERGROUP} />
+        <AccountCell item={item} col={cols.ACCOUNT} />
+        <BasicCell item={item} col={cols.REGION} />
+        <BasicCell item={item} col={cols.EMAIL} />
+      </TableRow>
+    ))}
+  </TableBody>
+);
+
+const serverGroupSearchResultType: ISearchResultType = {
   id: 'serverGroups',
   order: 6,
   iconClass,
   displayName,
   displayFormatter: (searchResult: IServerGroupSearchResult) => `${searchResult.serverGroup} (${searchResult.region})`,
   components: {
-    SearchResultTab: ({ ...props }) => (
-      <SearchResultTab {...props} iconClass={iconClass} label={displayName} />
-    ),
+    SearchResultTab,
+    SearchResultsHeader,
+    SearchResultsData,
+  },
+};
 
-    SearchResultsHeader: () => (
-      <TableHeader>
-        <HeaderCell col={cols.SERVERGROUP}/>
-        <HeaderCell col={cols.ACCOUNT}/>
-        <HeaderCell col={cols.REGION}/>
-        <HeaderCell col={cols.EMAIL}/>
-      </TableHeader>
-    ),
-
-    SearchResultsData: ({ results }) => (
-      <TableBody>
-        {results.slice().sort(itemSortFn).map(item => (
-          <TableRow key={itemKeyFn(item)}>
-            <HrefCell item={item} col={cols.SERVERGROUP} />
-            <AccountCell item={item} col={cols.ACCOUNT} />
-            <BasicCell item={item} col={cols.REGION} />
-            <BasicCell item={item} col={cols.EMAIL} />
-          </TableRow>
-        ))}
-      </TableBody>
-    )
-  }
-});
+searchResultTypeRegistry.register(serverGroupSearchResultType);
