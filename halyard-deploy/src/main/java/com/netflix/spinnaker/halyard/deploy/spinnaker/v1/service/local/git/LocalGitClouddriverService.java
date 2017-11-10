@@ -41,6 +41,9 @@ public class LocalGitClouddriverService extends ClouddriverService implements Lo
   @Autowired
   ArtifactService artifactService;
 
+  @Autowired
+  String gitRoot;
+
   @Override
   public List<Profile> getProfiles(DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
     List<Profile> profiles = super.getProfiles(deploymentConfiguration, endpoints);

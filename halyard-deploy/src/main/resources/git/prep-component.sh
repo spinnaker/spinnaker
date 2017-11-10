@@ -1,11 +1,11 @@
 ## TODO(lwander): make configurable
-INSTALL_DIR=~/dev/hal-spinnaker
+GIT_ROOT={%git-root%}
 
-if [ ! -d $INSTALL_DIR ]; then
- mkdir -p $INSTALL_DIR
+if [ ! -d $GIT_ROOT ]; then
+ mkdir -p $GIT_ROOT
 fi
 
-pushd $INSTALL_DIR
+pushd $GIT_ROOT
 
 ARTIFACT={%artifact%}
 VERSION={%version%}
@@ -25,7 +25,7 @@ pushd $ARTIFACT
 git remote set-url origin $ORIGIN_URL
 
 set +e
-git remote get-url upstream
+git remote get-url upstream 2> /dev/null
 ERR=$?
 
 if [ "$ERR" -ne 0 ]; then

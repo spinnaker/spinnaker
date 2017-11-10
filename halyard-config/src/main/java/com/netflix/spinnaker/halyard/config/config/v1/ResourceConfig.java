@@ -62,6 +62,11 @@ public class ResourceConfig {
   }
 
   @Bean
+  String gitRoot(@Value("${git.root:~/dev/spinnaker}") String gitRoot) {
+    return normalizePath(gitRoot);
+  }
+
+  @Bean
   String spinnakerStagingDependencyPath(@Value("${spinnaker.config.staging.directory:~/.halyard}") String path) {
     return Paths.get(normalizePath(path), "dependency").toString();
   }

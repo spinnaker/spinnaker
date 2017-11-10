@@ -18,6 +18,7 @@
 
 package com.netflix.spinnaker.halyard.core.registry.v1;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
@@ -27,6 +28,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
+import org.yaml.snakeyaml.Yaml;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -35,16 +37,21 @@ import java.io.InputStream;
 
 @Component
 @Slf4j
-public class GoogleProfileRegistry {
+public class GoogleProfileReader implements ProfileReader {
   @Autowired
   String spinconfigBucket;
 
   @Autowired
   Storage googleStorage;
 
+  @Autowired
+  ObjectMapper relaxedObjectMapper;
+
+  @Autowired
+  Yaml yamlParser;
+
   @Bean
   public Storage googleStorage() {
-    HttpTransport httpTransport;
     JsonFactory jsonFactory = JacksonFactory.getDefaultInstance();
     String applicationName = "Spinnaker/Halyard";
 
@@ -53,15 +60,40 @@ public class GoogleProfileRegistry {
         .build();
   }
 
-  public String profilePath(String artifactName, String version, String profileFileName) {
+  public InputStream readProfile(String artifactName, String version, String profileName) throws IOException {
+    String path = profilePath(artifactName, version, profileName);
+    return getContents(path);
+  }
+
+  public BillOfMaterials readBom(String version) throws IOException {
+    String bomName = bomPath(version);
+
+    return relaxedObjectMapper.convertValue(
+        yamlParser.load(getContents(bomName)),
+        BillOfMaterials.class
+    );
+  }
+
+  public Versions readVersions() throws IOException {
+    return relaxedObjectMapper.convertValue(
+        yamlParser.load(getContents("versions.yml")),
+        Versions.class
+    );
+  }
+
+  public InputStream readArchiveProfile(String artifactName, String version, String profileName) throws IOException {
+    return readProfile(artifactName, version, profileName + ".tar.gz");
+  }
+
+  String profilePath(String artifactName, String version, String profileFileName) {
     return String.join("/", artifactName, version, profileFileName);
   }
 
-  public String bomPath(String version) {
+  String bomPath(String version) {
     return String.join("/", "bom", version + ".yml");
   }
 
-  public InputStream getObjectContents(String objectName) throws IOException {
+  private InputStream getContents(String objectName) throws IOException {
     ByteArrayOutputStream output = new ByteArrayOutputStream();
     log.info("Getting object contents of " + objectName);
     googleStorage.objects().get(spinconfigBucket, objectName).executeMediaAndDownloadTo(output);

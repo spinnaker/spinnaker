@@ -39,6 +39,8 @@ public class BillOfMaterials {
     Artifact consul;
     Artifact vault;
 
+    Artifact defaultArtifact;
+
     String getArtifactVersion(String artifactName) {
       return getFieldArtifact(Dependencies.class, this, artifactName).getVersion();
     }
@@ -73,6 +75,8 @@ public class BillOfMaterials {
     Artifact monitoringDaemon;
     Artifact spinnaker;
 
+    Artifact defaultArtifact;
+
     String getArtifactVersion(String artifactName) {
       return getFieldArtifact(Services.class, this, artifactName).getVersion();
     }
@@ -102,9 +106,15 @@ public class BillOfMaterials {
         .findFirst();
 
     try {
-      return (Artifact) field
+      Artifact result = (Artifact) field
           .orElseThrow(() -> new NoKnownArtifact(artifactName))
           .get(obj);
+
+      if (result == null && !artifactName.equals("defaultArtifact")) {
+        return getFieldArtifact(clazz, obj, "defaultArtifact");
+      } else {
+        return result;
+      }
     } catch (IllegalAccessException e) {
       throw new RuntimeException(e);
     } catch (NullPointerException e) {

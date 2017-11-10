@@ -30,7 +30,10 @@ import java.io.InputStream;
 @Slf4j
 public class ProfileRegistry {
   @Autowired
-  GoogleProfileRegistry googleProfileRegistry;
+  GoogleProfileReader googleProfileReader;
+
+  @Autowired
+  GitProfileReader gitProfileReader;
 
   @Autowired
   Yaml yamlParser;
@@ -39,27 +42,27 @@ public class ProfileRegistry {
   ObjectMapper relaxedObjectMapper;
 
   public InputStream readProfile(String artifactName, String version, String profileName) throws IOException {
-    String path = googleProfileRegistry.profilePath(artifactName, version, profileName);
-    return googleProfileRegistry.getObjectContents(path);
+    return pickProfileReader(version).readProfile(artifactName, version, profileName);
   }
 
   public BillOfMaterials readBom(String version) throws IOException {
-    String bomName = googleProfileRegistry.bomPath(version);
-
-    return relaxedObjectMapper.convertValue(
-        yamlParser.load(googleProfileRegistry.getObjectContents(bomName)),
-        BillOfMaterials.class
-    );
+    return pickProfileReader(version).readBom(version);
   }
 
   public Versions readVersions() throws IOException {
-    return relaxedObjectMapper.convertValue(
-        yamlParser.load(googleProfileRegistry.getObjectContents("versions.yml")),
-        Versions.class
-    );
+    // git can't store these
+    return googleProfileReader.readVersions();
   }
 
   public InputStream readArchiveProfile(String artifactName, String version, String profileName) throws IOException {
-    return readProfile(artifactName, version, profileName + ".tar.gz");
+    return pickProfileReader(version).readArchiveProfile(artifactName, version, profileName);
+  }
+
+  private ProfileReader pickProfileReader(String version) {
+    if (Versions.isBranch(version)) {
+      return gitProfileReader;
+    } else {
+      return googleProfileReader;
+    }
   }
 }

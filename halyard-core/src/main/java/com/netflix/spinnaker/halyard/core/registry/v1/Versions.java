@@ -29,6 +29,8 @@ import java.util.stream.Collectors;
 
 @Data
 public class Versions {
+  public final static String BRANCH_PREFIX = "branch:";
+
   @Data
   public static class Version {
     String version;
@@ -46,6 +48,14 @@ public class Versions {
 
       return result;
     }
+  }
+
+  public static boolean isBranch(String version) {
+    return version.startsWith(BRANCH_PREFIX);
+  }
+
+  public static String fromBranch(String version) {
+    return version.substring(BRANCH_PREFIX.length());
   }
 
   @Data

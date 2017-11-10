@@ -45,7 +45,7 @@ public class GoogleWriteableProfileRegistry {
   String spinconfigBucket;
 
   @Autowired
-  GoogleProfileRegistry googleProfileRegistry;
+  GoogleProfileReader googleProfileReader;
 
   GoogleWriteableProfileRegistry(WriteableProfileRegistryProperties properties) {
     HttpTransport httpTransport = GoogleCredentials.buildHttpTransport();
@@ -78,13 +78,13 @@ public class GoogleWriteableProfileRegistry {
   }
 
   public void writeBom(String version, String contents) {
-    String name = googleProfileRegistry.bomPath(version);
+    String name = googleProfileReader.bomPath(version);
     writeTextObject(name, contents);
   }
 
   public void writeArtifactConfig(BillOfMaterials bom, String artifactName, String profileName, String contents) {
     String version = bom.getArtifactVersion(artifactName);
-    String name = googleProfileRegistry.profilePath(artifactName, version, profileName);
+    String name = googleProfileReader.profilePath(artifactName, version, profileName);
     writeTextObject(name, contents);
   }
 

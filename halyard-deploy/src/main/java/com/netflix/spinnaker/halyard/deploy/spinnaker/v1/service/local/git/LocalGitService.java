@@ -35,6 +35,8 @@ public interface LocalGitService<T> extends LocalService<T> {
     return "localhost";
   }
 
+  String getGitRoot();
+
   default String getHomeDirectory() {
     return System.getProperty("user.home");
   }
@@ -61,6 +63,7 @@ public interface LocalGitService<T> extends LocalService<T> {
     bindings.put("artifact", artifactName);
     bindings.put("repo", artifactName); // TODO(lwander): make configurable
     bindings.put("version", getArtifactCommit(deploymentDetails.getDeploymentName()));
+    bindings.put("git-root", getGitRoot());
 
     DeploymentEnvironment env = deploymentDetails.getDeploymentConfiguration()
         .getDeploymentEnvironment();

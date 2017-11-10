@@ -18,6 +18,8 @@
 package com.netflix.spinnaker.halyard.config.validate.v1;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
+import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentEnvironment;
+import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentEnvironment.DeploymentType;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import com.netflix.spinnaker.halyard.config.services.v1.VersionsService;
@@ -50,6 +52,7 @@ public class DeploymentConfigurationValidator extends Validator<DeploymentConfig
 
     String version = n.getVersion();
     Versions versions = versionsService.getVersions();
+    boolean localGit = n.getDeploymentEnvironment().getType() == DeploymentType.LocalGit;
 
     if (StringUtils.isEmpty(version)) {
       p.addProblem(Problem.Severity.WARNING, "You have not yet selected a version of Spinnaker to deploy.", "version");
@@ -66,9 +69,22 @@ public class DeploymentConfigurationValidator extends Validator<DeploymentConfig
       return;
     }
 
+    if (Versions.isBranch(version) && !localGit) {
+      p.addProblem(Problem.Severity.FATAL, "You can't run Spinnaker from a branch when your deployment type isn't \"LocalGit\".")
+          .setRemediation("Either pick a version (hal version list) or set a different deployment type (hal config deploy edit --type <t>).");
+      return;
+    }
+
     try {
-      versionsService.getBillOfMaterials(version);
+      if (!Versions.isBranch(version)) {
+        versionsService.getBillOfMaterials(version);
+      }
     } catch (HalException e) {
+      if (localGit) {
+        p.addProblem(Problem.Severity.FATAL, "Could not fetch your desired version.")
+            .setRemediation("Is it possible that you're trying to checkout a branch? Prefix the version with \"" + Versions.BRANCH_PREFIX + "\".");
+        return;
+      }
       p.extend(e);
       return;
     } catch (Exception e) {
