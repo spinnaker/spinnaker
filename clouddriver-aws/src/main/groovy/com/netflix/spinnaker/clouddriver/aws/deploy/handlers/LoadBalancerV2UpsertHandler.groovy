@@ -327,6 +327,12 @@ class LoadBalancerV2UpsertHandler {
       listenerToRules.put(listener, rules)
     }
 
+    // Gather list of listeners that existed previously but were not supplied in upsert and should be deleted;
+    // also add listeners that have changed since there is no good way to know if a listener should just be updated
+    listenersToRemove = existingListeners.findAll { awsListener ->
+      (listeners.find { it.compare(awsListener, listenerToDefaultActions.get(it), existingListenerToRules.get(awsListener), listenerToRules.get(it)) }) == null
+    }
+
     // Create all new listeners
     List<UpsertAmazonLoadBalancerV2Description.Listener> listenersToCreate = listeners.findAll { listener ->
       existingListeners.find({ listener.compare(it, listenerToDefaultActions.get(listener), existingListenerToRules.get(it), listenerToRules.get(listener)) }) == null
@@ -336,11 +342,6 @@ class LoadBalancerV2UpsertHandler {
     }
 
     if (amazonErrors.size() == 0) {
-      // Remove listeners that existed previously but were not supplied in upsert and should be deleted;
-      // also remove listeners that have changed since there is no good way to know if a listener should just be updated
-      listenersToRemove = existingListeners.findAll { awsListener ->
-        (listeners.find { it.compare(awsListener, listenerToDefaultActions.get(it), existingListenerToRules.get(awsListener), listenerToRules.get(it)) }) == null
-      }
       removeListeners(listenersToRemove, existingListeners, loadBalancing, loadBalancer)
     }
 
