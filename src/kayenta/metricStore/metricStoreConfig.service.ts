@@ -14,7 +14,7 @@ export interface IMetricStoreConfig {
   name: string;
   metricConfigurer: React.ComponentClass;
   queryFinder: (metric: ICanaryMetricConfig) => string;
-  metricResultScope?: React.ComponentClass<IMetricResultScopeProps>;
+  metricResultScope?: React.SFC<IMetricResultScopeProps> | React.ComponentClass<IMetricResultScopeProps>;
 }
 
 export default buildDelegateService<IMetricStoreConfig>();
