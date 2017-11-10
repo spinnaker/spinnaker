@@ -23,6 +23,7 @@ import com.netflix.kayenta.s3.storage.S3StorageService;
 import com.netflix.kayenta.security.AccountCredentials;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -35,11 +36,13 @@ import org.springframework.context.annotation.DependsOn;
 @Slf4j
 public class S3Configuration {
 
+  @Autowired
+  ObjectMapper kayentaObjectMapper;
+
   @Bean
   @DependsOn({"registerAwsCredentials"})
   public S3StorageService s3StorageService(AccountCredentialsRepository accountCredentialsRepository) {
-    ObjectMapper awsObjectMapper = new ObjectMapper();
-    AmazonObjectMapperConfigurer.configure(awsObjectMapper);
+    AmazonObjectMapperConfigurer.configure(kayentaObjectMapper);
     S3StorageService.S3StorageServiceBuilder s3StorageServiceBuilder = S3StorageService.builder();
 
     accountCredentialsRepository
@@ -50,7 +53,7 @@ public class S3Configuration {
       .map(c -> c.getName())
       .forEach(s3StorageServiceBuilder::accountName);
 
-    S3StorageService s3StorageService = s3StorageServiceBuilder.kayentaObjectMapper(awsObjectMapper).build();
+    S3StorageService s3StorageService = s3StorageServiceBuilder.objectMapper(kayentaObjectMapper).build();
 
     log.info("Populated S3StorageService with {} AWS accounts.", s3StorageService.getAccountNames().size());
 
