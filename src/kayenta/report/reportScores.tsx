@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { connect, Dispatch } from 'react-redux';
 import { sortBy } from 'lodash';
+import * as classNames from 'classnames';
 
 import { ICanaryState } from '../reducers/index';
 import {
@@ -20,6 +21,7 @@ import './reportScores.less';
 interface IReportScoresStateProps {
   groups: ICanaryJudgeGroupScore[];
   score: ICanaryJudgeScore;
+  selectedGroup: string;
 }
 
 interface IReportScoresDispatchProps {
@@ -29,9 +31,13 @@ interface IReportScoresDispatchProps {
 /*
 * Layout for the report scores.
 * */
-const ReportScores = ({ groups, score, clearSelectedGroup }: IReportScoresStateProps & IReportScoresDispatchProps) => (
+const ReportScores = ({ groups, score, selectedGroup, clearSelectedGroup }: IReportScoresStateProps & IReportScoresDispatchProps) => (
   <section className="horizontal report-scores">
-    <CanaryJudgeScore score={score} onClick={clearSelectedGroup} className="flex-1"/>
+    <CanaryJudgeScore
+      score={score}
+      onClick={clearSelectedGroup}
+      className={classNames('flex-1', 'report-score', !selectedGroup ? 'active' : '')}
+    />
     <GroupScores groups={groups} className="flex-12"/>
   </section>
 );
@@ -46,6 +52,7 @@ const mapStateToProps = (state: ICanaryState): IReportScoresStateProps => ({
     ]
   ),
   score: judgeResultSelector(state).score,
+  selectedGroup: state.selectedRun.selectedGroup,
 });
 
 const mapDispatchToProps = (dispatch: Dispatch<ICanaryState>): IReportScoresDispatchProps => ({
