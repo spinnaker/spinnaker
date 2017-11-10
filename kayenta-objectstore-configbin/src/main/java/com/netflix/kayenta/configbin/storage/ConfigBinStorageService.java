@@ -254,7 +254,7 @@ public class ConfigBinStorageService implements StorageService {
         if (ids.size() > 0) {
           return ids
             .stream()
-            .map(this::metadataFor)
+            .map(i -> metadataFor(credentials, i))
             .collect(Collectors.toList());
         }
       } catch (IOException e) {
@@ -265,10 +265,28 @@ public class ConfigBinStorageService implements StorageService {
     }
   }
 
-  private Map<String, Object> metadataFor(String id) {
+  private Map<String, Object> metadataFor(ConfigBinNamedAccountCredentials credentials, String id) {
+    // TODO: (mgraff) Should factor out to a common method, or just call .load()
+    ConfigBinRemoteService remoteService = credentials.getRemoteService();
+    String ownerApp = credentials.getOwnerApp();
+    String configType = credentials.getConfigType();
+    String json;
+    try {
+      json = remoteService.get(ownerApp, configType, id);
+    } catch (RetrofitError e) {
+      throw new IllegalArgumentException("No such object named " + id);
+    }
+
+    CanaryConfig config;
+    try {
+      config = kayentaObjectMapper.readValue(json, ObjectType.CANARY_CONFIG.getTypeReference());
+    } catch (Throwable e) {
+      log.error("Read failed on path {}: {}", id, e);
+      throw new IllegalStateException(e);
+    }
     return new ImmutableMap.Builder<String, Object>()
       .put("id", id)
-      .put("name", id)
+      .put("name", config.getName())
       .build();
   }
 }
