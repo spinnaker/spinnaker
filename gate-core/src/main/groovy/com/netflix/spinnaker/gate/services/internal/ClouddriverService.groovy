@@ -227,6 +227,9 @@ interface ClouddriverService {
   Map getSecurityGroup(@Path("account") String account, @Path("type") String type, @Path("name") String name,
                        @Path("region") String region, @Query("vpcId") String vpcId)
 
+  @GET("/applications/{application}/serverGroupManagers")
+  List<Map> getServerGroupManagersForApplication(@Path("application") String application)
+
   @GET('/instanceTypes')
   List<Map> getInstanceTypes()
 
