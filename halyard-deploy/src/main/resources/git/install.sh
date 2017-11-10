@@ -15,13 +15,10 @@ if [[ "$java_version" != *1.8* ]]; then
   exit 1;
 fi
 
-which git &> /dev/null
-
-if [ $? -ne 0 ]; then
-  echo_err "You need git to be installed & configured to build & run Spinnaker. Please install & configure it."
-  exit 1;
-fi
-
-exit 0
+STARTUP_SCRIPTS=()
 
 {%install-commands%}
+
+for SCRIPT in "${STARTUP_SCRIPTS[@]}"; do
+  $SCRIPT
+done

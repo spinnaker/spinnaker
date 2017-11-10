@@ -38,7 +38,10 @@ public class LocalGitDeployer extends LocalDeployer {
     List<LocalGitService> enabledServices = localGitServiceProvider.getLocalGitServices(serviceTypes);
 
     List<String> prepCommands = enabledServices.stream()
-        .map(s -> s.prepArtifactCommand(deploymentDetails))
+        .map(s -> {
+          s.commitWrapperScripts();
+          return s.prepArtifactCommand(deploymentDetails);
+        })
         .collect(Collectors.toList());
 
     String prepCommand = localGitServiceProvider.getPrepCommand(deploymentDetails, prepCommands);
