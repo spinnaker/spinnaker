@@ -12,6 +12,10 @@ export interface IDockerImage {
 }
 
 export function imageId(image: IDockerImage): string {
+  if (!image) {
+    return '';
+  }
+
   if (image.fromFindImage) {
     return `${image.cluster} ${image.pattern}`;
   } else if (image.fromBake) {
