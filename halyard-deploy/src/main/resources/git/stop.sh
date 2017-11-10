@@ -12,10 +12,10 @@ function try_stop() {
     return
   fi
 
-  PPID=$(cat $PID_FILE)
+  PID=$(cat $PID_FILE)
 
   set +e
-  kill $PPID
+  kill $PID
   set -e
 
   rm $PID_FILE

@@ -3037,7 +3037,7 @@ hal config provider kubernetes account add ACCOUNT [parameters]
  * `--context`: The kubernetes context to be managed by Spinnaker. See http://kubernetes.io/docs/user-guide/kubeconfig-file/#context for more information.
 When no context is configured for an account the 'current-context' in your kubeconfig is assumed.
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
- * `--docker-registries`: (*Default*: `[]`) (*Required*) A list of the Spinnaker docker registry account names this Spinnaker account can use as image sources. These docker registry accounts must be registered in your halconfig before you can add them here.
+ * `--docker-registries`: (*Default*: `[]`) A list of the Spinnaker docker registry account names this Spinnaker account can use as image sources. These docker registry accounts must be registered in your halconfig before you can add them here.
  * `--kubeconfig-file`: The path to your kubeconfig file. By default, it will be under the Spinnaker user's home directory in the typical .kube/config location.
  * `--namespaces`: (*Default*: `[]`) A list of namespaces this Spinnaker account can deploy to and will cache.
 When no namespaces are configured, this defaults to 'all namespaces'.

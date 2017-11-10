@@ -61,7 +61,6 @@ public class KubernetesAddAccountCommand extends AbstractAddAccountCommand {
 
   @Parameter(
       names = "--docker-registries",
-      required = true,
       variableArity = true,
       description = KubernetesCommandProperties.DOCKER_REGISTRIES_DESCRIPTION
   )

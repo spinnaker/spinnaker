@@ -48,7 +48,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static com.netflix.spinnaker.halyard.config.validate.v1.providers.dockerRegistry.DockerRegistryReferenceValidation.validateDockerRegistries;
-import static com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity.*;
+import static com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity.ERROR;
+import static com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity.FATAL;
+import static com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity.WARNING;
 
 @Component
 public class KubernetesAccountValidator extends Validator<KubernetesAccount> {
@@ -65,10 +67,19 @@ public class KubernetesAccountValidator extends Validator<KubernetesAccount> {
     }
     deploymentConfiguration = (DeploymentConfiguration) parent;
 
-    final List<String> dockerRegistryNames = account.getDockerRegistries().stream().map(DockerRegistryReference::getAccountName)
-        .collect(Collectors.toList());
-    validateDockerRegistries(psBuilder, deploymentConfiguration, dockerRegistryNames, Provider.ProviderType.KUBERNETES);
-    validateKubeconfig(psBuilder, account);
+    // TODO(lwander) validate all config with clouddriver's v2 creds
+    switch (account.getProviderVersion()) {
+      case V1:
+        final List<String> dockerRegistryNames = account.getDockerRegistries().stream().map(DockerRegistryReference::getAccountName)
+            .collect(Collectors.toList());
+        validateDockerRegistries(psBuilder, deploymentConfiguration, dockerRegistryNames, Provider.ProviderType.KUBERNETES);
+        validateKubeconfig(psBuilder, account);
+      case V2:
+        break;
+      default:
+        throw new IllegalStateException("Unknown provider version " + account.getProviderVersion());
+
+    }
   }
 
   private void validateKubeconfig(ConfigProblemSetBuilder psBuilder, KubernetesAccount account) {
