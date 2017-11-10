@@ -72,6 +72,23 @@ class EchoNotifyingExecutionListenerSpec extends Specification {
     notifications.set("email", [emailTasks])
   }
 
+  void "sends events with expected type to Echo"() {
+    given:
+    def pipeline = Execution.newPipeline("myapp")
+
+    when:
+    echoListener.beforeExecution(null, pipeline)
+
+    then:
+    1 * echoService.recordEvent({ it.details.type == "orca:pipeline:starting"})
+
+    when:
+    echoListener.afterExecution(null, pipeline, ExecutionStatus.SUCCEEDED, true)
+
+    then:
+    1 * echoService.recordEvent({ it.details.type == "orca:pipeline:complete"})
+  }
+
   void "adds notifications to pipeline on beforeExecution"() {
     given:
     def pipeline = Execution.newPipeline("myapp")

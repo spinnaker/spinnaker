@@ -62,7 +62,7 @@ class EchoNotifyingExecutionListener implements ExecutionListener {
         echoService.recordEvent(
           details: [
             source     : "orca",
-            type       : "orca:${execution.getClass().simpleName.toLowerCase()}:starting".toString(),
+            type       : "orca:${execution.type}:starting".toString(),
             application: execution.application,
           ],
           content: [
@@ -90,7 +90,7 @@ class EchoNotifyingExecutionListener implements ExecutionListener {
         echoService.recordEvent(
           details: [
             source     : "orca",
-            type       : "orca:${execution.getClass().simpleName.toLowerCase()}:${wasSuccessful ? "complete" : "failed"}".toString(),
+            type       : "orca:${execution.type}:${wasSuccessful ? "complete" : "failed"}".toString(),
             application: execution.application,
           ],
           content: [
