@@ -63,9 +63,22 @@ public class SynchronousQueryProcessor {
     Id queryId = registry.createId("canary.telemetry.query").withTag("metricsStore", metricsService.getType());
 
     for (CanaryMetricConfig canaryMetricConfig : canaryMetricConfigs) {
-      registry.counter(queryId).increment();
+      List<MetricSet> metricSetList = null;
+      int retries = 0;
+      boolean success = false;
 
-      List<MetricSet> metricSetList = metricsService.queryMetrics(metricsAccountName, canaryMetricConfig, canaryScope);
+      while (!success) {
+        try {
+          registry.counter(queryId.withTag("retries", retries + "")).increment();
+          metricSetList = metricsService.queryMetrics(metricsAccountName, canaryMetricConfig, canaryScope);
+          success = true;
+        } catch (IOException e) {
+          retries++;
+          if (retries >= 10)
+            throw e;
+          log.warn("Retrying atlas query");
+        }
+      }
       String metricSetListId = UUID.randomUUID() + "";
 
       storageService.storeObject(storageAccountName, ObjectType.METRIC_SET_LIST, metricSetListId, metricSetList);
