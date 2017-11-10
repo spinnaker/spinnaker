@@ -16,14 +16,14 @@
 
 package com.netflix.kayenta.prometheus.metrics;
 
-import com.netflix.kayenta.prometheus.model.PrometheusResults;
-import com.netflix.kayenta.prometheus.security.PrometheusNamedAccountCredentials;
-import com.netflix.kayenta.prometheus.service.PrometheusRemoteService;
 import com.netflix.kayenta.canary.CanaryMetricConfig;
 import com.netflix.kayenta.canary.CanaryScope;
 import com.netflix.kayenta.canary.providers.PrometheusCanaryMetricSetQueryConfig;
 import com.netflix.kayenta.metrics.MetricSet;
 import com.netflix.kayenta.metrics.MetricsService;
+import com.netflix.kayenta.prometheus.model.PrometheusResults;
+import com.netflix.kayenta.prometheus.security.PrometheusNamedAccountCredentials;
+import com.netflix.kayenta.prometheus.service.PrometheusRemoteService;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
 import lombok.Builder;
 import lombok.Getter;

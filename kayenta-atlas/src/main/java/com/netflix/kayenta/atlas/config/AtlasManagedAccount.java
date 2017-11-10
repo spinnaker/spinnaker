@@ -16,7 +16,6 @@
 
 package com.netflix.kayenta.atlas.config;
 
-import com.netflix.kayenta.atlas.backends.BackendUpdater;
 import com.netflix.kayenta.security.AccountCredentials;
 import lombok.Data;
 

@@ -74,6 +74,8 @@ class Main extends SpringBootServletInitializer {
     defaults.put("spring.application.name", "kayenta");
     defaults.put("spring.config.name", "kayenta,${spring.application.name}");
     defaults.put("spring.profiles.active", "${netflix.environment},local");
+    defaults.put("spring.jackson.serialization.WRITE_DATES_AS_TIMESTAMPS", "false");
+    defaults.put("spring.jackson.default-property-inclusion", "non_null");
     return Collections.unmodifiableMap(defaults);
   }
 

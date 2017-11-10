@@ -19,10 +19,7 @@ package com.netflix.kayenta.atlas.model;
 import lombok.*;
 
 import javax.validation.constraints.NotNull;
-
-import java.time.Duration;
 import java.util.List;
-import java.util.regex.Pattern;
 
 @Builder
 @ToString

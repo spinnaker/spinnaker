@@ -15,9 +15,10 @@
  */
 package com.netflix.kayenta.canary;
 
-import com.netflix.kayenta.canary.results.CanaryJudgeResult;
+import com.netflix.kayenta.canary.results.CanaryResult;
 import lombok.Builder;
 import lombok.Data;
+
 import javax.validation.constraints.NotNull;
 import java.util.Map;
 
@@ -34,5 +35,5 @@ public class CanaryExecutionStatusResponse {
   @NotNull
   protected String status;
 
-  protected CanaryJudgeResult result;
+  protected CanaryResult result;
 }

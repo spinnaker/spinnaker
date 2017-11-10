@@ -20,7 +20,6 @@ import com.netflix.kayenta.gcs.storage.GcsStorageService;
 import com.netflix.kayenta.google.security.GoogleNamedAccountCredentials;
 import com.netflix.kayenta.security.AccountCredentials;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
-import com.netflix.kayenta.storage.StorageService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;

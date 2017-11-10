@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Google, Inc.
+ * Copyright 2017 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -14,25 +14,29 @@
  * limitations under the License.
  */
 
-package com.netflix.kayenta.canary;
+package com.netflix.kayenta.canary.results;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.netflix.kayenta.canary.CanaryConfig;
+import com.netflix.kayenta.canary.CanaryExecutionRequest;
 import lombok.*;
-
-import javax.validation.constraints.NotNull;
 
 @Builder
 @ToString
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class CanaryClassifierThresholdsConfig {
+public class CanaryResult {
 
-  @NotNull
+  @NonNull
   @Getter
-  private Double pass;
+  CanaryJudgeResult judgeResult;
 
-  @NotNull
+  @NonNull
   @Getter
-  private Double marginal;
+  CanaryConfig config;
+
+  @NonNull
+  @Getter
+  CanaryExecutionRequest canaryExecutionRequest;
 }

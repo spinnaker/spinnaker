@@ -16,7 +16,6 @@
 
 package com.netflix.kayenta.canary.orca;
 
-import com.google.common.collect.ImmutableMap;
 import com.netflix.kayenta.canary.CanaryConfig;
 import com.netflix.kayenta.security.AccountCredentials;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
@@ -28,11 +27,12 @@ import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.RetryableTask;
 import com.netflix.spinnaker.orca.TaskResult;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import java.time.Duration;
 import java.util.Collections;
 import java.util.Map;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 @Component
 public class SetupCanaryTask implements RetryableTask {

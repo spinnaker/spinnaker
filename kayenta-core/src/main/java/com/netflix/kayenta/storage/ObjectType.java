@@ -18,7 +18,7 @@ package com.netflix.kayenta.storage;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.netflix.kayenta.canary.CanaryConfig;
-import com.netflix.kayenta.canary.results.CanaryJudgeResult;
+import com.netflix.kayenta.canary.results.CanaryResult;
 import com.netflix.kayenta.metrics.MetricSet;
 import com.netflix.kayenta.metrics.MetricSetPair;
 import lombok.AllArgsConstructor;
@@ -31,7 +31,7 @@ public enum ObjectType {
   CANARY_CONFIG(new TypeReference<CanaryConfig>() {}, "canary_config", "canary_config.json"),
   METRIC_SET_LIST(new TypeReference<List<MetricSet>>() {}, "metrics", "metric_sets.json"),
   METRIC_SET_PAIR_LIST(new TypeReference<List<MetricSetPair>>() {}, "metric_pairs", "metric_set_pairs.json"),
-  CANARY_JUDGE_RESULT(new TypeReference<CanaryJudgeResult>() {}, "judge_results", "canary_judge_results.json");
+  CANARY_RESULT(new TypeReference<CanaryResult>() {}, "canary_results", "canary_results.json");
 
   @Getter
   final TypeReference typeReference;

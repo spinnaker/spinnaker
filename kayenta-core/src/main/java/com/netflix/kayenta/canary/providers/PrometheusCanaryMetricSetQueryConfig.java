@@ -17,11 +17,7 @@
 package com.netflix.kayenta.canary.providers;
 
 import com.netflix.kayenta.canary.CanaryMetricSetQueryConfig;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import lombok.*;
 
 import javax.validation.constraints.NotNull;
 import java.util.List;

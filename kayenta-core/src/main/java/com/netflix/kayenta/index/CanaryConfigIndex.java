@@ -26,15 +26,9 @@ import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
-import static com.netflix.kayenta.index.CanaryConfigIndexingAgent.MAP_BY_APPLICATION_KEY_SUFFIX;
-import static com.netflix.kayenta.index.CanaryConfigIndexingAgent.NO_INDEXED_CONFIGS_SENTINEL_VALUE;
-import static com.netflix.kayenta.index.CanaryConfigIndexingAgent.PENDING_UPDATES_KEY_SUFFIX;
+import static com.netflix.kayenta.index.CanaryConfigIndexingAgent.*;
 
 @Slf4j
 public class CanaryConfigIndex {

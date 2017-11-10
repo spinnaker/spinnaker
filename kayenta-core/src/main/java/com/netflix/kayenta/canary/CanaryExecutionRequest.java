@@ -16,6 +16,7 @@
 package com.netflix.kayenta.canary;
 
 import lombok.Data;
+
 import javax.validation.constraints.NotNull;
 
 @Data

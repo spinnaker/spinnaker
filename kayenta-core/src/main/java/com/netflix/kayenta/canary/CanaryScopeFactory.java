@@ -16,9 +16,6 @@
 
 package com.netflix.kayenta.canary;
 
-import java.time.Instant;
-import java.util.Map;
-
 public interface CanaryScopeFactory {
 
   boolean handles(String serviceType);

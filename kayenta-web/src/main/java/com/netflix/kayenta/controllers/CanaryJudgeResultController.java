@@ -16,7 +16,7 @@
 
 package com.netflix.kayenta.controllers;
 
-import com.netflix.kayenta.canary.results.CanaryJudgeResult;
+import com.netflix.kayenta.canary.results.CanaryResult;
 import com.netflix.kayenta.security.AccountCredentials;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
 import com.netflix.kayenta.security.CredentialsHelper;
@@ -27,12 +27,7 @@ import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -54,8 +49,8 @@ public class CanaryJudgeResultController {
 
   @ApiOperation(value = "Retrieve a canary judge result from object storage")
   @RequestMapping(value = "/{canaryJudgeResultId:.+}", method = RequestMethod.GET)
-  public CanaryJudgeResult loadCanaryJudgeResult(@RequestParam(required = false) final String accountName,
-                                                 @PathVariable String canaryJudgeResultId) {
+  public CanaryResult loadCanaryJudgeResult(@RequestParam(required = false) final String accountName,
+                                            @PathVariable String canaryJudgeResultId) {
     String resolvedAccountName = CredentialsHelper.resolveAccountByNameOrType(accountName,
                                                                               AccountCredentials.Type.OBJECT_STORE,
                                                                               accountCredentialsRepository);
@@ -64,13 +59,13 @@ public class CanaryJudgeResultController {
         .getOne(resolvedAccountName)
         .orElseThrow(() -> new IllegalArgumentException("No storage service was configured; unable to read canary judge result from bucket."));
 
-    return storageService.loadObject(resolvedAccountName, ObjectType.CANARY_JUDGE_RESULT, canaryJudgeResultId);
+    return storageService.loadObject(resolvedAccountName, ObjectType.CANARY_RESULT, canaryJudgeResultId);
   }
 
   @ApiOperation(value = "Write a canary judge result to object storage")
   @RequestMapping(consumes = "application/json", method = RequestMethod.POST)
   public Map storeCanaryJudgeResult(@RequestParam(required = false) final String accountName,
-                                    @RequestBody CanaryJudgeResult canaryJudgeResult) throws IOException {
+                                    @RequestBody CanaryResult canaryResult) throws IOException {
     String resolvedAccountName = CredentialsHelper.resolveAccountByNameOrType(accountName,
                                                                               AccountCredentials.Type.OBJECT_STORE,
                                                                               accountCredentialsRepository);
@@ -80,7 +75,7 @@ public class CanaryJudgeResultController {
         .orElseThrow(() -> new IllegalArgumentException("No storage service was configured; unable to write canary judge result to bucket."));
     String canaryJudgeResultId = UUID.randomUUID() + "";
 
-    storageService.storeObject(resolvedAccountName, ObjectType.CANARY_JUDGE_RESULT, canaryJudgeResultId, canaryJudgeResult);
+    storageService.storeObject(resolvedAccountName, ObjectType.CANARY_RESULT, canaryJudgeResultId, canaryResult);
 
     return Collections.singletonMap("canaryJudgeResultId", canaryJudgeResultId);
   }
@@ -98,7 +93,7 @@ public class CanaryJudgeResultController {
         .getOne(resolvedAccountName)
         .orElseThrow(() -> new IllegalArgumentException("No storage service was configured; unable to delete canary judge result."));
 
-    storageService.deleteObject(resolvedAccountName, ObjectType.CANARY_JUDGE_RESULT, canaryJudgeResultId);
+    storageService.deleteObject(resolvedAccountName, ObjectType.CANARY_RESULT, canaryJudgeResultId);
 
     response.setStatus(HttpStatus.NO_CONTENT.value());
   }
@@ -114,6 +109,6 @@ public class CanaryJudgeResultController {
         .getOne(resolvedAccountName)
         .orElseThrow(() -> new IllegalArgumentException("No storage service was configured; unable to list all canary judge results."));
 
-      return storageService.listObjectKeys(resolvedAccountName, ObjectType.CANARY_JUDGE_RESULT);
+      return storageService.listObjectKeys(resolvedAccountName, ObjectType.CANARY_RESULT);
   }
 }

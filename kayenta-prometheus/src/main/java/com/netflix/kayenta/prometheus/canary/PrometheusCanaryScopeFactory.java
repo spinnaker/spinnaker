@@ -20,9 +20,6 @@ import com.netflix.kayenta.canary.CanaryScope;
 import com.netflix.kayenta.canary.CanaryScopeFactory;
 import org.springframework.stereotype.Component;
 
-import java.time.Instant;
-import java.util.Map;
-
 @Component
 public class PrometheusCanaryScopeFactory implements CanaryScopeFactory {
 

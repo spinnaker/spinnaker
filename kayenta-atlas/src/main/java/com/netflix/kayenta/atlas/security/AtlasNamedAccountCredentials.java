@@ -17,9 +17,7 @@
 package com.netflix.kayenta.atlas.security;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.netflix.kayenta.atlas.backends.BackendDatabase;
 import com.netflix.kayenta.atlas.backends.BackendUpdater;
-import com.netflix.kayenta.atlas.service.AtlasRemoteService;
 import com.netflix.kayenta.security.AccountCredentials;
 import lombok.Builder;
 import lombok.Data;

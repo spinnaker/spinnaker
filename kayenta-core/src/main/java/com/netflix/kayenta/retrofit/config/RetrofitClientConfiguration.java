@@ -61,6 +61,7 @@ public class RetrofitClientConfiguration {
     return new RetrofitExceptionHandler();
   }
 
+
   @Bean
   @Primary
   ObjectMapper kayentaObjectMapper() {

@@ -18,11 +18,9 @@ package com.netflix.kayenta.canary.orca;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
-import com.netflix.kayenta.canary.CanaryClassifierThresholdsConfig;
-import com.netflix.kayenta.canary.CanaryConfig;
-import com.netflix.kayenta.canary.CanaryJudge;
-import com.netflix.kayenta.canary.CanaryJudgeConfig;
+import com.netflix.kayenta.canary.*;
 import com.netflix.kayenta.canary.results.CanaryJudgeResult;
+import com.netflix.kayenta.canary.results.CanaryResult;
 import com.netflix.kayenta.metrics.MetricSetPair;
 import com.netflix.kayenta.security.AccountCredentials;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
@@ -34,15 +32,18 @@ import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.RetryableTask;
 import com.netflix.spinnaker.orca.TaskResult;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.io.IOException;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+@Slf4j
 @Component
 public class CanaryJudgeTask implements RetryableTask {
 
@@ -109,10 +110,25 @@ public class CanaryJudgeTask implements RetryableTask {
       canaryJudge = canaryJudges.get(0);
     }
 
+    String canaryExecutionRequestJSON = (String)context.get("canaryExecutionRequest");
+    CanaryExecutionRequest canaryExecutionRequest = null;
+    try {
+      canaryExecutionRequest = objectMapper.readValue(canaryExecutionRequestJSON, CanaryExecutionRequest.class);
+    } catch (IOException e) {
+      log.error("Cannot deserialize canaryExecutionRequest", e);
+      throw new IllegalArgumentException("Cannot deserialize canaryExecutionRequest", e);
+    }
+
     CanaryJudgeResult result = canaryJudge.judge(canaryConfig, orchestratorScoreThresholds, metricSetPairList);
     String canaryJudgeResultId = UUID.randomUUID() + "";
 
-    storageService.storeObject(resolvedStorageAccountName, ObjectType.CANARY_JUDGE_RESULT, canaryJudgeResultId, result);
+    CanaryResult canaryResult = CanaryResult.builder()
+      .judgeResult(result)
+      .config(canaryConfig)
+      .canaryExecutionRequest(canaryExecutionRequest)
+      .build();
+
+    storageService.storeObject(resolvedStorageAccountName, ObjectType.CANARY_RESULT, canaryJudgeResultId, canaryResult);
 
     Map<String, Object> outputs =
       ImmutableMap.<String, Object>builder()

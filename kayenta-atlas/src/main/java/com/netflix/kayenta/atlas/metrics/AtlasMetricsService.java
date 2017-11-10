@@ -17,7 +17,6 @@
 package com.netflix.kayenta.atlas.metrics;
 
 import com.netflix.kayenta.atlas.canary.AtlasCanaryScope;
-import com.netflix.kayenta.atlas.config.AtlasConfigurationProperties;
 import com.netflix.kayenta.atlas.config.AtlasSSEConverter;
 import com.netflix.kayenta.atlas.model.AtlasResults;
 import com.netflix.kayenta.atlas.model.AtlasResultsHelper;

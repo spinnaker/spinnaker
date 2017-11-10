@@ -23,7 +23,8 @@ import redis.clients.jedis.Jedis
 import redis.clients.jedis.JedisPool
 import spock.lang.*
 
-import static com.netflix.kayenta.index.CanaryConfigIndexingAgent.*
+import static com.netflix.kayenta.index.CanaryConfigIndexingAgent.MAP_BY_APPLICATION_KEY_SUFFIX
+import static com.netflix.kayenta.index.CanaryConfigIndexingAgent.NO_INDEXED_CONFIGS_SENTINEL_VALUE
 
 class CanaryConfigIndexSpec extends Specification {
 

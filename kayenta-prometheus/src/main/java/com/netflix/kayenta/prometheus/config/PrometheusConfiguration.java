@@ -16,11 +16,11 @@
 
 package com.netflix.kayenta.prometheus.config;
 
+import com.netflix.kayenta.metrics.MetricsService;
 import com.netflix.kayenta.prometheus.metrics.PrometheusMetricsService;
 import com.netflix.kayenta.prometheus.security.PrometheusCredentials;
 import com.netflix.kayenta.prometheus.security.PrometheusNamedAccountCredentials;
 import com.netflix.kayenta.prometheus.service.PrometheusRemoteService;
-import com.netflix.kayenta.metrics.MetricsService;
 import com.netflix.kayenta.retrofit.config.RetrofitClientFactory;
 import com.netflix.kayenta.security.AccountCredentials;
 import com.netflix.kayenta.security.AccountCredentialsRepository;

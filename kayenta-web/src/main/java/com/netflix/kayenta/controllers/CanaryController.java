@@ -39,12 +39,7 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.time.Duration;
 import java.util.*;
@@ -199,6 +194,8 @@ public class CanaryController {
       orchestratorScoreThresholds = canaryConfig.getClassifier().getScoreThresholds();
     }
 
+    String canaryExecutionRequestJSON = kayentaObjectMapper.writeValueAsString(canaryExecutionRequest);
+
     Map<String, Object> canaryJudgeContext =
       Maps.newHashMap(
         new ImmutableMap.Builder<String, Object>()
@@ -208,6 +205,7 @@ public class CanaryController {
           .put("storageAccountName", resolvedStorageAccountName)
           .put("metricSetPairListId", "${ #stage('Mix Control and Experiment Results')['context']['metricSetPairListId']}")
           .put("orchestratorScoreThresholds", orchestratorScoreThresholds)
+          .put("canaryExecutionRequest", canaryExecutionRequestJSON)
           .build());
 
     Duration controlDuration = Duration.between(controlScopeModel.getStart(), controlScopeModel.getEnd());
@@ -295,7 +293,7 @@ public class CanaryController {
     if (isComplete && pipelineStatus.equals("succeeded")) {
       if (judgeContext.containsKey("canaryJudgeResultId")) {
         String canaryJudgeResultId = (String)judgeContext.get("canaryJudgeResultId");
-        canaryExecutionStatusResponseBuilder.result(storageService.loadObject(resolvedStorageAccountName, ObjectType.CANARY_JUDGE_RESULT, canaryJudgeResultId));
+        canaryExecutionStatusResponseBuilder.result(storageService.loadObject(resolvedStorageAccountName, ObjectType.CANARY_RESULT, canaryJudgeResultId));
       }
     }
 

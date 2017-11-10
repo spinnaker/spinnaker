@@ -28,7 +28,7 @@ public class BackendUpdaterService extends AbstractHealthIndicator {
   private final List<BackendUpdater> backendUpdaters = new ArrayList<>();
   private int checksCompleted = 0;
 
-  @Scheduled(initialDelay = 10000, fixedDelay=120000)
+  @Scheduled(initialDelay = 2000, fixedDelay=122000)
   public synchronized void run() {
     // TODO: this will fetch the same uri even if they share the same URI.
     // TODO: It also has locking issues, in that we could hold a lock for a long time.

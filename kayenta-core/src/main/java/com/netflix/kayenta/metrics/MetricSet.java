@@ -17,12 +17,7 @@
 package com.netflix.kayenta.metrics;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.Singular;
-import lombok.ToString;
+import lombok.*;
 import org.springframework.util.StringUtils;
 
 import javax.validation.constraints.NotNull;

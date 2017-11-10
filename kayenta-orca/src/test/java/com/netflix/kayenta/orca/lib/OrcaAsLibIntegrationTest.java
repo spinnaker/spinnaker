@@ -36,11 +36,7 @@ import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 import com.netflix.spinnaker.orca.pipeline.persistence.jedis.JedisExecutionRepository;
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor;
 import com.netflix.spinnaker.orca.pipeline.util.StageNavigator;
-import com.netflix.spinnaker.orca.q.DummyTask;
-import com.netflix.spinnaker.orca.q.ExecutionLatchKt;
-import com.netflix.spinnaker.orca.q.PipelineBuilderKt;
-import com.netflix.spinnaker.orca.q.Queue;
-import com.netflix.spinnaker.orca.q.QueueExecutionRunner;
+import com.netflix.spinnaker.orca.q.*;
 import com.netflix.spinnaker.orca.test.redis.EmbeddedRedisConfiguration;
 import org.junit.After;
 import org.junit.Before;
@@ -59,14 +55,9 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import java.time.Duration;
 
-import static com.netflix.appinfo.InstanceInfo.InstanceStatus.OUT_OF_SERVICE;
-import static com.netflix.appinfo.InstanceInfo.InstanceStatus.STARTING;
-import static com.netflix.appinfo.InstanceInfo.InstanceStatus.UP;
+import static com.netflix.appinfo.InstanceInfo.InstanceStatus.*;
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @SpringBootTest(classes = {TestConfig.class})
 @RunWith(SpringRunner.class)

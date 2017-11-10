@@ -16,7 +16,6 @@
 
 package com.netflix.kayenta.atlas.config;
 
-import com.netflix.kayenta.atlas.backends.BackendDatabase;
 import com.netflix.kayenta.atlas.backends.BackendUpdater;
 import com.netflix.kayenta.atlas.backends.BackendUpdaterService;
 import com.netflix.kayenta.atlas.metrics.AtlasMetricsService;
