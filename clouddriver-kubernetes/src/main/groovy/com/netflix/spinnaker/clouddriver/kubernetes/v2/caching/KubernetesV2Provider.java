@@ -17,33 +17,41 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.caching;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.cats.agent.Agent;
 import com.netflix.spinnaker.cats.agent.AgentSchedulerAware;
 import com.netflix.spinnaker.clouddriver.cache.SearchableProvider;
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpinnakerKindMap;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import groovy.util.logging.Slf4j;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
+@EqualsAndHashCode(callSuper = true)
 @Slf4j
 @Data
 class KubernetesV2Provider extends AgentSchedulerAware implements SearchableProvider {
   public static final String PROVIDER_NAME = KubernetesCloudProvider.getID();
 
-  final Map<String, String> urlMappingTemplates = Collections.emptyMap();
+  private final static ObjectMapper mapper = new ObjectMapper();
+  private final Map<String, String> urlMappingTemplates = Collections.emptyMap();
+  private final Collection<Agent> agents = Collections.newSetFromMap(new ConcurrentHashMap<>());
+  private final KubernetesCloudProvider cloudProvider;
+  private final KubernetesSpinnakerKindMap kindMap;
 
-  final Collection<Agent> agents;
-  final KubernetesCloudProvider cloudProvider;
-
-  KubernetesV2Provider(KubernetesCloudProvider cloudProvider, Collection<Agent> agents) {
+  KubernetesV2Provider(KubernetesCloudProvider cloudProvider, KubernetesSpinnakerKindMap kindMap) {
     this.cloudProvider = cloudProvider;
-    this.agents = agents;
+    this.kindMap = kindMap;
   }
 
   @Override
@@ -53,7 +61,10 @@ class KubernetesV2Provider extends AgentSchedulerAware implements SearchableProv
 
   @Override
   public Set<String> getDefaultCaches() {
-    return new HashSet<>();
+    return kindMap.allKubernetesKinds()
+        .stream()
+        .map(KubernetesKind::toString)
+        .collect(Collectors.toSet());
   }
 
   @Override
@@ -63,6 +74,8 @@ class KubernetesV2Provider extends AgentSchedulerAware implements SearchableProv
 
   @Override
   public Map<String, String> parseKey(String key) {
-    return new HashMap<>();
+    return (Map<String, String>) Keys.parseKey(key)
+        .map(k -> mapper.convertValue(k, new TypeReference<Map<String, String>>() {}))
+        .orElse(new HashMap<>());
   }
 }

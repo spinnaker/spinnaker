@@ -57,4 +57,8 @@ public class KubernetesSpinnakerKindMap {
   public Set<KubernetesKind> translateSpinnakerKind(SpinnakerKind spinnakerKind) {
     return spinnakerToKubernetes.get(spinnakerKind);
   }
+
+  public Set<KubernetesKind> allKubernetesKinds() {
+    return kubernetesToSpinnaker.keySet();
+  }
 }

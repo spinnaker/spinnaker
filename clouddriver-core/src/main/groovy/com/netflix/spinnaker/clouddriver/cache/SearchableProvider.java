@@ -19,7 +19,9 @@ package com.netflix.spinnaker.clouddriver.cache;
 import com.netflix.spinnaker.cats.cache.Cache;
 import com.netflix.spinnaker.cats.provider.Provider;
 import groovy.transform.Canonical;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.Map;
 import java.util.Set;
@@ -57,6 +59,8 @@ public interface SearchableProvider extends Provider {
 
   @Canonical
   @Data
+  @AllArgsConstructor
+  @NoArgsConstructor
   public static class SearchableResource {
     /**
      * Lowercase name of a resource type.

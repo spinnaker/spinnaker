@@ -23,6 +23,7 @@ import com.netflix.spinnaker.cats.thread.NamedThreadFactory;
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesV2CachingAgentDispatcher;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpinnakerKindMap;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository;
 import com.netflix.spinnaker.clouddriver.security.ProviderUtils;
 import com.netflix.spinnaker.clouddriver.security.ProviderVersion;
@@ -33,10 +34,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Scope;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -49,8 +48,9 @@ class KubernetesV2ProviderConfig implements Runnable {
   @DependsOn("kubernetesNamedAccountCredentials")
   KubernetesV2Provider kubernetesV2Provider(KubernetesCloudProvider kubernetesCloudProvider,
       AccountCredentialsRepository accountCredentialsRepository,
+      KubernetesSpinnakerKindMap kindMap,
       KubernetesV2CachingAgentDispatcher kubernetesV2CachingAgentDispatcher) {
-    this.kubernetesV2Provider = new KubernetesV2Provider(kubernetesCloudProvider, Collections.newSetFromMap(new ConcurrentHashMap<Agent, Boolean>()));
+    this.kubernetesV2Provider = new KubernetesV2Provider(kubernetesCloudProvider, kindMap);
     this.accountCredentialsRepository = accountCredentialsRepository;
     this.kubernetesV2CachingAgentDispatcher = kubernetesV2CachingAgentDispatcher;
 
@@ -90,7 +90,7 @@ class KubernetesV2ProviderConfig implements Runnable {
       AccountCredentialsRepository accountCredentialsRepository) {
     Set<KubernetesNamedAccountCredentials> allAccounts = ProviderUtils.buildThreadSafeSetOfAccounts(accountCredentialsRepository, KubernetesNamedAccountCredentials.class, ProviderVersion.v2);
 
-    kubernetesV2Provider.agents.clear();
+    kubernetesV2Provider.getAgents().clear();
 
     for (KubernetesNamedAccountCredentials credentials : allAccounts) {
       List<Agent> newlyAddedAgents = kubernetesV2CachingAgentDispatcher.buildAllCachingAgents(credentials)
@@ -106,7 +106,7 @@ class KubernetesV2ProviderConfig implements Runnable {
         ProviderUtils.rescheduleAgents(kubernetesV2Provider, newlyAddedAgents);
       }
 
-      kubernetesV2Provider.agents.addAll(newlyAddedAgents);
+      kubernetesV2Provider.getAgents().addAll(newlyAddedAgents);
     }
 
     return new KubernetesV2ProviderSynchronizer();

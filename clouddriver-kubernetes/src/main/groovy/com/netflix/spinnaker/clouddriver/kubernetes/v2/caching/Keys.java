@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.caching;
 
+import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import lombok.Data;
@@ -147,6 +148,10 @@ public class Keys {
   @Data
   public static abstract class CacheKey {
     private Kind kind;
+    private String provider = KubernetesCloudProvider.getID();
+    public String getType() {
+      return getGroup();
+    }
     public abstract String getGroup();
     public abstract String getName();
   }

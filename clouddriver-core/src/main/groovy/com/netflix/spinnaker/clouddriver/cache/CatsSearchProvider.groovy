@@ -123,7 +123,7 @@ class CatsSearchProvider implements SearchProvider {
     List<Map<String, String>> results = resultPage.findResults { String key ->
       Map<String, String> result = providers.findResult { it.parseKey(key) }
       if (result) {
-        def resultResource = new SearchableResource(resourceType: result.type.toLowerCase(), platform: result.provider.toLowerCase())
+        def resultResource = new SearchableResource(resourceType: result.type?.toLowerCase(), platform: result.provider?.toLowerCase())
         if (resultResource in searchResultHydrators) {
           return searchResultHydrators[(resultResource)].hydrateResult(cacheView, result, key)
         } else {
