@@ -95,6 +95,8 @@ class KubernetesInstanceDetailsController implements IController {
           instanceDetails.displayName = instanceDetails.manifest.metadata.name;
           instanceDetails.kind = instanceDetails.manifest.kind;
           instanceDetails.apiVersion = instanceDetails.manifest.apiVersion;
+          instanceDetails.id = instanceDetails.name;
+          instanceDetails.provider = 'kubernetes';
           return instanceDetails;
         });
     } else {

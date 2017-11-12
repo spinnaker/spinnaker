@@ -8,12 +8,13 @@ module.exports = angular.module('spinnaker.core.instance.details.console.control
   INSTANCE_READ_SERVICE,
 ])
   .controller('ConsoleOutputCtrl', function($scope, $uibModalInstance, instanceReader, instance) {
+    const instanceId = instance.instanceId || instance.id;
     $scope.vm = {
       loading: true,
-      instanceId: instance.instanceId,
+      instanceId: instanceId,
     };
 
-    instanceReader.getConsoleOutput(instance.account, instance.region, instance.instanceId, instance.provider).then(
+    instanceReader.getConsoleOutput(instance.account, instance.region, instanceId, instance.provider).then(
       function(response) {
         $scope.vm.consoleOutput = response.output;
         $scope.vm.loading = false;
