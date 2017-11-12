@@ -35,7 +35,7 @@ import io.fabric8.kubernetes.api.model.Pod
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
 
 @Slf4j
-class KubernetesInstanceCachingAgent extends KubernetesCachingAgent<KubernetesV1Credentials> {
+class KubernetesInstanceCachingAgent extends KubernetesV1CachingAgent {
   static final String CACHE_TTL_ANNOTATION = "cache.spinnaker.io/ttl"
 
   static final Set<AgentDataType> types = Collections.unmodifiableSet([

@@ -21,7 +21,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.agent.AccountAware;
 import com.netflix.spinnaker.cats.agent.CachingAgent;
-import com.netflix.spinnaker.clouddriver.kubernetes.provider.KubernetesProvider;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
 import lombok.Getter;
@@ -31,7 +30,6 @@ import java.util.stream.Collectors;
 
 public abstract class KubernetesCachingAgent<C extends KubernetesCredentials> implements CachingAgent, AccountAware {
   @Getter final protected String accountName;
-  @Getter final protected String providerName = KubernetesProvider.PROVIDER_NAME;
   final protected Registry registry;
   final protected C credentials;
   final protected ObjectMapper objectMapper;

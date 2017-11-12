@@ -33,7 +33,7 @@ import io.fabric8.kubernetes.api.model.Secret
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
 
 @Slf4j
-class KubernetesSecretCachingAgent extends KubernetesCachingAgent<KubernetesV1Credentials> {
+class KubernetesSecretCachingAgent extends KubernetesV1CachingAgent {
   static final Set<AgentDataType> types = Collections.unmodifiableSet([
       AUTHORITATIVE.forType(Keys.Namespace.SECRETS.ns),
   ] as Set)

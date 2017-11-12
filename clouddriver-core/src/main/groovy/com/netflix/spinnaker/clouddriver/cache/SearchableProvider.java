@@ -14,55 +14,60 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.cache
+package com.netflix.spinnaker.clouddriver.cache;
 
-import com.netflix.spinnaker.cats.cache.Cache
-import com.netflix.spinnaker.cats.provider.Provider
-import groovy.transform.Canonical
+import com.netflix.spinnaker.cats.cache.Cache;
+import com.netflix.spinnaker.cats.provider.Provider;
+import groovy.transform.Canonical;
+import lombok.Data;
 
-interface SearchableProvider extends Provider {
+import java.util.Map;
+import java.util.Set;
+
+public interface SearchableProvider extends Provider {
 
   /**
    * Names of caches to search by default
    */
-  Set<String> getDefaultCaches()
+  Set<String> getDefaultCaches();
 
   /**
    * Map keyed by named cache to a template that produces a url for a search result.
    *
    * The template will be supplied the result from calling parseKey on the search key
    */
-  Map<String, String> getUrlMappingTemplates()
+  Map<String, String> getUrlMappingTemplates();
 
   /**
    * SearchResultHydrators for cache types
    */
-  Map<SearchableResource, SearchResultHydrator> getSearchResultHydrators()
+  Map<SearchableResource, SearchResultHydrator> getSearchResultHydrators();
 
   /**
    * The parts of the key, if this Provider supports keys of this type, otherwise null.
    */
-  Map<String, String> parseKey(String key)
+  Map<String, String> parseKey(String key);
 
   /**
    * A SearchResultHydrator provides a custom strategy for enhancing result data for a particular cache type.
    */
   public static interface SearchResultHydrator {
-    Map<String, String> hydrateResult(Cache cacheView, Map<String, String> result, String id)
+    Map<String, String> hydrateResult(Cache cacheView, Map<String, String> result, String id);
   }
 
   @Canonical
+  @Data
   public static class SearchableResource {
     /**
      * Lowercase name of a resource type.
      * e.g. 'instances', 'load_balancers'
      */
-    String resourceType
+    String resourceType;
 
     /**
      * Lowercase name of the platform.
      * e.g. 'aws', 'gce'
      */
-    String platform
+    String platform;
   }
 }

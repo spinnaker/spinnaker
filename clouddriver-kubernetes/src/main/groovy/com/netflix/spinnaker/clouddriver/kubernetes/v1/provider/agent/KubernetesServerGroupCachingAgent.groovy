@@ -47,7 +47,7 @@ import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITA
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.INFORMATIVE
 
 @Slf4j
-class KubernetesServerGroupCachingAgent extends KubernetesCachingAgent<KubernetesV1Credentials> implements OnDemandAgent {
+class KubernetesServerGroupCachingAgent extends KubernetesV1CachingAgent implements OnDemandAgent {
   final String category = 'serverGroup'
 
   final OnDemandMetricsSupport metricsSupport

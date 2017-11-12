@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Google, Inc.
+ * Copyright 2017 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,9 +12,10 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 
-package com.netflix.spinnaker.clouddriver.kubernetes.provider
+package com.netflix.spinnaker.clouddriver.kubernetes.v1.provider
 
 import com.netflix.spinnaker.cats.agent.Agent
 import com.netflix.spinnaker.cats.agent.AgentSchedulerAware
@@ -28,15 +29,15 @@ import groovy.util.logging.Slf4j
 import static com.netflix.spinnaker.clouddriver.cache.SearchableProvider.SearchableResource
 
 @Slf4j
-class KubernetesProvider extends AgentSchedulerAware implements SearchableProvider {
-  public static final String PROVIDER_NAME = KubernetesProvider.name
+class KubernetesV1Provider extends AgentSchedulerAware implements SearchableProvider {
+  public static final String PROVIDER_NAME = KubernetesV1Provider.name
 
   final Map<String, String> urlMappingTemplates = Collections.emptyMap()
 
   final Collection<Agent> agents
   final KubernetesCloudProvider cloudProvider
 
-  KubernetesProvider(KubernetesCloudProvider cloudProvider, Collection<Agent> agents) {
+  KubernetesV1Provider(KubernetesCloudProvider cloudProvider, Collection<Agent> agents) {
     this.cloudProvider = cloudProvider
     this.agents = agents
   }
