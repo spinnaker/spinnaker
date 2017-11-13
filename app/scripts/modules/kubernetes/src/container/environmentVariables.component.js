@@ -30,7 +30,7 @@ module.exports = angular.module('spinnaker.deck.kubernetes.environmentVariables.
 
       this.removeEnvVar = function(index) {
         this.envVars.splice(index, 1);
-        this.envVarsSourceTypes(index, 1);
+        this.envVarsSourceTypes.splice(index, 1);
       };
 
       this.addEnvVar = function() {
