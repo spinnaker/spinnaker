@@ -65,7 +65,7 @@
       </div>
     </div>
 
-    <stage-failure-message stage="stage" is-failed="stage.isFailed" message="ctrl.getException(stage) || failureMessage"></stage-failure-message>
+    <stage-failure-message stage="stage" ng-if="stage.isFailed" message="ctrl.getException(stage) || failureMessage"></stage-failure-message>
   </div>
 
   <div class="step-section-details" ng-if="detailsSection === 'taskStatus'">
