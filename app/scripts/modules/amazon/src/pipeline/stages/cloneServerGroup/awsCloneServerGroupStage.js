@@ -23,7 +23,7 @@ module.exports = angular.module('spinnaker.amazon.pipeline.stage.cloneServerGrou
         { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account'}
       ],
     });
-  }).controller('awsCloneServerGroupStageCtrl', function($scope, accountService, appListExtractorService) {
+  }).controller('awsCloneServerGroupStageCtrl', function($scope, accountService, appListExtractorService, namingService) {
 
     let stage = $scope.stage;
 
@@ -60,8 +60,15 @@ module.exports = angular.module('spinnaker.amazon.pipeline.stage.cloneServerGrou
       if (stage.targetCluster) {
         const filterByCluster = appListExtractorService.monikerClusterNameFilter(stage.targetCluster);
         let moniker = _.first(appListExtractorService.getMonikers([$scope.application], filterByCluster));
-        stage.stack = moniker.stack;
-        stage.freeFormDetails = moniker.detail;
+        if (moniker) {
+          stage.stack = moniker.stack;
+          stage.freeFormDetails = moniker.detail;
+        } else {
+          // if the user has entered a free-form value for the target cluster, fall back to the naming service
+          const nameParts = namingService.parseClusterName(stage.targetCluster);
+          stage.stack = nameParts.stack;
+          stage.freeFormDetails = nameParts.freeFormDetails;
+        }
       } else {
         stage.stack = '';
         stage.freeFormDetails = '';
