@@ -25,6 +25,7 @@ import com.netflix.spinnaker.keel.scheduler.ConvergeIntent
 import com.netflix.spinnaker.keel.test.TestIntent
 import com.netflix.spinnaker.keel.test.TestIntentSpec
 import com.netflix.spinnaker.q.Queue
+import org.springframework.context.ApplicationEventPublisher
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -40,8 +41,9 @@ class ConvergeIntentHandlerSpec extends Specification {
   OrcaIntentLauncher orcaIntentLauncher = Mock()
   Clock clock = Clock.fixed(Instant.ofEpochSecond(500), ZoneId.systemDefault())
   Registry registry = new NoopRegistry()
+  ApplicationEventPublisher applicationEventPublisher = Mock()
 
-  @Subject subject = new ConvergeIntentHandler(queue, intentRepository, intentActivityRepository, orcaIntentLauncher, clock, registry)
+  @Subject subject = new ConvergeIntentHandler(queue, intentRepository, intentActivityRepository, orcaIntentLauncher, clock, registry, applicationEventPublisher)
 
   def "should timeout intent if after timeout ttl"() {
     given:

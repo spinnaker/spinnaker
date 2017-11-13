@@ -38,7 +38,7 @@ class SecurityGroupIntent
   // if someone wants to have two different intents managing the same named security group in different regions (rules
   // are different region-to-region). Is this actually something to be concerned about? Be hard to change the ID strat
   // after the fact...
-  override fun getId() = "$KIND:${spec.cloudProvider}:${spec.accountName}:${spec.name}"
+  override val id = "$KIND:${spec.cloudProvider}:${spec.accountName}:${spec.name}"
 }
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "kind")

@@ -44,7 +44,7 @@ class SecurityGroupIntentProcessor
   override fun supports(intent: Intent<IntentSpec>) = intent is SecurityGroupIntent
 
   override fun converge(intent: SecurityGroupIntent): ConvergeResult {
-    log.info("Converging state for ${intent.getId()}")
+    log.info("Converging state for ${intent.id}")
 
     val currentState = getSecurityGroups(intent.spec)
 
@@ -70,7 +70,7 @@ class SecurityGroupIntentProcessor
           application = intent.spec.application,
           description = "Converging on desired security group state",
           job = securityGroupConverter.convertToJob(intent.spec),
-          trigger = Trigger(intent.getId())
+          trigger = Trigger(intent.id)
         )
       ),
       ConvergeReason.CHANGED.reason

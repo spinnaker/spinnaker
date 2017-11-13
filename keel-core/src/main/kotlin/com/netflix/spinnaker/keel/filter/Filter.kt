@@ -13,12 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.keel
+package com.netflix.spinnaker.keel.filter
 
-enum class IntentPriority {
-  CRITICAL, HIGH, NORMAL, LOW
-}
+import com.netflix.spinnaker.keel.Intent
+import com.netflix.spinnaker.keel.IntentSpec
+import org.springframework.core.Ordered
 
-enum class PriorityMatcher {
-  EQUAL, EQUAL_GT, EQUAL_LT
+/**
+ * A Filter can be used to intercept Intent scheduling. Filters can use Intent Attributes to perform more complex logic.
+ */
+interface Filter : Ordered {
+  fun filter(intent: Intent<IntentSpec>): Boolean
 }

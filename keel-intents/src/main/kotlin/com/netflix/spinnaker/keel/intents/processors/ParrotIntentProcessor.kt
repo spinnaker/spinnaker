@@ -43,7 +43,7 @@ class ParrotIntentProcessor
         job = listOf(
           Job("wait", mutableMapOf("waitTime" to intent.spec.waitTime))
         ),
-        trigger = Trigger(intent.getId())
+        trigger = Trigger(intent.id)
       )
     ), ConvergeReason.CHANGED.reason)
   }

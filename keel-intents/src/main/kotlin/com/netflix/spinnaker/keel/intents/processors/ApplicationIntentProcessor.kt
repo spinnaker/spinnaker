@@ -45,7 +45,7 @@ class ApplicationIntentProcessor
   override fun supports(intent: Intent<IntentSpec>) = intent is ApplicationIntent
 
   override fun converge(intent: ApplicationIntent): ConvergeResult {
-    log.info("Converging state for ${intent.getId()}")
+    log.info("Converging state for ${intent.id}")
 
     val currentState = getApplication(intent.spec.name)
 
@@ -71,7 +71,7 @@ class ApplicationIntentProcessor
               )
             )
           ),
-          trigger = Trigger(intent.getId())
+          trigger = Trigger(intent.id)
         )
       ),
       if (currentState == null) "Application does not exist" else "Application has been updated"

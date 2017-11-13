@@ -10,18 +10,52 @@ _**IMPORTANT:** This service is currently under development and is not ready for
 
 ```json
 {
-	"intents": [
-		{
-			"kind": "Parrot",
-			"schema": "1",
-			"spec": {
-				"application": "keel",
-				"description": "hello"
-			},
-			"status": "ACTIVE"
-		}
-	],
-	"dryRun": true
+  "intents": [
+    {
+      "kind": "Application",
+      "schema": "1",
+      "spec": {
+        "kind": "Application",
+        "application": "keel",
+        "description": "Spinnaker's declarative service",
+        "email": "example@example.com",
+        "owner": "Delivery Engineering",
+        "chaosMonkey": {
+          "enabled": false,
+          "meanTimeBetweenKillsInWorkDays": 2,
+          "minTimeBetweenKillsInWorkDays": 2,
+          "grouping": "cluster",
+          "regionsAreIndependent": true,
+          "exceptions": []
+        },
+        "enableRestartRunningExecutions": false,
+        "instanceLinks": [],
+        "instancePort": 7001,
+        "appGroup": "spinnaker",
+        "dataSources": {
+          "enabled": [],
+          "disabled": []
+        },
+        "requiredGroupMembership": [],
+        "group": "Spinnaker",
+        "providerSettings": {},
+        "trafficGuards": [],
+        "platformHealthOnlyShowOverride": false,
+        "platformHealthOnly": false
+      },
+      "labels": {
+        "namespace": "spinnaker"
+      },
+      "attributes": [
+        {
+          "kind": "Priority",
+          "value": "CRITICAL"
+        }
+      ],
+      "status": "ACTIVE"
+    }
+  ],
+  "dryRun": true
 }
 ```
 

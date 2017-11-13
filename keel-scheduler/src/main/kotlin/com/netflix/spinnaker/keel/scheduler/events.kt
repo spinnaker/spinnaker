@@ -13,22 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.keel.memory
+package com.netflix.spinnaker.keel.scheduler
 
-import com.netflix.spinnaker.keel.Policy
-import com.netflix.spinnaker.keel.PolicyRepository
+import com.netflix.spinnaker.keel.Intent
+import com.netflix.spinnaker.keel.IntentSpec
+import org.springframework.context.ApplicationEvent
 
-class MemoryPolicyRepository : PolicyRepository {
+class ConvergenceTimeoutEvent(val message: ConvergeIntent) : ApplicationEvent("scheduler")
+class IntentNotFoundEvent(val intentId: String) : ApplicationEvent("scheduler")
+class IntentOrchestratedEvent(intent: Intent<IntentSpec>, orchestrationIds: List<String>) : ApplicationEvent("scheduler")
 
-  private val policies: MutableMap<String, Policy> = mutableMapOf()
-
-  override fun findAll() = policies.entries.map { it.value }
-
-  override fun upsert(policy: Policy) {
-    policies.put(policy.getId(), policy)
-  }
-
-  override fun delete(id: String) {
-    policies.remove(id)
-  }
-}
+class ScheduleFailedEvent(val exception: Exception) : ApplicationEvent("scheduler")

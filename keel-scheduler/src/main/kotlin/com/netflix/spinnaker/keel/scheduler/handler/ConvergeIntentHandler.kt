@@ -22,10 +22,14 @@ import com.netflix.spinnaker.keel.IntentRepository
 import com.netflix.spinnaker.keel.IntentSpec
 import com.netflix.spinnaker.keel.orca.OrcaIntentLauncher
 import com.netflix.spinnaker.keel.scheduler.ConvergeIntent
+import com.netflix.spinnaker.keel.scheduler.ConvergenceTimeoutEvent
+import com.netflix.spinnaker.keel.scheduler.IntentNotFoundEvent
+import com.netflix.spinnaker.keel.scheduler.IntentOrchestratedEvent
 import com.netflix.spinnaker.q.MessageHandler
 import com.netflix.spinnaker.q.Queue
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
 import java.time.Clock
 
@@ -40,26 +44,32 @@ class ConvergeIntentHandler
   private val intentActivityRepository: IntentActivityRepository,
   private val orcaIntentLauncher: OrcaIntentLauncher,
   private val clock: Clock,
-  private val registry: Registry
+  private val registry: Registry,
+  private val applicationEventPublisher: ApplicationEventPublisher
 ) : MessageHandler<ConvergeIntent> {
 
   private val log = LoggerFactory.getLogger(javaClass)
 
   private val invocationsId = registry.createId("intent.invocations")
   private val canceledId = registry.createId("intent.cancellations")
+  private val refreshesId = registry.createId("intent.refreshes")
 
   override fun handle(message: ConvergeIntent) {
-    log.info("Converging intent ${message.intent.getId()}")
+    log.info("Converging intent ${message.intent.id}")
 
     if (clock.millis() > message.timeoutTtl) {
-      log.warn("Intent timed out, canceling converge: ${message.intent.getId()}")
+      log.warn("Intent timed out, canceling converge: ${message.intent.id}")
+      applicationEventPublisher.publishEvent(ConvergenceTimeoutEvent(message))
+
       registry.counter(canceledId.withTags("kind", message.intent.kind, "reason", CANCELLATION_REASON_TIMEOUT))
       return
     }
 
     val intent = getIntent(message)
     if (intent == null) {
-      log.warn("Intent no longer exists, canceling converge: ${message.intent.getId()}")
+      log.warn("Intent no longer exists, canceling converge: ${message.intent.id}")
+      applicationEventPublisher.publishEvent(IntentNotFoundEvent(message.intent.id))
+
       registry.counter(canceledId.withTags("kind", message.intent.kind, "reason", CANCELLATION_REASON_NOT_FOUND))
       return
     }
@@ -68,12 +78,13 @@ class ConvergeIntentHandler
       orcaIntentLauncher.launch(intent)
         .takeIf { it.orchestrationIds.isNotEmpty() }
         ?.also { result ->
-          intentActivityRepository.addOrchestrations(intent.getId(), result.orchestrationIds)
+          applicationEventPublisher.publishEvent(IntentOrchestratedEvent(intent, result.orchestrationIds))
+          intentActivityRepository.addOrchestrations(intent.id, result.orchestrationIds)
         }
-      registry.counter(invocationsId.withTags("kind", message.intent.kind, "schema", message.intent.schema, "result", "success"))
+      registry.counter(invocationsId.withTags(message.intent.getMetricTags("result", "success")))
     } catch (t: Throwable) {
-      log.error("Failed launching intent: ${intent.getId()}", t)
-      registry.counter(invocationsId.withTags("kind", message.intent.kind, "schema", message.intent.schema, "result", "failed"))
+      log.error("Failed launching intent: ${intent.id}", t)
+      registry.counter(invocationsId.withTags(message.intent.getMetricTags("result", "failed")))
     }
   }
 
@@ -82,8 +93,10 @@ class ConvergeIntentHandler
       return message.intent
     }
 
-    log.info("Refreshing intent state for ${message.intent.getId()}")
-    return intentRepository.getIntent(message.intent.getId())
+    log.info("Refreshing intent state for ${message.intent.id}")
+    registry.counter(refreshesId.withTags(message.intent.getMetricTags())).increment()
+
+    return intentRepository.getIntent(message.intent.id)
   }
 
   override val messageType = ConvergeIntent::class.java

@@ -17,14 +17,14 @@ package com.netflix.spinnaker.config
 
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.util.ClassUtil
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.github.jonpeterson.jackson.module.versioning.VersioningModule
 import com.netflix.spinnaker.keel.*
+import com.netflix.spinnaker.keel.attribute.Attribute
 import com.netflix.spinnaker.keel.memory.MemoryIntentActivityRepository
 import com.netflix.spinnaker.keel.memory.MemoryIntentRepository
-import com.netflix.spinnaker.keel.memory.MemoryPolicyRepository
 import com.netflix.spinnaker.keel.memory.MemoryTraceRepository
+import com.netflix.spinnaker.keel.policy.PolicySpec
 import com.netflix.spinnaker.keel.tracing.TraceRepository
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -36,11 +36,11 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.core.type.filter.AssignableTypeFilter
 import org.springframework.util.ClassUtils
 import java.time.Clock
-import kotlin.reflect.KClass
 
 @Configuration
 @ComponentScan(basePackages = arrayOf(
-  "com.netflix.spinnaker.keel.dryrun"
+  "com.netflix.spinnaker.keel.dryrun",
+  "com.netflix.spinnaker.keel.filter"
 ))
 open class KeelConfiguration {
 
@@ -51,7 +51,8 @@ open class KeelConfiguration {
     objectMapper.apply {
       registerSubtypes(*findAllSubtypes(Intent::class.java, "com.netflix.spinnaker.keel.intents").toTypedArray())
       registerSubtypes(*findAllSubtypes(IntentSpec::class.java, "com.netflix.spinnaker.keel.intents").toTypedArray())
-      registerSubtypes(*findAllSubtypes(Policy::class.java, "com.netflix.spinnaker.keel.policy").toTypedArray())
+      registerSubtypes(*findAllSubtypes(PolicySpec::class.java, "com.netflix.spinnaker.keel.policy").toTypedArray())
+      registerSubtypes(*findAllSubtypes(Attribute::class.java, "com.netflix.spinnaker.keel.attribute").toTypedArray())
     }
       .registerModule(KotlinModule())
       .registerModule(VersioningModule())
@@ -79,10 +80,6 @@ open class KeelConfiguration {
   @Bean
   @ConditionalOnMissingBean(TraceRepository::class)
   open fun memoryTraceRepository(): TraceRepository = MemoryTraceRepository()
-
-  @Bean
-  @ConditionalOnMissingBean(PolicyRepository::class)
-  open fun memoryPolicyRepository(): PolicyRepository = MemoryPolicyRepository()
 
   @Bean open fun clock(): Clock = Clock.systemDefaultZone()
 }

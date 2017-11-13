@@ -33,7 +33,7 @@ class MemoryIntentRepository : IntentRepository {
   }
 
   override fun upsertIntent(intent: Intent<IntentSpec>): Intent<IntentSpec> {
-    intents.put(intent.getId(), intent)
+    intents.put(intent.id, intent)
     return intent
   }
 

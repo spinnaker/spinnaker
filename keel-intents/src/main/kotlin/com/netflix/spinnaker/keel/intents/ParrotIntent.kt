@@ -36,7 +36,7 @@ class ParrotIntent
   spec = spec
 ) {
 
-  override fun getId() = "$KIND:${spec.application}"
+  override val id = "$KIND:${spec.application}"
 }
 
 data class ParrotSpec(

@@ -33,7 +33,7 @@ class ApplicationIntent
   schema = CURRENT_SCHEMA,
   spec = spec
 ) {
-  override fun getId() = "$KIND:${spec.name}"
+  override val id = "$KIND:${spec.name}"
 }
 
 // Using an abstract class here so that we can override the spec with Netflix-specific values and continue to use the

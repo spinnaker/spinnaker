@@ -13,11 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.keel
+package com.netflix.spinnaker.keel.orca
 
-interface PolicyRepository {
+import com.netflix.spinnaker.keel.Intent
+import com.netflix.spinnaker.keel.IntentSpec
+import org.springframework.context.ApplicationEvent
 
-  fun findAll(): List<Policy>
-  fun upsert(policy: Policy)
-  fun delete(id: String)
-}
+class ConvergenceRequiredEvent(intent: Intent<IntentSpec>) : ApplicationEvent("scheduler")

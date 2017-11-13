@@ -24,6 +24,7 @@ import com.netflix.spinnaker.keel.scheduler.ScheduleConvergence
 import com.netflix.spinnaker.keel.test.TestIntent
 import com.netflix.spinnaker.keel.test.TestIntentSpec
 import com.netflix.spinnaker.q.Queue
+import org.springframework.context.ApplicationEventPublisher
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -39,8 +40,9 @@ class ScheduleConvergeHandlerSpec extends Specification {
   IntentRepository intentRepository = Mock()
   Registry registry = new NoopRegistry()
   Clock clock = Clock.fixed(Instant.ofEpochMilli(0), ZoneId.systemDefault())
+  ApplicationEventPublisher applicationEventPublisher = Mock()
 
-  @Subject subject = new ScheduleConvergeHandler(queue, properties, intentRepository, registry, clock)
+  @Subject subject = new ScheduleConvergeHandler(queue, properties, intentRepository, [], registry, clock, applicationEventPublisher)
 
   def "should push converge messages for each active intent"() {
     given:

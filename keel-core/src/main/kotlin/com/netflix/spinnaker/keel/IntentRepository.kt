@@ -15,8 +15,6 @@
  */
 package com.netflix.spinnaker.keel
 
-import com.netflix.spinnaker.keel.matcher.Matcher
-
 interface IntentRepository {
 
   fun upsertIntent(intent: Intent<IntentSpec>): Intent<IntentSpec>
@@ -27,8 +25,5 @@ interface IntentRepository {
 
   fun getIntent(id: String): Intent<IntentSpec>?
 
-  fun findByMatch(matchers: List<Matcher>)
-    = getIntents().filter { i ->
-        matchers.any { m -> m.match(i) }
-      }
+//  fun findByLabels(labels: Labels): List<Intent<IntentSpec>>
 }

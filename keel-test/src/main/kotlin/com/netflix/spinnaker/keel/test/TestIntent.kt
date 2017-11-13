@@ -21,17 +21,17 @@ import com.fasterxml.jackson.annotation.JsonTypeName
 import com.github.jonpeterson.jackson.module.versioning.JsonVersionedModel
 import com.netflix.spinnaker.keel.Intent
 import com.netflix.spinnaker.keel.IntentSpec
-import com.netflix.spinnaker.keel.Policy
+import com.netflix.spinnaker.keel.IntentStatus
+import com.netflix.spinnaker.keel.attribute.Attribute
 
 @JsonTypeName("Test")
 @JsonVersionedModel(currentVersion = "1", propertyName = "schema")
 class TestIntent
 @JsonCreator constructor(
-  spec: TestIntentSpec,
-  policies: List<Policy> = listOf()
-) : Intent<TestIntentSpec>("1", "Test", spec, policies = policies) {
+  spec: TestIntentSpec
+) : Intent<TestIntentSpec>("1", "Test", spec, IntentStatus.ACTIVE, mapOf<String, String>(), listOf<Attribute<Any>>()) {
   @JsonIgnore
-  override fun getId() = "test:${spec.id}"
+  override val id = "test:${spec.id}"
 }
 
 data class TestIntentSpec(

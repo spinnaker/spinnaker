@@ -20,6 +20,7 @@ import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.keel.*
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
 
 @Component(value = "orcaIntentLauncher")
@@ -27,7 +28,8 @@ open class OrcaIntentLauncher
 @Autowired constructor(
   private val intentProcessors: List<IntentProcessor<*>>,
   private val orcaService: OrcaService,
-  private val registry: Registry
+  private val registry: Registry,
+  private val applicationEventPublisher: ApplicationEventPublisher
 ) : IntentLauncher<OrcaLaunchedIntentResult> {
 
   private val log = LoggerFactory.getLogger(javaClass)
@@ -38,7 +40,12 @@ open class OrcaIntentLauncher
     registry.counter(invocationsId.withTags(intent.getMetricTags())).increment()
 
     return registry.timer(invocationTimeId.withTags(intent.getMetricTags())).record<OrcaLaunchedIntentResult> {
-      val orchestrationIds = intentProcessor(intentProcessors, intent).converge(intent).orchestrations.map {
+      val orchestrationIds = intentProcessor(intentProcessors, intent).converge(intent)
+        .also {
+          if (it.orchestrations.isNotEmpty()) {
+            applicationEventPublisher.publishEvent(ConvergenceRequiredEvent(intent))
+          }
+        }.orchestrations.map {
         log.info("Launching orchestration for intent (kind: ${intent.kind})")
         orcaService.orchestrate(it).ref
       }

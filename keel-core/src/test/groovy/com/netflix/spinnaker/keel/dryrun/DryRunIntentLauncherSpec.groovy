@@ -72,7 +72,7 @@ class DryRunIntentLauncherSpec extends Specification {
       @NotNull String schema,
       @NotNull String kind,
       @NotNull TestIntentSpec spec) {
-      super(schema, kind, spec, IntentStatus.ACTIVE, [])
+      super(schema, kind, spec, IntentStatus.ACTIVE, [:], [])
     }
 
     @Override
