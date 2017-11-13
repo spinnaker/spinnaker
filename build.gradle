@@ -50,6 +50,12 @@ task webpack(type: NodeTask) {
   ]
 }
 
+task copyFavicon(type: Copy) {
+  from "app/prod-favicon.ico"
+  into "build/webpack"
+  rename "prod-favicon.ico", "favicon.ico"
+}
+
 task karma(type: NodeTask) {
   script = file('node_modules/karma/bin/karma')
   args = ["start", "--single-run", "--reporters", "progress,mocha"]
@@ -76,7 +82,8 @@ yarn.dependsOn 'generateVersionFile'
 webpack.dependsOn 'yarn'
 karma.dependsOn 'webpack'
 test.dependsOn 'karma'
-buildDeb.dependsOn 'test'
+copyFavicon.dependsOn 'test'
+buildDeb.dependsOn 'copyFavicon'
 buildRpm.dependsOn 'webpack'
 
 String toVers(String v) {
