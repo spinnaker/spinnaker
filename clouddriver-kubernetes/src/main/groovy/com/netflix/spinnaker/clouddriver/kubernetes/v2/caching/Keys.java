@@ -149,9 +149,7 @@ public class Keys {
   public static abstract class CacheKey {
     private Kind kind;
     private String provider = KubernetesCloudProvider.getID();
-    public String getType() {
-      return getGroup();
-    }
+    private String type;
     public abstract String getGroup();
     public abstract String getName();
   }

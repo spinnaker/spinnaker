@@ -75,7 +75,18 @@ class KubernetesV2Provider extends AgentSchedulerAware implements SearchableProv
   @Override
   public Map<String, String> parseKey(String key) {
     return (Map<String, String>) Keys.parseKey(key)
+        .map(k -> {
+          String group = k.getGroup();
+          try {
+            KubernetesKind kind = KubernetesKind.fromString(group);
+            k.setType(kindMap.translateKubernetesKind(kind).toString());
+          } catch (Exception _ignored) {
+            k.setType(group);
+          }
+
+          return k;
+        })
         .map(k -> mapper.convertValue(k, new TypeReference<Map<String, String>>() {}))
-        .orElse(new HashMap<>());
+        .orElse(null);
   }
 }
