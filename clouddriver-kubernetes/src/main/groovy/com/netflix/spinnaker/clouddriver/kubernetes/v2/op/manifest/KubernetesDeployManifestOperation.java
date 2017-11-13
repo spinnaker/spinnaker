@@ -79,10 +79,11 @@ public class KubernetesDeployManifestOperation implements AtomicOperation<Deploy
     }
 
     KubernetesResourceProperties properties = findResourceProperties(manifest);
+    boolean versioned = description.getVersioned() == null ? properties.isVersioned() : description.getVersioned();
+    KubernetesArtifactConverter converter = versioned ? properties.getVersionedConverter() : properties.getUnversionedConverter();
     KubernetesHandler deployer = properties.getHandler();
-    KubernetesArtifactConverter converter = properties.getConverter();
 
-    Artifact artifact = properties.getConverter().toArtifact(provider, manifest);
+    Artifact artifact = converter.toArtifact(provider, manifest);
     Moniker moniker = description.getMoniker();
     KubernetesManifestSpinnakerRelationships relationships = description.getRelationships();
 

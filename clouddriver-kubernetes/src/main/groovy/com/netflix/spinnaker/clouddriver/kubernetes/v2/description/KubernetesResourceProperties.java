@@ -17,7 +17,8 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.description;
 
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.KubernetesArtifactConverter;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.KubernetesUnversionedArtifactConverter;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.KubernetesVersionedArtifactConverter;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.deployer.KubernetesHandler;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -30,5 +31,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class KubernetesResourceProperties {
   KubernetesHandler handler;
-  KubernetesArtifactConverter converter;
+  boolean versioned;
+  KubernetesVersionedArtifactConverter versionedConverter;
+  KubernetesUnversionedArtifactConverter unversionedConverter;
 }

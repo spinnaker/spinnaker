@@ -38,7 +38,9 @@ public class KubernetesResourcePropertyRegistry {
     for (KubernetesHandler handler : handlers) {
       KubernetesResourceProperties properties = KubernetesResourceProperties.builder()
           .handler(handler)
-          .converter(handler.versioned() ? versionedArtifactConverter : unversionedArtifactConverter)
+          .versioned(handler.versioned())
+          .versionedConverter(versionedArtifactConverter)
+          .unversionedConverter(unversionedArtifactConverter)
           .build();
 
       kindMap.addRelationship(handler.spinnakerKind(), handler.kind());

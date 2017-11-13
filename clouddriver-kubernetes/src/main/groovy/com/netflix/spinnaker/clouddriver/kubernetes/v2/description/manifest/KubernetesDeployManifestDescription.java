@@ -32,4 +32,5 @@ public class KubernetesDeployManifestDescription extends KubernetesAtomicOperati
   Moniker moniker;
   KubernetesManifestSpinnakerRelationships relationships;
   List<Artifact> artifacts;
+  Boolean versioned;
 }
