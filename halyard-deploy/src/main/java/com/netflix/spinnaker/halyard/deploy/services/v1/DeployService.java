@@ -185,6 +185,7 @@ public class DeployService {
     DeploymentDetails deploymentDetails = getDeploymentDetails(deploymentConfiguration);
     Deployer deployer = getDeployer(deploymentConfiguration);
     SpinnakerServiceProvider<DeploymentDetails> serviceProvider = serviceProviderFactory.create(deploymentConfiguration);
+    SpinnakerRuntimeSettings runtimeSettings = serviceProvider.buildRuntimeSettings(deploymentConfiguration);
 
     List<SpinnakerService.Type> serviceTypes = serviceNames.stream()
         .map(SpinnakerService.Type::fromCanonicalName)
@@ -198,7 +199,7 @@ public class DeployService {
           .collect(Collectors.toList());
     }
 
-    RemoteAction action = deployer.prep(serviceProvider, deploymentDetails, serviceTypes);
+    RemoteAction action = deployer.prep(serviceProvider, deploymentDetails, runtimeSettings, serviceTypes);
 
     if (!action.getScript().isEmpty()) {
       action.commitScript(halconfigDirectoryStructure.getPrepScriptPath(deploymentName));

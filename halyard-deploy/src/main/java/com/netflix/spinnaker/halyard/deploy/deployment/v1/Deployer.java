@@ -67,6 +67,7 @@ public interface Deployer<S extends SpinnakerServiceProvider<D>, D extends Deplo
   default RemoteAction prep(
       S serviceProvider,
       D deploymentDetails,
+      SpinnakerRuntimeSettings runtimeSettings,
       List<SpinnakerService.Type> serviceTypes
   ) {
     RemoteAction result = new RemoteAction();

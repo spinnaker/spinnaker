@@ -19,23 +19,27 @@
 package com.netflix.spinnaker.halyard.deploy.deployment.v1;
 
 import com.netflix.spinnaker.halyard.core.RemoteAction;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.local.LocalServiceProvider;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.local.git.LocalGitService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.local.git.LocalGitServiceProvider;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
-
 import java.util.List;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 
 @Component
 @Slf4j
 public class LocalGitDeployer extends LocalDeployer {
+
   @Override
-  public RemoteAction prep(LocalServiceProvider serviceProvider, DeploymentDetails deploymentDetails, List<SpinnakerService.Type> serviceTypes) {
+  public RemoteAction prep(LocalServiceProvider serviceProvider,
+      DeploymentDetails deploymentDetails, SpinnakerRuntimeSettings runtimeSettings,
+      List<SpinnakerService.Type> serviceTypes) {
     LocalGitServiceProvider localGitServiceProvider = (LocalGitServiceProvider) serviceProvider;
-    List<LocalGitService> enabledServices = localGitServiceProvider.getLocalGitServices(serviceTypes);
+    List<LocalGitService> enabledServices = localGitServiceProvider
+        .getLocalGitServices(serviceTypes);
 
     List<String> prepCommands = enabledServices.stream()
         .map(s -> {
