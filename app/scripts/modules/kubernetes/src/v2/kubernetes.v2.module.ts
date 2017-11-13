@@ -49,24 +49,26 @@ module(KUBERNETES_V2_MODULE, [
         path: require('../logo/kubernetes.icon.svg'),
       },
       serverGroup: {
-        commandBuilder: 'kubernetesV2ServerGroupCommandBuilder',
         cloneServerGroupController: 'kubernetesManifestWizardCtrl',
         cloneServerGroupTemplateUrl: require('./manifest/wizard/manifestWizard.html'),
-        transformer: 'kubernetesV2ServerGroupTransformer',
-        detailsTemplateUrl: require('./serverGroup/details/details.html'),
+        commandBuilder: 'kubernetesV2ServerGroupCommandBuilder',
         detailsController: 'kubernetesV2ServerGroupDetailsCtrl',
+        detailsTemplateUrl: require('./serverGroup/details/details.html'),
+        transformer: 'kubernetesV2ServerGroupTransformer',
       },
       serverGroupManager: {
         detailsTemplateUrl: require('./serverGroupManager/details/details.html'),
         detailsController: 'kubernetesV2ServerGroupManagerDetailsCtrl',
       },
       loadBalancer: {
-        detailsTemplateUrl: require('./loadBalancer/details/details.html'),
+        createLoadBalancerController: 'kubernetesManifestWizardCtrl',
+        createLoadBalancerTemplateUrl: require('./manifest/wizard/manifestWizard.html'),
         detailsController: 'kubernetesV2LoadBalancerDetailsCtrl',
+        detailsTemplateUrl: require('./loadBalancer/details/details.html'),
       },
       instance: {
-        detailsTemplateUrl: require('./instance/details/details.html'),
         detailsController: 'kubernetesV2InstanceDetailsCtrl',
+        detailsTemplateUrl: require('./instance/details/details.html'),
       }
     });
   });

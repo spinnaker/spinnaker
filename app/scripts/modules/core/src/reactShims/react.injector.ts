@@ -2,7 +2,7 @@ import { IQService, IRootScopeService, IScope } from 'angular';
 import IInjectorService = angular.auto.IInjectorService;
 
 import { IModalService } from 'angular-ui-bootstrap';
-import { UIRouter, StateService, StateParams } from '@uirouter/core';
+import { StateParams, StateService, UIRouter } from '@uirouter/core';
 
 import { AccountService } from '../account/account.service';
 import { Api } from '../api/api.service';
@@ -21,8 +21,7 @@ import { ExecutionFilterModel } from '../delivery/filter/executionFilter.model';
 import { ExecutionFilterService } from '../delivery/filter/executionFilter.service';
 import { ExecutionService } from '../delivery/service/execution.service';
 import { ExecutionsTransformerService } from '../delivery/service/executions.transformer.service';
-import { HelpContentsRegistry } from 'core/help';
-import { IHelpContents } from 'core/help';
+import { HelpContentsRegistry, IHelpContents } from 'core/help';
 import { InfrastructureSearchService } from '../search/infrastructure/infrastructureSearch.service';
 import { InsightFilterStateModel } from '../insight/insightFilterState.model';
 import { LoadBalancerFilterModel } from '../loadBalancer/filter/loadBalancerFilter.model';
@@ -48,6 +47,7 @@ import { VariableInputService } from '../pipeline/config/templates/inputs/variab
 import { VariableValidatorService } from '../pipeline/config/templates/validators/variableValidator.service';
 import { ViewStateCacheService } from '../cache/viewStateCache.service';
 import { WaypointService } from '../utils/waypoints/waypoint.service';
+import { VersionSelectionService } from '../cloudProvider/versionSelection/versionSelection.service';
 
 export abstract class ReactInject {
   protected $injector: IInjectorService;
@@ -115,6 +115,7 @@ export class CoreReactInject extends ReactInject {
   public get urlBuilderService() { return this.$injector.get('urlBuilderService') as UrlBuilderService; }
   public get variableInputService() { return this.$injector.get('variableInputService') as VariableInputService; }
   public get variableValidatorService() { return this.$injector.get('variableValidatorService') as VariableValidatorService; }
+  public get versionSelectionService() { return this.$injector.get('versionSelectionService') as VersionSelectionService; }
   public get viewStateCache() { return this.$injector.get('viewStateCache') as ViewStateCacheService; }
   public get waypointService() { return this.$injector.get('waypointService') as WaypointService; }
 

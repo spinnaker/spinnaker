@@ -1,6 +1,5 @@
 import * as React from 'react';
-import { BindAll } from 'lodash-decorators';
-import { Debounce } from 'lodash-decorators';
+import { BindAll, Debounce } from 'lodash-decorators';
 import { Subscription } from 'rxjs';
 
 import { Application } from 'core/application/application.model';
@@ -83,20 +82,23 @@ export class LoadBalancers extends React.Component<ILoadBalancersProps, ILoadBal
   }
 
   private createLoadBalancer(): void {
-    const { providerSelectionService, cloudProviderRegistry } = ReactInjector;
-    providerSelectionService.selectProvider(this.props.app, 'loadBalancer').then((selectedProvider) => {
-      const provider = cloudProviderRegistry.getValue(selectedProvider, 'loadBalancer');
-      ReactInjector.modalService.open({
-        templateUrl: provider.createLoadBalancerTemplateUrl,
-        controller: `${provider.createLoadBalancerController} as ctrl`,
-        size: 'lg',
-        resolve: {
-          application: () => this.props.app,
-          loadBalancer: (): ILoadBalancer => null,
-          isNew: () => true,
-          forPipelineConfig: () => false
-        }
-      }).result.catch(() => {});
+    const { providerSelectionService, cloudProviderRegistry, versionSelectionService } = ReactInjector;
+    const { app } = this.props;
+    providerSelectionService.selectProvider(app, 'loadBalancer').then((selectedProvider) => {
+      versionSelectionService.selectVersion(selectedProvider).then((selectedVersion) => {
+        const provider = cloudProviderRegistry.getValue(selectedProvider, 'loadBalancer', selectedVersion);
+        ReactInjector.modalService.open({
+          templateUrl: provider.createLoadBalancerTemplateUrl,
+          controller: `${provider.createLoadBalancerController} as ctrl`,
+          size: 'lg',
+          resolve: {
+            application: () => app,
+            loadBalancer: (): ILoadBalancer => null,
+            isNew: () => true,
+            forPipelineConfig: () => false
+          }
+        }).result.catch(() => {});
+      });
     });
   };
 
