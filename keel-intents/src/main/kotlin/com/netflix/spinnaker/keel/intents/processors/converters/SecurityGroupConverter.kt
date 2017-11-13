@@ -24,6 +24,7 @@ import com.netflix.spinnaker.keel.intents.ANY_MAP_TYPE
 import com.netflix.spinnaker.keel.intents.AmazonSecurityGroupSpec
 import com.netflix.spinnaker.keel.intents.SecurityGroupRule
 import com.netflix.spinnaker.keel.intents.SecurityGroupSpec
+import com.netflix.spinnaker.keel.model.Job
 import org.springframework.stereotype.Component
 
 @Component
@@ -33,6 +34,9 @@ class SecurityGroupConverter(
 ) : SpecConverter<SecurityGroupSpec, Set<SecurityGroup>> {
 
   override fun convertToState(spec: SecurityGroupSpec): Set<SecurityGroup> {
+    // TODO rz - cache
+    val networks = clouddriverService.listNetworks()
+
     if (spec is AmazonSecurityGroupSpec) {
       return spec.regions.map { region ->
         SecurityGroup(
@@ -41,7 +45,7 @@ class SecurityGroupConverter(
           description = spec.description,
           accountName = spec.accountName,
           region = region,
-          vpcId = spec.vpcName,
+          vpcId = networkNameToId(networks, "aws", region, spec.vpcName),
           inboundRules = spec.inboundRules.map { objectMapper.convertValue<MutableMap<String, Any>>(it, ANY_MAP_TYPE) },
           id = null,
           // TODO rz - fix so not bad
@@ -69,7 +73,7 @@ class SecurityGroupConverter(
           description = it.description!!,
           accountName = it.accountName,
           regions = state.map { s -> s.region }.toSet(),
-          vpcName = networkIdToName(networks, "aws", it.vpcId),
+          vpcName = networkIdToName(networks, "aws", it.region, it.vpcId),
           inboundRules = it.inboundRules.map {
             // TODO rz - ehhh? Will this work?
             objectMapper.convertValue(it, SecurityGroupRule::class.java)
@@ -81,23 +85,32 @@ class SecurityGroupConverter(
     throw NotImplementedError("Only AWS security groups are supported at the moment")
   }
 
-  override fun convertToJob(spec: SecurityGroupSpec): MutableMap<String, Any?> {
+  override fun convertToJob(spec: SecurityGroupSpec): List<Job> {
     if (spec is AmazonSecurityGroupSpec) {
-      return mutableMapOf(
-          "application" to spec.application,
-          "cloudProvider" to "aws",
-          "name" to spec.name,
-          "regions" to spec.regions,
-          "vpcId" to spec.vpcName,
-          "description" to spec.description,
-          "securityGroupIngress" to spec.inboundRules,
-          "ipIngress" to listOf<String>(),
-          "accountName" to spec.accountName
+      return listOf(
+        Job(
+          "upsertSecurityGroup",
+          mutableMapOf(
+            "application" to spec.application,
+            "credentials" to spec.accountName,
+            "cloudProvider" to "aws",
+            "name" to spec.name,
+            "regions" to spec.regions,
+            "vpcId" to spec.vpcName,
+            "description" to spec.description,
+            "securityGroupIngress" to spec.inboundRules,
+            "ipIngress" to listOf<String>(),
+            "accountName" to spec.accountName
+          )
         )
+      )
     }
     throw NotImplementedError("Only AWS security groups are supported at the moment")
   }
 
-  private fun networkIdToName(networks: Map<String, Set<Network>>, cloudProvider: String, networkId: String?)
-    = if (networkId == null) null else networks[cloudProvider]?.first { it.id == networkId }?.name
+  private fun networkIdToName(networks: Map<String, Set<Network>>, cloudProvider: String, region: String, networkId: String?)
+    = if (networkId == null) null else networks[cloudProvider]?.first { it.id == networkId && it.region == region }?.name
+
+  private fun networkNameToId(networks: Map<String, Set<Network>>, cloudProvider: String, region: String, networkName: String?)
+    = if (networkName == null) null else networks[cloudProvider]?.first { it.name == networkName && it.region == region }?.id
 }

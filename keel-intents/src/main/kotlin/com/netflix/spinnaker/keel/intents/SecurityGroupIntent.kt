@@ -34,7 +34,11 @@ class SecurityGroupIntent
   schema = CURRENT_SCHEMA,
   spec = spec
 ) {
-  override fun getId() = "$KIND:${spec.cloudProvider}:${spec.accountName}:${spec.regions}:${spec.name}"
+  // TODO rz - Should region be included in the mix? If someone removes a region, the intent ID would change, but what
+  // if someone wants to have two different intents managing the same named security group in different regions (rules
+  // are different region-to-region). Is this actually something to be concerned about? Be hard to change the ID strat
+  // after the fact...
+  override fun getId() = "$KIND:${spec.cloudProvider}:${spec.accountName}:${spec.name}"
 }
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "kind")

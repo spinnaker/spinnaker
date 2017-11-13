@@ -23,6 +23,7 @@ import com.github.jonpeterson.jackson.module.versioning.VersioningModule
 import com.netflix.spinnaker.keel.*
 import com.netflix.spinnaker.keel.memory.MemoryIntentActivityRepository
 import com.netflix.spinnaker.keel.memory.MemoryIntentRepository
+import com.netflix.spinnaker.keel.memory.MemoryPolicyRepository
 import com.netflix.spinnaker.keel.memory.MemoryTraceRepository
 import com.netflix.spinnaker.keel.tracing.TraceRepository
 import org.slf4j.LoggerFactory
@@ -78,6 +79,10 @@ open class KeelConfiguration {
   @Bean
   @ConditionalOnMissingBean(TraceRepository::class)
   open fun memoryTraceRepository(): TraceRepository = MemoryTraceRepository()
+
+  @Bean
+  @ConditionalOnMissingBean(PolicyRepository::class)
+  open fun memoryPolicyRepository(): PolicyRepository = MemoryPolicyRepository()
 
   @Bean open fun clock(): Clock = Clock.systemDefaultZone()
 }

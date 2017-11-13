@@ -18,6 +18,7 @@ package com.netflix.spinnaker.keel.retrofit
 import com.netflix.spinnaker.config.OkHttpClientConfiguration
 import com.squareup.okhttp.ConnectionPool
 import com.squareup.okhttp.Interceptor
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.beans.factory.config.ConfigurableBeanFactory
@@ -34,6 +35,8 @@ import retrofit.client.OkClient
 @EnableConfigurationProperties
 open class RetrofitConfiguration {
 
+  private val log = LoggerFactory.getLogger(javaClass)
+
   @Value("\${okHttpClient.connectionPool.maxIdleConnections:5}")
   var maxIdleConnections = 5
 
@@ -43,12 +46,26 @@ open class RetrofitConfiguration {
   @Value("\${okHttpClient.retryOnConnectionFailure:true}")
   var retryOnConnectionFailure = true
 
+  @Value("\${okHttpClient.spinnakerUser:keel@spinnaker.io}")
+  var spinnakerUser = "keel@spinnaker.io"
+
   @Bean(name = arrayOf("retrofitClient", "okClient"))
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-  open fun retrofitClient(@Qualifier("okHttpClientConfiguration") okHttpClientConfig: OkHttpClientConfiguration): OkClient {
+  open fun retrofitClient(@Qualifier("okHttpClientConfiguration") okHttpClientConfig: OkHttpClientConfiguration,
+                          interceptors: Set<Interceptor>?): OkClient {
     val userAgent = "Spinnaker-${System.getProperty("spring.application.name", "unknown")}/${javaClass.`package`.implementationVersion ?: "1.0"}"
     val cfg = okHttpClientConfig.create().apply {
-      networkInterceptors().add(Interceptor { chain -> chain.proceed(chain.request().newBuilder().header("User-Agent", userAgent).build()) })
+      networkInterceptors().add(Interceptor { chain ->
+        chain.proceed(chain.request().newBuilder()
+          .header("User-Agent", userAgent)
+          .header("X-SPINNAKER-USER", spinnakerUser)
+          .build())
+      })
+      interceptors?.forEach {
+        log.info("Adding OkHttp Interceptor: ${it.javaClass.simpleName}")
+        networkInterceptors().add(it)
+      }
+
       connectionPool = ConnectionPool(maxIdleConnections, keepAliveDurationMs)
       retryOnConnectionFailure = this@RetrofitConfiguration.retryOnConnectionFailure
     }

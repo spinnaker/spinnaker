@@ -21,7 +21,6 @@ import com.netflix.spinnaker.keel.clouddriver.ClouddriverService
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroup
 import com.netflix.spinnaker.keel.intents.*
 import com.netflix.spinnaker.keel.intents.processors.converters.SecurityGroupConverter
-import com.netflix.spinnaker.keel.model.Job
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.model.Trigger
 import com.netflix.spinnaker.keel.tracing.Trace
@@ -70,12 +69,7 @@ class SecurityGroupIntentProcessor
           name = "Upsert security group",
           application = intent.spec.application,
           description = "Converging on desired security group state",
-          job = listOf(
-            Job(
-              type = "upsertSecurityGroup",
-              m = securityGroupConverter.convertToJob(intent.spec)
-            )
-          ),
+          job = securityGroupConverter.convertToJob(intent.spec),
           trigger = Trigger(intent.getId())
         )
       ),

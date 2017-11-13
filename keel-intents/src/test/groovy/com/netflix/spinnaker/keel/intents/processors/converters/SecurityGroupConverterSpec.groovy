@@ -53,6 +53,17 @@ class SecurityGroupConverterSpec extends Specification {
     def result = subject.convertToState(spec)
 
     then:
+    clouddriverService.listNetworks() >> {
+      [
+        aws: [
+          new Network('aws', 'vpc-1', 'vpcName', 'test', 'us-west-2'),
+          new Network('aws', 'vpc-2', 'vpcName', 'prod', 'us-west-2'),
+          new Network('aws', 'vpc-3', 'vpcName', 'test', 'us-east-1'),
+          new Network('aws', 'vpc-4', 'vpcName', 'test', 'eu-west-1'),
+          new Network('aws', 'vpc-5', 'otherName', 'test', 'us-west-2')
+        ] as Set
+      ]
+    }
     result.size() == 2
     result.first().with {
       it.type == 'aws'
@@ -149,13 +160,14 @@ class SecurityGroupConverterSpec extends Specification {
     def result = subject.convertToJob(spec)
 
     then:
-    result.application == 'keel'
-    result.cloudProvider == 'aws'
-    result.regions == ['us-west-2', 'us-east-1'] as Set
-    result.vpcId == 'vpcName'
-    result.description == 'app sg'
-    result.securityGroupIngress == [] as Set
-    result.ipIngress == []
-    result.accountName == 'test'
+    result.size() == 1
+    result[0].application == 'keel'
+    result[0].cloudProvider == 'aws'
+    result[0].regions == ['us-west-2', 'us-east-1'] as Set
+    result[0].vpcId == 'vpcName'
+    result[0].description == 'app sg'
+    result[0].securityGroupIngress == [] as Set
+    result[0].ipIngress == []
+    result[0].accountName == 'test'
   }
 }

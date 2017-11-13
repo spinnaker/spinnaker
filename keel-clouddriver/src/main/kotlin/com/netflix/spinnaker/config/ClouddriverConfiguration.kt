@@ -17,8 +17,11 @@ package com.netflix.spinnaker.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.clouddriver.ClouddriverService
+import com.netflix.spinnaker.keel.clouddriver.okhttp.AccountProvidingNetworkInterceptor
 import com.netflix.spinnaker.okhttp.SpinnakerRequestInterceptor
+import com.squareup.okhttp.Interceptor
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
@@ -31,6 +34,9 @@ import retrofit.converter.JacksonConverter
 @Configuration
 @Import(RetrofitConfiguration::class)
 open class ClouddriverConfiguration {
+
+  @Bean open fun accountProvidingNetworkInterceptor(applicationContext: ApplicationContext): Interceptor
+    = AccountProvidingNetworkInterceptor(applicationContext)
 
   @Bean open fun clouddriverEndpoint(@Value("\${clouddriver.baseUrl}") clouddriverBaseUrl: String)
     = Endpoints.newFixedEndpoint(clouddriverBaseUrl)

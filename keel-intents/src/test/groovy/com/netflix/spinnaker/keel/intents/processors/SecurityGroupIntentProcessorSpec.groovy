@@ -18,6 +18,7 @@ package com.netflix.spinnaker.keel.intents.processors
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.clouddriver.ClouddriverService
 import com.netflix.spinnaker.keel.clouddriver.model.Moniker
+import com.netflix.spinnaker.keel.clouddriver.model.Network
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroup
 import com.netflix.spinnaker.keel.intents.AmazonSecurityGroupSpec
 import com.netflix.spinnaker.keel.intents.ApplicationIntent
@@ -33,7 +34,19 @@ import spock.lang.Subject
 class SecurityGroupIntentProcessorSpec extends Specification {
 
   TraceRepository traceRepository = Mock()
-  ClouddriverService clouddriverService = Mock()
+  ClouddriverService clouddriverService = Mock() {
+    listNetworks() >> {
+      [
+        aws: [
+          new Network('aws', 'vpc-1', 'vpcName', 'test', 'us-west-2'),
+          new Network('aws', 'vpc-2', 'vpcName', 'prod', 'us-west-2'),
+          new Network('aws', 'vpc-3', 'vpcName', 'test', 'us-east-1'),
+          new Network('aws', 'vpc-4', 'vpcName', 'test', 'eu-west-1'),
+          new Network('aws', 'vpc-5', 'otherName', 'test', 'us-west-2')
+        ] as Set
+      ]
+    }
+  }
   ObjectMapper objectMapper = new ObjectMapper()
   SecurityGroupConverter converter = new SecurityGroupConverter(clouddriverService, objectMapper)
 

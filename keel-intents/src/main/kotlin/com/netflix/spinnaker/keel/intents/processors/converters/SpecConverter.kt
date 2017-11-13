@@ -16,12 +16,13 @@
 package com.netflix.spinnaker.keel.intents.processors.converters
 
 import com.netflix.spinnaker.keel.IntentSpec
+import com.netflix.spinnaker.keel.model.Job
 
 interface SpecConverter<I : IntentSpec, S : Any> {
 
   fun convertToState(spec: I): S
   fun convertFromState(state: S): I?
-  fun convertToJob(spec: I): MutableMap<String, Any?>
+  fun convertToJob(spec: I): List<Job>
 }
 
 const val COMPUTED_VALUE = "<computed>"

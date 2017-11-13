@@ -18,7 +18,7 @@ package com.netflix.spinnaker.keel.clouddriver.model
 data class Network(
   val cloudProvider: String,
   val id: String,
-  val name: String,
+  val name: String?,
   val account: String,
   val region: String
 )
