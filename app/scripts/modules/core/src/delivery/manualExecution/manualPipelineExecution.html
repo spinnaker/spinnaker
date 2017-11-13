@@ -37,7 +37,7 @@
           <i class="fa fa-exclamation-triangle"></i>
           This pipeline is currently executing!
         </strong></p>
-        <div ng-repeat="execution in vm.currentlyRunningExecutions" class="pad-left">
+        <div ng-repeat="execution in vm.currentlyRunningExecutions | limitTo: 1" class="pad-left">
           <strong>Execution started: </strong>{{execution.startTime | timestamp }}
           <div>
             <strong>Current stage:</strong>
@@ -45,6 +45,13 @@
               {{stage.name}}
             </span>
           </div>
+        </div>
+        <div ng-if="vm.currentlyRunningExecutions.length > 1">
+          <em>
+            &hellip;and
+            {{vm.currentlyRunningExecutions.length - 1}}
+            other execution<span ng-if="vm.currentlyRunningExecutions.length > 2">s</span>
+          </em>
         </div>
       </div>
 
@@ -70,13 +77,17 @@
         <div class="form-group" ng-repeat="parameter in vm.command.pipeline.parameterConfig">
           <div class="col-md-4 sm-label-right break-word">
             <b>{{parameter.name}}</b>
+            <span ng-if="parameter.required">*</span>
             <help-field content="{{parameter.description}}" ng-if="parameter.description"></help-field>
           </div>
           <div class="col-md-6" ng-if="!parameter.hasOptions">
-            <input type="text" class="form-control input-sm" ng-model="vm.parameters[parameter.name]"/>
+            <input class="form-control input-sm"
+                   ng-model="vm.parameters[parameter.name]"
+                   ng-required="parameter.required"/>
           </div>
           <div class="col-md-6" ng-if="parameter.hasOptions">
             <ui-select ng-model="vm.parameters[parameter.name]"
+                       ng-required="parameter.required"
                        style="width:100%"
                        class="form-control input-sm">
               <ui-select-match>
@@ -87,6 +98,11 @@
               </ui-select-choices>
             </ui-select>
           </div>
+        </div>
+        <div class="form-group" ng-if="vm.hasRequiredParameters">
+          <div class="col-md-4 col-md-offset-4">
+            <em>* Required</em>
+
         </div>
       </div>
 

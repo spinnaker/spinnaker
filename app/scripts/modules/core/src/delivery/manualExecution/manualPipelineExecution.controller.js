@@ -17,8 +17,6 @@ module.exports = angular.module('spinnaker.core.delivery.manualPipelineExecution
   .controller('ManualPipelineExecutionCtrl', function ($uibModalInstance, pipeline, application, pipelineConfig,
                                                        notificationService, authenticationService) {
 
-    this.origPipeline = {};
-
     let applicationNotifications = [];
     let pipelineNotifications = [];
 
@@ -106,8 +104,6 @@ module.exports = angular.module('spinnaker.core.delivery.manualPipelineExecution
       pipelineNotifications = pipeline.notifications || [];
       synchronizeNotifications();
 
-      this.origPipeline = _.cloneDeep(pipeline); // make a copy to diff changes
-
       this.currentlyRunningExecutions = executions
         .filter((execution) => execution.pipelineConfigId === pipeline.id && execution.isActive);
       addTriggers();
@@ -118,6 +114,7 @@ module.exports = angular.module('spinnaker.core.delivery.manualPipelineExecution
 
       if (pipeline.parameterConfig && pipeline.parameterConfig.length) {
         this.parameters = {};
+        this.hasRequiredParameters = pipeline.parameterConfig.some(p => p.required);
         pipeline.parameterConfig.forEach((parameter) => {
           this.parameters[parameter.name] = parameter.default;
         });
