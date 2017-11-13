@@ -276,7 +276,9 @@ public class KubectlJobExecutor {
       namespace = credentials.getDefaultNamespace();
     }
 
-    command.add("--namespace=" + namespace);
+    if (StringUtils.isNotEmpty(namespace)) {
+      command.add("--namespace=" + namespace);
+    }
 
     return command;
   }

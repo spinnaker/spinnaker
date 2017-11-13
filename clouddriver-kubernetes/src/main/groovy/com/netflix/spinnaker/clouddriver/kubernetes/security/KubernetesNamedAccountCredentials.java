@@ -22,6 +22,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.config.LinkedDockerRegistryC
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.security.KubernetesV1Credentials;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.names.KubernetesManifestNamer;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.job.KubectlJobExecutor;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
 import com.netflix.spinnaker.clouddriver.names.NamerRegistry;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials;
@@ -171,6 +172,7 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials> 
     List<LinkedDockerRegistryConfiguration> dockerRegistries;
     Registry spectatorRegistry;
     AccountCredentialsRepository accountCredentialsRepository;
+    KubectlJobExecutor jobExecutor;
     boolean debug;
 
     Builder name(String name) {
@@ -276,6 +278,11 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials> 
       return this;
     }
 
+    Builder jobExecutor(KubectlJobExecutor jobExecutor) {
+      this.jobExecutor = jobExecutor;
+      return this;
+    }
+
     Builder debug(boolean debug) {
       this.debug = debug;
       return this;
@@ -313,6 +320,7 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials> 
               .omitNamespaces(omitNamespaces)
               .registry(spectatorRegistry)
               .debug(debug)
+              .jobExecutor(jobExecutor)
               .build();
         default:
           throw new IllegalArgumentException("Unknown provider type: " + providerVersion);

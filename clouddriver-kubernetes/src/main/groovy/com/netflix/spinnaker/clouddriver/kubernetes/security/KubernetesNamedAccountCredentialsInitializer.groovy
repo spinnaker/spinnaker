@@ -20,6 +20,7 @@ import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.module.CatsModule
 import com.netflix.spinnaker.cats.provider.ProviderSynchronizerTypeWrapper
 import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesConfigurationProperties
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.job.KubectlJobExecutor
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.clouddriver.security.CredentialsInitializerSynchronizable
 import com.netflix.spinnaker.clouddriver.security.ProviderUtils
@@ -37,6 +38,7 @@ class KubernetesNamedAccountCredentialsInitializer implements CredentialsInitial
   private static final Integer DEFAULT_CACHE_THREADS = 1
 
   @Autowired Registry spectatorRegistry
+  @Autowired KubectlJobExecutor jobExecutor
 
   @Bean
   List<? extends KubernetesNamedAccountCredentials> kubernetesNamedAccountCredentials(
@@ -91,6 +93,7 @@ class KubernetesNamedAccountCredentialsInitializer implements CredentialsInitial
           .requiredGroupMembership(managedAccount.requiredGroupMembership)
           .permissions(managedAccount.permissions.build())
           .spectatorRegistry(spectatorRegistry)
+          .jobExecutor(jobExecutor)
           .debug(managedAccount.debug)
           .build()
 

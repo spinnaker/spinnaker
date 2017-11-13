@@ -25,14 +25,10 @@ import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesApiVersion;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
-import io.kubernetes.client.ApiClient;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.job.KubectlJobExecutor;
 import io.kubernetes.client.ApiException;
-import io.kubernetes.client.apis.AppsV1beta1Api;
-import io.kubernetes.client.apis.AppsV1beta2Api;
-import io.kubernetes.client.apis.CoreV1Api;
-import io.kubernetes.client.apis.ExtensionsV1beta1Api;
 import io.kubernetes.client.models.V1Service;
-import io.kubernetes.client.util.Config;
 import io.kubernetes.client.util.KubeConfig;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
@@ -50,11 +46,7 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 public class KubernetesV2Credentials implements KubernetesCredentials {
-  private final ApiClient client;
-  private final CoreV1Api coreV1Api;
-  private final ExtensionsV1beta1Api extensionsV1beta1Api;
-  private final AppsV1beta1Api appsV1beta1Api;
-  private final AppsV1beta2Api appsV1beta2Api;
+  private final KubectlJobExecutor jobExecutor;
   private final Registry registry;
   private final Clock clock;
   private final String accountName;
@@ -93,6 +85,7 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
     List<String> namespaces = new ArrayList<>();
     List<String> omitNamespaces = new ArrayList<>();
     Registry registry;
+    KubectlJobExecutor jobExecutor;
     boolean debug;
 
     public Builder accountName(String accountName) {
@@ -130,6 +123,11 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
       return this;
     }
 
+    public Builder jobExecutor(KubectlJobExecutor jobExecutor) {
+      this.jobExecutor = jobExecutor;
+      return this;
+    }
+
     public Builder debug(boolean debug) {
       this.debug = debug;
       return this;
@@ -151,18 +149,12 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
         kubeconfig.setContext(context);
       }
 
-      ApiClient client = Config.fromConfig(kubeconfig);
-
-      if (!StringUtils.isEmpty(userAgent)) {
-        client.setUserAgent(userAgent);
-      }
-
       namespaces = namespaces == null ? new ArrayList<>() : namespaces;
       omitNamespaces = omitNamespaces == null ? new ArrayList<>() : omitNamespaces;
       
       return new KubernetesV2Credentials(
           accountName,
-          client,
+          jobExecutor,
           namespaces,
           omitNamespaces,
           registry,
@@ -174,7 +166,7 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
   }
 
   private KubernetesV2Credentials(@NotNull String accountName,
-      @NotNull ApiClient client,
+      @NotNull KubectlJobExecutor jobExecutor,
       @NotNull List<String> namespaces,
       @NotNull List<String> omitNamespaces,
       @NotNull Registry registry,
@@ -186,14 +178,8 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
     this.accountName = accountName;
     this.namespaces = namespaces;
     this.omitNamespaces = omitNamespaces;
-    this.client = client;
-    this.client.setDebugging(debug);
+    this.jobExecutor = jobExecutor;
     this.debug = debug;
-
-    this.coreV1Api = new CoreV1Api(this.client);
-    this.extensionsV1beta1Api = new ExtensionsV1beta1Api(this.client);
-    this.appsV1beta1Api = new AppsV1beta1Api(this.client);
-    this.appsV1beta2Api = new AppsV1beta2Api(this.client);
 
     this.kubeconfigFile = kubeconfigFile;
     this.context = context;
@@ -202,18 +188,16 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
   @Override
   public List<String> getDeclaredNamespaces() {
     List<String> result;
-    String labelSelector = null;
-    String fieldSelector = null;
     if (!namespaces.isEmpty()) {
       result = namespaces;
     } else {
       try {
-        result = coreV1Api.listNamespace(PRETTY, CONTINUE, fieldSelector, INCLUDE_UNINITIALIZED, labelSelector, LIMIT, DEFAULT_VERSION, TIMEOUT_SECONDS, WATCH)
-            .getItems()
-            .stream()
-            .map(n -> n.getMetadata().getName())
+        List<KubernetesManifest> namespaceManifests = jobExecutor.getAll(this, KubernetesKind.NAMESPACE, "");
+        result = namespaceManifests.stream()
+            .map(KubernetesManifest::getName)
             .collect(Collectors.toList());
-      } catch (ApiException e) {
+
+      } catch (KubectlJobExecutor.KubectlException e) {
         throw new RuntimeException(e);
       }
     }
