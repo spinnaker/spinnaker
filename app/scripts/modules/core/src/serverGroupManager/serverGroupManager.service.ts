@@ -4,7 +4,7 @@ import { API_SERVICE, Api } from '@spinnaker/core';
 
 import { IServerGroupManager } from 'core/domain/IServerGroupManager';
 
-class ServerGroupManagerService {
+export class ServerGroupManagerService {
   constructor(private API: Api) {
     'ngInject';
   }
