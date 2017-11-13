@@ -191,6 +191,11 @@ module.exports = angular.module('spinnaker.amazon.serverGroup.details.controller
       return false;
     };
 
+    this.hasDisabledInstances = () => {
+      // server group may have disabled instances (out of service) but NOT itself be disabled
+      return this.serverGroup.isDisabled || (get(this.serverGroup, 'instanceCounts.outOfService', 0) > 0);
+    }
+
     this.destroyServerGroup = () => {
       var serverGroup = this.serverGroup;
 

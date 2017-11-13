@@ -51,7 +51,7 @@
             <li role="presentation" class="divider" ng-if=" !ctrl.serverGroup.isDisabled"></li>
             <li><a href ng-click="ctrl.resizeServerGroup()">Resize</a></li>
             <li><a href ng-if=" !ctrl.serverGroup.isDisabled" ng-click="ctrl.disableServerGroup()">Disable</a></li>
-            <li><a href ng-if="ctrl.serverGroup.isDisabled && !ctrl.isEnableLocked()" ng-click="ctrl.enableServerGroup()">Enable</a></li>
+            <li><a href ng-if="ctrl.hasDisabledInstances() && !ctrl.isEnableLocked()" ng-click="ctrl.enableServerGroup()">Enable</a></li>
             <li class="disabled" ng-if="ctrl.isEnableLocked()">
               <a uib-tooltip="Cannot enable this server group until resize operation completes"
                  tooltip-placement="left">
