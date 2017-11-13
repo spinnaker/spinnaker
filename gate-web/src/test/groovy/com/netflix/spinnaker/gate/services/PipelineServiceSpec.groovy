@@ -71,4 +71,38 @@ class PipelineServiceSpec extends Specification {
     [[type: 'a'], [type: 'b']] | null                       || [[type: 'a'], [type: 'b']]
     [[type: 'a'], [type: 'b']] | [[type: 'c']]              || [[type: 'a'], [type: 'b'], [type: 'c']]
   }
+
+  @Unroll
+  void 'startPipeline should throw exceptions if required parameters are not supplied'() {
+    given:
+    OrcaService orcaService = Mock(OrcaService)
+    def service = new PipelineService(
+      applicationService: Mock(ApplicationService) {
+        1 * getPipelineConfigForApplication('app', 'p-id') >> [
+          parameterConfig: [[name: 'param1', required: true]]
+        ]
+      },
+      orcaService: orcaService
+    )
+    when:
+    def didThrow = false
+    try {
+      service.trigger('app', 'p-id', trigger)
+    } catch (IllegalArgumentException ignored) {
+      didThrow = true
+    }
+
+    then:
+    didThrow == isThrown
+
+    where:
+    trigger                       || isThrown
+    [:]                           || true
+    [parameters: null]            || true
+    [parameters: [:]]             || true
+    [parameters: [param1: null]]  || true
+    [parameters: [param1: false]] || false
+    [parameters: [param1: 0]]     || false
+    [parameters: [param1: 'a']]   || false
+  }
 }

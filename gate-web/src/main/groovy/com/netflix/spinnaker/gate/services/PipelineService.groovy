@@ -75,7 +75,18 @@ class PipelineService {
       if (pipelineConfig.notifications) {
         pipelineConfig.notifications = (List) pipelineConfig.notifications + (List) trigger.notifications
       } else {
-        pipelineConfig.notifications = trigger.notifications;
+        pipelineConfig.notifications = trigger.notifications
+      }
+    }
+    if (pipelineConfig.parameterConfig) {
+      Map triggerParams = (Map) trigger.parameters ?: [:]
+      pipelineConfig.parameterConfig.each { Map paramConfig ->
+        String paramName = paramConfig.name
+        if (paramConfig.required && paramConfig.default == null) {
+          if (triggerParams[paramName] == null) {
+            throw new IllegalArgumentException("Required parameter ${paramName} is missing")
+          }
+        }
       }
     }
     orcaService.startPipeline(pipelineConfig, trigger.user?.toString())
