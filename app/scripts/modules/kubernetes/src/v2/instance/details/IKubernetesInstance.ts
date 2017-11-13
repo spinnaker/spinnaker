@@ -1,4 +1,4 @@
-import { IInstance } from '@spinnaker/core';
+import { IInstance, IMoniker } from '@spinnaker/core';
 
 export interface IKubernetesInstance extends IInstance {
   kind: string;
@@ -7,4 +7,5 @@ export interface IKubernetesInstance extends IInstance {
   apiVersion: string;
   manifest: any;
   namespace: string;
+  moniker: IMoniker;
 }
