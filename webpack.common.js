@@ -13,6 +13,7 @@ const CACHE_INVALIDATE = JSON.stringify({
 });
 
 const NODE_MODULE_PATH = path.join(__dirname, 'node_modules');
+const SETTINGS_PATH = process.env.SETTINGS_PATH || './settings.js';
 
 function configure(IS_TEST) {
 
@@ -157,7 +158,7 @@ function configure(IS_TEST) {
 
   if (!IS_TEST) {
     config.entry = {
-      settings: './settings.js',
+      settings: SETTINGS_PATH,
       settingsLocal: './settings-local.js',
       halconfig: './halconfig/settings.js',
       app: './app/scripts/app.ts',
