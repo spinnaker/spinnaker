@@ -21,13 +21,10 @@ import com.google.api.client.googleapis.batch.BatchRequest
 import com.google.api.client.googleapis.batch.json.JsonBatchCallback
 import com.google.api.client.googleapis.json.GoogleJsonError
 import com.google.api.client.http.HttpHeaders
-import com.google.api.services.compute.model.Backend
-import com.google.api.services.compute.model.ForwardingRule
-import com.google.api.services.compute.model.ForwardingRuleList
-import com.google.api.services.compute.model.HealthStatus
-import com.google.api.services.compute.model.ResourceGroupReference
+import com.google.api.services.compute.model.*
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.provider.ProviderCache
+import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
 import com.netflix.spinnaker.clouddriver.google.model.GoogleHealthCheck
 import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
 import com.netflix.spinnaker.clouddriver.google.model.health.GoogleLoadBalancerHealth
@@ -62,16 +59,21 @@ class GoogleInternalLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerC
     List<String> failedLoadBalancers = []
 
     BatchRequest forwardingRulesRequest = buildBatchRequest()
-    BatchRequest backendServiceRequest = buildBatchRequest()
     BatchRequest groupHealthRequest = buildBatchRequest()
-    BatchRequest healthCheckRequest = buildBatchRequest()
+
+    List<BackendService> projectRegionBackendServices = GCEUtil.fetchRegionBackendServices(this, compute, project, region)
+    List<HttpHealthCheck> projectHttpHealthChecks = GCEUtil.fetchHttpHealthChecks(this, compute, project)
+    List<HttpsHealthCheck> projectHttpsHealthChecks = GCEUtil.fetchHttpsHealthChecks(this, compute, project)
+    List<HealthCheck> projectHealthChecks = GCEUtil.fetchHealthChecks(this, compute, project)
 
     ForwardingRuleCallbacks forwardingRuleCallbacks = new ForwardingRuleCallbacks(
       loadBalancers: loadBalancers,
       failedLoadBalancers: failedLoadBalancers,
-      backendServiceRequest: backendServiceRequest,
-      healthCheckRequest: healthCheckRequest,
       groupHealthRequest: groupHealthRequest,
+      projectRegionBackendServices: projectRegionBackendServices,
+      projectHttpHealthChecks: projectHttpHealthChecks,
+      projectHttpsHealthChecks: projectHttpsHealthChecks,
+      projectHealthChecks: projectHealthChecks
     )
 
     if (onDemandLoadBalancerName) {
@@ -83,22 +85,21 @@ class GoogleInternalLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerC
     }
 
     executeIfRequestsAreQueued(forwardingRulesRequest, "InternalLoadBalancerCaching.forwardingRules")
-    executeIfRequestsAreQueued(backendServiceRequest, "InternalLoadBalancerCaching.backendService")
-    executeIfRequestsAreQueued(healthCheckRequest, "InternalLoadBalancerCaching.healthCheck")
     executeIfRequestsAreQueued(groupHealthRequest, "InternalLoadBalancerCaching.groupHealth")
 
     return loadBalancers.findAll {!(it.name in failedLoadBalancers)}
   }
 
   class ForwardingRuleCallbacks {
-
     List<GoogleInternalLoadBalancer> loadBalancers
     List<String> failedLoadBalancers = []
-    BatchRequest backendServiceRequest
 
     // Pass through objects
-    BatchRequest healthCheckRequest
     BatchRequest groupHealthRequest
+    List<BackendService> projectRegionBackendServices
+    List<HttpHealthCheck> projectHttpHealthChecks
+    List<HttpsHealthCheck> projectHttpsHealthChecks
+    List<HealthCheck> projectHealthChecks
 
     ForwardingRuleSingletonCallback<ForwardingRule> newForwardingRuleSingletonCallback() {
       return new ForwardingRuleSingletonCallback<ForwardingRule>()
@@ -158,162 +159,140 @@ class GoogleInternalLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerC
       loadBalancers << newLoadBalancer
 
       def backendServiceName = Utils.getLocalName(forwardingRule.backendService)
-      def backendServiceCallback = new BackendServiceCallback(
-        googleLoadBalancer: newLoadBalancer,
-        healthCheckRequest: healthCheckRequest,
-        groupHealthRequest: groupHealthRequest,
-        subject: newLoadBalancer.name,
-        failedSubjects: failedLoadBalancers
-      )
-
-      compute.regionBackendServices().get(project, region, backendServiceName).queue(backendServiceRequest, backendServiceCallback)
+      BackendService backendService = projectRegionBackendServices?.find { BackendService bs -> bs.getName() == backendServiceName }
+      handleBackendService(backendService, failedLoadBalancers, newLoadBalancer, projectHttpHealthChecks, projectHttpsHealthChecks, projectHealthChecks, groupHealthRequest)
     }
   }
 
-  class BackendServiceCallback<BackendService> extends JsonBatchCallback<BackendService> implements FailedSubjectChronicler {
-    GoogleInternalLoadBalancer googleLoadBalancer
-    BatchRequest healthCheckRequest
-    BatchRequest groupHealthRequest
-
-    @Override
-    void onSuccess(BackendService backendService, HttpHeaders responseHeaders) throws IOException {
-      def groupHealthCallback = new GroupHealthCallback(
-        googleLoadBalancer: googleLoadBalancer,
-        subject: googleLoadBalancer.name,
-        failedSubjects: failedSubjects
-      )
-
-      GoogleBackendService newService = new GoogleBackendService(
-        name: backendService.name,
-        loadBalancingScheme: backendService.loadBalancingScheme,
-        sessionAffinity: backendService.sessionAffinity,
-        backends: backendService.backends?.collect { Backend backend ->
-          new GoogleLoadBalancedBackend(
-            serverGroupUrl: backend.group,
-            policy: new GoogleLoadBalancingPolicy(balancingMode: backend.balancingMode)
-          )
-        } ?: []
-      )
-      googleLoadBalancer.backendService = newService
-
-      backendService.backends?.each { Backend backend ->
-        def resourceGroup = new ResourceGroupReference()
-        resourceGroup.setGroup(backend.group as String)
-        compute.regionBackendServices()
-          .getHealth(project, region, backendService.name, resourceGroup)
-          .queue(groupHealthRequest, groupHealthCallback)
-      }
-
-      backendService.healthChecks?.each { String healthCheckURL ->
-        def healthCheckName = Utils.getLocalName(healthCheckURL)
-        def healthCheckType = Utils.getHealthCheckType(healthCheckURL)
-        switch (healthCheckType) {
-          case "httpHealthChecks":
-            def healthCheckCallback = new HttpHealthCheckCallback(
-              googleBackendService: googleLoadBalancer.backendService,
-              subject: googleLoadBalancer.name,
-              failedSubjects: failedSubjects
-            )
-            compute.httpHealthChecks().get(project, healthCheckName).queue(healthCheckRequest, healthCheckCallback)
-            break
-          case "httpsHealthChecks":
-            def healthCheckCallback = new HttpsHealthCheckCallback(
-              googleBackendService: googleLoadBalancer.backendService,
-              subject: googleLoadBalancer.name,
-              failedSubjects: failedSubjects
-            )
-            compute.httpsHealthChecks().get(project, healthCheckName).queue(healthCheckRequest, healthCheckCallback)
-            break
-          case "healthChecks":
-            def healthCheckCallback = new HealthCheckCallback(
-              googleBackendService: googleLoadBalancer.backendService,
-              subject: googleLoadBalancer.name,
-              failedSubjects: failedSubjects
-            )
-            compute.healthChecks().get(project, healthCheckName).queue(healthCheckRequest, healthCheckCallback)
-            break
-          default:
-            log.warn("Unknown health check type for health check named: ${healthCheckName}. Not queueing any batch requests.")
-            break
-        }
-      }
+  private void handleBackendService(BackendService backendService,
+                                    List<String> failedLoadBalancers,
+                                    GoogleInternalLoadBalancer googleLoadBalancer,
+                                    List<HttpHealthCheck> httpHealthChecks,
+                                    List<HttpsHealthCheck> httpsHealthChecks,
+                                    List<HealthCheck> healthChecks,
+                                    BatchRequest groupHealthRequest) {
+    if (!backendService) {
+      return
     }
-  }
 
-  class HealthCheckCallback<HealthCheck> extends JsonBatchCallback<HealthCheck> implements FailedSubjectChronicler {
-    GoogleBackendService googleBackendService
+    def groupHealthCallback = new GroupHealthCallback(
+      googleLoadBalancer: googleLoadBalancer,
+      subject: googleLoadBalancer.name,
+      failedSubjects: failedLoadBalancers
+    )
 
-    @Override
-    void onSuccess(HealthCheck healthCheck, HttpHeaders responseHeaders) throws IOException {
-      def port = null
-      def hcType = null
-      def requestPath = null
-      if (healthCheck.tcpHealthCheck) {
-        port = healthCheck.tcpHealthCheck.port
-        hcType = GoogleHealthCheck.HealthCheckType.TCP
-      } else if (healthCheck.sslHealthCheck) {
-        port = healthCheck.sslHealthCheck.port
-        hcType = GoogleHealthCheck.HealthCheckType.SSL
-      } else if (healthCheck.httpHealthCheck) {
-        port = healthCheck.httpHealthCheck.port
-        requestPath = healthCheck.httpHealthCheck.requestPath
-        hcType = GoogleHealthCheck.HealthCheckType.HTTP
-      } else if (healthCheck.httpsHealthCheck) {
-        port = healthCheck.httpsHealthCheck.port
-        requestPath = healthCheck.httpsHealthCheck.requestPath
-        hcType = GoogleHealthCheck.HealthCheckType.HTTPS
-      } else if (healthCheck.udpHealthCheck) {
-        port = healthCheck.udpHealthCheck.port
-        hcType = GoogleHealthCheck.HealthCheckType.UDP
-      }
-
-      if (port && hcType) {
-        googleBackendService.healthCheck = new GoogleHealthCheck(
-          name: healthCheck.name,
-          healthCheckType: hcType,
-          port: port,
-          requestPath: requestPath ?: "",
-          checkIntervalSec: healthCheck.checkIntervalSec,
-          timeoutSec: healthCheck.timeoutSec,
-          unhealthyThreshold: healthCheck.unhealthyThreshold,
-          healthyThreshold: healthCheck.healthyThreshold,
+    GoogleBackendService newService = new GoogleBackendService(
+      name: backendService.name,
+      loadBalancingScheme: backendService.loadBalancingScheme,
+      sessionAffinity: backendService.sessionAffinity,
+      backends: backendService.backends?.findAll { Backend backend -> backend.group }?.collect { Backend backend ->
+        new GoogleLoadBalancedBackend(
+          serverGroupUrl: backend.group,
+          policy: new GoogleLoadBalancingPolicy(balancingMode: backend.balancingMode)
         )
+      } ?: []
+    )
+    googleLoadBalancer.backendService = newService
+
+    backendService.backends?.findAll { Backend backend -> backend.group }?.each { Backend backend ->
+      def resourceGroup = new ResourceGroupReference()
+      resourceGroup.setGroup(backend.group as String)
+      compute.regionBackendServices()
+        .getHealth(project, region, backendService.name, resourceGroup)
+        .queue(groupHealthRequest, groupHealthCallback)
+    }
+
+    backendService.healthChecks?.each { String healthCheckURL ->
+      def healthCheckName = Utils.getLocalName(healthCheckURL)
+      def healthCheckType = Utils.getHealthCheckType(healthCheckURL)
+      switch (healthCheckType) {
+        case "httpHealthChecks":
+          HttpHealthCheck httpHealthCheck = httpHealthChecks.find { hc -> Utils.getLocalName(hc.getName()) == healthCheckName }
+          handleHttpHealthCheck(httpHealthCheck, googleLoadBalancer.backendService)
+          break
+        case "httpsHealthChecks":
+          HttpsHealthCheck httpsHealthCheck = httpsHealthChecks.find { hc -> Utils.getLocalName(hc.getName()) == healthCheckName }
+          handleHttpsHealthCheck(httpsHealthCheck, googleLoadBalancer.backendService)
+          break
+        case "healthChecks":
+          HealthCheck healthCheck = healthChecks.find { hc -> Utils.getLocalName(hc.getName()) == healthCheckName }
+          handleHealthCheck(healthCheck, googleLoadBalancer.backendService)
+          break
+        default:
+          log.warn("Unknown health check type for health check named: ${healthCheckName}. Not queueing any batch requests.")
+          break
       }
     }
   }
 
-  class HttpsHealthCheckCallback<HttpsHealthCheck> extends JsonBatchCallback<HttpsHealthCheck> implements FailedSubjectChronicler {
-    GoogleBackendService googleBackendService
-
-    @Override
-    void onSuccess(HttpsHealthCheck httpsHealthCheck, HttpHeaders responseHeaders) throws IOException {
-      googleBackendService.healthCheck = new GoogleHealthCheck(
-        name: httpsHealthCheck.name,
-        healthCheckType: GoogleHealthCheck.HealthCheckType.HTTPS,
-        requestPath: httpsHealthCheck.requestPath,
-        port: httpsHealthCheck.port,
-        checkIntervalSec: httpsHealthCheck.checkIntervalSec,
-        timeoutSec: httpsHealthCheck.timeoutSec,
-        unhealthyThreshold: httpsHealthCheck.unhealthyThreshold,
-        healthyThreshold: httpsHealthCheck.healthyThreshold,
-      )
+  private static void handleHttpHealthCheck(HttpHealthCheck httpHealthCheck, GoogleBackendService service) {
+    if (!httpHealthCheck) {
+      return
     }
+    service.healthCheck = new GoogleHealthCheck(
+      name: httpHealthCheck.name,
+      healthCheckType: GoogleHealthCheck.HealthCheckType.HTTP,
+      requestPath: httpHealthCheck.requestPath,
+      port: httpHealthCheck.port,
+      checkIntervalSec: httpHealthCheck.checkIntervalSec,
+      timeoutSec: httpHealthCheck.timeoutSec,
+      unhealthyThreshold: httpHealthCheck.unhealthyThreshold,
+      healthyThreshold: httpHealthCheck.healthyThreshold,
+    )
   }
 
-  class HttpHealthCheckCallback<HttpHealthCheck> extends JsonBatchCallback<HttpHealthCheck> implements FailedSubjectChronicler {
-    GoogleBackendService googleBackendService
+  private static void handleHttpsHealthCheck(HttpsHealthCheck httpsHealthCheck, GoogleBackendService service) {
+    if (!httpsHealthCheck) {
+      return
+    }
+    service.healthCheck = new GoogleHealthCheck(
+      name: httpsHealthCheck.name,
+      healthCheckType: GoogleHealthCheck.HealthCheckType.HTTPS,
+      requestPath: httpsHealthCheck.requestPath,
+      port: httpsHealthCheck.port,
+      checkIntervalSec: httpsHealthCheck.checkIntervalSec,
+      timeoutSec: httpsHealthCheck.timeoutSec,
+      unhealthyThreshold: httpsHealthCheck.unhealthyThreshold,
+      healthyThreshold: httpsHealthCheck.healthyThreshold,
+    )
+  }
 
-    @Override
-    void onSuccess(HttpHealthCheck httpHealthCheck, HttpHeaders responseHeaders) throws IOException {
-      googleBackendService.healthCheck = new GoogleHealthCheck(
-        name: httpHealthCheck.name,
-        healthCheckType: GoogleHealthCheck.HealthCheckType.HTTP,
-        requestPath: httpHealthCheck.requestPath,
-        port: httpHealthCheck.port,
-        checkIntervalSec: httpHealthCheck.checkIntervalSec,
-        timeoutSec: httpHealthCheck.timeoutSec,
-        unhealthyThreshold: httpHealthCheck.unhealthyThreshold,
-        healthyThreshold: httpHealthCheck.healthyThreshold,
+  private static void handleHealthCheck(HealthCheck healthCheck, GoogleBackendService service) {
+    if (!healthCheck) {
+      return
+    }
+    def port = null
+    def hcType = null
+    def requestPath = null
+    if (healthCheck.tcpHealthCheck) {
+      port = healthCheck.tcpHealthCheck.port
+      hcType = GoogleHealthCheck.HealthCheckType.TCP
+    } else if (healthCheck.sslHealthCheck) {
+      port = healthCheck.sslHealthCheck.port
+      hcType = GoogleHealthCheck.HealthCheckType.SSL
+    } else if (healthCheck.httpHealthCheck) {
+      port = healthCheck.httpHealthCheck.port
+      requestPath = healthCheck.httpHealthCheck.requestPath
+      hcType = GoogleHealthCheck.HealthCheckType.HTTP
+    } else if (healthCheck.httpsHealthCheck) {
+      port = healthCheck.httpsHealthCheck.port
+      requestPath = healthCheck.httpsHealthCheck.requestPath
+      hcType = GoogleHealthCheck.HealthCheckType.HTTPS
+    } else if (healthCheck.udpHealthCheck) {
+      port = healthCheck.udpHealthCheck.port
+      hcType = GoogleHealthCheck.HealthCheckType.UDP
+    }
+
+    if (port && hcType) {
+      service.healthCheck = new GoogleHealthCheck(
+        name: healthCheck.name,
+        healthCheckType: hcType,
+        port: port,
+        requestPath: requestPath ?: "",
+        checkIntervalSec: healthCheck.checkIntervalSec,
+        timeoutSec: healthCheck.timeoutSec,
+        unhealthyThreshold: healthCheck.unhealthyThreshold,
+        healthyThreshold: healthCheck.healthyThreshold,
       )
     }
   }

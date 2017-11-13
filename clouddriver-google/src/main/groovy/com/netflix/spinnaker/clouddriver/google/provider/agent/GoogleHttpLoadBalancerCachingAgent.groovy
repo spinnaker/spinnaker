@@ -335,7 +335,7 @@ class GoogleHttpLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerCachi
 
       // Process queued backend services.
       queuedServices?.each { backendServiceName ->
-        BackendService service = projectBackendServices.find { bs -> Utils.getLocalName(bs.getName()) == backendServiceName }
+        BackendService service = projectBackendServices?.find { bs -> Utils.getLocalName(bs.getName()) == backendServiceName }
         handleBackendService(service, failedSubjects, googleLoadBalancer, projectHttpHealthChecks, projectHttpsHealthChecks, projectHealthChecks, groupHealthRequest)
       }
     }

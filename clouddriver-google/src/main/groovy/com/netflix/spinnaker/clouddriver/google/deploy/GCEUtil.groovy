@@ -1730,6 +1730,13 @@ class GCEUtil {
       agent.TAG_SCOPE, agent.SCOPE_GLOBAL).getItems()
   }
 
+  static List<BackendService> fetchRegionBackendServices(GoogleExecutorTraits agent, Compute compute, String project, String region) {
+    return agent.timeExecute(
+      compute.regionBackendServices().list(project, region),
+      "compute.regionBackendServices.list",
+      agent.TAG_SCOPE, agent.SCOPE_REGIONAL, agent.TAG_REGION, region).getItems()
+  }
+
   static List<HttpHealthCheck> fetchHttpHealthChecks(GoogleExecutorTraits agent, Compute compute, String project) {
     Boolean executedAtLeastOnce = false
     String nextPageToken = null
