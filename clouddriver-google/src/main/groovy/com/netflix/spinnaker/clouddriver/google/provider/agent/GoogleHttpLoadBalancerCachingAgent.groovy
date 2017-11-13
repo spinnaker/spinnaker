@@ -369,7 +369,8 @@ class GoogleHttpLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerCachi
       service.enableCDN = backendService.enableCDN
       service.portName = backendService.portName ?: GoogleHttpLoadBalancingPolicy.HTTP_DEFAULT_PORT_NAME
       service.connectionDrainingTimeoutSec = backendService.connectionDraining?.drainingTimeoutSec ?: 0
-      service.backends = backendService.backends?.collect { Backend backend ->
+      // Note: It's possible for a backend service to have backends that point to a null group.
+      service.backends = backendService.backends?.findAll { Backend backend -> backend.group }?.collect { Backend backend ->
         new GoogleLoadBalancedBackend(
           serverGroupUrl: backend.group,
           policy: GCEUtil.loadBalancingPolicyFromBackend(backend)
@@ -377,7 +378,8 @@ class GoogleHttpLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerCachi
       } ?: []
     }
 
-    backendService.backends?.each { Backend backend ->
+    // Note: It's possible for a backend service to have backends that point to a null group.
+    backendService.backends?.findAll { Backend backend -> backend.group }?.each { Backend backend ->
       def resourceGroup = new ResourceGroupReference()
       resourceGroup.setGroup(backend.group)
       compute.backendServices()
@@ -409,6 +411,9 @@ class GoogleHttpLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerCachi
   }
 
   private static void handleHttpHealthCheck(HttpHealthCheck httpHealthCheck, List<GoogleBackendService> googleBackendServices) {
+    if (!httpHealthCheck) {
+      return
+    }
     googleBackendServices.each { GoogleBackendService service ->
       service.healthCheck = new GoogleHealthCheck(
         name: httpHealthCheck.name,
@@ -424,6 +429,9 @@ class GoogleHttpLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerCachi
   }
 
   private static void handleHttpsHealthCheck(HttpsHealthCheck httpsHealthCheck, List<GoogleBackendService> googleBackendServices) {
+    if (!httpsHealthCheck) {
+      return
+    }
     googleBackendServices.each { GoogleBackendService service ->
       service.healthCheck = new GoogleHealthCheck(
         name: httpsHealthCheck.name,
@@ -439,6 +447,9 @@ class GoogleHttpLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerCachi
   }
 
   private static void handleHealthCheck(HealthCheck healthCheck, List<GoogleBackendService> googleBackendServices) {
+    if (!healthCheck) {
+      return
+    }
     def port = null
     def hcType = null
     def requestPath = null
