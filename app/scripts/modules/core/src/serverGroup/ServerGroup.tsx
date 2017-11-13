@@ -15,6 +15,7 @@ import { NamingService } from 'core/naming';
 import { NgReact, ReactInjector } from 'core/reactShims';
 import { Instances } from 'core/instance/Instances';
 import { ScrollToService } from 'core/utils';
+import { ServerGroupManagerTag } from 'core/serverGroupManager/ServerGroupManagerTag';
 
 export interface JenkinsViewModel {
   number: number;
@@ -236,6 +237,7 @@ export class ServerGroup extends React.Component<IServerGroupProps, IServerGroup
                   )}
 
                   {hasLoadBalancer && <LoadBalancersTagWrapper application={application} serverGroup={serverGroup}/>}
+                  <ServerGroupManagerTag application={application} serverGroup={serverGroup}/>
                 </div>
               </div>
             </div>

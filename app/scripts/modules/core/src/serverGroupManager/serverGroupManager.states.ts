@@ -5,6 +5,13 @@ import { APPLICATION_STATE_PROVIDER, ApplicationStateProvider } from 'core/appli
 import { INestedState } from 'core/navigation';
 import { VersionedCloudProviderService } from 'core/cloudProvider';
 
+export interface IServerGroupManagerStateParams {
+  provider: string;
+  accountId: string;
+  region: string;
+  serverGroupManager: string;
+}
+
 export const SERVER_GROUP_MANAGER_STATES = 'spinnaker.core.serverGroupManager.states';
 module(SERVER_GROUP_MANAGER_STATES, [APPLICATION_STATE_PROVIDER])
   .config((applicationStateProvider: ApplicationStateProvider) => {
@@ -28,13 +35,7 @@ module(SERVER_GROUP_MANAGER_STATES, [APPLICATION_STATE_PROVIDER])
         }
       },
       resolve: {
-        serverGroupManager: ['$stateParams', ($stateParams: StateParams) => {
-          return {
-            name: $stateParams.serverGroupManager,
-            accountId: $stateParams.accountId,
-            region: $stateParams.region,
-          };
-        }]
+        serverGroupManager: ['$stateParams', ($stateParams: IServerGroupManagerStateParams) => $stateParams]
       },
       data: {
         pageTitleDetails: {

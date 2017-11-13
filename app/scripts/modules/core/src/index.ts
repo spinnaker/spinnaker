@@ -58,6 +58,7 @@ export * from './scheduler';
 export * from './search';
 export * from './securityGroup';
 export * from './serverGroup';
+export * from './serverGroupManager';
 export * from './serviceAccount';
 export * from './storage';
 export * from './subnet';

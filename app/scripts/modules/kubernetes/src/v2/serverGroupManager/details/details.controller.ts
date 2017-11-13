@@ -1,26 +1,20 @@
 import { IController, module } from 'angular';
 
-import { IServerGroupManager, Application } from '@spinnaker/core';
-
-interface IServerGroupManagerFromStateParams {
-  accountId: string;
-  region: string;
-  name: string;
-}
+import { IServerGroupManager, IServerGroupManagerStateParams, Application } from '@spinnaker/core';
 
 class KubernetesServerGroupManagerDetailsController implements IController {
   public serverGroupManager: IServerGroupManager;
 
-  constructor(serverGroupManager: IServerGroupManagerFromStateParams,
+  constructor(serverGroupManager: IServerGroupManagerStateParams,
               public app: Application) {
     'ngInject';
     this.app.ready()
       .then(() => this.extractServerGroupManager(serverGroupManager));
   }
 
-  private extractServerGroupManager(stateParams: IServerGroupManagerFromStateParams): void {
+  private extractServerGroupManager(stateParams: IServerGroupManagerStateParams): void {
     this.serverGroupManager = this.app.getDataSource('serverGroupManagers').data.find((manager: IServerGroupManager) =>
-      manager.name === stateParams.name
+      manager.name === stateParams.serverGroupManager
         && manager.region === stateParams.region
         && manager.account === stateParams.accountId
     );
