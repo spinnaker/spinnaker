@@ -39,6 +39,7 @@ dependencies {
 }
 
 applicationName = 'fiat'
-tasks.bootRepackage.enabled = project.repackage
+tasks.bootRepackage.enabled = Boolean.valueOf(project.repackage)
+
 
 
