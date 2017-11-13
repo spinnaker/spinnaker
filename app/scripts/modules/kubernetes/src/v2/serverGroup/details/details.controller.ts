@@ -51,6 +51,20 @@ class KubernetesServerGroupDetailsController implements IController {
     });
   }
 
+  public editServerGroup(): void {
+    this.$uibModal.open({
+      templateUrl: require('../../manifest/wizard/manifestWizard.html'),
+      size: 'lg',
+      controller: 'kubernetesV2ManifestEditCtrl',
+      controllerAs: 'ctrl',
+      resolve: {
+        sourceManifest: this.serverGroup.manifest,
+        sourceMoniker: this.serverGroup.moniker,
+        application: this.app
+      }
+    });
+  }
+
   public deleteServerGroup(): void {
     this.$uibModal.open({
       templateUrl: require('../../manifest/delete/delete.html'),

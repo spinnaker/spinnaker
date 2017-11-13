@@ -1,6 +1,6 @@
 import { copy, IPromise, IQService, module } from 'angular';
 
-import { load } from 'js-yaml'
+import { dump, load } from 'js-yaml'
 
 import { ACCOUNT_SERVICE, AccountService, Application, IMoniker } from '@spinnaker/core';
 
@@ -53,7 +53,7 @@ export class KubernetesManifestCommandBuilder {
     return command;
   }
 
-  public buildNewManifestCommand(app: Application): IPromise<IKubernetesManifestCommand> {
+  public buildNewManifestCommand(app: Application, sourceManifest?: any, sourceMoniker?: IMoniker): IPromise<IKubernetesManifestCommand> {
     const dataToFetch = {
       accounts: this.accountService.getAllAccountDetailsForProvider('kubernetes', 'v2'),
     };
@@ -67,11 +67,12 @@ export class KubernetesManifestCommandBuilder {
         }
 
         const manifest = {};
-        const manifestText = '';
+        const manifestText = sourceManifest == null ? '' : dump(sourceManifest);
         const cloudProvider = 'kubernetes';
-        const moniker = {
+        const moniker = sourceMoniker || {
           app: app.name,
         };
+
         const relationships = {
           loadBalancers: [] as string[],
           securityGroups: [] as string[],

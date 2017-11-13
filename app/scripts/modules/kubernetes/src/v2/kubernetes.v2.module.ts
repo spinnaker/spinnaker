@@ -6,6 +6,7 @@ import '../logo/kubernetes.logo.less';
 import { KUBERNETES_MANIFEST_COMMAND_BUILDER } from './manifest/manifestCommandBuilder.service';
 import { KUBERNETES_MANIFEST_BASIC_SETTINGS } from './manifest/wizard/basicSettings.component';
 import { KUBERNETES_MANIFEST_CTRL } from './manifest/wizard/manifestWizard.controller';
+import { KUBERNETES_EDIT_MANIFEST_CTRL } from './manifest/edit/editManifestWizard.controller';
 import { KUBERNETES_MANIFEST_DELETE_CTRL } from './manifest/delete/delete.controller';
 import { KUBERNETES_MANIFEST_ENTRY } from './manifest/wizard/manifestEntry.component';
 import { KUBERNETES_V2_INSTANCE_DETAILS_CTRL } from './instance/details/details.controller';
@@ -34,6 +35,7 @@ module(KUBERNETES_V2_MODULE, [
   KUBERNETES_MANIFEST_BASIC_SETTINGS,
   KUBERNETES_MANIFEST_COMMAND_BUILDER,
   KUBERNETES_MANIFEST_CTRL,
+  KUBERNETES_EDIT_MANIFEST_CTRL,
   KUBERNETES_MANIFEST_DELETE_CTRL,
   KUBERNETES_MANIFEST_ENTRY,
 ]).config((cloudProviderRegistryProvider: CloudProviderRegistry) => {

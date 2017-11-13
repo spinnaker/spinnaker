@@ -3,11 +3,12 @@ import { IModalInstanceService } from 'angular-ui-bootstrap';
 
 import {
   Application,
+  IMoniker,
+  ManifestWriter,
   SERVER_GROUP_WRITER,
   TASK_MONITOR_BUILDER,
   TaskMonitor,
-  TaskMonitorBuilder,
-  ManifestWriter
+  TaskMonitorBuilder
 } from '@spinnaker/core';
 
 import {
@@ -16,21 +17,23 @@ import {
   KubernetesManifestCommandBuilder
 } from '../manifestCommandBuilder.service';
 
-class KubernetesManifestWizardCtrl implements IController {
+class KubernetesEditManifestCtrl implements IController {
   public state = {
     loaded: false,
-    isNew: true,
+    isNew: false,
   };
   public taskMonitor: TaskMonitor;
   public command: IKubernetesManifestCommand;
 
-  constructor(private $uibModalInstance: IModalInstanceService,
+  constructor(sourceManifest: any,
+              sourceMoniker: IMoniker,
+              private $uibModalInstance: IModalInstanceService,
               private application: Application,
               private manifestWriter: ManifestWriter,
               private taskMonitorBuilder: TaskMonitorBuilder,
               private kubernetesManifestCommandBuilder: KubernetesManifestCommandBuilder) {
     'ngInject';
-    this.kubernetesManifestCommandBuilder.buildNewManifestCommand(application)
+    this.kubernetesManifestCommandBuilder.buildNewManifestCommand(application, sourceManifest, sourceMoniker)
       .then((builtCommand) => {
         this.command = builtCommand;
         this.initialize();
@@ -51,7 +54,7 @@ class KubernetesManifestWizardCtrl implements IController {
   private initialize(): void {
     this.taskMonitor = this.taskMonitorBuilder.buildTaskMonitor({
       application: this.application,
-      title: 'Deploying your manifest',
+      title: 'Updating your manifest',
       modalInstance: this.$uibModalInstance,
     });
   }
@@ -65,9 +68,9 @@ class KubernetesManifestWizardCtrl implements IController {
   }
 }
 
-export const KUBERNETES_MANIFEST_CTRL = 'spinnaker.kubernetes.v2.manifest.wizard.controller';
-module(KUBERNETES_MANIFEST_CTRL, [
+export const KUBERNETES_EDIT_MANIFEST_CTRL = 'spinnaker.kubernetes.v2.manifest.edit.controller';
+module(KUBERNETES_EDIT_MANIFEST_CTRL, [
   SERVER_GROUP_WRITER,
   TASK_MONITOR_BUILDER,
   KUBERNETES_MANIFEST_COMMAND_BUILDER,
-]).controller('kubernetesManifestWizardCtrl', KubernetesManifestWizardCtrl);
+]).controller('kubernetesV2ManifestEditCtrl', KubernetesEditManifestCtrl);
