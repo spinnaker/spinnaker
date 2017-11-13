@@ -16,12 +16,14 @@
 
 package com.netflix.spinnaker.orca.clouddriver
 
-import com.netflix.spinnaker.orca.clouddriver.MortService
 import spock.lang.Specification
 import spock.lang.Unroll
 
-import static com.netflix.spinnaker.orca.clouddriver.MortService.VPC.*
-import static com.netflix.spinnaker.orca.clouddriver.MortService.SecurityGroup.*
+import static com.netflix.spinnaker.orca.clouddriver.MortService.SecurityGroup.SecurityGroupIngress
+import static com.netflix.spinnaker.orca.clouddriver.MortService.SecurityGroup.applyMappings
+import static com.netflix.spinnaker.orca.clouddriver.MortService.SecurityGroup.filterForSecurityGroupIngress
+import static com.netflix.spinnaker.orca.clouddriver.MortService.SecurityGroup.findById
+import static com.netflix.spinnaker.orca.clouddriver.MortService.VPC.findForRegionAndAccount
 
 class MortServiceSpec extends Specification {
   void "should extract only the security group ingress rules from SecurityGroup"() {
@@ -96,6 +98,19 @@ class MortServiceSpec extends Specification {
     findForRegionAndAccount(allVPCs, "vpc1-0", "us-west-1", "test") == allVPCs[0]
     findForRegionAndAccount(allVPCs, "vpc1-1", "us-west-1", "test") == allVPCs[0]
     findForRegionAndAccount(allVPCs, "vpc1-0", "us-east-1", "test") == allVPCs[1]
+  }
+
+  void "should find VPC for region and account given name"() {
+    given:
+    def allVPCs = [
+      new MortService.VPC(id: "vpc1-0", name: "vpc1", region: "us-west-1", account: "test"),
+      new MortService.VPC(id: "vpc1-1", name: "vpc1", region: "us-east-1", account: "test"),
+    ]
+
+    expect:
+    findForRegionAndAccount(allVPCs, "vpc1", "us-west-1", "test") == allVPCs[0]
+    findForRegionAndAccount(allVPCs, "vpc1", "us-east-1", "test") == allVPCs[1]
+    findForRegionAndAccount(allVPCs, "VPC1", "us-east-1", "test") == allVPCs[1]
   }
 
   @Unroll

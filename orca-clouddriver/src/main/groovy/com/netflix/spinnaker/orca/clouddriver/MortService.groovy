@@ -134,14 +134,14 @@ interface MortService {
     String account
 
     static VPC findForRegionAndAccount(Collection<MortService.VPC> allVPCs,
-                                       String sourceVpcId,
+                                       String sourceVpcIdOrName,
                                        String region,
                                        String account) {
-      def sourceVpc = allVPCs.find { it.id == sourceVpcId }
+      def sourceVpc = allVPCs.find { it.id == sourceVpcIdOrName || (it.name.equalsIgnoreCase(sourceVpcIdOrName) && it.region == region && it.account == account) }
       def targetVpc = allVPCs.find { it.name == sourceVpc?.name && it.region == region && it.account == account }
 
       if (!targetVpc) {
-        throw new IllegalStateException("No matching VPC found (vpcId: ${sourceVpcId}, region: ${region}, account: ${account}")
+        throw new IllegalStateException("No matching VPC found (vpcId: ${sourceVpcIdOrName}, region: ${region}, account: ${account}")
       }
 
       return targetVpc
