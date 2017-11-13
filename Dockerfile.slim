@@ -4,6 +4,6 @@ MAINTAINER delivery-engineering@netflix.com
 
 COPY ./orca-web/build/install/orca /opt/orca
 
-RUN apk --nocache add --update bash
+RUN apk --no-cache add --update bash
 
 CMD ["/opt/orca/bin/orca"]
