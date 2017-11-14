@@ -46,7 +46,7 @@ class AuthController {
       "Roads? Where we're going we don't need roads!",
       "Say hello to my little friend!",
       "I wish we could chat longer, but I'm having an old friend for dinner. Bye!",
-      "Hodor.",
+      "Hodor. :(",
   ]
   private final Random r = new Random()
   private final URL deckBaseUrl

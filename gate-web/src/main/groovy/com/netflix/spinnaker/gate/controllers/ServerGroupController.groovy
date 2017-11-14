@@ -37,21 +37,29 @@ class ServerGroupController {
 
   @ApiOperation(value = "Retrieve a list of server groups for a given application")
   @RequestMapping(value = "/applications/{applicationName}/serverGroups", method = RequestMethod.GET)
-  List getServerGroups(@PathVariable String applicationName,
-                       @RequestParam(required = false, value = 'expand', defaultValue = 'false') String expand,
-                       @RequestParam(required = false, value = 'cloudProvider') String cloudProvider,
-                       @RequestParam(required = false, value = 'clusters') String clusters,
-                       @RequestHeader(value = "X-RateLimit-App", required = false) String sourceApp) {
+  List getServerGroupsForApplication(@PathVariable String applicationName,
+                                     @RequestParam(required = false, value = 'expand', defaultValue = 'false') String expand,
+                                     @RequestParam(required = false, value = 'cloudProvider') String cloudProvider,
+                                     @RequestParam(required = false, value = 'clusters') String clusters,
+                                     @RequestHeader(value = "X-RateLimit-App", required = false) String sourceApp) {
     serverGroupService.getForApplication(applicationName, expand, cloudProvider, clusters, sourceApp)
   }
 
-  @ApiOperation(value = "Retrieve a list of server groups for a list of applications")
+  @ApiOperation(value = "Retrieve a list of server groups for a list of applications or a list of servergroups by 'account:region:name'")
   @RequestMapping(value = "/serverGroups", method = RequestMethod.GET)
-  List getServerGroupsByApplications(@RequestParam(value = 'applications') List<String> applications,
-                                     @RequestParam(required = false, value = 'cloudProvider') String cloudProvider,
-                                     @RequestHeader(value = "X-RateLimit-App", required = false) String sourceApp) {
+  List getServerGroups(@RequestParam(required = false, value = 'applications') List<String> applications,
+                       @RequestParam(required = false, value = 'ids') List<String> ids,
+                       @RequestParam(required = false, value = 'cloudProvider') String cloudProvider,
+                       @RequestHeader(value = "X-RateLimit-App", required = false) String sourceApp) {
+    if ((applications && ids) || (!applications && !ids)) {
+      throw new IllegalArgumentException("Provide either 'applications' or 'ids' parameter, but not both");
+    }
 
-    serverGroupService.getForApplications(applications, cloudProvider, sourceApp)
+    if (applications) {
+      return serverGroupService.getForApplications(applications, cloudProvider, sourceApp)
+    } else {
+      return serverGroupService.getForIds(ids, cloudProvider, sourceApp)
+    }
   }
 
   @ApiOperation(value = "Retrieve a server group's details")

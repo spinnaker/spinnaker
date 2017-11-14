@@ -49,7 +49,13 @@ class ServerGroupService {
 
   List getForApplications(List<String> applications, String cloudProvider, String selectorKey) {
     HystrixFactory.newListCommand(GROUP, "getServerGroupsForApplications") {
-      clouddriverServiceSelector.select(selectorKey).getServerGroups(applications, cloudProvider)
+      clouddriverServiceSelector.select(selectorKey).getServerGroups(applications, null, cloudProvider)
+    } execute()
+  }
+
+  List getForIds(List<String> ids, String cloudProvider, String selectorKey) {
+    HystrixFactory.newListCommand(GROUP, "getServerGroupsForIds") {
+      clouddriverServiceSelector.select(selectorKey).getServerGroups(null, ids, cloudProvider)
     } execute()
   }
 
