@@ -270,6 +270,12 @@ public class CanaryController {
       .orElseThrow(() -> new IllegalArgumentException("Unable to find stage '" + REFID_JUDGE + "' in pipeline ID '" + canaryExecutionId + "'"));
     Map<String, Object> contextContext = contextStage.getContext();
 
+    Stage mixerStage = pipeline.getStages().stream()
+      .filter(stage -> stage.getRefId().equals(REFID_MIX_METRICS))
+      .findFirst()
+      .orElseThrow(() -> new IllegalArgumentException("Unable to find stage '" + REFID_JUDGE + "' in pipeline ID '" + canaryExecutionId + "'"));
+    Map<String, Object> mixerContext = mixerStage.getContext();
+
     if (!contextContext.containsKey("canaryConfigId")) {
       throw new IllegalArgumentException("The judge stage does not contain a canaryConfigId reference");
     }
@@ -289,6 +295,7 @@ public class CanaryController {
     canaryExecutionStatusResponseBuilder.stageStatus(stageStatus);
     canaryExecutionStatusResponseBuilder.complete(isComplete);
     canaryExecutionStatusResponseBuilder.status(pipelineStatus);
+    canaryExecutionStatusResponseBuilder.metricSetPairListId((String)mixerContext.get("metricSetPairListId"));
 
     if (isComplete && pipelineStatus.equals("succeeded")) {
       if (judgeContext.containsKey("canaryJudgeResultId")) {

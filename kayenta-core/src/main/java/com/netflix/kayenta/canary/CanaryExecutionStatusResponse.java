@@ -36,4 +36,6 @@ public class CanaryExecutionStatusResponse {
   protected String status;
 
   protected CanaryResult result;
+
+  protected String metricSetPairListId;
 }
