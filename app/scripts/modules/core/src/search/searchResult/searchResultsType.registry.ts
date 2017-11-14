@@ -7,7 +7,7 @@ export interface IResultDisplayFormatter {
 
 export type SearchResultTabComponent = React.ComponentType<ISearchResultTabProps>;
 export type SearchResultsHeaderComponent = React.ComponentType<{ type: ISearchResultType }>;
-export type SearchResultsDataComponent = React.ComponentType<{ type: ISearchResultType, results: any[] }>;
+export type SearchResultsDataComponent<T = any> = React.ComponentType<{ type: ISearchResultType, results: T[] }>;
 
 export interface ISearchResultType {
   /** The unique key for the type, i.e., 'applications', 'serverGroup' */

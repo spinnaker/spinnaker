@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { BindAll } from 'lodash-decorators';
+import { kebabCase } from 'lodash';
 
 import { ISearchResultType } from './searchResultsType.registry';
 import { SearchStatus } from './SearchResults';
@@ -44,7 +45,7 @@ export class SearchResultGrid extends React.Component<ISearchResultGridProps> {
 
         return (
           <div className="search-result-grid flex-fill" style={{ height: 'initial' }}>
-            <div className={`table table-search-results table-search-results-${searchResultsType.id}`}>
+            <div className={`table table-search-results table-search-results-${kebabCase(searchResultsType.id)}`}>
               <SearchResultsHeader type={searchResultsType} />
               <SearchResultsData type={searchResultsType} results={searchResults} />
             </div>

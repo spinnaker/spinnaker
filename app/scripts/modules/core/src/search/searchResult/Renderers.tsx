@@ -2,6 +2,9 @@ import * as React from 'react';
 import { startCase, kebabCase } from 'lodash';
 
 import { NgReact } from 'core/reactShims';
+import { Spinner } from 'core/widgets';
+import { IInstanceCounts } from 'core/domain';
+import { HealthCounts } from 'core/healthCounts';
 
 export interface ISearchColumn {
   key: string;
@@ -101,6 +104,28 @@ export class AccountCell extends React.Component<ICellRendererProps> {
         {accounts.map((account: string) => (
           <AccountTag key={account} account={account}/>
         ))}
+      </div>
+    );
+  }
+}
+
+export class HealthCountsCell extends React.Component<ICellRendererProps> {
+  private cellContent(instanceCounts: IInstanceCounts) {
+    switch (instanceCounts) {
+      case undefined:
+        return <Spinner size="small"/>;
+      case null:
+        return <span>?</span>;
+      default:
+        return <HealthCounts container={instanceCounts}/>;
+    }
+  }
+
+  public render() {
+    const { item, col } = this.props;
+    return (
+      <div className={colClass(col.key)}>
+        {this.cellContent(item[col.key])}
       </div>
     );
   }
