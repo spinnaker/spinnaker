@@ -9,10 +9,7 @@ import { Application, IServerGroup, TaskMonitorBuilder, TaskMonitor } from '@spi
 import { ITargetTrackingConfiguration, ITargetTrackingPolicy, IUpsertScalingPolicyCommand, ScalingPolicyWriter } from '@spinnaker/amazon';
 import { IAlarmRenderingServerGroup } from './targetTrackingSummary.component';
 
-export type MetricType = 'custom' | 'predefined';
-
 export interface ITargetTrackingState {
-  metricType: MetricType;
   unit: string;
   scaleInChanged: boolean;
 }
@@ -28,7 +25,6 @@ export interface ITitusServerGroup extends IServerGroup {
 
 export class UpsertTargetTrackingController implements IComponentController {
 
-  public predefinedMetrics = ['ASGAverageCPUUtilization', 'ASGAverageNetworkOut', 'ASGAverageNetworkIn'];
   public statistics = ['Average', 'Maximum', 'Minimum', 'SampleCount', 'Sum'];
   public alarmUpdated = new Subject();
 
@@ -47,35 +43,11 @@ export class UpsertTargetTrackingController implements IComponentController {
   }
 
   public $onInit() {
-    const metricType = this.policy.targetTrackingConfiguration.customizedMetricSpecification ?
-      'custom' :
-      'predefined';
     this.command = this.buildCommand();
     this.state = {
-      metricType,
       unit: null,
       scaleInChanged: false,
     };
-  }
-
-  public toggleMetricType(): void {
-    const config = this.command.targetTrackingConfiguration;
-    if (this.state.metricType === 'predefined') {
-      config.predefinedMetricSpecification = null;
-      config.customizedMetricSpecification = {
-        metricName: 'CPUUtilization',
-        namespace: 'AWS/EC2',
-        dimensions: [{ name: 'AutoScalingGroupName', value: this.serverGroup.name}],
-        statistic: 'Average',
-      };
-      this.state.metricType = 'custom';
-    } else {
-      config.customizedMetricSpecification = null;
-      config.predefinedMetricSpecification = {
-        predefinedMetricType: 'ASGAverageCPUUtilization',
-      };
-      this.state.metricType = 'predefined';
-    }
   }
 
   public scaleInChanged(): void {

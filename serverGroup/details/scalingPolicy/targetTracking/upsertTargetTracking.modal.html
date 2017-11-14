@@ -13,41 +13,22 @@
         <div class="row" style="margin-bottom: 10px;">
           <div class="col-md-2 sm-label-right">Metric</div>
           <div class="col-md-10 content-fields">
-            <div ng-if="$ctrl.state.metricType === 'predefined'">
-              <select class="input input-sm"
-                      ng-model="$ctrl.command.targetTrackingConfiguration.predefinedMetricSpecification.predefinedMetricType"
-                      ng-change="$ctrl.alarmUpdated.next()"
-                      ng-options="option for option in $ctrl.predefinedMetrics">
-              </select>
-              <div>
-                <a href ng-click="$ctrl.toggleMetricType()">Select a custom metric</a>
-              </div>
-            </div>
-
-            <div ng-if="$ctrl.state.metricType === 'custom'">
-              <aws-metric-selector alarm-updated="$ctrl.alarmUpdated"
-                                   alarm="$ctrl.command.targetTrackingConfiguration.customizedMetricSpecification"
-                                   server-group="$ctrl.alarmServerGroup"></aws-metric-selector>
-              <div>
-                <a href ng-click="$ctrl.toggleMetricType()">Use a predefined metric</a>
-              </div>
-            </div>
-
+            <aws-metric-selector alarm-updated="$ctrl.alarmUpdated"
+                                 alarm="$ctrl.command.targetTrackingConfiguration.customizedMetricSpecification"
+                                 server-group="$ctrl.alarmServerGroup"></aws-metric-selector>
           </div>
         </div>
 
         <div class="row" style="margin-bottom: 10px;">
           <div class="col-md-2 sm-label-right">Target</div>
           <div class="col-md-10 content-fields">
-            <div ng-if="$ctrl.state.metricType === 'custom'" style="display: inline-block">
-              <select class="form-control input-sm"
-                      required
-                      ng-model="$ctrl.command.targetTrackingConfiguration.customizedMetricSpecification.statistic"
-                      ng-change="$ctrl.alarmUpdated.next()"
-                      ng-options="stat for stat in $ctrl.statistics">
-              </select>
-              <span class="input-label" style="vertical-align: top; margin-top: 7px"> of </span>
-            </div>
+            <select class="form-control input-sm"
+                    required
+                    ng-model="$ctrl.command.targetTrackingConfiguration.customizedMetricSpecification.statistic"
+                    ng-change="$ctrl.alarmUpdated.next()"
+                    ng-options="stat for stat in $ctrl.statistics">
+            </select>
+            <span class="input-label" style="vertical-align: top; margin-top: 7px"> of </span>
             <div style="display: inline-block">
               <input type="number"
                      class="form-control input-sm"
