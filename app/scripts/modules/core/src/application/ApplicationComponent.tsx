@@ -71,13 +71,7 @@ export class ApplicationComponent extends React.Component<IApplicationComponentP
   }
 
   public pageApplicationOwner(): void {
-    ReactInjector.modalService.open({
-      templateUrl: require('./modal/pageApplicationOwner.html'),
-      controller: 'PageApplicationOwner as ctrl',
-      resolve: {
-        application: () => this.props.app
-      }
-    }).result.catch(() => {});
+    ReactInjector.pagerDutyWriter.pageApplicationOwnerModal(this.props.app);
   }
 
   public handleRefresh(): void {

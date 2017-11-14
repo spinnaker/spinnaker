@@ -7,6 +7,7 @@ import { APPLICATION_NAV_SECONDARY_COMPONENT } from './nav/applicationNavSeconda
 import { APPLICATION_STATE_PROVIDER } from './application.state.provider';
 import { APPLICATIONS_COMPONENT } from './applications.component';
 import { APPLICATIONS_STATE_PROVIDER } from './applications.state.provider';
+import { PAGER_DUTY_MODULE } from 'core/pagerDuty/pagerDuty.module';
 import { PERMISSIONS_CONFIGURER_COMPONENT } from './modal/permissionsConfigurer.component';
 import { UPSERT_APPLICATION_HELP } from './modal/upsertApplication.help';
 import { ApplicationReader } from './service/application.read.service';
@@ -20,11 +21,11 @@ module(APPLICATION_MODULE, [
   APPLICATIONS_COMPONENT,
   require('./config/applicationConfig.controller.js').name,
   require('./modal/createApplication.modal.controller.js').name,
-  require('./modal/pageApplicationOwner.modal.controller.js').name,
   require('./modal/platformHealthOverride.directive').name,
   require('./config/appConfig.dataSource').name,
   APPLICATION_NAV_COMPONENT,
   APPLICATION_NAV_SECONDARY_COMPONENT,
+  PAGER_DUTY_MODULE,
   PERMISSIONS_CONFIGURER_COMPONENT,
   UPSERT_APPLICATION_HELP,
 ])

@@ -19,13 +19,14 @@ export interface IApplicationDataSourceAttribute {
 }
 
 export interface IApplicationSummary {
-  name: string;
+  accounts?: string;
+  cloudProviders?: string;
+  createTs?: string;
   description?: string;
   email?: string;
-  accounts?: string;
+  name: string;
+  pdApiKey?: string;
   updateTs?: string;
-  createTs?: string;
-  cloudProviders?: string;
 }
 
 export class ApplicationReader {

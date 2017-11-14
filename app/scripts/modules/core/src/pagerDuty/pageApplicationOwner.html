@@ -11,7 +11,7 @@
       <div class="row" style="margin-top:10px; margin-bottom:10px">
         <div class="col-md-3 sm-label-right">Reason</div>
         <div class="col-md-7">
-       <textarea class="form-control required" ng-model="ctrl.command.reason" rows="3"
+       <textarea class="form-control required" ng-model="ctrl.reason" rows="3"
                  placeholder="Brief description of incident, severity and expected action."></textarea>
         </div>
       </div>
@@ -22,7 +22,7 @@
       <button type="submit"
               class="btn btn-primary"
               ng-click="ctrl.submit()"
-              ng-disabled="!ctrl.command.reason">
+              ng-disabled="!ctrl.reason">
         Page Now
       </button>
     </div>

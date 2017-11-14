@@ -6,13 +6,14 @@ import { TASK_WRITE_SERVICE, TaskWriter } from './task.write.service';
 import { AUTHENTICATION_SERVICE, AuthenticationService } from '../authentication/authentication.service';
 
 export interface IJob {
+  [attribute: string]: any;
   account?: string;
-  application?: any;
+  applications?: string[];
+  keys?: string[];
   providerType?: string;
   source?: any;
   type?: string;
   user?: string;
-  [attribute: string]: any;
 }
 
 export interface ITaskCommand {
