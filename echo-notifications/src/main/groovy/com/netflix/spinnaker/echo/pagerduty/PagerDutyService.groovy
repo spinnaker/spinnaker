@@ -30,5 +30,6 @@ interface PagerDutyService {
     String client
     String service_key
     String description
+    Map details
   }
 }
