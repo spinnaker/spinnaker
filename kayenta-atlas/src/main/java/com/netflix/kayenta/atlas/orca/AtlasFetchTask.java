@@ -65,7 +65,7 @@ public class AtlasFetchTask implements RetryableTask {
 
   @Override
   public long getTimeout() {
-    return Duration.ofMinutes(atlasConfigurationProperties.getStageTimoutMinutes()).toMillis();
+    return Duration.ofMinutes(atlasConfigurationProperties.getStageTimeoutMinutes()).toMillis();
   }
 
   @Override

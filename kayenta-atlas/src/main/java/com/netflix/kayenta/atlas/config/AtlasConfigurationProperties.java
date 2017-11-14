@@ -30,7 +30,7 @@ public class AtlasConfigurationProperties {
 
   @Getter
   @Setter
-  private int stageTimoutMinutes = 3;
+  private int stageTimeoutMinutes = 3;
 
   @Getter
   private List<AtlasManagedAccount> accounts = new ArrayList<>();

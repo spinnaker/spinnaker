@@ -4,6 +4,8 @@ server:
 kayenta:
   atlas:
     enabled: false
+#    stageTimeoutMinutes: 3
+#    maxBackoffPeriodSeconds: 30
 #    accounts:
 #      - name:
 #        endpoint:
