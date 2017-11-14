@@ -88,7 +88,7 @@ class PageApplicationOwnerTask implements RetryableTask {
       )
     )
 
-    log.info("Sent page (application(s): ${applications.join(", ")}, message: '${stage.context.message}')")
+    log.info("Sent page (key(s): ${allPagerDutyKeys.join(", ")}, message: '${stage.context.message}')")
     return new TaskResult(SUCCEEDED)
   }
 
