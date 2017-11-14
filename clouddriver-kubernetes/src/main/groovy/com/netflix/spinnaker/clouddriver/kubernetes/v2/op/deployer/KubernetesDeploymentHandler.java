@@ -23,9 +23,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesV
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpinnakerKindMap;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
 import com.netflix.spinnaker.clouddriver.model.Manifest.Status;
-import com.netflix.spinnaker.clouddriver.model.ServerGroup.Capacity;
 import io.kubernetes.client.models.AppsV1beta1Deployment;
 import io.kubernetes.client.models.AppsV1beta1DeploymentStatus;
 import io.kubernetes.client.models.ExtensionsV1beta1Deployment;
@@ -35,7 +33,7 @@ import io.kubernetes.client.models.V1beta2DeploymentStatus;
 import org.springframework.stereotype.Component;
 
 @Component
-public class KubernetesDeploymentHandler extends KubernetesHandler implements CanResize, CanDelete {
+public class KubernetesDeploymentHandler extends KubernetesHandler implements CanResize, CanDelete, CanUndoRollout {
   @Override
   public KubernetesKind kind() {
     return KubernetesKind.DEPLOYMENT;

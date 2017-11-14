@@ -22,21 +22,21 @@ import com.netflix.spinnaker.clouddriver.data.task.TaskRepository;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesCoordinates;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesResourceProperties;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesResourcePropertyRegistry;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesDeleteManifestDescription;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.deployer.CanDelete;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesUndoRolloutManifestDescription;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.deployer.CanUndoRollout;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.deployer.KubernetesHandler;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 
 import java.util.List;
 
-public class KubernetesDeleteManifestOperation implements AtomicOperation<Void> {
-  private final KubernetesDeleteManifestDescription description;
+public class KubernetesUndoRolloutManifestOperation implements AtomicOperation<Void> {
+  private final KubernetesUndoRolloutManifestDescription description;
   private final KubernetesV2Credentials credentials;
   private final KubernetesResourcePropertyRegistry registry;
   private static final String OP_NAME = "DELETE_KUBERNETES_MANIFEST";
 
-  public KubernetesDeleteManifestOperation(KubernetesDeleteManifestDescription description, KubernetesResourcePropertyRegistry registry) {
+  public KubernetesUndoRolloutManifestOperation(KubernetesUndoRolloutManifestDescription description, KubernetesResourcePropertyRegistry registry) {
     this.description = description;
     this.credentials = (KubernetesV2Credentials) description.getCredentials().getCredentials();
     this.registry = registry;
@@ -48,24 +48,24 @@ public class KubernetesDeleteManifestOperation implements AtomicOperation<Void> 
 
   @Override
   public Void operate(List priorOutputs) {
-    getTask().updateStatus(OP_NAME, "Starting delete operation...");
+    getTask().updateStatus(OP_NAME, "Starting undo rollout operation...");
     KubernetesCoordinates coordinates = description.getCoordinates();
 
     getTask().updateStatus(OP_NAME, "Looking up resource properties...");
     KubernetesResourceProperties properties = registry.get(coordinates.getKind());
     KubernetesHandler deployer = properties.getHandler();
 
-    if (!(deployer instanceof CanDelete)) {
-      throw new IllegalArgumentException("Resource with " + coordinates + " does not support delete");
+    if (!(deployer instanceof CanUndoRollout)) {
+      throw new IllegalArgumentException("Resource with " + coordinates + " does not support undo rollout");
     }
 
-    CanDelete canDelete = (CanDelete) deployer;
+    CanUndoRollout canUndoRollout = (CanUndoRollout) deployer;
 
-    getTask().updateStatus(OP_NAME, "Calling delete operation...");
-    canDelete.delete(credentials,
+    getTask().updateStatus(OP_NAME, "Calling undo rollout operation...");
+    canUndoRollout.undoRollout(credentials,
         coordinates.getNamespace(),
         coordinates.getName(),
-        description.getOptions());
+        description.getRevision());
 
     return null;
   }

@@ -46,6 +46,10 @@ public class KubernetesManifestAnnotater {
   private static final String LOCATION = ARTIFACT_ANNOTATION_PREFIX + "/location";
   private static final String VERSION = ARTIFACT_ANNOTATION_PREFIX + "/version";
 
+  private static final String KUBERNETES_ANNOTATION = "kubernetes.io";
+  private static final String DEPLOYMENT_ANNOTATION_PREFIX = "deployment." + KUBERNETES_ANNOTATION;
+  private static final String DEPLOYMENT_REVISION = DEPLOYMENT_ANNOTATION_PREFIX + "/revision";
+
   private static ObjectMapper objectMapper = new ObjectMapper();
 
   private static void storeAnnotation(Map<String, String> annotations, String key, Object value) {
@@ -162,6 +166,7 @@ public class KubernetesManifestAnnotater {
         .app(getAnnotation(annotations, APPLICATION, new TypeReference<String>() {}))
         .stack(getAnnotation(annotations, STACK, new TypeReference<String>() {}))
         .detail(getAnnotation(annotations, DETAIL, new TypeReference<String>() {}))
+        .sequence(getAnnotation(annotations, DEPLOYMENT_REVISION, new TypeReference<Integer>() {}))
         .build();
   }
 }

@@ -231,6 +231,10 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
     runAndRecordMetrics("deploy", manifest.getKind(), manifest.getNamespace(), () -> jobExecutor.deploy(this, manifest));
   }
 
+  public void undoRollout(KubernetesKind kind, String namespace, String name, int revision) {
+    runAndRecordMetrics("undoRollout", kind, namespace, () -> jobExecutor.undoRollout(this, kind, namespace, name, revision));
+  }
+
   private <T> T runAndRecordMetrics(String action, KubernetesKind kind, String namespace, Supplier<T> op) {
     T result = null;
     Throwable failure = null;
