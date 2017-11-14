@@ -17,6 +17,8 @@
 
 package com.netflix.spinnaker.orca.echo.tasks
 
+import com.fasterxml.jackson.databind.ObjectMapper
+
 import java.util.concurrent.TimeUnit
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
@@ -47,27 +49,46 @@ class PageApplicationOwnerTask implements RetryableTask {
     if (!front50Service) {
       throw new UnsupportedOperationException("Front50 is not enabled, no way to fetch pager duty. Fix this by setting front50.enabled: true");
     }
-    def application = stage.context.application as String
-    def applicationPagerDutyKey = fetchApplicationPagerDutyKey(application)
-    if (!applicationPagerDutyKey) {
-      throw new IllegalStateException("${application} does not have a pager duty service key!")
+    def applications = stage.context.applications as List<String>
+    def incomingPagerDutyKeys = stage.context.keys as List<String>
+    def allPagerDutyKeys = []
+
+    if (incomingPagerDutyKeys) {
+      // Add all arbitrary keys to the pager duty key list
+      allPagerDutyKeys.addAll(incomingPagerDutyKeys)
     }
 
+    // Add applications to the pager duty key list if they have a valid key
+    if (applications) {
+      def invalidApplications = []
+      applications.each { application ->
+        def applicationPagerDutyKey = fetchApplicationPagerDutyKey(application)
+        if (!applicationPagerDutyKey) {
+          invalidApplications.push(application)
+        } else {
+          allPagerDutyKeys.push(applicationPagerDutyKey)
+        }
+      }
+
+      if (invalidApplications.size() > 0) {
+        throw new IllegalStateException("${invalidApplications.join(", ")} ${invalidApplications.size() > 1 ? "do" : "does"} not have a pager duty service key.")
+      }
+    }
+
+    // echo service will not send a proper response back if there is an error, it will just throw an exception
     echoService.create(
       new EchoService.Notification(
-        to: [
-          applicationPagerDutyKey
-        ],
+        to: allPagerDutyKeys,
         notificationType: EchoService.Notification.Type.PAGER_DUTY,
         source: new EchoService.Notification.Source(user: stage.execution.authentication.user),
         additionalContext: [
-          message: stage.context.message
+          message: stage.context.message,
+          details: stage.context.details
         ]
       )
     )
 
-    log.info("Sent page (application: ${application}, message: '${stage.context.message}')")
-
+    log.info("Sent page (application(s): ${applications.join(", ")}, message: '${stage.context.message}')")
     return new TaskResult(SUCCEEDED)
   }
 
