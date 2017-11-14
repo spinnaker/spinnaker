@@ -89,7 +89,7 @@ export class CloneServerGroupExecutionDetails extends React.Component<IExecution
               <dt>Cluster</dt>
               <dd>{stage.context.targetCluster}</dd>
               <dt>Server Group</dt>
-              <dd>{stage.context.source.serverGroupName}</dd>
+              <dd>{stage.context.source && stage.context.source.serverGroupName}</dd>
               {specifiedCapacity && <dt>Capacity</dt>}
               {specifiedCapacity && <dd>Min: {stage.context.capacity.min} / Desired: {stage.context.capacity.desired} / Max: {stage.context.capacity.max}</dd>}
             </dl>

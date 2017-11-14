@@ -33,6 +33,7 @@ export class StageDetails extends React.Component<IStageDetailsProps, IStageDeta
     let configSections: string[] = [];
     let sourceUrl: string;
     let executionDetailsSections: IExecutionDetailsSection[];
+    let provider: string;
 
     const stageConfig = this.props.config;
     if (stageConfig) {
@@ -46,8 +47,9 @@ export class StageDetails extends React.Component<IStageDetailsProps, IStageDeta
         // Angular execution details
         sourceUrl = stageConfig.executionDetailsUrl || require('./defaultExecutionDetails.html');
       }
+      provider = stageConfig.cloudProvider;
     }
-    return { configSections, executionDetailsSections, provider: stageConfig.cloudProvider, sourceUrl };
+    return { configSections, executionDetailsSections, provider, sourceUrl };
   }
 
   public componentWillReceiveProps() {
