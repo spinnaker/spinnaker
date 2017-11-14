@@ -103,14 +103,15 @@ class MortServiceSpec extends Specification {
   void "should find VPC for region and account given name"() {
     given:
     def allVPCs = [
+      new MortService.VPC(id: "vpc1-2", name: null, region: "us-east-1", account: "test"),
       new MortService.VPC(id: "vpc1-0", name: "vpc1", region: "us-west-1", account: "test"),
       new MortService.VPC(id: "vpc1-1", name: "vpc1", region: "us-east-1", account: "test"),
     ]
 
     expect:
-    findForRegionAndAccount(allVPCs, "vpc1", "us-west-1", "test") == allVPCs[0]
-    findForRegionAndAccount(allVPCs, "vpc1", "us-east-1", "test") == allVPCs[1]
-    findForRegionAndAccount(allVPCs, "VPC1", "us-east-1", "test") == allVPCs[1]
+    findForRegionAndAccount(allVPCs, "vpc1", "us-west-1", "test") == allVPCs[1]
+    findForRegionAndAccount(allVPCs, "vpc1", "us-east-1", "test") == allVPCs[2]
+    findForRegionAndAccount(allVPCs, "VPC1", "us-east-1", "test") == allVPCs[2]
   }
 
   @Unroll

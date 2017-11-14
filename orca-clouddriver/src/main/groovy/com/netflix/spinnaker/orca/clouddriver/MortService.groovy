@@ -137,7 +137,7 @@ interface MortService {
                                        String sourceVpcIdOrName,
                                        String region,
                                        String account) {
-      def sourceVpc = allVPCs.find { it.id == sourceVpcIdOrName || (it.name.equalsIgnoreCase(sourceVpcIdOrName) && it.region == region && it.account == account) }
+      def sourceVpc = allVPCs.find { it.id == sourceVpcIdOrName || (sourceVpcIdOrName.equalsIgnoreCase(it.name) && it.region == region && it.account == account) }
       def targetVpc = allVPCs.find { it.name == sourceVpc?.name && it.region == region && it.account == account }
 
       if (!targetVpc) {
