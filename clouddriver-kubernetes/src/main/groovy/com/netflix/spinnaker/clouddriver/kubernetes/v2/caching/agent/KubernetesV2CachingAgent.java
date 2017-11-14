@@ -49,26 +49,24 @@ public abstract class KubernetesV2CachingAgent extends KubernetesCachingAgent<Ku
   protected String providerName = KubernetesCloudProvider.getID();
 
   protected KubernetesV2CachingAgent(KubernetesNamedAccountCredentials<KubernetesV2Credentials> namedAccountCredentials,
-      KubectlJobExecutor jobExecutor,
       ObjectMapper objectMapper,
       Registry registry,
       int agentIndex,
       int agentCount) {
     super(namedAccountCredentials, objectMapper, registry, agentIndex, agentCount);
-    this.jobExecutor = jobExecutor;
   }
 
   protected abstract KubernetesKind primaryKind();
 
   protected List<KubernetesManifest> loadPrimaryResourceList() {
     return namespaces.stream()
-        .map(n -> jobExecutor.getAll(credentials, primaryKind(), n))
+        .map(n -> credentials.list(primaryKind(), n))
         .flatMap(Collection::stream)
         .collect(Collectors.toList());
   }
 
   protected KubernetesManifest loadPrimaryResource(String namespace, String name) {
-    return jobExecutor.get(credentials, primaryKind(), namespace, name);
+    return credentials.get(primaryKind(), namespace, name);
   }
 
   @Override

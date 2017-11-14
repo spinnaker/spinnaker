@@ -33,7 +33,6 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.Kube
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifestSpinnakerRelationships
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.names.KubernetesManifestNamer
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.deployer.KubernetesReplicaSetHandler
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.job.KubectlJobExecutor
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.manifest.KubernetesDeployManifestOperation
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials
 import com.netflix.spinnaker.clouddriver.names.NamerRegistry
@@ -88,14 +87,12 @@ metadata:
     namedCredentialsMock.getName() >> ACCOUNT
     deployDescription.setCredentials(namedCredentialsMock)
 
-    def jobExecutorMock = Mock(KubectlJobExecutor)
-    jobExecutorMock.deploy(_, _) >> null
+    credentials.deploy(_, _) >> null
 
     def replicaSetDeployer = new KubernetesReplicaSetHandler()
     replicaSetDeployer.objectMapper = new ObjectMapper()
     replicaSetDeployer.versioned() >> true
     replicaSetDeployer.kind() >> KIND
-    replicaSetDeployer.jobExecutor = jobExecutorMock
     def versionedArtifactConverterMock = Mock(KubernetesVersionedArtifactConverter)
     versionedArtifactConverterMock.getDeployedName(_) >> "$NAME-$VERSION"
     versionedArtifactConverterMock.toArtifact(_, _) >> new Artifact()

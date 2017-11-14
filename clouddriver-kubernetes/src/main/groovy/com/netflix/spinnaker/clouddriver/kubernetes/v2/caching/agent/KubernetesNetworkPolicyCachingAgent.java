@@ -39,12 +39,11 @@ import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.INFORMATI
 @Slf4j
 public class KubernetesNetworkPolicyCachingAgent extends KubernetesV2OnDemandCachingAgent {
   KubernetesNetworkPolicyCachingAgent(KubernetesNamedAccountCredentials<KubernetesV2Credentials> namedAccountCredentials,
-      KubectlJobExecutor jobExecutor,
       ObjectMapper objectMapper,
       Registry registry,
       int agentIndex,
       int agentCount) {
-    super(namedAccountCredentials, jobExecutor, objectMapper, registry, agentIndex, agentCount);
+    super(namedAccountCredentials, objectMapper, registry, agentIndex, agentCount);
   }
 
   @Getter

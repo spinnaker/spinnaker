@@ -34,7 +34,6 @@ import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAcco
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.job.KubectlJobExecutor;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
 import com.netflix.spinnaker.clouddriver.names.NamerRegistry;
 import com.netflix.spinnaker.moniker.Namer;
@@ -72,12 +71,11 @@ public abstract class KubernetesV2OnDemandCachingAgent extends KubernetesV2Cachi
   private final Namer<KubernetesManifest> namer;
 
   protected KubernetesV2OnDemandCachingAgent(KubernetesNamedAccountCredentials<KubernetesV2Credentials> namedAccountCredentials,
-      KubectlJobExecutor jobExecutor,
       ObjectMapper objectMapper,
       Registry registry,
       int agentIndex,
       int agentCount) {
-    super(namedAccountCredentials, jobExecutor, objectMapper, registry, agentIndex, agentCount);
+    super(namedAccountCredentials, objectMapper, registry, agentIndex, agentCount);
     namer = NamerRegistry.lookup()
         .withProvider(KubernetesCloudProvider.getID())
         .withAccount(namedAccountCredentials.getName())

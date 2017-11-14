@@ -26,7 +26,6 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.Kube
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.deployer.KubernetesReplicaSetHandler;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.deployer.KubernetesServiceHandler;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.job.KubectlJobExecutor;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
 import lombok.Getter;
 
@@ -46,12 +45,11 @@ import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.INFORMATI
 
 public class KubernetesServiceCachingAgent extends KubernetesV2OnDemandCachingAgent {
   protected KubernetesServiceCachingAgent(KubernetesNamedAccountCredentials<KubernetesV2Credentials> namedAccountCredentials,
-      KubectlJobExecutor jobExecutor,
       ObjectMapper objectMapper,
       Registry registry,
       int agentIndex,
       int agentCount) {
-    super(namedAccountCredentials, jobExecutor, objectMapper, registry, agentIndex, agentCount);
+    super(namedAccountCredentials, objectMapper, registry, agentIndex, agentCount);
   }
 
   @Getter
@@ -77,7 +75,7 @@ public class KubernetesServiceCachingAgent extends KubernetesV2OnDemandCachingAg
     // reading from the cache here, or deciding how many pods to load ahead of time, or construct a fancy label
     // selector that merges all label selectors here.
     namespaces.stream()
-        .map(n -> jobExecutor.getAll(credentials, KubernetesKind.REPLICA_SET, n))
+        .map(n -> credentials.list(KubernetesKind.REPLICA_SET, n))
         .flatMap(Collection::stream)
         .collect(Collectors.toList())
         .forEach(r -> addAllReplicaSetLabels(mapLabelToManifest, r));

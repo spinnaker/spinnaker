@@ -25,7 +25,6 @@ import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAcco
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesResourceProperties;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesResourcePropertyRegistry;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.deployer.KubernetesHandler;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.job.KubectlJobExecutor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -46,9 +45,6 @@ public class KubernetesV2CachingAgentDispatcher implements KubernetesCachingAgen
   private Registry registry;
 
   @Autowired
-  private KubectlJobExecutor jobExecutor;
-
-  @Autowired
   private KubernetesResourcePropertyRegistry propertyRegistry;
 
   @Override
@@ -64,7 +60,6 @@ public class KubernetesV2CachingAgentDispatcher implements KubernetesCachingAgen
                   try {
                     return c.getDeclaredConstructor(
                         KubernetesNamedAccountCredentials.class,
-                        KubectlJobExecutor.class,
                         ObjectMapper.class,
                         Registry.class,
                         int.class,
@@ -81,7 +76,6 @@ public class KubernetesV2CachingAgentDispatcher implements KubernetesCachingAgen
                   try {
                     return (KubernetesV2CachingAgent) c.newInstance(
                         credentials,
-                        jobExecutor,
                         objectMapper,
                         registry,
                         i,

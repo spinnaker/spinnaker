@@ -111,7 +111,8 @@ public class KubernetesV2InstanceProvider implements InstanceProvider<Kubernetes
     String name = parsedName.getRight();
 
     V1Pod pod = KubernetesCacheDataConverter.getResource(
-        jobExecutor.get(credentials.getCredentials(), KubernetesKind.POD, location, name), V1Pod.class
+        credentials.getCredentials().get(KubernetesKind.POD, location, name),
+        V1Pod.class
     );
 
     StringBuilder result = new StringBuilder();
@@ -120,7 +121,7 @@ public class KubernetesV2InstanceProvider implements InstanceProvider<Kubernetes
     for (V1Container container : pod.getSpec().getContainers()) {
       result.append("====== " + container.getName() + " ======\n\n");
       try {
-        result.append(jobExecutor.logs(credentials.getCredentials(), location, name, container.getName()));
+        result.append(credentials.getCredentials().logs(location, name, container.getName()));
       } catch (KubectlJobExecutor.KubectlException e) {
         // Typically happens if the container/pod isn't running yet
         result.append(e.getMessage());

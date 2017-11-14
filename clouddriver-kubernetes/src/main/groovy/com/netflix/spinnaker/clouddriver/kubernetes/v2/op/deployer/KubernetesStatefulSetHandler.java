@@ -57,11 +57,6 @@ public class KubernetesStatefulSetHandler extends KubernetesHandler implements C
     return Status.stable();
   }
 
-  @Override
-  public void resize(KubernetesV2Credentials credentials, String namespace, String name, Capacity capacity) {
-    jobExecutor.scale(credentials, kind(), namespace, name, capacity.getDesired());
-  }
-
   public static String serviceName(KubernetesManifest manifest) {
     // TODO(lwander) perhaps switch on API version if this changes
     Map<String, Object> spec = (Map<String, Object>) manifest.get("spec");

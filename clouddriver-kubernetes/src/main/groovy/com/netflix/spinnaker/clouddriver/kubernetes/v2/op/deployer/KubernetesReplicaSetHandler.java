@@ -132,11 +132,6 @@ public class KubernetesReplicaSetHandler extends KubernetesHandler implements Ca
     return Status.stable();
   }
 
-  @Override
-  public void resize(KubernetesV2Credentials credentials, String namespace, String name, Capacity capacity) {
-    jobExecutor.scale(credentials, KubernetesKind.REPLICA_SET, namespace, name, capacity.getDesired());
-  }
-
   public static Map<String, String> getPodTemplateLabels(KubernetesManifest manifest) {
     switch (manifest.getApiVersion()) {
       case EXTENSIONS_V1BETA1:

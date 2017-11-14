@@ -25,7 +25,6 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.deployer.KubernetesStatefulSetHandler;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.job.KubectlJobExecutor;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -45,12 +44,11 @@ import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.INFORMATI
 @Slf4j
 public class KubernetesStatefulSetCachingAgent extends KubernetesV2OnDemandCachingAgent {
   KubernetesStatefulSetCachingAgent(KubernetesNamedAccountCredentials<KubernetesV2Credentials> namedAccountCredentials,
-      KubectlJobExecutor jobExecutor,
       ObjectMapper objectMapper,
       Registry registry,
       int agentIndex,
       int agentCount) {
-    super(namedAccountCredentials, jobExecutor, objectMapper, registry, agentIndex, agentCount);
+    super(namedAccountCredentials, objectMapper, registry, agentIndex, agentCount);
   }
 
   @Getter
@@ -71,7 +69,7 @@ public class KubernetesStatefulSetCachingAgent extends KubernetesV2OnDemandCachi
   @Override
   protected Map<KubernetesManifest, List<KubernetesManifest>> loadSecondaryResourceRelationships(List<KubernetesManifest> primaryResourceList) {
     Map<String, KubernetesManifest> services = namespaces.stream()
-        .map(n -> jobExecutor.getAll(credentials, KubernetesKind.SERVICE, n))
+        .map(n -> credentials.list(KubernetesKind.SERVICE, n))
         .flatMap(Collection::stream)
         .collect(Collectors.toMap(KubernetesManifest::getName, (m) -> m));
 

@@ -70,7 +70,7 @@ public abstract class KubernetesHandler {
   abstract public Status status(KubernetesManifest manifest);
   abstract public Class<? extends KubernetesV2CachingAgent> cachingAgentClass();
 
-  void deploy(KubernetesV2Credentials credentials, KubernetesManifest manifest) {
-    jobExecutor.deploy(credentials, manifest);
+  protected void deploy(KubernetesV2Credentials credentials, KubernetesManifest manifest) {
+    credentials.deploy(manifest);
   }
 }

@@ -147,9 +147,4 @@ public class KubernetesDeploymentHandler extends KubernetesHandler implements Ca
 
     return Status.stable();
   }
-
-  @Override
-  public void resize(KubernetesV2Credentials credentials, String namespace, String name, Capacity capacity) {
-    jobExecutor.scale(credentials, kind(), namespace, name, capacity.getDesired());
-  }
 }
