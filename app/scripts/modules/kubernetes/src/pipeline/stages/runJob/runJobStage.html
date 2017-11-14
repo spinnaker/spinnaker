@@ -1,90 +1,38 @@
 <div ng-controller="kubernetesRunJobStageCtrl as ctrl">
-
-  <stage-config-field label="Account">
-    <account-select-field component="ctrl.stage"
-                          field="account"
-                          provider="'kubernetes'"
-                          accounts="ctrl.accounts">
-    </account-select-field>
-  </stage-config-field>
-
-  <stage-config-field label="Namespace" help-key="kubernetes.namespace">
-    <namespace-select-field component="ctrl.stage"
-                            field="namespace"
-                            hide-label="true"
-                            columns="12"
-                            account="ctrl.stage.account"
-                            namespaces="ctrl.namespaces">
-    </namespace-select-field>
-  </stage-config-field>
-
-  <stage-config-field label="Image">
-    <ui-select name="containerSelect" ng-model="ctrl.stage.container" class="form-control input-sm" required>
-        <ui-select-match>{{ ctrl.stage.container.imageDescription | kubernetesImageId }}</ui-select-match>
-        <ui-select-choices
-          repeat="container in ctrl.containers | orderBy: 'imageDescription.imageId'"
-          group-by="ctrl.groupByRegistry"
-          refresh-delay="0"
-          ui-disable-choice="container.message"
-          refresh="ctrl.searchImages($select.search)">
-          <span ng-bind-html="container.imageDescription | kubernetesImageId | highlight: $select.search"></span>
-        </ui-select-choices>
-      </ui-select>
-  </stage-config-field>
-
-  <stage-config-field label="Container Name">
-    <div>
-      <input type="text" class="form-control input-sm" ng-model="ctrl.stage.container.name">
-    </div>
-  </stage-config-field>
-
-  <stage-config-field label="Service Account Name">
-    <div>
-      <input type="text" class="form-control input-sm" ng-model="ctrl.stage.serviceAccountName">
-    </div>
-  </stage-config-field>
-
-  <stage-config-field label="DNS Policy">
-    <div>
-        <select class="form-control input-sm"
-                ng-model="ctrl.stage.dnsPolicy"
-                ng-options="option for option in ctrl.policies">
-        </select>
-    </div>
-  </stage-config-field>
-  
-  <stage-config-field label="Commands" help-key="kubernetes.containers.command">
-    <kubernetes-container-commands commands="ctrl.stage.container.command">
-    </kubernetes-container-commands>
-  </stage-config-field>
-
-  <stage-config-field label="Args">
-    <kubernetes-container-arguments args="ctrl.stage.container.args">
-    </kubernetes-container-arguments>
-  </stage-config-field>
-
-  <stage-config-field label="Environment Variables">
-    <kubernetes-container-environment-variables env-vars="ctrl.stage.container.envVars">
-    </kubernetes-container-environment-variables>
-  </stage-config-field>
-
-  <stage-config-field label="Volumes">
-    <kubernetes-container-volumes volume-sources="ctrl.stage.volumeSources" volume-mounts="ctrl.stage.container.volumeMounts">
-    </kubernetes-container-volumes>
-  </stage-config-field>
-
-  <stage-config-field label="Pod Annotations">
-    <map-editor model="ctrl.stage.annotations" add-button-label="Add Annotations" labels-left="true">
-    </map-editor>
-  </stage-config-field>
-
-  <stage-config-field label="Labels">
-    <map-editor model="ctrl.stage.labels" add-button-label="Add Labels" labels-left="true">
-    </map-editor>
-  </stage-config-field>
-
-  <stage-config-field label="Security Context">
-    <kubernetes-security-context-selector component="ctrl.stage.container">
-    </kubernetes-security-context-selector>
-  </stage-config-field>
+  <table class="table table-condensed">
+    <thead>
+    <tr>
+      <th>Account</th>
+      <th>Namespace</th>
+      <th>Image</th>
+      <th style="width: 58px">Actions</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr ng-if="ctrl.stage.account">
+      <td>
+        <account-tag account="ctrl.stage.account"></account-tag>
+      </td>
+      <td>
+        {{ ctrl.stage.namespace }}
+      </td>
+      <td>
+        {{ ctrl.stage.container.imageDescription | kubernetesImageId }}
+      </td>
+      <td class="condensed-actions text-center">
+        <a class="btn btn-sm btn-link" href ng-click="ctrl.configureJob()">
+          <span class="glyphicon glyphicon-edit" uib-tooltip="Edit"></span></a>
+      </td>
+    </tr>
+    </tbody>
+    <tfoot ng-if="!ctrl.stage.account">
+    <tr>
+      <td colspan="10">
+        <button class="btn btn-block btn-sm add-new" ng-click="ctrl.configureJob()">
+          <span class="glyphicon glyphicon-plus-sign"></span> Configure Job
+        </button>
+      </td>
+    </tr>
+    </tfoot>
+  </table>
 </div>
