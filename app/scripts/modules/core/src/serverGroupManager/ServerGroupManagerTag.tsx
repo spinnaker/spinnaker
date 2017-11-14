@@ -22,7 +22,11 @@ export class ServerGroupManagerTag extends React.Component<IServerGroupManagerTa
 
     return (
       <Tooltip value={`Server Group Manager: ${serverGroupManager.name}`}>
-        <span onClick={this.openDetails} className="fa fa-server"/>
+        <span className="server-group-manager-tag">
+          <span className="badge badge-counter">
+            <span onClick={this.openDetails} className="fa fa-object-group"/>
+          </span>
+        </span>
       </Tooltip>
     );
   }
