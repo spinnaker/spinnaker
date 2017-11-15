@@ -17,18 +17,20 @@ package com.netflix.spinnaker.keel.front50.model
 
 import com.fasterxml.jackson.annotation.JsonAnyGetter
 import com.fasterxml.jackson.annotation.JsonAnySetter
+import com.netflix.spinnaker.keel.front50.annotations.Computed
 
 data class Application(
   val name: String,
   val description: String,
   val email: String,
-  val updateTs: String,
-  val createTs: String,
+  @Computed val updateTs: String? = null,
+  @Computed val createTs: String? = null,
   val platformHealthOnly: Boolean,
-  val platformHealthOnlyShowOverride: Boolean
+  val platformHealthOnlyShowOverride: Boolean,
+  val owner: String
 ) {
 
-  private val details: MutableMap<String, Any?> = mutableMapOf()
+  val details: MutableMap<String, Any?> = mutableMapOf()
 
   @JsonAnySetter
   fun set(name: String, value: Any?) {
@@ -37,4 +39,19 @@ data class Application(
 
   @JsonAnyGetter
   fun details() = details
+
+  override fun toString(): String {
+    return "Application(name='$name', description='$description', email='$email', " +
+      "updateTs='$updateTs', createTs='$createTs', platformHealthOnly=$platformHealthOnly, " +
+      "platformHealthOnlyShowOverride=$platformHealthOnlyShowOverride, " +
+      "owner=$owner, details=$details)"
+  }
+
+  /*
+   * Need to identify additional ignored properties that are in
+   * the 'details' map
+   */
+  fun computedPropertiesToIgnore(): List<String> {
+    return listOf("user","lastModifiedBy","requiredGroupMembership")
+  }
 }

@@ -21,6 +21,7 @@ import com.fasterxml.jackson.annotation.JsonTypeName
 import com.github.jonpeterson.jackson.module.versioning.JsonVersionedModel
 import com.netflix.spinnaker.keel.Intent
 import com.netflix.spinnaker.keel.IntentSpec
+import com.netflix.spinnaker.keel.front50.annotations.Computed
 
 private const val KIND = "Application"
 private const val CURRENT_SCHEMA = "1"
@@ -43,7 +44,6 @@ abstract class BaseApplicationSpec : IntentSpec {
   abstract val name: String
   abstract val description: String?
   abstract val email: String
-  abstract val lastModifiedBy: String?
   abstract val owner: String
   abstract val chaosMonkey: ChaosMonkeySpec?
   abstract val enableRestartRunningExecutions: Boolean
@@ -52,7 +52,6 @@ abstract class BaseApplicationSpec : IntentSpec {
   abstract val appGroup: String?
   abstract val cloudProviders: String?
   abstract val accounts: String?
-  abstract val user: String?
   abstract val dataSources: DataSourcesSpec
   abstract val requiredGroupMembership: List<String>
   abstract val group: String?
@@ -134,7 +133,6 @@ data class ApplicationSpec(
   override val name: String,
   override val description: String?,
   override val email: String,
-  override val lastModifiedBy: String?,
   override val owner: String,
   override val chaosMonkey: ChaosMonkeySpec?,
   override val enableRestartRunningExecutions: Boolean,
@@ -143,9 +141,8 @@ data class ApplicationSpec(
   override val appGroup: String?,
   override val cloudProviders: String?,
   override val accounts: String?,
-  override val user: String?,
   override val dataSources: DataSourcesSpec = DataSourcesSpec(listOf(), listOf()),
-  override val requiredGroupMembership: List<String> = listOf(),
+  @Computed override val requiredGroupMembership: List<String> = listOf(),
   override val group: String?,
   override val providerSettings: Map<String, Map<String, Any>>,
   override val trafficGuards: List<TrafficGuardSpec>,
@@ -160,7 +157,6 @@ data class NetflixApplicationSpec(
   override val name: String,
   override val description: String?,
   override val email: String,
-  override val lastModifiedBy: String?,
   override val owner: String,
   override val chaosMonkey: ChaosMonkeySpec?,
   override val enableRestartRunningExecutions: Boolean,
@@ -169,9 +165,8 @@ data class NetflixApplicationSpec(
   override val appGroup: String?,
   override val cloudProviders: String?,
   override val accounts: String?,
-  override val user: String?,
   override val dataSources: DataSourcesSpec = DataSourcesSpec(listOf(), listOf()),
-  override val requiredGroupMembership: List<String> = listOf(),
+  @Computed override val requiredGroupMembership: List<String> = listOf(),
   override val group: String?,
   override val providerSettings: Map<String, Map<String, Any>>,
   override val trafficGuards: List<TrafficGuardSpec>,

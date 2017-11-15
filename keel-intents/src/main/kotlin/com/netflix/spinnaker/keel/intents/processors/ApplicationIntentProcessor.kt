@@ -18,10 +18,13 @@ package com.netflix.spinnaker.keel.intents.processors
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.*
 import com.netflix.spinnaker.keel.front50.Front50Service
+import com.netflix.spinnaker.keel.front50.annotations.Computed
 import com.netflix.spinnaker.keel.front50.model.Application
 import com.netflix.spinnaker.keel.intents.ANY_MAP_TYPE
 import com.netflix.spinnaker.keel.intents.ApplicationIntent
 import com.netflix.spinnaker.keel.intents.BaseApplicationSpec
+import com.netflix.spinnaker.keel.intents.NetflixApplicationSpec
+import com.netflix.spinnaker.keel.intents.processors.converters.ApplicationConverter
 import com.netflix.spinnaker.keel.model.Job
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.model.Trigger
@@ -31,13 +34,16 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import retrofit.RetrofitError
+import kotlin.reflect.full.findAnnotation
+import kotlin.reflect.full.primaryConstructor
 
 @Component
 class ApplicationIntentProcessor
 @Autowired constructor(
   private val traceRepository: TraceRepository,
   private val front50Service: Front50Service,
-  private val objectMapper: ObjectMapper
+  private val objectMapper: ObjectMapper,
+  private val applicationConverter: ApplicationConverter
 ): IntentProcessor<ApplicationIntent> {
 
   private val log = LoggerFactory.getLogger(javaClass)
@@ -79,8 +85,52 @@ class ApplicationIntentProcessor
   }
 
   private fun currentStateUpToDate(currentState: Application?, desiredState: BaseApplicationSpec): Boolean {
-    log.warn("Current state update check is not implemented")
-    return false
+    log.info("Determining if state has drifted for application ${desiredState.name}")
+    if (currentState == null) return false
+
+    // Some values are computed, and we shouldn't consider them when
+    // determining if the current state is equal to the desired state
+    val ignoredCurrentStateParameters: MutableList<String> = mutableListOf()
+    Application::class.primaryConstructor!!.parameters.filter { param ->
+        param.findAnnotation<Computed>()?.ignore == true
+      }.mapTo(ignoredCurrentStateParameters) { param ->
+        param.name.toString()
+      }
+    ignoredCurrentStateParameters.addAll(currentState.computedPropertiesToIgnore())
+
+    val ignoredDesiredStateParameters: MutableList<String> = mutableListOf()
+    // TODO eb: make this abstract!
+    val specPrimaryConstructor = NetflixApplicationSpec::class.primaryConstructor!!
+    specPrimaryConstructor.parameters.filter { param ->
+      param.findAnnotation<Computed>()?.ignore == true
+    }.mapTo(ignoredDesiredStateParameters) { param ->
+      param.name.toString()
+    }
+
+    // Convert to map to compare because front50 isn't typed
+    // TODO eb: make this better
+    val currentStateMap = applicationConverter.convertToMap(currentState)
+    ignoredCurrentStateParameters.forEach { param ->
+      currentStateMap.remove(param)
+    }
+    // TODO eb: deal with name better, keel should lowercase
+    currentStateMap.put("name", currentStateMap["name"].toString().toLowerCase())
+
+    val desiredStateMap = applicationConverter.convertToMap(desiredState)
+    ignoredDesiredStateParameters.forEach { param ->
+      desiredStateMap.remove(param)
+    }
+    desiredStateMap.put("name", desiredStateMap["name"].toString().toLowerCase())
+
+    var matching = true
+    desiredStateMap.forEach { key, value ->
+      val curVal = currentStateMap[key]
+      if (curVal != value ) {
+        log.debug("$key has drifted from \"$value\" to \"$curVal\" for application ${desiredState.name}")
+        matching = false
+      }
+    }
+    return matching
   }
 
   private fun getApplication(name: String): Application? {

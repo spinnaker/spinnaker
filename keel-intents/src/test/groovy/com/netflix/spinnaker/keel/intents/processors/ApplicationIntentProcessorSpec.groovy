@@ -26,6 +26,7 @@ import com.netflix.spinnaker.keel.intents.DataSourcesSpec
 import com.netflix.spinnaker.keel.intents.NotificationSpec
 import com.netflix.spinnaker.keel.intents.ParrotIntent
 import com.netflix.spinnaker.keel.intents.ParrotSpec
+import com.netflix.spinnaker.keel.intents.processors.converters.ApplicationConverter
 import com.netflix.spinnaker.keel.tracing.TraceRepository
 import retrofit.RetrofitError
 import retrofit.client.Response
@@ -37,8 +38,9 @@ class ApplicationIntentProcessorSpec extends Specification {
   TraceRepository traceRepository = Mock()
   Front50Service front50Service = Mock()
   ObjectMapper objectMapper = new ObjectMapper()
+  ApplicationConverter applicationConverter = new ApplicationConverter(objectMapper)
 
-  @Subject subject = new ApplicationIntentProcessor(traceRepository, front50Service, objectMapper)
+  @Subject subject = new ApplicationIntentProcessor(traceRepository, front50Service, objectMapper, applicationConverter)
 
   def 'should support ApplicationIntents'() {
     expect:
@@ -72,7 +74,7 @@ class ApplicationIntentProcessorSpec extends Specification {
     then:
     result.orchestrations.size() == 1
     1 * front50Service.getApplication("keel") >> {
-      new Application("keel", "my original description", "example@example.com", "1", "1", false, false)
+      new Application("keel", "my original description", "example@example.com", "1", "1", false, false, "emburns@netflix.com")
     }
     1 * traceRepository.record(_)
     result.orchestrations[0].name == "Update application"
@@ -84,7 +86,6 @@ class ApplicationIntentProcessorSpec extends Specification {
       "keel",
       description ?: "declarartive service for spinnaker",
       "email@example.com",
-      "lastModifiedBy@example.com",
       "owner",
       new ChaosMonkeySpec(
         true,
@@ -100,7 +101,6 @@ class ApplicationIntentProcessorSpec extends Specification {
       "Spinnaker",
       "aws",
       "prod,test",
-      "example@example.com",
       new DataSourcesSpec([], []),
       [],
       "spinnaker",
