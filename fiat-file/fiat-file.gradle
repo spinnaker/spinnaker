@@ -16,7 +16,7 @@
 
 dependencies {
   compile project(":fiat-roles")
-  compile "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.8.9"
+  compile "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:${spinnaker.version('jackson')}"
 
   compileOnly spinnaker.dependency("lombok")
 

@@ -27,7 +27,7 @@ dependencies {
   // TODO(ttomsu): expose this in spinnaker-dependencies
   compile "com.netflix.spinnaker.clouddriver:cats-redis:1.643.0"
 
-  compile "redis.clients:jedis:2.6.2"
+  compile "redis.clients:jedis:${spinnaker.version('jedis')}"
   compile "com.google.api-client:google-api-client:1.21.0"
   compile "com.google.apis:google-api-services-admin-directory:directory_v1-rev65-1.21.0"
   compile "com.squareup.retrofit:converter-simplexml:1.9.0"
