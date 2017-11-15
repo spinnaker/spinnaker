@@ -36,3 +36,22 @@ class PriorityAttribute(value: IntentPriority) : Attribute<IntentPriority>("Prio
 
 @JsonTypeName("Enabled")
 class EnabledAttribute(value: Boolean) : Attribute<Boolean>("Enabled", value)
+
+@JsonTypeName("ExecutionWindow")
+class ExecutionWindowAttribute(value: ExecutionWindow) : Attribute<ExecutionWindow>("ExecutionWindow", value) {
+  override fun toString(): String {
+    return "ExecutionWindowAttribute(days=${value.days}, timeWindows=${value.timeWindows})"
+  }
+}
+
+data class ExecutionWindow(
+  val days: List<Int>,
+  val timeWindows: List<TimeWindow>
+)
+
+data class TimeWindow(
+  val startHour: Int,
+  val startMin: Int,
+  val endHour: Int,
+  val endMin: Int
+)

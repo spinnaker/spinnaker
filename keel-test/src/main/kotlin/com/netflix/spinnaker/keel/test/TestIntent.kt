@@ -28,8 +28,10 @@ import com.netflix.spinnaker.keel.attribute.Attribute
 @JsonVersionedModel(currentVersion = "1", propertyName = "schema")
 class TestIntent
 @JsonCreator constructor(
-  spec: TestIntentSpec
-) : Intent<TestIntentSpec>("1", "Test", spec, IntentStatus.ACTIVE, mapOf<String, String>(), listOf<Attribute<Any>>()) {
+  spec: TestIntentSpec,
+  labels: Map<String, String> = mapOf(),
+  attributes: List<Attribute<Any>> = listOf()
+) : Intent<TestIntentSpec>("1", "Test", spec, IntentStatus.ACTIVE, labels, attributes) {
   @JsonIgnore
   override val id = "test:${spec.id}"
 }

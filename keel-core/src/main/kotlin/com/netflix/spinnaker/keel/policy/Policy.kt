@@ -28,8 +28,6 @@ import kotlin.reflect.KClass
  * via execution windows). In these cases, it will be desired to allow an Intent to self-define the acceptable windows
  * to execute in. Policies can define a list of required Intent Attributes that must be set before the Policy will be
  * enacted.
- *
- *  TODO rz - Impl early ExecutionWindowPolicy
  */
 abstract class Policy<out S : PolicySpec>(
   val kind: String,

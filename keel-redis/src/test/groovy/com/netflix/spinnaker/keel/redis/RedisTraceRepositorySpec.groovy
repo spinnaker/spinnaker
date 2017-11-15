@@ -64,9 +64,9 @@ class RedisTraceRepositorySpec extends Specification {
 
   def "listing traces for an intent returns ordered traces"() {
     given:
-    traceRepository.record(new Trace([:], new TestIntent(new TestIntentSpec("1", [placement: 1])), null))
-    traceRepository.record(new Trace([:], new TestIntent(new TestIntentSpec("1", [placement: 2])), null))
-    traceRepository.record(new Trace([:], new TestIntent(new TestIntentSpec("2", [placement: 3])), null))
+    traceRepository.record(new Trace([:], new TestIntent(new TestIntentSpec("1", [placement: 1]), [:], []), null))
+    traceRepository.record(new Trace([:], new TestIntent(new TestIntentSpec("1", [placement: 2]), [:], []), null))
+    traceRepository.record(new Trace([:], new TestIntent(new TestIntentSpec("2", [placement: 3]), [:], []), null))
 
     when:
     def result = traceRepository.getForIntent("test:1")
