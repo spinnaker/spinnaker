@@ -22,16 +22,15 @@ from citest.base.json_scrubber import JsonScrubber
 class DcosCliAgent(cli_agent.CliAgent):
   """Agent that uses the DC/OS CLI (dcos) program to interact with DC/OS."""
 
-  def __init__(self, trace=True):
+  def __init__(self, logger=None):
     """Construct instance.
 
     Args:
-      trace: Whether to trace all the calls by default for debugging.
+      logger: The logger to inject if other than the default.
     """
+    logger = logger or logging.getLogger(__name__)
     super(DcosCliAgent, self).__init__(
-        'dcos', output_scrubber=JsonScrubber())
-    self.trace = trace
-    self.logger = logging.getLogger(__name__)
+        'dcos', output_scrubber=JsonScrubber(), logger=logger)
 
   @staticmethod
   def build_dcoscli_command_args(subcommand, resource=None, action=None, args=None):
