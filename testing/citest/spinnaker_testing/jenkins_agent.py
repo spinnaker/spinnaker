@@ -60,7 +60,7 @@ class JenkinsOperationStatus(base_agent.AgentOperationStatus):
     return self.__trigger_status.timed_out
 
   def refresh(self, trace=True):
-    return self.__trigger_status.refresh(trace)
+    return self.__trigger_status.refresh()
 
   def __init__(self, operation, status_class, path, http_response):
     """Constructs a JenkinsOperationStatus object.
@@ -93,8 +93,8 @@ class JenkinsOperationStatus(base_agent.AgentOperationStatus):
 
 class JenkinsAgent(base_agent.BaseAgent):
   """A specialization of BaseAgent for interacting with Jenkins."""
-  def __init__(self, baseUrl, auth_path, owner_agent):
-    super(JenkinsAgent, self).__init__()
+  def __init__(self, baseUrl, auth_path, owner_agent, logger=None):
+    super(JenkinsAgent, self).__init__(logger=logger)
     self.__http_agent = http_agent.HttpAgent(baseUrl)
     self.__owner_agent = owner_agent
 
@@ -125,13 +125,13 @@ class JenkinsAgent(base_agent.BaseAgent):
     self.__http_agent.add_basic_auth_header(auth_info[0], auth_info[1])
 
   def get(self, path, trace=True):
-    return self.__owner_agent.get(path, trace)
+    return self.__owner_agent.get(path)
 
   def _trigger_jenkins_build(self, job, token):
     jenkins_path = 'job/{job}/build/?token={token}'.format(job=job,
                                                            token=token)
     self.logger.info('Triggering Jenkins %s', jenkins_path)
-    result = self.__http_agent.get(jenkins_path, trace=True)
+    result = self.__http_agent.get(jenkins_path)
     result.check_ok()
     return result
 
@@ -202,9 +202,8 @@ class BaseJenkinsOperation(base_agent.AgentOperation):
                         + agent.__class__.__name__)
       self.bind_agent(agent)
 
-    status = self._do_execute(agent, trace)
-    if trace:
-      agent.logger.debug('Returning status %s', status)
+    status = self._do_execute(agent)
+    agent.logger.debug('Returning status %s', status)
     return status
 
   def _do_execute(self, agent, trace=True):
