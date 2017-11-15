@@ -28,7 +28,7 @@ import org.springframework.stereotype.Component;
 import java.util.Map;
 
 @Component
-public class KubernetesStatefulSetHandler extends KubernetesHandler implements CanResize, CanDelete, CanUndoRollout {
+public class KubernetesStatefulSetHandler extends KubernetesHandler implements CanResize, CanDelete, CanPauseRollout, CanUndoRollout {
   @Override
   public KubernetesKind kind() {
     return KubernetesKind.STATEFUL_SET;
