@@ -19,9 +19,11 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.op.deployer;
 
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.ArtifactReplacer.Replacer;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.ArtifactTypes;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesCacheDataConverter;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesReplicaSetCachingAgent;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesV2CachingAgent;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.provider.KubernetesCacheUtils;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpinnakerKindMap.SpinnakerKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
@@ -149,5 +151,13 @@ public class KubernetesReplicaSetHandler extends KubernetesHandler implements Ca
 
   private static Map<String, String> getPodTemplateLabels(V1beta2ReplicaSet replicaSet) {
     return replicaSet.getSpec().getTemplate().getMetadata().getLabels();
+  }
+
+  @Override
+  public Map<String, Object> hydrateSearchResult(Keys.InfrastructureCacheKey key, KubernetesCacheUtils cacheUtils) {
+    Map<String, Object> result = super.hydrateSearchResult(key, cacheUtils);
+    result.put("serverGroup", result.get("name"));
+
+    return result;
   }
 }

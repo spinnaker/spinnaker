@@ -17,9 +17,11 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.description;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import org.springframework.stereotype.Component;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -44,6 +46,14 @@ public class KubernetesSpinnakerKindMap {
     @Override
     public String toString() {
       return id;
+    }
+
+    @JsonCreator
+    public static SpinnakerKind fromString(String name) {
+      return Arrays.stream(values())
+          .filter(k -> k.toString().equalsIgnoreCase(name))
+          .findFirst()
+          .orElseThrow(() -> new IllegalArgumentException("No matching kind with name " + name + " exists"));
     }
   }
 

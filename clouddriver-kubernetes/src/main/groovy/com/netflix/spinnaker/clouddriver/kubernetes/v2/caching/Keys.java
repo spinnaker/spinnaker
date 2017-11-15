@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.caching;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
@@ -46,6 +47,7 @@ public class Keys {
       return name().toLowerCase();
     }
 
+    @JsonCreator
     public static Kind fromString(String name) {
       return Arrays.stream(values())
           .filter(k -> k.toString().equalsIgnoreCase(name))
@@ -72,6 +74,7 @@ public class Keys {
       return name.substring(0, name.length() - 1);
     }
 
+    @JsonCreator
     public static LogicalKind fromString(String name) {
       return Arrays.stream(values())
           .filter(k -> k.toString().equalsIgnoreCase(name))
@@ -159,6 +162,7 @@ public class Keys {
     public abstract String getName();
   }
 
+  @EqualsAndHashCode(callSuper = true)
   @Data
   public static abstract class LogicalKey extends CacheKey {
     private Kind kind = Kind.LOGICAL;

@@ -136,11 +136,12 @@ public class KubernetesV2SecurityGroup extends ManifestBasedModel implements Sec
   }
 
   @Data
-  public static class PortRule implements Rule {
+  private static class PortRule implements Rule {
     private SortedSet<PortRange> portRanges;
     private String protocol;
   }
 
+  @EqualsAndHashCode(callSuper = true)
   @Data
   public static class StringPortRange extends Rule.PortRange {
     protected String startPortName;
