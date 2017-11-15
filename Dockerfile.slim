@@ -11,7 +11,8 @@ RUN apk --no-cache add --update bash wget unzip python=2.7.12-r0 && \
   CLOUDSDK_PYTHON="python2.7" /opt/google-cloud-sdk/install.sh --usage-reporting=false --bash-completion=false --disable-installation-options && \
   rm -rf ~/.config/gcloud
 
-RUN curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl && \
+RUN wget https://storage.googleapis.com/kubernetes-release/release/stable.txt && wget https://storage.googleapis.com/kubernetes-release/release/$(cat stable.txt)/bin/linux/amd64/kubectl && \
+  rm stable.txt && \
   chmod +x kubectl && \
   mv ./kubectl /usr/local/bin/kubectl
 
