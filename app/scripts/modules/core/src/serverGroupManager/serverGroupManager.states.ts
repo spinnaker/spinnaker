@@ -24,7 +24,9 @@ module(SERVER_GROUP_MANAGER_STATES, [APPLICATION_STATE_PROVIDER])
             ($templateCache: ITemplateCacheService,
              $stateParams: StateParams,
              versionedCloudProviderService: VersionedCloudProviderService) => {
-              return $templateCache.get(versionedCloudProviderService.getValue($stateParams.provider, $stateParams.accountId, 'serverGroupManager.detailsTemplateUrl'));
+              return versionedCloudProviderService.getValue($stateParams.provider, $stateParams.accountId, 'serverGroupManager.detailsTemplateUrl').then(templateUrl =>
+                $templateCache.get(templateUrl)
+              );
             }],
           controllerProvider: ['$stateParams', 'versionedCloudProviderService',
             ($stateParams: StateParams,

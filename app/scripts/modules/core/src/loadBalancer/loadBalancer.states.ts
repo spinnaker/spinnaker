@@ -33,7 +33,9 @@ module(LOAD_BALANCER_STATES, [
           ($templateCache: ng.ITemplateCacheService,
            $stateParams: StateParams,
            versionedCloudProviderService: VersionedCloudProviderService) => {
-            return $templateCache.get(versionedCloudProviderService.getValue($stateParams.provider, $stateParams.accountId, 'loadBalancer.detailsTemplateUrl'));
+            return versionedCloudProviderService.getValue($stateParams.provider, $stateParams.accountId, 'loadBalancer.detailsTemplateUrl').then(templateUrl =>
+              $templateCache.get(templateUrl)
+            );
           }],
         controllerProvider: ['$stateParams', 'versionedCloudProviderService',
           ($stateParams: StateParams,

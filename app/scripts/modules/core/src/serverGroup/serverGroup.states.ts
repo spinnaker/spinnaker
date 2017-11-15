@@ -58,7 +58,9 @@ module(SERVER_GROUP_STATES, [
           ($templateCache: ng.ITemplateCacheService,
            $stateParams: StateParams,
            versionedCloudProviderService: VersionedCloudProviderService) => {
-            return $templateCache.get(versionedCloudProviderService.getValue($stateParams.provider, $stateParams.accountId, 'serverGroup.detailsTemplateUrl'));
+            return versionedCloudProviderService.getValue($stateParams.provider, $stateParams.accountId, 'serverGroup.detailsTemplateUrl').then(templateUrl =>
+              $templateCache.get(templateUrl)
+            );
         }],
         controllerProvider: ['$stateParams', 'versionedCloudProviderService',
           ($stateParams: StateParams,

@@ -1,4 +1,4 @@
-import { mock, IRootScopeService, IScope } from 'angular';
+import { mock, IRootScopeService, IScope, IQService } from 'angular';
 
 import { CLOUD_PROVIDER_REGISTRY } from './cloudProvider.registry';
 import { ACCOUNT_SERVICE } from 'core/account/account.service';
@@ -6,7 +6,7 @@ import { VERSIONED_CLOUD_PROVIDER_SERVICE, VersionedCloudProviderService } from 
 import { APPLICATION_MODEL_BUILDER, ApplicationModelBuilder } from 'core/application';
 
 describe('Service: versionedCloudProviderService', () => {
-  let service: VersionedCloudProviderService, appBuilder: ApplicationModelBuilder, scope: IScope;
+  let service: VersionedCloudProviderService, appBuilder: ApplicationModelBuilder, scope: IScope, $q: IQService;
 
   beforeEach((mock.module(
     VERSIONED_CLOUD_PROVIDER_SERVICE,
@@ -17,22 +17,26 @@ describe('Service: versionedCloudProviderService', () => {
 
   beforeEach(
     mock.inject(($rootScope: IRootScopeService,
+                 _$q_: IQService,
                  versionedCloudProviderService: VersionedCloudProviderService,
                  applicationModelBuilder: ApplicationModelBuilder) => {
       service = versionedCloudProviderService;
       appBuilder = applicationModelBuilder;
       scope = $rootScope.$new();
+      $q = _$q_;
     }
   ));
 
   describe('instance provider version disambiguation', () => {
     beforeEach(() => {
-      (service as any).accounts = [
-        { name: 'v1-k8s-account', cloudProvider: 'kubernetes', providerVersion: 'v1' },
-        { name: 'v2-k8s-account', cloudProvider: 'kubernetes', providerVersion: 'v2' },
-        { name: 'appengine-account', cloudProvider: 'appengine', providerVersion: 'v1' },
-        { name: 'gce-account', cloudProvider: 'gce' },
-      ] as any[];
+      spyOn(service, 'getAccounts').and.returnValue(
+        $q.resolve([
+          { name: 'v1-k8s-account', cloudProvider: 'kubernetes', providerVersion: 'v1' },
+          { name: 'v2-k8s-account', cloudProvider: 'kubernetes', providerVersion: 'v2' },
+          { name: 'appengine-account', cloudProvider: 'appengine', providerVersion: 'v1' },
+          { name: 'gce-account', cloudProvider: 'gce' },
+        ])
+      );
     });
 
     it('uses available accounts to determine provider version if possible', () => {
