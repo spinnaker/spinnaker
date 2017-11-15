@@ -20,30 +20,37 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.List;
 
-public enum KubernetesKind {
-  DAEMON_SET("daemonSet", "ds"),
-  DEPLOYMENT("deployment", "deploy"),
-  INGRESS("ingress", "ing"),
-  POD("pod", "po"),
-  REPLICA_SET("replicaSet", "rs"),
-  NAMESPACE("namespace", "ns"),
-  NETWORK_POLICY("networkPolicy", "netpol"),
-  SERVICE("service", "svc"),
-  STATEFUL_SET("statefulSet");
+public class KubernetesKind {
+  public static KubernetesKind DAEMON_SET = new KubernetesKind("daemonSet", "ds");
+  public static KubernetesKind DEPLOYMENT = new KubernetesKind("deployment", "deploy");
+  public static KubernetesKind INGRESS = new KubernetesKind("ingress", "ing");
+  public static KubernetesKind POD = new KubernetesKind("pod", "po");
+  public static KubernetesKind REPLICA_SET = new KubernetesKind("replicaSet", "rs");
+  public static KubernetesKind NAMESPACE = new KubernetesKind("namespace", "ns");
+  public static KubernetesKind NETWORK_POLICY = new KubernetesKind("networkPolicy", "netpol");
+  public static KubernetesKind SERVICE = new KubernetesKind("service", "svc");
+  public static KubernetesKind STATEFUL_SET = new KubernetesKind("statefulSet");
 
   private final String name;
   private final String alias;
 
-  KubernetesKind(String name, String alias) {
+  private static List<KubernetesKind> values;
+
+  private KubernetesKind(String name, String alias) {
+    if (values == null) {
+      values = new ArrayList<>();
+    }
+
     this.name = name;
     this.alias = alias;
+    values.add(this);
   }
 
-  KubernetesKind(String name) {
-    this.name = name;
-    this.alias = null;
+  private KubernetesKind(String name) {
+    this(name, null);
   }
 
   @Override
@@ -54,7 +61,7 @@ public enum KubernetesKind {
 
   @JsonCreator
   public static KubernetesKind fromString(String name) {
-    return Arrays.stream(values())
+    return values.stream()
         .filter(v -> v.name.equalsIgnoreCase(name) || (v.alias != null && v.alias.equalsIgnoreCase(name)))
         .findAny()
         .orElseThrow(() -> new IllegalArgumentException("Kubernetes kind '" + name + "' is not supported."));
