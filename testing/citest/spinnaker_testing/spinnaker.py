@@ -195,7 +195,7 @@ class SpinnakerStatus(service_testing.HttpOperationStatus):
     if self.finished:
       return
 
-    http_response = self.agent.get(self.detail_path, trace=trace)
+    http_response = self.agent.get(self.detail_path)
     try:
       self.set_http_response(http_response)
     except BaseException as bex:
