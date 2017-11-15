@@ -25,7 +25,7 @@ export class PageModalCtrl implements IController {
       };
 
       const submitMethod = () => {
-        const reason = `[${this.application.name.toUpperCase()} ${this.reason}`;
+        const reason = `[${this.application.name.toUpperCase()}] ${this.reason}`;
         return this.pagerDutyWriter.pageApplicationOwner(
           this.application, reason
         );

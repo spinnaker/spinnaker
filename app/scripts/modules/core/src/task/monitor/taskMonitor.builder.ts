@@ -7,7 +7,7 @@ import { TASK_READ_SERVICE, TaskReader } from '../task.read.service';
 
 export interface ITaskMonitorConfig {
   title: string;
-  application: Application;
+  application?: Application;
   modalInstance?: IModalServiceInstance;
   onTaskComplete?: () => any;
   onTaskRetry?: () => void;
