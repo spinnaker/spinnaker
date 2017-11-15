@@ -88,7 +88,7 @@ public class KubernetesValidationUtil {
       return false;
     }
 
-    if (!(credentials instanceof KubernetesV2Credentials)) {
+    if (!(credentials.getCredentials() instanceof KubernetesV2Credentials)) {
       reject("wrongVersion", "account");
       return false;
     }
