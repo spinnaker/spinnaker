@@ -4,6 +4,7 @@ import { HELP_CONTENTS_REGISTRY, HelpContentsRegistry } from 'core/help/helpCont
 const helpContents: {[key: string]: string} = {
   'ecs.loadBalancer.targetGroup': '<p>A <em>target group</em> is attached to an application / network load balancer and is a target for load balancer traffic.</p>  <p> You need to create both the application load balancer and target groups prior to being able to use them in your pipeline.</p>',
   'ecs.serverGroup.clusterName': '<p>The name of the ECS cluster (group of underlying EC2 hosts) onto which your application will be deployed.</p><p>Note that suggestions here are dependent on the selected account and region combination.</p>',
+  'ecs.stage.findImageByTags.labelOrSha': '<p>As of now, only Amazon\'s ECR is supported as a source docker repository.</p>',
   'ecs.serverGroup.stack': '<p>An environment variable available within your container, and on which you should base your application configuration at runtime.</p>  <p>Typical values for this parameter are <i>staging</i>, <i>prod</i>, etc.  Keep this parameter short!</p>',
   'ecs.serverGroup.detail': '<p>An environment variable available within your container, and on which you should base your application configuration at runtime.</p>  <p>Typical values for this parameter are <i>app</i>, <i>worker</i>, <i>migrator</i>, etc.  Keep this parameter short!</p>',
   'ecs.capacity.overwrite': '<p>Checking this box will have the previous server group\'s capacity overwrite the new <i>desired containers</i> parameter if a previous server group exists.</p>',
