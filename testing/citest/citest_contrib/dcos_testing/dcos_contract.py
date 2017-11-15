@@ -46,9 +46,9 @@ class DcosObjectObserver(jc.ObjectObserver):
   def __str__(self):
     return 'DcosObjectObserver({0})'.format(self.__args)
 
-  def collect_observation(self, context, observation, trace=True):
+  def collect_observation(self, context, observation):
     args = context.eval(self.__args)
-    dcos_response = self.__dcoscli.run(args, trace=trace)
+    dcos_response = self.__dcoscli.run(args)
     if not dcos_response.ok():
       observation.add_error(
           cli_agent.CliAgentRunError(self.__dcoscli, dcos_response))
