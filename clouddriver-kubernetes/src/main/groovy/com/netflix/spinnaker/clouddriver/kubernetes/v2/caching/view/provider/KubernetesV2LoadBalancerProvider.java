@@ -42,10 +42,10 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys.LogicalKind.APPLICATION;
-import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpinnakerKindMap.SpinnakerKind.INSTANCE;
-import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpinnakerKindMap.SpinnakerKind.LOAD_BALANCER;
-import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpinnakerKindMap.SpinnakerKind.SERVER_GROUP;
+import static com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys.LogicalKind.APPLICATIONS;
+import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpinnakerKindMap.SpinnakerKind.INSTANCES;
+import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpinnakerKindMap.SpinnakerKind.LOAD_BALANCERS;
+import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpinnakerKindMap.SpinnakerKind.SERVER_GROUPS;
 
 @Component
 @Slf4j
@@ -99,9 +99,9 @@ public class KubernetesV2LoadBalancerProvider implements LoadBalancerProvider<Ku
 
   @Override
   public Set<KubernetesV2LoadBalancer> getApplicationLoadBalancers(String application) {
-    List<CacheData> loadBalancerData = kindMap.translateSpinnakerKind(LOAD_BALANCER)
+    List<CacheData> loadBalancerData = kindMap.translateSpinnakerKind(LOAD_BALANCERS)
         .stream()
-        .map(kind -> cacheUtils.getTransitiveRelationship(APPLICATION.toString(),
+        .map(kind -> cacheUtils.getTransitiveRelationship(APPLICATIONS.toString(),
             Collections.singletonList(Keys.application(application)),
             kind.toString())
         )
@@ -112,20 +112,20 @@ public class KubernetesV2LoadBalancerProvider implements LoadBalancerProvider<Ku
   }
 
   private Set<KubernetesV2LoadBalancer> fromLoadBalancerCacheData(List<CacheData> loadBalancerData) {
-    List<CacheData> serverGroupData = kindMap.translateSpinnakerKind(SERVER_GROUP)
+    List<CacheData> serverGroupData = kindMap.translateSpinnakerKind(SERVER_GROUPS)
         .stream()
         .map(kind -> cacheUtils.loadRelationshipsFromCache(loadBalancerData, kind.toString()))
         .flatMap(Collection::stream)
         .collect(Collectors.toList());
 
-    List<CacheData> instanceData = kindMap.translateSpinnakerKind(INSTANCE)
+    List<CacheData> instanceData = kindMap.translateSpinnakerKind(INSTANCES)
         .stream()
         .map(kind -> cacheUtils.loadRelationshipsFromCache(serverGroupData, kind.toString()))
         .flatMap(Collection::stream)
         .collect(Collectors.toList());
 
-    Map<String, List<CacheData>> loadBalancerToServerGroups = cacheUtils.mapByRelationship(serverGroupData, LOAD_BALANCER);
-    Map<String, List<CacheData>> serverGroupToInstances = cacheUtils.mapByRelationship(instanceData, SERVER_GROUP);
+    Map<String, List<CacheData>> loadBalancerToServerGroups = cacheUtils.mapByRelationship(serverGroupData, LOAD_BALANCERS);
+    Map<String, List<CacheData>> serverGroupToInstances = cacheUtils.mapByRelationship(instanceData, SERVER_GROUPS);
 
     return loadBalancerData.stream()
         .map(cd -> KubernetesV2LoadBalancer.fromCacheData(cd,

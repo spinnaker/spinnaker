@@ -48,8 +48,8 @@ public class KubernetesDeploymentCachingAgent extends KubernetesV2OnDemandCachin
   @Getter
   final private Collection<AgentDataType> providedDataTypes = Collections.unmodifiableSet(
       new HashSet<>(Arrays.asList(
-          INFORMATIVE.forType(Keys.LogicalKind.APPLICATION.toString()),
-          INFORMATIVE.forType(Keys.LogicalKind.CLUSTER.toString()),
+          INFORMATIVE.forType(Keys.LogicalKind.APPLICATIONS.toString()),
+          INFORMATIVE.forType(Keys.LogicalKind.CLUSTERS.toString()),
           AUTHORITATIVE.forType(KubernetesKind.DEPLOYMENT.toString())
       ))
   );

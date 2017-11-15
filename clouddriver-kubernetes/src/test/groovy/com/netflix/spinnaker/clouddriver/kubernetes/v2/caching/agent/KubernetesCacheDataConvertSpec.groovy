@@ -68,11 +68,11 @@ metadata:
     if (application == null) {
       true
     } else {
-      cacheData.relationships.get(Keys.LogicalKind.APPLICATION.toString()) == [Keys.application(application)]
+      cacheData.relationships.get(Keys.LogicalKind.APPLICATIONS.toString()) == [Keys.application(application)]
       if (cluster) {
-        cacheData.relationships.get(Keys.LogicalKind.CLUSTER.toString()) == [Keys.cluster(account, application, cluster)]
+        cacheData.relationships.get(Keys.LogicalKind.CLUSTERS.toString()) == [Keys.cluster(account, application, cluster)]
       } else {
-        cacheData.relationships.get(Keys.LogicalKind.CLUSTER.toString()) == null
+        cacheData.relationships.get(Keys.LogicalKind.CLUSTERS.toString()) == null
       }
       cacheData.attributes.get("name") == name
       cacheData.attributes.get("namespace") == namespace
@@ -168,8 +168,8 @@ metadata:
     def parsedLbs = loadBalancers.collect { lb -> KubernetesManifest.fromFullResourceName(lb) }
 
     then:
-    relationships.get(Keys.LogicalKind.CLUSTER.toString()) == [Keys.cluster(ACCOUNT, application, cluster)]
-    relationships.get(Keys.LogicalKind.APPLICATION.toString()) == [Keys.application(application)]
+    relationships.get(Keys.LogicalKind.CLUSTERS.toString()) == [Keys.cluster(ACCOUNT, application, cluster)]
+    relationships.get(Keys.LogicalKind.APPLICATIONS.toString()) == [Keys.application(application)]
 
     def services = filterRelationships(relationships.get(KubernetesKind.SERVICE.toString()), parsedLbs)
     def ingresses = filterRelationships(relationships.get(KubernetesKind.INGRESS.toString()), parsedLbs)

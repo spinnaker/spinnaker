@@ -56,7 +56,9 @@ public class KubernetesCacheUtils {
   }
 
   public Collection<CacheData> getAllDataMatchingPattern(String type, String key) {
-    return cleanupCollection(cache.getAll(type, getAllKeysMatchingPattern(type, key)));
+    Collection<CacheData> result = cleanupCollection(cache.getAll(type, getAllKeysMatchingPattern(type, key)));
+    log.info("Data matching {} {}: {}", type, key, result);
+    return result;
   }
 
   public Optional<CacheData> getSingleEntry(String type, String key) {

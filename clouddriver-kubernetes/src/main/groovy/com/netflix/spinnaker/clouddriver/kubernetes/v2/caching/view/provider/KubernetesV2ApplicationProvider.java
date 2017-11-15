@@ -33,8 +33,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys.LogicalKind.APPLICATION;
-import static com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys.LogicalKind.CLUSTER;
+import static com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys.LogicalKind.APPLICATIONS;
+import static com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys.LogicalKind.CLUSTERS;
 
 @Component
 public class KubernetesV2ApplicationProvider implements ApplicationProvider {
@@ -49,7 +49,7 @@ public class KubernetesV2ApplicationProvider implements ApplicationProvider {
   public Set<? extends Application> getApplications(boolean expand) {
     if (expand) {
       String clusterGlobKey = Keys.cluster("*", "*", "*");
-      Map<String, Set<ClusterCacheKey>> keysByApplication = cacheUtils.getAllKeysMatchingPattern(CLUSTER.toString(), clusterGlobKey).stream()
+      Map<String, Set<ClusterCacheKey>> keysByApplication = cacheUtils.getAllKeysMatchingPattern(CLUSTERS.toString(), clusterGlobKey).stream()
           .map(Keys::parseKey)
           .filter(Optional::isPresent)
           .map(Optional::get)
@@ -68,7 +68,7 @@ public class KubernetesV2ApplicationProvider implements ApplicationProvider {
     } else {
       String appGlobKey = Keys.application("*");
 
-      return cacheUtils.getAllKeysMatchingPattern(APPLICATION.toString(), appGlobKey)
+      return cacheUtils.getAllKeysMatchingPattern(APPLICATIONS.toString(), appGlobKey)
           .stream()
           .map(Keys::parseKey)
           .filter(Optional::isPresent)
@@ -83,7 +83,7 @@ public class KubernetesV2ApplicationProvider implements ApplicationProvider {
   @Override
   public Application getApplication(String name) {
     String clusterGlobKey = Keys.cluster("*", name, "*");
-    List<ClusterCacheKey> keys = cacheUtils.getAllKeysMatchingPattern(CLUSTER.toString(), clusterGlobKey)
+    List<ClusterCacheKey> keys = cacheUtils.getAllKeysMatchingPattern(CLUSTERS.toString(), clusterGlobKey)
         .stream()
         .map(Keys::parseKey)
         .filter(Optional::isPresent)

@@ -23,7 +23,6 @@ import com.netflix.spinnaker.cats.agent.AgentDataType;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.job.KubectlJobExecutor;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -49,8 +48,8 @@ public class KubernetesNetworkPolicyCachingAgent extends KubernetesV2OnDemandCac
   @Getter
   final private Collection<AgentDataType> providedDataTypes = Collections.unmodifiableSet(
       new HashSet<>(Arrays.asList(
-          INFORMATIVE.forType(Keys.LogicalKind.APPLICATION.toString()),
-          INFORMATIVE.forType(Keys.LogicalKind.CLUSTER.toString()),
+          INFORMATIVE.forType(Keys.LogicalKind.APPLICATIONS.toString()),
+          INFORMATIVE.forType(Keys.LogicalKind.CLUSTERS.toString()),
           AUTHORITATIVE.forType(KubernetesKind.NETWORK_POLICY.toString())
       ))
   );

@@ -69,7 +69,7 @@ public class KubernetesNamespaceCachingAgent extends KubernetesV2CachingAgent {
   @Getter
   final private Collection<AgentDataType> providedDataTypes = Collections.unmodifiableSet(
       new HashSet<>(Arrays.asList(
-          INFORMATIVE.forType(Keys.LogicalKind.APPLICATION.toString()),
+          INFORMATIVE.forType(Keys.LogicalKind.APPLICATIONS.toString()),
           AUTHORITATIVE.forType(KubernetesKind.NAMESPACE.toString())
       ))
   );

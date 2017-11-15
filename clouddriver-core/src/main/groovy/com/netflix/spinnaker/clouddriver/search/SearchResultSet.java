@@ -14,41 +14,49 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.search
+package com.netflix.spinnaker.clouddriver.search;
 
-import groovy.transform.Canonical
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-@Canonical
-class SearchResultSet {
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class SearchResultSet {
   /**
    * The total number of items matching the search criteria (query, platform, and type)
    */
-  Integer totalMatches
+  Integer totalMatches;
 
   /**
    * The page index (1-based) of the result set
    */
-  Integer pageNumber
+  Integer pageNumber;
 
   /**
    * The number of items per page
    */
-  Integer pageSize
+  Integer pageSize;
 
   /**
    * The platform of results the provider supplies - e.g. "aws", "gce", etc.
    */
-  String platform
+  String platform;
 
   /**
    * The original query string, used to sort results
    */
-  String query
+  String query;
 
   /**
    * The paginated list of objects matching the query
    */
-  List<Map<String, Object>> results = []
-
+  List<Map<String, Object>> results = new ArrayList<>();
 }

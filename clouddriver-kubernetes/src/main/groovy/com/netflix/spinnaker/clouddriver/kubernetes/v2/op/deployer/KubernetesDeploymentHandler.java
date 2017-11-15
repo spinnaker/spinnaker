@@ -46,7 +46,7 @@ public class KubernetesDeploymentHandler extends KubernetesHandler implements Ca
 
   @Override
   public KubernetesSpinnakerKindMap.SpinnakerKind spinnakerKind() {
-    return KubernetesSpinnakerKindMap.SpinnakerKind.SERVER_GROUP_MANAGER;
+    return KubernetesSpinnakerKindMap.SpinnakerKind.SERVER_GROUP_MANAGERS;
   }
 
   @Override

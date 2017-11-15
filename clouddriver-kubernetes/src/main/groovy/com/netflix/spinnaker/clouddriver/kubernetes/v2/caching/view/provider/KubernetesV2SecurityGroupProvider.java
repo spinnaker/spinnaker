@@ -51,7 +51,7 @@ public class KubernetesV2SecurityGroupProvider implements SecurityGroupProvider<
 
   @Override
   public Set<KubernetesV2SecurityGroup> getAll(boolean includeRules) {
-    return kindMap.translateSpinnakerKind(KubernetesSpinnakerKindMap.SpinnakerKind.SECURITY_GROUP)
+    return kindMap.translateSpinnakerKind(KubernetesSpinnakerKindMap.SpinnakerKind.SECURITY_GROUPS)
         .stream()
         .map(KubernetesKind::toString)
         .map(cacheUtils::getAllKeys)
@@ -62,7 +62,7 @@ public class KubernetesV2SecurityGroupProvider implements SecurityGroupProvider<
 
   @Override
   public Set<KubernetesV2SecurityGroup> getAllByRegion(boolean includeRules, String namespace) {
-    return kindMap.translateSpinnakerKind(KubernetesSpinnakerKindMap.SpinnakerKind.SECURITY_GROUP)
+    return kindMap.translateSpinnakerKind(KubernetesSpinnakerKindMap.SpinnakerKind.SECURITY_GROUPS)
         .stream()
         .map(k -> {
           String key = Keys.infrastructure(k, "*", namespace, "*");
@@ -75,7 +75,7 @@ public class KubernetesV2SecurityGroupProvider implements SecurityGroupProvider<
 
   @Override
   public Set<KubernetesV2SecurityGroup> getAllByAccount(boolean includeRules, String account) {
-    return kindMap.translateSpinnakerKind(KubernetesSpinnakerKindMap.SpinnakerKind.SECURITY_GROUP)
+    return kindMap.translateSpinnakerKind(KubernetesSpinnakerKindMap.SpinnakerKind.SECURITY_GROUPS)
         .stream()
         .map(k -> {
           String key = Keys.infrastructure(k, account, "*", "*");
@@ -88,7 +88,7 @@ public class KubernetesV2SecurityGroupProvider implements SecurityGroupProvider<
 
   @Override
   public Set<KubernetesV2SecurityGroup> getAllByAccountAndName(boolean includeRules, String account, String name) {
-    return kindMap.translateSpinnakerKind(KubernetesSpinnakerKindMap.SpinnakerKind.SECURITY_GROUP)
+    return kindMap.translateSpinnakerKind(KubernetesSpinnakerKindMap.SpinnakerKind.SECURITY_GROUPS)
         .stream()
         .map(k -> {
           String key = Keys.infrastructure(k, account, "*", name);
@@ -101,7 +101,7 @@ public class KubernetesV2SecurityGroupProvider implements SecurityGroupProvider<
 
   @Override
   public Set<KubernetesV2SecurityGroup> getAllByAccountAndRegion(boolean includeRule, String account, String namespace) {
-    return kindMap.translateSpinnakerKind(KubernetesSpinnakerKindMap.SpinnakerKind.SECURITY_GROUP)
+    return kindMap.translateSpinnakerKind(KubernetesSpinnakerKindMap.SpinnakerKind.SECURITY_GROUPS)
         .stream()
         .map(k -> {
           String key = Keys.infrastructure(k, account, namespace, "*");
@@ -114,7 +114,7 @@ public class KubernetesV2SecurityGroupProvider implements SecurityGroupProvider<
 
   @Override
   public KubernetesV2SecurityGroup get(String account, String namespace, String name, String _unused) {
-    return kindMap.translateSpinnakerKind(KubernetesSpinnakerKindMap.SpinnakerKind.SECURITY_GROUP)
+    return kindMap.translateSpinnakerKind(KubernetesSpinnakerKindMap.SpinnakerKind.SECURITY_GROUPS)
         .stream()
         .map(k -> {
           String key = Keys.infrastructure(k, account, namespace, name);

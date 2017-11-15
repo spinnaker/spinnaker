@@ -39,7 +39,7 @@ public class KubernetesNetworkPolicyHandler extends KubernetesHandler implements
 
   @Override
   public SpinnakerKind spinnakerKind() {
-    return SpinnakerKind.SECURITY_GROUP;
+    return SpinnakerKind.SECURITY_GROUPS;
   }
 
   @Override

@@ -25,9 +25,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesV
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpinnakerKindMap.SpinnakerKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
 import com.netflix.spinnaker.clouddriver.model.Manifest.Status;
-import com.netflix.spinnaker.clouddriver.model.ServerGroup.Capacity;
 import io.kubernetes.client.models.V1beta1ReplicaSet;
 import io.kubernetes.client.models.V1beta1ReplicaSetStatus;
 import io.kubernetes.client.models.V1beta2ReplicaSet;
@@ -60,7 +58,7 @@ public class KubernetesReplicaSetHandler extends KubernetesHandler implements Ca
 
   @Override
   public SpinnakerKind spinnakerKind() {
-    return SpinnakerKind.SERVER_GROUP;
+    return SpinnakerKind.SERVER_GROUPS;
   }
 
   @Override

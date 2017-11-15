@@ -39,7 +39,7 @@ public class KubernetesPodHandler extends KubernetesHandler implements CanDelete
 
   @Override
   public SpinnakerKind spinnakerKind() {
-    return SpinnakerKind.INSTANCE;
+    return SpinnakerKind.INSTANCES;
   }
 
   @Override

@@ -49,7 +49,7 @@ public class KubernetesIngressHandler extends KubernetesHandler implements CanDe
 
   @Override
   public SpinnakerKind spinnakerKind() {
-    return SpinnakerKind.LOAD_BALANCER;
+    return SpinnakerKind.LOAD_BALANCERS;
   }
 
   @Override

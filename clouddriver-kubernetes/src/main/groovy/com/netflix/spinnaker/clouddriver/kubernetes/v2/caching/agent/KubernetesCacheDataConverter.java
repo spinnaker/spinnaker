@@ -47,8 +47,8 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import static com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys.Kind.ARTIFACT;
-import static com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys.LogicalKind.APPLICATION;
-import static com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys.LogicalKind.CLUSTER;
+import static com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys.LogicalKind.APPLICATIONS;
+import static com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys.LogicalKind.CLUSTERS;
 import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind.NAMESPACE;
 import static java.lang.Math.toIntExact;
 
@@ -192,11 +192,11 @@ public class KubernetesCacheDataConverter {
     String application = moniker.getApp();
 
     cacheRelationships.put(ARTIFACT.toString(), Collections.singletonList(Keys.artifact(artifact.getType(), artifact.getName(), artifact.getLocation(), artifact.getVersion())));
-    cacheRelationships.put(APPLICATION.toString(), Collections.singletonList(Keys.application(application)));
+    cacheRelationships.put(APPLICATIONS.toString(), Collections.singletonList(Keys.application(application)));
 
     String cluster = moniker.getCluster();
     if (!StringUtils.isEmpty(cluster)) {
-      cacheRelationships.put(CLUSTER.toString(), Collections.singletonList(Keys.cluster(account, application, cluster)));
+      cacheRelationships.put(CLUSTERS.toString(), Collections.singletonList(Keys.cluster(account, application, cluster)));
     }
 
     if (relationships.getLoadBalancers() != null) {

@@ -28,12 +28,23 @@ import java.util.Set;
 @Component
 public class KubernetesSpinnakerKindMap {
   public enum SpinnakerKind {
-    INSTANCE,
-    SERVER_GROUP,
-    LOAD_BALANCER,
-    SECURITY_GROUP,
-    SERVER_GROUP_MANAGER,
-    UNCLASSIFIED
+    INSTANCES("instances"),
+    SERVER_GROUPS("serverGroups"),
+    LOAD_BALANCERS("loadBalancers"),
+    SECURITY_GROUPS("securityGroups"),
+    SERVER_GROUP_MANAGERS("serverGroupManagers"),
+    UNCLASSIFIED("unclassified");
+
+    final private String id;
+
+    SpinnakerKind(String id) {
+      this.id = id;
+    }
+
+    @Override
+    public String toString() {
+      return id;
+    }
   }
 
   private Map<SpinnakerKind, Set<KubernetesKind>> spinnakerToKubernetes = new HashMap<>();
@@ -51,7 +62,7 @@ public class KubernetesSpinnakerKindMap {
   }
 
   public SpinnakerKind translateKubernetesKind(KubernetesKind kubernetesKind) {
-    return kubernetesToSpinnaker.get(kubernetesKind);
+    return kubernetesToSpinnaker.getOrDefault(kubernetesKind, SpinnakerKind.UNCLASSIFIED);
   }
 
   public Set<KubernetesKind> translateSpinnakerKind(SpinnakerKind spinnakerKind) {

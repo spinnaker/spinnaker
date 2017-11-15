@@ -23,7 +23,6 @@ import com.netflix.spinnaker.cats.thread.NamedThreadFactory;
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesV2CachingAgentDispatcher;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpinnakerKindMap;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository;
 import com.netflix.spinnaker.clouddriver.security.ProviderUtils;
 import com.netflix.spinnaker.clouddriver.security.ProviderVersion;
@@ -48,9 +47,8 @@ class KubernetesV2ProviderConfig implements Runnable {
   @DependsOn("kubernetesNamedAccountCredentials")
   KubernetesV2Provider kubernetesV2Provider(KubernetesCloudProvider kubernetesCloudProvider,
       AccountCredentialsRepository accountCredentialsRepository,
-      KubernetesSpinnakerKindMap kindMap,
       KubernetesV2CachingAgentDispatcher kubernetesV2CachingAgentDispatcher) {
-    this.kubernetesV2Provider = new KubernetesV2Provider(kubernetesCloudProvider, kindMap);
+    this.kubernetesV2Provider = new KubernetesV2Provider();
     this.accountCredentialsRepository = accountCredentialsRepository;
     this.kubernetesV2CachingAgentDispatcher = kubernetesV2CachingAgentDispatcher;
 

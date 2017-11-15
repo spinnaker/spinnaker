@@ -33,9 +33,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys.LogicalKind.APPLICATION;
-import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpinnakerKindMap.SpinnakerKind.SERVER_GROUP;
-import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpinnakerKindMap.SpinnakerKind.SERVER_GROUP_MANAGER;
+import static com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys.LogicalKind.APPLICATIONS;
+import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpinnakerKindMap.SpinnakerKind.SERVER_GROUPS;
+import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpinnakerKindMap.SpinnakerKind.SERVER_GROUP_MANAGERS;
 
 @Component
 public class KubernetesV2ServerGroupManagerProvider implements ServerGroupManagerProvider<KubernetesV2ServerGroupManager> {
@@ -50,15 +50,15 @@ public class KubernetesV2ServerGroupManagerProvider implements ServerGroupManage
 
   @Override
   public Set<KubernetesV2ServerGroupManager> getServerGroupManagersByApplication(String application) {
-    CacheData applicationDatum = cacheUtils.getSingleEntry(APPLICATION.toString(), Keys.application(application)).orElse(null);
+    CacheData applicationDatum = cacheUtils.getSingleEntry(APPLICATIONS.toString(), Keys.application(application)).orElse(null);
     if (applicationDatum == null) {
       return null;
     }
 
-    Collection<CacheData> serverGroupManagerData = cacheUtils.getAllRelationshipsOfSpinnakerKind(Collections.singletonList(applicationDatum), SERVER_GROUP_MANAGER);
-    Collection<CacheData> serverGroupData = cacheUtils.getAllRelationshipsOfSpinnakerKind(serverGroupManagerData, SERVER_GROUP);
+    Collection<CacheData> serverGroupManagerData = cacheUtils.getAllRelationshipsOfSpinnakerKind(Collections.singletonList(applicationDatum), SERVER_GROUP_MANAGERS);
+    Collection<CacheData> serverGroupData = cacheUtils.getAllRelationshipsOfSpinnakerKind(serverGroupManagerData, SERVER_GROUPS);
 
-    Map<String, List<CacheData>> managerToServerGroupMap = cacheUtils.mapByRelationship(serverGroupData, SERVER_GROUP_MANAGER);
+    Map<String, List<CacheData>> managerToServerGroupMap = cacheUtils.mapByRelationship(serverGroupData, SERVER_GROUP_MANAGERS);
 
     return serverGroupManagerData.stream()
         .map(cd -> KubernetesV2ServerGroupManager.fromCacheData(cd, managerToServerGroupMap.getOrDefault(cd.getId(), new ArrayList<>())))

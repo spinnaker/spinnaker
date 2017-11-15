@@ -72,8 +72,8 @@ class KubernetesPodCachingAgentSpec extends Specification {
     then:
     result.cacheResults[KubernetesKind.POD.name].size() == 1
     result.cacheResults[KubernetesKind.POD.name].find { cacheData ->
-      cacheData.relationships.get(Keys.LogicalKind.CLUSTER.toString()) == [Keys.cluster(ACCOUNT, APPLICATION, CLUSTER)]
-      cacheData.relationships.get(Keys.LogicalKind.APPLICATION.toString()) == [Keys.application(APPLICATION)]
+      cacheData.relationships.get(Keys.LogicalKind.CLUSTERS.toString()) == [Keys.cluster(ACCOUNT, APPLICATION, CLUSTER)]
+      cacheData.relationships.get(Keys.LogicalKind.APPLICATIONS.toString()) == [Keys.application(APPLICATION)]
       cacheData.attributes.get("name") == NAME
       cacheData.attributes.get("namespace") == NAMESPACE
     } != null

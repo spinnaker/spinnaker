@@ -22,9 +22,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesV
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpinnakerKindMap.SpinnakerKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
 import com.netflix.spinnaker.clouddriver.model.Manifest.Status;
-import com.netflix.spinnaker.clouddriver.model.ServerGroup.Capacity;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
@@ -43,7 +41,7 @@ public class KubernetesStatefulSetHandler extends KubernetesHandler implements C
 
   @Override
   public SpinnakerKind spinnakerKind() {
-    return SpinnakerKind.SERVER_GROUP;
+    return SpinnakerKind.SERVER_GROUPS;
   }
 
   @Override

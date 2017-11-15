@@ -55,16 +55,21 @@ public class Keys {
   }
 
   public enum LogicalKind {
-    APPLICATION,
-    CLUSTER;
+    APPLICATIONS,
+    CLUSTERS;
 
     public static boolean isLogicalGroup(String group) {
-      return group.equals(APPLICATION.toString()) || group.equals(CLUSTER.toString());
+      return group.equals(APPLICATIONS.toString()) || group.equals(CLUSTERS.toString());
     }
 
     @Override
     public String toString() {
       return name().toLowerCase();
+    }
+
+    public String singular() {
+      String name = toString();
+      return name.substring(0, name.length() - 1);
     }
 
     public static LogicalKind fromString(String name) {
@@ -90,11 +95,11 @@ public class Keys {
   }
 
   public static String application(String name) {
-    return createKey(Kind.LOGICAL, LogicalKind.APPLICATION, name);
+    return createKey(Kind.LOGICAL, LogicalKind.APPLICATIONS, name);
   }
 
   public static String cluster(String account, String application, String name) {
-    return createKey(Kind.LOGICAL, LogicalKind.CLUSTER, account, application, name);
+    return createKey(Kind.LOGICAL, LogicalKind.CLUSTERS, account, application, name);
   }
 
   public static String infrastructure(KubernetesKind kind, String account, String namespace, String name) {
@@ -136,9 +141,9 @@ public class Keys {
     LogicalKind logicalKind = LogicalKind.fromString(parts[2]);
 
     switch (logicalKind) {
-      case APPLICATION:
+      case APPLICATIONS:
         return new ApplicationCacheKey(parts);
-      case CLUSTER:
+      case CLUSTERS:
         return new ClusterCacheKey(parts);
       default:
         throw new IllegalArgumentException("Unknown kind " + logicalKind);
@@ -152,6 +157,12 @@ public class Keys {
     private String type;
     public abstract String getGroup();
     public abstract String getName();
+  }
+
+  @Data
+  public static abstract class LogicalKey extends CacheKey {
+    private Kind kind = Kind.LOGICAL;
+    public abstract LogicalKind getLogicalKind();
   }
 
   @EqualsAndHashCode(callSuper = true)
@@ -187,9 +198,8 @@ public class Keys {
 
   @EqualsAndHashCode(callSuper = true)
   @Data
-  public static class ApplicationCacheKey extends CacheKey {
-    private Kind kind = Kind.LOGICAL;
-    private LogicalKind logicalKind = LogicalKind.APPLICATION;
+  public static class ApplicationCacheKey extends LogicalKey {
+    private LogicalKind logicalKind = LogicalKind.APPLICATIONS;
     private String name;
 
     public ApplicationCacheKey(String[] parts) {
@@ -202,7 +212,7 @@ public class Keys {
 
     @Override
     public String toString() {
-      return createKey(kind, logicalKind, name);
+      return createKey(getKind(), logicalKind, name);
     }
 
     @Override
@@ -213,9 +223,8 @@ public class Keys {
 
   @EqualsAndHashCode(callSuper = true)
   @Data
-  public static class ClusterCacheKey extends CacheKey {
-    private Kind kind = Kind.LOGICAL;
-    private LogicalKind logicalKind = LogicalKind.CLUSTER;
+  public static class ClusterCacheKey extends LogicalKey {
+    private LogicalKind logicalKind = LogicalKind.CLUSTERS;
     private String account;
     private String application;
     private String name;
@@ -232,7 +241,7 @@ public class Keys {
 
     @Override
     public String toString() {
-      return createKey(kind, logicalKind, account, name);
+      return createKey(getKind(), logicalKind, account, name);
     }
 
     @Override

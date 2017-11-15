@@ -55,7 +55,7 @@ public class KubernetesServiceCachingAgent extends KubernetesV2OnDemandCachingAg
   @Getter
   final private Collection<AgentDataType> providedDataTypes = Collections.unmodifiableSet(
       new HashSet<>(Arrays.asList(
-          INFORMATIVE.forType(Keys.LogicalKind.APPLICATION.toString()),
+          INFORMATIVE.forType(Keys.LogicalKind.APPLICATIONS.toString()),
           INFORMATIVE.forType(KubernetesKind.POD.toString()),
           INFORMATIVE.forType(KubernetesKind.REPLICA_SET.toString()),
           AUTHORITATIVE.forType(KubernetesKind.SERVICE.toString())

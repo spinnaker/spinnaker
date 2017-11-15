@@ -35,8 +35,8 @@ class KeysSpec extends Specification {
 
     where:
     application || key
-    "app"       || "kubernetes.v2:logical:application:app"
-    ""          || "kubernetes.v2:logical:application:"
+    "app"       || "kubernetes.v2:logical:applications:app"
+    ""          || "kubernetes.v2:logical:applications:"
   }
 
   @Unroll
@@ -46,8 +46,8 @@ class KeysSpec extends Specification {
 
     where:
     account | application | cluster   || key
-    "ac"    | "app"       | "cluster" || "kubernetes.v2:logical:cluster:ac:app:cluster"
-    ""      | ""          | ""        || "kubernetes.v2:logical:cluster:::"
+    "ac"    | "app"       | "cluster" || "kubernetes.v2:logical:clusters:ac:app:cluster"
+    ""      | ""          | ""        || "kubernetes.v2:logical:clusters:::"
   }
 
   @Unroll
@@ -65,7 +65,7 @@ class KeysSpec extends Specification {
   @Unroll
   def "unpacks application key for #name"() {
     when:
-    def key = "kubernetes.v2:logical:application:$name"
+    def key = "kubernetes.v2:logical:applications:$name"
     def parsed = Keys.parseKey(key).get()
 
     then:
@@ -82,7 +82,7 @@ class KeysSpec extends Specification {
   @Unroll
   def "unpacks cluster key for '#name' and '#account'"() {
     when:
-    def key = "kubernetes.v2:logical:cluster:$account:$application:$name"
+    def key = "kubernetes.v2:logical:clusters:$account:$application:$name"
     def parsed = Keys.parseKey(key).get()
 
     then:
