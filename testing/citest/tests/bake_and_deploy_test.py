@@ -625,8 +625,7 @@ class BakeAndDeployTest(st.AgentTestCase):
     if not self.scenario.test_google:
       self.skipTest("--test_google flag not set")
     else:
-      self.run_test_case(self.scenario.create_bake_and_deploy_google_pipeline(),
-                       full_trace=True)
+      self.run_test_case(self.scenario.create_bake_and_deploy_google_pipeline())
 
   def test_c2_create_bake_and_deploy_aws_pipeline(self):
     if not self.scenario.test_aws:
