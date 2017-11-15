@@ -1,19 +1,20 @@
 'use strict';
 
-const angular = require('angular');
+import { module } from 'angular';
 
-import { CLOUD_PROVIDER_REGISTRY, DeploymentStrategyRegistry } from '@spinnaker/core';
+import { CLOUD_PROVIDER_REGISTRY, CloudProviderRegistry, DeploymentStrategyRegistry } from '@spinnaker/core';
 import { OPENSTACK_HELP } from './help/openstack.help';
 
 import './logo/openstack.logo.less';
 
 // load all templates into the $templateCache
-var templates = require.context('./', true, /\.html$/);
-_.forEach(templates.keys(), function(key) {
+const templates = require.context('./', true, /\.html$/);
+templates.keys().forEach(function(key) {
   templates(key);
 });
 
-module.exports = angular.module('spinnaker.openstack', [
+export const OPENSTACK_MODULE = 'spinnaker.openstack';
+module(OPENSTACK_MODULE, [
   require('./instance/openstackInstanceType.service.js').name,
   require('./serverGroup/configure/ServerGroupCommandBuilder.js').name,
   require('./serverGroup/configure/serverGroup.configure.openstack.module.js').name,
@@ -46,7 +47,7 @@ module.exports = angular.module('spinnaker.openstack', [
   require('./pipeline/stages/cloneServerGroup/openstackCloneServerGroupStage.js').name,
   require('./subnet/subnet.renderer.js').name,
 ])
-  .config(function(cloudProviderRegistryProvider) {
+  .config((cloudProviderRegistryProvider: CloudProviderRegistry) => {
     cloudProviderRegistryProvider.registerProvider('openstack', {
       name: 'openstack',
       logo: {
