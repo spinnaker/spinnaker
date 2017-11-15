@@ -29,6 +29,7 @@ import com.netflix.kayenta.index.config.CanaryConfigIndexAction;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
 import com.netflix.kayenta.storage.ObjectType;
 import com.netflix.kayenta.storage.StorageService;
+import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
 import com.squareup.okhttp.MediaType;
 import com.squareup.okhttp.RequestBody;
 import lombok.Builder;
@@ -69,7 +70,7 @@ public class ConfigBinStorageService implements StorageService {
   }
 
   @Override
-  public <T> T loadObject(String accountName, ObjectType objectType, String objectKey) throws IllegalArgumentException {
+  public <T> T loadObject(String accountName, ObjectType objectType, String objectKey) throws IllegalArgumentException, NotFoundException {
     ConfigBinNamedAccountCredentials credentials = (ConfigBinNamedAccountCredentials)accountCredentialsRepository
       .getOne(accountName)
       .orElseThrow(() -> new IllegalArgumentException("Unable to resolve account " + accountName + "."));
@@ -81,7 +82,7 @@ public class ConfigBinStorageService implements StorageService {
     try {
        json = remoteService.get(ownerApp, configType, objectKey);
     } catch (RetrofitError e) {
-      throw new IllegalArgumentException("No such object named " + objectKey);
+      throw new NotFoundException("No such object named " + objectKey);
     }
 
     try {

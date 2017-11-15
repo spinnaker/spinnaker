@@ -22,6 +22,7 @@ import com.netflix.kayenta.memory.security.MemoryNamedAccountCredentials;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
 import com.netflix.kayenta.storage.ObjectType;
 import com.netflix.kayenta.storage.StorageService;
+import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Singular;
@@ -65,7 +66,7 @@ public class MemoryStorageService implements StorageService {
     Object entry = credentials.getObjects().get(objectType).get(objectKey);
 
     if (entry == null) {
-      throw new IllegalArgumentException("No such object named " + objectKey);
+      throw new NotFoundException("No such object named " + objectKey);
     }
 
     return (T)entry;

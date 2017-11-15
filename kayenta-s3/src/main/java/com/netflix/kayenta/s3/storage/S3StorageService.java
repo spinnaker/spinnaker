@@ -31,6 +31,7 @@ import com.netflix.kayenta.index.config.CanaryConfigIndexAction;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
 import com.netflix.kayenta.storage.ObjectType;
 import com.netflix.kayenta.storage.StorageService;
+import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Singular;
@@ -101,13 +102,19 @@ public class S3StorageService implements StorageService {
   }
 
   @Override
-  public <T> T loadObject(String accountName, ObjectType objectType, String objectKey) throws IllegalArgumentException {
+  public <T> T loadObject(String accountName, ObjectType objectType, String objectKey) throws IllegalArgumentException, NotFoundException {
     AwsNamedAccountCredentials credentials = (AwsNamedAccountCredentials)accountCredentialsRepository
       .getOne(accountName)
       .orElseThrow(() -> new IllegalArgumentException("Unable to resolve account " + accountName + "."));
     AmazonS3 amazonS3 = credentials.getAmazonS3();
     String bucket = credentials.getBucket();
-    String path = resolveSingularPath(objectType, objectKey, credentials, amazonS3, bucket);
+    String path;
+
+    try {
+      path = resolveSingularPath(objectType, objectKey, credentials, amazonS3, bucket);
+    } catch (IllegalArgumentException e) {
+      throw new NotFoundException(e.getMessage());
+    }
 
     try {
       S3Object s3Object = amazonS3.getObject(bucket, path);
@@ -116,7 +123,7 @@ public class S3StorageService implements StorageService {
     } catch (AmazonS3Exception e) {
       log.error("Failed to load {} {}: {}", objectType.getGroup(), objectKey, e.getStatusCode());
       if (e.getStatusCode() == 404) {
-        throw new IllegalArgumentException("No file at path " + path + ".");
+        throw new NotFoundException("No file at path " + path + ".");
       }
       throw e;
     } catch (IOException e) {

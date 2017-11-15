@@ -16,12 +16,14 @@
 
 package com.netflix.kayenta.storage;
 
+import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
+
 import java.util.List;
 import java.util.Map;
 
 public interface StorageService {
   boolean servicesAccount(String accountName);
-  <T> T loadObject(String accountName, ObjectType objectType, String objectKey) throws IllegalArgumentException;
+  <T> T loadObject(String accountName, ObjectType objectType, String objectKey) throws IllegalArgumentException, NotFoundException;
   <T> void storeObject(String accountName, ObjectType objectType, String objectKey, T obj, String filename, boolean isAnUpdate);
   void deleteObject(String accountName, ObjectType objectType, String objectKey);
   List<Map<String, Object>> listObjectKeys(String accountName, ObjectType objectType, List<String> applications, boolean skipIndex);

@@ -34,6 +34,7 @@ import com.netflix.kayenta.index.config.CanaryConfigIndexAction;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
 import com.netflix.kayenta.storage.ObjectType;
 import com.netflix.kayenta.storage.StorageService;
+import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Singular;
@@ -114,13 +115,19 @@ public class GcsStorageService implements StorageService {
   }
 
   @Override
-  public <T> T loadObject(String accountName, ObjectType objectType, String objectKey) throws IllegalArgumentException {
+  public <T> T loadObject(String accountName, ObjectType objectType, String objectKey) throws IllegalArgumentException, NotFoundException {
     GoogleNamedAccountCredentials credentials = (GoogleNamedAccountCredentials)accountCredentialsRepository
       .getOne(accountName)
       .orElseThrow(() -> new IllegalArgumentException("Unable to resolve account " + accountName + "."));
     Storage storage = credentials.getStorage();
     String bucketName = credentials.getBucket();
-    StorageObject item = resolveSingularItem(objectType, objectKey, credentials, storage, bucketName);
+    StorageObject item;
+
+    try {
+      item = resolveSingularItem(objectType, objectKey, credentials, storage, bucketName);
+    } catch (IllegalArgumentException e) {
+      throw new NotFoundException(e.getMessage());
+    }
 
     try {
       StorageObject storageObject = storage.objects().get(bucketName, item.getName()).execute();
@@ -131,7 +138,7 @@ public class GcsStorageService implements StorageService {
         HttpResponseException hre = (HttpResponseException)e;
         log.error("Failed to load {} {}: {} {}", objectType.getGroup(), objectKey, hre.getStatusCode(), hre.getStatusMessage());
         if (hre.getStatusCode() == 404) {
-          throw new IllegalArgumentException("No file at path " + item.getName() + ".");
+          throw new NotFoundException("No file at path " + item.getName() + ".");
         }
       }
       throw new IllegalStateException(e);

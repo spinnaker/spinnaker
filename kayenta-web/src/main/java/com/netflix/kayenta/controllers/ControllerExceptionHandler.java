@@ -16,10 +16,14 @@
 
 package com.netflix.kayenta.controllers;
 
+import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import java.util.Collections;
+import java.util.Map;
 
 @RestControllerAdvice
 public class ControllerExceptionHandler {
@@ -28,5 +32,11 @@ public class ControllerExceptionHandler {
   @ExceptionHandler(IllegalArgumentException.class)
   public String handleException(IllegalArgumentException e) {
     return e.getMessage();
+  }
+
+  @ResponseStatus(HttpStatus.NOT_FOUND)
+  @ExceptionHandler(NotFoundException.class)
+  public Map handleException(NotFoundException e) {
+    return Collections.singletonMap("message", e.getMessage());
   }
 }
