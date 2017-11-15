@@ -123,7 +123,13 @@ public class GoogleDirectoryUserRolesProvider implements UserRolesProvider, Init
                .setDomain(config.getDomain())
                .setUserKey(email)
                .buildHttpRequest();
-        request.setUnsuccessfulResponseHandler(new HttpBackOffUnsuccessfulResponseHandler(new ExponentialBackOff()));
+        HttpBackOffUnsuccessfulResponseHandler handler = new HttpBackOffUnsuccessfulResponseHandler(new ExponentialBackOff());
+        handler.setBackOffRequired(response -> {
+          int code = response.getStatusCode();
+          // 403 is Google's Rate limit exceeded response.
+          return code == 403 || code / 100 == 5;
+        });
+        request.setUnsuccessfulResponseHandler(handler);
         batch.queue(request, Groups.class, GoogleJsonErrorContainer.class, callback);
 
       } catch (IOException ioe) {
