@@ -230,6 +230,7 @@ abstract public class VaultServerService extends SpinnakerService<VaultServerSer
     Boolean monitored = false;
     Boolean sidecar = true;
     Integer targetSize = 1;
+    Boolean SkipLiveCycleManagement = false;
     Map<String, String> env = new HashMap<>();
 
     public Settings() { }

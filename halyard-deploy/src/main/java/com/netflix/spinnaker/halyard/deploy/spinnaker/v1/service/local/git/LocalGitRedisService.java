@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- *
  */
 
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.local.git;
@@ -22,54 +21,47 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguratio
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.DeploymentDetails;
 import com.netflix.spinnaker.halyard.deploy.services.v1.ArtifactService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ClouddriverService;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.RedisService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceSettings;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import redis.clients.jedis.Jedis;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
-
-import java.util.List;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
 @Component
-public class LocalGitClouddriverService extends ClouddriverService implements LocalGitService<ClouddriverService.Clouddriver> {
-  @Autowired
-  ArtifactService artifactService;
-
-  @Override
-  protected String getConfigOutputPath() {
-    return "~/.spinnaker";
-  }
-
-  String startCommand = "./gradlew";
+public class LocalGitRedisService extends RedisService implements LocalGitService<Jedis> {
+  String startCommand = "";
 
   @Autowired
   String gitRoot;
 
   @Override
-  public List<Profile> getProfiles(DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
-    List<Profile> profiles = super.getProfiles(deploymentConfiguration, endpoints);
-    generateAwsProfile(deploymentConfiguration, endpoints, getHomeDirectory()).ifPresent(p -> profiles.add(p));
-    return profiles;
-  }
-
-  @Override
   public ServiceSettings buildServiceSettings(DeploymentConfiguration deploymentConfiguration) {
-    return new Settings().setArtifactId(getArtifactId(deploymentConfiguration.getName()))
+    return new Settings().setArtifactId("redis")
         .setHost(getDefaultHost())
+        .setSkipLiveCycleManagement(true)
         .setEnabled(true);
   }
 
-  public String getArtifactId(String deploymentName) {
-    return LocalGitService.super.getArtifactId(deploymentName);
+  @Autowired
+  ArtifactService artifactService;
+
+  @Override
+  public String installArtifactCommand(DeploymentDetails deploymentDetails) {
+    return "";
   }
 
   @Override
   public void collectLogs(DeploymentDetails details, SpinnakerRuntimeSettings runtimeSettings) {
     throw new NotImplementedException();
+  }
+
+  @Override
+  public String prepArtifactCommand(DeploymentDetails deploymentDetails) {
+    return "";
   }
 }

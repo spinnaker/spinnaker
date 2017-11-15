@@ -61,6 +61,7 @@ public class ServiceSettings {
   Boolean sidecar;
   Boolean safeToUpdate;
   Integer targetSize;
+  Boolean skipLiveCycleManagement;
 
   public ServiceSettings() { }
 

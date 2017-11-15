@@ -60,6 +60,7 @@ public class GitProfileReader implements ProfileReader {
     dependencies.setDefaultArtifact(artifact);
 
     BillOfMaterials bom = new BillOfMaterials();
+    bom.setDependencies(dependencies);
     bom.setVersion(version);
     bom.setServices(services);
 

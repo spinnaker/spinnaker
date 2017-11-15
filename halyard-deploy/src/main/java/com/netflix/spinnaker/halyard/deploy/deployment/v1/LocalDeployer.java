@@ -49,18 +49,22 @@ public class LocalDeployer implements Deployer<LocalServiceProvider, DeploymentD
         .filter(i -> resolvedConfiguration.getServiceSettings(i.getService()).getEnabled())
         .collect(Collectors.toList());
 
-    Map<String, String> installCommands = enabledServices.stream().reduce(new HashMap<>(), (commands, installable) -> {
-      String command = String.join("\n",
-          installable.installArtifactCommand(deploymentDetails),
-          installable.stageProfilesCommand(deploymentDetails, resolvedConfiguration));
-      commands.put(installable.getService().getCanonicalName(), command);
-      return commands;
-    }, (m1, m2) -> {
-      m1.putAll(m2);
-      return m1;
-    });
+    Map<String, String> installCommands = enabledServices.stream()
+        .filter(i -> !resolvedConfiguration.getServiceSettings(i.getService())
+            .getSkipLiveCycleManagement())
+        .reduce(new HashMap<>(), (commands, installable) -> {
+          String command = String.join("\n",
+              installable.installArtifactCommand(deploymentDetails),
+              installable.stageProfilesCommand(deploymentDetails, resolvedConfiguration));
+          commands.put(installable.getService().getCanonicalName(), command);
+          return commands;
+        }, (m1, m2) -> {
+          m1.putAll(m2);
+          return m1;
+        });
 
-    String installCommand = serviceProvider.getInstallCommand(deploymentDetails, resolvedConfiguration, installCommands);
+    String installCommand = serviceProvider
+        .getInstallCommand(deploymentDetails, resolvedConfiguration, installCommands);
     RemoteAction result = new RemoteAction();
     result.setAutoRun(true);
     result.setScript(installCommand);
@@ -77,7 +81,8 @@ public class LocalDeployer implements Deployer<LocalServiceProvider, DeploymentD
   }
 
   @Override
-  public void collectLogs(LocalServiceProvider serviceProvider, DeploymentDetails deploymentDetails, SpinnakerRuntimeSettings runtimeSettings, List<SpinnakerService.Type> serviceTypes) {
+  public void collectLogs(LocalServiceProvider serviceProvider, DeploymentDetails deploymentDetails,
+      SpinnakerRuntimeSettings runtimeSettings, List<SpinnakerService.Type> serviceTypes) {
     for (LocalService localService : serviceProvider.getLocalServices(serviceTypes)) {
       localService.collectLogs(deploymentDetails, runtimeSettings);
     }

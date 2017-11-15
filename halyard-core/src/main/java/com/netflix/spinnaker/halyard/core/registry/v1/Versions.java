@@ -107,6 +107,14 @@ public class Versions {
   }
 
   public static boolean lessThan(String v1, String v2) {
+    // TODO(lwander): This is pretty ugly. Non total comparison operator.
+    if (isBranch(v1)) {
+      return false;
+    }
+    if (isBranch(v2)) {
+      return true;
+    }
+
     v1 = toMajorMinorPatch(v1);
     v2 = toMajorMinorPatch(v2);
 
