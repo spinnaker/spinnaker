@@ -21,4 +21,9 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.description.Kubern
 class KubernetesServerGroupDescription extends KubernetesKindAtomicOperationDescription {
   String serverGroupName
   String namespace
+  String region
+
+  String getNamespace() {
+    namespace ?: region
+  }
 }
