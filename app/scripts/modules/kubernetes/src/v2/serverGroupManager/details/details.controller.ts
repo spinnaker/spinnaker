@@ -5,7 +5,7 @@ import { Application, IServerGroupManager, IServerGroupManagerStateParams } from
 import { IKubernetesServerGroupManager } from '../IKubernetesServerGroupManager';
 
 class KubernetesServerGroupManagerDetailsController implements IController {
-  public serverGroupManager: IServerGroupManager;
+  public serverGroupManager: IKubernetesServerGroupManager;
   public state = { loading: true };
 
   constructor(serverGroupManager: IServerGroupManagerStateParams,
