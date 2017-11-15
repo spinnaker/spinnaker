@@ -20,8 +20,8 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.manifest;
 import org.springframework.stereotype.Component;
 
 @Component
-public class UndoRolloutManifestTask extends GenericUpdateManifestTask {
-  public static final String TASK_NAME = "undoRolloutManifest";
+public class ScaleManifestTask extends GenericUpdateManifestTask {
+  public static final String TASK_NAME = "scaleManifest";
 
   @Override
   protected String taskName() {
