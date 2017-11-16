@@ -3,17 +3,21 @@
 const angular = require('angular');
 import _ from 'lodash';
 
-import { SCALING_POLICY_MODULE } from './scalingPolicy/scalingPolicy.module';
-
 import {
   ACCOUNT_SERVICE,
   CLUSTER_TARGET_BUILDER,
   CONFIRMATION_MODAL_SERVICE,
+  NAMING_SERVICE,
   SERVER_GROUP_READER,
   SERVER_GROUP_WARNING_MESSAGE_SERVICE,
   SERVER_GROUP_WRITER,
   SETTINGS,
 } from '@spinnaker/core';
+
+import { SCALING_POLICY_MODULE } from './scalingPolicy/scalingPolicy.module';
+
+import { configBinService } from './scalingPolicy/configBin/configBin.reader';
+import { CONFIG_BIN_LINK_COMPONENT } from './scalingPolicy/configBin/configBinLink.component';
 
 module.exports = angular.module('spinnaker.serverGroup.details.titus.controller', [
   require('@uirouter/angularjs').default,
@@ -21,17 +25,19 @@ module.exports = angular.module('spinnaker.serverGroup.details.titus.controller'
   require('../configure/ServerGroupCommandBuilder.js').name,
   SERVER_GROUP_WARNING_MESSAGE_SERVICE,
   SERVER_GROUP_READER,
+  CONFIG_BIN_LINK_COMPONENT,
   CONFIRMATION_MODAL_SERVICE,
   SERVER_GROUP_WRITER,
   require('./resize/resizeServerGroup.controller').name,
   require('./rollback/rollbackServerGroup.controller').name,
   CLUSTER_TARGET_BUILDER,
+  NAMING_SERVICE,
   SCALING_POLICY_MODULE,
 ])
   .controller('titusServerGroupDetailsCtrl', function ($scope, $state, $templateCache, $interpolate, app, serverGroup,
                                                        titusServerGroupCommandBuilder, serverGroupReader, $uibModal,
                                                        confirmationModalService, serverGroupWriter, clusterTargetBuilder,
-                                                       awsServerGroupTransformer,
+                                                       awsServerGroupTransformer, namingService,
                                                        serverGroupWarningMessageService, accountService) {
 
     let application = app;
@@ -91,6 +97,13 @@ module.exports = angular.module('spinnaker.serverGroup.details.titus.controller'
       );
     }
 
+    $scope.addConfigBinData = () => {
+      const cluster = namingService.parseServerGroupName($scope.serverGroup.name).cluster;
+      configBinService.getConfig(cluster).then(config => {
+        $scope.configBinData = config;
+      }).catch(() => { /* not found */ });
+    };
+
     function transformScalingPolicies(serverGroup) {
       serverGroup.scalingPolicies = (serverGroup.scalingPolicies || []).map(p => {
         const { policy } = p;
@@ -136,6 +149,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.titus.controller'
     }
 
     retrieveServerGroup().then(() => {
+      $scope.addConfigBinData();
       // If the user navigates away from the view before the initial retrieveServerGroup call completes,
       // do not bother subscribing to the refresh
       if (!$scope.$$destroyed) {
@@ -144,6 +158,11 @@ module.exports = angular.module('spinnaker.serverGroup.details.titus.controller'
     });
 
     accountService.getAccountDetails(serverGroup.accountId).then(details => {
+      const awsAccount = details.awsAccount;
+      accountService.getAccountDetails(awsAccount).then(awsDetails => {
+        this.awsAccountId = awsDetails.accountId;
+        this.env = awsDetails.environment;
+      });
       if (details.autoscalingEnabled && details.regions.some(r => r.name === serverGroup.region && r.autoscalingEnabled)) {
         this.scalingPoliciesEnabled = true;
       }

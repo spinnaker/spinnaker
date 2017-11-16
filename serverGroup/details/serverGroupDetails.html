@@ -155,6 +155,16 @@
         <titus-create-scaling-policy-button
           server-group="serverGroup"
           application="ctrl.application"></titus-create-scaling-policy-button>
+      <div ng-if="ctrl.awsAccountId">
+        <config-bin-link
+          application="ctrl.application"
+          aws-account-id="ctrl.awsAccountId"
+          cluster-name="serverGroup.cluster"
+          region="serverGroup.region"
+          env="ctrl.env"
+          config="configBinData"
+          config-updated="addConfigBinData"></config-bin-link>
+      </div>
     </collapsible-section>
 
     <collapsible-section heading="Resources" expanded="true">

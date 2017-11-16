@@ -8,8 +8,11 @@
     <form name="form" novalidate>
       <h4 class="section-heading">Target Metric</h4>
       <div class="section-body">
-        <p>With target tracking policies, Amazon will automatically adjust the size of your ASG to keep the selected
+        <p>With target tracking policies, Amazon will automatically adjust the size of your job to keep the selected
           metric as close as possible to the selected value.</p>
+        <p><b>Note:</b> metrics must be sent to Amazon CloudWatch before they can be used in auto scaling. If you do not
+          see a metric below, click "Configure available metrics" in the server group details to set up forwarding from
+          Atlas to CloudWatch.</p>
         <div class="row" style="margin-bottom: 10px;">
           <div class="col-md-2 sm-label-right">Metric</div>
           <div class="col-md-10 content-fields">

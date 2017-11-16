@@ -9,6 +9,9 @@
 
       <h4 class="section-heading">Conditions</h4>
       <div class="section-body">
+        <p><b>Note:</b> metrics must be sent to Amazon CloudWatch before they can be used in auto scaling. If you do not
+          see a metric below, click "Configure available metrics" in the server group details to set up forwarding from
+          Atlas to CloudWatch.</p>
         <aws-alarm-configurer command="ctrl.command"
                               modal-view-state="ctrl.viewState"
                               server-group="ctrl.alarmServerGroup"
