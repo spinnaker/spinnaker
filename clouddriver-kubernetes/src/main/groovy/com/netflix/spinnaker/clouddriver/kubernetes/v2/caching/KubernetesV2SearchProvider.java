@@ -61,10 +61,10 @@ public class KubernetesV2SearchProvider implements SearchProvider {
   @Autowired
   public KubernetesV2SearchProvider(KubernetesCacheUtils cacheUtils,
       KubernetesSpinnakerKindMap kindMap,
-      ObjectMapper mapper,
+      ObjectMapper objectMapper,
       KubernetesResourcePropertyRegistry registry) {
     this.cacheUtils = cacheUtils;
-    this.mapper = mapper;
+    this.mapper = objectMapper;
     this.kindMap = kindMap;
     this.registry = registry;
 
