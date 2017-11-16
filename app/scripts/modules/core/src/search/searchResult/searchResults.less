@@ -6,6 +6,7 @@
 .search-results {
 
   display: flex;
+  margin-top: 10px;
 
   .search-groups {
 
@@ -19,7 +20,8 @@
       align-items: baseline;
       .clickable();
       display: flex;
-      padding: 10px 5px;
+      padding: 10px;
+      margin-bottom: 1px;
 
       &.faded {
         opacity: 0.2;
@@ -34,13 +36,13 @@
         display: inline-block;
         height: 32px;
         line-height: 29px;
-        margin-left: 5px;
         margin-right: 10px;
         text-align: center;
         width: 32px;
       }
 
       .search-group-name {
+        color: var(--color-primary);
         flex: 1 0 auto;
         font-size: 110%;
         font-weight: 600;
@@ -58,6 +60,14 @@
 
       &.search-group--blur {
         background-color: var(--color-alabaster);
+      }
+
+      &:hover {
+        background-color: var(--color-accent-g2);
+        transition: all 0.15s ease-in-out;
+        &.faded {
+          background-color: var(--color-alabaster);
+        }
       }
     }
   }
