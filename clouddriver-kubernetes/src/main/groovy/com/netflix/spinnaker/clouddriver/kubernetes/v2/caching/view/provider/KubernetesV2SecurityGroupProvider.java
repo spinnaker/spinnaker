@@ -22,6 +22,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.model.KubernetesV2SecurityGroup;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpinnakerKindMap;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.model.SecurityGroupProvider;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -87,7 +88,14 @@ public class KubernetesV2SecurityGroupProvider implements SecurityGroupProvider<
   }
 
   @Override
-  public Set<KubernetesV2SecurityGroup> getAllByAccountAndName(boolean includeRules, String account, String name) {
+  public Set<KubernetesV2SecurityGroup> getAllByAccountAndName(boolean includeRules, String account, String fullName) {
+    String name;
+    try {
+      name = KubernetesManifest.fromFullResourceName(fullName).getRight();
+    } catch (Exception e) {
+      return null;
+    }
+
     return kindMap.translateSpinnakerKind(KubernetesSpinnakerKindMap.SpinnakerKind.SECURITY_GROUPS)
         .stream()
         .map(k -> {
@@ -113,7 +121,14 @@ public class KubernetesV2SecurityGroupProvider implements SecurityGroupProvider<
   }
 
   @Override
-  public KubernetesV2SecurityGroup get(String account, String namespace, String name, String _unused) {
+  public KubernetesV2SecurityGroup get(String account, String namespace, String fullName, String _unused) {
+    String name;
+    try {
+      name = KubernetesManifest.fromFullResourceName(fullName).getRight();
+    } catch (Exception e) {
+      return null;
+    }
+
     return kindMap.translateSpinnakerKind(KubernetesSpinnakerKindMap.SpinnakerKind.SECURITY_GROUPS)
         .stream()
         .map(k -> {

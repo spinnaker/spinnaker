@@ -67,7 +67,7 @@ public class KubernetesV2SecurityGroup extends ManifestBasedModel implements Sec
 
   KubernetesV2SecurityGroup(KubernetesManifest manifest, String key, Set<Rule> inboundRules, Set<Rule> outboundRules) {
     this.manifest = manifest;
-    this.id = manifest.getName();
+    this.id = manifest.getFullResourceName();
     this.key = (Keys.InfrastructureCacheKey) Keys.parseKey(key).get();
     this.inboundRules = inboundRules;
     this.outboundRules = outboundRules;

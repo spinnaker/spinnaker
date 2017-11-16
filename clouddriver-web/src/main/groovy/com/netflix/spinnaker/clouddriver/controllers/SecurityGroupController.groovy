@@ -158,9 +158,9 @@ class SecurityGroupController {
                     @PathVariable String region,
                     @PathVariable String securityGroupName,
                     @RequestParam(value = "vpcId", required = false) String vpcId) {
-    def securityGroup = securityGroupProviders.find { secGrpProv ->
-      secGrpProv.cloudProvider == cloudProvider
-    }.get(account, region, securityGroupName, vpcId)
+    def securityGroup = securityGroupProviders.findResults { secGrpProv ->
+      secGrpProv.cloudProvider == cloudProvider ? secGrpProv.get(account, region, securityGroupName, vpcId) : null
+    }.first()
 
     if (!securityGroup) {
       throw new NotFoundException("Security group '${securityGroupName}' does not exist")

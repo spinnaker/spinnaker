@@ -114,7 +114,7 @@ public class KubernetesManifestAnnotater {
 
     storeAnnotation(annotations, CLUSTER, moniker.getCluster());
     storeAnnotation(annotations, APPLICATION, moniker.getApp());
-    storeAnnotation(annotations, STACK, moniker.getSequence());
+    storeAnnotation(annotations, STACK, moniker.getStack());
     storeAnnotation(annotations, DETAIL, moniker.getDetail());
   }
 
