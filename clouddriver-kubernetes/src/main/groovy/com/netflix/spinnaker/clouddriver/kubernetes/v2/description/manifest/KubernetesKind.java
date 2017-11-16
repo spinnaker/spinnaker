@@ -39,7 +39,7 @@ public class KubernetesKind {
 
   private static List<KubernetesKind> values;
 
-  private KubernetesKind(String name, String alias) {
+  protected KubernetesKind(String name, String alias) {
     if (values == null) {
       values = new ArrayList<>();
     }
@@ -49,7 +49,7 @@ public class KubernetesKind {
     values.add(this);
   }
 
-  private KubernetesKind(String name) {
+  protected KubernetesKind(String name) {
     this(name, null);
   }
 
