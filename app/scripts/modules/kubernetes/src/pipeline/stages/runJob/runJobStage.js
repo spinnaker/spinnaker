@@ -29,13 +29,13 @@ module.exports = angular.module('spinnaker.kubernetes.pipeline.stage.runJobStage
         { type: 'requiredField', fieldName: 'namespace' },
       ]
     });
-  }).controller('kubernetesRunJobStageCtrl', function($scope, $uibModal, accountService, kubernetesImageReader, pipelineConfigService, $filter) {
+  }).controller('kubernetesRunJobStageCtrl', function($scope, $uibModal) {
 
     this.stage = $scope.stage;
     this.pipeline = $scope.pipeline;
     this.stage.cloudProvider = 'kubernetes';
     this.stage.application = $scope.application.name;
-    
+
     this.configureJob = () => {
       return $uibModal.open({
         templateUrl: require('./configureJob.html'),

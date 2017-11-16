@@ -14,7 +14,7 @@ module.exports = angular.module('spinnaker.kubernetes.pipeline.stage.runJobStage
   KUBERNETES_LIFECYCLE_HOOK_CONFIGURER
 ])
   .controller('kubernetesConfigureJobController', function($scope, $uibModalInstance, accountService, kubernetesImageReader, pipelineConfigService, $filter,
-                                                           stage, pipeline, application) {
+                                                           stage, pipeline) {
 
     this.stage = stage;
     this.pipeline = pipeline;
