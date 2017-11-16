@@ -1,4 +1,4 @@
-import { copy, IController, IScope, module } from 'angular';
+import { IController, IScope, module } from 'angular';
 import { IModalService } from 'angular-ui-bootstrap';
 import { StateService } from '@uirouter/angularjs';
 
