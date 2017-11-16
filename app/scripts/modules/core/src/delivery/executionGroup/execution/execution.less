@@ -91,7 +91,6 @@ execution-details-section-nav {
   .stage {
     .fa { // .fa is "font-awesome" - the only icon set we're using for custom stage icons
       display: inline-block;
-      margin-right: 3px;
     }
     .duration {
       font-weight: 600;
@@ -104,6 +103,9 @@ execution-details-section-nav {
 }
 .show-durations {
   .stage {
+    .fa + .duration {
+      margin-left: 3px;
+    }
     .duration {
       visibility: visible;
       width: auto;

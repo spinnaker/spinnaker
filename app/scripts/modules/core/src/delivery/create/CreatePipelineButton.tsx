@@ -55,7 +55,7 @@ export class CreatePipelineButton extends React.Component<ICreatePipelineButtonP
         <Tooltip value="Create Pipeline or Strategy">
           <span className="glyphicon glyphicon-plus-sign hidden-xl-inline"/>
         </Tooltip>
-        <span className="visible-xl-inline">Create</span>
+        <span className="visible-xl-inline"> Create</span>
         <CreatePipelineModal
           show={this.state.showCreatePipelineModal}
           showCallback={this.showCallBack}

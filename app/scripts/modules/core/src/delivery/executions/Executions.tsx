@@ -245,7 +245,7 @@ export class Executions extends React.Component<IExecutionsProps, IExecutionsSta
     const { app } = this.props;
     const { insightFilterStateModel, loading, sortFilter, tags, triggeringExecution } = this.state;
 
-    const hasPipelines = get(app, 'executions.data', []).length || get(app, 'pipelineConfigs.data', []).length;
+    const hasPipelines = !!(get(app, 'executions.data', []).length || get(app, 'pipelineConfigs.data', []).length);
 
     if (!app.notFound) {
       return (
