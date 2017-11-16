@@ -1,5 +1,5 @@
 /*
- * * Copyright 2017 Lookout, Inc.
+ * Copyright 2017 Lookout, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,7 @@ public class Keys implements KeyParser {
     CONTAINER_INSTANCES,
     TASK_DEFINITIONS;
 
-    final String ns;
+    public final String ns;
 
     Namespace() {
       ns = CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, this.name());
@@ -45,7 +45,27 @@ public class Keys implements KeyParser {
     }
   }
 
-  public static final String SEPARATOR = ":";
+  public static final String SEPARATOR = ";";
+
+  @Override
+  public String getCloudProvider() {
+    return ID;
+  }
+
+  @Override
+  public Map<String, String> parseKey(String key) {
+    return parse(key);
+  }
+
+  @Override
+  public Boolean canParseType(String type) {
+    for (Namespace key : Namespace.values()) {
+      if (key.toString().equals(type)) {
+        return true;
+      }
+    }
+    return false;
+  }
 
   public static Map<String, String> parse(String key) {
     String[] parts = key.split(SEPARATOR);
@@ -74,7 +94,7 @@ public class Keys implements KeyParser {
         result.put("clusterName", parts[4]);
         break;
       case TASKS:
-        result.put("taskName", parts[4]);
+        result.put("taskId", parts[4]);
         break;
       case CONTAINER_INSTANCES:
         result.put("containerInstanceArn", parts[4]);
@@ -91,56 +111,40 @@ public class Keys implements KeyParser {
     return result;
   }
 
+  @Override
+  public Boolean canParseField(String type) {
+    return false;
+  }
+
   public static String getServiceKey(String account, String region, String serviceName) {
-    return ID + SEPARATOR + Namespace.SERVICES + SEPARATOR + account + SEPARATOR + region + SEPARATOR + serviceName;
+    return buildKey(Namespace.SERVICES.ns, account, region, serviceName);
   }
 
   public static String getClusterKey(String account, String region, String clusterName) {
-    return ID + SEPARATOR + Namespace.ECS_CLUSTERS + SEPARATOR + account + SEPARATOR + region + SEPARATOR + clusterName;
+    return buildKey(Namespace.ECS_CLUSTERS.ns, account, region, clusterName);
   }
 
   public static String getTaskKey(String account, String region, String taskId) {
-    return ID + SEPARATOR + Namespace.TASKS + SEPARATOR + account + SEPARATOR + region + SEPARATOR + taskId;
+    return buildKey(Namespace.TASKS.ns, account, region, taskId);
   }
 
   public static String getTaskHealthKey(String account, String region, String taskId) {
-    return ID + SEPARATOR + HEALTH + SEPARATOR + account + SEPARATOR + region + SEPARATOR + taskId;
+    return buildKey(HEALTH.getNs(), account, region, taskId);
   }
 
   public static String getContainerInstanceKey(String account, String region, String containerInstanceArn) {
-    return ID + SEPARATOR + Namespace.CONTAINER_INSTANCES + SEPARATOR + account + SEPARATOR + region + SEPARATOR + containerInstanceArn;
+    return buildKey(Namespace.CONTAINER_INSTANCES.ns, account, region, containerInstanceArn);
   }
 
   public static String getTaskDefinitionKey(String account, String region, String taskDefinitionArn) {
-    return ID + SEPARATOR + Namespace.TASK_DEFINITIONS + SEPARATOR + account + SEPARATOR + region + SEPARATOR + taskDefinitionArn;
+    return buildKey(Namespace.TASK_DEFINITIONS.ns, account, region, taskDefinitionArn);
   }
 
   public static String getIamRoleKey(String account, String iamRoleName) {
     return ID + SEPARATOR + Namespace.IAM_ROLE + SEPARATOR + account + SEPARATOR + iamRoleName;
   }
 
-  @Override
-  public String getCloudProvider() {
-    return ID;
-  }
-
-  @Override
-  public Map<String, String> parseKey(String key) {
-    return parse(key);
-  }
-
-  @Override
-  public Boolean canParseType(String type) {
-    for (Namespace key : Namespace.values()) {
-      if (key.toString().equals(type)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  @Override
-  public Boolean canParseField(String type) {
-    return false;
+  private static String buildKey(String namespace,String account, String region, String identifier){
+    return ID + SEPARATOR + namespace + SEPARATOR + account + SEPARATOR + region + SEPARATOR + identifier;
   }
 }
