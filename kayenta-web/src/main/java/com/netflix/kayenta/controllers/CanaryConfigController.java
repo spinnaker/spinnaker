@@ -24,6 +24,7 @@ import com.netflix.kayenta.security.CredentialsHelper;
 import com.netflix.kayenta.storage.ObjectType;
 import com.netflix.kayenta.storage.StorageService;
 import com.netflix.kayenta.storage.StorageServiceRepository;
+import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -112,7 +113,7 @@ public class CanaryConfigController {
 
     try {
       configurationService.loadObject(resolvedConfigurationAccountName, ObjectType.CANARY_CONFIG, canaryConfigId);
-    } catch (IllegalArgumentException e) {
+    } catch (NotFoundException e) {
       configurationService.storeObject(resolvedConfigurationAccountName, ObjectType.CANARY_CONFIG, canaryConfigId, canaryConfig, canaryConfig.getName() + ".json", false);
 
       return CanaryConfigUpdateResponse.builder().canaryConfigId(canaryConfigId).build();
