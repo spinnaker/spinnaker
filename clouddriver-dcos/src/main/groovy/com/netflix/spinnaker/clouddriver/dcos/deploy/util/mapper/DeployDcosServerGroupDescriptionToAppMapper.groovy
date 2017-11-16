@@ -65,7 +65,7 @@ class DeployDcosServerGroupDescriptionToAppMapper {
           it
         } : null
         volumes = parseVolumes(description.persistentVolumes, description.dockerVolumes, description.externalVolumes)
-        type = volumes ? "DOCKER" : null
+        type = docker ? "DOCKER" : null
 
         it
       }

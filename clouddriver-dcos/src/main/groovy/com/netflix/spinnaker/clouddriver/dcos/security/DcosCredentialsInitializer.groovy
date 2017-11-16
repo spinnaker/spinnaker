@@ -26,6 +26,7 @@ import com.netflix.spinnaker.clouddriver.dcos.DcosConfigurationProperties
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.clouddriver.security.CredentialsInitializerSynchronizable
 import com.netflix.spinnaker.clouddriver.security.ProviderUtils
+import feign.FeignException
 import groovy.util.logging.Slf4j
 import mesosphere.dcos.client.DCOS
 import mesosphere.dcos.client.DCOSException
@@ -113,7 +114,7 @@ class DcosCredentialsInitializer implements CredentialsInitializerSynchronizable
           DCOS client = clientProvider.getDcosClient(clusterCredentials)
           try {
             client.getServerInfo()
-          } catch (DCOSException e) {
+          } catch (DCOSException | FeignException e) {
             LOGGER.error("[account={}] There was a problem trying to connect to the cluster with url=[{}] using uid=[{}]. Details: ", account.name, cluster.dcosUrl, clusterConfig.uid, e)
           }
 

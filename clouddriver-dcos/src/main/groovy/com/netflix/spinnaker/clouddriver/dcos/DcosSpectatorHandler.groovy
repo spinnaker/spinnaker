@@ -55,7 +55,7 @@ class DcosSpectatorHandler implements InvocationHandler {
         }
 
         if (failure != null) {
-            throw new Throwable(method.name, failure)
+            throw failure
         } else {
             return result
         }
