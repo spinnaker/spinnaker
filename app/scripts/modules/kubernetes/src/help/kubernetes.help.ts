@@ -138,11 +138,13 @@ const helpContents: {[key: string]: string} = {
   'kubernetes.manifest.cluster': `
       <p>A cluster is a grouping of resources (often across multiple versions of a resource) within an application.</p>
   `,
-  'kubernetes.manifest.stack': `
-      <p><i>(Optional)</i> A naming component used to optionally group manifests within Spinnaker. Typically used to create vertical stacks of resources that can be aggregated/filtered later.</p>
-  `,
-  'kubernetes.manifest.detail': `
-      <p><i>(Optional)</i> A naming component used to store free-form text about your manifest, and can be used to aggregate/filter resources later.</p>
+  'kubernetes.manifest.stackdetail': `
+      <p>
+      <b>Stack:</b> <i>(Optional)</i> A naming component used to optionally group manifests within Spinnaker. Typically used to create vertical stacks of resources that can be aggregated/filtered later.
+      </p>
+      <p>
+      <b>Detail:</b> <i>(Optional)</i> A naming component used to store free-form text about your manifest, and can be used to aggregate/filter resources later.
+      </p>
   `,
   'kubernetes.manifest.delete.gracePeriod': `
       <p><i>(Optional)</i>The number of seconds given to the resource to terminate gracefully. Overrides what's set on the manifest if applicable.</p>
