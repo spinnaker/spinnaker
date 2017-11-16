@@ -82,6 +82,7 @@ class KubernetesNamedAccountCredentialsInitializer implements CredentialsInitial
           .accountType(managedAccount.accountType ?: managedAccount.name)
           .context(managedAccount.context)
           .cluster(managedAccount.cluster)
+          .oAuthTokenCommand(managedAccount.oAuthTokenCommand)
           .user(managedAccount.user)
           .kubeconfigFile(managedAccount.kubeconfigFile)
           .serviceAccount(managedAccount.serviceAccount)

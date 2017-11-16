@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.security;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Clock;
 import com.netflix.spectator.api.Registry;
@@ -67,6 +68,10 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
   @Getter
   private final String context;
 
+  @JsonIgnore
+  @Getter
+  private final List<String> oAuthTokenCommand;
+
   @Getter
   private final String defaultNamespace = "default";
 
@@ -77,6 +82,7 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
     String accountName;
     String kubeconfigFile;
     String context;
+    List<String> oAuthTokenCommand;
     String userAgent;
     List<String> namespaces = new ArrayList<>();
     List<String> omitNamespaces = new ArrayList<>();
@@ -129,6 +135,11 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
       return this;
     }
 
+    public Builder oAuthTokenCommand(List<String> oAuthTokenCommand) {
+      this.oAuthTokenCommand = oAuthTokenCommand;
+      return this;
+    }
+
     public KubernetesV2Credentials build() {
       KubeConfig kubeconfig;
       try {
@@ -147,7 +158,7 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
 
       namespaces = namespaces == null ? new ArrayList<>() : namespaces;
       omitNamespaces = omitNamespaces == null ? new ArrayList<>() : omitNamespaces;
-      
+
       return new KubernetesV2Credentials(
           accountName,
           jobExecutor,
@@ -156,6 +167,7 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
           registry,
           kubeconfigFile,
           context,
+          oAuthTokenCommand,
           debug
       );
     }
@@ -168,6 +180,7 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
       @NotNull Registry registry,
       String kubeconfigFile,
       String context,
+      List<String> oAuthTokenCommand,
       boolean debug) {
     this.registry = registry;
     this.clock = registry.clock();
@@ -179,6 +192,7 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
 
     this.kubeconfigFile = kubeconfigFile;
     this.context = context;
+    this.oAuthTokenCommand = oAuthTokenCommand;
   }
 
   @Override

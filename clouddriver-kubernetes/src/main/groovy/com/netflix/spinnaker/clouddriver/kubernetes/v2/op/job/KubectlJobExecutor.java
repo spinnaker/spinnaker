@@ -324,7 +324,9 @@ public class KubectlJobExecutor {
     }
 
     String kubeconfigFile = credentials.getKubeconfigFile();
-    if (StringUtils.isNotEmpty(kubeconfigFile)) {
+    if (credentials.getOAuthTokenCommand() != null && !credentials.getOAuthTokenCommand().isEmpty()) {
+      command.add("--token=" + getOAuthToken(credentials));
+    } else if (StringUtils.isNotEmpty(kubeconfigFile)) {
       command.add("--kubeconfig=" + kubeconfigFile);
     }
 
@@ -358,6 +360,19 @@ public class KubectlJobExecutor {
     command.add(kind.toString());
 
     return command;
+  }
+
+  private String getOAuthToken(KubernetesV2Credentials credentials) {
+    String jobId = jobExecutor.startJob(new JobRequest(credentials.getOAuthTokenCommand()),
+      System.getenv(),
+      new ByteArrayInputStream(new byte[0]));
+
+    JobStatus status = backoffWait(jobId, credentials.isDebug());
+
+    if (status.getResult() != JobStatus.Result.SUCCESS) {
+      throw new KubectlException("Could not fetch OAuth token: " + status.getStdErr());
+    }
+    return status.getStdOut();
   }
 
   public static class KubectlException extends RuntimeException {
