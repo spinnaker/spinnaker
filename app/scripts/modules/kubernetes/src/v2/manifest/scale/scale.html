@@ -1,0 +1,39 @@
+<div modal-page class="confirmation-modal">
+  <task-monitor monitor="ctrl.taskMonitor"></task-monitor>
+  <form role="form" name="scaleForm">
+    <modal-close dismiss="$dismiss()"></modal-close>
+    <div class="modal-header">
+      <h3>Scale {{ctrl.command.name | robotToHuman}} in {{ctrl.command.location}}</h3>
+    </div>
+    <div class="modal-body confirmation-modal">
+      <div class="form-horizontal">
+        <div class="form-group form-inline">
+          <div class="col-md-3 sm-label-right">
+            Replicas
+          </div>
+          <div class="col-md-4">
+            <div class="input-group">
+              <input type="number"
+                     class="form-control input-sm highlight-pristine"
+                     ng-model="ctrl.command.replicas"
+                     min="0"/>
+              <span class="input-group-addon">replica<span ng-if="ctrl.command.replicas !== 1">s</span></span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <task-reason command="ctrl.command"></task-reason>
+    </div>
+    <div class="modal-footer">
+      <user-verification account="ctrl.command.account" verification="ctrl.verification"></user-verification>
+      <button type="submit" ng-click="ctrl.scale()" style="display:none"></button> <!-- Allows form submission via enter keypress-->
+      <button class="btn btn-default" ng-click="ctrl.cancel()">Cancel</button>
+      <button type="submit"
+              class="btn btn-primary"
+              ng-click="ctrl.scale()"
+              ng-disabled="!ctrl.isValid() || !scaleForm.$valid">
+        Submit
+      </button>
+    </div>
+  </form>
+</div>

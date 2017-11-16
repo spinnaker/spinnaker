@@ -8,6 +8,7 @@ import { KUBERNETES_MANIFEST_BASIC_SETTINGS } from './manifest/wizard/basicSetti
 import { KUBERNETES_MANIFEST_CTRL } from './manifest/wizard/manifestWizard.controller';
 import { KUBERNETES_EDIT_MANIFEST_CTRL } from './manifest/edit/editManifestWizard.controller';
 import { KUBERNETES_MANIFEST_DELETE_CTRL } from './manifest/delete/delete.controller';
+import { KUBERNETES_MANIFEST_SCALE_CTRL } from './manifest/scale/scale.controller';
 import { KUBERNETES_MANIFEST_ENTRY } from './manifest/wizard/manifestEntry.component';
 import { KUBERNETES_V2_INSTANCE_DETAILS_CTRL } from './instance/details/details.controller';
 import { KUBERNETES_V2_LOAD_BALANCER_DETAILS_CTRL } from './loadBalancer/details/details.controller';
@@ -40,6 +41,7 @@ module(KUBERNETES_V2_MODULE, [
   KUBERNETES_MANIFEST_CTRL,
   KUBERNETES_EDIT_MANIFEST_CTRL,
   KUBERNETES_MANIFEST_DELETE_CTRL,
+  KUBERNETES_MANIFEST_SCALE_CTRL,
   KUBERNETES_MANIFEST_ENTRY,
 ]).config((cloudProviderRegistryProvider: CloudProviderRegistry) => {
     cloudProviderRegistryProvider.registerProvider('kubernetes', {

@@ -35,17 +35,22 @@ class KubernetesServerGroupDetailsController implements IController {
       .catch(() => this.autoClose());
   }
 
-  public canResizeServerGroup(): boolean {
+  public canScaleServerGroup(): boolean {
     return this.serverGroup.kind !== 'DaemonSet';
   }
 
-  public resizeServerGroup(): void {
+  public scaleServerGroup(): void {
     this.$uibModal.open({
-      templateUrl: require('./resize/resize.html'),
-      controller: 'kubernetesV2ServerGroupResizeCtrl',
+      templateUrl: require('../../manifest/scale/scale.html'),
+      controller: 'kubernetesV2ManifestScaleCtrl',
       controllerAs: 'ctrl',
       resolve: {
-        serverGroup: this.serverGroup,
+        coordinates: {
+          name: this.serverGroup.name,
+          namespace: this.serverGroup.namespace,
+          account: this.serverGroup.account
+        },
+        currentReplicas: this.serverGroup.manifest.spec.replicas,
         application: this.app
       }
     });

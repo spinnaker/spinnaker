@@ -28,6 +28,16 @@ export class ManifestWriter {
       description
     });
   }
+
+  public scaleManifest(command: any, application: Application): IPromise<ITask> {
+    const description = 'Scale manifest';
+    command.type = 'scaleManifest';
+    return this.taskExecutor.executeTask({
+      job: [command],
+      application,
+      description
+    });
+  }
 }
 
 export const MANIFEST_WRITER = 'spinnaker.core.manifest.write.service';

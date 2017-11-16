@@ -31,14 +31,14 @@
           Server Group Actions <span class="caret"></span>
         </button>
         <ul class="dropdown-menu" uib-dropdown-menu role="menu">
-          <li ng-if="ctrl.canResizeServerGroup()">
-            <a href ng-click="ctrl.resizeServerGroup()">
-              Resize
-            </a>
-          </li>
           <li>
             <a href ng-click="ctrl.editServerGroup()">
               Edit
+            </a>
+          </li>
+          <li ng-if="ctrl.canScaleServerGroup()">
+            <a href ng-click="ctrl.scaleServerGroup()">
+              Scale
             </a>
           </li>
           <li>

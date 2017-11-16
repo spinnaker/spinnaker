@@ -19,6 +19,23 @@ class KubernetesServerGroupManagerDetailsController implements IController {
       });
   }
 
+  public scaleServerGroupManager(): void {
+    this.$uibModal.open({
+      templateUrl: require('../../manifest/scale/scale.html'),
+      controller: 'kubernetesV2ManifestScaleCtrl',
+      controllerAs: 'ctrl',
+      resolve: {
+        coordinates: {
+          name: this.serverGroupManager.name,
+          namespace: this.serverGroupManager.namespace,
+          account: this.serverGroupManager.account
+        },
+        currentReplicas: this.serverGroupManager.manifest.spec.replicas,
+        application: this.app
+      }
+    });
+  }
+
   public editServerGroupManager(): void {
     this.$uibModal.open({
       templateUrl: require('../../manifest/wizard/manifestWizard.html'),
