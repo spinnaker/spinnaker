@@ -174,12 +174,20 @@ function configure(IS_TEST) {
     };
 
     config.plugins.push(...[
+      new webpack.EnvironmentPlugin({
+        API_HOST: 'https://api-prestaging.spinnaker.mgmt.netflix.net',
+        ENTITY_TAGS_ENABLED: 'true',
+        FIAT_ENABLED: 'false',
+        INFRA_STAGES: 'false',
+        TIMEZONE: 'America/Los_Angeles',
+        NODE_ENV: 'development',
+      }),
       new webpack.optimize.CommonsChunkPlugin({name: 'vendor', filename: 'vendor.bundle.js'}),
       new webpack.optimize.CommonsChunkPlugin('init'),
       new HtmlWebpackPlugin({
         title: 'Spinnaker',
         template: './app/index.deck',
-        favicon: 'app/favicon.ico',
+        favicon: process.env.NODE_ENV === 'production' ? 'app/prod-favicon.ico' : 'app/dev-favicon.ico',
         inject: true,
 
         // default order is based on webpack's compile process
@@ -192,6 +200,11 @@ function configure(IS_TEST) {
         }
       })
     ]);
+
+    if (process.env.NODE_ENV === 'production') {
+      config.plugins.push(new webpack.optimize.ModuleConcatenationPlugin());
+      config.plugins.push(new webpack.optimize.UglifyJsPlugin({ include: /vendor/, sourceMap: true }));
+    }
   }
 
   // this is temporary and will be deprecated in WP3.  moving forward,
