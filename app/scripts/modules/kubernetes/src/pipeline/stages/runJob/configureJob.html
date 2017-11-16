@@ -1,48 +1,48 @@
 <form name="form" class="container-fluid form-horizontal" style="padding: 0;">
-  <div>
-    <v2-modal-wizard heading="Configure Run Job"
-                     dismiss="ctrl.cancel">
-      <v2-wizard-page label="Basic Settings" mark-complete-on-view="false">
-        <stage-config-field label="Account">
-          <account-select-field component="ctrl.stage"
-                                field="account"
-                                provider="'kubernetes'"
-                                accounts="ctrl.accounts">
-          </account-select-field>
-        </stage-config-field>
-      
-        <stage-config-field label="Namespace" help-key="kubernetes.namespace">
-          <namespace-select-field component="ctrl.stage"
-                                  field="namespace"
-                                  hide-label="true"
-                                  columns="12"
-                                  account="ctrl.stage.account"
-                                  namespaces="ctrl.namespaces">
-          </namespace-select-field>
-        </stage-config-field>
+  <v2-modal-wizard heading="Configure Run Job"
+                   dismiss="ctrl.cancel">
+    <v2-wizard-page label="Basic Settings" mark-complete-on-view="false">
+      <stage-config-field label="Account">
+        <account-select-field component="ctrl.stage"
+                              field="account"
+                              provider="'kubernetes'"
+                              accounts="ctrl.accounts">
+        </account-select-field>
+      </stage-config-field>
     
-        <stage-config-field label="Image">
-          <ui-select name="containerSelect" ng-model="ctrl.stage.container" class="form-control input-sm" required>
-            <ui-select-match>{{ ctrl.stage.container.imageDescription | kubernetesImageId }}</ui-select-match>
-            <ui-select-choices
-              repeat="container in ctrl.containers | orderBy: 'imageDescription.imageId'"
-              group-by="ctrl.groupByRegistry"
-              refresh-delay="0"
-              ui-disable-choice="container.message"
-              refresh="ctrl.searchImages($select.search)">
-              <span ng-bind-html="container.imageDescription | kubernetesImageId | highlight: $select.search"></span>
-            </ui-select-choices>
-          </ui-select>
-        </stage-config-field>
+      <stage-config-field label="Namespace" help-key="kubernetes.namespace">
+        <namespace-select-field component="ctrl.stage"
+                                field="namespace"
+                                hide-label="true"
+                                columns="12"
+                                account="ctrl.stage.account"
+                                namespaces="ctrl.namespaces">
+        </namespace-select-field>
+      </stage-config-field>
+    </v2-wizard-page>
 
-        <stage-config-field label="Container Name">
-          <div>
-            <input type="text" class="form-control input-sm" ng-model="ctrl.stage.container.name">
-          </div>
-        </stage-config-field>
-      </v2-wizard-page>
-      <v2-wizard-page label="Container" done="true">
-        
+    <v2-wizard-page label="Container" done="true">
+      <stage-config-field label="Image">
+        <ui-select name="containerSelect" ng-model="ctrl.stage.container" class="form-control input-sm" required>
+          <ui-select-match>{{ ctrl.stage.container.imageDescription | kubernetesImageId }}</ui-select-match>
+          <ui-select-choices
+            repeat="container in ctrl.containers | orderBy: 'imageDescription.imageId'"
+            group-by="ctrl.groupByRegistry"
+            refresh-delay="0"
+            ui-disable-choice="container.message"
+            refresh="ctrl.searchImages($select.search)">
+            <span ng-bind-html="container.imageDescription | kubernetesImageId | highlight: $select.search"></span>
+          </ui-select-choices>
+        </ui-select>
+      </stage-config-field>
+
+      <stage-config-field label="Container Name">
+        <div>
+          <input type="text" class="form-control input-sm" ng-model="ctrl.stage.container.name">
+        </div>
+      </stage-config-field>
+      
+      <collapsible-section heading="Basic Settings" expanded="true" subsection="true">
         <div class="sm-label-left">
           <b>Commands</b>
         </div>
@@ -60,51 +60,73 @@
         </div>
         <kubernetes-container-environment-variables env-vars="ctrl.stage.container.envVars">
         </kubernetes-container-environment-variables>
+      </collapsible-section>
 
-        
-        <div class="sm-label-left">
-          <b>Volumes</b>
-        </div>
+      <collapsible-section heading="Volumes" expanded="false" subsection="true">
         <kubernetes-container-volumes volume-sources="ctrl.stage.volumeSources" volume-mounts="ctrl.stage.container.volumeMounts">
         </kubernetes-container-volumes>
-      </v2-wizard-page>
+      </collapsible-section>
 
-      <v2-wizard-page label="Advanced Settings" done="true">
+      <collapsible-section heading="Ports" expanded="false" subsection="true">
+        <kubernetes-container-ports ports="ctrl.stage.container.ports">
+        </kubernetes-container-ports>
+      </collapsible-section>
+
+      <collapsible-section heading="Probes" expanded="false" subsection="true">
+        <kubernetes-container-probe container="ctrl.stage.container" command="$ctrl" probetype="'readinessProbe'" heading="'Readiness'">
+        </kubernetes-container-probe>
+        <hr>
+        <kubernetes-container-probe container="ctrl.stage.container" command="$ctrl" probetype="'livenessProbe'" heading="'Liveness'">
+        </kubernetes-container-probe>
+      </collapsible-section>
+
+      <collapsible-section heading="Resources" expanded="false" subsection="true">
+        <kubernetes-container-resources container="ctrl.stage.container">
+        </kubernetes-container-resources>
+      </collapsible-section>
+
+      <collapsible-section heading="Security Context" expanded="false" subsection="true">
+        <kubernetes-security-context-selector component="ctrl.stage.container">
+        </kubernetes-security-context-selector>
+      </collapsible-section>
+
+      <collapsible-section heading="Lifecycle Hooks" expanded="false" subsection="true">
+        <kubernetes-lifecycle-hook-configurer on-handler-change="ctrl.setPostStartHandler(handler)"
+                                              handler="ctrl.stage.container.lifecycle.postStart">
+        PostStart <help-field key="kubernetes.containers.lifecycle.postStart"></help-field>
+        </kubernetes-lifecycle-hook-configurer>
+        <kubernetes-lifecycle-hook-configurer on-handler-change="ctrl.setPreStopHandler(handler)"
+                                              handler="ctrl.stage.container.lifecycle.preStop">
+        PreStop <help-field key="kubernetes.containers.lifecycle.preStop"></help-field>
+        </kubernetes-lifecycle-hook-configurer>
+      </collapsible-section>
+    </v2-wizard-page>
+
+    <v2-wizard-page label="Advanced Settings" done="true">
+      <stage-config-field label="DNS Policy">
+        <select class="form-control input-sm"
+                ng-model="ctrl.stage.dnsPolicy"
+                ng-options="option for option in ctrl.policies">
+        </select>
+      </stage-config-field>
+
+      <stage-config-field label="Service Account Name">
+        <input type="text" class="form-control input-sm" ng-model="ctrl.stage.serviceAccountName">
+      </stage-config-field>
+
+      <div class="sm-label-left">
+        <b>Pod Annotations</b>
+      </div>
+      <map-editor model="ctrl.stage.annotations" add-button-label="Add Annotations" labels-left="true">
+      </map-editor>
   
-        <div class="sm-label-left">
-          <b>Pod Annotations</b>
-        </div>
-        <map-editor model="ctrl.stage.annotations" add-button-label="Add Annotations" labels-left="true">
-        </map-editor>
-    
-        <div class="sm-label-left">
-          <b>Pod Labels</b>
-        </div>
-        <map-editor model="ctrl.stage.labels" add-button-label="Add Labels" labels-left="true">
-        </map-editor>
-        
-        <stage-config-field label="Service Account Name">
-          <div>
-            <input type="text" class="form-control input-sm" ng-model="ctrl.stage.serviceAccountName">
-          </div>
-        </stage-config-field>
-      
-        <stage-config-field label="DNS Policy">
-          <div>
-              <select class="form-control input-sm"
-                      ng-model="ctrl.stage.dnsPolicy"
-                      ng-options="option for option in ctrl.policies">
-              </select>
-          </div>
-        </stage-config-field>
-        <stage-config-field label="Security Context">
-          <kubernetes-security-context-selector component="ctrl.stage.container">
-          </kubernetes-security-context-selector>
-        </stage-config-field>
-      </v2-wizard-page>
-      
-    </v2-modal-wizard>
-  </div>
+      <div class="sm-label-left">
+        <b>Pod Labels</b>
+      </div>
+      <map-editor model="ctrl.stage.labels" add-button-label="Add Labels" labels-left="true">
+      </map-editor>
+    </v2-wizard-page>
+  </v2-modal-wizard>
   <div class="modal-footer">
     <button class="btn btn-default btn-cancel" ng-click="ctrl.cancel()">Cancel</button>
     <submit-button on-click="ctrl.submit()"></submit-button>

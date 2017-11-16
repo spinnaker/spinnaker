@@ -1,12 +1,17 @@
 'use strict';
 
 const angular = require('angular');
+import { KUBERNETES_LIFECYCLE_HOOK_CONFIGURER } from 'kubernetes/container/lifecycleHook.component';
 
 module.exports = angular.module('spinnaker.kubernetes.pipeline.stage.runJobStage.configure', [
   require('kubernetes/container/commands.component.js').name,
   require('kubernetes/container/arguments.component.js').name,
   require('kubernetes/container/environmentVariables.component.js').name,
   require('kubernetes/container/volumes.component.js').name,
+  require('kubernetes/container/ports.component.js').name,
+  require('kubernetes/container/resources.component.js').name,
+  require('kubernetes/container/probe.directive.js').name,
+  KUBERNETES_LIFECYCLE_HOOK_CONFIGURER
 ])
   .controller('kubernetesConfigureJobController', function($scope, $uibModalInstance, accountService, kubernetesImageReader, pipelineConfigService, $filter,
                                                            stage, pipeline, application) {
@@ -131,6 +136,20 @@ module.exports = angular.module('spinnaker.kubernetes.pipeline.stage.runJobStage
           return container.imageDescription.registry;
         }
       }
+    };
+
+    this.setPostStartHandler = (handler) => {
+      if (!this.stage.container.lifecycle) {
+        this.stage.container.lifecycle = {};
+      }
+      this.stage.container.lifecycle.postStart = handler;
+    };
+
+    this.setPreStopHandler = (handler) => {
+      if (!this.stage.container.lifecycle) {
+        this.stage.container.lifecycle = {};
+      }
+      this.stage.container.lifecycle.preStop = handler;
     };
 
     this.submit = () => {
