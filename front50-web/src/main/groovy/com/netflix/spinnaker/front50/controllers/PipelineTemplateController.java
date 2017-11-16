@@ -27,6 +27,7 @@ import com.netflix.spinnaker.front50.model.pipeline.PipelineTemplate;
 import com.netflix.spinnaker.front50.model.pipeline.PipelineTemplateDAO;
 import com.netflix.spinnaker.front50.model.pipeline.TemplateConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -41,11 +42,12 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RestController
+@ConditionalOnBean(PipelineTemplateDAO.class)
 @RequestMapping("pipelineTemplates")
 public class PipelineTemplateController {
 
-  @Autowired(required = false)
-  PipelineTemplateDAO pipelineTemplateDAO = null;
+  @Autowired
+  PipelineTemplateDAO pipelineTemplateDAO;
 
   @Autowired
   PipelineDAO pipelineDAO;
@@ -57,29 +59,29 @@ public class PipelineTemplateController {
 
   @RequestMapping(value = "", method = RequestMethod.GET)
   List<PipelineTemplate> list(@RequestParam(required = false, value = "scopes") List<String> scopes) {
-    return (List<PipelineTemplate>) getPipelineTemplateDAO().getPipelineTemplatesByScope(scopes);
+    return (List<PipelineTemplate>) pipelineTemplateDAO.getPipelineTemplatesByScope(scopes);
   }
 
   @RequestMapping(value = "", method = RequestMethod.POST)
   void save(@RequestBody PipelineTemplate pipelineTemplate) {
     checkForDuplicatePipelineTemplate(pipelineTemplate.getId());
-    getPipelineTemplateDAO().create(pipelineTemplate.getId(), pipelineTemplate);
+    pipelineTemplateDAO.create(pipelineTemplate.getId(), pipelineTemplate);
   }
 
   @RequestMapping(value = "{id}", method = RequestMethod.GET)
   PipelineTemplate get(@PathVariable String id) {
-    return getPipelineTemplateDAO().findById(id);
+    return pipelineTemplateDAO.findById(id);
   }
 
   @RequestMapping(value = "{id}", method = RequestMethod.PUT)
   PipelineTemplate update(@PathVariable String id, @RequestBody PipelineTemplate pipelineTemplate) {
-    PipelineTemplate existingPipelineTemplate = getPipelineTemplateDAO().findById(id);
+    PipelineTemplate existingPipelineTemplate = pipelineTemplateDAO.findById(id);
     if (!pipelineTemplate.getId().equals(existingPipelineTemplate.getId())) {
       throw new InvalidRequestException("The provided id " + id + " doesn't match the pipeline template id " + pipelineTemplate.getId());
     }
 
     pipelineTemplate.setLastModified(System.currentTimeMillis());
-    getPipelineTemplateDAO().update(id, pipelineTemplate);
+    pipelineTemplateDAO.update(id, pipelineTemplate);
 
     return pipelineTemplate;
   }
@@ -88,7 +90,7 @@ public class PipelineTemplateController {
   void delete(@PathVariable String id) {
     checkForDependentConfigs(id, true);
     checkForDependentTemplates(id);
-    getPipelineTemplateDAO().delete(id);
+    pipelineTemplateDAO.delete(id);
   }
 
   @RequestMapping(value = "{id}/dependentPipelines", method = RequestMethod.GET)
@@ -162,7 +164,7 @@ public class PipelineTemplateController {
   List<String> getDependentTemplates(String templateId, Optional<Collection<PipelineTemplate>> templates) {
     List<String> dependentTemplateIds = new ArrayList<>();
 
-    final Collection<PipelineTemplate> pipelineTemplates = templates.orElse(getPipelineTemplateDAO().all());
+    final Collection<PipelineTemplate> pipelineTemplates = templates.orElse(pipelineTemplateDAO.all());
     pipelineTemplates.forEach(template -> {
         if (template.getSource() != null
           && template.getSource().equalsIgnoreCase("spinnaker://" + templateId)) {
@@ -184,17 +186,10 @@ public class PipelineTemplateController {
 
   private void checkForDuplicatePipelineTemplate(String id) {
     try {
-      getPipelineTemplateDAO().findById(id);
+      pipelineTemplateDAO.findById(id);
     } catch (NotFoundException e) {
       return;
     }
     throw new DuplicateEntityException("A pipeline template with the id " + id + " already exists");
-  }
-
-  private PipelineTemplateDAO getPipelineTemplateDAO() {
-    if (pipelineTemplateDAO == null) {
-      throw new BadRequestException("Pipeline Templates are not supported with your current storage backend");
-    }
-    return pipelineTemplateDAO;
   }
 }

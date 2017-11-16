@@ -23,11 +23,13 @@ import com.netflix.spinnaker.front50.exceptions.InvalidRequestException;
 import com.netflix.spinnaker.front50.model.intent.Intent;
 import com.netflix.spinnaker.front50.model.intent.IntentDAO;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
+@ConditionalOnBean(IntentDAO.class)
 @RequestMapping("intents")
 public class IntentController {
 
