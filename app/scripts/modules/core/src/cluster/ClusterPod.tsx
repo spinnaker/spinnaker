@@ -71,7 +71,15 @@ export class ClusterPod extends React.Component<IClusterPodProps, IClusterPodSta
 
   private renderSubGroup(subgroup: IServerGroupSubgroup) {
     const { grouping, application, sortFilter } = this.props;
-    const sortedServerGroups = orderBy(subgroup.serverGroups, ['name'], ['desc']);
+    const hasMoniker = subgroup.serverGroups.every((sg) => { return !!sg.moniker });
+    let iteratee;
+    if (hasMoniker) {
+      iteratee = 'moniker.sequence'
+    } else {
+      iteratee = 'name'
+    }
+
+    const sortedServerGroups = orderBy(subgroup.serverGroups, [iteratee], ['desc']);
 
     return (
       <div className="pod-subgroup" key={subgroup.key}>
