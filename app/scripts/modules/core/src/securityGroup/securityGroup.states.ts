@@ -2,20 +2,19 @@ import { module } from 'angular';
 
 import { StateParams } from '@uirouter/angularjs';
 import { INestedState, STATE_CONFIG_PROVIDER, StateConfigProvider } from 'core/navigation/state.provider';
-import {
-  APPLICATION_STATE_PROVIDER, ApplicationStateProvider,
-} from 'core/application/application.state.provider';
-import { CloudProviderRegistry } from 'core/cloudProvider/cloudProvider.registry';
+import { APPLICATION_STATE_PROVIDER, ApplicationStateProvider, } from 'core/application/application.state.provider';
 import { SecurityGroupReader } from './securityGroupReader.service';
 import { APPLICATION_MODEL_BUILDER, ApplicationModelBuilder } from 'core/application/applicationModel.builder';
 import { Application } from 'core/application/application.model';
 import { filterModelConfig } from './filter/securityGroupFilter.model';
+import { VERSIONED_CLOUD_PROVIDER_SERVICE, VersionedCloudProviderService } from 'core/cloudProvider/versionedCloudProvider.service';
 
 export const SECURITY_GROUP_STATES = 'spinnaker.core.securityGroup.states';
 module(SECURITY_GROUP_STATES, [
   APPLICATION_STATE_PROVIDER,
   STATE_CONFIG_PROVIDER,
-  APPLICATION_MODEL_BUILDER
+  APPLICATION_MODEL_BUILDER,
+  VERSIONED_CLOUD_PROVIDER_SERVICE,
 ]).config((applicationStateProvider: ApplicationStateProvider, stateConfigProvider: StateConfigProvider) => {
 
   const securityGroupDetails: INestedState = {
@@ -29,16 +28,17 @@ module(SECURITY_GROUP_STATES, [
     },
     views: {
       'detail@../insight': {
-        templateProvider: ['$templateCache', '$stateParams', 'cloudProviderRegistry',
+        templateProvider: ['$templateCache', '$stateParams', 'versionedCloudProviderService',
           ($templateCache: ng.ITemplateCacheService,
            $stateParams: StateParams,
-           cloudProviderRegistry: CloudProviderRegistry) => {
-            return $templateCache.get(cloudProviderRegistry.getValue($stateParams.provider, 'securityGroup.detailsTemplateUrl'));
+           versionedCloudProviderService: VersionedCloudProviderService) => {
+            return versionedCloudProviderService.getValue($stateParams.provider, $stateParams.accountId, 'securityGroup.detailsTemplateUrl')
+              .then((templateUrl) => $templateCache.get(templateUrl))
         }],
-        controllerProvider: ['$stateParams', 'cloudProviderRegistry',
+        controllerProvider: ['$stateParams', 'versionedCloudProviderService',
           ($stateParams: StateParams,
-           cloudProviderRegistry: CloudProviderRegistry) => {
-            return cloudProviderRegistry.getValue($stateParams.provider, 'securityGroup.detailsController');
+           versionedCloudProviderService: VersionedCloudProviderService) => {
+            return versionedCloudProviderService.getValue($stateParams.provider, $stateParams.accountId, 'securityGroup.detailsController');
         }],
         controllerAs: 'ctrl'
       }
@@ -100,10 +100,10 @@ module(SECURITY_GROUP_STATES, [
     views: {
       'main@': {
         templateUrl: require('../presentation/standalone.view.html'),
-        controllerProvider: ['$stateParams', 'cloudProviderRegistry',
+        controllerProvider: ['$stateParams', 'versionedCloudProviderService',
           ($stateParams: StateParams,
-           cloudProviderRegistry: CloudProviderRegistry) => {
-            return cloudProviderRegistry.getValue($stateParams.provider, 'securityGroup.detailsController');
+           versionedCloudProviderService: VersionedCloudProviderService) => {
+            return versionedCloudProviderService.getValue($stateParams.provider, $stateParams.accountId, 'securityGroup.detailsController');
         }],
         controllerAs: 'ctrl'
       }

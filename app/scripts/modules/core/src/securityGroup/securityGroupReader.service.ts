@@ -118,7 +118,6 @@ export class SecurityGroupReader {
     return this.providerServiceDelegate
       .getDelegate<any>(container.provider || container.type || container.cloudProvider, 'securityGroup.reader')
       .resolveIndexedSecurityGroup(index, container, securityGroupId);
-
   }
 
   private addLoadBalancerSecurityGroups(application: Application): ISecurityGroupProcessorResult {

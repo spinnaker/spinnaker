@@ -12,6 +12,7 @@ import { KUBERNETES_MANIFEST_SCALE_CTRL } from './manifest/scale/scale.controlle
 import { KUBERNETES_MANIFEST_ENTRY } from './manifest/wizard/manifestEntry.component';
 import { KUBERNETES_V2_INSTANCE_DETAILS_CTRL } from './instance/details/details.controller';
 import { KUBERNETES_V2_LOAD_BALANCER_DETAILS_CTRL } from './loadBalancer/details/details.controller';
+import { KUBERNETES_V2_SECURITY_GROUP_DETAILS_CTRL } from './securityGroup/details/details.controller';
 import { KUBERNETES_V2_SERVER_GROUP_TRANSFORMER } from './serverGroup/serverGroupTransformer.service';
 import { KUBERNETES_V2_SERVER_GROUP_DETAILS_CTRL } from './serverGroup/details/details.controller';
 import { KUBERNETES_V2_SERVER_GROUP_RESIZE_CTRL } from './serverGroup/details/resize/resize.controller';
@@ -30,6 +31,7 @@ module(KUBERNETES_V2_MODULE, [
   CLOUD_PROVIDER_REGISTRY,
   KUBERNETES_V2_INSTANCE_DETAILS_CTRL,
   KUBERNETES_V2_LOAD_BALANCER_DETAILS_CTRL,
+  KUBERNETES_V2_SECURITY_GROUP_DETAILS_CTRL,
   KUBERNETES_V2_SERVER_GROUP_COMMAND_BUILDER,
   KUBERNETES_V2_SERVER_GROUP_DETAILS_CTRL,
   KUBERNETES_V2_SERVER_GROUP_TRANSFORMER,
@@ -43,6 +45,7 @@ module(KUBERNETES_V2_MODULE, [
   KUBERNETES_MANIFEST_DELETE_CTRL,
   KUBERNETES_MANIFEST_SCALE_CTRL,
   KUBERNETES_MANIFEST_ENTRY,
+  require('../securityGroup/reader.js').name,
 ]).config((cloudProviderRegistryProvider: CloudProviderRegistry) => {
     cloudProviderRegistryProvider.registerProvider('kubernetes', {
       name: 'Kubernetes',
@@ -67,6 +70,11 @@ module(KUBERNETES_V2_MODULE, [
         createLoadBalancerTemplateUrl: require('./manifest/wizard/manifestWizard.html'),
         detailsController: 'kubernetesV2LoadBalancerDetailsCtrl',
         detailsTemplateUrl: require('./loadBalancer/details/details.html'),
+      },
+      securityGroup: {
+        reader: 'kubernetesSecurityGroupReader',
+        detailsController: 'kubernetesV2SecurityGroupDetailsCtrl',
+        detailsTemplateUrl: require('./securityGroup/details/details.html'),
       },
       instance: {
         detailsController: 'kubernetesV2InstanceDetailsCtrl',
