@@ -144,7 +144,7 @@ public class KubectlJobExecutor {
     command.add("rollout");
     command.add("undo");
     command.add(kind.toString() + "/" + name);
-    command.add("--revision=" + revision);
+    command.add("--to-revision=" + revision);
 
     String jobId = jobExecutor.startJob(new JobRequest(command),
         System.getenv(),
