@@ -38,6 +38,16 @@ export class ManifestWriter {
       description
     });
   }
+
+  public undoRolloutManifest(command: any, application: Application): IPromise<ITask> {
+    const description = 'Undo rollout of manifest';
+    command.type = 'undoRolloutManifest';
+    return this.taskExecutor.executeTask({
+      job: [command],
+      application,
+      description
+    });
+  }
 }
 
 export const MANIFEST_WRITER = 'spinnaker.core.manifest.write.service';

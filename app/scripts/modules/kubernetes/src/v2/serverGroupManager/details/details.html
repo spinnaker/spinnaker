@@ -31,13 +31,19 @@
         </button>
         <ul class="dropdown-menu" uib-dropdown-menu role="menu">
           <li>
-            <a href ng-click="ctrl.editServerGroupManager()">
-              Edit
+            <a href ng-click="ctrl.scaleServerGroupManager()">
+              Scale
             </a>
           </li>
           <li>
-            <a href ng-click="ctrl.scaleServerGroupManager()">
-              Scale
+            <a href ng-click="ctrl.undoRolloutServerGroupManager()">
+              Undo Rollout
+            </a>
+          </li>
+          <li role="presentation" class="divider"></li>
+          <li>
+            <a href ng-click="ctrl.editServerGroupManager()">
+              Edit
             </a>
           </li>
           <li>

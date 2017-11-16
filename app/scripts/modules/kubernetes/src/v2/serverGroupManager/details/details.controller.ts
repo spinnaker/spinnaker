@@ -19,6 +19,22 @@ class KubernetesServerGroupManagerDetailsController implements IController {
       });
   }
 
+  public undoRolloutServerGroupManager(): void {
+    this.$uibModal.open({
+      templateUrl: require('../../manifest/rollout/undo.html'),
+      controller: 'kubernetesV2ManifestUndoRolloutCtrl',
+      controllerAs: 'ctrl',
+      resolve: {
+        coordinates: {
+          name: this.serverGroupManager.name,
+          namespace: this.serverGroupManager.namespace,
+          account: this.serverGroupManager.account
+        },
+        application: this.app
+      }
+    });
+  }
+
   public scaleServerGroupManager(): void {
     this.$uibModal.open({
       templateUrl: require('../../manifest/scale/scale.html'),
