@@ -95,11 +95,18 @@ class RunKubernetesJobAtomicOperation implements AtomicOperation<DeploymentResul
     if (description.nodeSelector){
       podBuilder = podBuilder.withNodeSelector(description.nodeSelector)
     }
+    
+    // if the description is still using the single container, convert to a list first
+    if (description.container) {
+      description.containers = [description.container]
+    }
 
-    description.container.name = description.container.name ?: "job"
-    def container = KubernetesApiConverter.toContainer(description.container)
-
-    podBuilder = podBuilder.withContainers(container)
+    def containers = description.containers.collect { container ->
+      container.name = container.name ?: "job"
+      KubernetesApiConverter.toContainer(container)
+    }
+    
+    podBuilder = podBuilder.withContainers(containers)
 
     podBuilder = podBuilder.endSpec()
 

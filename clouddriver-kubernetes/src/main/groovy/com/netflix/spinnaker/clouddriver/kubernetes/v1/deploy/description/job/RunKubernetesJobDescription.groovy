@@ -32,7 +32,9 @@ class RunKubernetesJobDescription extends KubernetesKindAtomicOperationDescripti
   String namespace
   Boolean hostNetwork=false
   Map<String, String> nodeSelector
+  // this should be deprecated at some point
   KubernetesContainerDescription container
+  List<KubernetesContainerDescription> containers
   List<KubernetesVolumeSource> volumeSources
   Map<String, String> labels
   Map<String, String> annotations
