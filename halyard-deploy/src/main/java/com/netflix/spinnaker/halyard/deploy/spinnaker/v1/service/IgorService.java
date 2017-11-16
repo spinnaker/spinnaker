@@ -91,7 +91,7 @@ abstract public class IgorService extends SpringService<IgorService.Igor> {
     Boolean monitored = true;
     Boolean sidecar = false;
     Integer targetSize = 1;
-    Boolean SkipLiveCycleManagement = false;
+    Boolean skipLiveCycleManagement = false;
     Map<String, String> env = new HashMap<>();
 
     public Settings() {}

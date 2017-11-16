@@ -116,7 +116,7 @@ abstract public class ConsulClientService extends SpinnakerService<ConsulApi> im
     Boolean monitored = false;
     Boolean sidecar = true;
     Integer targetSize = 1;
-    Boolean SkipLiveCycleManagement = false;
+    Boolean skipLiveCycleManagement = false;
     Map<String, String> env = new HashMap<>();
 
     public Settings() { }
