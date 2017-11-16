@@ -43,7 +43,13 @@ module.exports = angular.module('spinnaker.serverGroup.configure.openstack.acces
   });
 
   function getSecurityGroups() {
-    return _.get($scope.command.backingData, 'filtered.securityGroups', []);
+    var account = $scope.command.credentials;
+    var region = $scope.command.region;
+    if (!account || !region) {
+      return [];
+    } else {
+      return _.get($scope.command.backingData.securityGroups, [account, 'openstack', region]);
+    }
   }
 
   function resetFloatingNetworkIp() {
