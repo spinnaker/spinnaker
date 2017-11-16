@@ -318,21 +318,20 @@ public class AmazonClientInvocationHandler implements InvocationHandler {
       Long mtime = null;
       final List<T> results = new ArrayList<>();
 
-      final Id readJsonTimer = registry.createId("edda.getJson", metricTags);
       final Id deserializeJsonTimer = registry.createId("edda.deserializeJson", metricTags);
       final Id resultSizeCounter = registry.createId("edda.resultSize", metricTags);
       if (ids.isEmpty()) {
-        final byte[] json = registry.timer(readJsonTimer).record(() -> getJson(metricTags, object, null));
+        InputStream jsonStream = getJsonInputStream(metricTags, object, null);
         final JavaType listMeta = objectMapper.getTypeFactory().constructParametrizedType(List.class, List.class, singleMeta);
-        final List<Metadata<T>> metadataResults = registry.timer(deserializeJsonTimer).record(() -> objectMapper.readValue(json, listMeta));
+        final List<Metadata<T>> metadataResults = registry.timer(deserializeJsonTimer).record(() -> objectMapper.readValue(jsonStream, listMeta));
         for (Metadata<T> meta : metadataResults) {
           mtime = mtime == null ? meta.mtime : Math.min(mtime, meta.mtime);
           results.add(meta.data);
         }
       } else {
         for (String id : ids) {
-          final byte[] json = registry.timer(readJsonTimer).record(() -> getJson(metricTags, object, id));
-          final Metadata<T> result = registry.timer(deserializeJsonTimer).record(() -> objectMapper.readValue(json, singleMeta));
+          InputStream jsonStream = getJsonInputStream(metricTags, object, id);
+          final Metadata<T> result = registry.timer(deserializeJsonTimer).record(() -> objectMapper.readValue(jsonStream, singleMeta));
           mtime = mtime == null ? result.mtime : Math.min(mtime, result.mtime);
           results.add(result.data);
         }
@@ -364,7 +363,7 @@ public class AmazonClientInvocationHandler implements InvocationHandler {
     }
   }
 
-  private byte[] getJson(Map<String, String> metricTags, String objectName, String key) throws IOException {
+  private InputStream getJsonInputStream(Map<String, String> metricTags, String objectName, String key) throws IOException {
     final String url = edda + "/REST/v2/aws/" + objectName + (key == null ? ";_expand" : "/" + key) + ";_meta";
     final HttpGet get = new HttpGet(url);
     get.setConfig(RequestConfig.custom().setConnectTimeout(eddaTimeoutConfig.getConnectTimeout()).setSocketTimeout(eddaTimeoutConfig.getSocketTimeout()).build());
@@ -376,31 +375,26 @@ public class AmazonClientInvocationHandler implements InvocationHandler {
     Exception ex;
 
     final Id httpExecuteTime = registry.createId("edda.httpExecute", metricTags);
-    final Id httpRead = registry.createId("edda.httpRead", metricTags);
     final Id httpErrors = registry.createId("edda.errors", metricTags).withTag("errorType", "http");
     final Id networkErrors = registry.createId("edda.errors", metricTags).withTag("errorType", "network");
     final Id retryDelayMillis = registry.createId("edda.retryDelayMillis", metricTags);
     final Id retries = registry.createId("edda.retries", metricTags);
     while (retryAttempts < eddaTimeoutConfig.getMaxAttempts()) {
       ex = null;
-      HttpEntity cleanupEntity = null;
       try {
         final HttpResponse response = registry.timer(httpExecuteTime).record(() -> httpClient.execute(get));
         final HttpEntity entity = response.getEntity();
-        cleanupEntity = entity;
         final int statusCode = response.getStatusLine().getStatusCode();
         if (statusCode != HttpStatus.SC_OK) {
           lastException = response.getProtocolVersion().toString() + " " + response.getStatusLine().getStatusCode() + " " + response.getStatusLine().getReasonPhrase();
           registry.counter(httpErrors.withTag("statusCode", Integer.toString(statusCode))).increment();
         } else {
-          return registry.timer(httpRead).record(() -> getBytesFromInputStream(entity.getContent(), entity.getContentLength()));
+          return entity.getContent();
         }
       } catch (Exception e) {
         lastException = e.getClass().getSimpleName() + ": " + e.getMessage();
         ex = e;
         registry.counter(networkErrors.withTag("exceptionType", e.getClass().getSimpleName())).increment();
-      } finally {
-        EntityUtils.consume(cleanupEntity);
       }
       final String exceptionFormat = "Edda request {} failed with {}";
       if (ex == null) {
@@ -419,18 +413,6 @@ public class AmazonClientInvocationHandler implements InvocationHandler {
       retryDelay += r.nextInt(eddaTimeoutConfig.getBackoffMillis());
     }
     throw new IOException(lastException);
-  }
-
-  private static byte[] getBytesFromInputStream(InputStream is, long contentLength) throws IOException {
-    final int bufLen = contentLength < 0 || contentLength > Integer.MAX_VALUE ? 128 * 1024 : (int) contentLength;
-    final ByteArrayOutputStream baos = new ByteArrayOutputStream(bufLen);
-    final byte[] buf = new byte[16 * 1024];
-    int bytesRead;
-    while ((bytesRead = is.read(buf)) != -1) {
-      baos.write(buf, 0, bytesRead);
-    }
-    is.close();
-    return baos.toByteArray();
   }
 
   private static class Metadata<T> {
