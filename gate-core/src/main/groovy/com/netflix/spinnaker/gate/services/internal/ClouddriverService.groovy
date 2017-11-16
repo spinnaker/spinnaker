@@ -288,4 +288,9 @@ interface ClouddriverService {
 
   @GET('/storage')
   List<String> getStorageAccounts()
+
+  @GET('/manifests/{account}/{location}/{name}')
+  Map getManifest(@Path(value = 'account') String account,
+                  @Path(value = 'location') String location,
+                  @Path(value = 'name') String name)
 }
