@@ -28,6 +28,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -72,11 +73,12 @@ public class SynchronousQueryProcessor {
           registry.counter(queryId.withTag("retries", retries + "")).increment();
           metricSetList = metricsService.queryMetrics(metricsAccountName, canaryMetricConfig, canaryScope);
           success = true;
-        } catch (IOException e) {
+        } catch (IOException|UncheckedIOException e) {
           retries++;
+          // TODO: Externalize this as a configurable setting.
           if (retries >= 10)
             throw e;
-          log.warn("Retrying atlas query");
+          log.warn("Retrying metric service query");
         }
       }
       String metricSetListId = UUID.randomUUID() + "";
