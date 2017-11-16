@@ -76,6 +76,7 @@ public class AtlasConfiguration {
           .builder()
           .name(name)
           .credentials(atlasCredentials)
+          .fetchId(atlasManagedAccount.getFetchId())
           .backendUpdater(updater);
 
       if (!CollectionUtils.isEmpty(supportedTypes)) {

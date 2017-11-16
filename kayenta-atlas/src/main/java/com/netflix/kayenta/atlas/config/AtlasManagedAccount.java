@@ -31,5 +31,7 @@ public class AtlasManagedAccount {
   @NotNull
   String backendsJsonBaseUrl;
 
+  String fetchId;
+
   private List<AccountCredentials.Type> supportedTypes;
 }

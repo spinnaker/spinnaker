@@ -40,6 +40,8 @@ public class AtlasNamedAccountCredentials implements AccountCredentials<AtlasCre
   @NotNull
   private AtlasCredentials credentials;
 
+  private String fetchId;
+
   @Override
   public String getType() {
     return "atlas";

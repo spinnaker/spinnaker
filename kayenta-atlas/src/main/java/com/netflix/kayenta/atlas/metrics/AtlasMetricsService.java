@@ -123,7 +123,8 @@ public class AtlasMetricsService implements MetricsService {
     List<AtlasResults> atlasResultsList = atlasRemoteService.fetch(decoratedQuery,
                                                                    atlasCanaryScope.getStart().toEpochMilli(),
                                                                    atlasCanaryScope.getEnd().toEpochMilli(),
-                                                                   isoStep);
+                                                                   isoStep,
+                                                                   credentials.getFetchId());
     Map<String, AtlasResults> idToAtlasResultsMap = AtlasResultsHelper.merge(atlasResultsList);
     List<MetricSet> metricSetList = new ArrayList<>();
 
