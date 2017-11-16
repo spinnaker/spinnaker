@@ -37,7 +37,11 @@ import org.springframework.stereotype.Component;
 import java.util.Map;
 
 @Component
-public class KubernetesReplicaSetHandler extends KubernetesHandler implements CanResize, CanDelete {
+public class KubernetesReplicaSetHandler extends KubernetesHandler implements
+    CanResize,
+    CanDelete,
+    CanScale {
+
   public KubernetesReplicaSetHandler() {
     registerReplacer(
         Replacer.builder()

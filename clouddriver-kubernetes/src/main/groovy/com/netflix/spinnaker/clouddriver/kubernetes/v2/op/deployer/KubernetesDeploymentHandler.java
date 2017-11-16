@@ -33,7 +33,14 @@ import io.kubernetes.client.models.V1beta2DeploymentStatus;
 import org.springframework.stereotype.Component;
 
 @Component
-public class KubernetesDeploymentHandler extends KubernetesHandler implements CanResize, CanDelete, CanPauseRollout, CanUndoRollout {
+public class KubernetesDeploymentHandler extends KubernetesHandler implements
+    CanResize,
+    CanDelete,
+    CanScale,
+    CanPauseRollout,
+    CanResumeRollout,
+    CanUndoRollout {
+
   @Override
   public KubernetesKind kind() {
     return KubernetesKind.DEPLOYMENT;
