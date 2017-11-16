@@ -27,6 +27,7 @@ import com.netflix.kayenta.security.CredentialsHelper;
 import com.netflix.kayenta.storage.ObjectType;
 import com.netflix.kayenta.storage.StorageService;
 import com.netflix.kayenta.storage.StorageServiceRepository;
+import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import redis.clients.jedis.Jedis;
@@ -152,7 +153,7 @@ public class CanaryConfigIndexingAgent {
                       .put("applications", applications)
                       .build());
                 }
-              } catch (IllegalArgumentException e) {
+              } catch (NotFoundException e) {
                 // This can happen if a re-indexing is underway and we attempt to retrieve a canary config that has been
                 // deleted. Don't need to take any action.
               }
