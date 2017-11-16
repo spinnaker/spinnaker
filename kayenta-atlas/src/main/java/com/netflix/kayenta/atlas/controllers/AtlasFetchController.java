@@ -54,6 +54,7 @@ public class AtlasFetchController {
                           @ApiParam(defaultValue = "cpu") @RequestParam String metricSetName,
                           @ApiParam(defaultValue = "cluster") @RequestParam String type,
                           @RequestParam String scope,
+                          @ApiParam(defaultValue = "us-east-1") @RequestParam String region,
                           @ApiParam(defaultValue = "2000-01-01T00:00:00Z") @RequestParam Instant start,
                           @ApiParam(defaultValue = "2000-01-01T04:00:00Z") @RequestParam Instant end,
                           @ApiParam(defaultValue = "300") @RequestParam Long step) throws IOException {
@@ -79,6 +80,7 @@ public class AtlasFetchController {
     AtlasCanaryScope atlasCanaryScope = new AtlasCanaryScope();
     atlasCanaryScope.setType(type);
     atlasCanaryScope.setScope(scope);
+    atlasCanaryScope.setRegion(region);
     atlasCanaryScope.setStart(start);
     atlasCanaryScope.setEnd(end);
     atlasCanaryScope.setStep(step);

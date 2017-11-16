@@ -38,9 +38,6 @@ public class AtlasCanaryScope extends CanaryScope {
   private String dataset;
 
   @NotNull
-  private String region;
-
-  @NotNull
   private String environment;
 
   public String cq() {

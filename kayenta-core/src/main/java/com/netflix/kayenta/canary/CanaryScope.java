@@ -32,6 +32,9 @@ public class CanaryScope {
   protected String scope;
 
   @NotNull
+  private String region;
+
+  @NotNull
   protected Instant start;
 
   @NotNull

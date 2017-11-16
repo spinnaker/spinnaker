@@ -83,7 +83,7 @@ public class PrometheusFetchController {
         .query(prometheusCanaryMetricSetQueryConfig)
         .build();
 
-    CanaryScope canaryScope = new CanaryScope(scope, start, end, step, Collections.emptyMap());
+    CanaryScope canaryScope = new CanaryScope(scope, null /* region */, start, end, step, Collections.emptyMap());
 
     String metricSetListId = synchronousQueryProcessor.processQuery(resolvedMetricsAccountName,
                                                                     resolvedStorageAccountName,

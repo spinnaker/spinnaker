@@ -35,6 +35,7 @@ public class AtlasCanaryScopeFactory implements CanaryScopeFactory {
   public CanaryScope buildCanaryScope(CanaryScope canaryScope){
     AtlasCanaryScope atlasCanaryScope = new AtlasCanaryScope();
     atlasCanaryScope.setScope(canaryScope.getScope());
+    atlasCanaryScope.setRegion(canaryScope.getRegion());
     atlasCanaryScope.setStart(canaryScope.getStart());
     atlasCanaryScope.setEnd(canaryScope.getEnd());
     atlasCanaryScope.setStep(canaryScope.getStep());
@@ -48,7 +49,6 @@ public class AtlasCanaryScopeFactory implements CanaryScopeFactory {
     atlasCanaryScope.setType(extendedScopeParams.getOrDefault("type", "cluster"));
     atlasCanaryScope.setDeployment(extendedScopeParams.getOrDefault("deployment", "main"));
     atlasCanaryScope.setDataset(extendedScopeParams.getOrDefault("dataset", "regional"));
-    atlasCanaryScope.setRegion(extendedScopeParams.getOrDefault("region", "us-east-1"));
     atlasCanaryScope.setEnvironment(extendedScopeParams.getOrDefault("environment", "test"));
 
     return atlasCanaryScope;

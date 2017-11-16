@@ -19,6 +19,7 @@ package com.netflix.kayenta.stackdriver.metrics;
 import com.google.api.services.monitoring.v3.Monitoring;
 import com.google.api.services.monitoring.v3.model.ListTimeSeriesResponse;
 import com.google.api.services.monitoring.v3.model.Metric;
+import com.google.api.services.monitoring.v3.model.MonitoredResource;
 import com.google.api.services.monitoring.v3.model.Point;
 import com.google.api.services.monitoring.v3.model.TimeSeries;
 import com.netflix.kayenta.canary.CanaryMetricConfig;
@@ -69,22 +70,26 @@ public class StackdriverMetricsService implements MetricsService {
   public List<MetricSet> queryMetrics(String metricsAccountName,
                                       CanaryMetricConfig canaryMetricConfig,
                                       CanaryScope canaryScope) throws IOException {
-    GoogleNamedAccountCredentials credentials = (GoogleNamedAccountCredentials)accountCredentialsRepository
+    GoogleNamedAccountCredentials stackdriverCredentials = (GoogleNamedAccountCredentials)accountCredentialsRepository
       .getOne(metricsAccountName)
       .orElseThrow(() -> new IllegalArgumentException("Unable to resolve account " + metricsAccountName + "."));
-    Monitoring monitoring = credentials.getMonitoring();
+    Monitoring monitoring = stackdriverCredentials.getMonitoring();
     StackdriverCanaryMetricSetQueryConfig stackdriverMetricSetQuery = (StackdriverCanaryMetricSetQueryConfig)canaryMetricConfig.getQuery();
+    // TODO(duftler): Make this filter general-purpose so it works for more than just GCE.
+    // TODO(duftler): The 'project' attribute should be part of the scope (a StackdriverCanaryScope), and not just re-used from stackdriverCredentials.
+    String filter = "metric.type=\"" + stackdriverMetricSetQuery.getMetricType() + "\"" +
+                    " AND resource.metadata.tag.spinnaker-member-of=" + stackdriverCredentials.getProject() + "_" + canaryScope.getRegion() + "_" + canaryScope.getScope() +
+                    " AND resource.type = gce_instance";
     long alignmentPeriodSec = canaryScope.getStep();
     Monitoring.Projects.TimeSeries.List list = monitoring
       .projects()
       .timeSeries()
-      .list("projects/" + credentials.getProject())
+      .list("projects/" + stackdriverCredentials.getProject())
       .setAggregationAlignmentPeriod(alignmentPeriodSec + "s")
       .setAggregationCrossSeriesReducer("REDUCE_MEAN")
       .setAggregationPerSeriesAligner("ALIGN_MEAN")
-      // TODO(duftler): Support 'filter' directly on StackdriverMetricSetQuery?
-      .setFilter("metric.type=\"" + stackdriverMetricSetQuery.getMetricType() + "\" AND " +
-                 "metric.label.instance_name=starts_with(\"" + canaryScope.getScope() + "\")")
+      // TODO(duftler): Support 'filter' directly on StackdriverCanaryMetricSetQueryConfig?
+      .setFilter(filter)
       .setIntervalStartTime(canaryScope.getStart().toString())
       .setIntervalEndTime(canaryScope.getEnd().toString());
 
@@ -147,10 +152,14 @@ public class StackdriverMetricsService implements MetricsService {
           .stepMillis(alignmentPeriodSec * 1000)
           .values(pointValues);
 
-      Map<String, String> labels = timeSeries.getMetric().getLabels();
+      MonitoredResource monitoredResource = timeSeries.getResource();
 
-      if (labels != null) {
-        metricSetBuilder.tags(labels);
+      if (monitoredResource != null) {
+        Map<String, String> labels = monitoredResource.getLabels();
+
+        if (labels != null) {
+          metricSetBuilder.tags(labels);
+        }
       }
 
       metricSetList.add(metricSetBuilder.build());
