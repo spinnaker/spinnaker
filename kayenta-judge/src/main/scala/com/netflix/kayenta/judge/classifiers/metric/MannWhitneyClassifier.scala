@@ -74,7 +74,7 @@ class MannWhitneyClassifier(fraction: Double=0.25, confLevel: Double=0.95, mw: M
 
     //Check if the experiment and control data are equal
     if (experiment.values.sameElements(control.values)){
-      return MetricClassification(Pass, None, 0.0)
+      return MetricClassification(Pass, None, 1.0)
     }
 
     //Perform Mann-Whitney U Test
