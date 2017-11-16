@@ -120,6 +120,25 @@ class ElasticSearchEntityTagsProviderSpec extends Specification {
     !entityTagsProvider.get(entityTags.id, ["tag3": "value3"]).isPresent()
   }
 
+  def "should assign entityRef.application if not specified"() {
+    given:
+    def entityTags = buildEntityTags("aws:cluster:front50-main:myaccount:*", ["tag1": "value1", "tag2": "value2"])
+    entityTags.entityRef.application = application
+
+    entityTagsProvider.index(entityTags)
+    entityTagsProvider.verifyIndex(entityTags)
+
+    expect:
+    entityTagsProvider.get(entityTags.id).get().entityRef.application == expectedApplication
+
+    where:
+    application      || expectedApplication
+    null             || "front50"
+    ""               || "front50"
+    " "              || "front50"
+    "my_application" || "my_application"
+  }
+
   def "should support multi result retrieval by `cloudProvider, `entityType`, `idPrefix` and `tags`"() {
     given:
     def entityTags = buildEntityTags("aws:cluster:clouddriver-main:myaccount:*", ["tag3": "value3"])
@@ -132,37 +151,40 @@ class ElasticSearchEntityTagsProviderSpec extends Specification {
 
     expect:
     // fetch everything
-    entityTagsProvider.getAll(null, null, null, null, null, null, null, null, 2)*.id.sort() == [entityTags.id, moreEntityTags.id].sort()
+    entityTagsProvider.getAll(null, null, null, null, null, null, null, null, null, 2)*.id.sort() == [entityTags.id, moreEntityTags.id].sort()
+
+    // fetch everything for an application
+    entityTagsProvider.getAll(null, "front50", null, null, null, null, null, null, null, 2)*.id.sort() == [moreEntityTags.id].sort()
 
     // fetch everything for a single `entityId`
-    entityTagsProvider.getAll(null, null, [entityTags.entityRef.entityId], null, null, null, null, null, 2)*.id.sort() == [entityTags.id].sort()
+    entityTagsProvider.getAll(null, null, null, [entityTags.entityRef.entityId], null, null, null, null, null, 2)*.id.sort() == [entityTags.id].sort()
 
     // fetch everything for a multiple `entityId`
-    entityTagsProvider.getAll(null, null, [
+    entityTagsProvider.getAll(null, null, null, [
       entityTags.entityRef.entityId, moreEntityTags.entityRef.entityId
     ], null, null, null, null, null, 2)*.id.sort() == [entityTags.id, moreEntityTags.id].sort()
 
     // fetch everything for `cloudprovider`
-    entityTagsProvider.getAll("aws", null, null, null, null, null, null, null, 2)*.id.sort() == [entityTags.id, moreEntityTags.id].sort()
+    entityTagsProvider.getAll("aws", null, null, null, null, null, null, null, null, 2)*.id.sort() == [entityTags.id, moreEntityTags.id].sort()
 
     // fetch everything for `cloudprovider` and `cluster`
-    entityTagsProvider.getAll("aws", "cluster", null, null, null, null, null, null, 2)*.id.sort() == [entityTags.id, moreEntityTags.id].sort()
+    entityTagsProvider.getAll("aws", null, "cluster", null, null, null, null, null, null, 2)*.id.sort() == [entityTags.id, moreEntityTags.id].sort()
 
     // fetch everything for `cloudprovider`, `cluster` and `idPrefix`
-    entityTagsProvider.getAll("aws", "cluster", null, "aws:cluster:clouddriver*", null, null, null, null, 2)*.id == [entityTags.id]
+    entityTagsProvider.getAll("aws", null, "cluster", null, "aws:cluster:clouddriver*", null, null, null, null, 2)*.id == [entityTags.id]
 
     // fetch everything for `cloudprovider`, `cluster`, `idPrefix` and `tags`
-    entityTagsProvider.getAll("aws", "cluster", null, "aws*", null, null, null, ["tag3": "value3"], 2)*.id == [entityTags.id]
+    entityTagsProvider.getAll("aws", null, "cluster", null, "aws*", null, null, null, ["tag3": "value3"], 2)*.id == [entityTags.id]
 
     // verify that globbing by tags works (with and without a namespace specified)
-    entityTagsProvider.getAll("aws", "cluster", null, "aws*", null, null, "default", ["tag3": "*"], 2)*.id == [entityTags.id]
-    entityTagsProvider.getAll("aws", "cluster", null, "aws*", null, null, null, ["tag3": "*"], 2)*.id == [entityTags.id]
+    entityTagsProvider.getAll("aws", null, "cluster", null, "aws*", null, null, "default", ["tag3": "*"], 2)*.id == [entityTags.id]
+    entityTagsProvider.getAll("aws", null, "cluster", null, "aws*", null, null, null, ["tag3": "*"], 2)*.id == [entityTags.id]
 
     // namespace 'not_default' does not exist and should negate the matched tags
-    entityTagsProvider.getAll("aws", "cluster", null, "aws*", null, null, "not_default", ["tag3": "*"], 2).isEmpty()
+    entityTagsProvider.getAll("aws", null, "cluster", null, "aws*", null, null, "not_default", ["tag3": "*"], 2).isEmpty()
 
     // verify that `maxResults` works
-    entityTagsProvider.getAll("aws", "cluster", null, null, null, null, null, null, 0).isEmpty()
+    entityTagsProvider.getAll("aws", null, "cluster", null, null, null, null, null, null, 0).isEmpty()
 
   }
 

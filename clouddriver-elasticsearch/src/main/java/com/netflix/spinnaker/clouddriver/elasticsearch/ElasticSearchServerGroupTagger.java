@@ -86,7 +86,16 @@ public class ElasticSearchServerGroupTagger implements ServerGroupTagger {
                                                String tagName,
                                                int maxResults) {
     return entityTagsProvider.getAll(
-      cloudProvider, ENTITY_TYPE, null, null, accountId, null, null, Collections.singletonMap(tagName, "*"), maxResults
+      cloudProvider,
+      null,
+      ENTITY_TYPE,
+      null,
+      null,
+      accountId,
+      null,
+      null,
+      Collections.singletonMap(tagName, "*"),
+      maxResults
     );
   }
 

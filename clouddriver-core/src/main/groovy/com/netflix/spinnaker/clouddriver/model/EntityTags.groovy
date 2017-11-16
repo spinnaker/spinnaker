@@ -76,6 +76,7 @@ class EntityTags {
     private Map<String, Object> attributes = new HashMap<String, Object>()
 
     String cloudProvider
+    String application
     String accountId
     String account
     String region

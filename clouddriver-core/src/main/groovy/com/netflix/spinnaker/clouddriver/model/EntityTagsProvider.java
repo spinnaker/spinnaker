@@ -26,6 +26,7 @@ public interface EntityTagsProvider {
    * Fetch EntityTags by any combination of {@code cloudProvider}/{@code type}/{@code idPrefix}/{@code tags}
    */
   Collection<EntityTags> getAll(String cloudProvider,
+                                String application,
                                 String entityType,
                                 List<String> entityIds,
                                 String idPrefix,

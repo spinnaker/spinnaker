@@ -51,6 +51,7 @@ public class EntityTagsController {
 
   @RequestMapping(method = RequestMethod.GET)
   public Collection<EntityTags> list(@RequestParam(value = "cloudProvider", required = false) String cloudProvider,
+                                     @RequestParam(value = "application", required = false) String application,
                                      @RequestParam(value = "entityType", required = false) String entityType,
                                      @RequestParam(value = "entityId", required = false) String entityId,
                                      @RequestParam(value = "idPrefix", required = false) String idPrefix,
@@ -66,6 +67,7 @@ public class EntityTagsController {
 
     return tagProvider.getAll(
       cloudProvider,
+      application,
       entityType,
       entityId != null ? Arrays.asList(entityId.split(",")) : null,
       idPrefix,
@@ -74,7 +76,7 @@ public class EntityTagsController {
       namespace,
       tags,
       maxResults
-      );
+    );
   }
 
   @RequestMapping(value = "/**", method = RequestMethod.GET)

@@ -71,7 +71,12 @@ public class BulkUpsertEntityTagsAtomicOperation implements AtomicOperation<Bulk
       Map<String, EntityTags> existingTags = retrieveExistingTags(tags);
 
       getTask().updateStatus(BASE_PHASE, "Merging existing tags and metadata");
-      tags.forEach(tag -> mergeExistingTagsAndMetadata(now, existingTags.get(tag.getId()), tag, bulkUpsertEntityTagsDescription.isPartial));
+      tags.forEach(tag -> mergeExistingTagsAndMetadata(
+        now,
+        existingTags.get(tag.getId()),
+        tag,
+        bulkUpsertEntityTagsDescription.isPartial
+      ));
 
       getTask().updateStatus(BASE_PHASE, "Performing batch update to durable tagging service");
       Map<String, EntityTags> durableTags = front50Service.batchUpdate(new ArrayList<>(tags))
@@ -111,7 +116,9 @@ public class BulkUpsertEntityTagsAtomicOperation implements AtomicOperation<Bulk
     entityTags.removeAll(failed);
   }
 
-  private void updateMetadataFromDurableTagsAndIndex(List<EntityTags> entityTags, Map<String, EntityTags> durableTags, BulkUpsertEntityTagsAtomicOperationResult result) {
+  private void updateMetadataFromDurableTagsAndIndex(List<EntityTags> entityTags,
+                                                     Map<String, EntityTags> durableTags,
+                                                     BulkUpsertEntityTagsAtomicOperationResult result) {
     Collection<EntityTags> failed = new ArrayList<>();
     entityTags.forEach(tag -> {
       try {
@@ -153,14 +160,22 @@ public class BulkUpsertEntityTagsAtomicOperation implements AtomicOperation<Bulk
 
     if (entityRefAccount != null && entityRefAccountId == null) {
       // add `accountId` if not explicitly provided
-      AccountCredentials accountCredentials = lookupAccountCredentialsByAccountIdOrName(accountCredentialsProvider, entityRefAccount, "accountName");
+      AccountCredentials accountCredentials = lookupAccountCredentialsByAccountIdOrName(
+        accountCredentialsProvider,
+        entityRefAccount,
+        "accountName"
+      );
       entityRefAccountId = accountCredentials.getAccountId();
       entityRef.setAccountId(entityRefAccountId);
     }
 
     if (entityRefAccount == null && entityRefAccountId != null) {
       // add `account` if not explicitly provided
-      AccountCredentials accountCredentials = lookupAccountCredentialsByAccountIdOrName(accountCredentialsProvider, entityRefAccountId, "accountId");
+      AccountCredentials accountCredentials = lookupAccountCredentialsByAccountIdOrName(
+        accountCredentialsProvider,
+        entityRefAccountId,
+        "accountId"
+      );
       if (accountCredentials != null) {
         entityRefAccount = accountCredentials.getName();
         entityRef.setAccount(entityRefAccount);
@@ -252,7 +267,9 @@ public class BulkUpsertEntityTagsAtomicOperation implements AtomicOperation<Bulk
     return accountCredentialsProvider.getAll().stream()
       .filter(c -> entityRefAccountIdOrName.equals(c.getAccountId()) || entityRefAccountIdOrName.equals(c.getName()))
       .findFirst()
-      .orElseThrow(() -> new IllegalArgumentException(String.format("No credentials found for %s: %s", type, entityRefAccountIdOrName)));
+      .orElseThrow(() -> new IllegalArgumentException(
+        String.format("No credentials found for %s: %s", type, entityRefAccountIdOrName)
+      ));
   }
 
   private static Task getTask() {

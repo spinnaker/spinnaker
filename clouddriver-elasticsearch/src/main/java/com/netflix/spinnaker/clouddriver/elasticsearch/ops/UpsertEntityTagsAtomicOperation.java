@@ -47,8 +47,14 @@ public class UpsertEntityTagsAtomicOperation implements AtomicOperation<Void> {
     BulkUpsertEntityTagsDescription bulkDescription = new BulkUpsertEntityTagsDescription();
     bulkDescription.isPartial = entityTagsDescription.isPartial;
     bulkDescription.entityTags = Collections.singletonList(entityTagsDescription);
-    new BulkUpsertEntityTagsAtomicOperation(front50Service, accountCredentialsProvider, entityTagsProvider,
-      bulkDescription).operate(priorOutputs);
+
+    new BulkUpsertEntityTagsAtomicOperation(
+      front50Service,
+      accountCredentialsProvider,
+      entityTagsProvider,
+      bulkDescription
+    ).operate(priorOutputs);
+
     return null;
   }
 

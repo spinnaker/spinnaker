@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.elasticsearch.model;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
+import com.netflix.frigga.Names;
 import com.netflix.spinnaker.clouddriver.core.services.Front50Service;
 import com.netflix.spinnaker.clouddriver.helpers.OperationPoller;
 import com.netflix.spinnaker.clouddriver.model.EntityTags;
@@ -79,6 +80,7 @@ public class ElasticSearchEntityTagsProvider implements EntityTagsProvider {
 
   @Override
   public Collection<EntityTags> getAll(String cloudProvider,
+                                       String application,
                                        String entityType,
                                        List<String> entityIds,
                                        String idPrefix,
@@ -92,6 +94,11 @@ public class ElasticSearchEntityTagsProvider implements EntityTagsProvider {
     if (cloudProvider != null) {
       // restrict to a specific cloudProvider (optional)
       queryBuilder = queryBuilder.must(QueryBuilders.termQuery("entityRef.cloudProvider", cloudProvider));
+    }
+
+    if (application != null) {
+      // restrict to a specific application (optional)
+      queryBuilder = queryBuilder.must(QueryBuilders.termQuery("entityRef.application", application));
     }
 
     if (entityIds != null && !entityIds.isEmpty()) {
@@ -460,6 +467,20 @@ public class ElasticSearchEntityTagsProvider implements EntityTagsProvider {
     );
 
     copyOfEntityTags.getTags().forEach(entityTag -> entityTag.setValue(entityTag.getValueForWrite(objectMapper)));
+
+    String application = copyOfEntityTags.getEntityRef().getApplication();
+    if (application == null || application.trim().isEmpty()) {
+      try {
+        Names names = Names.parseName(copyOfEntityTags.getEntityRef().getEntityId());
+        copyOfEntityTags.getEntityRef().setApplication(names.getApp());
+      } catch (Exception e) {
+        log.error(
+          "Unable to extract application name (entityId: {})",
+          copyOfEntityTags.getEntityRef().getEntityId(),
+          e
+        );
+      }
+    }
 
     return copyOfEntityTags;
   }
