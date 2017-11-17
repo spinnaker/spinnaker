@@ -30,7 +30,9 @@ springBoot {
 }
 
 dependencies {
-  spinnaker.group("bootWeb")
+  compile "org.springframework.boot:spring-boot-starter-actuator:+"
+  compile "org.springframework.boot:spring-boot-starter-web:+"
+  compile "org.springframework.boot:spring-boot-starter-data-rest:+"
 
   compile project(":keel-core")
   compile project(":keel-eureka")
@@ -40,8 +42,6 @@ dependencies {
   compile project(":keel-intents")
   compile project(":keel-redis")
   compile project(":keel-scheduler")
-
-  compile spinnaker.dependency("logstashEncoder")
 }
 
 tasks.bootRepackage.enabled = Boolean.valueOf(project.repackage)

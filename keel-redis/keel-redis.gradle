@@ -15,9 +15,9 @@
  */
 dependencies {
   compile project(":keel-core")
-  compile spinnaker.dependency("korkJedis")
-  compile spinnaker.dependency("korkDynomite")
+  compile "com.netflix.spinnaker.kork:kork-jedis:+"
+  compile "com.netflix.spinnaker.kork:kork-dynomite:+"
 
-  testCompile spinnaker.dependency("korkJedisTest")
+  testCompile "com.netflix.spinnaker.kork:kork-jedis-test:+"
   testCompile project(":keel-test")
 }

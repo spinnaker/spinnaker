@@ -15,17 +15,18 @@
  */
 
 dependencies {
-  compile spinnaker.dependency("slf4jApi")
-  compile spinnaker.dependency("kork")
-  compile spinnaker.dependency("jedis")
-  compile spinnaker.dependency("logstashEncoder")
+  compile "org.slf4j:slf4j-api:+"
+  compile "com.netflix.spinnaker.kork:kork-core:+"
+  compile "redis.clients:jedis:+"
+  compile "net.logstash.logback:logstash-logback-encoder:+"
 
-  spinnaker.group("retrofitDefault")
-  spinnaker.group("jackson")
+  compile "com.fasterxml.jackson.core:jackson-databind:+"
+  compile "com.fasterxml.jackson.core:jackson-annotations:+"
 
-  compile "com.fasterxml.jackson.module:jackson-module-kotlin:${spinnaker.version("jackson")}"
+  compile "com.fasterxml.jackson.module:jackson-module-kotlin:+"
   compile "com.github.jonpeterson:jackson-module-model-versioning:+"
-  compile "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${spinnaker.version("jackson")}"
+  compile "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:+"
 
+  testCompile "com.squareup.retrofit:retrofit-mock:+"
   testCompile project(":keel-test")
 }

@@ -6,12 +6,6 @@
             ],
             "locked": "2.8.0"
         },
-        "com.fasterxml.jackson.core:jackson-core": {
-            "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-core"
-            ],
-            "locked": "2.8.10"
-        },
         "com.fasterxml.jackson.core:jackson-databind": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
@@ -120,37 +114,26 @@
             ],
             "locked": "0.2.0"
         },
-        "com.squareup.okhttp:okhttp": {
-            "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-core",
-                "com.netflix.spinnaker.keel:keel-retrofit"
-            ],
-            "locked": "2.7.0"
-        },
         "com.squareup.okhttp:okhttp-apache": {
             "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-core",
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
             "locked": "2.7.0"
         },
         "com.squareup.okhttp:okhttp-urlconnection": {
             "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-core",
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
             "locked": "2.7.0"
         },
         "com.squareup.retrofit:converter-jackson": {
             "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-core",
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
             "locked": "1.9.0"
         },
         "com.squareup.retrofit:retrofit": {
             "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-core",
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
             "locked": "1.9.0"
@@ -165,8 +148,7 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "4.10",
-            "requested": "4.10"
+            "locked": "4.10"
         },
         "org.jetbrains.kotlin:kotlin-stdlib-jre8": {
             "firstLevelTransitive": [
@@ -191,15 +173,15 @@
         },
         "org.springframework.boot:spring-boot-starter-actuator": {
             "locked": "1.5.7.RELEASE",
-            "requested": "1.5.7.RELEASE"
+            "requested": "+"
         },
         "org.springframework.boot:spring-boot-starter-data-rest": {
             "locked": "1.5.7.RELEASE",
-            "requested": "1.5.7.RELEASE"
+            "requested": "+"
         },
         "org.springframework.boot:spring-boot-starter-web": {
             "locked": "1.5.7.RELEASE",
-            "requested": "1.5.7.RELEASE"
+            "requested": "+"
         },
         "redis.clients:jedis": {
             "firstLevelTransitive": [
@@ -215,12 +197,6 @@
             ],
             "locked": "2.8.0"
         },
-        "com.fasterxml.jackson.core:jackson-core": {
-            "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-core"
-            ],
-            "locked": "2.8.10"
-        },
         "com.fasterxml.jackson.core:jackson-databind": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
@@ -329,37 +305,26 @@
             ],
             "locked": "0.2.0"
         },
-        "com.squareup.okhttp:okhttp": {
-            "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-core",
-                "com.netflix.spinnaker.keel:keel-retrofit"
-            ],
-            "locked": "2.7.0"
-        },
         "com.squareup.okhttp:okhttp-apache": {
             "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-core",
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
             "locked": "2.7.0"
         },
         "com.squareup.okhttp:okhttp-urlconnection": {
             "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-core",
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
             "locked": "2.7.0"
         },
         "com.squareup.retrofit:converter-jackson": {
             "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-core",
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
             "locked": "1.9.0"
         },
         "com.squareup.retrofit:retrofit": {
             "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-core",
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
             "locked": "1.9.0"
@@ -374,8 +339,7 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "4.10",
-            "requested": "4.10"
+            "locked": "4.10"
         },
         "org.jetbrains.kotlin:kotlin-stdlib-jre8": {
             "firstLevelTransitive": [
@@ -400,15 +364,15 @@
         },
         "org.springframework.boot:spring-boot-starter-actuator": {
             "locked": "1.5.7.RELEASE",
-            "requested": "1.5.7.RELEASE"
+            "requested": "+"
         },
         "org.springframework.boot:spring-boot-starter-data-rest": {
             "locked": "1.5.7.RELEASE",
-            "requested": "1.5.7.RELEASE"
+            "requested": "+"
         },
         "org.springframework.boot:spring-boot-starter-web": {
             "locked": "1.5.7.RELEASE",
-            "requested": "1.5.7.RELEASE"
+            "requested": "+"
         },
         "redis.clients:jedis": {
             "firstLevelTransitive": [
@@ -424,12 +388,6 @@
             ],
             "locked": "2.8.0"
         },
-        "com.fasterxml.jackson.core:jackson-core": {
-            "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-core"
-            ],
-            "locked": "2.8.10"
-        },
         "com.fasterxml.jackson.core:jackson-databind": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
@@ -538,37 +496,26 @@
             ],
             "locked": "0.2.0"
         },
-        "com.squareup.okhttp:okhttp": {
-            "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-core",
-                "com.netflix.spinnaker.keel:keel-retrofit"
-            ],
-            "locked": "2.7.0"
-        },
         "com.squareup.okhttp:okhttp-apache": {
             "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-core",
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
             "locked": "2.7.0"
         },
         "com.squareup.okhttp:okhttp-urlconnection": {
             "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-core",
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
             "locked": "2.7.0"
         },
         "com.squareup.retrofit:converter-jackson": {
             "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-core",
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
             "locked": "1.9.0"
         },
         "com.squareup.retrofit:retrofit": {
             "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-core",
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
             "locked": "1.9.0"
@@ -583,8 +530,7 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "4.10",
-            "requested": "4.10"
+            "locked": "4.10"
         },
         "org.jetbrains.kotlin:kotlin-stdlib-jre8": {
             "firstLevelTransitive": [
@@ -609,15 +555,15 @@
         },
         "org.springframework.boot:spring-boot-starter-actuator": {
             "locked": "1.5.7.RELEASE",
-            "requested": "1.5.7.RELEASE"
+            "requested": "+"
         },
         "org.springframework.boot:spring-boot-starter-data-rest": {
             "locked": "1.5.7.RELEASE",
-            "requested": "1.5.7.RELEASE"
+            "requested": "+"
         },
         "org.springframework.boot:spring-boot-starter-web": {
             "locked": "1.5.7.RELEASE",
-            "requested": "1.5.7.RELEASE"
+            "requested": "+"
         },
         "redis.clients:jedis": {
             "firstLevelTransitive": [
@@ -653,12 +599,6 @@
             ],
             "locked": "2.8.0"
         },
-        "com.fasterxml.jackson.core:jackson-core": {
-            "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-core"
-            ],
-            "locked": "2.8.10"
-        },
         "com.fasterxml.jackson.core:jackson-databind": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
@@ -767,37 +707,26 @@
             ],
             "locked": "0.2.0"
         },
-        "com.squareup.okhttp:okhttp": {
-            "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-core",
-                "com.netflix.spinnaker.keel:keel-retrofit"
-            ],
-            "locked": "2.7.0"
-        },
         "com.squareup.okhttp:okhttp-apache": {
             "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-core",
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
             "locked": "2.7.0"
         },
         "com.squareup.okhttp:okhttp-urlconnection": {
             "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-core",
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
             "locked": "2.7.0"
         },
         "com.squareup.retrofit:converter-jackson": {
             "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-core",
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
             "locked": "1.9.0"
         },
         "com.squareup.retrofit:retrofit": {
             "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-core",
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
             "locked": "1.9.0"
@@ -812,8 +741,7 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "4.10",
-            "requested": "4.10"
+            "locked": "4.10"
         },
         "org.jetbrains.kotlin:kotlin-stdlib-jre8": {
             "firstLevelTransitive": [
@@ -838,15 +766,15 @@
         },
         "org.springframework.boot:spring-boot-starter-actuator": {
             "locked": "1.5.7.RELEASE",
-            "requested": "1.5.7.RELEASE"
+            "requested": "+"
         },
         "org.springframework.boot:spring-boot-starter-data-rest": {
             "locked": "1.5.7.RELEASE",
-            "requested": "1.5.7.RELEASE"
+            "requested": "+"
         },
         "org.springframework.boot:spring-boot-starter-web": {
             "locked": "1.5.7.RELEASE",
-            "requested": "1.5.7.RELEASE"
+            "requested": "+"
         },
         "redis.clients:jedis": {
             "firstLevelTransitive": [
@@ -862,12 +790,6 @@
             ],
             "locked": "2.8.0"
         },
-        "com.fasterxml.jackson.core:jackson-core": {
-            "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-core"
-            ],
-            "locked": "2.8.10"
-        },
         "com.fasterxml.jackson.core:jackson-databind": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
@@ -976,37 +898,26 @@
             ],
             "locked": "0.2.0"
         },
-        "com.squareup.okhttp:okhttp": {
-            "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-core",
-                "com.netflix.spinnaker.keel:keel-retrofit"
-            ],
-            "locked": "2.7.0"
-        },
         "com.squareup.okhttp:okhttp-apache": {
             "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-core",
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
             "locked": "2.7.0"
         },
         "com.squareup.okhttp:okhttp-urlconnection": {
             "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-core",
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
             "locked": "2.7.0"
         },
         "com.squareup.retrofit:converter-jackson": {
             "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-core",
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
             "locked": "1.9.0"
         },
         "com.squareup.retrofit:retrofit": {
             "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-core",
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
             "locked": "1.9.0"
@@ -1021,8 +932,7 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "4.10",
-            "requested": "4.10"
+            "locked": "4.10"
         },
         "org.jetbrains.kotlin:kotlin-stdlib-jre8": {
             "firstLevelTransitive": [
@@ -1047,15 +957,15 @@
         },
         "org.springframework.boot:spring-boot-starter-actuator": {
             "locked": "1.5.7.RELEASE",
-            "requested": "1.5.7.RELEASE"
+            "requested": "+"
         },
         "org.springframework.boot:spring-boot-starter-data-rest": {
             "locked": "1.5.7.RELEASE",
-            "requested": "1.5.7.RELEASE"
+            "requested": "+"
         },
         "org.springframework.boot:spring-boot-starter-web": {
             "locked": "1.5.7.RELEASE",
-            "requested": "1.5.7.RELEASE"
+            "requested": "+"
         },
         "redis.clients:jedis": {
             "firstLevelTransitive": [
@@ -1071,12 +981,6 @@
             ],
             "locked": "2.8.0"
         },
-        "com.fasterxml.jackson.core:jackson-core": {
-            "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-core"
-            ],
-            "locked": "2.8.10"
-        },
         "com.fasterxml.jackson.core:jackson-databind": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
@@ -1193,37 +1097,26 @@
             "locked": "1.5.0",
             "requested": "+"
         },
-        "com.squareup.okhttp:okhttp": {
-            "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-core",
-                "com.netflix.spinnaker.keel:keel-retrofit"
-            ],
-            "locked": "2.7.0"
-        },
         "com.squareup.okhttp:okhttp-apache": {
             "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-core",
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
             "locked": "2.7.0"
         },
         "com.squareup.okhttp:okhttp-urlconnection": {
             "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-core",
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
             "locked": "2.7.0"
         },
         "com.squareup.retrofit:converter-jackson": {
             "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-core",
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
             "locked": "1.9.0"
         },
         "com.squareup.retrofit:retrofit": {
             "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-core",
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
             "locked": "1.9.0"
@@ -1238,8 +1131,7 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "4.10",
-            "requested": "4.10"
+            "locked": "4.10"
         },
         "org.jetbrains.kotlin:kotlin-stdlib-jre8": {
             "firstLevelTransitive": [
@@ -1276,15 +1168,15 @@
         },
         "org.springframework.boot:spring-boot-starter-actuator": {
             "locked": "1.5.7.RELEASE",
-            "requested": "1.5.7.RELEASE"
+            "requested": "+"
         },
         "org.springframework.boot:spring-boot-starter-data-rest": {
             "locked": "1.5.7.RELEASE",
-            "requested": "1.5.7.RELEASE"
+            "requested": "+"
         },
         "org.springframework.boot:spring-boot-starter-web": {
             "locked": "1.5.7.RELEASE",
-            "requested": "1.5.7.RELEASE"
+            "requested": "+"
         },
         "redis.clients:jedis": {
             "firstLevelTransitive": [
@@ -1300,12 +1192,6 @@
             ],
             "locked": "2.8.0"
         },
-        "com.fasterxml.jackson.core:jackson-core": {
-            "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-core"
-            ],
-            "locked": "2.8.10"
-        },
         "com.fasterxml.jackson.core:jackson-databind": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
@@ -1422,37 +1308,26 @@
             "locked": "1.5.0",
             "requested": "+"
         },
-        "com.squareup.okhttp:okhttp": {
-            "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-core",
-                "com.netflix.spinnaker.keel:keel-retrofit"
-            ],
-            "locked": "2.7.0"
-        },
         "com.squareup.okhttp:okhttp-apache": {
             "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-core",
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
             "locked": "2.7.0"
         },
         "com.squareup.okhttp:okhttp-urlconnection": {
             "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-core",
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
             "locked": "2.7.0"
         },
         "com.squareup.retrofit:converter-jackson": {
             "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-core",
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
             "locked": "1.9.0"
         },
         "com.squareup.retrofit:retrofit": {
             "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-core",
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
             "locked": "1.9.0"
@@ -1467,8 +1342,7 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "4.10",
-            "requested": "4.10"
+            "locked": "4.10"
         },
         "org.jetbrains.kotlin:kotlin-stdlib-jre8": {
             "firstLevelTransitive": [
@@ -1505,15 +1379,15 @@
         },
         "org.springframework.boot:spring-boot-starter-actuator": {
             "locked": "1.5.7.RELEASE",
-            "requested": "1.5.7.RELEASE"
+            "requested": "+"
         },
         "org.springframework.boot:spring-boot-starter-data-rest": {
             "locked": "1.5.7.RELEASE",
-            "requested": "1.5.7.RELEASE"
+            "requested": "+"
         },
         "org.springframework.boot:spring-boot-starter-web": {
             "locked": "1.5.7.RELEASE",
-            "requested": "1.5.7.RELEASE"
+            "requested": "+"
         },
         "redis.clients:jedis": {
             "firstLevelTransitive": [
@@ -1529,12 +1403,6 @@
             ],
             "locked": "2.8.0"
         },
-        "com.fasterxml.jackson.core:jackson-core": {
-            "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-core"
-            ],
-            "locked": "2.8.10"
-        },
         "com.fasterxml.jackson.core:jackson-databind": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
@@ -1651,37 +1519,26 @@
             "locked": "1.5.0",
             "requested": "+"
         },
-        "com.squareup.okhttp:okhttp": {
-            "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-core",
-                "com.netflix.spinnaker.keel:keel-retrofit"
-            ],
-            "locked": "2.7.0"
-        },
         "com.squareup.okhttp:okhttp-apache": {
             "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-core",
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
             "locked": "2.7.0"
         },
         "com.squareup.okhttp:okhttp-urlconnection": {
             "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-core",
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
             "locked": "2.7.0"
         },
         "com.squareup.retrofit:converter-jackson": {
             "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-core",
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
             "locked": "1.9.0"
         },
         "com.squareup.retrofit:retrofit": {
             "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-core",
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
             "locked": "1.9.0"
@@ -1696,8 +1553,7 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "4.10",
-            "requested": "4.10"
+            "locked": "4.10"
         },
         "org.jetbrains.kotlin:kotlin-stdlib-jre8": {
             "firstLevelTransitive": [
@@ -1742,15 +1598,15 @@
         },
         "org.springframework.boot:spring-boot-starter-actuator": {
             "locked": "1.5.7.RELEASE",
-            "requested": "1.5.7.RELEASE"
+            "requested": "+"
         },
         "org.springframework.boot:spring-boot-starter-data-rest": {
             "locked": "1.5.7.RELEASE",
-            "requested": "1.5.7.RELEASE"
+            "requested": "+"
         },
         "org.springframework.boot:spring-boot-starter-web": {
             "locked": "1.5.7.RELEASE",
-            "requested": "1.5.7.RELEASE"
+            "requested": "+"
         },
         "redis.clients:jedis": {
             "firstLevelTransitive": [
@@ -1766,12 +1622,6 @@
             ],
             "locked": "2.8.0"
         },
-        "com.fasterxml.jackson.core:jackson-core": {
-            "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-core"
-            ],
-            "locked": "2.8.10"
-        },
         "com.fasterxml.jackson.core:jackson-databind": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
@@ -1888,37 +1738,26 @@
             "locked": "1.5.0",
             "requested": "+"
         },
-        "com.squareup.okhttp:okhttp": {
-            "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-core",
-                "com.netflix.spinnaker.keel:keel-retrofit"
-            ],
-            "locked": "2.7.0"
-        },
         "com.squareup.okhttp:okhttp-apache": {
             "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-core",
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
             "locked": "2.7.0"
         },
         "com.squareup.okhttp:okhttp-urlconnection": {
             "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-core",
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
             "locked": "2.7.0"
         },
         "com.squareup.retrofit:converter-jackson": {
             "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-core",
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
             "locked": "1.9.0"
         },
         "com.squareup.retrofit:retrofit": {
             "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-core",
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
             "locked": "1.9.0"
@@ -1933,8 +1772,7 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "4.10",
-            "requested": "4.10"
+            "locked": "4.10"
         },
         "org.jetbrains.kotlin:kotlin-stdlib-jre8": {
             "firstLevelTransitive": [
@@ -1979,15 +1817,15 @@
         },
         "org.springframework.boot:spring-boot-starter-actuator": {
             "locked": "1.5.7.RELEASE",
-            "requested": "1.5.7.RELEASE"
+            "requested": "+"
         },
         "org.springframework.boot:spring-boot-starter-data-rest": {
             "locked": "1.5.7.RELEASE",
-            "requested": "1.5.7.RELEASE"
+            "requested": "+"
         },
         "org.springframework.boot:spring-boot-starter-web": {
             "locked": "1.5.7.RELEASE",
-            "requested": "1.5.7.RELEASE"
+            "requested": "+"
         },
         "redis.clients:jedis": {
             "firstLevelTransitive": [

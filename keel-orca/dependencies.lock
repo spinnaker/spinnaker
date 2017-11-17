@@ -6,12 +6,6 @@
             ],
             "locked": "2.9.2"
         },
-        "com.fasterxml.jackson.core:jackson-core": {
-            "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-core"
-            ],
-            "locked": "2.9.2"
-        },
         "com.fasterxml.jackson.core:jackson-databind": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
@@ -69,37 +63,26 @@
             ],
             "locked": "0.2.0"
         },
-        "com.squareup.okhttp:okhttp": {
-            "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-core",
-                "com.netflix.spinnaker.keel:keel-retrofit"
-            ],
-            "locked": "2.7.0"
-        },
         "com.squareup.okhttp:okhttp-apache": {
             "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-core",
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
             "locked": "2.7.0"
         },
         "com.squareup.okhttp:okhttp-urlconnection": {
             "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-core",
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
             "locked": "2.7.0"
         },
         "com.squareup.retrofit:converter-jackson": {
             "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-core",
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
             "locked": "1.9.0"
         },
         "com.squareup.retrofit:retrofit": {
             "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-core",
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
             "locked": "1.9.0"
@@ -145,12 +128,6 @@
             ],
             "locked": "2.9.2"
         },
-        "com.fasterxml.jackson.core:jackson-core": {
-            "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-core"
-            ],
-            "locked": "2.9.2"
-        },
         "com.fasterxml.jackson.core:jackson-databind": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
@@ -208,37 +185,26 @@
             ],
             "locked": "0.2.0"
         },
-        "com.squareup.okhttp:okhttp": {
-            "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-core",
-                "com.netflix.spinnaker.keel:keel-retrofit"
-            ],
-            "locked": "2.7.0"
-        },
         "com.squareup.okhttp:okhttp-apache": {
             "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-core",
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
             "locked": "2.7.0"
         },
         "com.squareup.okhttp:okhttp-urlconnection": {
             "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-core",
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
             "locked": "2.7.0"
         },
         "com.squareup.retrofit:converter-jackson": {
             "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-core",
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
             "locked": "1.9.0"
         },
         "com.squareup.retrofit:retrofit": {
             "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-core",
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
             "locked": "1.9.0"
@@ -284,12 +250,6 @@
             ],
             "locked": "2.9.2"
         },
-        "com.fasterxml.jackson.core:jackson-core": {
-            "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-core"
-            ],
-            "locked": "2.9.2"
-        },
         "com.fasterxml.jackson.core:jackson-databind": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
@@ -347,37 +307,26 @@
             ],
             "locked": "0.2.0"
         },
-        "com.squareup.okhttp:okhttp": {
-            "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-core",
-                "com.netflix.spinnaker.keel:keel-retrofit"
-            ],
-            "locked": "2.7.0"
-        },
         "com.squareup.okhttp:okhttp-apache": {
             "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-core",
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
             "locked": "2.7.0"
         },
         "com.squareup.okhttp:okhttp-urlconnection": {
             "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-core",
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
             "locked": "2.7.0"
         },
         "com.squareup.retrofit:converter-jackson": {
             "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-core",
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
             "locked": "1.9.0"
         },
         "com.squareup.retrofit:retrofit": {
             "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-core",
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
             "locked": "1.9.0"
@@ -443,12 +392,6 @@
             ],
             "locked": "2.9.2"
         },
-        "com.fasterxml.jackson.core:jackson-core": {
-            "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-core"
-            ],
-            "locked": "2.9.2"
-        },
         "com.fasterxml.jackson.core:jackson-databind": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
@@ -506,37 +449,26 @@
             ],
             "locked": "0.2.0"
         },
-        "com.squareup.okhttp:okhttp": {
-            "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-core",
-                "com.netflix.spinnaker.keel:keel-retrofit"
-            ],
-            "locked": "2.7.0"
-        },
         "com.squareup.okhttp:okhttp-apache": {
             "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-core",
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
             "locked": "2.7.0"
         },
         "com.squareup.okhttp:okhttp-urlconnection": {
             "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-core",
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
             "locked": "2.7.0"
         },
         "com.squareup.retrofit:converter-jackson": {
             "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-core",
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
             "locked": "1.9.0"
         },
         "com.squareup.retrofit:retrofit": {
             "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-core",
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
             "locked": "1.9.0"
@@ -582,12 +514,6 @@
             ],
             "locked": "2.9.2"
         },
-        "com.fasterxml.jackson.core:jackson-core": {
-            "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-core"
-            ],
-            "locked": "2.9.2"
-        },
         "com.fasterxml.jackson.core:jackson-databind": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
@@ -645,37 +571,26 @@
             ],
             "locked": "0.2.0"
         },
-        "com.squareup.okhttp:okhttp": {
-            "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-core",
-                "com.netflix.spinnaker.keel:keel-retrofit"
-            ],
-            "locked": "2.7.0"
-        },
         "com.squareup.okhttp:okhttp-apache": {
             "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-core",
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
             "locked": "2.7.0"
         },
         "com.squareup.okhttp:okhttp-urlconnection": {
             "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-core",
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
             "locked": "2.7.0"
         },
         "com.squareup.retrofit:converter-jackson": {
             "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-core",
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
             "locked": "1.9.0"
         },
         "com.squareup.retrofit:retrofit": {
             "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-core",
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
             "locked": "1.9.0"
@@ -716,12 +631,6 @@
     },
     "testCompile": {
         "com.fasterxml.jackson.core:jackson-annotations": {
-            "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-core"
-            ],
-            "locked": "2.9.2"
-        },
-        "com.fasterxml.jackson.core:jackson-core": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
@@ -792,37 +701,26 @@
             "locked": "1.5.0",
             "requested": "+"
         },
-        "com.squareup.okhttp:okhttp": {
-            "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-core",
-                "com.netflix.spinnaker.keel:keel-retrofit"
-            ],
-            "locked": "2.7.0"
-        },
         "com.squareup.okhttp:okhttp-apache": {
             "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-core",
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
             "locked": "2.7.0"
         },
         "com.squareup.okhttp:okhttp-urlconnection": {
             "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-core",
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
             "locked": "2.7.0"
         },
         "com.squareup.retrofit:converter-jackson": {
             "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-core",
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
             "locked": "1.9.0"
         },
         "com.squareup.retrofit:retrofit": {
             "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-core",
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
             "locked": "1.9.0"
@@ -880,12 +778,6 @@
             ],
             "locked": "2.9.2"
         },
-        "com.fasterxml.jackson.core:jackson-core": {
-            "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-core"
-            ],
-            "locked": "2.9.2"
-        },
         "com.fasterxml.jackson.core:jackson-databind": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
@@ -951,37 +843,26 @@
             "locked": "1.5.0",
             "requested": "+"
         },
-        "com.squareup.okhttp:okhttp": {
-            "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-core",
-                "com.netflix.spinnaker.keel:keel-retrofit"
-            ],
-            "locked": "2.7.0"
-        },
         "com.squareup.okhttp:okhttp-apache": {
             "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-core",
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
             "locked": "2.7.0"
         },
         "com.squareup.okhttp:okhttp-urlconnection": {
             "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-core",
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
             "locked": "2.7.0"
         },
         "com.squareup.retrofit:converter-jackson": {
             "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-core",
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
             "locked": "1.9.0"
         },
         "com.squareup.retrofit:retrofit": {
             "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-core",
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
             "locked": "1.9.0"
@@ -1039,12 +920,6 @@
             ],
             "locked": "2.9.2"
         },
-        "com.fasterxml.jackson.core:jackson-core": {
-            "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-core"
-            ],
-            "locked": "2.9.2"
-        },
         "com.fasterxml.jackson.core:jackson-databind": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
@@ -1110,37 +985,26 @@
             "locked": "1.5.0",
             "requested": "+"
         },
-        "com.squareup.okhttp:okhttp": {
-            "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-core",
-                "com.netflix.spinnaker.keel:keel-retrofit"
-            ],
-            "locked": "2.7.0"
-        },
         "com.squareup.okhttp:okhttp-apache": {
             "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-core",
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
             "locked": "2.7.0"
         },
         "com.squareup.okhttp:okhttp-urlconnection": {
             "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-core",
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
             "locked": "2.7.0"
         },
         "com.squareup.retrofit:converter-jackson": {
             "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-core",
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
             "locked": "1.9.0"
         },
         "com.squareup.retrofit:retrofit": {
             "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-core",
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
             "locked": "1.9.0"
@@ -1206,12 +1070,6 @@
             ],
             "locked": "2.9.2"
         },
-        "com.fasterxml.jackson.core:jackson-core": {
-            "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-core"
-            ],
-            "locked": "2.9.2"
-        },
         "com.fasterxml.jackson.core:jackson-databind": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
@@ -1277,37 +1135,26 @@
             "locked": "1.5.0",
             "requested": "+"
         },
-        "com.squareup.okhttp:okhttp": {
-            "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-core",
-                "com.netflix.spinnaker.keel:keel-retrofit"
-            ],
-            "locked": "2.7.0"
-        },
         "com.squareup.okhttp:okhttp-apache": {
             "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-core",
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
             "locked": "2.7.0"
         },
         "com.squareup.okhttp:okhttp-urlconnection": {
             "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-core",
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
             "locked": "2.7.0"
         },
         "com.squareup.retrofit:converter-jackson": {
             "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-core",
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
             "locked": "1.9.0"
         },
         "com.squareup.retrofit:retrofit": {
             "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-core",
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
             "locked": "1.9.0"
