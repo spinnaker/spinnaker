@@ -140,9 +140,9 @@ export function buildConfigCopy(state: ICanaryState): ICanaryConfig {
     i++;
   }
 
-  return {
+  return omit({
     ...config,
     name: configName,
     isNew: true,
-  };
+  }, 'id');
 }
