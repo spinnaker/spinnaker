@@ -116,8 +116,9 @@ class ExplicitRollback implements Rollback {
   Stage buildApplySourceServerGroupCapacityStage(Stage parentStage,
                                                  ResizeStrategy.Source source) {
     Map applySourceServerGroupCapacityContext = [
-      credentials: source.credentials,
-      target     : [
+      credentials  : source.credentials,
+      cloudProvider: source.cloudProvider,
+      target       : [
         asgName        : restoreServerGroupName,
         serverGroupName: restoreServerGroupName,
         region         : source.region,

@@ -108,7 +108,8 @@ class ExplicitRollbackSpec extends Specification {
       serverGroupName: "servergroup-v002"
     ]
     afterStages[4].context == [
-      target     : [
+      cloudProvider: "aws",
+      target       : [
         asgName        : "servergroup-v001",
         serverGroupName: "servergroup-v001",
         region         : "us-west-1",
