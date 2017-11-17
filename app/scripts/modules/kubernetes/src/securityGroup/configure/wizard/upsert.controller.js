@@ -147,12 +147,11 @@ module.exports = angular.module('spinnaker.securityGroup.kubernetes.create.contr
 
     if ($scope.isNew) {
       $scope.securityGroup = kubernetesSecurityGroupTransformer.constructNewSecurityGroupTemplate();
-      updateSecurityGroupNames();
       initializeCreateMode();
     } else {
       initializeEditMode();
     }
-
+    initializeSecurityGroupNames();
     // Controller API
     this.updateName = function() {
       $scope.securityGroup.name = this.getName();
