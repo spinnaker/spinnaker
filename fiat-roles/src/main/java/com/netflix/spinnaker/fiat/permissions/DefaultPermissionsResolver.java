@@ -32,6 +32,7 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -58,6 +59,7 @@ public class DefaultPermissionsResolver implements PermissionsResolver {
   private List<ResourceProvider<? extends Resource>> resourceProviders;
 
   @Autowired
+  @Qualifier("objectMapper")
   @Setter
   private ObjectMapper mapper;
 
