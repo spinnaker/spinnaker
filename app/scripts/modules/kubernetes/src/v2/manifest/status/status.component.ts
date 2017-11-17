@@ -12,7 +12,7 @@ class KubernetesManifestStatusComponent implements IComponentOptions {
   public controllerAs = 'ctrl';
   public template = `
     <div class="band band-active" ng-if="!ctrl.status.stable"
-         uib-tooltip="{{ctrl.status.message}}"> 
+         uib-tooltip="{{ctrl.status.message}}">
       Transitioning
     </div>
   `;
