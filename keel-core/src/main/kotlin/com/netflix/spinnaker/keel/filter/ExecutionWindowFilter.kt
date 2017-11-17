@@ -19,6 +19,7 @@ import com.netflix.spinnaker.keel.Intent
 import com.netflix.spinnaker.keel.IntentSpec
 import com.netflix.spinnaker.keel.attribute.ExecutionWindow
 import com.netflix.spinnaker.keel.attribute.ExecutionWindowAttribute
+import net.logstash.logback.argument.StructuredArguments.value
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.context.properties.ConfigurationProperties
@@ -56,7 +57,7 @@ class ExecutionWindowFilter
     }
 
     val executionWindow = intent.getAttribute(ExecutionWindowAttribute::class)!!
-    log.info("Calculating scheduled time for ${intent.id}; $executionWindow")
+    log.info("Calculating scheduled time for {}; $executionWindow", value("intent", intent.id))
 
     val now = Date.from(clock.instant())
     val scheduledTime: Date
@@ -68,7 +69,7 @@ class ExecutionWindowFilter
       return config.allowExecutionOnFailure
     }
 
-    log.debug("Calculated schedule time for ${intent.id}: $scheduledTime")
+    log.debug("Calculated schedule time for {}: $scheduledTime", value("intent", intent.id))
 
     return now >= scheduledTime
   }

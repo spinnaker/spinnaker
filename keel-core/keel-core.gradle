@@ -18,7 +18,9 @@ dependencies {
   compile spinnaker.dependency('slf4jApi')
   compile spinnaker.dependency('kork')
   compile spinnaker.dependency('jedis')
+  compile spinnaker.dependency("logstashEncoder")
 
+  spinnaker.group('retrofitDefault')
   spinnaker.group('jackson')
 
   compile "com.fasterxml.jackson.module:jackson-module-kotlin:${spinnaker.version("jackson")}"

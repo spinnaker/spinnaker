@@ -37,6 +37,8 @@ import retrofit.RetrofitError
 import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.primaryConstructor
 
+import net.logstash.logback.argument.StructuredArguments.value
+
 @Component
 class ApplicationIntentProcessor
 @Autowired constructor(
@@ -51,7 +53,7 @@ class ApplicationIntentProcessor
   override fun supports(intent: Intent<IntentSpec>) = intent is ApplicationIntent
 
   override fun converge(intent: ApplicationIntent): ConvergeResult {
-    log.info("Converging state for ${intent.id}")
+    log.info("Converging state for {}", value("intent", intent.id))
 
     val currentState = getApplication(intent.spec.name)
 

@@ -41,8 +41,6 @@ dependencies {
   compile project(":keel-redis")
   compile project(":keel-scheduler")
 
-  compile spinnaker.dependency("logstashEncoder")
-
   spinnaker.group('test')
 }
 

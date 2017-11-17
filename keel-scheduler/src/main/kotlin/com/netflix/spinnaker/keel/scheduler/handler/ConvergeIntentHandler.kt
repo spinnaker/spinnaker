@@ -27,6 +27,7 @@ import com.netflix.spinnaker.keel.scheduler.IntentNotFoundEvent
 import com.netflix.spinnaker.keel.scheduler.IntentOrchestratedEvent
 import com.netflix.spinnaker.q.MessageHandler
 import com.netflix.spinnaker.q.Queue
+import net.logstash.logback.argument.StructuredArguments.value
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationEventPublisher
@@ -55,10 +56,10 @@ class ConvergeIntentHandler
   private val refreshesId = registry.createId("intent.refreshes")
 
   override fun handle(message: ConvergeIntent) {
-    log.info("Converging intent ${message.intent.id}")
+    log.info("Converging {}", value("intent", message.intent.id))
 
     if (clock.millis() > message.timeoutTtl) {
-      log.warn("Intent timed out, canceling converge: ${message.intent.id}")
+      log.warn("Intent timed out, canceling converge for {}", value("intent", message.intent.id))
       applicationEventPublisher.publishEvent(ConvergenceTimeoutEvent(message))
 
       registry.counter(canceledId.withTags("kind", message.intent.kind, "reason", CANCELLATION_REASON_TIMEOUT))
@@ -67,7 +68,7 @@ class ConvergeIntentHandler
 
     val intent = getIntent(message)
     if (intent == null) {
-      log.warn("Intent no longer exists, canceling converge: ${message.intent.id}")
+      log.warn("Intent no longer exists, canceling converge for {}", value("intent", message.intent.id))
       applicationEventPublisher.publishEvent(IntentNotFoundEvent(message.intent.id))
 
       registry.counter(canceledId.withTags("kind", message.intent.kind, "reason", CANCELLATION_REASON_NOT_FOUND))
@@ -93,7 +94,7 @@ class ConvergeIntentHandler
       return message.intent
     }
 
-    log.info("Refreshing intent state for ${message.intent.id}")
+    log.info("Refreshing intent state for {}", value("intent", message.intent.id))
     registry.counter(refreshesId.withTags(message.intent.getMetricTags())).increment()
 
     return intentRepository.getIntent(message.intent.id)

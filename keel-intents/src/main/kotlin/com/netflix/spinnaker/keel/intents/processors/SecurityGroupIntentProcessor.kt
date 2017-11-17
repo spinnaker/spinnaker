@@ -25,6 +25,7 @@ import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.model.Trigger
 import com.netflix.spinnaker.keel.tracing.Trace
 import com.netflix.spinnaker.keel.tracing.TraceRepository
+import net.logstash.logback.argument.StructuredArguments.value
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -44,7 +45,7 @@ class SecurityGroupIntentProcessor
   override fun supports(intent: Intent<IntentSpec>) = intent is SecurityGroupIntent
 
   override fun converge(intent: SecurityGroupIntent): ConvergeResult {
-    log.info("Converging state for ${intent.id}")
+    log.info("Converging state for {}", value("intent", intent.id))
 
     val currentState = getSecurityGroups(intent.spec)
 
