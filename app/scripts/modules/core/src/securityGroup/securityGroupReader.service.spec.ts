@@ -39,7 +39,7 @@ describe('Service: securityGroupReader', function () {
       $scope = $rootScope.$new();
 
       const cacheStub: any = {
-          get: () => null,
+          get: () => null as any,
           put: () => {},
       };
       spyOn(infrastructureCaches, 'get').and.returnValue(cacheStub);
