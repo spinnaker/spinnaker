@@ -1,0 +1,5 @@
+dependencies {
+  compile project(":keel-intent")
+
+  testCompile project(":keel-test")
+}

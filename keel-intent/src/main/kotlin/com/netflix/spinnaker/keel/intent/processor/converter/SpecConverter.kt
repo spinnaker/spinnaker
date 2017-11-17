@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Netflix, Inc.
+ * Copyright 2017 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,29 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.netflix.spinnaker.keel.intent.processor.converter
 
-include "keel-core",
-  "keel-test",
-  "keel-retrofit",
-  "keel-eureka",
-  "keel-front50",
-  "keel-orca",
-  "keel-clouddriver",
-  "keel-intent",
-  "keel-intent-aws",
-  "keel-scheduler",
-  "keel-redis",
-  "keel-web"
+import com.netflix.spinnaker.keel.IntentSpec
+import com.netflix.spinnaker.keel.model.Job
 
-rootProject.name = "keel"
+interface SpecConverter<I : IntentSpec, S : Any> {
 
-def setBuildFile(project) {
-  project.buildFileName = "${project.name}.gradle"
-  project.children.each {
-    setBuildFile(it)
-  }
+  fun convertToState(spec: I): S
+  fun convertFromState(state: S): I?
+  fun convertToJob(spec: I): List<Job>
 }
 
-rootProject.children.each {
-  setBuildFile it
-}
+const val COMPUTED_VALUE = "<computed>"

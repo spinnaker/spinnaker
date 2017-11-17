@@ -16,11 +16,14 @@
 package com.netflix.spinnaker.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.ClouddriverService
+import com.netflix.spinnaker.keel.clouddriver.MemoryCloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.okhttp.AccountProvidingNetworkInterceptor
 import com.netflix.spinnaker.okhttp.SpinnakerRequestInterceptor
 import com.squareup.okhttp.Interceptor
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -54,4 +57,8 @@ open class ClouddriverConfiguration {
         .setConverter(JacksonConverter(objectMapper))
         .build()
         .create(ClouddriverService::class.java)
+
+  @Bean
+  @ConditionalOnMissingBean(CloudDriverCache::class)
+  open fun cloudDriverCache(clouddriverService: ClouddriverService) = MemoryCloudDriverCache(clouddriverService)
 }

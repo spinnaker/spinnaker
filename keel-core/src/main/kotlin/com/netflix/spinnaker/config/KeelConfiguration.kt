@@ -57,8 +57,8 @@ open class KeelConfiguration {
   @Bean
   open fun objectMapper() =
     ObjectMapper().apply {
-      registerSubtypes(*findAllSubtypes(log, Intent::class.java, "com.netflix.spinnaker.keel.intents"))
-      registerSubtypes(*findAllSubtypes(log, IntentSpec::class.java, "com.netflix.spinnaker.keel.intents"))
+      registerSubtypes(*findAllSubtypes(log, Intent::class.java, "com.netflix.spinnaker.keel.intent"))
+      registerSubtypes(*findAllSubtypes(log, IntentSpec::class.java, "com.netflix.spinnaker.keel.intent"))
       registerSubtypes(*findAllSubtypes(log, PolicySpec::class.java, "com.netflix.spinnaker.keel.policy"))
       registerSubtypes(*findAllSubtypes(log, Attribute::class.java, "com.netflix.spinnaker.keel.attribute"))
     }

@@ -39,7 +39,7 @@ dependencies {
   compile project(":keel-front50")
   compile project(":keel-orca")
   compile project(":keel-clouddriver")
-  compile project(":keel-intents")
+  compile project(":keel-intent")
   compile project(":keel-redis")
   compile project(":keel-scheduler")
 }

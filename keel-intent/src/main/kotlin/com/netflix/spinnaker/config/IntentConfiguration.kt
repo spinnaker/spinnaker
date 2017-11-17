@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Netflix, Inc.
+ * Copyright 2017 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,29 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.netflix.spinnaker.config
 
-include "keel-core",
-  "keel-test",
-  "keel-retrofit",
-  "keel-eureka",
-  "keel-front50",
-  "keel-orca",
-  "keel-clouddriver",
-  "keel-intent",
-  "keel-intent-aws",
-  "keel-scheduler",
-  "keel-redis",
-  "keel-web"
+import org.springframework.context.annotation.ComponentScan
+import org.springframework.context.annotation.Configuration
 
-rootProject.name = "keel"
-
-def setBuildFile(project) {
-  project.buildFileName = "${project.name}.gradle"
-  project.children.each {
-    setBuildFile(it)
-  }
-}
-
-rootProject.children.each {
-  setBuildFile it
-}
+@Configuration
+@ComponentScan(basePackages = arrayOf(
+  "com.netflix.spinnaker.keel.intent",
+  "com.netflix.spinnaker.keel.intent.processor",
+  "com.netflix.spinnaker.keel.intent.processor.converter"
+))
+open class IntentConfiguration

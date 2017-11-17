@@ -2,9 +2,7 @@ package com.netflix.spinnaker.keel.clouddriver
 
 import com.netflix.spinnaker.keel.clouddriver.model.Network
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroup
-import org.springframework.stereotype.Component
 
-@Component
 class MemoryCloudDriverCache(
   private val cloudDriver: ClouddriverService
 ) : CloudDriverCache {
