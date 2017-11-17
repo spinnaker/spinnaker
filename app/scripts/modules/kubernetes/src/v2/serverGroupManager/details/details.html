@@ -58,10 +58,7 @@
   </div>
 
   <div class="content" ng-if="!ctrl.state.loading">
-    <div class="band band-active" ng-if="!ctrl.status.stable"
-         uib-tooltip="{{ctrl.status.message}}">
-      Transitioning
-    </div>
+    <kubernetes-manifest-status status="ctrl.status"></kubernetes-manifest-status>
     <collapsible-section heading="Information" expanded="true">
       <dl class="dl-horizontal dl-flex">
         <dt>Created</dt>

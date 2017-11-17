@@ -1,9 +1,10 @@
-import { IController, module } from 'angular';
+import { IController, IScope, module } from 'angular';
 import { IModalService } from 'angular-ui-bootstrap';
 
 import {
   Application,
   CONFIRMATION_MODAL_SERVICE,
+  IManifestStatus,
   IServerGroup,
   SERVER_GROUP_READER,
   SERVER_GROUP_WARNING_MESSAGE_SERVICE,
@@ -12,6 +13,7 @@ import {
 } from '@spinnaker/core';
 
 import { IKubernetesServerGroup } from './IKubernetesServerGroup';
+import { KubernetesManifestStatusService } from '../../manifest/status/status.service';
 
 interface IServerGroupFromStateParams {
   accountId: string;
@@ -22,12 +24,21 @@ interface IServerGroupFromStateParams {
 class KubernetesServerGroupDetailsController implements IController {
   public state = { loading: true };
   public serverGroup: IKubernetesServerGroup;
+  public status: IManifestStatus = { stable: true };
 
   constructor(serverGroup: IServerGroupFromStateParams,
               public app: Application,
               private $uibModal: IModalService,
+              private $scope: IScope,
+              private kubernetesManifestStatusService: KubernetesManifestStatusService,
               private serverGroupReader: ServerGroupReader) {
     'ngInject';
+
+    this.kubernetesManifestStatusService.makeStatusRefresher(this.app, this.$scope, {
+      account: serverGroup.accountId,
+      location: serverGroup.region,
+      name: serverGroup.name,
+    }, this);
 
     this.app
       .ready()

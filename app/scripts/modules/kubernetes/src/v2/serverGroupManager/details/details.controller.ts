@@ -1,16 +1,9 @@
 import { IController, IScope, module } from 'angular';
 import { IModalService } from 'angular-ui-bootstrap';
 
-import {
-  Application,
-  IManifestStatus,
-  IManifest,
-  IServerGroupManager,
-  IServerGroupManagerStateParams,
-  MANIFEST_READER,
-  ManifestReader
-} from '@spinnaker/core';
+import { Application, IManifestStatus, IServerGroupManager, IServerGroupManagerStateParams, } from '@spinnaker/core';
 import { IKubernetesServerGroupManager } from '../IKubernetesServerGroupManager';
+import { KubernetesManifestStatusService } from '../../manifest/status/status.service';
 
 class KubernetesServerGroupManagerDetailsController implements IController {
   public serverGroupManager: IKubernetesServerGroupManager;
@@ -20,12 +13,16 @@ class KubernetesServerGroupManagerDetailsController implements IController {
   constructor(serverGroupManager: IServerGroupManagerStateParams,
               private $scope: IScope,
               private $uibModal: IModalService,
-              private manifestReader: ManifestReader,
+              private kubernetesManifestStatusService: KubernetesManifestStatusService,
               public app: Application) {
     'ngInject';
 
-    // don't block UI on this
-    this.app.onRefresh(this.$scope, this.getStatus(serverGroupManager));
+    this.kubernetesManifestStatusService.makeStatusRefresher(this.app, this.$scope, {
+      account: serverGroupManager.accountId,
+      location: serverGroupManager.region,
+      name: serverGroupManager.serverGroupManager,
+    }, this);
+
     this.app.ready()
       .then(() => {
         this.extractServerGroupManager(serverGroupManager);
@@ -96,11 +93,6 @@ class KubernetesServerGroupManagerDetailsController implements IController {
     });
   }
 
-  private getStatus(params: IServerGroupManagerStateParams) {
-    this.manifestReader.getManifest(params.accountId, params.region, params.serverGroupManager)
-      .then((manifest: IManifest) => this.status = manifest.status || this.status );
-  }
-
   private transformServerGroupManager(serverGroupManagerDetails: IServerGroupManager): IKubernetesServerGroupManager {
     if (!serverGroupManagerDetails) {
       return null;
@@ -124,7 +116,5 @@ class KubernetesServerGroupManagerDetailsController implements IController {
 }
 
 export const KUBERNETES_V2_SERVER_GROUP_MANAGER_DETAILS_CTRL = 'spinnaker.kubernetes.v2.serverGroupManager.details.controller';
-module(KUBERNETES_V2_SERVER_GROUP_MANAGER_DETAILS_CTRL, [
-  MANIFEST_READER,
-])
+module(KUBERNETES_V2_SERVER_GROUP_MANAGER_DETAILS_CTRL, [])
   .controller('kubernetesV2ServerGroupManagerDetailsCtrl', KubernetesServerGroupManagerDetailsController)

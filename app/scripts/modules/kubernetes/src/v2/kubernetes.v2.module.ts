@@ -19,6 +19,8 @@ import { KUBERNETES_V2_SERVER_GROUP_RESIZE_CTRL } from './serverGroup/details/re
 import { KUBERNETES_V2_SERVER_GROUP_COMMAND_BUILDER } from './serverGroup/serverGroupCommandBuilder.service';
 import { KUBERNETES_V2_SERVER_GROUP_MANAGER_DETAILS_CTRL } from './serverGroupManager/details/details.controller';
 import { KUBERNETES_MANIFEST_UNDO_ROLLOUT_CTRL } from './manifest/rollout/undo.controller';
+import { KUBERNETES_MANIFEST_STATUS } from './manifest/status/status.component';
+import { KUBERNETES_MANIFEST_STATUS_SERVICE } from './manifest/status/status.service';
 
 // load all templates into the $templateCache
 const templates = require.context('kubernetes', true, /\.html$/);
@@ -47,6 +49,8 @@ module(KUBERNETES_V2_MODULE, [
   KUBERNETES_MANIFEST_SCALE_CTRL,
   KUBERNETES_MANIFEST_UNDO_ROLLOUT_CTRL,
   KUBERNETES_MANIFEST_ENTRY,
+  KUBERNETES_MANIFEST_STATUS,
+  KUBERNETES_MANIFEST_STATUS_SERVICE,
   require('../securityGroup/reader.js').name,
 ]).config((cloudProviderRegistryProvider: CloudProviderRegistry) => {
     cloudProviderRegistryProvider.registerProvider('kubernetes', {
