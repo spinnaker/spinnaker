@@ -1,7 +1,7 @@
 dependencies {
   compile project(":keel-core")
   compile project(":keel-orca")
-  compile "com.netflix.spinnaker.keiko:keiko-redis-spring:1.4.1"
+  compile "com.netflix.spinnaker.keiko:keiko-redis-spring:+"
 
   testCompile project(":keel-test")
 }

@@ -15,16 +15,16 @@
  */
 
 dependencies {
-  compile spinnaker.dependency('slf4jApi')
-  compile spinnaker.dependency('kork')
-  compile spinnaker.dependency('jedis')
+  compile spinnaker.dependency("slf4jApi")
+  compile spinnaker.dependency("kork")
+  compile spinnaker.dependency("jedis")
   compile spinnaker.dependency("logstashEncoder")
 
-  spinnaker.group('retrofitDefault')
-  spinnaker.group('jackson')
+  spinnaker.group("retrofitDefault")
+  spinnaker.group("jackson")
 
   compile "com.fasterxml.jackson.module:jackson-module-kotlin:${spinnaker.version("jackson")}"
-  compile "com.github.jonpeterson:jackson-module-model-versioning:1.2.2"
+  compile "com.github.jonpeterson:jackson-module-model-versioning:+"
   compile "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${spinnaker.version("jackson")}"
 
   testCompile project(":keel-test")

@@ -1,0 +1,9 @@
+license {
+  exclude "**/*.json"
+  exclude "**/*.md"
+  exclude "**/*.yml"
+  mapping {
+    java = "SLASHSTAR_STYLE"
+    kt = "SLASHSTAR_STYLE"
+  }
+}

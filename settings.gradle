@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 
-include 'keel-core',
-  'keel-test',
-  'keel-retrofit',
-  'keel-eureka',
-  'keel-front50',
-  'keel-orca',
-  'keel-clouddriver',
-  'keel-intents',
-  'keel-scheduler',
-  'keel-redis',
-  'keel-web'
+include "keel-core",
+  "keel-test",
+  "keel-retrofit",
+  "keel-eureka",
+  "keel-front50",
+  "keel-orca",
+  "keel-clouddriver",
+  "keel-intents",
+  "keel-scheduler",
+  "keel-redis",
+  "keel-web"
 
-rootProject.name = 'keel'
+rootProject.name = "keel"
 
 def setBuildFile(project) {
   project.buildFileName = "${project.name}.gradle"

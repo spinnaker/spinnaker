@@ -15,7 +15,6 @@
  */
 
 apply plugin: "nebula.kotlin"
-apply plugin: "org.jetbrains.dokka"
 
 configurations.all {
   resolutionStrategy {

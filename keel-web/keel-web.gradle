@@ -13,20 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-apply plugin: 'org.springframework.boot'
-apply plugin: 'spinnaker.package'
+apply plugin: "org.springframework.boot"
+apply plugin: "spinnaker.package"
 
 ext {
-  springConfigLocation = System.getProperty('spring.config.location', "${System.getProperty('user.home')}/.spinnaker/")
-  repackage = System.getProperty('springBoot.repackage', "false")
+  springConfigLocation = System.getProperty("spring.config.location", "${System.getProperty("user.home")}/.spinnaker/")
+  repackage = System.getProperty("springBoot.repackage", "false")
 }
 
 tasks.withType(org.springframework.boot.gradle.run.BootRunTask) {
-  systemProperty('spring.config.location', project.springConfigLocation)
+  systemProperty("spring.config.location", project.springConfigLocation)
 }
 
 springBoot {
-  mainClass = 'com.netflix.spinnaker.keel.MainKt'
+  mainClass = "com.netflix.spinnaker.keel.MainKt"
 }
 
 dependencies {
@@ -41,7 +41,7 @@ dependencies {
   compile project(":keel-redis")
   compile project(":keel-scheduler")
 
-  spinnaker.group('test')
+  compile spinnaker.dependency("logstashEncoder")
 }
 
 tasks.bootRepackage.enabled = Boolean.valueOf(project.repackage)
