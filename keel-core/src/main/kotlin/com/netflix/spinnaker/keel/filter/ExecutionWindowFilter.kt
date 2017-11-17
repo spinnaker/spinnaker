@@ -175,7 +175,7 @@ class ExecutionWindowFilter
   }
 }
 
-private class HourMinute(
+internal class HourMinute(
   val hour: Int,
   val min: Int
 ) : Comparable<HourMinute> {

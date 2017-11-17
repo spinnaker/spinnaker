@@ -25,31 +25,28 @@ buildscript {
     classpath "org.junit.platform:junit-platform-gradle-plugin:$junitVersion"
     classpath "com.netflix.nebula:nebula-kotlin-plugin:$kotlinVersion"
     classpath "org.jetbrains.dokka:dokka-gradle-plugin:0.9.15"
+    classpath "com.netflix.nebula:gradle-dependency-lock-plugin:4.9.5"
   }
 }
 
 allprojects {
   apply plugin: "spinnaker.project"
-  apply plugin: "groovy"
-  apply from: "$rootDir/gradle/kotlin.gradle"
-
-  tasks.compileGroovy.enabled = false
 
   group = "com.netflix.spinnaker.keel"
 
   ext {
-    spinnakerDependenciesVersion = project.hasProperty('spinnakerDependenciesVersion') ? project.property('spinnakerDependenciesVersion') : '0.121.0'
+    spinnakerDependenciesVersion = project.hasProperty("spinnakerDependenciesVersion") ? project.property("spinnakerDependenciesVersion") : "0.121.0"
   }
 
   def checkLocalVersions = [spinnakerDependenciesVersion: spinnakerDependenciesVersion]
-  if (ext.has('versions')) {
-    def extVers = ext.get('versions')
+  if (ext.has("versions")) {
+    def extVers = ext.get("versions")
     if (extVers instanceof Map) {
       checkLocalVersions.putAll(extVers)
     }
   }
 
-  def localVersions = checkLocalVersions.findAll { it.value.endsWith('-SNAPSHOT') }
+  def localVersions = checkLocalVersions.findAll { it.value.endsWith("-SNAPSHOT") }
   if (localVersions) {
     logger.info("Enabling mavenLocal repo for $localVersions")
     repositories {
@@ -59,12 +56,6 @@ allprojects {
 
   spinnaker {
     dependenciesVersion = spinnakerDependenciesVersion
-  }
-
-  test {
-    testLogging {
-      exceptionFormat = 'full'
-    }
   }
 
   configurations.all {
@@ -98,14 +89,11 @@ allprojects {
 }
 
 subprojects {
+  apply from: "$rootDir/gradle/kotlin.gradle"
+  apply from: "$rootDir/gradle/junit5.gradle"
+
   repositories {
     jcenter()
-  }
-  dependencies {
-    spinnaker.group('spockBase')
-    testCompile spinnaker.dependency('groovy')
-    testRuntime spinnaker.dependency('objenesis')
-    testRuntime spinnaker.dependency('cglib')
   }
 
   license {
@@ -123,8 +111,13 @@ subprojects {
     outputDirectory = "$buildDir/javadoc"
     jdkVersion = 8
   }
+  tasks.getByName("build").doLast { dokka }
+
+  test {
+    testLogging {
+      exceptionFormat = "full"
+    }
+  }
 }
 
 defaultTasks ":keel-web:bootRun"
-
-tasks.getByName("build").doLast { dokka }
