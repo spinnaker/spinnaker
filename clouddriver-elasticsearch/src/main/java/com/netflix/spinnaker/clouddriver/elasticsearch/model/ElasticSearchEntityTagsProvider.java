@@ -261,7 +261,7 @@ public class ElasticSearchEntityTagsProvider implements EntityTagsProvider {
       throw new ElasticSearchException("Unable to re-create index '" + activeElasticSearchIndex + "'");
     }
 
-    Collection<EntityTags> entityTags = front50Service.getAllEntityTags(false);
+    Collection<EntityTags> entityTags = front50Service.getAllEntityTags(true);
 
     log.info("Indexing {} entity tags", entityTags.size());
     bulkIndex(
