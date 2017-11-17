@@ -1,0 +1,72 @@
+[
+  {
+    "canonicalHostedZoneNameID": "GM96JBE1BKO1J",
+    "scheme": "internal",
+    "instances": [
+      {
+        "instanceId": "i-00000000000000000"
+      },
+      {
+        "instanceId": "i-00000000000000001"
+      }
+    ],
+    "policies": {
+      "appCookieStickinessPolicies": [],
+      "otherPolicies": [],
+      "lbcookieStickinessPolicies": []
+    },
+    "availabilityZones": [
+      "us-west-2a",
+      "us-west-2b",
+      "us-west-2c"
+    ],
+    "backendServerDescriptions": [],
+    "sourceSecurityGroup": {
+      "ownerAlias": "680325828439",
+      "groupName": "nf-datacenter-elb"
+    },
+    "targetGroups": [],
+    "loadBalancerName": "covfefe-test-vpc0",
+    "listenerDescriptions": [
+      {
+        "listener": {
+          "protocol": "TCP",
+          "loadBalancerPort": 443,
+          "instanceProtocol": "TCP",
+          "instancePort": 7002
+        },
+        "policyNames": []
+      },
+      {
+        "listener": {
+          "protocol": "HTTP",
+          "loadBalancerPort": 80,
+          "instanceProtocol": "HTTP",
+          "instancePort": 7001
+        },
+        "policyNames": []
+      }
+    ],
+    "healthCheck": {
+      "target": "HTTP:7001/health",
+      "interval": 10,
+      "timeout": 5,
+      "unhealthyThreshold": 2,
+      "healthyThreshold": 10
+    },
+    "vpcid": "vpc-ljycv6ep",
+    "dnsname": "internal-covfefe-test-vpc0-991611405.us-west-2.elb.amazonaws.com",
+    "createdTime": 1488575522770,
+    "subnets": [
+      "subnet-rb5qsr6n",
+      "subnet-obmsqtr1",
+      "subnet-19fdc8li"
+    ],
+    "securityGroups": [
+      "sg-epos7i16",
+      "sg-skerlbt5",
+      "sg-feuxpxqk",
+      "sg-k6cc85a1"
+    ]
+  }
+]

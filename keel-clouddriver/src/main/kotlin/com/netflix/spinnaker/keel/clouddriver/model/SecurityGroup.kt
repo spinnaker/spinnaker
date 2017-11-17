@@ -23,6 +23,6 @@ data class SecurityGroup(
   val accountName: String,
   val region: String,
   val vpcId: String?,
-  val inboundRules: List<Map<String, Any>>,
+  val inboundRules: List<Map<String, Any>> = emptyList(),
   val moniker: Moniker
 )

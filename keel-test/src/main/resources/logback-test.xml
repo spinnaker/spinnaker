@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration debug="false">
+  <root level="ERROR"/>
+  <logger name="org.springframework" level="ERROR"/>
+  <logger name="com.netflix.spinnaker" level="ERROR"/>
+</configuration>

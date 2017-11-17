@@ -18,6 +18,7 @@ package com.netflix.spinnaker.keel.intents
 import com.fasterxml.jackson.core.type.TypeReference
 
 const val SCHEMA_PROPERTY = "schema"
+const val KIND_PROPERTY = "kind"
 
 val ANY_MAP_TYPE = object : TypeReference<MutableMap<String, Any?>>(){}
 

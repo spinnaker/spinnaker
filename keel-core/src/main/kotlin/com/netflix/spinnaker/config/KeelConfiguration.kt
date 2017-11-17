@@ -15,11 +15,17 @@
  */
 package com.netflix.spinnaker.config
 
-import com.fasterxml.jackson.databind.DeserializationFeature
+import com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES
+import com.fasterxml.jackson.databind.DeserializationFeature.READ_DATE_TIMESTAMPS_AS_NANOSECONDS
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.SerializationFeature.INDENT_OUTPUT
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.github.jonpeterson.jackson.module.versioning.VersioningModule
-import com.netflix.spinnaker.keel.*
+import com.netflix.spinnaker.keel.Intent
+import com.netflix.spinnaker.keel.IntentActivityRepository
+import com.netflix.spinnaker.keel.IntentRepository
+import com.netflix.spinnaker.keel.IntentSpec
 import com.netflix.spinnaker.keel.attribute.Attribute
 import com.netflix.spinnaker.keel.memory.MemoryIntentActivityRepository
 import com.netflix.spinnaker.keel.memory.MemoryIntentRepository
@@ -29,6 +35,7 @@ import com.netflix.spinnaker.keel.tracing.TraceRepository
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
+import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider
 import org.springframework.context.annotation.ComponentScan
@@ -38,6 +45,7 @@ import org.springframework.util.ClassUtils
 import java.time.Clock
 
 @Configuration
+@EnableConfigurationProperties(KeelProperties::class)
 @ComponentScan(basePackages = arrayOf(
   "com.netflix.spinnaker.keel.dryrun",
   "com.netflix.spinnaker.keel.filter"
@@ -46,9 +54,11 @@ open class KeelConfiguration {
 
   private val log = LoggerFactory.getLogger(javaClass)
 
-  @Autowired
-  open fun objectMapper(objectMapper: ObjectMapper) {
-    objectMapper.apply {
+  @Autowired lateinit var properties: KeelProperties
+
+  @Bean
+  open fun objectMapper() =
+    ObjectMapper().apply {
       registerSubtypes(*findAllSubtypes(Intent::class.java, "com.netflix.spinnaker.keel.intents").toTypedArray())
       registerSubtypes(*findAllSubtypes(IntentSpec::class.java, "com.netflix.spinnaker.keel.intents").toTypedArray())
       registerSubtypes(*findAllSubtypes(PolicySpec::class.java, "com.netflix.spinnaker.keel.policy").toTypedArray())
@@ -56,18 +66,24 @@ open class KeelConfiguration {
     }
       .registerModule(KotlinModule())
       .registerModule(VersioningModule())
-      .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-  }
+      .registerModule(JavaTimeModule())
+      .disable(FAIL_ON_UNKNOWN_PROPERTIES)
+      .disable(READ_DATE_TIMESTAMPS_AS_NANOSECONDS)
+      .apply {
+        if (properties.prettyPrintJson) {
+          enable(INDENT_OUTPUT)
+        }
+      }
 
   private fun findAllSubtypes(clazz: Class<*>, pkg: String): List<Class<*>>
     = ClassPathScanningCandidateComponentProvider(false)
-        .apply { addIncludeFilter(AssignableTypeFilter(clazz)) }
-        .findCandidateComponents(pkg)
-        .map {
-          val cls = ClassUtils.resolveClassName(it.beanClassName, ClassUtils.getDefaultClassLoader())
-          log.info("Registering ${cls.simpleName}")
-          return@map cls
-        }
+    .apply { addIncludeFilter(AssignableTypeFilter(clazz)) }
+    .findCandidateComponents(pkg)
+    .map {
+      val cls = ClassUtils.resolveClassName(it.beanClassName, ClassUtils.getDefaultClassLoader())
+      log.info("Registering ${cls.simpleName}")
+      return@map cls
+    }
 
   @Bean
   @ConditionalOnMissingBean(IntentRepository::class)

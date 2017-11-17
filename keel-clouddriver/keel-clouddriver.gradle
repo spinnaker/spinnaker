@@ -1,4 +1,7 @@
 dependencies {
   compile project(":keel-retrofit")
-  compile 'com.netflix.spinnaker.moniker:moniker:0.2.0'
+  compile "com.netflix.spinnaker.moniker:moniker:0.2.0"
+
+  testCompile spinnaker.dependency("retrofitMock")
+  testCompile project(":keel-test")
 }

@@ -18,7 +18,6 @@ package com.netflix.spinnaker.keel.intents.processors.converters
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.clouddriver.ClouddriverService
 import com.netflix.spinnaker.keel.clouddriver.model.Moniker
-import com.netflix.spinnaker.keel.clouddriver.model.Network
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroup
 import com.netflix.spinnaker.keel.intents.ANY_MAP_TYPE
 import com.netflix.spinnaker.keel.intents.AmazonSecurityGroupSpec
@@ -107,10 +106,4 @@ class SecurityGroupConverter(
     }
     throw NotImplementedError("Only AWS security groups are supported at the moment")
   }
-
-  private fun networkIdToName(networks: Map<String, Set<Network>>, cloudProvider: String, region: String, networkId: String?)
-    = if (networkId == null) null else networks[cloudProvider]?.first { it.id == networkId && it.region == region }?.name
-
-  private fun networkNameToId(networks: Map<String, Set<Network>>, cloudProvider: String, region: String, networkName: String?)
-    = if (networkName == null) null else networks[cloudProvider]?.first { it.name == networkName && it.region == region }?.id
 }

@@ -15,9 +15,7 @@
  */
 package com.netflix.spinnaker.keel.clouddriver
 
-import com.netflix.spinnaker.keel.clouddriver.model.Credential
-import com.netflix.spinnaker.keel.clouddriver.model.Network
-import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroup
+import com.netflix.spinnaker.keel.clouddriver.model.*
 import retrofit.http.GET
 import retrofit.http.Path
 import retrofit.http.Query
@@ -37,12 +35,26 @@ interface ClouddriverService {
                        @Path("region") region: String,
                        @Query("vpcId") vpcId: String): SecurityGroup?
 
+  @GET("/securityGroups/{account}")
+  fun getSecurityGroups(@Path("account") account: String): Collection<SecurityGroup>
+
   @GET("/networks")
   fun listNetworks(): Map<String, Set<Network>>
 
   @GET("/networks/{cloudProvider}")
   fun listNetworksByCloudProvider(@Path("cloudProvider") cloudProvider: String): Set<Network>
 
+  @GET("/subnets/{cloudProvider}")
+  fun listSubnets(@Path("cloudProvider") cloudProvider: String): Set<Subnet>
+
   @GET("/credentials")
   fun listCredentials(): Set<Credential>
+
+  @GET("/{provider}/loadBalancers/{account}/{region}/{name}")
+  fun getElasticLoadBalancer(
+    @Path("provider") provider: String,
+    @Path("account") account: String,
+    @Path("region") region: String,
+    @Path("name") name: String
+  ): Set<ElasticLoadBalancer>
 }
