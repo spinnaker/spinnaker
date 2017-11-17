@@ -83,7 +83,7 @@ object ConvergeIntentHandlerTest {
 
     val refreshedIntent = TestIntent(TestIntentSpec("1", mapOf("refreshed" to true)))
     whenever(intentRepository.getIntent("test:1")) doReturn refreshedIntent
-    whenever(orcaIntentLauncher.launch(refreshedIntent)) doReturn OrcaLaunchedIntentResult(listOf("one"))
+    whenever(orcaIntentLauncher.launch(refreshedIntent)) doReturn OrcaLaunchedIntentResult(listOf("one"), "mmkay")
 
     subject.handle(message)
 

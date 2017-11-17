@@ -19,18 +19,26 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.clouddriver.ClouddriverService
 import com.netflix.spinnaker.keel.clouddriver.model.Moniker
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroup
-import com.netflix.spinnaker.keel.intents.ANY_MAP_TYPE
-import com.netflix.spinnaker.keel.intents.AmazonSecurityGroupSpec
-import com.netflix.spinnaker.keel.intents.SecurityGroupRule
-import com.netflix.spinnaker.keel.intents.SecurityGroupSpec
+import com.netflix.spinnaker.keel.findAllSubtypes
+import com.netflix.spinnaker.keel.intents.*
 import com.netflix.spinnaker.keel.model.Job
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
+import javax.annotation.PostConstruct
 
 @Component
 class SecurityGroupConverter(
   private val clouddriverService: ClouddriverService,
   private val objectMapper: ObjectMapper
 ) : SpecConverter<SecurityGroupSpec, Set<SecurityGroup>> {
+
+  private val log = LoggerFactory.getLogger(javaClass)
+
+  @PostConstruct fun addSecurityGroupJsonSubtypes() {
+    objectMapper.registerSubtypes(
+      *findAllSubtypes(log, SecurityGroupRule::class.java, "com.netflix.spinnaker.keel.intents")
+    )
+  }
 
   override fun convertToState(spec: SecurityGroupSpec): Set<SecurityGroup> {
     // TODO rz - cache
@@ -85,6 +93,8 @@ class SecurityGroupConverter(
   }
 
   override fun convertToJob(spec: SecurityGroupSpec): List<Job> {
+    val networks = clouddriverService.listNetworks()
+
     if (spec is AmazonSecurityGroupSpec) {
       return listOf(
         Job(
@@ -97,7 +107,26 @@ class SecurityGroupConverter(
             "regions" to spec.regions,
             "vpcId" to spec.vpcName,
             "description" to spec.description,
-            "securityGroupIngress" to spec.inboundRules,
+            "securityGroupIngress" to spec.inboundRules.flatMap {
+              if (it is PortRangeSupport) {
+                return@flatMap it.portRanges.map { ports ->
+                  mutableMapOf<String, Any?>(
+                    "type" to it.protocol,
+                    "startPort" to ports.startPort,
+                    "endPort" to ports.endPort,
+                    "name" to it.name
+                  ).let { m ->
+                    if (it is CrossAccountReferenceSecurityGroupRule) {
+                      m["accountName"] = it.account
+                      m["crossAccountEnabled"] = true
+                      m["vpcId"] = networkNameToId(networks, "aws", it.region, it.vpcName)
+                    }
+                    m
+                  }
+                }
+              }
+              throw NotImplementedError("Only 'ref' and 'crossAccountRef' security group rules are implemented at the moment")
+            },
             "ipIngress" to listOf<String>(),
             "accountName" to spec.accountName
           )

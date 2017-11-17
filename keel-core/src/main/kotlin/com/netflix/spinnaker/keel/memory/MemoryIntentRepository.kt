@@ -43,4 +43,8 @@ class MemoryIntentRepository : IntentRepository {
     = intents.values.filter { status.contains(it.status) }.toList()
 
   override fun getIntent(id: String) = intents[id]
+
+  override fun deleteIntent(id: String) {
+    intents.remove(id)
+  }
 }

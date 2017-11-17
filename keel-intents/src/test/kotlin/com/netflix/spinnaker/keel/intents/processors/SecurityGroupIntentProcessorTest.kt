@@ -29,6 +29,8 @@ import com.netflix.spinnaker.keel.tracing.TraceRepository
 import com.nhaarman.mockito_kotlin.*
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
+import retrofit.RetrofitError
+import retrofit.client.Response
 
 object SecurityGroupIntentProcessorSpec {
 
@@ -121,7 +123,12 @@ object SecurityGroupIntentProcessorSpec {
 
   @Test
   fun `should skip operation if upstream groups are missing`() {
-    whenever(clouddriverService.getSecurityGroup("test", "aws", "gate", "us-west-2")) doReturn null as SecurityGroup?
+    whenever(clouddriverService.getSecurityGroup("test", "aws", "gate", "us-west-2")) doThrow RetrofitError.httpError(
+      "http://example.com",
+      Response("http://example.com", 404, "Not Found", listOf(), null),
+      null,
+      null
+    )
 
     val intent = SecurityGroupIntent(AmazonSecurityGroupSpec(
       application = "keel",
@@ -138,6 +145,6 @@ object SecurityGroupIntentProcessorSpec {
     val result = subject.converge(intent)
 
     result.orchestrations shouldMatch isEmpty
-    result.reason shouldMatch equalTo("Some upstream security groups are missing")
+    result.reason shouldMatch equalTo("Some upstream security groups are missing: [gate]")
   }
 }

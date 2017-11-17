@@ -47,4 +47,8 @@ class Front50IntentRepository
   override fun getIntents(status: List<IntentStatus>) = front50Service.getIntentsByStatus(status)
 
   override fun getIntent(id: String) = front50Service.getIntent(id)
+
+  override fun deleteIntent(id: String) {
+    front50Service.deleteIntent(id)
+  }
 }

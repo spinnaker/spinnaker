@@ -19,6 +19,7 @@ import com.netflix.spinnaker.keel.Intent
 import com.netflix.spinnaker.keel.IntentSpec
 import com.netflix.spinnaker.keel.IntentStatus
 import com.netflix.spinnaker.keel.front50.model.Application
+import retrofit.client.Response
 import retrofit.http.*
 
 interface Front50Service {
@@ -34,6 +35,9 @@ interface Front50Service {
 
   @POST("/intents")
   fun upsertIntent(@Body intent: Intent<IntentSpec>): Intent<IntentSpec>
+
+  @DELETE("/intents/{id}")
+  fun deleteIntent(@Path("id") id: String): Response
 
   @GET("/v2/applications/{applicationName}")
   fun getApplication(@Path("applicationName") applicationName: String): Application

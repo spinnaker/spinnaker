@@ -60,9 +60,9 @@ class SecurityGroupIntentProcessor
       return ConvergeResult(listOf(), ConvergeReason.UNCHANGED.reason)
     }
 
-    if (missingUpstreamGroups(intent.spec)) {
-      // TODO rz - Should return _what_ security groups are missing
-      return ConvergeResult(listOf(), "Some upstream security groups are missing")
+    val missingGroups = missingUpstreamGroups(intent.spec)
+    if (missingGroups.isNotEmpty()) {
+      return ConvergeResult(listOf(), "Some upstream security groups are missing: $missingGroups")
     }
 
     return ConvergeResult(listOf(
@@ -74,13 +74,13 @@ class SecurityGroupIntentProcessor
           trigger = Trigger(intent.id)
         )
       ),
+      // TODO rz - It'd be rad to enumerate what actually changed in the reason if it's a delta, rather than giving
+      // a generic message.
       ConvergeReason.CHANGED.reason
     )
   }
 
   private fun getSecurityGroups(spec: SecurityGroupSpec): Set<SecurityGroup> {
-    // TODO rz - Quite dislike that any new cloudprovider would need to edit keel for declarative support... how to fix?
-    // Maybe this is the sacrifice we need to make to start statically typing all of our models?
     if (spec is AmazonSecurityGroupSpec) {
       return spec.regions
         .map { region ->
@@ -88,7 +88,6 @@ class SecurityGroupIntentProcessor
             return@map if (spec.vpcName == null) {
               clouddriverService.getSecurityGroup(spec.accountName, "aws", spec.name, region)
             } else {
-              // TODO rz - vpc name work with vpc id?
               clouddriverService.getSecurityGroup(spec.accountName, "aws", spec.name, region, spec.vpcName)
             }
           } catch (e: RetrofitError) {
@@ -109,14 +108,25 @@ class SecurityGroupIntentProcessor
     return false
   }
 
-  private fun missingUpstreamGroups(spec: SecurityGroupSpec): Boolean {
-    spec.inboundRules
-      .filterIsInstance<ReferenceSecurityGroupRule>()
-      .forEach {
-        spec.regions.forEach { region ->
-          clouddriverService.getSecurityGroup(spec.accountName, "aws", it.name, region) ?: return true
+  private fun missingUpstreamGroups(spec: SecurityGroupSpec): List<String> {
+    return spec.inboundRules
+      .filterIsInstance<NamedReferenceSupport>()
+      .filter {
+        spec.name != it.name
+      }
+      .flatMap {
+        spec.regions.map { region ->
+          try {
+            clouddriverService.getSecurityGroup(spec.accountName, "aws", it.name, region)
+          } catch (e: RetrofitError) {
+            if (e.notFound()) {
+              return@map it.name
+            }
+          }
+          return@map null
         }
       }
-    return false
+      .filterNotNull()
+      .distinct()
   }
 }

@@ -41,26 +41,33 @@ open class OrcaIntentLauncher
     registry.counter(invocationsId.withTags(intent.getMetricTags())).increment()
 
     return registry.timer(invocationTimeId.withTags(intent.getMetricTags())).record<OrcaLaunchedIntentResult> {
-      val orchestrationIds = intentProcessor(intentProcessors, intent).converge(intent)
-        .also {
-          if (it.orchestrations.isNotEmpty()) {
-            applicationEventPublisher.publishEvent(ConvergenceRequiredEvent(intent))
-          }
-        }.orchestrations.map {
-        log.info("Launching orchestration for {}", value("intent", intent.id))
+      val result = intentProcessor(intentProcessors, intent).converge(intent)
+
+      if (result.orchestrations.isEmpty()) {
+        log.info("Not converging state for intent (id: ${intent.id}, reason: ${result.reason})")
+      } else {
+        applicationEventPublisher.publishEvent(ConvergenceRequiredEvent(intent))
+      }
+
+      val orchestrationIds = result.orchestrations.map {
+        log.info("Launching orchestration for intent (id: ${intent.id}, reason: ${result.reason})")
         orcaService.orchestrate(it).ref
       }
 
-      log.info(
-        "Launched orchestrations for intent (intent: {}, tasks: {})",
-        value("intent", intent.id),
-        value("tasks", orchestrationIds)
-      )
-      OrcaLaunchedIntentResult(orchestrationIds)
+      if (orchestrationIds.isNotEmpty()) {
+        log.info(
+          "Launched orchestrations for intent (intent: {}, tasks: {})",
+          value("intent", intent.id),
+          value("tasks", orchestrationIds)
+        )
+      }
+      OrcaLaunchedIntentResult(orchestrationIds, result.reason)
     }
   }
 }
 
+// TODO rz - Should probably collect the converge
 class OrcaLaunchedIntentResult(
-  val orchestrationIds: List<String>
+  val orchestrationIds: List<String>,
+  val reason: String
 ) : LaunchedIntentResult

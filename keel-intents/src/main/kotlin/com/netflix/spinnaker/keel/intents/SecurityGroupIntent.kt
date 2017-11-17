@@ -66,23 +66,53 @@ data class AmazonSecurityGroupSpec(
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "kind")
 abstract class SecurityGroupRule
 
-@JsonTypeName("standard")
-data class StandardSecurityGroupRule(
-  val portRanges: SortedSet<SecurityGroupPortRange>,
-  val protocol: String
-) : SecurityGroupRule()
-
 data class SecurityGroupPortRange(
   val startPort: Int,
   val endPort: Int
-)
+) : Comparable<SecurityGroupPortRange> {
+
+  override fun compareTo(other: SecurityGroupPortRange): Int {
+    return when {
+        startPort < other.startPort -> -1
+        startPort > other.startPort -> 1
+        else -> {
+          if (endPort < other.startPort) {
+            return -1
+          } else if (endPort > other.endPort) {
+            return 1
+          }
+          0
+        }
+    }
+  }
+}
+
+// TODO rz - should probably be named differently
+interface NamedReferenceSupport {
+  val name: String
+}
+
+interface PortRangeSupport : NamedReferenceSupport {
+  val portRanges: SortedSet<SecurityGroupPortRange>
+  val protocol: String
+}
 
 @JsonTypeName("ref")
 data class ReferenceSecurityGroupRule(
-  val portRanges: SortedSet<SecurityGroupPortRange>,
-  val protocol: String,
-  val name: String
-) : SecurityGroupRule()
+  override val portRanges: SortedSet<SecurityGroupPortRange>,
+  override val protocol: String,
+  override val name: String
+) : SecurityGroupRule(), PortRangeSupport
+
+@JsonTypeName("crossAccountRef")
+data class CrossAccountReferenceSecurityGroupRule(
+  override val portRanges: SortedSet<SecurityGroupPortRange>,
+  override val protocol: String,
+  override val name: String,
+  val account: String,
+  val region: String,
+  val vpcName: String
+) : SecurityGroupRule(), PortRangeSupport
 
 @JsonTypeName("http")
 data class HttpSecurityGroupRule(
@@ -90,8 +120,8 @@ data class HttpSecurityGroupRule(
   val host: String
 ) : SecurityGroupRule()
 
-@JsonTypeName("ipRange")
-data class IpRangeSecurityGroupRule(
-  val portRanges: SortedSet<SecurityGroupPortRange>,
-  val protocol: String
+@JsonTypeName("cidr")
+data class CidrSecurityGroupRule(
+  val protocol: String,
+  val blockRange: String
 ) : SecurityGroupRule()

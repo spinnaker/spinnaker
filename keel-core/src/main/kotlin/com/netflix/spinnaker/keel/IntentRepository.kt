@@ -25,5 +25,7 @@ interface IntentRepository {
 
   fun getIntent(id: String): Intent<IntentSpec>?
 
+  fun deleteIntent(id: String)
+
 //  fun findByLabels(labels: Labels): List<Intent<IntentSpec>>
 }

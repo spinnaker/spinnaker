@@ -24,6 +24,8 @@ import com.netflix.spinnaker.keel.clouddriver.model.Moniker
 import com.netflix.spinnaker.keel.clouddriver.model.Network
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroup
 import com.netflix.spinnaker.keel.intents.AmazonSecurityGroupSpec
+import com.netflix.spinnaker.keel.intents.ReferenceSecurityGroupRule
+import com.netflix.spinnaker.keel.intents.SecurityGroupPortRange
 import com.netflix.spinnaker.keel.intents.SecurityGroupSpec
 import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
@@ -135,7 +137,13 @@ object SecurityGroupConverterTest {
       cloudProvider = "aws",
       accountName = "test",
       regions = setOf("us-west-2", "us-east-1"),
-      inboundRules = emptySet(),
+      inboundRules = setOf(
+        ReferenceSecurityGroupRule(
+          sortedSetOf(SecurityGroupPortRange(80, 80), SecurityGroupPortRange(8080, 8081)),
+          "tcp",
+          "other-group"
+        )
+      ),
       outboundRules = emptySet(),
       vpcName = "vpcName",
       description = "app sg"
@@ -149,7 +157,20 @@ object SecurityGroupConverterTest {
     result[0]["regions"] shouldMatch equalTo<Any>(setOf("us-west-2", "us-east-1"))
     result[0]["vpcId"] shouldMatch equalTo<Any>("vpcName")
     result[0]["description"] shouldMatch equalTo<Any>("app sg")
-    result[0]["securityGroupIngress"] shouldMatch equalTo<Any>(emptySet<Any>())
+    result[0]["securityGroupIngress"] shouldMatch equalTo<Any>(listOf(
+      mapOf(
+        "name" to "other-group",
+        "type" to "tcp",
+        "startPort" to 80,
+        "endPort" to 80
+      ),
+      mapOf(
+        "name" to "other-group",
+        "type" to "tcp",
+        "startPort" to 8080,
+        "endPort" to 8081
+      )
+    ))
     result[0]["ipIngress"] shouldMatch equalTo<Any>(emptyList<Any>())
     result[0]["accountName"] shouldMatch equalTo<Any>("test")
   }

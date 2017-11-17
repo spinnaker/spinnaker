@@ -22,6 +22,6 @@ import org.springframework.context.annotation.Configuration
 @ComponentScan(basePackages = arrayOf(
   "com.netflix.spinnaker.keel.intents",
   "com.netflix.spinnaker.keel.intents.processors",
-  "com.netflix.spinnaker.keel.intents.processors.converters.securitygroups"
+  "com.netflix.spinnaker.keel.intents.processors.converters"
 ))
 open class IntentConfiguration

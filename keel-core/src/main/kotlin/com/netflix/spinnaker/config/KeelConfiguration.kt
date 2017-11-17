@@ -26,6 +26,7 @@ import com.netflix.spinnaker.keel.Intent
 import com.netflix.spinnaker.keel.IntentActivityRepository
 import com.netflix.spinnaker.keel.IntentRepository
 import com.netflix.spinnaker.keel.IntentSpec
+import com.netflix.spinnaker.keel.findAllSubtypes
 import com.netflix.spinnaker.keel.attribute.Attribute
 import com.netflix.spinnaker.keel.memory.MemoryIntentActivityRepository
 import com.netflix.spinnaker.keel.memory.MemoryIntentRepository
@@ -37,11 +38,8 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
-import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
-import org.springframework.core.type.filter.AssignableTypeFilter
-import org.springframework.util.ClassUtils
 import java.time.Clock
 
 @Configuration
@@ -59,10 +57,10 @@ open class KeelConfiguration {
   @Bean
   open fun objectMapper() =
     ObjectMapper().apply {
-      registerSubtypes(*findAllSubtypes(Intent::class.java, "com.netflix.spinnaker.keel.intents").toTypedArray())
-      registerSubtypes(*findAllSubtypes(IntentSpec::class.java, "com.netflix.spinnaker.keel.intents").toTypedArray())
-      registerSubtypes(*findAllSubtypes(PolicySpec::class.java, "com.netflix.spinnaker.keel.policy").toTypedArray())
-      registerSubtypes(*findAllSubtypes(Attribute::class.java, "com.netflix.spinnaker.keel.attribute").toTypedArray())
+      registerSubtypes(*findAllSubtypes(log, Intent::class.java, "com.netflix.spinnaker.keel.intents"))
+      registerSubtypes(*findAllSubtypes(log, IntentSpec::class.java, "com.netflix.spinnaker.keel.intents"))
+      registerSubtypes(*findAllSubtypes(log, PolicySpec::class.java, "com.netflix.spinnaker.keel.policy"))
+      registerSubtypes(*findAllSubtypes(log, Attribute::class.java, "com.netflix.spinnaker.keel.attribute"))
     }
       .registerModule(KotlinModule())
       .registerModule(VersioningModule())
@@ -74,16 +72,6 @@ open class KeelConfiguration {
           enable(INDENT_OUTPUT)
         }
       }
-
-  private fun findAllSubtypes(clazz: Class<*>, pkg: String): List<Class<*>>
-    = ClassPathScanningCandidateComponentProvider(false)
-    .apply { addIncludeFilter(AssignableTypeFilter(clazz)) }
-    .findCandidateComponents(pkg)
-    .map {
-      val cls = ClassUtils.resolveClassName(it.beanClassName, ClassUtils.getDefaultClassLoader())
-      log.info("Registering ${cls.simpleName}")
-      return@map cls
-    }
 
   @Bean
   @ConditionalOnMissingBean(IntentRepository::class)
