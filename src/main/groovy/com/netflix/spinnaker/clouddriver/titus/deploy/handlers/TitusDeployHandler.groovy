@@ -133,8 +133,22 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
         description.inService = description.inService ?: sourceJob.inService
         description.migrationPolicy = description.migrationPolicy ?: sourceJob.migrationPolicy
         description.jobType = description.jobType ?: "service"
-        description.softConstraints = description.softConstraints ?: sourceJob.softConstraints
-        description.hardConstraints = description.hardConstraints ?: sourceJob.hardConstraints
+        if (!description.hardConstraints) description.hardConstraints = []
+        if (!description.softConstraints) description.softConstraints = []
+        if (description.softConstraints.empty && sourceJob.softConstraints) {
+          sourceJob.softConstraints.each {
+            if (!description.hardConstraints.contains(it)) {
+              description.softConstraints.add(it)
+            }
+          }
+        }
+        if (description.hardConstraints.empty && sourceJob.hardConstraints) {
+          sourceJob.hardConstraints.each {
+            if (!description.softConstraints.contains(it)) {
+              description.hardConstraints.add(it)
+            }
+          }
+        }
       }
 
       task.updateStatus BASE_PHASE, "Preparing deployment to ${account}:${region}${subnet ? ':' + subnet : ''}..."
