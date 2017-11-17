@@ -319,6 +319,13 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
 
     def scheduling = GCEUtil.buildScheduling(description)
 
+    if (labels == null) {
+      labels = [:]
+    }
+
+    // Used to group instances when querying for metrics from kayenta.
+    labels['spinnaker-member-of'] = "${project}_${region}_$serverGroupName".toString()
+
     def instanceProperties = new InstanceProperties(machineType: machineTypeName,
                                                     disks: attachedDisks,
                                                     networkInterfaces: [networkInterface],
