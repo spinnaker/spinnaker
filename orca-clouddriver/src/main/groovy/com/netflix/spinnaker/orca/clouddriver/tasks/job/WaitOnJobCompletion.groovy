@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.job
 
-import com.netflix.spinnaker.orca.RetrySupport
+import com.netflix.spinnaker.kork.core.RetrySupport
 
 import java.util.concurrent.TimeUnit
 import com.fasterxml.jackson.core.type.TypeReference

@@ -18,7 +18,7 @@ package com.netflix.spinnaker.orca.mahe.cleanup
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.RetrySupport
+import com.netflix.spinnaker.kork.core.RetrySupport
 import com.netflix.spinnaker.orca.listeners.ExecutionListener
 import com.netflix.spinnaker.orca.listeners.Persister
 import com.netflix.spinnaker.orca.mahe.MaheService
@@ -125,7 +125,7 @@ class FastPropertyCleanupListener implements ExecutionListener {
       return retrySupport.retry({
         mahe.getPropertyById(property.propertyId, property.env)
         return true
-      }, 3, 2, false)
+      }, 3, 2000, false)
     } catch (RetrofitError error) {
       if (error.kind == RetrofitError.Kind.HTTP && error.response.status == 404) {
         return false

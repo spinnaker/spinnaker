@@ -18,7 +18,7 @@ package com.netflix.spinnaker.orca.mahe.tasks
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.RetrySupport
+import com.netflix.spinnaker.kork.core.RetrySupport
 import com.netflix.spinnaker.orca.mahe.MaheService
 import com.netflix.spinnaker.orca.mahe.PropertyAction
 import com.netflix.spinnaker.orca.mahe.cleanup.FastPropertyCleanupListener
