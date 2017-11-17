@@ -20,6 +20,7 @@ package com.netflix.spinnaker.orca.clouddriver.pipeline.providers.aws
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.moniker.Moniker
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.ResizeServerGroupStage
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.AbstractServerGroupTask
 import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
@@ -78,6 +79,12 @@ class ApplySourceServerGroupCapacityTask extends AbstractServerGroupTask {
       log.error("Unable to apply source server group capacity (executionId: ${stage.execution.id})", e)
       return null
     }
+  }
+
+  @Override
+  Moniker convertMoniker(Stage stage) {
+    // Used in AbstractServerGroupTask.execute() but not needed here.
+    return null;
   }
 
   /**
