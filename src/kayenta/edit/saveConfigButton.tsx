@@ -20,7 +20,7 @@ interface ISaveButtonDispatchProps {
  * Button for saving a canary config.
  */
 function SaveConfigButton({ saveConfigState, inSyncWithServer, saveConfig }: ISaveButtonStateProps & ISaveButtonDispatchProps) {
-  if (inSyncWithServer) {
+  if (inSyncWithServer && saveConfigState !== AsyncRequestState.Requesting) {
     return (
       <span className="btn btn-link disabled">
         <i className="fa fa-check-circle-o"/> In sync with server

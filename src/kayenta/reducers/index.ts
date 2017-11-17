@@ -17,6 +17,7 @@ import { mapStateToConfig } from '../service/canaryConfig.service';
 import { ISelectedRunState, selectedRun } from './selectedRun';
 import { metricResultsSelector } from '../selectors/index';
 import { validationErrorsReducer } from './validators';
+import { AsyncRequestState } from './asyncRequest';
 
 export interface ICanaryState {
   app: IAppState;
@@ -83,6 +84,13 @@ const isInSyncWithServerReducer = (state: ICanaryState): ICanaryState => {
           return true;
         } else {
           const originalConfig = state.data.configs.find(c => c.id === editedConfig.id);
+          // If we're saving the config right now, don't warn that
+          // the config hasn't been saved.
+          if (!originalConfig
+              && editedConfig.isNew
+              && state.selectedConfig.save.state === AsyncRequestState.Requesting) {
+            return true;
+          }
           return isEqual(editedConfig, originalConfig);
         }
       })(),
