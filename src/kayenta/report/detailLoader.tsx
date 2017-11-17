@@ -16,13 +16,13 @@ interface IResultLoaderDispatchProps {
 }
 
 interface IResultLoaderStateParams {
-  configName: string;
+  configId: string;
   runId: string;
 }
 
 /*
  * Top-level .reportDetail state component.
- * Loads result details on changes to /report/:configName/:runId path parameter, renders load states.
+ * Loads result details on changes to /report/:configId/:runId path parameter, renders load states.
  */
 class ResultDetailLoader extends React.Component<IResultLoaderDispatchProps & IResultLoaderStateParamsProps> {
   private subscription: Subscription;
@@ -45,7 +45,7 @@ class ResultDetailLoader extends React.Component<IResultLoaderDispatchProps & IR
 const mapDispatchToProps = (dispatch: Dispatch<ICanaryState>): IResultLoaderDispatchProps => ({
   loadResult: (stateParams: IResultLoaderStateParams) =>
     dispatch(Creators.loadRunRequest({
-      configName: stateParams.configName,
+      configId: stateParams.configId,
       runId: stateParams.runId,
     })),
 });

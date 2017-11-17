@@ -1,13 +1,12 @@
 import { createAction } from 'redux-actions';
 
-import { IExecution } from '@spinnaker/core';
-
 import * as Actions from './index';
 import { ConfigJsonModalTabState } from '../edit/configJsonModal';
 import { ICanaryConfig } from '../domain/ICanaryConfig';
 import { ICanaryConfigSummary } from '../domain/ICanaryConfigSummary';
 import { IJudge } from '../domain/IJudge';
 import { IMetricSetPair } from '../domain/IMetricSetPair';
+import { ICanaryExecutionStatusResult } from '../domain/ICanaryExecutionStatusResult';
 
 const typedPayloadCreator = <T>() => (payload: T): T => payload;
 
@@ -52,8 +51,8 @@ export const editGroupUpdate = createAction(Actions.EDIT_GROUP_UPDATE, typedPayl
 export const editGroupConfirm = createAction(Actions.EDIT_GROUP_CONFIRM, typedPayloadCreator<{group: string, edit: string}>());
 export const changeMetricGroupSelect = createAction(Actions.CHANGE_METRIC_GROUP_SELECT, typedPayloadCreator<{group: string}>());
 export const changeMetricGroupConfirm = createAction(Actions.CHANGE_METRIC_GROUP_CONFIRM, typedPayloadCreator<{metricId: string}>());
-export const loadRunRequest = createAction(Actions.LOAD_RUN_REQUEST, typedPayloadCreator<{configName: string, runId: string}>());
-export const loadRunSuccess = createAction(Actions.LOAD_RUN_SUCCESS, typedPayloadCreator<{run: IExecution}>());
+export const loadRunRequest = createAction(Actions.LOAD_RUN_REQUEST, typedPayloadCreator<{configId: string, runId: string}>());
+export const loadRunSuccess = createAction(Actions.LOAD_RUN_SUCCESS, typedPayloadCreator<{run: ICanaryExecutionStatusResult}>());
 export const loadRunFailure = createAction(Actions.LOAD_RUN_FAILURE, typedPayloadCreator<{error: Error}>());
 export const selectReportMetricGroup = createAction(Actions.SELECT_REPORT_METRIC_GROUP, typedPayloadCreator<{group: string}>());
 export const selectReportMetric = createAction(Actions.SELECT_REPORT_METRIC, typedPayloadCreator<{metric: string}>());

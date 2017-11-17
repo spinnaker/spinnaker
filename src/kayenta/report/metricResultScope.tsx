@@ -1,18 +1,18 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
-import { IExecution } from '@spinnaker/core';
 
 import { ICanaryState } from 'kayenta/reducers/index';
 import { IMetricSetPair, ICanaryMetricConfig } from 'kayenta/domain';
 import { runSelector, selectedMetricConfigSelector } from 'kayenta/selectors';
 import metricStoreConfigService from 'kayenta/metricStore/metricStoreConfig.service';
+import { ICanaryExecutionStatusResult } from '../domain/ICanaryExecutionStatusResult';
 
 export interface IMetricResultScopeStateProps {
   metricConfig: ICanaryMetricConfig
   metricSetPair: IMetricSetPair;
   // Scope lives in stages named `stackdriverFetch` or `atlasFetch`.
   // Let the delegates resolve scope for themselves.
-  run: IExecution;
+  run: ICanaryExecutionStatusResult;
   service: string;
 }
 

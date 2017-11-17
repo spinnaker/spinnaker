@@ -3,8 +3,8 @@ import { handleActions } from 'redux-actions';
 
 import * as Actions from 'kayenta/actions/index';
 import { AsyncRequestState } from './asyncRequest';
-import { IExecution } from '@spinnaker/core';
 import { IMetricSetPair } from '../domain/IMetricSetPair';
+import { ICanaryExecutionStatusResult } from '../domain/ICanaryExecutionStatusResult';
 
 interface IMetricSetPairState {
   pair: IMetricSetPair;
@@ -12,7 +12,7 @@ interface IMetricSetPairState {
 }
 
 export interface ISelectedRunState {
-  run: IExecution;
+  run: ICanaryExecutionStatusResult;
   load: AsyncRequestState;
   selectedGroup: string;
   selectedMetric: string;
@@ -20,7 +20,7 @@ export interface ISelectedRunState {
 }
 
 const run = handleActions({
-  [Actions.LOAD_RUN_SUCCESS]: (_state: IExecution, action: Action & any) => action.payload.run,
+  [Actions.LOAD_RUN_SUCCESS]: (_state: ICanaryExecutionStatusResult, action: Action & any) => action.payload.run,
 }, null);
 
 const load = handleActions({

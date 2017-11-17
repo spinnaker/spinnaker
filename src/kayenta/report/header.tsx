@@ -3,7 +3,7 @@ import { connect } from 'react-redux';
 import { UISref } from '@uirouter/react';
 
 import { ICanaryState } from '../reducers/index';
-import { setupCanaryStageSelector, serializedCanaryConfigSelector } from 'kayenta/selectors';
+import { serializedCanaryConfigSelector } from 'kayenta/selectors';
 
 export interface IReportHeaderStateProps {
   id: string;
@@ -22,7 +22,7 @@ const ReportHeader = ({ id, name }: IReportHeaderStateProps) => (
 );
 
 const mapStateToProps = (state: ICanaryState): IReportHeaderStateProps => ({
-  id: setupCanaryStageSelector(state).context.canaryConfigId,
+  id: serializedCanaryConfigSelector(state).id,
   name: serializedCanaryConfigSelector(state).name,
 });
 

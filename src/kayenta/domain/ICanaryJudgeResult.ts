@@ -3,7 +3,7 @@ import { MetricClassificationLabel } from './MetricClassificationLabel';
 
 export interface ICanaryJudgeResult {
   judgeName: string;
-  results: {[metricName: string]: ICanaryAnalysisResult};
+  results: ICanaryAnalysisResult[];
   groupScores: ICanaryJudgeGroupScore[];
   score: ICanaryJudgeScore;
 }

@@ -1,7 +1,6 @@
 import { IExecution } from '@spinnaker/core';
 
 import { IMetricSetPair, ICanaryJudgeStage } from 'kayenta/domain/index';
-import { ICanaryRunService } from './canaryRun.service';
 import { CANARY_JUDGE } from './canaryRunStages';
 
 // This loads the JSON into the build - not fetched dynamically.
@@ -23,8 +22,9 @@ const metricSetPairLists: {runId: string, list: IMetricSetPair[]}[] =
 
 /*
 * For local development only. Enabled if LIVE_CALLS env variable is false.
+* TODO(dpeach): either update to match Kayenta interface or remove.
 * */
-export class LocalCanaryRunService implements ICanaryRunService {
+export class LocalCanaryRunService {
   private canaryRuns: IExecution[];
   private metricSetPairLists: {runId: string, list: IMetricSetPair[]}[];
 

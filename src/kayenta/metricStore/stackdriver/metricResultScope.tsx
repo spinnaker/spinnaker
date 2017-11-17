@@ -1,15 +1,10 @@
 import * as React from 'react';
 import { round } from 'lodash';
 
-import { IExecution } from '@spinnaker/core';
 import { IMetricResultScopeProps } from '../metricStoreConfig.service';
 import FormattedDate from 'kayenta/layout/formattedDate';
-import { CANARY_JUDGE } from 'kayenta/service/run/canaryRunStages';
-import { ICanaryJudgeStage, ICanaryAnalysisResultsStats } from 'kayenta/domain';
-import {
-  IStackdriverFetchStage,
-  STACKDRIVER_FETCH_STAGE
-} from './domain/IStackdriverFetchStage';
+import { ICanaryAnalysisResultsStats } from 'kayenta/domain';
+import { ICanaryExecutionStatusResult } from 'kayenta/domain/ICanaryExecutionStatusResult';
 
 import './metricResultScope.less';
 
@@ -18,12 +13,12 @@ interface ITableColumn {
   getValue: (target: string) => JSX.Element;
 }
 
-const getStats = (run: IExecution, metricName: string, target: string): ICanaryAnalysisResultsStats => {
-  const canaryJudgeStage = run.stages.find(s => s.type === CANARY_JUDGE) as ICanaryJudgeStage;
+const getStats = (run: ICanaryExecutionStatusResult, metricName: string, target: string): ICanaryAnalysisResultsStats => {
+  const result = run.result.judgeResult.results.find(r => r.name === metricName);
   if (target === 'experiment') {
-    return canaryJudgeStage.context.result.results[metricName].experimentMetadata.stats;
+    return result.experimentMetadata.stats;
   } else if (target === 'control') {
-    return canaryJudgeStage.context.result.results[metricName].controlMetadata.stats;
+    return result.controlMetadata.stats;
   } else {
     return null;
   }
@@ -58,11 +53,13 @@ export default ({ metricConfig, metricSetPair, run }: IMetricResultScopeProps) =
     {
       label: 'Scope',
       getValue: target => {
-        const fetchStage = run.stages.find(s =>
-          s.type === STACKDRIVER_FETCH_STAGE
-            && s.name.toLowerCase().includes(target) // TODO(dpeach): This is a monstrosity. Move scope into the metric set pair.
-        ) as IStackdriverFetchStage;
-        return <span>{fetchStage.context.stackdriverCanaryScope.scope}</span>;
+        if (target === 'experiment') {
+          return <span>{run.result.canaryExecutionRequest.experimentScope.scope}</span>
+        } else if (target === 'control') {
+          return <span>{run.result.canaryExecutionRequest.controlScope.scope}</span>
+        } else {
+          return null;
+        }
       },
     },
     {

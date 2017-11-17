@@ -30,7 +30,7 @@ const mapStateToProps  = (state: ICanaryState): IMetricSetPairGraphStateProps =>
   const selectedMetric = state.selectedRun.selectedMetric;
   return {
     pair: state.selectedRun.metricSetPair.pair,
-    result: metricResultsSelector(state)[selectedMetric],
+    result: metricResultsSelector(state).find(result => result.name === selectedMetric),
   };
 };
 

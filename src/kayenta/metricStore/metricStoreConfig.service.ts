@@ -1,13 +1,12 @@
 import * as React from 'react';
-import { IExecution } from '@spinnaker/core';
 
-import { ICanaryMetricConfig, IMetricSetPair } from 'kayenta/domain';
+import { ICanaryMetricConfig, IMetricSetPair, ICanaryExecutionStatusResult } from 'kayenta/domain';
 import { buildDelegateService } from 'kayenta/service/delegateFactory';
 
 export interface IMetricResultScopeProps {
   metricConfig: ICanaryMetricConfig
   metricSetPair: IMetricSetPair;
-  run: IExecution;
+  run: ICanaryExecutionStatusResult;
 }
 
 export interface IMetricStoreConfig {

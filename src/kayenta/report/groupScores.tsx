@@ -7,10 +7,7 @@ import GroupScore from './groupScore';
 import * as Creators from 'kayenta/actions/creators';
 import { ICanaryState } from '../reducers/index';
 import { IGroupWeights } from '../domain/ICanaryConfig';
-import {
-  canaryJudgeStageSelector,
-  serializedGroupWeightsSelector
-} from '../selectors/index';
+import { serializedGroupWeightsSelector, serializedCanaryConfigSelector } from '../selectors/index';
 import { mapGroupToColor } from './colors';
 
 export interface IGroupScoresOwnProps {
@@ -51,7 +48,7 @@ const GroupScores = ({ groups, groupWeights, scoreThresholds, className, select,
 const mapStateToProps = (state: ICanaryState): IGroupScoresStateProps => ({
   selectedGroup: state.selectedRun.selectedGroup,
   groupWeights: serializedGroupWeightsSelector(state),
-  scoreThresholds: canaryJudgeStageSelector(state).context.orchestratorScoreThresholds,
+  scoreThresholds: serializedCanaryConfigSelector(state).classifier.scoreThresholds,
 });
 
 const mapDispatchToProps = (

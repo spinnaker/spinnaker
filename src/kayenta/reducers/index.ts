@@ -105,7 +105,7 @@ const selectedMetricReducer = (state: ICanaryState, action: Action & any) => {
 
   const { payload: { metric } } = action;
 
-  const results = metricResultsSelector(state)[metric];
+  const results = metricResultsSelector(state).find(result => result.name === metric);
   if (!state.selectedRun.metricSetPair.pair || state.selectedRun.metricSetPair.pair.id !== results.id) {
     // If we don't have the metric set pair loaded when we select the metric,
     // schedule loading it now.

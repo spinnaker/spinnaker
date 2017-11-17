@@ -17,7 +17,7 @@ import {
   getCanaryRun,
   getMetricSetPair
 } from '../service/run/canaryRun.service';
-import { configNameSelector, runSelector } from '../selectors/index';
+import { runSelector } from '../selectors/index';
 import { ICanaryConfigUpdateResponse } from '../domain/ICanaryConfigUpdateResponse';
 
 const typeMatches = (...actions: string[]) => (action: Action & any) => actions.includes(action.type);
@@ -83,7 +83,7 @@ const loadCanaryRunRequestEpic = (action$: Observable<Action & any>) =>
   action$
     .filter(typeMatches(Actions.LOAD_RUN_REQUEST))
     .concatMap(action =>
-      Observable.fromPromise(getCanaryRun(action.payload.configName, action.payload.runId))
+      Observable.fromPromise(getCanaryRun(action.payload.configId, action.payload.runId))
         .map(run => Creators.loadRunSuccess({ run }))
         .catch((error: Error) => Observable.of(Creators.loadRunFailure({ error })))
     );
@@ -92,10 +92,8 @@ const loadMetricSetPairEpic = (action$: Observable<Action & any>, store: Middlew
   action$
     .filter(typeMatches(Actions.LOAD_METRIC_SET_PAIR_REQUEST))
     .concatMap(action => {
-      const configName = configNameSelector(store.getState());
-      const runId = runSelector(store.getState()).id;
-
-      return Observable.fromPromise(getMetricSetPair(configName, runId, action.payload.pairId))
+      const run = runSelector(store.getState());
+      return Observable.fromPromise(getMetricSetPair(run.metricSetPairListId, action.payload.pairId))
         .map(metricSetPair => Creators.loadMetricSetPairSuccess({ metricSetPair }))
         .catch((error: Error) => Observable.of(Creators.loadMetricSetPairFailure({ error })))
     });
