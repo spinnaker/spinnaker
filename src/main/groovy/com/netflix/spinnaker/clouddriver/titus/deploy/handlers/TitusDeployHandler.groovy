@@ -86,6 +86,57 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
       String region = description.region
       String subnet = description.subnet
 
+      if (description.source.asgName) {
+        Source source = description.source
+
+        TitusClient sourceClient = buildSourceTitusClient(source)
+        if (!sourceClient) {
+          throw new RuntimeException("Unable to locate source (${source.account}:${source.region}:${source.asgName})")
+        }
+        Job sourceJob = sourceClient.findJobByName(source.asgName)
+        if (!sourceJob) {
+          throw new RuntimeException("Unable to locate source (${source.account}:${source.region}:${source.asgName})" )
+        }
+
+        task.updateStatus BASE_PHASE, "Copying deployment details from (${source.account}:${source.region}:${source.asgName})"
+
+        description.runtimeLimitSecs = description.runtimeLimitSecs ?: sourceJob.runtimeLimitSecs
+        description.securityGroups = description.securityGroups ?: sourceJob.securityGroups
+        description.imageId = description.imageId ?: (sourceJob.appName + ":" + sourceJob.version)
+
+        if (description.source.useSourceCapacity) {
+          description.capacity.min = sourceJob.instancesMin
+          description.capacity.max = sourceJob.instancesMax
+          description.capacity.desired = sourceJob.instancesDesired
+        }
+
+        description.resources.cpu = description.resources.cpu ?: sourceJob.cpu
+        description.resources.memory = description.resources.memory ?: sourceJob.memory
+        description.resources.disk = description.resources.disk ?: sourceJob.disk
+        description.retries = description.retries ?: sourceJob.retries
+        description.runtimeLimitSecs = description.runtimeLimitSecs ?: sourceJob.runtimeLimitSecs
+        description.resources.gpu = description.resources.gpu ?: sourceJob.gpu
+        description.resources.networkMbps = description.resources.networkMbps ?: sourceJob.networkMbps
+        description.efs = description.efs ?: sourceJob.efs
+        description.env = description.env ?: sourceJob.environment
+        description.resources.allocateIpAddress = description.resources.allocateIpAddress ?: sourceJob.allocateIpAddress
+        description.entryPoint = description.entryPoint ?: sourceJob.entryPoint
+        description.iamProfile = description.iamProfile ?: sourceJob.iamProfile
+        description.capacityGroup = description.capacityGroup ?: sourceJob.capacityGroup
+
+        if(!description.labels || description.labels.isEmpty()){
+          if(!description.labels){
+            description.labels = [:]
+          }
+          sourceJob.labels.each{ k, v -> description.labels.put(k, v)}
+        }
+        description.inService = description.inService ?: sourceJob.inService
+        description.migrationPolicy = description.migrationPolicy ?: sourceJob.migrationPolicy
+        description.jobType = description.jobType ?: "service"
+        description.softConstraints = description.softConstraints ?: sourceJob.softConstraints
+        description.hardConstraints = description.hardConstraints ?: sourceJob.hardConstraints
+      }
+
       task.updateStatus BASE_PHASE, "Preparing deployment to ${account}:${region}${subnet ? ':' + subnet : ''}..."
       DockerImage dockerImage = new DockerImage(description.imageId)
 
@@ -97,28 +148,7 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
       if (!description.labels) description.labels = [:]
 
       if (description.interestingHealthProviderNames && !description.interestingHealthProviderNames.empty) {
-        description.labels.put("interestingHealthProviderNames", description.interestingHealthProviderNames.join(",") )
-      }
-
-      if (description.source.useSourceCapacity) {
-        Source source = description.source
-
-        task.updateStatus BASE_PHASE, "Use source capacity specified: trying to resolve capacity from ${source.asgName}"
-
-        TitusClient sourceClient = buildSourceTitusClient(source)
-        if (!sourceClient) {
-          throw new RuntimeException("Unable to locate source (${source.account}:${source.region}:${source.asgName})")
-        }
-        Job sourceJob = sourceClient.findJobByName(source.asgName)
-        if (!sourceJob) {
-          throw new RuntimeException("Unable to locate source (${source.account}:${source.region}:${source.asgName})" )
-        }
-
-        task.updateStatus BASE_PHASE, "Use source capacity specified: found ${source.asgName}"
-
-        description.capacity.min = sourceJob.instancesMin
-        description.capacity.max = sourceJob.instancesMax
-        description.capacity.desired = sourceJob.instancesDesired
+        description.labels.put("interestingHealthProviderNames", description.interestingHealthProviderNames.join(","))
       }
 
       SubmitJobRequest submitJobRequest = new SubmitJobRequest()
