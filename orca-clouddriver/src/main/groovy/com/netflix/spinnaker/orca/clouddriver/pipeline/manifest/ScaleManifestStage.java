@@ -20,6 +20,7 @@ package com.netflix.spinnaker.orca.clouddriver.pipeline.manifest;
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.ScaleManifestTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.UpdateManifestForceCacheRefreshTask;
+import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.UpdateManifestWaitForStableTask;
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder;
 import com.netflix.spinnaker.orca.pipeline.TaskNode;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
@@ -33,6 +34,7 @@ public class ScaleManifestStage implements StageDefinitionBuilder {
   public void taskGraph(Stage stage, TaskNode.Builder builder) {
     builder.withTask(ScaleManifestTask.TASK_NAME, ScaleManifestTask.class)
         .withTask("monitorScale", MonitorKatoTask.class)
-        .withTask(UpdateManifestForceCacheRefreshTask.TASK_NAME, UpdateManifestForceCacheRefreshTask.class);
+        .withTask(UpdateManifestForceCacheRefreshTask.TASK_NAME, UpdateManifestForceCacheRefreshTask.class)
+        .withTask(UpdateManifestWaitForStableTask.TASK_NAME, UpdateManifestWaitForStableTask.class);
   }
 }

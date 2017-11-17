@@ -24,7 +24,6 @@ import com.netflix.spinnaker.orca.OverridableTimeoutRetryableTask;
 import com.netflix.spinnaker.orca.TaskResult;
 import com.netflix.spinnaker.orca.clouddriver.OortService;
 import com.netflix.spinnaker.orca.clouddriver.model.Manifest;
-import com.netflix.spinnaker.orca.clouddriver.model.Manifest.Status;
 import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import lombok.extern.slf4j.Slf4j;
@@ -32,7 +31,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import retrofit.RetrofitError;
 
-import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -41,8 +39,8 @@ import java.util.concurrent.TimeUnit;
 
 @Component
 @Slf4j
-public class WaitForManifestStableTask implements OverridableTimeoutRetryableTask, CloudProviderAware {
-  public final static String TASK_NAME = "waitForManifestToStabilize";
+public class UpdateManifestWaitForStableTask implements OverridableTimeoutRetryableTask, CloudProviderAware {
+  public final static String TASK_NAME = "waitForStable";
 
   @Autowired
   OortService oortService;
@@ -60,48 +58,35 @@ public class WaitForManifestStableTask implements OverridableTimeoutRetryableTas
     return TimeUnit.MINUTES.toMillis(30);
   }
 
-  @Nonnull
+
   @Override
-  public TaskResult execute(@Nonnull Stage stage) {
+  public TaskResult execute(Stage stage) {
     String account = getCredentials(stage);
-    Map<String, List<String>> deployedManifests = (Map<String, List<String>>) stage.getContext().get("deploy.outputs");
+    String name = (String) stage.getContext().get("manifest.name");
+    String location = (String) stage.getContext().get("manifest.location");
+    String id = String.format("'%s' in '%s' for account %s", name, location, account);
     List<String> messages = new ArrayList<>();
-    boolean allStable = true;
 
-    for (Map.Entry<String, List<String>> entry : deployedManifests.entrySet()) {
-      String location = entry.getKey();
-      for (String name : entry.getValue()) {
-        String identifier = readableIdentifier(account, location, name);
-        Manifest manifest;
-        try {
-          manifest = oortService.getManifest(account, location, name);
-        } catch (RetrofitError e) {
-          log.warn("Unable to read manifest {}", identifier, e);
-          return new TaskResult(ExecutionStatus.RUNNING, new HashMap<>(), new HashMap<>());
-        } catch (Exception e) {
-          throw new RuntimeException("Execution '" + stage.getExecution().getId() + "' failed with unexpected reason: " + e.getMessage(), e);
-        }
-
-        Status status = manifest.getStatus();
-        if (status.getStable() == null || !status.getStable().isState()) {
-          allStable = false;
-          messages.add(identifier + ": " + status.getStable().getMessage());
-        }
-      }
+    Manifest manifest;
+    try {
+      manifest = oortService.getManifest(account, location, name);
+    } catch (RetrofitError e) {
+      log.warn("Unable to read manifest {}", id, e);
+      return new TaskResult(ExecutionStatus.RUNNING, new HashMap<>(), new HashMap<>());
+    } catch (Exception e) {
+      throw new RuntimeException("Execution '" + stage.getExecution().getId() + "' failed with unexpected reason: " + e.getMessage(), e);
     }
 
-    if (allStable) {
-      return TaskResult.SUCCEEDED;
-    } else {
+    Manifest.Status status = manifest.getStatus();
+    if (status.getStable() == null || !status.getStable().isState()) {
+      messages.add(status.getStable().getMessage());
       Map<String, Object> context = new ImmutableMap.Builder<String, Object>()
           .put("stableMessages", messages)
           .build();
 
       return new TaskResult(ExecutionStatus.RUNNING, context, new HashMap<>());
     }
-  }
 
-  private String readableIdentifier(String account, String location, String name) {
-    return String.format("'%s' in '%s' for account %s", name, location, account);
+    return new TaskResult(ExecutionStatus.SUCCEEDED);
   }
 }

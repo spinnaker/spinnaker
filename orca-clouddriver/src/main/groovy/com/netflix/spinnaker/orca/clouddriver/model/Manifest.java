@@ -25,7 +25,12 @@ public class Manifest {
 
   @Data
   public static class Status {
-    boolean stable;
+    Condition stable;
+  }
+
+  @Data
+  public static class Condition {
+    boolean state;
     String message;
   }
 }

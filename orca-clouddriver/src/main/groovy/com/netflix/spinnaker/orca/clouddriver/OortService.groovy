@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver
 
+import com.netflix.spinnaker.orca.clouddriver.model.Manifest
 import retrofit.client.Response
 import retrofit.http.GET
 import retrofit.http.Path
@@ -42,7 +43,7 @@ interface OortService {
                                      @Path("cloudProvider") String cloudProvider)
 
   @GET("/manifests/{account}/{location}/{manifest}")
-  Response getManifest(@Path("account") String account,
+  Manifest getManifest(@Path("account") String account,
                        @Path("location") String location,
                        @Path("manifest") String manifest)
 
