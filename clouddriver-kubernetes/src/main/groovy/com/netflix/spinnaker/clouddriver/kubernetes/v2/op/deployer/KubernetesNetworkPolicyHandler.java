@@ -48,7 +48,7 @@ public class KubernetesNetworkPolicyHandler extends KubernetesHandler implements
 
   @Override
   public Status status(KubernetesManifest manifest) {
-    return Status.stable();
+    return new Status();
   }
 
   @Override

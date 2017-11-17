@@ -44,7 +44,7 @@ public class KubernetesNamespaceHandler extends KubernetesHandler implements Can
 
   @Override
   public Status status(KubernetesManifest manifest) {
-    return Status.stable();
+    return new Status();
   }
 
   @Override

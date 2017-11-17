@@ -57,7 +57,7 @@ public class KubernetesIngressHandler extends KubernetesHandler implements CanDe
 
   @Override
   public Status status(KubernetesManifest manifest) {
-    return Status.stable();
+    return new Status();
   }
 
   @Override

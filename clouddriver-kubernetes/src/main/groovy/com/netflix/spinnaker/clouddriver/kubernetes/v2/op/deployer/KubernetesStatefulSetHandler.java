@@ -61,7 +61,7 @@ public class KubernetesStatefulSetHandler extends KubernetesHandler implements
   @Override
   public Status status(KubernetesManifest manifest) {
     // TODO(lwander)
-    return Status.stable();
+    return new Status();
   }
 
   public static String serviceName(KubernetesManifest manifest) {

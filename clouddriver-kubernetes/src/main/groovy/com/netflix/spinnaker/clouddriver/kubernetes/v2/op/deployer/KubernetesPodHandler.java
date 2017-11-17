@@ -48,7 +48,7 @@ public class KubernetesPodHandler extends KubernetesHandler implements CanDelete
 
   @Override
   public Status status(KubernetesManifest manifest) {
-    return Status.stable();
+    return new Status();
   }
 
   @Override

@@ -18,7 +18,10 @@
 package com.netflix.spinnaker.clouddriver.model;
 
 import com.netflix.spinnaker.moniker.Moniker;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 public interface Manifest {
   Moniker getMoniker();
@@ -28,18 +31,38 @@ public interface Manifest {
 
   @Data
   class Status {
-    boolean stable;
-    String message;
+    Condition stable = Condition.builder().state(true).build();
+    Condition paused = Condition.builder().state(false).build();
+    Condition available = Condition.builder().state(true).build();
 
-    public static Status unstable(String message) {
-      return new Status()
-          .setMessage(message)
-          .setStable(false);
+    public Status unstable(String message) {
+      stable.setMessage(message);
+      stable.setState(false);
+
+      return this;
     }
 
-    public static Status stable() {
-      return new Status()
-          .setStable(true);
+    public Status paused(String message) {
+      paused.setMessage(message);
+      paused.setState(true);
+
+      return this;
+    }
+
+    public Status unavailable(String message) {
+      available.setMessage(message);
+      available.setState(false);
+
+      return this;
+    }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class Condition {
+      boolean state;
+      String message;
     }
   }
 }
