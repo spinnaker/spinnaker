@@ -21,7 +21,9 @@ import com.amazonaws.services.elasticloadbalancingv2.model.Certificate;
 import com.amazonaws.services.elasticloadbalancingv2.model.ProtocolEnum;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class UpsertAmazonLoadBalancerV2Description extends UpsertAmazonLoadBalancerDescription {
   public List<Listener> listeners = new ArrayList<>();
@@ -222,6 +224,21 @@ public class UpsertAmazonLoadBalancerV2Description extends UpsertAmazonLoadBalan
         rules = new ArrayList<>();
       }
 
+      int awsCertificateCount = awsListener.getCertificates() != null ? awsListener.getCertificates().size() : 0;
+      int certificateCount = certificates != null ? certificates.size() : 0;
+      Boolean certificatesSame = awsCertificateCount == certificateCount;
+      if (certificatesSame) {
+        Set<String> awsListenerArns = new HashSet<>();
+        Set<String> thisListenerArns = new HashSet<>();
+        if (awsListener.getCertificates() != null) {
+          awsListener.getCertificates().forEach(cert -> awsListenerArns.add(cert.getCertificateArn()));
+        }
+        if (certificates != null) {
+          certificates.forEach(cert -> thisListenerArns.add(cert.getCertificateArn()));
+        }
+        certificatesSame = awsListenerArns.equals(thisListenerArns);
+      }
+
       Boolean rulesSame = existingRules.size() == rules.size() + 1; // existing rules has the default rule, rules does not
       if (rulesSame) {
         for (com.amazonaws.services.elasticloadbalancingv2.model.Rule existingRule : existingRules) {
@@ -246,14 +263,12 @@ public class UpsertAmazonLoadBalancerV2Description extends UpsertAmazonLoadBalan
 
       Boolean actionsSame = awsListener.getDefaultActions().containsAll(actions) &&
         actions.containsAll(awsListener.getDefaultActions());
-      Boolean sslPolicySame = (this.sslPolicy == null && awsListener.getSslPolicy() == null) ||
-        (this.sslPolicy != null && this.sslPolicy.equals(awsListener.getSslPolicy()));
 
       return (this.protocol != null && this.protocol.toString().equals(awsListener.getProtocol())) &&
         (this.port != null && this.port.equals(awsListener.getPort())) &&
         actionsSame &&
         rulesSame &&
-        sslPolicySame;
+        certificatesSame;
     }
   }
 
