@@ -628,15 +628,15 @@
         },
         "org.junit.jupiter:junit-jupiter-api": {
             "locked": "5.0.0",
-            "requested": "5.0.0"
+            "requested": "+"
         },
         "org.junit.jupiter:junit-jupiter-params": {
             "locked": "5.0.0",
-            "requested": "5.0.0"
+            "requested": "+"
         },
         "org.junit.platform:junit-platform-runner": {
             "locked": "1.0.0",
-            "requested": "1.0.0"
+            "requested": "+"
         },
         "org.slf4j:slf4j-api": {
             "firstLevelTransitive": [
@@ -750,15 +750,15 @@
         },
         "org.junit.jupiter:junit-jupiter-api": {
             "locked": "5.0.0",
-            "requested": "5.0.0"
+            "requested": "+"
         },
         "org.junit.jupiter:junit-jupiter-params": {
             "locked": "5.0.0",
-            "requested": "5.0.0"
+            "requested": "+"
         },
         "org.junit.platform:junit-platform-runner": {
             "locked": "1.0.0",
-            "requested": "1.0.0"
+            "requested": "+"
         },
         "org.slf4j:slf4j-api": {
             "firstLevelTransitive": [
@@ -872,23 +872,23 @@
         },
         "org.junit.jupiter:junit-jupiter-api": {
             "locked": "5.0.0",
-            "requested": "5.0.0"
+            "requested": "+"
         },
         "org.junit.jupiter:junit-jupiter-engine": {
             "locked": "5.0.0",
-            "requested": "5.0.0"
+            "requested": "+"
         },
         "org.junit.jupiter:junit-jupiter-params": {
             "locked": "5.0.0",
-            "requested": "5.0.0"
+            "requested": "+"
         },
         "org.junit.platform:junit-platform-launcher": {
             "locked": "1.0.0",
-            "requested": "1.0.0"
+            "requested": "+"
         },
         "org.junit.platform:junit-platform-runner": {
             "locked": "1.0.0",
-            "requested": "1.0.0"
+            "requested": "+"
         },
         "org.slf4j:slf4j-api": {
             "firstLevelTransitive": [
@@ -1002,23 +1002,23 @@
         },
         "org.junit.jupiter:junit-jupiter-api": {
             "locked": "5.0.0",
-            "requested": "5.0.0"
+            "requested": "+"
         },
         "org.junit.jupiter:junit-jupiter-engine": {
             "locked": "5.0.0",
-            "requested": "5.0.0"
+            "requested": "+"
         },
         "org.junit.jupiter:junit-jupiter-params": {
             "locked": "5.0.0",
-            "requested": "5.0.0"
+            "requested": "+"
         },
         "org.junit.platform:junit-platform-launcher": {
             "locked": "1.0.0",
-            "requested": "1.0.0"
+            "requested": "+"
         },
         "org.junit.platform:junit-platform-runner": {
             "locked": "1.0.0",
-            "requested": "1.0.0"
+            "requested": "+"
         },
         "org.slf4j:slf4j-api": {
             "firstLevelTransitive": [
