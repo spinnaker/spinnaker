@@ -175,7 +175,6 @@ function configure(IS_TEST) {
 
     config.plugins.push(...[
       new webpack.EnvironmentPlugin({
-        API_HOST: 'https://api-prestaging.spinnaker.mgmt.netflix.net',
         ENTITY_TAGS_ENABLED: 'true',
         FIAT_ENABLED: 'false',
         INFRA_STAGES: 'false',
