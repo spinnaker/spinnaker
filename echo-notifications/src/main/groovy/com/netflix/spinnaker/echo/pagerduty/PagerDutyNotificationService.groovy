@@ -60,8 +60,6 @@ class PagerDutyNotificationService implements NotificationService {
 
   @Override
   void handle(Notification notification) {
-    def details = [details: notification.additionalContext.details]
-
     def errors = [:]
     def pdErrors = [:]
 
@@ -73,7 +71,7 @@ class PagerDutyNotificationService implements NotificationService {
             service_key: serviceKey,
             client: "Spinnaker (${notification.source.user})",
             description: notification.additionalContext.message,
-            details: details
+            details: notification.additionalContext.details as Map
           )
         )
 
