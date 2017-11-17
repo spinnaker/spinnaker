@@ -223,6 +223,7 @@
       <dl ng-if="ctrl.serverGroup.instanceTemplateLabels">
         <dt ng-repeat-start="(key, value) in ctrl.serverGroup.instanceTemplateLabels">
           {{key}}
+          <help-field key="gce.serverGroup.labels.{{key}}"></help-field>
         </dt>
         <dd ng-repeat-end>
           {{value}}

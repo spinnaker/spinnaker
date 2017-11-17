@@ -179,6 +179,7 @@
       <dl ng-if="instance.labels">
         <dt ng-repeat-start="(key, value) in instance.labels">
           {{key}}
+          <help-field key="gce.instance.labels.{{key}}"></help-field>
         </dt>
         <dd ng-repeat-end>
           {{value}}

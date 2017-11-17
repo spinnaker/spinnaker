@@ -246,6 +246,10 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
     function populateLabels(instanceTemplateLabels, command) {
       if (instanceTemplateLabels) {
         Object.assign(command.labels, instanceTemplateLabels);
+
+        if (command.labels['spinnaker-member-of']) {
+          delete command.labels['spinnaker-member-of'];
+        }
       }
     }
 
