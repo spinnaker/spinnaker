@@ -75,6 +75,14 @@ class PageApplicationOwnerTask implements RetryableTask {
       }
     }
 
+    def details = stage.context.details
+    if (details == null) {
+      details = [:]
+    }
+    if (details["from"] == null) {
+      details["from"] = stage.execution.authentication.user
+    }
+
     // echo service will not send a proper response back if there is an error, it will just throw an exception
     echoService.create(
       new EchoService.Notification(
@@ -83,7 +91,7 @@ class PageApplicationOwnerTask implements RetryableTask {
         source: new EchoService.Notification.Source(user: stage.execution.authentication.user),
         additionalContext: [
           message: stage.context.message,
-          details: stage.context.details
+          details: details
         ]
       )
     )
