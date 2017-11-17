@@ -53,7 +53,7 @@
   </div>
 
   <div class="content" ng-if="!ctrl.state.loading">
-    <kubernetes-manifest-status status="ctrl.status"></kubernetes-manifest-status>
+    <kubernetes-manifest-status status="ctrl.manifest.status"></kubernetes-manifest-status>
     <server-group-running-tasks-details server-group="ctrl.serverGroup" application="ctrl.serverGroup.moniker.app"></server-group-running-tasks-details>
     <collapsible-section heading="Information" expanded="true">
       <dl class="dl-horizontal dl-flex">

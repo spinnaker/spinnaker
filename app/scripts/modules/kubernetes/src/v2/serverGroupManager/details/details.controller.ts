@@ -1,23 +1,23 @@
 import { IController, IScope, module } from 'angular';
 import { IModalService } from 'angular-ui-bootstrap';
 
-import { Application, IManifestStatus, IServerGroupManager, IServerGroupManagerStateParams, } from '@spinnaker/core';
+import { Application, IManifest, IServerGroupManager, IServerGroupManagerStateParams, } from '@spinnaker/core';
 import { IKubernetesServerGroupManager } from '../IKubernetesServerGroupManager';
-import { KubernetesManifestStatusService } from '../../manifest/status/status.service';
+import { KubernetesManifestService } from '../../manifest/manifest.service';
 
 class KubernetesServerGroupManagerDetailsController implements IController {
   public serverGroupManager: IKubernetesServerGroupManager;
   public state = { loading: true };
-  public status: IManifestStatus = { stable: true };
+  public manifest: IManifest;
 
   constructor(serverGroupManager: IServerGroupManagerStateParams,
               private $scope: IScope,
               private $uibModal: IModalService,
-              private kubernetesManifestStatusService: KubernetesManifestStatusService,
+              private kubernetesManifestService: KubernetesManifestService,
               public app: Application) {
     'ngInject';
 
-    this.kubernetesManifestStatusService.makeStatusRefresher(this.app, this.$scope, {
+    this.kubernetesManifestService.makeManifestRefresher(this.app, this.$scope, {
       account: serverGroupManager.accountId,
       location: serverGroupManager.region,
       name: serverGroupManager.serverGroupManager,
