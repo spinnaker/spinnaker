@@ -40,6 +40,16 @@
               Undo Rollout
             </a>
           </li>
+          <li ng-if="ctrl.status.paused.state">
+            <a href ng-click="ctrl.resumeRolloutServerGroupManager()">
+              Resume Rollout
+            </a>
+          </li>
+          <li ng-if="!ctrl.status.paused.state && !ctrl.status.stable.state">
+            <a href ng-click="ctrl.pauseRolloutServerGroupManager()">
+              Pause Rollout
+            </a>
+          </li>
           <li role="presentation" class="divider"></li>
           <li>
             <a href ng-click="ctrl.editServerGroupManager()">

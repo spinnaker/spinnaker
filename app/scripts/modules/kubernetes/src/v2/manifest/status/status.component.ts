@@ -11,9 +11,17 @@ class KubernetesManifestStatusComponent implements IComponentOptions {
   public controller: any = KubernetesManifestStatusCtrl;
   public controllerAs = 'ctrl';
   public template = `
-    <div class="band band-active" ng-if="!ctrl.status.stable"
-         uib-tooltip="{{ctrl.status.message}}">
+    <div class="band band-warning" ng-if="!ctrl.status.available.state"
+         uib-tooltip="{{ctrl.status.available.message}}">
+      Not Fully Available
+    </div>
+    <div class="band band-active" ng-if="!ctrl.status.stable.state"
+         uib-tooltip="{{ctrl.status.stable.message}}">
       Transitioning
+    </div>
+    <div class="band band-info" ng-if="ctrl.status.paused.state"
+         uib-tooltip="{{ctrl.status.paused.message}}">
+      Rollout Paused
     </div>
   `;
 }

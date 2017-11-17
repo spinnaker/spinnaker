@@ -48,6 +48,26 @@ export class ManifestWriter {
       description
     });
   }
+
+  public resumeRolloutManifest(command: any, application: Application): IPromise<ITask> {
+    const description = 'Resume rollout of manifest';
+    command.type = 'resumeRolloutManifest';
+    return this.taskExecutor.executeTask({
+      job: [command],
+      application,
+      description
+    });
+  }
+
+  public pauseRolloutManifest(command: any, application: Application): IPromise<ITask> {
+    const description = 'Pause rollout of manifest';
+    command.type = 'pauseRolloutManifest';
+    return this.taskExecutor.executeTask({
+      job: [command],
+      application,
+      description
+    });
+  }
 }
 
 export const MANIFEST_WRITER = 'spinnaker.core.manifest.write.service';

@@ -30,6 +30,38 @@ class KubernetesServerGroupManagerDetailsController implements IController {
       });
   }
 
+  public pauseRolloutServerGroupManager(): void {
+    this.$uibModal.open({
+      templateUrl: require('../../manifest/rollout/pause.html'),
+      controller: 'kubernetesV2ManifestPauseRolloutCtrl',
+      controllerAs: 'ctrl',
+      resolve: {
+        coordinates: {
+          name: this.serverGroupManager.name,
+          namespace: this.serverGroupManager.namespace,
+          account: this.serverGroupManager.account
+        },
+        application: this.app
+      }
+    });
+  }
+
+  public resumeRolloutServerGroupManager(): void {
+    this.$uibModal.open({
+      templateUrl: require('../../manifest/rollout/resume.html'),
+      controller: 'kubernetesV2ManifestResumeRolloutCtrl',
+      controllerAs: 'ctrl',
+      resolve: {
+        coordinates: {
+          name: this.serverGroupManager.name,
+          namespace: this.serverGroupManager.namespace,
+          account: this.serverGroupManager.account
+        },
+        application: this.app
+      }
+    });
+  }
+
   public undoRolloutServerGroupManager(): void {
     this.$uibModal.open({
       templateUrl: require('../../manifest/rollout/undo.html'),
