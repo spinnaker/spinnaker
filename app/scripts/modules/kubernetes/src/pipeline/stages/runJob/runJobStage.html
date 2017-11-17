@@ -17,7 +17,9 @@
         {{ ctrl.stage.namespace }}
       </td>
       <td>
-        {{ ctrl.stage.container.imageDescription | kubernetesImageId }}
+        <div ng-repeat="container in ctrl.stage.containers">
+          {{ container.imageDescription | kubernetesImageId }}
+        </div>
       </td>
       <td class="condensed-actions text-center">
         <a class="btn btn-sm btn-link" href ng-click="ctrl.configureJob()">
