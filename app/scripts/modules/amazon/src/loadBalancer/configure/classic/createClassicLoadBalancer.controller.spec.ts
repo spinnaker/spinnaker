@@ -73,6 +73,7 @@ describe('Controller: awsCreateClassicLoadBalancerCtrl', () => {
   afterEach(AWSProviderSettings.resetToOriginal);
 
   it('requires health check path for HTTP/S', () => {
+    spyOn(securityGroupReader, 'getAllSecurityGroups').and.returnValue($q.when([]));
     initialize();
     const loadBalancer = {
       healthCheckProtocol: 'HTTP'
@@ -94,6 +95,7 @@ describe('Controller: awsCreateClassicLoadBalancerCtrl', () => {
   });
 
   it('includes SSL Certificate field when any listener is HTTPS or SSL', () => {
+    spyOn(securityGroupReader, 'getAllSecurityGroups').and.returnValue($q.when([]));
     initialize();
     const loadBalancer = {
       listeners: [],
@@ -125,6 +127,7 @@ describe('Controller: awsCreateClassicLoadBalancerCtrl', () => {
 
   describe('prependForwardSlash', () => {
     beforeEach(() => {
+      spyOn(securityGroupReader, 'getAllSecurityGroups').and.returnValue($q.when([]));
       initialize();
     });
     it('should add the leading slash if it is NOT present', () => {
@@ -151,6 +154,7 @@ describe('Controller: awsCreateClassicLoadBalancerCtrl', () => {
   describe('isInternal flag', () => {
     it('should remove the flag and set a state value if inferInternalFlagFromSubnet is true', () => {
       AWSProviderSettings.loadBalancers.inferInternalFlagFromSubnet = true;
+      spyOn(securityGroupReader, 'getAllSecurityGroups').and.returnValue($q.when([]));
       initialize();
 
       expect(controller.loadBalancerCommand.isInternal).toBe(undefined);
@@ -158,6 +162,7 @@ describe('Controller: awsCreateClassicLoadBalancerCtrl', () => {
     });
 
     it('should set the flag based on purpose when subnet is updated', () => {
+      spyOn(securityGroupReader, 'getAllSecurityGroups').and.returnValue($q.when([]));
       initialize();
 
       controller.subnets = [
@@ -179,6 +184,7 @@ describe('Controller: awsCreateClassicLoadBalancerCtrl', () => {
     });
 
     it('should leave the flag once it has been toggled', () => {
+      spyOn(securityGroupReader, 'getAllSecurityGroups').and.returnValue($q.when([]));
       initialize();
 
       controller.subnets = [
@@ -204,6 +210,7 @@ describe('Controller: awsCreateClassicLoadBalancerCtrl', () => {
 
     it('should leave the flag and not set a state value if inferInternalFlagFromSubnet is false or not defined', () => {
       AWSProviderSettings.loadBalancers.inferInternalFlagFromSubnet = true;
+      spyOn(securityGroupReader, 'getAllSecurityGroups').and.returnValue($q.when([]));
 
       initialize();
       expect(controller.loadBalancerCommand.isInternal).toBe(undefined);

@@ -9,6 +9,7 @@ import {
 import { ISecurityGroup } from 'core/domain';
 import { APPLICATION_MODEL_BUILDER, ApplicationModelBuilder } from 'core/application/applicationModel.builder';
 import { Application } from 'core/application/application.model';
+import { InfrastructureCacheService } from 'core';
 
 describe('Service: securityGroupReader', function () {
 
@@ -28,6 +29,7 @@ describe('Service: securityGroupReader', function () {
                           _applicationModelBuilder_: ApplicationModelBuilder,
                           _providerServiceDelegate_: any,
                           securityGroupTransformer: SecurityGroupTransformerService,
+                          infrastructureCaches: InfrastructureCacheService,
                           _securityGroupReader_: SecurityGroupReader) {
       reader = _securityGroupReader_;
       $http = $httpBackend;
@@ -35,6 +37,12 @@ describe('Service: securityGroupReader', function () {
       applicationModelBuilder = _applicationModelBuilder_;
       $q = _$q_;
       $scope = $rootScope.$new();
+
+      const cacheStub: any = {
+          get: () => null,
+          put: () => {},
+      };
+      spyOn(infrastructureCaches, 'get').and.returnValue(cacheStub);
 
       spyOn(securityGroupTransformer, 'normalizeSecurityGroup')
         .and
