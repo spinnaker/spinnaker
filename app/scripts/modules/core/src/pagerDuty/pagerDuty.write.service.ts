@@ -19,7 +19,7 @@ export class PagerDutyWriter {
     }).result.catch(() => {});
   }
 
-  public sendPage(applications: Application[], keys: string[], reason: string, details?: string): IPromise<any> {
+  public sendPage(applications: Application[], keys: string[], reason: string, details?: {[key: string]: any}): IPromise<any> {
     const job = {
       type: 'pageApplicationOwner',
       message: reason,
@@ -48,7 +48,7 @@ export class PagerDutyWriter {
   }
 
   public pageApplicationOwner(application: Application, reason: string, details?: string): IPromise<any> {
-    return this.sendPage([application], undefined, reason, details);
+    return this.sendPage([application], undefined, reason, { details });
   }
 }
 
