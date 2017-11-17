@@ -29,6 +29,8 @@ export * from '../widgets/Keys';
 
 export * from './ILoadBalancer';
 
+export * from './IManifest';
+
 export * from './IOrchestratedItem';
 
 export * from './IPipeline';

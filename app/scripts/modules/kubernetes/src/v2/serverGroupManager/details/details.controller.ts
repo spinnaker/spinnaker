@@ -1,17 +1,31 @@
-import { IController, module } from 'angular';
+import { IController, IScope, module } from 'angular';
 import { IModalService } from 'angular-ui-bootstrap';
 
-import { Application, IServerGroupManager, IServerGroupManagerStateParams } from '@spinnaker/core';
+import {
+  Application,
+  IManifestStatus,
+  IManifest,
+  IServerGroupManager,
+  IServerGroupManagerStateParams,
+  MANIFEST_READER,
+  ManifestReader
+} from '@spinnaker/core';
 import { IKubernetesServerGroupManager } from '../IKubernetesServerGroupManager';
 
 class KubernetesServerGroupManagerDetailsController implements IController {
   public serverGroupManager: IKubernetesServerGroupManager;
   public state = { loading: true };
+  public status: IManifestStatus = { stable: true };
 
   constructor(serverGroupManager: IServerGroupManagerStateParams,
+              private $scope: IScope,
               private $uibModal: IModalService,
+              private manifestReader: ManifestReader,
               public app: Application) {
     'ngInject';
+
+    // don't block UI on this
+    this.app.onRefresh(this.$scope, this.getStatus(serverGroupManager));
     this.app.ready()
       .then(() => {
         this.extractServerGroupManager(serverGroupManager);
@@ -82,6 +96,11 @@ class KubernetesServerGroupManagerDetailsController implements IController {
     });
   }
 
+  private getStatus(params: IServerGroupManagerStateParams) {
+    this.manifestReader.getManifest(params.accountId, params.region, params.serverGroupManager)
+      .then((manifest: IManifest) => this.status = manifest.status || this.status );
+  }
+
   private transformServerGroupManager(serverGroupManagerDetails: IServerGroupManager): IKubernetesServerGroupManager {
     if (!serverGroupManagerDetails) {
       return null;
@@ -105,5 +124,7 @@ class KubernetesServerGroupManagerDetailsController implements IController {
 }
 
 export const KUBERNETES_V2_SERVER_GROUP_MANAGER_DETAILS_CTRL = 'spinnaker.kubernetes.v2.serverGroupManager.details.controller';
-module(KUBERNETES_V2_SERVER_GROUP_MANAGER_DETAILS_CTRL, [])
+module(KUBERNETES_V2_SERVER_GROUP_MANAGER_DETAILS_CTRL, [
+  MANIFEST_READER,
+])
   .controller('kubernetesV2ServerGroupManagerDetailsCtrl', KubernetesServerGroupManagerDetailsController)
