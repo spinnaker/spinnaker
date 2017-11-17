@@ -291,7 +291,7 @@ export class Executions extends React.Component<IExecutionsProps, IExecutionsSta
                       <span>
                         <span className="glyphicon glyphicon-play visible-lg-inline"/>
                         <Tooltip value="Start Manual Execution"><span className="glyphicon glyphicon-play visible-md-inline visible-sm-inline"/></Tooltip>
-                        <span className="visible-xl-inline">Start Manual Execution</span>
+                        <span className="visible-xl-inline"> Start Manual Execution</span>
                       </span>
                     )}
                   </a>
