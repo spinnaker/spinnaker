@@ -17,7 +17,7 @@ import { GROUP_STAGE_MODULE } from './config/stages/group/groupStage.module';
 import { MANUAL_JUDGMENT_STAGE_MODULE } from './config/stages/manualJudgment/manualJudgmentStage.module';
 import { RESIZE_ASG_STAGE } from './config/stages/resizeAsg/resizeAsgStage';
 import { SCALE_DOWN_CLUSTER_STAGE } from './config/stages/scaleDownCluster/scaleDownClusterStage';
-import { SCRIPT_STAGE_MODULE } from './config/stages/script/scriptStage.module';
+import { SCRIPT_STAGE } from './config/stages/script/scriptStage';
 import { SHRINK_CLUSTER_STAGE } from './config/stages/shrinkCluster/shrinkClusterStage';
 import { STAGE_CORE_MODULE } from './config/stages/core/stage.core.module';
 import { TRAVIS_STAGE_MODULE } from './config/stages/travis/travisStage.module';
@@ -55,7 +55,7 @@ module.exports = angular.module('spinnaker.core.pipeline', [
   RESIZE_ASG_STAGE,
   require('./config/stages/runJob/runJobStage.module').name,
   SCALE_DOWN_CLUSTER_STAGE,
-  SCRIPT_STAGE_MODULE,
+  SCRIPT_STAGE,
   SHRINK_CLUSTER_STAGE,
   WAIT_STAGE,
   require('./config/stages/waitForParentTasks/waitForParentTasks').name,
