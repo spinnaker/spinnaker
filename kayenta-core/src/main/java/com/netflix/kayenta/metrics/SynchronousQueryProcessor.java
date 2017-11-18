@@ -26,6 +26,7 @@ import com.netflix.spectator.api.Registry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import retrofit.RetrofitError;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -73,7 +74,7 @@ public class SynchronousQueryProcessor {
           registry.counter(queryId.withTag("retries", retries + "")).increment();
           metricSetList = metricsService.queryMetrics(metricsAccountName, canaryMetricConfig, canaryScope);
           success = true;
-        } catch (IOException|UncheckedIOException e) {
+        } catch (IOException | UncheckedIOException | RetrofitError e) {
           retries++;
           // TODO: Externalize this as a configurable setting.
           if (retries >= 10)
