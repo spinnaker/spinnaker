@@ -10,7 +10,6 @@ module.exports = angular.module('spinnaker.amazon.pipeline.stage.findAmiStage', 
       alias: 'findAmi',
       cloudProvider: 'aws',
       templateUrl: require('./findAmiStage.html'),
-      executionConfigSections: ['findImageConfig', 'taskStatus'],
       validators: [
         { type: 'requiredField', fieldName: 'cluster' },
         { type: 'requiredField', fieldName: 'selectionStrategy', fieldLabel: 'Server Group Selection'},

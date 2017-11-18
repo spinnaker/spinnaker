@@ -14,7 +14,6 @@ module.exports = angular.module('spinnaker.kubernetes.pipeline.stage.findAmiStag
       cloudProvider: 'kubernetes',
       templateUrl: require('./findAmiStage.html'),
       executionDetailsUrl: require('./findAmiExecutionDetails.html'),
-      executionConfigSections: ['findImageConfig', 'taskStatus'],
       validators: [
         { type: 'requiredField', fieldName: 'cluster' },
         { type: 'requiredField', fieldName: 'selectionStrategy', fieldLabel: 'Server Group Selection'},

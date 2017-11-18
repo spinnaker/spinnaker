@@ -13,7 +13,6 @@ module.exports = angular.module('spinnaker.gce.pipeline.stage..findAmiStage', [
       provides: 'findImage',
       cloudProvider: 'gce',
       templateUrl: require('./findAmiStage.html'),
-      executionConfigSections: ['findImageConfig', 'taskStatus'],
       validators: [
         { type: 'requiredField', fieldName: 'cluster' },
         { type: 'requiredField', fieldName: 'selectionStrategy', fieldLabel: 'Server Group Selection'},

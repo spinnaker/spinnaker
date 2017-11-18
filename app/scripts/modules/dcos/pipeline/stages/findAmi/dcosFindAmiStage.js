@@ -11,7 +11,6 @@ module.exports = angular.module('spinnaker.dcos.pipeline.stage.findAmiStage', [
       provides: 'findImage',
       cloudProvider: 'dcos',
       templateUrl: require('./findAmiStage.html'),
-      executionDetailsUrl: require('./findAmiExecutionDetails.html'),
       validators: [
         { type: 'requiredField', fieldName: 'cluster' },
         { type: 'requiredField', fieldName: 'selectionStrategy', fieldLabel: 'Server Group Selection'},
