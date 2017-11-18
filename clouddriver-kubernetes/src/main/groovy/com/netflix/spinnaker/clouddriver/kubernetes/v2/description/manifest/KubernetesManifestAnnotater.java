@@ -20,6 +20,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.frigga.Names;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.moniker.Moniker;
 import lombok.extern.slf4j.Slf4j;
@@ -65,9 +66,13 @@ public class KubernetesManifestAnnotater {
   }
 
   private static <T> T getAnnotation(Map<String, String> annotations, String key, TypeReference<T> typeReference) {
+    return getAnnotation(annotations, key, typeReference, null);
+  }
+
+  private static <T> T getAnnotation(Map<String, String> annotations, String key, TypeReference<T> typeReference, T defaultValue) {
     String value = annotations.get(key);
     if (value == null) {
-      return null;
+      return defaultValue;
     }
 
     try {
@@ -159,14 +164,15 @@ public class KubernetesManifestAnnotater {
   }
 
   public static Moniker getMoniker(KubernetesManifest manifest) {
+    Names parsed = Names.parseName(manifest.getName());
     Map<String, String> annotations = manifest.getAnnotations();
 
     return Moniker.builder()
-        .cluster(getAnnotation(annotations, CLUSTER, new TypeReference<String>() {}))
-        .app(getAnnotation(annotations, APPLICATION, new TypeReference<String>() {}))
-        .stack(getAnnotation(annotations, STACK, new TypeReference<String>() {}))
-        .detail(getAnnotation(annotations, DETAIL, new TypeReference<String>() {}))
-        .sequence(getAnnotation(annotations, DEPLOYMENT_REVISION, new TypeReference<Integer>() {}))
+        .cluster(getAnnotation(annotations, CLUSTER, new TypeReference<String>() {}, parsed.getCluster()))
+        .app(getAnnotation(annotations, APPLICATION, new TypeReference<String>() {}, parsed.getApp()))
+        .stack(getAnnotation(annotations, STACK, new TypeReference<String>() {}, parsed.getStack()))
+        .detail(getAnnotation(annotations, DETAIL, new TypeReference<String>() {}, parsed.getDetail()))
+        .sequence(getAnnotation(annotations, DEPLOYMENT_REVISION, new TypeReference<Integer>() {}, parsed.getSequence()))
         .build();
   }
 }
