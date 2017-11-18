@@ -10,8 +10,6 @@ module.exports = angular.module('spinnaker.titus.pipeline.stage.findAmiStage', [
       alias: 'findAmi',
       cloudProvider: 'titus',
       templateUrl: require('./findAmiStage.html'),
-      executionDetailsUrl: require('./findAmiExecutionDetails.html'),
-      executionConfigSections: ['findImageConfig', 'taskStatus'],
       validators: [
         { type: 'requiredField', fieldName: 'cluster' },
         { type: 'requiredField', fieldName: 'selectionStrategy', fieldLabel: 'Server Group Selection'},
