@@ -29,6 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.HttpURLConnection;
 import java.util.*;
 
 import static net.logstash.logback.argument.StructuredArguments.value;
@@ -96,16 +97,19 @@ public class AzureStorageService implements StorageService {
       if (blob.exists()) {
         return deserialize(blob, (Class<T>) objectType.clazz);
       }
+      throw new NotFoundException("Object not found (key: " + objectKey + ", group: " + objectType.group + ")");
     } catch (StorageException se) {
       logStorageException(se, key);
+      if (se.getHttpStatusCode() == HttpURLConnection.HTTP_NOT_FOUND) {
+        throw new NotFoundException("Object not found (key: " + objectKey + ", group: " + objectType.group + ")");
+      }
+      throw new RuntimeException(se);
     }
     catch (Exception e) {
-      log.error("Failed to retrieve {} object: {}: {}",
-        value("group", objectType.group),
-        value("key", key),
-        value("exception", e.getMessage()));
+      throw new IllegalStateException(
+        "Unable to fetch object (key: " + objectKey + ", group: " + objectType.group + ")"
+      );
     }
-    return null;
   }
 
   @Override
