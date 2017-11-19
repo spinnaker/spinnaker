@@ -31,6 +31,7 @@ import java.util.Set;
 public class KubernetesSpinnakerKindMap {
   public enum SpinnakerKind {
     INSTANCES("instances"),
+    CONFIGS("configs"),
     SERVER_GROUPS("serverGroups"),
     LOAD_BALANCERS("loadBalancers"),
     SECURITY_GROUPS("securityGroups"),

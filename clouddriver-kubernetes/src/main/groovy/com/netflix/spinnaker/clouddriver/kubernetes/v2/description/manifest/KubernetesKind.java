@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class KubernetesKind {
+  public static KubernetesKind CONFIG_MAP = new KubernetesKind("configMap", "cm");
   public static KubernetesKind DAEMON_SET = new KubernetesKind("daemonSet", "ds");
   public static KubernetesKind DEPLOYMENT = new KubernetesKind("deployment", "deploy");
   public static KubernetesKind INGRESS = new KubernetesKind("ingress", "ing");
