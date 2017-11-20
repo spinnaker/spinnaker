@@ -12,12 +12,10 @@
             Revision
           </div>
           <div class="col-md-4">
-            <div class="input-group">
-              <input type="number"
-                     class="form-control input-sm highlight-pristine"
-                     ng-model="ctrl.command.revision"
-                     min="0"/>
-            </div>
+            <select class="form-control input-sm" ng-model="ctrl.command.revision">
+              <option ng-repeat="revision in ctrl.revisions" value="{{revision.revision}}"
+                      ng-selected="ctrl.command.revisions === revision.revision">Revision {{revision.revision}} ({{revision.name}})</option>
+            </select>
           </div>
         </div>
       </div>

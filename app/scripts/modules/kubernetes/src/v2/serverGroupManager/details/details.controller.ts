@@ -62,6 +62,10 @@ class KubernetesServerGroupManagerDetailsController implements IController {
     });
   }
 
+  public canUndoRolloutServerGroupManager(): boolean {
+    return this.serverGroupManager.serverGroups && this.serverGroupManager.serverGroups.length > 0;
+  }
+
   public undoRolloutServerGroupManager(): void {
     this.$uibModal.open({
       templateUrl: require('../../manifest/rollout/undo.html'),
@@ -73,6 +77,12 @@ class KubernetesServerGroupManagerDetailsController implements IController {
           namespace: this.serverGroupManager.namespace,
           account: this.serverGroupManager.account
         },
+        revisions: () => this.serverGroupManager.serverGroups.map((sg) => {
+          return {
+            name: sg.name,
+            revision: sg.moniker.sequence,
+          };
+        }),
         application: this.app
       }
     });

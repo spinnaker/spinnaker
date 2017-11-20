@@ -19,6 +19,11 @@ interface IUndoRolloutCommand {
   revision: number;
 }
 
+interface IRolloutRevision {
+  name: string;
+  revision: number;
+}
+
 class KubernetesManifestUndoRolloutController implements IController {
   public taskMonitor: TaskMonitor;
   public command: IUndoRolloutCommand;
@@ -28,6 +33,7 @@ class KubernetesManifestUndoRolloutController implements IController {
 
   constructor(coordinates: IManifestCoordinates,
               taskMonitorBuilder: TaskMonitorBuilder,
+              public revisions: IRolloutRevision[],
               private $uibModalInstance: IModalServiceInstance,
               private manifestWriter: ManifestWriter,
               private application: Application) {

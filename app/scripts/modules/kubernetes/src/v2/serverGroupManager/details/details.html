@@ -35,17 +35,17 @@
               Scale
             </a>
           </li>
-          <li>
+          <li ng-if="ctrl.canUndoRolloutServerGroupManager()">
             <a href ng-click="ctrl.undoRolloutServerGroupManager()">
               Undo Rollout
             </a>
           </li>
-          <li ng-if="ctrl.status.paused.state">
+          <li ng-if="ctrl.manifest.status.paused.state">
             <a href ng-click="ctrl.resumeRolloutServerGroupManager()">
               Resume Rollout
             </a>
           </li>
-          <li ng-if="!ctrl.status.paused.state && !ctrl.status.stable.state">
+          <li ng-if="!ctrl.manifest.status.paused.state && !ctrl.manifest.status.stable.state">
             <a href ng-click="ctrl.pauseRolloutServerGroupManager()">
               Pause Rollout
             </a>
