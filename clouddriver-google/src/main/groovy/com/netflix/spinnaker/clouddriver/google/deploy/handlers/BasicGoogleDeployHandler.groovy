@@ -324,7 +324,8 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
     }
 
     // Used to group instances when querying for metrics from kayenta.
-    labels['spinnaker-member-of'] = "${project}_${region}_$serverGroupName".toString()
+    labels['spinnaker-region'] = region
+    labels['spinnaker-server-group'] = serverGroupName
 
     def instanceProperties = new InstanceProperties(machineType: machineTypeName,
                                                     disks: attachedDisks,
