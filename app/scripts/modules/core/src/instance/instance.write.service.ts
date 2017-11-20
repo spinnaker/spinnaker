@@ -1,4 +1,4 @@
-import { module } from 'angular';
+import { IPromise, module } from 'angular';
 
 import { TASK_EXECUTOR, TaskExecutor, IJob } from 'core/task/taskExecutor';
 import { SERVER_GROUP_READER, ServerGroupReader } from 'core/serverGroup/serverGroupReader.service';
@@ -35,7 +35,7 @@ export class InstanceWriter {
     'ngInject';
   }
 
-  public terminateInstance(instance: IInstance, application: Application, params: IJob = {}): ng.IPromise<ITask> {
+  public terminateInstance(instance: IInstance, application: Application, params: IJob = {}): IPromise<ITask> {
     params.type = 'terminateInstances';
     params['instanceIds'] = [instance.id];
     params['region'] = instance.region;
@@ -49,13 +49,13 @@ export class InstanceWriter {
     });
   }
 
-  public terminateInstances(instanceGroups: IMultiInstanceGroup[], application: Application): ng.IPromise<ITask> {
+  public terminateInstances(instanceGroups: IMultiInstanceGroup[], application: Application): IPromise<ITask> {
     return this.executeMultiInstanceTask(instanceGroups, application, 'terminateInstances', 'Terminate');
   }
 
   private executeMultiInstanceTask(instanceGroups: IMultiInstanceGroup[], application: Application, type: string,
                                    baseDescriptor: string, descriptorSuffix?: string,
-                                   additionalJobProperties: any = {}): ng.IPromise<ITask> {
+                                   additionalJobProperties: any = {}): IPromise<ITask> {
     const jobs = this.buildMultiInstanceJob(instanceGroups, type, additionalJobProperties);
     const descriptor = this.buildMultiInstanceDescriptor(jobs, baseDescriptor, descriptorSuffix);
     return this.taskExecutor.executeTask({
@@ -65,11 +65,11 @@ export class InstanceWriter {
     });
   }
 
-  public rebootInstances(instanceGroups: IMultiInstanceGroup[], application: Application): ng.IPromise<ITask> {
+  public rebootInstances(instanceGroups: IMultiInstanceGroup[], application: Application): IPromise<ITask> {
     return this.executeMultiInstanceTask(instanceGroups, application, 'rebootInstances', 'Reboot');
   }
 
-  public rebootInstance(instance: IInstance, application: Application, params: any = {}) {
+  public rebootInstance(instance: IInstance, application: Application, params: any = {}): IPromise<ITask> {
     params.type = 'rebootInstances';
     params.instanceIds = [instance.id];
     params.region = instance.region;
@@ -86,7 +86,7 @@ export class InstanceWriter {
   }
 
   public deregisterInstancesFromLoadBalancer(instanceGroups: IMultiInstanceGroup[], application: Application,
-                                             loadBalancerNames: string[]): ng.IPromise<ITask> {
+                                             loadBalancerNames: string[]): IPromise<ITask> {
     const jobs = this.buildMultiInstanceJob(instanceGroups, 'deregisterInstancesFromLoadBalancer');
     jobs.forEach((job) => job.loadBalancerNames = loadBalancerNames);
     const descriptor = this.buildMultiInstanceDescriptor(jobs, 'Deregister', `from ${loadBalancerNames.join(' and ')}`);
@@ -97,7 +97,7 @@ export class InstanceWriter {
     });
   }
 
-  public deregisterInstanceFromLoadBalancer(instance: IInstance, application: Application, params: any = {}): ng.IPromise<ITask> {
+  public deregisterInstanceFromLoadBalancer(instance: IInstance, application: Application, params: any = {}): IPromise<ITask> {
     params.type = 'deregisterInstancesFromLoadBalancer';
     params.instanceIds = [instance.id];
     params.loadBalancerNames = instance.loadBalancers;
@@ -111,7 +111,7 @@ export class InstanceWriter {
     });
   }
 
-  public registerInstancesWithLoadBalancer(instanceGroups: IMultiInstanceGroup[], application: Application, loadBalancerNames: string[]) {
+  public registerInstancesWithLoadBalancer(instanceGroups: IMultiInstanceGroup[], application: Application, loadBalancerNames: string[]): IPromise<ITask> {
     const jobs = this.buildMultiInstanceJob(instanceGroups, 'registerInstancesWithLoadBalancer');
     jobs.forEach((job) => job.loadBalancerNames = loadBalancerNames);
     const descriptor = this.buildMultiInstanceDescriptor(jobs, 'Register', `with ${loadBalancerNames.join(' and ')}`);
@@ -122,7 +122,7 @@ export class InstanceWriter {
     });
   }
 
-  public registerInstanceWithLoadBalancer(instance: IInstance, application: Application, params: any = {}): ng.IPromise<ITask> {
+  public registerInstanceWithLoadBalancer(instance: IInstance, application: Application, params: any = {}): IPromise<ITask> {
     params.type = 'registerInstancesWithLoadBalancer';
     params.instanceIds = [instance.id];
     params.loadBalancerNames = instance.loadBalancers;
@@ -136,11 +136,11 @@ export class InstanceWriter {
     });
   }
 
-  public enableInstancesInDiscovery(instanceGroups: IMultiInstanceGroup[], application: Application): ng.IPromise<ITask> {
+  public enableInstancesInDiscovery(instanceGroups: IMultiInstanceGroup[], application: Application): IPromise<ITask> {
     return this.executeMultiInstanceTask(instanceGroups, application, 'enableInstancesInDiscovery', 'Enable', 'in discovery');
 }
 
-  public enableInstanceInDiscovery(instance: IInstance, application: Application): ng.IPromise<ITask> {
+  public enableInstanceInDiscovery(instance: IInstance, application: Application): IPromise<ITask> {
     return this.taskExecutor.executeTask({
       job: [
         {
@@ -158,11 +158,11 @@ export class InstanceWriter {
     });
   }
 
-  public disableInstancesInDiscovery(instanceGroups: IMultiInstanceGroup[], application: Application): ng.IPromise<ITask> {
+  public disableInstancesInDiscovery(instanceGroups: IMultiInstanceGroup[], application: Application): IPromise<ITask> {
     return this.executeMultiInstanceTask(instanceGroups, application, 'disableInstancesInDiscovery', 'Disable', 'in discovery');
   }
 
-  public disableInstanceInDiscovery(instance: IInstance, application: Application): ng.IPromise<ITask> {
+  public disableInstanceInDiscovery(instance: IInstance, application: Application): IPromise<ITask> {
     return this.taskExecutor.executeTask({
       job: [
         {
@@ -180,7 +180,7 @@ export class InstanceWriter {
     });
   }
 
-  public terminateInstancesAndShrinkServerGroups(instanceGroups: IMultiInstanceGroup[], application: Application) {
+  public terminateInstancesAndShrinkServerGroups(instanceGroups: IMultiInstanceGroup[], application: Application): IPromise<ITask> {
     return this.executeMultiInstanceTask(instanceGroups, application, 'detachInstances', 'Terminate', 'and shrink server groups', {
       'terminateDetachedInstances': true,
       'decrementDesiredCapacity': true,
@@ -188,7 +188,7 @@ export class InstanceWriter {
     });
   }
 
-  public terminateInstanceAndShrinkServerGroup(instance: IInstance, application: Application, params: any = {}) {
+  public terminateInstanceAndShrinkServerGroup(instance: IInstance, application: Application, params: any = {}): IPromise<ITask> {
     return this.serverGroupReader.getServerGroup(application.name, instance.account, instance.region, instance.serverGroup).
       then((serverGroup: IServerGroup) => {
         params.type = 'terminateInstanceAndDecrementServerGroup';

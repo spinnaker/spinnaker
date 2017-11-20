@@ -1,6 +1,6 @@
 import { module } from 'angular';
 import * as moment from 'moment';
-import { memoize } from 'lodash';
+import { memoize, MemoizedFunction } from 'lodash';
 import { react2angular } from 'react2angular';
 
 import { SETTINGS } from 'core/config/settings';
@@ -42,7 +42,7 @@ export function relativeTime(input: any) {
   return thisMoment.isValid() ? thisMoment.fromNow() : '-';
 }
 
-export const fastPropertyTime = memoize((input: any) => {
+export const fastPropertyTime: ((input: any) => string) & MemoizedFunction = memoize((input: any) => {
   if (input) {
     input = input.replace('[UTC]', '');
     const thisMoment = moment(input);

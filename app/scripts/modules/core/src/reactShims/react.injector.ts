@@ -96,7 +96,7 @@ export class CoreReactInject extends ReactInject {
   public get loadBalancerFilterModel() { return this.$injector.get('loadBalancerFilterModel') as LoadBalancerFilterModel; }
   public get loadBalancerFilterService() { return this.$injector.get('loadBalancerFilterService') as LoadBalancerFilterService; }
   public get manualJudgmentService() { return this.$injector.get('manualJudgmentService') as ManualJudgmentService; }
-  public get modalService() { return this.$injector.get('$uibModal') as IModalService; }
+  public get modalService(): IModalService { return this.$injector.get('$uibModal') as IModalService; }
   public get MultiselectModel() { return this.$injector.get('MultiselectModel') as any; }
   public get namingService() { return this.$injector.get('namingService') as NamingService; }
   public get notifierService() { return this.$injector.get('notifierService') as NotifierService; }
