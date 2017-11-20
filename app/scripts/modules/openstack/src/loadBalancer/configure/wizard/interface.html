@@ -4,6 +4,7 @@
       model="loadBalancer.networkId"
       help-key="openstack.loadBalancer.network"
       read-only="!isNew"
+      allow-no-selection="true"
       filter="{ account: loadBalancer.account }">
     </network-select-field>
 
@@ -11,7 +12,7 @@
       label="Security Groups"
       cache="allSecurityGroups"
       refresh-cache="updateSecurityGroups"
-      required="true"
+      required="false"
       model="loadBalancer.securityGroups">
     </os-cache-backed-multi-select-field>
   </div>
