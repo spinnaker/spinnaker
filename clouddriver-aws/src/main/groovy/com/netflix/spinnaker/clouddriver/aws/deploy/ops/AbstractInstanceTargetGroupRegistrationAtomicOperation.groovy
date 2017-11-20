@@ -88,7 +88,7 @@ abstract class AbstractInstanceTargetGroupRegistrationAtomicOperation implements
     def task = getTask()
     if (targetGroups.targetGroupARNs) {
       def targets = instanceIds.collect { new TargetDescription().withId(it) }
-      def elbv2 = regionScopedProvider.getAmazonElasticLoadBalancingV2()
+      def elbv2 = regionScopedProvider.getAmazonElasticLoadBalancingV2(true)
       targetGroups.targetGroupARNs.each {
         task.updateStatus phaseName, "${performingAction} instances ($instanceIds) in target group $it"
         if (getRegistrationAction() == RegistrationAction.REGISTER) {

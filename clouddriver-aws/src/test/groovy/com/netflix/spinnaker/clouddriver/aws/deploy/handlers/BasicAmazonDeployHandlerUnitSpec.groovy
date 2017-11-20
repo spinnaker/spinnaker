@@ -99,7 +99,7 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
       forRegion(_, _) >> Stub(RegionScopedProviderFactory.RegionScopedProvider) {
         getAutoScaling() >> Stub(AmazonAutoScaling)
         getAmazonEC2() >> amazonEC2
-        getAmazonElasticLoadBalancingV2() >> elbV2
+        getAmazonElasticLoadBalancingV2(_) >> elbV2
         getAmazonElasticLoadBalancing() >> elbV1
       }
     }

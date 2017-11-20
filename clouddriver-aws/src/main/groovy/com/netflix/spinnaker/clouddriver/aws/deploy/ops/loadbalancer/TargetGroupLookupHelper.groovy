@@ -44,7 +44,7 @@ class TargetGroupLookupHelper {
     if (!allTargetGroups) {
       return result
     }
-    def lbv2 = rsp.getAmazonElasticLoadBalancingV2()
+    def lbv2 = rsp.getAmazonElasticLoadBalancingV2(false)
     Set<String> targetGroups = []
     for (String targetGroupName : allTargetGroups) {
       // at the moment, '--' is not allowed in lbv2 load balancer names, and asking for it throws a ValidationError not a LoadBalancerNotFoundException

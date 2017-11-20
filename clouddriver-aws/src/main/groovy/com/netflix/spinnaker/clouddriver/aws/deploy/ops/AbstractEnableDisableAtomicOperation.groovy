@@ -85,7 +85,7 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
     try {
       def regionScopedProvider = regionScopedProviderFactory.forRegion(credentials, region)
       def loadBalancing = regionScopedProvider.amazonElasticLoadBalancing
-      def lbv2 = regionScopedProvider.getAmazonElasticLoadBalancingV2()
+      def lbv2 = regionScopedProvider.getAmazonElasticLoadBalancingV2(true)
 
       def asgService = regionScopedProvider.asgService
       def asg = asgService.getAutoScalingGroup(serverGroupName)

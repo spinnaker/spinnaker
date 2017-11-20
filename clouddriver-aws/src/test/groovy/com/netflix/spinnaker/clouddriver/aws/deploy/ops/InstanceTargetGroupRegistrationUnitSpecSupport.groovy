@@ -52,7 +52,7 @@ class InstanceTargetGroupRegistrationUnitSpecSupport extends Specification {
   def wireOpMocks(AbstractInstanceTargetGroupRegistrationAtomicOperation op) {
     def rsp = Stub(RegionScopedProviderFactory.RegionScopedProvider)
     rsp.getAsgService() >> asgService
-    rsp.getAmazonElasticLoadBalancingV2() >> loadBalancingV2
+    rsp.getAmazonElasticLoadBalancingV2(_) >> loadBalancingV2
 
     def rspf = Mock(RegionScopedProviderFactory)
     rspf.forRegion(_, _) >> rsp

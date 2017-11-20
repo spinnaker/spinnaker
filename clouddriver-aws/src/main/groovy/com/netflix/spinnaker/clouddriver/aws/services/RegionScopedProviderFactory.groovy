@@ -75,8 +75,8 @@ class RegionScopedProviderFactory {
       amazonClientProvider.getAutoScaling(amazonCredentials, region, true)
     }
 
-    com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancing getAmazonElasticLoadBalancingV2() {
-      amazonClientProvider.getAmazonElasticLoadBalancingV2(amazonCredentials, region, true)
+    com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancing getAmazonElasticLoadBalancingV2(boolean skipEdda) {
+      amazonClientProvider.getAmazonElasticLoadBalancingV2(amazonCredentials, region, skipEdda)
     }
 
     com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancing getAmazonElasticLoadBalancing() {
