@@ -244,6 +244,12 @@ class KubernetesApiAdaptor {
     }
   }
 
+  String getLog(String namespace, String name, String containerId) {
+    exceptionWrapper("pod.logs", "Get Logs $name", namespace) {
+      client.pods().inNamespace(namespace).withName(name).inContainer(containerId).getLog()
+    }
+  }
+
   List<ReplicationController> getReplicationControllers(String namespace) {
     exceptionWrapper("replicationControllers.list", "Get Replication Controllers", namespace) {
       client.replicationControllers().inNamespace(namespace).list().items

@@ -22,14 +22,24 @@ import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.model.KubernetesV1Instance
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.caching.Keys
+import com.netflix.spinnaker.clouddriver.security.ProviderVersion
 import com.netflix.spinnaker.clouddriver.model.InstanceProvider
+import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
+import com.netflix.spinnaker.clouddriver.kubernetes.v1.security.KubernetesV1Credentials
+import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials
 import org.springframework.beans.factory.annotation.Autowired
+import groovy.util.logging.Slf4j
+
 import org.springframework.stereotype.Component
 
+@Slf4j
 @Component
 class KubernetesV1InstanceProvider implements InstanceProvider<KubernetesV1Instance> {
   private final Cache cacheView
   private final ObjectMapper objectMapper
+
+  @Autowired
+  AccountCredentialsProvider accountCredentialsProvider
 
   @Autowired
   KubernetesV1InstanceProvider(Cache cacheView, ObjectMapper objectMapper) {
@@ -68,6 +78,38 @@ class KubernetesV1InstanceProvider implements InstanceProvider<KubernetesV1Insta
 
   @Override
   String getConsoleOutput(String account, String region, String id) {
-    return null
+    KubernetesNamedAccountCredentials<KubernetesV1Credentials> credentials;
+    try {
+      credentials = (KubernetesNamedAccountCredentials) accountCredentialsProvider.getCredentials(account)
+    } catch(Exception e) {
+      log.warn("Failure getting account credentials for ${account}")
+      return null
+    }
+    if (credentials?.getProviderVersion() != ProviderVersion.v1) {
+      return null
+    }
+
+    def trueCredentials = credentials.credentials
+    def pod = trueCredentials.apiAdaptor.getPod(region, id)
+    if (pod == null ) {
+      return null
+    }
+
+    String podName = pod.getMetadata().getName()
+    StringBuilder result = new StringBuilder()
+
+    pod.getSpec().getContainers().collect { container ->
+      result.append("===== ${container.getName()} =====\n\n")
+      try {
+        String log = trueCredentials.apiAdaptor.getLog(region, podName, container.getName())
+        result.append(log)
+      } catch(Exception e){
+        result.append(e.getMessage())
+      }
+      result.append("\n\n")
+    }
+
+    return result.toString()
+
   }
 }
