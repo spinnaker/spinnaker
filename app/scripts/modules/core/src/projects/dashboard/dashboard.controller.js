@@ -3,7 +3,7 @@
 const angular = require('angular');
 import _ from 'lodash';
 
-import { EXECUTION_SERVICE } from 'core/delivery/service/execution.service';
+import { EXECUTION_SERVICE } from 'core/pipeline/service/execution.service';
 import { RECENT_HISTORY_SERVICE } from 'core/history/recentHistory.service';
 import { SCHEDULER_FACTORY } from 'core/scheduler/scheduler.factory';
 import { PROJECT_PIPELINE_COMPONENT } from './pipeline/projectPipeline.component';

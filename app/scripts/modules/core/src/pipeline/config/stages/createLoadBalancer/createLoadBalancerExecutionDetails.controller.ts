@@ -3,7 +3,7 @@ import { forEach } from 'lodash';
 import { StateParams } from '@uirouter/angularjs';
 
 import { CLOUD_PROVIDER_REGISTRY, CloudProviderRegistry } from 'core/cloudProvider/cloudProvider.registry';
-import { EXECUTION_DETAILS_SECTION_SERVICE, ExecutionDetailsSectionService } from 'core/delivery/details/executionDetailsSection.service';
+import { EXECUTION_DETAILS_SECTION_SERVICE, ExecutionDetailsSectionService } from 'core/pipeline/details/executionDetailsSection.service';
 
 import { BaseExecutionDetailsCtrl, IExecutionDetailsScope } from '../core/baseExecutionDetails.controller';
 

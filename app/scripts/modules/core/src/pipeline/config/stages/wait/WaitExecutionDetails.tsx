@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-import { StageExecutionLogs, StageFailureMessage } from 'core/delivery/details';
+import { StageExecutionLogs, StageFailureMessage } from 'core/pipeline/details';
 import { ExecutionDetailsSection, IExecutionDetailsSectionProps } from 'core/pipeline/config/stages/core';
 import { SkipWait } from './SkipWait';
 

@@ -3,8 +3,8 @@ import { has } from 'lodash';
 import { BindAll } from 'lodash-decorators';
 
 import { Application } from 'core/application/application.model';
-import { ExecutionBuildLink } from 'core/delivery/executionBuild/ExecutionBuildLink';
-import { ExecutionMarker } from 'core/delivery/executionGroup/execution/ExecutionMarker';
+import { ExecutionBuildLink } from 'core/pipeline/executionBuild/ExecutionBuildLink';
+import { ExecutionMarker } from 'core/pipeline/executions/execution/ExecutionMarker';
 import { IExecution } from 'core/domain';
 import { ReactInjector } from 'core/reactShims';
 import { timestamp } from 'core/utils/timeFormatters';

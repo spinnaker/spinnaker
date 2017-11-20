@@ -24,10 +24,10 @@ import { ITaskMonitorProps } from 'core/task/monitor/TaskMonitor';
 import { ReactInject } from './react.injector';
 import { TaskMonitorWrapperComponent } from 'core/task/monitor/taskMonitor.directive';
 import { diffViewComponent } from '../pipeline/config/actions/history/diffView.component';
-import { IStageSummaryWrapperProps } from 'core/delivery/details/StageSummaryWrapper';
-import { IStageDetailsWrapperProps } from 'core/delivery/details/StageDetailsWrapper';
-import { StageSummaryComponent } from 'core/delivery/details/stageSummary.component';
-import { StageDetailsComponent } from 'core/delivery/details/stageDetails.component';
+import { IStageSummaryWrapperProps } from 'core/pipeline/details/StageSummaryWrapper';
+import { IStageDetailsWrapperProps } from 'core/pipeline/details/StageDetailsWrapper';
+import { StageSummaryComponent } from 'core/pipeline/details/stageSummary.component';
+import { StageDetailsComponent } from 'core/pipeline/details/stageDetails.component';
 
 export class NgReactInjector extends ReactInject {
 

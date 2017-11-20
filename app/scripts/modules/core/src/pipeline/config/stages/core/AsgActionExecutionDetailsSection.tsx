@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-import { StageExecutionLogs, StageFailureMessage } from 'core/delivery/details';
+import { StageExecutionLogs, StageFailureMessage } from 'core/pipeline/details';
 import { ExecutionDetailsSection, IExecutionDetailsSectionProps } from '../core';
 import { NgReact } from 'core/reactShims';
 

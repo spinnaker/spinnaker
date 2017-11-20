@@ -9,7 +9,7 @@ import { PIPELINE_CONFIG_SERVICE } from 'core/pipeline/config/services/pipelineC
 import { EditPipelineJsonModalCtrl } from './actions/json/editPipelineJsonModal.controller';
 import { PIPELINE_CONFIG_VALIDATOR } from './validation/pipelineConfig.validator';
 import { PIPELINE_TEMPLATE_SERVICE } from './templates/pipelineTemplate.service';
-import { EXECUTION_BUILD_TITLE } from '../../delivery/executionBuild/ExecutionBuildTitle';
+import { EXECUTION_BUILD_TITLE } from '../executionBuild/ExecutionBuildTitle';
 
 module.exports = angular.module('spinnaker.core.pipeline.config.pipelineConfigurer', [
   OVERRIDE_REGISTRY,

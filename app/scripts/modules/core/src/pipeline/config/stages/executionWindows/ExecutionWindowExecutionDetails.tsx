@@ -1,7 +1,7 @@
 import * as React from 'react';
 
 import { ExecutionDetailsSection, IExecutionDetailsSectionProps } from 'core/pipeline/config/stages/core';
-import { StageExecutionLogs, StageFailureMessage } from 'core/delivery/details';
+import { StageExecutionLogs, StageFailureMessage } from 'core/pipeline/details';
 import { ExecutionWindowActions } from './ExecutionWindowActions';
 
 export function ExecutionWindowExecutionDetails(props: IExecutionDetailsSectionProps) {

@@ -2,7 +2,7 @@ import * as React from 'react';
 import { find, get } from 'lodash';
 
 import { NgReact, ReactInjector } from 'core/reactShims';
-import { StageFailureMessage } from 'core/delivery/details';
+import { StageFailureMessage } from 'core/pipeline/details';
 import { ExecutionDetailsSection, IExecutionDetailsSectionProps } from '../core';
 
 export interface IDeployResult {

@@ -1,7 +1,7 @@
 import * as React from 'react';
 
 import { IExecutionDetailsComponentProps, IExecutionDetailsComponentState } from 'core/domain';
-import { ExecutionDetailsSectionNav } from 'core/delivery/details';
+import { ExecutionDetailsSectionNav } from 'core/pipeline/details';
 import { ReactInjector } from 'core/reactShims';
 
 export class StageExecutionDetails extends React.Component<IExecutionDetailsComponentProps, IExecutionDetailsComponentState> {

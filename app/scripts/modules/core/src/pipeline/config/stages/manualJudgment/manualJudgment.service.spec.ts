@@ -2,7 +2,7 @@ import { IDeferred, IHttpBackendService, IQService, IRootScopeService, IScope, m
 
 import { SETTINGS } from 'core/config/settings';
 import { MANUAL_JUDGMENT_SERVICE, ManualJudgmentService } from './manualJudgment.service';
-import { ExecutionService } from 'core/delivery/service/execution.service';
+import { ExecutionService } from 'core/pipeline/service/execution.service';
 
 describe('Service: manualJudgment', () => {
 

@@ -12,7 +12,6 @@ export * from './cluster';
 export * from './config';
 export * from './confirmationModal';
 
-export * from './delivery';
 export * from './deploymentStrategy';
 export * from './domain';
 

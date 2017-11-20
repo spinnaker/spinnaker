@@ -2,7 +2,7 @@ import * as React from 'react';
 import { get } from 'lodash';
 
 import { ExecutionDetailsSection, IExecutionDetailsSectionProps } from 'core/pipeline/config/stages/core';
-import { StageFailureMessage } from 'core/delivery/details';
+import { StageFailureMessage } from 'core/pipeline/details';
 
 export function ScriptExecutionDetails(props: IExecutionDetailsSectionProps) {
   const { stage } = props;

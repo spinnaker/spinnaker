@@ -2,7 +2,7 @@ import * as React from 'react';
 
 import { ExecutionDetailsSection, IExecutionDetailsSectionProps } from 'core/pipeline/config/stages/core';
 import { NgReact } from 'core/reactShims';
-import { StageFailureMessage } from 'core/delivery/details';
+import { StageFailureMessage } from 'core/pipeline/details';
 
 import { IFindAmiStageContext } from './findAmiStage';
 

@@ -2,7 +2,7 @@ import { IController, module } from 'angular';
 
 import { ICreationMetadataTag } from 'core/domain/IEntityTags';
 import { IExecution } from '../domain/IExecution';
-import { EXECUTION_SERVICE, ExecutionService } from 'core/delivery/service/execution.service';
+import { EXECUTION_SERVICE, ExecutionService } from 'core/pipeline/service/execution.service';
 import { HtmlRenderer, Parser } from 'commonmark';
 
 class EntitySourceCtrl implements IController {

@@ -2,7 +2,7 @@ import * as React from 'react';
 
 import { ExecutionDetailsSection, IExecutionDetailsSectionProps } from 'core/pipeline/config/stages/core';
 import { NgReact } from 'core/reactShims';
-import { StageExecutionLogs, StageFailureMessage } from 'core/delivery/details';
+import { StageExecutionLogs, StageFailureMessage } from 'core/pipeline/details';
 import { ServerGroupStageContext } from '../core/ServerGroupStageContext';
 
 export function ScaleDownClusterExecutionDetails(props: IExecutionDetailsSectionProps) {

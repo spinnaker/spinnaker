@@ -1,7 +1,7 @@
 import { IScope, module } from 'angular';
 import { StateParams } from '@uirouter/angularjs';
 
-import { EXECUTION_DETAILS_SECTION_SERVICE, ExecutionDetailsSectionService } from 'core/delivery/details/executionDetailsSection.service';
+import { EXECUTION_DETAILS_SECTION_SERVICE, ExecutionDetailsSectionService } from 'core/pipeline/details/executionDetailsSection.service';
 
 export interface IExecutionDetailsScope extends IScope {
   configSections: string[];

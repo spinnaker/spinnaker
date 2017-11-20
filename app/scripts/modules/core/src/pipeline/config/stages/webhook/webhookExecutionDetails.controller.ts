@@ -5,7 +5,7 @@ import { get } from 'lodash';
 import {
   EXECUTION_DETAILS_SECTION_SERVICE,
   ExecutionDetailsSectionService
-} from 'core/delivery/details/executionDetailsSection.service';
+} from 'core/pipeline/details/executionDetailsSection.service';
 
 export class WebhookExecutionDetailsCtrl implements IController {
   public configSections = ['webhookConfig', 'taskStatus'];

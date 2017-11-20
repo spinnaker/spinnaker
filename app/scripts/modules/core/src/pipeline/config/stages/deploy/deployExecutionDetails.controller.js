@@ -5,7 +5,7 @@ import _ from 'lodash';
 
 import {CLUSTER_FILTER_SERVICE} from 'core/cluster/filter/clusterFilter.service';
 import {CLOUD_PROVIDER_REGISTRY} from 'core/cloudProvider/cloudProvider.registry';
-import {EXECUTION_DETAILS_SECTION_SERVICE} from 'core/delivery/details/executionDetailsSection.service';
+import {EXECUTION_DETAILS_SECTION_SERVICE} from 'core/pipeline/details/executionDetailsSection.service';
 import {NAMING_SERVICE} from 'core/naming/naming.service';
 import {SERVER_GROUP_READER} from 'core/serverGroup/serverGroupReader.service';
 import {URL_BUILDER_SERVICE} from 'core/navigation/urlBuilder.service';

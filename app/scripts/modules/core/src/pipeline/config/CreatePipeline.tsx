@@ -8,7 +8,7 @@ import { Application } from 'core/application';
 import { ReactInjector } from 'core/reactShims';
 import { Tooltip } from 'core/presentation/Tooltip';
 
-import { CreatePipelineButton } from 'core/delivery/create/CreatePipelineButton';
+import { CreatePipelineButton } from 'core/pipeline/create/CreatePipelineButton';
 
 export interface ICreatePipelineProps {
   application: Application;
