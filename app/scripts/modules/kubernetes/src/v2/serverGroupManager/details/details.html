@@ -92,6 +92,11 @@
         </dd>
       </dl>
     </collapsible-section>
+    <collapsible-section heading="Status" expanded="true">
+      <ul ng-repeat="condition in ctrl.manifest.manifest.status.conditions">
+        <kubernetes-manifest-condition condition="condition"></kubernetes-manifest-condition>
+      </ul>
+    </collapsible-section>
   </div>
 </div>
 

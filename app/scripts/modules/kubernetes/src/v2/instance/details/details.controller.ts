@@ -1,4 +1,4 @@
-import { IController, IPromise, IQService, module } from 'angular';
+import { IController, IPromise, IQService, IScope, module } from 'angular';
 import { IModalService } from 'angular-ui-bootstrap';
 import { flattenDeep } from 'lodash';
 
@@ -8,10 +8,12 @@ import {
   INSTANCE_READ_SERVICE,
   InstanceReader,
   RECENT_HISTORY_SERVICE,
-  RecentHistoryService
+  RecentHistoryService,
+  IManifest,
 } from '@spinnaker/core';
 
 import { IKubernetesInstance } from './IKubernetesInstance';
+import { KubernetesManifestService } from '../../manifest/manifest.service';
 
 interface InstanceFromStateParams {
   instanceId: string;
@@ -28,11 +30,14 @@ interface InstanceManager {
 class KubernetesInstanceDetailsController implements IController {
   public state = { loading: true };
   public instance: IKubernetesInstance;
+  public manifest: IManifest;
 
   constructor(instance: InstanceFromStateParams,
               private $uibModal: IModalService,
               private $q: IQService,
+              private $scope: IScope,
               private app: Application,
+              private kubernetesManifestService: KubernetesManifestService,
               private instanceReader: InstanceReader,
               private recentHistoryService: RecentHistoryService) {
     'ngInject';
@@ -41,6 +46,12 @@ class KubernetesInstanceDetailsController implements IController {
       .then(() => this.retrieveInstance(instance))
       .then((instanceDetails) => {
         this.instance = instanceDetails;
+
+        this.kubernetesManifestService.makeManifestRefresher(this.app, this.$scope, {
+          account: this.instance.account,
+          location: this.instance.namespace,
+          name: this.instance.name,
+        }, this);
         this.state.loading = false;
       })
       .catch(() => {
