@@ -99,7 +99,10 @@ public class KubernetesDeployManifestOperation implements AtomicOperation<Deploy
     manifest = deployer.replaceArtifacts(manifest, artifacts);
 
     getTask().updateStatus(OP_NAME, "Submitting manifest to kubernetes master...");
-    return deployer.deployAugmentedManifest(credentials, manifest);
+    DeploymentResult result = deployer.deployAugmentedManifest(credentials, manifest);
+    result.getCreatedArtifacts().add(artifact);
+
+    return result;
   }
 
   private KubernetesResourceProperties findResourceProperties(KubernetesManifest manifest) {

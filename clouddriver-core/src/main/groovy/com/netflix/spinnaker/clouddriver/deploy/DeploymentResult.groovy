@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.deploy
 
+import com.netflix.spinnaker.kork.artifacts.model.Artifact
+
 class DeploymentResult {
   // TODO(lwander) deprecate in favor of `deployedNames` and `deployedNamesByLocation`
   List<String> serverGroupNames = []
@@ -24,4 +26,6 @@ class DeploymentResult {
 
   List<String> deployedNames = []
   Map <String, List<String>> deployedNamesByLocation = [:]
+
+  List<Artifact> createdArtifacts = []
 }
