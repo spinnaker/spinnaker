@@ -17,6 +17,8 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.op.deployer;
 
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.ArtifactReplacer;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.ArtifactTypes;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesCacheDataConverter;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesDeploymentCachingAgent;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesV2CachingAgent;
@@ -37,6 +39,15 @@ public class KubernetesDeploymentHandler extends KubernetesHandler implements
     CanPauseRollout,
     CanResumeRollout,
     CanUndoRollout {
+
+  public KubernetesDeploymentHandler() {
+    registerReplacer(
+        ArtifactReplacer.Replacer.builder()
+            .path("$.spec.template.spec.containers.[?( @.image == \"{%name%}\" )].image")
+            .type(ArtifactTypes.DOCKER_IMAGE)
+            .build()
+    );
+  }
 
   @Override
   public KubernetesKind kind() {

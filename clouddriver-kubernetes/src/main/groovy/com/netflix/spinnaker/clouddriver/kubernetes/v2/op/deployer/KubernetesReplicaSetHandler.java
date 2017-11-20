@@ -50,7 +50,6 @@ public class KubernetesReplicaSetHandler extends KubernetesHandler implements
     );
   }
 
-
   @Override
   public KubernetesKind kind() {
     return KubernetesKind.REPLICA_SET;
