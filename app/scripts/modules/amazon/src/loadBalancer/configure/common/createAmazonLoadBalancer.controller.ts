@@ -55,10 +55,10 @@ export abstract class CreateAmazonLoadBalancerCtrl {
   public certificates: { [accountId: number]: IAmazonCertificate[] };
   public existingLoadBalancerNames: string[];
   public viewState: ICreateAmazonLoadBalancerViewState;
-  private accounts: IAccount[];
+  public accounts: IAccount[];
   private allSecurityGroups: ISecurityGroupsByAccountSourceData;
   public availableSecurityGroups: ISecurityGroup[];
-  private availabilityZones: string[];
+  public availabilityZones: string[];
   protected certificateTypes: string[];
   public defaultSecurityGroups: string[] = [];
   private existingSecurityGroupNames: string[];

@@ -206,7 +206,6 @@ export class ClusterFilterService {
     // removes instance groups, selection of instances that are no longer visible;
     // adds new instance ids if selectAll is enabled for an instance group
     if (this.clusterFilterModel.asFilterModel.sortFilter.listInstances && this.clusterFilterModel.asFilterModel.sortFilter.multiselect) {
-      let instancesSelected = 0;
       this.MultiselectModel.instanceGroups.forEach((instanceGroup: any) => {
         const match = serverGroups.find((serverGroup) => {
           return serverGroup.name === instanceGroup.serverGroup &&
@@ -228,7 +227,6 @@ export class ClusterFilterService {
               .filter((instance) => instanceGroup.instanceIds.includes(instance.id))
               .map((instance) => instance.id);
           }
-          instancesSelected += instanceGroup.instanceIds.length;
         }
       });
       this.MultiselectModel.instancesStream.next();

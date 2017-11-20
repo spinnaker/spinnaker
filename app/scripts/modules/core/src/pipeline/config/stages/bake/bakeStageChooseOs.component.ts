@@ -12,7 +12,7 @@ export class BakeStageChooseOSController implements IController {
   public model: any;
   public baseOsOptions: IBaseOsOption[];
 
-  private showRadioButtons = false;
+  public showRadioButtons = false;
 
   public $onInit(): void {
     this.showRadioButtons = this.baseOsOptions.length <= 2;

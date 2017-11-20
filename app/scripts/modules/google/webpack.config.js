@@ -11,7 +11,7 @@ const exclusionPattern = /(node_modules|\.\.\/deck)/;
 module.exports = {
   context: basePath,
   stats: 'errors-only',
-  devtool: "source-map",
+  devtool: 'source-map',
   entry: {
     lib: path.join(__dirname, 'src', 'index.ts'),
   },

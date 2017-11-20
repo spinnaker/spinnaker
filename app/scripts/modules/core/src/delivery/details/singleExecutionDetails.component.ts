@@ -75,7 +75,7 @@ class SingleExecutionDetailsController {
   private executionLoader: Subscription;
 
   private execution: IExecution;
-  private stateNotFound: boolean;
+  public stateNotFound: boolean;
   private app: Application;
 
   constructor(private schedulerFactory: SchedulerFactory,

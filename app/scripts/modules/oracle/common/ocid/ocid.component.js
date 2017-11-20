@@ -10,5 +10,5 @@ module.exports = angular.module('spinnaker.oraclebmcs.ocid.component', [
     bindings: {
       ocid: '=',
       showOcid: '@'
-    }  
+    }
 });

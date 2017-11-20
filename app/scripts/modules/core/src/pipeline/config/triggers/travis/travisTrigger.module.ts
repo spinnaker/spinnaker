@@ -20,8 +20,8 @@ export class TravisTrigger implements IController {
   public jobs: string[];
   public filterLimit = 100;
   private filterThreshold = 500;
-  private fiatEnabled: boolean;
-  private serviceAccounts: string[];
+  public fiatEnabled: boolean;
+  public serviceAccounts: string[];
 
   constructor($scope: IScope,
               public trigger: IBuildTrigger,

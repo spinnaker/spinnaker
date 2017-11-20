@@ -17,8 +17,7 @@ describe('Controller: deploymentStrategySelector', () => {
   }));
 
   let $ctrl: DeploymentStrategySelectorController,
-      $componentControllerService: IComponentControllerService,
-      deployCommand: IDeploymentCommand;
+      $componentControllerService: IComponentControllerService;
 
   const strategies: IDeploymentStrategy[] = [
     {
@@ -48,7 +47,6 @@ describe('Controller: deploymentStrategySelector', () => {
   ];
 
   const initializeController = (command: IDeploymentCommand) => {
-    deployCommand = command;
     $ctrl = $componentControllerService('deploymentStrategySelector', {}, { command }) as DeploymentStrategySelectorController;
     spyOn(DeploymentStrategyRegistry, 'listStrategies').and.returnValue(strategies);
     spyOn(DeploymentStrategyRegistry, 'getStrategy').and.callFake((key: string) => strategies.find(s => s.key === key));

@@ -1,24 +1,20 @@
 import { mock } from 'angular';
 
-import { APPLICATION_MODEL_BUILDER, ApplicationModelBuilder } from 'core/application/applicationModel.builder';
 import { EXECUTION_FILTER_MODEL, ExecutionFilterModel } from 'core/delivery/filter/executionFilter.model';
 import { EXECUTION_FILTER_SERVICE, ExecutionFilterService } from './executionFilter.service';
 
 describe('Service: executionFilterService', function () {
 
-  let modelBuilder: ApplicationModelBuilder;
   let service: ExecutionFilterService;
   let model: ExecutionFilterModel;
 
   beforeEach(function() {
     mock.module(
-      APPLICATION_MODEL_BUILDER,
       EXECUTION_FILTER_SERVICE,
       EXECUTION_FILTER_MODEL
     );
     mock.inject(
-      function (applicationModelBuilder: ApplicationModelBuilder, executionFilterService: ExecutionFilterService, executionFilterModel: ExecutionFilterModel) {
-        modelBuilder = applicationModelBuilder;
+      function (executionFilterService: ExecutionFilterService, executionFilterModel: ExecutionFilterModel) {
         service = executionFilterService;
         model = executionFilterModel;
         executionFilterModel.asFilterModel.groups = [];

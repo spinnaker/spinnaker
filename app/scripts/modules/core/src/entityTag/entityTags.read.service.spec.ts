@@ -1,4 +1,4 @@
-import { IHttpBackendService, IQService, ITimeoutService, mock } from 'angular';
+import { IHttpBackendService, ITimeoutService, mock } from 'angular';
 
 import { EntityTagsReader, ENTITY_TAGS_READ_SERVICE } from './entityTags.read.service';
 import { SETTINGS } from 'core/config/settings';
@@ -6,7 +6,6 @@ import { SETTINGS } from 'core/config/settings';
 describe('entityTags reader', () => {
 
   let $http: IHttpBackendService;
-  let $q: IQService;
   let $timeout: ITimeoutService;
   let service: EntityTagsReader;
 
@@ -23,11 +22,9 @@ describe('entityTags reader', () => {
 
   beforeEach(
     mock.inject(($httpBackend: IHttpBackendService,
-                 _$q_: IQService,
                  entityTagsReader: EntityTagsReader,
                  _$timeout_: ITimeoutService) => {
       $http = $httpBackend;
-      $q = _$q_;
       service = entityTagsReader;
       $timeout = _$timeout_;
     }));

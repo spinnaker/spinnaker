@@ -19,7 +19,7 @@ export interface IApplicationPagination {
 }
 
 export class ApplicationsController implements IController {
-  private accounts: IAccount[];
+  public accounts: IAccount[];
   public applications: IApplicationSummary[];
   private applicationsViewStateCache: ICache;
   public filteredApplications: IApplicationSummary[];
