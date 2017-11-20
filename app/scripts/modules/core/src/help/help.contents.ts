@@ -101,6 +101,8 @@ module(HELP_CONTENTS, [])
         <p>If your artifact either wasn't supplied from a trigger, or it wasn't found in a prior execution, the artifact specified below will end up in your pipeline's execution context.</p>`,
     'pipeline.config.expectedArtifact.gcs.name': `
         <p>The GCS object name, in the form 'gs://bucket/path/to/file.yml.'</p>`,
+    'pipeline.config.expectedArtifact.docker.name': `
+        <p>The Docker image name you want to trigger on changes to. If you are treating a tag as a release stream, you should include the image tag in the name. An example is 'gcr.io/project/image:stable', where all changes to the 'stable' tag will result in triggering this pipeline.</p>`,
     'loadBalancer.advancedSettings.healthTimeout': '<p>Configures the timeout, in seconds, for reaching the healthCheck target.  Must be less than the interval.</p><p> Default: <b>5</b></p>',
     'loadBalancer.advancedSettings.healthInterval': '<p>Configures the interval, in seconds, between ELB health checks.  Must be greater than the timeout.</p><p>Default: <b>10</b></p>',
     'loadBalancer.advancedSettings.healthyThreshold': '<p>Configures the number of healthy observations before reinstituting an instance into the ELB’s traffic rotation.</p><p>Default: <b>10</b></p>',
