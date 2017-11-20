@@ -117,6 +117,14 @@
         type="text"/>
     </stage-config-field>
 
+    <stage-config-field label="Baseline Region">
+      <input
+        class="form-control input-sm"
+        ng-model="kayentaCanaryStageCtrl.stage.canaryConfig.controlRegion"
+        required
+        type="text"/>
+    </stage-config-field>
+
     <stage-config-field label="Canary">
       <input
         class="form-control input-sm"
@@ -124,6 +132,15 @@
         required
         type="text"/>
     </stage-config-field>
+
+    <stage-config-field label="Canary Region">
+      <input
+        class="form-control input-sm"
+        ng-model="kayentaCanaryStageCtrl.stage.canaryConfig.experimentRegion"
+        required
+        type="text"/>
+    </stage-config-field>
+
     <!--TODO: the unit for step is different for metric stores, and this should be more obvious to the user.-->
     <stage-config-field label="Step">
       <input
