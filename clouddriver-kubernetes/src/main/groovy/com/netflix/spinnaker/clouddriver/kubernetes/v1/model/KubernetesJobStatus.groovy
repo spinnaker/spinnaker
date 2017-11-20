@@ -40,6 +40,7 @@ class KubernetesJobStatus implements JobStatus, Serializable {
   Set<String> securityGroups
   @JsonIgnore
   Pod pod
+  String logs
 
   KubernetesJobStatus(Pod pod, String account) {
     this.name = pod.metadata.name
