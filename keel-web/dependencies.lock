@@ -32,7 +32,7 @@
         },
         "com.netflix.spinnaker.keel:keel-clouddriver": {
             "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-intents",
+                "com.netflix.spinnaker.keel:keel-intent",
                 "com.netflix.spinnaker.keel:keel-orca"
             ],
             "project": true
@@ -40,7 +40,7 @@
         "com.netflix.spinnaker.keel:keel-core": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-eureka",
-                "com.netflix.spinnaker.keel:keel-intents",
+                "com.netflix.spinnaker.keel:keel-intent",
                 "com.netflix.spinnaker.keel:keel-redis",
                 "com.netflix.spinnaker.keel:keel-retrofit",
                 "com.netflix.spinnaker.keel:keel-scheduler"
@@ -52,11 +52,11 @@
         },
         "com.netflix.spinnaker.keel:keel-front50": {
             "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-intents"
+                "com.netflix.spinnaker.keel:keel-intent"
             ],
             "project": true
         },
-        "com.netflix.spinnaker.keel:keel-intents": {
+        "com.netflix.spinnaker.keel:keel-intent": {
             "project": true
         },
         "com.netflix.spinnaker.keel:keel-orca": {
@@ -156,7 +156,7 @@
                 "com.netflix.spinnaker.keel:keel-core",
                 "com.netflix.spinnaker.keel:keel-eureka",
                 "com.netflix.spinnaker.keel:keel-front50",
-                "com.netflix.spinnaker.keel:keel-intents",
+                "com.netflix.spinnaker.keel:keel-intent",
                 "com.netflix.spinnaker.keel:keel-orca",
                 "com.netflix.spinnaker.keel:keel-redis",
                 "com.netflix.spinnaker.keel:keel-retrofit",
@@ -223,7 +223,7 @@
         },
         "com.netflix.spinnaker.keel:keel-clouddriver": {
             "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-intents",
+                "com.netflix.spinnaker.keel:keel-intent",
                 "com.netflix.spinnaker.keel:keel-orca"
             ],
             "project": true
@@ -231,7 +231,7 @@
         "com.netflix.spinnaker.keel:keel-core": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-eureka",
-                "com.netflix.spinnaker.keel:keel-intents",
+                "com.netflix.spinnaker.keel:keel-intent",
                 "com.netflix.spinnaker.keel:keel-redis",
                 "com.netflix.spinnaker.keel:keel-retrofit",
                 "com.netflix.spinnaker.keel:keel-scheduler"
@@ -243,11 +243,11 @@
         },
         "com.netflix.spinnaker.keel:keel-front50": {
             "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-intents"
+                "com.netflix.spinnaker.keel:keel-intent"
             ],
             "project": true
         },
-        "com.netflix.spinnaker.keel:keel-intents": {
+        "com.netflix.spinnaker.keel:keel-intent": {
             "project": true
         },
         "com.netflix.spinnaker.keel:keel-orca": {
@@ -347,7 +347,7 @@
                 "com.netflix.spinnaker.keel:keel-core",
                 "com.netflix.spinnaker.keel:keel-eureka",
                 "com.netflix.spinnaker.keel:keel-front50",
-                "com.netflix.spinnaker.keel:keel-intents",
+                "com.netflix.spinnaker.keel:keel-intent",
                 "com.netflix.spinnaker.keel:keel-orca",
                 "com.netflix.spinnaker.keel:keel-redis",
                 "com.netflix.spinnaker.keel:keel-retrofit",
@@ -414,7 +414,7 @@
         },
         "com.netflix.spinnaker.keel:keel-clouddriver": {
             "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-intents",
+                "com.netflix.spinnaker.keel:keel-intent",
                 "com.netflix.spinnaker.keel:keel-orca"
             ],
             "project": true
@@ -422,7 +422,7 @@
         "com.netflix.spinnaker.keel:keel-core": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-eureka",
-                "com.netflix.spinnaker.keel:keel-intents",
+                "com.netflix.spinnaker.keel:keel-intent",
                 "com.netflix.spinnaker.keel:keel-redis",
                 "com.netflix.spinnaker.keel:keel-retrofit",
                 "com.netflix.spinnaker.keel:keel-scheduler"
@@ -434,11 +434,11 @@
         },
         "com.netflix.spinnaker.keel:keel-front50": {
             "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-intents"
+                "com.netflix.spinnaker.keel:keel-intent"
             ],
             "project": true
         },
-        "com.netflix.spinnaker.keel:keel-intents": {
+        "com.netflix.spinnaker.keel:keel-intent": {
             "project": true
         },
         "com.netflix.spinnaker.keel:keel-orca": {
@@ -538,7 +538,7 @@
                 "com.netflix.spinnaker.keel:keel-core",
                 "com.netflix.spinnaker.keel:keel-eureka",
                 "com.netflix.spinnaker.keel:keel-front50",
-                "com.netflix.spinnaker.keel:keel-intents",
+                "com.netflix.spinnaker.keel:keel-intent",
                 "com.netflix.spinnaker.keel:keel-orca",
                 "com.netflix.spinnaker.keel:keel-redis",
                 "com.netflix.spinnaker.keel:keel-retrofit",
@@ -625,7 +625,7 @@
         },
         "com.netflix.spinnaker.keel:keel-clouddriver": {
             "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-intents",
+                "com.netflix.spinnaker.keel:keel-intent",
                 "com.netflix.spinnaker.keel:keel-orca"
             ],
             "project": true
@@ -633,7 +633,7 @@
         "com.netflix.spinnaker.keel:keel-core": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-eureka",
-                "com.netflix.spinnaker.keel:keel-intents",
+                "com.netflix.spinnaker.keel:keel-intent",
                 "com.netflix.spinnaker.keel:keel-redis",
                 "com.netflix.spinnaker.keel:keel-retrofit",
                 "com.netflix.spinnaker.keel:keel-scheduler"
@@ -645,11 +645,11 @@
         },
         "com.netflix.spinnaker.keel:keel-front50": {
             "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-intents"
+                "com.netflix.spinnaker.keel:keel-intent"
             ],
             "project": true
         },
-        "com.netflix.spinnaker.keel:keel-intents": {
+        "com.netflix.spinnaker.keel:keel-intent": {
             "project": true
         },
         "com.netflix.spinnaker.keel:keel-orca": {
@@ -749,7 +749,7 @@
                 "com.netflix.spinnaker.keel:keel-core",
                 "com.netflix.spinnaker.keel:keel-eureka",
                 "com.netflix.spinnaker.keel:keel-front50",
-                "com.netflix.spinnaker.keel:keel-intents",
+                "com.netflix.spinnaker.keel:keel-intent",
                 "com.netflix.spinnaker.keel:keel-orca",
                 "com.netflix.spinnaker.keel:keel-redis",
                 "com.netflix.spinnaker.keel:keel-retrofit",
@@ -816,7 +816,7 @@
         },
         "com.netflix.spinnaker.keel:keel-clouddriver": {
             "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-intents",
+                "com.netflix.spinnaker.keel:keel-intent",
                 "com.netflix.spinnaker.keel:keel-orca"
             ],
             "project": true
@@ -824,7 +824,7 @@
         "com.netflix.spinnaker.keel:keel-core": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-eureka",
-                "com.netflix.spinnaker.keel:keel-intents",
+                "com.netflix.spinnaker.keel:keel-intent",
                 "com.netflix.spinnaker.keel:keel-redis",
                 "com.netflix.spinnaker.keel:keel-retrofit",
                 "com.netflix.spinnaker.keel:keel-scheduler"
@@ -836,11 +836,11 @@
         },
         "com.netflix.spinnaker.keel:keel-front50": {
             "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-intents"
+                "com.netflix.spinnaker.keel:keel-intent"
             ],
             "project": true
         },
-        "com.netflix.spinnaker.keel:keel-intents": {
+        "com.netflix.spinnaker.keel:keel-intent": {
             "project": true
         },
         "com.netflix.spinnaker.keel:keel-orca": {
@@ -940,7 +940,7 @@
                 "com.netflix.spinnaker.keel:keel-core",
                 "com.netflix.spinnaker.keel:keel-eureka",
                 "com.netflix.spinnaker.keel:keel-front50",
-                "com.netflix.spinnaker.keel:keel-intents",
+                "com.netflix.spinnaker.keel:keel-intent",
                 "com.netflix.spinnaker.keel:keel-orca",
                 "com.netflix.spinnaker.keel:keel-redis",
                 "com.netflix.spinnaker.keel:keel-retrofit",
@@ -1011,7 +1011,7 @@
         },
         "com.netflix.spinnaker.keel:keel-clouddriver": {
             "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-intents",
+                "com.netflix.spinnaker.keel:keel-intent",
                 "com.netflix.spinnaker.keel:keel-orca"
             ],
             "project": true
@@ -1019,7 +1019,7 @@
         "com.netflix.spinnaker.keel:keel-core": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-eureka",
-                "com.netflix.spinnaker.keel:keel-intents",
+                "com.netflix.spinnaker.keel:keel-intent",
                 "com.netflix.spinnaker.keel:keel-redis",
                 "com.netflix.spinnaker.keel:keel-retrofit",
                 "com.netflix.spinnaker.keel:keel-scheduler"
@@ -1031,11 +1031,11 @@
         },
         "com.netflix.spinnaker.keel:keel-front50": {
             "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-intents"
+                "com.netflix.spinnaker.keel:keel-intent"
             ],
             "project": true
         },
-        "com.netflix.spinnaker.keel:keel-intents": {
+        "com.netflix.spinnaker.keel:keel-intent": {
             "project": true
         },
         "com.netflix.spinnaker.keel:keel-orca": {
@@ -1139,7 +1139,7 @@
                 "com.netflix.spinnaker.keel:keel-core",
                 "com.netflix.spinnaker.keel:keel-eureka",
                 "com.netflix.spinnaker.keel:keel-front50",
-                "com.netflix.spinnaker.keel:keel-intents",
+                "com.netflix.spinnaker.keel:keel-intent",
                 "com.netflix.spinnaker.keel:keel-orca",
                 "com.netflix.spinnaker.keel:keel-redis",
                 "com.netflix.spinnaker.keel:keel-retrofit",
@@ -1222,7 +1222,7 @@
         },
         "com.netflix.spinnaker.keel:keel-clouddriver": {
             "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-intents",
+                "com.netflix.spinnaker.keel:keel-intent",
                 "com.netflix.spinnaker.keel:keel-orca"
             ],
             "project": true
@@ -1230,7 +1230,7 @@
         "com.netflix.spinnaker.keel:keel-core": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-eureka",
-                "com.netflix.spinnaker.keel:keel-intents",
+                "com.netflix.spinnaker.keel:keel-intent",
                 "com.netflix.spinnaker.keel:keel-redis",
                 "com.netflix.spinnaker.keel:keel-retrofit",
                 "com.netflix.spinnaker.keel:keel-scheduler"
@@ -1242,11 +1242,11 @@
         },
         "com.netflix.spinnaker.keel:keel-front50": {
             "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-intents"
+                "com.netflix.spinnaker.keel:keel-intent"
             ],
             "project": true
         },
-        "com.netflix.spinnaker.keel:keel-intents": {
+        "com.netflix.spinnaker.keel:keel-intent": {
             "project": true
         },
         "com.netflix.spinnaker.keel:keel-orca": {
@@ -1350,7 +1350,7 @@
                 "com.netflix.spinnaker.keel:keel-core",
                 "com.netflix.spinnaker.keel:keel-eureka",
                 "com.netflix.spinnaker.keel:keel-front50",
-                "com.netflix.spinnaker.keel:keel-intents",
+                "com.netflix.spinnaker.keel:keel-intent",
                 "com.netflix.spinnaker.keel:keel-orca",
                 "com.netflix.spinnaker.keel:keel-redis",
                 "com.netflix.spinnaker.keel:keel-retrofit",
@@ -1433,7 +1433,7 @@
         },
         "com.netflix.spinnaker.keel:keel-clouddriver": {
             "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-intents",
+                "com.netflix.spinnaker.keel:keel-intent",
                 "com.netflix.spinnaker.keel:keel-orca"
             ],
             "project": true
@@ -1441,7 +1441,7 @@
         "com.netflix.spinnaker.keel:keel-core": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-eureka",
-                "com.netflix.spinnaker.keel:keel-intents",
+                "com.netflix.spinnaker.keel:keel-intent",
                 "com.netflix.spinnaker.keel:keel-redis",
                 "com.netflix.spinnaker.keel:keel-retrofit",
                 "com.netflix.spinnaker.keel:keel-scheduler"
@@ -1453,11 +1453,11 @@
         },
         "com.netflix.spinnaker.keel:keel-front50": {
             "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-intents"
+                "com.netflix.spinnaker.keel:keel-intent"
             ],
             "project": true
         },
-        "com.netflix.spinnaker.keel:keel-intents": {
+        "com.netflix.spinnaker.keel:keel-intent": {
             "project": true
         },
         "com.netflix.spinnaker.keel:keel-orca": {
@@ -1561,7 +1561,7 @@
                 "com.netflix.spinnaker.keel:keel-core",
                 "com.netflix.spinnaker.keel:keel-eureka",
                 "com.netflix.spinnaker.keel:keel-front50",
-                "com.netflix.spinnaker.keel:keel-intents",
+                "com.netflix.spinnaker.keel:keel-intent",
                 "com.netflix.spinnaker.keel:keel-orca",
                 "com.netflix.spinnaker.keel:keel-redis",
                 "com.netflix.spinnaker.keel:keel-retrofit",
@@ -1652,7 +1652,7 @@
         },
         "com.netflix.spinnaker.keel:keel-clouddriver": {
             "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-intents",
+                "com.netflix.spinnaker.keel:keel-intent",
                 "com.netflix.spinnaker.keel:keel-orca"
             ],
             "project": true
@@ -1660,7 +1660,7 @@
         "com.netflix.spinnaker.keel:keel-core": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-eureka",
-                "com.netflix.spinnaker.keel:keel-intents",
+                "com.netflix.spinnaker.keel:keel-intent",
                 "com.netflix.spinnaker.keel:keel-redis",
                 "com.netflix.spinnaker.keel:keel-retrofit",
                 "com.netflix.spinnaker.keel:keel-scheduler"
@@ -1672,11 +1672,11 @@
         },
         "com.netflix.spinnaker.keel:keel-front50": {
             "firstLevelTransitive": [
-                "com.netflix.spinnaker.keel:keel-intents"
+                "com.netflix.spinnaker.keel:keel-intent"
             ],
             "project": true
         },
-        "com.netflix.spinnaker.keel:keel-intents": {
+        "com.netflix.spinnaker.keel:keel-intent": {
             "project": true
         },
         "com.netflix.spinnaker.keel:keel-orca": {
@@ -1780,7 +1780,7 @@
                 "com.netflix.spinnaker.keel:keel-core",
                 "com.netflix.spinnaker.keel:keel-eureka",
                 "com.netflix.spinnaker.keel:keel-front50",
-                "com.netflix.spinnaker.keel:keel-intents",
+                "com.netflix.spinnaker.keel:keel-intent",
                 "com.netflix.spinnaker.keel:keel-orca",
                 "com.netflix.spinnaker.keel:keel-redis",
                 "com.netflix.spinnaker.keel:keel-retrofit",

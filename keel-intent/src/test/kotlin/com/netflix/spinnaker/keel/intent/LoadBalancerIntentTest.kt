@@ -1,5 +1,6 @@
-package com.netflix.spinnaker.keel.intents
+package com.netflix.spinnaker.keel.intent
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.convertValue
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.natpryce.hamkrest.equalTo
@@ -7,12 +8,9 @@ import com.natpryce.hamkrest.should.shouldMatch
 import com.netflix.spinnaker.config.KeelConfiguration
 import com.netflix.spinnaker.config.KeelProperties
 import com.netflix.spinnaker.hamkrest.shouldEqual
-import com.netflix.spinnaker.keel.intent.AmazonElasticLoadBalancerSpec
 import com.netflix.spinnaker.keel.intent.AvailabilityZoneConfig.Automatic
 import com.netflix.spinnaker.keel.intent.AvailabilityZoneConfig.Manual
-import com.netflix.spinnaker.keel.intent.HealthCheckSpec
 import com.netflix.spinnaker.keel.intent.HealthEndpoint.Http
-import com.netflix.spinnaker.keel.intent.LoadBalancerIntent
 import com.netflix.spinnaker.keel.model.Listener
 import com.netflix.spinnaker.keel.model.Protocol.SSL
 import com.netflix.spinnaker.keel.model.Protocol.TCP
@@ -23,7 +21,7 @@ object LoadBalancerIntentTest {
 
   val mapper = KeelConfiguration()
     .apply { properties = KeelProperties() }
-    .objectMapper()
+    .objectMapper(ObjectMapper())
 
   @Test
   fun `can serialize to expected JSON format`() {

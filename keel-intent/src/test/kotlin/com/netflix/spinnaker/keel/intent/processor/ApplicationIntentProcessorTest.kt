@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.keel.intents.processor
+package com.netflix.spinnaker.keel.intent.processor
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.natpryce.hamkrest.MatchResult
@@ -24,7 +24,6 @@ import com.natpryce.hamkrest.should.shouldMatch
 import com.netflix.spinnaker.keel.front50.Front50Service
 import com.netflix.spinnaker.keel.front50.model.Application
 import com.netflix.spinnaker.keel.intent.*
-import com.netflix.spinnaker.keel.intent.processor.ApplicationIntentProcessor
 import com.netflix.spinnaker.keel.intent.processor.converter.ApplicationConverter
 import com.netflix.spinnaker.keel.tracing.TraceRepository
 import com.nhaarman.mockito_kotlin.*

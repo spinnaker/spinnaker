@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.keel.clouddriver.model
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.natpryce.hamkrest.equalTo
 import com.natpryce.hamkrest.should.shouldNotMatch
 import com.netflix.spinnaker.config.KeelConfiguration
@@ -25,7 +26,7 @@ abstract class BaseModelParsingTest<out T> {
 
   private val mapper = KeelConfiguration()
     .apply { properties = KeelProperties() }
-    .objectMapper()
+    .objectMapper(ObjectMapper())
   private val client = mock<Client>()
   private val cloudDriver = RestAdapter.Builder()
     .setEndpoint(newFixedEndpoint("https://spinnaker.💩"))

@@ -1,10 +1,10 @@
-package com.netflix.spinnaker.keel.intents
+package com.netflix.spinnaker.keel.intent
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.netflix.spinnaker.config.KeelConfiguration
 import com.netflix.spinnaker.config.KeelProperties
 import com.netflix.spinnaker.hamkrest.shouldEqual
-import com.netflix.spinnaker.keel.intent.AvailabilityZoneConfig
 import com.netflix.spinnaker.keel.intent.AvailabilityZoneConfig.Automatic
 import com.netflix.spinnaker.keel.intent.AvailabilityZoneConfig.Manual
 import org.junit.jupiter.api.Test
@@ -13,7 +13,7 @@ object AvailabilityZoneConfigTest {
 
   val mapper = KeelConfiguration()
     .apply { properties = KeelProperties() }
-    .objectMapper()
+    .objectMapper(ObjectMapper())
 
   private val automaticJson = """{"zones":"automatic"}"""
   private val automaticZones = Container(zones = Automatic)

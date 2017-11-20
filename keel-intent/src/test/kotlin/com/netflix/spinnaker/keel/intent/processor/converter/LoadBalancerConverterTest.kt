@@ -1,4 +1,4 @@
-package com.netflix.spinnaker.keel.intents.processor.converter
+package com.netflix.spinnaker.keel.intent.processor.converter
 
 import com.netflix.spinnaker.hamkrest.shouldEqual
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
@@ -12,7 +12,6 @@ import com.netflix.spinnaker.keel.intent.AvailabilityZoneConfig.Automatic
 import com.netflix.spinnaker.keel.intent.HealthCheckSpec
 import com.netflix.spinnaker.keel.intent.HealthEndpoint.Http
 import com.netflix.spinnaker.keel.intent.HealthEndpoint.Https
-import com.netflix.spinnaker.keel.intent.processor.converter.LoadBalancerConverter
 import com.netflix.spinnaker.keel.model.Listener
 import com.netflix.spinnaker.keel.model.Protocol.*
 import com.netflix.spinnaker.keel.model.Scheme.internal

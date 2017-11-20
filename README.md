@@ -116,6 +116,6 @@ overall workflow can be tuned on a per-application/-account level.
 [6]: https://github.com/spinnaker/keel/blob/master/keel-core/src/main/kotlin/com/netflix/spinnaker/keel/dryrun/DryRunIntentLauncher.kt
 [7]: https://github.com/spinnaker/keel/blob/master/keel-core/src/main/kotlin/com/netflix/spinnaker/keel/tracing/TraceRepository.kt
 [8]: https://github.com/spinnaker/keel/blob/master/keel-core/src/main/kotlin/com/netflix/spinnaker/keel/IntentSpec.kt
-[9]: https://github.com/spinnaker/keel/blob/master/keel-intents/src/main/kotlin/com/netflix/spinnaker/keel/intents/ApplicationIntent.kt#L162
-[10]: https://github.com/spinnaker/keel/blob/master/keel-intents/src/main/kotlin/com/netflix/spinnaker/keel/intents/ApplicationIntent.kt#L134
+[9]: https://github.com/spinnaker/keel/blob/master/keel-intent/src/main/kotlin/com/netflix/spinnaker/keel/intents/ApplicationIntent.kt#L162
+[10]: https://github.com/spinnaker/keel/blob/master/keel-intent/src/main/kotlin/com/netflix/spinnaker/keel/intents/ApplicationIntent.kt#L134
 

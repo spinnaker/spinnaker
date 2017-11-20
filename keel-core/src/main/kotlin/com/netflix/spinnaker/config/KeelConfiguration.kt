@@ -54,9 +54,11 @@ open class KeelConfiguration {
 
   @Autowired lateinit var properties: KeelProperties
 
-  @Bean
-  open fun objectMapper() =
-    ObjectMapper().apply {
+  // Autowired so that we use the Spring object mapper; otherwise not all instances of ObjectMapper will
+  // have the subtypes registered.
+  @Autowired
+  open fun objectMapper(objectMapper: ObjectMapper) =
+    objectMapper.apply {
       registerSubtypes(*findAllSubtypes(log, Intent::class.java, "com.netflix.spinnaker.keel.intent"))
       registerSubtypes(*findAllSubtypes(log, IntentSpec::class.java, "com.netflix.spinnaker.keel.intent"))
       registerSubtypes(*findAllSubtypes(log, PolicySpec::class.java, "com.netflix.spinnaker.keel.policy"))
