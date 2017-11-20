@@ -30,5 +30,6 @@ public interface AtlasRemoteService {
                            @Query("s") Long start,
                            @Query("e") Long end,
                            @Query("step") String step,
-                           @Query("id") String id);
+                           @Query("id") String id,
+                           @Query("kayentaQueryUUID") String kayentaQueryUUID);
 }
