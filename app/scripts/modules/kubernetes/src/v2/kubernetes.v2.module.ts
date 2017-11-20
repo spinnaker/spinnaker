@@ -83,6 +83,8 @@ module(KUBERNETES_V2_MODULE, [
       },
       securityGroup: {
         reader: 'kubernetesSecurityGroupReader',
+        createSecurityGroupController: 'kubernetesManifestWizardCtrl',
+        createSecurityGroupTemplateUrl: require('./manifest/wizard/manifestWizard.html'),
         detailsController: 'kubernetesV2SecurityGroupDetailsCtrl',
         detailsTemplateUrl: require('./securityGroup/details/details.html'),
       },
