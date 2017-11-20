@@ -160,12 +160,11 @@ class GoogleInternalLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerC
 
       def backendServiceName = Utils.getLocalName(forwardingRule.backendService)
       BackendService backendService = projectRegionBackendServices?.find { BackendService bs -> bs.getName() == backendServiceName }
-      handleBackendService(backendService, failedLoadBalancers, newLoadBalancer, projectHttpHealthChecks, projectHttpsHealthChecks, projectHealthChecks, groupHealthRequest)
+      handleBackendService(backendService, newLoadBalancer, projectHttpHealthChecks, projectHttpsHealthChecks, projectHealthChecks, groupHealthRequest)
     }
   }
 
   private void handleBackendService(BackendService backendService,
-                                    List<String> failedLoadBalancers,
                                     GoogleInternalLoadBalancer googleLoadBalancer,
                                     List<HttpHealthCheck> httpHealthChecks,
                                     List<HttpsHealthCheck> httpsHealthChecks,
@@ -177,8 +176,7 @@ class GoogleInternalLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerC
 
     def groupHealthCallback = new GroupHealthCallback(
       googleLoadBalancer: googleLoadBalancer,
-      subject: googleLoadBalancer.name,
-      failedSubjects: failedLoadBalancers
+      backendServiceName: backendService.name
     )
 
     GoogleBackendService newService = new GoogleBackendService(
@@ -297,8 +295,18 @@ class GoogleInternalLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerC
     }
   }
 
-  class GroupHealthCallback<BackendServiceGroupHealth> extends JsonBatchCallback<BackendServiceGroupHealth> implements FailedSubjectChronicler {
+  class GroupHealthCallback<BackendServiceGroupHealth> extends JsonBatchCallback<BackendServiceGroupHealth> {
     GoogleInternalLoadBalancer googleLoadBalancer
+    String backendServiceName
+
+    /**
+     * Tolerate of the group health calls failing. Spinnaker reports empty load balancer healths as 'unknown'.
+     * If healthStatus is null in the onSuccess() function, the same state is reported, so this shouldn't cause issues.
+     */
+    void onFailure(GoogleJsonError e, HttpHeaders responseHeaders) throws IOException {
+      log.debug("Failed backend service group health call for backend service ${backendServiceName} for Http load balancer ${googleLoadBalancer.name}." +
+        " The platform error message was:\n ${e.getMessage()}.")
+    }
 
     @Override
     void onSuccess(BackendServiceGroupHealth backendServiceGroupHealth, HttpHeaders responseHeaders) throws IOException {

@@ -25,7 +25,6 @@ import com.google.api.services.compute.model.*
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.clouddriver.google.cache.Keys
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
-import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleOperationException
 import com.netflix.spinnaker.clouddriver.google.model.GoogleHealthCheck
 import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
 import com.netflix.spinnaker.clouddriver.google.model.health.GoogleLoadBalancerHealth
@@ -336,13 +335,12 @@ class GoogleHttpLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerCachi
       // Process queued backend services.
       queuedServices?.each { backendServiceName ->
         BackendService service = projectBackendServices?.find { bs -> Utils.getLocalName(bs.getName()) == backendServiceName }
-        handleBackendService(service, failedSubjects, googleLoadBalancer, projectHttpHealthChecks, projectHttpsHealthChecks, projectHealthChecks, groupHealthRequest)
+        handleBackendService(service, googleLoadBalancer, projectHttpHealthChecks, projectHttpsHealthChecks, projectHealthChecks, groupHealthRequest)
       }
     }
   }
 
   private void handleBackendService(BackendService backendService,
-                                    List<String> failedLoadBalancers,
                                     GoogleHttpLoadBalancer googleHttpLoadBalancer,
                                     List<HttpHealthCheck> httpHealthChecks,
                                     List<HttpsHealthCheck> httpsHealthChecks,
@@ -352,9 +350,8 @@ class GoogleHttpLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerCachi
       return
     }
     def groupHealthCallback = new GroupHealthCallback(
-      subject: googleHttpLoadBalancer.name,
-      failedSubjects: failedLoadBalancers,
       googleLoadBalancer: googleHttpLoadBalancer,
+      backendServiceName: backendService.name
     )
     Boolean isHttps = backendService.protocol == 'HTTPS'
 
@@ -488,8 +485,18 @@ class GoogleHttpLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerCachi
     }
   }
 
-  class GroupHealthCallback<BackendServiceGroupHealth> extends JsonBatchCallback<BackendServiceGroupHealth> implements FailedSubjectChronicler {
+  class GroupHealthCallback<BackendServiceGroupHealth> extends JsonBatchCallback<BackendServiceGroupHealth> {
     GoogleHttpLoadBalancer googleLoadBalancer
+    String backendServiceName
+
+    /**
+     * Tolerate of the group health calls failing. Spinnaker reports empty load balancer healths as 'unknown'.
+     * If healthStatus is null in the onSuccess() function, the same state is reported, so this shouldn't cause issues.
+     */
+    void onFailure(GoogleJsonError e, HttpHeaders responseHeaders) throws IOException {
+      log.debug("Failed backend service group health call for backend service ${backendServiceName} for Http load balancer ${googleLoadBalancer.name}." +
+        " The platform error message was:\n ${e.getMessage()}.")
+    }
 
     @Override
     void onSuccess(BackendServiceGroupHealth backendServiceGroupHealth, HttpHeaders responseHeaders) throws IOException {
