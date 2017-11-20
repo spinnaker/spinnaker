@@ -43,7 +43,9 @@ class RunKayentaCanaryTask implements Task {
     String storageAccountName = (String)context.get("storageAccountName")
     String canaryConfigId = (String)context.get("canaryConfigId")
     String controlScope = (String)context.get("controlScope")
+    String controlRegion = (String)context.get("controlRegion")
     String experimentScope = (String)context.get("experimentScope")
+    String experimentRegion = (String)context.get("experimentRegion")
     String startTimeIso = (String)context.get("startTimeIso")
     String endTimeIso = (String)context.get("endTimeIso")
     String step = (String)context.get("step")
@@ -52,6 +54,7 @@ class RunKayentaCanaryTask implements Task {
     Map<String, String> canaryExecutionRequest = [
       controlScope: [
         scope: controlScope,
+        region: controlRegion,
         start: startTimeIso,
         end: endTimeIso,
         step: step,
@@ -59,6 +62,7 @@ class RunKayentaCanaryTask implements Task {
       ],
       experimentScope: [
         scope: experimentScope,
+        region: experimentRegion,
         start: startTimeIso,
         end: endTimeIso,
         step: step,

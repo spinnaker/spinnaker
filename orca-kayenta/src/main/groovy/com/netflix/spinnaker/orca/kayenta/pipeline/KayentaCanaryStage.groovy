@@ -51,7 +51,9 @@ class KayentaCanaryStage implements StageDefinitionBuilder {
     String storageAccountName = canaryConfig.storageAccountName
     String canaryConfigId = canaryConfig.canaryConfigId
     String controlScope = canaryConfig.controlScope
+    String controlRegion = canaryConfig.controlRegion
     String experimentScope = canaryConfig.experimentScope
+    String experimentRegion = canaryConfig.experimentRegion
     String startTimeIso = canaryConfig.startTimeIso ?: Instant.now(clock).toString()
     Instant startTimeInstant = Instant.parse(startTimeIso)
     String endTimeIso = canaryConfig.endTimeIso
@@ -106,7 +108,9 @@ class KayentaCanaryStage implements StageDefinitionBuilder {
         storageAccountName: storageAccountName,
         canaryConfigId: canaryConfigId,
         controlScope: controlScope,
+        controlRegion: controlRegion,
         experimentScope: experimentScope,
+        experimentRegion: experimentRegion,
         step: step,
         extendedScopeParams: extendedScopeParams,
         scoreThresholds: scoreThresholds

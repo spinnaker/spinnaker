@@ -16,9 +16,6 @@
 
 package com.netflix.spinnaker.orca.kayenta.tasks
 
-import java.time.Instant
-import java.util.concurrent.TimeUnit
-import javax.annotation.Nonnull
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.OverridableTimeoutRetryableTask
 import com.netflix.spinnaker.orca.TaskResult
@@ -28,6 +25,10 @@ import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+
+import javax.annotation.Nonnull
+import java.time.Instant
+import java.util.concurrent.TimeUnit
 
 @Slf4j
 @Component
