@@ -778,13 +778,15 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
     updatedDescription.tags == expectedTags
 
     where:
-    addAppStackDetailTags | application | stack   | details   | initialTags              || expectedTags
-    false                 | "app"       | "stack" | "details" | [foo: "bar"]             || ["foo": "bar"]
-    true                  | "app"       | "stack" | "details" | [foo: "bar"]             || [foo: "bar"] + buildTags("app", "stack", "details")
-    true                  | "app"       | "stack" | "details" | buildTags("1", "2", "3") || buildTags("app", "stack", "details")    // override any previous app/stack/details tags
-    true                  | "app"       | null    | "details" | [:]                      || buildTags("app", null, "details")       // avoid creating tags with null values
-    true                  | "app"       | null    | null      | [:]                      || buildTags("app", null, null)
-    true                  | null        | null    | null      | null                     || buildTags(null, null, null)
+    addAppStackDetailTags | application | stack   | details   | initialTags                          || expectedTags
+    false                 | "app"       | "stack" | "details" | [foo: "bar"]                         || ["foo": "bar"]
+    true                  | "app"       | "stack" | "details" | [foo: "bar"]                         || [foo: "bar"] + buildTags("app", "stack", "details")
+    true                  | "app"       | "stack" | "details" | buildTags("1", "2", "3")             || buildTags("app", "stack", "details")    // override any previous app/stack/details tags
+    true                  | "app"       | null    | "details" | [:]                                  || buildTags("app", null, "details")       // avoid creating tags with null values
+    true                  | "app"       | null    | "details" | buildTags("app", "stack", "details") || buildTags("app", null, "details")       // should remove pre-existing tags if invalid
+    true                  | null        | null    | null      | buildTags("app", "stack", "details") || [:]                                     // should remove pre-existing tags if invalid
+    true                  | "app"       | null    | null      | [:]                                  || buildTags("app", null, null)
+    true                  | null        | null    | null      | null                                 || buildTags(null, null, null)
   }
 
   private static Map buildTags(String application, String stack, String details) {

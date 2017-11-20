@@ -588,12 +588,22 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
 
     if (description.application) {
       description.tags["spinnaker:application"] = description.application
+    } else {
+      description.tags.remove("spinnaker:application")
     }
+
+
     if (description.stack) {
       description.tags["spinnaker:stack"] = description.stack
+    } else {
+      description.tags.remove("spinnaker:stack")
     }
+
+
     if (description.freeFormDetails) {
       description.tags["spinnaker:details"] = description.freeFormDetails
+    } else {
+      description.tags.remove("spinnaker:details")
     }
 
     return description
