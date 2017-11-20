@@ -78,7 +78,9 @@ public class StackdriverMetricsService implements MetricsService {
     // TODO(duftler): Make this filter general-purpose so it works for more than just GCE.
     // TODO(duftler): The 'project' attribute should be part of the scope (a StackdriverCanaryScope), and not just re-used from stackdriverCredentials.
     String filter = "metric.type=\"" + stackdriverMetricSetQuery.getMetricType() + "\"" +
-                    " AND resource.metadata.tag.spinnaker-member-of=" + stackdriverCredentials.getProject() + "_" + canaryScope.getRegion() + "_" + canaryScope.getScope() +
+                    " AND resource.labels.project_id=" + stackdriverCredentials.getProject() +
+                    " AND resource.metadata.tag.spinnaker-region=" + canaryScope.getRegion() +
+                    " AND resource.metadata.tag.spinnaker-server-group=" + canaryScope.getScope() +
                     " AND resource.type = gce_instance";
     long alignmentPeriodSec = canaryScope.getStep();
     Monitoring.Projects.TimeSeries.List list = monitoring
