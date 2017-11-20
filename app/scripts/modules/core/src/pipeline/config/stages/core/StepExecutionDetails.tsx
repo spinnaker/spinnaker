@@ -4,7 +4,7 @@ import { IExecutionDetailsComponentProps, IExecutionDetailsComponentState } from
 import { ExecutionDetailsSectionNav } from 'core/pipeline/details';
 import { ReactInjector } from 'core/reactShims';
 
-export class StageExecutionDetails extends React.Component<IExecutionDetailsComponentProps, IExecutionDetailsComponentState> {
+export class StepExecutionDetails extends React.Component<IExecutionDetailsComponentProps, IExecutionDetailsComponentState> {
   constructor(props: IExecutionDetailsComponentProps) {
     super(props);
     this.state = {

@@ -3,7 +3,7 @@ import { module, IController, IComponentOptions, IScope } from 'angular';
 import { Application } from 'core/application';
 import { IExecution, IExecutionStage } from 'core/domain';
 
-export class StageDetailsController implements IController {
+export class StepExecutionDetailsController implements IController {
   public application: Application;
   public configSections: string[];
   public execution: IExecution;
@@ -32,7 +32,7 @@ export class StageDetailsController implements IController {
   }
 }
 
-export class StageDetailsComponent implements IComponentOptions {
+export class StepExecutionDetailsComponent implements IComponentOptions {
   public bindings: any = {
     application: '<',
     configSections: '<',
@@ -40,10 +40,10 @@ export class StageDetailsComponent implements IComponentOptions {
     sourceUrl: '<',
     stage: '<',
   };
-  public controller: any = StageDetailsController;
+  public controller: any = StepExecutionDetailsController;
   public template = '<div ng-include="$ctrl.sourceUrl"></div>';
 }
 
-export const STAGE_DETAILS_COMPONENT = 'spinnaker.core.pipeline.stageDetails.component';
-module(STAGE_DETAILS_COMPONENT, [])
-  .component('stageDetails', new StageDetailsComponent());
+export const STEP_EXECUTION_DETAILS_COMPONENT = 'spinnaker.core.pipeline.stepExecutionDetails.component';
+module(STEP_EXECUTION_DETAILS_COMPONENT, [])
+  .component('stepExecutionDetails', new StepExecutionDetailsComponent());

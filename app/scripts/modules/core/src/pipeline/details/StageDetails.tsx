@@ -4,7 +4,7 @@ import { BindAll } from 'lodash-decorators';
 import { Application } from 'core/application';
 import { IExecution, IExecutionDetailsSection, IExecutionStage, IStageTypeConfig } from 'core/domain';
 import { NgReact } from 'core/reactShims';
-import { StageExecutionDetails } from 'core/pipeline/config/stages/core/StageExecutionDetails';
+import { StepExecutionDetails } from 'core/pipeline/config/stages/core/StepExecutionDetails';
 import { StatusGlyph } from 'core/task/StatusGlyph';
 import { robotToHuman } from 'core/presentation/robotToHumanFilter/robotToHuman.filter';
 
@@ -59,7 +59,7 @@ export class StageDetails extends React.Component<IStageDetailsProps, IStageDeta
   public render(): React.ReactElement<StageDetails> {
     const { application, execution, stage } = this.props;
     const { executionDetailsSections, provider, sourceUrl, configSections } = this.state;
-    const { StageDetailsWrapper } = NgReact;
+    const { StepExecutionDetailsWrapper } = NgReact;
     const detailsProps = { application, execution, provider, stage };
 
     return (
@@ -70,8 +70,8 @@ export class StageDetails extends React.Component<IStageDetailsProps, IStageDeta
             {robotToHuman(stage.name || stage.type)}
           </h5>
         </div>
-        {sourceUrl && <StageDetailsWrapper {...detailsProps} sourceUrl={sourceUrl} configSections={configSections} />}
-        {executionDetailsSections && <StageExecutionDetails {...detailsProps} detailsSections={executionDetailsSections} />}
+        {sourceUrl && <StepExecutionDetailsWrapper {...detailsProps} sourceUrl={sourceUrl} configSections={configSections} />}
+        {executionDetailsSections && <StepExecutionDetails {...detailsProps} detailsSections={executionDetailsSections} />}
       </div>
     );
   }

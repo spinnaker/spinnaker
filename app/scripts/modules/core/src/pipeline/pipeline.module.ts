@@ -29,7 +29,7 @@ import { EXECUTION_DETAILS_SECTION_NAV } from './details/executionDetailsSection
 import { EXECUTION_FILTER_SERVICE } from 'core/pipeline/filter/executionFilter.service';
 import { STAGE_FAILURE_MESSAGE_COMPONENT } from './details/stageFailureMessage.component';
 import { CORE_DELIVERY_DETAILS_SINGLEEXECUTIONDETAILS } from './details/singleExecutionDetails.component';
-import { STAGE_DETAILS_COMPONENT } from './details/stageDetails.component';
+import { STEP_EXECUTION_DETAILS_COMPONENT } from './details/stepExecutionDetails.component';
 import { STAGE_SUMMARY_COMPONENT } from './details/stageSummary.component';
 
 import './pipeline.less';
@@ -49,7 +49,7 @@ module(PIPELINE_MODULE, [
   require('./manualExecution/manualPipelineExecution.controller.js').name,
 
   STAGE_FAILURE_MESSAGE_COMPONENT,
-  STAGE_DETAILS_COMPONENT,
+  STEP_EXECUTION_DETAILS_COMPONENT,
   STAGE_SUMMARY_COMPONENT,
 
   require('../utils/appendTransform.js').name,
