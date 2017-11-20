@@ -4,18 +4,18 @@ import { Subscription } from 'rxjs';
 import { Application } from 'core/application/application.model';
 import { IExecution, IExecutionStage, IExecutionStageSummary, IStageTypeConfig } from 'core/domain';
 import { ReactInjector } from 'core/reactShims';
-import { StageDetails } from './StageDetails';
+import { StepDetails } from './StepDetails';
 import { StageSummary } from './StageSummary';
 
-import './executionDetails.less';
+import './stageExecutionDetails.less';
 
-export interface IExecutionDetailsProps {
+export interface IStageExecutionDetailsProps {
   application: Application;
   execution: IExecution;
   standalone?: boolean;
 }
 
-export interface IExecutionDetailsState {
+export interface IStageExecutionDetailsState {
   detailsStageConfig: IStageTypeConfig;
   stageSummary: IExecutionStageSummary;
   stage: IExecutionStage;
@@ -30,15 +30,15 @@ export interface IExecutionStateParams {
   refId?: string;
 }
 
-export class ExecutionDetails extends React.Component<IExecutionDetailsProps, IExecutionDetailsState> {
-  public static defaultProps: Partial<IExecutionDetailsProps> = {
+export class StageExecutionDetails extends React.Component<IStageExecutionDetailsProps, IStageExecutionDetailsState> {
+  public static defaultProps: Partial<IStageExecutionDetailsProps> = {
     standalone: false
   };
 
   private groupsUpdatedSubscription: Subscription;
   private locationChangeUnsubscribe: Function;
 
-  constructor(props: IExecutionDetailsProps) {
+  constructor(props: IStageExecutionDetailsProps) {
     super(props);
     this.state = this.getUpdatedState();
   }
@@ -176,7 +176,7 @@ export class ExecutionDetails extends React.Component<IExecutionDetailsProps, IE
     return {} as IStageTypeConfig;
   }
 
-  public getUpdatedState(): IExecutionDetailsState {
+  public getUpdatedState(): IStageExecutionDetailsState {
     const stageSummary = this.getStageSummary();
     if (stageSummary) {
       const stage = stageSummary.stages[this.getCurrentStep()] || stageSummary.masterStage;
@@ -184,7 +184,7 @@ export class ExecutionDetails extends React.Component<IExecutionDetailsProps, IE
       const detailsStageConfig = this.getDetailsStageConfig(stageSummary);
       return { stageSummary, stage, summaryStageConfig, detailsStageConfig };
     }
-    return {} as IExecutionDetailsState;
+    return {} as IStageExecutionDetailsState;
   }
 
   public updateStage() {
@@ -215,7 +215,7 @@ export class ExecutionDetails extends React.Component<IExecutionDetailsProps, IE
     return (
       <div className="execution-details">
         <StageSummary application={application} execution={execution} config={summaryStageConfig} stage={stage} stageSummary={stageSummary} />
-        <StageDetails application={application} execution={execution} stage={stage} config={detailsStageConfig} />
+        <StepDetails application={application} execution={execution} stage={stage} config={detailsStageConfig} />
       </div>
     );
   }

@@ -7,7 +7,7 @@ import { BindAll } from 'lodash-decorators';
 import * as classNames from 'classnames';
 
 import { Application } from 'core/application/application.model';
-import { ExecutionDetails } from 'core/pipeline/details/ExecutionDetails';
+import { StageExecutionDetails } from 'core/pipeline/details/StageExecutionDetails';
 import { ExecutionStatus } from 'core/pipeline/status/ExecutionStatus';
 import { IExecution , IRestartDetails } from 'core/domain';
 import { IExecutionViewState, IPipelineGraphNode } from 'core/pipeline/config/graph/pipelineGraph.service';
@@ -360,7 +360,7 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
         )}
         { this.state.showingDetails && (
           <div className="execution-details-container">
-            <ExecutionDetails execution={this.props.execution} application={this.props.application} standalone={this.props.standalone}/>
+            <StageExecutionDetails execution={this.props.execution} application={this.props.application} standalone={this.props.standalone}/>
             <div className="permalinks">
               <div className="permalinks-content">
                 <a

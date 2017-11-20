@@ -8,14 +8,14 @@ import { StepExecutionDetails } from 'core/pipeline/config/stages/core/StepExecu
 import { StatusGlyph } from 'core/task/StatusGlyph';
 import { robotToHuman } from 'core/presentation/robotToHumanFilter/robotToHuman.filter';
 
-export interface IStageDetailsProps {
+export interface IStepDetailsProps {
   application: Application;
   config: IStageTypeConfig;
   execution: IExecution;
   stage: IExecutionStage;
 }
 
-export interface IStageDetailsState {
+export interface IStepDetailsState {
   configSections?: string[];
   executionDetailsSections?: IExecutionDetailsSection[];
   provider: string;
@@ -23,13 +23,13 @@ export interface IStageDetailsState {
 }
 
 @BindAll()
-export class StageDetails extends React.Component<IStageDetailsProps, IStageDetailsState> {
-  constructor(props: IStageDetailsProps) {
+export class StepDetails extends React.Component<IStepDetailsProps, IStepDetailsState> {
+  constructor(props: IStepDetailsProps) {
     super(props);
     this.state = this.getState();
   }
 
-  private getState(): IStageDetailsState {
+  private getState(): IStepDetailsState {
     let configSections: string[] = [];
     let sourceUrl: string;
     let executionDetailsSections: IExecutionDetailsSection[];
@@ -56,7 +56,7 @@ export class StageDetails extends React.Component<IStageDetailsProps, IStageDeta
     this.setState(this.getState());
   }
 
-  public render(): React.ReactElement<StageDetails> {
+  public render(): React.ReactElement<StepDetails> {
     const { application, execution, stage } = this.props;
     const { executionDetailsSections, provider, sourceUrl, configSections } = this.state;
     const { StepExecutionDetailsWrapper } = NgReact;
