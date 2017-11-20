@@ -10,6 +10,11 @@ module.exports = angular
 
     $scope.configSections = ['runJobConfig', 'taskStatus'];
 
+    // if the stage is pre-multi-containers
+    if ($scope.stage.context.container) {
+      $scope.stage.context.containers = [$scope.stage.context.container];
+    }
+
     let initialized = () => {
       $scope.detailsSection = $stateParams.details;
     };
