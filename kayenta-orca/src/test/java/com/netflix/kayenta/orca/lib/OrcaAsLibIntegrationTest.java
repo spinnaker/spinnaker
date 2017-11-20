@@ -30,7 +30,7 @@ import com.netflix.spinnaker.orca.pipeline.RestrictExecutionDuringTimeWindow;
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder;
 import com.netflix.spinnaker.orca.pipeline.TaskNode;
 import com.netflix.spinnaker.orca.pipeline.model.Execution;
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline;
+import com.netflix.spinnaker.orca.pipeline.model.PipelineBuilder;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 import com.netflix.spinnaker.orca.pipeline.persistence.jedis.JedisExecutionRepository;
@@ -97,18 +97,10 @@ public class OrcaAsLibIntegrationTest {
 
   @Test
   public void canRunASimplePipeline() {
-    Pipeline pipeline = PipelineBuilderKt.pipeline(p -> {
-      p.setApplication("spinnaker");
-
-      PipelineBuilderKt.stage(p, s -> {
-        s.setRefId("1");
-        s.setType("dummy");
-
-        return null;
-      });
-
-      return null;
-    });
+    Execution pipeline =
+      new PipelineBuilder("spinnaker")
+        .withStage("dummy")
+        .build();
 
     repository.store(pipeline);
 
@@ -125,7 +117,7 @@ public class OrcaAsLibIntegrationTest {
       },
       repository);
 
-    assertEquals(repository.retrievePipeline(pipeline.getId()).getStatus(), ExecutionStatus.SUCCEEDED);
+    assertEquals(repository.retrieve(Execution.ExecutionType.PIPELINE, pipeline.getId()).getStatus(), ExecutionStatus.SUCCEEDED);
   }
 }
 
@@ -160,7 +152,7 @@ class TestConfig {
   StageDefinitionBuilder dummyStage(){
     return new StageDefinitionBuilder() {
       @Override
-      public <T extends Execution<T>> void taskGraph(Stage<T> stage, TaskNode.Builder builder) {
+      public void taskGraph(Stage stage, TaskNode.Builder builder) {
         builder.withTask("dummy", DummyTask.class);
       }
 

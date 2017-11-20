@@ -30,9 +30,9 @@ import com.netflix.kayenta.storage.StorageService;
 import com.netflix.kayenta.storage.StorageServiceRepository;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.orca.ExecutionStatus;
-import com.netflix.spinnaker.orca.pipeline.PipelineLauncher;
+import com.netflix.spinnaker.orca.pipeline.ExecutionLauncher;
 import com.netflix.spinnaker.orca.pipeline.model.Execution;
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline;
+import com.netflix.spinnaker.orca.pipeline.model.PipelineBuilder;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 import io.swagger.annotations.ApiOperation;
@@ -43,7 +43,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.Duration;
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @RestController
@@ -58,7 +57,7 @@ public class CanaryController {
   private final String REFID_JUDGE = "judge";
 
   private final String currentInstanceId;
-  private final PipelineLauncher pipelineLauncher;
+  private final ExecutionLauncher executionLauncher;
   private final ExecutionRepository executionRepository;
   private final AccountCredentialsRepository accountCredentialsRepository;
   private final StorageServiceRepository storageServiceRepository;
@@ -68,7 +67,7 @@ public class CanaryController {
 
   @Autowired
   public CanaryController(String currentInstanceId,
-                          PipelineLauncher pipelineLauncher,
+                          ExecutionLauncher executionLauncher,
                           ExecutionRepository executionRepository,
                           AccountCredentialsRepository accountCredentialsRepository,
                           StorageServiceRepository storageServiceRepository,
@@ -76,7 +75,7 @@ public class CanaryController {
                           Registry registry,
                           ObjectMapper kayentaObjectMapper) {
     this.currentInstanceId = currentInstanceId;
-    this.pipelineLauncher = pipelineLauncher;
+    this.executionLauncher = executionLauncher;
     this.executionRepository = executionRepository;
     this.accountCredentialsRepository = accountCredentialsRepository;
     this.storageServiceRepository = storageServiceRepository;
@@ -215,9 +214,8 @@ public class CanaryController {
       canaryJudgeContext.put("durationString", controlDuration.toString());
     }
 
-    Pipeline pipeline =
-      Pipeline
-        .builder("kayenta-" + currentInstanceId)
+    Execution pipeline =
+      new PipelineBuilder("kayenta-" + currentInstanceId)
         .withName("Standard Canary Pipeline")
         .withPipelineConfigId(UUID.randomUUID() + "")
         .withStage("setupCanary", "Setup Canary", setupCanaryContext)
@@ -232,7 +230,7 @@ public class CanaryController {
     executionRepository.store(pipeline);
 
     try {
-      pipelineLauncher.start(pipeline);
+      executionLauncher.start(pipeline);
     } catch (Throwable t) {
       handleStartupFailure(pipeline, t);
     }
@@ -257,7 +255,7 @@ public class CanaryController {
         .getOne(resolvedStorageAccountName)
         .orElseThrow(() -> new IllegalArgumentException("No storage service was configured; unable to retrieve results."));
 
-    Pipeline pipeline = executionRepository.retrievePipeline(canaryExecutionId);
+    Execution pipeline = executionRepository.retrieve(Execution.ExecutionType.PIPELINE, canaryExecutionId);
     Stage judgeStage = pipeline.getStages().stream()
       .filter(stage -> stage.getRefId().equals(REFID_JUDGE))
       .findFirst()
@@ -307,19 +305,15 @@ public class CanaryController {
     return canaryExecutionStatusResponseBuilder.build();
   }
 
-  private Pipeline handleStartupFailure(Pipeline pipeline, Throwable failure) {
+  private Execution handleStartupFailure(Execution execution, Throwable failure) {
     final String canceledBy = "system";
     final String reason = "Failed on startup: " + failure.getMessage();
     final ExecutionStatus status = ExecutionStatus.TERMINAL;
-    final Function<Pipeline, Pipeline> reloader;
-    final String executionType = "pipeline";
 
-    reloader = (p) -> executionRepository.retrievePipeline(p.getId());
+    log.error("Failed to start {} {}", execution.getType(), execution.getId(), failure);
+    executionRepository.updateStatus(execution.getId(), status);
+    executionRepository.cancel(execution.getId(), canceledBy, reason);
 
-    log.error("Failed to start " + executionType + " " + pipeline.getId(), failure);
-    executionRepository.updateStatus(pipeline.getId(), status);
-    executionRepository.cancel(pipeline.getId(), canceledBy, reason);
-
-    return reloader.apply(pipeline);
+    return executionRepository.retrieve(execution.getType(), execution.getId());
   }
 }

@@ -21,15 +21,20 @@ import com.netflix.discovery.StatusChangeEvent;
 import com.netflix.spinnaker.kork.eureka.RemoteStatusChangedEvent;
 import com.netflix.spinnaker.orca.log.ExecutionLogEntry;
 import com.netflix.spinnaker.orca.log.ExecutionLogRepository;
-import com.netflix.spinnaker.orca.pipeline.PipelineLauncher;
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline;
+import com.netflix.spinnaker.orca.pipeline.ExecutionLauncher;
+import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.PostConstruct;
 import java.util.List;
@@ -44,7 +49,7 @@ import static com.netflix.appinfo.InstanceInfo.InstanceStatus.UP;
 public class PipelineController {
 
   @Autowired
-  PipelineLauncher pipelineLauncher;
+  ExecutionLauncher executionLauncher;
 
   @Autowired
   ExecutionRepository executionRepository;
@@ -72,8 +77,8 @@ public class PipelineController {
 
   @ApiOperation(value = "Retrieve a pipeline execution")
   @RequestMapping(value = "/{executionId}", method = RequestMethod.GET)
-  Pipeline getPipeline(@PathVariable String executionId) {
-    return executionRepository.retrievePipeline(executionId);
+  Execution getPipeline(@PathVariable String executionId) {
+    return executionRepository.retrieve(Execution.ExecutionType.PIPELINE, executionId);
   }
 
   @ApiOperation(value = "Retrieve pipeline execution logs")
@@ -105,7 +110,7 @@ public class PipelineController {
 
     log.info("Requested pipeline: {}", json);
 
-    Pipeline pipeline = pipelineLauncher.start(json);
+    Execution pipeline = executionLauncher.start(Execution.ExecutionType.PIPELINE, json);
 
     return pipeline.getId();
   }
