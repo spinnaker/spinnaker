@@ -209,7 +209,7 @@ public class BulkUpsertEntityTagsAtomicOperation implements AtomicOperation<Bulk
       currentTags.getTagsMetadata() == null ? new ArrayList<>() : currentTags.getTagsMetadata()
     );
 
-    updatedTags.getTags().forEach(tag -> updatedTags.putEntityTagMetadata(tagMetadata(tag.getName(), now)));
+    updatedTags.getTags().forEach(tag -> updatedTags.putEntityTagMetadata(tagMetadata(tag, now)));
 
     currentTags.getTags().forEach(updatedTags::putEntityTagIfAbsent);
   }
@@ -243,8 +243,14 @@ public class BulkUpsertEntityTagsAtomicOperation implements AtomicOperation<Bulk
     }
   }
 
-  private static EntityTags.EntityTagMetadata tagMetadata(String tagName, Date now) {
+  private static EntityTags.EntityTagMetadata tagMetadata(EntityTags.EntityTag entityTag, Date now) {
     String user = AuthenticatedRequest.getSpinnakerUser().orElse("unknown");
+
+    String tagName = entityTag.getName();
+    if (entityTag.getTimestamp() != null) {
+      // entity tag has an explicit timestamp, favor it for last modified date
+      now = new Date(entityTag.getTimestamp());
+    }
 
     EntityTags.EntityTagMetadata metadata = new EntityTags.EntityTagMetadata();
     metadata.setName(tagName);
@@ -258,7 +264,7 @@ public class BulkUpsertEntityTagsAtomicOperation implements AtomicOperation<Bulk
 
   private static void addTagMetadata(Date now, EntityTags entityTags) {
     entityTags.setTagsMetadata(new ArrayList<>());
-    entityTags.getTags().forEach(tag -> entityTags.putEntityTagMetadata(tagMetadata(tag.getName(), now)));
+    entityTags.getTags().forEach(tag -> entityTags.putEntityTagMetadata(tagMetadata(tag, now)));
   }
 
   private static AccountCredentials lookupAccountCredentialsByAccountIdOrName(AccountCredentialsProvider accountCredentialsProvider,

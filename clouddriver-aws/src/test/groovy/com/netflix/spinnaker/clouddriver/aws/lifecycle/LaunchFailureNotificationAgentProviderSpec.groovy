@@ -7,7 +7,7 @@ import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentials
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
-import com.netflix.spinnaker.clouddriver.tags.ServerGroupTagger
+import com.netflix.spinnaker.clouddriver.tags.EntityTagger
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -31,7 +31,7 @@ class LaunchFailureNotificationAgentProviderSpec extends Specification {
   def objectMapper = Mock(ObjectMapper)
   def amazonClientProvider = Mock(AmazonClientProvider)
   def accountCredentialsProvider = Mock(AccountCredentialsProvider)
-  def serverGroupTagger = Mock(ServerGroupTagger)
+  def serverGroupTagger = Mock(EntityTagger)
 
   def launchFailureConfigurationProperties = new LaunchFailureConfigurationProperties(
     "mgmt",

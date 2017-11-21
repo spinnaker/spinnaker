@@ -23,11 +23,21 @@ import com.netflix.spinnaker.clouddriver.elasticsearch.ops.DeleteEntityTagsAtomi
 import spock.lang.Specification
 import spock.lang.Unroll;
 
-class ElasticSearchServerGroupTaggerSpec extends Specification {
+class ElasticSearchEntityTaggerSpec extends Specification {
   void "should construct valid UpsertEntityTagsDescription"() {
     when:
-    def description = ElasticSearchServerGroupTagger.upsertEntityTagsDescription(
-      "myCloudProvider", "100", "us-east-1", "myServerGroup-v001", "MY_EVENT", "This server group failed to launch!"
+    def description = ElasticSearchEntityTagger.upsertEntityTagsDescription(
+      ElasticSearchEntityTagger.ALERT_TYPE,
+      ElasticSearchEntityTagger.ALERT_KEY_PREFIX,
+      "myCloudProvider",
+      "100",
+      "us-east-1",
+      "mycategory",
+      "servergroup",
+      "myServerGroup-v001",
+      "MY_EVENT",
+      "This server group failed to launch!",
+      500L
     )
 
     then:
@@ -44,13 +54,15 @@ class ElasticSearchServerGroupTaggerSpec extends Specification {
       message: "This server group failed to launch!",
       type   : "alert"
     ]
+    description.tags[0].timestamp == 500L
+    description.tags[0].category == "mycategory"
   }
 
   @Unroll
   void "should construct valid DeleteEntityTagsDescription"() {
     when:
-    def description = ElasticSearchServerGroupTagger.deleteEntityTagsDescription(
-      "myCloudProvider", "100", "us-east-1", "myServerGroup-v001", tags
+    def description = ElasticSearchEntityTagger.deleteEntityTagsDescription(
+      "myCloudProvider", "100", "us-east-1", "servergroup", "myServerGroup-v001", tags
     )
 
     then:
@@ -67,7 +79,7 @@ class ElasticSearchServerGroupTaggerSpec extends Specification {
   void "should only mutate threadLocalTask if null"() {
     given:
     Task threadLocalTask = null
-    def serverGroupTagger = new ElasticSearchServerGroupTagger(null, null, null) {
+    def serverGroupTagger = new ElasticSearchEntityTagger(null, null, null) {
       @Override
       protected void run(DeleteEntityTagsAtomicOperation deleteEntityTagsAtomicOperation) {
         threadLocalTask = TaskRepository.threadLocalTask.get()
@@ -76,17 +88,17 @@ class ElasticSearchServerGroupTaggerSpec extends Specification {
 
     when:
     TaskRepository.threadLocalTask.set(null) // cleanup
-    serverGroupTagger.deleteAll("aws", "100", "us-east-1", "myServerGroup-v001")
+    serverGroupTagger.deleteAll("aws", "100", "us-east-1", "servergroup", "myServerGroup-v001")
 
     then:
-    threadLocalTask.id == "ElasticSearchServerGroupTagger"
+    threadLocalTask.id == "ElasticSearchEntityTagger"
     TaskRepository.threadLocalTask.get() == null
 
     when:
     def defaultTask = new DefaultTask("MyDefaultTask")
     TaskRepository.threadLocalTask.set(defaultTask)
 
-    serverGroupTagger.deleteAll("aws", "100", "us-east-1", "myServerGroup-v001")
+    serverGroupTagger.deleteAll("aws", "100", "us-east-1", "servergroup", "myServerGroup-v001")
 
     then:
     threadLocalTask == defaultTask

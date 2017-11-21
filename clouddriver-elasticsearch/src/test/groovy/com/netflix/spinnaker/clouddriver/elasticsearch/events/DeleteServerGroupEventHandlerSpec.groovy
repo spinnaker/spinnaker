@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.elasticsearch.events
 
-import com.netflix.spinnaker.clouddriver.elasticsearch.ElasticSearchServerGroupTagger
+import com.netflix.spinnaker.clouddriver.elasticsearch.ElasticSearchEntityTagger
 import com.netflix.spinnaker.clouddriver.orchestration.events.DeleteServerGroupEvent
 import com.netflix.spinnaker.clouddriver.orchestration.events.OperationEvent
 import spock.lang.Specification
@@ -24,7 +24,7 @@ import spock.lang.Subject
 import spock.lang.Unroll;
 
 class DeleteServerGroupEventHandlerSpec extends Specification {
-  def serverGroupTagger = Mock(ElasticSearchServerGroupTagger)
+  def serverGroupTagger = Mock(ElasticSearchEntityTagger)
 
   @Subject
   def eventHandler = new DeleteServerGroupEventHandler(serverGroupTagger)
@@ -42,13 +42,13 @@ class DeleteServerGroupEventHandlerSpec extends Specification {
     eventHandler.handle(operationEvent)
 
     then:
-    0 * serverGroupTagger.deleteAll(_, _, _, _)
+    0 * serverGroupTagger.deleteAll(_, _, _, "servergroup", _)
 
     when:
     eventHandler.handle(new DeleteServerGroupEvent("aws", "accountId", "region", "serverGroup-v001"))
 
     then:
-    1 * serverGroupTagger.deleteAll("aws", "accountId", "region", "serverGroup-v001")
+    1 * serverGroupTagger.deleteAll("aws", "accountId", "region", "servergroup", "serverGroup-v001")
   }
 
 

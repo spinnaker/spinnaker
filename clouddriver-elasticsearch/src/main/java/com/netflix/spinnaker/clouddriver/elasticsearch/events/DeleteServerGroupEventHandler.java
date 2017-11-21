@@ -16,19 +16,20 @@
 
 package com.netflix.spinnaker.clouddriver.elasticsearch.events;
 
-import com.netflix.spinnaker.clouddriver.elasticsearch.ElasticSearchServerGroupTagger;
+import com.netflix.spinnaker.clouddriver.elasticsearch.ElasticSearchEntityTagger;
 import com.netflix.spinnaker.clouddriver.orchestration.events.DeleteServerGroupEvent;
 import com.netflix.spinnaker.clouddriver.orchestration.events.OperationEvent;
 import com.netflix.spinnaker.clouddriver.orchestration.events.OperationEventHandler;
+import com.netflix.spinnaker.clouddriver.tags.EntityTagger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
 public class DeleteServerGroupEventHandler implements OperationEventHandler {
-  private final ElasticSearchServerGroupTagger serverGroupTagger;
+  private final ElasticSearchEntityTagger serverGroupTagger;
 
   @Autowired
-  public DeleteServerGroupEventHandler(ElasticSearchServerGroupTagger serverGroupTagger) {
+  public DeleteServerGroupEventHandler(ElasticSearchEntityTagger serverGroupTagger) {
     this.serverGroupTagger = serverGroupTagger;
   }
 
@@ -43,6 +44,7 @@ public class DeleteServerGroupEventHandler implements OperationEventHandler {
       deleteServerGroupEvent.getCloudProvider(),
       deleteServerGroupEvent.getAccountId(),
       deleteServerGroupEvent.getRegion(),
+      EntityTagger.ENTITY_TYPE_SERVER_GROUP,
       deleteServerGroupEvent.getName()
     );
   }

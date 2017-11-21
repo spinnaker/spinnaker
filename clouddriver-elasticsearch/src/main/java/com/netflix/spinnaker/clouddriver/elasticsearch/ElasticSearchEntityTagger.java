@@ -28,7 +28,7 @@ import com.netflix.spinnaker.clouddriver.elasticsearch.ops.DeleteEntityTagsAtomi
 import com.netflix.spinnaker.clouddriver.elasticsearch.ops.UpsertEntityTagsAtomicOperation;
 import com.netflix.spinnaker.clouddriver.model.EntityTags;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
-import com.netflix.spinnaker.clouddriver.tags.ServerGroupTagger;
+import com.netflix.spinnaker.clouddriver.tags.EntityTagger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,20 +39,22 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-public class ElasticSearchServerGroupTagger implements ServerGroupTagger {
-  private static final Logger log = LoggerFactory.getLogger(ElasticSearchServerGroupTagger.class);
+public class ElasticSearchEntityTagger implements EntityTagger {
+  private static final Logger log = LoggerFactory.getLogger(ElasticSearchEntityTagger.class);
 
-  private static final String SERVER_GROUP_TYPE = "servergroup";
-  private static final String ALERT_TYPE = "alert";
-  private static final String ALERT_KEY_PREFIX = "spinnaker_ui_alert:";
+  static final String ALERT_TYPE = "alert";
+  static final String ALERT_KEY_PREFIX = "spinnaker_ui_alert:";
+
+  private static final String NOTICE_TYPE = "notice";
+  private static final String NOTICE_KEY_PREFIX = "spinnaker_ui_notice:";
 
   private final Front50Service front50Service;
   private final AccountCredentialsProvider accountCredentialsProvider;
   private final ElasticSearchEntityTagsProvider entityTagsProvider;
 
-  public ElasticSearchServerGroupTagger(Front50Service front50Service,
-                                        AccountCredentialsProvider accountCredentialsProvider,
-                                        ElasticSearchEntityTagsProvider entityTagsProvider) {
+  public ElasticSearchEntityTagger(Front50Service front50Service,
+                                   AccountCredentialsProvider accountCredentialsProvider,
+                                   ElasticSearchEntityTagsProvider entityTagsProvider) {
     this.front50Service = front50Service;
     this.accountCredentialsProvider = accountCredentialsProvider;
     this.entityTagsProvider = entityTagsProvider;
@@ -62,33 +64,61 @@ public class ElasticSearchServerGroupTagger implements ServerGroupTagger {
   public void alert(String cloudProvider,
                     String accountId,
                     String region,
-                    String serverGroupName,
+                    String category,
+                    String entityType,
+                    String entityId,
                     String key,
-                    String value) {
-    UpsertEntityTagsAtomicOperation upsertEntityTagsAtomicOperation = new UpsertEntityTagsAtomicOperation(
-      front50Service,
-      accountCredentialsProvider,
-      entityTagsProvider,
-      upsertEntityTagsDescription(cloudProvider, accountId, region, serverGroupName, key, value)
+                    String value,
+                    Long timestamp) {
+    upsertEntityTags(
+      ALERT_TYPE, ALERT_KEY_PREFIX,
+      cloudProvider,
+      accountId,
+      region,
+      category,
+      entityType,
+      entityId,
+      key,
+      value,
+      timestamp
     );
+  }
 
-    try {
-      TaskRepository.threadLocalTask.set(new DefaultTask(this.getClass().getSimpleName()));
-      upsertEntityTagsAtomicOperation.operate(Collections.emptyList());
-    } finally {
-      TaskRepository.threadLocalTask.set(null);
-    }
+  @Override
+  public void notice(String cloudProvider,
+                     String accountId,
+                     String region,
+                     String category,
+                     String entityType,
+                     String entityId,
+                     String key,
+                     String value,
+                     Long timestamp) {
+    upsertEntityTags(
+      NOTICE_TYPE,
+      NOTICE_KEY_PREFIX,
+      cloudProvider,
+      accountId,
+      region,
+      category,
+      entityType,
+      entityId,
+      key,
+      value,
+      timestamp
+    );
   }
 
   @Override
   public Collection<EntityTags> taggedEntities(String cloudProvider,
                                                String accountId,
+                                               String entityType,
                                                String tagName,
                                                int maxResults) {
     return entityTagsProvider.getAll(
       cloudProvider,
       null,
-      ENTITY_TYPE,
+      entityType,
       null,
       null,
       accountId,
@@ -100,12 +130,13 @@ public class ElasticSearchServerGroupTagger implements ServerGroupTagger {
   }
 
   @Override
-  public void deleteAll(String cloudProvider, String accountId, String region, String serverGroupName) {
+  public void deleteAll(String cloudProvider, String accountId, String region, String entityType, String entityId) {
     DeleteEntityTagsDescription deleteEntityTagsDescription = deleteEntityTagsDescription(
       cloudProvider,
       accountId,
       region,
-      serverGroupName,
+      entityType,
+      entityId,
       null
     );
     log.info("Removing all entity tags for '{}'", deleteEntityTagsDescription.getId());
@@ -114,12 +145,18 @@ public class ElasticSearchServerGroupTagger implements ServerGroupTagger {
   }
 
   @Override
-  public void delete(String cloudProvider, String accountId, String region, String serverGroupName, String tagName) {
+  public void delete(String cloudProvider,
+                     String accountId,
+                     String region,
+                     String entityType,
+                     String entityId,
+                     String tagName) {
     DeleteEntityTagsDescription deleteEntityTagsDescription = deleteEntityTagsDescription(
       cloudProvider,
       accountId,
       region,
-      serverGroupName,
+      entityType,
+      entityId,
       Collections.singletonList(tagName)
     );
     log.info("Removing '{}' for '{}'", tagName, deleteEntityTagsDescription.getId());
@@ -142,7 +179,7 @@ public class ElasticSearchServerGroupTagger implements ServerGroupTagger {
     Task originalTask = TaskRepository.threadLocalTask.get();
     try {
       TaskRepository.threadLocalTask.set(
-        Optional.ofNullable(originalTask).orElse(new DefaultTask(ElasticSearchServerGroupTagger.class.getSimpleName()))
+        Optional.ofNullable(originalTask).orElse(new DefaultTask(ElasticSearchEntityTagger.class.getSimpleName()))
       );
       run(deleteEntityTagsAtomicOperation);
     } finally {
@@ -150,27 +187,61 @@ public class ElasticSearchServerGroupTagger implements ServerGroupTagger {
     }
   }
 
+  private void upsertEntityTags(String type,
+                                String prefix,
+                                String cloudProvider,
+                                String accountId,
+                                String region,
+                                String category,
+                                String entityType,
+                                String entityId,
+                                String key,
+                                String value,
+                                Long timestamp) {
+    UpsertEntityTagsAtomicOperation upsertEntityTagsAtomicOperation = new UpsertEntityTagsAtomicOperation(
+      front50Service,
+      accountCredentialsProvider,
+      entityTagsProvider,
+      upsertEntityTagsDescription(
+        type, prefix, cloudProvider, accountId, region, category, entityType, entityId, key, value, timestamp
+      )
+    );
 
-  private static UpsertEntityTagsDescription upsertEntityTagsDescription(String cloudProvider,
+    try {
+      TaskRepository.threadLocalTask.set(new DefaultTask(this.getClass().getSimpleName()));
+      upsertEntityTagsAtomicOperation.operate(Collections.emptyList());
+    } finally {
+      TaskRepository.threadLocalTask.set(null);
+    }
+  }
+
+  private static UpsertEntityTagsDescription upsertEntityTagsDescription(String type,
+                                                                         String prefix,
+                                                                         String cloudProvider,
                                                                          String accountId,
                                                                          String region,
-                                                                         String serverGroupName,
+                                                                         String category,
+                                                                         String entityType,
+                                                                         String entityId,
                                                                          String key,
-                                                                         String value) {
+                                                                         String value,
+                                                                         Long timestamp) {
     EntityTags.EntityRef entityRef = new EntityTags.EntityRef();
-    entityRef.setEntityType(SERVER_GROUP_TYPE);
-    entityRef.setEntityId(serverGroupName);
+    entityRef.setEntityType(entityType);
+    entityRef.setEntityId(entityId);
     entityRef.setCloudProvider(cloudProvider);
     entityRef.setAccountId(accountId);
     entityRef.setRegion(region);
 
     Map<String, String> entityTagValue = new HashMap<>();
     entityTagValue.put("message", value);
-    entityTagValue.put("type", ALERT_TYPE);
+    entityTagValue.put("type", type);
 
     EntityTags.EntityTag entityTag = new EntityTags.EntityTag();
-    entityTag.setName(ALERT_KEY_PREFIX + key);
+    entityTag.setName(prefix + key);
     entityTag.setValue(entityTagValue);
+    entityTag.setCategory(category);
+    entityTag.setTimestamp(timestamp);
     entityTag.setValueType(EntityTags.EntityTagValueType.object);
 
     UpsertEntityTagsDescription upsertEntityTagsDescription = new UpsertEntityTagsDescription();
@@ -183,10 +254,11 @@ public class ElasticSearchServerGroupTagger implements ServerGroupTagger {
   private static DeleteEntityTagsDescription deleteEntityTagsDescription(String cloudProvider,
                                                                          String accountId,
                                                                          String region,
-                                                                         String serverGroupName,
+                                                                         String entityType,
+                                                                         String entityId,
                                                                          List<String> tags) {
     EntityRefIdBuilder.EntityRefId entityRefId = EntityRefIdBuilder.buildId(
-      cloudProvider, "servergroup", serverGroupName, accountId, region
+      cloudProvider, entityType, entityId, accountId, region
     );
 
     DeleteEntityTagsDescription deleteEntityTagsDescription = new DeleteEntityTagsDescription();

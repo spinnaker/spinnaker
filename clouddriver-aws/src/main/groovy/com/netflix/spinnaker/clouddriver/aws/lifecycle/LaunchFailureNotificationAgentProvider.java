@@ -23,7 +23,7 @@ import com.netflix.spinnaker.clouddriver.aws.provider.AwsProvider;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
-import com.netflix.spinnaker.clouddriver.tags.ServerGroupTagger;
+import com.netflix.spinnaker.clouddriver.tags.EntityTagger;
 
 import java.util.Collection;
 import java.util.List;
@@ -38,18 +38,18 @@ public class LaunchFailureNotificationAgentProvider implements AgentProvider {
   private final AmazonClientProvider amazonClientProvider;
   private final AccountCredentialsProvider accountCredentialsProvider;
   private final LaunchFailureConfigurationProperties properties;
-  private final ServerGroupTagger serverGroupTagger;
+  private final EntityTagger entityTagger;
 
   LaunchFailureNotificationAgentProvider(ObjectMapper objectMapper,
                                          AmazonClientProvider amazonClientProvider,
                                          AccountCredentialsProvider accountCredentialsProvider,
                                          LaunchFailureConfigurationProperties properties,
-                                         ServerGroupTagger serverGroupTagger) {
+                                         EntityTagger entityTagger) {
     this.objectMapper = objectMapper;
     this.amazonClientProvider = amazonClientProvider;
     this.accountCredentialsProvider = accountCredentialsProvider;
     this.properties = properties;
-    this.serverGroupTagger = serverGroupTagger;
+    this.entityTagger = entityTagger;
   }
 
   @Override
@@ -83,13 +83,13 @@ public class LaunchFailureNotificationAgentProvider implements AgentProvider {
           properties.getVisibilityTimeout(),
           properties.getWaitTimeSeconds()
         ),
-        serverGroupTagger
+        entityTagger
       ))
       .collect(Collectors.toList());
 
     // an agent that will cleanup stale notifications across all accounts + region
     agents.add(new LaunchFailureNotificationCleanupAgent(
-      amazonClientProvider, accountCredentialsProvider, serverGroupTagger
+      amazonClientProvider, accountCredentialsProvider, entityTagger
     ));
 
     return agents;

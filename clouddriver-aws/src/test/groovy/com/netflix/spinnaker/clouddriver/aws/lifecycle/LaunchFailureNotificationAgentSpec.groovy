@@ -7,7 +7,7 @@ import com.amazonaws.services.sqs.AmazonSQS
 import com.amazonaws.services.sqs.model.CreateQueueResult
 import com.amazonaws.services.sqs.model.QueueDoesNotExistException
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
-import com.netflix.spinnaker.clouddriver.tags.ServerGroupTagger
+import com.netflix.spinnaker.clouddriver.tags.EntityTagger
 import spock.lang.Specification
 /*
  * Copyright 2017 Netflix, Inc.
@@ -77,7 +77,7 @@ class LaunchFailureNotificationAgentSpec extends Specification {
 
   void "should delegate to ServerGroupTagger w/ status message, accountId and region"() {
     given:
-    def serverGroupTagger = Mock(ServerGroupTagger)
+    def serverGroupTagger = Mock(EntityTagger)
     def notificationMessage = new NotificationMessage(
       autoScalingGroupARN: "arn:aws:autoscaling:us-west-2:100:serverGroupName",
       autoScalingGroupName: "serverGroupName",
@@ -89,7 +89,7 @@ class LaunchFailureNotificationAgentSpec extends Specification {
     LaunchFailureNotificationAgent.handleMessage(serverGroupTagger, notificationMessage)
 
     then:
-    1 * serverGroupTagger.alert("aws", "100", "us-west-2", "serverGroupName", "MY_EVENT", "My Status Message")
+    1 * serverGroupTagger.alert("aws", "100", "us-west-2", null, "servergroup", "serverGroupName", "MY_EVENT", "My Status Message", null)
 
     when:
     LaunchFailureNotificationAgent.handleMessage(

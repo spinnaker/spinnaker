@@ -30,16 +30,14 @@ import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
 import com.netflix.spinnaker.clouddriver.cache.CustomScheduledAgent;
 import com.netflix.spinnaker.clouddriver.model.EntityTags;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
-import com.netflix.spinnaker.clouddriver.tags.ServerGroupTagger;
+import com.netflix.spinnaker.clouddriver.tags.EntityTagger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.UndeclaredThrowableException;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
@@ -51,11 +49,11 @@ public class LaunchFailureNotificationCleanupAgent implements RunnableAgent, Cus
 
   private final AmazonClientProvider amazonClientProvider;
   private final AccountCredentialsProvider accountCredentialsProvider;
-  private final ServerGroupTagger serverGroupTagger;
+  private final EntityTagger serverGroupTagger;
 
   LaunchFailureNotificationCleanupAgent(AmazonClientProvider amazonClientProvider,
                                         AccountCredentialsProvider accountCredentialsProvider,
-                                        ServerGroupTagger serverGroupTagger) {
+                                        EntityTagger serverGroupTagger) {
     this.amazonClientProvider = amazonClientProvider;
     this.accountCredentialsProvider = accountCredentialsProvider;
     this.serverGroupTagger = serverGroupTagger;
@@ -86,6 +84,7 @@ public class LaunchFailureNotificationCleanupAgent implements RunnableAgent, Cus
     Collection<EntityTags> taggedEntities = serverGroupTagger.taggedEntities(
       AmazonCloudProvider.ID,
       null, // all accounts
+      EntityTagger.ENTITY_TYPE_SERVER_GROUP,
       TAG_NAME,
       MAX_RESULTS
     );
@@ -116,6 +115,7 @@ public class LaunchFailureNotificationCleanupAgent implements RunnableAgent, Cus
           AmazonCloudProvider.ID,
           entityRef.getAccountId(),
           entityRef.getRegion(),
+          EntityTagger.ENTITY_TYPE_SERVER_GROUP,
           entityRef.getEntityId(),
           TAG_NAME
         );

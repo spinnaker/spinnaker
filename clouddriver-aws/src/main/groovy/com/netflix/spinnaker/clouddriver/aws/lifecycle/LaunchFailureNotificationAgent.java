@@ -39,7 +39,7 @@ import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
 import com.netflix.spinnaker.clouddriver.cache.CustomScheduledAgent;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
-import com.netflix.spinnaker.clouddriver.tags.ServerGroupTagger;
+import com.netflix.spinnaker.clouddriver.tags.EntityTagger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -65,7 +65,7 @@ class LaunchFailureNotificationAgent implements RunnableAgent, CustomScheduledAg
   private final AmazonClientProvider amazonClientProvider;
   private final AccountCredentialsProvider accountCredentialsProvider;
   private final LaunchFailureConfigurationProperties properties;
-  private final ServerGroupTagger serverGroupTagger;
+  private final EntityTagger serverGroupTagger;
 
   private final ARN topicARN;
   private final ARN queueARN;
@@ -77,7 +77,7 @@ class LaunchFailureNotificationAgent implements RunnableAgent, CustomScheduledAg
                                  AmazonClientProvider amazonClientProvider,
                                  AccountCredentialsProvider accountCredentialsProvider,
                                  LaunchFailureConfigurationProperties properties,
-                                 ServerGroupTagger serverGroupTagger) {
+                                 EntityTagger serverGroupTagger) {
     this.objectMapper = objectMapper;
     this.amazonClientProvider = amazonClientProvider;
     this.accountCredentialsProvider = accountCredentialsProvider;
@@ -161,7 +161,7 @@ class LaunchFailureNotificationAgent implements RunnableAgent, CustomScheduledAg
     log.info("Processed {} messages (queueARN: {})", messagesProcessed.get(), queueARN.arn);
   }
 
-  private static void handleMessage(ServerGroupTagger serverGroupTagger, NotificationMessage notificationMessage) {
+  private static void handleMessage(EntityTagger serverGroupTagger, NotificationMessage notificationMessage) {
     log.info(
       "Failed to launch instance (asgName: {}, reason: {})",
       notificationMessage.autoScalingGroupName,
@@ -180,9 +180,12 @@ class LaunchFailureNotificationAgent implements RunnableAgent, CustomScheduledAg
       AmazonCloudProvider.ID,
       accountId,
       region,
+      null, // no category
+      EntityTagger.ENTITY_TYPE_SERVER_GROUP,
       notificationMessage.autoScalingGroupName,
       notificationMessage.event,
-      notificationMessage.statusMessage
+      notificationMessage.statusMessage,
+      null // no last modified timestamp
     );
   }
 

@@ -118,6 +118,9 @@ class EntityTags {
     Object value
     EntityTagValueType valueType
 
+    @JsonIgnore
+    Long timestamp
+
     String getName() {
       return name.toLowerCase()
     }

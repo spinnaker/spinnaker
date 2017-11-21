@@ -17,20 +17,13 @@
 package com.netflix.spinnaker.clouddriver.aws.lifecycle;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spectator.api.Registry;
-import com.netflix.spinnaker.clouddriver.aws.deploy.ops.discovery.AwsEurekaSupport;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
-import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
-import com.netflix.spinnaker.clouddriver.tags.ServerGroupTagger;
+import com.netflix.spinnaker.clouddriver.tags.EntityTagger;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
-import javax.inject.Provider;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 @Configuration
 @EnableConfigurationProperties({LaunchFailureConfigurationProperties.class, InstanceTerminationConfigurationProperties.class})
@@ -42,9 +35,9 @@ class LifecycleSubscriberConfiguration {
                                                                                 AmazonClientProvider amazonClientProvider,
                                                                                 AccountCredentialsProvider accountCredentialsProvider,
                                                                                 LaunchFailureConfigurationProperties properties,
-                                                                                ServerGroupTagger serverGroupTagger) {
+                                                                                EntityTagger entityTagger) {
     return new LaunchFailureNotificationAgentProvider(
-      objectMapper, amazonClientProvider, accountCredentialsProvider, properties, serverGroupTagger
+      objectMapper, amazonClientProvider, accountCredentialsProvider, properties, entityTagger
     );
   }
 }
