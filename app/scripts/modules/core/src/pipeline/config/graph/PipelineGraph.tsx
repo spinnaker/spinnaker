@@ -372,13 +372,12 @@ export class PipelineGraph extends React.Component<IPipelineGraphProps, IPipelin
   }
 
   public componentDidMount() {
-    this.updateGraph(this.props);
     window.addEventListener('resize', this.windowResize);
-
     this.validationSubscription = ReactInjector.pipelineConfigValidator.subscribe((validations) => {
       this.pipelineValidations = validations;
       this.updateGraph(this.props);
     });
+    this.updateGraph(this.props);
   }
 
   private refCallback(element: HTMLDivElement): void {
@@ -387,7 +386,7 @@ export class PipelineGraph extends React.Component<IPipelineGraphProps, IPipelin
 
   @Debounce(300)
   private validatePipeline(pipeline: IPipeline): void {
-    ReactInjector.pipelineConfigValidator.validatePipeline(pipeline);
+    ReactInjector.pipelineConfigValidator.validatePipeline(pipeline).catch(() => {});
   }
 
   public componentWillReceiveProps(nextProps: IPipelineGraphProps) {
