@@ -18,26 +18,23 @@ package com.netflix.spinnaker.keel.intent.processor
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.*
 import com.netflix.spinnaker.keel.front50.Front50Service
-import com.netflix.spinnaker.keel.front50.annotations.Computed
 import com.netflix.spinnaker.keel.front50.model.Application
 import com.netflix.spinnaker.keel.intent.ANY_MAP_TYPE
 import com.netflix.spinnaker.keel.intent.ApplicationIntent
 import com.netflix.spinnaker.keel.intent.BaseApplicationSpec
-import com.netflix.spinnaker.keel.intent.NetflixApplicationSpec
 import com.netflix.spinnaker.keel.intent.processor.converter.ApplicationConverter
 import com.netflix.spinnaker.keel.model.Job
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.model.Trigger
+import com.netflix.spinnaker.keel.state.FieldMutator
+import com.netflix.spinnaker.keel.state.StateInspector
 import com.netflix.spinnaker.keel.tracing.Trace
 import com.netflix.spinnaker.keel.tracing.TraceRepository
+import net.logstash.logback.argument.StructuredArguments.value
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import retrofit.RetrofitError
-import kotlin.reflect.full.findAnnotation
-import kotlin.reflect.full.primaryConstructor
-
-import net.logstash.logback.argument.StructuredArguments.value
 
 @Component
 class ApplicationIntentProcessor
@@ -57,7 +54,7 @@ class ApplicationIntentProcessor
 
     val currentState = getApplication(intent.spec.name)
 
-    if (currentStateUpToDate(currentState, intent.spec)) {
+    if (currentStateUpToDate(intent.id, currentState, intent.spec)) {
       return ConvergeResult(listOf(), ConvergeReason.UNCHANGED.reason)
     }
 
@@ -86,53 +83,22 @@ class ApplicationIntentProcessor
     )
   }
 
-  private fun currentStateUpToDate(currentState: Application?, desiredState: BaseApplicationSpec): Boolean {
-    log.info("Determining if state has drifted for application ${desiredState.name}")
+  private fun currentStateUpToDate(intentId: String,
+                                   currentState: Application?,
+                                   desiredState: BaseApplicationSpec): Boolean {
     if (currentState == null) return false
-
-    // Some values are computed, and we shouldn't consider them when
-    // determining if the current state is equal to the desired state
-    val ignoredCurrentStateParameters: MutableList<String> = mutableListOf()
-    Application::class.primaryConstructor!!.parameters.filter { param ->
-        param.findAnnotation<Computed>()?.ignore == true
-      }.mapTo(ignoredCurrentStateParameters) { param ->
-        param.name.toString()
-      }
-    ignoredCurrentStateParameters.addAll(currentState.computedPropertiesToIgnore())
-
-    val ignoredDesiredStateParameters: MutableList<String> = mutableListOf()
-    // TODO eb: make this abstract!
-    val specPrimaryConstructor = NetflixApplicationSpec::class.primaryConstructor!!
-    specPrimaryConstructor.parameters.filter { param ->
-      param.findAnnotation<Computed>()?.ignore == true
-    }.mapTo(ignoredDesiredStateParameters) { param ->
-      param.name.toString()
+    return StateInspector(objectMapper).run {
+      this.getDiff(
+        intentId = intentId,
+        currentState = currentState,
+        desiredState = desiredState,
+        modelClass = Application::class,
+        specClass = BaseApplicationSpec::class,
+        currentStateFieldMutators = listOf(
+          FieldMutator("name", { it.toString().toLowerCase() })
+        )
+      ).isEmpty()
     }
-
-    // Convert to map to compare because front50 isn't typed
-    // TODO eb: make this better
-    val currentStateMap = applicationConverter.convertToMap(currentState)
-    ignoredCurrentStateParameters.forEach { param ->
-      currentStateMap.remove(param)
-    }
-    // TODO eb: deal with name better, keel should lowercase
-    currentStateMap.put("name", currentStateMap["name"].toString().toLowerCase())
-
-    val desiredStateMap = applicationConverter.convertToMap(desiredState)
-    ignoredDesiredStateParameters.forEach { param ->
-      desiredStateMap.remove(param)
-    }
-    desiredStateMap.put("name", desiredStateMap["name"].toString().toLowerCase())
-
-    var matching = true
-    desiredStateMap.forEach { key, value ->
-      val curVal = currentStateMap[key]
-      if (curVal != value ) {
-        log.debug("$key has drifted from \"$value\" to \"$curVal\" for application ${desiredState.name}")
-        matching = false
-      }
-    }
-    return matching
   }
 
   private fun getApplication(name: String): Application? {

@@ -16,7 +16,7 @@
 package com.netflix.spinnaker.keel.intent.processor.converter
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.keel.clouddriver.ClouddriverService
+import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.model.Moniker
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroup
 import com.netflix.spinnaker.keel.findAllSubtypes
@@ -28,7 +28,7 @@ import javax.annotation.PostConstruct
 
 @Component
 class SecurityGroupConverter(
-  private val clouddriverService: ClouddriverService,
+  private val clouddriverCache: CloudDriverCache,
   private val objectMapper: ObjectMapper
 ) : SpecConverter<SecurityGroupSpec, Set<SecurityGroup>> {
 
@@ -41,9 +41,6 @@ class SecurityGroupConverter(
   }
 
   override fun convertToState(spec: SecurityGroupSpec): Set<SecurityGroup> {
-    // TODO rz - cache
-    val networks = clouddriverService.listNetworks()
-
     if (spec is AmazonSecurityGroupSpec) {
       return spec.regions.map { region ->
         SecurityGroup(
@@ -52,8 +49,31 @@ class SecurityGroupConverter(
           description = spec.description,
           accountName = spec.accountName,
           region = region,
-          vpcId = networkNameToId(networks, "aws", region, spec.vpcName),
-          inboundRules = spec.inboundRules.map { objectMapper.convertValue<MutableMap<String, Any>>(it, ANY_MAP_TYPE) },
+          // TODO rz - do we even want to mess with EC2-classic support?
+          vpcId = clouddriverCache.networkBy(spec.vpcName!!, spec.accountName, region).id,
+          inboundRules = spec.inboundRules.map {
+            when (it) {
+              is ReferenceSecurityGroupRule -> SecurityGroup.SecurityGroupRule(
+                protocol = it.protocol,
+                portRanges = it.portRanges.map { SecurityGroup.SecurityGroupRulePortRange(it.startPort, it.endPort) },
+                securityGroup = SecurityGroup.SecurityGroupRuleReference(
+                  name = it.name,
+                  accountName = spec.accountName,
+                  region = region
+                )
+              )
+              is CrossAccountReferenceSecurityGroupRule -> SecurityGroup.SecurityGroupRule(
+                protocol = it.protocol,
+                portRanges = it.portRanges.map { SecurityGroup.SecurityGroupRulePortRange(it.startPort, it.endPort) },
+                securityGroup = SecurityGroup.SecurityGroupRuleReference(
+                  name = it.name,
+                  accountName = it.account,
+                  region = it.region
+                )
+              )
+              else -> TODO(reason = "${it.javaClass.simpleName} has not been implemented yet")
+            }
+          },
           id = null,
           // TODO rz - fix so not bad
           moniker = Moniker(spec.name)
@@ -68,9 +88,6 @@ class SecurityGroupConverter(
       return null
     }
 
-    // TODO rz - cache
-    val networks = clouddriverService.listNetworks()
-
     state.first().let {
       if (it.type == "aws") {
         return AmazonSecurityGroupSpec(
@@ -80,7 +97,7 @@ class SecurityGroupConverter(
           description = it.description!!,
           accountName = it.accountName,
           regions = state.map { s -> s.region }.toSet(),
-          vpcName = networkIdToName(networks, "aws", it.region, it.vpcId),
+          vpcName = clouddriverCache.networkBy(it.vpcId!!).name,
           inboundRules = it.inboundRules.map {
             // TODO rz - ehhh? Will this work?
             objectMapper.convertValue(it, SecurityGroupRule::class.java)
@@ -93,8 +110,6 @@ class SecurityGroupConverter(
   }
 
   override fun convertToJob(spec: SecurityGroupSpec): List<Job> {
-    val networks = clouddriverService.listNetworks()
-
     if (spec is AmazonSecurityGroupSpec) {
       return listOf(
         Job(
@@ -119,7 +134,7 @@ class SecurityGroupConverter(
                     if (it is CrossAccountReferenceSecurityGroupRule) {
                       m["accountName"] = it.account
                       m["crossAccountEnabled"] = true
-                      m["vpcId"] = networkNameToId(networks, "aws", it.region, it.vpcName)
+                      m["vpcId"] = clouddriverCache.networkBy(it.vpcName, spec.accountName, it.region)
                     }
                     m
                   }

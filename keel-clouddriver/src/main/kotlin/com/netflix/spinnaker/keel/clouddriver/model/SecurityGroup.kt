@@ -15,14 +15,33 @@
  */
 package com.netflix.spinnaker.keel.clouddriver.model
 
+import com.netflix.spinnaker.keel.annotation.Computed
+
 data class SecurityGroup(
-  val type: String,
+  @Computed val type: String,
   val id: String?,
   val name: String,
   val description: String?,
   val accountName: String,
   val region: String,
   val vpcId: String?,
-  val inboundRules: List<Map<String, Any>> = emptyList(),
-  val moniker: Moniker
-)
+  val inboundRules: List<SecurityGroupRule> = emptyList(),
+  @Computed val moniker: Moniker
+) {
+  data class SecurityGroupRule(
+    val protocol: String?,
+    val portRanges: List<SecurityGroupRulePortRange>?,
+    val securityGroup: SecurityGroupRuleReference?
+  )
+
+  data class SecurityGroupRulePortRange(
+    val startPort: Int,
+    val endPort: Int
+  )
+
+  data class SecurityGroupRuleReference(
+    val name: String,
+    val accountName: String?,
+    val region: String?
+  )
+}

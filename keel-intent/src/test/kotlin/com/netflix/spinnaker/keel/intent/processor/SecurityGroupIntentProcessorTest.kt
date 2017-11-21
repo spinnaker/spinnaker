@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.natpryce.hamkrest.equalTo
 import com.natpryce.hamkrest.isEmpty
 import com.natpryce.hamkrest.should.shouldMatch
+import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.ClouddriverService
 import com.netflix.spinnaker.keel.clouddriver.model.Moniker
 import com.netflix.spinnaker.keel.clouddriver.model.Network
@@ -32,9 +33,10 @@ import org.junit.jupiter.api.Test
 import retrofit.RetrofitError
 import retrofit.client.Response
 
-object SecurityGroupIntentProcessorSpec {
+object SecurityGroupIntentProcessorTest {
 
   val traceRepository = mock<TraceRepository>()
+  val clouddriverCache = mock<CloudDriverCache>()
   val clouddriverService = mock<ClouddriverService>().apply {
     whenever(listNetworks()) doReturn mapOf(
       "aws" to setOf(
@@ -47,9 +49,9 @@ object SecurityGroupIntentProcessorSpec {
     )
   }
   val objectMapper = ObjectMapper()
-  val converter = SecurityGroupConverter(clouddriverService, objectMapper)
+  val converter = SecurityGroupConverter(clouddriverCache, objectMapper)
 
-  val subject = SecurityGroupIntentProcessor(traceRepository, clouddriverService, objectMapper, converter)
+  val subject = SecurityGroupIntentProcessor(traceRepository, clouddriverService, clouddriverCache, objectMapper, converter)
 
   @AfterEach
   fun cleanup() {
@@ -65,6 +67,15 @@ object SecurityGroupIntentProcessorSpec {
   @Test
   fun `should upsert security group when missing`() {
     whenever(clouddriverService.getSecurityGroup(any(), any(), any(), any(), any())) doReturn null as SecurityGroup?
+
+    whenever(clouddriverCache.networkBy(any(), any(), any())) doReturn
+      Network(
+        cloudProvider = "aws",
+        id = "vpc-1",
+        name = "vpcName",
+        account = "test",
+        region = "us-west-2"
+      )
 
     val intent = SecurityGroupIntent(AmazonSecurityGroupSpec(
       application = "keel",
@@ -100,6 +111,14 @@ object SecurityGroupIntentProcessorSpec {
         inboundRules = emptyList(),
         moniker = Moniker("test")
       )
+    whenever(clouddriverCache.networkBy(any(), any(), any())) doReturn
+      Network(
+        cloudProvider = "aws",
+        id = "vpc-1",
+        name = "vpcName",
+        account = "test",
+        region = "us-west-2"
+      )
 
     val intent = SecurityGroupIntent(AmazonSecurityGroupSpec(
       application = "keel",
@@ -129,6 +148,14 @@ object SecurityGroupIntentProcessorSpec {
       null,
       null
     )
+    whenever(clouddriverCache.networkBy(any(), any(), any())) doReturn
+      Network(
+        cloudProvider = "aws",
+        id = "vpc-1",
+        name = "vpcName",
+        account = "test",
+        region = "us-west-2"
+      )
 
     val intent = SecurityGroupIntent(AmazonSecurityGroupSpec(
       application = "keel",

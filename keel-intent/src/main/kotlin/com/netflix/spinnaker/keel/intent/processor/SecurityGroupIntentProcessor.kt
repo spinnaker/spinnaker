@@ -17,12 +17,14 @@ package com.netflix.spinnaker.keel.intent.processor
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.*
+import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.ClouddriverService
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroup
 import com.netflix.spinnaker.keel.intent.*
 import com.netflix.spinnaker.keel.intent.processor.converter.SecurityGroupConverter
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.model.Trigger
+import com.netflix.spinnaker.keel.state.StateInspector
 import com.netflix.spinnaker.keel.tracing.Trace
 import com.netflix.spinnaker.keel.tracing.TraceRepository
 import net.logstash.logback.argument.StructuredArguments.value
@@ -36,6 +38,7 @@ class SecurityGroupIntentProcessor
 @Autowired constructor(
   private val traceRepository: TraceRepository,
   private val clouddriverService: ClouddriverService,
+  private val clouddriverCache: CloudDriverCache,
   private val objectMapper: ObjectMapper,
   private val securityGroupConverter: SecurityGroupConverter
 ) : IntentProcessor<SecurityGroupIntent> {
@@ -54,9 +57,7 @@ class SecurityGroupIntentProcessor
       intent = intent
     ))
 
-    val desiredState = securityGroupConverter.convertToState(intent.spec)
-
-    if (currentStateUpToDate(currentState, desiredState)) {
+    if (currentStateUpToDate(intent.id, currentState, intent.spec)) {
       return ConvergeResult(listOf(), ConvergeReason.UNCHANGED.reason)
     }
 
@@ -88,7 +89,11 @@ class SecurityGroupIntentProcessor
             return@map if (spec.vpcName == null) {
               clouddriverService.getSecurityGroup(spec.accountName, "aws", spec.name, region)
             } else {
-              clouddriverService.getSecurityGroup(spec.accountName, "aws", spec.name, region, spec.vpcName)
+              clouddriverService.getSecurityGroup(spec.accountName, "aws", spec.name, region, clouddriverCache.networkBy(
+                spec.vpcName,
+                spec.accountName,
+                region
+              ).id)
             }
           } catch (e: RetrofitError) {
             if (e.notFound()) {
@@ -103,9 +108,37 @@ class SecurityGroupIntentProcessor
     throw NotImplementedError("Only amazon security groups are supported at the moment")
   }
 
-  private fun currentStateUpToDate(currentState: Set<SecurityGroup>, desiredState: Set<SecurityGroup>): Boolean {
-    log.warn("Current state update check is not implemented")
-    return false
+  private fun currentStateUpToDate(intentId: String,
+                                   currentState: Set<SecurityGroup>,
+                                   desiredState: SecurityGroupSpec): Boolean {
+    if (currentState.size != desiredState.regions.size) return false
+
+    val desired = securityGroupConverter.convertToState(desiredState)
+
+    val statePairs = mutableListOf<Pair<SecurityGroup, SecurityGroup>>()
+    desired.forEach { d ->
+      val key = "${d.accountName}/${d.region}/${d.name}"
+      currentState.forEach { c ->
+        if ("${c.accountName}/${c.region}/${c.name}" == key) {
+          statePairs.add(Pair(c, d))
+        }
+      }
+    }
+
+    if (statePairs.size != desiredState.regions.size) return false
+
+    return StateInspector(objectMapper).run {
+      statePairs.flatMap {
+        this.getDiff(
+          intentId = intentId,
+          currentState = it.first,
+          desiredState = it.second,
+          modelClass = SecurityGroup::class,
+          specClass = SecurityGroupSpec::class,
+          ignoreKeys = listOf("type", "id", "moniker", "summary")
+        )
+      }
+    }.isEmpty()
   }
 
   private fun missingUpstreamGroups(spec: SecurityGroupSpec): List<String> {

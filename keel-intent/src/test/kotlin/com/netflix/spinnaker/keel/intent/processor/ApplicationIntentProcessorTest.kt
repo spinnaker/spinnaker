@@ -32,7 +32,7 @@ import org.junit.jupiter.api.Test
 import retrofit.RetrofitError.httpError
 import retrofit.client.Response
 
-object ApplicationIntentProcessorSpec {
+object ApplicationIntentProcessorTest {
 
   val traceRepository = mock<TraceRepository>()
   val front50Service = mock<Front50Service>()
@@ -69,7 +69,7 @@ object ApplicationIntentProcessorSpec {
   @Test
   fun `should update application when app is present`() {
     whenever(front50Service.getApplication("keel")) doReturn
-      Application("keel", "my original description", "example@example.com", "1", "1", false, false, "emburns@netflix.com")
+      Application("KEEL", "my original description", "example@example.com", "1", "1", false, false, "example@example.com")
 
     val updated = createApplicationSpec("my updated description")
 
@@ -80,6 +80,47 @@ object ApplicationIntentProcessorSpec {
     result.orchestrations[0].job[0]["application"] as Map<Any, Any> shouldMatch hasEntry("description", equalTo<Any>("my updated description"))
 
     verify(traceRepository).record(any())
+  }
+
+  @Test
+  fun `should not update if desired state has not changed`() {
+    whenever(front50Service.getApplication("keel")) doReturn
+      Application("KEEL", "description", "email@example.com", "1", "1", false, false, "owner").apply {
+        details.putAll(mapOf(
+          "chaosMonkey" to mapOf(
+            "enabled" to true,
+            "meanTimeBetweenKillsInWorkDays" to 2,
+            "minTimeBetweenKillsInWorkDays" to 2,
+            "grouping" to "cluster",
+            "regionsAreIndependent" to true,
+            "exceptions" to emptyList<String>()
+          ),
+          "enableRestartRunningExecutions" to false,
+          "instanceLinks" to emptyList<String>(),
+          "instancePort" to 8087,
+          "appGroup" to "Spinnaker",
+          "cloudProviders" to "aws",
+          "accounts" to "prod,test",
+          "dataSources" to mapOf(
+            "enabled" to emptyList<String>(),
+            "disabled" to emptyList<String>()
+          ),
+          "requiredGroupMembership" to emptyList<String>(),
+          "group" to "spinnaker",
+          "providerSettings" to emptyMap<String, Boolean>(),
+          "trafficGuards" to emptyList<String>(),
+          "notifications" to mapOf(
+            "slack" to null,
+            "email" to null,
+            "sms" to null
+          )
+        ))
+      }
+
+    val desired = createApplicationSpec("description")
+    val result = subject.converge(ApplicationIntent(desired))
+
+    result.orchestrations.size shouldMatch equalTo(0)
   }
 
   fun createApplicationSpec(description: String? = null): ApplicationSpec
@@ -111,12 +152,13 @@ object ApplicationIntentProcessorSpec {
     platformHealthOnly = false,
     notifications = NotificationSpec(null, null, null)
   )
-}
 
-fun hasEntry(key: Any, matcher: Matcher<Any?>): Matcher<Map<Any, Any>> = object : Matcher.Primitive<Map<Any, Any>>() {
-  override fun invoke(actual: Map<Any, Any>): MatchResult =
-    matcher.invoke(actual[key])
+  private fun hasEntry(key: Any, matcher: Matcher<Any?>): Matcher<Map<Any, Any>> = object : Matcher.Primitive<Map<Any, Any>>() {
+    override fun invoke(actual: Map<Any, Any>): MatchResult =
+      matcher.invoke(actual[key])
 
-  override val description: String get() = "contains an entry '$key' ${describe(matcher)}"
-  override val negatedDescription: String get() = "does not contain an entry '$key' ${describe(matcher)}"
+    override val description: String get() = "contains an entry '$key' ${describe(matcher)}"
+    override val negatedDescription: String get() = "does not contain an entry '$key' ${describe(matcher)}"
+  }
+
 }

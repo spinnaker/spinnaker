@@ -21,7 +21,8 @@ import com.fasterxml.jackson.annotation.JsonTypeName
 import com.github.jonpeterson.jackson.module.versioning.JsonVersionedModel
 import com.netflix.spinnaker.keel.Intent
 import com.netflix.spinnaker.keel.IntentSpec
-import com.netflix.spinnaker.keel.front50.annotations.Computed
+import com.netflix.spinnaker.keel.annotation.Computed
+import com.netflix.spinnaker.keel.state.ComputedPropertyProvider
 
 private const val KIND = "Application"
 private const val CURRENT_SCHEMA = "1"
@@ -149,7 +150,10 @@ data class ApplicationSpec(
   override val platformHealthOnlyShowOverride: Boolean,
   override val platformHealthOnly: Boolean,
   override val notifications: NotificationSpec?
-) : BaseApplicationSpec()
+) : BaseApplicationSpec(), ComputedPropertyProvider {
+
+  override fun additionalComputedProperties() = listOf("requiredGroupMembership")
+}
 
 // TODO rz - Move to -nflx, figure out a better wiring strategy?
 @JsonTypeName("NetflixApplication")
@@ -177,13 +181,16 @@ data class NetflixApplicationSpec(
   val repoProjectKey: String?,
   val repoType: String?,
   val pdApiKey: String,
-  val propertyRolloutConfigId: String?,
+  @Computed val propertyRolloutConfigId: String?,
   val legacyUdf: Boolean,
   val monitorBucketType: String?,
   val criticalityRules: List<CriticalityRuleSpec>,
   val ccpService: String?,
   val timelines: List<TimelineSpec>?
-) : BaseApplicationSpec()
+) : BaseApplicationSpec(), ComputedPropertyProvider {
+
+  override fun additionalComputedProperties() = listOf("requiredGroupMembership", "propertyRolloutConfigId")
+}
 
 data class CriticalityRuleSpec(
   val account: String,

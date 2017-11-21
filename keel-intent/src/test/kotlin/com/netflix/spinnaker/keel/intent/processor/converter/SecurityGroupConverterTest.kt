@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.natpryce.hamkrest.equalTo
 import com.natpryce.hamkrest.isEmpty
 import com.natpryce.hamkrest.should.shouldMatch
+import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.ClouddriverService
 import com.netflix.spinnaker.keel.clouddriver.model.Moniker
 import com.netflix.spinnaker.keel.clouddriver.model.Network
@@ -27,28 +28,31 @@ import com.netflix.spinnaker.keel.intent.AmazonSecurityGroupSpec
 import com.netflix.spinnaker.keel.intent.ReferenceSecurityGroupRule
 import com.netflix.spinnaker.keel.intent.SecurityGroupPortRange
 import com.netflix.spinnaker.keel.intent.SecurityGroupSpec
-import com.netflix.spinnaker.keel.intent.processor.converter.SecurityGroupConverter
-import com.nhaarman.mockito_kotlin.doReturn
-import com.nhaarman.mockito_kotlin.mock
-import com.nhaarman.mockito_kotlin.whenever
+import com.nhaarman.mockito_kotlin.*
 import org.junit.jupiter.api.Test
 
 object SecurityGroupConverterTest {
 
   val objectMapper = ObjectMapper()
   val clouddriverService = mock<ClouddriverService>()
-  val subject = SecurityGroupConverter(clouddriverService, objectMapper)
+  val clouddriverCache = mock<CloudDriverCache>()
+  val subject = SecurityGroupConverter(clouddriverCache, objectMapper)
 
   @Test
   fun `should convert spec to system state`() {
-    whenever(clouddriverService.listNetworks()) doReturn mapOf(
-      "aws" to setOf(
-        Network("aws", "vpc-1", "vpcName", "test", "us-west-2"),
-        Network("aws", "vpc-2", "vpcName", "prod", "us-west-2"),
-        Network("aws", "vpc-3", "vpcName", "test", "us-east-1"),
-        Network("aws", "vpc-4", "vpcName", "test", "eu-west-1"),
-        Network("aws", "vpc-5", "otherName", "test", "us-west-2")
-      )
+    whenever(clouddriverCache.networkBy(any(), any(), eq("us-west-2"))) doReturn Network(
+      cloudProvider = "aws",
+      id = "vpc-1",
+      name = "vpcName",
+      account = "test",
+      region = "us-west-2"
+    )
+    whenever(clouddriverCache.networkBy(any(), any(), eq("us-east-1"))) doReturn Network(
+      cloudProvider = "aws",
+      id = "vpc-1",
+      name = "vpcName",
+      account = "test",
+      region = "us-east-1"
     )
 
     val spec = AmazonSecurityGroupSpec(
@@ -83,11 +87,19 @@ object SecurityGroupConverterTest {
 
   @Test
   fun `should convert system state to spec`() {
-    whenever(clouddriverService.listNetworks()) doReturn mapOf(
-      "aws" to setOf(
-        Network("aws", "vpc-1234", "vpcName", "test", "us-west-2"),
-        Network("aws", "vpc-1235", "vpcName", "test", "us-east-1")
-      )
+    whenever(clouddriverCache.networkBy(eq("vpc-1234"))) doReturn Network(
+      cloudProvider = "aws",
+      id = "vpc-1234",
+      name = "vpcName",
+      account = "test",
+      region = "us-west-2"
+    )
+    whenever(clouddriverCache.networkBy(eq("vpc-1235"))) doReturn Network(
+      cloudProvider = "aws",
+      id = "vpc-1235",
+      name = "vpcName",
+      account = "test",
+      region = "us-east-1"
     )
 
     val state = setOf(

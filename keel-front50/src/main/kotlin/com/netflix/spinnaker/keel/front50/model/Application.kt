@@ -17,7 +17,8 @@ package com.netflix.spinnaker.keel.front50.model
 
 import com.fasterxml.jackson.annotation.JsonAnyGetter
 import com.fasterxml.jackson.annotation.JsonAnySetter
-import com.netflix.spinnaker.keel.front50.annotations.Computed
+import com.netflix.spinnaker.keel.annotation.Computed
+import com.netflix.spinnaker.keel.state.ComputedPropertyProvider
 
 data class Application(
   val name: String,
@@ -28,7 +29,7 @@ data class Application(
   val platformHealthOnly: Boolean,
   val platformHealthOnlyShowOverride: Boolean,
   val owner: String
-) {
+) : ComputedPropertyProvider {
 
   val details: MutableMap<String, Any?> = mutableMapOf()
 
@@ -51,7 +52,10 @@ data class Application(
    * Need to identify additional ignored properties that are in
    * the 'details' map
    */
+  @Deprecated(message = "use method from ComputedPropertyProvider")
   fun computedPropertiesToIgnore(): List<String> {
     return listOf("user","lastModifiedBy","requiredGroupMembership")
   }
+
+  override fun additionalComputedProperties(): List<String> = computedPropertiesToIgnore()
 }
