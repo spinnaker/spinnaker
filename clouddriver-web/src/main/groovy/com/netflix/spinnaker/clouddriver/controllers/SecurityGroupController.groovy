@@ -149,7 +149,7 @@ class SecurityGroupController {
       objs[obj.region] << obj.summary
       objs
     }) toBlocking() first()
-    }
+  }
 
   @PreAuthorize("hasPermission(#account, 'ACCOUNT', 'READ')")
   @RequestMapping(method = RequestMethod.GET, value = "/{account}/{cloudProvider}/{region}/{securityGroupName:.+}")
@@ -160,13 +160,13 @@ class SecurityGroupController {
                     @RequestParam(value = "vpcId", required = false) String vpcId) {
     def securityGroup = securityGroupProviders.findResults { secGrpProv ->
       secGrpProv.cloudProvider == cloudProvider ? secGrpProv.get(account, region, securityGroupName, vpcId) : null
-    }.first()
+    }
 
-    if (!securityGroup) {
+    if (securityGroup.size() != 1) {
       throw new NotFoundException("Security group '${securityGroupName}' does not exist")
     }
 
-    return securityGroup
+    return securityGroup.first()
   }
 
   private static Set<SecurityGroupSummary> getSortedTreeSet() {
