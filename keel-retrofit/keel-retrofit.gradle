@@ -17,11 +17,11 @@
 dependencies {
   compile project(":keel-core")
 
-  compile "com.squareup.retrofit:retrofit:+"
-  compile "com.squareup.okhttp:okhttp-urlconnection:+"
-  compile "com.squareup.okhttp:okhttp-apache:+"
-  compile "com.squareup.retrofit:converter-jackson:+"
+  compile "com.squareup.retrofit:retrofit:1.+"
+  compile "com.squareup.okhttp:okhttp-urlconnection:2.+"
+  compile "com.squareup.okhttp:okhttp-apache:2.+"
+  compile "com.squareup.retrofit:converter-jackson:1.+"
 
   compile "com.netflix.spinnaker.kork:kork-web:+"
-  compile "io.reactivex:rxjava:+"
+  compile "io.reactivex:rxjava:1.0.+"
 }

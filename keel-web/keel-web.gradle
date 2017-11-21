@@ -30,9 +30,9 @@ springBoot {
 }
 
 dependencies {
-  compile "org.springframework.boot:spring-boot-starter-actuator:+"
-  compile "org.springframework.boot:spring-boot-starter-web:+"
-  compile "org.springframework.boot:spring-boot-starter-data-rest:+"
+  compile "org.springframework.boot:spring-boot-starter-actuator:1.5.+"
+  compile "org.springframework.boot:spring-boot-starter-web:1.5.+"
+  compile "org.springframework.boot:spring-boot-starter-data-rest:1.5+"
 
   compile project(":keel-core")
   compile project(":keel-eureka")
@@ -40,6 +40,7 @@ dependencies {
   compile project(":keel-orca")
   compile project(":keel-clouddriver")
   compile project(":keel-intent")
+  compile project(":keel-intent-aws")
   compile project(":keel-redis")
   compile project(":keel-scheduler")
 }

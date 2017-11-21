@@ -15,18 +15,18 @@
  */
 
 dependencies {
-  compile "org.slf4j:slf4j-api:+"
+  compile "org.slf4j:slf4j-api:1.7.+"
   compile "com.netflix.spinnaker.kork:kork-core:+"
-  compile "redis.clients:jedis:+"
-  compile "net.logstash.logback:logstash-logback-encoder:+"
+  compile "redis.clients:jedis:2.+"
+  compile "net.logstash.logback:logstash-logback-encoder:4.+"
 
-  compile "com.fasterxml.jackson.core:jackson-databind:+"
-  compile "com.fasterxml.jackson.core:jackson-annotations:+"
+  compile "com.fasterxml.jackson.core:jackson-databind:2.9.+"
+  compile "com.fasterxml.jackson.core:jackson-annotations:2.9.+"
 
-  compile "com.fasterxml.jackson.module:jackson-module-kotlin:+"
-  compile "com.github.jonpeterson:jackson-module-model-versioning:+"
-  compile "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:+"
+  compile "com.fasterxml.jackson.module:jackson-module-kotlin:2.9.+"
+  compile "com.github.jonpeterson:jackson-module-model-versioning:1.2.+"
+  compile "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.9.+"
 
-  testCompile "com.squareup.retrofit:retrofit-mock:+"
+  testCompile "com.squareup.retrofit:retrofit-mock:1.9.+"
   testCompile project(":keel-test")
 }

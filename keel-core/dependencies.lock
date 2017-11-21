@@ -2,31 +2,31 @@
     "compile": {
         "com.fasterxml.jackson.core:jackson-annotations": {
             "locked": "2.9.2",
-            "requested": "+"
+            "requested": "2.9.+"
         },
         "com.fasterxml.jackson.core:jackson-databind": {
             "locked": "2.9.2",
-            "requested": "+"
+            "requested": "2.9.+"
         },
         "com.fasterxml.jackson.datatype:jackson-datatype-jsr310": {
             "locked": "2.9.2",
-            "requested": "+"
+            "requested": "2.9.+"
         },
         "com.fasterxml.jackson.module:jackson-module-kotlin": {
             "locked": "2.9.2",
-            "requested": "+"
+            "requested": "2.9.+"
         },
         "com.github.jonpeterson:jackson-module-model-versioning": {
             "locked": "1.2.2",
-            "requested": "+"
+            "requested": "1.2.+"
         },
         "com.netflix.spinnaker.kork:kork-core": {
-            "locked": "1.107.0",
+            "locked": "1.108.0",
             "requested": "+"
         },
         "net.logstash.logback:logstash-logback-encoder": {
-            "locked": "4.10",
-            "requested": "+"
+            "locked": "4.11",
+            "requested": "4.+"
         },
         "org.jetbrains.kotlin:kotlin-stdlib-jre8": {
             "locked": "1.1.60",
@@ -34,41 +34,41 @@
         },
         "org.slf4j:slf4j-api": {
             "locked": "1.7.25",
-            "requested": "+"
+            "requested": "1.7.+"
         },
         "redis.clients:jedis": {
             "locked": "2.9.0",
-            "requested": "+"
+            "requested": "2.+"
         }
     },
     "compileClasspath": {
         "com.fasterxml.jackson.core:jackson-annotations": {
             "locked": "2.9.2",
-            "requested": "+"
+            "requested": "2.9.+"
         },
         "com.fasterxml.jackson.core:jackson-databind": {
             "locked": "2.9.2",
-            "requested": "+"
+            "requested": "2.9.+"
         },
         "com.fasterxml.jackson.datatype:jackson-datatype-jsr310": {
             "locked": "2.9.2",
-            "requested": "+"
+            "requested": "2.9.+"
         },
         "com.fasterxml.jackson.module:jackson-module-kotlin": {
             "locked": "2.9.2",
-            "requested": "+"
+            "requested": "2.9.+"
         },
         "com.github.jonpeterson:jackson-module-model-versioning": {
             "locked": "1.2.2",
-            "requested": "+"
+            "requested": "1.2.+"
         },
         "com.netflix.spinnaker.kork:kork-core": {
-            "locked": "1.107.0",
+            "locked": "1.108.0",
             "requested": "+"
         },
         "net.logstash.logback:logstash-logback-encoder": {
-            "locked": "4.10",
-            "requested": "+"
+            "locked": "4.11",
+            "requested": "4.+"
         },
         "org.jetbrains.kotlin:kotlin-stdlib-jre8": {
             "locked": "1.1.60",
@@ -76,41 +76,41 @@
         },
         "org.slf4j:slf4j-api": {
             "locked": "1.7.25",
-            "requested": "+"
+            "requested": "1.7.+"
         },
         "redis.clients:jedis": {
             "locked": "2.9.0",
-            "requested": "+"
+            "requested": "2.+"
         }
     },
     "default": {
         "com.fasterxml.jackson.core:jackson-annotations": {
             "locked": "2.9.2",
-            "requested": "+"
+            "requested": "2.9.+"
         },
         "com.fasterxml.jackson.core:jackson-databind": {
             "locked": "2.9.2",
-            "requested": "+"
+            "requested": "2.9.+"
         },
         "com.fasterxml.jackson.datatype:jackson-datatype-jsr310": {
             "locked": "2.9.2",
-            "requested": "+"
+            "requested": "2.9.+"
         },
         "com.fasterxml.jackson.module:jackson-module-kotlin": {
             "locked": "2.9.2",
-            "requested": "+"
+            "requested": "2.9.+"
         },
         "com.github.jonpeterson:jackson-module-model-versioning": {
             "locked": "1.2.2",
-            "requested": "+"
+            "requested": "1.2.+"
         },
         "com.netflix.spinnaker.kork:kork-core": {
-            "locked": "1.107.0",
+            "locked": "1.108.0",
             "requested": "+"
         },
         "net.logstash.logback:logstash-logback-encoder": {
-            "locked": "4.10",
-            "requested": "+"
+            "locked": "4.11",
+            "requested": "4.+"
         },
         "org.jetbrains.kotlin:kotlin-stdlib-jre8": {
             "locked": "1.1.60",
@@ -118,11 +118,11 @@
         },
         "org.slf4j:slf4j-api": {
             "locked": "1.7.25",
-            "requested": "+"
+            "requested": "1.7.+"
         },
         "redis.clients:jedis": {
             "locked": "2.9.0",
-            "requested": "+"
+            "requested": "2.+"
         }
     },
     "junitPlatform": {
@@ -148,31 +148,31 @@
     "runtime": {
         "com.fasterxml.jackson.core:jackson-annotations": {
             "locked": "2.9.2",
-            "requested": "+"
+            "requested": "2.9.+"
         },
         "com.fasterxml.jackson.core:jackson-databind": {
             "locked": "2.9.2",
-            "requested": "+"
+            "requested": "2.9.+"
         },
         "com.fasterxml.jackson.datatype:jackson-datatype-jsr310": {
             "locked": "2.9.2",
-            "requested": "+"
+            "requested": "2.9.+"
         },
         "com.fasterxml.jackson.module:jackson-module-kotlin": {
             "locked": "2.9.2",
-            "requested": "+"
+            "requested": "2.9.+"
         },
         "com.github.jonpeterson:jackson-module-model-versioning": {
             "locked": "1.2.2",
-            "requested": "+"
+            "requested": "1.2.+"
         },
         "com.netflix.spinnaker.kork:kork-core": {
-            "locked": "1.107.0",
+            "locked": "1.108.0",
             "requested": "+"
         },
         "net.logstash.logback:logstash-logback-encoder": {
-            "locked": "4.10",
-            "requested": "+"
+            "locked": "4.11",
+            "requested": "4.+"
         },
         "org.jetbrains.kotlin:kotlin-stdlib-jre8": {
             "locked": "1.1.60",
@@ -180,41 +180,41 @@
         },
         "org.slf4j:slf4j-api": {
             "locked": "1.7.25",
-            "requested": "+"
+            "requested": "1.7.+"
         },
         "redis.clients:jedis": {
             "locked": "2.9.0",
-            "requested": "+"
+            "requested": "2.+"
         }
     },
     "runtimeClasspath": {
         "com.fasterxml.jackson.core:jackson-annotations": {
             "locked": "2.9.2",
-            "requested": "+"
+            "requested": "2.9.+"
         },
         "com.fasterxml.jackson.core:jackson-databind": {
             "locked": "2.9.2",
-            "requested": "+"
+            "requested": "2.9.+"
         },
         "com.fasterxml.jackson.datatype:jackson-datatype-jsr310": {
             "locked": "2.9.2",
-            "requested": "+"
+            "requested": "2.9.+"
         },
         "com.fasterxml.jackson.module:jackson-module-kotlin": {
             "locked": "2.9.2",
-            "requested": "+"
+            "requested": "2.9.+"
         },
         "com.github.jonpeterson:jackson-module-model-versioning": {
             "locked": "1.2.2",
-            "requested": "+"
+            "requested": "1.2.+"
         },
         "com.netflix.spinnaker.kork:kork-core": {
-            "locked": "1.107.0",
+            "locked": "1.108.0",
             "requested": "+"
         },
         "net.logstash.logback:logstash-logback-encoder": {
-            "locked": "4.10",
-            "requested": "+"
+            "locked": "4.11",
+            "requested": "4.+"
         },
         "org.jetbrains.kotlin:kotlin-stdlib-jre8": {
             "locked": "1.1.60",
@@ -222,11 +222,11 @@
         },
         "org.slf4j:slf4j-api": {
             "locked": "1.7.25",
-            "requested": "+"
+            "requested": "1.7.+"
         },
         "redis.clients:jedis": {
             "locked": "2.9.0",
-            "requested": "+"
+            "requested": "2.+"
         }
     },
     "testCompile": {
@@ -235,35 +235,35 @@
                 "com.netflix.spinnaker.keel:keel-core"
             ],
             "locked": "2.9.2",
-            "requested": "+"
+            "requested": "2.9.+"
         },
         "com.fasterxml.jackson.core:jackson-databind": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
             "locked": "2.9.2",
-            "requested": "+"
+            "requested": "2.9.+"
         },
         "com.fasterxml.jackson.datatype:jackson-datatype-jsr310": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
             "locked": "2.9.2",
-            "requested": "+"
+            "requested": "2.9.+"
         },
         "com.fasterxml.jackson.module:jackson-module-kotlin": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
             "locked": "2.9.2",
-            "requested": "+"
+            "requested": "2.9.+"
         },
         "com.github.jonpeterson:jackson-module-model-versioning": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
             "locked": "1.2.2",
-            "requested": "+"
+            "requested": "1.2.+"
         },
         "com.natpryce:hamkrest": {
             "firstLevelTransitive": [
@@ -285,7 +285,7 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "1.107.0",
+            "locked": "1.108.0",
             "requested": "+"
         },
         "com.nhaarman:mockito-kotlin": {
@@ -294,14 +294,14 @@
         },
         "com.squareup.retrofit:retrofit-mock": {
             "locked": "1.9.0",
-            "requested": "+"
+            "requested": "1.9.+"
         },
         "net.logstash.logback:logstash-logback-encoder": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "4.10",
-            "requested": "+"
+            "locked": "4.11",
+            "requested": "4.+"
         },
         "org.jetbrains.kotlin:kotlin-stdlib-jre8": {
             "firstLevelTransitive": [
@@ -312,15 +312,15 @@
             "requested": "1.1.60"
         },
         "org.junit.jupiter:junit-jupiter-api": {
-            "locked": "5.0.0",
+            "locked": "5.1.0-M1",
             "requested": "+"
         },
         "org.junit.jupiter:junit-jupiter-params": {
-            "locked": "5.0.0",
+            "locked": "5.1.0-M1",
             "requested": "+"
         },
         "org.junit.platform:junit-platform-runner": {
-            "locked": "1.0.0",
+            "locked": "1.1.0-M1",
             "requested": "+"
         },
         "org.slf4j:slf4j-api": {
@@ -328,14 +328,14 @@
                 "com.netflix.spinnaker.keel:keel-core"
             ],
             "locked": "1.7.25",
-            "requested": "+"
+            "requested": "1.7.+"
         },
         "redis.clients:jedis": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
             "locked": "2.9.0",
-            "requested": "+"
+            "requested": "2.+"
         }
     },
     "testCompileClasspath": {
@@ -344,35 +344,35 @@
                 "com.netflix.spinnaker.keel:keel-core"
             ],
             "locked": "2.9.2",
-            "requested": "+"
+            "requested": "2.9.+"
         },
         "com.fasterxml.jackson.core:jackson-databind": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
             "locked": "2.9.2",
-            "requested": "+"
+            "requested": "2.9.+"
         },
         "com.fasterxml.jackson.datatype:jackson-datatype-jsr310": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
             "locked": "2.9.2",
-            "requested": "+"
+            "requested": "2.9.+"
         },
         "com.fasterxml.jackson.module:jackson-module-kotlin": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
             "locked": "2.9.2",
-            "requested": "+"
+            "requested": "2.9.+"
         },
         "com.github.jonpeterson:jackson-module-model-versioning": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
             "locked": "1.2.2",
-            "requested": "+"
+            "requested": "1.2.+"
         },
         "com.natpryce:hamkrest": {
             "firstLevelTransitive": [
@@ -394,7 +394,7 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "1.107.0",
+            "locked": "1.108.0",
             "requested": "+"
         },
         "com.nhaarman:mockito-kotlin": {
@@ -403,14 +403,14 @@
         },
         "com.squareup.retrofit:retrofit-mock": {
             "locked": "1.9.0",
-            "requested": "+"
+            "requested": "1.9.+"
         },
         "net.logstash.logback:logstash-logback-encoder": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "4.10",
-            "requested": "+"
+            "locked": "4.11",
+            "requested": "4.+"
         },
         "org.jetbrains.kotlin:kotlin-stdlib-jre8": {
             "firstLevelTransitive": [
@@ -421,15 +421,15 @@
             "requested": "1.1.60"
         },
         "org.junit.jupiter:junit-jupiter-api": {
-            "locked": "5.0.0",
+            "locked": "5.1.0-M1",
             "requested": "+"
         },
         "org.junit.jupiter:junit-jupiter-params": {
-            "locked": "5.0.0",
+            "locked": "5.1.0-M1",
             "requested": "+"
         },
         "org.junit.platform:junit-platform-runner": {
-            "locked": "1.0.0",
+            "locked": "1.1.0-M1",
             "requested": "+"
         },
         "org.slf4j:slf4j-api": {
@@ -437,14 +437,14 @@
                 "com.netflix.spinnaker.keel:keel-core"
             ],
             "locked": "1.7.25",
-            "requested": "+"
+            "requested": "1.7.+"
         },
         "redis.clients:jedis": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
             "locked": "2.9.0",
-            "requested": "+"
+            "requested": "2.+"
         }
     },
     "testRuntime": {
@@ -453,35 +453,35 @@
                 "com.netflix.spinnaker.keel:keel-core"
             ],
             "locked": "2.9.2",
-            "requested": "+"
+            "requested": "2.9.+"
         },
         "com.fasterxml.jackson.core:jackson-databind": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
             "locked": "2.9.2",
-            "requested": "+"
+            "requested": "2.9.+"
         },
         "com.fasterxml.jackson.datatype:jackson-datatype-jsr310": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
             "locked": "2.9.2",
-            "requested": "+"
+            "requested": "2.9.+"
         },
         "com.fasterxml.jackson.module:jackson-module-kotlin": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
             "locked": "2.9.2",
-            "requested": "+"
+            "requested": "2.9.+"
         },
         "com.github.jonpeterson:jackson-module-model-versioning": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
             "locked": "1.2.2",
-            "requested": "+"
+            "requested": "1.2.+"
         },
         "com.natpryce:hamkrest": {
             "firstLevelTransitive": [
@@ -503,7 +503,7 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "1.107.0",
+            "locked": "1.108.0",
             "requested": "+"
         },
         "com.nhaarman:mockito-kotlin": {
@@ -512,14 +512,14 @@
         },
         "com.squareup.retrofit:retrofit-mock": {
             "locked": "1.9.0",
-            "requested": "+"
+            "requested": "1.9.+"
         },
         "net.logstash.logback:logstash-logback-encoder": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "4.10",
-            "requested": "+"
+            "locked": "4.11",
+            "requested": "4.+"
         },
         "org.jetbrains.kotlin:kotlin-stdlib-jre8": {
             "firstLevelTransitive": [
@@ -530,23 +530,23 @@
             "requested": "1.1.60"
         },
         "org.junit.jupiter:junit-jupiter-api": {
-            "locked": "5.0.0",
+            "locked": "5.1.0-M1",
             "requested": "+"
         },
         "org.junit.jupiter:junit-jupiter-engine": {
-            "locked": "5.0.0",
+            "locked": "5.1.0-M1",
             "requested": "+"
         },
         "org.junit.jupiter:junit-jupiter-params": {
-            "locked": "5.0.0",
+            "locked": "5.1.0-M1",
             "requested": "+"
         },
         "org.junit.platform:junit-platform-launcher": {
-            "locked": "1.0.0",
+            "locked": "1.1.0-M1",
             "requested": "+"
         },
         "org.junit.platform:junit-platform-runner": {
-            "locked": "1.0.0",
+            "locked": "1.1.0-M1",
             "requested": "+"
         },
         "org.slf4j:slf4j-api": {
@@ -554,14 +554,14 @@
                 "com.netflix.spinnaker.keel:keel-core"
             ],
             "locked": "1.7.25",
-            "requested": "+"
+            "requested": "1.7.+"
         },
         "redis.clients:jedis": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
             "locked": "2.9.0",
-            "requested": "+"
+            "requested": "2.+"
         }
     },
     "testRuntimeClasspath": {
@@ -570,35 +570,35 @@
                 "com.netflix.spinnaker.keel:keel-core"
             ],
             "locked": "2.9.2",
-            "requested": "+"
+            "requested": "2.9.+"
         },
         "com.fasterxml.jackson.core:jackson-databind": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
             "locked": "2.9.2",
-            "requested": "+"
+            "requested": "2.9.+"
         },
         "com.fasterxml.jackson.datatype:jackson-datatype-jsr310": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
             "locked": "2.9.2",
-            "requested": "+"
+            "requested": "2.9.+"
         },
         "com.fasterxml.jackson.module:jackson-module-kotlin": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
             "locked": "2.9.2",
-            "requested": "+"
+            "requested": "2.9.+"
         },
         "com.github.jonpeterson:jackson-module-model-versioning": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
             "locked": "1.2.2",
-            "requested": "+"
+            "requested": "1.2.+"
         },
         "com.natpryce:hamkrest": {
             "firstLevelTransitive": [
@@ -620,7 +620,7 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "1.107.0",
+            "locked": "1.108.0",
             "requested": "+"
         },
         "com.nhaarman:mockito-kotlin": {
@@ -629,14 +629,14 @@
         },
         "com.squareup.retrofit:retrofit-mock": {
             "locked": "1.9.0",
-            "requested": "+"
+            "requested": "1.9.+"
         },
         "net.logstash.logback:logstash-logback-encoder": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "4.10",
-            "requested": "+"
+            "locked": "4.11",
+            "requested": "4.+"
         },
         "org.jetbrains.kotlin:kotlin-stdlib-jre8": {
             "firstLevelTransitive": [
@@ -647,23 +647,23 @@
             "requested": "1.1.60"
         },
         "org.junit.jupiter:junit-jupiter-api": {
-            "locked": "5.0.0",
+            "locked": "5.1.0-M1",
             "requested": "+"
         },
         "org.junit.jupiter:junit-jupiter-engine": {
-            "locked": "5.0.0",
+            "locked": "5.1.0-M1",
             "requested": "+"
         },
         "org.junit.jupiter:junit-jupiter-params": {
-            "locked": "5.0.0",
+            "locked": "5.1.0-M1",
             "requested": "+"
         },
         "org.junit.platform:junit-platform-launcher": {
-            "locked": "1.0.0",
+            "locked": "1.1.0-M1",
             "requested": "+"
         },
         "org.junit.platform:junit-platform-runner": {
-            "locked": "1.0.0",
+            "locked": "1.1.0-M1",
             "requested": "+"
         },
         "org.slf4j:slf4j-api": {
@@ -671,14 +671,14 @@
                 "com.netflix.spinnaker.keel:keel-core"
             ],
             "locked": "1.7.25",
-            "requested": "+"
+            "requested": "1.7.+"
         },
         "redis.clients:jedis": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
             "locked": "2.9.0",
-            "requested": "+"
+            "requested": "2.+"
         }
     }
 }

@@ -3,5 +3,5 @@ dependencies {
   compile "com.netflix.spinnaker.moniker:moniker:+"
 
   testCompile project(":keel-test")
-  testCompile "com.squareup.retrofit:retrofit-mock:+"
+  testCompile "com.squareup.retrofit:retrofit-mock:1.9.+"
 }
