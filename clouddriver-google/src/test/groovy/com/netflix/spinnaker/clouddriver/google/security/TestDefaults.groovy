@@ -568,7 +568,7 @@ trait TestDefaults {
     [ guestCpus: 8, name: 'n1-standard-8' ]
   ]
 
-  static final INSTANCE_TYPE_LIST = [
+  static final Map<String, List> INSTANCE_TYPE_LIST = [
     items: [
       'zones/us-central1-a': [
         machineTypes: INSTANCE_TYPES_WITH_16

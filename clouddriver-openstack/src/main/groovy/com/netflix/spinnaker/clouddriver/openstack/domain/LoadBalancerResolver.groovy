@@ -36,8 +36,7 @@ import java.util.regex.Pattern
  */
 trait LoadBalancerResolver {
 
-  final String createdRegex = ".*created_time=([0-9]+).*"
-  final Pattern createdPattern = Pattern.compile(createdRegex)
+  final Pattern createdPattern = Pattern.compile(".*created_time=([0-9]+).*")
 
   /**
    * Generate key=value port string, e.g. internal_port

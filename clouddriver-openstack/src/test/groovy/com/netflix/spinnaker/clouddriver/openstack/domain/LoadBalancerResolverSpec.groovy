@@ -22,7 +22,7 @@ import spock.lang.Unroll
 @Unroll
 class LoadBalancerResolverSpec extends Specification {
 
-  LoadBalancerResolver resolver = new Object() as LoadBalancerResolver
+  LoadBalancerResolver resolver = new MyLoadBalancerResolver()
 
   def "get internal port - #testCase"() {
     when:
@@ -54,4 +54,6 @@ class LoadBalancerResolverSpec extends Specification {
     'found'     | 'created_time=42,internal_port=20' | 42l
     'null'      | null                               | null
   }
+
+  class MyLoadBalancerResolver implements LoadBalancerResolver {}
 }
