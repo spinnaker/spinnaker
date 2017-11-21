@@ -57,7 +57,11 @@ class JedisCacheConfig {
 
   @Bean
   @ConditionalOnProperty(value = "caching.writeEnabled", matchIfMissing = true)
-  AgentScheduler agentScheduler(RedisConfigurationProperties redisConfigurationProperties, RedisClientDelegate redisClientDelegate, JedisPool jedisPool, AgentIntervalProvider agentIntervalProvider, NodeStatusProvider nodeStatusProvider) {
+  AgentScheduler agentScheduler(RedisConfigurationProperties redisConfigurationProperties,
+                                RedisClientDelegate redisClientDelegate,
+                                JedisPool jedisPool,
+                                AgentIntervalProvider agentIntervalProvider,
+                                NodeStatusProvider nodeStatusProvider) {
     if (redisConfigurationProperties.scheduler.equalsIgnoreCase("default")) {
       URI redisUri = URI.create(redisConfigurationProperties.connection)
       String redisHost = redisUri.host
@@ -65,7 +69,13 @@ class JedisCacheConfig {
       if (redisPort == -1) {
         redisPort = 6379
       }
-      new ClusteredAgentScheduler(redisClientDelegate, new DefaultNodeIdentity(redisHost, redisPort), agentIntervalProvider, nodeStatusProvider);
+      new ClusteredAgentScheduler(
+        redisClientDelegate,
+        new DefaultNodeIdentity(redisHost, redisPort),
+        agentIntervalProvider,
+        nodeStatusProvider,
+        redisConfigurationProperties.agent.enabledPattern
+      );
     } else if (redisConfigurationProperties.scheduler.equalsIgnoreCase("sort")) {
       new ClusteredSortAgentScheduler(jedisPool, nodeStatusProvider, agentIntervalProvider, redisConfigurationProperties.parallelism ?: -1);
     } else {
