@@ -19,20 +19,30 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
+import lombok.EqualsAndHashCode;
 
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.List;
 
-public enum KubernetesApiVersion {
-  V1("v1"),
-  EXTENSIONS_V1BETA1("extensions/v1beta1"),
-  NETWORKING_K8S_IO_V1("network.k8s.io/v1"),
-  APPS_V1BETA1("apps/v1beta1"),
-  APPS_V1BETA2("apps/v1beta2");
+@EqualsAndHashCode
+public class KubernetesApiVersion {
+  public static KubernetesApiVersion V1 = new KubernetesApiVersion("v1");
+  public static KubernetesApiVersion EXTENSIONS_V1BETA1 = new KubernetesApiVersion("extensions/v1beta1");
+  public static KubernetesApiVersion NETWORKING_K8S_IO_V1 = new KubernetesApiVersion("network.k8s.io/v1");
+  public static KubernetesApiVersion APPS_V1BETA1 = new KubernetesApiVersion("apps/v1beta1");
+  public static KubernetesApiVersion APPS_V1BETA2 = new KubernetesApiVersion("apps/v1beta2");
 
   private final String name;
 
-  KubernetesApiVersion(String name) {
+  private static List<KubernetesApiVersion> values;
+
+  protected KubernetesApiVersion(String name) {
+    if (values == null) {
+      values = new ArrayList<>();
+    }
+
     this.name = name;
+    values.add(this);
   }
 
   @Override
@@ -43,8 +53,8 @@ public enum KubernetesApiVersion {
 
   @JsonCreator
   public static KubernetesApiVersion fromString(String name) {
-    return Arrays.stream(values())
-        .filter(v -> v.toString().equalsIgnoreCase(name))
+    return values.stream()
+        .filter(v -> v.name.equalsIgnoreCase(name))
         .findAny()
         .orElseThrow(() -> new IllegalArgumentException("API version " + name + " is not yet supported."));
   }

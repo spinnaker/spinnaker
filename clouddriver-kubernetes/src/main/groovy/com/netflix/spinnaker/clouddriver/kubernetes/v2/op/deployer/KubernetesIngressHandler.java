@@ -17,6 +17,8 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.op.deployer;
 
+import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesApiVersion.EXTENSIONS_V1BETA1;
+
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesCacheDataConverter;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesIngressCachingAgent;
@@ -66,12 +68,11 @@ public class KubernetesIngressHandler extends KubernetesHandler implements CanDe
   }
 
   public static List<String> attachedServices(KubernetesManifest manifest) {
-    switch (manifest.getApiVersion()) {
-      case EXTENSIONS_V1BETA1:
-        V1beta1Ingress v1beta1Ingress = KubernetesCacheDataConverter.getResource(manifest, V1beta1Ingress.class);
-        return attachedServices(v1beta1Ingress);
-      default:
-        throw new UnsupportedVersionException(manifest);
+    if (manifest.getApiVersion().equals(EXTENSIONS_V1BETA1)) {
+      V1beta1Ingress v1beta1Ingress = KubernetesCacheDataConverter.getResource(manifest, V1beta1Ingress.class);
+      return attachedServices(v1beta1Ingress);
+    } else {
+      throw new UnsupportedVersionException(manifest);
     }
   }
 

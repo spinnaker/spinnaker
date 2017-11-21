@@ -17,6 +17,8 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.op.deployer;
 
+import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesApiVersion.V1;
+
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesCacheDataConverter;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesServiceCachingAgent;
@@ -59,12 +61,11 @@ public class KubernetesServiceHandler extends KubernetesHandler implements CanDe
   }
 
   public static Map<String, String> getSelector(KubernetesManifest manifest) {
-    switch (manifest.getApiVersion()) {
-      case V1:
-        V1Service v1Service = KubernetesCacheDataConverter.getResource(manifest, V1Service.class);
-        return v1Service.getSpec().getSelector();
-      default:
-        throw new IllegalArgumentException("No services with version " + manifest.getApiVersion() + " supported");
+    if (manifest.getApiVersion().equals(V1)) {
+      V1Service v1Service = KubernetesCacheDataConverter.getResource(manifest, V1Service.class);
+      return v1Service.getSpec().getSelector();
+    } else {
+      throw new IllegalArgumentException("No services with version " + manifest.getApiVersion() + " supported");
     }
   }
 
