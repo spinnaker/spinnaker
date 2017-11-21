@@ -2,6 +2,7 @@ package com.netflix.kayenta.atlas.backends;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.kayenta.retrofit.config.RetrofitClientFactory;
+import com.squareup.okhttp.OkHttpClient;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.health.AbstractHealthIndicator;
@@ -25,6 +26,9 @@ public class BackendUpdaterService extends AbstractHealthIndicator {
   @Autowired
   private ObjectMapper objectMapper;
 
+  @Autowired
+  private OkHttpClient okHttpClient;
+
   private final List<BackendUpdater> backendUpdaters = new ArrayList<>();
   private int checksCompleted = 0;
 
@@ -36,7 +40,7 @@ public class BackendUpdaterService extends AbstractHealthIndicator {
     // TODO: Although, for healthcheck, it may...
     int checks = 0;
     for (BackendUpdater updater: backendUpdaters) {
-      Boolean result = updater.run(retrofitClientFactory, objectMapper);
+      Boolean result = updater.run(retrofitClientFactory, objectMapper, okHttpClient);
       if (result)
         checks++;
     }

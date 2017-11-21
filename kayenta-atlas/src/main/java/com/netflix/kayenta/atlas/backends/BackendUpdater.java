@@ -29,8 +29,7 @@ public class BackendUpdater {
   // is likely safe enough.
   private boolean succeededAtLeastOnce = false;
 
-  public boolean run(RetrofitClientFactory retrofitClientFactory, ObjectMapper objectMapper) {
-    OkHttpClient okHttpClient = new OkHttpClient();
+  public boolean run(RetrofitClientFactory retrofitClientFactory, ObjectMapper objectMapper, OkHttpClient okHttpClient) {
     RemoteService remoteService = new RemoteService();
     remoteService.setBaseUrl(uri);
     BackendsRemoteService backendsRemoteService = retrofitClientFactory.createClient(BackendsRemoteService.class,
