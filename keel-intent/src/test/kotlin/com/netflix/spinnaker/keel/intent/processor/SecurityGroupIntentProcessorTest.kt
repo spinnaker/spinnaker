@@ -20,7 +20,7 @@ import com.natpryce.hamkrest.equalTo
 import com.natpryce.hamkrest.isEmpty
 import com.natpryce.hamkrest.should.shouldMatch
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
-import com.netflix.spinnaker.keel.clouddriver.ClouddriverService
+import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.model.Moniker
 import com.netflix.spinnaker.keel.clouddriver.model.Network
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroup
@@ -37,7 +37,7 @@ object SecurityGroupIntentProcessorTest {
 
   val traceRepository = mock<TraceRepository>()
   val clouddriverCache = mock<CloudDriverCache>()
-  val clouddriverService = mock<ClouddriverService>().apply {
+  val clouddriverService = mock<CloudDriverService>().apply {
     whenever(listNetworks()) doReturn mapOf(
       "aws" to setOf(
         Network("aws", "vpc-1", "vpcName", "test", "us-west-2"),

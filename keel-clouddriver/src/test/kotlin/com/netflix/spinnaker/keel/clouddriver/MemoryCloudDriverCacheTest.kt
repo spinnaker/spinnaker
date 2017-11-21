@@ -16,7 +16,7 @@ import org.junit.jupiter.api.Test
 
 object MemoryCloudDriverCacheTest {
 
-  val cloudDriver = mock<ClouddriverService>()
+  val cloudDriver = mock<CloudDriverService>()
   val subject = MemoryCloudDriverCache(cloudDriver)
 
   val securityGroups = setOf(

@@ -4,7 +4,7 @@ import com.netflix.spinnaker.keel.clouddriver.model.Network
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroup
 
 class MemoryCloudDriverCache(
-  private val cloudDriver: ClouddriverService
+  private val cloudDriver: CloudDriverService
 ) : CloudDriverCache {
   override fun securityGroupBy(account: String, id: String): SecurityGroup =
     cloudDriver

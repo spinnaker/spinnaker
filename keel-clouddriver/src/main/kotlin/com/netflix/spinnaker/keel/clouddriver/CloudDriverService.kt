@@ -20,7 +20,7 @@ import retrofit.http.GET
 import retrofit.http.Path
 import retrofit.http.Query
 
-interface ClouddriverService {
+interface CloudDriverService {
 
   @GET("/securityGroups/{account}/{type}/{region}/{securityGroupName}")
   fun getSecurityGroup(@Path("account") account: String,

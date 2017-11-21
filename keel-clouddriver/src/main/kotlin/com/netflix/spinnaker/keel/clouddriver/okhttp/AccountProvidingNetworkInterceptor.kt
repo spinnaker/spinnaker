@@ -15,7 +15,7 @@
  */
 package com.netflix.spinnaker.keel.clouddriver.okhttp
 
-import com.netflix.spinnaker.keel.clouddriver.ClouddriverService
+import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.model.Credential
 import com.squareup.okhttp.Interceptor
 import com.squareup.okhttp.Response
@@ -49,19 +49,19 @@ class AccountProvidingNetworkInterceptor(
 
   @Scheduled(initialDelay = 0L, fixedDelay = 60000L) fun refreshCredentials() {
     log.info("Refreshing Clouddriver credentials")
-    val clouddriver: ClouddriverService
+    val cloudDriver: CloudDriverService
     try {
-      clouddriver = applicationContext.getBean(ClouddriverService::class.java)
+      cloudDriver = applicationContext.getBean(CloudDriverService::class.java)
     } catch (e: BeansException) {
       // Not really a bad thing, but could potentially happen during startup.
-      log.warn("Attempted to retrieve credentials from ClouddriverService, but Bean is not yet configured", e)
+      log.warn("Attempted to retrieve credentials from CloudDriverService, but Bean is not yet configured", e)
       return
     }
 
     try {
-      credentials = clouddriver.listCredentials()
+      credentials = cloudDriver.listCredentials()
     } catch (e: RetrofitError) {
-      log.error("Failed to refresh credentials from ClouddriverService", e)
+      log.error("Failed to refresh credentials from CloudDriverService", e)
     }
 
     log.info("Authorized credentials: ${credentials.joinToString(",") { it.name }}")

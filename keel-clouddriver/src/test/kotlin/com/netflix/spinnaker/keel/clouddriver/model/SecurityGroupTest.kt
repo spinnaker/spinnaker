@@ -1,13 +1,13 @@
 package com.netflix.spinnaker.keel.clouddriver.model
 
-import com.netflix.spinnaker.keel.clouddriver.ClouddriverService
+import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import java.net.URL
 
 object SecurityGroupTest : BaseModelParsingTest<SecurityGroup>() {
   override val json: URL
     get() = javaClass.getResource("/vpc-sg.json")
 
-  override val call: ClouddriverService.() -> SecurityGroup?
+  override val call: CloudDriverService.() -> SecurityGroup?
     get() = {
       getSecurityGroup("account", "type", "name", "region")
     }

@@ -20,7 +20,7 @@ import com.natpryce.hamkrest.equalTo
 import com.natpryce.hamkrest.isEmpty
 import com.natpryce.hamkrest.should.shouldMatch
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
-import com.netflix.spinnaker.keel.clouddriver.ClouddriverService
+import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.model.Moniker
 import com.netflix.spinnaker.keel.clouddriver.model.Network
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroup
@@ -34,7 +34,7 @@ import org.junit.jupiter.api.Test
 object SecurityGroupConverterTest {
 
   val objectMapper = ObjectMapper()
-  val clouddriverService = mock<ClouddriverService>()
+  val clouddriverService = mock<CloudDriverService>()
   val clouddriverCache = mock<CloudDriverCache>()
   val subject = SecurityGroupConverter(clouddriverCache, objectMapper)
 

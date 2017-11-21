@@ -18,7 +18,7 @@ package com.netflix.spinnaker.keel.intent.processor
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.*
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
-import com.netflix.spinnaker.keel.clouddriver.ClouddriverService
+import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroup
 import com.netflix.spinnaker.keel.intent.*
 import com.netflix.spinnaker.keel.intent.processor.converter.SecurityGroupConverter
@@ -33,11 +33,23 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import retrofit.RetrofitError
 
+interface IntentProcessorStrategy {
+
+  fun supports(intent: Intent<IntentSpec>): Boolean
+}
+
+interface SecurityGroupIntentProcessorStrategy<in T : SecurityGroupSpec> : IntentProcessorStrategy {
+
+  fun getSecurityGroups(spec: T): Set<SecurityGroup>
+
+  fun getMissingUpstreamSecurityGroups(spec: T): List<String>
+}
+
 @Component
 class SecurityGroupIntentProcessor
 @Autowired constructor(
   private val traceRepository: TraceRepository,
-  private val clouddriverService: ClouddriverService,
+  private val cloudDriverService: CloudDriverService,
   private val clouddriverCache: CloudDriverCache,
   private val objectMapper: ObjectMapper,
   private val securityGroupConverter: SecurityGroupConverter
@@ -87,9 +99,9 @@ class SecurityGroupIntentProcessor
         .map { region ->
           try {
             return@map if (spec.vpcName == null) {
-              clouddriverService.getSecurityGroup(spec.accountName, "aws", spec.name, region)
+              cloudDriverService.getSecurityGroup(spec.accountName, "aws", spec.name, region)
             } else {
-              clouddriverService.getSecurityGroup(spec.accountName, "aws", spec.name, region, clouddriverCache.networkBy(
+              cloudDriverService.getSecurityGroup(spec.accountName, "aws", spec.name, region, clouddriverCache.networkBy(
                 spec.vpcName,
                 spec.accountName,
                 region
@@ -150,7 +162,7 @@ class SecurityGroupIntentProcessor
       .flatMap {
         spec.regions.map { region ->
           try {
-            clouddriverService.getSecurityGroup(spec.accountName, "aws", it.name, region)
+            cloudDriverService.getSecurityGroup(spec.accountName, "aws", it.name, region)
           } catch (e: RetrofitError) {
             if (e.notFound()) {
               return@map it.name

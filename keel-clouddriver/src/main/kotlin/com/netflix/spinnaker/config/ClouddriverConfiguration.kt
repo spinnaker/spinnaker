@@ -17,7 +17,7 @@ package com.netflix.spinnaker.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
-import com.netflix.spinnaker.keel.clouddriver.ClouddriverService
+import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.MemoryCloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.okhttp.AccountProvidingNetworkInterceptor
 import com.netflix.spinnaker.okhttp.SpinnakerRequestInterceptor
@@ -56,9 +56,9 @@ open class ClouddriverConfiguration {
         .setLogLevel(retrofitLogLevel)
         .setConverter(JacksonConverter(objectMapper))
         .build()
-        .create(ClouddriverService::class.java)
+        .create(CloudDriverService::class.java)
 
   @Bean
   @ConditionalOnMissingBean(CloudDriverCache::class)
-  open fun cloudDriverCache(clouddriverService: ClouddriverService) = MemoryCloudDriverCache(clouddriverService)
+  open fun cloudDriverCache(cloudDriverService: CloudDriverService) = MemoryCloudDriverCache(cloudDriverService)
 }

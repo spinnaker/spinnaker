@@ -1,6 +1,6 @@
 package com.netflix.spinnaker.keel.clouddriver.model
 
-import com.netflix.spinnaker.keel.clouddriver.ClouddriverService
+import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.model.ElasticLoadBalancer.HealthCheck
 import com.netflix.spinnaker.keel.clouddriver.model.ElasticLoadBalancer.ListenerDescription
 import com.netflix.spinnaker.keel.model.Listener
@@ -14,7 +14,7 @@ object ElasticLoadBalancerTest : BaseModelParsingTest<ElasticLoadBalancer>() {
   override val json: URL
     get() = javaClass.getResource("/elb.json")
 
-  override val call: ClouddriverService.() -> ElasticLoadBalancer?
+  override val call: CloudDriverService.() -> ElasticLoadBalancer?
     get() = {
       getElasticLoadBalancer(
         "aws",

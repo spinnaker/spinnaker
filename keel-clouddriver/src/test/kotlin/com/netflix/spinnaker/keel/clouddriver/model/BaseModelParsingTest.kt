@@ -6,7 +6,7 @@ import com.natpryce.hamkrest.should.shouldNotMatch
 import com.netflix.spinnaker.config.KeelConfiguration
 import com.netflix.spinnaker.config.KeelProperties
 import com.netflix.spinnaker.hamkrest.shouldEqual
-import com.netflix.spinnaker.keel.clouddriver.ClouddriverService
+import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.doAnswer
 import com.nhaarman.mockito_kotlin.mock
@@ -33,10 +33,10 @@ abstract class BaseModelParsingTest<out T> {
     .setClient(client)
     .setConverter(JacksonConverter(mapper))
     .build()
-    .create(ClouddriverService::class.java)
+    .create(CloudDriverService::class.java)
 
   abstract val json: URL
-  abstract val call: ClouddriverService.() -> T?
+  abstract val call: CloudDriverService.() -> T?
   abstract val expected: T
 
   @Test
