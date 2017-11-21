@@ -39,6 +39,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public abstract class KubernetesHandler {
   @Autowired
@@ -56,6 +57,10 @@ public abstract class KubernetesHandler {
 
   public KubernetesManifest replaceArtifacts(KubernetesManifest manifest, List<Artifact> artifacts) {
     return artifactReplacer.replaceAll(manifest, artifacts);
+  }
+
+  public Set<Artifact> listArtifacts(KubernetesManifest manifest) {
+    return artifactReplacer.findAll(manifest);
   }
 
   public DeploymentResult deployAugmentedManifest(KubernetesV2Credentials credentials, KubernetesManifest manifest) {

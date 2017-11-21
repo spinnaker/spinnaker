@@ -44,7 +44,8 @@ public class KubernetesReplicaSetHandler extends KubernetesHandler implements
   public KubernetesReplicaSetHandler() {
     registerReplacer(
         Replacer.builder()
-            .path("$.spec.template.spec.containers.[?( @.image == \"{%name%}\" )].image")
+            .replacePath("$.spec.template.spec.containers.[?( @.image == \"{%name%}\" )].image")
+            .findPath("$.spec.template.spec.containers.*.image")
             .type(ArtifactTypes.DOCKER_IMAGE)
             .build()
     );

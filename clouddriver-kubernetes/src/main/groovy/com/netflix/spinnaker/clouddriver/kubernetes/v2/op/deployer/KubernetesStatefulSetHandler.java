@@ -43,7 +43,8 @@ public class KubernetesStatefulSetHandler extends KubernetesHandler implements
   public KubernetesStatefulSetHandler() {
     registerReplacer(
         ArtifactReplacer.Replacer.builder()
-            .path("$.spec.template.spec.containers.[?( @.image == \"{%name%}\" )].image")
+            .replacePath("$.spec.template.spec.containers.[?( @.image == \"{%name%}\" )].image")
+            .findPath("$.spec.template.spec.containers.*.image")
             .type(ArtifactTypes.DOCKER_IMAGE)
             .build()
     );

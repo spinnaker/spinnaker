@@ -78,6 +78,7 @@ public class KubernetesV2ManifestProvider implements ManifestProvider<Kubernetes
         .manifest(manifest)
         .moniker(moniker)
         .status(deployer.status(manifest))
+        .artifacts(deployer.listArtifacts(manifest))
         .build();
   }
 }

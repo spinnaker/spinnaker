@@ -17,6 +17,8 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.op.deployer;
 
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.ArtifactReplacer;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.ArtifactTypes;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesPodCachingAgent;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesV2CachingAgent;
@@ -31,6 +33,16 @@ import java.util.Map;
 
 @Component
 public class KubernetesPodHandler extends KubernetesHandler implements CanDelete {
+  public KubernetesPodHandler() {
+    registerReplacer(
+        ArtifactReplacer.Replacer.builder()
+            .replacePath("$.spec.containers.[?( @.image == \"{%name%}\" )].image")
+            .findPath("$.spec.containers.*.image")
+            .type(ArtifactTypes.DOCKER_IMAGE)
+            .build()
+    );
+  }
+
   @Override
   public KubernetesKind kind() {
     return KubernetesKind.POD;
