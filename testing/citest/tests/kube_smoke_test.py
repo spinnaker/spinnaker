@@ -48,13 +48,12 @@ import citest.kube_testing as kube
 import citest.json_contract as jc
 import citest.json_predicate as jp
 import citest.service_testing as st
-
 # Spinnaker modules.
 import spinnaker_testing as sk
 import spinnaker_testing.gate as gate
 import spinnaker_testing.frigga as frigga
 import citest.base
-
+import json
 
 class KubeSmokeTestScenario(sk.SpinnakerTestScenario):
   """Defines the scenario for the smoke test.
@@ -235,6 +234,112 @@ class KubeSmokeTestScenario(sk.SpinnakerTestScenario):
         self.new_post_operation(
             title='delete_load_balancer', data=payload, path='tasks'),
         contract=builder.build())
+  def create_statefulset_pipeline(self):
+    bindings = self.bindings
+
+    payload = self.agent.make_json_payload_from_kwargs(
+        job=[{
+            'type': 'manual',
+            'user': '[anonymous]'
+        }],
+        description='Create StatefulSet'.format(
+            self.__lb_name,
+            bindings['SPINNAKER_KUBERNETES_ACCOUNT']),
+        application=self.TEST_APP)
+    builder = kube.KubeContractBuilder(self.kube_observer)
+    (builder.new_clause_builder('StatefulSet Added', retryable_for_secs=60)
+     .get_resources(
+         'statefulsets', extra_args=[self.TEST_APP,'--namespace', self.TEST_NAMESPACE])
+     .contains_path_value('kind', "StatefulSet"))
+
+    return st.OperationContract(
+        self.new_post_operation(
+            title='create_statefulset', data=payload, path='pipelines/'+self.TEST_APP+'/statefulset-pipeline',
+            status_class=st.SynchronousHttpOperationStatus),
+        contract=builder.build())
+
+  def save_statefulset_pipeline(self):
+      deploy_stage = self.make_deploy_stage_statefulset()
+      job = dict(
+          keepWaitingPipelines= 'false',
+                    application= self.TEST_APP,
+                    name= 'statefulset-pipeline',
+	                lastModifiedBy= 'anonymous',
+	                limitConcurrent= 'true',
+	                parallel= 'true',
+	                stages= [deploy_stage]
+      )
+      payload = self.agent.make_json_payload_from_kwargs(**job)
+      expect_match = {key: jp.EQUIVALENT(value)
+                    for key, value in job.items()}
+      expect_match['stages'] = jp.LIST_MATCHES(
+      [
+       jp.DICT_MATCHES({key: jp.EQUIVALENT(value)
+                        for key, value in deploy_stage.items()})])
+
+      builder = st.HttpContractBuilder(self.agent)
+      (builder.new_clause_builder('Has Pipeline',
+                                  retryable_for_secs=15)
+       .get_url_path(
+          'applications/{app}/pipelineConfigs'.format(app=self.TEST_APP))
+      .contains_match(expect_match))
+
+      return st.OperationContract(self.new_post_operation(title='create_statefulset', data=payload, path='pipelines',status_class=st.SynchronousHttpOperationStatus),contract=builder.build())
+
+  def create_daemonset_pipeline(self):
+    bindings = self.bindings
+    payload = self.agent.make_json_payload_from_kwargs(
+        job=[{
+            'type': 'manual',
+            'user': '[anonymous]'
+        }],
+        description='Create Daemonset'.format(
+            self.__lb_name,
+            bindings['SPINNAKER_KUBERNETES_ACCOUNT']),
+        application=self.TEST_APP)
+    builder = kube.KubeContractBuilder(self.kube_observer)
+    (builder.new_clause_builder('Daemonset Added', retryable_for_secs=60)
+     .get_resources(
+         'daemonsets', extra_args=[self.TEST_APP,'--namespace', self.TEST_NAMESPACE])
+     .contains_path_value('kind', "DaemonSet"))
+
+    return st.OperationContract(
+        self.new_post_operation(
+            title='Create_daemonset', data=payload, path='pipelines/'+self.TEST_APP+'/daemonset-pipeline',
+            status_class=st.SynchronousHttpOperationStatus),
+        contract=builder.build())
+
+
+  def save_daemonset_pipeline(self):
+
+      deploy_stage = self.make_deploy_stage_daemonset()
+      job = dict(
+          keepWaitingPipelines= 'false',
+                    application= self.TEST_APP,
+                    name= 'daemonset-pipeline',
+	                lastModifiedBy= 'anonymous',
+	                limitConcurrent= 'true',
+	                parallel= 'true',
+	                stages= [deploy_stage]
+      )
+      payload = self.agent.make_json_payload_from_kwargs(**job)
+      expect_match = {key: jp.EQUIVALENT(value)
+                    for key, value in job.items()}
+      expect_match['stages'] = jp.LIST_MATCHES(
+      [
+       jp.DICT_MATCHES({key: jp.EQUIVALENT(value)
+                        for key, value in deploy_stage.items()})])
+
+      builder = st.HttpContractBuilder(self.agent)
+      (builder.new_clause_builder('Has Pipeline',
+                                  retryable_for_secs=15)
+       .get_url_path(
+          'applications/{app}/pipelineConfigs'.format(app=self.TEST_APP))
+      .contains_match(expect_match))
+
+      builder = kube.KubeContractBuilder(self.kube_observer)
+      return st.OperationContract(self.new_post_operation(title='Save Daemonset', data=payload, path='pipelines',status_class=st.SynchronousHttpOperationStatus),contract=builder.build())
+
 
   def create_server_group(self):
     """Creates OperationContract for createServerGroup.
@@ -302,7 +407,6 @@ class KubeSmokeTestScenario(sk.SpinnakerTestScenario):
          'rs',
          extra_args=[group_name, '--namespace', self.TEST_NAMESPACE])
      .contains_path_eq('spec/replicas', 1))
-
     return st.OperationContract(
         self.new_post_operation(
             title='create_server_group', data=payload, path='tasks'),
@@ -389,6 +493,90 @@ class KubeSmokeTestScenario(sk.SpinnakerTestScenario):
 
     result.update(kwargs)
     return result
+
+  def make_deploy_stage_daemonset(self, **kwargs):
+    bindings = self.bindings
+    result = {
+      'refId': '1',
+      'type': 'deploy',
+      'name': 'Deploy',
+      'clusters': [
+        {
+          'account': bindings['SPINNAKER_KUBERNETES_ACCOUNT'],
+          'application': self.TEST_APP,
+          'targetSize': 1,
+          'cloudProvider': 'kubernetes',
+          'namespace': self.TEST_NAMESPACE,
+          'containers': [
+            {
+              'name': 'daemonset-pipeline',
+              'imageDescription': {
+                'repository': 'nginx'
+               },
+              'imagePullPolicy': 'ALWAYS',
+				            'limits': {
+					            'memory': '200Mi'
+				                    },
+				            'name': 'nginx',
+				            'requests': {
+					            'cpu': '100m',
+					            'memory': '200Mi'
+				                }            }
+          ],
+          'kind': 'DaemonSet',
+          'volumeSources': [],
+          'provider': 'kubernetes',
+          'regions': [self.TEST_NAMESPACE],
+          'region': self.TEST_NAMESPACE
+        }
+      ]
+    }
+
+    result.update(kwargs)
+    return result
+
+
+  def make_deploy_stage_statefulset(self, **kwargs):
+    bindings = self.bindings
+    result = {
+      'refId': '1',
+      'type': 'deploy',
+      'name': 'Deploy',
+      'clusters': [
+        {
+          'account': bindings['SPINNAKER_KUBERNETES_ACCOUNT'],
+          'application': self.TEST_APP,
+          'targetSize': 1,
+          'cloudProvider': 'kubernetes',
+          'namespace': self.TEST_NAMESPACE,
+          'containers': [
+            {
+              'name': 'Statefulset-Pipeline',
+              'imageDescription': {
+                'repository': 'nginx'
+               },
+              'imagePullPolicy': 'ALWAYS',
+				            'limits': {
+					            'memory': '200Mi'
+				                    },
+				            'name': 'nginx',
+				            'requests': {
+					            'cpu': '100m',
+					            'memory': '200Mi'
+				                }            }
+          ],
+          'kind': 'StatefulSet',
+          'volumeSources': [],
+          'provider': 'kubernetes',
+          'regions': [self.TEST_NAMESPACE],
+          'region': self.TEST_NAMESPACE
+        }
+      ]
+    }
+
+    result.update(kwargs)
+    return result
+
 
   def create_find_image_pipeline(self):
     name = 'findImagePipeline'
@@ -524,11 +712,24 @@ class KubeSmokeTest(st.AgentTestCase):
                        max_retries=1,
                        timeout_ok=True)
 
+
   def test_d_create_find_image_pipeline(self):
     self.run_test_case(self.scenario.create_find_image_pipeline())
 
   def test_e_run_find_image_pipeline(self):
     self.run_test_case(self.scenario.run_find_image_pipeline())
+
+  def test_e_1_save_statefulset_pipeline(self):
+    self.run_test_case(self.scenario.save_statefulset_pipeline())
+
+  def test_e_2_create_statefulset_pipeline(self):
+    self.run_test_case(self.scenario.create_statefulset_pipeline())
+
+  def test_f_1_save_daemonset_pipeline(self):
+    self.run_test_case(self.scenario.save_daemonset_pipeline())
+
+  def test_f_2_create_daemonset_pipeline(self):
+    self.run_test_case(self.scenario.create_daemonset_pipeline())
 
   def test_x1_delete_server_group(self):
     self.run_test_case(self.scenario.delete_server_group('v000'), max_retries=2)
@@ -545,6 +746,7 @@ class KubeSmokeTest(st.AgentTestCase):
     # an internal cache update
     self.run_test_case(self.scenario.delete_app(),
                        retry_interval_secs=8, max_retries=8)
+
 
 
 def main():
