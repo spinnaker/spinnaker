@@ -6,7 +6,7 @@ module.exports = angular
   .module('spinnaker.kubernetes.pipeline.stage.disableCluster.runJobExecutionDetails.controller', [
     require('@uirouter/angularjs').default,
   ])
-  .controller('kubernetesRunJobExecutionDetailsCtrl', function ($scope, $stateParams, executionDetailsSectionService) {
+  .controller('kubernetesRunJobExecutionDetailsCtrl', function ($scope, $stateParams, executionDetailsSectionService, $uibModal) {
 
     $scope.configSections = ['runJobConfig', 'taskStatus'];
 
@@ -24,5 +24,16 @@ module.exports = angular
     initialize();
 
     $scope.$on('$stateChangeSuccess', initialize);
+
+    $scope.displayLogs = () => {
+      $scope.logs = $scope.stage.context.jobStatus.logs || '';
+      $scope.jobName = $scope.stage.context.jobStatus.name || '';
+      return $uibModal.open({
+        templateUrl: require('./runJobLogs.html'),
+        controller: 'CloseableModalCtrl',
+        scope: $scope,
+        size: 'lg'
+      });
+    };
 
   });

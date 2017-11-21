@@ -1,0 +1,14 @@
+<div modal-page>
+  <modal-close dismiss="$dismiss()"></modal-close>
+  <div class="modal-header">
+    <h3>Console Output: {{jobName}}</h3>
+  </div>
+  <form role="form">
+    <div class="modal-body">
+      <pre>{{logs}}</pre>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-primary" ng-click="$close()">Close</button>
+    </div>
+  </form>
+</div>
