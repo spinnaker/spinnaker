@@ -121,7 +121,7 @@ class UpsertOpenstackLoadBalancerDescriptionValidatorSpec extends Specification 
     1 * errors.rejectValue("${validator.context}.${attribute}", _)
 
     where:
-    attribute << ['name', 'region', 'subnetId', 'algorithm', 'securityGroups', 'listeners']
+    attribute << ['name', 'region', 'subnetId', 'algorithm', 'listeners']
   }
 
   def "Validate invalid field - #attribute"() {
@@ -146,7 +146,7 @@ class UpsertOpenstackLoadBalancerDescriptionValidatorSpec extends Specification 
     1 * errors.rejectValue("${validator.context}.${attribute.key}", _)
 
     where:
-    attribute << [name: '', region: '', name : '', id : 'abc', subnetId : null, algorithm: null, securityGroups: [], listeners: []]
+    attribute << [name: '', region: '', name : '', id : 'abc', subnetId : null, algorithm: null, listeners: []]
   }
 
   def "Validate health monitor values - #attributes"() {

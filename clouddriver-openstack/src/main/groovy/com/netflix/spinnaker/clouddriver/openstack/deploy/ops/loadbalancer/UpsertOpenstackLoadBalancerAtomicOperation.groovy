@@ -129,7 +129,7 @@ class UpsertOpenstackLoadBalancerAtomicOperation extends AbstractOpenstackLoadBa
       throw new OpenstackResourceNotFoundException("Subnet provided is invalid ${subnetId}")
     }
 
-    if (!provider.getNetwork(region, networkId)) {
+    if (networkId && !provider.getNetwork(region, networkId)) {
       throw new OpenstackResourceNotFoundException("Network provided is invalid ${networkId}")
     }
 

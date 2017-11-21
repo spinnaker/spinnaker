@@ -46,7 +46,6 @@ class UpsertOpenstackLoadBalancerAtomicOperationValidator extends AbstractOpenst
       validator.validateUUID(description.networkId, 'networkId')
     }
 
-    validator.validateNotEmpty(description.securityGroups, 'securityGroups')
     description.securityGroups.each {
       validator.validateUUID(it, 'securityGroup')
     }
