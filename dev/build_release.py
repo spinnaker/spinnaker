@@ -239,7 +239,7 @@ class Builder(object):
 
     if name == 'halyard':
       extra_args.append('-PbintrayPackageDebDistribution=trusty-nightly')
-    else 
+    else: 
       extra_args.append('-PbintrayPackageDebDistribution=trusty,xenial')
 
     cmds = [
