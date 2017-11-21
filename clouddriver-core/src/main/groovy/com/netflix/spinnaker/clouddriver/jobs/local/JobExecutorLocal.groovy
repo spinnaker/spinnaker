@@ -45,7 +45,7 @@ class JobExecutorLocal implements JobExecutor {
 
   @Override
   String startJob(JobRequest jobRequest, Map<String, String> environment, InputStream inputStream) {
-    log.info("Starting job: '${String.join(' ', jobRequest.tokenizedCommand)}'...")
+    log.debug("Starting job: '${String.join(' ', jobRequest.tokenizedCommand)}'...")
 
     String jobId = UUID.randomUUID().toString()
 
@@ -149,7 +149,7 @@ class JobExecutorLocal implements JobExecutor {
         String errors = new String(stdErr.toByteArray())
 
         if (resultHandler.hasResult()) {
-          log.info("State for $jobId changed with exit code $resultHandler.exitValue.")
+          log.debug("State for $jobId changed with exit code $resultHandler.exitValue.")
 
           if (!output) {
             output = resultHandler.exception ? resultHandler.exception.message : "No output from command."
