@@ -1,11 +1,11 @@
-import { IQService, module } from 'angular';
+import { IPromise, IQService, module } from 'angular';
 
 export class KubernetesV2ServerGroupTransformer {
   constructor(private $q: IQService) {
     'ngInject';
   }
 
-  public normalizeServerGroup(serverGroup: any) {
+  public normalizeServerGroup(serverGroup: any): IPromise<any> {
     return this.$q.when(serverGroup);
   }
 }
