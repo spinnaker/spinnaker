@@ -370,7 +370,8 @@ class Builder(object):
       # Tell rmtree to delete the directory even if it's non-empty.
       shutil.rmtree(gradle_cache)
     cmds = [
-      ('gcloud container builds submit --account={account} --project={project} --config="../{name}-gcb.yml" .'
+      ('gcloud container builds submit --log-http'
+       ' --account={account} --project={project} --config="../{name}-gcb.yml" .'
        .format(name=name, account=gcb_service_account, project=gcb_project))
     ]
     logfile = '{name}-gcb-build.log'.format(name=name)
