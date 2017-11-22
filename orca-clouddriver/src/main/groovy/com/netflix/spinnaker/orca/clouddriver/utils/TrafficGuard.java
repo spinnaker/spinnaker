@@ -23,6 +23,7 @@ import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Locat
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup;
 import com.netflix.spinnaker.orca.front50.Front50Service;
 import com.netflix.spinnaker.orca.front50.model.Application;
+import com.google.common.collect.ImmutableMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -116,11 +117,30 @@ public class TrafficGuard {
       .filter(tsg -> location.equals(tsg.getLocation()))
       .collect(Collectors.toList());
 
-    boolean otherEnabledServerGroupFound = targetServerGroups.stream().anyMatch(tsg ->
-      !serverGroupName.equals(tsg.getName()) &&
-        (tsg.getInstances().stream().filter(i -> "Up".equals(i.get("healthState"))).count()) > 0
-    );
-    if (!otherEnabledServerGroupFound) {
+    List<TargetServerGroup> otherTargetServerGroups = targetServerGroups
+      .stream()
+      .filter(tsg -> !serverGroupName.equalsIgnoreCase(tsg.getName()))
+      .collect(Collectors.toList());
+
+    boolean hasOtherEnabledServerGroups = otherTargetServerGroups
+      .stream()
+      .anyMatch(tsg -> (tsg.getInstances().stream().filter(i -> "Up".equals(i.get("healthState"))).count()) > 0);
+
+    if (!hasOtherEnabledServerGroups) {
+      List<Map> context = otherTargetServerGroups.stream().map(tsg -> ImmutableMap.builder()
+        .put("name", tsg.getName())
+        .put("disabled", tsg.isDisabled())
+        .put("instances", tsg.getInstances())
+        .build()
+      ).collect(Collectors.toList());
+
+      log.debug(
+        "Traffic guard check has failed (cluster: {}, account: {}, context: {})",
+        serverGroupMoniker.getCluster(),
+        account,
+        context
+      );
+
       throw new IllegalStateException(format("This cluster ('%s' in %s/%s) has traffic guards enabled. " +
         "%s %s would leave the cluster with no instances taking traffic.", serverGroupMoniker.getCluster(), account, location.getValue(), operationDescriptor, serverGroupName));
     }

@@ -68,7 +68,7 @@ class TargetServerGroup {
    * Used in TrafficGuard, which is Java, which doesn't play nice with @Delegate
    */
   Boolean isDisabled() {
-    return serverGroup.isDisabled
+    return serverGroup.isDisabled == null ? serverGroup.disabled : serverGroup.isDisabled
   }
 
   /**
