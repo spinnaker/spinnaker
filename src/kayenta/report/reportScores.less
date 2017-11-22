@@ -15,9 +15,15 @@
   }
 
   .report-score {
-    opacity: 0.5;
     &.active {
-      opacity: 1;
+      .arrow-down {
+        width: 0;
+        height: 0;
+        margin: 5px auto 0 auto;
+        border-left: 10px solid transparent;
+        border-right: 10px solid transparent;
+        border-top: 10px solid transparent;
+      }
     }
   }
 }

@@ -12,6 +12,7 @@ export class LiveCanaryRunService implements ICanaryRunService {
       .one(configId)
       .one(canaryExecutionId)
       .withParams({storageAccountName: CanarySettings.storageAccountName})
+      .useCache()
       .get()
       .then((run: ICanaryExecutionStatusResult) => {
         run.result.config.id = configId;
@@ -26,6 +27,7 @@ export class LiveCanaryRunService implements ICanaryRunService {
       .one('v2/canaries/metricSetPairList')
       .one(metricSetPairListId)
       .withParams({storageAccountName: CanarySettings.storageAccountName})
+      .useCache()
       .get()
       .then(
         (list: IMetricSetPair[]) =>
