@@ -1,0 +1,13 @@
+[Unit]
+Description=Spinnaker Clouddriver
+After=network.target
+
+[Service]
+ExecStart=/opt/clouddriver/bin/clouddriver 2>&1 /var/log/spinnaker/clouddriver/clouddriver.log
+WorkingDirectory=/opt/clouddriver/bin
+User=spinnaker
+Group=spinnaker
+Type=simple
+
+[Install]
+WantedBy=multi-user.target
