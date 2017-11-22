@@ -47,9 +47,9 @@ class ReservationReportCachingAgentSpec extends Specification {
     }
 
     when:
-    ReservationReportCachingAgent.recordError(registry, errorsByRegion, credentials, usWest1, new NullPointerException("An NPE a day keeps the chaos monkey away"))
-    ReservationReportCachingAgent.recordError(registry, errorsByRegion, credentials, usWest1, new NullPointerException("This is not right!"))
-    ReservationReportCachingAgent.recordError(registry, errorsByRegion, credentials, usWest2, new NullPointerException("This is even better!"))
+    ReservationReportCachingAgent.recordError(registry, errorsByRegion, credentials, usWest1.name, new NullPointerException("An NPE a day keeps the chaos monkey away"))
+    ReservationReportCachingAgent.recordError(registry, errorsByRegion, credentials, usWest1.name, new NullPointerException("This is not right!"))
+    ReservationReportCachingAgent.recordError(registry, errorsByRegion, credentials, usWest2.name, new NullPointerException("This is even better!"))
 
     then:
     errorsByRegion["us-west-1"] == [

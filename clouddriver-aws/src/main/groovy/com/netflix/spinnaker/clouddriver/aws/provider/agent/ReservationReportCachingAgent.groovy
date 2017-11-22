@@ -50,11 +50,11 @@ import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.cache.CustomScheduledAgent
 import groovy.util.logging.Slf4j
 import org.springframework.context.ApplicationContext
-import rx.Observable
-import rx.Scheduler
 
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CopyOnWriteArrayList
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Future
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.function.ToDoubleFunction
@@ -72,7 +72,7 @@ class ReservationReportCachingAgent implements CachingAgent, CustomScheduledAgen
     AUTHORITATIVE.forType(RESERVATION_REPORTS.ns)
   ])
 
-  private final Scheduler scheduler
+  private final ExecutorService reservationReportPool
   private final ApplicationContext ctx
   private Cache cacheView
 
@@ -88,7 +88,7 @@ class ReservationReportCachingAgent implements CachingAgent, CustomScheduledAgen
                                 AmazonClientProvider amazonClientProvider,
                                 Collection<NetflixAmazonCredentials> accounts,
                                 ObjectMapper objectMapper,
-                                Scheduler scheduler,
+                                ExecutorService reservationReportPool,
                                 ApplicationContext ctx) {
     this.amazonClientProvider = amazonClientProvider
     this.accounts = accounts
@@ -98,7 +98,7 @@ class ReservationReportCachingAgent implements CachingAgent, CustomScheduledAgen
     module.addSerializer(AmazonReservationReport.AccountReservationDetail.class, accountReservationDetailSerializer)
 
     this.objectMapper = objectMapper.copy().enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS).registerModule(module)
-    this.scheduler = scheduler
+    this.reservationReportPool = reservationReportPool
     this.ctx = ctx
     this.vpcOnlyAccounts = determineVpcOnlyAccounts()
     this.metricsSupport = new MetricsSupport(objectMapper, registry, { getCacheView() })
@@ -178,15 +178,22 @@ class ReservationReportCachingAgent implements CachingAgent, CustomScheduledAgen
 
     ConcurrentHashMap<String, OverallReservationDetail> reservations = new ConcurrentHashMap<>()
     ConcurrentHashMap<String, Collection<String>> errorsByRegion = new ConcurrentHashMap<>()
-    Observable
-      .from(accounts.sort { it.name })
-      .flatMap({ credential ->
-        extractReservations(reservations, errorsByRegion, credential).subscribeOn(scheduler)
-    })
-      .observeOn(scheduler)
-      .toList()
-      .toBlocking()
-      .single()
+
+    Map<NetflixAmazonCredentials, Future> tasks = accounts.collectEntries { NetflixAmazonCredentials credential ->
+      [
+        (credential) : reservationReportPool.submit {
+          extractReservations(reservations, errorsByRegion, credential)
+        }
+      ]
+    }
+
+    tasks.each {
+      try {
+        it.value.get()
+      } catch (Exception e) {
+        recordError(registry, errorsByRegion, it.key, "*", e)
+      }
+    }
 
     def amazonReservationReport = new AmazonReservationReport(start: new Date(startTime), end: new Date())
     accounts.each { NetflixAmazonCredentials credentials ->
@@ -246,9 +253,9 @@ class ReservationReportCachingAgent implements CachingAgent, CustomScheduledAgen
     )
   }
 
-  Observable extractReservations(ConcurrentHashMap<String, OverallReservationDetail> reservations,
-                                 ConcurrentHashMap<String, Collection<String>> errorsByRegion,
-                                 NetflixAmazonCredentials credentials) {
+  void extractReservations(ConcurrentHashMap<String, OverallReservationDetail> reservations,
+                           ConcurrentHashMap<String, Collection<String>> errorsByRegion,
+                           NetflixAmazonCredentials credentials) {
     def getReservation = { String region, String availabilityZone, String operatingSystemType, String instanceType ->
       String key = availabilityZone == null ?
         [region, operatingSystemType, instanceType].join(':') :
@@ -269,9 +276,7 @@ class ReservationReportCachingAgent implements CachingAgent, CustomScheduledAgen
       return newOverallReservationDetail
     }
 
-    Observable
-      .from(credentials.regions)
-      .flatMap({ AmazonCredentials.AWSRegion region ->
+    credentials.regions.each { AmazonCredentials.AWSRegion region ->
         log.info("Fetching reservation report for ${credentials.name}:${region.name}")
         long startTime = System.currentTimeMillis()
 
@@ -302,6 +307,8 @@ class ReservationReportCachingAgent implements CachingAgent, CustomScheduledAgen
           }
 
           startTime = System.currentTimeMillis()
+
+          def fetchedInstanceCount = 0
           def describeInstancesRequest = new DescribeInstancesRequest().withMaxResults(500)
           def allowedStates = ["pending", "running"] as Set<String>
           while (true) {
@@ -322,7 +329,11 @@ class ReservationReportCachingAgent implements CachingAgent, CustomScheduledAgen
                   reservation.getAccount(credentials.name).used.incrementAndGet()
                 }
               }
+
+              fetchedInstanceCount += it.getInstances().size()
             }
+
+            log.debug("Fetched ${fetchedInstanceCount} instances in ${credentials.name}/${region.name} (nextToken: ${result.nextToken})")
 
             if (result.nextToken) {
               describeInstancesRequest.withNextToken(result.nextToken)
@@ -331,32 +342,30 @@ class ReservationReportCachingAgent implements CachingAgent, CustomScheduledAgen
             }
           }
         } catch (Exception e) {
-          recordError(registry, errorsByRegion, credentials, region, e)
+          recordError(registry, errorsByRegion, credentials, region.name, e)
         }
 
         log.debug("Took ${System.currentTimeMillis() - startTime}ms to describe instances for ${credentials.name}/${region.name}")
-
-        return Observable.empty()
-      })
+      }
   }
 
   static void recordError(Registry registry,
                           ConcurrentHashMap<String, Collection<String>> errorsByRegion,
                           NetflixAmazonCredentials credentials,
-                          AmazonCredentials.AWSRegion region,
+                          String region,
                           Exception e) {
-    def errorMessage = "Failed to describe instances in ${credentials.name}:${region.name}, reason: ${e.message}" as String
+    def errorMessage = "Failed to describe instances in ${credentials.name}:${region}, reason: ${e.message}" as String
     log.error(errorMessage, e)
 
     def errors = new CopyOnWriteArrayList([errorMessage])
 
-    def previousValue = errorsByRegion.putIfAbsent(region.name, errors)
+    def previousValue = errorsByRegion.putIfAbsent(region, errors)
     if (previousValue != null) {
       previousValue.add(errorMessage)
     }
 
     def id = registry.createId("reservedInstances.errors").withTags([
-      region : region.name,
+      region : region,
       account: credentials.name
     ])
     registry.counter(id).increment()

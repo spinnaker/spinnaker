@@ -50,10 +50,9 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.DependsOn
 import org.springframework.context.annotation.Scope
-import rx.Scheduler
-import rx.schedulers.Schedulers
 
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
 @Configuration
@@ -68,7 +67,7 @@ class AwsProviderConfig {
                           EddaApiFactory eddaApiFactory,
                           ApplicationContext ctx,
                           Registry registry,
-                          Scheduler reservationReportScheduler,
+                          ExecutorService reservationReportPool,
                           Optional<Collection<AgentProvider>> agentProviders,
                           EddaTimeoutConfig eddaTimeoutConfig) {
     def awsProvider =
@@ -82,7 +81,7 @@ class AwsProviderConfig {
                            eddaApiFactory,
                            ctx,
                            registry,
-                           reservationReportScheduler,
+                           reservationReportPool,
                            agentProviders.orElse(Collections.emptyList()),
                            eddaTimeoutConfig)
 
@@ -90,8 +89,8 @@ class AwsProviderConfig {
   }
 
   @Bean
-  Scheduler reservationReportScheduler(ReservationReportConfigurationProperties reservationReportConfigurationProperties) {
-    return Schedulers.from(Executors.newFixedThreadPool(reservationReportConfigurationProperties.threadPoolSize))
+  ExecutorService reservationReportPool(ReservationReportConfigurationProperties reservationReportConfigurationProperties) {
+    return Executors.newFixedThreadPool(reservationReportConfigurationProperties.threadPoolSize)
   }
 
   @Bean
@@ -118,7 +117,7 @@ class AwsProviderConfig {
                                                  EddaApiFactory eddaApiFactory,
                                                  ApplicationContext ctx,
                                                  Registry registry,
-                                                 Scheduler reservationReportScheduler,
+                                                 ExecutorService reservationReportPool,
                                                  Collection<AgentProvider> agentProviders,
                                                  EddaTimeoutConfig eddaTimeoutConfig) {
     def scheduledAccounts = ProviderUtils.getScheduledAccounts(awsProvider)
@@ -164,7 +163,7 @@ class AwsProviderConfig {
     } else {
       // This caching agent runs across all accounts in one iteration (to maintain consistency).
       newlyAddedAgents << new ReservationReportCachingAgent(
-        registry, amazonClientProvider, allAccounts, objectMapper, reservationReportScheduler, ctx
+        registry, amazonClientProvider, allAccounts, objectMapper, reservationReportPool, ctx
       )
     }
 
