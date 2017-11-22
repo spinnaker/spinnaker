@@ -35,6 +35,9 @@ class IgorConfigurationProperties {
         @Canonical
         static class BuildProperties {
             int pollInterval = 60
+            int lookBackWindowMins = 10
+            boolean handleFirstBuilds = true
+            boolean processBuildsOlderThanLookBackWindow = true
         }
 
         @NestedConfigurationProperty

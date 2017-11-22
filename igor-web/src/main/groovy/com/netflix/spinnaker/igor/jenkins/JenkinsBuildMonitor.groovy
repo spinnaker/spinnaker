@@ -28,6 +28,7 @@ import com.netflix.spinnaker.igor.jenkins.service.JenkinsService
 import com.netflix.spinnaker.igor.model.BuildServiceProvider
 import com.netflix.spinnaker.igor.polling.PollingMonitor
 import com.netflix.spinnaker.igor.service.BuildMasters
+import groovy.time.TimeCategory
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -166,6 +167,10 @@ class JenkinsBuildMonitor implements PollingMonitor {
                 if (cursor == lastBuildStamp) {
                     log.debug("[${master}:${job.name}] is up to date. skipping")
                 } else {
+                    if (!cursor && !igorConfigurationProperties.spinnaker.build.handleFirstBuilds) {
+                        cache.setLastPollCycleTimestamp(master, job.name, lastBuildStamp)
+                        continue
+                    }
                     // 1. get builds
                     List<Build> allBuilds = (jenkinsService.getBuilds(job.name).getList() ?: [])
                     if (!cursor) {
@@ -182,6 +187,19 @@ class JenkinsBuildMonitor implements PollingMonitor {
                     List<Build> currentlyBuilding = allBuilds.findAll { it.building }
                     List<Build> completedBuilds = allBuilds.findAll { !it.building }
                     Date lowerBound = new Date(cursor)
+
+                    if (!igorConfigurationProperties.spinnaker.build.processBuildsOlderThanLookBackWindow) {
+                        use (TimeCategory) {
+                            completedBuilds = completedBuilds.findAll {
+                                def offsetMins = pollInterval.minutes
+                                def lookBackWindowMins = igorConfigurationProperties.spinnaker.build.lookBackWindowMins.minutes
+                                Date lookBackDate = (offsetMins + lookBackWindowMins).ago
+                                Date buildDate = new Date(it.timestamp as Long)
+                                log.info("filtering builds older than {}", lookBackDate)
+                                return buildDate.after(lookBackDate)
+                            }
+                        }
+                    }
 
                     // 2. post events for finished builds
                     completedBuilds.forEach { build ->

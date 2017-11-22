@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.igor.jenkins
 
+import com.netflix.spinnaker.igor.IgorConfigurationProperties
 import com.netflix.spinnaker.igor.history.EchoService
 import com.netflix.spinnaker.igor.history.model.Event
 import com.netflix.spinnaker.igor.jenkins.client.model.Build
@@ -35,12 +36,18 @@ class JenkinsBuildMonitorSpec extends Specification {
 
     JenkinsCache cache = Mock(JenkinsCache)
     JenkinsService jenkinsService = Mock(JenkinsService)
+    IgorConfigurationProperties igorConfigurationProperties = new IgorConfigurationProperties()
     JenkinsBuildMonitor monitor
 
     final MASTER = 'MASTER'
 
     void setup() {
-        monitor = new JenkinsBuildMonitor(cache: cache, buildMasters: new BuildMasters(map: [MASTER: jenkinsService]))
+        monitor = new JenkinsBuildMonitor(
+            cache: cache,
+            buildMasters: new BuildMasters(map: [MASTER: jenkinsService]),
+            igorConfigurationProperties: igorConfigurationProperties
+        )
+
         monitor.scheduler = Schedulers.immediate()
     }
 
@@ -162,5 +169,40 @@ class JenkinsBuildMonitorSpec extends Specification {
         and: 'prune old markers and set new cursor'
         1 * cache.pruneOldMarkers(MASTER, 'job', 1494624092609)
         1 * cache.setLastPollCycleTimestamp(MASTER, 'job', 1494624092612)
+    }
+
+
+    def 'should filter out builds older than look back window'() {
+        given:
+        long stamp0 = System.currentTimeMillis() - (30 * 60 * 1000) // 30 minutes ago
+        long stamp1 = System.currentTimeMillis() - (10 * 60 * 1000) // 10 minutes ago
+        long stamp2 = System.currentTimeMillis() - (5 * 60 * 1000)  // 5  minutes ago
+        long stamp3 = System.currentTimeMillis()
+
+        and: 'a 6 minutes total lookBack window'
+        igorConfigurationProperties.spinnaker.build.pollInterval = 1
+        igorConfigurationProperties.spinnaker.build.lookBackWindowMins = 5
+        igorConfigurationProperties.spinnaker.build.processBuildsOlderThanLookBackWindow = false
+
+        and:
+        monitor.echoService = Mock(EchoService)
+        cache.getLastPollCycleTimestamp(MASTER, 'job') >> stamp0
+        jenkinsService.getProjects() >> new ProjectsList(list: [ new Project(name: 'job', lastBuild: new Build(number: 3, timestamp: stamp3)) ])
+        cache.getEventPosted(_,_,_,_) >> false
+        jenkinsService.getBuilds('job') >> new BuildsList(
+            list: [
+                new Build(number: 1, timestamp: stamp1, building: false, result: 'SUCCESS'),
+                new Build(number: 2, timestamp: stamp1, building: false, result: 'FAILURE'),
+                new Build(number: 3, timestamp: stamp2, building: false, result: 'SUCCESS')
+            ]
+        )
+
+        when:
+        monitor.changedBuilds(MASTER)
+
+        then: 'build #3 only will be processed'
+        0 * monitor.echoService.postEvent({ it.content.project.lastBuild.number == 1 && it.content.project.lastBuild.result == 'SUCCESS'} as Event)
+        0 * monitor.echoService.postEvent({ it.content.project.lastBuild.number == 2 && it.content.project.lastBuild.result == 'FAILURE'} as Event)
+        1 * monitor.echoService.postEvent({ it.content.project.lastBuild.number == 3 && it.content.project.lastBuild.result == 'SUCCESS'} as Event)
     }
 }
