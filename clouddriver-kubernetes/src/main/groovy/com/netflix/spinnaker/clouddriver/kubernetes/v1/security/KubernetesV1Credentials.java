@@ -122,7 +122,7 @@ public class KubernetesV1Credentials implements KubernetesCredentials {
 
     try {
       List<String> knownNamespaces = !namespaces.isEmpty() ? namespaces : apiAdaptor.getNamespacesByName();
-      reconfigureRegistries(knownNamespaces, knownNamespaces);
+      reconfigureRegistries(knownNamespaces);
     } catch (Exception e) {
       LOG.warn("Could not determine kubernetes namespaces. Will try again later.", e);
     }
@@ -143,7 +143,7 @@ public class KubernetesV1Credentials implements KubernetesCredentials {
         // Find the namespaces that were added, and add docker secrets to them. No need to track deleted
         // namespaces since they delete their secrets automatically.
         addedNamespaces.removeAll(oldNamespaces);
-        reconfigureRegistries(addedNamespaces, resultNamespaces);
+        reconfigureRegistries(resultNamespaces);
         oldNamespaces = resultNamespaces;
 
         return resultNamespaces;
@@ -154,7 +154,8 @@ public class KubernetesV1Credentials implements KubernetesCredentials {
     }
   }
 
-  private void reconfigureRegistries(List<String> affectedNamespaces, List<String> allNamespaces) {
+  private void reconfigureRegistries(List<String> allNamespaces) {
+    List<String> affectedNamespaces = new ArrayList<>(allNamespaces);
     if (!configureImagePullSecrets) {
       return;
     }
@@ -177,7 +178,8 @@ public class KubernetesV1Credentials implements KubernetesCredentials {
       DockerRegistryNamedAccountCredentials account = (DockerRegistryNamedAccountCredentials) repository.getOne(registry.getAccountName());
 
       if (account == null) {
-        throw new IllegalArgumentException("The account " + registry.getAccountName() + " was not configured inside Clouddriver.");
+        LOG.warn("The account " + registry.getAccountName() + " was not yet loaded inside Clouddriver. If you are seeing this message repeatedly, it likely cannot be loaded.");
+        continue;
       }
 
       for (String namespace : affectedNamespaces) {
@@ -212,7 +214,7 @@ public class KubernetesV1Credentials implements KubernetesCredentials {
           Secret oldSecret = apiAdaptor.getSecret(namespace, secretName);
           if (oldSecret != null) {
             if (oldSecret.getData().equals(newSecret.getData())) {
-              LOG.info("Skipping creation of duplicate secret " + secretName + " in namespace " + namespace);
+              LOG.debug("Skipping creation of duplicate secret " + secretName + " in namespace " + namespace);
             } else {
               apiAdaptor.editSecret(namespace, secretName).addToData(newSecret.getData()).done();
             }
