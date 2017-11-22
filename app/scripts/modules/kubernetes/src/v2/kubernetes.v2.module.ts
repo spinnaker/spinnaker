@@ -24,6 +24,7 @@ import { KUBERNETES_MANIFEST_RESUME_ROLLOUT_CTRL } from './manifest/rollout/resu
 import { KUBERNETES_MANIFEST_STATUS } from './manifest/status/status.component';
 import { KUBERNETES_MANIFEST_SERVICE } from './manifest/manifest.service';
 import { KUBERNETES_MANIFEST_CONDITION } from './manifest/status/condition.component';
+import { KUBERNETES_MANIFEST_ARTIFACT } from './manifest/artifact/artifact.component';
 
 // load all templates into the $templateCache
 const templates = require.context('kubernetes', true, /\.html$/);
@@ -57,6 +58,7 @@ module(KUBERNETES_V2_MODULE, [
   KUBERNETES_MANIFEST_STATUS,
   KUBERNETES_MANIFEST_CONDITION,
   KUBERNETES_MANIFEST_SERVICE,
+  KUBERNETES_MANIFEST_ARTIFACT,
   require('../securityGroup/reader.js').name,
 ]).config((cloudProviderRegistryProvider: CloudProviderRegistry) => {
     cloudProviderRegistryProvider.registerProvider('kubernetes', {

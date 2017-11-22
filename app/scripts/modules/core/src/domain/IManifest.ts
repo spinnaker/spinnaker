@@ -1,4 +1,5 @@
 import { IMoniker } from 'core/naming/IMoniker';
+import { IArtifact } from 'core/domain';
 
 export interface IManifest {
   name: string;
@@ -8,6 +9,7 @@ export interface IManifest {
   location: string;
   manifest: any;
   status: IManifestStatus;
+  artifacts: IArtifact[];
 }
 
 export interface IManifestStatus {
