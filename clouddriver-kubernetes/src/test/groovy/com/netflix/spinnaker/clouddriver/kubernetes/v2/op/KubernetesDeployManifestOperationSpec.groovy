@@ -50,6 +50,7 @@ class KubernetesDeployManifestOperationSpec extends Specification {
   def VERSION = "version"
   def NAMESPACE = "my-namespace"
   def DEFAULT_NAMESPACE = "default"
+  def IMAGE = "gcr.io/project/image"
   def KIND = KubernetesKind.REPLICA_SET
   def API_VERSION = KubernetesApiVersion.EXTENSIONS_V1BETA1
 
