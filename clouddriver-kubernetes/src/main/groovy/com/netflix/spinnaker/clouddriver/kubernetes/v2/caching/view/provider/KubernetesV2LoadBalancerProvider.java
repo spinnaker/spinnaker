@@ -66,7 +66,7 @@ public class KubernetesV2LoadBalancerProvider implements LoadBalancerProvider<Ku
 
   @Override
   public List<LoadBalancerProvider.Item> list() {
-    throw new NotImplementedException("Not a valid operation");
+    return new ArrayList<>();
   }
 
   @Override
