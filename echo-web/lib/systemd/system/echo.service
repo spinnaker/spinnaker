@@ -1,0 +1,13 @@
+[Unit]
+Description=Spinnaker Echo
+After=network.target
+
+[Service]
+ExecStart=/opt/echo/bin/echo 2>&1 /var/log/spinnaker/echo/echo.log
+WorkingDirectory=/opt/echo/bin
+User=spinnaker
+Group=spinnaker
+Type=simple
+
+[Install]
+WantedBy=multi-user.target
