@@ -46,6 +46,7 @@ export * from './orchestratedItem';
 export * from './overrideRegistry';
 
 export * from './pageTitle';
+export * from './pagerDuty';
 export * from './pipeline';
 export * from './presentation';
 export * from './pubsub';

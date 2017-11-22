@@ -30,6 +30,7 @@ import { ManualJudgmentService } from '../pipeline/config/stages/manualJudgment/
 import { NamingService } from '../naming/naming.service';
 import { NotifierService } from '../widgets/notifier/notifier.service';
 import { OverrideRegistry } from '../overrideRegistry/override.registry';
+import { PagerDutyReader } from '../pagerDuty/pagerDuty.read.service';
 import { PagerDutyWriter } from '../pagerDuty/pagerDuty.write.service';
 import { PipelineConfigProvider } from '../pipeline/config/pipelineConfigProvider';
 import { PipelineConfigService } from '../pipeline/config/services/pipelineConfig.service';
@@ -101,6 +102,7 @@ export class CoreReactInject extends ReactInject {
   public get namingService() { return this.$injector.get('namingService') as NamingService; }
   public get notifierService() { return this.$injector.get('notifierService') as NotifierService; }
   public get overrideRegistry() { return this.$injector.get('overrideRegistry') as OverrideRegistry; }
+  public get pagerDutyReader() { return this.$injector.get('pagerDutyReader') as PagerDutyReader; }
   public get pagerDutyWriter() { return this.$injector.get('pagerDutyWriter') as PagerDutyWriter; }
   public get pipelineConfig() { return this.$injector.get('pipelineConfig') as PipelineConfigProvider; }
   public get pipelineConfigService() { return this.$injector.get('pipelineConfigService') as PipelineConfigService; }
