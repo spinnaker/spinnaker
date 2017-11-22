@@ -70,7 +70,7 @@ public class KubernetesApiClientConfig extends Config {
     try {
       String serviceTokenCandidate = new String(Files.readAllBytes(new File(io.fabric8.kubernetes.client.Config.KUBERNETES_SERVICE_ACCOUNT_TOKEN_PATH).toPath()))
       if (serviceTokenCandidate != null) {
-        client.setAccessToken(serviceTokenCandidate)
+        client.setApiKey("Bearer " + serviceTokenCandidate)
       } else {
         throw new IllegalStateException("Did not find service account token at $io.fabric8.kubernetes.client.Config.KUBERNETES_SERVICE_ACCOUNT_TOKEN_PATH")
       }
