@@ -30,12 +30,17 @@ class ResizeAsgDescriptionPreProcessor implements AtomicOperationDescriptionPreP
   @Override
   Map process(Map description) {
     description.with {
+      def c = contraints ? [constraints: contraints] : [:]
+
       if (!asgs) {
         if (region) {
-          asgs = [[serverGroupName: serverGroupName ?: asgName, region: region, capacity: capacity]]
+          asgs = [
+            [serverGroupName: serverGroupName ?: asgName, region: region, capacity: capacity] + c
+          ]
         } else {
           asgs = regions.collect {
-            [serverGroupName: serverGroupName ?: asgName, region: it, capacity: capacity]
+            [serverGroupName: serverGroupName ?: asgName, region: it, capacity: capacity] + c
+
           }
         }
       }
@@ -46,6 +51,7 @@ class ResizeAsgDescriptionPreProcessor implements AtomicOperationDescriptionPreP
       description.remove("regions")
       description.remove("region")
       description.remove("capacity")
+      description.remove("constraints")
 
       return description
     }

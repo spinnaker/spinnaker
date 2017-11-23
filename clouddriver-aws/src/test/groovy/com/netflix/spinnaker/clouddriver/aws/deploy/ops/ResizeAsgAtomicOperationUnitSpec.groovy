@@ -25,6 +25,7 @@ import com.netflix.spinnaker.clouddriver.aws.deploy.description.ResizeAsgDescrip
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
+import com.netflix.spinnaker.clouddriver.model.ServerGroup
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -77,5 +78,40 @@ class ResizeAsgAtomicOperationUnitSpec extends Specification {
     status     || expectedUpdateCount
     "Deleting" || 0
     null       || 1
+  }
+
+  @Unroll
+  void "should raise exception if expected capacity constraint is violated"() {
+    given:
+    def constraints = capacityConstraint ? new ResizeAsgDescription.Constraints(capacity: capacityConstraint) : null
+    def autoScalingGroup = new AutoScalingGroup()
+      .withMinSize(currentMin)
+      .withMaxSize(currentMax)
+      .withDesiredCapacity(currentDesired)
+
+    when:
+    def exceptionThrown
+    try {
+      ResizeAsgAtomicOperation.validateConstraints(constraints, autoScalingGroup);
+      exceptionThrown = false
+    } catch (Exception ignored) {
+      exceptionThrown = true
+    }
+
+    then:
+    exceptionThrown == expectedExceptionThrown
+
+    where:
+    capacityConstraint   | currentMin | currentMax | currentDesired || expectedExceptionThrown
+    null                 | 1          | 2          | 3              || false
+    capacity(1, 2, 3)    | 1          | 2          | 3              || false
+    capacity(1, 2, 0)    | 1          | 2          | 3              || true
+    capacity(1, 0, 3)    | 1          | 2          | 3              || true
+    capacity(0, 2, 3)    | 1          | 2          | 3              || true
+  }
+
+
+  private static ResizeAsgDescription.Capacity capacity(int min, int max, int desired) {
+    return new ResizeAsgDescription.Capacity(min: min, max: max, desired: desired)
   }
 }

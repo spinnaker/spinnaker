@@ -20,6 +20,7 @@ class ResizeAsgDescription extends AbstractAmazonCredentialsDescription {
 
   String serverGroupName
   String region
+
   Capacity capacity = new Capacity()
 
   List<AsgTargetDescription> asgs = []
@@ -41,8 +42,13 @@ class ResizeAsgDescription extends AbstractAmazonCredentialsDescription {
     }
   }
 
+  static class Constraints {
+    Capacity capacity
+  }
+
   static class AsgTargetDescription extends AsgDescription {
     Capacity capacity = new Capacity()
+    Constraints constraints = new Constraints()
 
     @Override
     String toString() {

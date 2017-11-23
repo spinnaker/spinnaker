@@ -16,8 +16,10 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops
 
+import com.amazonaws.services.autoscaling.model.AutoScalingGroup
 import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsRequest
 import com.amazonaws.services.autoscaling.model.UpdateAutoScalingGroupRequest
+import com.netflix.config.validation.ValidationException
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.ResizeAsgDescription
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.data.task.Task
@@ -47,13 +49,16 @@ class ResizeAsgAtomicOperation implements AtomicOperation<Void> {
     task.updateStatus PHASE, "Initializing Resize ASG operation for $descriptor..."
 
     for (asg in description.asgs) {
-      resizeAsg(asg.serverGroupName, asg.region, asg.capacity)
+      resizeAsg(asg.serverGroupName, asg.region, asg.capacity, asg.constraints)
     }
     task.updateStatus PHASE, "Finished Resize ASG operation for $descriptor."
     null
   }
 
-  private void resizeAsg(String asgName, String region, ResizeAsgDescription.Capacity capacity) {
+  private void resizeAsg(String asgName,
+                         String region,
+                         ResizeAsgDescription.Capacity capacity,
+                         ResizeAsgDescription.Constraints constraints) {
     task.updateStatus PHASE, "Beginning resize of ${asgName} in ${region} to ${capacity}."
     def autoScaling = amazonClientProvider.getAutoScaling(description.credentials, region, true)
     def describeAutoScalingGroups = autoScaling.describeAutoScalingGroups(
@@ -64,11 +69,45 @@ class ResizeAsgAtomicOperation implements AtomicOperation<Void> {
       return
     }
 
+    validateConstraints(constraints, describeAutoScalingGroups.getAutoScalingGroups().get(0))
+
     def request = new UpdateAutoScalingGroupRequest().withAutoScalingGroupName(asgName)
-        .withMinSize(capacity.min).withMaxSize(capacity.max)
+        .withMinSize(capacity.min)
+        .withMaxSize(capacity.max)
         .withDesiredCapacity(capacity.desired)
 
     autoScaling.updateAutoScalingGroup request
     task.updateStatus PHASE, "Completed resize of ${asgName} in ${region}."
+  }
+
+  static void validateConstraints(ResizeAsgDescription.Constraints constraints, AutoScalingGroup autoScalingGroup) {
+    if (!constraints?.capacity) {
+      // no constraints specified, we're ok!
+      return
+    }
+
+    def current = [
+      min    : autoScalingGroup.minSize,
+      desired: autoScalingGroup.desiredCapacity,
+      max    : autoScalingGroup.maxSize
+    ]
+
+    def expected = [
+      min    : constraints.capacity.min,
+      desired: constraints.capacity.desired,
+      max    : constraints.capacity.max
+    ]
+
+    boolean hasViolation = expected.find { it.value != null && current[it.key] != it.value }
+    if (hasViolation) {
+      throw new IllegalStateException(
+        String.format(
+          "Expected capacity constraint violated (expected: %s, was: %s)",
+          expected,
+          current,
+          autoScalingGroup.autoScalingGroupName
+        )
+      )
+    }
   }
 }
