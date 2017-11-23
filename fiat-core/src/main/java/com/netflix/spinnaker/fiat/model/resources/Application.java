@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.fiat.model.resources;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.google.common.collect.Sets;
 import com.netflix.spinnaker.fiat.model.Authorization;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -34,8 +35,8 @@ public class Application extends BaseAccessControlled implements Viewable {
   private Permissions permissions = Permissions.EMPTY;
   
   @JsonIgnore
-  public View getView(Set<Role> userRoles) {
-    return new View(this, userRoles);
+  public View getView(Set<Role> userRoles, boolean isAdmin) {
+    return new View(this, userRoles, isAdmin);
   }
 
   @Data
@@ -45,9 +46,13 @@ public class Application extends BaseAccessControlled implements Viewable {
     String name;
     Set<Authorization> authorizations;
 
-    public View(Application application, Set<Role> userRoles) {
+    public View(Application application, Set<Role> userRoles, boolean isAdmin) {
       this.name = application.name;
-      this.authorizations = application.permissions.getAuthorizations(userRoles);
+      if (isAdmin) {
+        this.authorizations = Sets.newHashSet(Authorization.READ, Authorization.WRITE);
+      } else {
+        this.authorizations = application.permissions.getAuthorizations(userRoles);
+      }
     }
   }
 }

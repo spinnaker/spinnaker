@@ -43,6 +43,7 @@ public class UserPermission {
   private Set<Application> applications = new LinkedHashSet<>();
   private Set<ServiceAccount> serviceAccounts = new LinkedHashSet<>();
   private Set<Role> roles = new LinkedHashSet<>();
+  private boolean admin = false;
 
   public void addResource(Resource resource) {
     addResources(Collections.singleton(resource));
@@ -104,19 +105,21 @@ public class UserPermission {
     Set<Application.View> applications;
     Set<ServiceAccount.View> serviceAccounts;
     Set<Role.View> roles;
+    boolean admin;
 
     public View(UserPermission permission) {
       this.name = permission.id;
 
       Function<Set<? extends Viewable>, Set<? extends Viewable.BaseView>> toViews = sourceSet ->
           sourceSet.stream()
-                   .map(viewable -> viewable.getView(permission.getRoles()))
+                   .map(viewable -> viewable.getView(permission.getRoles(), permission.isAdmin()))
                    .collect(Collectors.toSet());
 
       this.accounts = (Set<Account.View>) toViews.apply(permission.getAccounts());
       this.applications = (Set<Application.View>) toViews.apply(permission.getApplications());
       this.serviceAccounts = (Set<ServiceAccount.View>) toViews.apply(permission.getServiceAccounts());
       this.roles = (Set<Role.View>) toViews.apply((permission.getRoles()));
+      this.admin = permission.isAdmin();
     }
   }
 }

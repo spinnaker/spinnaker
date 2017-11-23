@@ -76,14 +76,14 @@ class BaseProviderSpec extends Specification {
 
     when:
     provider.all = [noReqGroups]
-    def result = provider.getAllRestricted([new Role("group1")] as Set)
+    def result = provider.getAllRestricted([new Role("group1")] as Set, false)
 
     then:
     result.isEmpty()
 
     when:
     provider.all = [reqGroup1]
-    result = provider.getAllRestricted([new Role("group1")] as Set)
+    result = provider.getAllRestricted([new Role("group1")] as Set, false)
 
     then:
     result.size() == 1
@@ -91,21 +91,21 @@ class BaseProviderSpec extends Specification {
 
     when:
     provider.all = [reqGroup1and2]
-    result = provider.getAllRestricted([new Role("group1")] as Set)
+    result = provider.getAllRestricted([new Role("group1")] as Set, false)
 
     then:
     result.size() == 1
     result.first() == reqGroup1and2
 
     when: "use additional groups that grants additional authorizations."
-    result = provider.getAllRestricted([new Role("group1"), new Role("group2")] as Set)
+    result = provider.getAllRestricted([new Role("group1"), new Role("group2")] as Set, false)
 
     then:
     result.size() == 1
     result.first() == reqGroup1and2
 
     when:
-    provider.getAllRestricted(null)
+    provider.getAllRestricted(null, false)
 
     then:
     thrown IllegalArgumentException

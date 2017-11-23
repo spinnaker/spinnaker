@@ -53,12 +53,12 @@ public class DefaultServiceAccountProvider extends BaseProvider<ServiceAccount> 
   }
 
   @Override
-  public Set<ServiceAccount> getAllRestricted(@NonNull Set<Role> roles) throws ProviderException {
+  public Set<ServiceAccount> getAllRestricted(@NonNull Set<Role> roles, boolean isAdmin) throws ProviderException {
     List<String> roleNames = roles.stream().map(Role::getName).collect(Collectors.toList());
     return getAll()
         .stream()
         .filter(svcAcct -> !svcAcct.getMemberOf().isEmpty())
-        .filter(svcAcct -> roleNames.containsAll(svcAcct.getMemberOf()))
+        .filter(svcAcct -> roleNames.containsAll(svcAcct.getMemberOf()) || isAdmin)
         .collect(Collectors.toSet());
   }
 

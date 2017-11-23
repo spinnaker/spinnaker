@@ -70,6 +70,7 @@ public class RedisPermissionsRepository implements PermissionsRepository {
   private static final String KEY_PERMISSIONS = "permissions";
   private static final String KEY_ROLES = "roles";
   private static final String KEY_ALL_USERS = "users";
+  private static final String KEY_ADMIN = "admin";
 
   private static final String UNRESTRICTED = UnrestrictedResourceConfig.UNRESTRICTED_USERNAME;
 
@@ -109,6 +110,12 @@ public class RedisPermissionsRepository implements PermissionsRepository {
       String userId = permission.getId();
       insertNewValuesPipeline.sadd(allUsersKey(), userId);
 
+      if (permission.isAdmin()) {
+        insertNewValuesPipeline.sadd(adminKey(), userId);
+      } else {
+        deleteOldValuesPipeline.srem(adminKey(), userId);
+      }
+
       permission.getRoles().forEach(role -> insertNewValuesPipeline.sadd(roleKey(role), userId));
 
       for (ResourceType r : ResourceType.values()) {
@@ -143,12 +150,14 @@ public class RedisPermissionsRepository implements PermissionsRepository {
         Response<Map<String, String>> unrestrictedMap = p.hgetAll(unrestrictedUserKey(r));
         unrestrictedResponseMap.put(r, unrestrictedMap);
       }
+      Response<Boolean> admin = p.sismember(adminKey(), id);
       p.sync();
 
       if (!isUserInRepo.get()) {
         return Optional.empty();
       }
 
+      userResponseMap.isAdmin = admin.get();
       UserPermission unrestrictedUser = getUserPermission(UNRESTRICTED, unrestrictedResponseMap);
       return Optional.of(getUserPermission(id, userResponseMap).merge(unrestrictedUser));
     } catch (Exception e) {
@@ -168,9 +177,11 @@ public class RedisPermissionsRepository implements PermissionsRepository {
 
     RawUserPermission rawUnrestricted = new RawUserPermission(responseTable.row(UNRESTRICTED));
     UserPermission unrestrictedUser = getUserPermission(UNRESTRICTED, rawUnrestricted);
+    Set<String> adminSet = getAllAdmins();
 
     for (String userId : responseTable.rowKeySet()) {
       RawUserPermission rawUser = new RawUserPermission(responseTable.row(userId));
+      rawUser.isAdmin = adminSet.contains(userId);
       UserPermission permission = getUserPermission(userId, rawUser);
       allById.put(userId, permission.merge(unrestrictedUser));
     }
@@ -213,11 +224,13 @@ public class RedisPermissionsRepository implements PermissionsRepository {
 
       RawUserPermission rawUnrestricted = new RawUserPermission(responseTable.row(UNRESTRICTED));
       UserPermission unrestrictedUser = getUserPermission(UNRESTRICTED, rawUnrestricted);
+      Set<String> adminSet = getAllAdmins();
 
       return dedupedUsernames
           .stream()
           .map(userId -> {
             RawUserPermission rawUser = new RawUserPermission(responseTable.row(userId));
+            rawUser.isAdmin = adminSet.contains(userId);
             return getUserPermission(userId, rawUser);
           })
           .collect(Collectors.toMap(UserPermission::getId,
@@ -235,6 +248,7 @@ public class RedisPermissionsRepository implements PermissionsRepository {
       Map<String /*resourceName*/, String /*resource json*/> resourceMap = entry.getValue().get();
       permission.addResources(extractResources(r, resourceMap));
     }
+    permission.setAdmin(raw.isAdmin);
 
     return permission;
   }
@@ -288,9 +302,16 @@ public class RedisPermissionsRepository implements PermissionsRepository {
       for (ResourceType r : ResourceType.values()) {
         p.del(userKey(id, r));
       }
+      p.srem(adminKey(), id);
       p.sync();
     } catch (Exception e) {
       log.error("Storage exception reading " + id + " entry.", e);
+    }
+  }
+
+  private Set<String> getAllAdmins() {
+    try (Jedis jedis = jedisSource.getJedis()) {
+      return jedis.smembers(adminKey());
     }
   }
 
@@ -304,6 +325,10 @@ public class RedisPermissionsRepository implements PermissionsRepository {
 
   private String userKey(String userId, ResourceType r) {
     return String.format("%s:%s:%s:%s", prefix, KEY_PERMISSIONS, userId, r.keySuffix());
+  }
+
+  private String adminKey() {
+    return String.format("%s:%s:%s", prefix, KEY_PERMISSIONS, KEY_ADMIN);
   }
 
   private String roleKey(Role role) {
@@ -342,6 +367,8 @@ public class RedisPermissionsRepository implements PermissionsRepository {
   }
 
   private class RawUserPermission extends HashMap<ResourceType, Response<Map<String, String>>> {
+
+    private boolean isAdmin = false;
 
     RawUserPermission() {
       super();

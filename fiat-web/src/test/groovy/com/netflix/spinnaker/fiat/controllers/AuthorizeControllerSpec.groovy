@@ -181,14 +181,14 @@ class AuthorizeControllerSpec extends Specification {
 
     then:
     1 * repository.get("foo") >> Optional.of(foo)
-    result == [bar.getView([] as Set)] as Set
+    result == [bar.getView([] as Set, false)] as Set
 
     when:
     result = controller.getUserAccount("foo", "bar")
 
     then:
     1 * repository.get("foo") >> Optional.of(foo)
-    result == bar.getView([] as Set)
+    result == bar.getView([] as Set, false)
   }
 
   def "should get service accounts from repo"() {
@@ -197,7 +197,7 @@ class AuthorizeControllerSpec extends Specification {
     permissionsRepository.put(roleServiceAccountUser)
 
     when:
-    def expected = objectMapper.writeValueAsString([serviceAccount.getView([] as Set)])
+    def expected = objectMapper.writeValueAsString([serviceAccount.getView([] as Set, false)])
 
     then:
     mockMvc.perform(get("/authorize/roleServiceAccountUser/serviceAccounts"))
@@ -205,7 +205,7 @@ class AuthorizeControllerSpec extends Specification {
            .andExpect(content().json(expected))
 
     when:
-    expected = objectMapper.writeValueAsString(serviceAccount.getView([] as Set))
+    expected = objectMapper.writeValueAsString(serviceAccount.getView([] as Set, false))
 
     then:
     mockMvc.perform(get("/authorize/roleServiceAccountUser/serviceAccounts/svcAcct"))
@@ -219,7 +219,7 @@ class AuthorizeControllerSpec extends Specification {
     permissionsRepository.put(roleAroleBUser)
 
     when:
-    def expected = objectMapper.writeValueAsString(roleAUser.getRoles()*.getView([] as Set))
+    def expected = objectMapper.writeValueAsString(roleAUser.getRoles()*.getView([] as Set, false))
 
     then:
     mockMvc.perform(get("/authorize/roleAUser/roles"))
@@ -227,7 +227,7 @@ class AuthorizeControllerSpec extends Specification {
            .andExpect(content().json(expected))
 
     when:
-    expected = objectMapper.writeValueAsString(roleAroleBUser.getRoles()*.getView([] as Set))
+    expected = objectMapper.writeValueAsString(roleAroleBUser.getRoles()*.getView([] as Set, false))
 
     then:
     mockMvc.perform(get("/authorize/roleAroleBUser/roles"))

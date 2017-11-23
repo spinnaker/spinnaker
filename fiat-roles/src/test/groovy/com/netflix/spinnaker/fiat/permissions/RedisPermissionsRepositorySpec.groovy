@@ -102,6 +102,7 @@ class RedisPermissionsRepositorySpec extends Specification {
         ['serviceAccount': '{"name":"serviceAccount","memberOf":["role1"]}']
     jedis.hgetAll("unittests:permissions:testUser:roles") ==
         ['role1': '{"name":"role1"}']
+    !jedis.sismember ("unittests:permissions:admin","testUser")
   }
 
   def "should remove permission that has been revoked"() {
@@ -173,7 +174,7 @@ class RedisPermissionsRepositorySpec extends Specification {
 
   def "should get all users from redis"() {
     setup:
-    jedis.sadd("unittests:users", "testUser1", "testUser2");
+    jedis.sadd("unittests:users", "testUser1", "testUser2", "testUser3");
 
     and:
     Account account1 = new Account().setName("account1")
@@ -202,6 +203,8 @@ class RedisPermissionsRepositorySpec extends Specification {
     jedis.hset("unittests:permissions:testUser2:service_accounts",
                "serviceAccount2",
                '{"name":"serviceAccount2"}')
+    and:
+    jedis.sadd("unittests:permissions:admin", "testUser3")
 
     when:
     def result = repo.getAllById();
@@ -215,7 +218,9 @@ class RedisPermissionsRepositorySpec extends Specification {
                                         .setAccounts([account2] as Set)
                                         .setApplications([app2] as Set)
                                         .setServiceAccounts([serviceAccount2] as Set)
-    result == ["testUser1": testUser1, "testUser2": testUser2]
+    def testUser3 = new UserPermission().setId("testUser3")
+                                        .setAdmin(true)
+    result == ["testUser1": testUser1, "testUser2": testUser2, "testUser3": testUser3]
   }
 
   def "should delete the specified user"() {
@@ -231,10 +236,12 @@ class RedisPermissionsRepositorySpec extends Specification {
                  .setId("testUser")
                  .setAccounts([account1] as Set)
                  .setApplications([app1] as Set)
-                 .setRoles([role1] as Set))
+                 .setRoles([role1] as Set)
+                 .setAdmin(true))
 
     then:
-    jedis.keys("*").size() == 5 // users, accounts, applications, roles, and reverse-index roles.
+    jedis.keys("*").size() == 6 // users, accounts, applications, roles, and reverse-index roles.
+    jedis.sismember("unittests:permissions:admin", "testUser")
 
     when:
     repo.remove("testUser")

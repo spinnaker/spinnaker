@@ -34,8 +34,11 @@ class DefaultServiceAccountProviderSpec extends Specification {
   ServiceAccount bAcct = new ServiceAccount(name: "b", memberOf: ["a", "b"])
 
   @Shared
+  ServiceAccount cAcct = new ServiceAccount(name: "c", memberOf: [])
+
+  @Shared
   Front50Service front50Service = Mock(Front50Service) {
-    getAllServiceAccounts() >> [aAcct, bAcct]
+    getAllServiceAccounts() >> [aAcct, bAcct, cAcct]
   }
 
   @Subject
@@ -44,24 +47,26 @@ class DefaultServiceAccountProviderSpec extends Specification {
   @Unroll
   def "should return all accounts the specified groups has access to"() {
     when:
-    def result = provider.getAllRestricted(input.collect { new Role(it) } as Set)
+    def result = provider.getAllRestricted(input.collect { new Role(it) } as Set, isAdmin)
 
     then:
     CollectionUtils.disjunction(result, expected).isEmpty()
 
     when:
-    provider.getAllRestricted(null)
+    provider.getAllRestricted(null, false)
 
     then:
     thrown IllegalArgumentException
 
     where:
-    input           || expected
-    []              || []
-    ["a"]           || [aAcct]
-    ["b"]           || []
-    ["c"]           || []
-    ["a", "b"]      || [aAcct, bAcct]
-    ["a", "b", "c"] || [aAcct, bAcct]
+    input           | isAdmin || expected
+    []              | false   || []
+    ["a"]           | false   || [aAcct]
+    ["b"]           | false   || []
+    ["c"]           | false   || []
+    ["a", "b"]      | false   || [aAcct, bAcct]
+    ["a", "b", "c"] | false   || [aAcct, bAcct]
+    []              | true    || [aAcct, bAcct]
+    []              | true    || [aAcct, bAcct]
   }
 }

@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.fiat.permissions
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.fiat.config.FiatAdminConfig
 import com.netflix.spinnaker.fiat.model.UserPermission
 import com.netflix.spinnaker.fiat.model.resources.Account
 import com.netflix.spinnaker.fiat.model.resources.Application
@@ -80,6 +81,7 @@ class DefaultPermissionsResolverSpec extends Specification {
     @Subject DefaultPermissionsResolver resolver = new DefaultPermissionsResolver()
         .setResourceProviders(resourceProviders)
         .setMapper(new ObjectMapper())
+        .setFiatAdminConfig(new FiatAdminConfig())
 
     when:
     def result = resolver.resolveUnrestrictedUser()
@@ -97,6 +99,7 @@ class DefaultPermissionsResolverSpec extends Specification {
     @Subject DefaultPermissionsResolver resolver = new DefaultPermissionsResolver()
         .setUserRolesProvider(userRolesProvider)
         .setResourceProviders(resourceProviders)
+        .setFiatAdminConfig(new FiatAdminConfig())
 
     def role1 = new Role("group1")
     def role2 = new Role("gRoUP2") // to test case insensitivity.
@@ -146,6 +149,34 @@ class DefaultPermissionsResolverSpec extends Specification {
     result == expected
   }
 
+  def "user should be admin"() {
+    FiatAdminConfig fiatAdminConfig = new FiatAdminConfig()
+    fiatAdminConfig.getAdmin().getRoles().add("delivery-team")
+
+    def testUserId = "testUserId"
+    UserRolesProvider userRolesProvider = Mock(UserRolesProvider)
+
+    @Subject DefaultPermissionsResolver resolver = new DefaultPermissionsResolver()
+            .setUserRolesProvider(userRolesProvider)
+            .setResourceProviders(resourceProviders)
+            .setFiatAdminConfig(fiatAdminConfig)
+
+    def role1 = new Role("delivery-team")
+    def testUser = new ExternalUser().setId(testUserId).setExternalRoles([role1])
+
+    when:
+    def result = resolver.resolveAndMerge(testUser)
+
+    then:
+    1 * userRolesProvider.loadRoles(testUserId) >> [role1]
+    def expected = new UserPermission().setId("testUserId")
+    expected.setRoles([role1] as Set).setAdmin(true)
+            .setServiceAccounts([group1SvcAcct, group2SvcAcct] as Set)
+            .setAccounts([reqGroup1Acct, reqGroup1and2Acct] as Set)
+    result == expected
+
+  }
+
   def "should resolve all user's permissions"() {
     setup:
     UserRolesProvider userRolesProvider = Mock(UserRolesProvider)
@@ -153,6 +184,7 @@ class DefaultPermissionsResolverSpec extends Specification {
         .setUserRolesProvider(userRolesProvider)
         .setResourceProviders(resourceProviders)
         .setMapper(new ObjectMapper())
+        .setFiatAdminConfig(new FiatAdminConfig())
 
     def role1 = new Role("group1")
     def role2 = new Role("group2")

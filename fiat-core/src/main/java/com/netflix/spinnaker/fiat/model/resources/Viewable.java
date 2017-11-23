@@ -19,7 +19,7 @@ package com.netflix.spinnaker.fiat.model.resources;
 import java.util.Set;
 
 public interface Viewable {
-  BaseView getView(Set<Role> userRoles);
+  BaseView getView(Set<Role> userRoles, boolean isAdmin);
 
   // Empty class used for referencing Resource-specific View objects.
   class BaseView {

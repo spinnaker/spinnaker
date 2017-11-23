@@ -57,7 +57,7 @@ public class Role implements Resource, Viewable {
   }
 
   @JsonIgnore
-  public View getView(Set<Role> ignored) {
+  public View getView(Set<Role> ignored, boolean isAdmin) {
     return new View(this);
   }
 

@@ -19,6 +19,7 @@ package com.netflix.spinnaker.fiat.permissions;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
+import com.netflix.spinnaker.fiat.config.FiatAdminConfig;
 import com.netflix.spinnaker.fiat.config.UnrestrictedResourceConfig;
 import com.netflix.spinnaker.fiat.model.UserPermission;
 import com.netflix.spinnaker.fiat.model.resources.Resource;
@@ -59,6 +60,10 @@ public class DefaultPermissionsResolver implements PermissionsResolver {
   private List<ResourceProvider<? extends Resource>> resourceProviders;
 
   @Autowired
+  @Setter
+  private FiatAdminConfig fiatAdminConfig;
+
+  @Autowired
   @Qualifier("objectMapper")
   @Setter
   private ObjectMapper mapper;
@@ -90,16 +95,23 @@ public class DefaultPermissionsResolver implements PermissionsResolver {
     return getUserPermission(user.getId(), combo);
   }
 
+  private boolean resolveAdminRole(Set<Role> roles) {
+    List<String> adminRoles = fiatAdminConfig.getAdmin().getRoles();
+    return roles.stream().map(Role::getName).anyMatch(adminRoles::contains);
+  }
+
   @SuppressWarnings("unchecked")
   private UserPermission getUserPermission(String userId, Set<Role> roles) {
-    UserPermission permission = new UserPermission().setId(userId).setRoles(roles);
+    UserPermission permission = new UserPermission().setId(userId)
+                                                    .setRoles(roles)
+                                                    .setAdmin(resolveAdminRole(roles));
 
     for (ResourceProvider provider : resourceProviders) {
       try {
         if (UnrestrictedResourceConfig.UNRESTRICTED_USERNAME.equalsIgnoreCase(userId)) {
           permission.addResources(provider.getAllUnrestricted());
         } else if (!roles.isEmpty()) {
-          permission.addResources(provider.getAllRestricted(roles));
+          permission.addResources(provider.getAllRestricted(roles, permission.isAdmin()));
         }
       } catch (ProviderException pe) {
         throw new PermissionResolutionException(pe);
@@ -122,7 +134,8 @@ public class DefaultPermissionsResolver implements PermissionsResolver {
 
           return new UserPermission().setId(username)
                                      .setRoles(userRoles)
-                                     .addResources(getResources(userRoles));
+                                     .setAdmin(resolveAdminRole(userRoles))
+                                     .addResources(getResources(userRoles, resolveAdminRole(userRoles)));
         })
         .collect(Collectors.toMap(UserPermission::getId, Function.identity()));
   }
@@ -150,12 +163,12 @@ public class DefaultPermissionsResolver implements PermissionsResolver {
     return userToRoles;
   }
 
-  private Set<Resource> getResources(Set<Role> roles) {
+  private Set<Resource> getResources(Set<Role> roles, boolean isAdmin) {
     return resourceProviders
         .stream()
         .flatMap(provider -> {
           try {
-            return provider.getAllRestricted(roles).stream();
+            return provider.getAllRestricted(roles, isAdmin).stream();
           } catch (ProviderException pe) {
             throw new PermissionResolutionException(pe);
           }
