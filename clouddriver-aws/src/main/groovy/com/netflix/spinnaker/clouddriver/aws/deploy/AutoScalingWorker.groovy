@@ -30,6 +30,8 @@ import com.netflix.spinnaker.clouddriver.aws.model.AutoScalingProcessType
 import com.netflix.spinnaker.clouddriver.aws.model.SubnetData
 import com.netflix.spinnaker.clouddriver.aws.model.SubnetTarget
 import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactory
+import com.netflix.spinnaker.kork.core.RetrySupport
+
 /**
  * A worker class dedicated to the deployment of "applications", following many of Netflix's common AWS conventions.
  *
@@ -41,6 +43,8 @@ class AutoScalingWorker {
   private static Task getTask() {
     TaskRepository.threadLocalTask.get()
   }
+
+  private final RetrySupport retrySupport = new RetrySupport()
 
   private String application
   private String region
@@ -86,7 +90,6 @@ class AutoScalingWorker {
   private RegionScopedProviderFactory.RegionScopedProvider regionScopedProvider
 
   AutoScalingWorker() {
-
   }
 
   /**
@@ -229,7 +232,8 @@ class AutoScalingWorker {
     }
 
     def autoScaling = regionScopedProvider.autoScaling
-    autoScaling.createAutoScalingGroup(request)
+    retrySupport.retry({ -> autoScaling.createAutoScalingGroup(request) }, 5, 1000, true)
+
     if (suspendedProcesses) {
       autoScaling.suspendProcesses(new SuspendProcessesRequest(autoScalingGroupName: asgName, scalingProcesses: suspendedProcesses))
     }
@@ -240,8 +244,17 @@ class AutoScalingWorker {
         .withGranularity('1Minute')
         .withMetrics(enabledMetrics))
     }
-    autoScaling.updateAutoScalingGroup(new UpdateAutoScalingGroupRequest(autoScalingGroupName: asgName,
-      minSize: minInstances, maxSize: maxInstances, desiredCapacity: desiredInstances))
+
+    retrySupport.retry({ ->
+      autoScaling.updateAutoScalingGroup(
+        new UpdateAutoScalingGroupRequest(
+          autoScalingGroupName: asgName,
+          minSize: minInstances,
+          maxSize: maxInstances,
+          desiredCapacity: desiredInstances
+        )
+      )
+    }, 5, 1000, true)
 
     asgName
   }
