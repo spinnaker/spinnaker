@@ -42,8 +42,8 @@ describe('PagerDutyReader', () => {
   it('should return a non-empty array when configured to do so and invoked', () => {
 
     const services: IPagerDutyService[] = [
-      { name: 'one', integration_key: 'one_key', id: '1', policy: 'ABCDEF' },
-      { name: '2', integration_key: 'two_key', id: '2', policy: 'ABCDEG' }
+      { name: 'one', integration_key: 'one_key', id: '1', policy: 'ABCDEF', lastIncidentTimestamp: '1970' },
+      { name: '2', integration_key: 'two_key', id: '2', policy: 'ABCDEG', lastIncidentTimestamp: '1970' }
     ];
     $http.whenGET(`${API.baseUrl}/pagerDuty/services`).respond(200, services);
 

@@ -10,9 +10,9 @@ describe('PagerDutyTagComponent', () => {
       pagerDutyReader: PagerDutyReader;
 
   const services: IPagerDutyService[] = [
-    { name: 'name1', integration_key: 'integrationKey1', id: '1', policy: 'ABCDEF' },
-    { name: 'name2', integration_key: 'integrationKey2', id: '2', policy: 'ABCDEG' },
-    { name: 'name3', integration_key: 'integrationKey3', id: '3', policy: 'ABCDEH' }
+    { name: 'name1', integration_key: 'integrationKey1', id: '1', policy: 'ABCDEF', lastIncidentTimestamp: '1970' },
+    { name: 'name2', integration_key: 'integrationKey2', id: '2', policy: 'ABCDEG', lastIncidentTimestamp: '1970' },
+    { name: 'name3', integration_key: 'integrationKey3', id: '3', policy: 'ABCDEH', lastIncidentTimestamp: '1970' }
   ];
 
   const initialize = (apiKey: string) => {

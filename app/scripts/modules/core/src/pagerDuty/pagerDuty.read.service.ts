@@ -6,6 +6,7 @@ import { Api, API_SERVICE } from '@spinnaker/core';
 export interface IPagerDutyService {
   id: string;
   integration_key: string;
+  lastIncidentTimestamp: string;
   name: string;
   policy: string;
 }
