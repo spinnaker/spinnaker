@@ -26,9 +26,9 @@ module.exports = angular.module('spinnaker.core.instance.details.console.control
     );
 
     $scope.close = $uibModalInstance.dismiss;
-    
+
     $scope.jumpToEnd = () => {
-      const console = document.getElementById("console-output");
+      const console = document.getElementById('console-output');
       console.scrollTop = console.scrollHeight;
     };
 
