@@ -21,7 +21,7 @@ module.exports = angular
     };
 
     let loadExecutions = (application) => {
-      return executionService.getExecutions(application.name);
+      return executionService.getExecutions(application.name, application);
     };
 
     let loadPipelineConfigs = (application) => {

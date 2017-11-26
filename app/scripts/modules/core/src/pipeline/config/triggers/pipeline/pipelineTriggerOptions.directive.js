@@ -54,7 +54,7 @@ module.exports = angular
         return;
       }
       this.viewState.executionsLoading = true;
-      executionService.getExecutions(command.trigger.application, {statuses: []})
+      executionService.getExecutions(command.trigger.application)
         .then(executionLoadSuccess, executionLoadFailure);
     };
 

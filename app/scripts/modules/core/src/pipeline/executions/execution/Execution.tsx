@@ -181,7 +181,11 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
         executionService.getExecution(execution.id).then((updated: IExecution) => {
           if (this.mounted) {
             const dataSource = application.getDataSource(this.props.dataSourceKey);
-            executionService.updateExecution(application, updated, dataSource);
+            // if we are already in the middle of a refresh, leave the running execution alone,
+            // lest we trigger a dataUpdated event and clear the reloadingForFilters flag
+            if (!this.props.application.executions.reloadingForFilters) {
+              executionService.updateExecution(application, updated, dataSource);
+            }
             executionService.removeCompletedExecutionsFromRunningData(application);
           }
           refreshing = false;

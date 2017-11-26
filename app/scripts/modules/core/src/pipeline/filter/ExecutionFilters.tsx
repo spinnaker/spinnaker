@@ -78,13 +78,13 @@ export class ExecutionFilters extends React.Component<IExecutionFiltersProps, IE
   private refreshExecutions(): void {
     ReactInjector.executionFilterModel.asFilterModel.applyParamsToUrl();
     this.props.application.executions.reloadingForFilters = true;
-    this.props.application.executions.refresh();
+    this.props.application.executions.refresh(true);
   }
 
   private clearFilters(): void {
     ReactGA.event({ category: 'Pipelines', action: `Filter: clear all (side nav)` });
     ReactInjector.executionFilterService.clearFilters();
-    ReactInjector.executionFilterService.updateExecutionGroups(this.props.application);
+    this.refreshExecutions();
   }
 
   private getPipelineNames(): string[] {
@@ -188,7 +188,7 @@ export class ExecutionFilters extends React.Component<IExecutionFiltersProps, IE
                 <Pipelines
                   names={pipelineNames}
                   dragEnabled={pipelineReorderEnabled}
-                  update={this.updateExecutionGroups}
+                  update={this.refreshExecutions}
                   onSortEnd={this.handleSortEnd}
                 />
                 { pipelineNames.length && (

@@ -1,4 +1,4 @@
-import { ILogService, IPromise, IQService, IScope } from 'angular';
+import { IDeferred, ILogService, IPromise, IQService, IScope } from 'angular';
 import { get } from 'lodash';
 import { UIRouter } from '@uirouter/core';
 import { Subject, Subscription } from 'rxjs';
@@ -258,9 +258,22 @@ export class ApplicationDataSource implements IDataSourceConfig {
    */
   public lastRefresh: number;
 
-  private refreshStream: Subject<any> = new Subject();
+  private refreshStream: Subject<void> = new Subject();
 
   private refreshFailureStream: Subject<any> = new Subject();
+
+  /**
+   * Simple counter used to track the most recent refresh call to avoid data stomping
+   * when multiple force refresh calls occur
+   * (will go away when we switch from Promises to Observables)
+   */
+  private currentLoadCall = 0;
+
+  /**
+   * Dumb queue to fire when the most recent refresh call finishes
+   * (will go away when we switch from Promises to Observables)
+   */
+  private refreshQueue: IDeferred<void>[] = [];
 
   /**
    * Called when a method mutates some item in the data source's data, e.g. when a running execution is updated
@@ -365,8 +378,8 @@ export class ApplicationDataSource implements IDataSourceConfig {
    *
    * @returns {IPromise<T>}
    */
-  public ready(): IPromise<any> {
-    const deferred = this.$q.defer();
+  public ready(): IPromise<void> {
+    const deferred = this.$q.defer<void>();
     if (this.disabled || this.loaded || (this.lazy && !this.active)) {
       deferred.resolve();
     } else if (this.loadFailure) {
@@ -394,7 +407,7 @@ export class ApplicationDataSource implements IDataSourceConfig {
    * to true, and the promise will resolve immediately.
    *
    * If the data source is lazy and its "active" flag is set to false, any existing data will be cleared, the "loaded"
-   * flag will be set to false, adn the promise will resolve immediately.
+   * flag will be set to false, and the promise will resolve immediately.
    *
    * If the data source is in the process of loading, the promise will resolve immediately. This behavior can be
    * overridden by calling "refresh(true)".
@@ -402,7 +415,9 @@ export class ApplicationDataSource implements IDataSourceConfig {
    * @param forceRefresh
    * @returns {any}
    */
-  public refresh(forceRefresh?: boolean): IPromise<any> {
+  public refresh(forceRefresh?: boolean): IPromise<void> {
+    const deferred = this.$q.defer<void>();
+    this.refreshQueue.push(deferred);
     if (!this.loader || this.disabled) {
       this.data.length = 0;
       this.loading = false;
@@ -419,8 +434,17 @@ export class ApplicationDataSource implements IDataSourceConfig {
       return this.$q.when(null);
     }
     this.loading = true;
-    return this.loader(this.application)
+
+    this.currentLoadCall += 1;
+    const loadCall = this.currentLoadCall;
+    this.loader(this.application)
       .then((result) => {
+        if (loadCall < this.currentLoadCall) {
+          // discard, more recent call has come in
+          // TODO: this will all be cleaner with Observables
+          this.$log.debug(`Discarding load #${loadCall} for ${this.key} - current is #${this.currentLoadCall}`);
+          return;
+        }
         this.onLoad(this.application, result).then(data => {
           if (data) {
             this.data = data;
@@ -435,13 +459,21 @@ export class ApplicationDataSource implements IDataSourceConfig {
           this.addAlerts();
           this.dataUpdated();
         });
+        this.refreshQueue.forEach(d => d.resolve());
+        this.refreshQueue.length = 0;
       })
       .catch((rejection) => {
-        this.$log.warn(`Error retrieving ${this.key}`, rejection);
-        this.loading = false;
-        this.loadFailure = true;
-        this.refreshFailureStream.next(rejection);
+        if (loadCall === this.currentLoadCall) {
+          this.$log.warn(`Error retrieving ${this.key}`, rejection);
+          this.loading = false;
+          this.loadFailure = true;
+          this.refreshFailureStream.next(rejection);
+          // resolve, don't reject - the refreshFailureStream and loadFailure flags signal the rejection
+          this.refreshQueue.forEach(d => d.resolve(rejection));
+          this.refreshQueue.length = 0;
+        }
       });
+    return deferred.promise;
   }
 
   /**

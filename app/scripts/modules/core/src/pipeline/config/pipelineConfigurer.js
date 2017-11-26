@@ -373,7 +373,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.pipelineConfigur
     };
 
     this.getPipelineExecutions = () => {
-      executionService.getExecutionsForConfigIds($scope.pipeline.application, $scope.pipeline.id, 5)
+      executionService.getExecutionsForConfigIds($scope.pipeline.application, [$scope.pipeline.id], 5)
         .then(executions => {
           executions.forEach(execution => executionsTransformer.addBuildInfo(execution));
           $scope.pipelineExecutions = executions;

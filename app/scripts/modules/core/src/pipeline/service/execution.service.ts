@@ -11,6 +11,7 @@ import { PIPELINE_CONFIG_PROVIDER, PipelineConfigProvider } from 'core/pipeline/
 import { SETTINGS } from 'core/config/settings';
 import { ApplicationDataSource } from 'core/application/service/applicationDataSource';
 import { DebugWindow } from 'core/utils/consoleDebug';
+import { IPipeline } from 'core/domain/IPipeline';
 
 export class ExecutionService {
   public get activeStatuses(): string[] { return ['RUNNING', 'SUSPENDED', 'PAUSED', 'NOT_STARTED']; }
@@ -28,13 +29,16 @@ export class ExecutionService {
   }
 
     public getRunningExecutions(applicationName: string): IPromise<IExecution[]> {
-      return this.getFilteredExecutions(applicationName, { statuses: this.activeStatuses, limit: this.runningLimit });
+      return this.getFilteredExecutions(applicationName, this.activeStatuses, this.runningLimit);
     }
 
-    private getFilteredExecutions(applicationName: string, { statuses = Object.keys(pickBy(this.executionFilterModel.asFilterModel.sortFilter.status || {}, identity)), limit = this.executionFilterModel.asFilterModel.sortFilter.count } = {}): IPromise<IExecution[]> {
-      const statusString = statuses.map((status) => status.toUpperCase()).join(',') || null;
-      return this.API.one('applications', applicationName).all('pipelines').getList({ limit: limit, statuses: statusString })
-        .then((data: IExecution[]) => {
+    private getFilteredExecutions(applicationName: string, statuses: string[], limit: number, pipelineConfigIds: string[] = null): IPromise<IExecution[]> {
+        const statusString = statuses.map((status) => status.toUpperCase()).join(',') || null;
+        const call = pipelineConfigIds ?
+          this.API.all('executions').getList({ limit, pipelineConfigIds, statuses }) :
+          this.API.one('applications', applicationName).all('pipelines').getList({ limit, statuses: statusString, pipelineConfigIds });
+
+        return call.then((data: IExecution[]) => {
           if (data) {
             data.forEach((execution: IExecution) => this.cleanExecutionForDiffing(execution));
             return data;
@@ -43,8 +47,23 @@ export class ExecutionService {
         });
     }
 
-    public getExecutions(applicationName: string): IPromise<IExecution[]> {
-      return this.getFilteredExecutions(applicationName);
+  /**
+   * Returns a filtered list of executions for the given application
+   * @param {string} applicationName the name of the application
+   * @param {Application} application: if supplied, and pipeline parameters are present on the filter model, the
+   * application will be used to correlate and filter the retrieved executions to only include those pipelines
+   * @return {<IExecution[]>}
+   */
+    public getExecutions(applicationName: string, application: Application = null): IPromise<IExecution[]> {
+      const pipelines = Object.keys(this.executionFilterModel.asFilterModel.sortFilter.pipeline);
+      const statuses = Object.keys(pickBy(this.executionFilterModel.asFilterModel.sortFilter.status || {}, identity));
+      const limit = this.executionFilterModel.asFilterModel.sortFilter.count;
+      if (application && pipelines.length) {
+        return this.getConfigIdsFromFilterModel(application).then(pipelineConfigIds => {
+          return this.getFilteredExecutions(application.name, statuses, limit, pipelineConfigIds);
+        });
+      }
+      return this.getFilteredExecutions(applicationName, statuses, limit);
     }
 
     public getExecution(executionId: string): IPromise<IExecution> {
@@ -71,6 +90,18 @@ export class ExecutionService {
           execution.stringVal = stringVal;
           this.executionsTransformer.transformExecution(application, execution);
         }
+      });
+    }
+
+    private getConfigIdsFromFilterModel(application: Application): IPromise<string[]> {
+      const pipelines = Object.keys(this.executionFilterModel.asFilterModel.sortFilter.pipeline);
+      application.pipelineConfigs.activate();
+      return application.pipelineConfigs.ready().then(() => {
+        const data = application.pipelineConfigs.data.concat(application.strategyConfigs.data);
+        return pipelines.map(p => {
+          const match = data.find((c: IPipeline) => c.name === p);
+          return match ? match.id : null;
+        }).filter(id => !!id);
       });
     }
 
@@ -343,7 +374,7 @@ export class ExecutionService {
           application.executions.data.push(re);
         }
       });
-      if (updated) {
+      if (updated && !application.executions.reloadingForFilters) {
         application.executions.dataUpdated();
       }
     }
@@ -412,7 +443,7 @@ export class ExecutionService {
     }
 
     public getLastExecutionForApplicationByConfigId(appName: string, configId: string): IPromise<IExecution> {
-      return this.getFilteredExecutions(appName, {})
+      return this.getFilteredExecutions(appName, [], 1)
         .then((executions: IExecution[]) => {
           return executions.filter((execution) => {
             return execution.pipelineConfigId === configId;
