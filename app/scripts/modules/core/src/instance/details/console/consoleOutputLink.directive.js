@@ -25,7 +25,7 @@ module.exports = angular
           $uibModal.open({
             templateUrl: InstanceTemplates.consoleOutputModal,
             controller: 'ConsoleOutputCtrl as ctrl',
-            size: 'lg',
+            size: 'lg modal-fullscreen',
             resolve: {
               instance: () => this.instance
             }
