@@ -9,7 +9,6 @@ import { Subscription } from 'rxjs';
 
 import { Application } from 'core/application';
 import { IPipeline, IPipelineCommand } from 'core/domain';
-import { InsightFilterStateModel } from 'core/insight/insightFilterState.model';
 import { ReactInjector } from 'core/reactShims';
 import { Tooltip } from 'core/presentation/Tooltip';
 
@@ -27,7 +26,7 @@ export interface IExecutionsProps {
 
 export interface IExecutionsState {
   initializationError?: boolean;
-  insightFilterStateModel: InsightFilterStateModel;
+  filtersExpanded: boolean;
   loading: boolean;
   sortFilter: any;
   tags: any[];
@@ -39,6 +38,7 @@ export class Executions extends React.Component<IExecutionsProps, IExecutionsSta
   private executionsRefreshUnsubscribe: Function;
   private groupsUpdatedSubscription: Subscription;
   private locationChangeUnsubscribe: Function;
+  private insightFilterStateModel = ReactInjector.insightFilterStateModel;
 
   private filterCountOptions = [1, 2, 5, 10, 20, 30, 40, 50];
 
@@ -46,7 +46,7 @@ export class Executions extends React.Component<IExecutionsProps, IExecutionsSta
     super(props);
 
     const { app } = props;
-    const { executionFilterModel, insightFilterStateModel } = ReactInjector;
+    const { executionFilterModel } = ReactInjector;
     if (executionFilterModel.mostRecentApplication !== app.name) {
       executionFilterModel.asFilterModel.groups = [];
       executionFilterModel.mostRecentApplication = app.name;
@@ -57,7 +57,7 @@ export class Executions extends React.Component<IExecutionsProps, IExecutionsSta
     app.setActiveState(app.executions);
 
     this.state = {
-      insightFilterStateModel,
+      filtersExpanded: this.insightFilterStateModel.filtersExpanded,
       loading: true,
       sortFilter: executionFilterModel.asFilterModel.sortFilter,
       tags: [],
@@ -210,11 +210,13 @@ export class Executions extends React.Component<IExecutionsProps, IExecutionsSta
   }
 
   private showFilters(): void {
-    this.state.insightFilterStateModel.pinFilters(true);
+    this.setState({ filtersExpanded: true });
+    this.insightFilterStateModel.pinFilters(true);
   }
 
   private hideFilters(): void {
-    this.state.insightFilterStateModel.pinFilters(!this.state.insightFilterStateModel.filtersPinned);
+    this.setState({ filtersExpanded: false });
+    this.insightFilterStateModel.pinFilters(false);
   }
 
   private groupByChanged(event: React.ChangeEvent<HTMLSelectElement>): void {
@@ -243,14 +245,14 @@ export class Executions extends React.Component<IExecutionsProps, IExecutionsSta
 
   public render(): React.ReactElement<Executions> {
     const { app } = this.props;
-    const { insightFilterStateModel, loading, sortFilter, tags, triggeringExecution } = this.state;
+    const { filtersExpanded, loading, sortFilter, tags, triggeringExecution } = this.state;
 
     const hasPipelines = !!(get(app, 'executions.data', []).length || get(app, 'pipelineConfigs.data', []).length);
 
     if (!app.notFound) {
       return (
         <div className="executions-section">
-          <div className={`insight ${insightFilterStateModel.filtersExpanded ? 'filters-expanded' : 'filters-collapsed'}`}>
+          <div className={`insight ${filtersExpanded ? 'filters-expanded' : 'filters-collapsed'}`}>
             <div className="nav">
               <h3 className="filters-placeholder">
                 <Tooltip value="Show filters">
@@ -261,7 +263,7 @@ export class Executions extends React.Component<IExecutionsProps, IExecutionsSta
               </h3>
               <a
                 className="btn btn-xs btn-default pull-right unpin clickable"
-                style={{ display: insightFilterStateModel.filtersExpanded ? '' : 'none' }}
+                style={{ display: filtersExpanded ? '' : 'none' }}
                 onClick={this.hideFilters}
               >
                 <Tooltip value="Hide filters">
@@ -270,7 +272,7 @@ export class Executions extends React.Component<IExecutionsProps, IExecutionsSta
               </a>
               {!loading && <ExecutionFilters application={app}/>}
             </div>
-            <div className={`full-content ${insightFilterStateModel.filtersExpanded ? 'filters-expanded' : ''} ${sortFilter.showStageDuration ? 'show-durations' : ''}`} data-scroll-id="nav-content">
+            <div className={`full-content ${filtersExpanded ? 'filters-expanded' : ''} ${sortFilter.showStageDuration ? 'show-durations' : ''}`} data-scroll-id="nav-content">
               {!loading && (
                 <div className="execution-groups-header">
                 <h3>Pipelines</h3>
