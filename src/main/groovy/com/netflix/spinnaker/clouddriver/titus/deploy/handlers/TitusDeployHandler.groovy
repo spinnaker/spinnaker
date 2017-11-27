@@ -86,20 +86,6 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
       String region = description.region
       String subnet = description.subnet
 
-      task.updateStatus BASE_PHASE, "Preparing deployment to ${account}:${region}${subnet ? ':' + subnet : ''}..."
-      DockerImage dockerImage = new DockerImage(description.imageId)
-
-      TitusServerGroupNameResolver serverGroupNameResolver = new TitusServerGroupNameResolver(titusClient, description.region)
-      String nextServerGroupName = serverGroupNameResolver.resolveNextServerGroupName(description.application, description.stack, description.freeFormDetails, false)
-      task.updateStatus BASE_PHASE, "Resolved server group name to ${nextServerGroupName}"
-
-      if (!description.env) description.env = [:]
-      if (!description.labels) description.labels = [:]
-
-      if (description.interestingHealthProviderNames && !description.interestingHealthProviderNames.empty) {
-        description.labels.put("interestingHealthProviderNames", description.interestingHealthProviderNames.join(",") )
-      }
-
       if (description.source.asgName) {
         Source source = description.source
 
