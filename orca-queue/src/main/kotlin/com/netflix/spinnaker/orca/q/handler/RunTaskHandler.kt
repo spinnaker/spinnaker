@@ -218,15 +218,16 @@ class RunTaskHandler(
   }
 
   private fun Stage.processTaskOutput(result: TaskResult) {
-    if (result.context.isNotEmpty() || result.outputs.isNotEmpty()) {
+    val filteredOutputs = result.outputs.filterKeys { it != "stageTimeoutMs" }
+    if (result.context.isNotEmpty() || filteredOutputs.isNotEmpty()) {
       context.putAll(result.context)
-      outputs.putAll(result.outputs)
+      outputs.putAll(filteredOutputs)
       repository.storeStage(this)
     }
-    if (result.outputs.isNotEmpty()) {
+    if (filteredOutputs.isNotEmpty()) {
       repository.storeExecutionContext(
         execution.id,
-        result.outputs
+        filteredOutputs
       )
     }
   }

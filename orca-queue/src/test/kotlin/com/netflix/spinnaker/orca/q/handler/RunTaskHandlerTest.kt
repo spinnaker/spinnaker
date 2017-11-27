@@ -16,6 +16,10 @@
 
 package com.netflix.spinnaker.orca.q.handler
 
+import com.natpryce.hamkrest.and
+import com.natpryce.hamkrest.has
+import com.natpryce.hamkrest.hasElement
+import com.natpryce.hamkrest.should.shouldMatch
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.orca.ExecutionStatus.*
 import com.netflix.spinnaker.orca.TaskResult
@@ -140,8 +144,8 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
       }
 
       and("has outputs") {
-        val globalOutputs = mapOf("foo" to "covfefe")
-        val taskResult = TaskResult(SUCCEEDED, emptyMap<String, Any>(), globalOutputs)
+        val outputs = mapOf("foo" to "covfefe")
+        val taskResult = TaskResult(SUCCEEDED, emptyMap<String, Any>(), outputs)
 
         beforeGroup {
           whenever(task.execute(any<Stage>())) doReturn taskResult
@@ -154,11 +158,45 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
           subject.handle(message)
         }
 
-        it("updates the stage outputs and global context") {
+        it("updates the stage outputs") {
           verify(repository).storeStage(check {
-            it.outputs shouldEqual globalOutputs
+            it.outputs shouldEqual outputs
           })
-          verify(repository).storeExecutionContext(pipeline.id, globalOutputs)
+        }
+
+        it("also updates global context") {
+          verify(repository).storeExecutionContext(pipeline.id, outputs)
+        }
+      }
+
+      and("outputs a stageTimeoutMs value") {
+        val outputs = mapOf(
+          "foo" to "covfefe",
+          "stageTimeoutMs" to Long.MAX_VALUE
+        )
+        val taskResult = TaskResult(SUCCEEDED, emptyMap<String, Any>(), outputs)
+
+        beforeGroup {
+          whenever(task.execute(any<Stage>())) doReturn taskResult
+          whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
+        }
+
+        afterGroup(::resetMocks)
+
+        action("the handler receives a message") {
+          subject.handle(message)
+        }
+
+        it("does not write stageTimeoutMs to outputs") {
+          verify(repository).storeStage(check {
+            it.outputs shouldMatch has(Map<String, Any>::keys, hasElement("foo") and !hasElement("stageTimeoutMs"))
+          })
+        }
+
+        it("does not write stageTimeoutMs to global context") {
+          verify(repository).storeExecutionContext(eq(pipeline.id), check {
+            it shouldMatch has(Map<String, Any>::keys, hasElement("foo") and !hasElement("stageTimeoutMs"))
+          })
         }
       }
     }

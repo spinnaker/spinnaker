@@ -437,7 +437,7 @@ public class Stage implements Serializable {
     Stage topLevelStage = getTopLevelStage();
     Object timeout = topLevelStage.getContext().get("stageTimeoutMs");
     if (timeout instanceof Integer) {
-      return Optional.of((Integer) timeout).map(Long::new);
+      return Optional.of((Integer) timeout).map(Integer::longValue);
     } else if (timeout instanceof Long) {
       return Optional.of((Long) timeout);
     } else if (timeout instanceof Double) {

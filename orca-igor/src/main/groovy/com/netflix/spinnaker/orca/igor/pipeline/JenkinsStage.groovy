@@ -27,15 +27,13 @@ import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.TaskNode
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.model.Task
-import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Slf4j
 @Component
-@CompileStatic
-class JenkinsStage implements StageDefinitionBuilder, RestartableStage, CancellableStage {
+public class JenkinsStage implements StageDefinitionBuilder, RestartableStage, CancellableStage {
   @Autowired StopJenkinsJobTask stopJenkinsJobTask
 
   @Override
