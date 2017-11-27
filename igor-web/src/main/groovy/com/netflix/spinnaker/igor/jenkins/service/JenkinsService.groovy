@@ -22,20 +22,18 @@ import com.netflix.spinnaker.igor.build.BuildController
 import com.netflix.spinnaker.igor.build.model.GenericBuild
 import com.netflix.spinnaker.igor.build.model.GenericGitRevision
 import com.netflix.spinnaker.igor.jenkins.client.JenkinsClient
-import com.netflix.spinnaker.igor.jenkins.client.model.Build
-import com.netflix.spinnaker.igor.jenkins.client.model.BuildDependencies
+import com.netflix.spinnaker.igor.jenkins.client.model.*
 import com.netflix.spinnaker.igor.jenkins.client.model.BuildsList
 import com.netflix.spinnaker.igor.jenkins.client.model.JobConfig
 import com.netflix.spinnaker.igor.jenkins.client.model.JobList
-import com.netflix.spinnaker.igor.jenkins.client.model.Project
-import com.netflix.spinnaker.igor.jenkins.client.model.ProjectsList
-import com.netflix.spinnaker.igor.jenkins.client.model.QueuedJob
 import com.netflix.spinnaker.igor.jenkins.client.model.ScmDetails
 import com.netflix.spinnaker.igor.model.BuildServiceProvider
 import com.netflix.spinnaker.igor.service.BuildService
+import com.netflix.spinnaker.kork.core.RetrySupport
 import groovy.util.logging.Slf4j
 import org.springframework.web.util.UriUtils
 import retrofit.client.Response
+
 
 import static net.logstash.logback.argument.StructuredArguments.kv
 
@@ -43,6 +41,8 @@ import static net.logstash.logback.argument.StructuredArguments.kv
 class JenkinsService implements BuildService{
     final String groupKey
     final JenkinsClient jenkinsClient
+
+    RetrySupport retrySupport = new RetrySupport()
 
     JenkinsService(String jenkinsHostId, JenkinsClient jenkinsClient) {
         this.groupKey = "jenkins-${jenkinsHostId}"
@@ -126,10 +126,12 @@ class JenkinsService implements BuildService{
     }
 
     ScmDetails getGitDetails(String jobName, Integer buildNumber) {
-        new SimpleHystrixCommand<ScmDetails>(
-            groupKey, buildCommandKey("getGitDetails"), {
-            return jenkinsClient.getGitDetails(encode(jobName), buildNumber)
-        }).execute()
+        retrySupport.retry({
+            new SimpleHystrixCommand<ScmDetails>(
+                groupKey, buildCommandKey("getGitDetails"), {
+                return jenkinsClient.getGitDetails(encode(jobName), buildNumber)
+            }).execute()
+        }, 10, 1000, false)
     }
 
     Build getLatestBuild(String jobName) {
