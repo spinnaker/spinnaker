@@ -26,13 +26,14 @@ import com.google.cloud.pubsub.v1.Subscriber;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.pubsub.v1.PubsubMessage;
 import com.google.pubsub.v1.SubscriptionName;
+import com.netflix.spinnaker.echo.artifacts.MessageArtifactTranslator;
 import com.netflix.spinnaker.echo.config.google.GooglePubsubProperties;
 import com.netflix.spinnaker.echo.model.pubsub.MessageDescription;
 import com.netflix.spinnaker.echo.model.pubsub.PubsubSystem;
 import com.netflix.spinnaker.echo.pubsub.PubsubMessageHandler;
 import com.netflix.spinnaker.echo.pubsub.model.PubsubSubscriber;
-import com.netflix.spinnaker.echo.pubsub.utils.MessageArtifactTranslator;
 import com.netflix.spinnaker.echo.pubsub.utils.NodeIdentity;
+import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -40,7 +41,9 @@ import org.threeten.bp.Duration;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 @Slf4j
 public class GooglePubsubSubscriber implements PubsubSubscriber {
@@ -144,16 +147,25 @@ public class GooglePubsubSubscriber implements PubsubSubscriber {
     public void receiveMessage(PubsubMessage message, AckReplyConsumer consumer) {
       String messagePayload = message.getData().toStringUtf8();
       log.debug("Received message with payload: {}", messagePayload);
-
       MessageDescription description = MessageDescription.builder()
           .subscriptionName(subscriptionName)
           .messagePayload(messagePayload)
           .pubsubSystem(pubsubSystem)
           .ackDeadlineMillis(5 * TimeUnit.SECONDS.toMillis(ackDeadlineSeconds)) // Set a high upper bound on message processing time.
           .retentionDeadlineMillis(TimeUnit.DAYS.toMillis(7)) // Expire key after max retention time, which is 7 days.
-          .artifacts(messageArtifactTranslator.parseArtifacts(messagePayload))
           .build();
       GoogleMessageAcknowledger acknowledger = new GoogleMessageAcknowledger(consumer);
+
+      try {
+        List<Artifact> artifacts = messageArtifactTranslator.parseArtifacts(messagePayload);
+        description.setArtifacts(artifacts);
+        log.info("artifacts {}", String.join(", ", artifacts.stream().map(Artifact::toString).collect(Collectors.toList())));
+      } catch (Exception e) {
+        log.error("Failed to process artifacts: {}", e.getMessage(), e);
+        pubsubMessageHandler.handleFailedMessage(description, acknowledger, identity.getIdentity());
+        return;
+      }
+
       pubsubMessageHandler.handleMessage(description, acknowledger, identity.getIdentity());
     }
   }

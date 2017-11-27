@@ -19,7 +19,6 @@ package com.netflix.spinnaker.echo.pubsub;
 import com.netflix.spinnaker.echo.model.Event;
 import com.netflix.spinnaker.echo.model.Metadata;
 import com.netflix.spinnaker.echo.model.pubsub.MessageDescription;
-import com.netflix.spinnaker.echo.model.pubsub.PubsubSystem;
 import com.netflix.spinnaker.echo.pipelinetriggers.monitor.PubsubEventMonitor;
 import com.netflix.spinnaker.echo.pubsub.model.MessageAcknowledger;
 import lombok.Data;
@@ -65,19 +64,36 @@ public class PubsubMessageHandler {
     }
   }
 
+  public void handleFailedMessage(MessageDescription description,
+                                  MessageAcknowledger acknowledger,
+                                  String identifier) {
+    String messageKey = makeKey(description);
+    if (tryAck(messageKey, description.getAckDeadlineMillis(), acknowledger, identifier)) {
+      setMessageHandled(messageKey, identifier, description.getRetentionDeadlineMillis());
+    }
+  }
+
   public void handleMessage(MessageDescription description,
                             MessageAcknowledger acknowledger,
                             String identifier) {
-    String messageKey = makeKey(description.getMessagePayload(), description.getPubsubSystem(), description.getSubscriptionName());
-
-    if (!acquireMessageLock(messageKey, identifier, description.getAckDeadlineMillis())) {
-      acknowledger.nack();
-      return;
+    String messageKey = makeKey(description);
+    if (tryAck(messageKey, description.getAckDeadlineMillis(), acknowledger, identifier)) {
+      processEvent(description);
+      setMessageHandled(messageKey, identifier, description.getRetentionDeadlineMillis());
     }
+  }
 
-    acknowledger.ack();
-    processEvent(description);
-    setMessageHandled(messageKey, identifier, description.getRetentionDeadlineMillis());
+  private boolean tryAck(String messageKey,
+                         Long ackDeadlineMillis,
+                         MessageAcknowledger acknowledger,
+                         String identifier) {
+    if (!acquireMessageLock(messageKey, identifier, ackDeadlineMillis)) {
+      acknowledger.nack();
+      return false;
+    } else {
+      acknowledger.ack();
+      return true;
+    }
   }
 
   private Boolean acquireMessageLock(String messageKey, String identifier, Long ackDeadlineMillis) {
@@ -93,16 +109,16 @@ public class PubsubMessageHandler {
     }
   }
 
-  private String makeKey(String messagePayload, PubsubSystem pubsubSystem, String subscription) {
+  private String makeKey(MessageDescription description) {
     digest.reset();
-    digest.update(messagePayload.getBytes());
+    digest.update(description.getMessagePayload().getBytes());
     String messageHash = new String(Base64.getEncoder().encode(digest.digest()));
-    return String.format("%s:echo-pubsub:%s:%s", pubsubSystem.toString(), subscription, messageHash);
+    return String.format("%s:echo-pubsub:%s:%s", description.getPubsubSystem().toString(), description.getSubscriptionName(), messageHash);
   }
 
 
   private void processEvent(MessageDescription description) {
-    log.debug("Processed Pubsub event with payload {}", description.getMessagePayload());
+    log.info("Processed Pubsub event with payload {}", description.getMessagePayload());
 
     Event event = new Event();
     Map<String, Object> content = new HashMap<>();

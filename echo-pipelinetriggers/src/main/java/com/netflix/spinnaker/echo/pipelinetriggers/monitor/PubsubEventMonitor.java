@@ -25,9 +25,6 @@ import com.netflix.spinnaker.echo.model.pubsub.MessageDescription;
 import com.netflix.spinnaker.echo.model.trigger.PubsubEvent;
 import com.netflix.spinnaker.echo.model.trigger.TriggerEvent;
 import com.netflix.spinnaker.echo.pipelinetriggers.PipelineCache;
-import com.netflix.spinnaker.kork.artifacts.model.Artifact;
-import com.netflix.spinnaker.kork.artifacts.model.ExpectedArtifact;
-import java.util.stream.Collectors;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
@@ -37,9 +34,10 @@ import org.springframework.stereotype.Component;
 import rx.Observable;
 import rx.functions.Action1;
 
-import java.util.List;
 import java.util.function.Function;
 import java.util.function.Predicate;
+
+import static com.netflix.spinnaker.echo.pipelinetriggers.artifacts.ArtifactMatcher.anyArtifactsMatchExpected;
 
 /**
  * Triggers pipelines in _Orca_ when a trigger-enabled pubsub message arrives.
@@ -106,27 +104,6 @@ public class PubsubEventMonitor extends TriggerMonitor {
         && trigger.getPubsubSystem().equalsIgnoreCase(description.getPubsubSystem().toString())
         && trigger.getSubscriptionName().equalsIgnoreCase(description.getSubscriptionName())
         && anyArtifactsMatchExpected(description.getArtifacts(), trigger, pipeline);
-  }
-
-  private Boolean anyArtifactsMatchExpected(List<Artifact> messageArtifacts, Trigger trigger, Pipeline pipeline) {
-    List<String> expectedArtifactIds = trigger.getExpectedArtifactIds();
-    List<ExpectedArtifact> expectedArtifacts = pipeline.getExpectedArtifacts()
-      .stream()
-      .filter(e -> expectedArtifactIds.contains(e.getId()))
-      .collect(Collectors.toList());
-
-    if (expectedArtifactIds == null || expectedArtifactIds.isEmpty()) {
-      return true;
-    }
-
-    if (messageArtifacts.size() > expectedArtifactIds.size()) {
-      log.warn("Parsed message artifacts (size {}) greater than expected artifacts (size {}), continuing trigger anyway", messageArtifacts.size(), expectedArtifactIds.size());
-    }
-
-    Predicate<Artifact> expectedArtifactMatch = a -> expectedArtifacts
-        .stream()
-        .anyMatch(e -> e.matches(a));
-    return messageArtifacts.stream().anyMatch(expectedArtifactMatch);
   }
 
   @Override

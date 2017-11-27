@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.echo.pubsub.utils;
+package com.netflix.spinnaker.echo.artifacts;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -43,7 +43,7 @@ public class MessageArtifactTranslator {
   private static final TypeReference<List<Artifact>> artifactListReference = new TypeReference<List<Artifact>>() {};
 
   public MessageArtifactTranslator(String templatePath) {
-    if (!StringUtils.isEmpty(templatePath)) {
+    if (StringUtils.isNotEmpty(templatePath)) {
       try {
         jinjaTemplate = new String(Files.readAllBytes(Paths.get(templatePath)));
       } catch (IOException ioe) {
@@ -62,9 +62,13 @@ public class MessageArtifactTranslator {
   }
 
   private String jinjaTransform(ObjectMapper mapper, String messagePayload) {
-    Jinjava jinja = new Jinjava();
-    Map context = readMapValue(mapper, messagePayload);
-    return jinja.render(jinjaTemplate, context);
+    if (StringUtils.isEmpty(jinjaTemplate)) {
+      return messagePayload;
+    } else {
+      Jinjava jinja = new Jinjava();
+      Map context = readMapValue(mapper, messagePayload);
+      return jinja.render(jinjaTemplate, context);
+    }
   }
 
   private Map readMapValue(ObjectMapper mapper, String messagePayload) {

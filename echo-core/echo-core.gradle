@@ -22,4 +22,7 @@ dependencies {
     compile spinnaker.dependency('logstashEncoder')
     testCompile spinnaker.dependency('spockSpring')
     testCompile spinnaker.dependency('springTest')
+
+    // TODO(jacobkiefer): Add jinjava to spinnaker-dependencies.
+    compile 'com.hubspot.jinjava:jinjava:2.2.3'
 }

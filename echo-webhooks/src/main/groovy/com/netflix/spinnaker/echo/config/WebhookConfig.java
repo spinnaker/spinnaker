@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,18 +14,14 @@
  * limitations under the License.
  */
 
-dependencies {
-  compile project(':echo-core')
-  compile project(':echo-model')
-  compile project(':echo-pipelinetriggers')
+package com.netflix.spinnaker.echo.config;
 
-  spinnaker.group("bootWeb")
-  spinnaker.group("spockBase")
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.annotation.Configuration;
 
-  compile spinnaker.dependency("groovy")
-  compile spinnaker.dependency("guava")
-  compile spinnaker.dependency("jedis")
-  compile spinnaker.dependency("korkJedisTest")
-
-  compile 'com.google.cloud:google-cloud-pubsub:0.21.1-beta'
+@Configuration
+@ConditionalOnProperty("webhooks.artifacts.enabled")
+@EnableConfigurationProperties(WebhookProperties.class)
+public class WebhookConfig {
 }

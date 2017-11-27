@@ -19,3 +19,8 @@ search:
 management.health.mail.enabled: false
 
 spring.freemarker.enabled: false
+
+webhooks:
+  artifacts:
+    enabled: false
+    sources: []

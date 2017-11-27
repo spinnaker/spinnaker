@@ -17,6 +17,8 @@
 package com.netflix.spinnaker.echo.controllers
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.echo.artifacts.MessageArtifactTranslator
+import com.netflix.spinnaker.echo.config.WebhookProperties
 import com.netflix.spinnaker.echo.events.EventPropagator
 import com.netflix.spinnaker.echo.model.Event
 import com.netflix.spinnaker.echo.model.Metadata
@@ -30,7 +32,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RestController
 
-import static net.logstash.logback.argument.StructuredArguments.*
+import static net.logstash.logback.argument.StructuredArguments.kv
 
 @RestController
 @Slf4j
@@ -41,6 +43,9 @@ class WebhooksController {
 
   @Autowired
   ObjectMapper mapper
+
+  @Autowired(required = false)
+  WebhookProperties webhookProperties
 
   @RequestMapping(value = '/webhooks/{type}/{source}', method = RequestMethod.POST)
   void forwardEvent(@PathVariable String type,
@@ -96,6 +101,17 @@ class WebhooksController {
           sendEvent = false
         }
         log.info('Webhook event received {} {} {} {} {} {}', kv('type', type), kv('event_type', event.content.event_type), kv('hook_id', event.content.hook_id), kv('repository', event.content.repository.full_name), kv('request_id', event.content.request_id), kv('branch', event.content.branch))
+      }
+    } else if (webhookProperties && (type == 'artifact' || type == 'artifacts')) {
+      String templatePath = webhookProperties.getTemplatePathForSource(source)
+      // empty template path is the identity translator;
+      MessageArtifactTranslator translator = new MessageArtifactTranslator(templatePath)
+      try {
+        event.content.artifacts = translator.parseArtifacts(event.rawContent)
+        log.info("Webhook artifacts were processed: {}", event.content.artifacts);
+      } catch (Exception e) {
+        log.error("Failed to translate artifacts (ignoring webhook): {}", e.getMessage(), e)
+        sendEvent = false
       }
     }
 

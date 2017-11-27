@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.echo.pubsub.utils
 
+import com.netflix.spinnaker.echo.artifacts.MessageArtifactTranslator
 import spock.lang.Specification
 import spock.lang.Subject
 

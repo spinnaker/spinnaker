@@ -22,6 +22,8 @@ import com.netflix.spinnaker.echo.model.Trigger;
 import com.netflix.spinnaker.echo.model.trigger.WebhookEvent;
 import com.netflix.spinnaker.echo.model.trigger.TriggerEvent;
 import com.netflix.spinnaker.echo.pipelinetriggers.PipelineCache;
+import com.netflix.spinnaker.echo.pipelinetriggers.artifacts.ArtifactMatcher;
+import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
@@ -30,6 +32,8 @@ import org.springframework.stereotype.Component;
 import rx.Observable;
 import rx.functions.Action1;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -103,8 +107,15 @@ public class WebhookEventMonitor extends TriggerMonitor {
                isConstraintInPayload(trigger.getConstraints(), event.getPayload())
             )
 
-        );
-
+        ) &&
+          // note this returns true when no artifacts are expected
+          ArtifactMatcher.anyArtifactsMatchExpected(
+              (List<Artifact>) event
+                  .getPayload()
+                  .getOrDefault("artifacts", new ArrayList<Artifact>()),
+              trigger,
+              pipeline
+          );
   }
 
   /**
