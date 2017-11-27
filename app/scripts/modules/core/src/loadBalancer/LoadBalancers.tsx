@@ -103,7 +103,10 @@ export class LoadBalancers extends React.Component<ILoadBalancersProps, ILoadBal
   };
 
   private updateUIState(state: ILoadBalancersState): void {
-    const params: any = {};
+    const params: any = {
+      hideServerGroups: undefined,
+      showInstances: undefined
+    };
     if (!state.showServerGroups) {
       params.hideServerGroups = true;
     }

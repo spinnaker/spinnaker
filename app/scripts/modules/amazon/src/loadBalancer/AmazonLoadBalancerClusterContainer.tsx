@@ -10,7 +10,11 @@ export class AmazonLoadBalancerClusterContainer extends React.Component<ILoadBal
   public shouldComponentUpdate(nextProps: ILoadBalancerClusterContainerProps) {
     const serverGroupsDiffer = () => !isEqual((nextProps.serverGroups || []).map(g => g.name), (this.props.serverGroups || []).map(g => g.name));
     const targetGroupsDiffer = () => !isEqual(((nextProps.loadBalancer as IAmazonApplicationLoadBalancer).targetGroups || []).map(t => t.name), ((this.props.loadBalancer as IAmazonApplicationLoadBalancer).targetGroups || []).map(t => t.name));
-    return nextProps.showInstances !== this.props.showInstances || nextProps.loadBalancer !== this.props.loadBalancer || serverGroupsDiffer() || targetGroupsDiffer();
+    return nextProps.showInstances !== this.props.showInstances
+      || nextProps.showServerGroups !== this.props.showServerGroups
+      || nextProps.loadBalancer !== this.props.loadBalancer
+      || serverGroupsDiffer()
+      || targetGroupsDiffer();
   }
 
   public render(): React.ReactElement<AmazonLoadBalancerClusterContainer> {
