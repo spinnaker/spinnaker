@@ -33,7 +33,7 @@
         </dl>
       </div>
     </div>
-    <stage-failure-message stage="stage" message="stage.failureMessage"></stage-failure-message>
+    <stage-failure-message stage="stage" message="stage.failureMessage" ng-if="stage.failureMessage"></stage-failure-message>
 
     <div class="row" ng-if="stage.context.region && stage.context.status.resourceId">
       <div class="col-md-12">
@@ -44,9 +44,9 @@
             <div select-on-dbl-click>{{stage.context.imageName}}</div>
             <div>({{stage.context.ami}})</div>
           </div>
-          <a target="_blank" href="{{ bakeryDetailUrl(stage) }}">
-            View Bakery Details
-          </a>
+          <span ng-if="bakeFailedNoError">Bake failed. </span>
+          <a target="_blank" href="{{ bakeryDetailUrl(stage) }}">View Bakery Details</a>
+          <span ng-if="bakeFailedNoError"> for more info.</span>
         </div>
       </div>
     </div>
