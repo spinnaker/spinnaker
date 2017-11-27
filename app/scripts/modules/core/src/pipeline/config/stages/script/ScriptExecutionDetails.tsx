@@ -45,18 +45,16 @@ export function ScriptExecutionDetails(props: IExecutionDetailsSectionProps) {
         </div>
       )}
 
-      {!scriptRanAndFailed && stage.context.buildInfo.url && (
+      {!scriptRanAndFailed && stage.context.buildInfo && stage.context.buildInfo.url && (
         <div className="row ng-scope">
           <div className="col-md-12">
             <div className="well alert alert-info">
-              { stage.context.buildInfo && stage.context.buildInfo.url && (
-                <a
-                  href={`${stage.context.buildInfo.url}consoleText`}
-                  target="_blank"
-                >
-                  Script Results
-                </a>
-              )}
+              <a
+                href={`${stage.context.buildInfo.url}consoleText`}
+                target="_blank"
+              >
+                Script Results
+              </a>
             </div>
           </div>
         </div>
