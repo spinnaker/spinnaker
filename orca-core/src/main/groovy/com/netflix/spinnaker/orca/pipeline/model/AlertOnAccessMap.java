@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.pipeline.model;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import javax.annotation.Nullable;
 import com.google.common.collect.ForwardingMap;
 import com.netflix.spectator.api.Id;
@@ -52,9 +53,9 @@ public class AlertOnAccessMap extends ForwardingMap<String, Object> {
         "Global context key \"{}\" accessed by {} {}[{}] \"{}\"",
         key,
         execution.getApplication(),
-        execution.getClass().getSimpleName(),
+        execution.getType(),
         execution.getId(),
-        execution.getName()
+        Optional.ofNullable(execution.getName()).orElseGet(execution::getDescription)
       );
       Id counterId = registry
         .createId("global.context.access")
