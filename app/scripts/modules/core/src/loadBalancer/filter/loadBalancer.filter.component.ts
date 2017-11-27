@@ -51,7 +51,7 @@ class LoadBalancerFilterCtrl {
         $scope.$applyAsync(() => this.tags = filterModel.tags);
       });
 
-    if (app.loadBalancers.loaded) {
+    if (app.loadBalancers && app.loadBalancers.loaded) {
       this.initialize();
     }
 

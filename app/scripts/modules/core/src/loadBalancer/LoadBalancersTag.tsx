@@ -69,9 +69,7 @@ export class LoadBalancersTag extends React.Component<ILoadBalancersTagProps, IL
       loadBalancers: [],
     };
 
-    LoadBalancerDataUtils.populateLoadBalancers(props.application, props.serverGroup).then(loadBalancers => this.setState({ loadBalancers }))
-
-    this.loadBalancersRefreshUnsubscribe = props.application.getDataSource('loadBalancers').onRefresh(null, () => { this.forceUpdate(); });
+    LoadBalancerDataUtils.populateLoadBalancers(props.application, props.serverGroup).then(loadBalancers => this.setState({ loadBalancers }));
   }
 
   private showLoadBalancerDetails(loadBalancer: ILoadBalancer): void {
@@ -89,6 +87,10 @@ export class LoadBalancersTag extends React.Component<ILoadBalancersTagProps, IL
   private handleClick(e: React.MouseEvent<HTMLElement>): void {
     e.preventDefault();
     e.stopPropagation();
+  }
+
+  public componentDidMount(): void {
+    this.loadBalancersRefreshUnsubscribe = this.props.application.getDataSource('loadBalancers').onRefresh(null, () => { this.forceUpdate(); });
   }
 
   public componentWillUnmount(): void {

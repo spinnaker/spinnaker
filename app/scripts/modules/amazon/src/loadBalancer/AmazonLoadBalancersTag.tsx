@@ -77,10 +77,8 @@ export class AmazonLoadBalancersTag extends React.Component<ILoadBalancersTagPro
       targetGroups: [],
     };
 
-    LoadBalancerDataUtils.populateLoadBalancers(props.application, props.serverGroup).then((loadBalancers) => this.setState({ loadBalancers }))
+    LoadBalancerDataUtils.populateLoadBalancers(props.application, props.serverGroup).then((loadBalancers) => this.setState({ loadBalancers }));
     AmazonLoadBalancerDataUtils.populateTargetGroups(props.application, props.serverGroup as IAmazonServerGroup).then((targetGroups: ITargetGroup[]) => this.setState({ targetGroups }))
-
-    this.loadBalancersRefreshUnsubscribe = props.application.getDataSource('loadBalancers').onRefresh(null, () => { this.forceUpdate(); });
   }
 
   private showLoadBalancerDetails(loadBalancer: ILoadBalancer): void {
@@ -106,6 +104,10 @@ export class AmazonLoadBalancersTag extends React.Component<ILoadBalancersTagPro
   private handleClick(e: React.MouseEvent<HTMLElement>): void {
     e.preventDefault();
     e.stopPropagation();
+  }
+
+  public componentDidMount(): void {
+    this.loadBalancersRefreshUnsubscribe = this.props.application.getDataSource('loadBalancers').onRefresh(null, () => { this.forceUpdate(); });
   }
 
   public componentWillUnmount(): void {
