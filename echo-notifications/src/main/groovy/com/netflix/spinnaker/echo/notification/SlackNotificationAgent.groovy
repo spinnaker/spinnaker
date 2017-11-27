@@ -16,15 +16,15 @@
 
 package com.netflix.spinnaker.echo.notification
 import com.netflix.spinnaker.echo.model.Event
-import com.netflix.spinnaker.echo.slack.SlackMessage
+import com.netflix.spinnaker.echo.slack.SlackAttachment
 import com.netflix.spinnaker.echo.slack.SlackService
 import groovy.util.logging.Slf4j
-import org.apache.commons.lang.WordUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Service
 import static net.logstash.logback.argument.StructuredArguments.*
+import static org.apache.commons.lang.WordUtils.capitalize
 
 
 @Slf4j
@@ -70,13 +70,13 @@ class SlackNotificationAgent extends AbstractEventNotificationAgent {
       String body = ''
 
       if (config.type == 'stage') {
-        body = """Stage ${event.content?.context?.stageDetails.name} for """
+        body = """Stage ${event.content?.context?.stageDetails?.name} for """
       }
 
       String link = "${spinnakerUrl}/#/applications/${application}/${config.type == 'stage' ? 'executions/details' : config.link }/${event.content?.execution?.id}"
 
       body +=
-        """${WordUtils.capitalize(application)}'s <${link}|${
+        """${capitalize(application)}'s <${link}|${
           event.content?.execution?.name ?: event.content?.execution?.description
         }>${buildInfo}${config.type == 'task' ? 'task' : 'pipeline'} ${status == 'starting' ? 'is' : 'has'} ${
           status == 'complete' ? 'completed successfully' : status
@@ -95,11 +95,21 @@ class SlackNotificationAgent extends AbstractEventNotificationAgent {
 
       String address = preference.address.startsWith('#') ? preference.address : "#${preference.address}"
 
-      slackService.sendMessage(token, new SlackMessage(body, color).buildMessage(), address, true)
+      def title = getNotificationTitle(config.type, application, status)
+      def response = slackService.sendMessage(token, new SlackAttachment(title, body, color), address, true)
+      log.info("Received response from Slack: {} {} for execution id {}. {}",
+        response?.status, response?.reason, event.content?.execution?.id, response?.body)
 
     } catch (Exception e) {
       log.error('failed to send slack message ', e)
     }
+  }
+
+  /**
+   * @return eg. "Pipeline complete for MYWEBAPP"
+   */
+  static String getNotificationTitle(String configType, String application, String status) {
+    "${capitalize(configType)} ${status} for ${application.toUpperCase()}"
   }
 
   @Override

@@ -45,10 +45,10 @@ class SlackNotificationService implements NotificationService {
 
   @Override
   void handle(Notification notification) {
-    def body = notificationTemplateEngine.build(notification, NotificationTemplateEngine.Type.BODY)
+    def text = notificationTemplateEngine.build(notification, NotificationTemplateEngine.Type.BODY)
     notification.to.each {
       String address = it.startsWith('#') ? it : "#${it}"
-      slack.sendMessage(token, new SlackMessage(body).buildMessage(), address, true)
+      slack.sendMessage(token, new SlackAttachment("Spinnaker Notification", text), address, true)
     }
   }
 }

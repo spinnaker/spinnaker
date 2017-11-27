@@ -16,10 +16,15 @@
 
 
 package com.netflix.spinnaker.echo.config
+
+import com.netflix.spinnaker.echo.slack.SlackClient
 import com.netflix.spinnaker.echo.slack.SlackService
 import com.netflix.spinnaker.retrofit.Slf4jRetrofitLogger
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
+import org.apache.commons.lang.StringUtils
+import org.springframework.beans.factory.annotation.Qualifier
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -35,23 +40,38 @@ import static retrofit.Endpoints.newFixedEndpoint
 @CompileStatic
 class SlackConfig {
 
+  final static String SLACK_INCOMING_WEBHOOK = 'https://hooks.slack.com'
+  final static String SLACK_CHAT_API = 'https://slack.com'
+
   @Bean
-  Endpoint slackEndpoint() {
-    newFixedEndpoint('https://slack.com')
+  Endpoint slackEndpoint(@Qualifier("useIncomingWebHook") boolean useIncomingWebHook) {
+    log.info("Using Slack incoming webhooks: {}.", useIncomingWebHook)
+    String endpoint = useIncomingWebHook ? SLACK_INCOMING_WEBHOOK : SLACK_CHAT_API;
+    newFixedEndpoint(endpoint)
   }
 
   @Bean
-  SlackService slackService(Endpoint slackEndpoint, Client retrofitClient, RestAdapter.LogLevel retrofitLogLevel) {
+  SlackService slackService(@Qualifier("useIncomingWebHook") boolean useIncomingWebHook,
+                            Endpoint slackEndpoint,
+                            Client retrofitClient,
+                            RestAdapter.LogLevel retrofitLogLevel) {
 
-    log.info("slack service loaded")
+    log.info("Slack service loaded")
 
-    new RestAdapter.Builder()
+    def slackClient = new RestAdapter.Builder()
         .setEndpoint(slackEndpoint)
         .setClient(retrofitClient)
         .setLogLevel(retrofitLogLevel)
-        .setLog(new Slf4jRetrofitLogger(SlackService.class))
+        .setLog(new Slf4jRetrofitLogger(SlackClient.class))
         .build()
-        .create(SlackService.class)
+        .create(SlackClient.class)
+
+    new SlackService(slackClient, useIncomingWebHook)
+  }
+
+  @Bean(name="useIncomingWebHook")
+  boolean useIncomingWebHook(@Value('${slack.token}') String token) {
+    return StringUtils.isNotBlank(token) && token.count("/") >= 2
   }
 
 }

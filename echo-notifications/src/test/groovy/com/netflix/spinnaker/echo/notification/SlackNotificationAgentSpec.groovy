@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.echo.notification
 
+import com.netflix.spinnaker.echo.slack.SlackAttachment
 import groovy.json.JsonSlurper
 import com.netflix.spinnaker.echo.model.Event
 import com.netflix.spinnaker.echo.slack.SlackService
@@ -32,7 +33,7 @@ class SlackNotificationAgentSpec extends Specification {
   @Unroll
   def "sends correct message for #status status"() {
     given:
-    def actualMessage = new BlockingVariable<String>()
+    def actualMessage = new BlockingVariable<SlackAttachment>()
     slack.sendMessage(*_) >> { token, message, channel, asUser ->
       actualMessage.set(message)
     }
@@ -41,7 +42,7 @@ class SlackNotificationAgentSpec extends Specification {
     agent.sendNotifications([address: channel], application, event, [type: type, link: "link"], status)
 
     then:
-    new JsonSlurper().parseText(actualMessage.get()).text[0] ==~ expectedMessage
+    actualMessage.get().text ==~ expectedMessage
 
     where:
     status      || expectedMessage
@@ -58,7 +59,7 @@ class SlackNotificationAgentSpec extends Specification {
   @Unroll
   def "appends custom message to #status message if present"() {
     given:
-    def actualMessage = new BlockingVariable<String>()
+    def actualMessage = new BlockingVariable<SlackAttachment>()
     slack.sendMessage(*_) >> { token, message, channel, asUser ->
       actualMessage.set(message)
     }
@@ -67,7 +68,7 @@ class SlackNotificationAgentSpec extends Specification {
     agent.sendNotifications([address: channel, message: message], application, event, [type: type, link: "link"], status)
 
     then:
-    new JsonSlurper().parseText(actualMessage.get()).text[0] ==~ expectedMessage
+    actualMessage.get().text ==~ expectedMessage
 
     where:
     status      || expectedMessage
@@ -87,7 +88,7 @@ class SlackNotificationAgentSpec extends Specification {
   @Unroll
   def "sends entirely custom message if customMessage field is present, performing text replacement if needed"() {
     given:
-    def actualMessage = new BlockingVariable<String>()
+    def actualMessage = new BlockingVariable<SlackAttachment>()
     slack.sendMessage(*_) >> { token, message, channel, asUser ->
       actualMessage.set(message)
     }
@@ -96,7 +97,7 @@ class SlackNotificationAgentSpec extends Specification {
     agent.sendNotifications([address: channel], application, event, [type: type], "etc")
 
     then:
-    new JsonSlurper().parseText(actualMessage.get()).text[0] == expectedMessage
+    actualMessage.get().text == expectedMessage
 
     where:
     customMessage        || expectedMessage
