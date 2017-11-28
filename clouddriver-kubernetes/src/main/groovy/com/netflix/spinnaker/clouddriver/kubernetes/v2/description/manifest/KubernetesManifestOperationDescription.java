@@ -20,18 +20,40 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesAtomicOperationDescription;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesCoordinates;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesSelectorList;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
 public class KubernetesManifestOperationDescription extends KubernetesAtomicOperationDescription {
   private String name;
   private String location;
+  private List<String> kinds;
+  private KubernetesSelectorList labelSelectors = new KubernetesSelectorList();
 
   @JsonIgnore
-  public KubernetesCoordinates getCoordinates() {
+  public boolean isDynamic() {
+    return StringUtils.isEmpty(name);
+  }
+
+  public List<KubernetesCoordinates> getAllCoordinates() {
+    return kinds.stream()
+        .map(k -> KubernetesCoordinates.builder()
+            .namespace(location)
+            .kind(KubernetesKind.fromString(k))
+            .build())
+        .collect(Collectors.toList());
+  }
+
+  @JsonIgnore
+  @Deprecated
+  public KubernetesCoordinates getPointCoordinates() {
     Pair<KubernetesKind, String> parsedName = KubernetesManifest.fromFullResourceName(name);
 
     return KubernetesCoordinates.builder()

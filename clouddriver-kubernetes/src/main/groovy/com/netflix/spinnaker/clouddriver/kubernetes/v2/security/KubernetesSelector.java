@@ -17,12 +17,16 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.security;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.validation.constraints.NotNull;
 import java.util.Collections;
 import java.util.List;
 
+@Data
 public class KubernetesSelector {
   private enum Kind {
     ANY,
@@ -38,7 +42,12 @@ public class KubernetesSelector {
   final private String key;
   final private List<String> values;
 
-  private KubernetesSelector(@NotNull Kind kind, String key, List<String> values) {
+  @JsonCreator
+  private KubernetesSelector(
+      @JsonProperty("kind") @NotNull Kind kind,
+      @JsonProperty("key") String key,
+      @JsonProperty("values") List<String> values
+  ) {
     if (StringUtils.isEmpty(key) && kind != Kind.ANY) {
       throw new IllegalArgumentException("Only an 'any' selector can have no key specified");
     }

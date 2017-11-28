@@ -28,6 +28,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.deployer.KubernetesHan
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 
+import java.util.Collections;
 import java.util.List;
 
 public class KubernetesScaleManifestOperation implements AtomicOperation<Void> {
@@ -49,23 +50,32 @@ public class KubernetesScaleManifestOperation implements AtomicOperation<Void> {
   @Override
   public Void operate(List priorOutputs) {
     getTask().updateStatus(OP_NAME, "Starting scale operation...");
-    KubernetesCoordinates coordinates = description.getCoordinates();
+    List<KubernetesCoordinates> coordinates;
 
-    getTask().updateStatus(OP_NAME, "Looking up resource properties...");
-    KubernetesResourceProperties properties = registry.get(coordinates.getKind());
-    KubernetesHandler deployer = properties.getHandler();
-
-    if (!(deployer instanceof CanScale)) {
-      throw new IllegalArgumentException("Resource with " + coordinates + " does not support scale");
+    if (description.isDynamic()) {
+      coordinates = description.getAllCoordinates();
+    } else {
+      coordinates = Collections.singletonList(description.getPointCoordinates());
     }
 
-    CanScale canScale = (CanScale) deployer;
+    coordinates.forEach(c -> {
+      getTask().updateStatus(OP_NAME, "Looking up resource properties...");
+      KubernetesResourceProperties properties = registry.get(c.getKind());
+      KubernetesHandler deployer = properties.getHandler();
 
-    getTask().updateStatus(OP_NAME, "Calling scale operation...");
-    canScale.scale(credentials,
-        coordinates.getNamespace(),
-        coordinates.getName(),
-        description.getReplicas());
+      if (!(deployer instanceof CanScale)) {
+        throw new IllegalArgumentException("Resource with " + c + " does not support scale");
+      }
+
+      CanScale canScale = (CanScale) deployer;
+
+      getTask().updateStatus(OP_NAME, "Calling scale operation...");
+      canScale.scale(credentials,
+          c.getNamespace(),
+          c.getName(),
+          description.getLabelSelectors(),
+          description.getReplicas());
+    });
 
     return null;
   }

@@ -17,11 +17,15 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.security;
 
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Data
 public class KubernetesSelectorList {
   private final List<KubernetesSelector> selectors = new ArrayList<>();
 
@@ -34,6 +38,10 @@ public class KubernetesSelectorList {
   public KubernetesSelectorList addSelector(KubernetesSelector selector) {
     selectors.add(selector);
     return this;
+  }
+
+  public boolean isEmpty() {
+    return selectors.isEmpty();
   }
 
   @Override

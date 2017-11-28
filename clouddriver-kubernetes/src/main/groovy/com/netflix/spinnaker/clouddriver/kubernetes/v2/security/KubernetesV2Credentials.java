@@ -233,12 +233,12 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
     return runAndRecordMetrics("logs", KubernetesKind.POD, namespace, () -> jobExecutor.logs(this, namespace, podName, containerName));
   }
 
-  public void scale(KubernetesKind kind, String namespace, String name, int replicas) {
-    runAndRecordMetrics("scale", kind, namespace, () -> jobExecutor.scale(this, kind, namespace, name, replicas));
+  public void scale(KubernetesKind kind, String namespace, String name, KubernetesSelectorList labelSelectors, int replicas) {
+    runAndRecordMetrics("scale", kind, namespace, () -> jobExecutor.scale(this, kind, namespace, name, labelSelectors, replicas));
   }
 
-  public void delete(KubernetesKind kind, String namespace, String name, V1DeleteOptions options) {
-    runAndRecordMetrics("scale", kind, namespace, () -> jobExecutor.delete(this, kind, namespace, name, options));
+  public void delete(KubernetesKind kind, String namespace, String name, KubernetesSelectorList labelSelectors, V1DeleteOptions options) {
+    runAndRecordMetrics("scale", kind, namespace, () -> jobExecutor.delete(this, kind, namespace, name, labelSelectors, options));
   }
 
   public void deploy(KubernetesManifest manifest) {
