@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { isEqual } from 'lodash';
 
 import { IExecutionDetailsComponentProps, IExecutionDetailsComponentState } from 'core/domain';
 import { ExecutionDetailsSectionNav } from 'core/pipeline/details';
@@ -30,8 +31,12 @@ export class StepExecutionDetails extends React.Component<IExecutionDetailsCompo
 
   public componentWillReceiveProps(nextProps: IExecutionDetailsComponentProps): void {
     const configSections = nextProps.detailsSections.map((s) => s.title);
-    this.setState({ configSections });
-    this.syncDetails(configSections);
+    if (!isEqual(this.state.configSections, configSections)) {
+      this.setState({ configSections });
+      this.syncDetails(configSections);
+    } else {
+      this.updateCurrentSection();
+    }
   }
 
   public render() {
