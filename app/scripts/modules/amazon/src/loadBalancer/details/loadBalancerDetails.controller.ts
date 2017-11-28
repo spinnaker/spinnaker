@@ -1,10 +1,12 @@
 import { IController, IPromise, IQService, IScope, module } from 'angular';
-import { IModalService } from 'angular-ui-bootstrap';
+import { IModalService, IModalSettings } from 'angular-ui-bootstrap';
 import { StateService } from '@uirouter/angularjs';
 import { cloneDeep, head, get, sortBy, uniq } from 'lodash';
 
 import {
   Application,
+  APPLICATION_READ_SERVICE,
+  ApplicationReader,
   CONFIRMATION_MODAL_SERVICE,
   ConfirmationModalService,
   IApplicationSecurityGroup,
@@ -18,10 +20,11 @@ import {
   SECURITY_GROUP_READER,
   SecurityGroupReader,
   SUBNET_READ_SERVICE,
-  SubnetReader
+  SubnetReader,
 } from '@spinnaker/core';
 
-import { IAmazonApplicationLoadBalancer,
+import {
+  IAmazonApplicationLoadBalancer,
   IAmazonLoadBalancer,
   IAmazonLoadBalancerDeleteCommand,
   IAmazonLoadBalancerSourceData,
@@ -53,6 +56,7 @@ export class AwsLoadBalancerDetailsController implements IController {
               private $q: IQService,
               loadBalancer: ILoadBalancerFromStateParams,
               private app: Application,
+              private applicationReader: ApplicationReader,
               private securityGroupReader: SecurityGroupReader,
               private confirmationModalService: ConfirmationModalService,
               private loadBalancerReader: LoadBalancerReader,
@@ -74,17 +78,31 @@ export class AwsLoadBalancerDetailsController implements IController {
   public editLoadBalancer(): void {
     const wizard = LoadBalancerTypes.find(t => t.type === this.loadBalancer.loadBalancerType);
 
-    this.$uibModal.open({
+    let application = this.app;
+    const modalOptions: IModalSettings = {
       templateUrl: wizard.editTemplateUrl,
       controller: `${wizard.controller} as ctrl`,
       size: 'lg',
       resolve: {
-        application: () => this.app,
+        application: () => application,
         loadBalancer: () => cloneDeep(this.loadBalancer),
         isNew: () => false,
         forPipelineConfig: () => false
       }
-    });
+    };
+
+    const loadBalancerAppName = this.loadBalancer.name.split('-')[0];
+
+    if (loadBalancerAppName === this.app.name) {
+      // Name matches the currently active application
+      this.$uibModal.open(modalOptions);
+    } else {
+      // Load balancer a part of a different application
+      this.applicationReader.getApplication(loadBalancerAppName).then((loadBalancerApp) => {
+        application = loadBalancerApp;
+        this.$uibModal.open(modalOptions);
+      });
+    }
   }
 
   public deleteLoadBalancer(): void {
@@ -224,6 +242,7 @@ export class AwsLoadBalancerDetailsController implements IController {
 export const AWS_LOAD_BALANCER_DETAILS_CTRL = 'spinnaker.amazon.loadBalancer.details.controller';
 module(AWS_LOAD_BALANCER_DETAILS_CTRL, [
   require('@uirouter/angularjs').default,
+  APPLICATION_READ_SERVICE,
   SECURITY_GROUP_READER,
   LOAD_BALANCER_WRITE_SERVICE,
   LOAD_BALANCER_READ_SERVICE,
