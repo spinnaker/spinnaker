@@ -398,15 +398,13 @@ class KubeSmokeTestScenario(sk.SpinnakerTestScenario):
               'type': 'manual',
               'user': '[anonymous]'
           }],
-          description='Create StatefulSet'.format(
-              self.__lb_name,
-              bindings['SPINNAKER_KUBERNETES_ACCOUNT']),
+          description='Create StatefulSet in Application '+self.TEST_APP,
           application=self.TEST_APP)
       builder = kube.KubeContractBuilder(self.kube_observer)
       (builder.new_clause_builder('StatefulSet Added', retryable_for_secs=60)
        .get_resources(
           'statefulsets', extra_args=[self.TEST_APP, '--namespace', self.TEST_NAMESPACE])
-       .contains_path_value('kind', "StatefulSet"))
+       .contains_path_value('kind', 'StatefulSet'))
       return st.OperationContract(
           self.new_post_operation(
               title='create_statefulset', data=payload, path='pipelines/' + self.TEST_APP + '/statefulset-pipeline',
@@ -449,15 +447,13 @@ class KubeSmokeTestScenario(sk.SpinnakerTestScenario):
               'type': 'manual',
               'user': '[anonymous]'
           }],
-          description='Create Daemonset'.format(
-              self.__lb_name,
-              bindings['SPINNAKER_KUBERNETES_ACCOUNT']),
+          description='Create Daemonset in Application'+self.TEST_APP,
           application=self.TEST_APP)
       builder = kube.KubeContractBuilder(self.kube_observer)
-      (builder.new_clause_builder('Daemonset Added', retryable_for_secs=60)
+      (builder.new_clause_builder('Daemonset Added', retryable_for_secs=15)
        .get_resources(
           'daemonsets', extra_args=[self.TEST_APP, '--namespace', self.TEST_NAMESPACE])
-       .contains_path_value('kind', "DaemonSet"))
+       .contains_path_value('kind', 'DaemonSet'))
       return st.OperationContract(
           self.new_post_operation(
               title='Create_daemonset', data=payload, path='pipelines/' + self.TEST_APP + '/daemonset-pipeline',
