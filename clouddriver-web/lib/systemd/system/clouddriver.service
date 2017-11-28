@@ -1,10 +1,11 @@
 [Unit]
 Description=Spinnaker Clouddriver
-After=network.target
+PartOf=spinnaker.service
 
 [Service]
 ExecStart=/opt/clouddriver/bin/clouddriver 2>&1 /var/log/spinnaker/clouddriver/clouddriver.log
 WorkingDirectory=/opt/clouddriver/bin
+SuccessExitStatus=143
 User=spinnaker
 Group=spinnaker
 Type=simple
