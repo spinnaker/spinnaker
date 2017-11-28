@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.agent.CachingAgent
+import com.netflix.spinnaker.clouddriver.cache.OnDemandMetricsSupport
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.clouddriver.titus.TitusClientProvider
 import com.netflix.spinnaker.clouddriver.titus.TitusCloudProvider
@@ -46,17 +47,28 @@ class TitusCachingProviderConfig {
   @Bean
   @DependsOn('netflixTitusCredentials')
   TitusCachingProvider titusCachingProvider(AccountCredentialsRepository accountCredentialsRepository,
+                                            TitusCloudProvider titusCloudProvider,
                                             TitusClientProvider titusClientProvider,
                                             ObjectMapper objectMapper,
-                                            Provider<AwsLookupUtil> awsLookupUtilProvider
-  ) {
+                                            Registry registry,
+                                            Provider<AwsLookupUtil> awsLookupUtilProvider) {
     List<CachingAgent> agents = []
     def allAccounts = accountCredentialsRepository.all.findAll {
       it instanceof NetflixTitusCredentials
     } as Collection<NetflixTitusCredentials>
     allAccounts.each { NetflixTitusCredentials account ->
       account.regions.each { region ->
-        agents << new TitusClusterCachingAgent(titusClientProvider, account, region.name, objectMapper, awsLookupUtilProvider, pollIntervalMillis, timeOutMilis)
+        agents << new TitusClusterCachingAgent(
+          titusCloudProvider,
+          titusClientProvider,
+          account,
+          region.name,
+          objectMapper,
+          registry,
+          awsLookupUtilProvider,
+          pollIntervalMillis,
+          timeOutMilis
+        )
       }
     }
     new TitusCachingProvider(agents)
