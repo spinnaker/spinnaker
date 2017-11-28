@@ -278,21 +278,23 @@ class TitusClusterCachingAgent implements CachingAgent, CustomScheduledAgent, On
     List cacheablePolicyStates = [ScalingPolicyState.Pending, ScalingPolicyState.Applied, ScalingPolicyState.Deleting]
     Map<String, TitusSecurityGroup> titusSecurityGroupCache = [:]
 
-    for (Job job : jobs) {
-      try {
-        List<ScalingPolicyData> scalingPolicies = allScalingPolicies.findResults {
-          it.jobId == job.id && cacheablePolicyStates.contains(it.policyState.state) ?
-            new ScalingPolicyData(id: it.id.id, policy: it.scalingPolicy, status: it.policyState) :
-            null
-        }
-        ServerGroupData data = new ServerGroupData(job, scalingPolicies, account.name, region, account.stack)
-        cacheApplication(data, applications)
-        cacheCluster(data, clusters)
-        cacheServerGroup(data, serverGroups, instances, titusSecurityGroupCache)
-      } catch (Exception ex) {
-        log.error("Failed to cache ${job.name} in ${account.name}", ex)
+    def serverGroupDatas = jobs.collect { job ->
+      List<ScalingPolicyData> scalingPolicies = allScalingPolicies.findResults {
+        it.jobId == job.id && cacheablePolicyStates.contains(it.policyState.state) ?
+          new ScalingPolicyData(id: it.id.id, policy: it.scalingPolicy, status: it.policyState) :
+          null
       }
+
+      return new ServerGroupData(job, scalingPolicies, account.name, region, account.stack)
     }
+
+    serverGroupDatas.each { data ->
+      cacheApplication(data, applications)
+      cacheCluster(data, clusters)
+    }
+
+    // caching _all_ jobs at once allows us to optimize the security group lookups
+    cacheServerGroups(serverGroupDatas, serverGroups, instances, titusSecurityGroupCache)
 
     new DefaultCacheResult(
       [(APPLICATIONS.ns) : applications.values(),
@@ -321,34 +323,45 @@ class TitusClusterCachingAgent implements CachingAgent, CustomScheduledAgent, On
     }
   }
 
-  private void cacheServerGroup(ServerGroupData data, Map<String, CacheData> serverGroups, Map<String, CacheData> instances, Map titusSecurityGroupCache) {
-    serverGroups[data.serverGroup].with {
-      Job job = objectMapper.convertValue(data.job, Job.class)
-      resolveAwsDetails(titusSecurityGroupCache, job)
-      List<Map> policies = data.scalingPolicies ? data.scalingPolicies.collect {
-        // There is probably a better way to convert a protobuf to a Map, but I don't know what it is
-        [
-          id: it.id,
-          status: [ state: it.status.state.name(), reason: it.status.pendingReason ],
-          policy: objectMapper.readValue(JsonFormat.printer().print(it.policy), Map)
-        ]
-      } : []
+  private void cacheServerGroups(List<ServerGroupData> datas,
+                                 Map<String, CacheData> serverGroups,
+                                 Map<String, CacheData> instances,
+                                 Map titusSecurityGroupCache) {
+    def allJobs = datas*.job
+    resolveAwsDetails(titusSecurityGroupCache, allJobs)
 
-      // tasks are cached independently as instances so avoid the overhead of also storing on the serialized job
-      def jobTasks = job.tasks
-      job.tasks = []
+    datas.each { data ->
+      serverGroups[data.serverGroup].with {
+        try {
+          Job job = objectMapper.convertValue(data.job, Job.class)
+          List<Map> policies = data.scalingPolicies ? data.scalingPolicies.collect {
+            // There is probably a better way to convert a protobuf to a Map, but I don't know what it is
+            [
+              id    : it.id,
+              status: [state: it.status.state.name(), reason: it.status.pendingReason],
+              policy: objectMapper.readValue(JsonFormat.printer().print(it.policy), Map)
+            ]
+          } : []
 
-      attributes.job = job
-      attributes.scalingPolicies = policies
-      attributes.tasks = jobTasks.collect { [ id: it.id, instanceId: it.instanceId ] }
-      attributes.region = region
-      attributes.account = account.name
-      relationships[APPLICATIONS.ns].add(data.appName)
-      relationships[CLUSTERS.ns].add(data.cluster)
-      relationships[INSTANCES.ns].addAll(data.instanceIds)
-      for (Job.TaskSummary task : jobTasks) {
-        def instanceData = new InstanceData(job, task, account.name, region, account.stack)
-        cacheInstance(instanceData, instances)
+          // tasks are cached independently as instances so avoid the overhead of also storing on the serialized job
+          def jobTasks = job.tasks
+          job.tasks = []
+
+          attributes.job = job
+          attributes.scalingPolicies = policies
+          attributes.tasks = jobTasks.collect { [id: it.id, instanceId: it.instanceId] }
+          attributes.region = region
+          attributes.account = account.name
+          relationships[APPLICATIONS.ns].add(data.appName)
+          relationships[CLUSTERS.ns].add(data.cluster)
+          relationships[INSTANCES.ns].addAll(data.instanceIds)
+          for (Job.TaskSummary task : jobTasks) {
+            def instanceData = new InstanceData(job, task, account.name, region, account.stack)
+            cacheInstance(instanceData, instances)
+          }
+        } catch (Exception e) {
+          log.error("Failed to cache ${data.job.name} in ${account.name}", e)
+        }
       }
     }
   }
@@ -419,11 +432,15 @@ class TitusClusterCachingAgent implements CachingAgent, CustomScheduledAgent, On
   }
 
   private void resolveAwsDetails(Map<String, TitusSecurityGroup> titusSecurityGroupCache,
-                                 Job job) {
-    Set<TitusSecurityGroup> securityGroups = awsLookupUtil.get().lookupSecurityGroupNames(
-      titusSecurityGroupCache, account.name, region, job.securityGroups
-    )
-    job.securityGroupDetails = securityGroups
+                                 List<Job> jobs) {
+    def allSecurityGroupIds = jobs*.securityGroups.flatten() as List<String>
+    def allSecurityGroupsById = awsLookupUtil.get().lookupSecurityGroupNames(
+      titusSecurityGroupCache, account.name, region, allSecurityGroupIds
+    ).collectEntries { [it.groupId, it] }
+
+    jobs.each {
+      it.securityGroupDetails = it.securityGroups.collect { allSecurityGroupsById[it] } as Set<TitusSecurityGroup>
+    }
   }
 
   private String getAwsAccountId(String account) {

@@ -16,19 +16,21 @@
 
 package com.netflix.spinnaker.clouddriver.titus.caching.utils
 
+import com.netflix.spinnaker.clouddriver.aws.cache.Keys
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonVpc
 import com.netflix.spinnaker.clouddriver.aws.provider.view.AmazonSecurityGroupProvider
 import com.netflix.spinnaker.clouddriver.aws.provider.view.AmazonVpcProvider
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentials
 import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactory
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
-import com.netflix.spinnaker.clouddriver.titus.client.security.TitusCredentials
 import com.netflix.spinnaker.clouddriver.titus.credentials.NetflixTitusCredentials
 import com.netflix.spinnaker.clouddriver.titus.model.TitusSecurityGroup
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 import javax.annotation.PostConstruct
+
+import static com.netflix.spinnaker.clouddriver.aws.cache.Keys.Namespace.SECURITY_GROUPS
 
 @Component
 class AwsLookupUtil {
@@ -53,25 +55,44 @@ class AwsLookupUtil {
                                                    String region,
                                                    List<String> securityGroups) {
     Set<TitusSecurityGroup> expandedGroups = new LinkedHashSet<TitusSecurityGroup>()
+    Set<String> missingSecurityGroupIds = []
+
     securityGroups.each { securityGroupId ->
       def titusSecurityGroupLookupCacheId = "${account}-${region}-${securityGroupId}".toString()
       TitusSecurityGroup titusSecurityGroup = titusSecurityGroupLookupCache.get(titusSecurityGroupLookupCacheId)
 
-      try {
-        if (!titusSecurityGroup) {
-          titusSecurityGroup = new TitusSecurityGroup(groupId: securityGroupId)
-          Map details = getSecurityGroupDetails(account, region, securityGroupId)
-          if (details) {
-            titusSecurityGroup.groupName = details.name
-            titusSecurityGroup.awsAccount = details.awsAccount
-            titusSecurityGroup.awsVpcId = details.vpcId
-          }
-          titusSecurityGroupLookupCache.put(titusSecurityGroupLookupCacheId, titusSecurityGroup)
-        }
+      if (!titusSecurityGroup) {
+        missingSecurityGroupIds << securityGroupId
+      } else {
         expandedGroups << titusSecurityGroup
-      } catch (Exception ignored) {
       }
     }
+
+    if (missingSecurityGroupIds) {
+      def securityGroupNamesByIdentifier = awsSecurityGroupProvider.cacheView.getIdentifiers(
+        SECURITY_GROUPS.ns
+      ).collectEntries {
+        def key = Keys.parse(it)
+        [key.id, key.name]
+      }
+
+      Map awsDetails = awsAccountLookup.find {
+        it.titusAccount == account && it.region == region
+      }
+
+      expandedGroups.addAll(missingSecurityGroupIds.collect {
+        def titusSecurityGroup = new TitusSecurityGroup(groupId: it)
+        titusSecurityGroup.groupName = securityGroupNamesByIdentifier[it]
+        titusSecurityGroup.awsAccount = awsDetails.awsAccount
+        titusSecurityGroup.awsVpcId = awsDetails.vpcId
+
+        def titusSecurityGroupLookupCacheId = "${account}-${region}-${it}".toString()
+        titusSecurityGroupLookupCache.put(titusSecurityGroupLookupCacheId, titusSecurityGroup)
+
+        return titusSecurityGroup
+      })
+    }
+
     expandedGroups
   }
 
