@@ -38,3 +38,8 @@ export interface IPubsubTrigger extends ITrigger {
   pubsubSystem: string;
   subscriptionName: string;
 }
+
+export interface IWebhookTrigger extends ITrigger {
+  source: string;
+  constraints: any;
+}

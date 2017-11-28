@@ -103,6 +103,12 @@ module(HELP_CONTENTS, [])
         <p>The GCS object name, in the form 'gs://bucket/path/to/file.yml.'</p>`,
     'pipeline.config.expectedArtifact.docker.name': `
         <p>The Docker image name you want to trigger on changes to. If you are treating a tag as a release stream, you should include the image tag in the name. An example is 'gcr.io/project/image:stable', where all changes to the 'stable' tag will result in triggering this pipeline.</p>`,
+    'pipeline.config.trigger.webhook.source': `
+        <p>Determines the target URL required to trigger this pipeline, as well as how the payload can be transformed into artifacts.</p>
+    `,
+    'pipeline.config.trigger.webhook.constraints': `
+        <p>When provided, only a webhook with a payload containing at least the specified key/value pairs will be allowed to trigger this pipeline. For example, if you wanted to lockdown the systems/users that can trigger this pipeline via this webhook, you could require the key "secret" and value "something-secret" as a constraint.</p>
+    `,
     'loadBalancer.advancedSettings.healthTimeout': '<p>Configures the timeout, in seconds, for reaching the healthCheck target.  Must be less than the interval.</p><p> Default: <b>5</b></p>',
     'loadBalancer.advancedSettings.healthInterval': '<p>Configures the interval, in seconds, between ELB health checks.  Must be greater than the timeout.</p><p>Default: <b>10</b></p>',
     'loadBalancer.advancedSettings.healthyThreshold': '<p>Configures the number of healthy observations before reinstituting an instance into the ELB’s traffic rotation.</p><p>Default: <b>10</b></p>',
