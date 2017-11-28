@@ -16,6 +16,6 @@ subprojects {
   tasks.pmdTest.enabled = false
 
   findbugs {
-    toolVersion = '3.0.1'
+    ignoreFailures = true
   }
 }
