@@ -217,8 +217,19 @@ class RunTaskHandler(
     } else return ZERO
   }
 
+  /**
+   * Keys that should never be added to global context. Eventually this will
+   * disappear along with global context itself.
+   */
+  private val blacklistGlobalKeys = setOf(
+    "stageTimeoutMs",
+    "propertyIdList",
+    "originalProperties",
+    "propertyAction"
+  )
+
   private fun Stage.processTaskOutput(result: TaskResult) {
-    val filteredOutputs = result.outputs.filterKeys { it != "stageTimeoutMs" }
+    val filteredOutputs = result.outputs.filterKeys { it !in blacklistGlobalKeys }
     if (result.context.isNotEmpty() || filteredOutputs.isNotEmpty()) {
       context.putAll(result.context)
       outputs.putAll(filteredOutputs)

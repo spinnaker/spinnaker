@@ -17,8 +17,8 @@
 package com.netflix.spinnaker.orca.mahe.cleanup
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.kork.core.RetrySupport
+import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.listeners.ExecutionListener
 import com.netflix.spinnaker.orca.listeners.Persister
 import com.netflix.spinnaker.orca.mahe.MaheService
@@ -52,39 +52,43 @@ class FastPropertyCleanupListener implements ExecutionListener {
                       boolean wasSuccessful) {
 
     boolean rollbackBasedOnExecutionStatus = executionStatus in [ExecutionStatus.TERMINAL, ExecutionStatus.CANCELED]
-    List<Stage> rollbacks = rollbackBasedOnExecutionStatus ? execution.stages : execution.stages.findAll { it.context.rollback }
+    List<Stage> rollbacks = rollbackBasedOnExecutionStatus ? execution.stages : execution.stages.findAll {
+      it.context.rollbackProperties
+    }
 
     if (!rollbacks.empty) {
       rollbacks.each { stage ->
-        switch (stage.context.propertyAction) {
+        switch (stage.outputs.propertyAction) {
           case PropertyAction.CREATE.toString():
-            stage.context.persistedProperties.each { Map prop ->
+            stage.outputs.persistedProperties.each { Map prop ->
               String propertyId = prop.propertyId
               if (shouldRollback(prop)) {
                 log.info("Rolling back the creation of: ${propertyId} on execution ${execution.id} by deleting")
                 Response response = mahe.deleteProperty(propertyId, "spinnaker rollback", extractEnvironment(propertyId))
-                resolveRollbackResponse(response, stage.context.propertyAction.toString(), prop)
+                resolveRollbackResponse(response, stage.outputs.propertyAction.toString(), prop)
               } else {
                 log.info("Property ${propertyId} has been updated since this execution (${execution.id}); not rolling back create")
               }
             }
             break
           case PropertyAction.UPDATE.toString():
-            stage.context.originalProperties.each { Map originalProp ->
+            stage.outputs.originalProperties.each { Map originalProp ->
               Map property = originalProp.property ?: originalProp
-              Map updatedProperty = (Map) stage.context.persistedProperties.find { it.propertyId == property.propertyId }
+              Map updatedProperty = (Map) stage.outputs.persistedProperties.find {
+                it.propertyId == property.propertyId
+              }
               String propertyId = property.propertyId
               if (shouldRollback(updatedProperty)) {
                 log.info("Rolling back the update of: ${propertyId} on execution ${execution.id} by upserting")
                 Response response = mahe.upsertProperty(originalProp)
-                resolveRollbackResponse(response, stage.context.propertyAction.toString(), property)
+                resolveRollbackResponse(response, stage.outputs.propertyAction.toString(), property)
               } else {
                 log.info("Property ${propertyId} has been updated since this execution (${execution.id}); not rolling back update")
               }
             }
             break
           case PropertyAction.DELETE.toString():
-            stage.context.originalProperties.each { Map originalProp ->
+            stage.outputs.originalProperties.each { Map originalProp ->
               Map property = originalProp.property ?: originalProp
               if (propertyExists(property)) {
                log.info("Property ${property.propertyId} exists, not restoring to original state after delete.")
@@ -95,7 +99,7 @@ class FastPropertyCleanupListener implements ExecutionListener {
                 log.info("Rolling back the delete of: ${property.key}|${property.value} on execution ${execution.id} by re-creating")
 
                 Response response = mahe.upsertProperty(originalProp)
-                resolveRollbackResponse(response, stage.context.propertyAction.toString(), property)
+                resolveRollbackResponse(response, stage.outputs.propertyAction.toString(), property)
               }
             }
         }

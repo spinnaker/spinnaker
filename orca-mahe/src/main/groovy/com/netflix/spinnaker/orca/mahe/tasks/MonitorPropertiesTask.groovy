@@ -31,7 +31,7 @@ import retrofit.client.Response
 
 @Slf4j
 @Component
-class MonitorPropertiesTask implements Task{
+class MonitorPropertiesTask implements Task {
   @Autowired MaheService maheService
   @Autowired ObjectMapper mapper
 
@@ -57,18 +57,18 @@ class MonitorPropertiesTask implements Task{
           fetchedProperties << responseMap.property
         }
 
-      } catch (RetrofitError e ){
+      } catch (RetrofitError e) {
         log.error("Exception occurred while getting persisted property with id ${id} from mahe service", e)
-        return new TaskResult(ExecutionStatus.RUNNING, outputs)
+        return new TaskResult(ExecutionStatus.RUNNING, [:], outputs)
       }
     }
 
 
-    if(outputs.persistedProperties.size() == propertyIds.size()) {
-      return new TaskResult(ExecutionStatus.SUCCEEDED, outputs, outputs)
+    if (outputs.persistedProperties.size() == propertyIds.size()) {
+      return new TaskResult(ExecutionStatus.SUCCEEDED, [:], outputs)
     }
 
     log.info("create persited properties in progress: ${outputs}")
-    return new TaskResult(ExecutionStatus.RUNNING, outputs)
+    return new TaskResult(ExecutionStatus.RUNNING, [:], outputs)
   }
 }

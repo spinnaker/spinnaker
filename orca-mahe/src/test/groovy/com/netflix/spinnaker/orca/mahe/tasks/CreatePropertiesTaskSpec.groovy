@@ -47,7 +47,7 @@ class CreatePropertiesTaskSpec extends Specification {
     def property = createProperty()
     def originalProperty = createProperty()
 
-    def stage = createPropertiesStage(pipeline, scope, property, originalProperty )
+    def stage = createPropertiesStage(pipeline, scope, property, originalProperty)
 
     when:
     List properties = task.assemblePersistedPropertyListFromContext(stage.context, stage.context.persistedProperties)
@@ -82,14 +82,14 @@ class CreatePropertiesTaskSpec extends Specification {
     def property = createProperty()
     def originalProperty = createProperty()
 
-    def stage = createPropertiesStage(pipeline, scope, property, originalProperty )
+    def stage = createPropertiesStage(pipeline, scope, property, originalProperty)
     stage.context.remove("originalProperties")
 
     when:
     def results = task.execute(stage)
 
     then:
-    1 * maheService.findProperty(_) >> new Response('', 200, 'OK', [], new TypedString(mapper.writeValueAsString([a:1])))
+    1 * maheService.findProperty(_) >> new Response('', 200, 'OK', [], new TypedString(mapper.writeValueAsString([a: 1])))
     1 * maheService.upsertProperty(_) >> { Map res ->
       def json = mapper.writeValueAsString([propertyId: 'propertyId'])
       new Response("http://mahe", 200, "OK", [], new TypedByteArray('application/json', json.bytes))
@@ -104,7 +104,7 @@ class CreatePropertiesTaskSpec extends Specification {
 
   def "prefer a stage override if present for context"() {
     given:
-    def trigger = [ stageOverrides: [] ]
+    def trigger = [stageOverrides: []]
     def pipeline = new PipelineBuilder("foo").withTrigger(trigger).build()
     def stageOverride = createPropertiesStage(pipeline, createScope(), createProperty("other"), null)
     stageOverride.context.refId = "a"
@@ -127,7 +127,7 @@ class CreatePropertiesTaskSpec extends Specification {
 
     then:
 
-    with(results.context) {
+    with(results.outputs) {
       propertyIdList.size() == 1
       propertyIdList.contains(propertyId: 'other')
     }
@@ -135,7 +135,7 @@ class CreatePropertiesTaskSpec extends Specification {
 
   def "should handle expressions in stage override"() {
     given: "an override property containing an expression"
-    def trigger = [ stageOverrides: [] ]
+    def trigger = [stageOverrides: []]
     def pipeline = new PipelineBuilder("foo").withTrigger(trigger).build()
     def stageOverride = createPropertiesStage(
       pipeline,
@@ -168,7 +168,7 @@ class CreatePropertiesTaskSpec extends Specification {
 
     then:
 
-    with(results.context) {
+    with(results.outputs) {
       propertyIdList.size() == 1
       propertyIdList.contains(propertyId: 'other')
     }
@@ -207,7 +207,7 @@ class CreatePropertiesTaskSpec extends Specification {
     def property = createProperty()
     def originalProperty = []
 
-    def stage = createPropertiesStage(pipeline, scope, property, originalProperty )
+    def stage = createPropertiesStage(pipeline, scope, property, originalProperty)
 
     when:
     List properties = task.assemblePersistedPropertyListFromContext(stage.context, stage.context.persistedProperties)
@@ -238,7 +238,7 @@ class CreatePropertiesTaskSpec extends Specification {
 
     then:
 
-    with(results.context) {
+    with(results.outputs) {
       propertyIdList.size() == 1
       propertyIdList.contains(propertyId: 'propertyId')
     }
@@ -258,13 +258,14 @@ class CreatePropertiesTaskSpec extends Specification {
     def results = task.execute(propertiesStage)
 
     then:
-    1 * maheService.deleteProperty(property.propertyId, 'delete', scope.env) >> { def res ->
-      def json = mapper.writeValueAsString([propertyId: 'propertyId'])
-      new Response("http://mahe", 200, "OK", [] , null)
+    1 * maheService.deleteProperty(property.propertyId, 'delete', scope.env) >> {
+      def res ->
+        def json = mapper.writeValueAsString([propertyId: 'propertyId'])
+        new Response("http://mahe", 200, "OK", [], null)
     }
 
     then: "deleting a fast property does not return a property ID"
-    with(results.context) {
+    with(results.outputs) {
       propertyIdList.size() == 0
     }
 
@@ -284,16 +285,16 @@ class CreatePropertiesTaskSpec extends Specification {
     def results = task.execute(propertiesStage)
 
     then:
-    1 * maheService.deleteProperty(property.propertyId, 'delete', scope.env) >> { def res ->
-      def json = mapper.writeValueAsString([error:  "com.netflix.fastproperty.api.model.PropertyNotFound : property null"])
-      new Response("http://mahe", 400, "OK", [], new TypedByteArray('application/json', json.bytes))
+    1 * maheService.deleteProperty(property.propertyId, 'delete', scope.env) >> {
+      def res ->
+        def json = mapper.writeValueAsString([error: "com.netflix.fastproperty.api.model.PropertyNotFound : property null"])
+        new Response("http://mahe", 400, "OK", [], new TypedByteArray('application/json', json.bytes))
     }
 
     then:
     thrown(IllegalStateException)
 
   }
-
 
   def "create multiple new persistent properties"() {
     given:
@@ -334,20 +335,19 @@ class CreatePropertiesTaskSpec extends Specification {
     }
 
     then:
-    with(results.context) {
+    with(results.outputs) {
       propertyIdList.size() == 2
       propertyIdList.contains(propertyId: "${properties[0].key}|${properties[0].value}".toString())
       propertyIdList.contains(propertyId: "${properties[1].key}|${properties[1].value}".toString())
     }
   }
 
-
   def createPropertiesStage(pipeline, scope, property, originalProperty) {
     def context = [
-      parentStageId: UUID.randomUUID().toString(),
+      parentStageId      : UUID.randomUUID().toString(),
       scope              : scope,
       persistedProperties: [property],
-      originalProperties: originalProperty ? [originalProperty] : null,
+      originalProperties : originalProperty ? [originalProperty] : null,
       email              : 'test@netflix.com',
       cmcTicket          : 'cmcTicket'
     ]

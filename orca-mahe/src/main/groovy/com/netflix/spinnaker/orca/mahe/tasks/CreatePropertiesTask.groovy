@@ -81,16 +81,13 @@ class CreatePropertiesTask implements Task {
       }
     }
 
-    boolean rollback = context.rollbackProperties
-
     def outputs = [
       propertyIdList: propertyIdList,
       originalProperties: originalProperties,
-      rollback: rollback,
       propertyAction: propertyAction,
     ]
 
-    return new TaskResult(SUCCEEDED, outputs, outputs)
+    return new TaskResult(SUCCEEDED, [rollbackProperties: context.rollbackProperties as boolean], outputs)
 
   }
 
