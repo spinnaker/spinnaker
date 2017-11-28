@@ -239,6 +239,8 @@ class Builder(object):
 
     if name == 'halyard':
       extra_args.append('-PbintrayPackageDebDistribution=trusty-nightly')
+    else:
+      extra_args.append('-PbintrayPackageDebDistribution=trusty,xenial')
 
     cmds = [
       './gradlew {extra} {target}'.format(extra=' '.join(extra_args), target=target)
