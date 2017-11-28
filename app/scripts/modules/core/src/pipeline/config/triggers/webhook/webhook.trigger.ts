@@ -10,7 +10,7 @@ class WebhookTriggerController implements IController {
   }
 
   public getTriggerEndpoint(): string {
-    return `${SETTINGS.gateUrl}/webhooks/${this.trigger.type}/${this.trigger.source || "<source>"}`;
+    return `${SETTINGS.gateUrl}/webhooks/${this.trigger.type}/${this.trigger.source || '<source>'}`;
   }
 }
 
