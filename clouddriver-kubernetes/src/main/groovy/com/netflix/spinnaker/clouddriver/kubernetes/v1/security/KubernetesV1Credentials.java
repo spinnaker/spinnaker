@@ -131,8 +131,11 @@ public class KubernetesV1Credentials implements KubernetesCredentials {
 
   public List<String> getDeclaredNamespaces() {
     if (namespaces != null && !namespaces.isEmpty()) {
+      List<String> toInitialize = new ArrayList<>(namespaces);
+      List<String> initializedNamespaces = new ArrayList<>(imagePullSecrets.keySet());
+      toInitialize.removeAll(initializedNamespaces);
+      reconfigureRegistries(toInitialize);
       // If namespaces are provided, used them
-      reconfigureRegistries(namespaces);
       return namespaces;
     } else {
       try {
