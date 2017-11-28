@@ -28,10 +28,6 @@ import org.springframework.stereotype.Service;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 
-import javax.annotation.PostConstruct;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -49,25 +45,15 @@ public class PubsubMessageHandler {
   @Autowired
   private PubsubEventMonitor pubsubEventMonitor;
 
-  private MessageDigest digest;
-
   private static final String SET_IF_NOT_EXIST = "NX";
   private static final String SET_EXPIRE_TIME_MILLIS = "PX";
   private static final String SUCCESS = "OK";
 
-  @PostConstruct
-  void postConstruct() {
-    try {
-      digest = MessageDigest.getInstance("SHA-256");
-    } catch (NoSuchAlgorithmException nsa) {
-      log.error(nsa.getMessage());
-    }
-  }
-
   public void handleFailedMessage(MessageDescription description,
                                   MessageAcknowledger acknowledger,
-                                  String identifier) {
-    String messageKey = makeKey(description);
+                                  String identifier,
+                                  String messageId) {
+    String messageKey = makeKey(description, messageId);
     if (tryAck(messageKey, description.getAckDeadlineMillis(), acknowledger, identifier)) {
       setMessageHandled(messageKey, identifier, description.getRetentionDeadlineMillis());
     }
@@ -75,8 +61,9 @@ public class PubsubMessageHandler {
 
   public void handleMessage(MessageDescription description,
                             MessageAcknowledger acknowledger,
-                            String identifier) {
-    String messageKey = makeKey(description);
+                            String identifier,
+                            String messageId) {
+    String messageKey = makeKey(description, messageId);
     if (tryAck(messageKey, description.getAckDeadlineMillis(), acknowledger, identifier)) {
       processEvent(description);
       setMessageHandled(messageKey, identifier, description.getRetentionDeadlineMillis());
@@ -109,11 +96,8 @@ public class PubsubMessageHandler {
     }
   }
 
-  private String makeKey(MessageDescription description) {
-    digest.reset();
-    digest.update(description.getMessagePayload().getBytes());
-    String messageHash = new String(Base64.getEncoder().encode(digest.digest()));
-    return String.format("%s:echo-pubsub:%s:%s", description.getPubsubSystem().toString(), description.getSubscriptionName(), messageHash);
+  private String makeKey(MessageDescription description, String messageId) {
+    return String.format("%s:echo-pubsub:%s:%s", description.getPubsubSystem().toString(), description.getSubscriptionName(), messageId);
   }
 
 

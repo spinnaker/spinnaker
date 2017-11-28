@@ -146,6 +146,7 @@ public class GooglePubsubSubscriber implements PubsubSubscriber {
     @Override
     public void receiveMessage(PubsubMessage message, AckReplyConsumer consumer) {
       String messagePayload = message.getData().toStringUtf8();
+      String messageId = message.getMessageId();
       log.debug("Received message with payload: {}", messagePayload);
       MessageDescription description = MessageDescription.builder()
           .subscriptionName(subscriptionName)
@@ -162,11 +163,11 @@ public class GooglePubsubSubscriber implements PubsubSubscriber {
         log.info("artifacts {}", String.join(", ", artifacts.stream().map(Artifact::toString).collect(Collectors.toList())));
       } catch (Exception e) {
         log.error("Failed to process artifacts: {}", e.getMessage(), e);
-        pubsubMessageHandler.handleFailedMessage(description, acknowledger, identity.getIdentity());
+        pubsubMessageHandler.handleFailedMessage(description, acknowledger, identity.getIdentity(), messageId);
         return;
       }
 
-      pubsubMessageHandler.handleMessage(description, acknowledger, identity.getIdentity());
+      pubsubMessageHandler.handleMessage(description, acknowledger, identity.getIdentity(), messageId);
     }
   }
 

@@ -47,7 +47,6 @@ class PubsubMessageHandlerSpec extends Specification {
 
   def setup() {
     pubsubMessageHandler = new PubsubMessageHandler()
-    pubsubMessageHandler.setDigest(messageDigest)
     pubsubMessageHandler.setJedisPool(embeddedRedis.getPool())
     pubsubMessageHandler.setPubsubEventMonitor(pubsubEventMonitor)
   }
@@ -115,6 +114,7 @@ class PubsubMessageHandlerSpec extends Specification {
 
   def "event processed on pubsub message if it hasn't been processed already"() {
     given:
+    String messageId = 'X'
     MessageDescription description = MessageDescription.builder()
     .subscriptionName('subscriptionName')
     .messagePayload('THE TRUTH IS OUT THERE')
@@ -127,7 +127,7 @@ class PubsubMessageHandlerSpec extends Specification {
     String id = 'id'
 
     when:
-    pubsubMessageHandler.handleMessage(description, acker, id)
+    pubsubMessageHandler.handleMessage(description, acker, id, messageId)
 
     then:
     1 * pubsubEventMonitor.processEvent(_)
@@ -137,6 +137,7 @@ class PubsubMessageHandlerSpec extends Specification {
 
   def "message gets handled only once while it's retained in the topic"() {
     given:
+    String messageId = 'X'
     MessageDescription description = MessageDescription.builder()
         .subscriptionName('subscriptionName')
         .messagePayload('THE TRUTH IS OUT THERE')
@@ -149,8 +150,8 @@ class PubsubMessageHandlerSpec extends Specification {
     String id = 'id'
 
     when:
-    pubsubMessageHandler.handleMessage(description, acker, id)
-    pubsubMessageHandler.handleMessage(description, acker, id)
+    pubsubMessageHandler.handleMessage(description, acker, id, messageId)
+    pubsubMessageHandler.handleMessage(description, acker, id, messageId)
 
     then:
     1 * pubsubEventMonitor.processEvent(_)
