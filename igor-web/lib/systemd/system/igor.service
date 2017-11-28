@@ -1,0 +1,14 @@
+[Unit]
+Description=Spinnaker Igor
+PartOf=spinnaker.service
+
+[Service]
+ExecStart=/opt/igor/bin/igor 2>&1 /var/log/spinnaker/igor/igor.log
+WorkingDirectory=/opt/igor/bin
+SuccessExitStatus=143
+User=spinnaker
+Group=spinnaker
+Type=simple
+
+[Install]
+WantedBy=multi-user.target
