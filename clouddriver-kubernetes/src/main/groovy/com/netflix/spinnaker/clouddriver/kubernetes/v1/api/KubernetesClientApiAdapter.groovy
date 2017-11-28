@@ -187,7 +187,9 @@ class KubernetesClientApiAdapter {
   V1beta1StatefulSet replaceStatfulSet(String name, String namespace, V1beta1StatefulSet statefulSet) {
     exceptionWrapper("statefulSets.replace", "Replace Stateful Set ${name}", namespace) {
       def deployedControllerSet = getStatefulSet(name, namespace)
-      deployedControllerSet.spec = statefulSet.spec
+      deployedControllerSet.spec.replicas = statefulSet.spec.replicas
+      deployedControllerSet.spec.template = statefulSet.spec.template
+      deployedControllerSet.spec.updateStrategy = statefulSet.spec.updateStrategy
 
       return apiInstance.replaceNamespacedStatefulSet(name, namespace, deployedControllerSet,  API_CALL_RESULT_FORMAT)
     }
@@ -285,7 +287,8 @@ class KubernetesClientApiAdapter {
   V1beta1DaemonSet replaceDaemonSet(String name, String namespace, V1beta1DaemonSet daemonSet) {
     exceptionWrapper("DaemonSet.replace", "Replace Daemon Set ${name}", namespace) {
       def deployedControllerSet = getDaemonSet(name, namespace)
-      deployedControllerSet.spec = daemonSet.spec
+      deployedControllerSet.spec.template = daemonSet.spec.template
+      deployedControllerSet.spec.updateStrategy = daemonSet.spec.updateStrategy
 
       return extApi.replaceNamespacedDaemonSet(name, namespace, deployedControllerSet, API_CALL_RESULT_FORMAT)
     }

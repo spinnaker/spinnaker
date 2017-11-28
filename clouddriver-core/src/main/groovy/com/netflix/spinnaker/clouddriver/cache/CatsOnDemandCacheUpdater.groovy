@@ -78,6 +78,10 @@ class CatsOnDemandCacheUpdater implements OnDemandCacheUpdater {
             hasOnDemandResults = true // force Orca to retry
             continue;
           }
+          if (!agent.metricsSupport) {
+            hasOnDemandResults = false
+            continue;
+          }
           if (result.cacheResult) {
             hasOnDemandResults = !(result.cacheResult.cacheResults ?: [:]).values().flatten().isEmpty() && !agentScheduler.atomic
             agent.metricsSupport.cacheWrite {
@@ -96,7 +100,7 @@ class CatsOnDemandCacheUpdater implements OnDemandCacheUpdater {
           }
           final long elapsed = System.nanoTime() - startTime
           agent.metricsSupport.recordTotalRunTimeNanos(elapsed)
-          log.info("$agent.providerName/$agent.onDemandAgentType handled $type in ${TimeUnit.NANOSECONDS.toMillis(elapsed)} millis. Payload: $data")
+          log.info("$agent.providerName/$agent?.onDemandAgentType handled $type in ${TimeUnit.NANOSECONDS.toMillis(elapsed)} millis. Payload: $data")
         }
       } catch (e) {
         agent.metricsSupport.countError()

@@ -83,7 +83,7 @@ class KubernetesControllersCachingAgent extends KubernetesV1CachingAgent impleme
 
   @Override
   boolean handles(OnDemandAgent.OnDemandType type, String cloudProvider) {
-    return false
+    OnDemandAgent.OnDemandType.ServerGroup == type && cloudProvider == KubernetesCloudProvider.ID
   }
 
   @Override
@@ -105,22 +105,32 @@ class KubernetesControllersCachingAgent extends KubernetesV1CachingAgent impleme
     def serverGroupName = data.serverGroupName.toString()
 
     V1beta1StatefulSet statefulSet = metricsSupport.readData {
-      loadStatefulSets()
+      loadStatefulSet(namespace, serverGroupName)
     }
 
     V1beta1DaemonSet daemonSet = metricsSupport.readData {
-      loadDaemonSets()
+      loadDaemonSet(namespace, serverGroupName)
     }
 
     CacheResult result = metricsSupport.transformData {
-      buildCacheResult([new KubernetesController(controller: statefulSet,controller1: daemonSet)], [:], [], Long.MAX_VALUE)
+      buildCacheResult([new KubernetesController(statefulController: statefulSet, daemonController: daemonSet)], [:], [], Long.MAX_VALUE)
     }
 
     def jsonResult = objectMapper.writeValueAsString(result.cacheResults)
-
+    boolean isControllerSetCachingAgentType = true
     if (result.cacheResults.values().flatten().isEmpty()) {
       // Avoid writing an empty onDemand cache record (instead delete any that may have previously existed).
       providerCache.evictDeletedItems(Keys.Namespace.ON_DEMAND.ns, [Keys.getServerGroupKey(accountName, namespace, serverGroupName)])
+
+      // Determine if this is the correct agent to delete cache which can avoid double deletion
+      CacheData serverGroup = providerCache.get(Keys.Namespace.SERVER_GROUPS.ns, Keys.getServerGroupKey(accountName, namespace, serverGroupName))
+
+      if (serverGroup) {
+        String kind = serverGroup.attributes?.get("serverGroup")?.get("kind")
+        if (kind != "StatefulSet" || kind != "DaemonSet") {
+          isControllerSetCachingAgentType = false
+        }
+      }
     } else {
       metricsSupport.onDemandStore {
         def cacheData = new DefaultCacheData(
@@ -134,17 +144,19 @@ class KubernetesControllersCachingAgent extends KubernetesV1CachingAgent impleme
           ],
           [:]
         )
-
         providerCache.putCacheData(Keys.Namespace.ON_DEMAND.ns, cacheData)
       }
     }
 
     // Evict this server group if it no longer exists.
-    Map<String, Collection<String>> evictions = statefulSet | daemonSet  ? [:] : [
-      (Keys.Namespace.SERVER_GROUPS.ns): [
-        Keys.getServerGroupKey(accountName, namespace, serverGroupName)
+    Map<String, Collection<String>> evictions
+    if (isControllerSetCachingAgentType) {
+      evictions = statefulSet || daemonSet ? [:] : [
+        (Keys.Namespace.SERVER_GROUPS.ns): [
+          Keys.getServerGroupKey(accountName, namespace, serverGroupName)
+        ]
       ]
-    ]
+    }
 
     log.info("On demand cache refresh (data: ${data}) succeeded.")
 
@@ -157,7 +169,32 @@ class KubernetesControllersCachingAgent extends KubernetesV1CachingAgent impleme
 
   @Override
   Collection<Map> pendingOnDemandRequests(ProviderCache providerCache) {
-    return null
+    def keys = providerCache.getIdentifiers(Keys.Namespace.ON_DEMAND.ns)
+    keys = keys.findResults {
+      def parse = Keys.parse(it)
+      if (parse && namespaces.contains(parse.namespace) && parse.account == accountName) {
+        return it
+      } else {
+        return null
+      }
+    }
+
+    def keyCount = keys.size()
+    def be = keyCount == 1 ? "is" : "are"
+    def pluralize = keyCount == 1 ? "" : "s"
+    log.info("There $be $keyCount pending on demand request$pluralize")
+
+    providerCache.getAll(Keys.Namespace.ON_DEMAND.ns, keys).collect {
+      def details = Keys.parse(it.id)
+
+      return [
+        details       : details,
+        moniker       : convertOnDemandDetails(details),
+        cacheTime     : it.attributes.cacheTime,
+        processedCount: it.attributes.processedCount,
+        processedTime : it.attributes.processedTime
+      ]
+    }
   }
 
   /**
@@ -173,9 +210,9 @@ class KubernetesControllersCachingAgent extends KubernetesV1CachingAgent impleme
     List<V1beta1StatefulSet> statefulSet = loadStatefulSets()
     List<V1beta1DaemonSet> daemonSet = loadDaemonSets()
     List<KubernetesController> serverGroups = (statefulSet.collect {
-      it ? new KubernetesController(controller: it) : null
+      it ? new KubernetesController(statefulController: it) : null
     }+ daemonSet.collect {
-      it ? new KubernetesController(controller: it) : null
+      it ? new KubernetesController(statefulController: it) : null
     }
     ) - null
     List<CacheData> evictFromOnDemand = []
@@ -221,6 +258,14 @@ class KubernetesControllersCachingAgent extends KubernetesV1CachingAgent impleme
 
   V1PodList loadPods(KubernetesController serverGroup) {
     credentials.apiClientAdaptor.getPods(serverGroup.namespace, serverGroup.selector)
+  }
+
+  V1beta1StatefulSet loadStatefulSet(String namespace, String name) {
+    credentials.apiClientAdaptor.getStatefulSet(name, namespace)
+  }
+
+  V1beta1DaemonSet loadDaemonSet(String namespace, String name) {
+    credentials.apiClientAdaptor.getDaemonSet(name, namespace)
   }
 
   private CacheResult buildCacheResult(List<KubernetesController> serverGroups, Map<String, CacheData> onDemandKeep, List<String> onDemandEvict, Long start) {
@@ -300,12 +345,12 @@ class KubernetesControllersCachingAgent extends KubernetesV1CachingAgent impleme
           def events = null
           attributes.name = serverGroupName
 
-          if (serverGroup.controller instanceof V1beta1StatefulSet) {
+          if (serverGroup.statefulController instanceof V1beta1StatefulSet) {
             events = stateFulsetEvents[serverGroup.namespace][serverGroupName]
-          } else if (serverGroup.controller instanceof V1beta1DaemonSet) {
+          } else if (serverGroup.statefulController instanceof V1beta1DaemonSet) {
             events = daemonsetEvents[serverGroup.namespace][serverGroupName]
           }
-          attributes.serverGroup = new KubernetesV1ServerGroup(serverGroup.controller, accountName, events)
+          attributes.serverGroup = new KubernetesV1ServerGroup(serverGroup.statefulController ?: serverGroup.daemonController, accountName, events)
           relationships[Keys.Namespace.APPLICATIONS.ns].add(applicationKey)
           relationships[Keys.Namespace.CLUSTERS.ns].add(clusterKey)
           relationships[Keys.Namespace.INSTANCES.ns].addAll(instanceKeys)
@@ -346,27 +391,29 @@ class KubernetesControllersCachingAgent extends KubernetesV1CachingAgent impleme
     }
   }
 
-  class KubernetesController{
+  static class KubernetesController{
+    def statefulController
+    def daemonController
 
-    def controller
     String getName() {
-      controller.metadata.name
+      statefulController ? statefulController.metadata.name : daemonController.metadata.name
     }
 
     String getNamespace() {
-      controller.metadata.namespace
+      statefulController ? statefulController.metadata.namespace : daemonController.metadata.namespace
     }
 
     Map<String, String> getSelector() {
-      controller.spec.selector.matchLabels
+      statefulController ? statefulController.spec.selector.matchLabels : daemonController.spec.selector.matchLabels
     }
 
     boolean exists() {
-      controller
+      statefulController ?: daemonController
     }
 
     List<String> getLoadBalancers() {
-      KubernetesUtil.getLoadBalancers(controller.spec?.template?.metadata?.labels ?: [:])
+      statefulController ? KubernetesUtil.getLoadBalancers(statefulController.spec?.template?.metadata?.labels ?: [:]) :
+        KubernetesUtil.getLoadBalancers(daemonController.spec?.template?.metadata?.labels ?: [:])
     }
   }
 }

@@ -47,6 +47,7 @@ class KubernetesServerGroupCachingAgentSpec extends Specification {
   ReplicationControllerList replicationControllerList
   PodList podList
   KubernetesApiAdaptor apiMock
+
   Registry registryMock
   KubernetesV1Credentials kubernetesCredentials
 
@@ -63,8 +64,6 @@ class KubernetesServerGroupCachingAgentSpec extends Specification {
     replicationControllerList = Mock(ReplicationControllerList)
     podList = Mock(PodList)
     apiMock = Mock(KubernetesApiAdaptor)
-
-    apiMock.getNamespacesByName() >> [NAMESPACE]
 
     def accountCredentialsRepositoryMock = Mock(AccountCredentialsRepository)
 
@@ -103,6 +102,7 @@ class KubernetesServerGroupCachingAgentSpec extends Specification {
       apiMock.getEvents(NAMESPACE, KubernetesUtil.DEPRECATED_SERVER_GROUP_KIND) >> [:].withDefault { _ -> [] }
       apiMock.getAutoscalers(NAMESPACE, KubernetesUtil.DEPRECATED_SERVER_GROUP_KIND) >> [:]
       apiMock.getPods(NAMESPACE, selector) >> [podMock]
+      apiMock.getNamespacesByName() >> [NAMESPACE]
 
       def providerCacheMock = Mock(ProviderCache)
       providerCacheMock.getAll(_, _) >> []
