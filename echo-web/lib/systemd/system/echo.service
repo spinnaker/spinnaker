@@ -1,10 +1,11 @@
 [Unit]
 Description=Spinnaker Echo
-After=network.target
+PartOf=spinnaker.service
 
 [Service]
 ExecStart=/opt/echo/bin/echo 2>&1 /var/log/spinnaker/echo/echo.log
 WorkingDirectory=/opt/echo/bin
+SuccessExitStatus=143
 User=spinnaker
 Group=spinnaker
 Type=simple
