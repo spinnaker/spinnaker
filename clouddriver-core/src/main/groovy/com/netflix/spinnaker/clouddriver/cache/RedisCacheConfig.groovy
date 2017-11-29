@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.cache
 
-import com.netflix.discovery.DiscoveryClient
+import com.netflix.discovery.EurekaClient
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.redis.cache.RedisCache.CacheMetrics
 import com.netflix.spinnaker.cats.redis.cache.RedisCacheOptions
@@ -24,9 +24,7 @@ import com.netflix.spinnaker.cats.redis.cluster.AgentIntervalProvider
 import com.netflix.spinnaker.cats.redis.cluster.DefaultNodeStatusProvider
 import com.netflix.spinnaker.cats.redis.cluster.NodeStatusProvider
 import com.netflix.spinnaker.clouddriver.core.RedisConfigurationProperties
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
@@ -61,18 +59,11 @@ class RedisCacheConfig {
       TimeUnit.SECONDS.toMillis(redisConfigurationProperties.poll.intervalSeconds),
       TimeUnit.SECONDS.toMillis(redisConfigurationProperties.poll.errorIntervalSeconds),
       TimeUnit.SECONDS.toMillis(redisConfigurationProperties.poll.timeoutSeconds)
-    );
+    )
   }
 
   @Bean
-  @ConditionalOnBean(DiscoveryClient)
-  EurekaStatusNodeStatusProvider discoveryStatusNodeStatusProvider(DiscoveryClient discoveryClient) {
-    new EurekaStatusNodeStatusProvider(discoveryClient)
-  }
-
-  @Bean
-  @ConditionalOnMissingBean(NodeStatusProvider)
-  DefaultNodeStatusProvider nodeStatusProvider() {
-    new DefaultNodeStatusProvider()
+  NodeStatusProvider nodeStatusProvider(Optional<EurekaClient> eurekaClient) {
+    return eurekaClient.map({ new EurekaStatusNodeStatusProvider(it) }).orElseGet({ new DefaultNodeStatusProvider() })
   }
 }

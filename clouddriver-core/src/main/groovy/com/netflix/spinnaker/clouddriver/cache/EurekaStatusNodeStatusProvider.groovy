@@ -17,18 +17,18 @@
 package com.netflix.spinnaker.clouddriver.cache
 
 import com.netflix.appinfo.InstanceInfo
-import com.netflix.discovery.DiscoveryClient
+import com.netflix.discovery.EurekaClient
 import com.netflix.spinnaker.cats.redis.cluster.NodeStatusProvider
 
 class EurekaStatusNodeStatusProvider implements NodeStatusProvider {
-  private final DiscoveryClient discoveryClient;
+  private final EurekaClient eurekaClient
 
-  EurekaStatusNodeStatusProvider(DiscoveryClient discoveryClient) {
-    this.discoveryClient = discoveryClient
+  EurekaStatusNodeStatusProvider(EurekaClient eurekaClient) {
+    this.eurekaClient = eurekaClient
   }
 
   @Override
   boolean isNodeEnabled() {
-    discoveryClient.instanceRemoteStatus == InstanceInfo.InstanceStatus.UP
+    eurekaClient.instanceRemoteStatus == InstanceInfo.InstanceStatus.UP
   }
 }
