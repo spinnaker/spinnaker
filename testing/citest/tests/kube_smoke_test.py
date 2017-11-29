@@ -398,7 +398,7 @@ class KubeSmokeTestScenario(sk.SpinnakerTestScenario):
               'type': 'manual',
               'user': '[anonymous]'
           }],
-          description='Create StatefulSet in Application '+self.TEST_APP,
+          description='Create StatefulSet in Application ' + self.TEST_APP,
           application=self.TEST_APP)
       builder = kube.KubeContractBuilder(self.kube_observer)
       (builder.new_clause_builder('StatefulSet Added', retryable_for_secs=60)
@@ -447,7 +447,7 @@ class KubeSmokeTestScenario(sk.SpinnakerTestScenario):
               'type': 'manual',
               'user': '[anonymous]'
           }],
-          description='Create Daemonset in Application'+self.TEST_APP,
+          description='Create Daemonset in Application' + self.TEST_APP,
           application=self.TEST_APP)
       builder = kube.KubeContractBuilder(self.kube_observer)
       (builder.new_clause_builder('Daemonset Added', retryable_for_secs=15)
