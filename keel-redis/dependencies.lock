@@ -37,14 +37,14 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "1.108.0"
+            "locked": "1.109.0"
         },
         "com.netflix.spinnaker.kork:kork-dynomite": {
-            "locked": "1.108.0",
+            "locked": "1.109.0",
             "requested": "+"
         },
         "com.netflix.spinnaker.kork:kork-jedis": {
-            "locked": "1.108.0",
+            "locked": "1.109.0",
             "requested": "+"
         },
         "net.logstash.logback:logstash-logback-encoder": {
@@ -111,14 +111,14 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "1.108.0"
+            "locked": "1.109.0"
         },
         "com.netflix.spinnaker.kork:kork-dynomite": {
-            "locked": "1.108.0",
+            "locked": "1.109.0",
             "requested": "+"
         },
         "com.netflix.spinnaker.kork:kork-jedis": {
-            "locked": "1.108.0",
+            "locked": "1.109.0",
             "requested": "+"
         },
         "net.logstash.logback:logstash-logback-encoder": {
@@ -185,14 +185,14 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "1.108.0"
+            "locked": "1.109.0"
         },
         "com.netflix.spinnaker.kork:kork-dynomite": {
-            "locked": "1.108.0",
+            "locked": "1.109.0",
             "requested": "+"
         },
         "com.netflix.spinnaker.kork:kork-jedis": {
-            "locked": "1.108.0",
+            "locked": "1.109.0",
             "requested": "+"
         },
         "net.logstash.logback:logstash-logback-encoder": {
@@ -279,14 +279,14 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "1.108.0"
+            "locked": "1.109.0"
         },
         "com.netflix.spinnaker.kork:kork-dynomite": {
-            "locked": "1.108.0",
+            "locked": "1.109.0",
             "requested": "+"
         },
         "com.netflix.spinnaker.kork:kork-jedis": {
-            "locked": "1.108.0",
+            "locked": "1.109.0",
             "requested": "+"
         },
         "net.logstash.logback:logstash-logback-encoder": {
@@ -353,14 +353,14 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "1.108.0"
+            "locked": "1.109.0"
         },
         "com.netflix.spinnaker.kork:kork-dynomite": {
-            "locked": "1.108.0",
+            "locked": "1.109.0",
             "requested": "+"
         },
         "com.netflix.spinnaker.kork:kork-jedis": {
-            "locked": "1.108.0",
+            "locked": "1.109.0",
             "requested": "+"
         },
         "net.logstash.logback:logstash-logback-encoder": {
@@ -440,18 +440,18 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "1.108.0"
+            "locked": "1.109.0"
         },
         "com.netflix.spinnaker.kork:kork-dynomite": {
-            "locked": "1.108.0",
+            "locked": "1.109.0",
             "requested": "+"
         },
         "com.netflix.spinnaker.kork:kork-jedis": {
-            "locked": "1.108.0",
+            "locked": "1.109.0",
             "requested": "+"
         },
         "com.netflix.spinnaker.kork:kork-jedis-test": {
-            "locked": "1.108.0",
+            "locked": "1.109.0",
             "requested": "+"
         },
         "com.nhaarman:mockito-kotlin": {
@@ -548,18 +548,18 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "1.108.0"
+            "locked": "1.109.0"
         },
         "com.netflix.spinnaker.kork:kork-dynomite": {
-            "locked": "1.108.0",
+            "locked": "1.109.0",
             "requested": "+"
         },
         "com.netflix.spinnaker.kork:kork-jedis": {
-            "locked": "1.108.0",
+            "locked": "1.109.0",
             "requested": "+"
         },
         "com.netflix.spinnaker.kork:kork-jedis-test": {
-            "locked": "1.108.0",
+            "locked": "1.109.0",
             "requested": "+"
         },
         "com.nhaarman:mockito-kotlin": {
@@ -656,18 +656,18 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "1.108.0"
+            "locked": "1.109.0"
         },
         "com.netflix.spinnaker.kork:kork-dynomite": {
-            "locked": "1.108.0",
+            "locked": "1.109.0",
             "requested": "+"
         },
         "com.netflix.spinnaker.kork:kork-jedis": {
-            "locked": "1.108.0",
+            "locked": "1.109.0",
             "requested": "+"
         },
         "com.netflix.spinnaker.kork:kork-jedis-test": {
-            "locked": "1.108.0",
+            "locked": "1.109.0",
             "requested": "+"
         },
         "com.nhaarman:mockito-kotlin": {
@@ -772,18 +772,18 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "1.108.0"
+            "locked": "1.109.0"
         },
         "com.netflix.spinnaker.kork:kork-dynomite": {
-            "locked": "1.108.0",
+            "locked": "1.109.0",
             "requested": "+"
         },
         "com.netflix.spinnaker.kork:kork-jedis": {
-            "locked": "1.108.0",
+            "locked": "1.109.0",
             "requested": "+"
         },
         "com.netflix.spinnaker.kork:kork-jedis-test": {
-            "locked": "1.108.0",
+            "locked": "1.109.0",
             "requested": "+"
         },
         "com.nhaarman:mockito-kotlin": {

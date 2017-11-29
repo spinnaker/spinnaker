@@ -43,6 +43,7 @@ dependencies {
   compile project(":keel-intent-aws")
   compile project(":keel-redis")
   compile project(":keel-scheduler")
+  compile project(":keel-echo")
 }
 
 tasks.bootRepackage.enabled = Boolean.valueOf(project.repackage)

@@ -21,7 +21,7 @@
             "requested": "1.2.+"
         },
         "com.netflix.spinnaker.kork:kork-core": {
-            "locked": "1.108.0",
+            "locked": "1.109.0",
             "requested": "+"
         },
         "net.logstash.logback:logstash-logback-encoder": {
@@ -63,7 +63,7 @@
             "requested": "1.2.+"
         },
         "com.netflix.spinnaker.kork:kork-core": {
-            "locked": "1.108.0",
+            "locked": "1.109.0",
             "requested": "+"
         },
         "net.logstash.logback:logstash-logback-encoder": {
@@ -105,7 +105,7 @@
             "requested": "1.2.+"
         },
         "com.netflix.spinnaker.kork:kork-core": {
-            "locked": "1.108.0",
+            "locked": "1.109.0",
             "requested": "+"
         },
         "net.logstash.logback:logstash-logback-encoder": {
@@ -167,7 +167,7 @@
             "requested": "1.2.+"
         },
         "com.netflix.spinnaker.kork:kork-core": {
-            "locked": "1.108.0",
+            "locked": "1.109.0",
             "requested": "+"
         },
         "net.logstash.logback:logstash-logback-encoder": {
@@ -209,7 +209,7 @@
             "requested": "1.2.+"
         },
         "com.netflix.spinnaker.kork:kork-core": {
-            "locked": "1.108.0",
+            "locked": "1.109.0",
             "requested": "+"
         },
         "net.logstash.logback:logstash-logback-encoder": {
@@ -285,7 +285,7 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "1.108.0",
+            "locked": "1.109.0",
             "requested": "+"
         },
         "com.nhaarman:mockito-kotlin": {
@@ -394,7 +394,7 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "1.108.0",
+            "locked": "1.109.0",
             "requested": "+"
         },
         "com.nhaarman:mockito-kotlin": {
@@ -503,7 +503,7 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "1.108.0",
+            "locked": "1.109.0",
             "requested": "+"
         },
         "com.nhaarman:mockito-kotlin": {
@@ -620,7 +620,7 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "1.108.0",
+            "locked": "1.109.0",
             "requested": "+"
         },
         "com.nhaarman:mockito-kotlin": {

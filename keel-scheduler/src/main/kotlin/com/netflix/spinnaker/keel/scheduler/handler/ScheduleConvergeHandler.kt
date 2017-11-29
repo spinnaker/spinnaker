@@ -23,7 +23,6 @@ import com.netflix.spinnaker.keel.IntentStatus
 import com.netflix.spinnaker.keel.filter.Filter
 import com.netflix.spinnaker.keel.scheduler.ConvergeIntent
 import com.netflix.spinnaker.keel.scheduler.ScheduleConvergence
-import com.netflix.spinnaker.keel.scheduler.ScheduleFailedEvent
 import com.netflix.spinnaker.q.MessageHandler
 import com.netflix.spinnaker.q.Queue
 import org.slf4j.LoggerFactory
@@ -67,8 +66,6 @@ class ScheduleConvergeHandler
       registry.counter(invocations.withTag("result", "success")).increment()
     } catch (e: Exception) {
       log.error("Failed scheduling convergence", e)
-      applicationEventPublisher.publishEvent(ScheduleFailedEvent(e))
-
       registry.counter(invocations.withTag("result", "failed")).increment()
     } finally {
       log.info("Re-scheduling convergence")

@@ -31,6 +31,7 @@ import com.netflix.spinnaker.keel.attribute.Attribute
 import com.netflix.spinnaker.keel.memory.MemoryIntentActivityRepository
 import com.netflix.spinnaker.keel.memory.MemoryIntentRepository
 import com.netflix.spinnaker.keel.memory.MemoryTraceRepository
+import com.netflix.spinnaker.keel.policy.Policy
 import com.netflix.spinnaker.keel.policy.PolicySpec
 import com.netflix.spinnaker.keel.tracing.TraceRepository
 import org.slf4j.LoggerFactory
@@ -61,6 +62,7 @@ open class KeelConfiguration {
     objectMapper.apply {
       registerSubtypes(*findAllSubtypes(log, Intent::class.java, "com.netflix.spinnaker.keel.intent"))
       registerSubtypes(*findAllSubtypes(log, IntentSpec::class.java, "com.netflix.spinnaker.keel.intent"))
+      registerSubtypes(*findAllSubtypes(log, Policy::class.java, "com.netflix.spinnaker.keel.policy"))
       registerSubtypes(*findAllSubtypes(log, PolicySpec::class.java, "com.netflix.spinnaker.keel.policy"))
       registerSubtypes(*findAllSubtypes(log, Attribute::class.java, "com.netflix.spinnaker.keel.attribute"))
     }

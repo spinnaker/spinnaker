@@ -17,10 +17,13 @@ package com.netflix.spinnaker.keel.controllers.v1
 
 import com.netflix.spinnaker.keel.*
 import com.netflix.spinnaker.keel.dryrun.DryRunIntentLauncher
+import com.netflix.spinnaker.keel.event.AfterIntentDeleteEvent
+import com.netflix.spinnaker.keel.event.AfterIntentUpsertEvent
 import com.netflix.spinnaker.keel.model.UpsertIntentRequest
 import com.netflix.spinnaker.keel.tracing.TraceRepository
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
 import javax.ws.rs.QueryParam
@@ -32,7 +35,8 @@ class IntentController
   private val dryRunIntentLauncher: DryRunIntentLauncher,
   private val intentRepository: IntentRepository,
   private val intentActivityRepository: IntentActivityRepository,
-  private val traceRepository: TraceRepository
+  private val traceRepository: TraceRepository,
+  private val applicationEventPublisher: ApplicationEventPublisher
 ) {
 
   private val log = LoggerFactory.getLogger(javaClass)
@@ -60,6 +64,7 @@ class IntentController
 
     req.intents.forEach { intent ->
       intentRepository.upsertIntent(intent)
+      applicationEventPublisher.publishEvent(AfterIntentUpsertEvent(intent))
     }
 
     // TODO rz - what to return here?
@@ -73,7 +78,12 @@ class IntentController
       // TODO rz - Add updateStatus method to intentRepository
       throw NotImplementedError("soft-deleting intents is not currently supported")
     }
-    intentRepository.deleteIntent(id)
+    intentRepository.getIntent(id)
+      .takeIf { it != null }
+      ?.run {
+        intentRepository.deleteIntent(id)
+        applicationEventPublisher.publishEvent(AfterIntentDeleteEvent(this))
+      }
   }
 
   @RequestMapping(value = "/{id}/history", method = arrayOf(RequestMethod.GET))

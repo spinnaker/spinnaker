@@ -29,6 +29,7 @@ import kotlin.reflect.KClass
  * to execute in. Policies can define a list of required Intent Attributes that must be set before the Policy will be
  * enacted.
  */
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "kind")
 abstract class Policy<out S : PolicySpec>(
   val kind: String,
   val spec: S
@@ -37,5 +38,4 @@ abstract class Policy<out S : PolicySpec>(
   val requiredAttributes: List<KClass<Attribute<*>>> = listOf()
 }
 
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "kind")
 interface PolicySpec

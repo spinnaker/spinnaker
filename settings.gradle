@@ -25,6 +25,7 @@ include "keel-core",
   "keel-intent-aws",
   "keel-scheduler",
   "keel-redis",
+  "keel-echo",
   "keel-web"
 
 rootProject.name = "keel"

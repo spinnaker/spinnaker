@@ -39,12 +39,16 @@
         },
         "com.netflix.spinnaker.keel:keel-core": {
             "firstLevelTransitive": [
+                "com.netflix.spinnaker.keel:keel-echo",
                 "com.netflix.spinnaker.keel:keel-eureka",
                 "com.netflix.spinnaker.keel:keel-intent",
                 "com.netflix.spinnaker.keel:keel-redis",
                 "com.netflix.spinnaker.keel:keel-retrofit",
                 "com.netflix.spinnaker.keel:keel-scheduler"
             ],
+            "project": true
+        },
+        "com.netflix.spinnaker.keel:keel-echo": {
             "project": true
         },
         "com.netflix.spinnaker.keel:keel-eureka": {
@@ -77,6 +81,7 @@
         "com.netflix.spinnaker.keel:keel-retrofit": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-clouddriver",
+                "com.netflix.spinnaker.keel:keel-echo",
                 "com.netflix.spinnaker.keel:keel-front50"
             ],
             "project": true
@@ -94,25 +99,25 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "1.108.0"
+            "locked": "1.109.0"
         },
         "com.netflix.spinnaker.kork:kork-dynomite": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-redis"
             ],
-            "locked": "1.108.0"
+            "locked": "1.109.0"
         },
         "com.netflix.spinnaker.kork:kork-jedis": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-redis"
             ],
-            "locked": "1.108.0"
+            "locked": "1.109.0"
         },
         "com.netflix.spinnaker.kork:kork-web": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
-            "locked": "1.108.0"
+            "locked": "1.109.0"
         },
         "com.netflix.spinnaker.moniker:moniker": {
             "firstLevelTransitive": [
@@ -160,6 +165,7 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-clouddriver",
                 "com.netflix.spinnaker.keel:keel-core",
+                "com.netflix.spinnaker.keel:keel-echo",
                 "com.netflix.spinnaker.keel:keel-eureka",
                 "com.netflix.spinnaker.keel:keel-front50",
                 "com.netflix.spinnaker.keel:keel-intent",
@@ -237,12 +243,16 @@
         },
         "com.netflix.spinnaker.keel:keel-core": {
             "firstLevelTransitive": [
+                "com.netflix.spinnaker.keel:keel-echo",
                 "com.netflix.spinnaker.keel:keel-eureka",
                 "com.netflix.spinnaker.keel:keel-intent",
                 "com.netflix.spinnaker.keel:keel-redis",
                 "com.netflix.spinnaker.keel:keel-retrofit",
                 "com.netflix.spinnaker.keel:keel-scheduler"
             ],
+            "project": true
+        },
+        "com.netflix.spinnaker.keel:keel-echo": {
             "project": true
         },
         "com.netflix.spinnaker.keel:keel-eureka": {
@@ -275,6 +285,7 @@
         "com.netflix.spinnaker.keel:keel-retrofit": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-clouddriver",
+                "com.netflix.spinnaker.keel:keel-echo",
                 "com.netflix.spinnaker.keel:keel-front50"
             ],
             "project": true
@@ -292,25 +303,25 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "1.108.0"
+            "locked": "1.109.0"
         },
         "com.netflix.spinnaker.kork:kork-dynomite": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-redis"
             ],
-            "locked": "1.108.0"
+            "locked": "1.109.0"
         },
         "com.netflix.spinnaker.kork:kork-jedis": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-redis"
             ],
-            "locked": "1.108.0"
+            "locked": "1.109.0"
         },
         "com.netflix.spinnaker.kork:kork-web": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
-            "locked": "1.108.0"
+            "locked": "1.109.0"
         },
         "com.netflix.spinnaker.moniker:moniker": {
             "firstLevelTransitive": [
@@ -358,6 +369,7 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-clouddriver",
                 "com.netflix.spinnaker.keel:keel-core",
+                "com.netflix.spinnaker.keel:keel-echo",
                 "com.netflix.spinnaker.keel:keel-eureka",
                 "com.netflix.spinnaker.keel:keel-front50",
                 "com.netflix.spinnaker.keel:keel-intent",
@@ -435,12 +447,16 @@
         },
         "com.netflix.spinnaker.keel:keel-core": {
             "firstLevelTransitive": [
+                "com.netflix.spinnaker.keel:keel-echo",
                 "com.netflix.spinnaker.keel:keel-eureka",
                 "com.netflix.spinnaker.keel:keel-intent",
                 "com.netflix.spinnaker.keel:keel-redis",
                 "com.netflix.spinnaker.keel:keel-retrofit",
                 "com.netflix.spinnaker.keel:keel-scheduler"
             ],
+            "project": true
+        },
+        "com.netflix.spinnaker.keel:keel-echo": {
             "project": true
         },
         "com.netflix.spinnaker.keel:keel-eureka": {
@@ -473,6 +489,7 @@
         "com.netflix.spinnaker.keel:keel-retrofit": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-clouddriver",
+                "com.netflix.spinnaker.keel:keel-echo",
                 "com.netflix.spinnaker.keel:keel-front50"
             ],
             "project": true
@@ -490,25 +507,25 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "1.108.0"
+            "locked": "1.109.0"
         },
         "com.netflix.spinnaker.kork:kork-dynomite": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-redis"
             ],
-            "locked": "1.108.0"
+            "locked": "1.109.0"
         },
         "com.netflix.spinnaker.kork:kork-jedis": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-redis"
             ],
-            "locked": "1.108.0"
+            "locked": "1.109.0"
         },
         "com.netflix.spinnaker.kork:kork-web": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
-            "locked": "1.108.0"
+            "locked": "1.109.0"
         },
         "com.netflix.spinnaker.moniker:moniker": {
             "firstLevelTransitive": [
@@ -556,6 +573,7 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-clouddriver",
                 "com.netflix.spinnaker.keel:keel-core",
+                "com.netflix.spinnaker.keel:keel-echo",
                 "com.netflix.spinnaker.keel:keel-eureka",
                 "com.netflix.spinnaker.keel:keel-front50",
                 "com.netflix.spinnaker.keel:keel-intent",
@@ -653,12 +671,16 @@
         },
         "com.netflix.spinnaker.keel:keel-core": {
             "firstLevelTransitive": [
+                "com.netflix.spinnaker.keel:keel-echo",
                 "com.netflix.spinnaker.keel:keel-eureka",
                 "com.netflix.spinnaker.keel:keel-intent",
                 "com.netflix.spinnaker.keel:keel-redis",
                 "com.netflix.spinnaker.keel:keel-retrofit",
                 "com.netflix.spinnaker.keel:keel-scheduler"
             ],
+            "project": true
+        },
+        "com.netflix.spinnaker.keel:keel-echo": {
             "project": true
         },
         "com.netflix.spinnaker.keel:keel-eureka": {
@@ -691,6 +713,7 @@
         "com.netflix.spinnaker.keel:keel-retrofit": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-clouddriver",
+                "com.netflix.spinnaker.keel:keel-echo",
                 "com.netflix.spinnaker.keel:keel-front50"
             ],
             "project": true
@@ -708,25 +731,25 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "1.108.0"
+            "locked": "1.109.0"
         },
         "com.netflix.spinnaker.kork:kork-dynomite": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-redis"
             ],
-            "locked": "1.108.0"
+            "locked": "1.109.0"
         },
         "com.netflix.spinnaker.kork:kork-jedis": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-redis"
             ],
-            "locked": "1.108.0"
+            "locked": "1.109.0"
         },
         "com.netflix.spinnaker.kork:kork-web": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
-            "locked": "1.108.0"
+            "locked": "1.109.0"
         },
         "com.netflix.spinnaker.moniker:moniker": {
             "firstLevelTransitive": [
@@ -774,6 +797,7 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-clouddriver",
                 "com.netflix.spinnaker.keel:keel-core",
+                "com.netflix.spinnaker.keel:keel-echo",
                 "com.netflix.spinnaker.keel:keel-eureka",
                 "com.netflix.spinnaker.keel:keel-front50",
                 "com.netflix.spinnaker.keel:keel-intent",
@@ -851,12 +875,16 @@
         },
         "com.netflix.spinnaker.keel:keel-core": {
             "firstLevelTransitive": [
+                "com.netflix.spinnaker.keel:keel-echo",
                 "com.netflix.spinnaker.keel:keel-eureka",
                 "com.netflix.spinnaker.keel:keel-intent",
                 "com.netflix.spinnaker.keel:keel-redis",
                 "com.netflix.spinnaker.keel:keel-retrofit",
                 "com.netflix.spinnaker.keel:keel-scheduler"
             ],
+            "project": true
+        },
+        "com.netflix.spinnaker.keel:keel-echo": {
             "project": true
         },
         "com.netflix.spinnaker.keel:keel-eureka": {
@@ -889,6 +917,7 @@
         "com.netflix.spinnaker.keel:keel-retrofit": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-clouddriver",
+                "com.netflix.spinnaker.keel:keel-echo",
                 "com.netflix.spinnaker.keel:keel-front50"
             ],
             "project": true
@@ -906,25 +935,25 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "1.108.0"
+            "locked": "1.109.0"
         },
         "com.netflix.spinnaker.kork:kork-dynomite": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-redis"
             ],
-            "locked": "1.108.0"
+            "locked": "1.109.0"
         },
         "com.netflix.spinnaker.kork:kork-jedis": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-redis"
             ],
-            "locked": "1.108.0"
+            "locked": "1.109.0"
         },
         "com.netflix.spinnaker.kork:kork-web": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
-            "locked": "1.108.0"
+            "locked": "1.109.0"
         },
         "com.netflix.spinnaker.moniker:moniker": {
             "firstLevelTransitive": [
@@ -972,6 +1001,7 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-clouddriver",
                 "com.netflix.spinnaker.keel:keel-core",
+                "com.netflix.spinnaker.keel:keel-echo",
                 "com.netflix.spinnaker.keel:keel-eureka",
                 "com.netflix.spinnaker.keel:keel-front50",
                 "com.netflix.spinnaker.keel:keel-intent",
@@ -1053,12 +1083,16 @@
         },
         "com.netflix.spinnaker.keel:keel-core": {
             "firstLevelTransitive": [
+                "com.netflix.spinnaker.keel:keel-echo",
                 "com.netflix.spinnaker.keel:keel-eureka",
                 "com.netflix.spinnaker.keel:keel-intent",
                 "com.netflix.spinnaker.keel:keel-redis",
                 "com.netflix.spinnaker.keel:keel-retrofit",
                 "com.netflix.spinnaker.keel:keel-scheduler"
             ],
+            "project": true
+        },
+        "com.netflix.spinnaker.keel:keel-echo": {
             "project": true
         },
         "com.netflix.spinnaker.keel:keel-eureka": {
@@ -1091,6 +1125,7 @@
         "com.netflix.spinnaker.keel:keel-retrofit": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-clouddriver",
+                "com.netflix.spinnaker.keel:keel-echo",
                 "com.netflix.spinnaker.keel:keel-front50"
             ],
             "project": true
@@ -1108,25 +1143,25 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "1.108.0"
+            "locked": "1.109.0"
         },
         "com.netflix.spinnaker.kork:kork-dynomite": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-redis"
             ],
-            "locked": "1.108.0"
+            "locked": "1.109.0"
         },
         "com.netflix.spinnaker.kork:kork-jedis": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-redis"
             ],
-            "locked": "1.108.0"
+            "locked": "1.109.0"
         },
         "com.netflix.spinnaker.kork:kork-web": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
-            "locked": "1.108.0"
+            "locked": "1.109.0"
         },
         "com.netflix.spinnaker.moniker:moniker": {
             "firstLevelTransitive": [
@@ -1178,6 +1213,7 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-clouddriver",
                 "com.netflix.spinnaker.keel:keel-core",
+                "com.netflix.spinnaker.keel:keel-echo",
                 "com.netflix.spinnaker.keel:keel-eureka",
                 "com.netflix.spinnaker.keel:keel-front50",
                 "com.netflix.spinnaker.keel:keel-intent",
@@ -1271,12 +1307,16 @@
         },
         "com.netflix.spinnaker.keel:keel-core": {
             "firstLevelTransitive": [
+                "com.netflix.spinnaker.keel:keel-echo",
                 "com.netflix.spinnaker.keel:keel-eureka",
                 "com.netflix.spinnaker.keel:keel-intent",
                 "com.netflix.spinnaker.keel:keel-redis",
                 "com.netflix.spinnaker.keel:keel-retrofit",
                 "com.netflix.spinnaker.keel:keel-scheduler"
             ],
+            "project": true
+        },
+        "com.netflix.spinnaker.keel:keel-echo": {
             "project": true
         },
         "com.netflix.spinnaker.keel:keel-eureka": {
@@ -1309,6 +1349,7 @@
         "com.netflix.spinnaker.keel:keel-retrofit": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-clouddriver",
+                "com.netflix.spinnaker.keel:keel-echo",
                 "com.netflix.spinnaker.keel:keel-front50"
             ],
             "project": true
@@ -1326,25 +1367,25 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "1.108.0"
+            "locked": "1.109.0"
         },
         "com.netflix.spinnaker.kork:kork-dynomite": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-redis"
             ],
-            "locked": "1.108.0"
+            "locked": "1.109.0"
         },
         "com.netflix.spinnaker.kork:kork-jedis": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-redis"
             ],
-            "locked": "1.108.0"
+            "locked": "1.109.0"
         },
         "com.netflix.spinnaker.kork:kork-web": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
-            "locked": "1.108.0"
+            "locked": "1.109.0"
         },
         "com.netflix.spinnaker.moniker:moniker": {
             "firstLevelTransitive": [
@@ -1396,6 +1437,7 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-clouddriver",
                 "com.netflix.spinnaker.keel:keel-core",
+                "com.netflix.spinnaker.keel:keel-echo",
                 "com.netflix.spinnaker.keel:keel-eureka",
                 "com.netflix.spinnaker.keel:keel-front50",
                 "com.netflix.spinnaker.keel:keel-intent",
@@ -1489,12 +1531,16 @@
         },
         "com.netflix.spinnaker.keel:keel-core": {
             "firstLevelTransitive": [
+                "com.netflix.spinnaker.keel:keel-echo",
                 "com.netflix.spinnaker.keel:keel-eureka",
                 "com.netflix.spinnaker.keel:keel-intent",
                 "com.netflix.spinnaker.keel:keel-redis",
                 "com.netflix.spinnaker.keel:keel-retrofit",
                 "com.netflix.spinnaker.keel:keel-scheduler"
             ],
+            "project": true
+        },
+        "com.netflix.spinnaker.keel:keel-echo": {
             "project": true
         },
         "com.netflix.spinnaker.keel:keel-eureka": {
@@ -1527,6 +1573,7 @@
         "com.netflix.spinnaker.keel:keel-retrofit": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-clouddriver",
+                "com.netflix.spinnaker.keel:keel-echo",
                 "com.netflix.spinnaker.keel:keel-front50"
             ],
             "project": true
@@ -1544,25 +1591,25 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "1.108.0"
+            "locked": "1.109.0"
         },
         "com.netflix.spinnaker.kork:kork-dynomite": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-redis"
             ],
-            "locked": "1.108.0"
+            "locked": "1.109.0"
         },
         "com.netflix.spinnaker.kork:kork-jedis": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-redis"
             ],
-            "locked": "1.108.0"
+            "locked": "1.109.0"
         },
         "com.netflix.spinnaker.kork:kork-web": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
-            "locked": "1.108.0"
+            "locked": "1.109.0"
         },
         "com.netflix.spinnaker.moniker:moniker": {
             "firstLevelTransitive": [
@@ -1614,6 +1661,7 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-clouddriver",
                 "com.netflix.spinnaker.keel:keel-core",
+                "com.netflix.spinnaker.keel:keel-echo",
                 "com.netflix.spinnaker.keel:keel-eureka",
                 "com.netflix.spinnaker.keel:keel-front50",
                 "com.netflix.spinnaker.keel:keel-intent",
@@ -1715,12 +1763,16 @@
         },
         "com.netflix.spinnaker.keel:keel-core": {
             "firstLevelTransitive": [
+                "com.netflix.spinnaker.keel:keel-echo",
                 "com.netflix.spinnaker.keel:keel-eureka",
                 "com.netflix.spinnaker.keel:keel-intent",
                 "com.netflix.spinnaker.keel:keel-redis",
                 "com.netflix.spinnaker.keel:keel-retrofit",
                 "com.netflix.spinnaker.keel:keel-scheduler"
             ],
+            "project": true
+        },
+        "com.netflix.spinnaker.keel:keel-echo": {
             "project": true
         },
         "com.netflix.spinnaker.keel:keel-eureka": {
@@ -1753,6 +1805,7 @@
         "com.netflix.spinnaker.keel:keel-retrofit": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-clouddriver",
+                "com.netflix.spinnaker.keel:keel-echo",
                 "com.netflix.spinnaker.keel:keel-front50"
             ],
             "project": true
@@ -1770,25 +1823,25 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "1.108.0"
+            "locked": "1.109.0"
         },
         "com.netflix.spinnaker.kork:kork-dynomite": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-redis"
             ],
-            "locked": "1.108.0"
+            "locked": "1.109.0"
         },
         "com.netflix.spinnaker.kork:kork-jedis": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-redis"
             ],
-            "locked": "1.108.0"
+            "locked": "1.109.0"
         },
         "com.netflix.spinnaker.kork:kork-web": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
-            "locked": "1.108.0"
+            "locked": "1.109.0"
         },
         "com.netflix.spinnaker.moniker:moniker": {
             "firstLevelTransitive": [
@@ -1840,6 +1893,7 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-clouddriver",
                 "com.netflix.spinnaker.keel:keel-core",
+                "com.netflix.spinnaker.keel:keel-echo",
                 "com.netflix.spinnaker.keel:keel-eureka",
                 "com.netflix.spinnaker.keel:keel-front50",
                 "com.netflix.spinnaker.keel:keel-intent",

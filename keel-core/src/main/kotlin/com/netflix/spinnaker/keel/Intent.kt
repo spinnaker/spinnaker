@@ -21,6 +21,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.github.jonpeterson.jackson.module.versioning.JsonSerializeToVersion
 import com.netflix.spectator.api.BasicTag
 import com.netflix.spinnaker.keel.attribute.Attribute
+import com.netflix.spinnaker.keel.policy.Policy
 import kotlin.reflect.KClass
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "kind")
@@ -31,7 +32,8 @@ abstract class Intent<out S : IntentSpec>
   val spec: S,
   val status: IntentStatus = IntentStatus.ACTIVE,
   val labels: Labels = mapOf(),
-  val attributes: List<Attribute<*>> = listOf()
+  val attributes: List<Attribute<*>> = listOf(),
+  val policies: List<Policy<*>> = listOf()
 ) {
 
   abstract val id: String
@@ -49,7 +51,12 @@ abstract class Intent<out S : IntentSpec>
   fun <T : Attribute<Any>> hasAttribute(klass: KClass<T>) = attributes.any { klass.isInstance(it) }
 
   @Suppress("UNCHECKED_CAST")
-  fun <T : Attribute<Any>> getAttribute(klass: KClass<T>): T? = attributes.firstOrNull() { klass.isInstance(it) } as T?
+  fun <T : Attribute<Any>> getAttribute(klass: KClass<T>): T? = attributes.firstOrNull { klass.isInstance(it) } as T?
+
+  fun <T : Policy<Any>> hasPolicy(klass: KClass<T>) = policies.any { klass.isInstance(it) }
+
+  @Suppress("UNCHECKED_CAST")
+  fun <T : Policy<Any>> getPolicy(klass: KClass<T>) = policies.firstOrNull { klass.isInstance(it) } as T?
 }
 
 typealias Labels = Map<String, String>

@@ -123,6 +123,7 @@ object LoadBalancerIntentTest {
   "status": "ACTIVE",
   "labels": {},
   "attributes": [],
+  "policies": [],
   "id": "LoadBalancer:aws:mgmt:covfefe-elb",
   "schema": "1"
 }

@@ -1,0 +1,6 @@
+dependencies {
+  compile project(":keel-core")
+  compile project(":keel-retrofit")
+
+  testCompile project(":keel-test")
+}
