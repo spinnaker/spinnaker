@@ -16,7 +16,6 @@ Atlas and Stackdriver are used.
   "configVersion": 1.0,
   "metrics": [
     {
-      "serviceName": "atlas",
       "name": "cpu",
       "query": {
         "type": "atlas",
@@ -30,7 +29,6 @@ Atlas and Stackdriver are used.
       "groups": ["system"]
     },
     {
-      "serviceName": "atlas",
       "name": "requests",
       "query": {
         "type": "atlas",
@@ -73,7 +71,6 @@ Atlas and Stackdriver are used.
   "configVersion": 1.0,
   "metrics": [
     {
-      "serviceName": "stackdriver",
       "name": "cpu",
       "query": {
         "type": "stackdriver",

@@ -9,7 +9,6 @@
   },
   "metrics": [
     {
-      "serviceName": "prometheus",
       "name": "cpu",
       "query": {
         "type": "prometheus",

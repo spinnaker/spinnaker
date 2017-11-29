@@ -13,7 +13,6 @@
   "metrics": [
     {
       "name": "cpu",
-      "serviceName": "atlas",
       "query": {
         "type": "atlas",
         "q": "name,randomValue,:eq"
@@ -26,7 +25,6 @@
     },
     {
       "name": "requests",
-      "serviceName": "atlas",
       "query": {
         "type": "atlas",
         "q": "name,apache.http.requests,:eq,:sum"
