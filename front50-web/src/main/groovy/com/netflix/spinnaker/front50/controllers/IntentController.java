@@ -17,36 +17,34 @@
 package com.netflix.spinnaker.front50.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.front50.exception.BadRequestException;
 import com.netflix.spinnaker.front50.exception.NotFoundException;
 import com.netflix.spinnaker.front50.exceptions.DuplicateEntityException;
-import com.netflix.spinnaker.front50.exceptions.InvalidRequestException;
 import com.netflix.spinnaker.front50.model.intent.Intent;
 import com.netflix.spinnaker.front50.model.intent.IntentDAO;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
-@ConditionalOnBean(IntentDAO.class)
 @RequestMapping("intents")
 public class IntentController {
 
-  @Autowired
-  IntentDAO intentDAO;
+  @Autowired(required = false)
+  IntentDAO intentDAO = null;
 
   @Autowired
   ObjectMapper objectMapper;
 
   @RequestMapping(value = "", method = RequestMethod.GET)
   List<Intent> list(@RequestParam(required = false, value = "status") List<String> status) {
-    return (List<Intent>) intentDAO.getIntentsByStatus(status);
+    return (List<Intent>) getIntentDAO().getIntentsByStatus(status);
   }
 
   @RequestMapping(value = "{id}", method = RequestMethod.GET)
   Intent get(@PathVariable String id) {
-    return intentDAO.findById(id.toLowerCase());
+    return getIntentDAO().findById(id.toLowerCase());
   }
 
   @RequestMapping(value = "", method = RequestMethod.POST)
@@ -54,22 +52,22 @@ public class IntentController {
     intent.setLastModified(System.currentTimeMillis());
 
     if (intentExists(intent.getId())){
-      intentDAO.update(intent.getId(), intent);
+      getIntentDAO().update(intent.getId(), intent);
     } else {
-      intentDAO.create(intent.getId(), intent);
+      getIntentDAO().create(intent.getId(), intent);
     }
 
-    return intentDAO.findById(intent.getId());
+    return getIntentDAO().findById(intent.getId());
   }
 
   @RequestMapping(value = "{id}", method = RequestMethod.DELETE)
   void delete(@PathVariable String id) {
-    intentDAO.delete(id.toLowerCase());
+    getIntentDAO().delete(id.toLowerCase());
   }
 
   private void checkForDuplicateIntents(String id) {
     try {
-      intentDAO.findById(id.toLowerCase());
+      getIntentDAO().findById(id.toLowerCase());
     } catch (NotFoundException e) {
       return;
     }
@@ -78,10 +76,17 @@ public class IntentController {
 
   private boolean intentExists(String id) {
     try {
-      intentDAO.findById(id.toLowerCase());
+      getIntentDAO().findById(id.toLowerCase());
     } catch (NotFoundException e) {
       return false;
     }
     return true;
+  }
+
+  private IntentDAO getIntentDAO() {
+    if (intentDAO == null) {
+      throw new BadRequestException("Intents are not supported with your current storage backend");
+    }
+    return intentDAO;
   }
 }
