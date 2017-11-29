@@ -1,4 +1,4 @@
-apply plugin: 'spring-boot'
+apply plugin: 'org.springframework.boot'
 // Applying the spring-boot plugin pulls in a newer version of jedis that we can't use yet. The
 // other ways to override versions (namely the subprojects.configurations.all.resolutionStrategy in
 // build.gradle) didn't work.
