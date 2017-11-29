@@ -2,7 +2,7 @@ import { IPromise, module } from 'angular';
 
 import { Application } from '@spinnaker/core';
 import {
-  IKubernetesManifestCommand,
+  IKubernetesManifestCommandData,
   KUBERNETES_MANIFEST_COMMAND_BUILDER,
   KubernetesManifestCommandBuilder
 } from '../manifest/manifestCommandBuilder.service';
@@ -12,7 +12,7 @@ export class KubernetesV2ServerGroupCommandBuilder {
     'ngInject';
   }
 
-  public buildNewServerGroupCommand(app: Application): IPromise<IKubernetesManifestCommand> {
+  public buildNewServerGroupCommand(app: Application): IPromise<IKubernetesManifestCommandData> {
     return this.kubernetesManifestCommandBuilder.buildNewManifestCommand(app);
   }
 }

@@ -13,6 +13,7 @@ import {
 
 import {
   IKubernetesManifestCommand,
+  IKubernetesManifestCommandMetadata,
   KUBERNETES_MANIFEST_COMMAND_BUILDER,
   KubernetesManifestCommandBuilder
 } from '../manifestCommandBuilder.service';
@@ -24,6 +25,7 @@ class KubernetesEditManifestCtrl implements IController {
   };
   public taskMonitor: TaskMonitor;
   public command: IKubernetesManifestCommand;
+  public metadata: IKubernetesManifestCommandMetadata;
 
   constructor(sourceManifest: any,
               sourceMoniker: IMoniker,
@@ -35,7 +37,10 @@ class KubernetesEditManifestCtrl implements IController {
     'ngInject';
     this.kubernetesManifestCommandBuilder.buildNewManifestCommand(application, sourceManifest, sourceMoniker)
       .then((builtCommand) => {
-        this.command = builtCommand;
+        const { command, metadata } = builtCommand;
+        this.command = command;
+        this.metadata = metadata;
+
         this.initialize();
         this.state.loaded = true;
       });
@@ -46,7 +51,7 @@ class KubernetesEditManifestCtrl implements IController {
   }
 
   public submit(): void {
-    const command = this.kubernetesManifestCommandBuilder.copyAndCleanCommand(this.command);
+    const command = this.kubernetesManifestCommandBuilder.copyAndCleanCommand(this.metadata, this.command);
     const submitMethod = () => this.manifestWriter.deployManifest(command, this.application);
     this.taskMonitor.submit(submitMethod);
   }

@@ -3,9 +3,9 @@
     <strong>Warning!</strong> This stage is under active development and is subject to change.
   </div>
   <v2-wizard-page key="basicSettings" label="Basic Settings" mark-complete-on-view="false">
-    <kubernetes-manifest-basic-settings command="ctrl.$scope.stage"> </kubernetes-manifest-basic-settings>
+    <kubernetes-manifest-basic-settings command="ctrl.$scope.stage" metadata="ctrl.metadata"> </kubernetes-manifest-basic-settings>
   </v2-wizard-page>
   <v2-wizard-page key="manifest" label="Manifest" mark-complete-on-view="false">
-    <kubernetes-manifest-entry command="ctrl.$scope.stage" change="ctrl.change()"> </kubernetes-manifest-entry>
+    <kubernetes-manifest-entry command="ctrl.$scope.stage" metadata="ctrl.metadata" change="ctrl.change()"> </kubernetes-manifest-entry>
   </v2-wizard-page>
 </div>

@@ -4,13 +4,21 @@ import { dump, load } from 'js-yaml'
 
 import { ACCOUNT_SERVICE, AccountService, Application, IMoniker } from '@spinnaker/core';
 
+export interface IKubernetesManifestCommandData {
+  command: IKubernetesManifestCommand;
+  metadata: IKubernetesManifestCommandMetadata;
+}
+
 export interface IKubernetesManifestCommand {
   account: string;
   cloudProvider: string;
   manifest: any;
-  manifestText: string;
   relationships: IKubernetesManifestSpinnakerRelationships;
   moniker: IMoniker;
+}
+
+export interface IKubernetesManifestCommandMetadata {
+  manifestText: string;
   backingData: any;
 }
 
@@ -38,22 +46,16 @@ export class KubernetesManifestCommandBuilder {
       return false;
     }
 
-    if (!command.manifestText) {
-      return false;
-    }
-
     return true;
   }
 
-  public copyAndCleanCommand(input: IKubernetesManifestCommand): IKubernetesManifestCommand {
+  public copyAndCleanCommand(metadata: IKubernetesManifestCommandMetadata, input: IKubernetesManifestCommand): IKubernetesManifestCommand {
     const command = copy(input);
-    command.manifest = load(command.manifestText);
-    delete command.manifestText;
-    delete command.backingData;
+    command.manifest = load(metadata.manifestText);
     return command;
   }
 
-  public buildNewManifestCommand(app: Application, sourceManifest?: any, sourceMoniker?: IMoniker): IPromise<IKubernetesManifestCommand> {
+  public buildNewManifestCommand(app: Application, sourceManifest?: any, sourceMoniker?: IMoniker): IPromise<IKubernetesManifestCommandData> {
     const dataToFetch = {
       accounts: this.accountService.getAllAccountDetailsForProvider('kubernetes', 'v2'),
     };
@@ -67,7 +69,7 @@ export class KubernetesManifestCommandBuilder {
         }
 
         const manifest = {};
-        const manifestText = sourceManifest == null ? '' : dump(sourceManifest);
+        const manifestText = !sourceManifest ? '' : dump(sourceManifest);
         const cloudProvider = 'kubernetes';
         const moniker = sourceMoniker || {
           app: app.name,
@@ -79,14 +81,18 @@ export class KubernetesManifestCommandBuilder {
         };
 
         return {
-          backingData,
-          cloudProvider,
-          manifest,
-          manifestText,
-          relationships,
-          moniker,
-          account,
-        } as IKubernetesManifestCommand;
+          command: {
+            cloudProvider,
+            manifest,
+            relationships,
+            moniker,
+            account,
+          },
+          metadata: {
+            backingData,
+            manifestText,
+          }
+        } as IKubernetesManifestCommandData;
       });
   }
 }

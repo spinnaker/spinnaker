@@ -1,13 +1,14 @@
 import { IComponentOptions, IController, module } from 'angular';
 
-import { IKubernetesManifestCommand } from '../manifestCommandBuilder.service';
+import { IKubernetesManifestCommand, IKubernetesManifestCommandMetadata } from '../manifestCommandBuilder.service';
 
 class KubernetesManifestBasicSettingsCtrl implements IController {
   public command: IKubernetesManifestCommand;
+  public metadata: IKubernetesManifestCommandMetadata;
 }
 
 class KubernetesManifestBasicSettingsComponent implements IComponentOptions {
-  public bindings: any = { command: '=' };
+  public bindings: any = { command: '=', metadata: '<' };
   public controller: any = KubernetesManifestBasicSettingsCtrl;
   public controllerAs = 'ctrl';
   public template = `
@@ -21,7 +22,7 @@ class KubernetesManifestBasicSettingsComponent implements IComponentOptions {
           <div class="col-md-7">
             <account-select-field component="ctrl.command"
                                   field="account"
-                                  accounts="ctrl.command.backingData.accounts"
+                                  accounts="ctrl.metadata.backingData.accounts"
                                   provider="'kubernetes'"></account-select-field>
           </div>
         </div>

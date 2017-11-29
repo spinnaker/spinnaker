@@ -30,7 +30,7 @@ module(KUBERNETES_DEPLOY_MANIFEST_STAGE, [
       controllerAs: 'ctrl',
       validators: [
         { type: 'requiredField', fieldName: 'moniker.cluster', fieldLabel: 'Cluster' },
-        { type: 'requiredField', fieldName: 'manifestText', fieldLabel: 'Manifest' }
+        { type: 'requiredField', fieldName: 'manifest', fieldLabel: 'Manifest' }
       ],
     });
   }
