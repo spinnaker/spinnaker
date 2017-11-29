@@ -18,7 +18,6 @@ export interface ICanaryConfig {
 export interface ICanaryMetricConfig {
   id: string;
   name: string;
-  serviceName: string;
   query: ICanaryMetricSetQueryConfig;
   groups: string[];
   analysisConfigurations: {

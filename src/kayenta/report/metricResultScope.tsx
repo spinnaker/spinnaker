@@ -40,7 +40,7 @@ const mapStateToProps = (state: ICanaryState): IMetricResultScopeStateProps => (
   metricConfig: selectedMetricConfigSelector(state),
   metricSetPair: state.selectedRun.metricSetPair.pair,
   run: runSelector(state),
-  service: selectedMetricConfigSelector(state).serviceName,
+  service: selectedMetricConfigSelector(state).query.type
 });
 
 export default connect(mapStateToProps)(MetricResultScope);
