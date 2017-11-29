@@ -95,7 +95,11 @@ const helpContents: {[key: string]: string} = {
   'aws.targetGroup.attributes.deregistrationDelay': 'The amount of time for Elastic Load Balancing to wait before changing the state of a deregistering target from draining to unused. The range is 0-3600 seconds. The default value is 300 seconds.',
   'aws.targetGroup.attributes.stickinessEnabled': ' Indicates whether sticky sessions are enabled.',
   'aws.targetGroup.attributes.stickinessType': 'The type of sticky sessions. The only current possible value is <code>lb_cookie</code>.',
-  'aws.targetGroup.attributes.stickinessDuration': 'The time period, in seconds, during which requests from a client should be routed to the same target. After this time period expires, the load balancer-generated cookie is considered stale. The range is 1 second to 1 week (604800 seconds). The default value is 1 day (86400 seconds).'
+  'aws.targetGroup.attributes.stickinessDuration': 'The time period, in seconds, during which requests from a client should be routed to the same target. After this time period expires, the load balancer-generated cookie is considered stale. The range is 1 second to 1 week (604800 seconds). The default value is 1 day (86400 seconds).',
+  'aws.serverGroup.capacityConstraint': `
+      <p>Ensures that the capacity of this server group has not changed in the background (i.e. due to autoscaling activity).</p>
+      <p>If the capacity has changed, this resize operation will be rejected.</p>`,
+
 };
 
 export const AMAZON_HELP = 'spinnaker.amazon.help.contents';

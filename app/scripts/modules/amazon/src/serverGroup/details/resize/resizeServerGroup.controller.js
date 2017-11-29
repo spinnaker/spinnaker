@@ -26,6 +26,13 @@ module.exports = angular.module('spinnaker.amazon.serverGroup.details.resize.con
 
     $scope.command = angular.copy($scope.currentSize);
     $scope.command.advancedMode = serverGroup.asg.minSize !== serverGroup.asg.maxSize;
+    $scope.command.constraints = {
+      capacity: {
+        min: serverGroup.asg.minSize,
+        max: serverGroup.asg.maxSize,
+        desired: serverGroup.asg.desiredCapacity
+      }
+    };
 
     if (application && application.attributes) {
       if (application.attributes.platformHealthOnlyShowOverride && application.attributes.platformHealthOnly) {
@@ -34,6 +41,20 @@ module.exports = angular.module('spinnaker.amazon.serverGroup.details.resize.con
 
       $scope.command.platformHealthOnlyShowOverride = application.attributes.platformHealthOnlyShowOverride;
     }
+
+    this.toggleCapacityConstraint = function () {
+      if ($scope.command.constraints.capacity) {
+        $scope.command.constraints = {};
+      } else {
+        $scope.command.constraints = {
+          capacity: {
+            min: serverGroup.asg.minSize,
+            max: serverGroup.asg.maxSize,
+            desired: serverGroup.asg.desiredCapacity
+          }
+        };
+      }
+    };
 
     this.isValid = function () {
       var command = $scope.command;
@@ -63,6 +84,7 @@ module.exports = angular.module('spinnaker.amazon.serverGroup.details.resize.con
       var submitMethod = function() {
         return serverGroupWriter.resizeServerGroup(serverGroup, application, {
           capacity: capacity,
+          constraints: $scope.command.constraints,
           interestingHealthProviderNames: $scope.command.interestingHealthProviderNames,
           reason: $scope.command.reason,
         });

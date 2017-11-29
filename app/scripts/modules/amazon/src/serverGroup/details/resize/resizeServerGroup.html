@@ -9,16 +9,26 @@
       <div class="form-horizontal">
         <aws-resize-capacity command="command" current-size="currentSize"></aws-resize-capacity>
       </div>
-      <div class="row" ng-if="command.platformHealthOnlyShowOverride">
+      <div class="row">
         <div class="col-sm-10 col-sm-offset-1">
-          <platform-health-override command="command"
-                                    platform-health-type="'Amazon'"
-                                    show-help-details="true">
-          </platform-health-override>
+          <div class="checkbox">
+            <label>
+              <input type="checkbox"
+                     ng-checked="command.constraints.capacity"
+                     ng-click="ctrl.toggleCapacityConstraint()"/>
+              Enforce Capacity Constraint
+            </label>
+            <help-field key="aws.serverGroup.capacityConstraint"></help-field>
+          </div>
+          <div ng-if="command.platformHealthOnlyShowOverride">
+            <platform-health-override command="command"
+                                      platform-health-type="'Amazon'"
+                                      show-help-details="true">
+            </platform-health-override>
+          </div>
         </div>
       </div>
       <task-reason command="command"></task-reason>
-
     </div>
     <aws-footer action="ctrl.resize()"
                 cancel="ctrl.cancel()"
