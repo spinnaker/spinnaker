@@ -17,7 +17,12 @@
 package com.netflix.spinnaker.orca.pipeline.util
 
 import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.orca.pipeline.expressions.ExpressionEvaluationSummary
+import com.netflix.spinnaker.orca.pipeline.expressions.ExpressionTransform
+import com.netflix.spinnaker.orca.pipeline.expressions.ExpressionsSupport
+import com.netflix.spinnaker.orca.pipeline.expressions.SpelHelperFunctionException
 import com.netflix.spinnaker.orca.pipeline.model.Execution
+import org.springframework.expression.spel.SpelEvaluationException
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -67,12 +72,17 @@ class ContextParameterProcessorSpec extends Specification {
   def "should restrict fromUrl requests #desc"() {
     given:
     def source = ['test': '${ #fromUrl(\'' + theTest + '\')}']
+    def escapedExpression = escapeExpression(source.test)
 
     when:
     def result = contextParameterProcessor.process(source, [:], true)
+    def summary = result.expressionEvaluationSummary as Map<String, List>
 
     then:
     result.test == source.test
+    summary[escapedExpression].size() == 1
+    summary[escapedExpression][0].level as String == ExpressionEvaluationSummary.Result.Level.ERROR.name()
+    summary[escapedExpression][0].timestamp != null
 
     where:
     theTest                   | desc
@@ -92,12 +102,14 @@ class ContextParameterProcessorSpec extends Specification {
   @Unroll
   def "should not System.exit"() {
     when:
-
     def result = contextParameterProcessor.process([test: testCase], [:], true)
+    def escapedExpression = escapeExpression(testCase)
+    def summary = result.expressionEvaluationSummary as Map<String, List>
 
     then:
     //the failure scenario for this test case is the VM halting...
-    true
+    summary[escapedExpression].size() == 1
+    summary[escapedExpression][0].level as String == ExpressionEvaluationSummary.Result.Level.ERROR.name()
 
     where:
     testCase                                  | desc
@@ -110,13 +122,18 @@ class ContextParameterProcessorSpec extends Specification {
   def "should not allow bad type #desc"() {
     given:
     def source = [test: testCase]
+    def escapedExpression = escapeExpression(source.test)
 
     when:
     def result = contextParameterProcessor.process(source, [:], true)
+    def summary = result.expressionEvaluationSummary as Map<String, List>
 
     then:
     //ensure we failed to interpret the expression and left it as is
     result.test == source.test
+    summary[escapedExpression].size() == 1
+    summary[escapedExpression][0].level as String == ExpressionEvaluationSummary.Result.Level.ERROR.name()
+    summary[escapedExpression][0].exceptionType == SpelEvaluationException
 
     where:
     testCase                                                            | desc
@@ -128,13 +145,18 @@ class ContextParameterProcessorSpec extends Specification {
   def "should not allow bad method #desc"() {
     given:
     def source = [test: testCase]
+    def escapedExpression = escapeExpression(source.test)
 
     when:
     def result = contextParameterProcessor.process(source, [:], true)
+    def summary = result.expressionEvaluationSummary as Map<String, List>
 
     then:
     //ensure we failed to interpret the expression and left it as is
     result.test == source.test
+    summary[escapedExpression].size() == 1
+    summary[escapedExpression][0].level as String == ExpressionEvaluationSummary.Result.Level.ERROR.name()
+    summary[escapedExpression][0].exceptionType == SpelEvaluationException
 
     where:
     testCase                                                   | desc
@@ -145,12 +167,16 @@ class ContextParameterProcessorSpec extends Specification {
   def "should deny access to groovy metaclass methods via #desc"() {
     given:
     def source = [test: testCase]
+    def escapedExpression = escapeExpression(source.test)
 
     when:
     def result = contextParameterProcessor.process(source, [status: ExecutionStatus.PAUSED, nested: [status: ExecutionStatus.RUNNING]], true)
+    def summary = result.expressionEvaluationSummary as Map<String, List>
 
     then:
     result.test == source.test
+    summary[escapedExpression].size() == 1
+    summary[escapedExpression][0].level as String == ExpressionEvaluationSummary.Result.Level.ERROR.name()
 
     where:
     testCase                          | desc
@@ -189,12 +215,16 @@ class ContextParameterProcessorSpec extends Specification {
     given:
     def source = ["test": sourceValue]
     def context = [:]
+    def escapedExpression = escapeExpression(source.test)
 
     when:
     def result = contextParameterProcessor.process(source, context, true)
+    def summary = result.expressionEvaluationSummary as Map<String, List>
 
     then:
     result.test == sourceValue
+    summary[escapedExpression].size() == 1
+    summary[escapedExpression][0].level as String == ExpressionEvaluationSummary.Result.Level.ERROR.name()
 
     where:
     sourceValue = '${new rx.internal.util.RxThreadFactory("").newThread(null).getContextClassLoader().toString()}'
@@ -269,12 +299,17 @@ class ContextParameterProcessorSpec extends Specification {
     given:
     def source = ['deployed': '${deployedServerGroups}']
     def context = [execution: execution]
+    def escapedExpression = escapeExpression(source.deployed)
 
     when:
     def result = contextParameterProcessor.process(source, context, true)
+    def summary = result.expressionEvaluationSummary as Map<String, List>
 
     then:
     result.deployed == '${deployedServerGroups}'
+    summary[escapedExpression].size() == 1
+    summary[escapedExpression][0].level as String == ExpressionEvaluationSummary.Result.Level.INFO.name()
+    summary[escapedExpression][0].description == "Failed to evaluate [deployed] : deployedServerGroups not found"
 
     where:
     execution = [
@@ -536,35 +571,13 @@ class ContextParameterProcessorSpec extends Specification {
   @Unroll
   def 'json reader returns a list if the item passed starts with a ['() {
     expect:
-    expectedClass.isInstance(ContextUtilities.readJson(json))
+    expectedClass.isInstance(ExpressionsSupport.readJson(json))
 
     where:
     json               | expectedClass
     '[ "one", "two" ]' | List
     '{ "one":"two" }'  | Map
 
-  }
-
-  def "can find a stage"() {
-    given:
-    def source = ['stage': '''${#stage('my stage')}''']
-    def context = [execution: execution]
-
-    when:
-    def result = contextParameterProcessor.process(source, context, true)
-
-    then:
-    result.stage.value == "two"
-
-    where:
-    execution = [
-      "stages": [
-        [
-          "name" : "my stage",
-          "value": "two"
-        ]
-      ]
-    ]
   }
 
   def "can find a stage in an execution"() {
@@ -613,9 +626,14 @@ class ContextParameterProcessorSpec extends Specification {
 
     when:
     def result = contextParameterProcessor.process(stage.context, ctx, true)
+    def summary = result.expressionEvaluationSummary as Map<String, List>
+    def escapedExpression = escapeExpression('${#toJson(execution)}')
 
     then:
     result.comments == '${#toJson(execution)}'
+    summary.size() == 1
+    summary[escapedExpression][0].level as String == ExpressionEvaluationSummary.Result.Level.ERROR.name()
+    summary[escapedExpression][0].description.contains("Failed to evaluate [comments] result for toJson cannot contain an expression")
   }
 
   def "can read authenticated user in an execution"() {
@@ -642,36 +660,35 @@ class ContextParameterProcessorSpec extends Specification {
     result.comments == "joeyjoejoejuniorshabadoo"
   }
 
-  def "can find a judgment result"() {
+  def "can find a judgment result from execution"() {
     given:
-    def source = ['judgment': '''${#judgment('my stage')}''']
-    def context = [execution: execution]
+    def expectedJudmentInput = "Real Judgment input"
+    def pipe = pipeline {
+      stage {
+        type = "bake"
+        name = "my stage"
+        context = [judgmentInput: "input2", judgment: '${#judgment("my stage")}']
+      }
+      stage {
+        type = "manualJudgment"
+        name = "my stage"
+        context = [judgmentInput: expectedJudmentInput]
+      }
+    }
+
+    and:
+    def stage = pipe.stages.find { it.type == "bake" }
+    def ctx = contextParameterProcessor.buildExecutionContext(stage, true)
 
     when:
-    def result = contextParameterProcessor.process(source, context, true)
+    def result = contextParameterProcessor.process(stage.context, ctx, true)
 
     then:
-    result.judgment == "input"
-
-    where:
-    execution = [
-      "stages": [
-        [
-          "type"   : "bake",
-          "name"   : "my stage",
-          "context": [
-            "judgmentInput": "input2"
-          ]
-        ],
-        [
-          "type"   : "manualJudgment",
-          "name"   : "my stage",
-          "context": [
-            "judgmentInput": "input"
-          ]
-        ]
-      ]
-    ]
+    result.judgment == expectedJudmentInput
+    notThrown(SpelHelperFunctionException)
   }
 
+  static escapeExpression(String expression) {
+    return ExpressionTransform.escapeSimpleExpression(expression)
+  }
 }

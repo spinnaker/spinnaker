@@ -135,7 +135,7 @@ public class OrcaConfiguration {
 
   @Bean
   public ContextFunctionConfiguration contextFunctionConfiguration(UserConfiguredUrlRestrictions userConfiguredUrlRestrictions,
-                                                                   @Value("${spelEvaluator:v1}")
+                                                                   @Value("${spelEvaluator:v2}")
                                                                      String spelEvaluator) {
     return new ContextFunctionConfiguration(userConfiguredUrlRestrictions, spelEvaluator);
   }
