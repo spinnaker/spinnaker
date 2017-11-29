@@ -70,7 +70,11 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
 
   @JsonIgnore
   @Getter
-  private final List<String> oAuthTokenCommand;
+  private final String oAuthServiceAccount;
+
+  @JsonIgnore
+  @Getter
+  private final List<String> oAuthScopes;
 
   @Getter
   private final String defaultNamespace = "default";
@@ -82,7 +86,8 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
     String accountName;
     String kubeconfigFile;
     String context;
-    List<String> oAuthTokenCommand;
+    String oAuthServiceAccount;
+    List<String> oAuthScopes;
     String userAgent;
     List<String> namespaces = new ArrayList<>();
     List<String> omitNamespaces = new ArrayList<>();
@@ -135,8 +140,13 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
       return this;
     }
 
-    public Builder oAuthTokenCommand(List<String> oAuthTokenCommand) {
-      this.oAuthTokenCommand = oAuthTokenCommand;
+    public Builder oAuthServiceAccount(String oAuthServiceAccount) {
+      this.oAuthServiceAccount = oAuthServiceAccount;
+      return this;
+    }
+
+    public Builder oAuthScopes(List<String> oAuthScopes) {
+      this.oAuthScopes = oAuthScopes;
       return this;
     }
 
@@ -167,7 +177,8 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
           registry,
           kubeconfigFile,
           context,
-          oAuthTokenCommand,
+          oAuthServiceAccount,
+          oAuthScopes,
           debug
       );
     }
@@ -180,7 +191,8 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
       @NotNull Registry registry,
       String kubeconfigFile,
       String context,
-      List<String> oAuthTokenCommand,
+      String oAuthServiceAccount,
+      List<String> oAuthScopes,
       boolean debug) {
     this.registry = registry;
     this.clock = registry.clock();
@@ -192,7 +204,8 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
 
     this.kubeconfigFile = kubeconfigFile;
     this.context = context;
-    this.oAuthTokenCommand = oAuthTokenCommand;
+    this.oAuthServiceAccount = oAuthServiceAccount;
+    this.oAuthScopes = oAuthScopes;
   }
 
   @Override

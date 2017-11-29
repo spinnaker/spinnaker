@@ -30,7 +30,8 @@ class KubernetesConfigurationProperties {
     String accountType
     String context
     String cluster
-    List<String> oAuthTokenCommand
+    String oAuthServiceAccount
+    List<String> oAuthScopes
     String user
     String kubeconfigFile
     Boolean serviceAccount

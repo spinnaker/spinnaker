@@ -158,7 +158,8 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials> 
     String accountType;
     String context;
     String cluster;
-    List<String> oAuthTokenCommand;
+    String oAuthServiceAccount;
+    List<String> oAuthScopes;
     String user;
     String userAgent;
     String kubeconfigFile;
@@ -206,8 +207,13 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials> 
       return this;
     }
 
-    Builder oAuthTokenCommand(List<String> oAuthTokenCommand) {
-      this.oAuthTokenCommand = oAuthTokenCommand;
+    Builder oAuthServiceAccount(String oAuthServiceAccount) {
+      this.oAuthServiceAccount = oAuthServiceAccount;
+      return this;
+    }
+
+    Builder oAuthScopes(List<String> oAuthScopes) {
+      this.oAuthScopes = oAuthScopes;
       return this;
     }
 
@@ -321,7 +327,8 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials> 
               .accountName(name)
               .kubeconfigFile(kubeconfigFile)
               .context(context)
-              .oAuthTokenCommand(oAuthTokenCommand)
+              .oAuthServiceAccount(oAuthServiceAccount)
+              .oAuthScopes(oAuthScopes)
               .userAgent(userAgent)
               .namespaces(namespaces)
               .omitNamespaces(omitNamespaces)

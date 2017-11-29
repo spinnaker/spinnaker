@@ -56,6 +56,9 @@ public class KubectlJobExecutor {
   @Value("${kubernetes.kubectl.executable:kubectl}")
   String executable;
 
+  @Value("${kubernetes.oAuth.executable:oauth2l}")
+  String oAuthExecutable;
+
   private final JobExecutor jobExecutor;
 
   private final Gson gson = new Gson();
@@ -324,10 +327,12 @@ public class KubectlJobExecutor {
       command.add("9");
     }
 
-    String kubeconfigFile = credentials.getKubeconfigFile();
-    if (credentials.getOAuthTokenCommand() != null && !credentials.getOAuthTokenCommand().isEmpty()) {
+    if (credentials.getOAuthServiceAccount() != null && !credentials.getOAuthServiceAccount().isEmpty()) {
       command.add("--token=" + getOAuthToken(credentials));
-    } else if (StringUtils.isNotEmpty(kubeconfigFile)) {
+    }
+
+    String kubeconfigFile = credentials.getKubeconfigFile();
+    if (StringUtils.isNotEmpty(kubeconfigFile)) {
       command.add("--kubeconfig=" + kubeconfigFile);
     }
 
@@ -379,7 +384,14 @@ public class KubectlJobExecutor {
   }
 
   private String getOAuthToken(KubernetesV2Credentials credentials) {
-    String jobId = jobExecutor.startJob(new JobRequest(credentials.getOAuthTokenCommand()),
+    List<String> command = new ArrayList<>();
+    command.add(oAuthExecutable);
+    command.add("fetch");
+    command.add("--json");
+    command.add(credentials.getOAuthServiceAccount());
+    command.addAll(credentials.getOAuthScopes());
+
+    String jobId = jobExecutor.startJob(new JobRequest(command),
       System.getenv(),
       new ByteArrayInputStream(new byte[0]));
 
