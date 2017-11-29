@@ -6,17 +6,18 @@ import './manifestEntry.less'
 
 class KubernetesManifestCtrl implements IController {
   public command: IKubernetesManifestCommand;
+  public change() { }
 }
 
 class KubernetesManifestEntryComponent implements IComponentOptions {
-  public bindings: any = { command: '=' };
+  public bindings: any = { command: '=', change: '=' };
   public controller: any = KubernetesManifestCtrl;
   public controllerAs = 'ctrl';
   public template = `
     <div class="container-fluid form-horizontal">
       <ng-form name="manifest">
         <div class="form-group">
-          <textarea class="code form-control kubernetes-manifest-entry" ng-model="ctrl.command.manifestText" rows="40"></textarea>
+          <textarea class="code form-control kubernetes-manifest-entry" ng-model="ctrl.command.manifestText" ng-change="ctrl.change()" rows="40"></textarea>
         </div>
       </ng-form>
     </div>
