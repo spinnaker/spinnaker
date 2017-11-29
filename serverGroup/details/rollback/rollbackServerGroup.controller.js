@@ -115,7 +115,7 @@ module.exports = angular.module('spinnaker.titus.serverGroup.details.rollback.co
         imageName = imageName.substring(imageName.indexOf('/') + 1);
       }
 
-      return serverGroup.name + ' (' + imageName + ')'
+      return serverGroup.name + ' (' + imageName + ')';
     };
 
     this.group = function (serverGroup) {
