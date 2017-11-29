@@ -97,7 +97,7 @@ export class Instances extends React.Component<IInstancesProps, IInstancesState>
     return (
       <div className="instances">
         {partitions.map((p, i) => (
-          <div key={i} className={`instance-group instance-group-${p[0].healthState}`}>
+          <span key={i} className={`instance-group instance-group-${p[0].healthState}`}>
             {p.map(instance => (
               <Instance
                 key={instance.id}
@@ -107,7 +107,7 @@ export class Instances extends React.Component<IInstancesProps, IInstancesState>
                 onInstanceClicked={this.handleInstanceClicked}
               />
             ))}
-          </div>
+          </span>
         ))}
       </div>
     )
