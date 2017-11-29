@@ -72,19 +72,42 @@ export class Instances extends React.Component<IInstancesProps, IInstancesState>
     router.stateService.go('.instanceDetails', params, options);
   }
 
-  public render() {
+  private partitionInstances(): IInstance[][] {
+    const partitions: IInstance[][] = [];
     const instances = (this.props.instances || []).sort((a, b) => a.launchTime - b.launchTime);
+    if (!instances.length) {
+      return partitions;
+    }
+    let currentPartition: IInstance[] = [];
+    let currentState = instances[0].healthState;
+    instances.forEach(i => {
+      if (i.healthState !== currentState) {
+        partitions.push(currentPartition);
+        currentPartition = [];
+      }
+      currentPartition.push(i);
+      currentState = i.healthState;
+    });
+    partitions.push(currentPartition);
+    return partitions;
+  }
 
+  public render() {
+    const partitions = this.partitionInstances();
     return (
       <div className="instances">
-        {instances.map(instance => (
-          <Instance
-            key={instance.id}
-            instance={instance}
-            active={this.state.detailsInstanceId === instance.id}
-            highlight={this.props.highlight}
-            onInstanceClicked={this.handleInstanceClicked}
-          />
+        {partitions.map((p, i) => (
+          <div key={i} className={`instance-group instance-group-${p[0].healthState}`}>
+            {p.map(instance => (
+              <Instance
+                key={instance.id}
+                instance={instance}
+                active={this.state.detailsInstanceId === instance.id}
+                highlight={this.props.highlight}
+                onInstanceClicked={this.handleInstanceClicked}
+              />
+            ))}
+          </div>
         ))}
       </div>
     )

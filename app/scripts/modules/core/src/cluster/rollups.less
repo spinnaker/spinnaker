@@ -78,6 +78,15 @@ table.instances {
   td:first-child, th:first-child {
     padding-left: 0;
   }
+  .instance-group {
+    display: inline-block;
+  }
+  .instance-group-Starting {
+    .pulsing(1.0);
+    &:hover {
+      animation: none;
+    }
+  }
   a.instance {
     margin: 0;
     display: inline-block;
@@ -103,7 +112,6 @@ table.instances {
 
     &.health-status-Starting {
       background-color: var(--color-accent-g1);
-      .pulsing(1.0);
     }
 
     &:hover, &.active, &.highlighted {
