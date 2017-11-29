@@ -21,6 +21,7 @@ module(GROUP_STAGE, [
     label: 'Group',
     templateUrl: require('./groupStage.html'),
     useCustomTooltip: true,
+    synthetic: true,
     validators: [],
   });
 })

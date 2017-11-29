@@ -409,6 +409,10 @@ export class ExecutionsTransformerService {
     }, [] as IExecutionStageSummary[]);
 
     stageSummaries.forEach((summary, index) => {
+      // this shouldn't be necessary, but we had a few group stages slip in, so this handles it gracefully-ish
+      if (summary.type === 'group' && !summary.groupStages) {
+        summary.groupStages = [];
+      }
       if (summary.type === 'group') {
         if (summary.groupStages.length === 1) {
           // If there's only one stage, get rid of the group.
