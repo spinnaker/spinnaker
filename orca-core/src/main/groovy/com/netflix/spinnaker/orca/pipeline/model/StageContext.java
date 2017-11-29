@@ -86,7 +86,7 @@ public class StageContext extends ForwardingMap<String, Object> {
 
     Map<String, Object> trigger = getTrigger();
     if (trigger.containsKey(key)) {
-      result.add(key);
+      result.add(trigger.get(key));
     }
 
     return result;
