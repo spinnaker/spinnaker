@@ -8,7 +8,13 @@ module.exports = angular.module('spinnaker.titus.securityGroup.reader', [
 
     function resolveIndexedSecurityGroup(indexedSecurityGroups, container, securityGroupId) {
       // TODO: this is bad, but this method is not async and making it async is going to be non-trivial
-      let account = container.account.replace('titus', '').replace('vpc', '').replace('dev', 'test');
+      let account = container.account
+        .replace('titus', '')
+        .replace('vpc', '')
+        .replace('dev', 'test')
+        .replace('prodmce', 'mceprod')
+        .replace('mcestaging', 'mcetest')
+        .replace('testmce', 'mcetest');
       return indexedSecurityGroups[account][container.region][securityGroupId];
     }
 
