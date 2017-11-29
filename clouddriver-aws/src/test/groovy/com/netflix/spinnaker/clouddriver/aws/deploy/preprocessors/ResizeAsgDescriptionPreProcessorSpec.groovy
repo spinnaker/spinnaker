@@ -63,4 +63,27 @@ class ResizeAsgDescriptionPreProcessorSpec extends Specification {
     "s-v001" | "s-v003"        | "us-west-2" | ["us-east-1", "us-west-1"] | [min: 7, desired: 8, max: 9] | [[serverGroupName: "s-v002", region: "us-west-1", capacity: [min: 1, desired: 2, max: 3]]]                                                                                           | [[serverGroupName: "s-v002", region: "us-west-1", capacity: [min: 1, desired: 2, max: 3]]]
     null     | null            | null        | null                       | null                         | [[serverGroupName: "s-v002", region: "us-east-1", capacity: [min: 1, desired: 2, max: 3]], [serverGroupName: "s-v002", region: "us-west-1", capacity: [min: 4, desired: 5, max: 6]]] | [[serverGroupName: "s-v002", region: "us-east-1", capacity: [min: 1, desired: 2, max: 3]], [serverGroupName: "s-v002", region: "us-west-1", capacity: [min: 4, desired: 5, max: 6]]]
   }
+
+  void "should convert capacity constraints"() {
+    def preProcessor = new ResizeAsgDescriptionPreProcessor()
+    def legacyDescription = [
+      asgName        : "s-v001",
+      region         : "us-east-1",
+      constraints : [
+          capacity: [min: 1, max: 3, desired: 2]
+      ]
+    ]
+
+    when:
+    def processedDescription = preProcessor.process(legacyDescription)
+
+    then:
+    processedDescription.asgs[0].constraints == [
+      capacity: [
+        min    : 1,
+        max    : 3,
+        desired: 2
+      ]
+    ]
+  }
 }

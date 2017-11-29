@@ -30,7 +30,7 @@ class ResizeAsgDescriptionPreProcessor implements AtomicOperationDescriptionPreP
   @Override
   Map process(Map description) {
     description.with {
-      def c = contraints ? [constraints: contraints] : [:]
+      def c = constraints ? [constraints: constraints] : [:]
 
       if (!asgs) {
         if (region) {
