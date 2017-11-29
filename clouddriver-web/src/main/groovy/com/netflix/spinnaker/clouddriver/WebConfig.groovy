@@ -19,7 +19,7 @@ package com.netflix.spinnaker.clouddriver
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.clouddriver.configuration.CredentialsConfiguration
 import com.netflix.spinnaker.clouddriver.configuration.ThreadPoolConfiguration
-import com.netflix.spinnaker.clouddriver.filters.SimpleCORSFilter
+
 import com.netflix.spinnaker.clouddriver.requestqueue.RequestQueue
 import com.netflix.spinnaker.clouddriver.requestqueue.RequestQueueConfiguration
 import com.netflix.spinnaker.filters.AuthenticatedRequestFilter
@@ -80,15 +80,10 @@ public class WebConfig extends WebMvcConfigurerAdapter {
     return frb
   }
 
-  @Bean
-  Filter corsFilter() {
-    new SimpleCORSFilter()
-  }
-
   @Override
   void configureContentNegotiation(ContentNegotiationConfigurer configurer) {
     super.configureContentNegotiation(configurer)
-    configurer.favorPathExtension(false);
+    configurer.favorPathExtension(false)
   }
 
   @ControllerAdvice
