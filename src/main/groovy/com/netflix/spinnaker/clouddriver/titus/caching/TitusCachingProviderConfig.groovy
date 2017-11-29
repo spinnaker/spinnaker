@@ -19,12 +19,10 @@ package com.netflix.spinnaker.clouddriver.titus.caching
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
-import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.agent.CachingAgent
 import com.netflix.spinnaker.clouddriver.cache.OnDemandMetricsSupport
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.clouddriver.titus.TitusClientProvider
-import com.netflix.spinnaker.clouddriver.titus.TitusCloudProvider
 import com.netflix.spinnaker.clouddriver.titus.caching.agents.TitusClusterCachingAgent
 import com.netflix.spinnaker.clouddriver.titus.caching.utils.AwsLookupUtil
 import com.netflix.spinnaker.clouddriver.titus.credentials.NetflixTitusCredentials
@@ -38,10 +36,10 @@ import javax.inject.Provider
 @Configuration
 class TitusCachingProviderConfig {
 
-  @Value('${titus.pollIntervalMillis:5000}') // 5 seconds
+  @Value('${titus.pollIntervalMillis:10000}') // 10 seconds
   Long pollIntervalMillis
 
-  @Value('${titus.timeoutMillis:900000}') // 15 minutes
+  @Value('${titus.timeoutMillis:300000}') // 5 minutes
   Long timeOutMilis
 
   @Bean
