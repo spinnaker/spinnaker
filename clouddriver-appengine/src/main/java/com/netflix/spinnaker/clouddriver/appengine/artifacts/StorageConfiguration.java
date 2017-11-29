@@ -32,7 +32,7 @@ import java.security.GeneralSecurityException;
 @ConditionalOnProperty("artifacts.gcs.enabled")
 @EnableConfigurationProperties(StorageConfigurationProperties.class)
 @EnableScheduling
-class StorageConfiguration {
+public class StorageConfiguration {
   @Autowired
   StorageConfigurationProperties storageAccountInfo;
 
@@ -40,10 +40,8 @@ class StorageConfiguration {
   GcsStorageService.Factory storageServiceFactory(String clouddriverUserAgentApplicationName) {
     try {
       return new GcsStorageService.Factory(clouddriverUserAgentApplicationName);
-    } catch (IOException ioex) {
-      throw new IllegalStateException(ioex);
-    } catch (GeneralSecurityException secex) {
-      throw new IllegalStateException(secex);
+    } catch (IOException | GeneralSecurityException ex) {
+      throw new IllegalStateException(ex);
     }
   }
 }
