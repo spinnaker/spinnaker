@@ -5,6 +5,7 @@ import { INestedState, StateConfigProvider } from 'core/navigation/state.provide
 import { filterModelConfig } from './filter/executionFilter.model';
 
 import { Executions } from 'core/pipeline/executions/Executions';
+import { SingleExecutionDetails } from 'core/pipeline/details/SingleExecutionDetails';
 
 export const PIPELINE_STATES = 'spinnaker.core.pipeline.states';
 module(PIPELINE_STATES, [
@@ -54,9 +55,7 @@ module(PIPELINE_STATES, [
     name: 'executionDetails',
     url: '/details',
     views: {
-      'pipelines': {
-        component: 'singleExecutionDetails',
-      }
+      'pipelines': { component: SingleExecutionDetails, $type: 'react' }
     },
     abstract: true,
     children: [executionDetails],

@@ -4,7 +4,6 @@ import { StateParams } from '@uirouter/angularjs';
 import { INestedState, StateConfigProvider } from 'core/navigation/state.provider';
 import { APPLICATION_STATE_PROVIDER, ApplicationStateProvider } from 'core/application/application.state.provider';
 import { filterModelConfig } from 'core/loadBalancer/filter/loadBalancerFilter.model';
-import { LOAD_BALANCERS_COMPONENT } from 'core/loadBalancer/loadBalancers.component';
 import { LoadBalancers } from 'core/loadBalancer/LoadBalancers';
 import {
   VERSIONED_CLOUD_PROVIDER_SERVICE,
@@ -15,7 +14,6 @@ export const LOAD_BALANCER_STATES = 'spinnaker.core.loadBalancer.states';
 module(LOAD_BALANCER_STATES, [
   APPLICATION_STATE_PROVIDER,
   VERSIONED_CLOUD_PROVIDER_SERVICE,
-  LOAD_BALANCERS_COMPONENT,
 ]).config((applicationStateProvider: ApplicationStateProvider, stateConfigProvider: StateConfigProvider) => {
 
   const loadBalancerDetails: INestedState = {
