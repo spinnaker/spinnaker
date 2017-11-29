@@ -28,7 +28,7 @@ configurations.all {
 
 compileKotlin {
   kotlinOptions {
-    languageVersion = "1.1"
+    languageVersion = "1.2"
     jvmTarget = "1.8"
   }
 }
