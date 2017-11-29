@@ -12,7 +12,6 @@
   },
   "metrics": [
     {
-      "serviceName": "stackdriver",
       "name": "cpu",
       "query": {
         "type": "stackdriver",
