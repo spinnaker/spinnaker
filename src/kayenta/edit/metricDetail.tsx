@@ -14,8 +14,8 @@ export interface IMetricDetailProps {
  * Configures all the available settings for a single metric.
  */
 export default function MetricDetail({ metric, showGroups, edit, remove }: IMetricDetailProps) {
-  const config = metricStoreConfigService.getDelegate(metric.serviceName);
-  const queryFinder = config && config.queryFinder ? config.queryFinder : (_metric: ICanaryMetricConfig) => `queryFinder not yet implemented for ${metric.serviceName}`;
+  const config = metricStoreConfigService.getDelegate(metric.query.type);
+  const queryFinder = config && config.queryFinder ? config.queryFinder : (_metric: ICanaryMetricConfig) => `queryFinder not yet implemented for ${config.name}`;
 
   return (
     <section className="horizontal metric-list-row">

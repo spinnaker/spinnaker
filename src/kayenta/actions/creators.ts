@@ -2,7 +2,7 @@ import { createAction } from 'redux-actions';
 
 import * as Actions from './index';
 import { ConfigJsonModalTabState } from '../edit/configJsonModal';
-import { ICanaryConfig } from '../domain/ICanaryConfig';
+import {ICanaryConfig, ICanaryMetricConfig} from '../domain/ICanaryConfig';
 import { ICanaryConfigSummary } from '../domain/ICanaryConfigSummary';
 import { IJudge } from '../domain/IJudge';
 import { IMetricSetPair } from '../domain/IMetricSetPair';
@@ -34,7 +34,7 @@ export const updateGroupWeight = createAction(Actions.UPDATE_GROUP_WEIGHT, typed
 export const selectJudgeName = createAction(Actions.SELECT_JUDGE_NAME, typedPayloadCreator<{judge: {name: string}}>());
 export const editMetricBegin = createAction(Actions.EDIT_METRIC_BEGIN, typedPayloadCreator<{id: string}>());
 export const removeMetric = createAction(Actions.REMOVE_METRIC, typedPayloadCreator<{id: string}>());
-export const addMetric = createAction(Actions.ADD_METRIC, typedPayloadCreator<{metric: {name: string, serviceName: string, groups: string[]}}>());
+export const addMetric = createAction(Actions.ADD_METRIC, typedPayloadCreator<{metric: ICanaryMetricConfig}>());
 export const updateConfigName = createAction(Actions.UPDATE_CONFIG_NAME, typedPayloadCreator<{name: string}>());
 export const updateConfigDescription = createAction(Actions.UPDATE_CONFIG_DESCRIPTION, typedPayloadCreator<{description: string}>());
 export const updateScoreThresholds = createAction(Actions.UPDATE_SCORE_THRESHOLDS, typedPayloadCreator<{marginal: number, pass: number}>());

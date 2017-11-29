@@ -73,8 +73,12 @@ function mapDispatchToProps(dispatch: (action: Action & any) => void): IMetricLi
         metric: {
           // TODO: need to block saving an invalid name
           // TODO: for Atlas metrics, attempt to gather name when query changes
+          id: '[new]',
+          analysisConfigurations: [],
           name: '',
-          serviceName: CanarySettings.metricStore,
+          query: {
+            type: CanarySettings.metricStore
+          },
           groups: (group && group !== UNGROUPED) ? [group] : []
         }
       }));

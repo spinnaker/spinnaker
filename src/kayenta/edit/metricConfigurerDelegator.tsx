@@ -12,14 +12,14 @@ interface IMetricConfigurerDelegatorStateProps {
 * Should find and render the appropriate metric configurer for a given metric store.
 * */
 function MetricConfigurerDelegator({ editingMetric }: IMetricConfigurerDelegatorStateProps) {
-  const config = metricStoreConfigService.getDelegate(editingMetric.serviceName);
+  const config = metricStoreConfigService.getDelegate(editingMetric.query.type);
   if (config && config.metricConfigurer) {
     const MetricConfigurer = config.metricConfigurer;
     return <MetricConfigurer/>;
   } else {
     return (
       <p>
-        Metric configuration has not been implemented for {editingMetric.serviceName}.
+        Metric configuration has not been implemented for {editingMetric.query.type}.
       </p>
     );
   }
