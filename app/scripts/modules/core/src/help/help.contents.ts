@@ -108,6 +108,11 @@ module(HELP_CONTENTS, [])
     `,
     'pipeline.config.trigger.webhook.constraints': `
         <p>When provided, only a webhook with a payload containing at least the specified key/value pairs will be allowed to trigger this pipeline. For example, if you wanted to lockdown the systems/users that can trigger this pipeline via this webhook, you could require the key "secret" and value "something-secret" as a constraint.</p>
+        <p>The constraint values may be supplied as regex.</p>
+    `,
+    'pipeline.config.trigger.pubsub.constraints': `
+        <p>When provided, only a pubsub message with a payload containing at least the specified key/value pairs will be allowed to trigger this pipeline. For example, if you wanted to lockdown the systems/users that can trigger this pipeline via this pubsub subscription, you could require the key "secret" and value "something-secret" as a constraint.</p>
+        <p>The constraint values may be supplied as regex.</p>
     `,
     'loadBalancer.advancedSettings.healthTimeout': '<p>Configures the timeout, in seconds, for reaching the healthCheck target.  Must be less than the interval.</p><p> Default: <b>5</b></p>',
     'loadBalancer.advancedSettings.healthInterval': '<p>Configures the interval, in seconds, between ELB health checks.  Must be greater than the timeout.</p><p>Default: <b>10</b></p>',

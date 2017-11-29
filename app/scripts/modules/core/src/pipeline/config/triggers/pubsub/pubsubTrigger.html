@@ -24,6 +24,17 @@
       </select>
     </div>
   </div>
+
+  <div class="form-group">
+    <div class="col-md-3 sm-label-right">
+      Constraints
+      <help-field key="pipeline.config.trigger.pubsub.constraints"></help-field>
+    </div>
+    <div class="col-md-6">
+      <map-editor model="vm.trigger.constraints" add-button-label="Add constraint"></map-editor>
+    </div>
+  </div>
+
   <div ng-if="!vm.subscriptionsLoaded">
     <span class="fa fa-cog fa-spin"></span>
   </div>
