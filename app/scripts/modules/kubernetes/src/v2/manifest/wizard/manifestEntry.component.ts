@@ -6,11 +6,11 @@ import './manifestEntry.less'
 
 class KubernetesManifestCtrl implements IController {
   public command: IKubernetesManifestCommand;
-  public change() { }
+  public change: () => void;
 }
 
 class KubernetesManifestEntryComponent implements IComponentOptions {
-  public bindings: any = { command: '=', change: '=' };
+  public bindings: any = { command: '=', change: '&' };
   public controller: any = KubernetesManifestCtrl;
   public controllerAs = 'ctrl';
   public template = `
