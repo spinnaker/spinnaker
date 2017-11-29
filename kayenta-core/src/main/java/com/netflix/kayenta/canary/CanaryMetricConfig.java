@@ -36,10 +36,6 @@ public class CanaryMetricConfig {
 
   @NotNull
   @Getter
-  private String serviceName;
-
-  @NotNull
-  @Getter
   private CanaryMetricSetQueryConfig query;
 
   @NotNull
