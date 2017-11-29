@@ -17,10 +17,10 @@
 package com.netflix.spinnaker.igor.config
 
 import com.netflix.spinnaker.igor.IgorConfigurationProperties
+import com.netflix.spinnaker.igor.config.auth.AuthRequestInterceptor
 import com.netflix.spinnaker.igor.jenkins.client.JenkinsClient
 import com.netflix.spinnaker.igor.jenkins.service.JenkinsService
 import com.netflix.spinnaker.igor.service.BuildMasters
-import com.squareup.okhttp.Credentials
 import com.squareup.okhttp.OkHttpClient
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
@@ -29,7 +29,6 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import retrofit.Endpoints
-import retrofit.RequestInterceptor
 import retrofit.RestAdapter
 import retrofit.client.OkClient
 import retrofit.converter.SimpleXMLConverter
@@ -52,7 +51,7 @@ class JenkinsConfig {
         log.info "creating jenkinsMasters"
         Map<String, JenkinsService> jenkinsMasters = ( jenkinsProperties?.masters?.collectEntries { JenkinsProperties.JenkinsHost host ->
             log.info "bootstrapping ${host.address} as ${host.name}"
-            [(host.name): jenkinsService(host.name, jenkinsClient(host.address, host.username, host.password, igorConfigurationProperties.client.timeout))]
+            [(host.name): jenkinsService(host.name, jenkinsClient(host, igorConfigurationProperties.client.timeout))]
         })
 
         buildMasters.map.putAll jenkinsMasters
@@ -63,34 +62,16 @@ class JenkinsConfig {
         return new JenkinsService(jenkinsHostId, jenkinsClient)
     }
 
-    static JenkinsClient jenkinsClient(String address, String username, String password, int timeout = 30000) {
+    static JenkinsClient jenkinsClient(JenkinsProperties.JenkinsHost host, int timeout = 30000) {
         OkHttpClient client = new OkHttpClient()
         client.setReadTimeout(timeout, TimeUnit.MILLISECONDS)
 
         new RestAdapter.Builder()
-            .setEndpoint(Endpoints.newFixedEndpoint(address))
-            .setRequestInterceptor(new BasicAuthRequestInterceptor(username, password))
+            .setEndpoint(Endpoints.newFixedEndpoint(host.address))
+            .setRequestInterceptor(new AuthRequestInterceptor(host))
             .setClient(new OkClient(client))
             .setConverter(new SimpleXMLConverter())
             .build()
             .create(JenkinsClient)
-
     }
-
-    static class BasicAuthRequestInterceptor implements RequestInterceptor {
-
-        private final String username
-        private final String password
-
-        BasicAuthRequestInterceptor(String username, String password) {
-            this.username = username
-            this.password = password
-        }
-
-        @Override
-        void intercept(RequestInterceptor.RequestFacade request) {
-            request.addHeader("Authorization", Credentials.basic(username, password))
-        }
-    }
-
 }

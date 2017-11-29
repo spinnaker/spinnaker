@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.igor.jenkins.client
 
 import com.netflix.spinnaker.igor.config.JenkinsConfig
+import com.netflix.spinnaker.igor.config.JenkinsProperties
 import com.netflix.spinnaker.igor.jenkins.client.model.Build
 import com.netflix.spinnaker.igor.jenkins.client.model.BuildArtifact
 import com.netflix.spinnaker.igor.jenkins.client.model.JobConfig
@@ -216,7 +217,11 @@ class JenkinsClientSpec extends Specification {
                 .setHeader('Content-Type', 'text/xml;charset=UTF-8')
         )
         server.start()
-        client = new JenkinsConfig().jenkinsClient(server.getUrl('/').toString(), 'username', 'password')
+        def host = new JenkinsProperties.JenkinsHost(
+            address: server.getUrl('/').toString(),
+            username: 'username',
+            password: 'password')
+        client = new JenkinsConfig().jenkinsClient(host)
     }
 
     private String getJobConfig() {

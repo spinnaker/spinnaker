@@ -21,6 +21,7 @@ import org.hibernate.validator.constraints.NotEmpty
 import org.springframework.boot.context.properties.ConfigurationProperties
 
 import javax.validation.Valid
+import javax.validation.constraints.Null
 
 /**
  * Helper class to map masters in properties file into a validated property map
@@ -43,5 +44,12 @@ class JenkinsProperties {
 
         @NotEmpty
         String password
+
+        // These are needed for Google-based OAuth with a service account credential
+        String jsonPath
+        List<String> oauthScopes = []
+
+        // Can be used directly, if available.
+        String token
     }
 }

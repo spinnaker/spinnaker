@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.igor.jenkins.service
 
 import com.netflix.spinnaker.igor.config.JenkinsConfig
+import com.netflix.spinnaker.igor.config.JenkinsProperties
 import com.netflix.spinnaker.igor.jenkins.client.JenkinsClient
 import com.netflix.spinnaker.igor.jenkins.client.model.Project
 import com.squareup.okhttp.mockwebserver.MockResponse
@@ -106,7 +107,11 @@ class JenkinsServiceSpec extends Specification {
 
     void 'get a list of projects with the folders plugin'() {
         given:
-        client = new JenkinsConfig().jenkinsClient(server.getUrl('/').toString(), 'username', 'password')
+        def host = new JenkinsProperties.JenkinsHost(
+            address: server.getUrl('/').toString(),
+            username: 'username',
+            password: 'password')
+        client = new JenkinsConfig().jenkinsClient(host)
         service = new JenkinsService('http://my.jenkins.net', client)
 
         when:

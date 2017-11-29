@@ -17,20 +17,20 @@
 package com.netflix.spinnaker.igor.build
 
 import com.netflix.spinnaker.igor.config.JenkinsConfig
+import com.netflix.spinnaker.igor.config.JenkinsProperties
 import com.netflix.spinnaker.igor.jenkins.service.JenkinsService
 import com.netflix.spinnaker.igor.model.BuildServiceProvider
 import com.netflix.spinnaker.igor.service.BuildMasters
 import com.squareup.okhttp.mockwebserver.MockResponse
 import com.squareup.okhttp.mockwebserver.MockWebServer
-import spock.lang.Shared
-
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
-
 import org.springframework.http.MediaType
 import org.springframework.mock.web.MockHttpServletResponse
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
+import spock.lang.Shared
 import spock.lang.Specification
+
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 
 /**
  * tests for the info controller
@@ -124,7 +124,11 @@ class InfoControllerSpec extends Specification {
                 .setHeader('Content-Type', 'text/xml;charset=UTF-8')
         )
         server.start()
-        service = new JenkinsConfig().jenkinsService("jenkins", new JenkinsConfig().jenkinsClient(server.getUrl('/').toString(), 'username', 'password'))
+        def host = new JenkinsProperties.JenkinsHost(
+            address: server.getUrl('/').toString(),
+            username: 'username',
+            password: 'password')
+        service = new JenkinsConfig().jenkinsService("jenkins", new JenkinsConfig().jenkinsClient(host))
     }
 
     void 'is able to get a job config'() {
