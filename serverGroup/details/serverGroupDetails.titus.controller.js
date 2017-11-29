@@ -24,6 +24,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.titus.controller'
   CONFIRMATION_MODAL_SERVICE,
   SERVER_GROUP_WRITER,
   require('./resize/resizeServerGroup.controller').name,
+  require('./rollback/rollbackServerGroup.controller').name,
   CLUSTER_TARGET_BUILDER,
   SCALING_POLICY_MODULE,
 ])
@@ -279,6 +280,28 @@ module.exports = angular.module('spinnaker.serverGroup.details.titus.controller'
           application: function() { return application; },
           serverGroup: function() { return serverGroup; },
           serverGroupCommand: function() { return titusServerGroupCommandBuilder.buildServerGroupCommandFromExisting(application, serverGroup); },
+        }
+      });
+    };
+
+    this.rollbackServerGroup = function rollbackServerGroup() {
+      var serverGroup = $scope.serverGroup;
+      $uibModal.open({
+        templateUrl: require('./rollback/rollbackServerGroup.html'),
+        controller: 'titusRollbackServerGroupCtrl as ctrl',
+        resolve: {
+          serverGroup: () => serverGroup,
+          disabledServerGroups: () => {
+          var cluster = _.find(application.clusters, { name: serverGroup.cluster, account: serverGroup.account });
+            return _.filter(cluster.serverGroups, { isDisabled: true, region: serverGroup.region });
+          },
+          allServerGroups: () => application.getDataSource('serverGroups').data.filter(g =>
+            g.cluster === serverGroup.cluster &&
+            g.region === serverGroup.region &&
+            g.account === serverGroup.account &&
+            g.name !== serverGroup.name
+          ),
+          application: () => application
         }
       });
     };
