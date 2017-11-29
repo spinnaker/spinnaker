@@ -123,8 +123,8 @@ class OperationsController {
           def previousExecution = pipelineTemplateService.retrievePipelineOrNewestExecution(pipeline.executionId, pipeline.id)
           pipeline.trigger = previousExecution.trigger
           pipeline.executionId = previousExecution.id
-        } catch (ExecutionNotFoundException ignore) {
-          // Do nothing
+        } catch (ExecutionNotFoundException | IllegalArgumentException _) {
+          log.info("Could not initialize pipeline template config from previous execution context.")
         }
       }
     }
