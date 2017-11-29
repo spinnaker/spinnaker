@@ -19,10 +19,11 @@ package com.netflix.spinnaker.clouddriver.titus.caching
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.agent.CachingAgent
-import com.netflix.spinnaker.clouddriver.cache.OnDemandMetricsSupport
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.clouddriver.titus.TitusClientProvider
+import com.netflix.spinnaker.clouddriver.titus.TitusCloudProvider
 import com.netflix.spinnaker.clouddriver.titus.caching.agents.TitusClusterCachingAgent
 import com.netflix.spinnaker.clouddriver.titus.caching.utils.AwsLookupUtil
 import com.netflix.spinnaker.clouddriver.titus.credentials.NetflixTitusCredentials
