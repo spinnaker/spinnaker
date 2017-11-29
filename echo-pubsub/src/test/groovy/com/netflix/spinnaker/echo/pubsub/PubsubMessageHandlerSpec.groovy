@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.echo.pubsub
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.echo.model.pubsub.MessageDescription
 import com.netflix.spinnaker.echo.model.pubsub.PubsubSystem
 import com.netflix.spinnaker.echo.pipelinetriggers.monitor.PubsubEventMonitor
@@ -49,6 +50,7 @@ class PubsubMessageHandlerSpec extends Specification {
     pubsubMessageHandler = new PubsubMessageHandler()
     pubsubMessageHandler.setJedisPool(embeddedRedis.getPool())
     pubsubMessageHandler.setPubsubEventMonitor(pubsubEventMonitor)
+    pubsubMessageHandler.setObjectMapper(new ObjectMapper())
   }
 
   def cleanup() {

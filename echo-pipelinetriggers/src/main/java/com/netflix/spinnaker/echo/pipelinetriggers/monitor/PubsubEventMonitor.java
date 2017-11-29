@@ -38,6 +38,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 
 import static com.netflix.spinnaker.echo.pipelinetriggers.artifacts.ArtifactMatcher.anyArtifactsMatchExpected;
+import static com.netflix.spinnaker.echo.pipelinetriggers.artifacts.ArtifactMatcher.isConstraintInPayload;
 
 /**
  * Triggers pipelines in _Orca_ when a trigger-enabled pubsub message arrives.
@@ -103,6 +104,7 @@ public class PubsubEventMonitor extends TriggerMonitor {
     return trigger -> trigger.getType().equalsIgnoreCase(PUBSUB_TRIGGER_TYPE)
         && trigger.getPubsubSystem().equalsIgnoreCase(description.getPubsubSystem().toString())
         && trigger.getSubscriptionName().equalsIgnoreCase(description.getSubscriptionName())
+        && (trigger.getConstraints() == null || isConstraintInPayload(trigger.getConstraints(), event.getPayload()))
         && anyArtifactsMatchExpected(description.getArtifacts(), trigger, pipeline);
   }
 

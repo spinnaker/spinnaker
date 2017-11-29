@@ -23,7 +23,9 @@ import com.netflix.spinnaker.kork.artifacts.model.ExpectedArtifact;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
+import java.util.Map;
 import java.util.function.Predicate;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -47,5 +49,31 @@ public class ArtifactMatcher {
         .stream()
         .anyMatch(e -> e.matches(a));
     return messageArtifacts.stream().anyMatch(expectedArtifactMatch);
+  }
+
+  /**
+   * Check that there is a key in the payload for each constraint declared in a Trigger.
+   * Also check that if there is a value for a given key, that the value matches the value in the payload.
+   * @param constraints A map of constraints configured in the Trigger (eg, created in Deck).
+   * @param payload A map of the payload contents POST'd in the Webhook.
+   * @return Whether every key (and value if applicable) in the constraints map is represented in the payload.
+   */
+  public static boolean isConstraintInPayload(final Map constraints, final Map payload) {
+    for (Object key : constraints.keySet()) {
+      if (!payload.containsKey(key) || payload.get(key) == null) {
+        log.info("Webhook trigger ignored. Item " + key.toString() + " was not found in payload");
+        return false;
+      }
+
+      if (constraints.get(key) != null && !matches(constraints.get(key).toString(), payload.get(key).toString()) ) {
+        log.info("Webhook trigger ignored. Value of item " + key.toString() + " (" + payload.get(key) + ") in payload does not match constraint " + constraints.get(key));
+        return false;
+      }
+    }
+    return true;
+  }
+
+  private static boolean matches(String us, String other) {
+    return Pattern.compile(us).asPredicate().test(other);
   }
 }

@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.echo.pubsub;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.echo.model.Event;
 import com.netflix.spinnaker.echo.model.Metadata;
 import com.netflix.spinnaker.echo.model.pubsub.MessageDescription;
@@ -28,6 +29,7 @@ import org.springframework.stereotype.Service;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -44,6 +46,9 @@ public class PubsubMessageHandler {
 
   @Autowired
   private PubsubEventMonitor pubsubEventMonitor;
+
+  @Autowired
+  ObjectMapper objectMapper;
 
   private static final String SET_IF_NOT_EXIST = "NX";
   private static final String SET_EXPIRE_TIME_MILLIS = "PX";
@@ -107,6 +112,12 @@ public class PubsubMessageHandler {
     Event event = new Event();
     Map<String, Object> content = new HashMap<>();
     Metadata details = new Metadata();
+
+    try {
+      event.setPayload(objectMapper.readValue(description.getMessagePayload(), Map.class));
+    } catch (IOException e) {
+      log.warn("Could not parse message payload as JSON", e);
+    }
 
     content.put("messageDescription", description);
     details.setType(PubsubEventMonitor.PUBSUB_TRIGGER_TYPE);

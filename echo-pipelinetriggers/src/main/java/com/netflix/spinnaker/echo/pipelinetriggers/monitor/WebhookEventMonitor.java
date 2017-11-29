@@ -38,6 +38,8 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
+import static com.netflix.spinnaker.echo.pipelinetriggers.artifacts.ArtifactMatcher.isConstraintInPayload;
+
 @Component @Slf4j
 public class WebhookEventMonitor extends TriggerMonitor {
 
@@ -116,27 +118,6 @@ public class WebhookEventMonitor extends TriggerMonitor {
               trigger,
               pipeline
           );
-  }
-
-  /**
-   * Check that there is a key in the payload for each constraint declared in a Trigger.
-   * Also check that if there is a value for a given key, that the value matches the value in the payload.
-   * @param constraints A map of constraints configured in the Trigger (eg, created in Deck).
-   * @param payload A map of the payload contents POST'd in the Webhook.
-   * @return Whether every key (and value if applicable) in the constraints map is represented in the payload.
-     */
-  protected boolean isConstraintInPayload(final Map constraints, final Map payload) {
-    for (Object key : constraints.keySet()) {
-      if (!payload.containsKey(key) || payload.get(key) == null) {
-        log.info("Webhook trigger ignored. Item " + key.toString() + " was not found in payload");
-        return false;
-      }
-      if (!constraints.get(key).equals("") && (!constraints.get(key).equals(payload.get(key)))){
-        log.info("Webhook trigger ignored. Value of item " + key.toString() + " in payload does not match constraint");
-        return false;
-      }
-    }
-    return true;
   }
 
   protected void onMatchingPipeline(Pipeline pipeline) {
