@@ -94,7 +94,7 @@ abstract class GoogleCommonSafeRetry {
       if (e instanceof GoogleJsonResponseException && e.statusCode in successfulErrorCodes) {
         state.success = true
         return state
-      } else if (e instanceof GoogleJsonResponseException && !(e.statusCode in retryCodes)) {
+      } else if (!isRetryable(e, retryCodes)) {
         throw e
       }
       log.warn "Initial $action of $resource failed, retrying..."
@@ -124,6 +124,18 @@ abstract class GoogleCommonSafeRetry {
       }
     }
     return state
+  }
+
+  /**
+   * @return true if the status code is contained in the retryCodes list, or is a 5xx. The happens
+   * across the platform randomly, and our only real option is to retry.
+   */
+  static boolean isRetryable(Exception e, List<Integer> retryCodes) {
+    if (e instanceof GoogleJsonResponseException) {
+      GoogleJsonResponseException g = (GoogleJsonResponseException) e
+      return g.statusCode in retryCodes || ((int)(g.statusCode / 100)) == 5
+    }
+    return true
   }
 
   protected Object determineFinalResult(SafeRetryState state,
