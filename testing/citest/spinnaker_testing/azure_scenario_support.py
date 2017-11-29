@@ -55,7 +55,7 @@ class AzureScenarioSupport(BaseScenarioPlatformSupport):
     if not bindings.get('TEST_AZURE_RG_LOCATION'):
       raise ValueError('There is no location specified')
 
-    return az.AzAgent(bindings['TEST_AZURE_RG_LOCATION'])
+    return az.AzAgent()
 
   def __init__(self, scenario):
     """Constructor.
