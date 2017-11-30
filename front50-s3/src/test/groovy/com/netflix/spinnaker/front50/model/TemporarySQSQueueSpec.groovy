@@ -67,4 +67,16 @@ class TemporarySQSQueueSpec extends Specification {
     1 * amazonSNS.unsubscribe("arn:subscription")
     0 * _
   }
+
+  def "should convert instanceId into something SQS queue ARN friendly"() {
+    expect:
+    TemporarySQSQueue.getSanitizedInstanceId(source) == expected
+
+    where:
+    source                 | expected
+    '127.0.0.1'            | '127_0_0_1'
+    'my-host.local'        | 'my-host_local'
+    'localhoser'           | 'localhoser'
+    'something123-ABC.def' | 'something123-ABC_def'
+  }
 }

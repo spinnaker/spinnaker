@@ -59,8 +59,9 @@ public class TemporarySQSQueue {
     this.amazonSQS = amazonSQS;
     this.amazonSNS = amazonSNS;
 
+    String sanitizedInstanceId = getSanitizedInstanceId(instanceId);
     String snsTopicArn = getSnsTopicArn(amazonSNS, snsTopicName);
-    String sqsQueueName = snsTopicName + "__" + instanceId;
+    String sqsQueueName = snsTopicName + "__" + sanitizedInstanceId;
     String sqsQueueArn = snsTopicArn.substring(0, snsTopicArn.lastIndexOf(":") + 1).replace("sns", "sqs") + sqsQueueName;
 
     this.temporaryQueue = createQueue(snsTopicArn, sqsQueueArn, sqsQueueName);
@@ -149,6 +150,10 @@ public class TemporarySQSQueue {
     );
 
     return new TemporaryQueue(snsTopicArn, sqsQueueArn, sqsQueueUrl, snsTopicSubscriptionArn);
+  }
+
+  static String getSanitizedInstanceId(String instanceId) {
+    return instanceId.replaceAll("[^\\w\\-]", "_");
   }
 
   protected static class TemporaryQueue {
