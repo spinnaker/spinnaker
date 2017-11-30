@@ -3,7 +3,7 @@ Description=Spinnaker Orca
 PartOf=spinnaker.service
 
 [Service]
-ExecStart=/opt/orca/bin/orca 2>&1 /var/log/spinnaker/orca/orca.log
+ExecStart=/opt/orca/bin/orca
 WorkingDirectory=/opt/orca/bin
 SuccessExitStatus=143
 User=spinnaker
