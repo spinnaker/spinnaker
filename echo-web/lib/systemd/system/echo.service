@@ -3,7 +3,7 @@ Description=Spinnaker Echo
 PartOf=spinnaker.service
 
 [Service]
-ExecStart=/opt/echo/bin/echo 2>&1 /var/log/spinnaker/echo/echo.log
+ExecStart=/opt/echo/bin/echo
 WorkingDirectory=/opt/echo/bin
 SuccessExitStatus=143
 User=spinnaker
