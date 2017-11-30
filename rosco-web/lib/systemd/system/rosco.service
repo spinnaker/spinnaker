@@ -3,7 +3,7 @@ Description=Spinnaker Rosco
 PartOf=spinnaker.service
 
 [Service]
-ExecStart=/opt/rosco/bin/rosco 2>&1 /var/log/spinnaker/rosco/rosco.log
+ExecStart=/opt/rosco/bin/rosco
 WorkingDirectory=/opt/rosco/bin
 SuccessExitStatus=143
 User=spinnaker
