@@ -37,9 +37,8 @@ object ApplicationIntentProcessorTest {
   val traceRepository = mock<TraceRepository>()
   val front50Service = mock<Front50Service>()
   val objectMapper = ObjectMapper()
-  val applicationConverter = ApplicationConverter(objectMapper)
 
-  val subject = ApplicationIntentProcessor(traceRepository, front50Service, objectMapper, applicationConverter)
+  val subject = ApplicationIntentProcessor(traceRepository, front50Service, objectMapper)
 
   @AfterEach
   fun cleanup() {

@@ -16,13 +16,16 @@
 package com.netflix.spinnaker.keel.intent.processor
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.keel.*
+import com.netflix.spinnaker.keel.ConvergeReason
+import com.netflix.spinnaker.keel.ConvergeResult
+import com.netflix.spinnaker.keel.Intent
+import com.netflix.spinnaker.keel.IntentProcessor
+import com.netflix.spinnaker.keel.IntentSpec
 import com.netflix.spinnaker.keel.front50.Front50Service
 import com.netflix.spinnaker.keel.front50.model.Application
 import com.netflix.spinnaker.keel.intent.ANY_MAP_TYPE
 import com.netflix.spinnaker.keel.intent.ApplicationIntent
 import com.netflix.spinnaker.keel.intent.BaseApplicationSpec
-import com.netflix.spinnaker.keel.intent.processor.converter.ApplicationConverter
 import com.netflix.spinnaker.keel.model.Job
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.model.Trigger
@@ -41,8 +44,7 @@ class ApplicationIntentProcessor
 @Autowired constructor(
   private val traceRepository: TraceRepository,
   private val front50Service: Front50Service,
-  private val objectMapper: ObjectMapper,
-  private val applicationConverter: ApplicationConverter
+  private val objectMapper: ObjectMapper
 ): IntentProcessor<ApplicationIntent> {
 
   private val log = LoggerFactory.getLogger(javaClass)
