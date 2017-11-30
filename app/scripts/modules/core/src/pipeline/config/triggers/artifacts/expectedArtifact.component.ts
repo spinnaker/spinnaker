@@ -49,7 +49,7 @@ class ExpectedArtifactComponent implements IComponentOptions {
       <label class="col-md-3 sm-label-right">
         Use Prior Execution
       </label>
-      <input class="col-md-1" type="checkbox" ng-model="ctrl.expectedArtifact.usePriorExecution">
+      <input class="col-md-1" type="checkbox" ng-model="ctrl.expectedArtifact.usePriorArtifact">
     </div>
     <div class="form-group row">
       <label class="col-md-3 sm-label-right">
