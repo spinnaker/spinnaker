@@ -17,7 +17,7 @@ module.exports = angular.module('spinnaker.openstack.loadBalancer.transformer', 
       networkId: '',
       algorithm: 'ROUND_ROBIN',
       healthMonitor: {
-        type: 'HTTPS',
+        type: 'HTTP',
         httpMethod: 'GET',
         url: '/healthCheck',
         expectedCodes: [200],

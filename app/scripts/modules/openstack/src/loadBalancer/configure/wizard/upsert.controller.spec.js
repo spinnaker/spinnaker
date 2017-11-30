@@ -30,7 +30,7 @@ describe('Controller: openstackCreateLoadBalancerCtrl', function () {
       networkId: '',
       algorithm: 'ROUND_ROBIN',
       healthMonitor: {
-        type: 'HTTPS',
+        type: 'HTTP',
         httpMethod: 'GET',
         url: '/healthCheck',
         expectedCodes: [200],
