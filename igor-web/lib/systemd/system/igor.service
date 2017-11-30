@@ -3,7 +3,7 @@ Description=Spinnaker Igor
 PartOf=spinnaker.service
 
 [Service]
-ExecStart=/opt/igor/bin/igor 2>&1 /var/log/spinnaker/igor/igor.log
+ExecStart=/opt/igor/bin/igor
 WorkingDirectory=/opt/igor/bin
 SuccessExitStatus=143
 User=spinnaker
