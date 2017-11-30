@@ -8,5 +8,6 @@ module.exports = angular.module('spinnaker.deck.gce.serverGroup.hiddenMetadataKe
     'global-load-balancer-names',
     'backend-service-names',
     'load-balancing-policy',
+    'select-zones',
     'customUserData'
   ]);

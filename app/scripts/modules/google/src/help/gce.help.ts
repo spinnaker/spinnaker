@@ -59,6 +59,7 @@ const helpContents: {[key: string]: string} = {
   'gce.serverGroup.customMetadata.global-load-balancer-names': 'This field is used to "remember" what global load balancers this server group is associated with, even if the instances are deregistered.',
   'gce.serverGroup.customMetadata.backend-service-names': 'This field is used to "remember" what backend services this server group is associated with, even if the instances are deregistered.',
   'gce.serverGroup.customMetadata.load-balancing-policy': 'This field is used to "remember" the load balancing policy this server group is configured with, even if the server group is deregistered from the load balancer. This allows us to re-enable the server group with the same load balancing policy specified on creation.',
+  'gce.serverGroup.customMetadata.select-zones': 'This regional server group will be deployed only to specific zones within the region.',
   'gce.serverGroup.customMetadata.startup-script': 'This script will run automatically on every boot.',
   'gce.serverGroup.labels.spinnaker-region': 'This label can be used to group instances when querying for metrics.',
   'gce.serverGroup.labels.spinnaker-server-group': 'This label can be used to group instances when querying for metrics.',

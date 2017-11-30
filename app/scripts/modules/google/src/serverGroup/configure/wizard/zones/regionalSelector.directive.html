@@ -4,5 +4,8 @@
     <label><input type="checkbox" ng-model="vm.command.regional"/>
       Distribute instances across multiple zones
     </label>
+    <label ng-if="vm.command.regional"><input type="checkbox" ng-model="vm.command.selectZones"/>
+      Select zones explicitly
+    </label>
   </div>
 </div>

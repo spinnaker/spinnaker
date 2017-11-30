@@ -206,12 +206,14 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.cloneServer
     }
 
     this.isValid = function () {
+      const selectedZones = $scope.command.selectZones && _.get($scope, 'command.distributionPolicy.zones.length') >= 1;
       return $scope.command &&
         ($scope.command.viewState.disableImageSelection || $scope.command.image) &&
         ($scope.command.application) &&
         ($scope.command.credentials) && ($scope.command.instanceType) &&
         ($scope.command.region) && ($scope.command.regional || $scope.command.zone) &&
         ($scope.command.capacity.desired !== null) &&
+        (!$scope.command.selectZones || selectedZones) &&
         $scope.form.$valid &&
         v2modalWizardService.isComplete();
     };

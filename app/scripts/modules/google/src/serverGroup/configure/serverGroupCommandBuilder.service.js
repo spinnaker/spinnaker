@@ -295,6 +295,8 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
         region: defaultRegion,
         zone: defaultZone,
         regional: false, // TODO(duftler): Externalize this default alongside defaultRegion and defaultZone.
+        selectZones: false, // Explicitly select zones for regional server groups.
+        distributionPolicy: { zones: [] },
         network: 'default',
         associatePublicIpAddress: associatePublicIpAddress,
         canIpForward: false,
@@ -390,6 +392,8 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
         enableTraffic: true,
         cloudProvider: 'gce',
         selectedProvider: 'gce',
+        distributionPolicy: serverGroup.distributionPolicy,
+        selectZones: serverGroup.selectZones,
         source: {
           account: serverGroup.account,
           region: serverGroup.region,
