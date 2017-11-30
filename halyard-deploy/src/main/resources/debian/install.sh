@@ -138,3 +138,6 @@ chown spinnaker /opt/spinnaker-monitoring/registry
 # so this script can be used for updates
 set +e
 service spinnaker {%service-action%}
+
+# Ensure apache is started for deck
+service apache2 start

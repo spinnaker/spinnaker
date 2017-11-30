@@ -37,7 +37,9 @@ import org.springframework.stereotype.Component;
 @Data
 @Component
 public class LocalDebianDeckService extends DeckService implements LocalDebianService<DeckService.Deck> {
-  final String upstartServiceName = "apache2";
+  // Deck serves from apache, but apache is started separately from Spinnaker since it could be
+  // serving other content.
+  final String upstartServiceName = null;
 
   @Autowired
   ArtifactService artifactService;

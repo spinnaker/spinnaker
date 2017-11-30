@@ -35,7 +35,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Component
@@ -104,12 +108,16 @@ public class BakeDebianServiceProvider extends BakeServiceProvider {
         .map(i -> ((BakeDebianService) i).getUpstartServiceName())
         .filter(Objects::nonNull)
         .collect(Collectors.toList());
+    List<String> systemdServiceConfigs = upstartNames.stream()
+        .map(n -> n + ".service")
+        .collect(Collectors.toList());
     List<String> serviceInstalls = serviceTypes.stream()
         .map(t -> installCommands.get(t.getCanonicalName()))
         .collect(Collectors.toList());
 
     TemplatedResource resource = new JarResource("/debian/init.sh");
     bindings.put("services", Strings.join(upstartNames, " "));
+    bindings.put("systemd-service-configs", Strings.join(systemdServiceConfigs, " "));
     String upstartInit = resource.setBindings(bindings).toString();
     BillOfMaterials.ArtifactSources artifactSources = artifactService.getArtifactSources(deploymentDetails.getDeploymentName());
 

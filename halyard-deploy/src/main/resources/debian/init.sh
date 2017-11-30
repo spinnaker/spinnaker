@@ -21,13 +21,11 @@ elif [ "$VERSION_ID" = "16.04" ]; then
 [Unit]
 Description=All Spinnaker services
 After=network.target
-Wants=gate.service orca.service clouddriver.service front50.service rosco.service igor.service echo.service fiat.service
-
+Wants={%systemd-service-configs%}
 [Service]
 Type=oneshot
 ExecStart=/bin/true
 RemainAfterExit=yes
-
 [Install]
 WantedBy=multi-user.target
 EOL
