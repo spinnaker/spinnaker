@@ -432,10 +432,10 @@ class KubernetesApiConverter {
           res = res.withNewValueFrom()
           if (envVar.envSource.configMapSource) {
             def configMap = envVar.envSource.configMapSource
-            res = res.withNewConfigMapKeyRef(configMap.key, configMap.configMapName)
+            res = res.withNewConfigMapKeyRef(configMap.key, configMap.configMapName, configMap.optional)
           } else if (envVar.envSource.secretSource) {
             def secret = envVar.envSource.secretSource
-            res = res.withNewSecretKeyRef(secret.key, secret.secretName)
+            res = res.withNewSecretKeyRef(secret.key, secret.secretName, secret.optional)
           } else if (envVar.envSource.fieldRef) {
             def fieldPath = envVar.envSource.fieldRef.fieldPath
             res = res.withNewFieldRef().withFieldPath(fieldPath).endFieldRef()

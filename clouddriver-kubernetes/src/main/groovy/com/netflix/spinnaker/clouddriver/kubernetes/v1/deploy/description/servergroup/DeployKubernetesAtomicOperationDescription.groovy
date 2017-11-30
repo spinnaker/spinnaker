@@ -219,6 +219,7 @@ class KubernetesFieldRefSource {
 class KubernetesSecretSource {
   String secretName
   String key
+  Boolean optional = true
 }
 
 @AutoClone
@@ -226,6 +227,7 @@ class KubernetesSecretSource {
 class KubernetesConfigMapSource {
   String configMapName
   String key
+  Boolean optional = true
 }
 
 @AutoClone
