@@ -32,6 +32,7 @@ import com.netflix.spinnaker.clouddriver.google.deploy.handlers.BasicGoogleDeplo
 import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoHealingPolicy
 import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoscalingPolicy
 import com.netflix.spinnaker.clouddriver.google.model.GoogleDisk
+import com.netflix.spinnaker.clouddriver.google.model.GoogleDistributionPolicy
 import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider
 import org.springframework.beans.factory.annotation.Autowired
@@ -128,6 +129,11 @@ class CopyLastGoogleServerGroupAtomicOperation extends GoogleAtomicOperation<Dep
         description.targetSize != null
         ? description.targetSize
         : ancestorServerGroup.capacity.desired
+    newDescription.distributionPolicy =
+      description.distributionPolicy != null ?
+        description.distributionPolicy :
+        ancestorServerGroup.distributionPolicy
+    newDescription.selectZones = description.selectZones ?: ancestorServerGroup.selectZones
 
     def ancestorInstanceTemplate = ancestorServerGroup.launchConfig.instanceTemplate
 

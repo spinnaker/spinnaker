@@ -600,6 +600,10 @@ class GCEUtil {
     return GCE_API_PREFIX + "$projectName/regions/$region/instanceGroups/$serverGroupName"
   }
 
+  static String buildZoneUrl(String projectName, String zone) {
+    return GCE_API_PREFIX + "$projectName/zones/$zone"
+  }
+
   static List<AttachedDisk> buildAttachedDisks(BaseGoogleInstanceDescription description,
                                                String zone,
                                                boolean useDiskTypeUrl,

@@ -36,6 +36,7 @@ import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
 import com.netflix.spinnaker.clouddriver.google.GoogleExecutorTraits
 import com.netflix.spinnaker.clouddriver.google.cache.CacheResultBuilder
 import com.netflix.spinnaker.clouddriver.google.cache.Keys
+import com.netflix.spinnaker.clouddriver.google.model.GoogleDistributionPolicy
 import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
 import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
@@ -120,13 +121,6 @@ class GoogleRegionalServerGroupCachingAgent extends AbstractGoogleCachingAgent i
   }
 
   private List<GoogleServerGroup> constructServerGroups(ProviderCache providerCache, String onDemandServerGroupName = null) {
-    Set<String> zoneNames = credentials.getZonesFromRegion(region).collect { Utils.getLocalName(it) } as Set
-
-    // The RMIG will deploy to the last 3 zones (after sorting by zone name).
-    if (zoneNames.size() > 3) {
-      zoneNames = zoneNames.sort().drop(zoneNames.size() - 3)
-    }
-
     List<GoogleServerGroup> serverGroups = []
 
     BatchRequest igmRequest = buildBatchRequest()
@@ -139,7 +133,6 @@ class GoogleRegionalServerGroupCachingAgent extends AbstractGoogleCachingAgent i
       providerCache: providerCache,
       serverGroups: serverGroups,
       region: region,
-      zoneNames: zoneNames,
       instanceGroupsRequest: instanceGroupsRequest,
       autoscalerRequest: autoscalerRequest)
     if (onDemandServerGroupName) {
@@ -339,7 +332,6 @@ class GoogleRegionalServerGroupCachingAgent extends AbstractGoogleCachingAgent i
     ProviderCache providerCache
     List<GoogleServerGroup> serverGroups
     String region
-    Set<String> zoneNames
     BatchRequest instanceGroupsRequest
     BatchRequest autoscalerRequest
 
@@ -411,6 +403,11 @@ class GoogleRegionalServerGroupCachingAgent extends AbstractGoogleCachingAgent i
     }
 
     GoogleServerGroup buildServerGroupFromInstanceGroupManager(InstanceGroupManager instanceGroupManager) {
+
+      DistributionPolicy distributionPolicy = instanceGroupManager?.getDistributionPolicy()
+      // The distribution policy zones are URLs.
+      List<String> zones = distributionPolicy?.getZones()?.collect { Utils.getLocalName(it.getZone()) }
+
       Map<String, Integer> namedPorts = [:]
       instanceGroupManager.namedPorts.each { namedPorts[(it.name)] = it.port }
       return new GoogleServerGroup(
@@ -418,7 +415,8 @@ class GoogleRegionalServerGroupCachingAgent extends AbstractGoogleCachingAgent i
           regional: true,
           region: region,
           namedPorts: namedPorts,
-          zones: zoneNames,
+          zones: zones,
+          distributionPolicy: zones ? new GoogleDistributionPolicy(zones: zones) : null,
           selfLink: instanceGroupManager.selfLink,
           currentActions: instanceGroupManager.currentActions,
           launchConfig: [createdTime: Utils.getTimeFromTimestamp(instanceGroupManager.creationTimestamp)],
@@ -438,6 +436,11 @@ class GoogleRegionalServerGroupCachingAgent extends AbstractGoogleCachingAgent i
       InstanceTemplate template = instanceTemplates.find { it -> it.getName() == instanceTemplateName }
       GoogleZonalServerGroupCachingAgent.populateServerGroupWithTemplate(serverGroup, providerCache, loadBalancerNames,
           template, accountName, project, objectMapper)
+      def instanceMetadata = template?.properties?.metadata
+      if (instanceMetadata) {
+        def metadataMap = Utils.buildMapFromMetadata(instanceMetadata)
+        serverGroup.selectZones = metadataMap?.get(GoogleServerGroup.View.SELECT_ZONES) ?: false
+      }
     }
   }
 

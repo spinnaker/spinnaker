@@ -52,6 +52,11 @@ class GoogleServerGroup {
   Map<String, String> instanceTemplateLabels = [:]
   String selfLink
   InstanceGroupManagerActionsSummary currentActions
+  /**
+   * Optional explicit specification of zones for an RMIG.
+   */
+  GoogleDistributionPolicy distributionPolicy
+  Boolean selectZones
 
   @JsonTypeInfo(use=JsonTypeInfo.Id.CLASS, include=JsonTypeInfo.As.PROPERTY, property="class")
   AutoscalingPolicy autoscalingPolicy
@@ -79,6 +84,7 @@ class GoogleServerGroup {
     static final String GLOBAL_LOAD_BALANCER_NAMES = "global-load-balancer-names"
     static final String BACKEND_SERVICE_NAMES = "backend-service-names"
     static final String LOAD_BALANCING_POLICY = "load-balancing-policy"
+    static final String SELECT_ZONES = 'select-zones'
 
     String name = GoogleServerGroup.this.name
     String region = GoogleServerGroup.this.region
@@ -102,6 +108,8 @@ class GoogleServerGroup {
     AutoscalingPolicy autoscalingPolicy = GoogleServerGroup.this.autoscalingPolicy
     List<String> autoscalingMessages = GoogleServerGroup.this.autoscalingMessages
     InstanceGroupManagerAutoHealingPolicy autoHealingPolicy = GoogleServerGroup.this.autoHealingPolicy
+    GoogleDistributionPolicy distributionPolicy = GoogleServerGroup.this.distributionPolicy
+    Boolean selectZones = GoogleServerGroup.this.selectZones
 
     @Override
     Boolean isDisabled() { // Because groovy isn't smart enough to generate this method :-(
