@@ -51,7 +51,8 @@
     <div ng-if="command.associatePublicIpAddress === true" class="form-group">
       <network-select-field label="Network"
                             model="command.floatingNetworkId"
-                            help-key="openstack.network.floatpool"></network-select-field>
+                            help-key="openstack.network.floatpool"
+                            filter="{ account: command.credentials }"></network-select-field>
     </div>
     </ng-form>
   </div>
