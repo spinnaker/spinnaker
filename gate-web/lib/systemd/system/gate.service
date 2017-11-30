@@ -3,7 +3,7 @@ Description=Spinnaker Gate
 PartOf=spinnaker.service
 
 [Service]
-ExecStart=/opt/gate/bin/gate 2>&1 /var/log/spinnaker/gate/gate.log
+ExecStart=/opt/gate/bin/gate
 WorkingDirectory=/opt/gate/bin
 SuccessExitStatus=143
 User=spinnaker
