@@ -32,7 +32,7 @@ import org.springframework.beans.factory.annotation.Value
 @Component
 class WaitForClusterDisableTask extends AbstractWaitForClusterWideClouddriverTask implements CloudProviderAware {
 
-  @Value('${tasks.disableClusterMinTimeMillis:90000')
+  @Value('${tasks.disableClusterMinTimeMillis:90000}')
   private int MINIMUM_WAIT_TIME_MS
 
   private final Map<String, String> healthProviderNamesByPlatform
