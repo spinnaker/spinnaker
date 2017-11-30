@@ -16,18 +16,30 @@
 package com.netflix.spinnaker.keel.orca
 
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
-import retrofit.http.Body
-import retrofit.http.Headers
-import retrofit.http.POST
+import retrofit.http.*
 
 // TODO Origin needs to be set on executions
+// origin is used for dynamic routing by orca to different clouddriver instances
 interface OrcaService {
 
   @POST("/ops")
   @Headers("Content-Type: application/context+json")
   fun orchestrate(@Body request: OrchestrationRequest): TaskRefResponse
+
+  @GET("/tasks/{id}")
+  fun getTask(@Path("id") id: String): TaskDetailResponse
 }
 
 data class TaskRefResponse(
   val ref: String
+)
+
+data class TaskDetailResponse(
+  val id: String,
+  val name: String,
+  val application: String,
+  val buildTime: String,
+  val startTime: String,
+  val endTime: String,
+  val status: OrcaExecutionStatus
 )

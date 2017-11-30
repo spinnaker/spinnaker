@@ -21,5 +21,21 @@ interface IntentActivityRepository {
 
   fun addOrchestrations(intentId: String, orchestrations: List<String>)
 
+  fun getCurrent(intentId: String): List<String>
+
+  fun upsertCurrent(intentId: String, orchestrations: List<String>)
+
+  fun upsertCurrent(intentId: String, orchestration: String)
+
+  fun removeCurrent(intentId: String, orchestrationId: String)
+
+  fun removeCurrent(intentId: String)
+
   fun getHistory(intentId: String): List<String>
+
+  /**
+   * If orchestrationId is passed in as a link to the task in orca, strip the leading path
+   * off so that we're storing the actual orchestrationId
+   */
+  fun parseOrchestrationId(orchestrationId: String) = orchestrationId.removePrefix("/tasks/")
 }

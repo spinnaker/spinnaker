@@ -23,6 +23,7 @@ import com.netflix.spinnaker.keel.IntentSpec
 import com.netflix.spinnaker.keel.event.*
 import com.netflix.spinnaker.keel.orca.OrcaIntentLauncher
 import com.netflix.spinnaker.keel.scheduler.ConvergeIntent
+import com.netflix.spinnaker.keel.scheduler.*
 import com.netflix.spinnaker.q.MessageHandler
 import com.netflix.spinnaker.q.Queue
 import net.logstash.logback.argument.StructuredArguments.value
@@ -31,6 +32,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
 import java.time.Clock
+import java.time.Duration
 
 private const val CANCELLATION_REASON_NOT_FOUND = "notFound"
 private const val CANCELLATION_REASON_TIMEOUT = "timeout"
@@ -81,6 +83,8 @@ class ConvergeIntentHandler
         ?.also { result ->
           intentActivityRepository.addOrchestrations(intent.id, result.orchestrationIds)
           applicationEventPublisher.publishEvent(IntentConvergeSuccessEvent(intent, result.orchestrationIds))
+
+          queue.push(MonitorOrchestrations(intent.id, intent.kind), Duration.ofMillis(10000))
         }
       registry.counter(invocationsId.withTags(message.intent.getMetricTags("result", "success")))
     } catch (t: Throwable) {

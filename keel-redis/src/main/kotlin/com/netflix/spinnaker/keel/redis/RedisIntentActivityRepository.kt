@@ -41,13 +41,20 @@ class RedisIntentActivityRepository
   override fun addOrchestration(intentId: String, orchestrationId: String)
     = addOrchestrations(intentId, listOf(orchestrationId))
 
-  override fun addOrchestrations(intentId: String, orchestrations: List<String>)
-    = historyKey(intentId).let { key ->
-        val score = clock.millis()
-        getClientForId(key).withCommandsClient { c ->
-          c.zadd(key, orchestrations.map { it to score.toDouble() }.toMap().toMutableMap())
-        }
+  override fun addOrchestrations(intentId: String, orchestrations: List<String>) {
+    val score = clock.millis()
+    historyKey(intentId).let { key ->
+      getClientForId(key).withCommandsClient { c ->
+        c.zadd(key, orchestrations.map { parseOrchestrationId(it) to score.toDouble() }.toMap().toMutableMap())
       }
+    }
+
+    currentKey(intentId).let { key ->
+      getClientForId(key).withCommandsClient { c ->
+        c.zadd(key, orchestrations.map { parseOrchestrationId(it) to score.toDouble() }.toMap().toMutableMap())
+      }
+    }
+  }
 
   override fun getHistory(intentId: String)
     = historyKey(intentId).let { key ->
@@ -55,6 +62,40 @@ class RedisIntentActivityRepository
           c.zrangeByScore(key, "-inf", "+inf")
         }
       }.toList()
+
+  override fun getCurrent(intentId: String): List<String>
+    = currentKey(intentId).let { key ->
+        getClientForId(key).withCommandsClient<Set<String>> { c ->
+          c.zrangeByScore(key, "-inf", "+inf")
+        }
+      }.toList()
+
+  override fun upsertCurrent(intentId: String, orchestrations: List<String>)
+    = currentKey(intentId).let { key ->
+        val score = clock.millis()
+        getClientForId(key).withCommandsClient { c ->
+          c.zadd(key, orchestrations.map { parseOrchestrationId(it) to score.toDouble() }.toMap().toMutableMap())
+        }
+      }
+
+
+  override fun upsertCurrent(intentId: String, orchestration: String) {
+    upsertCurrent(intentId, listOf(orchestration))
+  }
+
+  override fun removeCurrent(intentId: String, orchestrationId: String)
+    = currentKey(intentId).let { key ->
+        getClientForId(key).withCommandsClient { c ->
+          c.zrem(key, orchestrationId)
+        }
+      }
+
+  override fun removeCurrent(intentId: String)
+    = currentKey(intentId).let { key ->
+        getClientForId(key).withCommandsClient { c ->
+          c.zrem(key)
+        }
+      }
 
   private fun getClientForId(id: String?): RedisClientDelegate {
     if (id == null) {
@@ -81,3 +122,5 @@ class RedisIntentActivityRepository
 }
 
 internal fun historyKey(intentId: String) = "history:$intentId"
+
+internal fun currentKey(intentId: String) = "current:$intentId"

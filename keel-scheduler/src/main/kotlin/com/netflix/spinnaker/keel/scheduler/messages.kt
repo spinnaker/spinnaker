@@ -36,3 +36,9 @@ data class ConvergeIntent(
   // ... Unless the timeout ttl is elapsed.
   val timeoutTtl: Long
 ) : Message()
+
+
+data class MonitorOrchestrations(
+  val intentId: String,
+  val kind: String
+) : Message()
