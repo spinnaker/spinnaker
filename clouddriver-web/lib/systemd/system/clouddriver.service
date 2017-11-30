@@ -3,7 +3,7 @@ Description=Spinnaker Clouddriver
 PartOf=spinnaker.service
 
 [Service]
-ExecStart=/opt/clouddriver/bin/clouddriver 2>&1 /var/log/spinnaker/clouddriver/clouddriver.log
+ExecStart=/opt/clouddriver/bin/clouddriver
 WorkingDirectory=/opt/clouddriver/bin
 SuccessExitStatus=143
 User=spinnaker
