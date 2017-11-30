@@ -2,10 +2,13 @@
 
 const angular = require('angular');
 import {TITUS_SECURITY_GROUP_PICKER} from 'titus/securityGroup/securityGroupPicker.component';
+import {TITUS_LOAD_BALANCER_SELECTOR} from 'titus/loadBalancers/loadBalancerSelector.component';
+
 
 module.exports = angular.module('spinnaker.serverGroup.configure.titus.cloneServerGroup', [
   require('@uirouter/angularjs').default,
-  TITUS_SECURITY_GROUP_PICKER
+  TITUS_SECURITY_GROUP_PICKER,
+  TITUS_LOAD_BALANCER_SELECTOR
 ])
   .controller('titusCloneServerGroupCtrl', function($scope, $uibModalInstance, $q, $state,
                                                     serverGroupWriter, v2modalWizardService, taskMonitorBuilder,
@@ -16,6 +19,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.titus.cloneServ
       basicSettings: require('./basicSettings.html'),
       resources: require('./resources.html'),
       capacity: require('./capacity/capacity.html'),
+      loadBalancers: require('./loadBalancers.html'),
       securityGroups: require('./securityGroups.html'),
       parameters: require('./parameters.html'),
     };
