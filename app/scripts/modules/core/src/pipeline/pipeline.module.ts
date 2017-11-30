@@ -49,7 +49,6 @@ module(PIPELINE_MODULE, [
   STAGE_SUMMARY_COMPONENT,
 
   require('../utils/appendTransform.js').name,
-  require('../utils/moment.js').name,
 
   require('./pipeline.dataSource').name,
   PIPELINE_STATES,

@@ -9,7 +9,6 @@ import { UIB_MODAL_REJECTIONS } from './uibModalRejections';
 const angular = require('angular');
 
 module.exports = angular.module('spinnaker.utils', [
-  require('./moment.js').name,
   require('./appendTransform.js').name,
   COPY_TO_CLIPBOARD_COMPONENT,
   TIME_FORMATTERS,

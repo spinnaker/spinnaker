@@ -2,11 +2,22 @@ import { ILogService, module } from 'angular';
 import { chain, compact, find, flattenDeep, forOwn, get, groupBy, includes, uniq } from 'lodash';
 import { Debounce } from 'lodash-decorators';
 import { Subject } from 'rxjs';
+import * as moment from 'moment';
 
 import { Application } from 'core/application/application.model';
 import { EXECUTION_FILTER_MODEL, ExecutionFilterModel } from 'core/pipeline';
 import { IExecution, IExecutionGroup, IPipeline } from 'core/domain';
 import { PIPELINE_CONFIG_PROVIDER, PipelineConfigProvider } from 'core/pipeline/config/pipelineConfigProvider';
+
+const boundaries = [
+  { name: 'Today', after: () => moment().startOf('day') },
+  { name: 'Yesterday', after: () => moment().startOf('day').subtract(1, 'days') },
+  { name: 'This Week', after: () => moment().startOf('week') },
+  { name: 'Last Week', after: () => moment().startOf('week').subtract(1, 'weeks') },
+  { name: 'Last Month', after: () => moment().startOf('month') },
+  { name: 'This Year', after: () => moment().startOf('year') },
+  { name: 'Prior Years', after: () => moment(0) },
+];
 
 export class ExecutionFilterService {
 
@@ -16,12 +27,15 @@ export class ExecutionFilterService {
   private isFilterable: (sortFilterModel: any[]) => boolean;
 
   constructor(private executionFilterModel: ExecutionFilterModel,
-              private timeBoundaries: any,
               private $log: ILogService,
               private filterModelService: any,
               private pipelineConfig: PipelineConfigProvider) {
     'ngInject';
     this.isFilterable = filterModelService.isFilterable;
+  }
+
+  private groupByTimeBoundary(executions: IExecution[]): {[boundaryName: string]: IExecution[]} {
+    return groupBy(executions, (execution) => boundaries.find((boundary) => moment(execution.startTime).isAfter(boundary.after())).name);
   }
 
   @Debounce(25)
@@ -171,7 +185,7 @@ export class ExecutionFilterService {
     }
 
     if (this.executionFilterModel.asFilterModel.sortFilter.groupBy === 'timeBoundary') {
-      const grouped = this.timeBoundaries.groupByTimeBoundary(executions);
+      const grouped = this.groupByTimeBoundary(executions);
       forOwn(grouped, (groupExecutions: IExecution[], key) => {
         groupExecutions.sort((a, b) => this.executionSorter(a, b));
         groups.push({
@@ -301,7 +315,6 @@ export const EXECUTION_FILTER_SERVICE = 'spinnaker.core.pipeline.filter.executio
 module (EXECUTION_FILTER_SERVICE, [
   EXECUTION_FILTER_MODEL,
   require('core/filterModel/filter.model.service').name,
-  require('core/orchestratedItem/timeBoundaries.service').name,
   PIPELINE_CONFIG_PROVIDER
-]).factory('executionFilterService', (executionFilterModel: ExecutionFilterModel, timeBoundaries: any, $log: ILogService, filterModelService: any, pipelineConfig: any) =>
-                                      new ExecutionFilterService(executionFilterModel, timeBoundaries, $log, filterModelService, pipelineConfig));
+]).factory('executionFilterService', (executionFilterModel: ExecutionFilterModel, $log: ILogService, filterModelService: any, pipelineConfig: any) =>
+                                      new ExecutionFilterService(executionFilterModel, $log, filterModelService, pipelineConfig));
