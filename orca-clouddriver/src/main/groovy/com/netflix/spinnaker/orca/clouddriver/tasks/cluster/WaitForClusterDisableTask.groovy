@@ -27,10 +27,13 @@ import com.netflix.spinnaker.orca.clouddriver.utils.HealthHelper
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+import org.springframework.beans.factory.annotation.Value
 
 @Component
 class WaitForClusterDisableTask extends AbstractWaitForClusterWideClouddriverTask implements CloudProviderAware {
-  private static final int MINIMUM_WAIT_TIME_MS = 90000
+
+  @Value('${tasks.disableClusterMinTimeMillis:90000')
+  private int MINIMUM_WAIT_TIME_MS
 
   private final Map<String, String> healthProviderNamesByPlatform
 
