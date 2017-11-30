@@ -3,7 +3,7 @@ Description=Spinnaker Fiat
 PartOf=spinnaker.service
 
 [Service]
-ExecStart=/opt/fiat/bin/fiat 2>&1 /var/log/spinnaker/fiat/fiat.log
+ExecStart=/opt/fiat/bin/fiat
 WorkingDirectory=/opt/fiat/bin
 SuccessExitStatus=143
 User=spinnaker
