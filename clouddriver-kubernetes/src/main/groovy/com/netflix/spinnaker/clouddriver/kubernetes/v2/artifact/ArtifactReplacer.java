@@ -94,7 +94,8 @@ public class ArtifactReplacer {
                         .build()
                     );
               } catch (Exception e) {
-                log.warn("Failure converting artifacts for {} using {} (skipping)", input.getFullResourceName(), r, e);
+                // This happens when a manifest isn't fully defined (e.g. not all properties are there)
+                log.debug("Failure converting artifacts for {} using {} (skipping)", input.getFullResourceName(), r, e);
                 return Stream.<Artifact> empty();
               }
             }
