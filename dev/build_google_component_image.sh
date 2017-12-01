@@ -28,6 +28,10 @@ function show_usage() {
 cat <<EOF
 Usage:  $0 [options]
 
+   --artifact
+       [$ARTIFACT]
+       Build a component VM image for this artifact.
+
    --account ACCOUNT
        [$ACCOUNT]
        Use this gcloud account to build the image.
@@ -52,6 +56,10 @@ Usage:  $0 [options]
        [$PUBLISH_PROJECT]
        Publish the images in the PUBLISH_PROJECT id.
 
+   --publish_script PUBLISH_SCRIPT
+       [$PUBLISH_SCRIPT]
+       Script to use to publish the images.
+
    --version VERSION
        [$VERSION]
        The exact Spinnaker version we are baking images for.
@@ -74,6 +82,10 @@ function process_args() {
             show_usage
             exit
             ;;
+        --artifact)
+            ARTIFACT=$1
+            shift
+            ;;
         --account)
             ACCOUNT=$1
             shift
@@ -95,6 +107,10 @@ function process_args() {
             ;;
         --publish_project)
             PUBLISH_PROJECT=$1
+            shift
+            ;;
+        --publish_script)
+            PUBLISH_SCRIPT=$1
             shift
             ;;
         --version)
@@ -283,7 +299,7 @@ function create_component_image() {
   PROJECT=$PUBLISH_PROJECT
   delete_disk_if_exists $TARGET_IMAGE
   delete_image_if_exists $TARGET_IMAGE
-  bash spinnaker/google/dev/publish_gce_release.sh \
+  bash $PUBLISH_SCRIPT \
     --zone $ZONE \
     --service_account $ACCOUNT \
     --original_image $TARGET_IMAGE \
@@ -336,43 +352,14 @@ declare -A COMPONENTS=( ['clouddriver']='clouddriver' \
 TIME_DECORATOR=$(date +%Y%m%d%H%M%S)
 ZONE=us-central1-f
 BASE_IMAGE_OR_FAMILY=ubuntu-1404-lts
+BASE_IMAGE=$BASE_IMAGE_OR_FAMILY
 PROJECT=$BUILD_PROJECT
 
 fix_defaults
 ensure_empty_ssh_key
 
-for artifact in "${!COMPONENTS[@]}"; do
-  service=${COMPONENTS[$artifact]}
-  LOG="create-${service}-image.log"
-  echo "Creating component image for $service with artifact $artifact; output will be logged to $LOG..."
-  create_component_image $artifact $service &> $LOG &
-done
-
-# We track the subprocesses by job instead of pid since
-# waiting for the pids requires the subprocesses still be running.
-# If we are waiting for process i, and process i+1 finishes, `wait`
-# will fail to find process i+1 and incorrectly fail and exit.
-# Job IDs exist and can be waited on even after the actual subprocess exits.
-FAILED=0
-for job in $(jobs -p); do
-  echo "Waiting for job $job"
-  wait $job || let "FAILED+=1"
-done
-
-for logfile in *-image.log; do
-  echo "---- start $logfile ----"
-  echo ""
-  cat $logfile
-  echo ""
-  echo "---- end $logfile ----"
-done
-
-if [ "$FAILED" == "0" ]; then
-  echo "All jobs succeeded."
-else
-  echo "Some jobs failed. Exiting..."
-  exit "$FAILED"
-fi
-
+service=${COMPONENTS[$ARTIFACT]}
+echo "Creating component image for $service with artifact $ARTIFACT"
+create_component_image $ARTIFACT $service
 
 echo "`date`: DONE"
