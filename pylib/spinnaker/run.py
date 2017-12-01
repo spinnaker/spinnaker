@@ -21,6 +21,7 @@ import fcntl
 import os
 import subprocess
 import sys
+import time
 
 
 class RunResult(collections.namedtuple('RunResult',
@@ -87,6 +88,7 @@ def run_and_monitor(command, echo=True, input=None,
       command,
       stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=stdin,
       shell=True, close_fds=True)
+  time.sleep(0)  # yield this thread
 
   # Setup for nonblocking reads
   fl = fcntl.fcntl(process.stdout, fcntl.F_GETFL)
@@ -129,6 +131,7 @@ def run_quick(command, echo=True, dup_stderr_to_stdout=True):
   stderr_target = subprocess.STDOUT if dup_stderr_to_stdout else subprocess.PIPE
   p = subprocess.Popen(command, shell=True, close_fds=True,
                        stdout=subprocess.PIPE, stderr=stderr_target)
+  time.sleep(0)  # yield this thread
   stdout, stderr = p.communicate()
   if echo:
     print command
