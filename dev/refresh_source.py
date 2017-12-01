@@ -18,6 +18,7 @@ import argparse
 import collections
 import os
 import sys
+import yaml
 
 from spinnaker.run import check_run_and_monitor
 from spinnaker.run import check_run_quick
@@ -146,6 +147,7 @@ class Refresher(object):
   def __init__(self, options):
       self.__options = options
       self.__extra_repositories = self.__OPTIONAL_REPOSITORIES
+      self.__bom = None
       if options.extra_repos:
         for extra in options.extra_repos.split(','):
           pair = extra.split('=')
@@ -153,6 +155,22 @@ class Refresher(object):
             raise ValueError(
                 'Invalid --extra_repos value "{extra}"'.format(extra=extra))
           self.__extra_repositories.append(SourceRepository(pair[0], pair[1]))
+
+  def get_commit_from_bom(self, repository):
+      """Determine the commit for the given service as specified in the BOM."""
+      if not self.__options.pull_bom:
+        raise ValueError('No --pull_bom specified.')
+      if self.__bom is None:
+        with open(self.__options.pull_bom, 'r') as f:
+          self.__bom = yaml.load(f, Loader=yaml.Loader)
+
+      service_name = repository.name
+      entry = self.__bom.get('services', {}).get(service_name)
+      if entry is None:
+        if repository in self.__extra_repositories:
+          return None
+        raise ValueError('"{0}" is not known to the BOM'.format(service_name))
+      return entry['commit']
 
   def get_remote_repository_url(self, path, which='origin'):
       """Determine the repository that a given path is from.
@@ -277,6 +295,7 @@ class Refresher(object):
               'git -C "{dir}" remote set-url --push {which} disabled'
                   .format(dir=repository_dir, which=which),
               echo=False)
+      self.maybe_checkout_bom_commit(repository)
 
   def pull_from_origin(self, repository):
       """Pulls the current branch from the git origin.
@@ -291,6 +310,12 @@ class Refresher(object):
           return
 
       print 'Updating {name} from origin'.format(name=name)
+      if self.__options.pull_bom:
+        check_run_and_monitor('git -C "{dir}" fetch'.format(
+            dir=repository_dir))
+        self.maybe_checkout_bom_commit(repository)
+        return
+
       branch = self.get_local_branch_name(name)
       if branch != self.pull_branch:
         if self.__options.force_pull:
@@ -411,6 +436,18 @@ class Refresher(object):
                        .format(msg=ex.message, name=repository.name))
           else:
               raise
+
+  def maybe_checkout_bom_commit(self, repository):
+    if self.__options.pull_bom:
+      commit = self.get_commit_from_bom(repository)
+      if commit is None:
+        print '  Skipping optional "{repo}"'.format(repo=repository.name)
+      else:
+        print '  Checking out BOM commit {commit}'.format(commit=commit)
+        repository_dir = get_repository_dir(repository.name)
+        check_run_quick(
+            'git -C "{dir}" checkout {commit}'
+            .format(dir=repository_dir, commit=commit))
 
   def __determine_spring_config_location(self):
     root = '{dir}/config'.format(
@@ -543,6 +580,10 @@ bash -c "(./start.sh >> '$LOG_DIR/{name}.log') 2>&1\
                                ' otherwise skip it.'
                                ' If cloning, then clone this branch.')
 
+      parser.add_argument('--pull_bom', default='',
+                          help='Checkout each service from the commit specified'
+                               ' in the bom file.')
+
       parser.add_argument(
           '--default_branch', default=None,
           help='If specified and the --pull_branch is not present in the repo'
@@ -618,7 +659,7 @@ bash -c "(./start.sh >> '$LOG_DIR/{name}.log') 2>&1\
     if refresher.push_branch:
         nothing = False
         refresher.push_all_to_origin_if_target_branch()
-    if refresher.pull_branch:
+    if refresher.pull_branch or options.pull_bom:
         nothing = False
         refresher.pull_all_from_origin()
 
