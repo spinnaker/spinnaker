@@ -371,11 +371,24 @@ class Builder(object):
     if os.path.isdir(gradle_cache):
       # Tell rmtree to delete the directory even if it's non-empty.
       shutil.rmtree(gradle_cache)
-    cmds = [
-      ('gcloud container builds submit --log-http'
-       ' --account={account} --project={project} --config="../{name}-gcb.yml" .'
-       .format(name=name, account=gcb_service_account, project=gcb_project))
-    ]
+    if self.__options.gcb_externalize_gcs_upload:
+      tar_filename = name + '-{:%Y%m%d%H%M%S}'.format(datetime.datetime.utcnow())
+      gcs_staging_bucket = self.__options.gcb_gcs_staging_bucket
+      cmds = [
+        ('tar -cf {tar_filename}.tar .'
+          .format(tar_filename=tar_filename)),
+        ('gsutil cp {tar_filename}.tar {gcs_staging_bucket}'
+          .format(tar_filename=tar_filename, gcs_staging_bucket=gcs_staging_bucket)),
+        ('gcloud container builds submit --log-http'
+         ' --account={account} --project={project} --config="../{name}-gcb.yml" {gcs_staging_bucket}/{tar_filename}'
+         .format(name=name, account=gcb_service_account, project=gcb_project, gcs_source=gcs_source_uri, tar_filename=tar_filename))
+      ]
+    else:
+      cmds = [
+        ('gcloud container builds submit --log-http'
+         ' --account={account} --project={project} --config="../{name}-gcb.yml" .'
+         .format(name=name, account=gcb_service_account, project=gcb_project))
+      ]
     logfile = '{name}-gcb-build.log'.format(name=name)
     if os.path.exists(logfile):
       os.remove(logfile)
@@ -654,6 +667,12 @@ class Builder(object):
                'Used to specify any custom behavior in the gradle builds.'
                'Argument is a file path relative to the directory this script is executed in.'
                'The default value assumes we run this script from the parent directory of spinnaker/spinnaker.')
+      parser.add_argument(
+          '--gcb_externalize_gcs_upload', type=bool, default=False,
+          help='Do GCS tar upload prior to calling GCB build, and have GCB build source from that GCS location.')
+      parser.add_argument(
+          '--gcb_gcs_staging_bucket', default='gs://spinnaker-build-gcb-staging',
+          help='If --gcb_externalize_gcs_upload is True, optionally specify GCS bucket to upload source to.')
 
   def __verify_bintray(self):
     if not os.environ.get('BINTRAY_KEY', None):
