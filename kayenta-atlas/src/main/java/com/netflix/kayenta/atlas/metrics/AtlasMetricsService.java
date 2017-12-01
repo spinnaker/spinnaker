@@ -31,6 +31,8 @@ import com.netflix.kayenta.metrics.MetricsService;
 import com.netflix.kayenta.retrofit.config.RemoteService;
 import com.netflix.kayenta.retrofit.config.RetrofitClientFactory;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
+import com.netflix.spectator.api.Registry;
+import com.netflix.spectator.api.Timer;
 import com.squareup.okhttp.OkHttpClient;
 import lombok.Builder;
 import lombok.Getter;
@@ -38,6 +40,7 @@ import lombok.Singular;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import javax.inject.Inject;
 import javax.validation.constraints.NotNull;
 import java.io.IOException;
 import java.time.Duration;
@@ -58,13 +61,16 @@ public class AtlasMetricsService implements MetricsService {
   private List<String> accountNames;
 
   @Autowired
-  AccountCredentialsRepository accountCredentialsRepository;
+  private final AccountCredentialsRepository accountCredentialsRepository;
 
   @Autowired
-  RetrofitClientFactory retrofitClientFactory;
+  private final RetrofitClientFactory retrofitClientFactory;
 
   @Autowired
-  AtlasSSEConverter atlasSSEConverter;
+  private final AtlasSSEConverter atlasSSEConverter;
+
+  @Autowired
+  private final Registry registry;
 
   @Override
   public String getType() {
@@ -121,12 +127,20 @@ public class AtlasMetricsService implements MetricsService {
     AtlasCanaryMetricSetQueryConfig atlasMetricSetQuery = (AtlasCanaryMetricSetQueryConfig)canaryMetricConfig.getQuery();
     String decoratedQuery = atlasMetricSetQuery.getQ() + "," + atlasCanaryScope.cq();
     String isoStep = Duration.of(atlasCanaryScope.getStep(), SECONDS) + "";
-    List<AtlasResults> atlasResultsList = atlasRemoteService.fetch(decoratedQuery,
-                                                                   atlasCanaryScope.getStart().toEpochMilli(),
-                                                                   atlasCanaryScope.getEnd().toEpochMilli(),
-                                                                   isoStep,
-                                                                   credentials.getFetchId(),
-                                                                   UUID.randomUUID() + "");
+
+    long start = registry.clock().monotonicTime();
+    List < AtlasResults > atlasResultsList;
+    try {
+      atlasResultsList = atlasRemoteService.fetch(decoratedQuery,
+                                                  atlasCanaryScope.getStart().toEpochMilli(),
+                                                  atlasCanaryScope.getEnd().toEpochMilli(),
+                                                  isoStep,
+                                                  credentials.getFetchId(),
+                                                  UUID.randomUUID() + "");
+    } finally {
+      long end = registry.clock().monotonicTime();
+      registry.timer("atlas.fetchTime").record(end - start, TimeUnit.NANOSECONDS);
+    }
     Map<String, AtlasResults> idToAtlasResultsMap = AtlasResultsHelper.merge(atlasResultsList);
     List<MetricSet> metricSetList = new ArrayList<>();
 

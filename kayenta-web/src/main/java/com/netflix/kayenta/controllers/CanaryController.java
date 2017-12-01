@@ -28,6 +28,7 @@ import com.netflix.kayenta.security.CredentialsHelper;
 import com.netflix.kayenta.storage.ObjectType;
 import com.netflix.kayenta.storage.StorageService;
 import com.netflix.kayenta.storage.StorageServiceRepository;
+import com.netflix.spectator.api.Id;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.pipeline.ExecutionLauncher;
@@ -64,6 +65,8 @@ public class CanaryController {
   private final List<CanaryScopeFactory> canaryScopeFactories;
   private final Registry registry;
   private final ObjectMapper kayentaObjectMapper;
+  private final Id pipelineRunId;
+  private final Id failureId;
 
   @Autowired
   public CanaryController(String currentInstanceId,
@@ -88,6 +91,8 @@ public class CanaryController {
 
     this.registry = registry;
     this.kayentaObjectMapper = kayentaObjectMapper;
+    this.pipelineRunId = registry.createId("canary.pipelines.initiated");
+    this.failureId = registry.createId("canary.pipelines.startupFailed");
   }
 
   //
@@ -136,7 +141,7 @@ public class CanaryController {
         .filter((f) -> f.handles(serviceType)).findFirst()
         .orElseThrow(() -> new IllegalArgumentException("Unable to resolve canary scope factory for '" + serviceType + "'."));
 
-    registry.counter(registry.createId("canary.pipelines.initiated")).increment();
+    registry.counter(pipelineRunId.withTag("canaryConfigId", canaryConfigId).withTag("canaryConfigName", canaryConfig.getName())).increment();
 
     CanaryScope controlScopeModel = canaryScopeFactory.buildCanaryScope(canaryExecutionRequest.getControlScope());
     CanaryScope experimentScopeModel = canaryScopeFactory.buildCanaryScope(canaryExecutionRequest.getExperimentScope());
@@ -313,6 +318,8 @@ public class CanaryController {
     log.error("Failed to start {} {}", execution.getType(), execution.getId(), failure);
     executionRepository.updateStatus(execution.getId(), status);
     executionRepository.cancel(execution.getId(), canceledBy, reason);
+
+    registry.counter(failureId).increment();
 
     return executionRepository.retrieve(execution.getType(), execution.getId());
   }
