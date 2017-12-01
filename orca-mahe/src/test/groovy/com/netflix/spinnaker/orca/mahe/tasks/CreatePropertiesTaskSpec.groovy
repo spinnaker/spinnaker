@@ -127,7 +127,7 @@ class CreatePropertiesTaskSpec extends Specification {
 
     then:
 
-    with(results.outputs) {
+    with(results.context) {
       propertyIdList.size() == 1
       propertyIdList.contains(propertyId: 'other')
     }
@@ -168,7 +168,7 @@ class CreatePropertiesTaskSpec extends Specification {
 
     then:
 
-    with(results.outputs) {
+    with(results.context) {
       propertyIdList.size() == 1
       propertyIdList.contains(propertyId: 'other')
     }
@@ -238,7 +238,7 @@ class CreatePropertiesTaskSpec extends Specification {
 
     then:
 
-    with(results.outputs) {
+    with(results.context) {
       propertyIdList.size() == 1
       propertyIdList.contains(propertyId: 'propertyId')
     }
@@ -265,10 +265,9 @@ class CreatePropertiesTaskSpec extends Specification {
     }
 
     then: "deleting a fast property does not return a property ID"
-    with(results.outputs) {
+    with(results.context) {
       propertyIdList.size() == 0
     }
-
   }
 
   def "delete a persisted properties that doen't exist"() {
@@ -335,7 +334,7 @@ class CreatePropertiesTaskSpec extends Specification {
     }
 
     then:
-    with(results.outputs) {
+    with(results.context) {
       propertyIdList.size() == 2
       propertyIdList.contains(propertyId: "${properties[0].key}|${properties[0].value}".toString())
       propertyIdList.contains(propertyId: "${properties[1].key}|${properties[1].value}".toString())

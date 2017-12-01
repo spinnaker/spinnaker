@@ -181,7 +181,7 @@ class RunTaskHandler(
           stage.topLevelTimeout.get().toDuration()
         else
           timeout.toDuration()
-      )
+        )
       if (elapsedTime.minus(pausedDuration).minusMillis(throttleTime) > actualTimeout) {
         val durationString = formatTimeout(elapsedTime.toMillis())
         val msg = StringBuilder("${javaClass.simpleName} of stage ${stage.name} timed out after $durationString. ")
@@ -222,24 +222,22 @@ class RunTaskHandler(
    * disappear along with global context itself.
    */
   private val blacklistGlobalKeys = setOf(
-    "stageTimeoutMs",
     "propertyIdList",
     "originalProperties",
     "propertyAction"
   )
 
   private fun Stage.processTaskOutput(result: TaskResult) {
-    val filteredOutputs = result.outputs.filterKeys { it !in blacklistGlobalKeys }
+    val filteredOutputs = result.outputs.filterKeys { it != "stageTimeoutMs" }
     if (result.context.isNotEmpty() || filteredOutputs.isNotEmpty()) {
       context.putAll(result.context)
       outputs.putAll(filteredOutputs)
       repository.storeStage(this)
     }
-    if (filteredOutputs.isNotEmpty()) {
-      repository.storeExecutionContext(
-        execution.id,
-        filteredOutputs
-      )
+    filteredOutputs.filterKeys { it !in blacklistGlobalKeys }.let {
+      if (it.isNotEmpty()) {
+        repository.storeExecutionContext(execution.id, it)
+      }
     }
   }
 }
