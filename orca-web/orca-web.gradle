@@ -42,7 +42,6 @@ dependencies {
   compile project(":orca-echo")
   compile project(":orca-kayenta")
   compile project(":orca-mine")
-  compile project(":orca-mahe")
   compile project(":orca-igor")
   compile project(":orca-webhook")
   compile project(":orca-eureka")
