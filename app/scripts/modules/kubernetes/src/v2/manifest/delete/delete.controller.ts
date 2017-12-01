@@ -10,8 +10,9 @@ import {
   TaskMonitorBuilder
 } from '@spinnaker/core';
 import { IManifestCoordinates } from '../IManifestCoordinates';
+import { KUBERNETES_DELETE_MANIFEST_OPTIONS_FORM } from './deleteOptionsForm.component';
 
-interface IDeleteCommand {
+export interface IDeleteCommand {
   name: string;
   location: string;
   account: string;
@@ -19,7 +20,7 @@ interface IDeleteCommand {
   options: IDeleteOptions;
 }
 
-interface IDeleteOptions {
+export interface IDeleteOptions {
   gracePeriodSeconds?: number;
   cascading: boolean;
 }
@@ -81,5 +82,6 @@ export const KUBERNETES_MANIFEST_DELETE_CTRL = 'spinnaker.kubernetes.v2.manifest
 module(KUBERNETES_MANIFEST_DELETE_CTRL, [
   TASK_MONITOR_BUILDER,
   MANIFEST_WRITER,
+  KUBERNETES_DELETE_MANIFEST_OPTIONS_FORM,
 ])
   .controller('kubernetesV2ManifestDeleteCtrl', KubernetesManifestDeleteController);
