@@ -140,7 +140,12 @@ class StartStageHandler(
     }
 
     val clonedContext = objectMapper.convertValue(this.context, Map::class.java) as Map<String, Any>
-    val clonedStage = Stage(this.execution, this.type, clonedContext)
+    val clonedStage = Stage(this.execution, this.type, clonedContext).also {
+      it.refId = refId
+      it.requisiteStageRefIds = requisiteStageRefIds
+      it.syntheticStageOwner = syntheticStageOwner
+      it.parentStageId = parentStageId
+    }
     if (clonedStage.context.containsKey(PipelineExpressionEvaluator.SUMMARY)) {
       this.context.put(PipelineExpressionEvaluator.SUMMARY, clonedStage.context[PipelineExpressionEvaluator.SUMMARY])
     }

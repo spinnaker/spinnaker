@@ -210,11 +210,11 @@ class RunTaskHandler(
 
   private fun Execution.pausedDurationRelativeTo(instant: Instant?): Duration {
     val pausedDetails = paused
-    if (pausedDetails != null) {
-      return if (pausedDetails.pauseTime.toInstant()?.isAfter(instant) == true) {
+    return if (pausedDetails != null) {
+      if (pausedDetails.pauseTime.toInstant()?.isAfter(instant) == true) {
         Duration.ofMillis(pausedDetails.pausedMs)
       } else ZERO
-    } else return ZERO
+    } else ZERO
   }
 
   /**

@@ -21,6 +21,7 @@ import com.netflix.spinnaker.orca.pipeline.expressions.PipelineExpressionEvaluat
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.StageContext
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -84,17 +85,22 @@ interface ExpressionAware {
       mapOf("details" to mapOf("errors" to mergedErrors))
     }
 
-  private fun processEntries(stage: Stage) =
-    contextParameterProcessor.process(
+  private fun processEntries(stage: Stage): StageContext =
+    StageContext(stage, contextParameterProcessor.process(
       stage.context,
-      stage.context.augmentContext(stage.execution),
+      (stage.context as StageContext).augmentContext(stage.execution),
       true
     )
+    )
 
-  private fun Map<String, Any?>.augmentContext(execution: Execution) =
+  private fun StageContext.augmentContext(execution: Execution): StageContext =
     if (execution.type == PIPELINE) {
-      this + execution.context + mapOf("trigger" to execution.trigger, "execution" to execution)
+      this + mapOf("trigger" to execution.trigger, "execution" to execution)
     } else {
       this
     }
+
+  private operator fun StageContext.plus(map: Map<String, Any?>): StageContext
+    = StageContext(this).apply { putAll(map) }
+
 }

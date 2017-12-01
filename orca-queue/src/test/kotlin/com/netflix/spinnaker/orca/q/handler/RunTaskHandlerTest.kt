@@ -1127,11 +1127,15 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
       }
     }
 
-    given("an expression in the context that refers to a global context value") {
+    given("an expression in the context that refers to a prior stage output") {
       val pipeline = pipeline {
-        context["foo"] = "bar"
         stage {
           refId = "1"
+          outputs["foo"] = "bar"
+        }
+        stage {
+          refId = "2"
+          requisiteStageRefIds = setOf("1")
           context["expression"] = "\${foo}"
           type = "whatever"
           task {
@@ -1140,7 +1144,7 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
           }
         }
       }
-      val message = RunTask(pipeline.type, pipeline.id, "foo", pipeline.stageByRef("1").id, "1", DummyTask::class.java)
+      val message = RunTask(pipeline.type, pipeline.id, "foo", pipeline.stageByRef("2").id, "1", DummyTask::class.java)
 
       beforeGroup {
         whenever(task.execute(any())) doReturn TaskResult.SUCCEEDED
