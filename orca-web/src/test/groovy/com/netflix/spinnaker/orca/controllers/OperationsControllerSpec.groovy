@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.controllers
 
-import javax.servlet.http.HttpServletResponse
 import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException
 import com.netflix.spinnaker.orca.igor.BuildArtifactFilter
 import com.netflix.spinnaker.orca.igor.BuildService
@@ -25,6 +24,7 @@ import com.netflix.spinnaker.orca.pipeline.ExecutionLauncher
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
+import com.netflix.spinnaker.orca.pipeline.util.ArtifactResolver
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import com.netflix.spinnaker.orca.pipelinetemplate.PipelineTemplateService
 import com.netflix.spinnaker.orca.webhook.config.PreconfiguredWebhookProperties
@@ -40,6 +40,9 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
+
+import javax.servlet.http.HttpServletResponse
+
 import static com.netflix.spinnaker.orca.ExecutionStatus.CANCELED
 import static com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType
@@ -51,6 +54,7 @@ class OperationsControllerSpec extends Specification {
 
   void setup() {
     MDC.clear()
+    artifactResolver.objectMapper = mapper
   }
 
   def executionLauncher = Mock(ExecutionLauncher)
@@ -59,6 +63,7 @@ class OperationsControllerSpec extends Specification {
   def executionRepository = Mock(ExecutionRepository)
   def pipelineTemplateService = Mock(PipelineTemplateService)
   def webhookService = Mock(WebhookService)
+  def artifactResolver = new ArtifactResolver()
 
   def env = new MockEnvironment()
   def buildArtifactFilter = new BuildArtifactFilter(environment: env)
@@ -72,7 +77,8 @@ class OperationsControllerSpec extends Specification {
       pipelineTemplateService: pipelineTemplateService,
       executionLauncher: executionLauncher,
       contextParameterProcessor: new ContextParameterProcessor(),
-      webhookService: webhookService
+      webhookService: webhookService,
+      artifactResolver: artifactResolver
     )
 
   @Unroll

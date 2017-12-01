@@ -71,6 +71,9 @@ class OperationsController {
   @Autowired(required = false)
   WebhookService webhookService
 
+  @Autowired(required = false)
+  ArtifactResolver artifactResolver
+
   @RequestMapping(value = "/orchestrate", method = RequestMethod.POST)
   Map<String, Object> orchestrate(@RequestBody Map pipeline, HttpServletResponse response) {
     parsePipelineTrigger(executionRepository, buildService, pipeline)
@@ -161,7 +164,7 @@ class OperationsController {
       }
     }
 
-    ArtifactResolver.resolveArtifacts(pipeline)
+    artifactResolver?.resolveArtifacts(executionRepository, pipeline)
   }
 
   private void getBuildInfo(Map trigger) {

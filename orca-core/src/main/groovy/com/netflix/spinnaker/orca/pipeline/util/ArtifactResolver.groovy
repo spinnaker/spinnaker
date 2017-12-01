@@ -16,42 +16,58 @@
 
 package com.netflix.spinnaker.orca.pipeline.util
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import com.netflix.spinnaker.kork.artifacts.model.ExpectedArtifact
-import groovy.util.logging.Slf4j
+import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.stereotype.Component
+import rx.schedulers.Schedulers
 
-import java.lang.reflect.Field
-
-@Slf4j
+@Component
 class ArtifactResolver {
 
-  static void resolveArtifacts(Map pipeline) {
-    Set<Artifact> resolvedArtifacts = []
-    List<Artifact> receivedArtifacts = pipeline.receivedArtifacts ?: []
-    List<ExpectedArtifact> expectedArtifacts = pipeline.expectedArtifacts.findAll { e -> e.id in pipeline.trigger.expectedArtifactIds } ?: []
-    List<ExpectedArtifact> unresolvedExpectedArtifacts = []
+  @Autowired
+  private ObjectMapper objectMapper
 
-    for (ExpectedArtifact expectedArtifact : expectedArtifacts) {
-      List<Artifact> matches = receivedArtifacts.findAll { a -> expectedArtifact.matches((Artifact) a) }
-      switch (matches.size()) {
-        case 0:
-          unresolvedExpectedArtifacts.add(expectedArtifact)
-          continue
-        case 1:
-          resolvedArtifacts.add(matches[0])
-          continue
-        default:
-          throw new IllegalStateException("Expected artifact ${expectedArtifact} matches multiple incoming artifacts ${matches}")
-      }
+  void resolveArtifacts(ExecutionRepository repository, Map pipeline) {
+    List<ExpectedArtifact> expectedArtifacts = pipeline.expectedArtifacts?.collect { objectMapper.convertValue(it, ExpectedArtifact.class) } ?: []
+    List<Artifact> receivedArtifacts = pipeline.receivedArtifacts?.collect { objectMapper.convertValue(it, Artifact.class) } ?: []
+
+    if (!expectedArtifacts) {
+      return
     }
 
+    def priorArtifacts = (List<Artifact>) repository.retrievePipelinesForPipelineConfigId((String) pipeline.get("id"), new ExecutionRepository.ExecutionCriteria())
+        .subscribeOn(Schedulers.io())
+        .toList()
+        .toBlocking()
+        .single()
+        .sort(startTimeOrId)
+        .getAt(0)
+        ?.getTrigger()
+        ?.get("artifacts")
+        ?.collect { objectMapper.convertValue(it, Artifact.class) } ?: []
+
+    ResolveResult resolve = resolveExpectedArtifacts(expectedArtifacts, receivedArtifacts)
+
+    Set<Artifact> resolvedArtifacts = resolve.resolvedArtifacts
+    Set<ExpectedArtifact> unresolvedExpectedArtifacts = resolve.unresolvedExpectedArtifacts
+
     for (ExpectedArtifact expectedArtifact : unresolvedExpectedArtifacts) {
+      Artifact resolved = null
       if (expectedArtifact.usePriorArtifact) {
-        throw new UnsupportedOperationException("'usePriorArtifact' is not supported yet")
-      } else if (expectedArtifact.useDefaultArtifact && expectedArtifact.defaultArtifact) {
-        resolvedArtifacts.add(expectedArtifact.defaultArtifact)
+        resolved = resolveSingleArtifact(expectedArtifact, priorArtifacts);
+      }
+
+      if (!resolved && expectedArtifact.useDefaultArtifact && expectedArtifact.defaultArtifact) {
+        resolved = expectedArtifact.defaultArtifact
+      }
+
+      if (!resolved) {
+        throw new IllegalStateException("Unmatched expected artifact ${expectedArtifact} could not be resolved.")
       } else {
-        throw new IllegalStateException("Unmatched expected artifact ${expectedArtifact} with no fallback behavior specified")
+        resolvedArtifacts.add(resolved)
       }
     }
 
@@ -59,9 +75,48 @@ class ArtifactResolver {
     pipeline.trigger.resolvedExpectedArtifacts = expectedArtifacts // Add the actual expectedArtifacts we included in the ids.
   }
 
+  Artifact resolveSingleArtifact(ExpectedArtifact expectedArtifact, List<Artifact> possibleMatches) {
+    List<Artifact> matches = possibleMatches.findAll { a -> expectedArtifact.matches((Artifact) a) }
+    switch (matches.size()) {
+      case 0:
+        return null
+      case 1:
+        return matches[0]
+      default:
+        throw new IllegalStateException("Expected artifact ${expectedArtifact} matches multiple artifacts ${matches}")
+    }
+  }
+
+  ResolveResult resolveExpectedArtifacts(List<ExpectedArtifact> expectedArtifacts, List<Artifact> receivedArtifacts) {
+    ResolveResult result = new ResolveResult()
+
+    for (ExpectedArtifact expectedArtifact : expectedArtifacts) {
+      Artifact resolved = resolveSingleArtifact(expectedArtifact, receivedArtifacts)
+      if (resolved) {
+        result.resolvedArtifacts.add(resolved)
+      } else {
+        result.unresolvedExpectedArtifacts.add(expectedArtifact)
+      }
+    }
+
+    return result
+  }
+
   static class ArtifactResolutionException extends RuntimeException {
     ArtifactResolutionException(String message) {
       super(message)
     }
+  }
+
+  static class ResolveResult {
+    Set<Artifact> resolvedArtifacts = new HashSet<>()
+    Set<ExpectedArtifact> unresolvedExpectedArtifacts = new HashSet<>();
+  }
+
+  private static Closure startTimeOrId = { a, b ->
+    def aStartTime = a.startTime ?: 0
+    def bStartTime = b.startTime ?: 0
+
+    return bStartTime <=> aStartTime ?: b.id <=> a.id
   }
 }
