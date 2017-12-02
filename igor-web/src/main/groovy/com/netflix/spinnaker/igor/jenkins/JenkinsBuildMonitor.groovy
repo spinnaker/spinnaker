@@ -196,8 +196,7 @@ class JenkinsBuildMonitor implements PollingMonitor {
                             Date lookBackDate = (offsetSeconds + lookBackWindowMins).ago
 
                             def tooOldBuilds = completedBuilds.findAll {
-                                Date buildEndDate = new Date(it.timestamp as Long)
-                                DateUtils.addMilliseconds(buildEndDate,Math.toIntExact(it.duration))
+                                Date buildEndDate = new Date((it.timestamp as Long) + it.duration)
                                 return buildEndDate.before(lookBackDate)
                             }
                             log.debug("Filtering out builds older than {} from {} {}: build numbers{}",

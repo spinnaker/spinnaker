@@ -178,7 +178,7 @@ class JenkinsBuildMonitorSpec extends Specification {
         long nowMinus30min = now - (30 * 60 * 1000) // 30 minutes ago
         long nowMinus10min = now - (10 * 60 * 1000) // 10 minutes ago
         long nowMinus5min = now - (5 * 60 * 1000)  // 5  minutes ago
-        long durationOf5min = 300000
+        long durationOf1min = 60000
 
         and: 'a 6 minutes total lookBack window'
         igorConfigurationProperties.spinnaker.build.pollInterval = 60
@@ -192,9 +192,9 @@ class JenkinsBuildMonitorSpec extends Specification {
         cache.getEventPosted(_,_,_,_) >> false
         jenkinsService.getBuilds('job') >> new BuildsList(
             list: [
-                new Build(number: 1, timestamp: nowMinus10min, building: false, result: 'SUCCESS', duration: durationOf5min),
-                new Build(number: 2, timestamp: nowMinus10min, building: false, result: 'FAILURE', duration: durationOf5min),
-                new Build(number: 3, timestamp: nowMinus5min, building: false, result: 'SUCCESS', duration: durationOf5min)
+                new Build(number: 1, timestamp: nowMinus30min, building: false, result: 'SUCCESS', duration: durationOf1min),
+                new Build(number: 2, timestamp: nowMinus10min, building: false, result: 'FAILURE', duration: durationOf1min),
+                new Build(number: 3, timestamp: nowMinus5min, building: false, result: 'SUCCESS', duration: durationOf1min)
             ]
         )
 
