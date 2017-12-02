@@ -174,26 +174,27 @@ class JenkinsBuildMonitorSpec extends Specification {
 
     def 'should filter out builds older than look back window'() {
         given:
-        long stamp0 = System.currentTimeMillis() - (30 * 60 * 1000) // 30 minutes ago
-        long stamp1 = System.currentTimeMillis() - (10 * 60 * 1000) // 10 minutes ago
-        long stamp2 = System.currentTimeMillis() - (5 * 60 * 1000)  // 5  minutes ago
-        long stamp3 = System.currentTimeMillis()
+        long now = System.currentTimeMillis()
+        long nowMinus30min = now - (30 * 60 * 1000) // 30 minutes ago
+        long nowMinus10min = now - (10 * 60 * 1000) // 10 minutes ago
+        long nowMinus5min = now - (5 * 60 * 1000)  // 5  minutes ago
+        long durationOf5min = 300000
 
         and: 'a 6 minutes total lookBack window'
-        igorConfigurationProperties.spinnaker.build.pollInterval = 1
+        igorConfigurationProperties.spinnaker.build.pollInterval = 60
         igorConfigurationProperties.spinnaker.build.lookBackWindowMins = 5
         igorConfigurationProperties.spinnaker.build.processBuildsOlderThanLookBackWindow = false
 
         and:
         monitor.echoService = Mock(EchoService)
-        cache.getLastPollCycleTimestamp(MASTER, 'job') >> stamp0
-        jenkinsService.getProjects() >> new ProjectsList(list: [ new Project(name: 'job', lastBuild: new Build(number: 3, timestamp: stamp3)) ])
+        cache.getLastPollCycleTimestamp(MASTER, 'job') >> nowMinus30min
+        jenkinsService.getProjects() >> new ProjectsList(list: [ new Project(name: 'job', lastBuild: new Build(number: 3, timestamp: now)) ])
         cache.getEventPosted(_,_,_,_) >> false
         jenkinsService.getBuilds('job') >> new BuildsList(
             list: [
-                new Build(number: 1, timestamp: stamp1, building: false, result: 'SUCCESS'),
-                new Build(number: 2, timestamp: stamp1, building: false, result: 'FAILURE'),
-                new Build(number: 3, timestamp: stamp2, building: false, result: 'SUCCESS')
+                new Build(number: 1, timestamp: nowMinus10min, building: false, result: 'SUCCESS', duration: durationOf5min),
+                new Build(number: 2, timestamp: nowMinus10min, building: false, result: 'FAILURE', duration: durationOf5min),
+                new Build(number: 3, timestamp: nowMinus5min, building: false, result: 'SUCCESS', duration: durationOf5min)
             ]
         )
 

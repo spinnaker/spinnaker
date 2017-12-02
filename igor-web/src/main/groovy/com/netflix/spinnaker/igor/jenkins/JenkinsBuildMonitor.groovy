@@ -30,6 +30,7 @@ import com.netflix.spinnaker.igor.polling.PollingMonitor
 import com.netflix.spinnaker.igor.service.BuildMasters
 import groovy.time.TimeCategory
 import groovy.util.logging.Slf4j
+import org.apache.commons.lang3.time.DateUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
@@ -190,14 +191,22 @@ class JenkinsBuildMonitor implements PollingMonitor {
 
                     if (!igorConfigurationProperties.spinnaker.build.processBuildsOlderThanLookBackWindow) {
                         use (TimeCategory) {
-                            completedBuilds = completedBuilds.findAll {
-                                def offsetMins = pollInterval.minutes
-                                def lookBackWindowMins = igorConfigurationProperties.spinnaker.build.lookBackWindowMins.minutes
-                                Date lookBackDate = (offsetMins + lookBackWindowMins).ago
-                                Date buildDate = new Date(it.timestamp as Long)
-                                log.info("filtering builds older than {}", lookBackDate)
-                                return buildDate.after(lookBackDate)
+                            def offsetSeconds = pollInterval.seconds
+                            def lookBackWindowMins = igorConfigurationProperties.spinnaker.build.lookBackWindowMins.minutes
+                            Date lookBackDate = (offsetSeconds + lookBackWindowMins).ago
+
+                            def tooOldBuilds = completedBuilds.findAll {
+                                Date buildEndDate = new Date(it.timestamp as Long)
+                                DateUtils.addMilliseconds(buildEndDate,Math.toIntExact(it.duration))
+                                return buildEndDate.before(lookBackDate)
                             }
+                            log.debug("Filtering out builds older than {} from {} {}: build numbers{}",
+                                lookBackDate,
+                                kv("master", master),
+                                kv("job", job.name),
+                                tooOldBuilds.collect { it.number }
+                            )
+                            completedBuilds.removeAll(tooOldBuilds)
                         }
                     }
 
