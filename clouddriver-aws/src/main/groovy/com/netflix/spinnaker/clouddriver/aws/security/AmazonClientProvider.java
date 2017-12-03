@@ -287,6 +287,10 @@ public class AmazonClientProvider {
     return awsSdkClientSupplier.getClient(AmazonECSClientBuilder.class, AmazonECS.class, accountName, awsCredentialsProvider, region);
   }
 
+  public AmazonIdentityManagement getIam(String accountName, AWSCredentialsProvider awsCredentialsProvider, String region) {
+    return awsSdkClientSupplier.getClient(AmazonIdentityManagementClientBuilder.class, AmazonIdentityManagement.class, accountName, awsCredentialsProvider, region);
+  }
+
   public AWSLambda getAmazonLambda(NetflixAmazonCredentials amazonCredentials, String region) {
     return proxyHandlerBuilder.getProxyHandler(AWSLambda.class, AWSLambdaClientBuilder.class, amazonCredentials, region);
   }
