@@ -20,6 +20,7 @@ import org.apache.commons.pool2.impl.GenericObjectPoolConfig
 import org.springframework.boot.actuate.health.Health
 import org.springframework.boot.actuate.health.HealthIndicator
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
@@ -30,7 +31,7 @@ import redis.clients.jedis.Protocol
 import java.net.URI
 
 @Configuration
-@ConditionalOnExpression("\${redis.enabled:true}")
+@ConditionalOnProperty("redis.enabled")
 @EnableConfigurationProperties(JedisConfigurationProperties::class)
 open class JedisConfiguration {
 

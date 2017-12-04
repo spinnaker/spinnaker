@@ -28,7 +28,7 @@ open class DynomiteConfigurationProperties {
   var localDataCenter: String = "localrac"
   var localRack: String = "localrack"
 
-  var hosts: List<DynoHost> = listOf()
+  var hosts: MutableList<DynoHost> = mutableListOf()
 
   fun getDynoHosts(): MutableList<Host>
     = hosts.map { Host(it.hostname, it.ipAddress, it.port, it.rack, it.datacenter, it.status, it.hashtag) }.toMutableList()
@@ -37,13 +37,13 @@ open class DynomiteConfigurationProperties {
     = getDynoHosts().mapIndexed { index, host -> HostToken(hosts[index].token, host) }.toMutableList()
 }
 
-data class DynoHost(
-  val hostname: String,
-  val ipAddress: String?,
-  val port: Int = Host.DEFAULT_PORT,
-  val status: Host.Status = Host.Status.Up,
-  val rack: String = "localrack",
-  val datacenter: String = "localrac",
-  val token: Long = 1000000L,
-  val hashtag: String? = null
-)
+open class DynoHost {
+  var hostname = "localhost"
+  var ipAddress = "127.0.0.1"
+  var port = Host.DEFAULT_PORT
+  var status = Host.Status.Up
+  var rack = "localrack"
+  var datacenter = "localrac"
+  var token = 1000000L
+  var hashtag: String? = null
+}

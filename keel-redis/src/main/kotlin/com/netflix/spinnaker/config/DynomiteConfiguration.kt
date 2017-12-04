@@ -24,13 +24,16 @@ import com.netflix.dyno.connectionpool.impl.lb.HostToken
 import com.netflix.dyno.jedis.DynoJedisClient
 import com.netflix.spinnaker.kork.dynomite.DynomiteClientDelegate
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.ConfigurationProperties
+import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import java.util.*
 
 @Configuration
-@ConditionalOnExpression("\${dynomite.enabled:false}")
+@ConditionalOnProperty("dynomite.enabled")
+@EnableConfigurationProperties(DynomiteConfigurationProperties::class)
 open class DynomiteConfiguration {
 
   @Bean
@@ -50,6 +53,7 @@ open class DynomiteConfiguration {
   }
 
   // TODO rz - dyno previous client
+  @Bean(name = arrayOf("previousRedisClient")) open fun previousDynomiteClientDelegate(): DynomiteClientDelegate? = null
 
   private fun createDynoJedisClient(dynomiteConfigurationProperties: DynomiteConfigurationProperties,
                                     connectionPoolConfiguration: ConnectionPoolConfigurationImpl,
@@ -72,19 +76,15 @@ open class DynomiteConfiguration {
         .withCPConfig(connectionPoolConfiguration)
     }).build()
   }
-}
 
-private class StaticHostSupplier(
-  private val hosts: MutableCollection<Host>
-) : HostSupplier {
-  override fun getHosts() = hosts
-}
+  // TODO rz - HealthIndicator
 
-private class StaticTokenMapSupplier(
-  private val ht: MutableList<HostToken> = mutableListOf()
-) : TokenMapSupplier {
+  class StaticHostSupplier(private val hosts: MutableCollection<Host>) : HostSupplier {
+    override fun getHosts() = hosts
+  }
 
-  override fun getTokenForHost(host: Host, activeHosts: MutableSet<Host>) = ht.find { it.host == host }!!
-
-  override fun getTokens(activeHosts: MutableSet<Host>): MutableList<HostToken> = ht
+  class StaticTokenMapSupplier(private val ht: MutableList<HostToken>) : TokenMapSupplier {
+    override fun getTokenForHost(host: Host, activeHosts: MutableSet<Host>) = ht.find { it.host == host }!!
+    override fun getTokens(activeHosts: MutableSet<Host>): MutableList<HostToken> = ht
+  }
 }
