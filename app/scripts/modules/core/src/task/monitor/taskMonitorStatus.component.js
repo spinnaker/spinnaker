@@ -23,7 +23,7 @@ module.exports = angular
             <span class="fa fa-check-circle-o"></span> <strong>Operation succeeded!</strong>
           </li>
         </ul>
-        <p ng-if="$ctrl.monitor.task.id && !$ctrl.monitor.error">
+        <p ng-if="$ctrl.monitor.task.id && !$ctrl.monitor.error && $ctrl.monitor.application">
             You can
             <a ui-sref="home.applications.application.tasks.taskDetails({application: $ctrl.monitor.application.name, taskId: $ctrl.monitor.task.id})">monitor
               this task from the Tasks view</a>.
