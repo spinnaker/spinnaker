@@ -1,6 +1,7 @@
 import * as React from 'react';
+import { has } from 'lodash';
 
-import { HoverablePopover, IStage, timestamp, NgReact } from '@spinnaker/core';
+import { HoverablePopover, IStage, timestamp, NgReact, ReactInjector } from '@spinnaker/core';
 import { CanaryScore } from 'kayenta/components/canaryScore';
 import Styleguide from 'kayenta/layout/styleguide';
 
@@ -12,55 +13,101 @@ export interface ICanarySummariesProps {
   canaryRuns: IStage[];
 }
 
-export default function CanaryRunSummaries({ canaryRuns }: ICanarySummariesProps) {
-  const rows = [
-    (
-      <CanaryRunRow key="headers">
-        <b>Canary Result</b>
-        <b>Duration</b>
-        <b>Last Updated</b>
-      </CanaryRunRow>
-    ),
-    ...canaryRuns.map(run => <CanaryRunSummary key={run.id} canaryRun={run}/>),
-  ];
+export interface ICanaryRunColumn {
+  label?: string;
+  width: number;
+  getContent: (run: IStage) => JSX.Element;
+}
 
+const canaryRunColumns: ICanaryRunColumn[] = [
+  {
+    label: 'Canary Result',
+    width: 2,
+    getContent: run => (
+      <CanaryScore
+        score={run.context.canaryScore}
+        health={run.health}
+        result={run.result}
+        inverse={false}
+      />
+    ),
+  },
+  {
+    label: 'Duration',
+    width: 1,
+    getContent: run => <span>{run.context.durationString || ' - '}</span>,
+  },
+  {
+    label: 'Last Updated',
+    width: 2,
+    getContent: run => <span>{timestamp(run.context.lastUpdated)}</span>,
+  },
+  {
+    width: 1,
+    getContent: run => {
+      const popoverTemplate = <CanaryRunTimestamps canaryRun={run}/>;
+      return (
+        <section className="horizontal text-center">
+          <div className="flex-1">
+            <ReportLink canaryRun={run}/>
+          </div>
+          <div className="flex-1">
+            <HoverablePopover template={popoverTemplate}>
+              <i className="fa fa-clock-o"/>
+            </HoverablePopover>
+          </div>
+        </section>
+      )
+    },
+  }
+];
+
+export default function CanaryRunSummaries({ canaryRuns }: ICanarySummariesProps) {
   return (
     <Styleguide>
-      <div className="canary-run-summaries">
-        {rows.map((row, i) => <div className="grey-border-bottom" key={i}>{row}</div>)}
-      </div>
+      <section className="canary-run-summaries">
+        <CanaryRunHeader/>
+        {
+          canaryRuns.map(run => (
+            <CanaryRunRow canaryRun={run} key={run.id}/>
+          ))
+        }
+      </section>
     </Styleguide>
   );
 }
 
-function CanaryRunRow({ children }: { children: JSX.Element[] }) {
-  const [result, duration, updated, timestamps] = children;
+function CanaryRunHeader() {
   return (
-    <div className="horizontal small">
-      <div className="flex-2">{result}</div>
-      <div className="flex-1">{duration}</div>
-      <div className="flex-2">{updated}</div>
-      <div className="flex-1 text-center">{timestamps}</div>
-    </div>
+    <section className="horizontal small grey-border-bottom" style={{paddingLeft: 0}}>
+      {
+        canaryRunColumns.map((column, i) => (
+          <div
+            className={`flex-${column.width}`}
+            key={i}
+          >
+            <strong>{column.label}</strong>
+          </div>
+        ))
+      }
+    </section>
   );
 }
 
-function CanaryRunSummary({ canaryRun }: { canaryRun: IStage }) {
-  const popoverTemplate = <CanaryRunTimestamps canaryRun={canaryRun}/>;
+function CanaryRunRow({ canaryRun }: { canaryRun: IStage }) {
   return (
-    <CanaryRunRow>
-      <CanaryScore
-        score={canaryRun.context.canaryScore}
-        health={canaryRun.health}
-        result={canaryRun.result}
-        inverse={false}
-      />
-      <span>{canaryRun.context.durationString || ' - '}</span>
-      <span>{timestamp(canaryRun.context.lastUpdated)}</span>
-      <HoverablePopover template={popoverTemplate}>
-        <i className="fa fa-clock-o"/>
-      </HoverablePopover>
-    </CanaryRunRow>
+    <section className="horizontal small grey-border-bottom">
+      {
+        canaryRunColumns.map((column, i) => (
+          <div
+            className={`flex-${column.width}`}
+            key={i}
+          >
+            {column.getContent(canaryRun)}
+          </div>
+        ))
+      }
+    </section>
   );
 }
 
@@ -80,4 +127,22 @@ function CanaryRunTimestamps({ canaryRun }: { canaryRun: IStage }) {
       </ul>
     </section>
   );
+}
+
+function ReportLink({ canaryRun }: { canaryRun: IStage }) {
+  if (!has(canaryRun, 'context.canaryConfigId')
+      || !has(canaryRun, 'context.canaryPipelineExecutionId')) {
+    return null;
+  }
+
+  const onClick = () =>
+    ReactInjector.$state.go(
+      'home.applications.application.canary.report.reportDetail',
+      {
+        configId: canaryRun.context.canaryConfigId,
+        runId: canaryRun.context.canaryPipelineExecutionId,
+      },
+    );
+
+  return <i className="fa fa-bar-chart clickable" onClick={onClick}/>;
 }
