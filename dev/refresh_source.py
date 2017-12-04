@@ -17,28 +17,16 @@
 import argparse
 import collections
 import os
+import shutil
 import sys
+import time
+import yaml
+from multiprocessing.pool import ThreadPool, Pool
 
 from spinnaker.run import check_run_and_monitor
 from spinnaker.run import check_run_quick
 from spinnaker.run import run_and_monitor
 from spinnaker.run import run_quick
-
-
-def get_repository_dir(name):
-  """Determine the local directory that a given repository is in.
-
-  We assume that refresh_source is being run in the build directory
-  that contains all the repositories. Except spinnaker/ itself is not
-  in the build directory so special case it.
-
-  Args:
-    name [string]: The repository name.
-  """
-  if name == 'spinnaker':
-    return os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-  else:
-    return name
 
 
 class SourceRepository(
@@ -143,8 +131,33 @@ class Refresher(object):
           return 'master'
       return self.__options.push_branch
 
+  @property
+  def pull_bom(self):
+    """Returns the bom we are pulling from, or None."""
+    return self.__bom
+
   def __init__(self, options):
+      have_pull_branch = 1 if options.pull_branch else 0
+      have_pull_bom = (1 if (options.pull_bom_version or options.pull_bom_path)
+                       else 0)
+      # pull_upstream is in the extended parameters so might not exist
+      have_pull_upstream = 1 if vars(options).get('pull_upstream') else 0
+
+      if have_pull_upstream + have_pull_branch + have_pull_bom > 1:
+        raise ValueError(
+            'Can only have one of:'
+            ' --pull_branch, --pull_upstream, --pull_bom_version'
+            ' or --pull_bom_path')
+
+      self.__bom = None
       self.__options = options
+      if have_pull_bom:
+        self.__init_bom()
+      self.__root_path = options.root_path or os.path.abspath(
+          os.path.join(os.path.dirname(__file__), '..', '..'))
+      if not os.path.exists(self.__root_path):
+        os.makedirs(self.__root_path)
+
       self.__extra_repositories = self.__OPTIONAL_REPOSITORIES
       if options.extra_repos:
         for extra in options.extra_repos.split(','):
@@ -153,6 +166,32 @@ class Refresher(object):
             raise ValueError(
                 'Invalid --extra_repos value "{extra}"'.format(extra=extra))
           self.__extra_repositories.append(SourceRepository(pair[0], pair[1]))
+
+  def __init_bom(self):
+    if self.__options.pull_bom_path:
+      with open(self.__options.pull_bom_path, 'r') as f:
+        bom_yaml_string = f.read()
+    else:
+      bom_yaml_string = check_run_quick(
+          'hal version bom {0} --color false --quiet'
+          .format(self.__options.pull_bom_version), echo=False).stdout.strip()
+    self.__bom = yaml.load(bom_yaml_string)
+    if not self.__options.root_path:
+      raise ValueError('A new --root_path is required when pulling a BOM.')
+    if os.path.exists(self.__options.root_path):
+      raise ValueError(
+          '--root_path="{path}" already exists.'
+          ' Pulling a bom into it requires corrupting the local repository.'
+          ' Therefore you should give an empty directory to ensure you do not'
+          ' accidentally corrupt something important.')
+
+  def get_repository_dir(self, name):
+    """Determine the local directory that a given repository is in.
+
+    Args:
+      name [string]: The repository name.
+    """
+    return os.path.join(self.__root_path, name)
 
   def get_remote_repository_url(self, path, which='origin'):
       """Determine the repository that a given path is from.
@@ -181,7 +220,7 @@ class Refresher(object):
         The name of the branch.
       """
       result = run_quick('git -C "{dir}" rev-parse --abbrev-ref HEAD'
-                         .format(dir=get_repository_dir(name)),
+                         .format(dir=self.get_repository_dir(name)),
                          echo=False)
       if result.returncode:
         error = 'Could not determine branch: ' + result.stdout.strip()
@@ -217,7 +256,7 @@ class Refresher(object):
                If not provided use the configured options.
       """
       name = repository.name
-      repository_dir = get_repository_dir(name)
+      repository_dir = self.get_repository_dir(name)
       upstream_user = repository.owner
       branch = self.pull_branch or 'master'
       origin_url = self.get_github_repository_url(repository, owner=owner)
@@ -228,7 +267,8 @@ class Refresher(object):
       print 'Cloning {name} from {origin_url} -b {branch}.'.format(
           name=name, origin_url=origin_url, branch=branch)
       shell_result = run_and_monitor(
-          'git clone {url} -b {branch}'.format(url=origin_url, branch=branch),
+          'git -C "{dir}" clone {url} -b {branch}'.format(
+          dir=self.__root_path, url=origin_url, branch=branch),
           echo=False)
 
       if (shell_result.returncode
@@ -242,7 +282,8 @@ class Refresher(object):
             name=name, origin_url=origin_url,
             branch=self.__options.default_branch)
         shell_result = run_and_monitor(
-            'git clone {url} -b {branch}'.format(
+            'git -C "{dir}" clone {url} -b {branch}'.format(
+                dir=self.__root_path,
                 url=origin_url, branch=self.__options.default_branch),
             echo=False)
 
@@ -285,7 +326,7 @@ class Refresher(object):
         repository [string]: The local repository to update.
       """
       name = repository.name
-      repository_dir = get_repository_dir(name)
+      repository_dir = self.get_repository_dir(name)
       if not os.path.exists(repository_dir):
           self.git_clone(repository)
           return
@@ -327,7 +368,7 @@ class Refresher(object):
         repository [string]: The name of the local repository to update.
       """
       name = repository.name
-      repository_dir = get_repository_dir(name)
+      repository_dir = self.get_repository_dir(name)
       if not os.path.exists(repository_dir):
           self.pull_from_origin(repository)
           if not os.path.exists(repository_dir):
@@ -354,7 +395,7 @@ class Refresher(object):
         repository [string]: The name of the local repository to push from.
       """
       name = repository.name
-      repository_dir = get_repository_dir(name)
+      repository_dir = self.get_repository_dir(name)
       if not os.path.exists(repository_dir):
           sys.stderr.write('Skipping {name} because it does not yet exist.\n'
                                .format(name=name))
@@ -404,13 +445,73 @@ class Refresher(object):
           self.pull_from_origin(repository)
         except RuntimeError as ex:
           if repository in self.__extra_repositories and not os.path.exists(
-              get_repository_dir(repository)):
+              self.get_repository_dir(repository.name)):
               sys.stderr.write(
                    'IGNORING error "{msg}" in optional repository {name}'
                    ' because the local repository does not yet exist.\n'
                        .format(msg=ex.message, name=repository.name))
           else:
               raise
+
+  def pull_all_from_bom(self):
+    """Pulls all the source repositories and versions as specified by the BOM."""
+
+    git_prefix = self.__bom['artifactSources']['gitPrefix']
+
+    def clone_commit_from_bom(args):
+      """Helper function for git clone a repo from a BOM commit.
+
+      Note that this will create a new local repository containing
+      only the one version and tag from the BOM. This is because
+      the other tags confuse nebula when gradle goes to build it.
+      The clone from BOM here assumes you are going to build it.
+      The alternative would be to delete the tags. This is more
+      efficient, plus not connected at all to the original repo
+      so there is no chance of accidentally pushing it back.
+      """
+      name = args[0]
+      spec = args[1]
+
+      commit = spec['commit']
+      version = spec['version']
+      git_tag = 'version-{}'.format(version[:version.index('-')])
+      if name in ('monitoring-daemon', 'monitoring-third-party'):
+        name = 'spinnaker-monitoring'
+
+      # We're creating a local repo containing only the commit and tag.
+      # The reason for this is because nebula gets confused by our tags
+      # and wants to only use the latest Netflix tag, which is wrong.
+      # If we could control nebula, we wouldnt need to wipe the repo and
+      # add a new one, but we'd still need to add the new tag to ensure it
+      # exists because the bom may not have been pushed.
+      git_dir = self.get_repository_dir(name)
+      if os.path.exists(git_dir):
+        return None
+
+      check_run_quick('git -C {dir} clone {git_prefix}/{name}'
+                      .format(dir=self.__root_path,
+                              git_prefix=git_prefix,
+                              name=name))
+      check_run_quick('git -C {dir} checkout {commit} -q'
+                      .format(dir=git_dir, commit=commit),
+                      echo=False)
+      shutil.rmtree(os.path.join(git_dir, '.git'))
+      check_run_quick('git -C {dir} init'.format(dir=git_dir),
+                      echo=False)
+      check_run_quick('git -C {dir} add .'.format(dir=git_dir),
+                      echo=False)
+      check_run_quick('git -C {dir} commit -q -a -m "Repo for commit {commit}"'
+                      .format(dir=git_dir, commit=commit),
+                      echo=False)
+      check_run_quick('git -C {dir} tag {tag} HEAD'
+                      .format(dir=git_dir, tag=git_tag),
+                      echo=False)
+
+    bom_services = self.__bom['services']
+    thread_pool = ThreadPool(len(bom_services))
+    thread_pool.map(clone_commit_from_bom, bom_services.items())
+    thread_pool.terminate()
+
 
   def __determine_spring_config_location(self):
     root = '{dir}/config'.format(
@@ -529,6 +630,21 @@ bash -c "(./start.sh >> '$LOG_DIR/{name}.log') 2>&1\
                           dest='disable_upstream_push',
                           action='store_false')
 
+      parser.add_argument(
+          '--pull_bom_version', default=None,
+          help='Pull sources as specified by the given bom version.'
+               ' This requires halyard in order to retrieve the bom.')
+
+      parser.add_argument(
+          '--pull_bom_path', default=None,
+          help='Pull sources as specified by the given bom.')
+
+      parser.add_argument(
+          '--root_path', default=None,
+          help='If specified then pull repoisitories into this parent path.'
+               ' Otherwise assume the parent directory of the spinnaker'
+               ' repository housing this script.')
+
       parser.add_argument('--pull_origin', default=False,
                           action='store_true',
                           help='Refresh the local branch from the origin.'
@@ -621,6 +737,10 @@ bash -c "(./start.sh >> '$LOG_DIR/{name}.log') 2>&1\
     if refresher.pull_branch:
         nothing = False
         refresher.pull_all_from_origin()
+    if refresher.pull_bom:
+        nothing = False
+        refresher.pull_all_from_bom()
+        options.update_run_scripts = False
 
     if options.update_run_scripts:
       print 'Updating Spinnaker component run scripts'
