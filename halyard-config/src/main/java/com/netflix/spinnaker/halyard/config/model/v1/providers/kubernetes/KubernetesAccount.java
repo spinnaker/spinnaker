@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.netflix.spinnaker.halyard.config.config.v1.ArtifactSourcesConfig;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
@@ -52,6 +53,9 @@ public class KubernetesAccount extends ContainerAccount implements Cloneable {
   List<String> omitNamespaces = new ArrayList<>();
 
   @LocalFile String kubeconfigFile;
+  // Without the annotations, these are written as `oauthServiceAccount` and `oauthScopes`, respectively.
+  @JsonProperty("oAuthServiceAccount") @LocalFile String oAuthServiceAccount;
+  @JsonProperty("oAuthScopes") List<String> oAuthScopes;
 
   public String getKubeconfigFile() {
     if (kubeconfigFile == null || kubeconfigFile.isEmpty()) {

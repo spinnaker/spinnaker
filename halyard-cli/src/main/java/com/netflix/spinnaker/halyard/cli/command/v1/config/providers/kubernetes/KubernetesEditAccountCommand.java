@@ -116,6 +116,31 @@ public class KubernetesEditAccountCommand extends AbstractEditAccountCommand<Kub
       description = "Remove this docker registry from the list of docker registries to use as a source of images."
   )
   private String removeDockerRegistry;
+  
+  @Parameter(
+      names = "--oauth-service-account",
+      hidden = true
+  )
+  public String oAuthServiceAccount;
+
+  @Parameter(
+      names = "--oauth-scopes",
+      variableArity = true,
+      hidden = true
+  )
+  public List<String> oAuthScopes = new ArrayList<>();
+
+  @Parameter(
+      names = "--add-oauth-scope",
+      hidden = true
+  )
+  public String addOAuthScope;
+  
+  @Parameter(
+      names = "--remove-oauth-scope",
+      hidden = true
+  )
+  public String removeOAuthScope;
 
   @Parameter(
       names = "--configure-image-pull-secrets",
@@ -167,7 +192,16 @@ public class KubernetesEditAccountCommand extends AbstractEditAccountCommand<Kub
     } catch (IllegalArgumentException e) {
       throw new IllegalArgumentException("Set either --docker-registries or --[add/remove]-docker-registry");
     }
-
+    
+    try {
+      account.setOAuthScopes(
+        updateStringList(account.getOAuthScopes(), oAuthScopes, addOAuthScope, removeOAuthScope));
+    } catch (IllegalArgumentException e) {
+      throw new IllegalArgumentException("Set either --oauth-scopes or --[add/remove]-oauth-scope");
+    }
+    
+    account.setOAuthServiceAccount(isSet(oAuthServiceAccount) ? oAuthServiceAccount : account.getOAuthServiceAccount());
+    
     return account;
   }
 

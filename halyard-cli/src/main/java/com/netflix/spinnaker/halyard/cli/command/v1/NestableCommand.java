@@ -49,6 +49,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.stream.Collectors;
 
 @Parameters(separators = "=")
 public abstract class NestableCommand {
@@ -391,7 +392,10 @@ public abstract class NestableCommand {
   }
 
   private void commandDocs(StringBuilder result) {
-    List<ParameterDescription> parameters = commander.getParameters();
+    List<ParameterDescription> parameters = commander.getParameters()
+            .stream()
+            .filter(p -> !p.getParameter().hidden())
+            .collect(Collectors.toList());
     parameters.sort(Comparator.comparing(ParameterDescription::getNames));
 
     int parameterCount = 0;
