@@ -6,6 +6,7 @@ import mesosphere.dcos.client.DCOS
 import mesosphere.dcos.client.DCOSException
 
 import java.lang.reflect.InvocationHandler
+import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
 import java.util.concurrent.TimeUnit
 
@@ -32,8 +33,8 @@ class DcosSpectatorHandler implements InvocationHandler {
 
         try {
             result = method.invoke(dcosClient, args)
-        } catch (DCOSException e) {
-            failure = e.cause
+        } catch (InvocationTargetException e) {
+            failure = e.getCause()
         } catch (Exception e) {
             failure = e
         } finally {
