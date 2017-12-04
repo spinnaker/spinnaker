@@ -3,7 +3,7 @@ import * as classNames from 'classnames';
 import { connect, Dispatch } from 'react-redux';
 
 import { ICanaryJudgeGroupScore } from '../domain/ICanaryJudgeResult';
-import GroupScore from './groupScore';
+import ClickableHeader from './clickableHeader';
 import * as Creators from 'kayenta/actions/creators';
 import { ICanaryState } from '../reducers/index';
 import { IGroupWeights } from '../domain/ICanaryConfig';
@@ -31,15 +31,15 @@ interface IGroupScoresDispatchProps {
 const GroupScores = ({ groups, groupWeights, scoreThresholds, className, select, selectedGroup }: IGroupScoresOwnProps & IGroupScoresDispatchProps & IGroupScoresStateProps) => (
   <section className={classNames('horizontal', className)}>
     {groups.map(g => (
-      <GroupScore
+      <ClickableHeader
         key={g.name}
         style={{
           width: `${groupWeights[g.name]}%`, // TODO: at some point (around 4%), the group name doesn't fit.
           backgroundColor: mapGroupToColor(g, scoreThresholds),
         }}
-        onClick={select}
-        group={g}
-        className={classNames(g.name === selectedGroup ? 'active' : '', 'report-score')}
+        onClick={() => select(g.name)}
+        label={g.name}
+        className={classNames('report-score', { active: g.name === selectedGroup })}
       />
     ))}
   </section>

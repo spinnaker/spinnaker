@@ -36,7 +36,7 @@ const ReportScores = ({ groups, score, selectedGroup, clearSelectedGroup }: IRep
     <CanaryJudgeScore
       score={score}
       onClick={clearSelectedGroup}
-      className={classNames('flex-1', 'report-score', !selectedGroup ? 'active' : '')}
+      className={classNames('flex-1', 'report-score', { active: !selectedGroup })}
     />
     <GroupScores groups={groups} className="flex-12"/>
   </section>
