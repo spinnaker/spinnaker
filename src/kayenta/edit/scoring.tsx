@@ -23,7 +23,7 @@ function Scoring({ renderJudgeSelect }: IScoringStateProps) {
           <JudgeSelect/>
         </TitledSubsection>
       )}
-      <TitledSubsection title="Metric Group Weights">
+      <TitledSubsection title="Metric Group Weights" helpKey="canary.config.metricGroupWeights">
         <GroupWeights/>
       </TitledSubsection>
     </FormList>
