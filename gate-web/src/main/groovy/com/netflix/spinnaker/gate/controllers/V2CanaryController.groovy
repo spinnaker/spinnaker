@@ -16,42 +16,51 @@
 
 package com.netflix.spinnaker.gate.controllers
 
-import com.netflix.spinnaker.gate.services.internal.KayentaService
+import com.netflix.spinnaker.gate.services.V2CanaryService
 import io.swagger.annotations.ApiOperation
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
+@RequestMapping('/v2/canaries')
 @ConditionalOnExpression('${services.kayenta.enabled:false}')
 class V2CanaryController {
+
   @Autowired
-  KayentaService kayentaService
+  V2CanaryService v2CanaryService
 
-  @ApiOperation(value = "Retrieve a list of configured Kayenta accounts")
-  @RequestMapping(value = '/v2/canaries/credentials', method = RequestMethod.GET)
+  @ApiOperation(value = 'Retrieve a list of configured Kayenta accounts')
+  @RequestMapping(value = '/credentials', method = RequestMethod.GET)
   List listCredentials() {
-    kayentaService.getCredentials()
+    v2CanaryService.getCredentials()
   }
 
-  @ApiOperation(value = "Retrieve a list of all configured canary judges")
-  @RequestMapping(value = "/v2/canaries/judges", method = RequestMethod.GET)
+  @ApiOperation(value = 'Retrieve a list of all configured canary judges')
+  @RequestMapping(value = '/judges', method = RequestMethod.GET)
   List listJudges() {
-    kayentaService.listJudges()
+    v2CanaryService.listJudges()
   }
 
-  @ApiOperation(value = "Retrieve a list of canary judge results")
-  @RequestMapping(value = "/v2/canaries/canaryJudgeResult", method = RequestMethod.GET)
-  List listResults() {
-    kayentaService.listResults()
+  @ApiOperation(value = 'Retrieve a canary result')
+  @RequestMapping(value = '/canary/{canaryConfigId}/{canaryExecutionId}', method = RequestMethod.GET)
+  Map getCanaryResult(@PathVariable String canaryConfigId,
+                      @PathVariable String canaryExecutionId,
+                      @RequestParam(value='storageAccountName', required = false) String storageAccountName) {
+    v2CanaryService.getCanaryResults(canaryConfigId, canaryExecutionId, storageAccountName)
   }
 
-  @ApiOperation(value = "Retrieve a canary judge result by id")
-  @RequestMapping(value = "/v2/canaries/canaryJudgeResult/{id}", method = RequestMethod.GET)
-  Map getResult(@PathVariable String id) {
-    kayentaService.getResult(id)
+
+  // TODO(dpeach): remove this endpoint when a Kayenta endpoint for
+  // retrieving a single metric set pair exists.
+  @ApiOperation(value = 'Retrieve a metric set pair list')
+  @RequestMapping(value = '/metricSetPairList/{metricSetPairListId}', method = RequestMethod.GET)
+  List getMetricSetPairList(@PathVariable String metricSetPairListId,
+                            @RequestParam(value='storageAccountName', required = false) String storageAccountName) {
+    v2CanaryService.getMetricSetPairList(metricSetPairListId, storageAccountName)
   }
 }

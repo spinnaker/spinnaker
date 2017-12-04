@@ -37,31 +37,37 @@ class V2CanaryConfigController {
 
   @ApiOperation(value = "Retrieve a list of canary configurations")
   @RequestMapping(method = RequestMethod.GET)
-  List getCanaryConfigs(@RequestParam(value = "application", required = false) String application) {
-    canaryConfigService.getCanaryConfigs(application)
+  List getCanaryConfigs(@RequestParam(value = "application", required = false) String application,
+                        @RequestParam(value = "configurationAccountName", required = false) String configurationAccountName) {
+    canaryConfigService.getCanaryConfigs(application, configurationAccountName)
   }
 
   @ApiOperation(value = "Retrieve a canary configuration by id")
   @RequestMapping(value = "/{id}", method = RequestMethod.GET)
-  Map getCanaryConfig(@PathVariable String id) {
-    canaryConfigService.getCanaryConfig(id)
+  Map getCanaryConfig(@PathVariable String id,
+                      @RequestParam(value = "configurationAccountName", required = false) String configurationAccountName) {
+    canaryConfigService.getCanaryConfig(id, configurationAccountName)
   }
 
   @ApiOperation(value = "Create a canary configuration")
   @RequestMapping(method = RequestMethod.POST)
-  Map createCanaryConfig(@RequestBody Map config) {
-    canaryConfigService.createCanaryConfig(config)
+  Map createCanaryConfig(@RequestBody Map config,
+                         @RequestParam(value = "configurationAccountName", required = false) String configurationAccountName) {
+    canaryConfigService.createCanaryConfig(config, configurationAccountName)
   }
 
   @ApiOperation(value = "Update a canary configuration")
   @RequestMapping(value = "/{id}", method = RequestMethod.PUT)
-  Map updateCanaryConfig(@PathVariable String id, @RequestBody Map config) {
-    canaryConfigService.updateCanaryConfig(id, config)
+  Map updateCanaryConfig(@PathVariable String id,
+                         @RequestParam(value = "configurationAccountName", required = false) String configurationAccountName,
+                         @RequestBody Map config) {
+    canaryConfigService.updateCanaryConfig(id, config, configurationAccountName)
   }
 
   @ApiOperation(value = "Delete a canary configuration")
   @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
-  void deleteCanaryConfig(@PathVariable String id) {
-    canaryConfigService.deleteCanaryConfig(id)
+  void deleteCanaryConfig(@PathVariable String id,
+                          @RequestParam(value = "configurationAccountName", required = false) String configurationAccountName) {
+    canaryConfigService.deleteCanaryConfig(id, configurationAccountName)
   }
 }

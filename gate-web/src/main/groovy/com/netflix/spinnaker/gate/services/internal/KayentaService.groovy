@@ -24,26 +24,35 @@ interface KayentaService {
   List getCredentials()
 
   @GET("/canaryConfig")
-  List getCanaryConfigs(@Query("application") String application)
+  List getCanaryConfigs(@Query("application") String application,
+                        @Query("configurationAccountName") String configurationAccountName)
 
   @GET("/canaryConfig/{id}")
-  Map getCanaryConfig(@Path("id") String id)
+  Map getCanaryConfig(@Path("id") String id,
+                      @Query("configurationAccountName") String configurationAccountName)
 
   @POST("/canaryConfig")
-  Map createCanaryConfig(@Body Map config)
+  Map createCanaryConfig(@Body Map config,
+                         @Query("configurationAccountName") String configurationAccountName)
 
   @PUT("/canaryConfig/{id}")
-  Map updateCanaryConfig(@Path("id") String id, @Body Map config)
+  Map updateCanaryConfig(@Path("id") String id,
+                         @Body Map config,
+                         @Query("configurationAccountName") String configurationAccountName)
 
   @DELETE("/canaryConfig/{id}")
-  Response deleteCanaryConfig(@Path("id") String id)
+  Response deleteCanaryConfig(@Path("id") String id,
+                              @Query("configurationAccountName") String configurationAccountName)
 
   @GET("/judges")
   List listJudges()
 
-  @GET("/canaryJudgeResult")
-  List listResults()
+  @GET("/canary/{canaryConfigId}/{canaryExecutionId}")
+  Map getCanaryResult(@Path("canaryConfigId") String canaryConfigId,
+                      @Path("canaryExecutionId") String canaryExecutionId,
+                      @Query("storageAccountName") String storageAccountName)
 
-  @GET("/canaryJudgeResult/{id}")
-  Map getResult(@Path("id") String id)
+  @GET("/metricSetPairList/{metricSetPairListId}")
+  List getMetricSetPairList(@Path("metricSetPairListId") metricSetPairListId,
+                            @Query("accountName") String storageAccountName)
 }
