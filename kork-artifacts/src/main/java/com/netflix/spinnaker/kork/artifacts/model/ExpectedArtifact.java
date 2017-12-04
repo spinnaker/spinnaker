@@ -34,6 +34,7 @@ public class ExpectedArtifact {
   boolean useDefaultArtifact;
   Artifact defaultArtifact;
   String id; // UUID to use this ExpectedArtifact by reference in Pipelines.
+  Artifact boundArtifact;
 
   /**
    * Decide if the "matchArtifact" matches the incoming artifact. Any fields not specified
