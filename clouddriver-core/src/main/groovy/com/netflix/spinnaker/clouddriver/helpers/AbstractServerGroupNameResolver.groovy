@@ -95,7 +95,7 @@ abstract class AbstractServerGroupNameResolver extends NameBuilder {
   }
 
   static String generateServerGroupName(String application, String stack, String details, Integer sequence, Boolean ignoreSequence) {
-    if (sequence < 0 || sequence >= 1000) {
+    if (sequence < 0 || sequence >= SEQUENTIAL_NUMBERING_NAMESPACE_SIZE) {
       throw new IllegalArgumentException("Sequence '${sequence}' is invalid")
     }
 
