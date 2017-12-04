@@ -26,6 +26,7 @@ import com.amazonaws.services.elasticloadbalancingv2.model.CreateRuleRequest
 import com.amazonaws.services.elasticloadbalancingv2.model.CreateTargetGroupRequest
 import com.amazonaws.services.elasticloadbalancingv2.model.CreateTargetGroupResult
 import com.amazonaws.services.elasticloadbalancingv2.model.DeleteListenerRequest
+import com.amazonaws.services.elasticloadbalancingv2.model.DeleteRuleRequest
 import com.amazonaws.services.elasticloadbalancingv2.model.DeleteTargetGroupRequest
 import com.amazonaws.services.elasticloadbalancingv2.model.DescribeListenersRequest
 import com.amazonaws.services.elasticloadbalancingv2.model.DescribeRulesRequest
@@ -34,6 +35,8 @@ import com.amazonaws.services.elasticloadbalancingv2.model.Listener
 import com.amazonaws.services.elasticloadbalancingv2.model.ListenerNotFoundException
 import com.amazonaws.services.elasticloadbalancingv2.model.LoadBalancer
 import com.amazonaws.services.elasticloadbalancingv2.model.Matcher
+import com.amazonaws.services.elasticloadbalancingv2.model.ModifyListenerRequest
+import com.amazonaws.services.elasticloadbalancingv2.model.ModifyListenerResult
 import com.amazonaws.services.elasticloadbalancingv2.model.ModifyTargetGroupAttributesRequest
 import com.amazonaws.services.elasticloadbalancingv2.model.ModifyTargetGroupRequest
 import com.amazonaws.services.elasticloadbalancingv2.model.ResourceInUseException
@@ -205,6 +208,60 @@ class LoadBalancerV2UpsertHandler {
     return true
   }
 
+  static boolean containsAllRules(List<Rule> aRules, List<Rule> bRules) {
+    !aRules.any { aRule ->
+      boolean foundMatchingRule = bRules.any { bRule ->
+        bRule.actions.containsAll(aRule.actions) && aRule.actions.containsAll(bRule.actions) &&
+          bRule.conditions.containsAll(aRule.conditions) && aRule.conditions.containsAll(bRule.conditions) &&
+          bRule.priority == aRule.priority
+      }
+      return !foundMatchingRule
+    }
+  }
+
+  static void updateListener(String listenerArn,
+                             UpsertAmazonLoadBalancerV2Description.Listener listener,
+                             List<Action> defaultActions, List<Rule> existingRules,
+                             List<Rule> newRules,
+                             AmazonElasticLoadBalancing loadBalancing,
+                             List<String> amazonErrors) {
+    try {
+      loadBalancing.modifyListener(new ModifyListenerRequest()
+        .withListenerArn(listenerArn)
+        .withCertificates(listener.certificates)
+        .withSslPolicy(listener.sslPolicy)
+        .withDefaultActions(defaultActions))
+    } catch (AmazonServiceException e) {
+      String exceptionMessage = "Failed to modify listener ${listenerArn} (${listener.port}:${listener.protocol}) - reason: ${e.errorMessage}."
+      task.updateStatus BASE_PHASE, exceptionMessage
+      amazonErrors << exceptionMessage
+    }
+
+    // Compare the old rules; if any are different, just replace them all.
+    boolean rulesSame = existingRules.size() == newRules.size() &&
+      containsAllRules(existingRules, newRules) &&
+      containsAllRules(newRules, existingRules)
+
+    if (!rulesSame) {
+      existingRules.each { rule ->
+        try {
+          loadBalancing.deleteRule(new DeleteRuleRequest(ruleArn: rule.ruleArn))
+        } catch (AmazonServiceException ignore) {
+          // If the rule failed to be deleted, it could not be found, so we should be safe to create the new ones.
+        }
+      }
+      newRules.each { rule ->
+        try {
+          loadBalancing.createRule(new CreateRuleRequest(listenerArn: listenerArn, conditions: rule.conditions, actions: rule.actions, priority: Integer.valueOf(rule.priority)))
+        } catch (AmazonServiceException e) {
+          String exceptionMessage = "Failed to add rule to listener ${listenerArn} (${listener.port}:${listener.protocol}) reason: ${e.errorMessage}."
+          task.updateStatus BASE_PHASE, exceptionMessage
+          amazonErrors << exceptionMessage
+        }
+      }
+    }
+  }
+
   static void removeListeners(List<Listener> listenersToRemove, List<Listener> existingListeners, AmazonElasticLoadBalancing loadBalancing, LoadBalancer loadBalancer) {
     listenersToRemove.each {
       try {
@@ -327,18 +384,31 @@ class LoadBalancerV2UpsertHandler {
       listenerToRules.put(listener, rules)
     }
 
-    // Gather list of listeners that existed previously but were not supplied in upsert and should be deleted;
+    // Gather list of listeners that existed previously but were not supplied in upsert and should be deleted.
     // also add listeners that have changed since there is no good way to know if a listener should just be updated
-    listenersToRemove = existingListeners.findAll { awsListener ->
-      (listeners.find { it.compare(awsListener, listenerToDefaultActions.get(it), existingListenerToRules.get(awsListener), listenerToRules.get(it)) }) == null
+    List<List<Listener>> listenersSplit = existingListeners.split { awsListener ->
+      listeners.find { it.port == awsListener.port && it.protocol.toString().equals(awsListener.protocol) } == null
     }
+    listenersToRemove = listenersSplit[0]
+    List<Listener> listenersToUpdate = listenersSplit[1]
 
     // Create all new listeners
     List<UpsertAmazonLoadBalancerV2Description.Listener> listenersToCreate = listeners.findAll { listener ->
-      existingListeners.find({ listener.compare(it, listenerToDefaultActions.get(listener), existingListenerToRules.get(it), listenerToRules.get(listener)) }) == null
+      existingListeners.find { it.port == listener.port && it.protocol.equals(listener.protocol.toString()) } == null
     }
     listenersToCreate.each { UpsertAmazonLoadBalancerV2Description.Listener listener ->
       createListener(listener, listenerToDefaultActions.get(listener), listenerToRules.get(listener), loadBalancing, loadBalancer, amazonErrors)
+    }
+
+    // Update listeners
+    listenersToUpdate.each { listener ->
+      UpsertAmazonLoadBalancerV2Description.Listener updatedListener = listeners.find {it.port == listener.port && it.protocol.toString().equals(listener.protocol) }
+      updateListener(listener.listenerArn,
+        updatedListener,
+        listenerToDefaultActions.get(updatedListener),
+        existingListenerToRules.get(listener).findAll { !it.isDefault },
+        listenerToRules.get(updatedListener),
+        loadBalancing, amazonErrors)
     }
 
     if (amazonErrors.size() == 0) {
