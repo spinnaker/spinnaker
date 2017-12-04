@@ -41,6 +41,7 @@ class AppengineServerGroupBasicSettingsCtrl implements IController {
     return this.$scope.command.sourceType === AppengineSourceType.GCS;
   }
 
+  // TODO(jtk54): this is a copy of core code, please dedup using expected-artifact-selector component
   public summarizeExpectedArtifact(expected: IExpectedArtifact): string {
     if (!expected) {
       return '';

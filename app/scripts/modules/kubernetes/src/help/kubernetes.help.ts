@@ -152,6 +152,15 @@ const helpContents: {[key: string]: string} = {
   'kubernetes.manifest.delete.cascading': `
       <p>When set, delete all resources managed by this resource as well (all pods owned by a replica set). When unset, this may orphan resources.</p>
   `,
+  'kubernetes.manifest.source': `
+      <p>Where the manifest file content is read from.</p>
+      <p>
+        <b>text:</b> The manifest is supplied statically to the pipeline from the below text-box.
+      </p>
+      <p>
+        <b>artifact:</b> The manifest is read from an artifact supplied/created upstream. The expected artifact must be referenced here, and will be bound at runtime.
+      </p>
+  `,
 };
 
 export const KUBERNETES_HELP = 'spinnaker.kubernetes.help.contents';

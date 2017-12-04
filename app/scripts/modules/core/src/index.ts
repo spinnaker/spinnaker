@@ -1,6 +1,7 @@
 export * from './account';
 export * from './api';
 export * from './application';
+export * from './artifact';
 export * from './authentication';
 
 export * from './cache';

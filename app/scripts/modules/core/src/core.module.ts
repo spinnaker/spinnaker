@@ -26,6 +26,7 @@ require('root/app/fonts/spinnaker/icons.css');
 import { ANALYTICS_MODULE } from './analytics/analytics.module';
 import { APPLICATION_BOOTSTRAP_MODULE } from './bootstrap';
 import { APPLICATION_MODULE } from './application/application.module';
+import { ARTIFACT_MODULE } from './artifact/artifact.module';
 import { AUTHENTICATION_MODULE } from './authentication/authentication.module';
 import { CANCEL_MODAL_MODULE } from './cancelModal/cancelModal.module';
 import { CLOUD_PROVIDER_MODULE } from './cloudProvider/cloudProvider.module';
@@ -79,6 +80,7 @@ module(CORE_MODULE, [
   ANALYTICS_MODULE,
   APPLICATION_MODULE,
   APPLICATION_BOOTSTRAP_MODULE,
+  ARTIFACT_MODULE,
   AUTHENTICATION_MODULE,
 
   require('./cache/caches.module').name,

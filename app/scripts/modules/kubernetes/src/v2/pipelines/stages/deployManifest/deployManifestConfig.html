@@ -2,10 +2,44 @@
   <div class="alert alert-warning">
     <strong>Warning!</strong> This stage is under active development and is subject to change.
   </div>
-  <v2-wizard-page key="basicSettings" label="Basic Settings" mark-complete-on-view="false">
-    <kubernetes-manifest-basic-settings command="ctrl.$scope.stage" metadata="ctrl.metadata"> </kubernetes-manifest-basic-settings>
-  </v2-wizard-page>
-  <v2-wizard-page key="manifest" label="Manifest" mark-complete-on-view="false">
-    <kubernetes-manifest-entry command="ctrl.$scope.stage" metadata="ctrl.metadata" change="ctrl.change()"> </kubernetes-manifest-entry>
-  </v2-wizard-page>
+
+  <h4>Basic Settings</h4>
+  <kubernetes-manifest-basic-settings command="ctrl.$scope.stage"
+                                      metadata="ctrl.metadata">
+  </kubernetes-manifest-basic-settings>
+
+  <h4>Manifest Configuration</h4>
+  <div class="container-fluid form-horizontal">
+    <ng-form name="kubernetesManifestSource">
+      <div class="form-group form-inline">
+        <div class="col-md-3 sm-label-right">
+          Manifest Source
+          <help-field key="kubernetes.manifest.source"></help-field>
+        </div>
+        <div class="col-md-4">
+          <label class="sm-label-right">
+            <input type="radio" ng-model="ctrl.$scope.stage.source" value="{{ctrl.textSource}}">
+            {{ ctrl.textSource | robotToHuman }}
+          </label><br/>
+          <label class="sm-label-right">
+            <input type="radio" ng-model="ctrl.$scope.stage.source" value="{{ctrl.artifactSource}}">
+            {{ ctrl.artifactSource | robotToHuman }}
+          </label>
+        </div>
+      </div>
+    </ng-form>
+  </div>
+
+  <hr>
+
+  <kubernetes-manifest-entry ng-if="ctrl.$scope.stage.source === ctrl.textSource"
+                             command="ctrl.$scope.stage"
+                             metadata="ctrl.metadata" change="ctrl.change()">
+  </kubernetes-manifest-entry>
+
+  <expected-artifact-selector ng-if="ctrl.$scope.stage.source === ctrl.artifactSource"
+                              command="ctrl.$scope.stage"
+                              id-field="'manifestArtifactId'"
+                              expected-artifacts="ctrl.expectedArtifacts">
+  </expected-artifact-selector>
 </div>

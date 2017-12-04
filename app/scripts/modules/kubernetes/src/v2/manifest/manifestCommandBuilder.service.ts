@@ -15,6 +15,8 @@ export interface IKubernetesManifestCommand {
   manifest: any;
   relationships: IKubernetesManifestSpinnakerRelationships;
   moniker: IMoniker;
+  manifestArtifactId?: string;
+  source?: string;
 }
 
 export interface IKubernetesManifestCommandMetadata {
@@ -52,6 +54,7 @@ export class KubernetesManifestCommandBuilder {
   public copyAndCleanCommand(metadata: IKubernetesManifestCommandMetadata, input: IKubernetesManifestCommand): IKubernetesManifestCommand {
     const command = copy(input);
     command.manifest = load(metadata.manifestText);
+    delete command.source;
     return command;
   }
 
@@ -68,7 +71,7 @@ export class KubernetesManifestCommandBuilder {
           account = accountData.name;
         }
 
-        const manifest = {};
+        const manifest: any = null;
         const manifestText = !sourceManifest ? '' : dump(sourceManifest);
         const cloudProvider = 'kubernetes';
         const moniker = sourceMoniker || {
