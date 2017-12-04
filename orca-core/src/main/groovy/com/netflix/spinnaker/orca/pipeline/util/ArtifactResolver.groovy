@@ -19,16 +19,50 @@ package com.netflix.spinnaker.orca.pipeline.util
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import com.netflix.spinnaker.kork.artifacts.model.ExpectedArtifact
+import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.StageContext
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
+import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import rx.schedulers.Schedulers
 
 @Component
+@Slf4j
 class ArtifactResolver {
 
   @Autowired
   private ObjectMapper objectMapper
+
+  List<Artifact> getArtifacts(Stage stage) {
+    List<Artifact> artifacts = new ArrayList<>()
+    if (stage.getContext() instanceof StageContext) {
+      artifacts = (List<Artifact>) ((StageContext) stage.getContext()).getAll("artifacts")
+        .collect { s -> (List<Artifact>) ((List) s).collect { a -> (Artifact) a }}
+        .flatten()
+    } else {
+      log.warn("Unable to read artifacts from unknown context type: {} ({})", stage.getContext().getClass(), stage.getExecution().getId());
+    }
+
+    return artifacts
+  }
+
+  Artifact getBoundArtifactForId(Stage stage, String id) {
+    if (!id) {
+      return null
+    }
+
+    List<ExpectedArtifact> expectedArtifacts = new ArrayList<>()
+    if (stage.getContext() instanceof StageContext) {
+      expectedArtifacts = (List<ExpectedArtifact>) ((StageContext) stage.getContext()).getAll("resolvedExpectedArtifacts")
+          .collect { s -> (List<ExpectedArtifact>) ((List) s).collect { a -> (ExpectedArtifact) a }}
+          .flatten()
+    } else {
+      log.warn("Unable to read resolved expected artifacts from unknown context type: {} ({})", stage.getContext().getClass(), stage.getExecution().getId());
+    }
+
+    return expectedArtifacts.find { e -> e.getId() == id }?.boundArtifact
+  }
 
   void resolveArtifacts(ExecutionRepository repository, Map pipeline) {
     List<ExpectedArtifact> expectedArtifacts = pipeline.expectedArtifacts?.collect { objectMapper.convertValue(it, ExpectedArtifact.class) } ?: []
@@ -67,6 +101,7 @@ class ArtifactResolver {
       if (!resolved) {
         throw new IllegalStateException("Unmatched expected artifact ${expectedArtifact} could not be resolved.")
       } else {
+        expectedArtifact.boundArtifact = resolved
         resolvedArtifacts.add(resolved)
       }
     }
@@ -93,6 +128,7 @@ class ArtifactResolver {
     for (ExpectedArtifact expectedArtifact : expectedArtifacts) {
       Artifact resolved = resolveSingleArtifact(expectedArtifact, receivedArtifacts)
       if (resolved) {
+        expectedArtifact.boundArtifact = resolved
         result.resolvedArtifacts.add(resolved)
       } else {
         result.unresolvedExpectedArtifacts.add(expectedArtifact)

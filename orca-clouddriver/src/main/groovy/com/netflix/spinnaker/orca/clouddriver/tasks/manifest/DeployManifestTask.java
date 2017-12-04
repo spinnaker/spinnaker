@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.manifest;
 
 import com.google.common.collect.ImmutableMap;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import com.netflix.spinnaker.kork.artifacts.model.ExpectedArtifact;
 import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.Task;
 import com.netflix.spinnaker.orca.TaskResult;
@@ -26,24 +27,26 @@ import com.netflix.spinnaker.orca.clouddriver.KatoService;
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId;
 import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
-import com.netflix.spinnaker.orca.pipeline.model.StageContext;
+import com.netflix.spinnaker.orca.pipeline.util.ArtifactResolver;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Nonnull;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @Component
 @Slf4j
 public class DeployManifestTask extends AbstractCloudProviderAwareTask implements Task {
   @Autowired
   KatoService kato;
+
+  @Autowired
+  ArtifactResolver artifactResolver;
 
   public static final String TASK_NAME = "deployManifest";
 
@@ -53,24 +56,20 @@ public class DeployManifestTask extends AbstractCloudProviderAwareTask implement
     String credentials = getCredentials(stage);
     String cloudProvider = getCloudProvider(stage);
 
-    List<Object> artifacts = new ArrayList<>();
-    if (stage.getContext() instanceof StageContext) {
-      artifacts = (List<Object>) ((StageContext) stage.getContext()).getAll("artifacts")
-          .stream()
-          .filter(a -> a instanceof List)
-          .flatMap(x -> ((List) x).stream())
-          .collect(Collectors.toList());
-    } else {
-      log.warn("Unable to read artifacts from unknown context type: {} ({})", stage.getContext().getClass(), stage.getExecution().getId());
+    List<Artifact> artifacts = artifactResolver.getArtifacts(stage);
+    Map task = new HashMap(stage.getContext());
+    String artifactSource = (String) task.get("source");
+    if (StringUtils.isNotEmpty(artifactSource) && artifactSource.equals("artifact")) {
+      Artifact manifestArtifact = artifactResolver.getBoundArtifactForId(stage, task.get("manifestArtifactId").toString());
+      task.put("manifestArtifact", manifestArtifact);
+      log.info("Using {} as the manifest to be deployed", manifestArtifact);
     }
 
-    Map task = new HashMap(stage.getContext());
     task.put("artifacts", artifacts);
     Map<String, Map> operation = new ImmutableMap.Builder<String, Map>()
         .put(TASK_NAME, task)
         .build();
 
-    System.out.println("op = " + operation.keySet());
     TaskId taskId = kato.requestOperations(cloudProvider, Collections.singletonList(operation)).toBlocking().first();
 
     Map<String, Object> outputs = new ImmutableMap.Builder<String, Object>()
