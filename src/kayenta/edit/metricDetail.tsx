@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { ICanaryMetricConfig } from '../domain/ICanaryConfig';
-import metricStoreConfigService from 'kayenta/metricStore/metricStoreConfig.service';
 import ChangeMetricGroup from './changeMetricGroup';
 
 export interface IMetricDetailProps {
@@ -14,16 +13,10 @@ export interface IMetricDetailProps {
  * Configures all the available settings for a single metric.
  */
 export default function MetricDetail({ metric, showGroups, edit, remove }: IMetricDetailProps) {
-  const config = metricStoreConfigService.getDelegate(metric.query.type);
-  const queryFinder = config && config.queryFinder ? config.queryFinder : (_metric: ICanaryMetricConfig) => `queryFinder not yet implemented for ${config.name}`;
-
   return (
     <section className="horizontal metric-list-row">
-      <div className="flex-3">
+      <div className="flex-6">
         {metric.name || '(new)'}
-      </div>
-      <div className="flex-3">
-        {queryFinder(metric)}
       </div>
       <div className="flex-3">
         {showGroups && metric.groups.join(', ')}
