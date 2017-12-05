@@ -36,6 +36,7 @@ import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.filters.Frigg
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.filters.JsonFilter;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.tags.ModuleTag;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.tags.PipelineIdTag;
+import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.tags.StrategyIdTag;
 import com.netflix.spinnaker.orca.pipelinetemplate.validator.Errors;
 import com.netflix.spinnaker.orca.pipelinetemplate.validator.Errors.Error;
 import com.netflix.spinnaker.orca.pipelinetemplate.validator.Errors.Severity;
@@ -76,6 +77,7 @@ public class JinjaRenderer implements Renderer {
     jinja.setResourceLocator(new NoopResourceLocator());
     jinja.getGlobalContext().registerTag(new ModuleTag(this, pipelineTemplateObjectMapper));
     jinja.getGlobalContext().registerTag(new PipelineIdTag(front50Service));
+    jinja.getGlobalContext().registerTag(new StrategyIdTag(front50Service));
     if (jinjaTags != null) {
       jinjaTags.forEach(tag -> jinja.getGlobalContext().registerTag(tag));
     }
