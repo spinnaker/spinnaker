@@ -13,6 +13,7 @@ export interface ICanarySettings {
   graphImplementation: string;
   featureDisabled: boolean;
   optInAll: boolean;
+  atlasWebComponentsUrl: string;
 }
 
 export const CanarySettings = SETTINGS.canary || { featureDisabled: true };
