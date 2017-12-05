@@ -255,9 +255,10 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
       deploymentResult.jobUri = jobUri
 
       if (description.jobType == 'batch') {
-        deploymentResult = new DeploymentResult([
+        deploymentResult = new TitusDeploymentResult([
           deployedNames          : [jobUri],
-          deployedNamesByLocation: [(description.region): [jobUri]]
+          deployedNamesByLocation: [(description.region): [jobUri]],
+          jobUri                 : jobUri
         ])
       }
 
