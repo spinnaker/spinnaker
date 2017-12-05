@@ -21,6 +21,7 @@ import com.netflix.spinnaker.moniker.Moniker;
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup;
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroupResolver;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 
@@ -56,7 +57,11 @@ public class MonikerHelper {
 
   static public Moniker monikerFromStage(Stage stage) {
     if (stage.getContext().containsKey("moniker")) {
-      return (Moniker) stage.mapTo("/moniker", Moniker.class);
+      Moniker moniker = stage.mapTo("/moniker", Moniker.class);
+      if (moniker.getCluster().endsWith("-")) {
+        moniker.setCluster(StringUtils.stripEnd(moniker.getCluster(), "-"));
+      }
+      return moniker;
     } else {
       return null;
     }
