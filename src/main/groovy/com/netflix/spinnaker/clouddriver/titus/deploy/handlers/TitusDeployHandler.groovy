@@ -76,12 +76,12 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
   }
 
   @Override
-  DeploymentResult handle(TitusDeployDescription description, List priorOutputs) {
+  TitusDeploymentResult handle(TitusDeployDescription description, List priorOutputs) {
 
     try {
       task.updateStatus BASE_PHASE, "Initializing handler..."
       TitusClient titusClient = titusClientProvider.getTitusClient(description.credentials, description.region)
-      DeploymentResult deploymentResult = new DeploymentResult()
+      TitusDeploymentResult deploymentResult = new TitusDeploymentResult()
       String account = description.account
       String region = description.region
       String subnet = description.subnet
@@ -252,6 +252,7 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
 
       deploymentResult.serverGroupNames = ["${region}:${nextServerGroupName}".toString()]
       deploymentResult.serverGroupNameByRegion = [(description.region): nextServerGroupName]
+      deploymentResult.jobUri = jobUri
 
       if (description.jobType == 'batch') {
         deploymentResult = new DeploymentResult([
