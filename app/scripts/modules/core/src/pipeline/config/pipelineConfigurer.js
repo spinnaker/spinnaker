@@ -317,6 +317,9 @@ module.exports = angular.module('spinnaker.core.pipeline.config.pipelineConfigur
       if (stageIndex > 0) {
         this.setViewState({ stageIndex: $scope.viewState.stageIndex - 1 });
       }
+      if (stageIndex === $scope.viewState.stageIndex && stageIndex === 0) {
+        $scope.$broadcast('pipeline-json-edited');
+      }
       if (!$scope.renderablePipeline.stages.length) {
         this.navigateTo({section: 'triggers'});
       }
