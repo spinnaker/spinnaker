@@ -20,6 +20,7 @@ public class Efs {
   private String mountPerm;
   private String mountPoint;
   private String efsId;
+  private String efsRelativeMountPoint;
 
   public String getMountPerm() {
     return mountPerm;
@@ -44,4 +45,13 @@ public class Efs {
   public void setEfsId(String efsId) {
     this.efsId = efsId;
   }
+
+  public String getEfsRelativeMountPoint() {
+    return efsRelativeMountPoint;
+  }
+
+  public void setEfsRelativeMountPoint(String efsRelativeMountPoint) {
+    this.efsRelativeMountPoint = efsRelativeMountPoint;
+  }
+
 }

@@ -401,6 +401,17 @@ public class JobDescription {
       containerResources.setDiskMB(disk);
     }
 
+    if (efs != null && efs.getEfsId() != null) {
+      ContainerResources.EfsMount.Builder efsBuilder = ContainerResources.EfsMount.newBuilder();
+      efsBuilder.setEfsId(efs.getEfsId());
+      efsBuilder.setMountPoint(efs.getMountPoint());
+      efsBuilder.setMountPerm(convertMountPerm(efs.getMountPerm()));
+      if(efs.getEfsRelativeMountPoint()!=null){
+        efsBuilder.setEfsRelativeMountPoint(efs.getEfsRelativeMountPoint());
+      }
+      containerResources.addEfsMounts(efsBuilder);
+    }
+
     containerBuilder.setResources(containerResources);
 
     SecurityProfile.Builder securityProfile = SecurityProfile.newBuilder();
@@ -479,6 +490,17 @@ public class JobDescription {
     }
 
     return jobDescriptorBuilder.build();
+  }
+
+  private MountPerm convertMountPerm(String mountPerm){
+    switch(mountPerm){
+      case "RO":
+        return MountPerm.RO;
+      case "WO":
+        return MountPerm.WO;
+      default:
+        return MountPerm.RW;
+    }
   }
 
   private Constraints.Builder constraintTransformer(List<String> constraints) {

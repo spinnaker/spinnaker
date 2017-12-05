@@ -305,9 +305,17 @@ public class Job {
       hardConstraints = new ArrayList<String>();
       hardConstraints.addAll(grpcJob.getJobDescriptor().getContainer().getHardConstraints().getConstraintsMap().keySet());
 
-      /*
-        private Efs efs;
-      */
+      if(grpcJob.getJobDescriptor().getContainer().getResources().getEfsMountsCount() > 0){
+        efs = new Efs();
+        ContainerResources.EfsMount firstMount = grpcJob.getJobDescriptor().getContainer().getResources().getEfsMounts(0);
+        efs.setEfsId(firstMount.getEfsId());
+        efs.setMountPerm(firstMount.getMountPerm().toString());
+        efs.setMountPoint(firstMount.getMountPoint());
+        if(firstMount.getEfsRelativeMountPoint() != null){
+          efs.setEfsRelativeMountPoint(firstMount.getEfsRelativeMountPoint());
+        }
+      }
+
     }
 
     public String getId() {
