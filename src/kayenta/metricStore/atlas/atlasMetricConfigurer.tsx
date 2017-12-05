@@ -6,6 +6,7 @@ import { get } from 'lodash';
 import { ICanaryState } from '../../reducers/index';
 import { ICanaryMetricConfig } from '../../domain/ICanaryConfig';
 import { UPDATE_ATLAS_QUERY } from '../../actions/index';
+import { CanarySettings } from '../../canary.settings';
 import autoBindMethods from 'class-autobind-decorator';
 
 interface IAtlasMetricConfigurerStateProps {
@@ -33,16 +34,14 @@ interface ChangeQueryStringEvent extends CustomEvent {
   detail: string;
 }
 
-const ATLAS_WEB_COMPONENTS_URL = process.env.ATLAS_WEB_COMPONENTS_URL;
-
-if (ATLAS_WEB_COMPONENTS_URL) {
+if (CanarySettings.atlasWebComponentsUrl) {
   // make React available to components
   const global = window as any;
   global['React'] = React;
   global['ReactDOM'] = ReactDOM;
   // download components; they will register when the script executes
   const script = document.createElement('script');
-  script.src = ATLAS_WEB_COMPONENTS_URL;
+  script.src = CanarySettings.atlasWebComponentsUrl;
   document.head.appendChild(script);
 }
 
