@@ -53,6 +53,9 @@ class LdapSsoConfig extends WebSecurityConfigurerAdapter {
   @Autowired
   LdapUserContextMapper ldapUserContextMapper
 
+  @Autowired(required = false)
+  List<LdapSsoConfigurer> configurers
+
   @Override
   protected void configure(AuthenticationManagerBuilder auth) throws Exception {
     def ldapConfigurer =
@@ -83,6 +86,9 @@ class LdapSsoConfig extends WebSecurityConfigurerAdapter {
   protected void configure(HttpSecurity http) throws Exception {
     http.formLogin()
     authConfig.configure(http)
+      configurers?.each {
+          it.configure(http)
+      }
   }
 
   @Component
