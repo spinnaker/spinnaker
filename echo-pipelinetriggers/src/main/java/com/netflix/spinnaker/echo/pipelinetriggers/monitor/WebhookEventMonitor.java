@@ -33,6 +33,7 @@ import rx.Observable;
 import rx.functions.Action1;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -81,7 +82,9 @@ public class WebhookEventMonitor extends TriggerMonitor {
 
   @Override
   protected Function<Trigger, Pipeline> buildTrigger(Pipeline pipeline, TriggerEvent event) {
-    return trigger -> pipeline.withTrigger(trigger.atConstraints(event.getPayload()));
+    Map payload = event.getPayload();
+    Map parameters = payload.containsKey("parameters") ? (Map) payload.remove("parameters") : new HashMap();
+    return trigger -> pipeline.withTrigger(trigger.atConstraints(parameters, payload));
   }
 
   @Override

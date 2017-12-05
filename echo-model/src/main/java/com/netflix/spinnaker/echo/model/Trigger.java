@@ -65,6 +65,7 @@ public class Trigger {
   String project;
   String slug;
   String hash;
+  Map parameters;
   String account;
   String repository;
   String tag;
@@ -127,11 +128,12 @@ public class Trigger {
         .build();
   }
 
-  public Trigger atConstraints(final Map constraints) {
+  public Trigger atConstraints(final Map parameters, final Map constraints) {
     return this.toBuilder()
         .buildNumber(null)
         .hash(null)
         .digest(null)
+        .parameters(parameters)
         .constraints(constraints)
         .subscriptionName(null)
         .pubsubSystem(null)
