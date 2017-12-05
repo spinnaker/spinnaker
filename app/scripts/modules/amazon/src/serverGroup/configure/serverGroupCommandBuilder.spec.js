@@ -142,7 +142,7 @@ describe('awsServerGroupCommandBuilder', function() {
       expect(command.suspendedProcesses).toEqual([]);
     });
 
-    it('copies tags', function () {
+    it('copies tags not in the reserved list:', function () {
       spyOn(this.instanceTypeService, 'getCategoryForInstanceType').and.returnValue(this.$q.when('selectedProfile'));
 
       const baseServerGroup = {
@@ -154,11 +154,15 @@ describe('awsServerGroupCommandBuilder', function() {
           vpczoneIdentifier: '',
           tags: [
             {
-              key: "some-key",
+              key: 'some-key',
               propagateAtLaunch: true,
-              resourceId: "some-resource-id",
-              resourceType: "auto-scaling-group",
-              value: "some-value"
+              resourceId: 'some-resource-id',
+              resourceType: 'auto-scaling-group',
+              value: 'some-value'
+            },
+            {
+              key: 'spinnaker:application',
+              value: 'n/a'
             }
           ]
         },
@@ -175,7 +179,7 @@ describe('awsServerGroupCommandBuilder', function() {
 
       this.$scope.$digest();
 
-      expect(command.tags).toEqual({"some-key": "some-value"});
+      expect(command.tags).toEqual({'some-key': 'some-value'});
     });
   });
 
