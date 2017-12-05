@@ -139,7 +139,7 @@ export class NotificationsPopover extends React.Component<INotificationsPopoverP
     const taskMonitorConfig: ITaskMonitorConfig = {
       application: application,
       title: `Deleting ${type} on ${entity.name}`,
-      onTaskComplete: () => onUpdate(),
+      onTaskComplete: () => application.entityTags.refresh().then(() => onUpdate()),
     };
 
     confirmationModalService.confirm({

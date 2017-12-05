@@ -5,6 +5,8 @@ import { APPLICATION_MODEL_BUILDER, ApplicationModelBuilder } from './applicatio
 import { ApplicationDataSourceRegistry } from './service/applicationDataSource.registry';
 import { LOAD_BALANCER_DATA_SOURCE } from 'core/loadBalancer/loadBalancer.dataSource';
 import { SecurityGroupReader } from 'core/securityGroup/securityGroupReader.service';
+import { SERVER_GROUP_DATA_SOURCE } from 'core/serverGroup/serverGroup.dataSource';
+import { SECURITY_GROUP_DATA_SOURCE } from 'core/securityGroup/securityGroup.dataSource';
 
 import {
   IEntityTag,
@@ -27,8 +29,8 @@ describe ('Application Model', function () {
 
   beforeEach(
     mock.module(
-      require('../securityGroup/securityGroup.dataSource').name,
-      require('../serverGroup/serverGroup.dataSource').name,
+      SECURITY_GROUP_DATA_SOURCE,
+      SERVER_GROUP_DATA_SOURCE,
       LOAD_BALANCER_DATA_SOURCE,
       APPLICATION_MODEL_BUILDER
   ));

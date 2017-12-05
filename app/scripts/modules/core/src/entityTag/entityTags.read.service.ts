@@ -1,64 +1,86 @@
-import { module, IQService, IPromise, IDeferred } from 'angular';
-import { countBy, get, uniq } from 'lodash';
+import { module, IQService, IPromise } from 'angular';
 
 import { API_SERVICE, Api } from 'core/api/api.service';
 import { IEntityTags, IEntityTag, ICreationMetadataTag } from '../domain/IEntityTags';
-import { RETRY_SERVICE, RetryService } from 'core/retry/retry.service';
+import { Application } from 'core/application/application.model';
+import { IServerGroup, ILoadBalancer, ISecurityGroup } from 'core/domain';
 import { SETTINGS } from 'core/config/settings';
-
-interface ICollatedIdGroup {
-  entityId: string;
-  maxResults: number;
-}
 
 export class EntityTagsReader {
 
   constructor(private API: Api,
-              private $q: IQService,
-              private retryService: RetryService) {
+              private $q: IQService) {
     'ngInject';
   }
 
-  public getAllEntityTags(entityType: string, entityIds: string[]): IPromise<IEntityTags[]> {
-    if (!entityIds || !entityIds.length) {
-      return this.$q.when([]);
-    }
-    const idGroups: ICollatedIdGroup[] = this.collateEntityIds(entityType, entityIds);
-    const succeeded = (val: IEntityTags[]) => val !== null;
-    const sources = idGroups.map(idGroup => this.retryService.buildRetrySequence<IEntityTags[]>(
-      () => this.API.one('tags')
-        .withParams({
-          entityType: entityType.toLowerCase(),
-          entityId: idGroup.entityId,
-          maxResults: idGroup.maxResults,
-        }).getList(),
-      succeeded, 1, 0)
-    );
-
-    const result: IDeferred<IEntityTags[]> = this.$q.defer();
-
-    this.$q.all(sources).then(
-      (entityTagGroups: IEntityTags[][]) => {
-        const allTags: IEntityTags[] = this.flattenTagsAndAddMetadata(entityTagGroups);
-        result.resolve(allTags);
-      })
-      .catch(() => {
-        result.resolve([]);
-      });
-
-    return result.promise;
+  public getAllEntityTagsForApplication(application: string): IPromise<IEntityTags[]> {
+    return this.API.one('tags').withParams({ application }).getList()
+      .then((allTags: IEntityTags[]) => this.flattenTagsAndAddMetadata(allTags))
   }
 
-  private flattenTagsAndAddMetadata(entityTagGroups: IEntityTags[][]): IEntityTags[] {
-    const allTags: IEntityTags[] = [];
-    entityTagGroups.forEach(entityTagGroup => {
-      entityTagGroup.forEach(entityTag => {
-        entityTag.tags.forEach(tag => this.addTagMetadata(entityTag, tag));
-        entityTag.alerts = entityTag.tags.filter(t => t.name.startsWith('spinnaker_ui_alert:'));
-        entityTag.notices = entityTag.tags.filter(t => t.name.startsWith('spinnaker_ui_notice:'));
-        entityTag.creationMetadata = entityTag.tags.find(t => t.name === 'spinnaker:metadata') as ICreationMetadataTag;
-        allTags.push(entityTag);
+  public addTagsToServerGroups(application: Application): void {
+    if (!SETTINGS.feature.entityTags) {
+      return;
+    }
+    const allTags = application.getDataSource('entityTags').data;
+    const serverGroupTags: IEntityTags[] = allTags.filter(t => t.entityRef.entityType === 'servergroup');
+    application.getDataSource('serverGroups').data.forEach((serverGroup: IServerGroup) => {
+      serverGroup.entityTags = serverGroupTags.find(t => t.entityRef.entityId === serverGroup.name &&
+        t.entityRef.account === serverGroup.account &&
+        t.entityRef.region === serverGroup.region);
+    });
+  }
+
+  public addTagsToLoadBalancers(application: Application): void {
+    if (!SETTINGS.feature.entityTags) {
+      return;
+    }
+    const allTags = application.getDataSource('entityTags').data;
+    const serverGroupTags: IEntityTags[] = allTags.filter(t => t.entityRef.entityType === 'loadbalancer');
+    application.getDataSource('loadBalancers').data.forEach((loadBalancer: ILoadBalancer) => {
+      loadBalancer.entityTags = serverGroupTags.find(t => t.entityRef.entityId === loadBalancer.name &&
+        t.entityRef.account === loadBalancer.account &&
+        t.entityRef.region === loadBalancer.region);
+    });
+  }
+
+  public addTagsToSecurityGroups(application: Application): void {
+    if (!SETTINGS.feature.entityTags) {
+      return;
+    }
+    const allTags = application.getDataSource('entityTags').data;
+    const securityGroupTags: IEntityTags[] = allTags.filter(t => t.entityRef.entityType === 'securitygroup');
+    application.getDataSource('securityGroups').data.forEach((securityGroup: ISecurityGroup) => {
+      securityGroup.entityTags = securityGroupTags.find(t => t.entityRef.entityId === securityGroup.name &&
+        t.entityRef.account === securityGroup.account &&
+        t.entityRef.region === securityGroup.region);
+    });
+  }
+
+  public getEntityTagsForId(entityType: string, entityId: string): IPromise<IEntityTags[]> {
+    if (!entityId) {
+      return this.$q.when([]);
+    }
+    return this.API.one('tags')
+      .withParams({
+        entityType: entityType.toLowerCase(),
+        entityId: entityId,
+      }).getList().then((entityTagGroups: IEntityTags[]) => {
+        return this.flattenTagsAndAddMetadata(entityTagGroups);
+      })
+      .catch(() => {
+        return this.$q.when([]);
       });
+  }
+
+  private flattenTagsAndAddMetadata(entityTags: IEntityTags[]): IEntityTags[] {
+    const allTags: IEntityTags[] = [];
+    entityTags.forEach(entityTag => {
+      entityTag.tags.forEach(tag => this.addTagMetadata(entityTag, tag));
+      entityTag.alerts = entityTag.tags.filter(t => t.name.startsWith('spinnaker_ui_alert:'));
+      entityTag.notices = entityTag.tags.filter(t => t.name.startsWith('spinnaker_ui_notice:'));
+      entityTag.creationMetadata = entityTag.tags.find(t => t.name === 'spinnaker:metadata') as ICreationMetadataTag;
+      allTags.push(entityTag);
     });
     return allTags;
   }
@@ -72,50 +94,9 @@ export class EntityTagsReader {
       tag.lastModifiedBy = metadata.lastModifiedBy;
     }
   }
-
-  private collateEntityIds(entityType: string, nonUniqueEntityIds: string[]): ICollatedIdGroup[] {
-    const entityIds = uniq(nonUniqueEntityIds);
-    const entityIdCounts = countBy(nonUniqueEntityIds);
-    const baseUrlLength = `${SETTINGS.gateUrl}/tags?entityType=${entityType}&entityIds=`.length;
-    const maxIdGroupLength = get(SETTINGS, 'entityTags.maxUrlLength', 4000) - baseUrlLength;
-    const idGroups: ICollatedIdGroup[] = [];
-    const joinedEntityIds = entityIds.join(',');
-    const maxGroupSize = 100;
-
-    if (joinedEntityIds.length > maxIdGroupLength) {
-      let index = 0,
-        currentLength = 0;
-      const currentGroup: string[] = [];
-      while (index < entityIds.length) {
-        if (currentLength + entityIds[index].length + 1 > maxIdGroupLength || currentGroup.length === maxGroupSize) {
-          idGroups.push(this.makeIdGroup(currentGroup, entityIdCounts));
-          currentGroup.length = 0;
-          currentLength = 0;
-        }
-        currentGroup.push(entityIds[index]);
-        currentLength += entityIds[index].length + 1;
-        index++;
-      }
-      if (currentGroup.length) {
-        idGroups.push(this.makeIdGroup(currentGroup, entityIdCounts));
-      }
-    } else {
-      idGroups.push(this.makeIdGroup(entityIds, entityIdCounts));
-    }
-
-    return idGroups;
-  }
-
-  private makeIdGroup(entityIds: string[], entityIdCounts: {[entityId: string]: number}): ICollatedIdGroup {
-    return {
-      entityId: entityIds.join(','),
-      maxResults: entityIds.reduce((acc, curr) => acc + entityIdCounts[curr], 0)
-    };
-  }
 }
 
 export const ENTITY_TAGS_READ_SERVICE = 'spinnaker.core.entityTag.read.service';
 module(ENTITY_TAGS_READ_SERVICE, [
   API_SERVICE,
-  RETRY_SERVICE
 ]).service('entityTagsReader', EntityTagsReader);

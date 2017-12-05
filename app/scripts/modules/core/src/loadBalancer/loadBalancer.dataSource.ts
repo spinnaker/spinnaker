@@ -5,7 +5,6 @@ import { Application } from 'core/application/application.model';
 import { ENTITY_TAGS_READ_SERVICE, EntityTagsReader } from 'core/entityTag/entityTags.read.service';
 import { ILoadBalancer } from 'core/domain';
 import { LOAD_BALANCER_READ_SERVICE, LoadBalancerReader } from 'core/loadBalancer/loadBalancer.read.service';
-import { SETTINGS } from 'core/config/settings';
 
 export const LOAD_BALANCER_DATA_SOURCE = 'spinnaker.core.loadBalancer.dataSource';
 module(LOAD_BALANCER_DATA_SOURCE, [
@@ -18,22 +17,11 @@ module(LOAD_BALANCER_DATA_SOURCE, [
   };
 
   const addLoadBalancers = (_application: Application, loadBalancers: ILoadBalancer[]) => {
-    return addTags(loadBalancers);
+    return $q.when(loadBalancers);
   };
 
-  const addTags = (loadBalancers: ILoadBalancer[]) => {
-    if (!SETTINGS.feature.entityTags) {
-      return $q.when(loadBalancers);
-    }
-    const entityIds = loadBalancers.map(lb => lb.name);
-    return entityTagsReader.getAllEntityTags('loadBalancer', entityIds).then(tags => {
-      loadBalancers.forEach(loadBalancer => {
-        loadBalancer.entityTags = tags.find(t => t.entityRef.entityId === loadBalancer.name &&
-        t.entityRef.account === loadBalancer.account &&
-        t.entityRef.region === loadBalancer.region);
-      });
-      return loadBalancers;
-    });
+  const addTags = (application: Application) => {
+    entityTagsReader.addTagsToLoadBalancers(application);
   };
 
   applicationDataSourceRegistry.registerDataSource({
@@ -41,6 +29,7 @@ module(LOAD_BALANCER_DATA_SOURCE, [
     optional: true,
     loader: loadLoadBalancers,
     onLoad: addLoadBalancers,
+    afterLoad: addTags,
     providerField: 'cloudProvider',
     credentialsField: 'account',
     regionField: 'region',

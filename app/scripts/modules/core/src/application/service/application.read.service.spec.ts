@@ -9,6 +9,8 @@ import { LOAD_BALANCER_DATA_SOURCE } from 'core/loadBalancer/loadBalancer.dataSo
 import { LOAD_BALANCER_READ_SERVICE, LoadBalancerReader } from 'core/loadBalancer/loadBalancer.read.service';
 import { SECURITY_GROUP_READER, SecurityGroupReader } from 'core/securityGroup/securityGroupReader.service';
 import { CLUSTER_SERVICE, ClusterService } from 'core/cluster/cluster.service';
+import { SERVER_GROUP_DATA_SOURCE } from 'core/serverGroup/serverGroup.dataSource';
+import { SECURITY_GROUP_DATA_SOURCE } from 'core/securityGroup/securityGroup.dataSource';
 
 describe('Service: applicationReader', function () {
 
@@ -24,8 +26,8 @@ describe('Service: applicationReader', function () {
   beforeEach(
     mock.module(
       APPLICATION_READ_SERVICE,
-      require('core/securityGroup/securityGroup.dataSource').name,
-      require('core/serverGroup/serverGroup.dataSource').name,
+      SECURITY_GROUP_DATA_SOURCE,
+      SERVER_GROUP_DATA_SOURCE,
       LOAD_BALANCER_DATA_SOURCE,
       SECURITY_GROUP_READER,
       CLUSTER_SERVICE,

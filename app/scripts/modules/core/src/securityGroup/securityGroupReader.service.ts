@@ -13,6 +13,7 @@ import { SEARCH_SERVICE, SearchService, ISearchResults } from 'core/search/searc
 import { ISecurityGroupSearchResult } from './securityGroupSearchResultType';
 import { ProviderServiceDelegate, PROVIDER_SERVICE_DELEGATE } from 'core/cloudProvider/providerService.delegate';
 import { IMoniker } from 'core/naming/IMoniker';
+import { IEntityTags } from 'core/domain/IEntityTags';
 
 export interface ISecurityGroupsByAccount {
   [account: string]: {
@@ -77,6 +78,8 @@ export interface ISecurityGroupDetail {
   inboundRules: ISecurityGroupRule[] & IIPRangeRule[];
   ipRangeRules: ISecurityGroupRule[];
   region: string;
+  name: string;
+  entityTags: IEntityTags;
   securityGroupRules: ISecurityGroupRule[];
 }
 
@@ -256,23 +259,8 @@ export class SecurityGroupReader {
     } else {
       data.forEach((sg: ISecurityGroup) => this.addNamePartsToSecurityGroup(sg));
       return this.$q.all(data.map((sg: ISecurityGroup) => this.securityGroupTransformer.normalizeSecurityGroup(sg)))
-        .then(() => this.addEntityTags(data));
+        .then(() => data);
     }
-  }
-
-  private addEntityTags(securityGroups: ISecurityGroup[]): IPromise<ISecurityGroup[]> {
-    if (!SETTINGS.feature.entityTags) {
-      return this.$q.when(securityGroups);
-    }
-    const entityIds = securityGroups.map(sg => sg.name);
-    return this.entityTagsReader.getAllEntityTags('securitygroup', entityIds).then(tags => {
-      securityGroups.forEach(securityGroup => {
-        securityGroup.entityTags = tags.find(t => t.entityRef.entityId === securityGroup.name &&
-        t.entityRef['account'] === securityGroup.accountName &&
-        t.entityRef['region'] === securityGroup.region);
-      });
-      return securityGroups;
-    });
   }
 
   constructor(private $log: ILogService,
@@ -373,7 +361,12 @@ export class SecurityGroupReader {
           });
         }
         if (SETTINGS.feature.entityTags && application.isStandalone) {
-          return this.addEntityTags([details]).then(all => all[0]);
+          return this.entityTagsReader.getEntityTagsForId('securitygroup', details.name).then(tags => {
+              details.entityTags = tags.find(t => t.entityRef.entityId === details.name &&
+                t.entityRef['account'] === account &&
+                t.entityRef['region'] === region);
+            return details;
+          });
         }
         return details;
       });

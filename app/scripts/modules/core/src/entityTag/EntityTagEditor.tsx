@@ -133,7 +133,7 @@ export class EntityTagEditor extends React.Component<IEntityTagEditorProps, IEnt
       application: application,
       title: `${isNew ? 'Create' : 'Update'} ${this.props.tag.value.type} for ${entityRef.entityId}`,
       modalInstance: this.$uibModalInstanceEmulation,
-      onTaskComplete: () => onUpdate(),
+      onTaskComplete: () => application.entityTags.refresh().then(() => onUpdate()),
     });
 
     const submitMethod = () => {
