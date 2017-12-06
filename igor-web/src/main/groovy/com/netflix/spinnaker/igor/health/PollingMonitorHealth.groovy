@@ -17,11 +17,14 @@
 package com.netflix.spinnaker.igor.health
 
 import com.netflix.spinnaker.igor.polling.PollingMonitor
+import groovy.util.logging.Slf4j
 import org.joda.time.DateTimeConstants
+import org.springframework.beans.BeansException
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.actuate.health.Health
 import org.springframework.boot.actuate.health.HealthIndicator
 import org.springframework.boot.actuate.health.Status
+import org.springframework.context.ApplicationContext
 import org.springframework.stereotype.Component
 
 /**
@@ -29,15 +32,16 @@ import org.springframework.stereotype.Component
  * interval has passed since the last poll the poller is considered _down_.
  */
 @Component
+@Slf4j
 public class PollingMonitorHealth implements HealthIndicator {
 
-    @Autowired(required = false)
-    List<PollingMonitor> pollers = new ArrayList<PollingMonitor>()
+    @Autowired
+    ApplicationContext applicationContext
 
     @Override
     public Health health() {
         List<Health> healths = []
-        pollers.forEach { poller ->
+        pollingMonitors.forEach { poller ->
             if (poller.isInService()) {
                 if (poller.lastPoll == null) {
                     healths << Health.unknown().withDetail("${poller.name}.status", 'not polling yet').build()
@@ -71,4 +75,12 @@ public class PollingMonitorHealth implements HealthIndicator {
         return health.build()
     }
 
+    private List<PollingMonitor> getPollingMonitors() {
+        try {
+            return applicationContext.getBeansOfType(PollingMonitor.class).values().toList()
+        } catch (BeansException e) {
+            log.error("Could not get polling monitors", e)
+            return []
+        }
+    }
 }
