@@ -17,8 +17,8 @@
 
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.kubernetes;
 
-import com.netflix.spinnaker.clouddriver.kubernetes.deploy.KubernetesUtil;
-import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesImageDescription;
+import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.KubernetesUtil;
+import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.description.servergroup.KubernetesImageDescription;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerMonitoringDaemonService;
 import lombok.Data;

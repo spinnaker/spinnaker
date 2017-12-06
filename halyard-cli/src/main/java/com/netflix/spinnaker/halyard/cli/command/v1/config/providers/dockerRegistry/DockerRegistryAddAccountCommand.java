@@ -90,6 +90,13 @@ class DockerRegistryAddAccountCommand extends AbstractAddAccountCommand {
   private int cacheThreads = 1;
 
   @Parameter(
+      names = "--insecure-registry",
+      description = DockerRegistryCommandProperties.INSECURE_REGISTRY_DESCRIPTION,
+      arity = 1
+  )
+  private Boolean insecureRegistry = false;
+
+  @Parameter(
       names = "--paginate-size",
       description = DockerRegistryCommandProperties.PAGINATE_SIZE_DESCRIPTION
   )
@@ -124,7 +131,8 @@ class DockerRegistryAddAccountCommand extends AbstractAddAccountCommand {
         .setCacheThreads(cacheThreads)
         .setPaginateSize(paginateSize)
         .setSortTagsByDate(sortTagsByDate)
-        .setTrackDigests(trackDigests);
+        .setTrackDigests(trackDigests)
+        .setInsecureRegistry(insecureRegistry);
 
     return account;
   }

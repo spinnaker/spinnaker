@@ -39,6 +39,7 @@ public class DockerRegistryAccount extends Account {
   private int paginateSize = 100;
   private Boolean sortTagsByDate = false;
   private Boolean trackDigests = false;
+  private Boolean insecureRegistry = false;
   private List<String> repositories = new ArrayList<>();
   @LocalFile private String passwordFile;
   @LocalFile private String dockerconfigFile;

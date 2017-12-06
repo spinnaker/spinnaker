@@ -52,6 +52,9 @@ class DockerRegistryCommandProperties {
   static final String CACHE_THREADS_DESCRIPTION =
       "How many threads to cache all provided repos on. Really only useful if you have a ton of repos.";
 
+  static final String INSECURE_REGISTRY_DESCRIPTION = 
+      "Treat the docker registry as insecure (don't validate the ssl cert).";
+
   static final String PAGINATE_SIZE_DESCRIPTION =
       "Paginate size for the docker repository _catalog endpoint.";
 

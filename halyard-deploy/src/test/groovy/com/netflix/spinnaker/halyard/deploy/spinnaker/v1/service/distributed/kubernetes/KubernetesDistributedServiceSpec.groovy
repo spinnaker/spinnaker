@@ -17,8 +17,8 @@
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.kubernetes
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.DeployKubernetesAtomicOperationDescription
-import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesContainerDescription
+import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.description.servergroup.DeployKubernetesAtomicOperationDescription
+import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.description.servergroup.KubernetesContainerDescription
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentEnvironment
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.AccountDeploymentDetails

@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.halyard.config.validate.v1.providers.kubernetes;
 
-import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesConfigParser;
+import com.netflix.spinnaker.clouddriver.kubernetes.v1.security.KubernetesConfigParser;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Node;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Provider;

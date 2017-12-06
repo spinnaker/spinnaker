@@ -101,6 +101,13 @@ public class DockerRegistryEditAccountCommand extends AbstractEditAccountCommand
   private Integer cacheThreads;
 
   @Parameter(
+      names = "--insecure-registry",
+      description = DockerRegistryCommandProperties.INSECURE_REGISTRY_DESCRIPTION,
+      arity = 1
+  )
+  private Boolean insecureRegistry;
+
+  @Parameter(
           names = "--paginate-size",
           description = DockerRegistryCommandProperties.PAGINATE_SIZE_DESCRIPTION
   )
@@ -152,6 +159,7 @@ public class DockerRegistryEditAccountCommand extends AbstractEditAccountCommand
     account.setPaginateSize(isSet(paginateSize) ? paginateSize : account.getPaginateSize());
     account.setSortTagsByDate(isSet(sortTagsByDate) ? sortTagsByDate : account.getSortTagsByDate());
     account.setTrackDigests(isSet(trackDigests) ? trackDigests : account.getTrackDigests());
+    account.setInsecureRegistry(isSet(insecureRegistry) ? insecureRegistry : account.getInsecureRegistry());
 
     return account;
   }

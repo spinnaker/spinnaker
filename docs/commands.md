@@ -2502,6 +2502,7 @@ hal config provider docker-registry account add ACCOUNT [parameters]
  * `--client-timeout-millis`: (*Default*: `60000`) Timeout time in milliseconds for this repository.
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--email`: (*Default*: `fake.email@spinnaker.io`) Your docker registry email (often this only needs to be well-formed, rather than be a real address)
+ * `--insecure-registry`: (*Default*: `false`) Treat the docker registry as insecure (don't validate the ssl cert).
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--paginate-size`: (*Default*: `100`) Paginate size for the docker repository _catalog endpoint.
  * `--password`: (*Sensitive data* - user will be prompted on standard input) Your docker registry password
@@ -2556,6 +2557,7 @@ hal config provider docker-registry account edit ACCOUNT [parameters]
  * `--client-timeout-millis`: Timeout time in milliseconds for this repository.
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--email`: Your docker registry email (often this only needs to be well-formed, rather than be a real address)
+ * `--insecure-registry`: Treat the docker registry as insecure (don't validate the ssl cert).
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--paginate-size`: Paginate size for the docker repository _catalog endpoint.
  * `--password`: (*Sensitive data* - user will be prompted on standard input) Your docker registry password

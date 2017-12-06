@@ -17,7 +17,7 @@
 
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.kubernetes;
 
-import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesConfigParser;
+import com.netflix.spinnaker.clouddriver.kubernetes.v1.security.KubernetesConfigParser;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes.KubernetesAccount;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.job.v1.JobExecutor;
