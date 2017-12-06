@@ -21,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.security.oauth2.resource.UserInfoRestTemplateFactory
 import org.springframework.security.core.Authentication
 import org.springframework.security.oauth2.common.DefaultOAuth2AccessToken
+import org.springframework.security.oauth2.common.OAuth2AccessToken
 import org.springframework.security.oauth2.provider.authentication.BearerTokenExtractor
 
 import javax.servlet.Filter
@@ -48,7 +49,13 @@ class ExternalAuthTokenFilter implements Filter {
     def httpServletRequest = (HttpServletRequest) request
     Authentication auth = extractor.extract(httpServletRequest)
     if (auth?.principal) {
-      userInfoRestTemplateFactory.getUserInfoRestTemplate().OAuth2ClientContext.accessToken = new DefaultOAuth2AccessToken(auth.principal.toString())
+      DefaultOAuth2AccessToken token = new DefaultOAuth2AccessToken(auth.principal.toString())
+      // Reassign token type to be capitalized "Bearer",
+      // see https://github.com/spinnaker/spinnaker/issues/2074
+      token.tokenType = OAuth2AccessToken.BEARER_TYPE
+
+      def ctx = userInfoRestTemplateFactory.getUserInfoRestTemplate().getOAuth2ClientContext()
+      ctx.accessToken = token
     }
     chain.doFilter(request, response)
   }
