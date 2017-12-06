@@ -21,12 +21,11 @@ import com.netflix.spinnaker.igor.jenkins.client.model.ProjectsList
 import com.netflix.spinnaker.igor.jenkins.service.JenkinsService
 import com.netflix.spinnaker.igor.model.BuildServiceProvider
 import com.netflix.spinnaker.igor.service.BuildMasters
-import org.springframework.context.event.ContextRefreshedEvent
+import com.netflix.spinnaker.kork.eureka.RemoteStatusChangedEvent
 import rx.schedulers.TestScheduler
 import spock.lang.Specification
 
 import java.util.concurrent.TimeUnit
-
 /**
  * Ensures that build monitor runs periodically
  */
@@ -51,7 +50,7 @@ class JenkinsBuildMonitorSchedulingSpec extends Specification {
         monitor.worker = scheduler.createWorker()
 
         when:
-        monitor.onApplicationEvent(Mock(ContextRefreshedEvent))
+        monitor.onApplicationEvent(Mock(RemoteStatusChangedEvent))
         scheduler.advanceTimeBy(1L, TimeUnit.SECONDS.MILLISECONDS)
 
         then: 'initial poll'
@@ -97,7 +96,7 @@ class JenkinsBuildMonitorSchedulingSpec extends Specification {
         monitor.worker = scheduler.createWorker()
 
         when:
-        monitor.onApplicationEvent(Mock(ContextRefreshedEvent))
+        monitor.onApplicationEvent(Mock(RemoteStatusChangedEvent))
         scheduler.advanceTimeBy(1L, TimeUnit.SECONDS.MILLISECONDS)
 
         then: 'initial poll'

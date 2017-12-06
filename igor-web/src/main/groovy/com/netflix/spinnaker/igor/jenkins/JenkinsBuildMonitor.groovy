@@ -28,13 +28,12 @@ import com.netflix.spinnaker.igor.jenkins.service.JenkinsService
 import com.netflix.spinnaker.igor.model.BuildServiceProvider
 import com.netflix.spinnaker.igor.polling.PollingMonitor
 import com.netflix.spinnaker.igor.service.BuildMasters
+import com.netflix.spinnaker.kork.eureka.RemoteStatusChangedEvent
 import groovy.time.TimeCategory
 import groovy.util.logging.Slf4j
-import org.apache.commons.lang3.time.DateUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
-import org.springframework.context.event.ContextRefreshedEvent
 import org.springframework.core.env.Environment
 import org.springframework.stereotype.Service
 import rx.Scheduler
@@ -115,7 +114,7 @@ class JenkinsBuildMonitor implements PollingMonitor {
     }
 
     @Override
-    void onApplicationEvent(ContextRefreshedEvent event) {
+    void onApplicationEvent(RemoteStatusChangedEvent event) {
         log.info('Started')
         worker.schedulePeriodically(
                 {

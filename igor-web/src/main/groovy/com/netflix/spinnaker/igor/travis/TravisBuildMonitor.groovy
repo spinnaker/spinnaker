@@ -33,10 +33,10 @@ import com.netflix.spinnaker.igor.travis.client.model.v3.V3Build
 import com.netflix.spinnaker.igor.travis.service.TravisBuildConverter
 import com.netflix.spinnaker.igor.travis.service.TravisResultConverter
 import com.netflix.spinnaker.igor.travis.service.TravisService
+import com.netflix.spinnaker.kork.eureka.RemoteStatusChangedEvent
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
-import org.springframework.context.event.ContextRefreshedEvent
 import org.springframework.stereotype.Service
 import rx.Observable
 import rx.Scheduler
@@ -46,7 +46,6 @@ import rx.schedulers.Schedulers
 import java.util.concurrent.TimeUnit
 
 import static net.logstash.logback.argument.StructuredArguments.kv
-
 
 /**
  * Monitors new travis builds
@@ -84,7 +83,7 @@ class TravisBuildMonitor implements PollingMonitor{
     TravisProperties travisProperties
 
     @Override
-    void onApplicationEvent(ContextRefreshedEvent event) {
+    void onApplicationEvent(RemoteStatusChangedEvent event) {
         log.info('Started')
         setBuildCacheTTL()
         migrateToNewBuildCache()

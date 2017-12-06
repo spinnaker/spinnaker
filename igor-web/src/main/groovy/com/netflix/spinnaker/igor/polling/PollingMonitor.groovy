@@ -16,14 +16,14 @@
 
 package com.netflix.spinnaker.igor.polling
 
+import com.netflix.spinnaker.kork.eureka.RemoteStatusChangedEvent
 import org.springframework.context.ApplicationListener
-import org.springframework.context.event.ContextRefreshedEvent
 
 /*
  * An interface for monitors which rely on polling.
  */
-interface PollingMonitor extends ApplicationListener<ContextRefreshedEvent> {
-    void onApplicationEvent(ContextRefreshedEvent event)
+interface PollingMonitor extends ApplicationListener<RemoteStatusChangedEvent> {
+    void onApplicationEvent(RemoteStatusChangedEvent event)
 
     String getName()
 

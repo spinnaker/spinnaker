@@ -25,10 +25,10 @@ import com.netflix.spinnaker.igor.docker.service.TaggedImage
 import com.netflix.spinnaker.igor.history.EchoService
 import com.netflix.spinnaker.igor.history.model.DockerEvent
 import com.netflix.spinnaker.igor.polling.PollingMonitor
+import com.netflix.spinnaker.kork.eureka.RemoteStatusChangedEvent
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
-import org.springframework.context.event.ContextRefreshedEvent
 import org.springframework.stereotype.Service
 import rx.Scheduler
 import rx.functions.Action0
@@ -58,7 +58,7 @@ class DockerMonitor implements PollingMonitor {
     EchoService echoService
 
     @Override
-    void onApplicationEvent(ContextRefreshedEvent event) {
+    void onApplicationEvent(RemoteStatusChangedEvent event) {
         log.info('Started')
         worker.schedulePeriodically(
                 {
