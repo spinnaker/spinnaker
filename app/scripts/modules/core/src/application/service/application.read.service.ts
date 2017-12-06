@@ -20,6 +20,7 @@ export interface IApplicationDataSourceAttribute {
 
 export interface IApplicationSummary {
   accounts?: string;
+  aliases?: string;
   cloudProviders?: string;
   createTs?: string;
   description?: string;

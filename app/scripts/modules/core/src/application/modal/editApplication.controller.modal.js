@@ -85,6 +85,16 @@ module.exports = angular
     vm.submit = function () {
       submitting();
 
+      if (vm.applicationAttributes.aliases === '') {
+        delete vm.applicationAttributes.aliases;
+      }
+      if (vm.applicationAttributes.aliases) {
+        vm.applicationAttributes.aliases = vm.applicationAttributes.aliases
+                                            .split(/\s*,\s*/)
+                                            .filter((s) => s !== '')
+                                            .join(',');
+      }
+
       applicationWriter.updateApplication(vm.applicationAttributes)
         .then(
           (task) => taskReader.waitUntilTaskCompletes(task).then(closeModal, extractErrorMsg),

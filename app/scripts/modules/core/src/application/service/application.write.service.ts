@@ -6,6 +6,7 @@ import { RECENT_HISTORY_SERVICE, RecentHistoryService } from 'core/history/recen
 
 export interface IApplicationAttributes {
   name: string;
+  aliases?: string;
   cloudProviders?: string[];
   [k: string]: any;
 }
