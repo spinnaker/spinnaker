@@ -76,7 +76,11 @@ public class WaitOnJobCompletion extends AbstractCloudProviderAwareTask implemen
       def parsedName = Names.parseName(name)
       String appName = stage.context.moniker?.app ?: stage.context.applicaton ?: parsedName.app
 
-      Map job = objectMapper.readValue(katoRestService.collectJob(appName, account, location, name, "delete").body.in(), new TypeReference<Map>() {})
+      InputStream jobStream
+      retrySupport.retry({
+        jobStream = katoRestService.collectJob(appName, account, location, name, "delete").body.in()
+      }, 6, 5000, false) // retry for 30 seconds
+      Map job = objectMapper.readValue(jobStream, new TypeReference<Map>() {})
       outputs.jobStatus = job
 
       switch ((String) job.jobState) {
