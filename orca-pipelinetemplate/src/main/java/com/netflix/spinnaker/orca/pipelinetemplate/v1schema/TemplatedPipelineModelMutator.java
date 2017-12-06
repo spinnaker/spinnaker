@@ -17,6 +17,7 @@ package com.netflix.spinnaker.orca.pipelinetemplate.v1schema;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.kork.artifacts.model.ExpectedArtifact;
 import com.netflix.spinnaker.orca.front50.PipelineModelMutator;
 import com.netflix.spinnaker.orca.pipelinetemplate.exceptions.TemplateLoaderException;
 import com.netflix.spinnaker.orca.pipelinetemplate.loader.TemplateLoader;
@@ -113,6 +114,9 @@ public class TemplatedPipelineModelMutator implements PipelineModelMutator {
     if (configuration.getInherit().contains("notifications")) {
       pipeline.put("notifications", templateConfiguration.getNotifications());
     }
+    if (configuration.getInherit().contains("expectedArtifacts")) {
+      pipeline.put("expectedArtifacts", templateConfiguration.getExpectedArtifacts());
+    }
   }
 
   @SuppressWarnings("unchecked")
@@ -147,6 +151,15 @@ public class TemplatedPipelineModelMutator implements PipelineModelMutator {
         )
       );
     }
+    if (configuration.getExpectedArtifacts() != null && !configuration.getExpectedArtifacts().isEmpty()) {
+      pipeline.put(
+        "expectedArtifacts",
+        TemplateMerge.mergeDistinct(
+          pipelineTemplateObjectMapper.convertValue(pipeline.get("expectedArtifacts"), new TypeReference<List<ExpectedArtifact>>() {}),
+          configuration.getExpectedArtifacts()
+        )
+      );
+    }
   }
 
   private void applyConcurrentExecutions(Map<String, Object> pipeline, Map<String, Object> concurrentExecutions) {
@@ -171,6 +184,9 @@ public class TemplatedPipelineModelMutator implements PipelineModelMutator {
     }
     if (pipeline.containsKey("notifications")) {
       pipeline.put("notifications", renderList((List<Object>) pipeline.get("notifications"), renderContext));
+    }
+    if (pipeline.containsKey("expectedArtifacts")) {
+      pipeline.put("expectedArtifacts", renderList((List<Object>) pipeline.get("expectedArtifacts"), renderContext));
     }
   }
 

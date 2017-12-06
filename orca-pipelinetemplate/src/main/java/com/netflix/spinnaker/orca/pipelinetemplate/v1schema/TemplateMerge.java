@@ -21,6 +21,7 @@ import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTempla
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class TemplateMerge {
 
@@ -72,6 +73,22 @@ public class TemplateMerge {
     aConfig.setTriggers(mergeNamedContent(aConfig.getTriggers(), bConfig.getTriggers()));
     aConfig.setParameters(mergeNamedContent(aConfig.getParameters(), bConfig.getParameters()));
     aConfig.setNotifications(mergeNamedContent(aConfig.getNotifications(), bConfig.getNotifications()));
+    aConfig.setExpectedArtifacts(mergeDistinct(aConfig.getExpectedArtifacts(), bConfig.getExpectedArtifacts()));
+  }
+
+  public static <T> List<T> mergeDistinct(List<T> a, List<T> b) {
+    if (a == null || a.size() == 0) {
+      return b;
+    }
+
+    if (b == null || b.size() == 0) {
+      return a;
+    }
+
+    List<T> merged = new ArrayList<>();
+    merged.addAll(a);
+    merged.addAll(b);
+    return merged.stream().distinct().collect(Collectors.toList());
   }
 
   public static <T extends NamedContent> List<T> mergeNamedContent(List<T> a, List<T> b) {

@@ -16,15 +16,11 @@
 package com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.netflix.spinnaker.kork.artifacts.model.ExpectedArtifact;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.PipelineTemplateVisitor;
 import com.netflix.spinnaker.orca.pipelinetemplate.validator.VersionedSchema;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 public class PipelineTemplate implements VersionedSchema {
 
@@ -184,6 +180,7 @@ public class PipelineTemplate implements VersionedSchema {
     private List<NamedHashMap> triggers;
     private List<NamedHashMap> parameters;
     private List<NamedHashMap> notifications;
+    private List<HashMap<String, Object>> expectedArtifacts;
 
     public Map<String, Object> getConcurrentExecutions() {
       return Optional.ofNullable(concurrentExecutions).orElse(new HashMap<>());
@@ -215,6 +212,14 @@ public class PipelineTemplate implements VersionedSchema {
 
     public void setNotifications(List<NamedHashMap> notifications) {
       this.notifications = notifications;
+    }
+
+    public List<HashMap<String, Object>> getExpectedArtifacts() {
+      return expectedArtifacts;
+    }
+
+    public void setExpectedArtifacts(List<HashMap<String, Object>> expectedArtifacts) {
+      this.expectedArtifacts = expectedArtifacts;
     }
   }
 

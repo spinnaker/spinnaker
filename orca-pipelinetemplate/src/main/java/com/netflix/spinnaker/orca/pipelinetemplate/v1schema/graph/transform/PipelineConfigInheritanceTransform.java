@@ -46,6 +46,9 @@ public class PipelineConfigInheritanceTransform implements PipelineTemplateVisit
     if (!inherit.contains("parameters")) {
       pc.setParameters(Collections.emptyList());
     }
+    if (!inherit.contains("expectedArtifacts")) {
+      pc.setExpectedArtifacts(Collections.emptyList());
+    }
     if (!inherit.contains("notifications")) {
       pc.setNotifications(Collections.emptyList());
     }

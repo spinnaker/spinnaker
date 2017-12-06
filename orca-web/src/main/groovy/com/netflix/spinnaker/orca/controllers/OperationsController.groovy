@@ -164,7 +164,9 @@ class OperationsController {
       }
     }
 
-    artifactResolver?.resolveArtifacts(executionRepository, pipeline)
+    if (!pipeline.plan) {
+      artifactResolver?.resolveArtifacts(executionRepository, pipeline)
+    }
   }
 
   private void getBuildInfo(Map trigger) {

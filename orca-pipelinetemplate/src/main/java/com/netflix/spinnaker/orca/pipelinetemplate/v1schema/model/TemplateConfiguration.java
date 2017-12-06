@@ -18,13 +18,7 @@ package com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.netflix.spinnaker.orca.pipelinetemplate.validator.VersionedSchema;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class TemplateConfiguration implements VersionedSchema {
@@ -112,6 +106,7 @@ public class TemplateConfiguration implements VersionedSchema {
     private List<NamedHashMap> triggers = new ArrayList<>();
     private List<NamedHashMap> parameters = new ArrayList<>();
     private List<NamedHashMap> notifications = new ArrayList<>();
+    private List<HashMap<String, Object>> expectedArtifacts = new ArrayList<>();
     private String description;
 
     public List<String> getInherit() {
@@ -152,6 +147,14 @@ public class TemplateConfiguration implements VersionedSchema {
 
     public void setNotifications(List<NamedHashMap> notifications) {
       this.notifications = notifications;
+    }
+
+    public List<HashMap<String, Object>> getExpectedArtifacts() {
+      return expectedArtifacts;
+    }
+
+    public void setExpectedArtifacts(List<HashMap<String, Object>> expectedArtifacts) {
+      this.expectedArtifacts = expectedArtifacts;
     }
 
     public String getDescription() {

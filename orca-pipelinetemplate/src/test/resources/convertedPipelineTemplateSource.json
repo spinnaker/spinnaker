@@ -218,5 +218,20 @@
       "type": "cron"
     }
   ],
+  "expectedArtifacts": [
+    {
+      "defaultArtifact": {
+        "kind": "custom"
+      },
+      "id": "abcd",
+      "matchArtifact": {
+        "kind": "custom",
+        "type": "jenkins/job",
+        "name": "MyJenkinsJob"
+      },
+      "useDefaultArtifact": false,
+      "usePriorExecution": false
+    }
+  ],
   "updateTs": "1504243528000"
 }

@@ -41,6 +41,13 @@ class TemplateMergeSpec extends Specification {
             return it
           }
         ],
+        expectedArtifacts: [
+          new NamedHashMap().with {
+            put('kind', 'custom')
+            put('type', 'artifactType1')
+            it
+          }
+        ],
         parameters: [
           new NamedHashMap().with {
             put('name', 'parameter1')
@@ -81,6 +88,13 @@ class TemplateMergeSpec extends Specification {
             return it
           }
         ],
+        expectedArtifacts: [
+          new NamedHashMap().with {
+            put('kind', 'custom')
+            put('type', 'artifactType2')
+            it
+          }
+        ],
         parameters: [
           new NamedHashMap().with {
             put('name', 'parameter1')
@@ -113,6 +127,7 @@ class TemplateMergeSpec extends Specification {
     result.variables*.name == ['foo', 'bar']
     result.variables.find { it.name == 'foo' }.defaultValue == 'overridden value'
     result.configuration.triggers*.name == ['trigger1', 'trigger2']
+    result.configuration.expectedArtifacts*.type == ['artifactType1', 'artifactType2']
     result.configuration.parameters*.name == ['parameter1']
     result.configuration.parameters*.description == ['blah blah']
     result.configuration.parameters*.defaultValue == ['overridden']

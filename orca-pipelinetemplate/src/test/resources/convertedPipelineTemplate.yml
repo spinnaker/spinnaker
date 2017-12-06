@@ -38,6 +38,16 @@ configuration:
     id: b2ba0819-dbe5-42bd-a8b0-0499c131711f
     name: unnamed1
     type: cron
+  expectedArtifacts:
+  - defaultArtifact:
+      kind: custom
+    id: abcd
+    matchArtifact:
+      kind: custom
+      type: jenkins/job
+      name: MyJenkinsJob
+    useDefaultArtifact: false
+    usePriorExecution: false
   parameters: []
   notifications:
   - address: example@example.com

@@ -37,6 +37,13 @@ class PipelineConfigInheritanceTransformSpec extends Specification {
             it
           }
         ],
+        expectedArtifacts: [
+          new NamedHashMap().with {
+            put('kind', 'custom')
+            put('type', 'artifactType')
+            it
+          }
+        ],
         parameters: [
           new NamedHashMap().with {
             put('name', 'param1')
@@ -64,6 +71,7 @@ class PipelineConfigInheritanceTransformSpec extends Specification {
     then:
     template.configuration.concurrentExecutions.size() == (inherit.contains('concurrentExecutions') ? 1 : 0)
     template.configuration.triggers.size() == (inherit.contains('triggers') ? 1 : 0)
+    template.configuration.expectedArtifacts.size() == (inherit.contains('expectedArtifacts') ? 1 : 0)
     template.configuration.parameters.size() == (inherit.contains('parameters') ? 1 : 0)
     template.configuration.notifications.size() == (inherit.contains('notifications') ? 1 : 0)
 

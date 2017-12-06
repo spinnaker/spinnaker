@@ -15,11 +15,6 @@
  */
 package com.netflix.spinnaker.orca.pipelinetemplate.v1schema.converter;
 
-import java.io.File;
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.util.*;
-import java.util.stream.Collectors;
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
 import com.google.common.io.Resources;
@@ -28,6 +23,12 @@ import org.slf4j.LoggerFactory;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.representer.Representer;
+
+import java.io.File;
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.util.*;
+import java.util.stream.Collectors;
 
 // Who needs type-checking anyway?
 @SuppressWarnings("unchecked")
@@ -74,6 +75,7 @@ public class PipelineTemplateConverter {
     m.put("triggers", convertTriggers((List) pipeline.get("triggers")));
     m.put("parameters", pipeline.getOrDefault("parameterConfig", new ArrayList<>()));
     m.put("notifications", convertNotifications((List) pipeline.get("notifications")));
+    m.put("expectedArtifacts", pipeline.get("expectedArtifacts"));
     return m;
   }
 

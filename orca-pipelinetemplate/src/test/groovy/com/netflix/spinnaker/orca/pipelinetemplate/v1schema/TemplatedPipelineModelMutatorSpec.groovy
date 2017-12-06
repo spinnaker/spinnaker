@@ -78,7 +78,7 @@ class TemplatedPipelineModelMutatorSpec extends Specification {
           ]
         ],
         configuration: [
-          inherit: ['triggers']
+          inherit: ['triggers', 'expectedArtifacts']
         ]
       ]
     ]
@@ -102,6 +102,11 @@ class TemplatedPipelineModelMutatorSpec extends Specification {
             enabled: true
           ] as NamedHashMap
         ],
+        expectedArtifacts: [
+          [
+            type: 'jenkins/job'
+          ] as NamedHashMap
+        ],
         parameters: [
           [
             name: 'foo',
@@ -111,6 +116,7 @@ class TemplatedPipelineModelMutatorSpec extends Specification {
       )
     )]}
     pipeline.triggers.size() == 1
+    pipeline.expectedArtifacts.size() == 1
     pipeline.parameters == null
   }
 
