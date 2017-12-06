@@ -8,6 +8,8 @@ import * as Creators from 'kayenta/actions/creators';
 import { metricResultsColumns } from './metricResultsColumns';
 import MetricResultsListHeader from './metricResultsListHeader';
 
+import './metricResultsList.less';
+
 export interface IResultsListOwnProps {
   results: ICanaryAnalysisResult[];
 }
@@ -21,9 +23,9 @@ interface IResultsListStateProps {
 }
 
 const ResultsList = ({ results, select, selectedMetric }: IResultsListOwnProps & IResultsListDispatchProps & IResultsListStateProps) => (
-  <section className="vertical">
+  <section className="vertical metric-results-list">
+    <MetricResultsListHeader columns={metricResultsColumns}/>
     <ul className="list-unstyled tabs-vertical">
-      <MetricResultsListHeader columns={metricResultsColumns}/>
       {results.map(r => (
         <li
           key={r.name}

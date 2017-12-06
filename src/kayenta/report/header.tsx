@@ -6,20 +6,16 @@ import { ICanaryState } from '../reducers/index';
 import { serializedCanaryConfigSelector } from 'kayenta/selectors';
 import ReportMetadata from './reportMetadata';
 
+import './header.less';
+
 export interface IReportHeaderStateProps {
   id: string;
   name: string
 }
 
 const ReportHeader = ({ id, name }: IReportHeaderStateProps) => (
-  <section className="horizontal">
-    <h1
-      className="heading-1 color-text-primary"
-      style={{
-        paddingRight: '20px',
-        borderRight: '1px solid var(--color-titanium)',
-      }}
-    >
+  <section className="horizontal report-header">
+    <h1 className="heading-1 color-text-primary">
       Report:
       <UISref to="^.^.canaryConfig.configDetail" params={{ id }}>
         <a className="clickable color-text-primary"> {name}</a>

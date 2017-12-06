@@ -65,6 +65,10 @@ export const buildChartConfig = (metricSetPair: IMetricSetPair, type: GraphType)
       },
       legend: {
         position: 'bottom',
+        labels: {
+          fontSize: 10,
+          padding: 5,
+        },
       },
       scales: {
         xAxes: [{

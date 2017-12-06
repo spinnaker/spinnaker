@@ -15,10 +15,7 @@ interface IMetadataEntry {
 }
 
 const Label = ({ label }: { label: string }) => (
-  <label
-    className="label uppercase color-text-primary"
-    style={{paddingLeft: 0}}
-  >
+  <label className="label uppercase color-text-primary">
     {label}
   </label>
 );
@@ -89,7 +86,7 @@ const ReportMetadata = ({ run }: IReportMetadata) => {
 
 
   return (
-    <section style={{paddingLeft: '20px', paddingTop: '15px'}}>
+    <section className="report-metadata">
       <ul className="list-unstyled list-inline">
         {
           metadataEntries.map(e => (
