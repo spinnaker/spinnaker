@@ -29,6 +29,8 @@ import com.netflix.kayenta.storage.StorageService;
 import com.netflix.kayenta.storage.StorageServiceRepository;
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.actuate.health.AbstractHealthIndicator;
+import org.springframework.boot.actuate.health.Health;
 import org.springframework.scheduling.annotation.Scheduled;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
@@ -38,7 +40,7 @@ import java.time.Instant;
 import java.util.*;
 
 @Slf4j
-public class CanaryConfigIndexingAgent {
+public class CanaryConfigIndexingAgent extends AbstractHealthIndicator {
 
   public static final String INDEXING_INSTANCE_KEY = "kayenta:indexing-instance";
   public static final String HEARTBEAT_KEY_PREFIX = "kayenta:heartbeat:";
@@ -53,6 +55,9 @@ public class CanaryConfigIndexingAgent {
   private final ObjectMapper kayentaObjectMapper;
   private final CanaryConfigIndex canaryConfigIndex;
   private final IndexConfigurationProperties indexConfigurationProperties;
+
+  private int cyclesInitiated = 0;
+  private int cyclesCompleted = 0;
 
   public CanaryConfigIndexingAgent(String currentInstanceId,
                                    JedisPool jedisPool,
@@ -81,6 +86,8 @@ public class CanaryConfigIndexingAgent {
 
   @Scheduled(initialDelayString = "#{@indexConfigurationProperties.indexingInitialDelayMS}", fixedDelayString = "#{@indexConfigurationProperties.indexingIntervalMS}")
   public void indexCanaryConfigs() {
+    cyclesInitiated++;
+
     int indexingLockTTLSec = indexConfigurationProperties.getIndexingLockTTLSec();
     long staleThresholdMS = indexConfigurationProperties.getPendingUpdateStaleEntryThresholdMS();
 
@@ -238,6 +245,38 @@ public class CanaryConfigIndexingAgent {
       } else {
         log.debug("Failed to acquire indexing lock.");
       }
+
+      cyclesCompleted++;
     }
+  }
+
+  @Override
+  protected void doHealthCheck(Health.Builder builder) throws Exception {
+    Set<AccountCredentials> configurationStoreAccountCredentialsSet =
+      CredentialsHelper.getAllAccountsOfType(AccountCredentials.Type.CONFIGURATION_STORE, accountCredentialsRepository);
+    int existingByApplicationIndexCount = 0;
+
+    try (Jedis jedis = jedisPool.getResource()) {
+      for (AccountCredentials credentials : configurationStoreAccountCredentialsSet) {
+        String accountName = credentials.getName();
+        String mapByApplicationKey = "kayenta:" + credentials.getType() + ":" + accountName + MAP_BY_APPLICATION_KEY_SUFFIX;
+
+        if (jedis.exists(mapByApplicationKey)) {
+          existingByApplicationIndexCount++;
+        }
+      }
+    }
+
+    // So long as this instance has performed an indexing, or failed to acquire the lock since another instance was in
+    // the process of indexing, the index should be available. We also verify that the number of by-application index
+    // keys matches the number of configured configuration store accounts.
+    if (cyclesCompleted > 0 && existingByApplicationIndexCount == configurationStoreAccountCredentialsSet.size()) {
+      builder.up();
+    } else {
+      builder.down();
+    }
+
+    builder.withDetail("cyclesInitiated", cyclesInitiated);
+    builder.withDetail("cyclesCompleted", cyclesCompleted);
   }
 }

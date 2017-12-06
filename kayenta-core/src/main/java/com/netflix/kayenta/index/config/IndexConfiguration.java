@@ -39,13 +39,13 @@ public class IndexConfiguration {
   }
 
   @Bean
-  CanaryConfigIndexingAgent canaryConfigCachingAgent(String currentInstanceId,
-                                                     JedisPool jedisPool,
-                                                     AccountCredentialsRepository accountCredentialsRepository,
-                                                     StorageServiceRepository storageServiceRepository,
-                                                     ObjectMapper kayentaObjectMapper,
-                                                     CanaryConfigIndex canaryConfigIndex,
-                                                     IndexConfigurationProperties indexConfigurationProperties) {
+  CanaryConfigIndexingAgent canaryConfigIndexingAgent(String currentInstanceId,
+                                                      JedisPool jedisPool,
+                                                      AccountCredentialsRepository accountCredentialsRepository,
+                                                      StorageServiceRepository storageServiceRepository,
+                                                      ObjectMapper kayentaObjectMapper,
+                                                      CanaryConfigIndex canaryConfigIndex,
+                                                      IndexConfigurationProperties indexConfigurationProperties) {
     return new CanaryConfigIndexingAgent(currentInstanceId,
                                          jedisPool,
                                          accountCredentialsRepository,

@@ -27,8 +27,13 @@ import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.actuate.endpoint.HealthEndpoint;
+import org.springframework.boot.actuate.health.Health;
+import org.springframework.boot.actuate.health.Status;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.http.HttpStatus;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.scheduling.annotation.ScheduledAnnotationBeanPostProcessor;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -36,7 +41,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.annotation.PostConstruct;
 import java.util.List;
 import java.util.Map;
 
@@ -63,10 +67,25 @@ public class PipelineController {
   @Autowired
   ConfigurableApplicationContext context;
 
+  @Autowired
+  HealthEndpoint healthEndpoint;
+
+  @Autowired
+  ScheduledAnnotationBeanPostProcessor postProcessor;
+
   // TODO(duftler): Expose /inservice and /outofservice endpoints.
-  @PostConstruct
-  public void setup() {
-    context.publishEvent(new RemoteStatusChangedEvent(new StatusChangeEvent(STARTING, UP)));
+  @Scheduled(initialDelay = 10000, fixedDelay = 5000)
+  void startOrcaQueueProcessing() {
+    Health health = healthEndpoint.invoke();
+
+    if (health.getStatus() == Status.UP) {
+      context.publishEvent(new RemoteStatusChangedEvent(new StatusChangeEvent(STARTING, UP)));
+
+      // Cancel the scheduled task.
+      postProcessor.postProcessBeforeDestruction(this, null);
+    } else {
+      log.info("Health indicators are still reporting DOWN; not starting orca queue processing yet: {}", health);
+    }
   }
 
   @ApiOperation(value = "Initiate a pipeline execution")
