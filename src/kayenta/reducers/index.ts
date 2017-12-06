@@ -18,6 +18,7 @@ import { ISelectedRunState, selectedRun } from './selectedRun';
 import { metricResultsSelector } from '../selectors/index';
 import { validationErrorsReducer } from './validators';
 import { AsyncRequestState } from './asyncRequest';
+import { ICanaryAnalysisResult } from '../domain/ICanaryJudgeResult';
 
 export interface ICanaryState {
   app: IAppState;
@@ -98,28 +99,69 @@ const isInSyncWithServerReducer = (state: ICanaryState): ICanaryState => {
   }
 };
 
+const resolveSelectedMetric = (state: ICanaryState, action: Action & any): string => {
+  switch (action.type) {
+    case Actions.SELECT_REPORT_METRIC:
+      return action.payload.metric;
+
+    // On report load, pick the first metric.
+    case Actions.LOAD_RUN_SUCCESS:
+      return metricResultsSelector(state).length
+        ? metricResultsSelector(state)[0].name
+        : null;
+
+    // On group select, pick the first metric in the group.
+    case Actions.SELECT_REPORT_METRIC_GROUP:
+      const results = metricResultsSelector(state);
+      if (!results.length) {
+        return null;
+      }
+
+      const group = action.payload.group;
+      let filter: (r: ICanaryAnalysisResult) => boolean;
+      if (!group) {
+        filter = () => true;
+      } else {
+        filter = r => r.groups.includes(group);
+      }
+
+      return results.find(filter)
+        ? results.find(filter).name
+        : null;
+
+    default:
+      return null;
+  }
+};
+
 const selectedMetricReducer = (state: ICanaryState, action: Action & any) => {
-  if (action.type !== Actions.SELECT_REPORT_METRIC) {
+  if (![Actions.SELECT_REPORT_METRIC,
+        Actions.SELECT_REPORT_METRIC_GROUP,
+        Actions.LOAD_RUN_SUCCESS].includes(action.type)) {
     return state;
   }
 
-  const { payload: { metric } } = action;
+  const metric = resolveSelectedMetric(state, action);
+  if (!metric) {
+    return state;
+  }
 
   const results = metricResultsSelector(state).find(result => result.name === metric);
-  if (!state.selectedRun.metricSetPair.pair || state.selectedRun.metricSetPair.pair.id !== results.id) {
-    // If we don't have the metric set pair loaded when we select the metric,
-    // schedule loading it now.
-    // TODO: cache metric set pairs.
-    action.asyncDispatch(Creators.loadMetricSetPairRequest({
-      pairId: results.id,
-    }));
-  }
+
+  // Load metric set pair.
+  action.asyncDispatch(Creators.loadMetricSetPairRequest({
+    pairId: results.id,
+  }));
 
   return {
     ...state,
     selectedRun: {
       ...state.selectedRun,
       selectedMetric: metric,
+      metricSetPair: {
+        ...state.selectedRun.metricSetPair,
+        load: AsyncRequestState.Requesting,
+      },
     },
   };
 };
