@@ -131,7 +131,8 @@ function CanaryRunTimestamps({ canaryRun }: { canaryRun: IStage }) {
 
 function ReportLink({ canaryRun }: { canaryRun: IStage }) {
   if (!has(canaryRun, 'context.canaryConfigId')
-      || !has(canaryRun, 'context.canaryPipelineExecutionId')) {
+      || !has(canaryRun, 'context.canaryPipelineExecutionId')
+      || canaryRun.status !== 'SUCCEEDED') {
     return null;
   }
 
