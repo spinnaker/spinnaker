@@ -29,6 +29,8 @@ import com.netflix.kayenta.google.security.GoogleNamedAccountCredentials;
 import com.netflix.kayenta.metrics.MetricSet;
 import com.netflix.kayenta.metrics.MetricsService;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
+import com.netflix.spectator.api.Id;
+import com.netflix.spectator.api.Registry;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Singular;
@@ -42,6 +44,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Builder
@@ -54,7 +57,10 @@ public class StackdriverMetricsService implements MetricsService {
   private List<String> accountNames;
 
   @Autowired
-  AccountCredentialsRepository accountCredentialsRepository;
+  private final AccountCredentialsRepository accountCredentialsRepository;
+
+  @Autowired
+  private final Registry registry;
 
   @Override
   public String getType() {
@@ -77,9 +83,11 @@ public class StackdriverMetricsService implements MetricsService {
     StackdriverCanaryMetricSetQueryConfig stackdriverMetricSetQuery = (StackdriverCanaryMetricSetQueryConfig)canaryMetricConfig.getQuery();
     // TODO(duftler): Make this filter general-purpose so it works for more than just GCE.
     // TODO(duftler): The 'project' attribute should be part of the scope (a StackdriverCanaryScope), and not just re-used from stackdriverCredentials.
+    String projectId = stackdriverCredentials.getProject();
+    String region = canaryScope.getRegion();
     String filter = "metric.type=\"" + stackdriverMetricSetQuery.getMetricType() + "\"" +
-                    " AND resource.labels.project_id=" + stackdriverCredentials.getProject() +
-                    " AND resource.metadata.tag.spinnaker-region=" + canaryScope.getRegion() +
+                    " AND resource.labels.project_id=" + projectId +
+                    " AND resource.metadata.tag.spinnaker-region=" + region +
                     " AND resource.metadata.tag.spinnaker-server-group=" + canaryScope.getScope() +
                     " AND resource.type = gce_instance";
     long alignmentPeriodSec = canaryScope.getStep();
@@ -101,7 +109,17 @@ public class StackdriverMetricsService implements MetricsService {
       list.setAggregationGroupByFields(groupByFields);
     }
 
-    ListTimeSeriesResponse response = list.execute();
+    long startTime = registry.clock().monotonicTime();
+    ListTimeSeriesResponse response;
+
+    try {
+      response = list.execute();
+    } finally {
+      long endTime = registry.clock().monotonicTime();
+      Id stackdriverFetchTimerId = registry.createId("stackdriver.fetchTime").withTag("project", projectId).withTag("region", region);
+
+      registry.timer(stackdriverFetchTimerId).record(endTime - startTime, TimeUnit.NANOSECONDS);
+    }
 
     long startAsLong = canaryScope.getStart().toEpochMilli();
     long endAsLong = canaryScope.getEnd().toEpochMilli();
