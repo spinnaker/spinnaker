@@ -25,6 +25,8 @@ import com.netflix.kayenta.prometheus.model.PrometheusResults;
 import com.netflix.kayenta.prometheus.security.PrometheusNamedAccountCredentials;
 import com.netflix.kayenta.prometheus.service.PrometheusRemoteService;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
+import com.netflix.spectator.api.Id;
+import com.netflix.spectator.api.Registry;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Singular;
@@ -52,7 +54,10 @@ public class PrometheusMetricsService implements MetricsService {
   private List<String> accountNames;
 
   @Autowired
-  AccountCredentialsRepository accountCredentialsRepository;
+  private final AccountCredentialsRepository accountCredentialsRepository;
+
+  @Autowired
+  private final Registry registry;
 
   @Override
   public String getType() {
@@ -128,10 +133,22 @@ public class PrometheusMetricsService implements MetricsService {
     queryBuilder = addRateQuery(queryBuilder, queryConfig);
     queryBuilder = addSumQuery(queryBuilder, queryConfig);
 
-    List<PrometheusResults> prometheusResultsList = prometheusRemoteService.fetch(queryBuilder.toString(),
-                                                                                  canaryScope.getStart().toString(),
-                                                                                  canaryScope.getEnd().toString(),
-                                                                                  canaryScope.getStep());
+    long startTime = registry.clock().monotonicTime();
+    List<PrometheusResults> prometheusResultsList;
+
+    try {
+      prometheusResultsList = prometheusRemoteService.fetch(queryBuilder.toString(),
+                                                            canaryScope.getStart().toString(),
+                                                            canaryScope.getEnd().toString(),
+                                                            canaryScope.getStep());
+    } finally {
+      long endTime = registry.clock().monotonicTime();
+      // TODO(ewiseblatt/duftler): Add appropriate tags.
+      Id prometheusFetchTimerId = registry.createId("prometheus.fetchTime");
+
+      registry.timer(prometheusFetchTimerId).record(endTime - startTime, TimeUnit.NANOSECONDS);
+    }
+
     List<MetricSet> metricSetList = new ArrayList<>();
 
     for (PrometheusResults prometheusResults : prometheusResultsList) {
