@@ -75,6 +75,7 @@ public class RenderTransform implements PipelineTemplateVisitor {
 
     // We don't care about configuration partials, they were already merged into the template at this point
     renderPartials(template.getPartials(), filterStages(template.getStages(), true), context);
+    renderPartials(template.getPartials(), filterStages(templateConfiguration.getStages(), true), context);
 
     renderConfigurations(template.getConfiguration().getParameters(), context, "template:configuration.parameters");
     renderConfigurations(templateConfiguration.getConfiguration().getParameters(), context, "configuration:configuration.parameters");

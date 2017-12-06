@@ -26,7 +26,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -59,6 +58,7 @@ public class ConfigStageInjectionTransform implements PipelineTemplateVisitor {
     expandStagePartials(pipelineTemplate);
     replaceStages(pipelineTemplate);
     injectStages(pipelineTemplate);
+    expandStagePartials(pipelineTemplate);
   }
 
   private void replaceStages(PipelineTemplate pipelineTemplate) {
@@ -76,7 +76,7 @@ public class ConfigStageInjectionTransform implements PipelineTemplateVisitor {
   private void expandStagePartials(PipelineTemplate pipelineTemplate) {
     List<StageDefinition> addStages = new ArrayList<>();
     List<StageDefinition> templateStages = pipelineTemplate.getStages();
-
+    
     // For each "partial" type stage in the graph, inject its internal stage graph into the main template, then
     // delete the "partial" type stages. Root-level partial stages will inherit the placeholder's dependsOn values,
     // and stages that had dependsOn references to the placeholder will be reassigned to partial leaf nodes.
@@ -92,17 +92,16 @@ public class ConfigStageInjectionTransform implements PipelineTemplateVisitor {
       createGraph(stages);
 
       // get leaf nodes of the partial
-      Map<String, StageDefinition> graph = stages
-        .stream()
-        .collect(
-          Collectors.toMap(StageDefinition::getId, i -> i)
-        );
+      Map<String, StageDefinition> graph = stages.stream().collect(Collectors.toMap(StageDefinition::getId, i -> i));
       Set<String> leafNodes = getLeafNodes(graph);
 
       // assign root nodes to placeholder's dependsOn value
       stages.stream()
         .filter(s -> s.getDependsOn().isEmpty())
-        .forEach(s -> s.setDependsOn(partialPlaceholder.getDependsOn()));
+        .forEach(s -> {
+          s.setDependsOn(partialPlaceholder.getDependsOn());
+          s.setRequisiteStageRefIds(partialPlaceholder.getRequisiteStageRefIds());
+        });
 
       // And assign them as the dependsOn of the placeholder partial stage
       templateStages.stream()
@@ -110,6 +109,13 @@ public class ConfigStageInjectionTransform implements PipelineTemplateVisitor {
         .forEach(s -> {
           s.getDependsOn().remove(partialPlaceholder.getId());
           s.getDependsOn().addAll(leafNodes);
+        });
+
+      templateStages.stream()
+        .filter(s -> s.getRequisiteStageRefIds().contains(partialPlaceholder.getId()))
+        .forEach(s -> {
+          s.getRequisiteStageRefIds().remove(partialPlaceholder.getId());
+          s.getRequisiteStageRefIds().addAll(leafNodes);
         });
 
       addStages.addAll(stages);
@@ -125,6 +131,7 @@ public class ConfigStageInjectionTransform implements PipelineTemplateVisitor {
   private void injectStages(PipelineTemplate pipelineTemplate) {
     // Create initial graph via dependsOn. We need to include stages that the configuration defines with dependsOn as well
     List<StageDefinition> initialStages = pipelineTemplate.getStages();
+
     initialStages.addAll(templateConfiguration.getStages().stream()
       .filter(s -> !s.getDependsOn().isEmpty())
       .collect(Collectors.toList()));
@@ -134,7 +141,7 @@ public class ConfigStageInjectionTransform implements PipelineTemplateVisitor {
     );
 
     // Handle stage injections.
-    injectStages(pipelineTemplate.getStages(), pipelineTemplate.getStages());
+    injectStages(pipelineTemplate.getStages(), pipelineTemplate.getStages());    
     injectStages(templateConfiguration.getStages(), pipelineTemplate.getStages());
   }
 
@@ -151,6 +158,12 @@ public class ConfigStageInjectionTransform implements PipelineTemplateVisitor {
 
     state.put(stageId, Status.VISITING);
     StageDefinition stage = graph.get(stageId);
+
+    if(stage == null) {
+      state.put(stageId, Status.VISITED);
+      return;
+    }
+
     for (String n : stage.getRequisiteStageRefIds()) {
       Status status = state.get(n);
       if (status == Status.VISITING) {
@@ -229,7 +242,10 @@ public class ConfigStageInjectionTransform implements PipelineTemplateVisitor {
 
   private static void injectFirst(StageDefinition stage, List<StageDefinition> allStages) {
     if (!allStages.isEmpty()) {
-      allStages.get(0).getRequisiteStageRefIds().add(stage.getId());
+      allStages.forEach(s -> {
+        if(s.getRequisiteStageRefIds().isEmpty()) 
+          s.getRequisiteStageRefIds().add(stage.getId());
+      });
       allStages.add(0, stage);
     } else {
       allStages.add(stage);
@@ -268,7 +284,7 @@ public class ConfigStageInjectionTransform implements PipelineTemplateVisitor {
       targetEdges.addAll(target.getRequisiteStageRefIds());
 
       target.getRequisiteStageRefIds().clear();
-      target.setRequisiteStageRefIds(Collections.singleton(stage.getId()));
+      target.getRequisiteStageRefIds().add(stage.getId());
       targetIndexes.add(allStages.indexOf(target));
     }
 

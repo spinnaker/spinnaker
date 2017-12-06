@@ -258,6 +258,360 @@ class ConfigStageInjectionTransformSpec extends Specification {
     template.stages[2].dependsOn == ['s1.p2'] as Set
   }
 
+  def 'should inject and expand stage partials: first'() {
+    given:
+    PipelineTemplate template = new PipelineTemplate(
+      stages: [
+        new StageDefinition(
+          id: 's2',
+          type: 'wait',
+          config: [:]
+        ),
+        new StageDefinition(
+          id: 's3',
+          type: 'wait',
+          config: [:],
+          dependsOn: ['s2']
+        )
+      ],
+      partials: [
+        new PartialDefinition(
+          renderedPartials: [
+            's1': [
+              new StageDefinition(
+                id: 's1.p1',
+                type: 'wait',
+                config: [:]
+              ),
+              new StageDefinition(
+                id: 's1.p2',
+                type: 'wait',
+                dependsOn: ['s1.p1'],
+                config: [:]
+              )
+            ]
+          ]
+        )
+      ]
+    )
+
+    when:
+    new ConfigStageInjectionTransform(
+      new TemplateConfiguration(
+        stages: [
+          new StageDefinition(
+            id: 's1',
+            type: 'partial.foo',
+            config: [:],
+            inject: new InjectionRule(first: true)
+          )
+        ]
+    )).visitPipelineTemplate(template)
+
+    then:
+    noExceptionThrown()
+    template.stages.size() == 4
+    requisiteStageIds('s2', template.stages) == ['s1.p2'] as Set
+    requisiteStageIds('s3', template.stages) == ['s2'] as Set
+    requisiteStageIds('s1.p1', template.stages) == [] as Set
+    requisiteStageIds('s1.p2', template.stages) == ['s1.p1'] as Set
+  }
+
+  def 'should inject and expand stage partials: last'() {
+    given:
+    PipelineTemplate template = new PipelineTemplate(
+      stages: [
+        new StageDefinition(
+          id: 's2',
+          type: 'wait',
+          config: [:]
+        ),
+        new StageDefinition(
+          id: 's3',
+          type: 'wait',
+          config: [:],
+          dependsOn: ['s2']
+        )
+      ],
+      partials: [
+        new PartialDefinition(
+          renderedPartials: [
+            's1': [
+              new StageDefinition(
+                id: 's1.p1',
+                type: 'wait',
+                config: [:]
+              ),
+              new StageDefinition(
+                id: 's1.p2',
+                type: 'wait',
+                dependsOn: ['s1.p1'],
+                config: [:]
+              )
+            ]
+          ]
+        )
+      ]
+    )
+
+    when:
+    new ConfigStageInjectionTransform(
+      new TemplateConfiguration(
+        stages: [
+          new StageDefinition(
+            id: 's1',
+            type: 'partial.foo',
+            config: [:],
+            inject: new InjectionRule(last: true)
+          )
+        ]
+    )).visitPipelineTemplate(template)
+
+    then:
+    noExceptionThrown()
+    template.stages.size() == 4
+    requisiteStageIds('s2', template.stages) == [] as Set
+    requisiteStageIds('s3', template.stages) == ['s2'] as Set
+    requisiteStageIds('s1.p1', template.stages) == ['s3'] as Set
+    requisiteStageIds('s1.p2', template.stages) == ['s1.p1'] as Set
+  }
+
+  def 'should inject and expand stage partials: before first'() {
+    given:
+    PipelineTemplate template = new PipelineTemplate(
+      stages: [
+        new StageDefinition(
+          id: 's2',
+          type: 'wait',
+          config: [:]
+        ),
+        new StageDefinition(
+          id: 's3',
+          type: 'wait',
+          config: [:],
+          dependsOn: ['s2']
+        )
+      ],
+      partials: [
+        new PartialDefinition(
+          renderedPartials: [
+            's1': [
+              new StageDefinition(
+                id: 's1.p1',
+                type: 'wait',
+                config: [:]
+              ),
+              new StageDefinition(
+                id: 's1.p2',
+                type: 'wait',
+                dependsOn: ['s1.p1'],
+                config: [:]
+              )
+            ]
+          ]
+        )
+      ]
+    )
+
+    when:
+    new ConfigStageInjectionTransform(
+      new TemplateConfiguration(
+        stages: [
+          new StageDefinition(
+            id: 's1',
+            type: 'partial.foo',
+            config: [:],
+            inject: new InjectionRule(before: ['s2'])
+          )
+        ]
+    )).visitPipelineTemplate(template)
+
+    then:
+    noExceptionThrown()
+    template.stages.size() == 4
+    requisiteStageIds('s2', template.stages) == ['s1.p2'] as Set
+    requisiteStageIds('s3', template.stages) == ['s2'] as Set
+    requisiteStageIds('s1.p1', template.stages) == [] as Set
+    requisiteStageIds('s1.p2', template.stages) == ['s1.p1'] as Set
+  }
+
+  def 'should inject and expand stage partials: before last'() {
+    given:
+    PipelineTemplate template = new PipelineTemplate(
+      stages: [
+        new StageDefinition(
+          id: 's2',
+          type: 'wait',
+          config: [:]
+        ),
+        new StageDefinition(
+          id: 's3',
+          type: 'wait',
+          config: [:],
+          dependsOn: ['s2']
+        )
+      ],
+      partials: [
+        new PartialDefinition(
+          renderedPartials: [
+            's1': [
+              new StageDefinition(
+                id: 's1.p1',
+                type: 'wait',
+                config: [:]
+              ),
+              new StageDefinition(
+                id: 's1.p2',
+                type: 'wait',
+                dependsOn: ['s1.p1'],
+                config: [:]
+              )
+            ]
+          ]
+        )
+      ]
+    )
+
+    when:
+    new ConfigStageInjectionTransform(
+      new TemplateConfiguration(
+        stages: [
+          new StageDefinition(
+            id: 's1',
+            type: 'partial.foo',
+            config: [:],
+            inject: new InjectionRule(before: ['s3'])
+          )
+        ]
+    )).visitPipelineTemplate(template)
+
+    then:
+    noExceptionThrown()
+    template.stages.size() == 4
+    requisiteStageIds('s2', template.stages) == [] as Set
+    requisiteStageIds('s3', template.stages) == ['s1.p2'] as Set
+    requisiteStageIds('s1.p1', template.stages) == ['s2'] as Set
+    requisiteStageIds('s1.p2', template.stages) == ['s1.p1'] as Set
+  }
+  
+  def 'should inject and expand stage partials: after last'() {
+    given:
+    PipelineTemplate template = new PipelineTemplate(
+      stages: [
+        new StageDefinition(
+          id: 's2',
+          type: 'wait',
+          config: [:]
+        ),
+        new StageDefinition(
+          id: 's3',
+          type: 'wait',
+          config: [:],
+          dependsOn: ['s2']
+        )
+      ],
+      partials: [
+        new PartialDefinition(
+          renderedPartials: [
+            's1': [
+              new StageDefinition(
+                id: 's1.p1',
+                type: 'wait',
+                config: [:]
+              ),
+              new StageDefinition(
+                id: 's1.p2',
+                type: 'wait',
+                dependsOn: ['s1.p1'],
+                config: [:]
+              )
+            ]
+          ]
+        )
+      ]
+    )
+ 
+    when:
+    new ConfigStageInjectionTransform(
+      new TemplateConfiguration(
+        stages: [
+          new StageDefinition(
+            id: 's1',
+            type: 'partial.foo',
+            config: [:],
+            inject: new InjectionRule(after: ['s3'])
+          )
+        ]
+    )).visitPipelineTemplate(template)
+
+    then:
+    noExceptionThrown()
+    template.stages.size() == 4
+    requisiteStageIds('s2', template.stages) == [] as Set
+    requisiteStageIds('s3', template.stages) == ['s2'] as Set
+    requisiteStageIds('s1.p1', template.stages) == ['s3'] as Set
+    requisiteStageIds('s1.p2', template.stages) == ['s1.p1'] as Set
+  }
+
+  def 'should inject and expand stage partials: after first'() {
+    given:
+    PipelineTemplate template = new PipelineTemplate(
+      stages: [
+        new StageDefinition(
+          id: 's2',
+          type: 'wait',
+          config: [:]
+        ),
+        new StageDefinition(
+          id: 's3',
+          type: 'wait',
+          config: [:],
+          dependsOn: ['s2']
+        )
+      ],
+      partials: [
+        new PartialDefinition(
+          renderedPartials: [
+            's1': [
+              new StageDefinition(
+                id: 's1.p1',
+                type: 'wait',
+                config: [:]
+              ),
+              new StageDefinition(
+                id: 's1.p2',
+                type: 'wait',
+                dependsOn: ['s1.p1'],
+                config: [:]
+              )
+            ]
+          ]
+        )
+      ]
+    )
+  
+    when:
+    new ConfigStageInjectionTransform(
+      new TemplateConfiguration(
+        stages: [
+          new StageDefinition(
+            id: 's1',
+            type: 'partial.foo',
+            config: [:],
+            inject: new InjectionRule(after: ['s2'])
+          )
+        ]
+    )).visitPipelineTemplate(template)
+
+    then:
+    noExceptionThrown()
+    template.stages.size() == 4
+    requisiteStageIds('s2', template.stages) == [] as Set
+    requisiteStageIds('s3', template.stages) == ['s1.p2'] as Set
+    requisiteStageIds('s1.p1', template.stages) == ['s2'] as Set
+    requisiteStageIds('s1.p2', template.stages) == ['s1.p1'] as Set
+  }
+
   static StageDefinition getStageById(String id, List<StageDefinition> allStages) {
     return allStages.find { it.id == id }
   }

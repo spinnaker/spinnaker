@@ -26,6 +26,7 @@ import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTempla
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate.Configuration
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate.Variable
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.StageDefinition
+import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.StageDefinition.InjectionRule
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.TemplateConfiguration
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.TemplateConfiguration.PipelineConfiguration
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.TemplateConfiguration.PipelineDefinition
@@ -218,6 +219,79 @@ class RenderTransformSpec extends Specification {
     template.partials[0].renderedPartials['foo']*.config == [[waitTime: 5]]
     template.partials[0].renderedPartials['bar']*.id == ['bar.wait']
     template.partials[0].renderedPartials['bar']*.config == [[waitTime: 10]]
+  }
+
+  def 'should render partials from config'() {
+    given:
+    PipelineTemplate template = new PipelineTemplate(
+      stages: [],
+      partials: [
+        new PartialDefinition(
+          id: 'myPartial',
+          variables: [
+            new NamedHashMap().with {
+              put('name', 'waitTime')
+              it
+            }
+          ],
+          stages: [
+            new StageDefinition(
+              id: 'wait',
+              type: 'wait',
+              config: [
+                waitTime: '{{ waitTime }}'
+              ]
+            ),
+            new StageDefinition(
+              id: 'wait2',
+              type: 'wait',
+              config: [
+                waitTime: '{{ waitTime * 2 }}'
+              ],
+              dependsOn: ['wait']
+            )
+          ]
+        )
+      ]
+    )
+    TemplateConfiguration configuration = new TemplateConfiguration(
+      schema: '1',
+      pipeline: new PipelineDefinition(
+        application: 'orca',
+        name: 'Wait',
+        variables: [:]
+      ),
+      stages: [
+          new StageDefinition(
+            id: 'foo',
+            type: 'partial.myPartial',
+            config: [
+              waitTime: 5
+            ],
+            inject: new InjectionRule(first: true)
+          ),
+          new StageDefinition(
+            id: 'bar',
+            type: 'partial.myPartial',
+            config: [
+              waitTime: 10
+            ],
+            inject: new InjectionRule(after: ['foo'])
+          )
+        ],
+      configuration: new PipelineConfiguration()
+    )
+
+    when:
+    new RenderTransform(configuration, renderer, registry, [:]).visitPipelineTemplate(template)
+    
+    then:
+    noExceptionThrown()
+    template.stages.size() == 0
+    template.partials[0].renderedPartials['foo']*.id == ['foo.wait', 'foo.wait2']
+    template.partials[0].renderedPartials['foo']*.config == [[waitTime: 5], [waitTime: 10]]
+    template.partials[0].renderedPartials['bar']*.id == ['bar.wait', 'bar.wait2']
+    template.partials[0].renderedPartials['bar']*.config == [[waitTime: 10], [waitTime: 20]]
   }
 
   StageDefinition findStage(PipelineTemplate template, String id) {
