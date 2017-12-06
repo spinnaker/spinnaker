@@ -17,50 +17,30 @@
 package com.netflix.spinnaker.igor.build
 
 import com.netflix.spinnaker.igor.IgorConfigurationProperties
-import com.netflix.spinnaker.igor.config.IgorConfig
-import com.netflix.spinnaker.igor.config.JedisConfig
-import com.netflix.spinnaker.igor.config.JenkinsConfig
-import groovy.util.logging.Slf4j
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration
-import org.springframework.boot.autoconfigure.groovy.template.GroovyTemplateAutoConfiguration
-import org.springframework.boot.context.properties.EnableConfigurationProperties
-import org.springframework.context.annotation.Configuration
-import org.springframework.context.annotation.Import
-import org.springframework.test.context.ContextConfiguration
-import org.springframework.test.context.web.WebAppConfiguration
+import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
+import com.netflix.spinnaker.kork.jedis.JedisClientDelegate
+import com.netflix.spinnaker.kork.jedis.RedisClientDelegate
 import redis.clients.jedis.Jedis
 import redis.clients.jedis.JedisPool
-import spock.lang.IgnoreIf
 import spock.lang.Specification
+import spock.lang.Subject
 import spock.lang.Unroll
 
-import static com.netflix.spinnaker.igor.jenkins.network.Network.isReachable
-
-@WebAppConfiguration
-@ContextConfiguration(classes = [TestConfiguration])
-@SuppressWarnings(['DuplicateNumberLiteral', 'UnnecessaryBooleanExpression', 'DuplicateListLiteral'])
-@Slf4j
-@IgnoreIf( {!isReachable('redis://localhost:6379')} )
 class BuildCacheSpec extends Specification {
 
-    @Autowired
-    BuildCache cache
+    EmbeddedRedis embeddedRedis = EmbeddedRedis.embed()
 
-    @Autowired
-    JedisPool jedisPool
+    RedisClientDelegate redisClientDelegate = new JedisClientDelegate(embeddedRedis.pool as JedisPool)
+
+    @Subject
+    BuildCache cache = new BuildCache(redisClientDelegate, new IgorConfigurationProperties())
 
     final master = 'master'
     final test = 'test'
     final int TTL = 42
 
-    void setupSpec() {
-        System.setProperty('netflix.environment', 'test')
-        System.setProperty('services.echo.baseUrl', 'none')
-    }
-
     void cleanup() {
-        jedisPool.resource.withCloseable { Jedis resource ->
+        embeddedRedis.pool.resource.withCloseable { Jedis resource ->
             resource.flushDB()
         }
     }
@@ -79,7 +59,7 @@ class BuildCacheSpec extends Specification {
         cache.getLastBuild(master, 'job1', true) == 80
     }
 
-    void 'running and completed builds are handled seperatly'() {
+    void 'running and completed builds are handled separately'() {
         when:
         cache.setLastBuild(master, 'job1', 78, true, TTL)
 
@@ -141,11 +121,12 @@ class BuildCacheSpec extends Specification {
     }
 
     void 'a cache with another prefix does not pollute the current cache'() {
-        when:
-        BuildCache secondInstance = new BuildCache(jedisPool: jedisPool)
+        given:
         def altCfg = new IgorConfigurationProperties()
         altCfg.spinnaker.jedis.prefix = 'newPrefix'
-        secondInstance.igorConfigurationProperties = altCfg
+        BuildCache secondInstance = new BuildCache(redisClientDelegate, altCfg)
+
+        when:
         secondInstance.setLastBuild(master, 'job1', 1, false, TTL)
 
         then:
@@ -153,9 +134,9 @@ class BuildCacheSpec extends Specification {
         cache.getJobNames(master) == []
 
         when:
-        Jedis resource = jedisPool.resource
-        resource.del(cache.makeKey(master, 'job1'))
-        jedisPool.returnResource(resource)
+        embeddedRedis.pool.resource.withCloseable {
+            it.del(cache.makeKey(master, 'job1'))
+        }
 
         then:
         secondInstance.getJobNames(master) == ['job1']
@@ -185,13 +166,4 @@ class BuildCacheSpec extends Specification {
         then:
         cache.makeKey(masterKey, slug, false) != cache.makeKey(masterKey, slug, true)
     }
-
-    @Configuration
-    @EnableAutoConfiguration(exclude = [GroovyTemplateAutoConfiguration])
-    @EnableConfigurationProperties(IgorConfigurationProperties)
-    @Import([BuildCache, JenkinsConfig, IgorConfig, JedisConfig])
-    static class TestConfiguration {
-
-    }
-
 }

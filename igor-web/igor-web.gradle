@@ -19,7 +19,8 @@ dependencies {
     compile spinnaker.dependency("kork")
     compile spinnaker.dependency("korkStackdriver")
     compile spinnaker.dependency("korkWeb")
-    compile spinnaker.dependency("jedis")
+    compile spinnaker.dependency("korkJedis")
+    compile spinnaker.dependency("korkDynomite")
     compile spinnaker.dependency("guava")
     compile spinnaker.dependency("groovy")
     compile spinnaker.dependency("rxJava")
@@ -32,6 +33,8 @@ dependencies {
     compile 'org.yaml:snakeyaml:1.15'
     compile 'com.squareup.retrofit:converter-simplexml:1.9.0'
     testCompile 'com.squareup.okhttp:mockwebserver:2.7.0'
+
+    testCompile spinnaker.dependency("korkJedisTest")
 }
 
 configurations.all {

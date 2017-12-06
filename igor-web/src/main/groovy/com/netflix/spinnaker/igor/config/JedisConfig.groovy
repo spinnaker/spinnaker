@@ -17,19 +17,27 @@
 package com.netflix.spinnaker.igor.config
 
 import com.netflix.spinnaker.igor.IgorConfigurationProperties
+import com.netflix.spinnaker.kork.jedis.JedisClientDelegate
+import com.netflix.spinnaker.kork.jedis.RedisClientDelegate
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import redis.clients.jedis.JedisPool
-
 /**
  * Establish a connection to the Jedis instance
  */
 @Configuration
+@ConditionalOnExpression('${redis.enabled:true}')
 class JedisConfig {
 
     @Bean
     JedisPool jedis(IgorConfigurationProperties igorConfigurationProperties) {
         new JedisPool(new URI(igorConfigurationProperties.redis.connection), igorConfigurationProperties.redis.timeout)
+    }
+
+    @Bean
+    RedisClientDelegate redisClientDelegate(JedisPool jedisPool) {
+        return new JedisClientDelegate(jedisPool)
     }
 
 }

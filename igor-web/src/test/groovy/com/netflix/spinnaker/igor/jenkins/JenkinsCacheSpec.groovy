@@ -17,51 +17,30 @@
 package com.netflix.spinnaker.igor.jenkins
 
 import com.netflix.spinnaker.igor.IgorConfigurationProperties
-import com.netflix.spinnaker.igor.config.IgorConfig
-import com.netflix.spinnaker.igor.config.JedisConfig
-import com.netflix.spinnaker.igor.config.JenkinsConfig
-import groovy.util.logging.Slf4j
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration
-import org.springframework.boot.autoconfigure.groovy.template.GroovyTemplateAutoConfiguration
-import org.springframework.boot.context.properties.EnableConfigurationProperties
-import org.springframework.context.annotation.Configuration
-import org.springframework.context.annotation.Import
-import org.springframework.test.context.ContextConfiguration
-import org.springframework.test.context.web.WebAppConfiguration
-import redis.clients.jedis.Jedis
+import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
+import com.netflix.spinnaker.kork.jedis.JedisClientDelegate
+import com.netflix.spinnaker.kork.jedis.RedisClientDelegate
 import redis.clients.jedis.JedisPool
-import spock.lang.IgnoreIf
 import spock.lang.Specification
+import spock.lang.Subject
 import spock.lang.Unroll
 
-import static com.netflix.spinnaker.igor.jenkins.network.Network.isReachable
-
-@WebAppConfiguration
-@ContextConfiguration(classes = [TestConfiguration])
-@SuppressWarnings(['DuplicateNumberLiteral', 'UnnecessaryBooleanExpression', 'DuplicateListLiteral'])
-@Slf4j
-@IgnoreIf( {!isReachable('redis://localhost:6379')} )
 class JenkinsCacheSpec extends Specification {
 
-    @Autowired
-    JenkinsCache cache
+    EmbeddedRedis embeddedRedis = EmbeddedRedis.embed()
 
-    @Autowired
-    JedisPool jedisPool
+    RedisClientDelegate redisClientDelegate = new JedisClientDelegate(embeddedRedis.pool as JedisPool)
+
+    @Subject
+    JenkinsCache cache = new JenkinsCache(redisClientDelegate, new IgorConfigurationProperties())
 
     final master = 'master'
     final test = 'test'
 
-    void setupSpec() {
-        System.setProperty('netflix.environment', 'test')
-        System.setProperty('services.echo.baseUrl', 'none')
-    }
-
     void cleanup() {
-        Jedis resource = jedisPool.resource
-        resource.flushDB()
-        jedisPool.returnResource(resource)
+        embeddedRedis.pool.resource.withCloseable {
+            it.flushDB()
+        }
     }
 
     void 'new build numbers get overridden'() {
@@ -149,10 +128,12 @@ class JenkinsCacheSpec extends Specification {
     }
 
     void 'a cache with another prefix does not pollute the current cache'() {
-        when:
+        given:
         def cfg = new IgorConfigurationProperties()
         cfg.spinnaker.jedis.prefix = 'newPrefix'
-        JenkinsCache secondInstance = new JenkinsCache(jedisPool: jedisPool, igorConfigurationProperties: cfg)
+        JenkinsCache secondInstance = new JenkinsCache(redisClientDelegate, cfg)
+
+        when:
         secondInstance.setLastBuild(master, 'job1', 1, false)
 
         then:
@@ -165,13 +146,4 @@ class JenkinsCacheSpec extends Specification {
         then:
         secondInstance.getJobNames(master) == ['job1']
     }
-
-    @Configuration
-    @EnableAutoConfiguration(exclude = [GroovyTemplateAutoConfiguration])
-    @EnableConfigurationProperties(IgorConfigurationProperties)
-    @Import([JenkinsCache, JenkinsConfig, IgorConfig, JedisConfig])
-    static class TestConfiguration {
-
-    }
-
 }
