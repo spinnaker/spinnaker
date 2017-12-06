@@ -6,8 +6,6 @@ import {KubernetesProviderSettings} from '../kubernetes.settings';
 
 module.exports = angular.module('spinnaker.proxy.kubernetes.ui.service', [])
   .factory('kubernetesProxyUiService', function($interpolate) {
-    let apiPrefix = 'api/v1/proxy/namespaces/kube-system/services/kubernetes-dashboard/#';
-
     function getHost(accountName) {
       let host = KubernetesProviderSettings.defaults.proxy;
       let account = KubernetesProviderSettings[accountName];
@@ -20,6 +18,11 @@ module.exports = angular.module('spinnaker.proxy.kubernetes.ui.service', [])
     }
 
     function buildLink(accountName, kind, namespace, serverGroupName) {
+      let apiPrefix = KubernetesProviderSettings.defaults.apiPrefix;
+      if ((apiPrefix == null) || (apiPrefix === "")) {
+        apiPrefix = 'api/v1/proxy/namespaces/kube-system/services/kubernetes-dashboard/#';
+      }
+  
       let host = getHost(accountName);
       if (!host.startsWith('http://') && !host.startsWith('https://')) {
         host = 'http://' + host;

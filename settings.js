@@ -90,6 +90,7 @@ window.spinnakerSettings = {
         proxy: 'localhost:8001',
         internalDNSNameTemplate: '{{name}}.{{namespace}}.svc.cluster.local',
         instanceLinkTemplate: '{{host}}/api/v1/proxy/namespaces/{{namespace}}/pods/{{name}}',
+        apiPrefix: 'api/v1/proxy/namespaces/kube-system/services/kubernetes-dashboard/#',
       },
     },
     dcos: {
