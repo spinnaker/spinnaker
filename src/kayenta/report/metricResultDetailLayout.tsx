@@ -1,7 +1,7 @@
 import * as React from 'react';
 
 import Graph from './graph/graph';
-import MetricResultScope from './metricResultScope';
+import MetricResultStats from './metricResultStats';
 
 /*
 * Responsible for layout of the metric result detail view after the metric set
@@ -10,6 +10,6 @@ import MetricResultScope from './metricResultScope';
 export default () => (
   <section>
     <Graph/>
-    <MetricResultScope/>
+    <MetricResultStats/>
   </section>
 );

@@ -7,6 +7,10 @@ import { GraphType } from '../metricSetPairGraph.service';
 
 const { defaultTimeZone } = SETTINGS;
 
+// TODO(dpeach): remove this after https://github.com/chartjs/Chart.js/pull/4843
+// has been merged and released.
+moment.tz.setDefault(defaultTimeZone);
+
 const buildChartPoints = (values: number[], scope: IMetricSetScope): ChartPoint[] => {
   if (!values) {
     return [];
@@ -19,7 +23,7 @@ const buildChartPoints = (values: number[], scope: IMetricSetScope): ChartPoint[
 
     const dataPointMillis = scope.startTimeMillis + (scope.stepMillis * i);
     return {
-      x: moment.tz(dataPointMillis, defaultTimeZone).toDate(),
+      x: dataPointMillis,
       y,
     };
   }).filter(point => !!point);
