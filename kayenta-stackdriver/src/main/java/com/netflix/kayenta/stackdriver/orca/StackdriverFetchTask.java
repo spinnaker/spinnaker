@@ -32,6 +32,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.Collections;
@@ -66,8 +67,9 @@ public class StackdriverFetchTask implements RetryableTask {
     return Duration.ofMinutes(2).toMillis();
   }
 
+  @Nonnull
   @Override
-  public TaskResult execute(Stage stage) {
+  public TaskResult execute(@Nonnull Stage stage) {
     Map<String, Object> context = stage.getContext();
     String metricsAccountName = (String)context.get("metricsAccountName");
     String storageAccountName = (String)context.get("storageAccountName");

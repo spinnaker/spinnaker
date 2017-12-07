@@ -22,6 +22,8 @@ import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.Nonnull;
+
 @Component
 public class StackdriverFetchStage {
 
@@ -29,10 +31,11 @@ public class StackdriverFetchStage {
   StageDefinitionBuilder stackdriverFetchStageBuilder(){
     return new StageDefinitionBuilder() {
       @Override
-      public void taskGraph(Stage stage, TaskNode.Builder builder) {
+      public void taskGraph(@Nonnull Stage stage, @Nonnull TaskNode.Builder builder) {
         builder.withTask("stackdriverFetch", StackdriverFetchTask.class);
       }
 
+      @Nonnull
       @Override
       public String getType() {
         return "stackdriverFetch";
