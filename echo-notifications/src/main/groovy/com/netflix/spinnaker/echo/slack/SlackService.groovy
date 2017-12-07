@@ -27,6 +27,10 @@ class SlackService {
   SlackClient slackClient
   boolean useIncomingWebHook
 
+  Response sendCompactMessage(String token, CompactSlackMessage message, String channel, boolean asUser) {
+    slackClient.sendMessage(token, message.buildMessage(), channel, asUser)
+  }
+
   Response sendMessage(String token, SlackAttachment message, String channel, boolean asUser) {
     useIncomingWebHook ?
       slackClient.sendUsingIncomingWebHook(token, new SlackRequest([message], channel)) :

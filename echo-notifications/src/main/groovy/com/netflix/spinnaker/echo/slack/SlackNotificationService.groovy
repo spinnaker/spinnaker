@@ -35,6 +35,9 @@ class SlackNotificationService implements NotificationService {
   @Value('${slack.token}')
   String token
 
+  @Value('${slack.sendCompactMessages:false}')
+  Boolean sendCompactMessages
+
   @Autowired
   NotificationTemplateEngine notificationTemplateEngine
 
@@ -48,7 +51,11 @@ class SlackNotificationService implements NotificationService {
     def text = notificationTemplateEngine.build(notification, NotificationTemplateEngine.Type.BODY)
     notification.to.each {
       String address = it.startsWith('#') ? it : "#${it}"
-      slack.sendMessage(token, new SlackAttachment("Spinnaker Notification", text), address, true)
+      if (sendCompactMessages) {
+        slack.sendCompactMessage(token, new CompactSlackMessage(text), address, true)
+      } else {
+        slack.sendMessage(token, new SlackAttachment("Spinnaker Notification", text), address, true)
+      }
     }
   }
 }

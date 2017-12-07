@@ -17,12 +17,15 @@
 package com.netflix.spinnaker.echo.notification
 import com.netflix.spinnaker.echo.model.Event
 import com.netflix.spinnaker.echo.slack.SlackAttachment
+import com.netflix.spinnaker.echo.slack.CompactSlackMessage
 import com.netflix.spinnaker.echo.slack.SlackService
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Service
+import retrofit.client.Response
+
 import static net.logstash.logback.argument.StructuredArguments.*
 import static org.apache.commons.lang.WordUtils.capitalize
 
@@ -37,6 +40,9 @@ class SlackNotificationAgent extends AbstractEventNotificationAgent {
 
   @Value('${slack.token}')
   String token
+
+  @Value('${slack.sendCompactMessages:false}')
+  Boolean sendCompactMessages
 
   @Override
   void sendNotifications(Map preference, String application, Event event, Map config, String status) {
@@ -95,8 +101,13 @@ class SlackNotificationAgent extends AbstractEventNotificationAgent {
 
       String address = preference.address.startsWith('#') ? preference.address : "#${preference.address}"
 
-      def title = getNotificationTitle(config.type, application, status)
-      def response = slackService.sendMessage(token, new SlackAttachment(title, body, color), address, true)
+      Response response
+      if (sendCompactMessages) {
+        response = slackService.sendCompactMessage(token, new CompactSlackMessage(body, color), address, true)
+      } else {
+        String title = getNotificationTitle(config.type, application, status)
+        response = slackService.sendMessage(token, new SlackAttachment(title, body, color), address, true)
+      }
       log.info("Received response from Slack: {} {} for execution id {}. {}",
         response?.status, response?.reason, event.content?.execution?.id, response?.body)
 
