@@ -154,11 +154,11 @@ class OperationsController {
       }
     }
 
-    if (pipeline.parameterConfig) {
-      if (!pipeline.trigger.parameters) {
-        pipeline.trigger.parameters = [:]
-      }
+    if (!pipeline.trigger.parameters) {
+      pipeline.trigger.parameters = [:]
+    }
 
+    if (pipeline.parameterConfig) {
       pipeline.parameterConfig.each {
         pipeline.trigger.parameters[it.name] = pipeline.trigger.parameters.containsKey(it.name) ? pipeline.trigger.parameters[it.name] : it.default
       }
