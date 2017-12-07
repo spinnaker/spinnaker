@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.pipeline.util
 
-import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.config.UserConfiguredUrlRestrictions
 import com.netflix.spinnaker.orca.pipeline.expressions.ExpressionEvaluationSummary
 import com.netflix.spinnaker.orca.pipeline.expressions.ExpressionEvaluator
@@ -52,7 +51,7 @@ class ContextParameterProcessor {
       source,
       precomputeValues(context),
       summary,
-      allowUnknownKeys,
+      allowUnknownKeys
     )
 
     if (summary.totalEvaluated > 0 && context.execution) {
@@ -81,7 +80,6 @@ class ContextParameterProcessor {
   }
 
   Map<String, Object> precomputeValues(Map<String, Object> context) {
-
     if (context.trigger?.parameters) {
       context.parameters = context.trigger.parameters
     }
@@ -94,29 +92,6 @@ class ContextParameterProcessor {
       context.scmInfo = context.scmInfo?.first()
     }
 
-    if (context.execution) {
-      def deployedServerGroups = []
-      context.execution.stages.findAll {
-        it.type in ['deploy', 'createServerGroup', 'cloneServerGroup', 'rollingPush'] && it.status == ExecutionStatus.SUCCEEDED
-      }.each { deployStage ->
-        if (deployStage.context.'deploy.server.groups') {
-          def deployDetails = [
-            account    : deployStage.context.account,
-            capacity   : deployStage.context.capacity,
-            parentStage: deployStage.parentStageId,
-            region     : deployStage.context.region ?: deployStage.context.availabilityZones.keySet().first(),
-          ]
-          deployDetails.putAll(deployStage.context.deploymentDetails?.find {
-            it.region == deployDetails.region
-          } ?: [:])
-          deployDetails.serverGroup = deployStage.context.'deploy.server.groups'."${deployDetails.region}".first()
-          deployedServerGroups << deployDetails
-        }
-      }
-      if (!deployedServerGroups.empty) {
-        context.deployedServerGroups = deployedServerGroups
-      }
-    }
     context
   }
 }

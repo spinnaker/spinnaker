@@ -28,7 +28,8 @@ import java.util.stream.Stream
 
 @Slf4j
 class ExpressionTransform {
-  private static final List<String> EXECUTION_AWARE_FUNCTIONS = ["judgment", "judgement", "stage"]
+  private static final List<String> EXECUTION_AWARE_FUNCTIONS = ["judgment", "judgement", "stage", "deployedServerGroups"]
+  private static final List<String> EXECUTION_AWARE_ALIASES = ["deployedServerGroups"]
   private final ParserContext parserContext
   private final ExpressionParser parser
 
@@ -61,7 +62,7 @@ class ExpressionTransform {
       } as T
     } else if ((source instanceof String || source instanceof GString) && source.toString().contains(parserContext.getExpressionPrefix())) {
       String literalExpression = source.toString()
-      literalExpression = includeExecutionObjectForStageFunctions(literalExpression)
+      literalExpression = includeExecutionParameter(literalExpression)
 
       T result
       Expression exp
@@ -77,7 +78,7 @@ class ExpressionTransform {
       } finally {
         escapedExpressionString = escapedExpressionString?: escapeSimpleExpression(source as String)
         if (exception) {
-          def fields = getKeys(literalExpression, additionalContext)?: literalExpression
+          def fields = getKeys(source, additionalContext) ?: literalExpression
           String errorDescription = String.format("Failed to evaluate %s ", fields)
           Throwable originalException = unwrapOriginalException(exception)
           errorDescription += exception.getMessage() in originalException?.getMessage()?
@@ -178,14 +179,20 @@ class ExpressionTransform {
   }
 
   /**
-   * Lazily include the execution object (#root.execution) for Stage locating functions
+   * Lazily include the execution object (#root.execution) for Stage locating functions & aliases
    * @param expression #stage('property') becomes #stage(#root.execution, 'property')
-   * @return an execution aware helper function (only limited to judg(e?)ment & stage)
+   * @return an execution aware helper function
    */
-  private static String includeExecutionObjectForStageFunctions(String expression) {
+  private static String includeExecutionParameter(String expression) {
     EXECUTION_AWARE_FUNCTIONS.each { fn ->
       if (expression.contains("#${fn}(") && !expression.contains("#${fn}( #root.execution, ")) {
         expression = expression.replaceAll("#${fn}\\(", "#${fn}( #root.execution, ")
+      }
+    }
+
+    EXECUTION_AWARE_ALIASES.each { a ->
+      if (expression.contains("${a}") && !expression.contains("#${a}( #root.execution, ")) {
+        expression = expression.replaceAll("${a}", "#${a}( #root.execution)")
       }
     }
 

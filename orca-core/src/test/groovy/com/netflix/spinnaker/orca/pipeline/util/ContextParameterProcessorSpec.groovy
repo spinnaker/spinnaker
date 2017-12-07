@@ -295,11 +295,9 @@ class ContextParameterProcessorSpec extends Specification {
   }
 
   def "ignores deployment details that have not yet ran"() {
-
     given:
     def source = ['deployed': '${deployedServerGroups}']
     def context = [execution: execution]
-    def escapedExpression = escapeExpression(source.deployed)
 
     when:
     def result = contextParameterProcessor.process(source, context, true)
@@ -307,9 +305,8 @@ class ContextParameterProcessorSpec extends Specification {
 
     then:
     result.deployed == '${deployedServerGroups}'
-    summary[escapedExpression].size() == 1
-    summary[escapedExpression][0].level as String == ExpressionEvaluationSummary.Result.Level.INFO.name()
-    summary[escapedExpression][0].description == "Failed to evaluate [deployed] : deployedServerGroups not found"
+    summary.values().size() == 1
+    summary.values().first()[0].description.contains("Failed to evaluate [deployed]")
 
     where:
     execution = [
@@ -487,6 +484,153 @@ class ContextParameterProcessorSpec extends Specification {
 
     then:
     result.json == '[{"v1":"k1"},{"v2":"k2"}]'
+  }
+
+  def "should resolve deployment details using helper function"() {
+    given:
+    def source = ['deployed': '${#deployedServerGroups()}']
+
+    when:
+    def result = contextParameterProcessor.process(source, [execution: execution], true)
+
+    then:
+    result.deployed.size == 2
+    result.deployed.serverGroup == ["flex-test-v043", "flex-prestaging-v011"]
+    result.deployed.region == ["us-east-1", "us-west-1"]
+    result.deployed.ami == ["ami-06362b6e", "ami-f759b7b3"]
+
+    when: 'specifying a stage name'
+    source = ['deployed': '${#deployedServerGroups("Deploy in us-east-1")}']
+    result = contextParameterProcessor.process(source, [execution: execution], true)
+
+    then: 'should only consider the specified stage name/id'
+    result.deployed.size == 1
+    result.deployed.serverGroup == ["flex-test-v043"]
+    result.deployed.region == ["us-east-1"]
+    result.deployed.ami == ["ami-06362b6e"]
+
+
+    where:
+    execution = pipeline {
+      stage {
+        type = "bake"
+        name = "Bake"
+        refId = "1"
+        status = SUCCEEDED
+        outputs.putAll(
+          deploymentDetails: [
+            [
+              ami      : "ami-06362b6e",
+              amiSuffix: "201505150627",
+              baseLabel: "candidate",
+              baseOs   : "ubuntu",
+              package  : "flex",
+              region   : "us-east-1",
+              storeType: "ebs",
+              vmType   : "pv"
+            ],
+            [
+              ami      : "ami-f759b7b3",
+              amiSuffix: "201505150627",
+              baseLabel: "candidate",
+              baseOs   : "ubuntu",
+              package  : "flex",
+              region   : "us-west-1",
+              storeType: "ebs",
+              vmType   : "pv"
+            ]
+          ]
+        )
+      }
+      stage {
+        type = "deploy"
+        name = "Deploy"
+        refId = "2"
+        requisiteStageRefIds = ["1"]
+        status = SUCCEEDED
+        stage {
+          status = SUCCEEDED
+          type = "createServerGroup"
+          name = "Deploy in us-east-1"
+          context.putAll(
+            "account": "test",
+            "application": "flex",
+            "availabilityZones": [
+              "us-east-1": [
+                "us-east-1c",
+                "us-east-1d",
+                "us-east-1e"
+              ]
+            ],
+            "capacity": [
+              "desired": 1,
+              "max"    : 1,
+              "min"    : 1
+            ],
+            "deploy.account.name": "test",
+            "deploy.server.groups": [
+              "us-east-1": [
+                "flex-test-v043"
+              ]
+            ],
+            "stack": "test",
+            "strategy": "highlander",
+            "subnetType": "internal",
+            "suspendedProcesses": [],
+            "terminationPolicies": [
+              "Default"
+            ]
+          )
+        }
+        stage {
+          type = "destroyAsg"
+          name = "destroyAsg"
+        }
+        stage {
+          type = "createServerGroup"
+          name = "Deploy in us-west-1"
+          status = SUCCEEDED
+          context.putAll(
+            account: "prod",
+            application: "flex",
+            availabilityZones: [
+              "us-west-1": [
+                "us-west-1a",
+                "us-west-1c"
+              ]
+            ],
+            capacity: [
+              desired: 1,
+              max    : 1,
+              min    : 1
+            ],
+            cooldown: 10,
+            "deploy.account.name": "prod",
+            "deploy.server.groups": [
+              "us-west-1": [
+                "flex-prestaging-v011"
+              ]
+            ],
+            keyPair: "nf-prod-keypair-a",
+            loadBalancers: [
+              "flex-prestaging-frontend"
+            ],
+            provider: "aws",
+            securityGroups: [
+              "sg-d2c3dfbe",
+              "sg-d3c3dfbf"
+            ],
+            stack: "prestaging",
+            strategy: "highlander",
+            subnetType: "internal",
+            suspendedProcesses: [],
+            terminationPolicies: [
+              "Default"
+            ]
+          )
+        }
+      }
+    }
   }
 
   def 'can operate on List from json'() {
