@@ -39,6 +39,7 @@ class KubernetesEditManifestCtrl implements IController {
       .then((builtCommand) => {
         const { command, metadata } = builtCommand;
         this.command = command;
+        this.command.versioned = false;
         this.metadata = metadata;
 
         this.initialize();

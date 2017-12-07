@@ -17,6 +17,7 @@ export interface IKubernetesManifestCommand {
   moniker: IMoniker;
   manifestArtifactId?: string;
   source?: string;
+  versioned?: boolean;
 }
 
 export interface IKubernetesManifestCommandMetadata {
@@ -83,6 +84,8 @@ export class KubernetesManifestCommandBuilder {
           securityGroups: [] as string[],
         };
 
+        const versioned: any = null;
+
         return {
           command: {
             cloudProvider,
@@ -90,6 +93,7 @@ export class KubernetesManifestCommandBuilder {
             relationships,
             moniker,
             account,
+            versioned,
           },
           metadata: {
             backingData,
