@@ -26,7 +26,7 @@ interface IAtlasMetricConfigurerState {
 export interface AtlasQuerySelector {
   'class': string;
   backends: string;
-  q: string;
+  query: string;
   ref: (webComponent: Element) => void;
 }
 
@@ -85,7 +85,7 @@ class AtlasMetricConfigurer extends React.Component<IAtlasMetricConfigurerProps,
       <atlas-query-selector
         class="spinnaker-theme"
         backends={atlasBackend}
-        q={query}
+        query={query}
         ref={this.bindComponent}
       />
     );
