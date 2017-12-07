@@ -43,6 +43,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.Duration;
+import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -298,6 +299,25 @@ public class CanaryController {
     canaryExecutionStatusResponseBuilder.stageStatus(stageStatus);
     canaryExecutionStatusResponseBuilder.complete(isComplete);
     canaryExecutionStatusResponseBuilder.status(pipelineStatus);
+
+    Long buildTime = pipeline.getBuildTime();
+    if (buildTime != null) {
+      canaryExecutionStatusResponseBuilder.buildTimeMillis(buildTime);
+      canaryExecutionStatusResponseBuilder.buildTimeIso(Instant.ofEpochMilli(buildTime) + "");
+    }
+
+    Long startTime = pipeline.getStartTime();
+    if (startTime != null) {
+      canaryExecutionStatusResponseBuilder.startTimeMillis(startTime);
+      canaryExecutionStatusResponseBuilder.startTimeIso(Instant.ofEpochMilli(startTime) + "");
+    }
+
+    Long endTime = pipeline.getEndTime();
+    if (endTime != null) {
+      canaryExecutionStatusResponseBuilder.endTimeMillis(endTime);
+      canaryExecutionStatusResponseBuilder.endTimeIso(Instant.ofEpochMilli(endTime) + "");
+    }
+
     canaryExecutionStatusResponseBuilder.metricSetPairListId((String)mixerContext.get("metricSetPairListId"));
 
     if (isComplete && pipelineStatus.equals("succeeded")) {
