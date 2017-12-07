@@ -16,11 +16,21 @@
 package com.netflix.spinnaker.keel.intent.processor
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.keel.*
+import com.netflix.spinnaker.keel.ConvergeReason
+import com.netflix.spinnaker.keel.ConvergeResult
+import com.netflix.spinnaker.keel.Intent
+import com.netflix.spinnaker.keel.IntentProcessor
+import com.netflix.spinnaker.keel.IntentSpec
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroup
-import com.netflix.spinnaker.keel.intent.*
+import com.netflix.spinnaker.keel.dryrun.ChangeSummary
+import com.netflix.spinnaker.keel.dryrun.ChangeType
+import com.netflix.spinnaker.keel.intent.ANY_MAP_TYPE
+import com.netflix.spinnaker.keel.intent.AmazonSecurityGroupSpec
+import com.netflix.spinnaker.keel.intent.NamedReferenceSupport
+import com.netflix.spinnaker.keel.intent.SecurityGroupIntent
+import com.netflix.spinnaker.keel.intent.SecurityGroupSpec
 import com.netflix.spinnaker.keel.intent.processor.converter.SecurityGroupConverter
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.model.Trigger
@@ -60,6 +70,8 @@ class SecurityGroupIntentProcessor
   override fun supports(intent: Intent<IntentSpec>) = intent is SecurityGroupIntent
 
   override fun converge(intent: SecurityGroupIntent): ConvergeResult {
+    val changeSummary = ChangeSummary()
+
     log.info("Converging state for {}", value("intent", intent.id))
 
     val currentState = getSecurityGroups(intent.spec)
@@ -69,27 +81,30 @@ class SecurityGroupIntentProcessor
       intent = intent
     ))
 
-    if (currentStateUpToDate(intent.id, currentState, intent.spec)) {
-      return ConvergeResult(listOf(), ConvergeReason.UNCHANGED.reason)
+    if (currentStateUpToDate(intent.id, currentState, intent.spec, changeSummary)) {
+      changeSummary.addMessage(ConvergeReason.UNCHANGED.reason)
+      return ConvergeResult(listOf(), changeSummary)
     }
 
     val missingGroups = missingUpstreamGroups(intent.spec)
     if (missingGroups.isNotEmpty()) {
-      return ConvergeResult(listOf(), "Some upstream security groups are missing: $missingGroups")
+      changeSummary.addMessage("Some upstream security groups are missing: $missingGroups")
+      changeSummary.type = ChangeType.FAILED_PRECONDITIONS
+      return ConvergeResult(listOf(),changeSummary)
     }
+
+    changeSummary.type = if (currentState.isEmpty()) ChangeType.CREATE else ChangeType.UPDATE
 
     return ConvergeResult(listOf(
         OrchestrationRequest(
           name = "Upsert security group",
           application = intent.spec.application,
           description = "Converging on desired security group state",
-          job = securityGroupConverter.convertToJob(intent.spec),
+          job = securityGroupConverter.convertToJob(intent.spec, changeSummary),
           trigger = Trigger(intent.id)
         )
       ),
-      // TODO rz - It'd be rad to enumerate what actually changed in the reason if it's a delta, rather than giving
-      // a generic message.
-      ConvergeReason.CHANGED.reason
+      changeSummary
     )
   }
 
@@ -122,7 +137,9 @@ class SecurityGroupIntentProcessor
 
   private fun currentStateUpToDate(intentId: String,
                                    currentState: Set<SecurityGroup>,
-                                   desiredState: SecurityGroupSpec): Boolean {
+                                   desiredState: SecurityGroupSpec,
+                                   changeSummary: ChangeSummary): Boolean {
+
     if (currentState.size != desiredState.regions.size) return false
 
     val desired = securityGroupConverter.convertToState(desiredState)
@@ -139,18 +156,19 @@ class SecurityGroupIntentProcessor
 
     if (statePairs.size != desiredState.regions.size) return false
 
-    return StateInspector(objectMapper).run {
-      statePairs.flatMap {
-        this.getDiff(
-          intentId = intentId,
-          currentState = it.first,
-          desiredState = it.second,
-          modelClass = SecurityGroup::class,
-          specClass = SecurityGroupSpec::class,
-          ignoreKeys = listOf("type", "id", "moniker", "summary")
-        )
-      }
-    }.isEmpty()
+    val stateInspector = StateInspector(objectMapper)
+    val diff = statePairs.flatMap {
+      stateInspector.getDiff(
+        intentId = intentId,
+        currentState = it.first,
+        desiredState = it.second,
+        modelClass = SecurityGroup::class,
+        specClass = SecurityGroupSpec::class,
+        ignoreKeys = listOf("type", "id", "moniker", "summary")
+      )
+    }
+    changeSummary.diff = diff
+    return diff.isEmpty()
   }
 
   private fun missingUpstreamGroups(spec: SecurityGroupSpec): List<String> {

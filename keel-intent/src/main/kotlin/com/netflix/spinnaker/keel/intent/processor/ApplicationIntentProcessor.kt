@@ -21,6 +21,8 @@ import com.netflix.spinnaker.keel.ConvergeResult
 import com.netflix.spinnaker.keel.Intent
 import com.netflix.spinnaker.keel.IntentProcessor
 import com.netflix.spinnaker.keel.IntentSpec
+import com.netflix.spinnaker.keel.dryrun.ChangeSummary
+import com.netflix.spinnaker.keel.dryrun.ChangeType
 import com.netflix.spinnaker.keel.front50.Front50Service
 import com.netflix.spinnaker.keel.front50.model.Application
 import com.netflix.spinnaker.keel.intent.ANY_MAP_TYPE
@@ -54,53 +56,62 @@ class ApplicationIntentProcessor
   override fun converge(intent: ApplicationIntent): ConvergeResult {
     log.info("Converging state for {}", value("intent", intent.id))
 
+    val changeSummary = ChangeSummary()
+
     val currentState = getApplication(intent.spec.name)
 
-    if (currentStateUpToDate(intent.id, currentState, intent.spec)) {
-      return ConvergeResult(listOf(), ConvergeReason.UNCHANGED.reason)
+    if (currentStateUpToDate(intent.id, currentState, intent.spec, changeSummary)) {
+      changeSummary.addMessage(ConvergeReason.UNCHANGED.reason)
+      return ConvergeResult(listOf(), changeSummary)
     }
+
+    changeSummary.type = if (currentState == null) ChangeType.CREATE else ChangeType.UPDATE
 
     traceRepository.record(Trace(
       startingState = if (currentState == null) mapOf() else objectMapper.convertValue(currentState, ANY_MAP_TYPE),
       intent = intent
     ))
 
-    return ConvergeResult(listOf(
-        OrchestrationRequest(
-          name = if (currentState == null) "Create application" else "Update application",
-          application = intent.spec.name,
-          description = "Converging on desired application state",
-          job = listOf(
-            Job(
-              type = "upsertApplication",
-              m = mutableMapOf(
-                "application" to objectMapper.convertValue(intent.spec, ANY_MAP_TYPE)
-              )
+    val convergeResult = ConvergeResult(listOf(
+      OrchestrationRequest(
+        name = if (currentState == null) "Create application" else "Update application",
+        application = intent.spec.name,
+        description = "Converging on desired application state",
+        job = listOf(
+          Job(
+            type = "upsertApplication",
+            m = mutableMapOf(
+              "application" to objectMapper.convertValue(intent.spec, ANY_MAP_TYPE)
             )
-          ),
-          trigger = Trigger(intent.id)
-        )
-      ),
-      if (currentState == null) "Application does not exist" else "Application has been updated"
+          )
+        ),
+        trigger = Trigger(intent.id)
+      )
+    ),
+      changeSummary
     )
+    return convergeResult
   }
 
   private fun currentStateUpToDate(intentId: String,
                                    currentState: Application?,
-                                   desiredState: BaseApplicationSpec): Boolean {
+                                   desiredState: BaseApplicationSpec,
+                                   changeSummary: ChangeSummary): Boolean {
     if (currentState == null) return false
-    return StateInspector(objectMapper).run {
-      this.getDiff(
-        intentId = intentId,
-        currentState = currentState,
-        desiredState = desiredState,
-        modelClass = Application::class,
-        specClass = BaseApplicationSpec::class,
-        currentStateFieldMutators = listOf(
-          FieldMutator("name", { it.toString().toLowerCase() })
-        )
-      ).isEmpty()
-    }
+    val stateInspector = StateInspector(objectMapper)
+    val diff = stateInspector.getDiff(
+      intentId = intentId,
+      currentState = currentState,
+      desiredState = desiredState,
+      modelClass = Application::class,
+      specClass = BaseApplicationSpec::class,
+      currentStateFieldMutators = listOf(
+        FieldMutator("name", { it.toString().toLowerCase() })
+      )
+    )
+    changeSummary.diff = diff
+    return diff.isEmpty()
+
   }
 
   private fun getApplication(name: String): Application? {

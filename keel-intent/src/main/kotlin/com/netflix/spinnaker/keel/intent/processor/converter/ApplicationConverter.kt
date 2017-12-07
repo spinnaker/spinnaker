@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.keel.intent.processor.converter
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.keel.dryrun.ChangeSummary
 import com.netflix.spinnaker.keel.front50.model.Application
 import com.netflix.spinnaker.keel.intent.ANY_MAP_TYPE
 import com.netflix.spinnaker.keel.intent.BaseApplicationSpec
@@ -55,7 +56,7 @@ class ApplicationConverter(
     TODO("not implemented ")
   }
 
-  override fun convertToJob(spec: BaseApplicationSpec): List<Job> {
+  override fun convertToJob(spec: BaseApplicationSpec, changeSummary: ChangeSummary): List<Job> {
     TODO("not implemented")
   }
 

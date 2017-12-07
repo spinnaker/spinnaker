@@ -19,15 +19,28 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.natpryce.hamkrest.equalTo
 import com.natpryce.hamkrest.isEmpty
 import com.natpryce.hamkrest.should.shouldMatch
+import com.netflix.spinnaker.hamkrest.shouldEqual
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.model.Moniker
 import com.netflix.spinnaker.keel.clouddriver.model.Network
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroup
-import com.netflix.spinnaker.keel.intent.*
+import com.netflix.spinnaker.keel.dryrun.ChangeSummary
+import com.netflix.spinnaker.keel.dryrun.ChangeType
+import com.netflix.spinnaker.keel.intent.AmazonSecurityGroupSpec
+import com.netflix.spinnaker.keel.intent.ApplicationIntent
+import com.netflix.spinnaker.keel.intent.BaseApplicationSpec
+import com.netflix.spinnaker.keel.intent.ReferenceSecurityGroupRule
+import com.netflix.spinnaker.keel.intent.SecurityGroupIntent
+import com.netflix.spinnaker.keel.intent.SecurityGroupSpec
 import com.netflix.spinnaker.keel.intent.processor.converter.SecurityGroupConverter
 import com.netflix.spinnaker.keel.tracing.TraceRepository
-import com.nhaarman.mockito_kotlin.*
+import com.nhaarman.mockito_kotlin.any
+import com.nhaarman.mockito_kotlin.doReturn
+import com.nhaarman.mockito_kotlin.doThrow
+import com.nhaarman.mockito_kotlin.mock
+import com.nhaarman.mockito_kotlin.reset
+import com.nhaarman.mockito_kotlin.whenever
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import retrofit.RetrofitError
@@ -142,6 +155,10 @@ object SecurityGroupIntentProcessorTest {
 
   @Test
   fun `should skip operation if upstream groups are missing`() {
+    val changeSummary = ChangeSummary()
+    changeSummary.type = ChangeType.FAILED_PRECONDITIONS
+    changeSummary.addMessage("Some upstream security groups are missing: [gate]")
+
     whenever(clouddriverService.getSecurityGroup("test", "aws", "gate", "us-west-2")) doThrow RetrofitError.httpError(
       "http://example.com",
       Response("http://example.com", 404, "Not Found", listOf(), null),
@@ -172,6 +189,6 @@ object SecurityGroupIntentProcessorTest {
     val result = subject.converge(intent)
 
     result.orchestrations shouldMatch isEmpty
-    result.reason shouldMatch equalTo("Some upstream security groups are missing: [gate]")
+    result.changeSummary.toString() shouldEqual changeSummary.toString()
   }
 }

@@ -22,6 +22,7 @@ import com.netflix.spectator.api.Counter
 import com.netflix.spectator.api.Id
 import com.netflix.spectator.api.Registry
 import com.netflix.spectator.api.Tag
+import com.netflix.spinnaker.hamkrest.shouldEqual
 import com.netflix.spinnaker.keel.ConvergeResult
 import com.netflix.spinnaker.keel.Intent
 import com.netflix.spinnaker.keel.IntentProcessor
@@ -30,7 +31,11 @@ import com.netflix.spinnaker.keel.IntentStatus.ACTIVE
 import com.netflix.spinnaker.keel.model.Job
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.model.Trigger
-import com.nhaarman.mockito_kotlin.*
+import com.nhaarman.mockito_kotlin.any
+import com.nhaarman.mockito_kotlin.doAnswer
+import com.nhaarman.mockito_kotlin.doReturn
+import com.nhaarman.mockito_kotlin.mock
+import com.nhaarman.mockito_kotlin.whenever
 import org.junit.jupiter.api.Test
 
 object DryRunIntentLauncherTest {
@@ -46,6 +51,10 @@ object DryRunIntentLauncherTest {
 
   @Test
   fun `should output human friendly summary of operations`() {
+    val changeSummary = ChangeSummary()
+    changeSummary.type = ChangeType.CREATE
+    changeSummary.addMessage("Waits, coming right up")
+
     whenever(processor.supports(any())) doReturn true
     whenever(processor.converge(any())) doReturn ConvergeResult(
       listOf(
@@ -60,14 +69,14 @@ object DryRunIntentLauncherTest {
           Trigger("1", "keel", "keel")
         )
       ),
-      "Raisins"
+      changeSummary
     )
 
     val intent = TestIntent("1", "Test", TestIntentSpec("hello!"))
 
     subject.launch(intent).let { result ->
       result shouldMatch isA<DryRunLaunchedIntentResult>()
-      result.reason shouldMatch equalTo("Raisins")
+      result.summary shouldEqual changeSummary
       result.steps.size shouldMatch equalTo(1)
       result.steps[0].name shouldMatch equalTo("my orchestration")
       result.steps[0].description shouldMatch equalTo("testing dry-runs")

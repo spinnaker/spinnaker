@@ -15,6 +15,7 @@
  */
 package com.netflix.spinnaker.keel
 
+import com.netflix.spinnaker.keel.dryrun.ChangeSummary
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
 
 interface IntentProcessor<in I : Intent<IntentSpec>> {
@@ -31,5 +32,5 @@ enum class ConvergeReason(val reason: String) {
 
 data class ConvergeResult(
   val orchestrations: List<OrchestrationRequest>,
-  val reason: String
+  val changeSummary: ChangeSummary = ChangeSummary()
 )

@@ -4,6 +4,7 @@ import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.model.ElasticLoadBalancer
 import com.netflix.spinnaker.keel.clouddriver.model.ElasticLoadBalancer.HealthCheck
 import com.netflix.spinnaker.keel.clouddriver.model.ElasticLoadBalancer.ListenerDescription
+import com.netflix.spinnaker.keel.dryrun.ChangeSummary
 import com.netflix.spinnaker.keel.intent.AmazonElasticLoadBalancerSpec
 import com.netflix.spinnaker.keel.intent.AvailabilityZoneConfig.Automatic
 import com.netflix.spinnaker.keel.intent.AvailabilityZoneConfig.Manual
@@ -11,7 +12,11 @@ import com.netflix.spinnaker.keel.intent.HealthCheckSpec
 import com.netflix.spinnaker.keel.intent.HealthEndpoint
 import com.netflix.spinnaker.keel.intent.LoadBalancerSpec
 import com.netflix.spinnaker.keel.model.Job
-import com.netflix.spinnaker.keel.model.Protocol.*
+import com.netflix.spinnaker.keel.model.Protocol.HTTP
+import com.netflix.spinnaker.keel.model.Protocol.HTTPS
+import com.netflix.spinnaker.keel.model.Protocol.SSL
+import com.netflix.spinnaker.keel.model.Protocol.TCP
+import com.netflix.spinnaker.keel.model.Protocol.valueOf
 import org.springframework.stereotype.Component
 
 @Component
@@ -66,7 +71,7 @@ class LoadBalancerConverter(
       )
     }
 
-  override fun convertToJob(spec: LoadBalancerSpec): List<Job> {
+  override fun convertToJob(spec: LoadBalancerSpec, changeSummary: ChangeSummary): List<Job> {
     TODO("not implemented")
   }
 

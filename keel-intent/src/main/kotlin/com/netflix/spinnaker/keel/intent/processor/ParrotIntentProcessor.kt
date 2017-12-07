@@ -15,7 +15,11 @@
  */
 package com.netflix.spinnaker.keel.intent.processor
 
-import com.netflix.spinnaker.keel.*
+import com.netflix.spinnaker.keel.ConvergeResult
+import com.netflix.spinnaker.keel.Intent
+import com.netflix.spinnaker.keel.IntentProcessor
+import com.netflix.spinnaker.keel.IntentSpec
+import com.netflix.spinnaker.keel.dryrun.ChangeSummary
 import com.netflix.spinnaker.keel.intent.ParrotIntent
 import com.netflix.spinnaker.keel.model.Job
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
@@ -34,6 +38,8 @@ class ParrotIntentProcessor
   override fun supports(intent: Intent<IntentSpec>) = intent is ParrotIntent
 
   override fun converge(intent: ParrotIntent): ConvergeResult {
+    val changeSummary = ChangeSummary()
+    changeSummary.addMessage("Squawk!")
     traceRepository.record(Trace(mapOf(), intent))
     return ConvergeResult(listOf(
       OrchestrationRequest(
@@ -45,6 +51,6 @@ class ParrotIntentProcessor
         ),
         trigger = Trigger(intent.id)
       )
-    ), ConvergeReason.CHANGED.reason)
+    ), changeSummary)
   }
 }

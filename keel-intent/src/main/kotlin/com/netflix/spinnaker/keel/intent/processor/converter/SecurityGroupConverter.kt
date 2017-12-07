@@ -19,8 +19,14 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.model.Moniker
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroup
+import com.netflix.spinnaker.keel.dryrun.ChangeSummary
 import com.netflix.spinnaker.keel.findAllSubtypes
-import com.netflix.spinnaker.keel.intent.*
+import com.netflix.spinnaker.keel.intent.AmazonSecurityGroupSpec
+import com.netflix.spinnaker.keel.intent.CrossAccountReferenceSecurityGroupRule
+import com.netflix.spinnaker.keel.intent.PortRangeSupport
+import com.netflix.spinnaker.keel.intent.ReferenceSecurityGroupRule
+import com.netflix.spinnaker.keel.intent.SecurityGroupRule
+import com.netflix.spinnaker.keel.intent.SecurityGroupSpec
 import com.netflix.spinnaker.keel.model.Job
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
@@ -109,8 +115,9 @@ class SecurityGroupConverter(
     throw NotImplementedError("Only AWS security groups are supported at the moment")
   }
 
-  override fun convertToJob(spec: SecurityGroupSpec): List<Job> {
+  override fun convertToJob(spec: SecurityGroupSpec, changeSummary: ChangeSummary): List<Job> {
     if (spec is AmazonSecurityGroupSpec) {
+      changeSummary.addMessage("Generating job for upsertSecurityGroup")
       return listOf(
         Job(
           "upsertSecurityGroup",
@@ -124,6 +131,7 @@ class SecurityGroupConverter(
             "description" to spec.description,
             "securityGroupIngress" to spec.inboundRules.flatMap {
               if (it is PortRangeSupport) {
+                changeSummary.addMessage("Adding port range support")
                 return@flatMap it.portRanges.map { ports ->
                   mutableMapOf<String, Any?>(
                     "type" to it.protocol,
@@ -132,6 +140,7 @@ class SecurityGroupConverter(
                     "name" to it.name
                   ).let { m ->
                     if (it is CrossAccountReferenceSecurityGroupRule) {
+                      changeSummary.addMessage("Adding cross account reference support account ${it.account}")
                       m["accountName"] = it.account
                       m["crossAccountEnabled"] = true
                       m["vpcId"] = clouddriverCache.networkBy(it.vpcName, spec.accountName, it.region)

@@ -24,11 +24,16 @@ import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.model.Moniker
 import com.netflix.spinnaker.keel.clouddriver.model.Network
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroup
+import com.netflix.spinnaker.keel.dryrun.ChangeSummary
 import com.netflix.spinnaker.keel.intent.AmazonSecurityGroupSpec
 import com.netflix.spinnaker.keel.intent.ReferenceSecurityGroupRule
 import com.netflix.spinnaker.keel.intent.SecurityGroupPortRange
 import com.netflix.spinnaker.keel.intent.SecurityGroupSpec
-import com.nhaarman.mockito_kotlin.*
+import com.nhaarman.mockito_kotlin.any
+import com.nhaarman.mockito_kotlin.doReturn
+import com.nhaarman.mockito_kotlin.eq
+import com.nhaarman.mockito_kotlin.mock
+import com.nhaarman.mockito_kotlin.whenever
 import org.junit.jupiter.api.Test
 
 object SecurityGroupConverterTest {
@@ -144,6 +149,7 @@ object SecurityGroupConverterTest {
 
   @Test
   fun `should convert spec to orchestration job`() {
+    val changeSummary = ChangeSummary()
     val spec = AmazonSecurityGroupSpec(
       application = "keel",
       name = "keel",
@@ -162,7 +168,7 @@ object SecurityGroupConverterTest {
       description = "app sg"
     )
 
-    val result = subject.convertToJob(spec)
+    val result = subject.convertToJob(spec,changeSummary)
 
     result.size shouldMatch equalTo(1)
     result[0]["application"] shouldMatch equalTo<Any>("keel")

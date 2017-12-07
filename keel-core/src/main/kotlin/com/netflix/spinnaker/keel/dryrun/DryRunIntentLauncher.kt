@@ -17,7 +17,11 @@ package com.netflix.spinnaker.keel.dryrun
 
 import com.netflix.spectator.api.BasicTag
 import com.netflix.spectator.api.Registry
-import com.netflix.spinnaker.keel.*
+import com.netflix.spinnaker.keel.Intent
+import com.netflix.spinnaker.keel.IntentLauncher
+import com.netflix.spinnaker.keel.IntentProcessor
+import com.netflix.spinnaker.keel.IntentSpec
+import com.netflix.spinnaker.keel.LaunchedIntentResult
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -39,8 +43,8 @@ class DryRunIntentLauncher
     val tasks = processor.converge(intent)
 
     return DryRunLaunchedIntentResult(
-      reason = tasks.reason,
-      steps = collectSteps(tasks.orchestrations)
+      steps = collectSteps(tasks.orchestrations),
+      summary = tasks.changeSummary
     )
   }
 
@@ -55,6 +59,6 @@ class DryRunIntentLauncher
 }
 
 data class DryRunLaunchedIntentResult(
-  val reason: String?,
-  val steps: List<DryRunStep>
+  val steps: List<DryRunStep>,
+  val summary: ChangeSummary
 ) : LaunchedIntentResult

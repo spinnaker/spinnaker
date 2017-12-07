@@ -18,13 +18,20 @@ package com.netflix.spinnaker.keel.scheduler.handler
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.keel.IntentActivityRepository
 import com.netflix.spinnaker.keel.IntentRepository
+import com.netflix.spinnaker.keel.dryrun.ChangeSummary
 import com.netflix.spinnaker.keel.orca.OrcaIntentLauncher
 import com.netflix.spinnaker.keel.orca.OrcaLaunchedIntentResult
 import com.netflix.spinnaker.keel.scheduler.ConvergeIntent
 import com.netflix.spinnaker.keel.test.TestIntent
 import com.netflix.spinnaker.keel.test.TestIntentSpec
 import com.netflix.spinnaker.q.Queue
-import com.nhaarman.mockito_kotlin.*
+import com.nhaarman.mockito_kotlin.doReturn
+import com.nhaarman.mockito_kotlin.mock
+import com.nhaarman.mockito_kotlin.reset
+import com.nhaarman.mockito_kotlin.verify
+import com.nhaarman.mockito_kotlin.verifyNoMoreInteractions
+import com.nhaarman.mockito_kotlin.verifyZeroInteractions
+import com.nhaarman.mockito_kotlin.whenever
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import org.springframework.context.ApplicationEventPublisher
@@ -83,7 +90,7 @@ object ConvergeIntentHandlerTest {
 
     val refreshedIntent = TestIntent(TestIntentSpec("1", mapOf("refreshed" to true)))
     whenever(intentRepository.getIntent("test:1")) doReturn refreshedIntent
-    whenever(orcaIntentLauncher.launch(refreshedIntent)) doReturn OrcaLaunchedIntentResult(listOf("one"), "mmkay")
+    whenever(orcaIntentLauncher.launch(refreshedIntent)) doReturn OrcaLaunchedIntentResult(listOf("one"), ChangeSummary())
 
     subject.handle(message)
 
