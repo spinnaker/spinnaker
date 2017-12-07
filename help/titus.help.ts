@@ -15,6 +15,7 @@ const helpContents: {[key: string]: string} = {
   'titus.deploy.efs': 'if completed, allows you to specify an EFS volume to attach to each Task that gets created for the Job',
   'titus.deploy.mountPoint': '(Required) A valid directory to mount the volume, e.g, <samp>/efs</samp>. Invalid locations are <samp>/</samp>, <samp>/data</samp>, and <samp>/logs</samp> as these are reserved directories.',
   'titus.deploy.efsId': '(Required) The EFS file system ID, e.g. <samp> fs-0208c74b</samp>.',
+  'titus.deploy.efsRelativeMountPoint': '(Optional) Relative dir within FS ID, e.g. <samp>/dirInVol</samp>',
   'titus.job.waitForCompletion': 'if unchecked, marks the stage as successful right away without waiting for the job to complete',
   'titus.bake.fromGitTrigger': 'If checked, gets git details from the specified git trigger.',
   'titus.bake.repositoryUrl': 'Url to the git repository containing the code to create the Docker image from, <samp>ssh://git@stash.corp.netflix.com:7999/SPKR/orca.git</samp> or <samp>ssh://git@github.com/spinnaker/orca.git</samp>',
