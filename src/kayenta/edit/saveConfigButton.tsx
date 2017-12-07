@@ -10,6 +10,7 @@ import { AsyncRequestState } from '../reducers/asyncRequest';
 interface ISaveButtonStateProps {
   saveConfigState: AsyncRequestState;
   inSyncWithServer: boolean;
+  disable: boolean;
 }
 
 interface ISaveButtonDispatchProps {
@@ -19,7 +20,7 @@ interface ISaveButtonDispatchProps {
 /*
  * Button for saving a canary config.
  */
-function SaveConfigButton({ saveConfigState, inSyncWithServer, saveConfig }: ISaveButtonStateProps & ISaveButtonDispatchProps) {
+function SaveConfigButton({ saveConfigState, inSyncWithServer, saveConfig, disable }: ISaveButtonStateProps & ISaveButtonDispatchProps) {
   if (inSyncWithServer && saveConfigState !== AsyncRequestState.Requesting) {
     return (
       <span className="btn btn-link disabled">
@@ -31,6 +32,7 @@ function SaveConfigButton({ saveConfigState, inSyncWithServer, saveConfig }: ISa
       <SubmitButton
         label="Save Changes"
         onClick={saveConfig}
+        isDisabled={disable}
         submitting={saveConfigState === AsyncRequestState.Requesting}
       />
     );
@@ -41,6 +43,7 @@ function mapStateToProps(state: ICanaryState): ISaveButtonStateProps {
   return {
     saveConfigState: state.selectedConfig.save.state,
     inSyncWithServer: state.selectedConfig.isInSyncWithServer,
+    disable: !!state.selectedConfig.validationErrors.length,
   };
 }
 

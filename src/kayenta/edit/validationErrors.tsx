@@ -32,7 +32,7 @@ const ConfigValidationErrors = ({ errors }: IConfigValidationErrorsStateProps) =
 
 
 const mapStateToProps = (state: ICanaryState): IConfigValidationErrorsStateProps => ({
-  errors: state.configValidationErrors,
+  errors: state.selectedConfig.validationErrors.map(e => e.message),
 });
 
 export default connect(mapStateToProps)(ConfigValidationErrors);

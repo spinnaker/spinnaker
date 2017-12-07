@@ -22,7 +22,6 @@ import { ICanaryAnalysisResult } from '../domain/ICanaryJudgeResult';
 
 export interface ICanaryState {
   app: IAppState;
-  configValidationErrors: string[];
   data: IDataState;
   selectedConfig: ISelectedConfigState;
   selectedRun: ISelectedRunState;

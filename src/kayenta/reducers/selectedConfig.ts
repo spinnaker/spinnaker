@@ -16,6 +16,7 @@ import { IGroupState, group } from './group';
 import { JudgeSelectRenderState } from '../edit/judgeSelect';
 import { UNGROUPED, ALL } from '../edit/groupTabs';
 import { AsyncRequestState } from './asyncRequest';
+import { IConfigValidationError } from './validators';
 
 export interface ILoadState {
   state: AsyncRequestState;
@@ -59,6 +60,7 @@ export interface ISelectedConfigState {
   destroy: IDestroyState;
   json: IJsonState;
   changeMetricGroup: IChangeMetricGroupState;
+  validationErrors: IConfigValidationError[];
 }
 
 const config = handleActions({
@@ -319,6 +321,7 @@ const combined = combineReducers<ISelectedConfigState>({
   thresholds,
   changeMetricGroup,
   isInSyncWithServer,
+  validationErrors: () => null,
 });
 
 // First combine all simple reducers, then apply more complex ones as needed.
