@@ -44,7 +44,7 @@ public class DockerRegistryCache {
 
     public List<String> getImages(String account) {
         return redisClientDelegate.withMultiClient(c -> {
-            return new ArrayList<>(c.keys(prefix() + ":" + ID + account + "*"));
+            return new ArrayList<>(c.keys(prefix() + ":" + ID + ":" + account + "*"));
         });
     }
 
