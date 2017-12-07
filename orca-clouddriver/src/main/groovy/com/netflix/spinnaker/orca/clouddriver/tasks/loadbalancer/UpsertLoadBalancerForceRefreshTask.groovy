@@ -38,7 +38,7 @@ public class UpsertLoadBalancerForceRefreshTask extends AbstractCloudProviderAwa
     stage.context.targets.each { Map target ->
       target.availabilityZones.keySet().each { String region ->
         cacheService.forceCacheUpdate(
-          cloudProvider, REFRESH_TYPE, [loadBalancerName: target.name, region: region, account: target.credentials]
+          cloudProvider, REFRESH_TYPE, [loadBalancerName: target.name, region: region, account: target.credentials, loadBalancerType: target.loadBalancerType]
         )
       }
     }
