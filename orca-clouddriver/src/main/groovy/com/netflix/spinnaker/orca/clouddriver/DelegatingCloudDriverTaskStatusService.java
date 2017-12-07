@@ -18,7 +18,6 @@ package com.netflix.spinnaker.orca.clouddriver;
 
 import com.netflix.spinnaker.orca.clouddriver.config.SelectableService;
 import com.netflix.spinnaker.orca.clouddriver.model.Task;
-import rx.Observable;
 
 import java.util.List;
 
@@ -31,12 +30,12 @@ public class DelegatingCloudDriverTaskStatusService
   }
 
   @Override
-  public Observable<List<Task>> listTasks() {
+  public List<Task> listTasks() {
     return getService().listTasks();
   }
 
   @Override
-  public Observable<Task> lookupTask(String id) {
+  public Task lookupTask(String id) {
     return getService().lookupTask(id);
   }
 }

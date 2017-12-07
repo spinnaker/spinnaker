@@ -35,11 +35,13 @@ interface KatoRestService {
    */
   @Deprecated
   @POST("/ops")
-  Observable<TaskId> requestOperations(@Query("clientRequestId") String clientRequestId, @Body Collection<? extends Map<String, Map>> operations)
+  TaskId requestOperations(@Query("clientRequestId") String clientRequestId,
+                           @Body Collection<? extends Map<String, Map>> operations)
 
   @POST("/{cloudProvider}/ops")
-  Observable<TaskId> requestOperations(@Query("clientRequestId") String clientRequestId, @Path("cloudProvider") String cloudProvider,
-                                       @Body Collection<? extends Map<String, Map>> operations)
+  TaskId requestOperations(@Query("clientRequestId") String clientRequestId,
+                           @Path("cloudProvider") String cloudProvider,
+                           @Body Collection<? extends Map<String, Map>> operations)
 
   @POST("/applications/{app}/jobs/{account}/{region}/{id}")
   Response collectJob(@Path("app") String app,

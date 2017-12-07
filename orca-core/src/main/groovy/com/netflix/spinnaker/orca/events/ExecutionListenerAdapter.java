@@ -22,7 +22,10 @@ import com.netflix.spinnaker.orca.listeners.ExecutionListener;
 import com.netflix.spinnaker.orca.listeners.Persister;
 import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
+import org.slf4j.MDC;
 import org.springframework.context.ApplicationListener;
+
+import static com.netflix.spinnaker.security.AuthenticatedRequest.SPINNAKER_EXECUTION_ID;
 
 /**
  * Adapts events emitted by the nu-orca queue to an old-style listener.
@@ -40,11 +43,17 @@ public final class ExecutionListenerAdapter implements ApplicationListener<Execu
   }
 
   @Override public void onApplicationEvent(ExecutionEvent event) {
-    if (event instanceof ExecutionStarted) {
-      onExecutionStarted((ExecutionStarted) event);
-    } else if (event instanceof ExecutionComplete) {
-      onExecutionComplete((ExecutionComplete) event);
+    try {
+      MDC.put(SPINNAKER_EXECUTION_ID, event.getExecutionId());
+      if (event instanceof ExecutionStarted) {
+        onExecutionStarted((ExecutionStarted) event);
+      } else if (event instanceof ExecutionComplete) {
+        onExecutionComplete((ExecutionComplete) event);
+      }
+    } finally {
+      MDC.remove(SPINNAKER_EXECUTION_ID);
     }
+
   }
 
   private void onExecutionStarted(ExecutionStarted event) {

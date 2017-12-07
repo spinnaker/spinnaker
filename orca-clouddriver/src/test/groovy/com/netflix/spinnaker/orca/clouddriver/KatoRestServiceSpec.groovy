@@ -72,7 +72,7 @@ class KatoRestServiceSpec extends Specification {
     def operation = [:]
 
     expect: "kato should return the details of the task it created"
-    with(service.requestOperations(UUID.randomUUID().toString(), [operation]).toBlocking().first()) {
+    with(service.requestOperations(UUID.randomUUID().toString(), [operation])) {
       it.id == taskId
     }
   }
@@ -88,7 +88,7 @@ class KatoRestServiceSpec extends Specification {
     }
 
     expect:
-    with(taskStatusService.lookupTask(taskId).toBlocking().first()) {
+    with(taskStatusService.lookupTask(taskId)) {
       id == taskId
       status.completed
       status.failed

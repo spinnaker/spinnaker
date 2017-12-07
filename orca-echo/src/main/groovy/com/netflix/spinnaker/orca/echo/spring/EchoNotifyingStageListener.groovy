@@ -25,9 +25,12 @@ import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
+import org.slf4j.MDC
 import org.springframework.beans.factory.annotation.Autowired
 import static com.netflix.spinnaker.orca.ExecutionStatus.*
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.ORCHESTRATION
+import static com.netflix.spinnaker.security.AuthenticatedRequest.SPINNAKER_EXECUTION_ID
+import static com.netflix.spinnaker.security.AuthenticatedRequest.SPINNAKER_USER
 import static java.lang.System.currentTimeMillis
 
 /**
@@ -73,10 +76,10 @@ class EchoNotifyingStageListener implements StageListener {
 
   @Override
   void afterTask(Persister persister,
-                                          Stage stage,
-                                          Task task,
-                                          ExecutionStatus executionStatus,
-                                          boolean wasSuccessful) {
+                 Stage stage,
+                 Task task,
+                 ExecutionStatus executionStatus,
+                 boolean wasSuccessful) {
     if (executionStatus == RUNNING) {
       return
     }
@@ -87,7 +90,7 @@ class EchoNotifyingStageListener implements StageListener {
   @Override
   @CompileDynamic
   void afterStage(Persister persister,
-                                           Stage stage) {
+                  Stage stage) {
     if (stage.endTime) {
       if (stage.context.stageDetails == null) {
         stage.context.stageDetails = [:]
@@ -137,7 +140,15 @@ class EchoNotifyingStageListener implements StageListener {
       maybeTask.ifPresent { Task task ->
         event.content.taskName = "${stage.type}.${task.name}".toString()
       }
-      echoService.recordEvent(event)
+
+      try {
+        MDC.put(SPINNAKER_EXECUTION_ID, stage.execution.id);
+        MDC.put(SPINNAKER_USER, stage.execution?.authentication?.user ?: "anonymous")
+        echoService.recordEvent(event)
+      } finally {
+        MDC.remove(SPINNAKER_EXECUTION_ID)
+        MDC.remove(SPINNAKER_USER)
+      }
     } catch (Exception e) {
       log.error("Failed to send ${type} event ${phase} ${stage.execution.id} ${maybeTask.map { Task task -> task.name }}", e)
     }

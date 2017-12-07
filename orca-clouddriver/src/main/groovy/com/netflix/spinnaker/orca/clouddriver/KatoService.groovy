@@ -33,19 +33,19 @@ class KatoService {
 
   Observable<TaskId> requestOperations(Collection<? extends Map<String, Map>> operations) {
     String clientRequestId = UUID.randomUUID().toString()
-    katoRestService.requestOperations(clientRequestId, operations)
+    return Observable.from(katoRestService.requestOperations(clientRequestId, operations))
   }
 
   Observable<TaskId> requestOperations(String cloudProvider, Collection<? extends Map<String, Map>> operations) {
     String clientRequestId = UUID.randomUUID().toString()
-    katoRestService.requestOperations(clientRequestId, cloudProvider, operations)
+    return Observable.from(katoRestService.requestOperations(clientRequestId, cloudProvider, operations))
   }
 
   Observable<List<Task>> listTasks() {
-    cloudDriverTaskStatusService.listTasks()
+    return Observable.from(cloudDriverTaskStatusService.listTasks())
   }
 
   Observable<Task> lookupTask(String id) {
-    cloudDriverTaskStatusService.lookupTask(id)
+    return Observable.from(cloudDriverTaskStatusService.lookupTask(id))
   }
 }

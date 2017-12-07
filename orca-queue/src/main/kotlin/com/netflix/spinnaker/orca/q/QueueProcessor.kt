@@ -51,21 +51,14 @@ class QueueProcessor(
         registry.counter(pollSkippedNoCapacity).increment()
       } else {
         registry.counter(pollOpsRateId).increment()
-        queue.poll { message, ack ->
+        queue.pollWithContext { message, ack ->
           log.info("Received message $message")
           val handler = handlerFor(message)
           if (handler != null) {
             try {
-              queueExecutor.execute {
-                try {
-                  if (message is ExecutionLevel) {
-                    MDC.put(SPINNAKER_EXECUTION_ID, message.executionId)
-                  }
-                  handler.invoke(message)
-                  ack.invoke()
-                } finally {
-                  MDC.remove(SPINNAKER_EXECUTION_ID)
-                }
+              queueExecutor.executeWithContext {
+                handler.invoke(message)
+                ack.invoke()
               }
             } catch (e: RejectedExecutionException) {
               log.warn("Executor at capacity, immediately re-queuing message", e)
@@ -91,6 +84,31 @@ class QueueProcessor(
           .find { it.messageType.isAssignableFrom(message.javaClass) }
           ?.also { handlerCache[message.javaClass] = it }
       }
+
+  private fun Queue.pollWithContext(callback: QueueCallback) {
+    this.poll({ message, ack ->
+      try {
+        if (message is ExecutionLevel) {
+          MDC.put(SPINNAKER_EXECUTION_ID, message.executionId)
+        }
+        callback.invoke(message, ack)
+      } finally {
+        MDC.remove(SPINNAKER_EXECUTION_ID)
+      }
+    })
+  }
+
+  private fun QueueExecutor<*>.executeWithContext(callback: () -> Unit) {
+    val executionId = MDC.get(SPINNAKER_EXECUTION_ID)
+    this.execute({
+      try {
+        MDC.put(SPINNAKER_EXECUTION_ID, executionId)
+        callback.invoke()
+      } finally {
+        MDC.remove(SPINNAKER_EXECUTION_ID)
+      }
+    })
+  }
 
   @PostConstruct fun confirmQueueType() =
     log.info("Using ${queue.javaClass.simpleName} queue")
