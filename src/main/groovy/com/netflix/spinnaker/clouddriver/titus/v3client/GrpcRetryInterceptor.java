@@ -20,10 +20,7 @@ import io.grpc.*;
 import io.grpc.internal.SharedResourceHolder;
 
 import javax.annotation.Nullable;
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Queue;
-import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -67,7 +64,6 @@ public class GrpcRetryInterceptor implements ClientInterceptor {
     private int retries = 0;
     private long backOff = 100;
     private int maxRetries = 8;
-    private final Set<Status.Code> retryOnStatuses = new HashSet<>(Arrays.asList(Status.Code.UNAVAILABLE, Status.Code.RESOURCE_EXHAUSTED, Status.Code.DEADLINE_EXCEEDED));
 
     RetryingCall(MethodDescriptor<ReqT, RespT> method,
                  CallOptions callOptions, Channel channel, Context context) {
@@ -132,8 +128,9 @@ public class GrpcRetryInterceptor implements ClientInterceptor {
         return;
       }
 
-      Status.Code code = status.getCode();
-      if (!retryOnStatuses.contains(code)) {
+      // retries all methods that start with find but nothing else
+      if (extractSimpleMethodName(method.getFullMethodName()).startsWith("find") ||
+        extractSimpleMethodName(method.getFullMethodName()).startsWith("get")) {
         AttemptListener latest = latestResponse;
         if (latest != null) {
           useResponse(latest);
@@ -208,5 +205,10 @@ public class GrpcRetryInterceptor implements ClientInterceptor {
         responseListener.onReady();
       }
     }
+  }
+
+  public static String extractSimpleMethodName(String fullMethodName) {
+    int pos = fullMethodName.indexOf("/");
+    return pos > -1 ? fullMethodName.substring(pos + 1) : fullMethodName;
   }
 }
