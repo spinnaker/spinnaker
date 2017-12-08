@@ -220,8 +220,6 @@ class Annotator(object):
       # We didn't manually specify, but want to force a rebuild of the old tag.
       elif self.__force_rebuild:
         self.__tag_head_with_build(self.__current_version.tag)
-        run_quick('git -C {path} tag {next_tag} HEAD'
-                  .format(path=self.path, next_tag=self.__current_version.tag))
         return VersionBump(self.__current_version.tag, self.get_head_commit(), patch=True)
       # Else fail.
       else:
