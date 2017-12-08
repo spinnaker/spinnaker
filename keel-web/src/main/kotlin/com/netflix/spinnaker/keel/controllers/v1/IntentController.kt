@@ -15,7 +15,11 @@
  */
 package com.netflix.spinnaker.keel.controllers.v1
 
-import com.netflix.spinnaker.keel.*
+import com.netflix.spinnaker.keel.Intent
+import com.netflix.spinnaker.keel.IntentActivityRepository
+import com.netflix.spinnaker.keel.IntentRepository
+import com.netflix.spinnaker.keel.IntentSpec
+import com.netflix.spinnaker.keel.IntentStatus
 import com.netflix.spinnaker.keel.dryrun.DryRunIntentLauncher
 import com.netflix.spinnaker.keel.event.AfterIntentDeleteEvent
 import com.netflix.spinnaker.keel.event.AfterIntentUpsertEvent
@@ -25,7 +29,13 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.http.HttpStatus
-import org.springframework.web.bind.annotation.*
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestMethod
+import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.web.bind.annotation.ResponseStatus
+import org.springframework.web.bind.annotation.RestController
 import javax.ws.rs.QueryParam
 
 @RestController
@@ -62,13 +72,15 @@ class IntentController
       return req.intents.map { dryRunIntentLauncher.launch(it) }
     }
 
+    val intentList = mutableListOf<UpsertIntentResponse>()
+
     req.intents.forEach { intent ->
       intentRepository.upsertIntent(intent)
+      intentList.add(UpsertIntentResponse(intent.id, intent.status))
       applicationEventPublisher.publishEvent(AfterIntentUpsertEvent(intent))
     }
 
-    // TODO rz - what to return here?
-    return req
+    return intentList
   }
 
   @RequestMapping(value = "/{id}", method = arrayOf(RequestMethod.DELETE))
@@ -93,3 +105,7 @@ class IntentController
   fun getIntentTrace(@PathVariable("id") id: String) = traceRepository.getForIntent(id)
 }
 
+data class UpsertIntentResponse(
+  val intentId: String,
+  val intentStatus: IntentStatus
+)
