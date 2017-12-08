@@ -459,6 +459,24 @@ class KubernetesApiConverter {
       containerBuilder = containerBuilder.withEnv(envVars)
     }
 
+    if (container.envFrom) {
+      def envFrom = container.envFrom.collect { envFrom ->
+        def res = (new EnvFromSourceBuilder()).withPrefix(envFrom.prefix ?: '')
+        if (envFrom.configMapRef) {
+          def configMapRef = envFrom.configMapRef
+          res = res.withNewConfigMapRef(configMapRef.name, configMapRef.optional)
+        } else if (envFrom.secretRef) {
+          def secretRef = envFrom.secretRef
+          res = res.withNewSecretRef(secretRef.name, secretRef.optional)
+        } else {
+          return null
+        }
+        return res.build()
+      } - null
+
+      containerBuilder.withEnvFrom(envFrom)
+    }
+
     if (container.command) {
       containerBuilder = containerBuilder.withCommand(container.command)
     }
@@ -577,6 +595,20 @@ class KubernetesApiConverter {
           return null
         }
         result.envSource = source
+      } else {
+        return null
+      }
+      return result
+    } - null
+
+    containerDescription.envFrom = container?.envFrom?.collect { envFrom ->
+      def result = new KubernetesEnvFromSource(prefix: envFrom.prefix)
+      if (envFrom.configMapRef) {
+        def source = envFrom.configMapRef
+        result.configMapRef = new KubernetesConfigMapEnvSource(name: source.name, optional: source.optional ?: false)
+      } else if (envFrom.secretRef) {
+        def source = envFrom.secretRef
+        result.secretRef = new KubernetesSecretEnvSource(name: source.name, optional: source.optional ?: false)
       } else {
         return null
       }
