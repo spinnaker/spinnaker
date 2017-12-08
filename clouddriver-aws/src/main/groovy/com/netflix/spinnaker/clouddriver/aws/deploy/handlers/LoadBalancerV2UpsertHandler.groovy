@@ -34,9 +34,9 @@ import com.amazonaws.services.elasticloadbalancingv2.model.DescribeTargetGroupsR
 import com.amazonaws.services.elasticloadbalancingv2.model.Listener
 import com.amazonaws.services.elasticloadbalancingv2.model.ListenerNotFoundException
 import com.amazonaws.services.elasticloadbalancingv2.model.LoadBalancer
+import com.amazonaws.services.elasticloadbalancingv2.model.LoadBalancerNotFoundException
 import com.amazonaws.services.elasticloadbalancingv2.model.Matcher
 import com.amazonaws.services.elasticloadbalancingv2.model.ModifyListenerRequest
-import com.amazonaws.services.elasticloadbalancingv2.model.ModifyListenerResult
 import com.amazonaws.services.elasticloadbalancingv2.model.ModifyTargetGroupAttributesRequest
 import com.amazonaws.services.elasticloadbalancingv2.model.ModifyTargetGroupRequest
 import com.amazonaws.services.elasticloadbalancingv2.model.ResourceInUseException
@@ -296,15 +296,9 @@ class LoadBalancerV2UpsertHandler {
 
     // Get the state of this load balancer from aws
     List<TargetGroup> existingTargetGroups = []
-    if (targetGroups.size() > 0) {
-      try {
-        existingTargetGroups = loadBalancing.describeTargetGroups(new DescribeTargetGroupsRequest().withNames(targetGroups.collect { it.name }))?.targetGroups
-      } catch (TargetGroupNotFoundException ignore) {
-        // If a subset of the target groups requested does not exist, actually returns the target groups that do exist
-        // If none of the target groups requested exist, throws an exception instead.
-      }
-    }
-
+    existingTargetGroups = loadBalancing.describeTargetGroups(
+      new DescribeTargetGroupsRequest().withLoadBalancerArn(loadBalancer.loadBalancerArn)
+    )?.targetGroups
 
     List<Listener> existingListeners = loadBalancing.describeListeners(new DescribeListenersRequest().withLoadBalancerArn(loadBalancerArn))?.listeners
     Map<Listener, List<Rule>> existingListenerToRules = existingListeners.collectEntries { listener ->

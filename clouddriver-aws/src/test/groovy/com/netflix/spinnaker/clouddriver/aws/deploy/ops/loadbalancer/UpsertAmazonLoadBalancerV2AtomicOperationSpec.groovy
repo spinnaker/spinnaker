@@ -129,7 +129,7 @@ class UpsertAmazonLoadBalancerV2AtomicOperationSpec extends Specification {
       loadBalancerArn: loadBalancerArn,
       securityGroups: ["sg-1234"]
     ))
-    1 * loadBalancing.describeTargetGroups(new DescribeTargetGroupsRequest(names: [targetGroupName])) >> new DescribeTargetGroupsResult(targetGroups: existingTargetGroups)
+    1 * loadBalancing.describeTargetGroups(new DescribeTargetGroupsRequest(loadBalancerArn: loadBalancerArn)) >> new DescribeTargetGroupsResult(targetGroups: existingTargetGroups)
     1 * loadBalancing.createTargetGroup(_ as CreateTargetGroupRequest) >> new CreateTargetGroupResult(targetGroups: [targetGroup])
     1 * loadBalancing.modifyTargetGroupAttributes(_ as ModifyTargetGroupAttributesRequest)
     1 * loadBalancing.describeListeners(new DescribeListenersRequest(loadBalancerArn: loadBalancerArn)) >> new DescribeListenersResult(listeners: existingListeners)
@@ -153,7 +153,7 @@ class UpsertAmazonLoadBalancerV2AtomicOperationSpec extends Specification {
       loadBalancerArn: loadBalancerArn,
       securityGroups: ["sg-1234"]
     ))
-    1 * loadBalancing.describeTargetGroups(new DescribeTargetGroupsRequest(names: [targetGroupName])) >> new DescribeTargetGroupsResult(targetGroups: existingTargetGroups)
+    1 * loadBalancing.describeTargetGroups(new DescribeTargetGroupsRequest(loadBalancerArn: loadBalancerArn)) >> new DescribeTargetGroupsResult(targetGroups: existingTargetGroups)
     1 * loadBalancing.createTargetGroup(_ as CreateTargetGroupRequest) >> new CreateTargetGroupResult(targetGroups: [targetGroup])
     1 * loadBalancing.modifyTargetGroupAttributes(_ as ModifyTargetGroupAttributesRequest)
     1 * loadBalancing.describeListeners(new DescribeListenersRequest(loadBalancerArn: loadBalancerArn)) >> new DescribeListenersResult(listeners: existingListeners)
@@ -177,7 +177,7 @@ class UpsertAmazonLoadBalancerV2AtomicOperationSpec extends Specification {
       loadBalancerArn: loadBalancerArn,
       securityGroups: ["sg-1234"]
     ))
-    1 * loadBalancing.describeTargetGroups(new DescribeTargetGroupsRequest(names: [targetGroupName])) >> new DescribeTargetGroupsResult(targetGroups: existingTargetGroups)
+    1 * loadBalancing.describeTargetGroups(new DescribeTargetGroupsRequest(loadBalancerArn: loadBalancerArn)) >> new DescribeTargetGroupsResult(targetGroups: existingTargetGroups)
     1 * loadBalancing.modifyTargetGroup(_ as ModifyTargetGroupRequest)
     1 * loadBalancing.modifyTargetGroupAttributes(_ as ModifyTargetGroupAttributesRequest)
     1 * loadBalancing.describeListeners(new DescribeListenersRequest(loadBalancerArn: loadBalancerArn)) >> new DescribeListenersResult(listeners: existingListeners)
@@ -201,7 +201,7 @@ class UpsertAmazonLoadBalancerV2AtomicOperationSpec extends Specification {
       loadBalancerArn: loadBalancerArn,
       securityGroups: ["sg-1234"]
     ))
-    1 * loadBalancing.describeTargetGroups(new DescribeTargetGroupsRequest(names: [targetGroupName])) >> new DescribeTargetGroupsResult(targetGroups: existingTargetGroups)
+    1 * loadBalancing.describeTargetGroups(new DescribeTargetGroupsRequest(loadBalancerArn: loadBalancerArn)) >> new DescribeTargetGroupsResult(targetGroups: existingTargetGroups)
     1 * loadBalancing.deleteTargetGroup(new DeleteTargetGroupRequest(targetGroupArn: targetGroupArn))
     1 * loadBalancing.createTargetGroup(_ as CreateTargetGroupRequest) >> new CreateTargetGroupResult(targetGroups: [targetGroup])
     1 * loadBalancing.modifyTargetGroupAttributes(_ as ModifyTargetGroupAttributesRequest)
@@ -227,7 +227,7 @@ class UpsertAmazonLoadBalancerV2AtomicOperationSpec extends Specification {
       loadBalancerArn: loadBalancerArn,
       securityGroups: ["sg-1234"]
     ))
-    1 * loadBalancing.describeTargetGroups(new DescribeTargetGroupsRequest(names: [targetGroupName])) >> new DescribeTargetGroupsResult(targetGroups: existingTargetGroups)
+    1 * loadBalancing.describeTargetGroups(new DescribeTargetGroupsRequest(loadBalancerArn: loadBalancerArn)) >> new DescribeTargetGroupsResult(targetGroups: existingTargetGroups)
     1 * loadBalancing.deleteTargetGroup(new DeleteTargetGroupRequest(targetGroupArn: targetGroupArn))
     1 * loadBalancing.createTargetGroup(_ as CreateTargetGroupRequest) >> new CreateTargetGroupResult(targetGroups: [targetGroup])
     1 * loadBalancing.modifyTargetGroupAttributes(_ as ModifyTargetGroupAttributesRequest)
@@ -251,7 +251,7 @@ class UpsertAmazonLoadBalancerV2AtomicOperationSpec extends Specification {
     1 * loadBalancing.describeLoadBalancers(new DescribeLoadBalancersRequest(names: ["foo-main-frontend"])) >>
       new DescribeLoadBalancersResult(loadBalancers: existingLoadBalancers)
     1 * loadBalancing.setSecurityGroups(new SetSecurityGroupsRequest(loadBalancerArn: loadBalancerArn, securityGroups: ["sg-1234"]))
-    1 * loadBalancing.describeTargetGroups(new DescribeTargetGroupsRequest(names: [targetGroupName])) >> new DescribeTargetGroupsResult(targetGroups: existingTargetGroups)
+    1 * loadBalancing.describeTargetGroups(new DescribeTargetGroupsRequest(loadBalancerArn: loadBalancerArn)) >> new DescribeTargetGroupsResult(targetGroups: existingTargetGroups)
     1 * loadBalancing.deleteTargetGroup(new DeleteTargetGroupRequest(targetGroupArn: targetGroupArn))
     1 * loadBalancing.createTargetGroup(_ as CreateTargetGroupRequest) >> new CreateTargetGroupResult(targetGroups: [targetGroup])
     1 * loadBalancing.modifyTargetGroupAttributes(_ as ModifyTargetGroupAttributesRequest)
@@ -287,7 +287,7 @@ class UpsertAmazonLoadBalancerV2AtomicOperationSpec extends Specification {
       loadBalancerArn: loadBalancerArn,
       securityGroups: ["sg-1234"]
     ))
-    1 * loadBalancing.describeTargetGroups(new DescribeTargetGroupsRequest(names: [targetGroupName])) >> new DescribeTargetGroupsResult(targetGroups: existingTargetGroups)
+    1 * loadBalancing.describeTargetGroups(new DescribeTargetGroupsRequest(loadBalancerArn: loadBalancerArn)) >> new DescribeTargetGroupsResult(targetGroups: existingTargetGroups)
     1 * loadBalancing.createTargetGroup(_ as CreateTargetGroupRequest) >> new CreateTargetGroupResult(targetGroups: [targetGroup])
     1 * loadBalancing.modifyTargetGroupAttributes(_ as ModifyTargetGroupAttributesRequest)
     1 * loadBalancing.describeListeners(new DescribeListenersRequest(loadBalancerArn: loadBalancerArn)) >> new DescribeListenersResult(listeners: existingListeners)
