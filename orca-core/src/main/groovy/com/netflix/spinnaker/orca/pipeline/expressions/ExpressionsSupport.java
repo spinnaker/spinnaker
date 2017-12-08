@@ -314,25 +314,32 @@ public class ExpressionsSupport {
           String region = (String) stage.getContext().get("region");
           if (region == null) {
             Map<String, Object> availabilityZones = (Map<String, Object>) stage.getContext().get("availabilityZones");
-            region = availabilityZones.keySet().iterator().next();
+            if (availabilityZones != null) {
+              region = availabilityZones.keySet().iterator().next();
+            }
           }
 
-          Map<String, Object> deployDetails = new HashMap<>();
-          deployDetails.put("account", stage.getContext().get("account"));
-          deployDetails.put("capacity", stage.getContext().get("capacity"));
-          deployDetails.put("parentStage", stage.getContext().get("parentStage"));
-          deployDetails.put("region", region);
-          List<Map> existingDetails = (List<Map>) stage.getContext().get("deploymentDetails");
-          if (existingDetails != null) {
-            existingDetails
-              .stream()
-              .filter(d -> deployDetails.get("region").equals(d.get("region")))
-              .forEach(deployDetails::putAll);
-          }
+          if (region != null) {
+            Map<String, Object> deployDetails = new HashMap<>();
+            deployDetails.put("account", stage.getContext().get("account"));
+            deployDetails.put("capacity", stage.getContext().get("capacity"));
+            deployDetails.put("parentStage", stage.getContext().get("parentStage"));
+            deployDetails.put("region", region);
+            List<Map> existingDetails = (List<Map>) stage.getContext().get("deploymentDetails");
+            if (existingDetails != null) {
+              existingDetails
+                .stream()
+                .filter(d -> deployDetails.get("region").equals(d.get("region")))
+                .forEach(deployDetails::putAll);
+            }
 
-          List<Map> serverGroups = (List<Map>) ((Map) stage.getContext().get("deploy.server.groups")).get(region);
-          deployDetails.put("serverGroup", serverGroups.get(0));
-          deployedServerGroups.add(deployDetails);
+            List<Map> serverGroups = (List<Map>) ((Map) stage.getContext().get("deploy.server.groups")).get(region);
+            if (serverGroups != null) {
+              deployDetails.put("serverGroup", serverGroups.get(0));
+            }
+
+            deployedServerGroups.add(deployDetails);
+          }
         });
 
       return deployedServerGroups;
