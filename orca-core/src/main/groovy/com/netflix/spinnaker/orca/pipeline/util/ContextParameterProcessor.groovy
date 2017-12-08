@@ -41,7 +41,7 @@ class ContextParameterProcessor {
     expressionEvaluator = new PipelineExpressionEvaluator(contextFunctionConfiguration)
   }
 
-  Map<String, Object> process(Map<String, Object> source, Map<String, Object> context, boolean allowUnknownKeys) {
+  Map<String, Object> process(Map<String, Object> source, Map<String, Object> context, boolean allowUnknownKeys = true) {
     if (!source) {
       return [:]
     }

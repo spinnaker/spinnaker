@@ -65,10 +65,7 @@ class EchoNotifyingExecutionListener implements ExecutionListener {
             type       : "orca:${execution.type}:starting".toString(),
             application: execution.application,
           ],
-          content: [
-            execution  : execution,
-            executionId: execution.id
-          ]
+          content: buildContent(execution)
         )
       }
     } catch (Exception e) {
@@ -93,10 +90,7 @@ class EchoNotifyingExecutionListener implements ExecutionListener {
             type       : "orca:${execution.type}:${wasSuccessful ? "complete" : "failed"}".toString(),
             application: execution.application,
           ],
-          content: [
-            execution  : execution,
-            executionId: execution.id
-          ]
+          content: buildContent(execution)
         )
       }
     } catch (Exception e) {
@@ -150,4 +144,13 @@ class EchoNotifyingExecutionListener implements ExecutionListener {
     }
   }
 
+  private Map<String, Object> buildContent(Execution execution) {
+    return contextParameterProcessor.process(
+      [execution: execution] as Map<String, Object>,
+      [
+        execution: execution,
+        executionId: execution.id
+      ] as Map<String, Object>
+    )
+  }
 }
