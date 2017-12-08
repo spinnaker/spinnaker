@@ -146,11 +146,11 @@ class EchoNotifyingExecutionListener implements ExecutionListener {
 
   private Map<String, Object> buildContent(Execution execution) {
     return contextParameterProcessor.process(
-      [execution: execution] as Map<String, Object>,
       [
         execution: execution,
         executionId: execution.id
-      ] as Map<String, Object>
+      ] as Map<String, Object>,
+      [execution: execution] as Map<String, Object>
     )
   }
 }
