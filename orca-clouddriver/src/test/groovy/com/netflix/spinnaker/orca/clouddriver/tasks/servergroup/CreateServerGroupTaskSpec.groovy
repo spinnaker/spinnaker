@@ -147,14 +147,17 @@ class CreateServerGroupTaskSpec extends Specification {
     KatoService katoService = Mock(KatoService)
     MortService mortService = Mock(MortService)
     def deployRegion = "us-east-1"
-    def parentGlobalContext = [
+    def parentDeploymentDetails = [
       deploymentDetails: [
         ["imageId": "parent-ami", "ami": "parent-ami", "region": deployRegion]
       ]
     ]
     def parentPipeline = pipeline {
       name = "parent"
-      context.putAll(parentGlobalContext)
+      stage {
+        type = "someStage"
+        outputs.putAll(parentDeploymentDetails)
+      }
     }
 
     def childPipeline = pipeline {
@@ -206,7 +209,7 @@ class CreateServerGroupTaskSpec extends Specification {
     KatoService katoService = Mock(KatoService)
     MortService mortService = Mock(MortService)
     def deployRegion = "us-east-1"
-    def grandparentGlobalContext = [
+    def grandparentDeploymentDetails = [
       deploymentDetails: [
         ["imageId": "grandparent-ami", "ami": "grandparent-ami", "region": deployRegion]
       ]
@@ -216,8 +219,10 @@ class CreateServerGroupTaskSpec extends Specification {
       isPipeline     : true,
       parentExecution: mapper.convertValue(pipeline {
         name = "grandparent"
-        context = grandparentGlobalContext
-        stage { type = "someStage1" }
+        stage {
+          type = "someStage1"
+          outputs.putAll(grandparentDeploymentDetails)
+        }
         stage { type = "someStage2" }
       }, Map)
     ]
@@ -398,14 +403,17 @@ class CreateServerGroupTaskSpec extends Specification {
     KatoService katoService = Mock(KatoService)
     MortService mortService = Mock(MortService)
     def deployRegion = "us-east-1"
-    def parentGlobalContext = [
+    def parentDeploymentDetails = [
       deploymentDetails: [
         ["imageId": "parent-ami", "ami": "parent-ami", "region": deployRegion]
       ]
     ]
     def parentPipeline = pipeline {
       name = "parent"
-      context = parentGlobalContext
+      stage {
+        type = "someStage"
+        outputs.putAll(parentDeploymentDetails)
+      }
     }
 
     def pipelineStage = buildStageForPipeline(parentPipeline, "pipeline")

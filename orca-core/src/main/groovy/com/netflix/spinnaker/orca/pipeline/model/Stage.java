@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.pipeline.model;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.*;
+import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import com.fasterxml.jackson.annotation.JsonBackReference;
@@ -34,10 +35,40 @@ import com.netflix.spinnaker.orca.listeners.StageTaskPropagationListener;
 import static com.netflix.spinnaker.orca.ExecutionStatus.NOT_STARTED;
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE;
 import static java.lang.String.format;
+import static java.lang.String.join;
 import static java.util.Collections.*;
 import static java.util.stream.Collectors.toList;
 
 public class Stage implements Serializable {
+
+  /**
+   * Sorts stages into order according to their refIds / requisiteStageRefIds.
+   */
+  public static Stream<Stage> topologicalSort(Collection<Stage> stages) {
+    List<Stage> unsorted = stages.stream().filter(it -> it.parentStageId == null).collect(toList());
+    ImmutableList.Builder<Stage> sorted = ImmutableList.builder();
+    Set<String> refIds = new HashSet<>();
+    while (!unsorted.isEmpty()) {
+      List<Stage> sortable = unsorted.stream()
+        .filter(it -> refIds.containsAll(it.getRequisiteStageRefIds()))
+        .collect(toList());
+      if (sortable.isEmpty()) {
+        throw new IllegalStateException(
+          format(
+            "Invalid stage relationships found %s",
+            join(", ", stages.stream().map(it -> format("%s->%s", it.requisiteStageRefIds, it.refId)).collect(toList()))
+          )
+        );
+      }
+      sortable
+        .forEach(it -> {
+          unsorted.remove(it);
+          refIds.add(it.refId);
+          sorted.add(it);
+        });
+    }
+    return sorted.build().stream();
+  }
 
   public Stage() {}
 
@@ -328,9 +359,9 @@ public class Stage implements Serializable {
     } else if (parentStageId != null) {
       return execution.getStages().stream().filter(it -> it.id.equals(parentStageId)).findFirst()
         .<List<Stage>>map(parent -> ImmutableList
-        .<Stage>builder()
-        .add(parent)
-        .addAll(parent.ancestorsOnly())
+          .<Stage>builder()
+          .add(parent)
+          .addAll(parent.ancestorsOnly())
           .build())
         .orElse(emptyList());
     } else {

@@ -30,7 +30,6 @@ class PipelineBuilder {
 
   PipelineBuilder(String application, Registry registry) {
     this(application)
-    pipeline.context = new AlertOnAccessMap(pipeline, registry)
   }
 
   PipelineBuilder(String application) {
@@ -117,12 +116,6 @@ class PipelineBuilder {
 
   PipelineBuilder withId(id = UUID.randomUUID().toString()) {
     pipeline.id = id
-    return this
-  }
-
-  PipelineBuilder withGlobalContext(Map<String, Object> context) {
-    pipeline.context.clear()
-    pipeline.context.putAll(context)
     return this
   }
 

@@ -151,10 +151,14 @@ trait DeploymentDetailsAware {
     def deploymentDetails = (stage.context.deploymentDetails ?: []) as List<Map>
 
     if (!deploymentDetails) {
-      // If no deployment details were found in the stage context, check the global context of each pipeline up the tree.
+      // If no deployment details were found in the stage context, check outputs of each stage of each pipeline up the tree.
       List<Execution> pipelineExecutions = getPipelineExecutions(stage.execution)
 
-      deploymentDetails = pipelineExecutions?.findResult { it?.context?.deploymentDetails }
+      deploymentDetails = pipelineExecutions.findResult { execution ->
+        execution.stages.findResult {
+          it.outputs.deploymentDetails
+        }
+      }
     }
 
     if (deploymentDetails) {

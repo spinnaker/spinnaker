@@ -34,6 +34,7 @@ import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptySet;
+import static java.util.stream.Collectors.toMap;
 
 public class Execution implements Serializable {
 
@@ -147,15 +148,18 @@ public class Execution implements Serializable {
     this.keepWaitingPipelines = keepWaitingPipelines;
   }
 
-  private Map<String, Object> context = new HashMap<>();
-
   @Deprecated
+  @JsonIgnore
   public @Nonnull Map<String, Object> getContext() {
-    return context;
-  }
-
-  public void setContext(@Nonnull Map<String, Object> context) {
-    this.context = context;
+    return Stage.topologicalSort(stages)
+      .map(Stage::getOutputs)
+      .map(Map::entrySet)
+      .flatMap(Collection::stream)
+      .collect(toMap(
+        Map.Entry::getKey,
+        Map.Entry::getValue,
+        (o, o2) -> o2
+      ));
   }
 
   private final List<Stage> stages = new ArrayList<>();

@@ -21,7 +21,6 @@ import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import spock.lang.Specification
 import spock.lang.Subject
-import spock.lang.Unroll
 
 class AmazonServerGroupCreatorSpec extends Specification {
 
@@ -191,45 +190,5 @@ class AmazonServerGroupCreatorSpec extends Specification {
     then:
     operations.size() == 2
     operations[0].containsKey("allowLaunchDescription")
-  }
-
-  @Unroll
-  def "prefers the deployment details from an upstream stage to one from global context"() {
-    given:
-    def deployRegion = "us-east-1"
-    stage.context.amiName = null
-    stage.execution.context.deploymentDetails = [
-        ["ami": "not-my-ami", "region": deployRegion, cloudProvider: "aws"],
-        ["ami": "also-not-my-ami", "region": deployRegion, cloudProvider: "aws"]
-    ]
-
-    and:
-    def findImageStage =
-      new Stage(stage.execution, "findImage", [regions: [deployRegion], amiDetails: [[ami: amiName]], cloudProvider: cloudProvider])
-    findImageStage.id = UUID.randomUUID()
-    findImageStage.refId = "1a"
-    stage.execution.stages << findImageStage
-
-    def intermediateStage = new Stage(stage.execution, "whatever")
-    intermediateStage.id = UUID.randomUUID()
-    intermediateStage.refId = "1b"
-    stage.execution.stages << intermediateStage
-
-    and:
-    intermediateStage.requisiteStageRefIds = [findImageStage.refId]
-    stage.requisiteStageRefIds = [intermediateStage.refId]
-
-    when:
-    def operations = creator.getOperations(stage)
-
-    then:
-    operations.find {
-      it.containsKey("createServerGroup")
-    }.createServerGroup.amiName == amiName
-
-    where:
-    amiName                    | cloudProvider
-    "ami-name-from-find-image" | "aws"
-    "ami-name-from-find-image" | null
   }
 }

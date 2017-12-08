@@ -306,48 +306,6 @@ class CreateDeployTaskSpec extends Specification {
     amiName = "ami-name-from-bake"
   }
 
-  def "prefers the deployment details from an upstream stage to one from global context"() {
-    given:
-    stage.context.amiName = null
-    def operations = []
-    task.kato = Stub(KatoService) {
-      requestOperations(*_) >> {
-        operations.addAll(it[1].flatten())
-        Observable.from(taskId)
-      }
-    }
-    stage.execution.context.deploymentDetails = [
-      ["ami": "not-my-ami", "region": deployRegion, cloudProvider: "aws"],
-      ["ami": "also-not-my-ami", "region": deployRegion, cloudProvider: "aws"]
-    ]
-
-    and:
-    def findImageStage = new Stage(stage.execution, "findImage", [regions: [deployRegion], amiDetails: [[ami: amiName]], cloudProvider: "aws"])
-    findImageStage.id = UUID.randomUUID()
-    findImageStage.refId = "1a"
-    stage.execution.stages << findImageStage
-
-    def intermediateStage = new Stage(stage.execution, "whatever")
-    intermediateStage.id = UUID.randomUUID()
-    intermediateStage.refId = "1b"
-    stage.execution.stages << intermediateStage
-
-    and:
-    intermediateStage.requisiteStageRefIds = [findImageStage.refId]
-    stage.requisiteStageRefIds = [intermediateStage.refId]
-
-    when:
-    task.execute(stage)
-
-    then:
-    operations.find {
-      it.containsKey("createServerGroup")
-    }.createServerGroup.amiName == amiName
-
-    where:
-    amiName = "ami-name-from-find-image"
-  }
-
   def "finds the image from an upstream stage matching the cloud provider"() {
     given:
     stage.context.amiName = null

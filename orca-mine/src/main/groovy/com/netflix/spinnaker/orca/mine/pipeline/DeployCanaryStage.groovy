@@ -180,7 +180,7 @@ class DeployCanaryStage extends ParallelDeployStage implements CloudProviderAwar
             }
           }
           if (!cluster.amiName) {
-            def ami = deployStage.execution.context.deploymentDetails.find {
+            def ami = deployStage.outputs.deploymentDetails.find {
               it.region == region
             }
 

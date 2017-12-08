@@ -24,6 +24,7 @@ import spock.lang.Specification
 import spock.lang.Unroll
 import static com.netflix.spinnaker.orca.pipeline.util.PackageType.DEB
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
+import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
 
 class PackageInfoSpec extends Specification {
 
@@ -77,32 +78,30 @@ class PackageInfoSpec extends Specification {
   @Unroll
   def "If no artifacts in current build info, find from first ancestor that does"() {
     given:
-    def pipeline = Execution.newPipeline("orca")
-    def ancestorStages = inputFileNames.collect {
-      new Stage(
-        execution: pipeline,
-        refId: it,
-        context: [
-          buildInfo: [
+    def pipeline = pipeline {
+      inputFileNames.eachWithIndex { name, i ->
+        stage {
+          refId = "$i"
+          outputs["buildInfo"] = [
             artifacts: [
-              [fileName: "${it}.deb"],
-              [fileName: "${it}.war"],
+              [fileName: "${name}.deb"],
+              [fileName: "${name}.war"],
               [fileName: "build.properties"]
             ],
             url      : "http://localhost",
             name     : "testBuildName",
             number   : "1"
           ]
-        ]
-      )
+        }
+      }
+      stage {
+        refId = "${inputFileNames.size()}"
+        context["package"] = "testPackageName"
+        requisiteStageRefIds = inputFileNames.indices*.toString()
+      }
     }
-    Stage quipStage = new Stage(pipeline, "type", "name", [buildInfo: [name: "someName"], package: "testPackageName"]).with {
-      it.requisiteStageRefIds = ancestorStages.refId
-      return it
-    }
-    (ancestorStages + [quipStage]).each {
-      pipeline.stages << it
-    }
+
+    def quipStage = pipeline.stages.last()
 
     PackageInfo packageInfo =
       new PackageInfo(quipStage, DEB.packageType, DEB.versionDelimiter, true, false, new ObjectMapper())
@@ -214,12 +213,19 @@ class PackageInfoSpec extends Specification {
 
   def "findTargetPackage: bake execution with only a package set and jenkins stage artifacts"() {
     given:
-    Stage bakeStage = new Stage()
-    def pipeline = Execution.newPipeline("orca")
-    pipeline.context << [buildInfo: [artifacts: [[fileName: "api_1.1.1-h02.sha123_all.deb"]]]]
-    bakeStage.execution = pipeline
-    bakeStage.context = [package: 'api']
-
+    def pipeline = pipeline {
+      stage {
+        refId = "1"
+        type = "jenkins"
+        outputs["buildInfo"] = [artifacts: [[fileName: "api_1.1.1-h02.sha123_all.deb"]]]
+      }
+      stage {
+        refId = "2"
+        requisiteStageRefIds = ["1"]
+        context["package"] = "api"
+      }
+    }
+    def bakeStage = pipeline.stageByRef("2")
 
     PackageType packageType = DEB
     ObjectMapper objectMapper = new ObjectMapper()
@@ -236,7 +242,6 @@ class PackageInfoSpec extends Specification {
     given:
     Stage bakeStage = new Stage()
     def pipeline = Execution.newPipeline("orca")
-    pipeline.context << [buildInfo: [artifacts: [[fileName: "api_1.1.1-h03.sha123_all.deb"]]]]
     bakeStage.execution = pipeline
     bakeStage.context = [package: '']
 
@@ -254,11 +259,19 @@ class PackageInfoSpec extends Specification {
 
   def "findTargetPackage: stage execution instance of Pipeline with no trigger"() {
     given:
-    Stage quipStage = new Stage()
-    def pipeline = Execution.newPipeline("orca")
-    pipeline.context << [buildInfo: [artifacts: [[fileName: "api_1.1.1-h01.sha123_all.deb"]]]]
-    quipStage.execution = pipeline
-    quipStage.context = [package: 'api']
+    def pipeline = pipeline {
+      stage {
+        refId = "1"
+        type = "jenkins"
+        outputs["buildInfo"] = [artifacts: [[fileName: "api_1.1.1-h01.sha123_all.deb"]]]
+      }
+      stage {
+        refId = "2"
+        requisiteStageRefIds = ["1"]
+        context["package"] = "api"
+      }
+    }
+    def quipStage = pipeline.stageByRef("2")
 
     PackageType packageType = DEB
     ObjectMapper objectMapper = new ObjectMapper()
@@ -274,11 +287,19 @@ class PackageInfoSpec extends Specification {
   @Unroll
   def "findTargetPackage: matched packages are always allowed"() {
     given:
-    Stage quipStage = new Stage()
-    def pipeline = Execution.newPipeline("orca")
-    pipeline.context << [buildInfo: [artifacts: [[fileName: "api_1.1.1-h01.sha123_all.deb"]]]]
-    quipStage.execution = pipeline
-    quipStage.context = ['package': "api"]
+    def pipeline = pipeline {
+      stage {
+        refId = "1"
+        type = "jenkins"
+        outputs["buildInfo"] = [artifacts: [[fileName: "api_1.1.1-h01.sha123_all.deb"]]]
+      }
+      stage {
+        refId = "2"
+        requisiteStageRefIds = ["1"]
+        context["package"] = "api"
+      }
+    }
+    def quipStage = pipeline.stageByRef("2")
 
     PackageType packageType = DEB
     ObjectMapper objectMapper = new ObjectMapper()
@@ -299,11 +320,14 @@ class PackageInfoSpec extends Specification {
   @Unroll
   def "findTargetPackage: allowing unmatched packages is guarded by the allowMissingPackageInstallation flag"() {
     given:
-    Stage quipStage = new Stage()
-    def pipeline = Execution.newPipeline("orca")
-    pipeline.context << [buildInfo: [artifacts: [[fileName: "api_1.1.1-h01.sha123_all.deb"]]]]
-    quipStage.execution = pipeline
-    quipStage.context = ['package': "another_package"]
+    def pipeline = pipeline {
+      trigger["buildInfo"] = [artifacts: [[fileName: "api_1.1.1-h01.sha123_all.deb"]]]
+      stage {
+        refId = "1"
+        context["package"] = "another_package"
+      }
+    }
+    def quipStage = pipeline.stageByRef("1")
 
     PackageType packageType = DEB
     ObjectMapper objectMapper = new ObjectMapper()
@@ -326,7 +350,7 @@ class PackageInfoSpec extends Specification {
     where:
     allowMissingPackageInstallation || expectedException || expectedMessage
     true                            || false             || null
-    false                           || true              || "Unable to find deployable artifact starting with [another_package_] and ending with .deb in [[fileName:api_1.1.1-h01.sha123_all.deb]] and null. Make sure your deb package file name complies with the naming convention: name_version-release_arch."
+    false                           || true              || "Unable to find deployable artifact starting with [another_package_] and ending with .deb in null and [[fileName:api_1.1.1-h01.sha123_all.deb]]. Make sure your deb package file name complies with the naming convention: name_version-release_arch."
   }
 
   def "findTargetPackage: stage execution instance of Pipeline with trigger and no buildInfo"() {

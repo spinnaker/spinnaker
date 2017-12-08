@@ -224,7 +224,9 @@ class RunTaskHandler(
   private val blacklistGlobalKeys = setOf(
     "propertyIdList",
     "originalProperties",
-    "propertyAction"
+    "propertyAction",
+    "propertyAction",
+    "deploymentDetails"
   )
 
   private fun Stage.processTaskOutput(result: TaskResult) {

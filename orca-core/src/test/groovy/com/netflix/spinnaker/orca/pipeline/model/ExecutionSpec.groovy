@@ -19,9 +19,11 @@ package com.netflix.spinnaker.orca.pipeline.model
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import org.apache.log4j.MDC
 import spock.lang.Specification
+import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
+import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
 
 class ExecutionSpec extends Specification {
-  void "should return Optional.empty if no authenticated details available"() {
+  def "should return Optional.empty if no authenticated details available"() {
     given:
     MDC.clear()
 
@@ -29,7 +31,7 @@ class ExecutionSpec extends Specification {
     !Execution.AuthenticationDetails.build().present
   }
 
-  void "should build AuthenticationDetails containing authenticated details"() {
+  def "should build AuthenticationDetails containing authenticated details"() {
     given:
     MDC.clear()
     MDC.put(AuthenticatedRequest.SPINNAKER_USER, "SpinnakerUser")
@@ -41,5 +43,37 @@ class ExecutionSpec extends Specification {
     then:
     authenticationDetails.user == "SpinnakerUser"
     authenticationDetails.allowedAccounts == ["Account1", "Account2"] as Set
+  }
+
+  def "should calculate context from outputs of all stages"() {
+    given:
+    def pipeline = pipeline {
+      stage {
+        refId = "3"
+        requisiteStageRefIds = ["1", "2"]
+        outputs["covfefe"] = "covfefe-3"
+        outputs["foo"] = "foo-3"
+        outputs["baz"] = "baz-3"
+      }
+      stage {
+        refId = "1"
+        outputs["foo"] = "foo-1"
+        outputs["bar"] = "bar-1"
+      }
+      stage {
+        refId = "2"
+        outputs["baz"] = "foo-2"
+        outputs["qux"] = "qux-2"
+      }
+    }
+
+    expect:
+    with(pipeline.context) {
+      foo == "foo-3"
+      bar == "bar-1"
+      baz == "baz-3"
+      qux == "qux-2"
+      covfefe == "covfefe-3"
+    }
   }
 }

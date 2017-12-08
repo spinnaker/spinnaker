@@ -478,7 +478,6 @@ open class QueueIntegrationTest {
   fun `can resolve expressions in stage contexts`() {
     val pipeline = pipeline {
       application = "spinnaker"
-      context["global"] = "foo"
       stage {
         refId = "1"
         type = "dummy"
@@ -491,7 +490,6 @@ open class QueueIntegrationTest {
       }
     }
     repository.store(pipeline)
-    repository.storeExecutionContext(pipeline.id, pipeline.context)
 
     whenever(dummyTask.timeout) doReturn 2000L
     whenever(dummyTask.execute(any())) doReturn TaskResult(SUCCEEDED, mapOf("output" to "foo"))

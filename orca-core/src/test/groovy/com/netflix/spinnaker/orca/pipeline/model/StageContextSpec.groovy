@@ -24,11 +24,6 @@ import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
 class StageContextSpec extends Specification {
 
   def pipeline = pipeline {
-    context.foo = "global-foo"
-    context.bar = "global-bar"
-    context.baz = "global-baz"
-    context.qux = "global-qux"
-    context.fnord = "global-fnord"
     stage {
       refId = "1"
       outputs.foo = "root-foo"

@@ -55,7 +55,6 @@ class PackageInfo {
   public Map findTargetPackage(boolean allowMissingPackageInstallation) {
     Map requestMap = [:]
     // copy the context since we may modify it in createAugmentedRequest
-    requestMap.putAll(stage.execution.context)
     requestMap.putAll(stage.context)
 
     if (stage.execution.type == PIPELINE) {
@@ -110,8 +109,8 @@ class PackageInfo {
     // There might not be a request.package so we look for the package name from either the buildInfo or trigger
     //
     String reqPkg = request.package ?:
-                    buildArtifacts?.first()?.fileName?.split(versionDelimiter)?.first() ?:
-                      triggerArtifacts?.first()?.fileName?.split(versionDelimiter)?.first()
+      buildArtifacts?.first()?.fileName?.split(versionDelimiter)?.first() ?:
+        triggerArtifacts?.first()?.fileName?.split(versionDelimiter)?.first()
 
     List<String> requestPackages = reqPkg.split(" ")
 
@@ -176,7 +175,7 @@ class PackageInfo {
   }
 
   @CompileDynamic
-  Map getArtifactSourceBuildInfo(Map trigger){
+  Map getArtifactSourceBuildInfo(Map trigger) {
     if (trigger?.buildInfo?.artifacts) {
       return trigger.buildInfo
     }
@@ -194,7 +193,8 @@ class PackageInfo {
   @CompileDynamic
   private String extractPackageVersion(Map artifact, String filePrefix, String fileExtension) {
     String version = artifact.fileName.substring(artifact.fileName.indexOf(filePrefix) + filePrefix.length(), artifact.fileName.lastIndexOf(fileExtension))
-    if (version.contains(versionDelimiter)) { // further strip in case of _all is in the file name
+    if (version.contains(versionDelimiter)) {
+      // further strip in case of _all is in the file name
       version = version.substring(0, version.indexOf(versionDelimiter))
     }
     return version
@@ -224,14 +224,16 @@ class PackageInfo {
     }
   }
 
-  private static Map findBuildInfoInUpstreamStage(Stage currentStage, Pattern packageFilePattern) {
+  private
+  static Map findBuildInfoInUpstreamStage(Stage currentStage, Pattern packageFilePattern) {
     def upstreamStage = currentStage.ancestors().find {
-      artifactMatch(it.context.buildInfo?.artifacts as List<Map<String, String>>, packageFilePattern)
+      artifactMatch(it.outputs.buildInfo?.artifacts as List<Map<String, String>>, packageFilePattern)
     }
-    return upstreamStage ? upstreamStage.context.buildInfo as Map : null
+    return upstreamStage ? upstreamStage.outputs.buildInfo as Map : null
   }
 
-  private static boolean artifactMatch(List<Map<String, String>> artifacts, Pattern pattern) {
+  private
+  static boolean artifactMatch(List<Map<String, String>> artifacts, Pattern pattern) {
     artifacts?.find {
       Map artifact -> pattern.matcher(artifact.get('fileName') as String ?: "").matches()
     }
