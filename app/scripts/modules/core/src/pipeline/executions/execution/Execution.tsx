@@ -29,7 +29,7 @@ export interface IExecutionProps {
   execution: IExecution;
   showStageDuration?: boolean;
   standalone?: boolean;
-  title?: string;
+  title?: string | JSX.Element;
   dataSourceKey?: string;
   showAccountLabels?: boolean;
 }
@@ -169,12 +169,12 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
 
     const { execution, application } = this.props;
     const { executionService, schedulerFactory } = ReactInjector;
-    if (execution.isRunning && !this.props.standalone) {
+    if (!this.props.standalone && this.shouldRefresh(execution)) {
       // TODO: This component should not be handling the refreshing itself; it should just be listening.
       this.activeRefresher = schedulerFactory.createScheduler(1000 * Math.ceil(execution.stages.length / 10));
       let refreshing = false;
       this.activeRefresher.subscribe(() => {
-        if (refreshing || !execution.isRunning) {
+        if (refreshing || !this.shouldRefresh(execution)) {
           return;
         }
         refreshing = true;
@@ -208,6 +208,10 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
     this.runningTime.reset();
     if (this.activeRefresher) { this.activeRefresher.unsubscribe(); }
     this.stateChangeSuccessSubscription.unsubscribe();
+  }
+
+  private shouldRefresh(execution: IExecution): boolean {
+    return execution.isRunning && execution.stages.some(s => s.isRunning && s.type !== 'manualJudgment');
   }
 
   private handleNodeClick(node: IPipelineGraphNode, subIndex: number): void {

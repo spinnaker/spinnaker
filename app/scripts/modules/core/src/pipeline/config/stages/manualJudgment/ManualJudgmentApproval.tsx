@@ -46,7 +46,7 @@ export class ManualJudgmentApproval extends React.Component<IManualJudgmentAppro
   private judgmentMade(): void {
     // do not update the submitting state - the reload of the executions will clear it out; otherwise,
     // there is a flash on the screen when we go from submitting to not submitting to the buttons not being there.
-    this.props.application.getDataSource('executions').refresh();
+    this.props.application.activeState.refresh(true);
     this.setState({ submitting: false });
   }
 
