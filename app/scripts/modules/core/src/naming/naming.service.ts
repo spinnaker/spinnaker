@@ -103,8 +103,7 @@ export class NamingService {
   }
 
   public getMoniker(app: string, stack: string, detail: string): IMoniker {
-    const cluster = this.getClusterName(app, stack, detail);
-    return { app, stack, detail, cluster };
+    return { app, stack, detail };
   }
 }
 
