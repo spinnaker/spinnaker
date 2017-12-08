@@ -2,10 +2,12 @@
 
 const angular = require('angular');
 
-import {KUBERNETES_LIFECYCLE_HOOK_CONFIGURER} from './lifecycleHook.component';
+import { KUBERNETES_LIFECYCLE_HOOK_CONFIGURER } from './lifecycleHook.component';
+import { KUBERNETES_CONTAINER_ENVIRONMENT_FROM } from './environmentFrom.component';
 
 module.exports = angular.module('spinnaker.kubernetes.container.configurer.directive', [
   KUBERNETES_LIFECYCLE_HOOK_CONFIGURER,
+  KUBERNETES_CONTAINER_ENVIRONMENT_FROM,
 ]).directive('kubernetesContainerConfigurer', function () {
     return {
       restrict: 'E',
