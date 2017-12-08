@@ -177,7 +177,7 @@ class GoogleZonalServerGroupCachingAgent extends AbstractGoogleCachingAgent impl
 
       executedAtLeastOnce = true
       nextPageToken = instanceTemplateList.getNextPageToken()
-      instanceTemplates.addAll(instanceTemplateList.getItems())
+      instanceTemplates.addAll(instanceTemplateList.getItems() ?: [])
     }
     return instanceTemplates
   }
