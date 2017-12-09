@@ -182,6 +182,7 @@ table.instances {
 
 .rollup-title-cell {
   flex: 1;
+  min-width: 0;
   display: flex;
   height: 36px;
   line-height: 36px;
@@ -189,6 +190,7 @@ table.instances {
   color: var(--color-primary);
   .pod-center {
     flex: 1 1 auto;
+    min-width: 0;
     display: flex;
     justify-content: space-between;
     background-color: var(--color-accent-g2);
@@ -196,6 +198,11 @@ table.instances {
     border-right: 1px solid var(--color-alabaster);
     border-left: 1px solid var(--color-alabaster);
     font-weight: 600;
+    > div {
+      white-space: nowrap;
+      overflow-x: hidden;
+      text-overflow: ellipsis;
+    }
   }
   .health-counts {
     flex: 0 0 auto;
