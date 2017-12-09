@@ -26,9 +26,10 @@ class KubernetesEnvironmentFromCtrl implements IController {
   public sourceTypes: string[] = [CONFIGMAP_TYPE, SECRET_TYPE];
 
   public $onInit(): void {
-    if (!this.envFrom ) {
+    if (!this.envFrom) {
       this.envFrom = [];
     }
+
     this.mapEnvFromSourceTypes();
   }
 
@@ -69,7 +70,7 @@ class KubernetesEnvironmentFromCtrl implements IController {
 
 class KubernetesContainerEnvironmentFrom implements IComponentOptions {
   public bindings: any = {
-    envFrom: '<'
+    envFrom: '='
   };
   public templateUrl = require('./environmentFrom.component.html');
   public controller: any = KubernetesEnvironmentFromCtrl;
