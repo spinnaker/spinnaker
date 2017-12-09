@@ -18,7 +18,6 @@ package com.netflix.spinnaker.orca.kato.pipeline.support
 
 import com.netflix.frigga.autoscaling.AutoScalingGroupNameBuilder
 import com.netflix.spinnaker.moniker.Moniker
-import org.apache.commons.lang3.StringUtils
 
 class StageData {
   String strategy
@@ -48,7 +47,7 @@ class StageData {
 
   String getCluster() {
     if (moniker?.cluster) {
-      return StringUtils.stripEnd(moniker.cluster, "-")
+      return moniker.cluster
     } else {
       def builder = new AutoScalingGroupNameBuilder()
       builder.appName = application
