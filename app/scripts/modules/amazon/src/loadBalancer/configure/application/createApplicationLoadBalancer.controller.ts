@@ -50,8 +50,8 @@ class CreateApplicationLoadBalancerCtrl extends CreateAmazonLoadBalancerCtrl {
   };
 
   public existingLoadBalancerNames: string[];
-  public viewState: ICreateAmazonLoadBalancerViewState;
   public existingTargetGroupNames: string[];
+  public viewState: ICreateAmazonLoadBalancerViewState;
   public loadBalancerCommand: IAmazonApplicationLoadBalancerUpsertCommand;
 
   constructor($scope: IScope,
@@ -91,9 +91,9 @@ class CreateApplicationLoadBalancerCtrl extends CreateAmazonLoadBalancerCtrl {
       this.loadBalancerCommand = this.awsLoadBalancerTransformer.constructNewApplicationLoadBalancerTemplate(this.application);
     }
     if (this.isNew) {
-      this.updateLoadBalancerNames();
       this.initializeCreateMode();
     }
+    this.updateLoadBalancerNames();
   }
 
   protected updateLoadBalancerNames(): void {
@@ -113,7 +113,7 @@ class CreateApplicationLoadBalancerCtrl extends CreateAmazonLoadBalancerCtrl {
             if (!this.loadBalancer || lb.name !== this.loadBalancer.name) {
               lb.targetGroups.forEach((targetGroup) => {
                 accountTargetGroupsByRegion[loadBalancer.region] = accountTargetGroupsByRegion[loadBalancer.region] ||  [];
-                accountTargetGroupsByRegion[loadBalancer.region].push(targetGroup.name);
+                accountTargetGroupsByRegion[loadBalancer.region].push(this.modifyTargetGroupName(targetGroup.name, false));
               });
             }
           }

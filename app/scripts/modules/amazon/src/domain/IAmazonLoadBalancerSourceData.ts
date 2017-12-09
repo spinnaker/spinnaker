@@ -44,6 +44,7 @@ export interface IAmazonLoadBalancerSourceData extends ILoadBalancerSourceData {
   createdTime: number;
   dnsname: string;
   loadBalancerName: string;
+  loadBalancerType?: string;
   name: string;
   region: string;
   scheme: 'internal' | 'internet-facing';
