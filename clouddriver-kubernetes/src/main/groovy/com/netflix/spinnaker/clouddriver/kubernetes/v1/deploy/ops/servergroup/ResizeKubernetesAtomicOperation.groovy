@@ -117,13 +117,7 @@ class ResizeKubernetesAtomicOperation implements AtomicOperation<Void> {
         credentials.apiClientAdaptor.resizeStatefulSet(serverGroupName, namespace, size)
       }
     } else if (description.kind == KubernetesUtil.CONTROLLERS_DAEMONSET_KIND) {
-      if (size != 0) {
-        throw new KubernetesOperationException("Only support scale down the DaemoneSet.")
-      }
-      def deployedControllerSet = credentials.clientApiAdaptor.getDaemonSet(serverGroupName, namespace)
-      if (deployedControllerSet) {
-        credentials.apiClientAdaptor.deleteDaemonSetPod(serverGroupName, namespace, deployedControllerSet)
-      }
+      throw new KubernetesOperationException("Not support resizing DaemoneSet.")
     }
 
     task.updateStatus BASE_PHASE, "Completed resize operation."

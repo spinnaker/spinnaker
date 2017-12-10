@@ -25,6 +25,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v1.api.KubernetesApiConverte
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.api.KubernetesClientApiConverter
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.description.autoscaler.KubernetesAutoscalerDescription
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.description.servergroup.DeployKubernetesAtomicOperationDescription
+import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.exception.KubernetesClientOperationException
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.exception.KubernetesOperationException
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.exception.KubernetesResourceNotFoundException
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.security.KubernetesV1Credentials
@@ -34,6 +35,7 @@ import io.fabric8.kubernetes.api.model.extensions.DeploymentBuilder
 import io.fabric8.kubernetes.api.model.extensions.DeploymentFluentImpl
 import io.fabric8.kubernetes.api.model.extensions.DoneableDeployment
 import io.fabric8.kubernetes.api.model.extensions.ReplicaSetBuilder
+import io.kubernetes.client.models.V1Pod
 
 class DeployKubernetesAtomicOperation implements AtomicOperation<DeploymentResult> {
   private static final String BASE_PHASE = "DEPLOY"
@@ -198,6 +200,9 @@ class DeployKubernetesAtomicOperation implements AtomicOperation<DeploymentResul
       if (deployedControllerSet) {
         task.updateStatus BASE_PHASE, "Update stateful set ${controllerName}"
         controllerSet = credentials.clientApiAdaptor.replaceStatfulSet(controllerName, namespace, controllerSet)
+        if (description.updateController?.updateStrategy?.type.name() == "Recreate") {
+          deletePods(credentials, namespace, controllerSet)
+        }
       } else {
         task.updateStatus BASE_PHASE, "Deployed stateful set ${controllerName}"
         controllerSet = credentials.clientApiAdaptor.createStatfulSet(namespace, controllerSet)
@@ -213,7 +218,7 @@ class DeployKubernetesAtomicOperation implements AtomicOperation<DeploymentResul
       def autoscaler = KubernetesClientApiConverter.toAutoscaler(new KubernetesAutoscalerDescription(controllerName, description), controllerName, description.kind)
 
       if (credentials.clientApiAdaptor.getAutoscaler(namespace, controllerName)) {
-        credentials.clientApiAdaptor.deleteAutoscaler(namespace, controllerName,null,null,null)
+        credentials.clientApiAdaptor.deleteAutoscaler(namespace, controllerName, null, null, null, true)
       }
       credentials.clientApiAdaptor.createAutoscaler(namespace, autoscaler)
     }
@@ -224,15 +229,14 @@ class DeployKubernetesAtomicOperation implements AtomicOperation<DeploymentResul
   def deployDaemonSet(KubernetesV1Credentials credentials, String controllerName, String clusterName, String namespace, boolean canUpdated) {
     task.updateStatus BASE_PHASE, "Building daemon set..."
     def controllerSet = KubernetesClientApiConverter.toDaemonSet(description, controllerName)
-
     if (canUpdated) {
       def deployedControllerSet = credentials.clientApiAdaptor.getDaemonSet(controllerName, namespace)
       if (deployedControllerSet) {
         task.updateStatus BASE_PHASE, "Update daemon set ${controllerName}"
-        if (description.updateController?.updateStrategy?.type.name() == "Recreate") {
-          deployedControllerSet = credentials.clientApiAdaptor.deleteDaemonSetPod(controllerName, namespace, deployedControllerSet)
-        }
         controllerSet = credentials.clientApiAdaptor.replaceDaemonSet(controllerName, namespace, controllerSet)
+        if (description.updateController?.updateStrategy?.type.name() == "Recreate") {
+          deletePods(credentials, namespace, controllerSet)
+        }
       } else {
         task.updateStatus BASE_PHASE, "Deployed daemon set ${controllerName}"
         controllerSet = credentials.clientApiAdaptor.createDaemonSet(namespace, controllerSet)
@@ -243,5 +247,36 @@ class DeployKubernetesAtomicOperation implements AtomicOperation<DeploymentResul
     }
 
     return controllerSet
+  }
+
+  void deletePods(KubernetesV1Credentials credentials, String namespace, def controllerSet) {
+    Map<String, String> podNameList = new LinkedHashMap<String, String>()
+
+    credentials.clientApiAdaptor.getPods(namespace, controllerSet.metadata.labels).items.forEach({ item ->
+      podNameList.put(item.metadata.name, item.metadata.uid)
+    })
+
+    def getPodState = null
+    podNameList.toSorted(Map.Entry.comparingByKey().reversed()).forEach ({ k, v ->
+      credentials.clientApiAdaptor.deletePod(k, namespace, null, null, null, false)
+
+      getPodState = {
+        V1Pod pod = credentials.clientApiAdaptor.getPodStatus(k, namespace)
+        if (pod) {
+          if (v != pod.metadata?.uid && pod.status?.phase == "Running") {
+            return true
+          }
+        } else {
+          if (controllerSet.kind == KubernetesUtil.CONTROLLERS_DAEMONSET_KIND) {
+            return true
+          }
+        }
+        return false
+      }
+
+      if (!credentials.clientApiAdaptor.blockUntilResourceConsistent(getPodState)) {
+        throw new KubernetesClientOperationException("Failed to launch a new pod($k) for ServerGroup $controllerSet.metadata.name in $namespace.")
+      }
+    })
   }
 }

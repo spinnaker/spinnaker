@@ -109,7 +109,7 @@ class DestroyKubernetesAtomicOperation implements AtomicOperation<Void> {
             throw new KubernetesOperationException("Failed to delete associated autoscaler $autoscalerName in $namespace.")
           }
         }
-        credentials.apiClientAdaptor.deleteStatefulSetNotCascade(serverGroupName, namespace, null, null, null)
+        credentials.apiClientAdaptor.hardDestroyStatefulSet(serverGroupName, namespace, null, null, null)
         break
       case KubernetesUtil.CONTROLLERS_DAEMONSET_KIND:
         credentials.apiClientAdaptor.hardDestroyDaemonSet(serverGroupName, namespace, null, null, null)
