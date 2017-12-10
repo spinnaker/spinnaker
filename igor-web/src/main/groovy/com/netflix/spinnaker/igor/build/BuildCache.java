@@ -15,6 +15,7 @@
  */
 package com.netflix.spinnaker.igor.build;
 
+import com.netflix.spinnaker.igor.AbstractRedisCache;
 import com.netflix.spinnaker.igor.IgorConfigurationProperties;
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,36 +31,33 @@ import java.util.stream.Collectors;
  * Shared cache of build details
  */
 @Service
-public class BuildCache {
+public class BuildCache extends AbstractRedisCache {
 
     private final static String ID = "builds";
 
-    private final RedisClientDelegate redisClientDelegate;
     private final IgorConfigurationProperties igorConfigurationProperties;
 
     @Autowired
     public BuildCache(RedisClientDelegate redisClientDelegate,
                       IgorConfigurationProperties igorConfigurationProperties) {
-        this.redisClientDelegate = redisClientDelegate;
+        super(redisClientDelegate);
         this.igorConfigurationProperties = igorConfigurationProperties;
     }
 
     public List<String> getJobNames(String master) {
-        List<String> jobs = redisClientDelegate.withMultiClient(c -> {
-            return c.keys(baseKey() + ":completed:" + master + ":*").stream()
-                .map(BuildCache::extractJobName)
-                .collect(Collectors.toList());
-        });
+        List<String> jobs = scanAll(baseKey() + ":completed:" + master + ":*")
+            .stream()
+            .map(BuildCache::extractJobName)
+            .collect(Collectors.toList());
         jobs.sort(Comparator.naturalOrder());
         return jobs;
     }
 
     public List<String> getTypeaheadResults(String search) {
-        List<String> results = redisClientDelegate.withMultiClient(c -> {
-            return c.keys(baseKey() + ":*:*:*" + search.toUpperCase() + "*:*").stream()
-                .map(BuildCache::extractTypeaheadResult)
-                .collect(Collectors.toList());
-        });
+        List<String> results = scanAll(baseKey() + ":*:*:*" + search.toUpperCase() + "*:*")
+            .stream()
+            .map(BuildCache::extractTypeaheadResult)
+            .collect(Collectors.toList());
         results.sort(Comparator.naturalOrder());
         return results;
     }
@@ -94,11 +92,10 @@ public class BuildCache {
     }
 
     public List<String> getDeprecatedJobNames(String master) {
-        List<String> jobs = redisClientDelegate.withMultiClient(c -> {
-            return c.keys(baseKey() + ":" + master + ":*").stream()
-                .map(BuildCache::extractDeprecatedJobName)
-                .collect(Collectors.toList());
-        });
+        List<String> jobs = scanAll(baseKey() + ":" + master + ":*")
+            .stream()
+            .map(BuildCache::extractDeprecatedJobName)
+            .collect(Collectors.toList());
         jobs.sort(Comparator.naturalOrder());
         return jobs;
     }

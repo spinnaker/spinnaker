@@ -15,6 +15,7 @@
  */
 package com.netflix.spinnaker.igor.jenkins;
 
+import com.netflix.spinnaker.igor.AbstractRedisCache;
 import com.netflix.spinnaker.igor.IgorConfigurationProperties;
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,36 +31,33 @@ import java.util.stream.Collectors;
  * Shared cache of build details for jenkins
  */
 @Service
-public class JenkinsCache {
+public class JenkinsCache extends AbstractRedisCache {
 
     private static final String POLL_STAMP = "lastPollCycleTimestamp";
 
-    private final RedisClientDelegate redisClientDelegate;
     private final IgorConfigurationProperties igorConfigurationProperties;
 
     @Autowired
     public JenkinsCache(RedisClientDelegate redisClientDelegate,
                         IgorConfigurationProperties igorConfigurationProperties) {
-        this.redisClientDelegate = redisClientDelegate;
+        super(redisClientDelegate);
         this.igorConfigurationProperties = igorConfigurationProperties;
     }
 
     public List<String> getJobNames(String master) {
-        List<String> jobs = redisClientDelegate.withMultiClient(c -> {
-            return c.keys(prefix() + ":" + master + ":*").stream()
-                .map(JenkinsCache::extractJobName)
-                .collect(Collectors.toList());
-        });
+        List<String> jobs = scanAll(prefix() + ":" + master + ":*")
+            .stream()
+            .map(JenkinsCache::extractJobName)
+            .collect(Collectors.toList());
         jobs.sort(Comparator.naturalOrder());
         return jobs;
     }
 
     public List<String> getTypeaheadResults(String search) {
-        List<String> results = redisClientDelegate.withMultiClient(c -> {
-            return c.keys(prefix() + ":*:*" + search.toUpperCase() + "*:*").stream()
-                .map(JenkinsCache::extractTypeaheadResult)
-                .collect(Collectors.toList());
-        });
+        List<String> results = scanAll(prefix() + ":*:*" + search.toUpperCase() + "*:*")
+            .stream()
+            .map(JenkinsCache::extractTypeaheadResult)
+            .collect(Collectors.toList());
         results.sort(Comparator.naturalOrder());
         return results;
     }
