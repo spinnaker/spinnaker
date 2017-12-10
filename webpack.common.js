@@ -175,10 +175,6 @@ function configure(IS_TEST) {
 
     config.plugins.push(...[
       new webpack.EnvironmentPlugin({
-        ENTITY_TAGS_ENABLED: 'true',
-        FIAT_ENABLED: 'false',
-        INFRA_STAGES: 'false',
-        TIMEZONE: 'America/Los_Angeles',
         NODE_ENV: 'development',
       }),
       new webpack.optimize.CommonsChunkPlugin({name: 'vendor', filename: 'vendor.bundle.js'}),
