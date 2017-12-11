@@ -1,0 +1,21 @@
+schema: "1"
+pipeline:
+  application: myApp
+  name: Stage dependsOn test
+  template:
+    source: dependsOn-template.yml
+stages:
+- id: configWait1
+  type: wait
+  dependsOn:
+  - wait2
+  inject: {}
+  config:
+    waitTime: 5
+- id: configWait2
+  type: wait
+  inject: {}
+  dependsOn:
+  - wait2
+  config:
+    waitTime: 5

@@ -1,0 +1,51 @@
+{
+  "application": "myApp",
+  "name": "Stage dependsOn test",
+  "stages": [
+    {
+      "requisiteStageRefIds": [],
+      "name": "wait1",
+      "id": null,
+      "refId": "wait1",
+      "type": "wait",
+      "waitTime": 5
+    },
+    {
+      "requisiteStageRefIds": ["wait1"],
+      "name": "wait2",
+      "id": null,
+      "refId": "wait2",
+      "type": "wait",
+      "waitTime": 5
+    },
+    {
+      "requisiteStageRefIds": ["wait2"],
+      "name": "wait3",
+      "id": null,
+      "refId": "wait3",
+      "type": "wait",
+      "waitTime": 5
+    },
+    {
+      "requisiteStageRefIds": ["wait2"],
+      "name": "configWait2",
+      "id": null,
+      "refId": "configWait2",
+      "type": "wait",
+      "waitTime": 5
+    },
+    {
+      "requisiteStageRefIds": ["wait2"],
+      "name": "configWait1",
+      "id": null,
+      "refId": "configWait1",
+      "type": "wait",
+      "waitTime": 5
+    }
+  ],
+  "keepWaitingPipelines": false,
+  "limitConcurrent": true,
+  "notifications": [],
+  "parameterConfig": [],
+  "id": "unknown"
+}

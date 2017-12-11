@@ -15,6 +15,7 @@
  */
 package com.netflix.spinnaker.orca.pipelinetemplate.v1schema.graph.transform
 
+import com.netflix.spinnaker.orca.pipelinetemplate.exceptions.IllegalTemplateConfigurationException
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PartialDefinition
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.StageDefinition
@@ -258,6 +259,23 @@ class ConfigStageInjectionTransformSpec extends Specification {
     template.stages[2].dependsOn == ['s1.p2'] as Set
   }
 
+  def 'should ignore empty inject object'() {
+    given:
+    PipelineTemplate template = new PipelineTemplate(
+      stages: [
+        new StageDefinition(id: 's2', type: 'deploy'),
+        new StageDefinition(id: 's1', inject: [], type: 'findImageFromTags'),
+      ]
+    )
+
+    when:
+    new ConfigStageInjectionTransform(new TemplateConfiguration()).visitPipelineTemplate(template)
+
+    then:
+    notThrown(IllegalTemplateConfigurationException)
+    template.stages*.id == ['s1', 's2']
+  }
+
   def 'should inject and expand stage partials: first'() {
     given:
     PipelineTemplate template = new PipelineTemplate(
@@ -493,7 +511,7 @@ class ConfigStageInjectionTransformSpec extends Specification {
     requisiteStageIds('s1.p1', template.stages) == ['s2'] as Set
     requisiteStageIds('s1.p2', template.stages) == ['s1.p1'] as Set
   }
-  
+
   def 'should inject and expand stage partials: after last'() {
     given:
     PipelineTemplate template = new PipelineTemplate(
@@ -530,7 +548,7 @@ class ConfigStageInjectionTransformSpec extends Specification {
         )
       ]
     )
- 
+
     when:
     new ConfigStageInjectionTransform(
       new TemplateConfiguration(
@@ -589,7 +607,7 @@ class ConfigStageInjectionTransformSpec extends Specification {
         )
       ]
     )
-  
+
     when:
     new ConfigStageInjectionTransform(
       new TemplateConfiguration(

@@ -1,0 +1,26 @@
+schema: "1"
+id: simple
+metadata:
+  name: 'dependsOn test tempate'
+  description: 'dependsOn test tempate'
+configuration:
+  concurrentExecutions:
+    parallel: true
+    limitConcurrent: true
+stages:
+- id: wait1
+  type: wait
+  config:
+    waitTime: 5
+- id: wait2
+  type: wait
+  dependsOn:
+  - wait1
+  config:
+    waitTime: 5
+- id: wait3
+  type: wait
+  dependsOn:
+  - wait2
+  config:
+    waitTime: 5
