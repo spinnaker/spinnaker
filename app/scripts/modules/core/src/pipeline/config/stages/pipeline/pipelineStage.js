@@ -18,6 +18,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.pipelineStage', [
       controllerAs: 'pipelineStageCtrl',
       templateUrl: require('./pipelineStage.html'),
       executionDetailsUrl: require('./pipelineExecutionDetails.html'),
+      defaultTimeoutMs: 12 * 60 * 60 * 1000, // 12 hours
       validators: [
         { type: 'requiredField', fieldName: 'pipeline', },
       ],
