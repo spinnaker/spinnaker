@@ -18,28 +18,26 @@ package com.netflix.spinnaker.clouddriver.appengine.artifacts;
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
-
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
-
 import com.google.api.services.storage.Storage;
 import com.google.api.services.storage.StorageScopes;
 import com.google.api.services.storage.model.Objects;
 import com.google.api.services.storage.model.StorageObject;
-
+import com.netflix.spinnaker.clouddriver.artifacts.ArtifactUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collections;
-import java.util.List;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.GeneralSecurityException;
-import java.util.concurrent.Executors;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 public class GcsStorageService {
@@ -153,7 +151,7 @@ public class GcsStorageService {
     }
 
     File target = new File(baseDirectory, objPath);
-    StorageUtils.writeStreamToFile(stream, target);
+    ArtifactUtils.writeStreamToFile(stream, target);
     target.setLastModified(obj.getUpdated().getValue());
     stream.close();
   }

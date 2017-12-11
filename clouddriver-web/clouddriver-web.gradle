@@ -30,6 +30,7 @@ dependencies {
   compile project(':clouddriver-ecs')
   compile project(':clouddriver-azure')
   compile project(':clouddriver-appengine')
+  compile project(':clouddriver-artifacts')
   compile project(':clouddriver-google')
   compile project(':clouddriver-kubernetes')
   compile project(':clouddriver-openstack')

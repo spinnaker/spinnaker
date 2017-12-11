@@ -32,7 +32,7 @@ import java.security.GeneralSecurityException;
 @ConditionalOnProperty("artifacts.gcs.enabled")
 @EnableConfigurationProperties(StorageConfigurationProperties.class)
 @EnableScheduling
-public class StorageConfiguration {
+public class AppengineStorageConfiguration {
   @Autowired
   StorageConfigurationProperties storageAccountInfo;
 

@@ -1,15 +1,9 @@
 dependencies {
-  compile project(":clouddriver-artifacts")
   compile project(":clouddriver-core")
-  compile project(":clouddriver-google-common")
   compile spinnaker.dependency("frigga")
   compile spinnaker.dependency("bootActuator")
   compile spinnaker.dependency("bootWeb")
   compile spinnaker.dependency("korkArtifacts")
-
-  // TODO(dpeach): move to spinnaker/spinnaker-dependencies.
-  compile "com.google.apis:google-api-services-appengine:v1-rev4-1.22.0"
-  compile "org.eclipse.jgit:org.eclipse.jgit:4.5.0.201609210915-r"
 
   compile spinnaker.dependency("googleStorage")
   compile "org.apache.commons:commons-compress:1.14"

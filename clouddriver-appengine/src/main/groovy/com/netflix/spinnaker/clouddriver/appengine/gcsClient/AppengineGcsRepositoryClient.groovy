@@ -17,9 +17,9 @@
 package com.netflix.spinnaker.clouddriver.appengine.gcsClient
 
 import com.netflix.spinnaker.clouddriver.appengine.AppengineJobExecutor
-import com.netflix.spinnaker.clouddriver.appengine.model.AppengineRepositoryClient
 import com.netflix.spinnaker.clouddriver.appengine.artifacts.GcsStorageService
-import com.netflix.spinnaker.clouddriver.appengine.artifacts.StorageUtils
+import com.netflix.spinnaker.clouddriver.appengine.model.AppengineRepositoryClient
+import com.netflix.spinnaker.clouddriver.artifacts.ArtifactUtils
 import groovy.transform.TupleConstructor
 import groovy.util.logging.Slf4j
 import org.apache.commons.io.FileUtils
@@ -79,7 +79,7 @@ class AppengineGcsRepositoryClient implements AppengineRepositoryClient {
       tas.close()
       fos.close()
 
-      StorageUtils.untarStreamToPath(new FileInputStream(tempFile), dest)
+      ArtifactUtils.untarStreamToPath(new FileInputStream(tempFile), dest)
       tempFile.delete()
     } else {
       storage.visitObjects(bucketName, bucketPath, { obj -> storage.downloadStorageObject(obj, dest) })
