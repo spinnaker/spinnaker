@@ -1,7 +1,7 @@
 import * as React from 'react';
 import * as classNames from 'classnames';
 
-import ScoreArrow from './scoreArrow';
+import HeaderArrow from './headerArrow';
 
 export interface IGroupScoreProps {
   label: string;
@@ -20,6 +20,6 @@ export default ({ label, onClick, style, className }: IGroupScoreProps) => (
     className={classNames('clickable', 'text-center', 'group-score', className)}
   >
     <h3 className="heading-3 uppercase label">{label}</h3>
-    <ScoreArrow borderTopColor={style.backgroundColor}/>
+    <HeaderArrow arrowColor={style.backgroundColor}/>
   </section>
 );

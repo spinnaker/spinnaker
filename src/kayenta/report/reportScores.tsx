@@ -8,7 +8,7 @@ import {
   ICanaryJudgeGroupScore,
   ICanaryJudgeScore
 } from '../domain/ICanaryJudgeResult';
-import CanaryJudgeScore from './score';
+import AllMetricResultsHeader from './allMetricResultsHeader';
 import GroupScores from './groupScores';
 import * as Creators from 'kayenta/actions/creators';
 import {
@@ -31,10 +31,9 @@ interface IReportScoresDispatchProps {
 /*
 * Layout for the report scores.
 * */
-const ReportScores = ({ groups, score, selectedGroup, clearSelectedGroup }: IReportScoresStateProps & IReportScoresDispatchProps) => (
+const ReportScores = ({ groups, selectedGroup, clearSelectedGroup }: IReportScoresStateProps & IReportScoresDispatchProps) => (
   <section className="horizontal report-scores">
-    <CanaryJudgeScore
-      score={score}
+    <AllMetricResultsHeader
       onClick={clearSelectedGroup}
       className={classNames('flex-1', 'report-score', { active: !selectedGroup })}
     />
