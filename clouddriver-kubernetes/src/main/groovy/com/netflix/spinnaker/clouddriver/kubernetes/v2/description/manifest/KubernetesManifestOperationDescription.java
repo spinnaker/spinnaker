@@ -32,14 +32,14 @@ import java.util.stream.Collectors;
 @EqualsAndHashCode(callSuper = true)
 @Data
 public class KubernetesManifestOperationDescription extends KubernetesAtomicOperationDescription {
-  private String name;
+  private String manifestName;
   private String location;
   private List<String> kinds;
   private KubernetesSelectorList labelSelectors = new KubernetesSelectorList();
 
   @JsonIgnore
   public boolean isDynamic() {
-    return StringUtils.isEmpty(name);
+    return StringUtils.isEmpty(manifestName);
   }
 
   public List<KubernetesCoordinates> getAllCoordinates() {
@@ -54,7 +54,7 @@ public class KubernetesManifestOperationDescription extends KubernetesAtomicOper
   @JsonIgnore
   @Deprecated
   public KubernetesCoordinates getPointCoordinates() {
-    Pair<KubernetesKind, String> parsedName = KubernetesManifest.fromFullResourceName(name);
+    Pair<KubernetesKind, String> parsedName = KubernetesManifest.fromFullResourceName(manifestName);
 
     return KubernetesCoordinates.builder()
         .namespace(location)
