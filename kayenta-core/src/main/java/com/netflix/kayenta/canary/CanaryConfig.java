@@ -79,6 +79,10 @@ public class CanaryConfig {
   private List<CanaryMetricConfig> metrics;
 
   @NotNull
+  @Getter
+  private Map<String, String> templates;
+
+  @NotNull
   @Singular
   @Getter
   private Map<String, CanaryServiceConfig> services;

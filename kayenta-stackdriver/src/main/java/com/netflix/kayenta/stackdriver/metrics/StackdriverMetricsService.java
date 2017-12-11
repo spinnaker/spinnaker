@@ -22,6 +22,8 @@ import com.google.api.services.monitoring.v3.model.Metric;
 import com.google.api.services.monitoring.v3.model.MonitoredResource;
 import com.google.api.services.monitoring.v3.model.Point;
 import com.google.api.services.monitoring.v3.model.TimeSeries;
+import com.google.common.annotations.VisibleForTesting;
+import com.netflix.kayenta.canary.CanaryConfig;
 import com.netflix.kayenta.canary.CanaryMetricConfig;
 import com.netflix.kayenta.canary.CanaryScope;
 import com.netflix.kayenta.canary.providers.StackdriverCanaryMetricSetQueryConfig;
@@ -29,16 +31,24 @@ import com.netflix.kayenta.google.security.GoogleNamedAccountCredentials;
 import com.netflix.kayenta.metrics.MetricSet;
 import com.netflix.kayenta.metrics.MetricsService;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
+import com.netflix.kayenta.stackdriver.canary.StackdriverCanaryScope;
 import com.netflix.spectator.api.Id;
 import com.netflix.spectator.api.Registry;
+import freemarker.template.Configuration;
+import freemarker.template.Template;
+import freemarker.template.TemplateException;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Singular;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.ui.freemarker.FreeMarkerTemplateUtils;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
 import javax.validation.constraints.NotNull;
 import java.io.IOException;
+import java.io.StringReader;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -74,23 +84,41 @@ public class StackdriverMetricsService implements MetricsService {
 
   @Override
   public List<MetricSet> queryMetrics(String metricsAccountName,
+                                      CanaryConfig canaryConfig,
                                       CanaryMetricConfig canaryMetricConfig,
                                       CanaryScope canaryScope) throws IOException {
+    if (!(canaryScope instanceof StackdriverCanaryScope)) {
+      throw new IllegalArgumentException("Canary scope not instance of StackdriverCanaryScope: " + canaryScope);
+    }
+
+    StackdriverCanaryScope stackdriverCanaryScope = (StackdriverCanaryScope)canaryScope;
     GoogleNamedAccountCredentials stackdriverCredentials = (GoogleNamedAccountCredentials)accountCredentialsRepository
       .getOne(metricsAccountName)
       .orElseThrow(() -> new IllegalArgumentException("Unable to resolve account " + metricsAccountName + "."));
     Monitoring monitoring = stackdriverCredentials.getMonitoring();
     StackdriverCanaryMetricSetQueryConfig stackdriverMetricSetQuery = (StackdriverCanaryMetricSetQueryConfig)canaryMetricConfig.getQuery();
-    // TODO(duftler): Make this filter general-purpose so it works for more than just GCE.
-    // TODO(duftler): The 'project' attribute should be part of the scope (a StackdriverCanaryScope), and not just re-used from stackdriverCredentials.
-    String projectId = stackdriverCredentials.getProject();
-    String region = canaryScope.getRegion();
+    String projectId = stackdriverCanaryScope.getProject();
+    String region = stackdriverCanaryScope.getRegion();
+
+    if (StringUtils.isEmpty(projectId)) {
+      projectId = stackdriverCredentials.getProject();
+    }
+
+    String customFilter = expandCustomFilter(canaryConfig, stackdriverMetricSetQuery, stackdriverCanaryScope);
+    // TODO(duftler): Make this filter general-purpose so it is full-featured for more than just GCE.
     String filter = "metric.type=\"" + stackdriverMetricSetQuery.getMetricType() + "\"" +
                     " AND resource.labels.project_id=" + projectId +
-                    " AND resource.metadata.tag.spinnaker-region=" + region +
-                    " AND resource.metadata.tag.spinnaker-server-group=" + canaryScope.getScope() +
-                    " AND resource.type = gce_instance";
-    long alignmentPeriodSec = canaryScope.getStep();
+                    " AND resource.type=" + stackdriverCanaryScope.getResourceType() +
+                    " AND ";
+
+    if (StringUtils.isEmpty(customFilter)) {
+      filter += "resource.metadata.tag.spinnaker-region=" + region +
+                " AND resource.metadata.tag.spinnaker-server-group=" + stackdriverCanaryScope.getScope();
+    } else {
+      filter += customFilter;
+    }
+
+    long alignmentPeriodSec = stackdriverCanaryScope.getStep();
     Monitoring.Projects.TimeSeries.List list = monitoring
       .projects()
       .timeSeries()
@@ -98,10 +126,9 @@ public class StackdriverMetricsService implements MetricsService {
       .setAggregationAlignmentPeriod(alignmentPeriodSec + "s")
       .setAggregationCrossSeriesReducer("REDUCE_MEAN")
       .setAggregationPerSeriesAligner("ALIGN_MEAN")
-      // TODO(duftler): Support 'filter' directly on StackdriverCanaryMetricSetQueryConfig?
       .setFilter(filter)
-      .setIntervalStartTime(canaryScope.getStart().toString())
-      .setIntervalEndTime(canaryScope.getEnd().toString());
+      .setIntervalStartTime(stackdriverCanaryScope.getStart().toString())
+      .setIntervalEndTime(stackdriverCanaryScope.getEnd().toString());
 
     List<String> groupByFields = stackdriverMetricSetQuery.getGroupByFields();
 
@@ -121,8 +148,8 @@ public class StackdriverMetricsService implements MetricsService {
       registry.timer(stackdriverFetchTimerId).record(endTime - startTime, TimeUnit.NANOSECONDS);
     }
 
-    long startAsLong = canaryScope.getStart().toEpochMilli();
-    long endAsLong = canaryScope.getEnd().toEpochMilli();
+    long startAsLong = stackdriverCanaryScope.getStart().toEpochMilli();
+    long endAsLong = stackdriverCanaryScope.getEnd().toEpochMilli();
     long elapsedSeconds = (endAsLong - startAsLong) / 1000;
     long numIntervals = elapsedSeconds / alignmentPeriodSec;
     long remainder = elapsedSeconds % alignmentPeriodSec;
@@ -154,7 +181,7 @@ public class StackdriverMetricsService implements MetricsService {
       Instant responseStartTimeInstant =
         points.size() > 0
         ? Instant.parse(points.get(0).getInterval().getStartTime())
-        : canaryScope.getStart();
+        : stackdriverCanaryScope.getStart();
       long responseStartTimeMillis = responseStartTimeInstant.toEpochMilli();
 
       // TODO(duftler): What if there are no data points?
@@ -172,6 +199,7 @@ public class StackdriverMetricsService implements MetricsService {
           .stepMillis(alignmentPeriodSec * 1000)
           .values(pointValues);
 
+      // TODO(duftler): Still not quite sure whether this is right or if we should use timeSeries.getMetric().getLabels() instead.
       MonitoredResource monitoredResource = timeSeries.getResource();
 
       if (monitoredResource != null) {
@@ -186,5 +214,37 @@ public class StackdriverMetricsService implements MetricsService {
     }
 
     return metricSetList;
+  }
+
+  @VisibleForTesting
+  String expandCustomFilter(CanaryConfig canaryConfig,
+                            StackdriverCanaryMetricSetQueryConfig stackdriverMetricSetQuery,
+                            StackdriverCanaryScope stackdriverCanaryScope) throws IOException {
+    String customFilter = stackdriverMetricSetQuery.getCustomFilter();
+    String customFilterTemplate = stackdriverMetricSetQuery.getCustomFilterTemplate();
+
+    if (StringUtils.isEmpty(customFilter) && !StringUtils.isEmpty(customFilterTemplate)) {
+      Map<String, String> templates = canaryConfig.getTemplates();
+
+      // TODO(duftler): Handle this as a config validation step instead.
+      if (CollectionUtils.isEmpty(templates)) {
+        throw new IllegalArgumentException("Custom filter template '" + customFilterTemplate + "' was referenced, " +
+                                           "but no templates were defined.");
+      } else if (!templates.containsKey(customFilterTemplate)) {
+        throw new IllegalArgumentException("Custom filter template '" + customFilterTemplate + "' was not found.");
+      }
+
+      Configuration configuration = new Configuration(Configuration.VERSION_2_3_26);
+      String templateStr = templates.get(customFilterTemplate);
+      Template template = new Template(customFilterTemplate, new StringReader(templateStr), configuration);
+
+      try {
+        customFilter = FreeMarkerTemplateUtils.processTemplateIntoString(template, stackdriverCanaryScope.getExtendedScopeParams());
+      } catch (TemplateException e) {
+        throw new IllegalArgumentException("Problem evaluating custom filter template:", e);
+      }
+    }
+
+    return customFilter;
   }
 }

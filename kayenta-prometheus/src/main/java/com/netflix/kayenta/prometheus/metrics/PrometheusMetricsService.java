@@ -16,6 +16,7 @@
 
 package com.netflix.kayenta.prometheus.metrics;
 
+import com.netflix.kayenta.canary.CanaryConfig;
 import com.netflix.kayenta.canary.CanaryMetricConfig;
 import com.netflix.kayenta.canary.CanaryScope;
 import com.netflix.kayenta.canary.providers.PrometheusCanaryMetricSetQueryConfig;
@@ -120,6 +121,7 @@ public class PrometheusMetricsService implements MetricsService {
 
   @Override
   public List<MetricSet> queryMetrics(String accountName,
+                                      CanaryConfig canaryConfig,
                                       CanaryMetricConfig canaryMetricConfig,
                                       CanaryScope canaryScope) throws IOException {
     PrometheusNamedAccountCredentials credentials = (PrometheusNamedAccountCredentials)accountCredentialsRepository

@@ -23,6 +23,7 @@ import com.netflix.kayenta.atlas.model.AtlasResultsHelper;
 import com.netflix.kayenta.atlas.model.Backend;
 import com.netflix.kayenta.atlas.security.AtlasNamedAccountCredentials;
 import com.netflix.kayenta.atlas.service.AtlasRemoteService;
+import com.netflix.kayenta.canary.CanaryConfig;
 import com.netflix.kayenta.canary.CanaryMetricConfig;
 import com.netflix.kayenta.canary.CanaryScope;
 import com.netflix.kayenta.canary.providers.AtlasCanaryMetricSetQueryConfig;
@@ -32,7 +33,6 @@ import com.netflix.kayenta.retrofit.config.RemoteService;
 import com.netflix.kayenta.retrofit.config.RetrofitClientFactory;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
 import com.netflix.spectator.api.Registry;
-import com.netflix.spectator.api.Timer;
 import com.squareup.okhttp.OkHttpClient;
 import lombok.Builder;
 import lombok.Getter;
@@ -40,7 +40,6 @@ import lombok.Singular;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import javax.inject.Inject;
 import javax.validation.constraints.NotNull;
 import java.io.IOException;
 import java.time.Duration;
@@ -84,6 +83,7 @@ public class AtlasMetricsService implements MetricsService {
 
   @Override
   public List<MetricSet> queryMetrics(String accountName,
+                                      CanaryConfig canaryConfig,
                                       CanaryMetricConfig canaryMetricConfig,
                                       CanaryScope canaryScope) throws IOException {
 

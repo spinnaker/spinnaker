@@ -16,6 +16,7 @@
 
 package com.netflix.kayenta.prometheus.controllers;
 
+import com.netflix.kayenta.canary.CanaryConfig;
 import com.netflix.kayenta.canary.CanaryMetricConfig;
 import com.netflix.kayenta.canary.CanaryScope;
 import com.netflix.kayenta.canary.providers.PrometheusCanaryMetricSetQueryConfig;
@@ -87,7 +88,7 @@ public class PrometheusFetchController {
 
     String metricSetListId = synchronousQueryProcessor.processQuery(resolvedMetricsAccountName,
                                                                     resolvedStorageAccountName,
-                                                                    Collections.singletonList(canaryMetricConfig),
+                                                                    CanaryConfig.builder().metric(canaryMetricConfig).build(),
                                                                     canaryScope).get(0);
 
     return Collections.singletonMap("metricSetListId", metricSetListId);

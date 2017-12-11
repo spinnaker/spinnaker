@@ -16,6 +16,7 @@
 
 package com.netflix.kayenta.metrics;
 
+import com.netflix.kayenta.canary.CanaryConfig;
 import com.netflix.kayenta.canary.CanaryMetricConfig;
 import com.netflix.kayenta.canary.CanaryScope;
 import com.netflix.kayenta.storage.ObjectType;
@@ -23,6 +24,8 @@ import com.netflix.kayenta.storage.StorageService;
 import com.netflix.kayenta.storage.StorageServiceRepository;
 import com.netflix.spectator.api.Id;
 import com.netflix.spectator.api.Registry;
+import com.netflix.spinnaker.orca.ExecutionStatus;
+import com.netflix.spinnaker.orca.TaskResult;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -31,7 +34,9 @@ import retrofit.RetrofitError;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Component
@@ -49,8 +54,9 @@ public class SynchronousQueryProcessor {
 
   public List<String> processQuery(String metricsAccountName,
                                    String storageAccountName,
-                                   List<CanaryMetricConfig> canaryMetricConfigs,
+                                   CanaryConfig canaryConfig,
                                    CanaryScope canaryScope) throws IOException {
+    List<CanaryMetricConfig> canaryMetricConfigs = canaryConfig.getMetrics();
     MetricsService metricsService =
       metricsServiceRepository
         .getOne(metricsAccountName)
@@ -72,7 +78,7 @@ public class SynchronousQueryProcessor {
       while (!success) {
         try {
           registry.counter(queryId.withTag("retries", retries + "")).increment();
-          metricSetList = metricsService.queryMetrics(metricsAccountName, canaryMetricConfig, canaryScope);
+          metricSetList = metricsService.queryMetrics(metricsAccountName, canaryConfig, canaryMetricConfig, canaryScope);
           success = true;
         } catch (IOException | UncheckedIOException | RetrofitError e) {
           retries++;
@@ -89,5 +95,19 @@ public class SynchronousQueryProcessor {
     }
 
     return metricSetListIds;
+  }
+
+  public TaskResult processQueryAndProduceTaskResult(String metricsAccountName,
+                                                     String storageAccountName,
+                                                     CanaryConfig canaryConfig,
+                                                     CanaryScope canaryScope) {
+    try {
+      List<String> metricSetListIds = processQuery(metricsAccountName, storageAccountName, canaryConfig, canaryScope);
+      Map outputs = Collections.singletonMap("metricSetListIds", metricSetListIds);
+
+      return new TaskResult(ExecutionStatus.SUCCEEDED, outputs);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
   }
 }

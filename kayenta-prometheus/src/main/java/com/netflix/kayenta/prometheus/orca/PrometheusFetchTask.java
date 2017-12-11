@@ -23,8 +23,6 @@ import com.netflix.kayenta.metrics.SynchronousQueryProcessor;
 import com.netflix.kayenta.security.AccountCredentials;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
 import com.netflix.kayenta.security.CredentialsHelper;
-import com.netflix.kayenta.storage.StorageServiceRepository;
-import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.RetryableTask;
 import com.netflix.spinnaker.orca.TaskResult;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
@@ -35,8 +33,6 @@ import org.springframework.stereotype.Component;
 import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.time.Duration;
-import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 
 @Component
@@ -48,9 +44,6 @@ public class PrometheusFetchTask implements RetryableTask {
 
   @Autowired
   AccountCredentialsRepository accountCredentialsRepository;
-
-  @Autowired
-  StorageServiceRepository storageServiceRepository;
 
   @Autowired
   SynchronousQueryProcessor synchronousQueryProcessor;
@@ -90,17 +83,10 @@ public class PrometheusFetchTask implements RetryableTask {
     String resolvedStorageAccountName = CredentialsHelper.resolveAccountByNameOrType(storageAccountName,
                                                                                      AccountCredentials.Type.OBJECT_STORE,
                                                                                      accountCredentialsRepository);
-    try {
-      List<String> metricSetListIds = synchronousQueryProcessor.processQuery(resolvedMetricsAccountName,
-                                                                             resolvedStorageAccountName,
-                                                                             canaryConfig.getMetrics(),
-                                                                             canaryScope);
 
-      Map outputs = Collections.singletonMap("metricSetListIds", metricSetListIds);
-
-      return new TaskResult(ExecutionStatus.SUCCEEDED, outputs);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
+    return synchronousQueryProcessor.processQueryAndProduceTaskResult(resolvedMetricsAccountName,
+                                                                      resolvedStorageAccountName,
+                                                                      canaryConfig,
+                                                                      canaryScope);
   }
 }

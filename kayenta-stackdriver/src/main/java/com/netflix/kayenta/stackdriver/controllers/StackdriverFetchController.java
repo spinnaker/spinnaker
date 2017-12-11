@@ -16,16 +16,19 @@
 
 package com.netflix.kayenta.stackdriver.controllers;
 
+import com.netflix.kayenta.canary.CanaryConfig;
 import com.netflix.kayenta.canary.CanaryMetricConfig;
-import com.netflix.kayenta.canary.CanaryScope;
 import com.netflix.kayenta.canary.providers.StackdriverCanaryMetricSetQueryConfig;
 import com.netflix.kayenta.metrics.SynchronousQueryProcessor;
 import com.netflix.kayenta.security.AccountCredentials;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
 import com.netflix.kayenta.security.CredentialsHelper;
+import com.netflix.kayenta.stackdriver.canary.StackdriverCanaryScope;
 import io.swagger.annotations.ApiParam;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -54,11 +57,14 @@ public class StackdriverFetchController {
                           @ApiParam(defaultValue = "cpu") @RequestParam String metricSetName,
                           @ApiParam(defaultValue = "compute.googleapis.com/instance/cpu/utilization") @RequestParam String metricType,
                           @RequestParam(required = false) List<String> groupByFields, // metric.label.instance_name
-                          @ApiParam(defaultValue = "myapp-v010") @RequestParam String scope,
+                          @RequestParam(required = false) final String project,
+                          @ApiParam(defaultValue = "gce_instance") @RequestParam String resourceType,
                           @ApiParam(defaultValue = "us-central1") @RequestParam String region,
-                          @ApiParam(defaultValue = "2017-10-01T15:13:00Z") @RequestParam Instant startTimeIso,
-                          @ApiParam(defaultValue = "2017-10-02T15:27:00Z") @RequestParam Instant endTimeIso,
-                          @ApiParam(defaultValue = "3600") @RequestParam Long step) throws IOException {
+                          @ApiParam(defaultValue = "myapp-v059") @RequestParam String scope,
+                          @ApiParam(defaultValue = "2017-11-21T12:48:00Z") @RequestParam Instant startTimeIso,
+                          @ApiParam(defaultValue = "2017-11-21T12:51:00Z") @RequestParam Instant endTimeIso,
+                          @ApiParam(defaultValue = "3600") @RequestParam Long step,
+                          @RequestParam(required = false) final String customFilter) throws IOException {
     String resolvedMetricsAccountName = CredentialsHelper.resolveAccountByNameOrType(metricsAccountName,
                                                                                      AccountCredentials.Type.METRICS_STORE,
                                                                                      accountCredentialsRepository);
@@ -71,8 +77,12 @@ public class StackdriverFetchController {
         .builder()
         .metricType(metricType);
 
-    if (groupByFields != null && !groupByFields.isEmpty()) {
+    if (!CollectionUtils.isEmpty(groupByFields)) {
       stackdriverCanaryMetricSetQueryConfigBuilder.groupByFields(groupByFields);
+    }
+
+    if (!StringUtils.isEmpty(customFilter)) {
+      stackdriverCanaryMetricSetQueryConfigBuilder.customFilter(customFilter);
     }
 
     CanaryMetricConfig canaryMetricConfig =
@@ -82,17 +92,22 @@ public class StackdriverFetchController {
         .query(stackdriverCanaryMetricSetQueryConfigBuilder.build())
         .build();
 
-    CanaryScope canaryScope = new CanaryScope();
-    canaryScope.setScope(scope);
-    canaryScope.setRegion(region);
-    canaryScope.setStart(startTimeIso);
-    canaryScope.setEnd(endTimeIso);
-    canaryScope.setStep(step);
+    StackdriverCanaryScope stackdriverCanaryScope = new StackdriverCanaryScope();
+    stackdriverCanaryScope.setScope(scope);
+    stackdriverCanaryScope.setRegion(region);
+    stackdriverCanaryScope.setResourceType(resourceType);
+    stackdriverCanaryScope.setStart(startTimeIso);
+    stackdriverCanaryScope.setEnd(endTimeIso);
+    stackdriverCanaryScope.setStep(step);
+
+    if (!StringUtils.isEmpty(project)) {
+      stackdriverCanaryScope.setProject(project);
+    }
 
     String metricSetListId = synchronousQueryProcessor.processQuery(resolvedMetricsAccountName,
                                                                     resolvedStorageAccountName,
-                                                                    Collections.singletonList(canaryMetricConfig),
-                                                                    canaryScope).get(0);
+                                                                    CanaryConfig.builder().metric(canaryMetricConfig).build(),
+                                                                    stackdriverCanaryScope).get(0);
 
     return Collections.singletonMap("metricSetListId", metricSetListId);
   }

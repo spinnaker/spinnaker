@@ -14,22 +14,22 @@
  * limitations under the License.
  */
 
-package com.netflix.kayenta.metrics;
+package com.netflix.kayenta.stackdriver.canary;
 
-import com.netflix.kayenta.canary.CanaryConfig;
-import com.netflix.kayenta.canary.CanaryMetricConfig;
 import com.netflix.kayenta.canary.CanaryScope;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
-import java.io.IOException;
-import java.util.List;
+import javax.validation.constraints.NotNull;
 
-public interface MetricsService {
-  String getType();
+@Data
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
+public class StackdriverCanaryScope extends CanaryScope {
 
-  boolean servicesAccount(String accountName);
+  private String project;
 
-  List<MetricSet> queryMetrics(String accountName,
-                               CanaryConfig canaryConfig,
-                               CanaryMetricConfig canaryMetricConfig,
-                               CanaryScope canaryScope) throws IOException;
+  @NotNull
+  private String resourceType;
 }

@@ -17,6 +17,7 @@
 package com.netflix.kayenta.atlas.controllers;
 
 import com.netflix.kayenta.atlas.canary.AtlasCanaryScope;
+import com.netflix.kayenta.canary.CanaryConfig;
 import com.netflix.kayenta.canary.CanaryMetricConfig;
 import com.netflix.kayenta.canary.providers.AtlasCanaryMetricSetQueryConfig;
 import com.netflix.kayenta.metrics.SynchronousQueryProcessor;
@@ -87,7 +88,7 @@ public class AtlasFetchController {
 
     String metricSetListId = synchronousQueryProcessor.processQuery(resolvedMetricsAccountName,
                                                                     resolvedStorageAccountName,
-                                                                    Collections.singletonList(canaryMetricConfig),
+                                                                    CanaryConfig.builder().metric(canaryMetricConfig).build(),
                                                                     atlasCanaryScope).get(0);
 
     return Collections.singletonMap("metricSetListId", metricSetListId);

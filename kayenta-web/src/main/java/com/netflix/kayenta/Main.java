@@ -62,7 +62,7 @@ import java.util.Map;
 @EnableAutoConfiguration
 @EnableAsync
 @EnableScheduling
-class Main extends SpringBootServletInitializer {
+public class Main extends SpringBootServletInitializer {
   private static final Map<String, Object> DEFAULT_PROPS = buildDefaults();
 
   private static Map<String, Object> buildDefaults() {

@@ -18,13 +18,11 @@ package com.netflix.kayenta.stackdriver.orca;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.kayenta.canary.CanaryConfig;
-import com.netflix.kayenta.canary.CanaryScope;
 import com.netflix.kayenta.metrics.SynchronousQueryProcessor;
 import com.netflix.kayenta.security.AccountCredentials;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
 import com.netflix.kayenta.security.CredentialsHelper;
-import com.netflix.kayenta.storage.StorageServiceRepository;
-import com.netflix.spinnaker.orca.ExecutionStatus;
+import com.netflix.kayenta.stackdriver.canary.StackdriverCanaryScope;
 import com.netflix.spinnaker.orca.RetryableTask;
 import com.netflix.spinnaker.orca.TaskResult;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
@@ -35,8 +33,6 @@ import org.springframework.stereotype.Component;
 import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.time.Duration;
-import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 
 @Component
@@ -48,9 +44,6 @@ public class StackdriverFetchTask implements RetryableTask {
 
   @Autowired
   AccountCredentialsRepository accountCredentialsRepository;
-
-  @Autowired
-  StorageServiceRepository storageServiceRepository;
 
   @Autowired
   SynchronousQueryProcessor synchronousQueryProcessor;
@@ -75,9 +68,9 @@ public class StackdriverFetchTask implements RetryableTask {
     String storageAccountName = (String)context.get("storageAccountName");
     Map<String, Object> canaryConfigMap = (Map<String, Object>)context.get("canaryConfig");
     CanaryConfig canaryConfig = kayentaObjectMapper.convertValue(canaryConfigMap, CanaryConfig.class);
-    CanaryScope canaryScope;
+    StackdriverCanaryScope stackdriverCanaryScope;
     try {
-      canaryScope = kayentaObjectMapper.readValue((String)stage.getContext().get("stackdriverCanaryScope"), CanaryScope.class);
+      stackdriverCanaryScope = kayentaObjectMapper.readValue((String)stage.getContext().get("stackdriverCanaryScope"), StackdriverCanaryScope.class);
     } catch (IOException e) {
       log.warn("Unable to parse JSON scope", e);
       throw new RuntimeException(e);
@@ -88,17 +81,10 @@ public class StackdriverFetchTask implements RetryableTask {
     String resolvedStorageAccountName = CredentialsHelper.resolveAccountByNameOrType(storageAccountName,
                                                                                      AccountCredentials.Type.OBJECT_STORE,
                                                                                      accountCredentialsRepository);
-    try {
-      List<String> metricSetListIds = synchronousQueryProcessor.processQuery(resolvedMetricsAccountName,
-                                                                             resolvedStorageAccountName,
-                                                                             canaryConfig.getMetrics(),
-                                                                             canaryScope);
 
-      Map outputs = Collections.singletonMap("metricSetListIds", metricSetListIds);
-
-      return new TaskResult(ExecutionStatus.SUCCEEDED, outputs);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
+    return synchronousQueryProcessor.processQueryAndProduceTaskResult(resolvedMetricsAccountName,
+                                                                      resolvedStorageAccountName,
+                                                                      canaryConfig,
+                                                                      stackdriverCanaryScope);
   }
 }
