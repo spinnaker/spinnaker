@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.appengine.deploy.ops
 
 import com.netflix.spinnaker.clouddriver.appengine.AppengineJobExecutor
+import com.netflix.spinnaker.clouddriver.appengine.config.AppengineConfigurationProperties
 import com.netflix.spinnaker.clouddriver.appengine.deploy.AppengineMutexRepository
 import com.netflix.spinnaker.clouddriver.appengine.deploy.AppengineServerGroupNameResolver
 import com.netflix.spinnaker.clouddriver.appengine.deploy.description.DeployAppengineDescription
@@ -31,6 +32,8 @@ import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import org.springframework.beans.factory.annotation.Autowired
 
 import java.nio.file.Paths
+
+import static com.netflix.spinnaker.clouddriver.appengine.config.AppengineConfigurationProperties.ManagedAccount.GcloudReleaseTrack
 
 class DeployAppengineAtomicOperation implements AtomicOperation<DeploymentResult> {
   private static final String BASE_PHASE = "DEPLOY"
@@ -136,6 +139,7 @@ class DeployAppengineAtomicOperation implements AtomicOperation<DeploymentResult
     def accountEmail = description.credentials.serviceAccountEmail
     def region = description.credentials.region
     def applicationDirectoryRoot = description.applicationDirectoryRoot
+    def gcloudReleaseTrack = description.credentials.gcloudReleaseTrack
     def serverGroupNameResolver = new AppengineServerGroupNameResolver(project, region, description.credentials)
     def versionName = serverGroupNameResolver.resolveNextServerGroupName(description.application,
                                                                          description.stack,
@@ -144,7 +148,11 @@ class DeployAppengineAtomicOperation implements AtomicOperation<DeploymentResult
     def writtenFullConfigFilePaths = writeConfigFiles(description.configFiles, repositoryPath, applicationDirectoryRoot)
     def repositoryFullConfigFilePaths =
       (description.configFilepaths?.collect { Paths.get(repositoryPath, applicationDirectoryRoot ?: '.', it).toString() } ?: []) as List<String>
-    def deployCommand = ["gcloud", "app", "deploy", *(repositoryFullConfigFilePaths + writtenFullConfigFilePaths)]
+    def deployCommand = ["gcloud"]
+    if (gcloudReleaseTrack != null && gcloudReleaseTrack != GcloudReleaseTrack.STABLE) {
+      deployCommand << gcloudReleaseTrack.toString().toLowerCase()
+    }
+    deployCommand += ["app", "deploy", *(repositoryFullConfigFilePaths + writtenFullConfigFilePaths)]
     deployCommand << "--version=$versionName"
     deployCommand << (description.promote ? "--promote" : "--no-promote")
     deployCommand << (description.stopPreviousVersion ? "--stop-previous-version": "--no-stop-previous-version")

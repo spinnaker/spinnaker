@@ -25,6 +25,8 @@ import com.netflix.spinnaker.clouddriver.security.AccountCredentials
 import com.netflix.spinnaker.fiat.model.resources.Permissions
 import groovy.transform.TupleConstructor
 
+import static com.netflix.spinnaker.clouddriver.appengine.config.AppengineConfigurationProperties.ManagedAccount.GcloudReleaseTrack
+
 @TupleConstructor
 class AppengineNamedAccountCredentials implements AccountCredentials<AppengineCredentials> {
   final String name
@@ -49,6 +51,7 @@ class AppengineNamedAccountCredentials implements AccountCredentials<AppengineCr
   final String localRepositoryDirectory
   @JsonIgnore
   final AppengineGitCredentials gitCredentials
+  final GcloudReleaseTrack gcloudReleaseTrack
   final List<AppengineGitCredentialType> supportedGitCredentialTypes
 
   static class Builder {
@@ -74,6 +77,7 @@ class AppengineNamedAccountCredentials implements AccountCredentials<AppengineCr
     String sshPrivateKeyPassphrase
     String sshKnownHostsFilePath
     boolean sshTrustUnknownHosts
+    GcloudReleaseTrack gcloudReleaseTrack
     AppengineGitCredentials gitCredentials
 
     /*
@@ -195,6 +199,11 @@ class AppengineNamedAccountCredentials implements AccountCredentials<AppengineCr
       return this
     }
 
+    Builder gcloudReleaseTrack(GcloudReleaseTrack gcloudReleaseTrack) {
+      this.gcloudReleaseTrack = gcloudReleaseTrack
+      return this
+    }
+
     AppengineNamedAccountCredentials build() {
       credentials = credentials ?:
         jsonKey ?
@@ -233,6 +242,7 @@ class AppengineNamedAccountCredentials implements AccountCredentials<AppengineCr
                                                   serviceAccountEmail,
                                                   localRepositoryDirectory,
                                                   gitCredentials,
+                                                  gcloudReleaseTrack,
                                                   gitCredentials.getSupportedCredentialTypes())
     }
   }

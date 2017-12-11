@@ -42,6 +42,7 @@ class AppengineConfigurationProperties {
     String sshPrivateKeyPassphrase
     String sshKnownHostsFilePath
     boolean sshTrustUnknownHosts
+    GcloudReleaseTrack gcloudReleaseTrack
 
     void initialize(AppengineJobExecutor jobExecutor) {
       if (this.jsonPath) {
@@ -83,6 +84,12 @@ class AppengineConfigurationProperties {
 
     static String responseToString(Response response) {
       new String(((TypedByteArray) response.body).bytes)
+    }
+
+    static enum GcloudReleaseTrack {
+      ALPHA,
+      BETA,
+      STABLE,
     }
   }
 
