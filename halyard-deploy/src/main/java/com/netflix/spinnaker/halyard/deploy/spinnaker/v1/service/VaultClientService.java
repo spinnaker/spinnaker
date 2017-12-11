@@ -64,7 +64,7 @@ abstract public class VaultClientService extends SpinnakerService<VaultClientSer
     Boolean safeToUpdate = true;
     Boolean monitored = false;
     Boolean sidecar = true;
-    Boolean skipLiveCycleManagement = false;
+    Boolean skipLifeCycleManagement = false;
     Map<String, String> env = new HashMap<>();
 
     public Settings() { }

@@ -43,7 +43,7 @@ public class LocalGitRedisService extends RedisService implements LocalGitServic
   public ServiceSettings buildServiceSettings(DeploymentConfiguration deploymentConfiguration) {
     return new Settings().setArtifactId("redis")
         .setHost(getDefaultHost())
-        .setSkipLiveCycleManagement(true)
+        .setSkipLifeCycleManagement(true)
         .setEnabled(true);
   }
 

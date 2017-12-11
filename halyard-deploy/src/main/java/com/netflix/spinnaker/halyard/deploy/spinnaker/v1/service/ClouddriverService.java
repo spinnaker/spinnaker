@@ -124,7 +124,7 @@ abstract public class ClouddriverService extends SpringService<ClouddriverServic
     Boolean monitored = true;
     Boolean sidecar = false;
     Integer targetSize = 1;
-    Boolean skipLiveCycleManagement = false;
+    Boolean skipLifeCycleManagement = false;
     Map<String, String> env = new HashMap<>();
 
     public Settings() {}

@@ -124,7 +124,7 @@ abstract public class SpinnakerMonitoringDaemonService extends SpinnakerService<
     Boolean monitored = false;
     Boolean sidecar = true;
     Integer targetSize = 1;
-    Boolean skipLiveCycleManagement = false;
+    Boolean skipLifeCycleManagement = false;
     Map<String, String> env = new HashMap<>();
   }
 

@@ -77,7 +77,7 @@ public class DistributedDeployer<T extends Account> implements
       boolean safeToUpdate = settings.getSafeToUpdate();
 
       if (!settings.getEnabled() || distributedService.isRequiredToBootstrap() || !safeToUpdate
-          || settings.getSkipLiveCycleManagement()) {
+          || settings.getSkipLifeCycleManagement()) {
         continue;
       }
 
@@ -94,7 +94,7 @@ public class DistributedDeployer<T extends Account> implements
         .getPrioritizedDistributedServices(serviceTypes)) {
       SpinnakerService service = distributedService.getService();
       ServiceSettings settings = runtimeSettings.getServiceSettings(service);
-      if (!settings.getEnabled() || settings.getSkipLiveCycleManagement()) {
+      if (!settings.getEnabled() || settings.getSkipLifeCycleManagement()) {
         continue;
       }
 
@@ -184,7 +184,7 @@ public class DistributedDeployer<T extends Account> implements
         .getPrioritizedDistributedServices(serviceTypes)) {
       SpinnakerService service = distributedService.getService();
       ServiceSettings settings = resolvedConfiguration.getServiceSettings(service);
-      if (!settings.getEnabled() || settings.getSkipLiveCycleManagement()) {
+      if (!settings.getEnabled() || settings.getSkipLifeCycleManagement()) {
         continue;
       }
 
@@ -298,7 +298,7 @@ public class DistributedDeployer<T extends Account> implements
       DistributedService<Rosco, T> roscoService
   ) {
     if (runtimeSettings.getServiceSettings(roscoService.getService())
-        .getSkipLiveCycleManagement()) {
+        .getSkipLifeCycleManagement()) {
       return;
     }
 
@@ -457,7 +457,7 @@ public class DistributedDeployer<T extends Account> implements
   private <T extends Account> Set<Integer> reapOrcaServerGroups(AccountDeploymentDetails<T> details,
       SpinnakerRuntimeSettings runtimeSettings,
       DistributedService<Orca, T> orcaService) {
-    if (runtimeSettings.getServiceSettings(orcaService.getService()).getSkipLiveCycleManagement()) {
+    if (runtimeSettings.getServiceSettings(orcaService.getService()).getSkipLifeCycleManagement()) {
       return Collections.emptySet();
     }
 

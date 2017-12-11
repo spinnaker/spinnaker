@@ -43,7 +43,7 @@ public class LocalGitDeployer extends LocalDeployer {
 
     List<String> prepCommands = enabledServices.stream()
         .filter(i -> !runtimeSettings.getServiceSettings(i.getService())
-            .getSkipLiveCycleManagement())
+            .getSkipLifeCycleManagement())
         .map(s -> {
           s.commitWrapperScripts();
           return s.prepArtifactCommand(deploymentDetails);

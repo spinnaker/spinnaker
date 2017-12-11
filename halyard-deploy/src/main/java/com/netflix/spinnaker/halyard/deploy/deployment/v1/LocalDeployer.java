@@ -51,7 +51,7 @@ public class LocalDeployer implements Deployer<LocalServiceProvider, DeploymentD
 
     Map<String, String> installCommands = enabledServices.stream()
         .filter(i -> !resolvedConfiguration.getServiceSettings(i.getService())
-            .getSkipLiveCycleManagement())
+            .getSkipLifeCycleManagement())
         .reduce(new HashMap<>(), (commands, installable) -> {
           String command = String.join("\n",
               installable.installArtifactCommand(deploymentDetails),

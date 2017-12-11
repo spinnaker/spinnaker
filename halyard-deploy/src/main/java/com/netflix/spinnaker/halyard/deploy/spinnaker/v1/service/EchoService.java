@@ -91,7 +91,7 @@ abstract public class EchoService extends SpringService<EchoService.Echo> {
     Boolean monitored = true;
     Boolean sidecar = false;
     Integer targetSize = 1;
-    Boolean skipLiveCycleManagement = false;
+    Boolean skipLifeCycleManagement = false;
     Map<String, String> env = new HashMap<>();
 
     public Settings() {}
