@@ -38,7 +38,7 @@
         analytics-on="click"
         analytics-category="Pipeline"
         analytics-event="Execution step selected"
-        analytics-label="$ctrl.getStepLabel(step)"
+        analytics-label="{{$ctrl.getStepLabel(step)}}"
         ng-repeat="step in stageSummary.stages"
         ng-class="{ info: $ctrl.isStepCurrent($index) }"
         ng-click="$ctrl.toggleDetails($index)">
