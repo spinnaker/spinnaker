@@ -17,11 +17,11 @@
 package com.netflix.kayenta.judge.scorers
 
 import com.netflix.kayenta.canary.results.CanaryAnalysisResult
+import com.netflix.kayenta.judge.classifiers.metric.{Pass, High, Low}
 
 import scala.collection.JavaConverters._
 
 class WeightedSumScorer(groupWeights: Map[String, Double]) extends BaseScorer{
-  //Todo (csanden) Use the Classification Label not the String value
 
   /**
     *
@@ -34,9 +34,9 @@ class WeightedSumScorer(groupWeights: Map[String, Double]) extends BaseScorer{
     val labelCounts = classificationLabels.groupBy(identity).mapValues(_.size)
     val numMetrics = classificationLabels.size
 
-    val numPass = labelCounts.getOrElse("Pass", 0)
-    val numHigh = labelCounts.getOrElse("High", 0)
-    val numLow = labelCounts.getOrElse("Low", 0)
+    val numPass = labelCounts.getOrElse(Pass.toString, 0)
+    val numHigh = labelCounts.getOrElse(High.toString, 0)
+    val numLow = labelCounts.getOrElse(Low.toString, 0)
     val numTotal = numHigh + numLow + numPass
 
     val hasNoData = if(numTotal == 0) true else false
@@ -59,9 +59,12 @@ class WeightedSumScorer(groupWeights: Map[String, Double]) extends BaseScorer{
     groupLabels.map{ case (groupName, labels) => calculateGroupScore(groupName, labels)}.toList
   }
 
-
+  /**
+    *
+    * @param groupResults
+    * @return
+    */
   private def calculateSummaryScore(groupResults: List[GroupScore]): Double ={
-    //Todo (csanden) throw exception if the group weights exceed 100%
 
     val groupWeightSum = groupWeights.values.sum
     val groupWeightSet = groupWeights.keySet
@@ -74,10 +77,10 @@ class WeightedSumScorer(groupWeights: Map[String, Double]) extends BaseScorer{
     val calculatedWeight = if(groupDifference.nonEmpty) (100-groupWeightSum)/groupDifference.size else 0.0
 
     //Compute the summary score based on the group score and weights
-    var summaryScore: Double = 100
+    var summaryScore: Double = 0.0
     groupResults.filter(!_.noData).foreach{ group =>
       val weight:Double = groupWeights.getOrElse(group.name, calculatedWeight)
-      summaryScore -= (100-group.score)*weight/100
+      summaryScore += group.score*(weight/100)
     }
 
     summaryScore
