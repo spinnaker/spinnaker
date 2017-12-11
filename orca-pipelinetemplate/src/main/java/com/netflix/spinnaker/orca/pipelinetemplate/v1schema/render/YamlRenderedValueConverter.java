@@ -73,9 +73,9 @@ public class YamlRenderedValueConverter implements RenderedValueConverter {
 
   private static boolean containsYamlParsingExceptions(String renderedValue) {
     return renderedValue != null &&
-      renderedValue.startsWith("* "); // A markdown list: YAML will parse this as an alias and fail.
+      renderedValue.startsWith("*"); // A markdown list or bold: YAML will parse this as an alias and fail.
   }
-  
+
   private static boolean containsNoExpandMarker(String renderedValue) {
     return renderedValue.startsWith("noexpand:");
   }
