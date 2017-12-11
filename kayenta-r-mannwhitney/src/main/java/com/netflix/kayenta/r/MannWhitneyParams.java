@@ -33,20 +33,6 @@ public class MannWhitneyParams {
   @Getter
   private double[] experimentData;
 
-  String toCommandString() {
-    StringBuilder ret = new StringBuilder();
-    ret.append("wilcox.test(");
-    appendVector(ret, controlData);
-    ret.append(",");
-    appendVector(ret, experimentData);
-    ret.append(",conf.int=TRUE,mu=");
-    ret.append(mu);
-    ret.append(",conf.level=");
-    ret.append(confidenceLevel);
-    ret.append(")");
-    return ret.toString();
-  }
-
   String toCommandString(String controlName, String experimentName) {
     String ret = "wilcox.test(" + experimentName + "," + controlName;
     ret += ",conf.int=TRUE,mu=" + mu;

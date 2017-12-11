@@ -47,9 +47,12 @@ public class MannWhitney {
       re.assign("controlData", params.getControlData());
       re.assign("experimentData", params.getExperimentData());
       String command = params.toCommandString("controlData", "experimentData");
-      REXP result = re.eval(command);
+      REXP result = re.parseAndEval("try(eval(" + command + "),silent=TRUE)");
       if (result == null) {
-        throw new RExecutionException("Failed to get a result from R for Mann-Whitney test");
+        throw new RExecutionException("Failed to get a result from R for Mann-Whitney test. command:" + command);
+      }
+      if (result.inherits("try-error")) {
+        throw new RExecutionException("Failed to get a result from R for Mann-Whitney test. command: " + command + ", error: " + result.asString());
       }
 
       RList list = result.asList();
