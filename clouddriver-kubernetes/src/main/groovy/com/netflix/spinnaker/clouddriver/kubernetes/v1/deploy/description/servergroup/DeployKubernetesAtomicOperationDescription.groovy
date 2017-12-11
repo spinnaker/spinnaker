@@ -36,6 +36,7 @@ class DeployKubernetesAtomicOperationDescription extends KubernetesKindAtomicOpe
   List<String> loadBalancers
   List<String> securityGroups
   List<KubernetesContainerDescription> containers
+  List<KubernetesContainerDescription> initContainers
   List<KubernetesVolumeSource> volumeSources
   Capacity capacity
   KubernetesScalingPolicy scalingPolicy

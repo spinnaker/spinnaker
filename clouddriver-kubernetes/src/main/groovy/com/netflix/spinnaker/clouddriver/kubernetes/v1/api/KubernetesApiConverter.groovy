@@ -693,6 +693,10 @@ class KubernetesApiConverter {
       fromContainer(it)
     } ?: []
 
+    deployDescription.initContainers = replicaSet?.spec?.template?.spec?.initContainers?.collect {
+      fromContainer(it)
+    } ?: []
+
     deployDescription.terminationGracePeriodSeconds = replicaSet?.spec?.template?.spec?.terminationGracePeriodSeconds
     deployDescription.serviceAccountName = replicaSet?.spec?.template?.spec?.serviceAccountName
 
@@ -746,6 +750,10 @@ class KubernetesApiConverter {
     } ?: []
 
     deployDescription.containers = replicationController?.spec?.template?.spec?.containers?.collect {
+      fromContainer(it)
+    } ?: []
+
+    deployDescription.initContainers = replicationController?.spec?.template?.spec?.initContainers?.collect {
       fromContainer(it)
     } ?: []
 
@@ -1019,6 +1027,12 @@ class KubernetesApiConverter {
     }
 
     podTemplateSpecBuilder = podTemplateSpecBuilder.withContainers(containers)
+
+    def initContainers = description.initContainers.collect { initContainer ->
+      toContainer(initContainer)
+    }
+
+    podTemplateSpecBuilder = podTemplateSpecBuilder.withInitContainers(initContainers)
 
     return podTemplateSpecBuilder.endSpec().build()
   }
