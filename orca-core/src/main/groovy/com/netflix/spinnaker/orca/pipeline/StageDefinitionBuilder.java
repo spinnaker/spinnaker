@@ -50,6 +50,10 @@ public interface StageDefinitionBuilder {
     return emptyList();
   }
 
+  default @Nonnull List<Stage> afterStages(@Nonnull Stage stage) {
+    return emptyList();
+  }
+
   /**
    * @return the stage type this builder handles.
    */

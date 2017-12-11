@@ -18,6 +18,9 @@ package com.netflix.spinnaker.orca.q.handler
 
 import com.netflix.spinnaker.orca.ExecutionStatus.*
 import com.netflix.spinnaker.orca.events.StageComplete
+import com.netflix.spinnaker.orca.pipeline.DefaultStageDefinitionBuilderFactory
+import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
+import com.netflix.spinnaker.orca.pipeline.TaskNode
 import com.netflix.spinnaker.orca.pipeline.expressions.PipelineExpressionEvaluator
 import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
 import com.netflix.spinnaker.orca.pipeline.model.Stage
@@ -43,8 +46,42 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
   val clock = fixedClock()
   val contextParameterProcessor: ContextParameterProcessor = mock()
 
+  val stageWithTaskAndAfterStages = object : StageDefinitionBuilder {
+    override fun getType() = "stageWithTaskAndAfterStages"
+
+    override fun  taskGraph(stage: Stage, builder: TaskNode.Builder) {
+      builder.withTask("dummy", DummyTask::class.java)
+    }
+
+    override fun afterStages(stage: Stage): List<Stage> =
+      listOf(
+        StageDefinitionBuilder.newStage(
+          stage.execution,
+          singleTaskStage.type,
+          "After Stage",
+          mapOf("key" to "value"),
+          stage,
+          STAGE_AFTER
+        )
+      )
+  }
+
   subject(GROUP) {
-    CompleteStageHandler(queue, repository, publisher, clock, contextParameterProcessor)
+    CompleteStageHandler(
+      queue,
+      repository,
+      publisher,
+      clock,
+      contextParameterProcessor,
+      DefaultStageDefinitionBuilderFactory(
+        singleTaskStage,
+        multiTaskStage,
+        stageWithSyntheticBefore,
+        stageWithSyntheticAfter,
+        stageWithParallelBranches,
+        stageWithTaskAndAfterStages
+      )
+    )
   }
 
   fun resetMocks() = reset(queue, repository, publisher)
@@ -288,6 +325,41 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
             it("still signals completion of the execution") {
               verify(queue).push(CompleteExecution(pipeline))
             }
+          }
+        }
+
+        and("there are still synthetic stages to plan") {
+          val pipeline = pipeline {
+            application = "foo"
+            stage {
+              refId = "1"
+              name = "wait"
+              status = RUNNING
+              type = stageWithTaskAndAfterStages.type
+              stageWithTaskAndAfterStages.plan(this)
+              tasks.first().status = taskStatus
+            }
+          }
+
+          val message = CompleteStage(pipeline.stageByRef("1"))
+
+          beforeGroup {
+            whenever(repository.retrieve(PIPELINE, pipeline.id)) doReturn pipeline
+            pipeline.stages.map { it.type } shouldEqual listOf("stageWithTaskAndAfterStages")
+          }
+
+          afterGroup(::resetMocks)
+
+          action("receiving the message") {
+            subject.handle(message)
+          }
+
+          it("adds a new AFTER_STAGE") {
+            pipeline.stages.map { it.type } shouldEqual listOf("stageWithTaskAndAfterStages", "singleTaskStage")
+          }
+
+          it("starts the new AFTER_STAGE") {
+            verify(queue).push(StartStage(message, pipeline.stages[1].id))
           }
         }
       }

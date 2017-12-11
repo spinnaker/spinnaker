@@ -79,45 +79,15 @@ fun StageDefinitionBuilder.buildSyntheticStages(
 ) {
   val executionWindow = stage.buildExecutionWindow()
   syntheticStages(stage).apply {
-    buildBeforeStages(stage, executionWindow, callback)
-    buildAfterStages(stage, callback)
+    buildBeforeStages(stage, executionWindow, this[STAGE_BEFORE].orEmpty(), callback)
+    buildAfterStages(stage, this[STAGE_AFTER].orEmpty(), callback)
   }
   buildParallelStages(stage, executionWindow, callback)
 }
 
-private fun StageDefinitionBuilder.parallelStages(stage: Stage) =
-  parallelStages(stage)
-
-private typealias SyntheticStages = Map<SyntheticStageOwner, List<Stage>>
-
-@Suppress("UNCHECKED_CAST")
-private fun StageDefinitionBuilder.syntheticStages(stage: Stage) =
-  aroundStages(stage)
-    .groupBy { it.syntheticStageOwner!! }
-
-private fun SyntheticStages.buildBeforeStages(stage: Stage, executionWindow: Stage?, callback: (Stage) -> Unit) {
-  val beforeStages = if (executionWindow == null) {
-    this[STAGE_BEFORE].orEmpty()
-  } else {
-    listOf(executionWindow) + this[STAGE_BEFORE].orEmpty()
-  }
-  beforeStages.forEachIndexed { i, it ->
-    it.sanitizeContext()
-    it.refId = "${stage.refId}<${i + 1}"
-    if (i > 0) {
-      it.requisiteStageRefIds = setOf("${stage.refId}<$i")
-    } else {
-      it.requisiteStageRefIds = emptySet()
-    }
-    stage.execution.apply {
-      injectStage(stages.indexOf(stage), it)
-      callback.invoke(it)
-    }
-  }
-}
-
-private fun SyntheticStages.buildAfterStages(stage: Stage, callback: (Stage) -> Unit) {
-  val afterStages = this[STAGE_AFTER].orEmpty()
+fun StageDefinitionBuilder.buildAfterStages(
+  stage: Stage, afterStages: List<Stage>, callback: (Stage) -> Unit = {}
+) {
   afterStages.forEachIndexed { i, it ->
     it.sanitizeContext()
     it.refId = "${stage.refId}>${i + 1}"
@@ -131,6 +101,41 @@ private fun SyntheticStages.buildAfterStages(stage: Stage, callback: (Stage) -> 
     val index = stages.indexOf(stage) + 1
     afterStages.reversed().forEach {
       injectStage(index, it)
+      callback.invoke(it)
+    }
+  }
+}
+
+private fun StageDefinitionBuilder.parallelStages(stage: Stage) =
+  parallelStages(stage)
+
+private typealias SyntheticStages = Map<SyntheticStageOwner, List<Stage>>
+
+@Suppress("UNCHECKED_CAST")
+private fun StageDefinitionBuilder.syntheticStages(stage: Stage) =
+  aroundStages(stage)
+    .groupBy { it.syntheticStageOwner!! }
+
+private fun SyntheticStages.buildBeforeStages(stage: Stage,
+                                              executionWindow: Stage?,
+                                              beforeStages: List<Stage>,
+                                              callback: (Stage) -> Unit) {
+  val allBeforeStages = if (executionWindow == null) {
+    beforeStages
+  } else {
+    listOf(executionWindow) + beforeStages
+  }
+
+  allBeforeStages.forEachIndexed { i, it ->
+    it.sanitizeContext()
+    it.refId = "${stage.refId}<${i + 1}"
+    if (i > 0) {
+      it.requisiteStageRefIds = setOf("${stage.refId}<$i")
+    } else {
+      it.requisiteStageRefIds = emptySet()
+    }
+    stage.execution.apply {
+      injectStage(stages.indexOf(stage), it)
       callback.invoke(it)
     }
   }
