@@ -209,10 +209,22 @@ class AmazonSecurityGroupProvider implements SecurityGroupProvider<AmazonSecurit
   }
 
   private void addIpRangeRules(IpPermission permission, Map<String, Map> rules) {
-    permission.ipRanges.each { ipRange ->
-      String key = "$ipRange:$permission.ipProtocol";
+    permission.ipv6Ranges.each { ipRange ->
+      String key = "$ipRange:$permission.ipProtocol"
       if (!rules.containsKey(key)) {
-        def rangeParts = ipRange.split('/')
+        def rangeParts = ipRange.cidrIpv6.split('/')
+        rules.put(key, [
+          range     : new AddressableRange(ip: rangeParts[0], cidr: "/${rangeParts[1]}"),
+          protocol  : permission.ipProtocol,
+          portRanges: [] as SortedSet
+        ])
+      }
+      rules.get(key).portRanges += new Rule.PortRange(startPort: permission.fromPort, endPort: permission.toPort)
+    }
+    permission.ipv4Ranges.each { ipRange ->
+      String key = "$ipRange:$permission.ipProtocol"
+      if (!rules.containsKey(key)) {
+        def rangeParts = ipRange.cidrIp.split('/')
         rules.put(key, [
           range     : new AddressableRange(ip: rangeParts[0], cidr: "/${rangeParts[1]}"),
           protocol  : permission.ipProtocol,

@@ -17,6 +17,8 @@
 package com.netflix.spinnaker.clouddriver.aws.provider.view
 
 import com.amazonaws.services.ec2.model.IpPermission
+import com.amazonaws.services.ec2.model.IpRange
+import com.amazonaws.services.ec2.model.Ipv6Range
 import com.amazonaws.services.ec2.model.SecurityGroup
 import com.amazonaws.services.ec2.model.UserIdGroupPair
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -175,7 +177,8 @@ class AmazonSecurityGroupProviderSpec extends Specification {
           ipProtocol: 'tcp',
           fromPort: 7001,
           toPort: 8080,
-          ipRanges: ['0.0.0.0/32', '0.0.0.1/31'],
+          ipv4Ranges: [new IpRange(cidrIp: '0.0.0.0/32'), new IpRange(cidrIp: '0.0.0.1/31')],
+          ipv6Ranges: [new Ipv6Range(cidrIpv6: '::/0')],
           userIdGroupPairs: [
             new UserIdGroupPair(groupId: 'id-b', groupName: 'name-b', userId: 'test')
           ]
@@ -195,13 +198,13 @@ class AmazonSecurityGroupProviderSpec extends Specification {
     def ipRangeRules = cachedValue.inboundRules.findAll { it.class.isAssignableFrom(IpRangeRule)}
 
     then:
-    cachedValue.inboundRules.size() == 3
+    cachedValue.inboundRules.size() == 4
     securityGroupRules.size() == 1
-    ipRangeRules.size() == 2
+    ipRangeRules.size() == 3
     securityGroupRules[0].protocol == 'tcp'
-    ipRangeRules.protocol == ['tcp', 'tcp']
-    ipRangeRules.range.ip == ['0.0.0.0', '0.0.0.1']
-    ipRangeRules.range.cidr == ['/32', '/31']
+    ipRangeRules.protocol == ['tcp', 'tcp', 'tcp']
+    ipRangeRules.range.ip == ['0.0.0.0', '0.0.0.1', '::']
+    ipRangeRules.range.cidr == ['/32', '/31', '/0']
 
   }
 
