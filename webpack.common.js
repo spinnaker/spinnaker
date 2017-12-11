@@ -133,6 +133,7 @@ function configure(IS_TEST) {
     devServer: IS_TEST ? {
       stats: 'errors-only',
     } : {
+      disableHostCheck: true,
       port: process.env.DECK_PORT || 9000,
       host: process.env.DECK_HOST || 'localhost',
       https: process.env.DECK_HTTPS === 'true',

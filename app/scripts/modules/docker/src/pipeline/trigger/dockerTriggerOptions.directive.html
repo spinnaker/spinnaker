@@ -5,6 +5,8 @@
       <span class="fa fa-cog fa-spin"></span>
     </p>
   </div>
+  <!-- prevent form submission while tags are loading -->
+  <input type="hidden" ng-required="vm.viewState.tagsLoading" ng-model="vm.viewState.selectedTag" />
   <div class="col-md-6" ng-if="vm.viewState.loadError">Error loading tags!</div>
   <div class="col-md-6" ng-if="!vm.viewState.tagsLoading">
     <div ng-if="!vm.tags.length"><p class="form-control-static">No tags found</p></div>
