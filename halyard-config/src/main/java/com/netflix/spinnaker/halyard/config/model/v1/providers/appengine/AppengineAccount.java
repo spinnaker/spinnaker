@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.halyard.config.model.v1.providers.appengine;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.LocalFile;
+import com.netflix.spinnaker.halyard.config.model.v1.node.ValidForSpinnakerVersion;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.google.CommonGoogleAccount;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -32,4 +33,16 @@ public class AppengineAccount extends CommonGoogleAccount {
   private String sshPrivateKeyPassphrase;
   @LocalFile private String sshKnownHostsFilePath;
   private boolean sshTrustUnknownHosts;
+  @ValidForSpinnakerVersion(
+      lowerBound = "1.6.0",
+      message = "The gcloud release track that Spinnaker will use when deploying to App Engine"
+                + " is not configurable prior to this release."
+  )
+  private GcloudReleaseTrack gcloudReleaseTrack;
+
+  public enum GcloudReleaseTrack {
+    ALPHA,
+    BETA,
+    STABLE;
+  }
 }

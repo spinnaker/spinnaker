@@ -35,4 +35,6 @@ public class AppengineCommandProperties {
     static final String SSH_TRUST_UNKNOWN_HOSTS = "Enabling this flag will allow Spinnaker to connect" 
             + " with a remote git repository over SSH without verifying the server's IP address" 
             + " against a known_hosts file.";
+    static final String GCLOUD_RELEASE_TRACK = "The gcloud release track (ALPHA, BETA, or STABLE) that Spinnaker"
+            + " will use when deploying to App Engine.";
 }

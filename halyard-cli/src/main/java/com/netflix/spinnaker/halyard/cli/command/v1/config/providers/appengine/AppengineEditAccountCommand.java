@@ -24,6 +24,8 @@ import com.netflix.spinnaker.halyard.cli.command.v1.converter.PathExpandingConve
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.appengine.AppengineAccount;
 
+import static com.netflix.spinnaker.halyard.config.model.v1.providers.appengine.AppengineAccount.GcloudReleaseTrack;
+
 @Parameters(separators = "=")
 public class AppengineEditAccountCommand extends AbstractEditAccountCommand<AppengineAccount> {
   @Override
@@ -98,6 +100,12 @@ public class AppengineEditAccountCommand extends AbstractEditAccountCommand<Appe
   )
   private Boolean sshTrustUnknownHosts = null;
 
+  @Parameter(
+      names = "--gcloud-release-track",
+      description = AppengineCommandProperties.GCLOUD_RELEASE_TRACK
+  )
+  private GcloudReleaseTrack gcloudReleaseTrack;
+
   @Override
   protected Account editAccount(AppengineAccount account) {
     account.setJsonPath(isSet(jsonPath) ? jsonPath : account.getJsonPath());
@@ -110,6 +118,7 @@ public class AppengineEditAccountCommand extends AbstractEditAccountCommand<Appe
     account.setSshPrivateKeyPassphrase(isSet(sshPrivateKeyPassphrase) ? sshPrivateKeyPassphrase: account.getSshPrivateKeyPassphrase());
     account.setSshKnownHostsFilePath(isSet(sshKnownHostsFilePath) ? sshKnownHostsFilePath : account.getSshKnownHostsFilePath());
     account.setSshTrustUnknownHosts(sshTrustUnknownHosts != null ? sshTrustUnknownHosts : account.isSshTrustUnknownHosts());
+    account.setGcloudReleaseTrack(gcloudReleaseTrack != null ? gcloudReleaseTrack : account.getGcloudReleaseTrack());
     
     return account;
   }
