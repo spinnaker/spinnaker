@@ -100,9 +100,11 @@ public class WebhookEventMonitor extends TriggerMonitor {
   @Override
   protected Predicate<Trigger> matchTriggerFor(final TriggerEvent event, final Pipeline pipeline) {
     String type = event.getDetails().getType();
+    String source = event.getDetails().getSource();
 
     return trigger ->
       trigger.getType().equals(type) &&
+      trigger.getSource().equals(source) &&
         (
           // The Constraints in the Trigger could be null. That's OK.
           trigger.getConstraints() == null ||
