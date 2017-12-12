@@ -69,7 +69,7 @@ class KubernetesManifestSelectorComponent implements IComponentOptions {
           class="form-control input-sm highlight-pristine"
           ng-model="ctrl.kindsMetadata" ng-change="ctrl.stringToArray()"/>
       </stage-config-field>
-      <stage-config-field label="">
+      <stage-config-field label="Match On">
         <label class="radio-inline"><input type="radio" name="type" value="labels" ng-model="ctrl.selectorType" ng-click="ctrl.clearOldSelection('labels')">Labels</label>
         <label class="radio-inline"><input type="radio" name="type" value="name" ng-model="ctrl.selectorType" ng-click="ctrl.clearOldSelection('name')">Name</label>
       </stage-config-field>
