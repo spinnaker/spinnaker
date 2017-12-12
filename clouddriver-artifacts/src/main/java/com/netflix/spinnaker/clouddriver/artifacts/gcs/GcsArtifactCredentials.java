@@ -25,13 +25,11 @@ import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.services.storage.Storage;
 import com.google.api.services.storage.StorageScopes;
-import com.google.api.services.storage.model.StorageObject;
-import com.netflix.spinnaker.clouddriver.artifacts.ArtifactUtils;
 import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactCredentials;
+import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -70,29 +68,25 @@ public class GcsArtifactCredentials implements ArtifactCredentials {
         .build();
   }
 
-  public InputStream openObjectStream(String bucketName, String path) throws IOException {
+  public InputStream download(Artifact artifact) throws IOException {
+    String reference = artifact.getReference();
+    if (reference.startsWith("gs://")) {
+      reference = reference.substring("gs://".length());
+    }
+
+    int slash = reference.indexOf("/");
+    if (slash <= 0) {
+      throw new IllegalArgumentException("GCS references must be of the format gs://<bucket>/<file-path>, got: " + artifact);
+    }
+
+    String bucketName = reference.substring(0, slash);
+    String path = reference.substring(slash + 1);
     Storage.Objects.Get get = storage.objects().get(bucketName, path);
     return get.executeMediaAsInputStream();
   }
 
-  public void downloadStorageObjectRelative(StorageObject obj, String ignorePrefix, String baseDirectory) throws IOException {
-    InputStream stream = openObjectStream(obj.getBucket(), obj.getName());
-    String objPath = obj.getName();
-    if (!ignorePrefix.isEmpty()) {
-      ignorePrefix += File.separator;
-      if (!objPath.startsWith(ignorePrefix)) {
-        throw new IllegalArgumentException(objPath + " does not start with '" + ignorePrefix + "'");
-      }
-      objPath = objPath.substring(ignorePrefix.length());
-    }
-
-    File target = new File(baseDirectory, objPath);
-    ArtifactUtils.writeStreamToFile(stream, target);
-    target.setLastModified(obj.getUpdated().getValue());
-    stream.close();
-  }
-
-  public void downloadStorageObject(StorageObject obj, String baseDirectory) throws IOException {
-    downloadStorageObjectRelative(obj, "", baseDirectory);
+  @Override
+  public boolean handlesType(String type) {
+    return type.equals("gcs/object");
   }
 }

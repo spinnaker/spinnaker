@@ -17,6 +17,13 @@
 
 package com.netflix.spinnaker.clouddriver.artifacts.config;
 
+import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+
+import java.io.IOException;
+import java.io.InputStream;
+
 public interface ArtifactCredentials {
   String getName();
+  boolean handlesType(String type);
+  InputStream download(Artifact artifact) throws IOException;
 }

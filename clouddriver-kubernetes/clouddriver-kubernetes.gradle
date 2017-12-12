@@ -1,5 +1,6 @@
 dependencies {
   spinnaker.group('kubernetes')
+  compile project(":clouddriver-artifacts")
   compile project(":clouddriver-core")
   compile project(":clouddriver-docker")
   compile spinnaker.dependency('bootActuator')

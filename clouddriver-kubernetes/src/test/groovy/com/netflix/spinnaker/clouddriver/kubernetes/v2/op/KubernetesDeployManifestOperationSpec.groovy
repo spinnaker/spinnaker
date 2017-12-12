@@ -82,6 +82,7 @@ metadata:
       .setManifest(stringToManifest(manifest))
       .setMoniker(new Moniker())
       .setRelationships(new KubernetesManifestSpinnakerRelationships())
+      .setSource(KubernetesDeployManifestDescription.Source.text)
 
     def namedCredentialsMock = Mock(KubernetesNamedAccountCredentials)
     namedCredentialsMock.getCredentials() >> credentials
@@ -106,7 +107,7 @@ metadata:
       .withAccount(ACCOUNT)
       .setNamer(KubernetesManifest.class, new KubernetesManifestNamer())
     
-    def deployOp = new KubernetesDeployManifestOperation(deployDescription, registry, null)
+    def deployOp = new KubernetesDeployManifestOperation(deployDescription, registry, null, null)
 
     return deployOp
   }

@@ -33,4 +33,11 @@ public class KubernetesDeployManifestDescription extends KubernetesAtomicOperati
   KubernetesManifestSpinnakerRelationships relationships;
   List<Artifact> artifacts;
   Boolean versioned;
+  Source source;
+  Artifact manifestArtifact;
+
+  public enum Source {
+    artifact,
+    text
+  }
 }
