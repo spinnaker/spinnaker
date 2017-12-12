@@ -3,7 +3,7 @@
   <form role="form" name="deleteForm">
     <modal-close dismiss="$dismiss()"></modal-close>
     <div class="modal-header">
-      <h3>Delete {{ctrl.command.name | robotToHuman}} in {{ctrl.command.location}}</h3>
+      <h3>Delete {{ctrl.command.manifestName | robotToHuman}} in {{ctrl.command.location}}</h3>
     </div>
     <div class="modal-body confirmation-modal">
       <kubernetes-delete-manifest-options-form options="ctrl.command.options"></kubernetes-delete-manifest-options-form>

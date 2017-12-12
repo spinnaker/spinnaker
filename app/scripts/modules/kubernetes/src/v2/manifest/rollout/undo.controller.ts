@@ -12,7 +12,7 @@ import {
 import { IManifestCoordinates } from '../IManifestCoordinates';
 
 interface IUndoRolloutCommand {
-  name: string;
+  manifestName: string;
   location: string;
   account: string;
   reason: string;
@@ -46,7 +46,7 @@ class KubernetesManifestUndoRolloutController implements IController {
     });
 
     this.command = {
-      name: coordinates.name,
+      manifestName: coordinates.name,
       location: coordinates.namespace,
       account: coordinates.account,
       reason: null,

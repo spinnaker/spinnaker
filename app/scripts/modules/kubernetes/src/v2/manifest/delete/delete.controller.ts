@@ -13,7 +13,7 @@ import { IManifestCoordinates } from '../IManifestCoordinates';
 import { KUBERNETES_DELETE_MANIFEST_OPTIONS_FORM } from './deleteOptionsForm.component';
 
 export interface IDeleteCommand {
-  name: string;
+  manifestName: string;
   location: string;
   account: string;
   reason: string;
@@ -46,7 +46,7 @@ class KubernetesManifestDeleteController implements IController {
     });
 
     this.command = {
-      name: coordinates.name,
+      manifestName: coordinates.name,
       location: coordinates.namespace,
       account: coordinates.account,
       reason: null,

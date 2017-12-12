@@ -3,7 +3,7 @@
   <form role="form" name="scaleForm">
     <modal-close dismiss="$dismiss()"></modal-close>
     <div class="modal-header">
-      <h3>Scale {{ctrl.command.name | robotToHuman}} in {{ctrl.command.location}}</h3>
+      <h3>Scale {{ctrl.command.manifestName | robotToHuman}} in {{ctrl.command.location}}</h3>
     </div>
     <div class="modal-body confirmation-modal">
       <kubernetes-scale-manifest-settings-form settings="ctrl.command"></kubernetes-scale-manifest-settings-form>

@@ -13,7 +13,7 @@ import { IManifestCoordinates } from '../IManifestCoordinates';
 import { KUBERNETES_SCALE_MANIFEST_SETTINGS_FORM } from './scaleSettingsForm.component';
 
 interface IScaleCommand {
-  name: string;
+  manifestName: string;
   location: string;
   account: string;
   reason: string;
@@ -42,7 +42,7 @@ class KubernetesManifestScaleController implements IController {
     });
 
     this.command = {
-      name: coordinates.name,
+      manifestName: coordinates.name,
       location: coordinates.namespace,
       account: coordinates.account,
       reason: null,
