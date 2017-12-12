@@ -62,8 +62,8 @@ class KubernetesControllersCachingAgent extends KubernetesV1CachingAgent impleme
                                     Registry registry,
                                     int agentIndex,
                                     int agentCount) {
-                                    super(namedAccountCredentials, objectMapper, registry, agentIndex, agentCount)
-                                    this.metricsSupport = new OnDemandMetricsSupport(registry, this, "$KubernetesCloudProvider.ID:$OnDemandAgent.OnDemandType.ServerGroup")
+    super(namedAccountCredentials, objectMapper, registry, agentIndex, agentCount)
+    this.metricsSupport = new OnDemandMetricsSupport(registry, this, "$KubernetesCloudProvider.ID:$OnDemandAgent.OnDemandType.ServerGroup")
   }
 
   @Override
@@ -212,7 +212,7 @@ class KubernetesControllersCachingAgent extends KubernetesV1CachingAgent impleme
     List<KubernetesController> serverGroups = (statefulSet.collect {
       it ? new KubernetesController(statefulController: it) : null
     }+ daemonSet.collect {
-      it ? new KubernetesController(statefulController: it) : null
+      it ? new KubernetesController(daemonController: it) : null
     }
     ) - null
     List<CacheData> evictFromOnDemand = []
@@ -329,7 +329,6 @@ class KubernetesControllersCachingAgent extends KubernetesV1CachingAgent impleme
           relationships[Keys.Namespace.SERVER_GROUPS.ns].add(serverGroupKey)
           relationships[Keys.Namespace.LOAD_BALANCERS.ns].addAll(loadBalancerKeys)
         }
-
         pods?.getItems().forEach { pod ->
           def key = Keys.getInstanceKey(accountName, pod.metadata.namespace, pod.metadata.name)
           instanceKeys << key
@@ -340,17 +339,22 @@ class KubernetesControllersCachingAgent extends KubernetesV1CachingAgent impleme
             relationships[Keys.Namespace.LOAD_BALANCERS.ns].addAll(loadBalancerKeys)
           }
         }
-
+        boolean isDaemonset
         cachedServerGroups[serverGroupKey].with {
           def events = null
           attributes.name = serverGroupName
 
           if (serverGroup.statefulController instanceof V1beta1StatefulSet) {
             events = stateFulsetEvents[serverGroup.namespace][serverGroupName]
-          } else if (serverGroup.statefulController instanceof V1beta1DaemonSet) {
+          } else if (serverGroup.daemonController instanceof V1beta1DaemonSet) {
             events = daemonsetEvents[serverGroup.namespace][serverGroupName]
+            isDaemonset = true
           }
           attributes.serverGroup = new KubernetesV1ServerGroup(serverGroup.statefulController ?: serverGroup.daemonController, accountName, events)
+          if (isDaemonset) {
+            attributes.serverGroup.replicas = pods?.getItems().size()
+          }
+
           relationships[Keys.Namespace.APPLICATIONS.ns].add(applicationKey)
           relationships[Keys.Namespace.CLUSTERS.ns].add(clusterKey)
           relationships[Keys.Namespace.INSTANCES.ns].addAll(instanceKeys)
@@ -417,3 +421,4 @@ class KubernetesControllersCachingAgent extends KubernetesV1CachingAgent impleme
     }
   }
 }
+
