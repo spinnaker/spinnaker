@@ -99,7 +99,8 @@ class Keys {
           stack: names.stack,
           detail: names.detail,
           serverGroup: parts[5],
-          name: parts[5]
+          name: parts[5],
+          sequence: names.sequence as String,
         ]
         break
       default:
