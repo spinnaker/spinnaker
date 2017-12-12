@@ -376,7 +376,6 @@ module.exports = angular.module('spinnaker.amazon.serverGroup.details.controller
       $scope.serverGroup = { name: this.serverGroup.name };
       $uibModal.open({
         templateUrl: ServerGroupTemplates.userData,
-        controller: 'CloseableModalCtrl',
         scope: $scope
       });
     };

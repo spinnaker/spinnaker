@@ -14,7 +14,6 @@ module.exports = angular
     require('./modalOverlay.directive.js').name,
     require('./modalPage.directive.js').name,
     require('./wizard/wizardSubFormValidation.service').name,
-    require('./closeable/closeable.modal.controller').name,
     MODAL_CLOSE_COMPONENT,
     SUBMIT_BUTTON_COMPONENT,
     V2_MODAL_WIZARD_SERVICE,

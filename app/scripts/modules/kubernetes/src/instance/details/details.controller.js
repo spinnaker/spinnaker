@@ -43,7 +43,6 @@ module.exports = angular.module('spinnaker.instance.detail.kubernetes.controller
       $scope.userData = $scope.instance.yaml;
       $uibModal.open({
         templateUrl: ServerGroupTemplates.userData,
-        controller: 'CloseableModalCtrl',
         scope: $scope
       });
     };

@@ -463,7 +463,6 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
       $scope.userData = this.serverGroup.startupScript;
       $uibModal.open({
         templateUrl: ServerGroupTemplates.userData,
-        controller: 'CloseableModalCtrl',
         scope: $scope
       });
     };

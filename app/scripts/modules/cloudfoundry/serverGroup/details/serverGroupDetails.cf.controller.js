@@ -243,7 +243,6 @@ module.exports = angular.module('spinnaker.serverGroup.details.cf.controller', [
         $scope.userData = window.atob($scope.serverGroup.launchConfig.userData);
         $uibModal.open({
           templateUrl: ServerGroupTemplates.userData,
-          controller: 'CloseableModalCtrl',
           scope: $scope
         });
       };

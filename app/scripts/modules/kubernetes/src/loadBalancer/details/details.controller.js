@@ -56,7 +56,6 @@ module.exports = angular.module('spinnaker.loadBalancer.kubernetes.details.contr
       $scope.userData = $scope.loadBalancer.yaml;
       $uibModal.open({
         templateUrl: ServerGroupTemplates.userData,
-        controller: 'CloseableModalCtrl',
         scope: $scope
       });
     };

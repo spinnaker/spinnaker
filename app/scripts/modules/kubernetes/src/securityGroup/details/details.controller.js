@@ -60,7 +60,6 @@ module.exports = angular.module('spinnaker.securityGroup.kubernetes.details.cont
       $scope.userData = $scope.securityGroup.yaml;
       $uibModal.open({
         templateUrl: ServerGroupTemplates.userData,
-        controller: 'CloseableModalCtrl',
         scope: $scope
       });
     };

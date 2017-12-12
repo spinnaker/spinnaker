@@ -59,7 +59,6 @@ module.exports = angular.module('spinnaker.serverGroup.details.kubernetes.contro
       $scope.userData = $scope.serverGroup.yaml;
       $uibModal.open({
         templateUrl: ServerGroupTemplates.userData,
-        controller: 'CloseableModalCtrl',
         scope: $scope
       });
     };

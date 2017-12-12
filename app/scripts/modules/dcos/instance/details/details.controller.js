@@ -33,7 +33,6 @@ module.exports = angular.module('spinnaker.dcos.instance.details.controller', [
       $scope.userData = $scope.instance.json;
       $uibModal.open({
         templateUrl: ServerGroupTemplates.userData,
-        controller: 'CloseableModalCtrl',
         scope: $scope
       });
     };

@@ -43,7 +43,6 @@ module.exports = angular.module('spinnaker.dcos.loadBalancer.details.controller'
       $scope.userData = $scope.loadBalancer.json;
       $uibModal.open({
         templateUrl: ServerGroupTemplates.userData,
-        controller: 'CloseableModalCtrl',
         scope: $scope
       });
     };

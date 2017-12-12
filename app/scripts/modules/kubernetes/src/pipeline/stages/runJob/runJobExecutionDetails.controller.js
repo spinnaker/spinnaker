@@ -30,7 +30,6 @@ module.exports = angular
       $scope.jobName = $scope.stage.context.jobStatus.name || '';
       return $uibModal.open({
         templateUrl: require('./runJobLogs.html'),
-        controller: 'CloseableModalCtrl',
         scope: $scope,
         size: 'lg'
       });
