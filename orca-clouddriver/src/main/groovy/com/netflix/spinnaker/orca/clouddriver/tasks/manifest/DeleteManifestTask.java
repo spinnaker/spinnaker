@@ -54,7 +54,7 @@ public class DeleteManifestTask extends AbstractCloudProviderAwareTask implement
         .put("kato.result.expected", false)
         .put("kato.last.task.id", taskId)
         .put("delete.account.name", credentials)
-        .put("delete.name", stage.getContext().get("name"))
+        .put("delete.name", stage.getContext().get("manifestName"))
         .put("delete.location", stage.getContext().get("location"))
         .build();
 

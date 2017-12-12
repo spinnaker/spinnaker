@@ -54,7 +54,7 @@ public abstract class GenericUpdateManifestTask extends AbstractCloudProviderAwa
         .put("kato.result.expected", false)
         .put("kato.last.task.id", taskId)
         .put("manifest.account.name", credentials)
-        .put("manifest.name", stage.getContext().get("name"))
+        .put("manifest.name", stage.getContext().get("manifestName"))
         .put("manifest.location", stage.getContext().get("location"))
         .build();
 
