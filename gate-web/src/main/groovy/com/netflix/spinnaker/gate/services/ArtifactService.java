@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.gate.services.appengine;
+package com.netflix.spinnaker.gate.services;
 
 import com.netflix.hystrix.HystrixCommand;
 import com.netflix.spinnaker.gate.services.commands.HystrixFactory;
@@ -24,25 +24,24 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Callable;
 
 @CompileStatic
 @Component
-@Deprecated
-public class StorageAccountService {
-
-  private static final String GROUP = "storageAccount";
+public class ArtifactService {
+  private static final String GROUP = "artifacts";
 
   @Autowired
   private ClouddriverServiceSelector clouddriverServiceSelector;
 
-  private static HystrixCommand<List<String>> listCommand(String type, Callable<List<String>> work) {
+  private static HystrixCommand<List<Map>> listCommand(String type, Callable<List<Map>> work) {
     return HystrixFactory.newListCommand(GROUP, type, work);
   }
 
-  public List<String> getAppengineStorageAccounts(String selectorKey) {
-    return listCommand("appengineStorageAccounts",
-        clouddriverServiceSelector.select(selectorKey)::getStorageAccounts)
+  public List<Map> getArtifactCredentials(String selectorKey) {
+    return listCommand("artifactCredentials",
+        clouddriverServiceSelector.select(selectorKey)::getArtifactCredentials)
         .execute();
   }
 }
