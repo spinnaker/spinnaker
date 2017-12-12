@@ -6,22 +6,7 @@
       <h3>Scale {{ctrl.command.name | robotToHuman}} in {{ctrl.command.location}}</h3>
     </div>
     <div class="modal-body confirmation-modal">
-      <div class="form-horizontal">
-        <div class="form-group form-inline">
-          <div class="col-md-3 sm-label-right">
-            Replicas
-          </div>
-          <div class="col-md-4">
-            <div class="input-group">
-              <input type="number"
-                     class="form-control input-sm highlight-pristine"
-                     ng-model="ctrl.command.replicas"
-                     min="0"/>
-              <span class="input-group-addon">replica<span ng-if="ctrl.command.replicas !== 1">s</span></span>
-            </div>
-          </div>
-        </div>
-      </div>
+      <kubernetes-scale-manifest-settings-form settings="ctrl.command"></kubernetes-scale-manifest-settings-form>
       <task-reason command="ctrl.command"></task-reason>
     </div>
     <div class="modal-footer">

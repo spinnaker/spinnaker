@@ -1,7 +1,7 @@
 import { cloneDeep, merge } from 'lodash';
 
 export interface IProviderSettings {
-  defaults: {};
+  defaults: any;
   resetToOriginal?: () => void;
 }
 

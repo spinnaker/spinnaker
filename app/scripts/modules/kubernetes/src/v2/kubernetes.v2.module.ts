@@ -12,6 +12,8 @@ import { KUBERNETES_MANIFEST_SCALE_CTRL } from './manifest/scale/scale.controlle
 import { KUBERNETES_MANIFEST_ENTRY } from './manifest/wizard/manifestEntry.component';
 import { KUBERNETES_V2_INSTANCE_DETAILS_CTRL } from './instance/details/details.controller';
 import { KUBERNETES_DEPLOY_MANIFEST_STAGE } from './pipelines/stages/deployManifest/deployManifestStage';
+import { KUBERNETES_DELETE_MANIFEST_STAGE } from './pipelines/stages/deleteManifest/deleteManifestStage';
+import { KUBERNETES_RESIZE_MANIFEST_STAGE } from './pipelines/stages/resizeManifest/resizeManifestStage';
 import { KUBERNETES_V2_LOAD_BALANCER_DETAILS_CTRL } from './loadBalancer/details/details.controller';
 import { KUBERNETES_V2_SECURITY_GROUP_DETAILS_CTRL } from './securityGroup/details/details.controller';
 import { KUBERNETES_V2_SERVER_GROUP_TRANSFORMER } from './serverGroup/serverGroupTransformer.service';
@@ -62,6 +64,8 @@ module(KUBERNETES_V2_MODULE, [
   KUBERNETES_MANIFEST_ARTIFACT,
   require('../securityGroup/reader.js').name,
   KUBERNETES_DEPLOY_MANIFEST_STAGE,
+  KUBERNETES_DELETE_MANIFEST_STAGE,
+  KUBERNETES_RESIZE_MANIFEST_STAGE,
 ]).config((cloudProviderRegistryProvider: CloudProviderRegistry) => {
     cloudProviderRegistryProvider.registerProvider('kubernetes', {
       name: 'Kubernetes',
