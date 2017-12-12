@@ -15,19 +15,23 @@ if [ -z "$SOURCE_VERSION" ] || [ -z "$TARGET_VERSION" ] || [ -z "$PLATFORM" ]; t
 fi
 
 if [ "$PLATFORM" = "docker" ]; then
-  SOURCE_IMAGE=gcr.io/spinnaker-marketplace/halyard:$SOURCE_VERSION
-  TARGET_IMAGE=gcr.io/spinnaker-marketplace/halyard:$TARGET_VERSION
+  PUBLISH_HALYARD_DOCKER_IMAGE_BASE=${PUBLISH_HALYARD_DOCKER_IMAGE_BASE:-gcr.io/spinnaker-marketplace/halyard}
+  SOURCE_IMAGE=$PUBLISH_HALYARD_DOCKER_IMAGE_BASE:$SOURCE_VERSION
+  TARGET_IMAGE=$PUBLISH_HALYARD_DOCKER_IMAGE_BASE:$TARGET_VERSION
 
   docker pull $SOURCE_IMAGE
   docker tag $SOURCE_IMAGE $TARGET_IMAGE
+  echo "Pushing docker image $TARGET_NAME"
   gcloud docker -- push $TARGET_IMAGE
 else 
-  SOURCE_PATH=gs://spinnaker-artifacts/halyard/$SOURCE_VERSION/$PLATFORM/halyard.tar.gz
-  TARGET_PATH=gs://spinnaker-artifacts/halyard/$TARGET_VERSION/$PLATFORM/halyard.tar.gz
+  PUBLISH_HALYARD_BUCKET_BASE_URL=${PUBLISH_HALYARD_BUCKET_BASE_URL:-gs://spinnaker-artifacts/halyard}
+  SOURCE_URL=$PUBLISH_HALYARD_BUCKET_BASE_URL/$SOURCE_VERSION/$PLATFORM/halyard.tar.gz
+  TARGET_URL=$PUBLISH_HALYARD_BUCKET_BASE_URL/$TARGET_VERSION/$PLATFORM/halyard.tar.gz
 
-  gsutil cp $SOURCE_PATH halyard.tar.gz
-  gsutil cp halyard.tar.gz $TARGET_PATH
-  gsutil acl ch -u AllUsers:R $TARGET_PATH
+  echo "Pushing halyard.tar.gz to $TARGET_URL"
+  gsutil cp $SOURCE_URL halyard.tar.gz
+  gsutil cp halyard.tar.gz $TARGET_URL
+  gsutil acl ch -u AllUsers:R $TARGET_URL
 
   rm halyard.tar.gz
 fi

@@ -20,13 +20,17 @@ fi
 ./release/$PLATFORM.sh
 
 if [ "$PLATFORM" = "docker" ]; then
-  IMAGE=gcr.io/spinnaker-marketplace/halyard:$VERSION
+  PUBLISH_HALYARD_DOCKER_IMAGE_BASE=${PUBLISH_HALYARD_DOCKER_IMAGE_BASE:-gcr.io/spinnaker-marketplace/halyard}
+  IMAGE=$PUBLISH_HALYARD_DOCKER_IMAGE_BASE:$VERSION
 
+  echo "Pushing docker image $IMAGE"
   docker tag halyard $IMAGE
   gcloud docker -- push $IMAGE
 else 
-  BUCKET_PATH=gs://spinnaker-artifacts/halyard/$VERSION/$PLATFORM/halyard.tar.gz
+  PUBLISH_HALYARD_BUCKET_BASE_URL=${PUBLISH_HALYARD_BUCKET_BASE_URL:-gs://spinnaker-artifacts/halyard}
+  BUCKET_URL=$PUBLISH_HALYARD_BUCKET_BASE_URL/$VERSION/$PLATFORM/halyard.tar.gz
 
-  gsutil cp halyard.tar.gz $BUCKET_PATH
-  gsutil acl ch -u AllUsers:R $BUCKET_PATH
+  echo "Pushing halyard.tar.gz to $BUCKET_URL"
+  gsutil cp halyard.tar.gz $BUCKET_URL
+  gsutil acl ch -u AllUsers:R $BUCKET_URL
 fi
