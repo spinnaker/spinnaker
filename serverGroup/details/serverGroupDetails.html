@@ -61,7 +61,13 @@
            Insight <span class="caret"></span>
           </button>
           <ul class="dropdown-menu" uib-dropdown-menu role="menu">
-          <li ng-repeat="action in serverGroup.insightActions"><a target=_blank href="{{action.url}}">{{action.label}}</a></li>
+          <li ng-repeat="action in serverGroup.insightActions"
+              analytics-on="click"
+              analytics-category="Insight Menu (Server Group)"
+              analytics-event="{{action.label}} clicked"
+              analytics-label="{{serverGroup.account}}/{{serverGroup.region}}/{{serverGroup.name}}">
+            <a target=_blank href="{{action.url}}">{{action.label}}</a>
+          </li>
           </ul>
         </div>
         <div class="clearfix"></div>
