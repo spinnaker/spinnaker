@@ -129,7 +129,7 @@ public class AtlasMetricsService implements MetricsService {
     String isoStep = Duration.of(atlasCanaryScope.getStep(), SECONDS) + "";
 
     long start = registry.clock().monotonicTime();
-    List < AtlasResults > atlasResultsList;
+    List <AtlasResults> atlasResultsList;
     try {
       atlasResultsList = atlasRemoteService.fetch(decoratedQuery,
                                                   atlasCanaryScope.getStart().toEpochMilli(),
@@ -144,15 +144,11 @@ public class AtlasMetricsService implements MetricsService {
     Map<String, AtlasResults> idToAtlasResultsMap = AtlasResultsHelper.merge(atlasResultsList);
     List<MetricSet> metricSetList = new ArrayList<>();
 
-    // Gather a list of tags which have multiple values across all results.
-    // This is the set of keys we wish to keep.
-    // TODO:  this should happen later, during the mixing stage, where we do this per metric name across both control and experiment
-    List<String> interestingKeys = idToAtlasResultsMap.values()
-      .stream()
-      .flatMap(result -> result.getTags().entrySet().stream())
-      .collect(Collectors.groupingBy(Map.Entry::getKey))
-      .entrySet().stream().filter(stringListEntry -> stringListEntry.getValue().size() > 1)
-      .map(Map.Entry::getKey).collect(Collectors.toList());
+    // TODO:  What we really want is a set of keys that are used in a :by operator, and no other keys.
+    List<Map<String, String>> allTags = idToAtlasResultsMap.values().stream()
+      .map(AtlasResults::getTags)
+      .collect(Collectors.toList());
+    List<String> interestingKeys = AtlasResultsHelper.interestingKeys(allTags);
 
     for (AtlasResults atlasResults : idToAtlasResultsMap.values()) {
       Instant responseStartTimeInstant = Instant.ofEpochMilli(atlasResults.getStart());
