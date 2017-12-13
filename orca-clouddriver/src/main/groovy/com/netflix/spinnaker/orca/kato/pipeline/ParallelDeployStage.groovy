@@ -82,7 +82,7 @@ class ParallelDeployStage implements StageDefinitionBuilder {
     if (stage.execution.type == PIPELINE) {
       Map trigger = stage.execution.trigger
       if (trigger.parameters?.strategy == true) {
-        Map parentStage = trigger.parentExecution.stages.find {
+        Stage parentStage = trigger.parentExecution.stages.find {
           it.id == trigger.parameters.parentStageId
         }
         Map cluster = parentStage.context as Map
