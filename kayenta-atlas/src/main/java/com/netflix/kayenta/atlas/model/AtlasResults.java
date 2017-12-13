@@ -73,15 +73,4 @@ public class AtlasResults {
   @Getter
   private TimeseriesData data;
 
-  public List<String> keysFromLabel() {
-    Pattern pattern = Pattern.compile("\\(([a-z0-9\\.]+)=[^\\)]+\\)");
-    ArrayList<String> ret = new ArrayList<>();
-    Matcher matcher = pattern.matcher(label);
-    while (matcher.find()) {
-      ret.add(matcher.group(1));
-    }
-
-    return ret;
-  }
-
 }
