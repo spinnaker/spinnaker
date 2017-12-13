@@ -24,6 +24,7 @@ import com.netflix.spinnaker.echo.model.Trigger;
 import com.netflix.spinnaker.echo.model.trigger.GitEvent;
 import com.netflix.spinnaker.echo.model.trigger.TriggerEvent;
 import com.netflix.spinnaker.echo.pipelinetriggers.PipelineCache;
+import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
@@ -34,8 +35,12 @@ import org.springframework.stereotype.Component;
 import rx.Observable;
 import rx.functions.Action1;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Function;
 import java.util.function.Predicate;
+
+import static com.netflix.spinnaker.echo.pipelinetriggers.artifacts.ArtifactMatcher.anyArtifactsMatchExpected;
 
 /**
  * Triggers pipelines on _Orca_ when a trigger-enabled build completes successfully.
@@ -63,6 +68,7 @@ public class GitEventMonitor extends TriggerMonitor {
   @Override
   public void processEvent(Event event) {
     super.validateEvent(event);
+    log.info("e = {}", event);
     if (!event.getDetails().getType().equalsIgnoreCase(GitEvent.TYPE)) {
       return;
     }
@@ -96,12 +102,16 @@ public class GitEventMonitor extends TriggerMonitor {
     String project = gitEvent.getContent().getRepoProject();
     String slug = gitEvent.getContent().getSlug();
     String branch = gitEvent.getContent().getBranch();
+    List<Artifact> artifacts = gitEvent.getPayload() != null ?
+        (List<Artifact>) gitEvent.getPayload().getOrDefault("artifacts", new ArrayList<>()) :
+        new ArrayList<>();
     return trigger -> trigger.getType().equals(GIT_TRIGGER_TYPE)
-      && trigger.getSource().equalsIgnoreCase(source)
-      && trigger.getProject().equalsIgnoreCase(project)
-      && trigger.getSlug().equalsIgnoreCase(slug)
-      && (trigger.getBranch() == null || trigger.getBranch().equals("") || matchesPattern(branch, trigger.getBranch()))
-      && hasValidGitHubSecureSignature(event, trigger);
+        && trigger.getSource().equalsIgnoreCase(source)
+        && trigger.getProject().equalsIgnoreCase(project)
+        && trigger.getSlug().equalsIgnoreCase(slug)
+        && (trigger.getBranch() == null || trigger.getBranch().equals("") || matchesPattern(branch, trigger.getBranch()))
+        && hasValidGitHubSecureSignature(event, trigger)
+        && anyArtifactsMatchExpected(artifacts, trigger, pipeline);
   }
 
   @Override

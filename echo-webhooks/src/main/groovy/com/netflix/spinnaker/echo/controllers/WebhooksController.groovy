@@ -17,8 +17,7 @@
 package com.netflix.spinnaker.echo.controllers
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.echo.artifacts.MessageArtifactTranslator
-import com.netflix.spinnaker.echo.config.WebhookProperties
+import com.netflix.spinnaker.echo.artifacts.ArtifactExtractor
 import com.netflix.spinnaker.echo.events.EventPropagator
 import com.netflix.spinnaker.echo.model.Event
 import com.netflix.spinnaker.echo.model.Metadata
@@ -44,8 +43,8 @@ class WebhooksController {
   @Autowired
   ObjectMapper mapper
 
-  @Autowired(required = false)
-  WebhookProperties webhookProperties
+  @Autowired
+  ArtifactExtractor artifactExtractor
 
   @RequestMapping(value = '/webhooks/{type}/{source}', method = RequestMethod.POST)
   void forwardEvent(@PathVariable String type,
@@ -102,17 +101,10 @@ class WebhooksController {
         }
         log.info('Webhook event received {} {} {} {} {} {}', kv('type', type), kv('event_type', event.content.event_type), kv('hook_id', event.content.hook_id), kv('repository', event.content.repository.full_name), kv('request_id', event.content.request_id), kv('branch', event.content.branch))
       }
-    } else if (webhookProperties && (type == 'artifact' || type == 'artifacts')) {
-      String templatePath = webhookProperties.getTemplatePathForSource(source)
-      // empty template path is the identity translator;
-      MessageArtifactTranslator translator = new MessageArtifactTranslator(templatePath)
-      try {
-        event.content.artifacts = translator.parseArtifacts(event.rawContent)
-        log.info("Webhook artifacts were processed: {}", event.content.artifacts);
-      } catch (Exception e) {
-        log.error("Failed to translate artifacts (ignoring webhook): {}", e.getMessage(), e)
-        sendEvent = false
-      }
+    }
+
+    if (!event.content.artifacts) {
+      event.content.artifacts = artifactExtractor.extractArtifacts(type, source, event.content)
     }
 
     log.info("Webhook ${type}:${source}:${event.content}")

@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.echo.controllers
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.echo.artifacts.ArtifactExtractor
 import com.netflix.spinnaker.echo.events.EventPropagator
 import org.springframework.http.HttpHeaders
 import spock.lang.Specification
@@ -28,6 +29,8 @@ class WebhooksControllerSpec extends Specification {
     given:
     WebhooksController controller = new WebhooksController(mapper: new ObjectMapper())
     controller.propagator = Mock(EventPropagator)
+    controller.artifactExtractor = Mock(ArtifactExtractor)
+    controller.artifactExtractor.extractArtifacts(_, _, _) >> []
 
     when:
     controller.forwardEvent(
@@ -49,6 +52,8 @@ class WebhooksControllerSpec extends Specification {
     given:
     WebhooksController controller = new WebhooksController(mapper: new ObjectMapper())
     controller.propagator = Mock(EventPropagator)
+    controller.artifactExtractor = Mock(ArtifactExtractor)
+    controller.artifactExtractor.extractArtifacts(_, _, _) >> []
 
     when:
     controller.forwardEvent(
