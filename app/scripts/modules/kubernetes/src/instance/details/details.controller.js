@@ -129,7 +129,9 @@ module.exports = angular.module('spinnaker.instance.detail.kubernetes.controller
           $scope.instance.metadata = pod.metadata;
           $scope.instance.imagePullSecrets = pod.spec.imagePullSecrets;
           $scope.instance.containers = pod.spec.containers;
+          $scope.instance.initContainers = pod.spec.initContainers;
           $scope.instance.containerStatuses = pod.status.containerStatuses;
+          $scope.instance.initContainerStatuses = pod.status.initContainerStatuses;
           $scope.instance.id = details.name;
           $scope.instance.provider = 'kubernetes';
           setBaseIpAddress();

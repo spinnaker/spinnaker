@@ -47,6 +47,7 @@ module.exports = angular.module('spinnaker.kubernetes.clusterCommandBuilder.serv
         selectedProvider: 'kubernetes',
         namespace: 'default',
         containers: [],
+        initContainers: [],
         volumeSources: [],
         buildImageId: buildImageId,
         groupByRegistry: groupByRegistry,
@@ -99,6 +100,10 @@ module.exports = angular.module('spinnaker.kubernetes.clusterCommandBuilder.serv
       command.strategy = '';
 
       command.containers.forEach((container) => {
+        container.imageDescription.imageId = buildImageId(container.imageDescription);
+      });
+
+      command.initContainers.forEach((container) => {
         container.imageDescription.imageId = buildImageId(container.imageDescription);
       });
 

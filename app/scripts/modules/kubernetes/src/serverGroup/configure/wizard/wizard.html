@@ -33,6 +33,11 @@
           <kubernetes-container-configurer command="command" index="$index" container="container"></kubernetes-container-configurer>
         </v2-wizard-page>
       </div>
+      <div ng-repeat="initContainer in command.initContainers">
+        <v2-wizard-page key="init-container-{{$index}}" label="Init Container {{initContainer.image}}" done="true">
+          <kubernetes-container-configurer init-container="true" command="command" index="$index" container="initContainer"></kubernetes-container-configurer>
+        </v2-wizard-page>
+      </div>
     </v2-modal-wizard>
   </div>
   <div class="modal-footer" ng-if="!state.requiresTemplateSelection && state.loaded">

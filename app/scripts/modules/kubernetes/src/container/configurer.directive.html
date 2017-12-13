@@ -260,7 +260,7 @@
       class="glyphicon glyphicon-plus-sign"></span> Add New Volume Mount
     </button>
   </collapsible-section>
-  <collapsible-section heading="Probes" expanded="false" subsection="true">
+  <collapsible-section heading="Probes" expanded="false" subsection="true" ng-if="!initContainer">
     <kubernetes-container-probe container="container" command="command" probetype="'readinessProbe'" heading="'Readiness'"></kubernetes-container-probe>
     <hr>
     <kubernetes-container-probe container="container" command="command" probetype="'livenessProbe'" heading="'Liveness'"></kubernetes-container-probe>
@@ -269,7 +269,7 @@
     <kubernetes-security-context-selector component="container">
     </kubernetes-security-context-selector>
   </collapsible-section>
-  <collapsible-section heading="Lifecycle Hooks" expanded="false" subsection="true">
+  <collapsible-section heading="Lifecycle Hooks" expanded="false" subsection="true" ng-if="!initContainer">
     <kubernetes-lifecycle-hook-configurer on-handler-change="containerController.setPostStartHandler(handler)"
                                           handler="container.lifecycle.postStart">
       PostStart <help-field key="kubernetes.containers.lifecycle.postStart"></help-field>

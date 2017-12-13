@@ -73,6 +73,25 @@
       </ui-select>
     </div>
   </div>
+  <div class="form-group">
+    <div class="col-md-3 sm-label-right"><b>Init Containers</b>
+    <help-field key="kubernetes.serverGroup.initContainers"></help-field>
+    </div>
+    <div class="col-md-9">
+      <ui-select multiple name="initContainerSelect" ng-model="command.initContainers" class="form-control input-sm" required>
+        <ui-select-match>{{$item.imageDescription.imageId}}</ui-select-match>
+        <ui-select-choices
+          repeat="container in command.backingData.filtered.containers | orderBy:'imageDescription.imageId'"
+          group-by="command.groupByRegistry"
+          refresh-delay="0"
+          ui-disable-choice="container.message"
+          refresh="basicSettingsController.searchImages($select.search)">
+          <span ng-bind-html="container.message"></span>
+          <span ng-bind-html="container.imageDescription.imageId | highlight: $select.search"></span>
+        </ui-select-choices>
+      </ui-select>
+    </div>
+  </div>
   <deployment-strategy-selector ng-if="!command.viewState.disableStrategySelection && command.selectedProvider" command="command"></deployment-strategy-selector>
   <div class="form-group" ng-if="!command.viewState.hideClusterNamePreview">
     <br>

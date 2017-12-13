@@ -119,74 +119,15 @@
       </dl>
     </collapsible-section>
     <collapsible-section ng-repeat="container in instance.containers" heading="Container {{container.name}}">
-      <div class="horizontal-when-filters-collapsed">
-        <dt>Name</dt>
-        <dd>{{container.name}}</dd>
-        <dt>Image</dt>
-        <dd>{{container.image}}</dd>
-        <div ng-if="container.resources">
-          <div ng-if="container.resources.limits">
-            <div ng-if="container.resources.limits.cpu">
-              <dt>CPU Limit</dt>
-              <dd>{{container.resources.limits.cpu}}</dd>
-            </div>
-            <div ng-if="container.resources.limits.memory">
-              <dt>Memory Limit</dt>
-              <dd>{{container.resources.limits.memory}}</dd>
-            </div>
-          </div>
-          <div ng-if="container.resources.requests">
-            <div ng-if="container.resources.requests.cpu">
-              <dt>CPU Request</dt>
-              <dd>{{container.resources.requests.cpu}}</dd>
-            </div>
-            <div ng-if="container.resources.requests.memory">
-              <dt>Memory Request</dt>
-              <dd>{{container.resources.requests.memory}}</dd>
-            </div>
-          </div>
-        </div>
-        <dt>Image Pull Policy</dt>
-        <dd>{{container.imagePullPolicy}}</dd>
-        <dt>Termination Message Path</dt>
-        <dd>{{container.terminationMessagePath}}
-          <copy-to-clipboard
-              class="copy-to-clipboard copy-to-clipboard-sm"
-              text="container.terminationMessagePath"
-              tool-tip="'Copy to clipboard'">
-          </copy-to-clipboard>
-        </dd>
-        <dl ng-repeat="volumeMount in container.volumeMounts" class="dl-horizontal dl-flex">
-        </dl>
-        <dt>Ready</dt>
-        <dd>{{instance.containerStatuses[$index].ready}}</dd>
-        <dt>Restart Count</dt>
-        <dd>{{instance.containerStatuses[$index].restartCount}}</dd>
-        <div ng-if="instance.containerStatuses[$index].state.running">
-          <dt>Running</dt>
-          <dd>
-            Started At: {{instance.containerStatuses[$index].state.running.startedAt}}
-          </dd>
-        </div>
-        <div ng-if="instance.containerStatuses[$index].state.waiting">
-          <dt>Waiting</dt>
-          <dd>
-          <p>Reason: {{instance.containerStatuses[$index].state.waiting.reason}}</p>
-          <p>Message: {{instance.containerStatuses[$index].state.waiting.message}}</p>
-          </dd>
-        </div>
-        <div ng-if="instance.containerStatuses[$index].state.terminated">
-          <dt>Terminated</dt>
-          <dd>
-          <p>Started At: {{instance.containerStatuses[$index].state.terminated.finishedAt}}</p>
-          <p>Finished At: {{instance.containerStatuses[$index].state.terminated.startedAt}}</p>
-          <p>Message: {{instance.containerStatuses[$index].state.terminated.message}}</p>
-          <p>Reason: {{instance.containerStatuses[$index].state.terminated.reason}}</p>
-          <p>Exit Code: {{instance.containerStatuses[$index].state.terminated.exitCode}}</p>
-          <p>Signal: {{instance.containerStatuses[$index].state.terminated.signal}}</p>
-          </dd>
-        </div>
-      </div>
+      <kubernetes-instance-container-detail container="container"
+                                            container-status="instance.containerStatuses[$index]">
+      </kubernetes-instance-container-detail>
+    </collapsible-section>
+    <collapsible-section ng-repeat="container in instance.initContainers" heading="Container {{container.name}} (init)">
+      <kubernetes-instance-container-detail container="container"
+                                            container-status="instance.initContainerStatuses[$index]"
+                                            init-container="true">
+      </kubernetes-instance-container-detail>
     </collapsible-section>
     <collapsible-section heading="Events">
       <div ng-if="instance.events && instance.events.length > 0">

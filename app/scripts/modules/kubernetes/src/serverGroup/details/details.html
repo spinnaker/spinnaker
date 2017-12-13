@@ -146,73 +146,13 @@
       </dl>
     </collapsible-section>
     <collapsible-section ng-repeat="container in serverGroup.deployDescription.containers" heading="{{container.name}}">
-      <dl class="dl-horizontal dl-flex">
-        <dt>Name</dt>
-        <dd>{{container.name}}</dd>
-        <dt>Registry</dt>
-        <dd>{{container.imageDescription.registry}}</dd>
-        <dt>Image</dt>
-        <dd>{{container.imageDescription.repository}}</dd>
-        <dt>Tag</dt>
-        <dd>{{container.imageDescription.tag}}</dd>
-        <div ng-if="container.limits">
-          <b>Limits</b>
-          <div ng-if="container.limits.cpu">
-            <dt>CPU Limit</dt>
-            <dd>{{container.limits.cpu}}</dd>
-          </div>
-          <div ng-if="container.limits.memory">
-            <dt>Memory Limit</dt>
-            <dd>{{container.limits.memory}}</dd>
-          </div>
-        </div>
-        <div ng-if="container.requests">
-          <b>Requests</b>
-          <div ng-if="container.requests.cpu">
-            <dt>CPU Request</dt>
-            <dd>{{container.requests.cpu}}</dd>
-          </div>
-          <div ng-if="container.requests.memory">
-            <dt>Memory Request</dt>
-            <dd>{{container.requests.memory}}</dd>
-          </div>
-        </div>
-        <div ng-if="container.readinessProbe">
-          <b>Readiness Probe</b>
-          <dt>Success Threshold</dt>
-          <dd>{{container.readinessProbe.successThreshold}}</dd>
-          <dt>Failure Threshold</dt>
-          <dd>{{container.readinessProbe.failureThreshold}}</dd>
-          <dt>Period</dt>
-          <dd>{{container.readinessProbe.periodSeconds}}</dd>
-          <dt>Initial Delay</dt>
-          <dd>{{container.readinessProbe.initialDelaySeconds}}</dd>
-          <dt>Timeout</dt>
-          <dd>{{container.readinessProbe.timeoutSeconds}}</dd>
-        </div>
-        <div ng-if="container.livenessProbe">
-          <b>Liveness Probe</b>
-          <dt>Success Threshold</dt>
-          <dd>{{container.livenessProbe.successThreshold}}</dd>
-          <dt>Failure Threshold</dt>
-          <dd>{{container.livenessProbe.failureThreshold}}</dd>
-          <dt>Period</dt>
-          <dd>{{container.livenessProbe.periodSeconds}}</dd>
-          <dt>Initial Delay</dt>
-          <dd>{{container.livenessProbe.initialDelaySeconds}}</dd>
-          <dt>Timeout</dt>
-          <dd>{{container.livenessProbe.timeoutSeconds}}</dd>
-        </div>
-        <div ng-if="container.lifecycle.postStart">
-          <b style="border-bottom: 1px solid #c4c4c4; margin-top: 3px;">PostStart Hook</b><br>
-          <kubernetes-lifecycle-hook-details handler="container.lifecycle.postStart"></kubernetes-lifecycle-hook-details>
-        </div>
-        <div ng-if="container.lifecycle.preStop">
-          <b style="border-bottom: 1px solid #c4c4c4; margin-top: 3px;">PreStop Hook</b><br>
-          <kubernetes-lifecycle-hook-details handler="container.lifecycle.preStop"></kubernetes-lifecycle-hook-details>
-        </div>
-    </dl>
-      </collapsible-section>
+      <kubernetes-server-group-container-detail container="container">
+      </kubernetes-server-group-container-detail>
+    </collapsible-section>
+    <collapsible-section ng-repeat="container in serverGroup.deployDescription.initContainers" heading="{{container.name}} (init)">
+      <kubernetes-server-group-container-detail container="container" init-container="true">
+      </kubernetes-server-group-container-detail>
+    </collapsible-section>
     <collapsible-section heading="Labels" ng-if="serverGroup.labels">
       <dl class="dl-horizontal dl-flex">
         <kubernetes-key-value-details map="serverGroup.labels">
