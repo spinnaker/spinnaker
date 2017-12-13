@@ -20,6 +20,7 @@ import java.util.concurrent.CountDownLatch
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
 import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionCriteria
 import com.netflix.spinnaker.orca.pipeline.persistence.jedis.JedisExecutionRepository
@@ -444,6 +445,20 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
 
     then:
     thrown(ExecutionNotFoundException)
+  }
+
+  def "parses the parent execution of a pipeline trigger"() {
+    given:
+    def execution = pipeline {
+      trigger["type"] = "pipeline"
+      trigger["parentExecution"] = pipeline()
+    }
+    repository.store(execution)
+
+    expect:
+    with(repository.retrieve(PIPELINE, execution.id)) {
+      trigger["parentExecution"] instanceof Execution
+    }
   }
 }
 

@@ -618,7 +618,13 @@ class JedisExecutionRepository implements ExecutionRepository {
       execution.paused = map.paused ? mapper.readValue(map.paused, Execution.PausedDetails) : null
       execution.keepWaitingPipelines = Boolean.parseBoolean(map.keepWaitingPipelines)
       execution.origin = map.origin
-      execution.trigger.putAll(map.trigger ? mapper.readValue(map.trigger, Map) : [:])
+      if (map.trigger) {
+        def trigger = mapper.readValue(map.trigger, Map)
+        if (trigger.containsKey("parentExecution")) {
+          trigger["parentExecution"] = mapper.convertValue(trigger["parentExecution"], Execution)
+        }
+        execution.trigger.putAll(trigger)
+      }
 
       try {
         execution.executionEngine = map.executionEngine == null ? DEFAULT_EXECUTION_ENGINE : Execution.ExecutionEngine.valueOf(map.executionEngine)
