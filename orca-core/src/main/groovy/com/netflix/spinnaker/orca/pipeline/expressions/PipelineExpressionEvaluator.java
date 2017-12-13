@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.pipeline.expressions;
 
-import java.util.*;
 import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import com.netflix.spinnaker.orca.pipeline.util.ContextFunctionConfiguration;
@@ -25,16 +24,25 @@ import org.slf4j.LoggerFactory;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
 import static com.netflix.spinnaker.orca.pipeline.expressions.PipelineExpressionEvaluator.ExpressionEvaluationVersion.V1;
 import static com.netflix.spinnaker.orca.pipeline.expressions.PipelineExpressionEvaluator.ExpressionEvaluationVersion.V2;
 
 public class PipelineExpressionEvaluator extends ExpressionsSupport implements ExpressionEvaluator {
-  private static final Logger LOGGER = LoggerFactory.getLogger(PipelineExpressionEvaluator.class);
   public static final String SUMMARY = "expressionEvaluationSummary";
   private static final String SPEL_EVALUATOR = "spelEvaluator";
-  private final ExpressionParser parser = new SpelExpressionParser();
-  private static String spelEvaluator;
   public static final String ERROR = "Failed Expression Evaluation";
+
+  private final Logger log = LoggerFactory.getLogger(PipelineExpressionEvaluator.class);
+
+  private final ExpressionParser parser = new SpelExpressionParser();
+  private final String spelEvaluator;
 
   public interface ExpressionEvaluationVersion {
     String V2 = "v2";
@@ -52,7 +60,8 @@ public class PipelineExpressionEvaluator extends ExpressionsSupport implements E
     return new ExpressionTransform(parserContext, parser).transform(source, evaluationContext, summary);
   }
 
-  public static boolean shouldUseV2Evaluator(Object obj) {
+  @Deprecated // V2 is default, v1 is not available anymore.
+  public boolean shouldUseV2Evaluator(Object obj) {
     try {
       String versionInPipeline = getSpelVersion(obj);
       if (Arrays.asList(V1, V2).contains(versionInPipeline) && obj instanceof Map) {
@@ -61,7 +70,7 @@ public class PipelineExpressionEvaluator extends ExpressionsSupport implements E
 
       return !V1.equals(versionInPipeline) && (V2.equals(spelEvaluator) || V2.equals(versionInPipeline));
     } catch (Exception e) {
-      LOGGER.error("Failed to determine whether to use v2 expression evaluator. using V1.", e);
+      log.error("Failed to determine whether to use v2 expression evaluator. using V1.", e);
     }
 
     return false;

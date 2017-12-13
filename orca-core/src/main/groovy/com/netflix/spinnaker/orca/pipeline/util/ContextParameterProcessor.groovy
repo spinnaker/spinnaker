@@ -28,7 +28,6 @@ import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.
 /**
  * Common methods for dealing with passing context parameters used by both Script and Jenkins stages
  */
-
 @Slf4j
 class ContextParameterProcessor {
   private ExpressionEvaluator expressionEvaluator
