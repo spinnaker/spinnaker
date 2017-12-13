@@ -25,6 +25,7 @@ import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTempla
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.TemplateConfiguration
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.DefaultRenderContext
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.RenderContext
+import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.RenderUtil
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.Renderer
 import java.util.stream.Collectors
 
@@ -65,7 +66,7 @@ class V1TemplateLoaderHandler(
     }
 
     // ensure that any expressions contained with template variables are rendered
-    val renderContext = DefaultRenderContext(config.pipeline.application, template, trigger)
+    val renderContext = RenderUtil.createDefaultRenderContext(template, config, trigger)
     renderTemplateVariables(renderContext, template)
 
     context.setSchemaContext(V1PipelineTemplateContext(
