@@ -23,6 +23,7 @@ export interface ICanaryMetricConfig {
   analysisConfigurations: {
     [key: string]: any;
   };
+  isNew?: boolean;
 }
 
 export interface ICanaryMetricSetQueryConfig {
