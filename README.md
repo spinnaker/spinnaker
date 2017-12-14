@@ -63,6 +63,8 @@ _**IMPORTANT:** This service is currently under development and is not ready for
 
 **NOTICE: This is an early draft of the system design**
 
+[Early proposal doc](https://docs.google.com/document/d/1PzDkEPMjibhtPmbiUlVN4sWgI9_xxHkxHY7eWKTgx6E/edit)
+
 Keel is designed around the idea of state [Intents][1], which is a statically defined
 definition of desired system state. When an Intent is provided into Keel, it will store
 it away in Front50, then continually converge and re-converge on the desired state that
