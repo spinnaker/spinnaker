@@ -40,6 +40,8 @@
   <expected-artifact-selector ng-if="ctrl.$scope.stage.source === ctrl.artifactSource"
                               command="ctrl.$scope.stage"
                               id-field="'manifestArtifactId'"
+                              account-field="'manifestArtifactAccount'"
+                              accounts="ctrl.metadata.backingData.artifactAccounts"
                               expected-artifacts="ctrl.expectedArtifacts">
   </expected-artifact-selector>
 </div>

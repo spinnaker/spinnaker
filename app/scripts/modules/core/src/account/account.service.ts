@@ -76,6 +76,13 @@ export class AccountService {
     });
   }
 
+  public getArtifactAccounts(): ng.IPromise<IAccount[]> {
+    return this.API.one('artifacts')
+      .one('credentials')
+      .useCache()
+      .get();
+  }
+
   public getAccountDetails(account: string): ng.IPromise<IAccountDetails> {
     return this.API.one('credentials')
       .one(account)

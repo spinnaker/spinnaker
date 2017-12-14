@@ -16,6 +16,7 @@ export interface IKubernetesManifestCommand {
   relationships: IKubernetesManifestSpinnakerRelationships;
   moniker: IMoniker;
   manifestArtifactId?: string;
+  manifestArtifactAccount?: string;
   source?: string;
   versioned?: boolean;
 }
@@ -62,6 +63,7 @@ export class KubernetesManifestCommandBuilder {
   public buildNewManifestCommand(app: Application, sourceManifest?: any, sourceMoniker?: IMoniker): IPromise<IKubernetesManifestCommandData> {
     const dataToFetch = {
       accounts: this.accountService.getAllAccountDetailsForProvider('kubernetes', 'v2'),
+      artifactAccounts: this.accountService.getArtifactAccounts(),
     };
 
     return this.$q.all(dataToFetch)
@@ -70,6 +72,12 @@ export class KubernetesManifestCommandBuilder {
         let account: string = null;
         if (accountData) {
           account = accountData.name;
+        }
+
+        let manifestArtifactAccount: string = null;
+        const artifactAccountData = backingData.artifactAccounts[0];
+        if (artifactAccountData) {
+          manifestArtifactAccount = artifactAccountData.name;
         }
 
         const manifest: any = null;
@@ -94,6 +102,7 @@ export class KubernetesManifestCommandBuilder {
             moniker,
             account,
             versioned,
+            manifestArtifactAccount,
           },
           metadata: {
             backingData,
