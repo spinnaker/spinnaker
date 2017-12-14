@@ -271,13 +271,13 @@ public class CanaryController {
     Stage contextStage = pipeline.getStages().stream()
       .filter(stage -> stage.getRefId().equals(REFID_SET_CONTEXT))
       .findFirst()
-      .orElseThrow(() -> new IllegalArgumentException("Unable to find stage '" + REFID_JUDGE + "' in pipeline ID '" + canaryExecutionId + "'"));
+      .orElseThrow(() -> new IllegalArgumentException("Unable to find stage '" + REFID_SET_CONTEXT + "' in pipeline ID '" + canaryExecutionId + "'"));
     Map<String, Object> contextContext = contextStage.getContext();
 
     Stage mixerStage = pipeline.getStages().stream()
       .filter(stage -> stage.getRefId().equals(REFID_MIX_METRICS))
       .findFirst()
-      .orElseThrow(() -> new IllegalArgumentException("Unable to find stage '" + REFID_JUDGE + "' in pipeline ID '" + canaryExecutionId + "'"));
+      .orElseThrow(() -> new IllegalArgumentException("Unable to find stage '" + REFID_MIX_METRICS + "' in pipeline ID '" + canaryExecutionId + "'"));
     Map<String, Object> mixerContext = mixerStage.getContext();
 
     if (!contextContext.containsKey("canaryConfigId")) {
@@ -318,6 +318,7 @@ public class CanaryController {
       canaryExecutionStatusResponseBuilder.endTimeIso(Instant.ofEpochMilli(endTime) + "");
     }
 
+    // TODO: (mgraff) Remove this once our UIs are set up to get it from the canary result itself
     canaryExecutionStatusResponseBuilder.metricSetPairListId((String)mixerContext.get("metricSetPairListId"));
 
     if (isComplete && pipelineStatus.equals("succeeded")) {
