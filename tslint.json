@@ -102,6 +102,7 @@
       "check-separator",
       "check-type"
     ],
-    "jsx-no-multiline-js": false
+    "jsx-no-multiline-js": false,
+    "jsx-no-lambda": false
   }
 }

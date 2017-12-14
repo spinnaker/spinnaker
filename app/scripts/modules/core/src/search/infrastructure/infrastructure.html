@@ -53,10 +53,10 @@
               No projects found matching "{{query}}".<br/>
               <a href ng-click="ctrl.createProject()">Create a new project</a>
             </div>
-            <infrastructure-project ng-repeat="project in projects[0].results"
-                                    project-name="project.name"
-                                    applications="project.config.applications">
-            </infrastructure-project>
+            <project-summary-pod ng-repeat="project in projects[0].results"
+                                 project-name="project.name"
+                                 applications="project.config.applications">
+            </project-summary-pod>
           </div>
         </div>
       </div>
@@ -105,50 +105,8 @@
       </div>
     </div>
   </div>
+
   <div ng-if="ctrl.showRecentResults()" class="infrastructure-section container">
-    <div class="recent-items">
-      <h3>Recently viewed</h3>
-      <div class="row">
-        <div class="col-md-3" ng-if="recentProjects.length">
-          <div class="row">
-            <div class="col-md-12">
-              <infrastructure-project ng-repeat="project in recentProjects"
-                                      project-name="project.params.project"
-                                      applications="project.extraData.config.applications"
-                                      can-remove="true"
-                                      on-remove="ctrl.removeRecentProject(project.id, $index)">
-              </infrastructure-project>
-            </div>
-          </div>
-        </div>
-        <div class="col-md-{{recentProjects.length ? 9 : 12}}">
-          <div class="row">
-            <div class="col-md-4 category-container" ng-repeat="category in recentItems | orderBy:'category'">
-              <div class="panel category row">
-                <div class="summary">
-                  <span class="category-icon" ng-if="category.config.icon || category.config.iconClass">
-                    <i ng-if="category.config.icon" class="fa fa-{{category.config.icon}}"></i>
-                    <span ng-if="category.config.iconClass" class="{{category.config.iconClass}}"></span>
-                  </span>
-                  {{ category.category | robotToHuman }} ({{category.results.length}})
-                </div>
-                <div class="details-container list-group">
-                  <a class="list-group-item"
-                     ng-repeat="result in category.results"
-                     ui-sref="{{ result.state }}(result.params)">
-                    <search-result item="result"></search-result>
-                    <span class="small clickable remove-result-link"
-                          ng-click="ctrl.removeRecentItem(category.category, result.id, $index); $event.preventDefault()">
-                      <span class="glyphicon glyphicon-remove"
-                            uib-tooltip="remove from history" tooltip-popup-delay="300" tooltip-placement="left"></span>
-                    </span>
-                  </a>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+    <recently-viewed-items></recently-viewed-items>
   </div>
 </div>

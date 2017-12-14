@@ -19,7 +19,7 @@ module(INFRASTRUCTURE_STATES, [
     },
     data: {
       pageTitleMain: {
-        label: 'Infrastructure'
+        label: 'Search'
       }
     }
   });

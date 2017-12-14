@@ -11,18 +11,23 @@ import { RECENT_HISTORY_SERVICE } from 'core/history/recentHistory.service';
 import { PAGE_TITLE_SERVICE } from 'core/pageTitle/pageTitle.service';
 import { INFRASTRUCTURE_SEARCH_SERVICE } from 'core/search/infrastructure/infrastructureSearch.service';
 import { SPINNER_COMPONENT } from 'core/widgets/spinners/spinner.component';
+import { SEARCH_RESULT_COMPONENT } from '../infrastructure/searchResult.component';
+import { PROJECT_SUMMARY_POD_COMPONENT } from '../infrastructure/projectSummaryPod.component';
+import { RECENTLY_VIEWED_ITEMS_COMPONENT } from '../infrastructure/recentlyViewedItems.component';
+
 import { SearchService } from '../search.service';
 
 module.exports = angular.module('spinnaker.search.infrastructure.controller', [
   INFRASTRUCTURE_SEARCH_SERVICE,
   RECENT_HISTORY_SERVICE,
-  require('../searchResult/searchResult.directive.js').name,
+  SEARCH_RESULT_COMPONENT,
   PAGE_TITLE_SERVICE,
-  require('./project/infrastructureProject.directive.js').name,
+  PROJECT_SUMMARY_POD_COMPONENT,
   require('../searchRank.filter.js').name,
   CLUSTER_FILTER_SERVICE,
   CACHE_INITIALIZER_SERVICE,
   OVERRIDE_REGISTRY,
+  RECENTLY_VIEWED_ITEMS_COMPONENT,
   SPINNER_COMPONENT
 ])
   .controller('InfrastructureCtrl', function($scope, infrastructureSearchService, $stateParams, $location, searchService,
@@ -40,31 +45,6 @@ module.exports = angular.module('spinnaker.search.infrastructure.controller', [
     };
 
     this.clearFilters = r => clusterFilterService.overrideFiltersForUrl(r);
-
-    this.loadRecentItems = () => {
-      $scope.recentProjects = recentHistoryService.getItems('projects');
-
-      $scope.recentItems = ['applications', 'loadBalancers', 'serverGroups', 'instances', 'securityGroups']
-        .map((category) => {
-          return {
-            category: category,
-            config: search.getCategoryConfig(category),
-            results: recentHistoryService.getItems(category)
-              .map((result) => {
-                let routeParams = angular.extend(result.params, result.extraData);
-                search.formatRouteResult(category, routeParams, true).then((name) => result.displayName = name);
-                return result;
-              })
-          };
-        })
-        .filter((category) => {
-          return category.results.length;
-        });
-
-      this.hasRecentItems = $scope.recentItems.some((category) => {
-        return category.results.length > 0;
-      });
-    };
 
     function updateLocation() {
       $location.search('q', $scope.query || null);
@@ -186,18 +166,9 @@ module.exports = angular.module('spinnaker.search.infrastructure.controller', [
 
     this.noMatches = () => !this.hasResults() && $scope.query && $scope.query.length > 0;
 
-    this.showRecentResults = () => this.hasRecentItems && !$scope.viewState.searching && !$scope.projects.length && $scope.categories.every((category) => !category.results.length);
-
-    this.removeRecentItem = (category, id) => {
-      recentHistoryService.removeItem(category, id);
-      this.loadRecentItems();
-    };
-
-    this.removeRecentProject = (id) => {
-      recentHistoryService.removeItem('projects', id);
-      this.loadRecentItems();
-    };
-
-    this.loadRecentItems();
+    this.showRecentResults = () =>
+      !$scope.viewState.searching &&
+      !$scope.projects.length &&
+      $scope.categories.every((category) => !category.results.length);
 
   });

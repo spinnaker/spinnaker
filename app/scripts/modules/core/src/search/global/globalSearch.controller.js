@@ -3,13 +3,14 @@
 const angular = require('angular');
 const $ = require('jquery');
 
-import {CLUSTER_FILTER_SERVICE} from 'core/cluster/filter/clusterFilter.service';
-import {RECENT_HISTORY_SERVICE} from 'core/history/recentHistory.service';
+import { CLUSTER_FILTER_SERVICE } from 'core/cluster/filter/clusterFilter.service';
+import { RECENT_HISTORY_SERVICE } from 'core/history/recentHistory.service';
+import { SEARCH_RESULT_COMPONENT } from '../infrastructure/searchResult.component';
 
 module.exports = angular.module('spinnaker.core.search.global.controller', [
   require('angulartics'),
   CLUSTER_FILTER_SERVICE,
-  require('../searchResult/searchResult.directive.js').name,
+  SEARCH_RESULT_COMPONENT,
   require('../searchRank.filter.js').name,
   RECENT_HISTORY_SERVICE,
 ])
