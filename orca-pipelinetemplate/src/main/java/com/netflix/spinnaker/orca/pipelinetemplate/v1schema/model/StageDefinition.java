@@ -34,7 +34,7 @@ public class StageDefinition implements Identifiable, Conditional, Cloneable {
   private InjectionRule inject;
   private Set<String> dependsOn = new LinkedHashSet<>();
   private String type;
-  private Map<String, Object> config;
+  private Object config;
   private List<Map<String, Object>> notifications = new ArrayList<>();
   private String comments;
   private List<String> when = new ArrayList<>();
@@ -230,11 +230,20 @@ public class StageDefinition implements Identifiable, Conditional, Cloneable {
     this.type = type;
   }
 
-  public Map<String, Object> getConfig() {
+  public Object getConfig() {
     return config;
   }
 
-  public void setConfig(Map<String, Object> config) {
+  @JsonIgnore
+  @SuppressWarnings("unchecked")
+  public Map<String, Object> getConfigAsMap() {
+    if (!(config instanceof Map)) {
+      throw new IllegalStateException("Stage configuration has not been converted to a map yet");
+    }
+    return (Map) config;
+  }
+
+  public void setConfig(Object config) {
     this.config = config;
   }
 
@@ -314,7 +323,11 @@ public class StageDefinition implements Identifiable, Conditional, Cloneable {
   public Object clone() throws CloneNotSupportedException {
     StageDefinition stage = (StageDefinition) super.clone();
     stage.setDependsOn(new LinkedHashSet<>(getDependsOn()));
-    stage.setConfig(new HashMap<>(getConfig()));
+    if (getConfig() instanceof Map) {
+      stage.setConfig(new HashMap<>(getConfigAsMap()));
+    } else {
+      stage.setConfig(getConfig());
+    }
     Collections.copy(stage.getNotifications(), getNotifications());
     Collections.copy(stage.getWhen(), getWhen());
     return stage;

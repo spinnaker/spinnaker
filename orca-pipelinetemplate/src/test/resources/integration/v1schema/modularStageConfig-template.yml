@@ -1,0 +1,16 @@
+---
+schema: "1"
+id: modularStageConfig
+metadata:
+  name: Modular stage config test
+  description: Tests using a module as the entire stage config
+stages:
+- id: wait
+  type: wait
+  config: "{% module wait %}"
+
+modules:
+- id: wait
+  usage: Defines config for a wait stage
+  definition:
+    waitTime: 5

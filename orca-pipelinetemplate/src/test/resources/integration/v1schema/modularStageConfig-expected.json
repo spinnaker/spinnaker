@@ -1,0 +1,19 @@
+{
+  "id": "unknown",
+  "keepWaitingPipelines": false,
+  "limitConcurrent": true,
+  "application": "orca",
+  "name": "Unnamed Execution",
+  "stages": [
+    {
+      "requisiteStageRefIds": [],
+      "name": "wait",
+      "id": null,
+      "refId": "wait",
+      "type": "wait",
+      "waitTime": 10
+    }
+  ],
+  "notifications": [],
+  "parameterConfig": []
+}

@@ -182,7 +182,7 @@ public class RenderTransform implements PipelineTemplateVisitor {
       RenderContext partialContext = context.copy();
       partialContext.setLocation(String.format("template:stages.%s", stage.getId()));
       renderStage(stage, partialContext, "template");
-      partialContext.getVariables().putAll(stage.getConfig());
+      partialContext.getVariables().putAll(stage.getConfigAsMap());
       partialContext.setLocation(String.format("partial:%s.%s", stage.getId(), partial.getId()));
 
       List<StageDefinition> renderedStages = new ArrayList<>();

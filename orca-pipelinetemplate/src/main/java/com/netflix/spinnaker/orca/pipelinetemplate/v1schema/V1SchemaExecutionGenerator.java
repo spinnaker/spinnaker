@@ -74,7 +74,7 @@ public class V1SchemaExecutionGenerator implements ExecutionGenerator {
             s.getPartialDefinitionContext().getMarkerStage().getName()
           ));
         }
-        stage.putAll(s.getConfig());
+        stage.putAll(s.getConfigAsMap());
         return stage;
       })
       .collect(Collectors.toList()));

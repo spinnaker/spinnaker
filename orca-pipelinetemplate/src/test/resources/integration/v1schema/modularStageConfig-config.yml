@@ -1,0 +1,12 @@
+---
+schema: "1"
+pipeline:
+  application: orca
+  variables:
+    regions:
+    - us-east-1
+    - us-west-2
+modules:
+- id: wait
+  definition:
+    waitTime: 10
