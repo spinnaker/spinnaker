@@ -189,13 +189,15 @@ function editingMetricReducer(state: ISelectedConfigState = null, action: Action
       });
 
     case Actions.EDIT_METRIC_CONFIRM:
+      const editing: ICanaryMetricConfig = omit(state.editingMetric, 'isNew');
       return Object.assign({}, state, {
-        metricList: state.metricList.map(metric => metric.id === state.editingMetric.id ? state.editingMetric : metric),
+        metricList: state.metricList.map(metric => metric.id === editing.id ? editing : metric),
         editingMetric: null
       });
 
     case Actions.EDIT_METRIC_CANCEL:
       return Object.assign({}, state, {
+        metricList: state.metricList.filter(metric => !metric.isNew),
         editingMetric: null
       });
 

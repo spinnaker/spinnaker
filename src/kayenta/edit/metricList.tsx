@@ -79,7 +79,8 @@ function mapDispatchToProps(dispatch: (action: Action & any) => void): IMetricLi
           query: {
             type: CanarySettings.metricStore
           },
-          groups: (group && group !== UNGROUPED) ? [group] : []
+          groups: (group && group !== UNGROUPED) ? [group] : [],
+          isNew: true,
         }
       }));
     },

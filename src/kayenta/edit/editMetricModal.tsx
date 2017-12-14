@@ -66,7 +66,7 @@ function EditMetricModal({ metric, rename, confirm, cancel, updateDirection }: I
         <Modal.Footer>
           <ul className="list-inline pull-right">
             <li><button className="passive" onClick={cancel}>Cancel</button></li>
-            <li><button className="primary" onClick={confirm}>OK</button></li>
+            <li><button className="primary" disabled={!metric.name} onClick={confirm}>OK</button></li>
           </ul>
         </Modal.Footer>
       </Styleguide>
