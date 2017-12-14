@@ -16,9 +16,6 @@
 
 package com.netflix.spinnaker.igor.travis
 
-import com.netflix.appinfo.InstanceInfo
-import com.netflix.discovery.DiscoveryClient
-import com.netflix.spinnaker.igor.IgorConfigurationProperties
 import com.netflix.spinnaker.igor.build.BuildCache
 import com.netflix.spinnaker.igor.build.model.GenericProject
 import com.netflix.spinnaker.igor.config.TravisProperties
@@ -26,21 +23,18 @@ import com.netflix.spinnaker.igor.history.EchoService
 import com.netflix.spinnaker.igor.history.model.GenericBuildContent
 import com.netflix.spinnaker.igor.history.model.GenericBuildEvent
 import com.netflix.spinnaker.igor.model.BuildServiceProvider
-import com.netflix.spinnaker.igor.polling.PollingMonitor
+import com.netflix.spinnaker.igor.polling.CommonPollingMonitor
 import com.netflix.spinnaker.igor.service.BuildMasters
 import com.netflix.spinnaker.igor.travis.client.model.Repo
 import com.netflix.spinnaker.igor.travis.client.model.v3.V3Build
 import com.netflix.spinnaker.igor.travis.service.TravisBuildConverter
 import com.netflix.spinnaker.igor.travis.service.TravisResultConverter
 import com.netflix.spinnaker.igor.travis.service.TravisService
-import com.netflix.spinnaker.kork.eureka.RemoteStatusChangedEvent
-import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Service
 import rx.Observable
 import rx.Scheduler
-import rx.functions.Action0
 import rx.schedulers.Schedulers
 
 import java.util.concurrent.TimeUnit
@@ -50,11 +44,10 @@ import static net.logstash.logback.argument.StructuredArguments.kv
 /**
  * Monitors new travis builds
  */
-@Slf4j
 @Service
 @SuppressWarnings('CatchException')
 @ConditionalOnProperty('travis.enabled')
-class TravisBuildMonitor implements PollingMonitor{
+class TravisBuildMonitor extends CommonPollingMonitor {
 
     Scheduler.Worker worker = Schedulers.io().createWorker()
 
@@ -64,68 +57,30 @@ class TravisBuildMonitor implements PollingMonitor{
     @Autowired(required = false)
     EchoService echoService
 
-    @Autowired(required = false)
-    DiscoveryClient discoveryClient
-
     @Autowired
     BuildMasters buildMasters
 
-    Long lastPoll
-
-    static final int NEW_BUILD_EVENT_THRESHOLD = 1
-
     static final long BUILD_STARTED_AT_THRESHOLD = TimeUnit.SECONDS.toMillis(30)
-
-    @Autowired
-    IgorConfigurationProperties igorConfigurationProperties
 
     @Autowired
     TravisProperties travisProperties
 
     @Override
-    void onApplicationEvent(RemoteStatusChangedEvent event) {
-        log.info('Started')
+    void initialize() {
         setBuildCacheTTL()
         migrateToNewBuildCache()
-        worker.schedulePeriodically(
-            {
-                if (isInService()) {
-                    buildMasters.filteredMap(BuildServiceProvider.TRAVIS).keySet().each { master ->
-                        changedBuilds(master)
-                    }
-                } else {
-                    log.info("not in service (lastPoll: ${lastPoll ?: 'n/a'})")
-                    lastPoll = null
-                }
-            } as Action0, 0, pollInterval, TimeUnit.SECONDS
-        )
+    }
+
+    @Override
+    void poll() {
+        buildMasters.filteredMap(BuildServiceProvider.TRAVIS).keySet().each { master ->
+            changedBuilds(master)
+        }
     }
 
     @Override
     String getName() {
         return "travisBuildMonitor"
-    }
-
-    @Override
-    boolean isInService() {
-        if (discoveryClient == null) {
-            log.info("no DiscoveryClient, assuming InService")
-            true
-        } else {
-            def remoteStatus = discoveryClient.instanceRemoteStatus
-            log.info("current remote status ${remoteStatus}")
-            remoteStatus == InstanceInfo.InstanceStatus.UP
-        }
-    }
-
-    @Override
-    Long getLastPoll() {
-        return lastPoll
-    }
-
-    @Override
-    int getPollInterval() {
-        return igorConfigurationProperties.spinnaker.build.pollInterval
     }
 
     List<Map> changedBuilds(String master) {
@@ -134,9 +89,8 @@ class TravisBuildMonitor implements PollingMonitor{
         List<Map> results = []
         int updatedBuilds = 0
 
-        TravisService travisService = buildMasters.map[master]
+        TravisService travisService = buildMasters.map[master] as TravisService
 
-        lastPoll = System.currentTimeMillis()
         def startTime = System.currentTimeMillis()
         List<Repo> repos = filterOutOldBuilds(travisService.getReposForAccounts())
         log.info("Took ${System.currentTimeMillis() - startTime}ms to retrieve ${repos.size()} repositories (master: {})", kv("master", master))
@@ -174,7 +128,7 @@ class TravisBuildMonitor implements PollingMonitor{
         if (updatedBuilds) {
             log.info("Found {} new builds (master: {})", updatedBuilds, kv("master", master))
         }
-        log.info("Last poll took ${System.currentTimeMillis() - lastPoll}ms (master: {})", kv("master", master))
+        log.info("Last poll took ${System.currentTimeMillis() - startTime}ms (master: {})", kv("master", master))
         if (travisProperties.repositorySyncEnabled) {
             startTime = System.currentTimeMillis()
             travisService.syncRepos()

@@ -36,7 +36,7 @@ class DockerMonitorSpec extends Specification {
         )
 
         when:
-        DockerMonitor.postEvent(
+        new DockerMonitor().postEvent(
             echoService, cachedImages, taggedImage, "imageId"
         )
 
@@ -51,7 +51,7 @@ class DockerMonitorSpec extends Specification {
         })
 
         when: "should short circuit if `echoService` is not available"
-        DockerMonitor.postEvent(
+        new DockerMonitor().postEvent(
             null, ["imageId"], taggedImage, "imageId"
         )
 
@@ -77,7 +77,7 @@ class DockerMonitorSpec extends Specification {
         )
 
         when:
-        DockerMonitor.postEvent(
+        new DockerMonitor().postEvent(
             echoService, ["job1"], taggedImage, "imageId"
         )
 

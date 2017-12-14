@@ -16,9 +16,6 @@
 
 package com.netflix.spinnaker.igor.jenkins
 
-import com.netflix.appinfo.InstanceInfo
-import com.netflix.discovery.DiscoveryClient
-import com.netflix.spinnaker.igor.IgorConfigurationProperties
 import com.netflix.spinnaker.igor.history.EchoService
 import com.netflix.spinnaker.igor.history.model.BuildContent
 import com.netflix.spinnaker.igor.history.model.BuildEvent
@@ -26,43 +23,32 @@ import com.netflix.spinnaker.igor.jenkins.client.model.Build
 import com.netflix.spinnaker.igor.jenkins.client.model.Project
 import com.netflix.spinnaker.igor.jenkins.service.JenkinsService
 import com.netflix.spinnaker.igor.model.BuildServiceProvider
-import com.netflix.spinnaker.igor.polling.PollingMonitor
+import com.netflix.spinnaker.igor.polling.CommonPollingMonitor
 import com.netflix.spinnaker.igor.service.BuildMasters
-import com.netflix.spinnaker.kork.eureka.RemoteStatusChangedEvent
 import groovy.time.TimeCategory
-import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.core.env.Environment
 import org.springframework.stereotype.Service
-import rx.Scheduler
-import rx.Scheduler.Worker
-import rx.functions.Action0
-import rx.schedulers.Schedulers
 
 import javax.annotation.PreDestroy
-import java.util.concurrent.TimeUnit
 
 import static net.logstash.logback.argument.StructuredArguments.kv
 
 /**
  * Monitors new jenkins builds
  */
-@Slf4j
 @Service
 @SuppressWarnings('CatchException')
 @ConditionalOnProperty('jenkins.enabled')
-class JenkinsBuildMonitor implements PollingMonitor {
+class JenkinsBuildMonitor extends CommonPollingMonitor {
 
     @Autowired
     Environment environment
 
     @Value('${jenkins.polling.enabled:true}')
     boolean pollingEnabled = true
-
-    Scheduler scheduler = Schedulers.io()
-    Worker worker = scheduler.createWorker()
 
     @Autowired
     JenkinsCache cache
@@ -73,63 +59,27 @@ class JenkinsBuildMonitor implements PollingMonitor {
     @Autowired
     BuildMasters buildMasters
 
-    Long lastPoll
-
-    @Override
-    Long getLastPoll() {
-        lastPoll
-    }
-
-    @Autowired
-    IgorConfigurationProperties igorConfigurationProperties
-
-    @Override
-    int getPollInterval() {
-        igorConfigurationProperties.spinnaker.build.pollInterval
-    }
-
-    @Autowired(required = false)
-    DiscoveryClient discoveryClient
-
     @Override
     String getName() {
         "jenkinsBuildMonitor"
     }
 
-    String lastStatus
-
     @Override
     boolean isInService() {
-        if (discoveryClient == null) {
-            log.info("no DiscoveryClient, assuming InService")
-            return pollingEnabled
-        } else {
-            def remoteStatus = discoveryClient.instanceRemoteStatus
-            if (remoteStatus != lastStatus) {
-                log.info("current remote status ${remoteStatus}")
-            }
-            lastStatus=remoteStatus
-            remoteStatus == InstanceInfo.InstanceStatus.UP && pollingEnabled
-        }
+        pollingEnabled && super.isInService()
     }
 
     @Override
-    void onApplicationEvent(RemoteStatusChangedEvent event) {
-        log.info('Started')
-        worker.schedulePeriodically(
-                {
-                    if (isInService()) {
-                        log.info "- Polling cycle started - ${new Date()}"
-                        buildMasters.filteredMap(BuildServiceProvider.JENKINS).keySet().parallelStream().forEach(
-                                { master -> changedBuilds(master) }
-                        )
-                        log.info "- Polling cycle done - ${new Date()}"
-                    } else {
-                        log.info("not in service (lastPoll: ${lastPoll ?: 'n/a'})")
-                        lastPoll = null
-                    }
-                } as Action0, 0, pollInterval, TimeUnit.SECONDS
+    void initialize() {
+    }
+
+    @Override
+    void poll() {
+        log.info "- Polling cycle started - ${new Date()}"
+        buildMasters.filteredMap(BuildServiceProvider.JENKINS).keySet().parallelStream().forEach(
+            { master -> changedBuilds(master) }
         )
+        log.info "- Polling cycle done - ${new Date()}"
     }
 
     @PreDestroy
@@ -150,7 +100,6 @@ class JenkinsBuildMonitor implements PollingMonitor {
     void changedBuilds(String master) {
         log.debug("Checking for new builds for ${master}")
         def startTime = System.currentTimeMillis()
-        lastPoll = startTime
 
         try {
             JenkinsService jenkinsService = buildMasters.map[master] as JenkinsService

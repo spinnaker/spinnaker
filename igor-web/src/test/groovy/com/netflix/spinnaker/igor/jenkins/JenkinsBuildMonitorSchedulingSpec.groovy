@@ -40,7 +40,7 @@ class JenkinsBuildMonitorSchedulingSpec extends Specification {
     final PROJECTS = new ProjectsList(list: [])
     final TestScheduler scheduler = new TestScheduler()
 
-    void 'scheduller polls periodically'() {
+    void 'scheduler polls periodically'() {
         given:
         cache.getJobNames(MASTER) >> []
         BuildMasters buildMasters = Mock(BuildMasters)

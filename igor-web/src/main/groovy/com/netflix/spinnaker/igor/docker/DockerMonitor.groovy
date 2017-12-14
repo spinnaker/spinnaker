@@ -16,37 +16,22 @@
 
 package com.netflix.spinnaker.igor.docker
 
-import com.netflix.appinfo.InstanceInfo
-import com.netflix.discovery.DiscoveryClient
-import com.netflix.spinnaker.igor.IgorConfigurationProperties
 import com.netflix.spinnaker.igor.build.model.GenericArtifact
 import com.netflix.spinnaker.igor.docker.model.DockerRegistryAccounts
 import com.netflix.spinnaker.igor.docker.service.TaggedImage
 import com.netflix.spinnaker.igor.history.EchoService
 import com.netflix.spinnaker.igor.history.model.DockerEvent
-import com.netflix.spinnaker.igor.polling.PollingMonitor
-import com.netflix.spinnaker.kork.eureka.RemoteStatusChangedEvent
-import groovy.util.logging.Slf4j
+import com.netflix.spinnaker.igor.polling.CommonPollingMonitor
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Service
-import rx.Scheduler
-import rx.functions.Action0
-import rx.schedulers.Schedulers
-
-import javax.inject.Provider
-import java.util.concurrent.TimeUnit
 
 import static net.logstash.logback.argument.StructuredArguments.kv
 
-@Slf4j
 @Service
 @SuppressWarnings('CatchException')
 @ConditionalOnProperty('dockerRegistry.enabled')
-class DockerMonitor implements PollingMonitor {
-
-    Scheduler scheduler = Schedulers.newThread()
-    Scheduler.Worker worker = scheduler.createWorker()
+class DockerMonitor extends CommonPollingMonitor {
 
     @Autowired
     DockerRegistryCache cache
@@ -58,21 +43,15 @@ class DockerMonitor implements PollingMonitor {
     EchoService echoService
 
     @Override
-    void onApplicationEvent(RemoteStatusChangedEvent event) {
-        log.info('Started')
-        worker.schedulePeriodically(
-                {
-                    if (isInService()) {
-                        dockerRegistryAccounts.updateAccounts()
-                        dockerRegistryAccounts.accounts.forEach({ account ->
-                            changedTags(account)
-                        })
-                    } else {
-                        log.info("not in service (lastPoll: ${lastPoll ?: 'n/a'})")
-                        lastPoll = null
-                    }
-                } as Action0, 0, pollInterval, TimeUnit.SECONDS
-        )
+    void initialize() {
+    }
+
+    @Override
+    void poll() {
+        dockerRegistryAccounts.updateAccounts()
+        dockerRegistryAccounts.accounts.forEach({ account ->
+            changedTags(account)
+        })
     }
 
     private void changedTags(Map accountDetails) {
@@ -81,7 +60,6 @@ class DockerMonitor implements PollingMonitor {
 
         log.debug 'Checking for new tags for ' + account
         try {
-            lastPoll = System.currentTimeMillis()
             List<String> cachedImages = cache.getImages(account)
 
             def startTime = System.currentTimeMillis()
@@ -138,42 +116,7 @@ class DockerMonitor implements PollingMonitor {
         "dockerTagMonitor"
     }
 
-    @Autowired(required = false)
-    Provider<DiscoveryClient> discoveryClient
-
-    String lastStatus
-
-    @Override
-    boolean isInService() {
-        if (discoveryClient.get() == null) {
-            log.info("no discoveryClient, assuming InService")
-            true
-        } else {
-            def remoteStatus = discoveryClient.get().instanceRemoteStatus
-            if (remoteStatus != lastStatus) {
-                log.info("current remote status ${remoteStatus}")
-            }
-            lastStatus=remoteStatus
-            remoteStatus == InstanceInfo.InstanceStatus.UP
-        }
-    }
-
-    Long lastPoll
-
-    @Override
-    Long getLastPoll() {
-        lastPoll
-    }
-
-    @Autowired
-    IgorConfigurationProperties igorConfigurationProperties
-
-    @Override
-    int getPollInterval() {
-        igorConfigurationProperties.spinnaker.build.pollInterval
-    }
-
-    static void postEvent(EchoService echoService, List<String> cachedImagesForAccount, TaggedImage image, String imageId) {
+    void postEvent(EchoService echoService, List<String> cachedImagesForAccount, TaggedImage image, String imageId) {
         if (!cachedImagesForAccount) {
             // avoid publishing an event if this account has no indexed images (protects against a flushed redis)
             return
