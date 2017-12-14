@@ -5,3 +5,4 @@ export * from './ModalService';
 export * from './Placement';
 export * from './Tooltip';
 export * from './formsy';
+export * from './robotToHumanFilter/robotToHuman.filter';
