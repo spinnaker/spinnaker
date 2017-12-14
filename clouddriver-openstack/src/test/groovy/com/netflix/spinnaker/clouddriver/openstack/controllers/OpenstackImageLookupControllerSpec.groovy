@@ -39,6 +39,8 @@ class OpenstackImageLookupControllerSpec extends Specification {
     given:
     String account = null
     String query = null
+    String region = null
+
     Image imageA = Mock(Image)
     Image imageB = Mock(Image)
     Set<Image> imageSetA = Sets.newHashSet(imageA)
@@ -46,7 +48,7 @@ class OpenstackImageLookupControllerSpec extends Specification {
     Map<String, Set<Image>> imagesByAccounts = [accountA: imageSetA, accountB: imageSetB]
 
     when:
-    Set<Image> result = controller.find(account, query)
+    Set<Image> result = controller.find(account, query, region)
 
     then:
     1 * imageProvider.listImagesByAccount() >> imagesByAccounts
@@ -60,9 +62,10 @@ class OpenstackImageLookupControllerSpec extends Specification {
     given:
     String account = null
     String query = null
+    String region = null
 
     when:
-    Set<Image> result = controller.find(account, query)
+    Set<Image> result = controller.find(account, query, region)
 
     then:
     1 * imageProvider.listImagesByAccount() >> [:]
@@ -74,12 +77,14 @@ class OpenstackImageLookupControllerSpec extends Specification {
     given:
     String account = 'test'
     String query = null
+    String region = null
+
     Image image = Mock(Image)
     Set<Image> imageSet = Sets.newHashSet(image)
     Map<String, Set<Image>> imagesByAccounts = [(account): imageSet]
 
     when:
-    Set<Image> result = controller.find(account, query)
+    Set<Image> result = controller.find(account, query, region)
 
     then:
     1 * imageProvider.listImagesByAccount() >> imagesByAccounts
@@ -92,12 +97,14 @@ class OpenstackImageLookupControllerSpec extends Specification {
     given:
     String account = 'test'
     String query = null
+    String region = null
+
     Image image = Mock(Image)
     Set<Image> imageSet = Sets.newHashSet(image)
     Map<String, Set<Image>> imagesByAccounts = ['stage': imageSet]
 
     when:
-    Set<Image> result = controller.find(account, query)
+    Set<Image> result = controller.find(account, query, region)
 
     then:
     1 * imageProvider.listImagesByAccount() >> imagesByAccounts
@@ -110,6 +117,8 @@ class OpenstackImageLookupControllerSpec extends Specification {
     given:
     String account = null
     String query = 'im'
+    String region = null
+
     Image imageA = Mock(Image) { getName() >> 'imageA' }
     Image imageB = Mock(Image) { getName() >> 'mock' }
     Set<Image> imageSetA = Sets.newHashSet(imageA)
@@ -117,7 +126,7 @@ class OpenstackImageLookupControllerSpec extends Specification {
     Map<String, Set<Image>> imagesByAccounts = [accountA: imageSetA, accountB: imageSetB]
 
     when:
-    Set<Image> result = controller.find(account, query)
+    Set<Image> result = controller.find(account, query, region)
 
     then:
     1 * imageProvider.listImagesByAccount() >> imagesByAccounts
@@ -129,6 +138,8 @@ class OpenstackImageLookupControllerSpec extends Specification {
     given:
     String account = null
     String query = 'tes'
+    String region = null
+
     Image imageA = Mock(Image) { getName() >> 'imageA' }
     Image imageB = Mock(Image) { getName() >> 'mock' }
     Set<Image> imageSetA = Sets.newHashSet(imageA)
@@ -136,7 +147,7 @@ class OpenstackImageLookupControllerSpec extends Specification {
     Map<String, Set<Image>> imagesByAccounts = [accountA: imageSetA, accountB: imageSetB]
 
     when:
-    Set<Image> result = controller.find(account, query)
+    Set<Image> result = controller.find(account, query, region)
 
     then:
     1 * imageProvider.listImagesByAccount() >> imagesByAccounts
@@ -148,6 +159,8 @@ class OpenstackImageLookupControllerSpec extends Specification {
     given:
     String account = 'accountA'
     String query = 'im'
+    String region = null
+
     Image imageA = Mock(Image) { getName() >> 'imageA' }
     Image imageB = Mock(Image) { getName() >> 'mock' }
     Set<Image> imageSetA = Sets.newHashSet(imageA, imageB)
@@ -155,7 +168,7 @@ class OpenstackImageLookupControllerSpec extends Specification {
     Map<String, Set<Image>> imagesByAccounts = [accountA: imageSetA, accountB: imageSetB]
 
     when:
-    Set<Image> result = controller.find(account, query)
+    Set<Image> result = controller.find(account, query, region)
 
     then:
     1 * imageProvider.listImagesByAccount() >> imagesByAccounts
@@ -167,6 +180,8 @@ class OpenstackImageLookupControllerSpec extends Specification {
     given:
     String account = 'accountA'
     String query = 'tes'
+    String region = null
+
     Image imageA = Mock(Image) { getName() >> 'imageA' }
     Image imageB = Mock(Image) { getName() >> 'mock' }
     Set<Image> imageSetA = Sets.newHashSet(imageA, imageB)
@@ -174,7 +189,7 @@ class OpenstackImageLookupControllerSpec extends Specification {
     Map<String, Set<Image>> imagesByAccounts = [accountA: imageSetA, accountB: imageSetB]
 
     when:
-    Set<Image> result = controller.find(account, query)
+    Set<Image> result = controller.find(account, query, region)
 
     then:
     1 * imageProvider.listImagesByAccount() >> imagesByAccounts
@@ -186,15 +201,134 @@ class OpenstackImageLookupControllerSpec extends Specification {
     given:
     String account = 'accountA'
     String query = 'tes'
+    String region = null
+
     Throwable throwable = new JedisException('exception')
 
     when:
-    controller.find(account, query)
+    controller.find(account, query, region)
 
     then:
     1 * imageProvider.listImagesByAccount() >> { throw throwable }
     Throwable thrownException = thrown(JedisException)
     thrownException == throwable
+  }
+
+  Should 'search for images account, query, and region'() {
+    given:
+    String account = 'accountA'
+    String query = 'im'
+    String region = 'east'
+
+    Image imageA = Mock(Image) {
+      getName() >> 'imageA'
+      getRegion() >> 'east'
+    }
+    Image imageB = Mock(Image) {
+      getName() >> 'mock'
+      getRegion() >> 'central'
+    }
+    Image imageC = Mock(Image) {
+      getName() >> 'imageC'
+      getRegion() >> 'east'
+    }
+
+    Set<Image> imageSetA = Sets.newHashSet(imageA, imageB)
+    Set<Image> imageSetB = Sets.newHashSet(imageC)
+    Map<String, Set<Image>> imagesByAccounts = [accountA: imageSetA, accountB: imageSetB]
+
+    when:
+    Set<Image> result = controller.find(account, query, region)
+
+    then:
+    1 * imageProvider.listImagesByAccount() >> imagesByAccounts
+    result == Sets.newHashSet(imageA)
+    noExceptionThrown()
+  }
+
+  Should 'search for images account, query, and region - not found'() {
+    given:
+    String account = 'accountA'
+    String query = 'im'
+    String region = 'east'
+
+    Image imageA = Mock(Image) {
+      getName() >> 'imageA'
+      getRegion() >> 'central'
+    }
+    Image imageB = Mock(Image) {
+      getName() >> 'mock'
+      getRegion() >> 'east'
+    }
+    Image imageC = Mock(Image) {
+      getName() >> 'imageC'
+      getRegion() >> 'east'
+    }
+    Set<Image> imageSetA = Sets.newHashSet(imageA, imageB)
+    Set<Image> imageSetB = Sets.newHashSet(imageC)
+    Map<String, Set<Image>> imagesByAccounts = [accountA: imageSetA, accountB: imageSetB]
+
+    when:
+    Set<Image> result = controller.find(account, query, region)
+
+    then:
+    1 * imageProvider.listImagesByAccount() >> imagesByAccounts
+    result == [] as Set
+    noExceptionThrown()
+  }
+
+  Should 'search for images query and region'() {
+    given:
+    String account = null
+    String query = 'im'
+    String region = 'east'
+
+    Image imageA = Mock(Image) {
+      getName() >> 'imageA'
+      getRegion() >> 'east'
+    }
+    Image imageB = Mock(Image) {
+      getName() >> 'imageB'
+      getRegion() >> 'central'
+    }
+    Set<Image> imageSetA = Sets.newHashSet(imageA)
+    Set<Image> imageSetB = Sets.newHashSet(imageB)
+    Map<String, Set<Image>> imagesByAccounts = [accountA: imageSetA, accountB: imageSetB]
+
+    when:
+    Set<Image> result = controller.find(account, query, region)
+
+    then:
+    1 * imageProvider.listImagesByAccount() >> imagesByAccounts
+    result == imageSetA
+    noExceptionThrown()
+  }
+
+  Should 'search for images query and region - not found'() {
+    given:
+    String account = null
+    String query = 'im'
+    String region = 'east'
+
+    Image imageA = Mock(Image) {
+      getName() >> 'imageA'
+      getRegion() >> 'central'
+    }
+    Image imageB = Mock(Image) {
+      getName() >> 'mock'
+      getRegion() >> 'central'
+    }
+    Set<Image> imageSetA = Sets.newHashSet(imageA)
+    Set<Image> imageSetB = Sets.newHashSet(imageB)
+    Map<String, Set<Image>> imagesByAccounts = [accountA: imageSetA, accountB: imageSetB]
+
+    when:
+    Set<Image> result = controller.find(account, query, region)
+
+    then:
+    1 * imageProvider.listImagesByAccount() >> imagesByAccounts
+    result == [] as Set
+    noExceptionThrown()
   }
 
   @Unroll

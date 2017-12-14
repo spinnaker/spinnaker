@@ -86,6 +86,7 @@ class OpenstackImageCachingAgent extends AbstractOpenstackCachingAgent {
       .updatedAt(image.updatedAt?.time)
       .properties(image.properties)
       .name(image.name)
+      .region(region)
       .build()
   }
 }

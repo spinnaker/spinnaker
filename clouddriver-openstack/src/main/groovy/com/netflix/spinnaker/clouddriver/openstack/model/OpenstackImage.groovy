@@ -22,6 +22,7 @@ import groovy.transform.builder.Builder
 class OpenstackImage implements Image {
   String id
   String name
+  String region
   String status
   Long size
   String location

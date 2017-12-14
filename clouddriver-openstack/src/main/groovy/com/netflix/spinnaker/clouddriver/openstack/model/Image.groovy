@@ -21,6 +21,7 @@ package com.netflix.spinnaker.clouddriver.openstack.model
  * //TODO - promote to core.
  */
 interface Image {
+
   /**
    * Returns an image identifier.
    * @return
@@ -32,6 +33,12 @@ interface Image {
    * @return
    */
   String getName()
+
+  /**
+   * Returns the region the image exists in.
+   * @return
+   */
+  String getRegion()
 
   /**
    * Returns an images status.

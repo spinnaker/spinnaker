@@ -42,7 +42,7 @@ class OpenstackImageLookupController {
   }
 
   @RequestMapping(value = '/find', method = RequestMethod.GET)
-  Set<Image> find(@RequestParam(required = false) String account, @RequestParam(required = false) String q) {
+  Set<Image> find(@RequestParam(required = false) String account, @RequestParam(required = false) String q, @RequestParam(required = false) String region) {
     Set<Image> result
     Map<String, Set<Image>> imageMap = this.imageProvider.listImagesByAccount()
     if (!imageMap) {
@@ -56,6 +56,10 @@ class OpenstackImageLookupController {
           .flatMap{it.stream()}
           .collect(Collectors.toSet())
           .sort { Image a, Image b -> a.name <=> b.name }
+      }
+
+      if (region) {
+        result = result.findAll { it.region == region }
       }
 
       Pattern pattern = resolveQueryToPattern(q)
