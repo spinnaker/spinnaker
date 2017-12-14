@@ -29,6 +29,7 @@ import com.netflix.spinnaker.clouddriver.elasticsearch.ops.UpsertEntityTagsAtomi
 import com.netflix.spinnaker.clouddriver.model.EntityTags;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
 import com.netflix.spinnaker.clouddriver.tags.EntityTagger;
+import com.netflix.spinnaker.kork.core.RetrySupport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,13 +49,16 @@ public class ElasticSearchEntityTagger implements EntityTagger {
   private static final String NOTICE_TYPE = "notice";
   private static final String NOTICE_KEY_PREFIX = "spinnaker_ui_notice:";
 
+  private final RetrySupport retrySupport;
   private final Front50Service front50Service;
   private final AccountCredentialsProvider accountCredentialsProvider;
   private final ElasticSearchEntityTagsProvider entityTagsProvider;
 
-  public ElasticSearchEntityTagger(Front50Service front50Service,
+  public ElasticSearchEntityTagger(RetrySupport retrySupport,
+                                   Front50Service front50Service,
                                    AccountCredentialsProvider accountCredentialsProvider,
                                    ElasticSearchEntityTagsProvider entityTagsProvider) {
+    this.retrySupport = retrySupport;
     this.front50Service = front50Service;
     this.accountCredentialsProvider = accountCredentialsProvider;
     this.entityTagsProvider = entityTagsProvider;
@@ -199,6 +203,7 @@ public class ElasticSearchEntityTagger implements EntityTagger {
                                 String value,
                                 Long timestamp) {
     UpsertEntityTagsAtomicOperation upsertEntityTagsAtomicOperation = new UpsertEntityTagsAtomicOperation(
+      retrySupport,
       front50Service,
       accountCredentialsProvider,
       entityTagsProvider,

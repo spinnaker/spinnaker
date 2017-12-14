@@ -28,7 +28,7 @@ class FeaturesControllerSpec extends Specification {
     given:
     def controller = new FeaturesController(
       atomicOperationConverters: [
-        new UpsertEntityTagsAtomicOperationConverter(objectMapper, null, null, null), // @Component
+        new UpsertEntityTagsAtomicOperationConverter(objectMapper, null, null, null, null), // @Component
         new UpsertAmazonLoadBalancerAtomicOperationConverter() // @AmazonOperation and @Component
       ]
     )

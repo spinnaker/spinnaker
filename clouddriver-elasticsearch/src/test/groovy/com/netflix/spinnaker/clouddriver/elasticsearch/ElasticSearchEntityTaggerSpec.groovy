@@ -79,7 +79,7 @@ class ElasticSearchEntityTaggerSpec extends Specification {
   void "should only mutate threadLocalTask if null"() {
     given:
     Task threadLocalTask = null
-    def serverGroupTagger = new ElasticSearchEntityTagger(null, null, null) {
+    def serverGroupTagger = new ElasticSearchEntityTagger(null, null, null, null) {
       @Override
       protected void run(DeleteEntityTagsAtomicOperation deleteEntityTagsAtomicOperation) {
         threadLocalTask = TaskRepository.threadLocalTask.get()

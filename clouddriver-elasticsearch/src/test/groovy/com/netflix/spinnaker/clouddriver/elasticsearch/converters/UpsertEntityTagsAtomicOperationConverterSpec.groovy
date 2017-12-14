@@ -27,7 +27,9 @@ class UpsertEntityTagsAtomicOperationConverterSpec extends Specification {
   def objectMapper = new ObjectMapper()
 
   @Subject
-  def converter = new UpsertEntityTagsAtomicOperationConverter(objectMapper, null, null, null)
+  def converter = new UpsertEntityTagsAtomicOperationConverter(
+    objectMapper, null, null, null, null
+  )
 
   @Unroll
   def "should set valueType when converting from Map -> Description"() {

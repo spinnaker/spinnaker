@@ -27,6 +27,7 @@ import com.netflix.spinnaker.clouddriver.model.EntityTags;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
+import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,15 +42,18 @@ public class BulkUpsertEntityTagsAtomicOperation implements AtomicOperation<Bulk
   private static final Logger log = LoggerFactory.getLogger(BulkUpsertEntityTagsAtomicOperation.class);
   private static final String BASE_PHASE = "ENTITY_TAGS";
 
+  private final RetrySupport retrySupport;
   private final Front50Service front50Service;
   private final AccountCredentialsProvider accountCredentialsProvider;
   private final ElasticSearchEntityTagsProvider entityTagsProvider;
   private final BulkUpsertEntityTagsDescription bulkUpsertEntityTagsDescription;
 
-  public BulkUpsertEntityTagsAtomicOperation(Front50Service front50Service,
+  public BulkUpsertEntityTagsAtomicOperation(RetrySupport retrySupport,
+                                             Front50Service front50Service,
                                              AccountCredentialsProvider accountCredentialsProvider,
                                              ElasticSearchEntityTagsProvider entityTagsProvider,
                                              BulkUpsertEntityTagsDescription bulkUpsertEntityTagsDescription) {
+    this.retrySupport = retrySupport;
     this.front50Service = front50Service;
     this.accountCredentialsProvider = accountCredentialsProvider;
     this.entityTagsProvider = entityTagsProvider;
@@ -90,9 +94,16 @@ public class BulkUpsertEntityTagsAtomicOperation implements AtomicOperation<Bulk
   }
 
   private Map<String, EntityTags> retrieveExistingTags(List<EntityTags> entityTags) {
-    return front50Service.getAllEntityTagsById(
-      entityTags.stream().map(EntityTags::getId).collect(Collectors.toList())
-    ).stream().collect(Collectors.toMap(EntityTags::getId, Function.identity()));
+    List<String> ids = entityTags.stream().map(EntityTags::getId).collect(Collectors.toList());
+
+    try {
+      return retrySupport.retry(() -> front50Service.getAllEntityTagsById(ids)
+        .stream()
+        .collect(Collectors.toMap(EntityTags::getId, Function.identity())), 10, 2000, false);
+    } catch (Exception e) {
+      log.error("Unable to retrieve existing tags from Front50, reason: {} (ids: {})", e.getMessage(), ids);
+      throw e;
+    }
   }
 
   private void addTagIdsIfMissing(List<EntityTags> entityTags, BulkUpsertEntityTagsAtomicOperationResult result) {

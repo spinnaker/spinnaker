@@ -24,6 +24,7 @@ import com.netflix.spinnaker.clouddriver.elasticsearch.ops.BulkUpsertEntityTagsA
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
+import com.netflix.spinnaker.kork.core.RetrySupport;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -33,16 +34,19 @@ import java.util.Map;
 public class BulkUpsertEntityTagsAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
 
   private final ObjectMapper objectMapper;
+  private final RetrySupport retrySupport;
   private final Front50Service front50Service;
   private final AccountCredentialsProvider accountCredentialsProvider;
   private final ElasticSearchEntityTagsProvider entityTagsProvider;
 
   @Autowired
   public BulkUpsertEntityTagsAtomicOperationConverter(ObjectMapper objectMapper,
+                                                      RetrySupport retrySupport,
                                                       Front50Service front50Service,
                                                       AccountCredentialsProvider accountCredentialsProvider,
                                                       ElasticSearchEntityTagsProvider entityTagsProvider) {
     this.objectMapper = objectMapper;
+    this.retrySupport = retrySupport;
     this.front50Service = front50Service;
     this.accountCredentialsProvider = accountCredentialsProvider;
     this.entityTagsProvider = entityTagsProvider;
@@ -50,7 +54,7 @@ public class BulkUpsertEntityTagsAtomicOperationConverter extends AbstractAtomic
 
   public AtomicOperation convertOperation(Map input) {
     return new BulkUpsertEntityTagsAtomicOperation(
-      front50Service, accountCredentialsProvider, entityTagsProvider, this.convertDescription(input)
+      retrySupport, front50Service, accountCredentialsProvider, entityTagsProvider, this.convertDescription(input)
     );
   }
 

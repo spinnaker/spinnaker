@@ -27,6 +27,7 @@ import com.netflix.spinnaker.clouddriver.model.EntityTags;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
+import com.netflix.spinnaker.kork.core.RetrySupport;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -36,12 +37,14 @@ import java.util.Map;
 @Component("upsertEntityTags")
 public class UpsertEntityTagsAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
   private final ObjectMapper objectMapper;
+  private final RetrySupport retrySupport;
   private final Front50Service front50Service;
   private final AccountCredentialsProvider accountCredentialsProvider;
   private final ElasticSearchEntityTagsProvider entityTagsProvider;
 
   @Autowired
   public UpsertEntityTagsAtomicOperationConverter(ObjectMapper objectMapper,
+                                                  RetrySupport retrySupport,
                                                   Front50Service front50Service,
                                                   AccountCredentialsProvider accountCredentialsProvider,
                                                   ElasticSearchEntityTagsProvider entityTagsProvider) {
@@ -49,6 +52,7 @@ public class UpsertEntityTagsAtomicOperationConverter extends AbstractAtomicOper
       .configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false)
       .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
+    this.retrySupport = retrySupport;
     this.front50Service = front50Service;
     this.accountCredentialsProvider = accountCredentialsProvider;
     this.entityTagsProvider = entityTagsProvider;
@@ -56,7 +60,7 @@ public class UpsertEntityTagsAtomicOperationConverter extends AbstractAtomicOper
 
   public AtomicOperation convertOperation(Map input) {
     return new UpsertEntityTagsAtomicOperation(
-      front50Service, accountCredentialsProvider, entityTagsProvider, this.convertDescription(input)
+      retrySupport, front50Service, accountCredentialsProvider, entityTagsProvider, this.convertDescription(input)
     );
   }
 

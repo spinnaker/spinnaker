@@ -22,21 +22,24 @@ import com.netflix.spinnaker.clouddriver.elasticsearch.descriptions.UpsertEntity
 import com.netflix.spinnaker.clouddriver.elasticsearch.model.ElasticSearchEntityTagsProvider;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
+import com.netflix.spinnaker.kork.core.RetrySupport;
 
 import java.util.Collections;
 import java.util.List;
 
 public class UpsertEntityTagsAtomicOperation implements AtomicOperation<Void> {
-
+  private final RetrySupport retrySupport;
   private final Front50Service front50Service;
   private final AccountCredentialsProvider accountCredentialsProvider;
   private final ElasticSearchEntityTagsProvider entityTagsProvider;
   private final UpsertEntityTagsDescription entityTagsDescription;
 
-  public UpsertEntityTagsAtomicOperation(Front50Service front50Service,
+  public UpsertEntityTagsAtomicOperation(RetrySupport retrySupport,
+                                         Front50Service front50Service,
                                          AccountCredentialsProvider accountCredentialsProvider,
                                          ElasticSearchEntityTagsProvider entityTagsProvider,
                                          UpsertEntityTagsDescription tagEntityDescription) {
+    this.retrySupport = retrySupport;
     this.front50Service = front50Service;
     this.accountCredentialsProvider = accountCredentialsProvider;
     this.entityTagsProvider = entityTagsProvider;
@@ -49,6 +52,7 @@ public class UpsertEntityTagsAtomicOperation implements AtomicOperation<Void> {
     bulkDescription.entityTags = Collections.singletonList(entityTagsDescription);
 
     new BulkUpsertEntityTagsAtomicOperation(
+      retrySupport,
       front50Service,
       accountCredentialsProvider,
       entityTagsProvider,

@@ -29,6 +29,7 @@ import com.netflix.spinnaker.clouddriver.model.EntityTags.EntityTagMetadata
 import com.netflix.spinnaker.clouddriver.model.EntityTags.EntityTagValueType
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
+import com.netflix.spinnaker.kork.core.RetrySupport
 import spock.lang.Specification
 
 class BulkUpsertEntityTagsAtomicOperationSpec extends Specification {
@@ -38,6 +39,9 @@ class BulkUpsertEntityTagsAtomicOperationSpec extends Specification {
     getName() >> { return "test" }
   }
 
+  def retrySupport = Spy(RetrySupport) {
+    _ * sleep(_) >> { /* do nothing */ }
+  }
   def front50Service = Mock(Front50Service)
   def accountCredentialsProvider = Mock(AccountCredentialsProvider)
   def entityTagsProvider = Mock(ElasticSearchEntityTagsProvider)
@@ -51,7 +55,9 @@ class BulkUpsertEntityTagsAtomicOperationSpec extends Specification {
 
   def setup() {
     description = new BulkUpsertEntityTagsDescription()
-    operation = new BulkUpsertEntityTagsAtomicOperation(front50Service, accountCredentialsProvider, entityTagsProvider, description)
+    operation = new BulkUpsertEntityTagsAtomicOperation(
+      retrySupport, front50Service, accountCredentialsProvider, entityTagsProvider, description
+    )
   }
 
   void "should perform bulk operation"() {
