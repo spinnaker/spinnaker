@@ -126,6 +126,8 @@ public class CanaryJudgeTask implements RetryableTask {
       .judgeResult(result)
       .config(canaryConfig)
       .canaryExecutionRequest(canaryExecutionRequest)
+      .metricSetPairListId(metricSetPairListId)
+      .pipelineId(stage.getExecution().getId())
       .build();
 
     storageService.storeObject(resolvedStorageAccountName, ObjectType.CANARY_RESULT, canaryJudgeResultId, canaryResult);

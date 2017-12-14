@@ -28,7 +28,6 @@ import lombok.*;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class CanaryResult {
 
-  @NonNull
   @Getter
   CanaryJudgeResult judgeResult;
 
@@ -39,4 +38,11 @@ public class CanaryResult {
   @NonNull
   @Getter
   CanaryExecutionRequest canaryExecutionRequest;
+
+  @Getter
+  String metricSetPairListId;
+
+  @NonNull
+  @Getter
+  String pipelineId;
 }
