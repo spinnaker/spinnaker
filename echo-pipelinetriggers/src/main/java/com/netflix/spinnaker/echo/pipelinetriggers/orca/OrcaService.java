@@ -20,8 +20,8 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.netflix.spinnaker.echo.model.Pipeline;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import retrofit.http.Body;
-import retrofit.http.Header;
 import retrofit.http.GET;
+import retrofit.http.Header;
 import retrofit.http.POST;
 import retrofit.http.Query;
 import rx.Observable;
@@ -38,6 +38,11 @@ public interface OrcaService {
   @GET("/pipelines")
   Observable<Collection<PipelineResponse>> getLatestPipelineExecutions(@Query("pipelineConfigIds") Collection<String> pipelineIds);
 
+  // GET /pipelines accepts extra query params, which is used for echo extensions.
+  @GET("/pipelines")
+  Observable<Collection<PipelineResponse>> getLatestPipelineExecutions(@Query("pipelineConfigIds") Collection<String> pipelineIds,
+                                                                       @Query("statuses") Collection<String> statuses,
+                                                                       @Query("limit") Integer limit);
 
   class TriggerResponse {
     private String ref;
