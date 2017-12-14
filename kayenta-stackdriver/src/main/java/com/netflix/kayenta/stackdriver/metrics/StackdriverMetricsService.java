@@ -99,21 +99,30 @@ public class StackdriverMetricsService implements MetricsService {
     StackdriverCanaryMetricSetQueryConfig stackdriverMetricSetQuery = (StackdriverCanaryMetricSetQueryConfig)canaryMetricConfig.getQuery();
     String projectId = stackdriverCanaryScope.getProject();
     String region = stackdriverCanaryScope.getRegion();
+    String resourceType = stackdriverCanaryScope.getResourceType();
 
     if (StringUtils.isEmpty(projectId)) {
       projectId = stackdriverCredentials.getProject();
     }
 
     String customFilter = expandCustomFilter(canaryConfig, stackdriverMetricSetQuery, stackdriverCanaryScope);
-    // TODO(duftler): Make this filter general-purpose so it is full-featured for more than just GCE.
     String filter = "metric.type=\"" + stackdriverMetricSetQuery.getMetricType() + "\"" +
-                    " AND resource.labels.project_id=" + projectId +
-                    " AND resource.type=" + stackdriverCanaryScope.getResourceType() +
+                    " AND resource.type=" + resourceType +
                     " AND ";
 
+    // TODO(duftler): Replace direct string-manipulating with helper functions.
+    // TODO-maybe(duftler): Replace this logic with a library of templates, one for each resource type.
     if (StringUtils.isEmpty(customFilter)) {
-      filter += "resource.metadata.tag.spinnaker-region=" + region +
-                " AND resource.metadata.tag.spinnaker-server-group=" + stackdriverCanaryScope.getScope();
+      if ("gce_instance".equals(resourceType)) {
+        filter += "resource.labels.project_id=" + projectId +
+                  " AND metadata.user_labels.\"spinnaker-region\"=" + region +
+                  " AND metadata.user_labels.\"spinnaker-server-group\"=" + stackdriverCanaryScope.getScope();
+      } else if ("aws_ec2_instance".equals(resourceType)) {
+        filter += "resource.labels.region=\"aws:" + region + "\"" +
+                  " AND metadata.user_labels.\"aws:autoscaling:groupname\"=" + stackdriverCanaryScope.getScope();
+      } else {
+        throw new IllegalArgumentException("Resource type '" + resourceType + "' not yet supported.");
+      }
     } else {
       filter += customFilter;
     }
