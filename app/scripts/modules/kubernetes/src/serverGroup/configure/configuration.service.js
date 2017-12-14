@@ -14,7 +14,6 @@ module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.conf
   .factory('kubernetesServerGroupConfigurationService', function($q, accountService, kubernetesImageReader,
                                                                  loadBalancerReader, cacheInitializer) {
     function configureCommand(application, command, query = '') {
-
       // this ensures we get the images we need when cloning or copying a server group template.
       const containers = command.containers.concat(command.initContainers || []);
       let queries = containers
@@ -189,7 +188,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.conf
         result.dirty.containers = invalidContainers;
       }
 
-      const [ validInitContainers, invalidInitContainers ] = getValidContainers(command, command.initContainers);
+      const [ validInitContainers, invalidInitContainers ] = getValidContainers(command, command.initContainers || []);
       command.initContainers = validInitContainers;
       if (invalidInitContainers.length > 0) {
         result.dirty.initContainers = invalidInitContainers;

@@ -78,7 +78,7 @@
     <help-field key="kubernetes.serverGroup.initContainers"></help-field>
     </div>
     <div class="col-md-9">
-      <ui-select multiple name="initContainerSelect" ng-model="command.initContainers" class="form-control input-sm" required>
+      <ui-select multiple name="initContainerSelect" ng-model="command.initContainers" class="form-control input-sm">
         <ui-select-match>{{$item.imageDescription.imageId}}</ui-select-match>
         <ui-select-choices
           repeat="container in command.backingData.filtered.containers | orderBy:'imageDescription.imageId'"
