@@ -65,6 +65,7 @@ import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.clouddriver.security.DefaultAccountCredentialsProvider
 import com.netflix.spinnaker.clouddriver.security.MapBackedAccountCredentialsRepository
+import com.netflix.spinnaker.kork.core.RetrySupport
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.context.properties.ConfigurationProperties
@@ -249,5 +250,10 @@ class CloudDriverConfig {
   @ConditionalOnMissingBean(AtomicOperationConverter)
   AtomicOperationConverter atomicOperationConverter() {
     new NoopAtomicOperationConverter()
+  }
+
+  @Bean
+  public RetrySupport retrySupport() {
+    return new RetrySupport();
   }
 }
