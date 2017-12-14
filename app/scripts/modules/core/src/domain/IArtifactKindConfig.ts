@@ -3,6 +3,6 @@ export interface IArtifactKindConfig {
   description: string;
   key: string;
   template: string;
-  controller: string;
+  controller: Function;
   controllerAs?: string;
 }

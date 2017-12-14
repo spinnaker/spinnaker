@@ -1,15 +1,8 @@
-import { IController, module } from 'angular';
+import { module } from 'angular';
 
 import { PIPELINE_CONFIG_PROVIDER } from 'core/pipeline/config/pipelineConfigProvider';
 import { IArtifact } from 'core/domain/IArtifact';
 import { PipelineConfigProvider } from 'core/pipeline';
-
-class GcsArtifactController implements IController {
-  constructor(public artifact: IArtifact) {
-    'ngInject';
-    this.artifact.type = 'gcs/object';
-  }
-}
 
 export const GCS_ARTIFACT = 'spinnaker.core.pipeline.trigger.gcs.artifact';
 module(GCS_ARTIFACT, [
@@ -19,7 +12,11 @@ module(GCS_ARTIFACT, [
     label: 'GCS',
     description: 'A GCS object.',
     key: 'gcs',
-    controller: 'gcsArtifactCtrl',
+    controller(artifact: IArtifact) {
+      'ngInject';
+      this.artifact = artifact;
+      this.artifact.type = 'gcs/object';
+    },
     controllerAs: 'ctrl',
     template: `
 <div class="col-md-12">
@@ -38,5 +35,5 @@ module(GCS_ARTIFACT, [
 </div>
 `,
   });
-}).controller('gcsArtifactCtrl', GcsArtifactController);
+});
 

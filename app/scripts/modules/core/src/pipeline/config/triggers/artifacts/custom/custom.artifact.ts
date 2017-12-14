@@ -18,7 +18,10 @@ module(CUSTOM_ARTIFACT, [
     label: 'Custom',
     description: 'A custom-defined artifact.',
     key: 'custom',
-    controller: 'customArtifactCtrl',
+    controller(artifact: IArtifact) {
+      'ngInject';
+      this.artifact = artifact;
+    },
     controllerAs: 'ctrl',
     template: `
 <div class="col-md-12">

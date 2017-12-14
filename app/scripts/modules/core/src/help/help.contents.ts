@@ -100,9 +100,11 @@ module(HELP_CONTENTS, [])
     'pipeline.config.expectedArtifact.defaultArtifact': `
         <p>If your artifact either wasn't supplied from a trigger, or it wasn't found in a prior execution, the artifact specified below will end up in your pipeline's execution context.</p>`,
     'pipeline.config.expectedArtifact.gcs.name': `
-        <p>The GCS object name, in the form 'gs://bucket/path/to/file.yml.'</p>`,
+        <p>The GCS object name, in the form 'gs://bucket/path/to/file.yml'.</p>`,
     'pipeline.config.expectedArtifact.docker.name': `
         <p>The Docker image name you want to trigger on changes to. If you are treating a tag as a release stream, you should include the image tag in the name. An example is 'gcr.io/project/image:stable', where all changes to the 'stable' tag will result in triggering this pipeline.</p>`,
+    'pipeline.config.expectedArtifact.git.name': `
+        <p>The file's path from the git root, in the form 'path/to/file.json'</p>`,
     'pipeline.config.trigger.webhook.source': `
         <p>Determines the target URL required to trigger this pipeline, as well as how the payload can be transformed into artifacts.</p>
     `,
