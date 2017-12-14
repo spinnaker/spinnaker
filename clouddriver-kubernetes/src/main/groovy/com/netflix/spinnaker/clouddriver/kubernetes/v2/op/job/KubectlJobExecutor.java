@@ -36,7 +36,9 @@ import org.springframework.stereotype.Component;
 
 import java.io.ByteArrayInputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 @Slf4j
@@ -87,7 +89,7 @@ public class KubectlJobExecutor {
     return status.getStdOut();
   }
 
-  public Void delete(KubernetesV2Credentials credentials, KubernetesKind kind, String namespace, String name, KubernetesSelectorList labelSelectors, V1DeleteOptions deleteOptions) {
+  public List<String> delete(KubernetesV2Credentials credentials, KubernetesKind kind, String namespace, String name, KubernetesSelectorList labelSelectors, V1DeleteOptions deleteOptions) {
     List<String> command = kubectlNamespacedAuthPrefix(credentials, namespace);
 
     command.add("delete");
@@ -119,14 +121,21 @@ public class KubectlJobExecutor {
       throw new KubectlException("Failed to delete " + kind + "/" + name + " from " + namespace + ": " + status.getStdErr());
     }
 
-    return null;
+    if (StringUtils.isEmpty(status.getStdOut())) {
+      return new ArrayList<>();
+    }
+
+    return Arrays.stream(status.getStdOut().split("\n"))
+        .map(m -> m.substring(m.indexOf("\"") + 1))
+        .map(m -> m.substring(0, m.lastIndexOf("\"")))
+        .collect(Collectors.toList());
   }
 
-  public Void scale(KubernetesV2Credentials credentials, KubernetesKind kind, String namespace, String name, KubernetesSelectorList labelSelectors, int replicas) {
+  public Void scale(KubernetesV2Credentials credentials, KubernetesKind kind, String namespace, String name, int replicas) {
     List<String> command = kubectlNamespacedAuthPrefix(credentials, namespace);
 
     command.add("scale");
-    command = kubectlLookupInfo(command, kind, name, labelSelectors);
+    command = kubectlLookupInfo(command, kind, name, null);
     command.add("--replicas=" + replicas);
 
     String jobId = jobExecutor.startJob(new JobRequest(command),
@@ -351,9 +360,8 @@ public class KubectlJobExecutor {
       command.add(kind.toString());
     }
 
-    if (!labelSelectors.isEmpty()) {
-      command.add("-l");
-      command.add("'" + labelSelectors + "'");
+    if (labelSelectors == null || !labelSelectors.isEmpty()) {
+      command.add("-l=" + labelSelectors);
     }
 
     return command;

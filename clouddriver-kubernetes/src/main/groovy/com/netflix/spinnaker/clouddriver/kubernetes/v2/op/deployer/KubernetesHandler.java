@@ -19,7 +19,6 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.op.deployer;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spinnaker.clouddriver.deploy.DeploymentResult;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.ArtifactReplacer;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesV2CachingAgent;
@@ -27,6 +26,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.provider.Kub
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpinnakerKindMap.SpinnakerKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.OperationResult;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.job.KubectlJobExecutor;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
 import com.netflix.spinnaker.clouddriver.model.Manifest.Status;
@@ -34,9 +34,6 @@ import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -63,14 +60,9 @@ public abstract class KubernetesHandler {
     return artifactReplacer.findAll(manifest);
   }
 
-  public DeploymentResult deployAugmentedManifest(KubernetesV2Credentials credentials, KubernetesManifest manifest) {
+  public OperationResult deployAugmentedManifest(KubernetesV2Credentials credentials, KubernetesManifest manifest) {
     deploy(credentials, manifest);
-
-    DeploymentResult result = new DeploymentResult();
-    result.setDeployedNames(new ArrayList<>(Collections.singleton(manifest.getNamespace() + ":" + manifest.getFullResourceName())));
-    result.setDeployedNamesByLocation(new HashMap<>(Collections.singletonMap(manifest.getNamespace(), Collections.singletonList(manifest.getFullResourceName()))));
-
-    return result;
+    return new OperationResult().addManifest(manifest);
   }
 
   abstract public KubernetesKind kind();

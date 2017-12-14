@@ -50,15 +50,6 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
   private final ObjectMapper mapper = new ObjectMapper();
   private final List<String> namespaces;
   private final List<String> omitNamespaces;
-  private final String PRETTY = "";
-  private final String CONTINUE = null;
-  private final boolean EXACT = true;
-  private final boolean EXPORT = false;
-  private final boolean INCLUDE_UNINITIALIZED = false;
-  private final Integer LIMIT = null; // TODO(lwander): include paginination
-  private final boolean WATCH = false;
-  private final String DEFAULT_VERSION = "0";
-  private final int TIMEOUT_SECONDS = 10; // TODO(lwander) make configurable
 
   // remove when kubectl is no longer a dependency
   @Getter
@@ -246,12 +237,12 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
     return runAndRecordMetrics("logs", KubernetesKind.POD, namespace, () -> jobExecutor.logs(this, namespace, podName, containerName));
   }
 
-  public void scale(KubernetesKind kind, String namespace, String name, KubernetesSelectorList labelSelectors, int replicas) {
-    runAndRecordMetrics("scale", kind, namespace, () -> jobExecutor.scale(this, kind, namespace, name, labelSelectors, replicas));
+  public void scale(KubernetesKind kind, String namespace, String name, int replicas) {
+    runAndRecordMetrics("scale", kind, namespace, () -> jobExecutor.scale(this, kind, namespace, name, replicas));
   }
 
-  public void delete(KubernetesKind kind, String namespace, String name, KubernetesSelectorList labelSelectors, V1DeleteOptions options) {
-    runAndRecordMetrics("scale", kind, namespace, () -> jobExecutor.delete(this, kind, namespace, name, labelSelectors, options));
+  public List<String> delete(KubernetesKind kind, String namespace, String name, KubernetesSelectorList labelSelectors, V1DeleteOptions options) {
+    return runAndRecordMetrics("scale", kind, namespace, () -> jobExecutor.delete(this, kind, namespace, name, labelSelectors, options));
   }
 
   public void deploy(KubernetesManifest manifest) {

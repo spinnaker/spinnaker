@@ -23,6 +23,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesCoo
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesResourceProperties;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesResourcePropertyRegistry;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesDeleteManifestDescription;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.OperationResult;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.deployer.CanDelete;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.deployer.KubernetesHandler;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
@@ -31,7 +32,7 @@ import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import java.util.Collections;
 import java.util.List;
 
-public class KubernetesDeleteManifestOperation implements AtomicOperation<Void> {
+public class KubernetesDeleteManifestOperation implements AtomicOperation<OperationResult> {
   private final KubernetesDeleteManifestDescription description;
   private final KubernetesV2Credentials credentials;
   private final KubernetesResourcePropertyRegistry registry;
@@ -48,7 +49,7 @@ public class KubernetesDeleteManifestOperation implements AtomicOperation<Void> 
   }
 
   @Override
-  public Void operate(List priorOutputs) {
+  public OperationResult operate(List priorOutputs) {
     getTask().updateStatus(OP_NAME, "Starting delete operation...");
     List<KubernetesCoordinates> coordinates;
 
@@ -58,6 +59,7 @@ public class KubernetesDeleteManifestOperation implements AtomicOperation<Void> 
       coordinates = Collections.singletonList(description.getPointCoordinates());
     }
 
+    OperationResult result = new OperationResult();
     coordinates.forEach(c -> {
       getTask().updateStatus(OP_NAME, "Looking up resource properties for " + c.getKind() + "...");
       KubernetesResourceProperties properties = registry.get(c.getKind());
@@ -70,13 +72,13 @@ public class KubernetesDeleteManifestOperation implements AtomicOperation<Void> 
       CanDelete canDelete = (CanDelete) deployer;
 
       getTask().updateStatus(OP_NAME, "Calling delete operation...");
-      canDelete.delete(credentials,
+      result.merge(canDelete.delete(credentials,
           c.getNamespace(),
           c.getName(),
           description.getLabelSelectors(),
-          description.getOptions());
+          description.getOptions()));
     });
 
-    return null;
+    return result;
   }
 }

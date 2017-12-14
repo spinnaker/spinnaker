@@ -20,7 +20,6 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.op.manifest;
 import com.netflix.spinnaker.clouddriver.artifacts.ArtifactDownloader;
 import com.netflix.spinnaker.clouddriver.data.task.Task;
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository;
-import com.netflix.spinnaker.clouddriver.deploy.DeploymentResult;
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.KubernetesArtifactConverter;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesResourceProperties;
@@ -30,6 +29,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.Kube
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifestAnnotater;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifestSpinnakerRelationships;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.OperationResult;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.deployer.KubernetesHandler;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
 import com.netflix.spinnaker.clouddriver.model.ArtifactProvider;
@@ -44,7 +44,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class KubernetesDeployManifestOperation implements AtomicOperation<DeploymentResult> {
+import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesDeployManifestDescription.Source.text;
+
+public class KubernetesDeployManifestOperation implements AtomicOperation<OperationResult> {
   private final KubernetesDeployManifestDescription description;
   private final KubernetesV2Credentials credentials;
   private final ArtifactDownloader artifactDownloader;
@@ -70,11 +72,13 @@ public class KubernetesDeployManifestOperation implements AtomicOperation<Deploy
   }
 
   @Override
-  public DeploymentResult operate(List _unused) {
+  public OperationResult operate(List _unused) {
     getTask().updateStatus(OP_NAME, "Beginning deployment of manifest...");
 
     KubernetesManifest manifest;
-    switch (description.getSource()) {
+    KubernetesDeployManifestDescription.Source source = description.getSource();
+    source = source == null ? text : source;
+    switch (source) {
       case text:
         manifest = description.getManifest();
         break;
@@ -86,7 +90,7 @@ public class KubernetesDeployManifestOperation implements AtomicOperation<Deploy
         }
         break;
       default:
-        throw new IllegalArgumentException("Unsupported artifact source: " + description.getSource());
+        throw new IllegalArgumentException("Unsupported artifact source: " + source);
     }
 
     if (StringUtils.isEmpty(manifest.getNamespace())) {
@@ -118,7 +122,7 @@ public class KubernetesDeployManifestOperation implements AtomicOperation<Deploy
     manifest = deployer.replaceArtifacts(manifest, artifacts);
 
     getTask().updateStatus(OP_NAME, "Submitting manifest to kubernetes master...");
-    DeploymentResult result = deployer.deployAugmentedManifest(credentials, manifest);
+    OperationResult result = deployer.deployAugmentedManifest(credentials, manifest);
     result.getCreatedArtifacts().add(artifact);
 
     return result;

@@ -121,8 +121,8 @@ metadata:
     when:
     def result = deployOp.operate([])
     then:
-    result.deployedNames.size == 1
-    result.deployedNames[0] == "$NAMESPACE:$KIND $NAME-$VERSION"
+    result.manifestNamesByNamespace[NAMESPACE].size() == 1
+    result.manifestNamesByNamespace[NAMESPACE][0] == "$KIND $NAME-$VERSION"
   }
 
   void "replica set deployer uses backup namespace"() {
@@ -135,7 +135,7 @@ metadata:
     def result = deployOp.operate([])
 
     then:
-    result.deployedNames.size == 1
-    result.deployedNames[0] == "$DEFAULT_NAMESPACE:$KIND $NAME-$VERSION"
+    result.manifestNamesByNamespace[DEFAULT_NAMESPACE].size() == 1
+    result.manifestNamesByNamespace[DEFAULT_NAMESPACE][0] == "$KIND $NAME-$VERSION"
   }
 }

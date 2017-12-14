@@ -18,15 +18,27 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.op.deployer;
 
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.job.KubectlJobExecutor;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.OperationResult;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesSelectorList;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
 import io.kubernetes.client.models.V1DeleteOptions;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 public interface CanDelete {
   KubernetesKind kind();
 
-  default void delete(KubernetesV2Credentials credentials, String namespace, String name, KubernetesSelectorList labelSelectors, V1DeleteOptions options) {
-    credentials.delete(kind(), namespace, name, labelSelectors, options);
+  default OperationResult delete(KubernetesV2Credentials credentials, String namespace, String name, KubernetesSelectorList labelSelectors, V1DeleteOptions options) {
+    List<String> deletedNames = credentials.delete(kind(), namespace, name, labelSelectors, options);
+    OperationResult result = new OperationResult();
+    Set<String> fullNames = deletedNames.stream().map(n -> KubernetesManifest.getFullResourceName(kind(), n)).collect(Collectors.toSet());
+
+    result.setManifestNamesByNamespace(new HashMap<>(Collections.singletonMap(namespace, fullNames)));
+    return result;
   }
 }
