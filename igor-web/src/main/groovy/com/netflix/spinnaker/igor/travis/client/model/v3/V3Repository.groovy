@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.igor.travis.client.model.v3
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import groovy.transform.CompileStatic
 import org.simpleframework.xml.Default
 import org.simpleframework.xml.Root
@@ -23,6 +24,7 @@ import org.simpleframework.xml.Root
 @Default
 @CompileStatic
 @Root(name = 'repository')
+@JsonIgnoreProperties(ignoreUnknown = true)
 class V3Repository {
     int id
     String name

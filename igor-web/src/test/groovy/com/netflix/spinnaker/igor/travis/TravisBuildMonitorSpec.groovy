@@ -25,7 +25,8 @@ import com.netflix.spinnaker.igor.travis.client.model.v3.V3Repository
 import com.netflix.spinnaker.igor.travis.service.TravisService
 import spock.lang.Specification
 
-import java.util.concurrent.TimeUnit
+import java.time.Instant
+import java.time.temporal.ChronoUnit
 
 class TravisBuildMonitorSpec extends Specification {
     BuildCache buildCache = Mock(BuildCache)
@@ -46,7 +47,7 @@ class TravisBuildMonitorSpec extends Specification {
         repo.slug = "test-org/test-repo"
         repo.lastBuildNumber = 4
         repo.lastBuildState = "passed"
-        repo.lastBuildStartedAt = new Date()
+        repo.lastBuildStartedAt = Instant.now()
         List<Repo> repos = [repo]
         V3Build build = Mock(V3Build)
         V3Repository repository = Mock(V3Repository)
@@ -76,15 +77,15 @@ class TravisBuildMonitorSpec extends Specification {
 
     void 'ignore old build not found in the cache'() {
         Repo oldRepo = new Repo()
-        Date now = new Date()
-        oldRepo.lastBuildStartedAt = new Date(now.getTime() - TimeUnit.DAYS.toMillis(travisBuildMonitor.travisProperties.cachedJobTTLDays))
+        Instant now = Instant.now()
+        oldRepo.lastBuildStartedAt = now.minus(travisBuildMonitor.travisProperties.cachedJobTTLDays, ChronoUnit.DAYS)
         Repo noLastBuildStartedAtRepo = new Repo()
         noLastBuildStartedAtRepo.lastBuildStartedAt = null
         Repo repo = new Repo()
         repo.slug = "test-org/test-repo"
         repo.lastBuildNumber = 4
         repo.lastBuildState = "passed"
-        repo.lastBuildStartedAt = new Date(now.getTime() - TimeUnit.DAYS.toMillis(travisBuildMonitor.travisProperties.cachedJobTTLDays-1))
+        repo.lastBuildStartedAt = now.minus(travisBuildMonitor.travisProperties.cachedJobTTLDays-1, ChronoUnit.DAYS)
         List<Repo> repos = [oldRepo, repo, noLastBuildStartedAtRepo]
         V3Build build = Mock(V3Build)
         V3Repository repository = Mock(V3Repository)
@@ -124,7 +125,7 @@ class TravisBuildMonitorSpec extends Specification {
         repo.slug = "test-org/test-repo"
         repo.lastBuildNumber = 4
         repo.lastBuildState = "passed"
-        repo.lastBuildStartedAt = new Date()
+        repo.lastBuildStartedAt = Instant.now()
         List<Repo> repos = [repo]
         V3Build build = Mock(V3Build)
         V3Repository repository = Mock(V3Repository)
@@ -167,7 +168,7 @@ class TravisBuildMonitorSpec extends Specification {
         repo.slug = "test-org/test-repo"
         repo.lastBuildNumber = 4
         repo.lastBuildState = "passed"
-        repo.lastBuildStartedAt = new Date()
+        repo.lastBuildStartedAt = Instant.now()
         List<Repo> repos = [repo]
         V3Build build = Mock(V3Build)
         V3Build buildDifferentBranch = Mock(V3Build)

@@ -16,36 +16,40 @@
 
 package com.netflix.spinnaker.igor.travis.client.model
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
-import com.google.gson.annotations.SerializedName
+import com.fasterxml.jackson.annotation.JsonProperty
 import groovy.transform.CompileStatic
 import org.simpleframework.xml.Default
 import org.simpleframework.xml.Root
 
+import java.time.Instant
+
 @Default
 @CompileStatic
 @JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonIgnoreProperties(ignoreUnknown = true)
 @Root(strict = false)
 class Repo {
     int id
     String slug
     String description
-    @SerializedName("last_build_id")
+    @JsonProperty("last_build_id")
     int lastBuildId
-    @SerializedName("last_build_number")
+    @JsonProperty("last_build_number")
     int lastBuildNumber
-    @SerializedName("last_build_state")
+    @JsonProperty("last_build_state")
     String lastBuildState
-    @SerializedName("last_build_duration")
+    @JsonProperty("last_build_duration")
     int lastBuildDuration
-    @SerializedName("last_build_started_at")
-    Date lastBuildStartedAt
-    @SerializedName("last_build_finished_at")
-    Date lastBuildFinishedAt
-    @SerializedName("github_language")
+    @JsonProperty("last_build_started_at")
+    Instant lastBuildStartedAt
+    @JsonProperty("last_build_finished_at")
+    Instant lastBuildFinishedAt
+    @JsonProperty("github_language")
     String githubLanguage
 
     long timestamp() {
-        return lastBuildFinishedAt.getTime()
+        return lastBuildFinishedAt.toEpochMilli()
     }
 }

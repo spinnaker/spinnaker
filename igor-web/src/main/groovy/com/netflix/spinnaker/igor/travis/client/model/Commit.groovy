@@ -16,29 +16,36 @@
 
 package com.netflix.spinnaker.igor.travis.client.model
 
-import com.google.gson.annotations.SerializedName
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import com.fasterxml.jackson.annotation.JsonProperty
 import com.netflix.spinnaker.igor.build.model.GenericGitRevision
 import groovy.transform.CompileStatic
 import org.simpleframework.xml.Default
 import org.simpleframework.xml.Root
 
+import java.time.Instant
+
 @Default
 @CompileStatic
 @Root(name = 'commits')
+@JsonIgnoreProperties(ignoreUnknown = true)
 class Commit {
     int id
     String sha
     String branch
     String message
 
-    @SerializedName("author_name")
+    @JsonProperty("author_name")
     String authorName
 
-    @SerializedName("compare_url")
+    @JsonProperty("compare_url")
     String compareUrl
 
+    @JsonProperty("committed_at")
+    Instant timestamp
+
     GenericGitRevision genericGitRevision() {
-        return new GenericGitRevision(branch, branch, sha, authorName, compareUrl, message)
+        return new GenericGitRevision(branch, branch, sha, authorName, compareUrl, message, timestamp)
     }
 
     boolean isTag(){

@@ -16,8 +16,9 @@
 
 package com.netflix.spinnaker.igor.travis.client.model
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
-import com.google.gson.annotations.SerializedName
+import com.fasterxml.jackson.annotation.JsonProperty
 import com.netflix.spinnaker.igor.build.model.GenericParameterDefinition
 import groovy.transform.CompileStatic
 import org.simpleframework.xml.Default
@@ -25,32 +26,34 @@ import org.simpleframework.xml.Default
 @Default
 @CompileStatic
 @JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonIgnoreProperties(ignoreUnknown = true)
 class Config {
 
-    @SerializedName("global_env")
+    @JsonProperty("global_env")
     List<Object> globalEnv
     // This is a list of objects because the api returns a list of strings and maps.
 
-    @SerializedName("merge_mode")
+    @JsonProperty("merge_mode")
     String mergeMode = "deep_merge"
 
     Object env
     // This is an object because we inject it like env: matrix: "values", but we get env: "values" back from the api.
 
+    Config() { }
+
     Config(Map<String, String> environmentMap) {
-        if(!environmentMap || environmentMap.size() == 0) {
+        if (!environmentMap) {
             // if there is no environment map settings, just skip it.
             return
         }
         String matrixEnvironment = environmentMap.collect { key, value ->
           "${key}=${value}".toString()
         }.join(" ")
-        Map tmpEnv = new HashMap<String, String>()
-        tmpEnv.put("matrix", matrixEnvironment)
+        Map tmpEnv = ["matrix": matrixEnvironment]
         env = tmpEnv
     }
 
-    public List<GenericParameterDefinition> getParameterDefinitionList() {
+    List<GenericParameterDefinition> getParameterDefinitionList() {
         (globalEnv ? globalEnv.findAll{it instanceof String}.collect {
             String tmpGlobalEnv = (String) it
             def parts = tmpGlobalEnv.tokenize('=')

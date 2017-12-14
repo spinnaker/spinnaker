@@ -16,16 +16,17 @@
 
 package com.netflix.spinnaker.igor.travis.client.model
 
-import com.google.gson.annotations.SerializedName
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import com.fasterxml.jackson.annotation.JsonProperty
 import com.netflix.spinnaker.igor.travis.client.model.v3.Request
 import groovy.transform.CompileStatic
 import org.simpleframework.xml.Default
 
-
 @Default
 @CompileStatic
+@JsonIgnoreProperties(ignoreUnknown = true)
 class TriggerResponse {
-    @SerializedName("remaining_requests")
+    @JsonProperty("remaining_requests")
     int remainingRequests
 
     Request request

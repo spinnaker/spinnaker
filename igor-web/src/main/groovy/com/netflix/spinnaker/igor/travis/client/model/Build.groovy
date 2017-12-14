@@ -16,36 +16,39 @@
 
 package com.netflix.spinnaker.igor.travis.client.model
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
-import com.google.gson.annotations.SerializedName
 import com.netflix.spinnaker.igor.travis.client.model.v3.TravisBuildState
 import groovy.transform.CompileStatic
 import org.simpleframework.xml.Default
 import org.simpleframework.xml.Root
 
+import java.time.Instant
+
 @Default
 @CompileStatic
 @JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonIgnoreProperties(ignoreUnknown = true)
 @Root(name = 'builds')
 class Build {
-    @SerializedName("commit_id")
+    @JsonProperty("commit_id")
     int commitId
     int duration
     int id
-    @SerializedName("repository_id")
+    @JsonProperty("repository_id")
     int repositoryId
     int number
     TravisBuildState state
-    @SerializedName("finished_at")
-    Date finishedAt
-    @SerializedName("pull_request")
+    @JsonProperty("finished_at")
+    Instant finishedAt
+    @JsonProperty("pull_request")
     Boolean pullRequest
     @JsonProperty(value = "job_ids")
     List <Integer> job_ids
     Config config
 
     long timestamp() {
-        return finishedAt.getTime()
+        return finishedAt.toEpochMilli()
     }
 }

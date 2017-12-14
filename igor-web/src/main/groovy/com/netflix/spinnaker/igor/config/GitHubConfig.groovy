@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.igor.config
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.igor.scm.github.client.GitHubClient
 import com.netflix.spinnaker.igor.scm.github.client.GitHubMaster
 import groovy.transform.CompileStatic
@@ -43,17 +44,17 @@ import javax.validation.Valid
 class GitHubConfig {
 
     @Bean
-    GitHubMaster gitHubMasters(@Valid GitHubProperties gitHubProperties) {
+    GitHubMaster gitHubMasters(@Valid GitHubProperties gitHubProperties, ObjectMapper mapper) {
         log.info "bootstrapping ${gitHubProperties.baseUrl} as github"
-        new GitHubMaster(gitHubClient: gitHubClient(gitHubProperties.baseUrl, gitHubProperties.accessToken), baseUrl: gitHubProperties.baseUrl)
+        new GitHubMaster(gitHubClient: gitHubClient(gitHubProperties.baseUrl, gitHubProperties.accessToken, mapper), baseUrl: gitHubProperties.baseUrl)
     }
 
-    GitHubClient gitHubClient(String address, String accessToken) {
+    GitHubClient gitHubClient(String address, String accessToken, ObjectMapper mapper = new ObjectMapper()) {
         new RestAdapter.Builder()
             .setEndpoint(Endpoints.newFixedEndpoint(address))
             .setRequestInterceptor(new BasicAuthRequestInterceptor(accessToken))
             .setClient(new OkClient())
-            .setConverter(new JacksonConverter())
+            .setConverter(new JacksonConverter(mapper))
             .build()
             .create(GitHubClient)
 

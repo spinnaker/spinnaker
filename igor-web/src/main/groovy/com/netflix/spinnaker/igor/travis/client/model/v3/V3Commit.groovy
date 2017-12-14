@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.igor.travis.client.model.v3
 
-import com.google.gson.annotations.SerializedName
-import com.netflix.spinnaker.igor.build.model.GenericGitRevision
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import com.fasterxml.jackson.annotation.JsonProperty
 import groovy.transform.CompileStatic
 import org.simpleframework.xml.Default
 import org.simpleframework.xml.Root
@@ -25,6 +25,7 @@ import org.simpleframework.xml.Root
 @Default
 @CompileStatic
 @Root(name = 'commits')
+@JsonIgnoreProperties(ignoreUnknown = true)
 class V3Commit {
     int id
 
@@ -35,7 +36,7 @@ class V3Commit {
     String message
 
 
-    @SerializedName("compare_url")
+    @JsonProperty("compare_url")
     String compareUrl
 
     boolean isTag(){

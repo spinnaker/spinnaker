@@ -37,6 +37,8 @@ import rx.Observable
 import rx.Scheduler
 import rx.schedulers.Schedulers
 
+import java.time.Instant
+import java.time.temporal.ChronoUnit
 import java.util.concurrent.TimeUnit
 
 import static net.logstash.logback.argument.StructuredArguments.kv
@@ -202,9 +204,9 @@ class TravisBuildMonitor extends CommonPollingMonitor {
         grace threshold so that we don't resend the event to echo. The value of the threshold assumes that travis
         will set the lastBuildStartedAt within 30 seconds.
          */
-        Long threshold = new Date().getTime() - TimeUnit.DAYS.toMillis(travisProperties.cachedJobTTLDays) + BUILD_STARTED_AT_THRESHOLD
+        Instant threshold = Instant.now().minus(travisProperties.cachedJobTTLDays, ChronoUnit.DAYS).plusMillis(BUILD_STARTED_AT_THRESHOLD)
         return repos.findAll({ repo ->
-            repo.lastBuildStartedAt?.getTime() > threshold
+            repo.lastBuildStartedAt?.isAfter(threshold)
         })
     }
 }

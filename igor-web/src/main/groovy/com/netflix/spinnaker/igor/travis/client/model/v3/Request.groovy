@@ -16,11 +16,13 @@
 
 package com.netflix.spinnaker.igor.travis.client.model.v3
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import groovy.transform.CompileStatic
 import org.simpleframework.xml.Default
 
 @Default
 @CompileStatic
+@JsonIgnoreProperties(ignoreUnknown = true)
 class Request {
     V3Repository repository
 

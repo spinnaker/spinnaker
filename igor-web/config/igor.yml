@@ -8,6 +8,8 @@ spinnaker:
 
 endpoints.health.sensitive: false
 
+spring.jackson.serialization.write_dates_as_timestamps: false
+
 #artifact:
 #  This is a feature toggle for decoration of artifacts.
 #  decorator:

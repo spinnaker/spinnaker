@@ -28,6 +28,8 @@ import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
 
+import java.time.Instant
+
 
 class TravisServiceSpec extends Specification{
     @Shared
@@ -61,7 +63,7 @@ class TravisServiceSpec extends Specification{
         1 * build.number >> 1337
         2 * build.state >> 'passed'
         1 * build.duration >> 32
-        1 * build.finishedAt >> new Date()
+        1 * build.finishedAt >> Instant.now()
         1 * build.timestamp() >> 1458051084000
     }
 

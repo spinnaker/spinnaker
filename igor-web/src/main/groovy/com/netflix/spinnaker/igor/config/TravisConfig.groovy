@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.igor.config
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.igor.IgorConfigurationProperties
 import com.netflix.spinnaker.igor.service.BuildMasters
 import com.netflix.spinnaker.igor.travis.TravisCache
@@ -32,11 +33,10 @@ import retrofit.Endpoints
 import retrofit.RequestInterceptor
 import retrofit.RestAdapter
 import retrofit.client.OkClient
+import retrofit.converter.JacksonConverter
 
 import javax.validation.Valid
 import java.util.concurrent.TimeUnit
-
-
 /**
  * Converts the list of Travis Configuration properties a collection of clients to access the Travis hosts
  */
@@ -48,13 +48,14 @@ import java.util.concurrent.TimeUnit
 class TravisConfig {
 
     @Bean
-    Map<String, TravisService> travisMasters(BuildMasters buildMasters, TravisCache travisCache, IgorConfigurationProperties igorConfigurationProperties, @Valid TravisProperties travisProperties) {
+    Map<String, TravisService> travisMasters(BuildMasters buildMasters, TravisCache travisCache, IgorConfigurationProperties igorConfigurationProperties, @Valid TravisProperties travisProperties, ObjectMapper objectMapper) {
         log.info "creating travisMasters"
         Map<String, TravisService> travisMasters = (travisProperties?.masters?.collectEntries { TravisProperties.TravisHost host ->
             String travisName = "travis-${host.name}"
             log.info "bootstrapping ${host.address} as ${travisName}"
 
-            [(travisName): travisService(travisName, host.baseUrl, host.githubToken, host.numberOfRepositories, travisClient(host.address, igorConfigurationProperties.client.timeout), travisCache, travisProperties?.regexes)]
+            def client = travisClient(host.address, igorConfigurationProperties.client.timeout, objectMapper)
+            [(travisName): travisService(travisName, host.baseUrl, host.githubToken, host.numberOfRepositories, client, travisCache, travisProperties?.regexes)]
         })
         buildMasters.map.putAll travisMasters
         travisMasters
@@ -64,7 +65,7 @@ class TravisConfig {
         return new TravisService(travisHostId, baseUrl, githubToken, numberOfRepositories, travisClient, travisCache, artifactRexeges)
     }
 
-    static TravisClient travisClient(String address, int timeout = 30000) {
+    static TravisClient travisClient(String address, int timeout = 30000, ObjectMapper objectMapper = new ObjectMapper()) {
         OkHttpClient client = new OkHttpClient()
         client.setReadTimeout(timeout, TimeUnit.MILLISECONDS)
 
@@ -79,6 +80,7 @@ class TravisConfig {
             .setClient(new OkClient(client))
             .setLog(fooLog)
             .setLogLevel(RestAdapter.LogLevel.FULL)
+            .setConverter(new JacksonConverter(objectMapper))
             .build()
             .create(TravisClient)
     }

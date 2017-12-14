@@ -1,8 +1,9 @@
 /*
- * Copyright 2016 Schibsted ASA.
+ * Copyright 2017 Schibsted ASA.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
+ *
  * You may obtain a copy of the License at
  *
  *     http://www.apache.org/licenses/LICENSE-2.0
@@ -14,21 +15,15 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.igor.travis.client.model
+package com.netflix.spinnaker.igor.helpers
 
-import com.fasterxml.jackson.annotation.JsonInclude
-import com.fasterxml.jackson.annotation.JsonProperty
-import groovy.transform.CompileStatic
-import org.simpleframework.xml.Default
-import org.simpleframework.xml.Root
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 
-@Default
-@CompileStatic
-@JsonInclude(JsonInclude.Include.NON_NULL)
-@Root(strict = false)
-class AccessToken {
-
-    @JsonProperty("access_token")
-    String accessToken
-
+class TestUtils {
+  static ObjectMapper createObjectMapper() {
+    ObjectMapper mapper = new ObjectMapper()
+    mapper.registerModule(new JavaTimeModule())
+    mapper
+  }
 }

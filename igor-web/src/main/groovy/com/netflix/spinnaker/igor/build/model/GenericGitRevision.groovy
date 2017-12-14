@@ -18,6 +18,8 @@ package com.netflix.spinnaker.igor.build.model
 
 import com.fasterxml.jackson.annotation.JsonInclude
 
+import java.time.Instant
+
 @JsonInclude(JsonInclude.Include.NON_NULL)
 class GenericGitRevision {
     String name
@@ -26,6 +28,7 @@ class GenericGitRevision {
     String committer
     String compareUrl
     String message
+    Instant timestamp
 
     GenericGitRevision(String name, String branch, String sha1) {
         this.name = name
@@ -33,10 +36,11 @@ class GenericGitRevision {
         this.sha1 = sha1
     }
 
-    GenericGitRevision(String name, String branch, String sha1, String committer, String compareUrl, String message) {
+    GenericGitRevision(String name, String branch, String sha1, String committer, String compareUrl, String message, Instant timestamp) {
         this(name, branch, sha1)
         this.committer = committer
         this.compareUrl = compareUrl
         this.message = message
+        this.timestamp = timestamp
     }
 }

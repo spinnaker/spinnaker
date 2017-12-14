@@ -16,13 +16,13 @@
 
 package com.netflix.spinnaker.igor.travis.client.model
 
-import com.google.gson.annotations.SerializedName
+import com.fasterxml.jackson.annotation.JsonProperty
 import org.simpleframework.xml.Default
 
 @Default
 class GithubAuth {
 
-    @SerializedName("github_token")
+    @JsonProperty("github_token")
     String githubToken
 
     GithubAuth(String githubToken) {

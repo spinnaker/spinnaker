@@ -16,41 +16,44 @@
 
 package com.netflix.spinnaker.igor.travis.client.model.v3
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
-import com.google.gson.annotations.SerializedName
 import com.netflix.spinnaker.igor.build.model.GenericGitRevision
 import com.netflix.spinnaker.igor.travis.client.model.Config
 import groovy.transform.CompileStatic
 import org.simpleframework.xml.Default
 import org.simpleframework.xml.Root
 
+import java.time.Instant
+
 @Default
 @CompileStatic
 @JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonIgnoreProperties(ignoreUnknown = true)
 @Root(name = 'builds')
 class V3Build {
     V3Branch branch
-    @SerializedName("commit_id")
+    @JsonProperty("commit_id")
     int commitId
     V3Commit commit
     int duration
-    @SerializedName("event_type")
+    @JsonProperty("event_type")
     String eventType
     int id
     V3Repository repository
-    @SerializedName("repository_id")
+    @JsonProperty("repository_id")
     int repositoryId
     int number
     TravisBuildState state
-    @SerializedName("finished_at")
-    Date finishedAt
+    @JsonProperty("finished_at")
+    Instant finishedAt
     @JsonProperty(value = "job_ids")
     List <Integer> job_ids
     Config config
 
     long timestamp() {
-        return finishedAt.getTime()
+        return finishedAt.toEpochMilli()
     }
 
     String branchedRepoSlug() {

@@ -21,7 +21,7 @@ dependencies {
     compile spinnaker.dependency("korkWeb")
     compile spinnaker.dependency("korkJedis")
     compile spinnaker.dependency("korkDynomite")
-    compile spinnaker.dependency("guava")
+    compile spinnaker.dependency("jacksonJsr310")    
     compile spinnaker.dependency("groovy")
     compile spinnaker.dependency("rxJava")
     compile spinnaker.dependency("retrofit")
@@ -40,7 +40,6 @@ dependencies {
 configurations.all {
     resolutionStrategy {
         force 'org.apache.log4j:log4j:1.2.17'
-        force 'com.google.guava:guava:14.0.1'
         force 'commons-codec:commons-codec:1.7'
     }
     exclude group: 'javax.servlet', module: 'servlet-api'

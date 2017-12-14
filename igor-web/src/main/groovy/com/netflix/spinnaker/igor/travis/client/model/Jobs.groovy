@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.igor.travis.client.model
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import groovy.transform.CompileStatic
 import org.simpleframework.xml.Default
@@ -25,6 +26,7 @@ import org.simpleframework.xml.Root
 @Default
 @CompileStatic
 @JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonIgnoreProperties(ignoreUnknown = true)
 @Root(strict = false)
 class Jobs {
     @ElementList(required = false, name = "job", inline = true)

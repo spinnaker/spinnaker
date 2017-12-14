@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.igor.travis.client.model.v3
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import groovy.transform.CompileStatic
 import org.simpleframework.xml.Default
@@ -24,6 +25,7 @@ import org.simpleframework.xml.Root
 @Default
 @CompileStatic
 @JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonIgnoreProperties(ignoreUnknown = true)
 @Root(name = 'branch')
 class V3Branch {
     String name

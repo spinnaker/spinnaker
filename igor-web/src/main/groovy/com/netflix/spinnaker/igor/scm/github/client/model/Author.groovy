@@ -18,9 +18,11 @@ package com.netflix.spinnaker.igor.scm.github.client.model
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 
+import java.time.Instant
+
 @JsonIgnoreProperties(ignoreUnknown = true)
 class Author {
     String name
     String email
-    Date date
+    Instant date
 }

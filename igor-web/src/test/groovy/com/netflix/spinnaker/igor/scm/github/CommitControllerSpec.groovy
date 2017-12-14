@@ -29,6 +29,7 @@ import retrofit.client.Response
 import spock.lang.Specification
 import spock.lang.Subject
 
+import java.time.Instant
 import java.util.concurrent.Executors
 
 /**
@@ -82,8 +83,8 @@ class CommitControllerSpec extends Specification {
         given:
         1 * client.getCompareCommits(projectKey, repositorySlug, toCommit, fromCommit) >>
             new CompareCommitsResponse(url: "", html_url: "", commits:
-            [new Commit(html_url: "https://github.com/${projectKey}/${repositorySlug}/1234512345123451234512345", sha: "1234512345123451234512345", commitInfo: new CommitInfo(author : new Author(email: 'joecoder@project.com', date: new Date(1433192015000), name: "Joe Coder"), message: "my commit")),
-            new Commit(html_url: "https://github.com/${projectKey}/${repositorySlug}/67890678906789067890", sha: "67890678906789067890", commitInfo: new CommitInfo(author : new Author(email: 'janecoder@project.com', date: new Date(1432078663000), name: "Jane Coder"), message: "bug fix"))])
+            [new Commit(html_url: "https://github.com/${projectKey}/${repositorySlug}/1234512345123451234512345", sha: "1234512345123451234512345", commitInfo: new CommitInfo(author : new Author(email: 'joecoder@project.com', date: Instant.ofEpochMilli(1433192015000), name: "Joe Coder"), message: "my commit")),
+            new Commit(html_url: "https://github.com/${projectKey}/${repositorySlug}/67890678906789067890", sha: "67890678906789067890", commitInfo: new CommitInfo(author : new Author(email: 'janecoder@project.com', date: Instant.ofEpochMilli(1432078663000), name: "Jane Coder"), message: "bug fix"))])
 
         when:
         List commitsResponse = controller.compareCommits(projectKey, repositorySlug, ['to': toCommit, 'from': fromCommit])
@@ -97,7 +98,7 @@ class CommitControllerSpec extends Specification {
             authorDisplayName == "Joe Coder"
             message == "my commit"
             commitUrl == "https://github.com/${projectKey}/${repositorySlug}/1234512345123451234512345"
-            timestamp == new Date(1433192015000)
+            timestamp == Instant.ofEpochMilli(1433192015000)
         }
 
         with(commitsResponse[1]) {
@@ -106,7 +107,7 @@ class CommitControllerSpec extends Specification {
             authorDisplayName == "Jane Coder"
             message == "bug fix"
             commitUrl == "https://github.com/${projectKey}/${repositorySlug}/67890678906789067890"
-            timestamp == new Date(1432078663000)
+            timestamp == Instant.ofEpochMilli(1432078663000)
         }
 
         where:

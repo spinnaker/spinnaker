@@ -16,12 +16,17 @@
 
 package com.netflix.spinnaker.igor.scm.github.client
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.igor.config.GitHubConfig
 import com.netflix.spinnaker.igor.scm.github.client.model.CompareCommitsResponse
 import com.squareup.okhttp.mockwebserver.MockResponse
 import com.squareup.okhttp.mockwebserver.MockWebServer
 import spock.lang.Shared
 import spock.lang.Specification
+
+import java.time.Instant
+
+import static com.netflix.spinnaker.igor.helpers.TestUtils.createObjectMapper
 
 /**
  * Tests that GitHubClient correctly binds to underlying model as expected
@@ -34,8 +39,12 @@ class GitHubClientSpec extends Specification {
     @Shared
     MockWebServer server
 
+    @Shared
+    ObjectMapper mapper
+
     void setup() {
         server = new MockWebServer()
+        mapper = createObjectMapper()
     }
 
     void cleanup() {
@@ -49,7 +58,7 @@ class GitHubClientSpec extends Specification {
                 .setHeader('Content-Type', 'text/xml;charset=UTF-8')
         )
         server.start()
-        client = new GitHubConfig().gitHubClient(server.getUrl('/').toString(), 'token')
+        client = new GitHubConfig().gitHubClient(server.getUrl('/').toString(), 'token', mapper)
     }
 
     void 'getCompareCommits'() {
@@ -71,7 +80,7 @@ class GitHubClientSpec extends Specification {
             commitInfo.author.email == 'joecoder@company.com'
             commitInfo.message == "bug fix"
             html_url == "https://github.com/my-project/module/commit/83bdadb570db40cab995e1f402dea2b096d0c1a1"
-            commitInfo.author.date == new Date(1433192015000)
+            commitInfo.author.date == Instant.ofEpochMilli(1433192015000)
         }
 
         with(commitsResponse.commits.get(1)) {
@@ -80,7 +89,7 @@ class GitHubClientSpec extends Specification {
             commitInfo.author.email == 'joecoder@company.com'
             commitInfo.message == "new feature"
             html_url == "https://github.com/my-project/module/commit/7890bc148475432b9e537e03d37f22d9018ef9c8"
-            commitInfo.author.date == new Date(1433192281000)
+            commitInfo.author.date == Instant.ofEpochMilli(1433192281000)
         }
     }
 
