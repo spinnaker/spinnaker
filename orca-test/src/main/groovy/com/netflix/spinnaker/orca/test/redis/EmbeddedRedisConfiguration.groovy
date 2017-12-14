@@ -17,8 +17,6 @@
 package com.netflix.spinnaker.orca.test.redis
 
 import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
-import net.greghaines.jesque.Config
-import net.greghaines.jesque.ConfigBuilder
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import redis.clients.jedis.Jedis
@@ -34,13 +32,6 @@ class EmbeddedRedisConfiguration {
       jedis.flushAll()
     }
     return redis
-  }
-
-  @Bean
-  Config jesqueConfig() {
-    new ConfigBuilder().withHost("127.0.0.1")
-                       .withPort(redisServer().port)
-                       .build()
   }
 
   @Bean

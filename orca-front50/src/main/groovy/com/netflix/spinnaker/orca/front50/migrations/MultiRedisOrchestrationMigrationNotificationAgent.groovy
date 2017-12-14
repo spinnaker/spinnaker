@@ -13,25 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
 package com.netflix.spinnaker.orca.front50.migrations
 
-import java.util.concurrent.Executors
-import java.util.concurrent.TimeUnit
-import java.util.function.Function
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.front50.model.Application
 import com.netflix.spinnaker.orca.notifications.AbstractPollingNotificationAgent
-import com.netflix.spinnaker.orca.notifications.NotificationHandler
-import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.persistence.jedis.JedisExecutionRepository
 import groovy.util.logging.Slf4j
-import net.greghaines.jesque.client.Client
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
@@ -42,13 +33,15 @@ import redis.clients.util.Pool
 import rx.Observable
 import rx.schedulers.Schedulers
 
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
+
 @Slf4j
 @Component
 @ConditionalOnExpression(value = '${pollers.multiRedisOrchestrationMigration.enabled:false}')
 class MultiRedisOrchestrationMigrationNotificationAgent extends AbstractPollingNotificationAgent {
   final String notificationType = "multiRedisOrchestrationMigration"
 
-  Pool<Jedis> jedisPool
   Pool<Jedis> jedisPoolPrevious
   JedisExecutionRepository executionRepositoryPrevious
 
@@ -59,13 +52,10 @@ class MultiRedisOrchestrationMigrationNotificationAgent extends AbstractPollingN
   long pollingIntervalMs
 
   @Autowired
-  MultiRedisOrchestrationMigrationNotificationAgent(ObjectMapper objectMapper,
-                                                    Client jesqueClient,
-                                                    Registry registry,
+  MultiRedisOrchestrationMigrationNotificationAgent(Registry registry,
                                                     @Qualifier("jedisPool") Pool<Jedis> jedisPool,
                                                     @Qualifier("jedisPoolPrevious") Pool<Jedis> jedisPoolPrevious) {
-    super(objectMapper, jesqueClient)
-    this.jedisPool = jedisPool
+    super(jedisPool)
     this.jedisPoolPrevious = jedisPoolPrevious
 
     def queryAllScheduler = Schedulers.from(Executors.newFixedThreadPool(1))
@@ -78,10 +68,12 @@ class MultiRedisOrchestrationMigrationNotificationAgent extends AbstractPollingN
     return pollingIntervalMs / 1000
   }
 
+  @Override
   void startPolling() {
     subscription = Observable
       .timer(pollingInterval, TimeUnit.SECONDS, scheduler)
       .repeat()
+      .filter({interval -> tryAcquireLock()})
       .subscribe({ interval ->
       try {
         migrate()
@@ -154,19 +146,5 @@ class MultiRedisOrchestrationMigrationNotificationAgent extends AbstractPollingN
 
       log.info("${migratableOrchestrations.size()} orchestrations migrated (${applicationName}) [${index}/${allApplications.size()}]")
     }
-  }
-
-  private <T> T withJedis(Pool<Jedis> jedisPool, Function<Jedis, T> action) {
-    jedisPool.resource.withCloseable(action.&apply)
-  }
-
-  @Override
-  Class<? extends NotificationHandler> handlerType() {
-    throw new UnsupportedOperationException()
-  }
-
-  @Override
-  protected Observable<Execution> getEvents() {
-    throw new UnsupportedOperationException()
   }
 }

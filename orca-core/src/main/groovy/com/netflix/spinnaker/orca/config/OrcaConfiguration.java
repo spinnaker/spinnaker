@@ -18,7 +18,6 @@ package com.netflix.spinnaker.orca.config;
 import java.time.Clock;
 import java.time.Duration;
 import java.util.Collection;
-import java.util.Map;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.kork.core.RetrySupport;
@@ -31,7 +30,6 @@ import com.netflix.spinnaker.orca.libdiffs.DefaultComparableLooseVersion;
 import com.netflix.spinnaker.orca.listeners.ExecutionCleanupListener;
 import com.netflix.spinnaker.orca.listeners.ExecutionListener;
 import com.netflix.spinnaker.orca.listeners.MetricsExecutionListener;
-import com.netflix.spinnaker.orca.notifications.scheduling.SuspendedPipelinesNotificationHandler;
 import com.netflix.spinnaker.orca.pipeline.*;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 import com.netflix.spinnaker.orca.pipeline.persistence.PipelineStack;
@@ -85,11 +83,6 @@ public class OrcaConfiguration {
   @Bean @ConditionalOnMissingBean(name = "pipelineStack")
   public PipelineStack pipelineStack() {
     return new InMemoryPipelineStack();
-  }
-
-  @Bean @Scope(SCOPE_PROTOTYPE)
-  public SuspendedPipelinesNotificationHandler suspendedPipelinesNotificationHandler(Map<String, Object> input) {
-    return new SuspendedPipelinesNotificationHandler(input);
   }
 
   @Bean @Order(Ordered.LOWEST_PRECEDENCE)

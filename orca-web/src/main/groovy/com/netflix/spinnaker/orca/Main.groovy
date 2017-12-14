@@ -53,7 +53,6 @@ import org.springframework.scheduling.annotation.EnableAsync
   OrcaConfiguration,
   OrcaPersistenceConfiguration,
   RedisConfiguration,
-  JesqueConfiguration,
   BakeryConfiguration,
   EchoConfiguration,
   Front50Configuration,

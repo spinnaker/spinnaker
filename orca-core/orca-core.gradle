@@ -24,8 +24,6 @@ dependencies {
   spinnaker.group('jackson')
 
   compile spinnaker.dependency('eurekaClient')
-  compile ("net.lariverosc:jesque-spring:1.0.1")
-  compile ("net.greghaines:jesque:1.3.1")
   compile spinnaker.dependency('cglib')
   compile spinnaker.dependency('jacksonGuava')
   compile spinnaker.dependency('rxJava')
