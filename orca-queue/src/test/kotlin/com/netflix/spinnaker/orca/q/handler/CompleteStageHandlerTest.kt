@@ -16,7 +16,14 @@
 
 package com.netflix.spinnaker.orca.q.handler
 
-import com.netflix.spinnaker.orca.ExecutionStatus.*
+import com.netflix.spectator.api.NoopRegistry
+import com.netflix.spinnaker.orca.ExecutionStatus.CANCELED
+import com.netflix.spinnaker.orca.ExecutionStatus.FAILED_CONTINUE
+import com.netflix.spinnaker.orca.ExecutionStatus.NOT_STARTED
+import com.netflix.spinnaker.orca.ExecutionStatus.RUNNING
+import com.netflix.spinnaker.orca.ExecutionStatus.STOPPED
+import com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED
+import com.netflix.spinnaker.orca.ExecutionStatus.TERMINAL
 import com.netflix.spinnaker.orca.events.StageComplete
 import com.netflix.spinnaker.orca.pipeline.DefaultStageDefinitionBuilderFactory
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
@@ -28,12 +35,44 @@ import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_AFTER
 import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_BEFORE
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
-import com.netflix.spinnaker.orca.q.*
+import com.netflix.spinnaker.orca.q.CancelStage
+import com.netflix.spinnaker.orca.q.CompleteExecution
+import com.netflix.spinnaker.orca.q.CompleteStage
+import com.netflix.spinnaker.orca.q.ContinueParentStage
+import com.netflix.spinnaker.orca.q.DummyTask
+import com.netflix.spinnaker.orca.q.Queue
+import com.netflix.spinnaker.orca.q.RunTask
+import com.netflix.spinnaker.orca.q.StartStage
+import com.netflix.spinnaker.orca.q.buildSyntheticStages
+import com.netflix.spinnaker.orca.q.buildTasks
+import com.netflix.spinnaker.orca.q.get
+import com.netflix.spinnaker.orca.q.multiTaskStage
+import com.netflix.spinnaker.orca.q.pipeline
+import com.netflix.spinnaker.orca.q.singleTaskStage
+import com.netflix.spinnaker.orca.q.stage
+import com.netflix.spinnaker.orca.q.stageWithParallelBranches
+import com.netflix.spinnaker.orca.q.stageWithSyntheticAfter
+import com.netflix.spinnaker.orca.q.stageWithSyntheticBefore
 import com.netflix.spinnaker.orca.time.fixedClock
 import com.netflix.spinnaker.spek.and
 import com.netflix.spinnaker.spek.shouldEqual
-import com.nhaarman.mockito_kotlin.*
-import org.jetbrains.spek.api.dsl.*
+import com.nhaarman.mockito_kotlin.any
+import com.nhaarman.mockito_kotlin.argumentCaptor
+import com.nhaarman.mockito_kotlin.check
+import com.nhaarman.mockito_kotlin.doReturn
+import com.nhaarman.mockito_kotlin.isA
+import com.nhaarman.mockito_kotlin.mock
+import com.nhaarman.mockito_kotlin.never
+import com.nhaarman.mockito_kotlin.reset
+import com.nhaarman.mockito_kotlin.times
+import com.nhaarman.mockito_kotlin.verify
+import com.nhaarman.mockito_kotlin.verifyZeroInteractions
+import com.nhaarman.mockito_kotlin.whenever
+import org.jetbrains.spek.api.dsl.context
+import org.jetbrains.spek.api.dsl.describe
+import org.jetbrains.spek.api.dsl.given
+import org.jetbrains.spek.api.dsl.it
+import org.jetbrains.spek.api.dsl.on
 import org.jetbrains.spek.api.lifecycle.CachingMode.GROUP
 import org.jetbrains.spek.subject.SubjectSpek
 import org.springframework.context.ApplicationEventPublisher
@@ -44,6 +83,7 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
   val repository: ExecutionRepository = mock()
   val publisher: ApplicationEventPublisher = mock()
   val clock = fixedClock()
+  val registry = NoopRegistry()
   val contextParameterProcessor: ContextParameterProcessor = mock()
 
   val stageWithTaskAndAfterStages = object : StageDefinitionBuilder {
@@ -73,6 +113,7 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
       publisher,
       clock,
       contextParameterProcessor,
+      registry,
       DefaultStageDefinitionBuilderFactory(
         singleTaskStage,
         multiTaskStage,
