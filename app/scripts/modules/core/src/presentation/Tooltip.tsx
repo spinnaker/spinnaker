@@ -7,6 +7,7 @@ export interface ITooltipProps {
   value?: string;
   template?: JSX.Element;
   placement?: Placement;
+  delayShow?: number;
 }
 
 export class Tooltip extends React.Component<ITooltipProps> {
@@ -28,7 +29,7 @@ export class Tooltip extends React.Component<ITooltipProps> {
     }
 
     return (
-      <OverlayTrigger placement={this.props.placement} overlay={tooltip}>
+      <OverlayTrigger delayShow={this.props.delayShow} placement={this.props.placement} overlay={tooltip}>
         {this.props.children}
       </OverlayTrigger>
     );
