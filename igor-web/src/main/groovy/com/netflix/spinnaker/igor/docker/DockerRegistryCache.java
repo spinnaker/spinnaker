@@ -15,7 +15,6 @@
  */
 package com.netflix.spinnaker.igor.docker;
 
-import com.netflix.spinnaker.igor.AbstractRedisCache;
 import com.netflix.spinnaker.igor.IgorConfigurationProperties;
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,24 +25,27 @@ import java.util.List;
 import java.util.Map;
 
 @Service
-public class DockerRegistryCache extends AbstractRedisCache {
+public class DockerRegistryCache {
 
     private final static String ID = "dockerRegistry";
 
     // docker-digest must conform to hash:hashvalue. The string "~" explicitly avoids this to act as an "empty" placeholder.
     private final static String EMPTY_DIGEST = "~";
 
+    private final RedisClientDelegate redisClientDelegate;
     private final IgorConfigurationProperties igorConfigurationProperties;
 
     @Autowired
     public DockerRegistryCache(RedisClientDelegate redisClientDelegate,
                                IgorConfigurationProperties igorConfigurationProperties) {
-        super(redisClientDelegate);
+        this.redisClientDelegate = redisClientDelegate;
         this.igorConfigurationProperties = igorConfigurationProperties;
     }
 
     public List<String> getImages(String account) {
-        return new ArrayList<>(scanAll(prefix() + ":" + ID + ":" + account + "*"));
+        return redisClientDelegate.withMultiClient(c -> {
+            return new ArrayList<>(c.keys(prefix() + ":" + ID + ":" + account + "*"));
+        });
     }
 
     public String getLastDigest(String account, String registry, String repository, String tag) {
