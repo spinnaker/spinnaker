@@ -51,11 +51,9 @@ public class DeleteManifestTask extends AbstractCloudProviderAwareTask implement
     TaskId taskId = kato.requestOperations(cloudProvider, Collections.singletonList(operation)).toBlocking().first();
 
     Map<String, Object> outputs = new ImmutableMap.Builder<String, Object>()
-        .put("kato.result.expected", false)
+        .put("kato.result.expected", true)
         .put("kato.last.task.id", taskId)
-        .put("delete.account.name", credentials)
-        .put("delete.name", stage.getContext().get("manifestName"))
-        .put("delete.location", stage.getContext().get("location"))
+        .put("deploy.account.name", credentials)
         .build();
 
     return new TaskResult(ExecutionStatus.SUCCEEDED, outputs);

@@ -64,7 +64,7 @@ public class WaitForManifestStableTask implements OverridableTimeoutRetryableTas
   @Override
   public TaskResult execute(@Nonnull Stage stage) {
     String account = getCredentials(stage);
-    Map<String, List<String>> deployedManifests = (Map<String, List<String>>) stage.getContext().get("deploy.outputs");
+    Map<String, List<String>> deployedManifests = (Map<String, List<String>>) stage.getContext().get("manifest.outputs");
     List<String> messages = new ArrayList<>();
     boolean allStable = true;
 

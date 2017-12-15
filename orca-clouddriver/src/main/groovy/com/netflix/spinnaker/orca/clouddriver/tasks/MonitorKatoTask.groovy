@@ -112,6 +112,7 @@ class MonitorKatoTask implements RetryableTask {
 
     if (status == ExecutionStatus.SUCCEEDED) {
       def deployed = getDeployedNames(katoTask)
+      def manifests = getManifestNames(katoTask)
       // The below two checks aren't mutually exclusive since both `deploy.server.groups` and `deploy.jobs` can initially
       // by empty, although only one of them needs to be filled.
       if (!stage.context.containsKey("deploy.server.groups")) {
@@ -120,8 +121,8 @@ class MonitorKatoTask implements RetryableTask {
       if (!stage.context.containsKey("deploy.jobs") && deployed) {
         outputs["deploy.jobs"] = deployed
       }
-      if (!stage.context.containsKey("deploy.outputs") && deployed) {
-        outputs["deploy.outputs"] = deployed
+      if (!stage.context.containsKey("manifest.outputs") && manifests) {
+        outputs["manifest.outputs"] = manifests
       }
     }
     if (status == ExecutionStatus.SUCCEEDED || status == ExecutionStatus.TERMINAL || status == ExecutionStatus.RUNNING) {
@@ -203,5 +204,13 @@ class MonitorKatoTask implements RetryableTask {
     } ?: [:]
 
     return (Map<String, List<String>>) result.deployedNamesByLocation
+  }
+
+  private static Map<String, List<String>> getManifestNames(Task task) {
+    Map result = task.resultObjects?.find {
+      it?.manifestNamesByNamespace
+    } ?: [:]
+
+    return (Map<String, List<String>>) result.manifestNamesByNamespace
   }
 }
