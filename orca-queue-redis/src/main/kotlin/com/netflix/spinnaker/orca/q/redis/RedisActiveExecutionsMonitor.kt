@@ -25,7 +25,6 @@ import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.context.ApplicationListener
 import org.springframework.scheduling.annotation.Scheduled
@@ -62,24 +61,21 @@ class RedisActiveExecutionsMonitor(
 
   @Scheduled(fixedRateString = "\${queue.monitor.activeExecutions.register.frequency.ms:60000}")
   fun registerGauges() {
-    snapshotActivity().also {
-      log.info("Registering new active execution gauges")
+    snapshotActivity().also { executions ->
+      log.info("Registering new active execution gauges (active: ${executions.size})")
 
-      getActiveExecutions().map { execution ->
+      executions.map { execution ->
         val expectedId = execution.getMetricId()
-        registry.gauges()
-          .filter { it.id() == expectedId }
-          .findFirst()
-          .orElse(registry.gauge(expectedId, null, {
+        if (registry.gauges().noneMatch { it.id() == expectedId }) {
+          registry.register(registry.gauge(expectedId, null, {
             snapshot[expectedId]?.toDouble() ?: 0.0
           }))
+        }
       }
     }
   }
 
   private fun snapshotActivity(): List<ActiveExecution> {
-    log.info("Snapshotting active executions")
-
     val activeExecutions = getActiveExecutions()
 
     val working = mutableMapOf<Id, AtomicLong>()
