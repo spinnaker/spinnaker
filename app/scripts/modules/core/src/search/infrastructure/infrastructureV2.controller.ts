@@ -47,6 +47,7 @@ export class InfrastructureV2Ctrl implements IController {
   public viewState: IViewState;
   public query: string;
   public menuActions: IMenuItem[];
+  public hasSearchQuery: boolean;
 
   constructor(private $location: ILocationService,
               private $q: IQService,
@@ -103,7 +104,6 @@ export class InfrastructureV2Ctrl implements IController {
   }
 
   private hydrateResults(results: ISearchResultSet[]): void {
-
     const resultMap: { [key: string]: ISearchResult[] } =
       results.reduce((categoryMap: { [key: string]: ISearchResult[] }, result: ISearchResultSet) => {
       categoryMap[result.id] = result.results;
@@ -121,8 +121,8 @@ export class InfrastructureV2Ctrl implements IController {
   }
 
   private loadNewQuery(params: IQueryParams) {
-
-    if (isEmpty(params)) {
+    this.hasSearchQuery = !isEmpty(params);
+    if (!this.hasSearchQuery) {
       this.$scope.$applyAsync(() => {
         this.viewState.status = SearchStatus.INITIAL;
         this.$scope.categories = [];
@@ -197,7 +197,6 @@ export class InfrastructureV2Ctrl implements IController {
   }
 
   public handleFilterChange(filters: IFilterType[]) {
-
     const params: IQueryParams = {};
     filters.slice(0).reverse().forEach(filter => params[SearchFilterTypeRegistry.getFilterByModifier(filter.modifier).key] = filter.text);
     this.$location.search(params);
@@ -213,4 +212,12 @@ module(SEARCH_INFRASTRUCTURE_V2_CONTROLLER, [
   PAGE_TITLE_SERVICE,
   CACHE_INITIALIZER_SERVICE,
   OVERRIDE_REGISTRY,
-]).controller('InfrastructureV2Ctrl', InfrastructureV2Ctrl);
+]).controller('InfrastructureV2Ctrl', InfrastructureV2Ctrl)
+  .directive('infrastructureSearchV2', function() {
+    return {
+      restrict: 'E',
+      templateUrl: require('./infrastructureV2.html'),
+      controller: 'InfrastructureV2Ctrl',
+      controllerAs: 'ctrl',
+    }
+  });

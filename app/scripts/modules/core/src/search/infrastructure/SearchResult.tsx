@@ -12,7 +12,7 @@ export class SearchResult extends React.Component<ISearchResultProps> {
     const { AccountTag } = NgReact;
     const { item } = this.props;
     const params = item.params || {};
-    const account: string = item.account || params.account || params.accountId || params.accountName;
+    const account = item.account || params.account || params.accountId || params.accountName;
 
     return (
       <span className="search-result">

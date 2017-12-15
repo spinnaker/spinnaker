@@ -1,46 +1,38 @@
 import { module } from 'angular';
 
 import { STATE_CONFIG_PROVIDER, StateConfigProvider } from 'core/navigation/state.provider';
+import { SETTINGS } from 'core/config/settings';
 
 export const INFRASTRUCTURE_STATES = 'spinnaker.core.search.states';
 module(INFRASTRUCTURE_STATES, [
   STATE_CONFIG_PROVIDER
 ]).config((stateConfigProvider: StateConfigProvider) => {
+  'ngInject';
+
   stateConfigProvider.addToRootState({
-    name: 'infrastructure',
-    url: '/infrastructure?q',
+    name: 'search',
+    url: '/search?q',
     reloadOnSearch: false,
     views: {
       'main@': {
-        templateUrl: require('./infrastructure.html'),
-        controller: 'InfrastructureCtrl',
-        controllerAs: 'ctrl'
+        template: `
+          <infrastructure-search-v1 ng-if="$resolve.version == 1" class="flex-fill"></infrastructure-search-v1>
+          <infrastructure-search-v2 ng-if="$resolve.version == 2" class="flex-fill"></infrastructure-search-v2>
+        `,
       }
     },
     data: {
       pageTitleMain: {
         label: 'Search'
       }
-    }
-  });
-  stateConfigProvider.addRewriteRule('/', '/infrastructure');
-  stateConfigProvider.addRewriteRule('', '/infrastructure');
-}).config((stateConfigProvider: StateConfigProvider) => {
-  stateConfigProvider.addToRootState({
-    name: 'infrastructureV2',
-    url: '/infrastructure/v2',
-    reloadOnSearch: false,
-    views: {
-      'main@': {
-        templateUrl: require('./infrastructureV2.html'),
-        controller: 'InfrastructureV2Ctrl',
-        controllerAs: 'ctrl'
-      }
     },
-    data: {
-      pageTitleMain: {
-        label: 'Infrastructure V2'
-      }
+    resolve: {
+      version: () => SETTINGS.searchVersion || 1,
     }
   });
+
+  stateConfigProvider.addToRootState({ name: 'infrastructure', url: '/search?q', redirectTo: 'search' });
+  stateConfigProvider.addRewriteRule('/infrastructure?q', '/search?q');
+  stateConfigProvider.addRewriteRule('', '/search');
+  stateConfigProvider.addRewriteRule('/', '/search');
 });

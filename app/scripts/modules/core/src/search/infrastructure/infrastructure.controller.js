@@ -171,4 +171,12 @@ module.exports = angular.module('spinnaker.search.infrastructure.controller', [
       !$scope.projects.length &&
       $scope.categories.every((category) => !category.results.length);
 
+  })
+  .directive('infrastructureSearchV1', function() {
+    return {
+      restrict: 'E',
+      templateUrl: require('./infrastructure.html'),
+      controller: 'InfrastructureCtrl',
+      controllerAs: 'ctrl',
+    };
   });

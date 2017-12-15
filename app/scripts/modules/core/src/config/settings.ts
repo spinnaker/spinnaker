@@ -43,45 +43,45 @@ export interface IFeatures {
 }
 
 export interface ISpinnakerSettings {
+  [key: string]: any;
+
+  analytics: { ga?: string; };
+  authEnabled: boolean;
+  authEndpoint: string;
+  authTtl: number;
+  bakeryDetailUrl: string;
+  changelog?: {
+    accessToken?: string;
+    fileName: string;
+    gistId: string;
+  };
   checkForUpdates: boolean;
   debugEnabled: boolean;
-  defaultProviders: string[];
-  gateUrl: string;
-  bakeryDetailUrl: string;
-  authEndpoint: string;
-  pollSchedule: number;
-  defaultTimeZone: string; // see http://momentjs.com/timezone/docs/#/data-utilities/
   defaultCategory: string;
   defaultInstancePort: number;
-  providers?: {
-    [key: string]: IProviderSettings; // allows custom providers not typed in here (good for testing too)
+  defaultProviders: string[];
+  defaultTimeZone: string; // see http://momentjs.com/timezone/docs/#/data-utilities/
+  entityTags?: {
+    maxUrlLength?: number;
   };
-  notifications: INotificationSettings;
-  authEnabled: boolean;
-  authTtl: number;
-  gitSources: string[];
-  triggerTypes: string[];
-  analytics: {
-    ga?: string;
-  };
-  feature: IFeatures;
   executionWindow?: {
     atlas?: {
       regions: { label: string, baseUrl: string }[];
       url: string;
     }
   };
-  entityTags?: {
-    maxUrlLength?: number;
+  feature: IFeatures;
+  gateUrl: string;
+  gitSources: string[];
+  notifications: INotificationSettings;
+  pollSchedule: number;
+  providers?: {
+    [key: string]: IProviderSettings; // allows custom providers not typed in here (good for testing too)
   };
-  [key: string]: any;
-  resetToOriginal: () => void;
   resetProvider: (provider: string) => () => void;
-  changelog?: {
-    gistId: string;
-    fileName: string;
-    accessToken?: string;
-  };
+  resetToOriginal: () => void;
+  searchVersion: 1 | 2;
+  triggerTypes: string[];
 }
 
 export const SETTINGS: ISpinnakerSettings = (<any>window).spinnakerSettings;

@@ -23,8 +23,14 @@
       </div>
     </div>
   </div>
-  <div class="container flex-fill">
-    <search-results class="flex-fill"
+  <div class="container flex-fill" style="overflow-y: auto">
+    <div ng-if="!ctrl.hasSearchQuery">
+      <h3 style="text-align: center">Please enter a search query to get started</h3>
+      <recently-viewed-items ></recently-viewed-items>
+    </div>
+
+    <search-results ng-if="ctrl.hasSearchQuery"
+                    class="flex-fill"
                     search-status="ctrl.viewState.status"
                     search-result-types="searchResultTypes"
                     search-result-categories="categories"
