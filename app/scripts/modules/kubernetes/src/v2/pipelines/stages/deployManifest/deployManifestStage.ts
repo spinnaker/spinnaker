@@ -16,12 +16,11 @@ export const KUBERNETES_DEPLOY_MANIFEST_STAGE = 'spinnaker.kubernetes.v2.pipelin
 module(KUBERNETES_DEPLOY_MANIFEST_STAGE, [
   PIPELINE_CONFIG_PROVIDER,
   KUBERNETES_MANIFEST_COMMAND_BUILDER,
-]).config(function(pipelineConfigProvider: PipelineConfigProvider) {
-
+]).config((pipelineConfigProvider: PipelineConfigProvider) => {
   // Todo: replace feature flag with proper versioned provider mechanism once available.
   if (SETTINGS.feature.versionedProviders) {
     pipelineConfigProvider.registerStage({
-      label: 'Deploy Manifest',
+      label: 'Deploy (Manifest)',
       description: 'Deploy a Kubernetes manifest yaml/json file.',
       key: 'deployManifest',
       cloudProvider: 'kubernetes',

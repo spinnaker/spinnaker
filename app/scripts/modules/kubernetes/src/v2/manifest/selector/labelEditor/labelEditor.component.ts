@@ -39,7 +39,7 @@ class KubernetesManifestLabelEditorComponent implements IComponentOptions {
         <tr>
           <th>Key</th>
           <th>Kind</th>
-          <th>Values</th>
+          <th>Value(s)</th>
           <th></th>
         </tr>
         </thead>

@@ -15,8 +15,7 @@ module(KUBERNETES_DELETE_MANIFEST_STAGE, [
   PIPELINE_CONFIG_PROVIDER,
   KUBERNETES_DELETE_MANIFEST_OPTIONS_FORM,
   KUBERNETES_MANIFEST_SELECTOR,
-]).config(function(pipelineConfigProvider: PipelineConfigProvider) {
-
+]).config((pipelineConfigProvider: PipelineConfigProvider) => {
   // Todo: replace feature flag with proper versioned provider mechanism once available.
   if (SETTINGS.feature.versionedProviders) {
     pipelineConfigProvider.registerStage({
