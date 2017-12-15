@@ -43,34 +43,3 @@ junitPlatform {
     }
   }
 }
-
-// JUnit5 needs all this extra crap to generate HTML reports
-configurations {
-  junitXmlToHtml
-}
-
-dependencies {
-  junitXmlToHtml "org.apache.ant:ant-junit:1.9.7"
-}
-
-task generateHtmlTestReports << {
-  def reportsDir = new File(buildDir, "test-reports")
-  reportsDir.mkdirs()
-
-  ant.taskdef(
-    name: "junitReport",
-    classname: "org.apache.tools.ant.taskdefs.optional.junit.XMLResultAggregator",
-    classpath: configurations.junitXmlToHtml.asPath
-  )
-
-  ant.junitReport(todir: "$buildDir/test-results/junit-platform", tofile: "aggregated-test-results.xml") {
-    fileset dir: "$buildDir/test-results/junit-platform"
-    report format: "frames", todir: reportsDir
-  }
-}
-
-afterEvaluate {
-  def junitPlatformTestTask = tasks.getByName("junitPlatformTest")
-  generateHtmlTestReports.dependsOn(junitPlatformTestTask)
-  check.dependsOn(generateHtmlTestReports)
-}
