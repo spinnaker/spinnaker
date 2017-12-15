@@ -26,6 +26,7 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Component
 @Slf4j
@@ -33,14 +34,18 @@ public class TemplateBasedArtifactExtractor implements WebhookArtifactExtractor 
   final private WebhookProperties webhookProperties;
   final private ObjectMapper objectMapper;
 
-  @Autowired(required = false)
-  public TemplateBasedArtifactExtractor(WebhookProperties webhookProperties, ObjectMapper objectMapper) {
-    this.webhookProperties = webhookProperties;
+  @Autowired
+  public TemplateBasedArtifactExtractor(Optional<WebhookProperties> webhookProperties, ObjectMapper objectMapper) {
+    this.webhookProperties = webhookProperties.orElse(null);
     this.objectMapper = objectMapper;
   }
 
   @Override
   public List<Artifact> getArtifacts(String source, Map payload) {
+    if (webhookProperties == null) {
+      return new ArrayList<>();
+    }
+
     String templatePath = webhookProperties.getTemplatePathForSource(source);
     // empty template path is the identity translator;
     MessageArtifactTranslator translator = new MessageArtifactTranslator(templatePath);
