@@ -402,7 +402,10 @@ class DockerRegistryClient {
           response = withoutToken()
         }
       } catch (RetrofitError error) {
-        if (error.response?.status == 401) {
+        def status = error.response?.status
+        // note, this is a workaround for registries that should be returning 
+        // 401 when a token expires
+        if ([400, 401].contains(status)) {
           String authenticateHeader = null
 
           error.response.headers.forEach { header ->
