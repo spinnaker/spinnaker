@@ -116,6 +116,10 @@ module(HELP_CONTENTS, [])
         <p>When provided, only a pubsub message with a payload containing at least the specified key/value pairs will be allowed to trigger this pipeline. For example, if you wanted to lockdown the systems/users that can trigger this pipeline via this pubsub subscription, you could require the key "secret" and value "something-secret" as a constraint.</p>
         <p>The constraint values may be supplied as regex.</p>
     `,
+    'pipeline.config.findArtifactFromExecution.considerExecutions': `
+        <p>Select the types of executions to consider. When no selection is made, the default is "any execution".</p>
+        <p>This will always evaluate to the most recent execution matching your provided criteria.</p>
+    `,
     'loadBalancer.advancedSettings.healthTimeout': '<p>Configures the timeout, in seconds, for reaching the healthCheck target.  Must be less than the interval.</p><p> Default: <b>5</b></p>',
     'loadBalancer.advancedSettings.healthInterval': '<p>Configures the interval, in seconds, between ELB health checks.  Must be greater than the timeout.</p><p>Default: <b>10</b></p>',
     'loadBalancer.advancedSettings.healthyThreshold': '<p>Configures the number of healthy observations before reinstituting an instance into the ELB’s traffic rotation.</p><p>Default: <b>10</b></p>',

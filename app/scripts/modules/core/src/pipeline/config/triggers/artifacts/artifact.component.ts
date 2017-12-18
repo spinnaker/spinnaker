@@ -70,7 +70,7 @@ class ArtifactComponent implements IComponentOptions {
       <option style="display:none" value="">Select a kind</option>
     </select>
   </div>
-  <div class="col-md-9">
+  <div class="col-md-8 col-md-offset-1">
     {{ctrl.description}}
   </div>
 </div>
