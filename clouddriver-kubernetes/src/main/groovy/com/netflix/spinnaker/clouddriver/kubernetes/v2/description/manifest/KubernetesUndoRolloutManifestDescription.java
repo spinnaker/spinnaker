@@ -23,5 +23,6 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = true)
 @Data
 public class KubernetesUndoRolloutManifestDescription extends KubernetesManifestOperationDescription {
-  int revision;
+  Integer revision;
+  Integer numRevisionsBack;
 }

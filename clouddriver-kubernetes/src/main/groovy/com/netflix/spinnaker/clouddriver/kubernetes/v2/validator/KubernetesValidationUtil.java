@@ -44,7 +44,7 @@ public class KubernetesValidationUtil {
     return String.join(".", chain);
   }
 
-  private void reject(String errorName, String... attributes) {
+  public void reject(String errorName, String... attributes) {
     String field = joinAttributeChain(attributes);
     String error = joinAttributeChain(field, errorName);
     errors.reject(field, error);

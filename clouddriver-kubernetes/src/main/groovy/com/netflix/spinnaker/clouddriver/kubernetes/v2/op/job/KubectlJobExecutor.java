@@ -151,6 +151,50 @@ public class KubectlJobExecutor {
     return null;
   }
 
+  public List<Integer> historyRollout(KubernetesV2Credentials credentials, KubernetesKind kind, String namespace, String name) {
+    List<String> command = kubectlNamespacedAuthPrefix(credentials, namespace);
+
+    command.add("rollout");
+    command.add("history");
+    command.add(kind.toString() + "/" + name);
+
+    String jobId = jobExecutor.startJob(new JobRequest(command),
+        System.getenv(),
+        new ByteArrayInputStream(new byte[0]));
+
+    JobStatus status = backoffWait(jobId, credentials.isDebug());
+
+    if (status.getResult() != JobStatus.Result.SUCCESS) {
+      throw new KubectlException("Failed to get rollout history of " + kind + "/" + name + " from " + namespace + ": " + status.getStdErr());
+    }
+
+    String stdout = status.getStdOut();
+    if (StringUtils.isEmpty(stdout)) {
+      return new ArrayList<>();
+    }
+
+    // <resource> "name"
+    // REVISION CHANGE-CAUSE
+    // #        <change>
+    // #        <change>
+    // #        <change>
+    // ...
+    List<String> splitOutput = Arrays.stream(stdout.split("\n")).collect(Collectors.toList());
+
+    if (splitOutput.size() <= 2) {
+      return new ArrayList<>();
+    }
+
+    splitOutput = splitOutput.subList(2, splitOutput.size());
+
+    return splitOutput.stream()
+        .map(l -> l.split("[ \t]"))
+        .filter(l -> l.length > 0)
+        .map(l -> l[0])
+        .map(Integer::valueOf)
+        .collect(Collectors.toList());
+  }
+
   public Void undoRollout(KubernetesV2Credentials credentials, KubernetesKind kind, String namespace, String name, int revision) {
     List<String> command = kubectlNamespacedAuthPrefix(credentials, namespace);
 

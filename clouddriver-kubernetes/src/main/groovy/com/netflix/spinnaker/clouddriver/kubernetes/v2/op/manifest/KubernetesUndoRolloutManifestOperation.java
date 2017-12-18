@@ -61,11 +61,29 @@ public class KubernetesUndoRolloutManifestOperation implements AtomicOperation<V
 
     CanUndoRollout canUndoRollout = (CanUndoRollout) deployer;
 
+    Integer revision = description.getRevision();
+    if (description.getNumRevisionsBack() != null) {
+      getTask().updateStatus(OP_NAME, "Looking up rollout history...");
+      List<Integer> revisions = canUndoRollout.historyRollout(credentials,
+          coordinates.getNamespace(),
+          coordinates.getName());
+
+      revisions.sort(Integer::compareTo);
+      int numRevisions = revisions.size();
+      int targetRevisionIndex = numRevisions - description.getNumRevisionsBack() - 1;
+      if (targetRevisionIndex < 0) {
+        throw new IllegalArgumentException("There are " + numRevisions + " revision(s) in total, cannot rollback " + description.getNumRevisionsBack());
+      }
+
+      revision = revisions.get(targetRevisionIndex);
+      getTask().updateStatus(OP_NAME, "Picked revision " + revision + "...");
+    }
+
     getTask().updateStatus(OP_NAME, "Calling undo rollout operation...");
     canUndoRollout.undoRollout(credentials,
         coordinates.getNamespace(),
         coordinates.getName(),
-        description.getRevision());
+        revision);
 
     return null;
   }

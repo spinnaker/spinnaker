@@ -43,6 +43,10 @@ public class KubernetesUndoRolloutManifestValidator extends DescriptionValidator
     if (!util.validateV2Credentials(provider, description.getAccount())) {
       return;
     }
+
+    if (description.getNumRevisionsBack() == null && description.getRevision() == null) {
+      util.reject("empty", "numRevisionsBack & revision");
+    }
   }
 
   @Override
