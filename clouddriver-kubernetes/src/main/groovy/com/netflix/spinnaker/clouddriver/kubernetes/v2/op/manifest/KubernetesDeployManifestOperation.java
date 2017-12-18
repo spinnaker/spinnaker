@@ -21,6 +21,8 @@ import com.netflix.spinnaker.clouddriver.artifacts.ArtifactDownloader;
 import com.netflix.spinnaker.clouddriver.data.task.Task;
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository;
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.ArtifactReplacer;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.ArtifactReplacer.ReplaceResult;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.KubernetesArtifactConverter;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesResourceProperties;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesResourcePropertyRegistry;
@@ -119,11 +121,14 @@ public class KubernetesDeployManifestOperation implements AtomicOperation<Operat
     manifest.setName(converter.getDeployedName(artifact));
 
     getTask().updateStatus(OP_NAME, "Swapping out artifacts from context...");
-    manifest = deployer.replaceArtifacts(manifest, artifacts);
+    ReplaceResult replaceResult = deployer.replaceArtifacts(manifest, artifacts);
+    manifest = replaceResult.getManifest();
 
     getTask().updateStatus(OP_NAME, "Submitting manifest to kubernetes master...");
     OperationResult result = deployer.deployAugmentedManifest(credentials, manifest);
+
     result.getCreatedArtifacts().add(artifact);
+    result.getBoundArtifacts().addAll(replaceResult.getBoundArtifacts());
 
     return result;
   }

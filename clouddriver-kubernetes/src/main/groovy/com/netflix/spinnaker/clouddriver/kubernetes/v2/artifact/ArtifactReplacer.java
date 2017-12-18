@@ -30,12 +30,16 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.Kube
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Data;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -56,7 +60,7 @@ public class ArtifactReplacer {
     return this;
   }
 
-  public KubernetesManifest replaceAll(KubernetesManifest input, List<Artifact> artifacts) {
+  public ReplaceResult replaceAll(KubernetesManifest input, List<Artifact> artifacts) {
     DocumentContext document;
     try {
       document = JsonPath.using(configuration).parse(mapper.writeValueAsString(input));
@@ -65,10 +69,18 @@ public class ArtifactReplacer {
       throw new RuntimeException(e);
     }
 
-    replacers.forEach(r -> artifacts.forEach(a -> r.replaceIfPossible(document, a)));
+    Set<Artifact> replacedArtifacts = replacers.stream()
+        .map(r -> artifacts.stream()
+            .filter(a -> r.replaceIfPossible(document, a))
+            .collect(Collectors.toSet()))
+        .flatMap(Collection::stream)
+        .collect(Collectors.toSet());
 
     try {
-      return mapper.readValue(document.jsonString(), KubernetesManifest.class);
+      return ReplaceResult.builder()
+          .manifest(mapper.readValue(document.jsonString(), KubernetesManifest.class))
+          .boundArtifacts(replacedArtifacts)
+          .build();
     } catch (IOException e) {
       log.error("Malformed Document Context", e);
       throw new RuntimeException(e);
@@ -129,24 +141,35 @@ public class ArtifactReplacer {
        return obj.read(findPath);
     }
 
-    void replaceIfPossible(DocumentContext obj, Artifact artifact) {
+    boolean replaceIfPossible(DocumentContext obj, Artifact artifact) {
       if (artifact == null || StringUtils.isEmpty(artifact.getType())) {
         throw new IllegalArgumentException("Artifact and artifact type must be set.");
       }
 
       if (!artifact.getType().equals(type.toString())) {
-        return;
+        return false;
       }
 
       String jsonPath = processPath(replacePath, artifact);
 
       Object get = obj.read(jsonPath);
       if (get == null) {
-        return;
+        return false;
       }
 
       log.info("Found valid swap for " + artifact + " using " + jsonPath + ": " + get);
       obj.set(jsonPath, artifact.getReference());
+
+      return true;
     }
+  }
+
+  @Data
+  @NoArgsConstructor
+  @AllArgsConstructor
+  @Builder
+  public static class ReplaceResult {
+    private KubernetesManifest manifest;
+    private Set<Artifact> boundArtifacts = new HashSet<>();
   }
 }

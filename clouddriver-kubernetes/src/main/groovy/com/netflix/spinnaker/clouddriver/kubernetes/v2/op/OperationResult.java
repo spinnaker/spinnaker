@@ -35,9 +35,13 @@ import java.util.Set;
 @AllArgsConstructor
 public class OperationResult {
   Map<String, Set<String>> manifestNamesByNamespace = new HashMap<>();
+  Set<KubernetesManifest> manifests = new HashSet<>();
   Set<Artifact> createdArtifacts = new HashSet<>();
+  Set<Artifact> boundArtifacts = new HashSet<>();
 
   public OperationResult addManifest(KubernetesManifest manifest) {
+    manifests.add(manifest);
+
     Set<String> addedNames = manifestNamesByNamespace.getOrDefault(manifest.getNamespace(), new HashSet<>());
     addedNames.add(manifest.getFullResourceName());
     manifestNamesByNamespace.put(manifest.getNamespace(), addedNames);
@@ -53,6 +57,8 @@ public class OperationResult {
       }
     }
 
+    this.manifests.addAll(other.manifests);
     this.createdArtifacts.addAll(other.createdArtifacts);
+    this.boundArtifacts.addAll(other.boundArtifacts);
   }
 }

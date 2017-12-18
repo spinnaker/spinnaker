@@ -20,6 +20,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.op.deployer;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.ArtifactReplacer;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.ArtifactReplacer.ReplaceResult;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesV2CachingAgent;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.provider.KubernetesCacheUtils;
@@ -52,7 +53,7 @@ public abstract class KubernetesHandler {
     artifactReplacer.addReplacer(replacer);
   }
 
-  public KubernetesManifest replaceArtifacts(KubernetesManifest manifest, List<Artifact> artifacts) {
+  public ReplaceResult replaceArtifacts(KubernetesManifest manifest, List<Artifact> artifacts) {
     return artifactReplacer.replaceAll(manifest, artifacts);
   }
 
