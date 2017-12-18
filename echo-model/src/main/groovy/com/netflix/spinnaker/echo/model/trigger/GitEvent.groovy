@@ -18,6 +18,7 @@ package com.netflix.spinnaker.echo.model.trigger
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import groovy.transform.Canonical
 
 @Canonical
@@ -34,6 +35,7 @@ class GitEvent extends TriggerEvent {
     String slug
     String hash
     String branch
+    List<Artifact> artifacts;
   }
 
   @JsonIgnore

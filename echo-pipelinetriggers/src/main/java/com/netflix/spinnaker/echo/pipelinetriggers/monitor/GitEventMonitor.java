@@ -102,9 +102,9 @@ public class GitEventMonitor extends TriggerMonitor {
     String project = gitEvent.getContent().getRepoProject();
     String slug = gitEvent.getContent().getSlug();
     String branch = gitEvent.getContent().getBranch();
-    List<Artifact> artifacts = gitEvent.getPayload() != null ?
-        (List<Artifact>) gitEvent.getPayload().getOrDefault("artifacts", new ArrayList<>()) :
-        new ArrayList<>();
+    List<Artifact> artifacts = gitEvent.getContent() != null && gitEvent.getContent().getArtifacts() != null ?
+      gitEvent.getContent().getArtifacts() : new ArrayList<>();
+
     return trigger -> trigger.getType().equals(GIT_TRIGGER_TYPE)
         && trigger.getSource().equalsIgnoreCase(source)
         && trigger.getProject().equalsIgnoreCase(project)
