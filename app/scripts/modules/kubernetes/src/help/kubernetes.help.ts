@@ -163,6 +163,10 @@ const helpContents: {[key: string]: string} = {
         <b>artifact:</b> The manifest is read from an artifact supplied/created upstream. The expected artifact must be referenced here, and will be bound at runtime.
       </p>
   `,
+  'kubernetes.manifest.undoRollout.revisionsBack': `
+      <p>How many revisions to rollback from the current active revision. This is not a hard-coded revision to rollout.</p>
+      <p>For example: If you specify "1", and this stage executes, the prior revision will be active upon success.</p>
+  `,
 };
 
 export const KUBERNETES_HELP = 'spinnaker.kubernetes.help.contents';
