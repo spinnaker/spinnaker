@@ -10,7 +10,7 @@ cd $TEST_DIR/../..
 passed_tests=()
 failed_tests=()
 
-for test in `cd $TEST_DIR; ls *_test.py`; do
+for test in `cd $TEST_DIR; find . -name \*_test.py -print`; do
   echo "Running $test"
   PYTHONPATH=$TEST_DIR/../pylib:$TEST_DIR/../dev python $TEST_DIR/$test
   
@@ -26,7 +26,7 @@ if [[ ${#failed_tests[@]} -eq 0 ]]; then
   exit 0
 fi
 
->&2 echo "FAILED ${#failed_tests[@]} TESTS"
+>&2 echo "FAILED ${#failed_tests[@]} TESTS from $TEST_DIR"
 for test in ${failed_tests[@]}; do
     >&2 echo "FAILED: $test"
 done

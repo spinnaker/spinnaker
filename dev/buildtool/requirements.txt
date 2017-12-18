@@ -1,0 +1,8 @@
+PyYAML
+
+# This is for testing
+python-dateutil
+
+# This is to satisfy gsutil
+google_compute_engine
+
