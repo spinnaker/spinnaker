@@ -20,6 +20,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.op.deployer;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.ArtifactReplacer;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.ArtifactTypes;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesCacheDataConverter;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesStatefulSetCachingAgent;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesV2CachingAgent;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.provider.KubernetesCacheUtils;
@@ -27,6 +28,8 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpi
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.model.Manifest.Status;
+import io.kubernetes.client.models.V1beta2StatefulSet;
+import io.kubernetes.client.models.V1beta2StatefulSetStatus;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
@@ -72,8 +75,8 @@ public class KubernetesStatefulSetHandler extends KubernetesHandler implements
 
   @Override
   public Status status(KubernetesManifest manifest) {
-    // TODO(lwander)
-    return new Status();
+    V1beta2StatefulSet v1beta2StatefulSet = KubernetesCacheDataConverter.getResource(manifest, V1beta2StatefulSet.class);
+    return status(v1beta2StatefulSet);
   }
 
   public static String serviceName(KubernetesManifest manifest) {
@@ -86,6 +89,39 @@ public class KubernetesStatefulSetHandler extends KubernetesHandler implements
   public Map<String, Object> hydrateSearchResult(Keys.InfrastructureCacheKey key, KubernetesCacheUtils cacheUtils) {
     Map<String, Object> result = super.hydrateSearchResult(key, cacheUtils);
     result.put("serverGroup", result.get("name"));
+
+    return result;
+  }
+
+  private Status status(V1beta2StatefulSet statefulSet) {
+    Status result = new Status();
+
+    V1beta2StatefulSetStatus status = statefulSet.getStatus();
+    if (status == null) {
+      result.unstable("No status reported yet")
+          .unavailable("No availability reported");
+      return result;
+    }
+
+    int desiredReplicas = statefulSet.getSpec().getReplicas();
+    Integer existing = status.getReplicas();
+    if (existing == null || desiredReplicas > existing) {
+      return result.unstable("Waiting for at least the desired replica count to be met");
+    }
+
+    if (!status.getCurrentRevision().equals(status.getUpdateRevision())) {
+      return result.unstable("Waiting for the updated revision to match the current revision");
+    }
+
+    existing = status.getCurrentReplicas();
+    if (existing == null || desiredReplicas > existing) {
+      return result.unstable("Waiting for all updated replicas to be scheduled");
+    }
+
+    existing = status.getReadyReplicas();
+    if (existing == null || desiredReplicas > existing) {
+      return result.unstable("Waiting for all updated replicas to be ready");
+    }
 
     return result;
   }

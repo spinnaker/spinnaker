@@ -18,6 +18,7 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.op.deployer;
 
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesCacheDataConverter;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesDaemonSetCachingAgent;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesV2CachingAgent;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.provider.KubernetesCacheUtils;
@@ -25,6 +26,8 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpi
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.model.Manifest.Status;
+import io.kubernetes.client.models.V1beta2DaemonSet;
+import io.kubernetes.client.models.V1beta2DaemonSetStatus;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
@@ -33,7 +36,6 @@ import java.util.Map;
 public class KubernetesDaemonSetHandler extends KubernetesHandler implements
     CanResize,
     CanDelete,
-    CanScale,
     CanPauseRollout,
     CanResumeRollout,
     CanUndoRollout {
@@ -60,14 +62,48 @@ public class KubernetesDaemonSetHandler extends KubernetesHandler implements
 
   @Override
   public Status status(KubernetesManifest manifest) {
-    // TODO(lwander)
-    return new Status();
+    V1beta2DaemonSet v1beta2DaemonSet = KubernetesCacheDataConverter.getResource(manifest, V1beta2DaemonSet.class);
+    return status(v1beta2DaemonSet);
   }
 
   @Override
   public Map<String, Object> hydrateSearchResult(Keys.InfrastructureCacheKey key, KubernetesCacheUtils cacheUtils) {
     Map<String, Object> result = super.hydrateSearchResult(key, cacheUtils);
     result.put("serverGroup", result.get("name"));
+
+    return result;
+  }
+
+  private Status status(V1beta2DaemonSet daemonSet) {
+    Status result = new Status();
+
+    V1beta2DaemonSetStatus status = daemonSet.getStatus();
+    if (status == null) {
+      result.unstable("No status reported yet")
+          .unavailable("No availability reported");
+      return result;
+    }
+
+    int desiredReplicas = status.getDesiredNumberScheduled();
+    Integer existing = status.getCurrentNumberScheduled();
+    if (existing == null || desiredReplicas > existing) {
+      return result.unstable("Waiting for all replicas to be scheduled");
+    }
+
+    existing = status.getUpdatedNumberScheduled();
+    if (existing == null || desiredReplicas > existing) {
+      return result.unstable("Waiting for all updated replicas to be scheduled");
+    }
+
+    existing = status.getNumberAvailable();
+    if (existing == null || desiredReplicas > existing) {
+      return result.unstable("Waiting for all replicas to be available");
+    }
+
+    existing = status.getNumberReady();
+    if (existing == null || desiredReplicas > existing) {
+      return result.unstable("Waiting for all replicas to be ready");
+    }
 
     return result;
   }
