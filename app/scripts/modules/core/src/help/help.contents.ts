@@ -181,6 +181,13 @@ module(HELP_CONTENTS, [])
     '<p><strong>Note:</strong> values for "DayOfWeek" are 1-7, where Sunday is 1, Monday is 2, etc. You can also use MON,TUE,WED, etc.',
 
     'cluster.description': '<p>A cluster is a collection of server groups with the same name (stack + detail) in the same account.</p>',
+    'cluster.rollback.explicit': `
+        <p>A server group running the previous build will be enabled and appropriately resized.</p>
+        <p>The current server group will be disabled after the resize completes.</p>
+    `,
+    'cluster.rollback.previous_image': `
+        <p>The current server group will be cloned with the previous build.</p>
+    `,
     'pipeline.config.findAmi.cluster': 'The cluster to look at when selecting the image to use in this pipeline.',
     'pipeline.config.findAmi.imageNamePattern': 'A regex used to match the name of the image. Must result in exactly one match to succeed. Empty is treated as match any.',
     'pipeline.config.dependsOn': 'Declares which stages must be run <em>before</em> this stage begins.',

@@ -37,6 +37,7 @@ module(AMAZON_MODULE, [
   require('./pipeline/stages/destroyAsg/awsDestroyAsgStage').name,
   require('./pipeline/stages/disableAsg/awsDisableAsgStage').name,
   require('./pipeline/stages/disableCluster/awsDisableClusterStage').name,
+  require('./pipeline/stages/rollbackCluster/awsRollbackClusterStage').name,
   require('./pipeline/stages/enableAsg/awsEnableAsgStage').name,
   require('./pipeline/stages/findAmi/awsFindAmiStage').name,
   require('./pipeline/stages/findImageFromTags/awsFindImageFromTagsStage').name,

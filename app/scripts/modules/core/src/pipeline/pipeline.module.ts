@@ -8,6 +8,7 @@ import { CREATE_LOAD_BALANCER_STAGE } from './config/stages/createLoadBalancer/c
 import { DESTROY_ASG_STAGE } from './config/stages/destroyAsg/destroyAsgStage';
 import { DISABLE_ASG_STAGE_MODULE } from './config/stages/disableAsg/disableAsgStage.module';
 import { DISABLE_CLUSTER_STAGE } from './config/stages/disableCluster/disableClusterStage';
+import { ROLLBACK_CLUSTER_STAGE } from './config/stages/rollbackCluster/rollbackClusterStage';
 import { ENABLE_ASG_STAGE } from './config/stages/enableAsg/enableAsgStage';
 import { EXECUTION_WINDOWS_STAGE_MODULE } from './config/stages/executionWindows/executionWindowsStage.module';
 import { FIND_AMI_STAGE } from './config/stages/findAmi/findAmiStage';
@@ -67,6 +68,7 @@ module(PIPELINE_MODULE, [
   DESTROY_ASG_STAGE,
   DISABLE_ASG_STAGE_MODULE,
   DISABLE_CLUSTER_STAGE,
+  ROLLBACK_CLUSTER_STAGE,
   ENABLE_ASG_STAGE,
   EXECUTION_WINDOWS_STAGE_MODULE,
   FIND_AMI_STAGE,
