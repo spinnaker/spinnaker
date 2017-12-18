@@ -16,6 +16,10 @@
 
 package com.netflix.spinnaker.clouddriver.titus.deploy.description
 
+import com.amazonaws.services.applicationautoscaling.model.CustomizedMetricSpecification as AwsCustomizedMetricSpecification
+import com.amazonaws.services.applicationautoscaling.model.PredefinedMetricSpecification as AwsPredefinedMetricSpecification
+import com.amazonaws.services.applicationautoscaling.model.StepAdjustment as AwsStepAdjustment
+import com.amazonaws.services.applicationautoscaling.model.MetricDimension as AwsMetricDimension
 import com.amazonaws.services.autoscaling.model.StepAdjustment
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertAlarmDescription
 import com.netflix.titus.grpc.protogen.AlarmConfiguration
@@ -57,8 +61,8 @@ class UpsertTitusScalingPolicyDescription extends AbstractTitusCredentialsDescri
 
   static class TargetTrackingConfiguration {
     Double targetValue
-    com.amazonaws.services.applicationautoscaling.model.PredefinedMetricSpecification predefinedMetricSpecification
-    com.amazonaws.services.applicationautoscaling.model.CustomizedMetricSpecification customizedMetricSpecification
+    AwsPredefinedMetricSpecification predefinedMetricSpecification
+    AwsCustomizedMetricSpecification customizedMetricSpecification
     Integer scaleOutCooldown
     Integer scaleInCooldown
     Boolean disableScaleIn
@@ -147,13 +151,14 @@ class UpsertTitusScalingPolicyDescription extends AbstractTitusCredentialsDescri
     return policyBuilder
   }
 
-  static UpsertTitusScalingPolicyDescription fromScalingPolicyResult(String region, ScalingPolicyResult result) {
+  static UpsertTitusScalingPolicyDescription fromScalingPolicyResult(String region, ScalingPolicyResult result, String serverGroupName) {
     UpsertTitusScalingPolicyDescription description = new UpsertTitusScalingPolicyDescription()
     description.region = region
     description.jobId = result.jobId
 
+    // if there's no scaling policy, it's a target tracking policy, not a step policy
     StepScalingPolicyDescriptor stepDescriptor = result.scalingPolicy.stepPolicyDescriptor
-    if (stepDescriptor) {
+    if (stepDescriptor.hasScalingPolicy()) {
       StepScalingPolicy stepPolicy = stepDescriptor.scalingPolicy
       Step step = new Step()
       description.step = step
@@ -161,7 +166,7 @@ class UpsertTitusScalingPolicyDescription extends AbstractTitusCredentialsDescri
       step.metricAggregationType = stepPolicy.metricAggregationType
       step.stepAdjustments = []
       stepPolicy.stepAdjustmentsList?.each {
-        com.amazonaws.services.applicationautoscaling.model.StepAdjustment adjustment = new com.amazonaws.services.applicationautoscaling.model.StepAdjustment()
+        com.amazonaws.services.applicationautoscaling.model.StepAdjustment adjustment = new AwsStepAdjustment()
         adjustment.scalingAdjustment = it.scalingAdjustment.value
         adjustment.metricIntervalLowerBound = it.metricIntervalLowerBound?.value
         if (it.metricIntervalUpperBound.value > 0) {
@@ -181,6 +186,29 @@ class UpsertTitusScalingPolicyDescription extends AbstractTitusCredentialsDescri
       alarm.namespace = alarmConfig.metricNamespace
       alarm.metricName = alarmConfig.metricName
       alarm.statistic = com.amazonaws.services.cloudwatch.model.Statistic.valueOf(alarmConfig.statistic.name())
+    }
+
+    // Titus Target Tracking always uses customized metric specifications, so use that to determine if it's a target tracking policy
+    TargetTrackingPolicyDescriptor targetDescriptor = result.scalingPolicy.targetPolicyDescriptor
+    if (targetDescriptor.hasCustomizedMetricSpecification()) {
+      TargetTrackingConfiguration targetTrackingConfiguration = new TargetTrackingConfiguration()
+      description.targetTrackingConfiguration = targetTrackingConfiguration
+
+      targetTrackingConfiguration.disableScaleIn = targetDescriptor.disableScaleIn.value
+      targetTrackingConfiguration.scaleInCooldown = targetDescriptor.scaleInCooldownSec.value
+      targetTrackingConfiguration.scaleOutCooldown = targetDescriptor.scaleInCooldownSec.value
+      targetTrackingConfiguration.targetValue = targetDescriptor.targetValue.value
+
+      CustomizedMetricSpecification sourceMetricSpecification = targetDescriptor.customizedMetricSpecification
+      AwsCustomizedMetricSpecification customizedMetricSpecification = new AwsCustomizedMetricSpecification()
+      targetTrackingConfiguration.customizedMetricSpecification = customizedMetricSpecification
+      customizedMetricSpecification.withMetricName(sourceMetricSpecification.metricName)
+        .withNamespace(sourceMetricSpecification.namespace)
+        .withStatistic(sourceMetricSpecification.statistic.name())
+        .withDimensions(sourceMetricSpecification.dimensionsList.collect { dimension ->
+          String value = dimension.name == "AutoScalingGroupName" ? serverGroupName : dimension.value
+          new AwsMetricDimension().withName(dimension.name).withValue(value)
+        })
     }
 
     description

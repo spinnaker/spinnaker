@@ -262,7 +262,7 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
         ])
       }
 
-      copyScalingPolicies(description, jobUri)
+      copyScalingPolicies(description, jobUri, nextServerGroupName)
 
       deploymentResult.messages = task.history.collect { "${it.phase} : ${it.status}".toString() }
 
@@ -279,7 +279,7 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
     }
   }
 
-  protected void copyScalingPolicies(TitusDeployDescription description, String jobUri) {
+  protected void copyScalingPolicies(TitusDeployDescription description, String jobUri, String serverGroupName) {
     if (!description.copySourceScalingPolicies) {
       return
     }
@@ -308,7 +308,8 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
           if (![ScalingPolicyState.Deleted, ScalingPolicyState.Deleting].contains(policy.policyState.state)) {
             Builder requestBuilder = PutPolicyRequest.newBuilder()
               .setJobId(jobUri)
-              .setScalingPolicy(UpsertTitusScalingPolicyDescription.fromScalingPolicyResult(description.region, policy).toScalingPolicyBuilder())
+              .setScalingPolicy(UpsertTitusScalingPolicyDescription.fromScalingPolicyResult(description.region, policy, serverGroupName).toScalingPolicyBuilder())
+            task.updateStatus BASE_PHASE, "Upserting policy copied from policy ${policy.id}"
             autoscalingClient.upsertScalingPolicy(requestBuilder.build())
           }
         }
