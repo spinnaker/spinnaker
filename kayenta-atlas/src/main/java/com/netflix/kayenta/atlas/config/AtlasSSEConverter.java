@@ -44,8 +44,12 @@ public class AtlasSSEConverter implements Converter {
 
   private static final List<String> EXPECTED_RESULTS_TYPE_LIST = Arrays.asList("timeseries", "close");
 
+  private final ObjectMapper kayentaObjectMapper;
+
   @Autowired
-  ObjectMapper kayentaObjectMapper;
+  public AtlasSSEConverter(ObjectMapper kayentaObjectMapper) {
+    this.kayentaObjectMapper = kayentaObjectMapper;
+  }
 
   @Override
   public List<AtlasResults> fromBody(TypedInput body, Type type) throws ConversionException {

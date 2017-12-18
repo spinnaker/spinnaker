@@ -30,8 +30,12 @@ import java.util.Set;
 @RequestMapping("/credentials")
 public class CredentialsController {
 
+  private final AccountCredentialsRepository accountCredentialsRepository;
+
   @Autowired
-  AccountCredentialsRepository accountCredentialsRepository;
+  public CredentialsController(AccountCredentialsRepository accountCredentialsRepository) {
+    this.accountCredentialsRepository = accountCredentialsRepository;
+  }
 
   @ApiOperation(value = "Retrieve a list of all configured credentials")
   @RequestMapping(method = RequestMethod.GET)

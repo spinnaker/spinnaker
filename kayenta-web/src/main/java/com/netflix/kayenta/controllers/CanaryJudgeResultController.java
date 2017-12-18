@@ -41,11 +41,14 @@ import java.util.UUID;
 @Slf4j
 public class CanaryJudgeResultController {
 
-  @Autowired
-  AccountCredentialsRepository accountCredentialsRepository;
+  private final AccountCredentialsRepository accountCredentialsRepository;
+  private final StorageServiceRepository storageServiceRepository;
 
   @Autowired
-  StorageServiceRepository storageServiceRepository;
+  public CanaryJudgeResultController(AccountCredentialsRepository accountCredentialsRepository, StorageServiceRepository storageServiceRepository) {
+    this.accountCredentialsRepository = accountCredentialsRepository;
+    this.storageServiceRepository = storageServiceRepository;
+  }
 
   @ApiOperation(value = "Retrieve a canary judge result from object storage")
   @RequestMapping(value = "/{canaryJudgeResultId:.+}", method = RequestMethod.GET)

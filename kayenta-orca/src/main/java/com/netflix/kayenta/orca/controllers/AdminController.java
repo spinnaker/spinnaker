@@ -37,8 +37,12 @@ import static com.netflix.appinfo.InstanceInfo.InstanceStatus.UP;
 @RequestMapping("/admin/orca")
 public class AdminController {
 
+  private final ApplicationEventPublisher publisher;
+
   @Autowired
-  ApplicationEventPublisher publisher;
+  public AdminController(ApplicationEventPublisher publisher) {
+    this.publisher = publisher;
+  }
 
   @RequestMapping(value = "/instance/enabled", consumes = "application/json", method = RequestMethod.POST)
   void setInstanceEnabled(@RequestBody Map<String, Boolean> enabledWrapper) {

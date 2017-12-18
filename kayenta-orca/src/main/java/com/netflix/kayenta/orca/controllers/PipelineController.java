@@ -52,26 +52,24 @@ import static com.netflix.appinfo.InstanceInfo.InstanceStatus.UP;
 @Slf4j
 public class PipelineController {
 
-  @Autowired
-  ExecutionLauncher executionLauncher;
+  private final ExecutionLauncher executionLauncher;
+  private final ExecutionRepository executionRepository;
+  private final ExecutionLogRepository executionLogRepository;
+  private final ObjectMapper kayentaObjectMapper;
+  private final ConfigurableApplicationContext context;
+  private final HealthEndpoint healthEndpoint;
+  private final ScheduledAnnotationBeanPostProcessor postProcessor;
 
   @Autowired
-  ExecutionRepository executionRepository;
-
-  @Autowired
-  ExecutionLogRepository executionLogRepository;
-
-  @Autowired
-  ObjectMapper kayentaObjectMapper;
-
-  @Autowired
-  ConfigurableApplicationContext context;
-
-  @Autowired
-  HealthEndpoint healthEndpoint;
-
-  @Autowired
-  ScheduledAnnotationBeanPostProcessor postProcessor;
+  public PipelineController(ExecutionLauncher executionLauncher, ExecutionRepository executionRepository, ExecutionLogRepository executionLogRepository, ObjectMapper kayentaObjectMapper, ConfigurableApplicationContext context, HealthEndpoint healthEndpoint, ScheduledAnnotationBeanPostProcessor postProcessor) {
+    this.executionLauncher = executionLauncher;
+    this.executionRepository = executionRepository;
+    this.executionLogRepository = executionLogRepository;
+    this.kayentaObjectMapper = kayentaObjectMapper;
+    this.context = context;
+    this.healthEndpoint = healthEndpoint;
+    this.postProcessor = postProcessor;
+  }
 
   // TODO(duftler): Expose /inservice and /outofservice endpoints.
   @Scheduled(initialDelay = 10000, fixedDelay = 5000)

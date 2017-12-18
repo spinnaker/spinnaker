@@ -20,17 +20,18 @@ import java.util.List;
 @EnableConfigurationProperties
 @ConditionalOnProperty("kayenta.atlas.enabled")
 public class BackendUpdaterService extends AbstractHealthIndicator {
-  @Autowired
-  private RetrofitClientFactory retrofitClientFactory;
-
-  @Autowired
-  private ObjectMapper objectMapper;
-
-  @Autowired
-  private OkHttpClient okHttpClient;
-
+  private final RetrofitClientFactory retrofitClientFactory;
+  private final ObjectMapper objectMapper;
+  private final OkHttpClient okHttpClient;
   private final List<BackendUpdater> backendUpdaters = new ArrayList<>();
   private int checksCompleted = 0;
+
+  @Autowired
+  public BackendUpdaterService(RetrofitClientFactory retrofitClientFactory, ObjectMapper objectMapper, OkHttpClient okHttpClient) {
+    this.retrofitClientFactory = retrofitClientFactory;
+    this.objectMapper = objectMapper;
+    this.okHttpClient = okHttpClient;
+  }
 
   @Scheduled(initialDelay = 2000, fixedDelay=122000)
   public synchronized void run() {

@@ -44,8 +44,12 @@ import java.util.List;
 @Slf4j
 public class AtlasConfiguration {
 
+  private final BackendUpdaterService backendUpdaterService;
+
   @Autowired
-  BackendUpdaterService backendUpdaterService;
+  public AtlasConfiguration(BackendUpdaterService backendUpdaterService) {
+    this.backendUpdaterService = backendUpdaterService;
+  }
 
   @Bean
   @ConfigurationProperties("kayenta.atlas")

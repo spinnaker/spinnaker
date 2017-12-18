@@ -37,11 +37,14 @@ import java.util.Map;
 @Component
 public class SetupCanaryTask implements RetryableTask {
 
-  @Autowired
-  private AccountCredentialsRepository accountCredentialsRepository;
+  private final AccountCredentialsRepository accountCredentialsRepository;
+  private final StorageServiceRepository storageServiceRepository;
 
   @Autowired
-  private StorageServiceRepository storageServiceRepository;
+  public SetupCanaryTask(AccountCredentialsRepository accountCredentialsRepository, StorageServiceRepository storageServiceRepository) {
+    this.accountCredentialsRepository = accountCredentialsRepository;
+    this.storageServiceRepository = storageServiceRepository;
+  }
 
   @Override
   public long getBackoffPeriod() {

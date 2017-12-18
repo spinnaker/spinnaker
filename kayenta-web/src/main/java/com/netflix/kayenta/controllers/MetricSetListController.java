@@ -41,11 +41,14 @@ import java.util.UUID;
 @Slf4j
 public class MetricSetListController {
 
-  @Autowired
-  AccountCredentialsRepository accountCredentialsRepository;
+  private final AccountCredentialsRepository accountCredentialsRepository;
+  private final StorageServiceRepository storageServiceRepository;
 
   @Autowired
-  StorageServiceRepository storageServiceRepository;
+  public MetricSetListController(AccountCredentialsRepository accountCredentialsRepository, StorageServiceRepository storageServiceRepository) {
+    this.accountCredentialsRepository = accountCredentialsRepository;
+    this.storageServiceRepository = storageServiceRepository;
+  }
 
   @ApiOperation(value = "Retrieve a metric set list from object storage")
   @RequestMapping(value = "/{metricSetListId:.+}", method = RequestMethod.GET)

@@ -48,11 +48,14 @@ public class CanaryConfigController {
 
   private static Pattern canaryConfigNamePattern = Pattern.compile("[A-Z,a-z,0-9,\\-,\\_]*");
 
-  @Autowired
-  AccountCredentialsRepository accountCredentialsRepository;
+  private final AccountCredentialsRepository accountCredentialsRepository;
+  private final StorageServiceRepository storageServiceRepository;
 
   @Autowired
-  StorageServiceRepository storageServiceRepository;
+  public CanaryConfigController(AccountCredentialsRepository accountCredentialsRepository, StorageServiceRepository storageServiceRepository) {
+    this.accountCredentialsRepository = accountCredentialsRepository;
+    this.storageServiceRepository = storageServiceRepository;
+  }
 
   @ApiOperation(value = "Retrieve a canary config from object storage")
   @RequestMapping(value = "/{canaryConfigId:.+}", method = RequestMethod.GET)

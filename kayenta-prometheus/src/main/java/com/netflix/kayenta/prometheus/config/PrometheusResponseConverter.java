@@ -38,8 +38,12 @@ import java.util.Map;
 @Slf4j
 public class PrometheusResponseConverter implements Converter {
 
+  private final ObjectMapper kayentaObjectMapper;
+
   @Autowired
-  ObjectMapper kayentaObjectMapper;
+  public PrometheusResponseConverter(ObjectMapper kayentaObjectMapper) {
+    this.kayentaObjectMapper = kayentaObjectMapper;
+  }
 
   @Override
   public List<PrometheusResults> fromBody(TypedInput body, Type type) throws ConversionException {

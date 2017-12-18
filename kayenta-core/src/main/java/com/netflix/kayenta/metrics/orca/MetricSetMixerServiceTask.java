@@ -33,6 +33,7 @@ import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.Nonnull;
 import java.time.Duration;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -65,8 +66,9 @@ public class MetricSetMixerServiceTask implements RetryableTask {
     return Duration.ofMinutes(2).toMillis();
   }
 
+  @Nonnull
   @Override
-  public TaskResult execute(Stage stage) {
+  public TaskResult execute(@Nonnull Stage stage) {
     Map<String, Object> context = stage.getContext();
     String storageAccountName = (String)context.get("storageAccountName");
     List<String> controlMetricSetListIds = getMetricSetListIds(stage.getExecution(), (String)context.get("controlRefidPrefix"));

@@ -29,8 +29,12 @@ import java.util.List;
 @RequestMapping("/judges")
 public class CanaryJudgesController {
 
+  private final List<CanaryJudge> canaryJudges;
+
   @Autowired
-  List<CanaryJudge> canaryJudges;
+  public CanaryJudgesController(List<CanaryJudge> canaryJudges) {
+    this.canaryJudges = canaryJudges;
+  }
 
   @ApiOperation(value = "Retrieve a list of all configured canary judges")
   @RequestMapping(method = RequestMethod.GET)

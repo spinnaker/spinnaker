@@ -50,13 +50,13 @@ import java.util.stream.Collectors;
 @Slf4j
 public class ConfigBinStorageService implements StorageService {
 
-  @Autowired
-  ObjectMapper kayentaObjectMapper;
-
   @NotNull
   @Singular
   @Getter
   private List<String> accountNames;
+
+  @Autowired
+  ObjectMapper kayentaObjectMapper;
 
   @Autowired
   AccountCredentialsRepository accountCredentialsRepository;

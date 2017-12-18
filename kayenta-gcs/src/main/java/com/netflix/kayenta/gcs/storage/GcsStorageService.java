@@ -53,7 +53,7 @@ import java.util.*;
 public class GcsStorageService implements StorageService {
 
   @Autowired
-  ObjectMapper kayentaObjectMapper;
+  private ObjectMapper kayentaObjectMapper;
 
   @NotNull
   @Singular
@@ -61,10 +61,10 @@ public class GcsStorageService implements StorageService {
   private List<String> accountNames;
 
   @Autowired
-  AccountCredentialsRepository accountCredentialsRepository;
+  private AccountCredentialsRepository accountCredentialsRepository;
 
   @Autowired
-  CanaryConfigIndex canaryConfigIndex;
+  private CanaryConfigIndex canaryConfigIndex;
 
   @Override
   public boolean servicesAccount(String accountName) {
