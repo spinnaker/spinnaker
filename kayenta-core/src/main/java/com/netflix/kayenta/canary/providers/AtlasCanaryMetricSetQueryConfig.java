@@ -31,4 +31,9 @@ public class AtlasCanaryMetricSetQueryConfig implements CanaryMetricSetQueryConf
   @NotNull
   @Getter
   private String q;
+
+  @Override
+  public String getServiceType() {
+    return "atlas";
+  }
 }

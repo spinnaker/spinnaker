@@ -41,16 +41,16 @@ import java.util.Map;
 public class AtlasFetchTask implements RetryableTask {
 
   @Autowired
-  ObjectMapper kayentaObjectMapper;
+  private ObjectMapper kayentaObjectMapper;
 
   @Autowired
-  AccountCredentialsRepository accountCredentialsRepository;
+  private AccountCredentialsRepository accountCredentialsRepository;
 
   @Autowired
-  SynchronousQueryProcessor synchronousQueryProcessor;
+  private SynchronousQueryProcessor synchronousQueryProcessor;
 
   @Autowired
-  AtlasConfigurationProperties atlasConfigurationProperties;
+  private AtlasConfigurationProperties atlasConfigurationProperties;
 
   @Override
   public long getBackoffPeriod() {
@@ -81,7 +81,8 @@ public class AtlasFetchTask implements RetryableTask {
     String storageAccountName = (String)context.get("storageAccountName");
     Map<String, Object> canaryConfigMap = (Map<String, Object>)context.get("canaryConfig");
     CanaryConfig canaryConfig = kayentaObjectMapper.convertValue(canaryConfigMap, CanaryConfig.class);
-    String scopeJson = (String)stage.getContext().get("atlasCanaryScope");
+    String scopeJson = (String)context.get("canaryScope");
+    int metricIndex = (Integer)context.get("metricIndex");
     AtlasCanaryScope atlasCanaryScope;
     try {
       atlasCanaryScope = kayentaObjectMapper.readValue(scopeJson, AtlasCanaryScope.class);
@@ -99,6 +100,7 @@ public class AtlasFetchTask implements RetryableTask {
     return synchronousQueryProcessor.processQueryAndProduceTaskResult(resolvedMetricsAccountName,
                                                                       resolvedStorageAccountName,
                                                                       canaryConfig,
+                                                                      metricIndex,
                                                                       atlasCanaryScope);
   }
 }

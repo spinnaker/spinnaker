@@ -42,11 +42,14 @@ import java.util.Map;
 @Slf4j
 public class AtlasFetchController {
 
-  @Autowired
-  AccountCredentialsRepository accountCredentialsRepository;
+  private final AccountCredentialsRepository accountCredentialsRepository;
+  private final SynchronousQueryProcessor synchronousQueryProcessor;
 
   @Autowired
-  SynchronousQueryProcessor synchronousQueryProcessor;
+  public AtlasFetchController(AccountCredentialsRepository accountCredentialsRepository, SynchronousQueryProcessor synchronousQueryProcessor) {
+    this.accountCredentialsRepository = accountCredentialsRepository;
+    this.synchronousQueryProcessor = synchronousQueryProcessor;
+  }
 
   @RequestMapping(value = "/query", method = RequestMethod.POST)
   public Map queryMetrics(@RequestParam(required = false) final String metricsAccountName,
@@ -89,7 +92,8 @@ public class AtlasFetchController {
     String metricSetListId = synchronousQueryProcessor.processQuery(resolvedMetricsAccountName,
                                                                     resolvedStorageAccountName,
                                                                     CanaryConfig.builder().metric(canaryMetricConfig).build(),
-                                                                    atlasCanaryScope).get(0);
+                                                                    0,
+                                                                    atlasCanaryScope);
 
     return Collections.singletonMap("metricSetListId", metricSetListId);
   }

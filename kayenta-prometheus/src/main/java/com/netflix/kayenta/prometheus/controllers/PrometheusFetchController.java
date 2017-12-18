@@ -43,11 +43,15 @@ import java.util.Map;
 @Slf4j
 public class PrometheusFetchController {
 
-  @Autowired
-  AccountCredentialsRepository accountCredentialsRepository;
+  private final AccountCredentialsRepository accountCredentialsRepository;
+  private final SynchronousQueryProcessor synchronousQueryProcessor;
 
   @Autowired
-  SynchronousQueryProcessor synchronousQueryProcessor;
+  public PrometheusFetchController(AccountCredentialsRepository accountCredentialsRepository,
+                                   SynchronousQueryProcessor synchronousQueryProcessor) {
+    this.accountCredentialsRepository = accountCredentialsRepository;
+    this.synchronousQueryProcessor = synchronousQueryProcessor;
+  }
 
   @RequestMapping(value = "/query", method = RequestMethod.POST)
   public Map queryMetrics(@RequestParam(required = false) final String metricsAccountName,
@@ -89,7 +93,8 @@ public class PrometheusFetchController {
     String metricSetListId = synchronousQueryProcessor.processQuery(resolvedMetricsAccountName,
                                                                     resolvedStorageAccountName,
                                                                     CanaryConfig.builder().metric(canaryMetricConfig).build(),
-                                                                    canaryScope).get(0);
+                                                                    0,
+                                                                    canaryScope);
 
     return Collections.singletonMap("metricSetListId", metricSetListId);
   }

@@ -101,10 +101,6 @@ public class CanaryConfigController {
       throw new IllegalArgumentException("Canary config must specify at least one application.");
     }
 
-    canaryConfig.getServices().forEach((serviceName, canaryServiceConfig) -> {
-      canaryServiceConfig.setName(serviceName);
-    });
-
     String canaryConfigName = canaryConfig.getName();
 
     if (!canaryConfigNamePattern.matcher(canaryConfigName).matches()) {
@@ -138,10 +134,6 @@ public class CanaryConfigController {
 
     canaryConfig.setUpdatedTimestamp(System.currentTimeMillis());
     canaryConfig.setUpdatedTimestampIso(Instant.ofEpochMilli(canaryConfig.getUpdatedTimestamp()).toString());
-
-    canaryConfig.getServices().forEach((serviceName, canaryServiceConfig) -> {
-      canaryServiceConfig.setName(serviceName);
-    });
 
     try {
       configurationService.loadObject(resolvedConfigurationAccountName, ObjectType.CANARY_CONFIG, canaryConfigId);

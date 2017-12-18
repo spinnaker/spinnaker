@@ -40,10 +40,7 @@ public class BackendDatabase {
       return false;
 
     // return false if it doesn't match the environment.
-    if (backend.getEnvironments() != null && !backend.getEnvironments().contains(environment))
-      return false;
-
-    return true;
+    return backend.getEnvironments() == null || backend.getEnvironments().contains(environment);
   }
 
   public synchronized Optional<Backend> getOne(String deployment, String dataset, String region, String environment) {

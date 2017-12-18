@@ -83,11 +83,6 @@ public class CanaryConfig {
   private Map<String, String> templates;
 
   @NotNull
-  @Singular
-  @Getter
-  private Map<String, CanaryServiceConfig> services;
-
-  @NotNull
   @Getter
   private CanaryClassifierConfig classifier;
 

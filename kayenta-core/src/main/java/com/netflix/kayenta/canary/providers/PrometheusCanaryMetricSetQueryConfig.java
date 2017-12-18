@@ -44,4 +44,9 @@ public class PrometheusCanaryMetricSetQueryConfig implements CanaryMetricSetQuer
 
   @Getter
   private List<String> sumByFields;
+
+  @Override
+  public String getServiceType() {
+    return "prometheus";
+  }
 }

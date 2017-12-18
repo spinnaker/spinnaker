@@ -18,5 +18,5 @@ package com.netflix.kayenta.index.config;
 
 public enum CanaryConfigIndexAction {
   UPDATE,
-  DELETE;
+  DELETE
 }

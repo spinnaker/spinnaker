@@ -33,7 +33,6 @@ import retrofit.RetrofitError;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -42,21 +41,24 @@ import java.util.UUID;
 @Component
 @Slf4j
 public class SynchronousQueryProcessor {
+  private final MetricsServiceRepository metricsServiceRepository;
+  private final StorageServiceRepository storageServiceRepository;
+  private final Registry registry;
 
   @Autowired
-  MetricsServiceRepository metricsServiceRepository;
+  public SynchronousQueryProcessor(MetricsServiceRepository metricsServiceRepository,
+                                   StorageServiceRepository storageServiceRepository,
+                                   Registry registry) {
+    this.metricsServiceRepository = metricsServiceRepository;
+    this.storageServiceRepository = storageServiceRepository;
+    this.registry = registry;
+  }
 
-  @Autowired
-  StorageServiceRepository storageServiceRepository;
-
-  @Autowired
-  Registry registry;
-
-  public List<String> processQuery(String metricsAccountName,
-                                   String storageAccountName,
-                                   CanaryConfig canaryConfig,
-                                   CanaryScope canaryScope) throws IOException {
-    List<CanaryMetricConfig> canaryMetricConfigs = canaryConfig.getMetrics();
+  public String processQuery(String metricsAccountName,
+                             String storageAccountName,
+                             CanaryConfig canaryConfig,
+                             int metricIndex,
+                             CanaryScope canaryScope) throws IOException {
     MetricsService metricsService =
       metricsServiceRepository
         .getOne(metricsAccountName)
@@ -67,45 +69,42 @@ public class SynchronousQueryProcessor {
         .getOne(storageAccountName)
         .orElseThrow(() -> new IllegalArgumentException("No storage service was configured; unable to write metric set list."));
 
-    List<String> metricSetListIds = new ArrayList<>();
     Id queryId = registry.createId("canary.telemetry.query").withTag("metricsStore", metricsService.getType());
 
-    for (CanaryMetricConfig canaryMetricConfig : canaryMetricConfigs) {
-      List<MetricSet> metricSetList = null;
-      int retries = 0;
-      boolean success = false;
+    CanaryMetricConfig canaryMetricConfig = canaryConfig.getMetrics().get(metricIndex);
+    List<MetricSet> metricSetList = null;
+    int retries = 0;
+    boolean success = false;
 
-      while (!success) {
-        try {
-          registry.counter(queryId.withTag("retries", retries + "")).increment();
-          metricSetList = metricsService.queryMetrics(metricsAccountName, canaryConfig, canaryMetricConfig, canaryScope);
-          success = true;
-        } catch (IOException | UncheckedIOException | RetrofitError e) {
-          retries++;
-          // TODO: Externalize this as a configurable setting.
-          if (retries >= 10)
-            throw e;
-          log.warn("Retrying metric service query");
-        }
+    while (!success) {
+      try {
+        registry.counter(queryId.withTag("retries", retries + "")).increment();
+        metricSetList = metricsService.queryMetrics(metricsAccountName, canaryConfig, canaryMetricConfig, canaryScope);
+        success = true;
+      } catch (IOException | UncheckedIOException | RetrofitError e) {
+        retries++;
+        // TODO: Externalize this as a configurable setting.
+        if (retries >= 10)
+          throw e;
+        log.warn("Retrying metric service query");
       }
-      String metricSetListId = UUID.randomUUID() + "";
-
-      storageService.storeObject(storageAccountName, ObjectType.METRIC_SET_LIST, metricSetListId, metricSetList);
-      metricSetListIds.add(metricSetListId);
     }
+    String metricSetListId = UUID.randomUUID() + "";
 
-    return metricSetListIds;
+    storageService.storeObject(storageAccountName, ObjectType.METRIC_SET_LIST, metricSetListId, metricSetList);
+    return metricSetListId;
   }
 
   public TaskResult processQueryAndProduceTaskResult(String metricsAccountName,
                                                      String storageAccountName,
                                                      CanaryConfig canaryConfig,
+                                                     int metricIndex,
                                                      CanaryScope canaryScope) {
     try {
-      List<String> metricSetListIds = processQuery(metricsAccountName, storageAccountName, canaryConfig, canaryScope);
-      Map outputs = Collections.singletonMap("metricSetListIds", metricSetListIds);
+      String metricSetListId = processQuery(metricsAccountName, storageAccountName, canaryConfig, metricIndex, canaryScope);
+      Map outputs = Collections.singletonMap("metricSetId", metricSetListId);
 
-      return new TaskResult(ExecutionStatus.SUCCEEDED, outputs);
+      return new TaskResult(ExecutionStatus.SUCCEEDED, Collections.emptyMap(), outputs);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }

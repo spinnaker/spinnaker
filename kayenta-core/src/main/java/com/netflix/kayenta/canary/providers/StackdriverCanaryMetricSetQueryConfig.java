@@ -47,4 +47,9 @@ public class StackdriverCanaryMetricSetQueryConfig implements CanaryMetricSetQue
   // resulting stackdriver filter is used when composing the query.
   @Getter
   private String customFilterTemplate;
+
+  @Override
+  public String getServiceType() {
+    return "stackdriver";
+  }
 }
