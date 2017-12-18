@@ -106,7 +106,7 @@ class ExplicitRollback implements Rollback {
     return newStage(
       parentStage.execution,
       captureSourceServerGroupCapacityStage.type,
-      "snapshot",
+      "Snapshot Source Server Group",
       captureSourceServerGroupCapacityContext,
       parentStage,
       SyntheticStageOwner.STAGE_AFTER
@@ -129,7 +129,7 @@ class ExplicitRollback implements Rollback {
     return newStage(
       parentStage.execution,
       applySourceServerGroupCapacityStage.type,
-      "apply",
+      "Restore Min Capacity From Snapshot",
       applySourceServerGroupCapacityContext,
       parentStage,
       SyntheticStageOwner.STAGE_AFTER

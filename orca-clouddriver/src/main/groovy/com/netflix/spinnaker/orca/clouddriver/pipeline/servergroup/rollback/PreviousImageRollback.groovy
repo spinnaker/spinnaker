@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.rollback
 
 import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.kork.core.RetrySupport
 import com.netflix.spinnaker.orca.clouddriver.OortService
@@ -38,6 +39,10 @@ class PreviousImageRollback implements Rollback {
 
   @Autowired
   @JsonIgnore
+  ObjectMapper objectMapper
+
+  @Autowired
+  @JsonIgnore
   OortService oortService
 
   @Autowired
@@ -46,6 +51,7 @@ class PreviousImageRollback implements Rollback {
 
   @Override
   List<Stage> buildStages(Stage parentStage) {
+    def previousImageRollbackSupport = new PreviousImageRollbackSupport(objectMapper, oortService, retrySupport)
     def stages = []
 
     def parentStageContext = parentStage.context
@@ -54,10 +60,11 @@ class PreviousImageRollback implements Rollback {
     def imageId = this.imageId
 
     if (!imageName) {
-      def imageDetails = getImageDetailsFromEntityTags(
+      def imageDetails = previousImageRollbackSupport.getImageDetailsFromEntityTags(
         parentStageContext.cloudProvider as String,
         parentStageContext.credentials as String,
-        parentStageContext.region as String
+        parentStageContext.region as String,
+        rollbackServerGroupName
       )
 
       imageName = imageDetails?.imageName
@@ -101,47 +108,5 @@ class PreviousImageRollback implements Rollback {
     )
 
     return stages
-  }
-
-  private ImageDetails getImageDetailsFromEntityTags(String cloudProvider,
-                                                     String credentials,
-                                                     String region) {
-    def entityTags = retrySupport.retry({
-      oortService.getEntityTags(
-        cloudProvider,
-        "serverGroup",
-        rollbackServerGroupName,
-        credentials,
-        region
-      )
-    }, 15, 2000, false)
-
-    if (entityTags?.size() > 1) {
-      // this should _not_ happen
-      String id = Arrays.asList(
-        cloudProvider,
-        "serverGroup",
-        rollbackServerGroupName,
-        credentials,
-        region
-      ).join(":")
-      throw new IllegalStateException("More than one set of entity tags found for " + id);
-    }
-
-    if (!entityTags) {
-      return null
-    }
-
-    def previousServerGroup = entityTags[0].tags.find { it.name == "spinnaker:metadata" }?.value?.previousServerGroup
-    if (!previousServerGroup?.imageName) {
-      return null
-    }
-
-    return new ImageDetails(imageId: previousServerGroup.imageId, imageName: previousServerGroup.imageName)
-  }
-
-  static class ImageDetails {
-    String imageId
-    String imageName
   }
 }

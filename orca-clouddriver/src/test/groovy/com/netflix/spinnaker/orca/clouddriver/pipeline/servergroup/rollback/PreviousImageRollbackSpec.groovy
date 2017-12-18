@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.rollback
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.kork.core.RetrySupport
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.CloneServerGroupStage
@@ -27,16 +28,20 @@ import spock.lang.Unroll
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage;
 
 class PreviousImageRollbackSpec extends Specification {
+  def objectMapper = new ObjectMapper()
   def cloneServerGroupStage = new CloneServerGroupStage()
   def oortService = Mock(OortService)
+  def retrySupport = Spy(RetrySupport) {
+    _ * sleep(_) >> { /* do nothing */ }
+  }
 
   @Subject
   def rollback = new PreviousImageRollback(
+    objectMapper: objectMapper,
+
     cloneServerGroupStage: cloneServerGroupStage,
     oortService: oortService,
-    retrySupport: Spy(RetrySupport) {
-      _ * sleep(_) >> { /* do nothing */ }
-    }
+    retrySupport: retrySupport
   )
 
   def stage = stage {
@@ -130,23 +135,6 @@ class PreviousImageRollbackSpec extends Specification {
     [interestingHealthProviderNames: ["Amazon"]] || true
     [interestingHealthProviderNames: []]         || true
 
-  }
-
-  def "should raise exception if multiple entity tags found"() {
-    when:
-    rollback.rollbackServerGroupName = "application-v002"
-    rollback.getImageDetailsFromEntityTags("aws", "test", "us-west-2")
-
-    then:
-    1 * oortService.getEntityTags(*_) >> {
-      return [
-        [id: "1"],
-        [id: "2"]
-      ]
-    }
-
-    def e = thrown(IllegalStateException)
-    e.message == "More than one set of entity tags found for aws:serverGroup:application-v002:test:us-west-2"
   }
 
   def "should raise exception if no image found"() {
