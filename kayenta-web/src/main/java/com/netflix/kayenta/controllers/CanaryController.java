@@ -42,7 +42,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -212,13 +211,6 @@ public class CanaryController {
           .put("orchestratorScoreThresholds", orchestratorScoreThresholds)
           .put("canaryExecutionRequest", canaryExecutionRequestJSON)
           .build());
-
-    Duration controlDuration = Duration.between(controlScopeModel.getStart(), controlScopeModel.getEnd());
-    Duration experimentDuration = Duration.between(experimentScopeModel.getStart(), experimentScopeModel.getEnd());
-
-    if (controlDuration.equals(experimentDuration)) {
-      canaryJudgeContext.put("durationString", controlDuration.toString());
-    }
 
     Execution pipeline =
       new PipelineBuilder("kayenta-" + currentInstanceId)
