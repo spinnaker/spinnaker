@@ -83,7 +83,7 @@ public class WebhookEventMonitor extends TriggerMonitor {
   @Override
   protected Function<Trigger, Pipeline> buildTrigger(Pipeline pipeline, TriggerEvent event) {
     Map payload = event.getPayload();
-    Map parameters = payload.containsKey("parameters") ? (Map) payload.remove("parameters") : new HashMap();
+    Map parameters = payload.containsKey("parameters") ? (Map) payload.get("parameters") : new HashMap();
     return trigger -> pipeline.withTrigger(trigger.atConstraints(parameters, payload));
   }
 
