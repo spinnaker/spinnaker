@@ -42,7 +42,7 @@ public class ManifestForceCacheRefreshTask extends AbstractCloudProviderAwareTas
   public TaskResult execute(Stage stage) {
     String cloudProvider = getCloudProvider(stage);
     String account = getCredentials(stage);
-    Map<String, List<String>> deployedManifests = (Map<String, List<String>>) stage.getContext().get("manifest.outputs");
+    Map<String, List<String>> deployedManifests = (Map<String, List<String>>) stage.getContext().get("outputs.manifestNamesByNamespace");
 
     for (Map.Entry<String, List<String>> entry : deployedManifests.entrySet()) {
       String location = entry.getKey();
