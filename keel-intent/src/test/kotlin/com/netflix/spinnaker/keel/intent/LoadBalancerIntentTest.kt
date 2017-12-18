@@ -125,7 +125,7 @@ object LoadBalancerIntentTest {
   "attributes": [],
   "policies": [],
   "id": "LoadBalancer:aws:mgmt:covfefe-elb",
-  "schema": "1"
+  "schema": "0"
 }
 """
 

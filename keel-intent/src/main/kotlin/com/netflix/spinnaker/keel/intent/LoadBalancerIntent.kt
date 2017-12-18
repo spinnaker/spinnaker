@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.keel.intent
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type
 import com.fasterxml.jackson.annotation.JsonTypeInfo
@@ -14,16 +15,22 @@ import com.github.jonpeterson.jackson.module.versioning.JsonVersionedModel
 import com.netflix.spinnaker.keel.ApplicationAwareIntentSpec
 import com.netflix.spinnaker.keel.Intent
 import com.netflix.spinnaker.keel.intent.AvailabilityZoneConfig.Automatic
-import com.netflix.spinnaker.keel.intent.HealthEndpoint.*
+import com.netflix.spinnaker.keel.intent.HealthEndpoint.Http
+import com.netflix.spinnaker.keel.intent.HealthEndpoint.Https
+import com.netflix.spinnaker.keel.intent.HealthEndpoint.Ssl
+import com.netflix.spinnaker.keel.intent.HealthEndpoint.Tcp
 import com.netflix.spinnaker.keel.intent.jackson.AvailabilityZoneConfigDeserializer
 import com.netflix.spinnaker.keel.intent.jackson.AvailabilityZoneConfigSerializer
 import com.netflix.spinnaker.keel.model.Listener
 import com.netflix.spinnaker.keel.model.Protocol
-import com.netflix.spinnaker.keel.model.Protocol.*
+import com.netflix.spinnaker.keel.model.Protocol.HTTP
+import com.netflix.spinnaker.keel.model.Protocol.HTTPS
+import com.netflix.spinnaker.keel.model.Protocol.SSL
+import com.netflix.spinnaker.keel.model.Protocol.TCP
 import com.netflix.spinnaker.keel.model.Scheme
 
 private const val KIND = "LoadBalancer"
-private const val CURRENT_SCHEMA = "1"
+private const val CURRENT_SCHEMA = "0"
 
 @JsonTypeName(KIND)
 @JsonVersionedModel(currentVersion = CURRENT_SCHEMA, propertyName = SCHEMA_PROPERTY)
@@ -32,7 +39,7 @@ class LoadBalancerIntent(spec: LoadBalancerSpec) : Intent<LoadBalancerSpec>(
   schema = CURRENT_SCHEMA,
   spec = spec
 ) {
-  override val id = "${KIND}:${spec.cloudProvider}:${spec.accountName}:${spec.name}"
+  @JsonIgnore override val defaultId = "$KIND:${spec.cloudProvider}:${spec.accountName}:${spec.name}"
 }
 
 @JsonTypeInfo(use = NAME, include = PROPERTY, property = KIND_PROPERTY)

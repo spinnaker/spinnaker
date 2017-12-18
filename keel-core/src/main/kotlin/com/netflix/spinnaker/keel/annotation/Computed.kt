@@ -19,7 +19,12 @@ package com.netflix.spinnaker.keel.annotation
 import com.kjetland.jackson.jsonSchema.annotations.JsonSchemaInject
 
 /**
+ * Flags IntentSpec parameters as provided by the system or not.
+ *
  * TODO rz - JsonSchemaInject doesn't get picked up here. Very needed.
+ *
+ * @param ignore Whether or not to ignore changes to this resource. If set to false, modifications to this value will
+ * make the resource eligible for destruction. Destruction behaviors should be defined by Policies.
  */
 @JsonSchemaInject(json = "{ \"computed\": true }")
 @Target(AnnotationTarget.VALUE_PARAMETER, AnnotationTarget.FIELD)

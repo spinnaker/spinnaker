@@ -25,9 +25,13 @@ import kotlin.reflect.KClass
  * will not be scheduled in the future will be submitted for compliance to Policies.
  *
  * Policies can also be used to define additional behavior, such as restricting when an Intent can be applied (e.g.
- * via execution windows). In these cases, it will be desired to allow an Intent to self-define the acceptable windows
- * to execute in. Policies can define a list of required Intent Attributes that must be set before the Policy will be
- * enacted.
+ * via execution windows). In these cases, it will be desired to allow an Intent to self-define the acceptable
+ * windows to execute in. Policies can define a list of required Intent Attributes that must be set before the Policy
+ * will be enacted.
+ *
+ * TODO rz - PolicySpec should only be available for operators to change. If the policy requires user-defined
+ * configuration, those should be defined and supplied through Attributes. It is up to the Policy to determine
+ * Attribute vs PolicySpec precedence on a per-usage basis.
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "kind")
 abstract class Policy<out S : PolicySpec>(

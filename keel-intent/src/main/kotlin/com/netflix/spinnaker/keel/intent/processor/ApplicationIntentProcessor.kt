@@ -54,13 +54,13 @@ class ApplicationIntentProcessor
   override fun supports(intent: Intent<IntentSpec>) = intent is ApplicationIntent
 
   override fun converge(intent: ApplicationIntent): ConvergeResult {
-    log.info("Converging state for {}", value("intent", intent.id))
+    log.info("Converging state for {}", value("intent", intent.id()))
 
     val changeSummary = ChangeSummary()
 
     val currentState = getApplication(intent.spec.name)
 
-    if (currentStateUpToDate(intent.id, currentState, intent.spec, changeSummary)) {
+    if (currentStateUpToDate(intent.id(), currentState, intent.spec, changeSummary)) {
       changeSummary.addMessage(ConvergeReason.UNCHANGED.reason)
       return ConvergeResult(listOf(), changeSummary)
     }
@@ -72,7 +72,7 @@ class ApplicationIntentProcessor
       intent = intent
     ))
 
-    val convergeResult = ConvergeResult(listOf(
+    return ConvergeResult(listOf(
       OrchestrationRequest(
         name = if (currentState == null) "Create application" else "Update application",
         application = intent.spec.name,
@@ -85,12 +85,11 @@ class ApplicationIntentProcessor
             )
           )
         ),
-        trigger = Trigger(intent.id)
+        trigger = Trigger(intent.id())
       )
     ),
       changeSummary
     )
-    return convergeResult
   }
 
   private fun currentStateUpToDate(intentId: String,

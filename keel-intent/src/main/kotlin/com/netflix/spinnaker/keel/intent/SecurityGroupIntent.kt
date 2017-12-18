@@ -16,6 +16,7 @@
 package com.netflix.spinnaker.keel.intent
 
 import com.fasterxml.jackson.annotation.JsonCreator
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.fasterxml.jackson.annotation.JsonTypeName
 import com.github.jonpeterson.jackson.module.versioning.JsonVersionedModel
@@ -24,7 +25,7 @@ import com.netflix.spinnaker.keel.Intent
 import java.util.*
 
 private const val KIND = "SecurityGroup"
-private const val CURRENT_SCHEMA = "1"
+private const val CURRENT_SCHEMA = "0"
 
 @JsonTypeName(KIND)
 @JsonVersionedModel(currentVersion = CURRENT_SCHEMA, propertyName = SCHEMA_PROPERTY)
@@ -34,11 +35,9 @@ class SecurityGroupIntent
   schema = CURRENT_SCHEMA,
   spec = spec
 ) {
-  // TODO rz - Should region be included in the mix? If someone removes a region, the intent ID would change, but what
-  // if someone wants to have two different intents managing the same named security group in different regions (rules
-  // are different region-to-region). Is this actually something to be concerned about? Be hard to change the ID strat
-  // after the fact...
-  override val id = "${KIND}:${spec.cloudProvider}:${spec.accountName}:${spec.name}"
+  // TODO rz - Region needs to be included in the id, but we also need a way to supercede other intents if a region is
+  // added or removed.
+  @JsonIgnore override val defaultId = "$KIND:${spec.cloudProvider}:${spec.accountName}:${spec.name}"
 }
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "kind")

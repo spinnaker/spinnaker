@@ -25,7 +25,11 @@ interface IntentRepository {
 
   fun getIntent(id: String): Intent<IntentSpec>?
 
-  fun deleteIntent(id: String)
+  /**
+   * Deletes an intent. [preserveHistory] should be an internal-only flag, for example only called by Janitor or
+   * other Spinnaker services; clients via gate should always have `preserveHistory=true` forced.
+   */
+  fun deleteIntent(id: String, preserveHistory: Boolean = true)
 
 //  fun findByLabels(labels: Labels): List<Intent<IntentSpec>>
 }

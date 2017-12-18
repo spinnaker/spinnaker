@@ -50,7 +50,7 @@ open class OrcaIntentLauncher
 
       if (result.orchestrations.isEmpty()) {
         log.info("Not converging state for intent {}, {}",
-          value("intent", intent.id),
+          value("intent", intent.id()),
           value("summary", result.changeSummary))
       } else {
         applicationEventPublisher.publishEvent(ConvergenceRequiredEvent(intent))
@@ -58,7 +58,7 @@ open class OrcaIntentLauncher
 
       val orchestrationIds = result.orchestrations.map {
         log.info("Launching orchestration for intent {}, {}",
-          value("intent", intent.id),
+          value("intent", intent.id()),
           value("summary", result.changeSummary))
         orcaService.orchestrate(it).ref
       }
@@ -66,7 +66,7 @@ open class OrcaIntentLauncher
       if (orchestrationIds.isNotEmpty()) {
         log.info(
           "Launched orchestrations for intent: {} (tasks: {})",
-          value("intent", intent.id),
+          value("intent", intent.id()),
           value("tasks", orchestrationIds)
         )
       }

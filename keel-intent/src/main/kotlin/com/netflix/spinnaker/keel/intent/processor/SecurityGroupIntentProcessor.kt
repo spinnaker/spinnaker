@@ -72,7 +72,7 @@ class SecurityGroupIntentProcessor
   override fun converge(intent: SecurityGroupIntent): ConvergeResult {
     val changeSummary = ChangeSummary()
 
-    log.info("Converging state for {}", value("intent", intent.id))
+    log.info("Converging state for {}", value("intent", intent.id()))
 
     val currentState = getSecurityGroups(intent.spec)
 
@@ -81,7 +81,7 @@ class SecurityGroupIntentProcessor
       intent = intent
     ))
 
-    if (currentStateUpToDate(intent.id, currentState, intent.spec, changeSummary)) {
+    if (currentStateUpToDate(intent.id(), currentState, intent.spec, changeSummary)) {
       changeSummary.addMessage(ConvergeReason.UNCHANGED.reason)
       return ConvergeResult(listOf(), changeSummary)
     }
@@ -101,7 +101,7 @@ class SecurityGroupIntentProcessor
           application = intent.spec.application,
           description = "Converging on desired security group state",
           job = securityGroupConverter.convertToJob(intent.spec, changeSummary),
-          trigger = Trigger(intent.id)
+          trigger = Trigger(intent.id())
         )
       ),
       changeSummary

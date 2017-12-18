@@ -18,6 +18,10 @@ package com.netflix.spinnaker.keel
 import com.netflix.spinnaker.keel.dryrun.ChangeSummary
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
 
+/**
+ * Processes an specific desired state intent, producing a ConvergeResult, which can then be converted into a
+ * human-/api-friendly plan, or into actual Spinnaker tasks & executions.
+ */
 interface IntentProcessor<in I : Intent<IntentSpec>> {
 
   fun supports(intent: Intent<IntentSpec>): Boolean
@@ -25,12 +29,12 @@ interface IntentProcessor<in I : Intent<IntentSpec>> {
   fun converge(intent: I): ConvergeResult
 }
 
-enum class ConvergeReason(val reason: String) {
-  UNCHANGED("System state matches desired state"),
-  CHANGED("System state does not match desired state")
-}
-
 data class ConvergeResult(
   val orchestrations: List<OrchestrationRequest>,
   val changeSummary: ChangeSummary = ChangeSummary()
 )
+
+enum class ConvergeReason(val reason: String) {
+  UNCHANGED("System state matches desired state"),
+  CHANGED("System state does not match desired state")
+}

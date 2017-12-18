@@ -68,6 +68,9 @@ class IntentController
     // TODO rz - validate intents
     // TODO rz - calculate graph
 
+    // TODO rz - config for running immediately
+    // TODO rz - add "notes" API property for history/audit
+
     if (req.dryRun) {
       return req.intents.map { dryRunIntentLauncher.launch(it) }
     }
@@ -76,7 +79,7 @@ class IntentController
 
     req.intents.forEach { intent ->
       intentRepository.upsertIntent(intent)
-      intentList.add(UpsertIntentResponse(intent.id, intent.status))
+      intentList.add(UpsertIntentResponse(intent.id(), intent.status))
       applicationEventPublisher.publishEvent(AfterIntentUpsertEvent(intent))
     }
 
@@ -93,7 +96,7 @@ class IntentController
     intentRepository.getIntent(id)
       .takeIf { it != null }
       ?.run {
-        intentRepository.deleteIntent(id)
+        intentRepository.deleteIntent(id, true)
         applicationEventPublisher.publishEvent(AfterIntentDeleteEvent(this))
       }
   }

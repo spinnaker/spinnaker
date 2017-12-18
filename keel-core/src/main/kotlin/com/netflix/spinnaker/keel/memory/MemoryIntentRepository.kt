@@ -33,7 +33,7 @@ class MemoryIntentRepository : IntentRepository {
   }
 
   override fun upsertIntent(intent: Intent<IntentSpec>): Intent<IntentSpec> {
-    intents.put(intent.id, intent)
+    intents.put(intent.id(), intent)
     return intent
   }
 
@@ -44,7 +44,11 @@ class MemoryIntentRepository : IntentRepository {
 
   override fun getIntent(id: String) = intents[id]
 
-  override fun deleteIntent(id: String) {
-    intents.remove(id)
+  override fun deleteIntent(id: String, preserveHistory: Boolean) {
+    if (preserveHistory) {
+      getIntent(id)?.status = IntentStatus.DELETED
+    } else {
+      intents.remove(id)
+    }
   }
 }

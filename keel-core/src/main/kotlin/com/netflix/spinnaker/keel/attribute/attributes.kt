@@ -25,7 +25,7 @@ import javax.validation.constraints.Min
 
 /**
  * An Attribute is a strictly typed key/value pair. They're attached as a collection of metadata on Intents and used
- * by Filters, Policies and EventHandlers for performing direct or indirect actions on Intents.
+ * by Filters, Policies and event handlers for performing direct or indirect actions on Intents.
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "kind")
 abstract class Attribute<out T>
@@ -34,12 +34,21 @@ abstract class Attribute<out T>
   val value: T
 )
 
+/**
+ * Defines the namespace-specific priority of an intent.
+*/
 @JsonTypeName("Priority")
 class PriorityAttribute(value: IntentPriority) : Attribute<IntentPriority>("Priority", value)
 
+/**
+ * Defines whether or not an Intent's desired state should be getting actively converged. Release valve.
+ */
 @JsonTypeName("Enabled")
 class EnabledAttribute(value: Boolean) : Attribute<Boolean>("Enabled", value)
 
+/**
+ * Defines at what times during the time of day & weekly schedule an Intent should be a candidate for being converged.
+ */
 @JsonTypeName("ExecutionWindow")
 @JsonSchemaDescription("Defines when an intent will be allowed to converge on state changes")
 class ExecutionWindowAttribute(value: ExecutionWindow) : Attribute<ExecutionWindow>("ExecutionWindow", value) {

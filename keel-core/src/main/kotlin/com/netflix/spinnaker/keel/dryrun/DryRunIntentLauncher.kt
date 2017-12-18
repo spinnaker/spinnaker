@@ -26,6 +26,9 @@ import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
+/**
+ * Plans, but does not apply, desired state intents.
+ */
 @Component(value = "dryRunIntentLauncher")
 class DryRunIntentLauncher
 @Autowired constructor(

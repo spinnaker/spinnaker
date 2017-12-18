@@ -16,21 +16,10 @@
 package com.netflix.spinnaker.keel
 
 /**
- * ACTIVE: An Intent is currently being enforced and will be regularly checked
- * for any state to converge on.
- *
- * SUPERSEDED: An Intent that is no longer active, as it was superseded by
- * a different Intent.
- *
- * CANCELED: An Intent that is no longer active because it has been canceled by
- * an operator or via a FailureModeController.
- *
- * TERMINAL: An Intent that is no longer active because it encountered an fatal
- * error.
+ * ACTIVE: An Intent is currently being enforced and will be regularly checked for any state to converge on.
+ * DELETED: An Intent that has been soft-deleted.
  */
 enum class IntentStatus {
   ACTIVE,
-  SUPERSEDED,
-  CANCELED,
-  TERMINAL
+  DELETED
 }

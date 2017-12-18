@@ -15,6 +15,7 @@
  */
 package com.netflix.spinnaker.keel.redis
 
+import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.natpryce.hamkrest.equalTo
@@ -40,6 +41,7 @@ object RedisTraceRepositoryTest {
   val objectMapper = ObjectMapper().apply {
     registerSubtypes(TestIntent::class.java)
     registerModule(KotlinModule())
+    disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
   }
   val clock = Clock.systemDefaultZone()
   val traceRepository = RedisTraceRepository(JedisClientDelegate(jedisPool), null, objectMapper, clock)

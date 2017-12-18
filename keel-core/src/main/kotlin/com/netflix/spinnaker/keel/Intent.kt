@@ -16,8 +16,9 @@
 package com.netflix.spinnaker.keel
 
 import com.fasterxml.jackson.annotation.JsonCreator
+import com.fasterxml.jackson.annotation.JsonGetter
 import com.fasterxml.jackson.annotation.JsonIgnore
-import com.fasterxml.jackson.annotation.JsonPropertyDescription
+import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.github.jonpeterson.jackson.module.versioning.JsonSerializeToVersion
 import com.netflix.spectator.api.BasicTag
@@ -25,19 +26,39 @@ import com.netflix.spinnaker.keel.attribute.Attribute
 import com.netflix.spinnaker.keel.policy.Policy
 import kotlin.reflect.KClass
 
+/**
+ * @param schema The base intent wrapper version.
+ * @param kind The cloudProvider-/config-agnostic intent kind.
+ * @param spec The static config for the intent kind.
+ * @param status The current status of the intent (active or deleted).
+ * @param labels A user-defined key/value string pair used for indexing & filtering.
+ * @param attributes User-land specific metadata and extension data.
+ * @param policies User-defined behavioral policies specific to the intent.
+ * @param cas An optional ID-granular pessimistic lock.
+ * @param namespace Used to logically group intents together; guarantees user- defined ids are unique within buckets.
+ * Required if ID override is set.
+ * @param idOverride A user-defined ID override for an individual intent. Must not conflict with default id.
+ */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "kind")
+@JsonInclude(JsonInclude.Include.NON_NULL)
 abstract class Intent<out S : IntentSpec>
 @JsonCreator constructor(
   @JsonSerializeToVersion(defaultToSource = true) val schema: String,
-  @JsonPropertyDescription("Hello") val kind: String,
+  val kind: String,
   val spec: S,
-  val status: IntentStatus = IntentStatus.ACTIVE,
-  val labels: Labels = mapOf(),
+  var status: IntentStatus = IntentStatus.ACTIVE,
+  val labels: Map<String, String> = mapOf(),
   val attributes: List<Attribute<*>> = listOf(),
-  val policies: List<Policy<*>> = listOf()
+  val policies: List<Policy<*>> = listOf(),
+  val cas: Long? = null,
+  val namespace: String? = null,
+  val idOverride: String? = null
 ) {
 
-  abstract val id: String
+  abstract val defaultId: String
+
+  @JsonGetter
+  fun id(): String = idOverride.takeUnless { it.isNullOrBlank() || namespace.isNullOrBlank() } ?: defaultId
 
   @JsonIgnore
   fun getMetricTags() = listOf(BasicTag("kind", kind), BasicTag("schema", schema))
@@ -59,5 +80,3 @@ abstract class Intent<out S : IntentSpec>
   @Suppress("UNCHECKED_CAST")
   fun <T : Policy<Any>> getPolicy(klass: KClass<T>) = policies.firstOrNull { klass.isInstance(it) } as T?
 }
-
-typealias Labels = Map<String, String>

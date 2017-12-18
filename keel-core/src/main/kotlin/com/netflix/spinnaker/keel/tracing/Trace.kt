@@ -18,8 +18,15 @@ package com.netflix.spinnaker.keel.tracing
 import com.netflix.spinnaker.keel.Intent
 import com.netflix.spinnaker.keel.IntentSpec
 
+/**
+ * @param activityId An optional link to the activity associated with this trace
+ * @param startingState An arbitrary model of state as it existed at the beginning of an operation.
+ * @param intent The desired intent that caused the operation.
+ * @param createTs A timestamp of when this operation occurred.
+ */
 data class Trace(
   val startingState: Map<String, Any>,
   val intent: Intent<IntentSpec>,
-  val createTs: Long? = null
+  val createTs: Long? = null,
+  val activityId: String? = null
 )

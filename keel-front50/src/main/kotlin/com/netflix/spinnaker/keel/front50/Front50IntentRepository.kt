@@ -48,7 +48,14 @@ class Front50IntentRepository
 
   override fun getIntent(id: String) = front50Service.getIntent(id)
 
-  override fun deleteIntent(id: String) {
-    front50Service.deleteIntent(id)
+  override fun deleteIntent(id: String, preserveHistory: Boolean) {
+    if (preserveHistory) {
+      getIntent(id).also {
+        it.status = IntentStatus.DELETED
+        upsertIntent(it)
+      }
+    } else {
+      front50Service.deleteIntent(id)
+    }
   }
 }

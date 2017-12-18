@@ -27,7 +27,7 @@ import com.netflix.spinnaker.keel.policy.Policy
 import com.netflix.spinnaker.keel.policy.PolicySpec
 
 @JsonTypeName("Test")
-@JsonVersionedModel(currentVersion = "1", propertyName = "schema")
+@JsonVersionedModel(currentVersion = "0", propertyName = "schema")
 class TestIntent
 @JsonCreator constructor(
   spec: TestIntentSpec,
@@ -35,8 +35,7 @@ class TestIntent
   attributes: List<Attribute<Any>> = listOf(),
   policies: List<Policy<PolicySpec>> = listOf()
 ) : Intent<TestIntentSpec>("1", "Test", spec, IntentStatus.ACTIVE, labels, attributes, policies) {
-  @JsonIgnore
-  override val id = "test:${spec.id}"
+  @JsonIgnore override val defaultId = "test:${spec.id}"
 }
 
 data class TestIntentSpec(

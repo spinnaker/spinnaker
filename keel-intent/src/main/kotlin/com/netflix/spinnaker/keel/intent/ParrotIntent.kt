@@ -16,6 +16,7 @@
 package com.netflix.spinnaker.keel.intent
 
 import com.fasterxml.jackson.annotation.JsonCreator
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonTypeName
 import com.github.jonpeterson.jackson.module.versioning.JsonVersionedModel
 import com.netflix.spinnaker.keel.Intent
@@ -35,8 +36,7 @@ class ParrotIntent
   schema = CURRENT_SCHEMA,
   spec = spec
 ) {
-
-  override val id = "${KIND}:${spec.application}"
+  @JsonIgnore override val defaultId = "$KIND:${spec.application}"
 }
 
 data class ParrotSpec(

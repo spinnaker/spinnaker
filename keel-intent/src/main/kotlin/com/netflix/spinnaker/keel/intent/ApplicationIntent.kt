@@ -16,6 +16,7 @@
 package com.netflix.spinnaker.keel.intent
 
 import com.fasterxml.jackson.annotation.JsonCreator
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.fasterxml.jackson.annotation.JsonTypeName
 import com.github.jonpeterson.jackson.module.versioning.JsonVersionedModel
@@ -25,7 +26,7 @@ import com.netflix.spinnaker.keel.annotation.Computed
 import com.netflix.spinnaker.keel.state.ComputedPropertyProvider
 
 private const val KIND = "Application"
-private const val CURRENT_SCHEMA = "1"
+private const val CURRENT_SCHEMA = "0"
 
 @JsonTypeName(KIND)
 @JsonVersionedModel(currentVersion = CURRENT_SCHEMA, propertyName = SCHEMA_PROPERTY)
@@ -35,7 +36,7 @@ class ApplicationIntent
   schema = CURRENT_SCHEMA,
   spec = spec
 ) {
-  override val id = "${KIND}:${spec.name}"
+  @JsonIgnore override val defaultId = "$KIND:${spec.name}"
 }
 
 // Using an abstract class here so that we can override the spec with Netflix-specific values and continue to use the

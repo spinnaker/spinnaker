@@ -18,7 +18,13 @@ package com.netflix.spinnaker.keel.model
 import com.netflix.spinnaker.keel.Intent
 import com.netflix.spinnaker.keel.IntentSpec
 
+/**
+ * @param reason User-supplied reason of why the intent is changing.
+ * @param intents A list of all intents that are being submitted with this change unit.
+ * @param dryRun Whether or not to describe expected actions if applied, but wont' apply any changes.
+ */
 data class UpsertIntentRequest(
+  val reason: String?,
   val intents: List<Intent<IntentSpec>>,
   val dryRun: Boolean = false
 )
