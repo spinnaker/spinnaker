@@ -117,7 +117,7 @@ class SecurityGroupConverter(
 
   override fun convertToJob(spec: SecurityGroupSpec, changeSummary: ChangeSummary): List<Job> {
     if (spec is AmazonSecurityGroupSpec) {
-      changeSummary.addMessage("Generating job for upsertSecurityGroup")
+      changeSummary.addMessage("Converging security group ${spec.name}")
       return listOf(
         Job(
           "upsertSecurityGroup",
@@ -131,7 +131,7 @@ class SecurityGroupConverter(
             "description" to spec.description,
             "securityGroupIngress" to spec.inboundRules.flatMap {
               if (it is PortRangeSupport) {
-                changeSummary.addMessage("Adding port range support")
+                changeSummary.addMessage("With ingress rules: $it")
                 return@flatMap it.portRanges.map { ports ->
                   mutableMapOf<String, Any?>(
                     "type" to it.protocol,

@@ -159,12 +159,13 @@ object SecurityGroupIntentProcessorTest {
     changeSummary.type = ChangeType.FAILED_PRECONDITIONS
     changeSummary.addMessage("Some upstream security groups are missing: [gate]")
 
-    whenever(clouddriverService.getSecurityGroup("test", "aws", "gate", "us-west-2")) doThrow RetrofitError.httpError(
-      "http://example.com",
-      Response("http://example.com", 404, "Not Found", listOf(), null),
-      null,
-      null
-    )
+    whenever(clouddriverService.getSecurityGroup("test", "aws", "gate", "us-west-2", "vpc-1")) doThrow RetrofitError
+      .httpError(
+        "http://example.com",
+        Response("http://example.com", 404, "Not Found", listOf(), null),
+        null,
+        null
+      )
     whenever(clouddriverCache.networkBy(any(), any(), any())) doReturn
       Network(
         cloudProvider = "aws",

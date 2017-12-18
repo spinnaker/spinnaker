@@ -19,19 +19,18 @@ package com.netflix.spinnaker.keel.dryrun
 import com.netflix.spinnaker.keel.state.FieldState
 
 data class ChangeSummary(
-  private val summary: MutableList<String> = mutableListOf()
+  val message: MutableList<String> = mutableListOf()
 ) {
   var type: ChangeType = ChangeType.NO_CHANGE
   var diff: List<FieldState> = emptyList()
 
   fun addMessage(msg: String) {
-    summary.add(msg)
+    message.add(msg)
   }
 
   override fun toString(): String {
-    // TODO eb: more readable friendly format for logs/response?
-    var msg = "ChangeSummary(type=$type, summary=$summary"
-    if (!listOf(ChangeType.CREATE, ChangeType.NO_CHANGE, ChangeType.FAILED_PRECONDITIONS).contains(type)) msg += ", diff=$diff"
+    var msg = "ChangeSummary(type=$type, message=$message"
+    if (type.includesDiff()) msg += ", diff=$diff"
     msg += ")"
     return msg
   }
@@ -42,5 +41,7 @@ enum class ChangeType {
   UPDATE,
   DELETE,
   NO_CHANGE,
-  FAILED_PRECONDITIONS
+  FAILED_PRECONDITIONS;
+
+  fun includesDiff() = !listOf(CREATE, NO_CHANGE, FAILED_PRECONDITIONS).contains(this)
 }

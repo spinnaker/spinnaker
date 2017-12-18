@@ -179,12 +179,22 @@ class SecurityGroupIntentProcessor
       }
       .flatMap {
         spec.regions.map { region ->
-          try {
-            cloudDriverService.getSecurityGroup(spec.accountName, "aws", it.name, region)
-          } catch (e: RetrofitError) {
-            if (e.notFound()) {
-              return@map it.name
+          if (spec is AmazonSecurityGroupSpec) {
+            try {
+              cloudDriverService.getSecurityGroup(
+                spec.accountName,
+                "aws",
+                it.name,
+                region,
+                clouddriverCache.networkBy(spec.vpcName!!, spec.accountName, region).id
+              )
+            } catch (e: RetrofitError) {
+              if (e.notFound()) {
+                return@map it.name
+              }
             }
+          } else {
+            log.error("${spec.javaClass.simpleName} is not supported yet")
           }
           return@map null
         }
