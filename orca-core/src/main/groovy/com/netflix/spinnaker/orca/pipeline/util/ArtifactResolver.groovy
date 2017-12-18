@@ -22,6 +22,7 @@ import com.netflix.spinnaker.kork.artifacts.model.ExpectedArtifact
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.model.StageContext
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
+import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionCriteria
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -33,6 +34,9 @@ class ArtifactResolver {
 
   @Autowired
   private ObjectMapper objectMapper
+
+  @Autowired
+  ExecutionRepository executionRepository;
 
   List<Artifact> getArtifacts(Stage stage) {
     List<Artifact> artifacts = new ArrayList<>()
@@ -64,15 +68,8 @@ class ArtifactResolver {
     return expectedArtifacts.find { e -> e.getId() == id }?.boundArtifact
   }
 
-  void resolveArtifacts(ExecutionRepository repository, Map pipeline) {
-    List<ExpectedArtifact> expectedArtifacts = pipeline.expectedArtifacts?.collect { objectMapper.convertValue(it, ExpectedArtifact.class) } ?: []
-    List<Artifact> receivedArtifacts = pipeline.receivedArtifacts?.collect { objectMapper.convertValue(it, Artifact.class) } ?: []
-
-    if (!expectedArtifacts) {
-      return
-    }
-
-    def priorArtifacts = (List<Artifact>) repository.retrievePipelinesForPipelineConfigId((String) pipeline.get("id"), new ExecutionRepository.ExecutionCriteria())
+  List<Artifact> getArtifactsForPipelineId(String pipelineId, ExecutionCriteria criteria) {
+    return (List<Artifact>) executionRepository.retrievePipelinesForPipelineConfigId(pipelineId, criteria)
         .subscribeOn(Schedulers.io())
         .toList()
         .toBlocking()
@@ -82,7 +79,17 @@ class ArtifactResolver {
         ?.getTrigger()
         ?.get("artifacts")
         ?.collect { objectMapper.convertValue(it, Artifact.class) } ?: []
+  }
 
+  void resolveArtifacts(ExecutionRepository repository, Map pipeline) {
+    List<ExpectedArtifact> expectedArtifacts = pipeline.expectedArtifacts?.collect { objectMapper.convertValue(it, ExpectedArtifact.class) } ?: []
+    List<Artifact> receivedArtifacts = pipeline.receivedArtifacts?.collect { objectMapper.convertValue(it, Artifact.class) } ?: []
+
+    if (!expectedArtifacts) {
+      return
+    }
+
+    def priorArtifacts = getArtifactsForPipelineId((String) pipeline.get("id"), new ExecutionCriteria())
     ResolveResult resolve = resolveExpectedArtifacts(expectedArtifacts, receivedArtifacts)
 
     Set<Artifact> resolvedArtifacts = resolve.resolvedArtifacts
