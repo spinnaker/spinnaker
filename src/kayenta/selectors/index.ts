@@ -39,3 +39,10 @@ export const selectedMetricConfigSelector = createSelector(
   serializedCanaryConfigSelector,
   (metricName, config) => config.metrics.find(m => m.name === metricName),
 );
+
+export const selectedConfigSelector = (state: ICanaryState) => state.selectedConfig.config;
+
+export const configTemplatesSelector = createSelector(
+  selectedConfigSelector,
+  config => config ? config.templates : null,
+);

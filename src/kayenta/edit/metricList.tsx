@@ -4,10 +4,10 @@ import { connect } from 'react-redux';
 import { ICanaryMetricConfig } from '../domain/ICanaryConfig';
 import { ICanaryState } from '../reducers';
 import { UNGROUPED } from './groupTabs';
-import MetricDetail from './metricDetail';
 import * as Creators from '../actions/creators';
 import { CanarySettings } from 'kayenta/canary.settings';
-import MetricListHeader from './metricListHeader';
+import { ITableColumn, Table } from '../layout/table';
+import ChangeMetricGroup from './changeMetricGroup';
 
 interface IMetricListStateProps {
   selectedGroup: string;
@@ -25,16 +25,45 @@ interface IMetricListDispatchProps {
  * Configures an entire list of metrics.
  */
 function MetricList({ metrics, selectedGroup, showGroups, addMetric, editMetric, removeMetric }: IMetricListStateProps & IMetricListDispatchProps) {
+  const columns: ITableColumn<ICanaryMetricConfig>[] = [
+    {
+      label: 'Metric Name',
+      width: 6,
+      getContent: metric => <span>{metric.name || '(new)'}</span>,
+    },
+    {
+      label: 'Groups',
+      width: 3,
+      getContent: metric => <span>{metric.groups.join(', ')}</span>,
+      hide: !showGroups,
+    },
+    {
+      width: 1,
+      getContent: metric => (
+        <div className="horizontal center">
+          <i
+            className="fa fa-edit"
+            data-id={metric.id}
+            onClick={editMetric}
+          />
+          <ChangeMetricGroup metric={metric}/>
+          <i
+            className="fa fa-trash"
+            data-id={metric.id}
+            onClick={removeMetric}
+          />
+        </div>
+      ),
+    }
+  ];
+
   return (
     <section>
-      <MetricListHeader showGroups={showGroups}/>
-      <ul className="list-group">
-        {metrics.map((metric, index) => (
-          <li className="list-unstyled" key={index}>
-            <MetricDetail metric={metric} edit={editMetric} remove={removeMetric} showGroups={showGroups}/>
-          </li>
-        ))}
-      </ul>
+      <Table
+        columns={columns}
+        rows={metrics}
+        rowKey={metric => metric.id}
+      />
       {(!metrics.length && selectedGroup && selectedGroup !== UNGROUPED) ? (
         <p>
           This group is empty! The group will be not be present the next time the config is loaded unless

@@ -11,6 +11,7 @@ var reduxLoggerEnabled = process.env.REDUX_LOGGER === 'true';
 var canaryReportsEnabled = process.env.CANARY_REPORTS_ENABLED === 'true';
 var defaultMetricStore = process.env.METRIC_STORE || 'atlas';
 var canaryStagesEnabled = process.env.CANARY_STAGES_ENABLED === 'true';
+var templatesEnabled = process.env.TEMPLATES_ENABLED === 'true';
 var atlasWebComponentsUrl = process.env.ATLAS_WEB_COMPONENTS_URL;
 
 window.spinnakerSettings = {
@@ -79,6 +80,7 @@ window.spinnakerSettings = {
     stagesEnabled: canaryStagesEnabled,
     graphImplementation: 'chartjs',
     atlasWebComponentsUrl: atlasWebComponentsUrl,
+    templatesEnabled: templatesEnabled,
     defaultServiceSettings: {
       atlas: {
         name: 'atlas',

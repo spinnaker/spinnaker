@@ -10,6 +10,7 @@ export interface ICanaryConfig {
   description: string;
   configVersion: string;
   metrics: ICanaryMetricConfig[];
+  templates: {[key: string]: string};
   services: {[key: string]: ICanaryServiceConfig};
   classifier: ICanaryClassifierConfig;
   judge: ICanaryJudgeConfig;

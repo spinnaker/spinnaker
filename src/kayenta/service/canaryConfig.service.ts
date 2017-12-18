@@ -113,6 +113,7 @@ export function buildNewConfig(state: ICanaryState): ICanaryConfig {
     services: {
       [CanarySettings.metricStore]: CanarySettings.defaultServiceSettings[CanarySettings.metricStore]
     },
+    templates: {},
     classifier: {
       groupWeights: {} as {[key: string]: number},
       scoreThresholds: {

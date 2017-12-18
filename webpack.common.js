@@ -134,6 +134,7 @@ function configure(IS_TEST) {
         REDUX_LOGGER: false,
         CANARY_REPORTS_ENABLED: false,
         CANARY_STAGES_ENABLED: true,
+        TEMPLATES_ENABLED: false,
       }),
     ]);
   }
