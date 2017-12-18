@@ -97,7 +97,8 @@ class TestRunner(unittest.TestCase):
     code, output = buildtool.util.run_subprocess('/bin/ps -f')
     self.assertEquals(0, code)
     my_pid = ' %d ' % os.getpid()
-    candidates = [line for line in output.split('\n') if line.find(my_pid) > 0]
+    candidates = [line for line in output.split('\n')
+                  if line.find(my_pid) > 0 and line.find('/bin/ps') < 0]
     if len(candidates) != 1:
       logging.error('Unexpected output\n%s', output)
     self.assertEquals(1, len(candidates))
