@@ -4,19 +4,19 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "2.9.2"
+            "locked": "2.9.3"
         },
         "com.fasterxml.jackson.core:jackson-databind": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "2.9.2"
+            "locked": "2.9.3"
         },
         "com.fasterxml.jackson.datatype:jackson-datatype-jsr310": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "2.9.2"
+            "locked": "2.9.3"
         },
         "com.fasterxml.jackson.module:jackson-module-kotlin": {
             "firstLevelTransitive": [
@@ -29,6 +29,12 @@
                 "com.netflix.spinnaker.keel:keel-core"
             ],
             "locked": "1.2.2"
+        },
+        "com.kjetland:mbknor-jackson-jsonschema_2.12": {
+            "firstLevelTransitive": [
+                "com.netflix.spinnaker.keel:keel-core"
+            ],
+            "locked": "1.0.25"
         },
         "com.netflix.spinnaker.keel:keel-clouddriver": {
             "firstLevelTransitive": [
@@ -52,20 +58,20 @@
             "project": true
         },
         "com.netflix.spinnaker.keiko:keiko-redis-spring": {
-            "locked": "1.4.1",
+            "locked": "1.5.0",
             "requested": "+"
         },
         "com.netflix.spinnaker.kork:kork-core": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "1.109.0"
+            "locked": "1.111.0"
         },
         "com.netflix.spinnaker.kork:kork-web": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
-            "locked": "1.109.0"
+            "locked": "1.111.0"
         },
         "com.netflix.spinnaker.moniker:moniker": {
             "firstLevelTransitive": [
@@ -137,19 +143,19 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "2.9.2"
+            "locked": "2.9.3"
         },
         "com.fasterxml.jackson.core:jackson-databind": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "2.9.2"
+            "locked": "2.9.3"
         },
         "com.fasterxml.jackson.datatype:jackson-datatype-jsr310": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "2.9.2"
+            "locked": "2.9.3"
         },
         "com.fasterxml.jackson.module:jackson-module-kotlin": {
             "firstLevelTransitive": [
@@ -162,6 +168,12 @@
                 "com.netflix.spinnaker.keel:keel-core"
             ],
             "locked": "1.2.2"
+        },
+        "com.kjetland:mbknor-jackson-jsonschema_2.12": {
+            "firstLevelTransitive": [
+                "com.netflix.spinnaker.keel:keel-core"
+            ],
+            "locked": "1.0.25"
         },
         "com.netflix.spinnaker.keel:keel-clouddriver": {
             "firstLevelTransitive": [
@@ -185,20 +197,20 @@
             "project": true
         },
         "com.netflix.spinnaker.keiko:keiko-redis-spring": {
-            "locked": "1.4.1",
+            "locked": "1.5.0",
             "requested": "+"
         },
         "com.netflix.spinnaker.kork:kork-core": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "1.109.0"
+            "locked": "1.111.0"
         },
         "com.netflix.spinnaker.kork:kork-web": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
-            "locked": "1.109.0"
+            "locked": "1.111.0"
         },
         "com.netflix.spinnaker.moniker:moniker": {
             "firstLevelTransitive": [
@@ -270,19 +282,19 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "2.9.2"
+            "locked": "2.9.3"
         },
         "com.fasterxml.jackson.core:jackson-databind": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "2.9.2"
+            "locked": "2.9.3"
         },
         "com.fasterxml.jackson.datatype:jackson-datatype-jsr310": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "2.9.2"
+            "locked": "2.9.3"
         },
         "com.fasterxml.jackson.module:jackson-module-kotlin": {
             "firstLevelTransitive": [
@@ -295,6 +307,12 @@
                 "com.netflix.spinnaker.keel:keel-core"
             ],
             "locked": "1.2.2"
+        },
+        "com.kjetland:mbknor-jackson-jsonschema_2.12": {
+            "firstLevelTransitive": [
+                "com.netflix.spinnaker.keel:keel-core"
+            ],
+            "locked": "1.0.25"
         },
         "com.netflix.spinnaker.keel:keel-clouddriver": {
             "firstLevelTransitive": [
@@ -318,20 +336,20 @@
             "project": true
         },
         "com.netflix.spinnaker.keiko:keiko-redis-spring": {
-            "locked": "1.4.1",
+            "locked": "1.5.0",
             "requested": "+"
         },
         "com.netflix.spinnaker.kork:kork-core": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "1.109.0"
+            "locked": "1.111.0"
         },
         "com.netflix.spinnaker.kork:kork-web": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
-            "locked": "1.109.0"
+            "locked": "1.111.0"
         },
         "com.netflix.spinnaker.moniker:moniker": {
             "firstLevelTransitive": [
@@ -423,19 +441,19 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "2.9.2"
+            "locked": "2.9.3"
         },
         "com.fasterxml.jackson.core:jackson-databind": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "2.9.2"
+            "locked": "2.9.3"
         },
         "com.fasterxml.jackson.datatype:jackson-datatype-jsr310": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "2.9.2"
+            "locked": "2.9.3"
         },
         "com.fasterxml.jackson.module:jackson-module-kotlin": {
             "firstLevelTransitive": [
@@ -448,6 +466,12 @@
                 "com.netflix.spinnaker.keel:keel-core"
             ],
             "locked": "1.2.2"
+        },
+        "com.kjetland:mbknor-jackson-jsonschema_2.12": {
+            "firstLevelTransitive": [
+                "com.netflix.spinnaker.keel:keel-core"
+            ],
+            "locked": "1.0.25"
         },
         "com.netflix.spinnaker.keel:keel-clouddriver": {
             "firstLevelTransitive": [
@@ -471,20 +495,20 @@
             "project": true
         },
         "com.netflix.spinnaker.keiko:keiko-redis-spring": {
-            "locked": "1.4.1",
+            "locked": "1.5.0",
             "requested": "+"
         },
         "com.netflix.spinnaker.kork:kork-core": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "1.109.0"
+            "locked": "1.111.0"
         },
         "com.netflix.spinnaker.kork:kork-web": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
-            "locked": "1.109.0"
+            "locked": "1.111.0"
         },
         "com.netflix.spinnaker.moniker:moniker": {
             "firstLevelTransitive": [
@@ -556,19 +580,19 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "2.9.2"
+            "locked": "2.9.3"
         },
         "com.fasterxml.jackson.core:jackson-databind": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "2.9.2"
+            "locked": "2.9.3"
         },
         "com.fasterxml.jackson.datatype:jackson-datatype-jsr310": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "2.9.2"
+            "locked": "2.9.3"
         },
         "com.fasterxml.jackson.module:jackson-module-kotlin": {
             "firstLevelTransitive": [
@@ -581,6 +605,12 @@
                 "com.netflix.spinnaker.keel:keel-core"
             ],
             "locked": "1.2.2"
+        },
+        "com.kjetland:mbknor-jackson-jsonschema_2.12": {
+            "firstLevelTransitive": [
+                "com.netflix.spinnaker.keel:keel-core"
+            ],
+            "locked": "1.0.25"
         },
         "com.netflix.spinnaker.keel:keel-clouddriver": {
             "firstLevelTransitive": [
@@ -604,20 +634,20 @@
             "project": true
         },
         "com.netflix.spinnaker.keiko:keiko-redis-spring": {
-            "locked": "1.4.1",
+            "locked": "1.5.0",
             "requested": "+"
         },
         "com.netflix.spinnaker.kork:kork-core": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "1.109.0"
+            "locked": "1.111.0"
         },
         "com.netflix.spinnaker.kork:kork-web": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
-            "locked": "1.109.0"
+            "locked": "1.111.0"
         },
         "com.netflix.spinnaker.moniker:moniker": {
             "firstLevelTransitive": [
@@ -689,19 +719,19 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "2.9.2"
+            "locked": "2.9.3"
         },
         "com.fasterxml.jackson.core:jackson-databind": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "2.9.2"
+            "locked": "2.9.3"
         },
         "com.fasterxml.jackson.datatype:jackson-datatype-jsr310": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "2.9.2"
+            "locked": "2.9.3"
         },
         "com.fasterxml.jackson.module:jackson-module-kotlin": {
             "firstLevelTransitive": [
@@ -714,6 +744,12 @@
                 "com.netflix.spinnaker.keel:keel-core"
             ],
             "locked": "1.2.2"
+        },
+        "com.kjetland:mbknor-jackson-jsonschema_2.12": {
+            "firstLevelTransitive": [
+                "com.netflix.spinnaker.keel:keel-core"
+            ],
+            "locked": "1.0.25"
         },
         "com.natpryce:hamkrest": {
             "firstLevelTransitive": [
@@ -748,20 +784,20 @@
             "project": true
         },
         "com.netflix.spinnaker.keiko:keiko-redis-spring": {
-            "locked": "1.4.1",
+            "locked": "1.5.0",
             "requested": "+"
         },
         "com.netflix.spinnaker.kork:kork-core": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "1.109.0"
+            "locked": "1.111.0"
         },
         "com.netflix.spinnaker.kork:kork-web": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
-            "locked": "1.109.0"
+            "locked": "1.111.0"
         },
         "com.netflix.spinnaker.moniker:moniker": {
             "firstLevelTransitive": [
@@ -850,19 +886,19 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "2.9.2"
+            "locked": "2.9.3"
         },
         "com.fasterxml.jackson.core:jackson-databind": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "2.9.2"
+            "locked": "2.9.3"
         },
         "com.fasterxml.jackson.datatype:jackson-datatype-jsr310": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "2.9.2"
+            "locked": "2.9.3"
         },
         "com.fasterxml.jackson.module:jackson-module-kotlin": {
             "firstLevelTransitive": [
@@ -875,6 +911,12 @@
                 "com.netflix.spinnaker.keel:keel-core"
             ],
             "locked": "1.2.2"
+        },
+        "com.kjetland:mbknor-jackson-jsonschema_2.12": {
+            "firstLevelTransitive": [
+                "com.netflix.spinnaker.keel:keel-core"
+            ],
+            "locked": "1.0.25"
         },
         "com.natpryce:hamkrest": {
             "firstLevelTransitive": [
@@ -909,20 +951,20 @@
             "project": true
         },
         "com.netflix.spinnaker.keiko:keiko-redis-spring": {
-            "locked": "1.4.1",
+            "locked": "1.5.0",
             "requested": "+"
         },
         "com.netflix.spinnaker.kork:kork-core": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "1.109.0"
+            "locked": "1.111.0"
         },
         "com.netflix.spinnaker.kork:kork-web": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
-            "locked": "1.109.0"
+            "locked": "1.111.0"
         },
         "com.netflix.spinnaker.moniker:moniker": {
             "firstLevelTransitive": [
@@ -1011,19 +1053,19 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "2.9.2"
+            "locked": "2.9.3"
         },
         "com.fasterxml.jackson.core:jackson-databind": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "2.9.2"
+            "locked": "2.9.3"
         },
         "com.fasterxml.jackson.datatype:jackson-datatype-jsr310": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "2.9.2"
+            "locked": "2.9.3"
         },
         "com.fasterxml.jackson.module:jackson-module-kotlin": {
             "firstLevelTransitive": [
@@ -1036,6 +1078,12 @@
                 "com.netflix.spinnaker.keel:keel-core"
             ],
             "locked": "1.2.2"
+        },
+        "com.kjetland:mbknor-jackson-jsonschema_2.12": {
+            "firstLevelTransitive": [
+                "com.netflix.spinnaker.keel:keel-core"
+            ],
+            "locked": "1.0.25"
         },
         "com.natpryce:hamkrest": {
             "firstLevelTransitive": [
@@ -1070,20 +1118,20 @@
             "project": true
         },
         "com.netflix.spinnaker.keiko:keiko-redis-spring": {
-            "locked": "1.4.1",
+            "locked": "1.5.0",
             "requested": "+"
         },
         "com.netflix.spinnaker.kork:kork-core": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "1.109.0"
+            "locked": "1.111.0"
         },
         "com.netflix.spinnaker.kork:kork-web": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
-            "locked": "1.109.0"
+            "locked": "1.111.0"
         },
         "com.netflix.spinnaker.moniker:moniker": {
             "firstLevelTransitive": [
@@ -1180,19 +1228,19 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "2.9.2"
+            "locked": "2.9.3"
         },
         "com.fasterxml.jackson.core:jackson-databind": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "2.9.2"
+            "locked": "2.9.3"
         },
         "com.fasterxml.jackson.datatype:jackson-datatype-jsr310": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "2.9.2"
+            "locked": "2.9.3"
         },
         "com.fasterxml.jackson.module:jackson-module-kotlin": {
             "firstLevelTransitive": [
@@ -1205,6 +1253,12 @@
                 "com.netflix.spinnaker.keel:keel-core"
             ],
             "locked": "1.2.2"
+        },
+        "com.kjetland:mbknor-jackson-jsonschema_2.12": {
+            "firstLevelTransitive": [
+                "com.netflix.spinnaker.keel:keel-core"
+            ],
+            "locked": "1.0.25"
         },
         "com.natpryce:hamkrest": {
             "firstLevelTransitive": [
@@ -1239,20 +1293,20 @@
             "project": true
         },
         "com.netflix.spinnaker.keiko:keiko-redis-spring": {
-            "locked": "1.4.1",
+            "locked": "1.5.0",
             "requested": "+"
         },
         "com.netflix.spinnaker.kork:kork-core": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "1.109.0"
+            "locked": "1.111.0"
         },
         "com.netflix.spinnaker.kork:kork-web": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
-            "locked": "1.109.0"
+            "locked": "1.111.0"
         },
         "com.netflix.spinnaker.moniker:moniker": {
             "firstLevelTransitive": [

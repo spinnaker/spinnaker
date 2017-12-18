@@ -17,6 +17,7 @@ package com.netflix.spinnaker.keel
 
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.annotation.JsonPropertyDescription
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.github.jonpeterson.jackson.module.versioning.JsonSerializeToVersion
 import com.netflix.spectator.api.BasicTag
@@ -28,7 +29,7 @@ import kotlin.reflect.KClass
 abstract class Intent<out S : IntentSpec>
 @JsonCreator constructor(
   @JsonSerializeToVersion(defaultToSource = true) val schema: String,
-  val kind: String,
+  @JsonPropertyDescription("Hello") val kind: String,
   val spec: S,
   val status: IntentStatus = IntentStatus.ACTIVE,
   val labels: Labels = mapOf(),

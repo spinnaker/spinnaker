@@ -26,6 +26,7 @@ dependencies {
   compile "com.fasterxml.jackson.module:jackson-module-kotlin:2.9.+"
   compile "com.github.jonpeterson:jackson-module-model-versioning:1.2.+"
   compile "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.9.+"
+  compile "com.kjetland:mbknor-jackson-jsonschema_2.12:1.0.+"
 
   testCompile "com.squareup.retrofit:retrofit-mock:1.9.+"
   testCompile project(":keel-test")

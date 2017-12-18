@@ -1,15 +1,15 @@
 {
     "compile": {
         "com.fasterxml.jackson.core:jackson-annotations": {
-            "locked": "2.9.2",
+            "locked": "2.9.3",
             "requested": "2.9.+"
         },
         "com.fasterxml.jackson.core:jackson-databind": {
-            "locked": "2.9.2",
+            "locked": "2.9.3",
             "requested": "2.9.+"
         },
         "com.fasterxml.jackson.datatype:jackson-datatype-jsr310": {
-            "locked": "2.9.2",
+            "locked": "2.9.3",
             "requested": "2.9.+"
         },
         "com.fasterxml.jackson.module:jackson-module-kotlin": {
@@ -20,8 +20,12 @@
             "locked": "1.2.2",
             "requested": "1.2.+"
         },
+        "com.kjetland:mbknor-jackson-jsonschema_2.12": {
+            "locked": "1.0.25",
+            "requested": "1.0.+"
+        },
         "com.netflix.spinnaker.kork:kork-core": {
-            "locked": "1.109.0",
+            "locked": "1.111.0",
             "requested": "+"
         },
         "net.logstash.logback:logstash-logback-encoder": {
@@ -43,15 +47,15 @@
     },
     "compileClasspath": {
         "com.fasterxml.jackson.core:jackson-annotations": {
-            "locked": "2.9.2",
+            "locked": "2.9.3",
             "requested": "2.9.+"
         },
         "com.fasterxml.jackson.core:jackson-databind": {
-            "locked": "2.9.2",
+            "locked": "2.9.3",
             "requested": "2.9.+"
         },
         "com.fasterxml.jackson.datatype:jackson-datatype-jsr310": {
-            "locked": "2.9.2",
+            "locked": "2.9.3",
             "requested": "2.9.+"
         },
         "com.fasterxml.jackson.module:jackson-module-kotlin": {
@@ -62,8 +66,12 @@
             "locked": "1.2.2",
             "requested": "1.2.+"
         },
+        "com.kjetland:mbknor-jackson-jsonschema_2.12": {
+            "locked": "1.0.25",
+            "requested": "1.0.+"
+        },
         "com.netflix.spinnaker.kork:kork-core": {
-            "locked": "1.109.0",
+            "locked": "1.111.0",
             "requested": "+"
         },
         "net.logstash.logback:logstash-logback-encoder": {
@@ -85,15 +93,15 @@
     },
     "default": {
         "com.fasterxml.jackson.core:jackson-annotations": {
-            "locked": "2.9.2",
+            "locked": "2.9.3",
             "requested": "2.9.+"
         },
         "com.fasterxml.jackson.core:jackson-databind": {
-            "locked": "2.9.2",
+            "locked": "2.9.3",
             "requested": "2.9.+"
         },
         "com.fasterxml.jackson.datatype:jackson-datatype-jsr310": {
-            "locked": "2.9.2",
+            "locked": "2.9.3",
             "requested": "2.9.+"
         },
         "com.fasterxml.jackson.module:jackson-module-kotlin": {
@@ -104,8 +112,12 @@
             "locked": "1.2.2",
             "requested": "1.2.+"
         },
+        "com.kjetland:mbknor-jackson-jsonschema_2.12": {
+            "locked": "1.0.25",
+            "requested": "1.0.+"
+        },
         "com.netflix.spinnaker.kork:kork-core": {
-            "locked": "1.109.0",
+            "locked": "1.111.0",
             "requested": "+"
         },
         "net.logstash.logback:logstash-logback-encoder": {
@@ -147,15 +159,15 @@
     },
     "runtime": {
         "com.fasterxml.jackson.core:jackson-annotations": {
-            "locked": "2.9.2",
+            "locked": "2.9.3",
             "requested": "2.9.+"
         },
         "com.fasterxml.jackson.core:jackson-databind": {
-            "locked": "2.9.2",
+            "locked": "2.9.3",
             "requested": "2.9.+"
         },
         "com.fasterxml.jackson.datatype:jackson-datatype-jsr310": {
-            "locked": "2.9.2",
+            "locked": "2.9.3",
             "requested": "2.9.+"
         },
         "com.fasterxml.jackson.module:jackson-module-kotlin": {
@@ -166,8 +178,12 @@
             "locked": "1.2.2",
             "requested": "1.2.+"
         },
+        "com.kjetland:mbknor-jackson-jsonschema_2.12": {
+            "locked": "1.0.25",
+            "requested": "1.0.+"
+        },
         "com.netflix.spinnaker.kork:kork-core": {
-            "locked": "1.109.0",
+            "locked": "1.111.0",
             "requested": "+"
         },
         "net.logstash.logback:logstash-logback-encoder": {
@@ -189,15 +205,15 @@
     },
     "runtimeClasspath": {
         "com.fasterxml.jackson.core:jackson-annotations": {
-            "locked": "2.9.2",
+            "locked": "2.9.3",
             "requested": "2.9.+"
         },
         "com.fasterxml.jackson.core:jackson-databind": {
-            "locked": "2.9.2",
+            "locked": "2.9.3",
             "requested": "2.9.+"
         },
         "com.fasterxml.jackson.datatype:jackson-datatype-jsr310": {
-            "locked": "2.9.2",
+            "locked": "2.9.3",
             "requested": "2.9.+"
         },
         "com.fasterxml.jackson.module:jackson-module-kotlin": {
@@ -208,8 +224,12 @@
             "locked": "1.2.2",
             "requested": "1.2.+"
         },
+        "com.kjetland:mbknor-jackson-jsonschema_2.12": {
+            "locked": "1.0.25",
+            "requested": "1.0.+"
+        },
         "com.netflix.spinnaker.kork:kork-core": {
-            "locked": "1.109.0",
+            "locked": "1.111.0",
             "requested": "+"
         },
         "net.logstash.logback:logstash-logback-encoder": {
@@ -234,21 +254,21 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "2.9.2",
+            "locked": "2.9.3",
             "requested": "2.9.+"
         },
         "com.fasterxml.jackson.core:jackson-databind": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "2.9.2",
+            "locked": "2.9.3",
             "requested": "2.9.+"
         },
         "com.fasterxml.jackson.datatype:jackson-datatype-jsr310": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "2.9.2",
+            "locked": "2.9.3",
             "requested": "2.9.+"
         },
         "com.fasterxml.jackson.module:jackson-module-kotlin": {
@@ -264,6 +284,13 @@
             ],
             "locked": "1.2.2",
             "requested": "1.2.+"
+        },
+        "com.kjetland:mbknor-jackson-jsonschema_2.12": {
+            "firstLevelTransitive": [
+                "com.netflix.spinnaker.keel:keel-core"
+            ],
+            "locked": "1.0.25",
+            "requested": "1.0.+"
         },
         "com.natpryce:hamkrest": {
             "firstLevelTransitive": [
@@ -285,7 +312,7 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "1.109.0",
+            "locked": "1.111.0",
             "requested": "+"
         },
         "com.nhaarman:mockito-kotlin": {
@@ -343,21 +370,21 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "2.9.2",
+            "locked": "2.9.3",
             "requested": "2.9.+"
         },
         "com.fasterxml.jackson.core:jackson-databind": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "2.9.2",
+            "locked": "2.9.3",
             "requested": "2.9.+"
         },
         "com.fasterxml.jackson.datatype:jackson-datatype-jsr310": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "2.9.2",
+            "locked": "2.9.3",
             "requested": "2.9.+"
         },
         "com.fasterxml.jackson.module:jackson-module-kotlin": {
@@ -373,6 +400,13 @@
             ],
             "locked": "1.2.2",
             "requested": "1.2.+"
+        },
+        "com.kjetland:mbknor-jackson-jsonschema_2.12": {
+            "firstLevelTransitive": [
+                "com.netflix.spinnaker.keel:keel-core"
+            ],
+            "locked": "1.0.25",
+            "requested": "1.0.+"
         },
         "com.natpryce:hamkrest": {
             "firstLevelTransitive": [
@@ -394,7 +428,7 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "1.109.0",
+            "locked": "1.111.0",
             "requested": "+"
         },
         "com.nhaarman:mockito-kotlin": {
@@ -452,21 +486,21 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "2.9.2",
+            "locked": "2.9.3",
             "requested": "2.9.+"
         },
         "com.fasterxml.jackson.core:jackson-databind": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "2.9.2",
+            "locked": "2.9.3",
             "requested": "2.9.+"
         },
         "com.fasterxml.jackson.datatype:jackson-datatype-jsr310": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "2.9.2",
+            "locked": "2.9.3",
             "requested": "2.9.+"
         },
         "com.fasterxml.jackson.module:jackson-module-kotlin": {
@@ -482,6 +516,13 @@
             ],
             "locked": "1.2.2",
             "requested": "1.2.+"
+        },
+        "com.kjetland:mbknor-jackson-jsonschema_2.12": {
+            "firstLevelTransitive": [
+                "com.netflix.spinnaker.keel:keel-core"
+            ],
+            "locked": "1.0.25",
+            "requested": "1.0.+"
         },
         "com.natpryce:hamkrest": {
             "firstLevelTransitive": [
@@ -503,7 +544,7 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "1.109.0",
+            "locked": "1.111.0",
             "requested": "+"
         },
         "com.nhaarman:mockito-kotlin": {
@@ -569,21 +610,21 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "2.9.2",
+            "locked": "2.9.3",
             "requested": "2.9.+"
         },
         "com.fasterxml.jackson.core:jackson-databind": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "2.9.2",
+            "locked": "2.9.3",
             "requested": "2.9.+"
         },
         "com.fasterxml.jackson.datatype:jackson-datatype-jsr310": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "2.9.2",
+            "locked": "2.9.3",
             "requested": "2.9.+"
         },
         "com.fasterxml.jackson.module:jackson-module-kotlin": {
@@ -599,6 +640,13 @@
             ],
             "locked": "1.2.2",
             "requested": "1.2.+"
+        },
+        "com.kjetland:mbknor-jackson-jsonschema_2.12": {
+            "firstLevelTransitive": [
+                "com.netflix.spinnaker.keel:keel-core"
+            ],
+            "locked": "1.0.25",
+            "requested": "1.0.+"
         },
         "com.natpryce:hamkrest": {
             "firstLevelTransitive": [
@@ -620,7 +668,7 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "1.109.0",
+            "locked": "1.111.0",
             "requested": "+"
         },
         "com.nhaarman:mockito-kotlin": {

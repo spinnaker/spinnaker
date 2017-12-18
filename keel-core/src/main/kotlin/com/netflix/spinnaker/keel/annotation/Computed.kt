@@ -16,6 +16,12 @@
 
 package com.netflix.spinnaker.keel.annotation
 
+import com.kjetland.jackson.jsonSchema.annotations.JsonSchemaInject
+
+/**
+ * TODO rz - JsonSchemaInject doesn't get picked up here. Very needed.
+ */
+@JsonSchemaInject(json = "{ \"computed\": true }")
 @Target(AnnotationTarget.VALUE_PARAMETER, AnnotationTarget.FIELD)
 @Retention(AnnotationRetention.RUNTIME)
 annotation class Computed(val ignore: Boolean = true)
