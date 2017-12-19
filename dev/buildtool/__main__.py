@@ -177,9 +177,11 @@ def main():
 
   import buildtool.source_commands
   import buildtool.build_commands
+  import buildtool.bom_commands
   command_modules = [
       buildtool.source_commands,
       buildtool.build_commands,
+      buildtool.bom_commands,
   ]
 
   options, registry = init_options_and_registry(sys.argv[1:], command_modules)
