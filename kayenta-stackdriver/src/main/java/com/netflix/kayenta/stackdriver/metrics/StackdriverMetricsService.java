@@ -112,6 +112,7 @@ public class StackdriverMetricsService implements MetricsService {
 
     // TODO(duftler): Replace direct string-manipulating with helper functions.
     // TODO-maybe(duftler): Replace this logic with a library of templates, one for each resource type.
+    // TODO(duftler): Support 'global' resource type.
     if (StringUtils.isEmpty(customFilter)) {
       if ("gce_instance".equals(resourceType)) {
         filter += "resource.labels.project_id=" + projectId +
@@ -120,6 +121,15 @@ public class StackdriverMetricsService implements MetricsService {
       } else if ("aws_ec2_instance".equals(resourceType)) {
         filter += "resource.labels.region=\"aws:" + region + "\"" +
                   " AND metadata.user_labels.\"aws:autoscaling:groupname\"=" + stackdriverCanaryScope.getScope();
+      } else if ("gae_app".equals(resourceType)) {
+        filter += "resource.labels.project_id=" + projectId +
+                  " AND resource.labels.version_id=" + stackdriverCanaryScope.getScope();
+
+        Map<String, String> extendedScopeParams = stackdriverCanaryScope.getExtendedScopeParams();
+
+        if (extendedScopeParams != null && extendedScopeParams.containsKey("service")) {
+          filter += " AND resource.labels.module_id=" + extendedScopeParams.get("service");
+        }
       } else {
         throw new IllegalArgumentException("Resource type '" + resourceType + "' not yet supported.");
       }
