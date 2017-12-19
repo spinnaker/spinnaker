@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.q.handler
 
 import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.orca.events.ExecutionComplete
 import com.netflix.spinnaker.orca.events.ExecutionStarted
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.q.*
@@ -78,6 +79,72 @@ object StartExecutionHandlerTest : SubjectSpek<StartExecutionHandler>({
           it.executionType shouldEqual message.executionType
           it.executionId shouldEqual message.executionId
         })
+      }
+    }
+
+    context("that was previously canceled and status is CANCELED") {
+      val pipeline = pipeline {
+        stage {
+          type = singleTaskStage.type
+        }
+        status = ExecutionStatus.CANCELED
+      }
+
+      val message = StartExecution(pipeline.type, pipeline.id, "foo")
+
+      beforeGroup {
+        whenever(repository.retrieve(message.executionType, message.executionId)) doReturn pipeline
+      }
+
+      afterGroup(::resetMocks)
+
+      action("the handler receives a message") {
+        subject.handle(message)
+      }
+
+      it("publishes an event") {
+        verify(publisher).publishEvent(check<ExecutionComplete> {
+          it.executionType shouldEqual message.executionType
+          it.executionId shouldEqual message.executionId
+          it.status shouldEqual ExecutionStatus.CANCELED
+        })
+      }
+
+      it("pushes no messages to the queue") {
+        verifyNoMoreInteractions(queue)
+      }
+    }
+
+    context("that was previously canceled and status is NOT_STARTED") {
+      val pipeline = pipeline {
+        stage {
+          type = singleTaskStage.type
+        }
+        isCanceled = true
+      }
+
+      val message = StartExecution(pipeline.type, pipeline.id, "foo")
+
+      beforeGroup {
+        whenever(repository.retrieve(message.executionType, message.executionId)) doReturn pipeline
+      }
+
+      afterGroup(::resetMocks)
+
+      action("the handler receives a message") {
+        subject.handle(message)
+      }
+
+      it("publishes an event") {
+        verify(publisher).publishEvent(check<ExecutionComplete> {
+          it.executionType shouldEqual message.executionType
+          it.executionId shouldEqual message.executionId
+          it.status shouldEqual ExecutionStatus.NOT_STARTED
+        })
+      }
+
+      it("pushes no messages to the queue") {
+        verifyNoMoreInteractions(queue)
       }
     }
 

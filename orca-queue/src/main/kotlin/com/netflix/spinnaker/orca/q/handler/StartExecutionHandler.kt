@@ -16,12 +16,18 @@
 
 package com.netflix.spinnaker.orca.q.handler
 
+import com.netflix.spinnaker.orca.ExecutionStatus.CANCELED
+import com.netflix.spinnaker.orca.ExecutionStatus.NOT_STARTED
 import com.netflix.spinnaker.orca.ExecutionStatus.RUNNING
+import com.netflix.spinnaker.orca.events.ExecutionComplete
 import com.netflix.spinnaker.orca.events.ExecutionStarted
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.q.*
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
+import net.logstash.logback.argument.StructuredArguments.value
 
 @Component
 class StartExecutionHandler(
@@ -32,17 +38,31 @@ class StartExecutionHandler(
 
   override val messageType = StartExecution::class.java
 
+  val log: Logger
+    get() = LoggerFactory.getLogger(javaClass)
+
   override fun handle(message: StartExecution) {
     message.withExecution { execution ->
-      repository.updateStatus(message.executionId, RUNNING)
+      if (execution.status == NOT_STARTED && !execution.isCanceled) {
+        repository.updateStatus(message.executionId, RUNNING)
 
-      execution
-        .initialStages()
-        .forEach {
-          queue.push(StartStage(message, it.id))
+        execution
+          .initialStages()
+          .forEach {
+            queue.push(StartStage(message, it.id))
+          }
+
+        publisher.publishEvent(ExecutionStarted(this, message.executionType, message.executionId))
+      } else {
+        if (execution.status == CANCELED || execution.isCanceled) {
+          publisher.publishEvent(ExecutionComplete(this, message.executionType, message.executionId, execution.status))
+        } else {
+          log.warn("Execution (type: ${message.executionType}, id: {}, status: ${execution.status}, application: {})" +
+            " cannot bes started unless state is NOT_STARTED. Ignoring StartExecution message.",
+            value("executionId", message.executionId),
+            value("application", message.application))
         }
+      }
     }
-
-    publisher.publishEvent(ExecutionStarted(this, message.executionType, message.executionId))
   }
 }
