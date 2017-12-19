@@ -5,4 +5,5 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 @ConfigurationProperties("keel")
 class KeelProperties {
   var prettyPrintJson: Boolean = false
+  var immediatelyRunIntents: Boolean = true
 }

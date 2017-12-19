@@ -15,6 +15,7 @@
  */
 package com.netflix.spinnaker.keel.controllers.v1
 
+import com.netflix.spinnaker.config.KeelProperties
 import com.netflix.spinnaker.keel.Intent
 import com.netflix.spinnaker.keel.IntentActivityRepository
 import com.netflix.spinnaker.keel.IntentRepository
@@ -24,7 +25,9 @@ import com.netflix.spinnaker.keel.dryrun.DryRunIntentLauncher
 import com.netflix.spinnaker.keel.event.AfterIntentDeleteEvent
 import com.netflix.spinnaker.keel.event.AfterIntentUpsertEvent
 import com.netflix.spinnaker.keel.model.UpsertIntentRequest
+import com.netflix.spinnaker.keel.orca.OrcaIntentLauncher
 import com.netflix.spinnaker.keel.tracing.TraceRepository
+import net.logstash.logback.argument.StructuredArguments
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationEventPublisher
@@ -43,10 +46,12 @@ import javax.ws.rs.QueryParam
 class IntentController
 @Autowired constructor(
   private val dryRunIntentLauncher: DryRunIntentLauncher,
+  private val orcaIntentLauncher: OrcaIntentLauncher,
   private val intentRepository: IntentRepository,
   private val intentActivityRepository: IntentActivityRepository,
   private val traceRepository: TraceRepository,
-  private val applicationEventPublisher: ApplicationEventPublisher
+  private val applicationEventPublisher: ApplicationEventPublisher,
+  private val keelProperties: KeelProperties
 ) {
 
   private val log = LoggerFactory.getLogger(javaClass)
@@ -68,7 +73,6 @@ class IntentController
     // TODO rz - validate intents
     // TODO rz - calculate graph
 
-    // TODO rz - config for running immediately
     // TODO rz - add "notes" API property for history/audit
 
     if (req.dryRun) {
@@ -79,6 +83,12 @@ class IntentController
 
     req.intents.forEach { intent ->
       intentRepository.upsertIntent(intent)
+
+      if (keelProperties.immediatelyRunIntents) {
+        log.info("Immediately launching intent {}", StructuredArguments.value("intent", intent.id()))
+        orcaIntentLauncher.launch(intent)
+      }
+
       intentList.add(UpsertIntentResponse(intent.id(), intent.status))
       applicationEventPublisher.publishEvent(AfterIntentUpsertEvent(intent))
     }

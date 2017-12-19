@@ -32,12 +32,13 @@ interface SchedulerAgent {
  */
 @Component
 class QueueBackedSchedulerAgent(
-  private val queue: Queue
+  private val queue: Queue,
+  @Value("\${scheduler.retry.onStart.ms:30000}") private val ensureSchedulerFrequency: Long
 ) : SchedulerAgent {
 
   private val log = LoggerFactory.getLogger(javaClass)
 
-  @PostConstruct fun ensureSchedule(@Value("\${scheduler.retry.onStart.ms:30000}") ensureSchedulerFrequency: Long) {
+  @PostConstruct fun ensureSchedule() {
     log.info("Ensuring scheduler convergence task exists")
     queue.ensure(ScheduleConvergence(), Duration.ofMillis(ensureSchedulerFrequency))
   }

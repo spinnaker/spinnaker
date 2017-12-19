@@ -49,7 +49,7 @@ open class OrcaIntentLauncher
       val result = intentProcessor(intentProcessors, intent).converge(intent)
 
       if (result.orchestrations.isEmpty()) {
-        log.info("Not converging state for intent {}, {}",
+        log.info("No action needed to converge intent {}, {}",
           value("intent", intent.id()),
           value("summary", result.changeSummary))
       } else {

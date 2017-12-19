@@ -58,6 +58,7 @@ data class AmazonSecurityGroupSpec(
   override val regions: Set<String>,
   override val inboundRules: Set<SecurityGroupRule>,
   val outboundRules: Set<SecurityGroupRule>,
+  // We don't care to support EC2 Classic, but for some reason clouddriver returns nulls (and isn't "default" vpcs)
   val vpcName: String?,
   val description: String
 ) : SecurityGroupSpec()
