@@ -90,6 +90,8 @@ SPINNAKER_HALYARD_REPOSITORIES = {
     'halyard': __new_spinnaker_git_repo('halyard')
 }
 
+SPINNAKER_GITHUB_IO_REPOSITORY = __new_spinnaker_git_repo('spinnaker.github.io')
+
 
 class RepositoryWorker(object):
   """A picklable callable for passing to inter-process mappers."""
