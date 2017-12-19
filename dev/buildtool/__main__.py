@@ -175,7 +175,9 @@ def init_options_and_registry(args, command_modules):
 def main():
   """The main command dispatcher."""
 
+  import buildtool.source_commands
   command_modules = [
+      buildtool.source_commands,
   ]
 
   options, registry = init_options_and_registry(sys.argv[1:], command_modules)
