@@ -50,7 +50,7 @@ abstract public class AbstractPollingNotificationAgent implements ApplicationLis
   protected abstract void startPolling();
 
   protected boolean tryAcquireLock() {
-    String key = "lock:${notificationType}";
+    String key = "lock:" + getNotificationType();
     return withJedis(jedisPool, redis ->
       "OK".equals(redis.set(key, "\uD83D\uDD12", "NX", "EX", (long) getPollingInterval())));
   }
