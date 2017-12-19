@@ -22,10 +22,7 @@ import com.netflix.spinnaker.q.Message
 // ScheduleConvergence is a singleton message, the consumer finding all active
 // intents and scheduling workers to consume individual convergence tasks. The
 // consumer is responsible for rescheduling this message.
-// TODO rz - Each instance should also run a periodic agent to ensure
-data class ScheduleConvergence(
-  val todo: String = "TODO"
-) : Message()
+class ScheduleConvergence : Message()
 
 data class ConvergeIntent(
   val intent: Intent<IntentSpec>,

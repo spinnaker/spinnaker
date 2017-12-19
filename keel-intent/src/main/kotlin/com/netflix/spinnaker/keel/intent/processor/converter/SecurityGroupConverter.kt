@@ -105,7 +105,6 @@ class SecurityGroupConverter(
           regions = state.map { s -> s.region }.toSet(),
           vpcName = clouddriverCache.networkBy(it.vpcId!!).name,
           inboundRules = it.inboundRules.map {
-            // TODO rz - ehhh? Will this work?
             objectMapper.convertValue(it, SecurityGroupRule::class.java)
           }.toSet(),
           outboundRules = setOf()

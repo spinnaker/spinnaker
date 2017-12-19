@@ -75,8 +75,7 @@ open class OrcaIntentLauncher
   }
 }
 
-// TODO rz - Should probably collect the converge
-class OrcaLaunchedIntentResult(
+data class OrcaLaunchedIntentResult(
   val orchestrationIds: List<String>,
   val changeSummary: ChangeSummary
 ) : LaunchedIntentResult

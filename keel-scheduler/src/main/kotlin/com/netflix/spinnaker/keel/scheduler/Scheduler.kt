@@ -17,6 +17,7 @@ package com.netflix.spinnaker.keel.scheduler
 
 import com.netflix.spinnaker.q.Queue
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import java.time.Duration
@@ -26,6 +27,9 @@ interface SchedulerAgent {
   fun run()
 }
 
+/**
+ * Starts the convergence schedule, and ensures that it stays scheduled through failures.
+ */
 @Component
 class QueueBackedSchedulerAgent(
   private val queue: Queue
@@ -33,16 +37,13 @@ class QueueBackedSchedulerAgent(
 
   private val log = LoggerFactory.getLogger(javaClass)
 
-  @PostConstruct fun ensureSchedule() {
-    // TODO rz - Not super nice, but works: A deploy may push out a convergence.
+  @PostConstruct fun ensureSchedule(@Value("\${scheduler.retry.onStart.ms:30000}") ensureSchedulerFrequency: Long) {
     log.info("Ensuring scheduler convergence task exists")
-    queue.push(ScheduleConvergence(), Duration.ofSeconds(10))
+    queue.ensure(ScheduleConvergence(), Duration.ofMillis(ensureSchedulerFrequency))
   }
 
   @Scheduled(fixedDelayString = "\${scheduler.retry.frequency.ms:30000}")
   override fun run() {
-    // TODO rz / keiko - add `ensure`, make sure the message is on the queue, but no-op (no schedule change) if present
-    log.info("TODO: Rescheduling convergence task")
-//    queue.reschedule(ScheduleConvergence())
+    queue.ensure(ScheduleConvergence(), Duration.ofSeconds(30))
   }
 }

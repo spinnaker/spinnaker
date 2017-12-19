@@ -61,13 +61,11 @@ class MonitorOrchestrationsHandler
           log.debug("orchestration for intent has succeeded (intentId: {}, taskId: {})", value("intent", message.intentId), value("task", it))
           intentActivityRepository.removeCurrent(message.intentId, it)
           registry.counter(orchestrationsStatusId.withTag("kind", message.kind).withTag("status", "success")).increment()
-          //TODO eb: record duration metric
         }
         orcaExecutionStatus.isFailure() -> {
           log.debug("orchestration for intent has failed (intentId: {}, taskId: {})", value("intent", message.intentId), value("task", it))
           intentActivityRepository.removeCurrent(message.intentId, it)
           registry.counter(orchestrationsStatusId.withTag("kind", message.kind).withTag("status", "failure")).increment()
-          //TODO eb: record duration metric
         }
         else -> {
           log.debug("orchestration for intent has unhandled status $orcaExecutionStatus (intentId: {}, taskId: {})", value("intent", message.intentId), value("task", it))
