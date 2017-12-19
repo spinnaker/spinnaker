@@ -60,19 +60,20 @@ def maybe_log_exception(where, ex, action_msg='propagating exception'):
   logging.error('"%s" %s', where, action_msg)
 
 
-def run_subprocess(cmd, stream=None, echo=False, **kwargs):
-  """Returns retcode, stdout."""
+def start_subprocess(cmd, stream=None, echo=False, **kwargs):
+  """Starts a subprocess and returns handle to it."""
   split_cmd = shlex.split(cmd)
 
-  if echo:
-    logging.info('Running %s ...', cmd)
-  else:
-    logging.debug('Running %s ...', cmd)
+  log_level = logging.INFO if echo else logging.DEBUG
+  extra_log_info = ''
+  if 'cwd' in kwargs:
+    extra_log_info += ' in cwd="{dir}"'.format(dir=kwargs['cwd'])
+  logging.log(log_level, 'Running %s%s...', repr(cmd), extra_log_info)
 
   start_date = datetime.datetime.now()
   if stream:
-    stream.write('{time} Spawning {cmd}\n----\n\n'.format(
-        time=timestring(now=start_date), cmd=cmd))
+    stream.write('{time} Spawning {cmd!r}{extra}\n----\n\n'.format(
+        time=timestring(now=start_date), cmd=cmd, extra=extra_log_info))
     stream.flush()
 
   process = subprocess.Popen(
@@ -81,8 +82,22 @@ def run_subprocess(cmd, stream=None, echo=False, **kwargs):
       stdout=subprocess.PIPE,
       stderr=subprocess.STDOUT,
       **kwargs)
-  time.sleep(0) # yield this thread
+  logging.log(log_level, 'Running %s as pid %s', split_cmd[0], process.pid)
+  process.start_date = start_date
 
+  time.sleep(0) # yield this thread
+  return process
+
+
+def wait_subprocess(process, stream=None, echo=False):
+  """Waits for subprocess to finish and returns (final status, stdout).
+
+  This will also consume the remaining output to return it.
+
+  Returns:
+    Process exit code, stdout remaining in process prior to this invocation.
+    Any previously read output from the process will not be included.
+  """
   stdout_lines = []
   for line in iter(process.stdout.readline, ''):
     stdout_lines.append(line)
@@ -90,8 +105,12 @@ def run_subprocess(cmd, stream=None, echo=False, **kwargs):
       stream.write(line)
       stream.flush()
   process.wait()
-  end_date = datetime.datetime.now()
-  delta_time_str = timedelta_string(end_date - start_date)
+  if hasattr(process, 'start_date'):
+    end_date = datetime.datetime.now()
+    delta_time_str = timedelta_string(end_date - process.start_date)
+  else:
+    delta_time_str = 'UNKNOWN'
+
   returncode = process.returncode
   stdout = ''.join(stdout_lines)
 
@@ -105,11 +124,17 @@ def run_subprocess(cmd, stream=None, echo=False, **kwargs):
 
   if echo:
     logging.info('%s returned %d with output:\n%s',
-                 split_cmd[0], returncode, stdout)
+                 process.pid, returncode, stdout)
   logging.debug('Finished %s with returncode=%d in %s',
-                split_cmd[0], returncode, delta_time_str)
+                process.pid, returncode, delta_time_str)
 
   return returncode, stdout.strip()
+
+
+def run_subprocess(cmd, stream=None, echo=False, **kwargs):
+  """Returns retcode, stdout."""
+  process = start_subprocess(cmd, stream=stream, echo=echo, **kwargs)
+  return wait_subprocess(process, stream=stream, echo=echo)
 
 
 def check_subprocess(cmd, stream=None, **kwargs):
@@ -161,6 +186,28 @@ def ensure_dir_exists(path):
     os.makedirs(path)
   except OSError:
     if not os.path.exists(path):
+      raise
+
+
+def check_subprocesses_to_logfile(what, logfile, cmds, append=False, **kwargs):
+  """Wrapper around check_subprocess that logs output to a logfile.
+
+  Args:
+    what: [string] For logging purposes, what is the command for.
+    logfile: [path] The logfile to write to.
+    cmds: [list of string] A list of commands to run.
+    append: [boolean] Open the log file as append if true, write new default.
+    kwargs: [kwargs] Additional keyword arguments to pass to check_subprocess.
+  """
+  mode = 'a' if append else 'w'
+  how = 'Appending' if append else 'Logging'
+  logging.info('%s %s to %s', how, what, logfile)
+  ensure_dir_exists(os.path.dirname(logfile))
+  with open(logfile, mode) as stream:
+    try:
+      check_subprocess_sequence(cmds, stream=stream, **kwargs)
+    except Exception:
+      logging.error('%s failed. For more details, see %s', what, logfile)
       raise
 
 

@@ -218,9 +218,11 @@ class RepositoryCommandProcessor(CommandProcessor):
   def _do_determine_source_repositories(self):
     """Determine which repositories this command should operate on."""
     # pylint: disable=unused-argument
-    raise NotImplementedError(
-        '{0}.determine_source_repositories not implemented'.format(
-            self.__class__.__name__))
+    if self.__source_repositories is None:
+      raise NotImplementedError(
+          '{0}.determine_source_repositories not implemented'.format(
+              self.__class__.__name__))
+    raise Exception('Unexpected call.')
 
   def _do_command(self):
     """Implements CommandProcessor interface.
