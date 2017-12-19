@@ -60,7 +60,7 @@ default may be configured using the `regexes` list.
 ```
 github:
   baseUrl: "https://api.github.com"
-  accessToken: '<your token>'
+  accessToken: '<your github token>'
   commitDisplayLength: 8
 
 stash:
@@ -73,6 +73,11 @@ bitbucket:
   username: '<bitbucket username>'
   password: '<bitbucket password>'
   commitDisplayLength: 7
+
+gitlab:
+  baseUrl: "https://gitlab.com"
+  privateToken: '<your gitlab token>'
+  commitDisplayLength: 8
 ```
 
 Currently git credentials are used in Spinnaker pipelines to retrieve commit changes across different build versions. 

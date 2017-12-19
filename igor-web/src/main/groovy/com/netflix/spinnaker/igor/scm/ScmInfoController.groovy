@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.igor.scm
 
 import com.netflix.spinnaker.igor.scm.github.client.GitHubMaster
+import com.netflix.spinnaker.igor.scm.gitlab.client.GitLabMaster
 import com.netflix.spinnaker.igor.scm.stash.client.StashMaster
 import com.netflix.spinnaker.igor.scm.bitbucket.client.BitBucketMaster
 import groovy.util.logging.Slf4j
@@ -39,6 +40,9 @@ class ScmInfoController {
     GitHubMaster gitHubMaster
 
     @Autowired(required = false)
+    GitLabMaster gitLabMaster
+
+    @Autowired(required = false)
     BitBucketMaster bitBucketMaster
 
     @RequestMapping(value = '/masters', method = RequestMethod.GET)
@@ -49,6 +53,9 @@ class ScmInfoController {
 
         if(gitHubMaster)
             result << [gitHub : gitHubMaster.baseUrl]
+
+        if(gitLabMaster)
+            result << [gitLab : gitLabMaster.baseUrl]
 
         if(bitBucketMaster)
             result << [bitBucket : bitBucketMaster.baseUrl]

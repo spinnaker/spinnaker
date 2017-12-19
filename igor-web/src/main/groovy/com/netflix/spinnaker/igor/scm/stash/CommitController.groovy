@@ -37,7 +37,7 @@ class CommitController extends AbstractCommitController {
     StashMaster stashMaster
 
     @RequestMapping(value = '/{projectKey}/{repositorySlug}/compareCommits')
-    List compareCommits(@PathVariable(value = 'projectKey') String projectKey, @PathVariable(value='repositorySlug') repositorySlug, @RequestParam Map<String, String> requestParams) {
+    List compareCommits(@PathVariable(value = 'projectKey') String projectKey, @PathVariable(value='repositorySlug') String repositorySlug, @RequestParam Map<String, String> requestParams) {
         super.compareCommits(projectKey, repositorySlug, requestParams)
         CompareCommitsResponse commitsResponse
         try {
