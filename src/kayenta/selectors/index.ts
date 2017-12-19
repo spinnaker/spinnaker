@@ -46,3 +46,5 @@ export const configTemplatesSelector = createSelector(
   selectedConfigSelector,
   config => config ? config.templates : null,
 );
+
+export const editingTemplateSelector = (state: ICanaryState) => state.selectedConfig.editingTemplate;

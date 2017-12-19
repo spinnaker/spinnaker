@@ -17,6 +17,7 @@ import { JudgeSelectRenderState } from '../edit/judgeSelect';
 import { UNGROUPED, ALL } from '../edit/groupTabs';
 import { AsyncRequestState } from './asyncRequest';
 import { IConfigValidationError } from './validators';
+import { editingTemplate, IEditingTemplateState } from './editingTemplate';
 
 export interface ILoadState {
   state: AsyncRequestState;
@@ -61,6 +62,7 @@ export interface ISelectedConfigState {
   json: IJsonState;
   changeMetricGroup: IChangeMetricGroupState;
   validationErrors: IConfigValidationError[];
+  editingTemplate: IEditingTemplateState;
 }
 
 const config = handleActions({
@@ -310,6 +312,31 @@ export function updateGroupWeightsReducer(state: ISelectedConfigState, action: A
   };
 }
 
+const editingTemplateConfirmReducer = (state: ISelectedConfigState, action: Action & any): ISelectedConfigState => {
+  if (action.type !== Actions.EDIT_TEMPLATE_CONFIRM) {
+    return state;
+  }
+
+  const { name, editedName, editedValue } = state.editingTemplate;
+  const templates = {
+    ...omit(state.config.templates, name),
+    [editedName]: editedValue,
+  };
+
+  return {
+    ...state,
+    editingTemplate: {
+      name: null,
+      editedName: null,
+      editedValue: null,
+    },
+    config: {
+      ...state.config,
+      templates,
+    },
+  };
+};
+
 const combined = combineReducers<ISelectedConfigState>({
   config,
   load,
@@ -324,6 +351,7 @@ const combined = combineReducers<ISelectedConfigState>({
   changeMetricGroup,
   isInSyncWithServer,
   validationErrors: () => null,
+  editingTemplate,
 });
 
 // First combine all simple reducers, then apply more complex ones as needed.
@@ -335,5 +363,6 @@ export const selectedConfig = (state: ISelectedConfigState, action: Action & any
     editGroupConfirmReducer,
     changeMetricGroupConfirmReducer,
     updateGroupWeightsReducer,
+    editingTemplateConfirmReducer,
   ].reduce((s, reducer) => reducer(s, action), state);
 };
