@@ -16,14 +16,17 @@
 
 package com.netflix.spinnaker.orca.pipeline
 
+import java.util.concurrent.ThreadLocalRandom
 import java.util.concurrent.TimeUnit
 import com.google.common.annotations.VisibleForTesting
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.tasks.WaitTask
 import groovy.transform.Canonical
 import groovy.transform.CompileStatic
+import groovy.transform.TypeCheckingMode
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
@@ -43,6 +46,36 @@ class RestrictExecutionDuringTimeWindow implements StageDefinitionBuilder {
   @Override
   void taskGraph(Stage stage, TaskNode.Builder builder) {
     builder.withTask("suspendExecutionDuringTimeWindow", SuspendExecutionDuringTimeWindowTask)
+
+    try {
+      def jitter = stage.mapTo("/restrictedExecutionWindow/jitter", JitterConfig)
+      if (jitter.enabled && jitter.maxDelay) {
+        if (jitter.skipManual && stage.execution?.trigger?.type == "manual") {
+          return
+        }
+
+        long waitTime = ThreadLocalRandom.current().nextLong(jitter.minDelay ?: 0, jitter.maxDelay + 1)
+
+        stage.setContext(contextWithWait(stage.context, waitTime))
+        builder.withTask("waitForJitter", WaitTask)
+      }
+    } catch (IllegalArgumentException e) {
+      // Do nothing
+    }
+  }
+
+  private Map<String, Object> contextWithWait(Map<String, Object> context, long waitTime) {
+    if (context.waitTime == null) {
+      context.waitTime = waitTime
+    }
+    return context
+  }
+
+  static class JitterConfig {
+    boolean enabled
+    boolean skipManual
+    long minDelay
+    long maxDelay
   }
 
   @Component
@@ -141,7 +174,7 @@ class RestrictExecutionDuringTimeWindow implements StageDefinitionBuilder {
     private Date calculateScheduledTime(Date scheduledTime, List<TimeWindow> whitelistWindows, List<Integer> whitelistDays, boolean dayIncremented) throws IncorrectTimeWindowsException {
 
       if ((!whitelistWindows || whitelistWindows.empty) && whitelistDays && !whitelistDays.empty) {
-        whitelistWindows = [ new TimeWindow(new HourMinute(0, 0), new HourMinute(23, 59))]
+        whitelistWindows = [new TimeWindow(new HourMinute(0, 0), new HourMinute(23, 59))]
       }
 
       boolean inWindow = false

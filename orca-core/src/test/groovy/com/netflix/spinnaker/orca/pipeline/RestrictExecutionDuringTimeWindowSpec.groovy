@@ -16,17 +16,29 @@
 
 package com.netflix.spinnaker.orca.pipeline
 
+import com.netflix.spinnaker.orca.ExecutionStatus
+import spock.lang.Subject
 import java.text.SimpleDateFormat
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import spock.lang.Specification
 import spock.lang.Unroll
+
+import java.time.Duration
+import java.time.LocalTime
+import java.time.format.DateTimeFormatter
+
 import static com.netflix.spinnaker.orca.pipeline.RestrictExecutionDuringTimeWindow.SuspendExecutionDuringTimeWindowTask
 import static com.netflix.spinnaker.orca.pipeline.RestrictExecutionDuringTimeWindow.SuspendExecutionDuringTimeWindowTask.HourMinute
 import static com.netflix.spinnaker.orca.pipeline.RestrictExecutionDuringTimeWindow.SuspendExecutionDuringTimeWindowTask.TimeWindow
 
 @Unroll
 class RestrictExecutionDuringTimeWindowSpec extends Specification {
+
+  def builder = Spy(new TaskNode.Builder(TaskNode.GraphType.FULL))
+
+  @Subject
+  restrictExecutionDuringTimeWindow = new RestrictExecutionDuringTimeWindow()
 
   void 'stage should be scheduled at #expectedTime when triggered at #scheduledTime with time windows #timeWindows'() {
     when:
@@ -170,6 +182,36 @@ class RestrictExecutionDuringTimeWindowSpec extends Specification {
     date("02/25 01:00:00")  | [] | [1]             || date("03/02 00:00:00")
   }
 
+  @Unroll
+  void 'stage should optionally configure WaitTask based on restrictedExecutionWindow.jitter'() {
+    when:
+    def jitterContext = [
+      enabled : jitterEnabled,
+      maxDelay: max,
+      minDelay: min
+    ]
+    Stage restrictExecutionStage = stage([window("10:00", "13:00")], jitterContext)
+
+    restrictExecutionDuringTimeWindow.taskGraph(restrictExecutionStage, builder)
+
+    then:
+    if (jitterEnabled && max != null) {
+      assert restrictExecutionStage.context.waitTime != null
+      assert (restrictExecutionStage.context.waitTime >= min && restrictExecutionStage.context.waitTime <= max)
+    } else {
+      assert restrictExecutionStage.context.waitTime == null
+    }
+    waitTaskCount * builder.withTask("waitForJitter", com.netflix.spinnaker.orca.pipeline.tasks.WaitTask)
+
+    where:
+    jitterEnabled | min  | max  | waitTaskCount
+    true          | 60   | 600  | 1
+    true          | null | 600  | 1
+    true          | null | null | 0
+    false         | 60   | 600  | 0
+    false         | null | null | 0
+  }
+
   private hourMinute(String hourMinuteStr) {
     int hour = hourMinuteStr.tokenize(":").get(0) as Integer
     int min = hourMinuteStr.tokenize(":").get(1) as Integer
@@ -196,6 +238,14 @@ class RestrictExecutionDuringTimeWindowSpec extends Specification {
 
   private Stage stage(List<Map> windows) {
     Map restrictedExecutionWindow = [whitelist: windows]
+    Map context = [restrictedExecutionWindow: restrictedExecutionWindow]
+    def pipeline = Execution.newPipeline("orca")
+    return new Stage(pipeline, "testRestrictExecution", context)
+  }
+
+  private Stage stage(List<Map> windows, Map<String, Object> jitterContext) {
+    Map restrictedExecutionWindow = [whitelist: windows]
+    restrictedExecutionWindow.jitter = jitterContext
     Map context = [restrictedExecutionWindow: restrictedExecutionWindow]
     def pipeline = Execution.newPipeline("orca")
     return new Stage(pipeline, "testRestrictExecution", context)

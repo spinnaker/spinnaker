@@ -45,12 +45,11 @@ class WaitTask implements RetryableTask {
 
 
     def waitTaskState = stage.context.waitTaskState
-    if (!waitTaskState || !waitTaskState instanceof Map) {
+    if (stage.context.skipRemainingWait) {
+      new TaskResult(SUCCEEDED, [waitTaskState: [:]])
+    } else if (!waitTaskState || !waitTaskState instanceof Map) {
       new TaskResult(RUNNING, [waitTaskState: [startTime: now]])
     } else if (now - ((Long) ((Map) stage.context.waitTaskState).startTime) > waitTimeMs) {
-      new TaskResult(SUCCEEDED, [waitTaskState: [:]])
-    } else if (stage.context.skipRemainingWait) {
-      // leaving skipRemainingWait unchanged since added to context elsewhere
       new TaskResult(SUCCEEDED, [waitTaskState: [:]])
     } else {
       new TaskResult(RUNNING)
