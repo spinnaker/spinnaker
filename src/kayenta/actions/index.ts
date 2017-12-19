@@ -29,6 +29,7 @@ export const CONFIG_JSON_MODAL_OPEN = 'config_json_modal_open';
 export const CONFIG_JSON_MODAL_CLOSE = 'config_json_modal_close';
 export const SET_CONFIG_JSON = 'set_config_json';
 export const UPDATE_STACKDRIVER_METRIC_TYPE = 'update_stackdriver_metric_type';
+export const UPDATE_STACKDRIVER_GROUP_BY_FIELDS = 'update_stackdriver_group_by_fields';
 export const UPDATE_JUDGES = 'update_judges';
 export const SELECT_JUDGE_NAME = 'select_judge_name';
 export const UPDATE_SCORE_THRESHOLDS = 'update_score_thresholds';

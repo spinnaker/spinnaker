@@ -1,4 +1,5 @@
 import { createAction } from 'redux-actions';
+import { Action } from 'redux';
 
 import * as Actions from './index';
 import { ConfigJsonModalTabState } from '../edit/configJsonModal';
@@ -7,6 +8,11 @@ import { ICanaryConfigSummary } from '../domain/ICanaryConfigSummary';
 import { IJudge } from '../domain/IJudge';
 import { IMetricSetPair } from '../domain/IMetricSetPair';
 import { ICanaryExecutionStatusResult } from '../domain/ICanaryExecutionStatusResult';
+import { IUpdateListPayload } from '../layout/list';
+
+export interface IKayentaAction<T> extends Action {
+  payload: T;
+}
 
 const typedPayloadCreator = <T>() => (payload: T): T => payload;
 
@@ -64,3 +70,4 @@ export const editTemplateConfirm = createAction(Actions.EDIT_TEMPLATE_CONFIRM);
 export const editTemplateCancel = createAction(Actions.EDIT_TEMPLATE_CANCEL);
 export const editTemplateName = createAction(Actions.EDIT_TEMPLATE_NAME, typedPayloadCreator<{name: string}>());
 export const editTemplateValue = createAction(Actions.EDIT_TEMPLATE_VALUE, typedPayloadCreator<{value: string}>());
+export const updateStackdriverGroupBy = createAction(Actions.UPDATE_STACKDRIVER_GROUP_BY_FIELDS, typedPayloadCreator<IUpdateListPayload>())

@@ -18,6 +18,7 @@ import { UNGROUPED, ALL } from '../edit/groupTabs';
 import { AsyncRequestState } from './asyncRequest';
 import { IConfigValidationError } from './validators';
 import { editingTemplate, IEditingTemplateState } from './editingTemplate';
+import { stackdriverMetricConfigReducer } from './stackdriverMetricConfig';
 
 export interface ILoadState {
   state: AsyncRequestState;
@@ -97,9 +98,6 @@ const editingMetric = handleActions({
   [Actions.UPDATE_METRIC_DIRECTION]: (state: ICanaryMetricConfig, action: Action & any) => (
     set(cloneDeep(state), ['analysisConfigurations', 'canary', 'direction'], action.payload.direction)
   ),
-  [Actions.UPDATE_STACKDRIVER_METRIC_TYPE]: (state: ICanaryMetricConfig, action: Action & any) => ({
-    ...state, query: { ...state.query, metricType: action.metricType, type: 'stackdriver' },
-  }),
   [Actions.UPDATE_ATLAS_QUERY]: (state: ICanaryMetricConfig, action: Action & any) => ({
     ...state, query: { ...state.query, q: action.query }
   })
@@ -345,7 +343,8 @@ const combined = combineReducers<ISelectedConfigState>({
   json,
   judge,
   metricList,
-  editingMetric,
+  editingMetric: (metric, action) =>
+    [editingMetric, stackdriverMetricConfigReducer].reduce((s, reducer) => reducer(s, action), metric),
   group,
   thresholds,
   changeMetricGroup,
