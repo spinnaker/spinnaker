@@ -23,10 +23,6 @@ import org.springframework.stereotype.Component
 import java.time.Duration
 import javax.annotation.PostConstruct
 
-interface SchedulerAgent {
-  fun run()
-}
-
 /**
  * Starts the convergence schedule, and ensures that it stays scheduled through failures.
  */
@@ -34,7 +30,7 @@ interface SchedulerAgent {
 class QueueBackedSchedulerAgent(
   private val queue: Queue,
   @Value("\${scheduler.retry.onStart.ms:30000}") private val ensureSchedulerFrequency: Long
-) : SchedulerAgent {
+) {
 
   private val log = LoggerFactory.getLogger(javaClass)
 
@@ -44,7 +40,7 @@ class QueueBackedSchedulerAgent(
   }
 
   @Scheduled(fixedDelayString = "\${scheduler.retry.frequency.ms:30000}")
-  override fun run() {
+  fun run() {
     queue.ensure(ScheduleConvergence(), Duration.ofSeconds(30))
   }
 }
