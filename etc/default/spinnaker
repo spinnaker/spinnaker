@@ -1,11 +1,11 @@
 # Spinnaker system defaults
 
-function __get_aws_metadata_value() {
+__get_aws_metadata_value() {
   local AWS_METADATA_URL="http://169.254.169.254/latest/meta-data"
   local path="$1"
   local value=$(curl -L --connect-timeout 2 -s -f $AWS_METADATA_URL/$path)
 
-  if [[ $? -eq 0 ]]; then
+  if [ $? -eq 0 ]; then
     echo "$value"
   else
     echo ""
@@ -13,7 +13,7 @@ function __get_aws_metadata_value() {
 }
 
 
-function __get_google_metadata_value() {
+__get_google_metadata_value() {
   local GOOGLE_METADATA_URL="http://metadata.google.internal/computeMetadata/v1"
   local path="$1"
   local value=$(curl -L --connect-timeout 2 -s -f -H "Metadata-Flavor: Google" \
@@ -27,8 +27,8 @@ function __get_google_metadata_value() {
 }
 
 
-function __determine_default_bucket() {
-  if [[ ! -z "${SPINNAKER_GOOGLE_PROJECT_ID}" ]]; then
+__determine_default_bucket() {
+  if [ ! -z "${SPINNAKER_GOOGLE_PROJECT_ID}" ]; then
     # dot and colon are not valid bucket characters
     # however they are valid project id names (e.g. google.com:)
     # so replace those bad chars with '-'
