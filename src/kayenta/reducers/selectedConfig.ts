@@ -71,6 +71,16 @@ const config = handleActions({
   [Actions.UPDATE_CONFIG_NAME]: (state: ICanaryConfig, action: Action & any) => ({ ...state, name: action.payload.name }),
   [Actions.UPDATE_CONFIG_DESCRIPTION]: (state: ICanaryConfig, action: Action & any) => ({ ...state, description: action.payload.description }),
   [combineActions(Actions.DELETE_CONFIG_SUCCESS, Actions.CLEAR_SELECTED_CONFIG)]: () => null,
+  [Actions.DELETE_TEMPLATE]: (state: ICanaryConfig, action: Action & any) => {
+    if (!action.payload.name) {
+      return state;
+    }
+
+    return {
+      ...state,
+      templates: omit(state.templates, action.payload.name),
+    };
+  },
 }, null);
 
 const load = combineReducers({
@@ -317,7 +327,7 @@ const editingTemplateConfirmReducer = (state: ISelectedConfigState, action: Acti
 
   const { name, editedName, editedValue } = state.editingTemplate;
   const templates = {
-    ...omit(state.config.templates, name),
+    ...(name ? omit(state.config.templates, name) : state.config.templates),
     [editedName]: editedValue,
   };
 

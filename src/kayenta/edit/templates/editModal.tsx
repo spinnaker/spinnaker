@@ -25,7 +25,7 @@ interface IEditTemplateModalDispatchProps {
 
 const EditTemplateModal = ({ name, editName, value, editValue, cancel, confirm }: IEditTemplateModalStateProps & IEditTemplateModalDispatchProps) => {
   return (
-    <Modal onHide={noop} show={!!name && !!value}>
+    <Modal onHide={noop} show={name !== null && value !== null}>
       <Styleguide>
         <Modal.Header>
           <Modal.Title>Edit Template</Modal.Title>

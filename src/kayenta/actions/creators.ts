@@ -71,3 +71,4 @@ export const editTemplateCancel = createAction(Actions.EDIT_TEMPLATE_CANCEL);
 export const editTemplateName = createAction(Actions.EDIT_TEMPLATE_NAME, typedPayloadCreator<{name: string}>());
 export const editTemplateValue = createAction(Actions.EDIT_TEMPLATE_VALUE, typedPayloadCreator<{value: string}>());
 export const updateStackdriverGroupBy = createAction(Actions.UPDATE_STACKDRIVER_GROUP_BY_FIELDS, typedPayloadCreator<IUpdateListPayload>())
+export const deleteTemplate = createAction(Actions.DELETE_TEMPLATE, typedPayloadCreator<{name: string}>());

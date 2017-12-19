@@ -56,3 +56,4 @@ export const EDIT_TEMPLATE_CANCEL = 'edit_template_cancel';
 export const EDIT_TEMPLATE_CONFIRM = 'edit_template_confirm';
 export const EDIT_TEMPLATE_NAME = 'edit_template_name';
 export const EDIT_TEMPLATE_VALUE = 'edit_template_value';
+export const DELETE_TEMPLATE = 'delete_template';

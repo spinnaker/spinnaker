@@ -13,6 +13,8 @@ interface ITemplatesStateProps {
 
 interface ITemplatesDispatchProps {
   edit: (event: any) => void;
+  remove: (event: any) => void;
+  add: () => void;
 }
 
 interface ITemplate {
@@ -20,7 +22,7 @@ interface ITemplate {
   value: string;
 }
 
-const Templates = ({ templates, edit }: ITemplatesStateProps & ITemplatesDispatchProps) => {
+const Templates = ({ templates, edit, remove, add }: ITemplatesStateProps & ITemplatesDispatchProps) => {
   const columns: ITableColumn<ITemplate>[] = [
     {
       label: 'Template Name',
@@ -38,17 +40,30 @@ const Templates = ({ templates, edit }: ITemplatesStateProps & ITemplatesDispatc
             onClick={edit}
           />
           <EditTemplateModal/>
+          <i
+            className="fa fa-trash"
+            data-name={t.name}
+            onClick={remove}
+          />
         </div>
       ),
     }
   ];
 
   return (
-    <Table
-      rows={templates}
-      columns={columns}
-      rowKey={t => t.name}
-    />
+    <section>
+      <Table
+        rows={templates}
+        columns={columns}
+        rowKey={t => t.name}
+      />
+      <button
+        className="passive"
+        onClick={add}
+      >
+        Add Template
+      </button>
+    </section>
   );
 };
 
@@ -66,6 +81,13 @@ const mapDispatchToProps = (dispatch: Dispatch<ICanaryState>) => ({
   edit: (event: any) => dispatch(Creators.editTemplateBegin({
     name: event.target.dataset.name,
     value: event.target.dataset.value,
+  })),
+  remove: (event: any) => dispatch(Creators.deleteTemplate({
+    name: event.target.dataset.name,
+  })),
+  add: () => dispatch(Creators.editTemplateBegin({
+    name: '',
+    value: '',
   })),
 });
 
