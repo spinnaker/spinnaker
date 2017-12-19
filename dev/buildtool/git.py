@@ -461,6 +461,41 @@ class RepositorySummary(collections.namedtuple(
 class GitRunner(object):
   """Helper class for interacting with Git"""
 
+  @staticmethod
+  def __normalize_repo_url(url):
+    """Normalize a repo url for purposes of checking equality.
+
+    Returns:
+      Either a tuple (HOST, OWNER, PATH) if url is a github-like URL
+         assumed to be in the form <PROTOCOL://HOST/OWNER/PATH> where
+         or ssh@<HOST>:<USER><REPO>
+         in these cases, a '.git' REPO postfix is considered superfluous.
+
+      Otherwise a string assuming the url is a local path
+         where the string will be the absolute path.
+    """
+    dot_git = '.git'
+    gitless_url = (url[:-len(dot_git)]
+                   if url.endswith(dot_git)
+                   else url)
+
+    # e.g. http://github.com/USER/REPO
+    match = re.match(r'[a-z0-9]+://([^/]+)/([^/]+)/(.+)', gitless_url)
+    if not match:
+      # e.g. git@github.com:USER/REPO
+      match = re.match(r'git@([^:]+):([^/]+)/(.+)', gitless_url)
+    if match:
+      return match.groups()
+
+    return os.path.abspath(url)
+
+  @staticmethod
+  def same_repo(first, second):
+    """Determine if two URLs refer to the same github repo."""
+    normalized_first = GitRunner.__normalize_repo_url(first)
+    normalized_second = GitRunner.__normalize_repo_url(second)
+    return normalized_first == normalized_second
+
   def query_local_repository_commits_to_existing_tag_from_id(
       self, git_dir, commit_id, commit_tags):
     """Returns the list of commit messages to the local repository."""
@@ -641,14 +676,14 @@ class GitRunner(object):
               dir=git_dir, commit=commit),
           echo=True)
 
-    if upstream_url and upstream_url != origin_url:
+    if upstream_url and not self.same_repo(upstream_url, origin_url):
       logging.debug('Adding upstream %s with disabled push', upstream_url)
       check_subprocess(
           'git -C "{dir}" remote add upstream {upstream_url}'.format(
               dir=git_dir, upstream_url=upstream_url))
 
     which = ('upstream'
-             if upstream_url and upstream_url != origin_url
+             if upstream_url and not self.same_repo(upstream_url, origin_url)
              else 'origin')
     check_subprocess(
         'git -C "{dir}" remote set-url --push {which} disabled'.format(

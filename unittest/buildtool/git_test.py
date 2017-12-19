@@ -110,6 +110,31 @@ class TestGitRunner(unittest.TestCase):
         self.assertEquals([], messages)
         self.assertEquals(version, tag)
 
+  def test_same_repo(self):
+    variants = [
+        'http://github.com/user/spinnaker',
+        'http://github.com/user/spinnaker.git',
+        'https://github.com/user/spinnaker',
+        'https://github.com/user/spinnaker.git',
+        'git@github.com:user/spinnaker.git',
+        'git@github.com:user/spinnaker.git'
+    ]
+    for url in variants:
+      self.assertTrue(GitRunner.same_repo(variants[0], url))
+
+  def test_different_repo(self):
+    variants = [
+        'http://github.com/user/spinnaker',
+        'http://github.com/path/user/spinnaker',
+        'http://github.com/user/spinnaker/path',
+        'http://github.com/user/spinnaker.github',
+        'http://github/user/spinnaker',
+        'http://mydomain.com/user/spinnaker',
+        'path/user/spinnaker'
+    ]
+    for url in variants[1:]:
+      self.assertFalse(GitRunner.same_repo(variants[0], url))
+
   def test_determine_tag_at_patch(self):
     git = self.git
     test_method = git.query_local_repository_commits_to_existing_tag_from_id
