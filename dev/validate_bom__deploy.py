@@ -251,6 +251,10 @@ class BaseValidateBomDeployer(object):
     if options.spinnaker_repository:
       install_params.extend(
           ['--spinnaker-repository', options.spinnaker_repository])
+    if options.spinnaker_registry:
+      install_params.extend(
+          ['--spinnaker-registry', options.spinnaker_registry])
+
     script.append('sudo bash ./InstallHalyard.sh {install_params}'
                   .format(install_params=' '.join(install_params)))
     return script
@@ -1150,7 +1154,12 @@ def init_argument_parser(parser):
   parser.add_argument(
       '--spinnaker_repository',
       default='https://dl.bintray.com/spinnaker-releases/debians',
-      help='The location of the spinnaker repository.')
+      help='The location of the spinnaker debian repository.')
+
+  parser.add_argument(
+      '--spinnaker_registry',
+      default='gcr.io/spinnaker-marketplace',
+      help='The location of the spinnaker container registry.')
 
   parser.add_argument(
       '--deploy_spinnaker_type', required=True, choices=SUPPORTED_DEPLOYMENT_TYPES,
