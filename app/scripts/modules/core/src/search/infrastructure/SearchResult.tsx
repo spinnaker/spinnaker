@@ -1,3 +1,4 @@
+import * as DOMPurify from 'dompurify';
 import * as React from 'react';
 
 import { NgReact } from 'core/reactShims';
@@ -17,7 +18,7 @@ export class SearchResult extends React.Component<ISearchResultProps> {
     return (
       <span className="search-result">
         <AccountTag account={account} />
-        <span>{item.displayName}</span>
+        <span dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(item.displayName) }}/>
       </span>
     );
   }
