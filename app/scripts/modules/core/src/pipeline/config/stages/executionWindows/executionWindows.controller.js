@@ -109,6 +109,32 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.executionWindows.
       };
     }
 
+    this.toggleWindowJitter = function(newVal) {
+      if (newVal) {
+        if (!$scope.stage.restrictedExecutionWindow.jitter.minDelay) {
+          $scope.stage.restrictedExecutionWindow.jitter.minDelay = 0;
+        }
+        if (!$scope.stage.restrictedExecutionWindow.jitter.maxDelay) {
+          $scope.stage.restrictedExecutionWindow.jitter.maxDelay = 600;
+        }
+        if ($scope.stage.restrictedExecutionWindow.jitter.skipManual == null) {
+          $scope.stage.restrictedExecutionWindow.jitter.skipManual = true;
+        }
+      } else {
+        delete $scope.stage.restrictedExecutionWindow.jitter;
+      }
+    };
+
+    this.jitterUpdated = () => {
+      if (!$scope.stage.restrictedExecutionWindow.jitter) {
+        return;
+      }
+      var jitter = $scope.stage.restrictedExecutionWindow.jitter;
+      if (jitter.minDelay >= 0 && jitter.maxDelay <= jitter.minDelay) {
+        jitter.maxDelay = jitter.minDelay + 1;
+      }
+    };
+
     $scope.dividers = [];
     $scope.hours.forEach(function(hour) {
       $scope.dividers.push({
@@ -119,5 +145,5 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.executionWindows.
 
     $scope.$watch('stage.restrictedExecutionWindow.whitelist', this.updateTimelineWindows, true);
     $scope.$watch('stage.restrictExecutionDuringTimeWindow', this.toggleWindowRestriction);
-
+    $scope.$watch('stage.restrictedExecutionWindow.jitter.enabled', this.toggleWindowJitter);
   });

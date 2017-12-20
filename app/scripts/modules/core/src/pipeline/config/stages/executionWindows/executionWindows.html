@@ -100,7 +100,43 @@
       </button>
     </div>
   </div>
-
+  <div class="form-group">
+    <div class="col-md-9 col-md-offset-1">
+      <div class="checkbox">
+        <label>
+          <input type="checkbox" ng-false-value="undefined" ng-model="stage.restrictedExecutionWindow.jitter.enabled"/>
+          <strong> Add random jitter to start of execution window</strong>
+        </label>
+      </div>
+    </div>
+  </div>
+  <div ng-if="stage.restrictedExecutionWindow.jitter.enabled">
+    <div class="form-group">
+      <div class="col-md-10 col-md-offset-1 checkbox-padding">
+        Randomly wait between
+        <input type="number"
+               min="0"
+               class="form-control input-sm inline-number with-space-before"
+               ng-change="executionWindowsCtrl.jitterUpdated()"
+               ng-model="stage.restrictedExecutionWindow.jitter.minDelay"/>
+        and
+        <input type="number"
+               max="{{60*60*72-1}}"
+               class="form-control input-sm inline-number with-space-before"
+               ng-change="executionWindowsCtrl.jitterUpdated()"
+               ng-model="stage.restrictedExecutionWindow.jitter.maxDelay"/>
+        seconds when entering execution window.
+      </div>
+    </div>
+    <div class="form-group">
+      <div class="col-md-10 col-md-offset-1 checkbox-padding">
+        <label>
+          <input type="checkbox" ng-false-value=false ng-model="stage.restrictedExecutionWindow.jitter.skipManual"/>
+          <strong> Skip jitter when manually triggering pipeline</strong>
+        </label>
+      </div>
+    </div>
+  </div>
   <execution-window-atlas-graph stage="stage"
                                 windows="timelineWindows"
                                 windows-updated="executionWindowsCtrl.windowsUpdatedStream"></execution-window-atlas-graph>
