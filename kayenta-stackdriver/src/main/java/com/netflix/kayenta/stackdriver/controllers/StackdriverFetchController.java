@@ -63,8 +63,8 @@ public class StackdriverFetchController {
                           @RequestParam(required = false) List<String> groupByFields, // metric.label.instance_name
                           @RequestParam(required = false) final String project,
                           @ApiParam(defaultValue = "gce_instance") @RequestParam String resourceType,
-                          @ApiParam(defaultValue = "us-central1") @RequestParam String region,
-                          @ApiParam(defaultValue = "myapp-v059") @RequestParam String scope,
+                          @ApiParam(defaultValue = "us-central1") @RequestParam(required = false) String region,
+                          @ApiParam(defaultValue = "myapp-v059") @RequestParam(required = false) String scope,
                           @ApiParam(defaultValue = "2017-11-21T12:48:00Z") @RequestParam Instant startTimeIso,
                           @ApiParam(defaultValue = "2017-11-21T12:51:00Z") @RequestParam Instant endTimeIso,
                           @ApiParam(defaultValue = "3600") @RequestParam Long step,

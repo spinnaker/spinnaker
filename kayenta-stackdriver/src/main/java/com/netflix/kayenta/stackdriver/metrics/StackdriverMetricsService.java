@@ -107,22 +107,20 @@ public class StackdriverMetricsService implements MetricsService {
 
     String customFilter = expandCustomFilter(canaryConfig, stackdriverMetricSetQuery, stackdriverCanaryScope);
     String filter = "metric.type=\"" + stackdriverMetricSetQuery.getMetricType() + "\"" +
-                    " AND resource.type=" + resourceType +
-                    " AND ";
+                    " AND resource.type=" + resourceType;
 
     // TODO(duftler): Replace direct string-manipulating with helper functions.
     // TODO-maybe(duftler): Replace this logic with a library of templates, one for each resource type.
-    // TODO(duftler): Support 'global' resource type.
     if (StringUtils.isEmpty(customFilter)) {
       if ("gce_instance".equals(resourceType)) {
-        filter += "resource.labels.project_id=" + projectId +
+        filter += " AND resource.labels.project_id=" + projectId +
                   " AND metadata.user_labels.\"spinnaker-region\"=" + region +
                   " AND metadata.user_labels.\"spinnaker-server-group\"=" + stackdriverCanaryScope.getScope();
       } else if ("aws_ec2_instance".equals(resourceType)) {
-        filter += "resource.labels.region=\"aws:" + region + "\"" +
+        filter += " AND resource.labels.region=\"aws:" + region + "\"" +
                   " AND metadata.user_labels.\"aws:autoscaling:groupname\"=" + stackdriverCanaryScope.getScope();
       } else if ("gae_app".equals(resourceType)) {
-        filter += "resource.labels.project_id=" + projectId +
+        filter += " AND resource.labels.project_id=" + projectId +
                   " AND resource.labels.version_id=" + stackdriverCanaryScope.getScope();
 
         Map<String, String> extendedScopeParams = stackdriverCanaryScope.getExtendedScopeParams();
@@ -130,7 +128,7 @@ public class StackdriverMetricsService implements MetricsService {
         if (extendedScopeParams != null && extendedScopeParams.containsKey("service")) {
           filter += " AND resource.labels.module_id=" + extendedScopeParams.get("service");
         }
-      } else {
+      } else if (!"global".equals(resourceType)) {
         throw new IllegalArgumentException("Resource type '" + resourceType + "' not yet supported.");
       }
     } else {
