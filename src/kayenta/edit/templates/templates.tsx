@@ -39,7 +39,6 @@ const Templates = ({ templates, edit, remove, add }: ITemplatesStateProps & ITem
             data-value={t.value}
             onClick={edit}
           />
-          <EditTemplateModal/>
           <i
             className="fa fa-trash"
             data-name={t.name}
@@ -52,6 +51,7 @@ const Templates = ({ templates, edit, remove, add }: ITemplatesStateProps & ITem
 
   return (
     <section>
+      <EditTemplateModal/>
       <Table
         rows={templates}
         columns={columns}
