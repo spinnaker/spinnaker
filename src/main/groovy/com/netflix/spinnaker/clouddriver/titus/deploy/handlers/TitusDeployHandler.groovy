@@ -103,7 +103,7 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
         }
         Job sourceJob = sourceClient.findJobByName(source.asgName)
         if (!sourceJob) {
-          throw new RuntimeException("Unable to locate source (${source.account}:${source.region}:${source.asgName})")
+          throw new RuntimeException("Unable to locate source (${source.account}:${source.region}:${source.asgName})" )
         }
 
         task.updateStatus BASE_PHASE, "Copying deployment details from (${source.account}:${source.region}:${source.asgName})"
@@ -132,11 +132,11 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
         description.iamProfile = description.iamProfile ?: sourceJob.iamProfile
         description.capacityGroup = description.capacityGroup ?: sourceJob.capacityGroup
 
-        if (!description.labels || description.labels.isEmpty()) {
-          if (!description.labels) {
+        if(!description.labels || description.labels.isEmpty()){
+          if(!description.labels){
             description.labels = [:]
           }
-          sourceJob.labels.each { k, v -> description.labels.put(k, v) }
+          sourceJob.labels.each{ k, v -> description.labels.put(k, v)}
         }
         description.inService = description.inService ?: sourceJob.inService
         description.migrationPolicy = description.migrationPolicy ?: sourceJob.migrationPolicy
@@ -276,7 +276,7 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
         ])
       }
 
-      copyScalingPolicies(description, jobUri)
+      copyScalingPolicies(description, jobUri, nextServerGroupName)
 
       addLoadBalancers(description, targetGroupLookupResult, jobUri)
 
@@ -327,7 +327,7 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
     TitusClient sourceClient = buildSourceTitusClient(source)
     TitusAutoscalingClient autoscalingClient = titusClientProvider.getTitusAutoscalingClient(description.credentials, description.region)
     if (!autoscalingClient) {
-      task.updateStatus BASE_PHASE, "Unable to create autoscaling client in target account/region; policies will not be copied"
+      task.updateStatus BASE_PHASE, "Unable to create client in target account/region; policies will not be copied"
       return
     }
     TitusAutoscalingClient sourceAutoscalingClient = buildSourceAutoscalingClient(source)
