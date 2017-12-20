@@ -40,7 +40,7 @@ dependencies {
   compile 'com.squareup.retrofit:converter-simplexml:1.9.0' // Github OAuth
 
   // LDAP
-  compile("org.springframework.security:spring-security-ldap:4.2.3.RELEASE")
+  compile("org.springframework.security:spring-security-ldap:${spinnaker.version('springSecurity')}")
 
   // SAML
   compile('org.opensaml:opensaml:2.6.4')
