@@ -47,4 +47,7 @@ public class CanaryMetricConfig {
   @Singular
   @Getter
   private Map<String, Map> analysisConfigurations;
+
+  @Getter
+  private String scopeName;
 }

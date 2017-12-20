@@ -18,9 +18,14 @@ package com.netflix.kayenta.canary;
 import lombok.Data;
 
 import javax.validation.constraints.NotNull;
+import java.time.Duration;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 @Data
 public class CanaryExecutionRequest {
+  protected Map<String, CanaryScopePair> scopes;
 
   @NotNull
   protected CanaryScope experimentScope;
@@ -29,4 +34,27 @@ public class CanaryExecutionRequest {
   protected CanaryScope controlScope;
 
   protected CanaryClassifierThresholdsConfig thresholds;
+
+  public Duration calculateDuration() {
+    Set<Duration> durationsFound = new HashSet<>();
+
+    if (experimentScope != null) {
+      durationsFound.add(experimentScope.calculateDuration());
+    }
+    if (controlScope != null) {
+      durationsFound.add(controlScope.calculateDuration());
+    }
+    if (scopes != null) {
+      scopes.values().forEach(scope -> {
+        durationsFound.add(scope.controlScope.calculateDuration());
+        durationsFound.add(scope.experimentScope.calculateDuration());
+      });
+    }
+    if (durationsFound.size() == 1) {
+      return durationsFound.stream()
+        .findFirst()
+        .orElse(null);
+    }
+    return null;  // cannot find a single duration to represent this data
+  }
 }

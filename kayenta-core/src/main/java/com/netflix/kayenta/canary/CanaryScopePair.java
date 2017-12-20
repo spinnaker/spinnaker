@@ -15,40 +15,15 @@
  */
 package com.netflix.kayenta.canary;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import javax.validation.constraints.NotNull;
-import java.time.Duration;
-import java.time.Instant;
-import java.util.Map;
 
 @Data
-@AllArgsConstructor
-@NoArgsConstructor
-public class CanaryScope {
+public class CanaryScopePair {
+  @NotNull
+  CanaryScope controlScope;
 
   @NotNull
-  protected String scope;
-
-  @NotNull
-  private String region;
-
-  @NotNull
-  protected Instant start;
-
-  @NotNull
-  protected Instant end;
-
-  @NotNull
-  protected Long step;
-
-  // Metric source specific parameters which may be used to further
-  // alter the canary scope.
-  Map<String, String> extendedScopeParams;
-
-  public Duration calculateDuration() {
-    return Duration.between(start, end);
-  }
+  CanaryScope experimentScope;
 }

@@ -129,6 +129,7 @@ public class CanaryJudgeTask implements RetryableTask {
       .judgeResult(result)
       .config(canaryConfig)
       .canaryExecutionRequest(canaryExecutionRequest)
+      .canaryDuration(canaryExecutionRequest.calculateDuration())
       .metricSetPairListId(metricSetPairListId)
       .pipelineId(stage.getExecution().getId())
       .build();

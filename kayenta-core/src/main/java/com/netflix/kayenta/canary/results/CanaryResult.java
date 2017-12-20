@@ -21,6 +21,8 @@ import com.netflix.kayenta.canary.CanaryConfig;
 import com.netflix.kayenta.canary.CanaryExecutionRequest;
 import lombok.*;
 
+import java.time.Duration;
+
 @Builder
 @ToString
 @NoArgsConstructor
@@ -41,6 +43,9 @@ public class CanaryResult {
 
   @Getter
   String metricSetPairListId;
+
+  @Getter
+  Duration canaryDuration;
 
   @NonNull
   @Getter

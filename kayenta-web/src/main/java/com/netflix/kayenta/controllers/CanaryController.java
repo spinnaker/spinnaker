@@ -121,6 +121,20 @@ public class CanaryController {
 
     registry.counter(pipelineRunId.withTag("canaryConfigId", canaryConfigId).withTag("canaryConfigName", canaryConfig.getName())).increment();
 
+    Set<String> requiredScopes = canaryConfig.getMetrics().stream()
+      .map(CanaryMetricConfig::getScopeName)
+      .filter(Objects::nonNull)
+      .collect(Collectors.toSet());
+
+    if (requiredScopes.size() > 0 && canaryExecutionRequest.getScopes() == null) {
+      throw new IllegalArgumentException("Canary metrics require scopes, but no scopes were provided in the execution request.");
+    }
+    Set<String> providedScopes = canaryExecutionRequest.getScopes() == null ? Collections.emptySet() : canaryExecutionRequest.getScopes().keySet();
+    requiredScopes.removeAll(providedScopes);
+    if (requiredScopes.size() > 0) {
+      throw new IllegalArgumentException("Canary metrics require scopes which were not provided in the execution request: " + requiredScopes);
+    }
+
     Map<String, Object> setupCanaryContext =
       Maps.newHashMap(
         new ImmutableMap.Builder<String, Object>()
@@ -151,6 +165,9 @@ public class CanaryController {
     CanaryClassifierThresholdsConfig orchestratorScoreThresholds = canaryExecutionRequest.getThresholds();
 
     if (orchestratorScoreThresholds == null) {
+      if (canaryConfig.getClassifier() == null || canaryConfig.getClassifier().getScoreThresholds() == null) {
+        throw new IllegalArgumentException("Classifier thresholds must be specified in either the canary config, or the execution request.");
+      }
       // The score thresholds were not explicitly passed in from the orchestrator (i.e. Spinnaker), so just use the canary config values.
       orchestratorScoreThresholds = canaryConfig.getClassifier().getScoreThresholds();
     }
@@ -173,7 +190,6 @@ public class CanaryController {
       new PipelineBuilder("kayenta-" + currentInstanceId)
         .withName("Standard Canary Pipeline")
         .withPipelineConfigId(UUID.randomUUID() + "")
-        .withStage("setupCanary", "Setup Canary", setupCanaryContext)
         .withStage("setupCanary", "Setup Canary", setupCanaryContext)
         .withStage("metricSetMixer", "Mix Control and Experiment Results", mixMetricSetsContext)
         .withStage("canaryJudge", "Perform Analysis", canaryJudgeContext);
@@ -311,6 +327,19 @@ public class CanaryController {
       .orElseThrow(() -> new IllegalArgumentException("Unable to resolve canary scope factory for '" + serviceType + "'."));
   }
 
+  private CanaryScope getScopeForNamedScope(CanaryExecutionRequest executionRequest, String scopeName, boolean isCanary) {
+    if (scopeName == null) {
+      return isCanary ? executionRequest.getExperimentScope() : executionRequest.getControlScope();
+    }
+
+    CanaryScopePair canaryScopePair = executionRequest.getScopes().get(scopeName);
+    CanaryScope canaryScope = isCanary ? canaryScopePair.getExperimentScope() : canaryScopePair.getControlScope();
+    if (canaryScope == null) {
+      throw new IllegalArgumentException("Canary scope for named scope " + scopeName + " is missing experimentScope or controlScope keys");
+    }
+    return canaryScope;
+  }
+
   private List<Map<String, Object>> generateFetchScopes(CanaryConfig canaryConfig,
                                                         CanaryExecutionRequest executionRequest,
                                                         boolean isCanary,
@@ -321,7 +350,7 @@ public class CanaryController {
         CanaryMetricConfig metric = canaryConfig.getMetrics().get(index);
         String serviceType = metric.getQuery().getServiceType();
         CanaryScopeFactory canaryScopeFactory = getScopeFactoryForServiceType(serviceType);
-        CanaryScope inspecificScope = (isCanary ? executionRequest.getExperimentScope() : executionRequest.getControlScope());
+        CanaryScope inspecificScope = getScopeForNamedScope(executionRequest, metric.getScopeName(), isCanary);
         CanaryScope scopeModel = canaryScopeFactory.buildCanaryScope(inspecificScope);
         String stagePrefix = (isCanary ? REFID_FETCH_EXPERIMENT_PREFIX : REFID_FETCH_CONTROL_PREFIX);
         String scopeJson;
