@@ -24,6 +24,8 @@ class GoogleCommonManagedAccount {
   String accountType
   String project
   String jsonPath
+  String serviceAccountId
+  String serviceAccountProject
   @Deprecated List<String> requiredGroupMembership
   Permissions.Builder permissions = new Permissions.Builder()
 

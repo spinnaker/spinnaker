@@ -32,7 +32,9 @@ import com.netflix.spinnaker.clouddriver.googlecommon.GoogleExecutor
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials
 import com.netflix.spinnaker.fiat.model.resources.Permissions
 import groovy.transform.TupleConstructor
+import groovy.util.logging.Slf4j
 
+@Slf4j
 @TupleConstructor
 class GoogleNamedAccountCredentials implements AccountCredentials<GoogleCredentials> {
 
@@ -83,6 +85,8 @@ class GoogleNamedAccountCredentials implements AccountCredentials<GoogleCredenti
     Map<String, List<String>> locationToCpuPlatformsMap
     List<GoogleInstanceTypeDisk> instanceTypeDisks = []
     String jsonKey
+    String serviceAccountId
+    String serviceAccountProject
     GoogleCredentials credentials
     Compute compute
     ConsulConfig consulConfig
@@ -144,6 +148,16 @@ class GoogleNamedAccountCredentials implements AccountCredentials<GoogleCredenti
 
     Builder jsonKey(String jsonKey) {
       this.jsonKey = jsonKey
+      return this
+    }
+
+    Builder serviceAccountId(String serviceAccountId) {
+      this.serviceAccountId = serviceAccountId
+      return this
+    }
+
+    Builder serviceAccountProject(String serviceAccountProject) {
+      this.serviceAccountProject = serviceAccountProject
       return this
     }
 
@@ -209,11 +223,25 @@ class GoogleNamedAccountCredentials implements AccountCredentials<GoogleCredenti
 
     GoogleNamedAccountCredentials build() {
       GoogleCredentials credentials = this.credentials
+      GString credInfo = "Google Credentials ($name): "
       if (credentials == null) {
-        credentials = jsonKey ?
-          new GoogleJsonCredentials(project, computeVersion, jsonKey) :
-          new GoogleCredentials(project, computeVersion)
+        if (jsonKey) {
+          credInfo += "From JSON key $jsonKey"
+          credentials = new GoogleJsonCredentials(project, computeVersion, jsonKey)
+        } else if (serviceAccountId && serviceAccountProject) {
+          credInfo += "Impersonating $serviceAccountProject/$serviceAccountId"
+          credentials = new GoogleImpersonatedServiceAccountCredentials(project,
+                                                                        computeVersion,
+                                                                        serviceAccountId,
+                                                                        serviceAccountProject)
+        } else {
+          credInfo += "Application Default Credentials"
+          credentials = new GoogleCredentials(project, computeVersion)
+        }
+      } else {
+        credInfo += "Direct"
       }
+      log.info(credInfo)
       Compute compute = this.compute
       if (compute == null) {
         compute = credentials.getCompute(applicationName)

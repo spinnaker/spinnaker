@@ -84,6 +84,8 @@ class GoogleCredentialsInitializer implements CredentialsInitializerSynchronizab
             .project(managedAccount.project)
             .computeVersion(managedAccount.alphaListed ? ComputeVersion.ALPHA : ComputeVersion.DEFAULT)
             .jsonKey(jsonKey)
+            .serviceAccountId(managedAccount.serviceAccountId)
+            .serviceAccountProject(managedAccount.serviceAccountProject)
             .imageProjects(managedAccount.imageProjects)
             .requiredGroupMembership(managedAccount.requiredGroupMembership)
             .permissions(managedAccount.permissions.build())
