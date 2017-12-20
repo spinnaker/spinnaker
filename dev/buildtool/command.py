@@ -182,7 +182,8 @@ class RepositoryCommandProcessor(CommandProcessor):
   def source_repositories(self):
     """Returns list of RemoteGitRepository this command should operate on."""
     if self.__source_repositories is None:
-      self.__source_repositories = self._do_determine_source_repositories()
+      self.__source_repositories = self.filter_repositories(
+          self._do_determine_source_repositories())
     return self.__source_repositories
 
   @property
@@ -205,7 +206,13 @@ class RepositoryCommandProcessor(CommandProcessor):
 
     self.__use_threadpool = kwargs.pop('use_threadpool', False)
     self.__git = kwargs.pop('git', None) or GitRunner()
-    self.__source_repositories = kwargs.pop('source_repositories', None)
+
+    source_repos = kwargs.pop('source_repositories', None)
+    self.__source_repositories = (
+        self.filter_repositories(source_repos)
+        if source_repos is not None
+        else None)
+
     self.__scm = None
     super(RepositoryCommandProcessor, self).__init__(
         factory, options, **kwargs)
@@ -213,7 +220,13 @@ class RepositoryCommandProcessor(CommandProcessor):
   def filter_repositories(self, source_repositories):
     """Filter a list of source_repositories using option constriants."""
     # pylint: disable=unused-argument
-    return source_repositories
+    if not self.options.only_repositories:
+      return source_repositories
+
+    filter = self.options.only_repositories.split(',')
+    return {name: repository
+            for name, repository in source_repositories.items()
+            if name in filter}
 
   def _do_determine_source_repositories(self):
     """Determine which repositories this command should operate on."""
@@ -266,4 +279,11 @@ class RepositoryCommandProcessor(CommandProcessor):
 
 class RepositoryCommandFactory(CommandFactory):
   """Creates RepostioryCommand instances."""
-  pass
+
+  def _do_init_argparser(self, parser, defaults):
+    """Hook for derived classes to override to add their specific arguments."""
+    super(RepositoryCommandFactory, self)._do_init_argparser(parser, defaults)
+    self.add_argument(parser, 'only_repositories', defaults, None,
+                      help='Limit the command to the specified repositories.'
+                      ' This is a list of comma-separated repository names.')
+
