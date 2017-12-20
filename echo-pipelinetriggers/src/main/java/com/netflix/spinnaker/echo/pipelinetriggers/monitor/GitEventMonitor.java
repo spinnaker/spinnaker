@@ -117,7 +117,9 @@ public class GitEventMonitor extends TriggerMonitor {
   @Override
   protected Function<Trigger, Pipeline> buildTrigger(Pipeline pipeline, TriggerEvent event) {
     GitEvent gitEvent = (GitEvent) event;
-    return trigger -> pipeline.withTrigger(trigger.atHash(gitEvent.getHash()).atBranch(gitEvent.getBranch()));
+    return trigger -> pipeline
+      .withReceivedArtifacts(gitEvent.getContent().getArtifacts())
+      .withTrigger(trigger.atHash(gitEvent.getHash()).atBranch(gitEvent.getBranch()));
   }
 
   @Override
