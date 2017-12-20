@@ -199,23 +199,24 @@ class RepositoryCommandProcessor(CommandProcessor):
     return self.__scm
 
   def __init__(self, factory, options, **kwargs):
+    source_repos = kwargs.pop('source_repositories', None)
     self.__max_threads = kwargs.pop('max_threads', 64)
+    self.__use_threadpool = kwargs.pop('use_threadpool', False)
+    self.__git = kwargs.pop('git', None) or GitRunner()
+    self.__scm = None
+
     if options.one_at_a_time:
       logging.debug('Limiting %s to one thread.', factory.name)
       self.__max_threads = 1
 
-    self.__use_threadpool = kwargs.pop('use_threadpool', False)
-    self.__git = kwargs.pop('git', None) or GitRunner()
+    super(RepositoryCommandProcessor, self).__init__(
+        factory, options, **kwargs)
 
-    source_repos = kwargs.pop('source_repositories', None)
+    # filter needs the options, so this is after our super init call.
     self.__source_repositories = (
         self.filter_repositories(source_repos)
         if source_repos is not None
         else None)
-
-    self.__scm = None
-    super(RepositoryCommandProcessor, self).__init__(
-        factory, options, **kwargs)
 
   def filter_repositories(self, source_repositories):
     """Filter a list of source_repositories using option constriants."""

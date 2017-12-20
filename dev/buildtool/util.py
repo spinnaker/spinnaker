@@ -18,9 +18,19 @@ import datetime
 import logging
 import os
 import shlex
+import socket
 import subprocess
 import time
 import traceback
+
+
+def unused_port(interface='localhost'):
+  """Return an unused port number on localhost."""
+  sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+  sock.bind((interface, 0))
+  port = sock.getsockname()[1]
+  sock.close()
+  return port
 
 
 def timestring(now=None):
