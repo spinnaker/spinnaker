@@ -17,11 +17,13 @@
 package com.netflix.spinnaker.clouddriver.titus.deploy.handlers
 
 import com.netflix.spinnaker.clouddriver.aws.AwsConfiguration
+import com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer.TargetGroupLookupHelper
+import com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer.TargetGroupLookupHelper.TargetGroupLookupResult
+import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactory
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.deploy.DeployDescription
 import com.netflix.spinnaker.clouddriver.deploy.DeployHandler
-import com.netflix.spinnaker.clouddriver.deploy.DeploymentResult
 import com.netflix.spinnaker.clouddriver.helpers.OperationPoller
 import com.netflix.spinnaker.clouddriver.orchestration.events.CreateServerGroupEvent
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials
@@ -32,6 +34,7 @@ import com.netflix.spinnaker.clouddriver.titus.TitusCloudProvider
 import com.netflix.spinnaker.clouddriver.titus.caching.utils.AwsLookupUtil
 import com.netflix.spinnaker.clouddriver.titus.client.TitusAutoscalingClient
 import com.netflix.spinnaker.clouddriver.titus.client.TitusClient
+import com.netflix.spinnaker.clouddriver.titus.client.TitusLoadBalancerClient
 import com.netflix.spinnaker.clouddriver.titus.client.model.Job
 import com.netflix.spinnaker.clouddriver.titus.client.model.SubmitJobRequest
 import com.netflix.spinnaker.clouddriver.titus.credentials.NetflixTitusCredentials
@@ -59,16 +62,21 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
   @Autowired
   AccountCredentialsProvider accountCredentialsProvider
 
+  @Autowired
+  RegionScopedProviderFactory regionScopedProviderFactory
+
   private final Logger logger = LoggerFactory.getLogger(TitusDeployHandler)
 
   private static final String BASE_PHASE = "DEPLOY"
 
   private final TitusClientProvider titusClientProvider
   private final AccountCredentialsRepository accountCredentialsRepository
+  private final TargetGroupLookupHelper targetGroupLookupHelper
 
   TitusDeployHandler(TitusClientProvider titusClientProvider, AccountCredentialsRepository accountCredentialsRepository) {
     this.titusClientProvider = titusClientProvider
     this.accountCredentialsRepository = accountCredentialsRepository
+    this.targetGroupLookupHelper = new TargetGroupLookupHelper()
   }
 
   private static Task getTask() {
@@ -95,7 +103,7 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
         }
         Job sourceJob = sourceClient.findJobByName(source.asgName)
         if (!sourceJob) {
-          throw new RuntimeException("Unable to locate source (${source.account}:${source.region}:${source.asgName})" )
+          throw new RuntimeException("Unable to locate source (${source.account}:${source.region}:${source.asgName})")
         }
 
         task.updateStatus BASE_PHASE, "Copying deployment details from (${source.account}:${source.region}:${source.asgName})"
@@ -124,11 +132,11 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
         description.iamProfile = description.iamProfile ?: sourceJob.iamProfile
         description.capacityGroup = description.capacityGroup ?: sourceJob.capacityGroup
 
-        if(!description.labels || description.labels.isEmpty()){
-          if(!description.labels){
+        if (!description.labels || description.labels.isEmpty()) {
+          if (!description.labels) {
             description.labels = [:]
           }
-          sourceJob.labels.each{ k, v -> description.labels.put(k, v)}
+          sourceJob.labels.each { k, v -> description.labels.put(k, v) }
         }
         description.inService = description.inService ?: sourceJob.inService
         description.migrationPolicy = description.migrationPolicy ?: sourceJob.migrationPolicy
@@ -210,7 +218,7 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
       if (description.jobType != 'batch' && deployDefaults.addAppGroupToServerGroup && securityGroups.size() < deployDefaults.maxSecurityGroups && description.useApplicationDefaultSecurityGroup != false) {
         String applicationSecurityGroup = awsLookupUtil.convertSecurityGroupNameToId(account, region, description.application)
         if (!applicationSecurityGroup) {
-          applicationSecurityGroup = OperationPoller.retryWithBackoff({ o -> awsLookupUtil.createSecurityGroupForApplication(account, region, description.application) }, 1000, 5 )
+          applicationSecurityGroup = OperationPoller.retryWithBackoff({ o -> awsLookupUtil.createSecurityGroupForApplication(account, region, description.application) }, 1000, 5)
         }
         if (!securityGroups.contains(applicationSecurityGroup)) {
           securityGroups << applicationSecurityGroup
@@ -245,6 +253,12 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
         submitJobRequest.withJobType(description.jobType)
       }
 
+      TargetGroupLookupResult targetGroupLookupResult
+
+      if (description.targetGroups) {
+        targetGroupLookupResult = validateLoadBalancers(description)
+      }
+
       task.updateStatus BASE_PHASE, "Submitting job request to Titus..."
       String jobUri = titusClient.submitJob(submitJobRequest)
 
@@ -262,7 +276,9 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
         ])
       }
 
-      copyScalingPolicies(description, jobUri, nextServerGroupName)
+      copyScalingPolicies(description, jobUri)
+
+      addLoadBalancers(description, targetGroupLookupResult, jobUri)
 
       deploymentResult.messages = task.history.collect { "${it.phase} : ${it.status}".toString() }
 
@@ -279,7 +295,31 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
     }
   }
 
-  protected void copyScalingPolicies(TitusDeployDescription description, String jobUri, String serverGroupName) {
+  protected TargetGroupLookupResult validateLoadBalancers(TitusDeployDescription description) {
+    if (!description.targetGroups) {
+      return null
+    }
+    def regionScopedProvider = regionScopedProviderFactory.forRegion(accountCredentialsProvider.getCredentials(description.credentials.awsAccount), description.region)
+    def targetGroups = targetGroupLookupHelper.getTargetGroupsByName(regionScopedProvider, description.targetGroups)
+    if (targetGroups.unknownTargetGroups) {
+      throw new IllegalStateException("Unable to find target groups named $targetGroups.unknownTargetGroups")
+    }
+    return targetGroups
+  }
+
+  protected void addLoadBalancers(TitusDeployDescription description, TargetGroupLookupResult targetGroups, String jobUri) {
+    TitusLoadBalancerClient loadBalancerClient = titusClientProvider.getTitusLoadBalancerClient(description.credentials, description.region)
+    if (!loadBalancerClient) {
+      task.updateStatus BASE_PHASE, "Unable to create load balancing client in target account/region"
+      return
+    }
+    targetGroups.targetGroupARNs.each { targetGroupARN ->
+      loadBalancerClient.addLoadBalancer(jobUri, targetGroupARN)
+      task.updateStatus BASE_PHASE, "Attached ${targetGroupARN} to ${jobUri}"
+    }
+  }
+
+  protected void copyScalingPolicies(TitusDeployDescription description, String jobUri) {
     if (!description.copySourceScalingPolicies) {
       return
     }
@@ -287,7 +327,7 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
     TitusClient sourceClient = buildSourceTitusClient(source)
     TitusAutoscalingClient autoscalingClient = titusClientProvider.getTitusAutoscalingClient(description.credentials, description.region)
     if (!autoscalingClient) {
-      task.updateStatus BASE_PHASE, "Unable to create client in target account/region; policies will not be copied"
+      task.updateStatus BASE_PHASE, "Unable to create autoscaling client in target account/region; policies will not be copied"
       return
     }
     TitusAutoscalingClient sourceAutoscalingClient = buildSourceAutoscalingClient(source)
@@ -308,8 +348,7 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
           if (![ScalingPolicyState.Deleted, ScalingPolicyState.Deleting].contains(policy.policyState.state)) {
             Builder requestBuilder = PutPolicyRequest.newBuilder()
               .setJobId(jobUri)
-              .setScalingPolicy(UpsertTitusScalingPolicyDescription.fromScalingPolicyResult(description.region, policy, serverGroupName).toScalingPolicyBuilder())
-            task.updateStatus BASE_PHASE, "Upserting policy copied from policy ${policy.id}"
+              .setScalingPolicy(UpsertTitusScalingPolicyDescription.fromScalingPolicyResult(description.region, policy).toScalingPolicyBuilder())
             autoscalingClient.upsertScalingPolicy(requestBuilder.build())
           }
         }

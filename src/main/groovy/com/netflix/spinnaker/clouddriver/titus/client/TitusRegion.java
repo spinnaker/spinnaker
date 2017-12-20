@@ -24,6 +24,7 @@ public class TitusRegion {
     private final String account;
     private final String endpoint;
     private final Boolean autoscalingEnabled;
+    private final Boolean loadBalancingEnabled;
     private final List<TitusFaultDomain> faultDomains;
     private final String apiVersion;
 
@@ -38,18 +39,20 @@ public class TitusRegion {
                        String account,
                        String endpoint,
                        Boolean autoscalingEnabled,
+                       Boolean loadBalancingEnabled,
                        List<TitusFaultDomain> faultDomains,
                        String apiVersion) {
         this.name = notNull(name, "name");
         this.account = notNull(account, "account");
         this.endpoint = EndpointValidator.validateEndpoint(endpoint);
         this.autoscalingEnabled = autoscalingEnabled;
+        this.loadBalancingEnabled = loadBalancingEnabled;
         this.faultDomains = faultDomains == null ? Collections.emptyList() : Collections.unmodifiableList(faultDomains);
         this.apiVersion = apiVersion;
     }
 
-    public TitusRegion(String name, String account, String endpoint, Boolean autoscalingEnabled, String apiVersion) {
-        this(name, account, endpoint, autoscalingEnabled, Collections.emptyList(), apiVersion);
+    public TitusRegion(String name, String account, String endpoint, Boolean autoscalingEnabled, Boolean loadBalancingEnabled,  String apiVersion) {
+        this(name, account, endpoint, autoscalingEnabled, loadBalancingEnabled, Collections.emptyList(), apiVersion);
     }
 
     public String getAccount() {
@@ -72,7 +75,9 @@ public class TitusRegion {
       return autoscalingEnabled;
     }
 
-  public List<TitusFaultDomain> getFaultDomains() {
+    public Boolean isloadBalancingEnabled() { return loadBalancingEnabled; }
+
+    public List<TitusFaultDomain> getFaultDomains() {
         return faultDomains;
     }
 

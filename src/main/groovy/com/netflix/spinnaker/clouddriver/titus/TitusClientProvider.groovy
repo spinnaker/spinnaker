@@ -19,8 +19,10 @@ package com.netflix.spinnaker.clouddriver.titus
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.clouddriver.titus.client.RegionScopedTitusAutoscalingClient
 import com.netflix.spinnaker.clouddriver.titus.client.RegionScopedTitusClient
+import com.netflix.spinnaker.clouddriver.titus.client.RegionScopedTitusLoadBalancerClient
 import com.netflix.spinnaker.clouddriver.titus.client.TitusAutoscalingClient
 import com.netflix.spinnaker.clouddriver.titus.client.TitusJobCustomizer
+import com.netflix.spinnaker.clouddriver.titus.client.TitusLoadBalancerClient
 import com.netflix.spinnaker.clouddriver.titus.client.TitusRegion
 import com.netflix.spinnaker.clouddriver.titus.credentials.NetflixTitusCredentials
 import com.netflix.spinnaker.clouddriver.titus.client.TitusClient
@@ -33,6 +35,7 @@ class TitusClientProvider {
 
   private final Map<TitusClientKey, TitusClient> titusClients = new ConcurrentHashMap<>()
   private final Map<TitusClientKey, TitusAutoscalingClient> titusAutoscalingClients = new ConcurrentHashMap<>()
+  private final Map<TitusClientKey, TitusLoadBalancerClient> titusLoadBalancerClients = new ConcurrentHashMap<>()
   private final Registry registry
   private final List<TitusJobCustomizer> titusJobCustomizers
 
@@ -54,6 +57,15 @@ class TitusClientProvider {
     }
     final TitusClientKey key = new TitusClientKey(Objects.requireNonNull(account.name), titusRegion)
     return titusAutoscalingClients.computeIfAbsent(key, { k -> new RegionScopedTitusAutoscalingClient(k.region, registry, account.environment, account.eurekaName) })
+  }
+
+  TitusLoadBalancerClient getTitusLoadBalancerClient(NetflixTitusCredentials account, String region) {
+    final TitusRegion titusRegion = Objects.requireNonNull(account.regions.find { it.name == region }, "region")
+    if (!account.eurekaName || !account.loadBalancingEnabled || !titusRegion.loadBalancingEnabled) {
+      return null
+    }
+    final TitusClientKey key = new TitusClientKey(Objects.requireNonNull(account.name), titusRegion)
+    return titusLoadBalancerClients.computeIfAbsent(key, { k -> new RegionScopedTitusLoadBalancerClient(k.region, registry, account.environment, account.eurekaName) })
   }
 
   @Immutable(knownImmutableClasses = [TitusRegion])

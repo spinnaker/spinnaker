@@ -37,6 +37,7 @@ class NetflixTitusCredentials implements AccountCredentials<TitusCredentials> {
   final String stack
   final String eurekaName
   final boolean autoscalingEnabled
+  final boolean loadBalancingEnabled
 
   private final List<TitusRegion> regions
 
@@ -53,7 +54,8 @@ class NetflixTitusCredentials implements AccountCredentials<TitusCredentials> {
                           String stack,
                           List<String> requiredGroupMembership,
                           String eurekaName,
-                          boolean autoscalingEnabled
+                          boolean autoscalingEnabled,
+                          boolean loadBalancingEnabled
   ) {
     this.name = name
     this.environment = environment
@@ -69,6 +71,7 @@ class NetflixTitusCredentials implements AccountCredentials<TitusCredentials> {
     this.requiredGroupMembership = requiredGroupMembership
     this.eurekaName = eurekaName
     this.autoscalingEnabled = autoscalingEnabled
+    this.loadBalancingEnabled = loadBalancingEnabled
   }
 
   @Override
@@ -119,6 +122,10 @@ class NetflixTitusCredentials implements AccountCredentials<TitusCredentials> {
 
   boolean getAutoscalingEnabled() {
     return autoscalingEnabled
+  }
+
+  boolean isloadBalancingEnabled(){
+    return loadBalancingEnabled
   }
 
 }

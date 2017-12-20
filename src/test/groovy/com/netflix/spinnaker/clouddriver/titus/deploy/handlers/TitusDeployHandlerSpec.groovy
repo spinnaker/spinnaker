@@ -52,7 +52,7 @@ class TitusDeployHandlerSpec extends Specification {
   }
 
   NetflixTitusCredentials testCredentials = new NetflixTitusCredentials(
-    'test', 'test', 'test', [new TitusRegion('us-east-1', 'test', 'http://foo', false, '2')], 'test', 'test', 'test', 'test', false, '', 'mainvpc', [], "", false
+    'test', 'test', 'test', [new TitusRegion('us-east-1', 'test', 'http://foo', false, false, '2')], 'test', 'test', 'test', 'test', false, '', 'mainvpc', [], "", false, false
   )
 
   @Subject
