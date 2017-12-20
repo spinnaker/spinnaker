@@ -106,4 +106,9 @@ public class DelegatingOortService
   public List<Map> getEntityTags(String cloudProvider, String entityType, String entityId, String account, String region) {
     return getService().getEntityTags(cloudProvider, entityType, entityId, account, region);
   }
+
+  @Override
+  public List<Map> getEntityTags(Map parameters) {
+    return getService().getEntityTags(parameters);
+  }
 }

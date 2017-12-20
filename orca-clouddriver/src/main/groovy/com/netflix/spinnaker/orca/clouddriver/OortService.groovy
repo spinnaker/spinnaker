@@ -115,4 +115,7 @@ interface OortService {
                           @Query("entityId") String entityId,
                           @Query("account") String account,
                           @Query("region") String region)
+
+  @GET('/tags')
+  List<Map> getEntityTags(@QueryMap Map parameters)
 }
