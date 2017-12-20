@@ -162,7 +162,7 @@ function configure(IS_TEST) {
   if (!IS_TEST) {
     config.entry = {
       settings: SETTINGS_PATH,
-      settingsLocal: './settings-local.js',
+      'settings-local': './settings-local.js',
       halconfig: './halconfig/settings.js',
       app: './app/scripts/app.ts',
       vendor: [
@@ -191,7 +191,7 @@ function configure(IS_TEST) {
         // settings.js is put at the end of the <script> blocks
         // which breaks the booting of the app.
         chunksSortMode: (a, b) => {
-          const chunks = ['init', 'vendor', 'halconfig', 'settings', 'settingsLocal', 'app'];
+          const chunks = ['init', 'vendor', 'halconfig', 'settings', 'settings-local', 'app'];
           return chunks.indexOf(a.names[0]) - chunks.indexOf(b.names[0]);
         }
       })
