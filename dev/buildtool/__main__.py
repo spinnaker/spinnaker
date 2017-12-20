@@ -179,11 +179,13 @@ def main():
   import buildtool.build_commands
   import buildtool.bom_commands
   import buildtool.changelog_commands
+  import buildtool.apidocs_commands
   command_modules = [
       buildtool.source_commands,
       buildtool.build_commands,
       buildtool.bom_commands,
-      buildtool.changelog_commands
+      buildtool.changelog_commands,
+      buildtool.apidocs_commands
   ]
 
   options, registry = init_options_and_registry(sys.argv[1:], command_modules)
