@@ -25,14 +25,14 @@ export default function ConfigDetail() {
         <MetricList/>
         <EditMetricModal/>
       </TitledSection>
-      <TitledSection title="Scoring">
-        <Scoring/>
-      </TitledSection>
       {CanarySettings.templatesEnabled && (
-        <TitledSection title="Templates">
+        <TitledSection title="Filter Templates">
           <Templates/>
         </TitledSection>
       )}
+      <TitledSection title="Scoring">
+        <Scoring/>
+      </TitledSection>
     </section>
   );
 }

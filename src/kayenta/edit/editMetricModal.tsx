@@ -2,14 +2,17 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 import { Modal } from 'react-bootstrap';
 import { get } from 'lodash';
-
+import * as Select from 'react-select';
+import { noop } from '@spinnaker/core';
 import * as Creators from '../actions/creators';
 import {ICanaryState} from '../reducers/index';
 import {ICanaryMetricConfig} from 'kayenta/domain';
 import MetricConfigurerDelegator from './metricConfigurerDelegator';
+import metricStoreConfigService from 'kayenta/metricStore/metricStoreConfig.service';
 import Styleguide from '../layout/styleguide';
 import FormRow from '../layout/formRow';
 import KayentaInput from '../layout/kayentaInput';
+import { configTemplatesSelector } from 'kayenta/selectors';
 
 import './editMetricModal.less';
 
@@ -18,10 +21,13 @@ interface IEditMetricModalDispatchProps {
   updateDirection: (event: any) => void;
   confirm: () => void;
   cancel: () => void;
+  selectTemplate: (template: Select.Option) => void;
 }
 
 interface IEditMetricModalStateProps {
-  metric: ICanaryMetricConfig
+  metric: ICanaryMetricConfig;
+  templates: Select.Option[];
+  filterTemplate: string;
 }
 
 function DirectionChoice({ value, label, current, action }: { value: string, label: string, current: string, action: (event: any) => void }) {
@@ -32,10 +38,34 @@ function DirectionChoice({ value, label, current, action }: { value: string, lab
   );
 }
 
+interface IFilterTemplateSelectorProps {
+  metricStore: string;
+  templates: Select.Option[];
+  template: string;
+  select: (template: Select.Option) => void;
+}
+
+function FilterTemplateSelector({ metricStore, template, templates, select }: IFilterTemplateSelectorProps) {
+  const config = metricStoreConfigService.getDelegate(metricStore);
+  if (!config || !config.useTemplates) {
+    return null;
+  }
+
+  return (
+    <FormRow label="Filter Template">
+      <Select
+        value={template}
+        options={templates}
+        onChange={select}
+      />
+    </FormRow>
+  );
+}
+
 /*
  * Modal to edit metric details.
  */
-function EditMetricModal({ metric, rename, confirm, cancel, updateDirection }: IEditMetricModalDispatchProps & IEditMetricModalStateProps) {
+function EditMetricModal({ metric, rename, confirm, cancel, updateDirection, templates, selectTemplate, filterTemplate }: IEditMetricModalDispatchProps & IEditMetricModalStateProps) {
   if (!metric) {
     return null;
   }
@@ -61,6 +91,12 @@ function EditMetricModal({ metric, rename, confirm, cancel, updateDirection }: I
             <DirectionChoice value="decrease" label="decrease" current={direction} action={updateDirection}/>
             <DirectionChoice value="either"   label="either"   current={direction} action={updateDirection}/>
           </FormRow>
+          <FilterTemplateSelector
+            metricStore={metric.query.type}
+            templates={templates}
+            template={filterTemplate}
+            select={selectTemplate}
+          />
           <MetricConfigurerDelegator/>
         </Modal.Body>
         <Modal.Footer>
@@ -88,16 +124,19 @@ function mapDispatchToProps(dispatch: any): IEditMetricModalDispatchProps {
     updateDirection: (event: any) => {
       dispatch(Creators.updateMetricDirection({ id: event.target.dataset.id, direction: event.target.value }))
     },
+    selectTemplate: (template: Select.Option) =>
+      dispatch(Creators.selectTemplate({ name: template ? template.value as string : null })),
   };
 }
 
 function mapStateToProps(state: ICanaryState): IEditMetricModalStateProps {
   return {
     metric: state.selectedConfig.editingMetric,
+    templates: Object.keys(configTemplatesSelector(state) || {}).map(t => ({
+      label: t, value: t,
+    })),
+    filterTemplate: get(state, 'selectedConfig.editingMetric.query.customFilterTemplate'),
   };
 }
-
-// For onHide, above. Not sure how to avoid this.
-const noop = (): void => null;
 
 export default connect(mapStateToProps, mapDispatchToProps)(EditMetricModal);

@@ -110,7 +110,10 @@ const editingMetric = handleActions({
   ),
   [Actions.UPDATE_ATLAS_QUERY]: (state: ICanaryMetricConfig, action: Action & any) => ({
     ...state, query: { ...state.query, q: action.query }
-  })
+  }),
+  [Actions.SELECT_TEMPLATE]: (state: ICanaryMetricConfig, action: Action & any) => ({
+    ...state, query: { ...state.query, customFilterTemplate: action.payload.name }
+  }),
 }, null);
 
 const save = combineReducers<ISaveState>({

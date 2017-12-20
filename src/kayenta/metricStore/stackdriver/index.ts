@@ -7,4 +7,5 @@ metricStoreConfigStore.register({
   name: 'stackdriver',
   metricConfigurer: StackdriverMetricConfigurer,
   queryFinder: (metric: ICanaryMetricConfig) => get(metric, 'query.metricType', ''),
+  useTemplates: true,
 });

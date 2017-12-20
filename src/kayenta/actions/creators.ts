@@ -72,3 +72,4 @@ export const editTemplateName = createAction(Actions.EDIT_TEMPLATE_NAME, typedPa
 export const editTemplateValue = createAction(Actions.EDIT_TEMPLATE_VALUE, typedPayloadCreator<{value: string}>());
 export const updateStackdriverGroupBy = createAction(Actions.UPDATE_STACKDRIVER_GROUP_BY_FIELDS, typedPayloadCreator<IUpdateListPayload>())
 export const deleteTemplate = createAction(Actions.DELETE_TEMPLATE, typedPayloadCreator<{name: string}>());
+export const selectTemplate = createAction(Actions.SELECT_TEMPLATE, typedPayloadCreator<{name: string}>());

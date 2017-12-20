@@ -30,6 +30,8 @@ export interface ICanaryMetricConfig {
 export interface ICanaryMetricSetQueryConfig {
   [key: string]: any;
   type: string;
+  customFilter?: string;
+  customFilterTemplate?: string;
 }
 
 export interface ICanaryServiceConfig {
