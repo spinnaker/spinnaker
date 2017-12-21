@@ -316,10 +316,6 @@ public class CanaryController {
   }
 
   private CanaryScope getScopeForNamedScope(CanaryExecutionRequest executionRequest, String scopeName, boolean isCanary) {
-    if (scopeName == null) {
-      return isCanary ? executionRequest.getExperimentScope() : executionRequest.getControlScope();
-    }
-
     CanaryScopePair canaryScopePair = executionRequest.getScopes().get(scopeName);
     CanaryScope canaryScope = isCanary ? canaryScopePair.getExperimentScope() : canaryScopePair.getControlScope();
     if (canaryScope == null) {
@@ -338,6 +334,9 @@ public class CanaryController {
         CanaryMetricConfig metric = canaryConfig.getMetrics().get(index);
         String serviceType = metric.getQuery().getServiceType();
         CanaryScopeFactory canaryScopeFactory = getScopeFactoryForServiceType(serviceType);
+        if (metric.getScopeName() == null) {
+          throw new IllegalArgumentException("Canary scope for metric named '" + metric.getName() + "' is null.");
+        }
         CanaryScope inspecificScope = getScopeForNamedScope(executionRequest, metric.getScopeName(), isCanary);
         CanaryScope scopeModel = canaryScopeFactory.buildCanaryScope(inspecificScope);
         String stagePrefix = (isCanary ? REFID_FETCH_EXPERIMENT_PREFIX : REFID_FETCH_CONTROL_PREFIX);

@@ -25,25 +25,14 @@ import java.util.Set;
 
 @Data
 public class CanaryExecutionRequest {
+  @NotNull
   protected Map<String, CanaryScopePair> scopes;
-
-  @NotNull
-  protected CanaryScope experimentScope;
-
-  @NotNull
-  protected CanaryScope controlScope;
 
   protected CanaryClassifierThresholdsConfig thresholds;
 
   public Duration calculateDuration() {
     Set<Duration> durationsFound = new HashSet<>();
 
-    if (experimentScope != null) {
-      durationsFound.add(experimentScope.calculateDuration());
-    }
-    if (controlScope != null) {
-      durationsFound.add(controlScope.calculateDuration());
-    }
     if (scopes != null) {
       scopes.values().forEach(scope -> {
         durationsFound.add(scope.controlScope.calculateDuration());
