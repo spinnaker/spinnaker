@@ -15,7 +15,6 @@ dependencies {
   // TODO(duftler): Move these to spinnaker-dependencies.
   testCompile "com.netflix.spinnaker.orca:orca-queue:$orcaVersion"
   testCompile "com.netflix.spinnaker.orca:orca-test:$orcaVersion"
-  testCompile fileTree(dir: 'libs', include: ['*.jar'])
 
   testCompile "com.natpryce:hamkrest:1.4.0.0"
 }
