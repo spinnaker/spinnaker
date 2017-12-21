@@ -233,9 +233,10 @@ class Builder(object):
             (name == 'deck' and not 'CHROME_BIN' in os.environ)):
       extra_args.append('-x test')
 
-    if not options.run_unit_tests and name == 'orca':
-      extra_args.append('-x junitPlatformTest')
+    if name == 'orca':
       extra_args.append('-x generateHtmlTestReports')
+      if not options.run_unit_tests:
+        extra_args.append('-x junitPlatformTest')
 
     if name == 'halyard':
       extra_args.append('-PbintrayPackageDebDistribution=trusty-nightly')
