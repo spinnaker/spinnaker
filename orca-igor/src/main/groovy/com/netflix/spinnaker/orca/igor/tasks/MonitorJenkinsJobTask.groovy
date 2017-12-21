@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.orca.igor.tasks
 
+import com.netflix.spinnaker.kork.core.RetrySupport
+
 import java.util.concurrent.TimeUnit
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.OverridableTimeoutRetryableTask
@@ -40,6 +42,9 @@ class MonitorJenkinsJobTask implements OverridableTimeoutRetryableTask {
 
   @Autowired
   BuildArtifactFilter buildArtifactFilter
+
+  @Autowired
+  RetrySupport retrySupport
 
   private static Map<String, ExecutionStatus> statusMap = [
     'ABORTED' : ExecutionStatus.CANCELED,
@@ -75,12 +80,15 @@ class MonitorJenkinsJobTask implements OverridableTimeoutRetryableTask {
 
       if (statusMap.containsKey(result)) {
         ExecutionStatus status = statusMap[result]
-        Map<String, Object> properties = [:]
+
         if (stage.context.propertyFile) {
-          properties = buildService.getPropertyFile(buildNumber, stage.context.propertyFile, master, job)
-          if (properties.size() == 0 && result == 'SUCCESS') {
-            throw new IllegalStateException("Expected properties file ${stage.context.propertyFile} but it was either missing, empty or contained invalid syntax")
-          }
+          Map<String, Object> properties = [:]
+          retrySupport.retry({
+            properties = buildService.getPropertyFile(buildNumber, stage.context.propertyFile, master, job)
+            if (properties.size() == 0 && result == 'SUCCESS') {
+              throw new IllegalStateException("Expected properties file ${stage.context.propertyFile} but it was either missing, empty or contained invalid syntax")
+            }
+          }, 6, 5000, false)
           outputs << properties
           outputs.propertyFileContents = properties
         }

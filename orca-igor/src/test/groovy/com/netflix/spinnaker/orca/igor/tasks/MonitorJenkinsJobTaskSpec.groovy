@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.igor.tasks
 
+import com.netflix.spinnaker.kork.core.RetrySupport
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.igor.BuildArtifactFilter
@@ -150,6 +151,32 @@ class MonitorJenkinsJobTaskSpec extends Specification {
       getBuild(stage.context.buildNumber, stage.context.master, stage.context.job) >> [result: 'SUCCESS', running: false]
       getPropertyFile(stage.context.buildNumber, stage.context.propertyFile, stage.context.master, stage.context.job) >> [val1: "one", val2: "two"]
     }
+    task.retrySupport = Spy(RetrySupport) {
+      _ * sleep(_) >> { /* do nothing */ }
+    }
+
+    when:
+    TaskResult result = task.execute(stage)
+
+    then:
+    result.context.val1 == 'one'
+    result.context.val2 == 'two'
+
+  }
+
+  def "retrieves values from a property file if specified after a failed attempt"() {
+
+    given:
+    def stage = new Stage(pipeline, "jenkins", [master: "builds", job: "orca", buildNumber: 4, propertyFile: "sample.properties"])
+
+    and:
+    task.buildService = Stub(BuildService) {
+      getBuild(stage.context.buildNumber, stage.context.master, stage.context.job) >> [result: 'SUCCESS', running: false]
+      getPropertyFile(stage.context.buildNumber, stage.context.propertyFile, stage.context.master, stage.context.job) >>> [[], [val1: "one", val2: "two"]]
+    }
+    task.retrySupport = Spy(RetrySupport) {
+      _ * sleep(_) >> { /* do nothing */ }
+    }
 
     when:
     TaskResult result = task.execute(stage)
@@ -168,6 +195,9 @@ class MonitorJenkinsJobTaskSpec extends Specification {
     task.buildService = Stub(BuildService) {
       getBuild(stage.context.buildNumber, stage.context.master, stage.context.job) >> [result: 'SUCCESS', running: false]
       getPropertyFile(stage.context.buildNumber, stage.context.propertyFile, stage.context.master, stage.context.job) >> [:]
+    }
+    task.retrySupport = Spy(RetrySupport) {
+      _ * sleep(_) >> { /* do nothing */ }
     }
 
     when:
