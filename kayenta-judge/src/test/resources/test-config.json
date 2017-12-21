@@ -3,7 +3,6 @@
   "description": "Example Automated Canary Analysis (ACA) Configuration",
   "metrics": [
     {
-      "service": "atlas",
       "name": "cpu",
       "query": {
         "type": "atlas",
@@ -15,7 +14,6 @@
       "groups": ["system", "example"]
     },
     {
-      "service": "atlas",
       "name": "requests",
       "query": {
         "type": "atlas",
@@ -27,7 +25,6 @@
       "groups": ["requests", "example"]
     },
     {
-      "service": "atlas",
       "name": "foo",
       "query": {
         "type": "atlas",
@@ -39,18 +36,6 @@
       "groups": ["bar"]
     }
   ],
-  "services": {
-    "atlas": {
-      "type": "atlas",
-      "name": "atlas",
-      "region": "us-east-1",
-      "environment": "prod",
-      "backend": {
-        "deployment": "main",
-        "dataset": "regional"
-      }
-    }
-  },
   "classifier": {
     "groupWeights": {
       "requests": 50.0,

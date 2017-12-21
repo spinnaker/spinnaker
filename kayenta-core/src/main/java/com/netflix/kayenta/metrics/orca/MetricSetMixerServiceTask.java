@@ -108,7 +108,7 @@ public class MetricSetMixerServiceTask implements RetryableTask {
 
     Map outputs = Collections.singletonMap("metricSetPairListId", aggregatedMetricSetPairListId);
 
-    return new TaskResult(ExecutionStatus.SUCCEEDED, outputs);
+    return new TaskResult(ExecutionStatus.SUCCEEDED, Collections.emptyMap(), outputs);
   }
 
   private List<String> getMetricSetListIds(Execution execution, String stagePrefix) {

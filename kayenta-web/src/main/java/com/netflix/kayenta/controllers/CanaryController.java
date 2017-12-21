@@ -240,7 +240,7 @@ public class CanaryController {
       .filter(stage -> stage.getRefId().equals(REFID_JUDGE))
       .findFirst()
       .orElseThrow(() -> new IllegalArgumentException("Unable to find stage '" + REFID_JUDGE + "' in pipeline ID '" + canaryExecutionId + "'"));
-    Map<String, Object> judgeContext = judgeStage.getContext();
+    Map<String, Object> judgeOutputs = judgeStage.getOutputs();
 
     Stage contextStage = pipeline.getStages().stream()
       .filter(stage -> stage.getRefId().equals(REFID_SET_CONTEXT))
@@ -285,8 +285,8 @@ public class CanaryController {
     }
 
     if (isComplete && pipelineStatus.equals("succeeded")) {
-      if (judgeContext.containsKey("canaryJudgeResultId")) {
-        String canaryJudgeResultId = (String)judgeContext.get("canaryJudgeResultId");
+      if (judgeOutputs.containsKey("canaryJudgeResultId")) {
+        String canaryJudgeResultId = (String)judgeOutputs.get("canaryJudgeResultId");
         canaryExecutionStatusResponseBuilder.result(storageService.loadObject(resolvedStorageAccountName, ObjectType.CANARY_RESULT, canaryJudgeResultId));
       }
     }

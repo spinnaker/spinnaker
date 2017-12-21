@@ -36,14 +36,6 @@
       }
     }
   ],
-  "services": {
-    "atlas": {
-      "name": "atlas",
-      "type": "atlas",
-      "region": "us-east-1",
-      "environment": "prod"
-    }
-  },
   "classifier": {
     "groupWeights": {
       "requests": 50.0,

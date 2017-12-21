@@ -24,12 +24,6 @@
       ]
     }
   ],
-  "services": {
-    "stackdriver": {
-      "type": "stackdriver",
-      "name": "stackdriver"
-    }
-  },
   "classifier": {
     "groupWeights": {
       "system": 100.0

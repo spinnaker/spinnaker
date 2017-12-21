@@ -24,12 +24,6 @@
       ]
     }
   ],
-  "services": {
-    "prometheus": {
-      "type": "prometheus",
-      "name": "prometheus"
-    }
-  },
   "classifier": {
     "groupWeights": {
       "system": 100.0

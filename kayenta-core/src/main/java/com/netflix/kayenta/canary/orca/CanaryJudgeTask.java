@@ -40,6 +40,7 @@ import org.springframework.stereotype.Component;
 import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.time.Duration;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -142,6 +143,6 @@ public class CanaryJudgeTask implements RetryableTask {
         .put("result", result)
         .build();
 
-    return new TaskResult(ExecutionStatus.SUCCEEDED, outputs);
+    return new TaskResult(ExecutionStatus.SUCCEEDED, Collections.emptyMap(), outputs);
   }
 }

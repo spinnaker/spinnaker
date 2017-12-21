@@ -40,18 +40,6 @@ Atlas and Stackdriver are used.
       "groups": ["requests"]
     }
   ],
-  "services": {
-    "atlas": {
-      "type": "atlas",
-      "name": "atlas",
-      "region": "us-east-1",
-      "environment": "prod",
-      "backend": {
-        "deployment": "main",
-        "dataset": "regional"
-      }
-    }
-  },
   "classifier": {
     "groupWeights": {
       "requests": 50.0,
@@ -84,12 +72,6 @@ Atlas and Stackdriver are used.
       "groups": ["system"]
     }
   ],
-  "services": {
-    "stackdriver": {
-      "type": "stackdriver",
-      "name": "stackdriver"
-    }
-  },
   "classifier": {
     "groupWeights": {
       "system": 100.0
