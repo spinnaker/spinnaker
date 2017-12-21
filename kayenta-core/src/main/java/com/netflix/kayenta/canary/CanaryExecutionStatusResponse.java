@@ -37,9 +37,6 @@ public class CanaryExecutionStatusResponse {
 
   protected CanaryResult result;
 
-  // TODO: (mgraff) Remove this once our UIs are set up to get it from the canary result itself
-  protected String metricSetPairListId;
-
   //
   // buildTime is when the pipeline was first created.
   // startTime refers to the time the pipeline started running.

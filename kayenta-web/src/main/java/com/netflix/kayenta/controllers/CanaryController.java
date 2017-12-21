@@ -223,6 +223,85 @@ public class CanaryController {
   // Get the results of a canary run by ID
   //
   @ApiOperation(value = "Retrieve status and results for a canary run")
+  @RequestMapping(value = "/{canaryExecutionId:.+}", method = RequestMethod.GET)
+  public CanaryExecutionStatusResponse getCanaryResults(@RequestParam(required = false) final String storageAccountName,
+                                                        @PathVariable String canaryExecutionId) throws JsonProcessingException {
+    String resolvedStorageAccountName = CredentialsHelper.resolveAccountByNameOrType(storageAccountName,
+                                                                                     AccountCredentials.Type.OBJECT_STORE,
+                                                                                     accountCredentialsRepository);
+
+    StorageService storageService =
+      storageServiceRepository
+        .getOne(resolvedStorageAccountName)
+        .orElseThrow(() -> new IllegalArgumentException("No storage service was configured; unable to retrieve results."));
+
+    Execution pipeline = executionRepository.retrieve(Execution.ExecutionType.PIPELINE, canaryExecutionId);
+    Stage judgeStage = pipeline.getStages().stream()
+      .filter(stage -> stage.getRefId().equals(REFID_JUDGE))
+      .findFirst()
+      .orElseThrow(() -> new IllegalArgumentException("Unable to find stage '" + REFID_JUDGE + "' in pipeline ID '" + canaryExecutionId + "'"));
+    Map<String, Object> judgeContext = judgeStage.getContext();
+
+    Stage contextStage = pipeline.getStages().stream()
+      .filter(stage -> stage.getRefId().equals(REFID_SET_CONTEXT))
+      .findFirst()
+      .orElseThrow(() -> new IllegalArgumentException("Unable to find stage '" + REFID_SET_CONTEXT + "' in pipeline ID '" + canaryExecutionId + "'"));
+    Map<String, Object> contextContext = contextStage.getContext();
+
+    Stage mixerStage = pipeline.getStages().stream()
+      .filter(stage -> stage.getRefId().equals(REFID_MIX_METRICS))
+      .findFirst()
+      .orElseThrow(() -> new IllegalArgumentException("Unable to find stage '" + REFID_MIX_METRICS + "' in pipeline ID '" + canaryExecutionId + "'"));
+    Map<String, Object> mixerContext = mixerStage.getContext();
+
+    if (!contextContext.containsKey("canaryConfigId")) {
+      throw new IllegalArgumentException("The judge stage does not contain a canaryConfigId reference");
+    }
+
+    CanaryExecutionStatusResponse.CanaryExecutionStatusResponseBuilder canaryExecutionStatusResponseBuilder = CanaryExecutionStatusResponse.builder();
+
+    Map<String, String> stageStatus = pipeline.getStages()
+      .stream()
+      .collect(Collectors.toMap(Stage::getRefId, s -> s.getStatus().toString().toLowerCase()));
+
+    Boolean isComplete = pipeline.getStatus().isComplete();
+    String pipelineStatus = pipeline.getStatus().toString().toLowerCase();
+    canaryExecutionStatusResponseBuilder.stageStatus(stageStatus);
+    canaryExecutionStatusResponseBuilder.complete(isComplete);
+    canaryExecutionStatusResponseBuilder.status(pipelineStatus);
+
+    Long buildTime = pipeline.getBuildTime();
+    if (buildTime != null) {
+      canaryExecutionStatusResponseBuilder.buildTimeMillis(buildTime);
+      canaryExecutionStatusResponseBuilder.buildTimeIso(Instant.ofEpochMilli(buildTime) + "");
+    }
+
+    Long startTime = pipeline.getStartTime();
+    if (startTime != null) {
+      canaryExecutionStatusResponseBuilder.startTimeMillis(startTime);
+      canaryExecutionStatusResponseBuilder.startTimeIso(Instant.ofEpochMilli(startTime) + "");
+    }
+
+    Long endTime = pipeline.getEndTime();
+    if (endTime != null) {
+      canaryExecutionStatusResponseBuilder.endTimeMillis(endTime);
+      canaryExecutionStatusResponseBuilder.endTimeIso(Instant.ofEpochMilli(endTime) + "");
+    }
+
+    if (isComplete && pipelineStatus.equals("succeeded")) {
+      if (judgeContext.containsKey("canaryJudgeResultId")) {
+        String canaryJudgeResultId = (String)judgeContext.get("canaryJudgeResultId");
+        canaryExecutionStatusResponseBuilder.result(storageService.loadObject(resolvedStorageAccountName, ObjectType.CANARY_RESULT, canaryJudgeResultId));
+      }
+    }
+
+    return canaryExecutionStatusResponseBuilder.build();
+  }
+
+  //
+  // Get the results of a canary run by ID
+  //
+  @ApiOperation(value = "Retrieve status and results for a canary run")
   @RequestMapping(value = "/{canaryConfigId:.+}/{canaryExecutionId:.+}", method = RequestMethod.GET)
   public CanaryExecutionStatusResponse getCanaryResults(@RequestParam(required = false) final String storageAccountName,
                                                         @PathVariable String canaryConfigId,
@@ -292,9 +371,6 @@ public class CanaryController {
       canaryExecutionStatusResponseBuilder.endTimeMillis(endTime);
       canaryExecutionStatusResponseBuilder.endTimeIso(Instant.ofEpochMilli(endTime) + "");
     }
-
-    // TODO: (mgraff) Remove this once our UIs are set up to get it from the canary result itself
-    canaryExecutionStatusResponseBuilder.metricSetPairListId((String)mixerContext.get("metricSetPairListId"));
 
     if (isComplete && pipelineStatus.equals("succeeded")) {
       if (judgeContext.containsKey("canaryJudgeResultId")) {
