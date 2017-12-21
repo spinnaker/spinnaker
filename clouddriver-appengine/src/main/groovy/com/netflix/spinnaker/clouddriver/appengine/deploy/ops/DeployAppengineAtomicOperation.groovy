@@ -53,21 +53,32 @@ class DeployAppengineAtomicOperation implements AtomicOperation<DeploymentResult
 
   DeployAppengineDescription description
   boolean usesGcs
+  boolean containerDeployment
 
   DeployAppengineAtomicOperation(DeployAppengineDescription description) {
     this.description = description
-    this.usesGcs = description.repositoryUrl.startsWith("gs://")
+    this.containerDeployment = description.containerImageUrl?.trim()
+    this.usesGcs = !this.containerDeployment && description.repositoryUrl.startsWith("gs://")
   }
 
   /**
    * curl -X POST -H "Content-Type: application/json" -d '[ { "createServerGroup": { "application": "myapp", "stack": "stack", "freeFormDetails": "details", "repositoryUrl": "https://github.com/organization/project.git", "branch": "feature-branch", "credentials": "my-appengine-account", "configFilepaths": ["app.yaml"] } } ]' "http://localhost:7002/appengine/ops"
    * curl -X POST -H "Content-Type: application/json" -d '[ { "createServerGroup": { "application": "myapp", "stack": "stack", "freeFormDetails": "details", "repositoryUrl": "https://github.com/organization/project.git", "branch": "feature-branch", "credentials": "my-appengine-account", "configFilepaths": ["app.yaml"], "promote": true, "stopPreviousVersion": true } } ]' "http://localhost:7002/appengine/ops"
    * curl -X POST -H "Content-Type: application/json" -d '[ { "createServerGroup": { "application": "myapp", "stack": "stack", "freeFormDetails": "details", "repositoryUrl": "https://github.com/organization/project.git", "branch": "feature-branch", "credentials": "my-appengine-account", "configFilepaths": ["runtime: python27\napi_version: 1\nthreadsafe: true\nmanual_scaling:\n  instances: 5\ninbound_services:\n - warmup\nhandlers:\n - url: /.*\n   script: main.app"],} } ]' "http://localhost:7002/appengine/ops"
+   * curl -X POST -H "Content-Type: application/json" -d '[ { "createServerGroup": { "application": "myapp", "stack": "stack", "freeFormDetails": "details", "credentials": "my-appengine-account", "containerImageUrl": "gcr.io/my-project/my-image:my-tag", "configFiles": ["env: flex\nruntime: custom\nmanual_scaling:\n  instances: 1\nresources:\n  cpu: 1\n  memory_gb: 0.5\n  disk_size_gb: 10"] } } ]' "http://localhost:7002/appengine/ops"
    */
   @Override
   DeploymentResult operate(List priorOutputs) {
     def  baseDir = description.credentials.localRepositoryDirectory
-    def  directoryPath = getFullDirectoryPath(baseDir, description.repositoryUrl)
+
+    String directoryId
+    if (containerDeployment) {
+      directoryId = description.containerImageUrl
+    } else {
+      directoryId = description.repositoryUrl
+    }
+
+    def directoryPath = getFullDirectoryPath(baseDir, directoryId)
 
     /*
     * We can't allow concurrent deploy operations on the same local repository.
@@ -77,12 +88,28 @@ class DeployAppengineAtomicOperation implements AtomicOperation<DeploymentResult
     return AppengineMutexRepository.atomicWrapper(directoryPath, {
       task.updateStatus BASE_PHASE, "Initializing creation of version..."
       def result = new DeploymentResult()
-      def newVersionName = deploy(cloneOrUpdateLocalRepository(directoryPath, 1))
+      String newVersionName
+      if (containerDeployment) {
+        createEmptyDirectory(directoryPath)
+        newVersionName = deploy(directoryPath)
+      } else {
+        newVersionName = deploy(cloneOrUpdateLocalRepository(directoryPath, 1))
+      }
       def region = description.credentials.region
       result.serverGroupNames = Arrays.asList("$region:$newVersionName".toString())
       result.serverGroupNameByRegion[region] = newVersionName
       return result
     })
+  }
+
+  void createEmptyDirectory(String path) {
+    File directory = new File(path)
+    if (directory.exists()) {
+      directory.deleteDir()
+    }
+    if (!directory.mkdirs()) {
+      throw new AppengineOperationException("Failed to create directory: $path")
+    }
   }
 
   String cloneOrUpdateLocalRepository(String directoryPath, Integer retryCount) {
@@ -145,7 +172,9 @@ class DeployAppengineAtomicOperation implements AtomicOperation<DeploymentResult
                                                                          description.stack,
                                                                          description.freeFormDetails,
                                                                          false)
-    def writtenFullConfigFilePaths = writeConfigFiles(description.configFiles, repositoryPath, applicationDirectoryRoot)
+    def imageUrl = description.containerImageUrl
+    def configFiles = description.configFiles
+    def writtenFullConfigFilePaths = writeConfigFiles(configFiles, repositoryPath, applicationDirectoryRoot)
     def repositoryFullConfigFilePaths =
       (description.configFilepaths?.collect { Paths.get(repositoryPath, applicationDirectoryRoot ?: '.', it).toString() } ?: []) as List<String>
     def deployCommand = ["gcloud"]
@@ -158,6 +187,9 @@ class DeployAppengineAtomicOperation implements AtomicOperation<DeploymentResult
     deployCommand << (description.stopPreviousVersion ? "--stop-previous-version": "--no-stop-previous-version")
     deployCommand << "--project=$project"
     deployCommand << "--account=$accountEmail"
+    if (containerDeployment) {
+      deployCommand << "--image-url=$imageUrl"
+    }
 
     task.updateStatus BASE_PHASE, "Deploying version $versionName..."
     try {

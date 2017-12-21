@@ -39,7 +39,9 @@ class DeployAppengineDescriptionValidator extends DescriptionValidator<DeployApp
       return
     }
 
-    if (!description.repositoryUrl.startsWith("gs://")) {
+    boolean isContainerDeployment = description.containerImageUrl?.trim()
+
+    if (!isContainerDeployment && !description.repositoryUrl.startsWith("gs://")) {
       if (!helper.validateGitCredentials(description.credentials.gitCredentials,
                                          description.gitCredentialType,
                                          description.credentials.name,
@@ -49,10 +51,15 @@ class DeployAppengineDescriptionValidator extends DescriptionValidator<DeployApp
       helper.validateNotEmpty(description.branch, "branch")
     }
 
+    if (isContainerDeployment) {
+      helper.validateNotEmpty(description.containerImageUrl, "containerImageUrl")
+    } else {
+      helper.validateNotEmpty(description.repositoryUrl, "repositoryUrl")
+    }
+
     helper.validateApplication(description.application, "application")
     helper.validateStack(description.stack, "stack")
     helper.validateDetails(description.freeFormDetails, "freeFormDetails")
-    helper.validateNotEmpty(description.repositoryUrl, "repositoryUrl")
 
     if (!(description.configFilepaths || description.configFiles)) {
       helper.validateNotEmpty(description.configFilepaths, "configFilepaths")
