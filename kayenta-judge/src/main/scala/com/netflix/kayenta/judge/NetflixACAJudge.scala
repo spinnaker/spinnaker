@@ -26,7 +26,7 @@ import com.netflix.kayenta.judge.detectors.IQRDetector
 import com.netflix.kayenta.judge.scorers.{ScoreResult, WeightedSumScorer}
 import com.netflix.kayenta.judge.stats.DescriptiveStatistics
 import com.netflix.kayenta.metrics.MetricSetPair
-import com.netflix.kayenta.r.MannWhitney
+import com.netflix.kayenta.r.{MannWhitney, RExecutionException}
 import com.typesafe.scalalogging.StrictLogging
 import org.springframework.stereotype.Component
 
@@ -196,23 +196,44 @@ class NetflixACAJudge extends CanaryJudge with StrictLogging {
     //=============================================
     // Metric Classification
     // ============================================
-    //Use the Mann-Whitney algorithm to compare the experiment and control populations
+    //
+
+
     val mannWhitney = new MannWhitneyClassifier(fraction = 0.25, confLevel = 0.98, mw)
 
-    val metricClassification = mannWhitney.classify(transformedControl, transformedExperiment, directionality)
-
-    CanaryAnalysisResult.builder()
+    var resultBuilder = CanaryAnalysisResult.builder()
       .name(metric.getName)
       .id(metric.getId)
       .tags(metric.getTags)
-      .classification(metricClassification.classification.toString)
-      .classificationReason(metricClassification.reason.orNull)
       .groups(metricConfig.getGroups)
       .experimentMetadata(Map("stats" -> DescriptiveStatistics.toMap(experimentStats).asJava.asInstanceOf[Object]).asJava)
       .controlMetadata(Map("stats" -> DescriptiveStatistics.toMap(controlStats).asJava.asInstanceOf[Object]).asJava)
-      .resultMetadata(Map("ratio" -> metricClassification.ratio.asInstanceOf[Object]).asJava)
-      .build()
 
+    if (transformedControl.values sameElements transformedExperiment.values) {
+      resultBuilder
+        .classification(Pass.toString)
+        .classificationReason("control and experiment data are identical")
+        .resultMetadata(util.Collections.singletonMap("ratio", new java.lang.Double(1.0)))
+        .build()
+    } else {
+      try {
+        //Use the Mann-Whitney algorithm to compare the experiment and control populations
+        val metricClassification = mannWhitney.classify(transformedControl, transformedExperiment, directionality)
+
+        resultBuilder
+          .classification(metricClassification.classification.toString)
+          .classificationReason(metricClassification.reason.orNull)
+          .resultMetadata(Map("ratio" -> metricClassification.ratio.asInstanceOf[Object]).asJava)
+          .build()
+      } catch {
+        case e: RExecutionException =>
+          logger.error("Mann-Whitney Test Failed", e)
+          resultBuilder
+            .classification(Error.toString)
+            .classificationReason("Mann-Whitney Test Failed")
+            .build()
+      }
+    }
   }
 
 }
