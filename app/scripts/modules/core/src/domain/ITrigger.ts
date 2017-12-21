@@ -37,10 +37,11 @@ export interface ICronTrigger extends ITrigger {
 export interface IPubsubTrigger extends ITrigger {
   pubsubSystem: string;
   subscriptionName: string;
-  constraints: {[key: string]: string};
+  payloadConstraints: {[key: string]: string};
+  attributeConstraints: {[key: string]: string};
 }
 
 export interface IWebhookTrigger extends ITrigger {
   source: string;
-  constraints: {[key: string]: string};
+  payloadConstraints: {[key: string]: string};
 }

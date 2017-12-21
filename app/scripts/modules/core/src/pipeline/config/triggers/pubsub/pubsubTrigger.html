@@ -25,13 +25,25 @@
     </div>
   </div>
 
+  <hr>
+
   <div class="form-group">
-    <div class="col-md-3 sm-label-right">
-      Constraints
-      <help-field key="pipeline.config.trigger.pubsub.constraints"></help-field>
+    <div class="col-md-4 sm-label-right">
+      Payload Constraints
+      <help-field key="pipeline.config.trigger.pubsub.payloadConstraints"></help-field>
     </div>
     <div class="col-md-6">
-      <map-editor model="vm.trigger.constraints" add-button-label="Add constraint"></map-editor>
+      <map-editor model="vm.trigger.payloadConstraints" add-button-label="Add payload constraint"></map-editor>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <div class="col-md-4 sm-label-right">
+      Attribute Constraints
+      <help-field key="pipeline.config.trigger.pubsub.attributeConstraints"></help-field>
+    </div>
+    <div class="col-md-6">
+      <map-editor model="vm.trigger.attributeConstraints" add-button-label="Add attribute constraint"></map-editor>
     </div>
   </div>
 

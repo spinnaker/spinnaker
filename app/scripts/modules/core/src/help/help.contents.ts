@@ -108,11 +108,16 @@ module(HELP_CONTENTS, [])
     'pipeline.config.trigger.webhook.source': `
         <p>Determines the target URL required to trigger this pipeline, as well as how the payload can be transformed into artifacts.</p>
     `,
-    'pipeline.config.trigger.webhook.constraints': `
+    'pipeline.config.trigger.webhook.payloadConstraints': `
         <p>When provided, only a webhook with a payload containing at least the specified key/value pairs will be allowed to trigger this pipeline. For example, if you wanted to lockdown the systems/users that can trigger this pipeline via this webhook, you could require the key "secret" and value "something-secret" as a constraint.</p>
         <p>The constraint values may be supplied as regex.</p>
     `,
-    'pipeline.config.trigger.pubsub.constraints': `
+    'pipeline.config.trigger.pubsub.attributeConstraints': `
+        <p>Pubsub mesages can have system-specific metadata accompanying the payload called <b>attributes</b>.</p>
+        <p>When provided, only a pubsub message with attributes containing at least the specified key/value pairs will be allowed to trigger this pipeline.</p>
+        <p>The constraint values may be supplied as regex.</p>
+    `,
+    'pipeline.config.trigger.pubsub.payloadConstraints': `
         <p>When provided, only a pubsub message with a payload containing at least the specified key/value pairs will be allowed to trigger this pipeline. For example, if you wanted to lockdown the systems/users that can trigger this pipeline via this pubsub subscription, you could require the key "secret" and value "something-secret" as a constraint.</p>
         <p>The constraint values may be supplied as regex.</p>
     `,
