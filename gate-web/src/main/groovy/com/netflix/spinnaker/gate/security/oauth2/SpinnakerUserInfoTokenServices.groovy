@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.gate.security.oauth2
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.gate.security.oauth2.provider.SpinnakerProviderTokenServices
 import com.netflix.spinnaker.gate.services.CredentialsService
 import com.netflix.spinnaker.gate.services.PermissionService
 import com.netflix.spinnaker.gate.services.internal.Front50Service
@@ -68,6 +69,9 @@ class SpinnakerUserInfoTokenServices implements ResourceServerTokenServices {
   @Autowired
   Front50Service front50Service
 
+  @Autowired(required = false)
+  SpinnakerProviderTokenServices providerTokenServices
+
   @Override
   OAuth2Authentication loadAuthentication(String accessToken) throws AuthenticationException, InvalidTokenException {
     OAuth2Authentication oAuth2Authentication = userInfoTokenServices.loadAuthentication(accessToken)
@@ -75,12 +79,17 @@ class SpinnakerUserInfoTokenServices implements ResourceServerTokenServices {
     Map details = oAuth2Authentication.userAuthentication.details as Map
 
     if (log.isDebugEnabled()) {
-      log.debug("UserInfo details: ", entries(details))
+      log.debug("UserInfo details: " + entries(details))
     }
 
     def isServiceAccount = isServiceAccount(details)
-    if (!hasAllUserInfoRequirements(details) && !isServiceAccount) {
-      throw new BadCredentialsException("User's info does not have all required fields.")
+    if (!isServiceAccount) {
+      if (!hasAllUserInfoRequirements(details)) {
+        throw new BadCredentialsException("User's info does not have all required fields.")
+      }
+      if (providerTokenServices != null && !providerTokenServices.hasAllProviderRequirements(accessToken, details)) {
+        throw new BadCredentialsException("User's provider info does not have all required fields.")
+      }
     }
 
     def username = details[userInfoMapping.username] as String
