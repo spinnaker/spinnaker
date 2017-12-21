@@ -4,6 +4,7 @@ export interface IAppengineProviderSettings extends IProviderSettings {
   defaults: {
     account?: string;
     editLoadBalancerStageEnabled?: boolean;
+    containerImageUrlDeployments?: boolean;
   };
 }
 

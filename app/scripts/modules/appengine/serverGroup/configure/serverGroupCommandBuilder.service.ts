@@ -52,12 +52,14 @@ export interface IAppengineServerGroupCommand {
   fromArtifact: boolean;
   expectedArtifactId: string;
   sourceType: string;
+  containerImageUrl?: string;
 }
 
 export enum AppengineSourceType {
   GCS = 'gcs',
   GIT = 'git',
-  ARTIFACT = 'artifact'
+  ARTIFACT = 'artifact',
+  CONTAINER_IMAGE = 'containerImage',
 }
 
 interface IViewState {

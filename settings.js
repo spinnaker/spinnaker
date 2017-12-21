@@ -101,7 +101,8 @@ window.spinnakerSettings = {
     appengine: {
       defaults: {
         account: 'my-appengine-account',
-      }
+        containerImageUrlDeployments: false,
+      },
     }
   },
   whatsNew: {

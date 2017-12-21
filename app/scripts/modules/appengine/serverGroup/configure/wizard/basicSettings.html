@@ -66,14 +66,21 @@
           <label>
             <input type="radio"
                    ng-model="command.sourceType"
-                   value="gcs"> GCS
+                   value="gcs" /> GCS
           </label>
         </div>
         <div class="radio radio-inline">
           <label>
             <input type="radio"
                    ng-model="command.sourceType"
-                   value="git"> Git
+                   value="git" /> Git
+          </label>
+        </div>
+        <div class="radio radio-inline" ng-if="basicSettingsCtrl.containerImageUrlEnabled">
+          <label>
+            <input type="radio"
+                   ng-model="command.sourceType"
+                   value="containerImage" /> Container Image
           </label>
         </div>
       </div>
@@ -197,6 +204,21 @@
           <a href ng-click="basicSettingsCtrl.toggleResolveViaTrigger()">Click for text input</a>
         </span>
         </div>
+      </div>
+    </div>
+
+    <div ng-if="basicSettingsCtrl.isContainerImageSource()">
+      <div class="form-group">
+        <div class="col-md-3 sm-label-right">
+          Image URL
+          <help-field key="appengine.serverGroup.containerImageUrl"></help-field>
+        </div>
+        <div class="col-md-7">
+          <input type="text"
+            required
+            class="form-control input-sm"
+            name="containerImageUrl"
+            ng-model="command.containerImageUrl"/></div>
       </div>
     </div>
 

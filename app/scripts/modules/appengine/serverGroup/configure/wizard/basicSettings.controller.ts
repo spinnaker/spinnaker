@@ -2,7 +2,7 @@ import { copy, extend, IController, IControllerService, IScope, module } from 'a
 import { StateService } from '@uirouter/angularjs';
 import { set } from 'lodash';
 
-import { IArtifact, IExpectedArtifact, NamingService } from '@spinnaker/core';
+import { IArtifact, IExpectedArtifact, NamingService, SETTINGS } from '@spinnaker/core';
 
 import { GitCredentialType, IAppengineAccount } from 'appengine/domain/index';
 import { AppengineSourceType, IAppengineServerGroupCommand } from '../serverGroupCommandBuilder.service';
@@ -12,6 +12,7 @@ interface IAppengineBasicSettingsScope extends IScope {
 }
 
 class AppengineServerGroupBasicSettingsCtrl implements IController {
+  public containerImageUrlEnabled = SETTINGS.providers.appengine.defaults.containerImageUrlDeployments;
 
   constructor(public $scope: IAppengineBasicSettingsScope,
               $state: StateService,
@@ -39,6 +40,10 @@ class AppengineServerGroupBasicSettingsCtrl implements IController {
 
   public isGcsSource(): boolean {
     return this.$scope.command.sourceType === AppengineSourceType.GCS;
+  }
+
+  public isContainerImageSource(): boolean {
+    return this.$scope.command.sourceType === AppengineSourceType.CONTAINER_IMAGE;
   }
 
   // TODO(jtk54): this is a copy of core code, please dedup using expected-artifact-selector component

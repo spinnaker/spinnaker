@@ -1,7 +1,8 @@
 import { IController, module } from 'angular';
+import { AppengineSourceType } from '../serverGroupCommandBuilder.service';
 
 class AppengineConfigFileConfigurerCtrl implements IController {
-  public command: {configFiles: string[]};
+  public command: {configFiles: string[], sourceType: string};
 
   public $onInit(): void {
     if (!this.command.configFiles) {
@@ -26,6 +27,10 @@ class AppengineConfigFileConfigurerCtrl implements IController {
       event.target.selectionStart += 2;
     }
   }
+
+  public isContainerImageSource(): boolean {
+    return this.command.sourceType === AppengineSourceType.CONTAINER_IMAGE;
+  }
 }
 
 class AppengineConfigFileConfigurerComponent implements ng.IComponentOptions {
@@ -33,7 +38,7 @@ class AppengineConfigFileConfigurerComponent implements ng.IComponentOptions {
   public controller: any = AppengineConfigFileConfigurerCtrl;
   public template = `
     <div class="form-horizontal container-fluid">
-      <div class="form-group">
+      <div class="form-group" ng-if="!$ctrl.isContainerImageSource()">
         <div class="col-md-3 sm-label-right">
           Application Root
           <help-field class="help-field-absolute" key="appengine.serverGroup.applicationDirectoryRoot"></help-field>
@@ -45,7 +50,7 @@ class AppengineConfigFileConfigurerComponent implements ng.IComponentOptions {
                  ng-model="$ctrl.command.applicationDirectoryRoot"/></div>
       </div>
 
-      <div class="form-group">
+      <div class="form-group" ng-if="!$ctrl.isContainerImageSource()">
         <div class="col-md-3 sm-label-right">
           Config Filepaths <help-field key="appengine.serverGroup.configFilepaths"></help-field>
         </div>
@@ -62,7 +67,13 @@ class AppengineConfigFileConfigurerComponent implements ng.IComponentOptions {
 
       <div class="form-group">
         <div class="col-md-3 sm-label-right">
-          Config Files <help-field key="appengine.serverGroup.configFiles"></help-field>
+          Config Files
+          <span ng-if="!$ctrl.isContainerImageSource()">
+            <help-field key="appengine.serverGroup.configFiles"></help-field>
+          </span>
+          <span ng-if="$ctrl.isContainerImageSource()">
+            <help-field key="appengine.serverGroup.configFilesRequired"></help-field>
+          </span>
         </div>
         <div ng-repeat="configFile in $ctrl.command.configFiles track by $index" >
           <div class="col-md-7" ng-class="{'col-md-offset-3': $index > 0}" style="margin-top: 5px;">

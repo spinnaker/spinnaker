@@ -35,6 +35,7 @@ export class AppengineDeployDescription {
   public fromArtifact: boolean;
   public sourceType: string;
   public storageAccountName?: string;
+  public containerImageUrl?: string;
 
   constructor(command: IAppengineServerGroupCommand) {
     this.credentials = command.credentials;
@@ -62,6 +63,7 @@ export class AppengineDeployDescription {
     this.fromArtifact = command.fromArtifact;
     this.sourceType = command.sourceType;
     this.storageAccountName = command.storageAccountName;
+    this.containerImageUrl = command.containerImageUrl;
   }
 }
 
