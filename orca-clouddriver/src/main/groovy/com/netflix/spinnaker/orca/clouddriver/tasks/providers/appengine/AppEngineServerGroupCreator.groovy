@@ -60,7 +60,7 @@ class AppEngineServerGroupCreator implements ServerGroupCreator {
   }
 
   private void resolveArtifacts(Stage stage, Map operation) {
-    if (operation.repositoryUrl) {
+    if (operation.repositoryUrl || operation.containerImageUrl) {
       return
     }
 
