@@ -104,7 +104,8 @@ public class PubsubEventMonitor extends TriggerMonitor {
     return trigger -> trigger.getType().equalsIgnoreCase(PUBSUB_TRIGGER_TYPE)
         && trigger.getPubsubSystem().equalsIgnoreCase(description.getPubsubSystem().toString())
         && trigger.getSubscriptionName().equalsIgnoreCase(description.getSubscriptionName())
-        && (trigger.getConstraints() == null || isConstraintInPayload(trigger.getConstraints(), event.getPayload()))
+        && (trigger.getPayloadConstraints() == null || isConstraintInPayload(trigger.getPayloadConstraints(), event.getPayload()))
+        && (trigger.getAttributeConstraints() == null || isConstraintInPayload(trigger.getAttributeConstraints(), description.getMessageAttributes()))
         && anyArtifactsMatchExpected(description.getArtifacts(), trigger, pipeline);
   }
 

@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.echo.pubsub.google;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.api.core.ApiService;
 import com.google.api.gax.core.FixedCredentialsProvider;
 import com.google.auth.Credentials;
@@ -41,7 +42,9 @@ import org.threeten.bp.Duration;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -133,6 +136,8 @@ public class GooglePubsubSubscriber implements PubsubSubscriber {
 
     private MessageArtifactTranslator messageArtifactTranslator;
 
+    private ObjectMapper objectMapper = new ObjectMapper();
+
     public GooglePubsubMessageReceiver(Integer ackDeadlineSeconds,
                                        String subscriptionName,
                                        PubsubMessageHandler pubsubMessageHandler,
@@ -147,14 +152,16 @@ public class GooglePubsubSubscriber implements PubsubSubscriber {
     public void receiveMessage(PubsubMessage message, AckReplyConsumer consumer) {
       String messagePayload = message.getData().toStringUtf8();
       String messageId = message.getMessageId();
-      log.debug("Received message with payload: {}", messagePayload);
+      Map messageAttributes = message.getAttributesMap() == null ? new HashMap<>() : message.getAttributesMap();
+      log.debug("Received Google pub/sub message with payload: {}\n and attributes: {}", messagePayload, messageAttributes);
       MessageDescription description = MessageDescription.builder()
-          .subscriptionName(subscriptionName)
-          .messagePayload(messagePayload)
-          .pubsubSystem(pubsubSystem)
-          .ackDeadlineMillis(5 * TimeUnit.SECONDS.toMillis(ackDeadlineSeconds)) // Set a high upper bound on message processing time.
-          .retentionDeadlineMillis(TimeUnit.DAYS.toMillis(7)) // Expire key after max retention time, which is 7 days.
-          .build();
+        .subscriptionName(subscriptionName)
+        .messagePayload(messagePayload)
+        .messageAttributes(messageAttributes)
+        .pubsubSystem(pubsubSystem)
+        .ackDeadlineMillis(5 * TimeUnit.SECONDS.toMillis(ackDeadlineSeconds)) // Set a high upper bound on message processing time.
+        .retentionDeadlineMillis(TimeUnit.DAYS.toMillis(7)) // Expire key after max retention time, which is 7 days.
+        .build();
       GoogleMessageAcknowledger acknowledger = new GoogleMessageAcknowledger(consumer);
 
       try {

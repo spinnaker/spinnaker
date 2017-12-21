@@ -21,11 +21,15 @@ import com.netflix.spectator.api.Counter
 import com.netflix.spectator.api.Id
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.echo.model.Event
+import com.netflix.spinnaker.echo.model.Metadata
+import com.netflix.spinnaker.echo.model.pubsub.MessageDescription
 import com.netflix.spinnaker.echo.model.pubsub.PubsubSystem
+import com.netflix.spinnaker.echo.model.trigger.PubsubEvent
 import com.netflix.spinnaker.echo.pipelinetriggers.monitor.PubsubEventMonitor
 import com.netflix.spinnaker.echo.test.RetrofitStubs
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import com.netflix.spinnaker.kork.artifacts.model.ExpectedArtifact
+import groovy.json.JsonOutput
 import rx.functions.Action1
 import spock.lang.Shared
 import spock.lang.Specification
@@ -41,8 +45,10 @@ class PubsubEventMonitorSpec extends Specification implements RetrofitStubs {
     counter(*_) >> Stub(Counter)
     gauge(*_) >> Integer.valueOf(1)
   }
-  @Shared def goodArtifacts = [new Artifact(name: 'myArtifact', type: 'artifactType')]
-  @Shared def badExpectedArtifacts = [
+  @Shared
+  def goodArtifacts = [new Artifact(name: 'myArtifact', type: 'artifactType')]
+  @Shared
+  def badExpectedArtifacts = [
     new ExpectedArtifact(
       matchArtifact: new Artifact(
         name: 'myBadArtifact',
@@ -52,24 +58,26 @@ class PubsubEventMonitorSpec extends Specification implements RetrofitStubs {
     )
   ]
 
-  @Shared def goodExpectedArtifacts = [
-      new ExpectedArtifact(
-        matchArtifact: new Artifact(
-          name: 'myArtifact',
-          type: 'artifactType',
-        ),
-        id: 'goodId'
-      )
+  @Shared
+  def goodExpectedArtifacts = [
+    new ExpectedArtifact(
+      matchArtifact: new Artifact(
+        name: 'myArtifact',
+        type: 'artifactType',
+      ),
+      id: 'goodId'
+    )
   ]
 
-  @Shared def goodRegexExpectedArtifacts = [
-      new ExpectedArtifact(
-        matchArtifact: new Artifact(
-          name: 'myArtifact',
-          type: 'artifact.*',
-        ),
-        id: 'goodId'
-      )
+  @Shared
+  def goodRegexExpectedArtifacts = [
+    new ExpectedArtifact(
+      matchArtifact: new Artifact(
+        name: 'myArtifact',
+        type: 'artifact.*',
+      ),
+      id: 'goodId'
+    )
   ]
 
   @Subject
@@ -90,7 +98,7 @@ class PubsubEventMonitorSpec extends Specification implements RetrofitStubs {
     })
 
     where:
-    event                                                                                                | trigger
+    event                                                                                                      | trigger
     createPubsubEvent(PubsubSystem.GOOGLE, "projects/project/subscriptions/subscription", null)          | enabledGooglePubsubTrigger
     createPubsubEvent(PubsubSystem.GOOGLE, "projects/project/subscriptions/subscription", [])            | enabledGooglePubsubTrigger
     createPubsubEvent(PubsubSystem.GOOGLE, "projects/project/subscriptions/subscription", goodArtifacts) | enabledGooglePubsubTrigger.withExpectedArtifactIds(goodExpectedArtifacts*.id)
@@ -150,10 +158,10 @@ class PubsubEventMonitorSpec extends Specification implements RetrofitStubs {
     0 * subscriber._
 
     where:
-    trigger                                                        | description
-    disabledGooglePubsubTrigger                                    | "disabled Google pubsub trigger"
-    enabledGooglePubsubTrigger.withSubscriptionName("wrongName")   | "different subscription name"
-    enabledGooglePubsubTrigger.withPubsubSystem("noogle")            | "different subscription name"
+    trigger                                                      | description
+    disabledGooglePubsubTrigger                                  | "disabled Google pubsub trigger"
+    enabledGooglePubsubTrigger.withSubscriptionName("wrongName") | "different subscription name"
+    enabledGooglePubsubTrigger.withPubsubSystem("noogle")        | "different subscription name"
 
     pipeline = createPipelineWith(goodExpectedArtifacts, trigger)
     event = createPubsubEvent(PubsubSystem.GOOGLE, "projects/project/subscriptions/subscription", [])
@@ -171,7 +179,7 @@ class PubsubEventMonitorSpec extends Specification implements RetrofitStubs {
     0 * subscriber._
 
     where:
-    trigger                                                                    | description
+    trigger                                                                      | description
     enabledGooglePubsubTrigger.withExpectedArtifactIds(badExpectedArtifacts*.id) | "non-matching artifact in message"
 
     pipeline = createPipelineWith(goodExpectedArtifacts, trigger)
@@ -197,5 +205,78 @@ class PubsubEventMonitorSpec extends Specification implements RetrofitStubs {
     event = createPubsubEvent(PubsubSystem.GOOGLE, "projects/project/subscriptions/subscription", [])
     goodPipeline = createPipelineWith(goodExpectedArtifacts, enabledGooglePubsubTrigger)
     badPipeline = createPipelineWith(goodExpectedArtifacts, trigger)
+  }
+
+  @Unroll
+  def "conditionally triggers pipeline on payload constraints"() {
+    given:
+    def event = new PubsubEvent()
+
+    def description = MessageDescription.builder()
+      .pubsubSystem(PubsubSystem.GOOGLE)
+      .ackDeadlineMillis(10000)
+      .subscriptionName("projects/project/subscriptions/subscription")
+      .messagePayload(JsonOutput.toJson([key: 'value']))
+      .build()
+
+    def pipeline = createPipelineWith(goodExpectedArtifacts, trigger)
+    pipelineCache.getPipelines() >> [pipeline]
+
+    when:
+    def content = new PubsubEvent.Content()
+    content.setMessageDescription(description)
+    event.payload = [key: 'value']
+    event.content = content
+    event.details = new Metadata([type: PubsubEventMonitor.PUBSUB_TRIGGER_TYPE])
+    monitor.processEvent(objectMapper.convertValue(event, Event))
+
+
+    then:
+    callCount * subscriber.call({
+      it.application == pipeline.application && it.name == pipeline.name
+    })
+
+    where:
+    trigger                                                         | callCount
+    enabledGooglePubsubTrigger                                      | 1
+    enabledGooglePubsubTrigger.withPayloadConstraints([key: 'value'])      | 1
+    enabledGooglePubsubTrigger.withPayloadConstraints([key: 'wrongValue']) | 0
+  }
+
+  @Unroll
+  def "conditionally triggers pipeline on attribute constraints"() {
+    given:
+    def event = new PubsubEvent()
+
+    def description = MessageDescription.builder()
+      .pubsubSystem(PubsubSystem.GOOGLE)
+      .ackDeadlineMillis(10000)
+      .subscriptionName("projects/project/subscriptions/subscription")
+      .messagePayload(JsonOutput.toJson([key: 'value']))
+      .messageAttributes([key: 'value'])
+      .build()
+
+    def pipeline = createPipelineWith(goodExpectedArtifacts, trigger)
+    pipelineCache.getPipelines() >> [pipeline]
+
+    when:
+    def content = new PubsubEvent.Content()
+    content.setMessageDescription(description)
+    event.payload = [key: 'value']
+    event.content = content
+    event.details = new Metadata([type: PubsubEventMonitor.PUBSUB_TRIGGER_TYPE, attributes: [key: 'value']])
+    monitor.processEvent(objectMapper.convertValue(event, Event))
+
+
+    then:
+    callCount * subscriber.call({
+      it.application == pipeline.application && it.name == pipeline.name
+    })
+
+    where:
+    trigger                                                         | callCount
+    enabledGooglePubsubTrigger                                      | 1
+    enabledGooglePubsubTrigger.withAttributeConstraints([key: 'value'])      | 1
+    enabledGooglePubsubTrigger.withAttributeConstraints([key: 'wrongValue']) | 0
   }
 }

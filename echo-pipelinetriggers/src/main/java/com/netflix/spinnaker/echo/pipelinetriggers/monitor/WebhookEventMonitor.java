@@ -84,7 +84,7 @@ public class WebhookEventMonitor extends TriggerMonitor {
   protected Function<Trigger, Pipeline> buildTrigger(Pipeline pipeline, TriggerEvent event) {
     Map payload = event.getPayload();
     Map parameters = payload.containsKey("parameters") ? (Map) payload.get("parameters") : new HashMap();
-    return trigger -> pipeline.withTrigger(trigger.atConstraints(parameters, payload));
+    return trigger -> pipeline.withTrigger(trigger.atPayloadConstraints(parameters, payload));
   }
 
   @Override
@@ -107,11 +107,11 @@ public class WebhookEventMonitor extends TriggerMonitor {
       trigger.getSource().equals(source) &&
         (
           // The Constraints in the Trigger could be null. That's OK.
-          trigger.getConstraints() == null ||
+          trigger.getPayloadConstraints() == null ||
 
             // If the Constraints are present, check that there are equivalents in the webhook payload.
-            (  trigger.getConstraints() != null &&
-               isConstraintInPayload(trigger.getConstraints(), event.getPayload())
+            (  trigger.getPayloadConstraints() != null &&
+               isConstraintInPayload(trigger.getPayloadConstraints(), event.getPayload())
             )
 
         ) &&

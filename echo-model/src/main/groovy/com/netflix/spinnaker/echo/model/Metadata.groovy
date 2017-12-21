@@ -30,5 +30,6 @@ class Metadata {
     String project
     String application
     String _content_id
+    Map attributes
     HttpHeaders requestHeaders = new HttpHeaders()
 }

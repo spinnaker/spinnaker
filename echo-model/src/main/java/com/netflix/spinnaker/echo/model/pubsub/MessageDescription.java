@@ -23,6 +23,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
+import java.util.Map;
 
 @Data
 @Builder
@@ -36,6 +37,13 @@ public class MessageDescription {
   private String subscriptionName;
 
   private String messagePayload;
+
+  /**
+   * Optional, additional message metadata sent from the pub/sub system.
+   *
+   * May be null.
+   */
+  private Map<String, String> messageAttributes;
 
   private PubsubSystem pubsubSystem;
 

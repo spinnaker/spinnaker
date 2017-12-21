@@ -122,6 +122,10 @@ public class PubsubMessageHandler {
     content.put("messageDescription", description);
     details.setType(PubsubEventMonitor.PUBSUB_TRIGGER_TYPE);
 
+    if (description.getMessageAttributes() != null) {
+      details.setAttributes(description.getMessageAttributes());
+    }
+
     event.setContent(content);
     event.setDetails(details);
     pubsubEventMonitor.processEvent(event);

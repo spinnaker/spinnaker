@@ -6,6 +6,7 @@ import com.netflix.spinnaker.echo.model.Trigger
 import com.netflix.spinnaker.echo.model.pubsub.MessageDescription
 import com.netflix.spinnaker.echo.model.pubsub.PubsubSystem
 import com.netflix.spinnaker.echo.model.trigger.*
+import com.netflix.spinnaker.echo.pipelinetriggers.monitor.PubsubEventMonitor
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import com.netflix.spinnaker.kork.artifacts.model.ExpectedArtifact
 import retrofit.RetrofitError
@@ -37,10 +38,10 @@ trait RetrofitStubs {
   final Trigger enabledWebhookTrigger = Trigger.builder().enabled(true).type('webhook').build()
   final Trigger disabledWebhookTrigger = Trigger.builder().enabled(true).type('webhook').build()
   final Trigger nonWebhookTrigger = Trigger.builder().enabled(true).type('not webhook').build()
-  final Trigger webhookTriggerWithConstraints = Trigger.builder().enabled(true).type('webhook').constraints([ "application": "myApplicationName", "pipeline": "myPipeLineName" ]).build()
-  final Trigger webhookTriggerWithoutConstraints = Trigger.builder().enabled(true).type('webhook').constraints().build()
-  final Trigger teamcityTriggerWithConstraints = Trigger.builder().enabled(true).type('teamcity').constraints([ "application": "myApplicationName", "pipeline": "myPipeLineName" ]).build()
-  final Trigger teamcityTriggerWithoutConstraints = Trigger.builder().enabled(true).type('teamcity').constraints().build()
+  final Trigger webhookTriggerWithConstraints = Trigger.builder().enabled(true).type('webhook').payloadConstraints([ "application": "myApplicationName", "pipeline": "myPipeLineName" ]).build()
+  final Trigger webhookTriggerWithoutConstraints = Trigger.builder().enabled(true).type('webhook').payloadConstraints().build()
+  final Trigger teamcityTriggerWithConstraints = Trigger.builder().enabled(true).type('teamcity').payloadConstraints([ "application": "myApplicationName", "pipeline": "myPipeLineName" ]).build()
+  final Trigger teamcityTriggerWithoutConstraints = Trigger.builder().enabled(true).type('teamcity').payloadConstraints().build()
 
   final Trigger enabledGooglePubsubTrigger = Trigger.builder()
       .enabled(true).type('pubsub').pubsubSystem('google').subscriptionName('projects/project/subscriptions/subscription').expectedArtifactIds([]).build()
@@ -99,7 +100,7 @@ trait RetrofitStubs {
     def content = new PubsubEvent.Content()
     content.setMessageDescription(description)
 
-    res.details = new Metadata([type: "pubsub"])
+    res.details = new Metadata([type: PubsubEventMonitor.PUBSUB_TRIGGER_TYPE])
     res.content = content
     return res
   }
