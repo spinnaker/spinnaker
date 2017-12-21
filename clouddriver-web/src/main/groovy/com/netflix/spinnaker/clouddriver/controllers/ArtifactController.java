@@ -25,7 +25,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @RestController
@@ -33,13 +35,17 @@ import java.util.List;
 public class ArtifactController {
   private ArtifactCredentialsRepository artifactCredentialsRepository;
 
-  @Autowired(required = false)
-  public ArtifactController(ArtifactCredentialsRepository artifactCredentialsRepository) {
-    this.artifactCredentialsRepository = artifactCredentialsRepository;
+  @Autowired
+  public ArtifactController(Optional<ArtifactCredentialsRepository> artifactCredentialsRepository) {
+    this.artifactCredentialsRepository = artifactCredentialsRepository.orElse(null);
   }
 
   @RequestMapping(method = RequestMethod.GET, value = "/credentials")
   List<ArtifactCredentials> list() {
-    return artifactCredentialsRepository.getAllCredentials();
+    if (artifactCredentialsRepository == null) {
+      return new ArrayList<>();
+    } else {
+      return artifactCredentialsRepository.getAllCredentials();
+    }
   }
 }
