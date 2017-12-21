@@ -137,7 +137,7 @@ abstract class AbstractInstancesCheckTask extends AbstractCloudProviderAwareTask
               newContext.zeroDesiredCapacityCount = 0
             }
           }
-
+          newContext.currentInstanceCount = serverGroup.instances?.size() ?: 0
           return new TaskResult(ExecutionStatus.RUNNING, newContext)
         }
       }
