@@ -18,6 +18,9 @@ package com.netflix.spinnaker.clouddriver.aws.health
 
 import com.amazonaws.AmazonClientException
 import com.amazonaws.AmazonServiceException
+import com.amazonaws.services.ec2.model.AmazonEC2Exception
+import com.netflix.spectator.api.Counter
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
@@ -32,6 +35,7 @@ import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import org.springframework.web.bind.annotation.ResponseStatus
 
+import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.atomic.AtomicReference
 
 @Component
@@ -39,22 +43,37 @@ class AmazonHealthIndicator implements HealthIndicator {
 
   private static final Logger LOG = LoggerFactory.getLogger(AmazonHealthIndicator)
 
-  @Autowired
-  AccountCredentialsProvider accountCredentialsProvider
-
-  @Autowired
-  AmazonClientProvider amazonClientProvider
+  private final AccountCredentialsProvider accountCredentialsProvider
+  private final AmazonClientProvider amazonClientProvider
 
   private final AtomicReference<Exception> lastException = new AtomicReference<>(null)
+  private final AtomicReference<Boolean> hasInitialized = new AtomicReference<>(null)
+
+  private final AtomicLong errors;
+
+  @Autowired
+  AmazonHealthIndicator(AccountCredentialsProvider accountCredentialsProvider,
+                        AmazonClientProvider amazonClientProvider,
+                        Registry registry) {
+    this.accountCredentialsProvider = accountCredentialsProvider
+    this.amazonClientProvider = amazonClientProvider
+
+    this.errors = registry.gauge("health.amazon.errors", new AtomicLong(0))
+  }
 
   @Override
   Health health() {
+    if (hasInitialized.get() == Boolean.TRUE) {
+      // avoid being marked unhealthy once connectivity to all accounts has been verified at least once
+      return new Health.Builder().up().build()
+    }
+
     def ex = lastException.get()
     if (ex) {
       throw ex
     }
 
-    new Health.Builder().up().build()
+    return new Health.Builder().unknown().build()
   }
 
   @Scheduled(fixedDelay = 120000L)
@@ -71,13 +90,16 @@ class AmazonHealthIndicator implements HealthIndicator {
           }
           ec2.describeAccountAttributes()
         } catch (AmazonServiceException e) {
-          throw new AmazonUnreachableException(e)
+          throw new AmazonUnreachableException("Failed to describe account attributes for '${credentials.name}'",  e)
         }
       }
+      hasInitialized.set(Boolean.TRUE)
       lastException.set(null)
+      errors.set(0)
     } catch (Exception ex) {
       LOG.error "Unhealthy", ex
       lastException.set(ex)
+      errors.set(1)
     }
   }
 

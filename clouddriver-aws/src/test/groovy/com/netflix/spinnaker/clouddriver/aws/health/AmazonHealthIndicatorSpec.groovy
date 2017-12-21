@@ -19,11 +19,15 @@ package com.netflix.spinnaker.clouddriver.aws.health
 import com.amazonaws.AmazonServiceException
 import com.amazonaws.services.ec2.AmazonEC2
 import com.amazonaws.services.ec2.model.DescribeAccountAttributesResult
+import com.netflix.spectator.api.Counter
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.clouddriver.aws.TestCredential
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import org.springframework.boot.actuate.health.Status
 import spock.lang.Specification
+
+import java.util.concurrent.atomic.AtomicLong
 
 class AmazonHealthIndicatorSpec extends Specification {
 
@@ -40,7 +44,12 @@ class AmazonHealthIndicatorSpec extends Specification {
     def mockAmazonClientProvider = Stub(AmazonClientProvider) {
       getAmazonEC2(*_) >> mockEc2
     }
-    def indicator = new AmazonHealthIndicator(accountCredentialsProvider: holder, amazonClientProvider: mockAmazonClientProvider)
+    def counter = new AtomicLong(0)
+    def mockRegistry = Stub(Registry) {
+      gauge(_, _) >> counter
+    }
+
+    def indicator = new AmazonHealthIndicator(holder, mockAmazonClientProvider, mockRegistry)
 
     when:
     indicator.checkHealth()
@@ -48,6 +57,7 @@ class AmazonHealthIndicatorSpec extends Specification {
 
     then:
     thrown AmazonHealthIndicator.AmazonUnreachableException
+    counter.get() == 1
   }
 
   def "health succeeds when amazon is reachable"() {
@@ -63,7 +73,13 @@ class AmazonHealthIndicatorSpec extends Specification {
     def mockAmazonClientProvider = Stub(AmazonClientProvider) {
       getAmazonEC2(*_) >> mockEc2
     }
-    def indicator = new AmazonHealthIndicator(accountCredentialsProvider: holder, amazonClientProvider: mockAmazonClientProvider)
+
+    def counter = new AtomicLong(0)
+    def mockRegistry = Stub(Registry) {
+      gauge(_, _) >> counter
+    }
+
+    def indicator = new AmazonHealthIndicator(holder, mockAmazonClientProvider, mockRegistry)
 
     when:
     indicator.checkHealth()
@@ -71,5 +87,6 @@ class AmazonHealthIndicatorSpec extends Specification {
 
     then:
     health.status == Status.UP
+    counter.get() == 0
   }
 }
