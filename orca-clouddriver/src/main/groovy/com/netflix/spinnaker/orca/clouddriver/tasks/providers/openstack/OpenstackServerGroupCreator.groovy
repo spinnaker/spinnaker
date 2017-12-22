@@ -47,11 +47,11 @@ class OpenstackServerGroupCreator implements ServerGroupCreator, DeploymentDetai
     //let's not throw NPE's here, even if the request is invalid
     operation.serverGroupParameters = operation.serverGroupParameters ?: [:]
 
-    withImageFromPrecedingStage(stage, null, cloudProvider) {
+    withImageFromPrecedingStage(stage, operation.region, cloudProvider) {
       operation.serverGroupParameters.image = operation.serverGroupParameters.image ?: it.imageId
     }
 
-    withImageFromDeploymentDetails(stage, null, cloudProvider) {
+    withImageFromDeploymentDetails(stage, operation.region, cloudProvider) {
       operation.serverGroupParameters.image = operation.serverGroupParameters.image ?: it.imageId
     }
 
