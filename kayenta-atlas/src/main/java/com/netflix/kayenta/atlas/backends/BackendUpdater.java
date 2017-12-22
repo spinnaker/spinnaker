@@ -27,6 +27,7 @@ public class BackendUpdater {
   // If we have retrieved backends.json at least once, we will keep using it forever
   // even if we fail later.  It doesn't really change much over time, so this
   // is likely safe enough.
+  @Builder.Default
   private boolean succeededAtLeastOnce = false;
 
   boolean run(RetrofitClientFactory retrofitClientFactory, ObjectMapper objectMapper, OkHttpClient okHttpClient) {
