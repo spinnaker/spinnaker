@@ -12,49 +12,47 @@ module.exports = angular.module('spinnaker.openstack.region.regionSelectField.di
   .directive('osRegionSelectField', function (accountService) {
     return {
       restrict: 'E',
-      templateUrl: require('./regionSelectField.directive.html'),
+      templateUrl: require('../common/cacheBackedSelectField.template.html'),
       scope: {
-        label: '@?',
-        labelColumnSize: '@?',
-        helpKey: '@?',
-        model: '<?',
+        label: '@',
+        labelColumnSize: '@',
+        helpKey: '@',
+        model: '=',
+        filter: '=',
         account: '<',
         onChange: '&',
         readOnly: '<',
-        allowNoSelection: '<',
-        noOptionsMessage: '@?',
-        noSelectionMessage: '@?'
+        allowNoSelection: '=',
+        noOptionsMessage: '@',
+        noSelectionMessage: '@'
       },
       link: function(scope) {
         _.defaults(scope, {
           label: 'Region',
           labelColumnSize: 3,
-          regions: []
+          valueColumnSize: 7,
+          options: [{label: scope.model, value: scope.model}],
+          filter: {},
+          backingCache: 'regions',
+          updateOptions: function() {
+            return accountService.getRegionsForAccount(scope.account).then(function(regions) {
+              scope.options = _.chain(regions)
+                .map(r => ({ label: r, value: r }))
+                .sortBy('label')
+                .value();
+              return scope.options;
+            });
+          },
+          onValueChanged: function(newValue) {
+            scope.model = newValue;
+            if(scope.onChange) {
+              scope.onChange({region: newValue});
+            }
+          }
         });
 
-        if( scope.model ) {
-          scope.regions.push({label: scope.model, value: scope.model});
-        }
 
-        var currentRequestId = 0;
-
-        function updateRegionOptions() {
-          currentRequestId++;
-          var requestId = currentRequestId;
-
-          accountService.getRegionsForAccount(scope.account).then(function(regions) {
-            if (requestId !== currentRequestId) {
-              return;
-            }
-
-            scope.regions = _.chain(regions)
-              .map(function(r) { return {label: r, value: r}; })
-              .sortBy(function(o) { return o.label; })
-              .value();
-          });
-        }
-
-        scope.$watch('account', updateRegionOptions);
+        scope.$watch('account', function() { scope.$broadcast('updateOptions'); });
       }
     };
 });
