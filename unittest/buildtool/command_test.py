@@ -66,6 +66,7 @@ class TestRepositoryCommand(buildtool.command.RepositoryCommandProcessor):
 class TestRepositoryCommandProcessor(unittest.TestCase):
   def do_test_command(self, options):
     options.root_path = TEST_ROOT_PATH
+    options.only_repositories = None
 
     init_dict = {'a': 'A', 'b': 'B'}
     factory = buildtool.command.RepositoryCommandFactory(

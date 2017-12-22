@@ -14,6 +14,7 @@
 
 # pylint: disable=missing-docstring
 
+import argparse
 import datetime
 import os
 import shutil
@@ -45,6 +46,14 @@ BRANCH_BASE = 'baseline'
 UPSTREAM_USER = 'unittest'
 TEST_REPO_NAME = 'test_repository'
 
+
+def make_default_options():
+  """Helper function for creating default options for runner."""
+  parser = argparse.ArgumentParser()
+  GitRunner.add_git_parser_args(parser, {})
+  return parser.parse_args([])
+
+
 class TestGitRunner(unittest.TestCase):
   @classmethod
   def run_git(cls, command):
@@ -53,7 +62,7 @@ class TestGitRunner(unittest.TestCase):
 
   @classmethod
   def setUpClass(cls):
-    cls.git = GitRunner()
+    cls.git = GitRunner(make_default_options())
     cls.base_temp_dir = tempfile.mkdtemp(prefix='git_test')
     cls.git_dir = os.path.join(cls.base_temp_dir, UPSTREAM_USER, TEST_REPO_NAME)
     os.makedirs(cls.git_dir)
@@ -110,7 +119,7 @@ class TestGitRunner(unittest.TestCase):
         self.assertEquals([], messages)
         self.assertEquals(version, tag)
 
-  def test_same_repo(self):
+  def test_is_same_repo(self):
     variants = [
         'http://github.com/user/spinnaker',
         'http://github.com/user/spinnaker.git',
@@ -120,7 +129,7 @@ class TestGitRunner(unittest.TestCase):
         'git@github.com:user/spinnaker.git'
     ]
     for url in variants:
-      self.assertTrue(GitRunner.same_repo(variants[0], url))
+      self.assertTrue(GitRunner.is_same_repo(variants[0], url))
 
   def test_different_repo(self):
     variants = [
@@ -133,7 +142,7 @@ class TestGitRunner(unittest.TestCase):
         'path/user/spinnaker'
     ]
     for url in variants[1:]:
-      self.assertFalse(GitRunner.same_repo(variants[0], url))
+      self.assertFalse(GitRunner.is_same_repo(variants[0], url))
 
   def test_determine_tag_at_patch(self):
     git = self.git
@@ -343,7 +352,7 @@ class TestCommitMessage(unittest.TestCase):
 
   @classmethod
   def setUpClass(cls):
-    cls.git = GitRunner()
+    cls.git = GitRunner(make_default_options())
     cls.base_temp_dir = tempfile.mkdtemp(prefix='git_test')
     cls.git_dir = os.path.join(cls.base_temp_dir, 'commit_message_test')
     os.makedirs(cls.git_dir)
