@@ -78,6 +78,10 @@ class ModifyAsgLaunchConfigurationOperation implements AtomicOperation<Void> {
     props = props + description.properties.findResults { k, v -> (v != null && settingsKeys.contains(k)) ? [k, v] : null }.collectEntries()
     props.remove('class')
 
+    if (props.spotPrice == "") {
+      // a spotPrice of "" indicates that it should be removed regardless of value on source launch configuration
+      props.spotPrice = null
+    }
 
     if (description.amiName) {
       def amazonEC2 = regionScopedProvider.amazonEC2
