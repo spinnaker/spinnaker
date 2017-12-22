@@ -404,7 +404,7 @@ public class KubectlJobExecutor {
       command.add(kind.toString());
     }
 
-    if (labelSelectors == null || !labelSelectors.isEmpty()) {
+    if (labelSelectors != null && !labelSelectors.isEmpty()) {
       command.add("-l=" + labelSelectors);
     }
 
