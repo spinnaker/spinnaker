@@ -21,7 +21,9 @@ import shutil
 from buildtool.command import (
     RepositoryCommandFactory,
     RepositoryCommandProcessor)
-from buildtool.git import RemoteGitRepository
+from buildtool.git import (
+    GitRunner,
+    RemoteGitRepository)
 from buildtool.source_code_manager import (
     SPINNAKER_BOM_REPOSITORIES,
     SPINNAKER_HALYARD_REPOSITORIES,
@@ -153,15 +155,7 @@ class FetchSourceCommandFactory(RepositoryCommandFactory):
     This is intended to be used by other commands wanting to be consistent.
     """
     add_argument = FetchSourceCommandFactory.add_argument
-    add_argument(
-        parser, 'github_user', defaults, 'default',
-        help='Github User to pull sources from.')
-    add_argument(
-        parser, 'git_branch', defaults, None,
-        help='Github branch to pull sources from.')
-    add_argument(
-        parser, 'fallback_branch', defaults, None,
-        help='Github branch to fallback on if --git_branchis not found.')
+    GitRunner.add_git_parser_args(parser, defaults, pull=True)
     add_argument(
         parser, 'fetch_bom_version', defaults, None,
         help='Pull this BOM version rather than --git_branch.'

@@ -23,6 +23,7 @@ import logging
 import os
 import re
 import shutil
+import tempfile
 import time
 
 from subprocess import CalledProcessError
@@ -461,6 +462,63 @@ class RepositorySummary(collections.namedtuple(
 class GitRunner(object):
   """Helper class for interacting with Git"""
 
+  __GITHUB_TOKEN = None
+
+  @staticmethod
+  def add_git_parser_args(
+      parser, defaults,
+      pull=False, push=False, pull_request=False, common=True):
+    """Add standard options needed to interact with git for various modes.
+
+    The push/pull_request controls are safety mechanisms to help ensure no
+    side effects may happen if use cases desire that.
+
+    The remaining configuration parameters are primarily here on behalf of
+    consumers to standardize with. They do not control the runner itself,
+    rather what callers of the runner may pass to it.
+
+    Args:
+      parer: [argparse.ArgumentParser] The parser to add to.
+      defaults: [dict] The default value overrides, keyed by option.
+      pull: [boolean] Set to true if git will be used to pull data (e.g. clone)
+      push: [boolean] Set to true if git will be used to push data (e.g. push)
+      pull_request: [boolean] Set to true if git will be used to initiate PRs.
+      common: [boolean] Set to false to disable common args because they were
+         already added by another call to this method.
+    """
+    def add_argument(parser, name, defaults, default_value, **kwargs):
+      """Helper function"""
+      parser.add_argument(
+          '--{name}'.format(name=name),
+          default=defaults.get(name, default_value),
+          **kwargs)
+
+    if common:
+      add_argument(
+          parser, 'github_user', defaults, 'default',
+          help='Github user repositories to interact with.')
+      add_argument(
+          parser, 'git_branch', defaults, None,
+          help='Github branch to interact with.')
+
+    if pull:
+      add_argument(
+          parser, 'fallback_branch', defaults, None,
+          help='Github branch to pull from if --git_branch is not found.')
+
+    if push:
+      pass
+
+    if pull_request:
+      add_argument(
+          parser, 'pr_notify_list', defaults, None,
+          help='Comma-separated list of Github users'
+          ' to notify when creating Github pull requests.')
+      add_argument(
+          parser, 'no_pr', defaults, False,
+          help='Do not submit upstream PRs even if pushing to origin.')
+
+
   @staticmethod
   def __normalize_repo_url(url):
     """Normalize a repo url for purposes of checking equality.
@@ -490,11 +548,68 @@ class GitRunner(object):
     return os.path.abspath(url)
 
   @staticmethod
-  def same_repo(first, second):
+  def is_same_repo(first, second):
     """Determine if two URLs refer to the same github repo."""
     normalized_first = GitRunner.__normalize_repo_url(first)
     normalized_second = GitRunner.__normalize_repo_url(second)
     return normalized_first == normalized_second
+
+  @staticmethod
+  def stash_and_clear_auth_env_vars():
+    """Remove git auth variables from global environment; keep internally."""
+    if 'GITHUB_TOKEN' in os.environ:
+      GitRunner.__GITHUB_TOKEN = os.environ['GITHUB_TOKEN']
+      del os.environ['GITHUB_TOKEN']
+
+  @property
+  def options(self):
+    """Return bound options."""
+    return self.__options
+
+  def __init__(self, options):
+    self.__options = options
+    self.__auth_env = {}
+    if GitRunner.__GITHUB_TOKEN:
+      self.__auth_env['GITHUB_TOKEN'] = GitRunner.__GITHUB_TOKEN
+
+  def __inject_auth(self, keyword_args_to_modify):
+    """Inject the configured git authentication environment variables.
+
+    Args:
+      keyword_args_to_modify: [dict]
+          The kwargs dictionary that will be passed to the subprocess is
+          modified to inject additional authentication variables,
+          if configured to do so.
+    """
+    if not self.__auth_env:
+      return
+    new_env = dict(keyword_args_to_modify.get('env', os.environ))
+    new_env.update(self.__auth_env)
+    keyword_args_to_modify['env'] = new_env
+
+  def run_git(self, git_dir, command, **kwargs):
+    """Wrapper around run_subprocess."""
+    self.__inject_auth(kwargs)
+    return run_subprocess(
+        'git -C "{dir}" {command}'.format(dir=git_dir, command=command),
+        **kwargs)
+
+  def check_git(self, git_dir, command, **kwargs):
+    """Wrapper around check_subprocess."""
+    self.__inject_auth(kwargs)
+    return check_subprocess(
+        'git -C "{dir}" {command}'.format(dir=git_dir, command=command),
+        **kwargs)
+
+  def check_git_sequence(self, git_dir, commands):
+    """Check a sequence of git commands.
+
+    Args:
+      git_dir: [path] All the commands refer to this lcoal repository.
+      commands: [list of string] To pass to check_git.
+    """
+    for cmd in commands:
+      self.check_git(git_dir, cmd)
 
   def query_local_repository_commits_to_existing_tag_from_id(
       self, git_dir, commit_id, commit_tags):
@@ -508,10 +623,7 @@ class GitRunner(object):
     if tag is not None:
       return tag, []
 
-    result = check_subprocess(
-        'git -C "{dir}" log --pretty=oneline {id}'.format(
-            dir=git_dir, id=commit_id))
-
+    result = self.check_git(git_dir, 'log --pretty=oneline ' + commit_id)
     lines = result.split('\n')
     count = 0
     for line in lines:
@@ -526,23 +638,21 @@ class GitRunner(object):
           'There is no baseline tag for commit "{id}" in {dir}.'.format(
               id=commit_id, dir=git_dir))
 
-    result = check_subprocess(
-        'git -C "{dir}" log -n {count} --pretty=medium {id}'.format(
-            dir=git_dir, count=count, id=commit_id))
+    result = self.check_git(
+        git_dir,
+        'log -n {count} --pretty=medium {id}'.format(
+            count=count, id=commit_id))
     messages = CommitMessage.make_list_from_result(result)
     return tag, messages
 
   def query_local_repository_commit_id(self, git_dir):
     """Returns the current commit for the repository at git_dir."""
-    result = check_subprocess(
-        'git -C "{dir}" rev-parse HEAD'.format(dir=git_dir))
+    result = self.check_git(git_dir, 'rev-parse HEAD')
     return result
 
   def query_local_repository_branch(self, git_dir):
     """Returns the branch for the repository at git_dir."""
-    returncode, stdout = run_subprocess(
-        'git -C "{dir}" rev-parse --abbrev-ref HEAD'.format(dir=git_dir))
-
+    returncode, stdout = self.run_git(git_dir, 'rev-parse --abbrev-ref HEAD')
     if returncode:
       error = 'Could not determine branch: ' + stdout
       raise RuntimeError(error + ' in ' + git_dir)
@@ -558,9 +668,7 @@ class GitRunner(object):
       logging.warning('Skipping push %s "%s" to origin because branch is "%s".',
                       git_dir, branch, in_branch)
       return
-    check_subprocess(
-        'git -C "{dir}" push origin {branch} --tags'.format(
-            dir=git_dir, branch=branch))
+    self.check_git(git_dir, 'push origin --tags ' + branch)
 
   def refresh_local_repository(self, git_dir, remote_name, branch):
     """Refreshes the given local repository from the remote one.
@@ -570,18 +678,14 @@ class GitRunner(object):
       remote_name: [remote_name] Which remote repository to pull from.
       branch: [string] Which branch to pull.
     """
-    repository_name = os.path.basename(git_dir)
-    # pylint: disable=unused-variable
-    retcode, stdout = run_subprocess(
-        'git -C "{dir}" remote -v | egrep "^{which}.*\\(fetch\\)$"'.format(
-            dir=git_dir, which=remote_name))
-    if not stdout:
+    repository = self.determine_remote_git_repository(git_dir)
+    if remote_name == 'upstream' and not repository.upstream_url:
       logging.warning(
           'Skipping pull {remote_name} {branch} in {repository} because'
           ' it does not have a remote "{remote_name}"'
           .format(remote_name=remote_name,
                   branch=branch,
-                  repository=repository_name))
+                  repository=repository.name))
       return
 
     local_branch = self.query_local_repository_branch(git_dir)
@@ -591,40 +695,41 @@ class GitRunner(object):
           ' its in branch={local_branch}'
           .format(remote_name=remote_name,
                   branch=branch,
-                  repository=repository_name,
+                  repository=repository.name,
                   local_branch=local_branch))
       return
 
     try:
       logging.debug('Refreshing %s from %s branch %s',
                     git_dir, remote_name, branch)
-      command = 'git -C "{dir}" pull {remote_name} {branch} --tags'.format(
-          dir=git_dir, remote_name=remote_name, branch=branch)
-      result = check_subprocess(command)
-      logging.info('%s:\n%s', repository_name, result)
+      command = 'pull {remote_name} {branch} --tags'.format(
+          remote_name=remote_name, branch=branch)
+      result = self.check_git(git_dir, command)
+      logging.info('%s:\n%s', repository.name, result)
     except RuntimeError:
-      result = check_subprocess(
-          'git -C "{dir}" branch -r'.format(dir=git_dir))
+      result = self.check_git(git_dir, 'branch -r')
       if result.find(
           '{which}/{branch}\n'.format(which=remote_name, branch=branch)) >= 0:
         raise
       logging.warning(
           'WARNING {name} branch={branch} is not known to {which}.\n'
-          .format(name=repository_name, branch=branch, which=remote_name))
+          .format(name=repository.name, branch=branch, which=remote_name))
 
-  def __check_clone_branch(self, origin_url, git_command, branches):
+  def __check_clone_branch(self, origin_url, base_dir, clone_command, branches):
     remaining_branches = list(branches)
     while True:
       branch = remaining_branches.pop(0)
-      cmd = '{git} -b {branch}'.format(git=git_command, branch=branch)
-      retcode, stdout = run_subprocess(cmd)
+      cmd = '{clone} -b {branch}'.format(clone=clone_command, branch=branch)
+      retcode, stdout = self.run_git(base_dir, cmd)
       if not retcode:
         return
 
       not_found = stdout.find('Remote branch {branch} not found'
                               .format(branch=branch)) >= 0
       if not not_found:
-        raise CalledProcessError(cmd=cmd, returncode=retcode, output=stdout)
+        full_command = 'git -C "{dir}" {cmd}'.format(dir=base_dir, cmd=cmd)
+        raise CalledProcessError(cmd=full_command,
+                                 returncode=retcode, output=stdout)
 
       if remaining_branches:
         logging.warning(
@@ -633,11 +738,9 @@ class GitRunner(object):
         continue
 
       lines = stdout.split('\n')
-      if len(lines) > 10:
-        lines = lines[-10:]
       stdout = '\n   '.join(lines)
-      logging.error('%s failed with last %d lines:\n   %s',
-                    cmd, len(lines), stdout)
+      logging.error('git -C "%s" %s failed with output:\n   %s',
+                    base_dir, cmd, stdout)
       raise ValueError('Branches {0} do not exist in {1}.'
                        .format(branches, origin_url))
 
@@ -658,50 +761,40 @@ class GitRunner(object):
     parent_dir = os.path.dirname(git_dir)
     ensure_dir_exists(parent_dir)
 
-    git_command = 'git -C "{parent_dir}" clone {origin_url}'.format(
-        parent_dir=parent_dir, origin_url=origin_url)
-
+    clone_command = 'clone ' + origin_url
     if branch:
       branches = [branch]
       if default_branch:
         branches.append(default_branch)
-      self.__check_clone_branch(origin_url, git_command, branches)
+      self.__check_clone_branch(origin_url, parent_dir, clone_command, branches)
     else:
-      check_subprocess(git_command)
+      self.check_git(parent_dir, clone_command)
     logging.info('Cloned %s into %s', origin_url, parent_dir)
 
     if commit:
-      check_subprocess(
-          'git -C "{dir}" checkout {commit} -q'.format(
-              dir=git_dir, commit=commit),
-          echo=True)
+      self.check_git(git_dir, 'checkout -q ' + commit, echo=True)
 
-    if upstream_url and not self.same_repo(upstream_url, origin_url):
+    if upstream_url and not self.is_same_repo(upstream_url, origin_url):
       logging.debug('Adding upstream %s with disabled push', upstream_url)
-      check_subprocess(
-          'git -C "{dir}" remote add upstream {upstream_url}'.format(
-              dir=git_dir, upstream_url=upstream_url))
+      self.check_git(git_dir, 'remote add upstream ' + upstream_url)
 
     which = ('upstream'
-             if upstream_url and not self.same_repo(upstream_url, origin_url)
+             if upstream_url and not self.is_same_repo(upstream_url, origin_url)
              else 'origin')
-    check_subprocess(
-        'git -C "{dir}" remote set-url --push {which} disabled'.format(
-            dir=git_dir, which=which))
+    self.check_git(
+        git_dir, 'remote set-url --push {which} disabled'.format(which=which))
     logging.debug('Finished cloning %s', origin_url)
 
   def tag_head(self, git_dir, tag):
     """Add tag to the local repository HEAD."""
-    check_subprocess('git -C "{dir}" tag {tag} HEAD'.format(
-        dir=git_dir, tag=tag))
+    self.check_git(git_dir, 'tag {tag} HEAD'.format(tag=tag))
 
   def query_tag_commits(self, git_dir, tag_pattern):
     """Collect the TagCommit for each tag matching the pattern.
 
       Returns: list of CommitTag sorted most recent first.
     """
-    tag_ref_result = check_subprocess(
-        'git -C "{dir}" show-ref --tags'.format(dir=git_dir))
+    tag_ref_result = self.check_git(git_dir, 'show-ref --tags')
 
     ref_lines = tag_ref_result.split('\n')
     commit_tags = [CommitTag.make(line) for line in ref_lines]
@@ -711,8 +804,7 @@ class GitRunner(object):
 
   def determine_remote_git_repository(self, git_dir):
     """Infter RemoteGitRepository from a local git repository."""
-    git_text = check_subprocess(
-        'git -C "{dir}" remote -v'.format(dir=git_dir))
+    git_text = self.check_git(git_dir, 'remote -v')
     remote_urls = {
         match.group(1): match.group(2)
         for match in re.finditer(r'(\w+)\s+(\S+)\s+\(fetch\)', git_text)
@@ -774,8 +866,7 @@ class GitRunner(object):
         when commiting the existing directory content to the new repo.
     """
     if git_tag is None:
-      git_tag = check_subprocess(
-          'git -C "{dir}" describe --tags --abbrev=0'.format(dir=git_dir))
+      git_tag = self.check_git(git_dir, 'describe --tags --abbrev=0')
 
     escaped_commit_message = initial_commit_message.replace('"', '\\"')
     logging.info('Removing old .git from %s and starting new at %s',
@@ -795,3 +886,80 @@ class GitRunner(object):
             message=escaped_commit_message),
         _git + 'tag {tag} HEAD'.format(tag=git_tag)
     ])
+
+  def delete_local_branch_if_exists(self, git_dir, branch):
+    """Delete the branch from git_dir if one exists.
+
+    This will fail if the branch exists and the git_dir is currently in it.
+    """
+    result = self.check_git(git_dir, 'branch -l')
+    branches = []
+    for elem in result.split('\n'):
+      if elem.startswith('*'):
+        elem = elem[1:].strip()
+      branches.append(elem)
+
+    if branch in branches:
+      logging.info('Deleting existing branch %s from %s', branch, git_dir)
+      self.check_git(git_dir, 'branch -D ' + branch)
+      return
+
+  def initiate_github_pull_request(
+      self, git_dir, message, base='master', head=None):
+    """Initialize a pull request for the given commit on the given branch.
+
+    Args:
+      git_dir: [path] The local repository to initiate the pull request with.
+      message: [string] The pull request message. If this is multiple lines
+         then the first line will be the title, subsequent lines will
+         be the PR description.
+      base: [string] The base reference for the pull request.
+         The default is master, but this could be a BRANCH or OWNER:BRANCH
+      head: [string] The branch to use for the pull request. By default this
+         is the current branch state of the the git_dir repository. This
+         too can be BRANCH or OWNER:BRANCH. This branch must have alraedy been
+         pushed to the origin repository -- not the local repository.
+    """
+    options = self.options
+    message = message.strip()
+    if options.pr_notify_list:
+      message.append('\n\n@' + ', @'.join(','.split(options.pr_notify_list)))
+
+    hub_args = []
+    if base:
+      hub_args.extend(['-b', base])
+    if head:
+      hub_args.extend(['-h', head])
+
+    if options.no_pr:
+      logging.warning(
+          'SKIPPING the creation of a pull request because --no_pr.'
+          '\nCommand would have been: %s',
+          'hub -C "{dir}" pull-request {args} -m {msg!r}'.format(
+              dir=git_dir, args=' '.join(hub_args), msg=message))
+      return
+
+    message_path = None
+    if message.find('\n') < 0:
+      hub_args.extend(['-m', message])
+    else:
+      fd, message_path = tempfile.mkstemp(prefix='hubmsg')
+      os.write(fd, message)
+      os.close(fd)
+      hub_args.extend(['-F', message_path])
+
+    logging.info(
+        'Initiating pull request in %s from %s to %s with message:\n%s',
+        git_dir, base, head if head else '<current branch>', message)
+
+    try:
+      kwargs = {}
+      self.__inject_auth(kwargs)
+      output = check_subprocess(
+          'hub -C "{dir}" pull-request {args}'.format(
+              dir=git_dir, args=' '.join(hub_args)),
+          **kwargs)
+      logging.info(output)
+    finally:
+      if message_path:
+        os.remove(message_path)

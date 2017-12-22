@@ -15,6 +15,7 @@
 # pylint: disable=missing-docstring
 # pylint: disable=invalid-name
 
+import argparse
 import os
 import shutil
 import tempfile
@@ -39,10 +40,17 @@ def _foreach_func(repository, *pos_args, **kwargs):
   return (repository, list(pos_args), dict(kwargs))
 
 
+def make_default_options():
+  """Helper function for creating default options for runner."""
+  parser = argparse.ArgumentParser()
+  GitRunner.add_git_parser_args(parser, {})
+  return parser.parse_args([])
+
+
 class TestSourceCodeManager(unittest.TestCase):
   @classmethod
   def setUpClass(cls):
-    cls.git = GitRunner()
+    cls.git = GitRunner(make_default_options())
     cls.base_temp_dir = tempfile.mkdtemp(prefix='scm_test')
     origin_root = os.path.join(cls.base_temp_dir, 'origin_repos')
 

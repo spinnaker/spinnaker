@@ -31,6 +31,7 @@ import sys
 import yaml
 
 
+from buildtool.git import GitRunner
 from buildtool.command import CommandFactory
 from buildtool.util import maybe_log_exception
 
@@ -174,6 +175,8 @@ def init_options_and_registry(args, command_modules):
 
 def main():
   """The main command dispatcher."""
+
+  GitRunner.stash_and_clear_auth_env_vars()
 
   import buildtool.source_commands
   import buildtool.build_commands

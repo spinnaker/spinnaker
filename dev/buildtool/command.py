@@ -14,6 +14,7 @@
 
 """Abstract CommandProcessor classes for buildtool."""
 
+import os
 import logging
 
 # pylint: disable=relative-import
@@ -202,7 +203,7 @@ class RepositoryCommandProcessor(CommandProcessor):
     source_repos = kwargs.pop('source_repositories', None)
     self.__max_threads = kwargs.pop('max_threads', 64)
     self.__use_threadpool = kwargs.pop('use_threadpool', False)
-    self.__git = kwargs.pop('git', None) or GitRunner()
+    self.__git = kwargs.pop('git', None) or GitRunner(options)
     self.__scm = None
 
     if options.one_at_a_time:
@@ -224,10 +225,10 @@ class RepositoryCommandProcessor(CommandProcessor):
     if not self.options.only_repositories:
       return source_repositories
 
-    filter = self.options.only_repositories.split(',')
+    repo_filter = self.options.only_repositories.split(',')
     return {name: repository
             for name, repository in source_repositories.items()
-            if name in filter}
+            if name in repo_filter}
 
   def _do_determine_source_repositories(self):
     """Determine which repositories this command should operate on."""
@@ -288,3 +289,118 @@ class RepositoryCommandFactory(CommandFactory):
                       help='Limit the command to the specified repositories.'
                       ' This is a list of comma-separated repository names.')
 
+
+class PullRequestCommandProcessor(CommandProcessor):
+  """Base class for commands that issue pull requests."""
+
+  @property
+  def repository(self):
+    """The repository to submit the PR to."""
+    return self.__repository
+
+  @property
+  def git_dir(self):
+    """The local repository to push changes from."""
+    return self.__git_dir
+
+  @property
+  def named_scratch_dir(self):
+    """The scratch dir associated with the local repository."""
+    return self.__named_scratch_dir
+
+  @property
+  def git(self):
+    """Return GitRunner"""
+    return self.__git
+
+  @property
+  def base_branch(self):
+    """The branch we are sending the pull request to."""
+    return self.options.git_branch
+
+  @property
+  def head_branch(self):
+    """The branch we are sending the pull request from."""
+    return self.__head_branch
+
+  def __init__(self, factory, options, repository, branch_decorator, **kwargs):
+    super(PullRequestCommandProcessor, self).__init__(
+        factory, options, **kwargs)
+    self.__repository = repository
+    name = repository.name
+    self.__named_scratch_dir = os.path.join(options.scratch_dir, name)
+    self.__git_dir = os.path.join(options.root_path, name)
+    self.__git = GitRunner(options)
+    self.__branch_decorator = branch_decorator
+    self.__head_branch = '{version}-{decorator}'.format(
+        version=options.spinnaker_version, decorator=self.__branch_decorator)
+
+  def _do_get_commit_message(self):
+    """Returns the commit message to use for the local repository commit."""
+    raise NotImplementedError()
+
+  def _do_add_local_repository_files(self):
+    """Returns a list of files we want to push."""
+    raise NotImplementedError()
+
+  def _do_command(self):
+    """Write changelog to the origin repository. Open PR against upstream."""
+    self._ensure_local_repo()
+
+    git_dir = self.git_dir
+
+    self.__git.check_git(git_dir, 'checkout ' + self.base_branch)
+    self.__git.delete_local_branch_if_exists(git_dir, self.head_branch)
+    files_added = self._do_add_local_repository_files()
+
+    message = self._do_get_commit_message()
+
+    git_commands = [
+        # These commands are accomodating to a branch already existing
+        # because the branch is on the version, not build. A rejected
+        # build for some reason that is re-tried will have the same version
+        # so the branch may already exist from the earlier attempt.
+        'checkout -b {head}'.format(head=self.head_branch),
+        'add {path}'.format(
+            path=' '.join([os.path.abspath(path) for path in files_added])),
+        'commit -m "{msg}"'.format(msg=message),
+        'push origin -f {head}'.format(head=self.head_branch)
+    ]
+    origin = self.__git.determine_remote_git_repository(git_dir)
+    logging.info('Pushing branch %s to %s', self.head_branch, origin.url)
+    self.__git.check_git_sequence(git_dir, git_commands)
+    if self.options.no_pr:
+      logging.warning('--no_pr set; NOT creating a pull request.')
+      return
+
+    self.__git.initiate_github_pull_request(
+        git_dir, message, head=self.head_branch, base=self.base_branch)
+
+  def _ensure_local_repo(self):
+    """Make sure there's a local repository and fetch one if not."""
+    if os.path.exists(self.git_dir):
+      return
+
+    options = self.options
+    name = self.repository.name
+    user = ('spinnaker'
+            if options.github_user in ('default', 'upstream')
+            else options.github_user)
+    url = 'https://github.com/{user}/{name}'.format(user=user, name=name)
+    self.git.clone_repository_to_path(
+        url, self.git_dir, upstream_url=self.repository.url,
+        branch=options.git_branch)
+
+
+class PullRequestCommandFactory(CommandFactory):
+  """Creates PullRequestCommandProcessor instances."""
+
+  def _do_init_argparser(self, parser, defaults):
+    """Adds command-specific arguments."""
+    super(PullRequestCommandFactory, self)._do_init_argparser(
+        parser, defaults)
+    GitRunner.add_git_parser_args(parser, defaults, pull_request=True)
+
+    self.add_argument(
+        parser, 'spinnaker_version', defaults, None, required=True,
+        help='The spinnaker version to publish for.')
