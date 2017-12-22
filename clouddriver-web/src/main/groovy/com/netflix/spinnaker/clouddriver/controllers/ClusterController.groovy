@@ -155,25 +155,27 @@ class ClusterController {
                      @PathVariable String serverGroupName,
                      @RequestParam(value = "region", required = false) String region) {
     // we can optimize loads iff the cloud provider supports loading minimal clusters (ie. w/o instances)
-    def clusterProvider = clusterProviders.find { it.cloudProviderId == type }
-    if (!clusterProvider) {
+    def providers = clusterProviders.findAll { it.cloudProviderId == type }
+    if (!providers) {
       log.warn("No cluster provider found for type (type: ${type}, account: ${account})")
     }
-    def shouldExpand = clusterProvider ? !clusterProvider.supportsMinimalClusters() : true
 
-    def serverGroups = getServerGroups(application, account, clusterName, type, region, shouldExpand).findAll {
-      region ? it.name == serverGroupName && it.region == region : it.name == serverGroupName
-    }
+    def serverGroups = providers.collect { p ->
+      def shouldExpand  = !p.supportsMinimalClusters()
+      def serverGroups = getServerGroups(application, account, clusterName, type, region, shouldExpand).findAll {
+        return region ? it.name == serverGroupName && it.region == region : it.name == serverGroupName
+      } ?: []
+
+      return shouldExpand ? serverGroups : serverGroups.collect { ServerGroup sg ->
+        return serverGroupController.getServerGroupByApplication(application, account, sg.region, sg.name)
+      }
+    }.flatten()
+
     if (!serverGroups) {
       throw new NotFoundException("Server group not found (account: ${account}, name: ${serverGroupName}, type: ${type})")
     }
 
-    serverGroups = shouldExpand ? serverGroups : serverGroups.collect {
-      // server groups were minimally loaded initially and require expansion
-      serverGroupController.getServerGroupByApplication(application, account, it.region, it.name)
-    }
-
-    region ? serverGroups?.getAt(0) : serverGroups
+    return region ? serverGroups?.getAt(0) : serverGroups
   }
 
   /**
@@ -199,39 +201,50 @@ class ClusterController {
     }
 
     // we can optimize loads iff the cloud provider supports loading minimal clusters (ie. w/o instances)
-    def clusterProvider = clusterProviders.find { it.cloudProviderId == cloudProvider }
-    if (!clusterProvider) {
+    def providers = clusterProviders.findAll { it.cloudProviderId == cloudProvider }
+    if (!providers) {
       log.warn("No cluster provider found for cloud provider (cloudProvider: ${cloudProvider}, account: ${account})")
     }
-    def shouldExpand = clusterProvider ? !clusterProvider.supportsMinimalClusters() : true
+
+    def needsExpand  = [:]
 
     // load all server groups w/o instance details (this is reasonably efficient)
-    def sortedServerGroups = getServerGroups(application, account, clusterName, cloudProvider, null /* region */, shouldExpand).findAll {
-      def scopeMatch = it.region == scope || it.zones?.contains(scope)
+    def sortedServerGroups = providers.collect { p ->
+      def shouldExpand = !p.supportsMinimalClusters()
+      def serverGroups = getServerGroups(application, account, clusterName, cloudProvider, null /* region */, shouldExpand).findAll {
+        def scopeMatch = it.region == scope || it.zones?.contains(scope)
 
-      def enableMatch
-      if (Boolean.valueOf(onlyEnabled)) {
-        enableMatch = !it.isDisabled()
-      } else {
-        enableMatch = true
+        def enableMatch
+        if (Boolean.valueOf(onlyEnabled)) {
+          enableMatch = !it.isDisabled()
+        } else {
+          enableMatch = true
+        }
+
+        return scopeMatch && enableMatch
+      } ?: []
+
+      if (shouldExpand) {
+        serverGroups.forEach { sg -> needsExpand[sg] = true }
       }
 
-      return scopeMatch && enableMatch
-    }.sort { a, b -> b.createdTime <=> a.createdTime }
-
-    if (!sortedServerGroups) {
-      throw new NotFoundException("No server groups found (account: ${account}, cluster: ${clusterName}, type: ${cloudProvider})")
-    }
+      return serverGroups
+    }.flatten()
+    .sort { a, b -> b.createdTime <=> a.createdTime }
 
     def expandServerGroup = { ServerGroup serverGroup ->
-      if (shouldExpand) {
+      if (needsExpand[serverGroup]) {
         // server group was already expanded on initial load
         return serverGroup
       }
 
       return serverGroupController.getServerGroupByApplication(
-        application, account, serverGroup.region, serverGroup.name
+          application, account, serverGroup.region, serverGroup.name
       )
+    }
+
+    if (!sortedServerGroups) {
+      throw new NotFoundException("No server groups found (account: ${account}, cluster: ${clusterName}, type: ${cloudProvider})")
     }
 
     switch (tsg) {

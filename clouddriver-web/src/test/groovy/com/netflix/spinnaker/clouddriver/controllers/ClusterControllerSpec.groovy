@@ -205,10 +205,10 @@ class ClusterControllerSpec extends Specification {
         }
         cluster
       }
-      serverGroupController.getServerGroup(_, _, "north", "serverGroup-v1") >> { return serverGroup1 }
-      serverGroupController.getServerGroup(_, _, "south", "serverGroup-v2") >> { return serverGroup2 }
-      serverGroupController.getServerGroup(_, _, "north", "serverGroup-v2") >> { return serverGroup3 }
-      serverGroupController.getServerGroup(_, _, "south", "serverGroup-v3") >> { return serverGroup4 }
+      serverGroupController.getServerGroupByApplication(_, _, "north", "serverGroup-v1") >> { return serverGroup1 }
+      serverGroupController.getServerGroupByApplication(_, _, "south", "serverGroup-v2") >> { return serverGroup2 }
+      serverGroupController.getServerGroupByApplication(_, _, "north", "serverGroup-v2") >> { return serverGroup3 }
+      serverGroupController.getServerGroupByApplication(_, _, "south", "serverGroup-v3") >> { return serverGroup4 }
 
     when:
       def result = clusterController.getTargetServerGroup(
