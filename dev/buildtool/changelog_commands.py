@@ -12,25 +12,34 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Implements generate_changelog command for buildtool."""
+"""Implements changelog commands for buildtool."""
 
 import collections
+import datetime
 import logging
 import os
 import re
+import textwrap
 
 import buildtool.source_commands
 
+
 from buildtool.command import (
+    PullRequestCommandFactory,
+    PullRequestCommandProcessor,
     RepositoryCommandFactory,
     RepositoryCommandProcessor)
 from buildtool.git import (
     CommitMessage)
 from buildtool.source_code_manager import (
     SPINNAKER_BOM_REPOSITORIES,
+    SPINNAKER_GITHUB_IO_REPOSITORY,
     SPINNAKER_HALYARD_REPOSITORIES)
 from buildtool.util import (
     write_to_path)
+
+
+TITLE_LINE_MATCHER = re.compile(r'\W*\w+\(([^\)]+)\)\s*[:-]?(.*)')
 
 
 class ChangelogRepositoryData(
@@ -41,7 +50,7 @@ class ChangelogRepositoryData(
   def __cmp__(self, other):
     return self.repository.name.__cmp__(other.repository.name)
 
-  def partition_commits(self):
+  def partition_commits(self, sort=True):
     """Partition the commit messages by the type of change.
 
     Returns an OrderedDict of the partition ordered by significance.
@@ -87,20 +96,51 @@ class ChangelogRepositoryData(
     for spec in partition_types:
       key = spec[0]
       if key in workspace:
-        result[key] = workspace[key]
+        result[key] = (self._sort_partition(workspace[key])
+                       if sort
+                       else workspace[key])
+    return result
+
+  @staticmethod
+  def _sort_partition(commit_messages):
+    """sorting key function for CommitMessage.
+
+    Returns the commit messages sorted by affected component while
+    preserving original ordering with the component. The affected
+    component is the <THING> for titles in the form TYPE(<THING>): <MESSAGE>
+    """
+    thing_dict = {}
+    def get_thing_list(title_line):
+      """Return bucket for title_line, adding new one if needed."""
+      match = TITLE_LINE_MATCHER.match(title_line)
+      thing = match.group(1) if match else None
+      if not thing in thing_dict:
+        thing_dict[thing] = []
+      return thing_dict[thing]
+
+    for message in commit_messages:
+      title_line = message.message.split('\n')[0]
+      get_thing_list(title_line).append(message)
+
+    result = []
+    for thing in sorted(thing_dict.keys()):
+      result.extend(thing_dict[thing])
     return result
 
 
 class ChangelogBuilder(object):
   """Knows how to create changelogs from git.RepositorySummary."""
 
-  STRIP_ID_MATCHER = re.compile(r'^(.*?)\s*\(#\d+\)$')
+  STRIP_GITHUB_ID_MATCHER = re.compile(r'^(.*?)\s*\(#\d+\)$')
 
   def __init__(self, **kwargs):
     """Constructor."""
+    self.__entries = []
+    self.__with_partition = kwargs.pop('with_partition', True)
+    self.__with_detail = kwargs.pop('with_detail', False)
+    self.__sort_partitions = True
     if kwargs:
       raise KeyError('Unrecognized arguments: {0}'.format(kwargs.keys()))
-    self.__entries = []
 
   def clean_message(self, text):
     """Remove trailing "(#<id>)" from first line of message titles"""
@@ -109,7 +149,7 @@ class ChangelogBuilder(object):
       first, rest = text, ''
     else:
       first, rest = parts
-    match = self.STRIP_ID_MATCHER.match(first)
+    match = self.STRIP_GITHUB_ID_MATCHER.match(first)
     if match:
       if rest:
         return '\n'.join([match.group(1), rest])
@@ -143,10 +183,13 @@ class ChangelogBuilder(object):
         report.append('\n\n')
         continue
 
-      report.extend(self.build_commits_by_type(entry))
-      report.append('\n')
-      report.extend(self.build_commits_by_sequence(entry))
-      sep = '\n\n\n'
+      if self.__with_partition:
+        report.extend(self.build_commits_by_type(entry))
+        report.append('\n')
+      if self.__with_detail:
+        report.extend(self.build_commits_by_sequence(entry))
+        report.append('\n')
+      sep = '\n\n'
 
     return '\n'.join(report)
 
@@ -161,13 +204,13 @@ class ChangelogBuilder(object):
     """
 
     report = []
-    partitioned_commits = entry.partition_commits()
+    partitioned_commits = entry.partition_commits(sort=self.__sort_partitions)
     report.append('### Changes by Type')
     if not partitioned_commits:
       report.append('  No Significant Changes.')
       return report
 
-    one_liner = re.compile(r'\W*\w+\(([^\)]+)\)\s*:(.*)')
+    one_liner = TITLE_LINE_MATCHER
     base_url = entry.repository.url
     level_marker = '#' * 4
     for title, commit_messages in partitioned_commits.items():
@@ -219,10 +262,11 @@ class GenerateChangelogCommand(RepositoryCommandProcessor):
 
   def _do_determine_source_repositories(self):
     """Implements RepositoryCommand interface."""
-    upstream = SPINNAKER_BOM_REPOSITORIES
+    upstream = self.filter_repositories(SPINNAKER_BOM_REPOSITORIES)
     options = self.options
     local_repository = {name: os.path.join(options.root_path, name)
                         for name in upstream.keys()}
+
     return {name: self.git.determine_remote_git_repository(git_dir)
             for name, git_dir in local_repository.items()}
 
@@ -239,7 +283,7 @@ class GenerateChangelogCommand(RepositoryCommandProcessor):
     path = (options.changelog_path
             or os.path.join(options.scratch_dir, 'changelog.md'))
 
-    builder = ChangelogBuilder()
+    builder = ChangelogBuilder(with_detail=options.include_changelog_details)
     for name, summary in summary_table.items():
       builder.add_repository(self.source_repositories[name], summary)
     changelog_text = builder.build()
@@ -261,12 +305,77 @@ class GenerateChangelogCommandFactory(RepositoryCommandFactory):
         parser, defaults)
     buildtool.source_commands.FetchSourceCommandFactory.add_fetch_parser_args(
         parser, defaults)
+
+    self.add_argument(
+        parser, 'include_changelog_details', defaults, False,
+        action='store_true',
+        help='Include the full commit messages in the changelog.')
+
     self.add_argument(
         parser, 'changelog_path', defaults, None,
         help='Write the changelog to the given path.'
              ' The default is <scratch_dir>/changelog.md')
 
 
+class PublishChangelogCommand(PullRequestCommandProcessor):
+  """Implements publish_changelog."""
+
+  def __init__(self, factory, options, **kwargs):
+    super(PublishChangelogCommand, self).__init__(
+        factory, options, SPINNAKER_GITHUB_IO_REPOSITORY, 'changelog',
+        **kwargs)
+
+  def _do_add_local_repository_files(self):
+    """Write generated changelog into local SPINNAKER_GITHUB_IO_REPOSITORY.
+
+    This is a separate step to make it easier to test.
+
+    Returns:
+      The path of the added changelog file relative to the git_dir.
+    """
+    source_path = os.path.join(self.options.scratch_dir, 'changelog.md')
+    with open(source_path) as f:
+      detail = f.read()
+
+    # Use the original capture time
+    utc = datetime.datetime.fromtimestamp(os.path.getmtime(source_path))
+    timestamp = '{:%Y-%m-%d %H:%M:%S %Z}'.format(utc)
+
+    version = self.options.spinnaker_version
+    changelog_filename = '{version}-changelog.md'.format(version=version)
+    target_path = os.path.join(self.git_dir, '_changelogs', changelog_filename)
+    major, minor, _ = version.split('.')
+    logging.debug('Adding changelog file %s', target_path)
+    with open(target_path, 'w') as f:
+      # pylint: disable=trailing-whitespace
+      header = textwrap.dedent(
+          """\
+          ---
+          title: Version {version}
+          date: {timestamp}
+          tags: changelogs {major}.{minor}
+          ---
+          # Spinnaker {version}
+          """.format(
+              version=version,
+              timestamp=timestamp,
+              major=major, minor=minor))
+      f.write(header)
+      f.write(detail)
+
+    return [target_path]
+
+  def _do_get_commit_message(self):
+    return 'doc(changelog): Version "{version}"'.format(
+        version=self.options.spinnaker_version)
+
+
 def register_commands(registry, subparsers, defaults):
   """Registers all the commands for this module."""
+  publish_changelog_factory = PullRequestCommandFactory(
+      'publish_changelog', PublishChangelogCommand,
+      'Push changelog to the spinnaker.github.io repository origin'
+      ' and submit a Github Pull Request on it.')
+
   GenerateChangelogCommandFactory().register(registry, subparsers, defaults)
+  publish_changelog_factory.register(registry, subparsers, defaults)
