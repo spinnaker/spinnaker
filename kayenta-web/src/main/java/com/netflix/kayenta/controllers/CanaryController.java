@@ -42,6 +42,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.constraints.NotNull;
 import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -119,104 +120,38 @@ public class CanaryController {
         .orElseThrow(() -> new IllegalArgumentException("No configuration service was configured."));
     CanaryConfig canaryConfig = configurationService.loadObject(resolvedConfigurationAccountName, ObjectType.CANARY_CONFIG, canaryConfigId);
 
-    registry.counter(pipelineRunId.withTag("canaryConfigId", canaryConfigId).withTag("canaryConfigName", canaryConfig.getName())).increment();
+    return buildExecution(canaryConfigId,
+                          canaryConfig,
+                          resolvedConfigurationAccountName,
+                          resolvedMetricsAccountName,
+                          resolvedStorageAccountName,
+                          canaryExecutionRequest);
+  }
 
-    Set<String> requiredScopes = canaryConfig.getMetrics().stream()
-      .map(CanaryMetricConfig::getScopeName)
-      .filter(Objects::nonNull)
-      .collect(Collectors.toSet());
+  //
+  // Initiate a new canary run, fully specifying the config and execution request
+  //
+  // TODO(duftler): Allow for user to be passed in.
+  @ApiOperation(value = "Initiate a canary pipeline with CanaryConfig provided")
+  @RequestMapping(consumes = "application/json", method = RequestMethod.POST)
+  public CanaryExecutionResponse initiateCanaryWithConfig(
+    @RequestParam(required = false) final String metricsAccountName,
+    @RequestParam(required = false) final String storageAccountName,
+    @ApiParam @RequestBody final CanaryAdhocExecutionRequest canaryAdhocExecutionRequest) throws JsonProcessingException {
 
-    if (requiredScopes.size() > 0 && canaryExecutionRequest.getScopes() == null) {
-      throw new IllegalArgumentException("Canary metrics require scopes, but no scopes were provided in the execution request.");
-    }
-    Set<String> providedScopes = canaryExecutionRequest.getScopes() == null ? Collections.emptySet() : canaryExecutionRequest.getScopes().keySet();
-    requiredScopes.removeAll(providedScopes);
-    if (requiredScopes.size() > 0) {
-      throw new IllegalArgumentException("Canary metrics require scopes which were not provided in the execution request: " + requiredScopes);
-    }
+    String resolvedMetricsAccountName = CredentialsHelper.resolveAccountByNameOrType(metricsAccountName,
+                                                                                     AccountCredentials.Type.METRICS_STORE,
+                                                                                     accountCredentialsRepository);
+    String resolvedStorageAccountName = CredentialsHelper.resolveAccountByNameOrType(storageAccountName,
+                                                                                     AccountCredentials.Type.OBJECT_STORE,
+                                                                                     accountCredentialsRepository);
 
-    Map<String, Object> setupCanaryContext =
-      Maps.newHashMap(
-        new ImmutableMap.Builder<String, Object>()
-          .put("refId", REFID_SET_CONTEXT)
-          .put("user", "[anonymous]")
-          .put("canaryConfigId", canaryConfigId)
-          .put("configurationAccountName", resolvedConfigurationAccountName)
-          .build());
-
-    List<Map<String, Object>> fetchExperimentContexts = generateFetchScopes(canaryConfig, canaryExecutionRequest, true,resolvedMetricsAccountName, resolvedStorageAccountName);
-    List<Map<String, Object>> controlFetchContexts = generateFetchScopes(canaryConfig, canaryExecutionRequest, false,resolvedMetricsAccountName, resolvedStorageAccountName);
-
-    int maxMetricIndex = canaryConfig.getMetrics().size() - 1; // 0 based naming, so we want the last index value, not the count
-    String lastControlFetchRefid = REFID_FETCH_CONTROL_PREFIX + maxMetricIndex;
-    String lastExperimentFetchRefid = REFID_FETCH_EXPERIMENT_PREFIX + maxMetricIndex;
-
-    Map<String, Object> mixMetricSetsContext =
-      Maps.newHashMap(
-        new ImmutableMap.Builder<String, Object>()
-          .put("refId", REFID_MIX_METRICS)
-          .put("requisiteStageRefIds", new ImmutableList.Builder().add(lastControlFetchRefid).add(lastExperimentFetchRefid).build())
-          .put("user", "[anonymous]")
-          .put("storageAccountName", resolvedStorageAccountName)
-          .put("controlRefidPrefix", REFID_FETCH_CONTROL_PREFIX)
-          .put("experimentRefidPrefix", REFID_FETCH_EXPERIMENT_PREFIX)
-          .build());
-
-    CanaryClassifierThresholdsConfig orchestratorScoreThresholds = canaryExecutionRequest.getThresholds();
-
-    if (orchestratorScoreThresholds == null) {
-      if (canaryConfig.getClassifier() == null || canaryConfig.getClassifier().getScoreThresholds() == null) {
-        throw new IllegalArgumentException("Classifier thresholds must be specified in either the canary config, or the execution request.");
-      }
-      // The score thresholds were not explicitly passed in from the orchestrator (i.e. Spinnaker), so just use the canary config values.
-      orchestratorScoreThresholds = canaryConfig.getClassifier().getScoreThresholds();
-    }
-
-    String canaryExecutionRequestJSON = kayentaObjectMapper.writeValueAsString(canaryExecutionRequest);
-
-    Map<String, Object> canaryJudgeContext =
-      Maps.newHashMap(
-        new ImmutableMap.Builder<String, Object>()
-          .put("refId", REFID_JUDGE)
-          .put("requisiteStageRefIds", Collections.singletonList(REFID_MIX_METRICS))
-          .put("user", "[anonymous]")
-          .put("storageAccountName", resolvedStorageAccountName)
-          .put("metricSetPairListId", "${ #stage('Mix Control and Experiment Results')['context']['metricSetPairListId']}")
-          .put("orchestratorScoreThresholds", orchestratorScoreThresholds)
-          .put("canaryExecutionRequest", canaryExecutionRequestJSON)
-          .build());
-
-    PipelineBuilder pipelineBuilder =
-      new PipelineBuilder("kayenta-" + currentInstanceId)
-        .withName("Standard Canary Pipeline")
-        .withPipelineConfigId(UUID.randomUUID() + "")
-        .withStage("setupCanary", "Setup Canary", setupCanaryContext)
-        .withStage("metricSetMixer", "Mix Control and Experiment Results", mixMetricSetsContext)
-        .withStage("canaryJudge", "Perform Analysis", canaryJudgeContext);
-
-    controlFetchContexts.forEach((context) ->
-                                   pipelineBuilder.withStage((String)context.get("stageType"),
-                                                             (String)context.get("refId"),
-                                                             context));
-    fetchExperimentContexts.forEach((context) ->
-                                      pipelineBuilder.withStage((String)context.get("stageType"),
-                                                                (String)context.get("refId"),
-                                                                context));
-
-    Execution pipeline = pipelineBuilder
-      .withLimitConcurrent(false)
-      .withExecutionEngine(Execution.ExecutionEngine.v3)
-      .build();
-
-    executionRepository.store(pipeline);
-
-    try {
-      executionLauncher.start(pipeline);
-    } catch (Throwable t) {
-      handleStartupFailure(pipeline, t);
-    }
-
-    return CanaryExecutionResponse.builder().canaryExecutionId(pipeline.getId()).build();
+    return buildExecution("adhoc",
+                          canaryAdhocExecutionRequest.getCanaryConfig(),
+                          null,
+                          resolvedMetricsAccountName,
+                          resolvedStorageAccountName,
+                          canaryAdhocExecutionRequest.getExecutionRequest());
   }
 
   //
@@ -292,6 +227,125 @@ public class CanaryController {
     }
 
     return canaryExecutionStatusResponseBuilder.build();
+  }
+
+  private CanaryExecutionResponse buildExecution(@NotNull String canaryConfigId,
+                                                 @NotNull CanaryConfig canaryConfig,
+                                                 String resolvedConfigurationAccountName,
+                                                 @NotNull String resolvedMetricsAccountName,
+                                                 @NotNull String resolvedStorageAccountName,
+                                                 @NotNull CanaryExecutionRequest canaryExecutionRequest) throws JsonProcessingException {
+    registry.counter(pipelineRunId.withTag("canaryConfigId", canaryConfigId).withTag("canaryConfigName", canaryConfig.getName())).increment();
+
+    Set<String> requiredScopes = canaryConfig.getMetrics().stream()
+      .map(CanaryMetricConfig::getScopeName)
+      .filter(Objects::nonNull)
+      .collect(Collectors.toSet());
+
+    if (requiredScopes.size() > 0 && canaryExecutionRequest.getScopes() == null) {
+      throw new IllegalArgumentException("Canary metrics require scopes, but no scopes were provided in the execution request.");
+    }
+    Set<String> providedScopes = canaryExecutionRequest.getScopes() == null ? Collections.emptySet() : canaryExecutionRequest.getScopes().keySet();
+    requiredScopes.removeAll(providedScopes);
+    if (requiredScopes.size() > 0) {
+      throw new IllegalArgumentException("Canary metrics require scopes which were not provided in the execution request: " + requiredScopes);
+    }
+
+    HashMap<String, Object> setupCanaryContext =
+      Maps.newHashMap(
+        new ImmutableMap.Builder<String, Object>()
+          .put("refId", REFID_SET_CONTEXT)
+          .put("user", "[anonymous]")
+          .put("canaryConfigId", canaryConfigId)
+          .build());
+    if (resolvedConfigurationAccountName != null) {
+      setupCanaryContext.put("configurationAccountName", resolvedConfigurationAccountName);
+    }
+    if (canaryConfigId.equalsIgnoreCase("adhoc")) {
+      setupCanaryContext.put("canaryConfig", canaryConfig);
+    }
+
+    List<Map<String, Object>> fetchExperimentContexts = generateFetchScopes(canaryConfig,
+                                                                            canaryExecutionRequest,
+                                                                            true,
+                                                                            resolvedMetricsAccountName,
+                                                                            resolvedStorageAccountName);
+    List<Map<String, Object>> controlFetchContexts = generateFetchScopes(canaryConfig,
+                                                                         canaryExecutionRequest,
+                                                                         false,
+                                                                         resolvedMetricsAccountName,
+                                                                         resolvedStorageAccountName);
+
+    int maxMetricIndex = canaryConfig.getMetrics().size() - 1; // 0 based naming, so we want the last index value, not the count
+    String lastControlFetchRefid = REFID_FETCH_CONTROL_PREFIX + maxMetricIndex;
+    String lastExperimentFetchRefid = REFID_FETCH_EXPERIMENT_PREFIX + maxMetricIndex;
+
+    Map<String, Object> mixMetricSetsContext =
+      Maps.newHashMap(
+        new ImmutableMap.Builder<String, Object>()
+          .put("refId", REFID_MIX_METRICS)
+          .put("requisiteStageRefIds", new ImmutableList.Builder().add(lastControlFetchRefid).add(lastExperimentFetchRefid).build())
+          .put("user", "[anonymous]")
+          .put("storageAccountName", resolvedStorageAccountName)
+          .put("controlRefidPrefix", REFID_FETCH_CONTROL_PREFIX)
+          .put("experimentRefidPrefix", REFID_FETCH_EXPERIMENT_PREFIX)
+          .build());
+
+    CanaryClassifierThresholdsConfig orchestratorScoreThresholds = canaryExecutionRequest.getThresholds();
+
+    if (orchestratorScoreThresholds == null) {
+      if (canaryConfig.getClassifier() == null || canaryConfig.getClassifier().getScoreThresholds() == null) {
+        throw new IllegalArgumentException("Classifier thresholds must be specified in either the canary config, or the execution request.");
+      }
+      // The score thresholds were not explicitly passed in from the orchestrator (i.e. Spinnaker), so just use the canary config values.
+      orchestratorScoreThresholds = canaryConfig.getClassifier().getScoreThresholds();
+    }
+
+    String canaryExecutionRequestJSON = kayentaObjectMapper.writeValueAsString(canaryExecutionRequest);
+
+    Map<String, Object> canaryJudgeContext =
+      Maps.newHashMap(
+        new ImmutableMap.Builder<String, Object>()
+          .put("refId", REFID_JUDGE)
+          .put("requisiteStageRefIds", Collections.singletonList(REFID_MIX_METRICS))
+          .put("user", "[anonymous]")
+          .put("storageAccountName", resolvedStorageAccountName)
+          .put("metricSetPairListId", "${ #stage('Mix Control and Experiment Results')['context']['metricSetPairListId']}")
+          .put("orchestratorScoreThresholds", orchestratorScoreThresholds)
+          .put("canaryExecutionRequest", canaryExecutionRequestJSON)
+          .build());
+
+    PipelineBuilder pipelineBuilder =
+      new PipelineBuilder("kayenta-" + currentInstanceId)
+        .withName("Standard Canary Pipeline")
+        .withPipelineConfigId(UUID.randomUUID() + "")
+        .withStage("setupCanary", "Setup Canary", setupCanaryContext)
+        .withStage("metricSetMixer", "Mix Control and Experiment Results", mixMetricSetsContext)
+        .withStage("canaryJudge", "Perform Analysis", canaryJudgeContext);
+
+    controlFetchContexts.forEach((context) ->
+                                   pipelineBuilder.withStage((String)context.get("stageType"),
+                                                             (String)context.get("refId"),
+                                                             context));
+    fetchExperimentContexts.forEach((context) ->
+                                      pipelineBuilder.withStage((String)context.get("stageType"),
+                                                                (String)context.get("refId"),
+                                                                context));
+
+    Execution pipeline = pipelineBuilder
+      .withLimitConcurrent(false)
+      .withExecutionEngine(Execution.ExecutionEngine.v3)
+      .build();
+
+    executionRepository.store(pipeline);
+
+    try {
+      executionLauncher.start(pipeline);
+    } catch (Throwable t) {
+      handleStartupFailure(pipeline, t);
+    }
+
+    return CanaryExecutionResponse.builder().canaryExecutionId(pipeline.getId()).build();
   }
 
   private Execution handleStartupFailure(Execution execution, Throwable failure) {
