@@ -96,15 +96,13 @@ class UpsertTitusScalingPolicyDescription extends AbstractTitusCredentialsDescri
 
         if (metricSpecification.unit) {
           metricBuilder.setUnit(metricSpecification.unit)
-        } else {
-          metricBuilder.setUnit("None")
         }
 
         metricSpecification.dimensions.each {
           metricBuilder.addDimensions(
             MetricDimension.newBuilder()
-              .setName(it.name).
-              setValue(it.value)
+              .setName(it.name)
+              .setValue(it.value)
           )
         }
         ttpBuilder.setCustomizedMetricSpecification(metricBuilder)
@@ -205,6 +203,7 @@ class UpsertTitusScalingPolicyDescription extends AbstractTitusCredentialsDescri
       customizedMetricSpecification.withMetricName(sourceMetricSpecification.metricName)
         .withNamespace(sourceMetricSpecification.namespace)
         .withStatistic(sourceMetricSpecification.statistic.name())
+        .withUnit(sourceMetricSpecification.unit)
         .withDimensions(sourceMetricSpecification.dimensionsList.collect { dimension ->
           String value = dimension.name == "AutoScalingGroupName" ? serverGroupName : dimension.value
           new AwsMetricDimension().withName(dimension.name).withValue(value)
