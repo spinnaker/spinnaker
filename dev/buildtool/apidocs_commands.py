@@ -12,16 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Implements generate_apidocs command for buildtool."""
+"""Implements apidocs commands for buildtool."""
 
 import logging
 import os
+import shutil
 import time
 import urllib2
 
 from buildtool.source_commands import FetchSourceCommandFactory
 
 from buildtool.command import (
+    PullRequestCommandFactory,
+    PullRequestCommandProcessor,
     RepositoryCommandFactory,
     RepositoryCommandProcessor)
 
@@ -82,10 +85,14 @@ class GenerateApiDocsCommand(RepositoryCommandProcessor):
   def _ensure_templates_directory(self):
     """Initialize the templates_directory, pulling the repo if needed."""
     options = self.options
-    github_io_repository_name = SPINNAKER_GITHUB_IO_REPOSITORY.name
-    github_io_repository_url = options.githubio_repo_url
+    name = SPINNAKER_GITHUB_IO_REPOSITORY.name
+    user = ('spinnaker'
+            if options.github_user in ('default', 'upstream')
+            else options.github_user)
+    url = 'https://github.com/{user}/{name}'.format(user=user, name=name)
+
     scm = self.source_code_manager
-    git_dir = scm.get_local_repository_path(github_io_repository_name)
+    git_dir = scm.get_local_repository_path(name)
 
     # This isnt tied to version control, especially since it is stored
     # in a different repository. Maybe this is/should be tagged with
@@ -93,7 +100,7 @@ class GenerateApiDocsCommand(RepositoryCommandProcessor):
     # if we are strict about tagging across these repositories.
     if not os.path.exists(git_dir):
       scm.git.clone_repository_to_path(
-          github_io_repository_url, git_dir,
+          url, git_dir,
           upstream_url=SPINNAKER_GITHUB_IO_REPOSITORY.url,
           branch=options.git_branch,
           default_branch='master')
@@ -172,6 +179,8 @@ class GenerateApiDocsCommand(RepositoryCommandProcessor):
     env['SERVER_PORT'] = str(port)
     base_url = 'http://localhost:{port}'.format(port=port)
 
+    logging.info('Starting up prototype %s so we can extract docs from it.',
+                 repository.name)
     boot_run_cmd = './gradlew bootRun'
     process = start_subprocess(boot_run_cmd, cwd=git_dir, env=env)
 
@@ -186,7 +195,8 @@ class GenerateApiDocsCommand(RepositoryCommandProcessor):
           '{base}/{path}'.format(base=base_url, path=docs_url_path))
     finally:
       try:
-        logging.debug('Killing %s subprocess %s', repository.name, process.pid)
+        logging.info('Killing %s subprocess %s now that we are done with it',
+                     repository.name, process.pid)
         process.kill()
         wait_subprocess(process)
       except Exception as ex:
@@ -211,10 +221,6 @@ class GenerateApiDocsFactory(RepositoryCommandFactory):
   def _do_init_argparser(self, parser, defaults):
     """Implements CommandFactory interface."""
     self.add_argument(
-        parser, 'githubio_repo_url', defaults,
-        'https://github.com/spinnaker/spinnaker.github.io',
-        help='The SSH URL of the repository containing the templates.')
-    self.add_argument(
         parser, 'swagger_codegen_cli_jar_path', defaults, None,
         help='The location of the swagger-codegen-cli jarfile.'
         ' The file can be obtained from'
@@ -225,6 +231,54 @@ class GenerateApiDocsFactory(RepositoryCommandFactory):
     super(GenerateApiDocsFactory, self)._do_init_argparser(parser, defaults)
 
 
+class PublishApiDocsCommand(PullRequestCommandProcessor):
+  """Publish generated docs back up to the origin repository."""
+
+  def __init__(self, factory, options, **kwargs):
+    super(PublishApiDocsCommand, self).__init__(
+        factory, options, SPINNAKER_GITHUB_IO_REPOSITORY, 'apidocs',
+        **kwargs)
+
+  def _do_get_commit_message(self):
+    return 'docs(api): API Documentation for Spinnaker {version}'.format(
+        version=self.options.spinnaker_version)
+
+  def _do_add_local_repository_files(self):
+    """Implements CommandProcessor interface."""
+    options = self.options
+
+    # We are taking the api docs that we generated for gate
+    source_repository_name = 'gate'
+    named_scratch_dir = os.path.join(
+        options.scratch_dir, source_repository_name)
+    docs_dir = os.path.abspath(os.path.join(named_scratch_dir, 'apidocs'))
+    source_document_path = os.path.os.path.join(docs_dir, 'index.html')
+
+    # And putting them into the SPINNAKER_GITHUB_IO_REPOSITORY
+    target_repository_name = SPINNAKER_GITHUB_IO_REPOSITORY.name
+    git_dir = os.path.join(options.root_path, target_repository_name)
+    docs_path_in_repo = os.path.join('reference', 'api', 'docs.html')
+
+    # NOTE(ewiseblatt): 20171218
+    # This is the current scheme, however I think this should read
+    # os.path.join(git_dir, spinnaker_minor_branch, docs_path_in_repo)
+    # where "spinnaker_minor_branch" is the version with the <PATCH>
+    # replaced with 'x'
+    target_document_path = os.path.join(git_dir, docs_path_in_repo)
+
+    logging.debug(
+        'Copying %s to %s', source_document_path, target_document_path)
+    shutil.copy2(source_document_path, target_document_path)
+
+    return [target_document_path]
+
+
 def register_commands(registry, subparsers, defaults):
   """Registers all the commands for this module."""
+  publish_apidocs_factory = PullRequestCommandFactory(
+      'publish_apidocs', PublishApiDocsCommand,
+      'Push apidocs to the spinnaker.github.io repository origin'
+      ' and submit a Github Pull Request on it.')
+
   GenerateApiDocsFactory().register(registry, subparsers, defaults)
+  publish_apidocs_factory.register(registry, subparsers, defaults)
