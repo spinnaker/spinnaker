@@ -65,4 +65,11 @@ class UserSpec extends Specification {
     then:
       user.username == "username"
   }
+
+  def "should filter out empty roles"() {
+    expect:
+      new User(roles: [""]).getAuthorities().isEmpty()
+      new User(roles: ["", "bar"]).getAuthorities()*.getAuthority() == ["bar"]
+      new User(roles: ["foo", "", "bar"]).getAuthorities()*.getAuthority() == ["foo", "bar"]
+  }
 }

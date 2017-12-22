@@ -23,6 +23,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.util.StringUtils;
+
 import static java.util.Collections.unmodifiableCollection;
 import static java.util.Collections.unmodifiableList;
 import static java.util.stream.Collectors.toList;
@@ -44,7 +46,11 @@ public class User implements UserDetails {
 
   @Override
   public List<? extends GrantedAuthority> getAuthorities() {
-    return roles.stream().map(SimpleGrantedAuthority::new).collect(toList());
+    return roles
+      .stream()
+      .filter(StringUtils::hasText)
+      .map(SimpleGrantedAuthority::new)
+      .collect(toList());
   }
 
   /**
