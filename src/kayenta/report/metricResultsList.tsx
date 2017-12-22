@@ -2,11 +2,10 @@ import * as React from 'react';
 import { connect, Dispatch } from 'react-redux';
 
 import { ICanaryAnalysisResult } from '../domain/ICanaryJudgeResult';
-import MetricResultRow from './metricResultRow';
 import { ICanaryState } from '../reducers/index';
 import * as Creators from 'kayenta/actions/creators';
+import { Table } from 'kayenta/layout/table';
 import { metricResultsColumns } from './metricResultsColumns';
-import MetricResultsListHeader from './metricResultsListHeader';
 
 import './metricResultsList.less';
 
@@ -24,18 +23,14 @@ interface IResultsListStateProps {
 
 const ResultsList = ({ results, select, selectedMetric }: IResultsListOwnProps & IResultsListDispatchProps & IResultsListStateProps) => (
   <section className="vertical metric-results-list">
-    <MetricResultsListHeader columns={metricResultsColumns}/>
-    <ul className="list-unstyled tabs-vertical">
-      {results.map(r => (
-        <li
-          key={r.name}
-          onClick={() => select(r.name)}
-          className={r.name === selectedMetric ? 'selected' : ''}
-        >
-          <MetricResultRow columns={metricResultsColumns} result={r}/>
-        </li>
-      ))}
-    </ul>
+    <Table
+      rowKey={r => r.name}
+      tableBodyClassName="list-unstyled tabs-vertical"
+      rowClassName={r => 'horizontal ' + (r.name === selectedMetric ? 'selected' : '')}
+      rows={results}
+      columns={metricResultsColumns}
+      onRowClick={r => select(r.name)}
+    />
   </section>
 );
 

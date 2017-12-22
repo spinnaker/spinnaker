@@ -1,4 +1,5 @@
 import * as React from 'react';
+import * as classNames from 'classnames';
 
 import { ITableColumn } from './tableColumn';
 import { TableHeader } from './tableHeader';
@@ -7,16 +8,23 @@ export interface ITableProps<T> {
   rows: T[];
   columns: ITableColumn<T>[];
   rowKey: (row: T) => string;
+  tableBodyClassName?: string;
+  rowClassName?: (row: T) => string;
+  onRowClick?: (row: T) => void;
 }
 
-export function Table<T>({ rows, columns, rowKey }: ITableProps<T>) {
+export function Table<T>({ rows, columns, rowKey, tableBodyClassName, rowClassName, onRowClick }: ITableProps<T>) {
   return (
     <div>
       <TableHeader columns={columns} className="table-header"/>
-      <ul className="list-group">
+      <ul className={tableBodyClassName || 'list-group'}>
         {
           rows.map(r => (
-            <div key={rowKey(r)} className="horizontal table-row">
+            <li
+              key={rowKey(r)}
+              onClick={onRowClick ? () => onRowClick(r) : null}
+              className={classNames({ horizontal: !rowClassName, 'table-row': !rowClassName }, rowClassName && rowClassName(r))}
+            >
               {
                 columns.map((c, i) => (
                   <div key={c.label || i} className={`flex-${c.width}`}>
@@ -24,7 +32,7 @@ export function Table<T>({ rows, columns, rowKey }: ITableProps<T>) {
                   </div>
                 ))
               }
-            </div>
+            </li>
           ))
         }
       </ul>
