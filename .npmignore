@@ -48,3 +48,4 @@ settings.gradle
 webpack.common.js
 webpack.config.js
 test/
+node_modules/
