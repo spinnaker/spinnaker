@@ -24,6 +24,38 @@ import time
 import traceback
 
 
+def add_parser_argument(parser, name, defaults, default_value, **kwargs):
+  """Helper function for adding parser.add_argument with a default value.
+
+  Args:
+    name: [string] The argument name is assumed optional, without '--' prefix.
+    defaults: [string] Dictionary of default value overrides keyed by name.
+    default_value: [any] The default value if not overriden.
+    kwargs: [kwargs] Additional kwargs for parser.add_argument
+  """
+  parser.add_argument(
+      '--{name}'.format(name=name),
+      default=defaults.get(name, default_value),
+      **kwargs)
+
+
+def determine_logfile_path(options, component, decorator):
+  """Determine where a logfile should be written.
+
+  Args:
+    options: [Namespace] Contains builtin options from __main__
+        used to specify logging policy.
+    component: [string] The name of the component this logfile is for.
+    decorator: [string] The file decorator denoting what the logfile is for.
+  Returns:
+    The path to where the logfile should be written.
+  """
+  logsdir = options.logs_dir or os.path.join(options.scratch_dir, 'logs')
+  return os.path.join(
+      logsdir,
+      '{name}-{decorator}.log'.format(name=component, decorator=decorator))
+
+
 def unused_port(interface='localhost'):
   """Return an unused port number on localhost."""
   sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -70,7 +102,7 @@ def maybe_log_exception(where, ex, action_msg='propagating exception'):
   logging.error('"%s" %s', where, action_msg)
 
 
-def start_subprocess(cmd, stream=None, echo=False, **kwargs):
+def start_subprocess(cmd, stream=None, stdout=None, echo=False, **kwargs):
   """Starts a subprocess and returns handle to it."""
   split_cmd = shlex.split(cmd)
 
@@ -89,7 +121,7 @@ def start_subprocess(cmd, stream=None, echo=False, **kwargs):
   process = subprocess.Popen(
       split_cmd,
       close_fds=True,
-      stdout=subprocess.PIPE,
+      stdout=stdout or subprocess.PIPE,
       stderr=subprocess.STDOUT,
       **kwargs)
   logging.log(log_level, 'Running %s as pid %s', split_cmd[0], process.pid)
@@ -109,11 +141,13 @@ def wait_subprocess(process, stream=None, echo=False):
     Any previously read output from the process will not be included.
   """
   stdout_lines = []
-  for line in iter(process.stdout.readline, ''):
-    stdout_lines.append(line)
-    if stream:
-      stream.write(line)
-      stream.flush()
+  if process.stdout is not None:
+    # stdout isnt going to another stream; collect it from the pipe.
+    for line in iter(process.stdout.readline, ''):
+      stdout_lines.append(line)
+      if stream:
+        stream.write(line)
+        stream.flush()
   process.wait()
   if hasattr(process, 'start_date'):
     end_date = datetime.datetime.now()
@@ -217,7 +251,22 @@ def check_subprocesses_to_logfile(what, logfile, cmds, append=False, **kwargs):
     try:
       check_subprocess_sequence(cmds, stream=stream, **kwargs)
     except Exception:
-      logging.error('%s failed. For more details, see %s', what, logfile)
+      logging.error('%s failed. Log file [%s] follows:', what, logfile)
+      with open(logfile, 'r') as readagain:
+        newline_indent = '\n>>>   '
+        logfile_lines = readagain.read().split('\n')
+        logging.error(
+            '%s:%s%s',
+            logfile, newline_indent, newline_indent.join(logfile_lines))
+      # Repeat the error again for convienence reading the logs
+      logging.error('%s failed. See embedded logfile above', what)
+
+      # TODO(ewiseblatt): configure this
+      ensure_dir_exists('errors')
+      error_path = os.path.join('errors', os.path.basename(logfile))
+      logging.info('Copying error log file to %s', error_path)
+      with open(error_path, 'w') as f:
+        f.write('\n'.join(logfile_lines))
       raise
 
 

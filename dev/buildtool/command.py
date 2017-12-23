@@ -20,11 +20,18 @@ import logging
 # pylint: disable=relative-import
 from buildtool.git import GitRunner
 from buildtool.source_code_manager import SpinnakerSourceCodeManager
-from buildtool.util import maybe_log_exception
+from buildtool.util import (
+    add_parser_argument,
+    maybe_log_exception)
 
 
 class CommandFactory(object):
   """Abstract base class for CLI command injection."""
+
+  @staticmethod
+  def add_argument(parser, name, defaults, default_value, **kwargs):
+    """See buildtool.util.add_argument."""
+    add_parser_argument(parser, name, defaults, default_value, **kwargs)
 
   def register(self, registry, subparsers, defaults):
     """Registers a command factory.
@@ -42,21 +49,6 @@ class CommandFactory(object):
 
     factory.add_argparser(subparsers, defaults)
     registry[name] = factory
-
-  @staticmethod
-  def add_argument(parser, name, defaults, default_value, **kwargs):
-    """Helper function for adding parser.add_argument with a default value.
-
-    Args:
-      name: [string] The argument name is assumed optional, without '--' prefix.
-      defaults: [string] Dictionary of default value overrides keyed by name.
-      default_value: [any] The default value if not overriden.
-      kwargs: [kwargs] Additional kwargs for parser.add_argument
-    """
-    parser.add_argument(
-        '--{name}'.format(name=name),
-        default=defaults.get(name, default_value),
-        **kwargs)
 
   @property
   def name(self):

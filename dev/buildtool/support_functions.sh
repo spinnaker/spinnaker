@@ -44,7 +44,12 @@ SKIPPED_COMMANDS=()
 ########################################################
 function command_log_path() {
   local command_name=$1
-  echo "./command_logs/${command_name}.log"
+  local logs_dir='./command_logs'
+  if [[ "$LOGS_DIR" != "" ]]; then
+      logs_dir="$LOGS_DIR";
+  fi
+  mkdir -p $logs_dir
+  echo "${logs_dir}/${command_name}-command.log"
 }
 
 
@@ -60,13 +65,15 @@ function start_command_unless() {
   local value=${!1}
   shift
   local command=$1
+  shift
 
   if [[ "$value" != "" ]]; then
       echo "Skipping '$command' because $guard=$value"
       SKIPPED_COMMANDS=(${SKIPPED_COMMANDS[@]} $command)
       return
   fi
-  start_command $@
+
+  start_command $command $@
 }
 
 
@@ -81,16 +88,24 @@ function start_command_unless() {
 ########################################################
 function start_command() {
   local command=$1
+  shift
   local extra_args=
 
   if [[ $# -gt 1 ]]; then
-    extra_args=$2
+    extra_args="$@"
+  fi
+
+  local logs_dir_arg=""
+  if [[ "${LOGS_DIR}" != "" ]]; then
+      logs_dir_arg=("--logs_dir" "${LOGS_DIR}")
   fi
 
   local logfile=$(command_log_path $command)
-  mkdir -p command_logs
+  mkdir -p $(dirname logfile)
   echo "$(date): Start $command"
-  $BUILDTOOL $BUILDTOOL_ARGS $command $extra_args >& $logfile &
+
+  $BUILDTOOL $BUILDTOOL_ARGS ${logs_dir_arg[@]} $command ${extra_args[@]} \
+      >& $logfile &
   COMMAND_TO_PID[$command]=$!
   echo "$(date): Started $command as ${COMMAND_TO_PID[$command]} to $logfile"
 }
