@@ -54,7 +54,9 @@ function run_generate_flow() {
   start_command_unless NO_CONTAINERS "build_bom_containers"
   start_command_unless NO_CHANGELOG "generate_changelog"
   start_command_unless NO_BOM "generate_bom"
-  start_command_unless NO_APIDOCS "generate_api_docs"
+
+  # Allow a lot of time because machine is starved of resources at this point
+  start_command_unless NO_APIDOCS "generate_api_docs" --max_wait_secs_startup=90
 
   # Avoid a race condition where different jobs are git cloning into the
   # scratch directory
@@ -112,6 +114,10 @@ function process_args() {
           ;;
         --no_apidocs)
           NO_APIDOCS=true
+          ;;
+        --logs|--logs_dir)
+          LOGS_DIR=$1
+          shift
           ;;
         *)
           >&2 echo "Unexpeced argument '$key'"

@@ -32,6 +32,7 @@ from buildtool.source_code_manager import (
 
 from buildtool.util import (
     check_subprocess,
+    determine_logfile_path,
     timedelta_string,
     timestring,
     check_subprocesses_to_logfile,
@@ -313,8 +314,7 @@ class GradleCommandProcessor(RepositoryCommandProcessor):
     cmd = './gradlew {extra} {target}'.format(
         extra=' '.join(extra_args), target=target)
 
-    logdir = os.path.join(options.scratch_dir, name)
-    logfile = os.path.join(logdir, '{name}-debian-build.log'.format(name=name))
+    logfile = determine_logfile_path(options, name, 'debian-build')
     check_subprocesses_to_logfile(
         '{name} gradle build'.format(name=name), logfile,
         [cmd], cwd=gradle_root)
@@ -415,7 +415,7 @@ class BuildHalyardCommand(GradleCommandProcessor):
     env['PUBLISH_HALYARD_DOCKER_IMAGE_BASE'] = options.halyard_docker_image_base
     env['PUBLISH_HALYARD_BUCKET_BASE_URL'] = options.halyard_bucket_base_url
 
-    logfile = os.path.join(options.scratch_dir, name, 'jar-build.log')
+    logfile = determine_logfile_path(options, name, 'jar-build')
     check_subprocesses_to_logfile(
         '{name} build'.format(name='halyard'), logfile,
         [cmd], cwd=nebula_repo_path, env=env)
@@ -538,8 +538,7 @@ class BuildContainerCommand(GradleCommandProcessor):
     ]
 
     gradle_root = self.determine_gradle_root(repository)
-    logfile = os.path.join(self.options.scratch_dir, name,
-                           '{name}-docker-build.log'.format(name=name))
+    logfile = determine_logfile_path(self.options, name, 'docker-build')
     check_subprocesses_to_logfile(
         '{name} docker build'.format(name=name), logfile,
         cmds, cwd=gradle_root)
@@ -594,8 +593,7 @@ class BuildContainerCommand(GradleCommandProcessor):
                    project=options.gcb_project,
                    config_path=config_path))
 
-    logfile = os.path.join(
-        name_scratch_dir, '{name}-gcb-build.log'.format(name=name))
+    logfile = determine_logfile_path(options, name, 'gcb-build')
     check_subprocesses_to_logfile(
         '{name} container build'.format(name=name), logfile,
         [cmd], cwd=nebula_dir)

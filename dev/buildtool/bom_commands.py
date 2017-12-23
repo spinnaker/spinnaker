@@ -54,6 +54,15 @@ def _url_prefix(url):
   return url[:url.rfind('/')]
 
 
+def _determine_bom_path(options):
+  if options.bom_path:
+    return options.bom_path
+
+  filename = 'bom-{branch}-{buildnumber}.yml'.format(
+      branch=options.git_branch or 'NOBRANCH', buildnumber=options.build_number)
+  return os.path.join(options.scratch_dir, filename)
+
+
 class GenerateBomCommand(RepositoryCommandProcessor):
   """Implements the generate_bom."""
 
@@ -72,7 +81,7 @@ class GenerateBomCommand(RepositoryCommandProcessor):
 
   def _do_postprocess(self, result_dict):
     """Construct the bom from the collected summary, then write it out."""
-    path = self.options.bom_path
+    path = _determine_bom_path(self.options)
     summary_table = result_dict
 
     bom = self.construct_bom(summary_table, DEFAULT_BOM_DEPENDENCIES)
@@ -247,13 +256,14 @@ class PublishBomCommand(CommandProcessor):
     """Implements CommandProcessor interface."""
     options = self.options
     self._verify_config()
-    logging.info('Publishing bom from %s', options.bom_path)
-    self._publish_path(options.bom_path)
+    bom_path = _determine_bom_path(options)
+    logging.info('Publishing bom from %s', bom_path)
+    self._publish_path(bom_path)
 
     if options.bom_alias:
       logging.info('Publishing bom alias %s = %s',
-                   options.bom_alias, os.path.basename(options.bom_path))
-      with open(options.bom_path, 'r') as stream:
+                   options.bom_alias, os.path.basename(bom_path))
+      with open(bom_path, 'r') as stream:
         bom = yaml.load(stream)
 
       alias_path = os.path.join(options.scratch_dir, options.bom_alias)

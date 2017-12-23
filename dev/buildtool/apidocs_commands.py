@@ -34,10 +34,12 @@ from buildtool.source_code_manager import (
 
 from buildtool.util import (
     check_subprocess,
+    determine_logfile_path,
     ensure_dir_exists,
     maybe_log_exception,
     run_subprocess,
     start_subprocess,
+    timestring,
     wait_subprocess,
     unused_port)
 
@@ -179,26 +181,38 @@ class GenerateApiDocsCommand(RepositoryCommandProcessor):
     env['SERVER_PORT'] = str(port)
     base_url = 'http://localhost:{port}'.format(port=port)
 
-    logging.info('Starting up prototype %s so we can extract docs from it.',
-                 repository.name)
+    gate_logfile = determine_logfile_path(
+        self.options, repository.name, 'apidocs')
+    logging.info('Starting up prototype %s so we can extract docs from it.'
+                 ' We will log this instance to %s',
+                 repository.name, gate_logfile)
     boot_run_cmd = './gradlew bootRun'
-    process = start_subprocess(boot_run_cmd, cwd=git_dir, env=env)
+    ensure_dir_exists(os.path.dirname(gate_logfile))
+    gate_logstream = open(gate_logfile, 'w')
+    process = start_subprocess(
+        boot_run_cmd, stream=gate_logstream, stdout=gate_logstream,
+        cwd=git_dir, env=env)
 
-    max_wait_secs = 45
+    max_wait_secs = self.options.max_wait_secs_startup
     # pylint: disable=broad-except
     try:
-      logging.info('Waiting for %s to be ready on port %d',
-                   repository.name, port)
+      logging.info('Waiting up to %s secs for %s to be ready on port %d',
+                   max_wait_secs, repository.name, port)
       self.wait_for_url(base_url + '/health', max_wait_secs)
       self.generate_swagger_docs(
           repository,
           '{base}/{path}'.format(base=base_url, path=docs_url_path))
     finally:
       try:
+        gate_logstream.flush()
+        gate_logstream.write(
+            '\n{time}  ***** buildtool is killing subprocess  *****\n'.format(
+                time=timestring()))
         logging.info('Killing %s subprocess %s now that we are done with it',
                      repository.name, process.pid)
         process.kill()
         wait_subprocess(process)
+        gate_logstream.close()
       except Exception as ex:
         maybe_log_exception(
             self.name, ex,
@@ -220,6 +234,10 @@ class GenerateApiDocsFactory(RepositoryCommandFactory):
 
   def _do_init_argparser(self, parser, defaults):
     """Implements CommandFactory interface."""
+    self.add_argument(
+        parser, 'max_wait_secs_startup', defaults, 90, type=int,
+        help='Number of seconds to wait for gate server to startup'
+             ' before giving up and timing out.')
     self.add_argument(
         parser, 'swagger_codegen_cli_jar_path', defaults, None,
         help='The location of the swagger-codegen-cli jarfile.'

@@ -30,10 +30,10 @@ import logging
 import sys
 import yaml
 
-
 from buildtool.git import GitRunner
-from buildtool.command import CommandFactory
-from buildtool.util import maybe_log_exception
+from buildtool.util import (
+    add_parser_argument,
+    maybe_log_exception)
 
 
 STANDARD_LOG_LEVELS = {
@@ -54,27 +54,29 @@ def init_standard_parser(parser, defaults):
       'components', nargs='*', default=defaults.get('components', None),
       help='Restrict commands to these components or repository names')
 
-  add_argument = CommandFactory.add_argument
-
-  add_argument(
+  add_parser_argument(
       parser, 'default_args_file', defaults, None,
       help='path to YAML file containing default command-line options')
 
-  add_argument(
+  add_parser_argument(
       parser, 'log_level', defaults, 'info',
       choices=STANDARD_LOG_LEVELS.keys(),
       help='Set the logging level')
-  add_argument(
+  add_parser_argument(
       parser, 'root_path', defaults, 'build_source',
       help='Path to directory to put source code to build in.')
-  add_argument(
+  add_parser_argument(
       parser, 'scratch_dir', defaults, 'scratch',
       help='Directory to write working files.')
-  add_argument(
+  add_parser_argument(
+      parser, 'logs_dir', defaults, None,
+      help='Override director to write logfiles.'
+      ' The default is <scratch_dir>/log.')
+  add_parser_argument(
       parser, 'build_number', defaults,
       '{:%Y%m%d%H%M%S}'.format(datetime.datetime.utcnow()),
       help='Build number is used when generating artifacts.')
-  add_argument(
+  add_parser_argument(
       parser, 'one_at_a_time', defaults, False, action='store_true',
       help='Do not perform applicable concurrency, for debugging.')
 
@@ -191,7 +193,8 @@ def main():
       buildtool.apidocs_commands
   ]
 
-  options, registry = init_options_and_registry(sys.argv[1:], command_modules)
+  options, command_registry = init_options_and_registry(
+      sys.argv[1:], command_modules)
 
   logging.basicConfig(
       format='%(levelname).1s %(asctime)s.%(msecs)03d'
@@ -204,15 +207,16 @@ def main():
       '\n   '.join(yaml.dump(vars(options), default_flow_style=False)
                    .split('\n')))
 
-  factory = registry.get(options.command)
+  factory = command_registry.get(options.command)
   if not factory:
     logging.error('Unknown command "%s"', options.command)
-    return -1
+    retcode = -1
+  else:
+    command = factory.make_command(options)
+    command()
+    retcode = 0
 
-  command = factory.make_command(options)
-  command()
-
-  return 0
+  return retcode
 
 
 if __name__ == '__main__':
