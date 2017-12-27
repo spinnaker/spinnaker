@@ -305,6 +305,8 @@ class ReservationReportCachingAgent implements CachingAgent, CustomScheduledAgen
           while (true) {
             log.debug("Describing instances for ${credentials.name}/${region.name}")
             def result = amazonEC2.describeInstances(describeInstancesRequest)
+            log.debug("Described instances for ${credentials.name}/${region.name}")
+
             result.reservations.each {
               it.getInstances().each {
                 if (!allowedStates.contains(it.state.name.toLowerCase())) {
