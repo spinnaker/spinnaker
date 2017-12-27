@@ -28,21 +28,31 @@ public class EddaTimeoutConfig {
   private static final int EDDA_RETRY_BACKOFF_MILLIS = 10;
   private static final int EDDA_RETRY_MAX_ATTEMPTS = 3;
   private static final int EDDA_CONNECT_TIMEOUT_MILLIS = 1000;
+  private static final int EDDA_CONNECT_REQUEST_TIMEOUT_MILLIS = 10000;
   private static final int EDDA_SOCKET_TIMEOUT_MILLIS = 5000;
 
   private final long retryBase;
   private final int backoffMillis;
   private final int maxAttempts;
   private final int connectTimeout;
+  private final int connectionRequestTimeout;
   private final int socketTimeout;
   private final Set<String> disabledRegions;
   private boolean albEnabled;
 
-  public EddaTimeoutConfig(long retryBase, int backoffMillis, int maxAttempts, int connectTimeout, int socketTimeout, Collection<String> disabledRegions, boolean albEnabled) {
+  public EddaTimeoutConfig(long retryBase,
+                           int backoffMillis,
+                           int maxAttempts,
+                           int connectTimeout,
+                           int connectionRequestTimeout,
+                           int socketTimeout,
+                           Collection<String> disabledRegions,
+                           boolean albEnabled) {
     this.retryBase = retryBase;
     this.backoffMillis = backoffMillis;
     this.maxAttempts = maxAttempts;
     this.connectTimeout = connectTimeout;
+    this.connectionRequestTimeout = connectionRequestTimeout;
     this.socketTimeout = socketTimeout;
     this.disabledRegions = disabledRegions == null || disabledRegions.isEmpty() ? Collections.emptySet() : Collections.unmodifiableSet(new LinkedHashSet<>(disabledRegions));
     this.albEnabled = albEnabled;
@@ -64,6 +74,10 @@ public class EddaTimeoutConfig {
     return connectTimeout;
   }
 
+  public int getConnectionRequestTimeout() {
+    return connectionRequestTimeout;
+  }
+
   public int getSocketTimeout() {
     return socketTimeout;
   }
@@ -81,6 +95,7 @@ public class EddaTimeoutConfig {
     private int backoffMillis;
     private int maxAttempts;
     private int connectTimeout;
+    private int connectionRequestTimeout;
     private int socketTimeout;
     private List<String> disabledRegions;
     private boolean albEnabled;
@@ -90,13 +105,23 @@ public class EddaTimeoutConfig {
       this.backoffMillis = EDDA_RETRY_BACKOFF_MILLIS;
       this.maxAttempts = EDDA_RETRY_MAX_ATTEMPTS;
       this.connectTimeout = EDDA_CONNECT_TIMEOUT_MILLIS;
+      this.connectionRequestTimeout = EDDA_CONNECT_REQUEST_TIMEOUT_MILLIS;
       this.socketTimeout = EDDA_SOCKET_TIMEOUT_MILLIS;
       this.disabledRegions = null;
       this.albEnabled = false;
     }
 
     public EddaTimeoutConfig build() {
-      return new EddaTimeoutConfig(retryBase, backoffMillis, maxAttempts, connectTimeout, socketTimeout, disabledRegions, albEnabled);
+      return new EddaTimeoutConfig(
+        retryBase,
+        backoffMillis,
+        maxAttempts,
+        connectTimeout,
+        connectionRequestTimeout,
+        socketTimeout,
+        disabledRegions,
+        albEnabled
+      );
     }
 
     public long getRetryBase() {
@@ -129,6 +154,14 @@ public class EddaTimeoutConfig {
 
     public void setConnectTimeout(int connectTimeout) {
       this.connectTimeout = connectTimeout;
+    }
+
+    public int getConnectionRequestTimeout() {
+      return connectionRequestTimeout;
+    }
+
+    public void setConnectionRequestTimeout(int connectionRequestTimeout) {
+      this.connectionRequestTimeout = connectionRequestTimeout;
     }
 
     public int getSocketTimeout() {
