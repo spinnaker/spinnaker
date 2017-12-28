@@ -29,6 +29,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.CollectionUtils;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -68,7 +69,8 @@ public class StackdriverFetchController {
                           @ApiParam(defaultValue = "2017-11-21T12:48:00Z") @RequestParam Instant startTimeIso,
                           @ApiParam(defaultValue = "2017-11-21T12:51:00Z") @RequestParam Instant endTimeIso,
                           @ApiParam(defaultValue = "3600") @RequestParam Long step,
-                          @RequestParam(required = false) final String customFilter) throws IOException {
+                          @RequestParam(required = false) final String customFilter,
+                          @ApiParam @RequestBody final Map<String, String> extendedScopeParams) throws IOException {
     String resolvedMetricsAccountName = CredentialsHelper.resolveAccountByNameOrType(metricsAccountName,
                                                                                      AccountCredentials.Type.METRICS_STORE,
                                                                                      accountCredentialsRepository);
@@ -103,6 +105,7 @@ public class StackdriverFetchController {
     stackdriverCanaryScope.setStart(startTimeIso);
     stackdriverCanaryScope.setEnd(endTimeIso);
     stackdriverCanaryScope.setStep(step);
+    stackdriverCanaryScope.setExtendedScopeParams(extendedScopeParams);
 
     if (!StringUtils.isEmpty(project)) {
       stackdriverCanaryScope.setProject(project);

@@ -51,6 +51,7 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -128,6 +129,29 @@ public class StackdriverMetricsService implements MetricsService {
         if (extendedScopeParams != null && extendedScopeParams.containsKey("service")) {
           filter += " AND resource.labels.module_id=" + extendedScopeParams.get("service");
         }
+      } else if ("k8s_container".equals(resourceType)) {
+        // TODO(duftler): Add support for: k8s_pod, k8s_node
+        // TODO(duftler): Scope isn't used here, and it isn't clear yet which filter attribute it maps most closely to.
+        filter += " AND resource.labels.project_id=" + projectId;
+        Map<String, String> extendedScopeParams = stackdriverCanaryScope.getExtendedScopeParams();
+
+        if (extendedScopeParams != null) {
+          List<String> resourceLabelKeys = Arrays.asList("location", "node_name", "cluster_name", "pod_name", "container_name", "namespace_name");
+
+          for (String resourceLabelKey : resourceLabelKeys) {
+            if (extendedScopeParams.containsKey(resourceLabelKey)) {
+              filter += " AND resource.labels." + resourceLabelKey + "=" + extendedScopeParams.get(resourceLabelKey);
+            }
+          }
+
+          for (String extendedScopeParamsKey : extendedScopeParams.keySet()) {
+            if (extendedScopeParamsKey.startsWith("user_labels.")) {
+              String userLabelKey = extendedScopeParamsKey.substring(12);
+
+              filter += " AND metadata.user_labels." + userLabelKey + "=\"" + extendedScopeParams.get(extendedScopeParamsKey) + "\"";
+            }
+          }
+        }
       } else if (!"global".equals(resourceType)) {
         throw new IllegalArgumentException("Resource type '" + resourceType + "' not yet supported.");
       }
@@ -160,7 +184,11 @@ public class StackdriverMetricsService implements MetricsService {
       response = list.execute();
     } finally {
       long endTime = registry.clock().monotonicTime();
-      Id stackdriverFetchTimerId = registry.createId("stackdriver.fetchTime").withTag("project", projectId).withTag("region", region);
+      Id stackdriverFetchTimerId = registry.createId("stackdriver.fetchTime").withTag("project", projectId);
+
+      if (!StringUtils.isEmpty(region)) {
+        stackdriverFetchTimerId = stackdriverFetchTimerId.withTag("region", region);
+      }
 
       registry.timer(stackdriverFetchTimerId).record(endTime - startTime, TimeUnit.NANOSECONDS);
     }
