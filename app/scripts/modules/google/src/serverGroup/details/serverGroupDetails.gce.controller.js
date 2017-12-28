@@ -15,6 +15,8 @@ import {
 
 require('../configure/serverGroup.configure.gce.module.js');
 
+import './serverGroupDetails.less';
+
 module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', [
   require('@uirouter/angularjs').default,
   require('../configure/serverGroupCommandBuilder.service.js').name,
