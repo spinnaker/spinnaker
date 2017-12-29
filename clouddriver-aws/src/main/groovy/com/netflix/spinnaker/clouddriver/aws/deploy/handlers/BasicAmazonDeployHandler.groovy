@@ -365,7 +365,9 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
       description.tags[SUBNET_ID_OVERRIDE_TAG] = description.subnetIds.join(",")
     }
 
-    //skip a couple of AWS calls if we won't use any of the data
+    description.tags = cleanTags(description.tags)
+
+    // skip a couple of AWS calls if we won't use any of the data
     if (!(useSourceCapacity || description.copySourceCustomBlockDeviceMappings)) {
       return description
     }
@@ -572,6 +574,12 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
     return convertBlockDevices(sourceLaunchConfiguration.blockDeviceMappings)
   }
 
+  @VisibleForTesting
+  @PackageScope
+  static Map<String, String> cleanTags(Map<String, String> tags) {
+    return tags ? tags.findAll { !it.key.startsWith("aws:") } : [:]
+  }
+
   /**
    * Add tags for application/stack/details iff `deployDefaults.addAppStackDetailTags` is true.
    */
@@ -584,7 +592,6 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
     }
 
     description = description.clone()
-    description.tags = description.tags ?: [:]
 
     if (description.application) {
       description.tags["spinnaker:application"] = description.application

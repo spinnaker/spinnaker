@@ -786,7 +786,19 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
     true                  | "app"       | null    | "details" | buildTags("app", "stack", "details") || buildTags("app", null, "details")       // should remove pre-existing tags if invalid
     true                  | null        | null    | null      | buildTags("app", "stack", "details") || [:]                                     // should remove pre-existing tags if invalid
     true                  | "app"       | null    | null      | [:]                                  || buildTags("app", null, null)
-    true                  | null        | null    | null      | null                                 || buildTags(null, null, null)
+    true                  | null        | null    | null      | [:]                                  || buildTags(null, null, null)
+  }
+
+  void "should not copy reserved aws tags"() {
+    expect:
+    BasicAmazonDeployHandler.cleanTags(tags) == expected
+
+    where:
+    tags                       || expected
+    null                       || [:]
+    [:]                        || [:]
+    ["a": "a"]                 || ["a": "a"]
+    ["a": "a", "aws:foo": "3"] || ["a": "a"]
   }
 
   private static Map buildTags(String application, String stack, String details) {
