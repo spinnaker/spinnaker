@@ -48,9 +48,7 @@ import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
@@ -322,25 +320,35 @@ public class AmazonClientInvocationHandler implements InvocationHandler {
       final Id deserializeJsonTimer = registry.createId("edda.deserializeJson", metricTags);
       final Id resultSizeCounter = registry.createId("edda.resultSize", metricTags);
       if (ids.isEmpty()) {
-        InputStream jsonStream = getJsonInputStream(metricTags, object, null);
-        final JavaType listMeta = objectMapper.getTypeFactory().constructParametrizedType(List.class, List.class, singleMeta);
-        final List<Metadata<T>> metadataResults = registry.timer(deserializeJsonTimer).record(() -> objectMapper.readValue(jsonStream, listMeta));
-        for (Metadata<T> meta : metadataResults) {
-          mtime = mtime == null ? meta.mtime : Math.min(mtime, meta.mtime);
-          results.add(meta.data);
+        HttpEntity entity = getHttpEntity(metricTags, object, null);
+        try {
+          final JavaType listMeta = objectMapper.getTypeFactory().constructParametrizedType(List.class, List.class, singleMeta);
+          final List<Metadata<T>> metadataResults = registry.timer(deserializeJsonTimer).record(() -> objectMapper.readValue(entity.getContent(), listMeta));
+          for (Metadata<T> meta : metadataResults) {
+            mtime = mtime == null ? meta.mtime : Math.min(mtime, meta.mtime);
+            results.add(meta.data);
+          }
+        } finally {
+          EntityUtils.consume(entity);
         }
       } else {
         for (String id : ids) {
-          InputStream jsonStream = getJsonInputStream(metricTags, object, id);
-          final Metadata<T> result = registry.timer(deserializeJsonTimer).record(() -> objectMapper.readValue(jsonStream, singleMeta));
-          mtime = mtime == null ? result.mtime : Math.min(mtime, result.mtime);
-          results.add(result.data);
+          HttpEntity entity = getHttpEntity(metricTags, object, id);
+          try {
+            final Metadata<T> result = registry.timer(deserializeJsonTimer).record(() -> objectMapper.readValue(entity.getContent(), singleMeta));
+            mtime = mtime == null ? result.mtime : Math.min(mtime, result.mtime);
+            results.add(result.data);
+          } finally {
+            EntityUtils.consume(entity);
+          }
         }
       }
       registry.counter(resultSizeCounter).increment(results.size());
       lastModified.set(mtime);
       return results;
     } catch (Exception e) {
+      log.error(e.getMessage() + " (retries exhausted)");
+
       registry.counter(registry.createId("edda.failures", metricTags)).increment();
       final AmazonServiceException ex = new AmazonServiceException("400 Bad Request -- Edda could not find one of the managed objects requested.", e);
       ex.setStatusCode(400);
@@ -364,7 +372,7 @@ public class AmazonClientInvocationHandler implements InvocationHandler {
     }
   }
 
-  private InputStream getJsonInputStream(Map<String, String> metricTags, String objectName, String key) throws IOException {
+  private HttpEntity getHttpEntity(Map<String, String> metricTags, String objectName, String key) throws IOException {
     final String url = edda + "/REST/v2/aws/" + objectName + (key == null ? ";_expand" : "/" + key) + ";_meta";
     final HttpGet get = new HttpGet(url);
     get.setConfig(
@@ -379,6 +387,7 @@ public class AmazonClientInvocationHandler implements InvocationHandler {
     long retryDelay = eddaTimeoutConfig.getRetryBase();
     int retryAttempts = 0;
     String lastException = "";
+    String lastUrl = "";
     Random r = new Random();
     Exception ex;
 
@@ -389,21 +398,29 @@ public class AmazonClientInvocationHandler implements InvocationHandler {
     final Id retries = registry.createId("edda.retries", metricTags);
     while (retryAttempts < eddaTimeoutConfig.getMaxAttempts()) {
       ex = null;
+      HttpEntity entity = null;
+
       try {
         final HttpResponse response = registry.timer(httpExecuteTime).record(() -> httpClient.execute(get));
-        final HttpEntity entity = response.getEntity();
         final int statusCode = response.getStatusLine().getStatusCode();
+        entity = response.getEntity();
         if (statusCode != HttpStatus.SC_OK) {
           lastException = response.getProtocolVersion().toString() + " " + response.getStatusLine().getStatusCode() + " " + response.getStatusLine().getReasonPhrase();
           registry.counter(httpErrors.withTag("statusCode", Integer.toString(statusCode))).increment();
         } else {
-          return entity.getContent();
+          return entity;
         }
       } catch (Exception e) {
         lastException = e.getClass().getSimpleName() + ": " + e.getMessage();
         ex = e;
         registry.counter(networkErrors.withTag("exceptionType", e.getClass().getSimpleName())).increment();
+      } finally {
+        lastUrl = url;
       }
+
+      // ensure that the content stream is closed on a non-200 response from edda
+      EntityUtils.consumeQuietly(entity);
+
       final String exceptionFormat = "Edda request {} failed with {}";
       if (ex == null) {
         log.warn(exceptionFormat, url, lastException);
@@ -420,7 +437,7 @@ public class AmazonClientInvocationHandler implements InvocationHandler {
       retryAttempts++;
       retryDelay += r.nextInt(eddaTimeoutConfig.getBackoffMillis());
     }
-    throw new IOException(lastException);
+    throw new IOException("Edda request " + lastUrl + " failed with " + lastException);
   }
 
   private static class Metadata<T> {
@@ -434,5 +451,4 @@ public class AmazonClientInvocationHandler implements InvocationHandler {
       this.data = data;
     }
   }
-
 }
