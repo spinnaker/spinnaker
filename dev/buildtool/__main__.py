@@ -31,6 +31,7 @@ import sys
 import yaml
 
 from buildtool.git import GitRunner
+from buildtool.metrics import MetricsManager
 from buildtool.util import (
     add_parser_argument,
     maybe_log_exception)
@@ -168,10 +169,12 @@ def init_options_and_registry(args, command_modules):
       registry: [dict] of (<command-name>: <CommandFactory>)
   """
   args, defaults = preprocess_args(args)
+
   parser = argparse.ArgumentParser(prog='buildtool.sh')
   init_standard_parser(parser, defaults)
-  registry = make_registry(command_modules, parser, defaults)
+  MetricsManager.init_argument_parser(parser, defaults)
 
+  registry = make_registry(command_modules, parser, defaults)
   return parser.parse_args(args), registry
 
 
@@ -210,13 +213,16 @@ def main():
   factory = command_registry.get(options.command)
   if not factory:
     logging.error('Unknown command "%s"', options.command)
-    retcode = -1
-  else:
+    return -1
+
+  MetricsManager.startup_metrics(options)
+  try:
     command = factory.make_command(options)
     command()
-    retcode = 0
+  finally:
+    MetricsManager.shutdown_metrics()
 
-  return retcode
+  return 0
 
 
 if __name__ == '__main__':

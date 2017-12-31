@@ -36,6 +36,14 @@ SKIPPED_COMMANDS=()
 
 
 ########################################################
+# echo's the date in YYYY-MM-DD HH:MM:SS format
+########################################################
+function timestamp() {
+  echo $(date +'%Y-%m-%d %H:%M:%S')
+}
+
+
+########################################################
 # Determine the path for a log file for a command.
 #   Args:
 #       command: The name of the command being logged.
@@ -102,12 +110,12 @@ function start_command() {
 
   local logfile=$(command_log_path $command)
   mkdir -p $(dirname logfile)
-  echo "$(date): Start $command"
+  echo "$(timestamp): Start $command"
 
   $BUILDTOOL $BUILDTOOL_ARGS ${logs_dir_arg[@]} $command ${extra_args[@]} \
       >& $logfile &
   COMMAND_TO_PID[$command]=$!
-  echo "$(date): Started $command as ${COMMAND_TO_PID[$command]} to $logfile"
+  echo "$(timestamp): Started $command as pid=${COMMAND_TO_PID[$command]} to $logfile"
 }
 
 
@@ -139,11 +147,11 @@ function wait_for_commands() {
       echo -n "."
     else
       last_count=${#COMMAND_TO_PID[@]}
-      echo "$(date): Still $last_count remaining ${description}:"
+      echo "$(timestamp): Still $last_count remaining ${description}:"
       for command in "${!COMMAND_TO_PID[@]}"; do
         echo "  ${COMMAND_TO_PID[$command]}  $command   $(command_log_path $command)"
       done
-      echo -n "$(date): Waiting on ${description}..."
+      echo -n "$(timestamp): Waiting on ${description}..."
     fi
     sleep 5
 
@@ -155,10 +163,10 @@ function wait_for_commands() {
             echo ""  # Terminate line of waiting '.'
           fi
           if [[ $retcode -eq 0 ]]; then
-            echo "$(date): $command finished OK"
+            echo "$(timestamp): $command finished OK"
             GOOD_COMMANDS=(${GOOD_COMMANDS[@]} $command)
           else
-            >&2 echo "$(date): $command FAILED.\n"
+            >&2 echo "$(timestamp): $command FAILED.\n"
             >&2 tail -10 $(command_log_path $command)
             >&2 echo "    See $(command_log_path $command) for details"
             >&2 echo ""
@@ -186,7 +194,7 @@ function wait_for_commands_or_die() {
 
   echo ""
   echo ""
-  echo "$(date): Finished $description"
+  echo "$(timestamp): Finished $description"
 
   if [[ ${#SKIPPED_COMMANDS[@]} -gt 0 ]]; then
     for command in "${SKIPPED_COMMANDS[@]}"; do

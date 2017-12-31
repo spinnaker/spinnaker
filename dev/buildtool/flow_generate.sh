@@ -60,9 +60,9 @@ function run_generate_flow() {
 
   # Avoid a race condition where different jobs are git cloning into the
   # scratch directory
-  echo "$(date): PAUSING flow 15s to avoid a potential git race condition"
+  echo "$(timestamp): PAUSING flow 15s to avoid a potential git race condition"
   sleep 15
-  echo "$(date): RESUMING"
+  echo "$(timestamp): RESUMING"
 
   start_command_unless NO_DEBIANS "build_debians" "--max_local_builds=6"
 
@@ -131,4 +131,4 @@ process_args "$@"
 run_fetch_flow
 run_generate_flow
 
-echo "$(date): FINISHED"
+echo "$(timestamp): FINISHED"

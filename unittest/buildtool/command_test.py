@@ -19,6 +19,7 @@ import time
 import unittest
 import buildtool.command
 import buildtool.git
+import buildtool.metrics
 import custom_test_command
 
 TEST_ROOT_PATH = '/test/root/path/for/local/repos'
@@ -33,8 +34,12 @@ TEST_REPOSITORIES = {
 COMMAND = custom_test_command.COMMAND
 
 class SimpleNamespace(object):
-  # for options
-  pass
+  def __init__(self):
+    self.metric_name_scope = 'unittest'
+    self.monitoring_flush_frequency = -1
+    self.monitoring_system = 'file'
+    self.monitoring_enabled = True
+
 
 class TestRepositoryCommand(buildtool.command.RepositoryCommandProcessor):
   def __init__(self, factory, options, pos_arg, **kwargs):
@@ -118,4 +123,5 @@ if __name__ == '__main__':
       datefmt='%H:%M:%S',
       level=logging.DEBUG)
 
+  buildtool.metrics.MetricsManager.startup_metrics(SimpleNamespace())
   unittest.main(verbosity=2)
