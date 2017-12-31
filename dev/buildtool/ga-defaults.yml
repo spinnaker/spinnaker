@@ -37,6 +37,12 @@
 
 log_level: info
 
+# metrics
+monitoring_enabled: true
+monitoring_flush_frequency: 30
+monitoring_system: file
+
+
 # Used by: write_bom, publish_bom
 # bom_path:
 

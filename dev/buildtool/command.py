@@ -16,9 +16,11 @@
 
 import os
 import logging
+import sys
 
 # pylint: disable=relative-import
 from buildtool.git import GitRunner
+from buildtool.metrics import MetricsManager
 from buildtool.source_code_manager import SpinnakerSourceCodeManager
 from buildtool.util import (
     add_parser_argument,
@@ -126,14 +128,38 @@ class CommandProcessor(object):
     """The bound command options."""
     return self.__options
 
+  @property
+  def metrics(self):
+    """Returns bound metrics registry."""
+    return self.__metrics
+
+  def _do_determine_tracking_metric_labels(self):
+    """Returns the label bindings for the tracking metrics."""
+    return {'command': self.name}
+
+  def _do_determine_outcome_metric_labels(self):
+    """Returns the label bindings for the outcome metrics."""
+    ex_type, _, _ = sys.exc_info()
+
+    return {
+        'command': self.name,
+        'finished_ok': ex_type is None,
+        'exception_type': '' if ex_type is None else ex_type.__name__
+    }
+
   def __init__(self, factory, options):
     self.__factory = factory
     self.__options = options
+    self.__metrics = MetricsManager.singleton()
 
   def __call__(self):
     logging.debug('Running command=%s...', self.name)
     try:
-      result = self._do_command()
+      tracking_labels = self._do_determine_tracking_metric_labels()
+      result = self.metrics.instrument_track_and_outcome(
+          'RunCommand', 'Command Invocations', tracking_labels,
+          self._do_determine_outcome_metric_labels,
+          self._do_command)
       logging.debug('Finished command=%s', self.name)
       return result
     except Exception as ex:
@@ -150,9 +176,21 @@ class CommandProcessor(object):
 def _do_call_do_repository(repository, command):
   """Run the command's _do_repository on the given repository."""
   # pylint: disable=protected-access
+  def determine_outcome_labels():
+    """Helper function to inject rpeository name into command labels."""
+    result = command._do_determine_outcome_metric_labels()
+    result['repository'] = repository.name
+    return result
+
   logging.info('%s processing %s', command.name, repository.name)
   try:
-    result = command._do_repository(repository)
+    tracking_labels = command._do_determine_tracking_metric_labels()
+    tracking_labels['repository'] = repository.name
+    result = command.metrics.instrument_track_and_outcome(
+        'RunRepositoryCommand', 'Command invocations scoped to one repository',
+        tracking_labels, determine_outcome_labels,
+        command._do_repository, repository)
+#    result = command._do_repository(repository)
     logging.info('%s finished %s', command.name, repository.name)
     return result
   except Exception as ex:
