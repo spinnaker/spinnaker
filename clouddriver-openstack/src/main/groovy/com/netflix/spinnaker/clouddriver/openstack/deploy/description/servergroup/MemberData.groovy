@@ -24,6 +24,8 @@ import groovy.transform.Canonical
  */
 @Canonical
 class MemberData {
+  String loadBalancerName
+  String listenerShortId
   String poolId
   String externalPort
   String internalPort

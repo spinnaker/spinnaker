@@ -165,10 +165,13 @@ class AbstractOpenstackLoadBalancerAtomicOperationSpec extends Specification {
     Map<String, String> sub = ['servergroup_resource.yaml': 'foo: bar', 'servergroup_resource_member.yaml': 'foo: bar']
     List<String> tags = [loadBalancerId]
     ServerGroupParameters serverGroupParams = new ServerGroupParameters(loadBalancers: tags)
-    LoadBalancerV2 loadBalancer = Mock(LoadBalancerV2)
+    LoadBalancerV2 loadBalancer = Mock(LoadBalancerV2) {
+      getName() >> "lb"
+    }
     ListItem listItem = Mock(ListItem)
     String listenerId = UUID.randomUUID()
     ListenerV2 listener = Mock(ListenerV2) {
+      getId() >> listenerId
       getDescription() >> 'HTTP:80:HTTP:8080'
       getDefaultPoolId() >> UUID.randomUUID()
     }

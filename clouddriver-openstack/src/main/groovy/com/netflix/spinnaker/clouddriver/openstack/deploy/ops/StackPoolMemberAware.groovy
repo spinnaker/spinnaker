@@ -39,9 +39,15 @@ trait StackPoolMemberAware {
       LoadBalancerV2 loadBalancer = credentials.provider.getLoadBalancer(region, loadBalancerId)
       loadBalancer.listeners.collect { item ->
         ListenerV2 listener = credentials.provider.getListener(region, item.id)
+        String listenerShortId
+        try {
+          listenerShortId = listener.id[0, listener.id.indexOf("-")]
+        } catch (StringIndexOutOfBoundsException e) {
+          throw new RuntimeException("Listener ID: ${listener.id}", e)
+        }
         String internalPort = portParser(listener.description).internalPort
         String poolId = listener.defaultPoolId
-        new MemberData(subnetId: subnetId ?: loadBalancer.vipSubnetId, externalPort: listener.protocolPort.toString(), internalPort: internalPort, poolId: poolId)
+        new MemberData(loadBalancerName: loadBalancer.name, listenerShortId: listenerShortId, subnetId: subnetId ?: loadBalancer.vipSubnetId, externalPort: listener.protocolPort.toString(), internalPort: internalPort, poolId: poolId)
       }
     }
   }
@@ -68,9 +74,7 @@ trait StackPoolMemberAware {
     Map<String, Object> parameters = [address: [type: "string", description: "Server address for autoscaling group resource"]]
     Map<String, Object> resources = memberData.collectEntries {
       [
-        //unique per listener/app port pair. Behavior is unknown if multiple load balancers are attached to
-        //the server group and have the same port mapping. Don't do that.
-        ("member-$it.externalPort-$it.internalPort"): [
+        ("member-$it.loadBalancerName-$it.listenerShortId-$it.externalPort-$it.internalPort".toString()): [
           type      : "OS::Neutron::LBaaS::PoolMember",
           properties: [
             address      : [get_param: "address"],

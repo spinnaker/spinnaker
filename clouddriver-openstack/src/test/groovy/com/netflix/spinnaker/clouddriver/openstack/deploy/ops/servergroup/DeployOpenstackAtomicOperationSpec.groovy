@@ -94,6 +94,7 @@ class DeployOpenstackAtomicOperationSpec extends Specification {
     mockLb.name >> { 'mockpool' }
     mockLb.listeners >> {[mockItem]}
     mockListener = Mock(ListenerV2)
+    mockListener.id >> { listenerId }
     mockListener.defaultPoolId >> { poolId }
     mockListener.description >> { "HTTP:$externalPort:HTTP:$internalPort" }
     mockSubnet = Mock(Subnet)
