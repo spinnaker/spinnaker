@@ -84,6 +84,13 @@ public class MetricSetMixerService {
         .scope("control", controlScope)
         .scope("experiment", experimentScope);
 
+    if (controlMetricSet.getAttributes() != null) {
+      metricSetPairBuilder.attribute("control", controlMetricSet.getAttributes());
+    }
+    if (experimentMetricSet.getAttributes() != null) {
+      metricSetPairBuilder.attribute("experiment", experimentMetricSet.getAttributes());
+    }
+
     return metricSetPairBuilder.build();
   }
 

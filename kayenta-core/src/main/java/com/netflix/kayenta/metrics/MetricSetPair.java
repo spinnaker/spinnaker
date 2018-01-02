@@ -50,16 +50,22 @@ public class MetricSetPair {
   @Getter
   private Map<String, MetricSetScope> scopes;
 
+  @Getter
+  @Singular
+  private Map<String, Map<String, String>> attributes;
+
   public MetricSetPair(String name,
                        String id,
                        Map<String, String> tags,
                        Map<String, List<Double>> values,
-                       Map<String, MetricSetScope> scopes) {
+                       Map<String, MetricSetScope> scopes,
+                       Map<String, Map<String, String>> attributes) {
     this.name = name;
     this.id = id;
     this.tags = tags;
     this.values = values;
     this.scopes = scopes;
+    this.attributes = attributes;
   }
 
   @Builder

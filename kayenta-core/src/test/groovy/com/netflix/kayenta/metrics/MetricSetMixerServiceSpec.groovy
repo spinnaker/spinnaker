@@ -28,6 +28,7 @@ class MetricSetMixerServiceSpec extends Specification {
       .name('cpu')
       .values([1, 3, 5, 7])
       .tag("tagName", "tagValue")
+      .attribute("attributeName", "attributeValue")
       .build()
 
   @Shared
@@ -36,6 +37,7 @@ class MetricSetMixerServiceSpec extends Specification {
       .name('cpu')
       .values([2, 4, 6, 8])
       .tag("tagName", "tagValue")
+      .attribute("attributeName", "attributeValue")
       .build()
 
   @Shared
@@ -128,6 +130,7 @@ class MetricSetMixerServiceSpec extends Specification {
       experiment: [2, 4, 6, 8]
     ]
     metricSetPair.tags == [tagName: "tagValue"]
+    metricSetPair.attributes == [ control: [ attributeName: "attributeValue" ], experiment: [ attributeName: "attributeValue" ]]
   }
 
   void "Mixing sets should produce an id field"() {

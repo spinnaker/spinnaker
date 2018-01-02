@@ -176,6 +176,9 @@ public class AtlasMetricsService implements MetricsService {
         metricSetBuilder.tags(filteredTags);
       }
 
+      metricSetBuilder.attribute("query", decoratedQuery);
+      metricSetBuilder.attribute("baseURL", uri);
+
       metricSetList.add(metricSetBuilder.build());
     }
 

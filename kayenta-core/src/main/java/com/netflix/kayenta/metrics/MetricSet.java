@@ -58,6 +58,10 @@ public class MetricSet {
   @Getter
   private List<Double> values;
 
+  @Singular
+  @Getter
+  private Map<String, String> attributes;
+
   @JsonIgnore
   private String metricSetKey;
 
@@ -67,6 +71,7 @@ public class MetricSet {
                    String startTimeIso,
                    long stepMillis,
                    List<Double> values,
+                   Map<String, String> attributes,
                    String metricSetKey) {
     this.name = name;
     this.tags = tags;
@@ -74,6 +79,7 @@ public class MetricSet {
     this.startTimeIso = startTimeIso;
     this.stepMillis = stepMillis;
     this.values = values;
+    this.attributes = attributes;
     this.metricSetKey = metricSetKey;
   }
 
