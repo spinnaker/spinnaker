@@ -24,10 +24,14 @@ export class EntityTagsReader {
     }
     const allTags = application.getDataSource('entityTags').data;
     const serverGroupTags: IEntityTags[] = allTags.filter(t => t.entityRef.entityType === 'servergroup');
+    const clusterTags: IEntityTags[] = allTags.filter(t => t.entityRef.entityType === 'cluster');
     application.getDataSource('serverGroups').data.forEach((serverGroup: IServerGroup) => {
       serverGroup.entityTags = serverGroupTags.find(t => t.entityRef.entityId === serverGroup.name &&
         t.entityRef.account === serverGroup.account &&
         t.entityRef.region === serverGroup.region);
+      serverGroup.clusterEntityTags = clusterTags.filter(t => t.entityRef.entityId === serverGroup.cluster &&
+        (t.entityRef.account === '*' || t.entityRef.account === serverGroup.account) &&
+        (t.entityRef.region === '*' || t.entityRef.region === serverGroup.region));
     });
   }
 
