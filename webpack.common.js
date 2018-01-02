@@ -127,6 +127,10 @@ function configure(IS_TEST) {
             { loader: 'expose-loader?jQuery' },
           ],
         },
+        {
+          test: /ui-sortable/,
+          use: ['imports-loader?$UI=jquery-ui/ui/widgets/sortable']
+        }
       ],
     },
     watch: IS_TEST,
