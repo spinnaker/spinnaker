@@ -52,9 +52,6 @@ class TravisBuildMonitorSpec extends Specification {
         V3Build build = Mock(V3Build)
         V3Repository repository = Mock(V3Repository)
 
-        given:
-        1 * buildCache.getJobNames(MASTER) >> ['test-org/test-repo/master']
-
         when:
         List<Map> receivedBuilds = travisBuildMonitor.changedBuilds(MASTER)
 
@@ -89,10 +86,6 @@ class TravisBuildMonitorSpec extends Specification {
         List<Repo> repos = [oldRepo, repo, noLastBuildStartedAtRepo]
         V3Build build = Mock(V3Build)
         V3Repository repository = Mock(V3Repository)
-
-
-        given:
-        1 * buildCache.getJobNames(MASTER) >> ['test-org/test-repo/master']
 
         when:
         List<Map> builds = travisBuildMonitor.changedBuilds(MASTER)
@@ -129,9 +122,6 @@ class TravisBuildMonitorSpec extends Specification {
         List<Repo> repos = [repo]
         V3Build build = Mock(V3Build)
         V3Repository repository = Mock(V3Repository)
-
-        given:
-        1 * buildCache.getJobNames(MASTER) >> ['test-org/test-repo/my_branch']
 
         when:
         travisBuildMonitor.changedBuilds(MASTER)
@@ -173,10 +163,6 @@ class TravisBuildMonitorSpec extends Specification {
         V3Build build = Mock(V3Build)
         V3Build buildDifferentBranch = Mock(V3Build)
         V3Repository repository = Mock(V3Repository)
-
-
-        given:
-        1 * buildCache.getJobNames(MASTER) >> ['test-org/test-repo/my_branch', 'test-org/test-repo/different_branch']
 
         when:
         travisBuildMonitor.changedBuilds(MASTER)

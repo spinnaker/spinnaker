@@ -87,7 +87,6 @@ class TravisBuildMonitor extends CommonPollingMonitor {
 
     List<Map> changedBuilds(String master) {
         log.info('Checking for new builds for {}', kv("master", master))
-        List<String> cachedRepoSlugs = buildCache.getJobNames(master)
         List<Map> results = []
         int updatedBuilds = 0
 
@@ -101,16 +100,11 @@ class TravisBuildMonitor extends CommonPollingMonitor {
                 List<V3Build> builds = travisService.getBuilds(repo, 5)
                 for (V3Build build : builds) {
                     boolean addToCache = false
-                    def cachedBuild = null
                     String branchedRepoSlug = build.branchedRepoSlug()
-                    if (cachedRepoSlugs.contains(branchedRepoSlug)) {
-                        cachedBuild = buildCache.getLastBuild(master, branchedRepoSlug, TravisResultConverter.running(build.state))
-                        if (build.number > cachedBuild) {
-                            addToCache = true
-                            log.info("New build: {}: ${branchedRepoSlug} : ${build.number}", kv("master", master))
-                        }
-                    } else {
-                        addToCache = !TravisResultConverter.running(build.state)
+                    def cachedBuild = buildCache.getLastBuild(master, branchedRepoSlug, TravisResultConverter.running(build.state))
+                    if (build.number > cachedBuild) {
+                        addToCache = true
+                        log.info("New build: {}: ${branchedRepoSlug} : ${build.number}", kv("master", master))
                     }
                     if (addToCache) {
                         updatedBuilds += 1
