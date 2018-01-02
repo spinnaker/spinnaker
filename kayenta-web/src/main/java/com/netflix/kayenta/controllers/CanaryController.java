@@ -146,7 +146,14 @@ public class CanaryController {
                                                                                      AccountCredentials.Type.OBJECT_STORE,
                                                                                      accountCredentialsRepository);
 
-    return buildExecution("adhoc",
+    if (canaryAdhocExecutionRequest.getCanaryConfig() == null) {
+      throw new IllegalArgumentException("canaryConfig must be provided for ad-hoc requests");
+    }
+    if (canaryAdhocExecutionRequest.getExecutionRequest() == null) {
+      throw new IllegalArgumentException("executionRequest must be provided for ad-hoc requests");
+    }
+
+    return buildExecution("ad-hoc",
                           canaryAdhocExecutionRequest.getCanaryConfig(),
                           null,
                           resolvedMetricsAccountName,
