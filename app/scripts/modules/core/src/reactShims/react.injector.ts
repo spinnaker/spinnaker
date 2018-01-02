@@ -133,8 +133,9 @@ export class CoreReactInject extends ReactInject {
       const deferred = $q.defer();
       const promise = Object.create(deferred);
       promise.promise.transition = null;
+      promise.promise.catch(() => {});
       $rootScope.$applyAsync(() => {
-        promise.transition = originalGo.apply(this, args).then((r: any) => { promise.resolve(r); });
+        promise.transition = originalGo.apply(this, args).then(promise.resolve, promise.reject);
       });
       return promise.promise;
     };
