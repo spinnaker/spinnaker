@@ -121,7 +121,9 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.executionWindows.
           $scope.stage.restrictedExecutionWindow.jitter.skipManual = true;
         }
       } else {
-        delete $scope.stage.restrictedExecutionWindow.jitter;
+        if ($scope.stage.restrictedExecutionWindow) {
+          delete $scope.stage.restrictedExecutionWindow.jitter;
+        }
       }
     };
 
