@@ -1,5 +1,6 @@
 import { PIPELINE_CONFIG_PROVIDER, PipelineConfigProvider } from 'core/pipeline/config/pipelineConfigProvider';
 import { IController, IScope, module } from 'angular';
+import { IModalService } from 'angular-ui-bootstrap';
 import * as moment from 'moment';
 
 import { SETTINGS } from 'core/config/settings';
@@ -19,6 +20,11 @@ export interface ITravisStageViewState {
   jobIsParameterized?: boolean;
 }
 
+export interface IParameter {
+  key: string;
+  value: string;
+}
+
 export class TravisStage implements IController {
   public viewState: ITravisStageViewState;
   public useDefaultParameters: any;
@@ -32,7 +38,8 @@ export class TravisStage implements IController {
 
   constructor(public stage: any,
               $scope: IScope,
-              private igorService: IgorService) {
+              private igorService: IgorService,
+              private $uibModal: IModalService) {
     this.stage.failPipeline = (this.stage.failPipeline === undefined ? true : this.stage.failPipeline);
     this.stage.continuePipeline = (this.stage.continuePipeline === undefined ? false : this.stage.continuePipeline);
     this.viewState = {
@@ -126,14 +133,20 @@ export class TravisStage implements IController {
     }
   }
 
-  public updateParam(parameter: any): void {
-    if (this.useDefaultParameters[parameter] === true) {
-      delete this.userSuppliedParameters[parameter];
-      delete this.stage.parameters[parameter];
-    } else if (this.userSuppliedParameters[parameter]) {
-      this.stage.parameters[parameter] = this.userSuppliedParameters[parameter];
-    }
+  public addParameter(): void {
+    this.$uibModal.open({
+      templateUrl: require('./modal/addParameter.html'),
+      controller: 'TravisStageAddParameterCtrl',
+      controllerAs: 'ctrl',
+    }).result.then((parameter: IParameter) => {
+      this.stage.parameters[parameter.key] = parameter.value;
+    }).catch(() => {});
+
   };
+
+  public removeParameter(key: string): void {
+    delete this.stage.parameters[key];
+  }
 
   public shouldFilter(): boolean {
     return this.jobs && this.jobs.length >= this.filterThreshold;

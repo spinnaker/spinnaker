@@ -57,28 +57,44 @@
   <stage-config-field label="Property File" help-key="pipeline.config.travis.propertyFile">
     <input type="text" class="form-control input-sm" ng-model="$ctrl.stage.propertyFile"/>
   </stage-config-field>
-  <div class="well well-sm clearfix ng-scope col-md-offset-1 col-md-10" ng-if="$ctrl.jobParams.length">
-    <h4 class="text-left">Job Parameters</h4>
-    <div class="form-group" ng-repeat="parameter in $ctrl.jobParams | orderBy:'name' ">
-      <div class="col-md-3 sm-label-right">
-        <b class="break-word">{{parameter.name}}</b>
-        <help-field content="{{parameter.description}}" ng-if="parameter.description"></help-field>
-      </div>
-      <div class="col-md-5">
-        <input disabled ng-if="$ctrl.useDefaultParameters[parameter.name]" type="text"
-               class="form-control input-sm" value="{{parameter.defaultValue}}"/>
-        <input ng-if="!$ctrl.useDefaultParameters[parameter.name]" type="text" class="form-control input-sm"
-               ng-model="$ctrl.userSuppliedParameters[parameter.name]"
-               ng-change="$ctrl.updateParam(parameter.name)"/>
-      </div>
-      <div class="checkbox col-md-4" ng-if="parameter.defaultValue!==null">
-        <label>
-          <input type="checkbox" ng-model="$ctrl.useDefaultParameters[parameter.name]"
-                 ng-change="$ctrl.updateParam(parameter.name)">Use default
-        </label>
+
+
+  <stage-config-field label="Parameters" help-key="pipeline.config.travis.parameters">
+    <table class="table table-condensed packed" ng-if="$ctrl.stage.parameters">
+      <thead>
+        <tr>
+          <th style="width:40%">Key</th>
+          <th style="width:60%">Value</th>
+          <th class="text-right">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr ng-repeat="(key, value) in $ctrl.stage.parameters">
+          <td>
+            <strong class="small">{{key}}</strong>
+          </td>
+          <td>
+            <input type="text" required ng-model="$ctrl.stage.parameters[key]"
+                   class="form-control input-sm"/>
+          </td>
+          <td class="text-center">
+            <a href ng-click="$ctrl.removeParameter(key)">
+              <span class="glyphicon glyphicon-trash"></span>
+              <span class="sr-only">Remove</span>
+            </a>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="row">
+      <div class="col-md-12">
+        <button class="btn btn-block btn-sm add-new" ng-click="$ctrl.addParameter()">
+          <span class="glyphicon glyphicon-plus-sign"></span> Add Parameter
+        </button>
       </div>
     </div>
-  </div>
+  </stage-config-field>
+
   <stage-config-field label="Wait for results" help-key="travis.waitForCompletion">
     <input type="checkbox" class="input-sm" name="waitForCompletion"
            ng-model="$ctrl.viewState.waitForCompletion"
