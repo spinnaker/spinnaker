@@ -20,6 +20,7 @@ import lombok.Data;
 import javax.validation.constraints.NotNull;
 import java.time.Duration;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -29,6 +30,8 @@ public class CanaryExecutionRequest {
   protected Map<String, CanaryScopePair> scopes;
 
   protected CanaryClassifierThresholdsConfig thresholds;
+
+  protected List<Metadata> metadata;
 
   public Duration calculateDuration() {
     Set<Duration> durationsFound = new HashSet<>();
