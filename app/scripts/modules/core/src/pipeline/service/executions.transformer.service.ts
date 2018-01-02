@@ -416,7 +416,9 @@ export class ExecutionsTransformerService {
       if (summary.type === 'group') {
         if (summary.groupStages.length === 1) {
           // If there's only one stage, get rid of the group.
-          stageSummaries[index] = summary.groupStages[0];
+          const onlyStage = summary.groupStages[0];
+          stageSummaries[index] = onlyStage;
+          delete idToGroupIdMap[onlyStage.refId]
         } else if (summary.groupStages.length > 1) {
           const subComments: string[] = [];
           // Find the earliest startTime and latest endTime
