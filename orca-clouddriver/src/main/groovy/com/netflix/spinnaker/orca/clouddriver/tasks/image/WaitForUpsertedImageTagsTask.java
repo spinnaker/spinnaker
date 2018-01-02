@@ -25,6 +25,7 @@ import com.netflix.spinnaker.orca.RetryableTask;
 import com.netflix.spinnaker.orca.TaskResult;
 import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -32,6 +33,9 @@ import org.springframework.stereotype.Component;
 public class WaitForUpsertedImageTagsTask implements RetryableTask, CloudProviderAware {
   @Autowired
   List<ImageTagger> imageTaggers;
+
+  @Value("${tasks.waitForUpsertedImageTagsTimeout:600}")
+  private long waitForUpsertedImageTagsTimeout;
 
   @Override
   public TaskResult execute(Stage stage) {
@@ -55,7 +59,7 @@ public class WaitForUpsertedImageTagsTask implements RetryableTask, CloudProvide
 
   @Override
   public long getTimeout() {
-    return TimeUnit.MINUTES.toMillis(10);
+    return TimeUnit.SECONDS.toMillis(this.waitForUpsertedImageTagsTimeout);
   }
 
   static class StageData {
