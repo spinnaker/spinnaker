@@ -51,9 +51,8 @@ module.exports = angular.module('spinnaker.amazon.pipeline.stage.cloneServerGrou
     }
 
     if (stage.isNew) {
-      let useAmiBlockDeviceMappings = _.get($scope, 'application.attributes.providerSettings.aws.useAmiBlockDeviceMappings', false);
-      stage.useAmiBlockDeviceMappings = useAmiBlockDeviceMappings;
-      stage.copySourceCustomBlockDeviceMappings = !useAmiBlockDeviceMappings;
+      stage.useAmiBlockDeviceMappings = _.get($scope, 'application.attributes.providerSettings.aws.useAmiBlockDeviceMappings', false);
+      stage.copySourceCustomBlockDeviceMappings = false; // default to using block device mappings from current instance type
     }
 
     this.targetClusterUpdated = () => {

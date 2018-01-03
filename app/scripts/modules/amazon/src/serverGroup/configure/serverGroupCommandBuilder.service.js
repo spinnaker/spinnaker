@@ -73,7 +73,7 @@ module.exports = angular.module('spinnaker.amazon.serverGroupCommandBuilder.serv
             spotPrice: '',
             tags: {},
             useAmiBlockDeviceMappings: useAmiBlockDeviceMappings,
-            copySourceCustomBlockDeviceMappings: !useAmiBlockDeviceMappings,
+            copySourceCustomBlockDeviceMappings: false, // default to using block device mappings from current instance type
             viewState: {
               instanceProfile: 'custom',
               useAllImageSelection: false,
@@ -233,7 +233,7 @@ module.exports = angular.module('spinnaker.amazon.serverGroupCommandBuilder.serv
           tags: Object.assign({}, serverGroup.tags, existingTags),
           targetGroups: serverGroup.targetGroups,
           useAmiBlockDeviceMappings: useAmiBlockDeviceMappings,
-          copySourceCustomBlockDeviceMappings: !useAmiBlockDeviceMappings,
+          copySourceCustomBlockDeviceMappings: false, // default to using block device mappings from current instance type
           viewState: {
             instanceProfile: asyncData.instanceProfile,
             useAllImageSelection: false,
