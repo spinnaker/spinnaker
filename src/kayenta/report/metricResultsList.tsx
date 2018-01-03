@@ -1,15 +1,15 @@
 import * as React from 'react';
 import { connect, Dispatch } from 'react-redux';
+import * as classNames from 'classnames';
 
 import { ICanaryAnalysisResult } from '../domain/ICanaryJudgeResult';
 import { ICanaryState } from '../reducers/index';
 import * as Creators from 'kayenta/actions/creators';
 import { Table } from 'kayenta/layout/table';
 import { metricResultsColumns } from './metricResultsColumns';
+import MultipleResultsTable from './multipleResultsTable';
 
 import './metricResultsList.less';
-import { ITableProps } from '../layout/table/table';
-import { MultipleResultsTable } from './multipleResultsTable';
 
 export interface IResultsListOwnProps {
   results: ICanaryAnalysisResult[];
@@ -40,15 +40,14 @@ const buildTableRows = (results: ICanaryAnalysisResult[]): IMetricResultsTableRo
   return Array.from(tableRowsByMetricName.values());
 };
 
-const buildRowForMetricWithMultipleResults = (row: IMetricResultsTableRow, tableProps: ITableProps<IMetricResultsTableRow>) => {
+const buildRowForMetricWithMultipleResults = (row: IMetricResultsTableRow) => {
   if (row.results.length < 2) {
     return null;
   }
 
   return (
     <li
-      className={tableProps.rowClassName && tableProps.rowClassName(row)}
-      style={{paddingBottom: 0}}
+      className="horizontal multiple-results"
     >
       <section className="vertical flex-fill">
         <div>{row.metricName}</div>
@@ -65,10 +64,10 @@ const ResultsList = ({ results, select, selectedMetric }: IResultsListOwnProps &
       <Table
         rowKey={r => r.metricName}
         tableBodyClassName="list-unstyled tabs-vertical"
-        rowClassName={r => 'horizontal ' + (r.metricName === selectedMetric ? 'selected' : '')}
+        rowClassName={r => classNames('horizontal', { selected: r.results[0].id === selectedMetric })}
         rows={rows}
         columns={metricResultsColumns}
-        onRowClick={r => select(r.metricName)}
+        onRowClick={r => select(r.results[0].id)}
         customRow={buildRowForMetricWithMultipleResults}
       />
     </section>
@@ -83,8 +82,8 @@ const mapDispatchToProps = (
   dispatch: Dispatch<ICanaryState>,
   ownProps: IResultsListOwnProps,
 ): IResultsListOwnProps & IResultsListDispatchProps => ({
-  select: (metric: string) =>
-    dispatch(Creators.selectReportMetric({ metric })),
+  select: (metricId: string) =>
+    dispatch(Creators.selectReportMetric({ metricId })),
   ...ownProps,
 });
 

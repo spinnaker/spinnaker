@@ -11,12 +11,11 @@ export interface ITableProps<T> {
   tableBodyClassName?: string;
   rowClassName?: (row: T) => string;
   onRowClick?: (row: T) => void;
-  customRow?: (row: T, tableProps: ITableProps<T>) => JSX.Element;
+  customRow?: (row: T) => JSX.Element;
   className?: string;
 }
 
-export function Table<T>(props: ITableProps<T>) {
-  const { rows, columns, rowKey, tableBodyClassName, rowClassName, onRowClick, customRow, className } = props;
+export function Table<T>({ rows, columns, rowKey, tableBodyClassName, rowClassName, onRowClick, customRow, className }: ITableProps<T>) {
   const TableRow = ({ row }: { row: T }) => (
     <li
       onClick={onRowClick ? () => onRowClick(row) : null}
@@ -38,8 +37,8 @@ export function Table<T>(props: ITableProps<T>) {
       <ul className={classNames(tableBodyClassName, 'list-group')}>
         {
           rows.map(r => (
-            customRow && customRow(r, props)
-              ? <div key={rowKey(r)}>{customRow(r, props)}</div>
+            customRow && customRow(r)
+              ? <div key={rowKey(r)}>{customRow(r)}</div>
               : <TableRow key={rowKey(r)} row={r}/>
           ))
         }

@@ -46,7 +46,7 @@ const mapStateToProps = (state: ICanaryState): IMetricResultsStateProps => {
 
   return {
     metricResults: Object.values(result.results).filter(filter),
-    selectedMetricResult: Object.values(result.results).find(r => r.name === selectedMetric),
+    selectedMetricResult: Object.values(result.results).find(r => r.id === selectedMetric),
   };
 };
 

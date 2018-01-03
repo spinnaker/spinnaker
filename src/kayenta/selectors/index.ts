@@ -31,13 +31,20 @@ export const serializedGroupWeightsSelector = createSelector(
   (config: ICanaryConfig) => config.classifier.groupWeights,
 );
 
-export const selectedMetricNameSelector =
+export const selectedMetricResultIdSelector =
   (state: ICanaryState): string => state.selectedRun.selectedMetric;
 
+export const selectedMetricResultSelector = createSelector(
+  selectedMetricResultIdSelector,
+  metricResultsSelector,
+  (id, results) => results.find(result => result.id === id),
+);
+
 export const selectedMetricConfigSelector = createSelector(
-  selectedMetricNameSelector,
+  selectedMetricResultSelector,
   serializedCanaryConfigSelector,
-  (metricName, config) => config.metrics.find(m => m.name === metricName),
+  (metric, config) =>
+    config.metrics.find(m => m.name === metric.name),
 );
 
 export const selectedConfigSelector = (state: ICanaryState) => state.selectedConfig.config;

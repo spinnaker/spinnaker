@@ -14,7 +14,9 @@ export const TableHeader = ({ columns, className }: ITableHeaderProps) => {
       {columns.map((c, i) => (
         <div key={c.label || i} className={`flex-${c.width}`}>
           {!c.hide && (
-            <h6 className="heading-6 uppercase color-text-primary">{c.label}</h6>
+            <h6 className={classNames('heading-6', 'uppercase', 'color-text-primary', c.labelClassName)}>
+              {c.label}
+            </h6>
           )}
         </div>
       ))}

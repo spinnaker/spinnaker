@@ -10,10 +10,13 @@ export const metricResultsColumns: ITableColumn<IMetricResultsTableRow>[] = [
     width: 5,
   },
   {
+    label: 'result',
+    labelClassName: 'text-center',
     getContent: ({ results }) => (
-      <div className="pull-right">
-        <MetricResultClassification classification={results[0].classification}/>
-      </div>
+      <MetricResultClassification
+        className="pull-right"
+        classification={results[0].classification}
+      />
     ),
     width: 1,
   }

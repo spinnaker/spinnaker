@@ -2,6 +2,12 @@
   height: 60vh;
   overflow-y: auto;
 
+  .table-header {
+    h6 {
+      padding-left: 5px;
+    }
+  }
+
   .tabs-vertical {
     li {
       padding: 8px 0 8px 5px;
@@ -9,25 +15,27 @@
   }
 
   .metric-result-classification {
-    margin-right: 20px;
+    margin-right: 15px;
   }
 
   .list-group {
     margin-bottom: 0;
   }
 
+  li.multiple-results {
+    padding-bottom: 0;
+    border: none;
+
+    &:hover {
+      border: none;
+    }
+  }
+
   .multiple-results-table {
     padding-left: 8px;
-    li:last-of-type {
-      border-bottom: none;
-    }
-
-    li {
-      padding-left: 0;
-    }
 
     h6 {
-      margin-top: 5px;
+      margin-top: 7px;
     }
   }
 }
