@@ -62,6 +62,12 @@ module.exports = angular.module('spinnaker.kubernetes.pipeline.stage.runJobStage
       };
     }).filter(image => !!image);
 
+    this.triggerImages = this.pipeline.triggers.filter(trigger => trigger.type === 'docker')
+      .map(image => {
+        image.fromTrigger = true;
+        return image;
+      });
+
     this.searchImages = (query) => {
       kubernetesImageReader.findImages({
         provider: 'dockerRegistry',
@@ -69,11 +75,8 @@ module.exports = angular.module('spinnaker.kubernetes.pipeline.stage.runJobStage
         q: query
       }).then((data) => {
 
-        if (this.pipeline.triggers) {
-          data = data.concat(this.pipeline.triggers.map((image) => {
-            image.fromTrigger = true;
-            return image;
-          }));
+        if (this.triggerImages) {
+          data = data.concat(this.triggerImages);
         }
 
         if (this.contextImages) {
