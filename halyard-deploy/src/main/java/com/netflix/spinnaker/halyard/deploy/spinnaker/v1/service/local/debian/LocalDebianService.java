@@ -24,6 +24,7 @@ import com.netflix.spinnaker.halyard.deploy.services.v1.ArtifactService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.local.LocalService;
 import io.fabric8.utils.Strings;
+import org.apache.commons.lang.StringUtils;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -55,7 +56,10 @@ public interface LocalDebianService<T> extends LocalService<T> {
     // pin as well as install at a particular version to ensure `apt-get uprade` doesn't accidentally upgrade to `nightly`
     TemplatedResource pinResource = new JarResource("/debian/pin.sh");
     TemplatedResource installResource = new JarResource("/debian/install-component.sh");
-    String ensureStopped = String.join("\n", "set +e", "service " + getUpstartServiceName() + " stop", "set -e");
+    String upstartServiceName = getUpstartServiceName();
+    String ensureStopped = StringUtils.isEmpty(upstartServiceName) ? "" :
+        String.join("\n",
+            "set +e", String.join(" ", "service" + upstartServiceName + "stop"), "set -e");
 
     pinResource.setBindings(bindings);
     installResource.setBindings(bindings);
