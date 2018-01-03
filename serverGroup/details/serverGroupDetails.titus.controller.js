@@ -124,6 +124,13 @@ module.exports = angular.module('spinnaker.serverGroup.details.titus.controller'
           policy.policyType = policyType;
           policy.alarms = [alarm];
           policy.id = p.id;
+          if (policy.stepAdjustments) {
+            policy.stepAdjustments.forEach(step => {
+              // gRPC currently returns these values in upper camel case
+              step.metricIntervalUpperBound = _.get(step, 'metricIntervalUpperBound', step.MetricIntervalUpperBound);
+              step.metricIntervalLowerBound = _.get(step, 'metricIntervalLowerBound', step.MetricIntervalLowerBound);
+            });
+          }
           return policy;
         } else {
           policy.id = p.id;
