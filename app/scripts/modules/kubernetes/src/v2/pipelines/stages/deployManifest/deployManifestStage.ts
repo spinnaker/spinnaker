@@ -27,6 +27,8 @@ module(KUBERNETES_DEPLOY_MANIFEST_STAGE, [
       templateUrl: require('./deployManifestConfig.html'),
       controller: 'KubernetesV2DeployManifestConfigCtrl',
       controllerAs: 'ctrl',
+      executionDetailsUrl: require('./deployManifestExecutionDetails.html'),
+      executionConfigSections: ['deployStatus', 'taskStatus'],
       validators: [
         { type: 'requiredField', fieldName: 'moniker.cluster', fieldLabel: 'Cluster' },
         { type: 'requiredField', fieldName: 'manifest', fieldLabel: 'Manifest' }

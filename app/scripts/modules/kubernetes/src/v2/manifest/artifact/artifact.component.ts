@@ -12,7 +12,7 @@ class KubernetesManifestArtifactComponent implements IComponentOptions {
   public controllerAs = 'ctrl';
   public template = `
       <span>
-        <b>{{ctrl.artifact.type}}</b>:
+        <b>{{ctrl.artifact.type}}</b>
         <i>{{ctrl.artifact.reference}}</i>
       </span>
   `;

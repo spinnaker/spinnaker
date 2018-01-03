@@ -1,0 +1,22 @@
+<div ng-controller="BaseExecutionDetailsCtrl">
+  <execution-details-section-nav sections="configSections"></execution-details-section-nav>
+  <div class="step-section-details" ng-if="detailsSection === 'deployStatus'">
+    <stage-failure-message stage="stage" message="stage.failureMessage"></stage-failure-message>
+
+    <div class="row" ng-if="stage.context['outputs.manifests']">
+      <div class="col-md-12">
+        <div class="well alert alert-info">
+          <dl ng-repeat="manifest in stage.context['outputs.manifests']">
+            <kubernetes-show-manifest-yaml manifest="manifest" link-name="'Deployed manifest YAML'"></kubernetes-show-manifest-yaml>
+          </dl>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step-section-details" ng-if="detailsSection === 'taskStatus'">
+    <div class="row">
+      <execution-step-details item="stage"></execution-step-details>
+    </div>
+  </div>
+</div>
