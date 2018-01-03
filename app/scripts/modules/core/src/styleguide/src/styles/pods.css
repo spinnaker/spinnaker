@@ -61,26 +61,26 @@ Here are two types of pods.
 
 */
 
-.pod .header, .pod header {
+.pod > .header, .pod > header {
   background-color: var(--color-accent-g2);
   border: 1px solid var(--color-accent-g2);
   padding: 4px 4px 4px 14px;
 }
 
-.pod .contents {
+.pod > .contents {
   padding: 16px 14px;
   background-color: white;
 }
 
-.pod:not(.open) .contents {
+.pod:not(.open) > .contents {
   border: 1px solid var(--color-accent-g2);
 }
 
-.pod.clickable:hover .contents {
+.pod.clickable:hover > .contents {
   border: 1px solid var(--color-accent);
   background-color: var(--color-seashell);
 }
 
-.pod.clickable:hover .header, .pod.clickable:hover header {
+.pod.clickable:hover > .header, .pod.clickable:hover > header {
   border: 1px solid var(--color-accent);
 }

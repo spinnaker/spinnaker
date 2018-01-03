@@ -67,8 +67,36 @@ Exposing uppercase through a selector:
 <p class="headline uppercase">Label</p>
 
     <p class="headline uppercase">Label</p>
+*/
 
-Typography in different colors
+/*
+@styleguide
+
+@title Typography weights
+
+1. Bold on headings
+2. Bold on regular text
+
+There is however one selector only (.bold). This will set the font-weight appropriately based
+on whether its a heading or not.
+
+<h4 class="heading-1 bold">
+  Heading-1 Bolded
+</h4>
+
+    <h4 class="heading-1 bold">
+      Heading-1 Bolded
+    </h4>
+
+<p class="bold">Regular text bolded</p>
+
+    <p class="bold">Regular text bolded</p>
+
+*/
+/*
+@styleguide
+
+@title Typography in different colors
 
 <h1 class="heading-1 color-text-primary">Heading 1</h1>
 <h1 class="heading-2 color-text-primary">Heading 2</h1>
@@ -203,4 +231,12 @@ h1, h2, h3, h4, h5, h6, p, div, span, section, li {
 
 .uppercase {
   text-transform: uppercase;
+}
+
+.bold[class*="heading-"] {
+  font-weight: 600;
+}
+
+.bold:not([class*="heading-"]) {
+  font-weight: 700;
 }
