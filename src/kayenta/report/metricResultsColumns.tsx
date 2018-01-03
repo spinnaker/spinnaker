@@ -7,7 +7,7 @@ export const metricResultsColumns: ITableColumn<ICanaryAnalysisResult>[] = [
   {
     label: 'name',
     getContent: r => (<section>{r.name}</section>),
-    width: 1,
+    width: 4,
   },
   {
     label: 'result',
