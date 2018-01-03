@@ -1,7 +1,8 @@
-import { copy, IComponentOptions, IController, module } from 'angular';
+import { IComponentOptions, IController, module } from 'angular';
 
-import { IArtifact, IExpectedArtifact } from 'core/domain';
+import { IExpectedArtifact } from 'core/domain';
 import { IAccount } from 'core/account'
+import { EXPECTED_ARTIFACT_SERVICE, ExpectedArtifactService } from './expectedArtifact.service';
 
 class ExpectedArtifactSelectorCtrl implements IController {
   public command: any;
@@ -10,56 +11,50 @@ class ExpectedArtifactSelectorCtrl implements IController {
   public accounts: IAccount[];
   public expectedArtifacts: IExpectedArtifact[];
 
-  public summarizeExpectedArtifact(expected: IExpectedArtifact): string {
-    if (!expected) {
-      return '';
-    }
-
-    const artifact = copy(expected.matchArtifact);
-    return Object.keys(artifact)
-      .filter((k: keyof IArtifact) => artifact[k])
-      .filter((k: keyof IArtifact) => k !== 'kind')
-      .map((k: keyof IArtifact) => (`${k}: ${artifact[k]}`))
-      .join(', ');
-  };
+  constructor (public expectedArtifactService: ExpectedArtifactService) {
+    'ngInject';
+  }
 }
 
 class ExpectedArtifactSelectorComponent implements IComponentOptions {
-  public bindings: any = { command: '=', expectedArtifacts: '<', idField: '<', accountField: '<', accounts: '<' };
+  public bindings: any = { command: '=', expectedArtifacts: '<', idField: '@', accountField: '@', accounts: '<' };
   public controller: any = ExpectedArtifactSelectorCtrl;
   public controllerAs = 'ctrl';
   public template = `
-    <div class="container-fluid form-horizontal">
-      <ng-form name="artifact">
-        <div class="form-group">
-          <label class="col-md-3 sm-label-right">Expected Artifact</label>
-          <div class="col-md-7">
-            <ui-select ng-model="ctrl.command[ctrl.idField]"
-                       class="form-control input-sm">
-              <ui-select-match>{{ ctrl.summarizeExpectedArtifact($select.selected) }}</ui-select-match>
-              <ui-select-choices repeat="expected.id as expected in ctrl.expectedArtifacts">
-                <span>{{ ctrl.summarizeExpectedArtifact(expected) }}</span>
-              </ui-select-choices>
-            </ui-select>
+    <render-if-feature feature="artifacts">
+      <div class="container-fluid form-horizontal">
+        <ng-form name="artifact">
+          <div class="form-group">
+            <label class="col-md-3 sm-label-right">Expected Artifact</label>
+            <div class="col-md-7">
+              <ui-select ng-model="ctrl.command[ctrl.idField]"
+                         class="form-control input-sm">
+                <ui-select-match>{{ $select.selected | summarizeExpectedArtifact }}</ui-select-match>
+                <ui-select-choices repeat="expected.id as expected in ctrl.expectedArtifacts">
+                  <span>{{ expected | summarizeExpectedArtifact }}</span>
+                </ui-select-choices>
+              </ui-select>
+            </div>
           </div>
-        </div>
-        <div class="form-group">
-          <label class="col-md-3 sm-label-right">Artifact Account</label>
-          <div class="col-md-7">
-            <ui-select ng-model="ctrl.command[ctrl.accountField]"
-                       class="form-control input-sm">
-              <ui-select-match>{{ $select.selected.name }}</ui-select-match>
-              <ui-select-choices repeat="account.name as account in ctrl.accounts">
-                <span>{{ account.name }}</span>
-              </ui-select-choices>
-            </ui-select>
+          <div class="form-group">
+            <label class="col-md-3 sm-label-right">Artifact Account</label>
+            <div class="col-md-7">
+              <ui-select ng-model="ctrl.command[ctrl.accountField]"
+                         class="form-control input-sm">
+                <ui-select-match>{{ $select.selected.name }}</ui-select-match>
+                <ui-select-choices repeat="account.name as account in ctrl.accounts">
+                  <span>{{ account.name }}</span>
+                </ui-select-choices>
+              </ui-select>
+            </div>
           </div>
-        </div>
-      </ng-form>
-    </div>
+        </ng-form>
+      </div>
+    </render-if-feature>
   `;
 }
 
 export const EXPECTED_ARTIFACT_SELECTOR_COMPONENT = 'spinnaker.core.artifacts.expected.selector';
-module(EXPECTED_ARTIFACT_SELECTOR_COMPONENT, [])
-  .component('expectedArtifactSelector', new ExpectedArtifactSelectorComponent());
+module(EXPECTED_ARTIFACT_SELECTOR_COMPONENT, [
+  EXPECTED_ARTIFACT_SERVICE,
+]).component('expectedArtifactSelector', new ExpectedArtifactSelectorComponent());

@@ -1,4 +1,4 @@
-<div ng-if="ctrl.state.loaded">
+<div ng-if="ctrl.state.loaded" class="clearfix">
   <div class="alert alert-warning">
     <strong>Warning!</strong> This stage is under active development and is subject to change.
   </div>
@@ -39,9 +39,17 @@
 
   <expected-artifact-selector ng-if="ctrl.$scope.stage.source === ctrl.artifactSource"
                               command="ctrl.$scope.stage"
-                              id-field="'manifestArtifactId'"
-                              account-field="'manifestArtifactAccount'"
+                              id-field="manifestArtifactId"
+                              account-field="manifestArtifactAccount"
                               accounts="ctrl.metadata.backingData.artifactAccounts"
                               expected-artifacts="ctrl.expectedArtifacts">
   </expected-artifact-selector>
+
+  <hr>
+
+  <expected-artifact-multi-selector command="ctrl.$scope.stage"
+                                    ids-field="deployArtifactIds"
+                                    artifact-label="Artifacts to Deploy"
+                                    expected-artifacts="ctrl.expectedArtifacts">
+  </expected-artifact-multi-selector>
 </div>

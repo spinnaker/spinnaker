@@ -6,7 +6,7 @@ import {
   KubernetesManifestCommandBuilder,
 } from '../../../manifest/manifestCommandBuilder.service';
 
-import { IExpectedArtifact, } from '@spinnaker/core'
+import { ExpectedArtifactService, IExpectedArtifact, } from '@spinnaker/core'
 
 export class KubernetesV2DeployManifestConfigCtrl implements IController {
   public state = {
@@ -24,7 +24,8 @@ export class KubernetesV2DeployManifestConfigCtrl implements IController {
   public expectedArtifacts: IExpectedArtifact[];
 
   constructor(private $scope: IScope,
-              private kubernetesManifestCommandBuilder: KubernetesManifestCommandBuilder) {
+              private kubernetesManifestCommandBuilder: KubernetesManifestCommandBuilder,
+              private expectedArtifactService: ExpectedArtifactService) {
     'ngInject';
     this.kubernetesManifestCommandBuilder.buildNewManifestCommand(this.$scope.application, this.$scope.stage.manifest, this.$scope.stage.moniker)
       .then((builtCommand) => {
@@ -37,7 +38,7 @@ export class KubernetesV2DeployManifestConfigCtrl implements IController {
         this.state.loaded = true;
       });
 
-    this.expectedArtifacts = $scope.$parent.pipeline.expectedArtifacts || [];
+    this.expectedArtifacts = this.expectedArtifactService.getExpectedArtifactsAvailableToStage($scope.stage, $scope.$parent.pipeline);
   }
 
   public change() {
