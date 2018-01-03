@@ -1,6 +1,6 @@
 <form name="form">
-  <div ng-if="ctrl.state.loading && !ctrl.isNew" style="height: 200px">
-    <h3 us-spinner="{radius:30, width:8, length: 16}"></h3>
+  <div ng-if="ctrl.state.loading && !ctrl.isNew" style="height: 200px" class="horizontal center middle">
+    <loading-spinner size="'small'"></loading-spinner>
   </div>
   <v2-modal-wizard heading="{{::ctrl.heading}}" task-monitor="ctrl.taskMonitor" dismiss="$dismiss()" ng-if="!ctrl.state.loading || ctrl.isNew">
     <div ng-if="!ctrl.isNew">

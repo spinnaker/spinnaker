@@ -1,10 +1,11 @@
 import * as React from 'react';
 import { Subscription } from 'rxjs/Subscription';
 
-import { NgReact, ReactInjector } from 'core/reactShims';
+import { ReactInjector } from 'core/reactShims';
 import { Application } from 'core/application';
 import { ClusterPod } from 'core/cluster/ClusterPod';
 import { IClusterGroup } from './filter/clusterFilter.service';
+import { Spinner } from 'core/widgets/spinners/Spinner'
 
 export interface IAllClustersGroupingsProps {
   app: Application;
@@ -52,7 +53,7 @@ export class AllClustersGroupings extends React.Component<IAllClustersGroupingsP
     const { groups = [], sortFilter } = this.state;
 
     if (!initialized) {
-      return <NgReact.LegacySpinner radius={30} width={8} length={16} />;
+      return <Spinner size="medium" />;
     }
 
     return (

@@ -1,8 +1,8 @@
 import * as React from 'react';
 
-import { NgReact } from 'core/reactShims/ngReact';
 import { IPipelineTemplate } from 'core/pipeline/config/templates/pipelineTemplate.service';
 import { SETTINGS } from 'core/config/settings';
+import { Spinner } from 'core/widgets/spinners/Spinner'
 
 import './TemplateDescription.less';
 
@@ -14,12 +14,11 @@ export interface ITemplateDescriptionProps {
 
 export class TemplateDescription extends React.Component<ITemplateDescriptionProps> {
   public render() {
-    const { LegacySpinner } = NgReact;
     return (
       <div className="col-md-12 template-description">
         {this.props.loading && (
           <div className="spinner">
-            <LegacySpinner radius={5} width={3} length={8} />
+            <Spinner size="small" />
           </div>
         )}
         {this.props.template && (

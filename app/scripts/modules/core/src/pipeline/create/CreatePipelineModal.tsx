@@ -10,12 +10,13 @@ import { Debounce } from 'lodash-decorators';
 import { Application } from 'core/application/application.model';
 import { IPipeline } from 'core/domain/IPipeline';
 import { SubmitButton } from 'core/modal/buttons/SubmitButton';
-import { ReactInjector, NgReact } from 'core/reactShims';
+import { ReactInjector } from 'core/reactShims';
 import { SETTINGS } from 'core/config/settings';
 import { IPipelineTemplateConfig, IPipelineTemplate } from 'core/pipeline/config/templates/pipelineTemplate.service';
 
 import { TemplateDescription } from './TemplateDescription';
 import { ManagedTemplateSelector } from './ManagedTemplateSelector';
+import { Spinner } from 'core/widgets/spinners/Spinner'
 
 import './createPipelineModal.less';
 
@@ -292,7 +293,6 @@ export class CreatePipelineModal extends React.Component<ICreatePipelineModalPro
   }
 
   public render() {
-    const { LegacySpinner } = NgReact;
     const nameHasError: boolean = !this.validateNameCharacters();
     const nameIsNotUnique: boolean = !this.validateNameIsUnique();
     const formValid = !nameHasError &&
@@ -306,7 +306,7 @@ export class CreatePipelineModal extends React.Component<ICreatePipelineModalPro
           <Modal.Title>Create New {this.state.command.strategy ? 'Strategy' : 'Pipeline'}</Modal.Title>
         </Modal.Header>
         {this.state.loading && (
-          <Modal.Body style={{ height: '200px' }}><LegacySpinner radius={25} width={6} length={16} /></Modal.Body>
+          <Modal.Body style={{ height: '200px' }}><Spinner size="medium" /></Modal.Body>
         )}
         {!this.state.loading && (
           <Modal.Body>

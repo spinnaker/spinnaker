@@ -3,8 +3,8 @@
   <div class="modal-header">
     <h3>Select Load Balancer</h3>
   </div>
-  <div class="modal-body" ng-if="ctrl.state.loading" style="height: 200px">
-    <h3 us-spinner="{radius:30, width:8, length: 16}"></h3>
+  <div class="modal-body" ng-if="ctrl.state.loading" style="height: 200px" class="horizontal center middle">
+    <loading-spinner size="'small'"></loading-spinner>
   </div>
   <div class="modal-body" ng-if="!ctrl.state.loading">
     <div class="alert alert-warning" ng-if="ctrl.loadBalancers.length === 0">

@@ -1,6 +1,6 @@
 <div class="container-fluid form-horizontal">
   <div class="modal-body" ng-if="!ctrl.viewState.securityGroupsLoaded">
-    <h3><span us-spinner="{radius:8, width:3, length: 5}"></span></h3>
+    <loading-spinner size="'small'"></loading-spinner>
   </div>
   <div ng-if="ctrl.viewState.securityGroupsLoaded">
     <div class="form-group" ng-if="ctrl.viewState.removedSecurityGroups.length">

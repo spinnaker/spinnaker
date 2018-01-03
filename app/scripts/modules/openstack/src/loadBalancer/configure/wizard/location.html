@@ -1,6 +1,6 @@
 <ng-form class="container-fluid form-horizontal" name="locationForm" novalidate>
-  <div ng-if="!state.accountsLoaded" style="height: 200px">
-    <h3 us-spinner="{radius:30, width:8, length: 16}"></h3>
+  <div ng-if="!state.accountsLoaded" style="height: 200px" class="horizontal center middle">
+    <loading-spinner size="'small'"></loading-spinner>
   </div>
   <div ng-if="state.accountsLoaded">
     <div class="col-md-12 well" ng-class="{'alert-danger': locationForm.loadBalancerName.$error.validateUnique, 'alert-info': !locationForm.loadBalancerName.$error.validateUnique}">

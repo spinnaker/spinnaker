@@ -7,6 +7,7 @@ import { FilterTags, IFilterTag } from 'core/filterModel/FilterTags';
 import { ILoadBalancer, ILoadBalancerGroup } from 'core/domain';
 import { LoadBalancerPod } from './LoadBalancerPod';
 import { Tooltip } from 'core/presentation/Tooltip';
+import { Spinner } from 'core/widgets/spinners/Spinner';
 
 import { NgReact, ReactInjector } from 'core/reactShims';
 
@@ -134,7 +135,7 @@ export class LoadBalancers extends React.Component<ILoadBalancersProps, ILoadBal
   }
 
   public render(): React.ReactElement<LoadBalancers> {
-    const { LegacySpinner, HelpField } = NgReact;
+    const { HelpField } = NgReact;
     const groupings = this.state.initialized ? (
       <div>
         { this.state.groups.map((group) => (
@@ -155,7 +156,7 @@ export class LoadBalancers extends React.Component<ILoadBalancersProps, ILoadBal
       </div>
     ) : (
       <div>
-        <h3><LegacySpinner radius={30} width={8} length={16}/></h3>
+        <Spinner size="medium" />
       </div>
     );
 
