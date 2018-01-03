@@ -129,6 +129,7 @@ window.spinnakerSettings = {
   authTtl: 600000,
   gitSources: ['stash', 'github', 'bitbucket'],
   triggerTypes: ['git', 'pipeline', 'docker', 'cron', 'jenkins', 'travis', 'pubsub'],
+  searchVersion: 1,
   feature: {
     canary: canaryEnabled,
     entityTags: entityTagsEnabled,
