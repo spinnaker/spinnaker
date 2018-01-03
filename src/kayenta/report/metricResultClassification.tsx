@@ -14,7 +14,7 @@ const buildStyle = (classification: MetricClassificationLabel) => ({
 const TEXT_COLOR = 'var(--color-text-on-dark)';
 
 export default ({ classification }: IMetricResultClassificationProps) => (
-  <div className="pill" style={buildStyle(classification)}>
+  <div className="pill metric-result-classification" style={buildStyle(classification)}>
     <span style={{color: TEXT_COLOR}}>{classification}</span>
   </div>
 );

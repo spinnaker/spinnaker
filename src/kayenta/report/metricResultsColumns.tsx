@@ -1,17 +1,20 @@
 import * as React from 'react';
-import { ICanaryAnalysisResult } from '../domain/ICanaryJudgeResult';
 import MetricResultClassification from './metricResultClassification';
 import { ITableColumn } from 'kayenta/layout/table';
+import { IMetricResultsTableRow } from './metricResultsList';
 
-export const metricResultsColumns: ITableColumn<ICanaryAnalysisResult>[] = [
+export const metricResultsColumns: ITableColumn<IMetricResultsTableRow>[] = [
   {
-    label: 'name',
-    getContent: r => (<section>{r.name}</section>),
+    label: 'metric name',
+    getContent: ({ metricName }) => (<section>{metricName}</section>),
     width: 5,
   },
   {
-    label: 'result',
-    getContent: r => (<MetricResultClassification classification={r.classification}/>),
+    getContent: ({ results }) => (
+      <div className="pull-right">
+        <MetricResultClassification classification={results[0].classification}/>
+      </div>
+    ),
     width: 1,
   }
 ];

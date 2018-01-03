@@ -11,13 +11,14 @@ export interface ITableProps<T> {
   tableBodyClassName?: string;
   rowClassName?: (row: T) => string;
   onRowClick?: (row: T) => void;
-  customRow?: (row: T, columns?: ITableColumn<T>[]) => JSX.Element;
+  customRow?: (row: T, tableProps: ITableProps<T>) => JSX.Element;
+  className?: string;
 }
 
-export function Table<T>({ rows, columns, rowKey, tableBodyClassName, rowClassName, onRowClick, customRow }: ITableProps<T>) {
+export function Table<T>(props: ITableProps<T>) {
+  const { rows, columns, rowKey, tableBodyClassName, rowClassName, onRowClick, customRow, className } = props;
   const TableRow = ({ row }: { row: T }) => (
     <li
-      key={rowKey(row)}
       onClick={onRowClick ? () => onRowClick(row) : null}
       className={classNames({ horizontal: !rowClassName, 'table-row': !rowClassName }, rowClassName && rowClassName(row))}
     >
@@ -32,14 +33,14 @@ export function Table<T>({ rows, columns, rowKey, tableBodyClassName, rowClassNa
   );
 
   return (
-    <div>
+    <div className={className}>
       <TableHeader columns={columns} className="table-header"/>
-      <ul className={tableBodyClassName || 'list-group'}>
+      <ul className={classNames(tableBodyClassName, 'list-group')}>
         {
           rows.map(r => (
-            customRow && customRow(r, columns)
-              ? customRow(r, columns)
-              : <TableRow row={r}/>
+            customRow && customRow(r, props)
+              ? <div key={rowKey(r)}>{customRow(r, props)}</div>
+              : <TableRow key={rowKey(r)} row={r}/>
           ))
         }
       </ul>
