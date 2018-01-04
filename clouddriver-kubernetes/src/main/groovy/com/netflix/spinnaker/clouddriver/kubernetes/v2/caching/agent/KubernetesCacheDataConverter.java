@@ -45,6 +45,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 
 import static com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys.Kind.ARTIFACT;
 import static com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys.LogicalKind.APPLICATIONS;
@@ -61,6 +62,7 @@ public class KubernetesCacheDataConverter {
   private static final int infrastructureTtlSeconds = -1;
 
   public static CacheData convertAsArtifact(String account, KubernetesManifest manifest) {
+    logMalformedManifest(() -> "Converting " + manifest + " to a cached artifact", manifest);
     String namespace = manifest.getNamespace();
     Artifact artifact = KubernetesManifestAnnotater.getArtifact(manifest);
     if (artifact.getType() == null) {
@@ -121,6 +123,8 @@ public class KubernetesCacheDataConverter {
   }
 
   public static CacheData convertAsResource(String account, KubernetesManifest manifest, List<KubernetesManifest> resourceRelationships) {
+    logMalformedManifest(() -> "Converting " + manifest + " to a cached resource", manifest);
+
     KubernetesKind kind = manifest.getKind();
     KubernetesApiVersion apiVersion = manifest.getApiVersion();
     String name = manifest.getName();
@@ -156,7 +160,7 @@ public class KubernetesCacheDataConverter {
 
     // TODO(lwander) avoid overwriting keys here
     cacheRelationships.putAll(ownerReferenceRelationships(account, namespace, manifest.getOwnerReferences()));
-    cacheRelationships.putAll(implicitRelationships(account, namespace, resourceRelationships));
+    cacheRelationships.putAll(implicitRelationships(manifest, account, resourceRelationships));
 
     // Namespaces aren't namespaced
     if (kind != NAMESPACE) {
@@ -230,9 +234,11 @@ public class KubernetesCacheDataConverter {
     relationships.put(kind.toString(), keys);
   }
 
-  static Map<String, Collection<String>> implicitRelationships(String account, String namespace, List<KubernetesManifest> manifests) {
+  static Map<String, Collection<String>> implicitRelationships(KubernetesManifest source, String account, List<KubernetesManifest> manifests) {
+    String namespace = source.getNamespace();
     Map<String, Collection<String>> relationships = new HashMap<>();
     manifests = manifests == null ? new ArrayList<>() : manifests;
+    logMalformedManifests(() -> "Determining implicit relationships for " + source + " in " + account, manifests);
     for (KubernetesManifest manifest : manifests) {
       KubernetesKind kind = manifest.getKind();
       String name = manifest.getName();
@@ -303,6 +309,31 @@ public class KubernetesCacheDataConverter {
   static void logStratifiedCacheData(String agentType, Map<String, Collection<CacheData>> stratifiedCacheData) {
     for (Map.Entry<String, Collection<CacheData>> entry : stratifiedCacheData.entrySet()) {
       log.info(agentType + ": grouping " + entry.getKey() + " has " + entry.getValue().size() + " entries and " + relationshipCount(entry.getValue()) + " relationships");
+    }
+  }
+
+  static void logMalformedManifests(Supplier<String> contextMessage, List<KubernetesManifest> relationships) {
+    for (KubernetesManifest relationship : relationships) {
+      logMalformedManifest(contextMessage, relationship);
+    }
+  }
+
+  static void logMalformedManifest(Supplier<String> contextMessage, KubernetesManifest manifest) {
+    if (manifest == null) {
+      log.warn("{}: manifest may not be null", contextMessage.get());
+      return;
+    }
+
+    if (manifest.getKind() == null) {
+      log.warn("{}: manifest kind may not be null, {}", contextMessage.get(), manifest);
+    }
+
+    if (StringUtils.isEmpty(manifest.getName())) {
+      log.warn("{}: manifest name may not be null, {}", contextMessage.get(), manifest);
+    }
+
+    if (StringUtils.isEmpty(manifest.getNamespace())) {
+      log.warn("{}: manifest namespace may not be null, {}", contextMessage.get(), manifest);
     }
   }
 
