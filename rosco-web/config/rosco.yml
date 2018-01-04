@@ -101,51 +101,53 @@ aws:
         shortDescription: v14.04
         detailedDescription: Ubuntu Trusty Tahr v14.04
         packageType: deb
+        # The following AMI ID's were retrieved from here:
+        # https://cloud-images.ubuntu.com/locator/ec2/
       virtualizationSettings:
       - region: us-east-1
         virtualizationType: hvm
         instanceType: t2.micro
-        sourceAmi: ami-9eaa1cf6
+        sourceAmi: ami-9d751ee7
         sshUserName: ubuntu
       - region: us-east-2
         virtualizationType: hvm
         instanceType: t2.micro
-        sourceAmi: ami-b69abcd3
+        sourceAmi: ami-7960481c
         sshUserName: ubuntu
       - region: us-west-1
         virtualizationType: hvm
         instanceType: t2.micro
-        sourceAmi: ami-12512d72
+        sourceAmi: ami-494c4829
         sshUserName: ubuntu
       - region: us-west-2
         virtualizationType: hvm
         instanceType: t2.micro
-        sourceAmi: ami-3d50120d
+        sourceAmi: ami-e8cc6a90
         sshUserName: ubuntu
       - region: eu-central-1
         virtualizationType: hvm
         instanceType: t2.micro
-        sourceAmi: ami-87564feb
+        sourceAmi: ami-aa30b8c5
         sshUserName: ubuntu
       - region: eu-west-1
         virtualizationType: hvm
         instanceType: t2.micro
-        sourceAmi: ami-f95ef58a
+        sourceAmi: ami-fcb43185
         sshUserName: ubuntu
       - region: us-east-1
         virtualizationType: pv
         instanceType: m3.medium
-        sourceAmi: ami-98aa1cf0
+        sourceAmi: ami-a1701bdb
         sshUserName: ubuntu
       - region: us-west-1
         virtualizationType: pv
         instanceType: m3.medium
-        sourceAmi: ami-59502c39
+        sourceAmi: ami-b84347d8
         sshUserName: ubuntu
       - region: us-west-2
         virtualizationType: pv
         instanceType: m3.medium
-        sourceAmi: ami-37501207
+        sourceAmi: ami-61cf6919
         sshUserName: ubuntu
     - baseImage:
         id: windows-2012-r2
