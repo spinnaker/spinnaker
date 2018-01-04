@@ -10,7 +10,7 @@ const MetricSetPairLoadStates = ({ state }: { state: AsyncRequestState }) => {
   const LoadStates = new LoadStatesBuilder()
     .onFulfilled(<MetricResultDetailLayout/>)
     .onFailed(
-      <h3 className="heading-3">Could not load metrics.</h3>
+      <h3 className="heading-3 text-center">Could not load metrics.</h3>
     ).build();
 
   return <LoadStates state={state}/>;

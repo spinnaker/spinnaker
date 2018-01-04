@@ -93,7 +93,7 @@ const loadMetricSetPairEpic = (action$: Observable<Action & any>, store: Middlew
     .filter(typeMatches(Actions.LOAD_METRIC_SET_PAIR_REQUEST))
     .concatMap(action => {
       const run = runSelector(store.getState());
-      return Observable.fromPromise(getMetricSetPair(run.metricSetPairListId, action.payload.pairId))
+      return Observable.fromPromise(getMetricSetPair(run.result.metricSetPairListId, action.payload.pairId))
         .map(metricSetPair => Creators.loadMetricSetPairSuccess({ metricSetPair }))
         .catch((error: Error) => Observable.of(Creators.loadMetricSetPairFailure({ error })))
     });

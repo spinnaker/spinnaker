@@ -4,7 +4,6 @@ import { ICanaryClassifierThresholdsConfig, ICanaryConfig } from './ICanaryConfi
 export interface ICanaryExecutionStatusResult {
   id: string // Added by Deck on load.
   complete: boolean;
-  metricSetPairListId: string;
   status: string;
   result: ICanaryResult;
   stageStatus: { [key: string]: string };
@@ -14,12 +13,17 @@ export interface ICanaryResult {
   judgeResult: ICanaryJudgeResult;
   config: ICanaryConfig;
   canaryExecutionRequest: ICanaryExecutionRequest;
+  metricSetPairListId: string;
 }
 
 export interface ICanaryExecutionRequest {
   thresholds: ICanaryClassifierThresholdsConfig;
-  controlScope: ICanaryScope;
-  experimentScope: ICanaryScope;
+  scopes: {
+    [scopeName: string]: {
+      controlScope: ICanaryScope;
+      experimentScope: ICanaryScope;
+    };
+  };
 }
 
 export interface ICanaryScope {

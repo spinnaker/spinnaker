@@ -15,7 +15,7 @@ import './metricResultStats.less';
 
 
 export interface IMetricResultStatsStateProps {
-  metricConfig: ICanaryMetricConfig
+  metricConfig: ICanaryMetricConfig;
   metricSetPair: IMetricSetPair;
   run: ICanaryExecutionStatusResult;
   service: string;
@@ -91,10 +91,12 @@ const MetricResultStats = ({ metricConfig, metricSetPair, run }: IMetricResultSt
       label: 'start',
       getValue: target => <FormattedDate dateIso={metricSetPair.scopes[target].startTimeIso}/>,
       hide: () => {
-        const configuredControlStart = run.result.canaryExecutionRequest.controlScope.start;
+        const configuredControlStart =
+          run.result.canaryExecutionRequest.scopes[metricConfig.scopeName].controlScope.start;
         const actualControlStart = metricSetPair.scopes.control.startTimeIso;
 
-        const configuredExperimentStart = run.result.canaryExecutionRequest.experimentScope.start;
+        const configuredExperimentStart =
+          run.result.canaryExecutionRequest.scopes[metricConfig.scopeName].experimentScope.start;
         const actualExperimentStart = metricSetPair.scopes.experiment.startTimeIso;
 
         return configuredControlStart === actualControlStart

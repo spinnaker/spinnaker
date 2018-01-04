@@ -20,7 +20,13 @@ const Label = ({ label }: { label: string }) => (
   </label>
 );
 
-const ReportMetadata = ({ run }: IReportMetadata) => {
+// TODO(dpeach): this only supports canary runs with a single scope.
+const buildScopeMetadataEntries = (run: ICanaryExecutionStatusResult): IMetadataEntry[] => {
+  const scopes = Object.values(run.result.canaryExecutionRequest.scopes);
+  if (scopes.length > 1) {
+    return null;
+  }
+
   const {
     controlScope: {
       // If the canary ran through Orca, it's not possible
@@ -35,14 +41,9 @@ const ReportMetadata = ({ run }: IReportMetadata) => {
       region: experimentRegion,
       scope: experimentScope,
     },
-    thresholds: {
-      marginal,
-      pass
-    },
-  } = run.result.canaryExecutionRequest;
+  } = scopes[0];
 
-
-  const metadataEntries: IMetadataEntry[] = [
+  return [
     {
       label: 'baseline scope',
       getContent: () => <p>{controlScope}</p>,
@@ -74,6 +75,18 @@ const ReportMetadata = ({ run }: IReportMetadata) => {
         return <p>{mins} min{mins === 1 ? '' : 's'}</p>;
       },
     },
+  ];
+};
+
+const ReportMetadata = ({ run }: IReportMetadata) => {
+  const {
+    thresholds: {
+      marginal,
+      pass
+    },
+  } = run.result.canaryExecutionRequest;
+
+  let metadataEntries: IMetadataEntry[] = [
     {
       label: 'marginal threshold',
       getContent: () => <p>{marginal}</p>
@@ -84,6 +97,7 @@ const ReportMetadata = ({ run }: IReportMetadata) => {
     },
   ];
 
+  metadataEntries = (buildScopeMetadataEntries(run) || []).concat(metadataEntries);
 
   return (
     <section className="report-metadata">
