@@ -23,6 +23,7 @@ import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.cats.cache.DefaultCacheData;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesApiVersion;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesCachingProperties;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifestAnnotater;
@@ -62,7 +63,13 @@ public class KubernetesCacheDataConverter {
   private static final int infrastructureTtlSeconds = -1;
 
   public static CacheData convertAsArtifact(String account, KubernetesManifest manifest) {
+    KubernetesCachingProperties cachingProperties = KubernetesManifestAnnotater.getCachingProperties(manifest);
+    if (cachingProperties.isIgnore()) {
+      return null;
+    }
+
     logMalformedManifest(() -> "Converting " + manifest + " to a cached artifact", manifest);
+
     String namespace = manifest.getNamespace();
     Artifact artifact = KubernetesManifestAnnotater.getArtifact(manifest);
     if (artifact.getType() == null) {
@@ -123,6 +130,11 @@ public class KubernetesCacheDataConverter {
   }
 
   public static CacheData convertAsResource(String account, KubernetesManifest manifest, List<KubernetesManifest> resourceRelationships) {
+    KubernetesCachingProperties cachingProperties = KubernetesManifestAnnotater.getCachingProperties(manifest);
+    if (cachingProperties.isIgnore()) {
+      return null;
+    }
+
     logMalformedManifest(() -> "Converting " + manifest + " to a cached resource", manifest);
 
     KubernetesKind kind = manifest.getKind();

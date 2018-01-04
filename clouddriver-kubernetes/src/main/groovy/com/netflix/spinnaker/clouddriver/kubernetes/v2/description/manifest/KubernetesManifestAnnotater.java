@@ -36,6 +36,7 @@ public class KubernetesManifestAnnotater {
   private static final String RELATIONSHIP_ANNOTATION_PREFIX = "relationships." + SPINNAKER_ANNOTATION;
   private static final String ARTIFACT_ANNOTATION_PREFIX = "artifact." + SPINNAKER_ANNOTATION;
   private static final String MONIKER_ANNOTATION_PREFIX = "moniker." + SPINNAKER_ANNOTATION;
+  private static final String CACHING_ANNOTATION_PREFIX = "caching." + SPINNAKER_ANNOTATION;
   private static final String LOAD_BALANCERS = RELATIONSHIP_ANNOTATION_PREFIX + "/loadBalancers";
   private static final String SECURITY_GROUPS = RELATIONSHIP_ANNOTATION_PREFIX + "/securityGroups";
   private static final String CLUSTER = MONIKER_ANNOTATION_PREFIX + "/cluster";
@@ -46,6 +47,7 @@ public class KubernetesManifestAnnotater {
   private static final String NAME = ARTIFACT_ANNOTATION_PREFIX + "/name";
   private static final String LOCATION = ARTIFACT_ANNOTATION_PREFIX + "/location";
   private static final String VERSION = ARTIFACT_ANNOTATION_PREFIX + "/version";
+  private static final String IGNORE_CACHING = CACHING_ANNOTATION_PREFIX + "/ignore";
 
   private static final String KUBERNETES_ANNOTATION = "kubernetes.io";
   private static final String DEPLOYMENT_ANNOTATION_PREFIX = "deployment." + KUBERNETES_ANNOTATION;
@@ -173,6 +175,14 @@ public class KubernetesManifestAnnotater {
         .stack(getAnnotation(annotations, STACK, new TypeReference<String>() {}, parsed.getStack()))
         .detail(getAnnotation(annotations, DETAIL, new TypeReference<String>() {}, parsed.getDetail()))
         .sequence(getAnnotation(annotations, DEPLOYMENT_REVISION, new TypeReference<Integer>() {}, parsed.getSequence()))
+        .build();
+  }
+
+  public static KubernetesCachingProperties getCachingProperties(KubernetesManifest manifest) {
+    Map<String, String> annotations = manifest.getAnnotations();
+
+    return KubernetesCachingProperties.builder()
+        .ignore(getAnnotation(annotations, IGNORE_CACHING, new TypeReference<Boolean>() {}, false))
         .build();
   }
 }
