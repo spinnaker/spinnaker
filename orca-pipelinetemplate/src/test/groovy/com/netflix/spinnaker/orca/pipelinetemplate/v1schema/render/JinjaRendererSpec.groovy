@@ -17,6 +17,7 @@ package com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.front50.Front50Service
+import com.netflix.spinnaker.orca.pipelinetemplate.exceptions.TemplateRenderException
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate
 import org.yaml.snakeyaml.Yaml
 import spock.lang.Specification
@@ -91,5 +92,46 @@ class JinjaRendererSpec extends Specification {
     'noexpand:{"t": "deployment"}' || String   | '{"t": "deployment"}'
   }
 
+  def 'should render nullable field as null'() {
+    given:
+    RenderContext context = new DefaultRenderContext('myApp', new PipelineTemplate(), [job: 'job', buildNumber: 1234]).with {
+      variables.put('nullableVar', null) // nullable variables
+      it
+    }
 
+    when:
+    def result = subject.renderGraph('{{ nullableVar }}', context)
+
+    then:
+    result == null
+  }
+
+  def 'should throw exception on missing variable values if even given nullable variables'() {
+    given:
+    RenderContext context = new DefaultRenderContext('myApp', new PipelineTemplate(), [job: 'job', buildNumber: 1234]).with {
+      variables.put('nullableVar', null) // nullable variables
+      it
+    }
+
+    when:
+    subject.renderGraph('{{ missingVar }}', context)
+
+    then:
+    TemplateRenderException fte = thrown()
+    fte.message == 'failed rendering jinja template'
+  }
+
+  def 'should throw exception on missing variable values without any nullable variables'() {
+    given:
+    RenderContext context = new DefaultRenderContext('myApp', new PipelineTemplate(), [job: 'job', buildNumber: 1234]).with {
+      it
+    }
+
+    when:
+    subject.renderGraph('{{ missingVar }}', context)
+
+    then:
+    TemplateRenderException tre = thrown()
+    tre.message == 'failed rendering jinja template'
+  }
 }

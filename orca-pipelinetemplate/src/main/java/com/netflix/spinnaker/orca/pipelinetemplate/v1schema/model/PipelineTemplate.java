@@ -81,6 +81,7 @@ public class PipelineTemplate implements VersionedSchema {
     private String type;
     private Object defaultValue;
     private String example;
+    private boolean nullable;
     private boolean merge = false;
     private boolean remove = false;
 
@@ -135,6 +136,14 @@ public class PipelineTemplate implements VersionedSchema {
 
     public void setExample(String example) {
       this.example = example;
+    }
+
+    public boolean isNullable() {
+      return nullable;
+    }
+
+    public void setNullable(boolean nullable) {
+      this.nullable = nullable;
     }
 
     public boolean isMerge() {

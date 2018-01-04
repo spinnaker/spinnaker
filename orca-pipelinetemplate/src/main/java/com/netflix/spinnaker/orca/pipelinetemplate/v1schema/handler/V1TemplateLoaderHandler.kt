@@ -83,7 +83,9 @@ class V1TemplateLoaderHandler(
 
     pipelineTemplate.variables.forEach { v ->
       val value = v.defaultValue
-      if (value != null && value is String) {
+      if (v.isNullable() && value == null) {
+        renderContext.variables.putIfAbsent(v.name, v.defaultValue)
+      } else if (value != null && value is String) {
         v.defaultValue = renderer.renderGraph(value.toString(), renderContext)
         renderContext.variables.putIfAbsent(v.name, v.defaultValue)
       }

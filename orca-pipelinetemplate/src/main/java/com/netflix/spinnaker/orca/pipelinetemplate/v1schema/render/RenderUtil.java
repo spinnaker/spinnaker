@@ -94,7 +94,7 @@ public class RenderUtil {
     RenderContext context = new DefaultRenderContext(configuration.getPipeline().getApplication(), template, trigger);
     if (template != null && template.getVariables() != null) {
       template.getVariables().stream()
-        .filter(Variable::hasDefaultValue)
+        .filter(v -> v.isNullable() && v.getDefaultValue() == null || v.hasDefaultValue())
         .forEach(v -> context.getVariables().put(v.getName(), v.getDefaultValue()));
     }
     if (configuration.getPipeline().getVariables() != null) {

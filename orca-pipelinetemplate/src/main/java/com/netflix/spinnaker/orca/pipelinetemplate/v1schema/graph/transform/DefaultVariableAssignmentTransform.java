@@ -53,7 +53,7 @@ public class DefaultVariableAssignmentTransform implements PipelineTemplateVisit
       .forEach(templateVar -> configVars.put(templateVar.getName(), templateVar.getDefaultValue()));
 
     List<String> missingVariables = pipelineTemplateVariables.stream()
-      .filter(templateVar -> !configVars.containsKey(templateVar.getName()))
+      .filter(templateVar -> !configVars.containsKey(templateVar.getName()) && !templateVar.isNullable())
       .map(Variable::getName)
       .collect(Collectors.toList());
 
@@ -61,17 +61,27 @@ public class DefaultVariableAssignmentTransform implements PipelineTemplateVisit
       throw new IllegalTemplateConfigurationException("Missing variable values for: " + StringUtils.join(missingVariables, ", "));
     }
 
+    List<String> wrongNullableErrorMessages = pipelineTemplateVariables.stream()
+      .filter(templateVar -> !templateVar.isNullable() && configVars.get(templateVar.getName()) == null)
+      .map(var -> String.format("variable '%s' supplied value is null but variable is not nullable\n", var.getName()))
+      .collect(Collectors.toList());
+    if (!wrongNullableErrorMessages.isEmpty()) {
+      throw new IllegalTemplateConfigurationException("Incorrectly defined variable(s): " + StringUtils.join(wrongNullableErrorMessages, ", "));
+    }
+
     // collect variables where value type doesn't match the required type
     List<String> wrongTypeErrorMessages = pipelineTemplateVariables.stream()
       .filter(templateVar -> {
-        String expectedType = templateVar.getType();
-        if (expectedType.equalsIgnoreCase("object")) {
-          return false; // not invalid, all classes are objects
-        }
-
-        Class<?> actualType = configVars.get(templateVar.getName()).getClass();
         Object actualVar = configVars.get(templateVar.getName());
 
+        String expectedType = templateVar.getType();
+        if (expectedType.equalsIgnoreCase("object")) {
+          return false; // Not invalid, all classes are objects
+        } else if (templateVar.isNullable() && actualVar == null) {
+          return false; // Not invalid, can't determine type from null value
+        }
+
+        Class<?> actualType = actualVar.getClass();
         return !(
           (expectedType.equalsIgnoreCase("int") && (actualVar instanceof Integer)) ||
           (expectedType.equalsIgnoreCase("bool") && actualVar instanceof Boolean) ||
@@ -81,7 +91,7 @@ public class DefaultVariableAssignmentTransform implements PipelineTemplateVisit
           (expectedType.equalsIgnoreCase(actualType.getSimpleName()))
         );
       })
-       .map(var -> var.getName() + " (expected type '" + var.getType() + "' found type '" + configVars.get(var.getName()).getClass().getSimpleName() + "')")
+      .map(var -> var.getName() + " (expected type '" + var.getType() + "' found type '" + configVars.get(var.getName()).getClass().getSimpleName() + "')")
       .collect(Collectors.toList());
 
     if (!wrongTypeErrorMessages.isEmpty()) {

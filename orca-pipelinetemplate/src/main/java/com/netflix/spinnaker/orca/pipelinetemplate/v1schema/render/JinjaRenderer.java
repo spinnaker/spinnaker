@@ -46,18 +46,21 @@ import org.yaml.snakeyaml.parser.ParserException;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.function.Predicate;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 public class JinjaRenderer implements Renderer {
 
   private final Logger log = LoggerFactory.getLogger(getClass());
 
   private Jinjava jinja;
+
+  /**
+   * Renderer that is tolerant of unknown tokens to support rendering nullable template variables.
+   */
+  private Jinjava nullableJinja;
 
   private RenderedValueConverter renderedValueConverter;
 
@@ -73,7 +76,17 @@ public class JinjaRenderer implements Renderer {
 
     this.renderedValueConverter = renderedValueConverter;
 
-    jinja = new Jinjava(buildJinjavaConfig());
+    jinja = createJinjaRenderer(true, pipelineTemplateObjectMapper, front50Service, jinjaTags);
+    nullableJinja = createJinjaRenderer(false, pipelineTemplateObjectMapper, front50Service, jinjaTags);
+
+    log.info("PipelineTemplates: Using JinjaRenderer");
+  }
+
+  private Jinjava createJinjaRenderer(boolean failOnUnknownTokens,
+                                      ObjectMapper pipelineTemplateObjectMapper,
+                                      Front50Service front50Service,
+                                      List<Tag> jinjaTags) {
+    Jinjava jinja = new Jinjava(buildJinjavaConfig(failOnUnknownTokens));
     jinja.setResourceLocator(new NoopResourceLocator());
     jinja.getGlobalContext().registerTag(new ModuleTag(this, pipelineTemplateObjectMapper));
     jinja.getGlobalContext().registerTag(new PipelineIdTag(front50Service));
@@ -85,8 +98,7 @@ public class JinjaRenderer implements Renderer {
     jinja.getGlobalContext().registerFilter(new FriggaFilter());
     jinja.getGlobalContext().registerFilter(new JsonFilter(pipelineTemplateObjectMapper));
     jinja.getGlobalContext().registerFilter(new Base64Filter(this));
-
-    log.info("PipelineTemplates: Using JinjaRenderer");
+    return jinja;
   }
 
   @Override
@@ -95,8 +107,26 @@ public class JinjaRenderer implements Renderer {
     try {
       rendered = jinja.render(template, context.getVariables());
     } catch (FatalTemplateErrorsException fte) {
-      log.error("Failed rendering jinja template", fte);
-      throw new TemplateRenderException("failed rendering jinja template", fte, unwrapJinjaTemplateErrorException(fte, context.getLocation()));
+      List<TemplateError> templateErrors = (List<TemplateError>) fte.getErrors();
+
+      // Nullable variables aren't rendered properly if we fail on unknown tokens.
+      List<String> errorMessages = templateErrors.stream().map(TemplateError::getMessage).collect(Collectors.toList());
+      Map<String, Object> contextVariables = context.getVariables();
+
+      Predicate<String> nullableUnknownToken = key -> {
+        // Need to ensure the unknown token is a nullable variable.
+        Pattern unknownTokenPattern = Pattern.compile(String.format("UnknownTokenException[:\\s+\\w+]+%s", key));
+        return contextVariables.containsKey(key) && contextVariables.get(key) == null &&
+          errorMessages.stream().anyMatch(msg -> unknownTokenPattern.matcher(msg).find());
+      };
+
+      if (contextVariables.keySet().stream().anyMatch(nullableUnknownToken)) {
+        log.debug("Nullable variable referenced in template '{}'. Rendering template with unknown token tolerant Jinja renderer.");
+        rendered = nullableJinja.render(template, context.getVariables());
+      } else {
+        log.error("Failed rendering jinja template", fte);
+        throw new TemplateRenderException("failed rendering jinja template", fte, unwrapJinjaTemplateErrorException(fte, context.getLocation()));
+      }
     } catch (InterpretException e) {
       log.warn("Caught supertype InterpretException instead of " + e.getClass().getSimpleName());
       log.error("Failed rendering jinja template", e);
@@ -183,10 +213,10 @@ public class JinjaRenderer implements Renderer {
     return errors;
   }
 
-  private static JinjavaConfig buildJinjavaConfig() {
+  private static JinjavaConfig buildJinjavaConfig(boolean failOnUnknownTokens) {
     JinjavaConfig.Builder configBuilder = JinjavaConfig.newBuilder();
 
-    configBuilder.withFailOnUnknownTokens(true);
+    configBuilder.withFailOnUnknownTokens(failOnUnknownTokens);
 
     Map<Library, Set<String>> disabled = new HashMap<>();
     disabled.put(Library.TAG, new HashSet<>(Arrays.asList("from", "import", "include")));
