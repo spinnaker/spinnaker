@@ -488,7 +488,7 @@ class BuildDebianFactory(GradleCommandFactory):
 
     GradleCommandFactory.add_bom_parser_args(parser, defaults)
     BuildDebianFactory.add_argument(
-        parser, 'build_google_image_project', defaults,
+        parser, 'publish_gce_image_project', defaults,
         'marketplace-spinnaker-release',
         help='GCE project we publish HA Spinnaker component images to.')
 

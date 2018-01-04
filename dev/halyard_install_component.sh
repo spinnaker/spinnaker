@@ -18,9 +18,9 @@
 
 set -e
 
-function show_usage() {
-    fix_defaults
+HALYARD_INSTALL_PARAMS=
 
+function show_usage() {
 cat <<EOF
 Usage:  $0 [options]
 
@@ -56,6 +56,21 @@ function process_args() {
             shift
             ;;
 
+        --halyard_repository)
+            HALYARD_INSTALL_PARAMS="$HALYARD_INSTALL_PARAMS --repository $1"
+            shift
+            ;;
+
+        --spinnaker_repository)
+            HALYARD_INSTALL_PARAMS="$HALYARD_INSTALL_PARAMS --spinnaker-repository $1"
+            shift
+            ;;
+
+        --halyard_repository)
+            HALYARD_INSTALL_PARAMS="$HALYARD_INSTALL_PARAMS --halyard-repository $1"
+            shift
+            ;;
+
         *)
           show_usage
           >&2 echo "Unrecognized argument '$key'."
@@ -75,7 +90,7 @@ function contains() {
 function main() {
   echo "Downloading and Running Halyard Install Script..."
   wget https://raw.githubusercontent.com/spinnaker/halyard/master/install/nightly/InstallHalyard.sh
-  sudo bash InstallHalyard.sh -y --user ubuntu
+  sudo bash InstallHalyard.sh -y --user ubuntu  $HALYARD_INSTALL_PARAMS
 
   echo "Installing $COMPONENT and optional dependencies..."
   hal config version edit --version $VERSION

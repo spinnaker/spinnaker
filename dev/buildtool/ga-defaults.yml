@@ -35,6 +35,7 @@
 # Commented values surrounded by '[]' are code defaults.
 # Not all code defaults are shown, only those for commenting purposes.
 
+# root_path:
 log_level: info
 
 # metrics
@@ -43,22 +44,22 @@ monitoring_flush_frequency: 30
 monitoring_system: file
 
 
-# Used by: write_bom, publish_bom
+### Used by: write_bom, publish_bom
 # bom_path:
 
-# Used by: publish_bom
+### Used by: publish_bom
 halyard_bom_bucket: halconfig
 
-# Used by: write_changelog
+### Used by: write_changelog
 changelog_path: changelog.txt
 
-# Used by: fetch_sources
+### Used by: fetch_sources
 # git_branch:
 # fallback_branch:
 github_user: default
 
 
-# Used by: various build_* commands  (gradle build part)
+### Used by: various build_* commands  (gradle build part)
 # max_local_builds: <used to limit outstanding gradle jobs>
 # run_unit_tests: False
 # maven_custom_init_file: [<spinnaker>/dev/maven-init.gradle]
@@ -67,24 +68,27 @@ extra_gradle_args: info --stacktrace
 build_bintray_repository: spinnaker-releases/debians
 build_jar_repository: # jars, I think
 
-# Used by: build_halyard
+### Used by: build_halyard
 halyard_bucket_base_url: gs://spinnaker-artifacts/halyard
 halyard_docker_image_base: gcr.io/spinnaker-marketplace/halyard
 
-# Used by build_* commands (debian part)
-build_google_image_project: marketplace-spinnaker-release
-
-# Used by build_* commands (containers part)
-build_docker_registry:
+### Used by build_* commands (containers part)
+# build_docker_registry: gcr.io/spinnaker-marketplace
 build_container_env_vars: GRADLE_USER_HOME=/gradle_cahce/.gradle
 container_builder: gcb
-#gcb_project:
+gcb_project:
 #gcb_service_account:
 #build_container_base_image:
 
-# Used by generate_api_docs
+### Used by generate_api_docs
 # Download from http://central.maven.org/maven2/io/swagger/swagger-codegen-cli/2.2.3/swagger-codegen-cli-2.2.3.jar
 swagger_codegen_cli_jar_path:
 
-# Used by various publish_* commands
+### Used by various publish_* commands
 githubio_repo_url: https://github.com/spinnaker/spinnaker.github.io
+
+### Used by build_gce_component_images
+#build_gce_service_account:
+#build_gce_project:
+#build_gce_zone:
+#publish_gce_image_project:

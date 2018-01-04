@@ -45,6 +45,10 @@ Usage:  $0 [options]
        [$INSTALL_SCRIPT]
        The path or URL to the install script to use.
 
+   --extra_install_script_args EXTRA_INSTALL_SCRIPT_ARGS
+     [$EXTRA_INSTALL_SCRIPT_ARGS]
+     Additional arguments to pass to the INSTALL_SCRIPT
+
    --no_update_os
        Do not force an upgrade-dist of the base OS.
 
@@ -68,6 +72,15 @@ Usage:  $0 [options]
        [$ZONE]
        Zone to use when building the image. The final image is global.
 
+   --spinnaker_dev_github_owner
+       [$SPINNAKER_DEV_GITHUB_OWNER]
+       The github spinnaker repository owner to get install scripts from
+       on the provisioned machines building the image. This is only used
+       during the build.
+       
+   --spinnaker_dev_github_branch
+       [$SPINNAKER_DEV_GITHUB_BRANCH]
+       The github spinnaker repository branch for SPINNAKER_DEV_GITHUB_OWNER
 EOF
 }
 
@@ -98,6 +111,10 @@ function process_args() {
             INSTALL_SCRIPT=$1
             shift
             ;;
+        --extra_install_script_args)
+            EXTRA_INSTALL_SCRIPT_ARGS="$1"
+            shift
+            ;;
         --no_update_os)
             UPDATE_OS=false
             ;;
@@ -121,6 +138,15 @@ function process_args() {
             ZONE=$1
             shift
             ;;
+        --spinnaker_dev_github_owner)
+            SPINNAKER_DEV_GITHUB_OWNER=$1
+            shift
+            ;;
+        --spinnaker_dev_github_branch)
+            SPINNAKER_DEV_GITHUB_BRANCH=$1
+            shift
+            ;;
+
         *)
           show_usage
           >&2 echo "Unrecognized argument '$key'."
@@ -150,7 +176,7 @@ function create_component_prototype_disk() {
       --boot-disk-type pd-ssd \
       --image $BASE_IMAGE  \
       --image-project $IMAGE_PROJECT \
-      --metadata block-project-ssh-keys=TRUE,startup-script="apt-get update && apt-get install -y git && git clone https://github.com/spinnaker/spinnaker.git",ssh-keys="$ssh_key"
+      --metadata block-project-ssh-keys=TRUE,startup-script="apt-get update && apt-get install -y git && git clone https://github.com/$SPINNAKER_DEV_GITHUB_OWNER/spinnaker.git -b $SPINNAKER_DEV_GITHUB_BRANCH",ssh-keys="$ssh_key"
 
   trap cleanup_instances_on_error EXIT
 
@@ -170,6 +196,7 @@ function create_component_prototype_disk() {
 
   args="--component $component --version $version"
   command="sudo bash /spinnaker/dev/$(basename $INSTALL_SCRIPT) ${args}"
+  command="$command ${EXTRA_INSTALL_SCRIPT_ARGS}"
   sleep 120 # Wait for the startup scripts to complete.
 
   echo "`date`: Installing $component and spinnaker-monitoring onto '$BUILD_INSTANCE'"
@@ -294,6 +321,11 @@ function create_component_image() {
 
   delete_prototype_disk
 
+
+  if [[ "$PUBLISH_PROJECT" == "$BUILD_PROJECT" ]]; then
+    return
+  fi
+
   # Set $PROJECT to the publish project so we can clear the target
   # image and disk if it exists.
   PROJECT=$PUBLISH_PROJECT
@@ -331,8 +363,6 @@ function fix_defaults() {
 }
 
 
-process_args "$@"
-
 # map of artifact -> service
 # artifact is an unconfigured installable package/binary
 # service is a configured artifact
@@ -351,8 +381,13 @@ declare -A COMPONENTS=( ['clouddriver']='clouddriver' \
 
 TIME_DECORATOR=$(date +%Y%m%d%H%M%S)
 ZONE=us-central1-f
+SPINNAKER_DEV_GITHUB_OWNER=spinnaker
+SPINNAKER_DEV_GITHUB_BRANCH=master
 BASE_IMAGE_OR_FAMILY=ubuntu-1404-lts
 BASE_IMAGE=$BASE_IMAGE_OR_FAMILY
+
+process_args "$@"
+
 PROJECT=$BUILD_PROJECT
 
 fix_defaults
