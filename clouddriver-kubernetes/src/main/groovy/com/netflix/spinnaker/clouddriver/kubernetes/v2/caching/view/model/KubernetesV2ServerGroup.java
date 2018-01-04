@@ -48,7 +48,6 @@ import java.util.stream.Collectors;
 @Slf4j
 public class KubernetesV2ServerGroup extends ManifestBasedModel implements ServerGroup {
   Boolean disabled;
-  Long createdTime;
   Set<String> zones = new HashSet<>();
   Set<Instance> instances = new HashSet<>();
   Set<String> loadBalancers = new HashSet<>();
