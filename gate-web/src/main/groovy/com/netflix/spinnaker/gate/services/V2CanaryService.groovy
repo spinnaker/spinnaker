@@ -56,10 +56,10 @@ class V2CanaryService {
     }).execute() as List
   }
 
-  Map getCanaryResults(String canaryConfigId, String canaryExecutionId, String storageAccountName) {
+  Map getCanaryResults(String canaryExecutionId, String storageAccountName) {
     return HystrixFactory.newMapCommand(HYSTRIX_GROUP, "getCanaryResults", {
       try {
-        return kayentaService.getCanaryResult(canaryConfigId, canaryExecutionId, storageAccountName)
+        return kayentaService.getCanaryResult(canaryExecutionId, storageAccountName)
       } catch (RetrofitError error) {
         throw classifyError(error)
       }

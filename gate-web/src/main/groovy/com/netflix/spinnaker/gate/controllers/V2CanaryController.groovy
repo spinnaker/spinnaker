@@ -51,7 +51,7 @@ class V2CanaryController {
   Map getCanaryResult(@PathVariable String canaryConfigId,
                       @PathVariable String canaryExecutionId,
                       @RequestParam(value='storageAccountName', required = false) String storageAccountName) {
-    v2CanaryService.getCanaryResults(canaryConfigId, canaryExecutionId, storageAccountName)
+    v2CanaryService.getCanaryResults(canaryExecutionId, storageAccountName)
   }
 
 
