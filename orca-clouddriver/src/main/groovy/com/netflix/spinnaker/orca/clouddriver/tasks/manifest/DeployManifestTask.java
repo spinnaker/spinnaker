@@ -34,10 +34,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Nonnull;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Component
 @Slf4j
@@ -65,7 +67,15 @@ public class DeployManifestTask extends AbstractCloudProviderAwareTask implement
       log.info("Using {} as the manifest to be deployed", manifestArtifact);
     }
 
-    task.put("artifacts", artifacts);
+    List<String> deployArtifactIds = (List<String>) task.get("deployArtifactIds");
+    deployArtifactIds = deployArtifactIds == null ? new ArrayList<>() : deployArtifactIds;
+    List<Artifact> deployArtifacts = deployArtifactIds.stream()
+        .map(id -> artifactResolver.getBoundArtifactForId(stage, id))
+        .collect(Collectors.toList());
+
+    log.info("Deploying {} artifacts within the provided manifest", deployArtifacts);
+
+    task.put("artifacts", deployArtifacts);
     Map<String, Map> operation = new ImmutableMap.Builder<String, Map>()
         .put(TASK_NAME, task)
         .build();
