@@ -188,12 +188,14 @@ def main():
   import buildtool.bom_commands
   import buildtool.changelog_commands
   import buildtool.apidocs_commands
+  import buildtool.image_commands
   command_modules = [
       buildtool.source_commands,
       buildtool.build_commands,
       buildtool.bom_commands,
       buildtool.changelog_commands,
-      buildtool.apidocs_commands
+      buildtool.apidocs_commands,
+      buildtool.image_commands
   ]
 
   options, command_registry = init_options_and_registry(

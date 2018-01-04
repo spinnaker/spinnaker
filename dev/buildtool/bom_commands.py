@@ -174,7 +174,7 @@ class GenerateBomCommand(RepositoryCommandProcessor):
         for name, source in [
             ('debianRepository', build_debian_repository),
             ('dockerRegistry', options.build_docker_registry),
-            ('googleImageProject', options.build_google_image_project)
+            ('googleImageProject', options.publish_gce_image_project)
         ]
         if source
     })

@@ -253,7 +253,7 @@ def check_subprocesses_to_logfile(what, logfile, cmds, append=False, **kwargs):
     except Exception:
       logging.error('%s failed. Log file [%s] follows:', what, logfile)
       with open(logfile, 'r') as readagain:
-        newline_indent = '\n>>>   '
+        newline_indent = '\n   >>>   '
         logfile_lines = readagain.read().split('\n')
         logging.error(
             '%s:%s%s',
