@@ -91,7 +91,15 @@ export class KayentaStageTransformer implements ITransformer {
   }
 
   private getException(stage: IExecutionStage): string {
-    return stage && stage.isFailed ? stage.failureMessage : null;
+    if (stage && stage.isFailed) {
+      if (stage.context && stage.context.exception && stage.context.exception.details && stage.context.exception.details.responseBody) {
+        return stage.context.exception.details.responseBody;
+      } else {
+        return stage.failureMessage;
+      }
+    } else {
+      return null;
+    }
   }
 }
 

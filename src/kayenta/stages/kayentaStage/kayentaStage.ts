@@ -1,5 +1,5 @@
 import { module, IComponentController, IScope } from 'angular';
-import { isString, get, has } from 'lodash';
+import { isString, get, has, isEmpty, map, uniq } from 'lodash';
 import autoBindMethods from 'class-autobind-decorator';
 
 import {
@@ -42,6 +42,7 @@ interface IKayentaStageCanaryConfig {
   startTimeIso?: string;
   step?: string;
   storageAccountName: string;
+  scopeName: string;
 }
 
 enum KayentaAnalysisType {
@@ -59,6 +60,7 @@ class CanaryStage implements IComponentController {
   };
   public canaryConfigSummaries: ICanaryConfigSummary[] = [];
   public selectedCanaryConfigDetails: ICanaryConfig;
+  public scopeNames: string[] = [];
   public kayentaAccounts = new Map<KayentaAccountType, IKayentaAccount[]>();
 
   constructor(private $scope: IScope, public stage: IKayentaStage) {
@@ -129,6 +131,7 @@ class CanaryStage implements IComponentController {
       this.state.detailsLoading = false;
       this.selectedCanaryConfigDetails = configDetails;
       this.overrideScoreThresholds();
+      this.populateScopeNameChoices(configDetails);
     }).catch(() => {
       this.state.detailsLoading = false;
     });
@@ -153,12 +156,21 @@ class CanaryStage implements IComponentController {
     ).toString();
   }
 
+  private populateScopeNameChoices(configDetails: ICanaryConfig): void {
+    const scopeNames = uniq(map(configDetails.metrics, metric => metric.scopeName || 'default'));
+    this.scopeNames = !isEmpty(scopeNames) ? scopeNames : ['default'];
+    if (!scopeNames.includes(this.stage.canaryConfig.scopeName)) {
+      delete this.stage.canaryConfig.scopeName;
+    }
+  }
+
   private loadBackingData(): void {
     this.state.backingDataLoading = true;
     Promise.all([
       this.$scope.application.ready().then(() => {
         this.setCanaryConfigSummaries(this.$scope.application.getDataSource('canaryConfigs').data);
         this.deleteCanaryConfigIdIfMissing();
+        this.loadCanaryConfigDetailsIfPresent();
       }),
       listKayentaAccounts().then(this.setKayentaAccounts).then(this.deleteConfigAccountsIfMissing),
     ]).then(() => this.state.backingDataLoading = false)
@@ -196,6 +208,20 @@ class CanaryStage implements IComponentController {
     if (this.canaryConfigSummaries.every(s => s.id !== this.stage.canaryConfig.canaryConfigId)) {
       delete this.stage.canaryConfig.canaryConfigId;
     }
+  }
+
+  private loadCanaryConfigDetailsIfPresent(): void {
+    if (!this.stage.canaryConfig.canaryConfigId) {
+      return;
+    }
+
+    this.state.detailsLoading = true;
+    getCanaryConfigById(this.stage.canaryConfig.canaryConfigId).then(configDetails => {
+      this.state.detailsLoading = false;
+      this.populateScopeNameChoices(configDetails);
+    }).catch(() => {
+      this.state.detailsLoading = false;
+    });
   }
 }
 

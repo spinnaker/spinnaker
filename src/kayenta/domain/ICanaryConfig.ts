@@ -24,6 +24,7 @@ export interface ICanaryMetricConfig {
   analysisConfigurations: {
     [key: string]: any;
   };
+  scopeName: string;
   isNew?: boolean;
 }
 
