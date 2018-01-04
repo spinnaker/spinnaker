@@ -208,5 +208,22 @@
       >
       </select>
     </stage-config-field>
+
+    <stage-config-field label="Scope Name">
+      <div ng-if="!kayentaCanaryStageCtrl.state.backingDataLoading">
+        <ui-select required
+                   ng-model="kayentaCanaryStageCtrl.stage.canaryConfig.scopeName"
+                   class="visible-sm-inline-block visible-md-inline-block visible-lg-inline-block"
+                   style="width:300px">
+          <ui-select-match>{{$select.selected}}</ui-select-match>
+          <ui-select-choices repeat="scopeName in kayentaCanaryStageCtrl.scopeNames | filter: $select.search">
+            {{scopeName}}
+          </ui-select-choices>
+        </ui-select>
+      </div>
+      <div ng-if="kayentaCanaryStageCtrl.state.backingDataLoading" class="col-md-3">
+        <h3><span us-spinner="{radius:3, width:1, length: 4}"></span></h3>
+      </div>
+    </stage-config-field>
   </kayenta-stage-config-section>
 </div>
