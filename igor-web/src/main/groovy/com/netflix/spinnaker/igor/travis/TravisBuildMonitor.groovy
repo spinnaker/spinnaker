@@ -69,7 +69,6 @@ class TravisBuildMonitor extends CommonPollingMonitor {
 
     @Override
     void initialize() {
-        setBuildCacheTTL()
         migrateToNewBuildCache()
     }
 
@@ -148,23 +147,6 @@ class TravisBuildMonitor extends CommonPollingMonitor {
             )
         }
 
-    }
-
-    private void setBuildCacheTTL() {
-        /*
-        This method is here to help migrate to ttl usage. It can be removed in igor after some time.
-         */
-        buildMasters.filteredMap(BuildServiceProvider.TRAVIS).keySet().each { master ->
-            log.info "Searching for cached builds without TTL."
-
-            buildCache.getJobNames(master).each { job ->
-                Long ttl = buildCache.getTTL(master, job)
-                if (ttl == -1L) {
-                    log.info("Found build without TTL: {}:{}:${ttl} - Setting TTL to ${buildCacheJobTTLSeconds()}", kv("master", master), kv("job", job))
-                    buildCache.setTTL(master, job, buildCacheJobTTLSeconds())
-                }
-            }
-        }
     }
 
     private void migrateToNewBuildCache(){
