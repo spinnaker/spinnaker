@@ -19,6 +19,7 @@ package com.netflix.kayenta.orca.controllers;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.discovery.StatusChangeEvent;
 import com.netflix.spinnaker.kork.eureka.RemoteStatusChangedEvent;
+import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.log.ExecutionLogEntry;
 import com.netflix.spinnaker.orca.log.ExecutionLogRepository;
 import com.netflix.spinnaker.orca.pipeline.ExecutionLauncher;
@@ -114,6 +115,7 @@ public class PipelineController {
     log.info("Cancelling pipeline execution {}...", executionId);
 
     executionRepository.cancel(executionId);
+    executionRepository.updateStatus(executionId, ExecutionStatus.CANCELED);
   }
 
   private static class FeatureNotEnabledException extends RuntimeException {

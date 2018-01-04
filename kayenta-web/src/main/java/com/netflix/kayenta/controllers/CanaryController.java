@@ -233,6 +233,16 @@ public class CanaryController {
       }
     }
 
+    // Propagate the first canary pipeline exception we can locate.
+    Stage stageWithException = pipeline.getStages().stream()
+      .filter(stage -> stage.getContext().containsKey("exception"))
+      .findFirst()
+      .orElse(null);
+
+    if (stageWithException != null) {
+      canaryExecutionStatusResponseBuilder.exception(stageWithException.getContext().get("exception"));
+    }
+
     return canaryExecutionStatusResponseBuilder.build();
   }
 

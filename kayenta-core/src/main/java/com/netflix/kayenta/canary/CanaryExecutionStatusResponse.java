@@ -35,6 +35,8 @@ public class CanaryExecutionStatusResponse {
   @NotNull
   protected String status;
 
+  protected Object exception;
+
   protected CanaryResult result;
 
   //

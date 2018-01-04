@@ -148,7 +148,7 @@ public class StackdriverMetricsService implements MetricsService {
             if (extendedScopeParamsKey.startsWith("user_labels.")) {
               String userLabelKey = extendedScopeParamsKey.substring(12);
 
-              filter += " AND metadata.user_labels." + userLabelKey + "=\"" + extendedScopeParams.get(extendedScopeParamsKey) + "\"";
+              filter += " AND metadata.user_labels.\"" + userLabelKey + "\"=\"" + extendedScopeParams.get(extendedScopeParamsKey) + "\"";
             }
           }
         }
