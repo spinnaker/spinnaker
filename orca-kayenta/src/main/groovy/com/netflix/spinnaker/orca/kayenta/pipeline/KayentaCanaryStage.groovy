@@ -50,6 +50,7 @@ class KayentaCanaryStage implements StageDefinitionBuilder {
     String metricsAccountName = canaryConfig.metricsAccountName
     String storageAccountName = canaryConfig.storageAccountName
     String canaryConfigId = canaryConfig.canaryConfigId
+    String scopeName = canaryConfig.scopeName
     String controlScope = canaryConfig.controlScope
     String controlRegion = canaryConfig.controlRegion
     String experimentScope = canaryConfig.experimentScope
@@ -107,6 +108,7 @@ class KayentaCanaryStage implements StageDefinitionBuilder {
         metricsAccountName: metricsAccountName,
         storageAccountName: storageAccountName,
         canaryConfigId: canaryConfigId,
+        scopeName: scopeName,
         controlScope: controlScope,
         controlRegion: controlRegion,
         experimentScope: experimentScope,

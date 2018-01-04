@@ -24,8 +24,6 @@ import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import retrofit.client.Response
-import retrofit.mime.TypedByteArray
 
 import javax.annotation.Nonnull
 
@@ -42,6 +40,7 @@ class RunKayentaCanaryTask implements Task {
     String metricsAccountName = (String)context.get("metricsAccountName")
     String storageAccountName = (String)context.get("storageAccountName")
     String canaryConfigId = (String)context.get("canaryConfigId")
+    String scopeName = (String)context.get("scopeName") ?: "default"
     String controlScope = (String)context.get("controlScope")
     String controlRegion = (String)context.get("controlRegion")
     String experimentScope = (String)context.get("experimentScope")
@@ -52,21 +51,25 @@ class RunKayentaCanaryTask implements Task {
     Map<String, String> extendedScopeParams = (Map<String, String>)context.get("extendedScopeParams")
     Map<String, String> scoreThresholds = (Map<String, String>)context.get("scoreThresholds")
     Map<String, String> canaryExecutionRequest = [
-      controlScope: [
-        scope: controlScope,
-        region: controlRegion,
-        start: startTimeIso,
-        end: endTimeIso,
-        step: step,
-        extendedScopeParams: extendedScopeParams
-      ],
-      experimentScope: [
-        scope: experimentScope,
-        region: experimentRegion,
-        start: startTimeIso,
-        end: endTimeIso,
-        step: step,
-        extendedScopeParams: extendedScopeParams
+      scopes: [
+        (scopeName): [
+          controlScope: [
+            scope: controlScope,
+            region: controlRegion,
+            start: startTimeIso,
+            end: endTimeIso,
+            step: step,
+            extendedScopeParams: extendedScopeParams
+          ],
+          experimentScope: [
+            scope: experimentScope,
+            region: experimentRegion,
+            start: startTimeIso,
+            end: endTimeIso,
+            step: step,
+            extendedScopeParams: extendedScopeParams
+          ]
+        ]
       ],
       thresholds: [
         pass: scoreThresholds?.pass,

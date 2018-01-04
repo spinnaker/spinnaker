@@ -53,12 +53,16 @@ class RunCanaryPipelineStage implements StageDefinitionBuilder, CancellableStage
     Map<String, Object> context = stage.getContext()
     String canaryPipelineExecutionId = (String)context.get("canaryPipelineExecutionId")
 
-    log.info("Cancelling stage (stageId: $stage.id: executionId: $stage.execution.id, canaryPipelineExecutionId: $canaryPipelineExecutionId, context: $stage.context)")
+    if (canaryPipelineExecutionId) {
+      log.info("Cancelling stage (stageId: $stage.id: executionId: $stage.execution.id, canaryPipelineExecutionId: $canaryPipelineExecutionId, context: $stage.context)")
 
-    try {
-      kayentaService.cancelPipelineExecution(canaryPipelineExecutionId, "")
-    } catch (Exception e) {
-      log.error("Failed to cancel stage (stageId: $stage.id, executionId: $stage.execution.id), e: $e.message", e)
+      try {
+        kayentaService.cancelPipelineExecution(canaryPipelineExecutionId, "")
+      } catch (Exception e) {
+        log.error("Failed to cancel stage (stageId: $stage.id, executionId: $stage.execution.id), e: $e.message", e)
+      }
+    } else {
+      log.info("Not cancelling stage (stageId: $stage.id: executionId: $stage.execution.id, context: $stage.context) since no canary pipeline execution id exists")
     }
 
     return new CancellableStage.Result(stage, [:])

@@ -28,8 +28,9 @@ interface KayentaService {
              @Query("storageAccountName") String storageAccountName,
              @Body Map<String, String> canaryExecutionRequest)
 
-  @GET("/pipelines/{executionId}")
-  Execution getPipelineExecution(@Path("executionId") String executionId)
+  @GET("/canary/{canaryExecutionId}")
+  Map getCanaryResults(@Query("storageAccountName") String storageAccountName,
+                       @Path("canaryExecutionId") String canaryExecutionId)
 
   @PUT("/pipelines/{executionId}/cancel")
   Map cancelPipelineExecution(@Path("executionId") String executionId, @Body String ignored)
