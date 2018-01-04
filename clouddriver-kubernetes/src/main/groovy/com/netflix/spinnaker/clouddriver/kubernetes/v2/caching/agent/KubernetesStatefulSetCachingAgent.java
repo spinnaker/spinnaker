@@ -28,6 +28,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.deployer.KubernetesSta
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -76,7 +77,13 @@ public class KubernetesStatefulSetCachingAgent extends KubernetesV2OnDemandCachi
     Map<KubernetesManifest, List<KubernetesManifest>> result = new HashMap<>();
 
     for (KubernetesManifest manifest : primaryResourceList) {
-      result.put(manifest, Collections.singletonList(services.get(KubernetesStatefulSetHandler.serviceName(manifest))));
+      String serviceName = KubernetesStatefulSetHandler.serviceName(manifest);
+      if (StringUtils.isEmpty(serviceName) || !services.containsKey(serviceName)) {
+        continue;
+      }
+
+      KubernetesManifest service = services.get(serviceName);
+      result.put(manifest, Collections.singletonList(service));
     }
 
     return result;
