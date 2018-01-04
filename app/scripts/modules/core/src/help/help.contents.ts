@@ -86,14 +86,23 @@ module(HELP_CONTENTS, [])
         <p>If you want to start from scratch, select "None".</p>
         <p>You can always edit the cluster configuration after you've created it.</p>`,
     'pipeline.config.expectedArtifact.matchArtifact': `
-        <p>This specifies which fields in your incoming artifact to match against. Every field that you supply will be used to match against all incoming artifacts. If all fields specified match, the incoming artifact is bound to your pipeline context.</p>
+        <p>
+          This specifies which fields in your incoming artifact to match against. Every field that
+          you supply will be used to match against all incoming artifacts. If all specified fields
+          match, the incoming artifact is bound to your pipeline context.
+        </p>
+        <p>
+          The field comparisons are done against the incoming artifact.  Example: if you are parsing
+          artifacts from pub/sub messages via a Jinja template, the comparison will be done after
+          the pub/sub -> Spinnaker artifact translation.
+        </p>
         <p>For example, if you want to match against any GCS object, only supply <b>type</b> = gcs/object. If you also want to restrict the matches by other fields, include those as well.</p>
         <p>Regex is accepted, so you could for example match on a filepath like so <b>name</b> = .*\\.yaml to match all incoming YAML files.</p>`,
     'pipeline.config.expectedArtifact.ifMissing': `
         <p>If no artifact was supplied by your trigger to match against this expected artifact, you have a few options:
           <ol>
             <li>Attempt to match against an artifact in the prior pipeline execution's context. This ensures that you will always be using the most recently supplied artifact to this pipeline, and is generally a safe choice.</li>
-            <li>If option 1 fails, or isn't specified, you can provide a default artifact with all required fields specified to use instead.</li>
+            <li>If option 1 fails, or isn't specified, you can provide a default artifact with the required fields to use instead.</li>
             <li>Fail the pipeline if options 1 or 2 fail or aren't selected.</li>
           </ol>
         </p>`,
@@ -118,7 +127,16 @@ module(HELP_CONTENTS, [])
         <p>The constraint values may be supplied as regex.</p>
     `,
     'pipeline.config.trigger.pubsub.payloadConstraints': `
-        <p>When provided, only a pubsub message with a payload containing at least the specified key/value pairs will be allowed to trigger this pipeline. For example, if you wanted to lockdown the systems/users that can trigger this pipeline via this pubsub subscription, you could require the key "secret" and value "something-secret" as a constraint.</p>
+        <p>
+          When provided, only a pubsub message with a payload containing at least the specified
+          key/value pairs will be allowed to trigger this pipeline. For example, if you wanted
+          to restrict the systems/users that can trigger this pipeline via this pubsub
+          subscription, you could require the key "secret" and value "something-secret" as a constraint.
+        </p>
+        <p>
+          The key/value pairs are matched against the unprocessed payload body, prior to any
+          transformation using, for example, a Jinja template in a pubsub subscription configuration.
+        </p>
         <p>The constraint values may be supplied as regex.</p>
     `,
     'pipeline.config.findArtifactFromExecution.considerExecutions': `
