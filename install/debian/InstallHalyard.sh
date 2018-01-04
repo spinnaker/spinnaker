@@ -149,7 +149,7 @@ function install_java() {
   local java_version=$(java -version 2>&1 head -1)
   set -e
 
-  if [[ "$java_version" == "*1.8*" ]]; then
+  if [[ "$java_version" == *1.8* ]]; then
     echo "Java is already installed & at the right version"
     return 0;
   fi
