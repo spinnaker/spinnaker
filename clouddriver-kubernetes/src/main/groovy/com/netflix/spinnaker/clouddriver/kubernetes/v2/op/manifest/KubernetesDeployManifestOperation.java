@@ -21,7 +21,6 @@ import com.netflix.spinnaker.clouddriver.artifacts.ArtifactDownloader;
 import com.netflix.spinnaker.clouddriver.data.task.Task;
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository;
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.ArtifactReplacer;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.ArtifactReplacer.ReplaceResult;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.KubernetesArtifactConverter;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesResourceProperties;
@@ -44,7 +43,9 @@ import org.apache.commons.lang.StringUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesDeployManifestDescription.Source.text;
 
@@ -123,12 +124,20 @@ public class KubernetesDeployManifestOperation implements AtomicOperation<Operat
     getTask().updateStatus(OP_NAME, "Swapping out artifacts from context...");
     ReplaceResult replaceResult = deployer.replaceArtifacts(manifest, artifacts);
     manifest = replaceResult.getManifest();
+    Set<Artifact> boundArtifacts = replaceResult.getBoundArtifacts();
+    Set<Artifact> unboundArtifacts = new HashSet<>(artifacts);
+    unboundArtifacts.removeAll(boundArtifacts);
+
+    getTask().updateStatus(OP_NAME, "Checking if all requested artifacts were bound...");
+    if (!unboundArtifacts.isEmpty()) {
+      throw new IllegalArgumentException("The following artifacts could not be bound: '" + unboundArtifacts + "' . Failing the stage as this is likely a configuration error.");
+    }
 
     getTask().updateStatus(OP_NAME, "Submitting manifest to kubernetes master...");
     OperationResult result = deployer.deployAugmentedManifest(credentials, manifest);
 
     result.getCreatedArtifacts().add(artifact);
-    result.getBoundArtifacts().addAll(replaceResult.getBoundArtifacts());
+    result.getBoundArtifacts().addAll(boundArtifacts);
 
     return result;
   }
