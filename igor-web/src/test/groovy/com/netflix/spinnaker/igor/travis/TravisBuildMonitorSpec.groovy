@@ -199,6 +199,10 @@ class TravisBuildMonitorSpec extends Specification {
         })
 
         1 * travisBuildMonitor.echoService.postEvent({
+            it.content.project.name == "test-org/test-repo" &&
+                it.content.project.lastBuild.number == 3
+        })
+        1 * travisBuildMonitor.echoService.postEvent({
             it.content.project.name == "test-org/test-repo/different_branch" &&
                 it.content.project.lastBuild.number == 3
         })

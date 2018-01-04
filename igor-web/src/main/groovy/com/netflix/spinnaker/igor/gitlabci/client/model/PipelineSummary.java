@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Schibsted ASA.
+ * Copyright 2017 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,11 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.netflix.spinnaker.igor.gitlabci.client.model;
 
-package com.netflix.spinnaker.igor.model
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-enum BuildServiceProvider {
-  JENKINS,
-  TRAVIS,
-  GITLAB_CI
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class PipelineSummary {
+    private long id;
+
+    public long getId() {
+        return id;
+    }
+
+    public void setId(long id) {
+        this.id = id;
+    }
 }

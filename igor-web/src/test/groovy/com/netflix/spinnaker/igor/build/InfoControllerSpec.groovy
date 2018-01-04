@@ -16,8 +16,10 @@
 
 package com.netflix.spinnaker.igor.build
 
+import com.netflix.spinnaker.igor.config.GitlabCiProperties
 import com.netflix.spinnaker.igor.config.JenkinsConfig
 import com.netflix.spinnaker.igor.config.JenkinsProperties
+import com.netflix.spinnaker.igor.config.TravisProperties
 import com.netflix.spinnaker.igor.jenkins.service.JenkinsService
 import com.netflix.spinnaker.igor.model.BuildServiceProvider
 import com.netflix.spinnaker.igor.service.BuildMasters
@@ -44,6 +46,9 @@ class InfoControllerSpec extends Specification {
     MockMvc mockMvc
     BuildCache cache
     BuildMasters buildMasters
+    JenkinsProperties jenkinsProperties
+    TravisProperties travisProperties
+    GitlabCiProperties gitlabCiProperties
 
     @Shared
     JenkinsService service
@@ -58,7 +63,16 @@ class InfoControllerSpec extends Specification {
     void setup() {
         cache = Mock(BuildCache)
         buildMasters = Mock(BuildMasters)
-        mockMvc = MockMvcBuilders.standaloneSetup(new InfoController(buildCache: cache, buildMasters: buildMasters)).build()
+        jenkinsProperties = Mock(JenkinsProperties)
+        travisProperties = Mock(TravisProperties)
+        gitlabCiProperties = Mock(GitlabCiProperties)
+        mockMvc = MockMvcBuilders.standaloneSetup(
+            new InfoController(buildCache: cache,
+                buildMasters: buildMasters,
+                jenkinsProperties: jenkinsProperties,
+                travisProperties: travisProperties,
+                gitlabCiProperties: gitlabCiProperties))
+            .build()
         server = new MockWebServer()
     }
 
@@ -70,6 +84,23 @@ class InfoControllerSpec extends Specification {
         then:
         1 * buildMasters.map >> ['master2': [], 'build.buildMasters.blah': [], 'master1': []]
         response.contentAsString == '["build.buildMasters.blah","master1","master2"]'
+    }
+
+    void 'is able to get a list of buildMasters with urls'() {
+        when:
+        MockHttpServletResponse response = mockMvc.perform(get('/masters')
+            .param("showUrl", "true")
+            .accept(MediaType.APPLICATION_JSON))
+            .andReturn()
+            .response
+
+        then:
+        1 * jenkinsProperties.masters >> [['name': 'jenkins-foo', 'address': 'http://jenkins-bar']]
+        1 * travisProperties.masters >> [['name': 'travis-foo', 'address': 'http://travis-bar']]
+        1 * gitlabCiProperties.masters >> [['name': 'gitlab-foo', 'address': 'http://gitlab-bar']]
+        response.getContentAsString() == '[{"name":"jenkins-foo","address":"http://jenkins-bar"},' +
+            '{"name":"travis-foo","address":"http://travis-bar"},' +
+            '{"name":"gitlab-foo","address":"http://gitlab-bar"}]'
     }
 
     void 'is able to get jobs for a jenkins master'() {

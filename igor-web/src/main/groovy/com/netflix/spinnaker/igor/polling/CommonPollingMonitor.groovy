@@ -29,7 +29,7 @@ import rx.schedulers.Schedulers
 import java.util.concurrent.TimeUnit
 
 abstract class CommonPollingMonitor implements PollingMonitor {
-    Logger log = LoggerFactory.getLogger(getClass())
+    protected Logger log = LoggerFactory.getLogger(getClass())
 
     @Autowired(required = false)
     DiscoveryClient discoveryClient

@@ -16,24 +16,19 @@
 
 package com.netflix.spinnaker.igor.build
 
+import com.netflix.spinnaker.igor.config.GitlabCiProperties
 import com.netflix.spinnaker.igor.config.JenkinsProperties
 import com.netflix.spinnaker.igor.config.TravisProperties
-import com.netflix.spinnaker.igor.jenkins.client.model.JobConfig
 import com.netflix.spinnaker.igor.model.BuildServiceProvider
 import com.netflix.spinnaker.igor.service.BuildMasters
 import groovy.transform.InheritConstructors
 import groovy.util.logging.Slf4j
-
-import javax.servlet.http.HttpServletRequest
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestMethod
-import org.springframework.web.bind.annotation.RequestParam
-import org.springframework.web.bind.annotation.ResponseStatus
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 import org.springframework.web.servlet.HandlerMapping
+
+import javax.servlet.http.HttpServletRequest
 
 /**
  * A controller that provides jenkins information
@@ -54,6 +49,9 @@ class InfoController {
     @Autowired(required = false)
     TravisProperties travisProperties
 
+    @Autowired(required = false)
+    GitlabCiProperties gitlabCiProperties
+
     @RequestMapping(value = '/masters', method = RequestMethod.GET)
     List<Object> listMasters(@RequestParam(value = "showUrl", defaultValue = "false") String showUrl) {
         if (showUrl == 'true') {
@@ -65,6 +63,14 @@ class InfoController {
             }
             masterList.addAll(
                 travisProperties?.masters.collect {
+                    [
+                        "name": it.name,
+                        "address": it.address
+                    ]
+                }
+            )
+            masterList.addAll(
+                gitlabCiProperties?.masters.collect {
                     [
                         "name": it.name,
                         "address": it.address
