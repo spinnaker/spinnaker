@@ -27,7 +27,6 @@ export interface AtlasQuerySelector {
   'class': string;
   backends: string;
   query: string;
-  key: string,
   hide: string;
   ref: (webComponent: Element) => void;
 }
@@ -75,6 +74,13 @@ class AtlasMetricConfigurer extends React.Component<IAtlasMetricConfigurerProps,
       ref.addEventListener('change.queryString', (event: ChangeQueryStringEvent) => {
         this.props.updateQuery(event.detail);
       });
+      // This gets passed down to the inner React rendering beyond the web-component wrapper. Simply setting it in
+      // the render() method, it will not get passed to the web-component. Given that it doesn't change, why is it
+      // necessary? It seems to have something to do with the way React renders the component to the DOM; it triggers
+      // the web-component layer early, before the query is ready, and <atlas-query-selector> ignores all changes to
+      // the query after it's rendered. Adding a key after it's all set causes the inner React to re-render the
+      // component with the correct query.
+      ref.setAttribute('key', 'react');
     }
   }
 
@@ -85,7 +91,6 @@ class AtlasMetricConfigurer extends React.Component<IAtlasMetricConfigurerProps,
     const atlasBackend = 'https://atlas-global.prod.netflix.net';
     return (
       <atlas-query-selector
-        key={query}
         class="spinnaker-theme"
         backends={atlasBackend}
         hide="add_scope,comparison,timeOffset,lineStyle,des,trend,lineWidth,axis,color,alpha,multi"
