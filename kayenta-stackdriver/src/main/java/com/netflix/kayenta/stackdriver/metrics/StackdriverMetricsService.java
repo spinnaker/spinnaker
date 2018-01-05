@@ -156,7 +156,7 @@ public class StackdriverMetricsService implements MetricsService {
         throw new IllegalArgumentException("Resource type '" + resourceType + "' not yet supported.");
       }
     } else {
-      filter += customFilter;
+      filter += " AND " + customFilter;
     }
 
     long alignmentPeriodSec = stackdriverCanaryScope.getStep();
