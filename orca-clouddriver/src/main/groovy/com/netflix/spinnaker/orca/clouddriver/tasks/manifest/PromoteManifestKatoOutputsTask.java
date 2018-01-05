@@ -53,16 +53,21 @@ public class PromoteManifestKatoOutputsTask implements Task {
     addToOutputs(outputs, allResults, "manifestNamesByNamespace");
     addToOutputs(outputs, allResults, "boundArtifacts");
     addToOutputs(outputs, allResults, "createdArtifacts");
+    addToOutputs(outputs, allResults, "createdArtifacts", "artifacts");
 
-    return new TaskResult(ExecutionStatus.SUCCEEDED, outputs);
+    return new TaskResult(ExecutionStatus.SUCCEEDED, outputs, outputs);
   }
 
   private void addToOutputs(Map<String, Object> outputs, List<Map> allResults, String key) {
+    addToOutputs(outputs, allResults, key, "outputs." + key);
+  }
+
+  private void addToOutputs(Map<String, Object> outputs, List<Map> allResults, String key, String targetKey) {
     Optional value = allResults.stream()
         .map(m -> m.get(key))
         .filter(Objects::nonNull)
         .findFirst();
 
-    value.ifPresent(m -> outputs.put("outputs." + key, m));
+    value.ifPresent(m -> outputs.put(targetKey, m));
   }
 }
