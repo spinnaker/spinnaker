@@ -50,6 +50,8 @@ TEST_REPO_NAME = 'test_repository'
 def make_default_options():
   """Helper function for creating default options for runner."""
   parser = argparse.ArgumentParser()
+  parser.add_argument('--scratch_dir',
+                      default=os.path.join('/tmp', 'gittest.%d' % os.getpid()))
   GitRunner.add_git_parser_args(parser, {})
   return parser.parse_args([])
 
@@ -90,6 +92,7 @@ class TestGitRunner(unittest.TestCase):
   @classmethod
   def tearDownClass(cls):
     shutil.rmtree(cls.base_temp_dir)
+    shutil.rmtree(cls.git.options.scratch_dir)
 
   def setUp(self):
     self.run_git('checkout master'.format(dir=self.git_dir))
@@ -200,10 +203,17 @@ class TestGitRunner(unittest.TestCase):
     got = check_subprocess('git -C "{dir}" remote -v'.format(dir=test_dir))
     # Disable pushes to the origni
     # No upstream since origin is upstream
+    remote = git.ORIGIN_REMOTE_NAME
+    decoy = os.path.join(git.options.scratch_dir,
+                         'nebula_decoys',
+                         os.path.basename(self.git_dir))
     self.assertEquals(
         '\n'.join([
-            'origin\t{origin} (fetch)'.format(origin=self.git_dir),
-            'origin\tdisabled (push)'
+            '{remote}\t{origin} (fetch)'.format(
+                remote=remote, origin=self.git_dir),
+            '{remote}\tdisabled (push)'.format(remote=remote),
+            'origin\t{decoy} (fetch)'.format(decoy=decoy),
+            'origin\t{decoy} (push)'.format(decoy=decoy)
             ]),
         got)
 
@@ -239,11 +249,19 @@ class TestGitRunner(unittest.TestCase):
 
     got = check_subprocess('git -C "{dir}" remote -v'.format(dir=test_dir))
 
+    remote = git.ORIGIN_REMOTE_NAME
+    decoy = os.path.join(git.options.scratch_dir,
+                         'nebula_decoys',
+                         os.path.basename(self.git_dir))
     # Upstream repo is configured for pulls, but not for pushes.
     self.assertEquals(
         '\n'.join([
-            'origin\t{origin} (fetch)'.format(origin=origin_dir),
-            'origin\t{origin} (push)'.format(origin=origin_dir),
+            '{remote}\t{origin} (fetch)'.format(
+                remote=remote, origin=origin_dir),
+            '{remote}\t{origin} (push)'.format(
+                remote=remote, origin=origin_dir),
+            'origin\t{decoy} (fetch)'.format(decoy=decoy),
+            'origin\t{decoy} (push)'.format(decoy=decoy),
             'upstream\t{upstream} (fetch)'.format(upstream=self.git_dir),
             'upstream\tdisabled (push)'
             ]),

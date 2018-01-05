@@ -381,17 +381,31 @@ class BaseMetricsRegistry(object):
     """Starts thread for pushing metrics."""
     def delay_func():
       """Helper function for push thread"""
-      if self.__pusher_thread:
-        self.__pusher_thread_event.wait(self.options.monitoring_flush_frequency)
-      return self.__pusher_thread is not None
+      # pylint: disable=broad-except
+      try:
+        if self.__pusher_thread:
+          # Remove noisy logging once satisified there isnt a deadlock.
+          logging.debug('Pusher thread wait %s',
+                        self.options.monitoring_flush_frequency)
+          self.__pusher_thread_event.wait(
+              self.options.monitoring_flush_frequency)
+          logging.debug('Pusher thread returning %s',
+                        self.__pusher_thread is not None)
+          return self.__pusher_thread is not None
+      except Exception as ex:
+        logging.error('Pusher thread delay func caught %s', ex)
+        return False
+
     self.__pusher_thread = threading.Thread(
-        target=self.flush_every_loop, args=[delay_func])
+        name='MetricsManager', target=self.flush_every_loop, args=[delay_func])
     self.__pusher_thread.start()
 
   def stop_pusher_thread(self):
     """Stop thread for pushing metrics."""
+    logging.debug('Signaling pusher thread %s', self.__pusher_thread)
     self.__pusher_thread = None
     self.__pusher_thread_event.set()
+
     # Thread will remain around until it awakes and sees it should exit the
     # loop, though there is a race condition in which we might restart the
     # loop again before the old one wakes up, but in practice restarts are

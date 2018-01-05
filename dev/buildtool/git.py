@@ -22,7 +22,6 @@ import collections
 import logging
 import os
 import re
-import shutil
 import tempfile
 import time
 
@@ -35,7 +34,6 @@ import yaml
 
 from buildtool.util import (
     check_subprocess,
-    check_subprocess_sequence,
     ensure_dir_exists,
     run_subprocess)
 
@@ -52,7 +50,7 @@ class RemoteGitRepository(
        typically a URL or directory name.
     upstream_ref: [RemoteGitRepository] A reference to the upstream repository
        that the url repository is derived from. This is for purposes of
-       informing update requests between the origin URL from its upstream URL.
+       informing update requests between the ORIGIN URL from its upstream URL.
   """
 
   @staticmethod
@@ -131,6 +129,11 @@ class SemanticVersion(
     return '{series}-{major}.{minor}.{patch}'.format(
         series=self.series_name,
         major=self.major, minor=self.minor, patch=self.patch)
+
+  def to_release_branch(self):
+    """Return release branch name for this SemanticVersion."""
+    return 'release-{major}.{minor}.x'.format(
+        major=self.major, minor=self.minor)
 
   def next(self, at_index):
     """Returns the next SemanticVersion from this when bumping up.
@@ -462,6 +465,7 @@ class RepositorySummary(collections.namedtuple(
 class GitRunner(object):
   """Helper class for interacting with Git"""
 
+  ORIGIN_REMOTE_NAME = 'actual_origin'
   __GITHUB_TOKEN = None
 
   @staticmethod
@@ -516,7 +520,7 @@ class GitRunner(object):
           ' to notify when creating Github pull requests.')
       add_argument(
           parser, 'no_pr', defaults, False,
-          help='Do not submit upstream PRs even if pushing to origin.')
+          help='Do not submit upstream PRs even if pushing to ORIGIN.')
 
 
   @staticmethod
@@ -659,16 +663,17 @@ class GitRunner(object):
     return stdout
 
   def push_branch_to_origin(self, git_dir, branch):
-    """Push the given local repository back up to the origin.
+    """Push the given local repository back up to the ORIGIN.
 
     This has no effect if the repository is not in the given branch.
     """
     in_branch = self.query_local_repository_branch(git_dir)
     if in_branch != branch:
-      logging.warning('Skipping push %s "%s" to origin because branch is "%s".',
-                      git_dir, branch, in_branch)
+      logging.warning('Skipping push %s "%s" to %s because branch is "%s".',
+                      git_dir, branch, self.ORIGIN_REMOTE_NAME, in_branch)
       return
-    self.check_git(git_dir, 'push origin --tags ' + branch)
+    self.check_git(git_dir, 'push {remote} --tags {branch}'.format(
+        remote=self.ORIGIN_REMOTE_NAME, branch=branch))
 
   def refresh_local_repository(self, git_dir, remote_name, branch):
     """Refreshes the given local repository from the remote one.
@@ -715,7 +720,7 @@ class GitRunner(object):
           'WARNING {name} branch={branch} is not known to {which}.\n'
           .format(name=repository.name, branch=branch, which=remote_name))
 
-  def __check_clone_branch(self, origin_url, base_dir, clone_command, branches):
+  def __check_clone_branch(self, remote_url, base_dir, clone_command, branches):
     remaining_branches = list(branches)
     while True:
       branch = remaining_branches.pop(0)
@@ -734,7 +739,7 @@ class GitRunner(object):
       if remaining_branches:
         logging.warning(
             'Branch %s does not exist in %s. Retry with %s',
-            branch, origin_url, remaining_branches[0])
+            branch, remote_url, remaining_branches[0])
         continue
 
       lines = stdout.split('\n')
@@ -742,10 +747,24 @@ class GitRunner(object):
       logging.error('git -C "%s" %s failed with output:\n   %s',
                     base_dir, cmd, stdout)
       raise ValueError('Branches {0} do not exist in {1}.'
-                       .format(branches, origin_url))
+                       .format(branches, remote_url))
+
+  def __make_decoy_origin(self, repo_name):
+    """Create a empty repository as a decoy to trick nebula.
+
+    When nebula insists on side effects to the "origin" repo, it will
+    munge this one leaving the real origin alone.
+    """
+    decoy_path = os.path.join(
+        self.options.scratch_dir, 'nebula_decoys', repo_name)
+    ensure_dir_exists(decoy_path)
+    if not os.path.exists(os.path.join(decoy_path, '.git')):
+      logging.debug('Creating nebula decoy repository at %s', decoy_path)
+      self.check_git(decoy_path, 'init')
+    return decoy_path
 
   def clone_repository_to_path(
-      self, origin_url, git_dir, upstream_url=None,
+      self, remote_url, git_dir, upstream_url=None,
       commit=None, branch=None, default_branch=None):
     """Clone the remote repository at the given commit or branch.
 
@@ -757,33 +776,39 @@ class GitRunner(object):
     if (commit != None) and (branch != None):
       raise ValueError('At most one of commit or branch can be specified.')
 
-    logging.debug('Begin cloning %s', origin_url)
+    logging.debug('Begin cloning %s', remote_url)
     parent_dir = os.path.dirname(git_dir)
     ensure_dir_exists(parent_dir)
 
-    clone_command = 'clone ' + origin_url
+    clone_command = 'clone ' + remote_url
     if branch:
       branches = [branch]
       if default_branch:
         branches.append(default_branch)
-      self.__check_clone_branch(origin_url, parent_dir, clone_command, branches)
+      self.__check_clone_branch(remote_url, parent_dir, clone_command, branches)
     else:
       self.check_git(parent_dir, clone_command)
-    logging.info('Cloned %s into %s', origin_url, parent_dir)
+    logging.info('Cloned %s into %s', remote_url, parent_dir)
+    logging.info('Renaming origin remote and adding a decoy to trick nebula.')
+    self.check_git(git_dir, 'remote rename origin ' + self.ORIGIN_REMOTE_NAME)
+
+    decoy_origin_dir = self.__make_decoy_origin(os.path.basename(git_dir))
+    self.check_git(git_dir,
+                   'remote add origin ' + os.path.abspath(decoy_origin_dir))
 
     if commit:
       self.check_git(git_dir, 'checkout -q ' + commit, echo=True)
 
-    if upstream_url and not self.is_same_repo(upstream_url, origin_url):
+    if upstream_url and not self.is_same_repo(upstream_url, remote_url):
       logging.debug('Adding upstream %s with disabled push', upstream_url)
       self.check_git(git_dir, 'remote add upstream ' + upstream_url)
 
     which = ('upstream'
-             if upstream_url and not self.is_same_repo(upstream_url, origin_url)
-             else 'origin')
+             if upstream_url and not self.is_same_repo(upstream_url, remote_url)
+             else self.ORIGIN_REMOTE_NAME)
     self.check_git(
         git_dir, 'remote set-url --push {which} disabled'.format(which=which))
-    logging.debug('Finished cloning %s', origin_url)
+    logging.debug('Finished cloning %s', remote_url)
 
   def tag_head(self, git_dir, tag):
     """Add tag to the local repository HEAD."""
@@ -809,15 +834,16 @@ class GitRunner(object):
         match.group(1): match.group(2)
         for match in re.finditer(r'(\w+)\s+(\S+)\s+\(fetch\)', git_text)
     }
-    origin_url = remote_urls.get('origin')
-    if not origin_url:
-      raise ValueError('{0} has no remote "origin"'.format(git_dir))
+    remote_url = remote_urls.get(self.ORIGIN_REMOTE_NAME)
+    if not remote_url:
+      raise ValueError('{0} has no remote "{1}"'.format(
+          git_dir, self.ORIGIN_REMOTE_NAME))
 
     upstream_url = remote_urls.get('upstream')
     upstream = (RemoteGitRepository.make_from_url(upstream_url)
                 if upstream_url
                 else None)
-    return RemoteGitRepository.make_from_url(origin_url, upstream_ref=upstream)
+    return RemoteGitRepository.make_from_url(remote_url, upstream_ref=upstream)
 
   def collect_repository_summary(self, git_dir):
     """Collects RepsitorySummary from local repository directory."""
@@ -844,48 +870,6 @@ class GitRunner(object):
     total_ms = int((time.time() - start_time) * 1000)
     logging.debug('Finished analyzing %s in %d ms', git_dir, total_ms)
     return RepositorySummary(current_id, use_tag, use_version, msgs)
-
-  def reinit_local_repository_with_tag(
-      self, git_dir, git_tag, initial_commit_message):
-    """Recreate the given local repository using the current content.
-
-    The Netflix Nebula gradle plugin that spinnaker uses to build the sources
-    is hardcoded with some incompatible constraints which we are unable to
-    change (the owner is receptive but wont do it for us and we arent familiar
-    with how it works or exactly what needs changed). Therefore we'll wipe out
-    the old tags and just put the one tag we want in order to avoid ambiguity.
-    We'll detatch the old repository to avoid accidental pushes. It's much
-    faster to create a new repo than remove all the existing tags.
-
-    Args:
-      git_dir: [path]  The path to the local git repository.
-         If this has an existing .git directory it will be removed.
-         The directory will be re initialized as a new repository.
-      git_tag: [string] The tag to give the initial commit
-      initial_commit_message: [string] The initial commit message
-        when commiting the existing directory content to the new repo.
-    """
-    if git_tag is None:
-      git_tag = self.check_git(git_dir, 'describe --tags --abbrev=0')
-
-    escaped_commit_message = initial_commit_message.replace('"', '\\"')
-    logging.info('Removing old .git from %s and starting new at %s',
-                 git_dir, git_tag)
-    original_origin = self.determine_remote_git_repository(git_dir)
-
-    shutil.rmtree(os.path.join(git_dir, '.git'))
-
-    _git = 'git -C "{dir}" '.format(dir=git_dir)
-    check_subprocess_sequence([
-        _git + 'init',
-        _git + 'add .',
-        _git + 'remote add {name} {url}'.format(
-            name='origin', url=original_origin.url),
-        _git + 'remote set-url --push {name} disabled'.format(name='origin'),
-        _git + 'commit -q -a -m "{message}"'.format(
-            message=escaped_commit_message),
-        _git + 'tag {tag} HEAD'.format(tag=git_tag)
-    ])
 
   def delete_local_branch_if_exists(self, git_dir, branch):
     """Delete the branch from git_dir if one exists.
@@ -918,7 +902,7 @@ class GitRunner(object):
       head: [string] The branch to use for the pull request. By default this
          is the current branch state of the the git_dir repository. This
          too can be BRANCH or OWNER:BRANCH. This branch must have alraedy been
-         pushed to the origin repository -- not the local repository.
+         pushed to the ORIGIN repository -- not the local repository.
     """
     options = self.options
     message = message.strip()

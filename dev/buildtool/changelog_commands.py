@@ -33,8 +33,7 @@ from buildtool.git import (
     CommitMessage)
 from buildtool.source_code_manager import (
     SPINNAKER_BOM_REPOSITORIES,
-    SPINNAKER_GITHUB_IO_REPOSITORY,
-    SPINNAKER_HALYARD_REPOSITORIES)
+    SPINNAKER_GITHUB_IO_REPOSITORY)
 from buildtool.util import (
     write_to_path)
 
@@ -374,7 +373,7 @@ def register_commands(registry, subparsers, defaults):
   """Registers all the commands for this module."""
   publish_changelog_factory = PullRequestCommandFactory(
       'publish_changelog', PublishChangelogCommand,
-      'Push changelog to the spinnaker.github.io repository origin'
+      'Push changelog to the spinnaker.github.io repository ORIGIN'
       ' and submit a Github Pull Request on it.')
 
   GenerateChangelogCommandFactory().register(registry, subparsers, defaults)

@@ -21,6 +21,7 @@ import urllib2
 import yaml
 
 import buildtool.build_commands
+import buildtool.image_commands
 import buildtool.source_commands
 
 from buildtool.command import (
@@ -205,6 +206,7 @@ class GenerateBomCommandFactory(RepositoryCommandFactory):
     """Adds command-specific arguments."""
     super(GenerateBomCommandFactory, self)._do_init_argparser(parser, defaults)
     buildtool.build_commands.add_bom_parser_args(parser, defaults)
+    buildtool.image_commands.add_bom_parser_args(parser, defaults)
     buildtool.source_commands.FetchSourceCommandFactory.add_fetch_parser_args(
         parser, defaults)
 

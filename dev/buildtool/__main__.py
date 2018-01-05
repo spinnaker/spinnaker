@@ -227,12 +227,32 @@ def main():
   return 0
 
 
+def dump_threads():
+  """Dump current threads to facilitate debugging possible deadlock.
+
+  A process did not exit when log file suggested it was. Maybe there was
+  a background thread it was joining on. If so, this might give a clue
+  should it happen again.
+  """
+  import threading
+  threads = []
+  for thread in threading.enumerate():
+    threads.append('  name={name} daemon={d} alive={a} id={id}'.format(
+        name=thread.name, d=thread.daemon, a=thread.is_alive(),
+        id=thread.ident))
+
+  logging.info('The following threads still running:\n%s', '\n'.join(threads))
+
+
 if __name__ == '__main__':
   # pylint: disable=broad-except
   try:
-    sys.exit(main())
+    retcode = main()
+    dump_threads()
+    sys.exit(retcode)
   except Exception as ex:
     sys.stdout.flush()
     maybe_log_exception('main()', ex, action_msg='Terminating')
     logging.error("FAILED")
+    dump_threads()
     sys.exit(-1)

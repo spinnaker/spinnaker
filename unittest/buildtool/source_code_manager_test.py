@@ -43,6 +43,8 @@ def _foreach_func(repository, *pos_args, **kwargs):
 def make_default_options():
   """Helper function for creating default options for runner."""
   parser = argparse.ArgumentParser()
+  parser.add_argument('--scratch_dir',
+                      default=os.path.join('/tmp', 'scmtest.%d' % os.getpid()))
   GitRunner.add_git_parser_args(parser, {})
   return parser.parse_args([])
 
@@ -110,6 +112,7 @@ class TestSourceCodeManager(unittest.TestCase):
   @classmethod
   def tearDownClass(cls):
     shutil.rmtree(cls.base_temp_dir)
+    shutil.rmtree(cls.git.options.scratch_dir)
 
   def test_get_local_repository_path(self):
     test_root = os.path.join(self.base_temp_dir, 'unused_source')

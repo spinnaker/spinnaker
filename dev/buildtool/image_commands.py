@@ -33,8 +33,10 @@ from buildtool.source_code_manager import (
     SPINNAKER_RUNNABLE_REPOSITORIES)
 
 from buildtool.util import (
+    add_parser_argument,
+    check_subprocesses_to_logfile,
     determine_logfile_path,
-    check_subprocesses_to_logfile)
+    ensure_options_set)
 
 
 # See BuildGceComponentImages class comment as to why these are "repositories"
@@ -62,6 +64,12 @@ class BuildGceComponentImages(RepositoryCommandProcessor):
   """
 
   def __init__(self, factory, options, **kwargs):
+    ensure_options_set(
+        options,
+        ['build_gce_service_account',
+         'build_gce_project',
+         'publish_gce_image_project'])
+
     # See class note as to why these are "repositories"
     source_repositories = kwargs.pop(
         'source_repositories', ALL_IMAGE_REPOSITORIES)
@@ -77,7 +85,7 @@ class BuildGceComponentImages(RepositoryCommandProcessor):
              else options.github_user)
     git_dir = os.path.dirname(__file__)
     if not branch:
-        branch = GitRunner(options).query_local_repository_branch(git_dir)
+      branch = GitRunner(options).query_local_repository_branch(git_dir)
     if not owner:
       url = (GitRunner(options)
              .determine_remote_git_repository(git_dir)
@@ -115,7 +123,6 @@ class BuildGceComponentImages(RepositoryCommandProcessor):
       command_line.extend(['--extra_install_script_args',
                            '"{0}"'.format(' '.join(extra_install_args))])
 
-
     command = ' '.join(command_line)
     logfile = determine_logfile_path(options, name, 'gce-image')
 
@@ -132,6 +139,17 @@ class BuildGceComponentImagesFactory(RepositoryCommandFactory):
         'build_gce_component_images', BuildGceComponentImages,
         'Build Google Compute Engine VM Images For Each Service.')
 
+  @staticmethod
+  def add_bom_parser_args(parser, defaults):
+    """Adds arguments shared with creating boms."""
+    if hasattr(parser, 'added_gce_image_project'):
+      return
+    parser.added_gce_image_project = True
+
+    add_parser_argument(
+        parser, 'publish_gce_image_project', defaults, None,
+        help='Project to publish images to.')
+
   def _do_init_argparser(self, parser, defaults):
     """Adds command-specific arguments."""
     super(BuildGceComponentImagesFactory, self)._do_init_argparser(
@@ -143,20 +161,17 @@ class BuildGceComponentImagesFactory(RepositoryCommandFactory):
         parser, 'build_gce_project', defaults, None,
         help='Project to build scratch image in.')
     self.add_argument(
-        parser, 'publish_gce_image_project', defaults, None,
-        help='Project to publish images to.')
-    self.add_argument(
         parser, 'build_gce_zone', defaults, 'us-central1-f',
         help='Zone to build scratch image in.')
     self.add_argument(
         parser, 'github_user', defaults, None,
         help='Github user repository to get install scripts from.'
-             ' If none, then use the origin repo that this script'
+             ' If none, then use the source repo that this script'
              ' is running from.')
     self.add_argument(
         parser, 'git_branch', defaults, None,
         help='Github branch to get install scripts from.'
-             ' If none, then use the origin branch that this script'
+             ' If none, then use the source repo branch that this script'
              ' is running from.')
 
     self.add_argument(
@@ -178,6 +193,11 @@ class BuildGceComponentImagesFactory(RepositoryCommandFactory):
     self.add_argument(
         parser, 'spinnaker_version', defaults, None, required=True,
         help='The spinnaker version to publish for.')
+
+
+def add_bom_parser_args(parser, defaults):
+  """Adds parser arguments pertaining to publishing boms."""
+  BuildGceComponentImagesFactory.add_bom_parser_args(parser, defaults)
 
 
 def register_commands(registry, subparsers, defaults):
