@@ -19,7 +19,6 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.manifest;
 
 import com.google.common.collect.ImmutableMap;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
-import com.netflix.spinnaker.kork.artifacts.model.ExpectedArtifact;
 import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.Task;
 import com.netflix.spinnaker.orca.TaskResult;
@@ -67,15 +66,16 @@ public class DeployManifestTask extends AbstractCloudProviderAwareTask implement
       log.info("Using {} as the manifest to be deployed", manifestArtifact);
     }
 
-    List<String> deployArtifactIds = (List<String>) task.get("deployArtifactIds");
-    deployArtifactIds = deployArtifactIds == null ? new ArrayList<>() : deployArtifactIds;
-    List<Artifact> deployArtifacts = deployArtifactIds.stream()
+    List<String> requiredArtifactIds = (List<String>) task.get("requiredArtifactIds");
+    requiredArtifactIds = requiredArtifactIds == null ? new ArrayList<>() : requiredArtifactIds;
+    List<Artifact> requiredArtifacts = requiredArtifactIds.stream()
         .map(id -> artifactResolver.getBoundArtifactForId(stage, id))
         .collect(Collectors.toList());
 
-    log.info("Deploying {} artifacts within the provided manifest", deployArtifacts);
+    log.info("Deploying {} artifacts within the provided manifest", requiredArtifacts);
 
-    task.put("artifacts", deployArtifacts);
+    task.put("requiredArtifacts", requiredArtifacts);
+    task.put("optionalArtifacts", artifacts);
     Map<String, Map> operation = new ImmutableMap.Builder<String, Map>()
         .put(TASK_NAME, task)
         .build();
