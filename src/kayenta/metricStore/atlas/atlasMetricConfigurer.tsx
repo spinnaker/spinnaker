@@ -27,6 +27,8 @@ export interface AtlasQuerySelector {
   'class': string;
   backends: string;
   query: string;
+  key: string,
+  hide: string;
   ref: (webComponent: Element) => void;
 }
 
@@ -83,8 +85,10 @@ class AtlasMetricConfigurer extends React.Component<IAtlasMetricConfigurerProps,
     const atlasBackend = 'https://atlas-global.prod.netflix.net';
     return (
       <atlas-query-selector
+        key={query}
         class="spinnaker-theme"
         backends={atlasBackend}
+        hide="add_scope,comparison,timeOffset,lineStyle,des,trend,lineWidth,axis,color,alpha,multi"
         query={query}
         ref={this.bindComponent}
       />
