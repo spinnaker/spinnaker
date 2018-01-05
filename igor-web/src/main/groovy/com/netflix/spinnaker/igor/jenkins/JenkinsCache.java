@@ -64,17 +64,17 @@ public class JenkinsCache {
         return results;
     }
 
-    public Map getLastBuild(String master, String job) {
+    public Map<String, Object> getLastBuild(String master, String job) {
         String key = makeKey(master, job);
         Map<String, String> result = redisClientDelegate.withCommandsClient(c -> {
             if (!c.exists(key)) {
-                return new HashMap<>();
+                return null;
             }
             return c.hgetAll(key);
         });
 
-        if (result.isEmpty()) {
-            return result;
+        if (result == null) {
+            return new HashMap<>();
         }
 
         Map<String, Object> converted = new HashMap<>();

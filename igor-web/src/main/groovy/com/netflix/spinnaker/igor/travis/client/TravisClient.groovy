@@ -29,6 +29,7 @@ import com.netflix.spinnaker.igor.travis.client.model.RepoWrapper
 import com.netflix.spinnaker.igor.travis.client.model.Repos
 import com.netflix.spinnaker.igor.travis.client.model.TriggerResponse
 import com.netflix.spinnaker.igor.travis.client.model.v3.Request
+import com.netflix.spinnaker.igor.travis.client.model.v3.V3Build
 import com.netflix.spinnaker.igor.travis.client.model.v3.V3Builds
 import retrofit.client.Response
 import retrofit.http.Body
@@ -98,6 +99,10 @@ interface TravisClient {
     ])
     @GET('/job/{jobId}/log')
     Response jobLog(@Header("Authorization") String accessToken , @Path('jobId') int jobId)
+
+    @GET('/build/{build_id}')
+    @Headers("Travis-API-Version: 3")
+    V3Build v3build(@Header("Authorization") String accessToken, @Path('build_id') int repositoryId)
 
     @GET('/repo/{repository_id}/builds')
     @Headers("Travis-API-Version: 3")

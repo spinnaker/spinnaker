@@ -75,8 +75,13 @@ public class BuildCache {
     }
 
     public Long getTTL(String master, String job) {
+        final String key = makeKey(master, job);
+        return getTTL(key);
+    }
+
+    private Long getTTL(String key) {
         return redisClientDelegate.withCommandsClient(c -> {
-            return c.ttl(makeKey(master, job));
+            return c.ttl(key);
         });
     }
 
@@ -103,17 +108,17 @@ public class BuildCache {
         return jobs;
     }
 
-    public Map getDeprecatedLastBuild(String master, String job) {
+    public Map<String, Object> getDeprecatedLastBuild(String master, String job) {
         String key = makeKey(master, job);
         Map<String, String> result = redisClientDelegate.withCommandsClient(c -> {
             if (!c.exists(key)) {
-                return new HashMap<>();
+                return null;
             }
             return c.hgetAll(key);
         });
 
-        if (result.isEmpty()) {
-            return result;
+        if (result == null) {
+            return new HashMap<>();
         }
 
         Map<String, Object> converted = new HashMap<>();
@@ -121,6 +126,37 @@ public class BuildCache {
         converted.put("lastBuildBuilding", Boolean.valueOf(result.get("lastBuildBuilding")));
 
         return converted;
+    }
+
+    public List<Map<String, String>> getTrackedBuilds(String master) {
+        List<Map<String, String>> builds = redisClientDelegate.withMultiClient(c -> {
+            return c.keys(baseKey() + ":track:" + master + ":*").stream()
+                .map(BuildCache::getTrackedBuild)
+                .collect(Collectors.toList());
+        });
+        return builds;
+    }
+
+    public void setTracking(String master, String job, int buildId, int ttl) {
+        String key = makeTrackKey(master, job, buildId);
+        redisClientDelegate.withCommandsClient(c -> {
+            c.set(key, "marked as running");
+        });
+        setTTL(key, ttl);
+    }
+
+    public void deleteTracking(String master, String job, int buildId) {
+        String key = makeTrackKey(master, job, buildId);
+        redisClientDelegate.withCommandsClient(c -> {
+            c.del(key);
+        });
+    }
+
+    private static Map<String, String> getTrackedBuild(String key) {
+        Map<String, String> build = new HashMap();
+        build.put("job", extractJobName(key));
+        build.put("buildId", extractBuildIdFromTrackingKey(key));
+        return build;
     }
 
     private void setBuild(String key, int lastBuild, boolean building, String master, String job, int ttl) {
@@ -147,8 +183,16 @@ public class BuildCache {
         return baseKey() + ":" + buildState + ":" + master + ":" + job.toUpperCase() + ":" + job;
     }
 
+    protected String makeTrackKey(String master, String job, int buildId) {
+        return baseKey() + ":track:" + master + ":" + job.toUpperCase() + ":" + job + ":" + buildId;
+    }
+
     private static String extractJobName(String key) {
         return key.split(":")[5];
+    }
+
+    private static String extractBuildIdFromTrackingKey(String key) {
+        return key.split(":")[6];
     }
 
     private static String extractDeprecatedJobName(String key) {

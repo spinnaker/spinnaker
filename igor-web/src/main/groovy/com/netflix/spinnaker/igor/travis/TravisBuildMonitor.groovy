@@ -44,7 +44,7 @@ import java.util.concurrent.TimeUnit
 import static net.logstash.logback.argument.StructuredArguments.kv
 
 /**
- * Monitors new travis builds
+ * Monitors travis builds
  */
 @Service
 @SuppressWarnings('CatchException')
@@ -75,6 +75,7 @@ class TravisBuildMonitor extends CommonPollingMonitor {
     @Override
     void poll() {
         buildMasters.filteredMap(BuildServiceProvider.TRAVIS).keySet().each { master ->
+            trackedBuilds(master)
             changedBuilds(master)
         }
     }
@@ -84,69 +85,91 @@ class TravisBuildMonitor extends CommonPollingMonitor {
         return "travisBuildMonitor"
     }
 
-    List<Map> changedBuilds(String master) {
-        log.info('Checking for new builds for {}', kv("master", master))
+    List<Map> trackedBuilds(String master) {
         List<Map> results = []
-        int updatedBuilds = 0
+        TravisService travisService = buildMasters.map[master] as TravisService
+        def trackedBuilds = buildCache.getTrackedBuilds(master)
+        log.info('({}) Checking for updates on {} tracked builds', kv("master", master), trackedBuilds.size())
+
+        List<V3Build> builds = trackedBuilds.collect {
+            travisService.getV3Build((int) it.get("buildId").toInteger())
+        }
+        processBuilds(builds, master, travisService, results)
+    }
+
+    List<Map> changedBuilds(String master) {
+        log.info('({}) Checking for new builds', kv("master", master))
+        List<Map> results = []
 
         TravisService travisService = buildMasters.map[master] as TravisService
 
         def startTime = System.currentTimeMillis()
         List<Repo> repos = filterOutOldBuilds(travisService.getReposForAccounts())
-        log.info("Took ${System.currentTimeMillis() - startTime}ms to retrieve ${repos.size()} repositories (master: {})", kv("master", master))
+        log.info("({}) Took {}ms to retrieve {} repositories", kv("master", master), System.currentTimeMillis() - startTime, repos.size())
         Observable.from(repos).subscribe(
             { Repo repo ->
                 List<V3Build> builds = travisService.getBuilds(repo, 5)
-                for (V3Build build : builds) {
-                    boolean addToCache = false
-                    String branchedRepoSlug = build.branchedRepoSlug()
-                    def cachedBuild = buildCache.getLastBuild(master, branchedRepoSlug, TravisResultConverter.running(build.state))
-                    if (build.number > cachedBuild) {
-                        addToCache = true
-                        log.info("New build: {}: ${branchedRepoSlug} : ${build.number}", kv("master", master))
-                    }
-                    if (addToCache) {
-                        updatedBuilds += 1
-                        log.info("Build update [${branchedRepoSlug}:${build.number}] [status:${build.state}] [running:${TravisResultConverter.running(build.state)}]")
-                        buildCache.setLastBuild(master, branchedRepoSlug, build.number, TravisResultConverter.running(build.state), buildCacheJobTTLSeconds())
-                        buildCache.setLastBuild(master, build.repository.slug, build.number, TravisResultConverter.running(build.state), buildCacheJobTTLSeconds())
-                        if (!build.spinnakerTriggered()) {
-                            sendEventForBuild(build, branchedRepoSlug, master, travisService)
-                        }
-                        results << [slug: branchedRepoSlug, previous: cachedBuild, current: build.number]
-                    }
-                }
+                processBuilds(builds, master, travisService, results)
             }, {
-            log.error("Error: ${it.message} (master: {})", kv("master", master))
-        }
+                log.error("({}) Error: ${it.message}", kv("master", master))
+            }
         )
-        if (updatedBuilds) {
-            log.info("Found {} new builds (master: {})", updatedBuilds, kv("master", master))
+        if (results.size() > 0 ) {
+            log.info("({}) Found {} new builds", kv("master", master), results.size())
         }
-        log.info("Last poll took ${System.currentTimeMillis() - startTime}ms (master: {})", kv("master", master))
+        log.info("({}) Last poll took {}ms", kv("master", master), System.currentTimeMillis() - startTime)
         if (travisProperties.repositorySyncEnabled) {
             startTime = System.currentTimeMillis()
             travisService.syncRepos()
-            log.info("repositorySync: Took ${System.currentTimeMillis() - startTime}ms to sync repositories for {}", kv("master", master))
+            log.info("({}) repositorySync: Took {}ms to sync repositories", kv("master", master), System.currentTimeMillis() - startTime)
         }
         results
 
     }
 
+    private void processBuilds(List<V3Build> builds, String master, TravisService travisService, List<Map> results) {
+
+        for (V3Build build : builds) {
+            boolean addToCache = false
+            String branchedRepoSlug = build.branchedRepoSlug()
+            def cachedBuild = buildCache.getLastBuild(master, branchedRepoSlug, TravisResultConverter.running(build.state))
+            if (build.number > cachedBuild && !build.spinnakerTriggered()) {
+                addToCache = true
+                log.debug("({}) New build: {}", kv("master", master), build.toString())
+            }
+            if (addToCache) {
+                log.info("({}) Build update {} [running:{}]", kv("master", master), build.toString(), TravisResultConverter.running(build.state))
+                buildCache.setLastBuild(master, branchedRepoSlug, build.number, TravisResultConverter.running(build.state), buildCacheJobTTLSeconds())
+                if(build.number > buildCache.getLastBuild(master, build.repository.slug, TravisResultConverter.running(build.state))) {
+                    buildCache.setLastBuild(master, build.repository.slug, build.number, TravisResultConverter.running(build.state), buildCacheJobTTLSeconds())
+                    sendEventForBuild(build, build.repository.slug, master, travisService)
+                }
+                sendEventForBuild(build, branchedRepoSlug, master, travisService)
+
+                results << [slug: branchedRepoSlug, previous: cachedBuild, current: build.number]
+            }
+            setTracking(build, master)
+        }
+    }
+
+    private void setTracking(V3Build build, String master) {
+        if (TravisResultConverter.running(build.state)) {
+            buildCache.setTracking(master, build.repository.slug, build.id, getPollInterval() * 5)
+            log.debug("({}) tracking set up for {}", kv("master", master), build.toString())
+        } else {
+            buildCache.deleteTracking(master, build.repository.slug, build.id)
+            log.debug("({}) tracking deleted for {}", kv("master", master), build.toString())
+        }
+    }
+
     private void sendEventForBuild(V3Build build, String branchedSlug, String master, TravisService travisService) {
-        if (echoService) {
-            log.info("pushing event for {}:${build.repository.slug}:${build.number}", kv("master", master))
-            GenericProject project = new GenericProject(build.repository.slug, TravisBuildConverter.genericBuild(build, travisService.baseUrl))
-            echoService.postEvent(
-                new GenericBuildEvent(content: new GenericBuildContent(project: project, master: master, type: 'travis'))
-            )
-            log.info("pushing event for {}:${branchedSlug}:${build.number}", kv("master", master))
-            project = new GenericProject(branchedSlug, TravisBuildConverter.genericBuild(build, travisService.baseUrl))
+        if (echoService && !build.spinnakerTriggered()) {
+            log.info("({}) pushing event for :${branchedSlug}:${build.number}", kv("master", master))
+            GenericProject project = new GenericProject(branchedSlug, TravisBuildConverter.genericBuild(build, travisService.baseUrl))
             echoService.postEvent(
                 new GenericBuildEvent(content: new GenericBuildContent(project: project, master: master, type: 'travis'))
             )
         }
-
     }
 
     private void migrateToNewBuildCache(){
@@ -164,7 +187,6 @@ class TravisBuildMonitor extends CommonPollingMonitor {
                         buildCache.setLastBuild(master, job, oldBuildNumber, oldBuildBuilding, buildCacheJobTTLSeconds())
                     }
                 }
-
             }
         }
     }

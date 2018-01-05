@@ -132,6 +132,15 @@ class TravisService implements BuildService {
         ).execute()
     }
 
+    V3Build getV3Build(int buildId) {
+        new SimpleHystrixCommand<V3Build>(
+            groupKey, buildCommandKey("getV3Build"),
+            {
+                return travisClient.v3build(getAccessToken(), buildId)
+            }
+        ).execute()
+    }
+
     Builds getBuilds(String repoSlug, int buildNumber) {
         new SimpleHystrixCommand<Builds>(
             groupKey, buildCommandKey("getBuilds"),

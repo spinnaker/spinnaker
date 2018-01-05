@@ -76,4 +76,12 @@ class V3Build {
     boolean spinnakerTriggered(){
         return (eventType == "api" && commit.message == "Triggered from spinnaker")
     }
+
+    public String toString() {
+        String tmpSlug = "unknown/repository"
+        if (repository != null) {
+            tmpSlug = repository.slug
+        }
+        return "[" + tmpSlug + ":" + number + ":" + state + "]"
+    }
 }

@@ -42,7 +42,7 @@ class TravisBuildMonitorSpec extends Specification {
         travisBuildMonitor = new TravisBuildMonitor(buildCache: buildCache, buildMasters: new BuildMasters(map: [MASTER : travisService]), travisProperties: travisProperties)
     }
 
-    void 'flag a new build not found in the cache'() {
+    void 'flag a new build on master, but do not send event on repo if a newer build is present at repo level'() {
         Repo repo = new Repo()
         repo.slug = "test-org/test-repo"
         repo.lastBuildNumber = 4
@@ -61,8 +61,9 @@ class TravisBuildMonitorSpec extends Specification {
         build.branchedRepoSlug() >> "test-org/test-repo/master"
         build.getNumber() >> 4
         1 * buildCache.getLastBuild(MASTER, 'test-org/test-repo/master', false) >> 3
+        1 * buildCache.getLastBuild(MASTER, 'test-org/test-repo', false) >> 5
         1 * buildCache.setLastBuild(MASTER, 'test-org/test-repo/master', 4, false, CACHED_JOB_TTL_SECONDS)
-        1 * buildCache.setLastBuild(MASTER, 'test-org/test-repo', 4, false, CACHED_JOB_TTL_SECONDS)
+        0 * buildCache.setLastBuild(MASTER, 'test-org/test-repo', 4, false, CACHED_JOB_TTL_SECONDS)
 
         build.repository >> repository
         repository.slug >> 'test-org/test-repo'
