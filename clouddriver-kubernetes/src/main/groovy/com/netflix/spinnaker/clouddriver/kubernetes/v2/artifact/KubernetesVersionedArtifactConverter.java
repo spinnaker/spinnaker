@@ -40,6 +40,7 @@ public class KubernetesVersionedArtifactConverter extends KubernetesArtifactConv
         .name(name)
         .location(location)
         .version(version)
+        .reference(getDeployedName(name, version))
         .build();
   }
 
@@ -54,7 +55,11 @@ public class KubernetesVersionedArtifactConverter extends KubernetesArtifactConv
 
   @Override
   public String getDeployedName(Artifact artifact) {
-    return artifact.getName() + "-" + artifact.getVersion();
+    return getDeployedName(artifact.getName(), artifact.getVersion());
+  }
+
+  private String getDeployedName(String name, String version) {
+    return String.join("-", name, version);
   }
 
   private String getVersion(ArtifactProvider provider, String type, String name, String location) {

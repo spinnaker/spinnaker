@@ -34,6 +34,7 @@ public class KubernetesUnversionedArtifactConverter extends KubernetesArtifactCo
         .type(type)
         .name(name)
         .location(location)
+        .reference(name)
         .build();
   }
 
