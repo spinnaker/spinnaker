@@ -16,13 +16,17 @@
 
 package com.netflix.spinnaker.gate.services
 
+import com.netflix.spinnaker.fiat.model.Authorization
+import com.netflix.spinnaker.fiat.model.resources.Permissions
 import com.netflix.spinnaker.fiat.shared.FiatClientConfigurationProperties
 import com.netflix.spinnaker.gate.services.commands.HystrixFactory
 import com.netflix.spinnaker.gate.services.internal.ClouddriverService
 import com.netflix.spinnaker.gate.services.internal.ClouddriverServiceSelector
+import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 
+@Slf4j
 @Service
 class CredentialsService {
   private static final String GROUP = "credentials"
@@ -58,14 +62,23 @@ class CredentialsService {
           return true // Returned list is filtered later.
         }
 
-        if (!account.requiredGroupMembership) {
+        Set<String> permissions = []
+        //support migration from requiredGroupMemberships config to permissions config.
+        //prefer permissions.WRITE over requiredGroupMemberships if non-empty permissions present
+        if (account.permissions) {
+          if (account.requiredGroupMembership) {
+            log.warn("on Account $account.name: preferring permissions: $account.permissions over requiredGroupMemberships: $account.requiredGroupMembership for authz decision")
+          }
+          permissions.addAll(account.permissions.get(Authorization.WRITE.toString()).collect { it.toLowerCase() })
+        } else if (account.requiredGroupMembership) {
+          permissions.addAll(account.requiredGroupMembership*.toLowerCase())
+        } else {
           return true // anonymous account.
         }
 
-        def userRolesLower = userRoles*.toLowerCase()
-        def reqGroupMembershipLower = account.requiredGroupMembership*.toLowerCase()
+        def userRolesLower = userRoles*.toLowerCase() as Set<String>
 
-        return userRolesLower.intersect(reqGroupMembershipLower) as Boolean
+        return userRolesLower.intersect(permissions) as Boolean
       } ?: []
     } execute()
   }

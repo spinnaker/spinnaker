@@ -43,6 +43,7 @@ interface ClouddriverService {
     String type
     String providerVersion
     Collection<String> requiredGroupMembership = []
+    Map<String, Collection<String>> permissions
   }
 
 
