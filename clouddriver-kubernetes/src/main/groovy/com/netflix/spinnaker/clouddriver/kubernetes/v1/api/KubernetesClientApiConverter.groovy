@@ -553,11 +553,13 @@ class KubernetesClientApiConverter {
       case KubernetesVolumeSourceType.Secret:
         def res = new V1SecretVolumeSource()
         res.secretName = volumeSource.secret.secretName
-        volume.secret = res.secretName
+        volume.secret = res
         break
 
       case KubernetesVolumeSourceType.ConfigMap:
         def res = new V1ConfigMapVolumeSource()
+        res.name = volumeSource.configMap.configMapName
+
         def items = volumeSource.configMap.items?.collect { KubernetesKeyToPath item ->
           new V1KeyToPath(key: item.key, path: item.path)
         }
