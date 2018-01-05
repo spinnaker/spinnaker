@@ -126,7 +126,7 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
         description.resources.gpu = description.resources.gpu ?: sourceJob.gpu
         description.resources.networkMbps = description.resources.networkMbps ?: sourceJob.networkMbps
         description.efs = description.efs ?: sourceJob.efs
-        description.env = description.env ?: sourceJob.environment
+        description.env = description.env != null ? description.env : sourceJob.environment
         description.resources.allocateIpAddress = description.resources.allocateIpAddress ?: sourceJob.allocateIpAddress
         description.entryPoint = description.entryPoint ?: sourceJob.entryPoint
         description.iamProfile = description.iamProfile ?: sourceJob.iamProfile
