@@ -31,7 +31,7 @@ module(INFRASTRUCTURE_STATES, [
     }
   });
 
-  stateConfigProvider.addToRootState({ name: 'infrastructure', url: '/search?q', redirectTo: 'search' });
+  stateConfigProvider.addToRootState({ name: 'infrastructure', url: '/search?q', redirectTo: 'home.search' });
   stateConfigProvider.addRewriteRule('/infrastructure?q', '/search?q');
   stateConfigProvider.addRewriteRule('', '/search');
   stateConfigProvider.addRewriteRule('/', '/search');
