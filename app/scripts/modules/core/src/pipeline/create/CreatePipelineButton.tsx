@@ -10,6 +10,7 @@ import { CreatePipelineModal } from './CreatePipelineModal';
 
 export interface ICreatePipelineButtonProps {
   application: Application;
+  asLink?: boolean;
 }
 
 export interface ICreatePipelineButtonState {
@@ -45,6 +46,25 @@ export class CreatePipelineButton extends React.Component<ICreatePipelineButtonP
   };
 
   public render() {
+    const modal = (
+      <CreatePipelineModal
+        show={this.state.showCreatePipelineModal}
+        showCallback={this.showCallBack}
+        pipelineSavedCallback={this.goToPipelineConfig}
+        application={this.props.application}
+      />
+    );
+    if (this.props.asLink) {
+      return (
+        <a
+          className="clickable"
+          onClick={this.createPipeline}
+        >
+          Configure a new pipeline
+          {modal}
+        </a>
+      );
+    }
     return (
       <button
         className="btn btn-sm btn-default"
@@ -56,12 +76,7 @@ export class CreatePipelineButton extends React.Component<ICreatePipelineButtonP
           <span className="glyphicon glyphicon-plus-sign hidden-xl-inline"/>
         </Tooltip>
         <span className="visible-xl-inline"> Create</span>
-        <CreatePipelineModal
-          show={this.state.showCreatePipelineModal}
-          showCallback={this.showCallBack}
-          pipelineSavedCallback={this.goToPipelineConfig}
-          application={this.props.application}
-        />
+        {modal}
       </button>
     )
   }

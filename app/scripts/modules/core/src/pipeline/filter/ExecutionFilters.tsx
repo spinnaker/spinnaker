@@ -191,7 +191,7 @@ export class ExecutionFilters extends React.Component<IExecutionFiltersProps, IE
                   update={this.refreshExecutions}
                   onSortEnd={this.handleSortEnd}
                 />
-                { pipelineNames.length && (
+                { pipelineNames.length > 0 && (
                   <div>
                     { !pipelineReorderEnabled && (
                       <a
