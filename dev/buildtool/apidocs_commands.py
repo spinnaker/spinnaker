@@ -235,7 +235,7 @@ class GenerateApiDocsFactory(RepositoryCommandFactory):
   def _do_init_argparser(self, parser, defaults):
     """Implements CommandFactory interface."""
     self.add_argument(
-        parser, 'max_wait_secs_startup', defaults, 90, type=int,
+        parser, 'max_wait_secs_startup', defaults, 210, type=int,
         help='Number of seconds to wait for gate server to startup'
              ' before giving up and timing out.')
     self.add_argument(
@@ -250,7 +250,7 @@ class GenerateApiDocsFactory(RepositoryCommandFactory):
 
 
 class PublishApiDocsCommand(PullRequestCommandProcessor):
-  """Publish generated docs back up to the origin repository."""
+  """Publish generated docs back up to the ORIGIN repository."""
 
   def __init__(self, factory, options, **kwargs):
     super(PublishApiDocsCommand, self).__init__(
@@ -295,7 +295,7 @@ def register_commands(registry, subparsers, defaults):
   """Registers all the commands for this module."""
   publish_apidocs_factory = PullRequestCommandFactory(
       'publish_apidocs', PublishApiDocsCommand,
-      'Push apidocs to the spinnaker.github.io repository origin'
+      'Push apidocs to the spinnaker.github.io repository ORIGIN'
       ' and submit a Github Pull Request on it.')
 
   GenerateApiDocsFactory().register(registry, subparsers, defaults)

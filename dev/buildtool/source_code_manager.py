@@ -18,20 +18,7 @@ This includes fetching the source to be built as well as manipulating
 the git repositories for tagging and annotations.
 """
 
-# Ideally something like a Pool is better because it will run in
-# different processes to bypass some of the global interpreter lock.
-# However because we often run commands in these, which forks another process,
-# we seem to deadlock sometimes (always when running gradle). I think this
-# could be because this pool fork has some locks grabbed which leads to
-# deadlock when something is trying to grab a lock that was already locked
-# at the point of the first fork. This doesnt really make sense because it
-# only happens with gradle and not with git, and the gradle jobs do complete
-# in the pool'd thread so at that point there shouldnt be a difference between
-# them. So maybe something else is going on in the build command.
-
-from multiprocessing.pool import (
-    Pool,
-    ThreadPool)
+from multiprocessing.pool import ThreadPool
 
 import logging
 import os
@@ -223,9 +210,6 @@ class SpinnakerSourceCodeManager(object):
 
     spec = bom['services'][repository_name]
     commit = spec['commit']
-    version = spec['version']
-
-    git_tag = 'version-{}'.format(version[:version.index('-')])
 
     # We're creating a local repo containing only the commit and tag.
     # The reason for this is because nebula gets confused by our tags
@@ -237,36 +221,25 @@ class SpinnakerSourceCodeManager(object):
       return None
 
     base_url = bom['artifactSources']['gitPrefix']
-    origin_url = spec.get(
+    remote_url = spec.get(
         'sourceRepository',
         '{base}/{name}'.format(base=base_url, name=repository_name))
     branch = spec.get(
         'sourceBranch',
-        bom['artifactSources'].get('gitBranch', '(unknown)'))
+        bom['artifactSources'].get('gitBranch', 'master'))
 
-    self.__git.clone_repository_to_path(origin_url, git_dir, commit=commit)
-    self.__git.reinit_local_repository_with_tag(
-        git_dir, git_tag,
-        'Repository snapshot from BOM\n'
-        '\ncommit={commit}\nurl={url}\nbranch={branch}'.format(
-            commit=commit, url=origin_url, branch=branch))
+    self.__git.clone_repository_to_path(remote_url, git_dir,
+                                        commit=commit, branch=branch)
 
   def foreach_source_repository(
       self, call_function, *posargs, **kwargs):
     """Call the function on each of the SourceRepository instances."""
-    use_threadpool = kwargs.pop('use_threadpool', False)
-
     worker = RepositoryWorker(call_function, *posargs, **kwargs)
     all_repos = self.__source_repositories
     num_threads = min(self.__max_threads, len(all_repos))
     if num_threads > 1:
-      if True or use_threadpool:
-        pool = ThreadPool(num_threads)
-      else:
-        pool = Pool(num_threads, maxtasksperchild=1)
-      logging.info('Mapping with %s %d/%s',
-                   pool.__class__,
-                   len(all_repos.keys()), all_repos.keys())
+      pool = ThreadPool(num_threads)
+      logging.info('Mapping %d/%s', len(all_repos.keys()), all_repos.keys())
       try:
         raw_list = pool.map(worker, all_repos.values())
         result = {name: value for name, value in raw_list}
@@ -285,12 +258,13 @@ class SpinnakerSourceCodeManager(object):
     return result
 
   def push_to_origin_if_not_upstream(self, repository, branch):
-    """Push the local repository back to the origin, but not upstream."""
+    """Push the local repository back to the ORIGIN, but not upstream."""
     git_dir = self.get_local_repository_path(repository.name)
-    origin = repository.url
+    remote_name = self.git.ORIGIN_REMOTE_NAME
+    remote_url = repository.url
     upstream = repository.upstream_url
-    if origin == upstream:
-      logging.warning('Skipping push origin %s because origin is upstream.',
-                      repository.name)
+    if remote_url == upstream:
+      logging.warning('Skipping push %s %s because %s is upstream.',
+                      remote_name, repository.name, remote_name)
       return
     self.__git.push_branch_to_origin(git_dir, branch)

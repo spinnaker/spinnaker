@@ -99,7 +99,7 @@ class FetchSourceCommand(RepositoryCommandProcessor):
       scm.pull_source_from_bom(repository.name, git_dir, self.__bom)
     else:
       self.git.refresh_local_repository(
-          git_dir, 'origin', options.refresh_branch)
+          git_dir, scm.git.ORIGIN_REMOTE_NAME, options.refresh_branch)
 
     self.__collect_halconfig_files(repository)
 
@@ -170,7 +170,7 @@ class FetchSourceCommandFactory(RepositoryCommandFactory):
   def __init__(self):
     super(FetchSourceCommandFactory, self).__init__(
         'fetch_source', FetchSourceCommand,
-        'Clone or refresh the local git repositories from the origin.')
+        'Clone or refresh the local git repositories from the ORIGIN.')
 
   def _do_init_argparser(self, parser, defaults):
     """Adds command-specific arguments."""

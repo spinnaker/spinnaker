@@ -27,7 +27,6 @@ how to work around this. Otherwise, use the file based metrics then
 upload them into some other database or metrics system via post-processing.
 """
 
-import logging
 from buildtool.base_metrics import (
     BaseMetricsRegistry,
     Counter,

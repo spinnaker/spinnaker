@@ -39,6 +39,15 @@ def add_parser_argument(parser, name, defaults, default_value, **kwargs):
       **kwargs)
 
 
+def ensure_options_set(options, name_list):
+  """Make sure each of the options in the name_list was set."""
+  option_dict = vars(options)
+  missing_keys = [key for key in name_list if not option_dict.get(key)]
+  if missing_keys:
+    raise ValueError('The following options were not configured: {0}'.format(
+        ', '.join(missing_keys)))
+
+
 def determine_logfile_path(options, component, decorator):
   """Determine where a logfile should be written.
 
@@ -131,7 +140,7 @@ def start_subprocess(cmd, stream=None, stdout=None, echo=False, **kwargs):
   return process
 
 
-def wait_subprocess(process, stream=None, echo=False):
+def wait_subprocess(process, stream=None, echo=False, postprocess_hook=None):
   """Waits for subprocess to finish and returns (final status, stdout).
 
   This will also consume the remaining output to return it.
@@ -172,13 +181,18 @@ def wait_subprocess(process, stream=None, echo=False):
   logging.debug('Finished %s with returncode=%d in %s',
                 process.pid, returncode, delta_time_str)
 
+  if postprocess_hook:
+    postprocess_hook(returncode, stdout)
+
   return returncode, stdout.strip()
 
 
 def run_subprocess(cmd, stream=None, echo=False, **kwargs):
   """Returns retcode, stdout."""
+  postprocess_hook = kwargs.pop('postprocess_hook', None)
   process = start_subprocess(cmd, stream=stream, echo=echo, **kwargs)
-  return wait_subprocess(process, stream=stream, echo=echo)
+  return wait_subprocess(process, stream=stream, echo=echo,
+                         postprocess_hook=postprocess_hook)
 
 
 def check_subprocess(cmd, stream=None, **kwargs):

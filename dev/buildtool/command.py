@@ -232,7 +232,6 @@ class RepositoryCommandProcessor(CommandProcessor):
   def __init__(self, factory, options, **kwargs):
     source_repos = kwargs.pop('source_repositories', None)
     self.__max_threads = kwargs.pop('max_threads', 64)
-    self.__use_threadpool = kwargs.pop('use_threadpool', False)
     self.__git = kwargs.pop('git', None) or GitRunner(options)
     self.__scm = None
 
@@ -280,8 +279,7 @@ class RepositoryCommandProcessor(CommandProcessor):
     """
     self._do_preprocess()
     result_dict = self.source_code_manager.foreach_source_repository(
-        _do_call_do_repository, self,
-        use_threadpool=self.__use_threadpool)
+        _do_call_do_repository, self)
     return self._do_postprocess(result_dict)
 
   def _do_preprocess(self):
@@ -374,7 +372,7 @@ class PullRequestCommandProcessor(CommandProcessor):
     raise NotImplementedError()
 
   def _do_command(self):
-    """Write changelog to the origin repository. Open PR against upstream."""
+    """Write changelog to the ORIGIN repository. Open PR against upstream."""
     self._ensure_local_repo()
 
     git_dir = self.git_dir
@@ -394,10 +392,11 @@ class PullRequestCommandProcessor(CommandProcessor):
         'add {path}'.format(
             path=' '.join([os.path.abspath(path) for path in files_added])),
         'commit -m "{msg}"'.format(msg=message),
-        'push origin -f {head}'.format(head=self.head_branch)
+        'push {remote} -f {head}'.format(
+            remote=self.__git.ORIGIN_REMOTE_NAME, head=self.head_branch)
     ]
-    origin = self.__git.determine_remote_git_repository(git_dir)
-    logging.info('Pushing branch %s to %s', self.head_branch, origin.url)
+    remote = self.__git.determine_remote_git_repository(git_dir)
+    logging.info('Pushing branch %s to %s', self.head_branch, remote.url)
     self.__git.check_git_sequence(git_dir, git_commands)
     if self.options.no_pr:
       logging.warning('--no_pr set; NOT creating a pull request.')
