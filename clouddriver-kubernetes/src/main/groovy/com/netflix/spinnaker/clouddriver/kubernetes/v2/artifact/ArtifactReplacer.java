@@ -153,7 +153,7 @@ public class ArtifactReplacer {
       String jsonPath = processPath(replacePath, artifact);
 
       Object get = obj.read(jsonPath);
-      if (get == null) {
+      if (get == null || (get instanceof ArrayNode && ((ArrayNode) get).size() == 0)) {
         return false;
       }
 

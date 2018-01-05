@@ -76,6 +76,8 @@ spec:
 
     then:
     result.manifest.spec.template.spec.containers[0].image == target
+    result.boundArtifacts.size() == 1
+    result.boundArtifacts.contains(artifact) == true
   }
 
   void "check that image isn't replaced by the artifact replacer"() {
@@ -91,6 +93,7 @@ spec:
 
     then:
     result.manifest.spec.template.spec.containers[0].image == IMAGE
+    result.boundArtifacts.isEmpty() == true
   }
 
   void "check that image is found"() {
