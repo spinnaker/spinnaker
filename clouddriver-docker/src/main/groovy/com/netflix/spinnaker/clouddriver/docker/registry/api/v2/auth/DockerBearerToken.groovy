@@ -20,8 +20,9 @@ import groovy.transform.ToString
 
 @ToString(includeNames = true)
 class DockerBearerToken {
-  // One of token or bearer_token will be filled by the request.
+  // One of token, access_token, or bearer_token will be filled by the request.
   String token
+  String access_token
   String bearer_token
   int expires_in
   String issued_at

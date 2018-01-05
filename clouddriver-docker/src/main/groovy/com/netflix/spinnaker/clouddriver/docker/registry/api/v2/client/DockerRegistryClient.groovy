@@ -391,7 +391,7 @@ class DockerRegistryClient {
       DockerBearerToken dockerToken = tokenService.getToken(target)
       String token
       if (dockerToken) {
-        token = "Bearer ${dockerToken.bearer_token ?: dockerToken.token}"
+        token = "Bearer ${(dockerToken.bearer_token ?: dockerToken.token) ?: dockerToken.access_token}"
       }
 
       Response response
@@ -423,7 +423,7 @@ class DockerRegistryClient {
           if (bearerPrefix.equalsIgnoreCase(authenticateHeader.substring(0, bearerPrefix.length()))) {
             // If we got a 401 and the request requires bearer auth, get a new token and try again
             dockerToken = tokenService.getToken(target, authenticateHeader.substring(bearerPrefix.length()))
-            token = "Bearer ${dockerToken.bearer_token ?: dockerToken.token}"
+            token = "Bearer ${(dockerToken.bearer_token ?: dockerToken.token) ?: dockerToken.access_token}"
             response = withToken(token)
           } else if (basicPrefix.equalsIgnoreCase(authenticateHeader.substring(0, basicPrefix.length()))) {
             // If we got a 401 and the request requires basic auth, there's no point in trying again
