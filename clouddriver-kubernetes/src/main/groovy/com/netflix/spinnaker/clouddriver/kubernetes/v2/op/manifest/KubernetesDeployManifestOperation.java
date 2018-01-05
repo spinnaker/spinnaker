@@ -99,10 +99,19 @@ public class KubernetesDeployManifestOperation implements AtomicOperation<Operat
     if (StringUtils.isEmpty(manifest.getNamespace())) {
       manifest.setNamespace(credentials.getDefaultNamespace());
     }
-    List<Artifact> artifacts = description.getArtifacts();
-    if (artifacts == null) {
-      artifacts = new ArrayList<>();
+    List<Artifact> requiredArtifacts = description.getRequiredArtifacts();
+    if (requiredArtifacts == null) {
+      requiredArtifacts = new ArrayList<>();
     }
+
+    List<Artifact> optionalArtifacts = description.getOptionalArtifacts();
+    if (optionalArtifacts == null) {
+      optionalArtifacts = new ArrayList<>();
+    }
+
+    List<Artifact> artifacts = new ArrayList<>();
+    artifacts.addAll(requiredArtifacts);
+    artifacts.addAll(optionalArtifacts);
 
     KubernetesResourceProperties properties = findResourceProperties(manifest);
     boolean versioned = description.getVersioned() == null ? properties.isVersioned() : description.getVersioned();
@@ -125,7 +134,7 @@ public class KubernetesDeployManifestOperation implements AtomicOperation<Operat
     ReplaceResult replaceResult = deployer.replaceArtifacts(manifest, artifacts);
     manifest = replaceResult.getManifest();
     Set<Artifact> boundArtifacts = replaceResult.getBoundArtifacts();
-    Set<Artifact> unboundArtifacts = new HashSet<>(artifacts);
+    Set<Artifact> unboundArtifacts = new HashSet<>(requiredArtifacts);
     unboundArtifacts.removeAll(boundArtifacts);
 
     getTask().updateStatus(OP_NAME, "Checking if all requested artifacts were bound...");
