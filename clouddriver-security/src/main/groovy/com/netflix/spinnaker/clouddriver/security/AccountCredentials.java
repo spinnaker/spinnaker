@@ -17,8 +17,11 @@
 package com.netflix.spinnaker.clouddriver.security;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.netflix.spinnaker.fiat.model.Authorization;
+import com.netflix.spinnaker.fiat.model.resources.Permissions;
 
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Implementations of this interface will provide properties specific to a named account object,
@@ -102,7 +105,27 @@ public interface AccountCredentials<T> {
     @Deprecated
     List<String> getRequiredGroupMembership();
 
-    // TODO(ttomsu): Enable this when all provider credentials implement this interface. I'm leaving
-    // it uncommented in order to produce small, reviewable PRs.
-    // Permissions getPermissions();
+    default Permissions getPermissions() {
+      Set<String> rgm =
+        Optional.ofNullable(getRequiredGroupMembership())
+          .map(l ->
+            l.stream()
+              .map(s -> Optional.ofNullable(s)
+                .map(String::trim)
+                .map(String::toLowerCase)
+                .orElse(""))
+              .filter(s -> !s.isEmpty())
+              .collect(Collectors.toSet()))
+          .orElse(Collections.EMPTY_SET);
+      if (rgm.isEmpty()) {
+        return Permissions.EMPTY;
+      }
+
+      Permissions.Builder perms = new Permissions.Builder();
+      for (String role : rgm) {
+        perms.add(Authorization.READ, role);
+        perms.add(Authorization.WRITE, role);
+      }
+      return perms.build();
+    }
 }

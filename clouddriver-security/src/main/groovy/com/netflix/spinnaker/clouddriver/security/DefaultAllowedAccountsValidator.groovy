@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.security
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.security.resources.NonCredentialed
+import com.netflix.spinnaker.fiat.model.Authorization
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.validation.Errors
@@ -31,7 +32,7 @@ class DefaultAllowedAccountsValidator implements AllowedAccountsValidator {
 
   @Override
   void validate(String user, Collection<String> allowedAccounts, Object description, Errors errors) {
-    if (!accountCredentialsProvider.all.find { it.requiredGroupMembership }) {
+    if (!accountCredentialsProvider.all.find { it.requiredGroupMembership || it.permissions?.isRestricted() }) {
       // no accounts have group restrictions so no need to validate / log
       return
     }
@@ -57,9 +58,20 @@ class DefaultAllowedAccountsValidator implements AllowedAccountsValidator {
   }
 
   private void validateTargetAccount(AccountCredentials credentials, Collection<String> allowedAccounts, Object description, String user, Errors errors) {
-    def requiredGroups = credentials.requiredGroupMembership*.toLowerCase()
+    List<String> requiredGroups = []
+    boolean anonymousAllowed = true
+    if (credentials.permissions?.isRestricted()) {
+      anonymousAllowed = false
+      if (credentials.requiredGroupMembership) {
+        log.warn("For account ${credentials.name}: using permissions ${credentials.permissions} over ${credentials.requiredGroupMembership} for authorization check.")
+      }
+      requiredGroups = credentials.permissions.get(Authorization.WRITE).collect { it.toLowerCase() }
+    } else if (credentials.requiredGroupMembership) {
+      anonymousAllowed = false
+      requiredGroups = credentials.requiredGroupMembership*.toLowerCase()
+    }
     def targetAccount = credentials.name
-    def isAuthorized = !requiredGroups || allowedAccounts.find { it.equalsIgnoreCase(targetAccount) }
+    def isAuthorized = anonymousAllowed || allowedAccounts.find { it.equalsIgnoreCase(targetAccount) }
     def json = null
     try {
       json = OBJECT_MAPPER.writeValueAsString(description)

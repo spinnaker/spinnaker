@@ -17,6 +17,8 @@
 package com.netflix.spinnaker.clouddriver.security
 
 import com.netflix.spinnaker.clouddriver.security.resources.NonCredentialed
+import com.netflix.spinnaker.fiat.model.Authorization
+import com.netflix.spinnaker.fiat.model.resources.Permissions
 import org.springframework.validation.Errors
 import spock.lang.Shared
 import spock.lang.Specification
@@ -40,6 +42,19 @@ class DefaultAllowedAccountsValidatorSpec extends Specification {
   TestAccountCredentials credentialsWithDifferentRequiredGroup = new TestAccountCredentials(
       name: 'AnotherAccount',
       requiredGroupMembership: ['targetAccount2']
+  )
+
+  @Shared
+  TestAccountCredentials credentialWithPermissions = new TestAccountCredentials(
+      name: 'TestAccount',
+      permissions: new Permissions.Builder().add(Authorization.WRITE, 'targetAccount1').build()
+  )
+
+  @Shared
+  TestAccountCredentials credentialsWithConflictingPermsRGM = new TestAccountCredentials(
+      name: 'TestAccount',
+      requiredGroupMembership: ['targetAccount2'],
+      permissions: new Permissions.Builder().add(Authorization.WRITE, 'targetAccount1').build()
   )
 
   @Unroll
@@ -106,10 +121,10 @@ class DefaultAllowedAccountsValidatorSpec extends Specification {
     rejectValueCount * errors.rejectValue(_, _, _)
 
     where:
-    requiredCredentials                                                   | userAccounts                     || rejectValueCount
-    [credentialsWithRequiredGroup, credentialsWithSameRequiredGroup]      | ["TestAccount", "OtherAccount"]  || 0
-    [credentialsWithRequiredGroup, credentialsWithDifferentRequiredGroup] | ["TestAccount", "OtherAccount"]  || 1
-    [credentialsWithRequiredGroup, credentialsWithDifferentRequiredGroup] | ["ProdAccount", "RandomAccount"] || 2
+    requiredCredentials                                                                                                             | userAccounts                     || rejectValueCount
+    [credentialsWithRequiredGroup, credentialsWithSameRequiredGroup, credentialWithPermissions, credentialsWithConflictingPermsRGM] | ["TestAccount", "OtherAccount"]  || 0
+    [credentialsWithRequiredGroup, credentialsWithDifferentRequiredGroup]                                                           | ["TestAccount", "OtherAccount"]  || 1
+    [credentialsWithRequiredGroup, credentialsWithDifferentRequiredGroup]                                                           | ["ProdAccount", "RandomAccount"] || 2
   }
 
   void "should allow if no required group memberships"() {
@@ -130,7 +145,7 @@ class DefaultAllowedAccountsValidatorSpec extends Specification {
     def errors = Mock(Errors)
     def validator = new DefaultAllowedAccountsValidator(
       accountCredentialsProvider: Mock(AccountCredentialsProvider) {
-        1 * getAll() >> { [credentialsWithRequiredGroup] }
+        1 * getAll() >> { [testCredential] }
         0 * _
       })
 
@@ -139,6 +154,9 @@ class DefaultAllowedAccountsValidatorSpec extends Specification {
 
     then:
     0 * errors.rejectValue(_, _, _)
+
+    where:
+    testCredential << [credentialsWithRequiredGroup, credentialWithPermissions]
   }
 
   void "should reject if no credentials in description"() {
@@ -164,6 +182,7 @@ class DefaultAllowedAccountsValidatorSpec extends Specification {
     TestCredentials credentials
     String cloudProvider
     List<String> requiredGroupMembership
+    Permissions permissions
   }
 
   static class TestDescription {
