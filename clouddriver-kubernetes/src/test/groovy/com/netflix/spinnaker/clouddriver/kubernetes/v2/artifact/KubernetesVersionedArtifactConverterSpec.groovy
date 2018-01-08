@@ -17,9 +17,11 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.provider.KubernetesV2ArtifactProvider
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesApiVersion
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -60,7 +62,7 @@ class KubernetesVersionedArtifactConverterSpec extends Specification {
     def converter = new KubernetesVersionedArtifactConverter()
 
     then:
-    converter.getVersion(artifactProvider, type, name, location) == expected
+    converter.getVersion(artifactProvider, type, name, location, null) == expected
 
     where:
     versions  | expected
@@ -74,5 +76,32 @@ class KubernetesVersionedArtifactConverterSpec extends Specification {
     [0, 1, 3] | "v004"
     [1, 0, 3] | "v004"
     [1000]    | "v1001"
+  }
+
+  def "find a matching version by equality"() {
+    when:
+    def manifest1 = new KubernetesManifest()
+    def manifest2 = new KubernetesManifest()
+    manifest1.put("data", ["key": 1, "value": 2])
+    manifest2.put("data", ["key": 3, "value": 2])
+
+    def version1 = "v001"
+    def version2 = "v002"
+
+    def artifact1 = new Artifact(version: version1, metadata: [lastAppliedConfiguration: manifest1])
+    def artifact2 = new Artifact(version: version2, metadata: [lastAppliedConfiguration: manifest2])
+    def artifacts = [artifact1, artifact2]
+
+    def artifactProvider = Mock(KubernetesV2ArtifactProvider)
+    def type = "type"
+    def name = "name"
+    def location = "location"
+
+    artifactProvider.getArtifacts(type, name, location) >> artifacts
+
+    def converter = new KubernetesVersionedArtifactConverter(new ObjectMapper())
+
+    then:
+    converter.getVersion(artifactProvider, type, name, location, manifest1) == version1
   }
 }

@@ -34,6 +34,11 @@ import java.util.Optional;
 public class KubernetesManifest extends HashMap<String, Object> {
   private static ObjectMapper mapper = new ObjectMapper();
 
+  @Override
+  public KubernetesManifest clone() {
+    return (KubernetesManifest) super.clone();
+  }
+
   private static <T> T getRequiredField(KubernetesManifest manifest, String field) {
     T res = (T) manifest.get(field);
     if (res == null) {
@@ -154,6 +159,24 @@ public class KubernetesManifest extends HashMap<String, Object> {
 
   public static String getFullResourceName(KubernetesKind kind, String name) {
     return String.join(" ", kind.toString(), name);
+  }
+
+  /*
+   * The reasoning behind removing metadata for comparison is that it shouldn't affect the runtime behavior
+   * of the resource we are creating.
+   */
+  public boolean nonMetadataEquals(KubernetesManifest other) {
+    if (other == null) {
+      return false;
+    }
+
+    KubernetesManifest cloneThis = this.clone();
+    KubernetesManifest cloneOther = other.clone();
+
+    cloneThis.remove("metadata");
+    cloneOther.remove("metadata");
+
+    return  cloneThis.equals(cloneOther);
   }
 
   public static Pair<KubernetesKind, String> fromFullResourceName(String fullResourceName) {

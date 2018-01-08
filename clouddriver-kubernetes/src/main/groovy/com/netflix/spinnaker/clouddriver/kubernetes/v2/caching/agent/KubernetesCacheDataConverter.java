@@ -72,6 +72,17 @@ public class KubernetesCacheDataConverter {
 
     String namespace = manifest.getNamespace();
     Artifact artifact = KubernetesManifestAnnotater.getArtifact(manifest);
+
+    try {
+      KubernetesManifest lastAppliedConfiguration = KubernetesManifestAnnotater.getLastAppliedConfiguration(manifest);
+      if (artifact.getMetadata() == null) {
+        artifact.setMetadata(new HashMap<>());
+      }
+      artifact.getMetadata().put("lastAppliedConfiguration", lastAppliedConfiguration);
+    } catch (Exception e) {
+      log.warn("Unable to get last applied configuration from {}: ", manifest, e);
+    }
+
     if (artifact.getType() == null) {
       log.debug("No assigned artifact type for resource " + namespace + ":" + manifest.getFullResourceName());
       return null;
