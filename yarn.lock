@@ -2,6 +2,58 @@
 # yarn lockfile v1
 
 
+"@spinnaker/kayenta@0.0.19":
+  version "0.0.19"
+  resolved "https://registry.yarnpkg.com/@spinnaker/kayenta/-/kayenta-0.0.19.tgz#c4f4e67a372986ec3d043e573194b719a06312aa"
+  dependencies:
+    "@types/chart.js" "^2.6.10"
+    "@uirouter/angularjs" "^1.0.4"
+    "@uirouter/react-hybrid" "^0.0.12"
+    "@uirouter/rx" "^0.4.5"
+    "@uirouter/visualizer" "^4.0.2"
+    Select2 "git://github.com/select2/select2.git#3.4.8"
+    angular "~1.6.3"
+    angular-ui-bootstrap "^2.5.0"
+    angular-ui-router "1.0.0"
+    angular-ui-sortable "^0.17.0"
+    angular2react "^2.0.0"
+    bootstrap "3.3.7"
+    chart.js "^2.7.0"
+    class-autobind-decorator "^2.2.1"
+    classnames "^2.2.5"
+    diff-match-patch "^1.0.0"
+    dompurify "^0.8.5"
+    font-awesome "^4.7.0"
+    formsy-react "^0.19.2"
+    js-yaml "^3.8.3"
+    lodash "^4.16.1"
+    lodash-decorators "^4.4.1"
+    moment-timezone "^0.4.0"
+    ngimport "^0.6.0"
+    prop-types "^15.5.10"
+    react "~15.4.2"
+    react-bootstrap "^0.31.0"
+    react-dom "~15.4.2"
+    react-ga "^2.1.2"
+    react-redux "^5.0.5"
+    react-select "^1.0.0-rc.4"
+    react-sortable-hoc "^0.6.8"
+    react-virtualized-select "3.1.0"
+    redux "^3.7.2"
+    redux-actions "^2.2.1"
+    redux-logger "^3.0.6"
+    redux-observable "^0.14.1"
+    reflect-metadata "^0.1.9"
+    reselect "^3.0.1"
+    rxjs "^5.4.2"
+    select2-bootstrap-css "git://github.com/t0m/select2-bootstrap-css.git#v1.3.1"
+    source-map "^0.4.4"
+    source-sans-pro "^2.0.10"
+    spel2js "^0.2.3"
+    spin.js "git://github.com/fgnass/spin.js.git#2.3.1"
+    ui-router-visualizer "^4.0.0"
+    ui-select "^0.19.6"
+
 "@types/angular-mocks@1.5.10", "@types/angular-mocks@^1.5.9":
   version "1.5.10"
   resolved "https://registry.yarnpkg.com/@types/angular-mocks/-/angular-mocks-1.5.10.tgz#bb3728bfc156a3bc35dfbfcc2d332e175284fba6"
@@ -21,6 +73,10 @@
 "@types/angular@^1.6.28":
   version "1.6.32"
   resolved "https://registry.yarnpkg.com/@types/angular/-/angular-1.6.32.tgz#fc791aad038227d9413eb5e552993e1076f8a509"
+
+"@types/chart.js@^2.6.10":
+  version "2.7.3"
+  resolved "https://registry.yarnpkg.com/@types/chart.js/-/chart.js-2.7.3.tgz#251767f9a465ce06782fc07a9a5f15480939eee8"
 
 "@types/cheerio@*":
   version "0.22.1"
@@ -355,15 +411,39 @@
     "@types/tapable" "*"
     "@types/uglify-js" "*"
 
+"@uirouter/angularjs@1.0.5-SNAPSHOT.20170711":
+  version "1.0.5-SNAPSHOT.20170711"
+  resolved "https://registry.yarnpkg.com/@uirouter/angularjs/-/angularjs-1.0.5-SNAPSHOT.20170711.tgz#6cb059062cc0c2aada6b85b820b9ef6c85eee878"
+  dependencies:
+    "@uirouter/core" "^5.0.5"
+
 "@uirouter/angularjs@1.0.9":
   version "1.0.9"
   resolved "https://registry.yarnpkg.com/@uirouter/angularjs/-/angularjs-1.0.9.tgz#9aa4259eb52e8006ba0e63e55ea5cbd6c03e63de"
   dependencies:
     "@uirouter/core" "5.0.11"
 
+"@uirouter/angularjs@^1.0.4":
+  version "1.0.12"
+  resolved "https://registry.yarnpkg.com/@uirouter/angularjs/-/angularjs-1.0.12.tgz#b2275b7e33e0024a485f96568a18d350539880f3"
+  dependencies:
+    "@uirouter/core" "5.0.13"
+
+"@uirouter/core@5.0.1":
+  version "5.0.1"
+  resolved "https://registry.yarnpkg.com/@uirouter/core/-/core-5.0.1.tgz#dfcdae07f74feab80b44109c407396d950390799"
+
 "@uirouter/core@5.0.11":
   version "5.0.11"
   resolved "https://registry.yarnpkg.com/@uirouter/core/-/core-5.0.11.tgz#bec461fcda767d79c98f6647cc9313ef9e5de03a"
+
+"@uirouter/core@5.0.13", "@uirouter/core@^5.0.5":
+  version "5.0.13"
+  resolved "https://registry.yarnpkg.com/@uirouter/core/-/core-5.0.13.tgz#e1b31626c393cbdd82651755ff1ce3fc55163fd0"
+
+"@uirouter/core@5.0.5":
+  version "5.0.5"
+  resolved "https://registry.yarnpkg.com/@uirouter/core/-/core-5.0.5.tgz#4fafae8b89e1bee321b0ed32e69ab66547c055c6"
 
 "@uirouter/react-hybrid@0.0.14":
   version "0.0.14"
@@ -373,6 +453,21 @@
     "@uirouter/core" "5.0.11"
     "@uirouter/react" "0.5.4"
 
+"@uirouter/react-hybrid@^0.0.12":
+  version "0.0.12"
+  resolved "https://registry.yarnpkg.com/@uirouter/react-hybrid/-/react-hybrid-0.0.12.tgz#c090c3415a551b28a17dbc4b44d6ef38f9f038bf"
+  dependencies:
+    "@uirouter/angularjs" "1.0.5-SNAPSHOT.20170711"
+    "@uirouter/core" "5.0.5"
+    "@uirouter/react" "0.5.1-SNAPSHOT.20170711"
+
+"@uirouter/react@0.5.1-SNAPSHOT.20170711":
+  version "0.5.1-SNAPSHOT.20170711"
+  resolved "https://registry.yarnpkg.com/@uirouter/react/-/react-0.5.1-SNAPSHOT.20170711.tgz#fabfceaa52de5083043f50dbad138cdbf447e92e"
+  dependencies:
+    "@uirouter/core" "^5.0.5"
+    classnames "^2.2.5"
+
 "@uirouter/react@0.5.4":
   version "0.5.4"
   resolved "https://registry.yarnpkg.com/@uirouter/react/-/react-0.5.4.tgz#212c42179ab967261461c2f30efd8ddc74230d58"
@@ -380,7 +475,7 @@
     "@uirouter/core" "5.0.11"
     classnames "^2.2.5"
 
-"@uirouter/rx@0.4.5":
+"@uirouter/rx@0.4.5", "@uirouter/rx@^0.4.5":
   version "0.4.5"
   resolved "https://registry.yarnpkg.com/@uirouter/rx/-/rx-0.4.5.tgz#fb9eeb2cb011d98cc60f043b465551cdd236269b"
   dependencies:
@@ -400,6 +495,14 @@
     d3-interpolate "^1.1.5"
     file-loader "^1.1.6"
     preact "^8.2.5"
+
+"@uirouter/visualizer@^4.0.2":
+  version "4.0.2"
+  resolved "https://registry.yarnpkg.com/@uirouter/visualizer/-/visualizer-4.0.2.tgz#c26784dd1f55c0e4540d571c95a2308f05812650"
+  dependencies:
+    d3-hierarchy "^1.0.3"
+    d3-interpolate "^1.1.3"
+    preact "^7.2.0"
 
 "Select2@git://github.com/select2/select2.git#3.4.8":
   version "3.4.8"
@@ -517,6 +620,12 @@ angular-spinner@^1.0.1:
 angular-ui-bootstrap@^2.5.0:
   version "2.5.0"
   resolved "https://registry.yarnpkg.com/angular-ui-bootstrap/-/angular-ui-bootstrap-2.5.0.tgz#2facefb915386655dc5f44150258032517236d01"
+
+angular-ui-router@1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/angular-ui-router/-/angular-ui-router-1.0.0.tgz#07003b07d6e1dfcd0596d07c63ed3bd07b417013"
+  dependencies:
+    "@uirouter/core" "5.0.1"
 
 angular-ui-sortable@^0.17.0:
   version "0.17.1"
@@ -1636,6 +1745,26 @@ charenc@~0.0.1:
   version "0.0.2"
   resolved "https://registry.yarnpkg.com/charenc/-/charenc-0.0.2.tgz#c0a1d2f3a7092e03774bfa83f14c0fc5790a8667"
 
+chart.js@^2.7.0:
+  version "2.7.1"
+  resolved "https://registry.yarnpkg.com/chart.js/-/chart.js-2.7.1.tgz#ae90b4aa4ff1f02decd6b1a2a8dabfd73c9f9886"
+  dependencies:
+    chartjs-color "~2.2.0"
+    moment "~2.18.0"
+
+chartjs-color-string@^0.5.0:
+  version "0.5.0"
+  resolved "https://registry.yarnpkg.com/chartjs-color-string/-/chartjs-color-string-0.5.0.tgz#8d3752d8581d86687c35bfe2cb80ac5213ceb8c1"
+  dependencies:
+    color-name "^1.0.0"
+
+chartjs-color@~2.2.0:
+  version "2.2.0"
+  resolved "https://registry.yarnpkg.com/chartjs-color/-/chartjs-color-2.2.0.tgz#84a2fb755787ed85c39dd6dd8c7b1d88429baeae"
+  dependencies:
+    chartjs-color-string "^0.5.0"
+    color-convert "^0.5.3"
+
 cheerio@^0.22.0:
   version "0.22.0"
   resolved "https://registry.yarnpkg.com/cheerio/-/cheerio-0.22.0.tgz#a9baa860a3f9b595a6b81b1a86873121ed3a269e"
@@ -1687,6 +1816,10 @@ clap@^1.0.9:
   resolved "https://registry.yarnpkg.com/clap/-/clap-1.1.3.tgz#b3bd36e93dd4cbfb395a3c26896352445265c05b"
   dependencies:
     chalk "^1.1.3"
+
+class-autobind-decorator@^2.2.1:
+  version "2.3.0"
+  resolved "https://registry.yarnpkg.com/class-autobind-decorator/-/class-autobind-decorator-2.3.0.tgz#36edfde106aad71e0515b4c553a8d829afc015a6"
 
 classname@^0.0.0:
   version "0.0.0"
@@ -1757,6 +1890,10 @@ coa@~1.0.1:
 code-point-at@^1.0.0:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/code-point-at/-/code-point-at-1.1.0.tgz#0d070b4d043a5bea33a2f1a40e2edb3d9a4ccf77"
+
+color-convert@^0.5.3:
+  version "0.5.3"
+  resolved "https://registry.yarnpkg.com/color-convert/-/color-convert-0.5.3.tgz#bdb6c69ce660fadffe0b0007cc447e1b9f7282bd"
 
 color-convert@^1.3.0, color-convert@^1.9.0:
   version "1.9.0"
@@ -2230,7 +2367,7 @@ d3-format@1:
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/d3-format/-/d3-format-1.2.0.tgz#6b480baa886885d4651dc248a8f4ac9da16db07a"
 
-d3-hierarchy@^1.1.5:
+d3-hierarchy@^1.0.3, d3-hierarchy@^1.1.5:
   version "1.1.5"
   resolved "https://registry.yarnpkg.com/d3-hierarchy/-/d3-hierarchy-1.1.5.tgz#a1c845c42f84a206bcf1c01c01098ea4ddaa7a26"
 
@@ -2240,7 +2377,7 @@ d3-interpolate@1:
   dependencies:
     d3-color "1"
 
-d3-interpolate@^1.1.5:
+d3-interpolate@^1.1.3, d3-interpolate@^1.1.5:
   version "1.1.6"
   resolved "https://registry.yarnpkg.com/d3-interpolate/-/d3-interpolate-1.1.6.tgz#2cf395ae2381804df08aa1bf766b7f97b5f68fb6"
   dependencies:
@@ -2337,6 +2474,10 @@ debug@^2.6.8:
 decamelize@^1.0.0, decamelize@^1.1.1, decamelize@^1.1.2:
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/decamelize/-/decamelize-1.2.0.tgz#f6534d15148269b20352e7bee26f501f9a191290"
+
+deep-diff@^0.3.5:
+  version "0.3.8"
+  resolved "https://registry.yarnpkg.com/deep-diff/-/deep-diff-0.3.8.tgz#c01de63efb0eec9798801d40c7e0dae25b582c84"
 
 deep-equal@^1.0.1:
   version "1.0.1"
@@ -3086,7 +3227,7 @@ fbjs@^0.6.1:
     ua-parser-js "^0.7.9"
     whatwg-fetch "^0.9.0"
 
-fbjs@^0.8.16:
+fbjs@^0.8.1, fbjs@^0.8.16, fbjs@^0.8.4:
   version "0.8.16"
   resolved "https://registry.yarnpkg.com/fbjs/-/fbjs-0.8.16.tgz#5e67432f550dc41b572bf55847b8aca64e5337db"
   dependencies:
@@ -3251,7 +3392,7 @@ form-data@~2.1.1:
     combined-stream "^1.0.5"
     mime-types "^2.1.12"
 
-formsy-react@^0.19.5:
+formsy-react@^0.19.2, formsy-react@^0.19.5:
   version "0.19.5"
   resolved "https://registry.yarnpkg.com/formsy-react/-/formsy-react-0.19.5.tgz#760a57ac0113442e3df4c309c3638dd92957e78e"
   dependencies:
@@ -3568,6 +3709,10 @@ hoek@2.x.x:
   version "2.16.3"
   resolved "https://registry.yarnpkg.com/hoek/-/hoek-2.16.3.tgz#20bb7403d3cea398e91dc4710a8ff1b8274a25ed"
 
+hoist-non-react-statics@^2.2.1:
+  version "2.3.1"
+  resolved "https://registry.yarnpkg.com/hoist-non-react-statics/-/hoist-non-react-statics-2.3.1.tgz#343db84c6018c650778898240135a1420ee22ce0"
+
 home-or-tmp@^2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/home-or-tmp/-/home-or-tmp-2.0.0.tgz#e36c3f2d2cae7d746a857e38d18d5f32a7882db8"
@@ -3799,7 +3944,7 @@ interpret@^1.0.0:
   version "1.0.3"
   resolved "https://registry.yarnpkg.com/interpret/-/interpret-1.0.3.tgz#cbc35c62eeee73f19ab7b10a801511401afc0f90"
 
-invariant@^2.1.0, invariant@^2.2.0, invariant@^2.2.1, invariant@^2.2.2:
+invariant@^2.0.0, invariant@^2.1.0, invariant@^2.2.0, invariant@^2.2.1, invariant@^2.2.2:
   version "2.2.2"
   resolved "https://registry.yarnpkg.com/invariant/-/invariant-2.2.2.tgz#9e1f56ac0acdb6bf303306f338be3b204ae60360"
   dependencies:
@@ -4437,11 +4582,15 @@ locate-path@^2.0.0:
     p-locate "^2.0.0"
     path-exists "^3.0.0"
 
-lodash-decorators@4.5.0:
+lodash-decorators@4.5.0, lodash-decorators@^4.4.1:
   version "4.5.0"
   resolved "https://registry.yarnpkg.com/lodash-decorators/-/lodash-decorators-4.5.0.tgz#a4bb63dfbb512f0dd9409f7af452e4e2edcb80f4"
   dependencies:
     tslib "^1.7.1"
+
+lodash-es@^4.17.4, lodash-es@^4.2.0, lodash-es@^4.2.1:
+  version "4.17.4"
+  resolved "https://registry.yarnpkg.com/lodash-es/-/lodash-es-4.17.4.tgz#dcc1d7552e150a0640073ba9cb31d70f032950e7"
 
 lodash.assign@^4.2.0:
   version "4.2.0"
@@ -4539,7 +4688,7 @@ lodash@^3.8.0:
   version "3.10.1"
   resolved "https://registry.yarnpkg.com/lodash/-/lodash-3.10.1.tgz#5bf45e8e49ba4189e17d482789dfd15bd140b7b6"
 
-lodash@^4.0.0, lodash@^4.12.0, lodash@^4.14.0, lodash@^4.16.1, lodash@^4.16.6, lodash@^4.17.2, lodash@^4.17.3, lodash@^4.17.4, lodash@^4.2.0, lodash@^4.3.0, lodash@^4.5.0:
+lodash@^4.0.0, lodash@^4.12.0, lodash@^4.13.1, lodash@^4.14.0, lodash@^4.16.1, lodash@^4.16.6, lodash@^4.17.2, lodash@^4.17.3, lodash@^4.17.4, lodash@^4.2.0, lodash@^4.2.1, lodash@^4.3.0, lodash@^4.5.0:
   version "4.17.4"
   resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.4.tgz#78203a4d1c328ae1d86dca6460e369b57f4055ae"
 
@@ -4743,7 +4892,7 @@ moment-timezone@^0.4.0:
   dependencies:
     moment ">= 2.6.0"
 
-"moment@>= 2.6.0", moment@>=2.14.0:
+"moment@>= 2.6.0", moment@>=2.14.0, moment@~2.18.0:
   version "2.18.1"
   resolved "https://registry.yarnpkg.com/moment/-/moment-2.18.1.tgz#c36193dd3ce1c2eed2adb7c802dbbc77a81b1c0f"
 
@@ -5638,6 +5787,10 @@ postcss@^6.0.1, postcss@^6.0.2, postcss@^6.0.6:
     source-map "^0.5.6"
     supports-color "^4.2.1"
 
+preact@^7.2.0:
+  version "7.2.1"
+  resolved "https://registry.yarnpkg.com/preact/-/preact-7.2.1.tgz#159e1892f614985e49eb0a96fd6e6d8bdf8bbcc5"
+
 preact@^8.2.5:
   version "8.2.7"
   resolved "https://registry.yarnpkg.com/preact/-/preact-8.2.7.tgz#316249fb678cd5e93e7cee63cea7bfb62dbd6814"
@@ -5683,20 +5836,20 @@ promise@^7.0.3, promise@^7.1.1:
   dependencies:
     asap "~2.0.3"
 
-prop-types@15.6.0, prop-types@^15.5.7:
+prop-types@15.5.10, prop-types@^15.5.10, prop-types@^15.5.4, prop-types@^15.5.6, prop-types@^15.5.8:
+  version "15.5.10"
+  resolved "https://registry.yarnpkg.com/prop-types/-/prop-types-15.5.10.tgz#2797dfc3126182e3a95e3dfbb2e893ddd7456154"
+  dependencies:
+    fbjs "^0.8.9"
+    loose-envify "^1.3.1"
+
+prop-types@^15.5.7:
   version "15.6.0"
   resolved "https://registry.yarnpkg.com/prop-types/-/prop-types-15.6.0.tgz#ceaf083022fc46b4a35f69e13ef75aed0d639856"
   dependencies:
     fbjs "^0.8.16"
     loose-envify "^1.3.1"
     object-assign "^4.1.1"
-
-prop-types@^15.5.10, prop-types@^15.5.4, prop-types@^15.5.6, prop-types@^15.5.8:
-  version "15.5.10"
-  resolved "https://registry.yarnpkg.com/prop-types/-/prop-types-15.5.10.tgz#2797dfc3126182e3a95e3dfbb2e893ddd7456154"
-  dependencies:
-    fbjs "^0.8.9"
-    loose-envify "^1.3.1"
 
 proxy-addr@~1.1.3:
   version "1.1.4"
@@ -5831,14 +5984,13 @@ react-bootstrap@^0.31.0:
     uncontrollable "^4.1.0"
     warning "^3.0.0"
 
-react-dom@15.6.2:
-  version "15.6.2"
-  resolved "https://registry.yarnpkg.com/react-dom/-/react-dom-15.6.2.tgz#41cfadf693b757faf2708443a1d1fd5a02bef730"
+react-dom@15.4.2, react-dom@~15.4.2:
+  version "15.4.2"
+  resolved "https://registry.yarnpkg.com/react-dom/-/react-dom-15.4.2.tgz#015363f05b0a1fd52ae9efdd3a0060d90695208f"
   dependencies:
-    fbjs "^0.8.9"
+    fbjs "^0.8.1"
     loose-envify "^1.1.0"
     object-assign "^4.1.0"
-    prop-types "^15.5.10"
 
 react-dom@^0.14.8:
   version "0.14.9"
@@ -5868,6 +6020,12 @@ react-input-autosize@^1.1.3:
     create-react-class "^15.5.2"
     prop-types "^15.5.8"
 
+react-input-autosize@^2.1.2:
+  version "2.1.2"
+  resolved "https://registry.yarnpkg.com/react-input-autosize/-/react-input-autosize-2.1.2.tgz#a3dc11a5517c434db25229925541309de3f7a8f5"
+  dependencies:
+    prop-types "^15.5.8"
+
 react-overlays@^0.7.0:
   version "0.7.0"
   resolved "https://registry.yarnpkg.com/react-overlays/-/react-overlays-0.7.0.tgz#531898ff566c7e5c7226ead2863b8cf9fbb5a981"
@@ -5884,6 +6042,17 @@ react-prop-types@^0.4.0:
   dependencies:
     warning "^3.0.0"
 
+react-redux@^5.0.5:
+  version "5.0.6"
+  resolved "https://registry.yarnpkg.com/react-redux/-/react-redux-5.0.6.tgz#23ed3a4f986359d68b5212eaaa681e60d6574946"
+  dependencies:
+    hoist-non-react-statics "^2.2.1"
+    invariant "^2.0.0"
+    lodash "^4.2.0"
+    lodash-es "^4.2.0"
+    loose-envify "^1.1.0"
+    prop-types "^15.5.10"
+
 react-select@^1.0.0-rc.2, react-select@^1.0.0-rc.5:
   version "1.0.0-rc.5"
   resolved "https://registry.yarnpkg.com/react-select/-/react-select-1.0.0-rc.5.tgz#9d316f252b1adc372ddb5cdf1f119c6b7cfdb5d6"
@@ -5892,6 +6061,14 @@ react-select@^1.0.0-rc.2, react-select@^1.0.0-rc.5:
     create-react-class "^15.5.2"
     prop-types "^15.5.8"
     react-input-autosize "^1.1.3"
+
+react-select@^1.0.0-rc.4:
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/react-select/-/react-select-1.2.0.tgz#4f91df941c4ecdb94701faca2533b60e31d7508e"
+  dependencies:
+    classnames "^2.2.4"
+    prop-types "^15.5.8"
+    react-input-autosize "^2.1.2"
 
 react-sortable-hoc@^0.6.8:
   version "0.6.8"
@@ -5909,7 +6086,7 @@ react-test-renderer@15.6.2:
     fbjs "^0.8.9"
     object-assign "^4.1.0"
 
-react-virtualized-select@^3.1.0:
+react-virtualized-select@3.1.0, react-virtualized-select@^3.1.0:
   version "3.1.0"
   resolved "https://registry.yarnpkg.com/react-virtualized-select/-/react-virtualized-select-3.1.0.tgz#968e89c4d74d98890cacf480378b6abee743c2d8"
   dependencies:
@@ -5940,15 +6117,13 @@ react2angular@^2.0.0:
     lodash.frompairs "^4.0.1"
     ngcomponent "^3.0.2"
 
-react@15.6.2:
-  version "15.6.2"
-  resolved "https://registry.yarnpkg.com/react/-/react-15.6.2.tgz#dba0434ab439cfe82f108f0f511663908179aa72"
+react@15.4.2, react@~15.4.2:
+  version "15.4.2"
+  resolved "https://registry.yarnpkg.com/react/-/react-15.4.2.tgz#41f7991b26185392ba9bae96c8889e7e018397ef"
   dependencies:
-    create-react-class "^15.6.0"
-    fbjs "^0.8.9"
+    fbjs "^0.8.4"
     loose-envify "^1.1.0"
     object-assign "^4.1.0"
-    prop-types "^15.5.10"
 
 react@^0.14.8:
   version "0.14.9"
@@ -6076,6 +6251,38 @@ reduce-function-call@^1.0.1:
   resolved "https://registry.yarnpkg.com/reduce-function-call/-/reduce-function-call-1.0.2.tgz#5a200bf92e0e37751752fe45b0ab330fd4b6be99"
   dependencies:
     balanced-match "^0.4.2"
+
+reduce-reducers@^0.1.0:
+  version "0.1.2"
+  resolved "https://registry.yarnpkg.com/reduce-reducers/-/reduce-reducers-0.1.2.tgz#fa1b4718bc5292a71ddd1e5d839c9bea9770f14b"
+
+redux-actions@^2.2.1:
+  version "2.2.1"
+  resolved "https://registry.yarnpkg.com/redux-actions/-/redux-actions-2.2.1.tgz#d64186b25649a13c05478547d7cd7537b892410d"
+  dependencies:
+    invariant "^2.2.1"
+    lodash "^4.13.1"
+    lodash-es "^4.17.4"
+    reduce-reducers "^0.1.0"
+
+redux-logger@^3.0.6:
+  version "3.0.6"
+  resolved "https://registry.yarnpkg.com/redux-logger/-/redux-logger-3.0.6.tgz#f7555966f3098f3c88604c449cf0baf5778274bf"
+  dependencies:
+    deep-diff "^0.3.5"
+
+redux-observable@^0.14.1:
+  version "0.14.1"
+  resolved "https://registry.yarnpkg.com/redux-observable/-/redux-observable-0.14.1.tgz#9f3d870c69388fdc427ded6770a3e326f3b69693"
+
+redux@^3.7.2:
+  version "3.7.2"
+  resolved "https://registry.yarnpkg.com/redux/-/redux-3.7.2.tgz#06b73123215901d25d065be342eb026bc1c8537b"
+  dependencies:
+    lodash "^4.2.1"
+    lodash-es "^4.2.1"
+    loose-envify "^1.1.0"
+    symbol-observable "^1.0.3"
 
 reflect-metadata@^0.1.9:
   version "0.1.10"
@@ -6215,6 +6422,10 @@ require-uncached@^1.0.2:
 requires-port@1.0.x, requires-port@1.x.x:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/requires-port/-/requires-port-1.0.0.tgz#925d2601d39ac485e091cf0da5c6e694dc3dcaff"
+
+reselect@^3.0.1:
+  version "3.0.1"
+  resolved "https://registry.yarnpkg.com/reselect/-/reselect-3.0.1.tgz#efdaa98ea7451324d092b2b2163a6a1d7a9a2147"
 
 resolve-from@^1.0.0:
   version "1.0.1"
@@ -6659,6 +6870,10 @@ spel2js@^0.2.1:
   version "0.2.1"
   resolved "https://registry.yarnpkg.com/spel2js/-/spel2js-0.2.1.tgz#8c42ca3340c907b8ecbc8157a745ebc810de68c6"
 
+spel2js@^0.2.3:
+  version "0.2.5"
+  resolved "https://registry.yarnpkg.com/spel2js/-/spel2js-0.2.5.tgz#da6a1dc6f38329c1453bd4b0686355dd646302c0"
+
 spin.js@2.3.2:
   version "2.3.2"
   resolved "https://registry.yarnpkg.com/spin.js/-/spin.js-2.3.2.tgz#6caa56d520673450fd5cfbc6971e6d0772c37a1a"
@@ -6817,6 +7032,10 @@ svgo@^0.7.0:
 symbol-observable@^1.0.1:
   version "1.0.4"
   resolved "https://registry.yarnpkg.com/symbol-observable/-/symbol-observable-1.0.4.tgz#29bf615d4aa7121bdd898b22d4b3f9bc4e2aa03d"
+
+symbol-observable@^1.0.3:
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/symbol-observable/-/symbol-observable-1.1.0.tgz#5c68fd8d54115d9dfb72a84720549222e8db9b32"
 
 table@^3.7.8:
   version "3.8.3"
@@ -7069,6 +7288,14 @@ uglifyjs-webpack-plugin@^0.4.6:
     source-map "^0.5.6"
     uglify-js "^2.8.29"
     webpack-sources "^1.0.1"
+
+ui-router-visualizer@^4.0.0:
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/ui-router-visualizer/-/ui-router-visualizer-4.0.0.tgz#ad4c23e5ffbb0788c7ec4bde72d1e396094989f7"
+  dependencies:
+    d3-hierarchy "^1.0.3"
+    d3-interpolate "^1.1.3"
+    preact "^7.2.0"
 
 ui-select@^0.19.6:
   version "0.19.8"
