@@ -28,7 +28,7 @@ import java.util.stream.Stream
 
 @Slf4j
 class ExpressionTransform {
-  private static final List<String> EXECUTION_AWARE_FUNCTIONS = ["judgment", "judgement", "stage", "deployedServerGroups"]
+  private static final List<String> EXECUTION_AWARE_FUNCTIONS = ["judgment", "judgement", "stage", "stageExists", "deployedServerGroups"]
   private static final List<String> EXECUTION_AWARE_ALIASES = ["deployedServerGroups"]
   private final ParserContext parserContext
   private final ExpressionParser parser

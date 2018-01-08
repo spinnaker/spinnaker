@@ -70,4 +70,21 @@ class ExpressionsSupportSpec extends Specification {
     // raise exception when not passed an Execution
     thrown(SpelHelperFunctionException)
   }
+
+  def "stageExists() returns whether a stage exists or not"() {
+    when:
+    def exists = ExpressionsSupport.stageExists(pipeline, id)
+
+    then:
+    exists == real
+
+    where:
+    id                   | real
+    "My First Stage"     | true
+    "1"                  | true
+    "My Second Stage"    | true
+    "2"                  | true
+    "Non-existent Stage" | false
+    "42"                 | false
+  }
 }

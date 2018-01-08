@@ -96,6 +96,7 @@ public class ExpressionsSupport {
         registerFunction(evaluationContext, "jsonFromUrl", String.class);
         registerFunction(evaluationContext, "propertiesFromUrl", String.class);
         registerFunction(evaluationContext, "stage", Object.class, String.class);
+        registerFunction(evaluationContext, "stageExists", Object.class, String.class);
         registerFunction(evaluationContext, "judgment", Object.class, String.class);
         registerFunction(evaluationContext, "judgement", Object.class, String.class);
         registerFunction(evaluationContext, "deployedServerGroups", Object.class, String[].class);
@@ -269,6 +270,23 @@ public class ExpressionsSupport {
             String.format("Unable to locate [%s] using #stage(%s) in execution %s", id, id, execution.getId())
           )
         );
+    }
+
+    throw new SpelHelperFunctionException(String.format("Invalid first param to #stage(%s). must be an execution", id));
+  }
+
+  /**
+   * Checks existence of a Stage by id
+   * @param obj #root.execution
+   * @param id the name or id of the stage to check existence
+   * @return W
+   */
+  static boolean stageExists(Object obj, String id) {
+    if (obj instanceof Execution) {
+      Execution execution = (Execution) obj;
+      return execution.getStages()
+        .stream()
+        .anyMatch(i -> id != null && (id.equals(i.getName()) || id.equals(i.getId())));
     }
 
     throw new SpelHelperFunctionException(String.format("Invalid first param to #stage(%s). must be an execution", id));
