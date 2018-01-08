@@ -59,7 +59,7 @@ public interface LocalDebianService<T> extends LocalService<T> {
     String upstartServiceName = getUpstartServiceName();
     String ensureStopped = StringUtils.isEmpty(upstartServiceName) ? "" :
         String.join("\n",
-            "set +e", String.join(" ", "service" + upstartServiceName + "stop"), "set -e");
+            "set +e", String.join(" ", "service", upstartServiceName, "stop"), "set -e");
 
     pinResource.setBindings(bindings);
     installResource.setBindings(bindings);
