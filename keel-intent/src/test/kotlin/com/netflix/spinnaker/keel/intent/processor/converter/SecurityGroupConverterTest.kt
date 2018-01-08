@@ -116,7 +116,7 @@ object SecurityGroupConverterTest {
         accountName = "test",
         region = "us-west-2",
         vpcId = "vpc-1234",
-        inboundRules = emptyList(),
+        inboundRules = emptySet(),
         moniker = Moniker("keel", "keel")
       ),
       SecurityGroup(
@@ -127,7 +127,7 @@ object SecurityGroupConverterTest {
         accountName = "test",
         region = "us-east-1",
         vpcId = "vpc-1235",
-        inboundRules = emptyList(),
+        inboundRules = emptySet(),
         moniker = Moniker("keel", "keel")
       )
     )

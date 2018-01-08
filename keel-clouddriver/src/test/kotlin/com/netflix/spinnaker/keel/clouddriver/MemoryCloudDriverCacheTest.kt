@@ -20,9 +20,9 @@ object MemoryCloudDriverCacheTest {
   val subject = MemoryCloudDriverCache(cloudDriver)
 
   val securityGroups = setOf(
-    SecurityGroup("aws", "sg-1", "foo", null, "prod", "us-west-2", "vpc-1", emptyList(), Moniker("covfefe")),
-    SecurityGroup("aws", "sg-2", "foo", null, "prod", "us-east-1", "vpc-1", emptyList(), Moniker("covfefe")),
-    SecurityGroup("aws", "sg-3", "bar", null, "prod", "us-west-2", "vpc-1", emptyList(), Moniker("covfefe"))
+    SecurityGroup("aws", "sg-1", "foo", null, "prod", "us-west-2", "vpc-1", emptySet(), Moniker("covfefe")),
+    SecurityGroup("aws", "sg-2", "foo", null, "prod", "us-east-1", "vpc-1", emptySet(), Moniker("covfefe")),
+    SecurityGroup("aws", "sg-3", "bar", null, "prod", "us-west-2", "vpc-1", emptySet(), Moniker("covfefe"))
   )
 
   val vpcs = setOf(

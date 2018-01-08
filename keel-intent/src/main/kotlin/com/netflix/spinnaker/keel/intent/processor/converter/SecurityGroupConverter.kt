@@ -79,7 +79,7 @@ class SecurityGroupConverter(
               )
               else -> TODO(reason = "${it.javaClass.simpleName} has not been implemented yet")
             }
-          },
+          }.toSet(),
           id = null,
           // TODO rz - fix so not bad
           moniker = Moniker(spec.name)

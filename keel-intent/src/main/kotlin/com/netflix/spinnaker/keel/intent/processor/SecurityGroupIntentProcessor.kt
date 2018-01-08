@@ -43,18 +43,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import retrofit.RetrofitError
 
-interface IntentProcessorStrategy {
-
-  fun supports(intent: Intent<IntentSpec>): Boolean
-}
-
-interface SecurityGroupIntentProcessorStrategy<in T : SecurityGroupSpec> : IntentProcessorStrategy {
-
-  fun getSecurityGroups(spec: T): Set<SecurityGroup>
-
-  fun getMissingUpstreamSecurityGroups(spec: T): List<String>
-}
-
 @Component
 class SecurityGroupIntentProcessor
 @Autowired constructor(

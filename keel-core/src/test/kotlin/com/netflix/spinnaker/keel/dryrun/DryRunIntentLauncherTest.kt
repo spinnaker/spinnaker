@@ -15,7 +15,6 @@
  */
 package com.netflix.spinnaker.keel.dryrun
 
-import com.natpryce.hamkrest.equalTo
 import com.natpryce.hamkrest.isA
 import com.natpryce.hamkrest.should.shouldMatch
 import com.netflix.spectator.api.Counter
@@ -77,10 +76,6 @@ object DryRunIntentLauncherTest {
     subject.launch(intent).let { result ->
       result shouldMatch isA<DryRunLaunchedIntentResult>()
       result.summary shouldEqual changeSummary
-      result.steps.size shouldMatch equalTo(1)
-      result.steps[0].name shouldMatch equalTo("my orchestration")
-      result.steps[0].description shouldMatch equalTo("testing dry-runs")
-      result.steps[0].operations shouldMatch equalTo(listOf("wait", "wait for more time"))
     }
   }
 

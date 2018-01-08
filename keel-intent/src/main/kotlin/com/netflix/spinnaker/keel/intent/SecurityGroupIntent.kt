@@ -110,7 +110,7 @@ data class CrossAccountReferenceSecurityGroupRule(
   override val protocol: String,
   override val name: String,
   val account: String,
-  val region: String,
+  val region: String, // TODO rz - remove; can only x-account to same region
   val vpcName: String
 ) : SecurityGroupRule(), PortRangeSupport
 

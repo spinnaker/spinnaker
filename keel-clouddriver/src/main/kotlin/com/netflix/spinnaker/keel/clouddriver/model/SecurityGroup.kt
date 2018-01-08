@@ -25,7 +25,7 @@ data class SecurityGroup(
   val accountName: String,
   val region: String,
   val vpcId: String?,
-  val inboundRules: List<SecurityGroupRule> = emptyList(),
+  val inboundRules: Set<SecurityGroupRule> = setOf(),
   @Computed val moniker: Moniker
 ) {
   data class SecurityGroupRule(

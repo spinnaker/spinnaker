@@ -22,7 +22,6 @@ import com.netflix.spinnaker.keel.IntentLauncher
 import com.netflix.spinnaker.keel.IntentProcessor
 import com.netflix.spinnaker.keel.IntentSpec
 import com.netflix.spinnaker.keel.LaunchedIntentResult
-import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
@@ -40,28 +39,12 @@ class DryRunIntentLauncher
 
   override fun launch(intent: Intent<IntentSpec>): DryRunLaunchedIntentResult {
     registry.counter(invocationsId).increment()
-
-    val processor = intentProcessor(intentProcessors, intent)
-
-    val tasks = processor.converge(intent)
-
-    return DryRunLaunchedIntentResult(
-      steps = collectSteps(tasks.orchestrations),
-      summary = tasks.changeSummary
-    )
+    return intentProcessor(intentProcessors, intent).converge(intent).let {
+      DryRunLaunchedIntentResult(summary = it.changeSummary)
+    }
   }
-
-  private fun collectSteps(orchestrations: List<OrchestrationRequest>): List<DryRunStep>
-    = orchestrations.map { (name, _, description, job) ->
-        DryRunStep(
-          name = name,
-          description = description,
-          operations = job.map { s -> (s["name"] ?: s["type"]).toString() }
-        )
-      }
 }
 
 data class DryRunLaunchedIntentResult(
-  val steps: List<DryRunStep>,
   val summary: ChangeSummary
 ) : LaunchedIntentResult

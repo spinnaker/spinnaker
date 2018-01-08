@@ -23,11 +23,14 @@ import com.netflix.spinnaker.keel.scheduler.ScheduleConvergence
 import com.netflix.spinnaker.keel.test.TestIntent
 import com.netflix.spinnaker.keel.test.TestIntentSpec
 import com.netflix.spinnaker.q.Queue
-import com.nhaarman.mockito_kotlin.*
+import com.nhaarman.mockito_kotlin.any
+import com.nhaarman.mockito_kotlin.doReturn
+import com.nhaarman.mockito_kotlin.mock
+import com.nhaarman.mockito_kotlin.verify
+import com.nhaarman.mockito_kotlin.whenever
 import org.junit.jupiter.api.Test
 import org.springframework.context.ApplicationEventPublisher
 import java.time.Clock
-import java.time.Duration
 import java.time.Instant
 import java.time.ZoneId
 
@@ -54,6 +57,5 @@ object ScheduleConvergeHandlerTest {
 
     verify(queue).push(ConvergeIntent(intent1, 10000, 60000))
     verify(queue).push(ConvergeIntent(intent2, 10000, 60000))
-    verify(queue).push(message, Duration.ofMillis(30000))
   }
 }

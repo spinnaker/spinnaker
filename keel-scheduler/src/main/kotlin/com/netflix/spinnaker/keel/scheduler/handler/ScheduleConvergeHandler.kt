@@ -30,7 +30,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
 import java.time.Clock
-import java.time.Duration
 
 @Component
 class ScheduleConvergeHandler
@@ -67,9 +66,6 @@ class ScheduleConvergeHandler
     } catch (e: Exception) {
       log.error("Failed scheduling convergence", e)
       registry.counter(invocations.withTag("result", "failed")).increment()
-    } finally {
-      log.info("Re-scheduling convergence")
-      queue.push(message, Duration.ofMillis(properties.rescheduleTtl))
     }
   }
 

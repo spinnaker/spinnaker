@@ -121,7 +121,7 @@ object SecurityGroupIntentProcessorTest {
         accountName = "test",
         region = "us-west-2",
         vpcId = "vpcName",
-        inboundRules = emptyList(),
+        inboundRules = emptySet(),
         moniker = Moniker("test")
       )
     whenever(clouddriverCache.networkBy(any(), any(), any())) doReturn

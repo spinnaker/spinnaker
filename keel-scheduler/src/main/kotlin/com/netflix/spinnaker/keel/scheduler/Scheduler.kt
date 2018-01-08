@@ -18,6 +18,7 @@ package com.netflix.spinnaker.keel.scheduler
 import com.netflix.spinnaker.q.Queue
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import java.time.Duration
@@ -27,6 +28,7 @@ import javax.annotation.PostConstruct
  * Starts the convergence schedule, and ensures that it stays scheduled through failures.
  */
 @Component
+@ConditionalOnExpression("\${scheduler.enabled:true}")
 class QueueBackedSchedulerAgent(
   private val queue: Queue,
   @Value("\${scheduler.retry.onStart.ms:30000}") private val ensureSchedulerFrequency: Long
