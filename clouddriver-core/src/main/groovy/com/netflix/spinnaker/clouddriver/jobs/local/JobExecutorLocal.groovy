@@ -20,11 +20,14 @@ import com.netflix.spinnaker.clouddriver.jobs.JobExecutor
 import com.netflix.spinnaker.clouddriver.jobs.JobRequest
 import com.netflix.spinnaker.clouddriver.jobs.JobStatus
 import groovy.util.logging.Slf4j
-import org.apache.commons.exec.*
+import org.apache.commons.exec.CommandLine
+import org.apache.commons.exec.DefaultExecuteResultHandler
+import org.apache.commons.exec.DefaultExecutor
+import org.apache.commons.exec.ExecuteWatchdog
+import org.apache.commons.exec.Executor
+import org.apache.commons.exec.PumpStreamHandler
+import org.apache.commons.exec.Watchdog
 import org.springframework.beans.factory.annotation.Value
-import rx.Scheduler
-import rx.functions.Action0
-import rx.schedulers.Schedulers
 
 import java.util.concurrent.ConcurrentHashMap
 
@@ -34,13 +37,6 @@ class JobExecutorLocal implements JobExecutor {
   @Value('${jobs.local.timeoutMinutes:10}')
   long timeoutMinutes
 
-  @Value('${jobs.local.waitForJobStartTimeoutMillis:5000}')
-  long waitForJobStartTimeoutMillis
-
-  @Value('${jobs.local.waitForJobStartPollingIntervalMillis:500}')
-  long waitForJobStartPollingIntervalMillis
-
-  Scheduler scheduler = Schedulers.computation()
   Map<String, Map> jobIdToHandlerMap = new ConcurrentHashMap<String, Map>()
 
   @Override
@@ -49,75 +45,54 @@ class JobExecutorLocal implements JobExecutor {
 
     String jobId = UUID.randomUUID().toString()
 
-    scheduler.createWorker().schedule(
-      new Action0() {
-        @Override
-        public void call() {
-          ByteArrayOutputStream stdOut = new ByteArrayOutputStream()
-          ByteArrayOutputStream stdErr = new ByteArrayOutputStream()
-          PumpStreamHandler pumpStreamHandler = new PumpStreamHandler(stdOut, stdErr, inputStream)
-          CommandLine commandLine
+    ByteArrayOutputStream stdOut = new ByteArrayOutputStream()
+    ByteArrayOutputStream stdErr = new ByteArrayOutputStream()
+    PumpStreamHandler pumpStreamHandler = new PumpStreamHandler(stdOut, stdErr, inputStream)
+    CommandLine commandLine
 
-          if (jobRequest.tokenizedCommand) {
-            log.debug("Executing $jobId with tokenized command: $jobRequest.tokenizedCommand")
+    if (jobRequest.tokenizedCommand) {
+      log.debug("Executing $jobId with tokenized command: $jobRequest.tokenizedCommand")
 
-            // Grab the first element as the command.
-            commandLine = new CommandLine(jobRequest.tokenizedCommand[0])
+      // Grab the first element as the command.
+      commandLine = new CommandLine(jobRequest.tokenizedCommand[0])
 
-            // Treat the rest as arguments.
-            String[] arguments = Arrays.copyOfRange(jobRequest.tokenizedCommand.toArray(), 1, jobRequest.tokenizedCommand.size())
+      // Treat the rest as arguments.
+      String[] arguments = Arrays.copyOfRange(jobRequest.tokenizedCommand.toArray(), 1, jobRequest.tokenizedCommand.size())
 
-            commandLine.addArguments(arguments, false)
-          } else {
-            throw new IllegalArgumentException("No tokenizedCommand specified for $jobId.")
-          }
+      commandLine.addArguments(arguments, false)
+    } else {
+      throw new IllegalArgumentException("No tokenizedCommand specified for $jobId.")
+    }
 
-          DefaultExecuteResultHandler resultHandler = new DefaultExecuteResultHandler()
-          ExecuteWatchdog watchdog = new ExecuteWatchdog(timeoutMinutes * 60 * 1000){
-            @Override
-            void timeoutOccured(Watchdog w) {
-              // If a watchdog is passed in, this was an actual time-out. Otherwise, it is likely
-              // the result of calling watchdog.destroyProcess().
-              if (w) {
-                log.warn("Job $jobId timed-out (after $timeoutMinutes minutes).")
-                cancelJob(jobId)
-              }
-
-              super.timeoutOccured(w)
-            }
-          }
-          Executor executor = new DefaultExecutor()
-          executor.setStreamHandler(pumpStreamHandler)
-          executor.setWatchdog(watchdog)
-          executor.execute(commandLine, environment, resultHandler)
-
-          // Give the job some time to spin up.
-          sleep(500)
-
-          jobIdToHandlerMap.put(jobId, [
-            handler: resultHandler,
-            watchdog: watchdog,
-            stdOut: stdOut,
-            stdErr: stdErr
-          ])
+    DefaultExecuteResultHandler resultHandler = new DefaultExecuteResultHandler()
+    ExecuteWatchdog watchdog = new ExecuteWatchdog(timeoutMinutes * 60 * 1000){
+      @Override
+      void timeoutOccured(Watchdog w) {
+        // If a watchdog is passed in, this was an actual time-out. Otherwise, it is likely
+        // the result of calling watchdog.destroyProcess().
+        if (w) {
+          log.warn("Job $jobId timed-out (after $timeoutMinutes minutes).")
+          cancelJob(jobId)
         }
-      }
-    )
 
-    def startTime = System.currentTimeMillis()
-    while (System.currentTimeMillis() - startTime < waitForJobStartTimeoutMillis) {
-      if (jobExists(jobId)) {
-        break
-      } else {
-        sleep(waitForJobStartPollingIntervalMillis)
+        super.timeoutOccured(w)
       }
     }
+    Executor executor = new DefaultExecutor()
+    executor.setStreamHandler(pumpStreamHandler)
+    executor.setWatchdog(watchdog)
+    executor.execute(commandLine, environment, resultHandler)
 
-    if (!jobExists(jobId)) {
-      throw new IllegalArgumentException("Unable to locate job with id $jobId. Currently" +
-        "${waitForJobStartTimeoutMillis}ms is the configured timeout for the job to start. Consider " +
-        "increasing 'jobs.local.waitForJobStartTimeoutMillis' to wait for more time for the job to start.")
-    }
+    // TODO(lwander/dpeach) investigate if this is actually needed
+    // give the job time to startup
+    sleep(500)
+
+    jobIdToHandlerMap.put(jobId, [
+      handler: resultHandler,
+      watchdog: watchdog,
+      stdOut: stdOut,
+      stdErr: stdErr
+    ])
 
     return jobId
   }
