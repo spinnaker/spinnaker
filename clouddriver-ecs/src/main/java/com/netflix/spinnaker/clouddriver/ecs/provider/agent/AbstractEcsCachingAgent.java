@@ -1,5 +1,5 @@
 /*
- * * Copyright 2017 Lookout, Inc.
+ * Copyright 2017 Lookout, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -99,7 +99,7 @@ abstract class AbstractEcsCachingAgent<T> implements CachingAgent {
       .map(cacheData -> (String) cacheData.getAttributes().get("clusterArn"))
       .collect(Collectors.toSet());
 
-    if (clusters.isEmpty()) {
+    if (clusters == null || clusters.isEmpty()) {
       clusters = new HashSet<>();
       String nextToken = null;
       do {
@@ -141,10 +141,11 @@ abstract class AbstractEcsCachingAgent<T> implements CachingAgent {
     Map<String, Collection<CacheData>> dataMap = generateFreshData(items);
 
     Set<String> oldKeys = providerCache.getAll(authoritativeKeyName).stream()
-      .map(cache -> cache.getId())
+      .map(CacheData::getId)
       .collect(Collectors.toSet());
 
     Map<String, Collection<String>> evictions = computeEvictableData(dataMap.get(authoritativeKeyName), oldKeys);
+    evictions = addExtraEvictions(evictions);
     log.info("Evicting " + evictions.size() + " " + prettyKeyName + (evictions.size() > 1 ? "s" : "") + " in " + getAgentType());
 
     return new DefaultCacheResult(dataMap, evictions);
@@ -158,11 +159,24 @@ abstract class AbstractEcsCachingAgent<T> implements CachingAgent {
    * @return Key collection associated to the key namespace the the caching agent is authoritative of.
    */
   private Map<String, Collection<String>> computeEvictableData(Collection<CacheData> newData, Collection<String> oldKeys) {
-    Set<String> newKeys = newData.stream().map(CacheData::getId).collect(Collectors.toSet());
-    Set<String> evictedKeys = oldKeys.stream().filter(oldKey -> !newKeys.contains(oldKey)).collect(Collectors.toSet());
+    Set<String> newKeys = newData.stream()
+      .map(CacheData::getId)
+      .collect(Collectors.toSet());
+    Set<String> evictedKeys = oldKeys.stream()
+      .filter(oldKey -> !newKeys.contains(oldKey))
+      .collect(Collectors.toSet());
 
     Map<String, Collection<String>> evictionsByKey = new HashMap<>();
     evictionsByKey.put(getAuthoritativeKeyName(), evictedKeys);
     return evictionsByKey;
+  }
+
+  /**
+   * This method is to be overridden in order to add extra evictions.
+   * @param evictions The existing eviction map.
+   * @return Eviction map with addtional keys.
+   */
+  protected Map<String, Collection<String>> addExtraEvictions(Map<String, Collection<String>> evictions){
+    return evictions;
   }
 }

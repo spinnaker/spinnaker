@@ -31,12 +31,12 @@ import java.util.Map;
 import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.TASKS;
 
 public class TaskCacheClient extends AbstractCacheClient<Task> {
-  @Autowired
   private ObjectMapper mapper;
 
   @Autowired
   public TaskCacheClient(Cache cacheView, ObjectMapper mapper) {
     super(cacheView, TASKS.toString());
+    this.mapper = mapper;
   }
 
   @Override
