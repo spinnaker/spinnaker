@@ -98,7 +98,7 @@ Previously, the update path has failed for users in the following places:
 
 These are common issues that happen with each provider, and provide a serious
 user experience problem when running Spinnaker. Halyard's objective is
-programatically overcome these issues.
+to programatically overcome these issues.
 
 ## 1) Configuring Spinnaker
 
