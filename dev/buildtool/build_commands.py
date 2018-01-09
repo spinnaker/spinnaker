@@ -36,6 +36,7 @@ from buildtool.util import (
     check_subprocesses_to_logfile,
     determine_logfile_path,
     ensure_dir_exists,
+    ensure_options_set,
     timedelta_string,
     timestring,
     write_to_path)
@@ -137,8 +138,8 @@ class GradleCommandFactory(RepositoryCommandFactory):
     parser.added_gradle = True
 
     GradleCommandFactory.add_argument(
-        parser, 'build_bintray_repository', defaults, None,
-        help='bintray repository to publish packages and/or jars into.')
+        parser, 'build_bintray_debian_repository', defaults, None,
+        help='Repository in the --build_bintray_org to publish debians to.')
 
   def _do_init_argparser(self, parser, defaults):
     """Adds command-specific arguments."""
@@ -152,8 +153,11 @@ class GradleCommandFactory(RepositoryCommandFactory):
         parser, 'run_unit_tests', defaults, False, action='store_true',
         help='Run unit tests during build for all components other than Deck.')
     self.add_argument(
-        parser, 'build_jar_repository', defaults, None,
-        help='bintray repository to publish jar files into.')
+        parser, 'build_bintray_org', defaults, None,
+        help='The bintray organization for the build_bintray_*_repositories.')
+    self.add_argument(
+        parser, 'build_bintray_jar_repository', defaults, None,
+        help='bintray repository in the bintray_org to publish jar files into.')
     self.add_argument(
         parser, 'maven_custom_init_file', defaults,
         os.path.join(os.path.dirname(__file__), '..', 'maven-init.gradle'),
@@ -312,6 +316,14 @@ class BuildDebianCommand(GradleCommandProcessor):
   # pylint: disable=too-few-public-methods
 
   def __init__(self, factory, options, upstream_repositories=None, **kwargs):
+    if not os.environ.get('BINTRAY_KEY'):
+      raise ValueError('Expected BINTRAY_KEY set.')
+    if not os.environ.get('BINTRAY_USER'):
+      raise ValueError('Expected BINTRAY_USER set.')
+    ensure_options_set(
+        options, ['build_bintray_org', 'build_bintray_jar_repository',
+                  'build_bintray_debian_repository'])
+
     upstream_repositories = upstream_repositories or SPINNAKER_BOM_REPOSITORIES
     super(BuildDebianCommand, self).__init__(
         factory, options, upstream_repositories,
@@ -319,31 +331,16 @@ class BuildDebianCommand(GradleCommandProcessor):
 
   def _do_append_extra_args(self, name, extra_args):
     """Add build-specific gradle arguments."""
-
     bintray_key = os.environ['BINTRAY_KEY']
     bintray_user = os.environ['BINTRAY_USER']
-    if not bintray_key:
-      raise ValueError('Expected BINTRAY_KEY set.')
-    if not bintray_user:
-      raise ValueError('Expected BINTRAY_USER set.')
-
     options = self.options
-    jar_repo = options.build_jar_repository
-    if not jar_repo or len(jar_repo.split('/')) != 1:
-      raise ValueError('Expected --build_jar_repository in the form <repo>'
-                       ' using the implied owner from'
-                       ' --build_bintray_repository')
-
-    parts = (options.build_bintray_repository or '').split('/')
-    if len(parts) != 2:
-      raise ValueError(
-          'Expected --build_bintray_repository to be in the form'
-          ' <owner>/<repo>')
-    org, package_repo = parts[0], parts[1]
+    bintray_org = options.build_bintray_org
+    jar_repo = options.build_bintray_jar_repository
+    debian_repo = options.build_bintray_debian_repository
 
     extra_args.extend([
-        '-PbintrayOrg="{org}"'.format(org=org),
-        '-PbintrayPackageRepo="{repo}"'.format(repo=package_repo),
+        '-PbintrayOrg="{org}"'.format(org=bintray_org),
+        '-PbintrayPackageRepo="{repo}"'.format(repo=debian_repo),
         '-PbintrayJarRepo="{jarRepo}"'.format(jarRepo=jar_repo),
         '-PbintrayKey="{key}"'.format(key=bintray_key),
         '-PbintrayUser="{user}"'.format(user=bintray_user),

@@ -65,8 +65,9 @@ github_user: default
 # maven_custom_init_file: [<spinnaker>/dev/maven-init.gradle]
 # gradle_cache_path: [<home>/.gradle]
 extra_gradle_args: info --stacktrace
-build_bintray_repository: spinnaker-releases/debians
-build_jar_repository: # jars, I think
+build bintray_org: spinnaker-releases
+build_bintray_repository: debians
+build_bintray_jar_repository: jars
 
 ### Used by: build_halyard
 halyard_bucket_base_url: gs://spinnaker-artifacts/halyard
