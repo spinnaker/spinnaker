@@ -70,6 +70,49 @@ public class KubectlJobExecutor {
     this.jobExecutor = jobExecutor;
   }
 
+  public String configCurrentContext(KubernetesV2Credentials credentials) {
+    List<String> command = kubectlAuthPrefix(credentials);
+    command.add("config");
+    command.add("current-context");
+
+    String jobId = jobExecutor.startJob(new JobRequest(command),
+      System.getenv(),
+      new ByteArrayInputStream(new byte[0]));
+
+    JobStatus status = backoffWait(jobId, credentials.isDebug());
+
+    if (status.getResult() != JobStatus.Result.SUCCESS) {
+      throw new KubectlException("Failed get current configuration context");
+    }
+
+    return status.getStdOut();
+  }
+
+  public String defaultNamespace(KubernetesV2Credentials credentials) {
+    String configCurrentContext = configCurrentContext(credentials);
+    if (StringUtils.isEmpty(configCurrentContext)) {
+      return "";
+    }
+
+    List<String> command = kubectlAuthPrefix(credentials);
+    command.add("config");
+    command.add("view");
+    command.add("-o");
+    String jsonPath = "{.contexts[?(@.name==\"" + configCurrentContext + "\")].context.namespace}";
+    command.add("\"jsonPath=" + jsonPath + "\"");
+
+    String jobId = jobExecutor.startJob(new JobRequest(command),
+      System.getenv(),
+      new ByteArrayInputStream(new byte[0]));
+
+    JobStatus status = backoffWait(jobId, credentials.isDebug());
+
+    if (status.getResult() != JobStatus.Result.SUCCESS) {
+      throw new KubectlException("Failed get current configuration context");
+    }
+    return status.getStdOut();
+  }
+
   public String logs(KubernetesV2Credentials credentials, String namespace, String podName, String containerName) {
     List<String> command = kubectlNamespacedAuthPrefix(credentials, namespace);
     command.add("logs");

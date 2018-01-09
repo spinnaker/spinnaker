@@ -86,7 +86,7 @@ public class KubernetesManifest extends HashMap<String, Object> {
   @JsonIgnore
   public String getNamespace() {
     String namespace = (String) getMetadata().get("namespace");
-    return StringUtils.isEmpty(namespace) ? "default" : namespace;
+    return StringUtils.isEmpty(namespace) ? "" : namespace;
   }
 
   @JsonIgnore

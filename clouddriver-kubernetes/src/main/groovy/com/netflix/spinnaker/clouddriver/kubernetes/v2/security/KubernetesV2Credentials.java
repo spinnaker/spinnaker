@@ -34,10 +34,12 @@ import org.apache.commons.lang3.StringUtils;
 import javax.validation.constraints.NotNull;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -67,8 +69,24 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
   @Getter
   private final List<String> oAuthScopes;
 
-  @Getter
   private final String defaultNamespace = "default";
+  private final Path serviceAccountNamespacePath = Paths.get("/var/run/secrets/kubernetes.io/serviceaccount/namespace");
+  public String getDefaultNamespace() {
+    String namespace = defaultNamespace;
+    try {
+      Optional<String> serviceAccountNamespace = Files.lines(serviceAccountNamespacePath, StandardCharsets.UTF_8).findFirst();
+      namespace = serviceAccountNamespace.get();
+    } catch (IOException | NoSuchElementException e) {
+      try {
+        namespace = jobExecutor.defaultNamespace(this);
+      } catch (KubectlException e1) {
+      }
+    }
+    if (StringUtils.isEmpty(namespace)) {
+      namespace = defaultNamespace;
+    }
+    return namespace;
+  }
 
   @Getter
   private final boolean debug;
