@@ -12,7 +12,7 @@ A tool for configuring, installing, and updating Spinnaker.
 
 > __NOTICE:__ This tool is in Beta - some behavior may still change. Please
 > report any bugs/problems/questions on [the issue
-> tracker](https://github.com/spinnaker/halyard) or in
+> tracker](https://github.com/spinnaker/halyard/issues) or in
 > [slack](http://join.spinnaker.io).
 
 ```
