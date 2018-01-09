@@ -32,7 +32,8 @@ public class Keys implements KeyParser {
     ECS_CLUSTERS,
     TASKS,
     CONTAINER_INSTANCES,
-    TASK_DEFINITIONS;
+    TASK_DEFINITIONS,
+    ALARMS;
 
     public final String ns;
 
@@ -102,6 +103,9 @@ public class Keys implements KeyParser {
       case TASK_DEFINITIONS:
         result.put("taskDefinitionArn", parts[4]);
         break;
+      case ALARMS:
+        result.put("alarmArn", parts[4]);
+        break;
       case IAM_ROLE:
         result.put("roleName", parts[3]);
       default:
@@ -138,6 +142,10 @@ public class Keys implements KeyParser {
 
   public static String getTaskDefinitionKey(String account, String region, String taskDefinitionArn) {
     return buildKey(Namespace.TASK_DEFINITIONS.ns, account, region, taskDefinitionArn);
+  }
+
+  public static String getAlarmKey(String account, String region, String alarmArn) {
+    return buildKey(Namespace.ALARMS.ns, account, region, alarmArn);
   }
 
   public static String getIamRoleKey(String account, String iamRoleName) {
