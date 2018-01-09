@@ -53,6 +53,15 @@ class AppToDeployDcosServerGroupDescriptionMapper {
     desc.gpus = app.gpus
     desc.constraints = app.constraints?.stream()?.map({ constraintParts -> constraintParts.join(':') })?.collect(joining(','))
 
+    desc.networks = app.networks?.collect({ f ->
+      new DeployDcosServerGroupDescription.Network().with {
+        name = f.name
+        mode = f.mode
+        labels = f.labels
+        return it
+      }
+    })
+
     desc.fetch = app.fetch?.collect({ f ->
       new DeployDcosServerGroupDescription.Fetchable().with {
         uri = f.uri
@@ -117,9 +126,25 @@ class AppToDeployDcosServerGroupDescriptionMapper {
       }
     }
 
+    // This code path should only be hit if we are using marathon 1.5
+    if (app.container.portMappings && !app.container.portMappings.empty) {
+      serviceEndpoints.addAll(app.container.portMappings.collect { pm ->
+        new DeployDcosServerGroupDescription.ServiceEndpoint().with {
+          networkType = marathon15ToMarathon14NetworkMapper(app.networks[0].mode)
+          name = pm.name
+          port = pm.containerPort
+          servicePort = pm.servicePort
+          protocol = pm.protocol
+          labels = pm.labels
+          loadBalanced = pm.labels?.keySet()?.any { it.startsWith('VIP') } ?: false
+          exposeToHost = networkType == 'USER' && pm.hostPort != null && pm.hostPort == 0
+          return it
+        }
+      })
+    }
+
     // Wasn't populated from docker portMappings, so gotta be portDefinitions
     if (serviceEndpoints.empty && app.portDefinitions) {
-
       serviceEndpoints.addAll(app.portDefinitions.collect() { pd ->
         new DeployDcosServerGroupDescription.ServiceEndpoint().with {
           networkType = 'HOST'
@@ -223,5 +248,18 @@ class AppToDeployDcosServerGroupDescriptionMapper {
     desc.requirePorts = app.requirePorts
 
     return desc
+  }
+
+  private static String marathon15ToMarathon14NetworkMapper(String networkType) {
+    switch(networkType) {
+      case "container":
+        return "USER"
+      case "container/bridge":
+        return "BRIDGE"
+      case "host":
+        return "HOST"
+      default:
+        throw new UnsupportedOperationException("Unrecognized Marathon 1.5 network type: ${networkType}")
+    }
   }
 }

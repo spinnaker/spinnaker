@@ -61,6 +61,7 @@ class DeployDcosServerGroupDescription extends AbstractDcosCredentialsDescriptio
   List<DockerVolume> dockerVolumes = new ArrayList<>()
   List<ExternalVolume> externalVolumes = new ArrayList<>()
   Boolean requirePorts
+  List<Network> networks
 
   boolean forceDeployment
 
@@ -195,5 +196,12 @@ class DeployDcosServerGroupDescription extends AbstractDcosCredentialsDescriptio
     Integer timeoutSeconds
     Collection<Integer> httpStatusCodesForReady
     boolean preserveLastResponse
+  }
+
+  @Canonical
+  static class Network {
+    String name
+    String mode
+    Map<String, String> labels = new HashMap()
   }
 }

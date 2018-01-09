@@ -33,7 +33,16 @@ class DeployDcosServerGroupDescriptionToAppMapper {
       disk = description.disk
       gpus = description.gpus
 
-      if (description.networkType == "USER" && emptyToNull(description.networkName)) {
+      networks = description.networks && !description.networks.empty ? description.networks.collect({ network ->
+          new Network().with {
+            name = network.name
+            mode = network.mode
+            labels = network.labels
+            it
+          }
+        }) as List<Network> : null
+
+      if (!networks && description.networkType == "USER" && emptyToNull(description.networkName)) {
         ipAddress = new IpAddress().with {
           networkName = description.networkName
           it
@@ -47,9 +56,11 @@ class DeployDcosServerGroupDescriptionToAppMapper {
         // just to play it safe and to be consistent as much as possible.
         docker = description.docker ? new Docker().with {
           image = description.docker.image.imageId
-          network = description.networkType
+          if (!networks) {
+            network = description.networkType
+          }
 
-          if ("HOST" != description.networkType) {
+          if (!networks && "HOST" != description.networkType) {
             portMappings = parsePortMappings(resolvedAppName, description.serviceEndpoints)
           }
           privileged = description.docker.privileged
@@ -66,6 +77,7 @@ class DeployDcosServerGroupDescriptionToAppMapper {
         } : null
         volumes = parseVolumes(description.persistentVolumes, description.dockerVolumes, description.externalVolumes)
         type = docker ? "DOCKER" : null
+
 
         it
       }
@@ -139,7 +151,7 @@ class DeployDcosServerGroupDescriptionToAppMapper {
       requirePorts = description.requirePorts
       acceptedResourceRoles = description.acceptedResourceRoles
 
-      if ("HOST" == description.networkType) {
+      if (!networks && "HOST" == description.networkType) {
         portDefinitions = parsePortDefinitions(resolvedAppName, description.serviceEndpoints)
       }
 
@@ -191,6 +203,23 @@ class DeployDcosServerGroupDescriptionToAppMapper {
     }
 
     parsedLabels ? parsedLabels : null
+  }
+
+  private
+  static List<Port> parseNewPortMappings(String appId, List<DeployDcosServerGroupDescription.ServiceEndpoint> serviceEndpoints) {
+    def portMapping = serviceEndpoints.withIndex().collect({
+      serviceEndpoint, index ->
+        new Port().with {
+          name = serviceEndpoint.name
+          protocol = serviceEndpoint.protocol
+          containerPort = serviceEndpoint.port
+          servicePort = serviceEndpoint.servicePort
+          labels = parsePortMappingLabels(appId, serviceEndpoint, index)
+          it
+        }
+    }) as List<Port>
+
+    portMapping ? portMapping : null
   }
 
   private
