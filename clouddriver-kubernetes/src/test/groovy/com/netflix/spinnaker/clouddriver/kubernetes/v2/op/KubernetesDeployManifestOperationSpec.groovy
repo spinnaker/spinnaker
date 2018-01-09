@@ -107,7 +107,7 @@ metadata:
       .withAccount(ACCOUNT)
       .setNamer(KubernetesManifest.class, new KubernetesManifestNamer())
     
-    def deployOp = new KubernetesDeployManifestOperation(deployDescription, registry, null, null)
+    def deployOp = new KubernetesDeployManifestOperation(deployDescription, registry, null)
 
     return deployOp
   }

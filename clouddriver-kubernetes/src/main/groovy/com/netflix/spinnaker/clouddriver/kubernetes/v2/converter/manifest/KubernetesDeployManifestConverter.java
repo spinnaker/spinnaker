@@ -48,7 +48,7 @@ public class KubernetesDeployManifestConverter extends AbstractAtomicOperationsC
 
   @Override
   public AtomicOperation convertOperation(Map input) {
-    return new KubernetesDeployManifestOperation(convertDescription(input), registry, artifactProvider, artifactDownloader);
+    return new KubernetesDeployManifestOperation(convertDescription(input), registry, artifactProvider);
   }
 
   @Override
