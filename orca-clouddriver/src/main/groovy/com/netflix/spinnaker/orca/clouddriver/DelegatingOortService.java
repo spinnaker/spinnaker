@@ -88,6 +88,11 @@ public class DelegatingOortService
   }
 
   @Override
+  public Response fetchArtifact(String artifactAccount, String type, String reference) {
+    return getService().fetchArtifact(artifactAccount, type, reference);
+  }
+
+  @Override
   public List<Map> getLoadBalancerDetails(String provider, String account, String region, String name) {
     return getService().getLoadBalancerDetails(provider, account, region, name);
   }

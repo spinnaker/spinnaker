@@ -17,22 +17,29 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.manifest;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.Task;
 import com.netflix.spinnaker.orca.TaskResult;
 import com.netflix.spinnaker.orca.clouddriver.KatoService;
+import com.netflix.spinnaker.orca.clouddriver.OortService;
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId;
 import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import com.netflix.spinnaker.orca.pipeline.util.ArtifactResolver;
+import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.yaml.snakeyaml.Yaml;
+import retrofit.client.Response;
 
 import javax.annotation.Nonnull;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -47,7 +54,20 @@ public class DeployManifestTask extends AbstractCloudProviderAwareTask implement
   KatoService kato;
 
   @Autowired
+  OortService oort;
+
+  @Autowired
   ArtifactResolver artifactResolver;
+
+  @Autowired
+  ObjectMapper objectMapper;
+
+  Yaml yamlParser = new Yaml();
+
+  @Autowired
+  ContextParameterProcessor contextParameterProcessor;
+
+  RetrySupport retrySupport = new RetrySupport();
 
   public static final String TASK_NAME = "deployManifest";
 
@@ -62,8 +82,38 @@ public class DeployManifestTask extends AbstractCloudProviderAwareTask implement
     String artifactSource = (String) task.get("source");
     if (StringUtils.isNotEmpty(artifactSource) && artifactSource.equals("artifact")) {
       Artifact manifestArtifact = artifactResolver.getBoundArtifactForId(stage, task.get("manifestArtifactId").toString());
-      task.put("manifestArtifact", manifestArtifact);
+
+      if (manifestArtifact == null) {
+        throw new IllegalArgumentException("No artifact could be bound to '" + task.get("manifestArtifactId") + "'");
+      }
+
       log.info("Using {} as the manifest to be deployed", manifestArtifact);
+
+      manifestArtifact.setArtifactAccount((String) task.get("manifestArtifactAccount"));
+      Response manifestText = retrySupport.retry(() -> oort.fetchArtifact(manifestArtifact.getArtifactAccount(),
+          manifestArtifact.getType(),
+          manifestArtifact.getReference()
+      ), 5, 1000, true);
+
+      try {
+        Map manifest = objectMapper.convertValue(yamlParser.load(manifestText.getBody().in()), Map.class);
+        Map<String, Object> manifestWrapper = new HashMap<>();
+        manifestWrapper.put("manifest", manifest);
+
+        manifestWrapper = contextParameterProcessor.process(
+            manifestWrapper,
+            contextParameterProcessor.buildExecutionContext(stage, true)
+        );
+
+        if (manifestWrapper.containsKey("expressionEvaluationSummary")) {
+          throw new IllegalStateException("Failure evaluating manifest expressions: " + manifestWrapper.get("expressionEvaluationSummary"));
+        }
+
+        task.put("manifest", manifestWrapper.get("manifest"));
+        task.put("source", "text");
+      } catch (IOException e) {
+        throw new IllegalArgumentException("Failed to read manifest from '" + manifestArtifact + "' as '" + manifestText + "': " + e.getMessage(), e);
+      }
     }
 
     List<String> requiredArtifactIds = (List<String>) task.get("requiredArtifactIds");

@@ -90,6 +90,11 @@ interface OortService {
                        @Path("region") String region,
                        @Path("instanceId") String instanceId)
 
+  @GET("/artifacts/fetch/")
+  Response fetchArtifact(@Query("artifactAccount") String artifactAccount,
+                         @Query("type") String type,
+                         @Query("reference") String reference)
+
   @GET("/{provider}/loadBalancers/{account}/{region}/{name}")
   List<Map> getLoadBalancerDetails(@Path("provider") String provider,
                                    @Path("account") String account,
