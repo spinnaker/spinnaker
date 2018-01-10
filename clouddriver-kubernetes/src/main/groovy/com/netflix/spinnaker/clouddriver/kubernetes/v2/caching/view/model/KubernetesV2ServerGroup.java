@@ -82,9 +82,11 @@ public class KubernetesV2ServerGroup extends ManifestBasedModel implements Serve
     this.instances = new HashSet<>(instances);
     this.loadBalancers = loadBalancers;
 
-    V1beta1ReplicaSet replicaSet = KubernetesCacheDataConverter.getResource(manifest, V1beta1ReplicaSet.class);
     this.capacity = Capacity.builder()
-        .desired(replicaSet.getSpec().getReplicas())
+        .desired((Integer)
+            ((Map<String, Object>) manifest.getOrDefault("spec", new HashMap<String, Object>()))
+                .getOrDefault("replicas", 0)
+        )
         .build();
   }
 
