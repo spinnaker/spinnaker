@@ -110,7 +110,7 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
 
         description.runtimeLimitSecs = description.runtimeLimitSecs ?: sourceJob.runtimeLimitSecs
         description.securityGroups = description.securityGroups ?: sourceJob.securityGroups
-        description.imageId = description.imageId ?: (sourceJob.appName + ":" + sourceJob.version)
+        description.imageId = description.imageId ?: (sourceJob.applicationName + ":" + sourceJob.version)
 
         if (description.source.useSourceCapacity) {
           description.capacity.min = sourceJob.instancesMin
