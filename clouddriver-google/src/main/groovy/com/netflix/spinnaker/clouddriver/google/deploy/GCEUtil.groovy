@@ -42,6 +42,7 @@ import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleResourceN
 import com.netflix.spinnaker.clouddriver.google.model.*
 import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
 import com.netflix.spinnaker.clouddriver.google.model.health.GoogleInstanceHealth
+import com.netflix.spinnaker.clouddriver.google.model.health.GoogleLoadBalancerHealth
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.*
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleLoadBalancerProvider
@@ -1851,5 +1852,27 @@ class GCEUtil {
     }
 
     return instances
+  }
+
+  static void handleHealthObject(GoogleLoadBalancer googleLoadBalancer,
+                                 Object healthObject) {
+    // Note: GCE callbacks aren't well-typed so this must be an Object.
+    healthObject.healthStatus?.each { HealthStatus status ->
+      def instanceName = Utils.getLocalName(status.instance)
+      def googleLBHealthStatus = GoogleLoadBalancerHealth.PlatformStatus.valueOf(status.healthState)
+
+      googleLoadBalancer.healths << new GoogleLoadBalancerHealth(
+        instanceName: instanceName,
+        instanceZone: Utils.getZoneFromInstanceUrl(status.instance),
+        status: googleLBHealthStatus,
+        lbHealthSummaries: [
+          new GoogleLoadBalancerHealth.LBHealthSummary(
+            loadBalancerName: googleLoadBalancer.name,
+            instanceId: instanceName,
+            state: googleLBHealthStatus.toServiceStatus(),
+          )
+        ]
+      )
+    }
   }
 }

@@ -23,19 +23,30 @@ import com.google.api.client.googleapis.json.GoogleJsonError
 import com.google.api.client.http.HttpHeaders
 import com.google.api.services.compute.model.ForwardingRule
 import com.google.api.services.compute.model.ForwardingRuleList
-import com.google.api.services.compute.model.HealthStatus
 import com.google.api.services.compute.model.InstanceReference
 import com.netflix.spectator.api.Registry
+import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
 import com.netflix.spinnaker.clouddriver.google.model.GoogleHealthCheck
 import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
-import com.netflix.spinnaker.clouddriver.google.model.health.GoogleLoadBalancerHealth
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancer
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleNetworkLoadBalancer
+import com.netflix.spinnaker.clouddriver.google.provider.agent.util.LoadBalancerHealthResolution
+import com.netflix.spinnaker.clouddriver.google.provider.agent.util.TargetPoolHealthRequest
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import groovy.util.logging.Slf4j
 
 @Slf4j
 class GoogleNetworkLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerCachingAgent {
+
+  /**
+   * Local cache of targetPoolInstanceHealth keyed by TargetPool name.
+   *
+   * It turns out that the types in the GCE Batch callbacks aren't the actual Compute
+   * types for some reason, which is why this map is String -> Object.
+   */
+  Map<String, Object> tpNameToInstanceHealthsMap = [:]
+  Set<TargetPoolHealthRequest> queuedTpHealthRequests = new HashSet<>()
+  List<LoadBalancerHealthResolution> resolutions = []
 
   GoogleNetworkLoadBalancerCachingAgent(String clouddriverUserAgentApplicationName,
                                         GoogleNamedAccountCredentials credentials,
@@ -53,6 +64,11 @@ class GoogleNetworkLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerCa
   List<GoogleLoadBalancer> constructLoadBalancers(String onDemandLoadBalancerName = null) {
     List<GoogleNetworkLoadBalancer> loadBalancers = []
     List<String> failedLoadBalancers = []
+
+    // Reset the local getHealth caches/queues each caching agent cycle.
+    tpNameToInstanceHealthsMap = [:]
+    queuedTpHealthRequests = new HashSet<>()
+    resolutions = []
 
     BatchRequest forwardingRulesRequest = buildBatchRequest()
     BatchRequest targetPoolsRequest = buildBatchRequest()
@@ -79,6 +95,12 @@ class GoogleNetworkLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerCa
     executeIfRequestsAreQueued(targetPoolsRequest, "NetworkLoadBalancerCaching.targetPools")
     executeIfRequestsAreQueued(httpHealthChecksRequest, "NetworkLoadBalancerCaching.httpHealthChecks")
     executeIfRequestsAreQueued(instanceHealthRequest, "NetworkLoadBalancerCaching.instanceHealth")
+
+    resolutions.each { LoadBalancerHealthResolution resolution ->
+      tpNameToInstanceHealthsMap.get(resolution.getTarget()).each { targetPoolHealth ->
+        GCEUtil.handleHealthObject(resolution.getGoogleLoadBalancer(), targetPoolHealth)
+      }
+    }
 
     return loadBalancers.findAll {!(it.name in failedLoadBalancers)}
   }
@@ -235,45 +257,34 @@ class GoogleNetworkLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerCa
 
       targetPool?.instances?.each { String instanceUrl ->
         def instanceReference = new InstanceReference(instance: instanceUrl)
-        def instanceHealthCallback = new TargetPoolInstanceHealthCallback(googleLoadBalancer: googleLoadBalancer,
-                                                                          instanceName: Utils.getLocalName(instanceUrl),
-                                                                          instanceZone: Utils.getZoneFromInstanceUrl(instanceUrl))
+        def instanceHealthCallback = new TargetPoolInstanceHealthCallback(targetPoolName: targetPoolName)
 
-        compute.targetPools().getHealth(project,
-                                        region,
-                                        targetPoolName,
-                                        instanceReference).queue(instanceHealthRequest, instanceHealthCallback)
+        // Make only the group health request calls we need to.
+        TargetPoolHealthRequest tphr = new TargetPoolHealthRequest(project, region, targetPoolName, instanceReference.getInstance())
+        if (!queuedTpHealthRequests.contains(tphr)) {
+          // The groupHealthCallback updates the local cache along with running handleHealthObject.
+          log.debug("Queueing a batch call for getHealth(): {}", tphr)
+          queuedTpHealthRequests.add(tphr)
+          compute.targetPools()
+            .getHealth(project, region, targetPoolName, instanceReference)
+            .queue(instanceHealthRequest, instanceHealthCallback)
+        } else {
+          log.debug("Passing, batch call result cached for getHealth(): {}", tphr)
+        }
+        resolutions.add(new LoadBalancerHealthResolution(googleLoadBalancer, targetPoolName))
       }
     }
   }
 
   class TargetPoolInstanceHealthCallback<TargetPoolInstanceHealth> extends JsonBatchCallback<TargetPoolInstanceHealth> {
-    GoogleNetworkLoadBalancer googleLoadBalancer
-    String instanceName
-    String instanceZone
+    String targetPoolName
 
     @Override
     void onSuccess(TargetPoolInstanceHealth targetPoolInstanceHealth, HttpHeaders responseHeaders) throws IOException {
-      targetPoolInstanceHealth?.healthStatus?.each { HealthStatus healthStatus ->
-        def googleLBHealthStatus = GoogleLoadBalancerHealth.PlatformStatus.valueOf(healthStatus.healthState)
-
-        // Google APIs return instances as UNHEALTHY if an instance is associated with a target pool (load balancer)
-        // but that target pool does not have a health check. This is the wrong behavior, because the instance may still
-        // receive traffic if it is in the RUNNING state.
-        if (!googleLoadBalancer.healthCheck) {
-          googleLBHealthStatus = GoogleLoadBalancerHealth.PlatformStatus.HEALTHY
-        }
-
-        googleLoadBalancer.healths << new GoogleLoadBalancerHealth(
-            instanceName: instanceName,
-            instanceZone: instanceZone,
-            status: googleLBHealthStatus,
-            lbHealthSummaries: [
-                new GoogleLoadBalancerHealth.LBHealthSummary(
-                    loadBalancerName: googleLoadBalancer.name,
-                    instanceId: instanceName,
-                    state: googleLBHealthStatus.toServiceStatus())
-            ])
+      if (!tpNameToInstanceHealthsMap.containsKey(targetPoolName)) {
+        tpNameToInstanceHealthsMap.put(targetPoolName, [targetPoolInstanceHealth])
+      } else {
+        tpNameToInstanceHealthsMap.get(targetPoolName) << targetPoolInstanceHealth
       }
     }
 

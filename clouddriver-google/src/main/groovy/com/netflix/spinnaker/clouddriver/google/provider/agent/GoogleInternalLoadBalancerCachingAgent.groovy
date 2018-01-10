@@ -27,13 +27,24 @@ import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
 import com.netflix.spinnaker.clouddriver.google.model.GoogleHealthCheck
 import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
-import com.netflix.spinnaker.clouddriver.google.model.health.GoogleLoadBalancerHealth
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.*
+import com.netflix.spinnaker.clouddriver.google.provider.agent.util.GroupHealthRequest
+import com.netflix.spinnaker.clouddriver.google.provider.agent.util.LoadBalancerHealthResolution
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import groovy.util.logging.Slf4j
 
 @Slf4j
 class GoogleInternalLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerCachingAgent {
+
+  /**
+   * Local cache of BackendServiceGroupHealth keyed by BackendService name.
+   *
+   * It turns out that the types in the GCE Batch callbacks aren't the actual Compute
+   * types for some reason, which is why this map is String -> Object.
+   */
+  Map<String, Object> bsNameToGroupHealthsMap = [:]
+  Set<GroupHealthRequest> queuedBsGroupHealthRequests = new HashSet<>()
+  List<LoadBalancerHealthResolution> resolutions = []
 
   GoogleInternalLoadBalancerCachingAgent(String clouddriverUserAgentApplicationName,
                                          GoogleNamedAccountCredentials credentials,
@@ -61,6 +72,11 @@ class GoogleInternalLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerC
     BatchRequest forwardingRulesRequest = buildBatchRequest()
     BatchRequest groupHealthRequest = buildBatchRequest()
 
+    // Reset the local getHealth caches/queues each caching agent cycle.
+    bsNameToGroupHealthsMap = [:]
+    queuedBsGroupHealthRequests = new HashSet<>()
+    resolutions = []
+
     List<BackendService> projectRegionBackendServices = GCEUtil.fetchRegionBackendServices(this, compute, project, region)
     List<HttpHealthCheck> projectHttpHealthChecks = GCEUtil.fetchHttpHealthChecks(this, compute, project)
     List<HttpsHealthCheck> projectHttpsHealthChecks = GCEUtil.fetchHttpsHealthChecks(this, compute, project)
@@ -86,6 +102,12 @@ class GoogleInternalLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerC
 
     executeIfRequestsAreQueued(forwardingRulesRequest, "InternalLoadBalancerCaching.forwardingRules")
     executeIfRequestsAreQueued(groupHealthRequest, "InternalLoadBalancerCaching.groupHealth")
+
+    resolutions.each { LoadBalancerHealthResolution resolution ->
+      bsNameToGroupHealthsMap.get(resolution.getTarget()).each { groupHealth ->
+        GCEUtil.handleHealthObject(resolution.getGoogleLoadBalancer(), groupHealth)
+      }
+    }
 
     return loadBalancers.findAll {!(it.name in failedLoadBalancers)}
   }
@@ -174,10 +196,7 @@ class GoogleInternalLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerC
       return
     }
 
-    def groupHealthCallback = new GroupHealthCallback(
-      googleLoadBalancer: googleLoadBalancer,
-      backendServiceName: backendService.name
-    )
+    def groupHealthCallback = new GroupHealthCallback(backendServiceName: backendService.name)
 
     GoogleBackendService newService = new GoogleBackendService(
       name: backendService.name,
@@ -195,9 +214,21 @@ class GoogleInternalLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerC
     backendService.backends?.findAll { Backend backend -> backend.group }?.each { Backend backend ->
       def resourceGroup = new ResourceGroupReference()
       resourceGroup.setGroup(backend.group as String)
-      compute.regionBackendServices()
-        .getHealth(project, region, backendService.name, resourceGroup)
-        .queue(groupHealthRequest, groupHealthCallback)
+
+
+      // Make only the group health request calls we need to.
+      GroupHealthRequest ghr = new GroupHealthRequest(project, backendService.name as String, resourceGroup.getGroup())
+      if (!queuedBsGroupHealthRequests.contains(ghr)) {
+        // The groupHealthCallback updates the local cache.
+        log.debug("Queueing a batch call for getHealth(): {}", ghr)
+        queuedBsGroupHealthRequests.add(ghr)
+        compute.regionBackendServices()
+          .getHealth(project, region, backendService.name, resourceGroup)
+          .queue(groupHealthRequest, groupHealthCallback)
+      } else {
+        log.debug("Passing, batch call result cached for getHealth(): {}", ghr)
+      }
+      resolutions.add(new LoadBalancerHealthResolution(googleLoadBalancer, backendService.name))
     }
 
     backendService.healthChecks?.each { String healthCheckURL ->
@@ -296,7 +327,6 @@ class GoogleInternalLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerC
   }
 
   class GroupHealthCallback<BackendServiceGroupHealth> extends JsonBatchCallback<BackendServiceGroupHealth> {
-    GoogleInternalLoadBalancer googleLoadBalancer
     String backendServiceName
 
     /**
@@ -304,28 +334,16 @@ class GoogleInternalLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerC
      * If healthStatus is null in the onSuccess() function, the same state is reported, so this shouldn't cause issues.
      */
     void onFailure(GoogleJsonError e, HttpHeaders responseHeaders) throws IOException {
-      log.debug("Failed backend service group health call for backend service ${backendServiceName} for Http load balancer ${googleLoadBalancer.name}." +
+      log.debug("Failed backend service group health call for backend service ${backendServiceName} for Internal load balancer." +
         " The platform error message was:\n ${e.getMessage()}.")
     }
 
     @Override
     void onSuccess(BackendServiceGroupHealth backendServiceGroupHealth, HttpHeaders responseHeaders) throws IOException {
-      backendServiceGroupHealth.healthStatus?.each { HealthStatus status ->
-        def instanceName = Utils.getLocalName(status.instance)
-        def googleLBHealthStatus = GoogleLoadBalancerHealth.PlatformStatus.valueOf(status.healthState)
-
-        googleLoadBalancer.healths << new GoogleLoadBalancerHealth(
-          instanceName: instanceName,
-          instanceZone: Utils.getZoneFromInstanceUrl(status.instance),
-          status: googleLBHealthStatus,
-          lbHealthSummaries: [
-            new GoogleLoadBalancerHealth.LBHealthSummary(
-              loadBalancerName: googleLoadBalancer.name,
-              instanceId: instanceName,
-              state: googleLBHealthStatus.toServiceStatus(),
-            )
-          ]
-        )
+      if (!bsNameToGroupHealthsMap.containsKey(backendServiceName)) {
+        bsNameToGroupHealthsMap.put(backendServiceName, [backendServiceGroupHealth])
+      } else {
+        bsNameToGroupHealthsMap.get(backendServiceName) << backendServiceGroupHealth
       }
     }
   }
