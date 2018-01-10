@@ -48,7 +48,7 @@ class HalyardPublisher(object):
 
   def __init__(self, options, build_number=None):
     self.__annotator = None
-    self.__build_number = build_number or os.environ.get('BUILD_NUMBER')
+    self.__build_number = build_number or '{:%Y%m%d%H%M%S}'.format(datetime.datetime.utcnow())
     self.__github_publisher = options.github_publisher
     self.__hal_nightly_bucket_uri = options.hal_nightly_bucket_uri
     self.__halyard_repo_uri = options.halyard_repo_uri
