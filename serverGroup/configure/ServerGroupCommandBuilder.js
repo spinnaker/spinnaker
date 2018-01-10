@@ -115,7 +115,7 @@ module.exports = angular.module('spinnaker.titus.serverGroupCommandBuilder.servi
         cloudProvider: 'titus',
         selectedProvider: 'titus',
         viewState: {
-          useSimpleCapacity: true,
+          useSimpleCapacity: serverGroup.capacity.min === serverGroup.capacity.max,
           mode: mode,
         },
       };
@@ -152,7 +152,7 @@ module.exports = angular.module('spinnaker.titus.serverGroupCommandBuilder.servi
 
         var viewState = {
           disableImageSelection: true,
-          useSimpleCapacity: true,
+          useSimpleCapacity: originalCluster.capacity.min === originalCluster.capacity.max,
           mode: 'editPipeline',
           submitButtonLabel: 'Done',
         };

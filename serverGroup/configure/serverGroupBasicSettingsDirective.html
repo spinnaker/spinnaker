@@ -62,7 +62,7 @@
   <div class="form-group">
     <div class="col-md-2 sm-label-right"><b>Entrypoint</b></div>
     <div class="col-md-7">
-      <input type="text" class="form-control input-sm no-spel" name="command" ng-model="command.entryPoint" required/>
+      <input type="text" class="form-control input-sm no-spel" name="command" ng-model="command.entryPoint"/>
     </div>
   </div>
   <div class="form-group">
@@ -82,7 +82,10 @@
       </div>
     </div>
   </div>
-  <deployment-strategy-selector ng-if="!command.viewState.disableStrategySelection && command.selectedProvider" command="command"></deployment-strategy-selector>
+  <deployment-strategy-selector ng-if="!command.viewState.disableStrategySelection && command.selectedProvider"
+                                label-columns="2"
+                                field-columns="7"
+                                command="command"></deployment-strategy-selector>
   <div class="form-group" ng-if="!command.viewState.hideClusterNamePreview">
     <div class="col-md-12">
       <div class="well-compact" ng-class="basicSettingsCtrl.showPreviewAsWarning() ? 'alert alert-warning' : 'well'">
