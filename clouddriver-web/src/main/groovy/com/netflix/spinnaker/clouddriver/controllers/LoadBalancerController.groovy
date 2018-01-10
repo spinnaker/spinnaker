@@ -21,12 +21,13 @@ import com.netflix.spinnaker.clouddriver.model.LoadBalancer
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerProvider
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.access.prepost.PostAuthorize
-import org.springframework.security.access.prepost.PostFilter
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RestController
+
+import java.util.stream.Collectors
 
 @RestController
 class LoadBalancerController {
@@ -49,14 +50,21 @@ class LoadBalancerController {
   @PostAuthorize("@authorizationSupport.filterLoadBalancerProviderItems(returnObject)")
   @RequestMapping(value = "/{cloudProvider:.+}/loadBalancers", method = RequestMethod.GET)
   List<LoadBalancerProvider.Item> listForCloudProvider(@PathVariable String cloudProvider) {
-    return findLoadBalancerProvider(cloudProvider).list()
+    return findLoadBalancerProviders(cloudProvider).stream()
+        .flatMap({ (it.list() ?: []).stream() })
+        .collect(Collectors.toList())
   }
 
   @PostAuthorize("@authorizationSupport.filterLoadBalancerProviderItems(returnObject)")
   @RequestMapping(value = "/{cloudProvider:.+}/loadBalancers/{name:.+}", method = RequestMethod.GET)
   LoadBalancerProvider.Item get(@PathVariable String cloudProvider,
                                 @PathVariable String name) {
-    return findLoadBalancerProvider(cloudProvider).get(name)
+    return findLoadBalancerProviders(cloudProvider)
+        .stream()
+        .map({ return it.get(name) })
+        .filter({ return it != null })
+        .findFirst()
+        .orElse(null)
   }
 
   @PreAuthorize("hasPermission(#account, 'ACCOUNT', 'READ')")
@@ -66,14 +74,22 @@ class LoadBalancerController {
                                                             @PathVariable String account,
                                                             @PathVariable String region,
                                                             @PathVariable String name) {
-    return findLoadBalancerProvider(cloudProvider).byAccountAndRegionAndName(account, region, name)
+    return findLoadBalancerProviders(cloudProvider).stream()
+        .map({ return it.byAccountAndRegionAndName(account, region, name) ?: [] })
+        .flatMap({ return it.stream() })
+        .collect(Collectors.toList())
   }
 
-  private LoadBalancerProvider findLoadBalancerProvider(String cloudProvider) {
-    return loadBalancerProviders
+  private List<LoadBalancerProvider> findLoadBalancerProviders(String cloudProvider) {
+    def result = loadBalancerProviders
         .stream()
         .filter({ it.cloudProvider == cloudProvider })
-        .findFirst()
-        .orElseThrow({ new CloudProviderNotFoundException("No cloud provider named ${cloudProvider} found") })
+        .collect(Collectors.toList())
+
+    if (!result) {
+      throw new CloudProviderNotFoundException("No cloud provider named ${cloudProvider} found")
+    }
+
+    return result
   }
 }
