@@ -58,7 +58,7 @@ class SecurityGroupIntentProcessor
   override fun supports(intent: Intent<IntentSpec>) = intent is SecurityGroupIntent
 
   override fun converge(intent: SecurityGroupIntent): ConvergeResult {
-    val changeSummary = ChangeSummary()
+    val changeSummary = ChangeSummary(intent.id())
 
     log.info("Converging state for {}", value("intent", intent.id()))
 
@@ -152,9 +152,9 @@ class SecurityGroupIntentProcessor
         desiredState = it.second,
         modelClass = SecurityGroup::class,
         specClass = SecurityGroupSpec::class,
-        ignoreKeys = listOf("type", "id", "moniker", "summary")
+        ignoreKeys = setOf("type", "id", "moniker", "summary")
       )
-    }
+    }.toSet()
     changeSummary.diff = diff
     return diff.isEmpty()
   }

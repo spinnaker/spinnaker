@@ -155,7 +155,7 @@ object SecurityGroupIntentProcessorTest {
 
   @Test
   fun `should skip operation if upstream groups are missing`() {
-    val changeSummary = ChangeSummary()
+    val changeSummary = ChangeSummary("foo")
     changeSummary.type = ChangeType.FAILED_PRECONDITIONS
     changeSummary.addMessage("Some upstream security groups are missing: [gate]")
 

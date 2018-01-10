@@ -50,7 +50,7 @@ object DryRunIntentLauncherTest {
 
   @Test
   fun `should output human friendly summary of operations`() {
-    val changeSummary = ChangeSummary()
+    val changeSummary = ChangeSummary("something")
     changeSummary.type = ChangeType.CREATE
     changeSummary.addMessage("Waits, coming right up")
 

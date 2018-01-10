@@ -149,7 +149,7 @@ object SecurityGroupConverterTest {
 
   @Test
   fun `should convert spec to orchestration job`() {
-    val changeSummary = ChangeSummary()
+    val changeSummary = ChangeSummary("foo")
     val spec = AmazonSecurityGroupSpec(
       application = "keel",
       name = "keel",

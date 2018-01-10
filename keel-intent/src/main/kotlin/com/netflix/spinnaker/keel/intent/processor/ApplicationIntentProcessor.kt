@@ -56,7 +56,7 @@ class ApplicationIntentProcessor
   override fun converge(intent: ApplicationIntent): ConvergeResult {
     log.info("Converging state for {}", value("intent", intent.id()))
 
-    val changeSummary = ChangeSummary()
+    val changeSummary = ChangeSummary(intent.id())
 
     val currentState = getApplication(intent.spec.name)
 

@@ -31,7 +31,7 @@ interface IntentProcessor<in I : Intent<IntentSpec>> {
 
 data class ConvergeResult(
   val orchestrations: List<OrchestrationRequest>,
-  val changeSummary: ChangeSummary = ChangeSummary()
+  val changeSummary: ChangeSummary
 )
 
 enum class ConvergeReason(val reason: String) {

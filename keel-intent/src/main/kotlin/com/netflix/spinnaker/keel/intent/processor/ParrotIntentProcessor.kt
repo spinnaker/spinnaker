@@ -38,7 +38,7 @@ class ParrotIntentProcessor
   override fun supports(intent: Intent<IntentSpec>) = intent is ParrotIntent
 
   override fun converge(intent: ParrotIntent): ConvergeResult {
-    val changeSummary = ChangeSummary()
+    val changeSummary = ChangeSummary(intent.id())
     changeSummary.addMessage("Squawk!")
     traceRepository.record(Trace(mapOf(), intent))
     return ConvergeResult(listOf(

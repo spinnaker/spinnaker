@@ -56,14 +56,19 @@ class StateInspector(
               modelClass: KClass<*>,
               specClass: KClass<*>,
               currentStateFieldMutators: List<FieldMutator> = listOf(),
-              ignoreKeys: List<String?> = listOf()): List<FieldState> {
+              ignoreKeys: Set<String?> = setOf()): Set<FieldState> {
     val ignoredCurrentStateParams = getComputedParameters(currentState, modelClass.primaryConstructor!!)
-    val currentStateMap = objectMapper.convertValue<Map<String, Any?>>(currentState, ANY_MAP_TYPE).filterNot {
-      ignoredCurrentStateParams.contains(it.key)
-    }
-    val desiredStateMap = objectMapper.convertValue<Map<String, Any?>>(desiredState, ANY_MAP_TYPE)
+    val currentStateMap = convertListsToSets(
+      objectMapper.convertValue<Map<String, Any?>>(currentState, ANY_MAP_TYPE)
+        .filterNot {
+        ignoredCurrentStateParams.contains(it.key)
+      }
+    )
+    val desiredStateMap = convertListsToSets(
+      objectMapper.convertValue<Map<String, Any?>>(desiredState, ANY_MAP_TYPE)
+    )
 
-    val allIgnoredKeys = ignoreKeys.plus(getJsonTypePropertyName(specClass)).toMutableList()
+    val allIgnoredKeys = ignoreKeys.plus(getJsonTypePropertyName(specClass)).toMutableSet()
     if (desiredState is ComputedPropertyProvider) {
       allIgnoredKeys.addAll(desiredState.additionalComputedProperties())
     }
@@ -78,29 +83,42 @@ class StateInspector(
     if (fields.isNotEmpty()) {
       log.debug("Actual state has diverged from desired state: $fields (intent: $intentId)")
     }
-    return fields
+    return fields.toSet()
   }
 
   private fun getChangedFields(currentState: Map<String, Any?>,
                                desiredState: Map<String, Any?>,
-                               ignoreKeys: List<String?>,
-                               currentFieldMutators: List<FieldMutator>)
-    = desiredState
-    .filterKeys { !ignoreKeys.contains(it) }
-    .map {
-      val mutator = currentFieldMutators.find { (name) -> name == it.key }?.mutator
-      FieldState(it.key, if (mutator == null) currentState[it.key] else mutator.invoke(currentState[it.key]), it.value)
-    }
-    .filter { it.changed() }
+                               ignoreKeys: Set<String?>,
+                               currentFieldMutators: List<FieldMutator>) =
+    desiredState
+      .filterKeys { !ignoreKeys.contains(it) }
+      .map {
+        val mutator = currentFieldMutators.find { (name) -> name == it.key }?.mutator
+        FieldState(it.key, if (mutator == null) currentState[it.key] else mutator.invoke(currentState[it.key]), it.value)
+      }
+      .filter { it.changed() }
 
   private fun getJsonTypePropertyName(k: KClass<*>): String? = k.findAnnotation<JsonTypeInfo>()?.property
 
-  private fun getComputedParameters(o: Any, c: KFunction<*>): List<String> {
+  private fun getComputedParameters(o: Any, c: KFunction<*>): Set<String> {
     val params = c.parameters.filter { it.findAnnotation<Computed>()?.ignore == true }.mapNotNull { it.name }
     if (o is ComputedPropertyProvider) {
-      params.toMutableList().addAll(o.additionalComputedProperties())
+      params.toMutableSet().addAll(o.additionalComputedProperties())
     }
-    return params.distinct().toList()
+    return params.distinct().toSet()
+  }
+
+  // TODO rz - ugh gross. Custom deserializer for jackson instead?
+  private fun convertListsToSets(m: Map<String, Any?>): Map<String, Any?> {
+    val newMap = mutableMapOf<String, Any?>()
+    m.entries.forEach {
+      when {
+          it.value is Map<*, *> -> newMap[it.key] = convertListsToSets(it.value as Map<String, Any?>)
+          it.value is List<*> -> newMap[it.key] = (it.value as List<*>).toSet()
+          else -> newMap[it.key] = it.value
+      }
+    }
+    return newMap
   }
 }
 

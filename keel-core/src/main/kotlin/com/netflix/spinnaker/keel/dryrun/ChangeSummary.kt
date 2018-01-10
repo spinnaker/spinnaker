@@ -25,10 +25,11 @@ import com.netflix.spinnaker.keel.state.FieldState
  * TODO rz - Need to include an ID for the summary; in multi-intent requests, unknown what is referring to what
  */
 data class ChangeSummary(
+  val id: String,
   val message: MutableList<String> = mutableListOf()
 ) {
   var type: ChangeType = ChangeType.NO_CHANGE
-  var diff: List<FieldState> = emptyList()
+  var diff: Set<FieldState> = emptySet()
 
   fun addMessage(msg: String) {
     message.add(msg)
