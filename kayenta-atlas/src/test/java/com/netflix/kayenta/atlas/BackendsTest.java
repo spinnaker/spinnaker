@@ -68,46 +68,9 @@ public class BackendsTest {
   }
 
   @Test
-  public void formattingReplacesDeploymentAndOmitsPort80() {
-    Backend backend = Backend.builder()
-      .cname("deployment=$(deployment)")
-      .port(80)
-      .build();
-    assertEquals("http://deployment=main",
-                 backend.getUri("http", "main", "global", "region", "test"));
-    assertEquals("https://deployment=main:80",
-                 backend.getUri("https", "main", "global", "region", "test"));
-  }
-
-  @Test
-  public void formattingReplacesDeploymentAndOmitsPort443() {
-    Backend backend = Backend.builder()
-      .cname("deployment=$(deployment)")
-      .port(443)
-      .build();
-    assertEquals("http://deployment=main:443",
-                 backend.getUri("http", "main", "global", "region", "test"));
-    assertEquals("https://deployment=main",
-                 backend.getUri("https", "main", "global", "region", "test"));
-  }
-
-  @Test
-  public void formattingReplacesDeploymentAndIncludesPort() {
-    Backend backend = Backend.builder()
-      .cname("deployment=$(deployment)")
-      .port(8000)
-      .build();
-    assertEquals("http://deployment=main:8000",
-                 backend.getUri("http", "main", "global", "region", "test"));
-    assertEquals("https://deployment=main:8000",
-                 backend.getUri("https", "main", "global", "region", "test"));
-  }
-
-  @Test
-  public void formattingReplacesAllThethings() {
+  public void formattingReplacesAllTheThings() {
     Backend backend = Backend.builder()
       .cname("deployment=$(deployment).region=$(region).env=$(env).dataset=$(dataset).envAgain=$(env)")
-      .port(80)
       .build();
     assertEquals("http://deployment=xmain.region=xregion.env=xtest.dataset=xglobal.envAgain=xtest",
                  backend.getUri("http", "xmain", "xglobal", "xregion", "xtest"));

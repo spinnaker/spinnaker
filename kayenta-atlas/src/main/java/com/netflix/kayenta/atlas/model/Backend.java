@@ -42,10 +42,6 @@ public class Backend {
 
   @NotNull
   @Getter
-  private int port;
-
-  @NotNull
-  @Getter
   private List<String> environments;
 
   @NotNull
@@ -67,8 +63,6 @@ public class Backend {
       .replace("$(dataset)", dataset)
       .replace("$(region)", region)
       .replace("$(env)", environment);
-    if ((method.equals("http") && port != 80) || (method.equals("https") && port != 443))
-      ret += ":" + port;
     return method + "://" + ret;
   }
 }
