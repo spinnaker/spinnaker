@@ -15,14 +15,7 @@
  */
 package com.netflix.spinnaker.kork.jedis;
 
-import redis.clients.jedis.BinaryJedisCommands;
-import redis.clients.jedis.Jedis;
-import redis.clients.jedis.JedisCommands;
-import redis.clients.jedis.JedisPool;
-import redis.clients.jedis.MultiKeyCommands;
-import redis.clients.jedis.Pipeline;
-import redis.clients.jedis.RedisPipeline;
-import redis.clients.jedis.ScriptingCommands;
+import redis.clients.jedis.*;
 
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -107,6 +100,23 @@ public class JedisClientDelegate implements RedisClientDelegate {
   public <R> R withMultiKeyPipeline(Function<Pipeline, R> f) {
     try (Jedis jedis = jedisPool.getResource()) {
       return f.apply(jedis.pipelined());
+    }
+  }
+
+  @Override
+  public boolean supportsTransactions() { return true; }
+
+  @Override
+  public void withTransaction(Consumer<Transaction> f) {
+    try (Jedis jedis = jedisPool.getResource()) {
+      f.accept(jedis.multi());
+    }
+  }
+
+  @Override
+  public <R> R withTransaction(Function<Transaction, R> f) {
+    try (Jedis jedis = jedisPool.getResource()) {
+      return f.apply(jedis.multi());
     }
   }
 

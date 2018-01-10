@@ -15,12 +15,7 @@
  */
 package com.netflix.spinnaker.kork.jedis;
 
-import redis.clients.jedis.BinaryJedisCommands;
-import redis.clients.jedis.JedisCommands;
-import redis.clients.jedis.MultiKeyCommands;
-import redis.clients.jedis.Pipeline;
-import redis.clients.jedis.RedisPipeline;
-import redis.clients.jedis.ScriptingCommands;
+import redis.clients.jedis.*;
 
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -51,6 +46,12 @@ public interface RedisClientDelegate {
   void withMultiKeyPipeline(Consumer<Pipeline> f);
 
   <R> R withMultiKeyPipeline(Function<Pipeline, R> f);
+
+  boolean supportsTransactions();
+
+  void withTransaction(Consumer<Transaction> f);
+
+  <R> R withTransaction(Function<Transaction, R> f);
 
   boolean supportsScripting();
 

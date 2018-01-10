@@ -19,12 +19,7 @@ import com.netflix.dyno.connectionpool.exception.DynoException;
 import com.netflix.dyno.jedis.DynoJedisClient;
 import com.netflix.dyno.jedis.DynoJedisPipeline;
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate;
-import redis.clients.jedis.BinaryJedisCommands;
-import redis.clients.jedis.JedisCommands;
-import redis.clients.jedis.MultiKeyCommands;
-import redis.clients.jedis.Pipeline;
-import redis.clients.jedis.RedisPipeline;
-import redis.clients.jedis.ScriptingCommands;
+import redis.clients.jedis.*;
 import redis.clients.jedis.exceptions.JedisException;
 
 import java.util.function.Consumer;
@@ -111,6 +106,19 @@ public class DynomiteClientDelegate implements RedisClientDelegate {
   @Override
   public <R> R withMultiKeyPipeline(Function<Pipeline, R> f) {
     throw new UnsupportedOperationException("Dynomite does not support multi-key pipelined operations");
+  }
+
+  @Override
+  public boolean supportsTransactions() { return false; }
+
+  @Override
+  public void withTransaction(Consumer<Transaction> f) {
+    throw new UnsupportedOperationException("Dynomite does not support transactions");
+  }
+
+  @Override
+  public <R> R withTransaction(Function<Transaction, R> f) {
+    throw new UnsupportedOperationException("Dynomite does not support transactions");
   }
 
   @Override
