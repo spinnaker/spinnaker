@@ -27,14 +27,20 @@ import groovy.transform.Canonical
 import groovy.transform.ToString
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 
 @Slf4j
 abstract class AbstractWaitForClusterWideClouddriverTask extends AbstractCloudProviderAwareTask implements OverridableTimeoutRetryableTask {
   @Override
   public long getBackoffPeriod() { 10000 }
 
+  @Value('${tasks.waitForClusterTimeout:1800000}')
+  public long defaultTimeout
+
   @Override
-  public long getTimeout() { 1800000 }
+  public long getTimeout() {
+    return this.defaultTimeout
+  }
 
   @Autowired
   OortHelper oortHelper
