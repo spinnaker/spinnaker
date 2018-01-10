@@ -5,7 +5,7 @@
   <div ng-if="!state.loaded" style="height: 200px" class="horizontal center middle">
     <loading-spinner size="'small'"></loading-spinner>
   </div>
-  <div ng-if="!state.requiresTemplateSelection">
+  <div ng-if="!state.requiresTemplateSelection" ng-class="{'highlight-pristine' : command.viewState.mode === 'editPipeline'}">
     <v2-modal-wizard ng-show="state.loaded" heading="{{title}}" task-monitor="taskMonitor" dismiss="$dismiss()">
       <v2-wizard-page key="location" label="Basic Settings" mark-complete-on-view="false">
         <ng-include src="pages.basicSettings"></ng-include>
