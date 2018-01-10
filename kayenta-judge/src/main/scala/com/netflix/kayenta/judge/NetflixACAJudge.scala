@@ -196,12 +196,9 @@ class NetflixACAJudge extends CanaryJudge with StrictLogging {
     //=============================================
     // Metric Classification
     // ============================================
-    //
-
-
     val mannWhitney = new MannWhitneyClassifier(fraction = 0.25, confLevel = 0.98, mw)
 
-    var resultBuilder = CanaryAnalysisResult.builder()
+    val resultBuilder = CanaryAnalysisResult.builder()
       .name(metric.getName)
       .id(metric.getId)
       .tags(metric.getTags)
@@ -209,31 +206,23 @@ class NetflixACAJudge extends CanaryJudge with StrictLogging {
       .experimentMetadata(Map("stats" -> DescriptiveStatistics.toMap(experimentStats).asJava.asInstanceOf[Object]).asJava)
       .controlMetadata(Map("stats" -> DescriptiveStatistics.toMap(controlStats).asJava.asInstanceOf[Object]).asJava)
 
-    if (transformedControl.values sameElements transformedExperiment.values) {
+    try {
+      val metricClassification = mannWhitney.classify(transformedControl, transformedExperiment, directionality)
       resultBuilder
-        .classification(Pass.toString)
-        .classificationReason("control and experiment data are identical")
-        .resultMetadata(util.Collections.singletonMap("ratio", new java.lang.Double(1.0)))
+        .classification(metricClassification.classification.toString)
+        .classificationReason(metricClassification.reason.orNull)
+        .resultMetadata(Map("ratio" -> metricClassification.ratio.asInstanceOf[Object]).asJava)
         .build()
-    } else {
-      try {
-        //Use the Mann-Whitney algorithm to compare the experiment and control populations
-        val metricClassification = mannWhitney.classify(transformedControl, transformedExperiment, directionality)
 
+    } catch {
+      case e: RExecutionException =>
+        logger.error("Metric Classification Failed", e)
         resultBuilder
-          .classification(metricClassification.classification.toString)
-          .classificationReason(metricClassification.reason.orNull)
-          .resultMetadata(Map("ratio" -> metricClassification.ratio.asInstanceOf[Object]).asJava)
+          .classification(Error.toString)
+          .classificationReason("Metric Classification Failed")
           .build()
-      } catch {
-        case e: RExecutionException =>
-          logger.error("Mann-Whitney Test Failed", e)
-          resultBuilder
-            .classification(Error.toString)
-            .classificationReason("Mann-Whitney Test Failed")
-            .build()
-      }
     }
+
   }
 
 }

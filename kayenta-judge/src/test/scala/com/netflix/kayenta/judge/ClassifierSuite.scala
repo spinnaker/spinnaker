@@ -261,4 +261,64 @@ class ClassifierSuite extends FunSuite{
     assert(result.classification == Low)
   }
 
+  test("Mann-Whitney Tied Observations") {
+    val experimentData = Array(1.0, 1.0, 1.0)
+    val controlData = Array(1.0, 1.0)
+
+    val experimentMetric = Metric("test-metric", experimentData, "canary")
+    val controlMetric = Metric("test-metric", controlData, "baseline")
+
+    val mw = new MannWhitney()
+    val classifier = new MannWhitneyClassifier(fraction = 0.10, confLevel = 0.95, mw)
+    val result = classifier.classify(controlMetric, experimentMetric, MetricDirection.Decrease)
+    mw.disconnect()
+
+    assert(result.classification == Pass)
+  }
+
+  test("Mann-Whitney Identical Populations"){
+    val experimentData = Array(1.0, 2.0, 3.0, 4.0, 5.0)
+    val controlData = Array(5.0, 4.0, 3.0, 2.0, 1.0)
+
+    val experimentMetric = Metric("test-metric", experimentData, "canary")
+    val controlMetric = Metric("test-metric", controlData, "baseline")
+
+    val mw = new MannWhitney()
+    val classifier = new MannWhitneyClassifier(fraction = 0.10, confLevel = 0.95, mw)
+    val result = classifier.classify(controlMetric, experimentMetric, MetricDirection.Decrease)
+    mw.disconnect()
+
+    assert(result.classification == Pass)
+  }
+
+  test("Mann-Whitney Leading Zero Identical Population") {
+    val experimentData = Array(0.0, 1.0, 1.0, 1.0, 1.0)
+    val controlData = Array(1.0, 1.0, 1.0, 1.0, 1.0)
+
+    val experimentMetric = Metric("test-metric", experimentData, "canary")
+    val controlMetric = Metric("test-metric", controlData, "baseline")
+
+    val mw = new MannWhitney()
+    val classifier = new MannWhitneyClassifier(fraction = 0.10, confLevel = 0.95, mw)
+    val result = classifier.classify(controlMetric, experimentMetric, MetricDirection.Decrease)
+    mw.disconnect()
+
+    assert(result.classification == Pass)
+  }
+
+  test("Mann-Whitney Missing Experiment Data") {
+    val experimentData = Array[Double]()
+    val controlData = Array(1.0, 2.0, 3.0, 4.0, 5.0)
+
+    val experimentMetric = Metric("test-metric", experimentData, "canary")
+    val controlMetric = Metric("test-metric", controlData, "baseline")
+
+    val mw = new MannWhitney()
+    val classifier = new MannWhitneyClassifier(fraction = 0.10, confLevel = 0.95, mw)
+    val result = classifier.classify(controlMetric, experimentMetric, MetricDirection.Decrease)
+    mw.disconnect()
+
+    assert(result.classification == Nodata)
+  }
+
 }

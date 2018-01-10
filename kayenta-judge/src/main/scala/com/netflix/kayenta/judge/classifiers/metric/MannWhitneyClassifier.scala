@@ -64,7 +64,6 @@ class MannWhitneyClassifier(fraction: Double=0.25, confLevel: Double=0.95, mw: M
     (lowerBound, upperBound)
   }
 
-
   override def classify(control: Metric, experiment: Metric, direction: MetricDirection): MetricClassification = {
 
     //Check if there is no-data for the experiment or control
@@ -73,11 +72,17 @@ class MannWhitneyClassifier(fraction: Double=0.25, confLevel: Double=0.95, mw: M
     }
 
     //Check if the experiment and control data are equal
-    if (experiment.values.sameElements(control.values)){
+    if (experiment.values.sorted.sameElements(control.values.sorted)){
+      val reason = s"The ${experiment.label} and ${control.label} data are identical"
+      return MetricClassification(Pass, Some(reason), 1.0)
+    }
+
+    //Check the number of unique observations; check for tied ranks
+    if (experiment.values.union(control.values).distinct.length == 1){
       return MetricClassification(Pass, None, 1.0)
     }
 
-    //Perform Mann-Whitney U Test
+    //Perform the Mann-Whitney U Test
     val mwResult = MannWhitneyUTest(experiment.values, control.values)
     val ratio = StatUtils.mean(experiment.values)/StatUtils.mean(control.values)
     val (lowerBound, upperBound) = calculateBounds(mwResult)
@@ -90,6 +95,7 @@ class MannWhitneyClassifier(fraction: Double=0.25, confLevel: Double=0.95, mw: M
       val reason = s"The metric was classified as $Low"
       return MetricClassification(Low, Some(reason), ratio)
     }
+
     MetricClassification(Pass, None, ratio)
   }
 
