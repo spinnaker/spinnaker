@@ -1,0 +1,29 @@
+<div modal-page class="confirmation-modal">
+  <task-monitor monitor="taskMonitor"></task-monitor>
+  <form role="form">
+    <modal-close dismiss="$dismiss()"></modal-close>
+    <div class="modal-header">
+      <h3>Resize {{serverGroup.name}}</h3>
+    </div>
+    <div class="modal-body confirmation-modal">
+      <div class="form-horizontal">
+        <ecs-resize-capacity command="command" current-size="currentSize"></ecs-resize-capacity>
+      </div>
+      <div class="row" ng-if="command.platformHealthOnlyShowOverride">
+        <div class="col-sm-10 col-sm-offset-1">
+          <platform-health-override command="command"
+                                    platform-health-type="'Ecs'"
+                                    show-help-details="true">
+          </platform-health-override>
+        </div>
+      </div>
+      <task-reason command="command"></task-reason>
+
+    </div>
+    <ecs-footer action="ctrl.resize()"
+                cancel="ctrl.cancel()"
+                is-valid="ctrl.isValid()"
+                account="serverGroup.account"
+                verification="verification"></ecs-footer>
+  </form>
+</div>
