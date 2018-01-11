@@ -23,6 +23,10 @@ export interface ITitusServerGroup extends IServerGroup {
   id: string;
 }
 
+export interface ITitusTargetTrackingPolicy extends ITargetTrackingPolicy {
+  id?: string;
+}
+
 export class UpsertTargetTrackingController implements IComponentController {
 
   public statistics = ['Average', 'Maximum', 'Minimum', 'SampleCount', 'Sum'];
@@ -35,7 +39,7 @@ export class UpsertTargetTrackingController implements IComponentController {
   constructor(private $uibModalInstance: IModalServiceInstance,
               private scalingPolicyWriter: ScalingPolicyWriter,
               private taskMonitorBuilder: TaskMonitorBuilder,
-              public policy: ITargetTrackingPolicy,
+              public policy: ITitusTargetTrackingPolicy,
               public serverGroup: ITitusServerGroup,
               public alarmServerGroup: IAlarmRenderingServerGroup,
               public application: Application) {
@@ -73,6 +77,7 @@ export class UpsertTargetTrackingController implements IComponentController {
 
   private buildCommand(): ITargetTrackingPolicyCommand {
     return {
+      scalingPolicyID: this.policy.id,
       type: 'upsertScalingPolicy',
       cloudProvider: 'titus',
       jobId: this.serverGroup.id,
