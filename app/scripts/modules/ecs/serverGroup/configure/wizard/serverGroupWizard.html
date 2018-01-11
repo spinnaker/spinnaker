@@ -1,0 +1,32 @@
+<form name="form" class="form-horizontal" novalidate>
+  <div ng-if="state.requiresTemplateSelection">
+    <ng-include src="pages.templateSelection"></ng-include>
+  </div>
+  <div ng-if="!state.loaded" style="height: 200px">
+    <h3 us-spinner="{radius:30, width:8, length: 16}"></h3>
+  </div>
+  <div ng-if="!state.requiresTemplateSelection">
+    <v2-modal-wizard ng-show="state.loaded" heading="{{title}}" task-monitor="taskMonitor" dismiss="$dismiss()">
+      <v2-wizard-page key="basicSettings" label="Basic Settings" mark-complete-on-view="false" done="true">
+        <ng-include src="pages.basicSettings"></ng-include>
+      </v2-wizard-page>
+      <v2-wizard-page key="verticalScaling" label="Vertical Scaling" done="true">
+        <ng-include src="pages.verticalScaling"></ng-include>
+      </v2-wizard-page>
+      <v2-wizard-page key="horizontalScaling" label="Horizontal Scaling" done="true">
+        <ng-include src="pages.horizontalScaling"></ng-include>
+      </v2-wizard-page>
+      <v2-wizard-page key="load-balancers" label="Load Balancing" done="true">
+        <ng-include src="pages.loadBalancers"></ng-include>
+      </v2-wizard-page>
+      <v2-wizard-page key="advanced" label="Advanced Settings" mark-complete-on-view="false" done="true">
+        <ng-include src="pages.advancedSettings"></ng-include>
+      </v2-wizard-page>
+    </v2-modal-wizard>
+    <div class="modal-footer" ng-if="state.loaded">
+      <button ng-disabled="taskMonitor.submitting" class="btn btn-default btn-cancel" ng-click="ctrl.cancel()">Cancel</button>
+      <submit-button ng-if="ctrl.showSubmitButton()" is-disabled="!ctrl.isValid() || taskMonitor.submitting" label="command.viewState.submitButtonLabel"
+      submitting="taskMonitor.submitting" on-click="ctrl.submit()" is-new="true"></submit-button>
+    </div>
+  </div>
+</form>
