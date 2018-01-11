@@ -30,7 +30,7 @@ buildscript {
 
 allprojects {
   apply plugin: "spinnaker.project"
-  apply plugin: 'groovy'
+  apply plugin: "java"
   group = "com.netflix.spinnaker.orca"
 
   ext {
@@ -93,11 +93,6 @@ allprojects {
   }
 }
 subprojects {
-  dependencies {
-    spinnaker.group('spockBase')
-    testCompile spinnaker.dependency('groovy')
-  }
-
   license {
     exclude "**/*.json"
     exclude "**/*.md"

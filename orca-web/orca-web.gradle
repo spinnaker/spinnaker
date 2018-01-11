@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+apply from: "$rootDir/gradle/groovy.gradle"
 apply plugin: 'org.springframework.boot'
 apply plugin: 'spinnaker.package'
 

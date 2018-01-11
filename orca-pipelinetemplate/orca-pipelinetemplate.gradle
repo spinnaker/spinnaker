@@ -1,6 +1,5 @@
+apply from: "$rootDir/gradle/spock.gradle"
 apply from: "$rootDir/gradle/kotlin.gradle"
-
-tasks.compileGroovy.enabled = false
 
 dependencies {
   compile project(":orca-extensionpoint")
