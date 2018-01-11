@@ -10,7 +10,7 @@ class GitTriggerController implements IController {
 
   public fiatEnabled: boolean = SETTINGS.feature.fiatEnabled;
   public serviceAccounts: string[] = [];
-  public gitTriggerTypes = SETTINGS.gitSources || ['stash', 'github', 'bitbucket'];
+  public gitTriggerTypes = SETTINGS.gitSources || ['stash', 'github', 'bitbucket', 'gitlab'];
   public displayText: any = {
     'pipeline.config.git.project': {
       'bitbucket': 'Team or User',

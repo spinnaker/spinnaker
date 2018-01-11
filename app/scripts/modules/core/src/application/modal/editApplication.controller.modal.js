@@ -4,6 +4,7 @@ import _ from 'lodash';
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
 import {APPLICATION_WRITE_SERVICE} from 'core/application/service/application.write.service';
 import {TASK_READ_SERVICE} from 'core/task/task.read.service';
+import {SETTINGS} from 'core/config/settings';
 
 const angular = require('angular');
 
@@ -17,7 +18,9 @@ module.exports = angular
   .controller('EditApplicationController', function ($scope, $window, $state, $uibModalInstance, application, applicationWriter,
                                                      accountService, taskReader) {
     var vm = this;
-    this.data = {};
+    this.data = {
+      gitSources: SETTINGS.gitSources || ['stash', 'github', 'bitbucket', 'gitlab']
+    };
     this.state = {
       submitting: false,
       permissionsInvalid: false,
@@ -121,4 +124,3 @@ module.exports = angular
 
     return vm;
   });
-

@@ -42,7 +42,7 @@ module.exports = angular
       permissionsInvalid: false,
     };
     this.data = {
-
+      gitSources: SETTINGS.gitSources || ['stash', 'github', 'bitbucket', 'gitlab']
     };
     this.application = {
       cloudProviders: [],
