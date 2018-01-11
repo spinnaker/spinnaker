@@ -162,7 +162,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.titus.controller'
       if (!$scope.$$destroyed) {
         app.serverGroups.onRefresh($scope, retrieveServerGroup);
       }
-    });
+    }).catch(() => {});
 
     accountService.getAccountDetails(serverGroup.accountId).then(details => {
       const awsAccount = details.awsAccount;
