@@ -2,7 +2,7 @@
   <task-monitor monitor="$ctrl.taskMonitor"></task-monitor>
   <modal-close dismiss="$dismiss()"></modal-close>
   <div class="modal-header">
-    <h3>{{$ctrl.policy.policyName ? "Update" : "Create"}} scaling policy</h3>
+    <h3>{{$ctrl.policy.id ? "Update" : "Create"}} scaling policy</h3>
   </div>
   <div class="modal-body">
     <form name="form" novalidate>
@@ -59,13 +59,6 @@
       </div>
       <h4 class="section-heading">Additional Settings</h4>
       <div class="section-body section-additional-settings">
-        <div class="row" ng-if="$ctrl.policy.policyName">
-          <div class="col-md-2 sm-label-right">Policy Name</div>
-          <div class="col-md-10 content-fields">
-            <span class="form-control-static select-placeholder" ng-bind="$ctrl.policy.policyName"></span>
-          </div>
-        </div>
-
         <div class="row">
           <div class="col-md-3   sm-label-right">Scale In</div>
           <div class="col-md-9">
@@ -145,6 +138,6 @@
     <submit-button is-disabled="!form.$valid || $ctrl.taskMonitor.submitting"
                    submitting="$ctrl.taskMonitor.submitting"
                    on-click="$ctrl.save()"
-                   is-new="!$ctrl.policy.policyName"></submit-button>
+                   is-new="!$ctrl.policy.id"></submit-button>
   </div>
 </div>

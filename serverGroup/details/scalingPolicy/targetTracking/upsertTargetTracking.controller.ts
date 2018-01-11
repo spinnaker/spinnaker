@@ -63,7 +63,7 @@ export class UpsertTargetTrackingController implements IComponentController {
   }
 
   public save(): void {
-    const action = this.policy.policyName ? 'Update' : 'Create';
+    const action = this.policy.id ? 'Update' : 'Create';
     const command = cloneDeep(this.command);
     this.taskMonitor = this.taskMonitorBuilder.buildTaskMonitor({
       application: this.application,
@@ -85,7 +85,7 @@ export class UpsertTargetTrackingController implements IComponentController {
       region: this.serverGroup.region,
       serverGroupName: this.serverGroup.name,
       adjustmentType: null,
-      name: this.policy.policyName,
+      name: this.policy.id,
       targetTrackingConfiguration: Object.assign({}, this.policy.targetTrackingConfiguration),
     };
   }

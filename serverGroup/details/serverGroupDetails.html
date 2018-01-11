@@ -154,7 +154,7 @@
 
     <collapsible-section heading="Scaling Policies" ng-if="ctrl.scalingPoliciesEnabled">
         <titus-scaling-policy-summary
-          ng-repeat="policy in serverGroup.scalingPolicies track by $index"
+          ng-repeat="policy in serverGroup.scalingPolicies track by policy.id"
           policy="policy"
           server-group="serverGroup"
           application="ctrl.application"></titus-scaling-policy-summary>
