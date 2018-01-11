@@ -4,7 +4,6 @@ import { chain, extend, find, flatten, has, intersection, keys, some, xor } from
 import {
   ACCOUNT_SERVICE,
   AccountService,
-  Application,
   CACHE_INITIALIZER_SERVICE,
   CacheInitializerService,
   IAccountDetails,
@@ -31,8 +30,8 @@ import { MetricAlarmReader } from '../../metricAlarm/metricAlarm.read.service';
 import { IRoleDescriptor } from '../../iamRoles/IRole';
 import { MetricAlarmDescriptor } from '../../metricAlarm/MetricAlarm';
 import { PlacementStrategyService } from '../../placementStrategy/placementStrategy.service';
-import { PlacementStrategy } from '../../placementStrategy/PlacementStrategy';
-import { EcsClusterDescriptor } from '../../ecsCluster/EcsCluster';
+import { IPlacementStrategy } from '../../placementStrategy/IPlacementStrategy';
+import { IEcsClusterDescriptor } from '../../ecsCluster/IEcsCluster';
 
 export interface IEcsServerGroupCommandDirty extends IServerGroupCommandDirty {
   targetGroup?: string;
@@ -52,7 +51,7 @@ export interface IEcsServerGroupCommandBackingDataFiltered extends IServerGroupC
 export interface IEcsServerGroupCommandBackingData extends IServerGroupCommandBackingData {
   filtered: IEcsServerGroupCommandBackingDataFiltered;
   targetGroups: string[];
-  ecsClusters: EcsClusterDescriptor[];
+  ecsClusters: IEcsClusterDescriptor[];
   iamRoles: IRoleDescriptor[];
   metricAlarms: MetricAlarmDescriptor[];
 }
@@ -62,7 +61,7 @@ export interface IEcsServerGroupCommand extends IServerGroupCommand {
   targetHealthyDeployPercentage: number;
   targetGroup: string;
   placementStrategyName: string;
-  placementStrategySequence: PlacementStrategy[];
+  placementStrategySequence: IPlacementStrategy[];
 
   placementStrategyNameChanged: () => IServerGroupCommandResult;
 }
@@ -93,11 +92,8 @@ export class EcsServerGroupConfigurationService {
   }
 
   // TODO (Bruno Carrier): Why do we need to inject an Application into this constructor so that the app works?  This is strange, and needs investigating
-  public configureCommand(application: Application, command: IEcsServerGroupCommand): IPromise<void> {
+  public configureCommand(command: IEcsServerGroupCommand): IPromise<void> {
     this.applyOverrides('beforeConfiguration', command);
-    // The bellow console.log was added to suppress the `TS6133: 'application' is declared but its value is never read.` error.
-    console.log(typeof(application));
-
     command.toggleSuspendedProcess = (process: string): void => {
       command.suspendedProcesses = command.suspendedProcesses || [];
       const processIndex = command.suspendedProcesses.indexOf(process);

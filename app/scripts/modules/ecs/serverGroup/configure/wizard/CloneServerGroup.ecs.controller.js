@@ -116,7 +116,7 @@ module.exports = angular.module('spinnaker.ecs.cloneServerGroup.controller', [
     });
 
     function configureCommand() {
-      ecsServerGroupConfigurationService.configureCommand(application, serverGroupCommand).then(function () {
+      ecsServerGroupConfigurationService.configureCommand(serverGroupCommand).then(function () {
         $scope.state.loaded = true;
         initializeCommand();
         initializeSelectOptions();
