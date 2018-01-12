@@ -321,4 +321,43 @@ class ClassifierSuite extends FunSuite{
     assert(result.classification == Nodata)
   }
 
+  test("Mean Inequality Classifier Test: High Metric"){
+    val experimentData = Array(10.0, 20.0, 30.0, 40.0, 50.0)
+    val controlData = Array(1.0, 2.0, 3.0, 4.0, 5.0)
+
+    val experimentMetric = Metric("high-metric", experimentData, "canary")
+    val controlMetric = Metric("high-metric", controlData, "baseline")
+
+    val classifier = new MeanInequalityClassifier()
+    val result = classifier.classify(controlMetric, experimentMetric, MetricDirection.Either)
+
+    assert(result.classification == High)
+  }
+
+  test("Mean Inequality Classifier Test: Low Metric"){
+    val experimentData = Array(1.0, 2.0, 3.0, 4.0, 5.0)
+    val controlData = Array(10.0, 20.0, 30.0, 40.0, 50.0)
+
+    val experimentMetric = Metric("low-metric", experimentData, "canary")
+    val controlMetric = Metric("low-metric", controlData, "baseline")
+
+    val classifier = new MeanInequalityClassifier()
+    val result = classifier.classify(controlMetric, experimentMetric, MetricDirection.Either)
+
+    assert(result.classification == Low)
+  }
+
+  test("Mean Inequality Classifier Test: Pass Metric"){
+    val experimentData = Array(1.0, 2.0, 3.0, 4.0, 5.0)
+    val controlData = Array(1.0, 2.0, 3.0, 4.0, 5.0)
+
+    val experimentMetric = Metric("pass-metric", experimentData, "canary")
+    val controlMetric = Metric("pass-metric", controlData, "baseline")
+
+    val classifier = new MeanInequalityClassifier()
+    val result = classifier.classify(controlMetric, experimentMetric, MetricDirection.Either)
+
+    assert(result.classification == Pass)
+  }
+
 }
