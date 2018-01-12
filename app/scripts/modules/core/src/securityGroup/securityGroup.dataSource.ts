@@ -31,6 +31,7 @@ module(SECURITY_GROUP_DATA_SOURCE, [
     applicationDataSourceRegistry.registerDataSource({
       key: 'securityGroups',
       optional: true,
+      lazy: true,
       loader: loadSecurityGroups,
       onLoad: addSecurityGroups,
       afterLoad: addTags,

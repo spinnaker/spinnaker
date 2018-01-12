@@ -79,15 +79,11 @@ describe('Service: applicationReader', function () {
       loadApplication();
       expect(application.attributes.dataSources).toBeUndefined();
       expect((<Spy>clusterService.loadServerGroups).calls.count()).toBe(1);
-      expect((<Spy>securityGroupReader.getApplicationSecurityGroups).calls.count()).toBe(1);
-      expect(loadBalancerReader.loadLoadBalancers.calls.count()).toBe(1);
     });
 
     it ('loads all data sources if disabled dataSource attribute is an empty array', function () {
       loadApplication({ enabled: [], disabled: [] });
       expect((<Spy>clusterService.loadServerGroups).calls.count()).toBe(1);
-      expect((<Spy>securityGroupReader.getApplicationSecurityGroups).calls.count()).toBe(1);
-      expect(loadBalancerReader.loadLoadBalancers.calls.count()).toBe(1);
     });
 
     it ('only loads configured dataSources if attribute is non-empty', function () {

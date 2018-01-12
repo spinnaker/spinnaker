@@ -27,6 +27,7 @@ module(LOAD_BALANCER_DATA_SOURCE, [
   applicationDataSourceRegistry.registerDataSource({
     key: 'loadBalancers',
     optional: true,
+    lazy: true,
     loader: loadLoadBalancers,
     onLoad: addLoadBalancers,
     afterLoad: addTags,
