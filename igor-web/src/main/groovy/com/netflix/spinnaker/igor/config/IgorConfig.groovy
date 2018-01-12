@@ -20,6 +20,7 @@ import com.netflix.hystrix.exception.HystrixRuntimeException
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.igor.service.ArtifactDecorator
 import com.netflix.spinnaker.igor.service.BuildMasters
+import com.netflix.spinnaker.kork.core.RetrySupport
 import com.netflix.spinnaker.kork.web.interceptors.MetricsInterceptor
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
@@ -73,6 +74,11 @@ class IgorConfig extends WebMvcConfigurerAdapter {
     @Bean
     HystrixRuntimeExceptionHandler hystrixRuntimeExceptionHandler() {
         return new HystrixRuntimeExceptionHandler()
+    }
+
+    @Bean
+    RetrySupport retrySupport() {
+        return new RetrySupport()
     }
 
     @ControllerAdvice
