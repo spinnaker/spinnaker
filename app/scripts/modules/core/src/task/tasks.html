@@ -54,7 +54,7 @@
     </div>
     <div class="row tasks-content">
       <div class="col-md-10 col-md-offset-1 text-center" ng-if="!tasks.sortedTasks.length" style="margin-top: 30px">
-        <h4 ng-if="!viewState.nameFilter && !viewState.taskStateFilter">We couldn't find any tasks for {{application.name}}</h4>
+        <h4 ng-if="!viewState.nameFilter && !viewState.taskStateFilter">We couldn't find any tasks for {{tasks.application.name}}</h4>
         <div ng-if="viewState.nameFilter  || viewState.taskStateFilter">
           <h4>
             We couldn't find any tasks matching the filters you've specified.
@@ -91,7 +91,7 @@
                 <div ng-if="tasks.getFirstDeployServerGroupName(task)" class="task-name">
                   <a href><span class="glyphicon glyphicon-none"></span></a>
                   <span ng-if="tasks.getProviderForServerGroupByTask(task)">
-                    Deployed <a ui-sref="^.insight.clusters.serverGroup({application: application.name, serverGroup: tasks.getFirstDeployServerGroupName(task), accountId: tasks.getAccountId(task), region: tasks.getRegion(task), provider: tasks.getProviderForServerGroupByTask(task)})" ng-click="$event.stopPropagation()"> {{tasks.getFirstDeployServerGroupName(task)}}</a>
+                    Deployed <a ui-sref="^.insight.clusters.serverGroup({application: tasks.application.name, serverGroup: tasks.getFirstDeployServerGroupName(task), accountId: tasks.getAccountId(task), region: tasks.getRegion(task), provider: tasks.getProviderForServerGroupByTask(task)})" ng-click="$event.stopPropagation()"> {{tasks.getFirstDeployServerGroupName(task)}}</a>
                   </span>
 
                   <span ng-if="!tasks.getProviderForServerGroupByTask(task)">
