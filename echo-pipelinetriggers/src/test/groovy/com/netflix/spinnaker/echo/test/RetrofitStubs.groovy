@@ -33,8 +33,8 @@ trait RetrofitStubs {
 
   final Trigger enabledGithubTrigger = Trigger.builder().enabled(true).type('git').source('github').project('project').slug('slug').build()
 
-  final Trigger enabledDockerTrigger = Trigger.builder().enabled(true).type('docker').account('registry').repository('repository').tag('tag').build()
-  final Trigger disabledDockerTrigger = Trigger.builder().enabled(false).type('docker').account('registry').repository('repository').tag('tag').build()
+  final Trigger enabledDockerTrigger = Trigger.builder().enabled(true).type('docker').account('account').repository('repository').tag('tag').build()
+  final Trigger disabledDockerTrigger = Trigger.builder().enabled(false).type('docker').account('account').repository('repository').tag('tag').build()
   final Trigger enabledWebhookTrigger = Trigger.builder().enabled(true).type('webhook').build()
   final Trigger disabledWebhookTrigger = Trigger.builder().enabled(true).type('webhook').build()
   final Trigger nonWebhookTrigger = Trigger.builder().enabled(true).type('not webhook').build()
@@ -75,7 +75,7 @@ trait RetrofitStubs {
       tag = inTag
     }
     def res = new DockerEvent()
-    res.content = new DockerEvent.Content("registry", "repository", tag, "sha")
+    res.content = new DockerEvent.Content("account", "registry", "repository", tag, "sha")
     res.details = new Metadata([type: DockerEvent.TYPE, source: "spock"])
     return res
   }

@@ -30,6 +30,7 @@ class DockerEvent extends TriggerEvent {
   @JsonIgnoreProperties(ignoreUnknown = true)
   static class Content {
     String account
+    String registry
     String repository
     String tag
     String digest

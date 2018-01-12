@@ -24,6 +24,7 @@ import com.netflix.spinnaker.echo.model.Trigger;
 import com.netflix.spinnaker.echo.model.trigger.DockerEvent;
 import com.netflix.spinnaker.echo.model.trigger.TriggerEvent;
 import com.netflix.spinnaker.echo.pipelinetriggers.PipelineCache;
+import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import lombok.NonNull;
 import lombok.val;
 import org.apache.commons.lang.StringUtils;
@@ -32,9 +33,13 @@ import org.springframework.stereotype.Component;
 import rx.Observable;
 import rx.functions.Action1;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.regex.PatternSyntaxException;
+
+import static com.netflix.spinnaker.echo.pipelinetriggers.artifacts.ArtifactMatcher.anyArtifactsMatchExpected;
 
 @Component
 public class DockerEventMonitor extends TriggerMonitor {
@@ -74,10 +79,25 @@ public class DockerEventMonitor extends TriggerMonitor {
     return tag != null && !tag.isEmpty();
   }
 
+  private static List<Artifact> getArtifacts(DockerEvent dockerEvent) {
+    DockerEvent.Content content = dockerEvent.getContent();
+
+    String name = content.getRegistry() + "/" + content.getRepository();
+    String reference = name + ":" + content.getTag();
+    return Collections.singletonList(Artifact.builder()
+      .type("docker/image")
+      .name(name)
+      .version(content.getTag())
+      .reference(reference)
+      .build());
+  }
+
   @Override
   protected Function<Trigger, Pipeline> buildTrigger(Pipeline pipeline, TriggerEvent event) {
     DockerEvent dockerEvent = (DockerEvent) event;
-    return trigger -> pipeline.withTrigger(trigger.atTag(dockerEvent.getContent().getTag()));
+
+    return trigger -> pipeline.withTrigger(trigger.atTag(dockerEvent.getContent().getTag()))
+      .withReceivedArtifacts(getArtifacts(dockerEvent));
   }
 
   @Override
@@ -101,10 +121,10 @@ public class DockerEventMonitor extends TriggerMonitor {
 
   @Override
   protected Predicate<Trigger> matchTriggerFor(final TriggerEvent event, final Pipeline pipeline) {
-    return trigger -> isMatchingTrigger((DockerEvent)event, trigger);
+    return trigger -> isMatchingTrigger((DockerEvent)event, trigger, pipeline);
   }
 
-  private boolean isMatchingTrigger(DockerEvent dockerEvent, Trigger trigger) {
+  private boolean isMatchingTrigger(DockerEvent dockerEvent, Trigger trigger, final Pipeline pipeline) {
     String account = dockerEvent.getContent().getAccount();
     String repository = dockerEvent.getContent().getRepository();
     String eventTag = dockerEvent.getContent().getTag();
@@ -116,7 +136,8 @@ public class DockerEventMonitor extends TriggerMonitor {
             trigger.getRepository().equals(repository) &&
             trigger.getAccount().equals(account) &&
             ((triggerTagPattern == null && !eventTag.equals("latest"))
-              || triggerTagPattern != null && matchTags(triggerTagPattern, eventTag));
+              || triggerTagPattern != null && matchTags(triggerTagPattern, eventTag)) &&
+            anyArtifactsMatchExpected(getArtifacts(dockerEvent), trigger, pipeline);
   }
 
   protected void onMatchingPipeline(Pipeline pipeline) {

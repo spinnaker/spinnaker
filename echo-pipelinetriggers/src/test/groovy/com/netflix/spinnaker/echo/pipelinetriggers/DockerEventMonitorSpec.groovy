@@ -24,6 +24,7 @@ import com.netflix.spinnaker.echo.model.Event
 import com.netflix.spinnaker.echo.model.Pipeline
 import com.netflix.spinnaker.echo.pipelinetriggers.monitor.DockerEventMonitor
 import com.netflix.spinnaker.echo.test.RetrofitStubs
+import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import rx.functions.Action1
 import spock.lang.Specification
 import spock.lang.Subject
@@ -74,10 +75,18 @@ class DockerEventMonitorSpec extends Specification implements RetrofitStubs {
       it.trigger.account == enabledDockerTrigger.account
       it.trigger.repository == enabledDockerTrigger.repository
       it.trigger.tag == enabledDockerTrigger.tag
+      it.receivedArtifacts.size() == 1
+      it.receivedArtifacts.get(0) == artifact
     })
 
     where:
     event = createDockerEvent()
+    artifact = Artifact.builder()
+      .type("docker/image")
+      .name(event.content.registry + "/" + event.content.repository)
+      .version(event.content.tag)
+      .reference(event.content.registry + "/" + event.content.repository + ":" + event.content.tag)
+      .build()
     pipeline = createPipelineWith(enabledJenkinsTrigger, nonJenkinsTrigger, enabledDockerTrigger, disabledDockerTrigger)
   }
 
