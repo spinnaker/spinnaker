@@ -29,6 +29,7 @@ import com.netflix.spinnaker.igor.model.BuildServiceProvider
 import com.netflix.spinnaker.igor.service.BuildMasters
 import com.netflix.spinnaker.igor.service.BuildService
 import com.netflix.spinnaker.igor.travis.service.TravisService
+import com.netflix.spinnaker.kork.core.RetrySupport
 import com.squareup.okhttp.mockwebserver.MockWebServer
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -56,6 +57,9 @@ class BuildControllerSpec extends Specification {
     JenkinsService jenkinsService
     BuildService service
     TravisService travisService
+    def retrySupport = Spy(RetrySupport) {
+        _ * sleep(_) >> { /* do nothing */ }
+    }
 
     @Shared
     MockWebServer server
@@ -79,8 +83,13 @@ class BuildControllerSpec extends Specification {
         cache = Mock(BuildCache)
         buildMasters = Mock(BuildMasters)
         server = new MockWebServer()
+
         mockMvc = MockMvcBuilders.standaloneSetup(new BuildController(
-            executor: Executors.newSingleThreadExecutor(), buildMasters: buildMasters, objectMapper: new ObjectMapper())).build()
+            executor: Executors.newSingleThreadExecutor(),
+            buildMasters: buildMasters,
+            objectMapper: new ObjectMapper(),
+            retrySupport: retrySupport
+        )).build()
     }
 
     void 'get the status of a build'() {
@@ -126,8 +135,8 @@ class BuildControllerSpec extends Specification {
 
     void 'get properties of a build with a bad filename'() {
         given:
-        1 * jenkinsService.getBuild(JOB_NAME, BUILD_NUMBER) >> new Build(
-             number: BUILD_NUMBER, artifacts: [new BuildArtifact(fileName: FILE_NAME, relativePath: FILE_NAME)])
+        5 * jenkinsService.getBuild(JOB_NAME, BUILD_NUMBER) >> new Build(
+            number: BUILD_NUMBER, artifacts: [new BuildArtifact(fileName: "badFile.yml", relativePath: FILE_NAME)])
 
         when:
         MockHttpServletResponse response = mockMvc.perform(

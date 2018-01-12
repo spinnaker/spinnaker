@@ -23,6 +23,7 @@ import com.netflix.spinnaker.igor.jenkins.service.JenkinsService
 import com.netflix.spinnaker.igor.model.BuildServiceProvider
 import com.netflix.spinnaker.igor.service.ArtifactDecorator
 import com.netflix.spinnaker.igor.service.BuildMasters
+import com.netflix.spinnaker.kork.core.RetrySupport
 import groovy.transform.InheritConstructors
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
@@ -55,6 +56,9 @@ class BuildController {
 
     @Autowired
     ObjectMapper objectMapper
+
+    @Autowired
+    RetrySupport retrySupport
 
     @Autowired(required = false)
     ArtifactDecorator artifactDecorator
@@ -215,9 +219,7 @@ class BuildController {
             Map<String, Object> map = [:]
             try {
                 def jenkinsService = buildMasters.map[master]
-                String path = jenkinsService.getBuild(job, buildNumber).artifacts.find {
-                    it.fileName == fileName
-                }?.relativePath
+                String path = getArtifactPathFromBuild(jenkinsService, job, buildNumber, fileName)
 
                 if (path == null) {
                     log.error("Unable to get properties: Could not find build artifact matching requested filename '{}' on '{}' build '{}", kv("fileName", fileName), kv("master", master), kv("buildNumber", buildNumber))
@@ -252,6 +254,24 @@ class BuildController {
         }
 
     }
+
+    private String getArtifactPathFromBuild(jenkinsService, job, buildNumber, String fileName) {
+        try {
+            return retrySupport.retry({ ->
+                def artifact = jenkinsService.getBuild(job, buildNumber).artifacts.find {
+                    it.fileName == fileName
+                }
+                if (artifact) {
+                    return artifact.relativePath
+                }
+                throw new ArtifactNotFoundException()
+            }, 5, 2000, false)
+        } catch (ArtifactNotFoundException ignored) {
+            return null
+        }
+    }
+
+    private static class ArtifactNotFoundException extends RuntimeException {}
 
     @ExceptionHandler(BuildJobError.class)
     void handleBuildJobError(HttpServletResponse response, BuildJobError e) throws IOException {
