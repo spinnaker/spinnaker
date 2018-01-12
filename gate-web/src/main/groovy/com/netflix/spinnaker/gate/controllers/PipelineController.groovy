@@ -77,7 +77,7 @@ class PipelineController {
       job: [
         [
           type: "savePipeline",
-          pipeline: (String) Base64.encoder.encodeToString(objectMapper.writeValueAsString(pipeline).bytes),
+          pipeline: (String) Base64.encoder.encodeToString(objectMapper.writeValueAsString(pipeline).getBytes("UTF-8")),
           user: AuthenticatedRequest.spinnakerUser.orElse("anonymous")
         ]
       ]
