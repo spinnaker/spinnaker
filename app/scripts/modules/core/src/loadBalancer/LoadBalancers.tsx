@@ -47,15 +47,11 @@ export class LoadBalancers extends React.Component<ILoadBalancersProps, ILoadBal
     this.groupsUpdatedListener = loadBalancerFilterService.groupsUpdatedStream.subscribe(() => this.groupsUpdated());
     loadBalancerFilterModel.asFilterModel.activate();
     this.loadBalancersRefreshUnsubscribe = app.getDataSource('loadBalancers').onRefresh(null, () => this.updateLoadBalancerGroups());
-    app.loadBalancers.activate();
     app.setActiveState(app.loadBalancers);
     this.updateLoadBalancerGroups();
   }
 
   public componentWillUnmount(): void {
-    const { app } = this.props;
-    app.setActiveState();
-    app.loadBalancers.deactivate();
     this.groupsUpdatedListener.unsubscribe();
     this.loadBalancersRefreshUnsubscribe();
   }

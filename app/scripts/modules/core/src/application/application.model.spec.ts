@@ -215,9 +215,6 @@ describe ('Application Model', function () {
         securityGroupsByApplicationName: any[] = [];
 
       configureApplication(serverGroups, loadBalancers, securityGroupsByApplicationName);
-      application.loadBalancers.activate();
-      application.refresh();
-      $scope.$digest();
       expect(application.defaultCredentials.gce).toBe('prod');
       expect(application.defaultRegions.gce).toBe('us-central-1');
     });
@@ -228,9 +225,6 @@ describe ('Application Model', function () {
         securityGroupsByApplicationName: any[] = [{ name: 'deck-test', provider: 'cf', accountName: 'test', region: 'us-south-7' }];
 
       configureApplication(serverGroups, loadBalancers, securityGroupsByApplicationName);
-      application.securityGroups.activate();
-      application.refresh();
-      $scope.$digest();
       expect(application.defaultCredentials.cf).toBe('test');
       expect(application.defaultRegions.cf).toBe('us-south-7');
     });
@@ -241,10 +235,6 @@ describe ('Application Model', function () {
         securityGroupsByApplicationName: any[] = [{ name: 'deck-test', provider: 'aws', accountName: 'test', region: 'us-east-1' }];
 
       configureApplication(serverGroups, loadBalancers, securityGroupsByApplicationName);
-      application.loadBalancers.activate();
-      application.securityGroups.activate();
-      application.refresh();
-      $scope.$digest();
       expect(application.defaultCredentials.aws).toBeUndefined();
       expect(application.defaultRegions.aws).toBeUndefined();
     });
@@ -255,11 +245,6 @@ describe ('Application Model', function () {
         securityGroupsByApplicationName: any[] = [{ name: 'deck-test', provider: 'aws', accountName: 'test', region: 'us-east-1' }];
 
       configureApplication(serverGroups, loadBalancers, securityGroupsByApplicationName);
-      application.loadBalancers.activate();
-      application.securityGroups.activate();
-      application.refresh();
-      $scope.$digest();
-
       expect(application.defaultCredentials.aws).toBeUndefined();
       expect(application.defaultRegions.aws).toBe('us-east-1');
     });
@@ -270,11 +255,6 @@ describe ('Application Model', function () {
         securityGroupsByApplicationName: any[] = [{ name: 'deck-test', provider: 'aws', accountName: 'test', region: 'us-west-1' }];
 
       configureApplication(serverGroups, loadBalancers, securityGroupsByApplicationName);
-      application.loadBalancers.activate();
-      application.securityGroups.activate();
-      application.refresh();
-      $scope.$digest();
-
       expect(application.defaultCredentials.aws).toBe('test');
       expect(application.defaultRegions.aws).toBeUndefined();
     });
@@ -302,11 +282,6 @@ describe ('Application Model', function () {
         securityGroupsByApplicationName: any[] = [{ name: 'deck-test', provider: 'aws', accountName: 'test', region: 'us-west-2' }];
 
       configureApplication(serverGroups, loadBalancers, securityGroupsByApplicationName);
-      application.loadBalancers.activate();
-      application.securityGroups.activate();
-      application.refresh();
-      $scope.$digest();
-
       expect(application.defaultCredentials.aws).toBe('test');
       expect(application.defaultRegions.aws).toBe('us-west-2');
       expect(application.defaultCredentials.gce).toBe('gce-test');

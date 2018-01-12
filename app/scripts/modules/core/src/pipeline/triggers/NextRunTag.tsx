@@ -27,7 +27,8 @@ export class NextRunTag extends React.Component<INextRunTagProps, INextRunTagSta
 
   private updateSchedule(): INextRunTagState {
     if (this.props.pipeline) {
-      const crons = (this.props.pipeline.triggers || []).filter(t => t.type === 'cron' && t.enabled) as ICronTrigger[];
+      const crons = (this.props.pipeline.triggers || [])
+        .filter((t: ICronTrigger) => t.type === 'cron' && t.enabled && t.cronExpression) as ICronTrigger[];
       const nextTimes: number[] = [];
       crons.forEach(cron => {
         const parts = cron.cronExpression.split(' ');
