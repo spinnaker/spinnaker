@@ -45,5 +45,5 @@ object MetricDirection{
 case class MetricClassification(classification: MetricClassificationLabel, reason: Option[String], ratio: Double)
 
 abstract class BaseMetricClassifier {
-  def classify(control: Metric, experiment: Metric, direction: MetricDirection): MetricClassification
+  def classify(control: Metric, experiment: Metric, direction: MetricDirection = MetricDirection.Either): MetricClassification
 }

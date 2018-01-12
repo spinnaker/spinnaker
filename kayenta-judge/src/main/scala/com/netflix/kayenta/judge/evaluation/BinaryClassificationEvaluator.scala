@@ -22,6 +22,10 @@ import com.netflix.kayenta.judge.classifiers.metric._
   */
 class BinaryClassificationEvaluator extends BaseEvaluator{
 
+  private def validInput(input: Array[Int]): Boolean ={
+   input.contains(0) || input.contains(1)
+  }
+
   /**
     * Calculate evaluation metrics
     * @param truth ground truth (correct) labels
@@ -30,6 +34,7 @@ class BinaryClassificationEvaluator extends BaseEvaluator{
     */
   def calculateMetrics(truth: Array[Int], predictions: Array[Int]): Map[String, Double] ={
     require(predictions.length == truth.length, "the prediction vector and truth vector must be the same size")
+    require(validInput(predictions) && validInput(truth), "the prediction or truth vectors contain invalid entries")
 
     //Calculate the evaluation metrics
     val precision = Metrics.precision(truth, predictions)
@@ -52,6 +57,7 @@ class BinaryClassificationEvaluator extends BaseEvaluator{
       case Low => 1
       case Nodata => 0
       case Pass => 0
+      case Error => -1
     }
   }
 
@@ -63,10 +69,9 @@ class BinaryClassificationEvaluator extends BaseEvaluator{
     */
   override def evaluate[T <: BaseMetricClassifier](classifier: T, dataset: List[LabeledInstance]): Map[String, Double] = {
     val truth = dataset.map(x => convertLabel(x.label))
-    val predictions = dataset.map{
-      x => convertLabel(classifier.classify(x.control, x.experiment, MetricDirection.Either).classification)
-    }
-    calculateMetrics(truth.toArray, predictions.toArray)
+    val predictions = dataset.map(x => classifier.classify(x.control, x.experiment).classification)
+    val binaryPredictions = predictions.map(convertLabel)
+    calculateMetrics(truth.toArray, binaryPredictions.toArray)
   }
 
 }
