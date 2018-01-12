@@ -16,7 +16,7 @@
 
 package com.netflix.kayenta.judge.detectors
 
-abstract class OutlierDetector{
+abstract class BaseOutlierDetector{
 
   /**
     * Determine which data points are outliers

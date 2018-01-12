@@ -28,7 +28,7 @@ import com.netflix.kayenta.judge.stats.DescriptiveStatistics.percentile
   * Reference: https://en.wikipedia.org/wiki/Outlier#Tukey.27s_test
   * Note: To reduce sensitivity, take the max of the IQR or the 99th percentile
   */
-class IQRDetector(factor: Double = 1.5, reduceSensitivity: Boolean = false) extends OutlierDetector {
+class IQRDetector(factor: Double = 1.5, reduceSensitivity: Boolean = false) extends BaseOutlierDetector {
 
   require(factor > 0.0, "factor must be greater than zero")
 

@@ -16,7 +16,7 @@
 
 package com.netflix.kayenta.judge
 
-import com.netflix.kayenta.judge.detectors.OutlierDetector
+import com.netflix.kayenta.judge.detectors.BaseOutlierDetector
 
 
 object Transforms {
@@ -53,7 +53,7 @@ object Transforms {
     * @param data
     * @param detector
     */
-  def removeOutliers(data: Array[Double], detector: OutlierDetector): Array[Double] ={
+  def removeOutliers(data: Array[Double], detector: BaseOutlierDetector): Array[Double] ={
     val outliers = detector.detect(data)
     data.zip(outliers).collect{case (v, false) => v}
   }
@@ -64,7 +64,7 @@ object Transforms {
     * @param detector
     * @return
     */
-  def removeOutliers(metric: Metric, detector: OutlierDetector): Metric = {
+  def removeOutliers(metric: Metric, detector: BaseOutlierDetector): Metric = {
     metric.copy(values = removeOutliers(metric.values, detector))
   }
 

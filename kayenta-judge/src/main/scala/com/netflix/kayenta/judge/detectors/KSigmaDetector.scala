@@ -24,7 +24,7 @@ import org.apache.commons.math3.stat.StatUtils
   * Values which are greater than or less than k standard deviations from the mean are considered outliers
   * Reference: https://en.wikipedia.org/wiki/68%E2%80%9395%E2%80%9399.7_rule
   */
-class KSigmaDetector(k: Double = 3.0) extends OutlierDetector{
+class KSigmaDetector(k: Double = 3.0) extends BaseOutlierDetector{
 
   require(k > 0.0, "k must be greater than zero")
 
