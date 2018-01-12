@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
+import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesApiVersion
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind
@@ -26,6 +27,8 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.Kube
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifestAnnotater
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifestMetadata
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifestSpinnakerRelationships
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.names.KubernetesManifestNamer
+import com.netflix.spinnaker.clouddriver.names.NamerRegistry
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import com.netflix.spinnaker.moniker.Moniker
 import org.apache.commons.lang3.tuple.Pair
@@ -57,6 +60,13 @@ metadata:
         .app(application)
         .cluster(cluster)
         .build()
+
+    if (account != null) {
+      NamerRegistry.lookup()
+        .withProvider(KubernetesCloudProvider.ID)
+        .withAccount(account)
+        .setNamer(KubernetesManifest, new KubernetesManifestNamer())
+    }
 
     def manifest = stringToManifest(rawManifest)
     KubernetesManifestAnnotater.annotateManifest(manifest, moniker)

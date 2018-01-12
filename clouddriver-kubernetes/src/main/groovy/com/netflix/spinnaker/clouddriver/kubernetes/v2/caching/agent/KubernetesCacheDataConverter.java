@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.cats.cache.DefaultCacheData;
+import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesApiVersion;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesCachingProperties;
@@ -29,8 +30,11 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.Kube
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifestAnnotater;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifestMetadata;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifestSpinnakerRelationships;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.names.KubernetesManifestNamer;
+import com.netflix.spinnaker.clouddriver.names.NamerRegistry;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.moniker.Moniker;
+import com.netflix.spinnaker.moniker.Namer;
 import io.kubernetes.client.JSON;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -152,7 +156,13 @@ public class KubernetesCacheDataConverter {
     KubernetesApiVersion apiVersion = manifest.getApiVersion();
     String name = manifest.getName();
     String namespace = manifest.getNamespace();
-    Moniker moniker = KubernetesManifestAnnotater.getMoniker(manifest);
+    Namer<KubernetesManifest> namer = account == null
+      ? new KubernetesManifestNamer()
+      : NamerRegistry.lookup()
+          .withProvider(KubernetesCloudProvider.getID())
+          .withAccount(account)
+          .withResource(KubernetesManifest.class);
+    Moniker moniker = namer.deriveMoniker(manifest);
 
     Map<String, Object> attributes = new ImmutableMap.Builder<String, Object>()
         .put("kind", kind)

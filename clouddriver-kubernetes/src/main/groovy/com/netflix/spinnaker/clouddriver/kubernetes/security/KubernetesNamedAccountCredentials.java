@@ -29,6 +29,7 @@ import com.netflix.spinnaker.clouddriver.security.AccountCredentials;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository;
 import com.netflix.spinnaker.clouddriver.security.ProviderVersion;
 import com.netflix.spinnaker.fiat.model.resources.Permissions;
+import com.netflix.spinnaker.moniker.Namer;
 import groovy.util.logging.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
@@ -175,6 +176,7 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials> 
     Registry spectatorRegistry;
     AccountCredentialsRepository accountCredentialsRepository;
     KubectlJobExecutor jobExecutor;
+    Namer namer;
     boolean debug;
 
     Builder name(String name) {
@@ -233,7 +235,7 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials> 
     }
 
     Builder serviceAccount(Boolean serviceAccount) {
-      this.serviceAccount = serviceAccount;;
+      this.serviceAccount = serviceAccount;
       return this;
     }
 
@@ -300,6 +302,11 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials> 
       return this;
     }
 
+    Builder namer(Namer namer) {
+      this.namer = namer;
+      return this;
+    }
+
     private C buildCredentials() {
       switch (providerVersion) {
         case v1:
@@ -322,7 +329,7 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials> 
           NamerRegistry.lookup()
               .withProvider(KubernetesCloudProvider.getID())
               .withAccount(name)
-              .setNamer(KubernetesManifest.class, new KubernetesManifestNamer());
+              .setNamer(KubernetesManifest.class, namer);
           return (C) new KubernetesV2Credentials.Builder()
               .accountName(name)
               .kubeconfigFile(kubeconfigFile)

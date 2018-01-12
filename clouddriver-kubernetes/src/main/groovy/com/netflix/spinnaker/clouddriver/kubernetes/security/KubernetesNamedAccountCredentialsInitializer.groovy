@@ -21,6 +21,7 @@ import com.netflix.spinnaker.cats.module.CatsModule
 import com.netflix.spinnaker.cats.provider.ProviderSynchronizerTypeWrapper
 import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesConfigurationProperties
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.job.KubectlJobExecutor
+import com.netflix.spinnaker.clouddriver.names.NamerRegistry
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.clouddriver.security.CredentialsInitializerSynchronizable
 import com.netflix.spinnaker.clouddriver.security.ProviderUtils
@@ -39,6 +40,7 @@ class KubernetesNamedAccountCredentialsInitializer implements CredentialsInitial
 
   @Autowired Registry spectatorRegistry
   @Autowired KubectlJobExecutor jobExecutor
+  @Autowired NamerRegistry namerRegistry
 
   @Bean
   List<? extends KubernetesNamedAccountCredentials> kubernetesNamedAccountCredentials(
@@ -96,6 +98,7 @@ class KubernetesNamedAccountCredentialsInitializer implements CredentialsInitial
           .permissions(managedAccount.permissions.build())
           .spectatorRegistry(spectatorRegistry)
           .jobExecutor(jobExecutor)
+          .namer(namerRegistry.getNamingStrategy(managedAccount.namingStrategy))
           .debug(managedAccount.debug)
           .build()
 

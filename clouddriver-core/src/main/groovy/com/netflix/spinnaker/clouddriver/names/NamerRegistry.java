@@ -21,6 +21,7 @@ import com.netflix.spinnaker.moniker.Namer;
 import com.netflix.spinnaker.moniker.frigga.FriggaReflectiveNamer;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -31,6 +32,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * must happen within Spinnaker.
  */
 public class NamerRegistry {
+  final private List<NamingStrategy> namingStrategies;
   private static Namer defaultNamer = new FriggaReflectiveNamer();
   private static ProviderLookup providerLookup = new ProviderLookup();
 
@@ -40,6 +42,17 @@ public class NamerRegistry {
 
   public static ProviderLookup lookup() {
     return providerLookup;
+  }
+
+  public NamerRegistry(List<NamingStrategy> namingStrategies) {
+    this.namingStrategies = namingStrategies;
+  }
+
+  public Namer getNamingStrategy(String strategyName) {
+    return this.namingStrategies.stream()
+      .filter(strategy -> strategy.getName().equalsIgnoreCase(strategyName))
+      .findFirst()
+      .orElseThrow(() -> new IllegalArgumentException("Could not find naming strategy '" + strategyName + "'"));
   }
 
   @Slf4j

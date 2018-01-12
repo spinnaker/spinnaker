@@ -42,7 +42,8 @@ class KubernetesConfigurationProperties {
     List<LinkedDockerRegistryConfiguration> dockerRegistries
     List<String> requiredGroupMembership
     Permissions.Builder permissions = new Permissions.Builder()
-    Boolean debug = false;
+    String namingStrategy = "kubernetesAnnotations"
+    Boolean debug = false
   }
 
   List<ManagedAccount> accounts = []
