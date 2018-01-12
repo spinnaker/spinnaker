@@ -51,6 +51,7 @@ public class GoogleCredentials {
       requestInitializer.initialize(request);
       request.setConnectTimeout((int) TimeUnit.MINUTES.toMillis(2));
       request.setReadTimeout((int) TimeUnit.MINUTES.toMillis(2));
+      request.setUnsuccessfulResponseHandler(new HttpBackOffUnsuccessfulResponseHandler(new ExponentialBackOff()));
     };
   }
 }

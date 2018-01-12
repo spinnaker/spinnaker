@@ -19,7 +19,8 @@
 package com.netflix.spinnaker.halyard.core.registry.v1;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.api.client.http.HttpTransport;
+import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
+import com.google.api.client.http.HttpRequestInitializer;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.services.storage.Storage;
@@ -54,8 +55,16 @@ public class GoogleProfileReader implements ProfileReader {
   public Storage googleStorage() {
     JsonFactory jsonFactory = JacksonFactory.getDefaultInstance();
     String applicationName = "Spinnaker/Halyard";
+    HttpRequestInitializer requestInitializer;
+    try {
+      requestInitializer = GoogleCredentials.setHttpTimeout(GoogleCredential.getApplicationDefault());
+      log.info("Loaded application default credential for reading BOMs & profiles.");
+    } catch (Exception e) {
+      requestInitializer = GoogleCredentials.retryRequestInitializer();
+      log.debug("No application default credential could be loaded for reading BOMs & profiles. Continuing unauthenticated: {}", e.getMessage());
+    }
 
-    return new Storage.Builder(GoogleCredentials.buildHttpTransport(), jsonFactory, GoogleCredentials.retryRequestInitializer())
+    return new Storage.Builder(GoogleCredentials.buildHttpTransport(), jsonFactory, requestInitializer)
         .setApplicationName(applicationName)
         .build();
   }
