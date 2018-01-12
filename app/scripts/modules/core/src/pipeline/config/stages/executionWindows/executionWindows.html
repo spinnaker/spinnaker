@@ -1,10 +1,19 @@
 <div class="form-group">
   <div class="col-md-9 col-md-offset-1">
-    <div class="checkbox">
+    <div class="checkbox" ng-if="!stage.restrictExecutionDuringTimeWindow.includes('${')">
       <label>
-        <input type="checkbox" ng-checked="stage.restrictExecutionDuringTimeWindow" />
+        <input type="checkbox"
+               ng-false-value="undefined"
+               ng-model="stage.restrictExecutionDuringTimeWindow"/>
         <strong> Restrict execution to specific time windows</strong>
       </label>
+    </div>
+    <div class="row" ng-if="stage.restrictExecutionDuringTimeWindow.includes('${')" style="margin-top: 20px">
+      <strong> Restrict execution to specific time windows when this expression is true</strong>
+      <input type="text"
+             class="form-control input-sm"
+             ng-model="stage.restrictExecutionDuringTimeWindow"/>
+
     </div>
   </div>
 </div>
