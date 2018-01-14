@@ -106,6 +106,14 @@ public class AWSBakeHandler extends CloudProviderBakeHandler {
       parameterMap.aws_winrm_username = awsVirtualizationSettings.winRmUserName
     }
 
+    if (awsVirtualizationSettings.spotPrice) {
+      parameterMap.aws_spot_price = awsVirtualizationSettings.spotPrice
+
+      if (awsVirtualizationSettings.spotPriceAutoProduct) {
+        parameterMap.aws_spot_price_auto_product = awsVirtualizationSettings.spotPriceAutoProduct
+      }
+    }
+
     if (awsBakeryDefaults.awsAccessKey && awsBakeryDefaults.awsSecretKey) {
       parameterMap.aws_access_key = awsBakeryDefaults.awsAccessKey
       parameterMap.aws_secret_key = awsBakeryDefaults.awsSecretKey

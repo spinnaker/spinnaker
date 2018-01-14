@@ -13,26 +13,36 @@ aws:
         instanceType: t2.micro
         sourceAmi: ami-d4aed0bc
         sshUserName: ubuntu
+        spotPrice: auto
+        spotPriceAutoProduct: Linux/UNIX (Amazon VPC)
       - region: us-west-1
         virtualizationType: hvm
         instanceType: t2.micro
         sourceAmi: ami-4f285a2f
         sshUserName: ubuntu
+        spotPrice: auto
+        spotPriceAutoProduct: Linux/UNIX (Amazon VPC)
       - region: us-west-2
         virtualizationType: hvm
         instanceType: t2.micro
         sourceAmi: ami-59396769
         sshUserName: ubuntu
+        spotPrice: auto
+        spotPriceAutoProduct: Linux/UNIX (Amazon VPC)
       - region: us-east-1
         virtualizationType: pv
         instanceType: m3.medium
         sourceAmi: ami-8007b2e8
         sshUserName: ubuntu
+        spotPrice: auto
+        spotPriceAutoProduct: Linux/UNIX (Amazon VPC)
       - region: us-west-1
         virtualizationType: pv
         instanceType: m3.medium
         sourceAmi: ami-3a12605a
         sshUserName: ubuntu
+        spotPrice: auto
+        spotPriceAutoProduct: Linux/UNIX (Amazon VPC)
     - baseImage:
         id: trusty
         shortDescription: v14.04
@@ -44,41 +54,57 @@ aws:
         instanceType: t2.micro
         sourceAmi: ami-9eaa1cf6
         sshUserName: ubuntu
+        spotPrice: auto
+        spotPriceAutoProduct: Linux/UNIX (Amazon VPC)
       - region: us-west-1
         virtualizationType: hvm
         instanceType: t2.micro
         sourceAmi: ami-12512d72
         sshUserName: ubuntu
+        spotPrice: auto
+        spotPriceAutoProduct: Linux/UNIX (Amazon VPC)
       - region: us-west-2
         virtualizationType: hvm
         instanceType: t2.micro
         sourceAmi: ami-3d50120d
         sshUserName: ubuntu
+        spotPrice: auto
+        spotPriceAutoProduct: Linux/UNIX (Amazon VPC)
       - region: eu-central-1
         virtualizationType: hvm
         instanceType: t2.micro
         sourceAmi: ami-87564feb
         sshUserName: ubuntu
+        spotPrice: auto
+        spotPriceAutoProduct: Linux/UNIX (Amazon VPC)
       - region: eu-west-1
         virtualizationType: hvm
         instanceType: t2.micro
         sourceAmi: ami-f95ef58a
         sshUserName: ubuntu
+        spotPrice: auto
+        spotPriceAutoProduct: Linux/UNIX (Amazon VPC)
       - region: us-east-1
         virtualizationType: pv
         instanceType: m3.medium
         sourceAmi: ami-98aa1cf0
         sshUserName: ubuntu
+        spotPrice: auto
+        spotPriceAutoProduct: Linux/UNIX (Amazon VPC)
       - region: us-west-1
         virtualizationType: pv
         instanceType: m3.medium
         sourceAmi: ami-59502c39
         sshUserName: ubuntu
+        spotPrice: auto
+        spotPriceAutoProduct: Linux/UNIX (Amazon VPC)
       - region: us-west-2
         virtualizationType: pv
         instanceType: m3.medium
         sourceAmi: ami-37501207
         sshUserName: ubuntu
+        spotPrice: auto
+        spotPriceAutoProduct: Linux/UNIX (Amazon VPC)
     - baseImage:
         id: windows-2012-r2
         shortDescription: 2012 R2
@@ -92,6 +118,8 @@ aws:
         instanceType: t2.micro
         sourceAmi: ami-21414f36
         winRmUserName: Administrator
+        spotPrice: auto
+        spotPriceAutoProduct: Windows (Amazon VPC)
 
 azure:
   bakeryDefaults:

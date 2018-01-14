@@ -12,6 +12,8 @@
     "aws_security_group": "",
     "aws_associate_public_ip_address": "false",
     "aws_ena_support": "false",
+    "aws_spot_price": 0,
+    "aws_spot_price_auto_product": "",
     "aws_userdata_file": "scripts/aws-windows.userdata",
     "appversion": "",
     "build_host": "",
@@ -48,6 +50,10 @@
       "security_group_id": "{{user `aws_security_group`}}",
 
       "subnet_id": "{{user `aws_subnet_id`}}",
+
+      "ena_support": "{{user `aws_ena_support`}},
+      "spot_price": "{{user `aws_spot_price`}}",
+      "spot_price_auto_product": "{{user `aws_spot_price_auto_product`}}",
 
       "tags": {
         "appversion": "{{user `appversion`}}",

@@ -64,14 +64,18 @@ class AWSBakeHandlerSpec extends Specification implements TestDefaults {
               virtualizationType: "hvm",
               instanceType: "t2.micro",
               sourceAmi: SOURCE_UBUNTU_HVM_IMAGE_NAME,
-              sshUserName: "ubuntu"
+              sshUserName: "ubuntu",
+              spotPrice: "auto",
+              spotPriceAutoProduct: "Linux/UNIX (Amazon VPC)"
             ],
             [
               region: REGION,
               virtualizationType: "pv",
               instanceType: "m3.medium",
               sourceAmi: SOURCE_UBUNTU_PV_IMAGE_NAME,
-              sshUserName: "ubuntu"
+              sshUserName: "ubuntu",
+              spotPrice: "auto",
+              spotPriceAutoProduct: "Linux/UNIX (Amazon VPC)"
             ]
           ]
         ],
@@ -86,7 +90,9 @@ class AWSBakeHandlerSpec extends Specification implements TestDefaults {
               virtualizationType: "hvm",
               instanceType: "t2.micro",
               sourceAmi: SOURCE_TRUSTY_HVM_IMAGE_NAME,
-              sshUserName: "ubuntu"
+              sshUserName: "ubuntu",
+              spotPrice: "auto",
+              spotPriceAutoProduct: "Linux/UNIX (Amazon VPC)"
             ]
           ]
         ],
@@ -101,7 +107,9 @@ class AWSBakeHandlerSpec extends Specification implements TestDefaults {
               virtualizationType: "hvm",
               instanceType: "t2.micro",
               sourceAmi: SOURCE_AMZN_HVM_IMAGE_NAME,
-              sshUserName: "ec2-user"
+              sshUserName: "ec2-user",
+              spotPrice: "auto",
+              spotPriceAutoProduct: "Linux/UNIX (Amazon VPC)"
             ]
           ]
         ],
@@ -117,7 +125,9 @@ class AWSBakeHandlerSpec extends Specification implements TestDefaults {
               virtualizationType: "hvm",
               instanceType: "t2.micro",
               sourceAmi: SOURCE_WINDOWS_2012_R2_HVM_IMAGE_NAME,
-              winRmUserName: "Administrator"
+              winRmUserName: "Administrator",
+              spotPrice: "auto",
+              spotPriceAutoProduct: "Windows (Amazon VPC)"
             ]
           ]
         ]
@@ -305,6 +315,8 @@ class AWSBakeHandlerSpec extends Specification implements TestDefaults {
         aws_region: REGION,
         aws_ssh_username: "ubuntu",
         aws_instance_type: "t2.micro",
+        aws_spot_price: "auto",
+        aws_spot_price_auto_product: "Linux/UNIX (Amazon VPC)",
         aws_source_ami: SOURCE_UBUNTU_HVM_IMAGE_NAME,
         aws_target_ami: targetImageName,
         repository: DEBIAN_REPOSITORY,
@@ -347,10 +359,12 @@ class AWSBakeHandlerSpec extends Specification implements TestDefaults {
         aws_instance_type: "t2.micro",
         aws_source_ami: SOURCE_AMZN_HVM_IMAGE_NAME,
         aws_target_ami: targetImageName,
+        aws_spot_price: "auto",
+        aws_spot_price_auto_product: "Linux/UNIX (Amazon VPC)",
         repository: YUM_REPOSITORY,
         package_type: RPM_PACKAGE_TYPE.util.packageType,
         packages: PACKAGES_NAME,
-        configDir: configDir
+        configDir: configDir,
       ]
 
       @Subject
@@ -453,6 +467,8 @@ class AWSBakeHandlerSpec extends Specification implements TestDefaults {
         aws_instance_type: "t2.micro",
         aws_source_ami: "ami-12345678",
         aws_target_ami: targetImageName,
+        aws_spot_price: "auto",
+        aws_spot_price_auto_product: "Linux/UNIX (Amazon VPC)",
         repository: DEBIAN_REPOSITORY,
         package_type: DEB_PACKAGE_TYPE.util.packageType,
         packages: PACKAGES_NAME,
@@ -493,6 +509,8 @@ class AWSBakeHandlerSpec extends Specification implements TestDefaults {
         aws_instance_type: "m3.medium",
         aws_source_ami: SOURCE_UBUNTU_PV_IMAGE_NAME,
         aws_target_ami: targetImageName,
+        aws_spot_price: "auto",
+        aws_spot_price_auto_product: "Linux/UNIX (Amazon VPC)",
         repository: DEBIAN_REPOSITORY,
         package_type: DEB_PACKAGE_TYPE.util.packageType,
         packages: PACKAGES_NAME,
@@ -534,6 +552,8 @@ class AWSBakeHandlerSpec extends Specification implements TestDefaults {
         aws_instance_type: "m3.medium",
         aws_source_ami: SOURCE_UBUNTU_PV_IMAGE_NAME,
         aws_target_ami: targetImageName,
+        aws_spot_price: "auto",
+        aws_spot_price_auto_product: "Linux/UNIX (Amazon VPC)",
         repository: DEBIAN_REPOSITORY,
         package_type: DEB_PACKAGE_TYPE.util.packageType,
         packages: PACKAGES_NAME,
@@ -575,6 +595,8 @@ class AWSBakeHandlerSpec extends Specification implements TestDefaults {
         aws_instance_type: "m3.medium",
         aws_source_ami: SOURCE_UBUNTU_PV_IMAGE_NAME,
         aws_target_ami: targetImageName,
+        aws_spot_price: "auto",
+        aws_spot_price_auto_product: "Linux/UNIX (Amazon VPC)",
         repository: DEBIAN_REPOSITORY,
         package_type: DEB_PACKAGE_TYPE.util.packageType,
         packages: PACKAGES_NAME,
@@ -617,6 +639,8 @@ class AWSBakeHandlerSpec extends Specification implements TestDefaults {
         aws_instance_type: "t2.micro",
         aws_source_ami: SOURCE_TRUSTY_HVM_IMAGE_NAME,
         aws_target_ami: targetImageName,
+        aws_spot_price: "auto",
+        aws_spot_price_auto_product: "Linux/UNIX (Amazon VPC)",
         repository: DEBIAN_REPOSITORY,
         package_type: DEB_PACKAGE_TYPE.util.packageType,
         packages: PACKAGES_NAME,
@@ -663,6 +687,8 @@ class AWSBakeHandlerSpec extends Specification implements TestDefaults {
         aws_instance_type: "t2.micro",
         aws_source_ami: SOURCE_TRUSTY_HVM_IMAGE_NAME,
         aws_target_ami: targetImageName,
+        aws_spot_price: "auto",
+        aws_spot_price_auto_product: "Linux/UNIX (Amazon VPC)",
         repository: DEBIAN_REPOSITORY,
         package_type: DEB_PACKAGE_TYPE.util.packageType,
         packages: fullyQualifiedPackageName,
@@ -707,6 +733,8 @@ class AWSBakeHandlerSpec extends Specification implements TestDefaults {
         aws_instance_type: "t2.micro",
         aws_source_ami: SOURCE_UBUNTU_HVM_IMAGE_NAME,
         aws_target_ami: targetImageName,
+        aws_spot_price: "auto",
+        aws_spot_price_auto_product: "Linux/UNIX (Amazon VPC)",
         repository: DEBIAN_REPOSITORY,
         package_type: DEB_PACKAGE_TYPE.util.packageType,
         packages: PACKAGES_NAME,
@@ -748,6 +776,8 @@ class AWSBakeHandlerSpec extends Specification implements TestDefaults {
       aws_instance_type: "t2.micro",
       aws_source_ami: SOURCE_WINDOWS_2012_R2_HVM_IMAGE_NAME,
       aws_target_ami: targetImageName,
+      aws_spot_price: "auto",
+      aws_spot_price_auto_product: "Windows (Amazon VPC)",
       repository: CHOCOLATEY_REPOSITORY,
       package_type: NUPKG_PACKAGE_TYPE.util.packageType,
       packages: NUPKG_PACKAGES_NAME,
@@ -967,6 +997,8 @@ class AWSBakeHandlerSpec extends Specification implements TestDefaults {
         aws_instance_type: "t2.micro",
         aws_source_ami: SOURCE_TRUSTY_HVM_IMAGE_NAME,
         aws_target_ami: targetImageName,
+        aws_spot_price: "auto",
+        aws_spot_price_auto_product: "Linux/UNIX (Amazon VPC)",
         package_type: DEB_PACKAGE_TYPE.util.packageType,
         repository: DEBIAN_REPOSITORY,
         packages: fullyQualifiedPackageName,
@@ -1021,6 +1053,8 @@ class AWSBakeHandlerSpec extends Specification implements TestDefaults {
         aws_instance_type: "t2.micro",
         aws_source_ami: SOURCE_TRUSTY_HVM_IMAGE_NAME,
         aws_target_ami: targetImageName,
+        aws_spot_price: "auto",
+        aws_spot_price_auto_product: "Linux/UNIX (Amazon VPC)",
         package_type: DEB_PACKAGE_TYPE.util.packageType,
         repository: DEBIAN_REPOSITORY,
         packages: fullyQualifiedPackageName,

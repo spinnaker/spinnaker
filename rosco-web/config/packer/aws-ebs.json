@@ -11,6 +11,8 @@
     "aws_target_ami": null,
     "aws_associate_public_ip_address": "true",
     "aws_ena_support": "false",
+    "aws_spot_price": 0,
+    "aws_spot_price_auto_product": "",
     "appversion": "",
     "build_host": "",
     "repository": "",
@@ -33,6 +35,8 @@
     "ami_name": "{{user `aws_target_ami`}}",
     "associate_public_ip_address": "{{user `aws_associate_public_ip_address`}}",
     "ena_support": "{{user `aws_ena_support`}}",
+    "spot_price": "{{user `aws_spot_price`}}",
+    "spot_price_auto_product": "{{user `aws_spot_price_auto_product`}}",
     "tags": {
       "appversion": "{{user `appversion`}}",
       "build_host": "{{user `build_host`}}",

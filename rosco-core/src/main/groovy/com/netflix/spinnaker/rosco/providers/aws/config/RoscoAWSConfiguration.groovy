@@ -73,11 +73,12 @@ class RoscoAWSConfiguration {
     String sourceAmi
     String sshUserName
     String winRmUserName
+    String spotPrice
+    String spotPriceAutoProduct
   }
 
   @PostConstruct
   void init() {
     cloudProviderBakeHandlerRegistry.register(BakeRequest.CloudProviderType.aws, awsBakeHandler)
   }
-
 }

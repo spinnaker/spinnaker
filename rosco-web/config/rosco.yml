@@ -56,6 +56,21 @@ aws:
     baseImages:
     # AMIs sourced from: https://cloud-images.ubuntu.com/locator/ec2/
     # Images should be considered placeholders.
+
+    # Packer Spot Pricing #
+    #   spotPrice specifies the maximum hourly price to pay for a spot instance to create the AMI.
+    #     This can be set to 'auto' to automatically discover the best spot price.
+    #     Set to "0" to use an on demand instance (default).
+    #   spotPriceAutoProduct is required if spotPrice is set to 'auto'.
+    #     This specifies what sort of AMI you're launching to find the best spot price.
+    #     This must be one of:
+    #        Linux/UNIX
+    #        Linux/UNIX (Amazon VPC)
+    #        SUSE Linux
+    #        SUSE Linux (Amazon VPC)
+    #        Windows
+    #        Windows (Amazon VPC)
+
     - baseImage:
         id: ubuntu
         shortDescription: v12.04
@@ -70,32 +85,44 @@ aws:
         instanceType: t2.micro
         sourceAmi: ami-d4aed0bc
         sshUserName: ubuntu
+        spotPrice: auto
+        spotPriceAutoProduct: Linux/UNIX (Amazon VPC)
       - region: us-west-1
         virtualizationType: hvm
         instanceType: t2.micro
         sourceAmi: ami-4f285a2f
         sshUserName: ubuntu
+        spotPrice: auto
+        spotPriceAutoProduct: Linux/UNIX (Amazon VPC)
       - region: us-west-2
         virtualizationType: hvm
         instanceType: t2.micro
         sourceAmi: ami-59396769
         sshUserName: ubuntu
+        spotPrice: auto
+        spotPriceAutoProduct: Linux/UNIX (Amazon VPC)
       - region: us-east-1
         virtualizationType: pv
         instanceType: m3.medium
         sourceAmi: ami-8007b2e8
         sshUserName: ubuntu
+        spotPrice: auto
+        spotPriceAutoProduct: Linux/UNIX (Amazon VPC)
       - region: us-west-1
         virtualizationType: pv
         instanceType: m3.medium
         sourceAmi: ami-3a12605a
         sshUserName: ubuntu
+        spotPrice: auto
+        spotPriceAutoProduct: Linux/UNIX (Amazon VPC)
 #      No exact equivalent available in us-west-2
 #      - region: us-west-2
 #        virtualizationType: pv
 #        instanceType: m3.medium
 #        sourceAmi:
 #        sshUserName: ubuntu
+#        spotPrice: auto
+#        spotPriceAutoProduct: Linux/UNIX (Amazon VPC)
     - baseImage:
         id: trusty
         shortDescription: v14.04
@@ -109,46 +136,64 @@ aws:
         instanceType: t2.micro
         sourceAmi: ami-9d751ee7
         sshUserName: ubuntu
+        spotPrice: auto
+        spotPriceAutoProduct: Linux/UNIX (Amazon VPC)
       - region: us-east-2
         virtualizationType: hvm
         instanceType: t2.micro
         sourceAmi: ami-7960481c
         sshUserName: ubuntu
+        spotPrice: auto
+        spotPriceAutoProduct: Linux/UNIX (Amazon VPC)
       - region: us-west-1
         virtualizationType: hvm
         instanceType: t2.micro
         sourceAmi: ami-494c4829
         sshUserName: ubuntu
+        spotPrice: auto
+        spotPriceAutoProduct: Linux/UNIX (Amazon VPC)
       - region: us-west-2
         virtualizationType: hvm
         instanceType: t2.micro
         sourceAmi: ami-e8cc6a90
         sshUserName: ubuntu
+        spotPrice: auto
+        spotPriceAutoProduct: Linux/UNIX (Amazon VPC)
       - region: eu-central-1
         virtualizationType: hvm
         instanceType: t2.micro
         sourceAmi: ami-aa30b8c5
         sshUserName: ubuntu
+        spotPrice: auto
+        spotPriceAutoProduct: Linux/UNIX (Amazon VPC)
       - region: eu-west-1
         virtualizationType: hvm
         instanceType: t2.micro
         sourceAmi: ami-fcb43185
         sshUserName: ubuntu
+        spotPrice: auto
+        spotPriceAutoProduct: Linux/UNIX (Amazon VPC)
       - region: us-east-1
         virtualizationType: pv
         instanceType: m3.medium
         sourceAmi: ami-a1701bdb
         sshUserName: ubuntu
+        spotPrice: auto
+        spotPriceAutoProduct: Linux/UNIX (Amazon VPC)
       - region: us-west-1
         virtualizationType: pv
         instanceType: m3.medium
         sourceAmi: ami-b84347d8
         sshUserName: ubuntu
+        spotPrice: auto
+        spotPriceAutoProduct: Linux/UNIX (Amazon VPC)
       - region: us-west-2
         virtualizationType: pv
         instanceType: m3.medium
         sourceAmi: ami-61cf6919
         sshUserName: ubuntu
+        spotPrice: auto
+        spotPriceAutoProduct: Linux/UNIX (Amazon VPC)
     - baseImage:
         id: windows-2012-r2
         shortDescription: 2012 R2
@@ -162,6 +207,8 @@ aws:
         instanceType: t2.micro
         sourceAmi: ami-21414f36
         winRmUserName: Administrator
+        spotPrice: auto
+        spotPriceAutoProduct: Windows (Amazon VPC)
 
 
 azure:
