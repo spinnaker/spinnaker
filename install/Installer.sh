@@ -9,6 +9,7 @@ REPOSITORY_URL="https://dl.bintray.com/spinnaker-releases/debians"
 SPINNAKER_REPOSITORY_URL="https://dl.bintray.com/spinnaker-releases/debians"
 SPINNAKER_DOCKER_REGISTRY="gcr.io/spinnaker-marketplace"
 SPINNAKER_GCE_PROJECT="marketplace-spinnaker-release"
+CONFIG_BUCKET="halconfig" 
 
 VERSION=""
 HALYARD_STARTUP_TIMEOUT_SECONDS=120
@@ -133,6 +134,11 @@ function process_args() {
       --spinnaker-gce-project)
         echo "spinnaker-gce-project"
         SPINNAKER_GCE_PROJECT="$1"
+        shift
+        ;;
+      --config-bucket)
+        echo "config-bucket"
+        CONFIG_BUCKET="$1"
         shift
         ;;
       --user)
@@ -317,6 +323,9 @@ spinnaker:
     debianRepository: $SPINNAKER_REPOSITORY_URL
     dockerRegistry: $SPINNAKER_DOCKER_REGISTRY
     googleImageProject: $SPINNAKER_GCE_PROJECT
+  config:
+    input:
+      bucket: $CONFIG_BUCKET
 EOL
 
   echo $HAL_USER > /opt/spinnaker/config/halyard-user
