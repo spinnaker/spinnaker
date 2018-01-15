@@ -261,7 +261,7 @@ class CloudDriverConfig {
   }
 
   @Bean
-  NamerRegistry namerRegistry(List<NamingStrategy> namingStrategies) {
-    new NamerRegistry(namingStrategies)
+  NamerRegistry namerRegistry(Optional<List<NamingStrategy>> namingStrategies) {
+    new NamerRegistry(namingStrategies.orElse([]))
   }
 }
