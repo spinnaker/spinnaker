@@ -1,0 +1,10 @@
+apply from: "$rootDir/gradle/kotlin.gradle"
+
+repositories {
+  jcenter()
+}
+
+dependencies {
+  compile project(":clouddriver-aws")
+  compile project(":clouddriver-elasticsearch")
+}
