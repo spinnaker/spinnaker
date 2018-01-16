@@ -9,6 +9,7 @@ import { Api } from '../api/api.service';
 import { ApplicationModelBuilder } from '../application/applicationModel.builder';
 import { ApplicationReader } from '../application/service/application.read.service';
 import { AuthenticationService } from '../authentication/authentication.service';
+import { CacheInitializerService } from 'core/cache';
 import { CancelModalService } from '../cancelModal/cancelModal.service';
 import { CloudProviderRegistry } from '../cloudProvider/cloudProvider.registry';
 import { ClusterFilterModel } from 'core/cluster/filter/clusterFilter.model';
@@ -23,6 +24,7 @@ import { ExecutionService } from '../pipeline/service/execution.service';
 import { ExecutionsTransformerService } from '../pipeline/service/executions.transformer.service';
 import { HelpContentsRegistry, IHelpContents } from 'core/help';
 import { InfrastructureSearchService } from '../search/infrastructure/infrastructureSearch.service';
+import { InfrastructureSearchServiceV2 } from 'core/search/infrastructure/infrastructureSearchV2.service';
 import { InsightFilterStateModel } from '../insight/insightFilterState.model';
 import { LoadBalancerFilterModel } from '../loadBalancer/filter/loadBalancerFilter.model';
 import { LoadBalancerFilterService } from '../loadBalancer/filter/loadBalancer.filter.service';
@@ -30,6 +32,7 @@ import { ManualJudgmentService } from '../pipeline/config/stages/manualJudgment/
 import { NamingService } from '../naming/naming.service';
 import { NotifierService } from '../widgets/notifier/notifier.service';
 import { OverrideRegistry } from '../overrideRegistry/override.registry';
+import { PageTitleService } from 'core/pageTitle';
 import { PagerDutyReader } from '../pagerDuty/pagerDuty.read.service';
 import { PagerDutyWriter } from '../pagerDuty/pagerDuty.write.service';
 import { PipelineConfigProvider } from '../pipeline/config/pipelineConfigProvider';
@@ -47,9 +50,9 @@ import { TaskReader } from '../task/task.read.service';
 import { UrlBuilderService } from 'core/navigation/urlBuilder.service';
 import { VariableInputService } from '../pipeline/config/templates/inputs/variableInput.service';
 import { VariableValidatorService } from '../pipeline/config/templates/validators/variableValidator.service';
+import { VersionSelectionService } from '../cloudProvider/versionSelection/versionSelection.service';
 import { ViewStateCacheService } from '../cache/viewStateCache.service';
 import { WaypointService } from '../utils/waypoints/waypoint.service';
-import { VersionSelectionService } from '../cloudProvider/versionSelection/versionSelection.service';
 
 export abstract class ReactInject {
   protected $injector: IInjectorService;
@@ -70,6 +73,7 @@ export class CoreReactInject extends ReactInject {
   }
 
   // Services
+  public get $q() { return this.$injector.get('$q') as IQService; }
   public get $rootScope() { return this.$injector.get('$rootScope') as IScope; }
   public get $stateParams() { return this.$injector.get('$stateParams') as StateParams; }
   public get $uiRouter() { return this.$injector.get('$uiRouter') as UIRouter; }
@@ -78,6 +82,7 @@ export class CoreReactInject extends ReactInject {
   public get applicationModelBuilder() { return this.$injector.get('applicationModelBuilder') as ApplicationModelBuilder; }
   public get applicationReader() { return this.$injector.get('applicationReader') as ApplicationReader; }
   public get authenticationService() { return this.$injector.get('authenticationService') as AuthenticationService; }
+  public get cacheInitializer() { return this.$injector.get('cacheInitializer') as CacheInitializerService; }
   public get cancelModalService() { return this.$injector.get('cancelModalService') as CancelModalService; }
   public get cloudProviderRegistry() { return this.$injector.get('cloudProviderRegistry') as CloudProviderRegistry; }
   public get clusterFilterModel() { return this.$injector.get('clusterFilterModel') as ClusterFilterModel; }
@@ -93,6 +98,7 @@ export class CoreReactInject extends ReactInject {
   public get helpContents() { return this.$injector.get('helpContents') as IHelpContents }
   public get helpContentsRegistry() { return this.$injector.get('helpContentsRegistry') as HelpContentsRegistry; }
   public get infrastructureSearchService() { return this.$injector.get('infrastructureSearchService') as InfrastructureSearchService; }
+  public get infrastructureSearchServiceV2() { return this.$injector.get('infrastructureSearchServiceV2') as InfrastructureSearchServiceV2; }
   public get insightFilterStateModel() { return this.$injector.get('insightFilterStateModel') as InsightFilterStateModel; }
   public get loadBalancerFilterModel() { return this.$injector.get('loadBalancerFilterModel') as LoadBalancerFilterModel; }
   public get loadBalancerFilterService() { return this.$injector.get('loadBalancerFilterService') as LoadBalancerFilterService; }
@@ -104,6 +110,7 @@ export class CoreReactInject extends ReactInject {
   public get overrideRegistry() { return this.$injector.get('overrideRegistry') as OverrideRegistry; }
   public get pagerDutyReader() { return this.$injector.get('pagerDutyReader') as PagerDutyReader; }
   public get pagerDutyWriter() { return this.$injector.get('pagerDutyWriter') as PagerDutyWriter; }
+  public get pageTitleService() { return this.$injector.get('pageTitleService') as PageTitleService; }
   public get pipelineConfig() { return this.$injector.get('pipelineConfig') as PipelineConfigProvider; }
   public get pipelineConfigService() { return this.$injector.get('pipelineConfigService') as PipelineConfigService; }
   public get pipelineConfigValidator() { return this.$injector.get('pipelineConfigValidator') as PipelineConfigValidator; }

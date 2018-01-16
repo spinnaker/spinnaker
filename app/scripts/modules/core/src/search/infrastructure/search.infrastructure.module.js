@@ -3,7 +3,7 @@ import { module } from 'angular';
 import { PROJECT_SUMMARY_POD_COMPONENT } from './projectSummaryPod.component';
 import { RECENTLY_VIEWED_ITEMS_COMPONENT } from './recentlyViewedItems.component';
 import { SEARCH_COMPONENT } from '../widgets/search.component';
-import { SEARCH_INFRASTRUCTURE_V2_CONTROLLER } from './infrastructureV2.controller';
+import { SEARCH_INFRASTRUCTURE_V2_CONTROLLER } from './infrastructureSearchV2.component';
 import { SEARCH_RESULTS_COMPONENT } from '../searchResult/searchResults.component';
 import { SEARCH_RESULT_COMPONENT } from './searchResult.component';
 import { SEARCH_RESULT_PODS_COMPONENT } from './searchResultPods.component';

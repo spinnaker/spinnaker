@@ -10,25 +10,25 @@ describe('<Search/>', () => {
   SearchFilterTypeRegistry.register({ key: 'region', name: 'Region' });
   let component: ReactWrapper<ISearchProps, any>;
 
-  function getNewSearch(query: string, handleChange: () => void): ReactWrapper<ISearchProps, any> {
-    return mount(<Search query={query} onChange={handleChange} />);
+  function getNewSearch(params: object, handleChange: () => void): ReactWrapper<ISearchProps, any> {
+    return mount(<Search params={params} onChange={handleChange} />);
   }
 
   function noop(): void {}
 
   it('should display a search component with no tags', () => {
-    component = getNewSearch('', noop);
+    component = getNewSearch({}, noop);
     expect(component.find('div.tag').length).toBe(0);
   });
 
   it('should display a search component with existing tags', () => {
-    const query = 'name=test&region=us-west-1&account=prod';
-    component = getNewSearch(query, noop);
+    const params = { name: 'test', region: 'us-west-1', account: 'prod' };
+    component = getNewSearch(params, noop);
     expect(component.find('div.tag').length).toBe(3);
   });
 
   it('should have focus when rendered and removed when blurred', () => {
-    component = getNewSearch('', noop);
+    component = getNewSearch({}, noop);
     expect(component.find('div.search__input').hasClass('search__input--focus')).toBeTruthy();
     expect(component.find('div.search__input').hasClass('search__input--blur')).toBeFalsy();
 
@@ -44,8 +44,8 @@ describe('<Search/>', () => {
       changeCalled = true;
     }
 
-    const query = 'name=test&region=us-west-1&account=prod';
-    component = getNewSearch(query, handleChange);
+    const params = { name: 'test', region: 'us-west-1', account: 'prod' };
+    component = getNewSearch(params, handleChange);
     component.find('i.fa-times').simulate('click');
     expect(component.find('div.tag').length).toBe(0);
     expect(changeCalled).toBeTruthy();

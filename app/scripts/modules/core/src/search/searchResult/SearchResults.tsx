@@ -17,15 +17,6 @@ export interface ISearchResultData {
   results: any[];
 }
 
-export interface ISearchResults {
-  category: string;
-  icon: string;
-  iconClass: string;
-  id: string;
-  order: number;
-  results: any[];
-}
-
 export interface ISearchResultsProps {
   searchStatus: SearchStatus;
   searchResultTypes: ISearchResultType[];

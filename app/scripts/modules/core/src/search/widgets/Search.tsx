@@ -12,7 +12,6 @@ import './search.less';
 import { Filter } from 'core';
 
 export interface ISearchProps {
-  query: string;
   params: { [key: string]: any };
   onChange: (tags: ITag[]) => void;
 }
