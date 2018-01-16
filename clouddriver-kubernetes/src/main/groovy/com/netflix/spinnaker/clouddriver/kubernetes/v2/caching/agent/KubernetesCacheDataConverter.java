@@ -94,7 +94,7 @@ public class KubernetesCacheDataConverter {
 
     Map<String, Object> attributes = new ImmutableMap.Builder<String, Object>()
         .put("artifact", artifact)
-        .put("creationTimestamp", manifest.getCreationTimestamp())
+        .put("creationTimestamp", Optional.ofNullable(manifest.getCreationTimestamp()).orElse(""))
         .build();
 
     Map<String, Collection<String>> cacheRelationships = new HashMap<>();
