@@ -5,7 +5,6 @@ import { BindAll } from 'lodash-decorators';
 import { Key } from 'core/widgets/Keys';
 import { ITag } from 'core/widgets/tags/Tag';
 import { TagList } from 'core/widgets/tags/TagList';
-import { IQueryParams, UrlParser } from 'core/navigation/urlParser';
 import { Filters, IFiltersLayout } from './Filters';
 import { IFilterType, SearchFilterTypeRegistry } from './SearchFilterTypeRegistry';
 
@@ -14,6 +13,7 @@ import { Filter } from 'core';
 
 export interface ISearchProps {
   query: string;
+  params: { [key: string]: any };
   onChange: (tags: ITag[]) => void;
 }
 
@@ -27,9 +27,8 @@ export interface ISearchState {
 
 @BindAll()
 export class Search extends React.Component<ISearchProps, ISearchState> {
-
   private filterTypes: IFilterType[] = [];
-  private modifiers: Set<string>;
+  private keys: Set<string>;
 
   private tagElements: HTMLElement[] = [];
   private inputElement: HTMLInputElement;
@@ -37,7 +36,6 @@ export class Search extends React.Component<ISearchProps, ISearchState> {
   private mouseDownFired = false;
 
   constructor(props: ISearchProps) {
-
     super(props);
 
     const layouts: IFiltersLayout[] = [];
@@ -46,64 +44,62 @@ export class Search extends React.Component<ISearchProps, ISearchState> {
       filterTypes: [SearchFilterTypeRegistry.KEYWORD_FILTER]
     });
 
-    const types: IFilterType[] = this.reorderFilterTypesForSearch(SearchFilterTypeRegistry.getValues());
-    this.filterTypes.push(...types);
+    this.filterTypes = this.reorderFilterTypesForSearch(SearchFilterTypeRegistry.getValues());
     layouts.push({
       header: 'FILTER ON',
-      filterTypes: types.filter((type: IFilterType) => type.modifier !== SearchFilterTypeRegistry.KEYWORD_FILTER.modifier)
+      filterTypes: this.filterTypes.filter(type => type.key !== SearchFilterTypeRegistry.KEYWORD_FILTER.key)
     });
 
-    this.modifiers = new Set<string>(SearchFilterTypeRegistry.getValues().map((type: IFilterType) => type.modifier));
+    this.keys = new Set<string>(SearchFilterTypeRegistry.getValues().map((type: IFilterType) => type.key));
     this.state = {
       activeFilter: SearchFilterTypeRegistry.KEYWORD_FILTER,
       isFocused: true,
       isOpen: false,
       layouts,
-      tags: this.buildTagsFromQuery(props.query)
+      tags: this.buildTagsFromParams(props.params, [])
     };
+  }
+
+  public componentWillReceiveProps(props: ISearchProps) {
+    const tags = this.buildTagsFromParams(props.params, this.state.tags);
+    this.setState({ tags });
   }
 
   // TODO:  ANG to clean this up by adding sort weights to filters to control order so this hackery isn't needed
   private reorderFilterTypesForSearch(filterTypes: IFilterType[]): IFilterType[] {
     const mods: Set<string> =
-      new Set<string>([SearchFilterTypeRegistry.KEYWORD_FILTER.modifier, SearchFilterTypeRegistry.NAME_FILTER.modifier]);
-    const result: IFilterType[] = filterTypes.filter((type: IFilterType) => !mods.has(type.modifier));
+      new Set<string>([SearchFilterTypeRegistry.KEYWORD_FILTER.key, SearchFilterTypeRegistry.NAME_FILTER.key]);
+    const result: IFilterType[] = filterTypes.filter((type: IFilterType) => !mods.has(type.key));
     result.unshift(SearchFilterTypeRegistry.NAME_FILTER);
     result.unshift(SearchFilterTypeRegistry.KEYWORD_FILTER);
 
     return result;
   }
 
-  private buildTagsFromQuery(query: string): ITag[] {
+  // Merge param changes with existing tags, maintaining the current order (new tags should go at the end)
+  private buildTagsFromParams(params: { [key: string]: any }, currentTags: ITag[]): ITag[] {
+    const tagsToKeep: ITag[] = currentTags.filter(tag => params[tag.key])
+      .map(tag => ({ key: tag.key, text: params[tag.key] }));
 
-    // key in query string corresponds to IFilterType.key
-    const queryParams: IQueryParams = UrlParser.parseQueryString(query);
-    const result: ITag[] = [];
-    Object.keys(queryParams).forEach((key: string) => {
-      const filterType: IFilterType = SearchFilterTypeRegistry.getFilterType(key);
-      if (filterType) {
-        result.push({
-          modifier: filterType.modifier,
-          text: queryParams[key] as string
-        });
-      }
-    });
+    const tagsToAdd: ITag[] = Object.keys(params)
+      .filter(key => !!params[key] && !tagsToKeep.some(tag => tag.key === key))
+      .map(key => ({ key, text: params[key] }));
 
-    return result;
+    return tagsToKeep.concat(tagsToAdd);
   }
 
   private isTagAlreadyPresent(tag: ITag): boolean {
-    return this.state.tags.some((t: ITag) => t.modifier === tag.modifier && t.text === tag.text);
+    return this.state.tags.some((t: ITag) => t.key === tag.key && t.text === tag.text);
   }
 
   private isLongEnoughIfKeyword(tag: ITag): boolean {
-    return (tag.modifier !== SearchFilterTypeRegistry.KEYWORD_FILTER.modifier) ||
-      ((tag.modifier === SearchFilterTypeRegistry.KEYWORD_FILTER.modifier) && (tag.text.length > 2))
+    return (tag.key !== SearchFilterTypeRegistry.KEYWORD_FILTER.key) ||
+      ((tag.key === SearchFilterTypeRegistry.KEYWORD_FILTER.key) && (tag.text.length > 2))
   }
 
   private hasModifier(input: string): boolean {
     const index = input.indexOf(':');
-    return this.modifiers.has(input.substring(0, index).toLocaleLowerCase()) && (index !== input.length);
+    return this.keys.has(input.substring(0, index).toLocaleLowerCase()) && (index !== input.length);
   }
 
   private getModifier(input: string): string {
@@ -123,9 +119,9 @@ export class Search extends React.Component<ISearchProps, ISearchState> {
     if (!value || !text) {
       return null;
     }
-    const modifier = this.hasModifier(value) ? this.getModifier(value) : filter.modifier;
+    const key = this.hasModifier(value) ? this.getModifier(value) : filter.key;
 
-    return { modifier, text };
+    return { key, text };
   }
 
   private getActiveFilterIndex(): number {
@@ -137,11 +133,11 @@ export class Search extends React.Component<ISearchProps, ISearchState> {
     let result: string;
     const text = this.inputElement.value.trim();
     if (this.hasModifier(text)) {
-      const modifier = this.getModifier(text);
-      const regex = new RegExp(modifier, 'i');
-      result = `${text.replace(regex, filterType.modifier)}`;
+      const key = this.getModifier(text);
+      const regex = new RegExp(key, 'i');
+      result = `${text.replace(regex, filterType.key)}`;
     } else {
-      result = `${filterType.modifier}:${text}`;
+      result = `${filterType.key}:${text}`;
     }
 
     return result;
@@ -165,13 +161,12 @@ export class Search extends React.Component<ISearchProps, ISearchState> {
   }
 
   private handleChange(): void {
-
     let newState: Partial<ISearchState>;
     const value = this.inputElement.value.trim();
     if (this.hasModifier(value)) {
-      const modifier = this.getModifier(value);
+      const key = this.getModifier(value);
       newState = {
-        activeFilter: this.filterTypes.find((type: IFilterType) => type.modifier === modifier),
+        activeFilter: this.filterTypes.find((type: IFilterType) => type.key === key),
         isOpen: true
       };
     } else {
@@ -182,7 +177,6 @@ export class Search extends React.Component<ISearchProps, ISearchState> {
   }
 
   private handleDelete(tag: ITag, focus: boolean): void {
-
     const tags = this.state.tags.filter((t: ITag) => tag !== t);
     this.setState({
       isFocused: true,
@@ -237,7 +231,6 @@ export class Search extends React.Component<ISearchProps, ISearchState> {
   }
 
   private handleKeyUpFromInput(event: React.KeyboardEvent<HTMLInputElement>): void {
-
     const length = this.tagElements.length;
     switch (event.key) {
       case Key.LEFT_ARROW:
@@ -307,7 +300,6 @@ export class Search extends React.Component<ISearchProps, ISearchState> {
   }
 
   public render(): React.ReactElement<Search> {
-
     const { activeFilter, isFocused, isOpen, layouts, tags } = this.state;
     const className = classNames({
       'search__input': true,

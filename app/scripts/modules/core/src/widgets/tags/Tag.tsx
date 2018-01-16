@@ -8,7 +8,7 @@ export enum DeleteType {
 }
 
 export interface ITag {
-  modifier: string;
+  key: string;
   text: string;
 }
 
@@ -66,7 +66,7 @@ export class Tag extends React.Component<ITagProps> {
 
   public render(): React.ReactElement<Tag> {
 
-    const { modifier, text } = this.props.tag;
+    const { key, text } = this.props.tag;
     return (
       <div
         ref={this.refCallback}
@@ -76,7 +76,7 @@ export class Tag extends React.Component<ITagProps> {
         onKeyUp={this.handleKeyUp}
         tabIndex={-1}
       >
-        <div className="tag__category">{modifier.toLocaleUpperCase()}</div>
+        <div className="tag__category">{key.toLocaleUpperCase()}</div>
         <div className="tag__label">{text}</div>
         <div className="tag__remove">
           <i className="fa fa-times-circle" onClick={this.handleRemoveClick}/>

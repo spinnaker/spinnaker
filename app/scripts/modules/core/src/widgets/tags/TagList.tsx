@@ -110,7 +110,7 @@ export class TagList extends React.Component<ITagListProps> {
   private generateTagElement(tag: ITag): JSX.Element {
     return (
       <Tag
-        key={[tag.modifier, tag.text].join('|')}
+        key={[tag.key, tag.text].join('|')}
         tag={tag}
         onBlur={this.handleBlur}
         onCreate={this.handleCreate}

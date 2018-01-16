@@ -1,21 +1,17 @@
 export interface IFilterType {
   key: string;
-  modifier: string;
-  text: string;
+  name: string;
 }
 
 export class FilterTypeRegistry {
-
   public KEYWORD_FILTER: IFilterType = Object.freeze({
     key: 'key',
-    modifier: 'key',
-    text: 'Keyword'
+    name: 'Keyword'
   });
 
   public NAME_FILTER: IFilterType = Object.freeze({
     key: 'name',
-    modifier: 'name',
-    text: 'Name'
+    name: 'Name'
   });
 
   private registry: Map<string, IFilterType> = new Map<string, IFilterType>();
@@ -26,18 +22,15 @@ export class FilterTypeRegistry {
   }
 
   public register(filterType: IFilterType): void {
-    const { key, modifier, text } = filterType;
-    this.registry.set(filterType.key, {
-      key, text, modifier: modifier.toLocaleLowerCase()
-    });
+    this.registry.set(filterType.key, filterType);
   }
 
   public getFilterType(key: string): IFilterType {
     return this.registry.get(key);
   }
 
-  public getFilterByModifier(modifier: string): IFilterType {
-    return [...this.registry.values()].find((type: IFilterType) => modifier === type.modifier);
+  public getFilterByModifier(key: string): IFilterType {
+    return [...this.registry.values()].find((type: IFilterType) => key === type.key);
   }
 
   public getRegisteredFilterKeys(): string[] {
@@ -46,7 +39,7 @@ export class FilterTypeRegistry {
 
   public getValues(): IFilterType[] {
     const filterTypes = Array.from(this.registry.values());
-    filterTypes.sort((a: IFilterType, b: IFilterType) => a.text.localeCompare(b.text));
+    filterTypes.sort((a: IFilterType, b: IFilterType) => a.name.localeCompare(b.name));
 
     return filterTypes;
   }

@@ -6,8 +6,8 @@ import { ISearchProps, Search } from './Search';
 
 describe('<Search/>', () => {
 
-  SearchFilterTypeRegistry.register({ key: 'account', modifier: 'acct', text: 'Account' });
-  SearchFilterTypeRegistry.register({ key: 'region', modifier: 'reg', text: 'Region' });
+  SearchFilterTypeRegistry.register({ key: 'account', name: 'Account' });
+  SearchFilterTypeRegistry.register({ key: 'region', name: 'Region' });
   let component: ReactWrapper<ISearchProps, any>;
 
   function getNewSearch(query: string, handleChange: () => void): ReactWrapper<ISearchProps, any> {

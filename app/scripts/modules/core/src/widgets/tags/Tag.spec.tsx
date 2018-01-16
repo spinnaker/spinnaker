@@ -10,7 +10,7 @@ describe('<Tag/>', () => {
 
   function getNewTag(): ITag {
     return {
-      modifier: 'key',
+      key: 'key',
       text: 'some_text'
     };
   }
@@ -30,7 +30,7 @@ describe('<Tag/>', () => {
     const tag = getNewTag();
     component = getNewTagComponent(tag, undefined, undefined);
 
-    expect(component.find('div.tag__category').text()).toBe(tag.modifier.toLocaleUpperCase());
+    expect(component.find('div.tag__category').text()).toBe(tag.key.toLocaleUpperCase());
     expect(component.find('div.tag__label').text()).toBe(tag.text);
   });
 
@@ -45,7 +45,7 @@ describe('<Tag/>', () => {
       it('should call the keyUp handler with the left arrow key', (done: Function) => {
 
         function handleKeyUp(t: ITag, key: Key): void {
-          expect(t.modifier).toBe(tag.modifier);
+          expect(t.key).toBe(tag.key);
           expect(t.text).toBe(tag.text);
           expect(key).toBe(Key.LEFT_ARROW);
           done();
@@ -57,7 +57,7 @@ describe('<Tag/>', () => {
       it('should call the keyUp handler with the right arrow key', (done: Function) => {
 
        function handleKeyUp(t: ITag, key: Key): void {
-          expect(t.modifier).toBe(tag.modifier);
+          expect(t.key).toBe(tag.key);
           expect(t.text).toBe(tag.text);
           expect(key).toBe(Key.RIGHT_ARROW);
           done();
@@ -71,7 +71,7 @@ describe('<Tag/>', () => {
       it('should call the delete handler with the deletion type of backspace when the backspace key is pressed', (done: Function) => {
 
         function handleDelete(t: ITag, deleteType: DeleteType) {
-          expect(t.modifier).toBe(tag.modifier);
+          expect(t.key).toBe(tag.key);
           expect(t.text).toBe(tag.text);
           expect(deleteType).toBe(DeleteType.BACKSPACE);
           done();
@@ -83,7 +83,7 @@ describe('<Tag/>', () => {
       it('should call the delete handler with the deletion type of backspace when the delete key is pressed', (done: Function) => {
 
         function handleDelete(t: ITag, deleteType: DeleteType) {
-          expect(t.modifier).toBe(tag.modifier);
+          expect(t.key).toBe(tag.key);
           expect(t.text).toBe(tag.text);
           expect(deleteType).toBe(DeleteType.BACKSPACE);
           done();

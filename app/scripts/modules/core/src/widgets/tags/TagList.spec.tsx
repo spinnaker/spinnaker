@@ -10,7 +10,7 @@ describe('<TagList/>', () => {
 
   function getNewTag(seed: number): ITag {
     return {
-      modifier: 'key',
+      key: 'key',
       text: `some_text${seed}`
     };
   }

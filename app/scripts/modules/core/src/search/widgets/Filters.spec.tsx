@@ -5,14 +5,12 @@ import { IFilterType } from './SearchFilterTypeRegistry';
 import { IFiltersLayout, IFiltersProps, Filters } from './Filters';
 
 describe('<Filters/>', () => {
-
   let component: ReactWrapper<IFiltersProps, any>;
 
   function getNewFilterType(seed: number): IFilterType {
     return {
-      key: 'region',
-      modifier: 'reg',
-      text: `us-west-${seed}`
+      key: `filter-type-${seed}`,
+      name: `Filter Type ${seed}`
     };
   }
 

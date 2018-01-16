@@ -37,10 +37,10 @@ export class Filters extends React.Component<IFiltersProps> {
     this.filters.push(filter);
   }
 
-  private handleClick(key: string): void {
+  private handleClick(str: string): void {
     const clickedFilter = this.filters.find((filter: Filter) => {
-      const { text, modifier  } = filter.props.filterType;
-      return key === [text, modifier].join('|');
+      const { name, key } = filter.props.filterType;
+      return str === [name, key].join('|');
     });
     this.props.filterClicked(clickedFilter);
   }
@@ -60,13 +60,13 @@ export class Filters extends React.Component<IFiltersProps> {
 
   private generateFilterElement(filterType: IFilterType): JSX.Element {
 
-    const { text, modifier } = filterType;
+    const { name, key } = filterType;
     return (
       <Filter
-        key={[text, modifier].join('|')}
+        key={[name, key].join('|')}
         ref={this.refCallback}
         filterType={filterType}
-        isActive={this.props.activeFilter.modifier === modifier}
+        isActive={this.props.activeFilter.key === key}
         onClick={this.handleClick}
         onKeyUp={this.handleKeyUp}
         onMouseDown={this.handleMouseDown}

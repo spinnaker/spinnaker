@@ -11,8 +11,7 @@ describe('<Filter/>', () => {
   function getNewFilterType(): IFilterType {
     return {
       key: 'region',
-      modifier: 'reg',
-      text: 'us-west-1'
+      name: 'Region'
     };
   }
 
@@ -30,8 +29,8 @@ describe('<Filter/>', () => {
     component = getNewTagComponent(filterType, true);
 
     expect(component.hasClass('filter')).toBeTruthy();
-    expect(component.find('div.filter__text').text()).toBe(filterType.text);
-    expect(component.find('div.filter__modifier').text()).toBe(`[${filterType.modifier.toLocaleUpperCase()}:]`);
+    expect(component.find('div.filter__text').text()).toBe(filterType.name);
+    expect(component.find('div.filter__modifier').text()).toBe(`[${filterType.key.toLocaleUpperCase()}:]`);
   });
 
   it('should set the tab focus class when active', () => {

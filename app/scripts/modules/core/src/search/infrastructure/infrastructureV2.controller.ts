@@ -28,6 +28,7 @@ import { searchResultTypeRegistry } from 'core/search';
 
 export interface IViewState {
   status: SearchStatus;
+  params: { [key: string]: any };
 }
 
 export interface IMenuStatus {
@@ -43,6 +44,8 @@ export interface IMenuItem {
 export interface ISearchResultSetMap {
   [key: string]: ISearchResultSet;
 }
+
+const API_PARAMS = ['key', 'name', 'account', 'region', 'stack'];
 
 @BindAll()
 export class InfrastructureV2Ctrl implements IController {
@@ -72,7 +75,8 @@ export class InfrastructureV2Ctrl implements IController {
     this.$scope.projects = [];
 
     this.viewState = {
-      status: SearchStatus.INITIAL
+      status: SearchStatus.INITIAL,
+      params: {},
     };
 
     $uiRouter.globals.params$
@@ -127,20 +131,29 @@ export class InfrastructureV2Ctrl implements IController {
   }
 
   @DebugTiming()
-  private loadNewQuery(params: IQueryParams) {
-    params = Object.assign({}, params);
+  private loadNewQuery(stateParams: IQueryParams) {
+    const paramValIsValid = (val: any) =>
+      val !== null && val !== undefined && !(typeof val === 'string' && val.trim() === '');
+
+    const params: IQueryParams = Object.keys(stateParams)
+      .filter(key => API_PARAMS.includes(key))
+      .filter(key => paramValIsValid(stateParams[key]))
+      .reduce((acc, key) => ({ ...acc, [key]: stateParams[key] }), {});
+
     this.hasSearchQuery = !isEmpty(params);
     if (!this.hasSearchQuery) {
       this.$scope.$applyAsync(() => {
-        this.viewState.status = SearchStatus.INITIAL;
+        this.viewState = { params, status: SearchStatus.INITIAL };
         this.$scope.categories = [];
         this.$scope.projects = [];
       });
       return;
     }
 
-    this.viewState.status = SearchStatus.SEARCHING;
-    this.infrastructureSearchServiceV2.search(params).then((results: ISearchResultSet[]) => {
+    this.viewState = { params, status: SearchStatus.SEARCHING };
+
+    const paramsCopy = Object.assign({}, params);
+    this.infrastructureSearchServiceV2.search(paramsCopy).then((results: ISearchResultSet[]) => {
 
       // for any registered post search result searcher, take its registered type mapping,
       // retrieve that data from the search results from the search API above, and pass to the
@@ -164,9 +177,9 @@ export class InfrastructureV2Ctrl implements IController {
           results.filter((category: ISearchResultSet) => category.type.id === 'projects' && category.results.length);
 
         if (this.$scope.categories.length || this.$scope.projects.length) {
-          this.viewState.status = SearchStatus.FINISHED;
+          this.viewState = { ...this.viewState, status: SearchStatus.FINISHED };
         } else {
-          this.viewState.status = SearchStatus.NO_RESULTS;
+          this.viewState = { ...this.viewState, status: SearchStatus.NO_RESULTS };
         }
       });
     });
@@ -204,9 +217,8 @@ export class InfrastructureV2Ctrl implements IController {
     this.$state.go('home.applications.application.insight.clusters', { application: app.name });
   }
 
-  @DebugTiming()
   public handleFilterChange(filters: IFilterType[]) {
-    const newParams = filters.reduce((params, filter) => ({ ...params, [filter.modifier]:  filter.text }), {});
+    const newParams = filters.reduce((params, filter) => ({ ...params, [filter.key]:  filter.text }), {});
     this.$state.go('.', newParams, { location: 'replace' });
   }
 }

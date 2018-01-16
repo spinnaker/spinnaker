@@ -14,7 +14,6 @@ export interface IFilterProps {
 
 @BindAll()
 export class Filter extends React.Component<IFilterProps> {
-
   public static defaultProps: Partial<IFilterProps> = {
     onClick: () => {},
     onKeyUp: () => {},
@@ -23,8 +22,8 @@ export class Filter extends React.Component<IFilterProps> {
 
   private handleClick(): void {
     const { filterType, onClick } = this.props;
-    const { text, modifier } = filterType;
-    onClick([text, modifier].join('|'));
+    const { name, key } = filterType;
+    onClick([name, key].join('|'));
   }
 
   private handleKeyUp(event: React.KeyboardEvent<HTMLElement>): void {
@@ -36,7 +35,6 @@ export class Filter extends React.Component<IFilterProps> {
   }
 
   public render(): React.ReactElement<Filter> {
-
     const { isActive } = this.props;
     const className = classNames({
       'filter': true,
@@ -44,7 +42,7 @@ export class Filter extends React.Component<IFilterProps> {
       'filter--blur': !isActive
     });
 
-    const { modifier, text } = this.props.filterType;
+    const { key, name } = this.props.filterType;
     return (
       <div
         role="option"
@@ -53,8 +51,8 @@ export class Filter extends React.Component<IFilterProps> {
         onKeyUp={this.handleKeyUp}
         onMouseDown={this.handleMouseDown}
       >
-        <div className="filter__text">{text}</div>
-        <div className="filter__modifier">[{modifier.toLocaleUpperCase()}:]</div>
+        <div className="filter__text">{name}</div>
+        <div className="filter__modifier">[{key.toLocaleUpperCase()}:]</div>
       </div>
     );
   }
