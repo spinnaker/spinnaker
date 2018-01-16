@@ -48,9 +48,9 @@ const isConfigNameValid: IConfigValidator = state => {
 };
 
 const isGroupWeightsSumValid: IConfigValidator = state => {
-  const groupWeightsSumIsValid =
-    Object.values(state.selectedConfig.group.groupWeights)
-      .reduce((sum, weight) => sum + weight, 0) === 100;
+  const weights = Object.values(state.selectedConfig.group.groupWeights);
+  const sumOfWeights = weights.reduce((sum, weight) => sum + weight, 0);
+  const groupWeightsSumIsValid = weights.length === 0 || sumOfWeights === 100;
 
   return groupWeightsSumIsValid
     ? null
