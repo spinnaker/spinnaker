@@ -21,14 +21,12 @@ import com.google.common.primitives.Ints;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesCacheDataConverter;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.model.HealthState;
 import com.netflix.spinnaker.clouddriver.model.Instance;
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerServerGroup;
 import com.netflix.spinnaker.clouddriver.model.ServerGroup;
 import com.netflix.spinnaker.clouddriver.model.ServerGroupSummary;
-import io.kubernetes.client.models.V1beta1ReplicaSet;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
@@ -82,11 +80,19 @@ public class KubernetesV2ServerGroup extends ManifestBasedModel implements Serve
     this.instances = new HashSet<>(instances);
     this.loadBalancers = loadBalancers;
 
+    Object odesired = ((Map<String, Object>) manifest
+        .getOrDefault("spec", new HashMap<String, Object>()))
+        .getOrDefault("replicas", 0);
+    Integer desired = 0;
+
+    if (odesired instanceof Number) {
+      desired = ((Number) odesired).intValue();
+    } else {
+      log.warn("Unable to cast replica count from unexpected type: {}", odesired.getClass());
+    }
+
     this.capacity = Capacity.builder()
-        .desired((Integer)
-            ((Map<String, Object>) manifest.getOrDefault("spec", new HashMap<String, Object>()))
-                .getOrDefault("replicas", 0)
-        )
+        .desired(desired)
         .build();
   }
 
