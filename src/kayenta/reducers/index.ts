@@ -98,15 +98,15 @@ const isInSyncWithServerReducer = (state: ICanaryState): ICanaryState => {
   }
 };
 
-const resolveSelectedMetric = (state: ICanaryState, action: Action & any): string => {
+const resolveSelectedMetricId = (state: ICanaryState, action: Action & any): string => {
   switch (action.type) {
     case Actions.SELECT_REPORT_METRIC:
-      return action.payload.metric;
+      return action.payload.metricId;
 
     // On report load, pick the first metric.
     case Actions.LOAD_RUN_SUCCESS:
       return metricResultsSelector(state).length
-        ? metricResultsSelector(state)[0].name
+        ? metricResultsSelector(state)[0].id
         : null;
 
     // On group select, pick the first metric in the group.
@@ -125,7 +125,7 @@ const resolveSelectedMetric = (state: ICanaryState, action: Action & any): strin
       }
 
       return results.find(filter)
-        ? results.find(filter).name
+        ? results.find(filter).id
         : null;
 
     default:
@@ -140,23 +140,21 @@ const selectedMetricReducer = (state: ICanaryState, action: Action & any) => {
     return state;
   }
 
-  const metric = resolveSelectedMetric(state, action);
-  if (!metric) {
+  const id = resolveSelectedMetricId(state, action);
+  if (!id) {
     return state;
   }
 
-  const results = metricResultsSelector(state).find(result => result.name === metric);
-
   // Load metric set pair.
   action.asyncDispatch(Creators.loadMetricSetPairRequest({
-    pairId: results.id,
+    pairId: id,
   }));
 
   return {
     ...state,
     selectedRun: {
       ...state.selectedRun,
-      selectedMetric: metric,
+      selectedMetric: id,
       metricSetPair: {
         ...state.selectedRun.metricSetPair,
         load: AsyncRequestState.Requesting,

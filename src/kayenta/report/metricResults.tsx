@@ -20,9 +20,9 @@ const MetricResults = ({ metricResults, selectedMetricResult }: IMetricResultsSt
   return (
     <ListDetail
       list={list}
-      listWidth={4}
+      listWidth={5}
       detail={detail}
-      detailWidth={8}
+      detailWidth={9}
     />
   );
 };
@@ -46,7 +46,7 @@ const mapStateToProps = (state: ICanaryState): IMetricResultsStateProps => {
 
   return {
     metricResults: Object.values(result.results).filter(filter),
-    selectedMetricResult: Object.values(result.results).find(r => r.name === selectedMetric),
+    selectedMetricResult: Object.values(result.results).find(r => r.id === selectedMetric),
   };
 };
 
