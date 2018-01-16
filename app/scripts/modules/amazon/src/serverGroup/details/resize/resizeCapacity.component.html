@@ -48,7 +48,6 @@
                                  min="{{$ctrl.command.min}}"
                                  max="{{$ctrl.command.max}}"/></div>
   </div>
-
 </div>
 <div ng-if="!$ctrl.command.advancedMode">
   <div class="form-group">
@@ -83,6 +82,22 @@
                required
                style="width: 60px"/>
         instances
+    </div>
+  </div>
+</div>
+<div class="row" ng-if="$ctrl.command.min == $ctrl.command.max && $ctrl.serverGroup.scalingPolicies.length > 0">
+  <div class="col-md-7 col-md-offset-3">
+    <div class="well-compact alert alert-warning">
+      <b>Warning</b>: this server group has
+      <span ng-if="$ctrl.serverGroup.scalingPolicies.length == 1">a scaling policy.</span>
+      <span ng-if="$ctrl.serverGroup.scalingPolicies.length > 1">scaling policies.</span>
+      <span ng-if="!$ctrl.command.advancedMode">
+        Scaling policies will not take effect in Simple Mode.
+        Switch to <a href ng-click="$ctrl.command.advancedMode = true">Advanced Mode</a>.
+      </span>
+      <span ng-if="$ctrl.command.advancedMode">
+        Scaling policies will not take effect when <b>Min</b> is the same as <b>Max</b>.
+      </span>
     </div>
   </div>
 </div>

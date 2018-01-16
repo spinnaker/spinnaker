@@ -3,7 +3,8 @@ import { IComponentOptions, module } from 'angular';
 const resizeCapacityComponent: IComponentOptions = {
   bindings: {
     command: '=',
-    currentSize: '='
+    currentSize: '=',
+    serverGroup: '='
   },
   templateUrl: require('./resizeCapacity.component.html'),
   controller: () => {}
