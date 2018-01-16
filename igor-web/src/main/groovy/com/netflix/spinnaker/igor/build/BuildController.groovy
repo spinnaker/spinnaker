@@ -264,6 +264,7 @@ class BuildController {
                 if (artifact) {
                     return artifact.relativePath
                 }
+                log.info("Could not find artifact {} for job {} on build #{}", fileName, job, buildNumber)
                 throw new ArtifactNotFoundException()
             }, 5, 2000, false)
         } catch (ArtifactNotFoundException ignored) {
