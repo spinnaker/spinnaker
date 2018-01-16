@@ -152,7 +152,7 @@ class SecurityGroupIntentProcessor
         desiredState = it.second,
         modelClass = SecurityGroup::class,
         specClass = SecurityGroupSpec::class,
-        ignoreKeys = setOf("type", "id", "moniker", "summary")
+        ignoreKeys = setOf("type", "id", "moniker", "summary", "description")
       )
     }.toSet()
     changeSummary.diff = diff
