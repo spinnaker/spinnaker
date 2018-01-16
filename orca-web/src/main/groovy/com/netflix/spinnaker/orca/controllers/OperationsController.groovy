@@ -222,7 +222,8 @@ class OperationsController {
         type: it.type,
         waitForCompletion: it.waitForCompletion,
         preconfiguredProperties: it.preconfiguredProperties,
-        noUserConfigurableFields: it.noUserConfigurableFields()
+        noUserConfigurableFields: it.noUserConfigurableFields(),
+        parameters: it.parameters,
       ]
     }
   }

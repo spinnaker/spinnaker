@@ -26,7 +26,7 @@ import org.springframework.http.HttpMethod
 class PreconfiguredWebhookProperties {
 
   public static List<String> ALL_FIELDS = PreconfiguredWebhook.declaredFields.findAll {
-    !it.synthetic && !['props', 'enabled', 'label', 'description', 'type'].contains(it.name)
+    !it.synthetic && !['props', 'enabled', 'label', 'description', 'type', 'parameters', 'parameterValues'].contains(it.name)
   }.collect { it.name }
 
   List<PreconfiguredWebhook> preconfigured = []
@@ -37,10 +37,12 @@ class PreconfiguredWebhookProperties {
     String label
     String description
     String type
+    List<WebhookParameter> parameters
 
     // Stage configuration fields (all optional):
     String url
     Map<String, List<String>> customHeaders
+    Map<String, String> parameterValues
     HttpMethod method
     String payload
     Boolean waitForCompletion
@@ -51,6 +53,7 @@ class PreconfiguredWebhookProperties {
     String successStatuses
     String canceledStatuses
     String terminalStatuses
+
 
     List<String> getPreconfiguredProperties() {
       return ALL_FIELDS.findAll { this[it] != null }
@@ -64,6 +67,18 @@ class PreconfiguredWebhookProperties {
       } else {
         return ["url", "customHeaders", "method", "payload"].every { this[it] != null }
       }
+    }
+  }
+
+  static class WebhookParameter {
+    String name
+    String label
+    String defaultValue
+    String description
+    ParameterType type = ParameterType.string
+
+    static enum ParameterType {
+      string
     }
   }
 

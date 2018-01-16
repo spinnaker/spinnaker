@@ -56,7 +56,8 @@ class PreconfiguredWebhookStageSpec extends Specification {
       progressJsonPath: "e",
       successStatuses: "f",
       canceledStatuses: "g",
-      terminalStatuses: "h"
+      terminalStatuses: "h",
+      parameterValues: null
     ]
   }
 
@@ -74,7 +75,8 @@ class PreconfiguredWebhookStageSpec extends Specification {
       progressJsonPath: "e",
       successStatuses: "f",
       canceledStatuses: "g",
-      terminalStatuses: "h"
+      terminalStatuses: "h",
+      parameterValues: null
     ])
 
     when:
@@ -94,7 +96,8 @@ class PreconfiguredWebhookStageSpec extends Specification {
       progressJsonPath: "e",
       successStatuses: "f",
       canceledStatuses: "g",
-      terminalStatuses: "h"
+      terminalStatuses: "h",
+      parameterValues: null
     ]
   }
 

@@ -32,7 +32,7 @@ class PreconfiguredWebhookStage extends WebhookStage {
   private WebhookService webhookService
 
   def fields = PreconfiguredWebhook.declaredFields.findAll {
-    !it.synthetic && !['props', 'enabled', 'label', 'description', 'type'].contains(it.name)
+    !it.synthetic && !['props', 'enabled', 'label', 'description', 'type', 'parameters'].contains(it.name)
   }.collect { it.name }
 
   @Override
