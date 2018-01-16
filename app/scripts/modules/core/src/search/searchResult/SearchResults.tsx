@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { BindAll } from 'lodash-decorators';
 
+import { ISearchResultSet } from '../infrastructure/infrastructureSearch.service';
 import { ISearchResultType } from './searchResultsType.registry';
 import { SearchResultGrid } from './SearchResultGrid';
 import { SearchResultTabs } from './SearchResultTabs';
@@ -28,8 +29,8 @@ export interface ISearchResults {
 export interface ISearchResultsProps {
   searchStatus: SearchStatus;
   searchResultTypes: ISearchResultType[];
-  searchResultCategories: ISearchResults[];
-  searchResultProjects: ISearchResults[];
+  searchResultCategories: ISearchResultSet[];
+  searchResultProjects: ISearchResultSet[];
 }
 
 export interface ISearchResultsState {
@@ -39,7 +40,6 @@ export interface ISearchResultsState {
 
 @BindAll()
 export class SearchResults extends React.Component<ISearchResultsProps, ISearchResultsState> {
-
   constructor(props: ISearchResultsProps) {
     super(props);
     this.state = { active: null, searchResultData: this.buildSearchResultData(props) };
@@ -61,13 +61,13 @@ export class SearchResults extends React.Component<ISearchResultsProps, ISearchR
     const searchResults = [...searchResultProjects, ...searchResultCategories];
 
     return searchResultTypes.map(type => {
-      const resultForGroup: ISearchResults = searchResults.find(result => (result.id || result.category) === type.id);
+      const resultForGroup: ISearchResultSet = searchResults.find(result => result.type === type);
       const results = (resultForGroup ? resultForGroup.results : []);
       return { type, results };
     });
   }
 
-  public render(): React.ReactElement<SearchResults> {
+  public render() {
     const { searchStatus } = this.props;
     const { active, searchResultData } = this.state;
     const activeGroup = active && searchResultData.find(group => group.type === active);

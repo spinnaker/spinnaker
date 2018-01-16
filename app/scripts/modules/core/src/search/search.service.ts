@@ -21,10 +21,10 @@ export interface ISearchResults<T extends ISearchResult> {
 }
 
 export interface ISearchResult {
-  type: string;
-  provider: string;
   displayName?: string;
   href?: string;
+  provider: string;
+  type: string;
 }
 
 export const getFallbackResults = (): ISearchResults<ISearchResult> => {

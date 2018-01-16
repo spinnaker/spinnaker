@@ -13,30 +13,25 @@ import { IClusterSearchResult } from './clusterSearchResultType';
 import { IPostSearchResultSearcher } from 'core/search/searchResult/PostSearchResultSearcherRegistry';
 
 export class ClusterPostSearchResultSearcher implements IPostSearchResultSearcher<IServerGroupSearchResult> {
-
+  private TYPE_ID = 'clusters';
   constructor(private $q: IQService, private $state: StateService) {}
 
+  private makeSearchResult(serverGroup: IServerGroupSearchResult): IClusterSearchResult {
+    const type = this.TYPE_ID;
+    const urlBuilder = urlBuilderRegistry.getBuilder(type);
+    const href = urlBuilder.build(Object.assign({ type }, serverGroup), this.$state);
+
+    const { account, application, cluster, provider, stack } = serverGroup;
+    return { account, application, cluster, provider, stack, displayName: cluster, href, type };
+  }
+
   public getPostSearchResults(inputs: IServerGroupSearchResult[] = []): IPromise<ISearchResultSet[]> {
-    const type = 'clusters';
+    const type: ISearchResultType = searchResultTypeRegistry.get(this.TYPE_ID);
 
-    // create clusters based on the server group search results
-    const serverGroups = inputs.map((serverGroup: IServerGroupSearchResult) => {
-      const { account, application, cluster, provider, stack } = serverGroup;
-      const urlBuilder = urlBuilderRegistry.getBuilder(type);
-      const href = urlBuilder.build(Object.assign({ type }, serverGroup), this.$state);
+    // create cluster search results based on the server group search results
+    const clusters = inputs.map(input => this.makeSearchResult(input));
+    const results: IClusterSearchResult[] = uniqBy(clusters, sg => `${sg.account}-${sg.cluster}`);
 
-      return { account, application, cluster, displayName: cluster, href, provider, stack, type };
-    });
-
-    const clusters: IClusterSearchResult[] = uniqBy(serverGroups, sg => `${sg.account}-${sg.cluster}`);
-    const formatter: ISearchResultType = searchResultTypeRegistry.get(type);
-
-    return this.$q.when([{
-      id: type,
-      category: type,
-      iconClass: formatter.iconClass,
-      order: formatter.order,
-      results: clusters
-    }]);
+    return this.$q.when([{ type, results }]);
   }
 }

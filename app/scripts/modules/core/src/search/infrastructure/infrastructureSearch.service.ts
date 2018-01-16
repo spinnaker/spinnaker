@@ -8,10 +8,7 @@ import { IResultDisplayFormatter, ISearchResultType, searchResultTypeRegistry, }
 import { externalSearchRegistry } from '../externalSearch.registry';
 
 export interface ISearchResultSet {
-  id: string,
-  category: string,
-  iconClass: string,
-  order: number,
+  type: ISearchResultType;
   results: ISearchResult[]
 }
 
@@ -49,20 +46,16 @@ export class InfrastructureSearcher {
           categories[entry.type].push(entry);
           return categories;
         }, {});
-        this.deferred.resolve(Object.keys(categorizedSearchResults)
+
+        const searchResults: ISearchResultSet[] = Object.keys(categorizedSearchResults)
           .filter(c => searchResultTypeRegistry.get(c))
           .map(category => {
-            const config = searchResultTypeRegistry.get(category);
-            return {
-              id: category,
-              category: config.displayName,
-              iconClass: config.iconClass,
-              order: config.order,
-              hideIfEmpty: config.hideIfEmpty,
-              results: categorizedSearchResults[category]
-            };
-          })
-        );
+            const type = searchResultTypeRegistry.get(category);
+            const results = categorizedSearchResults[category];
+            return { type, results };
+          });
+
+        this.deferred.resolve(searchResults);
       });
   }
 

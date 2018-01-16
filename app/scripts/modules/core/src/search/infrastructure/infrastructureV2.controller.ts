@@ -1,13 +1,15 @@
 import { BindAll } from 'lodash-decorators';
 import { flatten, keyBy, isEmpty } from 'lodash';
-import { module, IController, ILocationService, IQService, IScope, IPromise } from 'angular';
+import { module, IController, IQService, IScope, IPromise } from 'angular';
 import { StateService } from '@uirouter/core';
 import { IModalService } from 'angular-ui-bootstrap';
+import { Subject } from 'rxjs';
 
 import { Application } from 'core/application';
 import { IProject } from 'core/domain';
-import { IQueryParams, UrlParser } from 'core/navigation';
-import { SearchFilterTypeRegistry, IFilterType } from '../widgets/SearchFilterTypeRegistry';
+import { IQueryParams } from 'core/navigation';
+import { UIRouter } from '../../../../../../../node_modules/@uirouter/core/lib';
+import { IFilterType } from '../widgets/SearchFilterTypeRegistry';
 import { CACHE_INITIALIZER_SERVICE, CacheInitializerService } from 'core/cache/cacheInitializer.service';
 import { OVERRIDE_REGISTRY, OverrideRegistry } from 'core/overrideRegistry/override.registry';
 import { RECENT_HISTORY_SERVICE } from 'core/history/recentHistory.service';
@@ -21,7 +23,8 @@ import {
   ITypeMapping,
   PostSearchResultSearcherRegistry
 } from 'core/search/searchResult/PostSearchResultSearcherRegistry';
-import { searchResultTypeRegistry } from 'core';
+import { DebugTiming } from 'core/utils';
+import { searchResultTypeRegistry } from 'core/search';
 
 export interface IViewState {
   status: SearchStatus;
@@ -48,12 +51,17 @@ export class InfrastructureV2Ctrl implements IController {
   public query: string;
   public menuActions: IMenuItem[];
   public hasSearchQuery: boolean;
+  public destroy$ = new Subject();
 
-  constructor(private $location: ILocationService,
-              private $q: IQService,
+  public $onDestroy() {
+    this.destroy$.next();
+  }
+
+  constructor(private $q: IQService,
               private $scope: IScope,
               private $state: StateService,
               private $uibModal: IModalService,
+              $uiRouter: UIRouter,
               private infrastructureSearchServiceV2: InfrastructureSearchServiceV2,
               private cacheInitializer: CacheInitializerService,
               private overrideRegistry: OverrideRegistry,
@@ -67,14 +75,12 @@ export class InfrastructureV2Ctrl implements IController {
       status: SearchStatus.INITIAL
     };
 
-    // just set the page title - don't try to get fancy w/ the search terms
-    pageTitleService.handleRoutingSuccess({ pageTitleMain: { field: undefined, label: 'Infrastructure' } });
+    $uiRouter.globals.params$
+      .takeUntil(this.destroy$)
+      .subscribe(params => this.loadNewQuery(params));
 
-    this.query = UrlParser.parseLocationHash(window.location.hash);
-    if (this.query.length) {
-      const params = UrlParser.parseQueryString(this.query);
-      this.loadNewQuery(params);
-    }
+    // just set the page title - don't try to get fancy w/ the search terms
+    pageTitleService.handleRoutingSuccess({ pageTitleMain: { field: undefined, label: 'Search' } });
 
     const refreshMenuItem: IMenuItem = {
       displayName: 'Refresh all caches',
@@ -106,7 +112,7 @@ export class InfrastructureV2Ctrl implements IController {
   private hydrateResults(results: ISearchResultSet[]): void {
     const resultMap: { [key: string]: ISearchResult[] } =
       results.reduce((categoryMap: { [key: string]: ISearchResult[] }, result: ISearchResultSet) => {
-      categoryMap[result.id] = result.results;
+      categoryMap[result.type.id] = result.results;
       return categoryMap;
     }, {});
 
@@ -120,7 +126,9 @@ export class InfrastructureV2Ctrl implements IController {
     });
   }
 
+  @DebugTiming()
   private loadNewQuery(params: IQueryParams) {
+    params = Object.assign({}, params);
     this.hasSearchQuery = !isEmpty(params);
     if (!this.hasSearchQuery) {
       this.$scope.$applyAsync(() => {
@@ -137,7 +145,7 @@ export class InfrastructureV2Ctrl implements IController {
       // for any registered post search result searcher, take its registered type mapping,
       // retrieve that data from the search results from the search API above, and pass to the
       // appropriate post search result searcher.
-      const searchResultMap: ISearchResultSetMap = keyBy(results, 'id');
+      const searchResultMap: ISearchResultSetMap = keyBy(results, 'type.id');
       const promises: IPromise<ISearchResultSet[]>[] = [];
       PostSearchResultSearcherRegistry.getRegisteredTypes().forEach((mapping: ITypeMapping) => {
         if (!searchResultMap[mapping.sourceType] && !isEmpty(searchResultMap[mapping.targetType]['results'])) {
@@ -148,12 +156,12 @@ export class InfrastructureV2Ctrl implements IController {
       this.$q.all(promises).then((postSearchResults: ISearchResultSet[][]) => {
         results = results.concat(flatten(postSearchResults));
         const categories: ISearchResultSet[] =
-          results.filter((category: ISearchResultSet) => category.category !== 'Projects' && category.results.length);
+          results.filter((category: ISearchResultSet) => category.type.id !== 'projects' && category.results.length);
         this.hydrateResults(categories);
         this.$scope.categories = categories;
 
         this.$scope.projects =
-          results.filter((category: ISearchResultSet) => category.category === 'Projects' && category.results.length);
+          results.filter((category: ISearchResultSet) => category.type.id === 'projects' && category.results.length);
 
         if (this.$scope.categories.length || this.$scope.projects.length) {
           this.viewState.status = SearchStatus.FINISHED;
@@ -196,12 +204,10 @@ export class InfrastructureV2Ctrl implements IController {
     this.$state.go('home.applications.application.insight.clusters', { application: app.name });
   }
 
+  @DebugTiming()
   public handleFilterChange(filters: IFilterType[]) {
-    const params: IQueryParams = {};
-    filters.slice(0).reverse().forEach(filter => params[SearchFilterTypeRegistry.getFilterByModifier(filter.modifier).key] = filter.text);
-    this.$location.search(params);
-    this.$location.replace();
-    this.loadNewQuery(params);
+    const newParams = filters.reduce((params, filter) => ({ ...params, [filter.modifier]:  filter.text }), {});
+    this.$state.go('.', newParams, { location: 'replace' });
   }
 }
 

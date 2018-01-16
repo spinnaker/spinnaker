@@ -93,12 +93,12 @@ export class AccountCell extends React.Component<ICellRendererProps> {
     const { AccountTag } = NgReact;
     const { item, col } = this.props;
 
-    const value = item[col.key];
+    const value: string | string[] = item[col.key];
     if (!value) {
       return <div className={colClass(col.key)}>-</div>;
     }
 
-    const accounts = value.split(',').sort();
+    const accounts = (Array.isArray(value) ? value : value.split(',')).sort();
     return (
       <div className={colClass(col.key)}>
         {accounts.map((account: string) => (
