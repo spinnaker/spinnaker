@@ -313,7 +313,7 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
       task.updateStatus BASE_PHASE, "Unable to create load balancing client in target account/region"
       return
     }
-    targetGroups.targetGroupARNs.each { targetGroupARN ->
+    targetGroups?.targetGroupARNs.each { targetGroupARN ->
       loadBalancerClient.addLoadBalancer(jobUri, targetGroupARN)
       task.updateStatus BASE_PHASE, "Attached ${targetGroupARN} to ${jobUri}"
     }
