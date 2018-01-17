@@ -26,21 +26,24 @@ export interface IApplicationComponentState {
 export class ApplicationComponent extends React.Component<IApplicationComponentProps, IApplicationComponentState> {
   private activeStateRefreshUnsubscribe: () => void;
   private activeStateChangeSubscription: Subscription;
+  private stopListeningToAppRefresh: Function;
 
   constructor(props: IApplicationComponentProps) {
     super(props);
+    const { app } = props;
     this.state = this.parseState(props);
     if (props.app.notFound) {
       ReactInjector.recentHistoryService.removeLastItem('applications');
       return;
     }
 
-    DebugWindow.application = props.app;
-    props.app.enableAutoRefresh();
-    this.activeStateChangeSubscription = props.app.activeStateChangeStream.subscribe(() => {
+    DebugWindow.application = app;
+    app.enableAutoRefresh();
+    this.activeStateChangeSubscription = app.activeStateChangeStream.subscribe(() => {
       this.resetActiveStateRefreshStream(this.props);
       this.setState(this.parseState(props));
-    })
+    });
+    this.stopListeningToAppRefresh = app.onRefresh(null, () => this.setState(this.parseState(props)));
   }
 
   private resetActiveStateRefreshStream(props: IApplicationComponentProps): void {
@@ -67,6 +70,9 @@ export class ApplicationComponent extends React.Component<IApplicationComponentP
     }
     if (this.activeStateChangeSubscription) {
       this.activeStateChangeSubscription.unsubscribe();
+    }
+    if (this.stopListeningToAppRefresh) {
+      this.stopListeningToAppRefresh();
     }
   }
 
