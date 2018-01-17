@@ -21,7 +21,7 @@ export interface ICustomHeader {
   value: string;
 }
 
-interface IWebhookParameter {
+export interface IWebhookParameter {
   name: string;
   label: string;
   description?: string;
