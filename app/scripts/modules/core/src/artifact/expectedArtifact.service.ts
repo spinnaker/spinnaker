@@ -39,9 +39,9 @@ export function summarizeExpectedArtifact() {
       .map((k: keyof IArtifact) => (`${k}: ${artifact[k]}`))
       .join(', ');
   }
-};
+}
 
-export const EXPECTED_ARTIFACT_SERVICE  = 'spinnaker.core.artifacts.expected.service';
+export const EXPECTED_ARTIFACT_SERVICE = 'spinnaker.core.artifacts.expected.service';
 module(EXPECTED_ARTIFACT_SERVICE , [])
   .filter('summarizeExpectedArtifact', summarizeExpectedArtifact)
   .service('expectedArtifactService', ExpectedArtifactService);
