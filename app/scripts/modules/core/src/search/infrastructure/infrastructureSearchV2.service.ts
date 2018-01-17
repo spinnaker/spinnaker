@@ -37,15 +37,8 @@ export class InfrastructureSearchServiceV2 {
   }
 
   public search(params: IQueryParams): IPromise<ISearchResultSet[]> {
-
-    let hasKeyword = false;
     if (isEmpty(params)) {
       return this.$q.when(InfrastructureSearchServiceV2.EMPTY_RESULT);
-    } else {
-      // the search API uses `q` as the query parameter argument for a keyword search so if
-      // a keyword search is being done, map it to `q` and remove the keyword param.
-      // also add the cloudprovider(s).
-      hasKeyword = this.patchParams(params);
     }
 
     // retrieve a list of all the types we should be searching and remove any we should not be
@@ -62,6 +55,16 @@ export class InfrastructureSearchServiceV2 {
         return !(requiredFields && !requiredFields.some((field: string) => paramKeys.has(field)));
       })
       .filter((category: string) => params[SearchFilterTypeRegistry.KEYWORD_FILTER.key] ? true : !postSearchResultKeys.has(category));
+
+    // the search API uses `q` as the query parameter argument for a keyword search so if
+    // a keyword search is being done, map it to `q` and remove the keyword param.
+    const KEYWORD_FILTER_KEY = SearchFilterTypeRegistry.KEYWORD_FILTER.key;
+    const keyword = params[KEYWORD_FILTER_KEY];
+    delete params[KEYWORD_FILTER_KEY];
+    params.q = keyword;
+
+    // add the cloudprovider(s).
+    params.cloudProvider = SETTINGS.defaultProviders[0];
 
     // perform searches by type separately for performance reasons
     const promises: IPromise<ISearchResults<ISearchResult>>[] = [];
@@ -82,7 +85,7 @@ export class InfrastructureSearchServiceV2 {
       }).map((result: ISearchResults<ISearchResult>) => this.buildSearchResultSet(result.query, result.query, result.results));
 
       // right now, only keyword searches are supported for external search registries
-      if (hasKeyword) {
+      if (keyword) {
         return externalSearchRegistry.search(get(params, 'q'))
           .then((externalResults: ISearchResult[]) => {
 
@@ -127,20 +130,6 @@ export class InfrastructureSearchServiceV2 {
         return searchResults;
       }
     });
-  }
-
-  private patchParams(params: IQueryParams): boolean {
-
-    let result = false;
-    const key: string = get(params, SearchFilterTypeRegistry.KEYWORD_FILTER.key);
-    if (key) {
-      params.q = key;
-      delete params[SearchFilterTypeRegistry.KEYWORD_FILTER.key];
-      result = true;
-    }
-    params.cloudProvider = SETTINGS.defaultProviders[0];
-
-    return result;
   }
 
   private buildSearchResultSet(id: string, type: string, results: ISearchResult[]): ISearchResultSet {
