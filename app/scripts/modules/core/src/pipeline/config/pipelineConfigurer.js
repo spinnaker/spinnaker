@@ -251,7 +251,9 @@ module.exports = angular.module('spinnaker.core.pipeline.config.pipelineConfigur
           currentConfig: () => $scope.viewState.isDirty ? JSON.parse(angular.toJson($scope.pipeline)) : null,
         }
       }).result.then(newConfig => {
+        $scope.renderablePipeline = newConfig;
         $scope.pipeline = newConfig;
+        $scope.$broadcast('pipeline-json-edited');
         this.savePipeline();
       }).catch(() => {});
     };

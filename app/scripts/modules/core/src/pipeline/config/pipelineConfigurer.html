@@ -97,7 +97,7 @@
 
     <div class="row main-footer fixed-footer">
       <div class="col-md-3">
-        <button is-visible="!pipeline.locked && viewState.isDirty" class="btn btn-default"
+        <button is-visible="!pipeline.locked && viewState.isDirty && !viewState.saving" class="btn btn-default"
                 analytics-on="click"
                 analytics-category="Pipeline Config"
                 analytics-event="Revert changes clicked"
