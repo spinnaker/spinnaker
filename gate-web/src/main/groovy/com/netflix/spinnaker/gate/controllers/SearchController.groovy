@@ -41,6 +41,11 @@ class SearchController {
                    @RequestParam(value = "page", defaultValue = "1", required = false) int page,
                    @RequestHeader(value = "X-RateLimit-App", required = false) String sourceApp,
                    HttpServletRequest httpServletRequest) {
+    if (query?.size() < 3) {
+      // keyword searches must have a minimum of 3 characters
+      return []
+    }
+
     def filters = httpServletRequest.getParameterNames().findAll { String parameterName ->
       !["q", "type", "platform", "pageSize", "page"].contains(parameterName)
     }.collectEntries { String parameterName ->
