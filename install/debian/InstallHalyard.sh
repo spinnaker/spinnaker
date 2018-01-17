@@ -4,8 +4,8 @@ set -e
 
 function check_migration_needed() {
   set -e
-  hash dpkg &> /dev/null
 
+  which dpkg &> /dev/null
   if [ "$?" = "0" ]; then
     dpkg -s spinnaker-halyard &> /dev/null
 
