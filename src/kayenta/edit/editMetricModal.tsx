@@ -22,6 +22,7 @@ interface IEditMetricModalDispatchProps {
   confirm: () => void;
   cancel: () => void;
   selectTemplate: (template: Select.Option) => void;
+  updateScopeName: (event: any) => void;
 }
 
 interface IEditMetricModalStateProps {
@@ -65,7 +66,7 @@ function FilterTemplateSelector({ metricStore, template, templates, select }: IF
 /*
  * Modal to edit metric details.
  */
-function EditMetricModal({ metric, rename, confirm, cancel, updateDirection, templates, selectTemplate, filterTemplate }: IEditMetricModalDispatchProps & IEditMetricModalStateProps) {
+function EditMetricModal({ metric, rename, confirm, cancel, updateDirection, templates, selectTemplate, filterTemplate, updateScopeName }: IEditMetricModalDispatchProps & IEditMetricModalStateProps) {
   if (!metric) {
     return null;
   }
@@ -97,12 +98,19 @@ function EditMetricModal({ metric, rename, confirm, cancel, updateDirection, tem
             template={filterTemplate}
             select={selectTemplate}
           />
+          <FormRow label="Scope Name">
+            <KayentaInput
+              type="text"
+              value={metric.scopeName}
+              onChange={updateScopeName}
+            />
+          </FormRow>
           <MetricConfigurerDelegator/>
         </Modal.Body>
         <Modal.Footer>
           <ul className="list-inline pull-right">
             <li><button className="passive" onClick={cancel}>Cancel</button></li>
-            <li><button className="primary" disabled={!metric.name} onClick={confirm}>OK</button></li>
+            <li><button className="primary" disabled={!metric.name || !metric.scopeName} onClick={confirm}>OK</button></li>
           </ul>
         </Modal.Footer>
       </Styleguide>
@@ -126,6 +134,8 @@ function mapDispatchToProps(dispatch: any): IEditMetricModalDispatchProps {
     },
     selectTemplate: (template: Select.Option) =>
       dispatch(Creators.selectTemplate({ name: template ? template.value as string : null })),
+    updateScopeName: (event: any) =>
+      dispatch(Creators.updateMetricScopeName({ scopeName: event.target.value }))
   };
 }
 

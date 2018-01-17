@@ -114,6 +114,9 @@ const editingMetric = handleActions({
   [Actions.SELECT_TEMPLATE]: (state: ICanaryMetricConfig, action: Action & any) => ({
     ...state, query: { ...state.query, customFilterTemplate: action.payload.name }
   }),
+  [Actions.UPDATE_METRIC_SCOPE_NAME]: (state: ICanaryMetricConfig, action: Action & any) => ({
+    ...state, scopeName: action.payload.scopeName,
+  }),
 }, null);
 
 const save = combineReducers<ISaveState>({
