@@ -161,7 +161,7 @@ const component: IComponentOptions = {
   controller: MetricSelectorController,
   template: `
       <div class="text-center" style="display: inline-block; width: 100px; margin-top: 7px" ng-if="!$ctrl.state.metricsLoaded">
-        <span class="fa fa-cog fa-spin"></span>
+        <loading-spinner size="'small'"></loading-spinner>
       </div>
       <div style="display: inline-block; width: 500px" ng-if="$ctrl.state.metricsLoaded">
         <select class="form-control input-sm"

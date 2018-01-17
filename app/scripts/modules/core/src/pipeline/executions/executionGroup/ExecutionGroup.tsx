@@ -13,6 +13,7 @@ import { NextRunTag } from 'core/pipeline/triggers/NextRunTag';
 import { Tooltip } from 'core/presentation/Tooltip';
 import { TriggersTag } from 'core/pipeline/triggers/TriggersTag';
 import { NgReact, ReactInjector } from 'core/reactShims';
+import { Spinner } from 'core/widgets/spinners/Spinner'
 
 import './executionGroup.less';
 
@@ -203,7 +204,7 @@ export class ExecutionGroup extends React.Component<IExecutionGroupProps, IExecu
                       <h4 style={{ visibility: pipelineDisabled ? 'hidden' : 'visible' }}>
                         <a className="btn btn-xs btn-link" onClick={this.handleTriggerClicked}>
                           { this.state.triggeringExecution ?
-                            <span><span className="fa fa-cog fa-spin"/> Starting Manual Execution&hellip;</span> :
+                            <span><Spinner size="nano" /> Starting Manual Execution&hellip;</span> :
                             <span><span className="glyphicon glyphicon-play"/> Start Manual Execution</span>
                           }
                         </a>

@@ -39,8 +39,8 @@
           <ui-select-choices repeat="job in jobs | filter: $select.search"><span ng-bind-html="job | highlight: $select.search"></span></ui-select-choices>
         </ui-select>
       </div>
-      <div class="text-center" ng-if="stage.master && !viewState.jobsLoaded">
-        <span class="fa fa-cog fa-spin"></span>
+      <div class="horizontal center" ng-if="stage.master && !viewState.jobsLoaded">
+        <loading-spinner size="'small'"></loading-spinner>
       </div>
     </div>
     <div class="col-md-1 text-center" ng-if="!viewState.masterIsParameterized && !viewState.jobIsParameterized">

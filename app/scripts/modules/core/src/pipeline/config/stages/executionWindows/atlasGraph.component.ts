@@ -316,8 +316,7 @@ class AtlasGraphComponent implements ng.IComponentOptions {
           <div class="no-data-overlay" ng-if="$ctrl.chartData.loading || $ctrl.chartData.noData">
             <h5 class="text-center">
               <span ng-if="$ctrl.chartData.loading">
-                <span class="fa fa-cog fa-spin"></span>
-                loading...
+                <loading-spinner size="'small'" message="'loading...'"></loading-spinner>
               </span>
             </h5>
           </div>

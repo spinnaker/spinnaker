@@ -19,9 +19,9 @@
     </div>
   </div>
   <div class="container">
-    <h2 ng-if="!projectsLoaded" class="text-center" style="margin-bottom: 250px">
-      <span class="fa fa-cog fa-spin"></span>
-    </h2>
+    <div ng-if="!projectsLoaded" class="horizontal center middle" style="margin-bottom: 250px; height: 100px;">
+      <loading-spinner size="'small'"></loading-spinner>
+    </div>
     <table ng-if="projectsLoaded" class="table table-hover">
       <thead>
         <tr>

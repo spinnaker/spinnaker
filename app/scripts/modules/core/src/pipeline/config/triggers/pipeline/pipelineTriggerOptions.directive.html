@@ -2,7 +2,7 @@
   <label class="col-md-4 sm-label-right">Execution</label>
   <div class="col-md-6" ng-if="vm.viewState.executionsLoading">
     <p class="form-control-static text-center" >
-      <span class="fa fa-cog fa-spin"></span>
+      <loading-spinner size="'small'"></loading-spinner>
     </p>
   </div>
   <div class="col-md-6" ng-if="vm.viewState.loadError">Error loading executions!</div>

@@ -20,7 +20,7 @@ module.exports = angular.module('spinnaker.amazon.serverGroup.configure.basicSet
     function searchImages(q) {
       $scope.command.backingData.filtered.images = [
         {
-          message: '<span class="fa fa-cog fa-spin"></span> Finding results matching "' + q + '"...'
+          message: `<loading-spinner size="'nano'"></loading-spinner> Finding results matching "${q}"...`
         }
       ];
       return Observable.fromPromise(

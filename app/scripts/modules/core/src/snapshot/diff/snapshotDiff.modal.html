@@ -4,7 +4,9 @@
     <h3>Application Snapshot History</h3>
   </div>
   <div class="modal-body" ng-if="ctrl.state.loading">
-    <h4 class="text-center"><span class="fa fa-cog fa-spin"></span></h4>
+    <div class="horizontal center">
+      <loading-spinner size="'small'"></loading-spinner>
+    </div>
   </div>
   <div class="modal-body flex-fill" ng-if="!ctrl.state.loading">
     <div class="form-inline modal-history-header">

@@ -12,8 +12,8 @@
           project="vm.project"
           cluster="cluster"
           ></project-cluster>
-      <div class="text-center" ng-if="!vm.state.clusters.loaded">
-        <span class="fa fa-cog fa-spin"></span>
+      <div class="horizontal center" ng-if="!vm.state.clusters.loaded">
+        <loading-spinner size="'small'"></loading-spinner>
       </div>
       <h4 ng-if="!vm.project.config.clusters.length">No clusters configured</h4>
       <h4 ng-if="vm.state.clusters.error">There was a problem loading the clusters for this project.</h4>
@@ -24,8 +24,8 @@
                              template-url="vm.executionRefreshTooltipTemplate"
                              refresh="vm.refreshExecutions()"></component-refresher>
       </h3>
-      <div class="text-center" ng-if="!vm.state.executions.loaded">
-        <span class="fa fa-cog fa-spin"></span>
+      <div class="horizontal center" ng-if="!vm.state.executions.loaded">
+        <loading-spinner size="'small'"></loading-spinner>
       </div>
       <project-pipeline
         ng-repeat="execution in vm.executions"

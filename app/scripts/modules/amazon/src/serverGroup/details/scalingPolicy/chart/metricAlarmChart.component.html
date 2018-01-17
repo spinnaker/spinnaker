@@ -2,8 +2,7 @@
   <h5 class="text-center">
     <span ng-if="$ctrl.chartData.noData">No data available</span>
     <span ng-if="$ctrl.chartData.loading">
-      <span class="fa fa-cog fa-spin"></span>
-      loading...
+      <loading-spinner size="small" message="loading..."></loading-spinner>
     </span>
   </h5>
 </div>

@@ -31,8 +31,8 @@
             ng-bind-html="job | highlight: $select.search"></span></ui-select-choices>
       </ui-select>
     </div>
-    <div class="text-center" ng-if="$ctrl.trigger.master && !$ctrl.viewState.jobsLoaded">
-      <span class="fa fa-cog fa-spin"></span>
+    <div class="horizontal center" ng-if="$ctrl.trigger.master && !$ctrl.viewState.jobsLoaded">
+      <loading-spinner size="'small'"></loading-spinner>
     </div>
   </div>
   <div class="col-md-1 text-center">

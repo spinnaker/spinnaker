@@ -294,9 +294,15 @@ export class Executions extends React.Component<IExecutionsProps, IExecutionsSta
                     style={{ pointerEvents: triggeringExecution ? 'none' : 'auto' }}
                   >
                     {triggeringExecution && (
-                      <span className="pulsing">
-                        <Tooltip value="Starting Execution"><span className="fa fa-cog fa-spin visible-md-inline visible-sm-inline"/></Tooltip>
-                        <span className="fa fa-cog fa-spin visible-lg-inline"/>
+                      <span>
+                        <Tooltip value="Starting Execution">
+                          <span className="visible-md-inline visible-sm-inline">
+                            <Spinner size="nano" />
+                          </span>
+                        </Tooltip>
+                        <span className="visible-lg-inline">
+                          <Spinner size="nano" />
+                        </span>
                         <span className="visible-xl-inline">Starting Execution</span>&hellip;
                       </span>
                     )}

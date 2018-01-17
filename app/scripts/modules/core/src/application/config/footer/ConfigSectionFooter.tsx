@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { BindAll } from 'lodash-decorators';
+import { Spinner } from 'core/widgets/spinners/Spinner'
 
 export interface IConfigSectionFooterProps {
   isDirty: boolean;
@@ -36,7 +37,7 @@ export class ConfigSectionFooter extends React.Component<IConfigSectionFooterPro
     const savingButton = (
       <button className="btn btn-primary" disabled={true}>
         <span className="pulsing">
-            <span className="fa fa-cog fa-spin"/> Saving&hellip;
+          <Spinner size="nano" /> Saving&hellip;
           </span>
       </button>
     );

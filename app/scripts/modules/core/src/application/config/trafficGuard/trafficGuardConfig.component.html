@@ -7,7 +7,9 @@
     </div>
   </div>
   <div class="row" ng-if="$ctrl.initializing">
-    <h4 class="text-center"><span class="fa fa-2x fa-cog fa-spin"></span></h4>
+    <div class="horizontal center">
+      <loading-spinner size="'medium'"></loading-spinner>
+    </div>
   </div>
   <div class="row" ng-if="!$ctrl.initializing">
     <div class="col-md-10 col-md-offset-1">
