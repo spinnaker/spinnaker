@@ -16,6 +16,13 @@
           <dd>{{ctrl.stage.context.statusEndpoint}}</dd>
         </dl>
       </div>
+      <div class="col-md-12" ng-if="ctrl.stage.context.parameterValues">
+        <h5>Parameters</h5>
+        <dl class="dl-narrow dl-horizontal">
+          <dt ng-repeat-start="(key, val) in ctrl.stage.context.parameterValues">{{key}}</dt>
+          <dd ng-repeat-end>{{val}}</dd>
+        </dl>
+      </div>
     </div>
     <stage-failure-message stage="ctrl.stage" is-failed="ctrl.stage.isFailed" message="ctrl.getException(stage) || ctrl.failureMessage"></stage-failure-message>
     <div class="well alert-info" ng-if="ctrl.stage.context.progressMessage || ctrl.stage.status">

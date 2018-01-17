@@ -21,6 +21,14 @@ export interface ICustomHeader {
   value: string;
 }
 
+interface IWebhookParameter {
+  name: string;
+  label: string;
+  description?: string;
+  type: string;
+  defaultValue?: string;
+}
+
 interface IPreconfiguredWebhook {
   type: string;
   label: string;
@@ -28,6 +36,7 @@ interface IPreconfiguredWebhook {
   description?: string;
   waitForCompletion?: boolean
   preconfiguredProperties?: string[];
+  parameters?: IWebhookParameter[];
 }
 
 export class WebhookStage implements IController {
@@ -36,6 +45,7 @@ export class WebhookStage implements IController {
   public methods: string[];
   public preconfiguredProperties: string[];
   public noUserConfigurableFields: boolean;
+  public parameters: IWebhookParameter[];
 
   constructor(public stage: any,
               private jsonUtilityService: JsonUtilityService,
@@ -60,7 +70,18 @@ export class WebhookStage implements IController {
       this.preconfiguredProperties = stageConfig.configuration.preconfiguredProperties || [];
       this.noUserConfigurableFields = stageConfig.configuration.noUserConfigurableFields;
       this.viewState.waitForCompletion = stageConfig.configuration.waitForCompletion || this.viewState.waitForCompletion;
+      this.parameters = stageConfig.configuration.parameters || [];
     }
+
+    if (this.parameters.length && !this.stage.parameterValues) {
+      this.stage.parameterValues = {};
+    }
+
+    this.parameters.forEach((config: any) => {
+      if (!(config.name in this.stage.parameterValues) && (config.defaultValue !== null)) {
+        this.stage.parameterValues[config.name] = config.defaultValue;
+      }
+    });
   }
 
   public updatePayload(): void {
@@ -146,7 +167,8 @@ module(WEBHOOK_STAGE, [
       configuration: {
         preconfiguredProperties: preconfiguredWebhook.preconfiguredProperties,
         waitForCompletion: preconfiguredWebhook.waitForCompletion,
-        noUserConfigurableFields: preconfiguredWebhook.noUserConfigurableFields
+        noUserConfigurableFields: preconfiguredWebhook.noUserConfigurableFields,
+        parameters: preconfiguredWebhook.parameters
       }
     }))
   })
