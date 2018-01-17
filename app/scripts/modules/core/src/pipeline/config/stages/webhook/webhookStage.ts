@@ -45,7 +45,7 @@ export class WebhookStage implements IController {
   public methods: string[];
   public preconfiguredProperties: string[];
   public noUserConfigurableFields: boolean;
-  public parameters: IWebhookParameter[];
+  public parameters: IWebhookParameter[] = [];
 
   constructor(public stage: any,
               private jsonUtilityService: JsonUtilityService,
