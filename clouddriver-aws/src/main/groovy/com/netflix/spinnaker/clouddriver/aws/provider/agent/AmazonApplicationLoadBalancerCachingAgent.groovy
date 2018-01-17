@@ -413,6 +413,10 @@ class AmazonApplicationLoadBalancerCachingAgent extends AbstractAmazonLoadBalanc
           listenerAttributes.loadBalancerName = ArnUtils.extractLoadBalancerName((String)listenerAttributes.loadBalancerArn).get()
           listenerAttributes.remove('loadBalancerArn')
           for (Map<String, Object> action : (List<Map<String, String>>)listenerAttributes.defaultActions) {
+            if (!action.targetGroupArn) {
+              continue
+            }
+
             String targetGroupName = ArnUtils.extractTargetGroupName(action.targetGroupArn as String).get()
             action.targetGroupName = targetGroupName
             action.remove("targetGroupArn")
@@ -425,6 +429,10 @@ class AmazonApplicationLoadBalancerCachingAgent extends AbstractAmazonLoadBalanc
           for (Rule rule : listenerAssociations.listenerToRules.get(listener)) {
             Map<String, Object> ruleAttributes = objectMapper.convertValue(rule, ATTRIBUTES)
             for (Map<String, String> action : (List<Map<String, String>>)ruleAttributes.actions) {
+              if (!action.targetGroupArn) {
+                continue
+              }
+
               String targetGroupName = ArnUtils.extractTargetGroupName(action.targetGroupArn).get()
               action.targetGroupName = targetGroupName
               action.remove("targetGroupArn")
