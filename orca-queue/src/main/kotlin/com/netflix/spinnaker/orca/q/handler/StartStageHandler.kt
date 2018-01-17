@@ -30,22 +30,7 @@ import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
-import com.netflix.spinnaker.orca.q.AttemptsAttribute
-import com.netflix.spinnaker.orca.q.CompleteExecution
-import com.netflix.spinnaker.orca.q.CompleteStage
-import com.netflix.spinnaker.orca.q.MaxAttemptsAttribute
-import com.netflix.spinnaker.orca.q.MessageHandler
-import com.netflix.spinnaker.orca.q.Queue
-import com.netflix.spinnaker.orca.q.SkipStage
-import com.netflix.spinnaker.orca.q.StartStage
-import com.netflix.spinnaker.orca.q.StartTask
-import com.netflix.spinnaker.orca.q.allUpstreamStagesComplete
-import com.netflix.spinnaker.orca.q.anyUpstreamStagesFailed
-import com.netflix.spinnaker.orca.q.buildSyntheticStages
-import com.netflix.spinnaker.orca.q.buildTasks
-import com.netflix.spinnaker.orca.q.firstAfterStages
-import com.netflix.spinnaker.orca.q.firstBeforeStages
-import com.netflix.spinnaker.orca.q.firstTask
+import com.netflix.spinnaker.orca.q.*
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
@@ -141,7 +126,7 @@ class StartStageHandler(
     builder().let { builder ->
       builder.buildTasks(this)
       builder.buildSyntheticStages(this) { it: Stage ->
-        repository.addStage(it)
+        repository.addStage(it.withMergedContext())
       }
     }
   }
