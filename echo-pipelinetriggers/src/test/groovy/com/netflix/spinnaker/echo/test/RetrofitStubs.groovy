@@ -87,7 +87,7 @@ trait RetrofitStubs {
     return res
   }
 
-  PubsubEvent createPubsubEvent(PubsubSystem pubsubSystem, String subscriptionName, List<Artifact> artifacts) {
+  PubsubEvent createPubsubEvent(PubsubSystem pubsubSystem, String subscriptionName, List<Artifact> artifacts, Map payload) {
     def res = new PubsubEvent()
 
     def description = MessageDescription.builder()
@@ -102,6 +102,7 @@ trait RetrofitStubs {
 
     res.details = new Metadata([type: PubsubEventMonitor.PUBSUB_TRIGGER_TYPE])
     res.content = content
+    res.payload = payload
     return res
   }
 

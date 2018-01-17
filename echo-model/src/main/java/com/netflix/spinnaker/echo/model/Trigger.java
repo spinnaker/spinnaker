@@ -29,7 +29,7 @@ import java.util.Map;
 @JsonDeserialize(builder = Trigger.TriggerBuilder.class)
 @Builder(toBuilder = true)
 @Wither
-@ToString(of = {"type", "master", "job", "cronExpression", "source", "project", "slug", "account", "repository", "tag", "parameters", "payloadConstraints", "attributeConstraints", "branch", "runAsUser", "subscriptionName", "pubsubSystem", "expectedArtifactIds"}, includeFieldNames = false)
+@ToString(of = {"type", "master", "job", "cronExpression", "source", "project", "slug", "account", "repository", "tag", "parameters", "payloadConstraints", "attributeConstraints", "branch", "runAsUser", "subscriptionName", "pubsubSystem", "expectedArtifactIds", "payload"}, includeFieldNames = false)
 @Value
 public class Trigger {
   public enum Type {
@@ -71,6 +71,7 @@ public class Trigger {
   String tag;
   String digest;
   Map payloadConstraints;
+  Map payload;
   Map attributeConstraints;
   String branch;
   String runAsUser;
@@ -90,10 +91,6 @@ public class Trigger {
         .buildNumber(buildNumber)
         .hash(null)
         .tag(null)
-        .payloadConstraints(null)
-        .attributeConstraints(null)
-        .subscriptionName(null)
-        .pubsubSystem(null)
         .build();
   }
 
@@ -102,10 +99,6 @@ public class Trigger {
         .buildNumber(null)
         .hash(hash)
         .tag(null)
-        .payloadConstraints(null)
-        .attributeConstraints(null)
-        .subscriptionName(null)
-        .pubsubSystem(null)
         .build();
   }
 
@@ -113,11 +106,7 @@ public class Trigger {
     return this.toBuilder()
         .buildNumber(null)
         .tag(null)
-        .payloadConstraints(null)
-        .attributeConstraints(null)
         .branch(branch)
-        .subscriptionName(null)
-        .pubsubSystem(null)
         .build();
   }
 
@@ -126,23 +115,18 @@ public class Trigger {
         .buildNumber(null)
         .hash(null)
         .tag(tag)
-        .payloadConstraints(null)
-        .attributeConstraints(null)
-        .subscriptionName(null)
-        .pubsubSystem(null)
         .build();
   }
 
-  public Trigger atPayloadConstraints(final Map parameters, final Map payloadConstraints) {
+  public Trigger atPayload(final Map payload) {
     return this.toBuilder()
-        .buildNumber(null)
-        .hash(null)
-        .digest(null)
+      .payload(payload)
+      .build();
+  }
+
+  public Trigger atParameters(final Map parameters) {
+    return this.toBuilder()
         .parameters(parameters)
-        .payloadConstraints(payloadConstraints)
-        .attributeConstraints(null)
-        .subscriptionName(null)
-        .pubsubSystem(null)
         .build();
   }
 
@@ -152,8 +136,6 @@ public class Trigger {
         .hash(null)
         .digest(null)
         .secret(secret)
-        .subscriptionName(null)
-        .pubsubSystem(null)
         .build();
   }
 

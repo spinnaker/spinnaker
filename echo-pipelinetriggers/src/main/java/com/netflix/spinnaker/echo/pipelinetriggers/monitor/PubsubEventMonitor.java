@@ -34,6 +34,8 @@ import org.springframework.stereotype.Component;
 import rx.Observable;
 import rx.functions.Action1;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
@@ -84,10 +86,15 @@ public class PubsubEventMonitor extends TriggerMonitor {
   @Override
   protected Function<Trigger, Pipeline> buildTrigger(Pipeline pipeline, TriggerEvent event) {
     PubsubEvent pubsubEvent = (PubsubEvent) event;
+    Map payload = pubsubEvent.getPayload();
+    Map parameters = payload.containsKey("parameters") ? (Map) payload.get("parameters") : new HashMap();
     MessageDescription description = pubsubEvent.getContent().getMessageDescription();
     return trigger -> pipeline
         .withReceivedArtifacts(description.getArtifacts())
-        .withTrigger(trigger.atMessageDescription(description.getSubscriptionName(), description.getPubsubSystem().toString()));
+        .withTrigger(trigger
+          .atMessageDescription(description.getSubscriptionName(), description.getPubsubSystem().toString())
+          .atParameters(parameters)
+          .atPayload(payload));
   }
 
   @Override
