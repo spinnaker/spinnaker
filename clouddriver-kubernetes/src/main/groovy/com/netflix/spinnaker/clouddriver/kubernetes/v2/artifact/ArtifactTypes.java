@@ -18,13 +18,13 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact;
 
 // TODO(lwander): move to clouddriver-artifacts when ready
-public enum ArtifactTypes {
-  DOCKER_IMAGE("docker/image"),
-  KUBERNETES_CONFIG_MAP("kubernetes/configMap");
+public class ArtifactTypes {
+  public static final ArtifactTypes DOCKER_IMAGE = new ArtifactTypes("docker/image");
+  public static final ArtifactTypes KUBERNETES_CONFIG_MAP = new ArtifactTypes("kubernetes/configMap");
 
   final private String id;
 
-  ArtifactTypes(String id) {
+  public ArtifactTypes(String id) {
     this.id = id;
   }
 
