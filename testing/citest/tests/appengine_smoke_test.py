@@ -163,7 +163,7 @@ class AppengineSmokeTestScenario(sk.SpinnakerTestScenario):
   def create_app(self):
     # Not testing create_app, since the operation is well tested elsewhere.
     # Retryable to handle platform flakiness.
-    contract = jc.Contract('Create app', retryable_for_secs=30)
+    contract = jc.Contract()
     return st.OperationContract(
       self.agent.make_create_app_operation(
         bindings=self.bindings,
@@ -174,7 +174,7 @@ class AppengineSmokeTestScenario(sk.SpinnakerTestScenario):
   def delete_app(self):
     # Not testing delete_app, since the operation is well tested elsewhere.
     # Retryable to handle platform flakiness.
-    contract = jc.Contract('Delete app', retryable_for_secs=30)
+    contract = jc.Contract()
     return st.OperationContract(
         self.agent.make_delete_app_operation(
             application=self.TEST_APP,
@@ -391,7 +391,8 @@ class AppengineSmokeTest(st.AgentTestCase):
     return citest.base.TestRunner.global_runner().get_shared_data(AppengineSmokeTestScenario)
 
   def test_a_create_app(self):
-    self.run_test_case(self.scenario.create_app())
+    self.run_test_case(self.scenario.create_app(),
+                       retry_interval_secs=8, max_retries=8)
 
   def test_b_create_server_group(self):
     self.run_test_case(self.scenario.create_server_group())
