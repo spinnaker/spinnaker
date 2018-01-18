@@ -34,7 +34,7 @@ abstract class AbstractWaitForClusterWideClouddriverTask extends AbstractCloudPr
   @Override
   public long getBackoffPeriod() { 10000 }
 
-  @Value('${tasks.waitForClusterTimeout:1800000}')
+  @Value('${tasks.waitForClusterTimeoutMillis:1800000}')
   public long defaultTimeout
 
   @Override
