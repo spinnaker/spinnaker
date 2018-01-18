@@ -162,7 +162,8 @@ class AppengineSmokeTestScenario(sk.SpinnakerTestScenario):
 
   def create_app(self):
     # Not testing create_app, since the operation is well tested elsewhere.
-    contract = jc.Contract()
+    # Retryable to handle platform flakiness.
+    contract = jc.Contract('Create app', retryable_for_secs=30)
     return st.OperationContract(
       self.agent.make_create_app_operation(
         bindings=self.bindings,
@@ -172,7 +173,8 @@ class AppengineSmokeTestScenario(sk.SpinnakerTestScenario):
 
   def delete_app(self):
     # Not testing delete_app, since the operation is well tested elsewhere.
-    contract = jc.Contract()
+    # Retryable to handle platform flakiness.
+    contract = jc.Contract('Delete app', retryable_for_secs=30)
     return st.OperationContract(
         self.agent.make_delete_app_operation(
             application=self.TEST_APP,
