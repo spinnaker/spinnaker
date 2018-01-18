@@ -21,6 +21,7 @@ import com.netflix.spinnaker.clouddriver.consul.config.ConsulConfig
 import com.netflix.spinnaker.clouddriver.openstack.config.OpenstackConfigurationProperties.LbaasConfig
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials
 import groovy.transform.ToString
+import org.openstack4j.model.compute.ext.AvailabilityZone
 
 @ToString(includeNames = true, excludes = "password")
 class OpenstackNamedAccountCredentials implements AccountCredentials<OpenstackCredentials> {
@@ -42,6 +43,8 @@ class OpenstackNamedAccountCredentials implements AccountCredentials<OpenstackCr
   final LbaasConfig lbaasConfig
   final ConsulConfig consulConfig
   final String userDataFile
+  Map<String, List<String>> regionToZones
+
 
 
   OpenstackNamedAccountCredentials(String accountName,
@@ -202,7 +205,7 @@ class OpenstackNamedAccountCredentials implements AccountCredentials<OpenstackCr
     }
 
     public OpenstackNamedAccountCredentials build() {
-      return new OpenstackNamedAccountCredentials(name,
+      def account = new OpenstackNamedAccountCredentials(name,
         environment,
         accountType,
         username,
@@ -216,6 +219,12 @@ class OpenstackNamedAccountCredentials implements AccountCredentials<OpenstackCr
         lbaasConfig,
         consulConfig,
         userDataFile)
+      def provider = account.credentials.provider
+      def regionToZoneMap = regions.collectEntries { region ->
+        [(region): provider.getZones(region).findAll { zone -> zone.zoneState.available }.collect { zone -> zone.zoneName}]
+      }
+      account.regionToZones = regionToZoneMap
+      return account
     }
   }
 

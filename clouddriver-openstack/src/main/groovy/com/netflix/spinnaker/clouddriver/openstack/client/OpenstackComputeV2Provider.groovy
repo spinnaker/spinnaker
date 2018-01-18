@@ -27,13 +27,21 @@ import org.openstack4j.model.compute.IPProtocol
 import org.openstack4j.model.compute.RebootType
 import org.openstack4j.model.compute.SecGroupExtension
 import org.openstack4j.model.compute.Server
+import org.openstack4j.model.compute.ext.AvailabilityZone
 
-public class OpenstackComputeV2Provider implements OpenstackComputeProvider, OpenstackRequestHandler, OpenstackIdentityAware {
+class OpenstackComputeV2Provider implements OpenstackComputeProvider, OpenstackRequestHandler, OpenstackIdentityAware {
 
   OpenstackIdentityProvider identityProvider
 
   OpenstackComputeV2Provider(OpenstackIdentityProvider identityProvider) {
     this.identityProvider = identityProvider
+  }
+
+  @Override
+  List<? extends AvailabilityZone> getZones(String region) {
+    handleRequest {
+      getRegionClient(region).compute().zones().list()
+    }
   }
 
   @Override

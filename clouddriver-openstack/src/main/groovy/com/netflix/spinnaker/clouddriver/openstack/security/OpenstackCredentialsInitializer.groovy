@@ -63,21 +63,22 @@ class OpenstackCredentialsInitializer implements CredentialsInitializerSynchroni
     accountsToAdd.each { OpenstackConfigurationProperties.ManagedAccount managedAccount ->
       LOG.info("Found openstack managed account $managedAccount")
       try {
-        def openstackAccount = new OpenstackNamedAccountCredentials(managedAccount.name,
-                                                                    managedAccount.environment ?: managedAccount.name,
-                                                                    managedAccount.accountType ?: managedAccount.name,
-                                                                    managedAccount.username,
-                                                                    managedAccount.password,
-                                                                    managedAccount.projectName,
-                                                                    managedAccount.domainName,
-                                                                    managedAccount.authUrl,
-                                                                    managedAccount.regions,
-                                                                    managedAccount.insecure,
-                                                                    managedAccount.heatTemplatePath,
-                                                                    managedAccount.lbaas,
-                                                                    managedAccount.consul,
-                                                                    managedAccount.userDataFile
-                                                                    )
+        def openstackAccount = new OpenstackNamedAccountCredentials.Builder()
+          .name(managedAccount.name)
+          .environment(managedAccount.environment ?: managedAccount.name)
+          .accountType(managedAccount.accountType ?: managedAccount.name)
+          .username(managedAccount.username)
+          .password(managedAccount.password)
+          .projectName(managedAccount.projectName)
+          .domainName(managedAccount.domainName)
+          .authUrl(managedAccount.authUrl)
+          .regions(managedAccount.regions)
+          .insecure(managedAccount.insecure)
+          .heatTemplateLocation(managedAccount.heatTemplatePath)
+          .lbaasConfig(managedAccount.lbaas)
+          .consulConfig(managedAccount.consul)
+          .userDataFile(managedAccount.userDataFile)
+          .build()
         LOG.info("Saving openstack account $openstackAccount")
         accountCredentialsRepository.save(managedAccount.name, openstackAccount)
       } catch (e) {

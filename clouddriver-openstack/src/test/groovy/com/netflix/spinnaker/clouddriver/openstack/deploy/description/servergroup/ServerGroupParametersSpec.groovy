@@ -87,7 +87,7 @@ class ServerGroupParametersSpec extends Specification {
       securityGroups: ["sg1"],
       autoscalingType: ServerGroupParameters.AutoscalingType.CPU,
       scaleup: scaleup, scaledown: scaledown, rawUserData: "echo foobar", tags: ["foo": "bar"],
-      sourceUserDataType: 'Text', sourceUserData: 'echo foobar', resourceFilename: 'servergroup_resource')
+      sourceUserDataType: 'Text', sourceUserData: 'echo foobar', resourceFilename: 'servergroup_resource', zones: ["az1", "az2"])
   }
 
   @Ignore
@@ -96,7 +96,7 @@ class ServerGroupParametersSpec extends Specification {
      network_id           : 'net', subnet_id: 'sub', load_balancers: 'poop', security_groups: 'sg1', autoscaling_type: 'cpu_util',
      scaleup_cooldown     : 60, scaleup_adjustment: 1, scaleup_period: 60, scaleup_threshold: 50,
      scaledown_cooldown   : 60, scaledown_adjustment: -1, scaledown_period: 600, scaledown_threshold: 15,
-     source_user_data_type: 'Text', source_user_data: 'echo foobar', tags: '{"foo":"bar"}', user_data: "echo foobar", resource_filename: 'servergroup_resource']
+     source_user_data_type: 'Text', source_user_data: 'echo foobar', tags: '{"foo":"bar"}', user_data: "echo foobar", resource_filename: 'servergroup_resource', zones: "az1,az2"]
   }
 
 }

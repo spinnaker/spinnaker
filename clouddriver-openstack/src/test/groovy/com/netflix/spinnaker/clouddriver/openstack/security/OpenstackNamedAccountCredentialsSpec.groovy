@@ -17,12 +17,15 @@
 package com.netflix.spinnaker.clouddriver.openstack.security
 
 import com.netflix.spinnaker.clouddriver.consul.config.ConsulConfig
+import com.netflix.spinnaker.clouddriver.openstack.client.OpenstackClientProvider
 import com.netflix.spinnaker.clouddriver.openstack.client.OpenstackIdentityV3Provider
 import com.netflix.spinnaker.clouddriver.openstack.config.OpenstackConfigurationProperties.LbaasConfig
 import org.openstack4j.api.OSClient
 import org.openstack4j.api.client.IOSClientBuilder
 import org.openstack4j.model.identity.v3.Token
+import org.openstack4j.openstack.compute.domain.ext.ExtAvailabilityZone
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class OpenstackNamedAccountCredentialsSpec extends Specification {
 
@@ -49,4 +52,32 @@ class OpenstackNamedAccountCredentialsSpec extends Specification {
     client instanceof OSClient.OSClientV3
   }
 
+  static def azA = new ExtAvailabilityZone(zoneName: "azA", zoneState: new ExtAvailabilityZone.ExtZoneState(available: true))
+  static def azB = new ExtAvailabilityZone(zoneName: "azB", zoneState: new ExtAvailabilityZone.ExtZoneState(available: true))
+  static def azUnavailable = new ExtAvailabilityZone(zoneName: "azC", zoneState: new ExtAvailabilityZone.ExtZoneState(available: false))
+
+  @Unroll()
+  def "Builder populates region-to-zone map: #description"() {
+    setup:
+    OpenstackClientProvider mockProvider = Mock(OpenstackClientProvider)
+    OpenstackCredentials.metaClass.getProvider = { mockProvider }
+
+    when:
+    def builder = new OpenstackNamedAccountCredentials.Builder()
+    builder.regions = regions
+    def account = builder.build()
+
+    then:
+    1 * mockProvider.getZones("r1") >> r1_zones
+    _ * mockProvider.getZones("r2") >> r2_zones
+    account.regionToZones == expected
+
+    where:
+    description               | regions      | r1_zones                  | r2_zones   | expected
+    "simple case"             | ["r1"]       | [azA]                     | null       | ["r1": ["azA"]]
+    "multiple regions"        | ["r1", "r2"] | [azA]                     | [azB]      | ["r1": ["azA"], "r2": ["azB"]]
+    "multiple zones"          | ["r1"]       | [azA, azB]                | null       | ["r1": ["azA", "azB"]]
+    "skips unavailable zones" | ["r1"]       | [azA, azUnavailable, azB] | null       | ["r1": ["azA", "azB"]]
+    "empty region"            | ["r1", "r2"] | null                      | [azA, azB] | ["r1": [], "r2": ["azA", "azB"]]
+  }
 }

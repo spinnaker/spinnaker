@@ -23,11 +23,19 @@ import org.openstack4j.model.compute.IPProtocol
 import org.openstack4j.model.compute.RebootType
 import org.openstack4j.model.compute.SecGroupExtension
 import org.openstack4j.model.compute.Server
+import org.openstack4j.model.compute.ext.AvailabilityZone
 
 /**
  * Methods for interacting with the current compute api.
  */
 interface OpenstackComputeProvider {
+
+  /**
+   * Requests a list of the availability zones in a given region.
+   * @param region
+   * @return
+   */
+  List<? extends AvailabilityZone> getZones(String region)
 
   /**
    * Returns a list of instances in a given region.
