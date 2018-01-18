@@ -132,7 +132,7 @@ export class AwsLoadBalancerDetailsController implements IController {
     const submitMethod = () => this.loadBalancerWriter.deleteLoadBalancer(command, this.app);
 
     this.confirmationModalService.confirm({
-      header: `Really delete ${this.loadBalancerFromParams.name}?`,
+      header: `Really delete ${this.loadBalancerFromParams.name} in ${this.loadBalancerFromParams.region}: ${this.loadBalancerFromParams.accountId}?`,
       buttonText: `Delete ${this.loadBalancerFromParams.name}`,
       provider: 'aws',
       account: this.loadBalancerFromParams.accountId,
