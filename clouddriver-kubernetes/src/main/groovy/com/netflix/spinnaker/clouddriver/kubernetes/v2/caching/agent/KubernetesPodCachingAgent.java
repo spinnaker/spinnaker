@@ -54,10 +54,15 @@ public class KubernetesPodCachingAgent extends KubernetesV2CachingAgent {
   final private Collection<AgentDataType> providedDataTypes = Collections.unmodifiableSet(
       new HashSet<>(Arrays.asList(
           INFORMATIVE.forType(Keys.LogicalKind.APPLICATIONS.toString()),
-          INFORMATIVE.forType(Keys.LogicalKind.CLUSTERS.toString()),
+          AUTHORITATIVE.forType(Keys.LogicalKind.CLUSTERS.toString()),
           INFORMATIVE.forType(KubernetesKind.DEPLOYMENT.toString()),
           INFORMATIVE.forType(KubernetesKind.REPLICA_SET.toString()),
           AUTHORITATIVE.forType(KubernetesKind.POD.toString())
       ))
   );
+
+  @Override
+  protected boolean hasClusterRelationship() {
+    return true;
+  }
 }

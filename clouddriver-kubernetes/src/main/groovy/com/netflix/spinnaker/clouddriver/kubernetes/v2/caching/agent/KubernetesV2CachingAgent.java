@@ -58,6 +58,11 @@ public abstract class KubernetesV2CachingAgent extends KubernetesCachingAgent<Ku
 
   protected abstract KubernetesKind primaryKind();
 
+  // Cache types can choose to have relationships with Spinnaker 'clusters'
+  protected boolean hasClusterRelationship() {
+    return false;
+  }
+
   protected List<KubernetesManifest> loadPrimaryResourceList() {
     return namespaces.stream()
         .map(n -> credentials.list(primaryKind(), n))
@@ -84,7 +89,7 @@ public abstract class KubernetesV2CachingAgent extends KubernetesCachingAgent<Ku
     Map<KubernetesManifest, List<KubernetesManifest>> relationships = loadSecondaryResourceRelationships(resources);
 
     List<CacheData> resourceData = resources.stream()
-        .map(rs -> KubernetesCacheDataConverter.convertAsResource(accountName, rs, relationships.get(rs)))
+        .map(rs -> KubernetesCacheDataConverter.convertAsResource(accountName, rs, relationships.get(rs), hasClusterRelationship()))
         .filter(Objects::nonNull)
         .collect(Collectors.toList());
 

@@ -144,7 +144,10 @@ public class KubernetesCacheDataConverter {
     return new DefaultCacheData(id, ttl, attributes, relationships);
   }
 
-  public static CacheData convertAsResource(String account, KubernetesManifest manifest, List<KubernetesManifest> resourceRelationships) {
+  public static CacheData convertAsResource(String account,
+      KubernetesManifest manifest,
+      List<KubernetesManifest> resourceRelationships,
+      boolean hasClusterRelationship) {
     KubernetesCachingProperties cachingProperties = KubernetesManifestAnnotater.getCachingProperties(manifest);
     if (cachingProperties.isIgnore()) {
       return null;
@@ -188,7 +191,7 @@ public class KubernetesCacheDataConverter {
     if (StringUtils.isEmpty(application)) {
       log.debug("Encountered not-spinnaker-owned resource " + namespace + ":" + manifest.getFullResourceName());
     } else {
-      cacheRelationships.putAll(annotatedRelationships(account, namespace, metadata));
+      cacheRelationships.putAll(annotatedRelationships(account, metadata, hasClusterRelationship));
     }
 
     // TODO(lwander) avoid overwriting keys here
@@ -221,31 +224,20 @@ public class KubernetesCacheDataConverter {
     return json.deserialize(json.serialize(manifest), clazz);
   }
 
-  static Map<String, Collection<String>> annotatedRelationships(String account, String namespace, KubernetesManifestMetadata metadata) {
-    KubernetesManifestSpinnakerRelationships relationships = metadata.getRelationships();
+  static Map<String, Collection<String>> annotatedRelationships(String account,
+      KubernetesManifestMetadata metadata,
+      boolean hasClusterRelationship) {
     Moniker moniker = metadata.getMoniker();
+    String application = moniker.getApp();
     Artifact artifact = metadata.getArtifact();
     Map<String, Collection<String>> cacheRelationships = new HashMap<>();
-    String application = moniker.getApp();
 
     cacheRelationships.put(ARTIFACT.toString(), Collections.singletonList(Keys.artifact(artifact.getType(), artifact.getName(), artifact.getLocation(), artifact.getVersion())));
     cacheRelationships.put(APPLICATIONS.toString(), Collections.singletonList(Keys.application(application)));
 
     String cluster = moniker.getCluster();
-    if (!StringUtils.isEmpty(cluster)) {
+    if (StringUtils.isNotEmpty(cluster) && hasClusterRelationship) {
       cacheRelationships.put(CLUSTERS.toString(), Collections.singletonList(Keys.cluster(account, application, cluster)));
-    }
-
-    if (relationships.getLoadBalancers() != null) {
-      for (String loadBalancer : relationships.getLoadBalancers()) {
-        addSingleRelationship(cacheRelationships, account, namespace, loadBalancer);
-      }
-    }
-
-    if (relationships.getSecurityGroups() != null) {
-      for (String securityGroup : relationships.getSecurityGroups()) {
-        addSingleRelationship(cacheRelationships, account, namespace, securityGroup);
-      }
     }
 
     return cacheRelationships;

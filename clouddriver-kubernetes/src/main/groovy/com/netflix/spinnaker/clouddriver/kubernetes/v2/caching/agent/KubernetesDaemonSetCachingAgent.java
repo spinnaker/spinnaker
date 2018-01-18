@@ -56,6 +56,11 @@ public class KubernetesDaemonSetCachingAgent extends KubernetesV2OnDemandCaching
   );
 
   @Override
+  protected boolean hasClusterRelationship() {
+    return true;
+  }
+
+  @Override
   protected KubernetesKind primaryKind() {
     return KubernetesKind.DAEMON_SET;
   }

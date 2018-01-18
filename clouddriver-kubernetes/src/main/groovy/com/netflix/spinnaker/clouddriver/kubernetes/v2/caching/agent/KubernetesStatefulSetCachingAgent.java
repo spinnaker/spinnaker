@@ -88,4 +88,9 @@ public class KubernetesStatefulSetCachingAgent extends KubernetesV2OnDemandCachi
 
     return result;
   }
+
+  @Override
+  protected boolean hasClusterRelationship() {
+    return true;
+  }
 }

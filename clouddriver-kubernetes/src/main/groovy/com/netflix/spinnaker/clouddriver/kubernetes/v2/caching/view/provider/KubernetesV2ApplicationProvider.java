@@ -92,6 +92,10 @@ public class KubernetesV2ApplicationProvider implements ApplicationProvider {
         .map(k -> (ClusterCacheKey) k)
         .collect(Collectors.toList());
 
+    if (keys.isEmpty()) {
+      return null;
+    }
+
     return KubernetesV2Application.builder()
         .name(name)
         .clusterNames(groupClustersByAccount(keys))

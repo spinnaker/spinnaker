@@ -59,4 +59,9 @@ public class KubernetesReplicaSetCachingAgent extends KubernetesV2OnDemandCachin
   protected KubernetesKind primaryKind() {
     return KubernetesKind.REPLICA_SET;
   }
+
+  @Override
+  protected boolean hasClusterRelationship() {
+    return true;
+  }
 }

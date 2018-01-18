@@ -55,6 +55,11 @@ public class KubernetesDeploymentCachingAgent extends KubernetesV2OnDemandCachin
   );
 
   @Override
+  protected boolean hasClusterRelationship() {
+    return true;
+  }
+
+  @Override
   protected KubernetesKind primaryKind() {
     return KubernetesKind.DEPLOYMENT;
   }
