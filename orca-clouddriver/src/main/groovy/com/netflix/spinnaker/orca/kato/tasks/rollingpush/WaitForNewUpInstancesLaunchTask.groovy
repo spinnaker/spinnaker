@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.kato.tasks.rollingpush
 
+import com.netflix.spinnaker.orca.OverridableTimeoutRetryableTask
 import com.netflix.spinnaker.orca.clouddriver.utils.HealthHelper
 
 import java.util.concurrent.TimeUnit
@@ -30,7 +31,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component
-class WaitForNewUpInstancesLaunchTask implements RetryableTask {
+class WaitForNewUpInstancesLaunchTask implements OverridableTimeoutRetryableTask {
 
   @Autowired OortService oortService
   @Autowired ObjectMapper objectMapper
