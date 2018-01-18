@@ -45,7 +45,7 @@ import java.util.concurrent.atomic.AtomicLong
  *
  * TODO rz - Add cloudProviders, accounts as tags
  */
-@Component
+
 class RedisActiveExecutionsMonitor(
   private val executionRepository: ExecutionRepository,
   @Qualifier("jedisPool") private val pool: Pool<Jedis>,
