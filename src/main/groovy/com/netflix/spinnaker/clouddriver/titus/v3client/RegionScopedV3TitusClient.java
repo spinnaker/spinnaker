@@ -200,6 +200,18 @@ public class RegionScopedV3TitusClient implements TitusClient {
   }
 
   @Override
+  public void setAutoscaleEnabled(boolean shouldEnable) {
+    grpcBlockingStub.updateJobProcesses(
+      JobProcessesUpdate.newBuilder().setServiceJobProcesses(
+        ServiceJobSpec.ServiceJobProcesses.newBuilder()
+          .setDisableDecreaseDesired(shouldEnable)
+          .setDisableIncreaseDesired(shouldEnable)
+          .build()
+      ).build()
+    );
+  }
+
+  @Override
   public void terminateJob(TerminateJobRequest terminateJobRequest) {
     grpcBlockingStub.killJob(JobId.newBuilder().setId(terminateJobRequest.getJobId()).build());
   }

@@ -70,6 +70,12 @@ public interface TitusClient {
 
     /**
      *
+     * @param shouldEnable
+     */
+    public void setAutoscaleEnabled(boolean shouldEnable);
+
+    /**
+     *
      * @param terminateJobRequest
      */
     public void terminateJob(TerminateJobRequest terminateJobRequest);

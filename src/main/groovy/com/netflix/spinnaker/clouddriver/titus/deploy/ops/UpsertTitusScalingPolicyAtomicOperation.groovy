@@ -21,13 +21,18 @@ import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.titus.TitusClientProvider
 import com.netflix.spinnaker.clouddriver.titus.deploy.description.UpsertTitusScalingPolicyDescription
+import com.netflix.spinnaker.kork.core.RetrySupport
 import com.netflix.titus.grpc.protogen.DeletePolicyRequest
 import com.netflix.titus.grpc.protogen.PutPolicyRequest
 import com.netflix.titus.grpc.protogen.PutPolicyRequest.Builder
 import com.netflix.titus.grpc.protogen.ScalingPolicy
 import com.netflix.titus.grpc.protogen.ScalingPolicyID
+import com.netflix.titus.grpc.protogen.ScalingPolicyResult
+import com.netflix.titus.grpc.protogen.ScalingPolicyStatus.ScalingPolicyState
+import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 
+@Slf4j
 class UpsertTitusScalingPolicyAtomicOperation implements AtomicOperation<Map> {
 
   UpsertTitusScalingPolicyDescription description
@@ -45,6 +50,9 @@ class UpsertTitusScalingPolicyAtomicOperation implements AtomicOperation<Map> {
   @Autowired
   TitusClientProvider titusClientProvider
 
+  @Autowired
+  RetrySupport retrySupport
+
   @Override
   Map operate(List priorOutputs) {
     task.updateStatus BASE_PHASE, "Initializing Upsert Scaling Policy..."
@@ -52,6 +60,31 @@ class UpsertTitusScalingPolicyAtomicOperation implements AtomicOperation<Map> {
 
     if (!client) {
       throw new UnsupportedOperationException("Autoscaling is not supported for this account/region")
+    }
+
+    ScalingPolicyResult previousPolicy
+
+    if (description.scalingPolicyID) {
+
+      previousPolicy = client.getScalingPolicy(description.scalingPolicyID)
+
+      task.updateStatus BASE_PHASE, "Deleting previous scaling policy (${description.scalingPolicyID})..."
+
+      DeletePolicyRequest.Builder deleteRequestBuilder = DeletePolicyRequest.newBuilder()
+        .setId(ScalingPolicyID.newBuilder().setId(description.scalingPolicyID))
+
+      client.deleteScalingPolicy(deleteRequestBuilder.build())
+
+      task.updateStatus BASE_PHASE, "Deleted previous scaling policy (${description.scalingPolicyID}); monitoring deletion"
+
+      retrySupport.retry({ ->
+        ScalingPolicyResult updatedPolicy = client.getScalingPolicy(description.scalingPolicyID)
+        if (!updatedPolicy || (updatedPolicy.getPolicyState().state != ScalingPolicyState.Deleted)) {
+          throw new IllegalStateException("Previous policy was not deleted after 45 seconds")
+        }
+      }, 5000, 10, false)
+
+      task.updateStatus BASE_PHASE, "Previous scaling policy successfully deleted"
     }
 
     ScalingPolicy.Builder builder = description.toScalingPolicyBuilder()
@@ -64,21 +97,31 @@ class UpsertTitusScalingPolicyAtomicOperation implements AtomicOperation<Map> {
 
     ScalingPolicyID result = client.upsertScalingPolicy(requestBuilder.build())
 
-    task.updateStatus BASE_PHASE, "Create Scaling Policy succeeded; new policy ID: ${result.id}"
+    task.updateStatus BASE_PHASE, "Create Scaling Policy succeeded; new policy ID: ${result.id}; monitoring creation..."
 
-    if (description.scalingPolicyID) {
-
-      task.updateStatus BASE_PHASE, "Deleting previous scaling policy (${description.scalingPolicyID})..."
-
-      DeletePolicyRequest.Builder deleteRequestBuilder = DeletePolicyRequest.newBuilder()
-        .setId(ScalingPolicyID.newBuilder().setId(description.scalingPolicyID))
-
-      client.deleteScalingPolicy(deleteRequestBuilder.build())
-
-      task.updateStatus BASE_PHASE, "Deleted old scaling policy (${description.scalingPolicyID})"
+    // make sure the new policy was applied
+    try {
+      verifyNewPolicyState(client, result)
+    } catch (IllegalStateException e) {
+      if (previousPolicy) {
+        log.info("New policy creation failed; attempting to restore previous policy")
+        client.upsertScalingPolicy(PutPolicyRequest.newBuilder().setScalingPolicy(previousPolicy.scalingPolicy).build())
+      }
+      throw e
     }
 
+    task.updateStatus BASE_PHASE, "Scaling policy successfully created"
+
     return [scalingPolicyID: result.id]
+  }
+
+  private void verifyNewPolicyState(client, result) {
+    retrySupport.retry({ ->
+      ScalingPolicyResult updatedPolicy = client.getScalingPolicy(result.id)
+      if (!updatedPolicy || (updatedPolicy.getPolicyState().state != ScalingPolicyState.Applied)) {
+        throw new IllegalStateException("New policy did not transition to applied state within 45 seconds")
+      }
+    }, 5000, 10, false)
   }
 
 }

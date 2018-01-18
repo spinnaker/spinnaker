@@ -79,6 +79,11 @@ public class RegionScopedTitusAutoscalingClient implements TitusAutoscalingClien
   }
 
   @Override
+  public ScalingPolicyResult getScalingPolicy(String policyId) {
+    return autoScalingServiceBlockingStub.getScalingPolicy(ScalingPolicyID.newBuilder().setId(policyId).build()).getItems(0);
+  }
+
+  @Override
   public ScalingPolicyID upsertScalingPolicy(PutPolicyRequest policy) {
     return autoScalingServiceBlockingStub
       .setAutoScalingPolicy(policy);

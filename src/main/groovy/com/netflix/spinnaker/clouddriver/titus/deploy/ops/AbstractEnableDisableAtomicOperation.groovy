@@ -81,7 +81,7 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
         new ActivateJobRequest()
           .withUser('spinnaker')
           .withJobId(job.id)
-          .withInService(disable ? false : true)
+          .withInService(!disable)
       )
 
       if (job.tasks) {
@@ -98,6 +98,8 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
           enableDisableInstanceDiscoveryDescription, task, phaseName, status, job.tasks*.instanceId
         )
       }
+
+      provider.setAutoscaleEnabled(!disable)
 
       task.updateStatus phaseName, "Finished ${presentParticipling} ServerGroup $serverGroupName."
 

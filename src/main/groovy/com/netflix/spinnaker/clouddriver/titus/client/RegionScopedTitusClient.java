@@ -243,6 +243,11 @@ public class RegionScopedTitusClient implements TitusClient {
     }
 
     @Override
+    public void setAutoscaleEnabled(boolean shouldEnable) {
+      // noop, only supported in V3
+    }
+
+    @Override
     public void terminateJob(TerminateJobRequest terminateJobRequest) {
         if (terminateJobRequest.getUser() == null) {
            terminateJobRequest.withUser("spinnaker");

@@ -29,6 +29,8 @@ public interface TitusAutoscalingClient {
 
   List<ScalingPolicyResult> getJobScalingPolicies(String jobId);
 
+  ScalingPolicyResult getScalingPolicy(String policyId);
+
   ScalingPolicyID upsertScalingPolicy(PutPolicyRequest policy);
 
   void deleteScalingPolicy(DeletePolicyRequest request);
