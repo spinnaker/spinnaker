@@ -1,14 +1,13 @@
 import * as React from 'react';
 import { Observable, Subject, BehaviorSubject } from 'rxjs';
 
-import {
-  AccountCell, BasicCell, HrefCell, HealthCountsCell, searchResultTypeRegistry, ISearchColumn, ISearchResultType,
-  SearchResultTabComponent, SearchResultsHeaderComponent, SearchResultsDataComponent, DefaultSearchResultTab,
-  ISearchResult, HeaderCell, TableBody, TableHeader, TableRow,
-} from 'core/search';
-
 import { ReactInjector } from 'core/reactShims';
 import { IServerGroup, IInstanceCounts } from 'core/domain';
+import {
+  AccountCell, BasicCell, HrefCell, HealthCountsCell, searchResultTypeRegistry, ISearchColumn, ISearchResultType,
+  SearchResultsHeaderComponent, SearchResultsDataComponent, DefaultSearchResultTab,
+  ISearchResult, HeaderCell, TableBody, TableHeader, TableRow,
+} from 'core/search';
 
 import './serverGroup.less';
 
@@ -43,10 +42,6 @@ const itemSortFn = (a: IServerGroupSearchResult, b: IServerGroupSearchResult) =>
   const order = a.serverGroup.localeCompare(b.serverGroup);
   return order !== 0 ? order : a.region.localeCompare(b.region);
 };
-
-const SearchResultTab: SearchResultTabComponent = ({ ...props }) => (
-  <DefaultSearchResultTab {...props} iconClass={iconClass} label={displayName} />
-);
 
 const SearchResultsHeader: SearchResultsHeaderComponent = () => (
   <TableHeader>
@@ -167,12 +162,12 @@ const AddHealthCounts = (Component: SearchResultsDataComponent<IServerGroupSearc
 
 const serverGroupSearchResultType: ISearchResultType = {
   id: 'serverGroups',
-  order: 6,
+  order: 3,
   iconClass,
   displayName,
   displayFormatter: (searchResult: IServerGroupSearchResult) => `${searchResult.serverGroup} (${searchResult.region})`,
   components: {
-    SearchResultTab,
+    SearchResultTab: DefaultSearchResultTab,
     SearchResultsHeader,
     SearchResultsData: AddHealthCounts(SearchResultsData),
   },

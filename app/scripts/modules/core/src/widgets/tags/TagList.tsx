@@ -18,7 +18,6 @@ export interface ITagListProps {
 
 @BindAll()
 export class TagList extends React.Component<ITagListProps> {
-
   public static defaultProps: Partial<ITagListProps> = {
     onBlur: () => {},
     onDelete: () => {},
@@ -107,25 +106,23 @@ export class TagList extends React.Component<ITagListProps> {
     }
   }
 
-  private generateTagElement(tag: ITag): JSX.Element {
-    return (
-      <Tag
-        key={[tag.key, tag.text].join('|')}
-        tag={tag}
-        onBlur={this.handleBlur}
-        onCreate={this.handleCreate}
-        onDelete={this.handleDelete}
-        onFocus={this.handleFocus}
-        onKeyUp={this.handleKeyUp}
-      />
-    );
-  }
-
   public render(): React.ReactElement<TagList> {
+    const tags = this.props.tags || [];
 
-    const tags = (this.props.tags || []).map((tag: ITag) => this.generateTagElement(tag));
     return (
-      <div className="tag-list">{tags}</div>
+      <div className="tag-list">
+        {tags.map(tag => (
+          <Tag
+            key={[tag.key, tag.text].join('|')}
+            tag={tag}
+            onBlur={this.handleBlur}
+            onCreate={this.handleCreate}
+            onDelete={this.handleDelete}
+            onFocus={this.handleFocus}
+            onKeyUp={this.handleKeyUp}
+          />
+        ))}
+      </div>
     );
   }
 }

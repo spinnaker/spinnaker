@@ -1,104 +1,140 @@
-import { IPromise, IQService, module } from 'angular';
-import { get, intersection, isEmpty, isUndefined, groupBy, flatten } from 'lodash';
+import { ILogService, module } from 'angular';
+import { intersection, isEmpty, isUndefined } from 'lodash';
+import { Observable } from 'rxjs';
 
-import { SETTINGS } from 'core/config/settings';
-import { UrlBuilderService, URL_BUILDER_SERVICE } from 'core/navigation/urlBuilder.service';
-import { IQueryParams } from 'core/navigation/urlParser';
-import { externalSearchRegistry } from 'core/search/externalSearch.registry';
-import { getFallbackResults, ISearchResult, SearchService, SEARCH_SERVICE } from 'core/search/search.service';
-import { searchResultTypeRegistry } from 'core/search/searchResult/searchResultsType.registry';
-import { PostSearchResultSearcherRegistry } from 'core/search/searchResult/PostSearchResultSearcherRegistry';
-import { SearchFilterTypeRegistry } from 'core/search/widgets/SearchFilterTypeRegistry';
+import { SETTINGS } from 'core/config';
+import { UrlBuilderService, URL_BUILDER_SERVICE } from 'core/navigation';
+import { IQueryParams } from 'core/navigation';
+
+import { PostSearchResultSearcherRegistry } from '../searchResult/PostSearchResultSearcherRegistry';
+import { SearchFilterTypeRegistry } from '../widgets/SearchFilterTypeRegistry';
+import { externalSearchRegistry } from '../externalSearch.registry';
 import { ISearchResultSet } from './infrastructureSearch.service';
+import { ISearchResults } from '../search.service';
+import { ISearchResultType } from '../searchResult/searchResultsType.registry';
+import { SearchStatus } from '../searchResult/SearchResults';
+import { IPostSearchResultSearcher } from '../searchResult/PostSearchResultSearcherRegistry';
+import { searchResultTypeRegistry } from '../searchResult/searchResultsType.registry';
+import { ISearchResult, SearchService, SEARCH_SERVICE } from '../search.service';
+import { SearchResultHydratorRegistry } from '../searchResult/SearchResultHydratorRegistry';
 
 const KEYWORD_PROP = SearchFilterTypeRegistry.KEYWORD_FILTER.key;
 
 export class InfrastructureSearchServiceV2 {
-  constructor(private $q: IQService,
+  private EMPTY_RESULTS: ISearchResultSet[] = searchResultTypeRegistry.getAll()
+    .map(type => ({ type, results: [], status: SearchStatus.FINISHED }));
+
+  constructor(private $log: ILogService,
               private searchService: SearchService,
               private urlBuilderService: UrlBuilderService) {
     'ngInject';
   }
 
-  // Tests that all required fields are present for a search result type
-  private requiredSearchFieldsExist(paramKeys: string[], category: string) {
-    const requiredFields: string[] = searchResultTypeRegistry.get(category).requiredSearchFields;
-    return !requiredFields || requiredFields.every(field => paramKeys.includes(field));
+  /** Gets the SearchResultTypes that can be queried based on the current param values */
+  private getInternalSearchResultTypesForParams(params: IQueryParams): ISearchResultType[] {
+    const externalTypes: string[] = externalSearchRegistry.getAll().map(config => config.type.id);
+    const postSearchResultKeys: string[] = PostSearchResultSearcherRegistry.getRegisteredTypes().map(mapping => mapping.sourceType);
+
+    const paramKeys: string[] = Object.keys(params);
+
+    const hasRequiredParams = (type: ISearchResultType) => {
+      const requiredParams: string[] = type.requiredSearchFields || [];
+      return requiredParams.every(field => paramKeys.includes(field));
+    };
+
+    return searchResultTypeRegistry.getAll()
+      .filter(hasRequiredParams)
+      .filter(type => !externalTypes.includes(type.id))
+      .filter(type => params[KEYWORD_PROP] ? true : !postSearchResultKeys.includes(type.id));
   }
 
-  private emptyResults(): ISearchResultSet[] {
-    const type = searchResultTypeRegistry.get('applications');
-    const results = getFallbackResults().results;
-    return [{ type, results }];
+  /**
+   * The search API uses `q` as the query parameter argument for a keyword search.
+   * If a `key` search is being done, map it to `q`.
+   * Add `cloudProvider`
+   */
+  private fixApiParams(apiParams: IQueryParams): IQueryParams {
+    const { key, ...rest } = apiParams;
+    const query = key ? { q: key } : {};
+    return { ...rest, ...query, cloudProvider: SETTINGS.defaultProviders[0] };
   }
 
-  private buildSearchResultSet(typeId: string, results: ISearchResult[]): ISearchResultSet {
-    const type = searchResultTypeRegistry.get(typeId);
-    return type ? { type, results } : null;
+  private searchInternal(params: IQueryParams): Observable<ISearchResultSet> {
+    // Fetch results for each type individually
+    const searchTypesToQuery = this.getInternalSearchResultTypesForParams(params);
+
+    return Observable.from(searchTypesToQuery)
+      .mergeMap((type: ISearchResultType) => {
+        const queryForType: IQueryParams = Object.assign({}, params, { type: type.id });
+
+        return Observable.fromPromise(this.searchService.search(queryForType))
+          .map((searchResults: ISearchResults<any>) => {
+            return { type, results: searchResults.results, status: SearchStatus.FINISHED };
+          })
+          .catch((error: any) => {
+            this.$log.warn(`Error fetching search results for type: ${type.id}`, error);
+            return Observable.of({ error, type, results: [], status: SearchStatus.ERROR });
+          });
+      });
   }
 
-  public search(params: IQueryParams): IPromise<ISearchResultSet[]> {
-    if (isEmpty(params)) {
-      return this.$q.when(this.emptyResults());
+  private searchExternal(params: IQueryParams): Observable<ISearchResultSet> {
+    // Returns true if the result object's values matches all the parameter values
+    // Only accounts for parameters which are registered in SearchFilterTypeRegistry
+    const matchesAllFilterKeys = (result: ISearchResult) => {
+      const filterKeys: string[] = intersection(SearchFilterTypeRegistry.getRegisteredFilterKeys(), Object.keys(params));
+      return filterKeys.every(filterKey => {
+        const resultVal: string = (result as any)[filterKey];
+        return isUndefined(resultVal) || resultVal === params[filterKey];
+      });
+    };
+
+    return externalSearchRegistry.search(params)
+        .map((resultSet: ISearchResultSet) => {
+          // perform additional client-side filtering of the external search results
+          const filteredResults = resultSet.results.filter(matchesAllFilterKeys);
+          return { ...resultSet, results: filteredResults };
+        });
+  }
+
+  public search(apiParams: IQueryParams): Observable<ISearchResultSet> {
+    if (isEmpty(apiParams)) {
+      return Observable.from(this.EMPTY_RESULTS);
     }
 
-    // retrieve a list of all the types we should be searching and remove any we should not be
-    const paramKeys = Object.keys(params);
-    const postSearchResultKeys = PostSearchResultSearcherRegistry.getRegisteredTypes().map(mapping => mapping.sourceType);
+    const params = this.fixApiParams(apiParams);
 
-    const types: string[] = searchResultTypeRegistry.getSearchCategories()
-      .filter(category => this.requiredSearchFieldsExist(paramKeys, category))
-      .filter(category => params[KEYWORD_PROP] ? true : !postSearchResultKeys.includes(category));
-
-    // the search API uses `q` as the query parameter argument for a keyword search so if
-    // a keyword search is being done, map it to `q` and remove the keyword param.
-    const KEYWORD_FILTER_KEY = SearchFilterTypeRegistry.KEYWORD_FILTER.key;
-    const keyword = params[KEYWORD_FILTER_KEY];
-    delete params[KEYWORD_FILTER_KEY];
-    params.q = keyword;
-
-    // add the cloudprovider(s).
-    params.cloudProvider = SETTINGS.defaultProviders[0];
-
-    // perform searches by type separately for performance reasons
-    const searchByTypePromises: IPromise<ISearchResultSet>[] = types.map((type: string) => {
-      return this.searchService.search(Object.assign({}, params, { type }))
-        .then(searchResults => this.buildSearchResultSet(type, searchResults.results));
-    });
+    const internalSearchResults$ = this.searchInternal(params);
+    const externalSearchResults$ = this.searchExternal(params);
 
     // Calculate the result href and add to the object
     const applyResultHref = (result: ISearchResult) =>
       result.href = this.urlBuilderService.buildFromMetadata(result);
 
-    return this.$q.all(searchByTypePromises).then((searchResultSets: ISearchResultSet[]) => {
-      flatten(searchResultSets.map(set => set.results)).forEach(applyResultHref);
+    return internalSearchResults$.merge(externalSearchResults$)
+      // Derive search results for some type when data from another type arrives.
+      // i.e., clusters are derived from serverGroups
+      .mergeMap((resultSet: ISearchResultSet) => {
+        const mappings = PostSearchResultSearcherRegistry.getRegisteredTypes();
+        const derivedSearchers: IPostSearchResultSearcher[] = mappings
+          .filter(mapping => mapping.targetType === resultSet.type.id)
+          .map(mapping => PostSearchResultSearcherRegistry.getPostResultSearcher(mapping.sourceType));
 
-      // right now, only keyword searches are supported for external search registries
-      if (!keyword) {
-        return searchResultSets;
-      }
+        const derivedSearches$ = Observable.from(derivedSearchers)
+          .mergeMap(searcher => searcher.getPostSearchResults(resultSet));
 
-      return externalSearchRegistry.search(params.q as string)
-        .then((externalResults: ISearchResult[]) => {
-          const activeFilters: string[] = intersection(SearchFilterTypeRegistry.getRegisteredFilterKeys(), Object.keys(params));
-          const filteredExternalResults: ISearchResult[] = externalResults
-            .filter((externalSearchResult: ISearchResult) => {
-              return activeFilters.every((filter: string) => {
-                const filterVal: string = get(externalSearchResult, filter);
-                return isUndefined(filterVal) || filterVal === get(params, filter);
-              });
-            });
-          filteredExternalResults.forEach(applyResultHref);
+        return Observable.of(resultSet).merge(derivedSearches$)
+      })
+      .do((result: ISearchResultSet) => {
+        // Add the links
+        result.results.forEach(applyResultHref);
 
-          const externalResultsByType: { [key: string]: ISearchResult[] } = groupBy(filteredExternalResults, 'type');
-          const externalResultSets: ISearchResultSet[] = Object.keys(externalResultsByType)
-            .map(type => this.buildSearchResultSet(type, externalResultsByType[type]));
-          const externalSearchTypes = externalResultSets.map(set => set.type);
-
-          // Merge the external results with the normal results
-          return searchResultSets.filter(resultSet => !externalSearchTypes.includes(resultSet.type)).concat(externalResultSets);
-        });
-    });
+        // Do hydration (post processing, I guess?) on each type that has a hydrator registered
+        const hydrator = SearchResultHydratorRegistry.getSearchResultHydrator(result.type.id);
+        if (hydrator) {
+          hydrator.hydrate(result.results);
+        }
+      });
   }
 }
 

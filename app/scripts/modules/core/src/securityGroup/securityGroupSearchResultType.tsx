@@ -2,7 +2,7 @@ import * as React from 'react';
 
 import {
   AccountCell, BasicCell, HrefCell, searchResultTypeRegistry, ISearchColumn, ISearchResultType,
-  SearchResultTabComponent, SearchResultsHeaderComponent, SearchResultsDataComponent, DefaultSearchResultTab,
+  SearchResultsHeaderComponent, SearchResultsDataComponent, DefaultSearchResultTab,
   ISearchResult, HeaderCell, TableBody, TableHeader, TableRow,
 } from 'core/search';
 
@@ -35,10 +35,6 @@ const itemSortFn = (a: ISecurityGroupSearchResult, b: ISecurityGroupSearchResult
   return order !== 0 ? order : a.region.localeCompare(b.region);
 };
 
-const SearchResultTab: SearchResultTabComponent = ({ ...props }) => (
-  <DefaultSearchResultTab {...props} iconClass={iconClass} label={displayName} />
-);
-
 const SearchResultsHeader: SearchResultsHeaderComponent = () => (
   <TableHeader>
     <HeaderCell col={cols.NAME}/>
@@ -66,7 +62,7 @@ const securityGroupsSearchResultType: ISearchResultType = {
   order: 6,
   displayFormatter: (searchResult: ISecurityGroupSearchResult) => `${searchResult.name} (${searchResult.region})`,
   components: {
-    SearchResultTab,
+    SearchResultTab: DefaultSearchResultTab,
     SearchResultsHeader,
     SearchResultsData,
   },

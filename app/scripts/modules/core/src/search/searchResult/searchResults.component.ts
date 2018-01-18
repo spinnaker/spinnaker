@@ -1,8 +1,0 @@
-import { module } from 'angular';
-import { react2angular } from 'react2angular';
-
-import { SearchResults } from './SearchResults';
-
-export const SEARCH_RESULTS_COMPONENT = 'spinnaker.core.search.results.component';
-module(SEARCH_RESULTS_COMPONENT, [])
-  .component('searchResults', react2angular(SearchResults, ['searchStatus', 'searchResultTypes', 'searchResultCategories', 'searchResultProjects']));

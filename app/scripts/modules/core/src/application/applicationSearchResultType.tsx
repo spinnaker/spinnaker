@@ -2,7 +2,7 @@ import * as React from 'react';
 
 import {
   AccountCell, BasicCell, HrefCell, searchResultTypeRegistry, ISearchResult, ISearchResultType,
-  SearchResultTabComponent, SearchResultsHeaderComponent, SearchResultsDataComponent, DefaultSearchResultTab,
+  SearchResultsHeaderComponent, SearchResultsDataComponent, DefaultSearchResultTab,
   HeaderCell, TableBody, TableHeader, TableRow, ISearchColumn,
 } from 'core/search';
 
@@ -37,10 +37,6 @@ const itemKeyFn = (item: IApplicationSearchResult) => item.application;
 const itemSortFn = (a: IApplicationSearchResult, b: IApplicationSearchResult) =>
   a.application.localeCompare(b.application);
 
-const SearchResultTab: SearchResultTabComponent = ({ ...props }) => (
-  <DefaultSearchResultTab {...props} iconClass={iconClass} label={displayName} />
-);
-
 const SearchResultsHeader: SearchResultsHeaderComponent = () => (
   <TableHeader>
     <HeaderCell col={cols.APPLICATION}/>
@@ -68,7 +64,7 @@ const applicationSearchResultType: ISearchResultType = {
   iconClass,
   displayFormatter: (searchResult: IApplicationSearchResult) => searchResult.application,
   components: {
-    SearchResultTab,
+    SearchResultTab: DefaultSearchResultTab,
     SearchResultsHeader,
     SearchResultsData,
   },

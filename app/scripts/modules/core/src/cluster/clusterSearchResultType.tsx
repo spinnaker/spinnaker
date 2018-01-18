@@ -2,7 +2,7 @@ import * as React from 'react';
 
 import {
   searchResultTypeRegistry, AccountCell, BasicCell, HrefCell, ISearchColumn, ISearchResultType,
-  SearchResultTabComponent, SearchResultsHeaderComponent, SearchResultsDataComponent, DefaultSearchResultTab,
+  SearchResultsHeaderComponent, SearchResultsDataComponent, DefaultSearchResultTab,
   HeaderCell, TableBody, TableHeader, TableRow, ISearchResult,
 } from 'core/search';
 
@@ -23,13 +23,9 @@ const cols: { [key: string]: ISearchColumn } = {
 const iconClass = 'fa fa-th';
 const displayName = 'Clusters';
 
-const itemKeyFn = (item: IClusterSearchResult) => item.cluster;
+const itemKeyFn = (item: IClusterSearchResult) => `${item.account}-${item.cluster}`;
 const itemSortFn = (a: IClusterSearchResult, b: IClusterSearchResult) =>
   a.cluster.localeCompare(b.cluster);
-
-const SearchResultTab: SearchResultTabComponent = ({ ...props }) => (
-  <DefaultSearchResultTab {...props} iconClass={iconClass} label={displayName} />
-);
 
 const SearchResultsHeader: SearchResultsHeaderComponent = () => (
   <TableHeader>
@@ -58,7 +54,7 @@ const clustersSearchResultType: ISearchResultType = {
   displayName,
   displayFormatter: (searchResult: IClusterSearchResult) => searchResult.cluster,
   components: {
-    SearchResultTab,
+    SearchResultTab: DefaultSearchResultTab,
     SearchResultsHeader,
     SearchResultsData,
   },

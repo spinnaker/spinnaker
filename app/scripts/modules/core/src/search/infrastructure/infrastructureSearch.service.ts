@@ -1,15 +1,19 @@
 import { module, IDeferred, IPromise, IQService } from 'angular';
 import { Observable, Subject } from 'rxjs';
 
-import { UrlBuilderService, URL_BUILDER_SERVICE } from 'core/navigation/urlBuilder.service';
-import { ProviderServiceDelegate, PROVIDER_SERVICE_DELEGATE } from 'core/cloudProvider/providerService.delegate';
+import { UrlBuilderService, URL_BUILDER_SERVICE } from 'core/navigation';
+import { ProviderServiceDelegate, PROVIDER_SERVICE_DELEGATE } from 'core/cloudProvider';
+
 import { getFallbackResults, ISearchResult, ISearchResults, SearchService, SEARCH_SERVICE } from '../search.service';
 import { IResultDisplayFormatter, ISearchResultType, searchResultTypeRegistry, } from '../searchResult/searchResultsType.registry';
 import { externalSearchRegistry } from '../externalSearch.registry';
+import { SearchStatus } from '../searchResult/SearchResults';
 
-export interface ISearchResultSet {
+export interface ISearchResultSet<T extends ISearchResult = any> {
   type: ISearchResultType;
-  results: ISearchResult[]
+  results: T[];
+  status: SearchStatus;
+  error?: any;
 }
 
 export interface IProviderResultFormatter {
@@ -17,7 +21,6 @@ export interface IProviderResultFormatter {
 }
 
 export class InfrastructureSearcher {
-
   private deferred: IDeferred<ISearchResultSet[]>;
   public querySubject: Subject<string> = new Subject<string>();
 
@@ -29,9 +32,9 @@ export class InfrastructureSearcher {
         }
         return Observable.zip(
           searchService.search({ q: query, type: searchResultTypeRegistry.getSearchCategories() }),
-          externalSearchRegistry.search(query),
-          (s1, s2) => {
-            s1.results = s1.results.concat(s2);
+          externalSearchRegistry.search({ q: query }).toArray(),
+          (s1: ISearchResults<any>, s2: ISearchResultSet[]) => {
+            s1.results = s1.results.concat(s2.map(x => x.results));
             return s1;
           }
         )
@@ -52,7 +55,7 @@ export class InfrastructureSearcher {
           .map(category => {
             const type = searchResultTypeRegistry.get(category);
             const results = categorizedSearchResults[category];
-            return { type, results };
+            return { type, results, status: SearchStatus.FINISHED };
           });
 
         this.deferred.resolve(searchResults);

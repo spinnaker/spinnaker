@@ -1,8 +1,8 @@
 import * as React from 'react';
 
 import {
-  AccountCell, BasicCell, HrefCell, searchResultTypeRegistry, SearchFilterTypeRegistry,
-  SearchResultTabComponent, SearchResultsHeaderComponent, SearchResultsDataComponent, DefaultSearchResultTab,
+  AccountCell, BasicCell, HrefCell, searchResultTypeRegistry,
+  SearchResultsHeaderComponent, SearchResultsDataComponent, DefaultSearchResultTab,
   ISearchResultType, ISearchResult, HeaderCell, TableBody, TableHeader, TableRow, ISearchColumn,
 } from 'core/search';
 
@@ -33,10 +33,6 @@ const itemKeyFn = (item: IInstanceSearchResult) => item.instanceId;
 const itemSortFn = (a: IInstanceSearchResult, b: IInstanceSearchResult) =>
   a.instanceId.localeCompare(b.instanceId);
 
-const SearchResultTab: SearchResultTabComponent = ({ ...props }) => (
-  <DefaultSearchResultTab {...props} iconClass={iconClass} label={displayName} />
-);
-
 const SearchResultsHeader: SearchResultsHeaderComponent = () => (
   <TableHeader>
     <HeaderCell col={cols.INSTANCE}/>
@@ -64,14 +60,13 @@ const instancesSearchResultType: ISearchResultType = {
   order: 4,
   iconClass,
   displayName,
-  requiredSearchFields: [SearchFilterTypeRegistry.KEYWORD_FILTER.key],
 
   displayFormatter: (searchResult: IInstanceSearchResult) => {
     const serverGroup = searchResult.serverGroup || 'standalone instance';
     return `${searchResult.instanceId} (${serverGroup} - ${searchResult.region})`;
   },
   components: {
-    SearchResultTab,
+    SearchResultTab: DefaultSearchResultTab,
     SearchResultsHeader,
     SearchResultsData,
   },

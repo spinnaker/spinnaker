@@ -1,36 +1,32 @@
 import * as React from 'react';
-import { BindAll } from 'lodash-decorators';
+import { UISref } from '@uirouter/react';
+import { UIRouterContext } from '@uirouter/react-hybrid';
 
-import { ISearchResultData } from 'core/search/searchResult/SearchResults';
 import { ISearchResultType } from './searchResultsType.registry';
+import { ISearchResultSet } from '../infrastructure/infrastructureSearch.service';
 
 export interface ISearchResultTabsProps {
-  searchResultData: ISearchResultData[]
+  resultSets: ISearchResultSet[]
   activeSearchResultType: ISearchResultType;
-  onClick?: (group: ISearchResultType) => void;
 }
 
-@BindAll()
+@UIRouterContext
 export class SearchResultTabs extends React.Component<ISearchResultTabsProps> {
-  private handleClick(type: ISearchResultType) {
-    this.props.onClick && this.props.onClick(type);
-  }
-
   public render(): React.ReactElement<SearchResultTabs> {
-    const { searchResultData, activeSearchResultType } = this.props;
+    const { activeSearchResultType } = this.props;
+    const resultSets = this.props.resultSets.slice().sort((a, b) => a.type.order - b.type.order);
 
     return (
       <div className="search-groups">
-        {searchResultData.map(({ type, results }) => {
+        {resultSets.map(resultSet => {
+          const { type } = resultSet;
           const { SearchResultTab } = type.components;
+          const active = type === activeSearchResultType;
+
           return (
-            <SearchResultTab
-              key={type.id}
-              type={type}
-              resultsCount={results.length}
-              isActive={type === activeSearchResultType}
-              onClick={this.handleClick}
-            />
+            <UISref key={type.id} to="." params={{ tab: type.id }}>
+              <a><SearchResultTab resultSet={resultSet} isActive={active} /></a>
+            </UISref>
           );
         })}
       </div>

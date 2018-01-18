@@ -2,14 +2,14 @@ import * as React from 'react';
 import * as classNames from 'classnames';
 import { BindAll } from 'lodash-decorators';
 
-import { Key } from 'core/widgets/Keys';
-import { ITag } from 'core/widgets/tags/Tag';
-import { TagList } from 'core/widgets/tags/TagList';
-import { Filters, IFiltersLayout } from './Filters';
+import { Key, ITag, TagList } from 'core/widgets';
+
 import { IFilterType, SearchFilterTypeRegistry } from './SearchFilterTypeRegistry';
+import { Filters, IFiltersLayout } from './Filters';
+import { Filter } from './Filter';
 
 import './search.less';
-import { Filter } from 'core';
+
 
 export interface ISearchProps {
   params: { [key: string]: any };
@@ -85,10 +85,6 @@ export class Search extends React.Component<ISearchProps, ISearchState> {
       .map(key => ({ key, text: params[key] }));
 
     return tagsToKeep.concat(tagsToAdd);
-  }
-
-  private isTagAlreadyPresent(tag: ITag): boolean {
-    return this.state.tags.some((t: ITag) => t.key === tag.key && t.text === tag.text);
   }
 
   private isLongEnoughIfKeyword(tag: ITag): boolean {
@@ -217,8 +213,8 @@ export class Search extends React.Component<ISearchProps, ISearchState> {
 
   private handleFilterSelection(filter?: IFilterType): void {
     const tag = this.buildTagFromInputString(filter);
-    if (tag && !this.isTagAlreadyPresent(tag) && this.isLongEnoughIfKeyword(tag)) {
-      const tags: ITag[] = this.state.tags.concat(tag);
+    if (tag && this.isLongEnoughIfKeyword(tag)) {
+      const tags: ITag[] = this.state.tags.filter(x => x.key !== tag.key).concat(tag);
       this.setState({
         activeFilter: SearchFilterTypeRegistry.KEYWORD_FILTER,
         isOpen: false,

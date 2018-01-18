@@ -1,16 +1,16 @@
 import { IPromise } from 'angular';
 import { StateService } from '@uirouter/angularjs';
+
 import { IApplicationSearchResult } from 'core/application/applicationSearchResultType';
-
-import { urlBuilderRegistry } from 'core/navigation/urlBuilder.registry';
-import { ApplicationReader, IApplicationSummary } from './service/application.read.service';
-import { IPostSearchResultSearcher } from 'core/search/searchResult/PostSearchResultSearcherRegistry';
-import { ISearchResult } from 'core/search/search.service';
-import { ISearchResultType, searchResultTypeRegistry } from 'core/search/searchResult/searchResultsType.registry';
-import { ISearchResultSet } from 'core/search/infrastructure/infrastructureSearch.service';
 import { IServerGroupSearchResult } from 'core/serverGroup/serverGroupSearchResultType';
+import { urlBuilderRegistry } from 'core/navigation/urlBuilder.registry';
+import {
+  IPostSearchResultSearcher, ISearchResult, ISearchResultSet, ISearchResultType, searchResultTypeRegistry
+} from 'core/search';
 
-export class ApplicationPostSearchResultSearcher implements IPostSearchResultSearcher<IServerGroupSearchResult> {
+import { ApplicationReader, IApplicationSummary } from './service/application.read.service';
+
+export class ApplicationPostSearchResultSearcher implements IPostSearchResultSearcher {
   private TYPE_ID = 'applications';
 
   constructor(private $state: StateService, private applicationReader: ApplicationReader) {}
@@ -28,20 +28,22 @@ export class ApplicationPostSearchResultSearcher implements IPostSearchResultSea
       }, this.$state),
       email: app.email,
       provider: app.cloudProviders,
-      type: TYPE_ID
+      type: TYPE_ID,
     } as IApplicationSearchResult;
   }
 
-  public getPostSearchResults(inputs: IServerGroupSearchResult[] = []): IPromise<ISearchResultSet[]> {
+  public getPostSearchResults(resultSet: ISearchResultSet<IServerGroupSearchResult>): IPromise<ISearchResultSet> {
+    const serverGroups = resultSet.results;
+    const appNames = serverGroups.map(result => result.application);
     const type: ISearchResultType = searchResultTypeRegistry.get(this.TYPE_ID);
-    const appNames = inputs.map(result => result.application);
 
     return this.applicationReader.listApplications(true).then((apps: IApplicationSummary[]) => {
       const results: ISearchResult[] = apps
         .filter(app => appNames.includes(app.name))
         .map(app => this.makeSearchResult(app));
 
-      return [{ type, results }];
+      const { status, error } = resultSet;
+      return { status, error, type, results };
     });
   }
 }

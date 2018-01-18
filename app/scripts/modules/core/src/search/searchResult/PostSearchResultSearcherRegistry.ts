@@ -1,10 +1,9 @@
 import { IPromise } from 'angular';
 
 import { ISearchResultSet } from '../infrastructure/infrastructureSearch.service';
-import { ISearchResult } from '../search.service';
 
-export interface IPostSearchResultSearcher<T extends ISearchResult> {
-  getPostSearchResults: (inputs: T[]) => IPromise<ISearchResultSet[]>
+export interface IPostSearchResultSearcher {
+  getPostSearchResults: (sourceData: ISearchResultSet) => IPromise<ISearchResultSet>
 }
 
 export interface ITypeMapping {
@@ -13,20 +12,17 @@ export interface ITypeMapping {
 }
 
 export class SearchResultSearcherRegistry {
-
-  private searcherRegistry: Map<string, IPostSearchResultSearcher<ISearchResult>> =
-    new Map<string, IPostSearchResultSearcher<ISearchResult>>();
-
+  private searcherRegistry: Map<string, IPostSearchResultSearcher> = new Map<string, IPostSearchResultSearcher>();
   private typeMappingRegistry: Map<string, string> = new Map<string, string>();
 
-  public register<T extends ISearchResult>(sourceType: string,
-                                           targetType: string,
-                                           searcher: IPostSearchResultSearcher<T>): void {
+  public register(sourceType: string,
+                  targetType: string,
+                  searcher: IPostSearchResultSearcher): void {
     this.searcherRegistry.set(sourceType, searcher);
     this.typeMappingRegistry.set(sourceType, targetType);
   }
 
-  public getPostResultSearcher<T extends ISearchResult>(type: string): IPostSearchResultSearcher<T> {
+  public getPostResultSearcher(type: string): IPostSearchResultSearcher {
     return this.searcherRegistry.get(type);
   }
 

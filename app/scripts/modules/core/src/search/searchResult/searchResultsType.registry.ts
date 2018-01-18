@@ -1,4 +1,4 @@
-import { ISearchResult } from 'core/search';
+import { ISearchResult } from '../search.service';
 import { ISearchResultTabProps } from './DefaultSearchResultTab';
 
 export interface IResultDisplayFormatter {

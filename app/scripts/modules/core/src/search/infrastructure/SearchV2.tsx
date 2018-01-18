@@ -1,8 +1,7 @@
 import * as React from 'react';
-import { IPromise } from 'angular';
 import { BindAll } from 'lodash-decorators';
-import { flatten, keyBy, isEmpty } from 'lodash';
-import { Subject } from 'rxjs';
+import { pickBy, isEmpty } from 'lodash';
+import { Observable, Subject } from 'rxjs';
 import { MenuItem, DropdownButton, ButtonToolbar } from 'react-bootstrap';
 
 import { ITag } from 'core/widgets';
@@ -14,32 +13,20 @@ import { IQueryParams } from 'core/navigation';
 import { Search } from '../widgets';
 import { RecentlyViewedItems } from '../infrastructure/RecentlyViewedItems';
 import { ISearchResultSet } from '../infrastructure/infrastructureSearch.service';
-import { ISearchResult } from '../search.service';
-import {
-  SearchResults, SearchStatus, ITypeMapping, PostSearchResultSearcherRegistry, searchResultTypeRegistry,
-  ISearchResultHydrator, SearchResultHydratorRegistry
-} from '../searchResult';
-
-export interface ISearchResultSetMap {
-  [key: string]: ISearchResultSet;
-}
+import { SearchResults, SearchStatus, searchResultTypeRegistry } from '../searchResult';
 
 // These state parameters are passed through to Gate's search API
 const API_PARAMS = ['key', 'name', 'account', 'region', 'stack'];
 
 export interface ISearchV2State {
-  status: SearchStatus;
+  selectedTab: string;
   params: { [key: string]: any };
-
-  categories: any[];
-  projects: any[];
-
+  resultSets: ISearchResultSet[];
   refreshingCache: boolean;
 }
 
 @BindAll()
 export class SearchV2 extends React.Component<{}, ISearchV2State> {
-  private $q = ReactInjector.$q;
   private $rootScope = ReactInjector.$rootScope;
   private $state = ReactInjector.$state;
   private $uibModal = ReactInjector.modalService;
@@ -49,16 +36,19 @@ export class SearchV2 extends React.Component<{}, ISearchV2State> {
   private overrideRegistry = ReactInjector.overrideRegistry;
 
   private searchResultTypes = searchResultTypeRegistry.getAll();
+
+  private INITIAL_RESULTS: ISearchResultSet[] =
+    this.searchResultTypes.map(type => ({ type, status: SearchStatus.SEARCHING, results: [] }));
+
   private destroy$ = new Subject();
 
   constructor(props: {}) {
     super(props);
 
     this.state = {
-      status: SearchStatus.INITIAL,
+      selectedTab: this.$state.params.tab || 'applications',
       params: {},
-      categories: [],
-      projects: [],
+      resultSets: this.INITIAL_RESULTS,
       refreshingCache: false,
     };
 
@@ -66,76 +56,53 @@ export class SearchV2 extends React.Component<{}, ISearchV2State> {
     ReactInjector.pageTitleService.handleRoutingSuccess({ pageTitleMain: { field: undefined, label: 'Search' } });
   }
 
+  // returns parameter values that are OK to send through to the back end search API as filters
+  private getApiFilterParams(params: IQueryParams): IQueryParams {
+    const isValidApiParam = (val: any, key: string) => {
+      return API_PARAMS.includes(key) &&
+        val !== null &&
+        val !== undefined &&
+        !(typeof val === 'string' && val.trim() === '');
+    };
+
+    return pickBy(params, isValidApiParam);
+  }
+
   public componentDidMount() {
     this.$uiRouter.globals.params$
+      .map(stateParams => this.getApiFilterParams(stateParams))
+      .do((params: IQueryParams) => this.setState({ params }))
+      .distinctUntilChanged((a, b) => API_PARAMS.every(key => a[key] === b[key]))
+      .do(() => this.setState({ resultSets: this.INITIAL_RESULTS }))
+      // Got new params... fire off new queries for each backend
+      // Use switchMap so new queries cancel any pending previous queries
+      .switchMap((params: IQueryParams): Observable<ISearchResultSet[]> => {
+        if (isEmpty(params)) {
+          return Observable.empty();
+        }
+
+        // Start fetching results for each search type from the search service.
+        // Update the overall results with the results for each search type.
+        return this.infrastructureSearchServiceV2.search(Object.assign({}, params))
+          .scan((acc: ISearchResultSet[], resultSet: ISearchResultSet): ISearchResultSet[] => {
+            const status = resultSet.status === SearchStatus.SEARCHING ? SearchStatus.FINISHED : resultSet.status;
+            resultSet = { ...resultSet, status };
+            // Replace the result set placeholder with the results for this type
+            return acc.filter(set => set.type !== resultSet.type).concat(resultSet);
+          }, this.INITIAL_RESULTS)
+      })
       .takeUntil(this.destroy$)
-      .subscribe(params => this.loadNewQuery(params));
+      .subscribe(resultSets => this.setState({ resultSets }));
+
+    this.$uiRouter.globals.params$
+      .map(params => params.tab)
+      .distinctUntilChanged()
+      .takeUntil(this.destroy$)
+      .subscribe(selectedTab => this.setState({ selectedTab }));
   }
 
   public componentWillUnmount() {
     this.destroy$.next();
-  }
-
-  private hydrateResults(results: ISearchResultSet[]): void {
-    const resultMap: { [key: string]: ISearchResult[] } =
-      results.reduce((categoryMap: { [key: string]: ISearchResult[] }, result: ISearchResultSet) => {
-        categoryMap[result.type.id] = result.results;
-        return categoryMap;
-      }, {});
-
-    SearchResultHydratorRegistry.getHydratorKeys().forEach((hydratorKey: string) => {
-      const hydrator: ISearchResultHydrator<ISearchResult> =
-        SearchResultHydratorRegistry.getSearchResultHydrator(hydratorKey);
-      const target: ISearchResult[] = resultMap[hydratorKey];
-      if (target && hydrator) {
-        hydrator.hydrate(target);
-      }
-    });
-  }
-
-  private loadNewQuery(stateParams: IQueryParams) {
-    const paramValIsValid = (val: any) =>
-      val !== null && val !== undefined && !(typeof val === 'string' && val.trim() === '');
-
-    const params: IQueryParams = Object.keys(stateParams)
-      .filter(key => API_PARAMS.includes(key))
-      .filter(key => paramValIsValid(stateParams[key]))
-      .reduce((acc, key) => ({ ...acc, [key]: stateParams[key] }), {});
-
-    if (isEmpty(params)) {
-      this.setState({ params: {}, categories: [], projects: [], status: SearchStatus.INITIAL });
-      return;
-    }
-
-    this.setState({ params, status: SearchStatus.SEARCHING });
-
-    const paramsCopy = Object.assign({}, params);
-    this.infrastructureSearchServiceV2.search(paramsCopy).then((results: ISearchResultSet[]) => {
-      // for any registered post search result searcher, take its registered type mapping,
-      // retrieve that data from the search results from the search API above, and pass to the
-      // appropriate post search result searcher.
-      const searchResultMap: ISearchResultSetMap = keyBy(results, 'type.id');
-      const promises: IPromise<ISearchResultSet[]>[] = [];
-      PostSearchResultSearcherRegistry.getRegisteredTypes().forEach((mapping: ITypeMapping) => {
-        if (!searchResultMap[mapping.sourceType] && !isEmpty(searchResultMap[mapping.targetType]['results'])) {
-          const postResultSearcher = PostSearchResultSearcherRegistry.getPostResultSearcher(mapping.sourceType);
-          promises.push(postResultSearcher.getPostSearchResults(searchResultMap[mapping.targetType].results));
-        }
-      });
-
-      this.$q.all(promises).then((postSearchResults: ISearchResultSet[][]) => {
-        results = results.concat(flatten(postSearchResults));
-        const categories: ISearchResultSet[] =
-          results.filter((category: ISearchResultSet) => category.type.id !== 'projects' && category.results.length);
-        this.hydrateResults(categories);
-
-        const projects = results.filter((category: ISearchResultSet) => category.type.id === 'projects' && category.results.length);
-
-        const status = categories.length || projects.length ? SearchStatus.FINISHED : SearchStatus.NO_RESULTS;
-
-        this.setState({ categories, projects, status });
-      });
-    });
   }
 
   private createProject() {
@@ -187,7 +154,7 @@ export class SearchV2 extends React.Component<{}, ISearchV2State> {
   }
 
   public render() {
-    const { categories, projects, params, status } = this.state;
+    const { params, resultSets, selectedTab } = this.state;
     const hasSearchQuery = Object.keys(params).length > 0;
 
     const DropdownActions = () => {
@@ -230,12 +197,7 @@ export class SearchV2 extends React.Component<{}, ISearchV2State> {
 
           {hasSearchQuery && (
             <div className="flex-fill">
-              <SearchResults
-                searchStatus={status}
-                searchResultTypes={this.searchResultTypes}
-                searchResultCategories={categories}
-                searchResultProjects={projects}
-              />
+              <SearchResults selectedTab={selectedTab} resultSets={resultSets} />
             </div>
           )}
         </div>
