@@ -28,6 +28,15 @@
  * [**hal config artifact gcs account list**](#hal-config-artifact-gcs-account-list)
  * [**hal config artifact gcs disable**](#hal-config-artifact-gcs-disable)
  * [**hal config artifact gcs enable**](#hal-config-artifact-gcs-enable)
+ * [**hal config artifact github**](#hal-config-artifact-github)
+ * [**hal config artifact github account**](#hal-config-artifact-github-account)
+ * [**hal config artifact github account add**](#hal-config-artifact-github-account-add)
+ * [**hal config artifact github account delete**](#hal-config-artifact-github-account-delete)
+ * [**hal config artifact github account edit**](#hal-config-artifact-github-account-edit)
+ * [**hal config artifact github account get**](#hal-config-artifact-github-account-get)
+ * [**hal config artifact github account list**](#hal-config-artifact-github-account-list)
+ * [**hal config artifact github disable**](#hal-config-artifact-github-disable)
+ * [**hal config artifact github enable**](#hal-config-artifact-github-enable)
  * [**hal config ci**](#hal-config-ci)
  * [**hal config ci jenkins**](#hal-config-ci-jenkins)
  * [**hal config ci jenkins disable**](#hal-config-ci-jenkins-disable)
@@ -521,6 +530,7 @@ hal config artifact [subcommands]
 
 #### Subcommands
  * `gcs`: Manage and view Spinnaker configuration for the gcs provider
+ * `github`: Manage and view Spinnaker configuration for the github provider
 
 ---
 ## hal config artifact gcs
@@ -667,6 +677,166 @@ Set the gcs artifact provider as enabled
 #### Usage
 ```
 hal config artifact gcs enable [parameters]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config artifact github
+
+Manage and view Spinnaker configuration for the github provider
+
+#### Usage
+```
+hal config artifact github [parameters] [subcommands]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+#### Subcommands
+ * `account`: Manage and view Spinnaker configuration for the github artifact provider's account
+ * `disable`: Set the github artifact provider as disabled
+ * `enable`: Set the github artifact provider as enabled
+
+---
+## hal config artifact github account
+
+Manage and view Spinnaker configuration for the github artifact provider's account
+
+#### Usage
+```
+hal config artifact github account ACCOUNT [parameters] [subcommands]
+```
+
+#### Parameters
+`ACCOUNT`: The name of the account to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+#### Subcommands
+ * `add`: Add an artifact account to the github artifact provider.
+ * `delete`: Delete a specific github artifact account by name.
+ * `edit`: Edit an artifact account in the github artifact provider.
+ * `get`: Get the specified account details for the github provider.
+ * `list`: List the artifact account names for the github artifact provider.
+
+---
+## hal config artifact github account add
+
+Add an artifact account to the github artifact provider.
+
+#### Usage
+```
+hal config artifact github account add ACCOUNT [parameters]
+```
+
+#### Parameters
+`ACCOUNT`: The name of the account to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+ * `--password`: (*Sensitive data* - user will be prompted on standard input) GitHub password
+ * `--token`: (*Sensitive data* - user will be prompted on standard input) GitHub token
+ * `--token-file`: File containing a GitHub authentication token
+ * `--username`: GitHub username
+ * `--username-password-file`: File containing "username:password" to use for GitHub authentication
+
+
+---
+## hal config artifact github account delete
+
+Delete a specific github artifact account by name.
+
+#### Usage
+```
+hal config artifact github account delete ACCOUNT [parameters]
+```
+
+#### Parameters
+`ACCOUNT`: The name of the account to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config artifact github account edit
+
+Edit an artifact account in the github artifact provider.
+
+#### Usage
+```
+hal config artifact github account edit ACCOUNT [parameters]
+```
+
+#### Parameters
+`ACCOUNT`: The name of the account to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+ * `--password`: (*Sensitive data* - user will be prompted on standard input) GitHub password
+ * `--token`: (*Sensitive data* - user will be prompted on standard input) GitHub token
+ * `--token-file`: File containing a GitHub authentication token
+ * `--username`: GitHub username
+ * `--username-password-file`: File containing "username:password" to use for GitHub authentication
+
+
+---
+## hal config artifact github account get
+
+Get the specified account details for the github provider.
+
+#### Usage
+```
+hal config artifact github account get ACCOUNT [parameters]
+```
+
+#### Parameters
+`ACCOUNT`: The name of the account to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config artifact github account list
+
+List the artifact account names for the github artifact provider.
+
+#### Usage
+```
+hal config artifact github account list [parameters]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config artifact github disable
+
+Set the github artifact provider as disabled
+
+#### Usage
+```
+hal config artifact github disable [parameters]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config artifact github enable
+
+Set the github artifact provider as enabled
+
+#### Usage
+```
+hal config artifact github enable [parameters]
 ```
 
 #### Parameters

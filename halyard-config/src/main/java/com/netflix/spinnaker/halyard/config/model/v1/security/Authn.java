@@ -49,7 +49,7 @@ public class Authn extends Node {
   private boolean enabled;
 
   public boolean isEnabled() {
-    return getOauth2().isEnabled() || getSaml().isEnabled() || getLdap().isEnabled();
+    return getOauth2().isEnabled() || getSaml().isEnabled() || getLdap().isEnabled() || x509.isEnabled();
   }
 
   public void setEnabled(boolean _ignored) {}

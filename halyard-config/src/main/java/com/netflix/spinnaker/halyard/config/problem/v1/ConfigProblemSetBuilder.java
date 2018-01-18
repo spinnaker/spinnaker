@@ -81,4 +81,9 @@ public class ConfigProblemSetBuilder {
 
     return new ProblemSet(problems);
   }
+
+  public ConfigProblemSetBuilder reset() {
+    builders.clear();
+    return this;
+  }
 }
