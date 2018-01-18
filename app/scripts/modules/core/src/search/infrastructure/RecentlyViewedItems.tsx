@@ -21,9 +21,10 @@ export class RecentlyViewedItems extends React.Component<{}, IRecentlyViewedItem
   private search = ReactInjector.infrastructureSearchService.getSearcher();
 
   private refresh$ = new Subject<string[]>();
+  private destroy$ = new Subject();
 
   public componentWillUnmount() {
-    this.refresh$.complete();
+    this.destroy$.next();
   }
 
   private updateRecentItems() {
@@ -31,18 +32,22 @@ export class RecentlyViewedItems extends React.Component<{}, IRecentlyViewedItem
   }
 
   public componentDidMount() {
-    this.refresh$.switchMap((categories: string[]) => {
-      return Observable.forkJoin(categories.map(category => {
-        const config = this.search.getCategoryConfig(category);
-        const items = this.recentHistoryService.getItems(category);
-        const promises = items.map(item => this.getFullHistoryEntry(category, item));
-        return Promise.all(promises).then(results => ({ category, config, results }));
-      }));
-    }).map(recentItems => {
-      return recentItems.filter(item => item.results.length)
-    }).subscribe(recentItems => {
-      this.setState({ recentItems })
-    });
+    this.refresh$
+      .switchMap((categories: string[]) => {
+        return Observable.forkJoin(categories.map(category => {
+          const config = this.search.getCategoryConfig(category);
+          const items = this.recentHistoryService.getItems(category);
+          const promises = items.map(item => this.getFullHistoryEntry(category, item));
+          return Promise.all(promises).then(results => ({ category, config, results }));
+        }));
+      })
+      .map(recentItems => {
+        return recentItems.filter(item => item.results.length)
+      })
+      .takeUntil(this.destroy$)
+      .subscribe(recentItems => {
+        this.setState({ recentItems })
+      });
 
     this.updateRecentItems();
   }
