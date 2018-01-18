@@ -98,10 +98,15 @@ export class AwsLoadBalancerDetailsController implements IController {
       this.$uibModal.open(modalOptions);
     } else {
       // Load balancer a part of a different application
-      this.applicationReader.getApplication(loadBalancerAppName).then((loadBalancerApp) => {
-        application = loadBalancerApp;
-        this.$uibModal.open(modalOptions);
-      });
+      this.applicationReader.getApplication(loadBalancerAppName)
+        .then((loadBalancerApp) => {
+          application = loadBalancerApp;
+          this.$uibModal.open(modalOptions);
+        })
+        .catch(() => {
+          // If the application can't be found, just use the old one
+          this.$uibModal.open(modalOptions);
+        });
     }
   }
 
