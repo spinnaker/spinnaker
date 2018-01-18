@@ -138,6 +138,8 @@ public class DaemonResponse<T> {
 
   @Data
   public static class UpdateRequestBuilder {
+    private Runnable stage = () -> {};
+    private Runnable clean;
     private Runnable revert;
     private Runnable save;
     private Runnable update;
@@ -147,19 +149,23 @@ public class DaemonResponse<T> {
     public DaemonResponse<Void> build() {
       ProblemSet result;
       try {
+        stage.run();
         update.run();
         result = validate.get();
+        result.throwifSeverityExceeds(severity);
       } catch (HalException e) {
         revert.run();
+        clean.run();
         throw e;
       } catch (Exception e) {
-        revert.run();
         log.error("Unknown exception encountered: ", e);
+        revert.run();
+        clean.run();
         throw e;
       }
 
-      result.throwifSeverityExceeds(severity);
       save.run();
+      clean.run();
 
       return new DaemonResponse<>(null, result);
     }

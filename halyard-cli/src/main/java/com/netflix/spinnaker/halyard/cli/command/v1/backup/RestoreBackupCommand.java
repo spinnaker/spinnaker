@@ -22,7 +22,7 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.ProtectedCommand;
-import com.netflix.spinnaker.halyard.cli.command.v1.converter.PathExpandingConverter;
+import com.netflix.spinnaker.halyard.cli.command.v1.converter.LocalFileConverter;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import lombok.AccessLevel;
@@ -43,7 +43,7 @@ public class RestoreBackupCommand extends NestableCommand implements ProtectedCo
 
   @Parameter(
       names = "--backup-path",
-      converter = PathExpandingConverter.class,
+      converter = LocalFileConverter.class,
       required = true,
       description = "This is the path to the .tar file created by running `hal backup create`."
   )

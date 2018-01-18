@@ -19,10 +19,9 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config.providers.google;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.account.AbstractEditAccountCommand;
-import com.netflix.spinnaker.halyard.cli.command.v1.converter.PathExpandingConverter;
+import com.netflix.spinnaker.halyard.cli.command.v1.converter.LocalFileConverter;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.google.GoogleAccount;
-import java.util.ArrayList;
 import java.util.List;
 
 @Parameters(separators = "=")
@@ -40,7 +39,7 @@ public class GoogleEditAccountCommand extends AbstractEditAccountCommand<GoogleA
 
   @Parameter(
       names = "--json-path",
-      converter = PathExpandingConverter.class,
+      converter = LocalFileConverter.class,
       description = CommonGoogleCommandProperties.JSON_PATH_DESCRIPTION
   )
   private String jsonPath;
@@ -73,7 +72,7 @@ public class GoogleEditAccountCommand extends AbstractEditAccountCommand<GoogleA
 
   @Parameter(
       names = "--user-data",
-      converter = PathExpandingConverter.class,
+      converter = LocalFileConverter.class,
       description = CommonGoogleCommandProperties.USER_DATA_DESCRIPTION
   )
   private String userDataFile;

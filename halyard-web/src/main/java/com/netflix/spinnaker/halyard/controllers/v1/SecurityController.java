@@ -18,9 +18,17 @@
 package com.netflix.spinnaker.halyard.controllers.v1;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.halyard.config.config.v1.HalconfigDirectoryStructure;
 import com.netflix.spinnaker.halyard.config.config.v1.HalconfigParser;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Halconfig;
-import com.netflix.spinnaker.halyard.config.model.v1.security.*;
+import com.netflix.spinnaker.halyard.config.model.v1.security.ApacheSsl;
+import com.netflix.spinnaker.halyard.config.model.v1.security.ApiSecurity;
+import com.netflix.spinnaker.halyard.config.model.v1.security.AuthnMethod;
+import com.netflix.spinnaker.halyard.config.model.v1.security.GroupMembership;
+import com.netflix.spinnaker.halyard.config.model.v1.security.RoleProvider;
+import com.netflix.spinnaker.halyard.config.model.v1.security.Security;
+import com.netflix.spinnaker.halyard.config.model.v1.security.SpringSsl;
+import com.netflix.spinnaker.halyard.config.model.v1.security.UiSecurity;
 import com.netflix.spinnaker.halyard.config.services.v1.SecurityService;
 import com.netflix.spinnaker.halyard.core.DaemonResponse;
 import com.netflix.spinnaker.halyard.core.DaemonResponse.UpdateRequestBuilder;
@@ -29,16 +37,27 @@ import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.nio.file.Path;
 
 @RestController
 @RequestMapping("/v1/config/deployments/{deploymentName:.+}/security")
 public class SecurityController {
+
   @Autowired
   HalconfigParser halconfigParser;
 
   @Autowired
   SecurityService securityService;
+
+  @Autowired
+  HalconfigDirectoryStructure halconfigDirectoryStructure;
 
   @Autowired
   ObjectMapper objectMapper;
@@ -47,7 +66,8 @@ public class SecurityController {
   DaemonTask<Halconfig, Security> getSecurity(@PathVariable String deploymentName,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity) {
-    DaemonResponse.StaticRequestBuilder<Security> builder = new DaemonResponse.StaticRequestBuilder<>(() -> securityService.getSecurity(deploymentName));
+    DaemonResponse.StaticRequestBuilder<Security> builder = new DaemonResponse.StaticRequestBuilder<>(
+        () -> securityService.getSecurity(deploymentName));
 
     builder.setSeverity(severity);
 
@@ -62,7 +82,8 @@ public class SecurityController {
   DaemonTask<Halconfig, UiSecurity> getUiSecurity(@PathVariable String deploymentName,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity) {
-    DaemonResponse.StaticRequestBuilder<UiSecurity> builder = new DaemonResponse.StaticRequestBuilder<>(() -> securityService.getUiSecurity(deploymentName));
+    DaemonResponse.StaticRequestBuilder<UiSecurity> builder = new DaemonResponse.StaticRequestBuilder<>(
+        () -> securityService.getUiSecurity(deploymentName));
 
     builder.setSeverity(severity);
 
@@ -82,6 +103,8 @@ public class SecurityController {
 
     UpdateRequestBuilder builder = new UpdateRequestBuilder();
 
+    Path configPath = halconfigDirectoryStructure.getConfigPath(deploymentName);
+    builder.setStage(() -> uiSecurity.stageLocalFiles(configPath));
     builder.setSeverity(severity);
     builder.setUpdate(() -> securityService.setUiSecurity(deploymentName, uiSecurity));
 
@@ -92,6 +115,7 @@ public class SecurityController {
 
     builder.setRevert(() -> halconfigParser.undoChanges());
     builder.setSave(() -> halconfigParser.saveConfig());
+    builder.setClean(() -> halconfigParser.cleanLocalFiles(configPath));
 
     return DaemonTaskHandler.submitTask(builder::build, "Edit UI security settings");
   }
@@ -100,7 +124,8 @@ public class SecurityController {
   DaemonTask<Halconfig, ApacheSsl> getApacheSsl(@PathVariable String deploymentName,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity) {
-    DaemonResponse.StaticRequestBuilder<ApacheSsl> builder = new DaemonResponse.StaticRequestBuilder<>(() -> securityService.getApacheSsl(deploymentName));
+    DaemonResponse.StaticRequestBuilder<ApacheSsl> builder = new DaemonResponse.StaticRequestBuilder<>(
+        () -> securityService.getApacheSsl(deploymentName));
 
     builder.setSeverity(severity);
 
@@ -120,6 +145,8 @@ public class SecurityController {
 
     UpdateRequestBuilder builder = new UpdateRequestBuilder();
 
+    Path configPath = halconfigDirectoryStructure.getConfigPath(deploymentName);
+    builder.setStage(() -> apacheSsl.stageLocalFiles(configPath));
     builder.setSeverity(severity);
     builder.setUpdate(() -> securityService.setApacheSsl(deploymentName, apacheSsl));
 
@@ -130,6 +157,7 @@ public class SecurityController {
 
     builder.setRevert(() -> halconfigParser.undoChanges());
     builder.setSave(() -> halconfigParser.saveConfig());
+    builder.setClean(() -> halconfigParser.cleanLocalFiles(configPath));
 
     return DaemonTaskHandler.submitTask(builder::build, "Edit UI SSL settings");
   }
@@ -160,7 +188,7 @@ public class SecurityController {
       @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity) {
     DaemonResponse.StaticRequestBuilder<ApiSecurity> builder = new DaemonResponse.StaticRequestBuilder<>(
-            () -> securityService.getApiSecurity(deploymentName));
+        () -> securityService.getApiSecurity(deploymentName));
 
     builder.setSeverity(severity);
 
@@ -180,6 +208,8 @@ public class SecurityController {
 
     UpdateRequestBuilder builder = new UpdateRequestBuilder();
 
+    Path configPath = halconfigDirectoryStructure.getConfigPath(deploymentName);
+    builder.setStage(() -> apiSecurity.stageLocalFiles(configPath));
     builder.setSeverity(severity);
     builder.setUpdate(() -> securityService.setApiSecurity(deploymentName, apiSecurity));
 
@@ -190,6 +220,7 @@ public class SecurityController {
 
     builder.setRevert(() -> halconfigParser.undoChanges());
     builder.setSave(() -> halconfigParser.saveConfig());
+    builder.setClean(() -> halconfigParser.cleanLocalFiles(configPath));
 
     return DaemonTaskHandler.submitTask(builder::build, "Edit API security settings");
   }
@@ -199,7 +230,7 @@ public class SecurityController {
       @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity) {
     DaemonResponse.StaticRequestBuilder<SpringSsl> builder = new DaemonResponse.StaticRequestBuilder<>(
-            () -> securityService.getSpringSsl(deploymentName));
+        () -> securityService.getSpringSsl(deploymentName));
 
     builder.setSeverity(severity);
 
@@ -219,6 +250,8 @@ public class SecurityController {
 
     UpdateRequestBuilder builder = new UpdateRequestBuilder();
 
+    Path configPath = halconfigDirectoryStructure.getConfigPath(deploymentName);
+    builder.setStage(() -> apacheSsl.stageLocalFiles(configPath));
     builder.setSeverity(severity);
     builder.setUpdate(() -> securityService.setSpringSsl(deploymentName, apacheSsl));
 
@@ -229,6 +262,7 @@ public class SecurityController {
 
     builder.setRevert(() -> halconfigParser.undoChanges());
     builder.setSave(() -> halconfigParser.saveConfig());
+    builder.setClean(() -> halconfigParser.cleanLocalFiles(configPath));
 
     return DaemonTaskHandler.submitTask(builder::build, "Edit API SSL settings");
   }
@@ -259,30 +293,33 @@ public class SecurityController {
       @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity,
       @RequestBody Object rawMembership) {
-      GroupMembership membership = objectMapper.convertValue(rawMembership, GroupMembership.class);
+    GroupMembership membership = objectMapper.convertValue(rawMembership, GroupMembership.class);
 
-      UpdateRequestBuilder builder = new UpdateRequestBuilder();
+    UpdateRequestBuilder builder = new UpdateRequestBuilder();
 
-      builder.setSeverity(severity);
-      builder.setUpdate(() -> securityService.setGroupMembership(deploymentName, membership));
+    Path configPath = halconfigDirectoryStructure.getConfigPath(deploymentName);
+    builder.setStage(() -> membership.stageLocalFiles(configPath));
+    builder.setSeverity(severity);
+    builder.setUpdate(() -> securityService.setGroupMembership(deploymentName, membership));
 
-      builder.setValidate(ProblemSet::new);
-      if (validate) {
-        builder.setValidate(() -> securityService.validateAuthz(deploymentName));
-      }
+    builder.setValidate(ProblemSet::new);
+    if (validate) {
+      builder.setValidate(() -> securityService.validateAuthz(deploymentName));
+    }
 
-      builder.setRevert(() -> halconfigParser.undoChanges());
-      builder.setSave(() -> halconfigParser.saveConfig());
+    builder.setRevert(() -> halconfigParser.undoChanges());
+    builder.setSave(() -> halconfigParser.saveConfig());
+    builder.setClean(() -> halconfigParser.cleanLocalFiles(configPath));
 
     return DaemonTaskHandler.submitTask(builder::build, "Edit group membership settings");
-    }
+  }
 
   @RequestMapping(value = "/authz/groupMembership", method = RequestMethod.GET)
   DaemonTask<Halconfig, GroupMembership> getGroupMembership(@PathVariable String deploymentName,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity) {
     DaemonResponse.StaticRequestBuilder<GroupMembership> builder = new DaemonResponse.StaticRequestBuilder<>(
-            () -> securityService.getGroupMembership(deploymentName));
+        () -> securityService.getGroupMembership(deploymentName));
 
     builder.setSeverity(severity);
 
@@ -299,12 +336,13 @@ public class SecurityController {
       @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity) {
     DaemonResponse.StaticRequestBuilder<AuthnMethod> builder = new DaemonResponse.StaticRequestBuilder<>(
-            () -> securityService.getAuthnMethod(deploymentName, methodName));
+        () -> securityService.getAuthnMethod(deploymentName, methodName));
 
     builder.setSeverity(severity);
 
     if (validate) {
-      builder.setValidateResponse(() -> securityService.validateAuthnMethod(deploymentName, methodName));
+      builder.setValidateResponse(
+          () -> securityService.validateAuthnMethod(deploymentName, methodName));
     }
 
     return DaemonTaskHandler.submitTask(builder::build, "Get authentication settings");
@@ -316,15 +354,17 @@ public class SecurityController {
       @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity) {
     DaemonResponse.StaticRequestBuilder<RoleProvider> builder = new DaemonResponse.StaticRequestBuilder<>(
-            () -> securityService.getRoleProvider(deploymentName, roleProviderName));
+        () -> securityService.getRoleProvider(deploymentName, roleProviderName));
 
     builder.setSeverity(severity);
 
     if (validate) {
-      builder.setValidateResponse(() -> securityService.validateRoleProvider(deploymentName, roleProviderName));
+      builder.setValidateResponse(
+          () -> securityService.validateRoleProvider(deploymentName, roleProviderName));
     }
 
-    return DaemonTaskHandler.submitTask(builder::build, "Get " + roleProviderName + " group membership settings");
+    return DaemonTaskHandler
+        .submitTask(builder::build, "Get " + roleProviderName + " group membership settings");
   }
 
   @RequestMapping(value = "/", method = RequestMethod.PUT)
@@ -336,6 +376,8 @@ public class SecurityController {
 
     UpdateRequestBuilder builder = new UpdateRequestBuilder();
 
+    Path configPath = halconfigDirectoryStructure.getConfigPath(deploymentName);
+    builder.setStage(() -> security.stageLocalFiles(configPath));
     builder.setSeverity(severity);
     builder.setUpdate(() -> securityService.setSecurity(deploymentName, security));
 
@@ -346,6 +388,7 @@ public class SecurityController {
 
     builder.setRevert(() -> halconfigParser.undoChanges());
     builder.setSave(() -> halconfigParser.saveConfig());
+    builder.setClean(() -> halconfigParser.cleanLocalFiles(configPath));
 
     return DaemonTaskHandler.submitTask(builder::build, "Edit security settings");
   }
@@ -363,6 +406,8 @@ public class SecurityController {
 
     UpdateRequestBuilder builder = new UpdateRequestBuilder();
 
+    Path configPath = halconfigDirectoryStructure.getConfigPath(deploymentName);
+    builder.setStage(() -> method.stageLocalFiles(configPath));
     builder.setSeverity(severity);
     builder.setUpdate(() -> securityService.setAuthnMethod(deploymentName, method));
 
@@ -373,8 +418,10 @@ public class SecurityController {
 
     builder.setRevert(() -> halconfigParser.undoChanges());
     builder.setSave(() -> halconfigParser.saveConfig());
+    builder.setClean(() -> halconfigParser.cleanLocalFiles(configPath));
 
-    return DaemonTaskHandler.submitTask(builder::build, "Edit " + methodName + " authentication settings");
+    return DaemonTaskHandler
+        .submitTask(builder::build, "Edit " + methodName + " authentication settings");
   }
 
   @RequestMapping(value = "/authz/groupMembership/{roleProviderName:.+}", method = RequestMethod.PUT)
@@ -390,18 +437,23 @@ public class SecurityController {
 
     UpdateRequestBuilder builder = new UpdateRequestBuilder();
 
+    Path configPath = halconfigDirectoryStructure.getConfigPath(deploymentName);
+    builder.setStage(() -> roleProvider.stageLocalFiles(configPath));
     builder.setSeverity(severity);
     builder.setUpdate(() -> securityService.setRoleProvider(deploymentName, roleProvider));
 
     builder.setValidate(ProblemSet::new);
     if (validate) {
-      builder.setValidate(() -> securityService.validateRoleProvider(deploymentName, roleProviderName));
+      builder.setValidate(
+          () -> securityService.validateRoleProvider(deploymentName, roleProviderName));
     }
 
     builder.setRevert(() -> halconfigParser.undoChanges());
     builder.setSave(() -> halconfigParser.saveConfig());
+    builder.setClean(() -> halconfigParser.cleanLocalFiles(configPath));
 
-    return DaemonTaskHandler.submitTask(builder::build, "Edit " + roleProviderName + " group membership settings");
+    return DaemonTaskHandler
+        .submitTask(builder::build, "Edit " + roleProviderName + " group membership settings");
   }
 
   @RequestMapping(value = "/authn/{methodName:.+}/enabled/", method = RequestMethod.PUT)
@@ -412,7 +464,8 @@ public class SecurityController {
       @RequestBody boolean enabled) {
     UpdateRequestBuilder builder = new UpdateRequestBuilder();
 
-    builder.setUpdate(() -> securityService.setAuthnMethodEnabled(deploymentName, methodName, enabled));
+    builder.setUpdate(
+        () -> securityService.setAuthnMethodEnabled(deploymentName, methodName, enabled));
     builder.setSeverity(severity);
 
     builder.setValidate(ProblemSet::new);
@@ -423,7 +476,8 @@ public class SecurityController {
     builder.setRevert(() -> halconfigParser.undoChanges());
     builder.setSave(() -> halconfigParser.saveConfig());
 
-    return DaemonTaskHandler.submitTask(builder::build, "Edit " + methodName + " authentication settings");
+    return DaemonTaskHandler
+        .submitTask(builder::build, "Edit " + methodName + " authentication settings");
   }
 
   @RequestMapping(value = "/authz/enabled/", method = RequestMethod.PUT)

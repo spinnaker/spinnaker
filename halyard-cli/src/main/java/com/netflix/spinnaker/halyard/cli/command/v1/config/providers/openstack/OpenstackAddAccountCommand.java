@@ -3,7 +3,7 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config.providers.openstack;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.account.AbstractAddAccountCommand;
-import com.netflix.spinnaker.halyard.cli.command.v1.converter.PathExpandingConverter;
+import com.netflix.spinnaker.halyard.cli.command.v1.converter.LocalFileConverter;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.openstack.OpenstackAccount;
 
@@ -79,7 +79,7 @@ public class OpenstackAddAccountCommand extends AbstractAddAccountCommand {
 
   @Parameter(
       names = "--heat-template-location",
-      converter = PathExpandingConverter.class,
+      converter = LocalFileConverter.class,
       description = OpenstackCommandProperties.HEAT_TEMPLATE_LOCATION_DESCRIPTION
 
   )
@@ -87,14 +87,14 @@ public class OpenstackAddAccountCommand extends AbstractAddAccountCommand {
 
   @Parameter(
       names = "--consul-config",
-      converter = PathExpandingConverter.class,
+      converter = LocalFileConverter.class,
       description = OpenstackCommandProperties.CONSUL_CONFIG_DESCRIPTION
   )
   private String consulConfig;
 
   @Parameter(
       names = "--user-data-file",
-      converter = PathExpandingConverter.class,
+      converter = LocalFileConverter.class,
       description = OpenstackCommandProperties.USER_DATA_FILE_DESCRIPTION
   )
   private String userDataFile;

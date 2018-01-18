@@ -20,7 +20,7 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config.metricStores.stackdr
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.metricStores.AbstractEditMetricStoreCommand;
-import com.netflix.spinnaker.halyard.cli.command.v1.converter.PathExpandingConverter;
+import com.netflix.spinnaker.halyard.cli.command.v1.converter.LocalFileConverter;
 import com.netflix.spinnaker.halyard.config.model.v1.metricStores.stackdriver.StackdriverStore;
 import com.netflix.spinnaker.halyard.config.model.v1.node.MetricStore;
 import com.netflix.spinnaker.halyard.config.model.v1.node.MetricStores;
@@ -33,7 +33,7 @@ public class EditStackdriverCommand extends AbstractEditMetricStoreCommand<Stack
 
   @Parameter(
       names = "--credentials-path",
-      converter = PathExpandingConverter.class,
+      converter = LocalFileConverter.class,
       description = "A path to a Google JSON service account that has permission to publish metrics."
   )
   private String credentialsPath;

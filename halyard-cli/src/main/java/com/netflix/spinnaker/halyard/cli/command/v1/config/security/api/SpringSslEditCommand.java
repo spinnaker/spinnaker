@@ -20,7 +20,7 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config.security.api;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.AbstractConfigCommand;
-import com.netflix.spinnaker.halyard.cli.command.v1.converter.PathExpandingConverter;
+import com.netflix.spinnaker.halyard.cli.command.v1.converter.LocalFileConverter;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
@@ -47,7 +47,7 @@ public class SpringSslEditCommand extends AbstractConfigCommand {
 
   @Parameter(
       names = "--keystore",
-      converter = PathExpandingConverter.class,
+      converter = LocalFileConverter.class,
       description = "Path to the keystore holding your security certificates."
   )
   String keyStore;
@@ -68,7 +68,7 @@ public class SpringSslEditCommand extends AbstractConfigCommand {
 
   @Parameter(
       names = "--truststore",
-      converter = PathExpandingConverter.class,
+      converter = LocalFileConverter.class,
       description = "Path to the truststore holding your trusted certificates."
   )
   String trustStore;

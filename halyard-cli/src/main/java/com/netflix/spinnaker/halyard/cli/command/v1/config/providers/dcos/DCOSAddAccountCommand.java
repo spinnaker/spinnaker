@@ -4,7 +4,7 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.google.common.collect.Lists;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.account.AbstractAddAccountCommand;
-import com.netflix.spinnaker.halyard.cli.command.v1.converter.PathExpandingConverter;
+import com.netflix.spinnaker.halyard.cli.command.v1.converter.LocalFileConverter;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Provider;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.containers.DockerRegistryReference;
@@ -47,7 +47,7 @@ public class DCOSAddAccountCommand extends AbstractAddAccountCommand {
 
   @Parameter(
       names = "--service-key-file",
-      converter = PathExpandingConverter.class,
+      converter = LocalFileConverter.class,
       description = "Path to a file containing the secret key for service account authentication"
   )
   private String serviceKeyFile;

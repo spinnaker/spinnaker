@@ -19,7 +19,7 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config.persistentStorage.gc
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.persistentStorage.AbstractPersistentStoreEditCommand;
-import com.netflix.spinnaker.halyard.cli.command.v1.converter.PathExpandingConverter;
+import com.netflix.spinnaker.halyard.cli.command.v1.converter.LocalFileConverter;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
 import com.netflix.spinnaker.halyard.config.model.v1.node.PersistentStore;
 import com.netflix.spinnaker.halyard.config.model.v1.persistentStorage.GcsPersistentStore;
@@ -40,7 +40,7 @@ public class GcsEditCommand extends AbstractPersistentStoreEditCommand<GcsPersis
 
   @Parameter(
       names = "--json-path",
-      converter = PathExpandingConverter.class,
+      converter = LocalFileConverter.class,
       description = "A path to a JSON service account with permission to read and write to the bucket to be used as a backing store."
   )
   private String jsonPath;

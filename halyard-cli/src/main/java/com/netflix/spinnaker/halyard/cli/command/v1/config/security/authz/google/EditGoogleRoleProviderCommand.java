@@ -19,7 +19,7 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config.security.authz.googl
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.security.authz.AbstractEditRoleProviderCommand;
-import com.netflix.spinnaker.halyard.cli.command.v1.converter.PathExpandingConverter;
+import com.netflix.spinnaker.halyard.cli.command.v1.converter.LocalFileConverter;
 import com.netflix.spinnaker.halyard.config.model.v1.security.GoogleRoleProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.security.GroupMembership;
 import com.netflix.spinnaker.halyard.config.model.v1.security.RoleProvider;
@@ -34,7 +34,7 @@ public class EditGoogleRoleProviderCommand extends AbstractEditRoleProviderComma
 
   @Parameter(
       names = "--credential-path",
-      converter = PathExpandingConverter.class,
+      converter = LocalFileConverter.class,
       description = "A path to a valid json service account that can authenticate against the Google role provider."
   )
   private String credentialPath;

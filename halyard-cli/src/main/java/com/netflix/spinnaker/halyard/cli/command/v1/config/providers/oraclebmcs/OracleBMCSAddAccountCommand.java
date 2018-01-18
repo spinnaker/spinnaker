@@ -12,7 +12,7 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config.providers.oraclebmcs
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.account.AbstractAddAccountCommand;
-import com.netflix.spinnaker.halyard.cli.command.v1.converter.PathExpandingConverter;
+import com.netflix.spinnaker.halyard.cli.command.v1.converter.LocalFileConverter;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Provider;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.oraclebmcs.OracleBMCSAccount;
@@ -46,7 +46,7 @@ public class OracleBMCSAddAccountCommand extends AbstractAddAccountCommand {
 
   @Parameter(
           names = "--ssh-private-key-file-path",
-          converter = PathExpandingConverter.class,
+          converter = LocalFileConverter.class,
           description = OracleBMCSCommandProperties.SSH_PRIVATE_KEY_FILE_PATH_DESCRIPTION,
           required = true
   )

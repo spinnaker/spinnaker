@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.halyard.controllers.v1;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.halyard.config.config.v1.HalconfigDirectoryStructure;
 import com.netflix.spinnaker.halyard.config.config.v1.HalconfigParser;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Halconfig;
@@ -31,8 +32,14 @@ import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
+import java.nio.file.Path;
 import java.util.List;
 import java.util.function.Supplier;
 
@@ -46,6 +53,9 @@ public class AccountController {
   HalconfigParser halconfigParser;
 
   @Autowired
+  HalconfigDirectoryStructure halconfigDirectoryStructure;
+
+  @Autowired
   ObjectMapper objectMapper;
 
   @RequestMapping(value = "/", method = RequestMethod.GET)
@@ -55,11 +65,12 @@ public class AccountController {
       @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity) {
     StaticRequestBuilder<List<Account>> builder = new StaticRequestBuilder<>(
-            () -> accountService.getAllAccounts(deploymentName, providerName));
+        () -> accountService.getAllAccounts(deploymentName, providerName));
     builder.setSeverity(severity);
 
     if (validate) {
-      builder.setValidateResponse(() -> accountService.validateAllAccounts(deploymentName, providerName));
+      builder.setValidateResponse(
+          () -> accountService.validateAllAccounts(deploymentName, providerName));
     }
 
     return DaemonTaskHandler.submitTask(builder::build, "Get all " + providerName + " accounts");
@@ -73,11 +84,12 @@ public class AccountController {
       @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity) {
     StaticRequestBuilder<Account> builder = new StaticRequestBuilder<>(
-            () -> accountService.getProviderAccount(deploymentName, providerName, accountName));
+        () -> accountService.getProviderAccount(deploymentName, providerName, accountName));
     builder.setSeverity(severity);
 
     if (validate) {
-      builder.setValidateResponse(() -> accountService.validateAccount(deploymentName, providerName, accountName));
+      builder.setValidateResponse(
+          () -> accountService.validateAccount(deploymentName, providerName, accountName));
     }
 
     return DaemonTaskHandler.submitTask(builder::build, "Get " + accountName + " account");
@@ -98,7 +110,8 @@ public class AccountController {
     String accountName = account.getName();
 
     builder.setUpdate(() -> accountService.addAccount(deploymentName, providerName, account));
-    builder.setFieldOptionsResponse(() -> accountService.getAccountOptions(deploymentName, providerName, accountName, fieldName));
+    builder.setFieldOptionsResponse(() -> accountService
+        .getAccountOptions(deploymentName, providerName, accountName, fieldName));
     builder.setSeverity(severity);
 
     return DaemonTaskHandler.submitTask(builder::build, "Get " + fieldName + " options");
@@ -114,7 +127,8 @@ public class AccountController {
     String fieldName = rawAccountOptions.getField();
     DaemonResponse.StaticOptionsRequestBuilder builder = new DaemonResponse.StaticOptionsRequestBuilder();
 
-    builder.setFieldOptionsResponse(() -> accountService.getAccountOptions(deploymentName, providerName, accountName, fieldName));
+    builder.setFieldOptionsResponse(() -> accountService
+        .getAccountOptions(deploymentName, providerName, accountName, fieldName));
     builder.setSeverity(severity);
 
     return DaemonTaskHandler.submitTask(builder::build, "Get " + fieldName + " options");
@@ -129,7 +143,8 @@ public class AccountController {
       @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity) {
     UpdateRequestBuilder builder = new UpdateRequestBuilder();
 
-    builder.setUpdate(() -> accountService.deleteAccount(deploymentName, providerName, accountName));
+    builder
+        .setUpdate(() -> accountService.deleteAccount(deploymentName, providerName, accountName));
     builder.setSeverity(severity);
 
     Supplier<ProblemSet> doValidate = ProblemSet::new;
@@ -140,6 +155,8 @@ public class AccountController {
     builder.setValidate(doValidate);
     builder.setRevert(() -> halconfigParser.undoChanges());
     builder.setSave(() -> halconfigParser.saveConfig());
+    Path configPath = halconfigDirectoryStructure.getConfigPath(deploymentName);
+    builder.setClean(() -> halconfigParser.cleanLocalFiles(configPath));
 
     return DaemonTaskHandler.submitTask(builder::build, "Delete the " + accountName + " account");
   }
@@ -159,17 +176,22 @@ public class AccountController {
 
     UpdateRequestBuilder builder = new UpdateRequestBuilder();
 
-    builder.setUpdate(() -> accountService.setAccount(deploymentName, providerName, accountName, account));
+    Path configPath = halconfigDirectoryStructure.getConfigPath(deploymentName);
+    builder.setStage(() -> account.stageLocalFiles(configPath));
+    builder.setUpdate(
+        () -> accountService.setAccount(deploymentName, providerName, accountName, account));
     builder.setSeverity(severity);
 
     Supplier<ProblemSet> doValidate = ProblemSet::new;
     if (validate) {
-      doValidate = () -> accountService.validateAccount(deploymentName, providerName, account.getName());
+      doValidate = () -> accountService
+          .validateAccount(deploymentName, providerName, account.getName());
     }
 
     builder.setValidate(doValidate);
     builder.setRevert(() -> halconfigParser.undoChanges());
     builder.setSave(() -> halconfigParser.saveConfig());
+    builder.setClean(() -> halconfigParser.cleanLocalFiles(configPath));
 
     return DaemonTaskHandler.submitTask(builder::build, "Edit the " + accountName + " account");
   }
@@ -187,19 +209,24 @@ public class AccountController {
     );
 
     UpdateRequestBuilder builder = new UpdateRequestBuilder();
-    builder.setSeverity(severity);
 
+    Path configPath = halconfigDirectoryStructure.getConfigPath(deploymentName);
+    builder.setStage(() -> account.stageLocalFiles(configPath));
+    builder.setSeverity(severity);
     builder.setUpdate(() -> accountService.addAccount(deploymentName, providerName, account));
 
     Supplier<ProblemSet> doValidate = ProblemSet::new;
     if (validate) {
-      doValidate = () -> accountService.validateAccount(deploymentName, providerName, account.getName());
+      doValidate = () -> accountService
+          .validateAccount(deploymentName, providerName, account.getName());
     }
 
     builder.setValidate(doValidate);
     builder.setRevert(() -> halconfigParser.undoChanges());
     builder.setSave(() -> halconfigParser.saveConfig());
+    builder.setClean(() -> halconfigParser.cleanLocalFiles(configPath));
 
-    return DaemonTaskHandler.submitTask(builder::build, "Add the " + account.getName() + " account");
+    return DaemonTaskHandler
+        .submitTask(builder::build, "Add the " + account.getName() + " account");
   }
 }

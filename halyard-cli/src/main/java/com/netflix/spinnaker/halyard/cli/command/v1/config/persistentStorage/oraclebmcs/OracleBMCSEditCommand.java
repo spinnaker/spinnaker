@@ -13,7 +13,7 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.persistentStorage.AbstractPersistentStoreEditCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.oraclebmcs.OracleBMCSCommandProperties;
-import com.netflix.spinnaker.halyard.cli.command.v1.converter.PathExpandingConverter;
+import com.netflix.spinnaker.halyard.cli.command.v1.converter.LocalFileConverter;
 import com.netflix.spinnaker.halyard.config.model.v1.node.PersistentStore;
 import com.netflix.spinnaker.halyard.config.model.v1.persistentStorage.OracleBMCSPersistentStore;
 
@@ -43,7 +43,7 @@ public class OracleBMCSEditCommand extends AbstractPersistentStoreEditCommand<Or
 
   @Parameter(
           names = "--ssh-private-key-file-path",
-          converter = PathExpandingConverter.class,
+          converter = LocalFileConverter.class,
           description = OracleBMCSCommandProperties.SSH_PRIVATE_KEY_FILE_PATH_DESCRIPTION
   )
   private String sshPrivateKeyFilePath;

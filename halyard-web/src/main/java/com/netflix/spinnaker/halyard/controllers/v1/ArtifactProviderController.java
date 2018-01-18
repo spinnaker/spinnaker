@@ -19,6 +19,7 @@
 package com.netflix.spinnaker.halyard.controllers.v1;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.halyard.config.config.v1.HalconfigDirectoryStructure;
 import com.netflix.spinnaker.halyard.config.config.v1.HalconfigParser;
 import com.netflix.spinnaker.halyard.config.model.v1.node.ArtifactProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Artifacts;
@@ -38,17 +39,22 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.nio.file.Path;
 import java.util.List;
 import java.util.function.Supplier;
 
 @RestController
 @RequestMapping("/v1/config/deployments/{deploymentName:.+}/artifactProviders")
 public class ArtifactProviderController {
+
   @Autowired
   HalconfigParser halconfigParser;
 
   @Autowired
   ArtifactProviderService providerService;
+
+  @Autowired
+  HalconfigDirectoryStructure halconfigDirectoryStructure;
 
   @Autowired
   ObjectMapper objectMapper;
@@ -60,12 +66,13 @@ public class ArtifactProviderController {
       @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity) {
     StaticRequestBuilder<ArtifactProvider> builder = new StaticRequestBuilder<>(
-            () -> providerService.getArtifactProvider(deploymentName, providerName));
+        () -> providerService.getArtifactProvider(deploymentName, providerName));
 
     builder.setSeverity(severity);
 
     if (validate) {
-      builder.setValidateResponse(() -> providerService.validateArtifactProvider(deploymentName, providerName));
+      builder.setValidateResponse(
+          () -> providerService.validateArtifactProvider(deploymentName, providerName));
     }
 
     return DaemonTaskHandler.submitTask(builder::build, "Get the " + providerName + " provider");
@@ -85,6 +92,8 @@ public class ArtifactProviderController {
 
     UpdateRequestBuilder builder = new UpdateRequestBuilder();
 
+    Path configPath = halconfigDirectoryStructure.getConfigPath(deploymentName);
+    builder.setStage(() -> provider.stageLocalFiles(configPath));
     builder.setUpdate(() -> providerService.setArtifactProvider(deploymentName, provider));
     builder.setSeverity(severity);
 
@@ -96,6 +105,7 @@ public class ArtifactProviderController {
     builder.setValidate(doValidate);
     builder.setRevert(() -> halconfigParser.undoChanges());
     builder.setSave(() -> halconfigParser.saveConfig());
+    builder.setClean(() -> halconfigParser.cleanLocalFiles(configPath));
 
     return DaemonTaskHandler.submitTask(builder::build, "Edit the " + providerName + " provider");
   }
@@ -129,12 +139,13 @@ public class ArtifactProviderController {
       @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity) {
     StaticRequestBuilder<List<ArtifactProvider>> builder = new StaticRequestBuilder<>(
-            () -> providerService.getAllArtifactProviders(deploymentName));
+        () -> providerService.getAllArtifactProviders(deploymentName));
 
     builder.setSeverity(severity);
 
     if (validate) {
-      builder.setValidateResponse(() -> providerService.validateAllArtifactProviders(deploymentName));
+      builder
+          .setValidateResponse(() -> providerService.validateAllArtifactProviders(deploymentName));
     }
 
     return DaemonTaskHandler.submitTask(builder::build, "Get all providers");

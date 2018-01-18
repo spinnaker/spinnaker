@@ -22,7 +22,7 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.google.CommonGoogleCommandProperties;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.pubsubs.subscription.AbstractEditSubscriptionCommand;
-import com.netflix.spinnaker.halyard.cli.command.v1.converter.PathExpandingConverter;
+import com.netflix.spinnaker.halyard.cli.command.v1.converter.LocalFileConverter;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Subscription;
 import com.netflix.spinnaker.halyard.config.model.v1.pubsub.google.GoogleSubscription;
 
@@ -30,14 +30,14 @@ import com.netflix.spinnaker.halyard.config.model.v1.pubsub.google.GoogleSubscri
 public class GoogleEditSubscriptionCommand extends AbstractEditSubscriptionCommand<GoogleSubscription> {
   @Parameter(
       names = "--json-path",
-      converter = PathExpandingConverter.class,
+      converter = LocalFileConverter.class,
       description = CommonGoogleCommandProperties.JSON_PATH_DESCRIPTION
   )
   private String jsonPath;
 
   @Parameter(
       names = "--template-path",
-      converter = PathExpandingConverter.class,
+      converter = LocalFileConverter.class,
       description = GooglePubsubCommandProperties.TEMPLATE_PATH_DESCRIPTION
   )
   private String templatePath;

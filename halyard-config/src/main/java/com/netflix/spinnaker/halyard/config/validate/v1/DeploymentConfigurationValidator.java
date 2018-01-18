@@ -102,7 +102,7 @@ public class DeploymentConfigurationValidator extends Validator<DeploymentConfig
     String runningVersion = versionsService.getRunningHalyardVersion();
     boolean halyardSnapshotRelease = runningVersion.endsWith("SNAPSHOT");
 
-    if (isReleased) {
+    if (isReleased && !localGit) {
       String minimumHalyardVersion = releasedVersion.get().getMinimumHalyardVersion();
       if (!halyardSnapshotRelease
           && !StringUtils.isEmpty(minimumHalyardVersion)

@@ -16,12 +16,20 @@
 
 package com.netflix.spinnaker.halyard.config.model.v1.node;
 
+import static com.netflix.spinnaker.halyard.config.model.v1.node.NodeDiff.ChangeType.ADDED;
+import static com.netflix.spinnaker.halyard.config.model.v1.node.NodeDiff.ChangeType.EDITED;
+import static com.netflix.spinnaker.halyard.config.model.v1.node.NodeDiff.ChangeType.REMOVED;
+import static com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity.FATAL;
+import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
+import com.netflix.spinnaker.halyard.core.GlobalApplicationOptions;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -31,13 +39,15 @@ import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
-
-import static com.netflix.spinnaker.halyard.config.model.v1.node.NodeDiff.ChangeType.*;
-import static com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity.FATAL;
-import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
+import java.util.zip.CRC32;
 
 /**
  * The "Node" class represents a YAML node in our config hierarchy that can be validated.
@@ -47,6 +57,7 @@ import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
  */
 @Slf4j
 abstract public class Node implements Validatable {
+
   @JsonIgnore
   public abstract String getNodeName();
 
@@ -102,12 +113,15 @@ abstract public class Node implements Validatable {
       throw new IllegalArgumentException("Input fieldName may not be empty");
     }
 
-    log.info("Looking for options for field " + fieldName + " in node " + getNodeName() + " for type " + getClass().getSimpleName());
+    log.info(
+        "Looking for options for field " + fieldName + " in node " + getNodeName() + " for type "
+            + getClass().getSimpleName());
     String fieldOptions = fieldName + "Options";
     Method optionsMethod = null;
 
     try {
-      optionsMethod = this.getClass().getDeclaredMethod(fieldOptions, ConfigProblemSetBuilder.class);
+      optionsMethod = this.getClass()
+          .getDeclaredMethod(fieldOptions, ConfigProblemSetBuilder.class);
       optionsMethod.setAccessible(true);
 
       return (List<String>) optionsMethod.invoke(this, problemSetBuilder);
@@ -169,6 +183,31 @@ abstract public class Node implements Validatable {
     return res;
   }
 
+  public void stageLocalFiles(Path outputPath) {
+    if (!GlobalApplicationOptions.getInstance().isUseRemoteDaemon()) {
+      return;
+    }
+    localFiles().forEach(f -> {
+      try {
+        f.setAccessible(true);
+        String fContent = (String) f.get(this);
+        if (fContent != null) {
+          CRC32 crc = new CRC32();
+          crc.update(fContent.getBytes());
+          String fPath = Paths
+              .get(outputPath.toAbsolutePath().toString(), Long.toHexString(crc.getValue()))
+              .toString();
+          FileUtils.writeStringToFile(new File(fPath), fContent);
+          f.set(this, fPath);
+        }
+      } catch (IllegalAccessException | IOException e) {
+        throw new RuntimeException("Failed to get local files for node " + this.getNodeName(), e);
+      } finally {
+        f.setAccessible(false);
+      }
+    });
+  }
+
   public void recursiveConsume(Consumer<Node> consumer) {
     consumer.accept(this);
 
@@ -228,7 +267,7 @@ abstract public class Node implements Validatable {
           List.class.isAssignableFrom(f.getType()) ||
           Map.class.isAssignableFrom(f.getType()) ||
           f.getAnnotation(JsonIgnore.class) != null));
-      }).collect(Collectors.toList());
+    }).collect(Collectors.toList());
 
     Map<String, Object> res = new HashMap<>();
     for (Field field : fields) {
@@ -236,7 +275,8 @@ abstract public class Node implements Validatable {
       try {
         res.put(field.getName(), field.get(this));
       } catch (IllegalAccessException e) {
-        throw new RuntimeException("Failed to read field " + field.getName() + " in node " + getNodeName());
+        throw new RuntimeException(
+            "Failed to read field " + field.getName() + " in node " + getNodeName());
       }
       field.setAccessible(false);
     }
@@ -262,13 +302,15 @@ abstract public class Node implements Validatable {
     String tt = this.getClass().getSimpleName();
     String to = other.getClass().getSimpleName();
     if (!tt.equals(to)) {
-      throw new RuntimeException("Invalid comparision between unequal node types (" + tt + " != " + to + ")");
+      throw new RuntimeException(
+          "Invalid comparision between unequal node types (" + tt + " != " + to + ")");
     }
 
     String nnt = this.getNodeName();
     String nno = other.getNodeName();
     if (!nnt.equals(nno)) {
-      throw new RuntimeException("Invalid comparision between different nodes (" + nnt + " != " + nno + ")");
+      throw new RuntimeException(
+          "Invalid comparision between different nodes (" + nnt + " != " + nno + ")");
     }
 
     NodeDiff result = new NodeDiff().setChangeType(EDITED).setNode(this);
@@ -296,7 +338,6 @@ abstract public class Node implements Validatable {
 
       result.addFieldDiff(fc);
     }
-
 
     Map<String, Node> nts = this.serializedNodeFields();
     Map<String, Node> nos = other.serializedNodeFields();
@@ -349,7 +390,8 @@ abstract public class Node implements Validatable {
         }
 
         if (!fPath.startsWith(from)) {
-          throw new HalException(FATAL, "Local file: " + fPath + " has incorrect prefix - must match " + from);
+          throw new HalException(FATAL,
+              "Local file: " + fPath + " has incorrect prefix - must match " + from);
         }
 
         fPath = to + fPath.substring(from.length());

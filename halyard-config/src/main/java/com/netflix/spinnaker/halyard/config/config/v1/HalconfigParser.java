@@ -16,24 +16,41 @@
 
 package com.netflix.spinnaker.halyard.config.config.v1;
 
+import static com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity.FATAL;
+
+import com.netflix.discovery.converters.Auto;
 import com.netflix.spinnaker.halyard.config.error.v1.ParseConfigException;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Halconfig;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Node;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemBuilder;
 import com.netflix.spinnaker.halyard.core.AtomicFileWriter;
+import com.netflix.spinnaker.halyard.core.GlobalApplicationOptions;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.filefilter.TrueFileFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.parser.ParserException;
 import org.yaml.snakeyaml.scanner.ScannerException;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 /**
  * A parser for all Config read by Halyard at runtime.
@@ -46,6 +63,7 @@ import java.util.Map;
 @Slf4j
 @Component
 public class HalconfigParser {
+
   @Autowired
   String halconfigPath;
 
@@ -61,15 +79,18 @@ public class HalconfigParser {
   @Autowired
   Yaml yamlParser;
 
+  @Autowired
+  GlobalApplicationOptions globalApplicationOptions;
+
   private boolean useBackup = false;
   private String backupHalconfigPath;
 
   /**
    * Parse Halyard's config.
    *
-   * @see Halconfig
    * @param is is the input stream to read from.
    * @return the fully parsed halconfig.
+   * @see Halconfig
    */
   Halconfig parseHalconfig(InputStream is) throws IllegalArgumentException {
     try {
@@ -88,8 +109,8 @@ public class HalconfigParser {
   /**
    * Returns the current halconfig stored at the halconfigPath.
    *
-   * @see Halconfig
    * @return the fully parsed halconfig.
+   * @see Halconfig
    */
   public Halconfig getHalconfig() {
     Halconfig local = (Halconfig) DaemonTaskHandler.getContext();
@@ -141,6 +162,43 @@ public class HalconfigParser {
     saveConfigTo(Paths.get(halconfigPath));
   }
 
+  /**
+   * Deletes all files in the staging directory that are not referenced in the hal config.
+   */
+  public void cleanLocalFiles(Path stagingDirectoryPath) {
+    if (!globalApplicationOptions.isUseRemoteDaemon()) {
+      return;
+    }
+    Halconfig halconfig = getHalconfig();
+    Set<String> referencedFiles = new HashSet<String>();
+    Consumer<Node> fileFinder = n -> referencedFiles.addAll(n.localFiles().stream().map(f -> {
+      try {
+        f.setAccessible(true);
+        return (String) f.get(n);
+      } catch (IllegalAccessException e) {
+        throw new RuntimeException("Failed to clean staging directory: " + e.getMessage(), e);
+      } finally {
+        f.setAccessible(false);
+      }
+    }).filter(Objects::nonNull).collect(Collectors.toSet()));
+    halconfig.recursiveConsume(fileFinder);
+
+    Set<String> existingStagingFiles = ((List<File>) FileUtils
+        .listFiles(stagingDirectoryPath.toFile(), TrueFileFilter.INSTANCE,
+            TrueFileFilter.INSTANCE))
+        .stream().map(f -> f.getAbsolutePath()).collect(Collectors.toSet());
+
+    existingStagingFiles.removeAll(referencedFiles);
+
+    try {
+      for (String f : existingStagingFiles) {
+        FileUtils.forceDelete(new File(f));
+      }
+    } catch (IOException e) {
+      throw new HalException(FATAL, "Failed to clean staging directory: " + e.getMessage(), e);
+    }
+  }
+
   public void backupConfig() {
     // It's possible we are asked to backup the halconfig without having loaded it first.
     boolean backup = useBackup;
@@ -167,7 +225,7 @@ public class HalconfigParser {
       throw new HalException(
           new ConfigProblemBuilder(Severity.WARNING,
               "No halconfig changes have been made, nothing to write")
-          .build()
+              .build()
       );
     }
 
@@ -177,7 +235,8 @@ public class HalconfigParser {
       writer.write(yamlParser.dump(objectMapper.convertValue(local, Map.class)));
       writer.commit();
     } catch (IOException e) {
-      throw new HalException(Severity.FATAL, "Failure writing your halconfig to path \"" + halconfigPath + "\": " + e.getMessage(), e);
+      throw new HalException(Severity.FATAL,
+          "Failure writing your halconfig to path \"" + halconfigPath + "\": " + e.getMessage(), e);
     } finally {
       DaemonTaskHandler.setContext(null);
       if (writer != null) {

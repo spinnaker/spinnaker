@@ -52,6 +52,10 @@ public class HalconfigDirectoryStructure {
     return ensureRelativeHalDirectory(deploymentName, "staging");
   }
 
+  public Path getConfigPath(String deploymentName) {
+    return ensureRelativeHalDirectory(deploymentName, "config");
+  }
+
   public Path getStagingDependenciesPath(String deploymentName) {
     Path staging = getStagingPath(deploymentName);
     return ensureDirectory(Paths.get(staging.toString(), "dependencies"));

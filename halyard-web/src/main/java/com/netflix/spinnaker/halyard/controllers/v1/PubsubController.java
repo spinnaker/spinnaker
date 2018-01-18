@@ -19,6 +19,7 @@
 package com.netflix.spinnaker.halyard.controllers.v1;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.halyard.config.config.v1.HalconfigDirectoryStructure;
 import com.netflix.spinnaker.halyard.config.config.v1.HalconfigParser;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Halconfig;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Pubsub;
@@ -38,17 +39,22 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.nio.file.Path;
 import java.util.List;
 import java.util.function.Supplier;
 
 @RestController
 @RequestMapping("/v1/config/deployments/{deploymentName:.+}/pubsubs")
 public class PubsubController {
+
   @Autowired
   HalconfigParser halconfigParser;
 
   @Autowired
   PubsubService pubsubService;
+
+  @Autowired
+  HalconfigDirectoryStructure halconfigDirectoryStructure;
 
   @Autowired
   ObjectMapper objectMapper;
@@ -60,7 +66,7 @@ public class PubsubController {
       @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity) {
     StaticRequestBuilder<Pubsub> builder = new StaticRequestBuilder<>(
-            () -> pubsubService.getPubsub(deploymentName, pubsubName));
+        () -> pubsubService.getPubsub(deploymentName, pubsubName));
 
     builder.setSeverity(severity);
 
@@ -85,6 +91,8 @@ public class PubsubController {
 
     UpdateRequestBuilder builder = new UpdateRequestBuilder();
 
+    Path configPath = halconfigDirectoryStructure.getConfigPath(deploymentName);
+    builder.setStage(() -> pubsub.stageLocalFiles(configPath));
     builder.setUpdate(() -> pubsubService.setPubsub(deploymentName, pubsub));
     builder.setSeverity(severity);
 
@@ -96,6 +104,7 @@ public class PubsubController {
     builder.setValidate(doValidate);
     builder.setRevert(() -> halconfigParser.undoChanges());
     builder.setSave(() -> halconfigParser.saveConfig());
+    builder.setClean(() -> halconfigParser.cleanLocalFiles(configPath));
 
     return DaemonTaskHandler.submitTask(builder::build, "Edit the " + pubsubName + " pubsub");
   }
@@ -129,7 +138,7 @@ public class PubsubController {
       @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity) {
     StaticRequestBuilder<List<Pubsub>> builder = new StaticRequestBuilder<>(
-            () -> pubsubService.getAllPubsubs(deploymentName));
+        () -> pubsubService.getAllPubsubs(deploymentName));
 
     builder.setSeverity(severity);
 

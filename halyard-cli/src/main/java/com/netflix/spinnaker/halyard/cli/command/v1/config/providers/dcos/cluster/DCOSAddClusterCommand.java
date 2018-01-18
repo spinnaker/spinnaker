@@ -5,7 +5,7 @@ import lombok.Getter;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
-import com.netflix.spinnaker.halyard.cli.command.v1.converter.PathExpandingConverter;
+import com.netflix.spinnaker.halyard.cli.command.v1.converter.LocalFileConverter;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Provider;
@@ -33,7 +33,7 @@ public class DCOSAddClusterCommand extends AbstractClusterCommand {
 
   @Parameter(
       names = "--ca-cert-file",
-      converter = PathExpandingConverter.class,
+      converter = LocalFileConverter.class,
       description = DCOSClusterCommandProperties.CA_CERT_FILE_DESCRIPTION
   )
   String caCertFile;

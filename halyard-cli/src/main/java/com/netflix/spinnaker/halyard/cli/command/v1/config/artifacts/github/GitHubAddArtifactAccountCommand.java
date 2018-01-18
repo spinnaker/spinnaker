@@ -21,7 +21,7 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config.artifacts.github;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.artifacts.account.AbstractAddArtifactAccountCommand;
-import com.netflix.spinnaker.halyard.cli.command.v1.converter.PathExpandingConverter;
+import com.netflix.spinnaker.halyard.cli.command.v1.converter.LocalFileConverter;
 import com.netflix.spinnaker.halyard.config.model.v1.artifacts.github.GitHubArtifactAccount;
 import com.netflix.spinnaker.halyard.config.model.v1.node.ArtifactAccount;
 
@@ -40,7 +40,7 @@ public class GitHubAddArtifactAccountCommand extends AbstractAddArtifactAccountC
   private String password;
   @Parameter(
       names = "--username-password-file",
-      converter = PathExpandingConverter.class,
+      converter = LocalFileConverter.class,
       description = "File containing \"username:password\" to use for GitHub authentication"
   )
   private String usernamePasswordFile;
@@ -52,7 +52,7 @@ public class GitHubAddArtifactAccountCommand extends AbstractAddArtifactAccountC
   private String token;
   @Parameter(
       names = "--token-file",
-      converter = PathExpandingConverter.class,
+      converter = LocalFileConverter.class,
       description = "File containing a GitHub authentication token"
   )
   private String tokenFile;

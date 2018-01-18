@@ -18,6 +18,7 @@
 package com.netflix.spinnaker.halyard.controllers.v1;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.halyard.config.config.v1.HalconfigDirectoryStructure;
 import com.netflix.spinnaker.halyard.config.config.v1.HalconfigParser;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Cis;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Halconfig;
@@ -30,14 +31,21 @@ import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
+import java.nio.file.Path;
 import java.util.List;
 import java.util.function.Supplier;
 
 @RestController
 @RequestMapping("/v1/config/deployments/{deploymentName:.+}/ci/{ciName:.+}/masters")
 public class MasterController {
+
   @Autowired
   MasterService masterService;
 
@@ -45,14 +53,18 @@ public class MasterController {
   HalconfigParser halconfigParser;
 
   @Autowired
+  HalconfigDirectoryStructure halconfigDirectoryStructure;
+
+  @Autowired
   ObjectMapper objectMapper;
 
   @RequestMapping(value = "/", method = RequestMethod.GET)
-  DaemonTask<Halconfig, List<Master>> masters(@PathVariable String deploymentName, @PathVariable String ciName,
+  DaemonTask<Halconfig, List<Master>> masters(@PathVariable String deploymentName,
+      @PathVariable String ciName,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity) {
     StaticRequestBuilder<List<Master>> builder = new StaticRequestBuilder<>(
-            () -> masterService.getAllMasters(deploymentName, ciName));
+        () -> masterService.getAllMasters(deploymentName, ciName));
     builder.setSeverity(severity);
 
     if (validate) {
@@ -70,11 +82,12 @@ public class MasterController {
       @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity) {
     StaticRequestBuilder<Master> builder = new StaticRequestBuilder<>(
-            () -> masterService.getCiMaster(deploymentName, ciName, masterName));
+        () -> masterService.getCiMaster(deploymentName, ciName, masterName));
     builder.setSeverity(severity);
 
     if (validate) {
-      builder.setValidateResponse(() -> masterService.validateMaster(deploymentName, ciName, masterName));
+      builder.setValidateResponse(
+          () -> masterService.validateMaster(deploymentName, ciName, masterName));
     }
 
     return DaemonTaskHandler.submitTask(builder::build, "Get the " + masterName + " master");
@@ -100,6 +113,8 @@ public class MasterController {
     builder.setValidate(doValidate);
     builder.setRevert(() -> halconfigParser.undoChanges());
     builder.setSave(() -> halconfigParser.saveConfig());
+    Path configPath = halconfigDirectoryStructure.getConfigPath(deploymentName);
+    builder.setClean(() -> halconfigParser.cleanLocalFiles(configPath));
 
     return DaemonTaskHandler.submitTask(builder::build, "Delete the " + masterName + " master");
   }
@@ -119,6 +134,8 @@ public class MasterController {
 
     UpdateRequestBuilder builder = new UpdateRequestBuilder();
 
+    Path configPath = halconfigDirectoryStructure.getConfigPath(deploymentName);
+    builder.setStage(() -> master.stageLocalFiles(configPath));
     builder.setUpdate(() -> masterService.setMaster(deploymentName, ciName, masterName, master));
     builder.setSeverity(severity);
 
@@ -130,6 +147,7 @@ public class MasterController {
     builder.setValidate(doValidate);
     builder.setRevert(() -> halconfigParser.undoChanges());
     builder.setSave(() -> halconfigParser.saveConfig());
+    builder.setClean(() -> halconfigParser.cleanLocalFiles(configPath));
 
     return DaemonTaskHandler.submitTask(builder::build, "Edit the " + masterName + " master");
   }
@@ -147,8 +165,10 @@ public class MasterController {
     );
 
     UpdateRequestBuilder builder = new UpdateRequestBuilder();
-    builder.setSeverity(severity);
 
+    Path configPath = halconfigDirectoryStructure.getConfigPath(deploymentName);
+    builder.setStage(() -> master.stageLocalFiles(configPath));
+    builder.setSeverity(severity);
     builder.setUpdate(() -> masterService.addMaster(deploymentName, ciName, master));
 
     Supplier<ProblemSet> doValidate = ProblemSet::new;
@@ -159,6 +179,7 @@ public class MasterController {
     builder.setValidate(doValidate);
     builder.setRevert(() -> halconfigParser.undoChanges());
     builder.setSave(() -> halconfigParser.saveConfig());
+    builder.setClean(() -> halconfigParser.cleanLocalFiles(configPath));
 
     return DaemonTaskHandler.submitTask(builder::build, "Add the " + master.getName() + " master");
   }

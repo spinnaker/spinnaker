@@ -19,7 +19,7 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config.security.authz.file;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.security.authz.AbstractEditRoleProviderCommand;
-import com.netflix.spinnaker.halyard.cli.command.v1.converter.PathExpandingConverter;
+import com.netflix.spinnaker.halyard.cli.command.v1.converter.LocalFileConverter;
 import com.netflix.spinnaker.halyard.config.model.v1.security.FileRoleProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.security.GroupMembership;
 import com.netflix.spinnaker.halyard.config.model.v1.security.RoleProvider;
@@ -34,7 +34,7 @@ public class EditFileRoleProviderCommand extends AbstractEditRoleProviderCommand
 
   @Parameter(
       names = "--file-path",
-      converter = PathExpandingConverter.class,
+      converter = LocalFileConverter.class,
       description = "A path to a file describing the roles of each user."
   )
   private String filePath;

@@ -81,7 +81,7 @@ few things in mind:
 2. If your parameter corresponds to a sensitive data, mark it as a password so
    it doesn't have to appear on STDIN. See the `--password` parameter
    [here](https://github.com/spinnaker/halyard/blob/master/halyard-cli/src/main/java/com/netflix/spinnaker/halyard/cli/command/v1/config/providers/dockerRegistry/DockerRegistryAddAccountCommand.java).
-3. If your parameter is a local file, use the `PathExpandingConverter` so the
+3. If your parameter is a local file, use the `LocalFileConverter` so the
    user can pass relative paths to the CLI and have the daemon understand them.
    See the `--password-file` parameter
    [here](https://github.com/spinnaker/halyard/blob/master/halyard-cli/src/main/java/com/netflix/spinnaker/halyard/cli/command/v1/config/providers/dockerRegistry/DockerRegistryAddAccountCommand.java).

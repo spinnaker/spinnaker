@@ -64,6 +64,7 @@ abstract public class ProfileFactory {
   }
 
   abstract protected void setProfile(Profile profile, DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints);
+
   abstract protected Profile getBaseProfile(String name, String version, String outputFile);
 
   abstract public SpinnakerArtifact getArtifact();

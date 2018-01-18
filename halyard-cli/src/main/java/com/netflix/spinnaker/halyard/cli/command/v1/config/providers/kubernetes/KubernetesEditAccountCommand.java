@@ -19,7 +19,7 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config.providers.kubernetes
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.account.AbstractEditAccountCommand;
-import com.netflix.spinnaker.halyard.cli.command.v1.converter.PathExpandingConverter;
+import com.netflix.spinnaker.halyard.cli.command.v1.converter.LocalFileConverter;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.containers.DockerRegistryReference;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes.KubernetesAccount;
@@ -42,7 +42,7 @@ public class KubernetesEditAccountCommand extends AbstractEditAccountCommand<Kub
 
   @Parameter(
       names = "--kubeconfig-file",
-      converter = PathExpandingConverter.class,
+      converter = LocalFileConverter.class,
       description = KubernetesCommandProperties.KUBECONFIG_DESCRIPTION
   )
   private String kubeconfigFile;

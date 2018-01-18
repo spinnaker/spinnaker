@@ -20,7 +20,7 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config.security.ui;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.AbstractConfigCommand;
-import com.netflix.spinnaker.halyard.cli.command.v1.converter.PathExpandingConverter;
+import com.netflix.spinnaker.halyard.cli.command.v1.converter.LocalFileConverter;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
@@ -40,14 +40,14 @@ public class ApacheSslEditCommand extends AbstractConfigCommand {
 
   @Parameter(
       names = "--ssl-certificate-file",
-      converter = PathExpandingConverter.class,
+      converter = LocalFileConverter.class,
       description = "Path to your .crt file."
   )
   String sslCertificateFile;
 
   @Parameter(
       names = "--ssl-certificate-key-file",
-      converter = PathExpandingConverter.class,
+      converter = LocalFileConverter.class,
       description = "Path to your .key file."
   )
   String sslCertificateKeyFile;

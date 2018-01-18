@@ -19,6 +19,7 @@
 package com.netflix.spinnaker.halyard.controllers.v1;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.halyard.config.config.v1.HalconfigDirectoryStructure;
 import com.netflix.spinnaker.halyard.config.config.v1.HalconfigParser;
 import com.netflix.spinnaker.halyard.config.model.v1.node.ArtifactAccount;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Artifacts;
@@ -30,6 +31,7 @@ import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
 import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
+import java.nio.file.Path;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -49,6 +51,9 @@ public class ArtifactAccountController {
 
   @Autowired
   HalconfigParser halconfigParser;
+
+  @Autowired
+  HalconfigDirectoryStructure halconfigDirectoryStructure;
 
   @Autowired
   ObjectMapper objectMapper;
@@ -108,6 +113,8 @@ public class ArtifactAccountController {
     builder.setValidate(doValidate);
     builder.setRevert(() -> halconfigParser.undoChanges());
     builder.setSave(() -> halconfigParser.saveConfig());
+    Path configPath = halconfigDirectoryStructure.getConfigPath(deploymentName);
+    builder.setClean(() -> halconfigParser.cleanLocalFiles(configPath));
 
     return DaemonTaskHandler.submitTask(builder::build, "Delete the " + accountName + " artifact account");
   }
@@ -127,6 +134,8 @@ public class ArtifactAccountController {
 
     UpdateRequestBuilder builder = new UpdateRequestBuilder();
 
+    Path configPath = halconfigDirectoryStructure.getConfigPath(deploymentName);
+    builder.setStage(() -> account.stageLocalFiles(configPath));
     builder.setUpdate(() -> accountService.setArtifactAccount(deploymentName, providerName, accountName, account));
     builder.setSeverity(severity);
 
@@ -138,6 +147,7 @@ public class ArtifactAccountController {
     builder.setValidate(doValidate);
     builder.setRevert(() -> halconfigParser.undoChanges());
     builder.setSave(() -> halconfigParser.saveConfig());
+    builder.setClean(() -> halconfigParser.cleanLocalFiles(configPath));
 
     return DaemonTaskHandler.submitTask(builder::build, "Edit the " + accountName + " artifact account");
   }
@@ -155,8 +165,10 @@ public class ArtifactAccountController {
     );
 
     UpdateRequestBuilder builder = new UpdateRequestBuilder();
-    builder.setSeverity(severity);
 
+    Path configPath = halconfigDirectoryStructure.getConfigPath(deploymentName);
+    builder.setStage(() -> account.stageLocalFiles(configPath));
+    builder.setSeverity(severity);
     builder.setUpdate(() -> accountService.addArtifactAccount(deploymentName, providerName, account));
 
     Supplier<ProblemSet> doValidate = ProblemSet::new;
@@ -167,6 +179,7 @@ public class ArtifactAccountController {
     builder.setValidate(doValidate);
     builder.setRevert(() -> halconfigParser.undoChanges());
     builder.setSave(() -> halconfigParser.saveConfig());
+    builder.setClean(() -> halconfigParser.cleanLocalFiles(configPath));
 
     return DaemonTaskHandler.submitTask(builder::build, "Add the " + account.getName() + " artifact account");
   }

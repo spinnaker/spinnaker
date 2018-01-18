@@ -20,7 +20,7 @@ package com.netflix.spinnaker.halyard.cli.command.v1.admin;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
-import com.netflix.spinnaker.halyard.cli.command.v1.converter.PathExpandingConverter;
+import com.netflix.spinnaker.halyard.cli.command.v1.converter.LocalFileConverter;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import lombok.AccessLevel;
@@ -36,7 +36,7 @@ public class PublishBomCommand extends NestableCommand {
 
   @Parameter(
       names = "--bom-path",
-      converter = PathExpandingConverter.class,
+      converter = LocalFileConverter.class,
       required = true,
       description = "The path to the BOM owning the artifact to publish."
   )

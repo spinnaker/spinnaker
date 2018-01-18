@@ -19,7 +19,7 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config.providers.dockerRegi
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.account.AbstractEditAccountCommand;
-import com.netflix.spinnaker.halyard.cli.command.v1.converter.PathExpandingConverter;
+import com.netflix.spinnaker.halyard.cli.command.v1.converter.LocalFileConverter;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.dockerRegistry.DockerRegistryAccount;
 import java.util.ArrayList;
@@ -65,7 +65,7 @@ public class DockerRegistryEditAccountCommand extends AbstractEditAccountCommand
 
   @Parameter(
       names = "--password-file",
-      converter = PathExpandingConverter.class,
+      converter = LocalFileConverter.class,
       description = DockerRegistryCommandProperties.PASSWORD_FILE_DESCRIPTION
   )
   private String passwordFile;
