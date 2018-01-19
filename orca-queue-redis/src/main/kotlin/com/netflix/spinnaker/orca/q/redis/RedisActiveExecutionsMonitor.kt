@@ -26,12 +26,15 @@ import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundExceptio
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Qualifier
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.ApplicationListener
-import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import redis.clients.jedis.Jedis
 import redis.clients.util.Pool
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicLong
 
 /**
@@ -45,12 +48,14 @@ import java.util.concurrent.atomic.AtomicLong
  *
  * TODO rz - Add cloudProviders, accounts as tags
  */
-
+@Component
 class RedisActiveExecutionsMonitor(
   private val executionRepository: ExecutionRepository,
   @Qualifier("jedisPool") private val pool: Pool<Jedis>,
   private val objectMapper: ObjectMapper,
-  private val registry: Registry
+  private val registry: Registry,
+  @Value("\${queue.monitor.activeExecutions.refresh.frequency.ms:60000}") refreshFrequencyMs: Long,
+  @Value("\${queue.monitor.activeExecutions.cleanup.frequency.ms:300000}") cleanupFrequencyMs: Long
 ) : ApplicationListener<ExecutionEvent> {
 
   private val log = LoggerFactory.getLogger(javaClass)
@@ -59,15 +64,53 @@ class RedisActiveExecutionsMonitor(
 
   private val snapshot: MutableMap<Id, AtomicLong> = ConcurrentHashMap()
 
-  @Scheduled(fixedRateString = "\${queue.monitor.activeExecutions.register.frequency.ms:60000}")
-  fun registerGauges() {
+  private val executor = Executors.newScheduledThreadPool(2)
+
+  private val activePipelineCounter = registry.gauge(
+    registry.createId("executions.active").withTag("executionType", Execution.ExecutionType.PIPELINE.toString()),
+    AtomicInteger(0)
+  )
+
+  private val activeOrchestrationCounter = registry.gauge(
+    registry.createId("executions.active").withTag("executionType", Execution.ExecutionType.ORCHESTRATION.toString()),
+    AtomicInteger(0)
+  )
+
+  init {
+    executor.scheduleWithFixedDelay(
+      {
+        try {
+          refreshGauges()
+        } catch (e : Exception) {
+          log.error("Unable to refresh active execution gauges", e)
+        }
+      },
+      0,
+      refreshFrequencyMs,
+      TimeUnit.MILLISECONDS
+    )
+
+    executor.scheduleWithFixedDelay(
+      {
+        try {
+          cleanup()
+        } catch (e : Exception) {
+          log.error("Unable to cleanup orphaned active executions", e)
+        }
+      },
+      0,
+      cleanupFrequencyMs,
+      TimeUnit.MILLISECONDS
+    )
+  }
+
+  fun refreshGauges() {
     snapshotActivity().also { executions ->
       log.info("Registering new active execution gauges (active: ${executions.size})")
 
-      executions
-        .map { it.getMetricId() }
-        .filter { expectedId -> registry.gauges().noneMatch { it.id() == expectedId } }
-        .forEach { registry.gauge(it, snapshot[it]) }
+      val executionByType = executions.groupBy { it.type }
+      activePipelineCounter.set(executionByType.get(Execution.ExecutionType.PIPELINE)?.size ?: 0)
+      activeOrchestrationCounter.set(executionByType.get(Execution.ExecutionType.ORCHESTRATION)?.size ?: 0)
     }
   }
 
@@ -90,7 +133,6 @@ class RedisActiveExecutionsMonitor(
     return activeExecutions
   }
 
-  @Scheduled(fixedDelayString = "\${queue.monitor.activeExecutions.cleanup.frequency.ms:300000}")
   fun cleanup() {
     val orphans = getActiveExecutions()
       .map {
