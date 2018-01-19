@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Google, Inc.
+ * Copyright 2018 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -13,14 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
+ *
  */
 
-package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.kubernetes;
+package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.kubernetes.v1;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ClouddriverService;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.Front50Service;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.HasServiceSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.DistributedLogCollector;
 import lombok.Data;
@@ -34,10 +35,10 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = true)
 @Component
 @Data
-public class KubernetesClouddriverService extends ClouddriverService implements KubernetesDistributedService<ClouddriverService.Clouddriver> {
+public class KubernetesV1Front50Service extends Front50Service implements KubernetesV1DistributedService<Front50Service.Front50> {
   @Delegate
   @Autowired
-  KubernetesDistributedServiceDelegate distributedServiceDelegate;
+  KubernetesV1DistributedServiceDelegate distributedServiceDelegate;
 
   @Delegate(excludes = HasServiceSettings.class)
   public DistributedLogCollector getLogCollector() {
@@ -53,9 +54,9 @@ public class KubernetesClouddriverService extends ClouddriverService implements 
 
   @Override
   public Settings buildServiceSettings(DeploymentConfiguration deploymentConfiguration) {
-    KubernetesSharedServiceSettings kubernetesSharedServiceSettings = new KubernetesSharedServiceSettings(deploymentConfiguration);
+    KubernetesV1SharedServiceSettings kubernetesV1SharedServiceSettings = new KubernetesV1SharedServiceSettings(deploymentConfiguration);
     Settings settings = new Settings();
-    String location = kubernetesSharedServiceSettings.getDeployLocation();
+    String location = kubernetesV1SharedServiceSettings.getDeployLocation();
     settings.setAddress(buildAddress(location))
         .setArtifactId(getArtifactId(deploymentConfiguration.getName()))
         .setLocation(location)
@@ -64,7 +65,7 @@ public class KubernetesClouddriverService extends ClouddriverService implements 
   }
 
   public String getArtifactId(String deploymentName) {
-    return KubernetesDistributedService.super.getArtifactId(deploymentName);
+    return KubernetesV1DistributedService.super.getArtifactId(deploymentName);
   }
 
   final DeployPriority deployPriority = new DeployPriority(4);

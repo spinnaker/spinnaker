@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Google, Inc.
+ * Copyright 2018 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
+ *
  */
 
-package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.kubernetes;
+package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.kubernetes.v1;
 
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.KubernetesUtil;
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.description.servergroup.KubernetesImageDescription;
@@ -30,17 +31,17 @@ import org.springframework.stereotype.Component;
 @EqualsAndHashCode(callSuper = true)
 @Component
 @Data
-public class KubernetesMonitoringDaemonService extends SpinnakerMonitoringDaemonService {
+public class KubernetesV1MonitoringDaemonService extends SpinnakerMonitoringDaemonService {
   @Delegate
   @Autowired
-  KubernetesDistributedServiceDelegate distributedServiceDelegate;
+  KubernetesV1DistributedServiceDelegate distributedServiceDelegate;
 
   @Override
   public Settings buildServiceSettings(DeploymentConfiguration deploymentConfiguration) {
-    KubernetesSharedServiceSettings kubernetesSharedServiceSettings = new KubernetesSharedServiceSettings(deploymentConfiguration);
+    KubernetesV1SharedServiceSettings kubernetesV1SharedServiceSettings = new KubernetesV1SharedServiceSettings(deploymentConfiguration);
     Settings settings = new Settings();
     settings.setArtifactId(getArtifactId(deploymentConfiguration.getName()))
-        .setLocation(kubernetesSharedServiceSettings.getDeployLocation())
+        .setLocation(kubernetesV1SharedServiceSettings.getDeployLocation())
         .setEnabled(deploymentConfiguration.getMetricStores().isEnabled());
     return settings;
   }

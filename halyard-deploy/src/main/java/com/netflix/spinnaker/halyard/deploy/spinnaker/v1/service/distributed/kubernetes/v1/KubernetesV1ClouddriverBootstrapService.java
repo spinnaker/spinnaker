@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Google, Inc.
+ * Copyright 2018 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -13,12 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
+ *
  */
 
-package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.kubernetes;
+package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.kubernetes.v1;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.EchoService;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ClouddriverBootstrapService;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ClouddriverService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.HasServiceSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.DistributedLogCollector;
 import lombok.Data;
@@ -27,13 +29,16 @@ import lombok.experimental.Delegate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @EqualsAndHashCode(callSuper = true)
 @Component
 @Data
-public class KubernetesEchoService extends EchoService implements KubernetesDistributedService<EchoService.Echo> {
+public class KubernetesV1ClouddriverBootstrapService extends ClouddriverBootstrapService implements KubernetesV1DistributedService<ClouddriverService.Clouddriver> {
   @Delegate
   @Autowired
-  KubernetesDistributedServiceDelegate distributedServiceDelegate;
+  KubernetesV1DistributedServiceDelegate distributedServiceDelegate;
 
   @Delegate(excludes = HasServiceSettings.class)
   public DistributedLogCollector getLogCollector() {
@@ -42,20 +47,23 @@ public class KubernetesEchoService extends EchoService implements KubernetesDist
 
   @Override
   public Settings buildServiceSettings(DeploymentConfiguration deploymentConfiguration) {
-    KubernetesSharedServiceSettings kubernetesSharedServiceSettings = new KubernetesSharedServiceSettings(deploymentConfiguration);
-    Settings settings = new Settings();
-    String location = kubernetesSharedServiceSettings.getDeployLocation();
+    List<String> profiles = new ArrayList<>();
+    profiles.add("bootstrap");
+    KubernetesV1SharedServiceSettings kubernetesV1SharedServiceSettings = new KubernetesV1SharedServiceSettings(deploymentConfiguration);
+    Settings settings = new Settings(profiles);
+    String location = kubernetesV1SharedServiceSettings.getDeployLocation();
     settings.setAddress(buildAddress(location))
         .setArtifactId(getArtifactId(deploymentConfiguration.getName()))
         .setLocation(location)
+        .setMonitored(false)
         .setEnabled(true);
     return settings;
   }
 
   public String getArtifactId(String deploymentName) {
-    return KubernetesDistributedService.super.getArtifactId(deploymentName);
+    return KubernetesV1DistributedService.super.getArtifactId(deploymentName);
   }
 
-  final DeployPriority deployPriority = new DeployPriority(0);
-  final boolean requiredToBootstrap = false;
+  final DeployPriority deployPriority = new DeployPriority(10);
+  final boolean requiredToBootstrap = true;
 }

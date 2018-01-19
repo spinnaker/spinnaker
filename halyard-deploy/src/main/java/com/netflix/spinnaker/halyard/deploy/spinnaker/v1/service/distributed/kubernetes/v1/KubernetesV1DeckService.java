@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Google, Inc.
+ * Copyright 2018 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
+ *
  */
 
-package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.kubernetes;
+package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.kubernetes.v1;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
@@ -38,10 +39,10 @@ import java.util.Optional;
 @EqualsAndHashCode(callSuper = true)
 @Component
 @Data
-public class KubernetesDeckService extends DeckService implements KubernetesDistributedService<DeckService.Deck> {
+public class KubernetesV1DeckService extends DeckService implements KubernetesV1DistributedService<DeckService.Deck> {
   @Delegate
   @Autowired
-  KubernetesDistributedServiceDelegate distributedServiceDelegate;
+  KubernetesV1DistributedServiceDelegate distributedServiceDelegate;
 
   @Autowired
   DeckDockerProfileFactory deckDockerProfileFactory;
@@ -55,16 +56,16 @@ public class KubernetesDeckService extends DeckService implements KubernetesDist
 
   @Override
   public Settings buildServiceSettings(DeploymentConfiguration deploymentConfiguration) {
-    KubernetesSharedServiceSettings kubernetesSharedServiceSettings = new KubernetesSharedServiceSettings(deploymentConfiguration);
+    KubernetesV1SharedServiceSettings kubernetesV1SharedServiceSettings = new KubernetesV1SharedServiceSettings(deploymentConfiguration);
     Settings settings = new Settings(deploymentConfiguration.getSecurity().getUiSecurity());
     settings.setArtifactId(getArtifactId(deploymentConfiguration.getName()))
-        .setLocation(kubernetesSharedServiceSettings.getDeployLocation())
+        .setLocation(kubernetesV1SharedServiceSettings.getDeployLocation())
         .setEnabled(true);
     return settings;
   }
 
   public String getArtifactId(String deploymentName) {
-    return KubernetesDistributedService.super.getArtifactId(deploymentName);
+    return KubernetesV1DistributedService.super.getArtifactId(deploymentName);
   }
 
   @Override

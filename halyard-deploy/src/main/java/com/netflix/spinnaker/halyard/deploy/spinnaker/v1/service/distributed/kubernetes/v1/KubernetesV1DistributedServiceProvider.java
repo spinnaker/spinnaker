@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Google, Inc.
+ * Copyright 2018 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
+ *
  */
 
-package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.kubernetes;
+package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.kubernetes.v1;
 
 import com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes.KubernetesAccount;
 import com.netflix.spinnaker.halyard.core.RemoteAction;
@@ -27,56 +28,56 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-public class KubernetesDistributedServiceProvider extends DistributedServiceProvider<KubernetesAccount> {
+public class KubernetesV1DistributedServiceProvider extends DistributedServiceProvider<KubernetesAccount> {
   @Autowired
-  KubernetesClouddriverBootstrapService clouddriverBootstrapService;
+  KubernetesV1ClouddriverBootstrapService clouddriverBootstrapService;
 
   @Autowired
-  KubernetesClouddriverService clouddriverService;
+  KubernetesV1ClouddriverService clouddriverService;
 
   @Autowired
-  KubernetesDeckService deckService;
+  KubernetesV1DeckService deckService;
 
   @Autowired
-  KubernetesEchoService echoService;
+  KubernetesV1EchoService echoService;
 
   @Autowired
-  KubernetesFiatService fiatService;
+  KubernetesV1FiatService fiatService;
 
   @Autowired
-  KubernetesFront50Service front50Service;
+  KubernetesV1Front50Service front50Service;
 
   @Autowired
-  KubernetesGateService gateService;
+  KubernetesV1GateService gateService;
 
   @Autowired
-  KubernetesIgorService igorService;
+  KubernetesV1IgorService igorService;
 
   @Autowired
-  KubernetesMonitoringDaemonService monitoringDaemonService;
+  KubernetesV1MonitoringDaemonService monitoringDaemonService;
 
   @Autowired
-  KubernetesOrcaBootstrapService orcaBootstrapService;
+  KubernetesV1OrcaBootstrapService orcaBootstrapService;
 
   @Autowired
-  KubernetesOrcaService orcaService;
+  KubernetesV1OrcaService orcaService;
 
   @Autowired
-  KubernetesRedisBootstrapService redisBootstrapService;
+  KubernetesV1RedisBootstrapService redisBootstrapService;
 
   @Autowired
-  KubernetesRedisService redisService;
+  KubernetesV1RedisService redisService;
 
   @Autowired
-  KubernetesRoscoService roscoService;
+  KubernetesV1RoscoService roscoService;
 
   // For serialization
-  public KubernetesDistributedServiceProvider() {}
+  public KubernetesV1DistributedServiceProvider() {}
 
   @Override
   public RemoteAction clean(AccountDeploymentDetails<KubernetesAccount> details, SpinnakerRuntimeSettings runtimeSettings) {
-    KubernetesSharedServiceSettings kubernetesSharedServiceSettings = new KubernetesSharedServiceSettings(details.getDeploymentConfiguration());
-    KubernetesProviderUtils.kubectlDeleteNamespaceCommand(DaemonTaskHandler.getJobExecutor(), details, kubernetesSharedServiceSettings.getDeployLocation());
+    KubernetesV1SharedServiceSettings kubernetesV1SharedServiceSettings = new KubernetesV1SharedServiceSettings(details.getDeploymentConfiguration());
+    KubernetesV1ProviderUtils.kubectlDeleteNamespaceCommand(DaemonTaskHandler.getJobExecutor(), details, kubernetesV1SharedServiceSettings.getDeployLocation());
     return new RemoteAction();
   }
 }

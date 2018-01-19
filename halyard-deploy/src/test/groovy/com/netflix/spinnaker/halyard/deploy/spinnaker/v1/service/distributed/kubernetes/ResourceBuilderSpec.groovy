@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.kubernetes
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentEnvironment
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.kubernetes.v1.ResourceBuilder
 import spock.lang.Specification
 import spock.lang.Unroll
 

@@ -28,7 +28,7 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerServic
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.bake.debian.BakeDebianServiceProvider;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.DistributedServiceProvider;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.google.GoogleDistributedServiceProvider;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.kubernetes.KubernetesDistributedServiceProvider;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.kubernetes.v1.KubernetesV1DistributedServiceProvider;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.local.debian.LocalDebianServiceProvider;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.local.git.LocalGitServiceProvider;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,7 +40,7 @@ public class ServiceProviderFactory {
   AccountService accountService;
 
   @Autowired
-  KubernetesDistributedServiceProvider kubernetesDistributedServiceProvider;
+  KubernetesV1DistributedServiceProvider kubernetesV1DistributedServiceProvider;
 
   @Autowired
   GoogleDistributedServiceProvider googleDistributedServiceProvider;
@@ -85,7 +85,7 @@ public class ServiceProviderFactory {
 
     switch (providerType) {
       case KUBERNETES:
-        return kubernetesDistributedServiceProvider;
+        return kubernetesV1DistributedServiceProvider;
       case GOOGLE:
         return googleDistributedServiceProvider;
       default:

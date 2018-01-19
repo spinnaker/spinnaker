@@ -31,12 +31,13 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceSettings
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerMonitoringDaemonService
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.DistributedService
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.kubernetes.v1.KubernetesV1DistributedService
 import io.fabric8.kubernetes.api.model.LocalObjectReference
 import io.fabric8.kubernetes.api.model.extensions.ReplicaSetBuilder
 import spock.lang.Specification
 import spock.lang.Unroll
 
-class KubernetesDistributedServiceSpec extends Specification {
+class KubernetesV1DistributedServiceSpec extends Specification {
 
     @Unroll()
     def "applies request and limit overrides: #description"() {
@@ -212,8 +213,8 @@ class KubernetesDistributedServiceSpec extends Specification {
         "is multiple items" | ["item1", "item2"]   | [new LocalObjectReference("item1"), new LocalObjectReference("item2")]
     }
 
-    private KubernetesDistributedService createServiceTestDouble() {
-        new KubernetesDistributedService() {
+    private KubernetesV1DistributedService createServiceTestDouble() {
+        new KubernetesV1DistributedService() {
             @Override
             String getDockerRegistry(String deploymentName) {
                 return null

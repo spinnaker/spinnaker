@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Google, Inc.
+ * Copyright 2018 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
  *
  */
 
-package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.kubernetes;
+package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.kubernetes.v1;
 
 import com.netflix.spinnaker.halyard.config.config.v1.ArtifactSourcesConfig;
 import com.netflix.spinnaker.halyard.core.registry.v1.BillOfMaterials;
@@ -27,13 +27,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-public class KubernetesDistributedServiceDelegate {
+public class KubernetesV1DistributedServiceDelegate {
   @Autowired
   ArtifactSourcesConfig artifactSourcesConfig;
 
   @Autowired
   @Getter
-  KubernetesDistributedLogCollectorFactory logCollectorFactory;
+  KubernetesV1DistributedLogCollectorFactory logCollectorFactory;
 
   public String getDockerRegistry(String deploymentName) {
     BillOfMaterials.ArtifactSources artifactSources = artifactService.getArtifactSources(deploymentName);
@@ -50,5 +50,5 @@ public class KubernetesDistributedServiceDelegate {
 
   @Autowired
   @Getter
-  KubernetesMonitoringDaemonService monitoringDaemonService;
+  KubernetesV1MonitoringDaemonService monitoringDaemonService;
 }

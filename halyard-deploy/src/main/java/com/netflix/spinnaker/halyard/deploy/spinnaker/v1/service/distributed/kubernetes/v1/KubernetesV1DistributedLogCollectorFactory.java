@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Google, Inc.
+ * Copyright 2018 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
  *
  */
 
-package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.kubernetes;
+package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.kubernetes.v1;
 
 import com.netflix.spinnaker.halyard.config.config.v1.HalconfigDirectoryStructure;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes.KubernetesAccount;
@@ -34,7 +34,7 @@ import org.springframework.stereotype.Component;
 import java.io.File;
 
 @Component
-public class KubernetesDistributedLogCollectorFactory {
+public class KubernetesV1DistributedLogCollectorFactory {
   public <T> DistributedLogCollector build(HasServiceSettings<T> service) {
     return new KubernetesDistributedLogCollector<>(service);
   }
@@ -61,7 +61,7 @@ public class KubernetesDistributedLogCollectorFactory {
       ServiceSettings settings = runtimeSettings.getServiceSettings(getService());
       DaemonTaskHandler.newStage("Reading " + getService().getCanonicalName() + " logs");
       DaemonTaskHandler.message("Reading container " + getServiceName() + "'s logs");
-      KubernetesProviderUtils.storeInstanceLogs(
+      KubernetesV1ProviderUtils.storeInstanceLogs(
           DaemonTaskHandler.getJobExecutor(),
           details,
           settings.getLocation(),
@@ -76,7 +76,7 @@ public class KubernetesDistributedLogCollectorFactory {
         SidecarService sidecarService = (SidecarService) rawSidecarService;
         String sidecarName = sidecarService.getService().getServiceName();
         DaemonTaskHandler.message("Reading container " + sidecarName + "'s logs");
-        KubernetesProviderUtils.storeInstanceLogs(
+        KubernetesV1ProviderUtils.storeInstanceLogs(
             DaemonTaskHandler.getJobExecutor(),
             details,
             settings.getLocation(),

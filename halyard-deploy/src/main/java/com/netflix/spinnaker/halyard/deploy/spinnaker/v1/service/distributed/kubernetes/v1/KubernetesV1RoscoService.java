@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Google, Inc.
+ * Copyright 2018 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -13,17 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
+ *
  */
 
-package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.kubernetes;
+package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.kubernetes.v1;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
-import com.netflix.spinnaker.halyard.core.job.v1.JobExecutor;
-import com.netflix.spinnaker.halyard.deploy.services.v1.ArtifactService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.HasServiceSettings;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.IgorService;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.LogCollector;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceInterfaceFactory;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.RoscoService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.DistributedLogCollector;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -34,10 +31,10 @@ import org.springframework.stereotype.Component;
 @EqualsAndHashCode(callSuper = true)
 @Component
 @Data
-public class KubernetesIgorService extends IgorService implements KubernetesDistributedService<IgorService.Igor> {
+public class KubernetesV1RoscoService extends RoscoService implements KubernetesV1DistributedService<RoscoService.Rosco> {
   @Delegate
   @Autowired
-  KubernetesDistributedServiceDelegate distributedServiceDelegate;
+  KubernetesV1DistributedServiceDelegate distributedServiceDelegate;
 
   @Delegate(excludes = HasServiceSettings.class)
   public DistributedLogCollector getLogCollector() {
@@ -46,9 +43,9 @@ public class KubernetesIgorService extends IgorService implements KubernetesDist
 
   @Override
   public Settings buildServiceSettings(DeploymentConfiguration deploymentConfiguration) {
-    KubernetesSharedServiceSettings kubernetesSharedServiceSettings = new KubernetesSharedServiceSettings(deploymentConfiguration);
+    KubernetesV1SharedServiceSettings kubernetesV1SharedServiceSettings = new KubernetesV1SharedServiceSettings(deploymentConfiguration);
     Settings settings = new Settings();
-    String location = kubernetesSharedServiceSettings.getDeployLocation();
+    String location = kubernetesV1SharedServiceSettings.getDeployLocation();
     settings.setAddress(buildAddress(location))
         .setArtifactId(getArtifactId(deploymentConfiguration.getName()))
         .setLocation(location)
@@ -57,9 +54,10 @@ public class KubernetesIgorService extends IgorService implements KubernetesDist
   }
 
   public String getArtifactId(String deploymentName) {
-    return KubernetesDistributedService.super.getArtifactId(deploymentName);
+    return KubernetesV1DistributedService.super.getArtifactId(deploymentName);
   }
 
   final DeployPriority deployPriority = new DeployPriority(0);
   final boolean requiredToBootstrap = false;
+  final boolean stateful = true;
 }
