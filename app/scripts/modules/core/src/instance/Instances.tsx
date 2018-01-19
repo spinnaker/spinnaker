@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { UIRouterContext } from '@uirouter/react-hybrid';
 import { Transition } from '@uirouter/core';
 import { BindAll } from 'lodash-decorators';
 import { Subscription } from 'rxjs';
@@ -16,7 +15,6 @@ export interface IInstancesState {
   detailsInstanceId: string;
 }
 
-@UIRouterContext
 @BindAll()
 export class Instances extends React.Component<IInstancesProps, IInstancesState> {
   // context from enclosing UIView
@@ -31,7 +29,7 @@ export class Instances extends React.Component<IInstancesProps, IInstancesState>
     super(props);
     this.state = {
       detailsInstanceId: null,
-    }
+    };
   }
 
   public componentDidMount() {

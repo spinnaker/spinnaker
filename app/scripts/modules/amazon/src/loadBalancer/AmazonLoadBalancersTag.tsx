@@ -69,6 +69,7 @@ export interface IAmazonLoadBalancersTagState {
 @BindAll()
 export class AmazonLoadBalancersTag extends React.Component<ILoadBalancersTagProps, IAmazonLoadBalancersTagState> {
   private loadBalancersRefreshUnsubscribe: () => void;
+  private mounted = false;
 
   constructor(props: ILoadBalancersTagProps) {
     super(props);
@@ -77,8 +78,18 @@ export class AmazonLoadBalancersTag extends React.Component<ILoadBalancersTagPro
       targetGroups: [],
     };
 
-    LoadBalancerDataUtils.populateLoadBalancers(props.application, props.serverGroup).then((loadBalancers) => this.setState({ loadBalancers }));
-    AmazonLoadBalancerDataUtils.populateTargetGroups(props.application, props.serverGroup as IAmazonServerGroup).then((targetGroups: ITargetGroup[]) => this.setState({ targetGroups }))
+    LoadBalancerDataUtils.populateLoadBalancers(props.application, props.serverGroup)
+      .then((loadBalancers) => {
+        if (this.mounted) {
+          this.setState({ loadBalancers });
+        }
+      });
+    AmazonLoadBalancerDataUtils.populateTargetGroups(props.application, props.serverGroup as IAmazonServerGroup)
+      .then((targetGroups: ITargetGroup[]) => {
+        if (this.mounted) {
+          this.setState({ targetGroups });
+        }
+      });
   }
 
   private showLoadBalancerDetails(loadBalancer: ILoadBalancer): void {
@@ -107,10 +118,12 @@ export class AmazonLoadBalancersTag extends React.Component<ILoadBalancersTagPro
   }
 
   public componentDidMount(): void {
+    this.mounted = true;
     this.loadBalancersRefreshUnsubscribe = this.props.application.getDataSource('loadBalancers').onRefresh(null, () => { this.forceUpdate(); });
   }
 
   public componentWillUnmount(): void {
+    this.mounted = false;
     this.loadBalancersRefreshUnsubscribe();
   }
 

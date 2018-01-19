@@ -13,6 +13,8 @@ import { CLUSTER_FILTER_MODEL, ClusterFilterModel } from './filter/clusterFilter
 
 export class ClusterService {
 
+  public static ON_DEMAND_THRESHOLD = 350;
+
   constructor(private $q: IQService,
               private API: Api,
               private serverGroupTransformer: any,
@@ -26,7 +28,7 @@ export class ClusterService {
     return this.getClusters(application.name).then((clusters: IClusterSummary[]) => {
       const dataSource = application.getDataSource('serverGroups');
       const serverGroupLoader = this.API.one('applications').one(application.name).all('serverGroups');
-      dataSource.fetchOnDemand = clusters.length > 250;
+      dataSource.fetchOnDemand = clusters.length > ClusterService.ON_DEMAND_THRESHOLD;
       if (dataSource.fetchOnDemand) {
         dataSource.clusters = clusters;
         serverGroupLoader.withParams({

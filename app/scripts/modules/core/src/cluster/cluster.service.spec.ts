@@ -51,8 +51,8 @@ describe('Service: Cluster', function () {
   }));
 
   describe('lazy cluster fetching', () => {
-    it('switches to lazy cluster fetching if there are more than 250 clusters', () => {
-      const clusters = Array(251);
+    it('switches to lazy cluster fetching if there are more than the on demand threshold for clusters', () => {
+      const clusters = Array(ClusterService.ON_DEMAND_THRESHOLD + 1);
       $http.expectGET(API.baseUrl + '/applications/app/clusters').respond(200, { test: clusters });
       $http.expectGET(API.baseUrl + '/applications/app/serverGroups?clusters=').respond(200, []);
       let serverGroups: IServerGroup[] = null;
@@ -62,8 +62,8 @@ describe('Service: Cluster', function () {
       expect(serverGroups).toEqual([]);
     });
 
-    it('does boring regular fetching when there are less than 251 clusters', () => {
-      const clusters = Array(250);
+    it('does boring regular fetching when there are less than the on demand threshold for clusters', () => {
+      const clusters = Array(ClusterService.ON_DEMAND_THRESHOLD);
       $http.expectGET(API.baseUrl + '/applications/app/clusters').respond(200, { test: clusters });
       $http.expectGET(API.baseUrl + '/applications/app/serverGroups').respond(200, []);
       let serverGroups: IServerGroup[] = null;
