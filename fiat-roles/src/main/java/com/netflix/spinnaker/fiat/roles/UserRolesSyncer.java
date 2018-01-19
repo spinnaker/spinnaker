@@ -74,7 +74,13 @@ public class UserRolesSyncer implements RunnableAgent {
 
   @Value("${fiat.writeMode.retryIntervalMs:10000}")
   @Setter
-  private long retryIntervalMs;
+  private long retryIntervalMs = 10000;
+
+  @Value("${fiat.writeMode.syncDelayTimeoutMs:30000}")
+  @Setter
+  private long syncDelayTimeoutMs = 30000;
+
+
 
   public void run() {
     syncAndReturn();
@@ -83,7 +89,11 @@ public class UserRolesSyncer implements RunnableAgent {
   public long syncAndReturn() {
     FixedBackOff backoff = new FixedBackOff();
     backoff.setInterval(retryIntervalMs);
+    backoff.setMaxAttempts(Math.floorDiv(syncDelayTimeoutMs, retryIntervalMs) + 1);
     BackOffExecution backOffExec = backoff.start();
+
+    //after this point the execution will get rescheduled
+    final long timeout = System.currentTimeMillis() + syncDelayTimeoutMs;
 
     if (!isServerHealthy()) {
       log.warn("Server is currently UNHEALTHY. User permission role synchronization and " +
@@ -93,6 +103,8 @@ public class UserRolesSyncer implements RunnableAgent {
     while (true) {
       try {
         Map<String, UserPermission> combo = new HashMap<>();
+        //force a refresh of the unrestricted user in case the backing repository is empty:
+        combo.put(UnrestrictedResourceConfig.UNRESTRICTED_USERNAME, new UserPermission());
         Map<String, UserPermission> temp;
         if (!(temp = getUserPermissions()).isEmpty()) {
           combo.putAll(temp);
@@ -105,7 +117,7 @@ public class UserRolesSyncer implements RunnableAgent {
       } catch (ProviderException|PermissionResolutionException ex) {
         Status status = healthIndicator.health().getStatus();
         long waitTime = backOffExec.nextBackOff();
-        if (waitTime == BackOffExecution.STOP) {
+        if (waitTime == BackOffExecution.STOP || System.currentTimeMillis() > timeout) {
           log.error("Unable to resolve service account permissions.", ex);
           return 0;
         }
