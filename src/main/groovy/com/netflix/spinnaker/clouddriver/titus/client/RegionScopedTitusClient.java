@@ -243,7 +243,7 @@ public class RegionScopedTitusClient implements TitusClient {
     }
 
     @Override
-    public void setAutoscaleEnabled(boolean shouldEnable) {
+    public void setAutoscaleEnabled(String jobId, boolean shouldEnable) {
       // noop, only supported in V3
     }
 

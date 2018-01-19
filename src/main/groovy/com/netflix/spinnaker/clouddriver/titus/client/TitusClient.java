@@ -72,7 +72,7 @@ public interface TitusClient {
      *
      * @param shouldEnable
      */
-    public void setAutoscaleEnabled(boolean shouldEnable);
+    public void setAutoscaleEnabled(String jobId, boolean shouldEnable);
 
     /**
      *

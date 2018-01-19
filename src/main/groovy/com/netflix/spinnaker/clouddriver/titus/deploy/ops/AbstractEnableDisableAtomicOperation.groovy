@@ -99,7 +99,7 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
         )
       }
 
-      provider.setAutoscaleEnabled(!disable)
+      provider.setAutoscaleEnabled(job.id, !disable)
 
       task.updateStatus phaseName, "Finished ${presentParticipling} ServerGroup $serverGroupName."
 
