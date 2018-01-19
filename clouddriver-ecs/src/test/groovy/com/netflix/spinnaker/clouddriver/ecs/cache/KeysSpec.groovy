@@ -21,7 +21,7 @@ import spock.lang.Specification
 import static com.netflix.spinnaker.clouddriver.ecs.EcsCloudProvider.ID
 import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.*
 import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.SEPARATOR
-import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.HEALTH;
+import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.HEALTH
 
 class KeysSpec extends Specification {
 
@@ -44,6 +44,8 @@ class KeysSpec extends Specification {
     'test-account-3' | 'us-west-3' | ECS_CLUSTERS.ns        | 'test-cluster-1'                                                                                  | buildParsedKey(account, region, namespace, [clusterName: identifier])
     'test-account-4' | 'us-west-4' | CONTAINER_INSTANCES.ns | 'arn:aws:ecs:' + region + ':012345678910:container-instance/14e8cce9-0b16-4af4-bfac-a85f7587aa98' | buildParsedKey(account, region, namespace, [containerInstanceArn: identifier])
     'test-account-5' | 'us-west-5' | TASK_DEFINITIONS.ns    | 'arn:aws:ecs:' + region + ':012345678910:task-definition/hello_world:10'                          | buildParsedKey(account, region, namespace, [taskDefinitionArn: identifier])
+    'test-account-6' | 'us-west-6' | ALARMS.ns    | 'arn:aws:ecs:' + region + ':012345678910:alarms/14e8cce9-0b16-4af4-bfac-a85f7587aa98'                          | buildParsedKey(account, region, namespace, [alarmArn: identifier])
+    'test-account-7' | 'us-west-7' | SCALABLE_TARGETS.ns    | 'service/test-cluster/test-service'                          | buildParsedKey(account, region, namespace, [resource: identifier])
 
   }
 
@@ -125,5 +127,15 @@ class KeysSpec extends Specification {
     region      | account          | taskId
     'us-west-1' | 'test-account-1' | '1dc5c17a-422b-4dc4-b493-371970c6c4d6'
     'us-west-2' | 'test-account-2' | 'deadbeef-422b-4dc4-b493-371970c6c4d6'
+  }
+
+  def 'should generate the proper scalable target key'() {
+    expect:
+    Keys.getScalableTargetKey(account, region, taskId) == buildKey(SCALABLE_TARGETS.ns, account, region, taskId)
+
+    where:
+    region      | account          | taskId
+    'us-west-1' | 'test-account-1' | 'service/test-cluster/test-service'
+    'us-west-2' | 'test-account-2' | 'service/mycluster/myservice'
   }
 }

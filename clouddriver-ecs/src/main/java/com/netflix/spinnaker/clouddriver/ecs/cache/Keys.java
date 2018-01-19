@@ -33,7 +33,8 @@ public class Keys implements KeyParser {
     TASKS,
     CONTAINER_INSTANCES,
     TASK_DEFINITIONS,
-    ALARMS;
+    ALARMS,
+    SCALABLE_TARGETS;
 
     public final String ns;
 
@@ -108,6 +109,10 @@ public class Keys implements KeyParser {
         break;
       case IAM_ROLE:
         result.put("roleName", parts[3]);
+        break;
+      case SCALABLE_TARGETS:
+        result.put("resource", parts[4]);
+        break;
       default:
         break;
     }
@@ -146,6 +151,10 @@ public class Keys implements KeyParser {
 
   public static String getAlarmKey(String account, String region, String alarmArn) {
     return buildKey(Namespace.ALARMS.ns, account, region, alarmArn);
+  }
+
+  public static String getScalableTargetKey(String account, String region, String resourceId) {
+    return buildKey(Namespace.SCALABLE_TARGETS.ns, account, region, resourceId);
   }
 
   public static String getIamRoleKey(String account, String iamRoleName) {
