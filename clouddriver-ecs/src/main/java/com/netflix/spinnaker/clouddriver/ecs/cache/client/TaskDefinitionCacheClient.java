@@ -31,12 +31,12 @@ import java.util.Map;
 import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.TASK_DEFINITIONS;
 
 public class TaskDefinitionCacheClient extends AbstractCacheClient<TaskDefinition> {
-  private ObjectMapper mapper;
+  private ObjectMapper objectMapper;
 
   @Autowired
-  public TaskDefinitionCacheClient(Cache cacheView, ObjectMapper mapper) {
+  public TaskDefinitionCacheClient(Cache cacheView, ObjectMapper objectMapper) {
     super(cacheView, TASK_DEFINITIONS.toString());
-    this.mapper = mapper;
+    this.objectMapper = objectMapper;
   }
 
   @Override
@@ -52,7 +52,7 @@ public class TaskDefinitionCacheClient extends AbstractCacheClient<TaskDefinitio
 
       for (Map<String, Object> serializedContainerDefinitions : containerDefinitions) {
         if (serializedContainerDefinitions != null) {
-          deserializedContainerDefinitions.add(mapper.convertValue(serializedContainerDefinitions, ContainerDefinition.class));
+          deserializedContainerDefinitions.add(objectMapper.convertValue(serializedContainerDefinitions, ContainerDefinition.class));
         }
       }
 
