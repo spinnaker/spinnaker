@@ -4,8 +4,7 @@ import { Dropdown } from 'react-bootstrap';
 import { cloneDeep, get } from 'lodash';
 import { BindAll } from 'lodash-decorators';
 
-import { Application, SETTINGS } from 'core';
-import { NgReact, ReactInjector } from 'core/reactShims';
+import { Application, SETTINGS, NgReact, ReactInjector } from '@spinnaker/core';
 
 import { IAmazonLoadBalancer, IAmazonLoadBalancerDeleteCommand } from 'amazon';
 
