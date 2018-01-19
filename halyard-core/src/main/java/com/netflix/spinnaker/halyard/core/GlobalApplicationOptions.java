@@ -36,12 +36,12 @@ import java.io.IOException;
  */
 @Data
 @Configuration
-@PropertySource("file:" + GlobalApplicationOptions.CONFIG_PATH)
+@PropertySource(value="file:" + GlobalApplicationOptions.CONFIG_PATH, ignoreResourceNotFound=true)
 public class GlobalApplicationOptions {
 
   static final String CONFIG_PATH = "/opt/spinnaker/hal.properties";
 
-  @Value("${useRemoteDaemon}")
+  @Value("${useRemoteDaemon:false}")
   private boolean useRemoteDaemon = false;
 
   public boolean isUseRemoteDaemon() {
