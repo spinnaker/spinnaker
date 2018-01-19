@@ -99,7 +99,11 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
         )
       }
 
-      provider.setAutoscaleEnabled(job.id, !disable)
+      try {
+        provider.setAutoscaleEnabled(job.id, !disable)
+      } catch (Exception e) {
+        log.error("Error toggling autoscale enabled for Titus job ${job.id} in ${credentials.name}/${region}", e)
+      }
 
       task.updateStatus phaseName, "Finished ${presentParticipling} ServerGroup $serverGroupName."
 
