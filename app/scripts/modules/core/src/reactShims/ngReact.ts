@@ -3,6 +3,7 @@ import { angular2react } from 'angular2react';
 import IInjectorService = angular.auto.IInjectorService;
 import { AccountSelectFieldWrapperComponent } from '../account/accountSelectFieldWrapper.component';
 import { AccountTagComponent } from '../account/accountTag.component';
+import { AddEntityTagLinksWrapperComponent } from 'core/entityTag/addEntityTagLinks.component';
 import { ApplicationNavComponent } from 'core/application/nav/applicationNav.component';
 import { ApplicationNavSecondaryComponent } from 'core/application/nav/applicationNavSecondary.component';
 import { ApplicationsComponent } from 'core/application/applications.component';
@@ -30,6 +31,7 @@ import { IStepExecutionDetailsWrapperProps } from 'core/pipeline/details/StepExe
 import { StageSummaryComponent } from 'core/pipeline/details/stageSummary.component';
 import { StepExecutionDetailsComponent } from 'core/pipeline/details/stepExecutionDetails.component';
 import { IAccountSelectFieldProps } from 'core/account/AccountSelectField';
+import { IAddEntityTagLinksProps } from 'core/entityTag/AddEntityTagLinks';
 
 export class NgReactInjector extends ReactInject {
 
@@ -38,6 +40,7 @@ export class NgReactInjector extends ReactInject {
   // Reactified components
   public AccountSelectField: React.ComponentClass<IAccountSelectFieldProps>                   = angular2react('accountSelectFieldWrapper', new AccountSelectFieldWrapperComponent(), this.$injectorProxy) as any;
   public AccountTag: React.ComponentClass<IAccountTagProps>                                   = angular2react('accountTag', new AccountTagComponent(), this.$injectorProxy) as any;
+  public AddEntityTagLinks: React.ComponentClass<IAddEntityTagLinksProps>                     = angular2react('addEntityTagLinksWrapper', new AddEntityTagLinksWrapperComponent(), this.$injectorProxy) as any;
   public ApplicationNav: React.ComponentClass<IApplicationNavProps>                           = angular2react('applicationNav', new ApplicationNavComponent(), this.$injectorProxy) as any;
   public ApplicationNavSecondary: React.ComponentClass<IApplicationNavSecondaryProps>         = angular2react('applicationNavSecondary', new ApplicationNavSecondaryComponent(), this.$injectorProxy) as any;
   public Applications: React.ComponentClass<{}>                                               = angular2react('applications', new ApplicationsComponent(), this.$injectorProxy) as any;

@@ -62,8 +62,33 @@ class AddEntityTagLinksComponent implements IComponentOptions {
   `;
 }
 
+export class AddEntityTagLinksWrapperComponent implements IComponentOptions {
+  public bindings: any = {
+    component: '<',
+    application: '<',
+    entityType: '<',
+    onUpdate: '<?',
+    tagType: '<',
+    ownerOptions: '<?',
+  };
+  public controller: any = AddEntityTagLinksCtrl;
+  public template = `
+    <add-entity-tag-links
+      component="$ctrl.component"
+      application="$ctrl.application"
+      entity-type={{$ctrl.entityType}}
+      on-update="$ctrl.onUpdate()"
+      tag-type={{$ctrl.tagType}}
+      owner-options="$ctrl.ownerOptions">
+    </add-entity-tag-links>
+  `;
+}
+
+
+
 export const ADD_ENTITY_TAG_LINKS_COMPONENT = 'spinnaker.core.entityTag.details.component';
 module(ADD_ENTITY_TAG_LINKS_COMPONENT, [
   ENTITY_TAGS_HELP
 ])
-  .component('addEntityTagLinks', new AddEntityTagLinksComponent());
+  .component('addEntityTagLinks', new AddEntityTagLinksComponent())
+  .component('addEntityTagLinksWrapper', new AddEntityTagLinksWrapperComponent());
