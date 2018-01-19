@@ -300,7 +300,7 @@ class BuildController {
 
     @ExceptionHandler(RuntimeException.class)
     void handleOtherException(HttpServletResponse response, Exception e) throws IOException {
-        log.error(e.getMessage())
+        log.error("Error handling request", e)
         response.sendError(HttpStatus.INTERNAL_SERVER_ERROR.value(), e.getMessage())
     }
 
