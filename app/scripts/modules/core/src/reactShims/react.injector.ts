@@ -28,6 +28,7 @@ import { InfrastructureSearchServiceV2 } from 'core/search/infrastructure/infras
 import { InsightFilterStateModel } from '../insight/insightFilterState.model';
 import { LoadBalancerFilterModel } from '../loadBalancer/filter/loadBalancerFilter.model';
 import { LoadBalancerFilterService } from '../loadBalancer/filter/loadBalancer.filter.service';
+import { LoadBalancerWriter } from '../loadBalancer/loadBalancer.write.service';
 import { ManualJudgmentService } from '../pipeline/config/stages/manualJudgment/manualJudgment.service';
 import { NamingService } from '../naming/naming.service';
 import { NotifierService } from '../widgets/notifier/notifier.service';
@@ -102,6 +103,7 @@ export class CoreReactInject extends ReactInject {
   public get insightFilterStateModel() { return this.$injector.get('insightFilterStateModel') as InsightFilterStateModel; }
   public get loadBalancerFilterModel() { return this.$injector.get('loadBalancerFilterModel') as LoadBalancerFilterModel; }
   public get loadBalancerFilterService() { return this.$injector.get('loadBalancerFilterService') as LoadBalancerFilterService; }
+  public get loadBalancerWriter() { return this.$injector.get('loadBalancerWriter') as LoadBalancerWriter; }
   public get manualJudgmentService() { return this.$injector.get('manualJudgmentService') as ManualJudgmentService; }
   public get modalService(): IModalService { return this.$injector.get('$uibModal') as IModalService; }
   public get MultiselectModel() { return this.$injector.get('MultiselectModel') as any; }
