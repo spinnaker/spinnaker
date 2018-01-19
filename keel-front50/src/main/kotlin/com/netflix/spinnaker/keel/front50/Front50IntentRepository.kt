@@ -16,27 +16,23 @@
 
 package com.netflix.spinnaker.keel.front50
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.Intent
 import com.netflix.spinnaker.keel.IntentRepository
 import com.netflix.spinnaker.keel.IntentSpec
 import com.netflix.spinnaker.keel.IntentStatus
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.stereotype.Component
-import javax.annotation.PostConstruct
 
 @Component
-class Front50IntentRepository
-@Autowired constructor(
-    private val front50Service: Front50Service,
-    private val objectMapper: ObjectMapper
+@ConditionalOnExpression("\${front50.intentRepositoryEnabled:true}")
+class Front50IntentRepository(
+  private val front50Service: Front50Service
 ): IntentRepository {
 
   private val log = LoggerFactory.getLogger(javaClass)
 
-  @PostConstruct
-  fun init() {
+  init {
     log.info("Using ${javaClass.simpleName}")
   }
 

@@ -20,7 +20,6 @@ import com.netflix.spinnaker.keel.IntentRepository
 import com.netflix.spinnaker.keel.IntentSpec
 import com.netflix.spinnaker.keel.IntentStatus
 import org.slf4j.LoggerFactory
-import javax.annotation.PostConstruct
 
 class MemoryIntentRepository : IntentRepository {
 
@@ -28,7 +27,7 @@ class MemoryIntentRepository : IntentRepository {
 
   private val intents: MutableMap<String, Intent<IntentSpec>> = mutableMapOf()
 
-  @PostConstruct fun init() {
+  init {
     log.info("Using ${javaClass.simpleName}")
   }
 
