@@ -32,7 +32,7 @@ fun Stage.determineStatus(): ExecutionStatus {
     allStatuses.contains(CANCELED) -> CANCELED
     allStatuses.contains(FAILED_CONTINUE) -> FAILED_CONTINUE
     allStatuses.all { it == SUCCEEDED } -> SUCCEEDED
-    else -> TODO("handle this case")
+    else -> TERMINAL
   }
 }
 
