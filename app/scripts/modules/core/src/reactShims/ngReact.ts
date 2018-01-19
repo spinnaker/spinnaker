@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { angular2react } from 'angular2react';
 import IInjectorService = angular.auto.IInjectorService;
+import { AccountSelectFieldWrapperComponent } from '../account/accountSelectFieldWrapper.component';
 import { AccountTagComponent } from '../account/accountTag.component';
 import { ApplicationNavComponent } from 'core/application/nav/applicationNav.component';
 import { ApplicationNavSecondaryComponent } from 'core/application/nav/applicationNavSecondary.component';
@@ -28,12 +29,14 @@ import { IStageSummaryWrapperProps } from 'core/pipeline/details/StageSummaryWra
 import { IStepExecutionDetailsWrapperProps } from 'core/pipeline/details/StepExecutionDetailsWrapper';
 import { StageSummaryComponent } from 'core/pipeline/details/stageSummary.component';
 import { StepExecutionDetailsComponent } from 'core/pipeline/details/stepExecutionDetails.component';
+import { IAccountSelectFieldProps } from 'core/account/AccountSelectField';
 
 export class NgReactInjector extends ReactInject {
 
   public $injectorProxy = {} as IInjectorService;
 
   // Reactified components
+  public AccountSelectField: React.ComponentClass<IAccountSelectFieldProps>                   = angular2react('accountSelectFieldWrapper', new AccountSelectFieldWrapperComponent(), this.$injectorProxy) as any;
   public AccountTag: React.ComponentClass<IAccountTagProps>                                   = angular2react('accountTag', new AccountTagComponent(), this.$injectorProxy) as any;
   public ApplicationNav: React.ComponentClass<IApplicationNavProps>                           = angular2react('applicationNav', new ApplicationNavComponent(), this.$injectorProxy) as any;
   public ApplicationNavSecondary: React.ComponentClass<IApplicationNavSecondaryProps>         = angular2react('applicationNavSecondary', new ApplicationNavSecondaryComponent(), this.$injectorProxy) as any;

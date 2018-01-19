@@ -20,7 +20,6 @@ module.exports = angular
         loading: '=',
         onChange: '&',
         labelColumns: '@',
-        labelAlign: '@',
         readOnly: '=',
         multiselect: '='
       },
