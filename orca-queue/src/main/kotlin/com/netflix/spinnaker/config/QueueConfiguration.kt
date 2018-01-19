@@ -30,19 +30,25 @@ import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.event.ApplicationEventMulticaster
 import org.springframework.context.event.SimpleApplicationEventMulticaster
+import org.springframework.scheduling.TaskScheduler
 import org.springframework.scheduling.annotation.EnableScheduling
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler
 import java.time.Clock
 
 @Configuration
-@ComponentScan(basePackages = arrayOf("com.netflix.spinnaker.orca.q", "com.netflix.spinnaker.orca.log", "com.netflix.spinnaker.orca.q.trafficshaping"))
+@ComponentScan(basePackages = [
+  "com.netflix.spinnaker.orca.q",
+  "com.netflix.spinnaker.orca.log",
+  "com.netflix.spinnaker.orca.q.trafficshaping"
+])
 @EnableScheduling
 open class QueueConfiguration {
   @Bean
   @ConditionalOnMissingBean(Clock::class)
   open fun systemClock(): Clock = Clock.systemDefaultZone()
 
-  @Bean(name = arrayOf("queueImpl"))
+  @Bean(name = ["queueImpl"])
   @ConditionalOnMissingBean(Queue::class)
   open fun inMemoryQueue(clock: Clock, deadMessageHandler: DeadMessageHandler, publisher: ApplicationEventPublisher) =
     InMemoryQueue(
@@ -58,6 +64,7 @@ open class QueueConfiguration {
   @Bean
   open fun messageHandlerPool(registry: Registry): ThreadPoolTaskExecutor =
     ThreadPoolTaskExecutor().apply {
+      threadNamePrefix = "handlers-"
       corePoolSize = 20
       maxPoolSize = 20
       setQueueCapacity(0)
@@ -77,9 +84,18 @@ open class QueueConfiguration {
       // TODO: should set an error handler as well
     }
 
-  @Bean open fun applicationEventTaskExecutor(registry: Registry): ThreadPoolTaskExecutor =
+  @Bean
+  open fun applicationEventTaskExecutor(registry: Registry): ThreadPoolTaskExecutor =
     ThreadPoolTaskExecutor().apply {
+      threadNamePrefix = "events-"
       corePoolSize = 20
       maxPoolSize = 20
+    }
+
+  @Bean
+  open fun taskScheduler(): TaskScheduler =
+    ThreadPoolTaskScheduler().apply {
+      threadNamePrefix = "scheduler-"
+      poolSize = 10
     }
 }
