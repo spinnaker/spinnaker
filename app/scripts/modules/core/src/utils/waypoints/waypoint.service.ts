@@ -1,4 +1,3 @@
-import * as $ from 'jquery';
 import { sortBy, throttle } from 'lodash';
 import { IScope, module } from 'angular';
 import { $timeout, $rootScope } from 'ngimport';
@@ -72,29 +71,6 @@ export class WaypointService {
       registry.scrollEnabled = false;
       registry.container = null;
     }
-  }
-
-  public restoreToWaypoint(key: string): void {
-    $timeout(() => {
-      const registry = this.waypointRegistry[key];
-      if (!registry || !registry.container) {
-        return;
-      }
-
-      const candidates = registry.lastWindow || [],
-            container = registry.container,
-            containerScrollTop = container.scrollTop();
-
-      candidates.every((candidate) => {
-        const elem = $('[waypoint="' + candidate.elem + '"]', container);
-        if (elem.length) {
-          container.scrollTop(containerScrollTop + elem.offset().top - candidate.top);
-          container.trigger('scroll');
-          return false;
-        }
-        return true;
-      });
-    }, 50);
   }
 }
 
