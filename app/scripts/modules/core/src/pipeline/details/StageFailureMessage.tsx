@@ -75,8 +75,8 @@ export class StageFailureMessage extends React.Component<IStageFailureMessagePro
     if (isFailed || failedTask || message || messages.length) {
       const exceptionTitle = messages.length ? 'Exceptions' : 'Exception';
       const displayMessages = message || !messages.length ?
-        <Markdown message={message || 'No reason provided.'} /> :
-        messages.map((m, i) => <Markdown key={i} message={m || 'No reason provided.'} />);
+        <Markdown message={message || 'No reason provided.'} className="break-word" /> :
+        messages.map((m, i) => <Markdown key={i} message={m || 'No reason provided.'} className="break-word" />);
 
       if (message || messages.length) {
         return (
