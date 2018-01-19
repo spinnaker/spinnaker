@@ -40,24 +40,11 @@
     </div>
     <div>
       <div class="actions" ng-if="ctrl.loadBalancer.loadBalancerType !== 'network'">
-        <div class="dropdown" uib-dropdown dropdown-append-to-body>
-          <button type="button" class="btn btn-sm btn-primary dropdown-toggle" uib-dropdown-toggle>
-            Load Balancer Actions <span class="caret"></span>
-          </button>
-          <ul class="dropdown-menu" uib-dropdown-menu role="menu">
-            <li><a href ng-click="ctrl.editLoadBalancer()">Edit Load Balancer</a></li>
-            <li ng-if="!ctrl.loadBalancer.instances.length"><a href ng-click="ctrl.deleteLoadBalancer()">Delete Load Balancer</a></li>
-            <li ng-if="ctrl.loadBalancer.instances.length" class="disabled" uib-tooltip="You must detach all instances before you can delete this load balancer.">
-              <a href ng-click="ctrl.deleteLoadBalancer()">Delete Load Balancer</a>
-            </li>
-            <render-if-feature feature="entityTags">
-              <add-entity-tag-links component="ctrl.loadBalancer"
-                                    application="ctrl.application"
-                                    entity-type="loadBalancer"
-                                    on-update="ctrl.application.loadBalancers.refresh()"></add-entity-tag-links>
-            </render-if-feature>
-          </ul>
-        </div>
+        <load-balancer-actions
+          app="ctrl.application"
+          load-balancer="ctrl.loadBalancer"
+          load-balancer-from-params="ctrl.loadBalancerFromParams"
+          ></load-balancer-actions>
       </div>
     </div>
   </div>

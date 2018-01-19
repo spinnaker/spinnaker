@@ -1,14 +1,11 @@
 import { IController, IPromise, IQService, IScope, module } from 'angular';
-import { IModalService, IModalSettings } from 'angular-ui-bootstrap';
 import { StateService } from '@uirouter/angularjs';
-import { cloneDeep, head, get, sortBy, uniq } from 'lodash';
+import { head, sortBy, uniq } from 'lodash';
 
 import {
   Application,
   APPLICATION_READ_SERVICE,
-  ApplicationReader,
   CONFIRMATION_MODAL_SERVICE,
-  ConfirmationModalService,
   IApplicationSecurityGroup,
   ILoadBalancer,
   ISecurityGroup,
@@ -16,7 +13,6 @@ import {
   LOAD_BALANCER_READ_SERVICE,
   LOAD_BALANCER_WRITE_SERVICE,
   LoadBalancerReader,
-  LoadBalancerWriter,
   SECURITY_GROUP_READER,
   SecurityGroupReader,
   SUBNET_READ_SERVICE,
@@ -26,13 +22,11 @@ import {
 import {
   IAmazonApplicationLoadBalancer,
   IAmazonLoadBalancer,
-  IAmazonLoadBalancerDeleteCommand,
   IAmazonLoadBalancerSourceData,
   IApplicationLoadBalancerSourceData,
   IClassicLoadBalancerSourceData,
   ITargetGroup
 } from 'amazon';
-import { LoadBalancerTypes } from '../configure/choice/LoadBalancerTypes';
 
 export interface ILoadBalancerFromStateParams {
   accountId: string;
@@ -44,7 +38,7 @@ export class AwsLoadBalancerDetailsController implements IController {
   public application: Application;
   public elbProtocol: string;
   public listeners: {in: string, targets: ITargetGroup[]}[];
-  private loadBalancerFromParams: ILoadBalancerFromStateParams;
+  public loadBalancerFromParams: ILoadBalancerFromStateParams;
   public loadBalancer: IAmazonLoadBalancer;
   public securityGroups: ISecurityGroup[];
   public ipAddressTypeDescription: string;
@@ -52,15 +46,11 @@ export class AwsLoadBalancerDetailsController implements IController {
 
   constructor(private $scope: IScope,
               private $state: StateService,
-              private $uibModal: IModalService,
               private $q: IQService,
               loadBalancer: ILoadBalancerFromStateParams,
               private app: Application,
-              private applicationReader: ApplicationReader,
               private securityGroupReader: SecurityGroupReader,
-              private confirmationModalService: ConfirmationModalService,
               private loadBalancerReader: LoadBalancerReader,
-              private loadBalancerWriter: LoadBalancerWriter,
               private subnetReader: SubnetReader) {
     'ngInject';
     this.application = app;
@@ -72,73 +62,6 @@ export class AwsLoadBalancerDetailsController implements IController {
       if (!$scope.$$destroyed) {
         app.getDataSource('loadBalancers').onRefresh($scope, () => this.extractLoadBalancer());
       }
-    });
-  }
-
-  public editLoadBalancer(): void {
-    const wizard = LoadBalancerTypes.find(t => t.type === this.loadBalancer.loadBalancerType);
-
-    let application = this.app;
-    const modalOptions: IModalSettings = {
-      templateUrl: wizard.editTemplateUrl,
-      controller: `${wizard.controller} as ctrl`,
-      size: 'lg',
-      resolve: {
-        application: () => application,
-        loadBalancer: () => cloneDeep(this.loadBalancer),
-        isNew: () => false,
-        forPipelineConfig: () => false
-      }
-    };
-
-    const loadBalancerAppName = this.loadBalancer.name.split('-')[0];
-
-    if (loadBalancerAppName === this.app.name) {
-      // Name matches the currently active application
-      this.$uibModal.open(modalOptions);
-    } else {
-      // Load balancer a part of a different application
-      this.applicationReader.getApplication(loadBalancerAppName)
-        .then((loadBalancerApp) => {
-          application = loadBalancerApp;
-          this.$uibModal.open(modalOptions);
-        })
-        .catch(() => {
-          // If the application can't be found, just use the old one
-          this.$uibModal.open(modalOptions);
-        });
-    }
-  }
-
-  public deleteLoadBalancer(): void {
-    if (this.loadBalancer.instances && this.loadBalancer.instances.length) {
-      return;
-    }
-
-    const taskMonitor = {
-      application: this.app,
-      title: 'Deleting ' + this.loadBalancerFromParams.name,
-    };
-
-    const command: IAmazonLoadBalancerDeleteCommand = {
-      cloudProvider: this.loadBalancer.cloudProvider,
-      loadBalancerName: this.loadBalancer.name,
-      loadBalancerType: this.loadBalancer.loadBalancerType || 'classic',
-      regions: [this.loadBalancer.region],
-      credentials: this.loadBalancer.account,
-      vpcId: get(this.loadBalancer, 'elb.vpcId', null),
-    };
-
-    const submitMethod = () => this.loadBalancerWriter.deleteLoadBalancer(command, this.app);
-
-    this.confirmationModalService.confirm({
-      header: `Really delete ${this.loadBalancerFromParams.name} in ${this.loadBalancerFromParams.region}: ${this.loadBalancerFromParams.accountId}?`,
-      buttonText: `Delete ${this.loadBalancerFromParams.name}`,
-      provider: 'aws',
-      account: this.loadBalancerFromParams.accountId,
-      applicationName: this.app.name,
-      taskMonitorConfig: taskMonitor,
-      submitMethod: submitMethod
     });
   }
 
