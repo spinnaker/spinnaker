@@ -25,11 +25,9 @@ import com.netflix.spinnaker.keel.scheduler.MonitorOrchestrations
 import com.netflix.spinnaker.q.Queue
 import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
-import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.verifyNoMoreInteractions
 import com.nhaarman.mockito_kotlin.whenever
 import org.junit.jupiter.api.Test
-import java.time.Duration
 
 object MonitorOrchestrationsHandlerTest {
   val queue = mock<Queue>()
@@ -40,7 +38,6 @@ object MonitorOrchestrationsHandlerTest {
   val subject = MonitorOrchestrationsHandler(queue, intentActivityRepository, orcaService, registry)
 
   val intentId = "Application:emilykeeltest"
-  val orchestrationsStatusId = registry.createId("intent.orchestrations.status")
   val orchestrationId = "a36ccc2c-8f40-4e63-852c-8107dd819ada"
 
   @Test
@@ -81,7 +78,6 @@ object MonitorOrchestrationsHandlerTest {
 
     subject.handle(message)
 
-    verify(queue).push(message, Duration.ofMillis(10000))
     verifyNoMoreInteractions(queue)
   }
 }

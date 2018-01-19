@@ -24,25 +24,19 @@ import com.netflix.spinnaker.q.MessageHandler
 import com.netflix.spinnaker.q.Queue
 import net.logstash.logback.argument.StructuredArguments.value
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.stereotype.Component
-import java.time.Duration
 
 
 /**
  * This handler follows up on the launched orchestrations, and records
  * success and failure by kind.
  */
-@Component
-class MonitorOrchestrationsHandler
-@Autowired constructor(
+@Deprecated("Tracking downstream orchestrations is not currently planned for support")
+class MonitorOrchestrationsHandler(
   override val queue: Queue,
   private val intentActivityRepository: IntentActivityRepository,
   private val orcaService: OrcaService,
   private val registry: Registry
 ) : MessageHandler<MonitorOrchestrations> {
-
-  private val backoffMs = Duration.ofMillis(10000)
 
   private val log = LoggerFactory.getLogger(javaClass)
 
@@ -72,9 +66,6 @@ class MonitorOrchestrationsHandler
           registry.counter(orchestrationsStatusId.withTag("kind", message.kind).withTag("status", "unhandled").withTag("executionStatus", orcaExecutionStatus.toString())).increment()
         }
       }
-    }
-    if (intentActivityRepository.getCurrent(message.intentId).isNotEmpty()){
-      queue.push(MonitorOrchestrations(message.intentId, message.kind), backoffMs)
     }
   }
 
