@@ -55,6 +55,7 @@ export * from './presentation';
 export * from './pubsub';
 
 export * from './reactShims';
+export * from './region';
 export * from './retry';
 
 export * from './scheduler';
