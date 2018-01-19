@@ -24,6 +24,7 @@ import com.netflix.spectator.api.Registry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.stereotype.Component;
 import static java.lang.String.format;
 
@@ -39,6 +40,8 @@ public class ThreadPoolMetricsPostProcessor implements BeanPostProcessor {
   public Object postProcessBeforeInitialization(Object bean, String beanName) {
     if (bean instanceof ThreadPoolTaskExecutor) {
       applyThreadPoolMetrics((ThreadPoolTaskExecutor) bean, beanName);
+    } else if (bean instanceof ThreadPoolTaskScheduler) {
+      applyThreadPoolMetrics((ThreadPoolTaskScheduler) bean, beanName);
     }
     return bean;
   }
@@ -57,6 +60,24 @@ public class ThreadPoolMetricsPostProcessor implements BeanPostProcessor {
           .withTag("id", threadPoolName);
 
         registry.gauge(id, executor, ref -> fn.apply(ref.getThreadPoolExecutor()));
+      };
+
+    createGauge.accept("activeCount", ThreadPoolExecutor::getActiveCount);
+    createGauge.accept("maximumPoolSize", ThreadPoolExecutor::getMaximumPoolSize);
+    createGauge.accept("corePoolSize", ThreadPoolExecutor::getCorePoolSize);
+    createGauge.accept("poolSize", ThreadPoolExecutor::getPoolSize);
+    createGauge.accept("blockingQueueSize", e -> e.getQueue().size());
+  }
+
+  private void applyThreadPoolMetrics(ThreadPoolTaskScheduler executor,
+                                      String threadPoolName) {
+    BiConsumer<String, Function<ThreadPoolExecutor, Integer>> createGauge =
+      (name, fn) -> {
+        Id id = registry
+          .createId(format("threadpool.%s", name))
+          .withTag("id", threadPoolName);
+
+        registry.gauge(id, executor, ref -> fn.apply(ref.getScheduledThreadPoolExecutor()));
       };
 
     createGauge.accept("activeCount", ThreadPoolExecutor::getActiveCount);
