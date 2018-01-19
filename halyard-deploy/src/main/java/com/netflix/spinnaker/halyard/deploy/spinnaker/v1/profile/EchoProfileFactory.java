@@ -17,11 +17,15 @@
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Notifications;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Pubsubs;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
 import lombok.Data;
 import org.springframework.stereotype.Component;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Component
 public class EchoProfileFactory extends SpringProfileFactory {
@@ -33,15 +37,26 @@ public class EchoProfileFactory extends SpringProfileFactory {
   @Override
   protected void setProfile(Profile profile, DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
     super.setProfile(profile, deploymentConfiguration, endpoints);
+
+    List<String> files = new ArrayList<>();
+
     profile.appendContents("global.spinnaker.timezone: " + deploymentConfiguration.getTimezone());
     profile.appendContents("spinnaker.baseUrl: " + endpoints.getServices().getDeck().getBaseUrl());
-    if (deploymentConfiguration.getNotifications() != null) {
-      profile.appendContents(yamlToString(deploymentConfiguration.getNotifications()));
+
+    Notifications notifications = deploymentConfiguration.getNotifications();
+    if (notifications != null) {
+      files.addAll(backupRequiredFiles(notifications, deploymentConfiguration.getName()));
+      profile.appendContents(yamlToString(notifications));
     }
-    if (deploymentConfiguration.getPubsub() != null) {
-      profile.appendContents(yamlToString(new PubsubWrapper(deploymentConfiguration.getPubsub())));
+
+    Pubsubs pubsubs = deploymentConfiguration.getPubsub();
+    if (pubsubs != null) {
+      files.addAll(backupRequiredFiles(pubsubs, deploymentConfiguration.getName()));
+      profile.appendContents(yamlToString(new PubsubWrapper(pubsubs)));
     }
-    profile.appendContents(profile.getBaseContents());
+
+    profile.appendContents(profile.getBaseContents())
+        .setRequiredFiles(files);
   }
 
   @Data
