@@ -25,6 +25,7 @@ export * from './artifact';
 export * from './event/EventBus';
 
 export * from './filterModel';
+export * from './forms';
 
 export * from './healthCounts';
 export * from './help';
