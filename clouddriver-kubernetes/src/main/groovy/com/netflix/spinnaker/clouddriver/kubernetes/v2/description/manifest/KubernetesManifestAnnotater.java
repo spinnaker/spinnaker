@@ -174,9 +174,9 @@ public class KubernetesManifestAnnotater {
     return Moniker.builder()
         .cluster(getAnnotation(annotations, CLUSTER, new TypeReference<String>() {}, parsed.getCluster()))
         .app(getAnnotation(annotations, APPLICATION, new TypeReference<String>() {}, parsed.getApp()))
-        .stack(getAnnotation(annotations, STACK, new TypeReference<String>() {}, parsed.getStack()))
-        .detail(getAnnotation(annotations, DETAIL, new TypeReference<String>() {}, parsed.getDetail()))
-        .sequence(getAnnotation(annotations, DEPLOYMENT_REVISION, new TypeReference<Integer>() {}, parsed.getSequence()))
+        .stack(getAnnotation(annotations, STACK, new TypeReference<String>() {}, null))
+        .detail(getAnnotation(annotations, DETAIL, new TypeReference<String>() {}, null))
+        .sequence(getAnnotation(annotations, DEPLOYMENT_REVISION, new TypeReference<Integer>() {}, null))
         .build();
   }
 
