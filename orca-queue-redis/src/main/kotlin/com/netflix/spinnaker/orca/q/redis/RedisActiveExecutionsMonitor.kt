@@ -106,7 +106,7 @@ class RedisActiveExecutionsMonitor(
 
   fun refreshGauges() {
     snapshotActivity().also { executions ->
-      log.info("Registering new active execution gauges (active: ${executions.size})")
+      log.info("Refreshing active execution gauges (active: ${executions.size})")
 
       val executionByType = executions.groupBy { it.type }
       activePipelineCounter.set(executionByType.get(Execution.ExecutionType.PIPELINE)?.size ?: 0)
