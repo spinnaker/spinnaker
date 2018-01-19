@@ -143,6 +143,12 @@ public class KubernetesEditAccountCommand extends AbstractEditAccountCommand<Kub
   public String removeOAuthScope;
 
   @Parameter(
+      names = "--naming-strategy",
+      hidden = true
+  )
+  public String namingStrategy;
+
+  @Parameter(
       names = "--configure-image-pull-secrets",
       arity = 1,
       description = KubernetesCommandProperties.CONFIGURE_IMAGE_PULL_SECRETS_DESCRIPTION
@@ -201,6 +207,7 @@ public class KubernetesEditAccountCommand extends AbstractEditAccountCommand<Kub
     }
     
     account.setOAuthServiceAccount(isSet(oAuthServiceAccount) ? oAuthServiceAccount : account.getOAuthServiceAccount());
+    account.setNamingStrategy(isSet(namingStrategy) ? namingStrategy : account.getNamingStrategy());
     
     return account;
   }

@@ -56,6 +56,7 @@ public class KubernetesAccount extends ContainerAccount implements Cloneable {
   // Without the annotations, these are written as `oauthServiceAccount` and `oauthScopes`, respectively.
   @JsonProperty("oAuthServiceAccount") @LocalFile String oAuthServiceAccount;
   @JsonProperty("oAuthScopes") List<String> oAuthScopes;
+  String namingStrategy;
 
   public String getKubeconfigFile() {
     if (kubeconfigFile == null || kubeconfigFile.isEmpty()) {

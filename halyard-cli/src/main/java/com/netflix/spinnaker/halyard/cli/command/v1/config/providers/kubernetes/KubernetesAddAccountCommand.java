@@ -80,6 +80,12 @@ public class KubernetesAddAccountCommand extends AbstractAddAccountCommand {
   public List<String> oAuthScopes = new ArrayList<>();
 
   @Parameter(
+      names = "--naming-strategy",
+      hidden = true
+  )
+  public String namingStrategy;
+
+  @Parameter(
       names = "--configure-image-pull-secrets",
       arity = 1,
       description = KubernetesCommandProperties.CONFIGURE_IMAGE_PULL_SECRETS_DESCRIPTION
@@ -97,6 +103,7 @@ public class KubernetesAddAccountCommand extends AbstractAddAccountCommand {
     dockerRegistries.forEach(registryName -> account.getDockerRegistries().add(new DockerRegistryReference().setAccountName(registryName)));
     account.setOAuthServiceAccount(oAuthServiceAccount);
     account.setOAuthScopes(oAuthScopes);
+    account.setNamingStrategy(namingStrategy);
     return account;
   }
 
