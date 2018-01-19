@@ -3,7 +3,7 @@
 set -e
 
 function check_migration_needed() {
-  set -e
+  set +e
 
   which dpkg &> /dev/null
   if [ "$?" = "0" ]; then
