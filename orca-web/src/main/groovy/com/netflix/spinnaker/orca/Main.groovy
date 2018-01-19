@@ -66,7 +66,8 @@ import org.springframework.scheduling.annotation.EnableAsync
   StackdriverConfig,
   PipelineTemplateConfiguration,
   KayentaConfiguration,
-  WebhookConfiguration
+  WebhookConfiguration,
+  KeelConfiguration
 ])
 @ComponentScan([
   "com.netflix.spinnaker.config"

@@ -44,7 +44,7 @@ public class CreatePipelineTemplateTask implements RetryableTask, SavePipelineTe
   @Override
   public TaskResult execute(Stage stage) {
     if (front50Service == null) {
-      throw new UnsupportedOperationException("Front50 is not enabled, no way to fetch pager duty. Fix this by setting front50.enabled: true");
+      throw new UnsupportedOperationException("Front50 is not enabled, no way to save pipeline templates. Fix this by setting front50.enabled: true");
     }
 
     if (!stage.getContext().containsKey("pipelineTemplate")) {

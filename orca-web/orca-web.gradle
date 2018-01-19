@@ -47,6 +47,7 @@ dependencies {
   compile project(":orca-eureka")
   compile project(":orca-queue-redis")
   compile project(":orca-pipelinetemplate")
+  compile project(":orca-keel")
 
   runtime spinnaker.dependency("kork")
   compile spinnaker.dependency('korkExceptions')

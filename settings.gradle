@@ -25,6 +25,7 @@ include "orca-extensionpoint",
   "orca-igor",
   "orca-clouddriver",
   "orca-kayenta",
+  "orca-keel",
   "orca-mine",
   "orca-test",
   "orca-flex",
@@ -52,4 +53,3 @@ def setBuildFile(project) {
 rootProject.children.each {
   setBuildFile it
 }
-
