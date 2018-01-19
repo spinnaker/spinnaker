@@ -77,14 +77,12 @@ export class AllClustersGroupings extends React.Component<IAllClustersGroupingsP
         parent={parent}
       >
         <div key={props.index} style={props.style}>
-          <div>
-            <ClusterPod
-              grouping={group}
-              application={app}
-              parentHeading={group.cluster.serverGroups[0].account}
-              sortFilter={sortFilter}
-            />
-          </div>
+          <ClusterPod
+            grouping={group}
+            application={app}
+            parentHeading={group.cluster.serverGroups[0].account}
+            sortFilter={sortFilter}
+          />
         </div>
       </CellMeasurer>
     );
