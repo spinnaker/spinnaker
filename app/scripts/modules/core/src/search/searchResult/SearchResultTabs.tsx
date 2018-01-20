@@ -17,7 +17,7 @@ export class SearchResultTabs extends React.Component<ISearchResultTabsProps> {
     const resultSets = this.props.resultSets.slice().sort((a, b) => a.type.order - b.type.order);
 
     return (
-      <div className="search-groups">
+      <ul className="search-groups nostyle">
         {resultSets.map(resultSet => {
           const { type } = resultSet;
           const { SearchResultTab } = type.components;
@@ -25,11 +25,11 @@ export class SearchResultTabs extends React.Component<ISearchResultTabsProps> {
 
           return (
             <UISref key={type.id} to="." params={{ tab: type.id }}>
-              <a><SearchResultTab resultSet={resultSet} isActive={active} /></a>
+              <li><SearchResultTab resultSet={resultSet} isActive={active} /></li>
             </UISref>
           );
         })}
-      </div>
+      </ul>
     );
   }
 }

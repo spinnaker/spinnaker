@@ -13,13 +13,13 @@ module(INFRASTRUCTURE_STATES, [
     name: 'search',
     url: '/search?q&key&tab&name&account&region&stack',
     params: {
-      account: { dynamic: true, inherit: false, value: null },
-      key:     { dynamic: true, inherit: false, value: null },
-      name:    { dynamic: true, inherit: false, value: null },
-      q:       { dynamic: true, inherit: false, value: null },
-      region:  { dynamic: true, inherit: false, value: null },
-      stack:   { dynamic: true, inherit: false, value: null },
-      tab:     { dynamic: true, inherit: true,  value: 'applications' },
+      account: { dynamic: true, value: null },
+      key:     { dynamic: true, value: null },
+      name:    { dynamic: true, value: null },
+      q:       { dynamic: true, value: null },
+      region:  { dynamic: true, value: null },
+      stack:   { dynamic: true, value: null },
+      tab:     { dynamic: true, value: 'applications' },
     },
     views: {
       'main@': {

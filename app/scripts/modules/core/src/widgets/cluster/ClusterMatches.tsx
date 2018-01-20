@@ -1,19 +1,18 @@
 import * as React from 'react';
 import { IClusterMatch } from './clusterMatches.component';
-import { NgReact } from 'core/reactShims/ngReact';
+import { AccountTag } from 'core/account';
 
 export interface IClusterMatchesProps {
   matches: IClusterMatch[]
 }
 
 export class ClusterMatches extends React.Component<IClusterMatchesProps> {
-
   public render() {
     const { matches } = this.props;
-    const { AccountTag } = NgReact;
     if (!matches || !matches.length) {
-      return (<div>(no matches)</div>);
+      return <div>(no matches)</div>;
     }
+
     return (
       <ul className="nostyle">
         {matches.map((match: IClusterMatch, index: number) => (

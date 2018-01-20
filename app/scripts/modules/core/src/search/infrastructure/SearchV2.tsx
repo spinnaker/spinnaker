@@ -149,7 +149,8 @@ export class SearchV2 extends React.Component<{}, ISearchV2State> {
   }
 
   public handleFilterChange(filters: ITag[]) {
-    const newParams = filters.reduce((params, filter) => ({ ...params, [filter.key]:  filter.text }), {});
+    const blankApiParams = API_PARAMS.reduce((acc, key) => ({ ...acc, [key]: undefined }), {});
+    const newParams = filters.reduce((params, filter) => ({ ...params, [filter.key]:  filter.text }), blankApiParams);
     this.$state.go('.', newParams, { location: 'replace' });
   }
 

@@ -14,6 +14,7 @@ import { IExecutionViewState, IPipelineGraphNode } from 'core/pipeline/config/gr
 import { IScheduler } from 'core/scheduler/scheduler.factory';
 import { OrchestratedItemRunningTime } from './OrchestratedItemRunningTime';
 import { SETTINGS } from 'core/config/settings';
+import { AccountTag } from 'core/account';
 import { NgReact, ReactInjector } from 'core/reactShims';
 import { duration, timestamp } from 'core/utils/timeFormatters';
 
@@ -255,7 +256,7 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
   }
 
   public render() {
-    const { AccountTag, CopyToClipboard } = NgReact;
+    const { CopyToClipboard } = NgReact;
     const accountLabels = this.props.execution.deploymentTargets.map((account) => (
       <AccountTag key={account} account={account}/>
     ));

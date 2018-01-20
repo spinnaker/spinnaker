@@ -2,10 +2,9 @@ import * as React from 'react';
 
 import { StageExecutionLogs, StageFailureMessage } from 'core/pipeline/details';
 import { ExecutionDetailsSection, IExecutionDetailsSectionProps } from '../core';
-import { NgReact } from 'core/reactShims';
+import { AccountTag } from 'core/account';
 
 export function AsgActionExecutionDetailsSection(props: IExecutionDetailsSectionProps & { action: string }) {
-  const { AccountTag } = NgReact;
   const { action, stage } = props;
   return (
     <ExecutionDetailsSection name={props.name} current={props.current}>

@@ -1,7 +1,8 @@
 import * as React from 'react';
 import { find, get } from 'lodash';
 
-import { NgReact, ReactInjector } from 'core/reactShims';
+import { AccountTag } from 'core/account';
+import { ReactInjector } from 'core/reactShims';
 import { StageFailureMessage } from 'core/pipeline/details';
 import { ExecutionDetailsSection, IExecutionDetailsSectionProps } from '../core';
 
@@ -73,7 +74,6 @@ export class CloneServerGroupExecutionDetails extends React.Component<IExecution
   }
 
   public render() {
-    const { AccountTag } = NgReact;
     const { deployResults } = this.state;
     const { stage, current, name } = this.props;
     const specifiedCapacity = !stage.context.useSourceCapacity && stage.context.capacity;

@@ -12,7 +12,8 @@ import { IExecution, IExecutionGroup, IPipeline, IPipelineCommand } from 'core/d
 import { NextRunTag } from 'core/pipeline/triggers/NextRunTag';
 import { Tooltip } from 'core/presentation/Tooltip';
 import { TriggersTag } from 'core/pipeline/triggers/TriggersTag';
-import { NgReact, ReactInjector } from 'core/reactShims';
+import { AccountTag } from 'core/account';
+import { ReactInjector } from 'core/reactShims';
 import { Spinner } from 'core/widgets/spinners/Spinner'
 
 import './executionGroup.less';
@@ -162,7 +163,6 @@ export class ExecutionGroup extends React.Component<IExecutionGroupProps, IExecu
   }
 
   public render(): React.ReactElement<ExecutionGroup> {
-    const { AccountTag } = NgReact;
     const group = this.props.group;
     const pipelineConfig = this.state.pipelineConfig;
     const pipelineDisabled = pipelineConfig && pipelineConfig.disabled;

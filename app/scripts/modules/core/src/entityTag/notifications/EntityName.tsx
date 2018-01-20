@@ -1,7 +1,7 @@
 import * as React from 'react';
 
 import { IEntityTags } from 'core/domain';
-import { NgReact } from 'core/reactShims';
+import { AccountTag } from 'core/account';
 
 export interface IEntityNameProps {
   tag: IEntityTags;
@@ -11,7 +11,6 @@ export interface IEntityNameProps {
 export class EntityName extends React.Component<IEntityNameProps> {
   public render() {
     const entityRef = this.props.tag.entityRef;
-    const { AccountTag } = NgReact;
     if (!entityRef.account && !entityRef.region) {
       return null;
     }

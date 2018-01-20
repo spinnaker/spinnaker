@@ -1,12 +1,11 @@
 import * as React from 'react';
 
 import { ExecutionDetailsSection, IExecutionDetailsSectionProps } from 'core/pipeline/config/stages/core';
-import { NgReact } from 'core/reactShims';
+import { AccountTag } from 'core/account';
 import { StageExecutionLogs, StageFailureMessage } from 'core/pipeline/details';
 import { ServerGroupStageContext } from '../core/ServerGroupStageContext';
 
 export function DisableClusterExecutionDetails(props: IExecutionDetailsSectionProps) {
-  const { AccountTag } = NgReact;
   const { stage } = props;
   return (
     <ExecutionDetailsSection name={props.name} current={props.current}>

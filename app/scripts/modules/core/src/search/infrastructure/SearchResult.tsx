@@ -1,7 +1,7 @@
 import * as DOMPurify from 'dompurify';
 import * as React from 'react';
 
-import { NgReact } from 'core/reactShims';
+import { AccountTag } from 'core/account';
 import { IRecentHistoryEntry } from 'core/history';
 
 export interface ISearchResultProps {
@@ -10,7 +10,6 @@ export interface ISearchResultProps {
 
 export class SearchResult extends React.Component<ISearchResultProps> {
   public render() {
-    const { AccountTag } = NgReact;
     const { item } = this.props;
     const params = item.params || {};
     const account = item.account || params.account || params.accountId || params.accountName;

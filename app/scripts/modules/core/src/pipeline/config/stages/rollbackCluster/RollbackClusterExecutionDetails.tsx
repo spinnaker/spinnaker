@@ -2,11 +2,10 @@ import * as React from 'react';
 
 import { ExecutionDetailsSection, IExecutionDetailsSectionProps } from 'core/pipeline/config/stages/core';
 import { HelpField } from 'core/help/HelpField';
-import { NgReact } from 'core/reactShims';
+import { AccountTag } from 'core/account';
 import { StageExecutionLogs, StageFailureMessage } from 'core/pipeline/details';
 
 export function RollbackClusterExecutionDetails(props: IExecutionDetailsSectionProps) {
-  const { AccountTag } = NgReact;
   const { stage } = props;
 
   const imagesToRestore = stage.context.imagesToRestore && stage.context.imagesToRestore.map((entry: any) => {

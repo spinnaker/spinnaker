@@ -1,13 +1,12 @@
 import * as React from 'react';
 
 import { ExecutionDetailsSection, IExecutionDetailsSectionProps } from 'core/pipeline/config/stages/core';
-import { NgReact } from 'core/reactShims';
+import { AccountTag } from 'core/account';
 import { StageFailureMessage } from 'core/pipeline/details';
 
 import { IFindAmiStageContext } from './findAmiStage';
 
 export function FindAmiExecutionDetails(props: IExecutionDetailsSectionProps) {
-  const { AccountTag } = NgReact;
   const { stage } = props;
   const regions = stage.context && stage.context.regions && stage.context.regions.join(', ');
   return (
