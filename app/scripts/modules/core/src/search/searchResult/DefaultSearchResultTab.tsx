@@ -1,5 +1,4 @@
 import * as React from 'react';
-import * as classNames from 'classnames';
 
 import { Spinner } from 'core/widgets';
 import { Tooltip } from 'core/presentation';
@@ -22,12 +21,6 @@ export class DefaultSearchResultTab extends React.Component<ISearchResultTabProp
     const resultsCount = results.length;
     const countLabel = resultsCount < SearchService.DEFAULT_PAGE_SIZE ? `${resultsCount}` : `${resultsCount}+`;
 
-    const className = classNames({
-      'search-group': true,
-      'search-group--focus': isActive,
-      'search-group--blur': !isActive,
-    });
-
     const Badge = () => {
       switch (status) {
         case SearchStatus.SEARCHING:
@@ -49,11 +42,13 @@ export class DefaultSearchResultTab extends React.Component<ISearchResultTabProp
       }
     };
 
+    const focusOrBlurClass = isActive ? 'search-group--focus' : 'search-group--blur';
+
     return (
-      <div className={className}>
-        <span className={`search-group-icon ${iconClass}`}/>
-        <div className="search-group-name">{type.displayName}</div>
-        <Badge/>
+      <div className={`flex-container-h baseline search-group ${focusOrBlurClass}`}>
+        <span className={`flex-nogrow search-group-icon ${iconClass}`}/>
+        <div className="flex-grow search-group-name">{type.displayName}</div>
+        <div className="flex-nogrow"><Badge/></div>
       </div>
     );
   }
