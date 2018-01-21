@@ -13,7 +13,7 @@
             "requested": "2.9.+"
         },
         "com.fasterxml.jackson.module:jackson-module-kotlin": {
-            "locked": "2.9.2",
+            "locked": "2.9.3",
             "requested": "2.9.+"
         },
         "com.github.jonpeterson:jackson-module-model-versioning": {
@@ -21,20 +21,20 @@
             "requested": "1.2.+"
         },
         "com.kjetland:mbknor-jackson-jsonschema_2.12": {
-            "locked": "1.0.25",
+            "locked": "1.0.27",
             "requested": "1.0.+"
         },
         "com.netflix.spinnaker.kork:kork-core": {
-            "locked": "1.111.0",
+            "locked": "1.113.0",
             "requested": "+"
         },
         "net.logstash.logback:logstash-logback-encoder": {
             "locked": "4.11",
             "requested": "4.+"
         },
-        "org.jetbrains.kotlin:kotlin-stdlib-jre8": {
-            "locked": "1.1.60",
-            "requested": "1.1.60"
+        "org.jetbrains.kotlin:kotlin-stdlib-jdk8": {
+            "locked": "1.2.20",
+            "requested": "1.2.20"
         },
         "org.slf4j:slf4j-api": {
             "locked": "1.7.25",
@@ -59,7 +59,7 @@
             "requested": "2.9.+"
         },
         "com.fasterxml.jackson.module:jackson-module-kotlin": {
-            "locked": "2.9.2",
+            "locked": "2.9.3",
             "requested": "2.9.+"
         },
         "com.github.jonpeterson:jackson-module-model-versioning": {
@@ -67,20 +67,20 @@
             "requested": "1.2.+"
         },
         "com.kjetland:mbknor-jackson-jsonschema_2.12": {
-            "locked": "1.0.25",
+            "locked": "1.0.27",
             "requested": "1.0.+"
         },
         "com.netflix.spinnaker.kork:kork-core": {
-            "locked": "1.111.0",
+            "locked": "1.113.0",
             "requested": "+"
         },
         "net.logstash.logback:logstash-logback-encoder": {
             "locked": "4.11",
             "requested": "4.+"
         },
-        "org.jetbrains.kotlin:kotlin-stdlib-jre8": {
-            "locked": "1.1.60",
-            "requested": "1.1.60"
+        "org.jetbrains.kotlin:kotlin-stdlib-jdk8": {
+            "locked": "1.2.20",
+            "requested": "1.2.20"
         },
         "org.slf4j:slf4j-api": {
             "locked": "1.7.25",
@@ -105,7 +105,7 @@
             "requested": "2.9.+"
         },
         "com.fasterxml.jackson.module:jackson-module-kotlin": {
-            "locked": "2.9.2",
+            "locked": "2.9.3",
             "requested": "2.9.+"
         },
         "com.github.jonpeterson:jackson-module-model-versioning": {
@@ -113,20 +113,20 @@
             "requested": "1.2.+"
         },
         "com.kjetland:mbknor-jackson-jsonschema_2.12": {
-            "locked": "1.0.25",
+            "locked": "1.0.27",
             "requested": "1.0.+"
         },
         "com.netflix.spinnaker.kork:kork-core": {
-            "locked": "1.111.0",
+            "locked": "1.113.0",
             "requested": "+"
         },
         "net.logstash.logback:logstash-logback-encoder": {
             "locked": "4.11",
             "requested": "4.+"
         },
-        "org.jetbrains.kotlin:kotlin-stdlib-jre8": {
-            "locked": "1.1.60",
-            "requested": "1.1.60"
+        "org.jetbrains.kotlin:kotlin-stdlib-jdk8": {
+            "locked": "1.2.20",
+            "requested": "1.2.20"
         },
         "org.slf4j:slf4j-api": {
             "locked": "1.7.25",
@@ -147,14 +147,14 @@
     },
     "kapt": {
         "org.jetbrains.kotlin:kotlin-annotation-processing-gradle": {
-            "locked": "1.1.60",
-            "requested": "1.1.60"
+            "locked": "1.2.20",
+            "requested": "1.2.20"
         }
     },
     "kaptTest": {
         "org.jetbrains.kotlin:kotlin-annotation-processing-gradle": {
-            "locked": "1.1.60",
-            "requested": "1.1.60"
+            "locked": "1.2.20",
+            "requested": "1.2.20"
         }
     },
     "runtime": {
@@ -171,7 +171,7 @@
             "requested": "2.9.+"
         },
         "com.fasterxml.jackson.module:jackson-module-kotlin": {
-            "locked": "2.9.2",
+            "locked": "2.9.3",
             "requested": "2.9.+"
         },
         "com.github.jonpeterson:jackson-module-model-versioning": {
@@ -179,20 +179,20 @@
             "requested": "1.2.+"
         },
         "com.kjetland:mbknor-jackson-jsonschema_2.12": {
-            "locked": "1.0.25",
+            "locked": "1.0.27",
             "requested": "1.0.+"
         },
         "com.netflix.spinnaker.kork:kork-core": {
-            "locked": "1.111.0",
+            "locked": "1.113.0",
             "requested": "+"
         },
         "net.logstash.logback:logstash-logback-encoder": {
             "locked": "4.11",
             "requested": "4.+"
         },
-        "org.jetbrains.kotlin:kotlin-stdlib-jre8": {
-            "locked": "1.1.60",
-            "requested": "1.1.60"
+        "org.jetbrains.kotlin:kotlin-stdlib-jdk8": {
+            "locked": "1.2.20",
+            "requested": "1.2.20"
         },
         "org.slf4j:slf4j-api": {
             "locked": "1.7.25",
@@ -217,7 +217,7 @@
             "requested": "2.9.+"
         },
         "com.fasterxml.jackson.module:jackson-module-kotlin": {
-            "locked": "2.9.2",
+            "locked": "2.9.3",
             "requested": "2.9.+"
         },
         "com.github.jonpeterson:jackson-module-model-versioning": {
@@ -225,20 +225,20 @@
             "requested": "1.2.+"
         },
         "com.kjetland:mbknor-jackson-jsonschema_2.12": {
-            "locked": "1.0.25",
+            "locked": "1.0.27",
             "requested": "1.0.+"
         },
         "com.netflix.spinnaker.kork:kork-core": {
-            "locked": "1.111.0",
+            "locked": "1.113.0",
             "requested": "+"
         },
         "net.logstash.logback:logstash-logback-encoder": {
             "locked": "4.11",
             "requested": "4.+"
         },
-        "org.jetbrains.kotlin:kotlin-stdlib-jre8": {
-            "locked": "1.1.60",
-            "requested": "1.1.60"
+        "org.jetbrains.kotlin:kotlin-stdlib-jdk8": {
+            "locked": "1.2.20",
+            "requested": "1.2.20"
         },
         "org.slf4j:slf4j-api": {
             "locked": "1.7.25",
@@ -275,7 +275,7 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "2.9.2",
+            "locked": "2.9.3",
             "requested": "2.9.+"
         },
         "com.github.jonpeterson:jackson-module-model-versioning": {
@@ -289,7 +289,7 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "1.0.25",
+            "locked": "1.0.27",
             "requested": "1.0.+"
         },
         "com.natpryce:hamkrest": {
@@ -312,7 +312,7 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "1.111.0",
+            "locked": "1.113.0",
             "requested": "+"
         },
         "com.nhaarman:mockito-kotlin": {
@@ -330,13 +330,13 @@
             "locked": "4.11",
             "requested": "4.+"
         },
-        "org.jetbrains.kotlin:kotlin-stdlib-jre8": {
+        "org.jetbrains.kotlin:kotlin-stdlib-jdk8": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core",
                 "com.netflix.spinnaker.keel:keel-test"
             ],
-            "locked": "1.1.60",
-            "requested": "1.1.60"
+            "locked": "1.2.20",
+            "requested": "1.2.20"
         },
         "org.junit.jupiter:junit-jupiter-api": {
             "locked": "5.1.0-M1",
@@ -391,7 +391,7 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "2.9.2",
+            "locked": "2.9.3",
             "requested": "2.9.+"
         },
         "com.github.jonpeterson:jackson-module-model-versioning": {
@@ -405,7 +405,7 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "1.0.25",
+            "locked": "1.0.27",
             "requested": "1.0.+"
         },
         "com.natpryce:hamkrest": {
@@ -428,7 +428,7 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "1.111.0",
+            "locked": "1.113.0",
             "requested": "+"
         },
         "com.nhaarman:mockito-kotlin": {
@@ -446,13 +446,13 @@
             "locked": "4.11",
             "requested": "4.+"
         },
-        "org.jetbrains.kotlin:kotlin-stdlib-jre8": {
+        "org.jetbrains.kotlin:kotlin-stdlib-jdk8": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core",
                 "com.netflix.spinnaker.keel:keel-test"
             ],
-            "locked": "1.1.60",
-            "requested": "1.1.60"
+            "locked": "1.2.20",
+            "requested": "1.2.20"
         },
         "org.junit.jupiter:junit-jupiter-api": {
             "locked": "5.1.0-M1",
@@ -507,7 +507,7 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "2.9.2",
+            "locked": "2.9.3",
             "requested": "2.9.+"
         },
         "com.github.jonpeterson:jackson-module-model-versioning": {
@@ -521,7 +521,7 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "1.0.25",
+            "locked": "1.0.27",
             "requested": "1.0.+"
         },
         "com.natpryce:hamkrest": {
@@ -544,7 +544,7 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "1.111.0",
+            "locked": "1.113.0",
             "requested": "+"
         },
         "com.nhaarman:mockito-kotlin": {
@@ -562,13 +562,13 @@
             "locked": "4.11",
             "requested": "4.+"
         },
-        "org.jetbrains.kotlin:kotlin-stdlib-jre8": {
+        "org.jetbrains.kotlin:kotlin-stdlib-jdk8": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core",
                 "com.netflix.spinnaker.keel:keel-test"
             ],
-            "locked": "1.1.60",
-            "requested": "1.1.60"
+            "locked": "1.2.20",
+            "requested": "1.2.20"
         },
         "org.junit.jupiter:junit-jupiter-api": {
             "locked": "5.1.0-M1",
@@ -631,7 +631,7 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "2.9.2",
+            "locked": "2.9.3",
             "requested": "2.9.+"
         },
         "com.github.jonpeterson:jackson-module-model-versioning": {
@@ -645,7 +645,7 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "1.0.25",
+            "locked": "1.0.27",
             "requested": "1.0.+"
         },
         "com.natpryce:hamkrest": {
@@ -668,7 +668,7 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "1.111.0",
+            "locked": "1.113.0",
             "requested": "+"
         },
         "com.nhaarman:mockito-kotlin": {
@@ -686,13 +686,13 @@
             "locked": "4.11",
             "requested": "4.+"
         },
-        "org.jetbrains.kotlin:kotlin-stdlib-jre8": {
+        "org.jetbrains.kotlin:kotlin-stdlib-jdk8": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core",
                 "com.netflix.spinnaker.keel:keel-test"
             ],
-            "locked": "1.1.60",
-            "requested": "1.1.60"
+            "locked": "1.2.20",
+            "requested": "1.2.20"
         },
         "org.junit.jupiter:junit-jupiter-api": {
             "locked": "5.1.0-M1",
