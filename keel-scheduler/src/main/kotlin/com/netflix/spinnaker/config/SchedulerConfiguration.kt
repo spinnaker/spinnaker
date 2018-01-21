@@ -16,6 +16,8 @@
 package com.netflix.spinnaker.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.q.migration.FqnTypeInfoSerializationMigrator
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
@@ -26,8 +28,19 @@ import org.springframework.context.annotation.Configuration
   "com.netflix.spinnaker.keel.scheduler",
   "com.netflix.spinnaker.keel.scheduler.handler"
 ))
-@EnableConfigurationProperties(ScheduleConvergeHandlerProperties::class)
+@EnableConfigurationProperties(ScheduleConvergeHandlerProperties::class, ObjectMapperSubtypeProperties::class)
 open class SchedulerConfiguration {
 
-  @Bean open fun redisQueueObjectMapper(objectMapper: ObjectMapper) = objectMapper
+  @Autowired open fun redisQueueObjectMapper(redisQueueObjectMapper: ObjectMapper,
+                                             objectMapperSubtypeProperties: ObjectMapperSubtypeProperties) {
+    redisQueueObjectMapper.apply {
+      SpringObjectMapperConfigurer(objectMapperSubtypeProperties.apply {
+        messagePackages = messagePackages.union(listOf(
+          "com.netflix.spinnaker.keel.scheduler"
+        )).toList()
+      }).registerSubtypes(this)
+    }
+  }
+
+  @Bean open fun fqnTypeInfoSerializationMigrator() = FqnTypeInfoSerializationMigrator()
 }

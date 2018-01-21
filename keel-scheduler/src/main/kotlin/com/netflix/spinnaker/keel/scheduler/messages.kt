@@ -15,6 +15,7 @@
  */
 package com.netflix.spinnaker.keel.scheduler
 
+import com.fasterxml.jackson.annotation.JsonTypeName
 import com.netflix.spinnaker.keel.Intent
 import com.netflix.spinnaker.keel.IntentSpec
 import com.netflix.spinnaker.q.Message
@@ -22,8 +23,10 @@ import com.netflix.spinnaker.q.Message
 // ScheduleConvergence is a singleton message, the consumer finding all active
 // intents and scheduling workers to consume individual convergence tasks. The
 // consumer is responsible for rescheduling this message.
+@JsonTypeName(value = "scheduleConvergence")
 class ScheduleConvergence : Message()
 
+@JsonTypeName(value = "convergeIntent")
 data class ConvergeIntent(
   val intent: Intent<IntentSpec>,
   // The timestamp of which the intent data should be considered stale. If
@@ -34,7 +37,7 @@ data class ConvergeIntent(
   val timeoutTtl: Long
 ) : Message()
 
-
+@JsonTypeName(value = "monitorOrchestrations")
 data class MonitorOrchestrations(
   val intentId: String,
   val kind: String
