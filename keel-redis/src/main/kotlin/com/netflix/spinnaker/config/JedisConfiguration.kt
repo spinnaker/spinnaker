@@ -44,14 +44,14 @@ open class JedisConfiguration {
         minIdle = 25
       }
 
-  @Bean(name = arrayOf("mainRedisClient")) open fun jedisClientDelegate(jedisPool: JedisPool?): JedisClientDelegate? {
+  @Bean(name = ["mainRedisClient"]) open fun jedisClientDelegate(jedisPool: JedisPool?): JedisClientDelegate? {
     if (jedisPool == null) {
       return null
     }
     return JedisClientDelegate(jedisPool)
   }
 
-  @Bean(name = arrayOf("previousRedisClient")) open fun jedisClientDelegatePrevious(jedisPoolPrevious: JedisPool?): JedisClientDelegate? {
+  @Bean(name = ["previousRedisClient"]) open fun jedisClientDelegatePrevious(jedisPoolPrevious: JedisPool?): JedisClientDelegate? {
     if (jedisPoolPrevious == null) {
       return null
     }

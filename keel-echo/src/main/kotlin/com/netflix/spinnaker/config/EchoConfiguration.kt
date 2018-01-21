@@ -46,9 +46,7 @@ import retrofit.client.Client
 import retrofit.converter.JacksonConverter
 
 @Configuration
-@ComponentScan(basePackages = arrayOf(
-  "com.netflix.spinnaker.keel.echo"
-))
+@ComponentScan(basePackages = ["com.netflix.spinnaker.keel.echo"])
 @Import(RetrofitConfiguration::class)
 open class EchoConfiguration {
 

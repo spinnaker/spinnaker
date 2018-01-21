@@ -49,7 +49,7 @@ open class RetrofitConfiguration {
   @Value("\${okHttpClient.spinnakerUser:keel@spinnaker.io}")
   var spinnakerUser = "keel@spinnaker.io"
 
-  @Bean(name = arrayOf("retrofitClient", "okClient"))
+  @Bean(name = ["retrofitClient", "okClient"])
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
   open fun retrofitClient(@Qualifier("okHttpClientConfiguration") okHttpClientConfig: OkHttpClientConfiguration,
                           interceptors: Set<Interceptor>?): OkClient {

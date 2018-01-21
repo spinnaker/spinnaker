@@ -56,7 +56,7 @@ class IntentController
 
   private val log = LoggerFactory.getLogger(javaClass)
 
-  @RequestMapping(method = arrayOf(RequestMethod.GET))
+  @RequestMapping(method = [(RequestMethod.GET)])
   fun getIntents(@QueryParam("status") status: Array<IntentStatus>? ): List<Intent<IntentSpec>> {
     status?.let {
       return intentRepository.getIntents(status.toList())
@@ -64,10 +64,10 @@ class IntentController
     return intentRepository.getIntents()
   }
 
-  @RequestMapping(value = "/{id}", method = arrayOf(RequestMethod.GET))
+  @RequestMapping(value = "/{id}", method = [(RequestMethod.GET)])
   fun getIntent(@PathVariable("id") id: String) = intentRepository.getIntent(id)
 
-  @RequestMapping(value = "", method = arrayOf(RequestMethod.POST))
+  @RequestMapping(value = "", method = [(RequestMethod.POST)])
   @ResponseStatus(HttpStatus.ACCEPTED)
   fun upsertIntent(@RequestBody req: UpsertIntentRequest): Any {
     // TODO rz - validate intents
@@ -96,7 +96,7 @@ class IntentController
     return intentList
   }
 
-  @RequestMapping(value = "/{id}", method = arrayOf(RequestMethod.DELETE))
+  @RequestMapping(value = "/{id}", method = [(RequestMethod.DELETE)])
   @ResponseStatus(HttpStatus.NO_CONTENT)
   fun deleteIntent(@PathVariable("id") id: String, @RequestParam("status", required = false) status: IntentStatus?) {
     if (status != null) {
@@ -111,10 +111,10 @@ class IntentController
       }
   }
 
-  @RequestMapping(value = "/{id}/history", method = arrayOf(RequestMethod.GET))
+  @RequestMapping(value = "/{id}/history", method = [(RequestMethod.GET)])
   fun getIntentHistory(@PathVariable("id") id: String) = intentActivityRepository.getHistory(id)
 
-  @RequestMapping(value = "/{id}/traces", method = arrayOf(RequestMethod.GET))
+  @RequestMapping(value = "/{id}/traces", method = [(RequestMethod.GET)])
   fun getIntentTrace(@PathVariable("id") id: String) = traceRepository.getForIntent(id)
 }
 

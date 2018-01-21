@@ -40,7 +40,7 @@ object MainDefaults {
 @EnableAsync
 @EnableAutoConfiguration
 @Import(PlatformComponents::class)
-@ComponentScan(basePackages = arrayOf("com.netflix.spinnaker.config", "com.netflix.spinnaker.keel.web.config"))
+@ComponentScan(basePackages = ["com.netflix.spinnaker.config", "com.netflix.spinnaker.keel.web.config"])
 open class Main : SpringBootServletInitializer() {
 
   override fun configure(builder: SpringApplicationBuilder): SpringApplicationBuilder

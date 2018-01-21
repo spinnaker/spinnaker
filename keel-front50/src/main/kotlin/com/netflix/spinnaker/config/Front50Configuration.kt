@@ -32,7 +32,7 @@ import retrofit.converter.JacksonConverter
 
 @Configuration
 @ComponentScan(
-  basePackages = arrayOf("com.netflix.spinnaker.keel.front50")
+  basePackages = ["com.netflix.spinnaker.keel.front50"]
 )
 @Import(RetrofitConfiguration::class)
 open class Front50Configuration {

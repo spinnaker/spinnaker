@@ -24,10 +24,7 @@ import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
 
 @Configuration
-@ComponentScan(basePackages = arrayOf(
-  "com.netflix.spinnaker.keel.scheduler",
-  "com.netflix.spinnaker.keel.scheduler.handler"
-))
+@ComponentScan(basePackages = ["com.netflix.spinnaker.keel.scheduler", "com.netflix.spinnaker.keel.scheduler.handler"])
 @EnableConfigurationProperties(ScheduleConvergeHandlerProperties::class, ObjectMapperSubtypeProperties::class)
 open class SchedulerConfiguration {
 

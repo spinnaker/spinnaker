@@ -48,12 +48,12 @@ open class DynomiteConfiguration {
                                discoveryClient: Optional<DiscoveryClient>): DynoJedisClient
     = createDynoJedisClient(mainDynomiteConfigurationProperties, mainConnectionPoolConfiguration, discoveryClient)
 
-  @Bean(name = arrayOf("mainRedisClient")) open fun dynomiteClientDelegate(dynoJedisClient: DynoJedisClient): DynomiteClientDelegate {
+  @Bean(name = ["mainRedisClient"]) open fun dynomiteClientDelegate(dynoJedisClient: DynoJedisClient): DynomiteClientDelegate {
     return DynomiteClientDelegate(dynoJedisClient)
   }
 
   // TODO rz - dyno previous client
-  @Bean(name = arrayOf("previousRedisClient")) open fun previousDynomiteClientDelegate(): DynomiteClientDelegate? = null
+  @Bean(name = ["previousRedisClient"]) open fun previousDynomiteClientDelegate(): DynomiteClientDelegate? = null
 
   private fun createDynoJedisClient(dynomiteConfigurationProperties: DynomiteConfigurationProperties,
                                     connectionPoolConfiguration: ConnectionPoolConfigurationImpl,

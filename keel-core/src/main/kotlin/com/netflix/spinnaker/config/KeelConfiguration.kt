@@ -45,10 +45,7 @@ import java.time.Clock
 
 @Configuration
 @EnableConfigurationProperties(KeelProperties::class)
-@ComponentScan(basePackages = arrayOf(
-  "com.netflix.spinnaker.keel.dryrun",
-  "com.netflix.spinnaker.keel.filter"
-))
+@ComponentScan(basePackages = ["com.netflix.spinnaker.keel.dryrun", "com.netflix.spinnaker.keel.filter"])
 open class KeelConfiguration {
 
   private val log = LoggerFactory.getLogger(javaClass)
