@@ -112,7 +112,7 @@
     <stage-config-field label="Baseline">
       <input
         class="form-control input-sm"
-        ng-model="kayentaCanaryStageCtrl.stage.canaryConfig.controlScope"
+        ng-model="kayentaCanaryStageCtrl.stage.canaryConfig.scopes[0].controlScope"
         required
         type="text"/>
     </stage-config-field>
@@ -120,7 +120,7 @@
     <stage-config-field label="Baseline Region">
       <input
         class="form-control input-sm"
-        ng-model="kayentaCanaryStageCtrl.stage.canaryConfig.controlRegion"
+        ng-model="kayentaCanaryStageCtrl.stage.canaryConfig.scopes[0].controlRegion"
         required
         type="text"/>
     </stage-config-field>
@@ -128,7 +128,7 @@
     <stage-config-field label="Canary">
       <input
         class="form-control input-sm"
-        ng-model="kayentaCanaryStageCtrl.stage.canaryConfig.experimentScope"
+        ng-model="kayentaCanaryStageCtrl.stage.canaryConfig.scopes[0].experimentScope"
         required
         type="text"/>
     </stage-config-field>
@@ -136,7 +136,7 @@
     <stage-config-field label="Canary Region">
       <input
         class="form-control input-sm"
-        ng-model="kayentaCanaryStageCtrl.stage.canaryConfig.experimentRegion"
+        ng-model="kayentaCanaryStageCtrl.stage.canaryConfig.scopes[0].experimentRegion"
         required
         type="text"/>
     </stage-config-field>
@@ -145,21 +145,21 @@
     <stage-config-field label="Step">
       <input
         class="form-control input-sm"
-        ng-model="kayentaCanaryStageCtrl.stage.canaryConfig.step"
+        ng-model="kayentaCanaryStageCtrl.stage.canaryConfig.scopes[0].step"
         type="text"/>
     </stage-config-field>
 
     <stage-config-field label="Start Time" ng-if="kayentaCanaryStageCtrl.stage.analysisType === 'retrospective'">
       <input
         class="form-control input-sm"
-        ng-model="kayentaCanaryStageCtrl.stage.canaryConfig.startTimeIso"
+        ng-model="kayentaCanaryStageCtrl.stage.canaryConfig.scopes[0].startTimeIso"
         type="text"/>
     </stage-config-field>
 
     <stage-config-field label="End Time" ng-if="kayentaCanaryStageCtrl.stage.analysisType === 'retrospective'">
       <input
         class="form-control input-sm"
-        ng-model="kayentaCanaryStageCtrl.stage.canaryConfig.endTimeIso"
+        ng-model="kayentaCanaryStageCtrl.stage.canaryConfig.scopes[0].endTimeIso"
         type="text"/>
     </stage-config-field>
   </kayenta-stage-config-section>
@@ -212,7 +212,7 @@
     <stage-config-field label="Scope Name">
       <div ng-if="!kayentaCanaryStageCtrl.state.backingDataLoading">
         <ui-select required
-                   ng-model="kayentaCanaryStageCtrl.stage.canaryConfig.scopeName"
+                   ng-model="kayentaCanaryStageCtrl.stage.canaryConfig.scopes[0].scopeName"
                    class="visible-sm-inline-block visible-md-inline-block visible-lg-inline-block"
                    style="width:300px">
           <ui-select-match>{{$select.selected}}</ui-select-match>
@@ -225,5 +225,9 @@
         <h3><span us-spinner="{radius:3, width:1, length: 4}"></span></h3>
       </div>
     </stage-config-field>
+
+    <div class="alert alert-warning" ng-if="kayentaCanaryStageCtrl.stage.canaryConfig.scopes.length > 1">
+      <strong>Warning!</strong> This stage specifies more than one scope. Please edit the stage JSON to configure scopes beyond the first one.
+    </div>
   </kayenta-stage-config-section>
 </div>
