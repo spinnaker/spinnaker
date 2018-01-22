@@ -345,6 +345,10 @@
   version "7.0.5"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-7.0.5.tgz#96a0f0a618b7b606f1ec547403c00650210bfbb7"
 
+"@types/prop-types@*":
+  version "15.5.2"
+  resolved "https://registry.yarnpkg.com/@types/prop-types/-/prop-types-15.5.2.tgz#3c6b8dceb2906cc87fe4358e809f9d20c8d59be1"
+
 "@types/prop-types@^15.5.1":
   version "15.5.1"
   resolved "https://registry.yarnpkg.com/@types/prop-types/-/prop-types-15.5.1.tgz#1ecf52621299e65b855374337fb11fd2d1066fc1"
@@ -365,6 +369,12 @@
   version "2.1.1"
   resolved "https://registry.yarnpkg.com/@types/react-ga/-/react-ga-2.1.1.tgz#22e77af18ea0e4be4e33e0863ff2e1c97dc6f8dc"
 
+"@types/react-select@*":
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/@types/react-select/-/react-select-1.1.0.tgz#b3ddf7a58f033f69d3c47c825587a54fec1629c6"
+  dependencies:
+    "@types/react" "*"
+
 "@types/react-select@^1.0.54":
   version "1.0.54"
   resolved "https://registry.yarnpkg.com/@types/react-select/-/react-select-1.0.54.tgz#cd138bd0142b67a515a565746e66fac6e20bf4f6"
@@ -375,6 +385,21 @@
   version "0.6.1"
   resolved "https://registry.yarnpkg.com/@types/react-sortable-hoc/-/react-sortable-hoc-0.6.1.tgz#e896c2ddd31a2ed74d984614f99d2a415f333916"
   dependencies:
+    "@types/react" "*"
+
+"@types/react-virtualized-select@^3.0.2":
+  version "3.0.2"
+  resolved "https://registry.yarnpkg.com/@types/react-virtualized-select/-/react-virtualized-select-3.0.2.tgz#6779fecb84d6dc954fe55c7e154d726050f59a92"
+  dependencies:
+    "@types/react" "*"
+    "@types/react-select" "*"
+    "@types/react-virtualized" "*"
+
+"@types/react-virtualized@*":
+  version "9.7.10"
+  resolved "https://registry.yarnpkg.com/@types/react-virtualized/-/react-virtualized-9.7.10.tgz#f55ee6138cef17a4adf2893494d32b8407f0103b"
+  dependencies:
+    "@types/prop-types" "*"
     "@types/react" "*"
 
 "@types/react-virtualized@9.7.2":
@@ -3398,6 +3423,14 @@ form-data@~2.1.1:
     combined-stream "^1.0.5"
     mime-types "^2.1.12"
 
+formik@^0.10.5:
+  version "0.10.5"
+  resolved "https://registry.yarnpkg.com/formik/-/formik-0.10.5.tgz#6984d2f22e918c6d2264a3cb86b8582f7277faca"
+  dependencies:
+    lodash.isequal "4.5.0"
+    prop-types "^15.5.10"
+    warning "^3.0.0"
+
 formsy-react@^0.19.2, formsy-react@^0.19.5:
   version "0.19.5"
   resolved "https://registry.yarnpkg.com/formsy-react/-/formsy-react-0.19.5.tgz#760a57ac0113442e3df4c309c3638dd92957e78e"
@@ -4637,6 +4670,10 @@ lodash.foreach@^4.3.0:
 lodash.frompairs@^4.0.1:
   version "4.0.1"
   resolved "https://registry.yarnpkg.com/lodash.frompairs/-/lodash.frompairs-4.0.1.tgz#bc4e5207fa2757c136e573614e9664506b2b1bd2"
+
+lodash.isequal@4.5.0:
+  version "4.5.0"
+  resolved "https://registry.yarnpkg.com/lodash.isequal/-/lodash.isequal-4.5.0.tgz#415c4478f2bcc30120c22ce10ed3226f7d3e18e0"
 
 lodash.isfunction@^3.0.8:
   version "3.0.8"

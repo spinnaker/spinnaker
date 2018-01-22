@@ -96,7 +96,7 @@ Here are the variations:
 :root {
   --button-background-color: white;
   --button-font-size: 12px;
-  --button-solid-padding: 5px 14px;
+  --button-solid-padding: 6px 14px;
   --button-hollow-padding: 6px 14px;
 }
 
@@ -195,9 +195,10 @@ a.button, a.button:hover, a.button:focus, a.button:active, a, button.link {
 
 button.link, a.default {
   background-color: transparent;
-  padding: 0;
+  padding: 6px 12px;
   font-weight: normal;
   color: var(--color-accent);
+  border: 0;
 }
 
 button.link:hover, button.link:active, button.link:focus,

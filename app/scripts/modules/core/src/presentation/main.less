@@ -727,6 +727,21 @@ tfoot .add-new {
   margin-bottom: 0;
 }
 
+.form-control.invalid {
+  border-color: var(--color-danger);
+  .box-shadow(inset 0 1px 1px rgba(0, 0, 0, .075)); // Redeclare so transitions work
+  &:focus {
+    border-color: var(--color-danger);
+    @shadow: inset 0 1px 1px rgba(0, 0, 0, .075), 0 0 6px var(--color-danger-light);
+    .box-shadow(@shadow);
+  }
+}
+
+input:invalid {
+  border-color: var(--color-danger);
+  -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 6px var(--color-danger-light);
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 6px var(--color-danger-light);
+}
 
 .form-control {
   &.ng-invalid {
@@ -1163,6 +1178,12 @@ select.input-sm {
 .select-placeholder {
   display: inline-block;
   padding-left: 14px;
+}
+
+.Select.is-open { z-index: 10000; }
+
+.sortable-helper {
+  z-index: 10000;
 }
 
 html {

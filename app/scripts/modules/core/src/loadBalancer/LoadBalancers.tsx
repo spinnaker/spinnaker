@@ -4,12 +4,12 @@ import { Subscription } from 'rxjs';
 
 import { Application } from 'core/application/application.model';
 import { FilterTags, IFilterTag } from 'core/filterModel/FilterTags';
-import { ILoadBalancer, ILoadBalancerGroup } from 'core/domain';
+import { ILoadBalancerGroup } from 'core/domain';
 import { LoadBalancerPod } from './LoadBalancerPod';
-import { Tooltip } from 'core/presentation/Tooltip';
 import { Spinner } from 'core/widgets/spinners/Spinner';
 
 import { NgReact, ReactInjector } from 'core/reactShims';
+import { CreateLoadBalancerButton } from 'core/loadBalancer/CreateLoadBalancerButton';
 
 export interface ILoadBalancersProps {
   app: Application;
@@ -80,27 +80,6 @@ export class LoadBalancers extends React.Component<ILoadBalancersProps, ILoadBal
     ReactInjector.loadBalancerFilterService.clearFilters();
     this.updateLoadBalancerGroups();
   }
-
-  private createLoadBalancer(): void {
-    const { providerSelectionService, cloudProviderRegistry, versionSelectionService } = ReactInjector;
-    const { app } = this.props;
-    providerSelectionService.selectProvider(app, 'loadBalancer').then((selectedProvider) => {
-      versionSelectionService.selectVersion(selectedProvider).then((selectedVersion) => {
-        const provider = cloudProviderRegistry.getValue(selectedProvider, 'loadBalancer', selectedVersion);
-        ReactInjector.modalService.open({
-          templateUrl: provider.createLoadBalancerTemplateUrl,
-          controller: `${provider.createLoadBalancerController} as ctrl`,
-          size: 'lg',
-          resolve: {
-            application: () => app,
-            loadBalancer: (): ILoadBalancer => null,
-            isNew: () => true,
-            forPipelineConfig: () => false
-          }
-        }).result.catch(() => {});
-      });
-    });
-  };
 
   private updateUIState(state: ILoadBalancersState): void {
     const params: any = {
@@ -181,13 +160,7 @@ export class LoadBalancers extends React.Component<ILoadBalancersProps, ILoadBal
           <div className="col-lg-4 col-md-2">
             <div className="form-inline clearfix filters"/>
             <div className="application-actions">
-              <button className="btn btn-sm btn-default" onClick={this.createLoadBalancer}>
-                <span className="glyphicon glyphicon-plus-sign visible-lg-inline"/>
-                <Tooltip value="Create Load Balancer">
-                  <span className="glyphicon glyphicon-plus-sign visible-md-inline visible-sm-inline"/>
-                </Tooltip>
-                <span className="visible-lg-inline"> Create Load Balancer</span>
-              </button>
+              <CreateLoadBalancerButton app={this.props.app} />
             </div>
           </div>
           <FilterTags tags={this.state.tags} tagCleared={this.tagCleared} clearFilters={this.clearFilters}/>
