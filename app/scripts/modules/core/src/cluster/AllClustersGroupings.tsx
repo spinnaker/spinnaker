@@ -43,12 +43,20 @@ export class AllClustersGroupings extends React.Component<IAllClustersGroupingsP
   }
 
   public componentDidMount() {
-    const onGroupsChanged = (groups: IClusterGroup[]) => this.setState({ groups: groups.reduce((a, b) => a.concat(b.subgroups), []) });
+    const onGroupsChanged = (groups: IClusterGroup[]) => {
+      this.setState(
+        { groups: groups.reduce((a, b) => a.concat(b.subgroups), []) },
+        () => this.cellCache.clearAll()
+      );
+    };
     this.groupsSubscription = this.clusterFilterService.groupsUpdatedStream.subscribe(onGroupsChanged);
 
     const getSortFilter = () => this.clusterFilterModel.asFilterModel.sortFilter;
     const onFilterChanged = ({ ...sortFilter }: any) => {
-      this.setState({ sortFilter }, () => this.cellCache.clearAll());
+      this.setState(
+        { sortFilter },
+        () => this.cellCache.clearAll()
+      );
     };
     // TODO: Remove $rootScope. Keeping it here so we can use $watch for now.
     //       Eventually, there should be events fired when filters change.
