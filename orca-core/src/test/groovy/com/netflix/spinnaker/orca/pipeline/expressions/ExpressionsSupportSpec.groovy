@@ -16,11 +16,11 @@
 
 package com.netflix.spinnaker.orca.pipeline.expressions
 
-import com.netflix.spinnaker.orca.ExecutionStatus
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
 
+import static com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage;
 
@@ -41,6 +41,62 @@ class ExpressionsSupportSpec extends Specification {
       context = [
         "region": "us-west-1",
       ]
+    }
+
+    stage {
+      id = "3"
+      status = SUCCEEDED
+      type = "createServerGroup"
+      name = "Deploy in us-east-1"
+      context.putAll(
+        "account": "test",
+        "deploy.account.name": "test",
+        "availabilityZones": [
+          "us-east-1": [
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1e"
+          ]
+        ],
+        "capacity": [
+          "desired": 1,
+          "max"    : 1,
+          "min"    : 1
+        ],
+        "deploy.server.groups": [
+          "us-east-1": [
+            "app-test-v001"
+          ]
+        ]
+      )
+    }
+
+    stage {
+      id = "4"
+      status = SUCCEEDED
+      type = "disableServerGroup"
+      name = "disable server group"
+      context.putAll(
+        "account": "test",
+        "deploy.account.name": "test",
+        "availabilityZones": [
+          "us-east-1": [
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1e"
+          ]
+        ],
+        "capacity": [
+          "desired": 1,
+          "max"    : 1,
+          "min"    : 1
+        ],
+        "deploy.server.groups": [
+          "us-west-2": [
+            "app-test-v002"
+          ]
+        ]
+      )
     }
   }
 
@@ -86,5 +142,13 @@ class ExpressionsSupportSpec extends Specification {
     "2"                  | true
     "Non-existent Stage" | false
     "42"                 | false
+  }
+
+  def "deployedServerGroup should resolve for valid stage type"() {
+    when:
+    def map = ExpressionsSupport.deployedServerGroups(pipeline)
+
+    then: "(deploy|createServerGroup|cloneServerGroup|rollingPush)"
+    map.serverGroup == ["app-test-v001"]
   }
 }

@@ -51,6 +51,8 @@ public class ExpressionsSupport {
   private static AtomicReference<ContextFunctionConfiguration> helperFunctionConfigurationAtomicReference = new AtomicReference<>();
   private static Map<String, List<Class<?>>> registeredHelperFunctions = new HashMap<>();
 
+  private static List<String> DEPLOY_STAGE_NAMES = Arrays.asList("deploy", "createServerGroup", "cloneServerGroup", "rollingPush");
+
   ExpressionsSupport(ContextFunctionConfiguration contextFunctionConfiguration) {
     helperFunctionConfigurationAtomicReference.set(contextFunctionConfiguration);
   }
@@ -380,10 +382,13 @@ public class ExpressionsSupport {
   private static Predicate<Stage> matchesDeployedStage(String ...id) {
     List<String> idsOrNames = Arrays.asList(id);
     if (!idsOrNames.isEmpty()){
-      return s -> s.getContext().containsKey("deploy.server.groups") && s.getStatus() == ExecutionStatus.SUCCEEDED &&
-        (idsOrNames.contains(s.getName()) || idsOrNames.contains(s.getId()));
+      return stage -> DEPLOY_STAGE_NAMES.contains(stage.getType()) &&
+        stage.getContext().containsKey("deploy.server.groups") &&
+        stage.getStatus() == ExecutionStatus.SUCCEEDED &&
+        (idsOrNames.contains(stage.getName()) || idsOrNames.contains(stage.getId()));
     } else {
-      return s -> s.getContext().containsKey("deploy.server.groups") && s.getStatus() == ExecutionStatus.SUCCEEDED;
+      return stage -> DEPLOY_STAGE_NAMES.contains(stage.getType()) &&
+        stage.getContext().containsKey("deploy.server.groups") && stage.getStatus() == ExecutionStatus.SUCCEEDED;
     }
   }
 }
