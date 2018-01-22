@@ -28,6 +28,8 @@ import {
   ITargetGroup
 } from 'amazon';
 
+import { LOAD_BALANCER_ACTIONS } from './loadBalancerActions.component';
+
 export interface ILoadBalancerFromStateParams {
   accountId: string;
   region: string;
@@ -172,6 +174,7 @@ module(AWS_LOAD_BALANCER_DETAILS_CTRL, [
   require('@uirouter/angularjs').default,
   APPLICATION_READ_SERVICE,
   SECURITY_GROUP_READER,
+  LOAD_BALANCER_ACTIONS,
   LOAD_BALANCER_WRITE_SERVICE,
   LOAD_BALANCER_READ_SERVICE,
   CONFIRMATION_MODAL_SERVICE,
