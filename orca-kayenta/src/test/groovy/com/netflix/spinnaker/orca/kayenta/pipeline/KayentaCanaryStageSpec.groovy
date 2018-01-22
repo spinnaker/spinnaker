@@ -16,16 +16,18 @@
 
 package com.netflix.spinnaker.orca.kayenta.pipeline
 
-import java.time.Clock
-import java.time.Duration
-import java.time.Instant
-import java.time.ZoneId
-import java.time.temporal.ChronoUnit
 import com.netflix.spinnaker.orca.pipeline.WaitStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
+
+import java.time.Clock
+import java.time.Duration
+import java.time.Instant
+import java.time.ZoneId
+import java.time.temporal.ChronoUnit
+
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
 
 class KayentaCanaryStageSpec extends Specification {
@@ -42,10 +44,12 @@ class KayentaCanaryStageSpec extends Specification {
       context = [
         canaryConfig: [
           canaryConfigId              : "MySampleStackdriverCanaryConfig",
-          controlScope                : "myapp-v010-",
-          experimentScope             : "myapp-v021-",
-          startTimeIso                : "2017-01-01T01:02:34.567Z",
-          endTimeIso                  : "2017-01-01T05:02:34.567Z",
+          scopes                      : [[
+            controlScope   : "myapp-v010",
+            experimentScope: "myapp-v021",
+            startTimeIso   : "2017-01-01T01:02:34.567Z",
+            endTimeIso     : "2017-01-01T05:02:34.567Z",
+          ]],
           beginCanaryAnalysisAfterMins: beginCanaryAnalysisAfterMins
         ]
       ]
@@ -77,10 +81,12 @@ class KayentaCanaryStageSpec extends Specification {
       context = [
         canaryConfig: [
           canaryConfigId              : "MySampleStackdriverCanaryConfig",
-          controlScope                : "myapp-v010-",
-          experimentScope             : "myapp-v021-",
-          startTimeIso                : "2017-01-01T01:02:34.567Z",
-          endTimeIso                  : "2017-01-01T05:02:34.567Z",
+          scopes                      : [[
+            controlScope   : "myapp-v010",
+            experimentScope: "myapp-v021",
+            startTimeIso   : "2017-01-01T01:02:34.567Z",
+            endTimeIso     : "2017-01-01T05:02:34.567Z"
+          ]],
           beginCanaryAnalysisAfterMins: beginCanaryAnalysisAfterMins,
           canaryAnalysisIntervalMins  : canaryAnalysisIntervalMins,
           lookbackMins                : lookbackMins
@@ -140,6 +146,57 @@ class KayentaCanaryStageSpec extends Specification {
   }
 
   @Unroll
+  def "should use the first scope's time boundaries for all scopes"() {
+    given:
+    def kayentaCanaryStage = stage {
+      type = "kayentaCanary"
+      name = "Run Kayenta Canary"
+      context = [
+        canaryConfig: [
+          canaryConfigId: "MySampleStackdriverCanaryConfig",
+          scopes        : [
+            [
+              scopeName      : "default",
+              controlScope   : "myapp-v010",
+              experimentScope: "myapp-v021",
+              startTimeIso   : "2017-01-01T01:02:34.567Z",
+              endTimeIso     : "2017-01-01T05:02:34.567Z"
+            ],
+            [
+              scopeName      : "otherScope",
+              controlScope   : "myapp-v016",
+              experimentScope: "myapp-v028",
+              startTimeIso   : "2017-02-03T04:02:34.567Z",
+              endTimeIso     : "2017-02-03T08:02:34.567Z"
+            ],
+            [
+              scopeName      : "yetAnotherScope",
+              controlScope   : "myapp-v023",
+              experimentScope: "myapp-v025",
+              startTimeIso   : "2017-03-04T06:02:34.567Z",
+              endTimeIso     : "2017-03-04T10:02:34.567Z"
+            ]
+          ]
+        ]
+      ]
+    }
+    def builder = new KayentaCanaryStage()
+    def startTimeInstant = Instant.parse("2017-01-01T01:02:34.567Z")
+    builder.clock = Clock.fixed(startTimeInstant, ZoneId.systemDefault())
+    builder.waitStage = waitStage
+    def aroundStages = builder.aroundStages(kayentaCanaryStage)
+
+    when:
+    def summary = collectSummary(aroundStages, startTimeInstant, scopeName)
+
+    then:
+    summary == [[minutesFromInitialStartToCanaryStart: 0, minutesFromInitialStartToCanaryEnd: 240, step: "60"]]
+
+    where:
+    scopeName << ["default", "otherScope", "yetAnotherScope"]
+  }
+
+  @Unroll
   def "should start now and include warmupWait stage if necessary"() {
     given:
     def kayentaCanaryStage = stage {
@@ -148,8 +205,10 @@ class KayentaCanaryStageSpec extends Specification {
       context = [
         canaryConfig: [
           canaryConfigId              : "MySampleStackdriverCanaryConfig",
-          controlScope                : "myapp-v010-",
-          experimentScope             : "myapp-v021-",
+          scopes                      : [[
+            controlScope   : "myapp-v010",
+            experimentScope: "myapp-v021"
+          ]],
           lifetimeHours               : "1",
           beginCanaryAnalysisAfterMins: beginCanaryAnalysisAfterMins
         ]
@@ -168,7 +227,7 @@ class KayentaCanaryStageSpec extends Specification {
     !warmupWaitPeriodMinutes || aroundStages[0].context.waitTime == Duration.ofMinutes(warmupWaitPeriodMinutes).getSeconds()
     aroundStages.find {
       it.type == "runCanary"
-    }.context.startTimeIso == startTimeInstant.plus(warmupWaitPeriodMinutes, ChronoUnit.MINUTES).toString()
+    }.context.scopes.default.controlScope.start == startTimeInstant.plus(warmupWaitPeriodMinutes, ChronoUnit.MINUTES).toString()
 
     where:
     beginCanaryAnalysisAfterMins || expectedStageTypes            | warmupWaitPeriodMinutes
@@ -187,8 +246,10 @@ class KayentaCanaryStageSpec extends Specification {
       context = [
         canaryConfig: [
           canaryConfigId              : "MySampleStackdriverCanaryConfig",
-          controlScope                : "myapp-v010-",
-          experimentScope             : "myapp-v021-",
+          scopes                      : [[
+            controlScope   : "myapp-v010",
+            experimentScope: "myapp-v021"
+          ]],
           beginCanaryAnalysisAfterMins: beginCanaryAnalysisAfterMins,
           canaryAnalysisIntervalMins  : canaryAnalysisIntervalMins,
           lookbackMins                : lookbackMins,
@@ -301,12 +362,14 @@ class KayentaCanaryStageSpec extends Specification {
         canaryConfig: [
           metricsAccountName        : "atlas-acct-1",
           canaryConfigId            : "MySampleAtlasCanaryConfig",
-          controlScope              : "some.host.node",
-          experimentScope           : "some.other.host.node",
+          scopes                    : [[
+            controlScope       : "some.host.node",
+            experimentScope    : "some.other.host.node",
+            step               : "PT60S",
+            extendedScopeParams: [type: "node"]
+          ]],
           canaryAnalysisIntervalMins: Duration.ofHours(6).toMinutes(),
-          lifetimeHours             : "12",
-          step                      : "PT60S",
-          extendedScopeParams       : [type: "node"]
+          lifetimeHours             : "12"
         ]
       ]
     }
@@ -326,13 +389,13 @@ class KayentaCanaryStageSpec extends Specification {
                 [minutesFromInitialStartToCanaryStart: 0, minutesFromInitialStartToCanaryEnd: Duration.ofHours(12).toMinutes(), step: "PT60S", metricsAccountName: "atlas-acct-1", extendedScopeParams: [type: "node"]]]
   }
 
-  def collectSummary(List<Stage> aroundStages, startTimeInstant) {
+  def collectSummary(List<Stage> aroundStages, Instant startTimeInstant, String scopeName = "default") {
     return aroundStages.collect {
       if (it.type == waitStage.type) {
         return [wait: it.context.waitTime]
       } else if (it.type == RunCanaryPipelineStage.STAGE_TYPE) {
-        Instant runCanaryPipelineStartInstant = Instant.parse(it.context.startTimeIso)
-        Instant runCanaryPipelineEndInstant = Instant.parse(it.context.endTimeIso)
+        Instant runCanaryPipelineStartInstant = Instant.parse(it.context.scopes[scopeName].controlScope.start)
+        Instant runCanaryPipelineEndInstant = Instant.parse(it.context.scopes[scopeName].controlScope.end)
         Map ret = [
           minutesFromInitialStartToCanaryStart: startTimeInstant.until(runCanaryPipelineStartInstant, ChronoUnit.MINUTES),
           minutesFromInitialStartToCanaryEnd  : startTimeInstant.until(runCanaryPipelineEndInstant, ChronoUnit.MINUTES)
@@ -342,12 +405,12 @@ class KayentaCanaryStageSpec extends Specification {
           ret.metricsAccountName = it.context.metricsAccountName
         }
 
-        if (it.context.step) {
-          ret.step = it.context.step
+        if (it.context.scopes[scopeName].controlScope.step) {
+          ret.step = it.context.scopes[scopeName].controlScope.step
         }
 
-        if (it.context.extendedScopeParams) {
-          ret.extendedScopeParams = it.context.extendedScopeParams
+        if (it.context.scopes[scopeName].controlScope.extendedScopeParams) {
+          ret.extendedScopeParams = it.context.scopes[scopeName].controlScope.extendedScopeParams
         }
 
         return ret

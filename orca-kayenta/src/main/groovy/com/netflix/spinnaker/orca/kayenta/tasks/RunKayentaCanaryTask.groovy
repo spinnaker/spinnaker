@@ -40,37 +40,10 @@ class RunKayentaCanaryTask implements Task {
     String metricsAccountName = (String)context.get("metricsAccountName")
     String storageAccountName = (String)context.get("storageAccountName")
     String canaryConfigId = (String)context.get("canaryConfigId")
-    String scopeName = (String)context.get("scopeName") ?: "default"
-    String controlScope = (String)context.get("controlScope")
-    String controlRegion = (String)context.get("controlRegion")
-    String experimentScope = (String)context.get("experimentScope")
-    String experimentRegion = (String)context.get("experimentRegion")
-    String startTimeIso = (String)context.get("startTimeIso")
-    String endTimeIso = (String)context.get("endTimeIso")
-    String step = (String)context.get("step")
-    Map<String, String> extendedScopeParams = (Map<String, String>)context.get("extendedScopeParams")
+    Map<String, Map> scopes = (Map<String, Map>)context.get("scopes")
     Map<String, String> scoreThresholds = (Map<String, String>)context.get("scoreThresholds")
     Map<String, String> canaryExecutionRequest = [
-      scopes: [
-        (scopeName): [
-          controlScope: [
-            scope: controlScope,
-            region: controlRegion,
-            start: startTimeIso,
-            end: endTimeIso,
-            step: step,
-            extendedScopeParams: extendedScopeParams
-          ],
-          experimentScope: [
-            scope: experimentScope,
-            region: experimentRegion,
-            start: startTimeIso,
-            end: endTimeIso,
-            step: step,
-            extendedScopeParams: extendedScopeParams
-          ]
-        ]
-      ],
+      scopes: scopes,
       thresholds: [
         pass: scoreThresholds?.pass,
         marginal: scoreThresholds?.marginal
