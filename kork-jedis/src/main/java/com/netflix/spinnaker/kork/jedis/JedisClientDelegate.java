@@ -15,6 +15,7 @@
  */
 package com.netflix.spinnaker.kork.jedis;
 
+import redis.clients.util.Pool;
 import redis.clients.jedis.*;
 
 import java.util.function.Consumer;
@@ -22,9 +23,9 @@ import java.util.function.Function;
 
 public class JedisClientDelegate implements RedisClientDelegate {
 
-  private final JedisPool jedisPool;
+  private final Pool<Jedis> jedisPool;
 
-  public JedisClientDelegate(JedisPool jedisPool) {
+  public JedisClientDelegate(Pool<Jedis> jedisPool) {
     this.jedisPool = jedisPool;
   }
 
