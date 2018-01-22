@@ -16,7 +16,7 @@ module.exports = angular
           </li>
         </ul>
         <ul class="task task-progress task-progress-running" ng-if="$ctrl.monitor.task.isActive">
-          <li><loading-spinner size="'nano'"></loading-spinner></li>
+          <li><loading-spinner size="'small'"></loading-spinner></li>
         </ul>
         <ul class="task task-progress task-progress-refresh" ng-if="$ctrl.monitor.task.isCompleted">
           <li>
