@@ -16,6 +16,15 @@
 
 package com.netflix.spinnaker.clouddriver.elasticsearch.model
 
+interface Model {
+  val id: String
+}
+
+enum class ModelType {
+  ServerGroup,
+  Intance
+}
+
 data class LocationModel(val type: String, val value: String)
 
 data class AccountModel(val id: String, val name: String)
@@ -24,15 +33,27 @@ data class InstanceTypeModel(val type: String)
 
 data class BlockDeviceModel(val type: String)
 
+data class TagModel(val key: String, val value: Any)
+
 data class Moniker(val application: String,
                    val stack: String?,
                    val details: String?,
                    val cluster: String)
 
-data class ServerGroupModel(val id: String,
+
+data class ServerGroupModel(override val id: String,
                             val name: String,
                             val moniker: Moniker,
                             val location: LocationModel,
                             val account: AccountModel,
                             val instanceTypes: Collection<InstanceTypeModel>,
-                            val blockDevice: BlockDeviceModel)
+                            val blockDevice: BlockDeviceModel) : Model
+
+data class InstanceModel(override val id: String,
+                         val instanceId: String,
+                         val instanceType: InstanceTypeModel,
+                         val location: LocationModel,
+                         val account: AccountModel,
+                         val ipAddresses: Collection<String>,
+                         val launchTime: java.util.Date,
+                         val tags: Collection<TagModel>) : Model

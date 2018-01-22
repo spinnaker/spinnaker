@@ -18,7 +18,8 @@ package com.netflix.spinnaker.clouddriver.elasticsearch
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.elasticsearch.model.ElasticSearchException
-import com.netflix.spinnaker.clouddriver.elasticsearch.model.ServerGroupModel
+import com.netflix.spinnaker.clouddriver.elasticsearch.model.Model
+import com.netflix.spinnaker.clouddriver.elasticsearch.model.ModelType
 import io.searchbox.client.JestClient
 import io.searchbox.core.Bulk
 import io.searchbox.core.BulkResult
@@ -74,14 +75,14 @@ class ElasticSearchClient(private val objectMapper : ObjectMapper, private val j
     }
   }
 
-  fun store(index: String, partition: List<ServerGroupModel>) {
+  fun <T : Model> store(index: String, type: ModelType, partition: List<T>) {
     var builder: Bulk.Builder = Bulk.Builder().defaultIndex(index)
 
     for (serverGroupModel in partition) {
       builder = builder.addAction(
         Index.Builder(objectMapper.convertValue(serverGroupModel, Map::class.java))
           .index(index)
-          .type("ServerGroup")
+          .type(type.toString())
           .id(serverGroupModel.id)
           .build()
       )

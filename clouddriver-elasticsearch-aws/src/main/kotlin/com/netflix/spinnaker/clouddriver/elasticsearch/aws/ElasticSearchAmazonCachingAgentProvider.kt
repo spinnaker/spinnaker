@@ -53,12 +53,21 @@ open class ElasticSearchAmazonCachingAgentProvider(
       jestClient
     )
 
-    return listOf<Agent>(ElasticSearchAmazonServerGroupCachingAgent(
-      retrySupport,
-      registry,
-      amazonClientProvider,
-      credentials,
-      elasticSearchClient
-    ))
+    return listOf(
+      ElasticSearchAmazonServerGroupCachingAgent(
+        retrySupport,
+        registry,
+        amazonClientProvider,
+        credentials,
+        elasticSearchClient
+      ),
+      ElasticSearchAmazonInstanceCachingAgent(
+        retrySupport,
+        registry,
+        amazonClientProvider,
+        credentials,
+        elasticSearchClient
+      )
+    )
   }
 }

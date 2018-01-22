@@ -22,9 +22,6 @@ import com.amazonaws.services.autoscaling.model.AutoScalingGroup
 import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsRequest
 import com.amazonaws.services.autoscaling.model.DescribeLaunchConfigurationsRequest
 import com.amazonaws.services.autoscaling.model.LaunchConfiguration
-import com.amazonaws.services.ec2.AmazonEC2
-import com.amazonaws.services.ec2.model.DescribeInstancesRequest
-import com.amazonaws.services.ec2.model.Instance
 import com.google.common.collect.Lists
 import com.netflix.frigga.Names
 import com.netflix.spectator.api.Registry
@@ -82,7 +79,7 @@ class ElasticSearchAmazonServerGroupCachingAgent(
 
         for (partition in Lists.partition<ServerGroupModel>(serverGroupModels, 1000)) {
           retrySupport.retry(
-            { elasticSearchClient.store(index, partition) },
+            { elasticSearchClient.store(index, ModelType.ServerGroup, partition) },
             10,
             2000,
             false
@@ -101,12 +98,6 @@ class ElasticSearchAmazonServerGroupCachingAgent(
 
   private fun fetchServerGroupModels(credentials: NetflixAmazonCredentials, region: String): List<ServerGroupModel> {
     val amazonAutoScaling = amazonClientProvider.getAutoScaling(credentials, region)
-    val amazonEC2 = amazonClientProvider.getAmazonEC2(credentials, region)
-
-    log.debug("Describing All Instances in ${credentials.name}:${region}")
-    val instancesById = fetchAllInstances(amazonEC2)
-      .map { it.instanceId to it }
-      .toMap()
 
     log.debug("Describing All Autoscaling Groups in ${credentials.name}:${region}")
     val autoScalingGroups = fetchAllAutoScalingGroups(amazonAutoScaling)
@@ -117,11 +108,6 @@ class ElasticSearchAmazonServerGroupCachingAgent(
       .toMap()
 
     return autoScalingGroups.map { asg ->
-      val instanceTypesInServerGroup = asg.instances
-        .map { instancesById.getOrDefault(it.instanceId, Instance().withInstanceType("unknown")) }
-        .map { InstanceTypeModel(it.instanceType) }
-        .toSet()
-
       val launchConfiguration = launchConfigurationsByName.getOrDefault(
         asg.launchConfigurationName?.toLowerCase(),
         LaunchConfiguration()
@@ -133,37 +119,21 @@ class ElasticSearchAmazonServerGroupCachingAgent(
         else -> "ephemeral"
       }
 
+      val instanceTypes = listOfNotNull(launchConfiguration.instanceType).map { InstanceTypeModel(it) }
+
       ServerGroupModel(
         "${credentials.accountId}:${region}:${asg.autoScalingGroupName}".toLowerCase(),
         asg.autoScalingGroupName,
         Names.parseName(asg.autoScalingGroupName).toMoniker(),
         LocationModel("region", region),
         AccountModel(credentials.accountId, credentials.name),
-        instanceTypesInServerGroup,
+        instanceTypes,
         BlockDeviceModel(blockDeviceType)
       )
     }
   }
 
-  private fun fetchAllInstances(amazonEC2: AmazonEC2) : List<Instance> {
-    val instances = mutableListOf<Instance>()
-
-    var request = DescribeInstancesRequest()
-    while (true) {
-      val response = amazonEC2.describeInstances(request)
-
-      instances.addAll(response.reservations.flatMap { it.instances })
-      if (response.nextToken != null) {
-        request = request.withNextToken(response.nextToken)
-      } else {
-        break
-      }
-    }
-
-    return instances;
-  }
-
-  private fun fetchAllAutoScalingGroups(amazonAutoScaling: AmazonAutoScaling) : List<AutoScalingGroup> {
+  private fun fetchAllAutoScalingGroups(amazonAutoScaling: AmazonAutoScaling): List<AutoScalingGroup> {
     val autoScalingGroups = mutableListOf<AutoScalingGroup>()
 
     var request = DescribeAutoScalingGroupsRequest()
@@ -181,7 +151,7 @@ class ElasticSearchAmazonServerGroupCachingAgent(
     return autoScalingGroups;
   }
 
-  private fun fetchAllLaunchConfigurations(amazonAutoScaling: AmazonAutoScaling) : List<LaunchConfiguration> {
+  private fun fetchAllLaunchConfigurations(amazonAutoScaling: AmazonAutoScaling): List<LaunchConfiguration> {
     val launchConfigurations = mutableListOf<LaunchConfiguration>()
 
     var request = DescribeLaunchConfigurationsRequest()
