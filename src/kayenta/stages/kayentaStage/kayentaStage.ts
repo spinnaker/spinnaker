@@ -169,8 +169,11 @@ class CanaryStage implements IComponentController {
   private populateScopeNameChoices(configDetails: ICanaryConfig): void {
     const scopeNames = uniq(map(configDetails.metrics, metric => metric.scopeName || 'default'));
     this.scopeNames = !isEmpty(scopeNames) ? scopeNames : ['default'];
-    if (!scopeNames.includes(this.stage.canaryConfig.scopes[0].scopeName)) {
+
+    if (!isEmpty(this.stage.canaryConfig.scopes) && !scopeNames.includes(this.stage.canaryConfig.scopes[0].scopeName)) {
       delete this.stage.canaryConfig.scopes[0].scopeName;
+    } else if (isEmpty(this.stage.canaryConfig.scopes)) {
+      this.stage.canaryConfig.scopes = [{scopeName: scopeNames[0]}] as IKayentaStageCanaryConfigScope[];
     }
   }
 
@@ -246,44 +249,40 @@ const requiredForAnalysisType = (analysisType: KayentaAnalysisType, fieldName: s
   }
 };
 
-const allScopesMustBeConfigured = (): (p: IPipeline, s: IKayentaStage) => Promise<string> => {
-  return (_pipeline: IPipeline, stage: IKayentaStage): Promise<string> => {
-    return getCanaryConfigById(get(stage, 'canaryConfig.canaryConfigId')).then(configDetails => {
-      let definedScopeNames = uniq(map(configDetails.metrics, metric => metric.scopeName || 'default'));
-      definedScopeNames = !isEmpty(definedScopeNames) ? definedScopeNames : ['default'];
+const allScopesMustBeConfigured = (_pipeline: IPipeline, stage: IKayentaStage): Promise<string> => {
+  return getCanaryConfigById(get(stage, 'canaryConfig.canaryConfigId')).then(configDetails => {
+    let definedScopeNames = uniq(map(configDetails.metrics, metric => metric.scopeName || 'default'));
+    definedScopeNames = !isEmpty(definedScopeNames) ? definedScopeNames : ['default'];
 
-      const configureScopedNames: string[] = map(get(stage, 'canaryConfig.scopes'), 'scopeName');
-      const missingScopeNames = difference(definedScopeNames, configureScopedNames);
+    const configureScopedNames: string[] = map(get(stage, 'canaryConfig.scopes'), 'scopeName');
+    const missingScopeNames = difference(definedScopeNames, configureScopedNames);
 
-      if (missingScopeNames.length > 1) {
-        return `Scopes <strong>${missingScopeNames.join()}</strong> are defined but not configured.`;
-      } else if (missingScopeNames.length === 1) {
-        return `Scope <strong>${missingScopeNames[0]}</strong> is defined but not configured.`;
-      } else {
-        return null;
-      }
-    });
-  }
+    if (missingScopeNames.length > 1) {
+      return `Scopes <strong>${missingScopeNames.join()}</strong> are defined but not configured.`;
+    } else if (missingScopeNames.length === 1) {
+      return `Scope <strong>${missingScopeNames[0]}</strong> is defined but not configured.`;
+    } else {
+      return null;
+    }
+  });
 };
 
-const allConfiguredScopesMustBeDefined = (): (p: IPipeline, s: IKayentaStage) => Promise<string> => {
-  return (_pipeline: IPipeline, stage: IKayentaStage): Promise<string> => {
-    return getCanaryConfigById(get(stage, 'canaryConfig.canaryConfigId')).then(configDetails => {
-      let definedScopeNames = uniq(map(configDetails.metrics, metric => metric.scopeName || 'default'));
-      definedScopeNames = !isEmpty(definedScopeNames) ? definedScopeNames : ['default'];
+const allConfiguredScopesMustBeDefined = (_pipeline: IPipeline, stage: IKayentaStage): Promise<string> => {
+  return getCanaryConfigById(get(stage, 'canaryConfig.canaryConfigId')).then(configDetails => {
+    let definedScopeNames = uniq(map(configDetails.metrics, metric => metric.scopeName || 'default'));
+    definedScopeNames = !isEmpty(definedScopeNames) ? definedScopeNames : ['default'];
 
-      const configureScopedNames: string[] = map(get(stage, 'canaryConfig.scopes'), 'scopeName');
-      const missingScopeNames = difference(configureScopedNames, definedScopeNames);
+    const configureScopedNames: string[] = map(get(stage, 'canaryConfig.scopes'), 'scopeName');
+    const missingScopeNames = difference(configureScopedNames, definedScopeNames);
 
-      if (missingScopeNames.length > 1) {
-        return `Scopes <strong>${missingScopeNames.join()}</strong> are configured but are not defined in the canary configuration.`;
-      } else if (missingScopeNames.length === 1) {
-        return `Scope <strong>${missingScopeNames[0]}</strong> is configured but is not defined in the canary configuration.`;
-      } else {
-        return null;
-      }
-    });
-  }
+    if (missingScopeNames.length > 1) {
+      return `Scopes <strong>${missingScopeNames.join()}</strong> are configured but are not defined in the canary configuration.`;
+    } else if (missingScopeNames.length === 1) {
+      return `Scope <strong>${missingScopeNames[0]}</strong> is configured but is not defined in the canary configuration.`;
+    } else {
+      return null;
+    }
+  });
 };
 
 export const KAYENTA_CANARY_STAGE = 'spinnaker.kayenta.canaryStage';
@@ -313,8 +312,8 @@ module(KAYENTA_CANARY_STAGE, [
         { type: 'custom', validate: requiredForAnalysisType(KayentaAnalysisType.RealTime, 'canaryConfig.lifetimeHours', 'Lifetime')},
         { type: 'custom', validate: requiredForAnalysisType(KayentaAnalysisType.Retrospective, 'canaryConfig.scopes[0].startTimeIso', 'Start Time')},
         { type: 'custom', validate: requiredForAnalysisType(KayentaAnalysisType.Retrospective, 'canaryConfig.scopes[0].endTimeIso', 'End Time')},
-        { type: 'custom', validate: allScopesMustBeConfigured()},
-        { type: 'custom', validate: allConfiguredScopesMustBeDefined()},
+        { type: 'custom', validate: allScopesMustBeConfigured},
+        { type: 'custom', validate: allConfiguredScopesMustBeDefined},
       ]
     });
   })
