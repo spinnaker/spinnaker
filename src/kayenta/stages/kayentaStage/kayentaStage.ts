@@ -1,5 +1,5 @@
 import { module, IComponentController, IScope } from 'angular';
-import { isString, get, has, isEmpty, map, uniq } from 'lodash';
+import { isString, get, has, isEmpty, map, uniq, difference } from 'lodash';
 import autoBindMethods from 'class-autobind-decorator';
 
 import {
@@ -28,10 +28,8 @@ interface IKayentaStageCanaryConfig {
   beginCanaryAnalysisAfterMins?: string;
   canaryAnalysisIntervalMins: string;
   canaryConfigId: string;
-  controlScope: string,
+  scopes: IKayentaStageCanaryConfigScope[];
   combinedCanaryResultStrategy: string;
-  endTimeIso?: string;
-  experimentScope: string;
   lifetimeHours?: string;
   lookbackMins?: string;
   metricsAccountName: string;
@@ -39,10 +37,18 @@ interface IKayentaStageCanaryConfig {
     pass: string;
     marginal: string;
   };
-  startTimeIso?: string;
-  step?: string;
   storageAccountName: string;
+}
+
+interface IKayentaStageCanaryConfigScope {
   scopeName: string;
+  controlScope: string,
+  controlRegion: string,
+  experimentScope: string;
+  experimentRegion: string,
+  startTimeIso?: string;
+  endTimeIso?: string;
+  step?: string;
 }
 
 enum KayentaAnalysisType {
@@ -93,8 +99,8 @@ class CanaryStage implements IComponentController {
   public handleAnalysisTypeChange(): void {
     switch (this.stage.analysisType) {
       case KayentaAnalysisType.RealTime:
-        delete this.stage.canaryConfig.startTimeIso;
-        delete this.stage.canaryConfig.endTimeIso;
+        delete this.stage.canaryConfig.scopes[0].startTimeIso;
+        delete this.stage.canaryConfig.scopes[0].endTimeIso;
         break;
       case KayentaAnalysisType.Retrospective:
         delete this.stage.canaryConfig.beginCanaryAnalysisAfterMins;
@@ -116,6 +122,10 @@ class CanaryStage implements IComponentController {
 
     if (this.stage.canaryConfig.lookbackMins) {
       this.state.useLookback = true;
+    }
+
+    if (!this.stage.canaryConfig.scopes) {
+      this.stage.canaryConfig.scopes = [];
     }
 
     this.loadBackingData();
@@ -159,8 +169,8 @@ class CanaryStage implements IComponentController {
   private populateScopeNameChoices(configDetails: ICanaryConfig): void {
     const scopeNames = uniq(map(configDetails.metrics, metric => metric.scopeName || 'default'));
     this.scopeNames = !isEmpty(scopeNames) ? scopeNames : ['default'];
-    if (!scopeNames.includes(this.stage.canaryConfig.scopeName)) {
-      delete this.stage.canaryConfig.scopeName;
+    if (!scopeNames.includes(this.stage.canaryConfig.scopes[0].scopeName)) {
+      delete this.stage.canaryConfig.scopes[0].scopeName;
     }
   }
 
@@ -236,6 +246,46 @@ const requiredForAnalysisType = (analysisType: KayentaAnalysisType, fieldName: s
   }
 };
 
+const allScopesMustBeConfigured = (): (p: IPipeline, s: IKayentaStage) => Promise<string> => {
+  return (_pipeline: IPipeline, stage: IKayentaStage): Promise<string> => {
+    return getCanaryConfigById(get(stage, 'canaryConfig.canaryConfigId')).then(configDetails => {
+      let definedScopeNames = uniq(map(configDetails.metrics, metric => metric.scopeName || 'default'));
+      definedScopeNames = !isEmpty(definedScopeNames) ? definedScopeNames : ['default'];
+
+      const configureScopedNames: string[] = map(get(stage, 'canaryConfig.scopes'), 'scopeName');
+      const missingScopeNames = difference(definedScopeNames, configureScopedNames);
+
+      if (missingScopeNames.length > 1) {
+        return `Scopes <strong>${missingScopeNames.join()}</strong> are defined but not configured.`;
+      } else if (missingScopeNames.length === 1) {
+        return `Scope <strong>${missingScopeNames[0]}</strong> is defined but not configured.`;
+      } else {
+        return null;
+      }
+    });
+  }
+};
+
+const allConfiguredScopesMustBeDefined = (): (p: IPipeline, s: IKayentaStage) => Promise<string> => {
+  return (_pipeline: IPipeline, stage: IKayentaStage): Promise<string> => {
+    return getCanaryConfigById(get(stage, 'canaryConfig.canaryConfigId')).then(configDetails => {
+      let definedScopeNames = uniq(map(configDetails.metrics, metric => metric.scopeName || 'default'));
+      definedScopeNames = !isEmpty(definedScopeNames) ? definedScopeNames : ['default'];
+
+      const configureScopedNames: string[] = map(get(stage, 'canaryConfig.scopes'), 'scopeName');
+      const missingScopeNames = difference(configureScopedNames, definedScopeNames);
+
+      if (missingScopeNames.length > 1) {
+        return `Scopes <strong>${missingScopeNames.join()}</strong> are configured but are not defined in the canary configuration.`;
+      } else if (missingScopeNames.length === 1) {
+        return `Scope <strong>${missingScopeNames[0]}</strong> is configured but is not defined in the canary configuration.`;
+      } else {
+        return null;
+      }
+    });
+  }
+};
+
 export const KAYENTA_CANARY_STAGE = 'spinnaker.kayenta.canaryStage';
 module(KAYENTA_CANARY_STAGE, [
     ACCOUNT_SERVICE,
@@ -256,13 +306,15 @@ module(KAYENTA_CANARY_STAGE, [
       executionDetailsUrl: require('./kayentaStageExecutionDetails.html'),
       validators: [
         { type: 'requiredField', fieldName: 'canaryConfig.canaryConfigId', fieldLabel: 'Config Name' },
-        { type: 'requiredField', fieldName: 'canaryConfig.controlScope', fieldLabel: 'Baseline Scope' },
-        { type: 'requiredField', fieldName: 'canaryConfig.experimentScope', fieldLabel: 'Canary Scope' },
+        { type: 'requiredField', fieldName: 'canaryConfig.scopes[0].controlScope', fieldLabel: 'Baseline Scope' },
+        { type: 'requiredField', fieldName: 'canaryConfig.scopes[0].experimentScope', fieldLabel: 'Canary Scope' },
         { type: 'requiredField', fieldName: 'canaryConfig.metricsAccountName', fieldLabel: 'Metrics Account'},
         { type: 'requiredField', fieldName: 'canaryConfig.storageAccountName', fieldLabel: 'Storage Account'},
         { type: 'custom', validate: requiredForAnalysisType(KayentaAnalysisType.RealTime, 'canaryConfig.lifetimeHours', 'Lifetime')},
-        { type: 'custom', validate: requiredForAnalysisType(KayentaAnalysisType.Retrospective, 'canaryConfig.startTimeIso', 'Start Time')},
-        { type: 'custom', validate: requiredForAnalysisType(KayentaAnalysisType.Retrospective, 'canaryConfig.endTimeIso', 'End Time')},
+        { type: 'custom', validate: requiredForAnalysisType(KayentaAnalysisType.Retrospective, 'canaryConfig.scopes[0].startTimeIso', 'Start Time')},
+        { type: 'custom', validate: requiredForAnalysisType(KayentaAnalysisType.Retrospective, 'canaryConfig.scopes[0].endTimeIso', 'End Time')},
+        { type: 'custom', validate: allScopesMustBeConfigured()},
+        { type: 'custom', validate: allConfiguredScopesMustBeDefined()},
       ]
     });
   })
