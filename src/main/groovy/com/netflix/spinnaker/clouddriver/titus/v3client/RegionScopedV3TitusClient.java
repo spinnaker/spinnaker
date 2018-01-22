@@ -128,7 +128,7 @@ public class RegionScopedV3TitusClient implements TitusClient {
 
   @Override
   public Job getJob(String jobId) {
-    return new Job(grpcBlockingStub.findJob(JobId.newBuilder().setId(jobId).build()), getTasks(Arrays.asList(jobId)).get(jobId));
+    return new Job(grpcBlockingStub.findJob(JobId.newBuilder().setId(jobId).build()), getTasks(Arrays.asList(jobId), true).get(jobId));
   }
 
   @Override
@@ -260,20 +260,23 @@ public class RegionScopedV3TitusClient implements TitusClient {
     List<String> jobIds = grpcJobs.stream().map(grpcJob -> grpcJob.getId()).collect(
       Collectors.toList()
     );
-    Map<String, List<com.netflix.titus.grpc.protogen.Task>> tasks = getTasks(jobIds);
+    Map<String, List<com.netflix.titus.grpc.protogen.Task>> tasks = getTasks(jobIds, false);
     return grpcJobs.stream().map(grpcJob -> new Job(grpcJob, tasks.get(grpcJob.getId()))).collect(Collectors.toList());
   }
 
-  private Map<String, List<com.netflix.titus.grpc.protogen.Task>> getTasks(List<String> jobIds) {
+  private Map<String, List<com.netflix.titus.grpc.protogen.Task>> getTasks(List<String> jobIds, boolean includeDoneJobs) {
     List<com.netflix.titus.grpc.protogen.Task> tasks = new ArrayList<>();
     TaskQueryResult taskResults;
     int currentTaskPage = 0;
     do {
+      TaskQuery.Builder taskQueryBuilder = TaskQuery.newBuilder();
+      taskQueryBuilder.setPage(Page.newBuilder().setPageNumber(currentTaskPage).setPageSize(100));
+      taskQueryBuilder.putFilteringCriteria("jobIds", jobIds.stream().collect(Collectors.joining(",")));
+      if(includeDoneJobs) {
+        taskQueryBuilder.putFilteringCriteria("taskStates", "Accepted,Launched,StartInitiated,Started,KillInitiated,Finished");
+      }
       taskResults = grpcBlockingStub.findTasks(
-        TaskQuery.newBuilder()
-          .putFilteringCriteria("jobIds", jobIds.stream().collect(Collectors.joining(",")))
-          .setPage(Page.newBuilder().setPageNumber(currentTaskPage).setPageSize(100)
-          ).build()
+        taskQueryBuilder.build()
       );
       tasks.addAll(taskResults.getItemsList());
       currentTaskPage++;
@@ -291,11 +294,11 @@ public class RegionScopedV3TitusClient implements TitusClient {
     return toJson(grpcBlockingStub.findTask(TaskId.newBuilder().setId(taskId).build()));
   }
 
-  private Object toJson(Message message){
-    Object job =null;
-    try{
+  private Object toJson(Message message) {
+    Object job = null;
+    try {
       job = objectMapper.readValue(JsonFormat.printer().print(message), Object.class);
-    } catch(Exception e){
+    } catch (Exception e) {
 
     }
     return job;
