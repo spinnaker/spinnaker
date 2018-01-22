@@ -34,7 +34,7 @@ export class InfrastructureSearcher {
           searchService.search({ q: query, type: searchResultTypeRegistry.getSearchCategories() }),
           externalSearchRegistry.search({ q: query }).toArray(),
           (s1: ISearchResults<any>, s2: ISearchResultSet[]) => {
-            s1.results = s1.results.concat(s2.map(x => x.results));
+            s1.results = s2.reduce((acc, srs: ISearchResultSet) => acc.concat(srs.results), s1.results);
             return s1;
           }
         )
