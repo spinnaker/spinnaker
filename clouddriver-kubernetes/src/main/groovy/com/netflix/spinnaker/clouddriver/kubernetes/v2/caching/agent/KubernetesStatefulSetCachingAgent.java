@@ -55,7 +55,7 @@ public class KubernetesStatefulSetCachingAgent extends KubernetesV2OnDemandCachi
   @Getter
   final private Collection<AgentDataType> providedDataTypes = Collections.unmodifiableSet(
       new HashSet<>(Arrays.asList(
-          INFORMATIVE.forType(Keys.LogicalKind.APPLICATIONS.toString()),
+          AUTHORITATIVE.forType(Keys.LogicalKind.APPLICATIONS.toString()),
           INFORMATIVE.forType(Keys.LogicalKind.CLUSTERS.toString()),
           INFORMATIVE.forType(KubernetesKind.SERVICE.toString()),
           AUTHORITATIVE.forType(KubernetesKind.STATEFUL_SET.toString())

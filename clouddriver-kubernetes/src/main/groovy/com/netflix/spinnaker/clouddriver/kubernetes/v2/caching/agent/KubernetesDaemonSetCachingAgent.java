@@ -48,7 +48,7 @@ public class KubernetesDaemonSetCachingAgent extends KubernetesV2OnDemandCaching
   @Getter
   final private Collection<AgentDataType> providedDataTypes = Collections.unmodifiableSet(
       new HashSet<>(Arrays.asList(
-          INFORMATIVE.forType(Keys.LogicalKind.APPLICATIONS.toString()),
+          AUTHORITATIVE.forType(Keys.LogicalKind.APPLICATIONS.toString()),
           INFORMATIVE.forType(Keys.LogicalKind.CLUSTERS.toString()),
           INFORMATIVE.forType(KubernetesKind.DEPLOYMENT.toString()),
           AUTHORITATIVE.forType(KubernetesKind.DAEMON_SET.toString())
