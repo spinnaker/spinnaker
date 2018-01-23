@@ -63,7 +63,7 @@ public class GlobalApplicationOptions {
             GlobalApplicationOptions.class
         );
       } catch (IOException e) {
-        e.printStackTrace();
+        GlobalApplicationOptions.options = new GlobalApplicationOptions();
       }
     }
     return GlobalApplicationOptions.options;
