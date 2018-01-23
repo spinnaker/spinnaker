@@ -39,6 +39,11 @@ module.exports = angular.module('spinnaker.serverGroup.configure.openstack.basic
       $scope.subnetFilter.region = $scope.command.region;
     });
 
+    $scope.$watch('command.region', function(region) {
+      $scope.subnetFilter.account = $scope.command.credentials;
+      $scope.subnetFilter.region = region;
+    });
+
     $scope.$watch('basicSettings.$valid', function(newVal) {
       if (newVal) {
         v2modalWizardService.markClean('location');
