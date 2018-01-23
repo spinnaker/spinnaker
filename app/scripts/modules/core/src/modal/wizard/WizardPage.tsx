@@ -15,12 +15,16 @@ export interface IWizardPageProps {
   revalidate?: () => void;
 }
 
+export interface IWizardPageState {
+  label: string;
+}
+
 export type IWizardPageValidate = (values: { [key: string]: any } ) => { [key: string]: string };
 export type IWrappedWizardPage = (React.ComponentClass<IWizardPageProps> | React.SFC<IWizardPageProps>) & { LABEL: string };
 
-export function wizardPage<P = {}>(WrappedComponent: IWrappedWizardPage) {
+export function wizardPage<P = {}>(WrappedComponent: IWrappedWizardPage): React.ComponentClass<P & IWizardPageProps> & { label: string } {
   @BindAll()
-  class WizardPage extends React.Component<P & IWizardPageProps> {
+  class WizardPage extends React.Component<P & IWizardPageProps, IWizardPageState> {
     public static defaultProps: Partial<IWizardPageProps> = {
       dirtyCallback: noop,
     };
@@ -32,7 +36,7 @@ export function wizardPage<P = {}>(WrappedComponent: IWrappedWizardPage) {
     constructor(props: P & IWizardPageProps) {
       super(props);
       this.state = {
-        label: WrappedComponent.LABEL,
+        label: WizardPage.label,
       };
     }
 
@@ -49,11 +53,15 @@ export function wizardPage<P = {}>(WrappedComponent: IWrappedWizardPage) {
     }
 
     private handleWrappedRef(wrappedComponent: any) {
-      if (wrappedComponent) { this.validate = wrappedComponent.validate; }
+      if (wrappedComponent) {
+        this.validate = wrappedComponent.validate;
+        this.setState({ label: wrappedComponent.LABEL })
+      }
     }
 
     public render() {
       const { dirtyCallback, dirty, done, mandatory } = this.props;
+      const { label } = this.state;
       const showDone = done || !mandatory;
       const className = classNames({
         default: !showDone,
@@ -64,7 +72,7 @@ export function wizardPage<P = {}>(WrappedComponent: IWrappedWizardPage) {
       return (
         <div className="modal-page" ref={this.handleRef}>
           <div className="wizard-subheading sticky-header">
-            <h4 className={className}>{WrappedComponent.LABEL}</h4>
+            <h4 className={className}>{label}</h4>
           </div>
           <div className="wizard-page-body">
             <WrappedComponent {...this.props} dirtyCallback={dirtyCallback} ref={this.handleWrappedRef} />
@@ -73,5 +81,5 @@ export function wizardPage<P = {}>(WrappedComponent: IWrappedWizardPage) {
       );
     }
   }
-  return WizardPage;
+  return WizardPage as any;
 };
