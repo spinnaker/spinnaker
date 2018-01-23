@@ -52,6 +52,13 @@ public class KubernetesReplicaSetHandler extends KubernetesHandler implements
             .type(ArtifactTypes.DOCKER_IMAGE)
             .build()
     );
+    registerReplacer(
+      Replacer.builder()
+        .replacePath("$.spec.template.spec.volumes.[?( @.configMap.name == \"{%name%}\" )].configMap.name")
+        .findPath("$.spec.template.spec.volumes.*.configMap.name")
+        .type(ArtifactTypes.KUBERNETES_CONFIG_MAP)
+        .build()
+    );
   }
 
   @Override
