@@ -30,8 +30,7 @@ module(KUBERNETES_DEPLOY_MANIFEST_STAGE, [
       executionDetailsUrl: require('./deployManifestExecutionDetails.html'),
       executionConfigSections: ['deployStatus', 'taskStatus'],
       validators: [
-        { type: 'requiredField', fieldName: 'moniker.cluster', fieldLabel: 'Cluster' },
-        { type: 'requiredField', fieldName: 'manifest', fieldLabel: 'Manifest' }
+        { type: 'requiredField', fieldName: 'moniker.cluster', fieldLabel: 'Cluster' }
       ],
     });
   }
