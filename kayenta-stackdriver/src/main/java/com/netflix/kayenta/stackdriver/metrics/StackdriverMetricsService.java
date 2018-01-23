@@ -159,6 +159,8 @@ public class StackdriverMetricsService implements MetricsService {
       filter += " AND " + customFilter;
     }
 
+    log.debug("filter={}", filter);
+
     long alignmentPeriodSec = stackdriverCanaryScope.getStep();
     Monitoring.Projects.TimeSeries.List list = monitoring
       .projects()
@@ -268,6 +270,9 @@ public class StackdriverMetricsService implements MetricsService {
     String customFilter = stackdriverMetricSetQuery.getCustomFilter();
     String customFilterTemplate = stackdriverMetricSetQuery.getCustomFilterTemplate();
 
+    log.debug("customFilter={}", customFilter);
+    log.debug("customFilterTemplate={}", customFilterTemplate);
+
     if (StringUtils.isEmpty(customFilter) && !StringUtils.isEmpty(customFilterTemplate)) {
       Map<String, String> templates = canaryConfig.getTemplates();
 
@@ -284,11 +289,15 @@ public class StackdriverMetricsService implements MetricsService {
       Template template = new Template(customFilterTemplate, new StringReader(templateStr), configuration);
 
       try {
+        log.debug("Expanded: extendedScopeParams={}", stackdriverCanaryScope.getExtendedScopeParams());
+
         customFilter = FreeMarkerTemplateUtils.processTemplateIntoString(template, stackdriverCanaryScope.getExtendedScopeParams());
       } catch (TemplateException e) {
         throw new IllegalArgumentException("Problem evaluating custom filter template:", e);
       }
     }
+
+    log.debug("Expanded: customFilter={}", customFilter);
 
     return customFilter;
   }
