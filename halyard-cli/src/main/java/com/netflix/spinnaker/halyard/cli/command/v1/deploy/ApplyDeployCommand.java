@@ -84,7 +84,7 @@ public class ApplyDeployCommand extends AbstractRemoteActionCommand {
     runRemoteAction(
         new OperationHandler<RemoteAction>()
             .setFailureMesssage("Failed to prep Spinnaker deployment")
-            .setSuccessMessage("Preperation complete... deploying Spinnaker")
+            .setSuccessMessage("Preparation complete... deploying Spinnaker")
             .setOperation(Daemon.prepDeployment(getCurrentDeployment(), !noValidate, serviceNames))
     );
 
