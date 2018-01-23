@@ -1,9 +1,10 @@
 import { module, IQService } from 'angular';
-import { IEntityTags } from 'core';
 
 import { APPLICATION_DATA_SOURCE_REGISTRY, ApplicationDataSourceRegistry } from 'core/application/service/applicationDataSource.registry';
 import { Application } from 'core/application/application.model';
-import { ENTITY_TAGS_READ_SERVICE, EntityTagsReader } from 'core/entityTag/entityTags.read.service';
+import { ENTITY_TAGS_READ_SERVICE, EntityTagsReader } from './entityTags.read.service';
+import { IEntityTags } from 'core/domain/IEntityTags';
+import { noop } from 'core/utils';
 import { LOAD_BALANCER_READ_SERVICE } from 'core/loadBalancer/loadBalancer.read.service';
 import { SETTINGS } from 'core/config/settings';
 
@@ -25,9 +26,9 @@ module(ENTITY_TAGS_DATA_SOURCE, [
   };
 
   const addTagsToEntities = (application: Application) => {
-    application.getDataSource('serverGroups').ready().then(() => entityTagsReader.addTagsToServerGroups(application));
-    application.getDataSource('loadBalancers').ready().then(() => entityTagsReader.addTagsToLoadBalancers(application));
-    application.getDataSource('securityGroups').ready().then(() => entityTagsReader.addTagsToSecurityGroups(application));
+    application.getDataSource('serverGroups').ready().then(() => entityTagsReader.addTagsToServerGroups(application), noop);
+    application.getDataSource('loadBalancers').ready().then(() => entityTagsReader.addTagsToLoadBalancers(application), noop);
+    application.getDataSource('securityGroups').ready().then(() => entityTagsReader.addTagsToSecurityGroups(application), noop);
   };
 
   applicationDataSourceRegistry.registerDataSource({
