@@ -96,10 +96,10 @@ public class DefaultPermissionsResolver implements PermissionsResolver {
 
     for (ResourceProvider provider : resourceProviders) {
       try {
-        if (!roles.isEmpty()) {
-          permission.addResources(provider.getAllRestricted(roles));
-        } else if (UnrestrictedResourceConfig.UNRESTRICTED_USERNAME.equalsIgnoreCase(userId)) {
+        if (UnrestrictedResourceConfig.UNRESTRICTED_USERNAME.equalsIgnoreCase(userId)) {
           permission.addResources(provider.getAllUnrestricted());
+        } else if (!roles.isEmpty()) {
+          permission.addResources(provider.getAllRestricted(roles));
         }
       } catch (ProviderException pe) {
         throw new PermissionResolutionException(pe);
