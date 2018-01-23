@@ -54,8 +54,8 @@ class WaitForClusterDisableTask extends AbstractWaitForClusterWideClouddriverTas
     def taskResult = super.execute(stage)
 
     def duration = System.currentTimeMillis() - stage.startTime
-    if (taskResult.status == ExecutionStatus.SUCCEEDED && duration < MINIMUM_WAIT_TIME_MS) {
-      // wait at least MINIMUM_WAIT_TIME to account for any necessary connection draining to occur
+    if (stage.context['deploy.server.groups'] && taskResult.status == ExecutionStatus.SUCCEEDED && duration < MINIMUM_WAIT_TIME_MS) {
+      // wait at least MINIMUM_WAIT_TIME to account for any necessary connection draining to occur if there were actually server groups
       return new TaskResult(ExecutionStatus.RUNNING, taskResult.context, taskResult.outputs)
     }
 
