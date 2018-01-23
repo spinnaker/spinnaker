@@ -55,15 +55,15 @@ describe('Directives: projectCluster', function () {
     $scope.$digest();
 
     // columns for each region
-    expect(elem.find('.rollup-details').size()).toBe(1);
-    expect(elem.find('th').size()).toBe(5);
+    expect(elem.find('.rollup-details').length).toBe(1);
+    expect(elem.find('th').length).toBe(5);
     expect(elem.find('th:eq(3)').html().trim()).toBe('us-east-1');
     expect(elem.find('th:eq(4)').html().trim()).toBe('us-west-1');
 
     // application rows
     let app1Row = elem.find('tbody tr:eq(0)');
     let app2Row = elem.find('tbody tr:eq(1)');
-    expect(elem.find('tbody tr').size()).toBe(2);
+    expect(elem.find('tbody tr').length).toBe(2);
     expect(app1Row.find('td:eq(0)').text().trim()).toBe('APP1');
     expect(app2Row.find('td:eq(0)').text().trim()).toBe('APP2');
     expect(app1Row.find('td:eq(1)').text().trim()).toBe('');

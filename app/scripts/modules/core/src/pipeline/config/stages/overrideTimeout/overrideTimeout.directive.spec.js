@@ -36,7 +36,7 @@ describe('Directives: overrideTimeout', function () {
       var domNode = this.compile('<override-timeout stage="stage"></override-timeout>')(this.scope);
       this.scope.$digest();
 
-      expect(domNode.find('div').size()).toBe(0);
+      expect(domNode.find('div').length).toBe(0);
     });
 
     it('shows the default value when stage is supported', function () {
@@ -50,7 +50,7 @@ describe('Directives: overrideTimeout', function () {
       this.scope.stage.overrideTimeout = true;
       var domNode = this.compile('<override-timeout stage="stage"></override-timeout>')(this.scope);
       this.scope.$digest();
-      expect(domNode.find('input[type="number"]').size()).toBe(2);
+      expect(domNode.find('input[type="number"]').length).toBe(2);
     });
 
     it('unsets timeout, removes contents when overrideTimeout is set to false', function () {
@@ -58,10 +58,10 @@ describe('Directives: overrideTimeout', function () {
       this.scope.stage.overrideTimeout = true;
       var domNode = this.compile('<override-timeout stage="stage"></override-timeout>')(this.scope);
       this.scope.$digest();
-      expect(domNode.find('input[type="number"]').size()).toBe(2);
+      expect(domNode.find('input[type="number"]').length).toBe(2);
       this.scope.stage.overrideTimeout = false;
       this.scope.$digest();
-      expect(domNode.find('input[type="number"]').size()).toBe(0);
+      expect(domNode.find('input[type="number"]').length).toBe(0);
       expect(this.scope.stage.stageTimeoutMs).toBeUndefined();
     });
   });

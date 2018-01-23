@@ -16,7 +16,7 @@ let decorateFn = function ($delegate, jsonListBuilder, spelAutocomplete) {
       link.apply(this, arguments);
 
       let type = el.attr('type');
-      if (type === 'checkbox' || type === 'radio' || type === 'search' || el.closest('.no-spel').size()) {
+      if (type === 'checkbox' || type === 'radio' || type === 'search' || el.closest('.no-spel').length) {
         return;
       }
 

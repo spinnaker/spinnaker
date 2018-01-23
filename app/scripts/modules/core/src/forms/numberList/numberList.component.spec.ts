@@ -37,13 +37,13 @@ describe('Component: numberList', () => {
   describe('initialization', () => {
     it('initializes with an empty number input on an empty list, but does not add empty entry to model', () => {
       initialize([]);
-      expect(elem.find('input[type="number"]').size()).toBe(1);
+      expect(elem.find('input[type="number"]').length).toBe(1);
       expect(model.length).toBe(0);
     });
 
     it('initializes with existing numbers', () => {
       initialize([1, 4]);
-      expect(elem.find('input[type="number"]').size()).toBe(2);
+      expect(elem.find('input[type="number"]').length).toBe(2);
       expect(elem.find('input[type="number"]')[0].value).toBe('1');
       expect(elem.find('input[type="number"]')[1].value).toBe('4');
       expect(model.length).toBe(2);
@@ -51,7 +51,7 @@ describe('Component: numberList', () => {
 
     it('does not show delete button on first entry', () => {
       initialize([]);
-      expect(elem.find('.glyphicon-trash').size()).toBe(0);
+      expect(elem.find('.glyphicon-trash').length).toBe(0);
     });
   });
 
@@ -80,7 +80,7 @@ describe('Component: numberList', () => {
       initialize([]);
       elem.find('.add-new').click();
       $scope.$digest();
-      expect(elem.find('input[type="number"]').size()).toBe(2);
+      expect(elem.find('input[type="number"]').length).toBe(2);
       expect(model).toEqual([]);
     });
 
@@ -101,7 +101,7 @@ describe('Component: numberList', () => {
         max: 10
       };
       initialize([1, 5, 50]);
-      expect(elem.find('.ng-invalid').size()).toBe(2);
+      expect(elem.find('.ng-invalid').length).toBe(2);
     });
   });
 
@@ -109,8 +109,8 @@ describe('Component: numberList', () => {
     it('shows a text field instead of number fields when spel is detected', () => {
       stringModel = '${parameters.ports}';
       initialize([]);
-      expect(elem.find('input[type="number"]').size()).toBe(0);
-      expect(elem.find('input[type="text"]').size()).toBe(1);
+      expect(elem.find('input[type="number"]').length).toBe(0);
+      expect(elem.find('input[type="text"]').length).toBe(1);
     });
   });
 });

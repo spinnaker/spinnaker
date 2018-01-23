@@ -51,11 +51,11 @@ describe('Directives: stageConfigField', function () {
 
     var field = compile('<stage-config-field label="Label" help-key="foo.bar"></stage-config-field>')(scope);
     scope.$digest();
-    expect(field.find('a.help-field').size()).toBe(1);
+    expect(field.find('a.help-field').length).toBe(1);
 
     field = compile('<stage-config-field label="Label" help-key="foo.bar.baz"></stage-config-field>')(scope);
     scope.$digest();
-    expect(field.find('a.help-field').size()).toBe(0);
+    expect(field.find('a.help-field').length).toBe(0);
   });
 
   it('transcludes content, defaulting to 8-columns', function () {

@@ -33,7 +33,7 @@ describe('Directives: whatsNew', function () {
   }
 
   function hasUnread(domNode) {
-    return domNode.find('a.unread').size() === 1;
+    return domNode.find('a.unread').length === 1;
   }
 
   describe('with content', function() {
@@ -131,7 +131,7 @@ describe('Directives: whatsNew', function () {
 
       domNode = createWhatsNew(this.compile, this.scope);
 
-      expect(domNode.find('ul').size()).toBe(0);
+      expect(domNode.find('ul').length).toBe(0);
     });
 
   });

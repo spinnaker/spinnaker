@@ -26,7 +26,7 @@ describe('Component: mapEditor', function () {
     let dom = this.compile('<map-editor model="model"></map-editor>')(scope);
     scope.$digest();
 
-    expect(dom.find('input').size()).toBe(4);
+    expect(dom.find('input').length).toBe(4);
     expect(dom.find('input').get(0).value).toBe('foo');
     expect(dom.find('input').get(1).value).toBe('bar');
     expect(dom.find('input').get(2).value).toBe('bah');

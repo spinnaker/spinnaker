@@ -40,7 +40,7 @@ describe('Directives: userMenu', function () {
       SETTINGS.authEnabled = false;
       domNode = createUserMenu($scope);
 
-      expect(domNode.size()).toBe(0);
+      expect(domNode.length).toBe(0);
     });
 
     it('displays the user menu when auth is enabled', function () {
@@ -50,7 +50,7 @@ describe('Directives: userMenu', function () {
       spyOn(authenticationService, 'getAuthenticatedUser').and.returnValue({'name': 'sam mulligan'});
       domNode = createUserMenu($scope);
 
-      expect(domNode.size()).toBe(1);
+      expect(domNode.length).toBe(1);
     });
 
     it('displays the user name for both large and small screens', function () {
