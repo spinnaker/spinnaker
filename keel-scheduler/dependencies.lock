@@ -58,20 +58,20 @@
             "project": true
         },
         "com.netflix.spinnaker.keiko:keiko-redis-spring": {
-            "locked": "2.0.0",
+            "locked": "2.1.1",
             "requested": "2.+"
         },
         "com.netflix.spinnaker.kork:kork-core": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "1.113.0"
+            "locked": "1.113.1"
         },
         "com.netflix.spinnaker.kork:kork-web": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
-            "locked": "1.113.0"
+            "locked": "1.113.1"
         },
         "com.netflix.spinnaker.moniker:moniker": {
             "firstLevelTransitive": [
@@ -197,20 +197,20 @@
             "project": true
         },
         "com.netflix.spinnaker.keiko:keiko-redis-spring": {
-            "locked": "2.0.0",
+            "locked": "2.1.1",
             "requested": "2.+"
         },
         "com.netflix.spinnaker.kork:kork-core": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "1.113.0"
+            "locked": "1.113.1"
         },
         "com.netflix.spinnaker.kork:kork-web": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
-            "locked": "1.113.0"
+            "locked": "1.113.1"
         },
         "com.netflix.spinnaker.moniker:moniker": {
             "firstLevelTransitive": [
@@ -336,20 +336,20 @@
             "project": true
         },
         "com.netflix.spinnaker.keiko:keiko-redis-spring": {
-            "locked": "2.0.0",
+            "locked": "2.1.1",
             "requested": "2.+"
         },
         "com.netflix.spinnaker.kork:kork-core": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "1.113.0"
+            "locked": "1.113.1"
         },
         "com.netflix.spinnaker.kork:kork-web": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
-            "locked": "1.113.0"
+            "locked": "1.113.1"
         },
         "com.netflix.spinnaker.moniker:moniker": {
             "firstLevelTransitive": [
@@ -495,20 +495,20 @@
             "project": true
         },
         "com.netflix.spinnaker.keiko:keiko-redis-spring": {
-            "locked": "2.0.0",
+            "locked": "2.1.1",
             "requested": "2.+"
         },
         "com.netflix.spinnaker.kork:kork-core": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "1.113.0"
+            "locked": "1.113.1"
         },
         "com.netflix.spinnaker.kork:kork-web": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
-            "locked": "1.113.0"
+            "locked": "1.113.1"
         },
         "com.netflix.spinnaker.moniker:moniker": {
             "firstLevelTransitive": [
@@ -634,20 +634,20 @@
             "project": true
         },
         "com.netflix.spinnaker.keiko:keiko-redis-spring": {
-            "locked": "2.0.0",
+            "locked": "2.1.1",
             "requested": "2.+"
         },
         "com.netflix.spinnaker.kork:kork-core": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "1.113.0"
+            "locked": "1.113.1"
         },
         "com.netflix.spinnaker.kork:kork-web": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
-            "locked": "1.113.0"
+            "locked": "1.113.1"
         },
         "com.netflix.spinnaker.moniker:moniker": {
             "firstLevelTransitive": [
@@ -784,20 +784,20 @@
             "project": true
         },
         "com.netflix.spinnaker.keiko:keiko-redis-spring": {
-            "locked": "2.0.0",
+            "locked": "2.1.1",
             "requested": "2.+"
         },
         "com.netflix.spinnaker.kork:kork-core": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "1.113.0"
+            "locked": "1.113.1"
         },
         "com.netflix.spinnaker.kork:kork-web": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
-            "locked": "1.113.0"
+            "locked": "1.113.1"
         },
         "com.netflix.spinnaker.moniker:moniker": {
             "firstLevelTransitive": [
@@ -951,20 +951,20 @@
             "project": true
         },
         "com.netflix.spinnaker.keiko:keiko-redis-spring": {
-            "locked": "2.0.0",
+            "locked": "2.1.1",
             "requested": "2.+"
         },
         "com.netflix.spinnaker.kork:kork-core": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "1.113.0"
+            "locked": "1.113.1"
         },
         "com.netflix.spinnaker.kork:kork-web": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
-            "locked": "1.113.0"
+            "locked": "1.113.1"
         },
         "com.netflix.spinnaker.moniker:moniker": {
             "firstLevelTransitive": [
@@ -1118,20 +1118,20 @@
             "project": true
         },
         "com.netflix.spinnaker.keiko:keiko-redis-spring": {
-            "locked": "2.0.0",
+            "locked": "2.1.1",
             "requested": "2.+"
         },
         "com.netflix.spinnaker.kork:kork-core": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "1.113.0"
+            "locked": "1.113.1"
         },
         "com.netflix.spinnaker.kork:kork-web": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
-            "locked": "1.113.0"
+            "locked": "1.113.1"
         },
         "com.netflix.spinnaker.moniker:moniker": {
             "firstLevelTransitive": [
@@ -1293,20 +1293,20 @@
             "project": true
         },
         "com.netflix.spinnaker.keiko:keiko-redis-spring": {
-            "locked": "2.0.0",
+            "locked": "2.1.1",
             "requested": "2.+"
         },
         "com.netflix.spinnaker.kork:kork-core": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "1.113.0"
+            "locked": "1.113.1"
         },
         "com.netflix.spinnaker.kork:kork-web": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
-            "locked": "1.113.0"
+            "locked": "1.113.1"
         },
         "com.netflix.spinnaker.moniker:moniker": {
             "firstLevelTransitive": [

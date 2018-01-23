@@ -49,13 +49,13 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "1.113.0"
+            "locked": "1.113.1"
         },
         "com.netflix.spinnaker.kork:kork-web": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
-            "locked": "1.113.0"
+            "locked": "1.113.1"
         },
         "com.netflix.spinnaker.moniker:moniker": {
             "locked": "0.2.0",
@@ -168,13 +168,13 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "1.113.0"
+            "locked": "1.113.1"
         },
         "com.netflix.spinnaker.kork:kork-web": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
-            "locked": "1.113.0"
+            "locked": "1.113.1"
         },
         "com.netflix.spinnaker.moniker:moniker": {
             "locked": "0.2.0",
@@ -287,13 +287,13 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "1.113.0"
+            "locked": "1.113.1"
         },
         "com.netflix.spinnaker.kork:kork-web": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
-            "locked": "1.113.0"
+            "locked": "1.113.1"
         },
         "com.netflix.spinnaker.moniker:moniker": {
             "locked": "0.2.0",
@@ -426,13 +426,13 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "1.113.0"
+            "locked": "1.113.1"
         },
         "com.netflix.spinnaker.kork:kork-web": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
-            "locked": "1.113.0"
+            "locked": "1.113.1"
         },
         "com.netflix.spinnaker.moniker:moniker": {
             "locked": "0.2.0",
@@ -545,13 +545,13 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "1.113.0"
+            "locked": "1.113.1"
         },
         "com.netflix.spinnaker.kork:kork-web": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
-            "locked": "1.113.0"
+            "locked": "1.113.1"
         },
         "com.netflix.spinnaker.moniker:moniker": {
             "locked": "0.2.0",
@@ -675,13 +675,13 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "1.113.0"
+            "locked": "1.113.1"
         },
         "com.netflix.spinnaker.kork:kork-web": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
-            "locked": "1.113.0"
+            "locked": "1.113.1"
         },
         "com.netflix.spinnaker.moniker:moniker": {
             "locked": "0.2.0",
@@ -826,13 +826,13 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "1.113.0"
+            "locked": "1.113.1"
         },
         "com.netflix.spinnaker.kork:kork-web": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
-            "locked": "1.113.0"
+            "locked": "1.113.1"
         },
         "com.netflix.spinnaker.moniker:moniker": {
             "locked": "0.2.0",
@@ -977,13 +977,13 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "1.113.0"
+            "locked": "1.113.1"
         },
         "com.netflix.spinnaker.kork:kork-web": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
-            "locked": "1.113.0"
+            "locked": "1.113.1"
         },
         "com.netflix.spinnaker.moniker:moniker": {
             "locked": "0.2.0",
@@ -1136,13 +1136,13 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "1.113.0"
+            "locked": "1.113.1"
         },
         "com.netflix.spinnaker.kork:kork-web": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
-            "locked": "1.113.0"
+            "locked": "1.113.1"
         },
         "com.netflix.spinnaker.moniker:moniker": {
             "locked": "0.2.0",

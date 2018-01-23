@@ -15,6 +15,8 @@
  */
 package com.netflix.spinnaker.config
 
+import com.netflix.spinnaker.keel.intent.SecurityGroupRule
+import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
 
@@ -24,4 +26,8 @@ import org.springframework.context.annotation.Configuration
   "com.netflix.spinnaker.keel.intent.processor",
   "com.netflix.spinnaker.keel.intent.processor.converter"
 ])
-open class IntentConfiguration
+open class IntentConfiguration {
+
+  @Bean open fun securityGroupSubTypeLocator() =
+    KeelSubTypeLocator(SecurityGroupRule::class.java, listOf("com.netflix.spinnaker.keel.intent"))
+}

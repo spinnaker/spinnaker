@@ -39,6 +39,7 @@ class ParrotIntent
   @JsonIgnore override val defaultId = "$KIND:${spec.application}"
 }
 
+@JsonTypeName("parrot")
 data class ParrotSpec(
   val application: String,
   val description: String,

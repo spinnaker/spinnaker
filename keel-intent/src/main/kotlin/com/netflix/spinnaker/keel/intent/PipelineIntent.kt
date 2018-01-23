@@ -38,6 +38,7 @@ class PipelineIntent
   @JsonIgnore override val defaultId = "$KIND:${spec.application}:${spec.slug}"
 }
 
+@JsonTypeName("pipeline")
 data class PipelineSpec(
   override val application: String,
   // Used for idempotency of id

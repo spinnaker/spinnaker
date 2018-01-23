@@ -54,6 +54,7 @@ open class KeelConfiguration {
 
   // Autowired so that we use the Spring object mapper; otherwise not all instances of ObjectMapper will
   // have the subtypes registered.
+  // TODO rz - Move keiko subtype configurer into kork so we can use it here instead
   @Autowired
   open fun objectMapper(objectMapper: ObjectMapper) =
     objectMapper.apply {
@@ -87,4 +88,16 @@ open class KeelConfiguration {
   open fun memoryTraceRepository(): TraceRepository = MemoryTraceRepository()
 
   @Bean open fun clock(): Clock = Clock.systemDefaultZone()
+
+  @Bean open fun intentSubTypeLocator() =
+    KeelSubTypeLocator(Intent::class.java, properties.intentPackages)
+
+  @Bean open fun intentSpecSubTypeLocator() =
+    KeelSubTypeLocator(IntentSpec::class.java, properties.intentSpecPackages)
+
+  @Bean open fun policySubTypeLocator() =
+    KeelSubTypeLocator(Policy::class.java, properties.policyPackages)
+
+  @Bean open fun attributeSubTypeLocator() =
+    KeelSubTypeLocator(Attribute::class.java, properties.attributePackages)
 }
