@@ -29,7 +29,7 @@ git remote get-url upstream 2> /dev/null
 ERR=$?
 
 if [ "$ERR" -ne 0 ]; then
-  git remote add upstream $UPSTREAM_URL
+  git remote remove upstream && git remote add upstream $UPSTREAM_URL
 else
   git remote set-url upstream $UPSTREAM_URL
 fi
