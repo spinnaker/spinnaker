@@ -60,8 +60,6 @@ class ConvergeIntentHandler
   private val refreshesId = registry.createId("intent.refreshes")
 
   override fun handle(message: ConvergeIntent) {
-    log.debug("Converging {}", value("intent", message.intent.id()))
-
     if (clock.millis() > message.timeoutTtl) {
       log.warn("Intent timed out, canceling converge for {}", value("intent", message.intent.id()))
       applicationEventPublisher.publishEvent(IntentConvergeTimeoutEvent(message.intent))
@@ -105,7 +103,7 @@ class ConvergeIntentHandler
       return message.intent
     }
 
-    log.info("Refreshing intent state for {}", value("intent", message.intent.id()))
+    log.debug("Refreshing intent state for {}", value("intent", message.intent.id()))
     registry.counter(refreshesId.withTags(message.intent.getMetricTags())).increment()
 
     return intentRepository.getIntent(message.intent.id())

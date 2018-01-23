@@ -15,18 +15,26 @@
  */
 package com.netflix.spinnaker.keel.memory
 
+import com.netflix.spinnaker.config.KeelProperties
 import com.netflix.spinnaker.keel.IntentActivityRepository
+import com.netflix.spinnaker.keel.IntentConvergenceRecord
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Autowired
 import java.util.concurrent.ConcurrentHashMap
 import javax.annotation.PostConstruct
 
-class MemoryIntentActivityRepository : IntentActivityRepository {
+class MemoryIntentActivityRepository
+@Autowired constructor(
+  private val keelProperties: KeelProperties
+) : IntentActivityRepository {
 
   private val log = LoggerFactory.getLogger(javaClass)
 
   private val currentOrchestrations: ConcurrentHashMap<String, MutableSet<String>> = ConcurrentHashMap()
 
   private val orchestrations: ConcurrentHashMap<String, MutableSet<String>> = ConcurrentHashMap()
+
+  private val convergenceLog: ConcurrentHashMap<String, MutableList<IntentConvergenceRecord>> = ConcurrentHashMap()
 
   @PostConstruct
   fun init() {
@@ -76,4 +84,33 @@ class MemoryIntentActivityRepository : IntentActivityRepository {
 
   override fun getHistory(intentId: String) = orchestrations.getOrDefault(intentId, mutableSetOf()).toList()
 
+  override fun logConvergence(intentConvergenceRecord: IntentConvergenceRecord) {
+    val intentId = intentConvergenceRecord.intentId
+    if (!convergenceLog.containsKey(intentId)){
+      convergenceLog[intentId] = mutableListOf(intentConvergenceRecord)
+    } else {
+      if (convergenceLog[intentId] == null) {
+        convergenceLog[intentId] = mutableListOf(intentConvergenceRecord)
+      } else {
+        convergenceLog[intentId]?.let { l ->
+          l.add(intentConvergenceRecord)
+          // Drop oldest entries if we're over the message limit
+          val numMsgsLeft = keelProperties.maxConvergenceLogEntriesPerIntent - l.count()
+          if (numMsgsLeft < 0){
+            convergenceLog[intentId] = l.drop(-1*numMsgsLeft).toMutableList()
+          }
+        }
+      }
+    }
+  }
+
+  override fun getLog(intentId: String): List<IntentConvergenceRecord>
+    = convergenceLog[intentId] ?: emptyList()
+
+  // if there are multiple messages with the same timestamp, return the first
+  override fun getLogEntry(intentId: String, timestampMillis: Long)
+    = convergenceLog[intentId]?.filter { it.timestampMillis == timestampMillis }?.toList()?.also {
+      // The same intent shouldn't be processed more than once at the exact same time.
+      if (it.size > 1) log.warn("Two messages with the same timestampMillis. This shouldn't happen.")
+    }?.first()
 }

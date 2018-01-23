@@ -35,7 +35,6 @@ import com.netflix.spinnaker.keel.state.FieldMutator
 import com.netflix.spinnaker.keel.state.StateInspector
 import com.netflix.spinnaker.keel.tracing.Trace
 import com.netflix.spinnaker.keel.tracing.TraceRepository
-import net.logstash.logback.argument.StructuredArguments.value
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -54,8 +53,6 @@ class ApplicationIntentProcessor
   override fun supports(intent: Intent<IntentSpec>) = intent is ApplicationIntent
 
   override fun converge(intent: ApplicationIntent): ConvergeResult {
-    log.info("Converging state for {}", value("intent", intent.id()))
-
     val changeSummary = ChangeSummary(intent.id())
 
     val currentState = getApplication(intent.spec.name)

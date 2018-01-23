@@ -15,6 +15,9 @@
  */
 package com.netflix.spinnaker.keel
 
+import com.netflix.spinnaker.keel.dryrun.ChangeType
+import com.netflix.spinnaker.keel.state.FieldState
+
 /**
  * TODO rz - refactor IntentActivityRepository to use this instead
  *
@@ -28,6 +31,25 @@ data class IntentActivity(
   val orchestrations: List<String>,
   val reason: String,
   val actor: String
+)
+
+/**
+ * @param intentId The ID of the intent that is being evaluated.
+ * @param changeType The type of change that took place this cycle.
+ * @param orchestrations A resultant (if any) list of orchestration IDs from the intent.
+ * @param messages Human-friendly messages about the change.
+ * @param diff The diff between current and desired state.
+ * @param actor Who (or what) initiated the operation.
+ * @param timestampMillis The timestamp in millis the record was created.
+ */
+data class IntentConvergenceRecord(
+  val intentId: String,
+  val changeType: ChangeType,
+  val orchestrations: List<String>?,
+  val messages: List<String>?,
+  val diff: Set<FieldState>,
+  val actor: String,
+  val timestampMillis: Long
 )
 
 interface IntentActivityRepository {
@@ -51,6 +73,18 @@ interface IntentActivityRepository {
   fun removeCurrent(intentId: String)
 
   fun getHistory(intentId: String): List<String>
+
+  fun logConvergence(intentConvergenceRecord: IntentConvergenceRecord)
+
+  fun getLog(intentId: String): List<IntentConvergenceRecord>
+
+  /**
+   * Permalink to a specific log message, identified by timestampMillis
+   * @param intentId The ID of the intent that is being evaluated.
+   * @param timestampMillis The timestamp of the log message,
+   *  used as the unique identifier of the message, in milliseconds.
+   */
+  fun getLogEntry(intentId: String, timestampMillis: Long): IntentConvergenceRecord?
 
   /**
    * If orchestrationId is passed in as a link to the task in orca, strip the leading path

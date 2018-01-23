@@ -18,16 +18,18 @@ package com.netflix.spinnaker.keel.orca
 import com.netflix.spectator.api.BasicTag
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.keel.Intent
+import com.netflix.spinnaker.keel.IntentActivityRepository
+import com.netflix.spinnaker.keel.IntentConvergenceRecord
 import com.netflix.spinnaker.keel.IntentLauncher
 import com.netflix.spinnaker.keel.IntentProcessor
 import com.netflix.spinnaker.keel.IntentSpec
 import com.netflix.spinnaker.keel.LaunchedIntentResult
 import com.netflix.spinnaker.keel.dryrun.ChangeSummary
-import net.logstash.logback.argument.StructuredArguments.value
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
+import java.time.Clock
 
 @Component(value = "orcaIntentLauncher")
 open class OrcaIntentLauncher
@@ -35,7 +37,9 @@ open class OrcaIntentLauncher
   private val intentProcessors: List<IntentProcessor<*>>,
   private val orcaService: OrcaService,
   private val registry: Registry,
-  private val applicationEventPublisher: ApplicationEventPublisher
+  private val applicationEventPublisher: ApplicationEventPublisher,
+  private val intentActivityRepository: IntentActivityRepository,
+  private val clock: Clock
 ) : IntentLauncher<OrcaLaunchedIntentResult> {
 
   private val log = LoggerFactory.getLogger(javaClass)
@@ -48,28 +52,24 @@ open class OrcaIntentLauncher
     return registry.timer(invocationTimeId.withTags(intent.getMetricTags())).record<OrcaLaunchedIntentResult> {
       val result = intentProcessor(intentProcessors, intent).converge(intent)
 
-      if (result.orchestrations.isEmpty()) {
-        log.info("No action needed to converge intent {}, {}",
-          value("intent", intent.id()),
-          value("summary", result.changeSummary))
-      } else {
+      if (result.orchestrations.isNotEmpty()) {
         applicationEventPublisher.publishEvent(ConvergenceRequiredEvent(intent))
       }
 
       val orchestrationIds = result.orchestrations.map {
-        log.info("Launching orchestration for intent {}, {}",
-          value("intent", intent.id()),
-          value("summary", result.changeSummary))
         orcaService.orchestrate(it).ref
       }
 
-      if (orchestrationIds.isNotEmpty()) {
-        log.info(
-          "Launched orchestrations for intent: {} (tasks: {})",
-          value("intent", intent.id()),
-          value("tasks", orchestrationIds)
-        )
-      }
+      intentActivityRepository.logConvergence(IntentConvergenceRecord(
+        intentId = intent.id(),
+        changeType = result.changeSummary.type,
+        orchestrations = orchestrationIds,
+        messages = result.changeSummary.message,
+        diff = result.changeSummary.diff,
+        actor = "keel:scheduledConvergence",
+        timestampMillis = clock.millis()
+      ))
+
       OrcaLaunchedIntentResult(orchestrationIds, result.changeSummary)
     }
   }

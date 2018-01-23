@@ -15,7 +15,10 @@
  */
 package com.netflix.spinnaker.keel.redis
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.config.KeelProperties
 import com.netflix.spinnaker.keel.IntentActivityRepository
+import com.netflix.spinnaker.keel.IntentConvergenceRecord
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -29,6 +32,8 @@ class RedisIntentActivityRepository
 @Autowired constructor(
   @Qualifier("mainRedisClient") private val mainRedisClientDelegate: RedisClientDelegate,
   @Qualifier("previousRedisClient") private val previousRedisClientDelegate: RedisClientDelegate?,
+  private val keelProperties: KeelProperties,
+  private val objectMapper: ObjectMapper,
   private val clock: Clock
 ) : IntentActivityRepository {
 
@@ -63,12 +68,56 @@ class RedisIntentActivityRepository
         }
       }.toList()
 
+  override fun logConvergence(intentConvergenceRecord: IntentConvergenceRecord) {
+    val score = intentConvergenceRecord.timestampMillis // This timestampMillis is recorded when the record is created.
+    logKey(intentConvergenceRecord.intentId). let { key ->
+      getClientForId(key).withCommandsClient { c ->
+        c.zadd(key, mapOf(objectMapper.writeValueAsString(intentConvergenceRecord) to score.toDouble()) )
+      }
+    }
+
+    // If we're over the message limit, we need to drop log entries.
+    logKey(intentConvergenceRecord.intentId). let { key ->
+      getClientForId(key).withCommandsClient { c ->
+        val count = c.zcount(key, "-inf", "+inf")
+        val numMsgsLeft = keelProperties.maxConvergenceLogEntriesPerIntent - count
+        if (numMsgsLeft < 0){
+          // Set is sorted from lowest score to highest.
+          // Set is scored by timestampMillis, which only grows as time increases.
+          // Drop the lowest score messages.
+          c.zremrangeByRank(key, 0, (-1*numMsgsLeft) - 1)
+        }
+      }
+    }
+  }
+
+  override fun getLog(intentId: String): List<IntentConvergenceRecord>
+    = logKey(intentId). let { key ->
+        getClientForId(key).withCommandsClient<Set<String>> { c ->
+          c.zrangeByScore(key, "-inf", "+inf")
+        }
+      }.map { objectMapper.readValue(it, IntentConvergenceRecord::class.java) }.toList()
+
+  override fun getLogEntry(intentId: String, timeMs: Long)
+    = logKey(intentId). let { key ->
+        getClientForId(key).withCommandsClient<Set<String>> { c ->
+          c.zrangeByScore(key, timeMs.toDouble(), timeMs.toDouble())
+        }
+      }.map { objectMapper.readValue(it, IntentConvergenceRecord::class.java) }
+      .toList()
+      .also {
+        // The same intent shouldn't be processed more than once at the exact same time.
+        if (it.size > 1) log.warn("Two messages with the same timestampMillis. This shouldn't happen.")
+      }
+      .firstOrNull()
+
   override fun getCurrent(intentId: String): List<String>
     = currentKey(intentId).let { key ->
         getClientForId(key).withCommandsClient<Set<String>> { c ->
           c.zrangeByScore(key, "-inf", "+inf")
         }
       }.toList()
+
 
   override fun upsertCurrent(intentId: String, orchestrations: List<String>)
     = currentKey(intentId).let { key ->
@@ -77,7 +126,6 @@ class RedisIntentActivityRepository
           c.zadd(key, orchestrations.map { parseOrchestrationId(it) to score.toDouble() }.toMap().toMutableMap())
         }
       }
-
 
   override fun upsertCurrent(intentId: String, orchestration: String) {
     upsertCurrent(intentId, listOf(orchestration))
@@ -124,3 +172,5 @@ class RedisIntentActivityRepository
 internal fun historyKey(intentId: String) = "history:$intentId"
 
 internal fun currentKey(intentId: String) = "current:$intentId"
+
+internal fun logKey(intentId: String) = "log:$intentId"

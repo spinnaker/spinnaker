@@ -116,6 +116,13 @@ class IntentController
 
   @RequestMapping(value = "/{id}/traces", method = [(RequestMethod.GET)])
   fun getIntentTrace(@PathVariable("id") id: String) = traceRepository.getForIntent(id)
+
+  @RequestMapping(value = "/{id}/log", method = arrayOf(RequestMethod.GET))
+  fun getLog(@PathVariable("id") id: String) = intentActivityRepository.getLog(id)
+
+  @RequestMapping(value = "/{id}/log/{timestampMillis}", method = arrayOf(RequestMethod.GET))
+  fun getLogEntry(@PathVariable("id") id: String, @PathVariable("timestampMillis") timestampMillis: Long)
+    = intentActivityRepository.getLogEntry(id, timestampMillis)
 }
 
 data class UpsertIntentResponse(

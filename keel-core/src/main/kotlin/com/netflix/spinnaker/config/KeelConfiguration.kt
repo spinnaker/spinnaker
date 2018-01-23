@@ -26,8 +26,8 @@ import com.netflix.spinnaker.keel.Intent
 import com.netflix.spinnaker.keel.IntentActivityRepository
 import com.netflix.spinnaker.keel.IntentRepository
 import com.netflix.spinnaker.keel.IntentSpec
-import com.netflix.spinnaker.keel.findAllSubtypes
 import com.netflix.spinnaker.keel.attribute.Attribute
+import com.netflix.spinnaker.keel.findAllSubtypes
 import com.netflix.spinnaker.keel.memory.MemoryIntentActivityRepository
 import com.netflix.spinnaker.keel.memory.MemoryIntentRepository
 import com.netflix.spinnaker.keel.memory.MemoryTraceRepository
@@ -81,7 +81,7 @@ open class KeelConfiguration {
 
   @Bean
   @ConditionalOnMissingBean(IntentActivityRepository::class)
-  open fun memoryIntentActivityRepository(): IntentActivityRepository = MemoryIntentActivityRepository()
+  open fun memoryIntentActivityRepository(): IntentActivityRepository = MemoryIntentActivityRepository(properties)
 
   @Bean
   @ConditionalOnMissingBean(TraceRepository::class)
