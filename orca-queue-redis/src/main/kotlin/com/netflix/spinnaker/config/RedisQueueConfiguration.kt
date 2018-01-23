@@ -36,15 +36,15 @@ import java.time.Duration
 @Configuration
 @ConditionalOnExpression("\${queue.redis.enabled:true}")
 @EnableConfigurationProperties(RedisQueueProperties::class)
-open class RedisQueueConfiguration {
-  @Bean(name = arrayOf("queueJedisPool")) open fun queueJedisPool(
+class RedisQueueConfiguration {
+  @Bean(name = ["queueJedisPool"]) fun queueJedisPool(
       @Value("\${redis.connection:redis://localhost:6379}") connection: String,
       @Value("\${redis.timeout:2000}") timeout: Int,
       redisPoolConfig: GenericObjectPoolConfig,
       registry: Registry
   ) = RedisConfiguration.createPool(redisPoolConfig, connection, timeout, registry, "queueJedisPool")
 
-  @Bean() open fun redisDeadMessageHandler(
+  @Bean() fun redisDeadMessageHandler(
     @Qualifier("queueJedisPool") redisPool: Pool<Jedis>,
     redisQueueProperties: RedisQueueProperties,
     clock: Clock
@@ -55,8 +55,8 @@ open class RedisQueueConfiguration {
       clock = clock
     )
 
-  @Bean(name = arrayOf("queueImpl"))
-  open fun redisQueue(
+  @Bean(name = ["queueImpl"])
+  fun redisQueue(
     @Qualifier("queueJedisPool") redisPool: Pool<Jedis>,
     redisQueueProperties: RedisQueueProperties,
     clock: Clock,

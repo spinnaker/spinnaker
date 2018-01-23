@@ -43,14 +43,14 @@ import java.time.Clock
   "com.netflix.spinnaker.orca.q.trafficshaping"
 ])
 @EnableScheduling
-open class QueueConfiguration {
+class QueueConfiguration {
   @Bean
   @ConditionalOnMissingBean(Clock::class)
-  open fun systemClock(): Clock = Clock.systemDefaultZone()
+  fun systemClock(): Clock = Clock.systemDefaultZone()
 
   @Bean(name = ["queueImpl"])
   @ConditionalOnMissingBean(Queue::class)
-  open fun inMemoryQueue(clock: Clock, deadMessageHandler: DeadMessageHandler, publisher: ApplicationEventPublisher) =
+  fun inMemoryQueue(clock: Clock, deadMessageHandler: DeadMessageHandler, publisher: ApplicationEventPublisher) =
     InMemoryQueue(
       clock = clock,
       deadMessageHandler = deadMessageHandler::handle,
@@ -59,10 +59,10 @@ open class QueueConfiguration {
 
   @Bean
   @ConditionalOnMissingBean(ExecutionLogRepository::class)
-  open fun executionLogRepository(): ExecutionLogRepository = BlackholeExecutionLogRepository()
+  fun executionLogRepository(): ExecutionLogRepository = BlackholeExecutionLogRepository()
 
   @Bean
-  open fun messageHandlerPool(registry: Registry): ThreadPoolTaskExecutor =
+  fun messageHandlerPool(registry: Registry): ThreadPoolTaskExecutor =
     ThreadPoolTaskExecutor().apply {
       threadNamePrefix = "handlers-"
       corePoolSize = 20
@@ -76,7 +76,7 @@ open class QueueConfiguration {
    * a long time to do stuff do not affect the processing of the queue.
    */
   @Bean
-  open fun applicationEventMulticaster(
+  fun applicationEventMulticaster(
     @Qualifier("applicationEventTaskExecutor") taskExecutor: ThreadPoolTaskExecutor
   ): ApplicationEventMulticaster =
     SimpleApplicationEventMulticaster().apply {
@@ -85,7 +85,7 @@ open class QueueConfiguration {
     }
 
   @Bean
-  open fun applicationEventTaskExecutor(registry: Registry): ThreadPoolTaskExecutor =
+  fun applicationEventTaskExecutor(registry: Registry): ThreadPoolTaskExecutor =
     ThreadPoolTaskExecutor().apply {
       threadNamePrefix = "events-"
       corePoolSize = 20
@@ -93,7 +93,7 @@ open class QueueConfiguration {
     }
 
   @Bean
-  open fun taskScheduler(): TaskScheduler =
+  fun taskScheduler(): TaskScheduler =
     ThreadPoolTaskScheduler().apply {
       threadNamePrefix = "scheduler-"
       poolSize = 10

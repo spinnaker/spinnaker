@@ -22,10 +22,10 @@ import com.netflix.spinnaker.orca.q.Message.*
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 
-@Component open class DeadMessageHandler {
+@Component class DeadMessageHandler {
   private val log = LoggerFactory.getLogger(javaClass)
 
-  open fun handle(queue: Queue, message: Message) {
+  fun handle(queue: Queue, message: Message) {
     log.error("Dead message: $message")
     terminationMessageFor(message)
       ?.let {

@@ -37,11 +37,11 @@ import java.time.Duration
 
 @Configuration
 @ConditionalOnExpression("\${queue.redis.enabled:true}")
-open class RedisQueueShovelConfiguration {
+class RedisQueueShovelConfiguration {
 
   @Bean
   @ConditionalOnProperty("redis.connectionPrevious")
-  open fun previousQueueJedisPool(
+  fun previousQueueJedisPool(
     @Value("\${redis.connection:redis://localhost:6379}") mainConnection: String,
     @Value("\${redis.connectionPrevious:#{null}}") previousConnection: String?,
     @Value("\${redis.timeout:2000}") timeout: Int,
@@ -55,7 +55,7 @@ open class RedisQueueShovelConfiguration {
   }
 
   @Bean(name = arrayOf("previousQueueImpl"))
-  @ConditionalOnBean(name = arrayOf("previousQueueJedisPool")) open fun previousRedisQueue(
+  @ConditionalOnBean(name = arrayOf("previousQueueJedisPool")) fun previousRedisQueue(
     @Qualifier("previousQueueJedisPool") redisPool: Pool<Jedis>,
     redisQueueProperties: RedisQueueProperties,
     clock: Clock,
@@ -73,7 +73,7 @@ open class RedisQueueShovelConfiguration {
 
 
   @Bean
-  @ConditionalOnBean(name = arrayOf("previousQueueJedisPool")) open fun redisQueueShovel(
+  @ConditionalOnBean(name = arrayOf("previousQueueJedisPool")) fun redisQueueShovel(
     @Qualifier("queueImpl") queueImpl: RedisQueue,
     @Qualifier("previousQueueImpl") previousQueueImpl: RedisQueue,
     registry: Registry

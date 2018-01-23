@@ -32,14 +32,14 @@ import java.time.Clock
 
 @Configuration
 @ConditionalOnExpression("\${queue.redis.enabled:true} && \${queue.trafficShaping.enabled:false}")
-open class RedisTrafficShapingConfiguration {
-  @Bean open fun redisRateLimitBackend(
+class RedisTrafficShapingConfiguration {
+  @Bean fun redisRateLimitBackend(
     @Qualifier("jedisPool") redisPool: Pool<Jedis>,
     clock: Clock
   ) =
     RedisRateLimitBackend(redisPool, clock)
 
-  @Bean open fun redisPriorityCapacityRepository(
+  @Bean fun redisPriorityCapacityRepository(
     @Qualifier("jedisPool") redisPool: Pool<Jedis>,
     properties: TrafficShapingProperties.PriorityCapacityProperties
   ) =

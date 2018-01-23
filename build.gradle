@@ -25,6 +25,7 @@ buildscript {
     classpath "org.springframework.boot:spring-boot-gradle-plugin:1.5.7.RELEASE"
     classpath "org.junit.platform:junit-platform-gradle-plugin:$junitVersion"
     classpath "com.netflix.nebula:nebula-kotlin-plugin:$kotlinVersion"
+    classpath "org.jetbrains.kotlin:kotlin-allopen:$kotlinVersion"
   }
 }
 

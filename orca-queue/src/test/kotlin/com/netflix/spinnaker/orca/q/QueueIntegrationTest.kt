@@ -686,14 +686,14 @@ open class QueueIntegrationTest {
   RestrictExecutionDuringTimeWindow::class,
   OrcaConfiguration::class
 )
-open class TestConfig {
-  @Bean open fun registry(): Registry = NoopRegistry()
+class TestConfig {
+  @Bean fun registry(): Registry = NoopRegistry()
 
-  @Bean open fun dummyTask(): DummyTask = mock {
+  @Bean fun dummyTask(): DummyTask = mock {
     on { timeout } doReturn Duration.ofMinutes(2).toMillis()
   }
 
-  @Bean open fun dummyStage() = object : StageDefinitionBuilder {
+  @Bean fun dummyStage() = object : StageDefinitionBuilder {
     override fun taskGraph(stage: Stage, builder: Builder) {
       builder.withTask("dummy", DummyTask::class.java)
     }
@@ -701,7 +701,7 @@ open class TestConfig {
     override fun getType() = "dummy"
   }
 
-  @Bean open fun parallelStage() = object : StageDefinitionBuilder {
+  @Bean fun parallelStage() = object : StageDefinitionBuilder {
     override fun parallelStages(stage: Stage) =
       listOf("us-east-1", "us-west-2", "eu-west-1").map { region ->
         newStage(stage.execution, "dummy", "dummy $region", stage.context + mapOf("region" to region), stage, STAGE_BEFORE)
@@ -710,10 +710,10 @@ open class TestConfig {
     override fun getType() = "parallel"
   }
 
-  @Bean open fun currentInstanceId() = "localhost"
+  @Bean fun currentInstanceId() = "localhost"
 
-  @Bean open fun contextParameterProcessor() = ContextParameterProcessor()
+  @Bean fun contextParameterProcessor() = ContextParameterProcessor()
 
-  @Bean open fun defaultExceptionHandler() = DefaultExceptionHandler()
+  @Bean fun defaultExceptionHandler() = DefaultExceptionHandler()
 }
 

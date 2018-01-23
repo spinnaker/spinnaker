@@ -30,9 +30,9 @@ import org.springframework.context.annotation.Configuration
 @ConditionalOnProperty("dryrun.enabled")
 @ComponentScan("com.netflix.spinnaker.orca.dryrun")
 @EnableConfigurationProperties(DryRunProperties::class)
-open class DryRunConfiguration {
+class DryRunConfiguration {
   @Bean
-  open fun dryRunStageDefinitionBuilderFactory(
+  fun dryRunStageDefinitionBuilderFactory(
     stageDefinitionBuilders: Collection<StageDefinitionBuilder>
   ): StageDefinitionBuilderFactory {
     log.info("Dry run trigger support enabled")

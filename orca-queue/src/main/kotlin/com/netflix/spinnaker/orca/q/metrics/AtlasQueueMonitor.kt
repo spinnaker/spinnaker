@@ -38,7 +38,7 @@ import javax.annotation.PostConstruct
  */
 @Component
 @ConditionalOnBean(MonitorableQueue::class)
-open class AtlasQueueMonitor
+class AtlasQueueMonitor
 @Autowired constructor(
   @Qualifier("queueImpl") private val queue: MonitorableQueue,
   private val registry: Registry,

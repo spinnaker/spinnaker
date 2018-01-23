@@ -15,6 +15,7 @@
  */
 
 apply plugin: "nebula.kotlin"
+apply plugin: "kotlin-spring"
 
 configurations.all {
   resolutionStrategy {

@@ -51,6 +51,6 @@ class RedisQueueIntegrationTest : QueueIntegrationTest()
 
 
 @Configuration
-open class RedisQueuePoolFixery {
+class RedisQueuePoolFixery {
   @Bean(name = arrayOf("queueJedisPool")) open fun redisQueue(pool: Pool<Jedis>) = pool
 }

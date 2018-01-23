@@ -28,9 +28,9 @@ import redis.clients.util.Pool
 @Configuration
 @ConditionalOnExpression("\${executionLog.redis.enabled:true}")
 @EnableConfigurationProperties(RedisExecutionLogProperties::class)
-open class RedisExecutionLogConfiguration {
+class RedisExecutionLogConfiguration {
 
-  @Bean open fun redisExecutionLogRepository(
+  @Bean fun redisExecutionLogRepository(
     @Qualifier("jedisPool") redisPool: Pool<Jedis>,
     redisExecutionLogProperties: RedisExecutionLogProperties
   ): ExecutionLogRepository = RedisExecutionLogRepository(redisPool, redisExecutionLogProperties)

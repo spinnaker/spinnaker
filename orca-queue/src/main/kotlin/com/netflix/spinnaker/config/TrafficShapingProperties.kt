@@ -19,23 +19,22 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 import java.util.*
 
 @ConfigurationProperties("queue.trafficShaping")
-open class TrafficShapingProperties {
+class TrafficShapingProperties {
 
   @ConfigurationProperties("queue.trafficShaping.globalRateLimiting")
-  open class GlobalRateLimitingProperties : InterceptorProperties()
+  class GlobalRateLimitingProperties : InterceptorProperties()
 
   @ConfigurationProperties("queue.trafficShaping.applicationRateLimiting")
-  open class ApplicationRateLimitingProperties : OverridableCapacityProperties()
+  class ApplicationRateLimitingProperties : OverridableCapacityProperties()
 
   @ConfigurationProperties("queue.trafficShaping.priorityCapacity")
-  open class PriorityCapacityProperties : InterceptorProperties() {
+  class PriorityCapacityProperties : InterceptorProperties() {
     override var priority = 100
     override var capacity = 200
   }
 }
 
 open class InterceptorProperties {
-
   open var learning: Boolean = true
   open var priority: Int = 500
   open var capacity: Int = 100

@@ -40,12 +40,12 @@ import retrofit.converter.JacksonConverter
     "com.netflix.spinnaker.orca.keel.pipeline"
   ]
 )
-open class KeelConfiguration {
-  @Bean open fun keelEndpoint(@Value("\${keel.baseUrl}") keelBaseUrl: String): Endpoint {
+class KeelConfiguration {
+  @Bean fun keelEndpoint(@Value("\${keel.baseUrl}") keelBaseUrl: String): Endpoint {
     return Endpoints.newFixedEndpoint(keelBaseUrl)
   }
 
-  @Bean open fun keelService(keelEndpoint: Endpoint,
+  @Bean fun keelService(keelEndpoint: Endpoint,
                   keelObjectMapper: ObjectMapper,
                   retrofitClient: Client,
                   retrofitLogLevel: RestAdapter.LogLevel)
@@ -58,7 +58,7 @@ open class KeelConfiguration {
       .create(KeelService::class.java)
 
 
-  @Bean open fun keelObjectMapper()
+  @Bean fun keelObjectMapper()
     = OrcaObjectMapper.newInstance()
     .registerModule(KotlinModule())
     .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
