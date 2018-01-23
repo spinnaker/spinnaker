@@ -16,18 +16,22 @@ These are three categories for buttons based on function:
 All buttons have a minimum width set.
 
 <button class="primary">Primary Action</button>
+<button disabled class="primary">Primary Action</button>
 
     <button class="primary">Primary Action</button>
 
 <button class="passive">Passive</button>
+<button disabled class="passive">Passive</button>
 
     <button class="passive">Passive</button>
 
 <button class="passive"><i class="fa fa-trash"></i>Passive</button>
+<button disabled class="passive"><i class="fa fa-trash"></i>Passive</button>
 
     <button class="passive"><i class="fa fa-trash"></i>Passive</button>
 
 <button class="danger">Danger</button>
+<button disabled class="danger">Danger</button>
 
     <button class="danger">Danger</button>
 
@@ -40,10 +44,15 @@ All buttons have a minimum width set.
     <button class="nostyle">No styles attached Button</button>
 
 <button class="zombie">Zombie Action</button>
+<button disabled class="zombie">Zombie Action</button>
 
     <button class="zombie">Zombie Action</button>
 
 <button class="zombie">
+  <i class="fa fa-trash"></i>
+  <span>Zombie Action</span>
+</button>
+<button class="zombie" disabled>
   <i class="fa fa-trash"></i>
   <span>Zombie Action</span>
 </button>
@@ -52,6 +61,20 @@ All buttons have a minimum width set.
       <i >class="fa fa-trash"></i>
       <span>Zombie Action</span>
     </button>
+*/
+
+/*
+@styleguide
+
+@title Button Groups
+
+Button groups offer a section for the buttons to go. It comes with default
+margins between buttons.
+
+<div class="button-group">
+  <button class="passive">Cancel</button>
+  <button class="primary">Ok</button>
+</div>
 */
 
 /*
@@ -100,6 +123,13 @@ Here are the variations:
   --button-hollow-padding: 6px 14px;
 }
 
+button.primary:disabled, button.passive:disabled,
+button.danger:disabled, button.zombie:disabled,
+a.button:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
 button.primary i, a.button.primary i,
 button.passive i, a.button.passive i,
 button.danger i, a.button.danger i,
@@ -144,7 +174,8 @@ button.zombie, a.button.zombie {
   font-weight: 600;
 }
 
-button.primary:hover, a.button.primary:hover {
+button.primary:hover:not(:disabled),
+a.button.primary:hover:not(:disabled) {
   background-color: #1d8499;
 }
 
@@ -161,7 +192,8 @@ button.passive i, a.button.passive i {
   color: var(--color-text-primary);
 }
 
-button.passive:hover, a.button.passive:hover {
+button.passive:hover:not(:disabled),
+a.button.passive:hover:not(:disabled) {
   background-color: #e6e6e6;
 }
 
@@ -169,7 +201,8 @@ button.danger, a.button.danger {
   color: var(--color-danger);
 }
 
-button.danger:hover, a.button.danger:hover {
+button.danger:hover:not(:disabled),
+a.button.danger:hover:not(:disabled) {
   background-color: var(--color-danger);
   color: var(--color-text-on-dark);
 }
@@ -183,9 +216,9 @@ button.zombie, a.button.zombie, button.zombie i, a.button.zombie i {
   color: var(--color-text-primary);
 }
 
-button.zombie:hover, a.button.zombie:hover,
-button.zombie:focus, a.button.zombie:focus,
-button.zombie:active, a.button.zombie:active {
+button.zombie:hover:not(:disabled), a.button.zombie:hover:not(:disabled),
+button.zombie:focus:not(:disabled), a.button.zombie:focus:not(:disabled),
+button.zombie:active:not(:disabled), a.button.zombie:active:not(:disabled) {
   color: var(--color-accent);
 }
 
@@ -215,4 +248,9 @@ button.nostyle {
 a.nostyle, a.nostyle:hover, a.nostyle:active, a.nostyle:focus {
   text-decoration: none;
   color: inherit;
+}
+
+/* Area to put all buttons */
+.button-group button:not(:last-child) {
+  margin-right: 2px;
 }
