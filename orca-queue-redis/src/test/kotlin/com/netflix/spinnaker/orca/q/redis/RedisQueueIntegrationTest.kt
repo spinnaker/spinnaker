@@ -35,12 +35,12 @@ import redis.clients.util.Pool
  */
 @RunWith(SpringRunner::class)
 @SpringBootTest(
-  classes = arrayOf(
+  classes = [
     EmbeddedRedisConfiguration::class,
     RedisQueueConfiguration::class,
     RedisQueuePoolFixery::class,
     TestConfig::class
-  ),
+  ],
   properties = arrayOf(
     "queue.retry.delay.ms=10",
     "logging.level.root=ERROR",
@@ -49,8 +49,7 @@ import redis.clients.util.Pool
   ))
 class RedisQueueIntegrationTest : QueueIntegrationTest()
 
-
 @Configuration
 class RedisQueuePoolFixery {
-  @Bean(name = arrayOf("queueJedisPool")) open fun redisQueue(pool: Pool<Jedis>) = pool
+  @Bean(name = ["queueJedisPool"]) fun redisQueue(pool: Pool<Jedis>) = pool
 }

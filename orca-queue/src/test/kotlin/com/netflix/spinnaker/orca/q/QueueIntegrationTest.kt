@@ -79,9 +79,10 @@ import java.time.Duration
 import java.time.Instant.now
 import java.time.ZoneId
 
-@SpringBootTest(classes = arrayOf(TestConfig::class), properties = arrayOf(
-  "queue.retry.delay.ms=10"
-))
+@SpringBootTest(
+  classes = [TestConfig::class],
+  properties = ["queue.retry.delay.ms=10"]
+)
 @RunWith(SpringRunner::class)
 open class QueueIntegrationTest {
 
