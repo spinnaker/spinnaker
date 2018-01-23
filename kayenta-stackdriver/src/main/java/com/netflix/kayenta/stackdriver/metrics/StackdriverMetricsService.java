@@ -53,6 +53,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -289,9 +290,33 @@ public class StackdriverMetricsService implements MetricsService {
       Template template = new Template(customFilterTemplate, new StringReader(templateStr), configuration);
 
       try {
-        log.debug("Expanded: extendedScopeParams={}", stackdriverCanaryScope.getExtendedScopeParams());
+        log.debug("extendedScopeParams={}", stackdriverCanaryScope.getExtendedScopeParams());
 
-        customFilter = FreeMarkerTemplateUtils.processTemplateIntoString(template, stackdriverCanaryScope.getExtendedScopeParams());
+        Map<String, String> templateBindings = new LinkedHashMap<>();
+
+        if (!StringUtils.isEmpty(stackdriverCanaryScope.getProject())) {
+          templateBindings.put("project", stackdriverCanaryScope.getProject());
+        }
+
+        if (!StringUtils.isEmpty(stackdriverCanaryScope.getResourceType())) {
+          templateBindings.put("resourceType", stackdriverCanaryScope.getResourceType());
+        }
+
+        if (!StringUtils.isEmpty(stackdriverCanaryScope.getScope())) {
+          templateBindings.put("scope", stackdriverCanaryScope.getScope());
+        }
+
+        if (!StringUtils.isEmpty(stackdriverCanaryScope.getRegion())) {
+          templateBindings.put("region", stackdriverCanaryScope.getRegion());
+        }
+
+        if (!CollectionUtils.isEmpty(stackdriverCanaryScope.getExtendedScopeParams())) {
+          templateBindings.putAll(stackdriverCanaryScope.getExtendedScopeParams());
+        }
+
+        log.debug("templateBindings={}", templateBindings);
+
+        customFilter = FreeMarkerTemplateUtils.processTemplateIntoString(template, templateBindings);
       } catch (TemplateException e) {
         throw new IllegalArgumentException("Problem evaluating custom filter template:", e);
       }

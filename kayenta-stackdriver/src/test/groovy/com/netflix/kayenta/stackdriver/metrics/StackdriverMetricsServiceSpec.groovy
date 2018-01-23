@@ -99,4 +99,21 @@ class StackdriverMetricsServiceSpec extends Specification {
     ["my-template": 'A test: key1=${key1} key2=${key2}.'] | "my-template"        | [key3: "value-3",
                                                                                     key4: "value-4"]
   }
+
+  @Unroll
+  void "Can use predefined variables in custom filter template"() {
+    given:
+    CanaryConfig canaryConfig = CanaryConfig.builder().templates(templates).build()
+    StackdriverCanaryMetricSetQueryConfig stackdriverCanaryMetricSetQueryConfig =
+      StackdriverCanaryMetricSetQueryConfig.builder().customFilterTemplate(customFilterTemplate).build()
+    StackdriverCanaryScope stackdriverCanaryScope = new StackdriverCanaryScope(scope: scope, extendedScopeParams: scopeParams)
+
+    expect:
+    stackdriverMetricsService.expandCustomFilter(canaryConfig, stackdriverCanaryMetricSetQueryConfig, stackdriverCanaryScope) == expectedExpandedTemplate
+
+    where:
+    templates                                                     | customFilterTemplate | scope            | scopeParams       || expectedExpandedTemplate
+    ["my-template": 'A test: myGroupName=${scope} key1=${key1}.'] | "my-template"        | "myapp-dev-v001" | [key1: "value-1"] || "A test: myGroupName=myapp-dev-v001 key1=value-1."
+    ["my-template": 'A test: myGroupName=${scope} key1=${key1}.'] | "my-template"        | "myapp-dev-v002" | [key1: "value-1"] || "A test: myGroupName=myapp-dev-v002 key1=value-1."
+  }
 }
