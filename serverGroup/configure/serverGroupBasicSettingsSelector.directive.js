@@ -3,6 +3,7 @@
 const angular = require('angular');
 
 import { ACCOUNT_SERVICE } from '@spinnaker/core';
+import _ from 'lodash';
 
 module.exports = angular.module('spinnaker.serverGroup.configure.titus.basicSettingsSelector', [
   ACCOUNT_SERVICE
@@ -41,12 +42,15 @@ module.exports = angular.module('spinnaker.serverGroup.configure.titus.basicSett
       return field && !field.includes('${');
     };
 
-    function updateImageId() {
-      if ($scope.command.repository && $scope.command.tag) {
-        $scope.command.imageId = `${$scope.command.repository}:${$scope.command.tag}`;
-      }
-      else {
-        delete $scope.command.imageId;
+    function updateImageId(oldValues, newValues) {
+      // Make sure one of the watched fields was actually changed before updating imageId
+      if (!_.isEqual(oldValues, newValues)) {
+        if ($scope.command.repository && $scope.command.tag) {
+          $scope.command.imageId = `${$scope.command.repository}:${$scope.command.tag}`;
+        }
+        else {
+          delete $scope.command.imageId;
+        }
       }
     }
 

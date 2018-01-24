@@ -57,6 +57,7 @@ module.exports = angular.module('spinnaker.titus.serverGroupCommandBuilder.servi
           mode: defaults.mode || 'create',
         },
         securityGroups: [],
+        imageId: defaults.imageId,
       };
 
       return $q.when(command);
@@ -142,7 +143,11 @@ module.exports = angular.module('spinnaker.titus.serverGroupCommandBuilder.servi
     function buildServerGroupCommandFromPipeline(application, originalCluster) {
 
       var pipelineCluster = _.cloneDeep(originalCluster);
-      var commandOptions = {account: pipelineCluster.account, region: pipelineCluster.region};
+      var commandOptions = {
+        account: pipelineCluster.account,
+        imageId: pipelineCluster.imageId,
+        region: pipelineCluster.region,
+      };
       var asyncLoader = $q.all({command: buildNewServerGroupCommand(application, commandOptions)});
 
       return asyncLoader.then(function (asyncData) {
