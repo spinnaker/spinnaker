@@ -81,6 +81,7 @@ window.spinnakerSettings = {
     graphImplementation: 'chartjs',
     atlasWebComponentsUrl: atlasWebComponentsUrl,
     templatesEnabled: templatesEnabled,
+    showAllConfigs: false,
     defaultServiceSettings: {
       atlas: {
         name: 'atlas',

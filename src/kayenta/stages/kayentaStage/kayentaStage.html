@@ -180,6 +180,15 @@
         ng-model="kayentaCanaryStageCtrl.stage.canaryConfig.scopes[0].endTimeIso"
         type="text"/>
     </stage-config-field>
+    <!--TODO(dpeach): only include this for stackdriver -->
+    <!--TODO(dpeach): do not render 'resourceType' in extendedScopeParams-->
+    <stage-config-field label="Resource Type">
+      <select
+        class="form-control input-sm"
+        ng-model="kayentaCanaryStageCtrl.stage.canaryConfig.scopes[0].extendedScopeParams.resourceType"
+        ng-options="option for option in ['gce_instance', 'aws_ec2_instance', 'gae_app', 'k8s_container', 'global']">
+      </select>
+    </stage-config-field>
 
     <stage-config-field label="Extended Params"
                         help-key="pipeline.config.canary.extendedScopeParams">

@@ -40,10 +40,15 @@ function SaveConfigButton({ saveConfigState, inSyncWithServer, saveConfig, disab
 }
 
 function mapStateToProps(state: ICanaryState): ISaveButtonStateProps {
+  const appName = state.data.application.name;
+  const configIsEditableInThisApp = state.selectedConfig.config
+    && state.selectedConfig.config.applications.includes(appName);
+  // TODO(dpeach): show tooltip to indicate why the config can't be edited in this application.
+  const disable = !!state.selectedConfig.validationErrors.length || !configIsEditableInThisApp;
   return {
     saveConfigState: state.selectedConfig.save.state,
     inSyncWithServer: state.selectedConfig.isInSyncWithServer,
-    disable: !!state.selectedConfig.validationErrors.length,
+    disable,
   };
 }
 

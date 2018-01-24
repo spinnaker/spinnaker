@@ -2,6 +2,7 @@ import { SETTINGS } from '@spinnaker/core';
 
 export interface ICanarySettings {
   liveCalls: boolean;
+  showAllConfigs: boolean;
   reduxLogger: boolean;
   metricsAccountName: string;
   storageAccountName: string;
