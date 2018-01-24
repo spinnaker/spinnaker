@@ -198,7 +198,12 @@ class KubernetesClientApiConverter {
     containerDescription.readinessProbe = fromV1Probe(container?.readinessProbe)
 
     containerDescription.volumeMounts = container?.volumeMounts?.collect { volumeMount ->
-      new KubernetesVolumeMount(name: volumeMount.name, readOnly: volumeMount.readOnly, mountPath: volumeMount.mountPath)
+      new KubernetesVolumeMount(
+          name: volumeMount.name,
+          readOnly: volumeMount.readOnly,
+          mountPath: volumeMount.mountPath,
+          subPath: volumeMount.subPath
+      )
     }
 
     containerDescription.args = container?.args ?: []
@@ -746,6 +751,7 @@ class KubernetesClientApiConverter {
         res.name = mount.name
         res.mountPath = mount.mountPath
         res.readOnly = mount.readOnly
+        res.subPath = mount.subPath
         volumeMounts.add(res)
       }
       v1container.volumeMounts = volumeMounts

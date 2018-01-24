@@ -260,6 +260,7 @@ class KubernetesVolumeMount {
   String name
   Boolean readOnly
   String mountPath
+  String subPath
 }
 
 enum KubernetesVolumeSourceType {

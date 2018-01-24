@@ -417,6 +417,7 @@ class KubernetesApiConverter {
         return res.withMountPath(mount.mountPath)
             .withName(mount.name)
             .withReadOnly(mount.readOnly)
+            .withSubPath(mount.subPath)
             .build()
       }
 
@@ -616,7 +617,12 @@ class KubernetesApiConverter {
     } - null
 
     containerDescription.volumeMounts = container?.volumeMounts?.collect { volumeMount ->
-      new KubernetesVolumeMount(name: volumeMount.name, readOnly: volumeMount.readOnly, mountPath: volumeMount.mountPath)
+      new KubernetesVolumeMount(
+          name: volumeMount.name,
+          readOnly: volumeMount.readOnly,
+          mountPath: volumeMount.mountPath,
+          subPath: volumeMount.subPath
+      )
     }
 
     containerDescription.args = container?.args ?: []
