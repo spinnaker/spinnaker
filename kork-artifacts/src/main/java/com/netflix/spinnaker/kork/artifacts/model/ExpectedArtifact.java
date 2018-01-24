@@ -38,7 +38,7 @@ public class ExpectedArtifact {
 
   /**
    * Decide if the "matchArtifact" matches the incoming artifact. Any fields not specified
-   * if the "matchArtifact" are not compared.
+   * in the "matchArtifact" are not compared.
    *
    * @param other is the artifact to match against
    * @return true i.f.f. the artifacts match
