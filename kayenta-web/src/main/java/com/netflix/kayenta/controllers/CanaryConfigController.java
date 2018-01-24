@@ -98,18 +98,7 @@ public class CanaryConfigController {
     String canaryConfigId = UUID.randomUUID() + "";
 
     // TODO(duftler): Serialize the canary config within a canary run?
-    if (StringUtils.isEmpty(canaryConfig.getName())) {
-      throw new IllegalArgumentException("Canary config must specify a name.");
-    } else if (canaryConfig.getApplications() == null || canaryConfig.getApplications().size() == 0) {
-      throw new IllegalArgumentException("Canary config must specify at least one application.");
-    }
-
-    String canaryConfigName = canaryConfig.getName();
-
-    if (!canaryConfigNamePattern.matcher(canaryConfigName).matches()) {
-      throw new IllegalArgumentException("Canary config cannot be named '" + canaryConfigName +
-        "'. Names must contain only letters, numbers, dashes (-) and underscores (_).");
-    }
+    validateNameAndApplicationAttributes(canaryConfig);
 
     try {
       configurationService.loadObject(resolvedConfigurationAccountName, ObjectType.CANARY_CONFIG, canaryConfigId);
@@ -138,6 +127,8 @@ public class CanaryConfigController {
     canaryConfig.setUpdatedTimestamp(System.currentTimeMillis());
     canaryConfig.setUpdatedTimestampIso(Instant.ofEpochMilli(canaryConfig.getUpdatedTimestamp()).toString());
 
+    validateNameAndApplicationAttributes(canaryConfig);
+
     try {
       configurationService.loadObject(resolvedConfigurationAccountName, ObjectType.CANARY_CONFIG, canaryConfigId);
     } catch (Exception e) {
@@ -147,6 +138,21 @@ public class CanaryConfigController {
     configurationService.storeObject(resolvedConfigurationAccountName, ObjectType.CANARY_CONFIG, canaryConfigId, canaryConfig, canaryConfig.getName() + ".json", true);
 
     return CanaryConfigUpdateResponse.builder().canaryConfigId(canaryConfigId).build();
+  }
+
+  private static void validateNameAndApplicationAttributes(@RequestBody CanaryConfig canaryConfig) {
+    if (StringUtils.isEmpty(canaryConfig.getName())) {
+      throw new IllegalArgumentException("Canary config must specify a name.");
+    } else if (canaryConfig.getApplications() == null || canaryConfig.getApplications().size() == 0) {
+      throw new IllegalArgumentException("Canary config must specify at least one application.");
+    }
+
+    String canaryConfigName = canaryConfig.getName();
+
+    if (!canaryConfigNamePattern.matcher(canaryConfigName).matches()) {
+      throw new IllegalArgumentException("Canary config cannot be named '" + canaryConfigName +
+        "'. Names must contain only letters, numbers, dashes (-) and underscores (_).");
+    }
   }
 
   @ApiOperation(value = "Delete a canary config")
