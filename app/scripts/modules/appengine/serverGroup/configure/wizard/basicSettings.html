@@ -209,6 +209,39 @@
 
     <div ng-if="basicSettingsCtrl.isContainerImageSource()">
       <div class="form-group">
+        <label class="col-md-3 sm-label-right">Resolve URL</label>
+        <div class="col-md-7">
+          <div class="radio radio-inline">
+            <label>
+              <input type="radio"
+                     ng-model="command.fromArtifact"
+                     ng-value="false"> via text input
+            </label>
+          </div>
+          <div class="radio radio-inline">
+            <label>
+              <input type="radio"
+                     ng-model="command.fromArtifact"
+                     ng-value="true"> via pipeline artifact
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group" ng-if="command.fromArtifact">
+        <label class=" col-md-3 sm-label-right">Expected Artifact</label>
+        <div class="col-md-7">
+          <ui-select ng-model="command.expectedArtifactId"
+                     class="form-control input-sm">
+            <ui-select-match>{{ basicSettingsCtrl.summarizeExpectedArtifact($select.selected) }}</ui-select-match>
+            <ui-select-choices repeat="expected.id as expected in command.backingData.expectedArtifacts">
+              <span>{{ basicSettingsCtrl.summarizeExpectedArtifact(expected) }}</span>
+            </ui-select-choices>
+          </ui-select>
+        </div>
+      </div>
+
+      <div class="form-group" ng-if="!command.fromArtifact">
         <div class="col-md-3 sm-label-right">
           Image URL
           <help-field key="appengine.serverGroup.containerImageUrl"></help-field>
