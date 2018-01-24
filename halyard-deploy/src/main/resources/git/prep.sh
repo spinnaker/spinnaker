@@ -4,6 +4,10 @@
 
 which git &> /dev/null
 
+function echo_err() {
+  echo "$@" 1>&2
+}
+
 if [ $? -ne 0 ]; then
   echo_err "You need git to be installed & configured to build & run Spinnaker. Please install & configure it."
   exit 1;
