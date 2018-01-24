@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.front50.Front50Service
 import com.netflix.spinnaker.keel.retrofit.RetrofitConfiguration
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
@@ -35,6 +36,7 @@ import retrofit.converter.JacksonConverter
   basePackages = ["com.netflix.spinnaker.keel.front50"]
 )
 @Import(RetrofitConfiguration::class)
+@EnableConfigurationProperties(Front50RateLimitProperties::class)
 open class Front50Configuration {
 
   @Bean open fun front50Endpoint(@Value("\${front50.baseUrl}") front50BaseUrl: String)
