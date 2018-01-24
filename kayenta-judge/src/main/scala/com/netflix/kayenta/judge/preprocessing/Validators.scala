@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-package com.netflix.kayenta.judge
+package com.netflix.kayenta.judge.preprocessing
+
+import com.netflix.kayenta.judge.Metric
 
 case class ValidationResult(valid: Boolean, reason: Option[String]=None)
 

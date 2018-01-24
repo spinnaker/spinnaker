@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package com.netflix.kayenta.judge
+package com.netflix.kayenta.judge.preprocessing
 
+import com.netflix.kayenta.judge.Metric
 import com.netflix.kayenta.judge.detectors.BaseOutlierDetector
 
 

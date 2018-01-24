@@ -16,8 +16,9 @@
 
 package com.netflix.kayenta.judge
 
-import com.netflix.kayenta.judge.Transforms.{removeNaNs, removeOutliers}
+import com.netflix.kayenta.judge.preprocessing.Transforms.{removeNaNs, removeOutliers}
 import com.netflix.kayenta.judge.detectors.{IQRDetector, KSigmaDetector}
+import com.netflix.kayenta.judge.preprocessing.Transforms
 import org.scalatest.FunSuite
 
 

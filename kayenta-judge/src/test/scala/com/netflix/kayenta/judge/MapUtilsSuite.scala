@@ -18,6 +18,7 @@ package com.netflix.kayenta.judge
 
 import java.util.Collections
 
+import com.netflix.kayenta.judge.utils.MapUtils
 import org.scalatest.FunSuite
 
 class MapUtilsSuite extends FunSuite {

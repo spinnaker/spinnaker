@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.kayenta.judge
+package com.netflix.kayenta.judge.utils
 
 import scala.collection.JavaConverters._
 
