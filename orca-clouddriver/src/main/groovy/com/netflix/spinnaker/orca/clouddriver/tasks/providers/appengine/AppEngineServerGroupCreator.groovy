@@ -18,7 +18,6 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.providers.appengine
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
-import com.netflix.spinnaker.kork.artifacts.model.ExpectedArtifact
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCreator
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
@@ -37,6 +36,9 @@ class AppEngineServerGroupCreator implements ServerGroupCreator {
   @Autowired
   ObjectMapper objectMapper
 
+  @Autowired
+  ArtifactResolver artifactResolver
+
   @Override
   List<Map> getOperations(Stage stage) {
     def operation = [:]
@@ -48,7 +50,7 @@ class AppEngineServerGroupCreator implements ServerGroupCreator {
       operation.putAll(stage.context)
     }
 
-    resolveArtifacts(stage, operation)
+    appendArtifactData(stage, operation)
     operation.branch = AppEngineBranchFinder.findInStage(operation, stage) ?: operation.branch
 
     return [[(OPERATION): operation]]
@@ -59,52 +61,16 @@ class AppEngineServerGroupCreator implements ServerGroupCreator {
     return Optional.empty()
   }
 
-  private void resolveArtifacts(Stage stage, Map operation) {
-    if (operation.repositoryUrl || operation.containerImageUrl) {
-      return
-    }
-
-    String expectedArtifactId = operation.expectedArtifactId
+  void appendArtifactData(Stage stage, Map operation) {
     Execution execution = stage.getExecution()
-
-    Map expectedArtifact = [:]
-    Map<String, Object> trigger = [:]
-    if (execution.type == PIPELINE) {
-      // TODO(jacobkiefer): Use stage context input/output lookup.
-      trigger = execution.getTrigger()
-      expectedArtifact = trigger.resolvedExpectedArtifacts.find { e -> e.id == expectedArtifactId } as Map
-    }
-
-    // NOTE: expectedArtifact is a Map, and fragile to field changes in the underlying data structures.
-    // If a field changes in the ExpectedArtifact model, change it here.
-    if (operation.fromArtifact && expectedArtifact && expectedArtifact.matchArtifact) {
-      List<Map> artifacts = (List<Map>) trigger.artifacts
-      def foundArtifact = artifacts.find { a ->
-        ExpectedArtifact e = objectMapper.convertValue(expectedArtifact, ExpectedArtifact)
-        e.matches(objectMapper.convertValue(a, Artifact))
-      }
-      Artifact artifact = objectMapper.convertValue(foundArtifact, Artifact)
-      if (artifact?.reference) {
-        String repositoryUrl = ''
-        switch (artifact.type) {
-          // TODO(jacobkiefer): These object types are pretty fragile, we need to harden this somehow.
-          case 'gcs/object':
-            if (!artifact.reference.startsWith('gs://')) {
-              repositoryUrl = "gs://${artifact.reference}"
-            } else {
-              repositoryUrl = artifact.reference
-            }
-            operation.repositoryUrl = repositoryUrl
-            break
-          default:
-            throw new ArtifactResolver.ArtifactResolutionException('Unknown artifact type')
-            break
-        }
+    String expectedId = operation.expectedArtifactId?.trim()
+    if (execution.type == PIPELINE && expectedId) {
+      Artifact boundArtifact = artifactResolver.getBoundArtifactForId(stage, expectedId)
+      if (boundArtifact) {
+        operation.artifact = boundArtifact
       } else {
-        throw new ArtifactResolver.ArtifactResolutionException('Missing artifact reference for artifact: ${artifact}')
+        throw new RuntimeException("Missing bound artifact for ID $expectedId")
       }
-    } else {
-      throw new ArtifactResolver.ArtifactResolutionException('AppEngine Deploy description missing repositoryUrl but misconfigured for resolving Artifacts')
     }
   }
 }
