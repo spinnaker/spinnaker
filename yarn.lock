@@ -2,9 +2,9 @@
 # yarn lockfile v1
 
 
-"@spinnaker/kayenta@0.0.22":
-  version "0.0.22"
-  resolved "https://registry.yarnpkg.com/@spinnaker/kayenta/-/kayenta-0.0.22.tgz#bb25bd4444a4c0d7846cf4255b8a489cb1398009"
+"@spinnaker/kayenta@0.0.23":
+  version "0.0.23"
+  resolved "https://registry.yarnpkg.com/@spinnaker/kayenta/-/kayenta-0.0.23.tgz#d5a9267aa316d6f38d84c5412600b826c85d18d8"
   dependencies:
     "@uirouter/angularjs" "^1.0.4"
     "@uirouter/react-hybrid" "^0.0.12"
