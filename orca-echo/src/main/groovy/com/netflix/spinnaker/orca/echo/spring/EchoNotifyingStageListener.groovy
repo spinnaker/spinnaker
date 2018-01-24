@@ -19,9 +19,11 @@ import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.echo.EchoService
 import com.netflix.spinnaker.orca.listeners.Persister
 import com.netflix.spinnaker.orca.listeners.StageListener
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.model.Task
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
+import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
@@ -42,11 +44,13 @@ class EchoNotifyingStageListener implements StageListener {
 
   private final EchoService echoService
   private final ExecutionRepository repository
+  private final ContextParameterProcessor contextParameterProcessor
 
   @Autowired
-  EchoNotifyingStageListener(EchoService echoService, ExecutionRepository repository) {
+  EchoNotifyingStageListener(EchoService echoService, ExecutionRepository repository, ContextParameterProcessor contextParameterProcessor) {
     this.echoService = echoService
     this.repository = repository
+    this.contextParameterProcessor = contextParameterProcessor
   }
 
   @Override
@@ -130,7 +134,7 @@ class EchoNotifyingStageListener implements StageListener {
         content: [
           standalone : stage.execution.type == ORCHESTRATION,
           canceled   : stage.execution.canceled,
-          context    : stage.context,
+          context    : buildContext(stage.execution, stage.context),
           startTime  : stage.startTime,
           endTime    : stage.endTime,
           execution  : stage.execution,
@@ -152,5 +156,12 @@ class EchoNotifyingStageListener implements StageListener {
     } catch (Exception e) {
       log.error("Failed to send ${type} event ${phase} ${stage.execution.id} ${maybeTask.map { Task task -> task.name }}", e)
     }
+  }
+
+  private Map<String, Object> buildContext(Execution execution, Map context) {
+    return contextParameterProcessor.process(
+      context,
+      [execution: execution] as Map<String, Object>
+    )
   }
 }

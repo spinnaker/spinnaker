@@ -113,7 +113,7 @@ class EchoNotifyingExecutionListener implements ExecutionListener {
       notifications.getPipelineNotifications().each { appNotification ->
         Map executionMap = objectMapper.convertValue(pipeline, Map)
 
-        appNotification = contextParameterProcessor.process(appNotification, executionMap, false)
+        appNotification = contextParameterProcessor.process(appNotification, executionMap)
 
         Map<String, Object> targetMatch = pipeline.notifications.find { pipelineNotification ->
           pipelineNotification.address == appNotification.address && pipelineNotification.type == appNotification.type

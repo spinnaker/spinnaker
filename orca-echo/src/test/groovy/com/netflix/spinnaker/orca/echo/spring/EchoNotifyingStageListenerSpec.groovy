@@ -6,6 +6,7 @@ import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.model.Task
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
+import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
@@ -17,9 +18,10 @@ class EchoNotifyingStageListenerSpec extends Specification {
   def echoService = Mock(EchoService)
   def persister = Stub(Persister)
   def repository = Mock(ExecutionRepository)
+  def contextParameterProcessor =  new ContextParameterProcessor()
 
   @Subject
-  def echoListener = new EchoNotifyingStageListener(echoService, repository)
+  def echoListener = new EchoNotifyingStageListener(echoService, repository, contextParameterProcessor)
 
   @Shared
   def pipelineStage = new Stage(Execution.newPipeline("orca"), "test", "test", [:])
