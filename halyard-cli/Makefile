@@ -1,5 +1,5 @@
 all:
-	../gradlew installDist
+	../gradlew installDist -Prelease.useLastTag=true
 	./hal --docs > ../docs/commands.md
 
 complete:
@@ -7,4 +7,4 @@ complete:
 	@echo 'Run this: source complete && PATH=$$PATH:`pwd`'
 
 clean:
-	../gradlew clean
+	../gradlew clean -Prelease.useLastTag=true
