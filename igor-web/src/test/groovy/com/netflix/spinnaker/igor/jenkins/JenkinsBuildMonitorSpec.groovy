@@ -25,6 +25,8 @@ import com.netflix.spinnaker.igor.jenkins.client.model.Project
 import com.netflix.spinnaker.igor.jenkins.client.model.ProjectsList
 import com.netflix.spinnaker.igor.jenkins.service.JenkinsService
 import com.netflix.spinnaker.igor.service.BuildMasters
+import org.slf4j.Logger
+import retrofit.RetrofitError
 import rx.schedulers.Schedulers
 import spock.lang.Specification
 
@@ -185,12 +187,21 @@ class JenkinsBuildMonitorSpec extends Specification {
         igorConfigurationProperties.spinnaker.build.lookBackWindowMins = 5
         igorConfigurationProperties.spinnaker.build.processBuildsOlderThanLookBackWindow = false
 
-        and:
+        and: 'Three projects'
         monitor.echoService = Mock(EchoService)
-        cache.getLastPollCycleTimestamp(MASTER, 'job') >> nowMinus30min
-        jenkinsService.getProjects() >> new ProjectsList(list: [ new Project(name: 'job', lastBuild: new Build(number: 3, timestamp: now)) ])
-        cache.getEventPosted(_,_,_,_) >> false
-        jenkinsService.getBuilds('job') >> new BuildsList(
+        jenkinsService.getProjects() >> new ProjectsList(list: [ new Project(name: 'job1', lastBuild: new Build(number: 3, timestamp: now)) ])
+        jenkinsService.getProjects() >> new ProjectsList(list: [ new Project(name: 'job2', lastBuild: new Build(number: 3, timestamp: now)) ])
+        jenkinsService.getProjects() >> new ProjectsList(list: [ new Project(name: 'job3', lastBuild: new Build(number: 3, timestamp: now)) ])
+
+        jenkinsService.getBuilds('job1') >> new BuildsList(
+            list: [
+                new Build(number: 1, timestamp: nowMinus30min, building: false, result: 'SUCCESS', duration: durationOf1min),
+                new Build(number: 2, timestamp: nowMinus10min, building: false, result: 'FAILURE', duration: durationOf1min),
+                new Build(number: 3, timestamp: nowMinus5min, building: false, result: 'SUCCESS', duration: durationOf1min)
+            ]
+        )
+
+        jenkinsService.getBuilds('job3') >> new BuildsList(
             list: [
                 new Build(number: 1, timestamp: nowMinus30min, building: false, result: 'SUCCESS', duration: durationOf1min),
                 new Build(number: 2, timestamp: nowMinus10min, building: false, result: 'FAILURE', duration: durationOf1min),
@@ -205,5 +216,51 @@ class JenkinsBuildMonitorSpec extends Specification {
         0 * monitor.echoService.postEvent({ it.content.project.lastBuild.number == 1 && it.content.project.lastBuild.result == 'SUCCESS'} as Event)
         0 * monitor.echoService.postEvent({ it.content.project.lastBuild.number == 2 && it.content.project.lastBuild.result == 'FAILURE'} as Event)
         1 * monitor.echoService.postEvent({ it.content.project.lastBuild.number == 3 && it.content.project.lastBuild.result == 'SUCCESS'} as Event)
+    }
+
+    def 'should continue processing other builds from a master even if one or more build fetches fail'() {
+        given:
+        long now = System.currentTimeMillis()
+        long nowMinus30min = now - (30 * 60 * 1000) // 30 minutes ago
+        long durationOf1min = 60000
+
+        igorConfigurationProperties.spinnaker.build.processBuildsOlderThanLookBackWindow = true
+
+        and: 'three jobs in a master'
+        jenkinsService.getProjects() >> new ProjectsList(list: [
+            new Project(name: 'job1', lastBuild: new Build(number: 1, timestamp: now)),
+            new Project(name: 'job2', lastBuild: new Build(number: 2, timestamp: now)),
+            new Project(name: 'job3', lastBuild: new Build(number: 3, timestamp: now))
+        ])
+
+        and: 'one failed getBuilds() and two successful'
+        jenkinsService.getBuilds('job1') >> new BuildsList(
+            list: [ new Build(number: 1, timestamp: nowMinus30min, building: false, result: 'SUCCESS', duration: durationOf1min), ]
+        )
+
+        def retrofitEx = RetrofitError.unexpectedError("http://retro.fit/mock/error", new Exception('mock root cause'));
+        jenkinsService.getBuilds('job2') >> { throw new RuntimeException ("Mocked failure while fetching 'job2'", retrofitEx) }
+
+        jenkinsService.getBuilds('job3') >> new BuildsList(
+            list: [ new Build(number: 3, timestamp: nowMinus30min, building: false, result: 'SUCCESS', duration: durationOf1min), ]
+        )
+
+        and:
+        monitor.echoService = Mock(EchoService)
+        monitor.log = Mock(Logger);
+
+        when:
+        monitor.changedBuilds(MASTER)
+
+        then: 'Builds are processed for job1'
+        1 * monitor.echoService.postEvent({ it.content.project.name == 'job1'} as Event)
+
+        and: 'Errors are logged for job2; no builds are processed'
+        1 * monitor.log.error('Error communicating with jenkins for [{}:{}]: {}', _)
+        1 * monitor.log.error('Error processing builds for [{}:{}]', _)
+        0 * monitor.echoService.postEvent({ it.content.project.name == 'job2'} as Event)
+
+        and: 'Builds are not processed for job3'
+        1 * monitor.echoService.postEvent({ it.content.project.name == 'job3'} as Event)
     }
 }
