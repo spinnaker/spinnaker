@@ -1,7 +1,9 @@
 <div class="form-horizontal canary-config-view">
   <h4>Canary Config</h4>
 
-  <stage-config-field label="Analysis Type" field-columns="3">
+  <stage-config-field label="Analysis Type"
+                      help-key="pipeline.config.canary.analysisType"
+                      field-columns="3">
     <select
       class="form-control input-sm"
       ng-model="kayentaCanaryStageCtrl.stage.analysisType"
@@ -12,7 +14,10 @@
     </select>
   </stage-config-field>
 
-  <stage-config-field label="Lifetime" field-columns="3" ng-if="kayentaCanaryStageCtrl.stage.analysisType === 'realTime'">
+  <stage-config-field label="Lifetime"
+                      help-key="pipeline.config.canary.analysisType"
+                      field-columns="3"
+                      ng-if="kayentaCanaryStageCtrl.stage.analysisType === 'realTime'">
     <input type="text"
            ng-model="kayentaCanaryStageCtrl.stage.canaryConfig.lifetimeHours"
            class="form-control input-sm"
@@ -20,6 +25,8 @@
     <span class="form-control-static">hours</span>
   </stage-config-field>
 
+  <!--
+  TODO: Revisit this when this canary stage ui is used for canaries employing Atlas.
   <stage-config-field label="Result Strategy"
                       help-key="pipeline.config.canary.resultStrategy"
                       field-columns="3">
@@ -29,6 +36,7 @@
       <option value="AVERAGE">average</option>
     </select>
   </stage-config-field>
+  -->
 
   <kayenta-stage-config-section title="Analysis Config">
     <stage-config-field label="Config Name">
@@ -50,7 +58,7 @@
     </stage-config-field>
 
     <stage-config-field label="Delay"
-                        help-key="pipeline.config.canary.scaleUpDelay"
+                        help-key="pipeline.config.canary.delayBeforeAnalysis"
                         field-columns="5"
                         ng-if="kayentaCanaryStageCtrl.stage.analysisType === 'realTime'">
       <input type="text"
@@ -109,7 +117,8 @@
   </kayenta-stage-config-section>
 
   <kayenta-stage-config-section title="Metric Scope">
-    <stage-config-field label="Baseline">
+    <stage-config-field label="Baseline"
+                        help-key="pipeline.config.canary.baselineGroup">
       <input
         class="form-control input-sm"
         ng-model="kayentaCanaryStageCtrl.stage.canaryConfig.scopes[0].controlScope"
@@ -117,7 +126,8 @@
         type="text"/>
     </stage-config-field>
 
-    <stage-config-field label="Baseline Region">
+    <stage-config-field label="Baseline Region"
+                        help-key="pipeline.config.canary.baselineRegion">
       <input
         class="form-control input-sm"
         ng-model="kayentaCanaryStageCtrl.stage.canaryConfig.scopes[0].controlRegion"
@@ -125,7 +135,8 @@
         type="text"/>
     </stage-config-field>
 
-    <stage-config-field label="Canary">
+    <stage-config-field label="Canary"
+                        help-key="pipeline.config.canary.canaryGroup">
       <input
         class="form-control input-sm"
         ng-model="kayentaCanaryStageCtrl.stage.canaryConfig.scopes[0].experimentScope"
@@ -133,7 +144,8 @@
         type="text"/>
     </stage-config-field>
 
-    <stage-config-field label="Canary Region">
+    <stage-config-field label="Canary Region"
+                        help-key="pipeline.config.canary.canaryRegion">
       <input
         class="form-control input-sm"
         ng-model="kayentaCanaryStageCtrl.stage.canaryConfig.scopes[0].experimentRegion"
@@ -141,29 +153,36 @@
         type="text"/>
     </stage-config-field>
 
-    <!--TODO: the unit for step is different for metric stores, and this should be more obvious to the user.-->
-    <stage-config-field label="Step">
+    <stage-config-field label="Step"
+                        field-columns="3">
       <input
         class="form-control input-sm"
         ng-model="kayentaCanaryStageCtrl.stage.canaryConfig.scopes[0].step"
-        type="text"/>
+        type="text"
+        style="width: 33%; display: inline-block"/>
+      <span class="form-control-static"> seconds</span>
     </stage-config-field>
 
-    <stage-config-field label="Start Time" ng-if="kayentaCanaryStageCtrl.stage.analysisType === 'retrospective'">
+    <stage-config-field label="Start Time"
+                        help-key="pipeline.config.canary.startTimeIso"
+                        ng-if="kayentaCanaryStageCtrl.stage.analysisType === 'retrospective'">
       <input
         class="form-control input-sm"
         ng-model="kayentaCanaryStageCtrl.stage.canaryConfig.scopes[0].startTimeIso"
         type="text"/>
     </stage-config-field>
 
-    <stage-config-field label="End Time" ng-if="kayentaCanaryStageCtrl.stage.analysisType === 'retrospective'">
+    <stage-config-field label="End Time"
+                        help-key="pipeline.config.canary.endTimeIso"
+                        ng-if="kayentaCanaryStageCtrl.stage.analysisType === 'retrospective'">
       <input
         class="form-control input-sm"
         ng-model="kayentaCanaryStageCtrl.stage.canaryConfig.scopes[0].endTimeIso"
         type="text"/>
     </stage-config-field>
 
-    <stage-config-field label="Extended Params">
+    <stage-config-field label="Extended Params"
+                        help-key="pipeline.config.canary.extendedScopeParams">
       <map-editor model="kayentaCanaryStageCtrl.stage.canaryConfig.scopes[0].extendedScopeParams">
       </map-editor>
     </stage-config-field>
