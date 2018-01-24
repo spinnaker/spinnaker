@@ -40,15 +40,23 @@ class DeployAppengineDescriptionValidator extends DescriptionValidator<DeployApp
     }
 
     boolean isContainerDeployment = description.containerImageUrl?.trim()
+    boolean usesGcs = description.repositoryUrl?.startsWith("gs://")
 
-    if (!isContainerDeployment && !description.repositoryUrl.startsWith("gs://")) {
-      if (!helper.validateGitCredentials(description.credentials.gitCredentials,
-                                         description.gitCredentialType,
-                                         description.credentials.name,
-                                         "gitCredentialType")) {
-         return
+    if (!description.artifact) {
+      if (isContainerDeployment) {
+        helper.validateNotEmpty(description.containerImageUrl, "containerImageUrl")
+      } else {
+        if (!usesGcs) {
+          if (!helper.validateGitCredentials(description.credentials.gitCredentials,
+                                             description.gitCredentialType,
+                                             description.credentials.name,
+                                             "gitCredentialType")) {
+             return
+          }
+          helper.validateNotEmpty(description.branch, "branch")
+        }
+        helper.validateNotEmpty(description.repositoryUrl, "repositoryUrl")
       }
-      helper.validateNotEmpty(description.branch, "branch")
     }
 
     if (isContainerDeployment) {

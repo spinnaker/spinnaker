@@ -17,22 +17,19 @@
 package com.netflix.spinnaker.clouddriver.appengine.deploy.ops
 
 import com.netflix.spinnaker.clouddriver.appengine.AppengineJobExecutor
-import com.netflix.spinnaker.clouddriver.appengine.config.AppengineConfigurationProperties
+import com.netflix.spinnaker.clouddriver.appengine.artifacts.GcsStorageService
+import com.netflix.spinnaker.clouddriver.appengine.artifacts.config.StorageConfigurationProperties
 import com.netflix.spinnaker.clouddriver.appengine.deploy.AppengineMutexRepository
 import com.netflix.spinnaker.clouddriver.appengine.deploy.AppengineServerGroupNameResolver
 import com.netflix.spinnaker.clouddriver.appengine.deploy.description.DeployAppengineDescription
 import com.netflix.spinnaker.clouddriver.appengine.deploy.exception.AppengineOperationException
 import com.netflix.spinnaker.clouddriver.appengine.gcsClient.AppengineGcsRepositoryClient
-import com.netflix.spinnaker.clouddriver.appengine.artifacts.GcsStorageService
-import com.netflix.spinnaker.clouddriver.appengine.artifacts.config.StorageConfigurationProperties
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.deploy.DeploymentResult
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
-import org.springframework.beans.factory.annotation.Autowired
-
 import java.nio.file.Paths
-
+import org.springframework.beans.factory.annotation.Autowired
 import static com.netflix.spinnaker.clouddriver.appengine.config.AppengineConfigurationProperties.ManagedAccount.GcloudReleaseTrack
 
 class DeployAppengineAtomicOperation implements AtomicOperation<DeploymentResult> {
@@ -57,8 +54,23 @@ class DeployAppengineAtomicOperation implements AtomicOperation<DeploymentResult
 
   DeployAppengineAtomicOperation(DeployAppengineDescription description) {
     this.description = description
-    this.containerDeployment = description.containerImageUrl?.trim()
-    this.usesGcs = !this.containerDeployment && description.repositoryUrl.startsWith("gs://")
+    if (description.artifact) {
+      switch (description.artifact.type) {
+        case 'gcs/object':
+          if (!description.artifact.reference) {
+            throw new AppengineOperationException("Missing artifact reference for GCS deploy")
+          }
+          usesGcs = true
+        case 'docker/image':
+          if (!description.artifact.name) {
+            throw new AppengineOperationException("Missing artifact name for Flex Custom deploy")
+          }
+          containerDeployment = description.artifact.name
+      }
+    } else {
+      containerDeployment = description.containerImageUrl?.trim()
+      usesGcs = !this.containerDeployment && description.repositoryUrl.startsWith("gs://")
+    }
   }
 
   /**

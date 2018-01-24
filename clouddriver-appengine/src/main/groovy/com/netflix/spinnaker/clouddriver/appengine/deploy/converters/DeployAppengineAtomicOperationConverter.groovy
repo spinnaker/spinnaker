@@ -16,22 +16,49 @@
 
 package com.netflix.spinnaker.clouddriver.appengine.deploy.converters
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.appengine.AppengineOperation
 import com.netflix.spinnaker.clouddriver.appengine.deploy.description.DeployAppengineDescription
+import com.netflix.spinnaker.clouddriver.appengine.deploy.exception.AppengineDescriptionConversionException
 import com.netflix.spinnaker.clouddriver.appengine.deploy.ops.DeployAppengineAtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport
+import com.netflix.spinnaker.kork.artifacts.model.Artifact
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @AppengineOperation(AtomicOperations.CREATE_SERVER_GROUP)
 @Component
 class DeployAppengineAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
+  @Autowired
+  ObjectMapper objectMapper
+
   AtomicOperation convertOperation(Map input) {
     new DeployAppengineAtomicOperation(convertDescription(input))
   }
 
   DeployAppengineDescription convertDescription(Map input) {
-    AppengineAtomicOperationConverterHelper.convertDescription(input, this, DeployAppengineDescription)
+    DeployAppengineDescription description = AppengineAtomicOperationConverterHelper.convertDescription(input, this, DeployAppengineDescription)
+
+    if (input.artifact) {
+      description.artifact = objectMapper.convertValue(input.artifact, Artifact)
+      switch (description.artifact.type) {
+        case 'gcs/object':
+          description.repositoryUrl = description.artifact.reference;
+          break
+        case 'docker/image':
+          description.containerImageUrl = description.artifact.name;
+          break
+        default:
+          throw new AppengineDescriptionConversionException("Invalid artifact type for Appengine deploy: ${description.artifact.type}")
+      }
+    }
+
+    if (description.repositoryUrl && !description.repositoryUrl.startsWith('gs://')) {
+      description.repositoryUrl = "gs://${description.repositoryUrl}"
+    }
+
+    return description
   }
 }

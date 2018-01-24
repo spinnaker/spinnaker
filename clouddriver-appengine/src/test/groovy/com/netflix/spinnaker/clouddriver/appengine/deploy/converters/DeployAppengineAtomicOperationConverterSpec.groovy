@@ -21,6 +21,7 @@ import com.netflix.spinnaker.clouddriver.appengine.deploy.description.DeployAppe
 import com.netflix.spinnaker.clouddriver.appengine.deploy.ops.DeployAppengineAtomicOperation
 import com.netflix.spinnaker.clouddriver.appengine.security.AppengineNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
+import com.netflix.spinnaker.clouddriver.appengine.deploy.exception.AppengineDescriptionConversionException
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -66,5 +67,26 @@ class DeployAppengineAtomicOperationConverterSpec extends Specification {
 
     then:
       operation instanceof DeployAppengineAtomicOperation
+  }
+
+  void "input with an unsupported artifact type throws an AppengineDescriptionConversionException"() {
+    setup:
+      def input = [
+        credentials: ACCOUNT_NAME,
+        application: APPLICATION,
+        repositoryUrl: REPO_URL,
+        branch: BRANCH,
+        configFilepaths: CONFIG_FILEPATHS,
+        artifact: [
+          type: 'foo/bar'
+        ]
+      ]
+
+    when:
+      def description = converter.convertDescription(input)
+
+    then:
+      AppengineDescriptionConversionException ex = thrown()
+      ex.message.contains('foo/bar')
   }
 }

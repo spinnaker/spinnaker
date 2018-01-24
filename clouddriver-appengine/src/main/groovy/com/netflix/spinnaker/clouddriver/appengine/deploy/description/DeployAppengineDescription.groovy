@@ -18,12 +18,14 @@ package com.netflix.spinnaker.clouddriver.appengine.deploy.description
 
 import com.netflix.spinnaker.clouddriver.appengine.gitClient.AppengineGitCredentialType
 import com.netflix.spinnaker.clouddriver.deploy.DeployDescription
+import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import groovy.transform.AutoClone
 import groovy.transform.Canonical
 
 @AutoClone
 @Canonical
 class DeployAppengineDescription extends AbstractAppengineCredentialsDescription implements DeployDescription {
+  Artifact artifact
   String accountName
   String application
   String stack
