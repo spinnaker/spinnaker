@@ -19,6 +19,7 @@ import { AmazonLoadBalancersTag } from './loadBalancer/AmazonLoadBalancersTag';
 import './deploymentStrategy/rollingPush.strategy';
 
 import './logo/aws.logo.less';
+import { AmazonLoadBalancerChoiceModal } from './loadBalancer/configure/AmazonLoadBalancerChoiceModal';
 
 // load all templates into the $templateCache
 const templates = require.context('./', true, /\.html$/);
@@ -90,8 +91,7 @@ module(AMAZON_MODULE, [
       transformer: 'awsLoadBalancerTransformer',
       detailsTemplateUrl: require('./loadBalancer/details/loadBalancerDetails.html'),
       detailsController: 'awsLoadBalancerDetailsCtrl',
-      createLoadBalancerTemplateUrl: require('./loadBalancer/configure/choice/awsLoadBalancerChoice.modal.html'),
-      createLoadBalancerController: 'awsLoadBalancerChoiceCtrl',
+      CreateLoadBalancerModal: AmazonLoadBalancerChoiceModal,
       targetGroupDetailsTemplateUrl: require('./loadBalancer/details/targetGroupDetails.html'),
       targetGroupDetailsController: 'awsTargetGroupDetailsCtrl',
       ClusterContainer: AmazonLoadBalancerClusterContainer,

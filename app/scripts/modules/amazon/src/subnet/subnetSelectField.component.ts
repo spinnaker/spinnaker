@@ -1,4 +1,4 @@
-import { IController, module } from 'angular';
+import { IComponentOptions, IController, module } from 'angular';
 import { get } from 'lodash';
 
 import { Application, ISubnet } from '@spinnaker/core';
@@ -61,7 +61,7 @@ class SubnetSelectFieldController implements IController {
   }
 }
 
-class SubnetSelectFieldComponent implements ng.IComponentOptions {
+class SubnetSelectFieldComponent implements IComponentOptions {
   public bindings: any = {
     subnets: '<',
     component: '<',
@@ -78,6 +78,36 @@ class SubnetSelectFieldComponent implements ng.IComponentOptions {
   public templateUrl: string = require('./subnetSelectField.component.html');
 }
 
+export class SubnetSelectFieldWrapperComponent implements IComponentOptions {
+  public bindings: any = {
+    subnets: '<',
+    component: '<',
+    field: '<',
+    region: '<',
+    onChange: '<',
+    labelColumns: '<',
+    helpKey: '<',
+    readOnly: '<',
+    application: '<',
+    hideClassic: '<',
+  };
+  public template = `
+    <subnet-select-field
+      subnets="$ctrl.subnets"
+      component="$ctrl.component"
+      field="{{::$ctrl.field}}"
+      region="$ctrl.region"
+      on-change="$ctrl.onChange()"
+      label-columns="{{::$ctrl.labelColumns}}"
+      help-key="{{::$ctrl.helpKey}}"
+      read-only="$ctrl.readOnly"
+      application="$ctrl.application"
+      hide-classic="$ctrl.hideClassic"
+    ></subnet-select-field>
+  `;
+}
+
 export const SUBNET_SELECT_FIELD_COMPONENT = 'spinnaker.amazon.subnet.subnetSelectField.component';
 module(SUBNET_SELECT_FIELD_COMPONENT, [
-]).component('subnetSelectField', new SubnetSelectFieldComponent());
+]).component('subnetSelectField', new SubnetSelectFieldComponent())
+  .component('subnetSelectFieldWrapper', new SubnetSelectFieldWrapperComponent());

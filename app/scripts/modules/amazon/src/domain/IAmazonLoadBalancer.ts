@@ -1,6 +1,9 @@
 import { IAmazonLoadBalancerSourceData } from './IAmazonLoadBalancerSourceData';
 import { ILoadBalancer, ILoadBalancerDeleteCommand, ILoadBalancerUpsertCommand, IInstance, IInstanceCounts, IServerGroup, ISubnet } from '@spinnaker/core';
 
+export type ClassicListenerProtocol = 'HTTP' | 'HTTPS' | 'TCP' | 'SSL';
+export type ALBListenerProtocol = 'HTTP' | 'HTTPS';
+
 export interface IAmazonLoadBalancer extends ILoadBalancer {
   availabilityZones?: string[];
   credentials?: string;
@@ -14,9 +17,9 @@ export interface IAmazonLoadBalancer extends ILoadBalancer {
 }
 
 export interface IClassicListener {
-  internalProtocol: 'HTTP' | 'HTTPS' | 'TCP' | 'SSL';
+  internalProtocol: ClassicListenerProtocol;
   internalPort: number;
-  externalProtocol: 'HTTP' | 'HTTPS' | 'TCP' | 'SSL';
+  externalProtocol: ClassicListenerProtocol;
   externalPort: number;
   sslCertificateType?: string;
 }
@@ -49,6 +52,7 @@ export interface IALBListenerCertificate {
   type: string;
   name: string;
 }
+
 export interface IALBListener {
   certificates: IALBListenerCertificate[];
   defaultActions: IListenerAction[];
@@ -65,8 +69,10 @@ export interface IListenerRule {
   priority: number | 'default';
 }
 
+export type ListenerRuleConditionField = 'path-pattern' | 'host-header';
+
 export interface IListenerRuleCondition {
-  field: 'path-pattern' | 'host-header';
+  field: ListenerRuleConditionField;
   values: string[];
 }
 
@@ -103,6 +109,44 @@ export interface ITargetGroup {
   vpcName?: string;
 }
 
+export interface IALBListenerDescription {
+  certificates?: IALBListenerCertificate[];
+  protocol: 'HTTP' | 'HTTPS';
+  port: number;
+  sslPolicy?: string;
+  defaultActions: IListenerAction[];
+  rules?: IListenerRule[];
+}
+
+export interface IALBTargetGroupDescription {
+  name: string;
+  protocol: 'HTTP' | 'HTTPS';
+  port: number;
+  attributes: {
+    // Defaults to 300
+    deregistrationDelay?: number;
+    // Defaults to false
+    stickinessEnabled?: boolean;
+    // Defaults to 'lb_cookie'. The only option for now, but they promise there will be more...
+    stickinessType?: 'lb_cookie';
+    // Defaults to 86400
+    stickinessDuration?: number;
+  };
+  // Defaults to 10
+  healthCheckInterval?: number;
+  // Defaults to '200-299'
+  healthCheckMatcher?: string;
+  healthCheckPath: string;
+  healthCheckPort: string;
+  healthCheckProtocol: 'HTTP' | 'HTTPS';
+  // Defaults to 10
+  healthyThreshold?: number;
+  // Defaults to 5
+  healthCheckTimeout?: number;
+  // Defaults to 2
+  unhealthyThreshold?: number;
+}
+
 export interface IAmazonLoadBalancerUpsertCommand extends ILoadBalancerUpsertCommand {
   availabilityZones: { [region: string]: string[] };
   isInternal: boolean;
@@ -113,6 +157,7 @@ export interface IAmazonLoadBalancerUpsertCommand extends ILoadBalancerUpsertCom
   regionZones: string[];
   securityGroups: string[];
   subnetType: string;
+  usePreferredZones?: boolean;
   vpcId: string;
 }
 
@@ -137,45 +182,8 @@ export interface IAmazonClassicLoadBalancerUpsertCommand extends IAmazonLoadBala
   unhealthyThreshold?: number;
 }
 
+
 export interface IAmazonApplicationLoadBalancerUpsertCommand extends IAmazonLoadBalancerUpsertCommand {
-  listeners: {
-    certificates?: {
-      certificateArn: string;
-      name?: string; // Only used while creating the description
-      type?: string; // Only used while creating the description
-    }[];
-    protocol: 'HTTP' | 'HTTPS';
-    port: number;
-    sslPolicy?: string;
-    defaultActions: IListenerAction[];
-    rules?: IListenerRule[];
-  }[];
-  targetGroups: {
-    name: string;
-    protocol: 'HTTP' | 'HTTPS';
-    port: number;
-    attributes: {
-      // Defaults to 300
-      deregistrationDelay?: number;
-      // Defaults to false
-      stickinessEnabled?: boolean;
-      // Defaults to 'lb_cookie'. The only option for now, but they promise there will be more...
-      stickinessType?: 'lb_cookie';
-      // Defaults to 86400
-      stickinessDuration?: number;
-    };
-    // Defaults to 10
-    healthCheckInterval?: number;
-    // Defaults to '200-299'
-    healthCheckMatcher?: string;
-    healthCheckPath: string;
-    healthCheckPort: string;
-    healthCheckProtocol: 'HTTP' | 'HTTPS';
-    // Defaults to 10
-    healthyThreshold?: number;
-    // Defaults to 5
-    healthCheckTimeout?: number;
-    // Defaults to 2
-    unhealthyThreshold?: number;
-  }[];
+  listeners: IALBListenerDescription[];
+  targetGroups: IALBTargetGroupDescription[];
 }

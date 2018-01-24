@@ -17,17 +17,19 @@
       .glyphicon-trash {
         padding: 0 8px;
       }
-      .wizard-pod-row-title {
-        font-weight: 800;
-      }
       .wizard-pod-row-contents {
-        flex-wrap: nowrap;
-        padding: 0;
-        label {
-          font-weight: 600;
+        .wizard-pod-row-title {
+          font-weight: 800;
         }
-        .wizard-pod-content {
-          padding: 0 10px 0 0;
+        .wizard-pod-row-data {
+          flex-wrap: nowrap;
+          padding: 0;
+          label {
+            font-weight: 600;
+          }
+          .wizard-pod-content {
+            padding: 0 10px 0 0;
+          }
         }
       }
       background-color: var(--color-cirrus);
@@ -46,36 +48,46 @@
     .wizard-pod-row-contents {
       display: flex;
       width: 100%;
-      align-items: baseline;
-      flex-wrap: wrap;
-      padding: 5px 0;
-      &.spread {
-        justify-content: space-between;
-      }
-      .wizard-pod-content {
-        padding: 0 10px 5px 0;
-      }
-      .group-name-prefix {
-        flex-grow: 2;
-        white-space: nowrap;
-      }
-      .rules-table {
-        thead {
-          th {
-            font-weight: 600;
+      .wizard-pod-row-data {
+        display: flex;
+        width: 100%;
+        align-items: baseline;
+        flex-wrap: wrap;
+        padding: 5px 0;
+        &.spread {
+          justify-content: space-between;
+        }
+        .wizard-pod-content {
+          padding: 0 10px 5px 0;
+        }
+        .group-name-prefix {
+          flex-grow: 2;
+          white-space: nowrap;
+        }
+        .rules-table {
+          thead {
+            th {
+              font-weight: 600;
+            }
           }
-        }
-        td {
-          vertical-align: middle;
-        }
-        >tbody {
-          >tr:first-child {
-            >td {
-              border-top: none;
+          td {
+            vertical-align: middle;
+          }
+          >tbody {
+            >tr:first-child {
+              >td {
+                border-top: none;
+              }
             }
           }
         }
       }
+      .wizard-pod-row-errors {
+        display: flex;
+        width: 100%;
+      }
+      align-items: baseline;
+      flex-wrap: wrap;
     }
   }
   .wizard-pod-rule {
@@ -119,11 +131,7 @@
   }
 }
 
-// We still care if a target group name is already used, so force the styles
-// that angular uses for invalid, even if pristine. This should/will go away
-// when converting to react, so doing it this way to not waste more time.
-.target-group-name.ng-invalid {
-  border-color: var(--color-danger);
-  -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 6px var(--color-danger-light);
-  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 6px var(--color-danger-light);
+.rule-sortable-helper {
+  z-index: 99999;
+  width: 500px;
 }

@@ -1,7 +1,9 @@
 @import "~core/presentation/less/imports/commonImports.less";
 @import "stickyHeader";
+@import '~react-select/less/select';
 
 @fixed-header-z-index: 1030;
+@select-input-height: 30px;
 
 /* Space out content a bit */
 body {
@@ -737,7 +739,7 @@ tfoot .add-new {
   }
 }
 
-input:invalid {
+input:invalid, select:invalid {
   border-color: var(--color-danger);
   -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 6px var(--color-danger-light);
   box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 6px var(--color-danger-light);
@@ -1181,10 +1183,6 @@ select.input-sm {
 }
 
 .Select.is-open { z-index: 10000; }
-
-.sortable-helper {
-  z-index: 10000;
-}
 
 html {
   overflow: hidden;
