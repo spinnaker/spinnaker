@@ -77,6 +77,7 @@ const helpContents: {[key: string]: string} = {
   'kubernetes.containers.probes.failureThreshold': 'How many executions need to fail before the probe is declared unhealthy.',
   'kubernetes.containers.volumemounts.name': 'The <b>Volume Source</b> configured above to claim.',
   'kubernetes.containers.volumemounts.mountPath': 'The directory to mount the specified <b>Volume Source</b> to.',
+  'kubernetes.containers.volumemounts.subPath': 'This will mount the sub path in the referenced volume rather than the root path.',
   'kubernetes.namespace': 'The namespace you have configured with the above selected account. This will often be referred to as <b>Region</b> in Spinnaker.',
   'kubernetes.loadBalancer.detail': '(Optional) A string of free-form alphanumeric characters; by convention, we recommend using "frontend".',
   'kubernetes.loadBalancer.stack': '(Optional) One of the core naming components of a cluster, used to create vertical stacks of dependent services for integration testing.',

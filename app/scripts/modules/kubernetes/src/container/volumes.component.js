@@ -81,7 +81,7 @@ module.exports = angular.module('spinnaker.deck.kubernetes.volumes.component', [
       };
 
       this.defaultVolumeMount = (name = '') => {
-        return { name: name, readOnly: false, mountPath: '/', };
+        return { name: name, readOnly: false, mountPath: '/', subPath: ''};
       };
 
       this.addVolume = () => {
