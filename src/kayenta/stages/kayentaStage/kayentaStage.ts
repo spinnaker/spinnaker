@@ -49,6 +49,7 @@ interface IKayentaStageCanaryConfigScope {
   startTimeIso?: string;
   endTimeIso?: string;
   step?: string;
+  extendedScopeParams: {[key: string]: string};
 }
 
 enum KayentaAnalysisType {

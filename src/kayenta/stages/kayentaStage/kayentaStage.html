@@ -162,6 +162,11 @@
         ng-model="kayentaCanaryStageCtrl.stage.canaryConfig.scopes[0].endTimeIso"
         type="text"/>
     </stage-config-field>
+
+    <stage-config-field label="Extended Params">
+      <map-editor model="kayentaCanaryStageCtrl.stage.canaryConfig.scopes[0].extendedScopeParams">
+      </map-editor>
+    </stage-config-field>
   </kayenta-stage-config-section>
 
   <kayenta-stage-config-section title="Scoring Thresholds">
