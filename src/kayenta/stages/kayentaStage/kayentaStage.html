@@ -117,6 +117,14 @@
   </kayenta-stage-config-section>
 
   <kayenta-stage-config-section title="Metric Scope">
+    <section-header>
+      <span
+        uib-tooltip="Click to populate with expressions for resolving control
+                     and experiment scopes from an upstream clone stage."
+        ng-click="kayentaCanaryStageCtrl.populateScopeWithExpressions()"
+        class="fa fa-magic clickable"></span>
+    </section-header>
+
     <stage-config-field label="Baseline"
                         help-key="pipeline.config.canary.baselineGroup">
       <input

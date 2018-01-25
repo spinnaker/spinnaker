@@ -239,6 +239,13 @@ class CanaryStage implements IComponentController {
       this.state.detailsLoading = false;
     });
   }
+
+  public populateScopeWithExpressions(): void {
+    this.stage.canaryConfig.scopes[0].controlScope =
+      '${ #stage(\'Deploy in \' + deployedServerGroups[0].region)[\'context\'][\'source\'][\'serverGroupName\'] }';
+    this.stage.canaryConfig.scopes[0].experimentScope =
+      '${ deployedServerGroups[0].serverGroup }';
+  }
 }
 
 const requiredForAnalysisType = (analysisType: KayentaAnalysisType, fieldName: string, fieldLabel?: string): (p: IPipeline, s: IKayentaStage) => string => {

@@ -1,11 +1,16 @@
 import { module, IComponentOptions } from 'angular';
 
 class KayentaStageConfigSection implements IComponentOptions {
-  public transclude = true;
+  public transclude = {
+    sectionHeader: '?sectionHeader',
+  };
   public bindings = { title: '@' };
   public template = `
     <section>
-      <h5>{{ $ctrl.title }}</h5>
+      <ul class="list-inline">
+        <li><h5>{{ $ctrl.title }}</h5></li>
+        <li><span ng-transclude="sectionHeader"></span></li>
+      </ul>
       <div class="horizontal-rule"></div>
       <ng-transclude></ng-transclude>
     </section>
