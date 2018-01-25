@@ -191,7 +191,7 @@ function create_component_prototype_disk() {
       --zone $ZONE \
       --machine-type n1-standard-1 \
       --image $BASE_IMAGE \
-      --metadata startup-script="apt-get update && apt-get install -y git && git clone https://github.com/spinnaker/spinnaker.git",ssh-keys="$ssh_key" \
+      --metadata startup-script="apt-get update && apt-get install -y git && git clone https://github.com/$SPINNAKER_DEV_GITHUB_OWNER/spinnaker.git -b $SPINNAKER_DEV_GITHUB_BRANCH",ssh-keys="$ssh_key" \
       --image-project $IMAGE_PROJECT >& /dev/null&)
 
   args="--component $component --version $version"
