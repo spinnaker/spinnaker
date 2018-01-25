@@ -22,6 +22,7 @@ import com.netflix.spinnaker.orca.TaskResult;
 import com.netflix.spinnaker.orca.front50.Front50Service;
 import com.netflix.spinnaker.orca.front50.PipelineModelMutator;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -75,6 +76,13 @@ public class SavePipelineTask implements RetryableTask {
 
     Map<String, Object> pipeline = (Map<String, Object>) stage.decodeBase64("/pipeline", Map.class);
 
+    if (!pipeline.containsKey("index")) {
+      Map<String, Object> existingPipeline = fetchExistingPipeline(pipeline);
+      if (existingPipeline != null) {
+        pipeline.put("index", existingPipeline.get("index"));
+      }
+    }
+
     pipelineModelMutators.stream().filter(m -> m.supports(pipeline)).forEach(m -> m.mutate(pipeline));
 
     Response response = front50Service.savePipeline(pipeline);
@@ -98,5 +106,18 @@ public class SavePipelineTask implements RetryableTask {
   @Override
   public long getTimeout() {
     return TimeUnit.SECONDS.toMillis(30);
+  }
+
+  private Map<String, Object> fetchExistingPipeline(Map<String, Object> newPipeline) {
+    String applicationName = (String) newPipeline.get("application");
+    String newPipelineID = (String) newPipeline.get("id");
+    if (!StringUtils.isEmpty(newPipelineID)) {
+      return front50Service.getPipelines(applicationName).stream()
+        .filter(m -> m.containsKey("id"))
+        .filter(m -> m.get("id").equals(newPipelineID))
+        .findFirst()
+        .orElse(null);
+    }
+    return null;
   }
 }

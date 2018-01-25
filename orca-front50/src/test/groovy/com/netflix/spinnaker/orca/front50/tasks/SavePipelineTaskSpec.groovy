@@ -65,4 +65,65 @@ class SavePipelineTaskSpec extends Specification {
     ])
   }
 
+  def "should copy existing pipeline index to new pipeline"() {
+    given:
+    def pipeline = [
+      application: 'orca',
+      name: 'my pipeline',
+      stages: [],
+      id: 'existing-pipeline-id'
+    ]
+    def stage = new Stage(Execution.newPipeline("orca"), "whatever", [
+      pipeline: Base64.encoder.encodeToString(objectMapper.writeValueAsString(pipeline).bytes)
+    ])
+    Integer expectedIndex = 14
+    Integer receivedIndex
+    Map<String, Object> existingPipeline = [
+      index: expectedIndex,
+      id: 'existing-pipeline-id',
+    ]
+
+    when:
+    front50Service.getPipelines(_) >> [existingPipeline]
+    front50Service.savePipeline(_) >> { Map<String, Object> newPipeline ->
+      receivedIndex = newPipeline.get("index")
+      new Response('http://front50', 200, 'OK', [], null)
+    }
+    task.execute(stage)
+
+    then:
+    receivedIndex == expectedIndex
+  }
+
+  def "should not copy existing pipeline index to new pipeline with own index"() {
+    given:
+    Integer existingIndex = 14
+    Integer newIndex = 4
+    Integer receivedIndex
+    def pipeline = [
+      application: 'orca',
+      name: 'my pipeline',
+      stages: [],
+      id: 'existing-pipeline-id',
+      index: newIndex
+    ]
+    def stage = new Stage(Execution.newPipeline("orca"), "whatever", [
+      pipeline: Base64.encoder.encodeToString(objectMapper.writeValueAsString(pipeline).bytes)
+    ])
+    Map<String, Object> existingPipeline = [
+      index: existingIndex,
+      id: 'existing-pipeline-id',
+    ]
+
+    when:
+    front50Service.getPipelines(_) >> [existingPipeline]
+    front50Service.savePipeline(_) >> { Map<String, Object> newPipeline ->
+      receivedIndex = newPipeline.get("index")
+      new Response('http://front50', 200, 'OK', [], null)
+    }
+    task.execute(stage)
+
+    then:
+    receivedIndex == newIndex
+  }
 }
