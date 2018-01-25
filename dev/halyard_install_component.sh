@@ -17,6 +17,7 @@
 # Installs Halyard and installs a single component along with spinnaker-monitoring.
 
 set -e
+set -x
 
 HALYARD_INSTALL_PARAMS=
 
@@ -53,6 +54,11 @@ function process_args() {
 
         --version)
             VERSION=$1
+            shift
+            ;;
+
+        --halyard_config_bucket)
+            HALYARD_INSTALL_PARAMS="$HALYARD_INSTALL_PARAMS --config-bucket $1"
             shift
             ;;
 
@@ -93,8 +99,8 @@ function main() {
   sudo bash InstallHalyard.sh -y --user ubuntu  $HALYARD_INSTALL_PARAMS
 
   echo "Installing $COMPONENT and optional dependencies..."
-  hal config version edit --version $VERSION
-  hal config deploy edit --type BakeDebian
+  hal config version edit --color false --version $VERSION
+  hal config deploy edit --color false --type BakeDebian
 
   local service_names
   if contains $COMPONENT "${EXTERNAL_ARTIFACTS[@]}"; then
@@ -105,7 +111,7 @@ function main() {
 
   echo "Installed services chosen to be ${service_names[@]}"
 
-  hal deploy apply --no-validate --service-names ${service_names[@]}
+  hal deploy apply --color false --no-validate --service-names ${service_names[@]}
 }
 
 process_args "$@"
