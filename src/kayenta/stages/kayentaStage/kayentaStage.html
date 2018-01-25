@@ -180,9 +180,8 @@
         ng-model="kayentaCanaryStageCtrl.stage.canaryConfig.scopes[0].endTimeIso"
         type="text"/>
     </stage-config-field>
-    <!--TODO(dpeach): only include this for stackdriver -->
-    <!--TODO(dpeach): do not render 'resourceType' in extendedScopeParams-->
-    <stage-config-field label="Resource Type">
+
+    <stage-config-field label="Resource Type" ng-if="kayentaCanaryStageCtrl.metricStore === 'stackdriver'">
       <select
         class="form-control input-sm"
         ng-model="kayentaCanaryStageCtrl.stage.canaryConfig.scopes[0].extendedScopeParams.resourceType"
@@ -192,7 +191,9 @@
 
     <stage-config-field label="Extended Params"
                         help-key="pipeline.config.canary.extendedScopeParams">
-      <map-editor model="kayentaCanaryStageCtrl.stage.canaryConfig.scopes[0].extendedScopeParams">
+      <map-editor
+        hidden-keys="['resourceType']"
+        model="kayentaCanaryStageCtrl.stage.canaryConfig.scopes[0].extendedScopeParams">
       </map-editor>
     </stage-config-field>
   </kayenta-stage-config-section>

@@ -68,7 +68,7 @@
   },
   "devDependencies": {
     "@spinnaker/amazon": "0.0.46",
-    "@spinnaker/core": "^0.0.93",
+    "@spinnaker/core": "0.0.135",
     "@spinnaker/google": "^0.0.1",
     "@types/angular": "1.6.26",
     "@types/angular-mocks": "^1.5.10",
@@ -128,6 +128,7 @@
     "file-loader": "^0.11.1",
     "font-awesome": "^4.7.0",
     "fork-ts-checker-webpack-plugin": "^0.2.8",
+    "formik": "^0.10.5",
     "happypack": "^3.0.3",
     "html-loader": "0.4.5",
     "html-webpack-plugin": "^2.28.0",
