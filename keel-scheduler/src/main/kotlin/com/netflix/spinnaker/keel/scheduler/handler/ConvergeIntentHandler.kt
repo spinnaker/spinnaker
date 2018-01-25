@@ -86,7 +86,8 @@ class ConvergeIntentHandler
           intentActivityRepository.addOrchestrations(intent.id(), result.orchestrationIds)
           applicationEventPublisher.publishEvent(IntentConvergeSuccessEvent(intent, result.orchestrationIds))
 
-          queue.push(MonitorOrchestrations(intent.id(), intent.kind), Duration.ofMillis(10000))
+          // TODO rz - MonitorOrchestrations is deprecated. Reconsider if we want to totally remove it.
+//          queue.push(MonitorOrchestrations(intent.id(), intent.kind), Duration.ofMillis(10000))
         }
       registry.counter(invocationsId.withTags(message.intent.getMetricTags("result", "success")))
     } catch (t: Throwable) {
