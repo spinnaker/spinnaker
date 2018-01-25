@@ -98,15 +98,12 @@ class IntentController
 
   @RequestMapping(value = "/{id}", method = [(RequestMethod.DELETE)])
   @ResponseStatus(HttpStatus.NO_CONTENT)
-  fun deleteIntent(@PathVariable("id") id: String, @RequestParam("status", required = false) status: IntentStatus?) {
-    if (status != null) {
-      // TODO rz - Add updateStatus method to intentRepository
-      throw NotImplementedError("soft-deleting intents is not currently supported")
-    }
+  fun deleteIntent(@PathVariable("id") id: String,
+                   @RequestParam("soft", defaultValue = "true", required = false) soft: Boolean) {
     intentRepository.getIntent(id)
       .takeIf { it != null }
       ?.run {
-        intentRepository.deleteIntent(id, true)
+        intentRepository.deleteIntent(id, soft)
         applicationEventPublisher.publishEvent(AfterIntentDeleteEvent(this))
       }
   }
