@@ -19,6 +19,7 @@ module.exports = angular
       onChange: '&',
       labelsLeft: '<?',
       label: '@',
+      hiddenKeys: '<',
     },
     controller: function($scope) {
       this.backingModel = [];
@@ -34,6 +35,7 @@ module.exports = angular
       this.columnCount = (this.labelsLeft ? 5 : 3);
       this.model = this.model || {};
       this.isParameterized = isString(this.model);
+      this.hiddenKeys = this.hiddenKeys || [];
 
       let modelKeys = () => Object.keys(this.model);
 

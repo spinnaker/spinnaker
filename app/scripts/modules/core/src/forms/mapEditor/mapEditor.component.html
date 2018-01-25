@@ -14,7 +14,7 @@
     </tr>
     </thead>
     <tbody>
-    <tr ng-repeat="pair in $ctrl.backingModel">
+    <tr ng-repeat="pair in $ctrl.backingModel" ng-if="!$ctrl.hiddenKeys.includes(pair.key)">
       <td class="table-label" ng-if="$ctrl.labelsLeft"><b>{{$ctrl.keyLabel}}</b></td>
       <td><input class="form-control input input-sm" type="text"
                  name="{{$index}}"

@@ -187,6 +187,16 @@ describe('Component: mapEditor', function () {
     });
   });
 
-
+  describe('hidden keys', function() {
+    it('does not render key if included in `hiddenKeys`', function() {
+      scope.model = { a: '1', b: '2' };
+      scope.hiddenKeys = ['a'];
+      const dom = this.compile('<map-editor model="model" hidden-keys="hiddenKeys"></map-editor>')(scope);
+      scope.$digest();
+      expect($(dom.find('tbody tr')).length).toBe(1);
+      expect(dom.find('input').get(0).value).toBe('b');
+      expect(dom.find('input').get(1).value).toBe('2');
+    });
+  });
 
 });
