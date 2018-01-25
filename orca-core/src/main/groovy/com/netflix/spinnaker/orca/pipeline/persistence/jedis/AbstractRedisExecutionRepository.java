@@ -192,12 +192,12 @@ public abstract class AbstractRedisExecutionRepository implements ExecutionRepos
   @Override
   public void updateStageContext(@Nonnull Stage stage) {
     Execution execution = stage.getExecution();
-    String type = stage.getType();
+    String type = execution.getType().toString();
     String key = format("%s:%s", type, execution.getId());
     String contextKey = format("stage.%s.context", stage.getId());
     getRedisDelegateForId(key).withCommandsClient(c -> {
       try {
-        c.set(key, contextKey, mapper.writeValueAsString(stage.getContext()));
+        c.hset(key, contextKey, mapper.writeValueAsString(stage.getContext()));
       } catch (JsonProcessingException e) {
         throw new StageSerializationException("Failed converting stage context to json", e);
       }

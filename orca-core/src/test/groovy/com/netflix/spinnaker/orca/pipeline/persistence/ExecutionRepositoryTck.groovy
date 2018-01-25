@@ -829,7 +829,7 @@ class JedisExecutionRepositorySpec extends ExecutionRepositoryTck<JedisExecution
     }
   }
 
-  def "can save a stage with all data"() {
+  def "can save a stage with all data and update stage context"() {
     given:
     def pipeline = pipeline {
       application = "orca"
@@ -846,9 +846,20 @@ class JedisExecutionRepositorySpec extends ExecutionRepositoryTck<JedisExecution
     stage.refId = "1<1"
 
     when:
-    repository.storeStage(stage)
+    repository.addStage(stage)
 
     then:
     notThrown(Exception)
+
+    when:
+    stage.setContext([foo: 'bar'])
+    repository.updateStageContext(stage)
+
+    then:
+    def stored = repository.retrieve(PIPELINE, pipeline.id)
+
+    and:
+    stored.stageById(stage.id).context == [foo: 'bar']
+
   }
 }
