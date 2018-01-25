@@ -60,11 +60,11 @@ const isGroupWeightsSumValid: IConfigValidator = state => {
 const isEveryGroupWeightValid: IConfigValidator = state => {
   const everyGroupWeightIsValid =
     Object.values(state.selectedConfig.group.groupWeights)
-      .every(weight => weight > 0);
+      .every(weight => weight >= 0);
 
   return everyGroupWeightIsValid
     ? null
-    : { message: 'A group weight must be greater than 0.' };
+    : { message: 'A group weight must be greater than or equal to 0.' };
 };
 
 export const validationErrorsReducer = (state: ICanaryState): ICanaryState => {
