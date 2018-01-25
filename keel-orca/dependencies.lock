@@ -4,25 +4,25 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "2.9.3"
+            "locked": "2.9.4"
         },
         "com.fasterxml.jackson.core:jackson-databind": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "2.9.3"
+            "locked": "2.9.4"
         },
         "com.fasterxml.jackson.datatype:jackson-datatype-jsr310": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "2.9.3"
+            "locked": "2.9.4"
         },
         "com.fasterxml.jackson.module:jackson-module-kotlin": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "2.9.3"
+            "locked": "2.9.4"
         },
         "com.github.jonpeterson:jackson-module-model-versioning": {
             "firstLevelTransitive": [
@@ -34,7 +34,7 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "1.0.27"
+            "locked": "1.0.28"
         },
         "com.netflix.spinnaker.keel:keel-clouddriver": {
             "project": true
@@ -132,25 +132,25 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "2.9.3"
+            "locked": "2.9.4"
         },
         "com.fasterxml.jackson.core:jackson-databind": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "2.9.3"
+            "locked": "2.9.4"
         },
         "com.fasterxml.jackson.datatype:jackson-datatype-jsr310": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "2.9.3"
+            "locked": "2.9.4"
         },
         "com.fasterxml.jackson.module:jackson-module-kotlin": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "2.9.3"
+            "locked": "2.9.4"
         },
         "com.github.jonpeterson:jackson-module-model-versioning": {
             "firstLevelTransitive": [
@@ -162,7 +162,7 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "1.0.27"
+            "locked": "1.0.28"
         },
         "com.netflix.spinnaker.keel:keel-clouddriver": {
             "project": true
@@ -260,25 +260,25 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "2.9.3"
+            "locked": "2.9.4"
         },
         "com.fasterxml.jackson.core:jackson-databind": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "2.9.3"
+            "locked": "2.9.4"
         },
         "com.fasterxml.jackson.datatype:jackson-datatype-jsr310": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "2.9.3"
+            "locked": "2.9.4"
         },
         "com.fasterxml.jackson.module:jackson-module-kotlin": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "2.9.3"
+            "locked": "2.9.4"
         },
         "com.github.jonpeterson:jackson-module-model-versioning": {
             "firstLevelTransitive": [
@@ -290,7 +290,7 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "1.0.27"
+            "locked": "1.0.28"
         },
         "com.netflix.spinnaker.keel:keel-clouddriver": {
             "project": true
@@ -408,25 +408,25 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "2.9.3"
+            "locked": "2.9.4"
         },
         "com.fasterxml.jackson.core:jackson-databind": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "2.9.3"
+            "locked": "2.9.4"
         },
         "com.fasterxml.jackson.datatype:jackson-datatype-jsr310": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "2.9.3"
+            "locked": "2.9.4"
         },
         "com.fasterxml.jackson.module:jackson-module-kotlin": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "2.9.3"
+            "locked": "2.9.4"
         },
         "com.github.jonpeterson:jackson-module-model-versioning": {
             "firstLevelTransitive": [
@@ -438,7 +438,7 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "1.0.27"
+            "locked": "1.0.28"
         },
         "com.netflix.spinnaker.keel:keel-clouddriver": {
             "project": true
@@ -536,25 +536,25 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "2.9.3"
+            "locked": "2.9.4"
         },
         "com.fasterxml.jackson.core:jackson-databind": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "2.9.3"
+            "locked": "2.9.4"
         },
         "com.fasterxml.jackson.datatype:jackson-datatype-jsr310": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "2.9.3"
+            "locked": "2.9.4"
         },
         "com.fasterxml.jackson.module:jackson-module-kotlin": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "2.9.3"
+            "locked": "2.9.4"
         },
         "com.github.jonpeterson:jackson-module-model-versioning": {
             "firstLevelTransitive": [
@@ -566,7 +566,7 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "1.0.27"
+            "locked": "1.0.28"
         },
         "com.netflix.spinnaker.keel:keel-clouddriver": {
             "project": true
@@ -664,25 +664,25 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "2.9.3"
+            "locked": "2.9.4"
         },
         "com.fasterxml.jackson.core:jackson-databind": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "2.9.3"
+            "locked": "2.9.4"
         },
         "com.fasterxml.jackson.datatype:jackson-datatype-jsr310": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "2.9.3"
+            "locked": "2.9.4"
         },
         "com.fasterxml.jackson.module:jackson-module-kotlin": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "2.9.3"
+            "locked": "2.9.4"
         },
         "com.github.jonpeterson:jackson-module-model-versioning": {
             "firstLevelTransitive": [
@@ -694,7 +694,7 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "1.0.27"
+            "locked": "1.0.28"
         },
         "com.natpryce:hamkrest": {
             "locked": "1.4.2.2",
@@ -812,25 +812,25 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "2.9.3"
+            "locked": "2.9.4"
         },
         "com.fasterxml.jackson.core:jackson-databind": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "2.9.3"
+            "locked": "2.9.4"
         },
         "com.fasterxml.jackson.datatype:jackson-datatype-jsr310": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "2.9.3"
+            "locked": "2.9.4"
         },
         "com.fasterxml.jackson.module:jackson-module-kotlin": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "2.9.3"
+            "locked": "2.9.4"
         },
         "com.github.jonpeterson:jackson-module-model-versioning": {
             "firstLevelTransitive": [
@@ -842,7 +842,7 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "1.0.27"
+            "locked": "1.0.28"
         },
         "com.natpryce:hamkrest": {
             "locked": "1.4.2.2",
@@ -960,25 +960,25 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "2.9.3"
+            "locked": "2.9.4"
         },
         "com.fasterxml.jackson.core:jackson-databind": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "2.9.3"
+            "locked": "2.9.4"
         },
         "com.fasterxml.jackson.datatype:jackson-datatype-jsr310": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "2.9.3"
+            "locked": "2.9.4"
         },
         "com.fasterxml.jackson.module:jackson-module-kotlin": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "2.9.3"
+            "locked": "2.9.4"
         },
         "com.github.jonpeterson:jackson-module-model-versioning": {
             "firstLevelTransitive": [
@@ -990,7 +990,7 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "1.0.27"
+            "locked": "1.0.28"
         },
         "com.natpryce:hamkrest": {
             "locked": "1.4.2.2",
@@ -1116,25 +1116,25 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "2.9.3"
+            "locked": "2.9.4"
         },
         "com.fasterxml.jackson.core:jackson-databind": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "2.9.3"
+            "locked": "2.9.4"
         },
         "com.fasterxml.jackson.datatype:jackson-datatype-jsr310": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "2.9.3"
+            "locked": "2.9.4"
         },
         "com.fasterxml.jackson.module:jackson-module-kotlin": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "2.9.3"
+            "locked": "2.9.4"
         },
         "com.github.jonpeterson:jackson-module-model-versioning": {
             "firstLevelTransitive": [
@@ -1146,7 +1146,7 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "1.0.27"
+            "locked": "1.0.28"
         },
         "com.natpryce:hamkrest": {
             "locked": "1.4.2.2",
