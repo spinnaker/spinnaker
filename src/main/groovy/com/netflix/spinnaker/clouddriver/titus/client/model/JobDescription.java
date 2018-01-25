@@ -467,9 +467,18 @@ public class JobDescription {
         inService = true;
       }
 
+      com.netflix.titus.grpc.protogen.MigrationPolicy serviceMigrationPolicy;
+
+      if (migrationPolicy != null && migrationPolicy.getType().equals("userDefined")) {
+        serviceMigrationPolicy = com.netflix.titus.grpc.protogen.MigrationPolicy.newBuilder().setSelfManaged(com.netflix.titus.grpc.protogen.MigrationPolicy.SelfManaged.newBuilder().build()).build();
+      } else {
+        serviceMigrationPolicy = com.netflix.titus.grpc.protogen.MigrationPolicy.newBuilder().setSystemDefault(com.netflix.titus.grpc.protogen.MigrationPolicy.SystemDefault.newBuilder().build()).build();
+      }
+
       jobDescriptorBuilder.setService(
         ServiceJobSpec.newBuilder().setEnabled(inService)
           .setCapacity(jobCapacity)
+          .setMigrationPolicy(serviceMigrationPolicy)
           .setRetryPolicy(RetryPolicy.newBuilder().setExponentialBackOff(RetryPolicy.ExponentialBackOff.newBuilder().setInitialDelayMs(5000).setMaxDelayIntervalMs(300000))));
     }
 
