@@ -242,6 +242,8 @@ class BaseValidateBomDeployer(object):
     options = self.options
     script.append('curl -s -O {url}'.format(url=options.halyard_install_script))
     install_params = ['-y']
+    if options.halyard_config_bucket:
+      install_params.extend(['--config_bucket', options.halyard_config_bucket])
     if options.halyard_repository:
       install_params.extend(['--repository', options.halyard_repository])
     if options.halyard_version:
@@ -1150,6 +1152,10 @@ def init_argument_parser(parser):
       '--halyard_repository',
       default='https://dl.bintray.com/spinnaker-releases/debians',
       help='The location of the halyard repository.')
+
+  parser.add_argument(
+      '--halyard_config_bucket', default=None,
+      help='The global halyard configuration bucket to override, if any.')
 
   parser.add_argument(
       '--spinnaker_repository',
