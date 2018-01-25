@@ -80,8 +80,8 @@ public class AwsCredentialsProfileFactoryBuilder {
     );
 
     @Override
-    protected Map<String, String> getBindings(DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
-      Map<String, String> result = new HashMap<>();
+    protected Map<String, Object> getBindings(DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
+      Map<String, Object> result = new HashMap<>();
       result.put("accessKeyId", accessKeyId);
       result.put("secretAccessKey", secretAccessKey);
       return result;

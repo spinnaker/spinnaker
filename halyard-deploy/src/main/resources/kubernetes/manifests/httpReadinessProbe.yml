@@ -1,0 +1,6 @@
+{
+  "httpGet": {
+    "port": {{ port }},
+    "path": "{{ path }}"
+  }
+}

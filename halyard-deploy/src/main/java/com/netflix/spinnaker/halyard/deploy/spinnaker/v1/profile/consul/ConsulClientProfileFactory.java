@@ -49,8 +49,8 @@ public class ConsulClientProfileFactory extends TemplateBackedProfileFactory {
   );
 
   @Override
-  protected Map<String, String> getBindings(DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
-    Map<String, String> bindings = new HashMap<>();
+  protected Map<String, Object> getBindings(DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
+    Map<String, Object> bindings = new HashMap<>();
     ServiceSettings consul = endpoints.getServices().getConsulClient();
     bindings.put("scheme", consul.getScheme());
     bindings.put("port", consul.getPort() + "");

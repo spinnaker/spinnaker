@@ -26,9 +26,9 @@ import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerServiceProvider;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.bake.debian.BakeDebianServiceProvider;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.DistributedServiceProvider;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.google.GoogleDistributedServiceProvider;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.kubernetes.v1.KubernetesV1DistributedServiceProvider;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.kubernetes.v2.KubectlServiceProvider;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.local.debian.LocalDebianServiceProvider;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.local.git.LocalGitServiceProvider;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,6 +41,9 @@ public class ServiceProviderFactory {
 
   @Autowired
   KubernetesV1DistributedServiceProvider kubernetesV1DistributedServiceProvider;
+
+  @Autowired
+  KubectlServiceProvider kubectlServiceProvider;
 
   @Autowired
   GoogleDistributedServiceProvider googleDistributedServiceProvider;
@@ -71,7 +74,7 @@ public class ServiceProviderFactory {
     }
   }
 
-  private DistributedServiceProvider createDeployableServiceProvider(DeploymentConfiguration deploymentConfiguration) {
+  private SpinnakerServiceProvider createDeployableServiceProvider(DeploymentConfiguration deploymentConfiguration) {
     DeploymentEnvironment deploymentEnvironment = deploymentConfiguration.getDeploymentEnvironment();
     String accountName = deploymentEnvironment.getAccountName();
 
@@ -85,7 +88,14 @@ public class ServiceProviderFactory {
 
     switch (providerType) {
       case KUBERNETES:
-        return kubernetesV1DistributedServiceProvider;
+        switch (account.getProviderVersion()) {
+          case V1:
+            return kubernetesV1DistributedServiceProvider;
+          case V2:
+            return kubectlServiceProvider;
+          default:
+            return kubernetesV1DistributedServiceProvider;
+        }
       case GOOGLE:
         return googleDistributedServiceProvider;
       default:

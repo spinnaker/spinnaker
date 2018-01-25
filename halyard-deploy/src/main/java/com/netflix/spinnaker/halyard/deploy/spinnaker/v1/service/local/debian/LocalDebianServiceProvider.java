@@ -20,7 +20,7 @@ package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.local.debian;
 import com.netflix.spinnaker.halyard.config.config.v1.ArtifactSourcesConfig;
 import com.netflix.spinnaker.halyard.core.RemoteAction;
 import com.netflix.spinnaker.halyard.core.registry.v1.BillOfMaterials;
-import com.netflix.spinnaker.halyard.core.resource.v1.JarResource;
+import com.netflix.spinnaker.halyard.core.resource.v1.StringReplaceJarResource;
 import com.netflix.spinnaker.halyard.core.resource.v1.TemplatedResource;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.DeploymentDetails;
 import com.netflix.spinnaker.halyard.deploy.services.v1.ArtifactService;
@@ -78,7 +78,7 @@ public class LocalDebianServiceProvider extends LocalServiceProvider {
 
   @Override
   public String getInstallCommand(DeploymentDetails deploymentDetails, GenerateService.ResolvedConfiguration resolvedConfiguration, Map<String, String> installCommands) {
-    Map<String, String> bindings = new HashMap<>();
+    Map<String, Object> bindings = new HashMap<>();
     List<SpinnakerService.Type> serviceTypes = new ArrayList<>(installCommands.keySet()).stream()
         .map(SpinnakerService.Type::fromCanonicalName)
         .collect(Collectors.toList());
@@ -92,12 +92,12 @@ public class LocalDebianServiceProvider extends LocalServiceProvider {
         .map(t -> installCommands.get(t.getCanonicalName()))
         .collect(Collectors.toList());
 
-    TemplatedResource resource = new JarResource("/debian/init.sh");
+    TemplatedResource resource = new StringReplaceJarResource("/debian/init.sh");
     bindings.put("services", Strings.join(upstartNames, " "));
     String upstartInit = resource.setBindings(bindings).toString();
     BillOfMaterials.ArtifactSources artifactSources = artifactService.getArtifactSources(deploymentDetails.getDeploymentName());
 
-    resource = new JarResource("/debian/install.sh");
+    resource = new StringReplaceJarResource("/debian/install.sh");
     bindings = new HashMap<>();
     bindings.put("prepare-environment", "true");
     bindings.put("install-redis", "true");
@@ -117,8 +117,8 @@ public class LocalDebianServiceProvider extends LocalServiceProvider {
         .map(s -> ((LocalDebianService) s).uninstallArtifactCommand())
         .collect(Collectors.toList()));
 
-    Map<String, String> bindings = new HashMap<>();
-    TemplatedResource resource = new JarResource("/debian/uninstall.sh");
+    Map<String, Object> bindings = new HashMap<>();
+    TemplatedResource resource = new StringReplaceJarResource("/debian/uninstall.sh");
     bindings.put("uninstall-artifacts", uninstallArtifacts);
 
     return new RemoteAction().setScript(resource.setBindings(bindings).toString())

@@ -17,7 +17,7 @@
 
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.local.debian;
 
-import com.netflix.spinnaker.halyard.core.resource.v1.JarResource;
+import com.netflix.spinnaker.halyard.core.resource.v1.StringReplaceJarResource;
 import com.netflix.spinnaker.halyard.core.resource.v1.TemplatedResource;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.DeploymentDetails;
 import com.netflix.spinnaker.halyard.deploy.services.v1.ArtifactService;
@@ -48,14 +48,14 @@ public interface LocalDebianService<T> extends LocalService<T> {
   }
 
   default String installArtifactCommand(DeploymentDetails deploymentDetails) {
-    Map<String, String> bindings = new HashMap<>();
+    Map<String, Object> bindings = new HashMap<>();
     String artifactName = getArtifact().getName();
     bindings.put("artifact", artifactName);
     bindings.put("version", deploymentDetails.getArtifactVersion(artifactName));
 
     // pin as well as install at a particular version to ensure `apt-get uprade` doesn't accidentally upgrade to `nightly`
-    TemplatedResource pinResource = new JarResource("/debian/pin.sh");
-    TemplatedResource installResource = new JarResource("/debian/install-component.sh");
+    TemplatedResource pinResource = new StringReplaceJarResource("/debian/pin.sh");
+    TemplatedResource installResource = new StringReplaceJarResource("/debian/install-component.sh");
     String upstartServiceName = getUpstartServiceName();
     String ensureStopped = StringUtils.isEmpty(upstartServiceName) ? "" :
         String.join("\n",

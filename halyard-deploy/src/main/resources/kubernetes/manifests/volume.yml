@@ -1,0 +1,6 @@
+{
+  "name": "{{ name }}",
+  "secret": {
+    "secretName": "{{ name }}"
+  }
+}

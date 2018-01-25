@@ -22,7 +22,7 @@ import com.netflix.spinnaker.halyard.core.RemoteAction;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import com.netflix.spinnaker.halyard.core.registry.v1.BillOfMaterials;
-import com.netflix.spinnaker.halyard.core.resource.v1.JarResource;
+import com.netflix.spinnaker.halyard.core.resource.v1.StringReplaceJarResource;
 import com.netflix.spinnaker.halyard.core.resource.v1.TemplatedResource;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.DeploymentDetails;
 import com.netflix.spinnaker.halyard.deploy.services.v1.ArtifactService;
@@ -100,7 +100,7 @@ public class BakeDebianServiceProvider extends BakeServiceProvider {
 
   @Override
   public String getInstallCommand(DeploymentDetails deploymentDetails, GenerateService.ResolvedConfiguration resolvedConfiguration, Map<String, String> installCommands, String startupCommand) {
-    Map<String, String> bindings = new HashMap<>();
+    Map<String, Object> bindings = new HashMap<>();
     List<SpinnakerService.Type> serviceTypes = new ArrayList<>(installCommands.keySet()).stream().map(SpinnakerService.Type::fromCanonicalName).collect(Collectors.toList());
     List<String> upstartNames = getPrioritizedBakeableServices(serviceTypes)
         .stream()
@@ -115,13 +115,13 @@ public class BakeDebianServiceProvider extends BakeServiceProvider {
         .map(t -> installCommands.get(t.getCanonicalName()))
         .collect(Collectors.toList());
 
-    TemplatedResource resource = new JarResource("/debian/init.sh");
+    TemplatedResource resource = new StringReplaceJarResource("/debian/init.sh");
     bindings.put("services", Strings.join(upstartNames, " "));
     bindings.put("systemd-service-configs", Strings.join(systemdServiceConfigs, " "));
     String upstartInit = resource.setBindings(bindings).toString();
     BillOfMaterials.ArtifactSources artifactSources = artifactService.getArtifactSources(deploymentDetails.getDeploymentName());
 
-    resource = new JarResource("/debian/pre-bake.sh");
+    resource = new StringReplaceJarResource("/debian/pre-bake.sh");
     bindings = new HashMap<>();
     bindings.put("debian-repository", artifactSourcesConfig.mergeWithBomSources(artifactSources).getDebianRepository());
     bindings.put("install-commands", String.join("\n", serviceInstalls));

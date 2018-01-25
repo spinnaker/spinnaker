@@ -44,8 +44,8 @@ public class VaultStartupProfileFactory extends JarResourceBackedProfileFactory 
   }
 
   @Override
-  protected Map<String, String> getBindings() {
-    Map<String, String> result = new HashMap<>();
+  protected Map<String, Object> getBindings() {
+    Map<String, Object> result = new HashMap<>();
     result.put("startup-script-path", startupScriptPath);
     return result;
   }

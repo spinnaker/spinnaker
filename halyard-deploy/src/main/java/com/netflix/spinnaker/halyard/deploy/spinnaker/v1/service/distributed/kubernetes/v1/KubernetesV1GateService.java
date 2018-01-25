@@ -22,6 +22,7 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguratio
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.GateService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.HasServiceSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.DistributedLogCollector;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.kubernetes.KubernetesSharedServiceSettings;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Delegate;
@@ -43,10 +44,10 @@ public class KubernetesV1GateService extends GateService implements KubernetesV1
 
   @Override
   public Settings buildServiceSettings(DeploymentConfiguration deploymentConfiguration) {
-    KubernetesV1SharedServiceSettings kubernetesV1SharedServiceSettings = new KubernetesV1SharedServiceSettings(deploymentConfiguration);
+    KubernetesSharedServiceSettings kubernetesSharedServiceSettings = new KubernetesSharedServiceSettings(deploymentConfiguration);
     Settings settings = new Settings(deploymentConfiguration.getSecurity().getApiSecurity());
     settings.setArtifactId(getArtifactId(deploymentConfiguration.getName()))
-        .setLocation(kubernetesV1SharedServiceSettings.getDeployLocation())
+        .setLocation(kubernetesSharedServiceSettings.getDeployLocation())
         .setEnabled(true);
     return settings;
   }

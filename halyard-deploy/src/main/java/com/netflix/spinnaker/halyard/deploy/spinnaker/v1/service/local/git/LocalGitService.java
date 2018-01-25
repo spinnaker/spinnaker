@@ -20,7 +20,7 @@ package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.local.git;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentEnvironment;
 import com.netflix.spinnaker.halyard.core.RemoteAction;
-import com.netflix.spinnaker.halyard.core.resource.v1.JarResource;
+import com.netflix.spinnaker.halyard.core.resource.v1.StringReplaceJarResource;
 import com.netflix.spinnaker.halyard.core.resource.v1.TemplatedResource;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.DeploymentDetails;
 import com.netflix.spinnaker.halyard.deploy.services.v1.ArtifactService;
@@ -63,21 +63,21 @@ public interface LocalGitService<T> extends LocalService<T> {
   }
 
   default String installArtifactCommand(DeploymentDetails deploymentDetails) {
-    Map<String, String> bindings = new HashMap<>();
+    Map<String, Object> bindings = new HashMap<>();
     bindings.put("scripts-dir", getScriptsDir());
     bindings.put("artifact", getArtifact().getName());
-    TemplatedResource installResource = new JarResource("/git/install-component.sh");
+    TemplatedResource installResource = new StringReplaceJarResource("/git/install-component.sh");
     installResource.setBindings(bindings);
     return installResource.toString();
   }
 
   default void commitWrapperScripts() {
-    Map<String, String> bindings = new HashMap<>();
+    Map<String, Object> bindings = new HashMap<>();
     bindings.put("git-root", getGitRoot());
     bindings.put("scripts-dir", getScriptsDir());
     bindings.put("artifact", getArtifact().getName());
     bindings.put("start-command", getStartCommand());
-    TemplatedResource scriptResource = new JarResource("/git/start.sh");
+    TemplatedResource scriptResource = new StringReplaceJarResource("/git/start.sh");
     scriptResource.setBindings(bindings);
     String script = scriptResource.toString();
 
@@ -85,7 +85,7 @@ public interface LocalGitService<T> extends LocalService<T> {
         .setScript(script)
         .commitScript(Paths.get(getScriptsDir(), getArtifact().getName() + "-start.sh"));
 
-    scriptResource = new JarResource("/git/stop.sh");
+    scriptResource = new StringReplaceJarResource("/git/stop.sh");
     scriptResource.setBindings(bindings);
     script = scriptResource.toString();
 
@@ -95,7 +95,7 @@ public interface LocalGitService<T> extends LocalService<T> {
   }
 
   default String prepArtifactCommand(DeploymentDetails deploymentDetails) {
-    Map<String, String> bindings = new HashMap<>();
+    Map<String, Object> bindings = new HashMap<>();
     String artifactName = getArtifact().getName();
     bindings.put("artifact", artifactName);
     bindings.put("repo", artifactName); // TODO(lwander): make configurable
@@ -111,7 +111,7 @@ public interface LocalGitService<T> extends LocalService<T> {
     bindings.put("origin", gitConfig.getOriginUser());
     bindings.put("upstream", gitConfig.getUpstreamUser());
 
-    TemplatedResource prepResource = new JarResource("/git/prep-component.sh");
+    TemplatedResource prepResource = new StringReplaceJarResource("/git/prep-component.sh");
 
     prepResource.setBindings(bindings);
 

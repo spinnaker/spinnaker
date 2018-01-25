@@ -1,0 +1,23 @@
+apiVersion: apps/v1beta2 # for versions before 1.9.0 use apps/v1beta2
+kind: Deployment
+metadata:
+  name: spin-{{ name }}
+  namespace: {{ namespace }}
+  annotations:
+    moniker.spinnaker.io/application: "'spin'"
+    moniker.spinnaker.io/cluster: "'{{ name }}'"
+  labels:
+    app: spin
+    cluster: spin-{{ name }}
+spec:
+  replicas: {{ replicas }}
+  selector:
+    matchLabels:
+      app: spin
+      cluster: spin-{{ name }}
+  template:
+    metadata:
+      labels:
+        app: spin
+        cluster: spin-{{ name }}
+    spec: {{ podSpec }}

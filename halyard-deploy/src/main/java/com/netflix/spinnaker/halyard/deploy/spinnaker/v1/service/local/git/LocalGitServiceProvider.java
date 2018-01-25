@@ -19,7 +19,7 @@
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.local.git;
 
 import com.netflix.spinnaker.halyard.core.RemoteAction;
-import com.netflix.spinnaker.halyard.core.resource.v1.JarResource;
+import com.netflix.spinnaker.halyard.core.resource.v1.StringReplaceJarResource;
 import com.netflix.spinnaker.halyard.core.resource.v1.TemplatedResource;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.DeploymentDetails;
 import com.netflix.spinnaker.halyard.deploy.services.v1.ArtifactService;
@@ -74,9 +74,9 @@ public class LocalGitServiceProvider extends LocalServiceProvider {
   public String getPrepCommand(DeploymentDetails deploymentDetails, List<String> prepCommands) {
     String servicePrep = String.join("\n", prepCommands);
 
-    TemplatedResource resource = new JarResource("/git/prep.sh");
+    TemplatedResource resource = new StringReplaceJarResource("/git/prep.sh");
     
-    Map<String, String> bindings = new HashMap<>();
+    Map<String, Object> bindings = new HashMap<>();
     bindings.put("prep-commands", servicePrep);
 
     return resource.setBindings(bindings).toString();
@@ -84,7 +84,7 @@ public class LocalGitServiceProvider extends LocalServiceProvider {
 
   @Override
   public String getInstallCommand(DeploymentDetails deploymentDetails, GenerateService.ResolvedConfiguration resolvedConfiguration, Map<String, String> installCommands) {
-    Map<String, String> bindings;
+    Map<String, Object> bindings;
     List<SpinnakerService.Type> serviceTypes = new ArrayList<>(installCommands.keySet()).stream()
         .map(SpinnakerService.Type::fromCanonicalName)
         .collect(Collectors.toList());
@@ -93,7 +93,7 @@ public class LocalGitServiceProvider extends LocalServiceProvider {
         .map(t -> installCommands.get(t.getCanonicalName()))
         .collect(Collectors.toList());
 
-    TemplatedResource resource = new JarResource("/git/install.sh");
+    TemplatedResource resource = new StringReplaceJarResource("/git/install.sh");
     bindings = new HashMap<>();
     bindings.put("install-commands", String.join("\n", serviceInstalls));
 

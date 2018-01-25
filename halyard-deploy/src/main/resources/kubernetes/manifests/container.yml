@@ -1,0 +1,26 @@
+{
+  "name": "{{ name }}",
+
+  "image": "{{ imageId }}",
+
+  "ports": [{
+    "containerPort": {{ port }}
+  }],
+
+  "readinessProbe": {{ probe }},
+
+  "volumeMounts": [
+    {% for volumeMount in volumeMounts %}
+    {{ volumeMount }} {% if not loop.last %} , {% endif %}
+    {% endfor %}
+  ],
+
+  "env": [
+    {% for key, value in env.items() %}
+    {
+      "name": "{{ key }}",
+      "value": "{{ value }}"
+    } {% if not loop.last %} , {% endif %}
+    {% endfor %}
+  ]
+}

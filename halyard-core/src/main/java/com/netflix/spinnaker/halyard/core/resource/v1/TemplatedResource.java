@@ -21,7 +21,6 @@ import lombok.Setter;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Map.Entry;
 
 /**
  * Given a key/value set of bindings, and a resource that has "bindable" sites matching
@@ -29,27 +28,17 @@ import java.util.Map.Entry;
  */
 abstract public class TemplatedResource {
   @Setter
-  Map<String, String> bindings = new HashMap<>();
+  Map<String, Object> bindings = new HashMap<>();
 
-  public TemplatedResource extendBindings(Map<String, String> bindings) {
+  public TemplatedResource extendBindings(Map<String, Object> bindings) {
     this.bindings.putAll(bindings);
     return this;
   }
 
-  protected String formatKey(String key) {
-    return "{%" + key + "%}";
+  public TemplatedResource addBinding(String key, Object value) {
+    this.bindings.put(key, value);
+    return this;
   }
 
   abstract protected String getContents();
-
-  @Override
-  public String toString() {
-    String contents = getContents();
-    for (Entry<String, String> binding : bindings.entrySet()) {
-      String value = binding.getValue();
-      contents = contents.replace(formatKey(binding.getKey()), value != null ? value : "");
-    }
-
-    return contents;
-  }
 }

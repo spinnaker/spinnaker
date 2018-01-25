@@ -23,6 +23,7 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ClouddriverBoot
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ClouddriverService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.HasServiceSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.DistributedLogCollector;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.kubernetes.KubernetesSharedServiceSettings;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Delegate;
@@ -49,9 +50,9 @@ public class KubernetesV1ClouddriverBootstrapService extends ClouddriverBootstra
   public Settings buildServiceSettings(DeploymentConfiguration deploymentConfiguration) {
     List<String> profiles = new ArrayList<>();
     profiles.add("bootstrap");
-    KubernetesV1SharedServiceSettings kubernetesV1SharedServiceSettings = new KubernetesV1SharedServiceSettings(deploymentConfiguration);
+    KubernetesSharedServiceSettings kubernetesSharedServiceSettings = new KubernetesSharedServiceSettings(deploymentConfiguration);
     Settings settings = new Settings(profiles);
-    String location = kubernetesV1SharedServiceSettings.getDeployLocation();
+    String location = kubernetesSharedServiceSettings.getDeployLocation();
     settings.setAddress(buildAddress(location))
         .setArtifactId(getArtifactId(deploymentConfiguration.getName()))
         .setLocation(location)

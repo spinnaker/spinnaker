@@ -71,7 +71,7 @@ public class DeckProfileFactory extends RegistryBackedProfileFactory {
 
     Features features = deploymentConfiguration.getFeatures();
     Notifications notifications = deploymentConfiguration.getNotifications();
-    Map<String, String> bindings = new HashMap<>();
+    Map<String, Object> bindings = new HashMap<>();
     String version = deploymentConfiguration.getVersion();
 
     // Configure global settings

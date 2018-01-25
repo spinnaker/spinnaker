@@ -22,10 +22,12 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentEnvironment;
 import com.netflix.spinnaker.halyard.config.model.v1.node.NodeDiff;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Provider;
 import com.netflix.spinnaker.halyard.config.services.v1.AccountService;
 import com.netflix.spinnaker.halyard.config.services.v1.DeploymentService;
 import com.netflix.spinnaker.halyard.core.RemoteAction;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
+import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import com.netflix.spinnaker.halyard.core.registry.v1.BillOfMaterials;
 import com.netflix.spinnaker.halyard.deploy.config.v1.ConfigParser;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.AccountDeploymentDetails;
@@ -34,6 +36,7 @@ import com.netflix.spinnaker.halyard.deploy.deployment.v1.DeployOption;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.Deployer;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.DeploymentDetails;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.DistributedDeployer;
+import com.netflix.spinnaker.halyard.deploy.deployment.v1.KubectlDeployer;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.LocalDeployer;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.LocalGitDeployer;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.ServiceProviderFactory;
@@ -42,6 +45,7 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSetting
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerServiceProvider;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -50,6 +54,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.netflix.spinnaker.halyard.config.model.v1.node.Provider.ProviderVersion.V2;
 import static com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity.FATAL;
 
 @Component
@@ -63,6 +68,9 @@ public class DeployService {
 
   @Autowired
   DistributedDeployer distributedDeployer;
+
+  @Autowired
+  KubectlDeployer kubectlDeployer;
 
   @Autowired
   LocalDeployer localDeployer;
@@ -255,7 +263,10 @@ public class DeployService {
   }
 
   private Deployer getDeployer(DeploymentConfiguration deploymentConfiguration) {
-    DeploymentEnvironment.DeploymentType type = deploymentConfiguration.getDeploymentEnvironment().getType();
+    DeploymentEnvironment deploymentEnvironment = deploymentConfiguration.getDeploymentEnvironment();
+    DeploymentEnvironment.DeploymentType type = deploymentEnvironment.getType();
+    String accountName = deploymentEnvironment.getAccountName();
+
     switch (type) {
       case BakeDebian:
         return bakeDeployer;
@@ -264,7 +275,19 @@ public class DeployService {
       case LocalDebian:
         return localDeployer;
       case Distributed:
-        return distributedDeployer;
+        if (StringUtils.isEmpty(accountName)) {
+          throw new HalException(Problem.Severity.FATAL, "An account name must be "
+              + "specified as the desired place to run your distributed deployment.");
+        }
+
+        Account account = accountService.getAnyProviderAccount(deploymentConfiguration.getName(), accountName);
+        Provider.ProviderType providerType = ((Provider) account.getParent()).providerType();
+
+        if (providerType == Provider.ProviderType.KUBERNETES && account.getProviderVersion() == V2) {
+          return kubectlDeployer;
+        } else {
+          return distributedDeployer;
+        }
       default:
         throw new IllegalArgumentException("Unrecognized deployment type " + type);
     }

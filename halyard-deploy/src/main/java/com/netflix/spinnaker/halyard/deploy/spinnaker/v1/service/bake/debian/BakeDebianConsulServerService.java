@@ -18,7 +18,7 @@
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.bake.debian;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
-import com.netflix.spinnaker.halyard.core.resource.v1.JarResource;
+import com.netflix.spinnaker.halyard.core.resource.v1.StringReplaceJarResource;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.DeploymentDetails;
 import com.netflix.spinnaker.halyard.deploy.services.v1.ArtifactService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
@@ -85,9 +85,9 @@ public class BakeDebianConsulServerService extends ConsulServerService implement
 
   @Override
   public String installArtifactCommand(DeploymentDetails deploymentDetails) {
-    Map<String, String> bindings = new HashMap<>();
+    Map<String, Object> bindings = new HashMap<>();
     bindings.put("version", deploymentDetails.getArtifactVersion(getArtifact().getName()));
-    return new JarResource("/services/consul/server/install.sh")
+    return new StringReplaceJarResource("/services/consul/server/install.sh")
         .setBindings(bindings)
         .toString();
   }

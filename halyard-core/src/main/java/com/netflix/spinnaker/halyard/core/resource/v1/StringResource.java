@@ -20,7 +20,7 @@ package com.netflix.spinnaker.halyard.core.resource.v1;
 import lombok.AccessLevel;
 import lombok.Getter;
 
-public class StringResource extends TemplatedResource {
+public class StringResource extends StringReplaceTemplatedResource {
   public StringResource(String contents) {
     this.contents = contents;
   }

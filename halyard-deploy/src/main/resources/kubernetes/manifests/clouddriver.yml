@@ -1,0 +1,25 @@
+apiVersion: apps/v1beta2 # for versions before 1.9.0 use apps/v1beta2
+kind: Deployment
+metadata:
+  name: spin-clouddriver
+  namespace: spinnaker
+  labels:
+    app: spin
+    cluster: spin-clouddriver
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: spin
+      cluster: spin-clouddriver
+  template:
+    metadata:
+      labels:
+        app: spin
+        cluster: spin-clouddriver
+    spec:
+      containers:
+      - name: clouddriver
+        image: {{ image }}
+        ports:
+        - containerPort: 80

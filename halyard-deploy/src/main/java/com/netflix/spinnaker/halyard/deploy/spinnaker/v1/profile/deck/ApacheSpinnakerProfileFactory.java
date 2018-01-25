@@ -68,9 +68,9 @@ public class ApacheSpinnakerProfileFactory extends TemplateBackedProfileFactory 
   }
 
   @Override
-  protected Map<String, String> getBindings(DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
+  protected Map<String, Object> getBindings(DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
     TemplatedResource resource = new StringResource(SSL_TEMPLATE);
-    Map<String, String> bindings = new HashMap<>();
+    Map<String, Object> bindings = new HashMap<>();
     UiSecurity uiSecurity = deploymentConfiguration.getSecurity().getUiSecurity();
     ApacheSsl apacheSsl = uiSecurity.getSsl();
     bindings.put("cert-file", apacheSsl.getSslCertificateFile());

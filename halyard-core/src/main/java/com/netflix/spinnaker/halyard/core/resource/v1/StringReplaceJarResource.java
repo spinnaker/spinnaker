@@ -16,26 +16,13 @@
 
 package com.netflix.spinnaker.halyard.core.resource.v1;
 
-import com.amazonaws.util.IOUtils;
-import java.io.IOException;
-import java.io.InputStream;
-
-public class JarResource extends TemplatedResource {
+public class StringReplaceJarResource extends StringReplaceTemplatedResource {
   @Override
   protected String getContents() {
-    InputStream contents = getClass().getResourceAsStream(path);
-
-    if (contents == null) {
-      throw new IllegalArgumentException("Path " + path + " could not be found in the JAR");
-    }
-    try {
-      return IOUtils.toString(contents);
-    } catch (IOException e) {
-      throw new RuntimeException("Path " + path + " could not be opened", e);
-    }
+    return JarResourceReader.readResource(path);
   }
 
-  public JarResource(String path) {
+  public StringReplaceJarResource(String path) {
     this.path = path;
   }
 

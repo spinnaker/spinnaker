@@ -6,4 +6,5 @@ dependencies {
   compile spinnaker.dependency('googleStorage')
 
   compile 'com.beust:jcommander:1.48'
+  compile 'com.hubspot.jinjava:jinjava:2.2.3'
 }

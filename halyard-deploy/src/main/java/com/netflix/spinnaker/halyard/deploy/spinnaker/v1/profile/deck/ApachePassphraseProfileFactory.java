@@ -50,8 +50,8 @@ public class ApachePassphraseProfileFactory extends TemplateBackedProfileFactory
   }
 
   @Override
-  protected Map<String, String> getBindings(DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
-    Map<String, String> bindings = new HashMap<>();
+  protected Map<String, Object> getBindings(DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
+    Map<String, Object> bindings = new HashMap<>();
     ApacheSsl ssl = deploymentConfiguration.getSecurity().getUiSecurity().getSsl();
     bindings.put("passphrase", ssl.getSslCertificatePassphrase());
     return bindings;

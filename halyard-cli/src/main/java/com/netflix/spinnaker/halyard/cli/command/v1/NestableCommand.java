@@ -33,7 +33,7 @@ import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiStyle;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
 import com.netflix.spinnaker.halyard.core.job.v1.JobExecutor;
 import com.netflix.spinnaker.halyard.core.job.v1.JobExecutorLocal;
-import com.netflix.spinnaker.halyard.core.resource.v1.JarResource;
+import com.netflix.spinnaker.halyard.core.resource.v1.StringReplaceJarResource;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -521,8 +521,8 @@ public abstract class NestableCommand {
   }
 
   public String commandCompletor() {
-    JarResource completorBody = new JarResource("/hal-completor-body");
-    Map<String, String> bindings = new HashMap<>();
+    StringReplaceJarResource completorBody = new StringReplaceJarResource("/hal-completor-body");
+    Map<String, Object> bindings = new HashMap<>();
 
     String body = commandCompletorCase(0);
     bindings.put("body", body);
@@ -531,8 +531,8 @@ public abstract class NestableCommand {
   }
 
   private String commandCompletorCase(int depth) {
-    JarResource completorCase = new JarResource("/hal-completor-case");
-    Map<String, String> bindings = new HashMap<>();
+    StringReplaceJarResource completorCase = new StringReplaceJarResource("/hal-completor-case");
+    Map<String, Object> bindings = new HashMap<>();
     String flagNames = commander.getParameters()
         .stream()
         .map(ParameterDescription::getLongestName)

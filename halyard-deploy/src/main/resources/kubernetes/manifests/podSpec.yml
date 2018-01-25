@@ -1,0 +1,13 @@
+{
+  "containers": [
+    {% for container in containers %}
+    {{ container }} {% if not loop.last %} , {% endif %}
+    {% endfor %}
+  ],
+
+  "volumes": [
+    {% for volume in volumes %}
+    {{ volume }} {% if not loop.last %} , {% endif %}
+    {% endfor %}
+  ]
+}
