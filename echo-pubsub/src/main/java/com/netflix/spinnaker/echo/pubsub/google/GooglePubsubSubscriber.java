@@ -42,6 +42,7 @@ import org.threeten.bp.Duration;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -96,7 +97,7 @@ public class GooglePubsubSubscriber implements PubsubSubscriber {
     GooglePubsubMessageReceiver messageReceiver = new GooglePubsubMessageReceiver(subscription.getAckDeadlineSeconds(),
         subscription.getName(),
         pubsubMessageHandler,
-        subscription.getTemplatePath());
+        subscription.readTemplatePath());
 
     if (jsonPath != null && !jsonPath.isEmpty()) {
       Credentials credentials = null;
@@ -141,11 +142,11 @@ public class GooglePubsubSubscriber implements PubsubSubscriber {
     public GooglePubsubMessageReceiver(Integer ackDeadlineSeconds,
                                        String subscriptionName,
                                        PubsubMessageHandler pubsubMessageHandler,
-                                       String templatePath) {
+                                       InputStream templateStream) {
       this.ackDeadlineSeconds = ackDeadlineSeconds;
       this.subscriptionName = subscriptionName;
       this.pubsubMessageHandler = pubsubMessageHandler;
-      this.messageArtifactTranslator = new MessageArtifactTranslator(templatePath);
+      this.messageArtifactTranslator = new MessageArtifactTranslator(templateStream);
     }
 
     @Override

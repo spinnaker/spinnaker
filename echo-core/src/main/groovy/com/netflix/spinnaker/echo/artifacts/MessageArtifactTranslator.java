@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.echo.artifacts;
 
+import com.amazonaws.util.IOUtils;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hubspot.jinjava.Jinjava;
@@ -25,8 +26,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.io.InputStream;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -42,10 +42,12 @@ public class MessageArtifactTranslator {
 
   private static final TypeReference<List<Artifact>> artifactListReference = new TypeReference<List<Artifact>>() {};
 
-  public MessageArtifactTranslator(String templatePath) {
-    if (StringUtils.isNotEmpty(templatePath)) {
+  public MessageArtifactTranslator(InputStream templateStream) {
+    if (templateStream == null) {
+      this.jinjaTemplate = "";
+    } else {
       try {
-        jinjaTemplate = new String(Files.readAllBytes(Paths.get(templatePath)));
+        this.jinjaTemplate = IOUtils.toString(templateStream);
       } catch (IOException ioe) {
         throw new RuntimeException(ioe);
       }
@@ -53,7 +55,7 @@ public class MessageArtifactTranslator {
   }
 
   public List<Artifact> parseArtifacts(String messagePayload) {
-    if (!StringUtils.isNotBlank(messagePayload)) {
+    if (StringUtils.isEmpty(messagePayload)) {
       return Collections.emptyList();
     }
 

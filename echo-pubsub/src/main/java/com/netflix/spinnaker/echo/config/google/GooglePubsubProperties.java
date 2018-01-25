@@ -18,11 +18,16 @@ package com.netflix.spinnaker.echo.config.google;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.hibernate.validator.constraints.NotEmpty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 
 @Data
@@ -51,7 +56,38 @@ public class GooglePubsubProperties {
     // Not required since subscriptions can be public.
     private String jsonPath;
 
-    @NotEmpty
     private String templatePath;
+
+    private MessageFormat messageFormat = MessageFormat.CUSTOM;
+
+    public InputStream readTemplatePath() {
+      try {
+        if (messageFormat == null || messageFormat == MessageFormat.CUSTOM) {
+          if (StringUtils.isEmpty(templatePath)) {
+            return null;
+          } else {
+            return new FileInputStream(new File(templatePath));
+          }
+        } else {
+          return getClass().getResourceAsStream(messageFormat.jarPath);
+        }
+      } catch (IOException e) {
+        throw new RuntimeException("Failed to read template in subscription " + name + ": " + e.getMessage(), e);
+      }
+    }
+  }
+
+  public static enum MessageFormat {
+    GCS("/google/gcs.jinja"),
+    GCR("/google/gcr.jinja"),
+    CUSTOM();
+
+    private String jarPath = "";
+
+    MessageFormat(String jarPath) {
+      this.jarPath = jarPath;
+    }
+
+    MessageFormat() { }
   }
 }

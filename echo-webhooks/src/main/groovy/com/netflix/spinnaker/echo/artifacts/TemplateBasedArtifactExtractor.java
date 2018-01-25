@@ -20,9 +20,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.echo.config.WebhookProperties;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -47,17 +50,27 @@ public class TemplateBasedArtifactExtractor implements WebhookArtifactExtractor 
     }
 
     String templatePath = webhookProperties.getTemplatePathForSource(source);
-    // empty template path is the identity translator;
-    MessageArtifactTranslator translator = new MessageArtifactTranslator(templatePath);
-    List<Artifact> result = new ArrayList<>();
-    try {
-      result = translator.parseArtifacts(objectMapper.writeValueAsString(payload));
-      log.info("Webhook artifacts were processed: {}", result);
-    } catch (Exception e) {
-      log.error("Unable to translate artifacts: {}", payload, e);
-    }
+    if (StringUtils.isEmpty(templatePath)) {
+      return (List<Artifact>) payload.getOrDefault("artifacts", new ArrayList<>());
+    } else {
+      MessageArtifactTranslator translator;
+      try {
+        translator = new MessageArtifactTranslator(new FileInputStream(templatePath));
+      } catch (FileNotFoundException e) {
+        throw new RuntimeException("Failed to read template path " + templatePath + ": " + e.getMessage(), e);
+      }
 
-    return result;
+      List<Artifact> result = new ArrayList<>();
+      try {
+        result = translator.parseArtifacts(objectMapper.writeValueAsString(payload));
+        log.info("Webhook artifacts were processed: {}", result);
+      } catch (Exception e) {
+        log.error("Unable to translate artifacts: {}", payload, e);
+      }
+
+
+      return result;
+    }
   }
 
   @Override
