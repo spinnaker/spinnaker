@@ -31,7 +31,7 @@ public class Job {
       public TaskSummary(com.netflix.titus.grpc.protogen.Task grpcTask){
           id = grpcTask.getId();
           state = TaskState.from(grpcTask.getStatus().getState().name(), grpcTask.getStatus().getReasonCode());
-          instanceId = grpcTask.getTaskContextOrDefault("v2.taskInstanceId", null);
+          instanceId = grpcTask.getTaskContextOrDefault("v2.taskInstanceId", id);
           host = grpcTask.getTaskContextOrDefault("agent.host", null);
           region = grpcTask.getTaskContextOrDefault("agent.region", null);
           zone = grpcTask.getTaskContextOrDefault("agent.zone", null);
