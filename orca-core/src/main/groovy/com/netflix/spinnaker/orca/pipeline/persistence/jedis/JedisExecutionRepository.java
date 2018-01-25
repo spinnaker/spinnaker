@@ -27,8 +27,6 @@ import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionSerializationException;
 import com.netflix.spinnaker.orca.pipeline.persistence.StageSerializationException;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
@@ -181,18 +179,18 @@ public class JedisExecutionRepository extends AbstractRedisExecutionRepository {
   @Override
   public @Nonnull
   Observable<Execution> retrieve(@Nonnull ExecutionType type) {
-    ObservableList<Observable<Execution>> observables = allRedisDelegates().stream()
+    List<Observable<Execution>> observables = allRedisDelegates().stream()
       .map(d -> all(type, d))
-      .collect(Collectors.toCollection(FXCollections::observableArrayList));
+      .collect(Collectors.toList());
     return Observable.merge(observables);
   }
 
   @Override
   public @Nonnull
   Observable<Execution> retrievePipelinesForApplication(@Nonnull String application) {
-    ObservableList<Observable<Execution>> observables = allRedisDelegates().stream()
+    List<Observable<Execution>> observables = allRedisDelegates().stream()
       .map(d -> allForApplication(PIPELINE, application, d))
-      .collect(Collectors.toCollection(FXCollections::observableArrayList));
+      .collect(Collectors.toList());
     return Observable.merge(observables);
   }
 
