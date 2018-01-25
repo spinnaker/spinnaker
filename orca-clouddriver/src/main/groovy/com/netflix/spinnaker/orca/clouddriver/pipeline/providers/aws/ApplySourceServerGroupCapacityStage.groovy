@@ -74,7 +74,7 @@ class ApplySourceServerGroupCapacityStage implements StageDefinitionBuilder {
         return []
       }
 
-      def entityTags = fetchEntityTags(oortService, retrySupport, stage)?.get(0)
+      def entityTags = fetchEntityTags(oortService, retrySupport, stage)?.getAt(0)
       if (!entityTags) {
         return []
       }
