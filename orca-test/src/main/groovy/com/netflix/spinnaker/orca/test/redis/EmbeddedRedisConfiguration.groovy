@@ -17,6 +17,8 @@
 package com.netflix.spinnaker.orca.test.redis
 
 import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
+import com.netflix.spinnaker.kork.jedis.JedisClientDelegate
+import com.netflix.spinnaker.kork.jedis.RedisClientDelegate
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import redis.clients.jedis.Jedis
@@ -37,5 +39,10 @@ class EmbeddedRedisConfiguration {
   @Bean
   Pool<Jedis> jedisPool() {
     redisServer().pool
+  }
+
+  @Bean
+  RedisClientDelegate redisClientDelegate(Pool<Jedis> jedisPool) {
+    return new JedisClientDelegate(jedisPool)
   }
 }

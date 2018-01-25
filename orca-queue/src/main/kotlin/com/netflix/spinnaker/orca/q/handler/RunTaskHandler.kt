@@ -236,10 +236,5 @@ class RunTaskHandler(
       outputs.putAll(filteredOutputs)
       repository.storeStage(this)
     }
-    filteredOutputs.filterKeys { it !in blacklistGlobalKeys }.let {
-      if (it.isNotEmpty()) {
-        repository.storeExecutionContext(execution.id, it)
-      }
-    }
   }
 }

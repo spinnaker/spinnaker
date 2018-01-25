@@ -17,6 +17,8 @@
 package com.netflix.spinnaker.orca.config
 
 import com.netflix.spectator.api.Registry
+import com.netflix.spinnaker.kork.jedis.JedisClientDelegate
+import com.netflix.spinnaker.kork.jedis.RedisClientDelegate
 import groovy.transform.CompileStatic
 import org.apache.commons.pool2.impl.GenericObjectPool
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig
@@ -24,13 +26,14 @@ import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.actuate.health.Health
 import org.springframework.boot.actuate.health.HealthIndicator
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Primary
-import redis.clients.jedis.Jedis
-import redis.clients.jedis.JedisPool
-import redis.clients.jedis.Protocol
+import redis.clients.jedis.*
 import redis.clients.util.Pool
 
 import java.lang.reflect.Field
@@ -55,15 +58,24 @@ class RedisConfiguration {
   }
 
   @Bean(name="jedisPoolPrevious")
-  JedisPool jedisPoolPrevious(@Value('${redis.connection:redis://localhost:6379}') String mainConnection,
-                              @Value('${redis.connectionPrevious:#{null}}') String previousConnection,
+  @ConditionalOnProperty("redis.connectionPrevious")
+  @ConditionalOnExpression('${redis.connection} != ${redis.connectionPrevious}')
+  JedisPool jedisPoolPrevious(@Value('${redis.connectionPrevious:#{null}}') String previousConnection,
                               @Value('${redis.timeout:2000}') int timeout,
                               Registry registry) {
-    if (mainConnection == previousConnection || previousConnection == null) {
-      return null
-    }
-
     return createPool(null, previousConnection, timeout, registry, "jedisPoolPrevious")
+  }
+
+  @Bean(name="redisClientDelegate")
+  @Primary
+  RedisClientDelegate redisClientDelegate(@Qualifier("jedisPool") Pool<Jedis> jedisPool) {
+    return new JedisClientDelegate(jedisPool)
+  }
+
+  @Bean(name="previousRedisClientDelegate")
+  @ConditionalOnBean(name="jedisPoolPrevious")
+  RedisClientDelegate previousRedisClientDelegate(@Qualifier("jedisPoolPrevious") JedisPool jedisPoolPrevious) {
+    return new JedisClientDelegate(jedisPoolPrevious)
   }
 
   @Bean

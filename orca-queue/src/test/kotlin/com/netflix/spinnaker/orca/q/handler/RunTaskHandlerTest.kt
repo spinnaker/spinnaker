@@ -113,7 +113,6 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
 
         it("does not update the stage or global context") {
           verify(repository, never()).storeStage(any())
-          verify(repository, never()).storeExecutionContext(any(), any())
         }
       }
 
@@ -137,10 +136,6 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
             stageOutputs shouldEqual it.context
           })
         }
-
-        it("does not update stage outputs or global context") {
-          verify(repository, never()).storeExecutionContext(any(), any())
-        }
       }
 
       and("has outputs") {
@@ -162,10 +157,6 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
           verify(repository).storeStage(check {
             it.outputs shouldEqual outputs
           })
-        }
-
-        it("also updates global context") {
-          verify(repository).storeExecutionContext(pipeline.id, outputs)
         }
       }
 
@@ -193,11 +184,6 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
           })
         }
 
-        it("does not write stageTimeoutMs to global context") {
-          verify(repository).storeExecutionContext(eq(pipeline.id), check {
-            it shouldMatch has(Map<String, Any>::keys, hasElement("foo") and !hasElement("stageTimeoutMs"))
-          })
-        }
       }
     }
 

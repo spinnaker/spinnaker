@@ -29,9 +29,6 @@ import rx.Observable;
 public interface ExecutionRepository {
   void store(@Nonnull Execution orchestration);
 
-  void storeExecutionContext(
-    @Nonnull String id, @Nonnull Map<String, Object> context);
-
   void storeStage(@Nonnull Stage stage);
 
   void updateStageContext(@Nonnull Stage stage);

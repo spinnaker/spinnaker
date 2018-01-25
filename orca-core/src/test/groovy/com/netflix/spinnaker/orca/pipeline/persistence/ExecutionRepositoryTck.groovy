@@ -16,6 +16,10 @@
 
 package com.netflix.spinnaker.orca.pipeline.persistence
 
+import com.netflix.spinnaker.kork.jedis.JedisClientDelegate
+import com.netflix.spinnaker.kork.jedis.RedisClientDelegate
+
+import java.rmi.registry.Registry
 import java.util.concurrent.CountDownLatch
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
@@ -485,12 +489,15 @@ class JedisExecutionRepositorySpec extends ExecutionRepositoryTck<JedisExecution
   Pool<Jedis> jedisPool = embeddedRedis.pool
   Pool<Jedis> jedisPoolPrevious = embeddedRedisPrevious.pool
 
+  RedisClientDelegate redisClientDelegate = new JedisClientDelegate(jedisPool)
+  Optional<RedisClientDelegate> previousRedisClientDelegate = Optional.of(new JedisClientDelegate(jedisPoolPrevious))
+
   @AutoCleanup
   def jedis = jedisPool.resource
 
   @Override
   JedisExecutionRepository createExecutionRepository() {
-    new JedisExecutionRepository(new NoopRegistry(), jedisPool, Optional.of(jedisPoolPrevious), 1, 50)
+    return new JedisExecutionRepository(new NoopRegistry(), redisClientDelegate, previousRedisClientDelegate, 1, 50)
   }
 
   def "cleans up indexes of non-existent executions"() {
@@ -569,7 +576,7 @@ class JedisExecutionRepositorySpec extends ExecutionRepositoryTck<JedisExecution
     }
 
     and:
-    def previousRepository = new JedisExecutionRepository(new NoopRegistry(), jedisPoolPrevious, Optional.empty(), 1, 50)
+    def previousRepository = new JedisExecutionRepository(new NoopRegistry(), previousRedisClientDelegate.get(), Optional.empty(), 1, 50)
     3.times {
       previousRepository.store(orchestration { application = "orca" })
     }
@@ -590,7 +597,7 @@ class JedisExecutionRepositorySpec extends ExecutionRepositoryTck<JedisExecution
     repository.store(orchestration1)
 
     and:
-    def previousRepository = new JedisExecutionRepository(new NoopRegistry(), jedisPoolPrevious, Optional.empty(), 1, 50)
+    def previousRepository = new JedisExecutionRepository(new NoopRegistry(), previousRedisClientDelegate.get(), Optional.empty(), 1, 50)
     def orchestration2 = orchestration { application = "orca" }
     previousRepository.store(orchestration2)
 
@@ -630,7 +637,7 @@ class JedisExecutionRepositorySpec extends ExecutionRepositoryTck<JedisExecution
     })
 
     and:
-    def previousRepository = new JedisExecutionRepository(new NoopRegistry(), jedisPoolPrevious, Optional.empty(), 1, 50)
+    def previousRepository = new JedisExecutionRepository(new NoopRegistry(), previousRedisClientDelegate.get(), Optional.empty(), 1, 50)
     previousRepository.store(pipeline {
       application = "orca"
       pipelineConfigId = "pipeline-1"
@@ -667,7 +674,7 @@ class JedisExecutionRepositorySpec extends ExecutionRepositoryTck<JedisExecution
     repository.store(pipeline1)
 
     and:
-    def previousRepository = new JedisExecutionRepository(new NoopRegistry(), jedisPoolPrevious, Optional.empty(), 1, 50)
+    def previousRepository = new JedisExecutionRepository(new NoopRegistry(), previousRedisClientDelegate.get(), Optional.empty(), 1, 50)
     def pipeline2 = pipeline {
       application = "orca"
       pipelineConfigId = "pipeline-1"

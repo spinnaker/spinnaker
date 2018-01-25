@@ -17,6 +17,8 @@
 package com.netflix.spinnaker.orca.pipeline.persistence.jedis
 
 import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
+import com.netflix.spinnaker.kork.jedis.JedisClientDelegate
+import com.netflix.spinnaker.kork.jedis.RedisClientDelegate
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.persistence.PipelineStackTck
 import spock.lang.AutoCleanup
@@ -44,6 +46,7 @@ class JedisPipelineStackSpec extends PipelineStackTck<JedisPipelineStack> {
 
   @Override
   JedisPipelineStack createPipelineStack() {
-    new JedisPipelineStack('test', embeddedRedis.pool)
+    RedisClientDelegate redisClientDelegate = new JedisClientDelegate(embeddedRedis.pool)
+    new JedisPipelineStack('test', redisClientDelegate)
   }
 }
