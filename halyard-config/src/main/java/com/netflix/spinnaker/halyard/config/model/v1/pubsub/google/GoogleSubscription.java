@@ -35,9 +35,16 @@ public class GoogleSubscription extends Subscription {
   @LocalFile private String jsonPath;
   @LocalFile private String templatePath;
   private Integer ackDeadlineSeconds;
+  private MessageFormat messageFormat;
 
   @Override
   public void accept(ConfigProblemSetBuilder psBuilder, Validator v) {
     v.validate(psBuilder, this);
+  }
+
+  public static enum MessageFormat {
+    GCS,
+    GCR,
+    CUSTOM
   }
 }

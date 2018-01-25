@@ -60,6 +60,12 @@ public class GoogleEditSubscriptionCommand extends AbstractEditSubscriptionComma
   )
   private Integer ackDeadlineSeconds;
 
+  @Parameter(
+      names = "--message-format",
+      description = GooglePubsubCommandProperties.MESSAGE_FORMAT_DESCRIPTION
+  )
+  private GoogleSubscription.MessageFormat messageFormat;
+
   @Override
   protected Subscription editSubscription(GoogleSubscription subscription) {
     subscription.setJsonPath(isSet(jsonPath) ? jsonPath : subscription.getJsonPath());
@@ -67,6 +73,7 @@ public class GoogleEditSubscriptionCommand extends AbstractEditSubscriptionComma
     subscription.setProject(isSet(project) ? project : subscription.getProject());
     subscription.setSubscriptionName(isSet(subscriptionName) ? subscriptionName : subscription.getSubscriptionName());
     subscription.setAckDeadlineSeconds(isSet(ackDeadlineSeconds) ? ackDeadlineSeconds : subscription.getAckDeadlineSeconds());
+    subscription.setMessageFormat(isSet(messageFormat) ? messageFormat : subscription.getMessageFormat());
 
     return subscription;
   }

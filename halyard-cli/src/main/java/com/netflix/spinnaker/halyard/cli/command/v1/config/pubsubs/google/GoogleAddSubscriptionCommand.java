@@ -60,6 +60,12 @@ public class GoogleAddSubscriptionCommand extends AbstractAddSubscriptionCommand
   )
   private Integer ackDeadlineSeconds = 10;
 
+  @Parameter(
+      names = "--message-format",
+      description = GooglePubsubCommandProperties.MESSAGE_FORMAT_DESCRIPTION
+  )
+  private GoogleSubscription.MessageFormat messageFormat = GoogleSubscription.MessageFormat.CUSTOM;
+
   @Override
   protected Subscription buildSubscription(String name) {
     return new GoogleSubscription()
@@ -68,6 +74,7 @@ public class GoogleAddSubscriptionCommand extends AbstractAddSubscriptionCommand
         .setProject(project)
         .setSubscriptionName(subscriptionName)
         .setAckDeadlineSeconds(ackDeadlineSeconds)
+        .setMessageFormat(messageFormat)
         .setName(name);
   }
 
