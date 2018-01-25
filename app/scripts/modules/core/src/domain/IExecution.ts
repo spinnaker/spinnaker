@@ -25,6 +25,7 @@ export interface IExecution extends IOrchestratedItem {
   stringVal?: string;
   trigger: IExecutionTrigger;
   user: string;
+  fromTemplate?: boolean;
 }
 
 export interface IExecutionGroup {
@@ -33,5 +34,5 @@ export interface IExecutionGroup {
   heading: string;
   runningExecutions?: IExecution[];
   targetAccounts?: string[];
+  fromTemplate?: boolean;
 }
-

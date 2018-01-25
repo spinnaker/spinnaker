@@ -168,6 +168,13 @@ export class ExecutionFilterService {
       executions = executions.concat(groupedExecutions.sort((a, b) => this.executionSorter(a, b)));
     });
 
+    executions.forEach((execution: IExecution) => {
+      const config: IPipeline = find<IPipeline>(application.pipelineConfigs.data, { id: execution.pipelineConfigId });
+      if (config != null && config.type === 'templatedPipeline') {
+        execution.fromTemplate = true;
+      }
+    });
+
     if (this.executionFilterModel.asFilterModel.sortFilter.groupBy === 'name') {
       const executionGroups = groupBy(executions, 'name');
       forOwn(executionGroups, (groupExecutions, key) => {
@@ -179,6 +186,7 @@ export class ExecutionFilterService {
           config: config || null,
           executions: groupExecutions,
           runningExecutions: groupExecutions.filter((execution: IExecution) => execution.isActive),
+          fromTemplate: config.type === 'templatedPipeline',
         });
       });
       this.addEmptyPipelines(groups, application);
