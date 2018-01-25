@@ -1,5 +1,5 @@
 import * as React from 'react';
-import * as Select from 'react-select';
+import Select, { Option } from 'react-select';
 import { Action } from 'redux';
 import { connect } from 'react-redux';
 import { get } from 'lodash';
@@ -16,7 +16,7 @@ interface IStackdriverMetricConfigurerStateProps {
 }
 
 interface IStackdriverMetricConfigurerDispatchProps {
-  updateMetricType: (option: Select.Option) => void;
+  updateMetricType: (option: Option) => void;
   updateGroupBy: (payload: IUpdateListPayload) => void;
 }
 
@@ -26,7 +26,7 @@ interface IStackdriverMetricConfigurerDispatchProps {
 function StackdriverMetricConfigurer({ editingMetric, updateMetricType, updateGroupBy }: IStackdriverMetricConfigurerStateProps & IStackdriverMetricConfigurerDispatchProps) {
   // TODO(dpeach): finish this.
   // Will probably have to load these asynchronously somewhere else.
-  const metricTypeOptions: Select.Option[] = getMetricTypes().map(type =>
+  const metricTypeOptions: Option[] = getMetricTypes().map(type =>
     ({
       label: type.split('/').slice(1).join('/'), // Omit API prefix.
       value: type
@@ -61,7 +61,7 @@ function mapStateToProps(state: ICanaryState): IStackdriverMetricConfigurerState
 
 function mapDispatchToProps(dispatch: (action: Action & any) => void): IStackdriverMetricConfigurerDispatchProps {
   return {
-    updateMetricType: (option: Select.Option): void => {
+    updateMetricType: (option: Option): void => {
       dispatch({
         type: Actions.UPDATE_STACKDRIVER_METRIC_TYPE,
         metricType: option.value,

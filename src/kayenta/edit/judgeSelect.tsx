@@ -1,5 +1,5 @@
 import * as React from 'react';
-import * as Select from 'react-select';
+import Select, { Option } from 'react-select';
 import { Action } from 'redux';
 import { connect } from 'react-redux';
 
@@ -9,13 +9,13 @@ import FormRow from '../layout/formRow';
 import KayentaInput from '../layout/kayentaInput';
 
 interface IJudgeSelectStateProps {
-  judgeOptions: Select.Option[];
+  judgeOptions: Option[];
   selectedJudge: string;
   renderState: JudgeSelectRenderState;
 }
 
 interface IJudgeSelectDispatchProps {
-  handleJudgeSelect: (option: Select.Option) => void;
+  handleJudgeSelect: (option: Option) => void;
 }
 
 export enum JudgeSelectRenderState {
@@ -65,7 +65,7 @@ function mapStateToProps(state: ICanaryState): IJudgeSelectStateProps {
 
 function mapDispatchToProps(dispatch: (action: Action & any) => void): IJudgeSelectDispatchProps {
   return {
-    handleJudgeSelect: (option: Select.Option) => {
+    handleJudgeSelect: (option: Option) => {
       dispatch(Creators.selectJudgeName({ judge: { name: option.value as string } }));
     }
   };
