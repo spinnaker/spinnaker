@@ -20,7 +20,7 @@ export class GceCertificateReader {
 
   public listCertificates(): IPromise<IGceCertificate[]> {
     return this.searchService
-      .search<IGceCertificate>({ q: '', type: 'sslCertificates' }, this.infrastructureCaches.get('certificates'))
+      .search<IGceCertificate>({ q: '***', type: 'sslCertificates' }, this.infrastructureCaches.get('certificates'))
       .then((searchResults: ISearchResults<IGceCertificate>) => {
         if (searchResults && searchResults.results) {
           return searchResults.results.filter(certificate => certificate.provider === 'gce');

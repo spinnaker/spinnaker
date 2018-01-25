@@ -28,7 +28,7 @@ export class GceHealthCheckReader {
       return this.listHealthChecks().then(healthChecks => healthChecks.filter(healthCheck => healthCheck.healthCheckType === type));
     } else {
       return this.searchService
-        .search({ q: '', type: 'healthChecks' }, this.infrastructureCaches.get('healthChecks'))
+        .search({ q: '***', type: 'healthChecks' }, this.infrastructureCaches.get('healthChecks'))
         .then((searchResults: ISearchResults<IHealthCheckSearchResults>) => {
           if (searchResults && searchResults.results) {
             const healthChecks = searchResults.results.filter(result => result.provider === 'gce')
