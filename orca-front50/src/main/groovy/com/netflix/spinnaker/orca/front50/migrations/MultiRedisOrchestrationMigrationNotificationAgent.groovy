@@ -26,6 +26,7 @@ import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.stereotype.Component
 import redis.clients.jedis.Jedis
@@ -39,6 +40,7 @@ import java.util.concurrent.TimeUnit
 @Slf4j
 @Component
 @ConditionalOnExpression(value = '${pollers.multiRedisOrchestrationMigration.enabled:false}')
+@ConditionalOnBean(name="jedisPoolPrevious")
 class MultiRedisOrchestrationMigrationNotificationAgent extends AbstractPollingNotificationAgent {
   final String notificationType = "multiRedisOrchestrationMigration"
 
