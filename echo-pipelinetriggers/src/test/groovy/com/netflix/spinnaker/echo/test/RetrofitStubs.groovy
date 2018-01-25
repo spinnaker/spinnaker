@@ -7,6 +7,7 @@ import com.netflix.spinnaker.echo.model.pubsub.MessageDescription
 import com.netflix.spinnaker.echo.model.pubsub.PubsubSystem
 import com.netflix.spinnaker.echo.model.trigger.*
 import com.netflix.spinnaker.echo.pipelinetriggers.monitor.PubsubEventMonitor
+import com.netflix.spinnaker.echo.pipelinetriggers.monitor.WebhookEventMonitor
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import com.netflix.spinnaker.kork.artifacts.model.ExpectedArtifact
 import retrofit.RetrofitError
@@ -36,7 +37,7 @@ trait RetrofitStubs {
   final Trigger enabledDockerTrigger = Trigger.builder().enabled(true).type('docker').account('account').repository('repository').tag('tag').build()
   final Trigger disabledDockerTrigger = Trigger.builder().enabled(false).type('docker').account('account').repository('repository').tag('tag').build()
   final Trigger enabledWebhookTrigger = Trigger.builder().enabled(true).type('webhook').build()
-  final Trigger disabledWebhookTrigger = Trigger.builder().enabled(true).type('webhook').build()
+  final Trigger disabledWebhookTrigger = Trigger.builder().enabled(false).type('webhook').build()
   final Trigger nonWebhookTrigger = Trigger.builder().enabled(true).type('not webhook').build()
   final Trigger webhookTriggerWithConstraints = Trigger.builder().enabled(true).type('webhook').payloadConstraints([ "application": "myApplicationName", "pipeline": "myPipeLineName" ]).build()
   final Trigger webhookTriggerWithoutConstraints = Trigger.builder().enabled(true).type('webhook').payloadConstraints().build()
@@ -80,10 +81,14 @@ trait RetrofitStubs {
     return res
   }
 
-  WebhookEvent createWebhookEvent(String type) {
+  WebhookEvent createWebhookEvent(final String source) {
+    return createWebhookEvent(source, [:])
+  }
+
+  WebhookEvent createWebhookEvent(final String source, final Map payload) {
     def res = new WebhookEvent()
-    res.details = new Metadata([type: type, source: "myCIServer"])
-    res.payload = [ application : "myApplicationName" ]
+    res.details = new Metadata([type: WebhookEvent.TYPE, source: source])
+    res.payload = payload
     return res
   }
 

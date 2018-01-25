@@ -14,16 +14,25 @@
 
 package com.netflix.spinnaker.echo.pipelinetriggers.monitor;
 
+import static com.netflix.spinnaker.echo.pipelinetriggers.artifacts.ArtifactMatcher.isConstraintInPayload;
+import static java.util.Collections.emptyList;
+
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.echo.model.Event;
 import com.netflix.spinnaker.echo.model.Pipeline;
 import com.netflix.spinnaker.echo.model.Trigger;
-import com.netflix.spinnaker.echo.model.trigger.WebhookEvent;
 import com.netflix.spinnaker.echo.model.trigger.TriggerEvent;
+import com.netflix.spinnaker.echo.model.trigger.WebhookEvent;
 import com.netflix.spinnaker.echo.pipelinetriggers.PipelineCache;
 import com.netflix.spinnaker.echo.pipelinetriggers.artifacts.ArtifactMatcher;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
@@ -32,19 +41,13 @@ import org.springframework.stereotype.Component;
 import rx.Observable;
 import rx.functions.Action1;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
-import java.util.function.Predicate;
-
-import static com.netflix.spinnaker.echo.pipelinetriggers.artifacts.ArtifactMatcher.isConstraintInPayload;
-
 @Component @Slf4j
 public class WebhookEventMonitor extends TriggerMonitor {
 
   public static final String TRIGGER_TYPE = "webhook";
+
+  private static final TypeReference<List<Artifact>> ARTIFACT_LIST =
+      new TypeReference<List<Artifact>>() {};
 
   private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -67,8 +70,6 @@ public class WebhookEventMonitor extends TriggerMonitor {
 
     /* Need to create WebhookEvent, since TriggerEvent is abstract */
     WebhookEvent webhookEvent = objectMapper.convertValue(event, WebhookEvent.class);
-    webhookEvent.setDetails(event.getDetails());
-    webhookEvent.setPayload(event.getContent());
 
     Observable.just(webhookEvent)
       .doOnNext(this::onEchoResponse)
@@ -89,12 +90,7 @@ public class WebhookEventMonitor extends TriggerMonitor {
 
   @Override
   protected boolean isValidTrigger(final Trigger trigger) {
-    boolean valid =  trigger.isEnabled() &&
-      (
-          TRIGGER_TYPE.equals(trigger.getType())
-      );
-
-    return valid;
+    return trigger.isEnabled() && TRIGGER_TYPE.equals(trigger.getType());
   }
 
   @Override
@@ -102,12 +98,16 @@ public class WebhookEventMonitor extends TriggerMonitor {
     String type = event.getDetails().getType();
     String source = event.getDetails().getSource();
 
+    Map payload = event.getPayload();
+    List<Artifact> messageArtifacts =
+        objectMapper.convertValue(payload.getOrDefault("artifacts", emptyList()), ARTIFACT_LIST);
+
     return trigger ->
-      trigger.getType().equals(type) &&
-      trigger.getSource().equals(source) &&
+        trigger.getType().equalsIgnoreCase(type) &&
+        trigger.getSource().equals(source) &&
         (
-          // The Constraints in the Trigger could be null. That's OK.
-          trigger.getPayloadConstraints() == null ||
+            // The Constraints in the Trigger could be null. That's OK.
+            trigger.getPayloadConstraints() == null ||
 
             // If the Constraints are present, check that there are equivalents in the webhook payload.
             (  trigger.getPayloadConstraints() != null &&
@@ -115,14 +115,8 @@ public class WebhookEventMonitor extends TriggerMonitor {
             )
 
         ) &&
-          // note this returns true when no artifacts are expected
-          ArtifactMatcher.anyArtifactsMatchExpected(
-              (List<Artifact>) event
-                  .getPayload()
-                  .getOrDefault("artifacts", new ArrayList<Artifact>()),
-              trigger,
-              pipeline
-          );
+        // note this returns true when no artifacts are expected
+        ArtifactMatcher.anyArtifactsMatchExpected(messageArtifacts, trigger, pipeline);
   }
 
   protected void onMatchingPipeline(Pipeline pipeline) {
