@@ -1,5 +1,5 @@
 {
-  "extends": ["tslint-eslint-rules", "tslint-react"],
+  "extends": ["tslint-react"],
   "rules": {
     "class-name": true,
     "comment-format": [
@@ -45,9 +45,8 @@
     "no-switch-case-fall-through": true,
     "no-trailing-whitespace": true,
     "no-unused-expression": [true, "allow-fast-null-checks"],
-    "no-use-before-declare": false,
+    "no-use-before-declare": true,
     "no-var-keyword": true,
-    "object-curly-spacing": "always",
     "object-literal-sort-keys": false,
     "one-line": [
       true,

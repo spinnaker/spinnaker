@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { Action } from 'redux';
 import { connect } from 'react-redux';
-import Select, { Option } from 'react-select';
+import * as Select from 'react-select';
 
 import { HoverablePopover } from '@spinnaker/core';
 
@@ -14,7 +14,7 @@ import Styleguide from '../layout/styleguide';
 import './changeMetricGroup.less';
 
 interface IChangeMetricGroupStateProps {
-  groups: Option[];
+  groups: Select.Option[];
   toGroup: string;
 }
 
@@ -23,7 +23,7 @@ export interface IChangeMetricGroupOwnProps {
 }
 
 interface IChangeMetricGroupDispatchProps {
-  select: (selected: Option) => void;
+  select: (selected: Select.Option) => void;
   clear: () => void;
   confirm: () => void;
 }
@@ -70,7 +70,7 @@ function mapStateToProps(state: ICanaryState, { metric }: IChangeMetricGroupOwnP
 
 function mapDispatchToProps(dispatch: (action: Action & any) => void, { metric }: IChangeMetricGroupOwnProps): IChangeMetricGroupDispatchProps {
   return {
-    select: (selected: Option) => {
+    select: (selected: Select.Option) => {
       dispatch(Creators.changeMetricGroupSelect({ group: selected.value as string }));
     },
     clear: () => {

@@ -2,7 +2,7 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 import { Modal } from 'react-bootstrap';
 import { get } from 'lodash';
-import Select, { Option } from 'react-select';
+import * as Select from 'react-select';
 import { noop } from '@spinnaker/core';
 import * as Creators from '../actions/creators';
 import {ICanaryState} from '../reducers/index';
@@ -21,13 +21,13 @@ interface IEditMetricModalDispatchProps {
   updateDirection: (event: any) => void;
   confirm: () => void;
   cancel: () => void;
-  selectTemplate: (template: Option) => void;
+  selectTemplate: (template: Select.Option) => void;
   updateScopeName: (event: any) => void;
 }
 
 interface IEditMetricModalStateProps {
   metric: ICanaryMetricConfig;
-  templates: Option[];
+  templates: Select.Option[];
   filterTemplate: string;
 }
 
@@ -41,9 +41,9 @@ function DirectionChoice({ value, label, current, action }: { value: string, lab
 
 interface IFilterTemplateSelectorProps {
   metricStore: string;
-  templates: Option[];
+  templates: Select.Option[];
   template: string;
-  select: (template: Option) => void;
+  select: (template: Select.Option) => void;
 }
 
 function FilterTemplateSelector({ metricStore, template, templates, select }: IFilterTemplateSelectorProps) {
@@ -132,7 +132,7 @@ function mapDispatchToProps(dispatch: any): IEditMetricModalDispatchProps {
     updateDirection: (event: any) => {
       dispatch(Creators.updateMetricDirection({ id: event.target.dataset.id, direction: event.target.value }))
     },
-    selectTemplate: (template: Option) =>
+    selectTemplate: (template: Select.Option) =>
       dispatch(Creators.selectTemplate({ name: template ? template.value as string : null })),
     updateScopeName: (event: any) =>
       dispatch(Creators.updateMetricScopeName({ scopeName: event.target.value }))
