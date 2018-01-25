@@ -89,6 +89,7 @@ abstract class AbstractEnableDisableKubernetesAtomicOperation implements AtomicO
       def getResource = null
       def desired = null
       if (replicationController) {
+        credentials.apiAdaptor.annotateReplicationController(namespace, description.serverGroupName, KubernetesUtil.ENABLE_DISABLE_ANNOTATION, action)
         desired = credentials.apiAdaptor.toggleReplicationControllerSpecLabels(namespace, description.serverGroupName, services, action)
         getGeneration = { ReplicationController rc ->
           return rc.metadata.generation
@@ -97,6 +98,7 @@ abstract class AbstractEnableDisableKubernetesAtomicOperation implements AtomicO
           return credentials.apiAdaptor.getReplicationController(namespace, description.serverGroupName)
         }
       } else if (replicaSet) {
+        credentials.apiAdaptor.annotateReplicaSet(namespace, description.serverGroupName, KubernetesUtil.ENABLE_DISABLE_ANNOTATION, action)
         desired = credentials.apiAdaptor.toggleReplicaSetSpecLabels(namespace, description.serverGroupName, services, action)
         getGeneration = { ReplicaSet rs ->
           return rs.metadata.generation

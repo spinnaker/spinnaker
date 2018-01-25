@@ -42,6 +42,8 @@ class KubernetesUtil {
   private static int SECURITY_GROUP_LABEL_PREFIX_LENGTH = SECURITY_GROUP_LABEL_PREFIX.length()
   private static int LOAD_BALANCER_LABEL_PREFIX_LENGTH = LOAD_BALANCER_LABEL_PREFIX.length()
 
+  static String ENABLE_DISABLE_ANNOTATION = "service.spinnaker.io/enabled"
+
   static String getNextSequence(String clusterName, String namespace, KubernetesV1Credentials credentials) {
     def maxSeqNumber = -1
     def replicationControllers = credentials.apiAdaptor.getReplicationControllers(namespace)

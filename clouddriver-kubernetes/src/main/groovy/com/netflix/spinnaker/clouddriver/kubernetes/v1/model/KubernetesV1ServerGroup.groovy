@@ -37,6 +37,8 @@ import io.fabric8.kubernetes.client.internal.SerializationUtils
 import io.kubernetes.client.models.V1beta1DaemonSet
 import io.kubernetes.client.models.V1beta1StatefulSet
 
+import static com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.KubernetesUtil.ENABLE_DISABLE_ANNOTATION
+
 @CompileStatic
 @EqualsAndHashCode(includes = ["name", "namespace", "account"])
 class KubernetesV1ServerGroup implements ServerGroup, Serializable {
@@ -55,6 +57,7 @@ class KubernetesV1ServerGroup implements ServerGroup, Serializable {
   Set<String> securityGroups = [] as Set
   Map<String, Object> launchConfig
   Map<String, String> labels = [:]
+  Map<String, String> annotations = [:]
   DeployKubernetesAtomicOperationDescription deployDescription
   KubernetesAutoscalerStatus autoscalerStatus
   KubernetesDeploymentStatus deploymentStatus
@@ -92,7 +95,7 @@ class KubernetesV1ServerGroup implements ServerGroup, Serializable {
     if (labels) {
       def lbCount = labels.count { key, value -> KubernetesUtil.isLoadBalancerLabel(key) }
       if (lbCount == 0) {
-        return false
+        return annotations?.get(ENABLE_DISABLE_ANNOTATION) == "false"
       }
 
       def enabledCount = labels.count { key, value -> KubernetesUtil.isLoadBalancerLabel(key) && value == "true" }
@@ -162,6 +165,7 @@ class KubernetesV1ServerGroup implements ServerGroup, Serializable {
     this.deployDescription = KubernetesApiConverter.fromReplicaSet(replicaSet)
     this.yaml = SerializationUtils.dumpWithoutRuntimeStateAsYaml(replicaSet)
     this.kind = replicaSet.kind
+    this.annotations = replicaSet.metadata?.annotations
     this.events = events?.collect {
       new KubernetesEvent(it)
     }
@@ -187,6 +191,7 @@ class KubernetesV1ServerGroup implements ServerGroup, Serializable {
     this.deployDescription = KubernetesApiConverter.fromReplicationController(replicationController)
     this.yaml = SerializationUtils.dumpWithoutRuntimeStateAsYaml(replicationController)
     this.kind = replicationController.kind
+    this.annotations = replicationController.metadata?.annotations
     this.events = events?.collect {
       new KubernetesEvent(it)
     }

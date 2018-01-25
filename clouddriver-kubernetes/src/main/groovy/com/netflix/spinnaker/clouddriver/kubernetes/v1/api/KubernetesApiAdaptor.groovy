@@ -498,6 +498,22 @@ class KubernetesApiAdaptor {
     }
   }
 
+  void annotateReplicaSet(String namespace, String name, String key, String value) {
+    exceptionWrapper("replicaSets.annotate", "Annotate replica set $name", namespace) {
+      def rs = client.extensions().replicaSets().inNamespace(namespace).withName(name).edit()
+      rs.buildMetadata().annotations?.put(key, value)
+      rs.done()
+    }
+  }
+
+  void annotateReplicationController(String namespace, String name, String key, String value) {
+    exceptionWrapper("replicationControllers.annotate", "Annotate replication controller $name", namespace) {
+      def rc = client.replicationControllers().inNamespace(namespace).withName(name).edit()
+      rc.buildMetadata().annotations?.put(key, value)
+      rc.done()
+    }
+  }
+
   boolean deleteDeployment(String namespace, String name) {
     exceptionWrapper("deployments.delete", "Delete Deployment $name", namespace) {
       client.extensions().deployments().inNamespace(namespace).withName(name).delete()
