@@ -7,24 +7,26 @@ import { UNGROUPED } from './groupTabs';
 import * as Creators from '../actions/creators';
 import { CanarySettings } from 'kayenta/canary.settings';
 import { ITableColumn, Table } from '../layout/table';
-import ChangeMetricGroup from './changeMetricGroup';
+import ChangeMetricGroupModal from './changeMetricGroupModal';
 
 interface IMetricListStateProps {
   selectedGroup: string;
   metrics: ICanaryMetricConfig[];
   showGroups: boolean;
+  changingGroupMetric: ICanaryMetricConfig;
 }
 
 interface IMetricListDispatchProps {
   addMetric: (event: any) => void;
   editMetric: (event: any) => void;
   removeMetric: (event: any) => void;
+  openChangeMetricGroupModal: (event: any) => void;
 }
 
 /*
  * Configures an entire list of metrics.
  */
-function MetricList({ metrics, selectedGroup, showGroups, addMetric, editMetric, removeMetric }: IMetricListStateProps & IMetricListDispatchProps) {
+function MetricList({ metrics, selectedGroup, showGroups, addMetric, editMetric, removeMetric, changingGroupMetric, openChangeMetricGroupModal }: IMetricListStateProps & IMetricListDispatchProps) {
   const columns: ITableColumn<ICanaryMetricConfig>[] = [
     {
       label: 'Metric Name',
@@ -46,7 +48,11 @@ function MetricList({ metrics, selectedGroup, showGroups, addMetric, editMetric,
             data-id={metric.id}
             onClick={editMetric}
           />
-          <ChangeMetricGroup metric={metric}/>
+          <i
+            className="fa fa-folder-o"
+            data-id={metric.id}
+            onClick={openChangeMetricGroupModal}
+          />
           <i
             className="fa fa-trash"
             data-id={metric.id}
@@ -70,6 +76,7 @@ function MetricList({ metrics, selectedGroup, showGroups, addMetric, editMetric,
           it is saved with at least one metric in it.
         </p>
       ) : null}
+      {changingGroupMetric && <ChangeMetricGroupModal metric={changingGroupMetric}/>}
       <button className="passive" data-group={selectedGroup} onClick={addMetric}>Add Metric</button>
     </section>
   );
@@ -91,6 +98,8 @@ function mapStateToProps(state: ICanaryState): IMetricListStateProps {
     selectedGroup,
     metrics: metricList.filter(filter),
     showGroups: !selectedGroup || metricList.filter(filter).some(metric => metric.groups.length > 1),
+    changingGroupMetric: state.selectedConfig.metricList.find(m =>
+      m.id === state.selectedConfig.changeMetricGroup.metric),
   };
 }
 
@@ -119,7 +128,9 @@ function mapDispatchToProps(dispatch: (action: Action & any) => void): IMetricLi
     },
     removeMetric: (event: any) => {
       dispatch(Creators.removeMetric({ id: event.target.dataset.id }));
-    }
+    },
+    openChangeMetricGroupModal: (event: any) =>
+      dispatch(Creators.changeMetricGroup({ id: event.target.dataset.id })),
   };
 }
 

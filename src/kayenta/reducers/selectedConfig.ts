@@ -46,6 +46,7 @@ export interface IJudgeState {
 }
 
 export interface IChangeMetricGroupState {
+  metric: string;
   toGroup: string;
 }
 
@@ -186,6 +187,11 @@ const thresholds = handleActions({
 const changeMetricGroup = combineReducers<IChangeMetricGroupState>({
   toGroup: handleActions({
     [Actions.CHANGE_METRIC_GROUP_SELECT]: (_state: string, action: Action & any) => action.payload.group,
+    [Actions.CHANGE_METRIC_GROUP]: () => null,
+  }, null),
+  metric: handleActions({
+    [Actions.CHANGE_METRIC_GROUP]: (_state: string, action: Action & any) => action.payload.id,
+    [Actions.CHANGE_METRIC_GROUP_CONFIRM]: () => null,
   }, null),
 });
 
@@ -281,6 +287,9 @@ export function changeMetricGroupConfirmReducer(state: ISelectedConfigState, act
 
   const { changeMetricGroup: { toGroup } } = state;
   const { payload: { metricId } } = action;
+  if (!metricId) {
+    return state;
+  }
 
   const metricUpdator = (m: ICanaryMetricConfig): ICanaryMetricConfig => ({
     ...m,

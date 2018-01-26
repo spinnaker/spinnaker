@@ -72,3 +72,4 @@ export const updateStackdriverGroupBy = createAction<IUpdateListPayload>(Actions
 export const deleteTemplate = createAction<{name: string}>(Actions.DELETE_TEMPLATE);
 export const selectTemplate = createAction<{name: string}>(Actions.SELECT_TEMPLATE);
 export const updateMetricScopeName = createAction<{scopeName: string}>(Actions.UPDATE_METRIC_SCOPE_NAME);
+export const changeMetricGroup = createAction<{id: string}>(Actions.CHANGE_METRIC_GROUP);
