@@ -33,7 +33,7 @@ import com.netflix.spinnaker.keel.intent.SecurityGroupIntent
 import com.netflix.spinnaker.keel.intent.SecurityGroupSpec
 import com.netflix.spinnaker.keel.intent.processor.converter.SecurityGroupConverter
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
-import com.netflix.spinnaker.keel.model.Trigger
+import com.netflix.spinnaker.keel.model.OrchestrationTrigger
 import com.netflix.spinnaker.keel.state.StateInspector
 import com.netflix.spinnaker.keel.tracing.Trace
 import com.netflix.spinnaker.keel.tracing.TraceRepository
@@ -75,7 +75,7 @@ class SecurityGroupIntentProcessor
     if (missingGroups.isNotEmpty()) {
       changeSummary.addMessage("Some upstream security groups are missing: $missingGroups")
       changeSummary.type = ChangeType.FAILED_PRECONDITIONS
-      return ConvergeResult(listOf(),changeSummary)
+      return ConvergeResult(listOf(), changeSummary)
     }
 
     changeSummary.type = if (currentState.isEmpty()) ChangeType.CREATE else ChangeType.UPDATE
@@ -86,7 +86,7 @@ class SecurityGroupIntentProcessor
           application = intent.spec.application,
           description = "Converging on desired security group state",
           job = securityGroupConverter.convertToJob(intent.spec, changeSummary),
-          trigger = Trigger(intent.id())
+          trigger = OrchestrationTrigger(intent.id())
         )
       ),
       changeSummary

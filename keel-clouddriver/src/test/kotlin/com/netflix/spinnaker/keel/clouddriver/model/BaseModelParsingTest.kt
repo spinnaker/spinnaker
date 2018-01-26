@@ -26,7 +26,7 @@ abstract class BaseModelParsingTest<out T> {
 
   private val mapper = KeelConfiguration()
     .apply { properties = KeelProperties() }
-    .objectMapper(ObjectMapper())
+    .objectMapper(ObjectMapper(), listOf())
   private val client = mock<Client>()
   private val cloudDriver = RestAdapter.Builder()
     .setEndpoint(newFixedEndpoint("https://spinnaker.💩"))

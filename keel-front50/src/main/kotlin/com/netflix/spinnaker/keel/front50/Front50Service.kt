@@ -19,8 +19,14 @@ import com.netflix.spinnaker.keel.Intent
 import com.netflix.spinnaker.keel.IntentSpec
 import com.netflix.spinnaker.keel.IntentStatus
 import com.netflix.spinnaker.keel.front50.model.Application
+import com.netflix.spinnaker.keel.front50.model.PipelineConfig
 import retrofit.client.Response
-import retrofit.http.*
+import retrofit.http.Body
+import retrofit.http.DELETE
+import retrofit.http.GET
+import retrofit.http.POST
+import retrofit.http.Path
+import retrofit.http.Query
 
 interface Front50Service {
 
@@ -41,4 +47,7 @@ interface Front50Service {
 
   @GET("/v2/applications/{applicationName}")
   fun getApplication(@Path("applicationName") applicationName: String): Application
+
+  @GET("/pipelines/{applicationName}")
+  fun getPipelineConfigs(@Path("applicationName") applicationName: String): List<PipelineConfig>
 }

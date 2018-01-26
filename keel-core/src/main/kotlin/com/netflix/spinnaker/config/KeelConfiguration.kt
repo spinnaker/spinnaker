@@ -56,13 +56,19 @@ open class KeelConfiguration {
   // have the subtypes registered.
   // TODO rz - Move keiko subtype configurer into kork so we can use it here instead
   @Autowired
-  open fun objectMapper(objectMapper: ObjectMapper) =
+  open fun objectMapper(objectMapper: ObjectMapper, subtypeLocators: List<KeelSubTypeLocator>) =
     objectMapper.apply {
       registerSubtypes(*findAllSubtypes(log, Intent::class.java, "com.netflix.spinnaker.keel.intent"))
       registerSubtypes(*findAllSubtypes(log, IntentSpec::class.java, "com.netflix.spinnaker.keel.intent"))
       registerSubtypes(*findAllSubtypes(log, Policy::class.java, "com.netflix.spinnaker.keel.policy"))
       registerSubtypes(*findAllSubtypes(log, PolicySpec::class.java, "com.netflix.spinnaker.keel.policy"))
       registerSubtypes(*findAllSubtypes(log, Attribute::class.java, "com.netflix.spinnaker.keel.attribute"))
+
+      subtypeLocators.forEach { subtype ->
+        subtype.packages.forEach { pkg ->
+          registerSubtypes(*findAllSubtypes(log, subtype.cls, pkg))
+        }
+      }
     }
       .registerModule(KotlinModule())
       .registerModule(VersioningModule())

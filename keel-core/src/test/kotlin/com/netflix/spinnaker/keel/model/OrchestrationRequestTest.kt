@@ -25,7 +25,7 @@ object OrchestrationRequestTest {
   fun `should build job request`() {
     val req = OrchestrationRequest("wait for nothing", "keel", "my orchestration", listOf(
       Job("wait", mutableMapOf("waitTime" to 30))
-    ), Trigger("1", "keel", "keel"))
+    ), OrchestrationTrigger("1", "keel", "keel"))
 
     req.name shouldMatch equalTo("wait for nothing")
     req.application shouldMatch equalTo("keel")

@@ -35,30 +35,33 @@ class PipelineIntent
   schema = CURRENT_SCHEMA,
   spec = spec
 ) {
-  @JsonIgnore override val defaultId = "$KIND:${spec.application}:${spec.slug}"
+  @JsonIgnore override val defaultId = "$KIND:${spec.application}:${spec.name}"
 }
 
 @JsonTypeName("pipeline")
 data class PipelineSpec(
   override val application: String,
-  // Used for idempotency of id
-  @ForcesNew val slug: String,
-  val stages: List<Map<String, Any?>>,
+  // TODO rz - Support renaming without re-creation. Probably require getting all pipelines for an
+  // application and finding a match on name before writes happen?
+  @ForcesNew val name: String,
+  val stages: List<PipelineStage>,
   val triggers: List<Trigger>,
-  val flags: Flags,
-  val properties: Properties
+  val parameters: List<Map<String, Any?>>,
+  val notifications: List<Map<String, Any?>>,
+  val flags: PipelineFlags,
+  val properties: PipelineProperties
 ) : ApplicationAwareIntentSpec()
 
-class Flags : HashMap<String, Boolean>() {
+class PipelineFlags : HashMap<String, Boolean>() {
 
-  val keepWaitingPipelines: Boolean
-    get() = get("keepWaitingPipelines") ?: true
+  val keepWaitingPipelines: Boolean?
+    get() = get("keepWaitingPipelines")
 
-  val limitConcurrent: Boolean
-    get() = get("limitConcurrent") ?: false
+  val limitConcurrent: Boolean?
+    get() = get("limitConcurrent")
 }
 
-class Properties : HashMap<String, String>() {
+class PipelineProperties : HashMap<String, String>() {
 
   val executionEngine: String?
     get() = get("executionEngine")
@@ -67,26 +70,41 @@ class Properties : HashMap<String, String>() {
     get() = get("spelEvaluator")
 }
 
+class PipelineStage : HashMap<String, Any>() {
+
+  val kind: String
+    get() = get("kind").toString()
+
+  val refId: String
+    get() = get("refId").toString()
+
+  val dependsOn: List<String>
+    get() = if (containsKey("dependsOn")) this["dependsOn"] as List<String> else listOf()
+}
+
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "kind")
-abstract class Trigger : HashMap<String, Any?>()
+interface Trigger
+//abstract class Trigger : HashMap<String, Any> {
+//  @JsonCreator constructor(m: Map<String, Any>) : super(m)
+//}
 
 @JsonTypeName("cron")
-class CronTrigger : Trigger()
+class CronTrigger(m: Map<String, Any>) : HashMap<String, Any>(m), Trigger
 
 @JsonTypeName("docker")
-class DockerTrigger : Trigger()
+class DockerTrigger(m: Map<String, Any>) : HashMap<String, Any>(m), Trigger
 
 @JsonTypeName("dryRun")
-class DryRunTrigger : Trigger()
+class DryRunTrigger(m: Map<String, Any>) : HashMap<String, Any>(m), Trigger
 
 @JsonTypeName("git")
-class GitTrigger : Trigger()
+class GitTrigger(m: Map<String, Any>) : HashMap<String, Any>(m), Trigger
 
 @JsonTypeName("jenkins")
-class JenkinsTrigger : Trigger()
+class JenkinsTrigger(m: Map<String, Any>) : HashMap<String, Any>(m), Trigger
 
 @JsonTypeName("manual")
-class ManualTrigger : Trigger()
+class ManualTrigger(m: Map<String, Any>) : HashMap<String, Any>(m), Trigger
 
 @JsonTypeName("pipeline")
-class PipelineTrigger : Trigger()
+class PipelineTrigger(m: Map<String, Any>) : HashMap<String, Any>(m), Trigger

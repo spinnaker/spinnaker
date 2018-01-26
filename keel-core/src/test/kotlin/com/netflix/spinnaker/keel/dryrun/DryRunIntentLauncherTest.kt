@@ -29,7 +29,7 @@ import com.netflix.spinnaker.keel.IntentSpec
 import com.netflix.spinnaker.keel.IntentStatus.ACTIVE
 import com.netflix.spinnaker.keel.model.Job
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
-import com.netflix.spinnaker.keel.model.Trigger
+import com.netflix.spinnaker.keel.model.OrchestrationTrigger
 import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.doAnswer
 import com.nhaarman.mockito_kotlin.doReturn
@@ -65,7 +65,7 @@ object DryRunIntentLauncherTest {
             Job("wait", mutableMapOf("waitTime" to 5)),
             Job("wait", mutableMapOf("name" to "wait for more time", "waitTime" to 5))
           ),
-          Trigger("1", "keel", "keel")
+          OrchestrationTrigger("1", "keel", "keel")
         )
       ),
       changeSummary

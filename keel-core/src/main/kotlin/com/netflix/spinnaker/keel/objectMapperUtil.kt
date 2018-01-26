@@ -15,18 +15,27 @@
  */
 package com.netflix.spinnaker.keel
 
+import com.fasterxml.jackson.annotation.JsonTypeName
+import com.fasterxml.jackson.databind.jsontype.NamedType
 import org.slf4j.Logger
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider
 import org.springframework.core.type.filter.AssignableTypeFilter
 import org.springframework.util.ClassUtils
 
-fun findAllSubtypes(log: Logger, clazz: Class<*>, pkg: String): Array<Class<*>>
+fun findAllSubtypes(log: Logger, clazz: Class<*>, pkg: String): Array<NamedType>
   = ClassPathScanningCandidateComponentProvider(false)
     .apply { addIncludeFilter(AssignableTypeFilter(clazz)) }
     .findCandidateComponents(pkg)
     .map {
       val cls = ClassUtils.resolveClassName(it.beanClassName, ClassUtils.getDefaultClassLoader())
-      log.info("Registering ${cls.simpleName}")
-      return@map cls
+
+      val serializationName = cls.annotations
+        .filterIsInstance<JsonTypeName>()
+        .firstOrNull()
+        ?.value
+
+      log.info("Registering ${cls.simpleName}: $serializationName")
+
+      return@map NamedType(cls, serializationName )
     }
     .toTypedArray()

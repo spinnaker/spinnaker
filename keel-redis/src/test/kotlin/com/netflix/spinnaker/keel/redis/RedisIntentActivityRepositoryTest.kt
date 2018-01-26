@@ -44,7 +44,7 @@ object RedisIntentActivityRepositoryTest {
   val clock = Clock.systemDefaultZone()
   val mapper = KeelConfiguration()
     .apply { properties = keelProperties }
-    .objectMapper(ObjectMapper())
+    .objectMapper(ObjectMapper(), listOf())
 
   val subject = RedisIntentActivityRepository(
     mainRedisClientDelegate = JedisClientDelegate(jedisPool),

@@ -13,7 +13,7 @@ object AvailabilityZoneConfigTest {
 
   val mapper = KeelConfiguration()
     .apply { properties = KeelProperties() }
-    .objectMapper(ObjectMapper())
+    .objectMapper(ObjectMapper(), listOf())
 
   private val automaticJson = """{"zones":"automatic"}"""
   private val automaticZones = Container(zones = Automatic)

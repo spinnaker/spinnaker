@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Netflix, Inc.
+ * Copyright 2018 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,41 +24,42 @@ import com.netflix.spinnaker.keel.IntentSpec
 import com.netflix.spinnaker.keel.dryrun.ChangeSummary
 import com.netflix.spinnaker.keel.dryrun.ChangeType
 import com.netflix.spinnaker.keel.front50.Front50Service
-import com.netflix.spinnaker.keel.front50.model.Application
+import com.netflix.spinnaker.keel.front50.model.PipelineConfig
 import com.netflix.spinnaker.keel.intent.ANY_MAP_TYPE
-import com.netflix.spinnaker.keel.intent.ApplicationIntent
-import com.netflix.spinnaker.keel.intent.BaseApplicationSpec
-import com.netflix.spinnaker.keel.model.Job
+import com.netflix.spinnaker.keel.intent.PipelineIntent
+import com.netflix.spinnaker.keel.intent.PipelineSpec
+import com.netflix.spinnaker.keel.intent.processor.converter.PipelineConverter
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.model.OrchestrationTrigger
-import com.netflix.spinnaker.keel.state.FieldMutator
 import com.netflix.spinnaker.keel.state.StateInspector
 import com.netflix.spinnaker.keel.tracing.Trace
 import com.netflix.spinnaker.keel.tracing.TraceRepository
-import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import retrofit.RetrofitError
 
 @Component
-class ApplicationIntentProcessor
-@Autowired constructor(
+class PipelineIntentProcessor(
   private val traceRepository: TraceRepository,
   private val front50Service: Front50Service,
-  private val objectMapper: ObjectMapper
-): IntentProcessor<ApplicationIntent> {
+  private val objectMapper: ObjectMapper,
+  private val pipelineConverter: PipelineConverter
+): IntentProcessor<PipelineIntent> {
 
-  private val log = LoggerFactory.getLogger(javaClass)
+  override fun supports(intent: Intent<IntentSpec>) = intent is PipelineIntent
 
-  override fun supports(intent: Intent<IntentSpec>) = intent is ApplicationIntent
-
-  override fun converge(intent: ApplicationIntent): ConvergeResult {
+  override fun converge(intent: PipelineIntent): ConvergeResult {
     val changeSummary = ChangeSummary(intent.id())
 
-    val currentState = getApplication(intent.spec.name)
+    val currentState = getPipelineConfig(intent.spec.application, intent.spec.name)
 
     if (currentStateUpToDate(intent.id(), currentState, intent.spec, changeSummary)) {
       changeSummary.addMessage(ConvergeReason.UNCHANGED.reason)
+      return ConvergeResult(listOf(), changeSummary)
+    }
+
+    if (missingApplication(intent.spec.application)) {
+      changeSummary.addMessage("The application this pipeline is meant for is missing: ${intent.spec.application}")
+      changeSummary.type = ChangeType.FAILED_PRECONDITIONS
       return ConvergeResult(listOf(), changeSummary)
     }
 
@@ -71,51 +72,53 @@ class ApplicationIntentProcessor
 
     return ConvergeResult(listOf(
       OrchestrationRequest(
-        name = if (currentState == null) "Create application" else "Update application",
-        application = intent.spec.name,
-        description = "Converging on desired application state",
-        job = listOf(
-          Job(
-            type = "upsertApplication",
-            m = mutableMapOf(
-              "application" to objectMapper.convertValue(intent.spec, ANY_MAP_TYPE)
-            )
-          )
-        ),
+        name = (if (currentState == null) "Create" else "Update") + " pipeline '${intent.spec.name}'",
+        application = intent.spec.application,
+        description = "Converging on desired pipeline state",
+        job = pipelineConverter.convertToJob(intent.spec, changeSummary),
         trigger = OrchestrationTrigger(intent.id())
       )
-    ),
-      changeSummary
-    )
+    ), changeSummary)
   }
 
   private fun currentStateUpToDate(intentId: String,
-                                   currentState: Application?,
-                                   desiredState: BaseApplicationSpec,
+                                   currentState: PipelineConfig?,
+                                   desiredState: PipelineSpec,
                                    changeSummary: ChangeSummary): Boolean {
+    val desired = pipelineConverter.convertToState(desiredState)
+
     if (currentState == null) return false
-    val stateInspector = StateInspector(objectMapper)
-    val diff = stateInspector.getDiff(
-      intentId = intentId,
-      currentState = currentState,
-      desiredState = desiredState,
-      modelClass = Application::class,
-      specClass = BaseApplicationSpec::class,
-      currentStateFieldMutators = listOf(
-        FieldMutator("name", { it.toString().toLowerCase() })
+    val diff = StateInspector(objectMapper).run {
+      getDiff(
+        intentId = intentId,
+        currentState = currentState,
+        desiredState = desired,
+        modelClass = PipelineConfig::class,
+        specClass = PipelineSpec::class
       )
-    )
+    }
     changeSummary.diff = diff
     return diff.isEmpty()
-
   }
 
-  private fun getApplication(name: String): Application? {
+  private fun getPipelineConfig(application: String, name: String): PipelineConfig? {
     try {
-      return front50Service.getApplication(name)
+      return front50Service.getPipelineConfigs(application).firstOrNull { it.name == name }
     } catch (e: RetrofitError) {
       if (e.notFound()) {
         return null
+      }
+      throw e
+    }
+  }
+
+  private fun missingApplication(application: String): Boolean {
+    try {
+      front50Service.getApplication(application)
+      return false
+    } catch (e: RetrofitError) {
+      if (e.notFound()) {
+        return true
       }
       throw e
     }

@@ -20,12 +20,12 @@ data class OrchestrationRequest(
   val application: String,
   val description: String,
   val job: List<Job>,
-  val trigger: Trigger
+  val trigger: OrchestrationTrigger
 )
 
 class Job(type: String, m: MutableMap<String, Any?>): HashMap<String, Any?>(m.apply { put("type", type) })
 
-data class Trigger(
+data class OrchestrationTrigger(
   val correlationId: String,
   val type: String = "keel",
   val user: String = "keel"

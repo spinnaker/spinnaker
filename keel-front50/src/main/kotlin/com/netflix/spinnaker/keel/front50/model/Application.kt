@@ -28,7 +28,7 @@ data class Application(
   @Computed val createTs: String? = null,
   val platformHealthOnly: Boolean,
   val platformHealthOnlyShowOverride: Boolean,
-  val owner: String
+  val owner: String?
 ) : ComputedPropertyProvider {
 
   val details: MutableMap<String, Any?> = mutableMapOf()

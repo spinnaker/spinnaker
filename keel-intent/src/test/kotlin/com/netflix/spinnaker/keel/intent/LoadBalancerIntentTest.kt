@@ -21,7 +21,7 @@ object LoadBalancerIntentTest {
 
   val mapper = KeelConfiguration()
     .apply { properties = KeelProperties() }
-    .objectMapper(ObjectMapper())
+    .objectMapper(ObjectMapper(), listOf())
 
   @Test
   fun `can serialize to expected JSON format`() {
