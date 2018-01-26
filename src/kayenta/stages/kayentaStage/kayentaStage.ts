@@ -242,9 +242,13 @@ class CanaryStage implements IComponentController {
 
   public populateScopeWithExpressions(): void {
     this.stage.canaryConfig.scopes[0].controlScope =
-      '${ #stage(\'Deploy in \' + deployedServerGroups[0].region)[\'context\'][\'source\'][\'serverGroupName\'] }';
+      '${ #stage(\'Clone Server Group\')[\'context\'][\'source\'][\'serverGroupName\'] }';
+    this.stage.canaryConfig.scopes[0].controlRegion =
+      '${ deployedServerGroups[0].region }';
     this.stage.canaryConfig.scopes[0].experimentScope =
       '${ deployedServerGroups[0].serverGroup }';
+    this.stage.canaryConfig.scopes[0].experimentRegion =
+      '${ deployedServerGroups[0].region }';
   }
 }
 
