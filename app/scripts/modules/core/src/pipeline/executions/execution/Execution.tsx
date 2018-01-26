@@ -289,14 +289,14 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
           { this.props.title && (
             <h4 className="execution-name">
               {this.props.showAccountLabels && accountLabels}
-              {this.props.execution.fromTemplate && <i className="from-template fa fa-table" title="Template Pipeline" />}
+              {this.props.execution.fromTemplate && <i className="from-template fa fa-table" title="Pipeline from template" />}
               {this.props.title}
             </h4>
           )}
           { showExecutionName && (
             <h4 className="execution-name">
               {accountLabels}
-              {this.props.execution.fromTemplate && <i className="from-template fa fa-table" title="Template Pipeline" />}
+              {this.props.execution.fromTemplate && <i className="from-template fa fa-table" title="Pipeline from template" />}
               {this.props.execution.name}
             </h4>
           )}

@@ -185,7 +185,7 @@ export class ExecutionGroup extends React.Component<IExecutionGroupProps, IExecu
                   {groupTargetAccountLabels}
                 </div>
                 <h4 className="execution-group-title">
-                  {group.fromTemplate && <i className="from-template fa fa-table" title="Template Pipeline" />}
+                  {group.fromTemplate && <i className="from-template fa fa-table" title="Pipeline from template" />}
                   {group.heading}
                   {pipelineDescription && <span> <Tooltip value={pipelineDescription}><span className="glyphicon glyphicon-info-sign"/></Tooltip></span>}
                   {pipelineDisabled && <span> (disabled)</span>}
