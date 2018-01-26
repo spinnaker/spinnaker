@@ -96,7 +96,8 @@ public class EditDeploymentEnvironmentCommand extends AbstractConfigCommand {
 
   @Parameter(
       names = "--location",
-      description = "This is the location spinnaker will be deployed to."
+      description = "This is the location spinnaker will be deployed to. When deploying to "
+          + "Kubernetes, use this flag to specify the namespace to deploy to (defaults to 'spinnaker')"
   )
   private String location;
 

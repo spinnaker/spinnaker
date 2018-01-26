@@ -1208,7 +1208,7 @@ This is only required when Spinnaker is being deployed in non-Kubernetes cluster
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--git-origin-user`: This is the git user your github fork exists under.
  * `--git-upstream-user`: This is the upstream git user you are configuring to pull changes from & push PRs to.
- * `--location`: This is the location spinnaker will be deployed to.
+ * `--location`: This is the location spinnaker will be deployed to. When deploying to Kubernetes, use this flag to specify the namespace to deploy to (defaults to 'spinnaker')
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--type`: Distributed: Deploy Spinnaker with one server group per microservice, and a single shared Redis.
 LocalDebian: Download and run the Spinnaker debians on the machine running the Daemon.
