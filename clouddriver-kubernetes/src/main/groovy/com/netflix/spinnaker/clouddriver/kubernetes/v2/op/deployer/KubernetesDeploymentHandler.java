@@ -22,6 +22,7 @@ import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manife
 import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesApiVersion.EXTENSIONS_V1BETA1;
 
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.ArtifactReplacer;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.ArtifactReplacerFactory;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.ArtifactTypes;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesCacheDataConverter;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesDeploymentCachingAgent;
@@ -45,21 +46,9 @@ public class KubernetesDeploymentHandler extends KubernetesHandler implements
     CanUndoRollout {
 
   public KubernetesDeploymentHandler() {
-    registerReplacer(
-        ArtifactReplacer.Replacer.builder()
-            .replacePath("$.spec.template.spec.containers.[?( @.image == \"{%name%}\" )].image")
-            .findPath("$.spec.template.spec.containers.*.image")
-            .type(ArtifactTypes.DOCKER_IMAGE)
-            .build()
-    );
-
-    registerReplacer(
-        ArtifactReplacer.Replacer.builder()
-            .replacePath("$.spec.template.spec.volumes.[?( @.configMap.name == \"{%name%}\" )].configMap.name")
-            .findPath("$.spec.template.spec.volumes.*.configMap.name")
-            .type(ArtifactTypes.KUBERNETES_CONFIG_MAP)
-            .build()
-    );
+    registerReplacer(ArtifactReplacerFactory.dockerImageReplacer());
+    registerReplacer(ArtifactReplacerFactory.configMapVolumeReplacer());
+    registerReplacer(ArtifactReplacerFactory.secretVolumeReplacer());
   }
 
   @Override

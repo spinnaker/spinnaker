@@ -21,6 +21,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact;
 public class ArtifactTypes {
   public static final ArtifactTypes DOCKER_IMAGE = new ArtifactTypes("docker/image");
   public static final ArtifactTypes KUBERNETES_CONFIG_MAP = new ArtifactTypes("kubernetes/configMap");
+  public static final ArtifactTypes KUBERNETES_SECRET = new ArtifactTypes("kubernetes/secret");
 
   final private String id;
 

@@ -17,11 +17,7 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.op.deployer;
 
-import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesApiVersion.APPS_V1BETA2;
-import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesApiVersion.EXTENSIONS_V1BETA1;
-
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.ArtifactReplacer.Replacer;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.ArtifactTypes;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.ArtifactReplacerFactory;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesCacheDataConverter;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesReplicaSetCachingAgent;
@@ -38,6 +34,9 @@ import org.springframework.stereotype.Component;
 
 import java.util.Map;
 
+import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesApiVersion.APPS_V1BETA2;
+import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesApiVersion.EXTENSIONS_V1BETA1;
+
 @Component
 public class KubernetesReplicaSetHandler extends KubernetesHandler implements
     CanResize,
@@ -45,20 +44,9 @@ public class KubernetesReplicaSetHandler extends KubernetesHandler implements
     CanScale {
 
   public KubernetesReplicaSetHandler() {
-    registerReplacer(
-        Replacer.builder()
-            .replacePath("$.spec.template.spec.containers.[?( @.image == \"{%name%}\" )].image")
-            .findPath("$.spec.template.spec.containers.*.image")
-            .type(ArtifactTypes.DOCKER_IMAGE)
-            .build()
-    );
-    registerReplacer(
-      Replacer.builder()
-        .replacePath("$.spec.template.spec.volumes.[?( @.configMap.name == \"{%name%}\" )].configMap.name")
-        .findPath("$.spec.template.spec.volumes.*.configMap.name")
-        .type(ArtifactTypes.KUBERNETES_CONFIG_MAP)
-        .build()
-    );
+    registerReplacer(ArtifactReplacerFactory.dockerImageReplacer());
+    registerReplacer(ArtifactReplacerFactory.configMapVolumeReplacer());
+    registerReplacer(ArtifactReplacerFactory.secretVolumeReplacer());
   }
 
   @Override

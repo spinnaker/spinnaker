@@ -67,7 +67,7 @@ public class KubernetesV2ManifestProvider implements ManifestProvider<Kubernetes
     }
 
     CacheData data = dataOptional.get();
-    KubernetesHandler deployer = registry.get(kind).getHandler();
+    KubernetesHandler handler = registry.get(kind).getHandler();
 
     KubernetesManifest manifest = KubernetesCacheDataConverter.getManifest(data);
     Moniker moniker = KubernetesCacheDataConverter.getMoniker(data);
@@ -77,8 +77,8 @@ public class KubernetesV2ManifestProvider implements ManifestProvider<Kubernetes
         .location(location)
         .manifest(manifest)
         .moniker(moniker)
-        .status(deployer.status(manifest))
-        .artifacts(deployer.listArtifacts(manifest))
+        .status(handler.status(manifest))
+        .artifacts(handler.listArtifacts(manifest))
         .build();
   }
 }
