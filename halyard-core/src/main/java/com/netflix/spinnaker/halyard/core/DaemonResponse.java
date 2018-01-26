@@ -139,7 +139,7 @@ public class DaemonResponse<T> {
   @Data
   public static class UpdateRequestBuilder {
     private Runnable stage = () -> {};
-    private Runnable clean;
+    private Runnable clean = () -> {};
     private Runnable revert;
     private Runnable save;
     private Runnable update;
