@@ -4,6 +4,7 @@ import { connect } from 'react-redux';
 import { ICanaryState } from '../reducers/index';
 import { ICanaryExecutionStatusResult } from '../domain/ICanaryExecutionStatusResult';
 import FormattedDate from '../layout/formattedDate';
+import SourceLinks from './sourceLinks';
 
 interface IReportMetadata {
   run: ICanaryExecutionStatusResult;
@@ -110,6 +111,7 @@ const ReportMetadata = ({ run }: IReportMetadata) => {
             </li>
           ))
         }
+        <li><SourceLinks/></li>
       </ul>
     </section>
   );
