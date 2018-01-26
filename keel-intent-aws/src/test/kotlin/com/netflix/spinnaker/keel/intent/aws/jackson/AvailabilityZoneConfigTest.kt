@@ -1,12 +1,13 @@
-package com.netflix.spinnaker.keel.intent
+package com.netflix.spinnaker.keel.intent.aws.jackson
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.netflix.spinnaker.config.KeelConfiguration
 import com.netflix.spinnaker.config.KeelProperties
 import com.netflix.spinnaker.hamkrest.shouldEqual
-import com.netflix.spinnaker.keel.intent.AvailabilityZoneConfig.Automatic
-import com.netflix.spinnaker.keel.intent.AvailabilityZoneConfig.Manual
+import com.netflix.spinnaker.keel.intent.aws.loadbalancer.AvailabilityZoneConfig
+import com.netflix.spinnaker.keel.intent.aws.loadbalancer.AvailabilityZoneConfig.Automatic
+import com.netflix.spinnaker.keel.intent.aws.loadbalancer.AvailabilityZoneConfig.Manual
 import org.junit.jupiter.api.Test
 
 object AvailabilityZoneConfigTest {

@@ -47,7 +47,8 @@ class AccountProvidingNetworkInterceptor(
         .build()
     )
 
-  @Scheduled(initialDelay = 0L, fixedDelay = 60000L) fun refreshCredentials() {
+  @Scheduled(initialDelay = 0L, fixedDelay = 60000L)
+  fun refreshCredentials() {
     log.info("Refreshing Clouddriver credentials")
     val cloudDriver: CloudDriverService
     try {

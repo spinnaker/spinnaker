@@ -5,10 +5,7 @@ import com.natpryce.hamkrest.isEmpty
 import com.natpryce.hamkrest.should.shouldMatch
 import com.netflix.spinnaker.hamkrest.shouldEqual
 import com.netflix.spinnaker.hamkrest.shouldThrow
-import com.netflix.spinnaker.keel.clouddriver.model.Moniker
-import com.netflix.spinnaker.keel.clouddriver.model.Network
-import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroup
-import com.netflix.spinnaker.keel.clouddriver.model.Subnet
+import com.netflix.spinnaker.keel.clouddriver.model.*
 import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.whenever
@@ -19,10 +16,9 @@ object MemoryCloudDriverCacheTest {
   val cloudDriver = mock<CloudDriverService>()
   val subject = MemoryCloudDriverCache(cloudDriver)
 
-  val securityGroups = setOf(
-    SecurityGroup("aws", "sg-1", "foo", null, "prod", "us-west-2", "vpc-1", emptySet(), Moniker("covfefe")),
-    SecurityGroup("aws", "sg-2", "foo", null, "prod", "us-east-1", "vpc-1", emptySet(), Moniker("covfefe")),
-    SecurityGroup("aws", "sg-3", "bar", null, "prod", "us-west-2", "vpc-1", emptySet(), Moniker("covfefe"))
+  val securityGroupSummaries = setOf(
+    SecurityGroupSummary("foo", "sg-1"),
+    SecurityGroupSummary("bar", "sg-2")
   )
 
   val vpcs = setOf(
@@ -48,20 +44,21 @@ object MemoryCloudDriverCacheTest {
   )
 
   @Test
-  fun `security groups are looked up from CloudDriver`() {
-    whenever(cloudDriver.getSecurityGroups("prod")) doReturn securityGroups
+  fun `security group summaries are looked up from CloudDriver`() {
+    whenever(cloudDriver.getSecurityGroupSummaries("prod", "aws", "us-east-1")) doReturn securityGroupSummaries
+    whenever(cloudDriver.getCredential("prod")) doReturn Credential("prod", "aws")
 
-    subject.securityGroupBy("prod", "sg-2").let { securityGroup ->
-      securityGroup.name shouldEqual "foo"
-      securityGroup.region shouldEqual "us-east-1"
+    subject.securityGroupSummaryBy("prod", "us-east-1", "sg-2").let { securityGroupSummary ->
+      securityGroupSummary.name shouldEqual "bar"
+      securityGroupSummary.id shouldEqual "sg-2"
     }
   }
 
   @Test
   fun `an invalid security group id throws an exception`() {
-    whenever(cloudDriver.getSecurityGroups("prod")) doReturn securityGroups
+    whenever(cloudDriver.getSecurityGroupSummaries("prod", "aws", "us-east-1")) doReturn securityGroupSummaries
 
-    val block = { subject.securityGroupBy("prod", "sg-4") }
+    val block = { subject.securityGroupSummaryBy("prod", "us-east-1", "sg-4") }
     block shouldThrow isA<ResourceNotFound>()
   }
 

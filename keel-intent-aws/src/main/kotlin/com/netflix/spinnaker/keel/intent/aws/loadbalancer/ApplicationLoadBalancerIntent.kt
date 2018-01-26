@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Netflix, Inc.
+ * Copyright 2018 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,9 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.keel.clouddriver.model
 
-data class Credential(
-  val name: String,
-  val type: String
-)
+package com.netflix.spinnaker.keel.intent.aws.loadbalancer
+
+import com.fasterxml.jackson.annotation.JsonTypeName
+import com.netflix.spinnaker.keel.intent.LoadBalancerSpec
+
+@JsonTypeName("aws.ApplicationLoadBalancer")
+data class ApplicationLoadBalancerSpec(
+  override val application: String,
+  override val name: String,
+  override val accountName: String
+) : LoadBalancerSpec() {
+
+  override fun cloudProvider() = "aws"
+}

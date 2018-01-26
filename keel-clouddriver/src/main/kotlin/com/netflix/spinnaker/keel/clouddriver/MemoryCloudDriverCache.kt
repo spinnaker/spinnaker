@@ -2,18 +2,22 @@ package com.netflix.spinnaker.keel.clouddriver
 
 import com.google.common.cache.Cache
 import com.google.common.cache.CacheBuilder
+import com.netflix.spinnaker.keel.clouddriver.model.Credential
 import com.netflix.spinnaker.keel.clouddriver.model.Network
-import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroup
+import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupSummary
+import org.springframework.beans.BeansException
+import org.springframework.scheduling.annotation.Scheduled
+import retrofit.RetrofitError
 import java.util.concurrent.TimeUnit
 
 class MemoryCloudDriverCache(
   private val cloudDriver: CloudDriverService
 ) : CloudDriverCache {
 
-  private val securityGroups = CacheBuilder.newBuilder()
+  private val securityGroupSummaries = CacheBuilder.newBuilder()
     .maximumSize(1000)
     .expireAfterWrite(30, TimeUnit.SECONDS)
-    .build<String, SecurityGroup>()
+    .build<String, SecurityGroupSummary>()
 
   private val networks = CacheBuilder.newBuilder()
     .maximumSize(1000)
@@ -25,10 +29,27 @@ class MemoryCloudDriverCache(
     .expireAfterWrite(30, TimeUnit.SECONDS)
     .build<String, Set<String>>()
 
-  override fun securityGroupBy(account: String, id: String): SecurityGroup =
-    securityGroups.getOrNotFound("$account:$id", "Security group with id $id not found in the $account account") {
+  private val credentials = CacheBuilder.newBuilder()
+    .maximumSize(100)
+    .expireAfterWrite(1, TimeUnit.HOURS)
+    .build<String, Credential>()
+
+  private fun credentialBy(name: String): Credential =
+    credentials.getOrNotFound(name, "Credentials with name $name not found") {
       cloudDriver
-        .getSecurityGroups(account)
+        .getCredential(name)
+    }
+
+  override fun securityGroupSummaryBy(account: String, region: String, id: String): SecurityGroupSummary =
+    securityGroupSummaries.getOrNotFound(
+      "$account:$region:$id",
+      "Security group with id $id not found in the $account account and $region region"
+    ) {
+      val credential = credentialBy(account)
+
+      // TODO-AJ should be able to swap this out for a call to `/search`
+      cloudDriver
+        .getSecurityGroupSummaries(account, credential.type, region)
         .firstOrNull { it.id == id }
     }
 
@@ -40,7 +61,8 @@ class MemoryCloudDriverCache(
     }
 
   // TODO rz - caches here aren't very efficient
-  override fun networkBy(name: String, account: String, region: String): Network =
+  // TODO rz - caches here aren't very efficient
+  override fun networkBy(name: String?, account: String, region: String): Network =
     networks.getOrNotFound("$name:$account:$region", "VPC network named $name not found in $region") {
       cloudDriver
         .listNetworks()["aws"]

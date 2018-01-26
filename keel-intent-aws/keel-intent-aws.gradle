@@ -1,5 +1,7 @@
 dependencies {
   compile project(":keel-intent")
 
+  compile spinnaker.dependency('awsObjectMapper')
+
   testCompile project(":keel-test")
 }

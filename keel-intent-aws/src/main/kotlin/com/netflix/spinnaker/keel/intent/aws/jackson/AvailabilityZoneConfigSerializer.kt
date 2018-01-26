@@ -1,4 +1,4 @@
-package com.netflix.spinnaker.keel.intent.jackson
+package com.netflix.spinnaker.keel.intent.aws.jackson
 
 import com.fasterxml.jackson.core.JsonGenerator
 import com.fasterxml.jackson.core.JsonParser
@@ -10,9 +10,9 @@ import com.fasterxml.jackson.databind.SerializerProvider
 import com.fasterxml.jackson.databind.exc.InvalidFormatException
 import com.fasterxml.jackson.databind.node.ArrayNode
 import com.fasterxml.jackson.databind.node.TextNode
-import com.netflix.spinnaker.keel.intent.AvailabilityZoneConfig
-import com.netflix.spinnaker.keel.intent.AvailabilityZoneConfig.Automatic
-import com.netflix.spinnaker.keel.intent.AvailabilityZoneConfig.Manual
+import com.netflix.spinnaker.keel.intent.aws.loadbalancer.AvailabilityZoneConfig
+import com.netflix.spinnaker.keel.intent.aws.loadbalancer.AvailabilityZoneConfig.Automatic
+import com.netflix.spinnaker.keel.intent.aws.loadbalancer.AvailabilityZoneConfig.Manual
 
 class AvailabilityZoneConfigSerializer : JsonSerializer<AvailabilityZoneConfig>() {
   override fun serialize(

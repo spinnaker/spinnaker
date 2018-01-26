@@ -67,7 +67,7 @@ abstract class Intent<out S : IntentSpec>
   fun getMetricTags(vararg more: String) =
     (0 until more.size)
       .filter { it != 0 && it % 2 == 0 }
-      .map { BasicTag(more[it], more[it -1]) }
+      .map { BasicTag(more[it], more[it - 1]) }
       .let { it.toMutableList().also { it.addAll(getMetricTags()) } }
 
   fun <T : Attribute<Any>> hasAttribute(klass: KClass<T>) = attributes.any { klass.isInstance(it) }

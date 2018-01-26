@@ -1,5 +1,6 @@
-package com.netflix.spinnaker.keel.intent
+package com.netflix.spinnaker.keel.intent.aws.loadbalancer
 
+import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.convertValue
 import com.fasterxml.jackson.module.kotlin.readValue
@@ -8,20 +9,22 @@ import com.natpryce.hamkrest.should.shouldMatch
 import com.netflix.spinnaker.config.KeelConfiguration
 import com.netflix.spinnaker.config.KeelProperties
 import com.netflix.spinnaker.hamkrest.shouldEqual
-import com.netflix.spinnaker.keel.intent.AvailabilityZoneConfig.Automatic
-import com.netflix.spinnaker.keel.intent.AvailabilityZoneConfig.Manual
-import com.netflix.spinnaker.keel.intent.HealthEndpoint.Http
-import com.netflix.spinnaker.keel.model.Listener
-import com.netflix.spinnaker.keel.model.Protocol.SSL
-import com.netflix.spinnaker.keel.model.Protocol.TCP
-import com.netflix.spinnaker.keel.model.Scheme.internal
+import com.netflix.spinnaker.keel.intent.aws.loadbalancer.AvailabilityZoneConfig.Automatic
+import com.netflix.spinnaker.keel.intent.aws.loadbalancer.AvailabilityZoneConfig.Manual
+import com.netflix.spinnaker.keel.intent.aws.loadbalancer.HealthEndpoint.Http
+import com.netflix.spinnaker.keel.intent.LoadBalancerIntent
+import com.netflix.spinnaker.keel.intent.aws.loadbalancer.Protocol.SSL
+import com.netflix.spinnaker.keel.intent.aws.loadbalancer.Protocol.TCP
+import com.netflix.spinnaker.keel.intent.aws.loadbalancer.Scheme.internal
 import org.junit.jupiter.api.Test
 
-object LoadBalancerIntentTest {
+object ClassicLoadBalancerIntentTest {
 
   val mapper = KeelConfiguration()
     .apply { properties = KeelProperties() }
-    .objectMapper(ObjectMapper(), listOf())
+    .objectMapper(
+      ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL), listOf()
+    )
 
   @Test
   fun `can serialize to expected JSON format`() {
@@ -44,7 +47,7 @@ object LoadBalancerIntentTest {
       .apply { (get("spec") as MutableMap<String, Any>).remove("availabilityZones") }
       .let {
         mapper.convertValue<LoadBalancerIntent>(it).apply {
-          (spec as AmazonElasticLoadBalancerSpec).availabilityZones shouldEqual Automatic
+          (spec as ClassicLoadBalancerSpec).availabilityZones shouldEqual Automatic
         }
       }
   }
@@ -55,22 +58,21 @@ object LoadBalancerIntentTest {
       .apply { (get("spec") as MutableMap<String, Any>)["availabilityZones"] = listOf("us-west-2a", "us-west-2c") }
       .let {
         mapper.convertValue<LoadBalancerIntent>(it).apply {
-          (spec as AmazonElasticLoadBalancerSpec).availabilityZones shouldEqual Manual(setOf("us-west-2a", "us-west-2c"))
+          (spec as ClassicLoadBalancerSpec).availabilityZones shouldEqual Manual(setOf("us-west-2a", "us-west-2c"))
         }
       }
   }
 
   val elb = LoadBalancerIntent(
-    AmazonElasticLoadBalancerSpec(
+    ClassicLoadBalancerSpec(
       application = "covfefe",
       name = "covfefe-elb",
-      cloudProvider = "aws",
       accountName = "mgmt",
       region = "us-west-2",
-      securityGroupNames = setOf("covfefe", "nf-infrastructure", "nf-datacenter"),
+      securityGroupNames = sortedSetOf("covfefe", "nf-infrastructure", "nf-datacenter"),
       availabilityZones = Automatic,
       scheme = internal,
-      listeners = setOf(Listener(TCP, 80, TCP, 7001), Listener(SSL, 443, SSL, 7002)),
+      listeners = setOf(ClassicListener(TCP, 80, TCP, 7001), ClassicListener(SSL, 443, SSL, 7002, "my-ssl-certificate")),
       healthCheck = HealthCheckSpec(Http(7001, "/healthcheck")),
       vpcName = "vpcName"
     )
@@ -80,17 +82,16 @@ object LoadBalancerIntentTest {
 {
   "kind": "LoadBalancer",
   "spec": {
-    "kind": "aws",
+    "kind": "aws.ClassicLoadBalancer",
     "application": "covfefe",
     "name": "covfefe-elb",
-    "cloudProvider": "aws",
     "accountName": "mgmt",
     "vpcName": "vpcName",
     "region": "us-west-2",
     "securityGroupNames": [
       "covfefe",
-      "nf-infrastructure",
-      "nf-datacenter"
+      "nf-datacenter",
+      "nf-infrastructure"
     ],
     "availabilityZones": "automatic",
     "scheme": "internal",
@@ -105,7 +106,8 @@ object LoadBalancerIntentTest {
         "protocol": "SSL",
         "loadBalancerPort": 443,
         "instanceProtocol": "SSL",
-        "instancePort": 7002
+        "instancePort": 7002,
+        "sslCertificateId": "my-ssl-certificate"
       }
     ],
     "healthCheck": {
@@ -128,6 +130,4 @@ object LoadBalancerIntentTest {
   "schema": "0"
 }
 """
-
-
 }

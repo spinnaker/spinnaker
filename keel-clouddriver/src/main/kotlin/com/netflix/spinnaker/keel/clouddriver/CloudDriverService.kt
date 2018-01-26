@@ -35,8 +35,12 @@ interface CloudDriverService {
                        @Path("region") region: String,
                        @Query("vpcId") vpcId: String): SecurityGroup?
 
-  @GET("/securityGroups/{account}")
-  fun getSecurityGroups(@Path("account") account: String): Collection<SecurityGroup>
+  @GET("/securityGroups/{account}/{provider}")
+  fun getSecurityGroupSummaries(
+    @Path("account") account: String,
+    @Path("provider") provider: String,
+    @Query("region") region: String
+  ): Collection<SecurityGroupSummary>
 
   @GET("/networks")
   fun listNetworks(): Map<String, Set<Network>>
@@ -50,11 +54,14 @@ interface CloudDriverService {
   @GET("/credentials")
   fun listCredentials(): Set<Credential>
 
+  @GET("/credentials/{account}")
+  fun getCredential(@Path("account") account: String): Credential
+
   @GET("/{provider}/loadBalancers/{account}/{region}/{name}")
-  fun getElasticLoadBalancer(
+  fun getLoadBalancer(
     @Path("provider") provider: String,
     @Path("account") account: String,
     @Path("region") region: String,
     @Path("name") name: String
-  ): Set<ElasticLoadBalancer>
+  ): List<LoadBalancer>
 }
