@@ -29,10 +29,8 @@ import com.netflix.spinnaker.keel.dryrun.ChangeSummary
 import com.netflix.spinnaker.keel.dryrun.ChangeType
 import com.netflix.spinnaker.keel.intent.AmazonSecurityGroupSpec
 import com.netflix.spinnaker.keel.intent.ApplicationIntent
-import com.netflix.spinnaker.keel.intent.BaseApplicationSpec
 import com.netflix.spinnaker.keel.intent.ReferenceSecurityGroupRule
 import com.netflix.spinnaker.keel.intent.SecurityGroupIntent
-import com.netflix.spinnaker.keel.intent.SecurityGroupSpec
 import com.netflix.spinnaker.keel.intent.processor.converter.SecurityGroupConverter
 import com.netflix.spinnaker.keel.tracing.TraceRepository
 import com.nhaarman.mockito_kotlin.any
@@ -73,8 +71,8 @@ object SecurityGroupIntentProcessorTest {
 
   @Test
   fun `should support SecurityGroupIntents`() {
-    subject.supports(ApplicationIntent(mock<BaseApplicationSpec>())) shouldMatch equalTo(false)
-    subject.supports(SecurityGroupIntent(mock<SecurityGroupSpec>())) shouldMatch equalTo(true)
+    subject.supports(ApplicationIntent(mock())) shouldMatch equalTo(false)
+    subject.supports(SecurityGroupIntent(mock())) shouldMatch equalTo(true)
   }
 
   @Test
@@ -95,7 +93,7 @@ object SecurityGroupIntentProcessorTest {
       name = "keel",
       cloudProvider = "aws",
       accountName = "test",
-      regions = setOf("us-west-2"),
+      region = "us-west-2",
       inboundRules = emptySet(),
       outboundRules = emptySet(),
       vpcName = "vpcName",
@@ -138,7 +136,7 @@ object SecurityGroupIntentProcessorTest {
       name = "keel",
       cloudProvider = "aws",
       accountName = "test",
-      regions = setOf("us-west-2"),
+      region = "us-west-2",
       inboundRules = emptySet(),
       outboundRules = emptySet(),
       vpcName = "vpcName",
@@ -180,7 +178,7 @@ object SecurityGroupIntentProcessorTest {
       name = "keel",
       cloudProvider = "aws",
       accountName = "test",
-      regions = setOf("us-west-2"),
+      region = "us-west-2",
       inboundRules = setOf(ReferenceSecurityGroupRule(sortedSetOf(), "tcp", "gate")),
       outboundRules = emptySet(),
       vpcName = "vpcName",

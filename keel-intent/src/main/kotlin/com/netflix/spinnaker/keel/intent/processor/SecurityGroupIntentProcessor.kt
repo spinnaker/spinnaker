@@ -78,7 +78,7 @@ class SecurityGroupIntentProcessor
       return ConvergeResult(listOf(), changeSummary)
     }
 
-    changeSummary.type = if (currentState.isEmpty()) ChangeType.CREATE else ChangeType.UPDATE
+    changeSummary.type = if (currentState == null) ChangeType.CREATE else ChangeType.UPDATE
 
     return ConvergeResult(listOf(
         OrchestrationRequest(
@@ -93,65 +93,45 @@ class SecurityGroupIntentProcessor
     )
   }
 
-  private fun getSecurityGroups(spec: SecurityGroupSpec): Set<SecurityGroup> {
+  private fun getSecurityGroups(spec: SecurityGroupSpec): SecurityGroup? {
     if (spec is AmazonSecurityGroupSpec) {
-      return spec.regions
-        .map { region ->
-          try {
-            return@map if (spec.vpcName == null) {
-              cloudDriverService.getSecurityGroup(spec.accountName, "aws", spec.name, region)
-            } else {
-              cloudDriverService.getSecurityGroup(spec.accountName, "aws", spec.name, region, clouddriverCache.networkBy(
-                spec.vpcName,
-                spec.accountName,
-                region
-              ).id)
-            }
-          } catch (e: RetrofitError) {
-            if (e.notFound()) {
-              return@map null
-            }
-            throw e
-          }
+      try {
+        return if (spec.vpcName == null) {
+          cloudDriverService.getSecurityGroup(spec.accountName, "aws", spec.name, spec.region)
+        } else {
+          cloudDriverService.getSecurityGroup(spec.accountName, "aws", spec.name, spec.region, clouddriverCache.networkBy(
+            spec.vpcName,
+            spec.accountName,
+            spec.region
+          ).id)
         }
-        .filterNotNull()
-        .toSet()
+      } catch (e: RetrofitError) {
+        if (e.notFound()) {
+          return null
+        }
+        throw e
+      }
     }
     throw NotImplementedError("Only amazon security groups are supported at the moment")
   }
 
   private fun currentStateUpToDate(intentId: String,
-                                   currentState: Set<SecurityGroup>,
+                                   currentState: SecurityGroup?,
                                    desiredState: SecurityGroupSpec,
                                    changeSummary: ChangeSummary): Boolean {
 
-    if (currentState.size != desiredState.regions.size) return false
-
-    val desired = securityGroupConverter.convertToState(desiredState)
-
-    val statePairs = mutableListOf<Pair<SecurityGroup, SecurityGroup>>()
-    desired.forEach { d ->
-      val key = "${d.accountName}/${d.region}/${d.name}"
-      currentState.forEach { c ->
-        if ("${c.accountName}/${c.region}/${c.name}" == key) {
-          statePairs.add(Pair(c, d))
-        }
-      }
+    if (currentState == null) {
+      return false
     }
 
-    if (statePairs.size != desiredState.regions.size) return false
-
-    val stateInspector = StateInspector(objectMapper)
-    val diff = statePairs.flatMap {
-      stateInspector.getDiff(
-        intentId = intentId,
-        currentState = it.first,
-        desiredState = it.second,
-        modelClass = SecurityGroup::class,
-        specClass = SecurityGroupSpec::class,
-        ignoreKeys = setOf("type", "id", "moniker", "summary", "description")
-      )
-    }.toSet()
+    val diff = StateInspector(objectMapper).getDiff(
+      intentId = intentId,
+      currentState = currentState,
+      desiredState = securityGroupConverter.convertToState(desiredState),
+      modelClass = SecurityGroup::class,
+      specClass = SecurityGroupSpec::class,
+      ignoreKeys = setOf("type", "id", "moniker", "summary", "description")
+    )
     changeSummary.diff = diff
     return diff.isEmpty()
   }
@@ -162,27 +142,25 @@ class SecurityGroupIntentProcessor
       .filter {
         spec.name != it.name
       }
-      .flatMap {
-        spec.regions.map { region ->
-          if (spec is AmazonSecurityGroupSpec) {
-            try {
-              cloudDriverService.getSecurityGroup(
-                spec.accountName,
-                "aws",
-                it.name,
-                region,
-                clouddriverCache.networkBy(spec.vpcName!!, spec.accountName, region).id
-              )
-            } catch (e: RetrofitError) {
-              if (e.notFound()) {
-                return@map it.name
-              }
+      .map {
+        if (spec is AmazonSecurityGroupSpec) {
+          try {
+            cloudDriverService.getSecurityGroup(
+              spec.accountName,
+              "aws",
+              it.name,
+              spec.region,
+              clouddriverCache.networkBy(spec.vpcName!!, spec.accountName, spec.region).id
+            )
+          } catch (e: RetrofitError) {
+            if (e.notFound()) {
+              return@map it.name
             }
-          } else {
-            log.error("${spec.javaClass.simpleName} is not supported yet")
           }
-          return@map null
+        } else {
+          log.error("${spec.javaClass.simpleName} is not supported yet")
         }
+        return@map null
       }
       .filterNotNull()
       .distinct()

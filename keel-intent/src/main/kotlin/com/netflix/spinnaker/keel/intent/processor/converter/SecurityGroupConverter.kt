@@ -36,7 +36,7 @@ import javax.annotation.PostConstruct
 class SecurityGroupConverter(
   private val clouddriverCache: CloudDriverCache,
   private val objectMapper: ObjectMapper
-) : SpecConverter<SecurityGroupSpec, Set<SecurityGroup>> {
+) : SpecConverter<SecurityGroupSpec, SecurityGroup> {
 
   private val log = LoggerFactory.getLogger(javaClass)
 
@@ -46,70 +46,61 @@ class SecurityGroupConverter(
     )
   }
 
-  override fun convertToState(spec: SecurityGroupSpec): Set<SecurityGroup> {
+  override fun convertToState(spec: SecurityGroupSpec): SecurityGroup {
     if (spec is AmazonSecurityGroupSpec) {
-      return spec.regions.map { region ->
-        SecurityGroup(
-          type = "aws",
-          name = spec.name,
-          description = spec.description,
-          accountName = spec.accountName,
-          region = region,
-          // TODO rz - do we even want to mess with EC2-classic support?
-          vpcId = clouddriverCache.networkBy(spec.vpcName!!, spec.accountName, region).id,
-          inboundRules = spec.inboundRules.map {
-            when (it) {
-              is ReferenceSecurityGroupRule -> SecurityGroup.SecurityGroupRule(
-                protocol = it.protocol,
-                portRanges = it.portRanges.map { SecurityGroup.SecurityGroupRulePortRange(it.startPort, it.endPort) },
-                securityGroup = SecurityGroup.SecurityGroupRuleReference(
-                  name = it.name,
-                  accountName = spec.accountName,
-                  region = region
-                )
+      return SecurityGroup(
+        type = "aws",
+        name = spec.name,
+        description = spec.description,
+        accountName = spec.accountName,
+        region = spec.region,
+        // TODO rz - do we even want to mess with EC2-classic support?
+        vpcId = clouddriverCache.networkBy(spec.vpcName!!, spec.accountName, spec.region).id,
+        inboundRules = spec.inboundRules.map {
+          when (it) {
+            is ReferenceSecurityGroupRule -> SecurityGroup.SecurityGroupRule(
+              protocol = it.protocol,
+              portRanges = it.portRanges.map { SecurityGroup.SecurityGroupRulePortRange(it.startPort, it.endPort) },
+              securityGroup = SecurityGroup.SecurityGroupRuleReference(
+                name = it.name,
+                accountName = spec.accountName,
+                region = spec.region
               )
-              is CrossAccountReferenceSecurityGroupRule -> SecurityGroup.SecurityGroupRule(
-                protocol = it.protocol,
-                portRanges = it.portRanges.map { SecurityGroup.SecurityGroupRulePortRange(it.startPort, it.endPort) },
-                securityGroup = SecurityGroup.SecurityGroupRuleReference(
-                  name = it.name,
-                  accountName = it.account,
-                  region = it.region
-                )
+            )
+            is CrossAccountReferenceSecurityGroupRule -> SecurityGroup.SecurityGroupRule(
+              protocol = it.protocol,
+              portRanges = it.portRanges.map { SecurityGroup.SecurityGroupRulePortRange(it.startPort, it.endPort) },
+              securityGroup = SecurityGroup.SecurityGroupRuleReference(
+                name = it.name,
+                accountName = it.account,
+                region = spec.region
               )
-              else -> TODO(reason = "${it.javaClass.simpleName} has not been implemented yet")
-            }
-          }.toSet(),
-          id = null,
-          // TODO rz - fix so not bad
-          moniker = Moniker(spec.name)
-        )
-      }.toSet()
+            )
+            else -> TODO(reason = "${it.javaClass.simpleName} has not been implemented yet")
+          }
+        }.toSet(),
+        id = null,
+        moniker = Moniker(spec.name)
+      )
     }
     throw NotImplementedError("Only AWS security groups are supported at the moment")
   }
 
-  override fun convertFromState(state: Set<SecurityGroup>): SecurityGroupSpec? {
-    if (state.isEmpty()) {
-      return null
-    }
-
-    state.first().let {
-      if (it.type == "aws") {
-        return AmazonSecurityGroupSpec(
-          cloudProvider = "aws",
-          application = it.moniker.app,
-          name = it.name,
-          description = it.description!!,
-          accountName = it.accountName,
-          regions = state.map { s -> s.region }.toSet(),
-          vpcName = clouddriverCache.networkBy(it.vpcId!!).name,
-          inboundRules = it.inboundRules.map {
-            objectMapper.convertValue(it, SecurityGroupRule::class.java)
-          }.toSet(),
-          outboundRules = setOf()
-        )
-      }
+  override fun convertFromState(state: SecurityGroup): SecurityGroupSpec? {
+    if (state.type == "aws") {
+      return AmazonSecurityGroupSpec(
+        cloudProvider = "aws",
+        application = state.moniker.app,
+        name = state.name,
+        description = state.description!!,
+        accountName = state.accountName,
+        region = state.region,
+        vpcName = clouddriverCache.networkBy(state.vpcId!!).name,
+        inboundRules = state.inboundRules.map {
+          objectMapper.convertValue(state, SecurityGroupRule::class.java)
+        }.toSet(),
+        outboundRules = setOf()
+      )
     }
     throw NotImplementedError("Only AWS security groups are supported at the moment")
   }
@@ -125,7 +116,7 @@ class SecurityGroupConverter(
             "credentials" to spec.accountName,
             "cloudProvider" to "aws",
             "name" to spec.name,
-            "regions" to spec.regions,
+            "regions" to listOf(spec.region),
             "vpcId" to spec.vpcName,
             "description" to spec.description,
             "securityGroupIngress" to spec.inboundRules.flatMap {
@@ -142,7 +133,7 @@ class SecurityGroupConverter(
                       changeSummary.addMessage("Adding cross account reference support account ${it.account}")
                       m["accountName"] = it.account
                       m["crossAccountEnabled"] = true
-                      m["vpcId"] = clouddriverCache.networkBy(it.vpcName, spec.accountName, it.region)
+                      m["vpcId"] = clouddriverCache.networkBy(it.vpcName, spec.accountName, spec.region)
                     }
                     m
                   }

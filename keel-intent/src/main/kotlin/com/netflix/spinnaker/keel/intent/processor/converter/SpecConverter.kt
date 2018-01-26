@@ -25,5 +25,3 @@ interface SpecConverter<I : IntentSpec, S : Any> {
   fun convertFromState(state: S): I?
   fun convertToJob(spec: I, changeSummary: ChangeSummary): List<Job>
 }
-
-const val COMPUTED_VALUE = "<computed>"

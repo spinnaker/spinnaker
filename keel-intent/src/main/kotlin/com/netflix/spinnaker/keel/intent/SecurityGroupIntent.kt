@@ -35,9 +35,7 @@ class SecurityGroupIntent
   schema = CURRENT_SCHEMA,
   spec = spec
 ) {
-  // TODO rz - Region needs to be included in the id, but we also need a way to supercede other intents if a region is
-  // added or removed.
-  @JsonIgnore override val defaultId = "$KIND:${spec.cloudProvider}:${spec.accountName}:${spec.name}"
+  @JsonIgnore override val defaultId = "$KIND:${spec.cloudProvider}:${spec.accountName}:${spec.region}:${spec.name}"
 }
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "kind")
@@ -45,7 +43,7 @@ abstract class SecurityGroupSpec : ApplicationAwareIntentSpec() {
   abstract val name: String
   abstract val cloudProvider: String
   abstract val accountName: String
-  abstract val regions: Set<String>
+  abstract val region: String
   abstract val inboundRules: Set<SecurityGroupRule>
 }
 
@@ -55,7 +53,7 @@ data class AmazonSecurityGroupSpec(
   override val name: String,
   override val cloudProvider: String,
   override val accountName: String,
-  override val regions: Set<String>,
+  override val region: String,
   override val inboundRules: Set<SecurityGroupRule>,
   val outboundRules: Set<SecurityGroupRule>,
   // We don't care to support EC2 Classic, but for some reason clouddriver returns nulls (and isn't "default" vpcs)
@@ -110,7 +108,6 @@ data class CrossAccountReferenceSecurityGroupRule(
   override val protocol: String,
   override val name: String,
   val account: String,
-  val region: String, // TODO rz - remove; can only x-account to same region
   val vpcName: String
 ) : SecurityGroupRule(), PortRangeSupport
 
