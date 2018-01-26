@@ -1766,7 +1766,7 @@ class GCEUtil {
     while (!executedAtLeastOnce || nextPageToken) {
       HttpsHealthCheckList httpsHealthCheckList = agent.timeExecute(
         compute.httpsHealthChecks().list(project).setPageToken(nextPageToken),
-        "compute.httpsHealtchChecks.list",
+        "compute.httpsHealthChecks.list",
         agent.TAG_SCOPE, agent.SCOPE_GLOBAL)
 
       executedAtLeastOnce = true
@@ -1783,7 +1783,7 @@ class GCEUtil {
     while (!executedAtLeastOnce || nextPageToken) {
       HealthCheckList healthCheckList = agent.timeExecute(
         compute.healthChecks().list(project).setPageToken(nextPageToken),
-        "compute.healtchChecks.list",
+        "compute.healthChecks.list",
         agent.TAG_SCOPE, agent.SCOPE_GLOBAL)
 
       executedAtLeastOnce = true
