@@ -114,6 +114,13 @@ public class PipelineController {
   void cancel(@PathVariable String executionId) {
     log.info("Cancelling pipeline execution {}...", executionId);
 
+    Execution pipeline = executionRepository.retrieve(Execution.ExecutionType.PIPELINE, executionId);
+
+    if (pipeline.getStatus().isComplete()) {
+      log.debug("Not changing status of pipeline execution {} to CANCELED since execution is already completed: {}", executionId, pipeline.getStatus());
+      return;
+    }
+
     executionRepository.cancel(executionId);
     executionRepository.updateStatus(executionId, ExecutionStatus.CANCELED);
   }
