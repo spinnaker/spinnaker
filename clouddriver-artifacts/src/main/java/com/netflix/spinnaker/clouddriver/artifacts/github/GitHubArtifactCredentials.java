@@ -27,12 +27,11 @@ import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
 import com.squareup.okhttp.Request.Builder;
 import com.squareup.okhttp.Response;
-import lombok.extern.slf4j.Slf4j;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.io.IOException;
@@ -93,18 +92,40 @@ public class GitHubArtifactCredentials implements ArtifactCredentials {
 
   public InputStream download(Artifact artifact) throws IOException {
     HttpUrl.Builder metadataUrlBuilder = HttpUrl.parse(artifact.getReference()).newBuilder();
-    metadataUrlBuilder.addQueryParameter("ref", artifact.getVersion());
+    String version = artifact.getVersion();
+    if (StringUtils.isEmpty(version)) {
+      log.info("No version specified for artifact {}, using 'master'.", version);
+      version = "master";
+    }
+
+    metadataUrlBuilder.addQueryParameter("ref", version);
     Request metadataRequest = requestBuilder
       .url(metadataUrlBuilder.build().toString())
       .build();
-    Response metadataResponse = okHttpClient.newCall(metadataRequest).execute();
+
+    Response metadataResponse;
+    try {
+      metadataResponse = okHttpClient.newCall(metadataRequest).execute();
+    } catch (IOException e) {
+      throw new FailedDownloadException("Unable to determine the download URL of artifact " + artifact + ": " + e.getMessage(), e);
+    }
+
     String body = metadataResponse.body().string();
     ContentMetadata metadata = objectMapper.readValue(body, ContentMetadata.class);
+    if (StringUtils.isEmpty(metadata.downloadUrl)) {
+      throw new FailedDownloadException("Failed to retrieve your github artifact's download URL. This is likely due to incorrect auth setup. Artifact: " + artifact);
+    }
+
     Request downloadRequest = requestBuilder
       .url(metadata.getDownloadUrl())
       .build();
-    Response downloadResponse = okHttpClient.newCall(downloadRequest).execute();
-    return downloadResponse.body().byteStream();
+
+    try {
+      Response downloadResponse = okHttpClient.newCall(downloadRequest).execute();
+      return downloadResponse.body().byteStream();
+    } catch (IOException e) {
+      throw new FailedDownloadException("Unable to download the contents of artifact " + artifact + ": " + e.getMessage(), e);
+    }
   }
 
   @Override
@@ -116,5 +137,15 @@ public class GitHubArtifactCredentials implements ArtifactCredentials {
   public static class ContentMetadata {
     @JsonProperty("download_url")
     private String downloadUrl;
+  }
+
+  public class FailedDownloadException extends IOException {
+    public FailedDownloadException(String message) {
+      super(message);
+    }
+
+    public FailedDownloadException(String message, Throwable cause) {
+      super(message, cause);
+    }
   }
 }
