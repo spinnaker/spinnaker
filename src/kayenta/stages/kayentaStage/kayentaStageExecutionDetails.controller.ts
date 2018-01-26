@@ -1,4 +1,5 @@
 import { IScope, module } from 'angular';
+import { isEmpty, map, uniq } from 'lodash';
 import { StateParams } from '@uirouter/angularjs';
 
 import {
@@ -7,6 +8,7 @@ import {
 } from '@spinnaker/core';
 import { RUN_CANARY } from './stageTypes';
 import { CANARY_RUN_SUMMARIES_COMPONENT } from './canaryRunSummaries.component';
+import { getCanaryConfigById } from 'kayenta/service/canaryConfig.service';
 import { ICanaryConfigSummary } from 'kayenta/domain/ICanaryConfigSummary';
 
 import './kayentaStageExecutionDetails.less';
@@ -15,6 +17,7 @@ class KayentaStageExecutionDetailsController {
 
   public canaryRuns: IExecutionStage[];
   public canaryConfigName: string;
+  public scopeNames: string[] = [];
   public resolvedControl: string;
   public resolvedExperiment: string;
 
@@ -31,6 +34,12 @@ class KayentaStageExecutionDetailsController {
         );
       if (canaryConfigSummary) {
         this.canaryConfigName = canaryConfigSummary.name;
+
+        getCanaryConfigById(canaryConfigSummary.id).then(configDetails => {
+          const scopeNames = uniq(map(configDetails.metrics, metric => metric.scopeName || 'default'));
+          this.scopeNames = !isEmpty(scopeNames) ? scopeNames : ['default'];
+          this.resolveControlAndExperimentNames();
+        });
       }
     });
   }
@@ -42,7 +51,6 @@ class KayentaStageExecutionDetailsController {
   private initialize(): void {
     this.executionDetailsSectionService.synchronizeSection(this.$scope.configSections, () => this.initialized());
     this.setCanaryRuns();
-    this.resolveControlAndExperimentNames();
     this.$scope.$watchCollection('stage.tasks', () => this.setCanaryRuns());
   }
 
@@ -53,8 +61,8 @@ class KayentaStageExecutionDetailsController {
   }
 
   private resolveControlAndExperimentNames(): void {
-    this.resolvedControl = this.canaryRuns.length ? this.canaryRuns[0].context.controlScope : this.$scope.stage.context.canaryConfig.controlScope;
-    this.resolvedExperiment = this.canaryRuns.length ? this.canaryRuns[0].context.experimentScope : this.$scope.stage.context.canaryConfig.experimentScope;
+    this.resolvedControl = this.canaryRuns.length ? this.canaryRuns[0].context.scopes[this.scopeNames[0]].controlScope.scope : this.$scope.stage.context.canaryConfig.scopes[0].controlScope;
+    this.resolvedExperiment = this.canaryRuns.length ? this.canaryRuns[0].context.scopes[this.scopeNames[0]].experimentScope.scope : this.$scope.stage.context.canaryConfig.scopes[0].experimentScope;
   }
 
   private initialized(): void {
