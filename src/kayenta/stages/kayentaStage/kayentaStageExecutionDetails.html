@@ -13,7 +13,8 @@
 
     <div class="row">
       <div class="col-md-12">
-        <canary-run-summaries canary-runs="kayentaStageDetailsCtrl.canaryRuns"></canary-run-summaries>
+        <canary-run-summaries canary-runs="kayentaStageDetailsCtrl.canaryRuns"
+                              first-scope-name="kayentaStageDetailsCtrl.firstScopeName"></canary-run-summaries>
       </div>
     </div>
 
@@ -35,17 +36,17 @@
           <div class="col-md-4 sm-label-right compact">Canary</div>
           <div class="col-md-8" style="word-wrap: break-word">{{ kayentaStageDetailsCtrl.resolvedExperiment }}</div>
         </div>
-        <div class="row" ng-if="stage.context.canaryConfig.step">
+        <div class="row" ng-if="stage.context.canaryConfig.scopes[0].step">
           <div class="col-md-4 sm-label-right compact">Step</div>
-          <div class="col-md-8" style="word-wrap: break-word">{{stage.context.canaryConfig.step}}</div>
+          <div class="col-md-8" style="word-wrap: break-word">{{stage.context.canaryConfig.scopes[0].step}}</div>
         </div>
-        <div class="row" ng-if="stage.context.canaryConfig.startTimeIso">
+        <div class="row" ng-if="stage.context.canaryConfig.scopes[0].startTimeIso">
           <div class="col-md-4 sm-label-right compact">Start Time</div>
-          <div class="col-md-8" style="word-wrap: break-word">{{ stage.context.canaryConfig.startTimeIso | dateToMillis | timestamp}}</div>
+          <div class="col-md-8" style="word-wrap: break-word">{{ stage.context.canaryConfig.scopes[0].startTimeIso | dateToMillis | timestamp}}</div>
         </div>
-        <div class="row" ng-if="stage.context.canaryConfig.endTimeIso">
+        <div class="row" ng-if="stage.context.canaryConfig.scopes[0].endTimeIso">
           <div class="col-md-4 sm-label-right compact">End Time</div>
-          <div class="col-md-8" style="word-wrap: break-word">{{stage.context.canaryConfig.endTimeIso | dateToMillis | timestamp}}</div>
+          <div class="col-md-8" style="word-wrap: break-word">{{stage.context.canaryConfig.scopes[0].endTimeIso | dateToMillis | timestamp}}</div>
         </div>
       </div>
       <div class="col-md-12 canary-config-section">

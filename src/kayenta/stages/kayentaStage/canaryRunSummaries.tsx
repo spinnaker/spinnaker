@@ -11,12 +11,13 @@ import './canaryRunSummaries.less';
 
 export interface ICanarySummariesProps {
   canaryRuns: IStage[];
+  firstScopeName: string;
 }
 
 export interface ICanaryRunColumn {
   label?: string;
   width: number;
-  getContent: (run: IStage) => JSX.Element;
+  getContent: (run: IStage, firstScopeName?: string) => JSX.Element;
 }
 
 const canaryRunColumns: ICanaryRunColumn[] = [
@@ -44,8 +45,8 @@ const canaryRunColumns: ICanaryRunColumn[] = [
   },
   {
     width: 1,
-    getContent: run => {
-      const popoverTemplate = <CanaryRunTimestamps canaryRun={run}/>;
+    getContent: (run, firstScopeName) => {
+      const popoverTemplate = <CanaryRunTimestamps canaryRun={run} firstScopeName={firstScopeName}/>;
       return (
         <section className="horizontal text-center">
           <div className="flex-1">
@@ -62,14 +63,14 @@ const canaryRunColumns: ICanaryRunColumn[] = [
   }
 ];
 
-export default function CanaryRunSummaries({ canaryRuns }: ICanarySummariesProps) {
+export default function CanaryRunSummaries({ canaryRuns, firstScopeName }: ICanarySummariesProps) {
   return (
     <Styleguide>
       <section className="canary-run-summaries">
         <CanaryRunHeader/>
         {
           canaryRuns.map(run => (
-            <CanaryRunRow canaryRun={run} key={run.id}/>
+            <CanaryRunRow canaryRun={run} key={run.id} firstScopeName={firstScopeName}/>
           ))
         }
       </section>
@@ -94,7 +95,7 @@ function CanaryRunHeader() {
   );
 }
 
-function CanaryRunRow({ canaryRun }: { canaryRun: IStage }) {
+function CanaryRunRow({ canaryRun, firstScopeName }: { canaryRun: IStage, firstScopeName: string }) {
   return (
     <section className="horizontal small grey-border-bottom">
       {
@@ -103,7 +104,7 @@ function CanaryRunRow({ canaryRun }: { canaryRun: IStage }) {
             className={`flex-${column.width}`}
             key={i}
           >
-            {column.getContent(canaryRun)}
+            {column.getContent(canaryRun, firstScopeName)}
           </div>
         ))
       }
@@ -111,18 +112,18 @@ function CanaryRunRow({ canaryRun }: { canaryRun: IStage }) {
   );
 }
 
-function CanaryRunTimestamps({ canaryRun }: { canaryRun: IStage }) {
+function CanaryRunTimestamps({ canaryRun, firstScopeName }: { canaryRun: IStage, firstScopeName: string }) {
   const toolTipText = 'Copy timestamp to clipboard';
   return (
     <section className="small">
       <ul className="list-unstyled">
         <li>
-          <b>Start:</b> {timestamp(Date.parse(canaryRun.context.startTimeIso))}
-          <CopyToClipboard text={canaryRun.context.startTimeIso} toolTip={toolTipText}/>
+          <b>Start:</b>{timestamp(Date.parse(canaryRun.context.scopes[firstScopeName].controlScope.start))}
+          <CopyToClipboard text={canaryRun.context.scopes[firstScopeName].controlScope.start} toolTip={toolTipText}/>
         </li>
         <li>
-          <b>End:</b> {timestamp(Date.parse(canaryRun.context.endTimeIso))}
-          <CopyToClipboard text={canaryRun.context.endTimeIso} toolTip={toolTipText}/>
+          <b>End:</b> {timestamp(Date.parse(canaryRun.context.scopes[firstScopeName].controlScope.end))}
+          <CopyToClipboard text={canaryRun.context.scopes[firstScopeName].controlScope.end} toolTip={toolTipText}/>
         </li>
       </ul>
     </section>
