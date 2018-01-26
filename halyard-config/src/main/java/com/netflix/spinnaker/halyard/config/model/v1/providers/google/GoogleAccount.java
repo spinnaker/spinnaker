@@ -30,6 +30,7 @@ import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.ArrayList;
@@ -38,6 +39,7 @@ import java.util.List;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
+@Slf4j
 public class GoogleAccount extends CommonGoogleAccount implements Cloneable, SupportsConsul {
   private boolean alphaListed;
   private List<String> imageProjects = new ArrayList<>();
@@ -75,6 +77,7 @@ public class GoogleAccount extends CommonGoogleAccount implements Cloneable, Sup
           .computeVersion(isAlphaListed() ? ComputeVersion.ALPHA : ComputeVersion.DEFAULT)
           .imageProjects(getImageProjects())
           .applicationName("halyard " + version)
+          .liveLookupsEnabled(false)
           .build();
     } catch (Exception e) {
       p.addProblem(Problem.Severity.ERROR, "Error instantiating Google credentials: " + e.getMessage() + ".")

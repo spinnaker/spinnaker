@@ -16,9 +16,6 @@
 
 package com.netflix.spinnaker.halyard.config.config.v1;
 
-import static com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity.FATAL;
-
-import com.netflix.discovery.converters.Auto;
 import com.netflix.spinnaker.halyard.config.error.v1.ParseConfigException;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Halconfig;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Node;
@@ -52,6 +49,8 @@ import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+import static com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity.FATAL;
+
 /**
  * A parser for all Config read by Halyard at runtime.
  *
@@ -78,9 +77,6 @@ public class HalconfigParser {
 
   @Autowired
   Yaml yamlParser;
-
-  @Autowired
-  GlobalApplicationOptions globalApplicationOptions;
 
   private boolean useBackup = false;
   private String backupHalconfigPath;
@@ -166,7 +162,7 @@ public class HalconfigParser {
    * Deletes all files in the staging directory that are not referenced in the hal config.
    */
   public void cleanLocalFiles(Path stagingDirectoryPath) {
-    if (!globalApplicationOptions.isUseRemoteDaemon()) {
+    if (!GlobalApplicationOptions.getInstance().isUseRemoteDaemon()) {
       return;
     }
     Halconfig halconfig = getHalconfig();
