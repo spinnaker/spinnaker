@@ -1,4 +1,8 @@
 .result-detail-layout {
-  height: 65vh;
   overflow-y: auto;
+  flex: 1 1 0;
+
+  @media screen and (max-height: 700px) {
+    max-height: 50vh;
+  }
 }

@@ -8,6 +8,8 @@ import MetricResultsList from './metricResultsList';
 import MetricResultDetail from './metricResultDetail';
 import { judgeResultSelector } from '../selectors/index';
 
+import './metricResults.less';
+
 interface IMetricResultsStateProps {
   metricResults: ICanaryAnalysisResult[];
   selectedMetricResult: ICanaryAnalysisResult;
@@ -23,6 +25,7 @@ const MetricResults = ({ metricResults, selectedMetricResult }: IMetricResultsSt
       listWidth={5}
       detail={detail}
       detailWidth={9}
+      className="metric-results"
     />
   );
 };

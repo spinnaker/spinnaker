@@ -27,6 +27,13 @@
     ul {
       max-height: calc(~"70vh - 44px"); // i.e., minus the footer.
       overflow: auto;
+      @media screen and (max-height: 1000px) {
+        max-height: 55vh;
+      }
+
+      @media screen and (max-height: 700px) {
+        max-height: 45vh;
+      }
     }
   }
 
@@ -34,9 +41,22 @@
     padding: 1rem;
     overflow-y: auto;
 
+    // TODO(dpeach): get this working with flexbox properly.
     max-height: 82vh;
-    @media screen and (max-height: 1200px) {
-      max-height: 75vh;
+    @media screen and (max-height: 1100px) {
+      max-height: 73vh;
+    }
+
+    @media screen and (max-height: 1000px) {
+      max-height: 70vh;
+    }
+
+    @media screen and (max-height: 700px) {
+      max-height: 65vh;
+    }
+
+    @media screen and (max-height: 550px) {
+      max-height: 55vh;
     }
 
     .config-detail-header {
