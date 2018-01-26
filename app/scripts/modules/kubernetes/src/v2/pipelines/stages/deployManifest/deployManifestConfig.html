@@ -42,14 +42,16 @@
                               id-field="manifestArtifactId"
                               account-field="manifestArtifactAccount"
                               accounts="ctrl.metadata.backingData.artifactAccounts"
-                              expected-artifacts="ctrl.expectedArtifacts">
+                              expected-artifacts="ctrl.expectedArtifacts"
+                              help-field-key="kubernetes.manifest.expectedArtifact">
   </expected-artifact-selector>
 
   <hr>
 
   <expected-artifact-multi-selector command="ctrl.$scope.stage"
                                     ids-field="requiredArtifactIds"
-                                    artifact-label="Required artifacts to bind"
-                                    expected-artifacts="ctrl.expectedArtifacts">
+                                    artifact-label="Req. Artifacts To Bind"
+                                    expected-artifacts="ctrl.expectedArtifacts"
+                                    help-field-key="kubernetes.manifest.requiredArtifactsToBind">
   </expected-artifact-multi-selector>
 </div>

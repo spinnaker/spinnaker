@@ -44,7 +44,13 @@
           <help-field key="pipeline.config.artifact.help"></help-field>
         </p>
       </div>
-      <expected-artifact ng-repeat="expectedArtifact in pipeline.expectedArtifacts" expected-artifact="expectedArtifact" pipeline="pipeline" application="application"></expected-artifact>
+      <expected-artifact
+        ng-repeat="expectedArtifact in pipeline.expectedArtifacts"
+        expected-artifact="expectedArtifact"
+        pipeline="pipeline"
+        help-field-key="kubernetes.manifest.requiredArtifactsToBind"
+        application="application">
+      </expected-artifact>
       <hr/>
       <div class="row" ng-if="!pipeline.expectedArtifacts.length">
         <p class="col-md-12">

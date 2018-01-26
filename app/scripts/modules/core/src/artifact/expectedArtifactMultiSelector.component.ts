@@ -8,6 +8,7 @@ class ExpectedArtifactMultiSelectorCtrl implements IController {
   public idsField: string;
   public label: string;
   public expectedArtifacts: IExpectedArtifact[];
+  public helpFieldKey: string;
 
   constructor (public expectedArtifactService: ExpectedArtifactService) {
     'ngInject';
@@ -15,7 +16,7 @@ class ExpectedArtifactMultiSelectorCtrl implements IController {
 }
 
 class ExpectedArtifactMultiSelectorComponent implements IComponentOptions {
-  public bindings: any = { command: '=', expectedArtifacts: '<', artifactLabel: '@', idsField: '@' };
+  public bindings: any = { command: '=', expectedArtifacts: '<', artifactLabel: '@', idsField: '@', helpFieldKey: '@' };
   public controller: any = ExpectedArtifactMultiSelectorCtrl;
   public controllerAs = 'ctrl';
   public template = `
@@ -23,7 +24,7 @@ class ExpectedArtifactMultiSelectorComponent implements IComponentOptions {
         <ng-form name="artifacts">
           <div class="col-md-12">
             <div class="form-group">
-              <label class="col-md-3 sm-label-right">{{ctrl.artifactLabel}}</label>
+              <label class="col-md-3 sm-label-right">{{ctrl.artifactLabel}} <help-field key="{{ctrl.helpFieldKey}}"/></label>
               <div class="col-md-9">
                 <ui-select multiple
                            ng-model="ctrl.command[ctrl.idsField]"

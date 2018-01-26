@@ -10,6 +10,7 @@ class ExpectedArtifactSelectorCtrl implements IController {
   public accountField: string;
   public accounts: IAccount[];
   public expectedArtifacts: IExpectedArtifact[];
+  public helpFieldKey: string;
 
   constructor (public expectedArtifactService: ExpectedArtifactService) {
     'ngInject';
@@ -17,7 +18,7 @@ class ExpectedArtifactSelectorCtrl implements IController {
 }
 
 class ExpectedArtifactSelectorComponent implements IComponentOptions {
-  public bindings: any = { command: '=', expectedArtifacts: '<', idField: '@', accountField: '@', accounts: '<' };
+  public bindings: any = { command: '=', expectedArtifacts: '<', idField: '@', accountField: '@', accounts: '<', helpFieldKey: '@' };
   public controller: any = ExpectedArtifactSelectorCtrl;
   public controllerAs = 'ctrl';
   public template = `
@@ -25,7 +26,7 @@ class ExpectedArtifactSelectorComponent implements IComponentOptions {
       <div class="container-fluid form-horizontal">
         <ng-form name="artifact">
           <div class="form-group">
-            <label class="col-md-3 sm-label-right">Expected Artifact</label>
+            <label class="col-md-3 sm-label-right">Expected Artifact <help-field key="{{ ctrl.helpFieldKey }}"/></label>
             <div class="col-md-7">
               <ui-select ng-model="ctrl.command[ctrl.idField]"
                          class="form-control input-sm">

@@ -55,6 +55,7 @@ module(HELP_CONTENTS, [])
           <li>Trigger</li>
           <li>Context - server groups, bakery results, etc.</li>
         </ul>`,
+    'pipeline.config.expectedArtifact': 'Artifacts required for trigger to execute.  Only one of the artifacts need to be present for the trigger to execute',
     'pipeline.config.artifact.help': `
         <p>There are certain types of triggers (e.g. Pub/Sub triggers) that can produce artifacts and inject them into the execution context for a pipeline.</p>
         <p>You can specify artifacts that your pipeline expects to be present in the execution context in this section.</p>`,
