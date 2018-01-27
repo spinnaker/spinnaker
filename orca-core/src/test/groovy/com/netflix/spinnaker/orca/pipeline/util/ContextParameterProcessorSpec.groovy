@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.pipeline.util
 
 import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.expressions.ExpressionEvaluationSummary
 import com.netflix.spinnaker.orca.pipeline.expressions.ExpressionTransform
 import com.netflix.spinnaker.orca.pipeline.expressions.ExpressionsSupport
@@ -313,11 +314,11 @@ class ContextParameterProcessorSpec extends Specification {
 
   def "ignores deployment details that have not yet ran"() {
     given:
-    def source = ['deployed': '${deployedServerGroups}']
-    def context = [execution: execution]
+    def source = [deployed: '${deployedServerGroups}']
+    def ctx = [execution: OrcaObjectMapper.newInstance().convertValue(execution, Map)]
 
     when:
-    def result = contextParameterProcessor.process(source, context, true)
+    def result = contextParameterProcessor.process(source, ctx, true)
     def summary = result.expressionEvaluationSummary as Map<String, List>
 
     then:
@@ -327,27 +328,21 @@ class ContextParameterProcessorSpec extends Specification {
 
     where:
     execution = [
-      "stages": [
+      stages: [
         [
-          "type"         : "deploy",
-          "name"         : "Deploy in us-east-1",
-          "context"      : [
-            "capacity"           : [
-              "desired": 1,
-              "max"    : 1,
-              "min"    : 1
-            ],
+          type         : "deploy",
+          name         : "Deploy in us-east-1",
+          context      : [
+            capacity             : [desired: 1, max: 1, min: 1],
             "deploy.account.name": "test",
-            "stack"              : "test",
-            "strategy"           : "highlander",
-            "subnetType"         : "internal",
-            "suspendedProcesses" : [],
-            "terminationPolicies": [
-              "Default"
-            ],
-            "type"               : "linearDeploy"
+            stack                : "test",
+            strategy             : "highlander",
+            subnetType           : "internal",
+            suspendedProcesses   : [],
+            terminationPolicies  : ["Default"],
+            type                 : "linearDeploy"
           ],
-          "parentStageId": "dca27ddd-ce7d-42a0-a1db-5b43c6b2f0c7",
+          parentStageId: "dca27ddd-ce7d-42a0-a1db-5b43c6b2f0c7",
         ]
       ]
     ]

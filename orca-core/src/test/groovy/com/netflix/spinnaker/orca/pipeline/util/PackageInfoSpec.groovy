@@ -17,7 +17,6 @@ package com.netflix.spinnaker.orca.pipeline.util
 
 import java.util.regex.Pattern
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.JenkinsTrigger
 import com.netflix.spinnaker.orca.pipeline.model.PipelineTrigger
 import com.netflix.spinnaker.orca.pipeline.model.Stage
@@ -28,6 +27,7 @@ import spock.lang.Unroll
 import static com.netflix.spinnaker.orca.pipeline.model.JenkinsTrigger.BuildInfo
 import static com.netflix.spinnaker.orca.pipeline.model.JenkinsTrigger.JenkinsArtifact
 import static com.netflix.spinnaker.orca.pipeline.util.PackageType.DEB
+import static com.netflix.spinnaker.orca.pipeline.util.PackageType.RPM
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
 
@@ -90,8 +90,8 @@ class PackageInfoSpec extends Specification {
           refId = "$i"
           outputs["buildInfo"] = [
             artifacts: [
-              [fileName: "${name}.deb"],
-              [fileName: "${name}.war"],
+              [fileName: "${name}.deb".toString()],
+              [fileName: "${name}.war".toString()],
               [fileName: "build.properties"]
             ],
             url      : "http://localhost",
@@ -193,28 +193,20 @@ class PackageInfoSpec extends Specification {
     requestMap.package == result
 
     where:
-    filename                                                        || requestPackage      || packageType       || result
-    [["fileName": "package-4.11.4h-1.x86_64.rpm"]]                  || "package"           || PackageType.RPM   || "package-4.11.4h-1.x86_64"
-    [["fileName": "package-something-4.11.4h-1.x86_64.rpm"]]        || "package"           || PackageType.RPM   || "package"
-    [["fileName": "package-4.11.4h-1.x86_64.rpm"],
-     ["fileName": "package-something-4.11.4h-1.x86_64.rpm"]]        || "package"           || PackageType.RPM   || "package-4.11.4h-1.x86_64"
-    [["fileName": "package-something-4.11.4h-1.x86_64.rpm"],
-     ["fileName": "package-4.11.4h-1.x86_64.rpm"]]                  || "package"           || PackageType.RPM   || "package-4.11.4h-1.x86_64"
-    [["fileName": "package_4.11.4-h02.sha123_amd64.deb"]]           || "package"           || DEB               || "package_4.11.4-h02.sha123_amd64"
-    [["fileName": "package-something_4.11.4-h02.sha123_amd64.deb"]] || "package"           || DEB               || "package"
-    [["fileName": "package_4.11.4-h02.deb"],
-     ["fileName": "package-something_4.11.4-h02.deb"]]              || "package"           || DEB               || "package_4.11.4-h02"
-    [["fileName": "package_4.11.4-h02.sha123.deb"],
-     ["fileName": "package-something_4.11.4-h02.deb"]]              || "package-something" || DEB               || "package-something_4.11.4-h02"
-    [["fileName": "package_4.11.4-h02.sha123.deb"],
-     ["fileName": "package-something_4.11.4-h02.sha123.deb"]]       || "package"           || DEB               || "package_4.11.4-h02.sha123"
-    [["fileName": "package.4.11.4-1+x86_64.nupkg"]]                 || "package"           || PackageType.NUPKG || "package.4.11.4-1+x86_64"
-    [["fileName": "package-something.4.11.4-1+x86_64.nupkg"]]       || "package-something" || PackageType.NUPKG || "package-something.4.11.4-1+x86_64"
-    [["fileName": "package.4.11.4-1+x86_64.nupkg"],
-     ["fileName": "package-something.4.11.4-1+x86_64.nupkg"]]       || "package-something" || PackageType.NUPKG || "package-something.4.11.4-1+x86_64"
-    [["fileName": "package-something.4.11.4-1+x86_64.nupkg"],
-     ["fileName": "package.4.11.4-1+x86_64.nupkg"]]                 || "package"           || PackageType.NUPKG || "package.4.11.4-1+x86_64"
-
+    filename                                       | requestPackage | packageType || result
+    [["fileName": "package-4.11.4h-1.x86_64.rpm"]] | "package"      | RPM         || "package-4.11.4h-1.x86_64"
+//    [["fileName": "package-something-4.11.4h-1.x86_64.rpm"]]                                                 | "package"           | RPM         || "package"
+//    [["fileName": "package-4.11.4h-1.x86_64.rpm"], ["fileName": "package-something-4.11.4h-1.x86_64.rpm"]]   | "package"           | RPM         || "package-4.11.4h-1.x86_64"
+//    [["fileName": "package-something-4.11.4h-1.x86_64.rpm"], ["fileName": "package-4.11.4h-1.x86_64.rpm"]]   | "package"           | RPM         || "package-4.11.4h-1.x86_64"
+//    [["fileName": "package_4.11.4-h02.sha123_amd64.deb"]]                                                    | "package"           | DEB         || "package_4.11.4-h02.sha123_amd64"
+//    [["fileName": "package-something_4.11.4-h02.sha123_amd64.deb"]]                                          | "package"           | DEB         || "package"
+//    [["fileName": "package_4.11.4-h02.deb"], ["fileName": "package-something_4.11.4-h02.deb"]]               | "package"           | DEB         || "package_4.11.4-h02"
+//    [["fileName": "package_4.11.4-h02.sha123.deb"], ["fileName": "package-something_4.11.4-h02.deb"]]        | "package-something" | DEB         || "package-something_4.11.4-h02"
+//    [["fileName": "package_4.11.4-h02.sha123.deb"], ["fileName": "package-something_4.11.4-h02.sha123.deb"]] | "package"           | DEB         || "package_4.11.4-h02.sha123"
+//    [["fileName": "package.4.11.4-1+x86_64.nupkg"]]                                                          | "package"           | NUPKG       || "package.4.11.4-1+x86_64"
+//    [["fileName": "package-something.4.11.4-1+x86_64.nupkg"]]                                                | "package-something" | NUPKG       || "package-something.4.11.4-1+x86_64"
+//    [["fileName": "package.4.11.4-1+x86_64.nupkg"], ["fileName": "package-something.4.11.4-1+x86_64.nupkg"]] | "package-something" | NUPKG       || "package-something.4.11.4-1+x86_64"
+//    [["fileName": "package-something.4.11.4-1+x86_64.nupkg"], ["fileName": "package.4.11.4-1+x86_64.nupkg"]] | "package"           | NUPKG       || "package.4.11.4-1+x86_64"
   }
 
   def "findTargetPackage: bake execution with only a package set and jenkins stage artifacts"() {
@@ -246,11 +238,14 @@ class PackageInfoSpec extends Specification {
 
   def "findTargetPackage: bake execution with empty package set and jenkins stage artifacts sho"() {
     given:
-    Stage bakeStage = new Stage()
-    def pipeline = Execution.newPipeline("orca")
-    bakeStage.execution = pipeline
-    bakeStage.context = [package: '']
-
+    def pipeline = pipeline {
+      stage {
+        type = "bake"
+        refId = "1"
+        context["package"] = ""
+      }
+    }
+    def bakeStage = pipeline.stageByRef("1")
 
     PackageType packageType = DEB
     ObjectMapper objectMapper = new ObjectMapper()
@@ -356,7 +351,7 @@ class PackageInfoSpec extends Specification {
     where:
     allowMissingPackageInstallation || expectedException || expectedMessage
     true                            || false             || null
-    false                           || true              || "Unable to find deployable artifact starting with [another_package_] and ending with .deb in null and [api_1.1.1-h01.sha123_all.deb]. Make sure your deb package file name complies with the naming convention: name_version-release_arch."
+    false                           || true              || "Unable to find deployable artifact starting with [another_package_] and ending with .deb in [] and [api_1.1.1-h01.sha123_all.deb]. Make sure your deb package file name complies with the naming convention: name_version-release_arch."
   }
 
   def "findTargetPackage: stage execution instance of Pipeline with trigger and no buildInfo"() {
@@ -411,39 +406,15 @@ class PackageInfoSpec extends Specification {
     Stage stage = new Stage(context: [package: "package"])
     PackageInfo packageInfo = new PackageInfo(stage, null, null, true, true, null)
 
-    when:
-    Map artifactSourceBuildInfo = packageInfo.getArtifactSourceBuildInfo(trigger)
-
-    then:
-    buildInfo == artifactSourceBuildInfo
+    expect:
+    packageInfo.getArtifactSourceBuildInfo(trigger) == buildInfo
 
     where:
-    trigger     || buildInfo
-    [buildInfo: [
-      something: "else"
-    ]]          || null
-    [parentExecution: [
-      trigger: [
-        buildInfo: [
-          artifacts: [
-            [fileName: "api_1.1.1-h01.sha123_all.deb"]
-          ]]]]] || [artifacts: [[fileName: "api_1.1.1-h01.sha123_all.deb"]]]
-    [buildInfo: [
-      artifacts: [
-        [fileName: "api_1.1.1-h01.sha123_all.deb"]
-      ]]]       || [artifacts: [[fileName: "api_1.1.1-h01.sha123_all.deb"]]]
-    [
-      buildInfo      : [
-        artifacts: [
-          [fileName: "first_1.1.1-h01.sha123_all.deb"]
-        ]],
-      parentExecution: [
-        trigger: [
-          buildInfo: [
-            artifacts: [
-              [fileName: "api_1.1.1-h01.sha123_all.deb"]
-            ]]]]
-    ]           || [artifacts: [[fileName: "first_1.1.1-h01.sha123_all.deb"]]]
+    trigger                                                                                                                                                                      || buildInfo
+    [buildInfo: [something: "else"]]                                                                                                                                             || [:]
+    [parentExecution: [trigger: [buildInfo: [artifacts: [[fileName: "api_1.1.1-h01.sha123_all.deb"]]]]]]                                                                         || [artifacts: [[fileName: "api_1.1.1-h01.sha123_all.deb"]]]
+    [buildInfo: [artifacts: [[fileName: "api_1.1.1-h01.sha123_all.deb"]]]]                                                                                                       || [artifacts: [[fileName: "api_1.1.1-h01.sha123_all.deb"]]]
+    [buildInfo: [artifacts: [[fileName: "first_1.1.1-h01.sha123_all.deb"]]], parentExecution: [trigger: [buildInfo: [artifacts: [[fileName: "api_1.1.1-h01.sha123_all.deb"]]]]]] || [artifacts: [[fileName: "first_1.1.1-h01.sha123_all.deb"]]]
   }
 
   @Unroll

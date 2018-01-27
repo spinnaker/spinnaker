@@ -100,7 +100,7 @@ class CreateBakeTaskSpec extends Specification {
 
   @Shared
   def buildInfoWithUrl = new BuildInfo(
-    "name", 0, "http://spinnaker.builds.test.netflix.net/job/SPINNAKER-package-echo/69/".toURI(),
+    "name", 0, "http://spinnaker.builds.test.netflix.net/job/SPINNAKER-package-echo/69/",
     [
       new JenkinsArtifact("hodor_1.1_all.deb", "."),
       new JenkinsArtifact("hodor-1.1.noarch.rpm", "."),
@@ -110,7 +110,7 @@ class CreateBakeTaskSpec extends Specification {
 
   @Shared
   def buildInfoWithFoldersUrl = new BuildInfo(
-    "name", 0, "http://spinnaker.builds.test.netflix.net/job/folder/job/SPINNAKER-package-echo/69/".toURI(),
+    "name", 0, "http://spinnaker.builds.test.netflix.net/job/folder/job/SPINNAKER-package-echo/69/",
     [
       new JenkinsArtifact("hodor_1.1_all.deb", "."),
       new JenkinsArtifact("hodor-1.1.noarch.rpm", "."),
@@ -120,7 +120,7 @@ class CreateBakeTaskSpec extends Specification {
 
   @Shared
   def buildInfoWithUrlAndSCM = new BuildInfo(
-    "name", 0, "http://spinnaker.builds.test.netflix.net/job/SPINNAKER-package-echo/69/".toURI(),
+    "name", 0, "http://spinnaker.builds.test.netflix.net/job/SPINNAKER-package-echo/69/",
     [
       new JenkinsArtifact("hodor_1.1_all.deb", "."),
       new JenkinsArtifact("hodor-1.1.noarch.rpm", "."),
@@ -132,7 +132,7 @@ class CreateBakeTaskSpec extends Specification {
 
   @Shared
   def buildInfoWithUrlAndTwoSCMs = new BuildInfo(
-    "name", 0, "http://spinnaker.builds.test.netflix.net/job/SPINNAKER-package-echo/69/".toURI(),
+    "name", 0, "http://spinnaker.builds.test.netflix.net/job/SPINNAKER-package-echo/69/",
     [
       new JenkinsArtifact("hodor_1.1_all.deb", "."),
       new JenkinsArtifact("hodor-1.1.noarch.rpm", "."),
@@ -145,7 +145,7 @@ class CreateBakeTaskSpec extends Specification {
 
   @Shared
   def buildInfoWithUrlAndMasterAndDevelopSCMs = new BuildInfo(
-    "name", 0, "http://spinnaker.builds.test.netflix.net/job/SPINNAKER-package-echo/69/".toURI(),
+    "name", 0, "http://spinnaker.builds.test.netflix.net/job/SPINNAKER-package-echo/69/",
     [
       new JenkinsArtifact("hodor_1.1_all.deb", "."),
       new JenkinsArtifact("hodor-1.1.noarch.rpm", "."),

@@ -16,20 +16,17 @@
 
 package com.netflix.spinnaker.orca.pipeline
 
-import com.netflix.spinnaker.orca.ExecutionStatus
-import spock.lang.Subject
-import java.text.SimpleDateFormat
+import java.time.Instant
+import java.time.LocalTime
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.tasks.WaitTask
 import spock.lang.Specification
+import spock.lang.Subject
 import spock.lang.Unroll
-
-import java.time.Duration
-import java.time.LocalTime
-import java.time.format.DateTimeFormatter
-
 import static com.netflix.spinnaker.orca.pipeline.RestrictExecutionDuringTimeWindow.SuspendExecutionDuringTimeWindowTask
-import static com.netflix.spinnaker.orca.pipeline.RestrictExecutionDuringTimeWindow.SuspendExecutionDuringTimeWindowTask.HourMinute
 import static com.netflix.spinnaker.orca.pipeline.RestrictExecutionDuringTimeWindow.SuspendExecutionDuringTimeWindowTask.TimeWindow
 
 @Unroll
@@ -44,7 +41,7 @@ class RestrictExecutionDuringTimeWindowSpec extends Specification {
     when:
     SuspendExecutionDuringTimeWindowTask suspendExecutionDuringTimeWindowTask = new SuspendExecutionDuringTimeWindowTask()
     suspendExecutionDuringTimeWindowTask.timeZoneId = "America/Los_Angeles"
-    Date result = suspendExecutionDuringTimeWindowTask.calculateScheduledTime(scheduledTime, timeWindows, [])
+    def result = suspendExecutionDuringTimeWindowTask.calculateScheduledTime(scheduledTime, timeWindows, [])
 
     then:
     result.equals(expectedTime)
@@ -99,7 +96,7 @@ class RestrictExecutionDuringTimeWindowSpec extends Specification {
     when:
     SuspendExecutionDuringTimeWindowTask suspendExecutionDuringTimeWindowTask = new SuspendExecutionDuringTimeWindowTask()
     suspendExecutionDuringTimeWindowTask.timeZoneId = "America/Los_Angeles"
-    Date result = suspendExecutionDuringTimeWindowTask.calculateScheduledTime(scheduledTime, timeWindows, days)
+    def result = suspendExecutionDuringTimeWindowTask.calculateScheduledTime(scheduledTime, timeWindows, days)
 
     then:
     result.equals(expectedTime)
@@ -120,7 +117,7 @@ class RestrictExecutionDuringTimeWindowSpec extends Specification {
     when:
     SuspendExecutionDuringTimeWindowTask suspendExecutionDuringTimeWindowTask = new SuspendExecutionDuringTimeWindowTask()
     suspendExecutionDuringTimeWindowTask.timeZoneId = "America/Los_Angeles"
-    Date result = suspendExecutionDuringTimeWindowTask.getTimeInWindow(stage, scheduledTime)
+    def result = suspendExecutionDuringTimeWindowTask.getTimeInWindow(stage, scheduledTime)
 
     then:
     result.equals(expectedTime)
@@ -168,7 +165,7 @@ class RestrictExecutionDuringTimeWindowSpec extends Specification {
     when:
     SuspendExecutionDuringTimeWindowTask suspendExecutionDuringTimeWindowTask = new SuspendExecutionDuringTimeWindowTask()
     suspendExecutionDuringTimeWindowTask.timeZoneId = "America/Los_Angeles"
-    Date result = suspendExecutionDuringTimeWindowTask.calculateScheduledTime(scheduledTime, timeWindows, days)
+    def result = suspendExecutionDuringTimeWindowTask.calculateScheduledTime(scheduledTime, timeWindows, days)
 
     then:
     result.equals(expectedTime)
@@ -201,7 +198,7 @@ class RestrictExecutionDuringTimeWindowSpec extends Specification {
     } else {
       assert restrictExecutionStage.context.waitTime == null
     }
-    waitTaskCount * builder.withTask("waitForJitter", com.netflix.spinnaker.orca.pipeline.tasks.WaitTask)
+    waitTaskCount * builder.withTask("waitForJitter", WaitTask)
 
     where:
     jitterEnabled | min  | max  | waitTaskCount
@@ -215,16 +212,17 @@ class RestrictExecutionDuringTimeWindowSpec extends Specification {
   private hourMinute(String hourMinuteStr) {
     int hour = hourMinuteStr.tokenize(":").get(0) as Integer
     int min = hourMinuteStr.tokenize(":").get(1) as Integer
-    return new HourMinute(hour, min)
+    return LocalTime.of(hour, min)
   }
 
-  private Date date(String dateStr) {
-    SimpleDateFormat sdf = new SimpleDateFormat("MM/dd HH:mm:ss z yyyy");
-    sdf.setTimeZone(TimeZone.getTimeZone("America/Los_Angeles"));
-    return sdf.parse(dateStr + " PST 2015")
+  private Instant date(String dateStr) {
+    def sdf = DateTimeFormatter
+      .ofPattern("MM/dd HH:mm:ss z yyyy")
+      .withZone(ZoneId.of("America/Los_Angeles"))
+    return Instant.from(sdf.parse(dateStr + " PST 2015"));
   }
 
-  private TimeWindow window(HourMinute start, HourMinute end) {
+  private TimeWindow window(LocalTime start, LocalTime end) {
     return new TimeWindow(start, end)
   }
 

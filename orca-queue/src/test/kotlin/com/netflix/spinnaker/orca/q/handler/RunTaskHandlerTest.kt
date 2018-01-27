@@ -27,7 +27,6 @@ import com.netflix.spinnaker.orca.exceptions.ExceptionHandler
 import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
 import com.netflix.spinnaker.orca.pipeline.model.Execution.PausedDetails
 import com.netflix.spinnaker.orca.pipeline.model.ManualTrigger
-import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
@@ -93,7 +92,7 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
         val taskResult = TaskResult(SUCCEEDED)
 
         beforeGroup {
-          whenever(task.execute(any<Stage>())) doReturn taskResult
+          whenever(task.execute(any())) doReturn taskResult
           whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
         }
 
@@ -123,7 +122,7 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
         val taskResult = TaskResult(SUCCEEDED, stageOutputs, emptyMap<String, Any>())
 
         beforeGroup {
-          whenever(task.execute(any<Stage>())) doReturn taskResult
+          whenever(task.execute(any())) doReturn taskResult
           whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
         }
 
@@ -145,7 +144,7 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
         val taskResult = TaskResult(SUCCEEDED, emptyMap<String, Any>(), outputs)
 
         beforeGroup {
-          whenever(task.execute(any<Stage>())) doReturn taskResult
+          whenever(task.execute(any())) doReturn taskResult
           whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
         }
 
@@ -170,7 +169,7 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
         val taskResult = TaskResult(SUCCEEDED, emptyMap<String, Any>(), outputs)
 
         beforeGroup {
-          whenever(task.execute(any<Stage>())) doReturn taskResult
+          whenever(task.execute(any())) doReturn taskResult
           whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
         }
 
@@ -1200,7 +1199,7 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
     val taskResult = TaskResult(RUNNING)
 
     beforeGroup {
-      whenever(task.execute(any<Stage>())) doReturn taskResult
+      whenever(task.execute(any())) doReturn taskResult
       whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
       whenever(task.timeout) doReturn timeout.toMillis()
     }

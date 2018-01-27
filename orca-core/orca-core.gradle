@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-apply from: "$rootDir/gradle/groovy.gradle"
+apply from: "$rootDir/gradle/spock.gradle"
 
 dependencies {
   compile project(":orca-extensionpoint")

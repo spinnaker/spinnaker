@@ -52,7 +52,6 @@ class OperationsControllerSpec extends Specification {
 
   void setup() {
     MDC.clear()
-    artifactResolver.objectMapper = mapper
   }
 
   def executionLauncher = Mock(ExecutionLauncher)
@@ -61,7 +60,7 @@ class OperationsControllerSpec extends Specification {
   def executionRepository = Mock(ExecutionRepository)
   def pipelineTemplateService = Mock(PipelineTemplateService)
   def webhookService = Mock(WebhookService)
-  def artifactResolver = new ArtifactResolver()
+  def artifactResolver = new ArtifactResolver(mapper, executionRepository)
 
   def env = new MockEnvironment()
   def buildArtifactFilter = new BuildArtifactFilter(environment: env)
@@ -333,6 +332,7 @@ class OperationsControllerSpec extends Specification {
     Map requestedPipeline = [
       trigger: [
         type      : "jenkins",
+        buildInfo : [:],
         properties: [
           key1        : 'val1',
           key2        : 'val2',

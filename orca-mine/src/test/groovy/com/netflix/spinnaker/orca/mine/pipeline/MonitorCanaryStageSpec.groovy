@@ -20,9 +20,10 @@ package com.netflix.spinnaker.orca.mine.pipeline
 import com.netflix.spinnaker.orca.CancellableStage
 import com.netflix.spinnaker.orca.mine.MineService
 import com.netflix.spinnaker.orca.pipeline.model.Execution
-import com.netflix.spinnaker.orca.pipeline.model.PipelineBuilder
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import spock.lang.Specification
+import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
+import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
 
 class MonitorCanaryStageSpec extends Specification {
   def mineService = Mock(MineService)
@@ -45,9 +46,13 @@ class MonitorCanaryStageSpec extends Specification {
 
   def "should propagate cancel upstream if canary registered and execution explicitly canceled"() {
     given:
-    def pipeline = new PipelineBuilder("orca").withStage(CanaryStage.PIPELINE_CONFIG_TYPE).build()
-    def canaryStage = pipeline.namedStage(CanaryStage.PIPELINE_CONFIG_TYPE)
-    canaryStage.setRefId("1")
+    def pipeline = pipeline {
+      stage {
+        refId = "1"
+        type = CanaryStage.PIPELINE_CONFIG_TYPE
+      }
+    }
+    def canaryStage = pipeline.stageByRef("1")
     def canaryStageBuilder = Mock(CanaryStage)
     def monitorCanaryStage = new MonitorCanaryStage(mineService: mineService, canaryStage: canaryStageBuilder)
     def stage = new Stage(pipeline, "pipelineStage", [

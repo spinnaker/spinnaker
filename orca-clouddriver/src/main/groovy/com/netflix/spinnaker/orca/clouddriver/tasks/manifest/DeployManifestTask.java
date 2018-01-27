@@ -17,6 +17,10 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.manifest;
 
+import java.io.IOException;
+import java.util.*;
+import java.util.stream.Collectors;
+import javax.annotation.Nonnull;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
@@ -37,15 +41,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.yaml.snakeyaml.Yaml;
 import retrofit.client.Response;
-
-import javax.annotation.Nonnull;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 @Component
 @Slf4j
@@ -102,7 +97,8 @@ public class DeployManifestTask extends AbstractCloudProviderAwareTask implement
 
         manifestWrapper = contextParameterProcessor.process(
             manifestWrapper,
-            contextParameterProcessor.buildExecutionContext(stage, true)
+          contextParameterProcessor.buildExecutionContext(stage, true),
+          true
         );
 
         if (manifestWrapper.containsKey("expressionEvaluationSummary")) {

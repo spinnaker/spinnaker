@@ -40,8 +40,8 @@ class BuildDetailExtractorSpec extends Specification {
 
     where:
     buildInfo                                                                                                                                              | result | expectedResult
-    ["name": "SPINNAKER", "number": "9001", "url": "http://spinnaker.jenkis.test.netflix.net/job/SPINNAKER-package-echo/69/"]                              | [:]    | ["job": "SPINNAKER", "buildNumber": "9001", "buildInfoUrl": "http://spinnaker.jenkis.test.netflix.net/job/SPINNAKER-package-echo/69/", "buildHost": "http://spinnaker.jenkis.test.netflix.net/"]
-    ["name": "organization/SPINNAKER", "number": "9001", "url": "http://spinnaker.travis.test.netflix.net/organization/SPINNAKER-package-echo/builds/69/"] | [:]    | ["job": "organization/SPINNAKER", "buildNumber": "9001", "buildInfoUrl": "http://spinnaker.travis.test.netflix.net/organization/SPINNAKER-package-echo/builds/69/", "buildHost": "http://spinnaker.travis.test.netflix.net/"]
+    ["name": "SPINNAKER", "number": "9001", "url": "http://spinnaker.jenkis.test.netflix.net/job/SPINNAKER-package-echo/69/"]                              | [:]    | ["job": "SPINNAKER", "buildNumber": 9001, "buildInfoUrl": "http://spinnaker.jenkis.test.netflix.net/job/SPINNAKER-package-echo/69/", "buildHost": "http://spinnaker.jenkis.test.netflix.net/"]
+    ["name": "organization/SPINNAKER", "number": "9001", "url": "http://spinnaker.travis.test.netflix.net/organization/SPINNAKER-package-echo/builds/69/"] | [:]    | ["job": "organization/SPINNAKER", "buildNumber": 9001, "buildInfoUrl": "http://spinnaker.travis.test.netflix.net/organization/SPINNAKER-package-echo/builds/69/", "buildHost": "http://spinnaker.travis.test.netflix.net/"]
   }
 
   @Unroll
