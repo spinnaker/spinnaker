@@ -3,7 +3,7 @@ import * as angular from 'angular';
 import { IScope } from 'angular';
 import { $compile, $controller } from 'ngimport';
 
-export interface IRenderAngularJSProps {
+export interface IRenderAngularJSProps extends React.HTMLProps<HTMLDivElement> {
   template: string;
   controller: string;
   locals?: { [key: string]: any };
@@ -47,6 +47,7 @@ export class AngularJSAdapter extends React.Component<IRenderAngularJSProps> {
   }
 
   public render() {
-    return <div ref={(ref) => this.refCallback(ref)} />
+    const { template, controller, locals, ...rest } = this.props;
+    return <div ref={(ref) => this.refCallback(ref)} {...rest} />
   }
 }

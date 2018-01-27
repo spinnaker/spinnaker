@@ -55,6 +55,7 @@ import { UrlBuilderService } from 'core/navigation/urlBuilder.service';
 import { VariableInputService } from '../pipeline/config/templates/inputs/variableInput.service';
 import { VariableValidatorService } from '../pipeline/config/templates/validators/variableValidator.service';
 import { VersionSelectionService } from '../cloudProvider/versionSelection/versionSelection.service';
+import { VersionedCloudProviderService } from '../cloudProvider/versionedCloudProvider.service';
 import { ViewStateCacheService } from '../cache/viewStateCache.service';
 import { WaypointService } from '../utils/waypoints/waypoint.service';
 
@@ -135,6 +136,7 @@ export class CoreReactInject extends ReactInject {
   public get variableInputService() { return this.$injector.get('variableInputService') as VariableInputService; }
   public get variableValidatorService() { return this.$injector.get('variableValidatorService') as VariableValidatorService; }
   public get versionSelectionService() { return this.$injector.get('versionSelectionService') as VersionSelectionService; }
+  public get versionedCloudProviderService() { return this.$injector.get('versionedCloudProviderService') as VersionedCloudProviderService; }
   public get viewStateCache() { return this.$injector.get('viewStateCache') as ViewStateCacheService; }
   public get waypointService() { return this.$injector.get('waypointService') as WaypointService; }
 

@@ -5,9 +5,10 @@ import { STATE_CONFIG_PROVIDER, INestedState, StateConfigProvider } from 'core/n
 import {
   APPLICATION_STATE_PROVIDER, ApplicationStateProvider,
 } from 'core/application/application.state.provider';
-import { VersionedCloudProviderService } from 'core/cloudProvider';
 import { Application } from 'core/application/application.model';
 import { filterModelConfig } from 'core/cluster/filter/clusterFilter.model';
+
+import { ServerGroupDetails } from './details/ServerGroupDetails';
 
 export const SERVER_GROUP_STATES = 'spinnaker.core.serverGroup.states';
 module(SERVER_GROUP_STATES, [
@@ -53,22 +54,7 @@ module(SERVER_GROUP_STATES, [
     name: 'serverGroup',
     url: '/serverGroupDetails/:provider/:accountId/:region/:serverGroup',
     views: {
-      'detail@../insight': {
-        templateProvider: ['$templateCache', '$stateParams', 'versionedCloudProviderService',
-          ($templateCache: ng.ITemplateCacheService,
-           $stateParams: StateParams,
-           versionedCloudProviderService: VersionedCloudProviderService) => {
-            return versionedCloudProviderService.getValue($stateParams.provider, $stateParams.accountId, 'serverGroup.detailsTemplateUrl').then(templateUrl =>
-              $templateCache.get(templateUrl)
-            );
-        }],
-        controllerProvider: ['$stateParams', 'versionedCloudProviderService',
-          ($stateParams: StateParams,
-           versionedCloudProviderService: VersionedCloudProviderService) => {
-            return versionedCloudProviderService.getValue($stateParams.provider, $stateParams.accountId, 'serverGroup.detailsController');
-        }],
-        controllerAs: 'ctrl'
-      }
+      'detail@../insight': { component: ServerGroupDetails, $type: 'react' },
     },
     resolve: {
       serverGroup: ['$stateParams', ($stateParams: StateParams) => {
