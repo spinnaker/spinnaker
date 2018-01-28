@@ -8,15 +8,15 @@ import { IFeatures, SETTINGS } from 'core/config/settings';
 import { SpinnakerHeader } from 'core/header/SpinnakerHeader';
 
 const template = `
-  <div class="spinnaker-container">
+  <div class="spinnaker-container grid-container">
     <div class="transition-overlay" ng-if="!authenticating && routing">
       <loading-spinner size="'medium'"></loading-spinner>
     </div>
-    <div class="navbar-inverse">
+    <div class="navbar-inverse grid-header">
       <div ng-include="$ctrl.spinnakerHeaderTemplate"></div>
     </div>
 
-    <div class="spinnaker-content">
+    <div class="spinnaker-content grid-contents">
       <div ui-view="main" ng-if="!authenticating"></div>
     </div>
   </div>
