@@ -88,8 +88,8 @@ abstract class AbstractEnableDisableKubernetesAtomicOperation implements AtomicO
       def getGeneration = null
       def getResource = null
       def desired = null
+      def disableAnnotation = null
       if (replicationController) {
-        credentials.apiAdaptor.annotateReplicationController(namespace, description.serverGroupName, KubernetesUtil.ENABLE_DISABLE_ANNOTATION, action)
         desired = credentials.apiAdaptor.toggleReplicationControllerSpecLabels(namespace, description.serverGroupName, services, action)
         getGeneration = { ReplicationController rc ->
           return rc.metadata.generation
@@ -97,8 +97,10 @@ abstract class AbstractEnableDisableKubernetesAtomicOperation implements AtomicO
         getResource = {
           return credentials.apiAdaptor.getReplicationController(namespace, description.serverGroupName)
         }
+        disableAnnotation = { ->
+          return credentials.apiAdaptor.annotateReplicationController(namespace, description.serverGroupName, KubernetesUtil.ENABLE_DISABLE_ANNOTATION, action)
+        }
       } else if (replicaSet) {
-        credentials.apiAdaptor.annotateReplicaSet(namespace, description.serverGroupName, KubernetesUtil.ENABLE_DISABLE_ANNOTATION, action)
         desired = credentials.apiAdaptor.toggleReplicaSetSpecLabels(namespace, description.serverGroupName, services, action)
         getGeneration = { ReplicaSet rs ->
           return rs.metadata.generation
@@ -106,17 +108,25 @@ abstract class AbstractEnableDisableKubernetesAtomicOperation implements AtomicO
         getResource = {
           return credentials.apiAdaptor.getReplicaSet(namespace, description.serverGroupName)
         }
+        disableAnnotation = { ->
+          return credentials.apiAdaptor.annotateReplicaSet(namespace, description.serverGroupName, KubernetesUtil.ENABLE_DISABLE_ANNOTATION, action)
+        }
       } else {
         throw new KubernetesOperationException("No replication controller or replica set $description.serverGroupName in $namespace.")
       }
 
       if (!credentials.apiAdaptor.blockUntilResourceConsistent(desired, getGeneration, getResource)) {
-        throw new KubernetesOperationException("Server group failed to reach a consistent state. This is likely a bug with Kubernetes itself.")
+        throw new KubernetesOperationException("Server group failed to reach a consistent state while waiting for label to be applied. This is likely a bug with Kubernetes itself.")
+      }
+
+      if (!credentials.apiAdaptor.blockUntilResourceConsistent(disableAnnotation(), getGeneration, getResource)) {
+        throw new KubernetesOperationException("Server group failed to reach a consistent state while waiting for annotation be applied. This is likely a bug with Kubernetes itself.")
       }
     }
 
-    if (!replicationController && !replicaSet )
+    if (!replicationController && !replicaSet ) {
       throw new KubernetesOperationException("No replication controller or replica set $description.serverGroupName in $namespace.")
+    }
 
     KubernetesV1ServerGroup serverGroup = clusterProviders.getServerGroup(description.account, namespace, description.serverGroupName)
     serverGroup.instances.forEach( { instance -> pods.add(instance.getPod())})
