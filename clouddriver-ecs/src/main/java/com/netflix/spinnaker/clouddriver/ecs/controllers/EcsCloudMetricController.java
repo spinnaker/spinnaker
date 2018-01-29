@@ -25,7 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.Collection;
 
 @RestController
-@RequestMapping("/ecs/cloudmetrics")
+@RequestMapping("/ecs/cloudMetrics")
 public class EcsCloudMetricController {
   private final EcsCloudMetricProvider provider;
 
