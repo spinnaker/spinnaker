@@ -19,6 +19,13 @@ module.exports = angular
     this.serverGroupsStream = new Subject();
 
     this.syncNavigation = () => {
+      if (!clusterFilterModel.sortFilter.multiselect && $state.params.multiselect) {
+        $state.go('.', { multiselect: null }, { inherit: true });
+      }
+      if (clusterFilterModel.sortFilter.multiselect && !$state.params.multiselect) {
+        $state.go('.', { multiselect: true }, { inherit: true });
+      }
+
       if ($state.includes('**.multipleInstances') && !clusterFilterModel.sortFilter.multiselect) {
         this.deselectAllInstances();
         $state.go('^');

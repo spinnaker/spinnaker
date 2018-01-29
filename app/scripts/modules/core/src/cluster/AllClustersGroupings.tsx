@@ -120,7 +120,7 @@ export class AllClustersGroupings extends React.Component<IAllClustersGroupingsP
             rowHeight={this.cellCache.rowHeight}
             rowRenderer={this.renderRow}
             noRowsRenderer={this.noRowsRender}
-            overscanRowCount={3}
+            overscanRowCount={1}
             containerStyle={{ overflow: 'visible' }}
           />}
       </AutoSizer>

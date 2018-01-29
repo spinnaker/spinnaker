@@ -10,10 +10,11 @@ import { CloudProviderLogo } from 'core/cloudProvider';
 import { IInstance, IServerGroup } from 'core/domain';
 import { EntityNotifications } from 'core/entityTag/notifications/EntityNotifications';
 import { HealthCounts } from 'core/healthCounts';
+import { InstanceList } from 'core/instance/InstanceList';
+import { Instances } from 'core/instance/Instances';
 import { LoadBalancersTagWrapper } from 'core/loadBalancer';
 import { NamingService } from 'core/naming';
 import { NgReact, ReactInjector } from 'core/reactShims';
-import { Instances } from 'core/instance/Instances';
 import { ScrollToService } from 'core/utils';
 import { ServerGroupManagerTag } from 'core/serverGroupManager/ServerGroupManagerTag';
 
@@ -170,7 +171,7 @@ export class ServerGroup extends React.Component<IServerGroupProps, IServerGroup
   }
 
   public render() {
-    const { InstanceList, RunningTasksTag } = NgReact;
+    const { RunningTasksTag } = NgReact;
     const { filter, instances, images, jenkins, isSelected, multiselect, isMultiSelected, showAllInstances, listInstances } = this.state;
     const { serverGroup, application, sortFilter, hasDiscovery, hasLoadBalancers } = this.props;
     const { account, region, name, type } = serverGroup;

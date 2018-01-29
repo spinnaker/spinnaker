@@ -70,6 +70,7 @@ describe('Multiselect Model', () => {
         });
 
         it('does not navigate when already in multipleInstances view', () => {
+          currentParams.multiselect = true;
           instanceGroup.instanceIds.push('i-123');
           instanceGroup.instanceIds.push('i-124');
           currentStates = ['**.clusters.*', '**.multipleInstances'];
@@ -103,6 +104,7 @@ describe('Multiselect Model', () => {
         });
 
         it('does not navigate when already in multipleServerGroups view', () => {
+          currentParams.multiselect = true;
           currentStates = ['**.clusters.*', '**.multipleServerGroups'];
           MultiselectModel.toggleServerGroup(serverGroup);
           expect(result).toBe(null);
