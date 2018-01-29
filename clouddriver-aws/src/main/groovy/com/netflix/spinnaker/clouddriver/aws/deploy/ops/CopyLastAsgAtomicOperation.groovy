@@ -207,7 +207,11 @@ class CopyLastAsgAtomicOperation implements AtomicOperation<DeploymentResult> {
       def thisResult = basicAmazonDeployHandler.handle(newDescription, priorOutputs)
 
       result.serverGroupNames.addAll(thisResult.serverGroupNames)
+      result.deployedNames.addAll(thisResult.deployedNames)
       result.messages.addAll(thisResult.messages)
+      thisResult.serverGroupNameByRegion.entrySet().each { result.serverGroupNameByRegion[it.key] = it.value }
+      thisResult.deployedNamesByLocation.entrySet().each { result.deployedNamesByLocation[it.key] = it.value }
+
       task.updateStatus BASE_PHASE, "Deployment complete in $targetRegion. New ASGs = ${result.serverGroupNames}"
     }
     task.updateStatus BASE_PHASE, "Finished copying last ASG for ${cluster}. New ASGs = ${result.serverGroupNames}."

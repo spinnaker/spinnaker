@@ -90,9 +90,12 @@ class CopyLastAsgAtomicOperationUnitSpec extends Specification {
     }
 
     when:
-    op.operate([])
+    def result = op.operate([])
 
     then:
+    result.serverGroupNameByRegion['us-east-1'] == 'asgard-stack-v001'
+    result.serverGroupNameByRegion['us-west-1'] == 'asgard-stack-v001'
+    result.serverGroupNames == ['asgard-stack-v001', 'asgard-stack-v001']
     2 * mockAutoScaling.describeLaunchConfigurations(_) >> { DescribeLaunchConfigurationsRequest request ->
       assert request.launchConfigurationNames == ['foo']
       def mockLaunch = Mock(LaunchConfiguration)
@@ -114,8 +117,8 @@ class CopyLastAsgAtomicOperationUnitSpec extends Specification {
     }
     2 * serverGroupNameResolver.resolveLatestServerGroupName("asgard-stack") >> { "asgard-stack-v000" }
     0 * serverGroupNameResolver._
-    1 * deployHandler.handle(expectedDeployDescription('us-east-1'), _) >> new DeploymentResult(serverGroupNameByRegion: ['us-east-1': 'asgard-stack-v001'])
-    1 * deployHandler.handle(expectedDeployDescription('us-west-1'), _) >> new DeploymentResult(serverGroupNameByRegion: ['us-west-1': 'asgard-stack-v001'])
+    1 * deployHandler.handle(expectedDeployDescription('us-east-1'), _) >> new DeploymentResult(serverGroupNames: ['asgard-stack-v001'], serverGroupNameByRegion: ['us-east-1': 'asgard-stack-v001'])
+    1 * deployHandler.handle(expectedDeployDescription('us-west-1'), _) >> new DeploymentResult(serverGroupNames: ['asgard-stack-v001'], serverGroupNameByRegion: ['us-west-1': 'asgard-stack-v001'])
 
     where:
     requestSpotPrice | ancestorSpotPrice || expectedSpotPrice
