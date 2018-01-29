@@ -7,7 +7,7 @@ const helpContents: {[key: string]: string} = {
         <p>A <em>cluster pair</em> is used to create a baseline and canary cluster.</p>' +
         <p>The version currently deployed in the baseline cluster will be used to create a new baseline server group, while the version created in the previous bake or Find Image stage will be deployed into the canary.</p>`,
   'pipeline.config.canary.analysisType': `
-        <p>The analysis type determines whether the canary analysis is performed over data points collected starting from the moment of execution and into the future, or over an explicitly-specified  time interval.</p>
+        <p>The analysis type determines whether the canary analysis is performed over data points collected starting from the moment of execution and into the future, or over an explicitly-specified time interval.</p>
         <p>The <strong>Real Time</strong> analysis type means that the canary analysis will be performed over a time interval beginning at the moment of execution.</p>
         <p>The <strong>Retrospective</strong> analysis type means that the canary analysis will be performed over an explicitly-specified time interval (likely in the past).</p>`,
   'pipeline.config.canary.resultStrategy': `
@@ -16,7 +16,9 @@ const helpContents: {[key: string]: string} = {
         <p>The <strong>average</strong> strategy takes the average of all the canary scores.</p>`,
   'pipeline.config.canary.delayBeforeAnalysis': '<p>The number of minutes until the first canary analysis measurement interval begins.</p>',
   'pipeline.config.canary.notificationHours': '<p>Hours at which to send a notification (comma separated)</p>',
-  'pipeline.config.canary.canaryInterval': '<p>The frequency at which a canary score is generated.  The recommended interval is at least 30 minutes.</p>',
+  'pipeline.config.canary.canaryInterval': `
+        <p>The frequency at which a canary score is generated. The recommended interval is at least 30 minutes.</p>
+        <p>If an interval is not specified, or the specified interval is larger than the overall time range, there will be one canary run over the full time range.</p>`,
   'pipeline.config.canary.successfulScore': '<p>The minimum score the canary must achieve to be considered successful.</p>',
   'pipeline.config.canary.unhealthyScore': '<p>The lowest score the canary can attain before it is aborted and disabled as a failure.</p>',
   'pipeline.config.canary.scaleUpCapacity': '<p>The number of instances to which to scale the canary and control clusters.</p>',
@@ -34,7 +36,7 @@ const helpContents: {[key: string]: string} = {
   'pipeline.config.canary.lookback': '<p>With an analysis type of <strong>Growing</strong>, the entire duration of the canary will be considered during the analysis.</p><p>When choosing <strong>Sliding Lookback</strong>, the canary will use the most recent number of specified minutes for its analysis report (<b>useful for long running canaries that span multiple days</b>).</p>',
   'pipeline.config.canary.continueOnUnhealthy': '<p>Continue the pipeline if the canary analysis comes back as <b>UNHEALTHY</b></p>',
   'pipeline.config.canary.owner': '<p>The recipient email to which the canary report(s) will be sent.</p>',
-  'pipeline.config.canary.watchers': '<p>Comma separated list of additional emails to receive canary reports.  Owners are automatically subscribed to notification emails.</p>',
+  'pipeline.config.canary.watchers': '<p>Comma separated list of additional emails to receive canary reports. Owners are automatically subscribed to notification emails.</p>',
   'pipeline.config.canary.useGlobalDataset': '<p>Uses the global atlas dataset instead of the region specific dataset for the canary analysis</p>',
   'pipeline.config.canary.marginalScore': `
         <p>A canary stage can include multiple canary runs.</p>
