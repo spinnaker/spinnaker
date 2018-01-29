@@ -170,7 +170,7 @@ export class InstanceListBody extends React.Component<IInstanceListBodyProps, II
     });
 
     return (
-      <tr key={instance.id} className={rowClass}>
+      <tr key={instance.id} data-instance-id={instance.id} className={rowClass}>
         {this.$state.params.multiselect && (
           <td className="no-hover">
             <input
