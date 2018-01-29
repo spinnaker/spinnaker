@@ -25,18 +25,12 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
-import spock.lang.Unroll
-import static com.netflix.spinnaker.orca.pipeline.model.Execution.DEFAULT_EXECUTION_ENGINE
-import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionEngine.v2
-import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionEngine.v3
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
 
 class ExecutionLauncherSpec extends Specification {
 
   @Shared def objectMapper = new ObjectMapper()
-  def executionRunner = Mock(ExecutionRunner) {
-    engine() >> v3
-  }
+  def executionRunner = Mock(ExecutionRunner)
   def executionRepository = Mock(ExecutionRepository)
   def startTracker = Mock(PipelineStartTracker)
   def pipelineValidator = Stub(PipelineValidator)
@@ -119,7 +113,7 @@ class ExecutionLauncherSpec extends Specification {
     0 * executionRunner.start(_)
 
     where:
-    config = [id: "whatever", stages: [], limitConcurrent: true, executionEngine: "v2"]
+    config = [id: "whatever", stages: [], limitConcurrent: true]
     json = objectMapper.writeValueAsString(config)
   }
 
@@ -138,31 +132,7 @@ class ExecutionLauncherSpec extends Specification {
     1 * startTracker.addToStarted(config.id, _)
 
     where:
-    config = [id: "whatever", stages: [], executionEngine: "v2"]
-    json = objectMapper.writeValueAsString(config)
-  }
-
-  @Unroll
-  def "sets executionEngine correctly"() {
-    given:
-    @Subject def launcher = create()
-
-    when:
-    launcher.start(PIPELINE, json)
-
-    then:
-    1 * executionRepository.store({
-      it.executionEngine == expected
-    })
-
-    where:
-    supplied                | expected
-    [executionEngine: "v3"] | v3
-    [executionEngine: "v2"] | v2
-    [executionEngine: null] | DEFAULT_EXECUTION_ENGINE
-    [:]                     | DEFAULT_EXECUTION_ENGINE
-
-    config = [id: "1", stages: []] + supplied
+    config = [id: "whatever", stages: []]
     json = objectMapper.writeValueAsString(config)
   }
 }

@@ -29,7 +29,6 @@ import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import com.netflix.spinnaker.security.User;
 import static com.netflix.spinnaker.orca.ExecutionStatus.NOT_STARTED;
-import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionEngine.v3;
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.ORCHESTRATION;
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE;
 import static java.util.Arrays.asList;
@@ -218,16 +217,6 @@ public class Execution implements Serializable {
 
   public void setPaused(@Nullable PausedDetails paused) {
     this.paused = paused;
-  }
-
-  private ExecutionEngine executionEngine = DEFAULT_EXECUTION_ENGINE;
-
-  public @Nonnull ExecutionEngine getExecutionEngine() {
-    return executionEngine;
-  }
-
-  public void setExecutionEngine(@Nonnull ExecutionEngine executionEngine) {
-    this.executionEngine = executionEngine;
   }
 
   private String origin;
@@ -441,11 +430,5 @@ public class Execution implements Serializable {
     @Override public String toString() {
       return name().toLowerCase();
     }
-  }
-
-  public static final ExecutionEngine DEFAULT_EXECUTION_ENGINE = v3;
-
-  public enum ExecutionEngine {
-    v1, v2, v3
   }
 }

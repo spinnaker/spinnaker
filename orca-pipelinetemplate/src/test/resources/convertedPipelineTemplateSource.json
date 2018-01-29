@@ -1,7 +1,6 @@
 {
   "appConfig": {},
   "description": "This is my favorite pipeline!",
-  "executionEngine": "v3",
   "lastModifiedBy": "example@example.com",
   "limitConcurrent": true,
   "notifications": [

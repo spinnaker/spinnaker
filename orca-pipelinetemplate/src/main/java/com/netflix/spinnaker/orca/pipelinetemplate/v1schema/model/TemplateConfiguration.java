@@ -15,10 +15,9 @@
  */
 package com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model;
 
+import java.util.*;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.netflix.spinnaker.orca.pipelinetemplate.validator.VersionedSchema;
-
-import java.util.*;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class TemplateConfiguration implements VersionedSchema {
@@ -36,7 +35,6 @@ public class TemplateConfiguration implements VersionedSchema {
 
     private String application;
     private String pipelineConfigId;
-    private String executionEngine;
     private String name;
     private TemplateSource template;
     private Map<String, Object> variables = new HashMap<>();
@@ -79,10 +77,6 @@ public class TemplateConfiguration implements VersionedSchema {
 
     public void setVariables(Map<String, Object> variables) {
       this.variables = variables;
-    }
-
-    public String getExecutionEngine() {
-      return executionEngine;
     }
   }
 

@@ -20,7 +20,6 @@ import java.util.concurrent.atomic.AtomicInteger
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.orca.ExecutionStatus
 import groovy.transform.CompileStatic
-import static com.netflix.spinnaker.orca.pipeline.model.Execution.DEFAULT_EXECUTION_ENGINE
 
 @CompileStatic
 class PipelineBuilder {
@@ -126,11 +125,6 @@ class PipelineBuilder {
 
   PipelineBuilder withStartTime(long startTime) {
     pipeline.startTime = startTime
-    return this
-  }
-
-  PipelineBuilder withExecutionEngine(Execution.ExecutionEngine executionEngine) {
-    pipeline.executionEngine = executionEngine ?: DEFAULT_EXECUTION_ENGINE
     return this
   }
 

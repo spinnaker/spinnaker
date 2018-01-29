@@ -11,6 +11,5 @@
     }
   ],
   "limitConcurrent": true,
-  "appConfig": {},
-  "executionEngine": "v3"
+  "appConfig": {}
 }

@@ -34,8 +34,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import static com.netflix.spinnaker.orca.pipeline.model.Execution.*;
-import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionEngine.v3;
+import static com.netflix.spinnaker.orca.pipeline.model.Execution.AuthenticationDetails;
+import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType;
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.ORCHESTRATION;
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE;
 import static java.lang.Boolean.parseBoolean;
@@ -183,7 +183,6 @@ public class ExecutionLauncher {
       .withLimitConcurrent(getBoolean(config, "limitConcurrent"))
       .withKeepWaitingPipelines(getBoolean(config, "keepWaitingPipelines"))
       .withNotifications((List<Map<String, Object>>) config.get("notifications"))
-      .withExecutionEngine(getEnum(config, "executionEngine", ExecutionEngine.class))
       .withOrigin(getString(config, "origin"))
       .build();
   }
@@ -198,7 +197,6 @@ public class ExecutionLauncher {
     if (config.containsKey("description")) {
       orchestration.setDescription(getString(config, "description"));
     }
-    orchestration.setExecutionEngine(v3);
 
     for (Map<String, Object> context : getList(config, "stages")) {
       String type = context.remove("type").toString();

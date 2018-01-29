@@ -16,6 +16,12 @@
 
 package com.netflix.spinnaker.orca.pipeline.persistence.jedis;
 
+import java.io.IOException;
+import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
+import javax.annotation.Nonnull;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate;
@@ -44,21 +50,12 @@ import rx.functions.Func0;
 import rx.functions.Func1;
 import rx.functions.Func2;
 import rx.schedulers.Schedulers;
-
-import javax.annotation.Nonnull;
-import java.io.IOException;
-import java.util.*;
-import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
-
 import static com.google.common.collect.Maps.filterValues;
-import static com.netflix.spinnaker.orca.pipeline.model.Execution.DEFAULT_EXECUTION_ENGINE;
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.ORCHESTRATION;
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE;
 import static com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_BEFORE;
-import static java.lang.System.currentTimeMillis;
 import static java.lang.String.format;
+import static java.lang.System.currentTimeMillis;
 import static java.util.Collections.*;
 import static net.logstash.logback.argument.StructuredArguments.value;
 import static redis.clients.jedis.BinaryClient.LIST_POSITION.AFTER;
@@ -397,11 +394,6 @@ public class JedisExecutionRepository extends AbstractRedisExecutionRepository {
       map.put("authentication", mapper.writeValueAsString(execution.getAuthentication()));
       map.put("paused", mapper.writeValueAsString(execution.getPaused()));
       map.put("keepWaitingPipelines", String.valueOf(execution.isKeepWaitingPipelines()));
-      if (execution.getExecutionEngine().name() != null) {
-        map.put("executionEngine", String.valueOf(execution.getExecutionEngine().name()));
-      } else {
-        map.put("executionEngine", DEFAULT_EXECUTION_ENGINE.name());
-      }
       map.put("origin", execution.getOrigin());
       map.put("trigger", mapper.writeValueAsString(execution.getTrigger()));
       if (!execution.getStages().isEmpty()) {
@@ -517,16 +509,6 @@ public class JedisExecutionRepository extends AbstractRedisExecutionRepository {
       }
     } catch (Exception e) {
       throw new ExecutionSerializationException("Failed serializing execution json", e);
-    }
-
-    try {
-      if (map.get("executionEngine") == null) {
-        execution.setExecutionEngine(DEFAULT_EXECUTION_ENGINE);
-      } else {
-        execution.setExecutionEngine(Execution.ExecutionEngine.valueOf(map.get("executionEngine")));
-      }
-    } catch (IllegalArgumentException e) {
-      execution.setExecutionEngine(DEFAULT_EXECUTION_ENGINE);
     }
 
     stageIds.forEach(stageId -> {

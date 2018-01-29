@@ -468,7 +468,6 @@
     "allowedAccounts": []
   },
   "paused": null,
-  "executionEngine": "v3",
   "origin": null,
   "trigger": {
     "parentExecution": {
@@ -1967,7 +1966,6 @@
         "allowedAccounts": []
       },
       "paused": null,
-      "executionEngine": "v3",
       "origin": null,
       "trigger": {
         "parentExecution": {
@@ -11909,7 +11907,6 @@
             "allowedAccounts": []
           },
           "paused": null,
-          "executionEngine": "v3",
           "origin": "unknown",
           "trigger": {
             "propertyFile": null,
