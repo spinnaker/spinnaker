@@ -130,9 +130,11 @@ public class StackdriverMetricsService implements MetricsService {
         if (extendedScopeParams != null && extendedScopeParams.containsKey("service")) {
           filter += " AND resource.labels.module_id=" + extendedScopeParams.get("service");
         }
-      } else if ("k8s_container".equals(resourceType)) {
-        // TODO(duftler): Add support for: k8s_pod, k8s_node
-        // TODO(duftler): Scope isn't used here, and it isn't clear yet which filter attribute it maps most closely to.
+      } else if (Arrays.asList("k8s_container", "k8s_pod", "k8s_node").contains(resourceType)) {
+        // TODO(duftler): Figure out where it makes sense to use 'scope'. It is available as a template variable binding,
+        // and maps to the control and experiment scopes. Will probably be useful to use expressions in those fields in
+        // the ui, and then map 'scope' to some user label value in a customer filter template.
+        // TODO(duftler): Should cluster_name be automatically included or required?
         filter += " AND resource.labels.project_id=" + projectId;
         Map<String, String> extendedScopeParams = stackdriverCanaryScope.getExtendedScopeParams();
 
