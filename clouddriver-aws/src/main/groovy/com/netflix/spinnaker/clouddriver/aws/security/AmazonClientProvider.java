@@ -28,6 +28,8 @@ import com.amazonaws.services.cloudwatch.AmazonCloudWatch;
 import com.amazonaws.services.cloudwatch.AmazonCloudWatchClientBuilder;
 import com.amazonaws.services.ec2.AmazonEC2;
 import com.amazonaws.services.ec2.AmazonEC2ClientBuilder;
+import com.amazonaws.services.ecr.AmazonECR;
+import com.amazonaws.services.ecr.AmazonECRClientBuilder;
 import com.amazonaws.services.ecs.AmazonECS;
 import com.amazonaws.services.ecs.AmazonECSClientBuilder;
 import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancing;
@@ -436,5 +438,9 @@ public class AmazonClientProvider {
 
   public AWSApplicationAutoScaling getAmazonApplicationAutoScaling(String accountName, AWSCredentialsProvider awsCredentialsProvider, String region) {
     return awsSdkClientSupplier.getClient(AWSApplicationAutoScalingClientBuilder.class, AWSApplicationAutoScaling.class, accountName, awsCredentialsProvider, region);
+  }
+
+  public AmazonECR getAmazonEcr(String accountName, AWSCredentialsProvider awsCredentialsProvider, String region) {
+    return awsSdkClientSupplier.getClient(AmazonECRClientBuilder.class, AmazonECR.class, accountName, awsCredentialsProvider, region);
   }
 }
