@@ -143,6 +143,7 @@ class KayentaCanaryStageSpec extends Specification {
                                                                                  [minutesFromInitialStartToCanaryStart: 60, minutesFromInitialStartToCanaryEnd: 120, step: "60"],
                                                                                  [minutesFromInitialStartToCanaryStart: 120, minutesFromInitialStartToCanaryEnd: 180, step: "60"],
                                                                                  [minutesFromInitialStartToCanaryStart: 180, minutesFromInitialStartToCanaryEnd: 240, step: "60"]]
+    null                         | "300"                      | null         || [[minutesFromInitialStartToCanaryStart: 0, minutesFromInitialStartToCanaryEnd: 240, step: "60"]]
   }
 
   @Unroll

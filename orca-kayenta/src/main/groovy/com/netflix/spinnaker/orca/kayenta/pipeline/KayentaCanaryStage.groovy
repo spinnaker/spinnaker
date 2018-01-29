@@ -115,7 +115,7 @@ class KayentaCanaryStage implements StageDefinitionBuilder {
 
     long canaryAnalysisIntervalMins = canaryConfig.canaryAnalysisIntervalMins ? canaryConfig.canaryAnalysisIntervalMins.toLong() : lifetimeMinutes
 
-    if (canaryAnalysisIntervalMins == 0) {
+    if (canaryAnalysisIntervalMins == 0 || canaryAnalysisIntervalMins > lifetimeMinutes) {
       canaryAnalysisIntervalMins = lifetimeMinutes
     }
 
